@@ -243,11 +243,6 @@ jobs:
           BUILD_TYPE_LOWER="release"
           BUILD_TYPE_UPPER="Release"
           
-          if [ "${GITHUB_REPOSITORY}" == "eden-emulator/eden" ]; then
-            BUILD_TYPE_LOWER="relWithDebInfo"
-            BUILD_TYPE_UPPER="RelWithDebInfo"
-          fi
-          
           cp src/android/app/build/outputs/apk/"${BUILD_FLAVOR}/${BUILD_TYPE_LOWER}/app-${BUILD_FLAVOR}-${BUILD_TYPE_LOWER}.apk" \
              "${ARTIFACTS_DIR}/${REV_NAME}.apk" || echo "APK not found"
           
