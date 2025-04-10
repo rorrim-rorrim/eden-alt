@@ -1509,6 +1509,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                     if (BooleanSetting.SHOW_FPS.getBoolean(needsGlobal)) {
                         var fpsText = String.format("FPS: %.1f", actualFps)
+                        if (BooleanSetting.ENABLE_FRAME_INTERPOLATION.getBoolean(needsGlobal)) {
+                            fpsText += String.format(" (Generated: %.1f)", actualFps * 2)
+                        }
                         sb.append(fpsText)
                     }
 

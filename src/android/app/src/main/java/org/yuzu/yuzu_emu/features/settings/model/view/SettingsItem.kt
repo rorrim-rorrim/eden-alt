@@ -240,6 +240,22 @@ abstract class SettingsItem(
 
             put(
                 SwitchSetting(
+                    BooleanSetting.ENABLE_FRAME_INTERPOLATION,
+                    titleId = R.string.enable_frame_interpolation,
+                    descriptionId = R.string.enable_frame_interpolation_description
+                )
+            )
+
+            put(
+                SwitchSetting(
+                    BooleanSetting.ENABLE_FRAME_SKIPPING,
+                    titleId = R.string.enable_frame_skipping,
+                    descriptionId = R.string.enable_frame_skipping_description
+                )
+            )
+
+            put(
+                SwitchSetting(
                     dockedModeSetting,
                     titleId = R.string.use_docked_mode,
                     descriptionId = R.string.use_docked_mode_description

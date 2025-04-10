@@ -337,6 +337,10 @@ struct Values {
 #endif
         "backend", Category::Renderer};
     SwitchableSetting<int> vulkan_device{linkage, 0, "vulkan_device", Category::Renderer, Specialization::RuntimeList};
+    SwitchableSetting<bool> enable_frame_interpolation{linkage, true, "enable_frame_interpolation",
+                                                       Category::Renderer};
+    SwitchableSetting<bool> enable_frame_skipping{linkage, true, "enable_frame_skipping",
+                                                  Category::Renderer};
 
     // Graphics Settings
     ResolutionScalingInfo resolution_info{};

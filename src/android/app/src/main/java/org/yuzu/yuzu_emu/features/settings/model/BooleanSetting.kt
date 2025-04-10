@@ -89,10 +89,9 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     GPU_LOG_MEMORY_TRACKING("gpu_log_memory_tracking"),
     GPU_LOG_DRIVER_DEBUG("gpu_log_driver_debug"),
 
+    ENABLE_FRAME_INTERPOLATION("enable_frame_interpolation"),
+    ENABLE_FRAME_SKIPPING("enable_frame_skipping"),
     ENABLE_QUICK_SETTINGS("enable_quick_settings");
-
-//  external fun isFrameSkippingEnabled(): Boolean
-    external fun isFrameInterpolationEnabled(): Boolean
 
     override fun getBoolean(needsGlobal: Boolean): Boolean =
         NativeConfig.getBoolean(key, needsGlobal)

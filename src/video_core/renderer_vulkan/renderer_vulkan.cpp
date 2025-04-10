@@ -38,9 +38,6 @@
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_surface.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
-#ifdef __ANDROID__
-#include <jni.h>
-#endif
 namespace Vulkan {
 namespace {
 
@@ -175,6 +172,16 @@ RendererVulkan::~RendererVulkan() {
 }
 
 void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebuffers) {
+#ifdef __ANDROID__
+    static u64 frame_counter = 0;
+    if (Settings::values.enable_frame_skipping.GetValue()) {
+        ++frame_counter;
+        if ((frame_counter % 2) != 0) {
+            return;
+        }
+    }
+#endif
+
     SCOPE_EXIT {
         render_window.OnFrameDisplayed();
     };

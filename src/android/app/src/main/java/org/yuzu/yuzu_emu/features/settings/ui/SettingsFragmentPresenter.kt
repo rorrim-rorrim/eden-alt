@@ -271,6 +271,8 @@ class SettingsFragmentPresenter(
         sl.apply {
             // add(IntSetting.RENDERER_NVDEC_EMULATION.key)
 
+            add(BooleanSetting.ENABLE_FRAME_INTERPOLATION.key)
+            add(BooleanSetting.ENABLE_FRAME_SKIPPING.key)
             add(IntSetting.RENDERER_RESOLUTION.key)
             add(IntSetting.RENDERER_VSYNC.key)
             add(IntSetting.RENDERER_SCALING_FILTER.key)
