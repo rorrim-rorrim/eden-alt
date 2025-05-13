@@ -1523,22 +1523,68 @@ Image::Image(const VideoCommon::NullImageParams& params) : VideoCommon::ImageBas
 Image::~Image() = default;
 
 void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
-                         std::span<const VideoCommon::BufferImageCopy> copies) {
+                          std::span<const VideoCommon::BufferImageCopy> copies) {
     // TODO: Move this to another API
     const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
     if (is_rescaled) {
         ScaleDown(true);
     }
-    scheduler->RequestOutsideRenderPassOperationContext();
-    auto vk_copies = TransformBufferImageCopies(copies, offset, aspect_mask);
-    const VkBuffer src_buffer = buffer;
-    const VkImage vk_image = *original_image;
-    const VkImageAspectFlags vk_aspect_mask = aspect_mask;
-    const bool is_initialized = std::exchange(initialized, true);
-    scheduler->Record([src_buffer, vk_image, vk_aspect_mask, is_initialized,
-                       vk_copies](vk::CommandBuffer cmdbuf) {
-        CopyBufferToImage(cmdbuf, src_buffer, vk_image, vk_aspect_mask, is_initialized, vk_copies);
-    });
+
+    // Handle MSAA upload if necessary
+    if (info.num_samples > 1 && runtime->CanUploadMSAA()) {
+        // Create a temporary non-MSAA image to upload the data first
+        ImageInfo temp_info = info;
+        temp_info.num_samples = 1;
+
+        vk::Image temp_image = MakeImage(runtime->device, runtime->memory_allocator, temp_info,
+                                         runtime->ViewFormats(info.format));
+
+        // Upload to the temporary non-MSAA image
+        scheduler->RequestOutsideRenderPassOperationContext();
+        auto vk_copies = TransformBufferImageCopies(copies, offset, aspect_mask);
+        const VkBuffer src_buffer = buffer;
+        const VkImage temp_vk_image = *temp_image;
+        const VkImageAspectFlags vk_aspect_mask = aspect_mask;
+        scheduler->Record([src_buffer, temp_vk_image, vk_aspect_mask, vk_copies](vk::CommandBuffer cmdbuf) {
+            CopyBufferToImage(cmdbuf, src_buffer, temp_vk_image, vk_aspect_mask, false, vk_copies);
+        });
+
+        // Now use MSAACopyPass to convert from non-MSAA to MSAA
+        std::vector<VideoCommon::ImageCopy> image_copies;
+        for (const auto& copy : copies) {
+            VideoCommon::ImageCopy image_copy;
+            image_copy.src_offset = {0, 0, 0}; // Use zero offset for source
+            image_copy.dst_offset = copy.image_offset;
+            image_copy.src_subresource = copy.image_subresource;
+            image_copy.dst_subresource = copy.image_subresource;
+            image_copy.extent = copy.image_extent;
+            image_copies.push_back(image_copy);
+        }
+
+        // Create a wrapper Image for the temporary image
+        Image temp_wrapper(*runtime, temp_info, 0, 0);
+        temp_wrapper.original_image = std::move(temp_image);
+        temp_wrapper.current_image = &Image::original_image;
+        temp_wrapper.aspect_mask = aspect_mask;
+        temp_wrapper.initialized = true;
+
+        // Use MSAACopyPass to convert from non-MSAA to MSAA
+        runtime->msaa_copy_pass->CopyImage(*this, temp_wrapper, image_copies, false);
+        std::exchange(initialized, true);
+    } else {
+        // Regular non-MSAA upload
+        scheduler->RequestOutsideRenderPassOperationContext();
+        auto vk_copies = TransformBufferImageCopies(copies, offset, aspect_mask);
+        const VkBuffer src_buffer = buffer;
+        const VkImage vk_image = *original_image;
+        const VkImageAspectFlags vk_aspect_mask = aspect_mask;
+        const bool is_initialized = std::exchange(initialized, true);
+        scheduler->Record([src_buffer, vk_image, vk_aspect_mask, is_initialized,
+                           vk_copies](vk::CommandBuffer cmdbuf) {
+            CopyBufferToImage(cmdbuf, src_buffer, vk_image, vk_aspect_mask, is_initialized, vk_copies);
+        });
+    }
+
     if (is_rescaled) {
         ScaleUp();
     }
@@ -1560,75 +1606,177 @@ void Image::DownloadMemory(VkBuffer buffer, size_t offset,
 }
 
 void Image::DownloadMemory(std::span<VkBuffer> buffers_span, std::span<size_t> offsets_span,
-                           std::span<const VideoCommon::BufferImageCopy> copies) {
+                            std::span<const VideoCommon::BufferImageCopy> copies) {
     const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
     if (is_rescaled) {
         ScaleDown();
     }
-    boost::container::small_vector<VkBuffer, 8> buffers_vector{};
-    boost::container::small_vector<boost::container::small_vector<VkBufferImageCopy, 16>, 8>
-        vk_copies;
-    for (size_t index = 0; index < buffers_span.size(); index++) {
-        buffers_vector.emplace_back(buffers_span[index]);
-        vk_copies.emplace_back(
-            TransformBufferImageCopies(copies, offsets_span[index], aspect_mask));
-    }
-    scheduler->RequestOutsideRenderPassOperationContext();
-    scheduler->Record([buffers = std::move(buffers_vector), image = *original_image,
-                       aspect_mask_ = aspect_mask, vk_copies](vk::CommandBuffer cmdbuf) {
-        const VkImageMemoryBarrier read_barrier{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .pNext = nullptr,
-            .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
-            .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
-            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = image,
-            .subresourceRange{
-                .aspectMask = aspect_mask_,
-                .baseMipLevel = 0,
-                .levelCount = VK_REMAINING_MIP_LEVELS,
-                .baseArrayLayer = 0,
-                .layerCount = VK_REMAINING_ARRAY_LAYERS,
-            },
-        };
-        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                               0, read_barrier);
 
-        for (size_t index = 0; index < buffers.size(); index++) {
-            cmdbuf.CopyImageToBuffer(image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffers[index],
-                                     vk_copies[index]);
+    // Handle MSAA download if necessary
+    if (info.num_samples > 1 && runtime->msaa_copy_pass) {
+        // Create a temporary non-MSAA image to download the data
+        ImageInfo temp_info = info;
+        temp_info.num_samples = 1;
+
+        vk::Image temp_image = MakeImage(runtime->device, runtime->memory_allocator, temp_info,
+                                         runtime->ViewFormats(info.format));
+
+        // Create a wrapper Image for the temporary image
+        Image temp_wrapper(*runtime, temp_info, 0, 0);
+        temp_wrapper.original_image = std::move(temp_image);
+        temp_wrapper.current_image = &Image::original_image;
+        temp_wrapper.aspect_mask = aspect_mask;
+        temp_wrapper.initialized = true;
+
+        // Convert from MSAA to non-MSAA using MSAACopyPass
+        std::vector<VideoCommon::ImageCopy> image_copies;
+        for (const auto& copy : copies) {
+            VideoCommon::ImageCopy image_copy;
+            image_copy.src_offset = copy.image_offset;
+            image_copy.dst_offset = copy.image_offset;
+            image_copy.src_subresource = copy.image_subresource;
+            image_copy.dst_subresource = copy.image_subresource;
+            image_copy.extent = copy.image_extent;
+            image_copies.push_back(image_copy);
         }
 
-        const VkMemoryBarrier memory_write_barrier{
-            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
-            .pNext = nullptr,
-            .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
-            .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
-        };
-        const VkImageMemoryBarrier image_write_barrier{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .pNext = nullptr,
-            .srcAccessMask = 0,
-            .dstAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-            .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = image,
-            .subresourceRange{
-                .aspectMask = aspect_mask_,
-                .baseMipLevel = 0,
-                .levelCount = VK_REMAINING_MIP_LEVELS,
-                .baseArrayLayer = 0,
-                .layerCount = VK_REMAINING_ARRAY_LAYERS,
-            },
-        };
-        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                               0, memory_write_barrier, nullptr, image_write_barrier);
-    });
+        // Use MSAACopyPass to convert from MSAA to non-MSAA
+        runtime->msaa_copy_pass->CopyImage(temp_wrapper, *this, image_copies, true);
+
+        // Now download from the non-MSAA image
+        boost::container::small_vector<VkBuffer, 8> buffers_vector{};
+        boost::container::small_vector<boost::container::small_vector<VkBufferImageCopy, 16>, 8>
+            vk_copies;
+        for (size_t index = 0; index < buffers_span.size(); index++) {
+            buffers_vector.emplace_back(buffers_span[index]);
+            vk_copies.emplace_back(
+                TransformBufferImageCopies(copies, offsets_span[index], aspect_mask));
+        }
+
+        scheduler->RequestOutsideRenderPassOperationContext();
+        scheduler->Record([buffers = std::move(buffers_vector), image = *temp_wrapper.original_image,
+                           aspect_mask_ = aspect_mask, vk_copies](vk::CommandBuffer cmdbuf) {
+            const VkImageMemoryBarrier read_barrier{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+                .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = image,
+                .subresourceRange{
+                    .aspectMask = aspect_mask_,
+                    .baseMipLevel = 0,
+                    .levelCount = VK_REMAINING_MIP_LEVELS,
+                    .baseArrayLayer = 0,
+                    .layerCount = VK_REMAINING_ARRAY_LAYERS,
+                },
+            };
+            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                   0, read_barrier);
+
+            for (size_t index = 0; index < buffers.size(); index++) {
+                cmdbuf.CopyImageToBuffer(image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffers[index],
+                                         vk_copies[index]);
+            }
+
+            const VkMemoryBarrier memory_write_barrier{
+                .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+            };
+            const VkImageMemoryBarrier image_write_barrier{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = 0,
+                .dstAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
+                .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = image,
+                .subresourceRange{
+                    .aspectMask = aspect_mask_,
+                    .baseMipLevel = 0,
+                    .levelCount = VK_REMAINING_MIP_LEVELS,
+                    .baseArrayLayer = 0,
+                    .layerCount = VK_REMAINING_ARRAY_LAYERS,
+                },
+            };
+            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                                   0, memory_write_barrier, nullptr, image_write_barrier);
+        });
+    } else {
+        // Regular non-MSAA download
+        boost::container::small_vector<VkBuffer, 8> buffers_vector{};
+        boost::container::small_vector<boost::container::small_vector<VkBufferImageCopy, 16>, 8>
+            vk_copies;
+        for (size_t index = 0; index < buffers_span.size(); index++) {
+            buffers_vector.emplace_back(buffers_span[index]);
+            vk_copies.emplace_back(
+                TransformBufferImageCopies(copies, offsets_span[index], aspect_mask));
+        }
+        scheduler->RequestOutsideRenderPassOperationContext();
+        scheduler->Record([buffers = std::move(buffers_vector), image = *original_image,
+                           aspect_mask_ = aspect_mask, vk_copies](vk::CommandBuffer cmdbuf) {
+            const VkImageMemoryBarrier read_barrier{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+                .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = image,
+                .subresourceRange{
+                    .aspectMask = aspect_mask_,
+                    .baseMipLevel = 0,
+                    .levelCount = VK_REMAINING_MIP_LEVELS,
+                    .baseArrayLayer = 0,
+                    .layerCount = VK_REMAINING_ARRAY_LAYERS,
+                },
+            };
+            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                   0, read_barrier);
+
+            for (size_t index = 0; index < buffers.size(); index++) {
+                cmdbuf.CopyImageToBuffer(image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffers[index],
+                                         vk_copies[index]);
+            }
+
+            const VkMemoryBarrier memory_write_barrier{
+                .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+            };
+            const VkImageMemoryBarrier image_write_barrier{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = 0,
+                .dstAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
+                .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = image,
+                .subresourceRange{
+                    .aspectMask = aspect_mask_,
+                    .baseMipLevel = 0,
+                    .levelCount = VK_REMAINING_MIP_LEVELS,
+                    .baseArrayLayer = 0,
+                    .layerCount = VK_REMAINING_ARRAY_LAYERS,
+                },
+            };
+            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                                   0, memory_write_barrier, nullptr, image_write_barrier);
+        });
+    }
+
     if (is_rescaled) {
         ScaleUp(true);
     }
