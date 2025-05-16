@@ -18,6 +18,10 @@ public:
     }
 
     std::pair<void*, size_t> FreeBlock(void* block_ptr, size_t size) {
+        if (block_ptr == nullptr || size == 0) {
+            return {nullptr, 0};
+        }
+
         std::scoped_lock lk(m_mutex);
 
         // Check to see if we are adjacent to any regions.
@@ -41,6 +45,11 @@ public:
     }
 
     void AllocateBlock(void* block_ptr, size_t size) {
+        // Skip if pointer is null or size is zero
+        if (block_ptr == nullptr || size == 0) {
+            return;
+        }
+
         std::scoped_lock lk(m_mutex);
 
         auto address = reinterpret_cast<uintptr_t>(block_ptr);
