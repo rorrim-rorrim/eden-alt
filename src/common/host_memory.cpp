@@ -592,7 +592,7 @@ private:
     void Release() {
         // Make sure we release resources in the correct order
         // First clear the free region manager to avoid any dangling references
-        free_manager = {};
+        free_manager.Clear();
 
         if (virtual_map_base != MAP_FAILED) {
             int ret = munmap(virtual_map_base, virtual_size);

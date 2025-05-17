@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+;;;// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -12,6 +12,12 @@ class FreeRegionManager {
 public:
     explicit FreeRegionManager() = default;
     ~FreeRegionManager() = default;
+    
+    // Clear all free regions
+    void Clear() {
+        std::scoped_lock lk(m_mutex);
+        m_free_regions.clear();
+    }
 
     void SetAddressSpace(void* start, size_t size) {
         this->FreeBlock(start, size);
