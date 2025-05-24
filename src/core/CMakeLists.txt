@@ -1180,7 +1180,8 @@ if (HAS_NCE)
         arm/nce/arm_nce_asm_definitions.h
         arm/nce/arm_nce.cpp
         arm/nce/arm_nce.h
-        arm/nce/arm_nce.s
+        arm/nce/arm_nce_cpp_impl.h
+        arm/nce/arm_nce_cpp_impl.cpp
         arm/nce/guest_context.h
         arm/nce/instructions.h
         arm/nce/interpreter_visitor.cpp
