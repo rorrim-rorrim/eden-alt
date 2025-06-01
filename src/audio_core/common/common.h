@@ -60,14 +60,14 @@ enum class OldChannels : u32 {
     LFE,
 };
 
-constexpr u32 BufferCount = 32;
+constexpr u32 BufferCount = 64;
 
 constexpr u32 MaxRendererSessions = 2;
 constexpr u32 TargetSampleCount = 240;
 constexpr u32 TargetSampleRate = 48'000;
 constexpr u32 MaxChannels = 6;
-constexpr u32 MaxMixBuffers = 24;
-constexpr u32 MaxWaveBuffers = 4;
+constexpr u32 MaxMixBuffers = 48;
+constexpr u32 MaxWaveBuffers = 8;
 constexpr s32 LowestVoicePriority = 0xFF;
 constexpr s32 HighestVoicePriority = 0;
 constexpr u32 BufferAlignment = 0x40;
