@@ -1191,8 +1191,9 @@ void Device::RemoveUnsuitableExtensions() {
     // VK_EXT_custom_border_color
     extensions.custom_border_color = features.custom_border_color.customBorderColors &&
                                      features.custom_border_color.customBorderColorWithoutFormat;
-    RemoveExtensionFeatureIfUnsuitable(extensions.custom_border_color, features.custom_border_color,
-                                       VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+    // Remove for now only for testing, future solutions to be expected
+    //RemoveExtensionFeatureIfUnsuitable(extensions.custom_border_color, features.custom_border_color,
+                                       //VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
 
     // VK_EXT_depth_bias_control
     extensions.depth_bias_control =
