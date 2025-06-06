@@ -25,6 +25,7 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.databinding.CardGameListBinding
 import org.yuzu.yuzu_emu.databinding.CardGameGridBinding
+import org.yuzu.yuzu_emu.databinding.CardGameCarouselBinding
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.utils.GameIconUtils
@@ -37,6 +38,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
     companion object {
         const val VIEW_TYPE_GRID = 0
         const val VIEW_TYPE_LIST = 1
+        const val VIEW_TYPE_CAROUSEL = 2
     }
 
     private var viewType = 0
@@ -54,6 +56,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
         val binding = when (viewType) {
             VIEW_TYPE_LIST -> CardGameListBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             VIEW_TYPE_GRID -> CardGameGridBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            VIEW_TYPE_CAROUSEL -> CardGameCarouselBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             else -> throw IllegalArgumentException("Invalid view type")
         }
         return GameViewHolder(binding, viewType)
@@ -69,6 +72,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
             when (viewType) {
                 VIEW_TYPE_LIST -> bindListView(model)
                 VIEW_TYPE_GRID -> bindGridView(model)
+                VIEW_TYPE_CAROUSEL -> bindCarouselView(model)
             }
         }
 
@@ -97,6 +101,21 @@ class GameAdapter(private val activity: AppCompatActivity) :
             gridBinding.textGameTitle.marquee()
             gridBinding.cardGameGrid.setOnClickListener { onClick(model) }
             gridBinding.cardGameGrid.setOnLongClickListener { onLongClick(model) }
+        }
+
+        private fun bindCarouselView(model: Game) {
+            val carouselBinding = binding as CardGameCarouselBinding
+
+            carouselBinding.imageGameScreen.scaleType = ImageView.ScaleType.CENTER_CROP
+            GameIconUtils.loadGameIcon(model, carouselBinding.imageGameScreen)
+
+            carouselBinding.textGameTitle.text = model.title.replace("[\\t\\n\\r]+".toRegex(), " ")
+            carouselBinding.textGameTitle.marquee()
+            carouselBinding.cardGameCarousel.setOnClickListener { onClick(model) }
+            carouselBinding.cardGameCarousel.setOnLongClickListener { onLongClick(model) }
+
+            carouselBinding.imageGameScreen.contentDescription =
+            binding.root.context.getString(R.string.game_image_desc, model.title)
         }
 
         fun onClick(game: Game) {
