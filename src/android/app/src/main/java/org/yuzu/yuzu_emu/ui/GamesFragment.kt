@@ -31,6 +31,7 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.LinearSnapHelper
 import com.google.android.material.color.MaterialColors
 import info.debatty.java.stringsimilarity.Jaccard
 import info.debatty.java.stringsimilarity.JaroWinkler
@@ -188,6 +189,33 @@ class GamesFragment : Fragment() {
                     GridLayoutManager(requireContext(), columns)
                 }
                 GameAdapter.VIEW_TYPE_CAROUSEL -> {
+
+                    // Remove previous snap helper if any
+                    carouselSnapHelper?.attachToRecyclerView(null)
+
+                    // Create and attach a new one
+                    carouselSnapHelper = LinearSnapHelper().also { it.attachToRecyclerView(binding.gridGames) }
+
+                    // Remove previous scroll listener if any
+                    carouselScrollListener?.let { binding.gridGames.removeOnScrollListener(it) }
+
+                    // Create and add a new scroll listener
+                    carouselScrollListener = object : RecyclerView.OnScrollListener() {
+                        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                            val center = recyclerView.width / 2
+                            for (i in 0 until recyclerView.childCount) {
+                                val child = recyclerView.getChildAt(i)
+                                val childCenter = (child.left + child.right) / 2
+                                val distance = Math.abs(center - childCenter)
+                                val scale = 1f - (distance / recyclerView.width.toFloat()) * 0.3f
+                                child.scaleX = scale
+                                child.scaleY = scale
+                                child.alpha = 0.5f + 0.5f * scale
+                            }
+                        }
+                    }
+                    binding.gridGames.addOnScrollListener(carouselScrollListener!!)
+
                     // Carousel: horizontal scrolling, 1 row
                     LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
                 }
@@ -451,6 +479,8 @@ class GamesFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        carouselSnapHelper?.attachToRecyclerView(null)
+        carouselScrollListener?.let { binding.gridGames.removeOnScrollListener(it) }
         _binding = null
     }
 
