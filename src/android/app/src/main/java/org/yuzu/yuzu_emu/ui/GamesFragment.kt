@@ -29,6 +29,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
 import info.debatty.java.stringsimilarity.Jaccard
@@ -177,14 +178,24 @@ class GamesFragment : Fragment() {
             currentFilter = preferences.getInt(PREF_SORT_TYPE, View.NO_ID)
             adapter = gameAdapter
 
-            val gameGrid = when (savedViewType) {
-                GameAdapter.VIEW_TYPE_LIST -> R.integer.game_columns_list
-                GameAdapter.VIEW_TYPE_GRID -> R.integer.game_columns_grid
-                else -> 0
+            layoutManager = when (savedViewType) {
+                GameAdapter.VIEW_TYPE_LIST -> {
+                    val columns = resources.getInteger(R.integer.game_columns_list)
+                    GridLayoutManager(requireContext(), columns)
+                }
+                GameAdapter.VIEW_TYPE_GRID -> {
+                    val columns = resources.getInteger(R.integer.game_columns_grid)
+                    GridLayoutManager(requireContext(), columns)
+                }
+                GameAdapter.VIEW_TYPE_CAROUSEL -> {
+                    // Carousel: horizontal scrolling, 1 row
+                    LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+                }
+                else -> {
+                    val columns = resources.getInteger(R.integer.game_columns_grid)
+                    GridLayoutManager(requireContext(), columns)
+                }
             }
-
-            layoutManager = GridLayoutManager(requireContext(), resources.getInteger(gameGrid))
-
         }
     }
 
@@ -326,6 +337,7 @@ class GamesFragment : Fragment() {
         when (currentViewType) {
             GameAdapter.VIEW_TYPE_LIST -> popup.menu.findItem(R.id.view_list).isChecked = true
             GameAdapter.VIEW_TYPE_GRID -> popup.menu.findItem(R.id.view_grid).isChecked = true
+            GameAdapter.VIEW_TYPE_CAROUSEL -> popup.menu.findItem(R.id.view_carousel).isChecked = true
         }
 
         popup.setOnMenuItemClickListener { item ->
@@ -339,6 +351,13 @@ class GamesFragment : Fragment() {
 
                 R.id.view_list -> {
                     preferences.edit() { putInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_LIST) }
+                    applyGridGamesBinding()
+                    item.isChecked = true
+                    true
+                }
+
+                R.id.view_carousel -> {
+                    preferences.edit() { putInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_CAROUSEL) }
                     applyGridGamesBinding()
                     item.isChecked = true
                     true

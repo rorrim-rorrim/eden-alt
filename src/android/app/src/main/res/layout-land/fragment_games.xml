@@ -159,7 +159,7 @@
 
     </LinearLayout>
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+    <org.yuzu.yuzu_emu.ui.MidScreenSwipeRefreshLayout
         android:id="@+id/swipe_refresh"
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -199,7 +199,7 @@
 
         </RelativeLayout>
 
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    </org.yuzu.yuzu_emu.ui.MidScreenSwipeRefreshLayout>
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/add_directory"
