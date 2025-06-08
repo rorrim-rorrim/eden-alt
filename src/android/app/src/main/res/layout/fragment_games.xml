@@ -189,7 +189,7 @@
                 android:visibility="gone"
                 />
 
-            <androidx.recyclerview.widget.RecyclerView
+            <org.yuzu.yuzu_emu.ui.FastFlingRecyclerView
                 android:id="@+id/grid_games"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"

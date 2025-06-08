@@ -48,9 +48,35 @@ class GameAdapter(private val activity: AppCompatActivity) :
         notifyDataSetChanged()
     }
 
+    private var cardSize: Int = 0
+
+    fun setCardSize(size: Int) {
+        if (cardSize != size) {
+            cardSize = size
+            notifyDataSetChanged()
+        }
+    }
+
     override fun getItemViewType(position: Int): Int = viewType
 
-
+    override fun onBindViewHolder(holder: GameViewHolder, position: Int) {
+        super.onBindViewHolder(holder, position)
+        when (getItemViewType(position)) {
+            VIEW_TYPE_GRID -> {
+                val gridBinding = (holder.binding as CardGameGridBinding)
+                gridBinding.cardGameGrid.scaleX = 1f
+                gridBinding.cardGameGrid.scaleY = 1f
+                gridBinding.cardGameGrid.alpha = 1f
+            }
+            VIEW_TYPE_LIST -> {
+                val listBinding = (holder.binding as CardGameListBinding)
+                listBinding.cardGameList.scaleX = 1f
+                listBinding.cardGameList.scaleY = 1f
+                listBinding.cardGameList.alpha = 1f
+            }
+            // No reset for carousel, as it is handled by scroll listener
+        }
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GameViewHolder {
         val binding = when (viewType) {
@@ -63,7 +89,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
     }
 
     inner class GameViewHolder(
-        private val binding: ViewBinding,
+        internal val binding: ViewBinding,
         private val viewType: Int
     ) : AbstractViewHolder<Game>(binding) {
 
@@ -116,6 +142,12 @@ class GameAdapter(private val activity: AppCompatActivity) :
 
             carouselBinding.imageGameScreen.contentDescription =
             binding.root.context.getString(R.string.game_image_desc, model.title)
+
+            // Set square size
+            val params = carouselBinding.root.layoutParams
+            params.width = if (viewType == VIEW_TYPE_CAROUSEL) cardSize else ViewGroup.LayoutParams.MATCH_PARENT
+            params.height = if (viewType == VIEW_TYPE_CAROUSEL) cardSize else ViewGroup.LayoutParams.WRAP_CONTENT
+            carouselBinding.root.layoutParams = params
         }
 
         fun onClick(game: Game) {

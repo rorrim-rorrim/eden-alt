@@ -32,6 +32,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.LinearSnapHelper
+import androidx.recyclerview.widget.LinearSmoothScroller
 import com.google.android.material.color.MaterialColors
 import info.debatty.java.stringsimilarity.Jaccard
 import info.debatty.java.stringsimilarity.JaroWinkler
@@ -105,6 +106,23 @@ class GamesFragment : Fragment() {
 
         applyGridGamesBinding()
 
+        binding.gridGames.viewTreeObserver.addOnGlobalLayoutListener {
+            val isPortrait = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+            val layoutParams = binding.gridGames.layoutParams as ViewGroup.MarginLayoutParams
+            val topMargin = layoutParams.topMargin
+            val bottomMargin = layoutParams.bottomMargin
+            val availableHeight = binding.gridGames.height - topMargin - bottomMargin
+
+            val extraPadding = resources.getDimensionPixelSize(R.dimen.spacing_large) // or a fixed value like 16/24dp
+            val maxScale = 1f // or 1.1f if you ever increase the center card scale
+            val size = if (isPortrait) {
+                (binding.gridGames.width * 0.6f).toInt()
+            } else {
+                ((availableHeight - extraPadding) / maxScale).toInt()
+            }
+            gameAdapter.setCardSize(size)
+        }
+
         binding.swipeRefresh.apply {
             // Add swipe down to refresh gesture
             setOnRefreshListener {
@@ -173,6 +191,27 @@ class GamesFragment : Fragment() {
             currentFilter = preferences.getInt(PREF_SORT_TYPE, View.NO_ID)
             adapter = gameAdapter
 
+            // Reset scaling and alpha for all children when leaving carousel mode
+            if (savedViewType != GameAdapter.VIEW_TYPE_CAROUSEL) {
+                for (i in 0 until binding.gridGames.childCount) {
+                    val child = binding.gridGames.getChildAt(i)
+                    child.scaleX = 1f
+                    child.scaleY = 1f
+                    child.alpha = 1f
+                }
+                carouselScrollListener?.let { binding.gridGames.removeOnScrollListener(it) }
+                carouselSnapHelper?.attachToRecyclerView(null)
+                gameAdapter.setCardSize(0)
+            }
+
+            if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE &&
+                savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL
+            ) {
+                (binding.gridGames as? FastFlingRecyclerView)?.flingMultiplier = 2.5f // or higher
+            } else {
+                (binding.gridGames as? FastFlingRecyclerView)?.flingMultiplier = 1.0f
+            }
+
             layoutManager = when (savedViewType) {
                 GameAdapter.VIEW_TYPE_LIST -> {
                     val columns = resources.getInteger(R.integer.game_columns_list)
@@ -183,6 +222,23 @@ class GamesFragment : Fragment() {
                     GridLayoutManager(requireContext(), columns)
                 }
                 GameAdapter.VIEW_TYPE_CAROUSEL -> {
+                    class FastLinearLayoutManager(context: Context) : LinearLayoutManager(context, HORIZONTAL, false) {
+
+                        override fun smoothScrollToPosition(
+                            recyclerView: RecyclerView,
+                            state: RecyclerView.State,
+                            position: Int
+                        ) {
+                            val smoothScroller = object : LinearSmoothScroller(recyclerView.context) {
+                                override fun calculateSpeedPerPixel(displayMetrics: android.util.DisplayMetrics): Float {
+                                    // Lower value = faster scroll. Default is about 25f.
+                                    return 10f / displayMetrics.densityDpi
+                                }
+                            }
+                            smoothScroller.targetPosition = position
+                            startSmoothScroll(smoothScroller)
+                        }
+                    }
 
                     // Remove previous snap helper if any
                     carouselSnapHelper?.attachToRecyclerView(null)
@@ -196,22 +252,45 @@ class GamesFragment : Fragment() {
                     // Create and add a new scroll listener
                     carouselScrollListener = object : RecyclerView.OnScrollListener() {
                         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                            val center = recyclerView.width / 2
+                            val center = recyclerView.width / 2f
                             for (i in 0 until recyclerView.childCount) {
                                 val child = recyclerView.getChildAt(i)
-                                val childCenter = (child.left + child.right) / 2
-                                val distance = Math.abs(center - childCenter)
-                                val scale = 1f - (distance / recyclerView.width.toFloat()) * 0.3f
+                                val childCenter = (child.left + child.right) / 2f
+                                val distanceFromCenter = Math.abs(center - childCenter)
+                                val maxDistance = center * 1.2f // adjust for how quickly scaling falls off
+
+                                // Increase the ratio here: scale drops off more for peripheric cards
+                                val scale = 1f - 0.70f * (distanceFromCenter / maxDistance).coerceAtMost(1f)
                                 child.scaleX = scale
                                 child.scaleY = scale
-                                child.alpha = 0.5f + 0.5f * scale
+                                child.alpha = 0.5f + 0.5f * scale // optional: fade out peripheric cards
                             }
                         }
                     }
                     binding.gridGames.addOnScrollListener(carouselScrollListener!!)
 
                     // Carousel: horizontal scrolling, 1 row
-                    LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+                    val layoutManager = if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                        FastLinearLayoutManager(requireContext())
+                    } else {
+                        LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+                    }
+
+                    /* tentativa de ajustar aceleração do fling
+                    // Set the custom fling listener for carousel in landscape
+                    if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                        binding.gridGames.setOnFlingListener(object : RecyclerView.OnFlingListener() {
+                            override fun onFling(velocityX: Int, velocityY: Int): Boolean {
+                                binding.gridGames.fling(velocityX * 2, velocityY)
+                                return true
+                            }
+                        })
+                    } else {
+                        binding.gridGames.setOnFlingListener(null)
+                    }
+                    */
+
+                    layoutManager
                 }
                 else -> {
                     val columns = resources.getInteger(R.integer.game_columns_grid)
