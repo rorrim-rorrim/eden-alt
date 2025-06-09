@@ -6,6 +6,7 @@ package org.yuzu.yuzu_emu.adapters
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -62,17 +63,17 @@ class GameAdapter(private val activity: AppCompatActivity) :
     override fun onBindViewHolder(holder: GameViewHolder, position: Int) {
         super.onBindViewHolder(holder, position)
         when (getItemViewType(position)) {
-            VIEW_TYPE_GRID -> {
-                val gridBinding = (holder.binding as CardGameGridBinding)
-                gridBinding.cardGameGrid.scaleX = 1f
-                gridBinding.cardGameGrid.scaleY = 1f
-                gridBinding.cardGameGrid.alpha = 1f
-            }
             VIEW_TYPE_LIST -> {
-                val listBinding = (holder.binding as CardGameListBinding)
+                val listBinding = holder.binding as CardGameListBinding
                 listBinding.cardGameList.scaleX = 1f
                 listBinding.cardGameList.scaleY = 1f
                 listBinding.cardGameList.alpha = 1f
+            }
+            VIEW_TYPE_GRID -> {
+                val gridBinding = holder.binding as CardGameGridBinding
+                gridBinding.cardGameGrid.scaleX = 1f
+                gridBinding.cardGameGrid.scaleY = 1f
+                gridBinding.cardGameGrid.alpha = 1f
             }
             // No reset for carousel, as it is handled by scroll listener
         }
@@ -131,6 +132,9 @@ class GameAdapter(private val activity: AppCompatActivity) :
 
         private fun bindCarouselView(model: Game) {
             val carouselBinding = binding as CardGameCarouselBinding
+
+            // Remove padding from the root LinearLayout
+            (carouselBinding.root.getChildAt(0) as? LinearLayout)?.setPadding(0, 0, 0, 0)
 
             carouselBinding.imageGameScreen.scaleType = ImageView.ScaleType.CENTER_CROP
             GameIconUtils.loadGameIcon(model, carouselBinding.imageGameScreen)

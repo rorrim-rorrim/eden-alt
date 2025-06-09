@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorSurface"
+    android:clipChildren="false"
     >
 
     <LinearLayout
@@ -184,11 +185,12 @@
                 android:visibility="gone"
                 />
 
-            <org.yuzu.yuzu_emu.ui.FastFlingRecyclerView
+            <org.yuzu.yuzu_emu.ui.JukeboxRecyclerView
                 android:id="@+id/grid_games"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:clipToPadding="false"
+                android:clipChildren="false"
                 android:scrollbarStyle="outsideOverlay"
                 android:scrollbars="vertical"
                 android:fadeScrollbars="true"
