@@ -274,6 +274,12 @@ class GamesFragment : Fragment() {
         if (width == 0 || height == 0) return
         Log.d("GamesFragment", "setting up carousel, width=$width height=$height")
 
+        // Set horizontal padding so first/last card can be centered
+        val cardSize = gameAdapter.cardSize
+        val horizontalPadding = ((binding.gridGames.width - cardSize) / 2).coerceAtLeast(0)
+        binding.gridGames.setPadding(horizontalPadding, 0, horizontalPadding, 0)
+        binding.gridGames.clipToPadding = false
+
         // --- CLEANUP: remove all previous state ---
         // Remove all item decorations
         while (binding.gridGames.itemDecorationCount > 0) {
@@ -323,24 +329,30 @@ class GamesFragment : Fragment() {
         (binding.gridGames as? JukeboxRecyclerView)?.flingMultiplier =
             if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 2.5f else 1.0f
 
-        binding.gridGames.layoutManager = if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            object : LinearLayoutManager(context, RecyclerView.HORIZONTAL, false) {
-                override fun smoothScrollToPosition(
-                    recyclerView: RecyclerView,
-                    state: RecyclerView.State,
-                    position: Int
-                ) {
-                    val smoothScroller = object : LinearSmoothScroller(recyclerView.context) {
-                        override fun calculateSpeedPerPixel(displayMetrics: android.util.DisplayMetrics): Float {
-                            return 10f / displayMetrics.densityDpi
-                        }
+        binding.gridGames.layoutManager = object : LinearLayoutManager(context, RecyclerView.HORIZONTAL, false) {
+            override fun smoothScrollToPosition(
+                recyclerView: RecyclerView,
+                state: RecyclerView.State,
+                position: Int
+            ) {
+                val smoothScroller = object : LinearSmoothScroller(recyclerView.context) {
+                    override fun calculateSpeedPerPixel(displayMetrics: android.util.DisplayMetrics): Float {
+                        return 10f / displayMetrics.densityDpi
                     }
-                    smoothScroller.targetPosition = position
-                    startSmoothScroll(smoothScroller)
+                }
+                smoothScroller.targetPosition = position
+                startSmoothScroll(smoothScroller)
+            }
+        }
+
+        // After setting up carousel, force snap to center
+        binding.gridGames.post {
+            carouselSnapHelper?.findSnapView(binding.gridGames.layoutManager)?.let { view ->
+                val position = binding.gridGames.getChildAdapterPosition(view)
+                if (position != RecyclerView.NO_POSITION) {
+                    binding.gridGames.smoothScrollToPosition(position)
                 }
             }
-        } else {
-            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         }
     }
 

@@ -194,8 +194,6 @@
                 android:scrollbarStyle="outsideOverlay"
                 android:scrollbars="vertical"
                 android:fadeScrollbars="true"
-                android:paddingHorizontal="4dp"
-                android:paddingVertical="4dp"
                 />
 
 

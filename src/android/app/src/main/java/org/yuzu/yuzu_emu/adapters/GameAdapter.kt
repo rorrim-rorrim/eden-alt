@@ -49,7 +49,8 @@ class GameAdapter(private val activity: AppCompatActivity) :
         notifyDataSetChanged()
     }
 
-    private var cardSize: Int = 0
+    var cardSize: Int = 0
+        private set
 
     fun setCardSize(size: Int) {
         if (cardSize != size) {
@@ -136,6 +137,19 @@ class GameAdapter(private val activity: AppCompatActivity) :
             // Remove padding from the root LinearLayout
             (carouselBinding.root.getChildAt(0) as? LinearLayout)?.setPadding(0, 0, 0, 0)
 
+            // Set square size and remove margins
+            val params = carouselBinding.root.layoutParams
+            if (params is ViewGroup.MarginLayoutParams) {
+                params.width = if (viewType == VIEW_TYPE_CAROUSEL) cardSize else ViewGroup.LayoutParams.MATCH_PARENT
+                params.height = if (viewType == VIEW_TYPE_CAROUSEL) cardSize else ViewGroup.LayoutParams.WRAP_CONTENT
+                params.setMargins(0, 0, 0, 0)
+                carouselBinding.root.layoutParams = params
+            } else {
+                params.width = if (viewType == VIEW_TYPE_CAROUSEL) cardSize else ViewGroup.LayoutParams.MATCH_PARENT
+                params.height = if (viewType == VIEW_TYPE_CAROUSEL) cardSize else ViewGroup.LayoutParams.WRAP_CONTENT
+                carouselBinding.root.layoutParams = params
+            }
+
             carouselBinding.imageGameScreen.scaleType = ImageView.ScaleType.CENTER_CROP
             GameIconUtils.loadGameIcon(model, carouselBinding.imageGameScreen)
 
@@ -146,12 +160,6 @@ class GameAdapter(private val activity: AppCompatActivity) :
 
             carouselBinding.imageGameScreen.contentDescription =
             binding.root.context.getString(R.string.game_image_desc, model.title)
-
-            // Set square size
-            val params = carouselBinding.root.layoutParams
-            params.width = if (viewType == VIEW_TYPE_CAROUSEL) cardSize else ViewGroup.LayoutParams.MATCH_PARENT
-            params.height = if (viewType == VIEW_TYPE_CAROUSEL) cardSize else ViewGroup.LayoutParams.WRAP_CONTENT
-            carouselBinding.root.layoutParams = params
         }
 
         fun onClick(game: Game) {
