@@ -4,6 +4,7 @@
 package org.yuzu.yuzu_emu.adapters
 
 import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -76,7 +77,12 @@ class GameAdapter(private val activity: AppCompatActivity) :
                 gridBinding.cardGameGrid.scaleY = 1f
                 gridBinding.cardGameGrid.alpha = 1f
             }
-            // No reset for carousel, as it is handled by scroll listener
+            VIEW_TYPE_CAROUSEL -> {
+                val carouselBinding = holder.binding as CardGameCarouselBinding
+                carouselBinding.cardGameCarousel.scaleX = 1f
+                carouselBinding.cardGameCarousel.scaleY = 1f
+                carouselBinding.cardGameCarousel.alpha = 1f
+            }
         }
     }
 
@@ -137,18 +143,12 @@ class GameAdapter(private val activity: AppCompatActivity) :
             // Remove padding from the root LinearLayout
             (carouselBinding.root.getChildAt(0) as? LinearLayout)?.setPadding(0, 0, 0, 0)
 
-            // Set square size and remove margins
+            // Always set square size and remove margins for carousel
             val params = carouselBinding.root.layoutParams
-            if (params is ViewGroup.MarginLayoutParams) {
-                params.width = if (viewType == VIEW_TYPE_CAROUSEL) cardSize else ViewGroup.LayoutParams.MATCH_PARENT
-                params.height = if (viewType == VIEW_TYPE_CAROUSEL) cardSize else ViewGroup.LayoutParams.WRAP_CONTENT
-                params.setMargins(0, 0, 0, 0)
-                carouselBinding.root.layoutParams = params
-            } else {
-                params.width = if (viewType == VIEW_TYPE_CAROUSEL) cardSize else ViewGroup.LayoutParams.MATCH_PARENT
-                params.height = if (viewType == VIEW_TYPE_CAROUSEL) cardSize else ViewGroup.LayoutParams.WRAP_CONTENT
-                carouselBinding.root.layoutParams = params
-            }
+            params.width = cardSize
+            params.height = cardSize
+            if (params is ViewGroup.MarginLayoutParams) params.setMargins(0, 0, 0, 0)
+            carouselBinding.root.layoutParams = params
 
             carouselBinding.imageGameScreen.scaleType = ImageView.ScaleType.CENTER_CROP
             GameIconUtils.loadGameIcon(model, carouselBinding.imageGameScreen)
@@ -159,7 +159,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
             carouselBinding.cardGameCarousel.setOnLongClickListener { onLongClick(model) }
 
             carouselBinding.imageGameScreen.contentDescription =
-            binding.root.context.getString(R.string.game_image_desc, model.title)
+                binding.root.context.getString(R.string.game_image_desc, model.title)
         }
 
         fun onClick(game: Game) {

@@ -33,7 +33,7 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.LinearSnapHelper
+import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.LinearSmoothScroller
 import com.google.android.material.color.MaterialColors
 import info.debatty.java.stringsimilarity.Jaccard
@@ -61,6 +61,8 @@ class GamesFragment : Fragment() {
     private var originalHeaderBottomMargin: Int? = null
     private var originalHeaderRightMargin: Int? = null
     private var originalHeaderLeftMargin: Int? = null
+
+    private var lastViewType: Int = GameAdapter.VIEW_TYPE_GRID
 
     companion object {
         private const val SEARCH_TEXT = "SearchText"
@@ -204,38 +206,22 @@ class GamesFragment : Fragment() {
             val savedViewType = preferences.getInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_GRID)
             gameAdapter.setViewType(savedViewType)
             currentFilter = preferences.getInt(PREF_SORT_TYPE, View.NO_ID)
-            adapter = gameAdapter
 
-            // Handle leaving carousel mode
-            if (savedViewType != GameAdapter.VIEW_TYPE_CAROUSEL) {
-                // Remove carousel-specific listeners and decorations
-                carouselScrollListener?.let { removeOnScrollListener(it) }
-                carouselSnapHelper?.attachToRecyclerView(null)
-                (this as? JukeboxRecyclerView)?.useCustomDrawingOrder = false
+            // Always clean up carousel-specific state if leaving carousel mode
 
-                // Remove all previous decorations to avoid stacking
-                while (itemDecorationCount > 0) {
-                    removeItemDecorationAt(0)
-                }
-
-                // Reset scaling and alpha for all children
-                for (i in 0 until childCount) {
-                    val child = getChildAt(i)
-                    child.scaleX = 1f
-                    child.scaleY = 1f
-                    child.alpha = 1f
-                }
+            if (lastViewType == GameAdapter.VIEW_TYPE_CAROUSEL && savedViewType != GameAdapter.VIEW_TYPE_CAROUSEL) {
+                (this as? JukeboxRecyclerView)?.cleanupCarousel(carouselScrollListener, carouselSnapHelper)
+                this.layoutManager = null
                 gameAdapter.setCardSize(0)
+                gameAdapter?.notifyDataSetChanged()
+            }
 
-                // Force full layout and rebind
-                adapter?.notifyDataSetChanged()
-                layoutManager = null
-                layoutManager = layoutManager // triggers layout pass
-                invalidateItemDecorations()
-                requestLayout()
+            this.adapter = gameAdapter
 
-                // Set grid/list layout manager
-                layoutManager = when (savedViewType) {
+            // Set grid/list layout manager if not carousel
+            if (savedViewType != GameAdapter.VIEW_TYPE_CAROUSEL) {
+                // Always set a new layout manager after nulling it
+                this.layoutManager = when (savedViewType) {
                     GameAdapter.VIEW_TYPE_LIST -> {
                         val columns = resources.getInteger(R.integer.game_columns_list)
                         GridLayoutManager(context, columns)
@@ -244,29 +230,24 @@ class GamesFragment : Fragment() {
                         val columns = resources.getInteger(R.integer.game_columns_grid)
                         GridLayoutManager(context, columns)
                     }
-                    else -> { //DEFAULT: VIEW_TYPE_GRID
+                    else -> {
                         val columns = resources.getInteger(R.integer.game_columns_grid)
                         GridLayoutManager(context, columns)
                     }
                 }
-
-                // Set default fling multiplier
-                (this as? JukeboxRecyclerView)?.flingMultiplier = 1.0f
             }
+            lastViewType = savedViewType
         }
     }
 
     private fun setupCarouselIfReady() {
-        Log.d("GamesFragment", "Carousel helper called")
 
         val isCarousel = preferences.getInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_GRID) == GameAdapter.VIEW_TYPE_CAROUSEL
         if (!isCarousel) return
-        Log.d("GamesFragment", "Carousel mode enabled")
 
         val width = binding.gridGames.width
         val height = binding.gridGames.height
         if (width == 0 || height == 0) return
-        Log.d("GamesFragment", "setting up carousel, width=$width height=$height")
 
         // Set horizontal padding so first/last card can be centered
         val cardSize = gameAdapter.cardSize
@@ -274,35 +255,15 @@ class GamesFragment : Fragment() {
         binding.gridGames.setPadding(horizontalPadding, 0, horizontalPadding, 0)
         binding.gridGames.clipToPadding = false
 
-        // --- CLEANUP: remove all previous state ---
-        // Remove all item decorations
-        while (binding.gridGames.itemDecorationCount > 0) {
-            binding.gridGames.removeItemDecorationAt(0)
-        }
-        // Remove previous scroll listener
-        carouselScrollListener?.let { binding.gridGames.removeOnScrollListener(it) }
-        carouselScrollListener = null
-        // Remove previous snap helper
-        carouselSnapHelper?.attachToRecyclerView(null)
-        carouselSnapHelper = null
-        // Reset scaling and alpha for all children
-        for (i in 0 until binding.gridGames.childCount) {
-            val child = binding.gridGames.getChildAt(i)
-            child.scaleX = 1f
-            child.scaleY = 1f
-            child.alpha = 1f
-        }
-        // Force layout manager reset
-        binding.gridGames.layoutManager = null
-
         // --- Now proceed with carousel setup as before ---
         (binding.gridGames as? JukeboxRecyclerView)?.useCustomDrawingOrder = true
 
-        carouselSnapHelper = LinearSnapHelper().also { it.attachToRecyclerView(binding.gridGames) }
+        carouselSnapHelper = PagerSnapHelper().also { it.attachToRecyclerView(binding.gridGames) }
 
+        carouselScrollListener?.let { binding.gridGames.removeOnScrollListener(it) }
         carouselScrollListener = object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                val center = recyclerView.width / 2f
+                val center = recyclerView.paddingLeft + (recyclerView.width - recyclerView.paddingLeft - recyclerView.paddingRight) / 2f
                 for (i in 0 until recyclerView.childCount) {
                     val child = recyclerView.getChildAt(i)
                     val childCenter = (child.left + child.right) / 2f
@@ -321,7 +282,7 @@ class GamesFragment : Fragment() {
         binding.gridGames.addItemDecoration(OverlappingDecoration(overlapPx))
 
         (binding.gridGames as? JukeboxRecyclerView)?.flingMultiplier =
-            if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 2.5f else 1.0f
+            if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 5f else 1.0f
 
         binding.gridGames.layoutManager = object : LinearLayoutManager(context, RecyclerView.HORIZONTAL, false) {
             override fun smoothScrollToPosition(
