@@ -63,7 +63,8 @@ class GamesFragment : Fragment() {
 
     companion object {
         private const val SEARCH_TEXT = "SearchText"
-        private const val PREF_VIEW_TYPE = "GamesViewType"
+        private const val PREF_VIEW_TYPE_PORTRAIT = "GamesViewTypePortrait"
+        private const val PREF_VIEW_TYPE_LANDSCAPE = "GamesViewTypeLandscape"
         private const val PREF_SORT_TYPE = "GamesSortType"
     }
 
@@ -82,6 +83,18 @@ class GamesFragment : Fragment() {
             }
         }
 
+    private fun getCurrentViewType(): Int {
+        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val key = if (isLandscape) PREF_VIEW_TYPE_LANDSCAPE else PREF_VIEW_TYPE_PORTRAIT
+        val fallback = if (isLandscape) GameAdapter.VIEW_TYPE_CAROUSEL else GameAdapter.VIEW_TYPE_GRID
+        return preferences.getInt(key, fallback)
+    }
+
+    private fun setCurrentViewType(type: Int) {
+        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val key = if (isLandscape) PREF_VIEW_TYPE_LANDSCAPE else PREF_VIEW_TYPE_PORTRAIT
+        preferences.edit { putInt(key, type) }
+    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -164,7 +177,14 @@ class GamesFragment : Fragment() {
 
     val applyGridGamesBinding = {
         binding.gridGames.apply {
-            val savedViewType = preferences.getInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_GRID)
+            val savedViewType = getCurrentViewType()
+            val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+            val effectiveViewType = if (!isLandscape && savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL) {
+                GameAdapter.VIEW_TYPE_GRID
+            } else {
+                savedViewType
+            }
+            gameAdapter.setViewType(effectiveViewType)
             gameAdapter.setViewType(savedViewType)
             currentFilter = preferences.getInt(PREF_SORT_TYPE, View.NO_ID)
             val overlapPx = resources.getDimensionPixelSize(R.dimen.carousel_overlap)
@@ -188,7 +208,6 @@ class GamesFragment : Fragment() {
             // Carousel mode: wait for layout, then set card size and enable carousel features
             if (savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL) {
                 post {
-                    val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
                     val size = if (isLandscape) {
                         height
                     } else {
@@ -340,8 +359,12 @@ class GamesFragment : Fragment() {
     private fun showViewMenu(anchor: View) {
         val popup = PopupMenu(requireContext(), anchor)
         popup.menuInflater.inflate(R.menu.menu_game_views, popup.menu)
+        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        if (!isLandscape) {
+            popup.menu.findItem(R.id.view_carousel)?.isVisible = false
+        }
 
-        val currentViewType = (preferences.getInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_GRID))
+        val currentViewType = getCurrentViewType()
         when (currentViewType) {
             GameAdapter.VIEW_TYPE_LIST -> popup.menu.findItem(R.id.view_list).isChecked = true
             GameAdapter.VIEW_TYPE_GRID -> popup.menu.findItem(R.id.view_grid).isChecked = true
@@ -351,21 +374,21 @@ class GamesFragment : Fragment() {
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.view_grid -> {
-                    preferences.edit() { putInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_GRID) }
+                    setCurrentViewType(GameAdapter.VIEW_TYPE_GRID)
                     applyGridGamesBinding()
                     item.isChecked = true
                     true
                 }
 
                 R.id.view_list -> {
-                    preferences.edit() { putInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_LIST) }
+                    setCurrentViewType(GameAdapter.VIEW_TYPE_LIST)
                     applyGridGamesBinding()
                     item.isChecked = true
                     true
                 }
 
                 R.id.view_carousel -> {
-                    preferences.edit() { putInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_CAROUSEL) }
+                    setCurrentViewType(GameAdapter.VIEW_TYPE_CAROUSEL)
                     applyGridGamesBinding()
                     item.isChecked = true
                     true
