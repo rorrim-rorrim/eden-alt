@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorSurface"
-    android:clipChildren="false"
     >
 
     <LinearLayout
@@ -165,7 +164,7 @@
 
     </FrameLayout>
 
-    <org.yuzu.yuzu_emu.ui.MidScreenSwipeRefreshLayout
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe_refresh"
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -190,21 +189,22 @@
                 android:visibility="gone"
                 />
 
-            <org.yuzu.yuzu_emu.ui.JukeboxRecyclerView
+            <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/grid_games"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:clipToPadding="false"
-                android:clipChildren="false"
                 android:scrollbarStyle="outsideOverlay"
                 android:scrollbars="vertical"
                 android:fadeScrollbars="true"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="4dp"
                 />
 
 
         </RelativeLayout>
 
-    </org.yuzu.yuzu_emu.ui.MidScreenSwipeRefreshLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/add_directory"

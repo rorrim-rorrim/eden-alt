@@ -120,16 +120,16 @@ class GamesFragment : Fragment() {
         applyGridGamesBinding()
 
         binding.swipeRefresh.apply {
-            setOnRefreshListener {
+            (binding.swipeRefresh as? MidScreenSwipeRefreshLayout)?.setOnRefreshListener {
                 gamesViewModel.reloadGames(false)
             }
-            setProgressBackgroundColorSchemeColor(
+            (binding.swipeRefresh as? MidScreenSwipeRefreshLayout)?.setProgressBackgroundColorSchemeColor(
                 com.google.android.material.color.MaterialColors.getColor(
                     binding.swipeRefresh,
                     com.google.android.material.R.attr.colorPrimary
                 )
             )
-            setColorSchemeColors(
+            (binding.swipeRefresh as? MidScreenSwipeRefreshLayout)?.setColorSchemeColors(
                 com.google.android.material.color.MaterialColors.getColor(
                     binding.swipeRefresh,
                     com.google.android.material.R.attr.colorOnPrimary
@@ -139,12 +139,12 @@ class GamesFragment : Fragment() {
                 if (_binding == null) {
                     return@post
                 }
-                binding.swipeRefresh.isRefreshing = gamesViewModel.isReloading.value
+                (binding.swipeRefresh as? MidScreenSwipeRefreshLayout)?.isRefreshing = gamesViewModel.isReloading.value
             }
         }
 
         gamesViewModel.isReloading.collect(viewLifecycleOwner) {
-            binding.swipeRefresh.isRefreshing = it
+            (binding.swipeRefresh as? MidScreenSwipeRefreshLayout)?.isRefreshing = it
             binding.noticeText.setVisible(
                 visible = gamesViewModel.games.value.isEmpty() && !it,
                 gone = false
@@ -176,7 +176,7 @@ class GamesFragment : Fragment() {
     }
 
     val applyGridGamesBinding = {
-        binding.gridGames.apply {
+        (binding.gridGames as? RecyclerView)?.apply {
             val savedViewType = getCurrentViewType()
             val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
             val effectiveViewType = if (!isLandscape && savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL) {
@@ -241,7 +241,7 @@ class GamesFragment : Fragment() {
         if (currentSearchText.isNotEmpty() || currentFilter != View.NO_ID) {
             filterAndSearch(games)
         } else {
-            (binding.gridGames.adapter as GameAdapter).submitList(games)
+            ((binding.gridGames as? RecyclerView)?.adapter as? GameAdapter)?.submitList(games)
             gamesViewModel.setFilteredGames(games)
         }
     }
@@ -437,20 +437,18 @@ class GamesFragment : Fragment() {
                     lastPlayedTime > (System.currentTimeMillis() - 24 * 60 * 60 * 1000)
                 }.sortedByDescending { preferences.getLong(it.keyLastPlayedTime, 0L) }
             }
-
             R.id.filter_recently_added -> {
                 baseList.filter {
                     val addedTime = preferences.getLong(it.keyAddedToLibraryTime, 0L)
                     addedTime > (System.currentTimeMillis() - 24 * 60 * 60 * 1000)
                 }.sortedByDescending { preferences.getLong(it.keyAddedToLibraryTime, 0L) }
             }
-
             else -> baseList
         }
 
         val searchTerm = binding.searchText.text.toString().lowercase(Locale.getDefault())
         if (searchTerm.isEmpty()) {
-            (binding.gridGames.adapter as GameAdapter).submitList(filteredList)
+            ((binding.gridGames as? RecyclerView)?.adapter as? GameAdapter)?.submitList(filteredList)
             gamesViewModel.setFilteredGames(filteredList)
             return
         }
@@ -466,7 +464,7 @@ class GamesFragment : Fragment() {
             }
         }.sortedByDescending { it.score }.map { it.item }
 
-        (binding.gridGames.adapter as GameAdapter).submitList(sortedList)
+        ((binding.gridGames as? RecyclerView)?.adapter as? GameAdapter)?.submitList(sortedList)
         gamesViewModel.setFilteredGames(sortedList)
     }
 
@@ -486,7 +484,7 @@ class GamesFragment : Fragment() {
 
     private fun scrollToTop() {
         if (_binding != null) {
-            binding.gridGames.smoothScrollToPosition(0)
+            (binding.gridGames as? JukeboxRecyclerView)?.smoothScrollToPosition(0)
         }
     }
 
@@ -499,7 +497,7 @@ class GamesFragment : Fragment() {
             val spacingNavigation = resources.getDimensionPixelSize(R.dimen.spacing_navigation)
             resources.getDimensionPixelSize(R.dimen.spacing_navigation_rail)
 
-            binding.swipeRefresh.setProgressViewEndTarget(
+            (binding.swipeRefresh as? MidScreenSwipeRefreshLayout)?.setProgressViewEndTarget(
                 false,
                 barInsets.top + resources.getDimensionPixelSize(R.dimen.spacing_refresh_end)
             )
