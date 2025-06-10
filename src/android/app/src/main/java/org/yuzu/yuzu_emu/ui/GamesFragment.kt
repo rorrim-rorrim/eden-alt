@@ -12,7 +12,6 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
 import android.widget.PopupMenu
@@ -30,14 +29,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.PagerSnapHelper
-import androidx.recyclerview.widget.LinearSmoothScroller
-import com.google.android.material.color.MaterialColors
-import info.debatty.java.stringsimilarity.Jaccard
-import info.debatty.java.stringsimilarity.JaroWinkler
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.GameAdapter
@@ -48,6 +43,8 @@ import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.utils.collect
+import info.debatty.java.stringsimilarity.Jaccard
+import info.debatty.java.stringsimilarity.JaroWinkler
 import java.util.Locale
 import androidx.core.content.edit
 import androidx.core.view.updateLayoutParams
@@ -85,7 +82,6 @@ class GamesFragment : Fragment() {
             }
         }
 
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -93,33 +89,6 @@ class GamesFragment : Fragment() {
     ): View {
         _binding = FragmentGamesBinding.inflate(inflater)
         return binding.root
-    }
-
-    private val carouselLayoutListener = object : ViewTreeObserver.OnGlobalLayoutListener {
-        override fun onGlobalLayout() {
-            val isPortrait = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-            val layoutParams = binding.gridGames.layoutParams as ViewGroup.MarginLayoutParams
-            val topMargin = layoutParams.topMargin
-            val bottomMargin = layoutParams.bottomMargin
-            val availableHeight = binding.gridGames.height - topMargin - bottomMargin
-
-            val extraPadding = resources.getDimensionPixelSize(R.dimen.spacing_large) // or a fixed value like 16/24dp
-            val maxScale = 1f // or 1.1f if you ever increase the center card scale
-            val size = if (isPortrait) {
-                (binding.gridGames.width * 0.6f).toInt()
-            } else {
-                ((availableHeight - extraPadding) / maxScale).toInt()
-            }
-            gameAdapter.setCardSize(size)
-
-            // Only set up carousel if in carousel mode and size is valid
-            val isCarousel = preferences.getInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_GRID) == GameAdapter.VIEW_TYPE_CAROUSEL
-            if (isCarousel && binding.gridGames.width > 0 && binding.gridGames.height > 0) {
-                setupCarouselIfReady()
-                // Optionally: remove the listener here if you only want carousel setup once per layout
-                binding.gridGames.viewTreeObserver.removeOnGlobalLayoutListener(this)
-            }
-        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -137,30 +106,22 @@ class GamesFragment : Fragment() {
 
         applyGridGamesBinding()
 
-        // Add the listener
-        binding.gridGames.viewTreeObserver.addOnGlobalLayoutListener(carouselLayoutListener)
-
         binding.swipeRefresh.apply {
-            // Add swipe down to refresh gesture
             setOnRefreshListener {
                 gamesViewModel.reloadGames(false)
             }
-
-            // Set theme color to the refresh animation's background
             setProgressBackgroundColorSchemeColor(
-                MaterialColors.getColor(
+                com.google.android.material.color.MaterialColors.getColor(
                     binding.swipeRefresh,
                     com.google.android.material.R.attr.colorPrimary
                 )
             )
             setColorSchemeColors(
-                MaterialColors.getColor(
+                com.google.android.material.color.MaterialColors.getColor(
                     binding.swipeRefresh,
                     com.google.android.material.R.attr.colorOnPrimary
                 )
             )
-
-            // Make sure the loading indicator appears even if the layout is told to refresh before being fully drawn
             post {
                 if (_binding == null) {
                     return@post
@@ -206,108 +167,44 @@ class GamesFragment : Fragment() {
             val savedViewType = preferences.getInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_GRID)
             gameAdapter.setViewType(savedViewType)
             currentFilter = preferences.getInt(PREF_SORT_TYPE, View.NO_ID)
+            val overlapPx = resources.getDimensionPixelSize(R.dimen.carousel_overlap)
 
-            // Always clean up carousel-specific state if leaving carousel mode
-
-            if (lastViewType == GameAdapter.VIEW_TYPE_CAROUSEL && savedViewType != GameAdapter.VIEW_TYPE_CAROUSEL) {
-                (this as? JukeboxRecyclerView)?.cleanupCarousel(carouselScrollListener, carouselSnapHelper)
-                this.layoutManager = null
-                gameAdapter.setCardSize(0)
-                gameAdapter?.notifyDataSetChanged()
-            }
-
-            this.adapter = gameAdapter
-
-            // Set grid/list layout manager if not carousel
-            if (savedViewType != GameAdapter.VIEW_TYPE_CAROUSEL) {
-                // Always set a new layout manager after nulling it
-                this.layoutManager = when (savedViewType) {
-                    GameAdapter.VIEW_TYPE_LIST -> {
-                        val columns = resources.getInteger(R.integer.game_columns_list)
-                        GridLayoutManager(context, columns)
-                    }
-                    GameAdapter.VIEW_TYPE_GRID -> {
-                        val columns = resources.getInteger(R.integer.game_columns_grid)
-                        GridLayoutManager(context, columns)
-                    }
-                    else -> {
-                        val columns = resources.getInteger(R.integer.game_columns_grid)
-                        GridLayoutManager(context, columns)
-                    }
+            // Set the correct layout manager
+            layoutManager = when (savedViewType) {
+                GameAdapter.VIEW_TYPE_GRID -> {
+                    val columns = resources.getInteger(R.integer.game_columns_grid)
+                    GridLayoutManager(context, columns)
                 }
+                GameAdapter.VIEW_TYPE_LIST -> {
+                    val columns = resources.getInteger(R.integer.game_columns_list)
+                    GridLayoutManager(context, columns)
+                }
+                GameAdapter.VIEW_TYPE_CAROUSEL -> {
+                    LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
+                }
+                else -> throw IllegalArgumentException("Invalid view type: $savedViewType")
             }
+
+            // Carousel mode: wait for layout, then set card size and enable carousel features
+            if (savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL) {
+                post {
+                    val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+                    val size = if (isLandscape) {
+                        height
+                    } else {
+                        (width * 0.6f).toInt()
+                    }
+                    gameAdapter.setCardSize(size)
+                    (this as? JukeboxRecyclerView)?.setCarouselMode(true, overlapPx, size)
+                    gameAdapter.notifyDataSetChanged()
+                }
+            } else {
+                // Disable carousel features in other modes
+                (this as? JukeboxRecyclerView)?.setCarouselMode(false, overlapPx, 0)
+            }
+
+            adapter = gameAdapter
             lastViewType = savedViewType
-        }
-    }
-
-    private fun setupCarouselIfReady() {
-
-        val isCarousel = preferences.getInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_GRID) == GameAdapter.VIEW_TYPE_CAROUSEL
-        if (!isCarousel) return
-
-        val width = binding.gridGames.width
-        val height = binding.gridGames.height
-        if (width == 0 || height == 0) return
-
-        // Set horizontal padding so first/last card can be centered
-        val cardSize = gameAdapter.cardSize
-        val horizontalPadding = ((binding.gridGames.width - cardSize) / 2).coerceAtLeast(0)
-        binding.gridGames.setPadding(horizontalPadding, 0, horizontalPadding, 0)
-        binding.gridGames.clipToPadding = false
-
-        // --- Now proceed with carousel setup as before ---
-        (binding.gridGames as? JukeboxRecyclerView)?.useCustomDrawingOrder = true
-
-        carouselSnapHelper = PagerSnapHelper().also { it.attachToRecyclerView(binding.gridGames) }
-
-        carouselScrollListener?.let { binding.gridGames.removeOnScrollListener(it) }
-        carouselScrollListener = object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                val center = recyclerView.paddingLeft + (recyclerView.width - recyclerView.paddingLeft - recyclerView.paddingRight) / 2f
-                for (i in 0 until recyclerView.childCount) {
-                    val child = recyclerView.getChildAt(i)
-                    val childCenter = (child.left + child.right) / 2f
-                    val distanceFromCenter = Math.abs(center - childCenter)
-                    val maxDistance = center * 1.2f
-                    val scale = 1f - 0.70f * (distanceFromCenter / maxDistance).coerceAtMost(1f)
-                    child.scaleX = scale
-                    child.scaleY = scale
-                    child.alpha = 0.5f + 0.5f * scale
-                }
-            }
-        }
-        binding.gridGames.addOnScrollListener(carouselScrollListener!!)
-
-        val overlapPx = resources.getDimensionPixelSize(R.dimen.carousel_overlap)
-        binding.gridGames.addItemDecoration(OverlappingDecoration(overlapPx))
-
-        (binding.gridGames as? JukeboxRecyclerView)?.flingMultiplier =
-            if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 5f else 1.0f
-
-        binding.gridGames.layoutManager = object : LinearLayoutManager(context, RecyclerView.HORIZONTAL, false) {
-            override fun smoothScrollToPosition(
-                recyclerView: RecyclerView,
-                state: RecyclerView.State,
-                position: Int
-            ) {
-                val smoothScroller = object : LinearSmoothScroller(recyclerView.context) {
-                    override fun calculateSpeedPerPixel(displayMetrics: android.util.DisplayMetrics): Float {
-                        return 10f / displayMetrics.densityDpi
-                    }
-                }
-                smoothScroller.targetPosition = position
-                startSmoothScroll(smoothScroller)
-            }
-        }
-
-        // After setting up carousel, force snap to center
-        binding.gridGames.post {
-            carouselSnapHelper?.findSnapView(binding.gridGames.layoutManager)?.let { view ->
-                val position = binding.gridGames.getChildAdapterPosition(view)
-                if (position != RecyclerView.NO_POSITION) {
-                    binding.gridGames.smoothScrollToPosition(position)
-                }
-            }
         }
     }
 
@@ -321,7 +218,6 @@ class GamesFragment : Fragment() {
     private fun setAdapter(games: List<Game>) {
         val currentSearchText = binding.searchText.text.toString()
         val currentFilter = binding.filterButton.id
-
 
         if (currentSearchText.isNotEmpty() || currentFilter != View.NO_ID) {
             filterAndSearch(games)
@@ -361,6 +257,86 @@ class GamesFragment : Fragment() {
         navController.navigate(R.id.action_gamesFragment_to_homeSettingsFragment)
     }
 
+    private fun addPreAlphaBanner() {
+        val preAlphaBanner = TextView(requireContext()).apply {
+            id = "pre_alpha_banner".hashCode()
+            layoutParams = ConstraintLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                marginStart = resources.getDimensionPixelSize(R.dimen.spacing_med)
+                marginEnd = resources.getDimensionPixelSize(R.dimen.spacing_med)
+                topMargin = resources.getDimensionPixelSize(R.dimen.spacing_large)
+                topToBottom = R.id.frame_search
+            }
+            setPadding(
+                resources.getDimensionPixelSize(R.dimen.spacing_med),
+                resources.getDimensionPixelSize(R.dimen.spacing_large),
+                resources.getDimensionPixelSize(R.dimen.spacing_med),
+                resources.getDimensionPixelSize(R.dimen.spacing_med)
+            )
+
+            setBackgroundColor(
+                com.google.android.material.color.MaterialColors.getColor(
+                    this,
+                    com.google.android.material.R.attr.colorPrimary
+                )
+            )
+            text = getString(R.string.pre_alpha_warning)
+            setTextAppearance(
+                com.google.android.material.R.style.TextAppearance_Material3_HeadlineSmall
+            )
+            setTextColor(
+                com.google.android.material.color.MaterialColors.getColor(
+                    this,
+                    com.google.android.material.R.attr.colorOnError
+                )
+            )
+            gravity = Gravity.CENTER
+        }
+
+        val closeButton = ImageButton(requireContext()).apply {
+            id = "pre_alpha_close_button".hashCode()
+            layoutParams = ConstraintLayout.LayoutParams(
+                resources.getDimensionPixelSize(R.dimen.spacing_large),
+                resources.getDimensionPixelSize(R.dimen.spacing_large)
+            ).apply {
+                startToStart = "pre_alpha_banner".hashCode()
+                topToTop = "pre_alpha_banner".hashCode()
+                bottomToBottom = "pre_alpha_banner".hashCode()
+                marginStart = resources.getDimensionPixelSize(R.dimen.spacing_large) * 2
+                topMargin = resources.getDimensionPixelSize(R.dimen.spacing_small)
+            }
+            setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
+            setColorFilter(
+                com.google.android.material.color.MaterialColors.getColor(
+                    this,
+                    com.google.android.material.R.attr.colorOnError
+                )
+            )
+            setBackgroundColor(Color.Transparent.toArgb())
+            setOnClickListener {
+                PreferenceManager.getDefaultSharedPreferences(requireContext())
+                    .edit() {
+                        putBoolean(Settings.PREF_SHOULD_SHOW_PRE_ALPHA_BANNER, false)
+                    }
+                binding.root.removeView(preAlphaBanner)
+                binding.root.removeView(this)
+
+                binding.swipeRefresh.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                    topToBottom = R.id.frame_search
+                }
+            }
+        }
+
+        binding.root.addView(preAlphaBanner)
+        binding.root.addView(closeButton)
+
+        binding.swipeRefresh.updateLayoutParams<ConstraintLayout.LayoutParams> {
+            topToBottom = preAlphaBanner.id
+        }
+    }
+
     private fun showViewMenu(anchor: View) {
         val popup = PopupMenu(requireContext(), anchor)
         popup.menuInflater.inflate(R.menu.menu_game_views, popup.menu)
@@ -391,7 +367,6 @@ class GamesFragment : Fragment() {
                 R.id.view_carousel -> {
                     preferences.edit() { putInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_CAROUSEL) }
                     applyGridGamesBinding()
-                    binding.gridGames.viewTreeObserver.addOnGlobalLayoutListener(carouselLayoutListener)
                     item.isChecked = true
                     true
                 }
@@ -481,11 +456,8 @@ class GamesFragment : Fragment() {
         imm?.showSoftInput(binding.searchText, InputMethodManager.SHOW_IMPLICIT)
     }
 
-
     override fun onDestroyView() {
         super.onDestroyView()
-        carouselSnapHelper?.attachToRecyclerView(null)
-        carouselScrollListener?.let { binding.gridGames.removeOnScrollListener(it) }
         _binding = null
     }
 
