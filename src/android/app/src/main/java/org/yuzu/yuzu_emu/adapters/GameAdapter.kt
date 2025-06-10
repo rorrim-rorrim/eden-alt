@@ -4,7 +4,6 @@
 package org.yuzu.yuzu_emu.adapters
 
 import android.net.Uri
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -64,24 +63,34 @@ class GameAdapter(private val activity: AppCompatActivity) :
 
     override fun onBindViewHolder(holder: GameViewHolder, position: Int) {
         super.onBindViewHolder(holder, position)
+        // Always reset scale/alpha for recycled views
         when (getItemViewType(position)) {
             VIEW_TYPE_LIST -> {
                 val listBinding = holder.binding as CardGameListBinding
                 listBinding.cardGameList.scaleX = 1f
                 listBinding.cardGameList.scaleY = 1f
                 listBinding.cardGameList.alpha = 1f
+                // Reset layout params to XML defaults
+                listBinding.root.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
+                listBinding.root.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
             }
             VIEW_TYPE_GRID -> {
                 val gridBinding = holder.binding as CardGameGridBinding
                 gridBinding.cardGameGrid.scaleX = 1f
                 gridBinding.cardGameGrid.scaleY = 1f
                 gridBinding.cardGameGrid.alpha = 1f
+                // Reset layout params to XML defaults
+                gridBinding.root.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
+                gridBinding.root.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
             }
             VIEW_TYPE_CAROUSEL -> {
                 val carouselBinding = holder.binding as CardGameCarouselBinding
                 carouselBinding.cardGameCarousel.scaleX = 1f
                 carouselBinding.cardGameCarousel.scaleY = 1f
                 carouselBinding.cardGameCarousel.alpha = 1f
+                // Set square size for carousel
+                carouselBinding.root.layoutParams.width = cardSize
+                carouselBinding.root.layoutParams.height = cardSize
             }
         }
     }
@@ -100,7 +109,6 @@ class GameAdapter(private val activity: AppCompatActivity) :
         internal val binding: ViewBinding,
         private val viewType: Int
     ) : AbstractViewHolder<Game>(binding) {
-
 
         override fun bind(model: Game) {
             when (viewType) {
@@ -122,6 +130,10 @@ class GameAdapter(private val activity: AppCompatActivity) :
             listBinding.textGameTitle.marquee()
             listBinding.cardGameList.setOnClickListener { onClick(model) }
             listBinding.cardGameList.setOnLongClickListener { onLongClick(model) }
+
+            // Reset layout params to XML defaults
+            listBinding.root.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
+            listBinding.root.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
         }
 
         private fun bindGridView(model: Game) {
@@ -135,6 +147,10 @@ class GameAdapter(private val activity: AppCompatActivity) :
             gridBinding.textGameTitle.marquee()
             gridBinding.cardGameGrid.setOnClickListener { onClick(model) }
             gridBinding.cardGameGrid.setOnLongClickListener { onLongClick(model) }
+
+            // Reset layout params to XML defaults
+            gridBinding.root.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
+            gridBinding.root.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
         }
 
         private fun bindCarouselView(model: Game) {
