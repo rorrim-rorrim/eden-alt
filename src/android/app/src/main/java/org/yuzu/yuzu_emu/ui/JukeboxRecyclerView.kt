@@ -3,11 +3,9 @@ package org.yuzu.yuzu_emu.ui
 import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
-import android.view.MotionEvent
 import android.view.View
-import android.view.ViewParent
-import android.widget.LinearLayout
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.abs
 
@@ -25,7 +23,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
     // Carousel/overlap/snap state
     private var overlapPx: Int = 0
     private var overlapDecoration: OverlappingDecoration? = null
-    private var snapHelper: OverlappingPagerSnap? = null
+    private var pagerSnapHelper: PagerSnapHelper? = null
     private var scalingScrollListener: OnScrollListener? = null
 
     var flingMultiplier: Float = 2.0f
@@ -53,10 +51,10 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 overlapDecoration = OverlappingDecoration(overlapPx)
                 addItemDecoration(overlapDecoration!!)
             }
-            // Attach custom snap helper
-            if (snapHelper == null) {
-                snapHelper = OverlappingPagerSnap(overlapPx)
-                snapHelper!!.attachToRecyclerView(this)
+            // Attach PagerSnapHelper
+            if (pagerSnapHelper == null) {
+                pagerSnapHelper = CenterPagerSnapHelper()
+                pagerSnapHelper!!.attachToRecyclerView(this)
             }
             useCustomDrawingOrder = true
             flingMultiplier = 2.0f
@@ -76,7 +74,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                         for (i in 0 until rv.childCount) {
                             val child = rv.getChildAt(i)
                             val childCenter = (child.left + child.right) / 2f
-                            val distance = kotlin.math.abs(center - childCenter)
+                            val distance = abs(center - childCenter)
                             val scale = 1f - 0.6f * (distance / center).coerceAtMost(1f)
                             child.scaleX = scale
                             child.scaleY = scale
@@ -93,9 +91,9 @@ class JukeboxRecyclerView @JvmOverloads constructor(
             // Remove overlap decoration
             overlapDecoration?.let { removeItemDecoration(it) }
             overlapDecoration = null
-            // Detach snap helper
-            snapHelper?.attachToRecyclerView(null)
-            snapHelper = null
+            // Detach PagerSnapHelper
+            pagerSnapHelper?.attachToRecyclerView(null)
+            pagerSnapHelper = null
             useCustomDrawingOrder = false
             // Reset padding and fling
             setPadding(0, 0, 0, 0)
@@ -120,7 +118,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         return super.fling(newVelocityX, newVelocityY)
     }
 
-    // Custom drawing order for carousel
+    // Custom drawing order for carousel (for alpha fade)
     override fun getChildDrawingOrder(childCount: Int, i: Int): Int {
         if (!useCustomDrawingOrder || childCount == 0) return i
         val center = width / 2f
@@ -154,47 +152,37 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         }
     }
 
-    // --- OverlappingPagerSnap (inner class) ---
-    inner class OverlappingPagerSnap(private val overlapPx: Int) : OnFlingListener() {
-        private var attachedRecyclerView: RecyclerView? = null
-
-        fun attachToRecyclerView(rv: RecyclerView?) {
-            attachedRecyclerView?.onFlingListener = null
-            attachedRecyclerView = rv
-            rv?.onFlingListener = this
-            rv?.addOnScrollListener(object : OnScrollListener() {
-                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                    if (newState == SCROLL_STATE_IDLE) {
-                        snapToCenter()
-                    }
-                }
-            })
-        }
-
-        override fun onFling(velocityX: Int, velocityY: Int): Boolean {
-            // Let the default fling happen, we'll snap in onScrollStateChanged
-            return false
-        }
-
-        private fun snapToCenter() {
-            val rv = attachedRecyclerView ?: return
-            val lm = rv.layoutManager as? LinearLayoutManager ?: return
-            val center = rv.paddingLeft + (rv.width - rv.paddingLeft - rv.paddingRight) / 2
+    inner class CenterPagerSnapHelper : PagerSnapHelper() {
+        override fun findSnapView(layoutManager: RecyclerView.LayoutManager): View? {
+            if (layoutManager !is LinearLayoutManager) return null
+            val center = layoutManager.paddingStart + (layoutManager.width - layoutManager.paddingStart - layoutManager.paddingEnd) / 2
             var minDistance = Int.MAX_VALUE
-            var closestView: View? = null
-            for (i in 0 until rv.childCount) {
-                val child = rv.getChildAt(i)
+            var closestChild: View? = null
+            for (i in 0 until layoutManager.childCount) {
+                val child = layoutManager.getChildAt(i) ?: continue
                 val childCenter = (child.left + child.right) / 2
-                val distance = abs(childCenter - center)
+                val distance = kotlin.math.abs(childCenter - center)
                 if (distance < minDistance) {
                     minDistance = distance
-                    closestView = child
+                    closestChild = child
                 }
             }
-            closestView?.let {
-                val position = rv.getChildAdapterPosition(it)
-                rv.smoothScrollToPosition(position)
-            }
+            return closestChild
+        }
+
+        override fun calculateDistanceToFinalSnap(
+            layoutManager: RecyclerView.LayoutManager,
+            targetView: View
+        ): IntArray? {
+            if (layoutManager !is LinearLayoutManager) return super.calculateDistanceToFinalSnap(layoutManager, targetView)
+            val out = IntArray(2)
+            // Horizontal centering
+            val center = layoutManager.paddingStart + (layoutManager.width - layoutManager.paddingStart - layoutManager.paddingEnd) / 2
+            val childCenter = (targetView.left + targetView.right) / 2
+            out[0] = childCenter - center
+            // Vertical centering (not used for horizontal carousels)
+            out[1] = 0
+            return out
         }
     }
 }
