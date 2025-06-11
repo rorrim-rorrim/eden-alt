@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
+import android.view.KeyEvent
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -111,6 +112,32 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         }
     }
 
+    // trap past boundaries navigation
+    override fun focusSearch(focused: View, direction: Int): View? {
+        val lm = layoutManager as? LinearLayoutManager ?: return super.focusSearch(focused, direction)
+        val vh = findContainingViewHolder(focused) ?: return super.focusSearch(focused, direction)
+        val position = vh.bindingAdapterPosition
+        val itemCount = adapter?.itemCount ?: return super.focusSearch(focused, direction)
+
+        return when (direction) {
+            View.FOCUS_LEFT -> {
+                if (position > 0) {
+                    findViewHolderForAdapterPosition(position - 1)?.itemView ?: super.focusSearch(focused, direction)
+                } else {
+                    focused
+                }
+            }
+            View.FOCUS_RIGHT -> {
+                if (position < itemCount - 1) {
+                    findViewHolderForAdapterPosition(position + 1)?.itemView ?: super.focusSearch(focused, direction)
+                } else {
+                    focused
+                }
+            }
+            else -> super.focusSearch(focused, direction)
+        }
+    }
+
     // Custom fling multiplier for carousel
     override fun fling(velocityX: Int, velocityY: Int): Boolean {
         val newVelocityX = (velocityX * flingMultiplier).toInt()
@@ -152,7 +179,10 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         }
     }
 
+    // Enable proper center snapping
     inner class CenterPagerSnapHelper : PagerSnapHelper() {
+
+        // allows center snapping
         override fun findSnapView(layoutManager: RecyclerView.LayoutManager): View? {
             if (layoutManager !is LinearLayoutManager) return null
             val center = layoutManager.paddingStart + (layoutManager.width - layoutManager.paddingStart - layoutManager.paddingEnd) / 2
@@ -170,6 +200,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
             return closestChild
         }
 
+        // allows proper centering
         override fun calculateDistanceToFinalSnap(
             layoutManager: RecyclerView.LayoutManager,
             targetView: View
@@ -183,6 +214,41 @@ class JukeboxRecyclerView @JvmOverloads constructor(
             // Vertical centering (not used for horizontal carousels)
             out[1] = 0
             return out
+        }
+
+        // allows inertial scrolling
+        override fun findTargetSnapPosition(
+            layoutManager: RecyclerView.LayoutManager,
+            velocityX: Int,
+            velocityY: Int
+        ): Int {
+            if (layoutManager !is LinearLayoutManager) return RecyclerView.NO_POSITION
+            val forwardDirection = velocityX > 0
+            val firstVisible = layoutManager.findFirstVisibleItemPosition()
+            val lastVisible = layoutManager.findLastVisibleItemPosition()
+            val center = layoutManager.paddingStart + (layoutManager.width - layoutManager.paddingStart - layoutManager.paddingEnd) / 2
+
+            // Find the view closest to center
+            var closestChild: View? = null
+            var minDistance = Int.MAX_VALUE
+            var closestPosition = RecyclerView.NO_POSITION
+            for (i in firstVisible..lastVisible) {
+                val child = layoutManager.findViewByPosition(i) ?: continue
+                val childCenter = (child.left + child.right) / 2
+                val distance = kotlin.math.abs(childCenter - center)
+                if (distance < minDistance) {
+                    minDistance = distance
+                    closestChild = child
+                    closestPosition = i
+                }
+            }
+
+            // Estimate how many positions to move based on velocity
+            val flingCount = if (velocityX == 0) 0 else velocityX / 2000 // Tune this divisor for your feel
+            var targetPos = closestPosition + flingCount
+            val itemCount = layoutManager.itemCount
+            targetPos = targetPos.coerceIn(0, itemCount - 1)
+            return targetPos
         }
     }
 }
