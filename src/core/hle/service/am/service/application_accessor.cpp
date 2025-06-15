@@ -47,6 +47,8 @@ IApplicationAccessor::IApplicationAccessor(Core::System& system_, std::shared_pt
         {190, nullptr, "PushToNotificationStorageChannel"},
         {200, nullptr, "RequestApplicationSoftReset"},
         {201, nullptr, "RestartApplicationTimer"},
+        {300, nullptr, "Unknown300"},
+        {301, nullptr, "Unknown301"},
     };
     // clang-format on
 

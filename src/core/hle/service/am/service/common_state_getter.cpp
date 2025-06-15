@@ -34,6 +34,7 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_, std::shared_ptr<Ap
         {12, nullptr, "ReleaseSleepLockTransiently"},
         {13, D<&ICommonStateGetter::GetAcquiredSleepLockEvent>, "GetAcquiredSleepLockEvent"},
         {14, nullptr, "GetWakeupCount"},
+        {15, nullptr, "Unknown15"}, //19.0.0+
         {20, nullptr, "PushToGeneralChannel"},
         {30, nullptr, "GetHomeButtonReaderLockAccessor"},
         {31, D<&ICommonStateGetter::GetReaderLockAccessorEx>, "GetReaderLockAccessorEx"},
@@ -69,7 +70,11 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_, std::shared_ptr<Ap
         {501, nullptr, "SuppressDisablingSleepTemporarily"},
         {502, nullptr, "IsSleepEnabled"},
         {503, nullptr, "IsDisablingSleepSuppressed"},
+        {600, nullptr, "OpenNamedChannelAsChild"}, //20.0.0+ (17.0.0-18.1.0)
         {900, D<&ICommonStateGetter::SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled>, "SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled"},
+        {1000, nullptr, "BeginVrMode3d"}, //19.0.0+
+        {1001, nullptr, "EndVrMode3d"}, //19.0.0+
+        {1002, nullptr, "IsVrModeEnabled3d"}, //19.0.0+
     };
     // clang-format on
 

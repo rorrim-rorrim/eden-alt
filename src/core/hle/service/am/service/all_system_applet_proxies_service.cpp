@@ -18,6 +18,7 @@ IAllSystemAppletProxiesService::IAllSystemAppletProxiesService(Core::System& sys
     // clang-format off
     static const FunctionInfo functions[] = {
         {100, D<&IAllSystemAppletProxiesService::OpenSystemAppletProxy>, "OpenSystemAppletProxy"},
+        {110, D<&IAllSystemAppletProxiesService::OpenSystemAppletProxyForDebug>, "OpenSystemAppletProxyForDebug"},
         {200, D<&IAllSystemAppletProxiesService::OpenLibraryAppletProxyOld>, "OpenLibraryAppletProxyOld"},
         {201, D<&IAllSystemAppletProxiesService::OpenLibraryAppletProxy>, "OpenLibraryAppletProxy"},
         {300, nullptr, "OpenOverlayAppletProxy"},
@@ -25,6 +26,7 @@ IAllSystemAppletProxiesService::IAllSystemAppletProxiesService(Core::System& sys
         {400, nullptr, "CreateSelfLibraryAppletCreatorForDevelop"},
         {410, nullptr, "GetSystemAppletControllerForDebug"},
         {450, D<&IAllSystemAppletProxiesService::GetSystemProcessCommonFunctions>, "GetSystemProcessCommonFunctions"}, // 19.0.0+
+        {460, D<&IAllSystemAppletProxiesService::Unknown460>, "Unknown460"},
         {1000, nullptr, "GetDebugFunctions"},
     };
     // clang-format on
@@ -47,6 +49,26 @@ Result IAllSystemAppletProxiesService::OpenSystemAppletProxy(
         UNIMPLEMENTED();
         R_THROW(ResultUnknown);
     }
+}
+
+Result IAllSystemAppletProxiesService::OpenSystemAppletProxyForDebug(
+    Out<SharedPointer<ISystemAppletProxy>> out_proxy, ClientProcessId pid) {
+    LOG_DEBUG(Service_AM, "OpenSystemAppletProxyForDebug called");
+
+    auto process = system.ApplicationProcess();
+    if (!process) {
+        LOG_ERROR(Service_AM, "No application process available");
+        R_THROW(ResultUnknown);
+    }
+
+    if (const auto applet = GetAppletFromProcessId(pid)) {
+        *out_proxy = std::make_shared<ISystemAppletProxy>(
+            system, applet, process, m_window_system);
+        R_SUCCEED();
+    }
+
+    LOG_ERROR(Service_AM, "Applet not found for pid={}", pid.pid);
+    R_THROW(ResultUnknown);
 }
 
 Result IAllSystemAppletProxiesService::OpenLibraryAppletProxy(
@@ -98,7 +120,28 @@ Result IAllSystemAppletProxiesService::GetSystemProcessCommonFunctions() {
 
     R_SUCCEED();
 }
+Result IAllSystemAppletProxiesService::Unknown460(
+    Out<SharedPointer<IAppletCommonFunctions>> out_common_functions) {
 
+    LOG_DEBUG(Service_AM, "called");
+
+    // Получаем текущий процесс
+    auto process = system.ApplicationProcess();
+    if (!process) {
+        LOG_ERROR(Service_AM, "No application process available");
+        R_THROW(ResultUnknown);
+    }
+
+    // Получаем applet через существующий метод
+    auto applet = GetAppletFromProcessId(ProcessId{process->GetProcessId()});
+    if (!applet) {
+        LOG_WARNING(Service_AM, "Applet not found for process");
+        R_THROW(ResultUnknown);
+    }
+
+    *out_common_functions = std::make_shared<IAppletCommonFunctions>(system, applet);
+    R_SUCCEED();
+}
 std::shared_ptr<Applet> IAllSystemAppletProxiesService::GetAppletFromProcessId(
     ProcessId process_id) {
     return m_window_system.GetByAppletResourceUserId(process_id.pid);

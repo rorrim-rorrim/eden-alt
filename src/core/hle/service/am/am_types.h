@@ -90,6 +90,7 @@ enum class AppletId : u32 {
     LoginShare = 0x18,
     WebAuth = 0x19,
     MyPage = 0x1A,
+    Splay = 0x64,
 };
 
 enum class AppletProgramId : u64 {
@@ -114,6 +115,7 @@ enum class AppletProgramId : u64 {
     Starter = 0x0100000000001012ull,
     MyPage = 0x0100000000001013ull,
     MaxProgramId = 0x0100000000001FFFull,
+    Splay = 0x0100000000001048ull,
 };
 
 // This is nn::am::AppletMessage

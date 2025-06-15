@@ -17,6 +17,7 @@ struct CNMTHeader;
 struct OptionalHeader;
 
 enum class TitleType : u8 {
+    Invalid = 0x00,
     SystemProgram = 0x01,
     SystemDataArchive = 0x02,
     SystemUpdate = 0x03,
