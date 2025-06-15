@@ -38,6 +38,8 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {1016, nullptr, "ConfirmShowNewsPermission"},
         {1017, D<&IParentalControlService::EndFreeCommunication>, "EndFreeCommunication"},
         {1018, D<&IParentalControlService::IsFreeCommunicationAvailable>, "IsFreeCommunicationAvailable"},
+        {1019, nullptr, "ConfirmLaunchApplicationPermission"}, // 20.0.0+
+        {1020, nullptr, "ConfirmLaunchSharedApplicationPermission"}, // 20.0.0+
         {1031, D<&IParentalControlService::IsRestrictionEnabled>, "IsRestrictionEnabled"},
         {1032, D<&IParentalControlService::GetSafetyLevel>, "GetSafetyLevel"},
         {1033, nullptr, "SetSafetyLevel"},
@@ -52,9 +54,11 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {1044, nullptr, "GetFreeCommunicationApplicationList"},
         {1045, nullptr, "UpdateFreeCommunicationApplicationList"},
         {1046, nullptr, "DisableFeaturesForReset"},
-        {1047, nullptr, "NotifyApplicationDownloadStarted"},
+        {1047, nullptr, "NotifyApplicationDownloadStartedOld"}, // 20.0.0+ (3.0.0-19.0.1 NotifyApplicationDownloadStarted)
         {1048, nullptr, "NotifyNetworkProfileCreated"},
         {1049, nullptr, "ResetFreeCommunicationApplicationList"},
+        {1050, nullptr, "AddToFreeCommunicationApplicationList"}, // 20.0.0+
+        {1051, nullptr, "NotifyApplicationDownloadStarted"}, // 20.0.0+
         {1061, D<&IParentalControlService::ConfirmStereoVisionRestrictionConfigurable>, "ConfirmStereoVisionRestrictionConfigurable"},
         {1062, D<&IParentalControlService::GetStereoVisionRestriction>, "GetStereoVisionRestriction"},
         {1063, D<&IParentalControlService::SetStereoVisionRestriction>, "SetStereoVisionRestriction"},
@@ -80,16 +84,18 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {1451, D<&IParentalControlService::StartPlayTimer>, "StartPlayTimer"},
         {1452, D<&IParentalControlService::StopPlayTimer>, "StopPlayTimer"},
         {1453, D<&IParentalControlService::IsPlayTimerEnabled>, "IsPlayTimerEnabled"},
-        {1454, nullptr, "GetPlayTimerRemainingTime"},
+        {1454, D<&IParentalControlService::GetPlayTimerRemainingTime>, "GetPlayTimerRemainingTime"},
         {1455, D<&IParentalControlService::IsRestrictedByPlayTimer>, "IsRestrictedByPlayTimer"},
         {1456, D<&IParentalControlService::GetPlayTimerSettingsOld>, "GetPlayTimerSettingsOld"},
         {1457, D<&IParentalControlService::GetPlayTimerEventToRequestSuspension>, "GetPlayTimerEventToRequestSuspension"},
         {1458, D<&IParentalControlService::IsPlayTimerAlarmDisabled>, "IsPlayTimerAlarmDisabled"},
+        {1459, D<&IParentalControlService::GetPlayTimerRemainingTimeDisplayInfo>, "GetPlayTimerRemainingTimeDisplayInfo"}, // 20.0.0+
         {1471, nullptr, "NotifyWrongPinCodeInputManyTimes"},
         {1472, nullptr, "CancelNetworkRequest"},
         {1473, D<&IParentalControlService::GetUnlinkedEvent>, "GetUnlinkedEvent"},
         {1474, nullptr, "ClearUnlinkedEvent"},
         {1475, nullptr, "GetExtendedPlayTimerEvent"}, // 18.0.0+
+        {1501, nullptr, "SetTimerEventEnabled"}, // 20.0.0+
         {1601, nullptr, "DisableAllFeatures"},
         {1602, nullptr, "PostEnableAllFeatures"},
         {1603, nullptr, "IsAllFeaturesDisabled"},
@@ -109,6 +115,9 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {1955, nullptr, "GetBedtimeAlarmTime"}, // 18.0.0+
         {1956, nullptr, "GetBedtimeAlarmTimeHour"}, // 18.0.0+
         {1957, nullptr, "GetBedtimeAlarmTimeMinute"}, // 18.0.0+
+        {1958, nullptr, "GetBedtimeAlarmResetTimeHour"}, // 20.0.0+
+        {1959, nullptr, "GetBedtimeAlarmResetTimeMinute"}, // 20.0.0+
+        {1960, nullptr, "GetExtraPlayingTimeForDebug"}, // 20.0.0+
         {2001, nullptr, "RequestPairingAsync"},
         {2002, nullptr, "FinishRequestPairing"},
         {2003, nullptr, "AuthorizePairingAsync"},
@@ -125,6 +134,15 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {2014, nullptr, "FinishSynchronizeParentalControlSettings"},
         {2015, nullptr, "FinishSynchronizeParentalControlSettingsWithLastUpdated"},
         {2016, nullptr, "RequestUpdateExemptionListAsync"},
+        {2021, nullptr, "RequestCopyPairingAsync"}, // 20.0.0+
+        {2022, nullptr, "FinishRequestCopyPairing"}, // 20.0.0+
+        {2023, nullptr, "IsFromPairingActiveDevice"}, // 20.0.0+
+        {3001, nullptr, "GetErrorContextChangedEvent"}, // 20.0.0+
+        {9401, nullptr, "GetEvents"}, // 20.0.0+
+        {9402, nullptr, "GetEventsWithJson"}, // 20.0.0+
+        {9403, nullptr, "RequestPostEvents"}, // 20.0.0+
+        {9404, nullptr, "GetPostEventInterval"}, // 20.0.0+
+        {9405, nullptr, "SetPostEventInterval"}, // 20.0.0+
         {145601, D<&IParentalControlService::GetPlayTimerSettings>, "GetPlayTimerSettings"} // 18.0.0+
     };
     // clang-format on
@@ -378,6 +396,12 @@ Result IParentalControlService::IsPlayTimerEnabled(Out<bool> out_is_play_timer_e
     R_SUCCEED();
 }
 
+Result IParentalControlService::GetPlayTimerRemainingTime(Out<s32> out_remaining_minutes) {
+    *out_remaining_minutes = 0;
+    LOG_WARNING(Service_PCTL, "(STUBBED) called, remaining_minutes={}", *out_remaining_minutes);
+    R_SUCCEED();
+}
+
 Result IParentalControlService::IsRestrictedByPlayTimer(Out<bool> out_is_restricted_by_play_timer) {
     *out_is_restricted_by_play_timer = false;
     LOG_WARNING(Service_PCTL, "(STUBBED) called, restricted={}", *out_is_restricted_by_play_timer);
@@ -409,6 +433,15 @@ Result IParentalControlService::IsPlayTimerAlarmDisabled(Out<bool> out_play_time
     *out_play_timer_alarm_disabled = false;
     LOG_INFO(Service_PCTL, "called, is_play_timer_alarm_disabled={}",
              *out_play_timer_alarm_disabled);
+    R_SUCCEED();
+}
+
+Result IParentalControlService::GetPlayTimerRemainingTimeDisplayInfo(
+    Out<s32> out_remaining_minutes, Out<u32> out_unknown) {
+    *out_remaining_minutes = 0;
+    *out_unknown = 0;
+    LOG_WARNING(Service_PCTL, "(STUBBED) called, remaining_minutes={}, unknown={}",
+        *out_remaining_minutes, *out_unknown);
     R_SUCCEED();
 }
 

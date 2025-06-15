@@ -25,6 +25,9 @@ ILibraryAppletAccessor::ILibraryAppletAccessor(Core::System& system_,
         {30, D<&ILibraryAppletAccessor::GetResult>, "GetResult"},
         {50, nullptr, "SetOutOfFocusApplicationSuspendingEnabled"},
         {60, D<&ILibraryAppletAccessor::PresetLibraryAppletGpuTimeSliceZero>, "PresetLibraryAppletGpuTimeSliceZero"},
+        {80, nullptr, "RequestForLibraryAppletToGetForeground"}, //19.0.0+
+        {81, nullptr, "GetCurrentChildLibraryApplet"}, //19.0.0+
+        {90, nullptr, "Unknown90"}, //20.0.0+
         {100, D<&ILibraryAppletAccessor::PushInData>, "PushInData"},
         {101, D<&ILibraryAppletAccessor::PopOutData>, "PopOutData"},
         {102, nullptr, "PushExtraStorage"},

@@ -68,6 +68,8 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_, std::shared_
         {102, D<&IApplicationFunctions::SetApplicationCopyrightVisibility>, "SetApplicationCopyrightVisibility"},
         {110, D<&IApplicationFunctions::QueryApplicationPlayStatistics>, "QueryApplicationPlayStatistics"},
         {111, D<&IApplicationFunctions::QueryApplicationPlayStatisticsByUid>, "QueryApplicationPlayStatisticsByUid"},
+        {112, nullptr, "Unknown112"}, //20.0.0+
+        {113, nullptr, "Unknown113"}, //20.0.0+
         {120, D<&IApplicationFunctions::ExecuteProgram>, "ExecuteProgram"},
         {121, D<&IApplicationFunctions::ClearUserChannel>, "ClearUserChannel"},
         {122, D<&IApplicationFunctions::UnpopToUserChannel>, "UnpopToUserChannel"},
@@ -85,6 +87,11 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_, std::shared_
         {181, nullptr, "UpgradeLaunchRequiredVersion"},
         {190, nullptr, "SendServerMaintenanceOverlayNotification"},
         {200, nullptr, "GetLastApplicationExitReason"},
+        {210, nullptr, "Unknown210"}, //20.0.0+
+        {220, nullptr, "Unknown220"}, //20.0.0+
+        {300, nullptr, "CreateMovieWriter"}, //19.0.0+
+        {310, nullptr, "Unknown310"}, //20.0.0+
+        {320, nullptr, "Unknown320"}, //20.0.0+
         {500, nullptr, "StartContinuousRecordingFlushForDebug"},
         {1000, nullptr, "CreateMovieMaker"},
         {1001, D<&IApplicationFunctions::PrepareForJit>, "PrepareForJit"},

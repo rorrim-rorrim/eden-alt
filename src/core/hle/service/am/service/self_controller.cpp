@@ -38,6 +38,9 @@ ISelfController::ISelfController(Core::System& system_, std::shared_ptr<Applet> 
         {19, D<&ISelfController::SetAlbumImageOrientation>, "SetAlbumImageOrientation"},
         {20, nullptr, "SetDesirableKeyboardLayout"},
         {21, nullptr, "GetScreenShotProgramId"},
+        {22, nullptr, "GetScreenShotAcdIndex"}, //19.0.0+
+        {23, nullptr, "GetScreenShotApparentPlatform"}, //19.0.0+
+        {24, nullptr, "GetScreenShotApplicationProperty"}, //19.0.0+
         {40, D<&ISelfController::CreateManagedDisplayLayer>, "CreateManagedDisplayLayer"},
         {41, D<&ISelfController::IsSystemBufferSharingEnabled>, "IsSystemBufferSharingEnabled"},
         {42, D<&ISelfController::GetSystemSharedLayerHandle>, "GetSystemSharedLayerHandle"},
@@ -67,6 +70,12 @@ ISelfController::ISelfController(Core::System& system_, std::shared_ptr<Applet> 
         {110, nullptr, "SetApplicationAlbumUserData"},
         {120, D<&ISelfController::SaveCurrentScreenshot>, "SaveCurrentScreenshot"},
         {130, D<&ISelfController::SetRecordVolumeMuted>, "SetRecordVolumeMuted"},
+        {200, nullptr, "Unknown200"}, //20.0.0+
+        {210, nullptr, "Unknown210"}, //20.0.0+
+        {211, nullptr, "Unknown211"}, //20.0.0+
+        {220, nullptr, "Unknown220"}, //20.0.0+
+        {221, nullptr, "Unknown221"}, //20.0.0+
+        {230, D<&ISelfController::Unknown230>, "Unknown230"}, //20.0.0+
         {1000, nullptr, "GetDebugStorageChannel"},
     };
     // clang-format on
@@ -392,6 +401,10 @@ Result ISelfController::SaveCurrentScreenshot(Capture::AlbumReportOption album_r
         screenshot_service->CaptureAndSaveScreenshot(album_report_option);
     }
 
+    R_SUCCEED();
+}
+Result ISelfController::Unknown230() {
+    LOG_WARNING(Service_AM, "(STUBBED) called - function 230 (0xE6)");
     R_SUCCEED();
 }
 

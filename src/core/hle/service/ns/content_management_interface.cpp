@@ -18,6 +18,8 @@ IContentManagementInterface::IContentManagementInterface(Core::System& system_)
         {43, D<&IContentManagementInterface::CheckSdCardMountStatus>, "CheckSdCardMountStatus"},
         {47, D<&IContentManagementInterface::GetTotalSpaceSize>, "GetTotalSpaceSize"},
         {48, D<&IContentManagementInterface::GetFreeSpaceSize>, "GetFreeSpaceSize"},
+        {58, nullptr, "Unknown58"}, // 20.1.0+
+        {71, nullptr, "Unknown71"}, // 20.1.0+
         {600, nullptr, "CountApplicationContentMeta"},
         {601, nullptr, "ListApplicationContentMetaStatus"},
         {605, nullptr, "ListApplicationContentMetaStatusWithRightsCheck"},

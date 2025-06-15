@@ -5,6 +5,7 @@
 
 #include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
+#include "core/hle/service/am/service/applet_common_functions.h"
 
 namespace Service {
 
@@ -27,6 +28,7 @@ private:
     Result OpenSystemAppletProxy(Out<SharedPointer<ISystemAppletProxy>> out_system_applet_proxy,
                                  ClientProcessId pid,
                                  InCopyHandle<Kernel::KProcess> process_handle);
+    Result OpenSystemAppletProxyForDebug(Out<SharedPointer<ISystemAppletProxy>> out_proxy, ClientProcessId pid);
     Result OpenLibraryAppletProxy(Out<SharedPointer<ILibraryAppletProxy>> out_library_applet_proxy,
                                   ClientProcessId pid,
                                   InCopyHandle<Kernel::KProcess> process_handle,
@@ -39,6 +41,7 @@ private:
         InCopyHandle<Kernel::KProcess> process_handle,
         InLargeData<AppletAttribute, BufferAttr_HipcMapAlias> attribute);
     Result GetSystemProcessCommonFunctions();
+    Result Unknown460(Out<SharedPointer<IAppletCommonFunctions>> out_common_functions);
 
 private:
     std::shared_ptr<Applet> GetAppletFromProcessId(ProcessId pid);

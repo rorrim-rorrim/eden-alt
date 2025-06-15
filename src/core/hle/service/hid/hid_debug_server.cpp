@@ -87,6 +87,8 @@ IHidDebugServer::IHidDebugServer(Core::System& system_, std::shared_ptr<Resource
         {210, nullptr, "IsFirmwareUpdatingDevice"},
         {211, nullptr, "StartFirmwareUpdateIndividual"},
         {212, nullptr, "GetDetailFirmwareVersion"}, // 19.0.0+
+        {213, nullptr, "GetFirmwareVersionStringForDevMenu"}, // 20.0.0+
+        {214, nullptr, "Unknown214"}, // 20.1.0+
         {215, nullptr, "SetUsbFirmwareForceUpdateEnabled"},
         {216, nullptr, "SetAllKuinaDevicesToFirmwareUpdateMode"},
         {221, nullptr, "UpdateControllerColor"},

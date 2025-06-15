@@ -40,6 +40,7 @@ ISystemLocalCommunicationService::ISystemLocalCommunicationService(Core::System&
             {401, nullptr, "FinalizeSystem"},
             {402, nullptr, "SetOperationMode"},
             {403, C<&ISystemLocalCommunicationService::InitializeSystem2>, "InitializeSystem2"},
+            {404, nullptr, "InitializeWithPriority"}, // 19.0.0+
         };
     // clang-format on
 

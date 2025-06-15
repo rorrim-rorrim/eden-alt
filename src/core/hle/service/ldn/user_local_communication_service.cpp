@@ -57,6 +57,8 @@ IUserLocalCommunicationService::IUserLocalCommunicationService(Core::System& sys
             {400, C<&IUserLocalCommunicationService::Initialize>, "Initialize"},
             {401, C<&IUserLocalCommunicationService::Finalize>, "Finalize"},
             {402, C<&IUserLocalCommunicationService::Initialize2>, "Initialize2"},
+            {403, nullptr, "InitializeWithPriority"}, // 19.0.0+
+            {500, nullptr, "EnableActionFrame"}, // 18.0.0+
         };
     // clang-format on
 
