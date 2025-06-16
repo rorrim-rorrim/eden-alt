@@ -349,9 +349,9 @@ public:
             {1, &IProfileCommon::GetBase, "GetBase"},
             {10, &IProfileCommon::GetImageSize, "GetImageSize"},
             {11, &IProfileCommon::LoadImage, "LoadImage"},
-            {20, &IProfileCommon::Unknown20, "Unknown20"},
-            {21, &IProfileCommon::Unknown21, "Unknown21"},
-            {30, &IProfileCommon::Unknown30, "Unknown30"}
+            {20, &IProfileCommon::GetLargeImageSize, "GetLargeImageSize"},
+            {21, &IProfileCommon::LoadLargeImage, "LoadLargeImage"},
+            {30, &IProfileCommon::GetImageId, "GetImageId"}
         };
         // clang-format on
         RegisterHandlers(functions);
@@ -361,7 +361,7 @@ public:
             static const FunctionInfo editor_functions[] = {
                 {100, &IProfileCommon::Store, "Store"},
                 {101, &IProfileCommon::StoreWithImage, "StoreWithImage"},
-                {110, &IProfileCommon::Unknown110, "Unknown110"}
+                {110, &IProfileCommon::StoreWithLargeImage, "StoreWithLargeImage"}
             };
             // clang-format on
 
@@ -370,7 +370,7 @@ public:
     }
 
 protected:
-    void Unknown20(HLERequestContext& ctx) {
+    void GetLargeImageSize(HLERequestContext& ctx) {
         LOG_DEBUG(Service_ACC, "(STUBBED) called.");
 
         // TODO (jarrodnorwell)
@@ -380,7 +380,7 @@ protected:
         rb.Push(ResultSuccess);
     }
 
-    void Unknown21(HLERequestContext& ctx) {
+    void LoadLargeImage(HLERequestContext& ctx) {
         LOG_DEBUG(Service_ACC, "(STUBBED) called.");
 
         // TODO (jarrodnorwell)
@@ -390,7 +390,7 @@ protected:
         rb.Push(ResultSuccess);
     }
 
-    void Unknown30(HLERequestContext& ctx) {
+    void GetImageId(HLERequestContext& ctx) {
         LOG_DEBUG(Service_ACC, "(STUBBED) called.");
 
         // TODO (jarrodnorwell)
@@ -400,7 +400,7 @@ protected:
         rb.Push(ResultSuccess);
     }
 
-    void Unknown110(HLERequestContext& ctx) {
+    void StoreWithLargeImage(HLERequestContext& ctx) {
         LOG_DEBUG(Service_ACC, "(STUBBED) called.");
 
         // TODO (jarrodnorwell)
@@ -773,7 +773,6 @@ public:
             {220, nullptr, "RegisterUserAsyncWithoutProfile"}, // 17.0.0+
             {221, nullptr, "RegisterUserWithProfileAsync"}, // 17.0.0+
             {230, nullptr, "RegisterUserWithLargeImageProfileAsync"}, // 18.0.0+
-            {240, nullptr, "RegisterUserWithReauthenticationAsync"}, // 20.0.0+
         };
         // clang-format on
 

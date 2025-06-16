@@ -18,7 +18,7 @@ IAllSystemAppletProxiesService::IAllSystemAppletProxiesService(Core::System& sys
     // clang-format off
     static const FunctionInfo functions[] = {
         {100, D<&IAllSystemAppletProxiesService::OpenSystemAppletProxy>, "OpenSystemAppletProxy"},
-        {110, D<&IAllSystemAppletProxiesService::OpenSystemAppletProxyForDebug>, "OpenSystemAppletProxyForDebug"},
+        {110, D<&IAllSystemAppletProxiesService::Unknown110>, "Unknown110"},
         {200, D<&IAllSystemAppletProxiesService::OpenLibraryAppletProxyOld>, "OpenLibraryAppletProxyOld"},
         {201, D<&IAllSystemAppletProxiesService::OpenLibraryAppletProxy>, "OpenLibraryAppletProxy"},
         {300, nullptr, "OpenOverlayAppletProxy"},
@@ -51,9 +51,9 @@ Result IAllSystemAppletProxiesService::OpenSystemAppletProxy(
     }
 }
 
-Result IAllSystemAppletProxiesService::OpenSystemAppletProxyForDebug(
+Result IAllSystemAppletProxiesService::Unknown110(
     Out<SharedPointer<ISystemAppletProxy>> out_proxy, ClientProcessId pid) {
-    LOG_DEBUG(Service_AM, "OpenSystemAppletProxyForDebug called");
+    LOG_DEBUG(Service_AM, "called");
 
     auto process = system.ApplicationProcess();
     if (!process) {

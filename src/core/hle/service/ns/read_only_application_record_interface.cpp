@@ -11,8 +11,8 @@ IReadOnlyApplicationRecordInterface::IReadOnlyApplicationRecordInterface(Core::S
     static const FunctionInfo functions[] = {
         {0, D<&IReadOnlyApplicationRecordInterface::HasApplicationRecord>, "HasApplicationRecord"},
         {1, nullptr, "NotifyApplicationFailure"},
-        {2, D<&IReadOnlyApplicationRecordInterface::IsDataCorruptedResult>,
-         "IsDataCorruptedResult"},
+        {2, D<&IReadOnlyApplicationRecordInterface::IsDataCorruptedResult>, "IsDataCorruptedResult"},
+        {3, nullptr, "Unknown3"}, // 20.0.0 +
     };
     // clang-format on
 

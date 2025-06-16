@@ -27,6 +27,7 @@ public:
             {2, &IPsmSession::SetChargerTypeChangeEventEnabled, "SetChargerTypeChangeEventEnabled"},
             {3, &IPsmSession::SetPowerSupplyChangeEventEnabled, "SetPowerSupplyChangeEventEnabled"},
             {4, &IPsmSession::SetBatteryVoltageStateChangeEventEnabled, "SetBatteryVoltageStateChangeEventEnabled"},
+            {5, nullptr, "Unknown5"}, // 20.0.0+
         };
         // clang-format on
 
@@ -141,6 +142,12 @@ PSM::PSM(Core::System& system_) : ServiceFramework{system_, "psm"} {
         {16, nullptr, "GetBatteryChargeInfoEvent"},
         {17, nullptr, "GetBatteryChargeInfoFields"},
         {18, nullptr, "GetBatteryChargeCalibratedEvent"},
+        {19, nullptr, "Unknown19"}, // 18.0.0+
+        {20, nullptr, "Unknown20"}, // 18.0.0+
+        {21, nullptr, "Unknown21"}, // 19.0.0-19.0.1
+        {22, nullptr, "Unknown22"}, // 19.0.0+
+        {23, nullptr, "Unknown23"}, // 19.0.0+
+        {24, nullptr, "Unknown24"} // 20.0.0+
     };
     // clang-format on
 

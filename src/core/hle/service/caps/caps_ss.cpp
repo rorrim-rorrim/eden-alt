@@ -19,8 +19,8 @@ IScreenShotService::IScreenShotService(Core::System& system_,
         {203, C<&IScreenShotService::SaveScreenShotEx0>, "SaveScreenShotEx0"},
         {204, nullptr, "SaveEditedScreenShotEx0"},
         {206, C<&IScreenShotService::SaveEditedScreenShotEx1>, "SaveEditedScreenShotEx1"},
-        {208, nullptr, "SaveScreenShotOfMovieEx1"},
-        {1000, nullptr, "Unknown1000"},
+        {1000, nullptr, "RequestTakingScreenShotForApplet"}, // 13.0.0+ [19.0.0+] Now takes an additional 8-bytes of input.
+        {2000, nullptr, "Unknown2000"} // 20.0.0+
     };
     // clang-format on
 

@@ -38,6 +38,13 @@ IOperationModeManager::IOperationModeManager(Core::System& system_)
         {26, nullptr, "GetOperationModeSystemInfo"},
         {27, nullptr, "GetAppletFullAwakingSystemEvent"},
         {28, nullptr, "CreateCradleFirmwareUpdater"},
+        {29, nullptr, "GetCradleStatusChangeEvent"}, // 19.0.0+
+        {40, nullptr, "Unknown40"}, // 20.0.0+
+        {41, nullptr, "Unknown41"}, // 20.0.0+
+        {50, nullptr, "Unknown50"}, // 20.1.0+
+        {500, nullptr, "LblSwitchBacklightOnForAm"}, // 14.0.0+
+        {501, nullptr, "LblSwitchBacklightOffForAm"}, // 14.0.0+
+        {900, nullptr, "HideStartupLogo"} // 14.0.0+
     };
     // clang-format on
 

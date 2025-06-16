@@ -20,7 +20,7 @@ IAudioController::IAudioController(Core::System& system_)
         {3, D<&IAudioController::GetTargetVolumeMax>, "GetTargetVolumeMax"},
         {4, nullptr, "IsTargetMute"},
         {5, nullptr, "SetTargetMute"},
-        {6, nullptr, "IsTargetConnected"},
+        {6, nullptr, "IsTargetConnected"}, // [20.0.0+] ([1.0.0-17.0.1] IsTargetConnected)
         {7, nullptr, "SetDefaultTarget"},
         {8, nullptr, "GetDefaultTarget"},
         {9, D<&IAudioController::GetAudioOutputMode>, "GetAudioOutputMode"},
@@ -37,9 +37,9 @@ IAudioController::IAudioController(Core::System& system_)
         {20, nullptr, "AcquireAudioOutputDeviceUpdateEventForPlayReport"},
         {21, nullptr, "GetAudioOutputTargetForPlayReport"},
         {22, D<&IAudioController::NotifyHeadphoneVolumeWarningDisplayedEvent>, "NotifyHeadphoneVolumeWarningDisplayedEvent"},
-        {23, nullptr, "SetSystemOutputMasterVolume"},
+        {23, nullptr, "SetSystemOutputMasterVolume"}, // [20.0.0+] Originally any input was accepted, now input must be in range 0.0-1.0 otherwise it's replaced by nearest accepted value.
         {24, nullptr, "GetSystemOutputMasterVolume"},
-        {25, nullptr, "GetAudioVolumeDataForPlayReport"},
+        {25, nullptr, "GetAudioVolumeDataForPlayReport"}, // [20.0.0+] Now takes a 0x400-bytes type-0x16 output buffer and no longer returns any output.
         {26, nullptr, "UpdateHeadphoneSettings"},
         {27, nullptr, "SetVolumeMappingTableForDev"},
         {28, nullptr, "GetAudioOutputChannelCountForPlayReport"},
@@ -54,10 +54,10 @@ IAudioController::IAudioController(Core::System& system_)
         {37, nullptr, "SetHearingProtectionSafeguardEnabled"},
         {38, nullptr, "IsHearingProtectionSafeguardEnabled"},
         {39, nullptr, "IsHearingProtectionSafeguardMonitoringOutputForDebug"},
-        {40, nullptr, "GetSystemInformationForDebug"},
+        {40, nullptr, "GetSystemInformationForDebug"}, // [20.0.0+] Now takes a total of 0x40-bytes of input and the type-0x16 output buffer is now 0x2000-bytes instead of 0x1000-bytes.
         {41, nullptr, "SetVolumeButtonLongPressTime"},
         {42, nullptr, "SetNativeVolumeForDebug"},
-        {5000, D<&IAudioController::Unknown5000>, "Unknown5000"},
+        {5000, D<&IAudioController::Unknown5000>, "Unknown5000"}, // 19.0.0+
         {10000, nullptr, "NotifyAudioOutputTargetForPlayReport"},
         {10001, nullptr, "NotifyAudioOutputChannelCountForPlayReport"},
         {10002, nullptr, "NotifyUnsupportedUsbOutputDeviceAttachedForPlayReport"},
@@ -68,6 +68,7 @@ IAudioController::IAudioController(Core::System& system_)
         {10104, nullptr, "GetAudioOutputChannelCountForPlayReport"},
         {10105, nullptr, "BindAudioOutputChannelCountUpdateEventForPlayReport"},
         {10106, nullptr, "GetDefaultAudioOutputTargetForPlayReport"},
+        {10200, nullptr, "Unknown10200"}, // 20.0.0+
         {50000, nullptr, "SetAnalogInputBoostGainForPrototyping"},
         {50001, nullptr, "OverrideDefaultTargetForDebug"},
         {50003, nullptr, "SetForceOverrideExternalDeviceNameForDebug"},

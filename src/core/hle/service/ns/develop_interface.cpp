@@ -27,6 +27,12 @@ IDevelopInterface::IDevelopInterface(Core::System& system_) : ServiceFramework{s
         {17, nullptr, "PrepareLaunchApplicationFromHost"},
         {18, nullptr, "GetLaunchEvent"},
         {19, nullptr, "GetLaunchResult"},
+        {19, nullptr, "GetLaunchResult"}, // 12.0.0+
+        {20, nullptr, "GetProgramId"}, // 14.0.0+
+        {21, nullptr, "PrepareLaunchApplication"}, // 18.0.0+
+        {22, nullptr, "LaunchApplication"}, // 18.0.0+
+        {23, nullptr, "GetProgramIdByApplicationLaunchInfo"}, // 18.0.0+
+        {24, nullptr, "DestroyApplicationLaunchPreparation"}, // 18.0.0+
     };
     // clang-format on
 

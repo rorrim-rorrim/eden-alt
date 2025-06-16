@@ -28,12 +28,18 @@ IAlbumControlService::IAlbumControlService(Core::System& system_,
         {2012, nullptr, "UnregisterAppletResourceUserId"},
         {2013, nullptr, "GetApplicationIdFromAruid"},
         {2014, nullptr, "CheckApplicationIdRegistered"},
+        {2015, nullptr, "Unknown2015"}, // 20.0.0+
+        {2016, nullptr, "Unknown2016"}, // 20.0.0+
         {2101, nullptr, "GenerateCurrentAlbumFileId"},
         {2102, nullptr, "GenerateApplicationAlbumEntry"},
+        {2103, nullptr, "Unknown2103"}, // 19.0.0+
+        {2104, nullptr, "Unknown2104"}, // 19.0.0+
         {2201, nullptr, "SaveAlbumScreenShotFile"},
         {2202, nullptr, "SaveAlbumScreenShotFileEx"},
         {2301, nullptr, "SetOverlayScreenShotThumbnailData"},
         {2302, nullptr, "SetOverlayMovieThumbnailData"},
+        {2401, nullptr, "Unknown2401"}, // 19.0.0+
+        {2501, nullptr, "GetAlbumAccessResultForDebug"}, // 19.0.0+
         {60001, nullptr, "OpenControlSession"},
     };
     // clang-format on

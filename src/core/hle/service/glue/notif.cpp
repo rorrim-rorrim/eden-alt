@@ -227,6 +227,8 @@ INotificationServices::INotificationServices(Core::System& system_)
         {2001, nullptr, "GetAlarmSettingWithApplicationParameter"},
         {2010, nullptr, "MuteAlarmSetting"},
         {2020, nullptr, "IsAlarmSettingReady"},
+        {3000, nullptr, "Unknown3000"}, // 20.0.0+
+        {3010, nullptr, "Unknown3010"}, // 20.0.0+
         {8000, nullptr, "RegisterAppletResourceUserId"},
         {8010, nullptr, "UnregisterAppletResourceUserId"},
         {8999, nullptr, "GetCurrentTime"},

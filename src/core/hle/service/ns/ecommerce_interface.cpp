@@ -16,6 +16,13 @@ IECommerceInterface::IECommerceInterface(Core::System& system_)
         {4, nullptr, "RequestUnlinkDevice"},
         {5, nullptr, "RequestRevokeAllELicense"},
         {6, nullptr, "RequestSyncRightsBasedOnAssignedELicenses"},
+        {7, nullptr, "RequestOnlineSubscriptionFreeTrialAvailability"}, // 14.0.0+
+        {8, nullptr, "Unknown8"}, // 20.0.0+
+        {9, nullptr, "Unknown9"}, // 20.0.0+
+        {10, nullptr, "Unknown10"}, // 20.0.0+
+        {11, nullptr, "Unknown11"}, // 20.0.0+
+        {12, nullptr, "Unknown12"}, // 20.0.0+
+        {13, nullptr, "Unknown13"}, // 20.0.0+
     };
     // clang-format on
 

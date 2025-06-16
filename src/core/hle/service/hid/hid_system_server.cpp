@@ -154,6 +154,8 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1052, nullptr, "CancelSixAxisSensorAccurateUserCalibration"},
         {1053, nullptr, "GetSixAxisSensorAccurateUserCalibrationState"},
         {1100, nullptr, "GetHidbusSystemServiceObject"},
+        {1158, nullptr, "Unknown1158"}, //20.1.0+
+        {1159, nullptr, "Unknown1159"}, //20.1.0+
         {1120, &IHidSystemServer::SetFirmwareHotfixUpdateSkipEnabled, "SetFirmwareHotfixUpdateSkipEnabled"},
         {1130, &IHidSystemServer::InitializeUsbFirmwareUpdate, "InitializeUsbFirmwareUpdate"},
         {1131, &IHidSystemServer::FinalizeUsbFirmwareUpdate, "FinalizeUsbFirmwareUpdate"},
