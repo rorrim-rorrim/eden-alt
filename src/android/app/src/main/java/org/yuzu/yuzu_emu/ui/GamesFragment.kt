@@ -214,14 +214,12 @@ class GamesFragment : Fragment() {
             // Carousel mode: wait for layout, then set card size and enable carousel features
             if (savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL) {
                 post {
-                    val size = if (isLandscape) {
-                        height
-                    } else {
-                        (width * 0.6f).toInt()
+                    val size = height
+                    if (size > 0) {
+                        Log.d("GamesFragment", "Setting carousel card size: $size overlap: $overlapPx")
+                        gameAdapter.setCardSize(size)
+                        (this as? JukeboxRecyclerView)?.setCarouselMode(true, overlapPx, size)
                     }
-                    gameAdapter.setCardSize(size)
-                    (this as? JukeboxRecyclerView)?.setCarouselMode(true, overlapPx, size)
-                    gameAdapter.notifyDataSetChanged()
                 }
             } else {
                 // Disable carousel features in other modes
