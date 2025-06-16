@@ -89,8 +89,10 @@ class GameAdapter(private val activity: AppCompatActivity) :
                 carouselBinding.cardGameCarousel.scaleY = 1f
                 carouselBinding.cardGameCarousel.alpha = 1f
                 // Set square size for carousel
-                carouselBinding.root.layoutParams.width = cardSize
-                carouselBinding.root.layoutParams.height = cardSize
+                if (cardSize > 0) {
+                    carouselBinding.root.layoutParams.width = cardSize
+                    carouselBinding.root.layoutParams.height = cardSize
+                }
             }
         }
     }

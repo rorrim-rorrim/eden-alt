@@ -25,7 +25,6 @@ class JukeboxRecyclerView @JvmOverloads constructor(
     private var overlapPx: Int = 0
     private var overlapDecoration: OverlappingDecoration? = null
     private var pagerSnapHelper: PagerSnapHelper? = null
-    private var scalingScrollListener: OnScrollListener? = null
 
     var flingMultiplier: Float = 2.0f
 
@@ -38,6 +37,51 @@ class JukeboxRecyclerView @JvmOverloads constructor(
 
     init {
         setChildrenDrawingOrderEnabled(true)
+    }
+
+    /**
+     * Returns the horizontal center given width and paddings.
+     */
+    private fun calculateCenter(width: Int, paddingStart: Int, paddingEnd: Int): Int {
+        return paddingStart + (width - paddingStart - paddingEnd) / 2
+    }
+
+    /**
+     * Returns the horizontal center of this RecyclerView, accounting for padding.
+     */
+    private fun getRecyclerViewCenter(): Float {
+        return calculateCenter(width, paddingLeft, paddingRight).toFloat()
+    }
+
+    /**
+     * Returns the horizontal center of a LayoutManager, accounting for padding.
+     */
+    private fun getLayoutManagerCenter(layoutManager: RecyclerView.LayoutManager): Int {
+        return if (layoutManager is LinearLayoutManager) {
+            calculateCenter(layoutManager.width, layoutManager.paddingStart, layoutManager.paddingEnd)
+        } else {
+            width / 2
+        }
+    }
+
+    private fun updateChildScalesAndAlpha() {
+        val center = getRecyclerViewCenter()
+
+        for (i in 0 until childCount) {
+            val child = getChildAt(i)
+            val childCenter = (child.left + child.right) / 2f
+            val distance = abs(center - childCenter)
+            val minScale = resources.getFraction(R.fraction.carousel_min_scale, 1, 1)
+            val scale = minScale + (1f - minScale) * (1f - distance / center).coerceAtMost(1f)
+            child.scaleX = scale
+            child.scaleY = scale
+
+            val maxDistance = width / 2f
+            val norm = (distance / maxDistance).coerceIn(0f, 1f)
+            val minAlpha = resources.getFraction(R.fraction.carousel_min_alpha, 1, 1)
+            val alpha = minAlpha + (1f - minAlpha) * kotlin.math.cos(norm * Math.PI).toFloat()
+            child.alpha = alpha
+        }
     }
 
     /**
@@ -67,26 +111,13 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                     clipToPadding = false
                 }
             }
-            // Gradual scaling
-            if (scalingScrollListener == null) {
-                scalingScrollListener = object : OnScrollListener() {
-                    override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
-                        val center = rv.width / 2f
-                        for (i in 0 until rv.childCount) {
-                            val child = rv.getChildAt(i)
-                            val childCenter = (child.left + child.right) / 2f
-                            val distance = abs(center - childCenter)
-                            val scale = 1f - 0.6f * (distance / center).coerceAtMost(1f)
-                            child.scaleX = scale
-                            child.scaleY = scale
-                        }
-                    }
-                }
-                addOnScrollListener(scalingScrollListener!!)
-            }
-            // Initial scale update
-            post {
-                scalingScrollListener?.onScrolled(this, 0, 0)
+            // Handle bottom insets for keyboard/navigation bar only
+            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+                val imeInset = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime()).bottom
+                val navInset = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars()).bottom
+                // Only adjust bottom padding, keep top at 0
+                view.setPadding(view.paddingLeft, 0, view.paddingRight, maxOf(imeInset, navInset))
+                insets
             }
         } else {
             // Remove overlap decoration
@@ -100,9 +131,6 @@ class JukeboxRecyclerView @JvmOverloads constructor(
             setPadding(0, 0, 0, 0)
             clipToPadding = true
             flingMultiplier = 1.0f
-            // Remove scaling scroll listener
-            scalingScrollListener?.let { removeOnScrollListener(it) }
-            scalingScrollListener = null
             // Reset scaling
             for (i in 0 until childCount) {
                 val child = getChildAt(i)

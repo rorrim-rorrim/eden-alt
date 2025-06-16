@@ -3,7 +3,6 @@
 
 package org.yuzu.yuzu_emu.ui
 
-import android.util.Log
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -208,10 +207,10 @@ class GamesFragment : Fragment() {
             // Carousel mode: wait for layout, then set card size and enable carousel features
             if (savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL) {
                 post {
-                    val size = if (isLandscape) {
-                        height
-                    } else {
-                        (width * 0.6f).toInt()
+                    val size = height
+                    if (size > 0) {
+                        gameAdapter.setCardSize(size)
+                        (this as? JukeboxRecyclerView)?.setCarouselMode(true, overlapPx, size)
                     }
                     gameAdapter.setCardSize(size)
                     (this as? JukeboxRecyclerView)?.setCarouselMode(true, overlapPx, size)
