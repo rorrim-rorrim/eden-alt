@@ -1,6 +1,5 @@
 package org.yuzu.yuzu_emu.ui
 
-import android.util.Log
 import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
@@ -27,7 +26,6 @@ class JukeboxRecyclerView @JvmOverloads constructor(
     private var overlapPx: Int = 0
     private var overlapDecoration: OverlappingDecoration? = null
     private var pagerSnapHelper: PagerSnapHelper? = null
-    private var scalingScrollListener: OnScrollListener? = null
 
     var flingMultiplier: Float = resources.getFraction(R.fraction.carousel_fling_multiplier, 1, 1)
 
@@ -84,11 +82,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
             val minAlpha = resources.getFraction(R.fraction.carousel_min_alpha, 1, 1)
             val alpha = minAlpha + (1f - minAlpha) * kotlin.math.cos(norm * Math.PI).toFloat()
             child.alpha = alpha
-
-            Log.d("JukeboxRecyclerView", "Child $i scaled to $scale at distance $distance from center $center and overlapPx $overlapPx")
         }
-
-        Log.d("JukeboxRecyclerView", "=======================================================================================")
     }
 
     /**
@@ -120,17 +114,6 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                     clipToPadding = false
                 }
             }
-            // Gradual scaling
-            if (scalingScrollListener == null) {
-                scalingScrollListener = object : OnScrollListener() {
-                    override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
-                        Log.d("JukeboxRecyclerView", "onScrolled triggered")
-                        //(rv as? JukeboxRecyclerView)?.updateChildScalesAndAlpha()
-                    }
-                }
-                addOnScrollListener(scalingScrollListener!!)
-            }
-
             // Handle bottom insets for keyboard/navigation bar only
             androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
                 val imeInset = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime()).bottom
@@ -152,9 +135,6 @@ class JukeboxRecyclerView @JvmOverloads constructor(
             setPadding(0, 0, 0, 0)
             clipToPadding = true
             flingMultiplier = 1.0f
-            // Remove scaling scroll listener
-            scalingScrollListener?.let { removeOnScrollListener(it) }
-            scalingScrollListener = null
             // Reset scaling
             for (i in 0 until childCount) {
                 val child = getChildAt(i)

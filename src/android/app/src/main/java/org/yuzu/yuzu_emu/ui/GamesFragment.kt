@@ -3,7 +3,6 @@
 
 package org.yuzu.yuzu_emu.ui
 
-import android.util.Log
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -216,7 +215,6 @@ class GamesFragment : Fragment() {
                 post {
                     val size = height
                     if (size > 0) {
-                        Log.d("GamesFragment", "Setting carousel card size: $size overlap: $overlapPx")
                         gameAdapter.setCardSize(size)
                         (this as? JukeboxRecyclerView)?.setCarouselMode(true, overlapPx, size)
                     }

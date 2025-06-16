@@ -3,7 +3,6 @@
 
 package org.yuzu.yuzu_emu.adapters
 
-import android.util.Log
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -93,7 +92,6 @@ class GameAdapter(private val activity: AppCompatActivity) :
                 if (cardSize > 0) {
                     carouselBinding.root.layoutParams.width = cardSize
                     carouselBinding.root.layoutParams.height = cardSize
-                    Log.d("GameAdapter", "Setting carousel position $position card size to $cardSize")
                 }
             }
         }
