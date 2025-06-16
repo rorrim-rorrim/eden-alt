@@ -23,6 +23,19 @@ IReadOnlyApplicationControlDataInterface::IReadOnlyApplicationControlDataInterfa
         {2, D<&IReadOnlyApplicationControlDataInterface::ConvertApplicationLanguageToLanguageCode>, "ConvertApplicationLanguageToLanguageCode"},
         {3, nullptr, "ConvertLanguageCodeToApplicationLanguage"},
         {4, nullptr, "SelectApplicationDesiredLanguage"},
+        {5, nullptr, "Unknown5"}, // 19.0.0+
+        {6, nullptr, "Unknown6"}, // 19.0.0+
+        {7, nullptr, "Unknown7"}, // 20.0.0+
+        {8, nullptr, "Unknown8"}, // 20.0.0+
+        {9, nullptr, "Unknown9"}, // 20.0.0+
+        {10, nullptr, "Unknown10"}, // 20.0.0+
+        {11, nullptr, "Unknown11"}, // 20.0.0+
+        {12, nullptr, "Unknown12"}, // 20.0.0+
+        {13, nullptr, "Unknown13"}, // 20.0.0+
+        {14, nullptr, "Unknown14"}, // 20.0.0+
+        {15, nullptr, "Unknown15"}, // 20.0.0+
+        {16, nullptr, "Unknown16"}, // 20.0.0+
+        {17, nullptr, "Unknown17"}, // 20.1.0+
     };
     // clang-format on
 

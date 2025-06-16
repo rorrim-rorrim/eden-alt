@@ -32,6 +32,10 @@ IQueryService::IQueryService(Core::System& system_) : ServiceFramework{system_, 
         {17, nullptr, "QueryLastPlayTime"},
         {18, nullptr, "QueryApplicationPlayStatisticsForSystem"},
         {19, nullptr, "QueryApplicationPlayStatisticsByUserAccountIdForSystem"},
+        {100, nullptr, "Unknown100"}, // 20.0.0+
+        {110, nullptr, "Unknown110"}, // 20.0.0+
+        {118, nullptr, "Unknown118"}, // 20.0.0+
+        {119, nullptr, "Unknown119"} // 20.0.0+
     };
     // clang-format on
 

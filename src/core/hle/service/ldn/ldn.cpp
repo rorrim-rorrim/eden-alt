@@ -18,7 +18,7 @@ public:
     explicit IMonitorServiceCreator(Core::System& system_) : ServiceFramework{system_, "ldn:m"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, C<&IMonitorServiceCreator::CreateMonitorService>, "CreateMonitorService"}
+            {0, C<&IMonitorServiceCreator::CreateMonitorService>, "CreateMonitorService"},
             {1, nullptr, "CreateClientProcessMonitor"} // 18.0.0+
         };
         // clang-format on

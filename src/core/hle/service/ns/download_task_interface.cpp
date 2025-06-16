@@ -19,6 +19,7 @@ IDownloadTaskInterface::IDownloadTaskInterface(Core::System& system_)
         {707, D<&IDownloadTaskInterface::EnableAutoCommit>, "EnableAutoCommit"},
         {708, D<&IDownloadTaskInterface::DisableAutoCommit>, "DisableAutoCommit"},
         {709, nullptr, "TriggerDynamicCommitEvent"},
+        {710, nullptr, "Unknown710"} // 20.0.0+
     };
     // clang-format on
 

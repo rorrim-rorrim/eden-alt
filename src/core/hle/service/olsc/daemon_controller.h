@@ -13,7 +13,7 @@ public:
     ~IDaemonController() override;
 
 private:
-    Result GetAutoTransferEnabledForAccountAndApplication(Out<bool> out_is_enabled,
+    Result GetApplicationAutoTransferSetting(Out<bool> out_is_enabled,
                                                           Common::UUID user_id, u64 application_id);
 };
 

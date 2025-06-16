@@ -53,8 +53,13 @@ public:
             {42, nullptr, "SetNetworkServiceAccountIdTokenSuccess"}, // 17.0.0+
             {43, nullptr, "SetNetworkServiceAccountIdTokenFailure"}, // 17.0.0+
             {44, nullptr, "SetUidList"}, // 17.0.0+
-            {45, nullptr, "PutDigitalTwinKeyValue"}, // 17.0.0+
+            {45, nullptr, "PutDigitalTwinKeyValue"}, // [20.0.0+] ([17.0.0-18.1.0] PutDigitalTwinKeyValue)
             {51, nullptr, "DeleteDigitalTwinKeyValue"}, // 18.0.0+
+            {52, nullptr, "Unknown52"}, // 20.0.0+
+            {53, nullptr, "Unknown53"}, // 20.0.0+
+            {60, nullptr, "Unknown60"}, // 19.0.0+
+            {61, nullptr, "Unknown61"}, // 19.0.0+
+            {70, nullptr, "Unknown70"}, // 20.0.0+
             {101, nullptr, "Suspend"},
             {102, nullptr, "Resume"},
             {103, C<&INpnsSystem::GetState>, "GetState"},
@@ -68,6 +73,13 @@ public:
             {114, nullptr, "AttachJid"},
             {115, nullptr, "DetachJid"},
             {120, nullptr, "CreateNotificationReceiver"},
+            {141, nullptr, "Unknown141"}, // 19.0.0+
+            {142, nullptr, "Unknown142"}, // 19.0.0+
+            {143, nullptr, "Unknown143"}, // 19.0.0+
+            {144, nullptr, "Unknown144"}, // 19.0.0+
+            {145, nullptr, "Unknown145"}, // 19.0.0+
+            {146, nullptr, "Unknown146"}, // 20.0.0+
+            {147, nullptr, "Unknown147"}, // 20.0.0+
             {151, nullptr, "GetStateWithHandover"},
             {152, nullptr, "GetStateChangeEventWithHandover"},
             {153, nullptr, "GetDropEventWithHandover"},
@@ -78,6 +90,7 @@ public:
             {162, nullptr, "RequestChangeStateForceTimedWithCancelEvent"},
             {201, nullptr, "RequestChangeStateForceTimed"},
             {202, nullptr, "RequestChangeStateForceAsync"},
+            {203, nullptr, "Unknown203"}, // 20.0.0+
             {301, nullptr, "GetPassword"}, // 18.0.0+
             {302, nullptr, "GetAllImmigration"}, // 18.0.0+
             {303, nullptr, "GetNotificationHistories"}, // 18.0.0+

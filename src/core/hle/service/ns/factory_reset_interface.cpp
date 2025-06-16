@@ -16,6 +16,8 @@ IFactoryResetInterface::IFactoryResetInterface(Core::System& system_)
             {104, nullptr, "ResetToFactorySettingsWithPlatformRegionAuthentication"},
             {105, nullptr, "RequestResetToFactorySettingsSecurely"},
             {106, nullptr, "RequestResetToFactorySettingsWithPlatformRegionAuthenticationSecurely"},
+            {107, nullptr, "Unknown7"}, // 20.0.0+
+            {108, nullptr, "Unknown8"}, // 20.0.0+
         };
     // clang-format on
 

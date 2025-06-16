@@ -57,50 +57,81 @@ public:
             {38, nullptr, "OwnTicket3"},
             {39, nullptr, "DeleteAllInactivePersonalizedTicket"},
             {40, nullptr, "DeletePrepurchaseRecordByNintendoAccountId"},
-            {501, nullptr, "Unknown501"},
-            {502, nullptr, "Unknown502"},
-            {503, nullptr, "GetTitleKey"},
-            {504, nullptr, "Unknown504"},
-            {508, nullptr, "Unknown508"},
-            {509, nullptr, "Unknown509"},
-            {510, nullptr, "Unknown510"},
-            {511, nullptr, "Unknown511"},
-            {1001, nullptr, "Unknown1001"},
-            {1002, nullptr, "Unknown1001"},
-            {1003, nullptr, "Unknown1003"},
-            {1004, nullptr, "Unknown1004"},
-            {1005, nullptr, "Unknown1005"},
-            {1006, nullptr, "Unknown1006"},
-            {1007, nullptr, "Unknown1007"},
-            {1009, nullptr, "Unknown1009"},
-            {1010, nullptr, "Unknown1010"},
-            {1011, nullptr, "Unknown1011"},
-            {1012, nullptr, "Unknown1012"},
-            {1013, nullptr, "Unknown1013"},
-            {1014, nullptr, "Unknown1014"},
-            {1015, nullptr, "Unknown1015"},
-            {1016, nullptr, "Unknown1016"},
-            {1017, nullptr, "Unknown1017"},
-            {1018, nullptr, "Unknown1018"},
-            {1019, nullptr, "Unknown1019"},
-            {1020, nullptr, "Unknown1020"},
-            {1021, nullptr, "Unknown1021"},
-            {1501, nullptr, "Unknown1501"},
-            {1502, nullptr, "Unknown1502"},
-            {1503, nullptr, "Unknown1503"},
-            {1504, nullptr, "Unknown1504"},
-            {1505, nullptr, "Unknown1505"},
-            {1506, nullptr, "Unknown1506"},
-            {2000, nullptr, "Unknown2000"},
-            {2001, nullptr, "Unknown2001"},
-            {2002, nullptr, "Unknown2002"},
-            {2003, nullptr, "Unknown2003"},
-            {2100, nullptr, "Unknown2100"},
-            {2501, nullptr, "Unknown2501"},
-            {2502, nullptr, "Unknown2502"},
-            {2601, nullptr, "Unknown2601"},
-            {3001, nullptr, "Unknown3001"},
-            {3002, nullptr, "Unknown3002"},
+            {101, nullptr, "Unknown101"}, // 18.0.0+
+            {102, nullptr, "Unknown102"}, // 18.0.0+
+            {103, nullptr, "Unknown103"}, // 18.0.0+
+            {104, nullptr, "Unknown104"}, // 18.0.0+
+            {105, nullptr, "Unknown105"}, // 20.0.0+
+            {201, nullptr, "Unknown201"}, // 18.0.0+
+            {202, nullptr, "Unknown202"}, // 18.0.0+
+            {203, nullptr, "Unknown203"}, // 18.0.0+
+            {204, nullptr, "Unknown204"}, // 18.0.0+
+            {501, nullptr, "Unknown501"}, // 6.0.0+
+            {502, nullptr, "Unknown502"}, // 6.0.0+
+            {503, nullptr, "GetTitleKey"}, // 6.0.0+
+            {504, nullptr, "Unknown504"}, // 6.0.0+
+            {508, nullptr, "Unknown508"}, // 6.0.0+
+            {509, nullptr, "Unknown509"}, // 6.0.0+
+            {510, nullptr, "Unknown510"}, // 6.0.0+
+            {511, nullptr, "Unknown511"}, // 9.0.0+
+            {1001, nullptr, "Unknown1001"}, // 6.0.0+
+            {1002, nullptr, "Unknown1002"}, // 6.0.0+
+            {1003, nullptr, "GetIAsyncValue"}, // 6.0.0+
+            {1004, nullptr, "Unknown1004"}, // 6.0.0+
+            {1005, nullptr, "Unknown1005"}, // 6.0.0+
+            {1006, nullptr, "Unknown1006"}, // 6.0.0+
+            {1007, nullptr, "Unknown1007"}, // 6.0.0+
+            {1009, nullptr, "Unknown1009"}, // 6.0.0+
+            {1010, nullptr, "Unknown1010"}, // 6.0.0+
+            {1011, nullptr, "Unknown1011"}, // 6.0.0+
+            {1012, nullptr, "Unknown1012"}, // 6.0.0+
+            {1013, nullptr, "Unknown1013"}, // 6.0.0+
+            {1014, nullptr, "Unknown1014"}, // 6.0.0+
+            {1015, nullptr, "Unknown1015"}, // 6.0.0+
+            {1016, nullptr, "Unknown1016"}, // 6.0.0+
+            {1017, nullptr, "Unknown1017"}, // 9.0.0+
+            {1018, nullptr, "Unknown1018"}, // 9.0.0+
+            {1019, nullptr, "Unknown1019"}, // 9.0.0+
+            {1020, nullptr, "Unknown1020"}, // 9.0.0+
+            {1021, nullptr, "Unknown1021"}, // 9.0.0+
+            {1022, nullptr, "Unknown1022"}, // 15.0.0+
+            {1023, nullptr, "Unknown1023"}, // 17.0.0+
+            {1024, nullptr, "Unknown1024"}, // 17.0.0+
+            {1025, nullptr, "Unknown1025"}, // 17.0.0+
+            {1026, nullptr, "Unknown1026"}, // 17.0.0+
+            {1027, nullptr, "Unknown1027"}, // 17.0.0+
+            {1028, nullptr, "Unknown1028"}, // 18.0.0+
+            {1029, nullptr, "Unknown1029"}, // 19.0.0+
+            {1030, nullptr, "Unknown1030"}, // 20.0.0+
+            {1031, nullptr, "Unknown1031"}, // 20.0.0+
+            {1032, nullptr, "Unknown1032"}, // 20.0.0+
+            {1033, nullptr, "Unknown1033"}, // 20.0.0+
+            {1034, nullptr, "Unknown1034"}, // 20.0.0+
+            {1035, nullptr, "Unknown1035"}, // 20.0.0+
+            {1036, nullptr, "Unknown1036"}, // 20.0.0+
+            {1037, nullptr, "Unknown1037"}, // 20.0.0+
+            {1501, nullptr, "Unknown1501"}, // 6.0.0+
+            {1502, nullptr, "Unknown1502"}, // 6.0.0+
+            {1503, nullptr, "Unknown1503"}, // 6.0.0+
+            {1504, nullptr, "Unknown1504"}, // 6.0.0+
+            {1505, nullptr, "Unknown1505"}, // 6.0.0+
+            {1506, nullptr, "Unknown1506"}, // 13.0.0+
+            {1601, nullptr, "Unknown1601"}, // 20.0.0+
+            {1602, nullptr, "Unknown1602"}, // 20.0.0+
+            {1603, nullptr, "Unknown1603"}, // 20.0.0+
+            {1604, nullptr, "Unknown1604"}, // 20.0.0+
+            {1605, nullptr, "Unknown1605"}, // 20.0.0+
+            {1606, nullptr, "Unknown1606"}, // 20.0.0+
+            {2000, nullptr, "GetIActiveRightsContext"}, // 6.0.0+
+            {2001, nullptr, "GetIActiveRightsContext2"}, // 9.0.0+
+            {2002, nullptr, "Unknown2002"}, // 13.0.0-16.1.0
+            {2003, nullptr, "Unknown2003"}, // 13.0.0-16.1.0
+            {2100, nullptr, "Unknown2100"}, // 7.0.0+
+            {2501, nullptr, "Unknown2501"}, // 6.0.0+
+            {2502, nullptr, "Unknown2502"}, // 6.0.0+
+            {2601, nullptr, "Unknown2601"}, // 13.0.0+
+            {3001, nullptr, "Unknown3001"}, // 7.0.0-15.0.1
+            {3002, nullptr, "Unknown3002"} // 7.0.0-15.0.1
         };
         // clang-format on
         RegisterHandlers(functions);

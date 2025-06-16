@@ -33,15 +33,32 @@ IAlbumAccessorService::IAlbumAccessorService(Core::System& system_,
         {15, nullptr, "GetAlbumUsage3"},
         {16, nullptr, "GetAlbumMountResult"},
         {17, nullptr, "GetAlbumUsage16"},
-        {18, C<&IAlbumAccessorService::Unknown18>, "Unknown18"},
-        {19, nullptr, "Unknown19"},
+        {18, C<&IAlbumAccessorService::GetAppletProgramIdTable>, "GetAppletProgramIdTable"},
+        {19, nullptr, "GetAlbumFileName"},
+        {20, nullptr, "Unknown20"}, // 20.0.0+
         {100, nullptr, "GetAlbumFileCountEx0"},
         {101, C<&IAlbumAccessorService::GetAlbumFileListEx0>, "GetAlbumFileListEx0"},
+        {110, nullptr, "GetAlbumFileListEx1"}, // 15.0.0+
+        {120, nullptr, "GetAlbumFileListEx2"}, // 17.0.0+
+        {121, nullptr, "Unknown121"}, // 20.0.0+
+        {122, nullptr, "Unknown122"}, // 20.0.0+
+        {123, nullptr, "Unknown123"}, // 20.0.0+
+        {130, nullptr, "LoadAlbumFileRawData"}, // 17.0.0+
+        {140, nullptr, "GetAlbumFileCreatedEvent"}, // 17.0.0+
+        {141, nullptr, "Unknown141"}, // 18.0.0+
+        {150, nullptr, "LoadAlbumSystemReservedInfo"}, // 17.0.0+
+        {151, nullptr, "Unknown151"}, // 18.0.0+
+        {160, nullptr, "Unknown160"}, // 18.0.0+
+        {170, nullptr, "Unknown170"}, // 20.0.0+
+        {171, nullptr, "Unknown171"}, // 20.0.0+
+        {172, nullptr, "Unknown172"}, // 20.0.0+
         {202, nullptr, "SaveEditedScreenShot"},
         {301, nullptr, "GetLastThumbnail"},
         {302, nullptr, "GetLastOverlayMovieThumbnail"},
         {401,  C<&IAlbumAccessorService::GetAutoSavingStorage>, "GetAutoSavingStorage"},
         {501, nullptr, "GetRequiredStorageSpaceSizeToCopyAll"},
+        {502, nullptr, "Unknown502"}, // 20.0.0+
+        {600, nullptr, "Unknown600"}, // 20.0.0+
         {1001, nullptr, "LoadAlbumScreenShotThumbnailImageEx0"},
         {1002, C<&IAlbumAccessorService::LoadAlbumScreenShotImageEx1>, "LoadAlbumScreenShotImageEx1"},
         {1003, C<&IAlbumAccessorService::LoadAlbumScreenShotThumbnailImageEx1>, "LoadAlbumScreenShotThumbnailImageEx1"},
@@ -51,10 +68,20 @@ IAlbumAccessorService::IAlbumAccessorService(Core::System& system_,
         {8012, nullptr, "GetAlbumCache"},
         {8013, nullptr, "GetAlbumCacheEx"},
         {8021, nullptr, "GetAlbumEntryFromApplicationAlbumEntryAruid"},
+        {8022, nullptr, "Unknown8022"}, // 19.0.0+
+        {8031, nullptr, "Unknown8031"}, // 20.0.0+
+        {8032, nullptr, "Unknown8032"}, // 20.0.0+
         {10011, nullptr, "SetInternalErrorConversionEnabled"},
         {50000, nullptr, "LoadMakerNoteInfoForDebug"},
-        {50011, C<&IAlbumAccessorService::GetAlbumAccessResultForDebug>, "GetAlbumAccessResultForDebug"},
-        {50012, C<&IAlbumAccessorService::SetAlbumAccessResultForDebug>, "SetAlbumAccessResultForDebug"},
+        {50001, nullptr, "Unknown50001"}, // 19.0.0+
+        {50011, C<&IAlbumAccessorService::GetAlbumAccessResultForDebug>, "GetAlbumAccessResultForDebug"}, // 19.0.0+
+        {50012, C<&IAlbumAccessorService::SetAlbumAccessResultForDebug>, "SetAlbumAccessResultForDebug"}, // 19.0.0+
+        {50021, nullptr, "Unknown50021"}, // 20.0.0+
+        {50022, nullptr, "Unknown50022"}, // 20.0.0+
+        {50023, nullptr, "Unknown50023"}, // 20.0.0+
+        {50024, nullptr, "Unknown50024"}, // 20.0.0+
+        {50031, nullptr, "Unknown50031"}, // 20.0.0+
+        {50032, nullptr, "Unknown50032"}, // 20.0.0+
         {60002, nullptr, "OpenAccessorSession"},
     };
     // clang-format on
@@ -89,7 +116,7 @@ Result IAlbumAccessorService::IsAlbumMounted(Out<bool> out_is_mounted, AlbumStor
     R_RETURN(TranslateResult(result));
 }
 
-Result IAlbumAccessorService::Unknown18(
+Result IAlbumAccessorService::GetAppletProgramIdTable(
     Out<u32> out_buffer_size,
     OutArray<u8, BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_buffer) {
     LOG_WARNING(Service_Capture, "(STUBBED) called");

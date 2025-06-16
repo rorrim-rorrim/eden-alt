@@ -28,7 +28,7 @@ private:
 
     Result IsAlbumMounted(Out<bool> out_is_mounted, AlbumStorage storage);
 
-    Result Unknown18(
+    Result GetAppletProgramIdTable(
         Out<u32> out_buffer_size,
         OutArray<u8, BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure>
             out_buffer);

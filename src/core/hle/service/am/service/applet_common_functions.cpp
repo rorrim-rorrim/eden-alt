@@ -31,18 +31,20 @@ IAppletCommonFunctions::IAppletCommonFunctions(Core::System& system_,
         {90, nullptr, "OpenNamedChannelAsParent"},
         {91, nullptr, "OpenNamedChannelAsChild"},
         {100, nullptr, "SetApplicationCoreUsageMode"},
+        {160, nullptr, "GetNotificationReceiverService"}, // 18.0.0+
+        {161, nullptr, "GetNotificationSenderService"}, // 18.0.0+
         {300, D<&IAppletCommonFunctions::GetCurrentApplicationId>, "GetCurrentApplicationId"},
-        {310, nullptr, "IsSystemAppletHomeMenu"}, //19.0.0+
-        {311, nullptr, "Unknown311"},
-        {320, nullptr, "SetGpuTimeSliceBoost"}, //19.0.0+
-        {321, nullptr, "SetGpuTimeSliceBoostDueToApplication"}, //19.0.0+
-        {322, nullptr, "Unknown322"},
-        {330, nullptr, "Unknown330"}, //19.0.0+
-        {340, nullptr, "Unknown340"},
-        {341, nullptr, "Unknown341"},
-        {342, nullptr, "Unknown342"},
-        {350, D<&IAppletCommonFunctions::Unknown350>, "Unknown350"},
-        {360, nullptr, "Unknown360"},
+        {310, nullptr, "IsSystemAppletHomeMenu"}, // 19.0.0+
+        {311, nullptr, "Unknown311"}, // 20.0.0+
+        {320, nullptr, "SetGpuTimeSliceBoost"}, // 19.0.0+
+        {321, nullptr, "SetGpuTimeSliceBoostDueToApplication"}, // 19.0.0+
+        {322, nullptr, "Unknown322"}, // 20.0.0+
+        {330, nullptr, "Unknown330"}, // 19.0.0+
+        {340, nullptr, "Unknown340"}, // 20.0.0+
+        {341, nullptr, "Unknown341"}, // 20.0.0+
+        {342, nullptr, "Unknown342"}, // 20.0.0+
+        {350, D<&IAppletCommonFunctions::Unknown350>, "Unknown350"}, // 20.0.0+
+        {360, nullptr, "Unknown360"} // 20.0.0+
     };
     // clang-format on
 

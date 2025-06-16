@@ -12,7 +12,7 @@ public:
     ~IRemoteStorageController() override;
 
 private:
-    Result GetSecondarySave(Out<bool> out_has_secondary_save, Out<std::array<u64, 3>> out_unknown,
+    Result GetLoadedDataInfo(Out<bool> out_has_secondary_save, Out<std::array<u64, 3>> out_unknown,
                             u64 application_id);
 };
 
