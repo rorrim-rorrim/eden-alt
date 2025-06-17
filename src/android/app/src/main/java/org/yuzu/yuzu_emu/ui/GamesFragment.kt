@@ -212,9 +212,6 @@ class GamesFragment : Fragment() {
                         gameAdapter.setCardSize(size)
                         (this as? JukeboxRecyclerView)?.setCarouselMode(true, overlapPx, size)
                     }
-                    gameAdapter.setCardSize(size)
-                    (this as? JukeboxRecyclerView)?.setCarouselMode(true, overlapPx, size)
-                    gameAdapter.notifyDataSetChanged()
                 }
             } else {
                 // Disable carousel features in other modes

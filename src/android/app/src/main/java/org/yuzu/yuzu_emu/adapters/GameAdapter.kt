@@ -53,7 +53,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
         private set
 
     fun setCardSize(size: Int) {
-        if (cardSize != size) {
+        if (cardSize != size && size > 0) {
             cardSize = size
             notifyDataSetChanged()
         }
@@ -87,7 +87,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
                 val carouselBinding = holder.binding as CardGameCarouselBinding
                 carouselBinding.cardGameCarousel.scaleX = 1f
                 carouselBinding.cardGameCarousel.scaleY = 1f
-                carouselBinding.cardGameCarousel.alpha = 1f
+                carouselBinding.cardGameCarousel.alpha = 0f
                 // Set square size for carousel
                 if (cardSize > 0) {
                     carouselBinding.root.layoutParams.width = cardSize
