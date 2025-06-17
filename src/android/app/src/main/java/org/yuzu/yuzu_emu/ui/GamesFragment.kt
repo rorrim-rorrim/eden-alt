@@ -207,7 +207,9 @@ class GamesFragment : Fragment() {
             // Carousel mode: wait for layout, then set card size and enable carousel features
             if (savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL) {
                 post {
-                    val size = height
+                    val insets = ViewCompat.getRootWindowInsets(this)
+                    val bottomInset = insets?.getInsets(WindowInsetsCompat.Type.systemBars())?.bottom ?: 0
+                    val size = (resources.getFraction(R.fraction.carousel_card_size_multiplier, 1, 1) * (height - bottomInset)).toInt()
                     if (size > 0) {
                         gameAdapter.setCardSize(size)
                         (this as? JukeboxRecyclerView)?.setCarouselMode(true, overlapPx, size)
@@ -270,86 +272,6 @@ class GamesFragment : Fragment() {
     private fun navigateToSettings() {
         val navController = findNavController()
         navController.navigate(R.id.action_gamesFragment_to_homeSettingsFragment)
-    }
-
-    private fun addPreAlphaBanner() {
-        val preAlphaBanner = TextView(requireContext()).apply {
-            id = "pre_alpha_banner".hashCode()
-            layoutParams = ConstraintLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                marginStart = resources.getDimensionPixelSize(R.dimen.spacing_med)
-                marginEnd = resources.getDimensionPixelSize(R.dimen.spacing_med)
-                topMargin = resources.getDimensionPixelSize(R.dimen.spacing_large)
-                topToBottom = R.id.frame_search
-            }
-            setPadding(
-                resources.getDimensionPixelSize(R.dimen.spacing_med),
-                resources.getDimensionPixelSize(R.dimen.spacing_large),
-                resources.getDimensionPixelSize(R.dimen.spacing_med),
-                resources.getDimensionPixelSize(R.dimen.spacing_med)
-            )
-
-            setBackgroundColor(
-                com.google.android.material.color.MaterialColors.getColor(
-                    this,
-                    com.google.android.material.R.attr.colorPrimary
-                )
-            )
-            text = getString(R.string.pre_alpha_warning)
-            setTextAppearance(
-                com.google.android.material.R.style.TextAppearance_Material3_HeadlineSmall
-            )
-            setTextColor(
-                com.google.android.material.color.MaterialColors.getColor(
-                    this,
-                    com.google.android.material.R.attr.colorOnError
-                )
-            )
-            gravity = Gravity.CENTER
-        }
-
-        val closeButton = ImageButton(requireContext()).apply {
-            id = "pre_alpha_close_button".hashCode()
-            layoutParams = ConstraintLayout.LayoutParams(
-                resources.getDimensionPixelSize(R.dimen.spacing_large),
-                resources.getDimensionPixelSize(R.dimen.spacing_large)
-            ).apply {
-                startToStart = "pre_alpha_banner".hashCode()
-                topToTop = "pre_alpha_banner".hashCode()
-                bottomToBottom = "pre_alpha_banner".hashCode()
-                marginStart = resources.getDimensionPixelSize(R.dimen.spacing_large) * 2
-                topMargin = resources.getDimensionPixelSize(R.dimen.spacing_small)
-            }
-            setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
-            setColorFilter(
-                com.google.android.material.color.MaterialColors.getColor(
-                    this,
-                    com.google.android.material.R.attr.colorOnError
-                )
-            )
-            setBackgroundColor(Color.Transparent.toArgb())
-            setOnClickListener {
-                PreferenceManager.getDefaultSharedPreferences(requireContext())
-                    .edit() {
-                        putBoolean(Settings.PREF_SHOULD_SHOW_PRE_ALPHA_BANNER, false)
-                    }
-                binding.root.removeView(preAlphaBanner)
-                binding.root.removeView(this)
-
-                binding.swipeRefresh.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                    topToBottom = R.id.frame_search
-                }
-            }
-        }
-
-        binding.root.addView(preAlphaBanner)
-        binding.root.addView(closeButton)
-
-        binding.swipeRefresh.updateLayoutParams<ConstraintLayout.LayoutParams> {
-            topToBottom = preAlphaBanner.id
-        }
     }
 
     private fun showViewMenu(anchor: View) {
