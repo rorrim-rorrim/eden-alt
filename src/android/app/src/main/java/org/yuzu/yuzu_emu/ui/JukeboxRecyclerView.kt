@@ -117,10 +117,9 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 }
             }
             // Handle bottom insets for keyboard/navigation bar only
-            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
-                val imeInset = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime()).bottom
-                val navInset = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars()).bottom
-                // Only adjust bottom padding, keep top at 0
+            setOnApplyWindowInsetsListener { view, insets ->
+                val imeInset = insets.getInsets(android.view.WindowInsets.Type.ime()).bottom
+                val navInset = insets.getInsets(android.view.WindowInsets.Type.navigationBars()).bottom
                 view.setPadding(view.paddingLeft, 0, view.paddingRight, maxOf(imeInset, navInset))
                 insets
             }

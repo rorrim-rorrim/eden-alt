@@ -207,8 +207,8 @@ class GamesFragment : Fragment() {
             // Carousel mode: wait for layout, then set card size and enable carousel features
             if (savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL) {
                 post {
-                    val insets = ViewCompat.getRootWindowInsets(this)
-                    val bottomInset = insets?.getInsets(WindowInsetsCompat.Type.systemBars())?.bottom ?: 0
+                    val insets = rootWindowInsets
+                    val bottomInset = insets?.getInsets(android.view.WindowInsets.Type.systemBars())?.bottom ?: 0
                     val size = (resources.getFraction(R.fraction.carousel_card_size_multiplier, 1, 1) * (height - bottomInset)).toInt()
                     if (size > 0) {
                         gameAdapter.setCardSize(size)
