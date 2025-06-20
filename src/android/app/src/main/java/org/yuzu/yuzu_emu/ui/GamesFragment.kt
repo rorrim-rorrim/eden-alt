@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.ui
 
+import android.util.Log
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -11,6 +12,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
 import android.widget.PopupMenu
@@ -230,6 +232,37 @@ class GamesFragment : Fragment() {
         if (_binding != null) {
             outState.putString(SEARCH_TEXT, binding.searchText.text.toString())
         }
+    }
+
+    private var lastScrollPosition: Int = 0
+    override fun onPause() {
+        super.onPause()
+        Log.d("GamesFragment", "Calling getCentered from onPause")
+        lastScrollPosition = (binding.gridGames as? JukeboxRecyclerView)?.getCenteredAdapterPosition() ?: 0
+        Log.d("GamesFragment", "Saving last scroll position: $lastScrollPosition")
+    }
+
+    private fun tryRestoreScroll(recyclerView: JukeboxRecyclerView, attempts: Int = 0) {
+        val lm = recyclerView.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager ?: return
+        val first = lm.findFirstVisibleItemPosition()
+        val last = lm.findLastVisibleItemPosition()
+        val child = if (first != RecyclerView.NO_POSITION) lm.findViewByPosition(first) else null
+
+        if (last == RecyclerView.NO_POSITION && attempts < 100) {
+            recyclerView.post { tryRestoreScroll(recyclerView, attempts + 1) }
+            return
+        }
+
+        Log.d("GamesFragment", "Scrolling to last position: $lastScrollPosition, #=$attempts, 1st=$first, Nth=$last")
+        //if (recyclerView.getCenteredAdapterPosition() != lastScrollPosition && lastScrollPosition >= 0) {
+            recyclerView.scrollToPosition(lastScrollPosition)
+        //}
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        val recyclerView = binding.gridGames as? JukeboxRecyclerView ?: return
+        tryRestoreScroll(recyclerView)
     }
 
     private fun setAdapter(games: List<Game>) {

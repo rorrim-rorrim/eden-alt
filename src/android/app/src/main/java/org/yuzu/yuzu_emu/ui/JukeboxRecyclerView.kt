@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.ui
 
+import android.util.Log
 import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
@@ -66,6 +67,25 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         } else {
             width / 2
         }
+    }
+
+    //na jukebox
+    fun getCenteredAdapterPosition(): Int {
+        val lm = layoutManager as? LinearLayoutManager ?: return RecyclerView.NO_POSITION
+        val center = getLayoutManagerCenter(lm)
+        var minDistance = Int.MAX_VALUE
+        var closestPosition = RecyclerView.NO_POSITION
+        for (i in lm.findFirstVisibleItemPosition()..lm.findLastVisibleItemPosition()) {
+            val child = lm.findViewByPosition(i) ?: continue
+            val childCenter = (child.left + child.right) / 2
+            val distance = kotlin.math.abs(childCenter - center)
+            if (distance < minDistance) {
+                minDistance = distance
+                closestPosition = i
+            }
+        }
+        Log.d("JukeboxRecyclerView", "Centered position: $closestPosition, distance: $minDistance")
+        return closestPosition
     }
 
     private fun updateChildScalesAndAlpha() {
@@ -225,6 +245,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
             val center = (this@JukeboxRecyclerView).getLayoutManagerCenter(layoutManager)
             var minDistance = Int.MAX_VALUE
             var closestChild: View? = null
+            var  pos: Int = 0
             for (i in 0 until layoutManager.childCount) {
                 val child = layoutManager.getChildAt(i) ?: continue
                 val childCenter = (child.left + child.right) / 2
@@ -232,8 +253,10 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 if (distance < minDistance) {
                     minDistance = distance
                     closestChild = child
+                    pos = i
                 }
             }
+            Log.d("SnapHelper", "findSnapView Chosen child: $pos, minDistance=$minDistance")
             return closestChild
         }
 
@@ -280,6 +303,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
             var targetPos = closestPosition + flingCount
             val itemCount = layoutManager.itemCount
             targetPos = targetPos.coerceIn(0, itemCount - 1)
+            Log.d("SnapHelper", "findTargetSnapPosition position: $targetPos")
             return targetPos
         }
     }
