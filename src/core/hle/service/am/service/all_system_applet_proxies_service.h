@@ -41,7 +41,7 @@ private:
         InCopyHandle<Kernel::KProcess> process_handle,
         InLargeData<AppletAttribute, BufferAttr_HipcMapAlias> attribute);
     Result GetSystemProcessCommonFunctions();
-    Result Unknown460(Out<SharedPointer<IAppletCommonFunctions>> out_common_functions);
+    Result Unknown460();
 
 private:
     std::shared_ptr<Applet> GetAppletFromProcessId(ProcessId pid);

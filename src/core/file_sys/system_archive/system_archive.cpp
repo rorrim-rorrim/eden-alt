@@ -13,7 +13,7 @@
 namespace FileSys::SystemArchive {
 
 constexpr u64 SYSTEM_ARCHIVE_BASE_TITLE_ID = 0x0100000000000800;
-constexpr std::size_t SYSTEM_ARCHIVE_COUNT = 0x28;
+constexpr std::size_t SYSTEM_ARCHIVE_COUNT = 0x30;
 
 using SystemArchiveSupplier = VirtualDir (*)();
 
@@ -64,6 +64,14 @@ constexpr std::array<SystemArchiveDescriptor, SYSTEM_ARCHIVE_COUNT> SYSTEM_ARCHI
     {0x0100000000000825, "ApplicationBlackList", nullptr},
     {0x0100000000000826, "RebootlessSystemUpdateVersion", nullptr},
     {0x0100000000000827, "ContentActionTable", nullptr},
+    {0x0100000000000828, "FunctionBlackList", nullptr},
+    {0x0100000000000829, "PlatformConfigCalcio", nullptr},
+    {0x0100000000000830, "NgWordT", nullptr},
+    {0x0100000000000831, "PlatformConfigAula", nullptr},
+    {0x0100000000000832, "CradleFirmware", nullptr},
+    {0x0100000000000835, "ErrorMessageUtf8", nullptr},
+    {0x0100000000000859, "Unknown859", nullptr}, // 20.0.0+
+    {0x010000000000085C, "Unknown85C", nullptr}, // 20.0.0+
 }};
 
 VirtualFile SynthesizeSystemArchive(const u64 title_id) {
