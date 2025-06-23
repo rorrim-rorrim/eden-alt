@@ -178,14 +178,10 @@ class GamesFragment : Fragment() {
 
     val applyGridGamesBinding = {
         (binding.gridGames as? RecyclerView)?.apply {
-            val savedViewType = getCurrentViewType()
             val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-            val effectiveViewType = if (!isLandscape && savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL) {
-                GameAdapter.VIEW_TYPE_GRID
-            } else {
-                savedViewType
-            }
-            gameAdapter.setViewType(effectiveViewType)
+            val currentViewType = getCurrentViewType()
+            val savedViewType = if (isLandscape || currentViewType != GameAdapter.VIEW_TYPE_CAROUSEL) currentViewType else GameAdapter.VIEW_TYPE_GRID
+
             gameAdapter.setViewType(savedViewType)
             currentFilter = preferences.getInt(PREF_SORT_TYPE, View.NO_ID)
             val overlapPx = resources.getDimensionPixelSize(R.dimen.carousel_overlap)
@@ -213,6 +209,7 @@ class GamesFragment : Fragment() {
                     val bottomInset = insets?.getInsets(android.view.WindowInsets.Type.systemBars())?.bottom ?: 0
                     val size = (resources.getFraction(R.fraction.carousel_card_size_multiplier, 1, 1) * (height - bottomInset)).toInt()
                     if (size > 0) {
+                        Log.d("GamesFragment", "Setting carousel card size: $size")
                         gameAdapter.setCardSize(size)
                         (this as? JukeboxRecyclerView)?.setCarouselMode(true, overlapPx, size)
                     }
@@ -244,23 +241,19 @@ class GamesFragment : Fragment() {
 
     private fun tryRestoreScroll(recyclerView: JukeboxRecyclerView, attempts: Int = 0) {
         val lm = recyclerView.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager ?: return
-        val first = lm.findFirstVisibleItemPosition()
-        val last = lm.findLastVisibleItemPosition()
-        val child = if (first != RecyclerView.NO_POSITION) lm.findViewByPosition(first) else null
 
-        if (last == RecyclerView.NO_POSITION && attempts < 100) {
+        if (lm.findLastVisibleItemPosition() == RecyclerView.NO_POSITION && attempts < 100) {
             recyclerView.post { tryRestoreScroll(recyclerView, attempts + 1) }
             return
         }
 
-        Log.d("GamesFragment", "Scrolling to last position: $lastScrollPosition, #=$attempts, 1st=$first, Nth=$last")
-        //if (recyclerView.getCenteredAdapterPosition() != lastScrollPosition && lastScrollPosition >= 0) {
-            recyclerView.scrollToPosition(lastScrollPosition)
-        //}
+        Log.d("GamesFragment", "Scrolling to last position: $lastScrollPosition, attempt=$attempts")
+        recyclerView.scrollToPosition(lastScrollPosition)
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
+        if (getCurrentViewType() != GameAdapter.VIEW_TYPE_CAROUSEL) return
         val recyclerView = binding.gridGames as? JukeboxRecyclerView ?: return
         tryRestoreScroll(recyclerView)
     }

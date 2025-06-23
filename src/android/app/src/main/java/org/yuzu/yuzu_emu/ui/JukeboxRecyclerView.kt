@@ -8,12 +8,14 @@ import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewTreeObserver
 import android.view.KeyEvent
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.abs
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.adapters.GameAdapter
 
 /**
  * JukeboxRecyclerView encapsulates all carousel/grid/list logic for the games UI.
@@ -30,6 +32,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
     private var overlapPx: Int = 0
     private var overlapDecoration: OverlappingDecoration? = null
     private var pagerSnapHelper: PagerSnapHelper? = null
+    private var scalingScrollListener: OnScrollListener? = null
 
     var flingMultiplier: Float = resources.getFraction(R.fraction.carousel_fling_multiplier, 1, 1)
 
@@ -88,7 +91,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         return closestPosition
     }
 
-    private fun updateChildScalesAndAlpha() {
+    fun updateChildScalesAndAlpha() {
         val center = getRecyclerViewCenter()
 
         for (i in 0 until childCount) {
@@ -105,6 +108,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
             val minAlpha = resources.getFraction(R.fraction.carousel_min_alpha, 1, 1)
             val alpha = minAlpha + (1f - minAlpha) * kotlin.math.cos(norm * Math.PI).toFloat()
             child.alpha = alpha
+            Log.d("JukeboxRecyclerView", "Child $i: center=$childCenter, distance=$distance, scale=$scale, alpha=$alpha")
         }
     }
 
@@ -115,6 +119,9 @@ class JukeboxRecyclerView @JvmOverloads constructor(
     fun setCarouselMode(enabled: Boolean, overlapPx: Int = 0, cardSize: Int = 0) {
         this.overlapPx = overlapPx
         if (enabled) {
+            useCustomDrawingOrder = true
+            flingMultiplier = resources.getFraction(R.fraction.carousel_fling_multiplier, 1, 1)
+
             // Add overlap decoration if not present
             if (overlapDecoration == null) {
                 overlapDecoration = OverlappingDecoration(overlapPx)
@@ -125,17 +132,19 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 pagerSnapHelper = CenterPagerSnapHelper()
                 pagerSnapHelper!!.attachToRecyclerView(this)
             }
-            useCustomDrawingOrder = true
-            flingMultiplier = resources.getFraction(R.fraction.carousel_fling_multiplier, 1, 1)
 
-            // Center first/last card
-            post {
-                if (cardSize > 0) {
-                    val sidePadding = (width - cardSize) / 2
-                    setPadding(sidePadding, 0, sidePadding, 0)
-                    clipToPadding = false
+            // Gradual scalingAdd commentMore actions
+            if (scalingScrollListener == null) {
+                scalingScrollListener = object : OnScrollListener() {
+                    override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                        super.onScrolled(recyclerView, dx, dy)
+                        Log.d("JukeboxRecyclerView", "onScrolled dx=$dx, dy=$dy")
+                        updateChildScalesAndAlpha()
+                    }
                 }
+                addOnScrollListener(scalingScrollListener!!)
             }
+
             // Handle bottom insets for keyboard/navigation bar only
             setOnApplyWindowInsetsListener { view, insets ->
                 val imeInset = insets.getInsets(android.view.WindowInsets.Type.ime()).bottom
@@ -143,10 +152,26 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 view.setPadding(view.paddingLeft, 0, view.paddingRight, maxOf(imeInset, navInset))
                 insets
             }
+
+            // Center first/last card IMPORTANT!!
+            post {
+                if (cardSize > 0) {
+                    val sidePadding = (width - cardSize) / 2
+                    setPadding(sidePadding, 0, sidePadding, 0)
+                    clipToPadding = false
+                }
+                post { //IMPORTANT: post² fixes the enter carousel smol cards issue
+                    updateChildScalesAndAlpha()
+                }
+                Log.d("JukeboxRecyclerView", "Carousel mode enabled with overlapPx=$overlapPx, cardSize=$cardSize")
+            }
         } else {
             // Remove overlap decoration
             overlapDecoration?.let { removeItemDecoration(it) }
             overlapDecoration = null
+            // Remove scaling scroll listener
+            scalingScrollListener?.let { removeOnScrollListener(it) }
+            scalingScrollListener = null
             // Detach PagerSnapHelper
             pagerSnapHelper?.attachToRecyclerView(null)
             pagerSnapHelper = null
@@ -160,7 +185,22 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 val child = getChildAt(i)
                 child?.scaleX = 1f
                 child?.scaleY = 1f
+                child?.alpha = 1f
             }
+        }
+    }
+
+    override fun scrollToPosition(position: Int) {
+        super.scrollToPosition(position)
+
+        if (position == 1) {//important to compensate for the overlap
+            (layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(position, overlapPx)
+            Log.d("JukeboxRecyclerView", "Extra offset applied for position 1: $overlapPx")
+        }
+
+        post { //important to post to ensure layout is done
+            updateChildScalesAndAlpha()
+            Log.d("GamesFragment", "Scrolled to position: $position got ${getCenteredAdapterPosition()}")
         }
     }
 
@@ -197,7 +237,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         return super.fling(newVelocityX, newVelocityY)
     }
 
-    private var scaleUpdatePosted = false
+    //private var scaleUpdatePosted = false
     // Custom drawing order for carousel (for alpha fade)
     override fun getChildDrawingOrder(childCount: Int, i: Int): Int {
         if (!useCustomDrawingOrder || childCount == 0) return i
@@ -213,13 +253,13 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 .thenBy { it.first }
         )
         // Post scale update once per frame
-        if (!scaleUpdatePosted && i == childCount - 1) {
-            scaleUpdatePosted = true
-            post {
-                updateChildScalesAndAlpha()
-                scaleUpdatePosted = false
-            }
-        }
+        // if (!scaleUpdatePosted && i == childCount - 1) {
+        //     scaleUpdatePosted = true
+        //     post {
+        //         updateChildScalesAndAlpha()
+        //         scaleUpdatePosted = false
+        //     }
+        // }
         //Log.d("JukeboxRecyclerView", "Child $i got order ${sorted[i].first} at distance ${sorted[i].second} from center $center")
         return sorted[i].first
     }

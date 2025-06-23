@@ -49,7 +49,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
         notifyDataSetChanged()
     }
 
-    var cardSize: Int = 0
+    public var cardSize: Int = 0
         private set
 
     fun setCardSize(size: Int) {
