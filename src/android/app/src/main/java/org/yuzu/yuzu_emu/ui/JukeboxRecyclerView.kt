@@ -8,10 +8,8 @@ import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
-import android.view.ViewTreeObserver
-import android.view.KeyEvent
+import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.abs
@@ -163,6 +161,18 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 }
                 post { //IMPORTANT: post² fixes the enter carousel smol cards issue
                     updateChildScalesAndAlpha()
+
+                    // Request focus on the centered card for joypad navigation
+                    val centeredPos = getCenteredAdapterPosition()
+                    if (centeredPos != RecyclerView.NO_POSITION) {
+                        val vh = findViewHolderForAdapterPosition(centeredPos)
+                        vh?.itemView?.let { child ->
+                            child.isFocusable = true
+                            child.isFocusableInTouchMode = true
+                            child.requestFocus()
+                            Log.d("JukeboxRecyclerView", "Requested focus on centered card: $centeredPos")
+                        }
+                    }
                 }
                 Log.d("JukeboxRecyclerView", "Carousel mode enabled with overlapPx=$overlapPx, cardSize=$cardSize")
             }
