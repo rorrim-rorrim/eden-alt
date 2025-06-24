@@ -258,12 +258,20 @@ class GamesFragment : Fragment() {
         tryRestoreScroll(recyclerView)
     }
 
+    private var lastSearchText: String = ""
+    private var lastFilter: Int = preferences.getInt(PREF_SORT_TYPE, View.NO_ID)
+
     private fun setAdapter(games: List<Game>) {
         val currentSearchText = binding.searchText.text.toString()
         val currentFilter = binding.filterButton.id
 
-        if (currentSearchText.isNotEmpty() || currentFilter != View.NO_ID) {
+        val searchChanged = currentSearchText != lastSearchText
+        val filterChanged = currentFilter != lastFilter
+
+        if (searchChanged || filterChanged) {
             filterAndSearch(games)
+            lastSearchText = currentSearchText
+            lastFilter = currentFilter
         } else {
             ((binding.gridGames as? RecyclerView)?.adapter as? GameAdapter)?.submitList(games)
             gamesViewModel.setFilteredGames(games)

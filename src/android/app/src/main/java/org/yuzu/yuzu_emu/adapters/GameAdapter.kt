@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.adapters
 
+import android.util.Log
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -85,14 +86,15 @@ class GameAdapter(private val activity: AppCompatActivity) :
             }
             VIEW_TYPE_CAROUSEL -> {
                 val carouselBinding = holder.binding as CardGameCarouselBinding
-                carouselBinding.cardGameCarousel.scaleX = 1f
-                carouselBinding.cardGameCarousel.scaleY = 1f
-                carouselBinding.cardGameCarousel.alpha = 0f
-                // Set square size for carousel
-                if (cardSize > 0) {
-                    carouselBinding.root.layoutParams.width = cardSize
-                    carouselBinding.root.layoutParams.height = cardSize
-                }
+                // carouselBinding.cardGameCarousel.scaleX = 1f
+                // carouselBinding.cardGameCarousel.scaleY = 1f
+                // carouselBinding.cardGameCarousel.alpha = 0f
+                // // Set square size for carousel
+                // if (cardSize > 0) {
+                //     carouselBinding.root.layoutParams.width = cardSize
+                //     carouselBinding.root.layoutParams.height = cardSize
+                //     Log.d("GameAdapter", "Setting carousel card size to $cardSize")
+                // }
             }
         }
     }
@@ -162,7 +164,9 @@ class GameAdapter(private val activity: AppCompatActivity) :
             (carouselBinding.root.getChildAt(0) as? LinearLayout)?.setPadding(0, 0, 0, 0)
 
             // Always set square size and remove margins for carousel
-            val params = carouselBinding.root.layoutParams
+            val card = carouselBinding.root
+            val params = card.layoutParams
+            Log.d("GameAdapter", "Binding carousel card with params: ${params.width}x${params.height}, cardSize: $cardSize")
             params.width = cardSize
             params.height = cardSize
             if (params is ViewGroup.MarginLayoutParams) params.setMargins(0, 0, 0, 0)
