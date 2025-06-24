@@ -8,7 +8,6 @@ import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
-import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -121,15 +120,13 @@ class JukeboxRecyclerView @JvmOverloads constructor(
             useCustomDrawingOrder = true
             flingMultiplier = resources.getFraction(R.fraction.carousel_fling_multiplier, 1, 1)
 
+            // Detach SnapHelper during setup
+            pagerSnapHelper?.attachToRecyclerView(null)
+
             // Add overlap decoration if not present
             if (overlapDecoration == null) {
                 overlapDecoration = OverlappingDecoration(overlapPx)
                 addItemDecoration(overlapDecoration!!)
-            }
-            // Attach PagerSnapHelper
-            if (pagerSnapHelper == null) {
-                pagerSnapHelper = CenterPagerSnapHelper()
-                pagerSnapHelper!!.attachToRecyclerView(this)
             }
 
             // Gradual scalingAdd commentMore actions
@@ -158,6 +155,11 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                     val sidePadding = (width - cardSize) / 2
                     setPadding(sidePadding, 0, sidePadding, 0)
                     clipToPadding = false
+                }
+                // Attach PagerSnapHelper
+                if (pagerSnapHelper == null) {
+                    pagerSnapHelper = CenterPagerSnapHelper()
+                    pagerSnapHelper!!.attachToRecyclerView(this)
                 }
                 post { //IMPORTANT: post² fixes the enter carousel smol cards issue
                     updateChildScalesAndAlpha()
@@ -253,7 +255,6 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         return super.fling(newVelocityX, newVelocityY)
     }
 
-    //private var scaleUpdatePosted = false
     // Custom drawing order for carousel (for alpha fade)
     override fun getChildDrawingOrder(childCount: Int, i: Int): Int {
         if (!useCustomDrawingOrder || childCount == 0) return i
@@ -268,14 +269,6 @@ class JukeboxRecyclerView @JvmOverloads constructor(
             compareByDescending<Pair<Int, Float>> { it.second }
                 .thenBy { it.first }
         )
-        // Post scale update once per frame
-        // if (!scaleUpdatePosted && i == childCount - 1) {
-        //     scaleUpdatePosted = true
-        //     post {
-        //         updateChildScalesAndAlpha()
-        //         scaleUpdatePosted = false
-        //     }
-        // }
         //Log.d("JukeboxRecyclerView", "Child $i got order ${sorted[i].first} at distance ${sorted[i].second} from center $center")
         return sorted[i].first
     }
