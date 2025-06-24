@@ -184,7 +184,6 @@ class GamesFragment : Fragment() {
 
             gameAdapter.setViewType(savedViewType)
             currentFilter = preferences.getInt(PREF_SORT_TYPE, View.NO_ID)
-            val overlapPx = resources.getDimensionPixelSize(R.dimen.carousel_overlap)
 
             // Set the correct layout manager
             layoutManager = when (savedViewType) {
@@ -211,12 +210,13 @@ class GamesFragment : Fragment() {
                     if (size > 0) {
                         Log.d("GamesFragment", "Setting carousel card size: $size")
                         gameAdapter.setCardSize(size)
+                        val overlapPx = (size * resources.getFraction(R.fraction.carousel_overlap_factor,1,1)).toInt()
                         (this as? JukeboxRecyclerView)?.setCarouselMode(true, overlapPx, size)
                     }
                 }
             } else {
                 // Disable carousel features in other modes
-                (this as? JukeboxRecyclerView)?.setCarouselMode(false, overlapPx, 0)
+                (this as? JukeboxRecyclerView)?.setCarouselMode(false, 0, 0)
             }
 
             adapter = gameAdapter

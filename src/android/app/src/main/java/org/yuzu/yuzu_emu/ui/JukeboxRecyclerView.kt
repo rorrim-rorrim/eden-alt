@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewTreeObserver
 import android.view.KeyEvent
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.abs
@@ -108,7 +109,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
             val minAlpha = resources.getFraction(R.fraction.carousel_min_alpha, 1, 1)
             val alpha = minAlpha + (1f - minAlpha) * kotlin.math.cos(norm * Math.PI).toFloat()
             child.alpha = alpha
-            Log.d("JukeboxRecyclerView", "Child $i: center=$childCenter, distance=$distance, scale=$scale, alpha=$alpha")
+            //Log.d("JukeboxRecyclerView", "Child $i: center=$childCenter, distance=$distance, scale=$scale, alpha=$alpha")
         }
     }
 
@@ -138,7 +139,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 scalingScrollListener = object : OnScrollListener() {
                     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                         super.onScrolled(recyclerView, dx, dy)
-                        Log.d("JukeboxRecyclerView", "onScrolled dx=$dx, dy=$dy")
+                        //Log.d("JukeboxRecyclerView", "onScrolled dx=$dx, dy=$dy")
                         updateChildScalesAndAlpha()
                     }
                 }
@@ -214,7 +215,12 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         return when (direction) {
             View.FOCUS_LEFT -> {
                 if (position > 0) {
-                    findViewHolderForAdapterPosition(position - 1)?.itemView ?: super.focusSearch(focused, direction)
+                    val targetView = findViewHolderForAdapterPosition(position - 1)?.itemView
+                        ?: super.focusSearch(focused, direction)
+                    val offset = (targetView.scaleX * targetView.width / 2f).toInt()
+                    smoothScrollBy(-offset, 0)
+                    Log.d("JukeboxRecyclerView", "Focus left offset $offset, position $position")
+                    targetView
                 } else {
                     focused
                 }
