@@ -88,7 +88,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
                 val carouselBinding = holder.binding as CardGameCarouselBinding
                 // carouselBinding.cardGameCarousel.scaleX = 1f
                 // carouselBinding.cardGameCarousel.scaleY = 1f
-                // carouselBinding.cardGameCarousel.alpha = 0f
+                carouselBinding.cardGameCarousel.alpha = 0f
                 // // Set square size for carousel
                 // if (cardSize > 0) {
                 //     carouselBinding.root.layoutParams.width = cardSize
@@ -160,28 +160,23 @@ class GameAdapter(private val activity: AppCompatActivity) :
         private fun bindCarouselView(model: Game) {
             val carouselBinding = binding as CardGameCarouselBinding
 
-            // Remove padding from the root LinearLayout
-            (carouselBinding.root.getChildAt(0) as? LinearLayout)?.setPadding(0, 0, 0, 0)
-
-            // Always set square size and remove margins for carousel
-            val card = carouselBinding.root
-            val params = card.layoutParams
-            Log.d("GameAdapter", "Binding carousel card with params: ${params.width}x${params.height}, cardSize: $cardSize")
-            params.width = cardSize
-            params.height = cardSize
-            if (params is ViewGroup.MarginLayoutParams) params.setMargins(0, 0, 0, 0)
-            carouselBinding.root.layoutParams = params
-
             carouselBinding.imageGameScreen.scaleType = ImageView.ScaleType.CENTER_CROP
             GameIconUtils.loadGameIcon(model, carouselBinding.imageGameScreen)
 
             carouselBinding.textGameTitle.text = model.title.replace("[\\t\\n\\r]+".toRegex(), " ")
+
             carouselBinding.textGameTitle.marquee()
             carouselBinding.cardGameCarousel.setOnClickListener { onClick(model) }
             carouselBinding.cardGameCarousel.setOnLongClickListener { onLongClick(model) }
 
             carouselBinding.imageGameScreen.contentDescription =
                 binding.root.context.getString(R.string.game_image_desc, model.title)
+
+            // Reset layout params to XML defaults
+            carouselBinding.root.layoutParams.width = cardSize
+            carouselBinding.root.layoutParams.height = cardSize
+            (carouselBinding.root.layoutParams as? ViewGroup.MarginLayoutParams)?.setMargins(0, 0, 0, 0) //important
+            //(carouselBinding.root.getChildAt(0) as? LinearLayout)?.setPadding(0, 0, 0, 0)
         }
 
         fun onClick(game: Game) {

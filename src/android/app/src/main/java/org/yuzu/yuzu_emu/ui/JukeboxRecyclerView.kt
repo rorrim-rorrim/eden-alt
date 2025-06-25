@@ -90,27 +90,29 @@ class JukeboxRecyclerView @JvmOverloads constructor(
     }
 
     fun updateChildScalesAndAlpha() {
-        val center = getRecyclerViewCenter()
-
         for (i in 0 until childCount) {
-            val child = getChildAt(i)
-            val childCenter = (child.left + child.right) / 2f
-            val distance = abs(center - childCenter)
-            val minScale = resources.getFraction(R.fraction.carousel_min_scale, 1, 1)
-            val scale = minScale + (1f - minScale) * (1f - distance / center).coerceAtMost(1f)
-
-            val maxDistance = width / 2f
-            val norm = (distance / maxDistance).coerceIn(0f, 1f)
-            val minAlpha = resources.getFraction(R.fraction.carousel_min_alpha, 1, 1)
-            val alpha = minAlpha + (1f - minAlpha) * kotlin.math.cos(norm * Math.PI).toFloat()
-
-            child.scaleX = scale
-            child.scaleY = scale
-            child.animate().cancel()
-            child.alpha = alpha
-
-            //Log.d("JukeboxRecyclerView", "Child:$i center:$childCenter scale:$scale alpha:$alpha")
+            updateChildScaleAndAlphaForPosition(getChildAt(i))
         }
+    }
+
+    fun updateChildScaleAndAlphaForPosition(child: View) {
+        val center = getRecyclerViewCenter()
+        val childCenter = (child.left + child.right) / 2f
+        val distance = abs(center - childCenter)
+        val minScale = resources.getFraction(R.fraction.carousel_min_scale, 1, 1)
+        val scale = minScale + (1f - minScale) * (1f - distance / center).coerceAtMost(1f)
+
+        val maxDistance = width / 2f
+        val norm = (distance / maxDistance).coerceIn(0f, 1f)
+        val minAlpha = resources.getFraction(R.fraction.carousel_min_alpha, 1, 1)
+        val alpha = minAlpha + (1f - minAlpha) * kotlin.math.cos(norm * Math.PI).toFloat()
+
+        child.animate().cancel()
+        child.alpha = alpha
+        child.scaleX = scale
+        child.scaleY = scale
+
+        //Log.d("JukeboxRecyclerView", "Child:$child c/cc:$center/$childCenter scale:$scale alpha:$alpha")
     }
 
     /**
@@ -132,12 +134,25 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 addItemDecoration(overlapDecoration!!)
             }
 
+            // update cards upon attach
+            addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
+                override fun onChildViewAttachedToWindow(view: View) {
+                    updateChildScaleAndAlphaForPosition(view)
+                    //FALTA ALGO AQUI PRA AJEITAR O ALFA
+                    //PODE TER OUTROS BUGS VISUAIS
+                    //SE SCROLLAR DURANTE REFRESH ZOA TUDO
+                    //MUDAR ABORDAGEM: ENCONTRAR UM LUGAR PRA DAR UM smoothScrollBy(1,0) após o refresh
+                    Log.d("JukeboxRecyclerView", "Attached: pos=${getChildViewHolder(view).bindingAdapterPosition} scale=${view.scaleX}, alpha=${view.alpha}")
+                }
+                override fun onChildViewDetachedFromWindow(view: View) {}
+            })
+
             // Gradual scalingAdd commentMore actions
             if (scalingScrollListener == null) {
                 scalingScrollListener = object : OnScrollListener() {
                     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                         super.onScrolled(recyclerView, dx, dy)
-                        //Log.d("JukeboxRecyclerView", "onScrolled dx=$dx, dy=$dy")
+                        Log.d("JukeboxRecyclerView", "onScrolled dx=$dx, dy=$dy")
                         updateChildScalesAndAlpha()
                     }
                 }
