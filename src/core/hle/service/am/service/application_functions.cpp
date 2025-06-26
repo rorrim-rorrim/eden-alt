@@ -87,7 +87,7 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_, std::shared_
         {181, nullptr, "UpgradeLaunchRequiredVersion"},
         {190, nullptr, "SendServerMaintenanceOverlayNotification"},
         {200, nullptr, "GetLastApplicationExitReason"},
-        {210, nullptr, "Unknown210"}, //20.0.0+
+        {210, D<&IApplicationFunctions::Unknown210>, "Unknown210"}, //20.0.0+
         {220, nullptr, "Unknown220"}, //20.0.0+
         {300, nullptr, "CreateMovieWriter"}, //19.0.0+
         {310, nullptr, "Unknown310"}, //20.0.0+
@@ -491,6 +491,13 @@ Result IApplicationFunctions::GetHealthWarningDisappearedSystemEvent(
     OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_DEBUG(Service_AM, "called");
     *out_event = m_applet->health_warning_disappeared_system_event.GetHandle();
+    R_SUCCEED();
+}
+
+Result IApplicationFunctions::Unknown210(
+    OutCopyHandle<Kernel::KReadableEvent> out_event) {
+    LOG_DEBUG(Service_AM, "called");
+    *out_event = m_applet->unkown210_event.GetHandle();
     R_SUCCEED();
 }
 
