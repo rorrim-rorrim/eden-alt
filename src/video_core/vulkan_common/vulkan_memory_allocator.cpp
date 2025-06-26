@@ -347,7 +347,7 @@ bool MemoryAllocator::TryAllocMemory(VkMemoryPropertyFlags flags, u32 type_mask,
 
     const u64 aligned_size = (device.GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) ?
                             Common::AlignUp(size, 4096) :  // Adreno requires 4KB alignment
-                            size;                          // Others (NVIDIA, AMD, Intel, etc)Add commentMore actions
+                            size;                          // Others (NVIDIA, AMD, Intel, etc)
 
     vk::DeviceMemory memory = device.GetLogical().TryAllocateMemory({
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
