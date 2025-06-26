@@ -14,6 +14,7 @@ void LoopProcess(Core::System& system) {
 
     server_manager->RegisterNamedService("bsd:s", std::make_shared<BSD>(system, "bsd:s"));
     server_manager->RegisterNamedService("bsd:u", std::make_shared<BSD>(system, "bsd:u"));
+    server_manager->RegisterNamedService("bsd:a", std::make_shared<BSD>(system, "bsd:a"));
     server_manager->RegisterNamedService("bsdcfg", std::make_shared<BSDCFG>(system));
     server_manager->RegisterNamedService("nsd:a", std::make_shared<NSD>(system, "nsd:a"));
     server_manager->RegisterNamedService("nsd:u", std::make_shared<NSD>(system, "nsd:u"));

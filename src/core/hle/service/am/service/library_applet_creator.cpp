@@ -174,7 +174,7 @@ ILibraryAppletCreator::ILibraryAppletCreator(Core::System& system_, std::shared_
         {0, D<&ILibraryAppletCreator::CreateLibraryApplet>, "CreateLibraryApplet"},
         {1, nullptr, "TerminateAllLibraryApplets"},
         {2, nullptr, "AreAnyLibraryAppletsLeft"},
-        {3, nullptr, "Unknown3"}, //20.0.0+
+        {3, D<&ILibraryAppletCreator::CreateLibraryApplet>, "Unknown3"}, // 20.0.0+
         {10, D<&ILibraryAppletCreator::CreateStorage>, "CreateStorage"},
         {11, D<&ILibraryAppletCreator::CreateTransferMemoryStorage>, "CreateTransferMemoryStorage"},
         {12, D<&ILibraryAppletCreator::CreateHandleStorage>, "CreateHandleStorage"},
