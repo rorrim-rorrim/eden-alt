@@ -18,7 +18,6 @@ import org.yuzu.yuzu_emu.adapters.GameAdapter
 /**
  * JukeboxRecyclerView encapsulates all carousel/grid/list logic for the games UI.
  * It manages overlapping cards, center snapping, custom drawing order, and mid-screen swipe-to-refresh.
- * Use setCarouselMode(enabled, overlapPx) to toggle carousel features.
  */
 class JukeboxRecyclerView @JvmOverloads constructor(
     context: Context,
@@ -125,8 +124,8 @@ class JukeboxRecyclerView @JvmOverloads constructor(
      * Enable or disable carousel mode.
      * When enabled, applies overlap, snap, and custom drawing order.
      */
-    fun setCarouselMode(enabled: Boolean, overlapPx: Int = 0, cardSize: Int = 0) {
-        this.overlapPx = overlapPx
+    fun setCarouselMode(enabled: Boolean, cardSize: Int = 0) {
+        this.overlapPx = (cardSize * resources.getFraction(R.fraction.carousel_overlap_factor,1,1)).toInt()
         if (enabled) {
             useCustomDrawingOrder = true
             flingMultiplier = resources.getFraction(R.fraction.carousel_fling_multiplier, 1, 1)
