@@ -90,12 +90,18 @@ class JukeboxRecyclerView @JvmOverloads constructor(
     }
 
     fun updateChildScalesAndAlpha() {
+        Log.d("JukeboxRecyclerView", "Updating child scales and alpha childCount ${childCount}")
         for (i in 0 until childCount) {
-            updateChildScaleAndAlphaForPosition(getChildAt(i))
+            val child = getChildAt(i) ?: continue
+            updateChildScaleAndAlphaForPosition(child)
         }
     }
 
     fun updateChildScaleAndAlphaForPosition(child: View) {
+        val gameAdapter = adapter as? GameAdapter ?: return
+        val cardSize = gameAdapter.cardSize
+        val position = getChildViewHolder(child).bindingAdapterPosition
+
         val center = getRecyclerViewCenter()
         val childCenter = (child.left + child.right) / 2f
         val distance = abs(center - childCenter)
@@ -134,25 +140,12 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 addItemDecoration(overlapDecoration!!)
             }
 
-            // update cards upon attach
-            addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
-                override fun onChildViewAttachedToWindow(view: View) {
-                    updateChildScaleAndAlphaForPosition(view)
-                    //FALTA ALGO AQUI PRA AJEITAR O ALFA
-                    //PODE TER OUTROS BUGS VISUAIS
-                    //SE SCROLLAR DURANTE REFRESH ZOA TUDO
-                    //MUDAR ABORDAGEM: ENCONTRAR UM LUGAR PRA DAR UM smoothScrollBy(1,0) após o refresh
-                    Log.d("JukeboxRecyclerView", "Attached: pos=${getChildViewHolder(view).bindingAdapterPosition} scale=${view.scaleX}, alpha=${view.alpha}")
-                }
-                override fun onChildViewDetachedFromWindow(view: View) {}
-            })
-
             // Gradual scalingAdd commentMore actions
             if (scalingScrollListener == null) {
                 scalingScrollListener = object : OnScrollListener() {
                     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                         super.onScrolled(recyclerView, dx, dy)
-                        Log.d("JukeboxRecyclerView", "onScrolled dx=$dx, dy=$dy")
+                        //Log.d("JukeboxRecyclerView", "onScrolled dx=$dx, dy=$dy")
                         updateChildScalesAndAlpha()
                     }
                 }
@@ -179,7 +172,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                     pagerSnapHelper = CenterPagerSnapHelper()
                     pagerSnapHelper!!.attachToRecyclerView(this)
                 }
-                post { //IMPORTANT: post² fixes the enter carousel smol cards issue
+                post { //IMPORTANT: post² fixes the center carousel smol cards issue
                     updateChildScalesAndAlpha()
 
                     // Request focus on the centered card for joypad navigation

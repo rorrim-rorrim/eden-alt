@@ -88,12 +88,12 @@ class GameAdapter(private val activity: AppCompatActivity) :
                 val carouselBinding = holder.binding as CardGameCarouselBinding
                 // carouselBinding.cardGameCarousel.scaleX = 1f
                 // carouselBinding.cardGameCarousel.scaleY = 1f
-                carouselBinding.cardGameCarousel.alpha = 0f
+                // carouselBinding.cardGameCarousel.alpha = 0f
                 // // Set square size for carousel
                 // if (cardSize > 0) {
                 //     carouselBinding.root.layoutParams.width = cardSize
                 //     carouselBinding.root.layoutParams.height = cardSize
-                //     Log.d("GameAdapter", "Setting carousel card size to $cardSize")
+                Log.d("GameAdapter", "onBindViewHolder cardsize $cardSize")
                 // }
             }
         }
@@ -106,7 +106,14 @@ class GameAdapter(private val activity: AppCompatActivity) :
             VIEW_TYPE_CAROUSEL -> CardGameCarouselBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             else -> throw IllegalArgumentException("Invalid view type")
         }
-        return GameViewHolder(binding, viewType)
+        val holder = GameViewHolder(binding, viewType)
+        if (viewType == VIEW_TYPE_CAROUSEL){
+        //     // Set square size for carousel
+            Log.d("GameAdapter", "onCreateViewHolder: cardSize $cardSize")
+        //     holder.itemView.layoutParams.width = cardSize
+        //     holder.itemView.layoutParams.height = cardSize
+        }
+        return holder
     }
 
     inner class GameViewHolder(
@@ -173,6 +180,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
                 binding.root.context.getString(R.string.game_image_desc, model.title)
 
             // Reset layout params to XML defaults
+            Log.d("GameAdapter", "bindCarouselView: cardSize $cardSize")
             carouselBinding.root.layoutParams.width = cardSize
             carouselBinding.root.layoutParams.height = cardSize
             (carouselBinding.root.layoutParams as? ViewGroup.MarginLayoutParams)?.setMargins(0, 0, 0, 0) //important
