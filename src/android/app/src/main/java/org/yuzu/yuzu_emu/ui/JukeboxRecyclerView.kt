@@ -97,9 +97,13 @@ class JukeboxRecyclerView @JvmOverloads constructor(
     }
 
     fun updateChildScaleAndAlphaForPosition(child: View) {
-        val gameAdapter = adapter as? GameAdapter ?: return
-        val cardSize = gameAdapter.cardSize
+        val cardSize = (adapter as? GameAdapter ?: return).cardSize
         val position = getChildViewHolder(child).bindingAdapterPosition
+        if (position == RecyclerView.NO_POSITION || cardSize <= 0) {
+            return // No valid position or card size
+        }
+        child.layoutParams.width = cardSize
+        child.layoutParams.height = cardSize
 
         val center = getRecyclerViewCenter()
         val childCenter = (child.left + child.right) / 2f
@@ -125,9 +129,9 @@ class JukeboxRecyclerView @JvmOverloads constructor(
      * When enabled, applies overlap, snap, and custom drawing order.
      */
     fun setCarouselMode(enabled: Boolean, cardSize: Int = 0) {
-        this.overlapPx = (cardSize * resources.getFraction(R.fraction.carousel_overlap_factor,1,1)).toInt()
         if (enabled) {
             useCustomDrawingOrder = true
+            overlapPx = (cardSize * resources.getFraction(R.fraction.carousel_overlap_factor, 1, 1)).toInt()
             flingMultiplier = resources.getFraction(R.fraction.carousel_fling_multiplier, 1, 1)
 
             // Detach SnapHelper during setup

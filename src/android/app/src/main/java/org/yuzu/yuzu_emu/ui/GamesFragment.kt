@@ -60,6 +60,8 @@ class GamesFragment : Fragment() {
     private var originalHeaderRightMargin: Int? = null
     private var originalHeaderLeftMargin: Int? = null
 
+    private var globalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
+
     private var lastViewType: Int = GameAdapter.VIEW_TYPE_GRID
 
     companion object {
@@ -105,6 +107,22 @@ class GamesFragment : Fragment() {
         return binding.root
     }
 
+    private var scrollAfterReloadPending = false
+
+    private fun setupScrollAfterReloadObserver(gameAdapter: GameAdapter) {
+        gameAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            override fun onChanged() {
+                if (scrollAfterReloadPending) {
+                    binding.gridGames.post {
+                        Log.d("GamesFragment", "Scrolling after all binds/layouts")
+                        binding.gridGames.scrollBy(1, 0) // or scrollToPosition(0)
+                        scrollAfterReloadPending = false
+                    }
+                }
+            }
+        })
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         homeViewModel.setStatusBarShadeVisibility(true)
@@ -117,6 +135,32 @@ class GamesFragment : Fragment() {
         gameAdapter = GameAdapter(
             requireActivity() as AppCompatActivity,
         )
+
+        // Register the observer right after setting the adapter
+        setupScrollAfterReloadObserver(gameAdapter)
+
+        if (gameAdapter.cardSize == 0) {
+            val gridGames = binding.gridGames
+            globalLayoutListener = object : ViewTreeObserver.OnGlobalLayoutListener {
+                override fun onGlobalLayout() {
+                    if (_binding == null) {
+                        gridGames.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                        return
+                    }
+                    val height = binding.gridGames.height ?: 0
+                    Log.d("GamesFragment", "onGlobalLayout called, height: $height")
+                    if (height <= 0) return
+                    val size = (resources.getFraction(R.fraction.carousel_card_size_multiplier, 1, 1) * height).toInt()
+                    Log.d("GamesFragment", "First non-zero height: $height. detaching...")
+                    binding.gridGames.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                    gameAdapter.setCardSize(size)
+                    // // Now set the adapter and apply grid binding
+                    // binding.gridGames.adapter = gameAdapter
+                    // applyGridGamesBinding()
+                }
+            }
+            gridGames.viewTreeObserver.addOnGlobalLayoutListener(globalLayoutListener)
+        }
 
         applyGridGamesBinding()
 
@@ -166,6 +210,19 @@ class GamesFragment : Fragment() {
             viewLifecycleOwner,
             resetState = { gamesViewModel.setShouldScrollToTop(false) }
         ) { if (it) scrollToTop() }
+
+        gamesViewModel.shouldScrollAfterReload.collect(viewLifecycleOwner) { shouldScroll ->
+            if (shouldScroll) {
+                // Trigger a scroll event (e.g., scroll by 1 pixel horizontally)
+                binding.gridGames.post {
+                    Log.d("GamesFragment", "Scheding scroll after reload")
+                    scrollAfterReloadPending = true
+                    gameAdapter.notifyDataSetChanged()
+                }
+                // Reset the flag so it only triggers once per reload
+                gamesViewModel.setShouldScrollAfterReload(false)
+            }
+        }
 
         setupTopView()
 

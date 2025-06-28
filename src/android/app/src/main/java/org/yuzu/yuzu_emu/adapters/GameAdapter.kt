@@ -55,6 +55,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
 
     fun setCardSize(size: Int) {
         if (cardSize != size && size > 0) {
+            Log.d("GameAdapter", "setCardSize: $size")
             cardSize = size
             notifyDataSetChanged()
         }

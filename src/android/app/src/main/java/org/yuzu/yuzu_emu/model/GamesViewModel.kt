@@ -42,6 +42,9 @@ class GamesViewModel : ViewModel() {
     val searchFocused: StateFlow<Boolean> get() = _searchFocused
     private val _searchFocused = MutableStateFlow(false)
 
+    val shouldScrollAfterReload: StateFlow<Boolean> get() = _shouldScrollAfterReload
+    private val _shouldScrollAfterReload = MutableStateFlow(false)
+
     private val _folders = MutableStateFlow(mutableListOf<GameDir>())
     val folders = _folders.asStateFlow()
 
@@ -72,6 +75,10 @@ class GamesViewModel : ViewModel() {
 
     fun setShouldScrollToTop(shouldScroll: Boolean) {
         _shouldScrollToTop.value = shouldScroll
+    }
+
+    fun setShouldScrollAfterReload(shouldScroll: Boolean) {
+        _shouldScrollAfterReload.value = shouldScroll
     }
 
     fun setSearchFocused(searchFocused: Boolean) {
@@ -123,6 +130,7 @@ class GamesViewModel : ViewModel() {
                 setGames(GameHelper.getGames())
                 reloading.set(false)
                 _isReloading.value = false
+                _shouldScrollAfterReload.value = true
 
                 if (directoriesChanged) {
                     setShouldSwapData(true)
