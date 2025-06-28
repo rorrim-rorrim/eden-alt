@@ -651,10 +651,9 @@ public:
 
 class Image {
 public:
-    explicit Image(VkImage handle_, VkImageUsageFlags usage_, VkDevice owner_,
-                   VmaAllocator allocator_, VmaAllocation allocation_,
-                   const DeviceDispatch& dld_) noexcept
-        : handle{handle_}, usage{usage_}, owner{owner_}, allocator{allocator_},
+    explicit Image(VkImage handle_, VkDevice owner_, VmaAllocator allocator_,
+                   VmaAllocation allocation_, const DeviceDispatch& dld_) noexcept
+        : handle{handle_}, owner{owner_}, allocator{allocator_},
           allocation{allocation_}, dld{&dld_} {}
     Image() = default;
 
@@ -662,13 +661,12 @@ public:
     Image& operator=(const Image&) = delete;
 
     Image(Image&& rhs) noexcept
-        : handle{std::exchange(rhs.handle, nullptr)}, usage{rhs.usage}, owner{rhs.owner},
-          allocator{rhs.allocator}, allocation{rhs.allocation}, dld{rhs.dld} {}
+        : handle{std::exchange(rhs.handle, nullptr)}, owner{rhs.owner}, allocator{rhs.allocator},
+          allocation{rhs.allocation}, dld{rhs.dld} {}
 
     Image& operator=(Image&& rhs) noexcept {
         Release();
         handle = std::exchange(rhs.handle, nullptr);
-        usage = rhs.usage;
         owner = rhs.owner;
         allocator = rhs.allocator;
         allocation = rhs.allocation;
@@ -695,15 +693,10 @@ public:
 
     void SetObjectNameEXT(const char* name) const;
 
-    [[nodiscard]] VkImageUsageFlags UsageFlags() const noexcept {
-        return usage;
-    }
-
 private:
     void Release() const noexcept;
 
     VkImage handle = nullptr;
-    VkImageUsageFlags usage{};
     VkDevice owner = nullptr;
     VmaAllocator allocator = nullptr;
     VmaAllocation allocation = nullptr;
