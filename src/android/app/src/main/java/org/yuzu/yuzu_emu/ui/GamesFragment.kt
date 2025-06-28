@@ -60,8 +60,6 @@ class GamesFragment : Fragment() {
     private var originalHeaderRightMargin: Int? = null
     private var originalHeaderLeftMargin: Int? = null
 
-    private var globalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
-
     private var lastViewType: Int = GameAdapter.VIEW_TYPE_GRID
 
     companion object {
@@ -108,14 +106,13 @@ class GamesFragment : Fragment() {
     }
 
     private var scrollAfterReloadPending = false
-
     private fun setupScrollAfterReloadObserver(gameAdapter: GameAdapter) {
         gameAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
             override fun onChanged() {
                 if (scrollAfterReloadPending) {
                     binding.gridGames.post {
                         Log.d("GamesFragment", "Scrolling after all binds/layouts")
-                        binding.gridGames.scrollBy(1, 0) // or scrollToPosition(0)
+                        binding.gridGames.scrollBy(1, 0)
                         (binding.gridGames as? JukeboxRecyclerView)?.focusCenteredCard()
                         scrollAfterReloadPending = false
                     }
@@ -124,22 +121,8 @@ class GamesFragment : Fragment() {
         })
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        homeViewModel.setStatusBarShadeVisibility(true)
-        mainActivity = requireActivity() as MainActivity
-
-        if (savedInstanceState != null) {
-            binding.searchText.setText(savedInstanceState.getString(SEARCH_TEXT))
-        }
-
-        gameAdapter = GameAdapter(
-            requireActivity() as AppCompatActivity,
-        )
-
-        // Register the observer right after setting the adapter
-        setupScrollAfterReloadObserver(gameAdapter)
-
+    private var globalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
+    private fun setupCardSizeOnFirstLayout(gameAdapter: GameAdapter) {
         if (gameAdapter.cardSize == 0) {
             val gridGames = binding.gridGames
             globalLayoutListener = object : ViewTreeObserver.OnGlobalLayoutListener {
@@ -162,6 +145,26 @@ class GamesFragment : Fragment() {
             }
             gridGames.viewTreeObserver.addOnGlobalLayoutListener(globalLayoutListener)
         }
+    }
+
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        homeViewModel.setStatusBarShadeVisibility(true)
+        mainActivity = requireActivity() as MainActivity
+
+        if (savedInstanceState != null) {
+            binding.searchText.setText(savedInstanceState.getString(SEARCH_TEXT))
+        }
+
+        gameAdapter = GameAdapter(
+            requireActivity() as AppCompatActivity,
+        )
+
+        // Register the observer right after setting the adapter
+        setupScrollAfterReloadObserver(gameAdapter)
+
+        setupCardSizeOnFirstLayout(gameAdapter)
 
         applyGridGamesBinding()
 
@@ -214,13 +217,11 @@ class GamesFragment : Fragment() {
 
         gamesViewModel.shouldScrollAfterReload.collect(viewLifecycleOwner) { shouldScroll ->
             if (shouldScroll) {
-                // Trigger a scroll event (e.g., scroll by 1 pixel horizontally)
                 binding.gridGames.post {
                     Log.d("GamesFragment", "Scheding scroll after reload")
                     scrollAfterReloadPending = true
                     gameAdapter.notifyDataSetChanged()
                 }
-                // Reset the flag so it only triggers once per reload
                 gamesViewModel.setShouldScrollAfterReload(false)
             }
         }

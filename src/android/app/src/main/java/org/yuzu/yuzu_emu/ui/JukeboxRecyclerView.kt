@@ -161,7 +161,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 scalingScrollListener = object : OnScrollListener() {
                     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                         super.onScrolled(recyclerView, dx, dy)
-                        //Log.d("JukeboxRecyclerView", "onScrolled dx=$dx, dy=$dy")
+                        Log.d("JukeboxRecyclerView", "onScrolled dx=$dx, dy=$dy")
                         updateChildScalesAndAlpha()
                     }
                 }
@@ -189,6 +189,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                     pagerSnapHelper!!.attachToRecyclerView(this)
                 }
                 post { //IMPORTANT: post² fixes the center carousel smol cards issue
+                    Log.d("JukeboxRecyclerView", "Post² updateChildScalesAndAlpha")
                     updateChildScalesAndAlpha()
                     focusCenteredCard()
 
@@ -240,8 +241,9 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         }
 
         post { //important to post to ensure layout is done
+            Log.d("JukeboxRecyclerView", "Post scrollToPosition: $position")
             updateChildScalesAndAlpha()
-            Log.d("GamesFragment", "Scrolled to position: $position got ${getCenteredAdapterPosition()}")
+            //Log.d("GamesFragment", "Scrolled to position: $position got ${getCenteredAdapterPosition()}")
         }
     }
 

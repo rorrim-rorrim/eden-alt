@@ -130,7 +130,7 @@ class GamesViewModel : ViewModel() {
                 setGames(GameHelper.getGames())
                 reloading.set(false)
                 _isReloading.value = false
-                _shouldScrollAfterReload.value = true
+                //_shouldScrollAfterReload.value = true
 
                 if (directoriesChanged) {
                     setShouldSwapData(true)
