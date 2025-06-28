@@ -116,6 +116,7 @@ class GamesFragment : Fragment() {
                     binding.gridGames.post {
                         Log.d("GamesFragment", "Scrolling after all binds/layouts")
                         binding.gridGames.scrollBy(1, 0) // or scrollToPosition(0)
+                        (binding.gridGames as? JukeboxRecyclerView)?.focusCenteredCard()
                         scrollAfterReloadPending = false
                     }
                 }

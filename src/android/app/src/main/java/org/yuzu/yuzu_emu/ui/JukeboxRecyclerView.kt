@@ -124,6 +124,19 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         //Log.d("JukeboxRecyclerView", "Child:$child c/cc:$center/$childCenter scale:$scale alpha:$alpha")
     }
 
+    fun focusCenteredCard() {
+        val centeredPos = getCenteredAdapterPosition()
+        if (centeredPos != RecyclerView.NO_POSITION) {
+            val vh = findViewHolderForAdapterPosition(centeredPos)
+            vh?.itemView?.let { child ->
+                child.isFocusable = true
+                child.isFocusableInTouchMode = true
+                child.requestFocus()
+                Log.d("JukeboxRecyclerView", "Requested focus on centered card: $centeredPos")
+            }
+        }
+    }
+
     /**
      * Enable or disable carousel mode.
      * When enabled, applies overlap, snap, and custom drawing order.
@@ -177,18 +190,19 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 }
                 post { //IMPORTANT: post² fixes the center carousel smol cards issue
                     updateChildScalesAndAlpha()
+                    focusCenteredCard()
 
                     // Request focus on the centered card for joypad navigation
-                    val centeredPos = getCenteredAdapterPosition()
-                    if (centeredPos != RecyclerView.NO_POSITION) {
-                        val vh = findViewHolderForAdapterPosition(centeredPos)
-                        vh?.itemView?.let { child ->
-                            child.isFocusable = true
-                            child.isFocusableInTouchMode = true
-                            child.requestFocus()
-                            Log.d("JukeboxRecyclerView", "Requested focus on centered card: $centeredPos")
-                        }
-                    }
+                    // val centeredPos = getCenteredAdapterPosition()
+                    // if (centeredPos != RecyclerView.NO_POSITION) {
+                    //     val vh = findViewHolderForAdapterPosition(centeredPos)
+                    //     vh?.itemView?.let { child ->
+                    //         child.isFocusable = true
+                    //         child.isFocusableInTouchMode = true
+                    //         child.requestFocus()
+                    //         Log.d("JukeboxRecyclerView", "Requested focus on centered card: $centeredPos")
+                    //     }
+                    // }
                 }
                 Log.d("JukeboxRecyclerView", "Carousel mode enabled with overlapPx=$overlapPx, cardSize=$cardSize")
             }
