@@ -147,7 +147,7 @@ public:
     [[nodiscard]] virtual bool AccelerateSurfaceCopy(
         const Tegra::Engines::Fermi2D::Surface& src, const Tegra::Engines::Fermi2D::Surface& dst,
         const Tegra::Engines::Fermi2D::Config& copy_config) {
-        return false;
+        return true;
     }
 
     [[nodiscard]] virtual Tegra::Engines::AccelerateDMAInterface& AccessAccelerateDMA() = 0;
