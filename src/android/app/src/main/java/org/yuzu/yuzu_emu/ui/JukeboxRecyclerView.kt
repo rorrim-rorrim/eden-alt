@@ -44,23 +44,14 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         setChildrenDrawingOrderEnabled(true)
     }
 
-    /**
-     * Returns the horizontal center given width and paddings.
-     */
     private fun calculateCenter(width: Int, paddingStart: Int, paddingEnd: Int): Int {
         return paddingStart + (width - paddingStart - paddingEnd) / 2
     }
 
-    /**
-     * Returns the horizontal center of this RecyclerView, accounting for padding.
-     */
     private fun getRecyclerViewCenter(): Float {
         return calculateCenter(width, paddingLeft, paddingRight).toFloat()
     }
 
-    /**
-     * Returns the horizontal center of a LayoutManager, accounting for padding.
-     */
     private fun getLayoutManagerCenter(layoutManager: RecyclerView.LayoutManager): Int {
         return if (layoutManager is LinearLayoutManager) {
             calculateCenter(layoutManager.width, layoutManager.paddingStart, layoutManager.paddingEnd)
@@ -69,7 +60,6 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         }
     }
 
-    //na jukebox
     fun getCenteredAdapterPosition(): Int {
         val lm = layoutManager as? LinearLayoutManager ?: return RecyclerView.NO_POSITION
         val center = getLayoutManagerCenter(lm)
@@ -235,9 +225,13 @@ class JukeboxRecyclerView @JvmOverloads constructor(
     override fun scrollToPosition(position: Int) {
         super.scrollToPosition(position)
 
-        if (position == 1) {//important to compensate for the overlap
+        val hasOverlapDecoration = (0 until itemDecorationCount).any { i ->
+            getItemDecorationAt(i) === overlapDecoration
+        }
+
+        if (hasOverlapDecoration && position > 0) {//important to compensate for the overlap
             (layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(position, overlapPx)
-            Log.d("JukeboxRecyclerView", "Extra offset applied for position 1: $overlapPx")
+            Log.d("JukeboxRecyclerView", "Extra offset $overlapPx px applied for position $position")
         }
 
         post { //important to post to ensure layout is done
