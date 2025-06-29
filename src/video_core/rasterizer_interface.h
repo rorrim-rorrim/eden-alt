@@ -100,9 +100,9 @@ public:
                                   VideoCommon::CacheType which = VideoCommon::CacheType::All) = 0;
 
     virtual void InnerInvalidation(std::span<const std::pair<DAddr, std::size_t>> sequences) {
-        for (const auto& [cpu_addr, size] : sequences) {
+        /*for (const auto& [cpu_addr, size] : sequences) {
             InvalidateRegion(cpu_addr, size);
-        }
+        }*/
     }
 
     /// Notify rasterizer that any caches of the specified region are desync with guest
@@ -147,7 +147,7 @@ public:
     [[nodiscard]] virtual bool AccelerateSurfaceCopy(
         const Tegra::Engines::Fermi2D::Surface& src, const Tegra::Engines::Fermi2D::Surface& dst,
         const Tegra::Engines::Fermi2D::Config& copy_config) {
-        return true;
+        return false;
     }
 
     [[nodiscard]] virtual Tegra::Engines::AccelerateDMAInterface& AccessAccelerateDMA() = 0;
