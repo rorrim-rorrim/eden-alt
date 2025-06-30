@@ -298,23 +298,12 @@ class GamesFragment : Fragment() {
         Log.d("GamesFragment", "Saving last scroll position: $lastScrollPosition")
     }
 
-    private fun tryRestoreScroll(recyclerView: JukeboxRecyclerView, attempts: Int = 0) {
-        val lm = recyclerView.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager ?: return
-
-        if (lm.findLastVisibleItemPosition() == RecyclerView.NO_POSITION && attempts < 100) {
-            recyclerView.post { tryRestoreScroll(recyclerView, attempts + 1) }
-            return
-        }
-
-        Log.d("GamesFragment", "Scrolling to last position: $lastScrollPosition, attempt=$attempts")
-        recyclerView.scrollToPosition(lastScrollPosition)
-    }
-
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
         if (getCurrentViewType() != GameAdapter.VIEW_TYPE_CAROUSEL) return
         val recyclerView = binding.gridGames as? JukeboxRecyclerView ?: return
-        tryRestoreScroll(recyclerView)
+        //tryRestoreScroll(recyclerView)
+        recyclerView.restoreScrollState(lastScrollPosition)
     }
 
     private var lastSearchText: String = ""

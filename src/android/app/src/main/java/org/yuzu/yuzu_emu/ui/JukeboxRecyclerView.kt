@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.abs
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.GameAdapter
+import androidx.core.view.doOnNextLayout
 
 /**
  * JukeboxRecyclerView encapsulates all carousel/grid/list logic for the games UI.
@@ -58,6 +59,16 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         } else {
             width / 2
         }
+    }
+
+    fun restoreScrollState(position: Int = 0, attempts: Int = 0) {
+        val lm = layoutManager as? LinearLayoutManager ?: return
+        if (lm.findLastVisibleItemPosition() == RecyclerView.NO_POSITION && attempts < 10) {
+            post { restoreScrollState(position, attempts + 1) }
+            return
+        }
+        Log.d("GamesFragment", "--> $attempts Restoring scroll state: $position")
+        scrollToPosition(position)
     }
 
     fun getCenteredAdapterPosition(): Int {
