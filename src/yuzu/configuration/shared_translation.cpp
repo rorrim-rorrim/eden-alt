@@ -250,6 +250,12 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
               "of available video memory for performance. Has no effect on integrated graphics. "
               "Aggressive mode may severely impact the performance of other applications such as "
               "recording software."));
+    INSERT(Settings,
+           cpu_inner_invalidation,
+           tr("CPU Inner Invalidation"),
+           tr("Ensures that any memory regions that are marked for invalidation get cleared from the cache.\n"
+              "Reduces the performance, as long as invalidating memory regions takes up valuable processing "
+              "time and CPU resources, and having it off may cause glitches on some games."));
     INSERT(
         Settings,
         vsync_mode,
