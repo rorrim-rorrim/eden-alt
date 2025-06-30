@@ -50,6 +50,8 @@ import java.util.Locale
 import androidx.core.content.edit
 import androidx.core.view.updateLayoutParams
 import org.yuzu.yuzu_emu.features.settings.model.Settings
+import android.view.ViewParent
+import androidx.core.view.doOnNextLayout
 
 class GamesFragment : Fragment() {
     private var _binding: FragmentGamesBinding? = null
@@ -105,49 +107,20 @@ class GamesFragment : Fragment() {
         return binding.root
     }
 
-    private var scrollAfterReloadPending = false
-    private fun setupScrollAfterReloadObserver(gameAdapter: GameAdapter) {
-        gameAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
-            override fun onChanged() {
-                if (scrollAfterReloadPending) {
-                    binding.gridGames.post {
-                        Log.d("GamesFragment", "Scrolling after all binds/layouts")
-                        binding.gridGames.scrollBy(-1, 0)
-                        binding.gridGames.scrollBy(1, 0)
-                        (binding.gridGames as? JukeboxRecyclerView)?.focusCenteredCard()
-                        scrollAfterReloadPending = false
-                    }
-                }
-            }
-        })
-    }
-
-    private var globalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
-    private fun setupCardSizeOnFirstLayout(gameAdapter: GameAdapter) {
-        if (gameAdapter.cardSize == 0) {
-            val gridGames = binding.gridGames
-            globalLayoutListener = object : ViewTreeObserver.OnGlobalLayoutListener {
-                override fun onGlobalLayout() {
-                    if (_binding == null) {
-                        gridGames.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                        return
-                    }
-                    val height = binding.gridGames.height ?: 0
-                    Log.d("GamesFragment", "onGlobalLayout called, height: $height")
-                    if (height <= 0) return
-                    val size = (resources.getFraction(R.fraction.carousel_card_size_multiplier, 1, 1) * height).toInt()
-                    Log.d("GamesFragment", "First non-zero height: $height. detaching...")
-                    binding.gridGames.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                    gameAdapter.setCardSize(size)
-                    // // Now set the adapter and apply grid binding
-                    // binding.gridGames.adapter = gameAdapter
-                    // applyGridGamesBinding()
-                }
-            }
-            gridGames.viewTreeObserver.addOnGlobalLayoutListener(globalLayoutListener)
-        }
-    }
-
+    // private var scrollAfterReloadPending = false
+    // private fun setupScrollAfterReloadObserver(gameAdapter: GameAdapter) {
+    //     gameAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+    //         override fun onChanged() {
+    //             if (scrollAfterReloadPending) {
+    //                 binding.gridGames.post {
+    //                     //Log.d("GamesFragment", "Scrolling after all binds/layouts")
+    //                     (binding.gridGames as? JukeboxRecyclerView)?.mockScroll()
+    //                     scrollAfterReloadPending = false
+    //                 }
+    //             }
+    //         }
+    //     })
+    // }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -161,11 +134,6 @@ class GamesFragment : Fragment() {
         gameAdapter = GameAdapter(
             requireActivity() as AppCompatActivity,
         )
-
-        // Register the observer right after setting the adapter
-        setupScrollAfterReloadObserver(gameAdapter)
-
-        setupCardSizeOnFirstLayout(gameAdapter)
 
         applyGridGamesBinding()
 
@@ -201,13 +169,17 @@ class GamesFragment : Fragment() {
             )
         }
         gamesViewModel.games.collect(viewLifecycleOwner) {
-            setAdapter(it)
+            if (it.size > 0) {
+                //Log.d("GamesFragment", "Games updated, size: ${it.size}")
+                setAdapter(it)
+            }
         }
         gamesViewModel.shouldSwapData.collect(
             viewLifecycleOwner,
             resetState = { gamesViewModel.setShouldSwapData(false) }
         ) {
             if (it) {
+                //Log.d("GamesFragment", "Swapping data in adapter")
                 setAdapter(gamesViewModel.games.value)
             }
         }
@@ -219,8 +191,8 @@ class GamesFragment : Fragment() {
         gamesViewModel.shouldScrollAfterReload.collect(viewLifecycleOwner) { shouldScroll ->
             if (shouldScroll) {
                 binding.gridGames.post {
-                    Log.d("GamesFragment", "Scheding scroll after reload")
-                    scrollAfterReloadPending = true
+                    //Log.d("GamesFragment", "Scheding scroll after reload")
+                    (binding.gridGames as? JukeboxRecyclerView)?.pendingScrollAfterReload = true
                     gameAdapter.notifyDataSetChanged()
                 }
                 gamesViewModel.setShouldScrollAfterReload(false)
@@ -260,42 +232,18 @@ class GamesFragment : Fragment() {
                 }
                 else -> throw IllegalArgumentException("Invalid view type: $savedViewType")
             }
-
             // Carousel mode: wait for layout, then set card size and enable carousel features
             if (savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL) {
-
-                // var parent: ViewParent? = binding.gridGames
-                // var level = 0
-                // while (parent is View) {
-                //     val view = parent as View
-                //     val resName = try {
-                //         if (view.id != View.NO_ID) view.resources.getResourceEntryName(view.id) else "no_id"
-                //     } catch (e: Exception) {
-                //         "no_id"
-                //     }
-                //     Log.d(
-                //         "GamesFragment",
-                //         "Parent level $level: id=${view.id} ($resName), height=${view.height}"
-                //     )
-                //     parent = view.parent
-                //     level++
-                // }
-
-                post {
-                    val insets = rootWindowInsets
-                    val bottomInset = insets?.getInsets(android.view.WindowInsets.Type.systemBars())?.bottom ?: 0
-                    val size = (resources.getFraction(R.fraction.carousel_card_size_multiplier, 1, 1) * (height - bottomInset)).toInt()
-                    if (size > 0) {
-                        Log.d("GamesFragment", "Setting carousel card size: $size")
-                        gameAdapter.setCardSize(size)
-                        (this as? JukeboxRecyclerView)?.setCarouselMode(true, size)
-                    }
+                //Log.d("GamesFragment", "applyGridGamesBinding height $height")
+                doOnNextLayout {
+                    //Log.d("GamesFragment", "doOnNextLayout height $height")
+                    (this as? JukeboxRecyclerView)?.setCarouselMode(true, gameAdapter)
+                    adapter = gameAdapter //3
                 }
             } else {
                 // Disable carousel features in other modes
-                (this as? JukeboxRecyclerView)?.setCarouselMode(false, 0)
+                (this as? JukeboxRecyclerView)?.setCarouselMode(false)
             }
-
             adapter = gameAdapter
             lastViewType = savedViewType
         }
@@ -313,7 +261,15 @@ class GamesFragment : Fragment() {
         super.onPause()
         if (getCurrentViewType() != GameAdapter.VIEW_TYPE_CAROUSEL) return
         lastScrollPosition = (binding.gridGames as? JukeboxRecyclerView)?.getCenteredAdapterPosition() ?: 0
-        Log.d("GamesFragment", "Saving last scroll position: $lastScrollPosition")
+        //Log.d("GamesFragment", "Saving last scroll position: $lastScrollPosition")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // Save the last scroll position when the fragment is stopped
+        if (getCurrentViewType() != GameAdapter.VIEW_TYPE_CAROUSEL) return
+        lastScrollPosition = (binding.gridGames as? JukeboxRecyclerView)?.getCenteredAdapterPosition() ?: 0
+        //Log.d("GamesFragment", "Saving last scroll position on stop: $lastScrollPosition")
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
@@ -328,6 +284,7 @@ class GamesFragment : Fragment() {
     private var lastFilter: Int = preferences.getInt(PREF_SORT_TYPE, View.NO_ID)
 
     private fun setAdapter(games: List<Game>) {
+        //Log.d("GamesFragment", "Setting adapter with ${games.size} games")
         val currentSearchText = binding.searchText.text.toString()
         val currentFilter = binding.filterButton.id
 

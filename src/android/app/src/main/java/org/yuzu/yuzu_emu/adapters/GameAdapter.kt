@@ -33,6 +33,10 @@ import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.utils.GameIconUtils
 import org.yuzu.yuzu_emu.utils.ViewUtils.marquee
 import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
+import android.view.KeyEvent
+import org.yuzu.yuzu_emu.ui.JukeboxRecyclerView
+import androidx.recyclerview.widget.RecyclerView
+import androidx.core.view.doOnNextLayout
 
 class GameAdapter(private val activity: AppCompatActivity) :
     AbstractDiffAdapter<Game, GameAdapter.GameViewHolder>(exact = false) {
@@ -55,7 +59,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
 
     fun setCardSize(size: Int) {
         if (cardSize != size && size > 0) {
-            Log.d("GameAdapter", "setCardSize: $size")
+            //Log.d("GameAdapter", "setCardSize: $size")
             cardSize = size
             notifyDataSetChanged()
         }
@@ -92,9 +96,9 @@ class GameAdapter(private val activity: AppCompatActivity) :
                 // carouselBinding.cardGameCarousel.alpha = 0f
                 // // Set square size for carousel
                 // if (cardSize > 0) {
-                //     carouselBinding.root.layoutParams.width = cardSize
-                //     carouselBinding.root.layoutParams.height = cardSize
-                Log.d("GameAdapter", "onBindViewHolder cardsize $cardSize")
+                    //carouselBinding.root.layoutParams.width = cardSize
+                    //carouselBinding.root.layoutParams.height = cardSize
+                    //Log.d("GameAdapter", "onBindViewHolder cardsize $cardSize")
                 // }
             }
         }
@@ -107,14 +111,15 @@ class GameAdapter(private val activity: AppCompatActivity) :
             VIEW_TYPE_CAROUSEL -> CardGameCarouselBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             else -> throw IllegalArgumentException("Invalid view type")
         }
-        val holder = GameViewHolder(binding, viewType)
-        if (viewType == VIEW_TYPE_CAROUSEL){
-        //     // Set square size for carousel
-            Log.d("GameAdapter", "onCreateViewHolder: cardSize $cardSize")
+        // val holder = GameViewHolder(binding, viewType)
+        // if (viewType == VIEW_TYPE_CAROUSEL) {
+        // //     // Set square size for carousel
+        //     //Log.d("GameAdapter", "onCreateViewHolder: cardSize $cardSize")
         //     holder.itemView.layoutParams.width = cardSize
-        //     holder.itemView.layoutParams.height = cardSize
-        }
-        return holder
+        // //     holder.itemView.layoutParams.height = cardSize
+        // }
+        // return holder
+        return GameViewHolder(binding, viewType)
     }
 
     inner class GameViewHolder(
@@ -180,12 +185,8 @@ class GameAdapter(private val activity: AppCompatActivity) :
             carouselBinding.imageGameScreen.contentDescription =
                 binding.root.context.getString(R.string.game_image_desc, model.title)
 
-            // Reset layout params to XML defaults
-            Log.d("GameAdapter", "bindCarouselView: cardSize $cardSize")
+            // Ensure zero-heighted-full-width cards for carousel
             carouselBinding.root.layoutParams.width = cardSize
-            carouselBinding.root.layoutParams.height = cardSize
-            (carouselBinding.root.layoutParams as? ViewGroup.MarginLayoutParams)?.setMargins(0, 0, 0, 0) //important
-            //(carouselBinding.root.getChildAt(0) as? LinearLayout)?.setPadding(0, 0, 0, 0)
         }
 
         fun onClick(game: Game) {

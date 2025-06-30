@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.abs
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.GameAdapter
-import androidx.core.view.doOnNextLayout
 
 /**
  * JukeboxRecyclerView encapsulates all carousel/grid/list logic for the games UI.
@@ -33,6 +32,8 @@ class JukeboxRecyclerView @JvmOverloads constructor(
     private var scalingScrollListener: OnScrollListener? = null
 
     var flingMultiplier: Float = resources.getFraction(R.fraction.carousel_fling_multiplier, 1, 1)
+
+    public var pendingScrollAfterReload: Boolean = false
 
     var useCustomDrawingOrder: Boolean = false
         set(value) {
@@ -61,13 +62,17 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         }
     }
 
+    private fun getChildDistanceToCenter(view: View): Int {
+        return (0.5f * (view.left + view.right) - getRecyclerViewCenter()).toInt()
+    }
+
     fun restoreScrollState(position: Int = 0, attempts: Int = 0) {
         val lm = layoutManager as? LinearLayoutManager ?: return
         if (lm.findLastVisibleItemPosition() == RecyclerView.NO_POSITION && attempts < 10) {
             post { restoreScrollState(position, attempts + 1) }
             return
         }
-        Log.d("GamesFragment", "--> $attempts Restoring scroll state: $position")
+        //Log.d("GamesFragment", "Restoring scroll state: $position, attempt #$attempts")
         scrollToPosition(position)
     }
 
@@ -85,12 +90,12 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 closestPosition = i
             }
         }
-        Log.d("JukeboxRecyclerView", "Centered position: $closestPosition, distance: $minDistance")
+        //Log.d("JukeboxRecyclerView", "getCenteredAdapterPosition position: $closestPosition, distance: $minDistance")
         return closestPosition
     }
 
     fun updateChildScalesAndAlpha() {
-        Log.d("JukeboxRecyclerView", "Updating child scales and alpha childCount ${childCount}")
+        //Log.d("JukeboxRecyclerView", "Updating child scales and alpha childCount ${childCount}")
         for (i in 0 until childCount) {
             val child = getChildAt(i) ?: continue
             updateChildScaleAndAlphaForPosition(child)
@@ -126,6 +131,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
     }
 
     fun focusCenteredCard() {
+        //Log.d("JukeboxRecyclerView", "Focusing centered card")
         val centeredPos = getCenteredAdapterPosition()
         if (centeredPos != RecyclerView.NO_POSITION) {
             val vh = findViewHolderForAdapterPosition(centeredPos)
@@ -133,20 +139,35 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 child.isFocusable = true
                 child.isFocusableInTouchMode = true
                 child.requestFocus()
-                Log.d("JukeboxRecyclerView", "Requested focus on centered card: $centeredPos")
+                //Log.d("JukeboxRecyclerView", "Requested focus on centered card: $centeredPos")
             }
         }
     }
 
-    /**
-     * Enable or disable carousel mode.
-     * When enabled, applies overlap, snap, and custom drawing order.
-     */
-    fun setCarouselMode(enabled: Boolean, cardSize: Int = 0) {
+    fun setCarouselMode(enabled: Boolean, gameAdapter: GameAdapter? = null) {
         if (enabled) {
             useCustomDrawingOrder = true
+
+            val insets = rootWindowInsets
+            val bottomInset = insets?.getInsets(android.view.WindowInsets.Type.systemBars())?.bottom ?: 0
+            val cardSize = (resources.getFraction(R.fraction.carousel_card_size_multiplier, 1, 1) * (height - bottomInset)).toInt()
+            //Log.d("JukeboxRecyclerView", "setCarousel cardsize: $cardSize")
+            gameAdapter?.setCardSize(cardSize)
+
             overlapPx = (cardSize * resources.getFraction(R.fraction.carousel_overlap_factor, 1, 1)).toInt()
             flingMultiplier = resources.getFraction(R.fraction.carousel_fling_multiplier, 1, 1)
+
+            gameAdapter?.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+                override fun onChanged() {
+                    if (pendingScrollAfterReload) {
+                        post {
+                            //Log.d("GamesFragment", "Scrolling after all binds/layouts")
+                            mockScroll()
+                            pendingScrollAfterReload = false
+                        }
+                    }
+                }
+            })
 
             // Detach SnapHelper during setup
             pagerSnapHelper?.attachToRecyclerView(null)
@@ -162,7 +183,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 scalingScrollListener = object : OnScrollListener() {
                     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                         super.onScrolled(recyclerView, dx, dy)
-                        Log.d("JukeboxRecyclerView", "onScrolled dx=$dx, dy=$dy")
+                        //Log.d("JukeboxRecyclerView", "onScrolled dx=$dx, dy=$dy")
                         updateChildScalesAndAlpha()
                     }
                 }
@@ -190,23 +211,11 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                     pagerSnapHelper!!.attachToRecyclerView(this)
                 }
                 post { //IMPORTANT: post² fixes the center carousel smol cards issue
-                    Log.d("JukeboxRecyclerView", "Post² updateChildScalesAndAlpha")
+                    //Log.d("JukeboxRecyclerView", "Post² updateChildScalesAndAlpha")
                     updateChildScalesAndAlpha()
-                    focusCenteredCard()
-
-                    // Request focus on the centered card for joypad navigation
-                    // val centeredPos = getCenteredAdapterPosition()
-                    // if (centeredPos != RecyclerView.NO_POSITION) {
-                    //     val vh = findViewHolderForAdapterPosition(centeredPos)
-                    //     vh?.itemView?.let { child ->
-                    //         child.isFocusable = true
-                    //         child.isFocusableInTouchMode = true
-                    //         child.requestFocus()
-                    //         Log.d("JukeboxRecyclerView", "Requested focus on centered card: $centeredPos")
-                    //     }
-                    // }
+                    //focusCenteredCard()
                 }
-                Log.d("JukeboxRecyclerView", "Carousel mode enabled with overlapPx=$overlapPx, cardSize=$cardSize")
+                //Log.d("JukeboxRecyclerView", "Carousel mode enabled with overlapPx=$overlapPx, cardSize=$cardSize")
             }
         } else {
             // Remove overlap decoration
@@ -242,12 +251,13 @@ class JukeboxRecyclerView @JvmOverloads constructor(
 
         if (hasOverlapDecoration && position > 0) {//important to compensate for the overlap
             (layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(position, overlapPx)
-            Log.d("JukeboxRecyclerView", "Extra offset $overlapPx px applied for position $position")
+            //Log.d("JukeboxRecyclerView", "Extra offset $overlapPx px applied for position $position")
         }
 
         post { //important to post to ensure layout is done
-            Log.d("JukeboxRecyclerView", "Post scrollToPosition: $position")
+            //Log.d("JukeboxRecyclerView", "Post scrollToPosition: $position")
             updateChildScalesAndAlpha()
+            focusCenteredCard()
             //Log.d("GamesFragment", "Scrolled to position: $position got ${getCenteredAdapterPosition()}")
         }
     }
@@ -262,11 +272,14 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         return when (direction) {
             View.FOCUS_LEFT -> {
                 if (position > 0) {
+                    //findViewHolderForAdapterPosition(position - 1)?.itemView
                     val targetView = findViewHolderForAdapterPosition(position - 1)?.itemView
                         ?: super.focusSearch(focused, direction)
-                    val offset = (targetView.scaleX * targetView.width / 2f).toInt()
+                    //val offset = (targetView.scaleX * targetView.width / 2f).toInt() //works but maybe lacks
+                    val offset = (targetView.scaleX * focused.width / 2f).toInt()
+                    //val offset = (focused.width / 2f).toInt() //exceeds
                     smoothScrollBy(-offset, 0)
-                    Log.d("JukeboxRecyclerView", "Focus left offset $offset, position $position")
+                    Log.d("JukeboxRecyclerView", "Focus left offset $offset, position $position, overlapPx $overlapPx")
                     targetView
                 } else {
                     focused
@@ -308,7 +321,23 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         return sorted[i].first
     }
 
-    // --- OverlappingDecoration (inner class) ---
+    companion object {
+        public fun findContainingRecyclerView(view: View): RecyclerView? {
+            var parent = view.parent
+            while (parent is View) {
+                if (parent is RecyclerView) return parent
+                parent = (parent as View).parent
+            }
+            return null
+        }
+    }
+
+    fun mockScroll() {
+        scrollBy(-1, 0)
+        scrollBy(1, 0)
+        focusCenteredCard()
+    }
+
     inner class OverlappingDecoration(private val overlapPx: Int) : ItemDecoration() {
         override fun getItemOffsets(
             outRect: Rect, view: View, parent: RecyclerView, state: State
@@ -326,21 +355,18 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         // NEEDED: fixes center snapping, but introduces ghost movement
         override fun findSnapView(layoutManager: RecyclerView.LayoutManager): View? {
             if (layoutManager !is LinearLayoutManager) return null
-            val center = (this@JukeboxRecyclerView).getLayoutManagerCenter(layoutManager)
             var minDistance = Int.MAX_VALUE
             var closestChild: View? = null
-            var  pos: Int = 0
             for (i in 0 until layoutManager.childCount) {
                 val child = layoutManager.getChildAt(i) ?: continue
-                val childCenter = (child.left + child.right) / 2
-                val distance = kotlin.math.abs(childCenter - center)
+                val distance = kotlin.math.abs(getChildDistanceToCenter(child))
                 if (distance < minDistance) {
                     minDistance = distance
                     closestChild = child
-                    pos = i
                 }
             }
-            Log.d("SnapHelper", "findSnapView Chosen child: $pos, minDistance=$minDistance")
+            focusCenteredCard()
+            Log.d("SnapHelper", "findSnapView position: ${closestChild?.let { layoutManager.getPosition(it) } ?: "null"}, minDistance=$minDistance")
             return closestChild
         }
 
@@ -351,10 +377,9 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         ): IntArray? {
             if (layoutManager !is LinearLayoutManager) return super.calculateDistanceToFinalSnap(layoutManager, targetView)
             val out = IntArray(2)
-            val center = (this@JukeboxRecyclerView).getLayoutManagerCenter(layoutManager)
-            val childCenter = (targetView.left + targetView.right) / 2
-            out[0] = childCenter - center
+            out[0] = getChildDistanceToCenter(targetView).toInt()
             out[1] = 0
+            Log.d("SnapHelper", "calculateDistanceToFinalSnap Child: ${layoutManager.getPosition(targetView)}, distance=${out[0]}")
             return out
         }
 
@@ -367,15 +392,12 @@ class JukeboxRecyclerView @JvmOverloads constructor(
             if (layoutManager !is LinearLayoutManager) return RecyclerView.NO_POSITION
             val firstVisible = layoutManager.findFirstVisibleItemPosition()
             val lastVisible = layoutManager.findLastVisibleItemPosition()
-            val center = (this@JukeboxRecyclerView).getLayoutManagerCenter(layoutManager)
-
-            var closestChild: View? = null
             var minDistance = Int.MAX_VALUE
+            var closestChild: View? = null
             var closestPosition = RecyclerView.NO_POSITION
             for (i in firstVisible..lastVisible) {
                 val child = layoutManager.findViewByPosition(i) ?: continue
-                val childCenter = (child.left + child.right) / 2
-                val distance = kotlin.math.abs(childCenter - center)
+                val distance = kotlin.math.abs(getChildDistanceToCenter(child))
                 if (distance < minDistance) {
                     minDistance = distance
                     closestChild = child
