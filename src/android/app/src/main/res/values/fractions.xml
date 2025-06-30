@@ -4,4 +4,6 @@
     <fraction name="carousel_fling_multiplier">200%</fraction>
     <fraction name="carousel_card_size_multiplier">100%</fraction>
     <fraction name="carousel_overlap_factor">56%</fraction>
+    <fraction name="carousel_midscreenswipe_width_fraction">20%</fraction>
+
 </resources>

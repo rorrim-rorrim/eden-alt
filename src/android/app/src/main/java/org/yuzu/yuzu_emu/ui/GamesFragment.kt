@@ -263,6 +263,24 @@ class GamesFragment : Fragment() {
 
             // Carousel mode: wait for layout, then set card size and enable carousel features
             if (savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL) {
+
+                // var parent: ViewParent? = binding.gridGames
+                // var level = 0
+                // while (parent is View) {
+                //     val view = parent as View
+                //     val resName = try {
+                //         if (view.id != View.NO_ID) view.resources.getResourceEntryName(view.id) else "no_id"
+                //     } catch (e: Exception) {
+                //         "no_id"
+                //     }
+                //     Log.d(
+                //         "GamesFragment",
+                //         "Parent level $level: id=${view.id} ($resName), height=${view.height}"
+                //     )
+                //     parent = view.parent
+                //     level++
+                // }
+
                 post {
                     val insets = rootWindowInsets
                     val bottomInset = insets?.getInsets(android.view.WindowInsets.Type.systemBars())?.bottom ?: 0
@@ -293,7 +311,7 @@ class GamesFragment : Fragment() {
     private var lastScrollPosition: Int = 0
     override fun onPause() {
         super.onPause()
-        Log.d("GamesFragment", "Calling getCentered from onPause")
+        if (getCurrentViewType() != GameAdapter.VIEW_TYPE_CAROUSEL) return
         lastScrollPosition = (binding.gridGames as? JukeboxRecyclerView)?.getCenteredAdapterPosition() ?: 0
         Log.d("GamesFragment", "Saving last scroll position: $lastScrollPosition")
     }
