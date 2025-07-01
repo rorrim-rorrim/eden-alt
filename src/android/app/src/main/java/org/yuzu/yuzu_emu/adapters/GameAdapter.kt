@@ -34,7 +34,7 @@ import org.yuzu.yuzu_emu.utils.GameIconUtils
 import org.yuzu.yuzu_emu.utils.ViewUtils.marquee
 import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 import android.view.KeyEvent
-import org.yuzu.yuzu_emu.ui.JukeboxRecyclerView
+import org.yuzu.yuzu_emu.ui.CarouselRecyclerView
 import androidx.recyclerview.widget.RecyclerView
 
 class GameAdapter(private val activity: AppCompatActivity) :

@@ -177,7 +177,7 @@ class GamesFragment : Fragment() {
             if (shouldScroll) {
                 binding.gridGames.post {
                     //Log.d("GamesFragment", "Scheding scroll after reload")
-                    (binding.gridGames as? JukeboxRecyclerView)?.pendingScrollAfterReload = true
+                    (binding.gridGames as? CarouselRecyclerView)?.pendingScrollAfterReload = true
                     gameAdapter.notifyDataSetChanged()
                 }
                 gamesViewModel.setShouldScrollAfterReload(false)
@@ -222,12 +222,12 @@ class GamesFragment : Fragment() {
                 //Log.d("GamesFragment", "applyGridGamesBinding height $height")
                 doOnNextLayout {
                     //Log.d("GamesFragment", "doOnNextLayout height $height")
-                    (this as? JukeboxRecyclerView)?.setCarouselMode(true, gameAdapter)
+                    (this as? CarouselRecyclerView)?.setCarouselMode(true, gameAdapter)
                     adapter = gameAdapter //3
                 }
             } else {
                 // Disable carousel features in other modes
-                (this as? JukeboxRecyclerView)?.setCarouselMode(false)
+                (this as? CarouselRecyclerView)?.setCarouselMode(false)
             }
             adapter = gameAdapter
             lastViewType = savedViewType
@@ -245,7 +245,7 @@ class GamesFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         if (getCurrentViewType() != GameAdapter.VIEW_TYPE_CAROUSEL) return
-        lastScrollPosition = (binding.gridGames as? JukeboxRecyclerView)?.getCenteredAdapterPosition() ?: 0
+        lastScrollPosition = (binding.gridGames as? CarouselRecyclerView)?.getCenteredAdapterPosition() ?: 0
         //Log.d("GamesFragment", "Saving last scroll position: $lastScrollPosition")
     }
 
@@ -253,14 +253,14 @@ class GamesFragment : Fragment() {
         super.onStop()
         // Save the last scroll position when the fragment is stopped
         if (getCurrentViewType() != GameAdapter.VIEW_TYPE_CAROUSEL) return
-        lastScrollPosition = (binding.gridGames as? JukeboxRecyclerView)?.getCenteredAdapterPosition() ?: 0
+        lastScrollPosition = (binding.gridGames as? CarouselRecyclerView)?.getCenteredAdapterPosition() ?: 0
         //Log.d("GamesFragment", "Saving last scroll position on stop: $lastScrollPosition")
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
         if (getCurrentViewType() != GameAdapter.VIEW_TYPE_CAROUSEL) return
-        val recyclerView = binding.gridGames as? JukeboxRecyclerView ?: return
+        val recyclerView = binding.gridGames as? CarouselRecyclerView ?: return
         recyclerView.restoreScrollState(lastScrollPosition)
     }
 
@@ -443,7 +443,7 @@ class GamesFragment : Fragment() {
 
     private fun scrollToTop() {
         if (_binding != null) {
-            (binding.gridGames as? JukeboxRecyclerView)?.smoothScrollToPosition(0)
+            (binding.gridGames as? CarouselRecyclerView)?.smoothScrollToPosition(0)
         }
     }
 

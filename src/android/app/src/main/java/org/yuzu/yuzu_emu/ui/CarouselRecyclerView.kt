@@ -17,10 +17,10 @@ import org.yuzu.yuzu_emu.adapters.GameAdapter
 import androidx.core.view.doOnNextLayout
 
 /**
- * JukeboxRecyclerView encapsulates all carousel/grid/list logic for the games UI.
+ * CarouselRecyclerView encapsulates all carousel/grid/list logic for the games UI.
  * It manages overlapping cards, center snapping, custom drawing order, and mid-screen swipe-to-refresh.
  */
-class JukeboxRecyclerView @JvmOverloads constructor(
+class CarouselRecyclerView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyle: Int = 0
@@ -91,12 +91,12 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 closestPosition = i
             }
         }
-        //Log.d("JukeboxRecyclerView", "getCenteredAdapterPosition position: $closestPosition, distance: $minDistance")
+        //Log.d("CarouselRecyclerView", "getCenteredAdapterPosition position: $closestPosition, distance: $minDistance")
         return closestPosition
     }
 
     fun updateChildScalesAndAlpha() {
-        //Log.d("JukeboxRecyclerView", "Updating child scales and alpha childCount ${childCount}")
+        //Log.d("CarouselRecyclerView", "Updating child scales and alpha childCount ${childCount}")
         for (i in 0 until childCount) {
             val child = getChildAt(i) ?: continue
             updateChildScaleAndAlphaForPosition(child)
@@ -128,11 +128,11 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         child.scaleX = scale
         child.scaleY = scale
 
-        //Log.d("JukeboxRecyclerView", "Child:$child c/cc:$center/$childCenter scale:$scale alpha:$alpha")
+        //Log.d("CarouselRecyclerView", "Child:$child c/cc:$center/$childCenter scale:$scale alpha:$alpha")
     }
 
     fun focusCenteredCard() {
-        Log.d("JukeboxRecyclerView", "Focusing centered card")
+        Log.d("CarouselRecyclerView", "Focusing centered card")
         val centeredPos = getCenteredAdapterPosition()
         if (centeredPos != RecyclerView.NO_POSITION) {
             val vh = findViewHolderForAdapterPosition(centeredPos)
@@ -140,7 +140,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 child.isFocusable = true
                 child.isFocusableInTouchMode = true
                 child.requestFocus()
-                Log.d("JukeboxRecyclerView", "Requested focus on centered card: $centeredPos")
+                Log.d("CarouselRecyclerView", "Requested focus on centered card: $centeredPos")
             }
         }
     }
@@ -152,7 +152,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
             val insets = rootWindowInsets
             val bottomInset = insets?.getInsets(android.view.WindowInsets.Type.systemBars())?.bottom ?: 0
             val cardSize = (resources.getFraction(R.fraction.carousel_card_size_multiplier, 1, 1) * (height - bottomInset)).toInt()
-            //Log.d("JukeboxRecyclerView", "setCarousel cardsize: $cardSize")
+            //Log.d("CarouselRecyclerView", "setCarousel cardsize: $cardSize")
             gameAdapter?.setCardSize(cardSize)
 
             overlapPx = (cardSize * resources.getFraction(R.fraction.carousel_overlap_factor, 1, 1)).toInt()
@@ -184,7 +184,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 scalingScrollListener = object : OnScrollListener() {
                     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                         super.onScrolled(recyclerView, dx, dy)
-                        //Log.d("JukeboxRecyclerView", "onScrolled dx=$dx, dy=$dy")
+                        //Log.d("CarouselRecyclerView", "onScrolled dx=$dx, dy=$dy")
                         updateChildScalesAndAlpha()
                     }
                 }
@@ -212,11 +212,11 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                     pagerSnapHelper!!.attachToRecyclerView(this)
                 }
                 post { //IMPORTANT: post² fixes the center carousel smol cards issue
-                    //Log.d("JukeboxRecyclerView", "Post² updateChildScalesAndAlpha")
+                    //Log.d("CarouselRecyclerView", "Post² updateChildScalesAndAlpha")
                     updateChildScalesAndAlpha()
                     //focusCenteredCard()
                 }
-                //Log.d("JukeboxRecyclerView", "Carousel mode enabled with overlapPx=$overlapPx, cardSize=$cardSize")
+                //Log.d("CarouselRecyclerView", "Carousel mode enabled with overlapPx=$overlapPx, cardSize=$cardSize")
             }
         } else {
             // Remove overlap decoration
@@ -248,7 +248,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         if (state == RecyclerView.SCROLL_STATE_IDLE) {
             // Scrolling/fling has stopped
             focusCenteredCard() // or your focus-fix logic
-            Log.d("JukeboxRecyclerView", "Scroll stopped, focus fix applied")
+            Log.d("CarouselRecyclerView", "Scroll stopped, focus fix applied")
         }
     }
 
@@ -261,11 +261,11 @@ class JukeboxRecyclerView @JvmOverloads constructor(
 
         if (hasOverlapDecoration && position > 0) {//important to compensate for the overlap
             (layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(position, overlapPx)
-            //Log.d("JukeboxRecyclerView", "Extra offset $overlapPx px applied for position $position")
+            //Log.d("CarouselRecyclerView", "Extra offset $overlapPx px applied for position $position")
         }
 
         doOnNextLayout { //important to post to ensure layout is done
-            Log.d("JukeboxRecyclerView", "doOnNextLayout scrollToPosition: $position")
+            Log.d("CarouselRecyclerView", "doOnNextLayout scrollToPosition: $position")
             updateChildScalesAndAlpha()
             focusCenteredCard()
         }
@@ -284,7 +284,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                         ?: super.focusSearch(focused, direction)
                     val offset = (focused.width * resources.getFraction(R.fraction.carousel_overlap_factor, 1, 1)).toInt()
                     smoothScrollBy(-offset, 0)
-                    Log.d("JukeboxRecyclerView", "Focus left offset $offset, position $position, overlapPx $overlapPx")
+                    Log.d("CarouselRecyclerView", "Focus left offset $offset, position $position, overlapPx $overlapPx")
                     targetView
                 } else {
                     focused
@@ -322,7 +322,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
             compareByDescending<Pair<Int, Float>> { it.second }
                 .thenBy { it.first }
         )
-        //Log.d("JukeboxRecyclerView", "Child $i got order ${sorted[i].first} at distance ${sorted[i].second} from center $center")
+        //Log.d("CarouselRecyclerView", "Child $i got order ${sorted[i].first} at distance ${sorted[i].second} from center $center")
         return sorted[i].first
     }
 
