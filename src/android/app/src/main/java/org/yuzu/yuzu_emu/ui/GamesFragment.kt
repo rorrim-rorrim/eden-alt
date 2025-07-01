@@ -107,21 +107,6 @@ class GamesFragment : Fragment() {
         return binding.root
     }
 
-    // private var scrollAfterReloadPending = false
-    // private fun setupScrollAfterReloadObserver(gameAdapter: GameAdapter) {
-    //     gameAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
-    //         override fun onChanged() {
-    //             if (scrollAfterReloadPending) {
-    //                 binding.gridGames.post {
-    //                     //Log.d("GamesFragment", "Scrolling after all binds/layouts")
-    //                     (binding.gridGames as? JukeboxRecyclerView)?.mockScroll()
-    //                     scrollAfterReloadPending = false
-    //                 }
-    //             }
-    //         }
-    //     })
-    // }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         homeViewModel.setStatusBarShadeVisibility(true)
@@ -276,7 +261,6 @@ class GamesFragment : Fragment() {
         super.onViewStateRestored(savedInstanceState)
         if (getCurrentViewType() != GameAdapter.VIEW_TYPE_CAROUSEL) return
         val recyclerView = binding.gridGames as? JukeboxRecyclerView ?: return
-        //tryRestoreScroll(recyclerView)
         recyclerView.restoreScrollState(lastScrollPosition)
     }
 

@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.abs
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.GameAdapter
+import androidx.core.view.doOnNextLayout
 
 /**
  * JukeboxRecyclerView encapsulates all carousel/grid/list logic for the games UI.
@@ -131,7 +132,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
     }
 
     fun focusCenteredCard() {
-        //Log.d("JukeboxRecyclerView", "Focusing centered card")
+        Log.d("JukeboxRecyclerView", "Focusing centered card")
         val centeredPos = getCenteredAdapterPosition()
         if (centeredPos != RecyclerView.NO_POSITION) {
             val vh = findViewHolderForAdapterPosition(centeredPos)
@@ -139,7 +140,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                 child.isFocusable = true
                 child.isFocusableInTouchMode = true
                 child.requestFocus()
-                //Log.d("JukeboxRecyclerView", "Requested focus on centered card: $centeredPos")
+                Log.d("JukeboxRecyclerView", "Requested focus on centered card: $centeredPos")
             }
         }
     }
@@ -191,11 +192,11 @@ class JukeboxRecyclerView @JvmOverloads constructor(
             }
 
             // Handle bottom insets for keyboard/navigation bar only
-            setOnApplyWindowInsetsListener { view, insets ->
-                val imeInset = insets.getInsets(android.view.WindowInsets.Type.ime()).bottom
-                val navInset = insets.getInsets(android.view.WindowInsets.Type.navigationBars()).bottom
+            setOnApplyWindowInsetsListener { view, windowInsets ->
+                val imeInset = windowInsets.getInsets(android.view.WindowInsets.Type.ime()).bottom
+                val navInset = windowInsets.getInsets(android.view.WindowInsets.Type.navigationBars()).bottom
                 view.setPadding(view.paddingLeft, 0, view.paddingRight, maxOf(imeInset, navInset))
-                insets
+                windowInsets
             }
 
             // Center first/last card IMPORTANT!!
@@ -242,6 +243,15 @@ class JukeboxRecyclerView @JvmOverloads constructor(
         }
     }
 
+    override fun onScrollStateChanged(state: Int) {
+        super.onScrollStateChanged(state)
+        if (state == RecyclerView.SCROLL_STATE_IDLE) {
+            // Scrolling/fling has stopped
+            focusCenteredCard() // or your focus-fix logic
+            Log.d("JukeboxRecyclerView", "Scroll stopped, focus fix applied")
+        }
+    }
+
     override fun scrollToPosition(position: Int) {
         super.scrollToPosition(position)
 
@@ -254,30 +264,25 @@ class JukeboxRecyclerView @JvmOverloads constructor(
             //Log.d("JukeboxRecyclerView", "Extra offset $overlapPx px applied for position $position")
         }
 
-        post { //important to post to ensure layout is done
-            //Log.d("JukeboxRecyclerView", "Post scrollToPosition: $position")
+        doOnNextLayout { //important to post to ensure layout is done
+            Log.d("JukeboxRecyclerView", "doOnNextLayout scrollToPosition: $position")
             updateChildScalesAndAlpha()
             focusCenteredCard()
-            //Log.d("GamesFragment", "Scrolled to position: $position got ${getCenteredAdapterPosition()}")
         }
     }
 
-    // trap past boundaries navigation
     override fun focusSearch(focused: View, direction: Int): View? {
-        val lm = layoutManager as? LinearLayoutManager ?: return super.focusSearch(focused, direction)
+        if (layoutManager !is LinearLayoutManager) return super.focusSearch(focused, direction)
         val vh = findContainingViewHolder(focused) ?: return super.focusSearch(focused, direction)
-        val position = vh.bindingAdapterPosition
         val itemCount = adapter?.itemCount ?: return super.focusSearch(focused, direction)
+        val position = vh.bindingAdapterPosition
 
         return when (direction) {
             View.FOCUS_LEFT -> {
                 if (position > 0) {
-                    //findViewHolderForAdapterPosition(position - 1)?.itemView
                     val targetView = findViewHolderForAdapterPosition(position - 1)?.itemView
                         ?: super.focusSearch(focused, direction)
-                    //val offset = (targetView.scaleX * targetView.width / 2f).toInt() //works but maybe lacks
-                    val offset = (targetView.scaleX * focused.width / 2f).toInt()
-                    //val offset = (focused.width / 2f).toInt() //exceeds
+                    val offset = (focused.width * resources.getFraction(R.fraction.carousel_overlap_factor, 1, 1)).toInt()
                     smoothScrollBy(-offset, 0)
                     Log.d("JukeboxRecyclerView", "Focus left offset $offset, position $position, overlapPx $overlapPx")
                     targetView
@@ -365,7 +370,7 @@ class JukeboxRecyclerView @JvmOverloads constructor(
                     closestChild = child
                 }
             }
-            focusCenteredCard()
+            //focusCenteredCard()
             Log.d("SnapHelper", "findSnapView position: ${closestChild?.let { layoutManager.getPosition(it) } ?: "null"}, minDistance=$minDistance")
             return closestChild
         }
@@ -393,22 +398,19 @@ class JukeboxRecyclerView @JvmOverloads constructor(
             val firstVisible = layoutManager.findFirstVisibleItemPosition()
             val lastVisible = layoutManager.findLastVisibleItemPosition()
             var minDistance = Int.MAX_VALUE
-            var closestChild: View? = null
             var closestPosition = RecyclerView.NO_POSITION
             for (i in firstVisible..lastVisible) {
                 val child = layoutManager.findViewByPosition(i) ?: continue
                 val distance = kotlin.math.abs(getChildDistanceToCenter(child))
                 if (distance < minDistance) {
                     minDistance = distance
-                    closestChild = child
                     closestPosition = i
                 }
             }
-
-            val flingCount = if (velocityX == 0) 0 else velocityX / 2000
-            var targetPos = closestPosition + flingCount
-            val itemCount = layoutManager.itemCount
-            targetPos = targetPos.coerceIn(0, itemCount - 1)
+            val maxFling = resources.getInteger(R.integer.carousel_max_fling_count)
+            val rawFlingCount = if (velocityX == 0) 0 else velocityX / 2000
+            val flingCount = rawFlingCount.coerceIn(-maxFling, maxFling)
+            var targetPos = (closestPosition + flingCount).coerceIn(0, layoutManager.itemCount - 1)
             Log.d("SnapHelper", "findTargetSnapPosition position: $targetPos")
             return targetPos
         }
