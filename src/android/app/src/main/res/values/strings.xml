@@ -67,18 +67,18 @@
     <string name="eden_veil_warning_title">Experimental Settings</string>
     <string name="eden_veil_warning_description">The settings contained within Eden\'s Veil are highly experimental and may cause issues. If your game does not boot, disable any extensions and change Extended Dynamic State to 0.</string>
 
-    <string name="veil_extensions">GPU Extensions</string>
-    <string name="dyna_state">Extended Dynamic State</string>
+    <string name="veil_extensions">GPU extensions</string>
+    <string name="dyna_state">Extended dynamic state</string>
     <string name="dyna_state_description">Enables Vulkan features to improve performance, rendering, and save resources on pipeline creation while maintaining lower CPU/GPU usage. These extensions may increase device temperature, and GPUs belonging to the older A6XX line may not react properly. Set to 0 to use Legacy emulated formats.</string>
-    <string name="provoking_vertex">Provoking Vertex</string>
+    <string name="provoking_vertex">Provoking vertex</string>
     <string name="provoking_vertex_description">Improves lighting and vertex handling in certain games. Only supported on Vulkan 1.0+ GPUs.</string>
-    <string name="descriptor_indexing">Descriptor Indexing</string>
+    <string name="descriptor_indexing">Descriptor indexing</string>
     <string name="descriptor_indexing_description">Improves texture and buffer handling, as well as the Maxwell translation layer. Supported by some Vulkan 1.1 GPUs and all Vulkan 1.2+ GPUs.</string>
     <string name="sample_shading">Sample Shading</string>
     <string name="sample_shading_description">Allows the fragment shader to execute per sample in a multi-sampled fragment instead once per fragment. Improves graphics quality at the cost of some performance. Only Vulkan 1.1+ devices support this extension.</string>
 
     <string name="veil_renderer">Renderer</string>
-    <string name="frame_interpolation">Enhanced Frame Pacing</string>
+    <string name="frame_interpolation">Enhanced frame pacing</string>
     <string name="frame_interpolation_description">Ensures smooth and consistent frame delivery by synchronizing the timing between frames, reducing stuttering and uneven animation. Ideal for games that experience frame timing instability or micro-stutters during gameplay.</string>
     <string name="use_auto_stub">Use Auto Stub</string>
     <string name="use_auto_stub_description">Automatically stub missing services and functions. This may improve compatibility but can cause crashes and stability issues.</string>
@@ -88,29 +88,29 @@
     <string name="firmware_uninstalled_success">Firmware uninstalled successfully</string>
 
     <string name="veil_misc">Miscellaneous</string>
-    <string name="use_sync_core">Synchronize Core Speed</string>
+    <string name="use_sync_core">Synchronize core speed</string>
     <string name="use_sync_core_description">Synchronize the core tick speed to the maximum speed percentage to improve performance without altering the game\'s actual speed.</string>
-    <string name="use_lru_cache">Enable LRU Cache</string>
+    <string name="use_lru_cache">Enable LRU cache</string>
     <string name="use_lru_cache_description">Enable or disable the Least Recently Used (LRU) cache, increasing performance by saving CPU process usage. Some games have issue with it, notably TotK 1.2.1, so disable if the game doesn\'t boot or crashes randomly.</string>
-    <string name="use_fast_cpu_time">Fast CPU Time</string>
+    <string name="use_fast_cpu_time">Fast CPU time</string>
     <string name="use_fast_cpu_time_description">Forces the emulated CPU to run at a higher clock, reducing certain FPS limiters. This option is hacky and may cause issues, and weaker CPUs may see reduced performance.</string>
-    <string name="custom_cpu_ticks">Custom CPU Ticks</string>
+    <string name="custom_cpu_ticks">Custom CPU ticks</string>
     <string name="custom_cpu_ticks_description">Set a custom value of CPU ticks. Higher values can increase performance, but may also cause the game to freeze. A range of 77–21000 is recommended.</string>
     <string name="cpu_ticks">Ticks</string>
-    <string name="fast_cpu_time">CPU Clock</string>
+    <string name="fast_cpu_time">CPU clock</string>
     <string name="fast_cpu_time_description">Use Boost (1700MHz) to run at the Switch\'s highest native clock, or Fast (2000MHz) to run at 2x clock.</string>
     <string name="memory_layout">Memory Layout</string>
     <string name="memory_layout_description">(EXPERIMENTAL) Change the emulated memory layout. This setting will not increase performance, but may help with games utilizing high resolutions via mods. Do not use on phones with 8GB of RAM or less. Only works on the Dynarmic (JIT) backend.</string>
 
     <!-- Shader Backend -->
-    <string name="shader_backend">Shader Backend</string>
+    <string name="shader_backend">Shader backend</string>
     <string name="shader_backend_description">Choose how shaders are compiled and translated for your GPU.</string>
     <string name="shader_backend_glsl">Universal</string>
     <string name="shader_backend_glasm">Mali</string>
     <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
     <!-- NVDEC Emulation -->
-    <string name="nvdec_emulation">NVDEC Emulation</string>
+    <string name="nvdec_emulation">NVDEC emulation</string>
     <string name="nvdec_emulation_description">Select how video decoding (NVDEC) is handled during cutscenes and intros.</string>
     <string name="nvdec_emulation_cpu">CPU</string>
     <string name="nvdec_emulation_gpu">GPU</string>
@@ -128,7 +128,7 @@
     <string name="multiplayer_console_id">Console ID：%1$s</string>
     <string name="multiplayer_create_room">Create</string>
     <string name="multiplayer_join_room">Join</string>
-    <string name="multiplayer_public_room">Browse Public Rooms</string>
+    <string name="multiplayer_public_room">Browse public rooms</string>
     <string name="multiplayer_username">Username</string>
     <string name="multiplayer_ip_address">IP Address</string>
     <string name="multiplayer_ip_port">Port</string>
@@ -176,7 +176,7 @@
     <string name="multiplayer_max_players">Max Players (16)</string>
     <string name="multiplayer_max_players_value">Max Players: %d</string>
     <string name="multiplayer_chat">Chat</string>
-    <string name="multiplayer_more_options">More Options</string>
+    <string name="multiplayer_more_options">More options</string>
     <string name="multiplayer_ip_copied">IP Address copied to clipboard</string>
     <string name="multiplayer_server_address">Server Address</string>
     <string name="chat">Chat</string>
@@ -650,9 +650,9 @@
     <string name="installing_driver">Installing driver…</string>
 
     <!-- GPU driver fetcher -->
-    <string name="fetch_error">Error while Fetching</string>
+    <string name="fetch_error">Error while fetching</string>
     <string name="check_connection">Check your connection and try again.</string>
-    <string name="show_releases">Show Releases</string>
+    <string name="show_releases">Show releases</string>
     <string name="view_full_release_notes">Release Notes</string>
     <string name="failed_to_fetch">Failed to fetch</string>
     <string name="error_during_fetch">Error during Fetch</string>
@@ -669,7 +669,7 @@
     <string name="downloading">Downloading…</string>
     <string name="installing">Installing…</string>
     <string name="latest">Latest</string>
-    <string name="recommended_driver">Recommended Driver:</string>
+    <string name="recommended_driver">Recommended driver:</string>
     <string name="gpu_model">GPU Model:</string>
     <string name="unsupported_gpu">Unsupported GPU</string>
     <string name="unsupported_gpu_warning">Your GPU does not support driver injection. Attempting to set custom drivers is not recommended.</string>
@@ -854,7 +854,7 @@
     <string name="renderer_accuracy_extreme">Extreme (Slow)</string>
 
     <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">ASTC Decoding Method</string>
+    <string name="accelerate_astc">ASTC decoding method</string>
     <string name="accelerate_astc_description">Pick how ASTC-compressed textures are decoded for rendering: CPU (slow, safe), GPU (fast, recommended), or CPU Async (no stutters, may cause issues)</string>
 
     <!-- ASTC Decoding Method Choices -->
@@ -863,7 +863,7 @@
     <string name="accelerate_astc_async">CPU Asynchronously</string>
 
     <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">ASTC Recompression Method</string>
+    <string name="astc_recompression">ASTC recompression method</string>
     <string name="astc_recompression_description">Choose how ASTC textures are recompressed to improve compatibility and performance. Enabling this option saves VRAM but may lower texture quality.</string>
 
     <!-- ASTC Recompression Method Choices -->
@@ -872,7 +872,7 @@
     <string name="astc_recompression_bc3">BC3 (Medium Quality)</string>
 
     <!-- ASTC Recompression Method Choices -->
-    <string name="vram_usage_mode">VRAM Usage Mode</string>
+    <string name="vram_usage_mode">VRAM usage mode</string>
     <string name="vram_usage_mode_description">Control how aggressively the emulator allocates and frees GPU memory.</string>
     <string name="vram_usage_conservative">Conservative</string>
     <string name="vram_usage_aggressive">Aggressive</string>
@@ -977,7 +977,7 @@
     <string name="yellow">Yellow</string>
     <string name="orange">Orange</string>
     <string name="pink">Pink</string>
-    <string name="gray">Gray</string>
+    <string name="gray">Grey</string>
 
     <!-- Picture-In-Picture -->
     <string name="picture_in_picture">Picture in Picture</string>
@@ -997,12 +997,12 @@
     <string name="applets_menu">Applets</string>
     <string name="applets_menu_description">(WIP) Change applet frontends and settings</string>
 
-    <string name="applet_hle">Custom Frontend</string>
-    <string name="applet_lle">Real Applet</string>
+    <string name="applet_hle">Custom frontend</string>
+    <string name="applet_lle">Real applet</string>
 
-    <string name="swkbd_applet">Software Keyboard</string>
+    <string name="swkbd_applet">Software keyboard</string>
 
-    <string name="airplane_mode">Airplane Mode</string>
+    <string name="airplane_mode">Airplane mode</string>
     <string name="airplane_mode_description">Passes Airplane Mode to the Switch OS</string>
 
     <!-- Licenses screen strings -->
