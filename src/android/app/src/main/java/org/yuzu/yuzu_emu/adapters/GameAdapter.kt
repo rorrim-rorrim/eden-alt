@@ -3,7 +3,6 @@
 
 package org.yuzu.yuzu_emu.adapters
 
-import android.util.Log
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup

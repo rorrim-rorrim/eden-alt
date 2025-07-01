@@ -155,7 +155,7 @@ class GamesFragment : Fragment() {
         }
         gamesViewModel.games.collect(viewLifecycleOwner) {
             if (it.size > 0) {
-                //Log.d("GamesFragment", "Games updated, size: ${it.size}")
+                Log.d("GamesFragment", "Games updated, size: ${it.size}")
                 setAdapter(it)
             }
         }
@@ -164,7 +164,7 @@ class GamesFragment : Fragment() {
             resetState = { gamesViewModel.setShouldSwapData(false) }
         ) {
             if (it) {
-                //Log.d("GamesFragment", "Swapping data in adapter")
+                Log.d("GamesFragment", "Swapping data in adapter")
                 setAdapter(gamesViewModel.games.value)
             }
         }
@@ -176,7 +176,7 @@ class GamesFragment : Fragment() {
         gamesViewModel.shouldScrollAfterReload.collect(viewLifecycleOwner) { shouldScroll ->
             if (shouldScroll) {
                 binding.gridGames.post {
-                    //Log.d("GamesFragment", "Scheding scroll after reload")
+                    Log.d("GamesFragment", "Scheding scroll after reload")
                     (binding.gridGames as? CarouselRecyclerView)?.pendingScrollAfterReload = true
                     gameAdapter.notifyDataSetChanged()
                 }
@@ -219,9 +219,9 @@ class GamesFragment : Fragment() {
             }
             // Carousel mode: wait for layout, then set card size and enable carousel features
             if (savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL) {
-                //Log.d("GamesFragment", "applyGridGamesBinding height $height")
+                Log.d("GamesFragment", "applyGridGamesBinding height $height")
                 doOnNextLayout {
-                    //Log.d("GamesFragment", "doOnNextLayout height $height")
+                    Log.d("GamesFragment", "doOnNextLayout height $height")
                     (this as? CarouselRecyclerView)?.setCarouselMode(true, gameAdapter)
                     adapter = gameAdapter //3
                 }
@@ -245,16 +245,16 @@ class GamesFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         if (getCurrentViewType() != GameAdapter.VIEW_TYPE_CAROUSEL) return
-        lastScrollPosition = (binding.gridGames as? CarouselRecyclerView)?.getCenteredAdapterPosition() ?: 0
-        //Log.d("GamesFragment", "Saving last scroll position: $lastScrollPosition")
+        lastScrollPosition = (binding.gridGames as? CarouselRecyclerView)?.getClosestChildPosition() ?: 0
+        Log.d("GamesFragment", "Saving last scroll positionon PAUSE: $lastScrollPosition")
     }
 
     override fun onStop() {
         super.onStop()
         // Save the last scroll position when the fragment is stopped
         if (getCurrentViewType() != GameAdapter.VIEW_TYPE_CAROUSEL) return
-        lastScrollPosition = (binding.gridGames as? CarouselRecyclerView)?.getCenteredAdapterPosition() ?: 0
-        //Log.d("GamesFragment", "Saving last scroll position on stop: $lastScrollPosition")
+        lastScrollPosition = (binding.gridGames as? CarouselRecyclerView)?.getClosestChildPosition() ?: 0
+        Log.d("GamesFragment", "Saving last scroll position on STOP: $lastScrollPosition")
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
@@ -268,7 +268,7 @@ class GamesFragment : Fragment() {
     private var lastFilter: Int = preferences.getInt(PREF_SORT_TYPE, View.NO_ID)
 
     private fun setAdapter(games: List<Game>) {
-        //Log.d("GamesFragment", "Setting adapter with ${games.size} games")
+        Log.d("GamesFragment", "Setting adapter with ${games.size} games")
         val currentSearchText = binding.searchText.text.toString()
         val currentFilter = binding.filterButton.id
 
