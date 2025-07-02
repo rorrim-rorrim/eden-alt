@@ -42,8 +42,9 @@ class CarouselRecyclerView @JvmOverloads constructor(
         private const val CAROUSEL_OVERLAP_FACTOR = "CarouselOverlapFactor"
         private const val CAROUSEL_MAX_FLING_COUNT = "CarouselMaxFlingCount"
         private const val CAROUSEL_FLING_MULTIPLIER = "CarouselFlingMultiplier"
-
-
+        const val CAROUSEL_LAST_SCROLL_POSITION = "CarouselLastScrollPosition"
+        const val CAROUSEL_VIEW_TYPE_PORTRAIT = "GamesViewTypePortrait"
+        const val CAROUSEL_VIEW_TYPE_LANDSCAPE = "GamesViewTypeLandscape"
     }
 
     private val preferences =
@@ -110,22 +111,6 @@ class CarouselRecyclerView @JvmOverloads constructor(
         }
         return closestPosition
     }
-
-    // fun getClosestChildPosition(): Int {
-    //     val lm = layoutManager as? LinearLayoutManager ?: return RecyclerView.NO_POSITION
-    //     val center = getLayoutManagerCenter(lm)
-    //     var minDistance = Int.MAX_VALUE
-    //     var closestPosition = RecyclerView.NO_POSITION
-    //     for (i in lm.findFirstVisibleItemPosition()..lm.findLastVisibleItemPosition()) {
-    //         val child = lm.findViewByPosition(i) ?: continue
-    //         val distance = kotlin.math.abs(getChildDistanceToCenter(child).toInt())
-    //         if (distance < minDistance) {
-    //             minDistance = distance
-    //             closestPosition = i
-    //         }
-    //     }
-    //     return closestPosition
-    // }
 
     fun updateChildScalesAndAlpha() {
         for (i in 0 until childCount) {
@@ -365,26 +350,6 @@ class CarouselRecyclerView @JvmOverloads constructor(
     inner class CenterPagerSnapHelper : PagerSnapHelper() {
 
         // NEEDED: fixes center snapping, but introduces ghost movement
-        // override fun findSnapView(layoutManager: RecyclerView.LayoutManager): View? {
-        //     if (layoutManager !is LinearLayoutManager) return null
-        //     var minDistance = Int.MAX_VALUE
-        //     var closestChild: View? = null
-        //     for (i in 0 until layoutManager.childCount) {
-        //         val child = layoutManager.getChildAt(i) ?: continue
-        //         val distance = kotlin.math.abs(getChildDistanceToCenter(child).toInt())
-        //         if (distance < minDistance) {
-        //             minDistance = distance
-        //             closestChild = child
-        //         }
-        //     }
-        //     Log.d("SnapHelper", "findSnapView : child=$closestChild")
-        //     findSnapView2(layoutManager)
-        //     findSnapView3(layoutManager)
-
-        //     return closestChild
-        // }
-
-        // NEEDED: fixes center snapping, but introduces ghost movement
         override fun findSnapView(layoutManager: RecyclerView.LayoutManager): View? {
             if (layoutManager !is LinearLayoutManager) return null
             return layoutManager.findViewByPosition(getClosestChildPosition())
@@ -401,33 +366,6 @@ class CarouselRecyclerView @JvmOverloads constructor(
             out[1] = 0
             return out
         }
-
-        // NEEDED: fixes inertial scrolling (broken by calculateDistanceToFinalSnap)
-        // override fun findTargetSnapPosition(
-        //     layoutManager: RecyclerView.LayoutManager,
-        //     velocityX: Int,
-        //     velocityY: Int
-        // ): Int {
-        //     if (layoutManager !is LinearLayoutManager) return RecyclerView.NO_POSITION
-        //     val firstVisible = layoutManager.findFirstVisibleItemPosition()
-        //     val lastVisible = layoutManager.findLastVisibleItemPosition()
-        //     var minDistance = Int.MAX_VALUE
-        //     var closestPosition = RecyclerView.NO_POSITION
-        //     for (i in firstVisible..lastVisible) {
-        //         val child = layoutManager.findViewByPosition(i) ?: continue
-        //         val distance = kotlin.math.abs(getChildDistanceToCenter(child).toInt())
-        //         if (distance < minDistance) {
-        //             minDistance = distance
-        //             closestPosition = i
-        //         }
-        //     }
-        //     val internalMaxFling = resources.getInteger(R.integer.carousel_max_fling_count)
-        //     val maxFling = preferences.getInt(CAROUSEL_MAX_FLING_COUNT, internalMaxFling).coerceIn(1, 10)
-        //     val rawFlingCount = if (velocityX == 0) 0 else velocityX / 2000
-        //     val flingCount = rawFlingCount.coerceIn(-maxFling, maxFling)
-        //     var targetPos = (closestPosition + flingCount).coerceIn(0, layoutManager.itemCount - 1)
-        //     return targetPos
-        // }
 
         // NEEDED: fixes inertial scrolling (broken by calculateDistanceToFinalSnap)
         override fun findTargetSnapPosition(

@@ -50,6 +50,8 @@ class GamesViewModel : ViewModel() {
 
     private val _filteredGames = MutableStateFlow<List<Game>>(emptyList())
 
+    var lastScrollPosition: Int = 0
+
     init {
         // Ensure keys are loaded so that ROM metadata can be decrypted.
         NativeLibrary.reloadKeys()
