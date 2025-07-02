@@ -974,9 +974,32 @@ const KAutoObjectWithListContainer& KernelCore::ObjectListContainer() const {
     return *impl->global_object_list_container;
 }
 
+// KernelCore scheduler logic
 void KernelCore::PrepareReschedule(std::size_t id) {
-    // TODO: Reimplement, this
+    LOG_DEBUG("Preparing to reschedule thread with id: %zu", id);
+
+    // Notify scheduler or signal yield to allow next thread to run
+    std::unique_lock<std::mutex> lock(scheduler_mutex);
+
+    if (!ready_queue.empty()) {
+        auto next_thread_id = ready_queue.front();
+        ready_queue.pop();
+
+        // Update internal state to track next thread
+        current_thread_id = next_thread_id;
+        LOG_DEBUG("Switching to thread: %zu", next_thread_id);
+    } else {
+        // No threads ready to run; continue with current
+        LOG_WARNING("No threads available to reschedule.");
+    }
+
+    // Simulate a yield
+    std::this_thread::yield();
 }
+
+std::mutex KernelCore::scheduler_mutex;
+std::queue<std::size_t> KernelCore::ready_queue;
+std::size_t KernelCore::current_thread_id = 0;
 
 void KernelCore::RegisterKernelObject(KAutoObject* object) {
     std::scoped_lock lk{impl->registered_objects_lock};
