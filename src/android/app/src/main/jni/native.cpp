@@ -1,8 +1,8 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
-
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
 
 
 #include <codecvt>
@@ -57,6 +57,7 @@
 #include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/filesystem/filesystem.h"
+#include "core/hle/service/set/system_settings_server.h"
 #include "core/loader/loader.h"
 #include "frontend_common/config.h"
 #include "hid_core/frontend/emulated_controller.h"
@@ -78,6 +79,11 @@ static EmulationSession s_instance;
 //Abdroid Multiplayer which can be initialized with parameters
 std::unique_ptr<AndroidMultiplayer> multiplayer{nullptr};
 std::shared_ptr<Core::AnnounceMultiplayerSession> announce_multiplayer_session;
+
+//Power Status default values
+std::atomic<int> g_battery_percentage = {100};
+std::atomic<bool> g_is_charging = {false};
+std::atomic<bool> g_has_battery = {true};
 
 EmulationSession::EmulationSession() {
     m_vfs = std::make_shared<FileSys::RealVfsFilesystem>();
@@ -264,6 +270,7 @@ Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string
         nullptr,                     // Profile Selector
         std::move(android_keyboard), // Software Keyboard
         nullptr,                     // Web Browser
+        nullptr,                     // Net Connect
     });
 
     // Initialize filesystem.
@@ -756,20 +763,45 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_setCabinetMode(JNIEnv* env, jclass cl
         static_cast<Service::NFP::CabinetMode>(jcabinetMode));
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isFirmwareAvailable(JNIEnv* env, jclass clazz) {
+bool isFirmwarePresent() {
     auto bis_system =
-        EmulationSession::GetInstance().System().GetFileSystemController().GetSystemNANDContents();
+            EmulationSession::GetInstance().System().GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
         return false;
     }
 
     // Query an applet to see if it's available
     auto applet_nca =
-        bis_system->GetEntry(0x010000000000100Dull, FileSys::ContentRecordType::Program);
+            bis_system->GetEntry(0x010000000000100Dull, FileSys::ContentRecordType::Program);
     if (!applet_nca) {
         return false;
     }
     return true;
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isFirmwareAvailable(JNIEnv* env, jclass clazz) {
+    return isFirmwarePresent();
+}
+
+// TODO(crueter): This check is nonfunctional...
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_firmwareVersion(JNIEnv* env, jclass clazz) {
+    Service::Set::FirmwareVersionFormat firmware_data{};
+    const auto result = Service::Set::GetFirmwareVersionImpl(
+            firmware_data, EmulationSession::GetInstance().System(),
+            Service::Set::GetFirmwareVersionType::Version2);
+
+    if (result.IsError() || !isFirmwarePresent()) {
+        LOG_INFO(Frontend, "Installed firmware: No firmware available");
+
+        return Common::Android::ToJString(env, "N/A");
+    }
+
+    const std::string display_version(firmware_data.display_version.data());
+    const std::string display_title(firmware_data.display_title.data());
+
+    LOG_INFO(Frontend, "Installed firmware: {}", display_title);
+
+    return Common::Android::ToJString(env, display_version);
 }
 
 jobjectArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getPatchesForFile(JNIEnv* env, jobject jobj,
@@ -943,12 +975,12 @@ Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayGetPublicRooms(
 JNIEXPORT jint JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayCreateRoom(
         JNIEnv* env, [[maybe_unused]] jobject obj, jstring ipaddress, jint port,
         jstring username, jstring preferredGameName, jlong preferredGameId, jstring password,
-        jstring room_name, jint max_players) {
+        jstring room_name, jint max_players, jboolean isPublic) {
     return static_cast<jint>(
             multiplayer->NetPlayCreateRoom(Common::Android::GetJString(env, ipaddress), port,
                               Common::Android::GetJString(env, username), Common::Android::GetJString(env, preferredGameName),
                               preferredGameId,Common::Android::GetJString(env, password),
-                              Common::Android::GetJString(env, room_name), max_players));
+                              Common::Android::GetJString(env, room_name), max_players, isPublic));
 }
 
 JNIEXPORT jint JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayJoinRoom(
@@ -1013,5 +1045,17 @@ JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayBan
 JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayUnbanUser(
         JNIEnv* env, [[maybe_unused]] jobject obj, jstring username) {
     multiplayer->NetPlayUnbanUser(Common::Android::GetJString(env, username));
+}
+
+JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_updatePowerState(
+        JNIEnv* env,
+        jobject,
+        jint percentage,
+        jboolean isCharging,
+        jboolean hasBattery) {
+
+    g_battery_percentage.store(percentage, std::memory_order_relaxed);
+    g_is_charging.store(isCharging, std::memory_order_relaxed);
+    g_has_battery.store(hasBattery, std::memory_order_relaxed);
 }
 } // extern "C"

@@ -1,3 +1,9 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -105,7 +111,7 @@ ENUM(AudioMode, Mono, Stereo, Surround);
 
 ENUM(Language, Japanese, EnglishAmerican, French, German, Italian, Spanish, Chinese, Korean, Dutch,
      Portuguese, Russian, Taiwanese, EnglishBritish, FrenchCanadian, SpanishLatin,
-     ChineseSimplified, ChineseTraditional, PortugueseBrazilian);
+     ChineseSimplified, ChineseTraditional, PortugueseBrazilian, Serbian);
 
 ENUM(Region, Japan, Usa, Europe, Australia, China, Korea, Taiwan);
 
@@ -158,7 +164,7 @@ ENUM(ResolutionSetup,
      Res7X,
      Res8X);
 
-ENUM(ScalingFilter, NearestNeighbor, Bilinear, Bicubic, Gaussian, ScaleForce, Fsr, MaxEnum);
+ENUM(ScalingFilter, NearestNeighbor, Bilinear, Bicubic, Gaussian, ScaleForce, Fsr, Area, MaxEnum);
 
 ENUM(AntiAliasing, None, Fxaa, Smaa, MaxEnum);
 

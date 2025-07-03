@@ -34,7 +34,7 @@ constexpr std::array PreferredGpuDecoders = {
     AV_HWDEVICE_TYPE_VAAPI,
     AV_HWDEVICE_TYPE_VDPAU,
 #endif
-    AV_HWDEVICE_TYPE_VULKAN
+    AV_HWDEVICE_TYPE_VULKAN,
 };
 
 AVPixelFormat GetGpuFormat(AVCodecContext* codec_context, const AVPixelFormat* pix_fmts) {
@@ -184,7 +184,6 @@ bool HardwareContext::InitializeWithType(AVHWDeviceType type) {
 
 DecoderContext::DecoderContext(const Decoder& decoder) : m_decoder{decoder} {
     m_codec_context = avcodec_alloc_context3(m_decoder.GetCodec());
-	av_opt_set(m_codec_context->priv_data, "preset", "veryfast", 0);
     av_opt_set(m_codec_context->priv_data, "tune", "zerolatency", 0);
     m_codec_context->thread_count = 0;
     m_codec_context->thread_type &= ~FF_THREAD_FRAME;
@@ -215,87 +214,42 @@ bool DecoderContext::OpenContext(const Decoder& decoder) {
 }
 
 bool DecoderContext::SendPacket(const Packet& packet) {
-    m_temp_frame = std::make_shared<Frame>();
-    m_got_frame = 0;
-
-    if (!m_codec_context->hw_device_ctx && m_codec_context->codec_id == AV_CODEC_ID_H264) {
-        m_decode_order = true;
-        auto* codec{ffcodec(m_decoder.GetCodec())};
-        if (const int ret = codec->cb.decode(m_codec_context, m_temp_frame->GetFrame(), &m_got_frame, packet.GetPacket()); ret < 0) {
-            LOG_DEBUG(Service_NVDRV, "avcodec_send_packet error {}", AVError(ret));
-            return false;
-        }
-        return true;
-    }
-
+	m_temp_frame = std::make_shared<Frame>();
+	
     if (const int ret = avcodec_send_packet(m_codec_context, packet.GetPacket()); ret < 0) {
         LOG_ERROR(HW_GPU, "avcodec_send_packet error: {}", AVError(ret));
         return false;
     }
-
+	
     return true;
 }
 
 std::shared_ptr<Frame> DecoderContext::ReceiveFrame() {
-    if (!m_codec_context->hw_device_ctx && m_codec_context->codec_id == AV_CODEC_ID_H264) {
-        m_decode_order = true;
-        auto* codec{ffcodec(m_decoder.GetCodec())};
-        int ret{0};
+	auto ReceiveImpl = [&](AVFrame* frame) -> bool {
+		if (const int ret = avcodec_receive_frame(m_codec_context, frame); ret < 0) {
+			LOG_ERROR(HW_GPU, "avcodec_receive_frame error: {}", AVError(ret));
+			return false;
+		}
+		return true;
+	};
 
-        if (m_got_frame == 0) {
-            Packet packet{{}};
-            auto* pkt = packet.GetPacket();
-            pkt->data = nullptr;
-            pkt->size = 0;
-            ret = codec->cb.decode(m_codec_context, m_temp_frame->GetFrame(), &m_got_frame, pkt);
-            m_codec_context->has_b_frames = 0;
-        }
+	std::shared_ptr<Frame> intermediate_frame = std::make_shared<Frame>();
+	if (!ReceiveImpl(intermediate_frame->GetFrame())) {
+		return {};
+	}
 
-        if (m_got_frame == 0 || ret < 0) {
-            LOG_ERROR(Service_NVDRV, "Failed to receive a frame! error {}", ret);
-            return {};
-        }
-    } else {
-        const auto ReceiveImpl = [&](AVFrame* frame) {
-            if (const int ret = avcodec_receive_frame(m_codec_context, frame); ret < 0) {
-                LOG_ERROR(HW_GPU, "avcodec_receive_frame error: {}", AVError(ret));
-                return false;
-            }
+	const auto desc = av_pix_fmt_desc_get(intermediate_frame->GetPixelFormat());
+	if (m_codec_context->hw_device_ctx && (desc && desc->flags & AV_PIX_FMT_FLAG_HWACCEL)) {
+		m_temp_frame->SetFormat(PreferredGpuFormat);
+		if (int ret = av_hwframe_transfer_data(m_temp_frame->GetFrame(), intermediate_frame->GetFrame(), 0); ret < 0) {
+			LOG_ERROR(HW_GPU, "av_hwframe_transfer_data error: {}", AVError(ret));
+			return {};
+		}
+	} else {
+		m_temp_frame = std::move(intermediate_frame);
+	}
 
-            return true;
-        };
-
-        if (m_codec_context->hw_device_ctx) {
-            // If we have a hardware context, make a separate frame here to receive the
-            // hardware result before sending it to the output.
-            Frame intermediate_frame;
-
-            if (!ReceiveImpl(intermediate_frame.GetFrame())) {
-                return {};
-            }
-
-            m_temp_frame->SetFormat(PreferredGpuFormat);
-            if (const int ret = av_hwframe_transfer_data(m_temp_frame->GetFrame(), intermediate_frame.GetFrame(), 0); ret < 0) {
-                LOG_ERROR(HW_GPU, "av_hwframe_transfer_data error: {}", AVError(ret));
-                return {};
-            }
-        } else {
-            // Otherwise, decode the frame as normal.
-            if (!ReceiveImpl(m_temp_frame->GetFrame())) {
-                return {};
-            }
-        }
-    }
-
-#if defined(FF_API_INTERLACED_FRAME) || LIBAVUTIL_VERSION_MAJOR >= 59
-    if (m_temp_frame->GetFrame()->flags & AV_FRAME_FLAG_INTERLACED)
-        m_temp_frame->GetFrame()->flags &= ~AV_FRAME_FLAG_INTERLACED;
-    else
-        m_temp_frame->GetFrame()->flags |= AV_FRAME_FLAG_INTERLACED;
-#else
-    m_temp_frame->GetFrame()->interlaced_frame = !m_temp_frame->GetFrame()->interlaced_frame;
-#endif
-    return std::move(m_temp_frame);
+	return std::move(m_temp_frame);
 }
 
 void DecodeApi::Reset() {

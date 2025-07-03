@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -13,6 +16,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     CORE_SYNC_CORE_SPEED("sync_core_speed"),
     RENDERER_USE_SPEED_LIMIT("use_speed_limit"),
     USE_FAST_CPU_TIME("use_fast_cpu_time"),
+    USE_CUSTOM_CPU_TICKS("use_custom_cpu_ticks"),
     USE_DOCKED_MODE("use_docked_mode"),
     USE_AUTO_STUB("use_auto_stub"),
     RENDERER_USE_DISK_SHADER_CACHE("use_disk_shader_cache"),
@@ -23,6 +27,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     RENDERER_DEBUG("debug"),
     RENDERER_PROVOKING_VERTEX("provoking_vertex"),
     RENDERER_DESCRIPTOR_INDEXING("descriptor_indexing"),
+    RENDERER_SAMPLE_SHADING("sample_shading"),
     PICTURE_IN_PICTURE("picture_in_picture"),
     USE_CUSTOM_RTC("custom_rtc_enabled"),
     BLACK_BACKGROUNDS("black_backgrounds"),
@@ -31,11 +36,13 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     HAPTIC_FEEDBACK("haptic_feedback"),
     SHOW_INPUT_OVERLAY("show_input_overlay"),
     TOUCHSCREEN("touchscreen"),
+    AIRPLANE_MODE("airplane_mode"),
 
     SHOW_SOC_OVERLAY("show_soc_overlay"),
     SHOW_DEVICE_MODEL("show_device_model"),
     SHOW_GPU_MODEL("show_gpu_model"),
     SHOW_SOC_MODEL("show_soc_model"),
+    SHOW_FW_VERSION("show_firmware_version"),
 
     SOC_OVERLAY_BACKGROUND("soc_overlay_background"),
 

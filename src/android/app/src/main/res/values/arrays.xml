@@ -62,6 +62,7 @@
         <item>@string/language_spanish</item>
         <item>@string/language_taiwanese</item>
         <item>@string/language_traditional_chinese</item>
+        <item>@string/language_serbian</item>
     </string-array>
 
     <integer-array name="languageValues">
@@ -83,6 +84,7 @@
         <item>5</item>
         <item>11</item>
         <item>16</item>
+        <item>18</item>
     </integer-array>
 
     <string-array name="rendererApiNames">
@@ -250,6 +252,7 @@
         <item>@string/scaling_filter_gaussian</item>
         <item>@string/scaling_filter_scale_force</item>
         <item>@string/scaling_filter_fsr</item>
+        <item>@string/scaling_filter_area</item>
     </string-array>
 
     <integer-array name="rendererScalingFilterValues">
@@ -259,6 +262,7 @@
         <item>3</item>
         <item>4</item>
         <item>5</item>
+        <item>6</item>
     </integer-array>
 
     <string-array name="rendererAntiAliasingNames">

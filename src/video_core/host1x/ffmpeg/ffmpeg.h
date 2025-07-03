@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -21,6 +24,7 @@ extern "C" {
 
 #include <libavcodec/avcodec.h>
 #include <libavutil/opt.h>
+#include <libavutil/pixdesc.h>
 #include <libavcodec/codec_internal.h>
 
 #if defined(__GNUC__) || defined(__clang__)
@@ -190,7 +194,6 @@ public:
 private:
     const Decoder& m_decoder;
     AVCodecContext* m_codec_context{};
-    s32 m_got_frame{};
     std::shared_ptr<Frame> m_temp_frame{};
     bool m_decode_order{};
 };

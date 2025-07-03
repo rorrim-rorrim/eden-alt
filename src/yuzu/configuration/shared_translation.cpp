@@ -1,3 +1,9 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -100,6 +106,13 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
            tr("Overclocks the emulated CPU to remove some FPS limiters. Weaker CPUs may see reduced performance, "
               "and certain games may behave improperly.\nUse Boost (1700MHz) to run at the Switch's highest native "
               "clock, or Fast (2000MHz) to run at 2x clock."));
+
+    INSERT(Settings, use_custom_cpu_ticks, QString(), QString());
+    INSERT(Settings,
+           cpu_ticks,
+           tr("Custom CPU Ticks"),
+           tr("Set a custom value of CPU ticks. Higher values can increase performance, but may "
+              "also cause the game to freeze. A range of 77–21000 is recommended."));
     INSERT(Settings, cpu_backend, tr("Backend:"), QString());
 
     // Cpu Debug
@@ -336,6 +349,13 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
            tr("Improves texture & buffer handling and the Maxwell translation layer.\n"
               "Some Vulkan 1.1+ and all 1.2+ devices support this extension."));
 
+    INSERT(Settings,
+           sample_shading,
+           tr("Sample Shading"),
+           tr("Allows the fragment shader to execute per sample in a multi-sampled fragment "
+              "instead once per fragment. Improves graphics quality at the cost of some performance.\n"
+              "Only Vulkan 1.1+ devices support this extension."));
+
     // Renderer (Debug)
 
     // System
@@ -443,6 +463,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent)
                               PAIR(AppletMode, HLE, tr("Custom frontend")),
                               PAIR(AppletMode, LLE, tr("Real applet")),
                           }});
+
     translations->insert({Settings::EnumMetadata<Settings::SpirvOptimizeMode>::Index(),
                           {
                               PAIR(SpirvOptimizeMode, Never, tr("Never")),
@@ -536,6 +557,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent)
                               PAIR(ScalingFilter, Gaussian, tr("Gaussian")),
                               PAIR(ScalingFilter, ScaleForce, tr("ScaleForce")),
                               PAIR(ScalingFilter, Fsr, tr("AMD FidelityFX™️ Super Resolution")),
+                              PAIR(ScalingFilter, Area, tr("Area")),
                           }});
     translations->insert({Settings::EnumMetadata<Settings::AntiAliasing>::Index(),
                           {
@@ -581,6 +603,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent)
              PAIR(Language, ChineseSimplified, tr("Simplified Chinese")),
              PAIR(Language, ChineseTraditional, tr("Traditional Chinese (正體中文)")),
              PAIR(Language, PortugueseBrazilian, tr("Brazilian Portuguese (português do Brasil)")),
+             PAIR(Language, Serbian, tr("Serbian (српски)")),
          }});
     translations->insert({Settings::EnumMetadata<Settings::Region>::Index(),
                           {

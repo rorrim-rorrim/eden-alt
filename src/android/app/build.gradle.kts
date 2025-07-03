@@ -140,13 +140,21 @@ android {
         }
     }
 
-    flavorDimensions.add("version")
-    productFlavors {
-        create("mainline") {
-            isDefault = true
-            dimension = "version"
+    android {
+        flavorDimensions.add("version")
+        productFlavors {
+            create("mainline") {
+                dimension = "version"
+                // No need to set applicationId here
+            }
+
+            create("genshinSpoof") {
+                dimension = "version"
+                applicationId = "com.miHoYo.Yuanshen"  // Correct use of applicationId inside the flavor block
+            }
         }
     }
+
 
     externalNativeBuild {
         cmake {
@@ -238,6 +246,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     implementation("androidx.compose.ui:ui-graphics-android:1.7.8")
     implementation("androidx.compose.ui:ui-text-android:1.7.8")
+    implementation("net.swiftzer.semver:semver:2.0.0")
 }
 
 fun runGitCommand(command: List<String>): String {

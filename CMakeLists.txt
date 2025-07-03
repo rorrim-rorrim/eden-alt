@@ -49,6 +49,8 @@ option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
 
 option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ON)
 
+option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ON)
+
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 
 option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
@@ -329,6 +331,11 @@ if (NOT YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES)
     find_package(VulkanUtilityLibraries REQUIRED)
 endif()
 
+if (NOT YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SPIRV-Tools REQUIRED SPIRV-Tools)
+endif()
+
 if (ENABLE_LIBUSB)
     find_package(libusb 1.0.24 MODULE)
 endif()
@@ -512,6 +519,8 @@ if (APPLE)
     # Umbrella framework for everything GUI-related
     find_library(COCOA_LIBRARY Cocoa)
     set(PLATFORM_LIBRARIES ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
+    find_library(ICONV_LIBRARY iconv REQUIRED)
+    list(APPEND PLATFORM_LIBRARIES ${ICONV_LIBRARY})
 elseif (WIN32)
     # Target Windows 10
     add_definitions(-D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00)

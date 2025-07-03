@@ -157,7 +157,6 @@ class GameAdapter(private val activity: AppCompatActivity) :
             GameIconUtils.loadGameIcon(model, carouselBinding.imageGameScreen)
 
             carouselBinding.textGameTitle.text = model.title.replace("[\\t\\n\\r]+".toRegex(), " ")
-
             carouselBinding.textGameTitle.marquee()
             carouselBinding.cardGameCarousel.setOnClickListener { onClick(model) }
             carouselBinding.cardGameCarousel.setOnLongClickListener { onLongClick(model) }

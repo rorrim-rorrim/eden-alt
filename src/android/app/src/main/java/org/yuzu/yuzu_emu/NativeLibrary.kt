@@ -1,8 +1,8 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
-
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
 
 
 package org.yuzu.yuzu_emu
@@ -16,6 +16,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.annotation.Keep
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import net.swiftzer.semver.SemVer
 import java.lang.ref.WeakReference
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.fragments.CoreErrorDialogFragment
@@ -408,6 +409,26 @@ object NativeLibrary {
     external fun isFirmwareAvailable(): Boolean
 
     /**
+     * Gets the firmware version.
+     *
+     * @return Reported firmware version
+     */
+    external fun firmwareVersion(): String
+
+    fun isFirmwareSupported(): Boolean {
+        var version: SemVer
+
+        try {
+            version = SemVer.parse(firmwareVersion())
+        } catch (_: Exception) {
+            return false
+        }
+        val max = SemVer(19, 0, 1)
+
+        return version <= max
+    }
+
+    /**
      * Checks the PatchManager for any addons that are available
      *
      * @param path Path to game file. Can be a [Uri].
@@ -489,4 +510,9 @@ object NativeLibrary {
      * Checks if all necessary keys are present for decryption
      */
     external fun areKeysPresent(): Boolean
+
+    /**
+     * Updates the device power state to global variables
+     */
+    external fun updatePowerState(percentage: Int, isCharging: Boolean, hasBattery: Boolean)
 }

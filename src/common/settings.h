@@ -147,10 +147,10 @@ struct Values {
                                                Category::LibraryApplet};
     Setting<AppletMode> error_applet_mode{linkage, AppletMode::LLE, "error_applet_mode",
                                           Category::LibraryApplet};
-    Setting<AppletMode> net_connect_applet_mode{linkage, AppletMode::HLE, "net_connect_applet_mode",
+    Setting<AppletMode> net_connect_applet_mode{linkage, AppletMode::LLE, "net_connect_applet_mode",
                                                 Category::LibraryApplet};
     Setting<AppletMode> player_select_applet_mode{
-                                                  linkage, AppletMode::HLE, "player_select_applet_mode", Category::LibraryApplet};
+                                                  linkage, AppletMode::LLE, "player_select_applet_mode", Category::LibraryApplet};
     Setting<AppletMode> swkbd_applet_mode{linkage, AppletMode::LLE, "swkbd_applet_mode",
                                           Category::LibraryApplet};
     Setting<AppletMode> mii_edit_applet_mode{linkage, AppletMode::LLE, "mii_edit_applet_mode",
@@ -258,6 +258,25 @@ struct Values {
                                               true,
                                               true,
                                               &use_fast_cpu_time};
+
+    SwitchableSetting<bool> use_custom_cpu_ticks{linkage,
+                                                 false,
+                                                 "use_custom_cpu_ticks",
+                                                 Category::Cpu,
+                                                 Specialization::Paired,
+                                                 true,
+                                                 true};
+
+    SwitchableSetting<u32, true> cpu_ticks{linkage,
+                                           16000,
+                                           77,
+                                           65535,
+                                           "cpu_ticks",
+                                           Category::Cpu,
+                                           Specialization::Countable,
+                                           true,
+                                           true,
+                                           &use_custom_cpu_ticks};
 
     SwitchableSetting<bool> cpu_debug_mode{linkage, false, "cpu_debug_mode", Category::CpuDebug};
 
@@ -490,6 +509,7 @@ struct Values {
 
     SwitchableSetting<bool> provoking_vertex{linkage, false, "provoking_vertex", Category::RendererExtensions};
     SwitchableSetting<bool> descriptor_indexing{linkage, false, "descriptor_indexing", Category::RendererExtensions};
+    SwitchableSetting<bool> sample_shading{linkage, false, "sample_shading", Category::RendererExtensions};
 
     Setting<bool> renderer_debug{linkage, false, "debug", Category::RendererDebug};
     Setting<bool> renderer_shader_feedback{linkage, false, "shader_feedback",
@@ -507,7 +527,7 @@ struct Values {
     SwitchableSetting<Language, true> language_index{linkage,
                                                      Language::EnglishAmerican,
                                                      Language::Japanese,
-                                                     Language::PortugueseBrazilian,
+                                                     Language::Serbian,
                                                      "language_index",
                                                      Category::System};
     SwitchableSetting<Region, true> region_index{linkage,        Region::Usa,    Region::Japan,
@@ -675,13 +695,14 @@ struct Values {
     // Network
     Setting<std::string> network_interface{linkage, std::string(), "network_interface",
                                            Category::Network};
+    SwitchableSetting<bool> airplane_mode{linkage, false, "airplane_mode", Category::Network};
 
     // WebService
     Setting<std::string> web_api_url{linkage, "api.ynet-fun.xyz", "web_api_url",
                                      Category::WebService};
-    Setting<std::string> yuzu_username{linkage, std::string(), "yuzu_username",
+    Setting<std::string> eden_username{linkage, std::string(), "eden_username",
                                        Category::WebService};
-    Setting<std::string> yuzu_token{linkage, std::string(), "yuzu_token", Category::WebService};
+    Setting<std::string> eden_token{linkage, std::string(), "eden_token", Category::WebService};
 
     // Add-Ons
     std::map<u64, std::vector<std::string>> disabled_addons;

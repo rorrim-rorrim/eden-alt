@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -150,6 +153,13 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_SAMPLE_SHADING,
+                    titleId = R.string.sample_shading,
+                    descriptionId = R.string.sample_shading_description
+                )
+            )
+            put(
                 SliderSetting(
                     ShortSetting.RENDERER_SPEED_LIMIT,
                     titleId = R.string.frame_limit_slider,
@@ -274,11 +284,32 @@ abstract class SettingsItem(
                     descriptionId = R.string.use_custom_rtc_description
                 )
             )
+
             put(
                 StringInputSetting(
                     StringSetting.WEB_TOKEN,
                     titleId = R.string.web_token,
-                    descriptionId = R.string.web_token_description
+                    descriptionId = R.string.web_token_description,
+                    onGenerate = {
+                        val chars = "abcdefghijklmnopqrstuvwxyz"
+                        (1..48).map { chars.random() }.joinToString("")
+                    },
+                    validator = { s ->
+                        s?.matches(Regex("[a-z]{48}")) == true
+                    },
+                    errorId = R.string.multiplayer_token_error
+                )
+            )
+
+            put(
+                StringInputSetting(
+                    StringSetting.WEB_USERNAME,
+                    titleId = R.string.web_username,
+                    descriptionId = R.string.web_username_description,
+                    validator = { s ->
+                        s?.length in 4..20
+                    },
+                    errorId = R.string.multiplayer_username_error
                 )
             )
             put(DateTimeSetting(LongSetting.CUSTOM_RTC, titleId = R.string.set_custom_rtc))
@@ -457,6 +488,14 @@ abstract class SettingsItem(
                     descriptionId = R.string.show_soc_model_description
                 )
             )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_FW_VERSION,
+                    titleId = R.string.show_fw_version,
+                    descriptionId = R.string.show_fw_version_description
+                )
+            )
+
 
             put(
                 SingleChoiceSetting(
@@ -530,14 +569,14 @@ abstract class SettingsItem(
                 )
             )
             put(
-                 SingleChoiceSetting(
-                     IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT,
-                     titleId = R.string.renderer_optimize_spirv_output,
-                     descriptionId = R.string.renderer_optimize_spirv_output_description,
-                     choicesId = R.array.optimizeSpirvOutputEntries,
-                     valuesId = R.array.optimizeSpirvOutputValues
-                 )
-             )
+                SingleChoiceSetting(
+                    IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT,
+                    titleId = R.string.renderer_optimize_spirv_output,
+                    descriptionId = R.string.renderer_optimize_spirv_output_description,
+                    choicesId = R.array.optimizeSpirvOutputEntries,
+                    valuesId = R.array.optimizeSpirvOutputValues
+                )
+            )
             put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS,
@@ -575,6 +614,22 @@ abstract class SettingsItem(
                     descriptionId = R.string.fast_cpu_time_description,
                     choicesId = R.array.clockNames,
                     valuesId = R.array.clockValues
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.USE_CUSTOM_CPU_TICKS,
+                    titleId = R.string.custom_cpu_ticks,
+                    descriptionId = R.string.custom_cpu_ticks_description
+                )
+            )
+            put(
+                SliderSetting(
+                    IntSetting.CPU_TICKS,
+                    titleId = R.string.cpu_ticks,
+                    descriptionId = 0,
+                    min = 77,
+                    max = 65535
                 )
             )
             put(
@@ -680,6 +735,14 @@ abstract class SettingsItem(
                     titleId = R.string.swkbd_applet,
                     choicesId = R.array.appletEntries,
                     valuesId = R.array.appletValues
+                )
+            )
+
+            put(
+                SwitchSetting(
+                    BooleanSetting.AIRPLANE_MODE,
+                    titleId = R.string.airplane_mode,
+                    descriptionId = R.string.airplane_mode_description
                 )
             )
         }

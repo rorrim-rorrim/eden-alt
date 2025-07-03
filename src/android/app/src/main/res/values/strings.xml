@@ -58,6 +58,8 @@
     <string name="show_gpu_model_description">Display the host GPU model</string>
     <string name="show_soc_model">Show SoC Model</string>
     <string name="show_soc_model_description">Display the host SoC model</string>
+    <string name="show_fw_version">Show Firmware Version</string>
+    <string name="show_fw_version_description">Display the installed firmware version</string>
 
     <!-- Eden`s Veil -->
     <string name="eden_veil">Eden’s Veil</string>
@@ -72,6 +74,8 @@
     <string name="provoking_vertex_description">Improves lighting and vertex handling in certain games. Only supported on Vulkan 1.0+ GPUs.</string>
     <string name="descriptor_indexing">Descriptor Indexing</string>
     <string name="descriptor_indexing_description">Improves texture and buffer handling, as well as the Maxwell translation layer. Supported by some Vulkan 1.1 GPUs and all Vulkan 1.2+ GPUs.</string>
+    <string name="sample_shading">Sample Shading</string>
+    <string name="sample_shading_description">Allows the fragment shader to execute per sample in a multi-sampled fragment instead once per fragment. Improves graphics quality at the cost of some performance. Only Vulkan 1.1+ devices support this extension.</string>
 
     <string name="veil_renderer">Renderer</string>
     <string name="frame_interpolation">Enhanced Frame Pacing</string>
@@ -90,6 +94,9 @@
     <string name="use_lru_cache_description">Enable or disable the Least Recently Used (LRU) cache, increasing performance by saving CPU process usage. Some games have issue with it, notably TotK 1.2.1, so disable if the game doesn\'t boot or crashes randomly.</string>
     <string name="use_fast_cpu_time">Fast CPU Time</string>
     <string name="use_fast_cpu_time_description">Forces the emulated CPU to run at a higher clock, reducing certain FPS limiters. This option is hacky and may cause issues, and weaker CPUs may see reduced performance.</string>
+    <string name="custom_cpu_ticks">Custom CPU Ticks</string>
+    <string name="custom_cpu_ticks_description">Set a custom value of CPU ticks. Higher values can increase performance, but may also cause the game to freeze. A range of 77–21000 is recommended.</string>
+    <string name="cpu_ticks">Ticks</string>
     <string name="fast_cpu_time">CPU Clock</string>
     <string name="fast_cpu_time_description">Use Boost (1700MHz) to run at the Switch\'s highest native clock, or Fast (2000MHz) to run at 2x clock.</string>
     <string name="memory_layout">Memory Layout</string>
@@ -197,18 +204,22 @@
     <string name="emulation_multiplayer">Multiplayer</string>
     <string name="multiplayer_game_name">Preferred Games</string>
     <string name="multiplayer_preferred_game_name">Preferred Game</string>
+    <string name="multiplayer_lobby_type">Lobby Type</string>
     <string name="multiplayer_no_game">No Games Found</string>
     <string name="multiplayer_preferred_game_name_invalid">You must choose a Preferred Game to host a room.</string>
     <string name="multiplayer_room_name_error">Must be between 3 and 20 characters</string>
     <string name="multiplayer_required">Required</string>
+    <string name="multiplayer_token_required">Web Token required, go to Advanced Settings -> System -> Network</string>
     <string name="multiplayer_ip_error">Invalid IP format</string>
-    <string name="multiplayer_username_error">Must be at least 5 characters</string>
+    <string name="multiplayer_username_error">Must be between 4–20 characters</string>
+    <string name="multiplayer_token_error">Must be 48 characters, and lowercase a-z only</string>
     <string name="multiplayer_port_error">Must be between 1 and 65535</string>
     <string name="cancel">Cancel</string>
     <string name="ok">Ok</string>
     <string name="refresh">Refresh</string>
     <string name="room_list">Room List</string>
-
+    <string name="multiplayer_public_visibility">Public</string>
+    <string name="multiplayer_unlisted_visibility">Unlisted</string>
 
     <!-- Setup strings -->
     <string name="welcome">Welcome!</string>
@@ -217,6 +228,9 @@
     <string name="keys">Keys</string>
     <string name="keys_description">Select your &lt;b>prod.keys&lt;/b> file with the button below.</string>
     <string name="select_keys">Select Keys</string>
+    <string name="firmware">Firmware</string>
+    <string name="firmware_description">Select your &lt;b>firmware.zip&lt;/b> file with the button below.\nEden currently requires version &lt;b>19.0.1&lt;/b> or below.</string>
+    <string name="select_firmware">Select Firmware</string>
     <string name="games">Games</string>
     <string name="games_description">Select your &lt;b>Games&lt;/b> folder with the button below.</string>
     <string name="done">Done</string>
@@ -229,6 +243,8 @@
     <string name="step_complete">Complete!</string>
 
     <!-- Home strings -->
+    <string name="firmware_version">Firmware:</string>
+
     <string name="alphabetical">Alphabetical</string>
     <string name="view_list">List</string>
     <string name="view_grid">Grid</string>
@@ -259,6 +275,9 @@
     <string name="install_prod_keys_warning">Skip adding keys?</string>
     <string name="install_prod_keys_warning_description">Valid keys are required to emulate retail games. Only homebrew apps will function if you continue.</string>
     <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
+    <string name="install_firmware_warning">Skip adding firmware?</string>
+    <string name="install_firmware_warning_description">Many games require access to firmware to run properly.</string>
+    <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Notifications</string>
     <string name="notifications_description">Grant the notification permission with the button below.</string>
     <string name="give_permission">Grant permission</string>
@@ -354,18 +373,24 @@
     <string name="no_save_data_found">No save data found</string>
     <string name="verify_installed_content">Verify installed content</string>
     <string name="verify_installed_content_description">Checks all installed content for corruption</string>
+
     <string name="keys_missing">Encryption keys are missing</string>
     <string name="keys_missing_description">Firmware and retail games cannot be decrypted</string>
     <string name="keys_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
+
+    <string name="firmware_missing">Firmware is missing or too new</string>
+    <string name="firmware_missing_description">Some games may not function properly. Eden requires firmware 19.0.1 or below.</string>
+    <string name="firmware_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Launch applications from the system home screen</string>
     <string name="applets">Applet launcher</string>
     <string name="applets_description">Launch system applets using installed firmware</string>
-    <string name="applets_error_firmware">Firmware not installed</string>
+    <string name="applets_error_firmware">Firmware not installed or invalid version</string>
     <string name="applets_error_applet">Applet not available</string>
-    <string name="applets_error_description"><![CDATA[Please ensure your <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> file and <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> are installed and try again.]]></string>
+    <string name="applets_error_description"><![CDATA[Please ensure your <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> file and
+ <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> are installed and try again.<br>Additionally, ensure your firmware is of version 19.0.1 or older.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">See images stored in the user screenshots folder with the system photo viewer</string>
     <string name="mii_edit_applet">Mii edit</string>
@@ -422,12 +447,20 @@
     <string name="use_custom_rtc_description">Allows you to set a custom real-time clock separate from your current system time.</string>
     <string name="set_custom_rtc">Set custom RTC</string>
 
+    <string name="generate">Generate</string>
+
     <!-- Network settings strings -->
     <string name="web_token">Web Token</string>
     <string name="web_token_description">Web token used for creating public lobbies. It is a 48-character string containing only lowercase a-z.</string>
+    <string name="web_username">Web Username</string>
+    <string name="web_username_description">Username to be shown in multiplayer lobbies. It must be 4–20 characters.</string>
     <string name="network">Network</string>
 
     <!-- Graphics settings strings -->
+    <string name="backend">Backend</string>
+    <string name="display">Display</string>
+    <string name="processing">Post-Processing</string>
+
     <string name="frame_skipping">WIP: Frameskip</string>
     <string name="frame_skipping_description">Toggle frame skipping to improve performance by reducing the number of rendered frames. This feature is still being worked on and will be enabled in future releases.</string>
     <string name="renderer_accuracy">Accuracy level</string>
@@ -799,6 +832,7 @@
     <string name="language_simplified_chinese" translatable="false">简体中文</string>
     <string name="language_traditional_chinese" translatable="false">正體中文</string>
     <string name="language_brazilian_portuguese" translatable="false">Português do Brasil</string>
+    <string name="language_serbian" translatable="false">српски</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte">Byte</string>
@@ -865,6 +899,7 @@
     <string name="scaling_filter_gaussian">Gaussian</string>
     <string name="scaling_filter_scale_force">ScaleForce</string>
     <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
+    <string name="scaling_filter_area">Area</string>
 
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">None</string>
@@ -966,6 +1001,9 @@
     <string name="applet_lle">Real Applet</string>
 
     <string name="swkbd_applet">Software Keyboard</string>
+
+    <string name="airplane_mode">Airplane Mode</string>
+    <string name="airplane_mode_description">Passes Airplane Mode to the Switch OS</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Licenses</string>

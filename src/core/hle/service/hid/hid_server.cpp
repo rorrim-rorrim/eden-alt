@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -48,7 +51,7 @@ IHidServer::IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> r
         {1, C<&IHidServer::ActivateDebugPad>, "ActivateDebugPad"},
         {11, C<&IHidServer::ActivateTouchScreen>, "ActivateTouchScreen"},
         {21, C<&IHidServer::ActivateMouse>, "ActivateMouse"},
-        {26, nullptr, "ActivateDebugMouse"},
+        {26, C<&IHidServer::ActivateDebugMouse>, "ActivateDebugMouse"},
         {31, C<&IHidServer::ActivateKeyboard>, "ActivateKeyboard"},
         {32, C<&IHidServer::SendKeyboardLockKeyEvent>, "SendKeyboardLockKeyEvent"},
         {40, C<&IHidServer::AcquireXpadIdEventHandle>, "AcquireXpadIdEventHandle"},
@@ -232,6 +235,11 @@ Result IHidServer::ActivateMouse(ClientAppletResourceUserId aruid) {
     }
 
     R_RETURN(GetResourceManager()->GetMouse()->Activate(aruid.pid));
+}
+
+Result IHidServer::ActivateDebugMouse(ClientAppletResourceUserId aruid) {
+    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}", aruid.pid);
+    R_SUCCEED();
 }
 
 Result IHidServer::ActivateKeyboard(ClientAppletResourceUserId aruid) {
