@@ -3,7 +3,6 @@
 
 package org.yuzu.yuzu_emu.ui
 
-import android.util.Log
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -153,7 +152,6 @@ class GamesFragment : Fragment() {
         }
         gamesViewModel.games.collect(viewLifecycleOwner) {
             if (it.size > 0) {
-                //Log.d("GamesFragment", "Games updated, size: ${it.size}")
                 setAdapter(it)
             }
         }
@@ -162,7 +160,6 @@ class GamesFragment : Fragment() {
             resetState = { gamesViewModel.setShouldSwapData(false) }
         ) {
             if (it) {
-                //Log.d("GamesFragment", "Swapping data in adapter")
                 setAdapter(gamesViewModel.games.value)
             }
         }
@@ -174,7 +171,6 @@ class GamesFragment : Fragment() {
         gamesViewModel.shouldScrollAfterReload.collect(viewLifecycleOwner) { shouldScroll ->
             if (shouldScroll) {
                 binding.gridGames.post {
-                    Log.d("GamesFragment", "Scheding scroll after reload")
                     (binding.gridGames as? CarouselRecyclerView)?.pendingScrollAfterReload = true
                     gameAdapter.notifyDataSetChanged()
                 }
@@ -215,16 +211,12 @@ class GamesFragment : Fragment() {
                 }
                 else -> throw IllegalArgumentException("Invalid view type: $savedViewType")
             }
-            // Carousel mode: wait for layout, then set card size and enable carousel features
             if (savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL) {
-                //Log.d("GamesFragment", "applyGridGamesBinding height $height")
                 doOnNextLayout {
-                    //Log.d("GamesFragment", "doOnNextLayout height $height")
                     (this as? CarouselRecyclerView)?.setCarouselMode(true, gameAdapter)
-                    adapter = gameAdapter //3
+                    adapter = gameAdapter
                 }
             } else {
-                // Disable carousel features in other modes
                 (this as? CarouselRecyclerView)?.setCarouselMode(false)
             }
             adapter = gameAdapter
@@ -243,14 +235,12 @@ class GamesFragment : Fragment() {
         super.onPause()
         if (getCurrentViewType() == GameAdapter.VIEW_TYPE_CAROUSEL) {
             gamesViewModel.lastScrollPosition = (binding.gridGames as? CarouselRecyclerView)?.getClosestChildPosition() ?: 0
-           // Log.d("GamesFragment", "Saving last scroll positionon PAUSE: ${gamesViewModel.lastScrollPosition}")
         }
     }
 
     override fun onResume() {
         super.onResume()
         if (getCurrentViewType() == GameAdapter.VIEW_TYPE_CAROUSEL) {
-            Log.d("GamesFragment", "Restoring scroll position from onResume: ${gamesViewModel.lastScrollPosition}")
             (binding.gridGames as? CarouselRecyclerView)?.restoreScrollState(gamesViewModel.lastScrollPosition)
         }
     }
@@ -259,7 +249,6 @@ class GamesFragment : Fragment() {
     private var lastFilter: Int = preferences.getInt(PREF_SORT_TYPE, View.NO_ID)
 
     private fun setAdapter(games: List<Game>) {
-        //Log.d("GamesFragment", "Setting adapter with ${games.size} games")
         val currentSearchText = binding.searchText.text.toString()
         val currentFilter = binding.filterButton.id
 

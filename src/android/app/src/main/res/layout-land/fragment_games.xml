@@ -196,7 +196,6 @@
                 android:fadeScrollbars="true"
                 />
 
-
         </RelativeLayout>
 
     </org.yuzu.yuzu_emu.ui.MidScreenSwipeRefreshLayout>

@@ -3,7 +3,6 @@
 
 package org.yuzu.yuzu_emu.ui
 
-import android.util.Log
 import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
@@ -19,8 +18,9 @@ import org.yuzu.yuzu_emu.YuzuApplication
 import androidx.preference.PreferenceManager
 
 /**
- * CarouselRecyclerView encapsulates all carousel/grid/list logic for the games UI.
- * It manages overlapping cards, center snapping, custom drawing order, and mid-screen swipe-to-refresh.
+ * CarouselRecyclerView encapsulates all carousel logic for the games UI.
+ * It manages overlapping cards, center snapping, custom drawing order,
+ * joypad & fling navigation and mid-screen swipe-to-refresh.
  */
 class CarouselRecyclerView @JvmOverloads constructor(
     context: Context,
@@ -28,8 +28,6 @@ class CarouselRecyclerView @JvmOverloads constructor(
     defStyle: Int = 0
 ) : RecyclerView(context, attrs, defStyle) {
 
-    // Carousel/overlap/snap/padding
-    //private var verticalCenterPadding: Int = 0
     private var overlapFactor: Float = 0f
     private var overlapPx: Int = 0
     private var overlapDecoration: OverlappingDecoration? = null
@@ -43,6 +41,8 @@ class CarouselRecyclerView @JvmOverloads constructor(
         private const val CAROUSEL_OVERLAP_FACTOR = "CarouselOverlapFactor"
         private const val CAROUSEL_MAX_FLING_COUNT = "CarouselMaxFlingCount"
         private const val CAROUSEL_FLING_MULTIPLIER = "CarouselFlingMultiplier"
+        private const val CAROUSEL_CARDS_SCALING_SHAPE = "CarouselCardsScalingShape"
+        private const val CAROUSEL_CARDS_ALPHA_SHAPE = "CarouselCardsAlphaShape"
         const val CAROUSEL_LAST_SCROLL_POSITION = "CarouselLastScrollPosition"
         const val CAROUSEL_VIEW_TYPE_PORTRAIT = "GamesViewTypePortrait"
         const val CAROUSEL_VIEW_TYPE_LANDSCAPE = "GamesViewTypeLandscape"
@@ -92,7 +92,6 @@ class CarouselRecyclerView @JvmOverloads constructor(
             post { restoreScrollState(position, attempts + 1) }
             return
         }
-        Log.d("GamesFragment", "Restoring scroll state: $position, attempt #$attempts")
         scrollToPosition(position)
     }
 
@@ -114,10 +113,21 @@ class CarouselRecyclerView @JvmOverloads constructor(
     }
 
     fun updateChildScalesAndAlpha() {
-        Log.d("CarouselRecyclerView", "Updating child scales and alpha")
         for (i in 0 until childCount) {
             val child = getChildAt(i) ?: continue
             updateChildScaleAndAlphaForPosition(child)
+        }
+    }
+
+    fun shapingFunction(x: Float, option: Int = 0): Float {
+        return when (option) {
+            0 -> 1f //Off
+            1 -> 1f - x  //linear descending
+            2 -> (1f - x) * (1f - x) //Ease out
+            3 -> if (x < 0.05f) 1f else (1f-x) * 0.8f
+            4 -> kotlin.math.cos(x * Math.PI).toFloat() //Cosine
+            5 -> kotlin.math.cos( (1.5f * x).coerceIn(0f, 1f) * Math.PI).toFloat() //Cosine 1.5x trimmed
+            else -> 1f //Default to Off
         }
     }
 
@@ -134,13 +144,21 @@ class CarouselRecyclerView @JvmOverloads constructor(
         val distance = abs(getChildDistanceToCenter(child))
         val internalBorderScale = resources.getFraction(R.fraction.carousel_bordercards_scale, 1, 1)
         val borderScale = preferences.getFloat(CAROUSEL_BORDERCARDS_SCALE, internalBorderScale).coerceIn(0f, 1f)
-        val scale = (borderScale + (1f - borderScale) * (1f - distance / center)).coerceIn(0f, 1f)
+
+        val shapeInput = (distance / center).coerceIn(0f, 1f)
+        val internalShapeSetting = resources.getInteger(R.integer.carousel_cards_scaling_shape)
+        val scalingShapeSetting = preferences.getInt(CAROUSEL_CARDS_SCALING_SHAPE, internalShapeSetting)
+        val shapedScaling = shapingFunction(shapeInput, scalingShapeSetting)
+        val scale = (borderScale + (1f - borderScale) * shapedScaling).coerceIn(0f, 1f)
 
         val maxDistance = width / 2f
-        val norm = (distance / maxDistance).coerceIn(0f, 1f)
+        val alphaInput = (distance / maxDistance).coerceIn(0f, 1f)
         val internalBordersAlpha = resources.getFraction(R.fraction.carousel_bordercards_alpha, 1, 1)
         val borderAlpha = preferences.getFloat(CAROUSEL_BORDERCARDS_ALPHA, internalBordersAlpha).coerceIn(0f, 1f)
-        val alpha = borderAlpha + (1f - borderAlpha) * kotlin.math.cos(norm * Math.PI).toFloat()
+        val internalAlphaShapeSetting = resources.getInteger(R.integer.carousel_cards_alpha_shape)
+        val alphaShapeSetting = preferences.getInt(CAROUSEL_CARDS_ALPHA_SHAPE, internalAlphaShapeSetting)
+        val shapedAlpha = shapingFunction(alphaInput, alphaShapeSetting)
+        val alpha = (borderAlpha + (1f - borderAlpha) * shapedAlpha).coerceIn(0f, 1f)
 
         child.animate().cancel()
         child.alpha = alpha
@@ -149,15 +167,13 @@ class CarouselRecyclerView @JvmOverloads constructor(
     }
 
     fun focusCenteredCard() {
-         //Log.d("CarouselRecyclerView", "Focusing centered card")
-        val centeredPos = getClosestChildPosition() //getCenteredAdapterPosition()
+        val centeredPos = getClosestChildPosition()
         if (centeredPos != RecyclerView.NO_POSITION) {
             val vh = findViewHolderForAdapterPosition(centeredPos)
             vh?.itemView?.let { child ->
                 child.isFocusable = true
                 child.isFocusableInTouchMode = true
                 child.requestFocus()
-                 //Log.d("CarouselRecyclerView", "Requested focus on centered card: $centeredPos")
             }
         }
     }
@@ -184,7 +200,6 @@ class CarouselRecyclerView @JvmOverloads constructor(
                 override fun onChanged() {
                     if (pendingScrollAfterReload) {
                         post {
-                             //Log.d("GamesFragment", "Scrolling after all binds/layouts")
                             jigglyScroll()
                             pendingScrollAfterReload = false
                         }
@@ -206,37 +221,23 @@ class CarouselRecyclerView @JvmOverloads constructor(
                 scalingScrollListener = object : OnScrollListener() {
                     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                         super.onScrolled(recyclerView, dx, dy)
-                        //Log.d("CarouselRecyclerView", "onScrolled dx=$dx, dy=$dy")
-                        Log.d("CarouselRecyclerView", "Calling from onScrolled")
                         updateChildScalesAndAlpha()
                     }
                 }
                 addOnScrollListener(scalingScrollListener!!)
             }
 
-            // Center first/last card IMPORTANT!!
-            //post {
-                if (cardSize > 0) {
-                    Log.d("CarouselRecyclerView", "height = $height, cardSize = $cardSize, bottomInset = $bottomInset")
-                    val topPadding = ((height - bottomInset - cardSize) / 2).coerceAtLeast(0)
-                    val sidePadding = (width - cardSize) / 2
-                    Log.d("CarouselRecyclerView", "Applying padding: top $topPadding side $sidePadding")
-                    setPadding(sidePadding, topPadding, sidePadding, 0)
-                    //requestApplyInsets()
-                    clipToPadding = false
-                }
-                // Attach PagerSnapHelper
-                if (pagerSnapHelper == null) {
-                    pagerSnapHelper = CenterPagerSnapHelper()
-                    pagerSnapHelper!!.attachToRecyclerView(this)
-                }
-                post { //IMPORTANT: post² fixes the center carousel smol cards issue
-                     //Log.d("CarouselRecyclerView", "Post² updateChildScalesAndAlpha")
-                    //updateChildScalesAndAlpha()
-                    //focusCenteredCard()
-                }
-                 //Log.d("CarouselRecyclerView", "Carousel mode enabled with overlapPx=$overlapPx, cardSize=$cardSize")
-            //}
+            if (cardSize > 0) {
+                val topPadding = ((height - bottomInset - cardSize) / 2).coerceAtLeast(0) // Center vertically
+                val sidePadding = (width - cardSize) / 2 // Center first/last card
+                setPadding(sidePadding, topPadding, sidePadding, 0)
+                clipToPadding = false
+            }
+
+            if (pagerSnapHelper == null) {
+                pagerSnapHelper = CenterPagerSnapHelper()
+                pagerSnapHelper!!.attachToRecyclerView(this)
+            }
         } else {
             // Remove overlap decoration
             overlapDecoration?.let { removeItemDecoration(it) }
@@ -273,7 +274,6 @@ class CarouselRecyclerView @JvmOverloads constructor(
         super.scrollToPosition(position)
         (layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(position, overlapPx)
         doOnNextLayout {
-            Log.d("CarouselRecyclerView", "Calling from scrollToPosition")
             updateChildScalesAndAlpha()
             focusCenteredCard()
         }
@@ -290,7 +290,7 @@ class CarouselRecyclerView @JvmOverloads constructor(
             View.FOCUS_LEFT -> {
                 if (position > 0) {
                     val now = System.currentTimeMillis()
-                    val repeatDetected = (now - lastFocusSearchTime) < resources.getInteger(R.integer.carousel_focus_search_repeat_threshold)
+                    val repeatDetected = (now - lastFocusSearchTime) < resources.getInteger(R.integer.carousel_focus_search_repeat_threshold_ms)
                     lastFocusSearchTime = now
                     if (!repeatDetected) { //ensures the first run
                         val offset = focused.width - overlapPx
