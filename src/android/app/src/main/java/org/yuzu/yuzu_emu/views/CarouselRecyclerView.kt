@@ -114,6 +114,7 @@ class CarouselRecyclerView @JvmOverloads constructor(
     }
 
     fun updateChildScalesAndAlpha() {
+        Log.d("CarouselRecyclerView", "Updating child scales and alpha")
         for (i in 0 until childCount) {
             val child = getChildAt(i) ?: continue
             updateChildScaleAndAlphaForPosition(child)
@@ -205,7 +206,8 @@ class CarouselRecyclerView @JvmOverloads constructor(
                 scalingScrollListener = object : OnScrollListener() {
                     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                         super.onScrolled(recyclerView, dx, dy)
-                         //Log.d("CarouselRecyclerView", "onScrolled dx=$dx, dy=$dy")
+                        //Log.d("CarouselRecyclerView", "onScrolled dx=$dx, dy=$dy")
+                        Log.d("CarouselRecyclerView", "Calling from onScrolled")
                         updateChildScalesAndAlpha()
                     }
                 }
@@ -213,7 +215,7 @@ class CarouselRecyclerView @JvmOverloads constructor(
             }
 
             // Center first/last card IMPORTANT!!
-            post {
+            //post {
                 if (cardSize > 0) {
                     Log.d("CarouselRecyclerView", "height = $height, cardSize = $cardSize, bottomInset = $bottomInset")
                     val topPadding = ((height - bottomInset - cardSize) / 2).coerceAtLeast(0)
@@ -230,11 +232,11 @@ class CarouselRecyclerView @JvmOverloads constructor(
                 }
                 post { //IMPORTANT: post² fixes the center carousel smol cards issue
                      //Log.d("CarouselRecyclerView", "Post² updateChildScalesAndAlpha")
-                    updateChildScalesAndAlpha()
+                    //updateChildScalesAndAlpha()
                     //focusCenteredCard()
                 }
                  //Log.d("CarouselRecyclerView", "Carousel mode enabled with overlapPx=$overlapPx, cardSize=$cardSize")
-            }
+            //}
         } else {
             // Remove overlap decoration
             overlapDecoration?.let { removeItemDecoration(it) }
@@ -271,6 +273,7 @@ class CarouselRecyclerView @JvmOverloads constructor(
         super.scrollToPosition(position)
         (layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(position, overlapPx)
         doOnNextLayout {
+            Log.d("CarouselRecyclerView", "Calling from scrollToPosition")
             updateChildScalesAndAlpha()
             focusCenteredCard()
         }
@@ -372,7 +375,6 @@ class CarouselRecyclerView @JvmOverloads constructor(
         // NEEDED: fixes center snapping, but introduces ghost movement
         override fun findSnapView(layoutManager: RecyclerView.LayoutManager): View? {
             if (layoutManager !is LinearLayoutManager) return null
-            //Log.d("CarouselRecyclerView", "findSnapView: closest=${getClosestChildPosition()}")
             return layoutManager.findViewByPosition(getClosestChildPosition())
         }
 
@@ -385,7 +387,6 @@ class CarouselRecyclerView @JvmOverloads constructor(
             val out = IntArray(2)
             out[0] = getChildDistanceToCenter(targetView).toInt()
             out[1] = 0
-            //Log.d("CarouselRecyclerView", "calculateDistanceToFinalSnap: ${out.contentToString()}")
             return out
         }
 
@@ -402,7 +403,6 @@ class CarouselRecyclerView @JvmOverloads constructor(
             val rawFlingCount = if (velocityX == 0) 0 else velocityX / 2000
             val flingCount = rawFlingCount.coerceIn(-maxFling, maxFling)
             var targetPos = (closestPosition + flingCount).coerceIn(0, layoutManager.itemCount - 1)
-            //Log.d("CarouselRecyclerView", "findTargetSnapPosition: closest=$closestPosition, flingCount=$flingCount, targetPos=$targetPos")
             return targetPos
         }
     }
