@@ -28,7 +28,8 @@ class CarouselRecyclerView @JvmOverloads constructor(
     defStyle: Int = 0
 ) : RecyclerView(context, attrs, defStyle) {
 
-    // Carousel/overlap/snap state
+    // Carousel/overlap/snap/padding
+    //private var verticalCenterPadding: Int = 0
     private var overlapFactor: Float = 0f
     private var overlapPx: Int = 0
     private var overlapDecoration: OverlappingDecoration? = null
@@ -183,7 +184,7 @@ class CarouselRecyclerView @JvmOverloads constructor(
                     if (pendingScrollAfterReload) {
                         post {
                              //Log.d("GamesFragment", "Scrolling after all binds/layouts")
-                            mockScroll()
+                            jigglyScroll()
                             pendingScrollAfterReload = false
                         }
                     }
@@ -211,19 +212,15 @@ class CarouselRecyclerView @JvmOverloads constructor(
                 addOnScrollListener(scalingScrollListener!!)
             }
 
-            // Handle bottom insets for keyboard/navigation bar only
-            setOnApplyWindowInsetsListener { view, windowInsets ->
-                val imeInset = windowInsets.getInsets(android.view.WindowInsets.Type.ime()).bottom
-                val navInset = windowInsets.getInsets(android.view.WindowInsets.Type.navigationBars()).bottom
-                view.setPadding(view.paddingLeft, 0, view.paddingRight, maxOf(imeInset, navInset))
-                windowInsets
-            }
-
             // Center first/last card IMPORTANT!!
             post {
                 if (cardSize > 0) {
+                    Log.d("CarouselRecyclerView", "height = $height, cardSize = $cardSize, bottomInset = $bottomInset")
+                    val topPadding = ((height - bottomInset - cardSize) / 2).coerceAtLeast(0)
                     val sidePadding = (width - cardSize) / 2
-                    setPadding(sidePadding, 0, sidePadding, 0)
+                    Log.d("CarouselRecyclerView", "Applying padding: top $topPadding side $sidePadding")
+                    setPadding(sidePadding, topPadding, sidePadding, 0)
+                    //requestApplyInsets()
                     clipToPadding = false
                 }
                 // Attach PagerSnapHelper
@@ -333,7 +330,7 @@ class CarouselRecyclerView @JvmOverloads constructor(
         return sorted[i].first
     }
 
-    fun mockScroll() {
+    fun jigglyScroll() {
         scrollBy(-1, 0)
         scrollBy(1, 0)
         focusCenteredCard()
