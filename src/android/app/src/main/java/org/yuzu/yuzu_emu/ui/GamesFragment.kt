@@ -236,11 +236,6 @@ class GamesFragment : Fragment() {
         super.onSaveInstanceState(outState)
         if (_binding != null) {
             outState.putString(SEARCH_TEXT, binding.searchText.text.toString())
-            // if (getCurrentViewType() == GameAdapter.VIEW_TYPE_CAROUSEL) {
-            //     val lastScrPos = (binding.gridGames as? CarouselRecyclerView)?.getClosestChildPosition() ?: 0
-            //     Log.d("GamesFragment", "Saving last scroll position onSaveInstanceState: $lastScrPos ")
-            //     outState.putInt(CarouselRecyclerView.CAROUSEL_LAST_SCROLL_POSITION, lastScrPos)
-            // }
         }
     }
 

@@ -129,8 +129,6 @@ class CarouselRecyclerView @JvmOverloads constructor(
         child.layoutParams.height = cardSize
 
         val center = getRecyclerViewCenter()
-        //val childCenter = (child.left + child.right) / 2f
-        //val distance = abs(center - childCenter)
         val distance = abs(getChildDistanceToCenter(child))
         val internalBorderScale = resources.getFraction(R.fraction.carousel_bordercards_scale, 1, 1)
         val borderScale = preferences.getFloat(CAROUSEL_BORDERCARDS_SCALE, internalBorderScale).coerceIn(0f, 1f)
@@ -281,6 +279,7 @@ class CarouselRecyclerView @JvmOverloads constructor(
         }
     }
 
+    private var lastFocusSearchTime: Long = 0
     override fun focusSearch(focused: View, direction: Int): View? {
         if (layoutManager !is LinearLayoutManager) return super.focusSearch(focused, direction)
         val vh = findContainingViewHolder(focused) ?: return super.focusSearch(focused, direction)
@@ -290,9 +289,13 @@ class CarouselRecyclerView @JvmOverloads constructor(
         return when (direction) {
             View.FOCUS_LEFT -> {
                 if (position > 0) {
-                    val offset = (focused.width * (1 - overlapFactor)).toInt()
-                    smoothScrollBy(-offset, 0)
-                    Log.d("CarouselRecyclerView", "Focusing left card overlapFactor=$overlapFactor, offset=$offset")
+                    val now = System.currentTimeMillis()
+                    val repeatDetected = (now - lastFocusSearchTime) < resources.getInteger(R.integer.carousel_focus_search_repeat_threshold)
+                    lastFocusSearchTime = now
+                    if (!repeatDetected) { //ensures the first run
+                        val offset = focused.width - overlapPx
+                        smoothScrollBy(-offset, 0)
+                    }
                     findViewHolderForAdapterPosition(position - 1)?.itemView ?: super.focusSearch(focused, direction)
                 } else {
                     focused
@@ -347,11 +350,32 @@ class CarouselRecyclerView @JvmOverloads constructor(
         }
     }
 
+    inner class VerticalCenterDecoration : ItemDecoration() {
+        override fun getItemOffsets(
+            outRect: android.graphics.Rect,
+            view: View,
+            parent: RecyclerView,
+            state: RecyclerView.State
+        ) {
+            val parentHeight = parent.height
+            val childHeight = view.layoutParams.height.takeIf { it > 0 }
+                ?: view.measuredHeight.takeIf { it > 0 }
+                ?: view.height
+
+            if (parentHeight > 0 && childHeight > 0) {
+                val verticalPadding = ((parentHeight - childHeight) / 2).coerceAtLeast(0)
+                outRect.top = verticalPadding
+                outRect.bottom = verticalPadding
+            }
+        }
+    }
+
     inner class CenterPagerSnapHelper : PagerSnapHelper() {
 
         // NEEDED: fixes center snapping, but introduces ghost movement
         override fun findSnapView(layoutManager: RecyclerView.LayoutManager): View? {
             if (layoutManager !is LinearLayoutManager) return null
+            //Log.d("CarouselRecyclerView", "findSnapView: closest=${getClosestChildPosition()}")
             return layoutManager.findViewByPosition(getClosestChildPosition())
         }
 
@@ -364,6 +388,7 @@ class CarouselRecyclerView @JvmOverloads constructor(
             val out = IntArray(2)
             out[0] = getChildDistanceToCenter(targetView).toInt()
             out[1] = 0
+            //Log.d("CarouselRecyclerView", "calculateDistanceToFinalSnap: ${out.contentToString()}")
             return out
         }
 
@@ -380,6 +405,7 @@ class CarouselRecyclerView @JvmOverloads constructor(
             val rawFlingCount = if (velocityX == 0) 0 else velocityX / 2000
             val flingCount = rawFlingCount.coerceIn(-maxFling, maxFling)
             var targetPos = (closestPosition + flingCount).coerceIn(0, layoutManager.itemCount - 1)
+            //Log.d("CarouselRecyclerView", "findTargetSnapPosition: closest=$closestPosition, flingCount=$flingCount, targetPos=$targetPos")
             return targetPos
         }
     }
