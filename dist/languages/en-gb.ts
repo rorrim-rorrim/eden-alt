@@ -4,21 +4,21 @@
     <name>AboutDialog</name>
     <message>
         <source>About yuzu</source>
-        <translation type="vanished">About the yuzu</translation>
+        <translation>About yuzu</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:28pt;"&gt;yuzu&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="vanished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:28pt;"&gt;yuzu&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:28pt;"&gt;yuzu&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/aboutdialog.ui" line="14" />
         <source>About eden</source>
-        <translation type="unfinished">About the eden</translation>
+        <translation>About eden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/aboutdialog.ui" line="72" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:28pt;"&gt;eden&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:28pt;"&gt;eden&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:28pt;"&gt;eden&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/aboutdialog.ui" line="85" />
@@ -35,7 +35,7 @@ li.unchecked::marker { content: "\2610"; }
 li.checked::marker { content: "\2612"; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'Adwaita Sans'; font-size:11pt; font-weight:400; font-style:normal;"&gt;
 &lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'MS Shell Dlg 2'; font-size:12pt;"&gt;eden is an experimental open-source emulator for the Nintendo Switch licensed under GPLv3.0+ which is based on the yuzu emulator which ended development back in March 2024. &lt;br /&gt;&lt;br /&gt;This software should not be used to play games you have not legally obtained.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
+        <translation>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;meta charset="utf-8" /&gt;&lt;style type="text/css"&gt;
 p, li { white-space: pre-wrap; }
 hr { height: 1px; border-width: 0; }
@@ -47,7 +47,7 @@ li.checked::marker { content: "\2612"; }
     <message>
         <location filename="../../src/yuzu/aboutdialog.ui" line="131" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href="https://eden-emulator.github.io/"&gt;&lt;span style=" text-decoration: underline; color:#039be5;"&gt;Website&lt;/span&gt;&lt;/a&gt; | &lt;a href="https://git.eden-emu.dev"&gt;&lt;span style=" text-decoration: underline; color:#039be5;"&gt;Source Code&lt;/span&gt;&lt;/a&gt; | &lt;a href="https://git.eden-emu.dev/eden-emu/eden/activity/contributors"&gt;&lt;span style=" text-decoration: underline; color:#039be5;"&gt;Contributors&lt;/span&gt;&lt;/a&gt; | &lt;a href="https://git.eden-emu.dev/eden-emu/eden/src/branch/master/LICENSE.txt"&gt;&lt;span style=" text-decoration: underline; color:#039be5;"&gt;License&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href="https://eden-emulator.github.io/"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;Website&lt;/span&gt;&lt;/a&gt; | &lt;a href="https://git.eden-emu.dev"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;Source Code&lt;/span&gt;&lt;/a&gt; | &lt;a href="https://git.eden-emu.dev/eden-emu/eden/activity/contributors"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;Contributors&lt;/span&gt;&lt;/a&gt; | &lt;a href="https://git.eden-emu.dev/eden-emu/eden/src/branch/master/Licence.txt"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;Licence&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href="https://eden-emulator.github.io/"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;Website&lt;/span&gt;&lt;/a&gt; | &lt;a href="https://git.eden-emu.dev"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;Source Code&lt;/span&gt;&lt;/a&gt; | &lt;a href="https://git.eden-emu.dev/eden-emu/eden/activity/contributors"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;Contributors&lt;/span&gt;&lt;/a&gt; | &lt;a href="https://git.eden-emu.dev/eden-emu/eden/src/branch/master/Licence.txt"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;Licence&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
@@ -57,7 +57,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'MS Shell Dlg 2'; font-size:12pt;"&gt;yuzu is an experimental open-source emulator for the Nintendo Switch licensed under GPLv3.0+.&lt;/span&gt;&lt;/p&gt;
 &lt;p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'MS Shell Dlg 2'; font-size:8pt;"&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'MS Shell Dlg 2'; font-size:12pt;"&gt;This software should not be used to play games you have not legally obtained.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="vanished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
+        <translation>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;"&gt;
@@ -67,7 +67,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href="https://yuzu-emu.org/"&gt;&lt;span style=" text-decoration: underline; color:#039be5;"&gt;Website&lt;/span&gt;&lt;/a&gt; | &lt;a href="https://github.com/yuzu-emu"&gt;&lt;span style=" text-decoration: underline; color:#039be5;"&gt;Source Code&lt;/span&gt;&lt;/a&gt; | &lt;a href="https://github.com/yuzu-emu/yuzu/graphs/contributors"&gt;&lt;span style=" text-decoration: underline; color:#039be5;"&gt;Contributors&lt;/span&gt;&lt;/a&gt; | &lt;a href="https://github.com/yuzu-emu/yuzu/blob/master/LICENSE.txt"&gt;&lt;span style=" text-decoration: underline; color:#039be5;"&gt;License&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="vanished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href="https://yuzu-emu.org/"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;Website&lt;/span&gt;&lt;/a&gt; | &lt;a href="https://github.com/yuzu-emu"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;Source Code&lt;/span&gt;&lt;/a&gt; | &lt;a href="https://github.com/yuzu-emu/yuzu/graphs/contributors"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;Contributors&lt;/span&gt;&lt;/a&gt; | &lt;a href="https://github.com/yuzu-emu/yuzu/blob/master/Licence.txt"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;Licence&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href="https://yuzu-emu.org/"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;Website&lt;/span&gt;&lt;/a&gt; | &lt;a href="https://github.com/yuzu-emu"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;Source Code&lt;/span&gt;&lt;/a&gt; | &lt;a href="https://github.com/yuzu-emu/yuzu/graphs/contributors"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;Contributors&lt;/span&gt;&lt;/a&gt; | &lt;a href="https://github.com/yuzu-emu/yuzu/blob/master/Licence.txt"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;Licence&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/aboutdialog.ui" line="147" />
@@ -267,12 +267,12 @@ This would ban both their forum username and their IP address.</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:10pt;"&gt;Should you choose to submit a test case to the &lt;/span&gt;&lt;a href="https://yuzu-emu.org/game/"&gt;&lt;span style=" font-size:10pt; text-decoration: underline; color:#0000ff;"&gt;yuzu Compatibility List&lt;/span&gt;&lt;/a&gt;&lt;span style=" font-size:10pt;"&gt;, The following information will be collected and displayed on the site:&lt;/span&gt;&lt;/p&gt;&lt;ul style="margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;"&gt;&lt;li style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Hardware Information (CPU / GPU / Operating System)&lt;/li&gt;&lt;li style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Which version of yuzu you are running&lt;/li&gt;&lt;li style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;The connected yuzu account&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="vanished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:10pt;"&gt;Should you choose to submit a test case to the &lt;/span&gt;&lt;a href="https://yuzu-emu.org/game/"&gt;&lt;span style=" font-size:10pt; text-decoration: underline; colour:#0000ff;"&gt;yuzu Compatibility List&lt;/span&gt;&lt;/a&gt;&lt;span style=" font-size:10pt;"&gt;, The following information will be collected and displayed on the site:&lt;/span&gt;&lt;/p&gt;&lt;ul style="margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;"&gt;&lt;li style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Hardware Information (CPU / GPU / Operating System)&lt;/li&gt;&lt;li style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Which version of yuzu you are running&lt;/li&gt;&lt;li style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;The connected yuzu account&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:10pt;"&gt;Should you choose to submit a test case to the &lt;/span&gt;&lt;a href="https://yuzu-emu.org/game/"&gt;&lt;span style=" font-size:10pt; text-decoration: underline; colour:#0000ff;"&gt;yuzu Compatibility List&lt;/span&gt;&lt;/a&gt;&lt;span style=" font-size:10pt;"&gt;, The following information will be collected and displayed on the site:&lt;/span&gt;&lt;/p&gt;&lt;ul style="margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;"&gt;&lt;li style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Hardware Information (CPU / GPU / Operating System)&lt;/li&gt;&lt;li style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Which version of yuzu you are running&lt;/li&gt;&lt;li style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;The connected yuzu account&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="36" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:10pt;"&gt;Should you choose to submit a test case to the &lt;/span&gt;&lt;a href="https://eden-emulator.github.io/game/"&gt;&lt;span style=" font-size:10pt; text-decoration: underline; color:#0000ff;"&gt;eden Compatibility List&lt;/span&gt;&lt;/a&gt;&lt;span style=" font-size:10pt;"&gt;, The following information will be collected and displayed on the site:&lt;/span&gt;&lt;/p&gt;&lt;ul style="margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;"&gt;&lt;li style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Hardware Information (CPU / GPU / Operating System)&lt;/li&gt;&lt;li style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Which version of eden you are running&lt;/li&gt;&lt;li style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;The connected eden account&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:10pt;"&gt;Should you choose to submit a test case to the &lt;/span&gt;&lt;a href="https://eden-emulator.github.io/game/"&gt;&lt;span style=" font-size:10pt; text-decoration: underline; colour:#0000ff;"&gt;eden Compatibility List&lt;/span&gt;&lt;/a&gt;&lt;span style=" font-size:10pt;"&gt;, The following information will be collected and displayed on the site:&lt;/span&gt;&lt;/p&gt;&lt;ul style="margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;"&gt;&lt;li style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Hardware Information (CPU / GPU / Operating System)&lt;/li&gt;&lt;li style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Which version of eden you are running&lt;/li&gt;&lt;li style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;The connected eden account&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:10pt;"&gt;Should you choose to submit a test case to the &lt;/span&gt;&lt;a href="https://eden-emulator.github.io/game/"&gt;&lt;span style=" font-size:10pt; text-decoration: underline; colour:#0000ff;"&gt;eden Compatibility List&lt;/span&gt;&lt;/a&gt;&lt;span style=" font-size:10pt;"&gt;, The following information will be collected and displayed on the site:&lt;/span&gt;&lt;/p&gt;&lt;ul style="margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;"&gt;&lt;li style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Hardware Information (CPU / GPU / Operating System)&lt;/li&gt;&lt;li style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Which version of eden you are running&lt;/li&gt;&lt;li style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;The connected eden account&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="77" />
@@ -555,14 +555,14 @@ Disabling it means unlocking the framerate to the maximum your PC can reach.</tr
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="88" />
         <source>Synchronize Core Speed</source>
-        <translation type="unfinished">Synchronize Core Speed</translation>
+        <translation>Synchronize Core Speed</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="89" />
         <source>Synchronizes CPU core speed with the game's maximum rendering speed to boost FPS without affecting game speed (animations, physics, etc.).
 Compatibility varies by game; many (especially older ones) may not respond well.
 Can help reduce stuttering at lower framerates.</source>
-        <translation type="unfinished">Synchronizes CPU core speed with the game's maximum rendering speed to boost FPS without affecting game speed (animations, physics, etc.).
+        <translation>Synchronizes CPU core speed with the game's maximum rendering speed to boost FPS without affecting game speed (animations, physics, etc.).
 Compatibility varies by game; many (especially older ones) may not respond well.
 Can help reduce stuttering at lower framerates.</translation>
     </message>
@@ -587,13 +587,13 @@ Don't change this unless you know what you are doing.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="105" />
         <source>Fast CPU Time</source>
-        <translation type="unfinished">Fast CPU Time</translation>
+        <translation>Fast CPU Time</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="106" />
         <source>Overclocks the emulated CPU to remove some FPS limiters. Weaker CPUs may see reduced performance, and certain games may behave improperly.
 Use Boost (1700MHz) to run at the Switch's highest native clock, or Fast (2000MHz) to run at 2x clock.</source>
-        <translation type="unfinished">Overclocks the emulated CPU to remove some FPS limiters. Weaker CPUs may see reduced performance, and certain games may behave improperly.
+        <translation>Overclocks the emulated CPU to remove some FPS limiters. Weaker CPUs may see reduced performance, and certain games may behave improperly.
 Use Boost (1700MHz) to run at the Switch's highest native clock, or Fast (2000MHz) to run at 2x clock.</translation>
     </message>
     <message>
@@ -786,7 +786,7 @@ Disabling it is only intended for debugging.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="206" />
         <source>Optimize SPIRV output shader</source>
-        <translation type="unfinished">Optimize SPIRV output shader</translation>
+        <translation>Optimise SPIRV output shader</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="207" />
@@ -794,7 +794,7 @@ Disabling it is only intended for debugging.</translation>
 Will increase time required for shader compilation.
 May slightly improve performance.
 This feature is experimental.</source>
-        <translation type="unfinished">Runs an additional optimization pass over generated SPIRV shaders.
+        <translation>Runs an additional optimisation pass over generated SPIRV shaders.
 Will increase time required for shader compilation.
 May slightly improve performance.
 This feature is experimental.</translation>
@@ -858,12 +858,12 @@ This option recompresses RGBA8 to either the BC1 or BC3 format, saving VRAM but 
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="241" />
         <source>VRAM Usage Mode:</source>
-        <translation type="unfinished">VRAM Usage Mode:</translation>
+        <translation>VRAM Usage Mode:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="242" />
         <source>Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance. Has no effect on integrated graphics. Aggressive mode may severely impact the performance of other applications such as recording software.</source>
-        <translation type="unfinished">Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance. Has no effect on integrated graphics. Aggressive mode may severely impact the performance of other applications such as recording software.</translation>
+        <translation>Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance. Has no effect on integrated graphics. Aggressive mode may severely impact the performance of other applications such as recording software.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="249" />
@@ -947,11 +947,11 @@ This feature is experimental.</translation>
     </message>
     <message>
         <source>Use Fast GPU Time (Hack)</source>
-        <translation type="vanished">Use Fast GPU Time (Hack)</translation>
+        <translation>Use Fast GPU Time (Hack)</translation>
     </message>
     <message>
         <source>Enables Fast GPU Time. This option will force most games to run at their highest native resolution.</source>
-        <translation type="vanished">Enables Fast GPU Time. This option will force most games to run at their highest native resolution.</translation>
+        <translation>Enables Fast GPU Time. This option will force most games to run at their highest native resolution.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="298" />
@@ -1099,7 +1099,7 @@ Setting to Handheld can help improve performance for low end systems.</translati
     </message>
     <message>
         <source>Ask to select a user profile on each boot, useful if multiple people use yuzu on the same PC.</source>
-        <translation type="vanished">Ask to select a user profile on each boot, useful if multiple people use yuzu on the same PC.</translation>
+        <translation>Ask to select a user profile on each boot, useful if multiple people use yuzu on the same PC.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="402" />
@@ -1108,65 +1108,65 @@ Setting to Handheld can help improve performance for low end systems.</translati
     </message>
     <message>
         <source>This setting pauses yuzu when focusing other windows.</source>
-        <translation type="vanished">This setting pauses yuzu when focusing other windows.</translation>
+        <translation>This setting pauses yuzu when focusing other windows.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="292" />
         <source>Fast GPU Time (Hack)</source>
-        <translation type="unfinished">Fast GPU Time (Hack)</translation>
+        <translation>Fast GPU Time (Hack)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="293" />
         <source>Overclocks the emulated GPU to increase dynamic resolution and render distance.
 Use 128 for maximal performance and 512 for maximal graphics fidelity.</source>
-        <translation type="unfinished">Overclocks the emulated GPU to increase dynamic resolution and render distance.
+        <translation>Overclocks the emulated GPU to increase dynamic resolution and render distance.
 Use 128 for maximal performance and 512 for maximal graphics fidelity.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="328" />
         <source>Extended Dynamic State</source>
-        <translation type="unfinished">Extended Dynamic State</translation>
+        <translation>Extended Dynamic State</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="329" />
         <source>Enables the VkExtendedDynamicState* extensions.
 Higher dynamic states will generally improve performance, but may cause issues on certain games or devices.</source>
-        <translation type="unfinished">Enables the VkExtendedDynamicState* extensions.
+        <translation>Enables the VkExtendedDynamicState* extensions.
 Higher dynamic states will generally improve performance, but may cause issues on certain games or devices.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="335" />
         <source>Provoking Vertex</source>
-        <translation type="unfinished">Provoking Vertex</translation>
+        <translation>Provoking Vertex</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="336" />
         <source>Improves lighting and vertex handling in certain games.
 Only Vulkan 1.0+ devices support this extension.</source>
-        <translation type="unfinished">Improves lighting and vertex handling in certain games.
+        <translation>Improves lighting and vertex handling in certain games.
 Only Vulkan 1.0+ devices support this extension.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="341" />
         <source>Descriptor Indexing</source>
-        <translation type="unfinished">Descriptor Indexing</translation>
+        <translation>Descriptor Indexing</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="342" />
         <source>Improves texture &amp; buffer handling and the Maxwell translation layer.
 Some Vulkan 1.1+ and all 1.2+ devices support this extension.</source>
-        <translation type="unfinished">Improves texture &amp; buffer handling and the Maxwell translation layer.
+        <translation>Improves texture &amp; buffer handling and the Maxwell translation layer.
 Some Vulkan 1.1+ and all 1.2+ devices support this extension.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="398" />
         <source>Ask to select a user profile on each boot, useful if multiple people use eden on the same PC.</source>
-        <translation type="unfinished">Ask to select a user profile on each boot, useful if multiple people use eden on the same PC.</translation>
+        <translation>Ask to select a user profile on each boot, useful if multiple people use eden on the same PC.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="403" />
         <source>This setting pauses eden when focusing other windows.</source>
-        <translation type="unfinished">This setting pauses eden when focusing other windows.</translation>
+        <translation>This setting pauses eden when focusing other windows.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="406" />
@@ -1205,12 +1205,12 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="420" />
         <source>Check for updates</source>
-        <translation type="unfinished">Check for updates</translation>
+        <translation>Check for updates</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="421" />
         <source>Whether or not to check for updates upon startup.</source>
-        <translation type="unfinished">Whether or not to check for updates upon startup.</translation>
+        <translation>Whether or not to check for updates upon startup.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="424" />
@@ -1230,17 +1230,17 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="454" />
         <source>Never</source>
-        <translation type="unfinished">Never</translation>
+        <translation>Never</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="455" />
         <source>On Load</source>
-        <translation type="unfinished">On Load</translation>
+        <translation>On Load</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="456" />
         <source>Always</source>
-        <translation type="unfinished">Always</translation>
+        <translation>Always</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="460" />
@@ -1275,12 +1275,12 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="473" />
         <source>Conservative</source>
-        <translation type="unfinished">Conservative</translation>
+        <translation>Conservative</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="474" />
         <source>Aggressive</source>
-        <translation type="unfinished">Aggressive</translation>
+        <translation>Aggressive</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="479" />
@@ -1345,7 +1345,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="503" />
         <source>Paranoid (disables most optimizations)</source>
-        <translation>Paranoid (disables most optimizations)</translation>
+        <translation>Paranoid (disables most optimisations)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="507" />
@@ -1385,7 +1385,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="524" />
         <source>0.25X (180p/270p) [EXPERIMENTAL]</source>
-        <translation type="unfinished">0.25X (180p/270p) [EXPERIMENTAL]</translation>
+        <translation>0.25X (180p/270p) [EXPERIMENTAL]</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="525" />
@@ -1475,7 +1475,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="545" />
         <source>Area</source>
-        <translation type="unfinished">Area</translation>
+        <translation>Area</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="549" />
@@ -1928,36 +1928,36 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="667" />
         <source>8GB DRAM</source>
-        <translation type="unfinished">8GB DRAM</translation>
+        <translation>8GB DRAM</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="668" />
         <source>10GB DRAM (Unsafe)</source>
-        <translation type="unfinished">10GB DRAM (Unsafe)</translation>
+        <translation>10GB DRAM (Unsafe)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="669" />
         <source>12GB DRAM (Unsafe)</source>
-        <translation type="unfinished">12GB DRAM (Unsafe)</translation>
+        <translation>12GB DRAM (Unsafe)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="690" />
         <source>Low (128)</source>
-        <translation type="unfinished">Low (128)</translation>
+        <translation>Low (128)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="691" />
         <source>Medium (256)</source>
-        <translation type="unfinished">Medium (256)</translation>
+        <translation>Medium (256)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="692" />
         <source>High (512)</source>
-        <translation type="unfinished">High (512)</translation>
+        <translation>High (512)</translation>
     </message>
     <message>
         <source>8GB DRAM (Unsafe)</source>
-        <translation type="vanished">8GB DRAM (Unsafe)</translation>
+        <translation>8GB DRAM (Unsafe)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="673" />
@@ -1972,12 +1972,12 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="678" />
         <source>Boost (1700MHz)</source>
-        <translation type="unfinished">Boost (1700MHz)</translation>
+        <translation>Boost (1700MHz)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="679" />
         <source>Fast (2000MHz)</source>
-        <translation type="unfinished">Fast (2000MHz)</translation>
+        <translation>Fast (2000MHz)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="684" />
@@ -2100,7 +2100,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="95" />
         <source>Unsafe CPU Optimization Settings</source>
-        <translation>Unsafe CPU Optimization Preferences</translation>
+        <translation>Unsafe CPU Optimisation Settings</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="101" />
@@ -2123,7 +2123,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="25" />
         <source>Toggle CPU Optimizations</source>
-        <translation>Toggle CPU Optimizations</translation>
+        <translation>Toggle CPU Optimisations</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="31" />
@@ -2138,7 +2138,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
             &lt;div style="white-space: nowrap"&gt;Disabling this forces all memory accesses to go through the Memory::Read/Memory::Write functions.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div style="white-space: nowrap"&gt;This optimization speeds up memory accesses by the guest programme.&lt;/div&gt;
+            &lt;div style="white-space: nowrap"&gt;This optimisation speeds up memory accesses by the guest programme.&lt;/div&gt;
             &lt;div style="white-space: nowrap"&gt;Enabling it inlines accesses to PageTable::pointers into emitted code.&lt;/div&gt;
             &lt;div style="white-space: nowrap"&gt;Disabling this forces all memory accesses to go through the Memory::Read/Memory::Write functions.&lt;/div&gt;
            </translation>
@@ -2154,7 +2154,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
             &lt;div&gt;This optimization avoids dispatcher lookups by allowing emitted basic blocks to jump directly to other basic blocks if the destination PC is static.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div&gt;This optimization avoids dispatcher lookups by allowing emitted basic blocks to jump directly to other basic blocks if the destination PC is static.&lt;/div&gt;
+            &lt;div&gt;This optimisation avoids dispatcher lookups by allowing emitted basic blocks to jump directly to other basic blocks if the destination PC is static.&lt;/div&gt;
            </translation>
     </message>
     <message>
@@ -2168,7 +2168,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
             &lt;div&gt;This optimization avoids dispatcher lookups by keeping track potential return addresses of BL instructions. This approximates what happens with a return stack buffer on a real CPU.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div&gt;This optimization avoids dispatcher lookups by keeping track potential return addresses of BL instructions. This approximates what happens with a return stack buffer on a real CPU.&lt;/div&gt;
+            &lt;div&gt;This optimisation avoids dispatcher lookups by keeping track potential return addresses of BL instructions. This approximates what happens with a return stack buffer on a real CPU.&lt;/div&gt;
            </translation>
     </message>
     <message>
@@ -2196,7 +2196,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
             &lt;div&gt;Enables an IR optimization that reduces unnecessary accesses to the CPU context structure.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div&gt;Enables an IR optimization that reduces unnecessary accesses to the CPU context structure.&lt;/div&gt;
+            &lt;div&gt;Enables an IR optimisation that reduces unnecessary accesses to the CPU context structure.&lt;/div&gt;
            </translation>
     </message>
     <message>
@@ -2210,7 +2210,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
             &lt;div&gt;Enables IR optimizations that involve constant propagation.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div&gt;Enables IR optimizations that involve constant propagation.&lt;/div&gt;
+            &lt;div&gt;Enables IR optimisations that involve constant propagation.&lt;/div&gt;
            </translation>
     </message>
     <message>
@@ -2224,13 +2224,13 @@ When a guest attempts to open the controller applet, it is immediately closed.</
             &lt;div&gt;Enables miscellaneous IR optimizations.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div&gt;Enables miscellaneous IR optimizations.&lt;/div&gt;
+            &lt;div&gt;Enables miscellaneous IR optimisations.&lt;/div&gt;
            </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="120" />
         <source>Enable miscellaneous optimizations</source>
-        <translation>Enable miscellaneous optimizations</translation>
+        <translation>Enable miscellaneous optimisations</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="127" />
@@ -2256,7 +2256,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
             &lt;div style="white-space: nowrap"&gt;Disabling this forces all memory accesses to use Software MMU Emulation.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div style="white-space: nowrap"&gt;This optimization speeds up memory accesses by the guest programme.&lt;/div&gt;
+            &lt;div style="white-space: nowrap"&gt;This optimisation speeds up memory accesses by the guest programme.&lt;/div&gt;
             &lt;div style="white-space: nowrap"&gt;Enabling it causes guest memory reads/writes to be done directly into memory and make use of Host's MMU.&lt;/div&gt;
             &lt;div style="white-space: nowrap"&gt;Disabling this forces all memory accesses to use Software MMU Emulation.&lt;/div&gt;
            </translation>
@@ -2274,7 +2274,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
             &lt;div style="white-space: nowrap"&gt;Disabling this forces all exclusive memory accesses to use Software MMU Emulation.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div style="white-space: nowrap"&gt;This optimization speeds up exclusive memory accesses by the guest programme.&lt;/div&gt;
+            &lt;div style="white-space: nowrap"&gt;This optimisation speeds up exclusive memory accesses by the guest programme.&lt;/div&gt;
             &lt;div style="white-space: nowrap"&gt;Enabling it causes guest exclusive memory reads/writes to be done directly into memory and make use of Host's MMU.&lt;/div&gt;
             &lt;div style="white-space: nowrap"&gt;Disabling this forces all exclusive memory accesses to use Software MMU Emulation.&lt;/div&gt;
            </translation>
@@ -2291,7 +2291,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
             &lt;div style="white-space: nowrap"&gt;Enabling it reduces the overhead of fastmem failure of exclusive memory accesses.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div style="white-space: nowrap"&gt;This optimization speeds up exclusive memory accesses by the guest programme.&lt;/div&gt;
+            &lt;div style="white-space: nowrap"&gt;This optimisation speeds up exclusive memory accesses by the guest programme.&lt;/div&gt;
             &lt;div style="white-space: nowrap"&gt;Enabling it reduces the overhead of fastmem failure of exclusive memory accesses.&lt;/div&gt;
            </translation>
     </message>
@@ -2307,7 +2307,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
             &lt;div style="white-space: nowrap"&gt;Enabling it reduces the overhead of all memory accesses and has no impact on programs that don't access invalid memory.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div style="white-space: nowrap"&gt;This optimization speeds up memory accesses by allowing invalid memory accesses to succeed.&lt;/div&gt;
+            &lt;div style="white-space: nowrap"&gt;This optimisation speeds up memory accesses by allowing invalid memory accesses to succeed.&lt;/div&gt;
             &lt;div style="white-space: nowrap"&gt;Enabling it reduces the overhead of all memory accesses and has no impact on programs that don't access invalid memory.&lt;/div&gt;
            </translation>
     </message>
@@ -2507,16 +2507,16 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="527" />
         <source>Censor username in logs</source>
-        <translation type="unfinished">Censor username in logs</translation>
+        <translation>Censor username in logs</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="563" />
         <source>**This will be reset automatically when eden closes.</source>
-        <translation type="unfinished">**This will be reset automatically when eden closes.</translation>
+        <translation>**This will be reset automatically when eden closes.</translation>
     </message>
     <message>
         <source>Enable Auto-Stub**</source>
-        <translation type="vanished">Enable Auto-Stub**</translation>
+        <translation>Enable Auto-Stub**</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="434" />
@@ -2541,7 +2541,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="506" />
         <source>Flush log output on each line</source>
-        <translation type="unfinished">Flush log output on each line</translation>
+        <translation>Flush log output on each line</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="513" />
@@ -2556,7 +2556,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="427" />
         <source>Enable Auto-Stub</source>
-        <translation type="unfinished">Enable Auto-Stub</translation>
+        <translation>Enable Auto-Stub</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="499" />
@@ -2570,7 +2570,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     </message>
     <message>
         <source>**This will be reset automatically when yuzu closes.</source>
-        <translation type="vanished">**This will be reset automatically when yuzu closes.</translation>
+        <translation>**This will be reset automatically when yuzu closes.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.cpp" line="84" />
@@ -2619,12 +2619,12 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <name>ConfigureDialog</name>
     <message>
         <source>yuzu Configuration</source>
-        <translation type="vanished">yuzu Configuration</translation>
+        <translation>yuzu Configuration</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure.ui" line="20" />
         <source>eden Configuration</source>
-        <translation type="unfinished">eden Configuration</translation>
+        <translation>eden Configuration</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure.ui" line="67" />
@@ -2678,7 +2678,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="74" />
         <source>GraphicsExtensions</source>
-        <translation type="unfinished">GraphicsExtensions</translation>
+        <translation>GraphicsExtensions</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="75" />
@@ -2815,7 +2815,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="135" />
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="140" />
         <source>Reset Metadata Cache</source>
-        <translation>Restore Default Metadata Cache</translation>
+        <translation>Reset Metadata Cache</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="93" />
@@ -2879,16 +2879,16 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="109" />
         <source>Reset All Settings</source>
-        <translation>Restore Default All Preferences</translation>
+        <translation>Reset All Settings</translation>
     </message>
     <message>
         <source>yuzu</source>
-        <translation type="vanished">yuzu</translation>
+        <translation>yuzu</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.cpp" line="99" />
         <source>eden</source>
-        <translation type="unfinished">eden</translation>
+        <translation>eden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.cpp" line="100" />
@@ -2911,12 +2911,12 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics.ui" line="25" />
         <source>API Settings</source>
-        <translation>API Preferences</translation>
+        <translation>API Settings</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics.ui" line="58" />
         <source>Graphics Settings</source>
-        <translation>Graphics Preferences</translation>
+        <translation>Graphics Settings</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics.ui" line="103" />
@@ -2970,7 +2970,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_advanced.ui" line="25" />
         <source>Advanced Graphics Settings</source>
-        <translation>Advanced Graphics Preferences</translation>
+        <translation>Advanced Graphics Settings</translation>
     </message>
 </context>
 <context>
@@ -2978,24 +2978,24 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_extensions.ui" line="14" />
         <source>Form</source>
-        <translation type="unfinished">Form</translation>
+        <translation>Form</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_extensions.ui" line="17" />
         <source>Extensions</source>
-        <translation type="unfinished">Extensions</translation>
+        <translation>Extensions</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_extensions.ui" line="25" />
         <source>Vulkan Extension Settings</source>
-        <translation type="unfinished">Vulkan Extension Preferences</translation>
+        <translation>Vulkan Extension Settings</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_extensions.ui" line="31" />
         <source>While it's recommended to use state 3, some games may perform better on lower states. Setting to 0 (disabled) may also break games.
 If your GPU is older (i.e. RX570/580 or older), it may not support these features. If this is the case, set the slider to 0 and uncheck all boxes.
 These settings are experimental, and may cause black screens. If your games fail to boot or are stuck on a black screen, change these settings around.</source>
-        <translation type="unfinished">While it's recommended to use state 3, some games may perform better on lower states. Setting to 0 (disabled) may also break games.
+        <translation>While it's recommended to use state 3, some games may perform better on lower states. Setting to 0 (disabled) may also break games.
 If your GPU is older (i.e. RX570/580 or older), it may not support these features. If this is the case, set the slider to 0 and uncheck all boxes.
 These settings are experimental, and may cause black screens. If your games fail to boot or are stuck on a black screen, change these settings around.</translation>
     </message>
@@ -3005,7 +3005,7 @@ These settings are experimental, and may cause black screens. If your games fail
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.ui" line="14" />
         <source>Hotkey Settings</source>
-        <translation>Hotkey Preferences</translation>
+        <translation>Hotkey Settings</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.ui" line="17" />
@@ -3264,7 +3264,7 @@ These settings are experimental, and may cause black screens. If your games fail
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="74" />
         <source>Joycon Colors</source>
-        <translation>Joycon Colors</translation>
+        <translation>Joycon Colours</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="125" />
@@ -3417,11 +3417,11 @@ These settings are experimental, and may cause black screens. If your games fail
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2701" />
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2717" />
         <source>Requires restarting eden</source>
-        <translation type="unfinished">Requires restarting eden</translation>
+        <translation>Requires restarting eden</translation>
     </message>
     <message>
         <source>Requires restarting yuzu</source>
-        <translation type="vanished">Requires restarting yuzu</translation>
+        <translation>Requires restarting yuzu</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2668" />
@@ -4132,7 +4132,7 @@ To invert the axes, first move your joystick vertically, and then horizontally.<
     </message>
     <message>
         <source>&lt;a href='https://yuzu-emu.org/wiki/using-a-controller-or-android-phone-for-motion-or-touch-input'&gt;&lt;span style="text-decoration: underline; color:#039be5;"&gt;Learn More&lt;/span&gt;&lt;/a&gt;</source>
-        <translation type="vanished">&lt;a href='https://yuzu-emu.org/wiki/using-a-controller-or-android-phone-for-motion-or-touch-input'&gt;&lt;span style="text-decoration: underline; colour:#039be5;"&gt;Learn More&lt;/span&gt;&lt;/a&gt;</translation>
+        <translation>&lt;a href='https://yuzu-emu.org/wiki/using-a-controller-or-android-phone-for-motion-or-touch-input'&gt;&lt;span style="text-decoration: underline; colour:#039be5;"&gt;Learn More&lt;/span&gt;&lt;/a&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="168" />
@@ -4141,12 +4141,12 @@ To invert the axes, first move your joystick vertically, and then horizontally.<
     </message>
     <message>
         <source>yuzu</source>
-        <translation type="vanished">yuzu</translation>
+        <translation>yuzu</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="87" />
         <source>&lt;a href='https://eden-emulator.github.io/wiki/using-a-controller-or-android-phone-for-motion-or-touch-input'&gt;&lt;span style="text-decoration: underline; color:#039be5;"&gt;Learn More&lt;/span&gt;&lt;/a&gt;</source>
-        <translation type="unfinished">&lt;a href='https://eden-emulator.github.io/wiki/using-a-controller-or-android-phone-for-motion-or-touch-input'&gt;&lt;span style="text-decoration: underline; colour:#039be5;"&gt;Learn More&lt;/span&gt;&lt;/a&gt;</translation>
+        <translation>&lt;a href='https://eden-emulator.github.io/wiki/using-a-controller-or-android-phone-for-motion-or-touch-input'&gt;&lt;span style="text-decoration: underline; colour:#039be5;"&gt;Learn More&lt;/span&gt;&lt;/a&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="173" />
@@ -4161,7 +4161,7 @@ To invert the axes, first move your joystick vertically, and then horizontally.<
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="193" />
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="287" />
         <source>eden</source>
-        <translation type="unfinished">eden</translation>
+        <translation>eden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="177" />
@@ -4426,7 +4426,7 @@ Current values are %1% and %2% respectively.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="77" />
         <source>GPU Extensions</source>
-        <translation type="unfinished">GPU Extensions</translation>
+        <translation>GPU Extensions</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="78" />
@@ -4794,12 +4794,12 @@ UUID: %2</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reads controller input from scripts in the same format as TAS-nx scripts.&lt;br/&gt;For a more detailed explanation, please consult the &lt;a href="https://yuzu-emu.org/help/feature/tas/"&gt;&lt;span style=" text-decoration: underline; color:#039be5;"&gt;help page&lt;/span&gt;&lt;/a&gt; on the yuzu website.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="vanished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reads controller input from scripts in the same format as TAS-nx scripts.&lt;br/&gt;For a more detailed explanation, please consult the &lt;a href="https://yuzu-emu.org/help/feature/tas/"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;help page&lt;/span&gt;&lt;/a&gt; on the yuzu website.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reads controller input from scripts in the same format as TAS-nx scripts.&lt;br/&gt;For a more detailed explanation, please consult the &lt;a href="https://yuzu-emu.org/help/feature/tas/"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;help page&lt;/span&gt;&lt;/a&gt; on the yuzu website.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="17" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reads controller input from scripts in the same format as TAS-nx scripts.&lt;br/&gt;For a more detailed explanation, please consult the &lt;a href="https://eden-emulator.github.io/help/feature/tas/"&gt;&lt;span style=" text-decoration: underline; color:#039be5;"&gt;help page&lt;/span&gt;&lt;/a&gt; on the eden website.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reads controller input from scripts in the same format as TAS-nx scripts.&lt;br/&gt;For a more detailed explanation, please consult the &lt;a href="https://eden-emulator.github.io/help/feature/tas/"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;help page&lt;/span&gt;&lt;/a&gt; on the eden website.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reads controller input from scripts in the same format as TAS-nx scripts.&lt;br/&gt;For a more detailed explanation, please consult the &lt;a href="https://eden-emulator.github.io/help/feature/tas/"&gt;&lt;span style=" text-decoration: underline; colour:#039be5;"&gt;help page&lt;/span&gt;&lt;/a&gt; on the eden website.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="27" />
@@ -4814,7 +4814,7 @@ UUID: %2</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="54" />
         <source>Settings</source>
-        <translation>Preferences</translation>
+        <translation>Settings</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="60" />
@@ -4961,12 +4961,12 @@ Drag points to change position, or double-click table cells to edit values.</tra
     </message>
     <message>
         <source>Warning: The settings in this page affect the inner workings of yuzu's emulated touchscreen. Changing them may result in undesirable behavior, such as the touchscreen partially or not working. You should only use this page if you know what you are doing.</source>
-        <translation type="vanished">Warning: The settings in this page affect the inner workings of yuzu's emulated touchscreen. Changing them may result in undesirable behavior, such as the touchscreen partially or not working. You should only use this page if you know what you are doing.</translation>
+        <translation>Warning: The settings in this page affect the inner workings of yuzu's emulated touchscreen. Changing them may result in undesirable behavior, such as the touchscreen partially or not working. You should only use this page if you know what you are doing.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touchscreen_advanced.ui" line="26" />
         <source>Warning: The settings in this page affect the inner workings of eden's emulated touchscreen. Changing them may result in undesirable behavior, such as the touchscreen partially or not working. You should only use this page if you know what you are doing.</source>
-        <translation type="unfinished">Warning: The settings in this page affect the inner workings of eden's emulated touchscreen. Changing them may result in undesirable behavior, such as the touchscreen partially or not working. You should only use this page if you know what you are doing.</translation>
+        <translation>Warning: The settings in this page affect the inner workings of eden's emulated touchscreen. Changing them may result in undesirable behavior, such as the touchscreen partially or not working. You should only use this page if you know what you are doing.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touchscreen_advanced.ui" line="52" />
@@ -5265,7 +5265,7 @@ Drag points to change position, or double-click table cells to edit values.</tra
     <message>
         <location filename="../../src/yuzu/configuration/configure_vibration.ui" line="503" />
         <source>Settings</source>
-        <translation>Preferences</translation>
+        <translation>Settings</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_vibration.ui" line="509" />
@@ -5287,21 +5287,21 @@ Drag points to change position, or double-click table cells to edit values.</tra
     </message>
     <message>
         <source>yuzu Web Service</source>
-        <translation type="vanished">yuzu Web Service</translation>
+        <translation>yuzu Web Service</translation>
     </message>
     <message>
         <source>By providing your username and token, you agree to allow yuzu to collect additional usage data, which may include user identifying information.</source>
-        <translation type="vanished">By providing your username and token, you agree to allow yuzu to collect additional usage data, which may include user identifying information.</translation>
+        <translation>By providing your username and token, you agree to allow yuzu to collect additional usage data, which may include user identifying information.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.ui" line="25" />
         <source>eden Web Service</source>
-        <translation type="unfinished">eden Web Service</translation>
+        <translation>eden Web Service</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.ui" line="31" />
         <source>By providing your username and token, you agree to allow eden to collect additional usage data, which may include user identifying information.</source>
-        <translation type="unfinished">By providing your username and token, you agree to allow eden to collect additional usage data, which may include user identifying information.</translation>
+        <translation>By providing your username and token, you agree to allow eden to collect additional usage data, which may include user identifying information.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.ui" line="49" />
@@ -5335,23 +5335,23 @@ Drag points to change position, or double-click table cells to edit values.</tra
     </message>
     <message>
         <source>Telemetry</source>
-        <translation type="vanished">Telemetry</translation>
+        <translation>Telemetry</translation>
     </message>
     <message>
         <source>Share anonymous usage data with the yuzu team</source>
-        <translation type="vanished">Share anonymous usage data with the yuzu team</translation>
+        <translation>Share anonymous usage data with the yuzu team</translation>
     </message>
     <message>
         <source>Learn more</source>
-        <translation type="vanished">Learn more</translation>
+        <translation>Learn more</translation>
     </message>
     <message>
         <source>Telemetry ID:</source>
-        <translation type="vanished">Telemetry ID:</translation>
+        <translation>Telemetry ID:</translation>
     </message>
     <message>
         <source>Regenerate</source>
-        <translation type="vanished">Regenerate</translation>
+        <translation>Regenerate</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.ui" line="140" />
@@ -5365,7 +5365,7 @@ Drag points to change position, or double-click table cells to edit values.</tra
     </message>
     <message>
         <source>&lt;a href='https://yuzu-emu.org/help/feature/telemetry/'&gt;&lt;span style="text-decoration: underline; color:#039be5;"&gt;Learn more&lt;/span&gt;&lt;/a&gt;</source>
-        <translation type="vanished">&lt;a href='https://yuzu-emu.org/help/feature/telemetry/'&gt;&lt;span style="text-decoration: underline; colour:#039be5;"&gt;Learn more&lt;/span&gt;&lt;/a&gt;</translation>
+        <translation>&lt;a href='https://yuzu-emu.org/help/feature/telemetry/'&gt;&lt;span style="text-decoration: underline; colour:#039be5;"&gt;Learn more&lt;/span&gt;&lt;/a&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.cpp" line="65" />
@@ -5375,37 +5375,37 @@ Drag points to change position, or double-click table cells to edit values.</tra
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.cpp" line="69" />
         <source>&lt;a href='https://evilperson1337.notion.site/Hosting-a-Room-Inside-of-Eden-20457c2edaf680108abac6215a79acdb'&gt;&lt;span style="text-decoration: underline; color:#039be5;"&gt;What is my token?&lt;/span&gt;&lt;/a&gt;</source>
-        <translation type="unfinished">&lt;a href='https://evilperson1337.notion.site/Hosting-a-Room-Inside-of-Eden-20457c2edaf680108abac6215a79acdb'&gt;&lt;span style="text-decoration: underline; colour:#039be5;"&gt;What is my token?&lt;/span&gt;&lt;/a&gt;</translation>
+        <translation>&lt;a href='https://evilperson1337.notion.site/Hosting-a-Room-Inside-of-Eden-20457c2edaf680108abac6215a79acdb'&gt;&lt;span style="text-decoration: underline; colour:#039be5;"&gt;What is my token?&lt;/span&gt;&lt;/a&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.cpp" line="117" />
         <source>Warning</source>
-        <translation type="unfinished">Warning</translation>
+        <translation>Warning</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.cpp" line="118" />
         <source>Verification is currently nonfunctional, instead generate a random 48-character string with only lowercase a-z.</source>
-        <translation type="unfinished">Verification is currently nonfunctional, instead generate a random 48-character string with only lowercase a-z.</translation>
+        <translation>Verification is currently nonfunctional, instead generate a random 48-character string with only lowercase a-z.</translation>
     </message>
     <message>
         <source>&lt;a href='https://yuzu-emu.org/wiki/yuzu-web-service/'&gt;&lt;span style="text-decoration: underline; color:#039be5;"&gt;What is my token?&lt;/span&gt;&lt;/a&gt;</source>
-        <translation type="vanished">&lt;a href='https://yuzu-emu.org/wiki/yuzu-web-service/'&gt;&lt;span style="text-decoration: underline; colour:#039be5;"&gt;What is my token?&lt;/span&gt;&lt;/a&gt;</translation>
+        <translation>&lt;a href='https://yuzu-emu.org/wiki/yuzu-web-service/'&gt;&lt;span style="text-decoration: underline; colour:#039be5;"&gt;What is my token?&lt;/span&gt;&lt;/a&gt;</translation>
     </message>
     <message>
         <source>Telemetry ID: 0x%1</source>
-        <translation type="vanished">Telemetry ID: 0x%1</translation>
+        <translation>Telemetry ID: 0x%1</translation>
     </message>
     <message>
         <source>Unspecified</source>
-        <translation type="vanished">Unspecified</translation>
+        <translation>Unspecified</translation>
     </message>
     <message>
         <source>Token not verified</source>
-        <translation type="vanished">Token not verified</translation>
+        <translation>Token not verified</translation>
     </message>
     <message>
         <source>Token was not verified. The change to your token has not been saved.</source>
-        <translation type="vanished">Token was not verified. The change to your token has not been saved.</translation>
+        <translation>Token was not verified. The change to your token has not been saved.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.cpp" line="111" />
@@ -5415,25 +5415,25 @@ Drag points to change position, or double-click table cells to edit values.</tra
     </message>
     <message>
         <source>Verifying...</source>
-        <translation type="vanished">Verifying...</translation>
+        <translation>Verifying...</translation>
     </message>
     <message>
         <source>Verified</source>
         <comment>Tooltip</comment>
-        <translation type="vanished">Verified</translation>
+        <translation>Verified</translation>
     </message>
     <message>
         <source>Verification failed</source>
         <comment>Tooltip</comment>
-        <translation type="vanished">Verification failed</translation>
+        <translation>Verification failed</translation>
     </message>
     <message>
         <source>Verification failed</source>
-        <translation type="vanished">Verification failed</translation>
+        <translation>Verification failed</translation>
     </message>
     <message>
         <source>Verification failed. Check that you have entered your token correctly, and that your internet connection is working.</source>
-        <translation type="vanished">Verification failed. Check that you have entered your token correctly, and that your internet connection is working.</translation>
+        <translation>Verification failed. Check that you have entered your token correctly, and that your internet connection is working.</translation>
     </message>
 </context>
 <context>
@@ -5510,122 +5510,122 @@ Drag points to change position, or double-click table cells to edit values.</tra
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="11" />
         <source>Username is not valid. Must be 4 to 20 alphanumeric characters.</source>
-        <translation type="unfinished">Username is not valid. Must be 4 to 20 alphanumeric characters.</translation>
+        <translation>Username is not valid. Must be 4 to 20 alphanumeric characters.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="13" />
         <source>Room name is not valid. Must be 4 to 20 alphanumeric characters.</source>
-        <translation type="unfinished">Room name is not valid. Must be 4 to 20 alphanumeric characters.</translation>
+        <translation>Room name is not valid. Must be 4 to 20 alphanumeric characters.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="15" />
         <source>Username is already in use or not valid. Please choose another.</source>
-        <translation type="unfinished">Username is already in use or not valid. Please choose another.</translation>
+        <translation>Username is already in use or not valid. Please choose another.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="17" />
         <source>IP is not a valid IPv4 address.</source>
-        <translation type="unfinished">IP is not a valid IPv4 address.</translation>
+        <translation>IP is not a valid IPv4 address.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="19" />
         <source>Port must be a number between 0 to 65535.</source>
-        <translation type="unfinished">Port must be a number between 0 to 65535.</translation>
+        <translation>Port must be a number between 0 to 65535.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="20" />
         <source>You must choose a Preferred Game to host a room. If you do not have any games in your game list yet, add a game folder by clicking on the plus icon in the game list.</source>
-        <translation type="unfinished">You must choose a Preferred Game to host a room. If you do not have any games in your game list yet, add a game folder by clicking on the plus icon in the game list.</translation>
+        <translation>You must choose a Preferred Game to host a room. If you do not have any games in your game list yet, add a game folder by clicking on the plus icon in the game list.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="24" />
         <source>Unable to find an internet connection. Check your internet settings.</source>
-        <translation type="unfinished">Unable to find an internet connection. Check your internet settings.</translation>
+        <translation>Unable to find an internet connection. Check your internet settings.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="26" />
         <source>Unable to connect to the host. Verify that the connection settings are correct. If you still cannot connect, contact the room host and verify that the host is properly configured with the external port forwarded.</source>
-        <translation type="unfinished">Unable to connect to the host. Verify that the connection settings are correct. If you still cannot connect, contact the room host and verify that the host is properly configured with the external port forwarded.</translation>
+        <translation>Unable to connect to the host. Verify that the connection settings are correct. If you still cannot connect, contact the room host and verify that the host is properly configured with the external port forwarded.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="30" />
         <source>Unable to connect to the room because it is already full.</source>
-        <translation type="unfinished">Unable to connect to the room because it is already full.</translation>
+        <translation>Unable to connect to the room because it is already full.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="32" />
         <source>Creating a room failed. Please retry. Restarting eden might be necessary.</source>
-        <translation type="unfinished">Creating a room failed. Please retry. Restarting eden might be necessary.</translation>
+        <translation>Creating a room failed. Please retry. Restarting eden might be necessary.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="34" />
         <source>The host of the room has banned you. Speak with the host to unban you or try a different room.</source>
-        <translation type="unfinished">The host of the room has banned you. Speak with the host to unban you or try a different room.</translation>
+        <translation>The host of the room has banned you. Speak with the host to unban you or try a different room.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="37" />
         <source>Version mismatch! Please update to the latest version of eden. If the problem persists, contact the room host and ask them to update the server.</source>
-        <translation type="unfinished">Version mismatch! Please update to the latest version of eden. If the problem persists, contact the room host and ask them to update the server.</translation>
+        <translation>Version mismatch! Please update to the latest version of eden. If the problem persists, contact the room host and ask them to update the server.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="39" />
         <source>Incorrect password.</source>
-        <translation type="unfinished">Incorrect password.</translation>
+        <translation>Incorrect password.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="40" />
         <source>An unknown error occurred. If this error continues to occur, please open an issue</source>
-        <translation type="unfinished">An unknown error occurred. If this error continues to occur, please open an issue</translation>
+        <translation>An unknown error occurred. If this error continues to occur, please open an issue</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="43" />
         <source>Connection to room lost. Try to reconnect.</source>
-        <translation type="unfinished">Connection to room lost. Try to reconnect.</translation>
+        <translation>Connection to room lost. Try to reconnect.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="45" />
         <source>You have been kicked by the room host.</source>
-        <translation type="unfinished">You have been kicked by the room host.</translation>
+        <translation>You have been kicked by the room host.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="47" />
         <source>IP address is already in use. Please choose another.</source>
-        <translation type="unfinished">IP address is already in use. Please choose another.</translation>
+        <translation>IP address is already in use. Please choose another.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="49" />
         <source>You do not have enough permission to perform this action.</source>
-        <translation type="unfinished">You do not have enough permission to perform this action.</translation>
+        <translation>You do not have enough permission to perform this action.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="50" />
         <source>The user you are trying to kick/ban could not be found.
 They may have left the room.</source>
-        <translation type="unfinished">The user you are trying to kick/ban could not be found.
+        <translation>The user you are trying to kick/ban could not be found.
 They may have left the room.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="52" />
         <source>No valid network interface is selected.
 Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
-        <translation type="unfinished">No valid network interface is selected.
+        <translation>No valid network interface is selected.
 Please go to Configure -&gt; System -&gt; Network and make a selection.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="63" />
         <source>Error</source>
-        <translation type="unfinished">Error</translation>
+        <translation>Error</translation>
     </message>
 </context>
 <context>
     <name>GMainWindow</name>
     <message>
         <source>&lt;a href='https://yuzu-emu.org/help/feature/telemetry/'&gt;Anonymous data is collected&lt;/a&gt; to help improve yuzu. &lt;br/&gt;&lt;br/&gt;Would you like to share your usage data with us?</source>
-        <translation type="vanished">&lt;a href='https://yuzu-emu.org/help/feature/telemetry/'&gt;Anonymous data is collected&lt;/a&gt; to help improve yuzu. &lt;br/&gt;&lt;br/&gt;Would you like to share your usage data with us?</translation>
+        <translation>&lt;a href='https://yuzu-emu.org/help/feature/telemetry/'&gt;Anonymous data is collected&lt;/a&gt; to help improve yuzu. &lt;br/&gt;&lt;br/&gt;Would you like to share your usage data with us?</translation>
     </message>
     <message>
         <source>Telemetry</source>
-        <translation type="vanished">Telemetry</translation>
+        <translation>Telemetry</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="486" />
@@ -5634,7 +5634,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</transla
     </message>
     <message>
         <source>Vulkan initialization failed during boot.&lt;br&gt;&lt;br&gt;Click &lt;a href='https://yuzu-emu.org/wiki/faq/#yuzu-starts-with-the-error-broken-vulkan-installation-detected'&gt;here for instructions to fix the issue&lt;/a&gt;.</source>
-        <translation type="vanished">Vulkan initialization failed during boot.&lt;br&gt;&lt;br&gt;Click &lt;a href='https://yuzu-emu.org/wiki/faq/#yuzu-starts-with-the-error-broken-vulkan-installation-detected'&gt;here for instructions to fix the issue&lt;/a&gt;.</translation>
+        <translation>Vulkan initialisation failed during boot.&lt;br&gt;&lt;br&gt;Click &lt;a href='https://yuzu-emu.org/wiki/faq/#yuzu-starts-with-the-error-broken-vulkan-installation-detected'&gt;here for instructions to fix the issue&lt;/a&gt;.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="512" />
@@ -5698,7 +5698,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</transla
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1171" />
         <source>Reset Volume</source>
-        <translation>Restore Default Volume</translation>
+        <translation>Reset Volume</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1367" />
@@ -5722,7 +5722,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</transla
     </message>
     <message>
         <source>You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;&lt;br&gt;For an explanation of the various Switch formats yuzu supports, &lt;a href='https://yuzu-emu.org/wiki/overview-of-switch-game-formats'&gt;check out our wiki&lt;/a&gt;. This message will not be shown again.</source>
-        <translation type="vanished">You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;&lt;br&gt;For an explanation of the various Switch formats yuzu supports, &lt;a href='https://yuzu-emu.org/wiki/overview-of-switch-game-formats'&gt;check out our wiki&lt;/a&gt;. This message will not be shown again.</translation>
+        <translation>You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;&lt;br&gt;For an explanation of the various Switch formats yuzu supports, &lt;a href='https://yuzu-emu.org/wiki/overview-of-switch-game-formats'&gt;check out our wiki&lt;/a&gt;. This message will not be shown again.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1951" />
@@ -5742,7 +5742,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</transla
     </message>
     <message>
         <source>yuzu has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href='https://yuzu-emu.org/help/reference/log-files/'&gt;How to Upload the Log File&lt;/a&gt;. </source>
-        <translation type="vanished">yuzu has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href='https://yuzu-emu.org/help/reference/log-files/'&gt;How to Upload the Log File&lt;/a&gt;. </translation>
+        <translation>yuzu has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href='https://yuzu-emu.org/help/reference/log-files/'&gt;How to Upload the Log File&lt;/a&gt;. </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1972" />
@@ -5753,43 +5753,43 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</transla
     <message>
         <source>%1&lt;br&gt;Please follow &lt;a href='https://yuzu-emu.org/help/quickstart/'&gt;the yuzu quickstart guide&lt;/a&gt; to redump your files.&lt;br&gt;You can refer to the yuzu wiki&lt;/a&gt; or the yuzu Discord&lt;/a&gt; for help.</source>
         <comment>%1 signifies an error string.</comment>
-        <translation type="vanished">%1&lt;br&gt;Please follow &lt;a href='https://yuzu-emu.org/help/quickstart/'&gt;the yuzu quickstart guide&lt;/a&gt; to redump your files.&lt;br&gt;You can refer to the yuzu wiki&lt;/a&gt; or the yuzu Discord&lt;/a&gt; for help.</translation>
+        <translation>%1&lt;br&gt;Please follow &lt;a href='https://yuzu-emu.org/help/quickstart/'&gt;the yuzu quickstart guide&lt;/a&gt; to redump your files.&lt;br&gt;You can refer to the yuzu wiki&lt;/a&gt; or the yuzu Discord&lt;/a&gt; for help.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="487" />
         <source>Vulkan initialization failed during boot.&lt;br&gt;&lt;br&gt;Click &lt;a href='https://eden-emulator.github.io/wiki/faq/#yuzu-starts-with-the-error-broken-vulkan-installation-detected'&gt;here for instructions to fix the issue&lt;/a&gt;.</source>
-        <translation type="unfinished">Vulkan initialization failed during boot.&lt;br&gt;&lt;br&gt;Click &lt;a href='https://eden-emulator.github.io/wiki/faq/#yuzu-starts-with-the-error-broken-vulkan-installation-detected'&gt;here for instructions to fix the issue&lt;/a&gt;.</translation>
+        <translation>Vulkan initialisation failed during boot.&lt;br&gt;&lt;br&gt;Click &lt;a href='https://eden-emulator.github.io/wiki/faq/#yuzu-starts-with-the-error-broken-vulkan-installation-detected'&gt;here for instructions to fix the issue&lt;/a&gt;.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1887" />
         <source>Game Updates Warning</source>
-        <translation type="unfinished">Game Updates Warning</translation>
+        <translation>Game Updates Warning</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1889" />
         <source>The game you are trying to launch is known to have performance or booting issues when updates are applied. Please try increasing the memory layout to 6GB or 8GB if any issues occur.&lt;br&gt;&lt;br&gt;Press "OK" to continue launching, or "Cancel" to cancel the launch.</source>
-        <translation type="unfinished">The game you are trying to launch is known to have performance or booting issues when updates are applied. Please try increasing the memory layout to 6GB or 8GB if any issues occur.&lt;br&gt;&lt;br&gt;Press "OK" to continue launching, or "Cancel" to cancel the launch.</translation>
+        <translation>The game you are trying to launch is known to have performance or booting issues when updates are applied. Please try increasing the memory layout to 6GB or 8GB if any issues occur.&lt;br&gt;&lt;br&gt;Press "OK" to continue launching, or "Cancel" to cancel the launch.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1899" />
         <source>Don't show again for this game</source>
-        <translation type="unfinished">Don't show again for this game</translation>
+        <translation>Don't show again for this game</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1939" />
         <source>You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;&lt;br&gt;For an explanation of the various Switch formats eden supports, &lt;a href='https://eden-emulator.github.io/wiki/overview-of-switch-game-formats'&gt;check out our wiki&lt;/a&gt;. This message will not be shown again.</source>
-        <translation type="unfinished">You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;&lt;br&gt;For an explanation of the various Switch formats eden supports, &lt;a href='https://eden-emulator.github.io/wiki/overview-of-switch-game-formats'&gt;check out our wiki&lt;/a&gt;. This message will not be shown again.</translation>
+        <translation>You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;&lt;br&gt;For an explanation of the various Switch formats eden supports, &lt;a href='https://eden-emulator.github.io/wiki/overview-of-switch-game-formats'&gt;check out our wiki&lt;/a&gt;. This message will not be shown again.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1957" />
         <source>eden has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href='https://eden-emulator.github.io/help/reference/log-files/'&gt;How to Upload the Log File&lt;/a&gt;. </source>
-        <translation type="unfinished">eden has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href='https://eden-emulator.github.io/help/reference/log-files/'&gt;How to Upload the Log File&lt;/a&gt;. </translation>
+        <translation>eden has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href='https://eden-emulator.github.io/help/reference/log-files/'&gt;How to Upload the Log File&lt;/a&gt;. </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1975" />
         <source>%1&lt;br&gt;Please redump your files or ask on Discord for help.</source>
         <comment>%1 signifies an error string.</comment>
-        <translation type="unfinished">%1&lt;br&gt;Please redump your files or ask on Discord for help.</translation>
+        <translation>%1&lt;br&gt;Please redump your files or ask on Discord for help.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1984" />
@@ -5961,7 +5961,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</transla
     <message>
         <location filename="../../src/yuzu/main.cpp" line="2696" />
         <source>Reset play time?</source>
-        <translation>Restore Default play time?</translation>
+        <translation>Reset play time?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="2722" />
@@ -6282,7 +6282,7 @@ Please, only use this feature to install updates and DLC.</translation>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3383" />
         <source>System Application</source>
-        <translation>System App</translation>
+        <translation>System Application</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3384" />
@@ -6292,7 +6292,7 @@ Please, only use this feature to install updates and DLC.</translation>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3385" />
         <source>System Application Update</source>
-        <translation>System App Update</translation>
+        <translation>System Application Update</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3386" />
@@ -6381,47 +6381,47 @@ Please, only use this feature to install updates and DLC.</translation>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3594" />
         <source>In order to submit a game compatibility test case, you must link your eden account.&lt;br&gt;&lt;br/&gt;To link your eden account, go to Emulation &amp;gt; Configuration &amp;gt; Web.</source>
-        <translation type="unfinished">In order to submit a game compatibility test case, you must link your eden account.&lt;br&gt;&lt;br/&gt;To link your eden account, go to Emulation &amp;gt; Configuration &amp;gt; Web.</translation>
+        <translation>In order to submit a game compatibility test case, you must link your eden account.&lt;br&gt;&lt;br/&gt;To link your eden account, go to Emulation &amp;gt; Configuration &amp;gt; Web.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4202" />
         <source>Install decryption keys and restart eden before attempting to install firmware.</source>
-        <translation type="unfinished">Install decryption keys and restart eden before attempting to install firmware.</translation>
+        <translation>Install decryption keys and restart eden before attempting to install firmware.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4291" />
         <source>Firmware installation cancelled, firmware may be in bad state, restart eden or re-install firmware.</source>
-        <translation type="unfinished">Firmware installation cancelled, firmware may be in bad state, restart eden or re-install firmware.</translation>
+        <translation>Firmware installation cancelled, firmware may be in bad state, restart eden or re-install firmware.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="5062" />
         <source>Encryption keys are missing.</source>
-        <translation type="unfinished">Encryption keys are missing.</translation>
+        <translation>Encryption keys are missing.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="5175" />
         <source>Are you sure you want to close eden?</source>
-        <translation type="unfinished">Are you sure you want to close eden?</translation>
+        <translation>Are you sure you want to close eden?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="5176" />
         <location filename="../../src/yuzu/main.cpp" line="5256" />
         <location filename="../../src/yuzu/main.cpp" line="5268" />
         <source>eden</source>
-        <translation type="unfinished">eden</translation>
+        <translation>eden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="5265" />
         <source>The currently running application has requested eden to not exit.
 
 Would you like to bypass this and exit anyway?</source>
-        <translation type="unfinished">The currently running application has requested eden to not exit.
+        <translation>The currently running application has requested eden to not exit.
 
 Would you like to bypass this and exit anyway?</translation>
     </message>
     <message>
         <source>In order to submit a game compatibility test case, you must link your yuzu account.&lt;br&gt;&lt;br/&gt;To link your yuzu account, go to Emulation &amp;gt; Configuration &amp;gt; Web.</source>
-        <translation type="vanished">In order to submit a game compatibility test case, you must link your yuzu account.&lt;br&gt;&lt;br/&gt;To link your yuzu account, go to Emulation &amp;gt; Configuration &amp;gt; Web.</translation>
+        <translation>In order to submit a game compatibility test case, you must link your yuzu account.&lt;br&gt;&lt;br/&gt;To link your yuzu account, go to Emulation &amp;gt; Configuration &amp;gt; Web.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3609" />
@@ -6523,7 +6523,7 @@ Would you like to bypass this and exit anyway?</translation>
     </message>
     <message>
         <source>Install decryption keys and restart yuzu before attempting to install firmware.</source>
-        <translation type="vanished">Install decryption keys and restart yuzu before attempting to install firmware.</translation>
+        <translation>Install decryption keys and restart yuzu before attempting to install firmware.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4207" />
@@ -6555,7 +6555,7 @@ Would you like to bypass this and exit anyway?</translation>
     </message>
     <message>
         <source>Firmware installation cancelled, firmware may be in bad state, restart yuzu or re-install firmware.</source>
-        <translation type="vanished">Firmware installation cancelled, firmware may be in bad state, restart yuzu or re-install firmware.</translation>
+        <translation>Firmware installation cancelled, firmware may be in bad state, restart yuzu or re-install firmware.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4300" />
@@ -6570,39 +6570,39 @@ Would you like to bypass this and exit anyway?</translation>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4336" />
         <source>Select Dumped Keys Location</source>
-        <translation type="unfinished">Select Dumped Keys Location</translation>
+        <translation>Select Dumped Keys Location</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4369" />
         <location filename="../../src/yuzu/main.cpp" line="4381" />
         <location filename="../../src/yuzu/main.cpp" line="4399" />
         <source>Decryption Keys install failed</source>
-        <translation type="unfinished">Decryption Keys install failed</translation>
+        <translation>Decryption Keys install failed</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4370" />
         <source>prod.keys is a required decryption key file.</source>
-        <translation type="unfinished">prod.keys is a required decryption key file.</translation>
+        <translation>prod.keys is a required decryption key file.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4382" />
         <source>One or more keys failed to copy.</source>
-        <translation type="unfinished">One or more keys failed to copy.</translation>
+        <translation>One or more keys failed to copy.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4395" />
         <source>Decryption Keys install succeeded</source>
-        <translation type="unfinished">Decryption Keys install succeeded</translation>
+        <translation>Decryption Keys install succeeded</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4396" />
         <source>Decryption Keys were successfully installed</source>
-        <translation type="unfinished">Decryption Keys were successfully installed</translation>
+        <translation>Decryption Keys were successfully installed</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4400" />
         <source>Decryption Keys failed to initialize. Check that your dumping tools are up to date and re-dump keys.</source>
-        <translation type="unfinished">Decryption Keys failed to initialize. Check that your dumping tools are up to date and re-dump keys.</translation>
+        <translation>Decryption Keys failed to initialize. Check that your dumping tools are up to date and re-dump keys.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4435" />
@@ -6678,39 +6678,39 @@ Would you like to bypass this and exit anyway?</translation>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4531" />
         <source>Please install the firmware to use the Home Menu.</source>
-        <translation type="unfinished">Please install the firmware to use the Home Menu.</translation>
+        <translation>Please install the firmware to use the Home Menu.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4537" />
         <location filename="../../src/yuzu/main.cpp" line="4720" />
         <source>Home Menu Applet</source>
-        <translation type="unfinished">Home Menu Applet</translation>
+        <translation>Home Menu Applet</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4538" />
         <location filename="../../src/yuzu/main.cpp" line="4721" />
         <source>Home Menu is not available. Please reinstall firmware.</source>
-        <translation type="unfinished">Home Menu is not available. Please reinstall firmware.</translation>
+        <translation>Home Menu is not available. Please reinstall firmware.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4555" />
         <source>Please install the firmware to use Starter.</source>
-        <translation type="unfinished">Please install the firmware to use Starter.</translation>
+        <translation>Please install the firmware to use Starter.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4561" />
         <source>Starter Applet</source>
-        <translation type="unfinished">Starter Applet</translation>
+        <translation>Starter Applet</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4562" />
         <source>Starter is not available. Please reinstall firmware.</source>
-        <translation type="unfinished">Starter is not available. Please reinstall firmware.</translation>
+        <translation>Starter is not available. Please reinstall firmware.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4714" />
         <source>Please install firmware to use the home menu.</source>
-        <translation type="unfinished">Please install firmware to use the home menu.</translation>
+        <translation>Please install firmware to use the home menu.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4753" />
@@ -6725,13 +6725,13 @@ Would you like to bypass this and exit anyway?</translation>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4798" />
         <source>Update Available</source>
-        <translation type="unfinished">Update Available</translation>
+        <translation>Update Available</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4802" />
         <source>Update %1 for Eden is available.
 Would you like to download it?</source>
-        <translation type="unfinished">Update %1 for Eden is available.
+        <translation>Update %1 for Eden is available.
 Would you like to download it?</translation>
     </message>
     <message>
@@ -6799,7 +6799,7 @@ Would you like to download it?</translation>
     </message>
     <message>
         <source>Game: %1 FPS (Unlocked)</source>
-        <translation type="vanished">Game: %1 FPS (Unlocked)</translation>
+        <translation>Game: %1 FPS (Unlocked)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4933" />
@@ -6845,7 +6845,7 @@ Would you like to download it?</translation>
     </message>
     <message>
         <source>Encryption keys are missing. &lt;br&gt;Please follow &lt;a href='https://yuzu-emu.org/help/quickstart/'&gt;the yuzu quickstart guide&lt;/a&gt; to get all your keys, firmware and games.</source>
-        <translation type="vanished">Encryption keys are missing. &lt;br&gt;Please follow &lt;a href='https://yuzu-emu.org/help/quickstart/'&gt;the yuzu quickstart guide&lt;/a&gt; to get all your keys, firmware and games.</translation>
+        <translation>Encryption keys are missing. &lt;br&gt;Please follow &lt;a href='https://yuzu-emu.org/help/quickstart/'&gt;the yuzu quickstart guide&lt;/a&gt; to get all your keys, firmware and games.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="5151" />
@@ -6859,11 +6859,11 @@ Would you like to download it?</translation>
     </message>
     <message>
         <source>Are you sure you want to close yuzu?</source>
-        <translation type="vanished">Are you sure you want to close yuzu?</translation>
+        <translation>Are you sure you want to close yuzu?</translation>
     </message>
     <message>
         <source>yuzu</source>
-        <translation type="vanished">yuzu</translation>
+        <translation>yuzu</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="5257" />
@@ -6874,7 +6874,7 @@ Would you like to download it?</translation>
         <source>The currently running application has requested yuzu to not exit.
 
 Would you like to bypass this and exit anyway?</source>
-        <translation type="vanished">The currently running application has requested yuzu to not exit.
+        <translation>The currently running application has requested yuzu to not exit.
 
 Would you like to bypass this and exit anyway?</translation>
     </message>
@@ -6921,7 +6921,7 @@ Would you like to bypass this and exit anyway?</translation>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.h" line="49" />
         <source>Area</source>
-        <translation type="unfinished">Area</translation>
+        <translation>Area</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.h" line="53" />
@@ -6994,12 +6994,12 @@ Would you like to bypass this and exit anyway?</translation>
     </message>
     <message>
         <source>yuzu has not been compiled with OpenGL support.</source>
-        <translation type="vanished">yuzu has not been compiled with OpenGL support.</translation>
+        <translation>yuzu has not been compiled with OpenGL support.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/bootmanager.cpp" line="1037" />
         <source>eden has not been compiled with OpenGL support.</source>
-        <translation type="unfinished">eden has not been compiled with OpenGL support.</translation>
+        <translation>eden has not been compiled with OpenGL support.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/bootmanager.cpp" line="1061" />
@@ -7149,16 +7149,16 @@ Would you like to bypass this and exit anyway?</translation>
     <message>
         <location filename="../../src/yuzu/game_list.cpp" line="577" />
         <source>Add to Applications Menu</source>
-        <translation>Add to Apps Menu</translation>
+        <translation>Add to Applications Menu</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/game_list.cpp" line="580" />
         <source>Configure Game</source>
-        <translation type="unfinished">Configure Game</translation>
+        <translation>Configure Game</translation>
     </message>
     <message>
         <source>Properties</source>
-        <translation type="vanished">Properties</translation>
+        <translation>Properties</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/game_list.cpp" line="666" />
@@ -7391,13 +7391,13 @@ Would you like to bypass this and exit anyway?</translation>
         <location filename="../../src/yuzu/multiplayer/host_room.cpp" line="188" />
         <source>Failed to announce the room to the public lobby. In order to host a room publicly, you must have a valid eden account configured in Emulation -&gt; Configure -&gt; Web. If you do not want to publish a room in the public lobby, then select Unlisted instead.
 Debug Message: </source>
-        <translation type="unfinished">Failed to announce the room to the public lobby. In order to host a room publicly, you must have a valid eden account configured in Emulation -&gt; Configure -&gt; Web. If you do not want to publish a room in the public lobby, then select Unlisted instead.
+        <translation>Failed to announce the room to the public lobby. In order to host a room publicly, you must have a valid eden account configured in Emulation -&gt; Configure -&gt; Web. If you do not want to publish a room in the public lobby, then select Unlisted instead.
 Debug Message: </translation>
     </message>
     <message>
         <source>Failed to announce the room to the public lobby. In order to host a room publicly, you must have a valid yuzu account configured in Emulation -&gt; Configure -&gt; Web. If you do not want to publish a room in the public lobby, then select Unlisted instead.
 Debug Message: </source>
-        <translation type="vanished">Failed to announce the room to the public lobby. In order to host a room publicly, you must have a valid yuzu account configured in Emulation -&gt; Configure -&gt; Web. If you do not want to publish a room in the public lobby, then select Unlisted instead.
+        <translation>Failed to announce the room to the public lobby. In order to host a room publicly, you must have a valid yuzu account configured in Emulation -&gt; Configure -&gt; Web. If you do not want to publish a room in the public lobby, then select Unlisted instead.
 Debug Message: </translation>
     </message>
 </context>
@@ -7475,12 +7475,12 @@ Debug Message: </translation>
     <message>
         <location filename="../../src/yuzu/uisettings.h" line="241" />
         <source>Configure</source>
-        <translation type="unfinished">Configure</translation>
+        <translation>Configure</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/uisettings.h" line="242" />
         <source>Configure Current Game</source>
-        <translation type="unfinished">Configure Current Game</translation>
+        <translation>Configure Current Game</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/uisettings.h" line="243" />
@@ -7494,12 +7494,12 @@ Debug Message: </translation>
     </message>
     <message>
         <source>Exit yuzu</source>
-        <translation type="vanished">Exit yuzu</translation>
+        <translation>Exit yuzu</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/uisettings.h" line="245" />
         <source>Exit eden</source>
-        <translation type="unfinished">Exit eden</translation>
+        <translation>Exit eden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/uisettings.h" line="246" />
@@ -7559,7 +7559,7 @@ Debug Message: </translation>
     <message>
         <location filename="../../src/yuzu/uisettings.h" line="257" />
         <source>TAS Reset</source>
-        <translation>TAS Restore Default</translation>
+        <translation>TAS Reset</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/uisettings.h" line="258" />
@@ -7777,7 +7777,7 @@ Debug Message: </translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="90" />
         <source>&amp;Reset Window Size</source>
-        <translation>&amp;Restore Default Window Size</translation>
+        <translation>&amp;Reset Window Size</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="95" />
@@ -7787,32 +7787,32 @@ Debug Message: </translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="100" />
         <source>Reset Window Size to &amp;720p</source>
-        <translation>Restore Default Window Size to &amp;720p</translation>
+        <translation>Reset Window Size to &amp;720p</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="103" />
         <source>Reset Window Size to 720p</source>
-        <translation>Restore Default Window Size to 720p</translation>
+        <translation>Reset Window Size to 720p</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="108" />
         <source>Reset Window Size to &amp;900p</source>
-        <translation>Restore Default Window Size to &amp;900p</translation>
+        <translation>Reset Window Size to &amp;900p</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="111" />
         <source>Reset Window Size to 900p</source>
-        <translation>Restore Default Window Size to 900p</translation>
+        <translation>Reset Window Size to 900p</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="116" />
         <source>Reset Window Size to &amp;1080p</source>
-        <translation>Restore Default Window Size to &amp;1080p</translation>
+        <translation>Reset Window Size to &amp;1080p</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="119" />
         <source>Reset Window Size to 1080p</source>
-        <translation>Restore Default Window Size to 1080p</translation>
+        <translation>Reset Window Size to 1080p</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="136" />
@@ -7837,7 +7837,7 @@ Debug Message: </translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="170" />
         <source>&amp;Create Home Menu Shortcut</source>
-        <translation type="unfinished">&amp;Create Home Menu Shortcut</translation>
+        <translation>&amp;Create Home Menu Shortcut</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="192" />
@@ -7882,41 +7882,41 @@ Debug Message: </translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="255" />
         <source>&amp;About eden</source>
-        <translation type="unfinished">&amp;About the eden</translation>
+        <translation>&amp;About eden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="393" />
         <source>Open &amp;eden Folder</source>
-        <translation type="unfinished">Open &amp;eden Folder</translation>
+        <translation>Open &amp;eden Folder</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="494" />
         <source>Open Home Menu</source>
-        <translation type="unfinished">Open Home Menu</translation>
+        <translation>Open Home Menu</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="499" />
         <source>&amp;Discord</source>
-        <translation type="unfinished">&amp;Discord</translation>
+        <translation>&amp;Discord</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="504" />
         <source>Open &amp;Setup</source>
-        <translation type="unfinished">Open &amp;Setup</translation>
+        <translation>Open &amp;Setup</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="512" />
         <source>&amp;Desktop</source>
-        <translation type="unfinished">&amp;Desktop</translation>
+        <translation>&amp;Desktop</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="517" />
         <source>&amp;Application Menu</source>
-        <translation type="unfinished">&amp;App Menu</translation>
+        <translation>&amp;Application Menu</translation>
     </message>
     <message>
         <source>&amp;About yuzu</source>
-        <translation type="vanished">&amp;About the yuzu</translation>
+        <translation>&amp;About yuzu</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="263" />
@@ -7931,7 +7931,7 @@ Debug Message: </translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="271" />
         <source>Ctrl+,</source>
-        <translation type="unfinished">Ctrl+,</translation>
+        <translation>Ctrl+,</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="282" />
@@ -8015,7 +8015,7 @@ Debug Message: </translation>
     </message>
     <message>
         <source>Open &amp;yuzu Folder</source>
-        <translation type="vanished">Open &amp;yuzu Folder</translation>
+        <translation>Open &amp;yuzu Folder</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="401" />
@@ -8070,7 +8070,7 @@ Debug Message: </translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="466" />
         <source>&amp;Reset</source>
-        <translation>&amp;Restore Default</translation>
+        <translation>&amp;Reset</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="474" />
@@ -8090,7 +8090,7 @@ Debug Message: </translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="489" />
         <source>Install Decryption Keys</source>
-        <translation type="unfinished">Install Decryption Keys</translation>
+        <translation>Install Decryption Keys</translation>
     </message>
 </context>
 <context>
@@ -8106,13 +8106,13 @@ Debug Message: </translation>
     <message>
         <location filename="../../src/yuzu/migration_worker.h" line="71" />
         <source>Data was migrated successfully.</source>
-        <translation type="unfinished">Data was migrated successfully.</translation>
+        <translation>Data was migrated successfully.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/migration_worker.cpp" line="47" />
         <source>Linking the old directory failed. You may need to re-run with administrative privileges on Windows.
 OS gave error: %1</source>
-        <translation type="unfinished">Linking the old directory failed. You may need to re-run with administrative privileges on Windows.
+        <translation>Linking the old directory failed. You may need to re-run with administrative privileges on Windows.
 OS gave error: %1</translation>
     </message>
     <message>
@@ -8121,7 +8121,7 @@ OS gave error: %1</translation>
 
 If you wish to clean up the files which were left in the old data location, you can do so by deleting the following directory:
 %1</source>
-        <translation type="unfinished">
+        <translation>
 
 If you wish to clean up the files which were left in the old data location, you can do so by deleting the following directory:
 %1</translation>
@@ -8220,86 +8220,86 @@ Debug Message: </translation>
     <name>NetworkMessage</name>
     <message>
         <source>Username is not valid. Must be 4 to 20 alphanumeric characters.</source>
-        <translation type="vanished">Username is not valid. Must be 4 to 20 alphanumeric characters.</translation>
+        <translation>Username is not valid. Must be 4 to 20 alphanumeric characters.</translation>
     </message>
     <message>
         <source>Room name is not valid. Must be 4 to 20 alphanumeric characters.</source>
-        <translation type="vanished">Room name is not valid. Must be 4 to 20 alphanumeric characters.</translation>
+        <translation>Room name is not valid. Must be 4 to 20 alphanumeric characters.</translation>
     </message>
     <message>
         <source>Username is already in use or not valid. Please choose another.</source>
-        <translation type="vanished">Username is already in use or not valid. Please choose another.</translation>
+        <translation>Username is already in use or not valid. Please choose another.</translation>
     </message>
     <message>
         <source>IP is not a valid IPv4 address.</source>
-        <translation type="vanished">IP is not a valid IPv4 address.</translation>
+        <translation>IP is not a valid IPv4 address.</translation>
     </message>
     <message>
         <source>Port must be a number between 0 to 65535.</source>
-        <translation type="vanished">Port must be a number between 0 to 65535.</translation>
+        <translation>Port must be a number between 0 to 65535.</translation>
     </message>
     <message>
         <source>You must choose a Preferred Game to host a room. If you do not have any games in your game list yet, add a game folder by clicking on the plus icon in the game list.</source>
-        <translation type="vanished">You must choose a Preferred Game to host a room. If you do not have any games in your game list yet, add a game folder by clicking on the plus icon in the game list.</translation>
+        <translation>You must choose a Preferred Game to host a room. If you do not have any games in your game list yet, add a game folder by clicking on the plus icon in the game list.</translation>
     </message>
     <message>
         <source>Unable to find an internet connection. Check your internet settings.</source>
-        <translation type="vanished">Unable to find an internet connection. Check your internet settings.</translation>
+        <translation>Unable to find an internet connection. Check your internet settings.</translation>
     </message>
     <message>
         <source>Unable to connect to the host. Verify that the connection settings are correct. If you still cannot connect, contact the room host and verify that the host is properly configured with the external port forwarded.</source>
-        <translation type="vanished">Unable to connect to the host. Verify that the connection settings are correct. If you still cannot connect, contact the room host and verify that the host is properly configured with the external port forwarded.</translation>
+        <translation>Unable to connect to the host. Verify that the connection settings are correct. If you still cannot connect, contact the room host and verify that the host is properly configured with the external port forwarded.</translation>
     </message>
     <message>
         <source>Unable to connect to the room because it is already full.</source>
-        <translation type="vanished">Unable to connect to the room because it is already full.</translation>
+        <translation>Unable to connect to the room because it is already full.</translation>
     </message>
     <message>
         <source>Creating a room failed. Please retry. Restarting yuzu might be necessary.</source>
-        <translation type="vanished">Creating a room failed. Please retry. Restarting yuzu might be necessary.</translation>
+        <translation>Creating a room failed. Please retry. Restarting yuzu might be necessary.</translation>
     </message>
     <message>
         <source>The host of the room has banned you. Speak with the host to unban you or try a different room.</source>
-        <translation type="vanished">The host of the room has banned you. Speak with the host to unban you or try a different room.</translation>
+        <translation>The host of the room has banned you. Speak with the host to unban you or try a different room.</translation>
     </message>
     <message>
         <source>Version mismatch! Please update to the latest version of yuzu. If the problem persists, contact the room host and ask them to update the server.</source>
-        <translation type="vanished">Version mismatch! Please update to the latest version of yuzu. If the problem persists, contact the room host and ask them to update the server.</translation>
+        <translation>Version mismatch! Please update to the latest version of yuzu. If the problem persists, contact the room host and ask them to update the server.</translation>
     </message>
     <message>
         <source>Incorrect password.</source>
-        <translation type="vanished">Incorrect password.</translation>
+        <translation>Incorrect password.</translation>
     </message>
     <message>
         <source>An unknown error occurred. If this error continues to occur, please open an issue</source>
-        <translation type="vanished">An unknown error occurred. If this error continues to occur, please open an issue</translation>
+        <translation>An unknown error occurred. If this error continues to occur, please open an issue</translation>
     </message>
     <message>
         <source>Connection to room lost. Try to reconnect.</source>
-        <translation type="vanished">Connection to room lost. Try to reconnect.</translation>
+        <translation>Connection to room lost. Try to reconnect.</translation>
     </message>
     <message>
         <source>You have been kicked by the room host.</source>
-        <translation type="vanished">You have been kicked by the room host.</translation>
+        <translation>You have been kicked by the room host.</translation>
     </message>
     <message>
         <source>IP address is already in use. Please choose another.</source>
-        <translation type="vanished">IP address is already in use. Please choose another.</translation>
+        <translation>IP address is already in use. Please choose another.</translation>
     </message>
     <message>
         <source>You do not have enough permission to perform this action.</source>
-        <translation type="vanished">You do not have enough permission to perform this action.</translation>
+        <translation>You do not have enough permission to perform this action.</translation>
     </message>
     <message>
         <source>The user you are trying to kick/ban could not be found.
 They may have left the room.</source>
-        <translation type="vanished">The user you are trying to kick/ban could not be found.
+        <translation>The user you are trying to kick/ban could not be found.
 They may have left the room.</translation>
     </message>
     <message>
         <source>No valid network interface is selected.
 Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
-        <translation type="vanished">No valid network interface is selected.
+        <translation>No valid network interface is selected.
 Please go to Configure -&gt; System -&gt; Network and make a selection.</translation>
     </message>
     <message>
@@ -8339,7 +8339,7 @@ Proceed anyway?</translation>
     <name>NetworkMessage::ErrorManager</name>
     <message>
         <source>Error</source>
-        <translation type="vanished">Error</translation>
+        <translation>Error</translation>
     </message>
 </context>
 <context>
@@ -8802,14 +8802,14 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/user_data_migration.cpp" line="162" />
         <location filename="../../src/yuzu/user_data_migration.cpp" line="194" />
         <source>Migration</source>
-        <translation type="unfinished">Migration</translation>
+        <translation>Migration</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="124" />
         <source>
 
 </source>
-        <translation type="unfinished">
+        <translation>
 
 </translation>
     </message>
@@ -8817,24 +8817,24 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/user_data_migration.cpp" line="128" />
         <location filename="../../src/yuzu/user_data_migration.cpp" line="134" />
         <source>No</source>
-        <translation type="unfinished">No</translation>
+        <translation>No</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="163" />
         <source>You can manually re-trigger this prompt by deleting the new config directory:
 %1</source>
-        <translation type="unfinished">You can manually re-trigger this prompt by deleting the new config directory:
+        <translation>You can manually re-trigger this prompt by deleting the new config directory:
 %1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="179" />
         <source>Migrating</source>
-        <translation type="unfinished">Migrating</translation>
+        <translation>Migrating</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="180" />
         <source>Migrating, this may take a while...</source>
-        <translation type="unfinished">Migrating, this may take a while...</translation>
+        <translation>Migrating, this may take a while...</translation>
     </message>
 </context>
 <context>
@@ -8842,7 +8842,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/applets/qt_amiibo_settings.ui" line="14" />
         <source>Amiibo Settings</source>
-        <translation>Amiibo Preferences</translation>
+        <translation>Amiibo Settings</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_amiibo_settings.ui" line="169" />
@@ -9445,7 +9445,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="231" />
         <source>initialized</source>
-        <translation>initialized</translation>
+        <translation>initialised</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="234" />
