@@ -37,18 +37,22 @@ object InputHandler {
     }
 
     fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        val controllerData =
-            androidControllers[event.device.controllerNumber] ?: return false
-        event.device.motionRanges.forEach {
-            NativeInput.onGamePadAxisEvent(
-                controllerData.getGUID(),
-                controllerData.getPort(),
-                it.axis,
-                event.getAxisValue(it.axis)
-            )
-        }
-        return true
+    var controllerData = androidControllers[event.device.controllerNumber]
+    if (controllerData == null) {
+        updateControllerData()
+        controllerData = androidControllers[event.device.controllerNumber] ?: return false
     }
+
+    event.device.motionRanges.forEach {
+        NativeInput.onGamePadAxisEvent(
+            controllerData.getGUID(),
+            controllerData.getPort(),
+            it.axis,
+            event.getAxisValue(it.axis)
+        )
+    }
+    return true 
+}
 
     fun getDevices(): Map<Int, YuzuPhysicalDevice> {
         val gameControllerDeviceIds = mutableMapOf<Int, YuzuPhysicalDevice>()
