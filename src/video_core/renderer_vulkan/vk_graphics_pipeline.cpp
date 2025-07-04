@@ -175,7 +175,7 @@ bool Passes(const std::array<vk::ShaderModule, NUM_STAGES>& modules,
     return true;
 }
 
-using ConfigureFuncPtr = void (*)(GraphicsPipeline*, bool);
+using ConfigureFuncPtr = bool (*)(GraphicsPipeline*, bool);
 
 template <typename Spec, typename... Specs>
 ConfigureFuncPtr FindSpec(const std::array<vk::ShaderModule, NUM_STAGES>& modules,
@@ -302,7 +302,7 @@ void GraphicsPipeline::AddTransition(GraphicsPipeline* transition) {
 }
 
 template <typename Spec>
-void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
+bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     std::array<VideoCommon::ImageViewInOut, MAX_IMAGE_ELEMENTS> views;
     std::array<VideoCommon::SamplerId, MAX_IMAGE_ELEMENTS> samplers;
     size_t sampler_index{};
@@ -321,8 +321,9 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
             size_t ssbo_index{};
             for (const auto& desc : info.storage_buffers_descriptors) {
                 ASSERT(desc.count == 1);
-                buffer_cache.BindGraphicsStorageBuffer(stage, ssbo_index, desc.cbuf_index,
-                                                       desc.cbuf_offset, desc.is_written);
+                if (!buffer_cache.BindGraphicsStorageBuffer(stage, ssbo_index, desc.cbuf_index,
+                                                            desc.cbuf_offset, desc.is_written))
+                    return false;
                 ++ssbo_index;
             }
         }
@@ -382,6 +383,8 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                 add_image(desc, desc.is_written);
             }
         }
+
+        return true;
     }};
     if constexpr (Spec::enabled_stages[0]) {
         config_stage(0);
@@ -396,7 +399,8 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         config_stage(3);
     }
     if constexpr (Spec::enabled_stages[4]) {
-        config_stage(4);
+        if (!config_stage(4))
+            return false;
     }
     texture_cache.FillGraphicsImageViews<Spec::has_images>(std::span(views.data(), view_index));
 
@@ -490,6 +494,8 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     texture_cache.UpdateRenderTargets(false);
     texture_cache.CheckFeedbackLoop(views);
     ConfigureDraw(rescaling, render_area);
+
+    return true;
 }
 
 void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
