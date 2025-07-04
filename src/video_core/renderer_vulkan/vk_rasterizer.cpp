@@ -1210,12 +1210,12 @@ void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs)
 
     // Capture all required register values.
     const bool two_sided = regs.stencil_two_side_enable;
-    const u32 front_ref = regs.stencil_front_ref;
-    const u32 back_ref = regs.stencil_back_ref;
-    const u32 front_write_mask = regs.stencil_front_mask;
-    const u32 back_write_mask = regs.stencil_back_mask;
-    const u32 front_compare_mask = regs.stencil_front_func_mask;
-    const u32 back_compare_mask = regs.stencil_back_func_mask;
+    const auto front_ref = regs.stencil_front_ref;
+    const auto back_ref = regs.stencil_back_ref;
+    const auto front_write_mask = regs.stencil_front_mask;
+    const auto back_write_mask = regs.stencil_back_mask;
+    const auto front_compare_mask = regs.stencil_front_func_mask;
+    const auto back_compare_mask = regs.stencil_back_func_mask;
 
     scheduler.Record([=](vk::CommandBuffer cmdbuf) {
         if (two_sided) {
