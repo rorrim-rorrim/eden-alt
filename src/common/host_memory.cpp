@@ -387,10 +387,10 @@ static void* ChooseVirtualBase(size_t virtual_size) {
         uintptr_t hint_address = ((rng() % range) + lower) * HugePageSize;
 
         // Try to map.
-        // Note: we may be able to take advantage of MAP_FIXED_NOREPLACE here.
+        // Added MAP_FIXED_NOREPLACE here to stop mprotect eventually (20+ mins) failing with out of memory.
         void* map_pointer =
             mmap(reinterpret_cast<void*>(hint_address), virtual_size, PROT_READ | PROT_WRITE,
-                 MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+                 MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED_NOREPLACE, -1, 0);
 
         // If we successfully mapped, we're done.
         if (reinterpret_cast<uintptr_t>(map_pointer) == hint_address) {
