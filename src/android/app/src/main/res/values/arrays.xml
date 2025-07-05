@@ -63,9 +63,11 @@
         <item>@string/language_taiwanese</item>
         <item>@string/language_traditional_chinese</item>
         <item>@string/language_serbian</item>
+        <item>@string/language_british_english</item> 
     </string-array>
 
     <integer-array name="languageValues">
+        <item>19</item> 
         <item>17</item>
         <item>12</item>
         <item>13</item>
