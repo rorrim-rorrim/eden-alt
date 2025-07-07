@@ -22,4 +22,4 @@ jobs:
         uses: bridgelightcloud/github-mirror-action@v3
         with:
           origin: 'https://git.bixed.xyz/Bix/eden.git'
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
