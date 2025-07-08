@@ -72,7 +72,6 @@ public:
     }
 
     void SignalFence(std::function<void()>&& func) {
-        bool delay_fence = Settings::IsGPULevelHigh();
         if constexpr (!can_async_check) {
             TryReleasePendingFences<false>();
         }
@@ -82,14 +81,9 @@ public:
         if constexpr (can_async_check) {
             guard.lock();
         }
-        if (delay_fence) {
-            uncommitted_operations.emplace_back(std::move(func));
-        }
+        uncommitted_operations.emplace_back(std::move(func));
         pending_operations.emplace_back(std::move(uncommitted_operations));
         QueueFence(new_fence);
-        if (!delay_fence) {
-            func();
-        }
         fences.push(std::move(new_fence));
         if (should_flush) {
             rasterizer.FlushCommands();

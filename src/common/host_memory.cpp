@@ -384,13 +384,13 @@ static void* ChooseVirtualBase(size_t virtual_size) {
     // Try up to 64 times to allocate memory at random addresses in the range.
     for (int i = 0; i < 64; i++) {
         // Calculate a possible location.
-        uintptr_t hint_address = ((rng() % range) + lower) * HugePageSize;
+        uintptr_t hint_address = ((((i == 0) ? 0 : rng()) % range) + lower) * HugePageSize;
 
         // Try to map.
-        // Note: we may be able to take advantage of MAP_FIXED_NOREPLACE here.
+        // Added MAP_FIXED_NOREPLACE here to stop mprotect eventually (20+ mins) failing with out of memory.
         void* map_pointer =
             mmap(reinterpret_cast<void*>(hint_address), virtual_size, PROT_READ | PROT_WRITE,
-                 MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+                 MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED_NOREPLACE, -1, 0);
 
         // If we successfully mapped, we're done.
         if (reinterpret_cast<uintptr_t>(map_pointer) == hint_address) {
@@ -463,7 +463,7 @@ public:
         }
 
         backing_base = static_cast<u8*>(
-            mmap(nullptr, backing_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
+            mmap(nullptr, backing_size, PROT_READ | PROT_WRITE | MAP_FIXED_NOREPLACE, MAP_SHARED, fd, 0));
         if (backing_base == MAP_FAILED) {
             LOG_CRITICAL(HW_Memory, "mmap failed: {}", strerror(errno));
             throw std::bad_alloc{};
