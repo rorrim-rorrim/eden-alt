@@ -216,7 +216,7 @@ bool DecoderContext::OpenContext(const Decoder& decoder) {
 bool DecoderContext::SendPacket(const Packet& packet) {
 	m_temp_frame = std::make_shared<Frame>();
 	
-    if (const int ret = avcodec_send_packet(m_codec_context, packet.GetPacket()); ret < 0) {
+    if (const int ret = avcodec_send_packet(m_codec_context, packet.GetPacket()); ret < 0 && ret != AVERROR_EOF) {
         LOG_ERROR(HW_GPU, "avcodec_send_packet error: {}", AVError(ret));
         return false;
     }
