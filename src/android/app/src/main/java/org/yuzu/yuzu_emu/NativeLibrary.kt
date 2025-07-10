@@ -273,6 +273,37 @@ object NativeLibrary {
 
     external fun initMultiplayer()
 
+    // TODO(crueter): Implement this--may need to implant it into the loader
+    @Keep
+    @JvmStatic
+    fun gameRequiresFirmware() {
+        val emulationActivity = sEmulationActivity.get()
+        if (emulationActivity == null) {
+            Log.warning("[NativeLibrary] EmulationActivity is null, can't exit.")
+            return
+        }
+
+        val builder = MaterialAlertDialogBuilder(emulationActivity)
+            .setTitle(R.string.loader_requires_firmware)
+            .setMessage(
+                Html.fromHtml(
+                    emulationActivity.getString(R.string.loader_requires_firmware_description),
+                    Html.FROM_HTML_MODE_LEGACY
+                )
+            )
+            .setPositiveButton(android.R.string.ok) { _: DialogInterface?, _: Int ->
+                emulationActivity.finish()
+            }
+            .setOnDismissListener { emulationActivity.finish() }
+
+        emulationActivity.runOnUiThread {
+            val alert = builder.create()
+            alert.show()
+            (alert.findViewById<View>(android.R.id.message) as TextView).movementMethod =
+                LinkMovementMethod.getInstance()
+        }
+    }
+
     @Keep
     @JvmStatic
     fun exitEmulationActivity(resultCode: Int) {
@@ -415,18 +446,20 @@ object NativeLibrary {
      */
     external fun firmwareVersion(): String
 
-    fun isFirmwareSupported(): Boolean {
-        var version: SemVer
+    /**
+     * Verifies installed firmware.
+     *
+     * @return The result code.
+     */
+    external fun verifyFirmware(): Int
 
-        try {
-            version = SemVer.parse(firmwareVersion())
-        } catch (_: Exception) {
-            return false
-        }
-        val max = SemVer(19, 0, 1)
-
-        return version <= max
-    }
+    /**
+     * Installs decryption keys from the specified path.
+     *
+     * @param path The path to install keys from.
+     * @return The result code.
+     */
+    external fun installDecryptionKeys(path: String): Int
 
     /**
      * Checks the PatchManager for any addons that are available
