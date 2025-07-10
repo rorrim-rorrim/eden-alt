@@ -4,8 +4,8 @@ on:
     branches:
         - __mirror
   schedule:
-    # Run everyday at 3 AM UTC
-    - cron: '0 3 * * *'
+    # Run every hour
+    - cron: '7 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -21,5 +21,5 @@ jobs:
         id: mirror
         uses: bridgelightcloud/github-mirror-action@v3
         with:
-          origin: 'https://git.bixed.xyz/Bix/eden.git'
+          origin: 'https://git.eden-emu.dev/eden-emu/eden.git'
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
