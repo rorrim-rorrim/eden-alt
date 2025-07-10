@@ -331,7 +331,7 @@ struct Values {
     SwitchableSetting<bool> use_disk_shader_cache{linkage, true, "use_disk_shader_cache",
                                                   Category::Renderer};
     SwitchableSetting<SpirvOptimizeMode, true> optimize_spirv_output{linkage,
-                                                                     SpirvOptimizeMode::OnLoad,
+                                                                     SpirvOptimizeMode::Never,
                                                                      SpirvOptimizeMode::Never,
                                                                      SpirvOptimizeMode::Always,
                                                                      "optimize_spirv_output",
