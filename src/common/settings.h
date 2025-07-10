@@ -477,7 +477,7 @@ struct Values {
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::RendererAdvanced};
     SwitchableSetting<bool> use_fast_gpu_time{linkage,
-                                              false,
+                                              true,
                                               "use_fast_gpu_time",
                                               Category::RendererAdvanced,
                                               Specialization::Paired,
