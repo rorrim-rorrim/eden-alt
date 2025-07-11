@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "firmware_manager.h"
 #include <filesystem>
 
@@ -9,12 +12,15 @@
 #include "core/crypto/key_manager.h"
 #include "frontend_common/content_manager.h"
 
-FirmwareManager::KeyInstallResult FirmwareManager::InstallDecryptionKeys(std::string location)
+FirmwareManager::KeyInstallResult FirmwareManager::InstallKeys(std::string location, std::string extension)
 {
     LOG_INFO(Frontend, "Installing key files from {}", location);
 
+    const auto keys_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::KeysDir);
+
     const std::filesystem::path prod_key_path = location;
     const std::filesystem::path key_source_path = prod_key_path.parent_path();
+
     if (!Common::FS::IsDir(key_source_path)) {
         return InvalidDir;
     }
@@ -39,9 +45,8 @@ FirmwareManager::KeyInstallResult FirmwareManager::InstallDecryptionKeys(std::st
         return ErrorWrongFilename;
     }
 
-    const auto yuzu_keys_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::KeysDir);
     for (const auto &key_file : source_key_files) {
-        std::filesystem::path destination_key_file = yuzu_keys_dir / key_file.filename();
+        std::filesystem::path destination_key_file = keys_dir / key_file.filename();
         if (!std::filesystem::copy_file(key_file,
                                         destination_key_file,
                                         std::filesystem::copy_options::overwrite_existing)) {
@@ -54,7 +59,6 @@ FirmwareManager::KeyInstallResult FirmwareManager::InstallDecryptionKeys(std::st
     }
 
     // Reinitialize the key manager
-
     Core::Crypto::KeyManager::Instance().ReloadKeys();
 
     if (ContentManager::AreKeysPresent()) {

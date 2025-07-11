@@ -285,7 +285,6 @@ Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string
         .program_index = static_cast<s32>(program_index),
     };
 
-    // TODO(crueter): Place checks somewhere around here
     m_load_result = m_system.Load(EmulationSession::GetInstance().Window(), filepath, params);
     if (m_load_result != Core::SystemResultStatus::Success) {
         return m_load_result;
@@ -795,10 +794,17 @@ jint Java_org_yuzu_yuzu_1emu_NativeLibrary_verifyFirmware(JNIEnv* env, jclass cl
     return static_cast<int>(FirmwareManager::VerifyFirmware(EmulationSession::GetInstance().System()));
 }
 
-jint Java_org_yuzu_yuzu_1emu_NativeLibrary_installDecryptionKeys(JNIEnv* env, jclass clazz, jstring jpath) {
-    const auto path = Common::Android::GetJString(env, jpath);
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_gameRequiresFirmware(JNIEnv* env, jclass clazz, jstring jprogramId) {
+    auto program_id = EmulationSession::GetProgramId(env, jprogramId);
 
-    return static_cast<int>(FirmwareManager::InstallDecryptionKeys(path));
+    return FirmwareManager::GameRequiresFirmware(program_id);
+}
+
+jint Java_org_yuzu_yuzu_1emu_NativeLibrary_installKeys(JNIEnv* env, jclass clazz, jstring jpath, jstring jext) {
+    const auto path = Common::Android::GetJString(env, jpath);
+    const auto ext = Common::Android::GetJString(env, jext);
+
+    return static_cast<int>(FirmwareManager::InstallKeys(path, ext));
 }
 
 jobjectArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getPatchesForFile(JNIEnv* env, jobject jobj,

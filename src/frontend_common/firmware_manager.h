@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #ifndef FIRMWARE_MANAGER_H
 #define FIRMWARE_MANAGER_H
 
@@ -14,7 +17,6 @@
 #include "core/hle/service/set/settings_types.h"
 #include "core/hle/service/set/system_settings_server.h"
 #include "core/hle/result.h"
-
 
 namespace FirmwareManager {
 
@@ -40,14 +42,15 @@ enum KeyInstallResult {
 };
 
 /**
- * @brief Installs decryption keys for the emulator.
+ * @brief Installs any arbitrary set of keys for the emulator.
  * @param location Where the keys are located.
+ * @param expected_extension What extension the file should have.
  * @return A result code for the operation.
  */
-KeyInstallResult InstallDecryptionKeys(std::string location);
+KeyInstallResult InstallKeys(std::string location, std::string expected_extension);
 
 /**
- * \brief Get a string representation of a result from InstallDecryptionKeys.
+ * \brief Get a string representation of a result from InstallKeys.
  * \param result The result code.
  * \return A string representation of the passed result code.
  */

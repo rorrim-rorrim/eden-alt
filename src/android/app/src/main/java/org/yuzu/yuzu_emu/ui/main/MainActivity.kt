@@ -6,6 +6,8 @@ package org.yuzu.yuzu_emu.ui.main
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.ParcelFileDescriptor
+import android.provider.OpenableColumns
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import android.view.WindowManager
@@ -47,6 +49,7 @@ import java.io.BufferedOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import androidx.core.content.edit
+import androidx.core.net.toFile
 
 class MainActivity : AppCompatActivity(), ThemeProvider {
     private lateinit var binding: ActivityMainBinding
@@ -328,12 +331,18 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     val getProdKey = registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
         if (result != null) {
-            processKey(result)
+            processKey(result, "keys")
         }
     }
 
-    fun processKey(result: Uri): Boolean {
-        if (FileUtil.getExtension(result) != "keys") {
+    val getAmiiboKey = registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+        if (result != null) {
+            processKey(result, "bin", false)
+        }
+    }
+
+    fun processKey(result: Uri, extension: String = "keys", check: Boolean = true): Boolean {
+        if (FileUtil.getExtension(result) != extension) {
             MessageDialogFragment.newInstance(
                 this,
                 titleId = R.string.keys_failed,
@@ -348,23 +357,26 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
         val dstPath = DirectoryInitialization.userDirectory + "/keys/"
         if (FileUtil.copyUriToInternalStorage(
-                result, dstPath, "prod.keys"
+                result, dstPath, ""
             ) != null
         ) {
             if (NativeLibrary.reloadKeys()) {
                 Toast.makeText(
                     applicationContext, R.string.keys_install_success, Toast.LENGTH_SHORT
                 ).show()
-                homeViewModel.setCheckKeys(true)
 
-                val firstTimeSetup =
-                    PreferenceManager.getDefaultSharedPreferences(applicationContext)
-                        .getBoolean(Settings.PREF_FIRST_APP_LAUNCH, true)
-                if (!firstTimeSetup) {
-                    homeViewModel.setCheckFirmware(true)
+                if (check) {
+                    homeViewModel.setCheckKeys(true)
+
+                    val firstTimeSetup =
+                        PreferenceManager.getDefaultSharedPreferences(applicationContext)
+                            .getBoolean(Settings.PREF_FIRST_APP_LAUNCH, true)
+                    if (!firstTimeSetup) {
+                        homeViewModel.setCheckFirmware(true)
+                    }
+
+                    gamesViewModel.reloadGames(true)
                 }
-
-                gamesViewModel.reloadGames(true)
                 return true
             } else {
                 MessageDialogFragment.newInstance(
@@ -381,11 +393,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     }
 
     val getFirmware = registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
-        if (result == null) {
-            return@registerForActivityResult
+        if (result != null) {
+            processFirmware(result)
         }
-
-        processFirmware(result)
     }
 
     fun processFirmware(result: Uri, onComplete: (() -> Unit)? = null) {
@@ -456,44 +466,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             }
             messageToShow
         }.show(supportFragmentManager, ProgressDialogFragment.TAG)
-    }
-
-    val getAmiiboKey = registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
-        if (result == null) {
-            return@registerForActivityResult
-        }
-
-        if (FileUtil.getExtension(result) != "bin") {
-            MessageDialogFragment.newInstance(
-                this,
-                titleId = R.string.keys_failed,
-                descriptionId = R.string.install_amiibo_keys_failure_extension_description
-            ).show(supportFragmentManager, MessageDialogFragment.TAG)
-            return@registerForActivityResult
-        }
-
-        contentResolver.takePersistableUriPermission(
-            result, Intent.FLAG_GRANT_READ_URI_PERMISSION
-        )
-
-        val dstPath = DirectoryInitialization.userDirectory + "/keys/"
-        if (FileUtil.copyUriToInternalStorage(
-                result, dstPath, "key_retail.bin"
-            ) != null
-        ) {
-            if (NativeLibrary.reloadKeys()) {
-                Toast.makeText(
-                    applicationContext, R.string.keys_install_success, Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                MessageDialogFragment.newInstance(
-                    this,
-                    titleId = R.string.keys_failed,
-                    descriptionId = R.string.error_keys_failed_init,
-                    helpLinkId = R.string.dumping_keys_quickstart_link
-                ).show(supportFragmentManager, MessageDialogFragment.TAG)
-            }
-        }
     }
 
     val installGameUpdate = registerForActivityResult(

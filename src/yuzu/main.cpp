@@ -4355,13 +4355,13 @@ void GMainWindow::OnInstallDecryptionKeys() {
     }
 
     const QString key_source_location = QFileDialog::getOpenFileName(
-                this, tr("Select Dumped Keys Location"), {}, QStringLiteral("prod.keys (prod.keys)"), {},
+                this, tr("Select Dumped Keys Location"), {}, QStringLiteral("Decryption Keys (*.keys)"), {},
                 QFileDialog::ReadOnly);
     if (key_source_location.isEmpty()) {
         return;
     }
 
-    FirmwareManager::KeyInstallResult result = FirmwareManager::InstallDecryptionKeys(key_source_location.toStdString());
+    FirmwareManager::KeyInstallResult result = FirmwareManager::InstallKeys(key_source_location.toStdString(), "keys");
 
     system->GetFileSystemController().CreateFactories(*vfs);
     game_list->PopulateAsync(UISettings::values.game_dirs);

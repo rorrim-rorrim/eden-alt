@@ -273,37 +273,6 @@ object NativeLibrary {
 
     external fun initMultiplayer()
 
-    // TODO(crueter): Implement this--may need to implant it into the loader
-    @Keep
-    @JvmStatic
-    fun gameRequiresFirmware() {
-        val emulationActivity = sEmulationActivity.get()
-        if (emulationActivity == null) {
-            Log.warning("[NativeLibrary] EmulationActivity is null, can't exit.")
-            return
-        }
-
-        val builder = MaterialAlertDialogBuilder(emulationActivity)
-            .setTitle(R.string.loader_requires_firmware)
-            .setMessage(
-                Html.fromHtml(
-                    emulationActivity.getString(R.string.loader_requires_firmware_description),
-                    Html.FROM_HTML_MODE_LEGACY
-                )
-            )
-            .setPositiveButton(android.R.string.ok) { _: DialogInterface?, _: Int ->
-                emulationActivity.finish()
-            }
-            .setOnDismissListener { emulationActivity.finish() }
-
-        emulationActivity.runOnUiThread {
-            val alert = builder.create()
-            alert.show()
-            (alert.findViewById<View>(android.R.id.message) as TextView).movementMethod =
-                LinkMovementMethod.getInstance()
-        }
-    }
-
     @Keep
     @JvmStatic
     fun exitEmulationActivity(resultCode: Int) {
@@ -454,12 +423,21 @@ object NativeLibrary {
     external fun verifyFirmware(): Int
 
     /**
-     * Installs decryption keys from the specified path.
+     * Check if a game requires firmware to be playable.
+     *
+     * @param programId The game's Program ID.
+     * @return Whether or not the game requires firmware to be playable.
+     */
+    external fun gameRequiresFirmware(programId: String): Boolean
+
+    /**
+     * Installs keys from the specified path.
      *
      * @param path The path to install keys from.
+     * @param ext What extension the keys should have.
      * @return The result code.
      */
-    external fun installDecryptionKeys(path: String): Int
+    external fun installKeys(path: String, ext: String): Int
 
     /**
      * Checks the PatchManager for any addons that are available

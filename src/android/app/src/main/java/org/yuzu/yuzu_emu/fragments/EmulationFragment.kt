@@ -478,6 +478,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     private fun startEmulation(programIndex: Int = 0) {
+        println("PROGRAM INDEX: $programIndex")
         if (!NativeLibrary.isRunning() && !NativeLibrary.isPaused()) {
             if (!DirectoryInitialization.areDirectoriesReady) {
                 DirectoryInitialization.start()
