@@ -106,21 +106,23 @@ void EmitX64::EmitMostSignificantBit(EmitContext& ctx, IR::Inst* inst) {
 
 void EmitX64::EmitIsZero32(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const Xbyak::Reg32 result = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
+    const Xbyak::Reg64 result = ctx.reg_alloc.ScratchGpr();
+    const Xbyak::Reg64 source = ctx.reg_alloc.UseGpr(args[0]);
     // TODO: Flag optimization
-    code.test(result, result);
+    code.xor_(result, result);
+    code.test(source, source);
     code.sete(result.cvt8());
-    code.movzx(result, result.cvt8());
     ctx.reg_alloc.DefineValue(inst, result);
 }
 
 void EmitX64::EmitIsZero64(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const Xbyak::Reg64 result = ctx.reg_alloc.UseScratchGpr(args[0]);
+    const Xbyak::Reg64 result = ctx.reg_alloc.ScratchGpr();
+    const Xbyak::Reg64 source = ctx.reg_alloc.UseGpr(args[0]);
     // TODO: Flag optimization
-    code.test(result, result);
+    code.xor_(result, result);
+    code.test(source, source);
     code.sete(result.cvt8());
-    code.movzx(result, result.cvt8());
     ctx.reg_alloc.DefineValue(inst, result);
 }
 

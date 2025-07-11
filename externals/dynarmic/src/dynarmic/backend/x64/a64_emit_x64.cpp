@@ -185,14 +185,16 @@ void A64EmitX64::ClearFastDispatchTable() {
 }
 
 void A64EmitX64::GenTerminalHandlers() {
-    // PC ends up in rbp, location_descriptor ends up in rbx
+    // PC ends up in rbp, location_descriptor ends up in rbx; clobbers rcx
     const auto calculate_location_descriptor = [this] {
         // This calculation has to match up with A64::LocationDescriptor::UniqueHash
         // TODO: Optimization is available here based on known state of fpcr.
         code.mov(rbp, qword[r15 + offsetof(A64JitState, pc)]);
+        code.mov(ebx, dword[r15 + offsetof(A64JitState, fpcr)]);
+        // RBP = PC, RCX = PC & PcMask
         code.mov(rcx, A64::LocationDescriptor::pc_mask);
         code.and_(rcx, rbp);
-        code.mov(ebx, dword[r15 + offsetof(A64JitState, fpcr)]);
+        // RBX = ((FPCR & FpcrMask) << FpcrShift) | RCX
         code.and_(ebx, A64::LocationDescriptor::fpcr_mask);
         code.shl(rbx, A64::LocationDescriptor::fpcr_shift);
         code.or_(rbx, rcx);
@@ -203,8 +205,8 @@ void A64EmitX64::GenTerminalHandlers() {
 
     code.align();
     terminal_handler_pop_rsb_hint = code.getCurr<const void*>();
+    code.mov(eax, dword[r15 + offsetof(A64JitState, rsb_ptr)]); // Preload (avoid cache miss penalty)
     calculate_location_descriptor();
-    code.mov(eax, dword[r15 + offsetof(A64JitState, rsb_ptr)]);
     code.dec(eax);
     code.and_(eax, u32(A64JitState::RSBPtrMask));
     code.mov(dword[r15 + offsetof(A64JitState, rsb_ptr)], eax);
@@ -428,7 +430,6 @@ void A64EmitX64::EmitA64SetD(A64EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
     const auto addr = xword[r15 + offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec)];
-
     const Xbyak::Xmm to_store = ctx.reg_alloc.UseScratchXmm(args[1]);
     code.movq(to_store, to_store);  // TODO: Remove when able
     code.movaps(addr, to_store);

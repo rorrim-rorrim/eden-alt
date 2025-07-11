@@ -762,9 +762,9 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
                     code.L(op1_done);
 
                     FCODE(ucomis)(operand2, operand2);
-                    code.jnp(op2_done);
+                    code.jnp(op2_done, code.T_NEAR);
                     code.ptest(operand2, xmm0);
-                    code.jnz(op2_done);
+                    code.jnz(op2_done, code.T_NEAR);
                     code.vorps(result, operand2, xmm0);
                     if constexpr (negate_product) {
                         code.xorps(result, code.Const(xword, FP::FPInfo<FPT>::sign_mask));

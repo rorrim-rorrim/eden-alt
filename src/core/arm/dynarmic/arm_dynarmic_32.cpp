@@ -351,9 +351,8 @@ u32 ArmDynarmic32::GetSvcNumber() const {
 }
 
 void ArmDynarmic32::GetSvcArguments(std::span<uint64_t, 8> args) const {
-    Dynarmic::A32::Jit& j = *m_jit;
-    auto& gpr = j.Regs();
-
+    Dynarmic::A32::Jit const& j = *m_jit;
+    auto const& gpr = j.Regs();
     for (size_t i = 0; i < 8; i++) {
         args[i] = gpr[i];
     }
@@ -362,9 +361,8 @@ void ArmDynarmic32::GetSvcArguments(std::span<uint64_t, 8> args) const {
 void ArmDynarmic32::SetSvcArguments(std::span<const uint64_t, 8> args) {
     Dynarmic::A32::Jit& j = *m_jit;
     auto& gpr = j.Regs();
-
     for (size_t i = 0; i < 8; i++) {
-        gpr[i] = static_cast<u32>(args[i]);
+        gpr[i] = u32(args[i]);
     }
 }
 
