@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -80,6 +83,7 @@ static void PrintHelp(const char* argv0) {
                  " Nickname, password, address and port for multiplayer\n"
                  "-p, --program         Pass following string as arguments to executable\n"
                  "-u, --user            Select a specific user profile from 0 to 7\n"
+                 "-d, --debug           Run the GDB stub on a port from 1 to 65535\n"
                  "-v, --version         Output version information and exit\n";
 }
 
@@ -210,7 +214,7 @@ int main(int argc, char** argv) {
     std::optional<std::string> config_path{};
     std::string program_args;
     std::optional<int> selected_user{};
-    std::optional<int> override_gdb_port{};
+    std::optional<u16> override_gdb_port{};
     bool use_multiplayer = false;
     bool fullscreen = false;
     std::string nickname{};
@@ -234,11 +238,11 @@ int main(int argc, char** argv) {
     };
 
     while (optind < argc) {
-        int arg = getopt_long(argc, argv, "g:fhvp::c:u:", long_options, &option_index);
+        int arg = getopt_long(argc, argv, "g:fhvp::c:u:d:", long_options, &option_index);
         if (arg != -1) {
             switch (static_cast<char>(arg)) {
             case 'd':
-                override_gdb_port = atoi(optarg);
+                override_gdb_port = static_cast<uint16_t>(atoi(optarg));
                 break;
             case 'c':
                 config_path = optarg;
