@@ -44,6 +44,7 @@ import androidx.core.view.updateLayoutParams
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
@@ -81,6 +82,10 @@ import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.ViewUtils
 import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.utils.collect
+import org.yuzu.yuzu_emu.utils.CustomSettingsHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 
 class EmulationFragment : Fragment(), SurfaceHolder.Callback {
@@ -94,6 +99,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private lateinit var gpuDriver: String
 
     private var _binding: FragmentEmulationBinding? = null
+
     private val binding get() = _binding!!
 
     private val args by navArgs<EmulationFragmentArgs>()
@@ -107,6 +113,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     private lateinit var gpuModel: String
     private lateinit var fwVersion: String
+
+    private var intentGame: Game? = null
+    private var isCustomSettingsIntent = false
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -125,9 +134,70 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         super.onCreate(savedInstanceState)
         updateOrientation()
 
-        val intentUri: Uri? = requireActivity().intent.data
-        var intentGame: Game? = null
-        if (intentUri != null) {
+        val intent = requireActivity().intent
+        val intentUri: Uri? = intent.data
+        intentGame = null
+        isCustomSettingsIntent = false
+
+        if (intent.action == CustomSettingsHandler.CUSTOM_CONFIG_ACTION) {
+            val titleId = intent.getStringExtra(CustomSettingsHandler.EXTRA_TITLE_ID)
+            val customSettings = intent.getStringExtra(CustomSettingsHandler.EXTRA_CUSTOM_SETTINGS)
+
+            if (titleId != null && customSettings != null) {
+                Log.info("[EmulationFragment] Received custom settings intent for title: $titleId")
+
+                // Handle custom settings asynchronously to allow for driver checking/installation
+                CoroutineScope(Dispatchers.Main).launch {
+                    try {
+                        intentGame = CustomSettingsHandler.applyCustomSettingsWithDriverCheck(
+                            titleId,
+                            customSettings,
+                            requireContext(),
+                            requireActivity() as? FragmentActivity,
+                            driverViewModel
+                        )
+
+                        if (intentGame == null) {
+                            Log.error("[EmulationFragment] Custom settings processing failed for title ID: $titleId")
+                            Toast.makeText(
+                                requireContext(),
+                                "Failed to apply custom settings. This could be due to:\n• Game not found in library\n• User cancelled configuration overwrite\n• Driver installation failed\n• Missing required drivers",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            requireActivity().finish()
+                            return@launch
+                        }
+
+                        isCustomSettingsIntent = true
+
+                        // Continue with game setup
+                        finishGameSetup()
+
+                    } catch (e: Exception) {
+                        Log.error("[EmulationFragment] Error processing custom settings: ${e.message}")
+                        Toast.makeText(
+                            requireContext(),
+                            "Error processing custom settings: ${e.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        requireActivity().finish()
+                    }
+                }
+
+                // Return early to prevent synchronous continuation
+                return
+            } else {
+                Log.error("[EmulationFragment] Custom settings intent missing required extras")
+                Toast.makeText(
+                    requireContext(),
+                    "Invalid custom settings data",
+                    Toast.LENGTH_SHORT
+                ).show()
+                requireActivity().finish()
+                return
+            }
+        } else if (intentUri != null) {
+            // Handle regular file intent
             intentGame = if (Game.extensions.contains(FileUtil.getExtension(intentUri))) {
                 GameHelper.getGame(requireActivity().intent.data!!, false)
             } else {
@@ -135,6 +205,15 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
         }
 
+        if (!isCustomSettingsIntent) {
+            finishGameSetup()
+        }
+    }
+
+    /**
+     * Complete the game setup process (extracted for async custom settings handling)
+     */
+    private fun finishGameSetup() {
         try {
             game = if (args.game != null) {
                 args.game!!
@@ -151,8 +230,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             return
         }
 
-        // Always load custom settings when launching a game from an intent
-        if (args.custom || intentGame != null) {
+        // Handle configuration loading
+        if (isCustomSettingsIntent) {
+            // Custom settings already applied by CustomSettingsHandler
+            Log.info("[EmulationFragment] Using custom settings from intent")
+        } else if (args.custom || intentGame != null) {
+            // Always load custom settings when launching a game from an intent
             SettingsFile.loadCustomConfig(game)
             NativeConfig.unloadPerGameConfig()
         } else {
@@ -162,12 +245,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         // Install the selected driver asynchronously as the game starts
         driverViewModel.onLaunchGame()
 
-        // So this fragment doesn't restart on configuration changes; i.e. rotation.
-        retainInstance = true
+        // Initialize emulation state (ViewModels handle state retention now)
         emulationState = EmulationState(game.path) {
             return@EmulationState driverViewModel.isInteractionAllowed.value
         }
     }
+
 
     /**
      * Initialize the UI and start emulation in here.
@@ -634,7 +717,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         val batteryTemp = getBatteryTemperature()
                         when (IntSetting.BAT_TEMPERATURE_UNIT.getInt(needsGlobal)) {
                             0 -> sb.append(String.format("%.1f°C", batteryTemp))
-                            1 -> sb.append(String.format("%.1f°F", celsiusToFahrenheit(batteryTemp)))
+                            1 -> sb.append(
+                                String.format(
+                                    "%.1f°F",
+                                    celsiusToFahrenheit(batteryTemp)
+                                )
+                            )
                         }
                     }
 
@@ -643,8 +731,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                         val battery: BatteryManager =
                             requireContext().getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-                        val batteryIntent = requireContext().registerReceiver(null,
-                            IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+                        val batteryIntent = requireContext().registerReceiver(
+                            null,
+                            IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+                        )
 
                         val capacity = battery.getIntProperty(BATTERY_PROPERTY_CAPACITY)
                         val nowUAmps = battery.getIntProperty(BATTERY_PROPERTY_CURRENT_NOW)
@@ -653,7 +743,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                         val status = batteryIntent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
                         val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                                        status == BatteryManager.BATTERY_STATUS_FULL
+                                status == BatteryManager.BATTERY_STATUS_FULL
 
                         if (isCharging) {
                             sb.append(" ${getString(R.string.charging)}")
