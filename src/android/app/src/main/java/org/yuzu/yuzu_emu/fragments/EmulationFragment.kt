@@ -1234,7 +1234,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             val cutInsets: Insets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
             var left = 0
             var right = 0
-            if (ViewCompat.getLayoutDirection(v) == ViewCompat.LAYOUT_DIRECTION_LTR) {
+            if (v.layoutDirection == View.LAYOUT_DIRECTION_LTR) {
                 left = cutInsets.left
             } else {
                 right = cutInsets.right
