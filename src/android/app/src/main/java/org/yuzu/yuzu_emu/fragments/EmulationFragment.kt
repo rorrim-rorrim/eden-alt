@@ -44,7 +44,6 @@ import androidx.core.view.updateLayoutParams
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
@@ -53,7 +52,6 @@ import androidx.window.layout.WindowInfoTracker
 import androidx.window.layout.WindowLayoutInfo
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.slider.Slider
 import com.google.android.material.textview.MaterialTextView
 import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.NativeLibrary
@@ -95,9 +93,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private var perfStatsUpdater: (() -> Unit)? = null
     private var socUpdater: (() -> Unit)? = null
 
-    private lateinit var cpuBackend: String
-    private lateinit var gpuDriver: String
-
     private var _binding: FragmentEmulationBinding? = null
 
     private val binding get() = _binding!!
@@ -116,6 +111,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     private var intentGame: Game? = null
     private var isCustomSettingsIntent = false
+
+    private var perfStatsRunnable: Runnable? = null
+    private var socRunnable: Runnable? = null
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -536,16 +534,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 ViewUtils.showView(binding.loadingIndicator)
             }
         }
-        emulationViewModel.emulationStopped.collect(viewLifecycleOwner) {
-            if (it && emulationViewModel.programChanged.value != -1) {
-                if (perfStatsUpdater != null) {
-                    perfStatsUpdateHandler.removeCallbacks(perfStatsUpdater!!)
-                }
 
-                if (socUpdater != null) {
-                    socUpdateHandler.removeCallbacks(socUpdater!!)
-                }
-
+        emulationViewModel.emulationStopped.collect(viewLifecycleOwner) { stopped ->
+            if (stopped && emulationViewModel.programChanged.value != -1) {
+                perfStatsRunnable?.let { runnable -> perfStatsUpdateHandler.removeCallbacks(runnable) }
+                socRunnable?.let { runnable -> socUpdateHandler.removeCallbacks(runnable) }
                 emulationState.changeProgram(emulationViewModel.programChanged.value)
                 emulationViewModel.setProgramChanged(-1)
                 emulationViewModel.setEmulationStopped(false)
@@ -765,13 +758,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                     binding.showStatsOverlayText.text = sb.toString()
                 }
-                perfStatsUpdateHandler.postDelayed(perfStatsUpdater!!, 800)
+                perfStatsUpdateHandler.postDelayed(perfStatsRunnable!!, 800)
             }
-            perfStatsUpdateHandler.post(perfStatsUpdater!!)
+            perfStatsRunnable = Runnable { perfStatsUpdater?.invoke() }
+            perfStatsUpdateHandler.post(perfStatsRunnable!!)
         } else {
-            if (perfStatsUpdater != null) {
-                perfStatsUpdateHandler.removeCallbacks(perfStatsUpdater!!)
-            }
+            perfStatsRunnable?.let { perfStatsUpdateHandler.removeCallbacks(it) }
         }
     }
 
@@ -884,13 +876,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     }
                 }
 
-                socUpdateHandler.postDelayed(socUpdater!!, 1000)
+                socUpdateHandler.postDelayed(socRunnable!!, 1000)
             }
-            socUpdateHandler.post(socUpdater!!)
+            socRunnable = Runnable { socUpdater?.invoke() }
+            socUpdateHandler.post(socRunnable!!)
         } else {
-            if (socUpdater != null) {
-                socUpdateHandler.removeCallbacks(socUpdater!!)
-            }
+            socRunnable?.let { socUpdateHandler.removeCallbacks(it) }
         }
     }
 
@@ -1183,22 +1174,18 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             inputScaleSlider.apply {
                 valueTo = 150F
                 value = IntSetting.OVERLAY_SCALE.getInt().toFloat()
-                addOnChangeListener(
-                    Slider.OnChangeListener { _, value, _ ->
-                        inputScaleValue.text = "${value.toInt()}%"
-                        setControlScale(value.toInt())
-                    }
-                )
+                addOnChangeListener { _, value, _ ->
+                    inputScaleValue.text = "${value.toInt()}%"
+                    setControlScale(value.toInt())
+                }
             }
             inputOpacitySlider.apply {
                 valueTo = 100F
                 value = IntSetting.OVERLAY_OPACITY.getInt().toFloat()
-                addOnChangeListener(
-                    Slider.OnChangeListener { _, value, _ ->
-                        inputOpacityValue.text = "${value.toInt()}%"
-                        setControlOpacity(value.toInt())
-                    }
-                )
+                addOnChangeListener { _, value, _ ->
+                    inputOpacityValue.text = "${value.toInt()}%"
+                    setControlOpacity(value.toInt())
+                }
             }
             inputScaleValue.text = "${inputScaleSlider.value.toInt()}%"
             inputOpacityValue.text = "${inputOpacitySlider.value.toInt()}%"
