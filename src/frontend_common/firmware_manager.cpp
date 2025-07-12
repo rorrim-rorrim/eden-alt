@@ -3,6 +3,10 @@
 
 #include "firmware_manager.h"
 #include <filesystem>
+#include <jni.h>
+#include <common/android/id_cache.h>
+#include <common/android/android_common.h>
+#include <common/fs/fs_paths.h>
 
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
@@ -12,11 +16,51 @@
 #include "core/crypto/key_manager.h"
 #include "frontend_common/content_manager.h"
 
-FirmwareManager::KeyInstallResult FirmwareManager::InstallKeys(std::string location, std::string extension)
-{
+FirmwareManager::KeyInstallResult
+FirmwareManager::InstallKeys(std::string location, std::string extension) {
     LOG_INFO(Frontend, "Installing key files from {}", location);
 
     const auto keys_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::KeysDir);
+
+#ifdef ANDROID
+    JNIEnv *env = Common::Android::GetEnvForThread();
+
+    jstring jsrc = Common::Android::ToJString(env, location);
+
+    jclass native = Common::Android::GetNativeLibraryClass();
+    jmethodID getExtension = Common::Android::GetFileExtension();
+
+    jstring jext = static_cast<jstring>(env->CallStaticObjectMethod(
+        native,
+        getExtension,
+        jsrc
+    ));
+
+    std::string ext = Common::Android::GetJString(env, jext);
+
+    if (ext != extension) {
+        return ErrorWrongFilename;
+    }
+
+    jmethodID copyToStorage = Common::Android::GetCopyToStorage();
+    jstring jdest = Common::Android::ToJString(env, keys_dir.string());
+
+    jboolean copyResult = env->CallStaticBooleanMethod(
+        native,
+        copyToStorage,
+        jsrc,
+        jdest
+    );
+
+    if (!copyResult) {
+        return ErrorFailedCopy;
+    }
+#else
+    if (!location.ends_with(extension)) {
+        return ErrorWrongFilename;
+    }
+
+    bool prod_keys_found = false;
 
     const std::filesystem::path prod_key_path = location;
     const std::filesystem::path key_source_path = prod_key_path.parent_path();
@@ -25,7 +69,6 @@ FirmwareManager::KeyInstallResult FirmwareManager::InstallKeys(std::string locat
         return InvalidDir;
     }
 
-    bool prod_keys_found = false;
     std::vector<std::filesystem::path> source_key_files;
 
     if (Common::FS::Exists(prod_key_path)) {
@@ -57,6 +100,7 @@ FirmwareManager::KeyInstallResult FirmwareManager::InstallKeys(std::string locat
             return ErrorFailedCopy;
         }
     }
+#endif
 
     // Reinitialize the key manager
     Core::Crypto::KeyManager::Instance().ReloadKeys();
@@ -65,12 +109,11 @@ FirmwareManager::KeyInstallResult FirmwareManager::InstallKeys(std::string locat
         return Success;
     }
 
-    // let the frontend handle checking everything else
+    // Let the frontend handle everything else
     return ErrorFailedInit;
 }
 
-FirmwareManager::FirmwareCheckResult FirmwareManager::VerifyFirmware(Core::System &system)
-{
+FirmwareManager::FirmwareCheckResult FirmwareManager::VerifyFirmware(Core::System &system) {
     if (!CheckFirmwarePresence(system)) {
         return ErrorFirmwareMissing;
     } else {

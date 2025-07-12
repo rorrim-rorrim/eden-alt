@@ -505,6 +505,7 @@
 
     <string-array name="installKeysResults">
         <item>""</item>
+        <item>""</item>
         <item>@string/error_keys_copy_failed</item>
         <item>@string/error_keys_invalid_filename</item>
         <item>@string/error_keys_failed_init</item>

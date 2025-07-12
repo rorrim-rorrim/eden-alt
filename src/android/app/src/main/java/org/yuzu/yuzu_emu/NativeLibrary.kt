@@ -15,6 +15,7 @@ import android.view.Surface
 import android.view.View
 import android.widget.TextView
 import androidx.annotation.Keep
+import androidx.core.net.toUri
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import net.swiftzer.semver.SemVer
 import java.lang.ref.WeakReference
@@ -27,6 +28,7 @@ import org.yuzu.yuzu_emu.model.InstallResult
 import org.yuzu.yuzu_emu.model.Patch
 import org.yuzu.yuzu_emu.model.GameVerificationResult
 import org.yuzu.yuzu_emu.network.NetPlayManager
+import java.io.File
 
 /**
  * Class which contains methods that interact
@@ -101,6 +103,21 @@ object NativeLibrary {
         } else {
             FileUtil.getFilename(Uri.parse(path))
         }
+
+    @Keep
+    @JvmStatic
+    fun copyFileToStorage(source: String, destdir: String): Boolean {
+        return FileUtil.copyUriToInternalStorage(
+            source.toUri(),
+            destdir
+        ) != null
+    }
+
+    @Keep
+    @JvmStatic
+    fun getFileExtension(source: String): String {
+        return FileUtil.getExtension(source.toUri())
+    }
 
     external fun setAppDirectory(directory: String)
 

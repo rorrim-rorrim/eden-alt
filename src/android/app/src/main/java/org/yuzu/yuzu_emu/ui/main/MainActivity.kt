@@ -202,8 +202,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 showNegativeButton = true,
                 positiveAction = {
                     PreferenceManager.getDefaultSharedPreferences(applicationContext).edit() {
-                            putBoolean(Settings.PREF_SHOULD_SHOW_PRE_ALPHA_WARNING, false)
-                        }
+                        putBoolean(Settings.PREF_SHOULD_SHOW_PRE_ALPHA_WARNING, false)
+                    }
                 }).show(supportFragmentManager, MessageDialogFragment.TAG)
         }
     }
@@ -337,59 +337,35 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     val getAmiiboKey = registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
         if (result != null) {
-            processKey(result, "bin", false)
+            processKey(result, "bin")
         }
     }
 
-    fun processKey(result: Uri, extension: String = "keys", check: Boolean = true): Boolean {
-        if (FileUtil.getExtension(result) != extension) {
-            MessageDialogFragment.newInstance(
-                this,
-                titleId = R.string.keys_failed,
-                descriptionId = R.string.error_keys_invalid_filename
-            ).show(supportFragmentManager, MessageDialogFragment.TAG)
-            return false
-        }
-
+    fun processKey(result: Uri, extension: String = "keys") {
         contentResolver.takePersistableUriPermission(
             result, Intent.FLAG_GRANT_READ_URI_PERMISSION
         )
 
-        val dstPath = DirectoryInitialization.userDirectory + "/keys/"
-        if (FileUtil.copyUriToInternalStorage(
-                result, dstPath, ""
-            ) != null
-        ) {
-            if (NativeLibrary.reloadKeys()) {
-                Toast.makeText(
-                    applicationContext, R.string.keys_install_success, Toast.LENGTH_SHORT
-                ).show()
+        val resultCode: Int = NativeLibrary.installKeys(result.toString(), extension);
 
-                if (check) {
-                    homeViewModel.setCheckKeys(true)
+        if (resultCode == 0) {
+            Toast.makeText(
+                applicationContext, R.string.keys_install_success, Toast.LENGTH_SHORT
+            ).show()
 
-                    val firstTimeSetup =
-                        PreferenceManager.getDefaultSharedPreferences(applicationContext)
-                            .getBoolean(Settings.PREF_FIRST_APP_LAUNCH, true)
-                    if (!firstTimeSetup) {
-                        homeViewModel.setCheckFirmware(true)
-                    }
+            gamesViewModel.reloadGames(true)
 
-                    gamesViewModel.reloadGames(true)
-                }
-                return true
-            } else {
-                MessageDialogFragment.newInstance(
-                    this,
-                    titleId = R.string.keys_failed,
-                    descriptionId = R.string.error_keys_failed_init,
-                    helpLinkId = R.string.dumping_keys_quickstart_link
-                ).show(supportFragmentManager, MessageDialogFragment.TAG)
-                return false
-            }
+            return
         }
 
-        return true
+        val resultString: String =
+            resources.getStringArray(R.array.installKeysResults)[resultCode]
+
+        MessageDialogFragment.newInstance(
+            titleId = R.string.keys_failed,
+            descriptionString = resultString,
+            helpLinkId = R.string.keys_missing_help
+        ).show(supportFragmentManager, MessageDialogFragment.TAG)
     }
 
     val getFirmware = registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
@@ -542,7 +518,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
             addonViewModel.refreshAddons()
 
-            val separator = System.getProperty("line.separator") ?: "\n"
+            val separator = System.lineSeparator() ?: "\n"
             val installResult = StringBuilder()
             if (installSuccess > 0) {
                 installResult.append(
