@@ -3,9 +3,6 @@
 
 #include "firmware_manager.h"
 #include <filesystem>
-#include <jni.h>
-#include <common/android/id_cache.h>
-#include <common/android/android_common.h>
 #include <common/fs/fs_paths.h>
 
 #include "common/fs/fs.h"
@@ -15,6 +12,12 @@
 
 #include "core/crypto/key_manager.h"
 #include "frontend_common/content_manager.h"
+
+#ifdef ANDROID
+#include <jni.h>
+#include <common/android/id_cache.h>
+#include <common/android/android_common.h>
+#endif
 
 FirmwareManager::KeyInstallResult
 FirmwareManager::InstallKeys(std::string location, std::string extension) {
