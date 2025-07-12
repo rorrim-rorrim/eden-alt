@@ -494,4 +494,17 @@ if (YUZU_ROOM)
     target_link_libraries(yuzu PRIVATE yuzu-room)
 endif()
 
+# Extra deps
+set(BUILD_SHARED_LIBS OFF)
+
+include(CPM)
+CPMAddPackage("gh:stachenov/quazip@1.5")
+
+target_compile_options(QuaZip
+    PRIVATE
+    -Wno-error=shadow
+)
+
+target_link_libraries(yuzu PRIVATE QuaZip::QuaZip)
+
 create_target_directory_groups(yuzu)
