@@ -197,15 +197,15 @@ public:
     }
 
 private:
-    Core::System& system;
     SyncpointManager syncpoint_manager;
     Tegra::MaxwellDeviceMemoryManager memory_manager;
     Tegra::MemoryManager gmmu_manager;
-    std::unique_ptr<Common::FlatAllocator<u32, 0, 32>> allocator;
     FrameQueue frame_queue;
-    std::unordered_map<s32, std::unique_ptr<CDmaPusher>> devices;
-    std::once_flag nvdec_first_init;
-    std::once_flag vic_first_init;
+    std::unordered_map<s32, std::unique_ptr<CDmaPusher>> devices; //+12
+    std::unique_ptr<Common::FlatAllocator<u32, 0, 32>> allocator; //8
+    Core::System& system; //8
+    // std::once_flag nvdec_first_init;
+    // std::once_flag vic_first_init;
 };
 
 } // namespace Tegra::Host1x

@@ -37,18 +37,18 @@ enum class ShuffleMode : u64 {
     }
 }
 
-bool IsKONA() {
-    std::ifstream machineFile("/sys/devices/soc0/machine");
-    if (machineFile.is_open()) {
-        std::string line;
-        std::getline(machineFile, line);
-        if (line == "KONA")
-            return true;
-    }
-    return false;
-}
-
 void Shuffle(TranslatorVisitor& v, u64 insn, const IR::U32& index, const IR::U32& mask) {
+    // Static initializer ran once -- see Apple rosetta code in Dynarmic for backref
+    static bool is_kona = []{
+        std::ifstream machineFile("/sys/devices/soc0/machine");
+        if (machineFile.is_open()) {
+            std::string line{};
+            std::getline(machineFile, line);
+            return line == "KONA";
+        }
+        return false;
+    }();
+
     union {
         u64 insn;
         BitField<0, 8, IR::Reg> dest_reg;
@@ -59,7 +59,7 @@ void Shuffle(TranslatorVisitor& v, u64 insn, const IR::U32& index, const IR::U32
 
     const IR::U32 result{ShuffleOperation(v.ir, v.X(shfl.src_reg), index, mask, shfl.mode)};
     v.ir.SetPred(shfl.pred, v.ir.GetInBoundsFromOp(result));
-    if (IsKONA())
+    if (is_kona)
         v.X(shfl.dest_reg, v.ir.Imm32(0xffffffff)); // This fixes the freeze for Retroid / Snapdragon SD865
     else
         v.X(shfl.dest_reg, result);
