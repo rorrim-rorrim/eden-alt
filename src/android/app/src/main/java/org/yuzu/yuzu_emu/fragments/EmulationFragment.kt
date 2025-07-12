@@ -153,7 +153,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                             titleId,
                             customSettings,
                             requireContext(),
-                            requireActivity() as? FragmentActivity,
+                            requireActivity(),
                             driverViewModel
                         )
 
@@ -170,7 +170,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                         isCustomSettingsIntent = true
 
-                        // Continue with game setup
                         finishGameSetup()
 
                     } catch (e: Exception) {
@@ -184,7 +183,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     }
                 }
 
-                // Return early to prevent synchronous continuation
                 return
             } else {
                 Log.error("[EmulationFragment] Custom settings intent missing required extras")
@@ -205,9 +203,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
         }
 
-        if (!isCustomSettingsIntent) {
-            finishGameSetup()
-        }
+        if (!isCustomSettingsIntent) finishGameSetup()
     }
 
     /**
@@ -221,6 +217,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 intentGame!!
             }
         } catch (e: NullPointerException) {
+            Log.error("[EmulationFragment] No game found in arguments or intent: ${e.message}")
             Toast.makeText(
                 requireContext(),
                 R.string.no_game_present,
