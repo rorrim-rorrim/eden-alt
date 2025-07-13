@@ -201,7 +201,7 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
     }
 
     // Multi-process state
-    config.processor_id = m_core_index;
+    config.processor_id = std::uint8_t(m_core_index);
     config.global_monitor = &m_exclusive_monitor.monitor;
 
     // Timing

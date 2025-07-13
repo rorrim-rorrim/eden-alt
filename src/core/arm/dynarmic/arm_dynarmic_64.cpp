@@ -232,7 +232,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
     // Memory
     if (page_table) {
         config.page_table = reinterpret_cast<void**>(page_table->pointers.data());
-        config.page_table_address_space_bits = address_space_bits;
+        config.page_table_address_space_bits = std::uint32_t(address_space_bits);
         config.page_table_pointer_mask_bits = Common::PageTable::ATTRIBUTE_BITS;
         config.silently_mirror_page_table = false;
         config.absolute_offset_page_table = true;
@@ -242,7 +242,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
         config.fastmem_pointer = page_table->fastmem_arena ?
             std::optional<uintptr_t>{reinterpret_cast<uintptr_t>(page_table->fastmem_arena)} :
             std::nullopt;
-        config.fastmem_address_space_bits = address_space_bits;
+        config.fastmem_address_space_bits = std::uint32_t(address_space_bits);
         config.silently_mirror_fastmem = false;
 
         config.fastmem_exclusive_access = config.fastmem_pointer != std::nullopt;
@@ -250,7 +250,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
     }
 
     // Multi-process state
-    config.processor_id = m_core_index;
+    config.processor_id = std::uint8_t(m_core_index);
     config.global_monitor = &m_exclusive_monitor.monitor;
 
     // System registers
