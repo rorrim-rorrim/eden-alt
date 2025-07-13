@@ -84,6 +84,8 @@ import org.yuzu.yuzu_emu.utils.CustomSettingsHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import java.io.File
 
 class EmulationFragment : Fragment(), SurfaceHolder.Callback {
@@ -138,60 +140,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         isCustomSettingsIntent = false
 
         if (intent.action == CustomSettingsHandler.CUSTOM_CONFIG_ACTION) {
-            val titleId = intent.getStringExtra(CustomSettingsHandler.EXTRA_TITLE_ID)
-            val customSettings = intent.getStringExtra(CustomSettingsHandler.EXTRA_CUSTOM_SETTINGS)
-
-            if (titleId != null && customSettings != null) {
-                Log.info("[EmulationFragment] Received custom settings intent for title: $titleId")
-
-                // Handle custom settings asynchronously to allow for driver checking/installation
-                CoroutineScope(Dispatchers.Main).launch {
-                    try {
-                        intentGame = CustomSettingsHandler.applyCustomSettingsWithDriverCheck(
-                            titleId,
-                            customSettings,
-                            requireContext(),
-                            requireActivity(),
-                            driverViewModel
-                        )
-
-                        if (intentGame == null) {
-                            Log.error("[EmulationFragment] Custom settings processing failed for title ID: $titleId")
-                            Toast.makeText(
-                                requireContext(),
-                                "Failed to apply custom settings. This could be due to:\n• Game not found in library\n• User cancelled configuration overwrite\n• Driver installation failed\n• Missing required drivers",
-                                Toast.LENGTH_LONG
-                            ).show()
-                            requireActivity().finish()
-                            return@launch
-                        }
-
-                        isCustomSettingsIntent = true
-
-                        finishGameSetup()
-
-                    } catch (e: Exception) {
-                        Log.error("[EmulationFragment] Error processing custom settings: ${e.message}")
-                        Toast.makeText(
-                            requireContext(),
-                            "Error processing custom settings: ${e.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        requireActivity().finish()
-                    }
-                }
-
-                return
-            } else {
-                Log.error("[EmulationFragment] Custom settings intent missing required extras")
-                Toast.makeText(
-                    requireContext(),
-                    "Invalid custom settings data",
-                    Toast.LENGTH_SHORT
-                ).show()
-                requireActivity().finish()
-                return
-            }
+            handleEmuReadyIntent(intent)
+            return
         } else if (intentUri != null) {
             // Handle regular file intent
             intentGame = if (Game.extensions.contains(FileUtil.getExtension(intentUri))) {
@@ -246,6 +196,115 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
     }
 
+    /**
+     * Handle EmuReady intent for launching games with or without custom settings
+     */
+    private fun handleEmuReadyIntent(intent: Intent) {
+        val titleId = intent.getStringExtra(CustomSettingsHandler.EXTRA_TITLE_ID)
+        val customSettings = intent.getStringExtra(CustomSettingsHandler.EXTRA_CUSTOM_SETTINGS)
+
+        if (titleId != null) {
+            Log.info("[EmulationFragment] Received EmuReady intent for title: $titleId")
+
+            CoroutineScope(Dispatchers.Main).launch {
+                try {
+                    // Find the game first to get the title for confirmation
+                    val foundGame = CustomSettingsHandler.findGameByTitleId(titleId, requireContext())
+                    if (foundGame == null) {
+                        Log.error("[EmulationFragment] Game not found for title ID: $titleId")
+                        Toast.makeText(
+                            requireContext(),
+                            "Game not found in library for title ID: $titleId",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        requireActivity().finish()
+                        return@launch
+                    }
+
+                    // Show confirmation dialog
+                    val shouldLaunch = showLaunchConfirmationDialog(foundGame.title, customSettings != null)
+                    if (!shouldLaunch) {
+                        Log.info("[EmulationFragment] User cancelled EmuReady launch")
+                        requireActivity().finish()
+                        return@launch
+                    }
+
+                    if (customSettings != null) {
+                        // Handle custom settings launch
+                        intentGame = CustomSettingsHandler.applyCustomSettingsWithDriverCheck(
+                            titleId,
+                            customSettings,
+                            requireContext(),
+                            requireActivity(),
+                            driverViewModel
+                        )
+
+                        if (intentGame == null) {
+                            Log.error("[EmulationFragment] Custom settings processing failed for title ID: $titleId")
+                            Toast.makeText(
+                                requireContext(),
+                                "Failed to apply custom settings. This could be due to:\n• User cancelled configuration overwrite\n• Driver installation failed\n• Missing required drivers",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            requireActivity().finish()
+                            return@launch
+                        }
+
+                        isCustomSettingsIntent = true
+                    } else {
+                        // Handle title-only launch (no custom settings)
+                        intentGame = foundGame
+                    }
+
+                    finishGameSetup()
+
+                } catch (e: Exception) {
+                    Log.error("[EmulationFragment] Error processing EmuReady intent: ${e.message}")
+                    Toast.makeText(
+                        requireContext(),
+                        "Error processing EmuReady request: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    requireActivity().finish()
+                }
+            }
+        } else {
+            Log.error("[EmulationFragment] EmuReady intent missing title_id")
+            Toast.makeText(
+                requireContext(),
+                "Invalid EmuReady request: missing title ID",
+                Toast.LENGTH_SHORT
+            ).show()
+            requireActivity().finish()
+        }
+    }
+
+    /**
+     * Show confirmation dialog for EmuReady game launches
+     */
+    private suspend fun showLaunchConfirmationDialog(gameTitle: String, hasCustomSettings: Boolean): Boolean {
+        return suspendCoroutine { continuation ->
+            requireActivity().runOnUiThread {
+                val message = if (hasCustomSettings) {
+                    "EmuReady wants to launch \"$gameTitle\" with custom settings.\n\nDo you want to continue?"
+                } else {
+                    "EmuReady wants to launch \"$gameTitle\".\n\nDo you want to continue?"
+                }
+
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("Launch Game")
+                    .setMessage(message)
+                    .setPositiveButton("Launch") { _, _ ->
+                        continuation.resume(true)
+                    }
+                    .setNegativeButton("Cancel") { _, _ ->
+                        continuation.resume(false)
+                    }
+                    .setCancelable(false)
+                    .show()
+            }
+        }
+    }
 
     /**
      * Initialize the UI and start emulation in here.

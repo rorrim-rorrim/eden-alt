@@ -7,6 +7,7 @@
 package org.yuzu.yuzu_emu.utils
 
 import android.content.Context
+import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.model.DriverViewModel
@@ -131,7 +132,7 @@ object CustomSettingsHandler {
     /**
      * Find a game by its title ID in the user's game library
      */
-    private fun findGameByTitleId(titleId: String, context: Context): Game? {
+    fun findGameByTitleId(titleId: String, context: Context): Game? {
         Log.info("[CustomSettingsHandler] Searching for game with title ID: $titleId")
         // Convert hex title ID to decimal for comparison with programId
         val programIdDecimal = try {
@@ -160,8 +161,10 @@ object CustomSettingsHandler {
         }
         if (foundGame != null) {
             Log.info("[CustomSettingsHandler] Found game: ${foundGame.title} at ${foundGame.path}")
+            Toast.makeText(context, "Found game: ${foundGame.title}", Toast.LENGTH_SHORT).show()
         } else {
             Log.warning("[CustomSettingsHandler] No game found for title ID: $titleId")
+            Toast.makeText(context, "Game not found for title ID: $titleId", Toast.LENGTH_SHORT).show()
         }
         return foundGame
     }
