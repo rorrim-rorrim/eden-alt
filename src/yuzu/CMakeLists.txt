@@ -498,15 +498,11 @@ endif()
 set(BUILD_SHARED_LIBS OFF)
 
 include(CPM)
-CPMAddPackage("gh:stachenov/quazip@1.5")
-
-if (NOT MSVC)
-    target_compile_options(QuaZip
-        PRIVATE
-        -Wno-error=shadow
-        -Wno-error=missing-declarations
-    )
-endif()
+CPMAddPackage("gh:stachenov/quazip@1.5"
+    NAME QuaZip
+    PATCHES
+        ${CMAKE_SOURCE_DIR}/.ci/patch/0001-quazip-strict.patch
+)
 
 target_link_libraries(yuzu PRIVATE QuaZip::QuaZip)
 

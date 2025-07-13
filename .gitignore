@@ -51,4 +51,3 @@ Thumbs.db
 eden-windows-msvc
 artifacts
 *.AppImage*
-*.patch
