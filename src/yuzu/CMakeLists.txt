@@ -506,10 +506,12 @@ CPMAddPackage(
         ${CMAKE_SOURCE_DIR}/.ci/patch/0001-quazip-strict.patch
 )
 
-target_compile_options(QuaZip PRIVATE
-    -Wno-error=shadow
-    -Wno-error=missing-declarations
-)
+if (NOT MSVC)
+    target_compile_options(QuaZip PRIVATE
+        -Wno-error=shadow
+        -Wno-error=missing-declarations
+    )
+endif()
 
 target_link_libraries(yuzu PRIVATE QuaZip::QuaZip)
 
