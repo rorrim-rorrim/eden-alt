@@ -17,6 +17,7 @@
 
 #include "common/common_types.h"
 #include "core/file_sys/vfs/vfs_types.h"
+#include "core/hle/service/dmnt/cheat_process_manager.h"
 
 namespace Core::Frontend {
 class EmuWindow;
@@ -43,7 +44,6 @@ enum class ResultStatus : u16;
 } // namespace Loader
 
 namespace Core::Memory {
-struct CheatEntry;
 class Memory;
 } // namespace Core::Memory
 
@@ -337,7 +337,7 @@ public:
 
     [[nodiscard]] FileSys::VirtualFilesystem GetFilesystem() const;
 
-    void RegisterCheatList(const std::vector<Memory::CheatEntry>& list,
+    void RegisterCheatList(const std::vector<Service::DMNT::CheatEntry>& list,
                            const std::array<u8, 0x20>& build_id, u64 main_region_begin,
                            u64 main_region_size);
 
@@ -380,6 +380,9 @@ public:
     [[nodiscard]] const Core::Debugger& GetDebugger() const;
 
     [[nodiscard]] Tools::RenderdocAPI& GetRenderdocAPI();
+
+    [[nodiscard]] Service::DMNT::CheatProcessManager& GetCheatManager();
+    [[nodiscard]] const Service::DMNT::CheatProcessManager& GetCheatManager() const;
 
     void SetExitLocked(bool locked);
     bool GetExitLocked() const;

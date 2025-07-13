@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <QList>
+#include <qwidget.h>
 
 #include "core/file_sys/vfs/vfs_types.h"
 

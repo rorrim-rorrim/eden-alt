@@ -52,7 +52,6 @@
 #include "core/internal_network/network.h"
 #include "core/loader/loader.h"
 #include "core/memory.h"
-#include "core/memory/cheat_engine.h"
 #include "core/perf_stats.h"
 #include "core/reporter.h"
 #include "core/tools/freezer.h"
@@ -285,6 +284,8 @@ struct System::Impl {
         services =
             std::make_unique<Service::Services>(service_manager, system, stop_event.get_token());
 
+        cheat_manager = std::make_unique<Service::DMNT::CheatProcessManager>(system);
+
         is_powered_on = true;
         exit_locked = false;
         exit_requested = false;
@@ -385,11 +386,6 @@ struct System::Impl {
             return init_result;
         }
 
-        // Initialize cheat engine
-        if (cheat_engine) {
-            cheat_engine->Initialize();
-        }
-
         // Register with applet manager
         // All threads are started, begin main process execution, now that we're in the clear
         applet_manager.CreateAndInsertByFrontendAppletParameters(std::move(process), params);
@@ -453,7 +449,6 @@ struct System::Impl {
         services.reset();
         service_manager.reset();
         fs_controller.Reset();
-        cheat_engine.reset();
         core_timing.ClearPendingEvents();
         app_loader.reset();
         audio_core.reset();
@@ -529,7 +524,6 @@ struct System::Impl {
     bool nvdec_active{};
 
     Reporter reporter;
-    std::unique_ptr<Memory::CheatEngine> cheat_engine;
     std::unique_ptr<Tools::Freezer> memory_freezer;
     std::array<u8, 0x20> build_id{};
 
@@ -557,6 +551,9 @@ struct System::Impl {
 
     /// Debugger
     std::unique_ptr<Core::Debugger> debugger;
+
+    /// Cheat Manager (DMNT)
+    std::unique_ptr<Service::DMNT::CheatProcessManager> cheat_manager;
 
     SystemResultStatus status = SystemResultStatus::Success;
     std::string status_details = "";
@@ -824,11 +821,11 @@ FileSys::VirtualFilesystem System::GetFilesystem() const {
     return impl->virtual_filesystem;
 }
 
-void System::RegisterCheatList(const std::vector<Memory::CheatEntry>& list,
+void System::RegisterCheatList(const std::vector<Service::DMNT::CheatEntry>& list,
                                const std::array<u8, 32>& build_id, u64 main_region_begin,
                                u64 main_region_size) {
-    impl->cheat_engine = std::make_unique<Memory::CheatEngine>(*this, list, build_id);
-    impl->cheat_engine->SetMainMemoryParameters(main_region_begin, main_region_size);
+    // TODO
+    impl->cheat_manager->AttachToApplicationProcess(build_id, main_region_begin, main_region_size);
 }
 
 void System::SetFrontendAppletSet(Service::AM::Frontend::FrontendAppletSet&& set) {
@@ -980,6 +977,15 @@ const Core::Debugger& System::GetDebugger() const {
 
 Tools::RenderdocAPI& System::GetRenderdocAPI() {
     return *impl->renderdoc_api;
+}
+
+Service::DMNT::CheatProcessManager& System::GetCheatManager()
+{
+    return *impl->cheat_manager;
+}
+
+const Service::DMNT::CheatProcessManager& System::GetCheatManager() const {
+    return *impl->cheat_manager;
 }
 
 void System::RunServer(std::unique_ptr<Service::ServerManager>&& server_manager) {
