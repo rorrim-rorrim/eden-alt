@@ -498,8 +498,10 @@ endif()
 set(BUILD_SHARED_LIBS OFF)
 
 include(CPM)
-CPMAddPackage("gh:stachenov/quazip@1.5"
-    NAME QuaZip
+set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
+
+CPMAddPackage(
+    URI "gh:stachenov/quazip@1.5"
     PATCHES
         ${CMAKE_SOURCE_DIR}/.ci/patch/0001-quazip-strict.patch
 )
