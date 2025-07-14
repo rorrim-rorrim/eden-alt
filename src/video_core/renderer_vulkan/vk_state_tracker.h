@@ -211,7 +211,9 @@ public:
         return Exchange(Dirty::ConservativeRasterizationMode, false);
     }
 
-    bool TouchLineStippleEnable() { return Exchange(Dirty::ConservativeRasterizationMode, false); }
+    bool TouchLineStippleEnable() { return Exchange(Dirty::LineStippleEnable, false); }
+
+    bool TouchLineStipple() { return Exchange(Dirty::LineStippleParams, false); }
 
     bool TouchDepthBiasEnable() { return Exchange(Dirty::DepthBiasEnable, false); }
 
