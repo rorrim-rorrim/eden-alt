@@ -452,8 +452,6 @@ set(FFmpeg_COMPONENTS
     avutil
     swscale)
 
-add_subdirectory(externals)
-
 if (ENABLE_QT)
     if (YUZU_USE_BUNDLED_QT)
         download_qt(6.8.3)
@@ -499,6 +497,9 @@ if (ENABLE_QT)
     message(STATUS "Using target Qt at ${QT_TARGET_PATH}")
     message(STATUS "Using host Qt at ${QT_HOST_PATH}")
 endif()
+
+# Qt has to download first for QuaZip
+add_subdirectory(externals)
 
 function(set_yuzu_qt_components)
     # Best practice is to ask for all components at once, so they are from the same version
