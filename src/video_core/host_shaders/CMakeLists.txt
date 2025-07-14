@@ -21,6 +21,8 @@ set(SHADER_FILES
     convert_abgr8_srgb_to_d24s8.frag
     convert_abgr8_to_d24s8.frag
     convert_abgr8_to_d32f.frag
+    convert_r8_to_abgr8.frag
+    convert_abgr8_to_r8.frag
     convert_d32f_to_abgr8.frag
     convert_d24s8_to_abgr8.frag
     convert_depth_to_float.frag

@@ -1219,8 +1219,16 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
             return blit_image_helper.ConvertABGR8ToD24S8(dst, src_view);
         }
         break;
-
+    case PixelFormat::R8_UNORM:
+        if (src_view.format == PixelFormat::A8B8G8R8_UNORM) {
+            return blit_image_helper.ConvertABGR8ToR8(dst, src_view);
+        }
+        break;
     case PixelFormat::A8B8G8R8_UNORM:
+        if (src_view.format == PixelFormat::R8_UNORM) {
+            return blit_image_helper.ConvertR8ToABGR8(dst, src_view);
+        }
+        break;
     case PixelFormat::A8B8G8R8_SNORM:
     case PixelFormat::A8B8G8R8_SINT:
     case PixelFormat::A8B8G8R8_UINT:
@@ -1232,7 +1240,6 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
     case PixelFormat::A2R10G10B10_UNORM:
     case PixelFormat::A1B5G5R5_UNORM:
     case PixelFormat::A5B5G5R1_UNORM:
-    case PixelFormat::R8_UNORM:
     case PixelFormat::R8_SNORM:
     case PixelFormat::R8_SINT:
     case PixelFormat::R8_UINT:
@@ -1325,6 +1332,7 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
     default:
         break;
     }
+    LOG_WARNING(Render_Vulkan, "Unimplemented texture conversion from {} to {} format type", src_view.format, dst_view.format);
 }
 
 VkFormat TextureCacheRuntime::GetSupportedFormat(VkFormat requested_format,

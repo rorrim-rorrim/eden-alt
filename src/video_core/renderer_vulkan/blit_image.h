@@ -65,6 +65,10 @@ public:
 
     void ConvertR16ToD16(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
 
+    void ConvertR8ToABGR8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
+
+    void ConvertABGR8ToR8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
+
     void ConvertABGR8ToD24S8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
 
     void ConvertABGR8SRGBToD24S8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
@@ -144,6 +148,8 @@ private:
     vk::ShaderModule convert_float_to_depth_frag;
     vk::ShaderModule convert_abgr8_to_d24s8_frag;
     vk::ShaderModule convert_abgr8_to_d32f_frag;
+    vk::ShaderModule convert_abgr8_to_r8_frag;
+    vk::ShaderModule convert_r8_to_abgr8_frag;
     vk::ShaderModule convert_d32f_to_abgr8_frag;
     vk::ShaderModule convert_d24s8_to_abgr8_frag;
     vk::ShaderModule convert_s8d24_to_abgr8_frag;
@@ -176,6 +182,8 @@ private:
     vk::Pipeline convert_d32f_to_abgr8_pipeline;
     vk::Pipeline convert_d24s8_to_abgr8_pipeline;
     vk::Pipeline convert_s8d24_to_abgr8_pipeline;
+    vk::Pipeline convert_r8_to_abgr8_pipeline;
+    vk::Pipeline convert_abgr8_to_r8_pipeline;
     vk::Pipeline convert_abgr8_srgb_to_d24s8_pipeline;
     vk::Pipeline convert_rgba_to_bgra_pipeline;
     vk::Pipeline convert_yuv420_to_rgb_pipeline;
