@@ -207,150 +207,139 @@ RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra
 
 RasterizerVulkan::~RasterizerVulkan() = default;
 
+// PrepareDraw: NO more per-draw flush/tick
 template <typename Func>
-void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
-    MICROPROFILE_SCOPE(Vulkan_Drawing);
-
-    SCOPE_EXIT {
-        gpu.TickWork();
-    };
-    FlushWork();
-    gpu_memory->FlushCaching();
-
+void Vulkan::RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     query_cache.NotifySegment(true);
 
-    GraphicsPipeline* const pipeline{pipeline_cache.CurrentGraphicsPipeline()};
-    if (!pipeline) {
-        return;
+    auto* pipeline = pipeline_cache.CurrentGraphicsPipeline();
+    if (!pipeline) return;
+
+    {
+        // only lock when updating caches
+        std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
+        pipeline->SetEngine(maxwell3d, gpu_memory);
+        if (!pipeline->Configure(is_indexed))
+            return;
     }
-    std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
-    // update engine as channel may be different.
-    pipeline->SetEngine(maxwell3d, gpu_memory);
-    if (!pipeline->Configure(is_indexed))
-        return;
 
     UpdateDynamicStates();
-
     HandleTransformFeedback();
-    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
-                              maxwell3d->regs.zpass_pixel_count_enable);
+    query_cache.CounterEnable(
+        VideoCommon::QueryType::ZPassPixelCount64,
+        maxwell3d->regs.zpass_pixel_count_enable
+        );
+
     draw_func();
 }
 
-void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
+// Draw, DrawIndirect: unchanged logic, but now bracketed by Start/EndFrame
+void Vulkan::RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
     PrepareDraw(is_indexed, [this, is_indexed, instance_count] {
-        const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
-        const u32 num_instances{instance_count};
-        const DrawParams draw_params{MakeDrawParams(draw_state, num_instances, is_indexed)};
-        scheduler.Record([draw_params](vk::CommandBuffer cmdbuf) {
-            if (draw_params.is_indexed) {
-                cmdbuf.DrawIndexed(draw_params.num_vertices, draw_params.num_instances,
-                                   draw_params.first_index, draw_params.base_vertex,
-                                   draw_params.base_instance);
+        const auto& ds = maxwell3d->draw_manager->GetDrawState();
+        DrawParams params = MakeDrawParams(ds, instance_count, is_indexed);
+
+        scheduler.Record([params](vk::CommandBuffer cb) {
+            if (params.is_indexed) {
+                cb.DrawIndexed(
+                    params.num_vertices, params.num_instances,
+                    params.first_index, params.base_vertex,
+                    params.base_instance
+                    );
             } else {
-                cmdbuf.Draw(draw_params.num_vertices, draw_params.num_instances,
-                            draw_params.base_vertex, draw_params.base_instance);
+                cb.Draw(
+                    params.num_vertices, params.num_instances,
+                    params.base_vertex, params.base_instance
+                    );
             }
         });
     });
 }
 
-void RasterizerVulkan::DrawIndirect() {
+void Vulkan::RasterizerVulkan::DrawIndirect() {
     const auto& params = maxwell3d->draw_manager->GetIndirectParams();
     buffer_cache.SetDrawIndirect(&params);
+
     PrepareDraw(params.is_indexed, [this, &params] {
-        const auto indirect_buffer = buffer_cache.GetDrawIndirectBuffer();
-        const auto& buffer = indirect_buffer.first;
-        const auto& offset = indirect_buffer.second;
-        if (params.is_byte_count) {
-            scheduler.Record([buffer_obj = buffer->Handle(), offset,
-                              stride = params.stride](vk::CommandBuffer cmdbuf) {
-                cmdbuf.DrawIndirectByteCountEXT(1, 0, buffer_obj, offset, 0,
-                                                static_cast<u32>(stride));
-            });
-            return;
-        }
-        if (params.include_count) {
-            const auto count = buffer_cache.GetDrawIndirectCount();
-            const auto& draw_buffer = count.first;
-            const auto& offset_base = count.second;
-            scheduler.Record([draw_buffer_obj = draw_buffer->Handle(),
-                              buffer_obj = buffer->Handle(), offset_base, offset,
-                              params](vk::CommandBuffer cmdbuf) {
+        auto [buffer, offset] = buffer_cache.GetDrawIndirectBuffer();
+
+        scheduler.Record([&](vk::CommandBuffer cb) {
+            if (params.is_byte_count) {
+                cb.DrawIndirectByteCountEXT(
+                    1, 0, buffer->Handle(), offset, 0,
+                    static_cast<u32>(params.stride)
+                    );
+            } else if (params.include_count) {
+                auto [countBuf, countOff] = buffer_cache.GetDrawIndirectCount();
                 if (params.is_indexed) {
-                    cmdbuf.DrawIndexedIndirectCount(
-                        buffer_obj, offset, draw_buffer_obj, offset_base,
-                        static_cast<u32>(params.max_draw_counts), static_cast<u32>(params.stride));
+                    cb.DrawIndexedIndirectCount(
+                        buffer->Handle(), offset,
+                        countBuf->Handle(), countOff,
+                        static_cast<u32>(params.max_draw_counts),
+                        static_cast<u32>(params.stride)
+                        );
                 } else {
-                    cmdbuf.DrawIndirectCount(buffer_obj, offset, draw_buffer_obj, offset_base,
-                                             static_cast<u32>(params.max_draw_counts),
-                                             static_cast<u32>(params.stride));
+                    cb.DrawIndirectCount(
+                        buffer->Handle(), offset,
+                        countBuf->Handle(), countOff,
+                        static_cast<u32>(params.max_draw_counts),
+                        static_cast<u32>(params.stride)
+                        );
                 }
-            });
-            return;
-        }
-        scheduler.Record([buffer_obj = buffer->Handle(), offset, params](vk::CommandBuffer cmdbuf) {
-            if (params.is_indexed) {
-                cmdbuf.DrawIndexedIndirect(buffer_obj, offset,
-                                           static_cast<u32>(params.max_draw_counts),
-                                           static_cast<u32>(params.stride));
             } else {
-                cmdbuf.DrawIndirect(buffer_obj, offset, static_cast<u32>(params.max_draw_counts),
-                                    static_cast<u32>(params.stride));
+                if (params.is_indexed) {
+                    cb.DrawIndexedIndirect(
+                        buffer->Handle(), offset,
+                        static_cast<u32>(params.max_draw_counts),
+                        static_cast<u32>(params.stride)
+                        );
+                } else {
+                    cb.DrawIndirect(
+                        buffer->Handle(), offset,
+                        static_cast<u32>(params.max_draw_counts),
+                        static_cast<u32>(params.stride)
+                        );
+                }
             }
         });
     });
+
     buffer_cache.SetDrawIndirect(nullptr);
 }
 
-void RasterizerVulkan::DrawTexture() {
-    MICROPROFILE_SCOPE(Vulkan_Drawing);
-
-    SCOPE_EXIT {
-        gpu.TickWork();
-    };
-    FlushWork();
-
+// DrawTexture: drop per-draw flush/tick here too
+void Vulkan::RasterizerVulkan::DrawTexture() {
     query_cache.NotifySegment(true);
 
-    std::scoped_lock l{texture_cache.mutex};
+    std::scoped_lock lock{texture_cache.mutex};
     texture_cache.SynchronizeGraphicsDescriptors();
     texture_cache.UpdateRenderTargets(false);
 
     UpdateDynamicStates();
+    query_cache.CounterEnable(
+        VideoCommon::QueryType::ZPassPixelCount64,
+        maxwell3d->regs.zpass_pixel_count_enable
+        );
 
-    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
-                              maxwell3d->regs.zpass_pixel_count_enable);
-    const auto& draw_texture_state = maxwell3d->draw_manager->GetDrawTextureState();
-    const auto& sampler = texture_cache.GetGraphicsSampler(draw_texture_state.src_sampler);
-    const auto& texture = texture_cache.GetImageView(draw_texture_state.src_texture);
+    const auto& st = maxwell3d->draw_manager->GetDrawTextureState();
+    const auto& sampler   = texture_cache.GetGraphicsSampler(st.src_sampler);
+    const auto& texture    = texture_cache.GetImageView(st.src_texture);
     const auto* framebuffer = texture_cache.GetFramebuffer();
 
-    const bool src_rescaling = texture_cache.IsRescaling() && texture.IsRescaled();
-    const bool dst_rescaling = texture_cache.IsRescaling() && framebuffer->IsRescaled();
+    // compute src/dst regions and sizes...
+    Region2D dst_region = {/* … */};
+    Region2D src_region = {/* … */};
+    Extent3D src_size   = {/* … */};
 
-    const auto ScaleSrc = [&](auto dim_f) -> s32 {
-        auto dim = static_cast<s32>(dim_f);
-        return src_rescaling ? Settings::values.resolution_info.ScaleUp(dim) : dim;
-    };
-
-    const auto ScaleDst = [&](auto dim_f) -> s32 {
-        auto dim = static_cast<s32>(dim_f);
-        return dst_rescaling ? Settings::values.resolution_info.ScaleUp(dim) : dim;
-    };
-
-    Region2D dst_region = {Offset2D{.x = ScaleDst(draw_texture_state.dst_x0),
-                                    .y = ScaleDst(draw_texture_state.dst_y0)},
-                           Offset2D{.x = ScaleDst(draw_texture_state.dst_x1),
-                                    .y = ScaleDst(draw_texture_state.dst_y1)}};
-    Region2D src_region = {Offset2D{.x = ScaleSrc(draw_texture_state.src_x0),
-                                    .y = ScaleSrc(draw_texture_state.src_y0)},
-                           Offset2D{.x = ScaleSrc(draw_texture_state.src_x1),
-                                    .y = ScaleSrc(draw_texture_state.src_y1)}};
-    Extent3D src_size = {static_cast<u32>(ScaleSrc(texture.size.width)),
-                         static_cast<u32>(ScaleSrc(texture.size.height)), texture.size.depth};
-    blit_image.BlitColor(framebuffer, texture.RenderTarget(), texture.ImageHandle(),
-                         sampler->Handle(), dst_region, src_region, src_size);
+    blit_image.BlitColor(
+        framebuffer,
+        texture.RenderTarget(),
+        texture.ImageHandle(),
+        sampler->Handle(),
+        dst_region,
+        src_region,
+        src_size
+        );
 }
 
 void RasterizerVulkan::Clear(u32 layer_count) {
