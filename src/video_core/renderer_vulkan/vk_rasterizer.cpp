@@ -935,6 +935,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateDepthBounds(regs);
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
+    // UpdateLineStipple(regs); // TODO
 
     const u8 dynamic_state = Settings::values.dyna_state.GetValue();
 
@@ -1365,6 +1366,17 @@ void RasterizerVulkan::UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& 
 
     scheduler.Record([enable = regs.line_stipple_enable](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetLineStippleEnableEXT(enable);
+    });
+}
+
+void RasterizerVulkan::UpdateLineStipple(Tegra::Engines::Maxwell3D::Regs& regs)
+{
+    if (!state_tracker.TouchLineStippleEnable()) {
+        return;
+    }
+
+    scheduler.Record([params = regs.line_stipple_params](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetLineStippleEXT(params.factor, u16(params.pattern));
     });
 }
 

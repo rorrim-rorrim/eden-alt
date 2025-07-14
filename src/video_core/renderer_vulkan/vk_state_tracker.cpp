@@ -52,9 +52,7 @@ Flags MakeInvalidationFlags() {
         VertexInput,
         StateEnable,
         PrimitiveRestartEnable,
-        RasterizerDiscardEnable,
-        ConservativeRasterizationMode,
-        LineStippleEnable,
+        LineStippleParams,
         DepthBiasEnable,
         LogicOpEnable,
         DepthClampEnable,
@@ -144,6 +142,7 @@ void SetupDirtyStateEnable(Tables& tables) {
     setup(OFF(rasterize_enable), RasterizerDiscardEnable);
     setup(OFF(conservative_raster_enable), ConservativeRasterizationMode);
     setup(OFF(line_stipple_enable), LineStippleEnable);
+    setup(OFF(line_stipple_params), LineStippleParams);
     setup(OFF(polygon_offset_point_enable), DepthBiasEnable);
     setup(OFF(polygon_offset_line_enable), DepthBiasEnable);
     setup(OFF(polygon_offset_fill_enable), DepthBiasEnable);

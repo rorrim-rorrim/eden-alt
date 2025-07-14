@@ -55,6 +55,7 @@ enum : u8 {
     RasterizerDiscardEnable,
     ConservativeRasterizationMode,
     LineStippleEnable,
+    LineStippleParams,
     DepthBiasEnable,
     StateEnable,
     LogicOp,
