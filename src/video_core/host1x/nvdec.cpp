@@ -68,7 +68,7 @@ void Nvdec::Execute() {
     if (Settings::values.nvdec_emulation.GetValue() == Settings::NvdecEmulation::Off) [[unlikely]] {
         // Signalling syncpts too fast can cause games to get stuck as they don't expect a <1ms
         // execution time. Sleep for half of a 60 fps frame just in case.
-        std::this_thread::sleep_for(std::chrono::milliseconds(8));
+        std::this_thread::sleep_for(std::chrono::milliseconds(12));
         return;
     }
     switch (decoder->GetCurrentCodec()) {
