@@ -105,6 +105,7 @@ bool Decoder::SupportsDecodingOnDevice(AVPixelFormat* out_pix_fmt, AVHWDeviceTyp
             LOG_DEBUG(HW_GPU, "{} decoder does not support device type {}", m_codec->name, av_hwdevice_get_type_name(type));
             break;
         }
+
         if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX && config->device_type == type) {
             LOG_INFO(HW_GPU, "Using {} GPU decoder", av_hwdevice_get_type_name(type));
             *out_pix_fmt = config->pix_fmt;
@@ -218,10 +219,12 @@ bool DecoderContext::OpenContext(const Decoder& decoder) {
 
 bool DecoderContext::SendPacket(const Packet& packet) {
 	m_temp_frame = std::make_shared<Frame>();
+	
     if (const int ret = avcodec_send_packet(m_codec_context, packet.GetPacket()); ret < 0 && ret != AVERROR_EOF) {
         LOG_ERROR(HW_GPU, "avcodec_send_packet error: {}", AVError(ret));
         return false;
     }
+	
     return true;
 }
 
@@ -240,7 +243,7 @@ std::shared_ptr<Frame> DecoderContext::ReceiveFrame() {
 	}
 
 	const auto desc = av_pix_fmt_desc_get(intermediate_frame->GetPixelFormat());
-	if (m_codec_context->hw_device_ctx && (desc && desc->flags & AV_PIX_FMT_FLAG_HWACCEL)) {
+	if (m_codec_context->hw_device_ctx && desc && desc->flags & AV_PIX_FMT_FLAG_HWACCEL) {
 		m_temp_frame->SetFormat(PreferredGpuFormat);
 		if (int ret = av_hwframe_transfer_data(m_temp_frame->GetFrame(), intermediate_frame->GetFrame(), 0); ret < 0) {
 			LOG_ERROR(HW_GPU, "av_hwframe_transfer_data error: {}", AVError(ret));
