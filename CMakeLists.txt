@@ -465,12 +465,12 @@ if (ENABLE_QT)
 		list(APPEND CMAKE_PREFIX_PATH "${Qt6_DIR}")
     endif()
 
+    find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent Core5Compat)
+
     # QT6 Multimedia pulls in unneeded audio systems (ALSA, Pulseaudio) for FreeBSD
     # ALSA is the default sound system on Linux, but FreeBSD uses OSS which works well enough
-    if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-    	find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent)
-    else()
-    	find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia Concurrent)
+    if (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+        find_package(Qt6 REQUIRED COMPONENTS Multimedia)
     endif()
 
     if (UNIX AND NOT APPLE)
