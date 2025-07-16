@@ -469,9 +469,7 @@ if (ENABLE_QT)
 
     find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent Core5Compat)
 
-    # QT6 Multimedia pulls in unneeded audio systems (ALSA, Pulseaudio) for FreeBSD
-    # ALSA is the default sound system on Linux, but FreeBSD uses OSS which works well enough
-    if (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    if (YUZU_USE_QT_MULTIMEDIA)
         find_package(Qt6 REQUIRED COMPONENTS Multimedia)
     endif()
 
