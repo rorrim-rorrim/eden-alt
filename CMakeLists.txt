@@ -79,7 +79,7 @@ option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 
 option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
 
-CMAKE_DEPENDENT_OPTION(YUZU_QT_MIRROR "What mirror to use for downloading the bundled Qt" "" "YUZU_USE_BUNDLED_QT" "")
+set(YUZU_QT_MIRROR "" CACHE STRING "What mirror to use for downloading the bundled Qt libraries")
 
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
