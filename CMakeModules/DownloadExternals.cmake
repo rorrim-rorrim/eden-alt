@@ -133,11 +133,7 @@ function(download_qt_configuration prefix_out target host type arch arch_path ba
         set(install_args ${install_args} install-tool --outputdir ${base_path} ${host} desktop ${target})
     else()
         set(prefix "${base_path}/${target}/${arch_path}")
-        set(install_args ${install_args} install-qt --outputdir ${base_path} ${host} ${type} ${target} ${arch})
-
-        if (YUZU_USE_QT_MULTIMEDIA OR YUZU_USE_QT_WEB_ENGINE)
-            set(install_args ${install_args} -m)
-        endif()
+        set(install_args ${install_args} install-qt --outputdir ${base_path} ${host} ${type} ${target} ${arch} -m qt5compat)
 
         if (YUZU_USE_QT_MULTIMEDIA)
             set(install_args ${install_args} qtmultimedia)
