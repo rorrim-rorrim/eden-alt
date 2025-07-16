@@ -462,8 +462,8 @@ if (WIN32 AND NOT YUZU_USE_BUNDLED_QT AND QT_VERSION VERSION_GREATER_EQUAL 6)
 endif()
 
 if (YUZU_USE_BUNDLED_QT)
-	include(CopyYuzuQt6Deps)
-	copy_yuzu_Qt6_deps(yuzu)
+    include(CopyYuzuQt6Deps)
+    copy_yuzu_Qt6_deps(yuzu)
 endif()
 
 if (ENABLE_SDL2)
