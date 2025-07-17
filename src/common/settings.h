@@ -450,8 +450,15 @@ struct Values {
                                                            VramUsageMode::Aggressive,
                                                            "vram_usage_mode",
                                                            Category::RendererAdvanced};
+    SwitchableSetting<bool> force_gpu_blit{linkage,
+                                           false,
+                                           "force_gpu_blit",
+                                           Category::RendererAdvanced,
+                                           Specialization::Default,
+                                           true,
+                                           true};
     SwitchableSetting<bool> skip_cpu_inner_invalidation{linkage,
-                                                        true,
+                                                        false,
                                                         "skip_cpu_inner_invalidation",
                                                         Category::RendererAdvanced,
                                                         Specialization::Default,

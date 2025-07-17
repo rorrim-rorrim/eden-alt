@@ -114,9 +114,14 @@ void Fermi2D::Blit() {
     }
 
     memory_manager.FlushCaching();
-    /*if (!rasterizer->AccelerateSurfaceCopy(src, regs.dst, config)) {
+
+    if (!rasterizer->AccelerateSurfaceCopy(src, regs.dst, config)) {
+        if (Settings::values.force_gpu_blit.GetValue()) {
+            LOG_ERROR(HW_GPU, "AccelerateSurfaceCopy failed, and gpu blit is forced.");
+            return;
+        }
         sw_blitter->Blit(src, regs.dst, config);
-    }*/
+    }
 }
 
 } // namespace Tegra::Engines

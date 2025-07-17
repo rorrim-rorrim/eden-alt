@@ -657,6 +657,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.FORCE_GPU_BLIT,
+                    titleId = R.string.force_gpu_blit,
+                    descriptionId = R.string.force_gpu_blit_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.SKIP_CPU_INNER_INVALIDATION,
                     titleId = R.string.skip_cpu_inner_invalidation,
                     descriptionId = R.string.skip_cpu_inner_invalidation_description

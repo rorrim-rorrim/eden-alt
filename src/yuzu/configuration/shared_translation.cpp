@@ -251,6 +251,12 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
               "Aggressive mode may severely impact the performance of other applications such as "
               "recording software."));
     INSERT(Settings,
+           force_gpu_blit,
+           tr("Force GPU Blit"),
+           tr("Forces all surface copy operations to use GPU acceleration. If your system fails to "
+              "perform a hardware-accelerated copy, the operation will be skipped and software fallback will not be used. "
+              "This may significantly improve the performance, but may cause rendering issues on some games."));
+    INSERT(Settings,
            skip_cpu_inner_invalidation,
            tr("Skip CPU Inner Invalidation"),
            tr("Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and "
