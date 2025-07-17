@@ -143,7 +143,7 @@ public:
     virtual void TickFrame() = 0;
 
     virtual bool AccelerateConditionalRendering() {
-        return true;
+        return false;
     }
 
     /// Attempt to use a faster method to perform a surface copy
