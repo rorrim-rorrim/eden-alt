@@ -103,7 +103,7 @@
     <string name="use_fast_cpu_time">Fast CPU Time</string>
     <string name="use_fast_cpu_time_description">Forces the emulated CPU to run at a higher clock, reducing certain FPS limiters. This option is hacky and may cause issues, and weaker CPUs may see reduced performance.</string>
     <string name="custom_cpu_ticks">Custom CPU Ticks</string>
-    <string name="custom_cpu_ticks_description">Set a custom value of CPU ticks. Higher values can increase performance, but may also cause the game to freeze. A range of 77–21000 is recommended.</string>
+    <string name="custom_cpu_ticks_description">Set a custom value of CPU ticks. Higher values can increase performance, but may also cause the game to freeze. A range of 77 to 21000 is recommended.</string>
     <string name="cpu_ticks">Ticks</string>
     <string name="force_gpu_blit">Force GPU Blit</string>
     <string name="force_gpu_blit_description">Forces all surface copy operations to use GPU acceleration. If your system fails to perform a hardware-accelerated copy, the operation will be skipped and software fallback will not be used. This may significantly improve the performance, but may cause rendering issues on some games.</string>
