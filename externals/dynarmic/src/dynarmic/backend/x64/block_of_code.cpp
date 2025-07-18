@@ -364,10 +364,10 @@ void BlockOfCode::GenRunCode(std::function<void(BlockOfCode&)> rcp) {
     return_from_run_code[0] = getCurr<const void*>();
 
     cmp(dword[r15 + jsi.offsetof_halt_reason], 0);
-    jne(return_to_caller);
+    jne(return_to_caller, T_NEAR);
     if (cb.enable_cycle_counting) {
         cmp(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)], 0);
-        jng(return_to_caller);
+        jng(return_to_caller, T_NEAR);
     }
     cb.LookupBlock->EmitCall(*this);
     jmp(ABI_RETURN);
@@ -376,10 +376,10 @@ void BlockOfCode::GenRunCode(std::function<void(BlockOfCode&)> rcp) {
     return_from_run_code[MXCSR_ALREADY_EXITED] = getCurr<const void*>();
 
     cmp(dword[r15 + jsi.offsetof_halt_reason], 0);
-    jne(return_to_caller_mxcsr_already_exited);
+    jne(return_to_caller_mxcsr_already_exited, T_NEAR);
     if (cb.enable_cycle_counting) {
         cmp(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)], 0);
-        jng(return_to_caller_mxcsr_already_exited);
+        jng(return_to_caller_mxcsr_already_exited, T_NEAR);
     }
     SwitchMxcsrOnEntry();
     cb.LookupBlock->EmitCall(*this);
@@ -403,8 +403,7 @@ void BlockOfCode::GenRunCode(std::function<void(BlockOfCode&)> rcp) {
     }
 
     xor_(eax, eax);
-    lock();
-    xchg(dword[r15 + jsi.offsetof_halt_reason], eax);
+    /* implicit LOCK */ xchg(dword[r15 + jsi.offsetof_halt_reason], eax);
 
     ABI_PopCalleeSaveRegistersAndAdjustStack(*this, sizeof(StackLayout));
     ret();

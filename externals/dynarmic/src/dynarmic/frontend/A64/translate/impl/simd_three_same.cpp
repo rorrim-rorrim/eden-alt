@@ -134,10 +134,8 @@ bool FPCompareRegister(TranslatorVisitor& v, bool Q, bool sz, Vec Vm, Vec Vn, Ve
     if (sz && !Q) {
         return v.ReservedValue();
     }
-
     const size_t esize = sz ? 64 : 32;
     const size_t datasize = Q ? 128 : 64;
-
     const IR::U128 operand1 = v.V(datasize, Vn);
     const IR::U128 operand2 = v.V(datasize, Vm);
     const IR::U128 result = [&] {
@@ -146,21 +144,22 @@ bool FPCompareRegister(TranslatorVisitor& v, bool Q, bool sz, Vec Vm, Vec Vn, Ve
             return v.ir.FPVectorEqual(esize, operand1, operand2);
         case ComparisonTypeSTS::GE:
             return v.ir.FPVectorGreaterEqual(esize, operand1, operand2);
-        case ComparisonTypeSTS::AbsoluteGE:
-            return v.ir.FPVectorGreaterEqual(esize,
-                                             v.ir.FPVectorAbs(esize, operand1),
-                                             v.ir.FPVectorAbs(esize, operand2));
+        case ComparisonTypeSTS::AbsoluteGE: {
+            auto const tmp1 = v.ir.FPVectorAbs(esize, operand1);
+            auto const tmp2 = v.ir.FPVectorAbs(esize, operand2);
+            return v.ir.FPVectorGreaterEqual(esize, tmp1, tmp2);
+        }
         case ComparisonTypeSTS::GT:
             return v.ir.FPVectorGreater(esize, operand1, operand2);
-        case ComparisonTypeSTS::AbsoluteGT:
-            return v.ir.FPVectorGreater(esize,
-                                        v.ir.FPVectorAbs(esize, operand1),
-                                        v.ir.FPVectorAbs(esize, operand2));
+        case ComparisonTypeSTS::AbsoluteGT: {
+            auto const tmp1 = v.ir.FPVectorAbs(esize, operand1);
+            auto const tmp2 = v.ir.FPVectorAbs(esize, operand2);
+            return v.ir.FPVectorGreater(esize, tmp1, tmp2);
+        }
         }
 
         UNREACHABLE();
     }();
-
     v.V(datasize, Vd, result);
     return true;
 }
