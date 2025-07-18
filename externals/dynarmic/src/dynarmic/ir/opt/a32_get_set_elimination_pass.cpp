@@ -22,8 +22,7 @@ namespace Dynarmic::Optimization {
 namespace {
 
 void FlagsPass(IR::Block& block) {
-    using Iterator = std::reverse_iterator<IR::Block::iterator>;
-
+    using Iterator = IR::Block::reverse_iterator;
     struct FlagInfo {
         bool set_not_required = false;
         bool has_value_request = false;
@@ -185,10 +184,10 @@ void RegisterPass(IR::Block& block) {
     using Iterator = IR::Block::iterator;
 
     struct RegInfo {
-        IR::Value register_value;
         std::optional<Iterator> last_set_instruction;
+        IR::Value register_value;
     };
-    std::array<RegInfo, 15> reg_info;
+    alignas(64) std::array<RegInfo, 15> reg_info;
 
     const auto do_get = [](RegInfo& info, Iterator get_inst) {
         if (info.register_value.IsEmpty()) {
@@ -203,12 +202,12 @@ void RegisterPass(IR::Block& block) {
             (*info.last_set_instruction)->Invalidate();
         }
         info = {
-            .register_value = value,
             .last_set_instruction = set_inst,
+            .register_value = value,
         };
     };
 
-    enum class ExtValueType {
+    enum class ExtValueType : std::uint8_t {
         Empty,
         Single,
         Double,
@@ -216,19 +215,20 @@ void RegisterPass(IR::Block& block) {
         VectorQuad,
     };
     struct ExtRegInfo {
-        ExtValueType value_type = {};
         IR::Value register_value;
         std::optional<Iterator> last_set_instruction;
+        ExtValueType value_type = {};
     };
-    std::array<ExtRegInfo, 64> ext_reg_info;
+    // Max returned by RegNumber = 31 (but multiplied by 4 in some cases)
+    alignas(64) std::array<ExtRegInfo, 128> ext_reg_info;
 
     const auto do_ext_get = [](ExtValueType type, std::initializer_list<std::reference_wrapper<ExtRegInfo>> infos, Iterator get_inst) {
         if (!std::all_of(infos.begin(), infos.end(), [type](const auto& info) { return info.get().value_type == type; })) {
             for (auto& info : infos) {
                 info.get() = {
-                    .value_type = type,
                     .register_value = IR::Value(&*get_inst),
                     .last_set_instruction = std::nullopt,
+                    .value_type = type,
                 };
             }
             return;
@@ -244,9 +244,9 @@ void RegisterPass(IR::Block& block) {
         }
         for (auto& info : infos) {
             info.get() = {
-                .value_type = type,
                 .register_value = value,
                 .last_set_instruction = set_inst,
+                .value_type = type,
             };
         }
     };

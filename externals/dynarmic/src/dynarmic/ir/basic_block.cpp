@@ -13,7 +13,6 @@
 #include <fmt/format.h>
 #include <mcl/assert.hpp>
 
-#include "dynarmic/common/memory_pool.h"
 #include "dynarmic/frontend/A32/a32_types.h"
 #include "dynarmic/frontend/A64/a64_types.h"
 #include "dynarmic/ir/cond.h"
@@ -24,8 +23,7 @@ namespace Dynarmic::IR {
 Block::Block(const LocationDescriptor& location)
     : location{location},
     end_location{location},
-    cond{Cond::AL},
-    instruction_alloc_pool{std::make_unique<std::remove_reference_t<decltype(*instruction_alloc_pool)>>()}
+    cond{Cond::AL}
 {
 
 }
@@ -37,7 +35,7 @@ Block::Block(const LocationDescriptor& location)
 /// @param args            A sequence of Value instances used as arguments for the instruction.
 /// @returns Iterator to the newly created instruction.
 Block::iterator Block::PrependNewInst(iterator insertion_point, Opcode opcode, std::initializer_list<Value> args) noexcept {
-    IR::Inst* inst = new (instruction_alloc_pool->Alloc()) IR::Inst(opcode);
+    IR::Inst* inst = new IR::Inst(opcode);
     DEBUG_ASSERT(args.size() == inst->NumArgs());
     std::for_each(args.begin(), args.end(), [&inst, index = size_t(0)](const auto& arg) mutable {
         inst->SetArg(index, arg);
@@ -83,9 +81,7 @@ static std::string TerminalToString(const Terminal& terminal_variant) noexcept {
 }
 
 std::string DumpBlock(const IR::Block& block) noexcept {
-    std::string ret;
-
-    ret += fmt::format("Block: location={}\n", block.Location());
+    std::string ret = fmt::format("Block: location={}\n", block.Location());
     ret += fmt::format("cycles={}", block.CycleCount());
     ret += fmt::format(", entry_cond={}", A64::CondToString(block.GetCondition()));
     if (block.GetCondition() != Cond::AL) {
@@ -113,6 +109,8 @@ std::string DumpBlock(const IR::Block& block) noexcept {
             return fmt::format("#{:#x}", arg.GetU32());
         case Type::U64:
             return fmt::format("#{:#x}", arg.GetU64());
+        case Type::U128:
+            return fmt::format("#<u128>");
         case Type::A32Reg:
             return A32::RegToString(arg.GetA32RegRef());
         case Type::A32ExtReg:
@@ -155,14 +153,9 @@ std::string DumpBlock(const IR::Block& block) noexcept {
                 ret += fmt::format("<type error: {} != {}>", GetNameOf(actual_type), GetNameOf(expected_type));
             }
         }
-
-        ret += fmt::format(" (uses: {})", inst.UseCount());
-
-        ret += '\n';
+        ret += fmt::format(" (uses: {})\n", inst.UseCount());
     }
-
     ret += "terminal = " + TerminalToString(block.GetTerminal()) + '\n';
-
     return ret;
 }
 

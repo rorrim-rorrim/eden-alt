@@ -236,23 +236,19 @@ void DenormalsAreZero(BlockOfCode& code, FP::FPCR fpcr, std::initializer_list<Xb
                 FpFixup::Norm_Src,
                 FpFixup::Norm_Src,
                 FpFixup::Norm_Src,
-                FpFixup::Norm_Src);
-
+                FpFixup::Norm_Src
+            );
             FCODE(vmovap)(tmp, code.BConst<fsize>(xword, denormal_to_zero));
-
-            for (const Xbyak::Xmm& xmm : to_daz) {
+            for (const Xbyak::Xmm& xmm : to_daz)
                 FCODE(vfixupimmp)(xmm, xmm, tmp, u8(0));
-            }
-            return;
-        }
-
-        if (fpcr.RMode() != FP::RoundingMode::TowardsMinusInfinity) {
-            code.movaps(tmp, GetNegativeZeroVector<fsize>(code));
         } else {
-            code.xorps(tmp, tmp);
-        }
-        for (const Xbyak::Xmm& xmm : to_daz) {
-            FCODE(addp)(xmm, tmp);
+            if (fpcr.RMode() != FP::RoundingMode::TowardsMinusInfinity) {
+                code.movaps(tmp, GetNegativeZeroVector<fsize>(code));
+            } else {
+                code.xorps(tmp, tmp);
+            }
+            for (const Xbyak::Xmm& xmm : to_daz)
+                FCODE(addp)(xmm, tmp);
         }
     }
 }

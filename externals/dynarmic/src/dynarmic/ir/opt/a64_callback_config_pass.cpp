@@ -17,7 +17,8 @@ void A64CallbackConfigPass(IR::Block& block, const A64::UserConfig& conf) {
         return;
     }
 
-    for (auto& inst : block) {
+    for (auto iter = block.begin(); iter != block.end(); iter++) {
+        auto& inst = *iter;
         if (inst.GetOpcode() != IR::Opcode::A64DataCacheOperationRaised) {
             continue;
         }
@@ -26,7 +27,7 @@ void A64CallbackConfigPass(IR::Block& block, const A64::UserConfig& conf) {
         if (op == A64::DataCacheOperation::ZeroByVA) {
             A64::IREmitter ir{block};
             ir.current_location = A64::LocationDescriptor{IR::LocationDescriptor{inst.GetArg(0).GetU64()}};
-            ir.SetInsertionPointBefore(&inst);
+            ir.SetInsertionPointBefore(iter);
 
             size_t bytes = 4 << static_cast<size_t>(conf.dczid_el0 & 0b1111);
             IR::U64 addr{inst.GetArg(2)};

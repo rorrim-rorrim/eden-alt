@@ -40,7 +40,6 @@ static void EmitCRC32Castagnoli(BlockOfCode& code, EmitContext& ctx, IR::Inst* i
 
 static void EmitCRC32ISO(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, const int data_size) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-
     if (code.HasHostFeature(HostFeature::PCLMULQDQ) && data_size < 32) {
         const Xbyak::Reg32 crc = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
         const Xbyak::Reg64 value = ctx.reg_alloc.UseScratchGpr(args[1]);
@@ -69,10 +68,7 @@ static void EmitCRC32ISO(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, co
         code.pextrd(crc, xmm_value, 2);
 
         ctx.reg_alloc.DefineValue(inst, crc);
-        return;
-    }
-
-    if (code.HasHostFeature(HostFeature::PCLMULQDQ) && data_size == 32) {
+    } else if (code.HasHostFeature(HostFeature::PCLMULQDQ) && data_size == 32) {
         const Xbyak::Reg32 crc = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
         const Xbyak::Reg32 value = ctx.reg_alloc.UseGpr(args[1]).cvt32();
         const Xbyak::Xmm xmm_value = ctx.reg_alloc.ScratchXmm();
@@ -90,10 +86,7 @@ static void EmitCRC32ISO(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, co
         code.pextrd(crc, xmm_value, 2);
 
         ctx.reg_alloc.DefineValue(inst, crc);
-        return;
-    }
-
-    if (code.HasHostFeature(HostFeature::PCLMULQDQ) && data_size == 64) {
+    } else if (code.HasHostFeature(HostFeature::PCLMULQDQ) && data_size == 64) {
         const Xbyak::Reg32 crc = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
         const Xbyak::Reg64 value = ctx.reg_alloc.UseGpr(args[1]);
         const Xbyak::Xmm xmm_value = ctx.reg_alloc.ScratchXmm();
@@ -111,12 +104,11 @@ static void EmitCRC32ISO(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, co
         code.pextrd(crc, xmm_value, 2);
 
         ctx.reg_alloc.DefineValue(inst, crc);
-        return;
+    } else {
+        ctx.reg_alloc.HostCall(inst, args[0], args[1], {});
+        code.mov(code.ABI_PARAM3, data_size / CHAR_BIT);
+        code.CallFunction(&CRC32::ComputeCRC32ISO);
     }
-
-    ctx.reg_alloc.HostCall(inst, args[0], args[1], {});
-    code.mov(code.ABI_PARAM3, data_size / CHAR_BIT);
-    code.CallFunction(&CRC32::ComputeCRC32ISO);
 }
 
 void EmitX64::EmitCRC32Castagnoli8(EmitContext& ctx, IR::Inst* inst) {

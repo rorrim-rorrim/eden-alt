@@ -53,8 +53,6 @@ add_library(dynarmic
     common/lut_from_list.h
     common/math_util.cpp
     common/math_util.h
-    common/memory_pool.cpp
-    common/memory_pool.h
     common/safe_ops.h
     common/spin_lock.h
     common/string_util.h
@@ -153,6 +151,7 @@ if ("A64" IN_LIST DYNARMIC_FRONTENDS)
         ir/opt/a64_callback_config_pass.cpp
         ir/opt/a64_get_set_elimination_pass.cpp
         ir/opt/a64_merge_interpret_blocks.cpp
+        ir/opt/x64_peepholes.cpp
     )
 endif()
 

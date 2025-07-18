@@ -22,9 +22,9 @@ using Op = Dynarmic::IR::Opcode;
 
 namespace {
 
-// Tiny helper to avoid the need to store based off the opcode
-// bit size all over the place within folding functions.
-void ReplaceUsesWith(IR::Inst& inst, bool is_32_bit, u64 value) {
+/// Tiny helper to avoid the need to store based off the opcode
+/// bit size all over the place within folding functions.
+static void ReplaceUsesWith(IR::Inst& inst, bool is_32_bit, u64 value) {
     if (is_32_bit) {
         inst.ReplaceUsesWith(IR::Value{static_cast<u32>(value)});
     } else {
@@ -32,12 +32,12 @@ void ReplaceUsesWith(IR::Inst& inst, bool is_32_bit, u64 value) {
     }
 }
 
-IR::Value Value(bool is_32_bit, u64 value) {
+static IR::Value Value(bool is_32_bit, u64 value) {
     return is_32_bit ? IR::Value{static_cast<u32>(value)} : IR::Value{value};
 }
 
 template<typename ImmFn>
-bool FoldCommutative(IR::Inst& inst, bool is_32_bit, ImmFn imm_fn) {
+static bool FoldCommutative(IR::Inst& inst, bool is_32_bit, ImmFn imm_fn) {
     const auto lhs = inst.GetArg(0);
     const auto rhs = inst.GetArg(1);
 
@@ -75,7 +75,7 @@ bool FoldCommutative(IR::Inst& inst, bool is_32_bit, ImmFn imm_fn) {
     return true;
 }
 
-void FoldAdd(IR::Inst& inst, bool is_32_bit) {
+static void FoldAdd(IR::Inst& inst, bool is_32_bit) {
     const auto lhs = inst.GetArg(0);
     const auto rhs = inst.GetArg(1);
     const auto carry = inst.GetArg(2);
@@ -125,7 +125,7 @@ void FoldAdd(IR::Inst& inst, bool is_32_bit) {
 /// 4. x & y -> y (where x has all bits set to 1)
 /// 5. x & y -> x (where y has all bits set to 1)
 ///
-void FoldAND(IR::Inst& inst, bool is_32_bit) {
+static void FoldAND(IR::Inst& inst, bool is_32_bit) {
     if (FoldCommutative(inst, is_32_bit, [](u64 a, u64 b) { return a & b; })) {
         const auto rhs = inst.GetArg(1);
         if (rhs.IsZero()) {
@@ -140,7 +140,7 @@ void FoldAND(IR::Inst& inst, bool is_32_bit) {
 ///
 /// 1. imm -> swap(imm)
 ///
-void FoldByteReverse(IR::Inst& inst, Op op) {
+static void FoldByteReverse(IR::Inst& inst, Op op) {
     const auto operand = inst.GetArg(0);
 
     if (!operand.IsImmediate()) {
@@ -165,7 +165,7 @@ void FoldByteReverse(IR::Inst& inst, Op op) {
 /// 2. imm_x / imm_y -> result
 /// 3. x / 1 -> x
 ///
-void FoldDivide(IR::Inst& inst, bool is_32_bit, bool is_signed) {
+static void FoldDivide(IR::Inst& inst, bool is_32_bit, bool is_signed) {
     const auto rhs = inst.GetArg(1);
 
     if (rhs.IsZero()) {
@@ -193,7 +193,7 @@ void FoldDivide(IR::Inst& inst, bool is_32_bit, bool is_signed) {
 // 2. x ^ 0 -> x
 // 3. 0 ^ y -> y
 //
-void FoldEOR(IR::Inst& inst, bool is_32_bit) {
+static void FoldEOR(IR::Inst& inst, bool is_32_bit) {
     if (FoldCommutative(inst, is_32_bit, [](u64 a, u64 b) { return a ^ b; })) {
         const auto rhs = inst.GetArg(1);
         if (rhs.IsZero()) {
@@ -202,7 +202,7 @@ void FoldEOR(IR::Inst& inst, bool is_32_bit) {
     }
 }
 
-void FoldLeastSignificantByte(IR::Inst& inst) {
+static void FoldLeastSignificantByte(IR::Inst& inst) {
     if (!inst.AreAllArgsImmediates()) {
         return;
     }
@@ -211,7 +211,7 @@ void FoldLeastSignificantByte(IR::Inst& inst) {
     inst.ReplaceUsesWith(IR::Value{static_cast<u8>(operand.GetImmediateAsU64())});
 }
 
-void FoldLeastSignificantHalf(IR::Inst& inst) {
+static void FoldLeastSignificantHalf(IR::Inst& inst) {
     if (!inst.AreAllArgsImmediates()) {
         return;
     }
@@ -220,7 +220,7 @@ void FoldLeastSignificantHalf(IR::Inst& inst) {
     inst.ReplaceUsesWith(IR::Value{static_cast<u16>(operand.GetImmediateAsU64())});
 }
 
-void FoldLeastSignificantWord(IR::Inst& inst) {
+static void FoldLeastSignificantWord(IR::Inst& inst) {
     if (!inst.AreAllArgsImmediates()) {
         return;
     }
@@ -229,7 +229,7 @@ void FoldLeastSignificantWord(IR::Inst& inst) {
     inst.ReplaceUsesWith(IR::Value{static_cast<u32>(operand.GetImmediateAsU64())});
 }
 
-void FoldMostSignificantBit(IR::Inst& inst) {
+static void FoldMostSignificantBit(IR::Inst& inst) {
     if (!inst.AreAllArgsImmediates()) {
         return;
     }
@@ -238,7 +238,7 @@ void FoldMostSignificantBit(IR::Inst& inst) {
     inst.ReplaceUsesWith(IR::Value{(operand.GetImmediateAsU64() >> 31) != 0});
 }
 
-void FoldMostSignificantWord(IR::Inst& inst) {
+static void FoldMostSignificantWord(IR::Inst& inst) {
     IR::Inst* carry_inst = inst.GetAssociatedPseudoOperation(Op::GetCarryFromOp);
 
     if (!inst.AreAllArgsImmediates()) {
@@ -260,7 +260,7 @@ void FoldMostSignificantWord(IR::Inst& inst) {
 // 4. x * 1 -> x
 // 5. 1 * y -> y
 //
-void FoldMultiply(IR::Inst& inst, bool is_32_bit) {
+static void FoldMultiply(IR::Inst& inst, bool is_32_bit) {
     if (FoldCommutative(inst, is_32_bit, [](u64 a, u64 b) { return a * b; })) {
         const auto rhs = inst.GetArg(1);
         if (rhs.IsZero()) {
@@ -272,7 +272,7 @@ void FoldMultiply(IR::Inst& inst, bool is_32_bit) {
 }
 
 // Folds NOT operations if the contained value is an immediate.
-void FoldNOT(IR::Inst& inst, bool is_32_bit) {
+static void FoldNOT(IR::Inst& inst, bool is_32_bit) {
     const auto operand = inst.GetArg(0);
 
     if (!operand.IsImmediate()) {
@@ -289,7 +289,7 @@ void FoldNOT(IR::Inst& inst, bool is_32_bit) {
 // 2. x | 0 -> x
 // 3. 0 | y -> y
 //
-void FoldOR(IR::Inst& inst, bool is_32_bit) {
+static void FoldOR(IR::Inst& inst, bool is_32_bit) {
     if (FoldCommutative(inst, is_32_bit, [](u64 a, u64 b) { return a | b; })) {
         const auto rhs = inst.GetArg(1);
         if (rhs.IsZero()) {
@@ -298,7 +298,7 @@ void FoldOR(IR::Inst& inst, bool is_32_bit) {
     }
 }
 
-bool FoldShifts(IR::Inst& inst) {
+static bool FoldShifts(IR::Inst& inst) {
     IR::Inst* carry_inst = inst.GetAssociatedPseudoOperation(Op::GetCarryFromOp);
 
     // The 32-bit variants can contain 3 arguments, while the
@@ -328,7 +328,7 @@ bool FoldShifts(IR::Inst& inst) {
     return true;
 }
 
-void FoldSignExtendXToWord(IR::Inst& inst) {
+static void FoldSignExtendXToWord(IR::Inst& inst) {
     if (!inst.AreAllArgsImmediates()) {
         return;
     }
@@ -337,7 +337,7 @@ void FoldSignExtendXToWord(IR::Inst& inst) {
     inst.ReplaceUsesWith(IR::Value{static_cast<u32>(value)});
 }
 
-void FoldSignExtendXToLong(IR::Inst& inst) {
+static void FoldSignExtendXToLong(IR::Inst& inst) {
     if (!inst.AreAllArgsImmediates()) {
         return;
     }
@@ -346,7 +346,7 @@ void FoldSignExtendXToLong(IR::Inst& inst) {
     inst.ReplaceUsesWith(IR::Value{static_cast<u64>(value)});
 }
 
-void FoldSub(IR::Inst& inst, bool is_32_bit) {
+static void FoldSub(IR::Inst& inst, bool is_32_bit) {
     if (!inst.AreAllArgsImmediates() || inst.HasAssociatedPseudoOperation()) {
         return;
     }
@@ -359,7 +359,7 @@ void FoldSub(IR::Inst& inst, bool is_32_bit) {
     ReplaceUsesWith(inst, is_32_bit, result);
 }
 
-void FoldZeroExtendXToWord(IR::Inst& inst) {
+static void FoldZeroExtendXToWord(IR::Inst& inst) {
     if (!inst.AreAllArgsImmediates()) {
         return;
     }
@@ -368,7 +368,7 @@ void FoldZeroExtendXToWord(IR::Inst& inst) {
     inst.ReplaceUsesWith(IR::Value{static_cast<u32>(value)});
 }
 
-void FoldZeroExtendXToLong(IR::Inst& inst) {
+static void FoldZeroExtendXToLong(IR::Inst& inst) {
     if (!inst.AreAllArgsImmediates()) {
         return;
     }

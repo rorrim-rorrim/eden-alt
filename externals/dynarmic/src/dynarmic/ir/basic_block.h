@@ -17,8 +17,6 @@
 #include "dynarmic/ir/microinstruction.h"
 #include "dynarmic/ir/terminal.h"
 #include "dynarmic/ir/value.h"
-#include "dynarmic/ir/dense_list.h"
-#include "dynarmic/common/memory_pool.h"
 
 namespace Dynarmic::IR {
 
@@ -76,7 +74,7 @@ public:
     /// @param op   Opcode representing the instruction to add.
     /// @param args A sequence of Value instances used as arguments for the instruction.
     inline void AppendNewInst(const Opcode opcode, const std::initializer_list<IR::Value> args) noexcept {
-        PrependNewInst(end(), opcode, args);
+        PrependNewInst(instructions.end(), opcode, args);
     }
     iterator PrependNewInst(iterator insertion_point, Opcode op, std::initializer_list<Value> args) noexcept;
 
@@ -171,8 +169,6 @@ private:
     LocationDescriptor end_location;
     /// Conditional to pass in order to execute this block
     Cond cond;
-    /// Memory pool for instruction list
-    std::unique_ptr<Common::Pool<sizeof(Inst), 2097152UL / sizeof(Inst)>> instruction_alloc_pool;
     /// Terminal instruction of this block.
     Terminal terminal = Term::Invalid{};
     /// Number of cycles this block takes to execute if the conditional fails.
