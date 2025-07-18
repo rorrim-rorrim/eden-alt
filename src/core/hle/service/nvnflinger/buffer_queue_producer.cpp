@@ -928,9 +928,13 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
     }
     case TransactionId::GetBufferHistory: {
         LOG_DEBUG(Service_Nvnflinger, "GetBufferHistory");
-        auto out_span = request.PopRaw<std::span<BufferHistoryEntry>>();
+        auto out_span = parcel_in.Read<std::span<BufferHistoryEntry>>();
         s32 count = buffer_history_.GetHistory(out_span);
-        response.Push(s32(count));
+        parcel_out.Write(s32(count));
+        break;
+    }
+    default:
+        ASSERT_MSG(false, "Unimplemented TransactionId {}", code);
         break;
     }
 

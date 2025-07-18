@@ -20,6 +20,7 @@
 #include "core/hle/service/nvnflinger/buffer_slot.h"
 #include "core/hle/service/nvnflinger/graphic_buffer_producer.h"
 #include "core/hle/service/nvnflinger/pixel_format.h"
+#include "core/hle/service/nvnflinger/buffer_history.h"
 #include "core/hle/service/nvnflinger/status.h"
 #include "core/hle/service/nvnflinger/window.h"
 
@@ -84,7 +85,6 @@ private:
     std::shared_ptr<BufferQueueCore> core;
     BufferQueueDefs::SlotsType& slots;
     BufferHistoryManager buffer_history_;
-    buffer_history_.PushEntry(slot, timestamp, frame_number);
     u32 sticky_transform{};
     std::mutex callback_mutex;
     s32 next_callback_ticket{};
