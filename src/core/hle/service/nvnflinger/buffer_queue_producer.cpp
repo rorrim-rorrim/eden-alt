@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-FileCopyrightText: Copyright 2014 The Android Open Source Project
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -16,6 +19,7 @@
 #include "core/hle/service/nvnflinger/parcel.h"
 #include "core/hle/service/nvnflinger/ui/graphic_buffer.h"
 #include "core/hle/service/nvnflinger/window.h"
+#include "core/hle/service/nvnflinger/buffer_history.h"
 
 namespace Service::android {
 
@@ -922,11 +926,11 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         status = SetBufferCount(buffer_count);
         break;
     }
-    case TransactionId::GetBufferHistory:
-        LOG_WARNING(Service_Nvnflinger, "(STUBBED) called, transaction=GetBufferHistory");
-        break;
-    default:
-        ASSERT_MSG(false, "Unimplemented TransactionId {}", code);
+    case TransactionId::GetBufferHistory: {
+        LOG_DEBUG(Service_Nvnflinger, "GetBufferHistory");
+        auto out_span = request.PopRaw<std::span<BufferHistoryEntry>>();
+        s32 count = buffer_history_.GetHistory(out_span);
+        response.Push(s32(count));
         break;
     }
 

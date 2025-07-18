@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-FileCopyrightText: Copyright 2014 The Android Open Source Project
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -80,6 +83,8 @@ private:
 
     std::shared_ptr<BufferQueueCore> core;
     BufferQueueDefs::SlotsType& slots;
+    BufferHistoryManager buffer_history_;
+    buffer_history_.PushEntry(slot, timestamp, frame_number);
     u32 sticky_transform{};
     std::mutex callback_mutex;
     s32 next_callback_ticket{};
