@@ -43,5 +43,6 @@ void DeadCodeElimination(IR::Block& block);
 void IdentityRemovalPass(IR::Block& block);
 void VerificationPass(const IR::Block& block);
 void NamingPass(IR::Block& block);
+void X64Peepholes(IR::Block& block);
 
 }  // namespace Dynarmic::Optimization
