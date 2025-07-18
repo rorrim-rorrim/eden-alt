@@ -58,7 +58,7 @@ android {
 
     defaultConfig {
         // TODO If this is ever modified, change application_id in strings.xml
-        applicationId = "dev.eden.eden_emulator"
+        applicationId = "dev.legacy.eden_emulator"
         minSdk = 30
         targetSdk = 36
         versionName = getGitVersion()
