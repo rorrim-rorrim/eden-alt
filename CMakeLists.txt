@@ -60,7 +60,7 @@ endif()
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
 	option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" OFF)
 else()
-	option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
+        option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
 endif()
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
@@ -78,6 +78,8 @@ endif()
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 
 option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
+
+set(YUZU_QT_MIRROR "" CACHE STRING "What mirror to use for downloading the bundled Qt libraries")
 
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
@@ -465,12 +467,10 @@ if (ENABLE_QT)
 		list(APPEND CMAKE_PREFIX_PATH "${Qt6_DIR}")
     endif()
 
-    # QT6 Multimedia pulls in unneeded audio systems (ALSA, Pulseaudio) for FreeBSD
-    # ALSA is the default sound system on Linux, but FreeBSD uses OSS which works well enough
-    if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-    	find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent)
-    else()
-    	find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia Concurrent)
+    find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent)
+
+    if (YUZU_USE_QT_MULTIMEDIA)
+        find_package(Qt6 REQUIRED COMPONENTS Multimedia)
     endif()
 
     if (UNIX AND NOT APPLE)
