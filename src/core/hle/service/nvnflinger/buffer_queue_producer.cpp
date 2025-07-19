@@ -532,7 +532,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
 
         position = (position + 1) % 8;
         core->history[position] = {.frame_number = core->frame_counter,
-                                   .queue_time = timestamp,
+                                   .queue_time = slots[slot].queue_time,
                                    .state = BufferState::Queued};
 
         sticky_transform = sticky_transform_;
