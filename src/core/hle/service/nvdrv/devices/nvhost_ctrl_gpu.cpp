@@ -35,6 +35,7 @@ NvResult nvhost_ctrl_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8>
             return WrapFixed(this, &nvhost_ctrl_gpu::ZBCSetTable, input, output);
         case 0x4:
             return WrapFixed(this, &nvhost_ctrl_gpu::ZBCQueryTable, input, output);
+        //deviation
         case 0x5:
             return WrapFixed(this, &nvhost_ctrl_gpu::GetCharacteristics1, input, output);
         case 0x6:
@@ -50,7 +51,29 @@ NvResult nvhost_ctrl_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8>
         }
         break;
     }
-    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    // still unimplemented
+    std::string_view friendly_name = [raw = command.raw]() {
+        switch (raw) {
+            case 0x0d: return "INVAL_ICACHE";
+            case 0x0e: return "SET_MMU_DEBUG_MODE ";
+            case 0x0f: return "SET_SM_DEBUG_MODE";
+            case 0x10: return "WAIT_FOR_PAUSE";
+            case 0x11: return "GET_TPC_EXCEPTION_EN_STATUS";
+            case 0x12: return "NUM_VSMS";
+            case 0x13: return "VSMS_MAPPING";
+            case 0x14: return "ZBC_GET_ACTIVE_SLOT_MASK";
+            case 0x15: return "PMU_GET_GPU_LOAD";
+            case 0x16: return "SET_CG_CONTROLS";
+            case 0x17: return "GET_CG_CONTROLS";
+            case 0x18: return "SET_PG_CONTROLS";
+            case 0x19: return "GET_PG_CONTROLS";
+            case 0x1A: return "PMU_GET_ELPG_RESIDENCY_GATING";
+            case 0x1B: return "GET_ERROR_CHANNEL_USER_DATA";
+            case 0x1D: return "GET_CPU_TIME_CORRELATION_INFO";
+            default: return "UNKNOWN";
+        }
+    }();
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X} {}", command.raw, friendly_name);
     return NvResult::NotImplemented;
 }
 
@@ -230,7 +253,7 @@ NvResult nvhost_ctrl_gpu::ZCullGetInfo(IoctlNvgpuGpuZcullGetInfoArgs& params) {
 }
 
 NvResult nvhost_ctrl_gpu::ZBCSetTable(IoctlZbcSetTable& params) {
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called");
+    LOG_DEBUG(Service_NVDRV, "called");
     ZbcEntry entry = {};
     std::memset(&entry, 0, sizeof(entry));
     // TODO(ogniK): What does this even actually do?
@@ -253,7 +276,7 @@ NvResult nvhost_ctrl_gpu::ZBCSetTable(IoctlZbcSetTable& params) {
 }
 
 NvResult nvhost_ctrl_gpu::ZBCQueryTable(IoctlZbcQueryTable& params) {
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called");
+    LOG_DEBUG(Service_NVDRV, "called");
     struct ZbcQueryParams {
         u32_le color_ds[4];
         u32_le color_l2[4];
@@ -264,10 +287,10 @@ NvResult nvhost_ctrl_gpu::ZBCQueryTable(IoctlZbcQueryTable& params) {
         u32_le index_size;
     } entry = {};
     std::memset(&entry, 0, sizeof(entry));
-    auto const index = param.index_size;
+    auto const index = params.index_size;
     if (params.type == 0) { //no
         entry.index_size = 15;
-    } else if (param.type == 1) { //color
+    } else if (params.type == 1) { //color
         ASSERT(index < 16);
         for (auto i = 0; i < 4; ++i) {
             params.color_ds[i] = this->color_entries[index].color_ds[i];
@@ -275,13 +298,13 @@ NvResult nvhost_ctrl_gpu::ZBCQueryTable(IoctlZbcQueryTable& params) {
         }
         // TODO: Only if no error thrown (otherwise dont modify)
         params.format = this->color_entries[index].format;
-        params.ref_cnt = this->color_entries[index].ref_cnt;
-    } else if (param.type == 2) { //depth
+        //params.ref_cnt = this->color_entries[index].ref_cnt;
+    } else if (params.type == 2) { //depth
         ASSERT(index < 16);
         params.depth = this->depth_entries[index].depth;
         // TODO: Only if no error thrown (otherwise dont modify)
         params.format = this->depth_entries[index].format;
-        params.ref_cnt = this->depth_entries[index].ref_cnt;
+        //params.ref_cnt = this->depth_entries[index].ref_cnt;
     } else {
         UNREACHABLE();
     }
@@ -289,7 +312,11 @@ NvResult nvhost_ctrl_gpu::ZBCQueryTable(IoctlZbcQueryTable& params) {
 }
 
 NvResult nvhost_ctrl_gpu::FlushL2(IoctlFlushL2& params) {
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called");
+    LOG_DEBUG(Service_NVDRV, "called 0x{:X}", params.flush);
+    // if ((params.flush & 0x01) != 0) //l2 flush
+    //     /* we dont emulate l2 */;
+    // if ((params.flush & 0x04) != 0) //fb flush
+    //     /* we dont emulate fb */;
     return NvResult::Success;
 }
 

@@ -151,6 +151,16 @@ private:
     };
     static_assert(sizeof(IoctlGetGpuTime) == 0x10, "IoctlGetGpuTime is incorrect size");
 
+    struct IoctlGetCpuTimeCorrelationInfo {
+        struct {
+            u64_le cpu_timestamp;
+            u64_le gpu_timestamp;
+        } samples[16];
+        u32_le count;
+        u32_le source_id;
+    };
+    static_assert(sizeof(IoctlGetCpuTimeCorrelationInfo) == 264);
+
     NvResult GetCharacteristics1(IoctlCharacteristics& params);
     NvResult GetCharacteristics3(IoctlCharacteristics& params,
                                  std::span<IoctlGpuCharacteristics> gpu_characteristics);
