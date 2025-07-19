@@ -92,7 +92,7 @@ private:
     bool is_allocating{};
     mutable std::condition_variable_any is_allocating_condition;
 
-    std::vector<BufferInfo> history;
+    std::vector<BufferInfo> history{8};
 };
 
 } // namespace Service::android
