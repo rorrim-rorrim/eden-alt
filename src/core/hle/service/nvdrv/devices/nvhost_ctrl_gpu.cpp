@@ -231,12 +231,60 @@ NvResult nvhost_ctrl_gpu::ZCullGetInfo(IoctlNvgpuGpuZcullGetInfoArgs& params) {
 
 NvResult nvhost_ctrl_gpu::ZBCSetTable(IoctlZbcSetTable& params) {
     LOG_WARNING(Service_NVDRV, "(STUBBED) called");
+    ZbcEntry entry = {};
+    std::memset(&entry, 0, sizeof(entry));
     // TODO(ogniK): What does this even actually do?
+    // TODO(myself): This thing I guess
+    if (params.type == 1) {
+        for (auto i = 0; i < 4; ++i) {
+            entry.color_ds[i] = params.color_ds[i];
+            entry.color_l2[i] = params.color_l2[i];
+        }
+        ASSERT(this->max_color_entries < 16);
+        this->color_entries[this->max_color_entries] = entry;
+        ++this->max_color_entries;
+    } else if (params.type == 2) {
+        entry.depth = params.depth;
+        ASSERT(this->max_depth_entries < 16);
+        this->depth_entries[this->max_depth_entries] = entry;
+        ++this->max_depth_entries;
+    }
     return NvResult::Success;
 }
 
 NvResult nvhost_ctrl_gpu::ZBCQueryTable(IoctlZbcQueryTable& params) {
     LOG_WARNING(Service_NVDRV, "(STUBBED) called");
+    struct ZbcQueryParams {
+        u32_le color_ds[4];
+        u32_le color_l2[4];
+        u32_le depth;
+        u32_le ref_cnt;
+        u32_le format;
+        u32_le type;
+        u32_le index_size;
+    } entry = {};
+    std::memset(&entry, 0, sizeof(entry));
+    auto const index = param.index_size;
+    if (params.type == 0) { //no
+        entry.index_size = 15;
+    } else if (param.type == 1) { //color
+        ASSERT(index < 16);
+        for (auto i = 0; i < 4; ++i) {
+            params.color_ds[i] = this->color_entries[index].color_ds[i];
+            params.color_l2[i] = this->color_entries[index].color_l2[i];
+        }
+        // TODO: Only if no error thrown (otherwise dont modify)
+        params.format = this->color_entries[index].format;
+        params.ref_cnt = this->color_entries[index].ref_cnt;
+    } else if (param.type == 2) { //depth
+        ASSERT(index < 16);
+        params.depth = this->depth_entries[index].depth;
+        // TODO: Only if no error thrown (otherwise dont modify)
+        params.format = this->depth_entries[index].format;
+        params.ref_cnt = this->depth_entries[index].ref_cnt;
+    } else {
+        UNREACHABLE();
+    }
     return NvResult::Success;
 }
 
