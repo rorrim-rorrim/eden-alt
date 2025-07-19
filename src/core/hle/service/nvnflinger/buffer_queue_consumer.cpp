@@ -104,7 +104,7 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer,
 
         const auto target_frame_number = slots[slot].frame_number;
         for (size_t i = 0; i < core->history.size(); i++) {
-            if (core->history[i].frame_number = target_frame_number) {
+            if (core->history[i].frame_number == target_frame_number) {
                 core->history[i].state = BufferState::Acquired;
                 break;
             }
