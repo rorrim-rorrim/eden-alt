@@ -512,7 +512,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         slots[slot].buffer_state = BufferState::Queued;
         ++core->frame_counter;
         slots[slot].frame_number = core->frame_counter;
-        slots[slot].queue_time = 0;
+        slots[slot].queue_time = timestamp;
         slots[slot].presentation_time = 0;
 
         item.acquire_called = slots[slot].acquire_called;
@@ -934,13 +934,20 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         break;
     }
     case TransactionId::GetBufferHistory: {
-        LOG_WARNING(Service_Nvnflinger, "(STUBBED) called");
+        LOG_WARNING(Service_Nvnflinger, "called, transaction=GetBufferHistory");
 
         std::scoped_lock lock{core->mutex};
 
         auto buffer_history_count = std::min(parcel_in.Read<s32>(), (s32)core->history.size());
 
-        BufferInfo* info = new BufferInfo[buffer_history_count];
+        if (buffer_history_count <= 0) {
+            parcel_out.Write(Status::BadValue);
+            parcel_out.Write<s32>(0);
+            status = Status::None;
+            break;
+        }
+
+        auto info = new BufferInfo[buffer_history_count];
         auto pos = position;
         for (int i = 0; i < buffer_history_count; i++) {
             info[i] = core->history[(pos - i) % core->history.size()];
@@ -950,8 +957,10 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
             pos--;
         }
 
+        parcel_out.Write(Status::NoError);
+        parcel_out.Write(buffer_history_count);
         parcel_out.WriteFlattenedObject<BufferInfo>(info);
-        status = Status::NoError;
+        status = Status::None;
         break;
     }
     default:
@@ -959,7 +968,9 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         break;
     }
 
-    parcel_out.Write(status);
+    if (status != Status::None) {
+        parcel_out.Write(status);
+    }
 
     const auto serialized = parcel_out.Serialize();
     std::memcpy(parcel_reply.data(), serialized.data(),
