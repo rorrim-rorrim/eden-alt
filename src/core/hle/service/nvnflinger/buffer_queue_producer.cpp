@@ -530,9 +530,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         item.is_droppable = core->dequeue_buffer_cannot_block || async;
         item.swap_interval = swap_interval;
 
-        // TODO: .queue_time should be changed to the correct value
         position = (position + 1) % 8;
-        LOG_WARNING(Service_Nvnflinger, "position={}", position);
         core->history[position] = {.frame_number = core->frame_counter,
                                    .queue_time = timestamp,
                                    .state = BufferState::Queued};
