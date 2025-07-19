@@ -14,24 +14,25 @@ class BufferHistoryManager {
 public:
     void PushEntry(s32 slot, s64 timestamp, s64 frame_number) {
         std::lock_guard<std::mutex> lock(mutex_);
-        if (entries_.size() >= kMaxHistorySize) {
-            entries_.pop_front();
+        if (history_entries.size() >= kMaxHistorySize) {
+            history_entries.pop_front();
         }
-        entries_.emplace_back(BufferHistoryEntry{slot, timestamp, frame_number});
+        history_entries.emplace_back(BufferHistoryEntry{slot, timestamp, frame_number});
     }
 
-    s32 GetHistory(std::span<BufferHistoryEntry> out_entries) {
+    s32 GetHistory(s32 wantedEntries, std::span<BufferHistoryEntry>& entries) {
         std::lock_guard<std::mutex> lock(mutex_);
-        s32 count =
-            std::min<s32>(static_cast<s32>(entries_.size()), static_cast<s32>(out_entries.size()));
-        for (s32 i = 0; i < count; ++i) {
-            out_entries[i] = entries_[entries_.size() - count + i];
+        s32 countToCopy = std::min<s32>(wantedEntries, static_cast<s32>(history_entries.size()));
+        auto out_entries = std::vector<BufferHistoryEntry>(countToCopy);
+        for (s32 i = 0; i < countToCopy; ++i) {
+            out_entries[i] = history_entries[history_entries.size() - countToCopy + i];
         }
-        return count;
+        entries = std::span(out_entries);
+        return countToCopy;
     }
 
 private:
     static constexpr size_t kMaxHistorySize = 16;
-    std::deque<BufferHistoryEntry> entries_;
+    std::deque<BufferHistoryEntry> history_entries;
     std::mutex mutex_;
 };

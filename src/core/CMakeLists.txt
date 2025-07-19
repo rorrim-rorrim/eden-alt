@@ -863,6 +863,7 @@ add_library(core STATIC
     hle/service/nvdrv/nvmemp.cpp
     hle/service/nvdrv/nvmemp.h
     hle/service/nvnflinger/binder.h
+    hle/service/nvnflinger/buffer_history.h
     hle/service/nvnflinger/buffer_item.h
     hle/service/nvnflinger/buffer_item_consumer.cpp
     hle/service/nvnflinger/buffer_item_consumer.h

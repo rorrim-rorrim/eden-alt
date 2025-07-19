@@ -13,6 +13,7 @@
 #include <memory>
 #include <mutex>
 
+#include "buffer_history.h"
 #include "common/common_funcs.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/nvnflinger/binder.h"
@@ -59,6 +60,7 @@ public:
 public:
     Status RequestBuffer(s32 slot, std::shared_ptr<GraphicBuffer>* buf);
     Status SetBufferCount(s32 buffer_count);
+    Status GetBufferHistory(s32 count, std::span<BufferHistoryEntry>& entries);
     Status DequeueBuffer(s32* out_slot, android::Fence* out_fence, bool async, u32 width,
                          u32 height, PixelFormat format, u32 usage);
     Status DetachBuffer(s32 slot);
@@ -84,7 +86,7 @@ private:
 
     std::shared_ptr<BufferQueueCore> core;
     BufferQueueDefs::SlotsType& slots;
-    BufferHistoryManager buffer_history_;
+    BufferHistoryManager buffer_history;
     u32 sticky_transform{};
     std::mutex callback_mutex;
     s32 next_callback_ticket{};

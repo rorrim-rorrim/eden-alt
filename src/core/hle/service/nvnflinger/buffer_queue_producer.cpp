@@ -27,12 +27,24 @@ BufferQueueProducer::BufferQueueProducer(Service::KernelHelpers::ServiceContext&
                                          std::shared_ptr<BufferQueueCore> buffer_queue_core_,
                                          Service::Nvidia::NvCore::NvMap& nvmap_)
     : service_context{service_context_}, core{std::move(buffer_queue_core_)}, slots(core->slots),
-      nvmap(nvmap_) {
+      buffer_history(), nvmap(nvmap_) {
     buffer_wait_event = service_context.CreateEvent("BufferQueue:WaitEvent");
 }
 
 BufferQueueProducer::~BufferQueueProducer() {
     service_context.CloseEvent(buffer_wait_event);
+}
+
+Status BufferQueueProducer::GetBufferHistory(s32 count, std::span<BufferHistoryEntry>& entries) {
+    if (count <= 0) {
+        LOG_ERROR(Service_Nvnflinger, "count must be positive");
+        entries = std::span<BufferHistoryEntry>();
+        return Status::BadValue;
+
+    } else {
+        buffer_history.GetHistory(count, entries);
+        return Status::NoError;
+    }
 }
 
 Status BufferQueueProducer::RequestBuffer(s32 slot, std::shared_ptr<GraphicBuffer>* buf) {
@@ -516,6 +528,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         slots[slot].buffer_state = BufferState::Queued;
         ++core->frame_counter;
         slots[slot].frame_number = core->frame_counter;
+        buffer_history.PushEntry(slot, timestamp, static_cast<s64>(core->frame_counter));
 
         item.acquire_called = slots[slot].acquire_called;
         item.graphic_buffer = slots[slot].graphic_buffer;
@@ -928,9 +941,18 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
     }
     case TransactionId::GetBufferHistory: {
         LOG_DEBUG(Service_Nvnflinger, "GetBufferHistory");
-        auto out_span = parcel_in.Read<std::span<BufferHistoryEntry>>();
-        s32 count = buffer_history_.GetHistory(out_span);
-        parcel_out.Write(s32(count));
+        auto entries_wanted = parcel_in.Read<s32>();
+        if (entries_wanted <= 0) {
+            parcel_out.Write<s32>(0);
+            status = Status::BadValue;
+        }
+        else {
+            std::span<BufferHistoryEntry> entries;
+            buffer_history.GetHistory(entries_wanted, entries);
+            parcel_out.Write(static_cast<s32>(entries.size()));
+            parcel_out.Write(entries);
+            status = Status::NoError;
+        }
         break;
     }
     default:
