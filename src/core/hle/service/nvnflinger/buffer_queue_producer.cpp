@@ -534,7 +534,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         position = (position + 1) % 8;
         LOG_WARNING(Service_Nvnflinger, "position={}", position);
         core->history[position] = {.frame_number = core->frame_counter,
-                                   .queue_time = slots[slot].queue_time,
+                                   .queue_time = timestamp,
                                    .state = BufferState::Queued};
 
         sticky_transform = sticky_transform_;
@@ -942,7 +942,7 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
 
         auto buffer_history_count = std::min(parcel_in.Read<s32>(), (s32)core->history.size());
 
-        BufferQueueCore::BufferInfo* info = new BufferQueueCore::BufferInfo[buffer_history_count];
+        BufferInfo* info = new BufferInfo[buffer_history_count];
         auto pos = position;
         for (int i = 0; i < buffer_history_count; i++) {
             info[i] = core->history[(pos - i) % core->history.size()];
@@ -952,7 +952,7 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
             pos--;
         }
 
-        parcel_out.WriteFlattenedObject<BufferQueueCore::BufferInfo>(info);
+        parcel_out.WriteFlattenedObject<BufferInfo>(info);
         status = Status::NoError;
         break;
     }
