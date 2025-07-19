@@ -11,8 +11,11 @@
 #include "video_core/host_shaders/convert_abgr8_to_d32f_frag_spv.h"
 #include "video_core/host_shaders/convert_d24s8_to_abgr8_frag_spv.h"
 #include "video_core/host_shaders/convert_d32f_to_abgr8_frag_spv.h"
+#include "video_core/host_shaders/convert_r8_to_abgr8_frag_spv.h"
 #include "video_core/host_shaders/convert_depth_to_float_frag_spv.h"
 #include "video_core/host_shaders/convert_float_to_depth_frag_spv.h"
+#include "video_core/host_shaders/convert_b10gr11f_to_abgr8_frag_spv.h"
+#include "video_core/host_shaders/convert_bgra8_to_s8d24_frag_spv.h"
 #include "video_core/host_shaders/convert_s8d24_to_abgr8_frag_spv.h"
 #include "video_core/host_shaders/full_screen_triangle_vert_spv.h"
 #include "video_core/host_shaders/vulkan_blit_depth_stencil_frag_spv.h"
@@ -29,6 +32,7 @@
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 #include "video_core/host_shaders/convert_abgr8_srgb_to_d24s8_frag_spv.h"
+#include "video_core/host_shaders/convert_abgr8_to_r8_frag_spv.h"
 #include "video_core/host_shaders/convert_rgba8_to_bgra8_frag_spv.h"
 #include "video_core/host_shaders/convert_yuv420_to_rgb_comp_spv.h"
 #include "video_core/host_shaders/convert_rgb_to_yuv420_comp_spv.h"
@@ -385,6 +389,17 @@ VkExtent2D GetConversionExtent(const ImageView& src_image_view) {
     };
 }
 
+VkExtent2D GetConversionExtent(const Framebuffer* framebuffer) {
+    const auto& resolution = Settings::values.resolution_info;
+    const bool is_rescaled = framebuffer->IsRescaled();
+    u32 width = framebuffer->RenderArea().width;
+    u32 height = framebuffer->RenderArea().height;
+    return VkExtent2D{
+        .width = is_rescaled ? resolution.ScaleUp(width) : width,
+        .height = is_rescaled ? resolution.ScaleUp(height) : height,
+    };
+}
+
 void TransitionImageLayout(vk::CommandBuffer& cmdbuf, VkImage image, VkImageLayout target_layout,
                            VkImageLayout source_layout = VK_IMAGE_LAYOUT_GENERAL) {
     constexpr VkFlags flags{VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
@@ -442,13 +457,17 @@ BlitImageHelper::BlitImageHelper(const Device& device_, Scheduler& scheduler_,
           descriptor_pool.Allocator(*one_texture_set_layout, TEXTURE_DESCRIPTOR_BANK_INFO<1>)},
       two_textures_descriptor_allocator{
           descriptor_pool.Allocator(*two_textures_set_layout, TEXTURE_DESCRIPTOR_BANK_INFO<2>)},
+      push_constant_range({
+          PUSH_CONSTANT_RANGE<VK_SHADER_STAGE_VERTEX_BIT, sizeof(PushConstants)>,
+          PUSH_CONSTANT_RANGE<VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(PushConstants)>
+      }),
       one_texture_pipeline_layout(device.GetLogical().CreatePipelineLayout(PipelineLayoutCreateInfo(
           one_texture_set_layout.address(),
-          PUSH_CONSTANT_RANGE<VK_SHADER_STAGE_VERTEX_BIT, sizeof(PushConstants)>))),
+          push_constant_range))),
       two_textures_pipeline_layout(
           device.GetLogical().CreatePipelineLayout(PipelineLayoutCreateInfo(
               two_textures_set_layout.address(),
-              PUSH_CONSTANT_RANGE<VK_SHADER_STAGE_VERTEX_BIT, sizeof(PushConstants)>))),
+              push_constant_range))),
       clear_color_pipeline_layout(device.GetLogical().CreatePipelineLayout(PipelineLayoutCreateInfo(
           nullptr, PUSH_CONSTANT_RANGE<VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(float) * 4>))),
       full_screen_vert(BuildShader(device, FULL_SCREEN_TRIANGLE_VERT_SPV)),
@@ -461,10 +480,14 @@ BlitImageHelper::BlitImageHelper(const Device& device_, Scheduler& scheduler_,
       convert_float_to_depth_frag(BuildShader(device, CONVERT_FLOAT_TO_DEPTH_FRAG_SPV)),
       convert_abgr8_to_d24s8_frag(BuildShader(device, CONVERT_ABGR8_TO_D24S8_FRAG_SPV)),
       convert_abgr8_to_d32f_frag(BuildShader(device, CONVERT_ABGR8_TO_D32F_FRAG_SPV)),
+      convert_abgr8_to_r8_frag(BuildShader(device, CONVERT_ABGR8_TO_R8_FRAG_SPV)),
+      convert_r8_to_abgr8_frag(BuildShader(device, CONVERT_R8_TO_ABGR8_FRAG_SPV)),
       convert_d32f_to_abgr8_frag(BuildShader(device, CONVERT_D32F_TO_ABGR8_FRAG_SPV)),
       convert_d24s8_to_abgr8_frag(BuildShader(device, CONVERT_D24S8_TO_ABGR8_FRAG_SPV)),
       convert_s8d24_to_abgr8_frag(BuildShader(device, CONVERT_S8D24_TO_ABGR8_FRAG_SPV)),
       convert_abgr8_srgb_to_d24s8_frag(BuildShader(device, CONVERT_ABGR8_SRGB_TO_D24S8_FRAG_SPV)),
+      convert_b10gr11f_to_abgr8_frag(BuildShader(device, CONVERT_B10GR11F_TO_ABGR8_FRAG_SPV)),
+      convert_bgra8_to_s8d24_frag(BuildShader(device, CONVERT_BGRA8_TO_S8D24_FRAG_SPV)),
       convert_rgba_to_bgra_frag(BuildShader(device, CONVERT_RGBA8_TO_BGRA8_FRAG_SPV)),
       convert_yuv420_to_rgb_comp(BuildShader(device, CONVERT_YUV420_TO_RGB_COMP_SPV)),
       convert_rgb_to_yuv420_comp(BuildShader(device, CONVERT_RGB_TO_YUV420_COMP_SPV)),
@@ -588,6 +611,20 @@ void BlitImageHelper::ConvertR16ToD16(const Framebuffer* dst_framebuffer,
     Convert(*convert_r16_to_d16_pipeline, dst_framebuffer, src_image_view);
 }
 
+void BlitImageHelper::ConvertR8ToABGR8(const Framebuffer* dst_framebuffer,
+                                  const ImageView& src_image_view) {
+    ConvertPipelineColorTargetEx(convert_r8_to_abgr8_pipeline, dst_framebuffer->RenderPass(),
+                                 convert_r8_to_abgr8_frag);
+    Convert(*convert_r8_to_abgr8_pipeline, dst_framebuffer, src_image_view);
+}
+
+void BlitImageHelper::ConvertABGR8ToR8(const Framebuffer* dst_framebuffer,
+                                      const ImageView& src_image_view) {
+    ConvertPipelineColorTargetEx(convert_abgr8_to_r8_pipeline, dst_framebuffer->RenderPass(),
+                                 convert_abgr8_to_r8_frag);
+    Convert(*convert_abgr8_to_r8_pipeline, dst_framebuffer, src_image_view);
+}
+
 void BlitImageHelper::ConvertABGR8ToD24S8(const Framebuffer* dst_framebuffer,
                                           const ImageView& src_image_view) {
     ConvertPipelineDepthTargetEx(convert_abgr8_to_d24s8_pipeline, dst_framebuffer->RenderPass(),
@@ -629,6 +666,21 @@ void BlitImageHelper::ConvertABGR8SRGBToD24S8(const Framebuffer* dst_framebuffer
                                 dst_framebuffer->RenderPass(),
                                 convert_abgr8_srgb_to_d24s8_frag);
     Convert(*convert_abgr8_srgb_to_d24s8_pipeline, dst_framebuffer, src_image_view);
+}
+
+void BlitImageHelper::ConvertB10GR11ToABGR8(const Framebuffer* dst_framebuffer,
+                                         const ImageView& src_image_view) {
+    ConvertPipelineDepthTargetEx(convert_b10gr11f_to_abgr8_pipeline,
+                                dst_framebuffer->RenderPass(),
+                                convert_b10gr11f_to_abgr8_frag);
+    Convert(*convert_b10gr11f_to_abgr8_pipeline, dst_framebuffer, src_image_view);
+}
+
+void BlitImageHelper::ConvertBGRA8ToS8D24(const Framebuffer* dst_framebuffer,
+                                          const ImageView& src_image_view) {
+    ConvertPipelineDepthTargetEx(convert_bgra8_to_s8d24_pipeline, dst_framebuffer->RenderPass(),
+                                 convert_bgra8_to_s8d24_frag);
+    Convert(*convert_bgra8_to_s8d24_pipeline, dst_framebuffer, src_image_view);
 }
 
 void BlitImageHelper::ClearColor(const Framebuffer* dst_framebuffer, u8 color_mask,
@@ -684,10 +736,10 @@ void BlitImageHelper::Convert(VkPipeline pipeline, const Framebuffer* dst_frameb
     const VkPipelineLayout layout = *one_texture_pipeline_layout;
     const VkImageView src_view = src_image_view.Handle(Shader::TextureType::Color2D);
     const VkSampler sampler = *nearest_sampler;
-    const VkExtent2D extent = GetConversionExtent(src_image_view);
+    const VkExtent2D extent = GetConversionExtent(dst_framebuffer);
 
     scheduler.RequestRenderpass(dst_framebuffer);
-    scheduler.Record([pipeline, layout, sampler, src_view, extent, this](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([pipeline, layout, sampler, src_view, extent, this, dst_framebuffer](vk::CommandBuffer cmdbuf) {
         const VkOffset2D offset{
             .x = 0,
             .y = 0,
@@ -704,8 +756,15 @@ void BlitImageHelper::Convert(VkPipeline pipeline, const Framebuffer* dst_frameb
             .offset = offset,
             .extent = extent,
         };
-        const PushConstants push_constants{
+        /*const PushConstants push_constants_vertex{
             .tex_scale = {viewport.width, viewport.height},
+            .tex_offset = {0.0f, 0.0f},
+        };*/
+        const PushConstants push_constants_frag{
+            .tex_scale = {
+                static_cast<float>(dst_framebuffer->RenderArea().width),
+                static_cast<float>(dst_framebuffer->RenderArea().height)
+            },
             .tex_offset = {0.0f, 0.0f},
         };
         const VkDescriptorSet descriptor_set = one_texture_descriptor_allocator.Commit();
@@ -717,7 +776,8 @@ void BlitImageHelper::Convert(VkPipeline pipeline, const Framebuffer* dst_frameb
                                   nullptr);
         cmdbuf.SetViewport(0, viewport);
         cmdbuf.SetScissor(0, scissor);
-        cmdbuf.PushConstants(layout, VK_SHADER_STAGE_VERTEX_BIT, push_constants);
+        cmdbuf.PushConstants(layout, VK_SHADER_STAGE_VERTEX_BIT, push_constants_frag);
+        cmdbuf.PushConstants(layout, VK_SHADER_STAGE_FRAGMENT_BIT, push_constants_frag);
         cmdbuf.Draw(3, 1, 0, 0);
     });
     scheduler.InvalidateState();
