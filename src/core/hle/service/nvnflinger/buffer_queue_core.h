@@ -37,6 +37,8 @@ __attribute__((packed))
 #ifdef _MSC_VER
 #pragma pack(pop)
 #endif
+static_assert(sizeof(BufferInfo) == 0x1C,
+              "BufferInfo is an invalid size");
 
 class IConsumerListener;
 class IProducerListener;
