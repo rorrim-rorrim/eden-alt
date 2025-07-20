@@ -1797,6 +1797,7 @@ U8U16U32U64 IR::IREmitter::SConvert(size_t result_bitsize, const U8U16U32U64& va
         default:
             break;
         }
+        break;
     default:
         break;
     }
