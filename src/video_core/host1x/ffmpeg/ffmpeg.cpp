@@ -103,8 +103,7 @@ Decoder::Decoder(Tegra::Host1x::NvdecCommon::VideoCodec codec) {
 }
 
 bool Decoder::SupportsDecodingOnDevice(AVPixelFormat* out_pix_fmt, AVHWDeviceType type) const {
-	AVCodec *decoder = avcodec_find_decoder(m_codec);
-	if (decoder) {
+	if (avcodec_find_decoder(m_codec->id)) {
 		for (int i = 0;; i++) {
 			const AVCodecHWConfig* config = avcodec_get_hw_config(m_codec, i);
 			if (!config) {
