@@ -269,27 +269,51 @@ Id EmitConvertF64U64(EmitContext& ctx, Id value) {
 }
 
 Id EmitConvertU16U32(EmitContext& ctx, Id value) {
-    return ctx.OpUConvert(ctx.U16, value);
+    if (ctx.profile.support_int16) {
+        return ctx.OpUConvert(ctx.U16, value);
+    } else {
+        return ctx.OpBitFieldUExtract(ctx.U32[1], value, ctx.u32_zero_value, ctx.Const(16u));
+    }
 }
 
 Id EmitConvertU32U16(EmitContext& ctx, Id value) {
-    return ctx.OpUConvert(ctx.U32[1], value);
+    if (ctx.profile.support_int16) {
+        return ctx.OpUConvert(ctx.U32[1], value);
+    } else {
+        return ExtractU16(ctx, value);
+    }
 }
 
 Id EmitConvertU8U32(EmitContext& ctx, Id value) {
-    return ctx.OpUConvert(ctx.U8, value);
+    if (ctx.profile.support_int8) {
+        return ctx.OpUConvert(ctx.U8, value);
+    } else {
+        return ExtractU8(ctx, value);
+    }
 }
 
 Id EmitConvertU32U8(EmitContext& ctx, Id value) {
-    return ctx.OpUConvert(ctx.U32[1], value);
+    if (ctx.profile.support_int8) {
+        return ctx.OpUConvert(ctx.U32[1], value);
+    } else {
+        return ctx.OpBitFieldUExtract(ctx.U32[1], value, ctx.u32_zero_value, ctx.Const(8u));
+    }
 }
 
 Id EmitConvertS32S8(EmitContext& ctx, Id value) {
-    return ctx.OpSConvert(ctx.U32[1], value);
+    if (ctx.profile.support_int8) {
+        return ctx.OpSConvert(ctx.U32[1], value);
+    } else {
+        return ctx.OpBitFieldSExtract(ctx.U32[1], value, ctx.u32_zero_value, ctx.Const(8u));
+    }
 }
 
 Id EmitConvertS32S16(EmitContext& ctx, Id value) {
-    return ctx.OpSConvert(ctx.U32[1], value);
+    if (ctx.profile.support_int16) {
+        return ctx.OpSConvert(ctx.U32[1], value);
+    } else {
+        return ctx.OpBitFieldSExtract(ctx.U32[1], value, ctx.u32_zero_value, ctx.Const(16u));
+    }
 }
 
 } // namespace Shader::Backend::SPIRV
