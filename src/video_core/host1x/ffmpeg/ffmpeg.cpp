@@ -103,19 +103,22 @@ Decoder::Decoder(Tegra::Host1x::NvdecCommon::VideoCodec codec) {
 }
 
 bool Decoder::SupportsDecodingOnDevice(AVPixelFormat* out_pix_fmt, AVHWDeviceType type) const {
-    for (int i = 0;; i++) {
-        const AVCodecHWConfig* config = avcodec_get_hw_config(m_codec, i);
-        if (!config) {
-            LOG_DEBUG(HW_GPU, "{} decoder does not support device type {}", m_codec->name, av_hwdevice_get_type_name(type));
-            break;
-        }
+	AVCodec *decoder = avcodec_find_decoder(m_codec);
+	if (decoder) {
+		for (int i = 0;; i++) {
+			const AVCodecHWConfig* config = avcodec_get_hw_config(m_codec, i);
+			if (!config) {
+				LOG_DEBUG(HW_GPU, "{} decoder does not support device type {}", m_codec->name, av_hwdevice_get_type_name(type));
+				break;
+			}
 
-        if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX && config->device_type == type) {
-            LOG_INFO(HW_GPU, "Using {} GPU decoder", av_hwdevice_get_type_name(type));
-            *out_pix_fmt = config->pix_fmt;
-            return true;
-        }
-    }
+			if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX && config->device_type == type) {
+				LOG_INFO(HW_GPU, "Using {} GPU decoder", av_hwdevice_get_type_name(type));
+				*out_pix_fmt = config->pix_fmt;
+				return true;
+			}
+		}
+	}
 
     return false;
 }
