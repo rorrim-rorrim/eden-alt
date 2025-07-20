@@ -151,7 +151,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
         }
 
-        if (!isCustomSettingsIntent) finishGameSetup()
+        // For non-EmuReady intents, finish game setup immediately
+        // EmuReady intents handle setup asynchronously in handleEmuReadyIntent()
+        if (!isCustomSettingsIntent) {
+            finishGameSetup()
+        }
     }
 
     /**
@@ -173,18 +177,52 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             ).show()
             requireActivity().finish()
             return
+        } catch (e: Exception) {
+            Log.error("[EmulationFragment] Error during game setup: ${e.message}")
+            Toast.makeText(
+                requireContext(),
+                "Setup error: ${e.message?.take(30) ?: "Unknown"}",
+                Toast.LENGTH_SHORT
+            ).show()
+            requireActivity().finish()
+            return
         }
 
         // Handle configuration loading
-        if (isCustomSettingsIntent) {
-            // Custom settings already applied by CustomSettingsHandler
-            Log.info("[EmulationFragment] Using custom settings from intent")
-        } else if (args.custom || intentGame != null) {
-            // Always load custom settings when launching a game from an intent
-            SettingsFile.loadCustomConfig(game)
-            NativeConfig.unloadPerGameConfig()
-        } else {
-            NativeConfig.reloadGlobalConfig()
+        try {
+            if (isCustomSettingsIntent) {
+                // Custom settings already applied by CustomSettingsHandler
+                Log.info("[EmulationFragment] Using custom settings from intent")
+            } else if (args.custom) {
+                // Load custom settings when explicitly requested via args
+                SettingsFile.loadCustomConfig(game)
+                NativeConfig.unloadPerGameConfig()
+                Log.info("[EmulationFragment] Loading custom settings for ${game.title}")
+            } else if (intentGame != null) {
+                // For intent games, check if custom settings exist and load them, otherwise use global
+                val customConfigFile = SettingsFile.getCustomSettingsFile(game)
+                if (customConfigFile.exists()) {
+                    Log.info("[EmulationFragment] Found existing custom settings for ${game.title}, loading them")
+                    SettingsFile.loadCustomConfig(game)
+                    NativeConfig.unloadPerGameConfig()
+                } else {
+                    Log.info("[EmulationFragment] No custom settings found for ${game.title}, using global settings")
+                    NativeConfig.reloadGlobalConfig()
+                }
+            } else {
+                // Default case - use global settings
+                Log.info("[EmulationFragment] Using global settings")
+                NativeConfig.reloadGlobalConfig()
+            }
+        } catch (e: Exception) {
+            Log.error("[EmulationFragment] Error loading configuration: ${e.message}")
+            Log.info("[EmulationFragment] Falling back to global settings")
+            try {
+                NativeConfig.reloadGlobalConfig()
+            } catch (fallbackException: Exception) {
+                Log.error("[EmulationFragment] Critical error: could not load global config: ${fallbackException.message}")
+                throw fallbackException
+            }
         }
 
         // Install the selected driver asynchronously as the game starts
@@ -209,12 +247,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             CoroutineScope(Dispatchers.Main).launch {
                 try {
                     // Find the game first to get the title for confirmation
+                    Toast.makeText(requireContext(), "Searching for game...", Toast.LENGTH_SHORT).show()
                     val foundGame = CustomSettingsHandler.findGameByTitleId(titleId, requireContext())
                     if (foundGame == null) {
                         Log.error("[EmulationFragment] Game not found for title ID: $titleId")
                         Toast.makeText(
                             requireContext(),
-                            "Game not found in library for title ID: $titleId",
+                            "Game not found: $titleId",
                             Toast.LENGTH_LONG
                         ).show()
                         requireActivity().finish()
@@ -241,28 +280,75 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                         if (intentGame == null) {
                             Log.error("[EmulationFragment] Custom settings processing failed for title ID: $titleId")
+                            // Ask user if they want to launch with default settings
                             Toast.makeText(
                                 requireContext(),
-                                "Failed to apply custom settings. This could be due to:\n• User cancelled configuration overwrite\n• Driver installation failed\n• Missing required drivers",
-                                Toast.LENGTH_LONG
+                                "Custom settings failed",
+                                Toast.LENGTH_SHORT
                             ).show()
-                            requireActivity().finish()
-                            return@launch
-                        }
 
-                        isCustomSettingsIntent = true
+                            val launchWithDefault = askUserToLaunchWithDefaultSettings(
+                                foundGame.title,
+                                "This could be due to:\n• User cancelled configuration overwrite\n• Driver installation failed\n• Missing required drivers"
+                            )
+
+                            if (launchWithDefault) {
+                                Log.info("[EmulationFragment] User chose to launch with default settings")
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Launching with default settings",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                intentGame = foundGame
+                                isCustomSettingsIntent = false
+                            } else {
+                                Log.info("[EmulationFragment] User cancelled launch after custom settings failure")
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Launch cancelled",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                requireActivity().finish()
+                                return@launch
+                            }
+                        } else {
+                            Toast.makeText(
+                                requireContext(),
+                                "Custom settings applied",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            isCustomSettingsIntent = true
+                        }
                     } else {
                         // Handle title-only launch (no custom settings)
+                        Log.info("[EmulationFragment] Launching game with default settings")
+                        Toast.makeText(
+                            requireContext(),
+                            "Launching ${foundGame.title}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                         intentGame = foundGame
+                        isCustomSettingsIntent = false
                     }
 
-                    finishGameSetup()
+                    // Ensure we have a valid game before finishing setup
+                    if (intentGame != null) {
+                        finishGameSetup()
+                    } else {
+                        Log.error("[EmulationFragment] No valid game found after processing intent")
+                        Toast.makeText(
+                            requireContext(),
+                            "Failed to initialize game",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        requireActivity().finish()
+                    }
 
                 } catch (e: Exception) {
                     Log.error("[EmulationFragment] Error processing EmuReady intent: ${e.message}")
                     Toast.makeText(
                         requireContext(),
-                        "Error processing EmuReady request: ${e.message}",
+                        "Error: ${e.message?.take(50) ?: "Unknown error"}",
                         Toast.LENGTH_LONG
                     ).show()
                     requireActivity().finish()
@@ -272,7 +358,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             Log.error("[EmulationFragment] EmuReady intent missing title_id")
             Toast.makeText(
                 requireContext(),
-                "Invalid EmuReady request: missing title ID",
+                "Invalid request: missing title ID",
                 Toast.LENGTH_SHORT
             ).show()
             requireActivity().finish()
@@ -295,6 +381,31 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     .setTitle("Launch Game")
                     .setMessage(message)
                     .setPositiveButton("Launch") { _, _ ->
+                        continuation.resume(true)
+                    }
+                    .setNegativeButton("Cancel") { _, _ ->
+                        continuation.resume(false)
+                    }
+                    .setCancelable(false)
+                    .show()
+            }
+        }
+    }
+
+    /**
+     * Ask user if they want to launch with default settings when custom settings fail
+     */
+    private suspend fun askUserToLaunchWithDefaultSettings(gameTitle: String, errorMessage: String): Boolean {
+        return suspendCoroutine { continuation ->
+            requireActivity().runOnUiThread {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("Custom Settings Failed")
+                    .setMessage(
+                        "Failed to apply custom settings for \"$gameTitle\":\n\n" +
+                        "$errorMessage\n\n" +
+                        "Would you like to launch the game with default settings instead?"
+                    )
+                    .setPositiveButton("Launch with Default Settings") { _, _ ->
                         continuation.resume(true)
                     }
                     .setNegativeButton("Cancel") { _, _ ->

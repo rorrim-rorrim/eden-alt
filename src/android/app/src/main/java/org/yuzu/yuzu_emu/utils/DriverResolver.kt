@@ -6,6 +6,7 @@
 
 package org.yuzu.yuzu_emu.utils
 
+import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.fragment.app.FragmentActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -283,6 +284,7 @@ object DriverResolver {
     ): Boolean {
         return try {
             Log.info("[DriverResolver] Downloading driver: ${artifact.name}")
+            Toast.makeText(activity, "Downloading driver...", Toast.LENGTH_SHORT).show()
 
             val cacheDir =
                 activity.externalCacheDir ?: throw IOException("Cache directory not available")
@@ -326,6 +328,7 @@ object DriverResolver {
                 if (GpuDriverHelper.copyDriverToInternalStorage(file.toUri())) {
                     driverViewModel.onDriverAdded(Pair(driverPath, driverData))
                     Log.info("[DriverResolver] Successfully installed driver: ${driverData.name}")
+                    Toast.makeText(activity, "Driver installed", Toast.LENGTH_SHORT).show()
                     true
                 } else {
                     throw IOException("Failed to install driver")
