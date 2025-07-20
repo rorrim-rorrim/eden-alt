@@ -300,6 +300,7 @@ Id EmitConvertU32U8(EmitContext& ctx, Id value) {
     }
 }
 
+// in signed
 Id EmitConvertS32S8(EmitContext& ctx, Id value) {
     if (ctx.profile.support_int8) {
         return ctx.OpSConvert(ctx.U32[1], value);
