@@ -91,9 +91,11 @@ object CustomSettingsHandler {
         val configFile = getConfigFile(titleId)
         if (configFile.exists() && activity != null) {
             Log.info("[CustomSettingsHandler] Config file already exists, asking user for confirmation")
+            Toast.makeText(activity, "Config exists, asking to overwrite", Toast.LENGTH_SHORT).show()
             val shouldOverwrite = askUserToOverwriteConfig(activity, game.title)
             if (!shouldOverwrite) {
                 Log.info("[CustomSettingsHandler] User chose not to overwrite existing config")
+                Toast.makeText(activity, "Overwrite cancelled", Toast.LENGTH_SHORT).show()
                 return null
             }
         }
@@ -103,9 +105,11 @@ object CustomSettingsHandler {
             val driverPath = DriverResolver.extractDriverPath(customSettings)
             if (driverPath != null) {
                 Log.info("[CustomSettingsHandler] Custom settings specify driver: $driverPath")
+                Toast.makeText(activity, "Checking driver: ${driverPath.split("/").lastOrNull()?.take(20) ?: "driver"}", Toast.LENGTH_SHORT).show()
                 val driverExists = DriverResolver.ensureDriverExists(driverPath, activity, driverViewModel)
                 if (!driverExists) {
                     Log.error("[CustomSettingsHandler] Required driver not available: $driverPath")
+                    Toast.makeText(activity, "Driver unavailable", Toast.LENGTH_SHORT).show()
                     // Don't write config if driver installation failed
                     return null
                 }
@@ -115,6 +119,7 @@ object CustomSettingsHandler {
         // Only write the config file after all checks pass
         if (!writeConfigFile(titleId, customSettings)) {
             Log.error("[CustomSettingsHandler] Failed to write config file")
+            Toast.makeText(activity, "Config write failed", Toast.LENGTH_SHORT).show()
             return null
         }
 
@@ -122,9 +127,11 @@ object CustomSettingsHandler {
         try {
             NativeConfig.initializePerGameConfig(game.programId, configFile.nameWithoutExtension)
             Log.info("[CustomSettingsHandler] Successfully applied custom settings")
+            Toast.makeText(activity, "Custom settings applied", Toast.LENGTH_SHORT).show()
             return game
         } catch (e: Exception) {
             Log.error("[CustomSettingsHandler] Failed to apply custom settings: ${e.message}")
+            Toast.makeText(activity, "Config apply failed", Toast.LENGTH_SHORT).show()
             return null
         }
     }
@@ -161,10 +168,10 @@ object CustomSettingsHandler {
         }
         if (foundGame != null) {
             Log.info("[CustomSettingsHandler] Found game: ${foundGame.title} at ${foundGame.path}")
-            Toast.makeText(context, "Found game: ${foundGame.title}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Found: ${foundGame.title}", Toast.LENGTH_SHORT).show()
         } else {
             Log.warning("[CustomSettingsHandler] No game found for title ID: $titleId")
-            Toast.makeText(context, "Game not found for title ID: $titleId", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Game not found: $titleId", Toast.LENGTH_SHORT).show()
         }
         return foundGame
     }
