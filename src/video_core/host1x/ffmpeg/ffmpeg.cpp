@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -49,18 +46,6 @@ AVPixelFormat GetGpuFormat(AVCodecContext* codec_context, const AVPixelFormat* p
 		}
 	}
 
-	// Another check to confirm if there is a pixel format supported by specific GPU decoders.
-	for (int i = 0;; i++) {
-		const AVCodecHWConfig* config = avcodec_get_hw_config(codec_context->codec, i);
-		if (!config) {
-			break;
-		}
-
-		if ((config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) && (config->device_type == AV_HWDEVICE_TYPE_CUDA || config->device_type == AV_HWDEVICE_TYPE_VAAPI)) {
-			return config->pix_fmt;
-		}
-	}
-
 	// Fallback to CPU decoder.
     LOG_INFO(HW_GPU, "Could not find compatible GPU pixel format, falling back to CPU");
     av_buffer_unref(&codec_context->hw_device_ctx);
@@ -106,28 +91,26 @@ Decoder::Decoder(Tegra::Host1x::NvdecCommon::VideoCodec codec) {
 			default:
 				UNIMPLEMENTED_MSG("Unknown codec {}", codec);
 				return AV_CODEC_ID_NONE;
-			}
+		}
     }();
 
     m_codec = avcodec_find_decoder(av_codec);
 }
 
 bool Decoder::SupportsDecodingOnDevice(AVPixelFormat* out_pix_fmt, AVHWDeviceType type) const {
-	if (avcodec_find_decoder(m_codec->id)) {
-		for (int i = 0;; i++) {
-			const AVCodecHWConfig* config = avcodec_get_hw_config(m_codec, i);
-			if (!config) {
-				LOG_DEBUG(HW_GPU, "{} decoder does not support device type {}", m_codec->name, av_hwdevice_get_type_name(type));
-				break;
-			}
+    for (int i = 0;; i++) {
+        const AVCodecHWConfig* config = avcodec_get_hw_config(m_codec, i);
+        if (!config) {
+            LOG_DEBUG(HW_GPU, "{} decoder does not support device type {}", m_codec->name, av_hwdevice_get_type_name(type));
+            break;
+        }
 
-			if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX && config->device_type == type) {
-				LOG_INFO(HW_GPU, "Using {} GPU decoder", av_hwdevice_get_type_name(type));
-				*out_pix_fmt = config->pix_fmt;
-				return true;
-			}
-		}
-	}
+        if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX && config->device_type == type) {
+            LOG_INFO(HW_GPU, "Using {} GPU decoder", av_hwdevice_get_type_name(type));
+            *out_pix_fmt = config->pix_fmt;
+            return true;
+        }
+    }
 
     return false;
 }
