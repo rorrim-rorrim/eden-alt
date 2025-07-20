@@ -51,8 +51,19 @@ AVPixelFormat GetGpuFormat(AVCodecContext* codec_context, const AVPixelFormat* p
 		}
 	}
 
+	// Another check to confirm if there is a pixel format supported by specific GPU decoders.
+	for (int i = 0;; i++) {
+		const AVCodecHWConfig* config = avcodec_get_hw_config(codec_context->codec, i);
+		if (!config) {
+			break;
+		}
+
+		if ((config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) && (config->device_type == AV_HWDEVICE_TYPE_CUDA || config->device_type == AV_HWDEVICE_TYPE_VAAPI)) {
+			return config->pix_fmt;
+		}
+	}
+
 	// Fallback to CPU decoder.
-    LOG_INFO(HW_GPU, "Could not find supported GPU pixel format, falling back to CPU decoder");
     av_buffer_unref(&codec_context->hw_device_ctx);
 
     return codec_context->pix_fmt;
@@ -111,7 +122,6 @@ bool Decoder::SupportsDecodingOnDevice(AVPixelFormat* out_pix_fmt, AVHWDeviceTyp
         }
 
         if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX && config->device_type == type) {
-            LOG_INFO(HW_GPU, "Using {} GPU decoder", av_hwdevice_get_type_name(type));
             *out_pix_fmt = config->pix_fmt;
             return true;
         }
@@ -214,10 +224,6 @@ bool DecoderContext::OpenContext(const Decoder& decoder) {
         return false;
     }
 
-    if (!m_codec_context->hw_device_ctx) {
-        LOG_INFO(HW_GPU, "Using FFmpeg CPU decoding");
-    }
-
     return true;
 }
 
@@ -245,13 +251,16 @@ std::shared_ptr<Frame> DecoderContext::ReceiveFrame() {
 	}
 
 	m_temp_frame = std::make_shared<Frame>();
-	if (m_codec_context->hw_device_ctx) {
+	const auto desc = av_pix_fmt_desc_get(intermediate_frame->GetPixelFormat());
+	if (m_codec_context->hw_device_ctx && desc && desc->flags & AV_PIX_FMT_FLAG_HWACCEL) {
+		LOG_INFO(HW_GPU, "Using GPU Decoder");
 		m_temp_frame->SetFormat(PreferredGpuFormat);
 		if (int ret = av_hwframe_transfer_data(m_temp_frame->GetFrame(), intermediate_frame->GetFrame(), 0); ret < 0) {
 			LOG_ERROR(HW_GPU, "av_hwframe_transfer_data error: {}", AVError(ret));
 			return {};
 		}
 	} else {
+		LOG_INFO(HW_GPU, "Using CPU Decoder");
 		m_temp_frame->SetFormat(PreferredCpuFormat);
 		m_temp_frame = std::move(intermediate_frame);
 	}
