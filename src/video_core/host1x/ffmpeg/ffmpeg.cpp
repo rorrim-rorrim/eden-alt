@@ -23,6 +23,8 @@ namespace FFmpeg {
 
 namespace {
 
+constexpr AVPixelFormat PreferredGpuFormat = AV_PIX_FMT_NV12;
+constexpr AVPixelFormat PreferredCpuFormat = AV_PIX_FMT_YUV420P;
 constexpr std::array PreferredGpuDecoders = {
 #if defined (_WIN32)
     AV_HWDEVICE_TYPE_CUDA,
@@ -50,7 +52,7 @@ AVPixelFormat GetGpuFormat(AVCodecContext* codec_context, const AVPixelFormat* p
 	}
 
 	// Fallback to CPU decoder.
-    LOG_INFO(HW_GPU, "Could not find compatible GPU pixel format, falling back to CPU");
+    LOG_INFO(HW_GPU, "Could not find supported GPU pixel format, falling back to CPU decoder");
     av_buffer_unref(&codec_context->hw_device_ctx);
 
     return codec_context->pix_fmt;
@@ -213,7 +215,7 @@ bool DecoderContext::OpenContext(const Decoder& decoder) {
     }
 
     if (!m_codec_context->hw_device_ctx) {
-        LOG_INFO(HW_GPU, "Using FFmpeg software decoding");
+        LOG_INFO(HW_GPU, "Using FFmpeg CPU decoding");
     }
 
     return true;
@@ -244,13 +246,13 @@ std::shared_ptr<Frame> DecoderContext::ReceiveFrame() {
 
 	m_temp_frame = std::make_shared<Frame>();
 	if (m_codec_context->hw_device_ctx) {
-		m_temp_frame->SetFormat(AV_PIX_FMT_NV12);
+		m_temp_frame->SetFormat(PreferredGpuFormat);
 		if (int ret = av_hwframe_transfer_data(m_temp_frame->GetFrame(), intermediate_frame->GetFrame(), 0); ret < 0) {
 			LOG_ERROR(HW_GPU, "av_hwframe_transfer_data error: {}", AVError(ret));
 			return {};
 		}
 	} else {
-		m_temp_frame->SetFormat(AV_PIX_FMT_YUV420P);
+		m_temp_frame->SetFormat(PreferredCpuFormat);
 		m_temp_frame = std::move(intermediate_frame);
 	}
 
