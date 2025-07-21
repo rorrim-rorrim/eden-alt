@@ -64,6 +64,7 @@ AVPixelFormat GetGpuFormat(AVCodecContext* codec_context, const AVPixelFormat* p
 	}
 
 	// Fallback to CPU decoder.
+    LOG_INFO(HW_GPU, "Could not find supported GPU pixel format, falling back to CPU decoder");
     av_buffer_unref(&codec_context->hw_device_ctx);
 
     return codec_context->pix_fmt;
@@ -122,6 +123,7 @@ bool Decoder::SupportsDecodingOnDevice(AVPixelFormat* out_pix_fmt, AVHWDeviceTyp
         }
 
         if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX && config->device_type == type) {
+            LOG_INFO(HW_GPU, "Using {} GPU Decoder", av_hwdevice_get_type_name(type));
             *out_pix_fmt = config->pix_fmt;
             return true;
         }
@@ -224,10 +226,16 @@ bool DecoderContext::OpenContext(const Decoder& decoder) {
         return false;
     }
 
+    if (!m_codec_context->hw_device_ctx) {
+        LOG_INFO(HW_GPU, "Using FFmpeg CPU Decoder");
+    }
+
     return true;
 }
 
 bool DecoderContext::SendPacket(const Packet& packet) {
+	m_temp_frame = std::make_shared<Frame>();
+
     if (const int ret = avcodec_send_packet(m_codec_context, packet.GetPacket()); ret < 0 && ret != AVERROR_EOF) {
         LOG_ERROR(HW_GPU, "avcodec_send_packet error: {}", AVError(ret));
         return false;
@@ -250,17 +258,13 @@ std::shared_ptr<Frame> DecoderContext::ReceiveFrame() {
 		return {};
 	}
 
-	m_temp_frame = std::make_shared<Frame>();
-	const auto desc = av_pix_fmt_desc_get(intermediate_frame->GetPixelFormat());
-	if (m_codec_context->hw_device_ctx && desc && desc->flags & AV_PIX_FMT_FLAG_HWACCEL) {
-		LOG_INFO(HW_GPU, "Using GPU Decoder");
+	if (m_codec_context->hw_device_ctx) {
 		m_temp_frame->SetFormat(PreferredGpuFormat);
 		if (int ret = av_hwframe_transfer_data(m_temp_frame->GetFrame(), intermediate_frame->GetFrame(), 0); ret < 0) {
 			LOG_ERROR(HW_GPU, "av_hwframe_transfer_data error: {}", AVError(ret));
 			return {};
 		}
 	} else {
-		LOG_INFO(HW_GPU, "Using CPU Decoder");
 		m_temp_frame->SetFormat(PreferredCpuFormat);
 		m_temp_frame = std::move(intermediate_frame);
 	}
