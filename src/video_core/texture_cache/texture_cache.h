@@ -26,7 +26,6 @@ namespace VideoCommon {
 using Tegra::Texture::TICEntry;
 using Tegra::Texture::TSCEntry;
 using VideoCore::Surface::GetFormatType;
-using VideoCore::Surface::HasAlpha;
 using VideoCore::Surface::PixelFormat;
 using VideoCore::Surface::SurfaceType;
 using namespace Common::Literals;
@@ -2399,7 +2398,7 @@ void TextureCache<P>::CopyImage(ImageId dst_id, ImageId src_id, std::vector<Imag
     }
     const auto dst_format_type = GetFormatType(dst.info.format);
     const auto src_format_type = GetFormatType(src.info.format);
-    if (src_format_type == dst_format_type && HasAlpha(src.info.format) == HasAlpha(dst.info.format)) {
+    if (src_format_type == dst_format_type) {
         if constexpr (HAS_EMULATED_COPIES) {
             if (!runtime.CanImageBeCopied(dst, src)) {
                 return runtime.EmulateCopyImage(dst, src, copies);
@@ -2407,8 +2406,8 @@ void TextureCache<P>::CopyImage(ImageId dst_id, ImageId src_id, std::vector<Imag
         }
         return runtime.CopyImage(dst, src, copies);
     }
-    UNIMPLEMENTED_IF(dst.info.type != ImageType::e2D && dst.info.type != ImageType::Linear);
-    UNIMPLEMENTED_IF(src.info.type != ImageType::e2D && dst.info.type != ImageType::Linear);
+    UNIMPLEMENTED_IF(dst.info.type != ImageType::e2D);
+    UNIMPLEMENTED_IF(src.info.type != ImageType::e2D);
     if (runtime.ShouldReinterpret(dst, src)) {
         return runtime.ReinterpretImage(dst, src, copies);
     }

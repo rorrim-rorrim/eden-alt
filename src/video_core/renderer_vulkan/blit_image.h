@@ -65,10 +65,6 @@ public:
 
     void ConvertR16ToD16(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
 
-    void ConvertR8ToABGR8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
-
-    void ConvertABGR8ToR8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
-
     void ConvertABGR8ToD24S8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
 
     void ConvertABGR8SRGBToD24S8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
@@ -80,10 +76,6 @@ public:
     void ConvertD24S8ToABGR8(const Framebuffer* dst_framebuffer, ImageView& src_image_view);
 
     void ConvertS8D24ToABGR8(const Framebuffer* dst_framebuffer, ImageView& src_image_view);
-
-    void ConvertB10GR11ToABGR8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
-
-    void ConvertBGRA8ToS8D24(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
 
     void ClearColor(const Framebuffer* dst_framebuffer, u8 color_mask,
                     const std::array<f32, 4>& clear_color, const Region2D& dst_region);
@@ -139,7 +131,6 @@ private:
     vk::DescriptorSetLayout two_textures_set_layout;
     DescriptorAllocator one_texture_descriptor_allocator;
     DescriptorAllocator two_textures_descriptor_allocator;
-    std::vector<VkPushConstantRange> push_constant_range;
     vk::PipelineLayout one_texture_pipeline_layout;
     vk::PipelineLayout two_textures_pipeline_layout;
     vk::PipelineLayout clear_color_pipeline_layout;
@@ -153,15 +144,10 @@ private:
     vk::ShaderModule convert_float_to_depth_frag;
     vk::ShaderModule convert_abgr8_to_d24s8_frag;
     vk::ShaderModule convert_abgr8_to_d32f_frag;
-    vk::ShaderModule convert_abgr8_to_r8_frag;
-    vk::ShaderModule convert_r8_to_abgr8_frag;
     vk::ShaderModule convert_d32f_to_abgr8_frag;
     vk::ShaderModule convert_d24s8_to_abgr8_frag;
     vk::ShaderModule convert_s8d24_to_abgr8_frag;
-    vk::ShaderModule convert_s8d24_to_bgra8_frag;
     vk::ShaderModule convert_abgr8_srgb_to_d24s8_frag;
-    vk::ShaderModule convert_b10gr11f_to_abgr8_frag;
-    vk::ShaderModule convert_bgra8_to_s8d24_frag;
     vk::ShaderModule convert_rgba_to_bgra_frag;
     vk::ShaderModule convert_yuv420_to_rgb_comp;
     vk::ShaderModule convert_rgb_to_yuv420_comp;
@@ -190,11 +176,7 @@ private:
     vk::Pipeline convert_d32f_to_abgr8_pipeline;
     vk::Pipeline convert_d24s8_to_abgr8_pipeline;
     vk::Pipeline convert_s8d24_to_abgr8_pipeline;
-    vk::Pipeline convert_r8_to_abgr8_pipeline;
-    vk::Pipeline convert_abgr8_to_r8_pipeline;
     vk::Pipeline convert_abgr8_srgb_to_d24s8_pipeline;
-    vk::Pipeline convert_bgra8_to_s8d24_pipeline;
-    vk::Pipeline convert_b10gr11f_to_abgr8_pipeline;
     vk::Pipeline convert_rgba_to_bgra_pipeline;
     vk::Pipeline convert_yuv420_to_rgb_pipeline;
     vk::Pipeline convert_rgb_to_yuv420_pipeline;

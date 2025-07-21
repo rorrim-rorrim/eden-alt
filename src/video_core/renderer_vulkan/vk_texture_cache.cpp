@@ -1219,27 +1219,8 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
             return blit_image_helper.ConvertABGR8ToD24S8(dst, src_view);
         }
         break;
-    case PixelFormat::R8_UNORM:
-        if (src_view.format == PixelFormat::A8B8G8R8_UNORM) {
-            return blit_image_helper.ConvertABGR8ToR8(dst, src_view);
-        }
-        break;
+
     case PixelFormat::A8B8G8R8_UNORM:
-        if (src_view.format == PixelFormat::R8_UNORM) {
-            return blit_image_helper.ConvertR8ToABGR8(dst, src_view);
-        }
-        if (src_view.format == PixelFormat::B10G11R11_FLOAT) {
-            return blit_image_helper.ConvertB10GR11ToABGR8(dst, src_view);
-        }
-        if (src_view.format == PixelFormat::S8_UINT_D24_UNORM) {
-            return blit_image_helper.ConvertS8D24ToABGR8(dst, src_view);
-        }
-        break;
-    case PixelFormat::S8_UINT_D24_UNORM:
-        if (src_view.format == PixelFormat::B8G8R8A8_UNORM) {
-            return blit_image_helper.ConvertBGRA8ToS8D24(dst, src_view);
-        }
-        break;
     case PixelFormat::A8B8G8R8_SNORM:
     case PixelFormat::A8B8G8R8_SINT:
     case PixelFormat::A8B8G8R8_UINT:
@@ -1251,6 +1232,7 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
     case PixelFormat::A2R10G10B10_UNORM:
     case PixelFormat::A1B5G5R5_UNORM:
     case PixelFormat::A5B5G5R1_UNORM:
+    case PixelFormat::R8_UNORM:
     case PixelFormat::R8_SNORM:
     case PixelFormat::R8_SINT:
     case PixelFormat::R8_UINT:
@@ -1337,12 +1319,12 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
     case PixelFormat::D16_UNORM:
     case PixelFormat::X8_D24_UNORM:
     case PixelFormat::S8_UINT:
+    case PixelFormat::S8_UINT_D24_UNORM:
     case PixelFormat::D32_FLOAT_S8_UINT:
     case PixelFormat::Invalid:
     default:
         break;
     }
-    LOG_WARNING(Render_Vulkan, "Unimplemented texture conversion from {} to {} format type", src_view.format, dst_view.format);
 }
 
 VkFormat TextureCacheRuntime::GetSupportedFormat(VkFormat requested_format,
