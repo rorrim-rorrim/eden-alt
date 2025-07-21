@@ -42,31 +42,17 @@ constexpr std::array PreferredGpuDecoders = {
 
 AVPixelFormat GetGpuFormat(AVCodecContext* codec_context, const AVPixelFormat* pix_fmts) {
 	// Check if there is a pixel format supported by the GPU decoder.
-	const auto desc = av_pix_fmt_desc_get(codec_context->pix_fmt);
-	if (desc && desc->flags & AV_PIX_FMT_FLAG_HWACCEL) {
-		for (const AVPixelFormat* p = pix_fmts; *p != AV_PIX_FMT_NONE; ++p) {
-			if (*p == codec_context->pix_fmt) {
-				return codec_context->pix_fmt;
-			}
-		}
-	}
-
-	// Another check to confirm if there is a pixel format supported by specific GPU decoders.
-	for (int i = 0;; i++) {
-		const AVCodecHWConfig* config = avcodec_get_hw_config(codec_context->codec, i);
-		if (!config) {
-			break;
-		}
-
-		if ((config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) && (config->device_type == AV_HWDEVICE_TYPE_CUDA || config->device_type == AV_HWDEVICE_TYPE_VAAPI)) {
-			return config->pix_fmt;
-		}
-	}
+	for (const AVPixelFormat* p = pix_fmts; *p != AV_PIX_FMT_NONE; ++p) {
+        if (*p == codec_context->pix_fmt) {
+            return codec_context->pix_fmt;
+        }
+    }
 
 	// Fallback to CPU decoder.
     LOG_INFO(HW_GPU, "Could not find supported GPU pixel format, falling back to CPU decoder");
     av_buffer_unref(&codec_context->hw_device_ctx);
 
+	codec_context->pix_fmt = PreferredCpuFormat;
     return codec_context->pix_fmt;
 }
 
@@ -234,8 +220,6 @@ bool DecoderContext::OpenContext(const Decoder& decoder) {
 }
 
 bool DecoderContext::SendPacket(const Packet& packet) {
-	m_temp_frame = std::make_shared<Frame>();
-
     if (const int ret = avcodec_send_packet(m_codec_context, packet.GetPacket()); ret < 0 && ret != AVERROR_EOF) {
         LOG_ERROR(HW_GPU, "avcodec_send_packet error: {}", AVError(ret));
         return false;
@@ -258,14 +242,15 @@ std::shared_ptr<Frame> DecoderContext::ReceiveFrame() {
 		return {};
 	}
 
-	if (m_codec_context->hw_device_ctx) {
+	m_temp_frame = std::make_shared<Frame>();
+	const auto desc = av_pix_fmt_desc_get(intermediate_frame->GetPixelFormat());
+	if (m_codec_context->hw_device_ctx && desc && desc->flags & AV_PIX_FMT_FLAG_HWACCEL) {
 		m_temp_frame->SetFormat(PreferredGpuFormat);
 		if (int ret = av_hwframe_transfer_data(m_temp_frame->GetFrame(), intermediate_frame->GetFrame(), 0); ret < 0) {
 			LOG_ERROR(HW_GPU, "av_hwframe_transfer_data error: {}", AVError(ret));
 			return {};
 		}
 	} else {
-		m_temp_frame->SetFormat(PreferredCpuFormat);
 		m_temp_frame = std::move(intermediate_frame);
 	}
 
