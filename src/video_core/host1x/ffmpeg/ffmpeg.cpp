@@ -41,20 +41,30 @@ constexpr std::array PreferredGpuDecoders = {
 };
 
 AVPixelFormat GetGpuFormat(AVCodecContext* codec_context, const AVPixelFormat* pix_fmts) {
-	// Check if there is a pixel format supported by the GPU decoder.
 	const auto desc = av_pix_fmt_desc_get(codec_context->pix_fmt);
-	if (desc && desc->flags & AV_PIX_FMT_FLAG_HWACCEL) {
-		for (const AVPixelFormat* p = pix_fmts; *p != AV_PIX_FMT_NONE; ++p) {
-			if (*p == codec_context->pix_fmt) {
-				return codec_context->pix_fmt;
+	if (desc && !(desc->flags & AV_PIX_FMT_FLAG_HWACCEL)) {
+		for (int i = 0;; i++) {
+			const AVCodecHWConfig* config = avcodec_get_hw_config(codec_context->codec, i);
+			if (!config) {
+				break;
+			}
+
+			for (const auto type : PreferredGpuDecoders) {
+				if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX && config->device_type == type) {
+					codec_context->pix_fmt = config->pix_fmt;
+				}
 			}
 		}
 	}
 
-	// Fallback to CPU decoder.
-    LOG_INFO(HW_GPU, "Could not find supported GPU pixel format, falling back to CPU decoder");
-    av_buffer_unref(&codec_context->hw_device_ctx);
+	for (const AVPixelFormat* p = pix_fmts; *p != AV_PIX_FMT_NONE; ++p) {
+		if (*p == codec_context->pix_fmt) {
+			return codec_context->pix_fmt;
+		}
+	}
 
+	LOG_INFO(HW_GPU, "Could not find supported GPU pixel format, falling back to CPU decoder");
+	av_buffer_unref(&codec_context->hw_device_ctx);
 	codec_context->pix_fmt = PreferredCpuFormat;
     return codec_context->pix_fmt;
 }
