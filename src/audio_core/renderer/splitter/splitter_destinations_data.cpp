@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -82,6 +85,18 @@ SplitterDestinationData* SplitterDestinationData::GetNext() const {
 
 void SplitterDestinationData::SetNext(SplitterDestinationData* next_) {
     next = next_;
+}
+
+void SplitterDestinationData::SetResetPrevVolume() {
+    m_reset_prev_volume = true;
+}
+
+bool SplitterDestinationData::ShouldResetPrevVolume() const {
+    return m_reset_prev_volume;
+}
+
+void SplitterDestinationData::ClearResetPrevVolume() {
+    m_reset_prev_volume = false;
 }
 
 } // namespace AudioCore::Renderer

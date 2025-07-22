@@ -159,6 +159,13 @@ public:
     static u64 CalcWorkBufferSize(const BehaviorInfo& behavior,
                                   const AudioRendererParameterInternal& params);
 
+    /**
+     * Get all active splitter destinations.
+     *
+     * @return Span of splitter destinations.
+     */
+    std::span<SplitterDestinationData> GetDestinations();
+
 private:
     /**
      * Setup the context.

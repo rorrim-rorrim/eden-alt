@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -115,6 +118,21 @@ public:
      */
     void SetNext(SplitterDestinationData* next);
 
+    /**
+    * REV13: Called during UpdateData() if the struct's flag is set
+    */
+    void SetResetPrevVolume();
+
+    /**
+    * REV13: Called during GenerateCommand() to check for a reset
+    */
+    bool ShouldResetPrevVolume() const;
+
+    /**
+    * REV13: Called after reset is applied to clear the flag
+    */
+    void ClearResetPrevVolume();
+
 private:
     /// Id of this destination
     const s32 id;
@@ -130,6 +148,8 @@ private:
     bool in_use{};
     /// Does this destination need its volumes updated?
     bool need_update{};
+    /// REV13: Flag to reset previous volume ramps
+    bool m_reset_prev_volume{false};
 };
 
 } // namespace AudioCore::Renderer
