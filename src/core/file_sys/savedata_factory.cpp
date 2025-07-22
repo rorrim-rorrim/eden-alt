@@ -126,6 +126,10 @@ std::string SaveDataFactory::GetFullPath(ProgramId program_id, VirtualDir dir,
 
     std::string out = GetSaveDataSpaceIdPath(space);
 
+    LOG_INFO(Common_Filesystem, "Save ID: {:016X}", save_id);
+    LOG_INFO(Common_Filesystem, "User ID[1]: {:016X}", user_id[1]);
+    LOG_INFO(Common_Filesystem, "User ID[0]: {:016X}", user_id[0]);
+
     switch (type) {
     case SaveDataType::System:
         return fmt::format("{}save/{:016X}/{:016X}{:016X}", out, save_id, user_id[1], user_id[0]);
