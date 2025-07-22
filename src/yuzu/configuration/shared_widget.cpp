@@ -42,7 +42,7 @@
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "common/settings_common.h"
-#include "yuzu/configuration/shared_translation.h"
+#include "qt_common/shared_translation.h"
 
 namespace ConfigurationShared {
 

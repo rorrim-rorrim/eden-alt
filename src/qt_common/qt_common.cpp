@@ -1,12 +1,13 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+#include "qt_common.h"
+#include "common/fs/fs.h"
+#include "common/fs/path_util.h"
+#include "uisettings.h"
 
 #include <QGuiApplication>
 #include <QStringLiteral>
 #include <QWindow>
 #include "common/logging/log.h"
 #include "core/frontend/emu_window.h"
-#include "yuzu/qt_common.h"
 
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <qpa/qplatformnativeinterface.h>
@@ -15,6 +16,21 @@
 #endif
 
 namespace QtCommon {
+
+MetadataResult ResetMetadata()
+{
+    if (!Common::FS::Exists(Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir)
+                            / "game_list/")) {
+        return Empty;
+    } else if (Common::FS::RemoveDirRecursively(
+                   Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "game_list")) {
+        return Success;
+        UISettings::values.is_game_list_reload_pending.exchange(true);
+    } else {
+        return Failure;
+    }
+}
+
 Core::Frontend::WindowSystemType GetWindowSystemType() {
     // Determine WSI type based on Qt platform.
     QString platform_name = QGuiApplication::platformName();
@@ -57,4 +73,5 @@ Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window)
 
     return wsi;
 }
-} // namespace QtCommon
+
+}

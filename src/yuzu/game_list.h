@@ -20,7 +20,7 @@
 
 #include "common/common_types.h"
 #include "core/core.h"
-#include "uisettings.h"
+#include "qt_common/uisettings.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/play_time_manager.h"
 
@@ -97,7 +97,7 @@ public:
     bool IsEmpty() const;
 
     void LoadCompatibilityList();
-    void PopulateAsync(QVector<UISettings::GameDir>& game_dirs, const bool cached = true);
+    void PopulateAsync(QVector<UISettings::GameDir>& game_dirs);
 
     void SaveInterfaceLayout();
     void LoadInterfaceLayout();
@@ -110,7 +110,6 @@ public:
     static const QStringList supported_file_extensions;
 
 public slots:
-    void ForceRefreshGameDirectory();
     void RefreshGameDirectory();
 
 signals:

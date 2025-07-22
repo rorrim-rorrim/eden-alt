@@ -11,7 +11,7 @@
 #include <QStringLiteral>
 #include <QWidget>
 #include <qobjectdefs.h>
-#include "yuzu/configuration/shared_translation.h"
+#include "qt_common/shared_translation.h"
 
 class QCheckBox;
 class QComboBox;

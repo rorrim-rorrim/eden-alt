@@ -7,7 +7,7 @@
 #include <vector>
 #include <QWidget>
 #include "yuzu/configuration/configuration_shared.h"
-#include "yuzu/configuration/shared_translation.h"
+#include "qt_common/shared_translation.h"
 
 class QComboBox;
 

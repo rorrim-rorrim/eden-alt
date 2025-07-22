@@ -24,7 +24,7 @@
 #include "yuzu/game_list_p.h"
 #include "yuzu/game_list_worker.h"
 #include "yuzu/main.h"
-#include "yuzu/uisettings.h"
+#include "qt_common/uisettings.h"
 #include "yuzu/util/controller_navigation.h"
 
 GameListSearchField::KeyReleaseEater::KeyReleaseEater(GameList* gamelist_, QObject* parent)
@@ -820,7 +820,7 @@ QStandardItemModel* GameList::GetModel() const {
     return item_model;
 }
 
-void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs, const bool cached)
+void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs)
 {
     tree_view->setEnabled(false);
 
@@ -843,8 +843,7 @@ void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs, const bool
                                                       game_dirs,
                                                       compatibility_list,
                                                       play_time_manager,
-                                                      system,
-                                                      cached);
+                                                      system);
 
     // Get events from the worker as data becomes available
     connect(current_worker.get(), &GameListWorker::DataAvailable, this, &GameList::WorkerEvent,
@@ -872,14 +871,6 @@ void GameList::LoadInterfaceLayout() {
 const QStringList GameList::supported_file_extensions = {
     QStringLiteral("nso"), QStringLiteral("nro"), QStringLiteral("nca"),
     QStringLiteral("xci"), QStringLiteral("nsp"), QStringLiteral("kip")};
-
-void GameList::ForceRefreshGameDirectory()
-{
-    if (!UISettings::values.game_dirs.empty() && current_worker != nullptr) {
-        LOG_INFO(Frontend, "Force-reloading game list per user request.");
-        PopulateAsync(UISettings::values.game_dirs, false);
-    }
-}
 
 void GameList::RefreshGameDirectory()
 {
