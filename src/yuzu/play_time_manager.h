@@ -9,8 +9,9 @@
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "common/polyfill_thread.h"
+#include <common/polyfill_thread.h>
 
+// TODO(crueter): Extract this into frontend_common
 namespace Service::Account {
 class ProfileManager;
 }

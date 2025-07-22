@@ -4,7 +4,7 @@
 #include <utility>
 #include <vector>
 
-#include "yuzu/qt_common.h"
+#include "qt_common/qt_common.h"
 
 #include "common/dynamic_library.h"
 #include "common/logging/log.h"

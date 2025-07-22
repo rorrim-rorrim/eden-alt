@@ -7,23 +7,21 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "yuzu/configuration/shared_translation.h"
+#include "shared_translation.h"
 
 #include <QCoreApplication>
-#include <QWidget>
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "common/settings_setting.h"
 #include "common/time_zone.h"
-#include "yuzu/uisettings.h"
+#include "qt_common/uisettings.h"
 #include <map>
 #include <memory>
-#include <tuple>
 #include <utility>
 
 namespace ConfigurationShared {
 
-std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
+std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
 {
     std::unique_ptr<TranslationMap> translations = std::make_unique<TranslationMap>();
     const auto& tr = [parent](const char* text) -> QString { return parent->tr(text); };
@@ -473,7 +471,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
     return translations;
 }
 
-std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent)
+std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
 {
     std::unique_ptr<ComboboxTranslationMap> translations = std::make_unique<ComboboxTranslationMap>();
     const auto& tr = [&](const char* text, const char* context = "") {

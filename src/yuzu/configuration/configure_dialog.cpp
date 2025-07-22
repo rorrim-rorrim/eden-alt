@@ -27,7 +27,7 @@
 #include "yuzu/configuration/configure_ui.h"
 #include "yuzu/configuration/configure_web.h"
 #include "yuzu/hotkeys.h"
-#include "yuzu/uisettings.h"
+#include "qt_common/uisettings.h"
 
 ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
                                  InputCommon::InputSubsystem* input_subsystem,

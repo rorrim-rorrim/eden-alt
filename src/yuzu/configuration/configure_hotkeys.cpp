@@ -13,7 +13,7 @@
 #include "ui_configure_hotkeys.h"
 #include "yuzu/configuration/configure_hotkeys.h"
 #include "yuzu/hotkeys.h"
-#include "yuzu/uisettings.h"
+#include "qt_common/uisettings.h"
 #include "yuzu/util/sequence_dialog/sequence_dialog.h"
 
 constexpr int name_column = 0;

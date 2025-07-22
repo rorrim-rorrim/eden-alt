@@ -11,7 +11,7 @@
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_general.h"
 #include "yuzu/configuration/shared_widget.h"
-#include "yuzu/uisettings.h"
+#include "qt_common/uisettings.h"
 
 ConfigureGeneral::ConfigureGeneral(const Core::System& system_,
                                    std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,

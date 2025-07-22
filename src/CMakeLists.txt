@@ -234,6 +234,7 @@ if (YUZU_ROOM_STANDALONE)
 endif()
 
 if (ENABLE_QT)
+    add_subdirectory(qt_common)
     add_subdirectory(yuzu)
 endif()
 

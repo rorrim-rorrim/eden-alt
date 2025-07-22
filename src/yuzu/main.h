@@ -17,7 +17,7 @@
 #include <QTranslator>
 
 #include "common/common_types.h"
-#include "configuration/qt_config.h"
+#include "qt_common/qt_config.h"
 #include "frontend_common/content_manager.h"
 #include "input_common/drivers/tas_input.h"
 #include "user_data_migration.h"

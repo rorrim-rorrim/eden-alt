@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/alignment.h"
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"

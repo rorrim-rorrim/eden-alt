@@ -9,7 +9,7 @@
 
 #include "ui_configure_input_per_game.h"
 #include "yuzu/configuration/input_profiles.h"
-#include "yuzu/configuration/qt_config.h"
+#include "qt_common/qt_config.h"
 
 class QComboBox;
 
