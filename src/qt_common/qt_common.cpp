@@ -123,7 +123,7 @@ FirmwareInstallResult InstallFirmware(const QString& location,
 
     // Locate and erase the content of nand/system/Content/registered/*.nca, if any.
     auto sysnand_content_vdir = system->GetFileSystemController().GetSystemNANDContentDirectory();
-    if (!sysnand_content_vdir->CleanSubdirectoryRecursive("registered")) {
+    if (sysnand_content_vdir->IsWritable() && !sysnand_content_vdir->CleanSubdirectoryRecursive("registered")) {
         return FirmwareInstallResult::FailedDelete;
     }
 
