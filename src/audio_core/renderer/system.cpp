@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -688,6 +691,7 @@ u64 System::GenerateCommand(std::span<u8> in_command_buffer,
                                        sink_context,   splitter_context,     perf_manager};
 
     voice_context.SortInfo();
+
     command_generator.GenerateVoiceCommands();
 
     const auto start_estimated_time{drop_voice_param *
@@ -696,6 +700,17 @@ u64 System::GenerateCommand(std::span<u8> in_command_buffer,
     command_generator.GenerateSubMixCommands();
     command_generator.GenerateFinalMixCommands();
     command_generator.GenerateSinkCommands();
+
+    // REV13: Reset previous volumes for any splitter destinations requesting it
+    for (auto& destination : splitter_context.GetDestinations()) {
+        if (destination.ShouldResetPrevVolume()) {
+            for (auto& volume : destination.GetMixVolumePrev()) {
+                volume = 0.0f;
+            }
+            destination.ClearResetPrevVolume();
+        }
+    }
+
 
     if (drop_voice) {
         f32 time_limit_percent{70.0f};

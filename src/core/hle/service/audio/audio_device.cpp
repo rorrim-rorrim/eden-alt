@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -29,12 +32,12 @@ IAudioDevice::IAudioDevice(Core::System& system_, u64 applet_resource_user_id, u
         {12, D<&IAudioDevice::QueryAudioDeviceOutputEvent>, "QueryAudioDeviceOutputEvent"},
         {13, D<&IAudioDevice::GetActiveAudioDeviceName>, "GetActiveAudioOutputDeviceName"},
         {14, D<&IAudioDevice::ListAudioOutputDeviceName>, "ListAudioOutputDeviceName"},
-        {15, nullptr, "AcquireAudioInputDeviceNotification"},       // 17.0.0+
-        {16, nullptr, "ReleaseAudioInputDeviceNotification"},       // 17.0.0+
-        {17, nullptr, "AcquireAudioOutputDeviceNotification"},      // 17.0.0+
-        {18, nullptr, "ReleaseAudioOutputDeviceNotification"},      // 17.0.0+
-        {19, nullptr, "SetAudioDeviceOutputVolumeAutoTuneEnabled"}, // 18.0.0+
-        {20, nullptr, "IsAudioDeviceOutputVolumeAutoTuneEnabled"}   // 18.0.0+
+        {15, D<&IAudioDevice::AcquireAudioInputDeviceNotification>, "AcquireAudioInputDeviceNotification"},       // 17.0.0+
+        {16, D<&IAudioDevice::ReleaseAudioInputDeviceNotification>, "ReleaseAudioInputDeviceNotification"},       // 17.0.0+
+        {17, D<&IAudioDevice::AcquireAudioOutputDeviceNotification>, "AcquireAudioOutputDeviceNotification"},     // 17.0.0+
+        {18, D<&IAudioDevice::ReleaseAudioOutputDeviceNotification>, "ReleaseAudioOutputDeviceNotification"},     // 17.0.0+
+        {19, D<&IAudioDevice::SetAudioDeviceOutputVolumeAutoTuneEnabled>, "SetAudioDeviceOutputVolumeAutoTuneEnabled"}, // 18.0.0+
+        {20, D<&IAudioDevice::IsAudioDeviceOutputVolumeAutoTuneEnabled>, "IsAudioDeviceOutputVolumeAutoTuneEnabled"}    // 18.0.0+
     };
     RegisterHandlers(functions);
 
@@ -163,6 +166,39 @@ Result IAudioDevice::ListAudioOutputDeviceName(
     }
 
     LOG_DEBUG(Service_Audio, "called.\nNames={}", out);
+    R_SUCCEED();
+}
+
+Result IAudioDevice::AcquireAudioInputDeviceNotification(OutCopyHandle<Kernel::KEvent> out_event_handle, u64 device_id) {
+    LOG_DEBUG(Service_Audio, "(STUBBED) AcquireAudioInputDeviceNotification called. device_id={:016X}", device_id);
+    *out_event_handle = event; // Reuse existing stub logic as placeholder
+    R_SUCCEED();
+}
+
+Result IAudioDevice::ReleaseAudioInputDeviceNotification(u64 device_id) {
+    LOG_DEBUG(Service_Audio, "(STUBBED) ReleaseAudioInputDeviceNotification called. device_id={:016X}", device_id);
+    R_SUCCEED();
+}
+
+Result IAudioDevice::AcquireAudioOutputDeviceNotification(OutCopyHandle<Kernel::KEvent> out_event_handle, u64 device_id) {
+    LOG_DEBUG(Service_Audio, "(STUBBED) AcquireAudioOutputDeviceNotification called. device_id={:016X}", device_id);
+    *out_event_handle = event; // Reuse existing stub logic as placeholder
+    R_SUCCEED();
+}
+
+Result IAudioDevice::ReleaseAudioOutputDeviceNotification(u64 device_id) {
+    LOG_DEBUG(Service_Audio, "(STUBBED) ReleaseAudioOutputDeviceNotification called. device_id={:016X}", device_id);
+    R_SUCCEED();
+}
+
+Result IAudioDevice::SetAudioDeviceOutputVolumeAutoTuneEnabled(bool enabled) {
+    LOG_DEBUG(Service_Audio, "(STUBBED) SetAudioDeviceOutputVolumeAutoTuneEnabled called. enabled={}", enabled);
+    R_SUCCEED();
+}
+
+Result IAudioDevice::IsAudioDeviceOutputVolumeAutoTuneEnabled(Out<bool> out_enabled) {
+    *out_enabled = false;
+    LOG_DEBUG(Service_Audio, "(STUBBED) IsAudioDeviceOutputVolumeAutoTuneEnabled called. returning false");
     R_SUCCEED();
 }
 

@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "audio_core/common/audio_renderer_parameter.h"
 #include "audio_core/common/workbuffer_allocator.h"
 #include "audio_core/renderer/behavior/behavior_info.h"
+#include "audio_core/renderer/splitter/parameters.h"
 #include "audio_core/renderer/splitter/splitter_context.h"
 #include "common/alignment.h"
 
@@ -134,19 +138,30 @@ u32 SplitterContext::UpdateInfo(const u8* input, u32 offset, const u32 splitter_
 
 u32 SplitterContext::UpdateData(const u8* input, u32 offset, const u32 count) {
     for (u32 i = 0; i < count; i++) {
-        auto data_header{
-            reinterpret_cast<const SplitterDestinationData::InParameter*>(input + offset)};
+        const auto* data_header =
+            reinterpret_cast<const SplitterDestinationData::InParameter*>(input + offset);
 
         if (data_header->magic != GetSplitterSendDataMagic()) {
             continue;
         }
 
-        if (data_header->id < 0 || data_header->id > destinations_count) {
+        if (data_header->id < 0 || data_header->id >= destinations_count) {
             continue;
         }
 
-        splitter_destinations[data_header->id].Update(*data_header);
-        offset += sizeof(SplitterDestinationData::InParameter);
+        auto& destination = splitter_destinations[data_header->id];
+        destination.Update(*data_header);
+
+        // REV13: Set reset flag if present in extended struct
+        const auto* reset_data =
+            reinterpret_cast<const SplitterDestinationInParameter*>(
+                input + offset + sizeof(SplitterDestinationData::InParameter));
+        if (reset_data->reset_prev_volume) {
+            destination.SetResetPrevVolume();
+        }
+
+        offset += sizeof(SplitterDestinationData::InParameter) +
+                  sizeof(SplitterDestinationInParameter);
     }
 
     return offset;
@@ -212,6 +227,11 @@ u64 SplitterContext::CalcWorkBufferSize(const BehaviorInfo& behavior,
         size += Common::AlignUp(params.splitter_destinations * sizeof(u32), 0x10);
     }
     return size;
+}
+
+std::span<SplitterDestinationData> SplitterContext::GetDestinations() {
+    return std::span<SplitterDestinationData>{splitter_destinations,
+                                              static_cast<size_t>(destinations_count)};
 }
 
 } // namespace AudioCore::Renderer
