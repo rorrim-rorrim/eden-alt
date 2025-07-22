@@ -7,7 +7,10 @@
 #include <array>
 
 #include <QWindow>
+#include "core/core.h"
 #include <core/frontend/emu_window.h>
+
+#include <core/file_sys/vfs/vfs_real.h>
 
 namespace QtCommon {
 
@@ -17,7 +20,7 @@ static constexpr std::array<const char *, 3> METADATA_RESULTS = {
     "The metadata cache is already empty.",
 };
 
-enum MetadataResult {
+enum class MetadataResult {
     Success,
     Failure,
     Empty,
@@ -36,6 +39,36 @@ MetadataResult ResetMetadata();
 inline constexpr const char *GetResetMetadataResultString(MetadataResult result)
 {
     return METADATA_RESULTS.at(static_cast<std::size_t>(result));
+}
+
+static constexpr std::array<const char *, 6> FIRMWARE_RESULTS = {
+    "",
+    "",
+    "Unable to locate potential firmware NCA files",
+    "Failed to delete one or more firmware files.",
+    "One or more firmware files failed to copy into NAND.",
+    "Firmware installation cancelled, firmware may be in a bad state or corrupted."
+                                                "Restart Eden or re-install firmware."
+};
+
+enum class FirmwareInstallResult {
+    Success,
+    NoOp,
+    NoNCAs,
+    FailedDelete,
+    FailedCopy,
+    FailedCorrupted,
+};
+
+FirmwareInstallResult InstallFirmware(const QString &location,
+                                      bool recursive,
+                                      std::function<bool(size_t, size_t)> QtProgressCallback,
+                                      Core::System *system,
+                                      FileSys::VfsFilesystem *vfs);
+
+inline constexpr const char *GetFirmwareInstallResultString(FirmwareInstallResult result)
+{
+    return FIRMWARE_RESULTS.at(static_cast<std::size_t>(result));
 }
 
 Core::Frontend::WindowSystemType GetWindowSystemType();

@@ -4356,106 +4356,40 @@ void GMainWindow::InstallFirmware(const QString& location, bool recursive) {
         return progress.wasCanceled();
     };
 
-    LOG_INFO(Frontend, "Installing firmware from {}", location.toStdString());
+    auto result = QtCommon::InstallFirmware(location, recursive, QtProgressCallback, system.get(), vfs.get());
+    const char* resultMessage = QtCommon::GetFirmwareInstallResultString(result);
 
-    // Check for a reasonable number of .nca files (don't hardcode them, just see if there's some in
-    // there.)
-    std::filesystem::path firmware_source_path = location.toStdString();
-    if (!Common::FS::IsDir(firmware_source_path)) {
-        progress.close();
+    progress.close();
+
+    QMessageBox *box = new QMessageBox(QMessageBox::Icon::NoIcon, tr("Firmware Install Failed"), tr(resultMessage), QMessageBox::Ok, this);
+
+    switch (result) {
+    case QtCommon::FirmwareInstallResult::NoNCAs:
+    case QtCommon::FirmwareInstallResult::FailedCorrupted:
+        box->setIcon(QMessageBox::Icon::Warning);
+        box->exec();
         return;
-    }
-
-    std::vector<std::filesystem::path> out;
-    const Common::FS::DirEntryCallable callback =
-        [&out](const std::filesystem::directory_entry& entry) {
-            if (entry.path().has_extension() && entry.path().extension() == ".nca") {
-                out.emplace_back(entry.path());
-            }
-
-            return true;
-        };
-
-    QtProgressCallback(100, 10);
-
-    if (recursive) {
-        Common::FS::IterateDirEntriesRecursively(firmware_source_path, callback,
-                                                 Common::FS::DirEntryFilter::File);
-    } else {
-        Common::FS::IterateDirEntries(firmware_source_path, callback,
-                                      Common::FS::DirEntryFilter::File);
-    }
-
-    if (out.size() <= 0) {
-        progress.close();
-        QMessageBox::warning(this, tr("Firmware install failed"),
-                             tr("Unable to locate potential firmware NCA files"));
+    case QtCommon::FirmwareInstallResult::FailedCopy:
+    case QtCommon::FirmwareInstallResult::FailedDelete:
+        box->setIcon(QMessageBox::Icon::Critical);
+        box->exec();
         return;
+    default:
+        box->deleteLater();
+        break;
     }
-
-    // Locate and erase the content of nand/system/Content/registered/*.nca, if any.
-    auto sysnand_content_vdir = system->GetFileSystemController().GetSystemNANDContentDirectory();
-    if (!sysnand_content_vdir->CleanSubdirectoryRecursive("registered")) {
-        progress.close();
-        QMessageBox::critical(this, tr("Firmware install failed"),
-                              tr("Failed to delete one or more firmware file."));
-        return;
-    }
-
-    LOG_INFO(Frontend,
-             "Cleaned nand/system/Content/registered folder in preparation for new firmware.");
-
-    QtProgressCallback(100, 20);
-
-    auto firmware_vdir = sysnand_content_vdir->GetDirectoryRelative("registered");
-
-    bool success = true;
-    int i = 0;
-    for (const auto& firmware_src_path : out) {
-        i++;
-        auto firmware_src_vfile =
-            vfs->OpenFile(firmware_src_path.generic_string(), FileSys::OpenMode::Read);
-        auto firmware_dst_vfile =
-            firmware_vdir->CreateFileRelative(firmware_src_path.filename().string());
-
-        if (!VfsRawCopy(firmware_src_vfile, firmware_dst_vfile)) {
-            LOG_ERROR(Frontend, "Failed to copy firmware file {} to {} in registered folder!",
-                      firmware_src_path.generic_string(), firmware_src_path.filename().string());
-            success = false;
-        }
-
-        if (QtProgressCallback(
-                100, 20 + static_cast<int>(((i) / static_cast<float>(out.size())) * 70.0))) {
-            progress.close();
-            QMessageBox::warning(
-                this, tr("Firmware install failed"),
-                tr("Firmware installation cancelled, firmware may be in a bad state or corrupted. "
-                   "Restart Eden or re-install firmware."));
-            return;
-        }
-    }
-
-    if (!success) {
-        progress.close();
-        QMessageBox::critical(this, tr("Firmware install failed"),
-                              tr("One or more firmware files failed to copy into NAND."));
-        return;
-    }
-
-    // Re-scan VFS for the newly placed firmware files.
-    system->GetFileSystemController().CreateFactories(*vfs);
 
     auto VerifyFirmwareCallback = [&](size_t total_size, size_t processed_size) {
         progress.setValue(90 + static_cast<int>((processed_size * 10) / total_size));
         return progress.wasCanceled();
     };
 
-    auto result =
-        ContentManager::VerifyInstalledContents(*system, *provider, VerifyFirmwareCallback, true);
+    auto results =
+            ContentManager::VerifyInstalledContents(*system, *provider, VerifyFirmwareCallback, true);
 
-    if (result.size() > 0) {
+    if (results.size() > 0) {
         const auto failed_names =
-            QString::fromStdString(fmt::format("{}", fmt::join(result, "\n")));
+                QString::fromStdString(fmt::format("{}", fmt::join(results, "\n")));
         progress.close();
         QMessageBox::critical(
             this, tr("Firmware integrity verification failed!"),

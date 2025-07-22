@@ -132,7 +132,7 @@ void ConfigureFilesystem::ResetMetadata() {
     const QString title = tr("Reset Metadata Cache");
 
     switch (result) {
-    case QtCommon::Failure:
+    case QtCommon::MetadataResult::Failure:
         QMessageBox::warning(this, title, resultMessage);
         break;
     default:
