@@ -6,7 +6,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "configuration/qt_config.h"
+#include "qt_common/qt_config.h"
 
 namespace Core {
 class System;

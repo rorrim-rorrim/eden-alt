@@ -9,7 +9,7 @@
 
 #include "common/logging/backend.h"
 #include "yuzu/debugger/console.h"
-#include "yuzu/uisettings.h"
+#include "qt_common/uisettings.h"
 
 namespace Debugger {
 void ToggleConsole() {

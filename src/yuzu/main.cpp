@@ -11,6 +11,7 @@
 #include "core/loader/nca.h"
 #include "core/tools/renderdoc.h"
 #include "frontend_common/firmware_manager.h"
+#include "qt_common/qt_common.h"
 
 #include <JlCompress.h>
 
@@ -155,7 +156,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/compatibility_list.h"
 #include "yuzu/configuration/configure_dialog.h"
 #include "yuzu/configuration/configure_input_per_game.h"
-#include "yuzu/configuration/qt_config.h"
+#include "qt_common/qt_config.h"
 #include "yuzu/debugger/console.h"
 #include "yuzu/debugger/controller.h"
 #include "yuzu/debugger/wait_tree.h"
@@ -168,7 +169,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/main.h"
 #include "yuzu/play_time_manager.h"
 #include "yuzu/startup_checks.h"
-#include "yuzu/uisettings.h"
+#include "qt_common/uisettings.h"
 #include "yuzu/util/clickable_label.h"
 #include "yuzu/vk_device_info.h"
 
@@ -473,7 +474,7 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
 
     game_list->LoadCompatibilityList();
     // force reload on first load to ensure add-ons get updated
-    game_list->PopulateAsync(UISettings::values.game_dirs, false);
+    game_list->PopulateAsync(UISettings::values.game_dirs);
 
     // make sure menubar has the arrow cursor instead of inheriting from this
     ui->menubar->setCursor(QCursor());
@@ -4505,9 +4506,11 @@ void GMainWindow::OnToggleStatusBar() {
     statusBar()->setVisible(ui->action_Show_Status_Bar->isChecked());
 }
 
-void GMainWindow::OnGameListRefresh() {
-    // force reload add-ons etc
-    game_list->ForceRefreshGameDirectory();
+void GMainWindow::OnGameListRefresh()
+{
+    // Resets metadata cache and reloads
+    QtCommon::ResetMetadata();
+    game_list->RefreshGameDirectory();
 }
 
 void GMainWindow::OnAlbum() {
@@ -4515,7 +4518,7 @@ void GMainWindow::OnAlbum() {
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
         QMessageBox::warning(this, tr("No firmware available"),
-                             tr("Please install the firmware to use the Album applet."));
+                             tr("Please install firmware to use the Album applet."));
         return;
     }
 
@@ -4538,7 +4541,7 @@ void GMainWindow::OnCabinet(Service::NFP::CabinetMode mode) {
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
         QMessageBox::warning(this, tr("No firmware available"),
-                             tr("Please install the firmware to use the Cabinet applet."));
+                             tr("Please install firmware to use the Cabinet applet."));
         return;
     }
 
@@ -4562,7 +4565,7 @@ void GMainWindow::OnMiiEdit() {
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
         QMessageBox::warning(this, tr("No firmware available"),
-                             tr("Please install the firmware to use the Mii editor."));
+                             tr("Please install firmware to use the Mii editor."));
         return;
     }
 
@@ -4585,7 +4588,7 @@ void GMainWindow::OnOpenControllerMenu() {
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
         QMessageBox::warning(this, tr("No firmware available"),
-                             tr("Please install the firmware to use the Controller Menu."));
+                             tr("Please install firmware to use the Controller Menu."));
         return;
     }
 
@@ -4610,7 +4613,7 @@ void GMainWindow::OnHomeMenu() {
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
         QMessageBox::warning(this, tr("No firmware available"),
-                             tr("Please install the firmware to use the Home Menu."));
+                             tr("Please install firmware to use the Home Menu."));
         return;
     }
 
@@ -4633,7 +4636,7 @@ void GMainWindow::OnInitialSetup() {
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
         QMessageBox::warning(this, tr("No firmware available"),
-                             tr("Please install the firmware to use Starter."));
+                             tr("Please install firmware to use Starter."));
         return;
     }
 

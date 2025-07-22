@@ -8,7 +8,7 @@
 #include "common/settings.h"
 #include "ui_configure_tas.h"
 #include "yuzu/configuration/configure_tas.h"
-#include "yuzu/uisettings.h"
+#include "qt_common/uisettings.h"
 
 ConfigureTasDialog::ConfigureTasDialog(QWidget* parent)
     : QDialog(parent), ui(std::make_unique<Ui::ConfigureTas>()) {
