@@ -9,10 +9,10 @@
 
 #include <boost/icl/interval_set.hpp>
 #include <fmt/format.h>
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 #include <mcl/bit_cast.hpp>
 #include <mcl/scope_exit.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/x64/a32_emit_x64.h"
 #include "dynarmic/backend/x64/a32_jitstate.h"

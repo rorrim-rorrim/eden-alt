@@ -10,7 +10,7 @@
 #include <type_traits>
 
 #include <mcl/mp/metavalue/lift_value.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 #include <oaknut/oaknut.hpp>
 
 #include "dynarmic/common/always_false.h"

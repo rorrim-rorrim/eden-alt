@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <utility>
 
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 #include <mcl/mp/metavalue/lift_value.hpp>
 #include <mcl/mp/typelist/cartesian_product.hpp>
 #include <mcl/mp/typelist/get.hpp>

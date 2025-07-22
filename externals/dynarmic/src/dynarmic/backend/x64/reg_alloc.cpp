@@ -10,7 +10,7 @@
 #include <utility>
 
 #include <fmt/ostream.h>
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 #include <mcl/bit_cast.hpp>
 #include <xbyak/xbyak.h>
 

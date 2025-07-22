@@ -7,8 +7,8 @@
 
 #include <vector>
 
-#include <mcl/stdint.hpp>
-#include <mcl/assert.hpp>
+#include "dynarmic/common/common_types.h"
+#include "dynarmic/common/assert.h"
 #include <mcl/bit_cast.hpp>
 
 #include "dynarmic/ir/opcodes.h"

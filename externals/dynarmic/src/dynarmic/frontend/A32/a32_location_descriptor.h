@@ -10,7 +10,7 @@
 #include <tuple>
 
 #include <fmt/format.h>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/frontend/A32/FPSCR.h"
 #include "dynarmic/frontend/A32/ITState.h"

@@ -11,7 +11,7 @@
 #include <string>
 
 #include <fmt/format.h>
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 
 #include "dynarmic/common/memory_pool.h"
 #include "dynarmic/frontend/A32/a32_types.h"

@@ -9,11 +9,11 @@
 #include <array>
 #include <iterator>
 
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_field.hpp>
 #include <mcl/bit_cast.hpp>
 #include <mcl/mp/metavalue/lift_value.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/arm64/abi.h"
 #include "dynarmic/backend/arm64/emit_context.h"

@@ -15,7 +15,7 @@
 #include <mcl/bit/bit_count.hpp>
 #include <mcl/bit/swap.hpp>
 #include <mcl/scope_exit.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "../fuzz_util.h"
 #include "../rand_int.h"

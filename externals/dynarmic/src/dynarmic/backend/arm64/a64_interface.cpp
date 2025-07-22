@@ -7,9 +7,9 @@
 #include <mutex>
 
 #include <boost/icl/interval_set.hpp>
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 #include <mcl/scope_exit.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/arm64/a64_address_space.h"
 #include "dynarmic/backend/arm64/a64_core.h"

@@ -8,7 +8,7 @@
 #include <vector>
 
 #include <biscuit/label.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 namespace biscuit {
 class Assembler;

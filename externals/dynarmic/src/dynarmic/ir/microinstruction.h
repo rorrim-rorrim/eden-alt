@@ -8,7 +8,7 @@
 #include <array>
 
 #include <mcl/container/intrusive_list.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/ir/value.h"
 #include "dynarmic/ir/opcodes.h"

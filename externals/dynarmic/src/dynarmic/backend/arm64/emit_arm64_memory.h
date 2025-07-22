@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 namespace oaknut {
 struct CodeGenerator;

@@ -5,10 +5,10 @@
 
 #include <optional>
 
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 #include <mcl/bit/rotate.hpp>
 #include <mcl/bit/swap.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/common/safe_ops.h"
 #include "dynarmic/ir/basic_block.h"

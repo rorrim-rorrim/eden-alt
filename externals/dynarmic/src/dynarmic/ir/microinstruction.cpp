@@ -7,7 +7,7 @@
 
 #include <algorithm>
 
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 
 #include "dynarmic/ir/opcodes.h"
 #include "dynarmic/ir/type.h"

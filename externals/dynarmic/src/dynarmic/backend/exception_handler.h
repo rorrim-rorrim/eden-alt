@@ -10,7 +10,7 @@
 #include <optional>
 
 #include <mcl/macro/architecture.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #if defined(MCL_ARCHITECTURE_X86_64)
 namespace Dynarmic::Backend::X64 {

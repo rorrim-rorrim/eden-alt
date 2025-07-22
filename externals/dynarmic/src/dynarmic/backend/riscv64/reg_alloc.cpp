@@ -8,9 +8,9 @@
 #include <algorithm>
 #include <array>
 
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 #include <mcl/mp/metavalue/lift_value.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/common/always_false.h"
 

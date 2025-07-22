@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 namespace Dynarmic::Atomic {
 

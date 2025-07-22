@@ -11,8 +11,8 @@
 #include <utility>
 #include <vector>
 
-#include <mcl/assert.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/assert.h"
+#include "dynarmic/common/common_types.h"
 #include <mcl/type_traits/is_instance_of_template.hpp>
 #include <oaknut/oaknut.hpp>
 #include <ankerl/unordered_dense.h>

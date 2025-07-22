@@ -8,7 +8,7 @@
 #include <vector>
 
 #include <mcl/bit/bit_field.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 #include <oaknut/oaknut.hpp>
 
 namespace Dynarmic::Backend::Arm64 {

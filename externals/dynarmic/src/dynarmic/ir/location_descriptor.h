@@ -9,7 +9,7 @@
 #include <string>
 
 #include <fmt/format.h>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 namespace Dynarmic::IR {
 

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 #include <xbyak/xbyak.h>
 
 namespace Dynarmic::Backend::X64 {

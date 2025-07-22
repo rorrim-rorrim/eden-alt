@@ -6,7 +6,7 @@
 #pragma once
 
 #include <mcl/bit/bit_count.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 namespace Dynarmic::FP {
 

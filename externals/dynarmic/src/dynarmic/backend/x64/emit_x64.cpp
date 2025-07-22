@@ -7,10 +7,10 @@
 
 #include <iterator>
 
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_field.hpp>
 #include <mcl/scope_exit.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 #include <ankerl/unordered_dense.h>
 
 #include "dynarmic/backend/x64/block_of_code.h"

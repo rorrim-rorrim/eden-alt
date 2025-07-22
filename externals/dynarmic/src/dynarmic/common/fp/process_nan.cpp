@@ -7,7 +7,7 @@
 
 #include <optional>
 
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_field.hpp>
 
 #include "dynarmic/common/fp/fpcr.h"

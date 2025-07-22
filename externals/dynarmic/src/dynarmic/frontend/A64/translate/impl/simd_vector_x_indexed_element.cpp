@@ -5,7 +5,7 @@
 
 #include <utility>
 
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 
 #include "dynarmic/frontend/A64/translate/impl/impl.h"
 

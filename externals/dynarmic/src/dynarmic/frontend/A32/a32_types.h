@@ -9,8 +9,8 @@
 #include <utility>
 
 #include <fmt/format.h>
-#include <mcl/assert.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/assert.h"
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/interface/A32/coprocessor_util.h"
 #include "dynarmic/ir/cond.h"

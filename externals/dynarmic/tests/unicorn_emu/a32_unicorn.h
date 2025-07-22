@@ -16,7 +16,7 @@
 #    include <unicorn/unicorn.h>
 #endif
 
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "../A32/testenv.h"
 

@@ -6,8 +6,8 @@
 #include <cstddef>
 #include <type_traits>
 
-#include <mcl/assert.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/assert.h"
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/x64/block_of_code.h"
 #include "dynarmic/backend/x64/emit_x64.h"

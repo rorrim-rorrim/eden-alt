@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 namespace Dynarmic::Common {
 

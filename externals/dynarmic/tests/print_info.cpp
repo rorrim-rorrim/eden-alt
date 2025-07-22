@@ -15,7 +15,7 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <mcl/bit/swap.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/common/llvm_disassemble.h"
 #include "dynarmic/frontend/A32/a32_location_descriptor.h"

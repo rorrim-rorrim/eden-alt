@@ -8,7 +8,7 @@
 #include <optional>
 
 #include <mcl/bit/bit_field.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/common/fp/rounding_mode.h"
 

@@ -6,7 +6,7 @@
 #include "dynarmic/backend/arm64/a32_jitstate.h"
 
 #include <mcl/bit/bit_field.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 namespace Dynarmic::Backend::Arm64 {
 

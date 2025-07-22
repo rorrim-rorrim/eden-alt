@@ -6,7 +6,7 @@
 #pragma once
 
 #include <mcl/bit_cast.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 #include <mcl/type_traits/function_info.hpp>
 
 namespace Dynarmic::Backend::Arm64 {

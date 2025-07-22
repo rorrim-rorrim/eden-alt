@@ -9,7 +9,7 @@
 #include <functional>
 #include <optional>
 
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 #include <xbyak/xbyak.h>
 #include <boost/container/static_vector.hpp>
 #include <boost/container/flat_set.hpp>

@@ -14,7 +14,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <mcl/bit/bit_field.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "../rand_int.h"
 #include "../unicorn_emu/a32_unicorn.h"

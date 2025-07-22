@@ -8,7 +8,7 @@
 #include <tuple>
 
 #include <mcl/bit/bit_count.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/common/fp/fpcr.h"
 

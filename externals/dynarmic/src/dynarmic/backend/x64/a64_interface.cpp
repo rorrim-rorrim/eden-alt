@@ -8,7 +8,7 @@
 #include <mutex>
 
 #include <boost/icl/interval_set.hpp>
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 #include <mcl/bit_cast.hpp>
 #include <mcl/scope_exit.hpp>
 

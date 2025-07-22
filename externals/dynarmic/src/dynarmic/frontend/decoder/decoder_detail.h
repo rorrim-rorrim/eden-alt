@@ -9,7 +9,7 @@
 #include <array>
 #include <tuple>
 
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 #include <mcl/bitsizeof.hpp>
 #include <mcl/type_traits/function_info.hpp>
 

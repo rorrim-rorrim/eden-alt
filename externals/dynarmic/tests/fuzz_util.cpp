@@ -9,7 +9,7 @@
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 
 #include "./rand_int.h"
 #include "dynarmic/common/fp/fpcr.h"

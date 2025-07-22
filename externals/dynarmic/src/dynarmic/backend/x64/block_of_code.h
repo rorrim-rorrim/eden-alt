@@ -11,7 +11,7 @@
 #include <type_traits>
 
 #include <mcl/bit/bit_field.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 #include <xbyak/xbyak.h>
 #include <xbyak/xbyak_util.h>
 

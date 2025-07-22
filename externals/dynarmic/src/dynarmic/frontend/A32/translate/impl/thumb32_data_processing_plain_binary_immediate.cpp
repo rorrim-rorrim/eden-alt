@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 #include <mcl/bitsizeof.hpp>
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"

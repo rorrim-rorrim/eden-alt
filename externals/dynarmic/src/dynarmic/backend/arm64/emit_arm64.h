@@ -10,7 +10,7 @@
 #include <memory>
 #include <vector>
 
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 #include <ankerl/unordered_dense.h>
 
 #include "dynarmic/backend/arm64/fastmem.h"

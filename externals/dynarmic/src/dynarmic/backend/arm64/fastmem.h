@@ -9,7 +9,7 @@
 #include <tuple>
 
 #include <mcl/hash/xmrx.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 #include <ankerl/unordered_dense.h>
 
 #include "dynarmic/backend/exception_handler.h"

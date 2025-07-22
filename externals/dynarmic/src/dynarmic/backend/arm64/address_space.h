@@ -8,7 +8,7 @@
 #include <map>
 #include <optional>
 
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 #include <oaknut/code_block.hpp>
 #include <oaknut/oaknut.hpp>
 #include <ankerl/unordered_dense.h>

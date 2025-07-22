@@ -12,9 +12,9 @@
 #    include <llvm-c/Target.h>
 #endif
 
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 #include <mcl/bit_cast.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/common/llvm_disassemble.h"
 

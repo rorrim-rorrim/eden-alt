@@ -7,7 +7,7 @@
 
 #include <Zydis/Zydis.h>
 #include <fmt/printf.h>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 namespace Dynarmic::Common {
 

@@ -10,7 +10,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <mcl/scope_exit.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "../fuzz_util.h"
 #include "../rand_int.h"

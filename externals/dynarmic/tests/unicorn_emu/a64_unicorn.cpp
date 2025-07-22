@@ -5,7 +5,7 @@
 
 #include "./a64_unicorn.h"
 
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 
 #define CHECKED(expr)                                                                                    \
     do {                                                                                                 \

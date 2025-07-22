@@ -7,7 +7,7 @@
 
 #include <array>
 
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/x64/stack_layout.h"
 

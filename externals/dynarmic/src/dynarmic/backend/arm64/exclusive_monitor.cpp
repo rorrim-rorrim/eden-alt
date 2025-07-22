@@ -7,7 +7,7 @@
 
 #include <algorithm>
 
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 
 namespace Dynarmic {
 

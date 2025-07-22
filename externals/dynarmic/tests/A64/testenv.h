@@ -8,8 +8,8 @@
 #include <array>
 #include <map>
 
-#include <mcl/assert.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/assert.h"
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/interface/A64/a64.h"
 

@@ -15,7 +15,7 @@
 
 #include <mcl/bit/swap.hpp>
 #include <mcl/macro/architecture.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "./A32/testenv.h"
 #include "./A64/testenv.h"

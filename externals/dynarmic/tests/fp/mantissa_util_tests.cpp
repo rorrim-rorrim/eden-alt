@@ -7,7 +7,7 @@
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "../rand_int.h"
 #include "dynarmic/common/fp/mantissa_util.h"

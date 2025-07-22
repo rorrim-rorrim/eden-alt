@@ -15,10 +15,10 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 #include <mcl/bit_cast.hpp>
 #include <mcl/macro/architecture.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/exception_handler.h"
 
