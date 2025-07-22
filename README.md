@@ -9,7 +9,7 @@
 
 <h1 align="center">
   <br>
-  <a href="https://git.eden-emu.dev/eden-emu/eden"><img src="https://git.eden-emu.dev/eden-emu/eden/raw/branch/master/dist/qt_themes/default/icons/256x256/eden_named.png" alt="Eden" width="200"></a>
+  <a href="https://git.eden-emu.dev/eden-emu/eden"><img src="./dist/qt_themes/default/icons/256x256/eden_named.png" alt="Eden" width="200"></a>
   <br>
   <b>Eden</b>
   <br>
@@ -54,9 +54,10 @@ You can also contact any of the developers on Discord to learn more about the cu
 
 ## Building
 
-* **Windows**: [Windows Building Guide](https://git.eden-emu.dev/eden-emu/eden/wiki/Building-for-Windows.-)
-* **Linux**: [Linux Building Guide](https://git.eden-emu.dev/eden-emu/eden/wiki/Building-for-Linux.-)
-* **Android**: [Android Building Guide](https://git.eden-emu.dev/eden-emu/eden/wiki/Building-for-Android.-)
+* **Windows**: [Windows Building Guide](./docs/Building-for-Windows.md)
+* **Linux**: [Linux Building Guide](./docs/Building-for-Linux.md)
+* **Android**: [Android Building Guide](./docs/Building-for-Android.md)
+* **FreeBSD**: [FreeBSD Building Guide](./docs/Building-for-FreeBSD.md)
 
 ## Download
 
