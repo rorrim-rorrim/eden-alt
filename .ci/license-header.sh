@@ -5,13 +5,19 @@ HEADER_HASH="$(cat "$PWD/.ci/license/header-hash.txt")"
 
 echo "Getting branch changes"
 
-BRANCH=`git rev-parse --abbrev-ref HEAD`
-COMMITS=`git log ${BRANCH} --not master --pretty=format:"%h"`
-RANGE="${COMMITS[${#COMMITS[@]}-1]}^..${COMMITS[0]}"
+# BRANCH=`git rev-parse --abbrev-ref HEAD`
+# COMMITS=`git log ${BRANCH} --not master --pretty=format:"%h"`
+# RANGE="${COMMITS[${#COMMITS[@]}-1]}^..${COMMITS[0]}"
+# FILES=`git diff-tree --no-commit-id --name-only ${RANGE} -r`
+
+CURRENT=`git rev-parse --short=10 HEAD`
+BASE=`git merge-base master $CURRENT`
+RANGE="$CURRENT^..$BASE"
 FILES=`git diff-tree --no-commit-id --name-only ${RANGE} -r`
 
 #FILES=$(git diff --name-only master)
 
+echo $FILES
 echo "Done"
 
 check_header() {
