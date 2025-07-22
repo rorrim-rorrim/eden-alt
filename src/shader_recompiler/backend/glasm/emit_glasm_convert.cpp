@@ -225,28 +225,31 @@ void EmitConvertF64U64(EmitContext& ctx, IR::Inst& inst, Register value) {
     Convert(ctx, inst, value, "F64", "U64", true);
 }
 
-void EmitConvertU16U32(EmitContext& ctx, IR::Inst& inst, Register value) {
-    Convert(ctx, inst, value, "U16", "U32", false);
-}
+// TODO: For anyone stumbling upon this, this is NOT the correct way to do conversions
+// however doing it "correctly" seems to break android, Why?
 
-void EmitConvertU32U16(EmitContext& ctx, IR::Inst& inst, Register value) {
+void EmitConvertU16U32(EmitContext& ctx, IR::Inst& inst, Register value) {
     Convert(ctx, inst, value, "U32", "U16", false);
 }
 
-void EmitConvertU8U32(EmitContext& ctx, IR::Inst& inst, Register value) {
-    Convert(ctx, inst, value, "U8", "U32", false);
+void EmitConvertU32U16(EmitContext& ctx, IR::Inst& inst, Register value) {
+    Convert(ctx, inst, value, "U16", "U32", false);
 }
 
-void EmitConvertU32U8(EmitContext& ctx, IR::Inst& inst, Register value) {
+void EmitConvertU8U32(EmitContext& ctx, IR::Inst& inst, Register value) {
     Convert(ctx, inst, value, "U32", "U8", false);
 }
 
+void EmitConvertU32U8(EmitContext& ctx, IR::Inst& inst, Register value) {
+    Convert(ctx, inst, value, "U8", "U32", false);
+}
+
 void EmitConvertS32S8(EmitContext& ctx, IR::Inst& inst, Register value) {
-    Convert(ctx, inst, value, "S32", "S8", false);
+    Convert(ctx, inst, value, "S8", "S32", false);
 }
 
 void EmitConvertS32S16(EmitContext& ctx, IR::Inst& inst, Register value) {
-    Convert(ctx, inst, value, "S32", "S16", false);
+    Convert(ctx, inst, value, "S16", "S32", false);
 }
 
 } // namespace Shader::Backend::GLASM
