@@ -15,7 +15,7 @@
   <br>
 </h1>
 
-<h4 align="center"><b>Eden</b> is the world's most popular open-source Nintendo Switch emulator, forked from the Yuzu emulator — started by former Citron developer Camille LaVey and the Eden team.
+<h4 align="center"><b>Eden</b> is a open-source Nintendo Switch emulator, forked from the Yuzu emulator — started by former Citron developer Camille LaVey and the Eden team.
 <br>
 It is written in C++ with portability in mind, and we actively maintain builds for Windows, Linux and Android.
 </h4>
@@ -54,14 +54,15 @@ You can also contact any of the developers on Discord to learn more about the cu
 
 ## Building
 
-* **Windows**: [Windows Building Guide](./docs/Building-for-Windows.md)
-* **Linux**: [Linux Building Guide](./docs/Building-for-Linux.md)
-* **Android**: [Android Building Guide](./docs/Building-for-Android.md)
-* **FreeBSD**: [FreeBSD Building Guide](./docs/Building-for-FreeBSD.md)
+* **Windows**: [Windows Building Guide](./docs/build/Windows.md)
+* **Linux**: [Linux Building Guide](./docs/build/Linux.md)
+* **Android**: [Android Building Guide](./docs/build/Android.md)
+* **FreeBSD**: [FreeBSD Building Guide](./docs/build/FreeBSD.md)
+* **macOS**: [macOS Building Guide](./docs/build/macOS.md)
 
 ## Download
 
-You will be able to download the latest releases from [here](https://github.com/eden-emulator/Releases/releases).
+You can download the latest releases from [here](https://github.com/eden-emulator/Releases/releases).
 
 ## Support
 
