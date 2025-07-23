@@ -54,7 +54,7 @@ public:
 
 private:
     friend class nvhost_as_gpu;
-    enum class CtxObjects : u32_le {
+    enum class CtxClasses : u32_le {
         Ctx2D = 0x902D,
         Ctx3D = 0xB197,
         CtxCompute = 0xB1C0,
@@ -183,6 +183,7 @@ private:
     s32_le nvmap_fd{};
     u64_le user_data{};
     IoctlZCullBind zcull_params{};
+    std::vector<IoctlAllocObjCtx> ctxObj_params{};
     u32_le channel_priority{};
     u32_le channel_timeslice{};
 
