@@ -9,17 +9,14 @@
 
 #include <QGuiApplication>
 #include <QStringLiteral>
-#include <QWindow>
 #include "common/logging/log.h"
 #include "core/frontend/emu_window.h"
 
-#if !defined(WIN32) && !defined(__APPLE__)
-#include <qpa/qplatformnativeinterface.h>
-
 #include <QFile>
-
 #include <JlCompress.h>
 
+#if !defined(WIN32) && !defined(__APPLE__)
+#include <qpa/qplatformnativeinterface.h>
 #elif defined(__APPLE__)
 #include <objc/message.h>
 #endif
