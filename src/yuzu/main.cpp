@@ -15,8 +15,6 @@
 #include "qt_common/qt_game_util.h"
 #include "qt_common/qt_path_util.h"
 
-#include <JlCompress.h>
-
 #ifdef __APPLE__
 #include <unistd.h> // for chdir
 #endif
@@ -120,7 +118,6 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "common/scm_rev.h"
 #include "common/scope_exit.h"
 #ifdef _WIN32
-#include <shlobj.h>
 #include "common/windows/timer_resolution.h"
 #endif
 #ifdef ARCHITECTURE_x86_64

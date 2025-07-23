@@ -7,11 +7,15 @@
 
 #include <QDesktopServices>
 #include <QUrl>
-#include "fmt/ostream.h"
-#include <fstream>
 
 #ifdef _WIN32
-#include <windows.h>
+    #include <shlobj.h>
+    #include <windows.h>
+    #include "common/scope_exit.h"
+    #include "common/string_util.h"
+#else
+    #include "fmt/ostream.h"
+    #include <fstream>
 #endif
 
 namespace QtCommon {
