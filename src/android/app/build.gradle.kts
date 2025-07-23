@@ -150,7 +150,8 @@ android {
 
             create("genshinSpoof") {
                 dimension = "version"
-                applicationId = "com.miHoYo.Yuanshen"
+                applicationId = "com.miHoYo.Yuanshen" // Package name used to trigger device features
+                resValue("string", "app_name_suffixed", "Eden Optimised")
             }
         }
     }
