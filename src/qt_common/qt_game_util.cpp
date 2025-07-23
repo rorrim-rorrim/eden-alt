@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "qt_game_util.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
