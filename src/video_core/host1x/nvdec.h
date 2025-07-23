@@ -45,7 +45,7 @@ private:
 
     NvdecCommon::NvdecRegisters regs{};
     std::unique_ptr<Decoder> decoder;
-    bool wait_needed{false};
+    bool wait_needed{true};
 };
 
 } // namespace Host1x
