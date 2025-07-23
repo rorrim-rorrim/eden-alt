@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /*
 Minimal asymmetric stackful cross-platform coroutine library in pure C.
 minicoro - v0.2.0 - 15/Nov/2023
