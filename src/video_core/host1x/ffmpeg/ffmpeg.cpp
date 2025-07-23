@@ -36,8 +36,9 @@ constexpr std::array PreferredGpuDecoders = {
 	AV_HWDEVICE_TYPE_CUDA,
 	AV_HWDEVICE_TYPE_VAAPI,
 	AV_HWDEVICE_TYPE_VDPAU,
+#elif defined(__ANDROID__)
+	AV_HWDEVICE_TYPE_MEDIACODEC
 #endif
-	AV_HWDEVICE_TYPE_VULKAN,
 };
 
 AVPixelFormat GetGpuFormat(AVCodecContext* codec_context, const AVPixelFormat* pix_fmts) {
