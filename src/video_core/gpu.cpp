@@ -40,7 +40,8 @@ struct GPU::Impl {
     explicit Impl(GPU& gpu_, Core::System& system_, bool is_async_, bool use_nvdec_)
         : gpu{gpu_}, system{system_}, host1x{system.Host1x()}, use_nvdec{use_nvdec_},
           shader_notify{std::make_unique<VideoCore::ShaderNotify>()}, is_async{is_async_},
-          gpu_thread{system_, is_async_}, scheduler{std::make_unique<Control::Scheduler>(gpu)} {}
+          gpu_thread{system_, is_async_}, scheduler{std::make_unique<Control::Scheduler>(gpu)},
+          fast_path{Settings::values.fast_gpu_path.GetValue()} {}
 
     ~Impl() = default;
 
@@ -110,6 +111,11 @@ struct GPU::Impl {
     /// Request a host GPU memory flush from the CPU.
     template <typename Func>
     [[nodiscard]] u64 RequestSyncOperation(Func&& action) {
+        if (fast_path) {
+            // Just bump the fence counter, but do NOT enqueue
+            return ++last_sync_fence;
+        }
+
         std::unique_lock lck{sync_request_mutex};
         const u64 fence = ++last_sync_fence;
         sync_requests.emplace_back(action);
@@ -122,12 +128,25 @@ struct GPU::Impl {
     }
 
     void WaitForSyncOperation(const u64 fence) {
+        if (fast_path) {
+            // Never block
+            return;
+        }
+
         std::unique_lock lck{sync_request_mutex};
         sync_request_cv.wait(lck, [this, fence] { return CurrentSyncRequestFence() >= fence; });
     }
 
     /// Tick pending requests within the GPU.
     void TickWork() {
+        if (fast_path) {
+            // Drop all pending requests in one go
+            sync_requests.clear();
+            current_sync_fence.store(last_sync_fence, std::memory_order_relaxed);
+            sync_request_cv.notify_all();
+            return;
+        }
+
         std::unique_lock lck{sync_request_mutex};
         while (!sync_requests.empty()) {
             auto request = std::move(sync_requests.front());
@@ -289,6 +308,11 @@ struct GPU::Impl {
 
     void RequestComposite(std::vector<Tegra::FramebufferConfig>&& layers,
                           std::vector<Service::Nvidia::NvFence>&& fences) {
+        if (fast_path) {
+            renderer->Composite(layers);
+            return;
+        }
+
         size_t num_fences{fences.size()};
         size_t current_request_counter{};
         {
@@ -327,6 +351,10 @@ struct GPU::Impl {
     }
 
     std::vector<u8> GetAppletCaptureBuffer() {
+        if (fast_path) {
+            return renderer->GetAppletCaptureBuffer();
+        }
+
         std::vector<u8> out;
 
         const auto wait_fence =
@@ -372,6 +400,9 @@ struct GPU::Impl {
     std::unique_ptr<Core::Frontend::GraphicsContext> cpu_context;
 
     std::unique_ptr<Tegra::Control::Scheduler> scheduler;
+
+    const bool fast_path;
+
     std::unordered_map<s32, std::shared_ptr<Tegra::Control::ChannelState>> channels;
     Tegra::Control::ChannelState* current_channel;
     s32 bound_channel{-1};

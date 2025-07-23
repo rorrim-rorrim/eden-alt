@@ -101,6 +101,8 @@
     <string name="custom_cpu_ticks">Custom CPU Ticks</string>
     <string name="custom_cpu_ticks_description">Set a custom value of CPU ticks. Higher values can increase performance, but may also cause the game to freeze. A range of 77–21000 is recommended.</string>
     <string name="cpu_ticks">Ticks</string>
+    <string name="fast_gpu_path">Fast GPU Path</string>
+    <string name="fast_gpu_path_description">Bypasses all CPU–GPU synchronization and fence handling, reducing overhead and improving the performance. This may cause glitches or crashes on some games.</string>
     <string name="skip_cpu_inner_invalidation">Skip CPU Inner Invalidation</string>
     <string name="skip_cpu_inner_invalidation_description">Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and improving it\'s performance. This may cause glitches or crashes on some games.</string>
     <string name="fast_cpu_time">CPU Clock</string>

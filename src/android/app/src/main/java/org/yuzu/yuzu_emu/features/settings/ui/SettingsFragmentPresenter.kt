@@ -464,6 +464,7 @@ class SettingsFragmentPresenter(
             add(IntSetting.FAST_CPU_TIME.key)
             add(BooleanSetting.USE_CUSTOM_CPU_TICKS.key)
             add(IntSetting.CPU_TICKS.key)
+            add(BooleanSetting.FAST_GPU_PATH.key)
             add(BooleanSetting.SKIP_CPU_INNER_INVALIDATION.key)
             add(BooleanSetting.USE_LRU_CACHE.key)
             add(BooleanSetting.CORE_SYNC_CORE_SPEED.key)

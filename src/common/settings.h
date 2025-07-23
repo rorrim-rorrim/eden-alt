@@ -450,6 +450,13 @@ struct Values {
                                                            VramUsageMode::Aggressive,
                                                            "vram_usage_mode",
                                                            Category::RendererAdvanced};
+    SwitchableSetting<bool> fast_gpu_path{linkage,
+                                          false,
+                                          "fast_gpu_path",
+                                          Category::RendererAdvanced,
+                                          Specialization::Default,
+                                          true,
+                                          true};
     SwitchableSetting<bool> skip_cpu_inner_invalidation{linkage,
                                                         true,
                                                         "skip_cpu_inner_invalidation",

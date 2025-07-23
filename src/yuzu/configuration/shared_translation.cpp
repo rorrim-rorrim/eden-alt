@@ -251,6 +251,11 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
               "Aggressive mode may severely impact the performance of other applications such as "
               "recording software."));
     INSERT(Settings,
+           fast_gpu_path,
+           tr("Fast GPU Path"),
+           tr("Bypasses all CPU–GPU synchronization and fence handling, reducing overhead and improving "
+              "the performance. This may cause glitches or crashes on some games."));
+    INSERT(Settings,
            skip_cpu_inner_invalidation,
            tr("Skip CPU Inner Invalidation"),
            tr("Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and "

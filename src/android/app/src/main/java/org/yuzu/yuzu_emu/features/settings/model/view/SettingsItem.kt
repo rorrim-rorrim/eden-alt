@@ -654,6 +654,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.FAST_GPU_PATH,
+                    titleId = R.string.fast_gpu_path,
+                    descriptionId = R.string.fast_gpu_path_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.SKIP_CPU_INNER_INVALIDATION,
                     titleId = R.string.skip_cpu_inner_invalidation,
                     descriptionId = R.string.skip_cpu_inner_invalidation_description
