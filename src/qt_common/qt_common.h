@@ -62,9 +62,11 @@ enum class FirmwareInstallResult {
 
 FirmwareInstallResult InstallFirmware(const QString &location,
                                       bool recursive,
-                                      std::function<bool(size_t, size_t)> QtProgressCallback,
+                                      std::function<bool(std::size_t, std::size_t)> QtProgressCallback,
                                       Core::System *system,
                                       FileSys::VfsFilesystem *vfs);
+
+QString UnzipFirmwareToTmp(const QString &location);
 
 inline constexpr const char *GetFirmwareInstallResultString(FirmwareInstallResult result)
 {

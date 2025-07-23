@@ -10,10 +10,8 @@ echo "Getting branch changes"
 # RANGE="${COMMITS[${#COMMITS[@]}-1]}^..${COMMITS[0]}"
 # FILES=`git diff-tree --no-commit-id --name-only ${RANGE} -r`
 
-CURRENT=`git rev-parse --short=10 HEAD`
-BASE=`git merge-base master $CURRENT`
-RANGE="$CURRENT^..$BASE"
-FILES=`git diff-tree --no-commit-id --name-only ${RANGE} -r`
+BASE=`git merge-base master HEAD`
+FILES=`git diff --name-only $BASE`
 
 #FILES=$(git diff --name-only master)
 

@@ -12,6 +12,8 @@
 #include "core/tools/renderdoc.h"
 #include "frontend_common/firmware_manager.h"
 #include "qt_common/qt_common.h"
+#include "qt_common/qt_game_util.h"
+#include "qt_common/qt_path_util.h"
 
 #include <JlCompress.h>
 
@@ -1166,7 +1168,7 @@ void GMainWindow::InitializeWidgets() {
     loading_screen = new LoadingScreen(this);
     loading_screen->hide();
     ui->horizontalLayout->addWidget(loading_screen);
-    connect(loading_screen, &LoadingScreen::Hidden, [&] {
+    connect(loading_screen, &LoadingScreen::Hidden, this, [&] {
         loading_screen->Clear();
         if (emulation_running) {
             render_window->show();
@@ -2613,16 +2615,9 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
 }
 
 void GMainWindow::OnTransferableShaderCacheOpenFile(u64 program_id) {
-    const auto shader_cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
-    const auto shader_cache_folder_path{shader_cache_dir / fmt::format("{:016x}", program_id)};
-    if (!Common::FS::CreateDirs(shader_cache_folder_path)) {
-        QMessageBox::warning(this, tr("Error Opening Transferable Shader Cache"),
-                             tr("Failed to create the shader cache directory for this title."));
-        return;
+    if (!QtCommon::PathUtil::OpenShaderCache(program_id)) {
+        QMessageBox::warning(this, tr("Error Opening Shader Cache"), tr("Failed to create or open shader cache for this title, ensure your app data directory has write permissions."));
     }
-    const auto shader_path_string{Common::FS::PathToUTF8String(shader_cache_folder_path)};
-    const auto qt_shader_cache_path = QString::fromStdString(shader_path_string);
-    QDesktopServices::openUrl(QUrl::fromLocalFile(qt_shader_cache_path));
 }
 
 static bool RomFSRawCopy(size_t total_size, size_t& read_size, QProgressDialog& dialog,
@@ -2687,6 +2682,7 @@ static bool RomFSRawCopy(size_t total_size, size_t& read_size, QProgressDialog& 
     return true;
 }
 
+// TODO(crueter): All this can be transfered to qt_common
 QString GMainWindow::GetGameListErrorRemoving(InstalledEntryType type) const {
     switch (type) {
     case InstalledEntryType::Game:
@@ -3043,12 +3039,8 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
     }
 }
 
+// END
 void GMainWindow::OnGameListVerifyIntegrity(const std::string& game_path) {
-    const auto NotImplemented = [this] {
-        QMessageBox::warning(this, tr("Integrity verification couldn't be performed!"),
-                             tr("File contents were not checked for validity."));
-    };
-
     QProgressDialog progress(tr("Verifying integrity..."), tr("Cancel"), 0, 100, this);
     progress.setWindowModality(Qt::WindowModal);
     progress.setMinimumDuration(100);
@@ -3061,18 +3053,20 @@ void GMainWindow::OnGameListVerifyIntegrity(const std::string& game_path) {
     };
 
     const auto result = ContentManager::VerifyGameContents(*system, game_path, QtProgressCallback);
+    const QString resultString = tr(QtCommon::GetGameVerificationResultString(result));
     progress.close();
     switch (result) {
     case ContentManager::GameVerificationResult::Success:
         QMessageBox::information(this, tr("Integrity verification succeeded!"),
-                                 tr("The operation completed successfully."));
+                                 resultString);
         break;
     case ContentManager::GameVerificationResult::Failed:
         QMessageBox::critical(this, tr("Integrity verification failed!"),
-                              tr("File contents may be corrupt."));
+                              resultString);
         break;
     case ContentManager::GameVerificationResult::NotImplemented:
-        NotImplemented();
+        QMessageBox::warning(this, tr("Integrity verification couldn't be performed"),
+                              resultString);
     }
 }
 
@@ -3094,109 +3088,8 @@ void GMainWindow::OnGameListNavigateToGamedbEntry(u64 program_id,
         QUrl(QStringLiteral("https://eden-emulator.github.io/game/") + directory));
 }
 
-bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
-                                     const std::string& comment,
-                                     const std::filesystem::path& icon_path,
-                                     const std::filesystem::path& command,
-                                     const std::string& arguments, const std::string& categories,
-                                     const std::string& keywords, const std::string& name) try {
-#ifdef _WIN32 // Windows
-    HRESULT hr = CoInitialize(nullptr);
-    if (FAILED(hr)) {
-        LOG_ERROR(Frontend, "CoInitialize failed");
-        return false;
-    }
-    SCOPE_EXIT {
-        CoUninitialize();
-    };
-    IShellLinkW* ps1 = nullptr;
-    IPersistFile* persist_file = nullptr;
-    SCOPE_EXIT {
-        if (persist_file != nullptr) {
-            persist_file->Release();
-        }
-        if (ps1 != nullptr) {
-            ps1->Release();
-        }
-    };
-    HRESULT hres = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW,
-                                    reinterpret_cast<void**>(&ps1));
-    if (FAILED(hres)) {
-        LOG_ERROR(Frontend, "Failed to create IShellLinkW instance");
-        return false;
-    }
-    hres = ps1->SetPath(command.c_str());
-    if (FAILED(hres)) {
-        LOG_ERROR(Frontend, "Failed to set path");
-        return false;
-    }
-    if (!arguments.empty()) {
-        hres = ps1->SetArguments(Common::UTF8ToUTF16W(arguments).data());
-        if (FAILED(hres)) {
-            LOG_ERROR(Frontend, "Failed to set arguments");
-            return false;
-        }
-    }
-    if (!comment.empty()) {
-        hres = ps1->SetDescription(Common::UTF8ToUTF16W(comment).data());
-        if (FAILED(hres)) {
-            LOG_ERROR(Frontend, "Failed to set description");
-            return false;
-        }
-    }
-    if (std::filesystem::is_regular_file(icon_path)) {
-        hres = ps1->SetIconLocation(icon_path.c_str(), 0);
-        if (FAILED(hres)) {
-            LOG_ERROR(Frontend, "Failed to set icon location");
-            return false;
-        }
-    }
-    hres = ps1->QueryInterface(IID_IPersistFile, reinterpret_cast<void**>(&persist_file));
-    if (FAILED(hres)) {
-        LOG_ERROR(Frontend, "Failed to get IPersistFile interface");
-        return false;
-    }
-    hres = persist_file->Save(std::filesystem::path{shortcut_path / (name + ".lnk")}.c_str(), TRUE);
-    if (FAILED(hres)) {
-        LOG_ERROR(Frontend, "Failed to save shortcut");
-        return false;
-    }
-    return true;
-#elif defined(__unix__) && !defined(__APPLE__) && !defined(__ANDROID__) // Any desktop NIX
-    std::filesystem::path shortcut_path_full = shortcut_path / (name + ".desktop");
-    std::ofstream shortcut_stream(shortcut_path_full, std::ios::binary | std::ios::trunc);
-    if (!shortcut_stream.is_open()) {
-        LOG_ERROR(Frontend, "Failed to create shortcut");
-        return false;
-    }
-    // TODO: Migrate fmt::print to std::print in futures STD C++ 23.
-    fmt::print(shortcut_stream, "[Desktop Entry]\n");
-    fmt::print(shortcut_stream, "Type=Application\n");
-    fmt::print(shortcut_stream, "Version=1.0\n");
-    fmt::print(shortcut_stream, "Name={}\n", name);
-    if (!comment.empty()) {
-        fmt::print(shortcut_stream, "Comment={}\n", comment);
-    }
-    if (std::filesystem::is_regular_file(icon_path)) {
-        fmt::print(shortcut_stream, "Icon={}\n", icon_path.string());
-    }
-    fmt::print(shortcut_stream, "TryExec={}\n", command.string());
-    fmt::print(shortcut_stream, "Exec={} {}\n", command.string(), arguments);
-    if (!categories.empty()) {
-        fmt::print(shortcut_stream, "Categories={}\n", categories);
-    }
-    if (!keywords.empty()) {
-        fmt::print(shortcut_stream, "Keywords={}\n", keywords);
-    }
-    return true;
-#else // Unsupported platform
-    return false;
-#endif
-} catch (const std::exception& e) {
-    LOG_ERROR(Frontend, "Failed to create shortcut: {}", e.what());
-    return false;
-}
 // Messages in pre-defined message boxes for less code spaghetti
+// TODO(crueter): Still need to decide what to do re: message boxes w/ qml
 bool GMainWindow::CreateShortcutMessagesGUI(QWidget* parent, int imsg, const QString& game_title) {
     int result = 0;
     QMessageBox::StandardButtons buttons;
@@ -3225,33 +3118,6 @@ bool GMainWindow::CreateShortcutMessagesGUI(QWidget* parent, int imsg, const QSt
                               tr("Failed to create a shortcut to %1").arg(game_title), buttons);
         return false;
     }
-}
-
-bool GMainWindow::MakeShortcutIcoPath(const u64 program_id, const std::string_view game_file_name,
-                                      std::filesystem::path& out_icon_path) {
-    // Get path to Yuzu icons directory & icon extension
-    std::string ico_extension = "png";
-#if defined(_WIN32)
-    out_icon_path = Common::FS::GetEdenPath(Common::FS::EdenPath::IconsDir);
-    ico_extension = "ico";
-#elif defined(__unix__) && !defined(__APPLE__) && !defined(__ANDROID__)
-    out_icon_path = Common::FS::GetDataDirectory("XDG_DATA_HOME") / "icons/hicolor/256x256";
-#endif
-    // Create icons directory if it doesn't exist
-    if (!Common::FS::CreateDirs(out_icon_path)) {
-        QMessageBox::critical(
-            this, tr("Create Icon"),
-            tr("Cannot create icon file. Path \"%1\" does not exist and cannot be created.")
-                .arg(QString::fromStdString(out_icon_path.string())),
-            QMessageBox::StandardButton::Ok);
-        out_icon_path.clear();
-        return false;
-    }
-
-    // Create icon file path
-    out_icon_path /= (program_id == 0 ? fmt::format("eden-{}.{}", game_file_name, ico_extension)
-                                      : fmt::format("eden-{:016X}.{}", program_id, ico_extension));
-    return true;
 }
 
 void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& game_path,
@@ -4288,28 +4154,27 @@ void GMainWindow::LoadAmiibo(const QString& filename) {
 }
 
 void GMainWindow::OnOpenRootDataFolder() {
-    QDesktopServices::openUrl(
-        QUrl(QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::EdenDir))));
+    QtCommon::OpenRootDataFolder();
 }
 
-void GMainWindow::OnOpenNANDFolder() {
-    QDesktopServices::openUrl(QUrl::fromLocalFile(
-        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir))));
+void GMainWindow::OnOpenNANDFolder()
+{
+    QtCommon::OpenNANDFolder();
 }
 
-void GMainWindow::OnOpenSDMCFolder() {
-    QDesktopServices::openUrl(QUrl::fromLocalFile(
-        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::SDMCDir))));
+void GMainWindow::OnOpenSDMCFolder()
+{
+    QtCommon::OpenSDMCFolder();
 }
 
-void GMainWindow::OnOpenModFolder() {
-    QDesktopServices::openUrl(QUrl::fromLocalFile(
-        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::LoadDir))));
+void GMainWindow::OnOpenModFolder()
+{
+    QtCommon::OpenModFolder();
 }
 
-void GMainWindow::OnOpenLogFolder() {
-    QDesktopServices::openUrl(QUrl::fromLocalFile(
-        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::LogDir))));
+void GMainWindow::OnOpenLogFolder()
+{
+    QtCommon::OpenLogFolder();
 }
 
 void GMainWindow::OnVerifyInstalledContents() {
@@ -4444,32 +4309,14 @@ void GMainWindow::OnInstallFirmwareFromZIP() {
         return;
     }
 
-    namespace fs = std::filesystem;
-    fs::path tmp{std::filesystem::temp_directory_path()};
+    const QString qCacheDir = QtCommon::UnzipFirmwareToTmp(firmware_zip_location);
 
-    if (!std::filesystem::create_directories(tmp / "eden" / "firmware")) {
-        goto unzipFailed;
-    }
-
-    {
-        tmp /= "eden";
-        tmp /= "firmware";
-
-        QString qCacheDir = QString::fromStdString(tmp.string());
-
-        QFile zip(firmware_zip_location);
-
-        QStringList result = JlCompress::extractDir(&zip, qCacheDir);
-        if (result.isEmpty()) {
-            goto unzipFailed;
-        }
-
-        // In this case, it has to be done recursively, since sometimes people
-        // will pack it into a subdirectory after dumping
+    // In this case, it has to be done recursively, since sometimes people
+    // will pack it into a subdirectory after dumping
+    if (!qCacheDir.isEmpty()) {
         InstallFirmware(qCacheDir, true);
-
         std::error_code ec;
-        std::filesystem::remove_all(tmp, ec);
+        std::filesystem::remove_all(std::filesystem::temp_directory_path() / "eden" / "firmware", ec);
 
         if (ec) {
             QMessageBox::warning(this, tr("Firmware cleanup failed"),
@@ -4478,14 +4325,7 @@ void GMainWindow::OnInstallFirmwareFromZIP() {
                                     "again.\nOS reported error: %1")
                                      .arg(QString::fromStdString(ec.message())));
         }
-
-        return;
     }
-unzipFailed:
-    QMessageBox::critical(
-        this, tr("Firmware unzip failed"),
-        tr("Check write permissions in the system temp directory and try again."));
-    return;
 }
 
 void GMainWindow::OnInstallDecryptionKeys() {
@@ -4764,10 +4604,8 @@ std::filesystem::path GMainWindow::GetShortcutPath(GameListShortcutTarget target
     return shortcut_path;
 }
 
-void GMainWindow::CreateShortcut(const std::string& game_path, const u64 program_id,
-                                 const std::string& game_title_, GameListShortcutTarget target,
-                                 std::string arguments_, const bool needs_title) {
-    // Get path to yuzu executable
+void GMainWindow::CreateShortcut(const std::string &game_path, const u64 program_id, const std::string& game_title_, GameListShortcutTarget target, std::string arguments_, const bool needs_title) {
+    // Get path to Eden executable
     std::filesystem::path command = GetEdenCommand();
 
     // Shortcut path
@@ -4819,10 +4657,16 @@ void GMainWindow::CreateShortcut(const std::string& game_path, const u64 program
     QImage icon_data =
         QImage::fromData(icon_image_file.data(), static_cast<int>(icon_image_file.size()));
     std::filesystem::path out_icon_path;
-    if (GMainWindow::MakeShortcutIcoPath(program_id, game_title, out_icon_path)) {
+    if (QtCommon::MakeShortcutIcoPath(program_id, game_title, out_icon_path)) {
         if (!SaveIconToFile(out_icon_path, icon_data)) {
             LOG_ERROR(Frontend, "Could not write icon to file");
         }
+    } else {
+        QMessageBox::critical(
+            this, tr("Create Icon"),
+            tr("Cannot create icon file. Path \"%1\" does not exist and cannot be created.")
+                .arg(QString::fromStdString(out_icon_path.string())),
+            QMessageBox::StandardButton::Ok);
     }
 
 #if defined(__unix__) && !defined(__APPLE__) && !defined(__ANDROID__)
@@ -4843,12 +4687,12 @@ void GMainWindow::CreateShortcut(const std::string& game_path, const u64 program
             this, GMainWindow::CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES, qgame_title)) {
         arguments = "-f " + arguments;
     }
-    const std::string comment = fmt::format("Start {:s} with the eden Emulator", game_title);
+    const std::string comment = fmt::format("Start {:s} with the Eden Emulator", game_title);
     const std::string categories = "Game;Emulator;Qt;";
     const std::string keywords = "Switch;Nintendo;";
 
-    if (GMainWindow::CreateShortcutLink(shortcut_path, comment, out_icon_path, command, arguments,
-                                        categories, keywords, game_title)) {
+    if (QtCommon::CreateShortcutLink(shortcut_path, comment, out_icon_path, command,
+                                        arguments, categories, keywords, game_title)) {
         GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_SUCCESS,
                                                qgame_title);
         return;
@@ -4876,6 +4720,7 @@ void GMainWindow::OnCreateHomeMenuShortcut(GameListShortcutTarget target) {
     auto qlaunch_applet_nca = bis_system->GetEntry(QLaunchId, FileSys::ContentRecordType::Program);
     const auto game_path = qlaunch_applet_nca->GetFullPath();
 
+    // TODO(crueter): Make this use the Eden icon
     CreateShortcut(game_path, QLaunchId, "Switch Home Menu", target, "-qlaunch", false);
 }
 

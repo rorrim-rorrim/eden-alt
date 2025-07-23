@@ -15,6 +15,11 @@
 
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <qpa/qplatformnativeinterface.h>
+
+#include <QFile>
+
+#include <JlCompress.h>
+
 #elif defined(__APPLE__)
 #include <objc/message.h>
 #endif
@@ -80,11 +85,12 @@ Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window)
     return wsi;
 }
 
-FirmwareInstallResult InstallFirmware(const QString& location,
-                                      bool recursive,
-                                      std::function<bool(size_t, size_t)> QtProgressCallback,
-                                      Core::System* system,
-                                      FileSys::VfsFilesystem* vfs)
+FirmwareInstallResult InstallFirmware(
+    const QString& location,
+    bool recursive,
+    std::function<bool(std::size_t, std::size_t)> QtProgressCallback,
+    Core::System* system,
+    FileSys::VfsFilesystem* vfs)
 {
     LOG_INFO(Frontend, "Installing firmware from {}", location.toStdString());
 
@@ -123,7 +129,8 @@ FirmwareInstallResult InstallFirmware(const QString& location,
 
     // Locate and erase the content of nand/system/Content/registered/*.nca, if any.
     auto sysnand_content_vdir = system->GetFileSystemController().GetSystemNANDContentDirectory();
-    if (sysnand_content_vdir->IsWritable() && !sysnand_content_vdir->CleanSubdirectoryRecursive("registered")) {
+    if (sysnand_content_vdir->IsWritable()
+        && !sysnand_content_vdir->CleanSubdirectoryRecursive("registered")) {
         return FirmwareInstallResult::FailedDelete;
     }
 
@@ -168,4 +175,28 @@ FirmwareInstallResult InstallFirmware(const QString& location,
     return FirmwareInstallResult::Success;
 }
 
+QString UnzipFirmwareToTmp(const QString& location)
+{
+    namespace fs = std::filesystem;
+    fs::path tmp{fs::temp_directory_path()};
+
+    if (!fs::create_directories(tmp / "eden" / "firmware")) {
+        return "";
+    }
+
+    tmp /= "eden";
+    tmp /= "firmware";
+
+    QString qCacheDir = QString::fromStdString(tmp.string());
+
+    QFile zip(location);
+
+    QStringList result = JlCompress::extractDir(&zip, qCacheDir);
+    if (result.isEmpty()) {
+        return "";
+    }
+
+    return qCacheDir;
 }
+
+} // namespace QtCommon
