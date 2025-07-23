@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # Build directory
-[Bb]uild*/
+/[Bb]uild*/
 doc-build/
 AppDir/
 uruntime
@@ -33,6 +33,7 @@ CMakeLists.txt.user*
 
 # Visual Studio CMake settings
 CMakeSettings.json
+.cache/
 
 # OSX global filetypes
 # Created by Finder or Spotlight in directories for various OS functionality (indexing, etc)
@@ -51,4 +52,3 @@ Thumbs.db
 eden-windows-msvc
 artifacts
 *.AppImage*
-*.patch

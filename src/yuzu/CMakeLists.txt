@@ -462,8 +462,8 @@ if (WIN32 AND NOT YUZU_USE_BUNDLED_QT AND QT_VERSION VERSION_GREATER_EQUAL 6)
 endif()
 
 if (YUZU_USE_BUNDLED_QT)
-	include(CopyYuzuQt6Deps)
-	copy_yuzu_Qt6_deps(yuzu)
+    include(CopyYuzuQt6Deps)
+    copy_yuzu_Qt6_deps(yuzu)
 endif()
 
 if (ENABLE_SDL2)
@@ -493,5 +493,9 @@ endif()
 if (YUZU_ROOM)
     target_link_libraries(yuzu PRIVATE yuzu-room)
 endif()
+
+# Extra deps
+add_subdirectory(externals)
+target_link_libraries(yuzu PRIVATE QuaZip::QuaZip)
 
 create_target_directory_groups(yuzu)

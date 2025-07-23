@@ -17,16 +17,32 @@ else
     export EXTRA_CMAKE_FLAGS=("${EXTRA_CMAKE_FLAGS[@]}" -DYUZU_USE_BUNDLED_QT=OFF)
 fi
 
+if [ -z "$BUILD_TYPE" ]; then
+    export BUILD_TYPE="Release"
+fi
+
 if [ "$WINDEPLOYQT" == "" ]; then
     echo "You must supply the WINDEPLOYQT environment variable."
     exit 1
+fi
+
+if [ "$USE_WEBENGINE" = "true" ]; then
+    WEBENGINE=ON
+else
+    WEBENGINE=OFF
+fi
+
+if [ "$USE_MULTIMEDIA" = "false" ]; then
+    MULTIMEDIA=OFF
+else
+    MULTIMEDIA=ON
 fi
 
 export EXTRA_CMAKE_FLAGS=("${EXTRA_CMAKE_FLAGS[@]}" $@)
 
 mkdir -p build && cd build
 cmake .. -G Ninja \
-    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
 	-DENABLE_QT_TRANSLATION=ON \
     -DUSE_DISCORD_PRESENCE=ON \
     -DYUZU_USE_BUNDLED_SDL2=OFF \
@@ -34,8 +50,8 @@ cmake .. -G Ninja \
     -DYUZU_TESTS=OFF \
     -DYUZU_CMD=OFF \
     -DYUZU_ROOM_STANDALONE=OFF \
-    -DYUZU_USE_QT_MULTIMEDIA=ON \
-    -DYUZU_USE_QT_WEB_ENGINE=ON \
+    -DYUZU_USE_QT_MULTIMEDIA=$MULTIMEDIA \
+    -DYUZU_USE_QT_WEB_ENGINE=$WEBENGINE \
     -DYUZU_ENABLE_LTO=ON \
 	  "${EXTRA_CMAKE_FLAGS[@]}"
 

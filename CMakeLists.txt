@@ -29,10 +29,10 @@ elseif (TARGET SDL2::SDL2-shared)
 endif()
 
 # Set bundled sdl2/qt as dependent options.
+# On Linux system SDL2 is likely to be lacking HIDAPI support which have drawbacks but is needed for SDL motion
 option(ENABLE_SDL2 "Enable the SDL2 frontend" ON)
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 binaries" ON "ENABLE_SDL2;MSVC" OFF)
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-	# On Linux system SDL2 is likely to be lacking HIDAPI support which have drawbacks but is needed for SDL motion
 	CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" OFF "ENABLE_SDL2;NOT MSVC" OFF)
 else()
 	CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ON "ENABLE_SDL2;NOT MSVC" OFF)
@@ -50,6 +50,7 @@ option(ENABLE_QT_UPDATE_CHECKER "Enable update checker for the Qt frontend" OFF)
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
+option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
 	option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" OFF)
@@ -60,7 +61,7 @@ endif()
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
 	option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" OFF)
 else()
-	option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
+    option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
 endif()
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
@@ -78,6 +79,8 @@ endif()
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 
 option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
+
+set(YUZU_QT_MIRROR "" CACHE STRING "What mirror to use for downloading the bundled Qt libraries")
 
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
@@ -120,7 +123,7 @@ CMAKE_DEPENDENT_OPTION(YUZU_USE_FASTER_LD "Check if a faster linker is available
 CMAKE_DEPENDENT_OPTION(USE_SYSTEM_MOLTENVK "Use the system MoltenVK lib (instead of the bundled one)" OFF "APPLE" OFF)
 
 set(DEFAULT_ENABLE_OPENSSL ON)
-if (ANDROID OR WIN32 OR APPLE)
+if (ANDROID OR WIN32 OR APPLE OR ${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
     set(DEFAULT_ENABLE_OPENSSL OFF)
 endif()
 option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
@@ -344,7 +347,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # Enforce the search mode of non-required packages for better and shorter failure messages
 find_package(enet 1.3 MODULE)
 find_package(fmt 8 REQUIRED)
-find_package(LLVM 17.0.2 MODULE COMPONENTS Demangle)
+find_package(LLVM MODULE COMPONENTS Demangle)
 find_package(lz4 REQUIRED)
 find_package(nlohmann_json 3.8 REQUIRED)
 find_package(Opus 1.3 MODULE)
@@ -412,7 +415,7 @@ if(ENABLE_OPENSSL)
     find_package(OpenSSL 1.1.1 REQUIRED)
 endif()
 
-if (UNIX AND NOT APPLE)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT ANDROID)
     find_package(gamemode 1.7 MODULE)
 endif()
 
@@ -465,12 +468,10 @@ if (ENABLE_QT)
 		list(APPEND CMAKE_PREFIX_PATH "${Qt6_DIR}")
     endif()
 
-    # QT6 Multimedia pulls in unneeded audio systems (ALSA, Pulseaudio) for FreeBSD
-    # ALSA is the default sound system on Linux, but FreeBSD uses OSS which works well enough
-    if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-    	find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent)
-    else()
-    	find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia Concurrent)
+    find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent)
+
+    if (YUZU_USE_QT_MULTIMEDIA)
+        find_package(Qt6 REQUIRED COMPONENTS Multimedia)
     endif()
 
     if (UNIX AND NOT APPLE)
