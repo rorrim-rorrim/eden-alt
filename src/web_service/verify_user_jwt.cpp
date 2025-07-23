@@ -4,6 +4,7 @@
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#pragma GCC diagnostic ignored "-Wmissing-declarations"
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations" // for deprecated OpenSSL functions
 #endif
 #include <jwt/jwt.hpp>
