@@ -467,7 +467,7 @@ extern "C" {
 #ifdef MCO_NO_MULTITHREAD
 #define MCO_THREAD_LOCAL
 #else
-#ifdef thread_local
+#if defined(thread_local) || __STDC_VERSION__ >= 202311L || defined(__sun__)
 #define MCO_THREAD_LOCAL thread_local
 #elif __STDC_VERSION__ >= 201112 && !defined(__STDC_NO_THREADS__)
 #define MCO_THREAD_LOCAL _Thread_local

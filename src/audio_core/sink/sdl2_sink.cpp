@@ -3,6 +3,7 @@
 
 #include <span>
 #include <vector>
+
 #include <SDL.h>
 
 #include "audio_core/common/common.h"
