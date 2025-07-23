@@ -100,6 +100,7 @@ struct GPU::Impl {
 
     /// Synchronizes CPU writes with Host GPU memory.
     void InvalidateGPUCache() {
+        if (fast_path) return;
         std::function<void(PAddr, size_t)> callback_writes(
             [this](PAddr address, size_t size) { rasterizer->OnCacheInvalidation(address, size); });
         system.GatherGPUDirtyMemory(callback_writes);
@@ -115,10 +116,10 @@ struct GPU::Impl {
     template <typename Func>
     [[nodiscard]] u64 RequestSyncOperation(Func&& action) {
         if (fast_path) {
-            // Just bump the fence counter, but do NOT enqueue
+            // Execute immediately, increment fence, skip queueing
+            action();
             return ++last_sync_fence;
         }
-
         std::unique_lock lck{sync_request_mutex};
         const u64 fence = ++last_sync_fence;
         sync_requests.emplace_back(action);
@@ -131,11 +132,6 @@ struct GPU::Impl {
     }
 
     void WaitForSyncOperation(const u64 fence) {
-        if (fast_path) {
-            // Never block
-            return;
-        }
-
         std::unique_lock lck{sync_request_mutex};
         sync_request_cv.wait(lck, [this, fence] { return CurrentSyncRequestFence() >= fence; });
     }
@@ -143,10 +139,13 @@ struct GPU::Impl {
     /// Tick pending requests within the GPU.
     void TickWork() {
         if (fast_path) {
-            // Drop all pending requests in one go
-            sync_requests.clear();
-            current_sync_fence.store(last_sync_fence, std::memory_order_relaxed);
-            sync_request_cv.notify_all();
+            // Drain queue without waiting on condition variables
+            while (!sync_requests.empty()) {
+                auto req = std::move(sync_requests.front());
+                sync_requests.pop_front();
+                req();
+                current_sync_fence.fetch_add(1, std::memory_order_release);
+            }
             return;
         }
 
@@ -281,6 +280,13 @@ struct GPU::Impl {
     }
 
     VideoCore::RasterizerDownloadArea OnCPURead(DAddr addr, u64 size) {
+        if (fast_path) {
+            // Bypass fence/tick entirely
+            auto raster_area = rasterizer->GetFlushArea(addr, size);
+            rasterizer->FlushRegion(raster_area.start_address, raster_area.end_address - raster_area.start_address);
+            raster_area.preemtive = true;
+            return raster_area;
+        }
         auto raster_area = rasterizer->GetFlushArea(addr, size);
         if (raster_area.preemtive) {
             return raster_area;
@@ -311,11 +317,6 @@ struct GPU::Impl {
 
     void RequestComposite(std::vector<Tegra::FramebufferConfig>&& layers,
                           std::vector<Service::Nvidia::NvFence>&& fences) {
-        if (fast_path) {
-            renderer->Composite(layers);
-            return;
-        }
-
         size_t num_fences{fences.size()};
         size_t current_request_counter{};
         {
@@ -354,10 +355,6 @@ struct GPU::Impl {
     }
 
     std::vector<u8> GetAppletCaptureBuffer() {
-        if (fast_path) {
-            return renderer->GetAppletCaptureBuffer();
-        }
-
         std::vector<u8> out;
 
         const auto wait_fence =
