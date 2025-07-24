@@ -116,9 +116,13 @@ struct GPU::Impl {
     template <typename Func>
     [[nodiscard]] u64 RequestSyncOperation(Func&& action) {
         if (fast_path) {
-            // Execute immediately, increment fence, skip queueing
+            // Execute immediately and publish the result
             action();
-            return ++last_sync_fence;
+            const u64 fence = ++last_sync_fence;
+            // Mirror the normal path: advance current and wake any waiters
+            current_sync_fence.store(fence, std::memory_order_release);
+            sync_request_cv.notify_all();
+            return fence;
         }
         std::unique_lock lck{sync_request_mutex};
         const u64 fence = ++last_sync_fence;
@@ -132,6 +136,10 @@ struct GPU::Impl {
     }
 
     void WaitForSyncOperation(const u64 fence) {
+        if (fast_path) {
+            // Don’t block when the hack is on
+            return;
+        }
         std::unique_lock lck{sync_request_mutex};
         sync_request_cv.wait(lck, [this, fence] { return CurrentSyncRequestFence() >= fence; });
     }
@@ -141,9 +149,9 @@ struct GPU::Impl {
         if (fast_path) {
             // Drain queue without waiting on condition variables
             while (!sync_requests.empty()) {
-                auto req = std::move(sync_requests.front());
+                auto request = std::move(sync_requests.front());
                 sync_requests.pop_front();
-                req();
+                request();
                 current_sync_fence.fetch_add(1, std::memory_order_release);
             }
             return;
