@@ -2611,6 +2611,7 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
     QDesktopServices::openUrl(QUrl::fromLocalFile(qpath));
 }
 
+// TODO(crueter): Transfer ts to showmessage
 void GMainWindow::OnTransferableShaderCacheOpenFile(u64 program_id) {
     if (!QtCommon::PathUtil::OpenShaderCache(program_id)) {
         QMessageBox::warning(this, tr("Error Opening Shader Cache"), tr("Failed to create or open shader cache for this title, ensure your app data directory has write permissions."));
@@ -2680,6 +2681,8 @@ static bool RomFSRawCopy(size_t total_size, size_t& read_size, QProgressDialog& 
 }
 
 // TODO(crueter): All this can be transfered to qt_common
+// Aldoe I need to decide re: message boxes for QML
+// translations_common? strings_common? qt_strings? who knows
 QString GMainWindow::GetGameListErrorRemoving(InstalledEntryType type) const {
     switch (type) {
     case InstalledEntryType::Game:
@@ -4218,28 +4221,11 @@ void GMainWindow::InstallFirmware(const QString& location, bool recursive) {
         return progress.wasCanceled();
     };
 
-    auto result = QtCommon::InstallFirmware(location, recursive, QtProgressCallback, system.get(), vfs.get());
-    const char* resultMessage = QtCommon::GetFirmwareInstallResultString(result);
+    auto result = QtCommon::InstallFirmware(location, recursive, QtProgressCallback, system.get(), vfs.get(), this);
 
     progress.close();
 
-    QMessageBox *box = new QMessageBox(QMessageBox::Icon::NoIcon, tr("Firmware Install Failed"), tr(resultMessage), QMessageBox::Ok, this);
-
-    switch (result) {
-    case QtCommon::FirmwareInstallResult::NoNCAs:
-    case QtCommon::FirmwareInstallResult::FailedCorrupted:
-        box->setIcon(QMessageBox::Icon::Warning);
-        box->exec();
-        return;
-    case QtCommon::FirmwareInstallResult::FailedCopy:
-    case QtCommon::FirmwareInstallResult::FailedDelete:
-        box->setIcon(QMessageBox::Icon::Critical);
-        box->exec();
-        return;
-    default:
-        box->deleteLater();
-        break;
-    }
+    if (result != QtCommon::FirmwareInstallResult::Success) return;
 
     auto VerifyFirmwareCallback = [&](size_t total_size, size_t processed_size) {
         progress.setValue(90 + static_cast<int>((processed_size * 10) / total_size));
