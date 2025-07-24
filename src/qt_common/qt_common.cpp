@@ -5,6 +5,7 @@
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "core/hle/service/filesystem/filesystem.h"
+#include "frontend_common/firmware_manager.h"
 #include "uisettings.h"
 
 #include <QGuiApplication>
@@ -13,6 +14,10 @@
 #include "core/frontend/emu_window.h"
 
 #include <QFile>
+
+#include <QMessageBox>
+#include "qt_frontend_util.h"
+
 #include <JlCompress.h>
 
 #if !defined(WIN32) && !defined(__APPLE__)
@@ -22,7 +27,6 @@
 #endif
 
 namespace QtCommon {
-
 MetadataResult ResetMetadata()
 {
     if (!Common::FS::Exists(Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir)
@@ -87,8 +91,24 @@ FirmwareInstallResult InstallFirmware(
     bool recursive,
     std::function<bool(std::size_t, std::size_t)> QtProgressCallback,
     Core::System* system,
-    FileSys::VfsFilesystem* vfs)
+    FileSys::VfsFilesystem* vfs,
+    QWidget* parent)
 {
+    static constexpr const char* failedTitle = "Firmware Install Failed";
+    static constexpr const char* successTitle = "Firmware Install Failed";
+    static constexpr QMessageBox::StandardButtons buttons = QMessageBox::Ok;
+
+    QMessageBox::Icon icon;
+    FirmwareInstallResult result;
+
+    const auto ShowMessage = [&]() {
+        QtCommon::Frontend::ShowMessage(icon,
+                                        failedTitle,
+                                        GetFirmwareInstallResultString(result),
+                                        buttons,
+                                        parent);
+    };
+
     LOG_INFO(Frontend, "Installing firmware from {}", location.toStdString());
 
     // Check for a reasonable number of .nca files (don't hardcode them, just see if there's some in
@@ -121,14 +141,20 @@ FirmwareInstallResult InstallFirmware(
     }
 
     if (out.size() <= 0) {
-        return FirmwareInstallResult::NoNCAs;
+        result = FirmwareInstallResult::NoNCAs;
+        icon = QMessageBox::Warning;
+        ShowMessage();
+        return result;
     }
 
     // Locate and erase the content of nand/system/Content/registered/*.nca, if any.
     auto sysnand_content_vdir = system->GetFileSystemController().GetSystemNANDContentDirectory();
     if (sysnand_content_vdir->IsWritable()
         && !sysnand_content_vdir->CleanSubdirectoryRecursive("registered")) {
-        return FirmwareInstallResult::FailedDelete;
+        result = FirmwareInstallResult::FailedDelete;
+        icon = QMessageBox::Critical;
+        ShowMessage();
+        return result;
     }
 
     LOG_INFO(Frontend,
@@ -159,17 +185,35 @@ FirmwareInstallResult InstallFirmware(
                                20
                                    + static_cast<int>(((i) / static_cast<float>(out.size()))
                                                       * 70.0))) {
-            return FirmwareInstallResult::FailedCorrupted;
+            result = FirmwareInstallResult::FailedCorrupted;
+            icon = QMessageBox::Warning;
+            ShowMessage();
+            return result;
         }
     }
 
     if (!success) {
-        return FirmwareInstallResult::FailedCopy;
+        result = FirmwareInstallResult::FailedCopy;
+        icon = QMessageBox::Critical;
+        ShowMessage();
+        return result;
     }
 
     // Re-scan VFS for the newly placed firmware files.
     system->GetFileSystemController().CreateFactories(*vfs);
-    return FirmwareInstallResult::Success;
+
+    const auto pair = FirmwareManager::GetFirmwareVersion(*system);
+    const auto firmware_data = pair.first;
+    const std::string display_version(firmware_data.display_version.data());
+
+    result = FirmwareInstallResult::Success;
+    QtCommon::Frontend::ShowMessage(QMessageBox::Information,
+                                    qApp->tr(successTitle),
+                                    qApp->tr(GetFirmwareInstallResultString(result))
+                                        .arg(QString::fromStdString(display_version)),
+                                    buttons,
+                                    parent);
+    return result;
 }
 
 QString UnzipFirmwareToTmp(const QString& location)
@@ -195,5 +239,4 @@ QString UnzipFirmwareToTmp(const QString& location)
 
     return qCacheDir;
 }
-
 } // namespace QtCommon
