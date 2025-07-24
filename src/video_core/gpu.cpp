@@ -118,6 +118,7 @@ struct GPU::Impl {
         if (fast_path) {
             // Execute immediately and publish the result
             action();
+            gpu_thread.TickGPU();
             const u64 fence = ++last_sync_fence;
             // Mirror the normal path: advance current and wake any waiters
             current_sync_fence.store(fence, std::memory_order_release);
@@ -293,6 +294,8 @@ struct GPU::Impl {
             auto raster_area = rasterizer->GetFlushArea(addr, size);
             rasterizer->FlushRegion(raster_area.start_address, raster_area.end_address - raster_area.start_address);
             raster_area.preemtive = true;
+            // Give GPU thread a chance to run that flush
+            gpu_thread.TickGPU();
             return raster_area;
         }
         auto raster_area = rasterizer->GetFlushArea(addr, size);
