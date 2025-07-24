@@ -161,8 +161,21 @@ NvResult nvhost_gpu::ZCullBind(IoctlZCullBind& params) {
 }
 
 NvResult nvhost_gpu::SetErrorNotifier(IoctlSetErrorNotifier& params) {
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called, offset={:X}, size={:X}, mem={:X}", params.offset,
-                params.size, params.mem);
+    if (params.mem == 0) {
+        LOG_DEBUG(Service_NVDRV, "called, SetErrorNotifier deinitialized");
+        error_notifier_mem = 0;
+        return NvResult::Success;
+    }
+
+    if (params.offset != 0 || params.size != 0) {
+        LOG_ERROR(Service_NVDRV,
+                  "called, SetErrorNotifier received non-zero offset/size (ignored): offset=0x{:X}, size=0x{:X}",
+                  params.offset, params.size);
+        return NvResult::BadParameter;
+    }
+
+    LOG_DEBUG(Service_NVDRV, "called, SetErrorNotifier initialized, mem=0x{:X}", params.mem);
+    error_notifier_mem = params.mem;
     return NvResult::Success;
 }
 
@@ -228,7 +241,7 @@ NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
         return NvResult::NotInitialized;
     }
 
-    switch (static_cast<CtxClasses>(params.class_num)) { 
+    switch (static_cast<CtxClasses>(params.class_num)) {
     case CtxClasses::Ctx2D:
     case CtxClasses::Ctx3D:
     case CtxClasses::CtxCompute:

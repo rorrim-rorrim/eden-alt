@@ -172,6 +172,7 @@ private:
     s32_le nvmap_fd{};
     u64_le user_data{};
     IoctlZCullBind zcull_params{};
+    u32_le error_notifier_mem{};
     std::vector<IoctlAllocObjCtx> ctxObj_params{};
     u32_le channel_priority{};
     u32_le channel_timeslice{};
