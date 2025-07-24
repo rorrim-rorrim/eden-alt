@@ -744,6 +744,17 @@ Status BufferQueueProducer::Disconnect(NativeWindowApi api) {
             return Status::NoError;
         }
 
+        if (core->connected_api == NativeWindowApi::NoConnectedApi) {
+            LOG_DEBUG(Service_Nvnflinger, "already disconnected (req = {})", api);
+            return Status::NoError;
+        }
+
+        if (core->connected_api != api) {
+            LOG_WARNING(Service_Nvnflinger,
+                        "Disconnect api mismatch (cur = {} req = {}) — forcing disconnect",
+                        core->connected_api, api);
+        }
+
         switch (api) {
         case NativeWindowApi::Egl:
         case NativeWindowApi::Cpu:
@@ -770,8 +781,7 @@ Status BufferQueueProducer::Disconnect(NativeWindowApi api) {
         }
     }
 
-    // Call back without lock held
-    if (listener != nullptr) {
+    if (listener) {
         listener->OnBuffersReleased();
     }
 

@@ -40,7 +40,7 @@ Result IHOSBinderDriver::TransactParcel(s32 binder_id, u32 transaction_id,
 }
 
 Result IHOSBinderDriver::AdjustRefcount(s32 binder_id, s32 addval, s32 type) {
-    LOG_WARNING(Service_VI, "(STUBBED) called id={}, addval={}, type={}", binder_id, addval, type);
+    LOG_DEBUG(Service_VI, "called id={}, addval={}, type={}", binder_id, addval, type);
     R_UNLESS(type == 0 || type == 1, ResultUnknown);
     m_server->AdjustRefcount(binder_id, addval, type == 1);
     R_SUCCEED();
