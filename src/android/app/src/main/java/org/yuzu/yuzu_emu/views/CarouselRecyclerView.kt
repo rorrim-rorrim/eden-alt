@@ -53,7 +53,7 @@ class CarouselRecyclerView @JvmOverloads constructor(
 
     var flingMultiplier: Float = 1f
 
-    public var pendingScrollAfterReload: Boolean = false
+    var pendingScrollAfterReload: Boolean = false
 
     var useCustomDrawingOrder: Boolean = false
         set(value) {
@@ -458,7 +458,7 @@ class CarouselRecyclerView @JvmOverloads constructor(
             )
             val rawFlingCount = if (velocityX == 0) 0 else velocityX / 2000
             val flingCount = rawFlingCount.coerceIn(-maxFling, maxFling)
-            var targetPos = (closestPosition + flingCount).coerceIn(0, layoutManager.itemCount - 1)
+            val targetPos = (closestPosition + flingCount).coerceIn(0, layoutManager.itemCount - 1)
             return targetPos
         }
     }
