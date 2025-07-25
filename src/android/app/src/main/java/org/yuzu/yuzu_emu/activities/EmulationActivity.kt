@@ -4,7 +4,6 @@
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-
 package org.yuzu.yuzu_emu.activities
 
 import android.annotation.SuppressLint
@@ -58,7 +57,6 @@ import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.NfcReader
 import org.yuzu.yuzu_emu.utils.ParamPackage
 import org.yuzu.yuzu_emu.utils.ThemeHelper
-import org.yuzu.yuzu_emu.utils.PowerStateUtils
 import java.text.NumberFormat
 import kotlin.math.roundToInt
 
@@ -420,7 +418,6 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     fun addNetPlayMessages(type: Int, msg: String) {
         NetPlayManager.addNetPlayMessage(type, msg)
     }
-
 
     private var pictureInPictureReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
