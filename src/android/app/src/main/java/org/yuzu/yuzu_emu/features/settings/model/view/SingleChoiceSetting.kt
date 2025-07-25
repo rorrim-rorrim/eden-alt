@@ -18,7 +18,7 @@ class SingleChoiceSetting(
     @ArrayRes val choicesId: Int,
     @ArrayRes val valuesId: Int,
     val warnChoices: List<Int> = ArrayList(),
-    @StringRes val warningMessage: Int = 0,
+    @StringRes val warningMessage: Int = 0
 ) : SettingsItem(setting, titleId, titleString, descriptionId, descriptionString) {
     override val type = TYPE_SINGLE_CHOICE
 

@@ -27,7 +27,6 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
-import org.yuzu.yuzu_emu.BuildConfig
 import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
@@ -41,9 +40,7 @@ import org.yuzu.yuzu_emu.model.HomeSetting
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.FileUtil
-import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.Log
-import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class HomeSettingsFragment : Fragment() {
     private var _binding: FragmentHomeSettingsBinding? = null
@@ -112,7 +109,7 @@ class HomeSettingsFragment : Fragment() {
                             .actionHomeSettingsFragmentToDriverManagerFragment(null)
                         binding.root.findNavController().navigate(action)
                     },
-                    {true},
+                    { true },
                     R.string.custom_driver_not_supported,
                     R.string.custom_driver_not_supported_description,
                     driverViewModel.selectedDriverTitle
@@ -125,7 +122,7 @@ class HomeSettingsFragment : Fragment() {
                     R.drawable.ic_two_users,
                     {
                         mainActivity.displayMultiplayerDialog()
-                    },
+                    }
                 )
             )
             add(
@@ -403,7 +400,7 @@ class HomeSettingsFragment : Fragment() {
             val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
 
             binding.scrollViewSettings.updatePadding(
-                top = barInsets.top,
+                top = barInsets.top
             )
 
             binding.homeSettingsList.updatePadding(
