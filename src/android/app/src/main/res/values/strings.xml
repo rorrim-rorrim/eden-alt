@@ -795,7 +795,7 @@
 
     <!-- Driver strings -->
     <string name="missing_gpu_driver_title">GPU Driver Missing</string>
-    <string name="missing_gpu_driver_message">The selected custom driver is not installed. Would you like to download and install it now?</string>
+    <string name="missing_gpu_driver_message">The selected custom driver \"%s\" is not installed. Would you like to download and install it now?</string>
     <string name="downloading_driver">Downloading driver...</string>
     <string name="driver_installed">Driver installed successfully</string>
     <string name="driver_installation_failed_title">Driver Installation Failed</string>

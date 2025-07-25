@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.fragments.DriverFetcherFragment
 import org.yuzu.yuzu_emu.fragments.DriverFetcherFragment.SortMode
 import org.yuzu.yuzu_emu.model.DriverViewModel
@@ -31,7 +32,7 @@ object DriverResolver {
         DriverRepo("Mr. Purple Turnip", "MrPurple666/purple-turnip", 0),
         DriverRepo("GameHub Adreno 8xx", "crueter/GameHub-8Elite-Drivers", 1),
         DriverRepo("KIMCHI Turnip", "K11MCH1/AdrenoToolsDrivers", 2, true),
-        DriverRepo("Weab-Chan Freedreno", "Weab-chan/freedreno_turnip-CI", 3),
+        DriverRepo("Weab-Chan Freedreno", "Weab-chan/freedreno_turnip-CI", 3)
     )
 
     private data class DriverRepo(
@@ -144,10 +145,10 @@ object DriverResolver {
         // Try partial match
         availableDrivers.find { (path, metadata) ->
             path.contains(driverName, ignoreCase = true) ||
-                    metadata.name?.contains(
-                        extractKeywords(driverName).first(),
-                        ignoreCase = true
-                    ) == true
+                metadata.name?.contains(
+                extractKeywords(driverName).first(),
+                ignoreCase = true
+            ) == true
         }?.let { return it }
 
         return null
@@ -188,7 +189,7 @@ object DriverResolver {
             // Check if this repo is relevant based on driver name
             val isRelevant = keywords.any { keyword ->
                 repo.name.contains(keyword, ignoreCase = true) ||
-                        keyword.contains(repo.name.split(" ").first(), ignoreCase = true)
+                    keyword.contains(repo.name.split(" ").first(), ignoreCase = true)
             }
 
             if (!isRelevant) continue
@@ -203,7 +204,9 @@ object DriverResolver {
                     }
                 }
             } catch (e: Exception) {
-                Log.error("[DriverResolver] Failed to fetch releases for ${repo.name}: ${e.message}")
+                Log.error(
+                    "[DriverResolver] Failed to fetch releases for ${repo.name}: ${e.message}"
+                )
             }
         }
 
@@ -257,15 +260,12 @@ object DriverResolver {
         return suspendCoroutine { continuation ->
             activity.runOnUiThread {
                 MaterialAlertDialogBuilder(activity)
-                    .setTitle("Missing GPU Driver")
-                    .setMessage(
-                        "The custom settings require the GPU driver '$driverName' which is not installed.\n\n" +
-                                "Would you like to download and install it automatically?"
-                    )
-                    .setPositiveButton("Install") { _, _ ->
+                    .setTitle(activity.getString(R.string.missing_gpu_driver_title))
+                    .setMessage(activity.getString(R.string.missing_gpu_driver_message, driverName))
+                    .setPositiveButton(activity.getString(R.string.install)) { _, _ ->
                         continuation.resume(true)
                     }
-                    .setNegativeButton("Cancel") { _, _ ->
+                    .setNegativeButton(activity.getString(R.string.cancel)) { _, _ ->
                         continuation.resume(false)
                     }
                     .setCancelable(false)
@@ -284,7 +284,11 @@ object DriverResolver {
     ): Boolean {
         return try {
             Log.info("[DriverResolver] Downloading driver: ${artifact.name}")
-            Toast.makeText(activity, "Downloading driver...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.downloading_driver),
+                Toast.LENGTH_SHORT
+            ).show()
 
             val cacheDir =
                 activity.externalCacheDir ?: throw IOException("Cache directory not available")
@@ -328,7 +332,11 @@ object DriverResolver {
                 if (GpuDriverHelper.copyDriverToInternalStorage(file.toUri())) {
                     driverViewModel.onDriverAdded(Pair(driverPath, driverData))
                     Log.info("[DriverResolver] Successfully installed driver: ${driverData.name}")
-                    Toast.makeText(activity, "Driver installed", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        activity,
+                        activity.getString(R.string.driver_installed),
+                        Toast.LENGTH_SHORT
+                    ).show()
                     true
                 } else {
                     throw IOException("Failed to install driver")
@@ -338,9 +346,11 @@ object DriverResolver {
             Log.error("[DriverResolver] Failed to download/install driver: ${e.message}")
             withContext(Dispatchers.Main) {
                 MaterialAlertDialogBuilder(activity)
-                    .setTitle("Installation Failed")
-                    .setMessage("Failed to download and install the driver: ${e.message}")
-                    .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+                    .setTitle(activity.getString(R.string.driver_installation_failed_title))
+                    .setMessage(
+                        activity.getString(R.string.driver_installation_failed_message, e.message)
+                    )
+                    .setPositiveButton(activity.getString(R.string.ok)) { dialog, _ -> dialog.dismiss() }
                     .show()
             }
             false
@@ -353,12 +363,9 @@ object DriverResolver {
     private fun showDriverNotFoundDialog(activity: FragmentActivity, driverName: String) {
         activity.runOnUiThread {
             MaterialAlertDialogBuilder(activity)
-                .setTitle("Driver Not Available")
-                .setMessage(
-                    "The required GPU driver '$driverName' is not available for automatic download.\n\n" +
-                            "Please manually install the driver or launch the game with default settings."
-                )
-                .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+                .setTitle(activity.getString(R.string.driver_not_available_title))
+                .setMessage(activity.getString(R.string.driver_not_available_message, driverName))
+                .setPositiveButton(activity.getString(R.string.ok)) { dialog, _ -> dialog.dismiss() }
                 .show()
         }
     }
