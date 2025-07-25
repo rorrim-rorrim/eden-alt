@@ -168,10 +168,9 @@ NvResult nvhost_gpu::SetErrorNotifier(IoctlSetErrorNotifier& params) {
     }
 
     if (params.offset != 0 || params.size != 0) {
-        LOG_ERROR(Service_NVDRV,
-                  "called, SetErrorNotifier received non-zero offset/size (ignored): offset=0x{:X}, size=0x{:X}",
-                  params.offset, params.size);
-        return NvResult::BadParameter;
+    LOG_DEBUG(Service_NVDRV,
+              "called, SetErrorNotifier called with non-zero offset/size (ignored): offset=0x{:X}, size=0x{:X}",
+              params.offset, params.size);
     }
 
     LOG_DEBUG(Service_NVDRV, "called, SetErrorNotifier initialized, mem=0x{:X}", params.mem);
