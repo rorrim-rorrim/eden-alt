@@ -351,6 +351,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
         // Curated optimizations
         if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Auto) {
             config.unsafe_optimizations = true;
+            config.optimizations &= ~Dynarmic::OptimizationFlag::BlockLinking;
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
             config.fastmem_address_space_bits = 64;
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreGlobalMonitor;
