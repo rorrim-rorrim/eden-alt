@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -1368,8 +1371,7 @@ void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
                                     std::span<const VideoCommon::ImageCopy> copies) {
     // As per the size-compatible formats section of vulkan, copy manually via ReinterpretImage
     // these images that aren't size-compatible
-    if (HasAlpha(src.info.format) != HasAlpha(dst.info.format) ||
-        BytesPerBlock(src.info.format) != BytesPerBlock(dst.info.format)) {
+    if (BytesPerBlock(src.info.format) != BytesPerBlock(dst.info.format)) {
         auto oneCopy = VideoCommon::ImageCopy{
             .src_offset = VideoCommon::Offset3D(0, 0, 0),
             .dst_offset = VideoCommon::Offset3D(0, 0, 0),
@@ -1544,7 +1546,7 @@ void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
     }
 
     // Handle MSAA upload if necessary
-    /* WARNING, TODO: This code uses some hacks, besides being fundamentally ugly 
+    /* WARNING, TODO: This code uses some hacks, besides being fundamentally ugly
     since tropic didn't want to touch it for a long time, so it needs a rewrite from someone better than me at vulkan.*/
     if (info.num_samples > 1 && runtime->CanUploadMSAA()) {
         // Only use MSAA copy pass for color formats
