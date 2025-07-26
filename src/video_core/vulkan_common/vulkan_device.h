@@ -391,7 +391,7 @@ public:
 
     /// Returns true when blitting from and to D24S8 images is supported.
     bool IsBlitDepth24Stencil8Supported() const {
-        return is_blit_depth24_stencil8_supported;
+        return false;
     }
 
     /// Returns true when blitting from and to D32S8 images is supported.
@@ -650,7 +650,7 @@ public:
     }
 
     bool SupportsD24DepthBuffer() const {
-        return supports_d24_depth;
+        return false;
     }
 
     bool CantBlitMSAA() const {
