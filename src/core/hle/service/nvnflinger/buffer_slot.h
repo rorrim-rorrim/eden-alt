@@ -15,7 +15,7 @@ namespace Service::android {
 
 class GraphicBuffer;
 
-enum class BufferState : s32 {
+enum class BufferState : u32 {
     Free = 0,
     Dequeued = 1,
     Queued = 2,
@@ -34,7 +34,6 @@ struct BufferSlot final {
     bool needs_cleanup_on_release{};
     bool attached_by_consumer{};
     bool is_preallocated{};
-    s64 queue_time{}, presentation_time{};
 };
 
 } // namespace Service::android
