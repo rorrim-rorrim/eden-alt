@@ -632,36 +632,33 @@ void A64EmitX64::EmitTerminalImpl(IR::Term::ReturnToDispatch, IR::LocationDescri
 }
 
 void A64EmitX64::EmitTerminalImpl(IR::Term::LinkBlock terminal, IR::LocationDescriptor, bool is_single_step) {
+    // Used for patches and linking
     if (!conf.HasOptimization(OptimizationFlag::BlockLinking) || is_single_step) {
         code.mov(rax, A64::LocationDescriptor{terminal.next}.PC());
         code.mov(qword[r15 + offsetof(A64JitState, pc)], rax);
         code.ReturnFromRunCode();
-        return;
-    }
-
-    if (conf.enable_cycle_counting) {
-        code.cmp(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)], 0);
-
-        patch_information[terminal.next].jg.push_back(code.getCurr());
-        if (const auto next_bb = GetBasicBlock(terminal.next)) {
-            EmitPatchJg(terminal.next, next_bb->entrypoint);
-        } else {
-            EmitPatchJg(terminal.next);
-        }
     } else {
-        code.cmp(dword[r15 + offsetof(A64JitState, halt_reason)], 0);
-
-        patch_information[terminal.next].jz.push_back(code.getCurr());
-        if (const auto next_bb = GetBasicBlock(terminal.next)) {
-            EmitPatchJz(terminal.next, next_bb->entrypoint);
+        if (conf.enable_cycle_counting) {
+            code.cmp(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)], 0);
+            patch_information[terminal.next].jg.push_back(code.getCurr());
+            if (const auto next_bb = GetBasicBlock(terminal.next)) {
+                EmitPatchJg(terminal.next, next_bb->entrypoint);
+            } else {
+                EmitPatchJg(terminal.next);
+            }
         } else {
-            EmitPatchJz(terminal.next);
+            code.cmp(dword[r15 + offsetof(A64JitState, halt_reason)], 0);
+            patch_information[terminal.next].jz.push_back(code.getCurr());
+            if (const auto next_bb = GetBasicBlock(terminal.next)) {
+                EmitPatchJz(terminal.next, next_bb->entrypoint);
+            } else {
+                EmitPatchJz(terminal.next);
+            }
         }
+        code.mov(rax, A64::LocationDescriptor{terminal.next}.PC());
+        code.mov(qword[r15 + offsetof(A64JitState, pc)], rax);
+        code.ForceReturnFromRunCode();
     }
-
-    code.mov(rax, A64::LocationDescriptor{terminal.next}.PC());
-    code.mov(qword[r15 + offsetof(A64JitState, pc)], rax);
-    code.ForceReturnFromRunCode();
 }
 
 void A64EmitX64::EmitTerminalImpl(IR::Term::LinkBlockFast terminal, IR::LocationDescriptor, bool is_single_step) {
@@ -669,14 +666,13 @@ void A64EmitX64::EmitTerminalImpl(IR::Term::LinkBlockFast terminal, IR::Location
         code.mov(rax, A64::LocationDescriptor{terminal.next}.PC());
         code.mov(qword[r15 + offsetof(A64JitState, pc)], rax);
         code.ReturnFromRunCode();
-        return;
-    }
-
-    patch_information[terminal.next].jmp.push_back(code.getCurr());
-    if (auto next_bb = GetBasicBlock(terminal.next)) {
-        EmitPatchJmp(terminal.next, next_bb->entrypoint);
     } else {
-        EmitPatchJmp(terminal.next);
+        patch_information[terminal.next].jmp.push_back(code.getCurr());
+        if (auto next_bb = GetBasicBlock(terminal.next)) {
+            EmitPatchJmp(terminal.next, next_bb->entrypoint);
+        } else {
+            EmitPatchJmp(terminal.next);
+        }
     }
 }
 
