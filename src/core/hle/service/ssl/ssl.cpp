@@ -63,12 +63,6 @@ struct SslContextSharedData {
     u32 connection_count = 0;
 };
 
-struct Parameters {
-    ContextOption option;
-    s32 value;
-};
-static_assert(sizeof(Parameters) == 0x8, "Parameters is an invalid size");
-
 class ISslConnection final : public ServiceFramework<ISslConnection> {
 public:
     explicit ISslConnection(Core::System& system_in, SslVersion ssl_version_in,
@@ -101,7 +95,7 @@ public:
             {20, nullptr, "SetRenegotiationMode"},
             {21, nullptr, "GetRenegotiationMode"},
             {22, &ISslConnection::SetOption, "SetOption"},
-            {23, nullptr, "GetOption"},
+            {23, &ISslConnection::GetOption, "GetOption"},
             {24, nullptr, "GetVerifyCertErrors"},
             {25, nullptr, "GetCipherInfo"},
             {26, &ISslConnection::SetNextAlpnProto, "SetNextAlpnProto"},
@@ -405,6 +399,38 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
+    }
+
+    void GetOption(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto option = rp.PopRaw<OptionType>();
+
+        u8 value = 0;
+
+        switch (option) {
+        case OptionType::DoNotCloseSocket:
+            value = static_cast<u8>(do_not_close_socket);
+            break;
+        case OptionType::GetServerCertChain:
+            value = static_cast<u8>(get_server_cert_chain);
+            break;
+        case OptionType::SkipDefaultVerify:
+            value = static_cast<u8>(skip_default_verify);
+            break;
+        case OptionType::EnableAlpn:
+            value = static_cast<u8>(enable_alpn);
+            break;
+        default:
+            LOG_WARNING(Service_SSL, "Unknown option={}", option);
+            value = 0;
+            break;
+        }
+
+        LOG_DEBUG(Service_SSL, "GetOption called, option={}, ret value={}", option, value);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push<u8>(value);
     }
 
     void SetNextAlpnProto(HLERequestContext& ctx) {
