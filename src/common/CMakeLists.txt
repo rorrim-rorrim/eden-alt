@@ -196,7 +196,7 @@ if(ANDROID)
     )
 endif()
 
-if (UNIX AND NOT APPLE)
+if (UNIX AND NOT APPLE AND NOT ANDROID)
   target_sources(common PRIVATE
     linux/gamemode.cpp
     linux/gamemode.h
