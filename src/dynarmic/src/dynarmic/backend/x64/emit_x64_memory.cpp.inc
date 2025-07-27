@@ -28,27 +28,24 @@ std::optional<AxxEmitX64::DoNotFastmemMarker> AxxEmitX64::ShouldFastmem(AxxEmitC
 
 FakeCall AxxEmitX64::FastmemCallback(u64 rip_) {
     const auto iter = fastmem_patch_info.find(rip_);
-
-    if (iter == fastmem_patch_info.end()) {
+    if (iter != fastmem_patch_info.end()) {
+        FakeCall result{
+            .call_rip = iter->second.callback,
+            .ret_rip = iter->second.resume_rip,
+        };
+        if (iter->second.recompile) {
+            const auto marker = iter->second.marker;
+            do_not_fastmem.insert(marker);
+            InvalidateBasicBlocks({std::get<0>(marker)});
+        }
+        return result;
+    } else {
         fmt::print("dynarmic: Segfault happened within JITted code at rip = {:016x}\n", rip_);
         fmt::print("Segfault wasn't at a fastmem patch location!\n");
         fmt::print("Now dumping code.......\n\n");
         Common::DumpDisassembledX64((void*)(rip_ & ~u64(0xFFF)), 0x1000);
         ASSERT_FALSE("iter != fastmem_patch_info.end()");
     }
-
-    FakeCall result{
-        .call_rip = iter->second.callback,
-        .ret_rip = iter->second.resume_rip,
-    };
-
-    if (iter->second.recompile) {
-        const auto marker = iter->second.marker;
-        do_not_fastmem.insert(marker);
-        InvalidateBasicBlocks({std::get<0>(marker)});
-    }
-
-    return result;
 }
 
 template<std::size_t bitsize, auto callback>
@@ -95,7 +92,7 @@ void AxxEmitX64::EmitMemoryRead(AxxEmitContext& ctx, IR::Inst* inst) {
 
     if (fastmem_marker) {
         // Use fastmem
-        bool require_abort_handling;
+        bool require_abort_handling = false;
         const auto src_ptr = EmitFastmemVAddr(code, ctx, *abort, vaddr, require_abort_handling);
 
         const auto location = EmitReadMemoryMov<bitsize>(code, value_idx, src_ptr, ordered);
@@ -182,7 +179,7 @@ void AxxEmitX64::EmitMemoryWrite(AxxEmitContext& ctx, IR::Inst* inst) {
 
     if (fastmem_marker) {
         // Use fastmem
-        bool require_abort_handling;
+        bool require_abort_handling = false;
         const auto dest_ptr = EmitFastmemVAddr(code, ctx, *abort, vaddr, require_abort_handling);
 
         const auto location = EmitWriteMemoryMov<bitsize>(code, dest_ptr, value_idx, ordered);
