@@ -2345,3 +2345,43 @@ TEST_CASE("A64: RBIT{16b}", "[a64]") {
     REQUIRE(jit.GetVector(2)[0] == 0xcafedead);
     REQUIRE(jit.GetVector(2)[1] == 0xbabebeef);
 }
+
+TEST_CASE("A64: CLZ{X}", "[a64]") {
+    A64TestEnv env;
+    A64::UserConfig conf{};
+    conf.callbacks = &env;
+    A64::Jit jit{conf};
+    env.code_mem.emplace_back(0xdac01060); // clz x0, x3
+    env.code_mem.emplace_back(0xdac01081); // clz x1, x4
+    env.code_mem.emplace_back(0xdac010a2); // clz x2, x5
+    env.code_mem.emplace_back(0x14000000); // b .
+    jit.SetRegister(3, 0xfffffffffffffff0);
+    jit.SetRegister(4, 0x0fffffff0ffffff0);
+    jit.SetRegister(5, 0x07fffffeffeffef0);
+    jit.SetPC(0); // at _start
+    env.ticks_left = 4;
+    jit.Run();
+    REQUIRE(jit.GetRegister(0) == 0);
+    REQUIRE(jit.GetRegister(1) == 4);
+    REQUIRE(jit.GetRegister(2) == 5);
+}
+
+TEST_CASE("A64: CLZ{W}", "[a64]") {
+    A64TestEnv env;
+    A64::UserConfig conf{};
+    conf.callbacks = &env;
+    A64::Jit jit{conf};
+    env.code_mem.emplace_back(0x5ac01060); // clz w0, w3
+    env.code_mem.emplace_back(0x5ac01081); // clz w1, w4
+    env.code_mem.emplace_back(0x5ac010a2); // clz w2, w5
+    env.code_mem.emplace_back(0x14000000); // b .
+    jit.SetRegister(3, 0xffff1110);
+    jit.SetRegister(4, 0x0fff1110);
+    jit.SetRegister(5, 0x07fffffe);
+    jit.SetPC(0); // at _start
+    env.ticks_left = 4;
+    jit.Run();
+    REQUIRE(jit.GetRegister(0) == 0);
+    REQUIRE(jit.GetRegister(1) == 4);
+    REQUIRE(jit.GetRegister(2) == 5);
+}
