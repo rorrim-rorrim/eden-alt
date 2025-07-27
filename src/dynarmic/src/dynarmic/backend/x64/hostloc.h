@@ -109,6 +109,7 @@ inline size_t HostLocBitWidth(HostLoc loc) {
 using HostLocList = std::initializer_list<HostLoc>;
 
 // RSP is preserved for function calls
+// R13 contains fastmem pointer if any
 // R15 contains the JitState pointer
 const HostLocList any_gpr = {
     HostLoc::RAX,
