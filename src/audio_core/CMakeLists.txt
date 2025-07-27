@@ -232,12 +232,14 @@ if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
 endif()
 
 if (ENABLE_CUBEB)
+    add_subdirectory(externals/cubeb)
+
     target_sources(audio_core PRIVATE
         sink/cubeb_sink.cpp
         sink/cubeb_sink.h
     )
 
-    target_link_libraries(audio_core PRIVATE cubeb::cubeb)
+    target_link_libraries(audio_core PRIVATE cubeb)
     target_compile_definitions(audio_core PRIVATE -DHAVE_CUBEB=1)
 endif()
 

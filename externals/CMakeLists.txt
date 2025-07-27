@@ -1,6 +1,9 @@
 # SPDX-FileCopyrightText: 2016 Citra Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+# cpm
+include(CPM)
+
 # Dynarmic has cmake_minimum_required(3.12) and we may want to override
 # some of its variables, which is only possible in 3.13+
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
@@ -83,7 +86,6 @@ if (YUZU_USE_EXTERNAL_SDL2)
         set(SDL_FILE ON)
     endif()
 
-    include(CPM)
     set(CPM_USE_LOCAL_PACKAGES OFF)
 
     if ("${YUZU_SYSTEM_PROFILE}" STREQUAL "steamdeck")
@@ -107,20 +109,6 @@ if (NOT TARGET enet::enet)
     add_subdirectory(enet)
     target_include_directories(enet INTERFACE ./enet/include)
     add_library(enet::enet ALIAS enet)
-endif()
-
-# Cubeb
-if (ENABLE_CUBEB AND NOT TARGET cubeb::cubeb)
-    set(BUILD_TESTS OFF)
-    set(BUILD_TOOLS OFF)
-    add_subdirectory(cubeb)
-    add_library(cubeb::cubeb ALIAS cubeb)
-    if (NOT MSVC)
-        if (TARGET speex)
-            target_compile_options(speex PRIVATE -Wno-sign-compare)
-        endif()
-        target_compile_options(cubeb PRIVATE -Wno-implicit-const-int-float-conversion)
-    endif()
 endif()
 
 # DiscordRPC

@@ -1,9 +1,6 @@
 # SPDX-FileCopyrightText: 2014 Citra Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-[submodule "cubeb"]
-	path = externals/cubeb
-	url = https://github.com/mozilla/cubeb.git
 [submodule "libusb"]
 	path = externals/libusb/libusb
 	url = https://github.com/libusb/libusb.git

@@ -426,10 +426,6 @@ if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
     find_package(dynarmic 6.4.0 CONFIG)
 endif()
 
-if (ENABLE_CUBEB)
-    find_package(cubeb CONFIG)
-endif()
-
 if (USE_DISCORD_PRESENCE)
     find_package(DiscordRPC MODULE)
 endif()
