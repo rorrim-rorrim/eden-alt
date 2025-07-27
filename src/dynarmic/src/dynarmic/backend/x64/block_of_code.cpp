@@ -331,6 +331,8 @@ void BlockOfCode::GenRunCode(std::function<void(BlockOfCode&)> rcp) {
         mov(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)], ABI_RETURN);
     }
 
+    // r14 = page table
+    // r13 = fastmem pointer
     rcp(*this);
 
     cmp(dword[r15 + jsi.offsetof_halt_reason], 0);
