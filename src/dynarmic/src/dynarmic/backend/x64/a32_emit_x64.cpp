@@ -1165,32 +1165,28 @@ void A32EmitX64::EmitTerminalImpl(IR::Term::LinkBlock terminal, IR::LocationDesc
     if (!conf.HasOptimization(OptimizationFlag::BlockLinking) || is_single_step) {
         code.mov(MJitStateReg(A32::Reg::PC), A32::LocationDescriptor{terminal.next}.PC());
         code.ReturnFromRunCode();
-        return;
-    }
-
-    if (conf.enable_cycle_counting) {
-        code.cmp(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)], 0);
-
-        patch_information[terminal.next].jg.push_back(code.getCurr());
-        if (const auto next_bb = GetBasicBlock(terminal.next)) {
-            EmitPatchJg(terminal.next, next_bb->entrypoint);
-        } else {
-            EmitPatchJg(terminal.next);
-        }
     } else {
-        code.cmp(dword[r15 + offsetof(A32JitState, halt_reason)], 0);
-
-        patch_information[terminal.next].jz.push_back(code.getCurr());
-        if (const auto next_bb = GetBasicBlock(terminal.next)) {
-            EmitPatchJz(terminal.next, next_bb->entrypoint);
+        if (conf.enable_cycle_counting) {
+            code.cmp(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)], 0);
+            patch_information[terminal.next].jg.push_back(code.getCurr());
+            if (const auto next_bb = GetBasicBlock(terminal.next)) {
+                EmitPatchJg(terminal.next, next_bb->entrypoint);
+            } else {
+                EmitPatchJg(terminal.next);
+            }
         } else {
-            EmitPatchJz(terminal.next);
+            code.cmp(dword[r15 + offsetof(A32JitState, halt_reason)], 0);
+            patch_information[terminal.next].jz.push_back(code.getCurr());
+            if (const auto next_bb = GetBasicBlock(terminal.next)) {
+                EmitPatchJz(terminal.next, next_bb->entrypoint);
+            } else {
+                EmitPatchJz(terminal.next);
+            }
         }
+        code.mov(MJitStateReg(A32::Reg::PC), A32::LocationDescriptor{terminal.next}.PC());
+        PushRSBHelper(rax, rbx, terminal.next);
+        code.ForceReturnFromRunCode();
     }
-
-    code.mov(MJitStateReg(A32::Reg::PC), A32::LocationDescriptor{terminal.next}.PC());
-    PushRSBHelper(rax, rbx, terminal.next);
-    code.ForceReturnFromRunCode();
 }
 
 void A32EmitX64::EmitTerminalImpl(IR::Term::LinkBlockFast terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
@@ -1199,14 +1195,13 @@ void A32EmitX64::EmitTerminalImpl(IR::Term::LinkBlockFast terminal, IR::Location
     if (!conf.HasOptimization(OptimizationFlag::BlockLinking) || is_single_step) {
         code.mov(MJitStateReg(A32::Reg::PC), A32::LocationDescriptor{terminal.next}.PC());
         code.ReturnFromRunCode();
-        return;
-    }
-
-    patch_information[terminal.next].jmp.push_back(code.getCurr());
-    if (const auto next_bb = GetBasicBlock(terminal.next)) {
-        EmitPatchJmp(terminal.next, next_bb->entrypoint);
     } else {
-        EmitPatchJmp(terminal.next);
+        patch_information[terminal.next].jmp.push_back(code.getCurr());
+        if (const auto next_bb = GetBasicBlock(terminal.next)) {
+            EmitPatchJmp(terminal.next, next_bb->entrypoint);
+        } else {
+            EmitPatchJmp(terminal.next);
+        }
     }
 }
 
