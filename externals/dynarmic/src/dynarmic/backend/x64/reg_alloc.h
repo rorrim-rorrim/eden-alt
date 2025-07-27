@@ -22,6 +22,7 @@
 #include "dynarmic/backend/x64/hostloc.h"
 #include "dynarmic/backend/x64/stack_layout.h"
 #include "dynarmic/backend/x64/oparg.h"
+#include "dynarmic/backend/x64/abi.h"
 #include "dynarmic/ir/cond.h"
 #include "dynarmic/ir/microinstruction.h"
 #include "dynarmic/ir/value.h"
@@ -245,11 +246,11 @@ private:
     HostLoc FindFreeSpill() const noexcept;
     
     inline HostLocInfo& LocInfo(const HostLoc loc) noexcept {
-        ASSERT(loc != HostLoc::RSP);
+        ASSERT(loc != HostLoc::RSP && loc != ABI_JIT_PTR);
         return hostloc_info[static_cast<size_t>(loc)];
     }
     inline const HostLocInfo& LocInfo(const HostLoc loc) const noexcept {
-        ASSERT(loc != HostLoc::RSP);
+        ASSERT(loc != HostLoc::RSP && loc != ABI_JIT_PTR);
         return hostloc_info[static_cast<size_t>(loc)];
     }
 
