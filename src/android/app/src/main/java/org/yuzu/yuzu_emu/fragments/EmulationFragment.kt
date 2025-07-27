@@ -45,6 +45,7 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.window.layout.FoldingFeature
@@ -81,9 +82,10 @@ import org.yuzu.yuzu_emu.utils.ViewUtils
 import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.utils.collect
 import org.yuzu.yuzu_emu.utils.CustomSettingsHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import java.io.File
@@ -101,12 +103,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     private val args by navArgs<EmulationFragmentArgs>()
 
-    private lateinit var game: Game
+    private var game: Game? = null
 
     private val emulationViewModel: EmulationViewModel by activityViewModels()
     private val driverViewModel: DriverViewModel by activityViewModels()
 
     private var isInFoldableLayout = false
+    private var emulationStarted = false
 
     private lateinit var gpuModel: String
     private lateinit var fwVersion: String
@@ -143,7 +146,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             handleEmuReadyIntent(intent)
             return
         } else if (intentUri != null) {
-            // Handle regular file intent
             intentGame = if (Game.extensions.contains(FileUtil.getExtension(intentUri))) {
                 GameHelper.getGame(requireActivity().intent.data!!, false)
             } else {
@@ -151,11 +153,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
         }
 
-        // For non-EmuReady intents, finish game setup immediately
-        // EmuReady intents handle setup asynchronously in handleEmuReadyIntent()
-        if (!isCustomSettingsIntent) {
-            finishGameSetup()
-        }
+        finishGameSetup()
     }
 
     /**
@@ -163,20 +161,21 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
      */
     private fun finishGameSetup() {
         try {
-            game = if (args.game != null) {
-                args.game!!
-            } else {
-                intentGame!!
+            val gameToUse = args.game ?: intentGame
+
+            if (gameToUse == null) {
+                Log.error("[EmulationFragment] No game found in arguments or intent")
+                Toast.makeText(
+                    requireContext(),
+                    R.string.no_game_present,
+                    Toast.LENGTH_SHORT
+                ).show()
+                requireActivity().finish()
+                return
             }
-        } catch (e: NullPointerException) {
-            Log.error("[EmulationFragment] No game found in arguments or intent: ${e.message}")
-            Toast.makeText(
-                requireContext(),
-                R.string.no_game_present,
-                Toast.LENGTH_SHORT
-            ).show()
-            requireActivity().finish()
-            return
+
+            game = gameToUse
+
         } catch (e: Exception) {
             Log.error("[EmulationFragment] Error during game setup: ${e.message}")
             Toast.makeText(
@@ -188,31 +187,40 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             return
         }
 
-        // Handle configuration loading
         try {
             if (isCustomSettingsIntent) {
-                // Custom settings already applied by CustomSettingsHandler
                 Log.info("[EmulationFragment] Using custom settings from intent")
-            } else if (args.custom) {
-                // Load custom settings when explicitly requested via args
-                SettingsFile.loadCustomConfig(game)
-                NativeConfig.unloadPerGameConfig()
-                Log.info("[EmulationFragment] Loading custom settings for ${game.title}")
-            } else if (intentGame != null) {
-                // For intent games, check if custom settings exist and load them, otherwise use global
-                val customConfigFile = SettingsFile.getCustomSettingsFile(game)
+            } else if (intentGame != null && game != null) {
+                val customConfigFile = SettingsFile.getCustomSettingsFile(game!!)
                 if (customConfigFile.exists()) {
-                    Log.info("[EmulationFragment] Found existing custom settings for ${game.title}, loading them")
-                    SettingsFile.loadCustomConfig(game)
-                    NativeConfig.unloadPerGameConfig()
+                    Log.info(
+                        "[EmulationFragment] Found existing custom settings for ${game!!.title}, loading them"
+                    )
+                    SettingsFile.loadCustomConfig(game!!)
                 } else {
-                    Log.info("[EmulationFragment] No custom settings found for ${game.title}, using global settings")
+                    Log.info(
+                        "[EmulationFragment] No custom settings found for ${game!!.title}, using global settings"
+                    )
                     NativeConfig.reloadGlobalConfig()
                 }
             } else {
-                // Default case - use global settings
-                Log.info("[EmulationFragment] Using global settings")
-                NativeConfig.reloadGlobalConfig()
+                val isCustomFromArgs = if (game != null && game == args.game) {
+                    try {
+                        args.custom
+                    } catch (e: Exception) {
+                        false
+                    }
+                } else {
+                    false
+                }
+
+                if (isCustomFromArgs && game != null) {
+                    SettingsFile.loadCustomConfig(game!!)
+                    Log.info("[EmulationFragment] Loading custom settings for ${game!!.title}")
+                } else {
+                    Log.info("[EmulationFragment] Using global settings")
+                    NativeConfig.reloadGlobalConfig()
+                }
             }
         } catch (e: Exception) {
             Log.error("[EmulationFragment] Error loading configuration: ${e.message}")
@@ -220,18 +228,17 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             try {
                 NativeConfig.reloadGlobalConfig()
             } catch (fallbackException: Exception) {
-                Log.error("[EmulationFragment] Critical error: could not load global config: ${fallbackException.message}")
+                Log.error(
+                    "[EmulationFragment] Critical error: could not load global config: ${fallbackException.message}"
+                )
                 throw fallbackException
             }
         }
 
-        // Install the selected driver asynchronously as the game starts
-        driverViewModel.onLaunchGame()
-
-        // Initialize emulation state (ViewModels handle state retention now)
-        emulationState = EmulationState(game.path) {
+        emulationState = EmulationState(game!!.path) {
             return@EmulationState driverViewModel.isInteractionAllowed.value
         }
+
     }
 
     /**
@@ -244,24 +251,32 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         if (titleId != null) {
             Log.info("[EmulationFragment] Received EmuReady intent for title: $titleId")
 
-            CoroutineScope(Dispatchers.Main).launch {
+            lifecycleScope.launch {
                 try {
-                    // Find the game first to get the title for confirmation
-                    Toast.makeText(requireContext(), "Searching for game...", Toast.LENGTH_SHORT).show()
-                    val foundGame = CustomSettingsHandler.findGameByTitleId(titleId, requireContext())
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.searching_for_game),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    val foundGame = CustomSettingsHandler.findGameByTitleId(
+                        titleId,
+                        requireContext()
+                    )
                     if (foundGame == null) {
                         Log.error("[EmulationFragment] Game not found for title ID: $titleId")
                         Toast.makeText(
                             requireContext(),
-                            "Game not found: $titleId",
+                            getString(R.string.game_not_found_for_title_id, titleId),
                             Toast.LENGTH_LONG
                         ).show()
                         requireActivity().finish()
                         return@launch
                     }
 
-                    // Show confirmation dialog
-                    val shouldLaunch = showLaunchConfirmationDialog(foundGame.title, customSettings != null)
+                    val shouldLaunch = showLaunchConfirmationDialog(
+                        foundGame.title,
+                        customSettings != null
+                    )
                     if (!shouldLaunch) {
                         Log.info("[EmulationFragment] User cancelled EmuReady launch")
                         requireActivity().finish()
@@ -269,7 +284,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     }
 
                     if (customSettings != null) {
-                        // Handle custom settings launch
                         intentGame = CustomSettingsHandler.applyCustomSettingsWithDriverCheck(
                             titleId,
                             customSettings,
@@ -279,11 +293,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         )
 
                         if (intentGame == null) {
-                            Log.error("[EmulationFragment] Custom settings processing failed for title ID: $titleId")
-                            // Ask user if they want to launch with default settings
+                            Log.error(
+                                "[EmulationFragment] Custom settings processing failed for title ID: $titleId"
+                            )
                             Toast.makeText(
                                 requireContext(),
-                                "Custom settings failed",
+                                getString(R.string.custom_settings_failed_title),
                                 Toast.LENGTH_SHORT
                             ).show()
 
@@ -293,57 +308,81 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                             )
 
                             if (launchWithDefault) {
-                                Log.info("[EmulationFragment] User chose to launch with default settings")
+                                Log.info(
+                                    "[EmulationFragment] User chose to launch with default settings"
+                                )
                                 Toast.makeText(
                                     requireContext(),
-                                    "Launching with default settings",
+                                    getString(R.string.launch_with_default_settings),
                                     Toast.LENGTH_SHORT
                                 ).show()
                                 intentGame = foundGame
                                 isCustomSettingsIntent = false
                             } else {
-                                Log.info("[EmulationFragment] User cancelled launch after custom settings failure")
+                                Log.info(
+                                    "[EmulationFragment] User cancelled launch after custom settings failure"
+                                )
                                 Toast.makeText(
                                     requireContext(),
-                                    "Launch cancelled",
+                                    getString(R.string.launch_cancelled),
                                     Toast.LENGTH_SHORT
                                 ).show()
                                 requireActivity().finish()
                                 return@launch
                             }
                         } else {
-                            Toast.makeText(
-                                requireContext(),
-                                "Custom settings applied",
-                                Toast.LENGTH_SHORT
-                            ).show()
                             isCustomSettingsIntent = true
                         }
                     } else {
-                        // Handle title-only launch (no custom settings)
                         Log.info("[EmulationFragment] Launching game with default settings")
+
+                        val customConfigFile = SettingsFile.getCustomSettingsFile(foundGame)
+                        if (customConfigFile.exists()) {
+                            Log.info("[EmulationFragment] Found existing custom settings for ${foundGame.title}, loading them")
+                            SettingsFile.loadCustomConfig(foundGame)
+                        } else {
+                            Log.info("[EmulationFragment] No custom settings found for ${foundGame.title}, using global settings")
+                        }
+
                         Toast.makeText(
                             requireContext(),
-                            "Launching ${foundGame.title}",
+                            getString(R.string.launching_game, foundGame.title),
                             Toast.LENGTH_SHORT
                         ).show()
                         intentGame = foundGame
                         isCustomSettingsIntent = false
                     }
 
-                    // Ensure we have a valid game before finishing setup
                     if (intentGame != null) {
-                        finishGameSetup()
+                        withContext(Dispatchers.Main) {
+                            try {
+                                finishGameSetup()
+                                Log.info("[EmulationFragment] Game setup complete for intent launch")
+
+                                if (_binding != null) {
+                                    completeViewSetup()
+
+                                    val driverReady = driverViewModel.isInteractionAllowed.value
+                                    if (driverReady && !NativeLibrary.isRunning() && !NativeLibrary.isPaused()) {
+                                        Log.info("[EmulationFragment] Starting emulation after async intent setup - driver ready")
+                                        startEmulation()
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                Log.error("[EmulationFragment] Error in finishGameSetup: ${e.message}")
+                                requireActivity().finish()
+                                return@withContext
+                            }
+                        }
                     } else {
                         Log.error("[EmulationFragment] No valid game found after processing intent")
                         Toast.makeText(
                             requireContext(),
-                            "Failed to initialize game",
+                            getString(R.string.failed_to_initialize_game),
                             Toast.LENGTH_SHORT
                         ).show()
                         requireActivity().finish()
                     }
-
                 } catch (e: Exception) {
                     Log.error("[EmulationFragment] Error processing EmuReady intent: ${e.message}")
                     Toast.makeText(
@@ -372,18 +411,21 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         return suspendCoroutine { continuation ->
             requireActivity().runOnUiThread {
                 val message = if (hasCustomSettings) {
-                    "EmuReady wants to launch \"$gameTitle\" with custom settings.\n\nDo you want to continue?"
+                    getString(
+                        R.string.custom_intent_launch_message_with_settings,
+                        gameTitle
+                    )
                 } else {
-                    "EmuReady wants to launch \"$gameTitle\".\n\nDo you want to continue?"
+                    getString(R.string.custom_intent_launch_message, gameTitle)
                 }
 
                 MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("Launch Game")
+                    .setTitle(getString(R.string.custom_intent_launch_title))
                     .setMessage(message)
-                    .setPositiveButton("Launch") { _, _ ->
+                    .setPositiveButton(getString(R.string.launch)) { _, _ ->
                         continuation.resume(true)
                     }
-                    .setNegativeButton("Cancel") { _, _ ->
+                    .setNegativeButton(getString(R.string.cancel)) { _, _ ->
                         continuation.resume(false)
                     }
                     .setCancelable(false)
@@ -399,16 +441,14 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         return suspendCoroutine { continuation ->
             requireActivity().runOnUiThread {
                 MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("Custom Settings Failed")
+                    .setTitle(getString(R.string.custom_settings_failed_title))
                     .setMessage(
-                        "Failed to apply custom settings for \"$gameTitle\":\n\n" +
-                        "$errorMessage\n\n" +
-                        "Would you like to launch the game with default settings instead?"
+                        getString(R.string.custom_settings_failed_message, gameTitle, errorMessage)
                     )
-                    .setPositiveButton("Launch with Default Settings") { _, _ ->
+                    .setPositiveButton(getString(R.string.launch_with_default_settings)) { _, _ ->
                         continuation.resume(true)
                     }
-                    .setNegativeButton("Cancel") { _, _ ->
+                    .setNegativeButton(getString(R.string.cancel)) { _, _ ->
                         continuation.resume(false)
                     }
                     .setCancelable(false)
@@ -434,6 +474,20 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         if (requireActivity().isFinishing) {
             return
         }
+
+        if (game == null) {
+            Log.warning("[EmulationFragment] Game not yet initialized in onViewCreated - will be set up by async intent handler")
+            return
+        }
+
+        completeViewSetup()
+    }
+
+    private fun completeViewSetup() {
+        if (_binding == null || game == null) {
+            return
+        }
+        Log.info("[EmulationFragment] Starting view setup for game: ${game?.title}")
 
         gpuModel = GpuDriverHelper.getGpuModel().toString()
         fwVersion = NativeLibrary.firmwareVersion()
@@ -471,10 +525,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
         })
         binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
-        binding.inGameMenu.getHeaderView(0).apply {
-            val titleView = findViewById<TextView>(R.id.text_game_title)
-            titleView.text = game.title
-        }
+
+        updateGameTitle()
 
         binding.inGameMenu.menu.findItem(R.id.menu_lock_drawer).apply {
             val lockMode = IntSetting.LOCK_DRAWER.getInt()
@@ -541,12 +593,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     true
                 }
 
-
                 R.id.menu_multiplayer -> {
                     emulationActivity?.displayMultiplayerDialog()
                     true
                 }
-
 
                 R.id.menu_controls -> {
                     val action = HomeNavigationDirections.actionGlobalSettingsActivity(
@@ -616,8 +666,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
         )
 
-        GameIconUtils.loadGameIcon(game, binding.loadingImage)
-        binding.loadingTitle.text = game.title
+        GameIconUtils.loadGameIcon(game!!, binding.loadingImage)
+        binding.loadingTitle.text = game!!.title
         binding.loadingTitle.isSelected = true
         binding.loadingText.isSelected = true
 
@@ -656,7 +706,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                 emulationState.updateSurface()
 
-                // Setup overlays
                 updateShowStatsOverlay()
                 updateSocOverlay()
 
@@ -666,7 +715,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     val cpuBackendLabel = findViewById<TextView>(R.id.cpu_backend)
                     val vendorLabel = findViewById<TextView>(R.id.gpu_vendor)
 
-                    titleView.text = game.title
+                    titleView.text = game?.title ?: ""
                     cpuBackendLabel.text = NativeLibrary.getCpuBackend()
                     vendorLabel.text = NativeLibrary.getGpuDriver()
                 }
@@ -707,7 +756,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
         emulationViewModel.emulationStopped.collect(viewLifecycleOwner) { stopped ->
             if (stopped && emulationViewModel.programChanged.value != -1) {
-                perfStatsRunnable?.let { runnable -> perfStatsUpdateHandler.removeCallbacks(runnable) }
+                perfStatsRunnable?.let { runnable ->
+                    perfStatsUpdateHandler.removeCallbacks(
+                        runnable
+                    )
+                }
                 socRunnable?.let { runnable -> socUpdateHandler.removeCallbacks(runnable) }
                 emulationState.changeProgram(emulationViewModel.programChanged.value)
                 emulationViewModel.setProgramChanged(-1)
@@ -716,7 +769,19 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
 
         driverViewModel.isInteractionAllowed.collect(viewLifecycleOwner) {
-            if (it) startEmulation()
+            Log.info("[EmulationFragment] Driver interaction allowed: $it")
+            if (it && !NativeLibrary.isRunning() && !NativeLibrary.isPaused()) {
+                startEmulation()
+            }
+        }
+
+        driverViewModel.onLaunchGame()
+
+        val currentDriverState = driverViewModel.isInteractionAllowed.value
+        Log.info("[EmulationFragment] Checking initial driver state after onLaunchGame: $currentDriverState")
+        if (currentDriverState && !NativeLibrary.isRunning() && !NativeLibrary.isPaused()) {
+            Log.info("[EmulationFragment] Starting emulation immediately - driver already ready")
+            startEmulation()
         }
     }
 
@@ -728,6 +793,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
             updateScreenLayout()
 
+            Log.info("[EmulationFragment] Calling emulationState.run() - surface will start emulation when available")
             emulationState.run(emulationActivity!!.isActivityRecreated, programIndex)
         }
     }
@@ -757,6 +823,15 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 } else {
                     binding.surfaceInputOverlay.layout = OverlayLayout.Landscape
                 }
+            }
+        }
+    }
+
+    private fun updateGameTitle() {
+        game?.let {
+            binding.inGameMenu.getHeaderView(0).apply {
+                val titleView = findViewById<TextView>(R.id.text_game_title)
+                titleView.text = it.title
             }
         }
     }
@@ -903,7 +978,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                         val status = batteryIntent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
                         val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                                status == BatteryManager.BATTERY_STATUS_FULL
+                            status == BatteryManager.BATTERY_STATUS_FULL
 
                         if (isCharging) {
                             sb.append(" ${getString(R.string.charging)}")
@@ -921,7 +996,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     }
 
                     if (BooleanSetting.PERF_OVERLAY_BACKGROUND.getBoolean(needsGlobal)) {
-                        binding.showStatsOverlayText.setBackgroundResource(R.color.yuzu_transparent_black)
+                        binding.showStatsOverlayText.setBackgroundResource(
+                            R.color.yuzu_transparent_black
+                        )
                     } else {
                         binding.showStatsOverlayText.setBackgroundResource(0)
                     }
@@ -1016,31 +1093,48 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 ) {
                     sb.setLength(0)
 
-                    if (BooleanSetting.SHOW_DEVICE_MODEL.getBoolean(NativeConfig.isPerGameConfigLoaded())) {
+                    if (BooleanSetting.SHOW_DEVICE_MODEL.getBoolean(
+                            NativeConfig.isPerGameConfigLoaded()
+                        )
+                    ) {
                         sb.append(Build.MODEL)
                     }
 
-                    if (BooleanSetting.SHOW_GPU_MODEL.getBoolean(NativeConfig.isPerGameConfigLoaded())) {
+                    if (BooleanSetting.SHOW_GPU_MODEL.getBoolean(
+                            NativeConfig.isPerGameConfigLoaded()
+                        )
+                    ) {
                         if (sb.isNotEmpty()) sb.append(" | ")
                         sb.append(gpuModel)
                     }
 
                     if (Build.VERSION.SDK_INT >= 31) {
-                        if (BooleanSetting.SHOW_SOC_MODEL.getBoolean(NativeConfig.isPerGameConfigLoaded())) {
+                        if (BooleanSetting.SHOW_SOC_MODEL.getBoolean(
+                                NativeConfig.isPerGameConfigLoaded()
+                            )
+                        ) {
                             if (sb.isNotEmpty()) sb.append(" | ")
                             sb.append(Build.SOC_MODEL)
                         }
                     }
 
-                    if (BooleanSetting.SHOW_FW_VERSION.getBoolean(NativeConfig.isPerGameConfigLoaded())) {
+                    if (BooleanSetting.SHOW_FW_VERSION.getBoolean(
+                            NativeConfig.isPerGameConfigLoaded()
+                        )
+                    ) {
                         if (sb.isNotEmpty()) sb.append(" | ")
                         sb.append(fwVersion)
                     }
 
                     binding.showSocOverlayText.text = sb.toString()
 
-                    if (BooleanSetting.SOC_OVERLAY_BACKGROUND.getBoolean(NativeConfig.isPerGameConfigLoaded())) {
-                        binding.showSocOverlayText.setBackgroundResource(R.color.yuzu_transparent_black)
+                    if (BooleanSetting.SOC_OVERLAY_BACKGROUND.getBoolean(
+                            NativeConfig.isPerGameConfigLoaded()
+                        )
+                    ) {
+                        binding.showSocOverlayText.setBackgroundResource(
+                            R.color.yuzu_transparent_black
+                        )
                     } else {
                         binding.showSocOverlayText.setBackgroundResource(0)
                     }
@@ -1054,7 +1148,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             socRunnable?.let { socUpdateHandler.removeCallbacks(it) }
         }
     }
-
 
     @SuppressLint("SourceLockedOrientationActivity")
     private fun updateOrientation() {
@@ -1167,11 +1260,19 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
         Log.debug("[EmulationFragment] Surface changed. Resolution: " + width + "x" + height)
-        emulationState.newSurface(holder.surface)
+        if (!emulationStarted) {
+            Log.info("[EmulationFragment] Starting emulation")
+            emulationStarted = true
+            emulationState.newSurface(holder.surface)
+        } else {
+            Log.debug("[EmulationFragment] Emulation already started, updating surface")
+            emulationState.newSurface(holder.surface)
+        }
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         emulationState.clearSurface()
+        emulationStarted = false
     }
 
     private fun showOverlayOptions() {
@@ -1412,7 +1513,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         lateinit var emulationThread: Thread
 
         init {
-            // Starting state is stopped.
             state = State.STOPPED
         }
 
@@ -1420,7 +1520,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         val isStopped: Boolean
             get() = state == State.STOPPED
 
-        // Getters for the current state
         @get:Synchronized
         val isPaused: Boolean
             get() = state == State.PAUSED
@@ -1440,7 +1539,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
         }
 
-        // State changing methods
         @Synchronized
         fun pause() {
             if (state != State.PAUSED) {
