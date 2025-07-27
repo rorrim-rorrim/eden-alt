@@ -143,7 +143,7 @@ static void EmitConditionalSelect(BlockOfCode& code, EmitContext& ctx, IR::Inst*
     const Xbyak::Reg then_ = ctx.reg_alloc.UseGpr(args[1]).changeBit(bitsize);
     const Xbyak::Reg else_ = ctx.reg_alloc.UseScratchGpr(args[2]).changeBit(bitsize);
 
-    code.mov(nzcv, dword[r15 + code.GetJitStateInfo().offsetof_cpsr_nzcv]);
+    code.mov(nzcv, dword[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_cpsr_nzcv]);
 
     code.LoadRequiredFlagsForCondFromRax(args[0].GetImmediateCond());
 

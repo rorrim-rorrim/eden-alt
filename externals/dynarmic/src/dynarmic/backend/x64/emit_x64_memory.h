@@ -46,26 +46,25 @@ void EmitDetectMisalignedVAddr(BlockOfCode& code, EmitContext& ctx, size_t bitsi
 
     code.test(vaddr, align_mask);
 
-    if (!ctx.conf.only_detect_misalignment_via_page_table_on_page_boundary) {
+    if (ctx.conf.only_detect_misalignment_via_page_table_on_page_boundary) {
+        const u32 page_align_mask = static_cast<u32>(page_size - 1) & ~align_mask;
+
+        SharedLabel detect_boundary = GenSharedLabel(), resume = GenSharedLabel();
+
+        code.jnz(*detect_boundary, code.T_NEAR);
+        code.L(*resume);
+
+        ctx.deferred_emits.emplace_back([=, &code] {
+            code.L(*detect_boundary);
+            code.mov(tmp, vaddr);
+            code.and_(tmp, page_align_mask);
+            code.cmp(tmp, page_align_mask);
+            code.jne(*resume, code.T_NEAR);
+            // NOTE: We expect to fallthrough into abort code here.
+        });
+    } else {
         code.jnz(abort, code.T_NEAR);
-        return;
     }
-
-    const u32 page_align_mask = static_cast<u32>(page_size - 1) & ~align_mask;
-
-    SharedLabel detect_boundary = GenSharedLabel(), resume = GenSharedLabel();
-
-    code.jnz(*detect_boundary, code.T_NEAR);
-    code.L(*resume);
-
-    ctx.deferred_emits.emplace_back([=, &code] {
-        code.L(*detect_boundary);
-        code.mov(tmp, vaddr);
-        code.and_(tmp, page_align_mask);
-        code.cmp(tmp, page_align_mask);
-        code.jne(*resume, code.T_NEAR);
-        // NOTE: We expect to fallthrough into abort code here.
-    });
 }
 
 template<typename EmitContext>
@@ -244,29 +243,29 @@ const void* EmitReadMemoryMov(BlockOfCode& code, int value_idx, const Xbyak::Reg
             ASSERT_FALSE("Invalid bitsize");
         }
         return fastmem_location;
+    } else {
+        const void* fastmem_location = code.getCurr();
+        switch (bitsize) {
+        case 8:
+            code.movzx(Xbyak::Reg64(value_idx).cvt32(), code.byte[addr]);
+            break;
+        case 16:
+            code.movzx(Xbyak::Reg64(value_idx).cvt32(), word[addr]);
+            break;
+        case 32:
+            code.mov(Xbyak::Reg64(value_idx).cvt32(), dword[addr]);
+            break;
+        case 64:
+            code.mov(Xbyak::Reg64(value_idx), qword[addr]);
+            break;
+        case 128:
+            code.movups(Xbyak::Xmm(value_idx), xword[addr]);
+            break;
+        default:
+            ASSERT_FALSE("Invalid bitsize");
+        }
+        return fastmem_location;
     }
-
-    const void* fastmem_location = code.getCurr();
-    switch (bitsize) {
-    case 8:
-        code.movzx(Xbyak::Reg64(value_idx).cvt32(), code.byte[addr]);
-        break;
-    case 16:
-        code.movzx(Xbyak::Reg64(value_idx).cvt32(), word[addr]);
-        break;
-    case 32:
-        code.mov(Xbyak::Reg64(value_idx).cvt32(), dword[addr]);
-        break;
-    case 64:
-        code.mov(Xbyak::Reg64(value_idx), qword[addr]);
-        break;
-    case 128:
-        code.movups(Xbyak::Xmm(value_idx), xword[addr]);
-        break;
-    default:
-        ASSERT_FALSE("Invalid bitsize");
-    }
-    return fastmem_location;
 }
 
 template<std::size_t bitsize>
@@ -312,29 +311,29 @@ const void* EmitWriteMemoryMov(BlockOfCode& code, const Xbyak::RegExp& addr, int
             ASSERT_FALSE("Invalid bitsize");
         }
         return fastmem_location;
+    } else {
+        const void* fastmem_location = code.getCurr();
+        switch (bitsize) {
+        case 8:
+            code.mov(code.byte[addr], Xbyak::Reg64(value_idx).cvt8());
+            break;
+        case 16:
+            code.mov(word[addr], Xbyak::Reg64(value_idx).cvt16());
+            break;
+        case 32:
+            code.mov(dword[addr], Xbyak::Reg64(value_idx).cvt32());
+            break;
+        case 64:
+            code.mov(qword[addr], Xbyak::Reg64(value_idx));
+            break;
+        case 128:
+            code.movups(xword[addr], Xbyak::Xmm(value_idx));
+            break;
+        default:
+            ASSERT_FALSE("Invalid bitsize");
+        }
+        return fastmem_location;
     }
-
-    const void* fastmem_location = code.getCurr();
-    switch (bitsize) {
-    case 8:
-        code.mov(code.byte[addr], Xbyak::Reg64(value_idx).cvt8());
-        break;
-    case 16:
-        code.mov(word[addr], Xbyak::Reg64(value_idx).cvt16());
-        break;
-    case 32:
-        code.mov(dword[addr], Xbyak::Reg64(value_idx).cvt32());
-        break;
-    case 64:
-        code.mov(qword[addr], Xbyak::Reg64(value_idx));
-        break;
-    case 128:
-        code.movups(xword[addr], Xbyak::Xmm(value_idx));
-        break;
-    default:
-        ASSERT_FALSE("Invalid bitsize");
-    }
-    return fastmem_location;
 }
 
 template<typename UserConfig>
