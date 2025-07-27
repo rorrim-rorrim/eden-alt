@@ -34,6 +34,7 @@ import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.HomeSettingAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentHomeSettingsBinding
 import org.yuzu.yuzu_emu.features.DocumentProvider
+import org.yuzu.yuzu_emu.features.fetcher.SpacingItemDecoration
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.HomeSetting
@@ -251,6 +252,8 @@ class HomeSettingsFragment : Fragment() {
                 viewLifecycleOwner,
                 optionsList
             )
+            val spacing = resources.getDimensionPixelSize(R.dimen.spacing_small)
+            addItemDecoration(SpacingItemDecoration(spacing))
         }
 
         setInsets()

@@ -10,11 +10,14 @@ import android.content.Context
 import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.Game
 import java.io.File
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import android.net.Uri
+import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 
 object CustomSettingsHandler {
     const val CUSTOM_CONFIG_ACTION = "dev.eden.eden_emulator.LAUNCH_WITH_CUSTOM_CONFIG"
@@ -39,21 +42,21 @@ object CustomSettingsHandler {
         }
 
         // Check if config already exists - this should be handled by the caller
-        val configFile = getConfigFile(titleId)
+        val configFile = getConfigFile(game)
         if (configFile.exists()) {
-            Log.warning("[CustomSettingsHandler] Config file already exists for title ID: $titleId")
-            // The caller should have already asked the user about overwriting
+            Log.warning("[CustomSettingsHandler] Config file already exists for game: ${game.title}")
         }
 
         // Write the config file
-        if (!writeConfigFile(titleId, customSettings)) {
+        if (!writeConfigFile(game, customSettings)) {
             Log.error("[CustomSettingsHandler] Failed to write config file")
             return null
         }
 
         // Initialize per-game config
         try {
-            NativeConfig.initializePerGameConfig(game.programId, configFile.nameWithoutExtension)
+            val fileName = FileUtil.getFilename(Uri.parse(game.path))
+            NativeConfig.initializePerGameConfig(game.programId, fileName)
             Log.info("[CustomSettingsHandler] Successfully applied custom settings")
             return game
         } catch (e: Exception) {
@@ -88,50 +91,104 @@ object CustomSettingsHandler {
         }
 
         // Check if config already exists
-        val configFile = getConfigFile(titleId)
+        val configFile = getConfigFile(game)
         if (configFile.exists() && activity != null) {
-            Log.info("[CustomSettingsHandler] Config file already exists, asking user for confirmation")
-            Toast.makeText(activity, "Config exists, asking to overwrite", Toast.LENGTH_SHORT).show()
+            Log.info(
+                "[CustomSettingsHandler] Config file already exists, asking user for confirmation"
+            )
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.config_exists_prompt),
+                Toast.LENGTH_SHORT
+            ).show()
             val shouldOverwrite = askUserToOverwriteConfig(activity, game.title)
             if (!shouldOverwrite) {
                 Log.info("[CustomSettingsHandler] User chose not to overwrite existing config")
-                Toast.makeText(activity, "Overwrite cancelled", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.overwrite_cancelled),
+                    Toast.LENGTH_SHORT
+                ).show()
                 return null
             }
         }
 
         // Check for driver requirements if activity and driverViewModel are provided
         if (activity != null && driverViewModel != null) {
-            val driverPath = DriverResolver.extractDriverPath(customSettings)
+            val driverPath = extractDriverPath(customSettings)
             if (driverPath != null) {
                 Log.info("[CustomSettingsHandler] Custom settings specify driver: $driverPath")
-                Toast.makeText(activity, "Checking driver: ${driverPath.split("/").lastOrNull()?.take(20) ?: "driver"}", Toast.LENGTH_SHORT).show()
-                val driverExists = DriverResolver.ensureDriverExists(driverPath, activity, driverViewModel)
-                if (!driverExists) {
-                    Log.error("[CustomSettingsHandler] Required driver not available: $driverPath")
-                    Toast.makeText(activity, "Driver unavailable", Toast.LENGTH_SHORT).show()
-                    // Don't write config if driver installation failed
+                // Check if driver exists in the driver storage
+                val driverFile = File(driverPath)
+                if (!driverFile.exists()) {
+                    Log.error("[CustomSettingsHandler] Required driver not found: $driverPath")
+                    Toast.makeText(
+                        activity,
+                        activity.getString(
+                            R.string.custom_settings_failed_message,
+                            game.title,
+                            activity.getString(R.string.driver_not_found, driverFile.name)
+                        ),
+                        Toast.LENGTH_LONG
+                    ).show()
+                    // Don't write config if driver is missing
                     return null
                 }
+
+                // Verify it's a valid driver
+                val metadata = GpuDriverHelper.getMetadataFromZip(driverFile)
+                if (metadata.name == null) {
+                    Log.error("[CustomSettingsHandler] Invalid driver file: $driverPath")
+                    Toast.makeText(
+                        activity,
+                        activity.getString(
+                            R.string.custom_settings_failed_message,
+                            game.title,
+                            activity.getString(R.string.invalid_driver_file, driverFile.name)
+                        ),
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return null
+                }
+
+                Log.info("[CustomSettingsHandler] Driver verified: ${metadata.name}")
             }
         }
 
         // Only write the config file after all checks pass
-        if (!writeConfigFile(titleId, customSettings)) {
+        if (!writeConfigFile(game, customSettings)) {
             Log.error("[CustomSettingsHandler] Failed to write config file")
-            Toast.makeText(activity, "Config write failed", Toast.LENGTH_SHORT).show()
+            activity?.let {
+                Toast.makeText(
+                    it,
+                    it.getString(R.string.config_write_failed),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
             return null
         }
 
         // Initialize per-game config
         try {
-            NativeConfig.initializePerGameConfig(game.programId, configFile.nameWithoutExtension)
+            SettingsFile.loadCustomConfig(game)
             Log.info("[CustomSettingsHandler] Successfully applied custom settings")
-            Toast.makeText(activity, "Custom settings applied", Toast.LENGTH_SHORT).show()
+            activity?.let {
+                Toast.makeText(
+                    it,
+                    it.getString(R.string.custom_settings_applied),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
             return game
         } catch (e: Exception) {
             Log.error("[CustomSettingsHandler] Failed to apply custom settings: ${e.message}")
-            Toast.makeText(activity, "Config apply failed", Toast.LENGTH_SHORT).show()
+            activity?.let {
+                Toast.makeText(
+                    it,
+                    it.getString(R.string.config_apply_failed),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
             return null
         }
     }
@@ -154,7 +211,7 @@ object CustomSettingsHandler {
         // First check cached games for fast lookup
         GameHelper.cachedGameList.find { game ->
             game.programId == programIdDecimal ||
-                    game.programIdHex.equals(expectedHex, ignoreCase = true)
+                game.programIdHex.equals(expectedHex, ignoreCase = true)
         }?.let { foundGame ->
             Log.info("[CustomSettingsHandler] Found game in cache: ${foundGame.title}")
             return foundGame
@@ -164,22 +221,27 @@ object CustomSettingsHandler {
         val allGames = GameHelper.getGames()
         val foundGame = allGames.find { game ->
             game.programId == programIdDecimal ||
-                    game.programIdHex.equals(expectedHex, ignoreCase = true)
+                game.programIdHex.equals(expectedHex, ignoreCase = true)
         }
         if (foundGame != null) {
             Log.info("[CustomSettingsHandler] Found game: ${foundGame.title} at ${foundGame.path}")
-            Toast.makeText(context, "Found: ${foundGame.title}", Toast.LENGTH_SHORT).show()
         } else {
             Log.warning("[CustomSettingsHandler] No game found for title ID: $titleId")
-            Toast.makeText(context, "Game not found: $titleId", Toast.LENGTH_SHORT).show()
         }
         return foundGame
     }
 
     /**
-     * Get the config file path for a title ID
+     * Get the config file path for a game
      */
-    private fun getConfigFile(titleId: String): File {
+    private fun getConfigFile(game: Game): File {
+        return SettingsFile.getCustomSettingsFile(game)
+    }
+
+    /**
+     * Get the title ID config file path
+     */
+    private fun getTitleIdConfigFile(titleId: String): File {
         val configDir = File(DirectoryInitialization.userDirectory, "config/custom")
         return File(configDir, "$titleId.ini")
     }
@@ -187,14 +249,14 @@ object CustomSettingsHandler {
     /**
      * Write the config file with the custom settings
      */
-    private fun writeConfigFile(titleId: String, customSettings: String): Boolean {
+    private fun writeConfigFile(game: Game, customSettings: String): Boolean {
         return try {
-            val configDir = File(DirectoryInitialization.userDirectory, "config/custom")
-            if (!configDir.exists()) {
+            val configFile = getConfigFile(game)
+            val configDir = configFile.parentFile
+            if (configDir != null && !configDir.exists()) {
                 configDir.mkdirs()
             }
 
-            val configFile = File(configDir, "$titleId.ini")
             configFile.writeText(customSettings)
 
             Log.info("[CustomSettingsHandler] Wrote config file: ${configFile.absolutePath}")
@@ -212,21 +274,41 @@ object CustomSettingsHandler {
         return suspendCoroutine { continuation ->
             activity.runOnUiThread {
                 MaterialAlertDialogBuilder(activity)
-                    .setTitle("Configuration Already Exists")
+                    .setTitle(activity.getString(R.string.config_already_exists_title))
                     .setMessage(
-                        "Custom settings already exist for '$gameTitle'.\n\n" +
-                                "Do you want to overwrite the existing configuration?\n\n" +
-                                "This action cannot be undone."
+                        activity.getString(R.string.config_already_exists_message, gameTitle)
                     )
-                    .setPositiveButton("Overwrite") { _, _ ->
+                    .setPositiveButton(activity.getString(R.string.overwrite)) { _, _ ->
                         continuation.resume(true)
                     }
-                    .setNegativeButton("Cancel") { _, _ ->
+                    .setNegativeButton(activity.getString(R.string.cancel)) { _, _ ->
                         continuation.resume(false)
                     }
                     .setCancelable(false)
                     .show()
             }
         }
+    }
+
+    /**
+     * Extract driver path from custom settings INI content
+     */
+    private fun extractDriverPath(customSettings: String): String? {
+        val lines = customSettings.lines()
+        var inGpuDriverSection = false
+
+        for (line in lines) {
+            val trimmed = line.trim()
+            if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+                inGpuDriverSection = trimmed == "[GpuDriver]"
+                continue
+            }
+
+            if (inGpuDriverSection && trimmed.startsWith("driver_path=")) {
+                return trimmed.substringAfter("driver_path=")
+            }
+        }
+
+        return null
     }
 }
