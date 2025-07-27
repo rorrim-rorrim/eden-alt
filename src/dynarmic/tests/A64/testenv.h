@@ -9,7 +9,7 @@
 #pragma once
 
 #include <array>
-#include <map>
+#include <unordered_map>
 
 #include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
@@ -26,7 +26,7 @@ public:
     u64 code_mem_start_address = 0;
     std::vector<u32> code_mem;
 
-    std::map<u64, u8> modified_memory;
+    std::unordered_map<u64, u8> modified_memory;
     std::vector<std::string> interrupts;
 
     bool IsInCodeMem(u64 vaddr) const {
