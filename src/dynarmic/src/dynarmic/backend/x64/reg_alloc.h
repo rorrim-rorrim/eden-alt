@@ -245,11 +245,11 @@ private:
     HostLoc FindFreeSpill() const noexcept;
 
     inline HostLocInfo& LocInfo(const HostLoc loc) noexcept {
-        ASSERT(loc != HostLoc::RSP && loc != HostLoc::R15);
+        ASSERT(loc != HostLoc::RSP);
         return hostloc_info[static_cast<size_t>(loc)];
     }
     inline const HostLocInfo& LocInfo(const HostLoc loc) const noexcept {
-        ASSERT(loc != HostLoc::RSP && loc != HostLoc::R15);
+        ASSERT(loc != HostLoc::RSP);
         return hostloc_info[static_cast<size_t>(loc)];
     }
 
