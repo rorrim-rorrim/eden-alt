@@ -110,7 +110,7 @@ static void EmitOneArgumentFallbackWithSaturation(BlockOfCode& code, EmitContext
 
     ctx.reg_alloc.ReleaseStackSpace(stack_space + ABI_SHADOW_SPACE);
 
-    code.or_(code.byte[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], code.ABI_RETURN.cvt8());
+    code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], code.ABI_RETURN.cvt8());
 
     ctx.reg_alloc.DefineValue(inst, result);
 }
@@ -138,7 +138,7 @@ static void EmitTwoArgumentFallbackWithSaturation(BlockOfCode& code, EmitContext
 
     ctx.reg_alloc.ReleaseStackSpace(stack_space + ABI_SHADOW_SPACE);
 
-    code.or_(code.byte[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], code.ABI_RETURN.cvt8());
+    code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], code.ABI_RETURN.cvt8());
 
     ctx.reg_alloc.DefineValue(inst, result);
 }
@@ -165,7 +165,7 @@ static void EmitTwoArgumentFallbackWithSaturationAndImmediate(BlockOfCode& code,
 
     ctx.reg_alloc.ReleaseStackSpace(stack_space + ABI_SHADOW_SPACE);
 
-    code.or_(code.byte[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], code.ABI_RETURN.cvt8());
+    code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], code.ABI_RETURN.cvt8());
 
     ctx.reg_alloc.DefineValue(inst, result);
 }
@@ -4261,7 +4261,7 @@ static void EmitVectorSignedSaturatedAbs(size_t esize, BlockOfCode& code, EmitCo
         UNREACHABLE();
     }
 
-    code.or_(code.dword[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
+    code.or_(code.dword[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
     ctx.reg_alloc.DefineValue(inst, data);
 }
 
@@ -4396,7 +4396,7 @@ static void EmitVectorSignedSaturatedAccumulateUnsigned(BlockOfCode& code, EmitC
 
     const Xbyak::Reg32 mask = ctx.reg_alloc.ScratchGpr().cvt32();
     code.pmovmskb(mask, xmm0);
-    code.or_(code.dword[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], mask);
+    code.or_(code.dword[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], mask);
 
     if (code.HasHostFeature(HostFeature::SSE41)) {
         code.pblendvb(result, tmp);
@@ -4482,7 +4482,7 @@ static void EmitVectorSignedSaturatedDoublingMultiply16(BlockOfCode& code, EmitC
 
     const Xbyak::Reg32 bit = ctx.reg_alloc.ScratchGpr().cvt32();
     code.pmovmskb(bit, upper_tmp);
-    code.or_(code.dword[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
+    code.or_(code.dword[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
 
     ctx.reg_alloc.DefineValue(inst, result);
 }
@@ -4533,7 +4533,7 @@ void EmitVectorSignedSaturatedDoublingMultiply32(BlockOfCode& code, EmitContext&
         code.vpcmpeqd(mask, result, code.Const(xword, 0x8000000080000000, 0x8000000080000000));
         code.vpxor(result, result, mask);
         code.pmovmskb(bit, mask);
-        code.or_(code.dword[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
+        code.or_(code.dword[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
 
         ctx.reg_alloc.Release(mask);
         ctx.reg_alloc.Release(bit);
@@ -4589,7 +4589,7 @@ void EmitVectorSignedSaturatedDoublingMultiply32(BlockOfCode& code, EmitContext&
     code.pcmpeqd(tmp, result);
     code.pxor(result, tmp);
     code.pmovmskb(bit, tmp);
-    code.or_(code.dword[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
+    code.or_(code.dword[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
 
     ctx.reg_alloc.DefineValue(inst, result);
 }
@@ -4623,7 +4623,7 @@ void EmitX64::EmitVectorSignedSaturatedDoublingMultiplyLong16(EmitContext& ctx, 
 
     const Xbyak::Reg32 bit = ctx.reg_alloc.ScratchGpr().cvt32();
     code.pmovmskb(bit, y);
-    code.or_(code.dword[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
+    code.or_(code.dword[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
 
     ctx.reg_alloc.DefineValue(inst, x);
 }
@@ -4676,7 +4676,7 @@ void EmitX64::EmitVectorSignedSaturatedDoublingMultiplyLong32(EmitContext& ctx, 
         code.pxor(x, y);
         code.pmovmskb(bit, y);
     }
-    code.or_(code.dword[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
+    code.or_(code.dword[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
 
     ctx.reg_alloc.DefineValue(inst, x);
 }
@@ -4715,7 +4715,7 @@ static void EmitVectorSignedSaturatedNarrowToSigned(size_t original_esize, Block
     code.pcmpeqd(reconstructed, src);
     code.movmskps(bit, reconstructed);
     code.xor_(bit, 0b1111);
-    code.or_(code.dword[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
+    code.or_(code.dword[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
 
     ctx.reg_alloc.DefineValue(inst, dest);
 }
@@ -4770,7 +4770,7 @@ static void EmitVectorSignedSaturatedNarrowToUnsigned(size_t original_esize, Blo
     code.pcmpeqd(reconstructed, src);
     code.movmskps(bit, reconstructed);
     code.xor_(bit, 0b1111);
-    code.or_(code.dword[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
+    code.or_(code.dword[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
 
     ctx.reg_alloc.DefineValue(inst, dest);
 }
@@ -4873,7 +4873,7 @@ static void EmitVectorSignedSaturatedNeg(size_t esize, BlockOfCode& code, EmitCo
     // Check if any elements matched the mask prior to performing saturation. If so, set the Q bit.
     const Xbyak::Reg32 bit = ctx.reg_alloc.ScratchGpr().cvt32();
     code.pmovmskb(bit, tmp);
-    code.or_(code.dword[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
+    code.or_(code.dword[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
 
     ctx.reg_alloc.DefineValue(inst, zero);
 }

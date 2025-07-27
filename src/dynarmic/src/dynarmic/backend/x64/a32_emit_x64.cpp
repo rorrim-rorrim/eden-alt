@@ -798,9 +798,9 @@ static u32 GetFpscrImpl(A32JitState* jit_state) {
 
 void A32EmitX64::EmitA32GetFpscr(A32EmitContext& ctx, IR::Inst* inst) {
     ctx.reg_alloc.HostCall(inst);
-    code.mov(code.ABI_PARAM1, code.r15);
+    code.mov(code.ABI_PARAM1, code.ABI_JIT_PTR);
 
-    code.stmxcsr(code.dword[code.r15 + offsetof(A32JitState, guest_MXCSR)]);
+    code.stmxcsr(code.dword[code.ABI_JIT_PTR + offsetof(A32JitState, guest_MXCSR)]);
     code.CallFunction(&GetFpscrImpl);
 }
 
@@ -811,10 +811,10 @@ static void SetFpscrImpl(u32 value, A32JitState* jit_state) {
 void A32EmitX64::EmitA32SetFpscr(A32EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.HostCall(nullptr, args[0]);
-    code.mov(code.ABI_PARAM2, code.r15);
+    code.mov(code.ABI_PARAM2, code.ABI_JIT_PTR);
 
     code.CallFunction(&SetFpscrImpl);
-    code.ldmxcsr(code.dword[code.r15 + offsetof(A32JitState, guest_MXCSR)]);
+    code.ldmxcsr(code.dword[code.ABI_JIT_PTR + offsetof(A32JitState, guest_MXCSR)]);
 }
 
 void A32EmitX64::EmitA32GetFpscrNZCV(A32EmitContext& ctx, IR::Inst* inst) {

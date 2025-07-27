@@ -429,6 +429,7 @@ HostLoc RegAlloc::SelectARegister(const boost::container::static_vector<HostLoc,
     auto it_empty_candidate = desired_locations.cend();
     for (auto it = desired_locations.cbegin(); it != desired_locations.cend(); it++) {
         auto const& loc_info = LocInfo(*it);
+        DEBUG_ASSERT(*it != ABI_JIT_PTR);
         // Abstain from using upper registers unless absolutely nescesary
         if (loc_info.IsLocked()) {
             // skip, not suitable for allocation
