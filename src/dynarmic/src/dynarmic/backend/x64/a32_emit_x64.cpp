@@ -109,11 +109,11 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
 
     const boost::container::static_vector<HostLoc, 28> gpr_order = [this] {
         boost::container::static_vector<HostLoc, 28> gprs{any_gpr};
-        if (conf.page_table) {
-            gprs.erase(std::find(gprs.begin(), gprs.end(), HostLoc::R14));
-        }
         if (conf.fastmem_pointer) {
             gprs.erase(std::find(gprs.begin(), gprs.end(), HostLoc::R13));
+        }
+        if (conf.page_table) {
+            gprs.erase(std::find(gprs.begin(), gprs.end(), HostLoc::R14));
         }
         return gprs;
     }();
