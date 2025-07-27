@@ -25,6 +25,7 @@
 #include "dynarmic/backend/x64/constants.h"
 #include "dynarmic/backend/x64/emit_x64.h"
 #include "dynarmic/common/math_util.h"
+#include "dynarmic/interface/optimization_flags.h"
 #include "dynarmic/ir/basic_block.h"
 #include "dynarmic/ir/microinstruction.h"
 #include "dynarmic/ir/opcodes.h"
@@ -1009,10 +1010,7 @@ void EmitX64::EmitVectorCountLeadingZeros8(EmitContext& ctx, IR::Inst* inst) {
         code.gf2p8affineqb(result, code.BConst<64>(xword, 0xaaccf0ff'00000000), 8);
 
         ctx.reg_alloc.DefineValue(inst, result);
-        return;
-    }
-
-    if (code.HasHostFeature(HostFeature::SSSE3)) {
+    } else if (code.HasHostFeature(HostFeature::SSSE3)) {
         auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
         const Xbyak::Xmm data = ctx.reg_alloc.UseScratchXmm(args[0]);
@@ -1034,10 +1032,9 @@ void EmitX64::EmitVectorCountLeadingZeros8(EmitContext& ctx, IR::Inst* inst) {
         code.paddb(data, tmp1);
 
         ctx.reg_alloc.DefineValue(inst, data);
-        return;
-    }
-
+    } else {
     EmitOneArgumentFallback(code, ctx, inst, EmitVectorCountLeadingZeros<u8>);
+    }
 }
 
 void EmitX64::EmitVectorCountLeadingZeros16(EmitContext& ctx, IR::Inst* inst) {
@@ -1070,10 +1067,7 @@ void EmitX64::EmitVectorCountLeadingZeros16(EmitContext& ctx, IR::Inst* inst) {
         code.vpshufb(result, result, data);
 
         ctx.reg_alloc.DefineValue(inst, result);
-        return;
-    }
-
-    if (code.HasHostFeature(HostFeature::SSSE3)) {
+    } else if (code.HasHostFeature(HostFeature::SSSE3)) {
         auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
         const Xbyak::Xmm data = ctx.reg_alloc.UseScratchXmm(args[0]);
@@ -1106,10 +1100,9 @@ void EmitX64::EmitVectorCountLeadingZeros16(EmitContext& ctx, IR::Inst* inst) {
         code.pshufb(result, data);
 
         ctx.reg_alloc.DefineValue(inst, result);
-        return;
-    }
-
+    } else {
     EmitOneArgumentFallback(code, ctx, inst, EmitVectorCountLeadingZeros<u16>);
+    }
 }
 
 void EmitX64::EmitVectorCountLeadingZeros32(EmitContext& ctx, IR::Inst* inst) {
@@ -5641,6 +5634,7 @@ static void EmitVectorUnsignedAbsoluteDifference(size_t esize, EmitContext& ctx,
         break;
     }
     case 32:
+        // See https://stackoverflow.com/questions/3380785/compute-the-absolute-difference-between-unsigned-integers-using-sse/3527267#3527267
         if (code.HasHostFeature(HostFeature::SSE41)) {
             const Xbyak::Xmm x = ctx.reg_alloc.UseScratchXmm(args[0]);
             const Xbyak::Xmm y = ctx.reg_alloc.UseXmm(args[1]);
@@ -5652,7 +5646,23 @@ static void EmitVectorUnsignedAbsoluteDifference(size_t esize, EmitContext& ctx,
         } else {
             const Xbyak::Xmm x = ctx.reg_alloc.UseScratchXmm(args[0]);
             const Xbyak::Xmm y = ctx.reg_alloc.UseScratchXmm(args[1]);
-
+            if (ctx.HasOptimization(OptimizationFlag::CodeSpeed)) {
+                // About 45 bytes
+                const Xbyak::Xmm temp_x = ctx.reg_alloc.ScratchXmm();
+                const Xbyak::Xmm temp_y = ctx.reg_alloc.ScratchXmm();
+                code.pcmpeqd(temp, temp);
+                code.pslld(temp, 31);
+                code.movdqa(temp_x, x);
+                code.movdqa(temp_y, y);
+                code.paddd(temp_x, x);
+                code.paddd(temp_y, y);
+                code.pcmpgtd(temp_y, temp_x);
+                code.psubd(x, y);
+                code.pandn(temp, temp_y);
+                code.pxor(x, y);
+                code.psubd(x, y);
+            } else {
+                // Smaller code size - about 36 bytes
             code.movdqa(temp, code.Const(xword, 0x8000000080000000, 0x8000000080000000));
             code.pxor(x, temp);
             code.pxor(y, temp);
@@ -5662,6 +5672,7 @@ static void EmitVectorUnsignedAbsoluteDifference(size_t esize, EmitContext& ctx,
             code.psrld(y, 1);
             code.pxor(temp, y);
             code.psubd(temp, y);
+            }
         }
         break;
     }
