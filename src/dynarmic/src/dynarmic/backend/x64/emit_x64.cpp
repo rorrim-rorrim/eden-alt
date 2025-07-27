@@ -92,17 +92,16 @@ void EmitX64::PushRSBHelper(Xbyak::Reg64 loc_desc_reg, Xbyak::Reg64 index_reg, I
                                 : code.GetReturnFromRunCodeAddress();
 
     code.mov(index_reg.cvt32(), dword[r15 + code.GetJitStateInfo().offsetof_rsb_ptr]);
-
     code.mov(loc_desc_reg, target.Value());
-
     patch_information[target].mov_rcx.push_back(code.getCurr());
     EmitPatchMovRcx(target_code_ptr);
-
     code.mov(qword[r15 + index_reg * 8 + code.GetJitStateInfo().offsetof_rsb_location_descriptors], loc_desc_reg);
     code.mov(qword[r15 + index_reg * 8 + code.GetJitStateInfo().offsetof_rsb_codeptrs], rcx);
-
-    code.add(index_reg.cvt32(), 1);
-    code.and_(index_reg.cvt32(), u32(code.GetJitStateInfo().rsb_ptr_mask));
+    // Byte size hack
+    DEBUG_ASSERT(code.GetJitStateInfo().rsb_ptr_mask <= 0xFF);
+    code.add(index_reg.cvt32(), 1); //flags trashed, 1 single byte, haswell doesn't care
+    code.and_(index_reg.cvt32(), u32(code.GetJitStateInfo().rsb_ptr_mask)); //trashes flags
+    // Results ready and sort by least needed: give OOO some break
     code.mov(dword[r15 + code.GetJitStateInfo().offsetof_rsb_ptr], index_reg.cvt32());
 }
 

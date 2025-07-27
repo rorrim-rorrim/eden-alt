@@ -909,11 +909,11 @@ static Xbyak::Reg8 DoCarry(RegAlloc& reg_alloc, Argument& carry_in, IR::Inst* ca
     }
 }
 
+// AL contains flags (after LAHF + SETO sequence)
 static Xbyak::Reg64 DoNZCV(BlockOfCode& code, RegAlloc& reg_alloc, IR::Inst* nzcv_out) {
     if (!nzcv_out) {
         return Xbyak::Reg64{-1};
     }
-
     const Xbyak::Reg64 nzcv = reg_alloc.ScratchGpr(HostLoc::RAX);
     code.xor_(nzcv.cvt32(), nzcv.cvt32());
     return nzcv;
@@ -1168,7 +1168,7 @@ void EmitX64::EmitUnsignedDiv32(EmitContext& ctx, IR::Inst* inst) {
 
     code.xor_(eax, eax);
     code.test(divisor, divisor);
-    code.jz(end);
+    code.jz(end, code.T_NEAR);
     code.mov(eax, dividend);
     code.xor_(edx, edx);
     code.div(divisor);
@@ -1189,7 +1189,7 @@ void EmitX64::EmitUnsignedDiv64(EmitContext& ctx, IR::Inst* inst) {
 
     code.xor_(eax, eax);
     code.test(divisor, divisor);
-    code.jz(end);
+    code.jz(end, code.T_NEAR);
     code.mov(rax, dividend);
     code.xor_(edx, edx);
     code.div(divisor);
