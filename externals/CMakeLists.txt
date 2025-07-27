@@ -162,6 +162,9 @@ if (YUZU_USE_BUNDLED_FFMPEG)
     set(FFmpeg_INCLUDE_DIR "${FFmpeg_INCLUDE_DIR}" PARENT_SCOPE)
 endif()
 
+# TODO(crueter): I tried messing with these and it gave me 16,323 compilation errors
+# lol
+
 # Vulkan-Headers
 if (YUZU_USE_EXTERNAL_VULKAN_HEADERS)
     add_subdirectory(Vulkan-Headers)
