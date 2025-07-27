@@ -1033,7 +1033,7 @@ void EmitX64::EmitVectorCountLeadingZeros8(EmitContext& ctx, IR::Inst* inst) {
 
         ctx.reg_alloc.DefineValue(inst, data);
     } else {
-    EmitOneArgumentFallback(code, ctx, inst, EmitVectorCountLeadingZeros<u8>);
+        EmitOneArgumentFallback(code, ctx, inst, EmitVectorCountLeadingZeros<u8>);
     }
 }
 
@@ -1101,22 +1101,32 @@ void EmitX64::EmitVectorCountLeadingZeros16(EmitContext& ctx, IR::Inst* inst) {
 
         ctx.reg_alloc.DefineValue(inst, result);
     } else {
-    EmitOneArgumentFallback(code, ctx, inst, EmitVectorCountLeadingZeros<u16>);
+        EmitOneArgumentFallback(code, ctx, inst, EmitVectorCountLeadingZeros<u16>);
     }
 }
 
 void EmitX64::EmitVectorCountLeadingZeros32(EmitContext& ctx, IR::Inst* inst) {
+    auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     if (code.HasHostFeature(HostFeature::AVX512_Ortho | HostFeature::AVX512CD)) {
-        auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-
         const Xbyak::Xmm data = ctx.reg_alloc.UseScratchXmm(args[0]);
         code.vplzcntd(data, data);
-
         ctx.reg_alloc.DefineValue(inst, data);
-        return;
+    // See https://stackoverflow.com/questions/58823140/count-leading-zero-bits-for-each-element-in-avx2-vector-emulate-mm256-lzcnt-ep/58827596#58827596
+    } else if (code.HasHostFeature(HostFeature::AVX2)) {
+        const Xbyak::Xmm data = ctx.reg_alloc.UseScratchXmm(args[0]);
+        const Xbyak::Xmm temp = ctx.reg_alloc.ScratchXmm();
+        code.vmovdqa(temp, data);
+        code.vpsrld(data, data, 8);
+        code.vpandn(data, data, temp);
+        code.vmovdqa(temp, code.Const(xword, 0x0000009E0000009E, 0x0000009E0000009E));
+        code.vcvtdq2ps(data, data);
+        code.vpsrld(data, data, 23);
+        code.vpsubusw(data, temp, data);
+        code.vpminsw(data, data, code.Const(xword, 0x0000002000000020, 0x0000002000000020));
+        ctx.reg_alloc.DefineValue(inst, data);
+    } else {
+        EmitOneArgumentFallback(code, ctx, inst, EmitVectorCountLeadingZeros<u32>);
     }
-
-    EmitOneArgumentFallback(code, ctx, inst, EmitVectorCountLeadingZeros<u32>);
 }
 
 void EmitX64::EmitVectorDeinterleaveEven8(EmitContext& ctx, IR::Inst* inst) {
@@ -5663,15 +5673,15 @@ static void EmitVectorUnsignedAbsoluteDifference(size_t esize, EmitContext& ctx,
                 code.psubd(x, y);
             } else {
                 // Smaller code size - about 36 bytes
-            code.movdqa(temp, code.Const(xword, 0x8000000080000000, 0x8000000080000000));
-            code.pxor(x, temp);
-            code.pxor(y, temp);
-            code.movdqa(temp, x);
-            code.psubd(temp, y);
-            code.pcmpgtd(y, x);
-            code.psrld(y, 1);
-            code.pxor(temp, y);
-            code.psubd(temp, y);
+                code.movdqa(temp, code.Const(xword, 0x8000000080000000, 0x8000000080000000));
+                code.pxor(x, temp);
+                code.pxor(y, temp);
+                code.movdqa(temp, x);
+                code.psubd(temp, y);
+                code.pcmpgtd(y, x);
+                code.psrld(y, 1);
+                code.pxor(temp, y);
+                code.psubd(temp, y);
             }
         }
         break;
@@ -5738,10 +5748,7 @@ void EmitX64::EmitVectorUnsignedMultiply32(EmitContext& ctx, IR::Inst* inst) {
         code.vpmulld(result, x, y);
 
         ctx.reg_alloc.DefineValue(lower_inst, result);
-        return;
-    }
-
-    if (code.HasHostFeature(HostFeature::AVX)) {
+    } else if (code.HasHostFeature(HostFeature::AVX)) {
         const Xbyak::Xmm x = ctx.reg_alloc.UseScratchXmm(args[0]);
         const Xbyak::Xmm y = ctx.reg_alloc.UseScratchXmm(args[1]);
 
@@ -5760,39 +5767,33 @@ void EmitX64::EmitVectorUnsignedMultiply32(EmitContext& ctx, IR::Inst* inst) {
         code.shufps(result, x, 0b11011101);
 
         ctx.reg_alloc.DefineValue(upper_inst, result);
-        return;
-    }
+    } else {
+        const Xbyak::Xmm x = ctx.reg_alloc.UseScratchXmm(args[0]);
+        const Xbyak::Xmm y = ctx.reg_alloc.UseScratchXmm(args[1]);
+        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
+        const Xbyak::Xmm upper_result = upper_inst ? ctx.reg_alloc.ScratchXmm() : Xbyak::Xmm{-1};
+        const Xbyak::Xmm lower_result = lower_inst ? ctx.reg_alloc.ScratchXmm() : Xbyak::Xmm{-1};
 
-    const Xbyak::Xmm x = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm y = ctx.reg_alloc.UseScratchXmm(args[1]);
-    const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
-    const Xbyak::Xmm upper_result = ctx.reg_alloc.ScratchXmm();
-    const Xbyak::Xmm lower_result = ctx.reg_alloc.ScratchXmm();
+        // calculate unsigned multiply
+        code.movdqa(tmp, x);
+        code.pmuludq(tmp, y);
+        code.psrlq(x, 32);
+        code.psrlq(y, 32);
+        code.pmuludq(x, y);
 
-    // calculate unsigned multiply
-    code.movdqa(tmp, x);
-    code.pmuludq(tmp, y);
-    code.psrlq(x, 32);
-    code.psrlq(y, 32);
-    code.pmuludq(x, y);
-
-    // put everything into place
-    code.pcmpeqw(upper_result, upper_result);
-    code.pcmpeqw(lower_result, lower_result);
-    code.psllq(upper_result, 32);
-    code.psrlq(lower_result, 32);
-    code.pand(upper_result, x);
-    code.pand(lower_result, tmp);
-    code.psrlq(tmp, 32);
-    code.psllq(x, 32);
-    code.por(upper_result, tmp);
-    code.por(lower_result, x);
-
-    if (upper_inst) {
-        ctx.reg_alloc.DefineValue(upper_inst, upper_result);
-    }
-    if (lower_inst) {
-        ctx.reg_alloc.DefineValue(lower_inst, lower_result);
+        // put everything into place - only if needed
+        if (upper_inst) code.pcmpeqw(upper_result, upper_result);
+        if (lower_inst) code.pcmpeqw(lower_result, lower_result);
+        if (upper_inst) code.psllq(upper_result, 32);
+        if (lower_inst) code.psrlq(lower_result, 32);
+        if (upper_inst) code.pand(upper_result, x);
+        if (lower_inst) code.pand(lower_result, tmp);
+        if (upper_inst) code.psrlq(tmp, 32);
+        if (lower_inst) code.psllq(x, 32);
+        if (upper_inst) code.por(upper_result, tmp);
+        if (lower_inst) code.por(lower_result, x);
+        if (upper_inst) ctx.reg_alloc.DefineValue(upper_inst, upper_result);
+        if (lower_inst) ctx.reg_alloc.DefineValue(lower_inst, lower_result);
     }
 }
 
