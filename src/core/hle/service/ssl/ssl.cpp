@@ -462,11 +462,21 @@ private:
     std::shared_ptr<SslContextSharedData> shared_data;
 
     void SetOption(HLERequestContext& ctx) {
+        struct Parameters {
+            ContextOption option;
+            s32 value;
+        };
+        static_assert(sizeof(Parameters) == 0x8, "Parameters is an invalid size");
+
         IPC::RequestParser rp{ctx};
-        const auto parameters = rp.PopRaw<ContextOption>();
+        const auto parameters = rp.PopRaw<Parameters>();
+
+        LOG_WARNING(Service_SSL, "(STUBBED) called. option={}, value={}", parameters.option,
+                    parameters.value);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
+
     }
 
     void GetOption(HLERequestContext& ctx) {
