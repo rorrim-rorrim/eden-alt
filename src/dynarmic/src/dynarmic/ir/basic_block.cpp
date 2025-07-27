@@ -86,11 +86,9 @@ static std::string TerminalToString(const Terminal& terminal_variant) noexcept {
 }
 
 std::string DumpBlock(const IR::Block& block) noexcept {
-    std::string ret;
-
-    ret += fmt::format("Block: location={}\n", block.Location());
-    ret += fmt::format("cycles={}", block.CycleCount());
-    ret += fmt::format(", entry_cond={}", A64::CondToString(block.GetCondition()));
+    std::string ret = fmt::format("Block: location={}-{}\n", block.Location(), block.EndLocation())
+        + fmt::format("cycles={}", block.CycleCount())
+        + fmt::format(", entry_cond={}", A64::CondToString(block.GetCondition()));
     if (block.GetCondition() != Cond::AL) {
         ret += fmt::format(", cond_fail={}", block.ConditionFailedLocation());
     }
