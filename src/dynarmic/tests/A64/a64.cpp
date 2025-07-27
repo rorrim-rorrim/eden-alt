@@ -79,7 +79,6 @@ TEST_CASE("A64: CLZ", "[a64]") {
     jit.SetVector(0, {0xeff0fafbfcfdfeff, 0xff7f3f1f0f070301});
     jit.SetVector(1, {0xfffcfffdfffeffff, 0x000F000700030001});
     jit.SetVector(2, {0xfffffffdfffffffe, 0x0000000300000001});
-
     env.ticks_left = env.code_mem.size();
     jit.Run();
 
@@ -2327,4 +2326,22 @@ TEST_CASE("A64: SQABS", "[a64]") {
     CHECK(FP::FPSR{(uint32_t)jit.GetRegister(12)}.QC() == 0);
     CHECK(jit.GetVector(13) == Vector{0x763E4B7043BC0AC5, 0x5FDD5D671D399E2});
     CHECK(FP::FPSR{(uint32_t)jit.GetRegister(13)}.QC() == 0);
+}
+
+TEST_CASE("A64: RBIT{16b}", "[a64]") {
+    A64TestEnv env;
+    A64::UserConfig conf{};
+    conf.callbacks = &env;
+    A64::Jit jit{conf};
+    env.code_mem.emplace_back(0x6e605841); // rbit v1.16b, v2.16b
+    env.code_mem.emplace_back(0x6e605822); // rbit v2.16b, v1.16b
+    env.code_mem.emplace_back(0x14000000); // b .
+    jit.SetVector(2, { 0xcafedead, 0xbabebeef });
+    jit.SetPC(0); // at _start
+    env.ticks_left = 4;
+    jit.Run();
+    REQUIRE(jit.GetVector(1)[0] == 0x537f7bb5);
+    REQUIRE(jit.GetVector(1)[1] == 0x5d7d7df7);
+    REQUIRE(jit.GetVector(2)[0] == 0xcafedead);
+    REQUIRE(jit.GetVector(2)[1] == 0xbabebeef);
 }
