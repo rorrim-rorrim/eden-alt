@@ -514,24 +514,21 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
                     conf.recompile_on_exclusive_fastmem_failure,
                 });
 
-            code.cmp(al, 0);
+            code.xor_(status.cvt32(), status.cvt32()); //dep-break
+            code.test(code.al, code.al);
             code.setz(status.cvt8());
-            code.movzx(status.cvt32(), status.cvt8());
             code.jmp(*end, code.T_NEAR);
         });
     } else {
         code.call(wrapped_fn);
-        code.cmp(al, 0);
+        code.xor_(status.cvt32(), status.cvt32()); //dep-break
+        code.test(code.al, code.al);
         code.setz(status.cvt8());
-        code.movzx(status.cvt32(), status.cvt8());
     }
 
     code.L(*end);
-
     EmitExclusiveUnlock(code, conf, tmp, eax);
-
     ctx.reg_alloc.DefineValue(inst, status);
-
     EmitCheckMemoryAbort(ctx, inst);
 }
 
