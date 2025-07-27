@@ -1568,14 +1568,14 @@ void EmitX64::EmitCountLeadingZeros32(EmitContext& ctx, IR::Inst* inst) {
     } else {
         const Xbyak::Reg32 source = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
         const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr().cvt32();
+        const Xbyak::Reg32 temp = ctx.reg_alloc.ScratchGpr().cvt32();
 
         // The result of a bsr of zero is undefined, but zf is set after it.
         code.bsr(result, source);
-        code.mov(source, 0xFFFFFFFF);
-        code.cmovz(result, source);
-        code.neg(result);
-        code.add(result, 31);
-
+        code.mov(temp, 32);
+        code.xor_(result, 31);
+        code.test(source, source);
+        code.cmove(result, temp);
         ctx.reg_alloc.DefineValue(inst, result);
     }
 }
@@ -1592,14 +1592,14 @@ void EmitX64::EmitCountLeadingZeros64(EmitContext& ctx, IR::Inst* inst) {
     } else {
         const Xbyak::Reg64 source = ctx.reg_alloc.UseScratchGpr(args[0]).cvt64();
         const Xbyak::Reg64 result = ctx.reg_alloc.ScratchGpr().cvt64();
+        const Xbyak::Reg64 temp = ctx.reg_alloc.ScratchGpr().cvt64();
 
         // The result of a bsr of zero is undefined, but zf is set after it.
         code.bsr(result, source);
-        code.mov(source.cvt32(), 0xFFFFFFFF);
-        code.cmovz(result.cvt32(), source.cvt32());
-        code.neg(result.cvt32());
-        code.add(result.cvt32(), 63);
-
+        code.mov(temp.cvt32(), 64);
+        code.xor_(result.cvt32(), 63);
+        code.test(source, source);
+        code.cmove(result.cvt32(), temp.cvt32());
         ctx.reg_alloc.DefineValue(inst, result);
     }
 }
