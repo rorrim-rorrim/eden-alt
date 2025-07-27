@@ -432,6 +432,11 @@ HostLoc RegAlloc::SelectARegister(const boost::container::static_vector<HostLoc,
         // Abstain from using upper registers unless absolutely nescesary
         if (loc_info.IsLocked()) {
             // skip, not suitable for allocation
+        // While R13 and R14 are technically available, we avoid allocating for them
+        // at all costs, because theoretically skipping them is better than spilling
+        // all over the place - it also fixes bugs with high reg pressure
+        } else if (*it >= HostLoc::R13 && *it <= HostLoc::R15) {
+            // skip, do not touch
         } else {
             if (loc_info.lru_counter < min_lru_counter) {
                 if (loc_info.IsEmpty())

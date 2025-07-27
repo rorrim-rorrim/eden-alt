@@ -8,7 +8,6 @@
 
 #include "./testenv.h"
 #include "dynarmic/common/fp/fpsr.h"
-#include "dynarmic/common/llvm_disassemble.h"
 #include "dynarmic/interface/exclusive_monitor.h"
 
 using namespace Dynarmic;
