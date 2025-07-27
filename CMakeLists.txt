@@ -398,9 +398,9 @@ find_package(VulkanMemoryAllocator CONFIG)
 find_package(ZLIB 1.2 REQUIRED)
 find_package(zstd 1.5 REQUIRED)
 
-if (NOT YUZU_USE_EXTERNAL_VULKAN_HEADERS)
-    find_package(VulkanHeaders 1.3.274 REQUIRED)
-endif()
+# if (NOT YUZU_USE_EXTERNAL_VULKAN_HEADERS)
+#     find_package(VulkanHeaders 1.3.274 REQUIRED)
+# endif()
 
 if (NOT YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES)
     find_package(VulkanUtilityLibraries REQUIRED)
