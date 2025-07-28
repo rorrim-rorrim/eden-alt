@@ -32,4 +32,3 @@ mkdir -p artifacts
 mv $APP .
 7z a -tzip "$ZIP_NAME" eden.app
 mv "$ZIP_NAME" artifacts/
-mv artifacts ../../
