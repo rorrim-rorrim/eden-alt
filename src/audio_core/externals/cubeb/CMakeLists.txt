@@ -24,6 +24,7 @@ if (cubeb_ADDED)
     else()
         target_compile_options(cubeb PRIVATE
             /wd4456
+            /wd4458
         )
     endif()
 endif()
