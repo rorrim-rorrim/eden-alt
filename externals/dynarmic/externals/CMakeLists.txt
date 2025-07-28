@@ -1,5 +1,4 @@
 include(CPM)
-set(CPM_USE_LOCAL_PACKAGES ON)
 
 # Always build externals as static libraries, even when dynarmic is built as shared
 if (BUILD_SHARED_LIBS)
@@ -67,6 +66,7 @@ CPMAddPackage(
     URL "https://github.com/Lizzie841/unordered_dense/archive/e59d30b7b1.zip"
     OPTIONS
         "UNORDERED_DENSE_INSTALL ON"
+    FIND_PACKAGE_ARGUMENTS "CONFIG"
 )
 
 # xbyak
@@ -86,15 +86,15 @@ if ("x86_64" IN_LIST ARCHITECTURE)
         URL "https://github.com/zyantific/zycore-c/archive/75a36c45ae.zip"
     )
 
-CPMAddPackage(
-    NAME Zydis
-    VERSION 4
-    URL "https://github.com/zyantific/zydis/archive/c2d2bab025.zip"
-    OPTIONS
-        "ZYDIS_BUILD_TOOLS OFF"
-        "ZYDIS_BUILD_EXAMPLES OFF"
-        "ZYDIS_BUILD_DOXYGEN OFF"
-        "ZYAN_ZYCORE_PATH ${Zycore_SOURCE_DIR}"
-        "CMAKE_DISABLE_FIND_PACKAGE_Doxygen ON"
-)
+    CPMAddPackage(
+        NAME Zydis
+        VERSION 4
+        URL "https://github.com/zyantific/zydis/archive/c2d2bab025.zip"
+        OPTIONS
+            "ZYDIS_BUILD_TOOLS OFF"
+            "ZYDIS_BUILD_EXAMPLES OFF"
+            "ZYDIS_BUILD_DOXYGEN OFF"
+            "ZYAN_ZYCORE_PATH ${Zycore_SOURCE_DIR}"
+            "CMAKE_DISABLE_FIND_PACKAGE_Doxygen ON"
+    )
 endif()
