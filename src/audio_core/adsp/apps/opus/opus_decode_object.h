@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <opus/opus.h>
+#include <opus.h>
 
 #include "common/common_types.h"
 

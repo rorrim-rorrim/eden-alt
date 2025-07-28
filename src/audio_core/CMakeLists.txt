@@ -226,6 +226,7 @@ else()
     )
 endif()
 
+target_include_directories(audio_core PRIVATE ${OPUS_INCLUDE_DIRS})
 target_link_libraries(audio_core PUBLIC common core opus)
 
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
