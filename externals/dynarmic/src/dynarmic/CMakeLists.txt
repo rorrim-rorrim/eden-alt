@@ -164,7 +164,7 @@ if ("x86_64" IN_LIST ARCHITECTURE)
     target_link_libraries(dynarmic
         PRIVATE
             xbyak::xbyak
-            Zydis::Zydis
+            Zydis
     )
 
     target_architecture_specific_sources(dynarmic "x86_64"
@@ -405,7 +405,7 @@ target_link_libraries(dynarmic
         Boost::boost
         fmt::fmt
         merry::mcl
-        unordered_dense::unordered_dense
+        unordered_dense
 )
 if (DYNARMIC_USE_LLVM)
     target_include_directories(dynarmic PRIVATE ${LLVM_INCLUDE_DIRS})

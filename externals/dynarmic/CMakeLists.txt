@@ -39,8 +39,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Disable in-source builds
-set(CMAKE_DISABLE_SOURCE_CHANGES ON)
-set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+# set(CMAKE_DISABLE_SOURCE_CHANGES ON)
+# set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     message(SEND_ERROR "In-source builds are not allowed.")
 endif()
@@ -144,13 +144,15 @@ if (DYNARMIC_USE_BUNDLED_EXTERNALS)
     set(CMAKE_DISABLE_FIND_PACKAGE_oaknut ON)
     set(CMAKE_DISABLE_FIND_PACKAGE_unordered_dense ON)
     set(CMAKE_DISABLE_FIND_PACKAGE_xbyak ON)
-    set(CMAKE_DISABLE_FIND_PACKAGE_Zydis ON)
+
+    set(CPM_USE_LOCAL_PACKAGES OFF)
+else()
+    set(CPM_USE_LOCAL_PACKAGES ON)
 endif()
 
 find_package(Boost 1.57 REQUIRED)
 find_package(fmt 9 CONFIG)
 find_package(mcl 0.1.12 EXACT CONFIG)
-find_package(unordered_dense CONFIG)
 
 if ("arm64" IN_LIST ARCHITECTURE OR DYNARMIC_TESTS)
     find_package(oaknut 2.0.1 CONFIG)
@@ -162,7 +164,6 @@ endif()
 
 if ("x86_64" IN_LIST ARCHITECTURE)
     find_package(xbyak 7 CONFIG)
-    find_package(Zydis 4 CONFIG)
 endif()
 
 if (DYNARMIC_USE_LLVM)

@@ -1,3 +1,5 @@
+include(CPM)
+
 # Always build externals as static libraries, even when dynarmic is built as shared
 if (BUILD_SHARED_LIBS)
     set(BUILD_SHARED_LIBS OFF)
@@ -25,6 +27,7 @@ endif()
 
 # catch
 
+# TODO(crueter): dedup
 if (NOT TARGET Catch2::Catch2WithMain)
     if (DYNARMIC_TESTS)
         add_subdirectory(catch EXCLUDE_FROM_ALL)
@@ -58,13 +61,15 @@ endif()
 
 # unordered_dense
 
-if (NOT TARGET ankerl::unordered_dense)
-    set(UNORDERED_DENSE_INSTALL ON)
-    add_subdirectory(unordered_dense)
-endif()
+CPMAddPackage(
+    NAME unordered_dense
+    URL "https://github.com/Lizzie841/unordered_dense/archive/e59d30b7b1.zip"
+    OPTIONS
+        "UNORDERED_DENSE_INSTALL ON"
+)
 
 # xbyak
-# uncomment if in an independent repo.
+# uncomment if in an independent repo
 
 # if (NOT TARGET xbyak::xbyak)
 #     if ("x86_64" IN_LIST ARCHITECTURE)
@@ -74,15 +79,19 @@ endif()
 
 # zydis
 
-if (NOT TARGET Zydis::Zydis)
+CPMAddPackage(
+    NAME Zydis
+    VERSION 4
+    URL "https://github.com/zyantific/zydis/archive/c2d2bab025.zip"
+    OPTIONS
+        "ZYDIS_BUILD_TOOLS OFF"
+        "ZYDIS_BUILD_EXAMPLES OFF"
+        "ZYDIS_BUILD_DOXYGEN OFF"
+)
+
+if (Zydis_ADDED)
     if ("x86_64" IN_LIST ARCHITECTURE)
-        set(ZYDIS_BUILD_TOOLS OFF)
-        set(ZYDIS_BUILD_EXAMPLES OFF)
-        set(ZYDIS_BUILD_DOXYGEN OFF)
         set(ZYAN_ZYCORE_PATH "${CMAKE_CURRENT_LIST_DIR}/zycore-c" CACHE PATH "")
         set(CMAKE_DISABLE_FIND_PACKAGE_Doxygen ON)
-        if (NOT TARGET Zydis)
-            add_subdirectory(zydis)
-        endif()
     endif()
 endif()
