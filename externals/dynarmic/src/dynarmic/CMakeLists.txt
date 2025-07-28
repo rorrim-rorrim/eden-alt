@@ -399,13 +399,23 @@ set_target_properties(dynarmic PROPERTIES
     VERSION ${dynarmic_VERSION}
     SOVERSION ${dynarmic_VERSION_MAJOR}.${dynarmic_VERSION_MINOR}
 )
+
+if (TARGET unordered_dense::unordered_dense)
+    message(STATUS "Found system unordered_dense kjbgjdskfsdfb")
+
+    # weird quirk of system installs
+    target_link_libraries(dynarmic
+    PRIVATE
+        unordered_dense::unordered_dense
+    )
+endif()
+
 target_compile_options(dynarmic PRIVATE ${DYNARMIC_CXX_FLAGS})
 target_link_libraries(dynarmic
     PRIVATE
         Boost::boost
         fmt::fmt
         merry::mcl
-        unordered_dense
 )
 if (DYNARMIC_USE_LLVM)
     target_include_directories(dynarmic PRIVATE ${LLVM_INCLUDE_DIRS})
