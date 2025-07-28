@@ -122,7 +122,7 @@ option(YUZU_ENABLE_PORTABLE "Allow yuzu to enable portable mode if a user folder
 
 CMAKE_DEPENDENT_OPTION(YUZU_USE_FASTER_LD "Check if a faster linker is available" ON "NOT WIN32" OFF)
 
-CMAKE_DEPENDENT_OPTION(USE_SYSTEM_MOLTENVK "Use the system MoltenVK lib (instead of the bundled one)" OFF "APPLE" ON)
+CMAKE_DEPENDENT_OPTION(USE_SYSTEM_MOLTENVK "Use the system MoltenVK lib (instead of the bundled one)" OFF "APPLE" OFF)
 
 set(DEFAULT_ENABLE_OPENSSL ON)
 if (ANDROID OR WIN32 OR APPLE OR ${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
@@ -499,7 +499,11 @@ add_subdirectory(externals)
 
 if (ENABLE_QT)
     if (YUZU_USE_BUNDLED_QT)
-        download_qt(6.7.3)
+        if (APPLE)
+            download_qt(6.7.3)
+        else()
+            download_qt(6.8.3)
+        endif()
     else()
         message(STATUS "Using system Qt")
         if (NOT Qt6_DIR)
