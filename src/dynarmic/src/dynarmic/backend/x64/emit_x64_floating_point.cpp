@@ -1206,7 +1206,7 @@ static void EmitFPRSqrtEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* i
                     }
 
                     // a > 0 && a < 0x00800000;
-                    code.dec(tmp);
+                    code.sub(tmp, 1);
                     code.cmp(tmp, 0x007FFFFF);
                     code.jb(fallback, code.T_NEAR); //within -127,128
                     needs_fallback = true;
