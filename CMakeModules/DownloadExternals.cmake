@@ -221,7 +221,7 @@ set(MOLTENVK_DIR "${CMAKE_BINARY_DIR}/externals/MoltenVK")
 set(MOLTENVK_TAR "${CMAKE_BINARY_DIR}/externals/MoltenVK.tar")
 if (NOT EXISTS ${MOLTENVK_DIR})
 if (NOT EXISTS ${MOLTENVK_TAR})
-    file(DOWNLOAD https://github.com/KhronosGroup/MoltenVK/releases/download/v1.2.10-rc2/MoltenVK-all.tar
+    file(DOWNLOAD https://github.com/KhronosGroup/MoltenVK/releases/download/v1.2.11-artifacts/MoltenVK-all.tar
     ${MOLTENVK_TAR} SHOW_PROGRESS)
 endif()
 
