@@ -256,7 +256,6 @@ private:
 
     void EmitMove(const size_t bit_width, const HostLoc to, const HostLoc from) noexcept;
     void EmitExchange(const HostLoc a, const HostLoc b) noexcept;
-    Xbyak::Address SpillToOpArg(const HostLoc loc) noexcept;
 
 //data
     alignas(64) boost::container::static_vector<HostLoc, 28> gpr_order;

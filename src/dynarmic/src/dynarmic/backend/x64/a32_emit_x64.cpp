@@ -233,7 +233,7 @@ void A32EmitX64::GenTerminalHandlers() {
     terminal_handler_pop_rsb_hint = code.getCurr<const void*>();
     calculate_location_descriptor();
     code.mov(eax, dword[code.ABI_JIT_PTR + offsetof(A32JitState, rsb_ptr)]);
-    code.dec(eax);
+    code.sub(eax, 1);
     code.and_(eax, u32(A32JitState::RSBPtrMask));
     code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, rsb_ptr)], eax);
     code.cmp(rbx, qword[code.ABI_JIT_PTR + offsetof(A32JitState, rsb_location_descriptors) + rax * sizeof(u64)]);
