@@ -69,7 +69,7 @@ Result NpadVibration::GetVibrationMasterVolume(f32& out_volume) const {
 Result NpadVibration::BeginPermitVibrationSession(u64 aruid) {
     std::scoped_lock lock{mutex};
     session_aruid = aruid;
-    volume = 1.0;
+    volume = 1.0f;
     return ResultSuccess;
 }
 

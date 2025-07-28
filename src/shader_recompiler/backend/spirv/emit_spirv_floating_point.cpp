@@ -165,8 +165,8 @@ Id EmitFPSaturate16(EmitContext& ctx, Id value) {
 }
 
 Id EmitFPSaturate32(EmitContext& ctx, Id value) {
-    const Id zero{ctx.Const(f32{0.0})};
-    const Id one{ctx.Const(f32{1.0})};
+    const Id zero{ctx.Const(f32{0.0f})};
+    const Id one{ctx.Const(f32{1.0f})};
     return Clamp(ctx, ctx.F32[1], value, zero, one);
 }
 
