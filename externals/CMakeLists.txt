@@ -139,13 +139,18 @@ if (ENABLE_WEB_SERVICE AND NOT TARGET cpp-jwt::cpp-jwt)
 endif()
 
 # Opus
-if (NOT TARGET Opus::opus)
-    set(OPUS_BUILD_TESTING OFF)
-    set(OPUS_BUILD_PROGRAMS OFF)
-    set(OPUS_INSTALL_PKG_CONFIG_MODULE OFF)
-    set(OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF)
-    add_subdirectory(opus)
-endif()
+set(CPM_USE_LOCAL_PACKAGES ON)
+CPMAddPackage(
+    NAME Opus
+    VERSION 1.3
+    URL "https://github.com/xiph/opus/archive/5ded705cf4.zip"
+    FIND_PACKAGE_ARGUMENTS "MODULE"
+    OPTIONS
+        "OPUS_BUILD_TESTING OFF"
+        "OPUS_BUILD_PROGRAMS OFF"
+        "OPUS_INSTALL_PKG_CONFIG_MODULE OFF"
+        "OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF"
+)
 
 # FFMpeg
 if (YUZU_USE_BUNDLED_FFMPEG)

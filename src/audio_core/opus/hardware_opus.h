@@ -4,7 +4,7 @@
 #pragma once
 
 #include <mutex>
-#include <opus.h>
+#include <opus/opus.h>
 
 #include "audio_core/adsp/apps/opus/opus_decoder.h"
 #include "audio_core/adsp/apps/opus/shared_memory.h"

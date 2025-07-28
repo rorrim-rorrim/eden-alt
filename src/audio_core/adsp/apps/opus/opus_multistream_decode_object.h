@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <opus_multistream.h>
+#include <opus/opus_multistream.h>
 
 #include "common/common_types.h"
 
