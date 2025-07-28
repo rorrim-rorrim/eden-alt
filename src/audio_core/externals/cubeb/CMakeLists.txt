@@ -1,11 +1,15 @@
 # SPDX-FileCopyrightText: 2025 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+# TODO(crueter): Create a common CPMUtil.cmake that does this for me
 include(CPM)
-set(CPM_USE_LOCAL_PACKAGES ON)
+set(CPM_USE_LOCAL_PACKAGES OFF)
 CPMAddPackage(
-    URI "gh:mozilla/cubeb#fa02160712"
+    NAME cubeb
+    URL "https://github.com/mozilla/cubeb/archive/fa02160712.zip"
     FIND_PACKAGE_ARGUMENTS "CONFIG" # not sure this works outside of gentoo
+    OPTIONS
+        "USE_SANITIZERS OFF"
 )
 
 if (cubeb_ADDED)

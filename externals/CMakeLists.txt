@@ -98,10 +98,10 @@ if (YUZU_USE_EXTERNAL_SDL2)
     endif()
 
     CPMAddPackage(
-            NAME SDL2
-            URL "https://github.com/libsdl-org/SDL/archive/${SDL_HASH}.zip"
-            URL_HASH SHA512=${SDL_SHA512SUM}
-        )
+        NAME SDL2
+        URL "https://github.com/libsdl-org/SDL/archive/${SDL_HASH}.zip"
+        URL_HASH SHA512=${SDL_SHA512SUM}
+    )
 endif()
 
 # ENet
@@ -166,8 +166,7 @@ endif()
 CPMAddPackage(
     NAME VulkanHeaders
     VERSION 1.3.274
-    GIT_REPOSITORY "https://github.com/KhronosGroup/Vulkan-Headers.git"
-    GIT_TAG 89268a6d17
+    URL "https://github.com/KhronosGroup/Vulkan-Headers/archive/89268a6d17.zip"
 )
 
 # Vulkan-Utility-Libraries
@@ -179,8 +178,7 @@ endif()
 
 CPMAddPackage(
     NAME VulkanUtilityLibraries
-    GIT_REPOSITORY "https://github.com/KhronosGroup/Vulkan-Utility-Libraries.git"
-    GIT_TAG df2e358152
+    URL "https://github.com/KhronosGroup/Vulkan-Utility-Libraries/archive/df2e358152.zip"
 )
 
 # SPIRV-Tools
