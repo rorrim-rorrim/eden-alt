@@ -131,9 +131,12 @@ const HostLocList any_gpr = {
 };
 
 // XMM0 is reserved for use by instructions that implicitly use it as an argument
+// XMM1 is used by 128 mem accessors
+// XMM2 is also used by that (and other stuff)
+// Basically dont use either XMM0, XMM1 or XMM2 ever; they're left for the regsel
 const HostLocList any_xmm = {
-    HostLoc::XMM1,
-    HostLoc::XMM2,
+    //HostLoc::XMM1,
+    //HostLoc::XMM2,
     HostLoc::XMM3,
     HostLoc::XMM4,
     HostLoc::XMM5,

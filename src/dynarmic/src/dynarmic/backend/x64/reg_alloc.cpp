@@ -571,7 +571,7 @@ HostLoc RegAlloc::FindFreeSpill(bool is_xmm) const noexcept {
     if (!is_xmm) {
         // TODO(lizzie): Using lower (xmm0 and such) registers results in issues/crashes - INVESTIGATE WHY
         // Intel recommends to spill GPR onto XMM registers IF POSSIBLE
-        for (size_t i = size_t(HostLoc::XMM15); i >= size_t(HostLoc::XMM0); --i)
+        for (auto const i : any_xmm)
             if (const auto loc = HostLoc(i); LocInfo(loc).IsEmpty())
                 return loc;
     }
