@@ -25,9 +25,6 @@
 [submodule "externals/dynarmic/externals/fmt"]
 	path = externals/dynarmic/externals/fmt
 	url = https://github.com/fmtlib/fmt.git
-[submodule "externals/dynarmic/externals/zycore-c"]
-	path = externals/dynarmic/externals/zycore-c
-	url = https://github.com/zyantific/zycore-c.git
 [submodule "externals/nx_tzdb/tzdb_to_nx/externals/tz/tz"]
 	path = externals/nx_tzdb/tzdb_to_nx/externals/tz/tz
 	url = https://github.com/eggert/tz.git

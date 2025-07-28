@@ -1,4 +1,5 @@
 include(CPM)
+set(CPM_USE_LOCAL_PACKAGES ON)
 
 # Always build externals as static libraries, even when dynarmic is built as shared
 if (BUILD_SHARED_LIBS)
@@ -89,9 +90,14 @@ CPMAddPackage(
         "ZYDIS_BUILD_DOXYGEN OFF"
 )
 
+CPMAddPackage(
+    NAME Zycore
+    URL "https://github.com/zyantific/zycore-c/archive/75a36c45ae.zip"
+)
+
 if (Zydis_ADDED)
     if ("x86_64" IN_LIST ARCHITECTURE)
-        set(ZYAN_ZYCORE_PATH "${CMAKE_CURRENT_LIST_DIR}/zycore-c" CACHE PATH "")
+        set(ZYAN_ZYCORE_PATH "${Zycore_SOURCE_DIR}" CACHE PATH "")
         set(CMAKE_DISABLE_FIND_PACKAGE_Doxygen ON)
     endif()
 endif()
