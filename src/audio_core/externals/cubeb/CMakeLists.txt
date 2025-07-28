@@ -3,7 +3,7 @@
 
 # TODO(crueter): Create a common CPMUtil.cmake that does this for me
 include(CPM)
-set(CPM_USE_LOCAL_PACKAGES OFF)
+set(CPM_USE_LOCAL_PACKAGES ON)
 CPMAddPackage(
     NAME cubeb
     URL "https://github.com/mozilla/cubeb/archive/fa02160712.zip"
@@ -13,17 +13,18 @@ CPMAddPackage(
 )
 
 if (cubeb_ADDED)
-    set(BUILD_TESTS OFF)
-    set(BUILD_TOOLS OFF)
-
     if (NOT MSVC)
         if (TARGET speex)
             target_compile_options(speex PRIVATE -Wno-sign-compare)
         endif()
-        target_compile_options(cubeb PRIVATE
+
+        set_target_properties(cubeb PROPERTIES COMPILE_OPTIONS "")
+        target_compile_options(cubeb INTERFACE
             -Wno-implicit-const-int-float-conversion
             -Wno-shadow
-            -Wno-missing-declarations -Wno-return-type
+            -Wno-missing-declarations
+            -Wno-return-type
+            -Wno-maybe-uninitialized
         )
     else()
         target_compile_options(cubeb PRIVATE

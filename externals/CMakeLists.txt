@@ -8,8 +8,10 @@ include(CPM)
 # some of its variables, which is only possible in 3.13+
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
-# Disable tests in all externals supporting the standard option name
+# Disable tests/tools in all externals supporting the standard option name
 set(BUILD_TESTING OFF)
+set(BUILD_TESTS OFF)
+set(BUILD_TOOLS OFF)
 
 # Build only static externals
 set(BUILD_SHARED_LIBS OFF)
@@ -183,8 +185,12 @@ CPMAddPackage(
 
 # SPIRV-Tools
 if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
-    set(SPIRV_SKIP_EXECUTABLES ON)
-    add_subdirectory(SPIRV-Tools)
+    CPMAddPackage(
+        NAME SPIRV-Tools
+        URL "https://github.com/KhronosGroup/SPIRV-Tools/archive/40eb301f32.zip"
+        OPTIONS
+            "SPIRV_SKIP_EXECUTABLES ON"
+    )
 endif()
 
 # Boost headers

@@ -59,12 +59,16 @@ else()
 endif()
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" OFF)
+else()
+    option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
+endif()
+
+if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" OFF)
 else()
     option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ON)
 endif()
-
-CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON "YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES" OFF)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" OFF)
@@ -98,6 +102,7 @@ CMAKE_DEPENDENT_OPTION(YUZU_ROOM_STANDALONE "Enable standalone room executable" 
 
 CMAKE_DEPENDENT_OPTION(YUZU_CMD "Compile the eden-cli executable" ON "NOT ANDROID" OFF)
 
+# TODO(crueter): remove? cpm?
 CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
 
 option(YUZU_USE_BUNDLED_VCPKG "Use vcpkg for yuzu dependencies" "${MSVC}")
@@ -158,6 +163,8 @@ if (ANDROID)
     set(CMAKE_POLICY_VERSION_MINIMUM 3.5) # Workaround for Oboe
 endif()
 
+set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
+
 if (YUZU_USE_BUNDLED_VCPKG)
     if (ANDROID)
         set(ENV{ANDROID_NDK_HOME} "${ANDROID_NDK}")
@@ -202,7 +209,16 @@ if (YUZU_USE_BUNDLED_VCPKG)
         list(APPEND VCPKG_MANIFEST_FEATURES "android")
     endif()
 
-    include(${CMAKE_SOURCE_DIR}/externals/vcpkg/scripts/buildsystems/vcpkg.cmake)
+    include(CPM)
+    set(CPM_USE_LOCAL_PACKAGES OFF)
+
+    CPMAddPackage(
+        NAME vcpkg
+        DOWNLOAD_ONLY YES
+        URL "https://github.com/microsoft/vcpkg/archive/ea2a964f93.zip"
+    )
+
+    include(${vcpkg_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake)
 elseif(NOT "$ENV{VCPKG_TOOLCHAIN_FILE}" STREQUAL "")
     # Disable manifest mode (use vcpkg classic mode) when using a custom vcpkg installation
     option(VCPKG_MANIFEST_MODE "")
@@ -319,7 +335,7 @@ if (UNIX)
     add_definitions(-DYUZU_UNIX=1)
 endif()
 
-if (ARCHITECTURE_arm64 AND (ANDROID OR ${CMAKE_SYSTEM_NAME} STREQUAL "Linux"))
+if (ARCHITECTURE_arm64 AND (ANDROID OR APPLE OR ${CMAKE_SYSTEM_NAME} STREQUAL "Linux"))
     set(HAS_NCE 1)
     add_definitions(-DHAS_NCE=1)
 endif()
@@ -381,7 +397,6 @@ find_package(fmt 8 REQUIRED)
 find_package(LLVM MODULE COMPONENTS Demangle)
 find_package(lz4 REQUIRED)
 find_package(nlohmann_json 3.8 REQUIRED)
-find_package(Opus 1.3 MODULE)
 find_package(RenderDoc MODULE)
 find_package(SimpleIni MODULE)
 find_package(stb MODULE)
@@ -390,13 +405,14 @@ find_package(ZLIB 1.2 REQUIRED)
 find_package(zstd 1.5 REQUIRED)
 
 # if (NOT YUZU_USE_EXTERNAL_VULKAN_HEADERS)
-#     find_package(VulkanHeaders 1.3.274)
+#     find_package(VulkanHeaders 1.3.274 REQUIRED)
 # endif()
 
 # if (NOT YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES)
-#     find_package(VulkanUtilityLibraries)
+#     find_package(VulkanUtilityLibraries REQUIRED)
 # endif()
 
+# TODO(crueter): Work around this
 if (NOT YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(SPIRV-Tools REQUIRED SPIRV-Tools)
@@ -420,6 +436,10 @@ endif()
 
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
     find_package(dynarmic 6.4.0 CONFIG)
+endif()
+
+if (ENABLE_CUBEB)
+    find_package(cubeb CONFIG)
 endif()
 
 if (USE_DISCORD_PRESENCE)
@@ -483,8 +503,6 @@ set(FFmpeg_COMPONENTS
     avutil
     swscale)
 
-set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
-
 add_subdirectory(externals)
 
 if (ENABLE_QT)
@@ -495,7 +513,7 @@ if (ENABLE_QT)
         if (NOT Qt6_DIR)
             set(Qt6_DIR "" CACHE PATH "Additional path to search for Qt6 libraries like C:/Qt/6.8.3/msvc2022_64/lib/cmake/Qt6")
         endif()
-		list(APPEND CMAKE_PREFIX_PATH "${Qt6_DIR}")
+        list(APPEND CMAKE_PREFIX_PATH "${Qt6_DIR}")
     endif()
 
     find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent)
