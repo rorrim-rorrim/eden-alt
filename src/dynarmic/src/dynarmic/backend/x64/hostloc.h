@@ -110,6 +110,7 @@ using HostLocList = std::initializer_list<HostLoc>;
 
 // RSP is preserved for function calls
 // R13 contains fastmem pointer if any
+// R14 contains the pagetable pointer
 // R15 contains the JitState pointer
 const HostLocList any_gpr = {
     HostLoc::RAX,
@@ -126,6 +127,7 @@ const HostLocList any_gpr = {
     HostLoc::R12,
     HostLoc::R13,
     HostLoc::R14,
+    //HostLoc::R15,
 };
 
 // XMM0 is reserved for use by instructions that implicitly use it as an argument

@@ -324,7 +324,7 @@ void BlockOfCode::GenRunCode(std::function<void(BlockOfCode&)> rcp) {
     ABI_PushCalleeSaveRegistersAndAdjustStack(*this, sizeof(StackLayout));
 
     mov(ABI_JIT_PTR, ABI_PARAM1);
-    mov(rbx, ABI_PARAM2);  // save temporarily in non-volatile register
+    mov(rbx, ABI_PARAM2); // save temporarily in non-volatile register
 
     if (cb.enable_cycle_counting) {
         cb.GetTicksRemaining->EmitCall(*this);
