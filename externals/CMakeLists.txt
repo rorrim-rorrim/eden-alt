@@ -154,25 +154,27 @@ if (YUZU_USE_BUNDLED_FFMPEG)
     set(FFmpeg_INCLUDE_DIR "${FFmpeg_INCLUDE_DIR}" PARENT_SCOPE)
 endif()
 
+# TODO(crueter): System vk headers is broken (at least on gentoo lol)
+
 # Vulkan-Headers
 if (YUZU_USE_EXTERNAL_VULKAN_HEADERS)
-    set(CPM_USE_LOCAL_PACKAGES OFF)
-else()
-    set(CPM_USE_LOCAL_PACKAGES ON)
+    CPMAddPackage(
+        NAME VulkanHeaders
+        VERSION 1.3.274
+        GIT_REPOSITORY "https://github.com/KhronosGroup/Vulkan-Headers.git"
+        GIT_TAG 89268a6d17
+    )
 endif()
-
-CPMAddPackage(
-    NAME VulkanHeaders
-    VERSION 1.3.274
-    GIT_REPOSITORY "https://github.com/KhronosGroup/Vulkan-Headers.git"
-    GIT_TAG 89268a6d17
-    FIND_PACKAGE_ARGUMENTS "MODULE"
-)
 
 # Vulkan-Utility-Libraries
 if (YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES)
-    add_subdirectory(Vulkan-Utility-Libraries)
+    CPMAddPackage(
+        NAME VulkanUtilityLibraries
+        GIT_REPOSITORY "https://github.com/KhronosGroup/Vulkan-Utility-Libraries.git"
+        GIT_TAG df2e358152
+    )
 endif()
+
 
 # SPIRV-Tools
 if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
