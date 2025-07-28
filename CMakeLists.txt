@@ -499,7 +499,7 @@ add_subdirectory(externals)
 
 if (ENABLE_QT)
     if (YUZU_USE_BUNDLED_QT)
-        download_qt(6.8.3)
+        download_qt(6.7.3)
     else()
         message(STATUS "Using system Qt")
         if (NOT Qt6_DIR)
