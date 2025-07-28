@@ -3326,7 +3326,7 @@ void EmitX64::EmitVectorPolynomialMultiply8(EmitContext& ctx, IR::Inst* inst) {
         code.paddb(mask, mask);
         code.paddb(xmm_a, xmm_a);
         code.pblendvb(result, alternate);
-        code.dec(counter);
+        code.sub(counter, 1);
         code.jnz(loop);
 
         ctx.reg_alloc.DefineValue(inst, result);
@@ -3370,7 +3370,7 @@ void EmitX64::EmitVectorPolynomialMultiplyLong8(EmitContext& ctx, IR::Inst* inst
         code.paddw(mask, mask);
         code.paddw(xmm_a, xmm_a);
         code.pblendvb(result, alternate);
-        code.dec(counter);
+        code.sub(counter, 1);
         code.jnz(loop);
 
         ctx.reg_alloc.DefineValue(inst, result);
