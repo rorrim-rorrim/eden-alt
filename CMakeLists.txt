@@ -212,6 +212,8 @@ if (YUZU_USE_BUNDLED_VCPKG)
     include(CPM)
     set(CPM_USE_LOCAL_PACKAGES OFF)
 
+    # crueter: unfortunately shallow-downloading vcpkg isn't possible
+    # hence why I want to remove it
     CPMAddPackage(
         NAME vcpkg
         DOWNLOAD_ONLY YES

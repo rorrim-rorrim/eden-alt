@@ -80,6 +80,12 @@ CPMAddPackage(
 
 # zydis
 
+if ("x86_64" IN_LIST ARCHITECTURE)
+    CPMAddPackage(
+        NAME Zycore
+        URL "https://github.com/zyantific/zycore-c/archive/75a36c45ae.zip"
+    )
+
 CPMAddPackage(
     NAME Zydis
     VERSION 4
@@ -88,16 +94,7 @@ CPMAddPackage(
         "ZYDIS_BUILD_TOOLS OFF"
         "ZYDIS_BUILD_EXAMPLES OFF"
         "ZYDIS_BUILD_DOXYGEN OFF"
+        "ZYAN_ZYCORE_PATH ${Zycore_SOURCE_DIR}"
+        "CMAKE_DISABLE_FIND_PACKAGE_Doxygen ON"
 )
-
-CPMAddPackage(
-    NAME Zycore
-    URL "https://github.com/zyantific/zycore-c/archive/75a36c45ae.zip"
-)
-
-if (Zydis_ADDED)
-    if ("x86_64" IN_LIST ARCHITECTURE)
-        set(ZYAN_ZYCORE_PATH "${Zycore_SOURCE_DIR}" CACHE PATH "")
-        set(CMAKE_DISABLE_FIND_PACKAGE_Doxygen ON)
-    endif()
 endif()
