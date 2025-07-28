@@ -10,6 +10,8 @@ CPMAddPackage(
     FIND_PACKAGE_ARGUMENTS "CONFIG" # not sure this works outside of gentoo
     OPTIONS
         "USE_SANITIZERS OFF"
+        "BUILD_TESTS OFF"
+        "BUILD_TOOLS OFF"
 )
 
 if (cubeb_ADDED)

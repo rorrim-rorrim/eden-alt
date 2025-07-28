@@ -13,8 +13,6 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 # Disable tests/tools in all externals supporting the standard option name
 set(BUILD_TESTING OFF)
-set(BUILD_TESTS OFF)
-set(BUILD_TOOLS OFF)
 
 # Build only static externals
 set(BUILD_SHARED_LIBS OFF)
