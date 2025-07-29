@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -46,7 +49,16 @@ void TranslatorVisitor::ISBERD(u64 insn) {
         throw NotImplementedException("Mode {}", isberd.mode.Value());
     }
     if (isberd.shift != Shift::Default) {
-        throw NotImplementedException("Shift {}", isberd.shift.Value());
+        IR::U32 result{};
+        switch (static_cast<u64>(isberd.shift.Value())) {
+        case static_cast<u64>(Shift::U16):
+            result = ir.ShiftLeftLogical(result, static_cast<IR::U32>(ir.Imm16(1)));
+            break;
+        case static_cast<u64>(Shift::B32):
+            result = ir.ShiftLeftLogical(result, ir.Imm32(1));
+            break;
+        }
+        X(isberd.dest_reg, result);
     }
     //LOG_DEBUG(Shader, "(STUBBED) called {}", insn);
     if (isberd.src_reg_num == 0xFF) {
