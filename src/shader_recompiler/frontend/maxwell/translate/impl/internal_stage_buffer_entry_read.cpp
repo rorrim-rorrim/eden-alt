@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -37,7 +40,9 @@ void TranslatorVisitor::ISBERD(u64 insn) {
     } const isberd{insn};
 
     if (isberd.skew != 0) {
-        throw NotImplementedException("SKEW");
+        IR::U32 current_lane_id{ir.LaneId()};
+        IR::U32 result{ir.IAdd(X(isberd.src_reg), current_lane_id)};
+        X(isberd.dest_reg, result);
     }
     if (isberd.o != 0) {
         throw NotImplementedException("O");
