@@ -202,6 +202,12 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+
+        // Reset navigation graph with new intent data to recreate EmulationFragment
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
+        navHostFragment.navController.setGraph(R.navigation.emulation_navigation, intent.extras)
+
         nfcReader.onNewIntent(intent)
         InputHandler.updateControllerData()
     }
