@@ -46,7 +46,18 @@ void TranslatorVisitor::ISBERD(u64 insn) {
         throw NotImplementedException("Mode {}", isberd.mode.Value());
     }
     if (isberd.shift != Shift::Default) {
-        throw NotImplementedException("Shift {}", isberd.shift.Value());
+        IR::U32 offset{};
+        IR::U32 result{};
+        switch(static_cast<u64>(isberd.shift.Value())) {
+        case static_cast<u64>(Shift::U16):
+            offset = static_cast<IR::U32>(ir.ShiftLeftLogical(X(isberd.src_reg), ir.Imm32(1)));
+            break;
+        case static_cast<u64>(Shift::B32):
+            offset = static_cast<IR::U32>(ir.ShiftLeftLogical(X(isberd.src_reg), ir.Imm32(2)));
+            break;
+        }
+        result = ir.IAdd(X(isberd.src_reg), offset);
+        X(isberd.dest_reg, result);
     }
     //LOG_DEBUG(Shader, "(STUBBED) called {}", insn);
     if (isberd.src_reg_num == 0xFF) {
