@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -75,6 +78,8 @@ NvResult nvhost_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> inpu
             return WrapFixed(this, &nvhost_gpu::SetErrorNotifier, input, output);
         case 0xd:
             return WrapFixed(this, &nvhost_gpu::SetChannelPriority, input, output);
+        case 0x18:
+            return WrapFixed(this, &nvhost_gpu::AllocGPFIFOEx, input, output, fd);
         case 0x1a:
             return WrapFixed(this, &nvhost_gpu::AllocGPFIFOEx2, input, output, fd);
         case 0x1b:
@@ -167,12 +172,35 @@ NvResult nvhost_gpu::SetChannelPriority(IoctlChannelSetPriority& params) {
     return NvResult::Success;
 }
 
-NvResult nvhost_gpu::AllocGPFIFOEx2(IoctlAllocGpfifoEx2& params, DeviceFD fd) {
-    LOG_WARNING(Service_NVDRV,
-                "(STUBBED) called, num_entries={:X}, flags={:X}, unk0={:X}, "
-                "unk1={:X}, unk2={:X}, unk3={:X}",
-                params.num_entries, params.flags, params.unk0, params.unk1, params.unk2,
-                params.unk3);
+NvResult nvhost_gpu::AllocGPFIFOEx(IoctlAllocGpfifoEx& params, DeviceFD fd) {
+    LOG_DEBUG(Service_NVDRV, "called, num_entries={:X}, flags={:X}, reserved1={:X}, "
+              "reserved2={:X}, reserved3={:X}",
+              params.num_entries, params.flags, params.reserved[0], params.reserved[1],
+              params.reserved[2]);
+
+    if (channel_state->initialized) {
+        LOG_CRITICAL(Service_NVDRV, "Already allocated!");
+        return NvResult::AlreadyAllocated;
+    }
+
+    u64 program_id{};
+    if (auto* const session = core.GetSession(sessions[fd]); session != nullptr) {
+        program_id = session->process->GetProgramId();
+    }
+
+    system.GPU().InitChannel(*channel_state, program_id);
+
+    params.fence_out = syncpoint_manager.GetSyncpointFence(channel_syncpoint);
+
+    return NvResult::Success;
+}
+
+NvResult nvhost_gpu::AllocGPFIFOEx2(IoctlAllocGpfifoEx& params, DeviceFD fd) {
+    LOG_DEBUG(Service_NVDRV,
+              "called, num_entries={:X}, flags={:X}, reserved1={:X}, "
+              "reserved2={:X}, reserved3={:X}",
+              params.num_entries, params.flags, params.reserved[0], params.reserved[1],
+              params.reserved[2]);
 
     if (channel_state->initialized) {
         LOG_CRITICAL(Service_NVDRV, "Already allocated!");
@@ -192,11 +220,27 @@ NvResult nvhost_gpu::AllocGPFIFOEx2(IoctlAllocGpfifoEx2& params, DeviceFD fd) {
 }
 
 NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called, class_num={:X}, flags={:X}", params.class_num,
-                params.flags);
+    LOG_DEBUG(Service_NVDRV, "called, class_num={:X}, flags={:X}, obj_id={:X}", params.class_num,
+                params.flags, params.obj_id);
 
-    params.obj_id = 0x0;
-    return NvResult::Success;
+    if (!channel_state->initialized) {
+        LOG_CRITICAL(Service_NVDRV, "No address space bound to allocate a object context!");
+        return NvResult::NotInitialized;
+    }
+
+    switch (static_cast<CtxClasses>(params.class_num)) { 
+    case CtxClasses::Ctx2D:
+    case CtxClasses::Ctx3D:
+    case CtxClasses::CtxCompute:
+    case CtxClasses::CtxKepler:
+    case CtxClasses::CtxDMA:
+    case CtxClasses::CtxChannelGPFIFO:
+        ctxObj_params.push_back(params);
+        return NvResult::Success;
+    default:
+        LOG_ERROR(Service_NVDRV, "Invalid class number for object context: {:X}", params.class_num);
+        return NvResult::BadParameter;
+    }
 }
 
 static boost::container::small_vector<Tegra::CommandHeader, 512> BuildWaitCommandList(

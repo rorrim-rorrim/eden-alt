@@ -457,6 +457,16 @@ struct Values {
                                                         Specialization::Default,
                                                         true,
                                                         true};
+#ifdef ANDROID
+    SwitchableSetting<bool> early_release_fences{linkage,
+                                                 false,
+                                                 "early_release_fences",
+                                                 Category::RendererAdvanced,
+                                                 Specialization::Default,
+                                                 true,
+                                                 true};
+#endif
+
     SwitchableSetting<bool> async_presentation{linkage,
 #ifdef ANDROID
                                                true,
@@ -695,7 +705,7 @@ struct Values {
 
     // Miscellaneous
     Setting<std::string> log_filter{linkage, "*:Info", "log_filter", Category::Miscellaneous};
-    Setting<bool> log_flush_lines{linkage, false, "flush_lines", Category::Miscellaneous};
+    Setting<bool> log_flush_lines{linkage, true, "flush_lines", Category::Miscellaneous, Specialization::Default, true, true};
     Setting<bool> censor_username{linkage, true, "censor_username", Category::Miscellaneous};
     Setting<bool> use_dev_keys{linkage, false, "use_dev_keys", Category::Miscellaneous};
     Setting<bool> first_launch{linkage, true, "first_launch", Category::Miscellaneous};

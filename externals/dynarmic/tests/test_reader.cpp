@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2023 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -10,7 +13,7 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "./A32/testenv.h"
 #include "./A64/testenv.h"
@@ -158,7 +161,8 @@ void RunTestInstance(Dynarmic::A32::Jit& jit,
 }
 
 A64::UserConfig GetA64UserConfig(A64TestEnv& jit_env, bool noopt) {
-    A64::UserConfig jit_user_config{&jit_env};
+    A64::UserConfig jit_user_config{};
+    jit_user_config.callbacks = &jit_env;
     jit_user_config.optimizations &= ~OptimizationFlag::FastDispatch;
     // The below corresponds to the settings for qemu's aarch64_max_initfn
     jit_user_config.dczid_el0 = 7;
