@@ -34,7 +34,7 @@ void HosBinderDriverServer::AdjustRefcount(s32 binder_id, s32 delta, bool is_wea
 
     auto search_rc = refcounts.find(binder_id);
     if (search_rc == refcounts.end()) {
-        LOG_WARNING(Service_VI, "AdjustRefcount called for unknown binder id {}", binder_id);
+//        LOG_WARNING(Service_VI, "AdjustRefcount called for unknown binder id {}", binder_id);
         return;
     }
 
