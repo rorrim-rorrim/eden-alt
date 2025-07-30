@@ -404,14 +404,6 @@ find_package(VulkanMemoryAllocator CONFIG)
 find_package(ZLIB 1.2 REQUIRED)
 find_package(zstd 1.5 REQUIRED)
 
-# if (NOT YUZU_USE_EXTERNAL_VULKAN_HEADERS)
-#     find_package(VulkanHeaders 1.3.274 REQUIRED)
-# endif()
-
-# if (NOT YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES)
-#     find_package(VulkanUtilityLibraries REQUIRED)
-# endif()
-
 # TODO(crueter): Work around this
 if (NOT YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
     find_package(PkgConfig REQUIRED)
@@ -424,10 +416,6 @@ if (ENABLE_LIBUSB)
     else()
     	find_package(libusb 1.0.24 MODULE)
     endif()
-endif()
-
-if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
-    find_package(xbyak 7 CONFIG)
 endif()
 
 if (ARCHITECTURE_arm64)
