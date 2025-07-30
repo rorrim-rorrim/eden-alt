@@ -76,13 +76,13 @@ struct UUID {
     u128 AsU128() const;
 
     /**
-     * Creates a default UUID "Eden Default UID".
+     * Creates a default UUID "yuzu Default UID".
      *
-     * @returns A UUID with its bytes set to the ASCII values of "Eden Default UID".
+     * @returns A UUID with its bytes set to the ASCII values of "yuzu Default UID".
      */
     static constexpr UUID MakeDefault() {
         return UUID{
-            {'E', 'd', 'e', 'n', ' ', 'D', 'e', 'f', 'a', 'u', 'l', 't', ' ', 'U', 'I', 'D'},
+            {'y', 'u', 'z', 'u', ' ', 'D', 'e', 'f', 'a', 'u', 'l', 't', ' ', 'U', 'I', 'D'},
         };
     }
 

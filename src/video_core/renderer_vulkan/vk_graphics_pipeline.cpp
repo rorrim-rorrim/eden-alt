@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -178,7 +175,7 @@ bool Passes(const std::array<vk::ShaderModule, NUM_STAGES>& modules,
     return true;
 }
 
-using ConfigureFuncPtr = bool (*)(GraphicsPipeline*, bool);
+using ConfigureFuncPtr = void (*)(GraphicsPipeline*, bool);
 
 template <typename Spec, typename... Specs>
 ConfigureFuncPtr FindSpec(const std::array<vk::ShaderModule, NUM_STAGES>& modules,
@@ -305,7 +302,7 @@ void GraphicsPipeline::AddTransition(GraphicsPipeline* transition) {
 }
 
 template <typename Spec>
-bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
+void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     std::array<VideoCommon::ImageViewInOut, MAX_IMAGE_ELEMENTS> views;
     std::array<VideoCommon::SamplerId, MAX_IMAGE_ELEMENTS> samplers;
     size_t sampler_index{};
@@ -385,8 +382,6 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                 add_image(desc, desc.is_written);
             }
         }
-
-        return true;
     }};
     if constexpr (Spec::enabled_stages[0]) {
         config_stage(0);
@@ -401,8 +396,7 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         config_stage(3);
     }
     if constexpr (Spec::enabled_stages[4]) {
-        if (!config_stage(4))
-            return false;
+        config_stage(4);
     }
     texture_cache.FillGraphicsImageViews<Spec::has_images>(std::span(views.data(), view_index));
 
@@ -496,8 +490,6 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     texture_cache.UpdateRenderTargets(false);
     texture_cache.CheckFeedbackLoop(views);
     ConfigureDraw(rescaling, render_area);
-
-    return true;
 }
 
 void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
@@ -700,7 +692,6 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .depthBiasClamp = 0.0f,
         .depthBiasSlopeFactor = 0.0f,
         .lineWidth = 1.0f,
-        // TODO(alekpop): Transfer from regs
     };
     VkPipelineRasterizationLineStateCreateInfoEXT line_state{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT,
@@ -708,9 +699,9 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .lineRasterizationMode = key.state.smooth_lines != 0
                                      ? VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT
                                      : VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT,
-        .stippledLineEnable = dynamic.line_stipple_enable ? VK_TRUE : VK_FALSE,
-        .lineStippleFactor = key.state.line_stipple_factor,
-        .lineStipplePattern = static_cast<uint16_t>(key.state.line_stipple_pattern),
+        .stippledLineEnable = VK_FALSE, // TODO
+        .lineStippleFactor = 0,
+        .lineStipplePattern = 0,
     };
     VkPipelineRasterizationConservativeStateCreateInfoEXT conservative_raster{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_CONSERVATIVE_STATE_CREATE_INFO_EXT,
@@ -763,8 +754,8 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .stencilTestEnable = dynamic.stencil_enable,
         .front = GetStencilFaceState(dynamic.front),
         .back = GetStencilFaceState(dynamic.back),
-        .minDepthBounds = static_cast<f32>(key.state.depth_bounds_min),
-        .maxDepthBounds = static_cast<f32>(key.state.depth_bounds_max),
+        .minDepthBounds = 0.0f,
+        .maxDepthBounds = 0.0f,
     };
     if (dynamic.depth_bounds_enable && !device.IsDepthBoundsSupported()) {
         LOG_WARNING(Render_Vulkan, "Depth bounds is enabled but not supported");
@@ -805,12 +796,12 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pAttachments = cb_attachments.data(),
         .blendConstants = {}
     };
-    static_vector<VkDynamicState, 34> dynamic_states{
+    static_vector<VkDynamicState, 38> dynamic_states{
         VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
         VK_DYNAMIC_STATE_DEPTH_BIAS,         VK_DYNAMIC_STATE_BLEND_CONSTANTS,
         VK_DYNAMIC_STATE_DEPTH_BOUNDS,       VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
         VK_DYNAMIC_STATE_STENCIL_WRITE_MASK, VK_DYNAMIC_STATE_STENCIL_REFERENCE,
-        VK_DYNAMIC_STATE_LINE_WIDTH,
+        VK_DYNAMIC_STATE_LINE_WIDTH,         VK_DYNAMIC_STATE_LINE_STIPPLE,
     };
     if (key.state.extended_dynamic_state) {
         static constexpr std::array extended{
@@ -855,6 +846,9 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
                 VK_DYNAMIC_STATE_LOGIC_OP_ENABLE_EXT,
 
                 // additional state3 extensions
+
+                // FIXME(crueter): conservative rasterization is totally broken
+                // VK_DYNAMIC_STATE_RASTERIZATION_SAMPLES_EXT,
                 VK_DYNAMIC_STATE_LINE_RASTERIZATION_MODE_EXT,
 
                 VK_DYNAMIC_STATE_CONSERVATIVE_RASTERIZATION_MODE_EXT,
@@ -862,6 +856,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
                 VK_DYNAMIC_STATE_LINE_STIPPLE_ENABLE_EXT,
                 VK_DYNAMIC_STATE_ALPHA_TO_COVERAGE_ENABLE_EXT,
                 VK_DYNAMIC_STATE_ALPHA_TO_ONE_ENABLE_EXT,
+                VK_DYNAMIC_STATE_TESSELLATION_DOMAIN_ORIGIN_EXT,
                 VK_DYNAMIC_STATE_DEPTH_CLIP_ENABLE_EXT,
                 VK_DYNAMIC_STATE_PROVOKING_VERTEX_MODE_EXT,
             };

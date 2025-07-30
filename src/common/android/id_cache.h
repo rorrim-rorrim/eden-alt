@@ -39,9 +39,6 @@ jclass GetDiskCacheLoadCallbackStageClass();
 jclass GetGameDirClass();
 jmethodID GetGameDirConstructor();
 jmethodID GetDiskCacheLoadProgress();
-jmethodID GetCopyToStorage();
-jmethodID GetFileExists();
-jmethodID GetFileExtension();
 
 jmethodID GetExitEmulationActivity();
 jmethodID GetOnEmulationStarted();

@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -99,20 +96,12 @@ private:
  */
 std::vector<std::string> ListCubebSinkDevices(bool capture);
 
-// REVERSION - function GetCubebLatency() reintroduced from EA-3833 - DIABLO 3 FIX
-/**
- * Get the reported latency for this sink.
- *
- * @return Minimum latency for this sink.
- */
-u32 GetCubebLatency();
-
 /**
  * Check if this backend is suitable for use.
  * Checks if enabled, its latency, whether it opens successfully, etc.
  *
  * @return True is this backend is suitable, false otherwise.
  */
-// bool IsCubebSuitable(); // REVERTED BACK TO GetCubebLatency() FROM 3833
+bool IsCubebSuitable();
 
 } // namespace AudioCore::Sink

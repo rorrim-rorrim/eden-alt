@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -68,7 +65,7 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 #endif
 
-#ifdef __linux__
+#ifdef __unix__
 #include "common/linux/gamemode.h"
 #endif
 
@@ -83,12 +80,11 @@ static void PrintHelp(const char* argv0) {
                  " Nickname, password, address and port for multiplayer\n"
                  "-p, --program         Pass following string as arguments to executable\n"
                  "-u, --user            Select a specific user profile from 0 to 7\n"
-                 "-d, --debug           Run the GDB stub on a port from 1 to 65535\n"
                  "-v, --version         Output version information and exit\n";
 }
 
 static void PrintVersion() {
-    std::cout << "Eden " << Common::g_scm_branch << " " << Common::g_scm_desc << std::endl;
+    std::cout << "eden " << Common::g_scm_branch << " " << Common::g_scm_desc << std::endl;
 }
 
 static void OnStateChanged(const Network::RoomMember::State& state) {
@@ -166,22 +162,24 @@ static void OnMessageReceived(const Network::ChatEntry& msg) {
 }
 
 static void OnStatusMessageReceived(const Network::StatusMessageEntry& msg) {
-    std::string message = [&]() {
-        switch (msg.type) {
-        case Network::IdMemberJoin:
-            return fmt::format("{} has joined", msg.nickname);
-        case Network::IdMemberLeave:
-            return fmt::format("{} has left", msg.nickname);
-        case Network::IdMemberKicked:
-            return fmt::format("{} has been kicked", msg.nickname);
-        case Network::IdMemberBanned:
-            return fmt::format("{} has been banned", msg.nickname);
-        case Network::IdAddressUnbanned:
-            return fmt::format("{} has been unbanned", msg.nickname);
-        default:
-            return std::string{};
-        }
-    }();
+    std::string message;
+    switch (msg.type) {
+    case Network::IdMemberJoin:
+        message = fmt::format("{} has joined", msg.nickname);
+        break;
+    case Network::IdMemberLeave:
+        message = fmt::format("{} has left", msg.nickname);
+        break;
+    case Network::IdMemberKicked:
+        message = fmt::format("{} has been kicked", msg.nickname);
+        break;
+    case Network::IdMemberBanned:
+        message = fmt::format("{} has been banned", msg.nickname);
+        break;
+    case Network::IdAddressUnbanned:
+        message = fmt::format("{} has been unbanned", msg.nickname);
+        break;
+    }
     if (!message.empty())
         std::cout << std::endl << "* " << message << std::endl << std::endl;
 }
@@ -211,10 +209,10 @@ int main(int argc, char** argv) {
     }
 #endif
     std::string filepath;
-    std::optional<std::string> config_path{};
+    std::optional<std::string> config_path;
     std::string program_args;
-    std::optional<int> selected_user{};
-    std::optional<u16> override_gdb_port{};
+    std::optional<int> selected_user;
+
     bool use_multiplayer = false;
     bool fullscreen = false;
     std::string nickname{};
@@ -224,7 +222,6 @@ int main(int argc, char** argv) {
 
     static struct option long_options[] = {
         // clang-format off
-        {"debug", no_argument, 0, 'd'},
         {"config", required_argument, 0, 'c'},
         {"fullscreen", no_argument, 0, 'f'},
         {"help", no_argument, 0, 'h'},
@@ -238,12 +235,9 @@ int main(int argc, char** argv) {
     };
 
     while (optind < argc) {
-        int arg = getopt_long(argc, argv, "g:fhvp::c:u:d:", long_options, &option_index);
+        int arg = getopt_long(argc, argv, "g:fhvp::c:u:", long_options, &option_index);
         if (arg != -1) {
             switch (static_cast<char>(arg)) {
-            case 'd':
-                override_gdb_port = static_cast<uint16_t>(atoi(optarg));
-                break;
             case 'c':
                 config_path = optarg;
                 break;
@@ -329,11 +323,6 @@ int main(int argc, char** argv) {
         Settings::values.current_user = std::clamp(*selected_user, 0, 7);
     }
 
-    if (override_gdb_port.has_value()) {
-        Settings::values.use_gdbstub = true;
-        Settings::values.gdbstub_port = *override_gdb_port;
-    }
-
 #ifdef _WIN32
     LocalFree(argv_w);
 #endif
@@ -408,9 +397,11 @@ int main(int argc, char** argv) {
             const u16 error_id = static_cast<u16>(load_result) - loader_id;
             LOG_CRITICAL(Frontend,
                          "While attempting to load the ROM requested, an error occurred. Please "
-                         "refer to the Eden wiki for more information or the Eden discord for "
+                         "refer to the eden wiki for more information or the eden discord for "
                          "additional help.\n\nError Code: {:04X}-{:04X}\nError Description: {}",
-                         loader_id, error_id, static_cast<Loader::ResultStatus>(error_id));
+                         loader_id,
+                         error_id,
+                         static_cast<Loader::ResultStatus>(error_id));
         }
         break;
     }
@@ -445,7 +436,7 @@ int main(int argc, char** argv) {
         exit(0);
     });
 
-#ifdef __linux__
+#ifdef __unix__
     Common::Linux::StartGamemode();
 #endif
 
@@ -460,7 +451,7 @@ int main(int argc, char** argv) {
     void(system.Pause());
     system.ShutdownMainProcess();
 
-#ifdef __linux__
+#ifdef __unix__
     Common::Linux::StopGamemode();
 #endif
 

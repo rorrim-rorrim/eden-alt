@@ -9,13 +9,14 @@
 
 <h1 align="center">
   <br>
-  <a href="https://git.eden-emu.dev/eden-emu/eden"><img src="./dist/qt_themes/default/icons/256x256/eden_named.png" alt="Eden" width="200"></a>
+  <a href="https://git.eden-emu.dev/eden-emu/eden"><img src="https://git.eden-emu.dev/eden-emu/eden/raw/branch/master/dist/qt_themes/default/icons/256x256/eden_named.png" alt="Eden" width="200"></a>
   <br>
   <b>Eden</b>
   <br>
 </h1>
 
-<h4 align="center"><b>Eden</b> is an open-source Nintendo Switch emulator, forked from the Yuzu emulator — started by former Citron developer Camille LaVey and the Eden team.
+<h4 align="center"><b>Eden</b> is the world's most popular open-source Nintendo Switch emulator, forked from the Yuzu emulator — started by former Citron developer Camille LaVey and the Eden team.
+<br>
 It is written in C++ with portability in mind, and we actively maintain builds for Windows, Linux and Android.
 </h4>
 
@@ -53,16 +54,13 @@ You can also contact any of the developers on Discord to learn more about the cu
 
 ## Building
 
-* **Windows**: [Windows Building Guide](./docs/build/Windows.md)
-* **Linux**: [Linux Building Guide](./docs/build/Linux.md)
-* **Android**: [Android Building Guide](./docs/build/Android.md)
-* **Solaris**: [Solaris Building Guide](./docs/build/Solaris.md)
-* **FreeBSD**: [FreeBSD Building Guide](./docs/build/FreeBSD.md)
-* **macOS**: [macOS Building Guide](./docs/build/macOS.md)
+* **Windows**: [Windows Building Guide](https://git.eden-emu.dev/eden-emu/eden/wiki/Building-for-Windows.-)
+* **Linux**: [Linux Building Guide](https://git.eden-emu.dev/eden-emu/eden/wiki/Building-for-Linux.-)
+* **Android**: [Android Building Guide](https://git.eden-emu.dev/eden-emu/eden/wiki/Building-for-Android.-)
 
 ## Download
 
-You can download the latest releases from [here](https://github.com/eden-emulator/Releases/releases).
+You will be able to download the latest releases from [here](https://github.com/eden-emulator/Releases/releases).
 
 ## Support
 
@@ -75,7 +73,7 @@ Any donations received will go towards things such as:
 * Additional hardware (e.g. GPUs as needed to improve rendering support, other peripherals to add support for, etc.)
 * CI Infrastructure
 
-If you would prefer to support us in a different way, please join our [Discord](https://discord.gg/edenemu) and talk to Camille or any of our other developers.
+If you would prefer to support us in a different way, please join our [Discord](https://discord.gg/edenemu), once public, and talk to Camille or any of our other developers.
 
 ## License
 

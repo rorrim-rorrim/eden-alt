@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -83,8 +80,8 @@ public:
                               const std::array<const Shader::Info*, 5>& infos,
                               const GraphicsPipelineKey& key_, bool force_context_flush = false);
 
-    bool Configure(bool is_indexed) {
-        return configure_func(this, is_indexed);
+    void Configure(bool is_indexed) {
+        configure_func(this, is_indexed);
     }
 
     void ConfigureTransformFeedback() const {
@@ -110,7 +107,7 @@ public:
     template <typename Spec>
     static auto MakeConfigureSpecFunc() {
         return [](GraphicsPipeline* pipeline, bool is_indexed) {
-            return pipeline->ConfigureImpl<Spec>(is_indexed);
+            pipeline->ConfigureImpl<Spec>(is_indexed);
         };
     }
 
@@ -121,7 +118,7 @@ public:
 
 private:
     template <typename Spec>
-    bool ConfigureImpl(bool is_indexed);
+    void ConfigureImpl(bool is_indexed);
 
     void ConfigureTransformFeedbackImpl() const;
 
@@ -137,7 +134,7 @@ private:
     StateTracker& state_tracker;
     const GraphicsPipelineKey key;
 
-    bool (*configure_func)(GraphicsPipeline*, bool){};
+    void (*configure_func)(GraphicsPipeline*, bool){};
 
     std::array<OGLProgram, 5> source_programs;
     std::array<OGLAssemblyProgram, 5> assembly_programs;

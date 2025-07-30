@@ -217,6 +217,8 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     FlushWork();
     gpu_memory->FlushCaching();
 
+    query_cache.NotifySegment(true);
+
     GraphicsPipeline* const pipeline{pipeline_cache.CurrentGraphicsPipeline()};
     if (!pipeline) {
         return;
@@ -224,19 +226,14 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
     // update engine as channel may be different.
     pipeline->SetEngine(maxwell3d, gpu_memory);
-    if (!pipeline->Configure(is_indexed))
-        return;
+    pipeline->Configure(is_indexed);
 
     UpdateDynamicStates();
 
     HandleTransformFeedback();
-    query_cache.NotifySegment(true);
     query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
                               maxwell3d->regs.zpass_pixel_count_enable);
-
     draw_func();
-
-    query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount, false);
 }
 
 void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
@@ -313,6 +310,8 @@ void RasterizerVulkan::DrawTexture() {
     };
     FlushWork();
 
+    query_cache.NotifySegment(true);
+
     std::scoped_lock l{texture_cache.mutex};
     texture_cache.SynchronizeGraphicsDescriptors();
     texture_cache.UpdateRenderTargets(false);
@@ -359,6 +358,10 @@ void RasterizerVulkan::Clear(u32 layer_count) {
     FlushWork();
     gpu_memory->FlushCaching();
 
+    query_cache.NotifySegment(true);
+    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
+                              maxwell3d->regs.zpass_pixel_count_enable);
+
     auto& regs = maxwell3d->regs;
     const bool use_color = regs.clear_surface.R || regs.clear_surface.G || regs.clear_surface.B ||
                            regs.clear_surface.A;
@@ -373,10 +376,6 @@ void RasterizerVulkan::Clear(u32 layer_count) {
     const Framebuffer* const framebuffer = texture_cache.GetFramebuffer();
     const VkExtent2D render_area = framebuffer->RenderArea();
     scheduler.RequestRenderpass(framebuffer);
-
-    query_cache.NotifySegment(true);
-    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
-                              maxwell3d->regs.zpass_pixel_count_enable);
 
     u32 up_scale = 1;
     u32 down_shift = 0;
@@ -518,14 +517,6 @@ void RasterizerVulkan::DispatchCompute() {
     }
     const std::array<u32, 3> dim{qmd.grid_dim_x, qmd.grid_dim_y, qmd.grid_dim_z};
     scheduler.RequestOutsideRenderPassOperationContext();
-    static constexpr VkMemoryBarrier READ_BARRIER{
-        .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
-        .pNext = nullptr,
-        .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
-        .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT,
-    };
-    scheduler.Record([](vk::CommandBuffer cmdbuf) { cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                               0, READ_BARRIER); });
     scheduler.Record([dim](vk::CommandBuffer cmdbuf) { cmdbuf.Dispatch(dim[0], dim[1], dim[2]); });
 }
 
@@ -645,17 +636,22 @@ void RasterizerVulkan::InnerInvalidation(std::span<const std::pair<DAddr, std::s
 }
 
 bool RasterizerVulkan::OnCPUWrite(DAddr addr, u64 size) {
-    DEBUG_ASSERT(addr != 0 || size != 0);
+    if (addr == 0 || size == 0) {
+        return false;
+    }
+
     {
         std::scoped_lock lock{buffer_cache.mutex};
         if (buffer_cache.OnCPUWrite(addr, size)) {
             return true;
         }
     }
+
     {
         std::scoped_lock lock{texture_cache.mutex};
         texture_cache.WriteMemory(addr, size);
     }
+
     pipeline_cache.InvalidateRegion(addr, size);
     return false;
 }
@@ -832,7 +828,6 @@ std::optional<FramebufferTextureInfo> RasterizerVulkan::AccelerateDisplay(
     if (!image_view) {
         return {};
     }
-
     query_cache.NotifySegment(false);
 
     const auto& resolution = Settings::values.resolution_info;
@@ -948,16 +943,16 @@ void RasterizerVulkan::UpdateDynamicStates() {
     const u8 dynamic_state = Settings::values.dyna_state.GetValue();
 
     auto features = DynamicFeatures{
-        .has_extended_dynamic_state =
-            device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0,
-        .has_extended_dynamic_state_2 =
-            device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1,
-        .has_extended_dynamic_state_2_extra =
-            device.IsExtExtendedDynamicState2ExtrasSupported() && dynamic_state > 1,
-        .has_extended_dynamic_state_3_blend =
-            device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2,
-        .has_extended_dynamic_state_3_enables =
-            device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported()
+                                      && dynamic_state > 0,
+        .has_extended_dynamic_state_2 = device.IsExtExtendedDynamicState2Supported()
+                                        && dynamic_state > 1,
+        .has_extended_dynamic_state_2_extra = device.IsExtExtendedDynamicState2ExtrasSupported()
+                                              && dynamic_state > 1,
+        .has_extended_dynamic_state_3_blend = device.IsExtExtendedDynamicState3BlendingSupported()
+                                              && dynamic_state > 2,
+        .has_extended_dynamic_state_3_enables = device.IsExtExtendedDynamicState3EnablesSupported()
+                                                && dynamic_state > 2,
         .has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported(),
     };
 
@@ -982,12 +977,16 @@ void RasterizerVulkan::UpdateDynamicStates() {
             if (features.has_extended_dynamic_state_3_enables) {
                 using namespace Tegra::Engines;
 
-                if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE ||
-                    device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
-                    struct In {
+                if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE
+                    || device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
+                    struct In
+                    {
                         const Maxwell3D::Regs::VertexAttribute::Type d;
-                        In(Maxwell3D::Regs::VertexAttribute::Type n) : d(n) {}
-                        bool operator()(Maxwell3D::Regs::VertexAttribute n) const {
+                        In(Maxwell3D::Regs::VertexAttribute::Type n)
+                            : d(n)
+                        {}
+                        bool operator()(Maxwell3D::Regs::VertexAttribute n) const
+                        {
                             return n.type == d;
                         }
                     };
@@ -1138,36 +1137,36 @@ void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (is_d24 && !device.SupportsD24DepthBuffer()) {
         static constexpr const size_t length = sizeof(NEEDS_D24) / sizeof(NEEDS_D24[0]);
 
-        static constexpr const u64* start = NEEDS_D24;
-        static constexpr const u64* end = NEEDS_D24 + length;
+        static constexpr const u64 *start = NEEDS_D24;
+        static constexpr const u64 *end = NEEDS_D24 + length;
 
-        const u64* it = std::find(start, end, program_id);
+        const u64 *it = std::find(start, end, program_id);
 
         if (it != end) {
             // the base formulas can be obtained from here:
             //   https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage-depth-bias
-            const double rescale_factor =
-                static_cast<double>(1ULL << (32 - 24)) / (static_cast<double>(0x1.ep+127));
+            const double rescale_factor = static_cast<double>(1ULL << (32 - 24))
+                                          / (static_cast<double>(0x1.ep+127));
             units = static_cast<float>(static_cast<double>(units) * rescale_factor);
         }
     }
 
-    scheduler.Record([constant = units, clamp = regs.depth_bias_clamp,
-                      factor = regs.slope_scale_depth_bias, this](vk::CommandBuffer cmdbuf) {
-        if (device.IsExtDepthBiasControlSupported()) {
-            static VkDepthBiasRepresentationInfoEXT bias_info{
-                .sType = VK_STRUCTURE_TYPE_DEPTH_BIAS_REPRESENTATION_INFO_EXT,
-                .pNext = nullptr,
-                .depthBiasRepresentation =
-                    VK_DEPTH_BIAS_REPRESENTATION_LEAST_REPRESENTABLE_VALUE_FORCE_UNORM_EXT,
-                .depthBiasExact = VK_FALSE,
-            };
+    scheduler.Record(
+        [constant = units, clamp = regs.depth_bias_clamp, factor = regs.slope_scale_depth_bias, this](
+            vk::CommandBuffer cmdbuf) {
+            if (device.IsExtDepthBiasControlSupported()) {
+                static VkDepthBiasRepresentationInfoEXT bias_info{
+                    .sType = VK_STRUCTURE_TYPE_DEPTH_BIAS_REPRESENTATION_INFO_EXT,
+                    .pNext = nullptr,
+                    .depthBiasRepresentation = VK_DEPTH_BIAS_REPRESENTATION_LEAST_REPRESENTABLE_VALUE_FORCE_UNORM_EXT,
+                    .depthBiasExact = VK_FALSE,
+                };
 
-            cmdbuf.SetDepthBias(constant, clamp, factor, &bias_info);
-        } else {
-            cmdbuf.SetDepthBias(constant, clamp, factor);
-        }
-    });
+                cmdbuf.SetDepthBias(constant, clamp, factor, &bias_info);
+            } else {
+                cmdbuf.SetDepthBias(constant, clamp, factor);
+            }
+        });
 }
 
 void RasterizerVulkan::UpdateBlendConstants(Tegra::Engines::Maxwell3D::Regs& regs) {
@@ -1349,19 +1348,21 @@ void RasterizerVulkan::UpdateRasterizerDiscardEnable(Tegra::Engines::Maxwell3D::
     });
 }
 
-void RasterizerVulkan::UpdateConservativeRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateConservativeRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs)
+{
     if (!state_tracker.TouchConservativeRasterizationMode()) {
         return;
     }
 
     scheduler.Record([enable = regs.conservative_raster_enable](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetConservativeRasterizationModeEXT(
-            enable ? VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT
+            enable ? VK_CONSERVATIVE_RASTERIZATION_MODE_UNDERESTIMATE_EXT
                    : VK_CONSERVATIVE_RASTERIZATION_MODE_DISABLED_EXT);
     });
 }
 
-void RasterizerVulkan::UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& regs)
+{
     if (!state_tracker.TouchLineStippleEnable()) {
         return;
     }
@@ -1371,7 +1372,8 @@ void RasterizerVulkan::UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& 
     });
 }
 
-void RasterizerVulkan::UpdateLineRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateLineRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs)
+{
     // if (!state_tracker.TouchLi()) {
     //     return;
     // }

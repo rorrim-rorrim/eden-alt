@@ -16,11 +16,11 @@ case "$1" in
         echo "Packaging amd64-v3 optimized build of Eden"
         ARCH="amd64_v3"
         ;;
-    steamdeck|zen2)
+    steamdeck)
         echo "Packaging Steam Deck (Zen 2) optimized build of Eden"
         ARCH="steamdeck"
         ;;
-    rog-ally|allyx|zen4)
+    rog-ally|allyx)
         echo "Packaging ROG Ally X (Zen 4) optimized build of Eden"
         ARCH="rog-ally-x"
         ;;
@@ -36,11 +36,6 @@ case "$1" in
         echo "Packaging armv9-a build of Eden"
         ARCH=armv9
         ;;
-		native)
-        echo "Packaging native build of Eden"
-        ARCH="$BASE_ARCH"
-        ;;
-
 esac
 
 export BUILDDIR="$2"
@@ -92,6 +87,7 @@ chmod +x ./sharun-aio
 xvfb-run -a ./sharun-aio l -p -v -e -s -k \
 	../$BUILDDIR/bin/eden* \
 	$LIBDIR/lib*GL*.so* \
+  $LIBDIR/libSDL2*.so* \
 	$LIBDIR/dri/* \
 	$LIBDIR/vdpau/* \
 	$LIBDIR/libvulkan* \

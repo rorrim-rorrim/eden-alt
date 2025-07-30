@@ -240,7 +240,6 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdSetConservativeRasterizationModeEXT vkCmdSetConservativeRasterizationModeEXT{};
     PFN_vkCmdSetLineRasterizationModeEXT vkCmdSetLineRasterizationModeEXT{};
     PFN_vkCmdSetLineStippleEnableEXT vkCmdSetLineStippleEnableEXT{};
-    PFN_vkCmdSetLineStippleEXT vkCmdSetLineStippleEXT{};
     PFN_vkCmdSetDepthBiasEnableEXT vkCmdSetDepthBiasEnableEXT{};
     PFN_vkCmdSetLogicOpEnableEXT vkCmdSetLogicOpEnableEXT{};
     PFN_vkCmdSetDepthClampEnableEXT vkCmdSetDepthClampEnableEXT{};
@@ -1451,11 +1450,6 @@ public:
     void SetLineStippleEnableEXT(bool enable) const noexcept
     {
         dld->vkCmdSetLineStippleEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
-    }
-
-    void SetLineStippleEXT(u32 factor, u16 pattern) const noexcept
-    {
-        dld->vkCmdSetLineStippleEXT(handle, factor, pattern);
     }
 
     void SetDepthBiasEnableEXT(bool enable) const noexcept {

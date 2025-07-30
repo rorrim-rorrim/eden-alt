@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -131,7 +128,7 @@ bool Passes(const std::array<Shader::Info, 5>& stage_infos, u32 enabled_mask) {
     return true;
 }
 
-using ConfigureFuncPtr = bool (*)(GraphicsPipeline*, bool);
+using ConfigureFuncPtr = void (*)(GraphicsPipeline*, bool);
 
 template <typename Spec, typename... Specs>
 ConfigureFuncPtr FindSpec(const std::array<Shader::Info, 5>& stage_infos, u32 enabled_mask) {
@@ -278,7 +275,7 @@ GraphicsPipeline::GraphicsPipeline(const Device& device, TextureCache& texture_c
 }
 
 template <typename Spec>
-bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
+void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     std::array<VideoCommon::ImageViewInOut, MAX_TEXTURES + MAX_IMAGES> views;
     std::array<VideoCommon::SamplerId, MAX_TEXTURES> samplers;
     size_t views_index{};
@@ -559,8 +556,6 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     if (image_binding != 0) {
         glBindImageTextures(0, image_binding, images.data());
     }
-
-    return true;
 }
 
 void GraphicsPipeline::ConfigureTransformFeedbackImpl() const {

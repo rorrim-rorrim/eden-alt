@@ -387,14 +387,9 @@ private slots:
     void OnToggleAdaptingFilter();
     void OnConfigurePerGame();
     void OnLoadAmiibo();
-    void OnOpenRootDataFolder();
-    void OnOpenNANDFolder();
-    void OnOpenSDMCFolder();
-    void OnOpenModFolder();
-    void OnOpenLogFolder();
+    void OnOpenYuzuFolder();
     void OnVerifyInstalledContents();
     void OnInstallFirmware();
-    void OnInstallFirmwareFromZIP();
     void OnInstallDecryptionKeys();
     void OnAbout();
     void OnToggleFilterBar();
@@ -614,8 +609,6 @@ private:
                         GameListShortcutTarget target,
                         std::string arguments,
                         const bool needs_title);
-
-    void InstallFirmware(const QString& location, bool recursive = false);
 
 protected:
     void dropEvent(QDropEvent* event) override;

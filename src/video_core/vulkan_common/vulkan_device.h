@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -88,8 +85,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(NV, GEOMETRY_SHADER_PASSTHROUGH, geometry_shader_passthrough)                        \
     EXTENSION(NV, VIEWPORT_ARRAY2, viewport_array2)                                                \
     EXTENSION(NV, VIEWPORT_SWIZZLE, viewport_swizzle)                                              \
-    EXTENSION(EXT, DESCRIPTOR_INDEXING, descriptor_indexing)                                       \
-    EXTENSION(EXT, FILTER_CUBIC, filter_cubic)
+    EXTENSION(EXT, DESCRIPTOR_INDEXING, descriptor_indexing)
 
 // Define extensions which must be supported.
 #define FOR_EACH_VK_MANDATORY_EXTENSION(EXTENSION_NAME)                                            \
@@ -551,11 +547,6 @@ public:
     /// Returns true if the device supports VK_EXT_extended_dynamic_state3.
     bool IsExtExtendedDynamicState3EnablesSupported() const {
         return dynamic_state3_enables;
-    }
-
-    /// Returns true if the device supports VK_EXT_filter_cubic
-    bool IsExtFilterCubicSupported() const {
-        return extensions.filter_cubic;
     }
 
     /// Returns true if the device supports VK_EXT_line_rasterization.
