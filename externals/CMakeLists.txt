@@ -311,6 +311,9 @@ CPMAddPackage(
     FIND_PACKAGE_ARGUMENTS "CONFIG"
 )
 
+set(VulkanMemoryAllocator_SOURCE_DIR "${VulkanMemoryAllocator_SOURCE_DIR}" PARENT_SCOPE)
+set(VulkanMemoryAllocator_ADDED "${VulkanMemoryAllocator_ADDED}" PARENT_SCOPE)
+
 if (NOT TARGET LLVM::Demangle)
     add_library(demangle demangle/ItaniumDemangle.cpp)
     target_include_directories(demangle PUBLIC ./demangle)
