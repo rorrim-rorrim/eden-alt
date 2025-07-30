@@ -168,7 +168,24 @@ if (USE_DISCORD_PRESENCE AND NOT TARGET DiscordRPC::discord-rpc)
 endif()
 
 # Sirit
-add_subdirectory(sirit)
+# TODO(crueter): spirv-tools doesn't work w/ system
+set(CPM_USE_LOCAL_PACKAGES OFF)
+
+CPMAddPackage(
+    NAME SPIRV-Headers
+    URL "https://github.com/KhronosGroup/SPIRV-Headers/archive/4e209d3d7e.zip"
+    URL_HASH SHA512=f48bbe18341ed55ea0fe280dbbbc0a44bf222278de6e716e143ca1e95ca320b06d4d23d6583fbf8d03e1428f3dac8fa00e5b82ddcd6b425e6236d85af09550a4
+)
+
+set(CPM_USE_LOCAL_PACKAGES ON)
+
+CPMAddPackage(
+    NAME sirit
+    URL "https://github.com/raphaelthegreat/sirit/archive/51fcf9720f.zip"
+    URL_HASH SHA512=a8f98ea0c51763b89924d836ad482ebdfe9130251cf4e14733ccaacc885ae8cc4c8b03d1dc43e8861609e5f7929c16f935879c1f6bf61866fd75077954774394
+    OPTIONS
+        "SIRIT_USE_SYSTEM_SPIRV_HEADERS ON"
+)
 
 # httplib
 if ((ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER) AND NOT TARGET httplib::httplib)
