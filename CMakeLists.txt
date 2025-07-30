@@ -52,10 +52,10 @@ CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSV
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-	option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" OFF)
+if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR APPLE)
+    option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" OFF)
 else()
-	option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ON)
+    option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ON)
 endif()
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
