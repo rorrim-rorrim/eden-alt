@@ -573,9 +573,17 @@ HostLoc RegAlloc::FindFreeSpill(bool is_xmm) const noexcept {
     if (!is_xmm) {
         // TODO(lizzie): Using lower (xmm0 and such) registers results in issues/crashes - INVESTIGATE WHY
         // Intel recommends to spill GPR onto XMM registers IF POSSIBLE
-        for (auto const i : any_xmm)
+        // TODO(lizzie): Issues on DBZ, theory: Scratch XMM not properly restored after a function call?
+        // Must sync with ABI registers (except XMM0, XMM1 and XMM2)
+#ifdef _WIN32
+        for (size_t i = size_t(HostLoc::XMM5); i >= size_t(HostLoc::XMM3); --i)
             if (const auto loc = HostLoc(i); LocInfo(loc).IsEmpty())
                 return loc;
+#else
+        for (size_t i = size_t(HostLoc::XMM15); i >= size_t(HostLoc::XMM3); --i)
+            if (const auto loc = HostLoc(i); LocInfo(loc).IsEmpty())
+                return loc;
+#endif
     }
     // Otherwise go to stack spilling
     for (size_t i = size_t(HostLoc::FirstSpill); i < hostloc_info.size(); ++i)
