@@ -400,7 +400,6 @@ find_package(nlohmann_json 3.8 REQUIRED)
 find_package(RenderDoc MODULE)
 find_package(SimpleIni MODULE)
 find_package(stb MODULE)
-find_package(VulkanMemoryAllocator CONFIG)
 find_package(ZLIB 1.2 REQUIRED)
 find_package(zstd 1.5 REQUIRED)
 
