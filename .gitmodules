@@ -4,9 +4,6 @@
 [submodule "libusb"]
 	path = externals/libusb/libusb
 	url = https://github.com/libusb/libusb.git
-[submodule "xbyak"]
-	path = externals/xbyak
-	url = https://github.com/Lizzie841/xbyak.git
 [submodule "cpp-httplib"]
 	path = externals/cpp-httplib
 	url = https://github.com/yhirose/cpp-httplib.git
