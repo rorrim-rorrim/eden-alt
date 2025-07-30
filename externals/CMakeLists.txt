@@ -202,17 +202,36 @@ CPMAddPackage(
 )
 
 # httplib
-if ((ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER) AND NOT TARGET httplib::httplib)
-    set(HTTPLIB_REQUIRE_OPENSSL ON)
-    add_subdirectory(cpp-httplib)
+if ((ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER))
+    set(CPM_USE_LOCAL_PACKAGES ON)
+
+    # TODO(crueter): fix local package (gentoo?)
+    CPMAddPackage(
+        NAME httplib
+        VERSION 0.12
+        URL "https://github.com/yhirose/cpp-httplib/archive/a609330e4c.zip"
+        URL_HASH SHA512=dd3fd0572f8367d8549e1319fd98368b3e75801a293b0c3ac9b4adb806473a4506a484b3d389dc5bee5acc460cb90af7a20e5df705a1696b56496b30b9ce7ed2
+        FIND_PACKAGE_ARGUMENTS "MODULE"
+        OPTIONS
+            "HTTPLIB_REQUIRE_OPENSSL ON"
+    )
 endif()
 
 # cpp-jwt
-if (ENABLE_WEB_SERVICE AND NOT TARGET cpp-jwt::cpp-jwt)
-    set(CPP_JWT_BUILD_EXAMPLES OFF)
-    set(CPP_JWT_BUILD_TESTS OFF)
-    set(CPP_JWT_USE_VENDORED_NLOHMANN_JSON OFF)
-    add_subdirectory(cpp-jwt)
+if (ENABLE_WEB_SERVICE)
+    set(CPM_USE_LOCAL_PACKAGES ON)
+
+    CPMAddPackage(
+        NAME cpp-jwt
+        VERSION 1.4
+        URL "https://github.com/arun11299/cpp-jwt/archive/10ef5735d8.zip"
+        URL_HASH SHA512=ebba3d26b33a3b0aa909f475e099594560edbce10ecd03e76d7fea68549a28713ea606d363808f88a5495b62c54c3cdb7e47aee2d946eceabd36e310479dadb7
+        FIND_PACKAGE_ARGUMENTS "CONFIG"
+        OPTIONS
+            "CPP_JWT_BUILD_EXAMPLES OFF"
+            "CPP_JWT_BUILD_TESTS OFF"
+            "CPP_JWT_USE_VENDORED_NLOHMANN_JSON OFF"
+    )
 endif()
 
 # Opus

@@ -4,12 +4,6 @@
 [submodule "libusb"]
 	path = externals/libusb/libusb
 	url = https://github.com/libusb/libusb.git
-[submodule "cpp-httplib"]
-	path = externals/cpp-httplib
-	url = https://github.com/yhirose/cpp-httplib.git
-[submodule "cpp-jwt"]
-	path = externals/cpp-jwt
-	url = https://github.com/arun11299/cpp-jwt.git
 [submodule "VulkanMemoryAllocator"]
 	path = externals/VulkanMemoryAllocator
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
