@@ -315,7 +315,13 @@ if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
 endif()
 
 # Boost headers
-add_subdirectory(boost-headers)
+set(CPM_USE_LOCAL_PACKAGES OFF)
+
+CPMAddPackage(
+    NAME boost_headers
+    URL "https://github.com/boostorg/headers/archive/0456900fad.zip"
+    URL_HASH SHA512=50cd75dcdfc5f082225cdace058f47b4fb114a47585f7aee1d22236a910a80b667186254c214fa2fcebac67ae6d37ba4b6e695e1faea8affd6fd42a03cf996e3
+)
 
 # TZDB (Time Zone Database)
 add_subdirectory(nx_tzdb)
@@ -362,9 +368,17 @@ if (NOT TARGET RenderDoc::API)
 endif()
 
 if (ANDROID)
-   if (ARCHITECTURE_arm64)
-       add_subdirectory(libadrenotools)
-   endif()
+    if (ARCHITECTURE_arm64)
+        set(CPM_USE_LOCAL_PACKAGES OFF)
+
+        CPMAddPackage(
+            NAME libadrenotools
+            URL "https://github.com/bylaws/libadrenotools/archive/8fae8ce254.zip"
+            URL_HASH SHA512=c74fa855f0edebbf25c9bce40b00966daa2447bfc5e15f0cf1a95f86cbf70fc6b02590707edbde16328a0a2a4fb9a1fc419d2dfc22a4a4150971be91892d4edb
+            PATCHES
+                ${CMAKE_SOURCE_DIR}/.patch/libadrenotools/0001-linkerns-cpm.patch
+        )
+    endif()
 endif()
 
 if ((CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID) AND NOT TARGET gamemode::headers)
