@@ -19,10 +19,15 @@ set(BUILD_TESTING OFF)
 
 # biscuit
 
-if (NOT TARGET biscuit::biscuit)
-    if ("riscv" IN_LIST ARCHITECTURE)
-        add_subdirectory(biscuit)
-    endif()
+if ("riscv" IN_LIST ARCHITECTURE)
+    add_subdirectory(biscuit)
+
+    CPMAddPackage(
+        NAME biscuit
+        VERSION 0.9.1
+        URL "https://github.com/lioncash/biscuit/archive/76b0be8dae.zip"
+        URL_HASH SHA512=47d55ed02d032d6cf3dc107c6c0a9aea686d5f25aefb81d1af91db027b6815bd5add1755505e19d76625feeb17aa2db6cd1668fe0dad2e6a411519bde6ca4489
+    )
 endif()
 
 # catch
@@ -43,21 +48,24 @@ if (NOT TARGET fmt::fmt)
 endif()
 
 # mcl
-
-if (NOT TARGET merry::mcl)
-    set(MCL_INSTALL ON)
-    add_subdirectory(mcl)
-endif()
+CPMAddPackage(
+    NAME mcl
+    VERSION 0.1.12
+    URL "https://github.com/azahar-emu/mcl/archive/7b08d83418.zip"
+    URL_HASH SHA512=f943bac39c1879986decad7a442ff4288eaeca4a2907684c7914e115a55ecc43c2782ded85c0835763fe04e40d5c82220ce864423e489e648e408a84f54dc4f3
+    OPTIONS
+        "MCL_INSTALL ON"
+)
 
 # oaknut
 
-if (NOT TARGET merry::oaknut)
-    if ("arm64" IN_LIST ARCHITECTURE)
-        add_subdirectory(oaknut)
-    elseif (DYNARMIC_TESTS)
-        add_subdirectory(oaknut EXCLUDE_FROM_ALL)
-    endif()
-endif()
+# if (NOT TARGET merry::oaknut)
+#     if ("arm64" IN_LIST ARCHITECTURE)
+#         add_subdirectory(oaknut)
+#     elseif (DYNARMIC_TESTS)
+#         add_subdirectory(oaknut EXCLUDE_FROM_ALL)
+#     endif()
+# endif()
 
 # unordered_dense
 
