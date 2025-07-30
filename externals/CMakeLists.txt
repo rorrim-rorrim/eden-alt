@@ -21,8 +21,14 @@ set(BUILD_SHARED_LIBS OFF)
 set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL ON)
 
 # Xbyak (also used by Dynarmic, so needs to be added first)
-if ((ARCHITECTURE_x86 OR ARCHITECTURE_x86_64) AND NOT TARGET xbyak::xbyak)
-    add_subdirectory(xbyak)
+if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
+    set(CPM_USE_LOCAL_PACKAGES OFF)
+
+    CPMAddPackage(
+        NAME xbyak
+        URL "https://github.com/Lizzie841/xbyak/archive/4e44f4614d.zip"
+        URL_HASH SHA512=5824e92159e07fa36a774aedd3b3ef3541d0241371d522cffa4ab3e1f215fa5097b1b77865b47b2481376c704fa079875557ea463ca63d0a7fd6a8a20a589e70
+    )
 endif()
 
 # Oaknut (also used by Dynarmic, so needs to be added first)
