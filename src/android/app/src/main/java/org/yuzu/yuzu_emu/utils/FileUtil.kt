@@ -197,7 +197,9 @@ object FileUtil {
      */
     fun getFilename(uri: Uri): String {
         if (uri.scheme == "file") {
-            return uri.lastPathSegment?.takeIf { it.isNotEmpty() } ?: throw IOException("Invalid file URI: $uri")
+            return uri.lastPathSegment?.takeIf { it.isNotEmpty() } ?: throw IOException(
+                "Invalid file URI: $uri"
+            )
         }
 
         val resolver = YuzuApplication.appContext.contentResolver
