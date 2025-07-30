@@ -219,7 +219,7 @@ endif()
 
 # cpp-jwt
 if (ENABLE_WEB_SERVICE)
-    set(CPM_USE_LOCAL_PACKAGES ON)
+    set(CPM_USE_LOCAL_PACKAGES OFF)
 
     CPMAddPackage(
         NAME cpp-jwt
@@ -305,9 +305,14 @@ add_subdirectory(boost-headers)
 add_subdirectory(nx_tzdb)
 
 # VMA
-if (NOT TARGET GPUOpen::VulkanMemoryAllocator)
-    add_subdirectory(VulkanMemoryAllocator)
-endif()
+set(CPM_USE_LOCAL_PACKAGES ON)
+
+CPMAddPackage(
+    NAME VulkanMemoryAllocator
+    URL "https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/1076b348ab.zip"
+    URL_HASH SHA512=a46b44e4286d08cffda058e856c47f44c7fed3da55fe9555976eb3907fdcc20ead0b1860b0c38319cda01dbf9b1aa5d4b4038c7f1f8fbd97283d837fa9af9772
+    FIND_PACKAGE_ARGUMENTS "CONFIG"
+)
 
 if (NOT TARGET LLVM::Demangle)
     add_library(demangle demangle/ItaniumDemangle.cpp)
