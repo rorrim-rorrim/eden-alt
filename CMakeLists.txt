@@ -115,7 +115,7 @@ endif()
 
 option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
 
-option(YUZU_DOWNLOAD_TIME_ZONE_DATA "Always download time zone binaries" OFF)
+option(YUZU_DOWNLOAD_TIME_ZONE_DATA "Always download time zone binaries" ON)
 
 option(YUZU_ENABLE_PORTABLE "Allow yuzu to enable portable mode if a user folder is found in the CWD" ON)
 

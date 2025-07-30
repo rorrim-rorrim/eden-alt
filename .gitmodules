@@ -7,6 +7,3 @@
 [submodule "externals/boost-headers"]
 	path = externals/boost-headers
 	url = https://github.com/boostorg/headers.git
-[submodule "externals/nx_tzdb/tzdb_to_nx/externals/tz/tz"]
-	path = externals/nx_tzdb/tzdb_to_nx/externals/tz/tz
-	url = https://github.com/eggert/tz.git
