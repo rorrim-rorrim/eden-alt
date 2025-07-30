@@ -32,9 +32,14 @@ if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
 endif()
 
 # Oaknut (also used by Dynarmic, so needs to be added first)
-if (ARCHITECTURE_arm64 AND NOT TARGET merry::oaknut)
-    add_subdirectory(oaknut)
-endif()
+if (ARCHITECTURE_arm64)
+    CPMAddPackage(
+        NAME oaknut
+        VERSION 2.0.1
+        URL "https://github.com/Wunkolo/oaknut/archive/d9a104d558.zip"
+        URL_HASH SHA512=3702c8cf818a8c2b19edf9b18278b3d2b857f118faf1e05064c9389c6da639aaf6e955c20abd4f8bf92e309efb6df79affdefc0d3a1e0f980f86203525dbbcd8
+    )
+    endif()
 
 # Dynarmic
 if ((ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64) AND NOT TARGET dynarmic::dynarmic)

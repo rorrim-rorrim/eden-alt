@@ -152,14 +152,9 @@ set(CPM_USE_LOCAL_PACKAGES ON)
 
 find_package(Boost 1.57 REQUIRED)
 find_package(fmt 9 CONFIG)
-find_package(mcl 0.1.12 EXACT CONFIG)
 
 if ("arm64" IN_LIST ARCHITECTURE OR DYNARMIC_TESTS)
     find_package(oaknut 2.0.1 CONFIG)
-endif()
-
-if ("riscv" IN_LIST ARCHITECTURE)
-    find_package(biscuit 0.9.1 QUIET)
 endif()
 
 if ("x86_64" IN_LIST ARCHITECTURE)
