@@ -43,12 +43,24 @@ endif()
 add_subdirectory(glad)
 
 # mbedtls
-add_subdirectory(mbedtls)
-target_include_directories(mbedtls PUBLIC ./mbedtls/include)
-if (NOT MSVC)
-    target_compile_options(mbedcrypto PRIVATE
-        -Wno-unused-but-set-variable
-        -Wno-string-concatenation)
+# TODO(crueter): test local mbedtls
+set(CPM_USE_LOCAL_PACKAGES ON)
+
+CPMAddPackage(
+    NAME mbedtls
+    URL "https://github.com/Mbed-TLS/mbedtls/archive/8c88150ca1.zip"
+    URL_HASH SHA512=769ad1e94c570671071e1f2a5c0f1027e0bf6bcdd1a80ea8ac970f2c86bc45ce4e31aa88d6d8110fc1bed1de81c48bc624df1b38a26f8b340a44e109d784a966
+    PATCHES
+        ${CMAKE_SOURCE_DIR}/.patch/mbedtls/0001-cmake-version.patch
+)
+
+if (mbedtls_ADDED)
+    target_include_directories(mbedtls PUBLIC ./mbedtls/include)
+    if (NOT MSVC)
+        target_compile_options(mbedcrypto PRIVATE
+            -Wno-unused-but-set-variable
+            -Wno-string-concatenation)
+    endif()
 endif()
 
 # MicroProfile
@@ -111,6 +123,41 @@ if (NOT TARGET enet::enet)
     add_library(enet::enet ALIAS enet)
 endif()
 
+# TODO(crueter): Create a common CPMUtil.cmake that does this for me
+set(CPM_USE_LOCAL_PACKAGES ON)
+
+CPMAddPackage(
+    NAME cubeb
+    URL "https://github.com/mozilla/cubeb/archive/fa02160712.zip"
+    FIND_PACKAGE_ARGUMENTS "CONFIG" # not sure this works outside of gentoo
+    OPTIONS
+        "USE_SANITIZERS OFF"
+        "BUILD_TESTS OFF"
+        "BUILD_TOOLS OFF"
+)
+
+if (cubeb_ADDED)
+    if (NOT MSVC)
+        if (TARGET speex)
+            target_compile_options(speex PRIVATE -Wno-sign-compare)
+        endif()
+
+        set_target_properties(cubeb PROPERTIES COMPILE_OPTIONS "")
+        target_compile_options(cubeb INTERFACE
+            -Wno-implicit-const-int-float-conversion
+            -Wno-shadow
+            -Wno-missing-declarations
+            -Wno-return-type
+            -Wno-maybe-uninitialized
+        )
+    else()
+        target_compile_options(cubeb PRIVATE
+            /wd4456
+            /wd4458
+        )
+    endif()
+endif()
+
 # DiscordRPC
 if (USE_DISCORD_PRESENCE AND NOT TARGET DiscordRPC::discord-rpc)
     set(BUILD_EXAMPLES OFF)
@@ -142,6 +189,7 @@ CPMAddPackage(
     NAME Opus
     VERSION 1.3
     URL "https://github.com/xiph/opus/archive/5ded705cf4.zip"
+    URL_HASH SHA512=0dc89e58ddda1f3bc6a7037963994770c5806c10e66f5cc55c59286fc76d0544fe4eca7626772b888fd719f434bc8a92f792bdb350c807968b2ac14cfc04b203
     FIND_PACKAGE_ARGUMENTS "MODULE"
     OPTIONS
         "OPUS_BUILD_TESTING OFF"
@@ -172,6 +220,7 @@ CPMAddPackage(
     NAME VulkanHeaders
     VERSION 1.3.274
     URL "https://github.com/KhronosGroup/Vulkan-Headers/archive/89268a6d17.zip"
+    URL_HASH SHA512=3ab349f74298ba72cafb8561015690c0674d428a09fb91ccd3cd3daca83650d190d46d33fd97b0a8fd4223fe6df2bcabae89136fbbf7c0bfeb8776f9448304c8
 )
 
 # Vulkan-Utility-Libraries
@@ -184,6 +233,7 @@ endif()
 CPMAddPackage(
     NAME VulkanUtilityLibraries
     URL "https://github.com/KhronosGroup/Vulkan-Utility-Libraries/archive/df2e358152.zip"
+    URL_HASH SHA512=3e468c3d9ff93f6d418d71e5527abe0a12c8c7ab5b0b52278bbbee4d02bb87e99073906729b727e0147242b7e3fd5dedf68b803f1878cb4c0e4f730bc2238d79
 )
 
 # SPIRV-Tools
@@ -191,6 +241,7 @@ if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
     CPMAddPackage(
         NAME SPIRV-Tools
         URL "https://github.com/KhronosGroup/SPIRV-Tools/archive/40eb301f32.zip"
+        URL_HASH SHA512=58d0fb1047d69373cf24c73e6f78c73a72a6cca3b4df1d9f083b9dcc0962745ef154abf3dbe9b3623b835be20c6ec769431cf11733349f45e7568b3525f707aa
         OPTIONS
             "SPIRV_SKIP_EXECUTABLES ON"
     )
@@ -248,6 +299,8 @@ if ((CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID) AND NOT TARGET gamemode::hea
 endif()
 
 # Breakpad
+# TODO(crueter): Breakpad needs additional fetches
+# https://github.com/google/breakpad/blob/main/DEPS
 # https://github.com/microsoft/vcpkg/blob/master/ports/breakpad/CMakeLists.txt
 if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
     set(BREAKPAD_WIN32_DEFINES
@@ -259,10 +312,18 @@ if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
         _CRT_NONSTDC_NO_DEPRECATE
     )
 
+    set(CPM_USE_LOCAL_PACKAGES OFF)
+    CPMAddPackage(
+        NAME breakpad
+        URL "https://github.com/google/breakpad/archive/f80f288803.zip"
+        URL_HASH SHA512=4a87ee88cea99bd633d52a5b00135a649f1475e3b65db325a6df9c804ab82b054ad7e62419b35f6e22cc5dfbbb569214041d7ad5d10fab10106e700bb5050e1d
+        DOWNLOAD_ONLY YES
+    )
+
     # libbreakpad
     add_library(libbreakpad STATIC)
-    file(GLOB_RECURSE LIBBREAKPAD_SOURCES breakpad/src/processor/*.cc)
-    file(GLOB_RECURSE LIBDISASM_SOURCES breakpad/src/third_party/libdisasm/*.c)
+    file(GLOB_RECURSE LIBBREAKPAD_SOURCES ${breakpad_SOURCE_DIR}/src/processor/*.cc)
+    file(GLOB_RECURSE LIBDISASM_SOURCES ${breakpad_SOURCE_DIR}/src/third_party/libdisasm/*.c)
     list(FILTER LIBBREAKPAD_SOURCES EXCLUDE REGEX "_unittest|_selftest|synth_minidump|/tests|/testdata|/solaris|microdump_stackwalk|minidump_dump|minidump_stackwalk")
     if (WIN32)
         list(FILTER LIBBREAKPAD_SOURCES EXCLUDE REGEX "/linux|/mac|/android")
@@ -276,31 +337,31 @@ if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
     target_sources(libbreakpad PRIVATE ${LIBBREAKPAD_SOURCES} ${LIBDISASM_SOURCES})
     target_include_directories(libbreakpad
         PUBLIC
-            ${CMAKE_CURRENT_SOURCE_DIR}/breakpad/src
-            ${CMAKE_CURRENT_SOURCE_DIR}/breakpad/src/third_party/libdisasm
+            ${breakpad_SOURCE_DIR}/src
+            ${breakpad_SOURCE_DIR}/src/third_party/libdisasm
     )
 
     # libbreakpad_client
     add_library(libbreakpad_client STATIC)
-    file(GLOB LIBBREAKPAD_COMMON_SOURCES breakpad/src/common/*.cc breakpad/src/common/*.c breakpad/src/client/*.cc)
+    file(GLOB LIBBREAKPAD_COMMON_SOURCES ${breakpad_SOURCE_DIR}/src/common/*.cc ${breakpad_SOURCE_DIR}/src/common/*.c ${breakpad_SOURCE_DIR}/src/client/*.cc)
 
     if (WIN32)
-        file(GLOB_RECURSE LIBBREAKPAD_CLIENT_SOURCES breakpad/src/client/windows/*.cc breakpad/src/common/windows/*.cc)
+        file(GLOB_RECURSE LIBBREAKPAD_CLIENT_SOURCES ${breakpad_SOURCE_DIR}/src/client/windows/*.cc ${breakpad_SOURCE_DIR}/src/common/windows/*.cc)
         list(FILTER LIBBREAKPAD_COMMON_SOURCES EXCLUDE REGEX "language.cc|path_helper.cc|stabs_to_module.cc|stabs_reader.cc|minidump_file_writer.cc")
         target_include_directories(libbreakpad_client PRIVATE "${CMAKE_GENERATOR_INSTANCE}/DIA SDK/include")
         target_compile_definitions(libbreakpad_client PRIVATE ${BREAKPAD_WIN32_DEFINES})
     elseif (APPLE)
         target_compile_definitions(libbreakpad_client PRIVATE HAVE_MACH_O_NLIST_H)
-        file(GLOB_RECURSE LIBBREAKPAD_CLIENT_SOURCES breakpad/src/client/mac/*.cc breakpad/src/common/mac/*.cc)
-        list(APPEND LIBBREAKPAD_CLIENT_SOURCES breakpad/src/common/mac/MachIPC.mm)
+        file(GLOB_RECURSE LIBBREAKPAD_CLIENT_SOURCES ${breakpad_SOURCE_DIR}/src/client/mac/*.cc ${breakpad_SOURCE_DIR}/src/common/mac/*.cc)
+        list(APPEND LIBBREAKPAD_CLIENT_SOURCES ${breakpad_SOURCE_DIR}/src/common/mac/MachIPC.mm)
     else()
         target_compile_definitions(libbreakpad_client PUBLIC -DHAVE_A_OUT_H)
-        file(GLOB_RECURSE LIBBREAKPAD_CLIENT_SOURCES breakpad/src/client/linux/*.cc breakpad/src/common/linux/*.cc)
+        file(GLOB_RECURSE LIBBREAKPAD_CLIENT_SOURCES ${breakpad_SOURCE_DIR}/src/client/linux/*.cc ${breakpad_SOURCE_DIR}/src/common/linux/*.cc)
     endif()
     list(APPEND LIBBREAKPAD_CLIENT_SOURCES ${LIBBREAKPAD_COMMON_SOURCES})
     list(FILTER LIBBREAKPAD_CLIENT_SOURCES EXCLUDE REGEX "/sender|/tests|/unittests|/testcases|_unittest|_test")
     target_sources(libbreakpad_client PRIVATE ${LIBBREAKPAD_CLIENT_SOURCES})
-    target_include_directories(libbreakpad_client PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/breakpad/src)
+    target_include_directories(libbreakpad_client PRIVATE ${breakpad_SOURCE_DIR}/src)
 
     if (WIN32)
         target_link_libraries(libbreakpad_client PRIVATE wininet.lib)
@@ -319,32 +380,32 @@ if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
     if (LINUX)
         find_package(ZLIB REQUIRED)
 
-        add_executable(minidump_stackwalk breakpad/src/processor/minidump_stackwalk.cc)
+        add_executable(minidump_stackwalk ${breakpad_SOURCE_DIR}/src/processor/minidump_stackwalk.cc)
         target_link_libraries(minidump_stackwalk PRIVATE libbreakpad libbreakpad_client)
 
         add_executable(dump_syms
-            breakpad/src/common/dwarf_cfi_to_module.cc
-            breakpad/src/common/dwarf_cu_to_module.cc
-            breakpad/src/common/dwarf_line_to_module.cc
-            breakpad/src/common/dwarf_range_list_handler.cc
-            breakpad/src/common/language.cc
-            breakpad/src/common/module.cc
-            breakpad/src/common/path_helper.cc
-            breakpad/src/common/stabs_reader.cc
-            breakpad/src/common/stabs_to_module.cc
-            breakpad/src/common/dwarf/bytereader.cc
-            breakpad/src/common/dwarf/dwarf2diehandler.cc
-            breakpad/src/common/dwarf/dwarf2reader.cc
-            breakpad/src/common/dwarf/elf_reader.cc
-            breakpad/src/common/linux/crc32.cc
-            breakpad/src/common/linux/dump_symbols.cc
-            breakpad/src/common/linux/elf_symbols_to_module.cc
-            breakpad/src/common/linux/elfutils.cc
-            breakpad/src/common/linux/file_id.cc
-            breakpad/src/common/linux/linux_libc_support.cc
-            breakpad/src/common/linux/memory_mapped_file.cc
-            breakpad/src/common/linux/safe_readlink.cc
-            breakpad/src/tools/linux/dump_syms/dump_syms.cc)
+            ${breakpad_SOURCE_DIR}/src/common/dwarf_cfi_to_module.cc
+            ${breakpad_SOURCE_DIR}/src/common/dwarf_cu_to_module.cc
+            ${breakpad_SOURCE_DIR}/src/common/dwarf_line_to_module.cc
+            ${breakpad_SOURCE_DIR}/src/common/dwarf_range_list_handler.cc
+            ${breakpad_SOURCE_DIR}/src/common/language.cc
+            ${breakpad_SOURCE_DIR}/src/common/module.cc
+            ${breakpad_SOURCE_DIR}/src/common/path_helper.cc
+            ${breakpad_SOURCE_DIR}/src/common/stabs_reader.cc
+            ${breakpad_SOURCE_DIR}/src/common/stabs_to_module.cc
+            ${breakpad_SOURCE_DIR}/src/common/dwarf/bytereader.cc
+            ${breakpad_SOURCE_DIR}/src/common/dwarf/dwarf2diehandler.cc
+            ${breakpad_SOURCE_DIR}/src/common/dwarf/dwarf2reader.cc
+            ${breakpad_SOURCE_DIR}/src/common/dwarf/elf_reader.cc
+            ${breakpad_SOURCE_DIR}/src/common/linux/crc32.cc
+            ${breakpad_SOURCE_DIR}/src/common/linux/dump_symbols.cc
+            ${breakpad_SOURCE_DIR}/src/common/linux/elf_symbols_to_module.cc
+            ${breakpad_SOURCE_DIR}/src/common/linux/elfutils.cc
+            ${breakpad_SOURCE_DIR}/src/common/linux/file_id.cc
+            ${breakpad_SOURCE_DIR}/src/common/linux/linux_libc_support.cc
+            ${breakpad_SOURCE_DIR}/src/common/linux/memory_mapped_file.cc
+            ${breakpad_SOURCE_DIR}/src/common/linux/safe_readlink.cc
+            ${breakpad_SOURCE_DIR}/src/tools/linux/dump_syms/dump_syms.cc)
         target_link_libraries(dump_syms PRIVATE libbreakpad_client ZLIB::ZLIB)
     endif()
 endif()
@@ -356,7 +417,15 @@ endif()
 
 # oboe
 if (ANDROID)
-    add_subdirectory(oboe)
+    set(CPM_USE_LOCAL_PACKAGES ON)
+    CPMAddPackage(
+        NAME oboe
+        URL "https://github.com/google/oboe/archive/2bc873e53c.zip"
+        URL_HASH SHA512=02329058a7f9cf7d5039afaae5ab170d9f42f60f4c01e21eaf4f46073886922b057a9ae30eeac040b3ac182f51b9c1bfe9fe1050a2c9f6ce567a1a9a0ec2c768
+        OPTIONS
+            "SPIRV_SKIP_EXECUTABLES ON"
+    )
+
     add_library(oboe::oboe ALIAS oboe)
 endif()
 
@@ -364,4 +433,15 @@ endif()
 if (ARCHITECTURE_arm64 AND NOT TARGET sse2neon)
     add_library(sse2neon INTERFACE)
     target_include_directories(sse2neon INTERFACE sse2neon)
+endif()
+
+# QuaZip
+if (ENABLE_QT)
+    set(CPM_USE_LOCAL_PACKAGES ON)
+
+    CPMAddPackage(
+        NAME QuaZip-Qt6
+        VERSION 1.3
+        URL "https://github.com/crueter/quazip-qt6/archive/f838774d63.zip"
+    )
 endif()
