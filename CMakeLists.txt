@@ -434,14 +434,6 @@ if (USE_DISCORD_PRESENCE)
     find_package(DiscordRPC MODULE)
 endif()
 
-if (ENABLE_WEB_SERVICE)
-    find_package(cpp-jwt 1.4 CONFIG)
-endif()
-
-if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
-    find_package(httplib 0.12 MODULE COMPONENTS OpenSSL)
-endif()
-
 if (YUZU_TESTS)
     find_package(Catch2 3.0.1 REQUIRED)
 endif()
