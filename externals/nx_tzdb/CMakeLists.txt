@@ -27,14 +27,13 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows" OR ANDROID)
     set(CAN_BUILD_NX_TZDB false)
 endif()
 
-set(NX_TZDB_VERSION "221202")
+set(NX_TZDB_VERSION "250725")
 set(NX_TZDB_ARCHIVE "${CMAKE_CURRENT_BINARY_DIR}/${NX_TZDB_VERSION}.zip")
 
 set(NX_TZDB_ROMFS_DIR "${CMAKE_CURRENT_BINARY_DIR}/nx_tzdb")
 
-# TODO(crueter): figure out tz download/etc
 if ((NOT CAN_BUILD_NX_TZDB OR YUZU_DOWNLOAD_TIME_ZONE_DATA) AND NOT EXISTS ${NX_TZDB_ROMFS_DIR})
-    set(NX_TZDB_DOWNLOAD_URL "https://github.com/lat9nq/tzdb_to_nx/releases/download/${NX_TZDB_VERSION}/${NX_TZDB_VERSION}.zip")
+    set(NX_TZDB_DOWNLOAD_URL "https://github.com/crueter/tzdb_to_nx/releases/download/${NX_TZDB_VERSION}/${NX_TZDB_VERSION}.zip")
 
     message(STATUS "Downloading time zone data from ${NX_TZDB_DOWNLOAD_URL}...")
     file(DOWNLOAD ${NX_TZDB_DOWNLOAD_URL} ${NX_TZDB_ARCHIVE}
