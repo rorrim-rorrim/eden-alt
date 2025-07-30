@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2020 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -13,7 +10,7 @@
 #include <optional>
 
 #include <mcl/macro/architecture.hpp>
-#include "dynarmic/common/common_types.h"
+#include <mcl/stdint.hpp>
 
 #if defined(MCL_ARCHITECTURE_X86_64)
 namespace Dynarmic::Backend::X64 {

@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2016 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -8,15 +5,11 @@
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
 
-#include "dynarmic/common/assert.h"
+#include <mcl/assert.hpp>
 
 #include "dynarmic/interface/A32/config.h"
 
 namespace Dynarmic::A32 {
-
-bool TranslatorVisitor::arm_NOP() {
-    return true;
-}
 
 bool TranslatorVisitor::ArmConditionPassed(Cond cond) {
     return IsConditionPassed(*this, cond);

@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2016 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -14,10 +11,10 @@
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include "dynarmic/common/assert.h"
+#include <mcl/assert.hpp>
 #include <mcl/bit/bit_field.hpp>
 #include <mcl/scope_exit.hpp>
-#include "dynarmic/common/common_types.h"
+#include <mcl/stdint.hpp>
 #include <boost/container/static_vector.hpp>
 
 #include "dynarmic/backend/x64/a32_jitstate.h"
@@ -127,36 +124,35 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
 
     EmitCondPrelude(ctx);
 
-    auto const loop_all_inst = [this, &block, &ctx](auto const func) {
-        for (auto iter = block.begin(); iter != block.end(); ++iter) [[likely]] {
-            auto* inst = &*iter;
-            // Call the relevant Emit* member function.
-            switch (inst->GetOpcode()) {
-#define OPCODE(name, type, ...)                     \
-            case IR::Opcode::name:                  \
-                A32EmitX64::Emit##name(ctx, inst);  \
-                break;
-#define A32OPC(name, type, ...)                     \
-            case IR::Opcode::A32##name:             \
-                A32EmitX64::EmitA32##name(ctx, inst);\
-                break;
+    for (auto iter = block.begin(); iter != block.end(); ++iter) {
+        IR::Inst* inst = &*iter;
+
+        // Call the relevant Emit* member function.
+        switch (inst->GetOpcode()) {
+#define OPCODE(name, type, ...)            \
+    case IR::Opcode::name:                 \
+        A32EmitX64::Emit##name(ctx, inst); \
+        break;
+#define A32OPC(name, type, ...)               \
+    case IR::Opcode::A32##name:               \
+        A32EmitX64::EmitA32##name(ctx, inst); \
+        break;
 #define A64OPC(...)
 #include "dynarmic/ir/opcodes.inc"
 #undef OPCODE
 #undef A32OPC
 #undef A64OPC
-            default: [[unlikely]] ASSERT_FALSE("Invalid opcode: {}", inst->GetOpcode());
-            }
-            reg_alloc.EndOfAllocScope();
-            func(reg_alloc);
+
+        default:
+            ASSERT_FALSE("Invalid opcode: {}", inst->GetOpcode());
+            break;
         }
-    };
-    if (!conf.very_verbose_debugging_output) [[likely]] {
-        loop_all_inst([](auto&) { /*noop*/ });
-    } else [[unlikely]] {
-        loop_all_inst([this](auto& reg_alloc) {
+
+        reg_alloc.EndOfAllocScope();
+
+        if (conf.very_verbose_debugging_output) {
             EmitVerboseDebuggingOutput(reg_alloc);
-        });
+        }
     }
 
     reg_alloc.AssertNoMoreUses();
@@ -233,7 +229,7 @@ void A32EmitX64::GenTerminalHandlers() {
     terminal_handler_pop_rsb_hint = code.getCurr<const void*>();
     calculate_location_descriptor();
     code.mov(eax, dword[r15 + offsetof(A32JitState, rsb_ptr)]);
-    code.dec(eax);
+    code.sub(eax, 1);
     code.and_(eax, u32(A32JitState::RSBPtrMask));
     code.mov(dword[r15 + offsetof(A32JitState, rsb_ptr)], eax);
     code.cmp(rbx, qword[r15 + offsetof(A32JitState, rsb_location_descriptors) + rax * sizeof(u64)]);

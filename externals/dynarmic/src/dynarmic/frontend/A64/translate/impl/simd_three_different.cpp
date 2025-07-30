@@ -12,12 +12,12 @@ enum class AbsoluteDifferenceBehavior {
     Accumulate
 };
 
-enum class SignednessSTD {
+enum class Signedness {
     Signed,
     Unsigned
 };
 
-bool AbsoluteDifferenceLong(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd, AbsoluteDifferenceBehavior behavior, SignednessSTD sign) {
+bool AbsoluteDifferenceLong(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd, AbsoluteDifferenceBehavior behavior, Signedness sign) {
     if (size == 0b11) {
         return v.ReservedValue();
     }
@@ -27,7 +27,7 @@ bool AbsoluteDifferenceLong(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, V
 
     const IR::U128 operand1 = v.ir.VectorZeroExtend(esize, v.Vpart(datasize, Vn, Q));
     const IR::U128 operand2 = v.ir.VectorZeroExtend(esize, v.Vpart(datasize, Vm, Q));
-    IR::U128 result = sign == SignednessSTD::Signed ? v.ir.VectorSignedAbsoluteDifference(esize, operand1, operand2)
+    IR::U128 result = sign == Signedness::Signed ? v.ir.VectorSignedAbsoluteDifference(esize, operand1, operand2)
                                                  : v.ir.VectorUnsignedAbsoluteDifference(esize, operand1, operand2);
 
     if (behavior == AbsoluteDifferenceBehavior::Accumulate) {
@@ -45,7 +45,7 @@ enum class MultiplyLongBehavior {
     Subtract
 };
 
-bool MultiplyLong(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd, MultiplyLongBehavior behavior, SignednessSTD sign) {
+bool MultiplyLong(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd, MultiplyLongBehavior behavior, Signedness sign) {
     if (size == 0b11) {
         return v.ReservedValue();
     }
@@ -59,7 +59,7 @@ bool MultiplyLong(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec
         const auto reg_n = v.Vpart(datasize, Vn, Q);
         const auto reg_m = v.Vpart(datasize, Vm, Q);
 
-        return sign == SignednessSTD::Signed
+        return sign == Signedness::Signed
                  ? v.ir.VectorMultiplySignedWiden(esize, reg_n, reg_m)
                  : v.ir.VectorMultiplyUnsignedWiden(esize, reg_n, reg_m);
     }();
@@ -81,7 +81,7 @@ enum class LongOperationBehavior {
     Subtraction
 };
 
-bool LongOperation(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd, LongOperationBehavior behavior, SignednessSTD sign) {
+bool LongOperation(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd, LongOperationBehavior behavior, Signedness sign) {
     if (size == 0b11) {
         return v.ReservedValue();
     }
@@ -92,7 +92,7 @@ bool LongOperation(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Ve
     const auto get_operand = [&](Vec vec) {
         const IR::U128 tmp = v.Vpart(64, vec, part);
 
-        if (sign == SignednessSTD::Signed) {
+        if (sign == Signedness::Signed) {
             return v.ir.VectorSignExtend(esize, tmp);
         }
 
@@ -118,7 +118,7 @@ enum class WideOperationBehavior {
     Subtraction
 };
 
-bool WideOperation(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd, WideOperationBehavior behavior, SignednessSTD sign) {
+bool WideOperation(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd, WideOperationBehavior behavior, Signedness sign) {
     if (size == 0b11) {
         return v.ReservedValue();
     }
@@ -130,7 +130,7 @@ bool WideOperation(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Ve
     const IR::U128 operand2 = [&] {
         const IR::U128 tmp = v.Vpart(64, Vm, part);
 
-        if (sign == SignednessSTD::Signed) {
+        if (sign == Signedness::Signed) {
             return v.ir.VectorSignExtend(esize, tmp);
         }
 
@@ -166,75 +166,75 @@ bool TranslatorVisitor::PMULL(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
 }
 
 bool TranslatorVisitor::SABAL(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return AbsoluteDifferenceLong(*this, Q, size, Vm, Vn, Vd, AbsoluteDifferenceBehavior::Accumulate, SignednessSTD::Signed);
+    return AbsoluteDifferenceLong(*this, Q, size, Vm, Vn, Vd, AbsoluteDifferenceBehavior::Accumulate, Signedness::Signed);
 }
 
 bool TranslatorVisitor::SABDL(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return AbsoluteDifferenceLong(*this, Q, size, Vm, Vn, Vd, AbsoluteDifferenceBehavior::None, SignednessSTD::Signed);
+    return AbsoluteDifferenceLong(*this, Q, size, Vm, Vn, Vd, AbsoluteDifferenceBehavior::None, Signedness::Signed);
 }
 
 bool TranslatorVisitor::SADDL(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return LongOperation(*this, Q, size, Vm, Vn, Vd, LongOperationBehavior::Addition, SignednessSTD::Signed);
+    return LongOperation(*this, Q, size, Vm, Vn, Vd, LongOperationBehavior::Addition, Signedness::Signed);
 }
 
 bool TranslatorVisitor::SADDW(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return WideOperation(*this, Q, size, Vm, Vn, Vd, WideOperationBehavior::Addition, SignednessSTD::Signed);
+    return WideOperation(*this, Q, size, Vm, Vn, Vd, WideOperationBehavior::Addition, Signedness::Signed);
 }
 
 bool TranslatorVisitor::SMLAL_vec(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return MultiplyLong(*this, Q, size, Vm, Vn, Vd, MultiplyLongBehavior::Accumulate, SignednessSTD::Signed);
+    return MultiplyLong(*this, Q, size, Vm, Vn, Vd, MultiplyLongBehavior::Accumulate, Signedness::Signed);
 }
 
 bool TranslatorVisitor::SMLSL_vec(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return MultiplyLong(*this, Q, size, Vm, Vn, Vd, MultiplyLongBehavior::Subtract, SignednessSTD::Signed);
+    return MultiplyLong(*this, Q, size, Vm, Vn, Vd, MultiplyLongBehavior::Subtract, Signedness::Signed);
 }
 
 bool TranslatorVisitor::SMULL_vec(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return MultiplyLong(*this, Q, size, Vm, Vn, Vd, MultiplyLongBehavior::None, SignednessSTD::Signed);
+    return MultiplyLong(*this, Q, size, Vm, Vn, Vd, MultiplyLongBehavior::None, Signedness::Signed);
 }
 
 bool TranslatorVisitor::SSUBW(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return WideOperation(*this, Q, size, Vm, Vn, Vd, WideOperationBehavior::Subtraction, SignednessSTD::Signed);
+    return WideOperation(*this, Q, size, Vm, Vn, Vd, WideOperationBehavior::Subtraction, Signedness::Signed);
 }
 
 bool TranslatorVisitor::SSUBL(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return LongOperation(*this, Q, size, Vm, Vn, Vd, LongOperationBehavior::Subtraction, SignednessSTD::Signed);
+    return LongOperation(*this, Q, size, Vm, Vn, Vd, LongOperationBehavior::Subtraction, Signedness::Signed);
 }
 
 bool TranslatorVisitor::UADDL(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return LongOperation(*this, Q, size, Vm, Vn, Vd, LongOperationBehavior::Addition, SignednessSTD::Unsigned);
+    return LongOperation(*this, Q, size, Vm, Vn, Vd, LongOperationBehavior::Addition, Signedness::Unsigned);
 }
 
 bool TranslatorVisitor::UABAL(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return AbsoluteDifferenceLong(*this, Q, size, Vm, Vn, Vd, AbsoluteDifferenceBehavior::Accumulate, SignednessSTD::Unsigned);
+    return AbsoluteDifferenceLong(*this, Q, size, Vm, Vn, Vd, AbsoluteDifferenceBehavior::Accumulate, Signedness::Unsigned);
 }
 
 bool TranslatorVisitor::UABDL(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return AbsoluteDifferenceLong(*this, Q, size, Vm, Vn, Vd, AbsoluteDifferenceBehavior::None, SignednessSTD::Unsigned);
+    return AbsoluteDifferenceLong(*this, Q, size, Vm, Vn, Vd, AbsoluteDifferenceBehavior::None, Signedness::Unsigned);
 }
 
 bool TranslatorVisitor::UADDW(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return WideOperation(*this, Q, size, Vm, Vn, Vd, WideOperationBehavior::Addition, SignednessSTD::Unsigned);
+    return WideOperation(*this, Q, size, Vm, Vn, Vd, WideOperationBehavior::Addition, Signedness::Unsigned);
 }
 
 bool TranslatorVisitor::UMLAL_vec(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return MultiplyLong(*this, Q, size, Vm, Vn, Vd, MultiplyLongBehavior::Accumulate, SignednessSTD::Unsigned);
+    return MultiplyLong(*this, Q, size, Vm, Vn, Vd, MultiplyLongBehavior::Accumulate, Signedness::Unsigned);
 }
 
 bool TranslatorVisitor::UMLSL_vec(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return MultiplyLong(*this, Q, size, Vm, Vn, Vd, MultiplyLongBehavior::Subtract, SignednessSTD::Unsigned);
+    return MultiplyLong(*this, Q, size, Vm, Vn, Vd, MultiplyLongBehavior::Subtract, Signedness::Unsigned);
 }
 
 bool TranslatorVisitor::UMULL_vec(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return MultiplyLong(*this, Q, size, Vm, Vn, Vd, MultiplyLongBehavior::None, SignednessSTD::Unsigned);
+    return MultiplyLong(*this, Q, size, Vm, Vn, Vd, MultiplyLongBehavior::None, Signedness::Unsigned);
 }
 
 bool TranslatorVisitor::USUBW(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return WideOperation(*this, Q, size, Vm, Vn, Vd, WideOperationBehavior::Subtraction, SignednessSTD::Unsigned);
+    return WideOperation(*this, Q, size, Vm, Vn, Vd, WideOperationBehavior::Subtraction, Signedness::Unsigned);
 }
 
 bool TranslatorVisitor::USUBL(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return LongOperation(*this, Q, size, Vm, Vn, Vd, LongOperationBehavior::Subtraction, SignednessSTD::Unsigned);
+    return LongOperation(*this, Q, size, Vm, Vn, Vd, LongOperationBehavior::Subtraction, Signedness::Unsigned);
 }
 
 bool TranslatorVisitor::SQDMULL_vec_2(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {

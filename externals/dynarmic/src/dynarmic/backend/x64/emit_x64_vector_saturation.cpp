@@ -1,12 +1,9 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2016 MerryMage
  * SPDX-License-Identifier: 0BSD
  */
 
-#include "dynarmic/common/common_types.h"
+#include <mcl/stdint.hpp>
 
 #include "dynarmic/backend/x64/block_of_code.h"
 #include "dynarmic/backend/x64/constants.h"
@@ -341,6 +338,3 @@ void EmitX64::EmitVectorUnsignedSaturatedSub64(EmitContext& ctx, IR::Inst* inst)
 }
 
 }  // namespace Dynarmic::Backend::X64
-
-#undef FCODE
-#undef ICODE

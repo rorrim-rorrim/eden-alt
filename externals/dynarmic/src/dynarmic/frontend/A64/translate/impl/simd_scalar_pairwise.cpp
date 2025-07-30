@@ -7,14 +7,14 @@
 
 namespace Dynarmic::A64 {
 namespace {
-enum class MinMaxOperationSSPW {
+enum class MinMaxOperation {
     Max,
     MaxNumeric,
     Min,
     MinNumeric,
 };
 
-bool FPPairwiseMinMax(TranslatorVisitor& v, bool sz, Vec Vn, Vec Vd, MinMaxOperationSSPW operation) {
+bool FPPairwiseMinMax(TranslatorVisitor& v, bool sz, Vec Vn, Vec Vd, MinMaxOperation operation) {
     const size_t esize = sz ? 64 : 32;
 
     const IR::U128 operand = v.V(128, Vn);
@@ -22,13 +22,13 @@ bool FPPairwiseMinMax(TranslatorVisitor& v, bool sz, Vec Vn, Vec Vd, MinMaxOpera
     const IR::U32U64 element2 = v.ir.VectorGetElement(esize, operand, 1);
     const IR::U32U64 result = [&] {
         switch (operation) {
-        case MinMaxOperationSSPW::Max:
+        case MinMaxOperation::Max:
             return v.ir.FPMax(element1, element2);
-        case MinMaxOperationSSPW::MaxNumeric:
+        case MinMaxOperation::MaxNumeric:
             return v.ir.FPMaxNumeric(element1, element2);
-        case MinMaxOperationSSPW::Min:
+        case MinMaxOperation::Min:
             return v.ir.FPMin(element1, element2);
-        case MinMaxOperationSSPW::MinNumeric:
+        case MinMaxOperation::MinNumeric:
             return v.ir.FPMinNumeric(element1, element2);
         default:
             UNREACHABLE();
@@ -63,18 +63,18 @@ bool TranslatorVisitor::FADDP_pair_2(bool size, Vec Vn, Vec Vd) {
 }
 
 bool TranslatorVisitor::FMAXNMP_pair_2(bool sz, Vec Vn, Vec Vd) {
-    return FPPairwiseMinMax(*this, sz, Vn, Vd, MinMaxOperationSSPW::MaxNumeric);
+    return FPPairwiseMinMax(*this, sz, Vn, Vd, MinMaxOperation::MaxNumeric);
 }
 
 bool TranslatorVisitor::FMAXP_pair_2(bool sz, Vec Vn, Vec Vd) {
-    return FPPairwiseMinMax(*this, sz, Vn, Vd, MinMaxOperationSSPW::Max);
+    return FPPairwiseMinMax(*this, sz, Vn, Vd, MinMaxOperation::Max);
 }
 
 bool TranslatorVisitor::FMINNMP_pair_2(bool sz, Vec Vn, Vec Vd) {
-    return FPPairwiseMinMax(*this, sz, Vn, Vd, MinMaxOperationSSPW::MinNumeric);
+    return FPPairwiseMinMax(*this, sz, Vn, Vd, MinMaxOperation::MinNumeric);
 }
 
 bool TranslatorVisitor::FMINP_pair_2(bool sz, Vec Vn, Vec Vd) {
-    return FPPairwiseMinMax(*this, sz, Vn, Vd, MinMaxOperationSSPW::Min);
+    return FPPairwiseMinMax(*this, sz, Vn, Vd, MinMaxOperation::Min);
 }
 }  // namespace Dynarmic::A64

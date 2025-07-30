@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -9,10 +6,10 @@
 #include "dynarmic/common/fp/op/FPToFixed.h"
 
 #include <fmt/format.h>
-#include "dynarmic/common/assert.h"
+#include <mcl/assert.hpp>
 #include <mcl/bit/bit_count.hpp>
 #include <mcl/bit/bit_field.hpp>
-#include "dynarmic/common/common_types.h"
+#include <mcl/stdint.hpp>
 
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/common/fp/fpsr.h"

@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2016 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -13,7 +10,7 @@
 #include <utility>
 
 #include <fmt/ostream.h>
-#include "dynarmic/common/assert.h"
+#include <mcl/assert.hpp>
 #include <mcl/bit_cast.hpp>
 #include <xbyak/xbyak.h>
 
@@ -418,54 +415,21 @@ void RegAlloc::ReleaseStackSpace(const size_t stack_space) noexcept {
 }
 
 HostLoc RegAlloc::SelectARegister(const boost::container::static_vector<HostLoc, 28>& desired_locations) const noexcept {
-    // TODO(lizzie): Overspill causes issues (reads to 0 and such) on some games, I need to make a testbench
-    // to later track this down - however I just modified the LRU algo so it prefers empty registers first
-    // we need to test high register pressure (and spills, maybe 32 regs?)
+    boost::container::static_vector<HostLoc, 28> candidates = desired_locations; //Who let someone copy an ENTIRE VECTOR here?
+
+    // Find all locations that have not been allocated..
+    const auto allocated_locs = std::partition(candidates.begin(), candidates.end(), [this](auto loc) noexcept {
+        return !this->LocInfo(loc).IsLocked();
+    });
+    candidates.erase(allocated_locs, candidates.end());
+    ASSERT_MSG(!candidates.empty(), "All candidate registers have already been allocated");
 
     // Selects the best location out of the available locations.
-    // NOTE: Using last is BAD because new REX prefix for each insn using the last regs
     // TODO: Actually do LRU or something. Currently we just try to pick something without a value if possible.
-    auto min_lru_counter = size_t(-1);
-    auto it_candidate = desired_locations.cend(); //default fallback if everything fails
-    auto it_rex_candidate = desired_locations.cend();
-    auto it_empty_candidate = desired_locations.cend();
-    for (auto it = desired_locations.cbegin(); it != desired_locations.cend(); it++) {
-        auto const& loc_info = LocInfo(*it);
-        // Abstain from using upper registers unless absolutely nescesary
-        if (loc_info.IsLocked()) {
-            // skip, not suitable for allocation
-        } else {
-            if (loc_info.lru_counter < min_lru_counter) {
-                if (loc_info.IsEmpty())
-                    it_empty_candidate = it;
-                // Otherwise a "quasi"-LRU
-                min_lru_counter = loc_info.lru_counter;
-                if (*it >= HostLoc::R8 && *it <= HostLoc::R15) {
-                    it_rex_candidate = it;
-                } else {
-                    it_candidate = it;
-                }
-                if (min_lru_counter == 0)
-                    break; //early exit
-            }
-            // only if not assigned (i.e for failcase of all LRU=0)
-            if (it_empty_candidate == desired_locations.cend() && loc_info.IsEmpty())
-                it_empty_candidate = it;
-        }
-    }
-    // Final resolution goes as follows:
-    // 1 => Try an empty candidate
-    // 2 => Try normal candidate (no REX prefix)
-    // 3 => Try using a REX prefixed one
-    // We avoid using REX-addressable registers because they add +1 REX prefix which
-    // do we really need? The trade-off may not be worth it.
-    auto const it_final = it_empty_candidate != desired_locations.cend()
-        ? it_empty_candidate : it_candidate != desired_locations.cend()
-        ? it_candidate : it_rex_candidate;
-    ASSERT_MSG(it_final != desired_locations.cend(), "All candidate registers have already been allocated");
-    // Evil magic - increment LRU counter (will wrap at 256)
-    const_cast<RegAlloc*>(this)->LocInfo(*it_final).lru_counter++;
-    return *it_final;
+    auto const it = std::find_if(candidates.begin(), candidates.end(), [this](auto const loc) noexcept {
+        return this->LocInfo(loc).IsEmpty();
+    });
+    return it != candidates.end() ? *it : candidates.front();
 }
 
 void RegAlloc::DefineValueImpl(IR::Inst* def_inst, HostLoc host_loc) noexcept {

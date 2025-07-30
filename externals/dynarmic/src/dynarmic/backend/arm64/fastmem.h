@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -12,7 +9,7 @@
 #include <tuple>
 
 #include <mcl/hash/xmrx.hpp>
-#include "dynarmic/common/common_types.h"
+#include <mcl/stdint.hpp>
 #include <ankerl/unordered_dense.h>
 
 #include "dynarmic/backend/exception_handler.h"

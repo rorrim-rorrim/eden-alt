@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -8,13 +5,13 @@
 
 #include <utility>
 
-#include "dynarmic/common/assert.h"
+#include <mcl/assert.hpp>
 
 #include "dynarmic/frontend/A64/translate/impl/impl.h"
 
 namespace Dynarmic::A64 {
 namespace {
-std::pair<size_t, Vec> CombineVector(Imm<2> size, Imm<1> H, Imm<1> L, Imm<1> M, Imm<4> Vmlo) {
+std::pair<size_t, Vec> Combine(Imm<2> size, Imm<1> H, Imm<1> L, Imm<1> M, Imm<4> Vmlo) {
     if (size == 0b01) {
         return {concatenate(H, L, M).ZeroExtend(), Vmlo.ZeroExtend<Vec>()};
     }
@@ -22,19 +19,19 @@ std::pair<size_t, Vec> CombineVector(Imm<2> size, Imm<1> H, Imm<1> L, Imm<1> M, 
     return {concatenate(H, L).ZeroExtend(), concatenate(M, Vmlo).ZeroExtend<Vec>()};
 }
 
-enum class ExtraBehaviorSVXIE {
+enum class ExtraBehavior {
     None,
     Extended,
     Accumulate,
     Subtract,
 };
 
-bool MultiplyByElement(TranslatorVisitor& v, bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd, ExtraBehaviorSVXIE extra_behavior) {
+bool MultiplyByElement(TranslatorVisitor& v, bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd, ExtraBehavior extra_behavior) {
     if (size != 0b01 && size != 0b10) {
         return v.ReservedValue();
     }
 
-    const auto [index, Vm] = CombineVector(size, H, L, M, Vmlo);
+    const auto [index, Vm] = Combine(size, H, L, M, Vmlo);
     const size_t idxdsize = H == 1 ? 128 : 64;
     const size_t esize = 8 << size.ZeroExtend();
     const size_t datasize = Q ? 128 : 64;
@@ -44,9 +41,9 @@ bool MultiplyByElement(TranslatorVisitor& v, bool Q, Imm<2> size, Imm<1> L, Imm<
     const IR::U128 operand3 = v.V(datasize, Vd);
 
     IR::U128 result = v.ir.VectorMultiply(esize, operand1, operand2);
-    if (extra_behavior == ExtraBehaviorSVXIE::Accumulate) {
+    if (extra_behavior == ExtraBehavior::Accumulate) {
         result = v.ir.VectorAdd(esize, operand3, result);
-    } else if (extra_behavior == ExtraBehaviorSVXIE::Subtract) {
+    } else if (extra_behavior == ExtraBehavior::Subtract) {
         result = v.ir.VectorSub(esize, operand3, result);
     }
 
@@ -54,7 +51,7 @@ bool MultiplyByElement(TranslatorVisitor& v, bool Q, Imm<2> size, Imm<1> L, Imm<
     return true;
 }
 
-bool FPMultiplyByElement(TranslatorVisitor& v, bool Q, bool sz, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd, ExtraBehaviorSVXIE extra_behavior) {
+bool FPMultiplyByElement(TranslatorVisitor& v, bool Q, bool sz, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd, ExtraBehavior extra_behavior) {
     if (sz && L == 1) {
         return v.ReservedValue();
     }
@@ -74,13 +71,13 @@ bool FPMultiplyByElement(TranslatorVisitor& v, bool Q, bool sz, Imm<1> L, Imm<1>
 
     const IR::U128 result = [&] {
         switch (extra_behavior) {
-        case ExtraBehaviorSVXIE::None:
+        case ExtraBehavior::None:
             return v.ir.FPVectorMul(esize, operand1, operand2);
-        case ExtraBehaviorSVXIE::Extended:
+        case ExtraBehavior::Extended:
             return v.ir.FPVectorMulX(esize, operand1, operand2);
-        case ExtraBehaviorSVXIE::Accumulate:
+        case ExtraBehavior::Accumulate:
             return v.ir.FPVectorMulAdd(esize, operand3, operand1, operand2);
-        case ExtraBehaviorSVXIE::Subtract:
+        case ExtraBehavior::Subtract:
             return v.ir.FPVectorMulAdd(esize, operand3, v.ir.FPVectorNeg(esize, operand1), operand2);
         }
         UNREACHABLE();
@@ -89,7 +86,7 @@ bool FPMultiplyByElement(TranslatorVisitor& v, bool Q, bool sz, Imm<1> L, Imm<1>
     return true;
 }
 
-bool FPMultiplyByElementHalfPrecision(TranslatorVisitor& v, bool Q, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd, ExtraBehaviorSVXIE extra_behavior) {
+bool FPMultiplyByElementHalfPrecision(TranslatorVisitor& v, bool Q, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd, ExtraBehavior extra_behavior) {
     const size_t idxdsize = H == 1 ? 128 : 64;
     const size_t index = concatenate(H, L, M).ZeroExtend();
     const Vec Vm = Vmlo.ZeroExtend<Vec>();
@@ -104,13 +101,13 @@ bool FPMultiplyByElementHalfPrecision(TranslatorVisitor& v, bool Q, Imm<1> L, Im
     //       regular multiplies and extended multiplies.
     const IR::U128 result = [&] {
         switch (extra_behavior) {
-        case ExtraBehaviorSVXIE::None:
+        case ExtraBehavior::None:
             break;
-        case ExtraBehaviorSVXIE::Extended:
+        case ExtraBehavior::Extended:
             break;
-        case ExtraBehaviorSVXIE::Accumulate:
+        case ExtraBehavior::Accumulate:
             return v.ir.FPVectorMulAdd(esize, operand3, operand1, operand2);
-        case ExtraBehaviorSVXIE::Subtract:
+        case ExtraBehavior::Subtract:
             return v.ir.FPVectorMulAdd(esize, operand3, v.ir.FPVectorNeg(esize, operand1), operand2);
         }
         UNREACHABLE();
@@ -154,12 +151,12 @@ bool DotProduct(TranslatorVisitor& v, bool Q, Imm<2> size, Imm<1> L, Imm<1> M, I
     return true;
 }
 
-enum class SignednessSVXIE {
+enum class Signedness {
     Signed,
     Unsigned
 };
 
-bool MultiplyLong(TranslatorVisitor& v, bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd, ExtraBehaviorSVXIE extra_behavior, SignednessSVXIE sign) {
+bool MultiplyLong(TranslatorVisitor& v, bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd, ExtraBehavior extra_behavior, Signedness sign) {
     if (size == 0b00 || size == 0b11) {
         return v.ReservedValue();
     }
@@ -167,23 +164,23 @@ bool MultiplyLong(TranslatorVisitor& v, bool Q, Imm<2> size, Imm<1> L, Imm<1> M,
     const size_t idxsize = H == 1 ? 128 : 64;
     const size_t esize = 8 << size.ZeroExtend();
     const size_t datasize = 64;
-    const auto [index, Vm] = CombineVector(size, H, L, M, Vmlo);
+    const auto [index, Vm] = Combine(size, H, L, M, Vmlo);
 
     const IR::U128 operand1 = v.Vpart(datasize, Vn, Q);
     const IR::U128 operand2 = v.V(idxsize, Vm);
     const IR::U128 index_vector = v.ir.VectorBroadcastElement(esize, operand2, index);
 
     const IR::U128 result = [&] {
-        const IR::U128 product = sign == SignednessSVXIE::Signed
+        const IR::U128 product = sign == Signedness::Signed
                                    ? v.ir.VectorMultiplySignedWiden(esize, operand1, index_vector)
                                    : v.ir.VectorMultiplyUnsignedWiden(esize, operand1, index_vector);
 
-        if (extra_behavior == ExtraBehaviorSVXIE::None) {
+        if (extra_behavior == ExtraBehavior::None) {
             return product;
         }
 
         const IR::U128 operand3 = v.V(2 * datasize, Vd);
-        if (extra_behavior == ExtraBehaviorSVXIE::Accumulate) {
+        if (extra_behavior == ExtraBehavior::Accumulate) {
             return v.ir.VectorAdd(2 * esize, operand3, product);
         }
 
@@ -196,15 +193,15 @@ bool MultiplyLong(TranslatorVisitor& v, bool Q, Imm<2> size, Imm<1> L, Imm<1> M,
 }  // Anonymous namespace
 
 bool TranslatorVisitor::MLA_elt(bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd) {
-    return MultiplyByElement(*this, Q, size, L, M, Vmlo, H, Vn, Vd, ExtraBehaviorSVXIE::Accumulate);
+    return MultiplyByElement(*this, Q, size, L, M, Vmlo, H, Vn, Vd, ExtraBehavior::Accumulate);
 }
 
 bool TranslatorVisitor::MLS_elt(bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd) {
-    return MultiplyByElement(*this, Q, size, L, M, Vmlo, H, Vn, Vd, ExtraBehaviorSVXIE::Subtract);
+    return MultiplyByElement(*this, Q, size, L, M, Vmlo, H, Vn, Vd, ExtraBehavior::Subtract);
 }
 
 bool TranslatorVisitor::MUL_elt(bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd) {
-    return MultiplyByElement(*this, Q, size, L, M, Vmlo, H, Vn, Vd, ExtraBehaviorSVXIE::None);
+    return MultiplyByElement(*this, Q, size, L, M, Vmlo, H, Vn, Vd, ExtraBehavior::None);
 }
 
 bool TranslatorVisitor::FCMLA_elt(bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<2> rot, Imm<1> H, Vec Vn, Vec Vd) {
@@ -295,39 +292,39 @@ bool TranslatorVisitor::FCMLA_elt(bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4
 }
 
 bool TranslatorVisitor::FMLA_elt_3(bool Q, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd) {
-    return FPMultiplyByElementHalfPrecision(*this, Q, L, M, Vmlo, H, Vn, Vd, ExtraBehaviorSVXIE::Accumulate);
+    return FPMultiplyByElementHalfPrecision(*this, Q, L, M, Vmlo, H, Vn, Vd, ExtraBehavior::Accumulate);
 }
 
 bool TranslatorVisitor::FMLA_elt_4(bool Q, bool sz, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd) {
-    return FPMultiplyByElement(*this, Q, sz, L, M, Vmlo, H, Vn, Vd, ExtraBehaviorSVXIE::Accumulate);
+    return FPMultiplyByElement(*this, Q, sz, L, M, Vmlo, H, Vn, Vd, ExtraBehavior::Accumulate);
 }
 
 bool TranslatorVisitor::FMLS_elt_3(bool Q, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd) {
-    return FPMultiplyByElementHalfPrecision(*this, Q, L, M, Vmlo, H, Vn, Vd, ExtraBehaviorSVXIE::Subtract);
+    return FPMultiplyByElementHalfPrecision(*this, Q, L, M, Vmlo, H, Vn, Vd, ExtraBehavior::Subtract);
 }
 
 bool TranslatorVisitor::FMLS_elt_4(bool Q, bool sz, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd) {
-    return FPMultiplyByElement(*this, Q, sz, L, M, Vmlo, H, Vn, Vd, ExtraBehaviorSVXIE::Subtract);
+    return FPMultiplyByElement(*this, Q, sz, L, M, Vmlo, H, Vn, Vd, ExtraBehavior::Subtract);
 }
 
 bool TranslatorVisitor::FMUL_elt_4(bool Q, bool sz, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd) {
-    return FPMultiplyByElement(*this, Q, sz, L, M, Vmlo, H, Vn, Vd, ExtraBehaviorSVXIE::None);
+    return FPMultiplyByElement(*this, Q, sz, L, M, Vmlo, H, Vn, Vd, ExtraBehavior::None);
 }
 
 bool TranslatorVisitor::FMULX_elt_4(bool Q, bool sz, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd) {
-    return FPMultiplyByElement(*this, Q, sz, L, M, Vmlo, H, Vn, Vd, ExtraBehaviorSVXIE::Extended);
+    return FPMultiplyByElement(*this, Q, sz, L, M, Vmlo, H, Vn, Vd, ExtraBehavior::Extended);
 }
 
 bool TranslatorVisitor::SMLAL_elt(bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd) {
-    return MultiplyLong(*this, Q, size, L, M, Vmlo, H, Vn, Vd, ExtraBehaviorSVXIE::Accumulate, SignednessSVXIE::Signed);
+    return MultiplyLong(*this, Q, size, L, M, Vmlo, H, Vn, Vd, ExtraBehavior::Accumulate, Signedness::Signed);
 }
 
 bool TranslatorVisitor::SMLSL_elt(bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd) {
-    return MultiplyLong(*this, Q, size, L, M, Vmlo, H, Vn, Vd, ExtraBehaviorSVXIE::Subtract, SignednessSVXIE::Signed);
+    return MultiplyLong(*this, Q, size, L, M, Vmlo, H, Vn, Vd, ExtraBehavior::Subtract, Signedness::Signed);
 }
 
 bool TranslatorVisitor::SMULL_elt(bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd) {
-    return MultiplyLong(*this, Q, size, L, M, Vmlo, H, Vn, Vd, ExtraBehaviorSVXIE::None, SignednessSVXIE::Signed);
+    return MultiplyLong(*this, Q, size, L, M, Vmlo, H, Vn, Vd, ExtraBehavior::None, Signedness::Signed);
 }
 
 bool TranslatorVisitor::SQDMULL_elt_2(bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd) {
@@ -339,7 +336,7 @@ bool TranslatorVisitor::SQDMULL_elt_2(bool Q, Imm<2> size, Imm<1> L, Imm<1> M, I
     const size_t idxsize = H == 1 ? 128 : 64;
     const size_t esize = 8 << size.ZeroExtend();
     const size_t datasize = 64;
-    const auto [index, Vm] = CombineVector(size, H, L, M, Vmlo);
+    const auto [index, Vm] = Combine(size, H, L, M, Vmlo);
 
     const IR::U128 operand1 = Vpart(datasize, Vn, part);
     const IR::U128 operand2 = V(idxsize, Vm);
@@ -358,7 +355,7 @@ bool TranslatorVisitor::SQDMULH_elt_2(bool Q, Imm<2> size, Imm<1> L, Imm<1> M, I
     const size_t idxsize = H == 1 ? 128 : 64;
     const size_t esize = 8 << size.ZeroExtend();
     const size_t datasize = Q ? 128 : 64;
-    const auto [index, Vm] = CombineVector(size, H, L, M, Vmlo);
+    const auto [index, Vm] = Combine(size, H, L, M, Vmlo);
 
     const IR::U128 operand1 = V(datasize, Vn);
     const IR::U128 operand2 = V(idxsize, Vm);
@@ -377,7 +374,7 @@ bool TranslatorVisitor::SQRDMULH_elt_2(bool Q, Imm<2> size, Imm<1> L, Imm<1> M, 
     const size_t idxsize = H == 1 ? 128 : 64;
     const size_t esize = 8 << size.ZeroExtend();
     const size_t datasize = Q ? 128 : 64;
-    const auto [index, Vm] = CombineVector(size, H, L, M, Vmlo);
+    const auto [index, Vm] = Combine(size, H, L, M, Vmlo);
 
     const IR::U128 operand1 = V(datasize, Vn);
     const IR::U128 operand2 = V(idxsize, Vm);
@@ -397,15 +394,15 @@ bool TranslatorVisitor::UDOT_elt(bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4>
 }
 
 bool TranslatorVisitor::UMLAL_elt(bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd) {
-    return MultiplyLong(*this, Q, size, L, M, Vmlo, H, Vn, Vd, ExtraBehaviorSVXIE::Accumulate, SignednessSVXIE::Unsigned);
+    return MultiplyLong(*this, Q, size, L, M, Vmlo, H, Vn, Vd, ExtraBehavior::Accumulate, Signedness::Unsigned);
 }
 
 bool TranslatorVisitor::UMLSL_elt(bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd) {
-    return MultiplyLong(*this, Q, size, L, M, Vmlo, H, Vn, Vd, ExtraBehaviorSVXIE::Subtract, SignednessSVXIE::Unsigned);
+    return MultiplyLong(*this, Q, size, L, M, Vmlo, H, Vn, Vd, ExtraBehavior::Subtract, Signedness::Unsigned);
 }
 
 bool TranslatorVisitor::UMULL_elt(bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4> Vmlo, Imm<1> H, Vec Vn, Vec Vd) {
-    return MultiplyLong(*this, Q, size, L, M, Vmlo, H, Vn, Vd, ExtraBehaviorSVXIE::None, SignednessSVXIE::Unsigned);
+    return MultiplyLong(*this, Q, size, L, M, Vmlo, H, Vn, Vd, ExtraBehavior::None, Signedness::Unsigned);
 }
 
 }  // namespace Dynarmic::A64

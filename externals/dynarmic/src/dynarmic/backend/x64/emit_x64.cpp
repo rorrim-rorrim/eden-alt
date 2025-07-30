@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2016 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -10,10 +7,10 @@
 
 #include <iterator>
 
-#include "dynarmic/common/assert.h"
+#include <mcl/assert.hpp>
 #include <mcl/bit/bit_field.hpp>
 #include <mcl/scope_exit.hpp>
-#include "dynarmic/common/common_types.h"
+#include <mcl/stdint.hpp>
 #include <ankerl/unordered_dense.h>
 
 #include "dynarmic/backend/x64/block_of_code.h"
@@ -107,7 +104,7 @@ void EmitX64::PushRSBHelper(Xbyak::Reg64 loc_desc_reg, Xbyak::Reg64 index_reg, I
 }
 
 void EmitX64::EmitVerboseDebuggingOutput(RegAlloc& reg_alloc) {
-    code.lea(rsp, ptr[rsp - sizeof(RegisterData)]);
+    code.sub(rsp, sizeof(RegisterData));
     code.stmxcsr(dword[rsp + offsetof(RegisterData, mxcsr)]);
     for (int i = 0; i < 16; i++) {
         if (rsp.getIdx() == i) {
@@ -226,7 +223,7 @@ void EmitX64::EmitGetNZCVFromOp(EmitContext& ctx, IR::Inst* inst) {
     const Xbyak::Reg value = ctx.reg_alloc.UseGpr(args[0]).changeBit(bitsize);
     code.test(value, value);
     code.lahf();
-    code.xor_(al, al);
+    code.mov(al, 0);
     ctx.reg_alloc.DefineValue(inst, nzcv);
 }
 
@@ -273,6 +270,7 @@ void EmitX64::EmitNZCVFromPackedFlags(EmitContext& ctx, IR::Inst* inst) {
         code.shr(nzcv, 28);
         code.imul(nzcv, nzcv, NZCV::to_x64_multiplier);
         code.and_(nzcv, NZCV::x64_mask);
+
         ctx.reg_alloc.DefineValue(inst, nzcv);
     }
 }
@@ -333,8 +331,10 @@ Xbyak::Label EmitX64::EmitCond(IR::Cond cond) {
         code.jle(pass);
         break;
     default:
-        UNREACHABLE();
+        ASSERT_MSG(false, "Unknown cond {}", static_cast<size_t>(cond));
+        break;
     }
+
     return pass;
 }
 

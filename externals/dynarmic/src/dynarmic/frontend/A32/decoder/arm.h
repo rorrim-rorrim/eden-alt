@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2016 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -16,7 +13,7 @@
 #include <vector>
 
 #include <mcl/bit/bit_count.hpp>
-#include "dynarmic/common/common_types.h"
+#include <mcl/stdint.hpp>
 
 #include "dynarmic/frontend/decoder/decoder_detail.h"
 #include "dynarmic/frontend/decoder/matcher.h"
@@ -36,11 +33,13 @@ inline size_t ToFastLookupIndexArm(u32 instruction) {
 }  // namespace detail
 
 template<typename V>
-constexpr ArmDecodeTable<V> GetArmDecodeTable() {
+ArmDecodeTable<V> GetArmDecodeTable() {
     std::vector<ArmMatcher<V>> list = {
+
 #define INST(fn, name, bitstring) DYNARMIC_DECODER_GET_MATCHER(ArmMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)),
 #include "./arm.inc"
 #undef INST
+
     };
 
     // If a matcher has more bits in its mask it is more specific, so it should come first.
@@ -63,10 +62,9 @@ constexpr ArmDecodeTable<V> GetArmDecodeTable() {
 
 template<typename V>
 std::optional<std::reference_wrapper<const ArmMatcher<V>>> DecodeArm(u32 instruction) {
-    alignas(64) static const auto table = GetArmDecodeTable<V>();
-    const auto matches_instruction = [instruction](const auto& matcher) {
-        return matcher.Matches(instruction);
-    };
+    static const auto table = GetArmDecodeTable<V>();
+
+    const auto matches_instruction = [instruction](const auto& matcher) { return matcher.Matches(instruction); };
 
     const auto& subtable = table[detail::ToFastLookupIndexArm(instruction)];
     auto iter = std::find_if(subtable.begin(), subtable.end(), matches_instruction);

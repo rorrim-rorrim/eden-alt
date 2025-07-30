@@ -5,12 +5,10 @@
 
 #pragma once
 
-#include <stdint.h>
-
 namespace Dynarmic {
 namespace A32 {
 
-enum class ArchVersion : std::uint8_t {
+enum class ArchVersion {
     v3,
     v4,
     v4T,

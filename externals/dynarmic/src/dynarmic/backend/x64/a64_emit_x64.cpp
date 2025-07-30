@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2016 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -10,9 +7,9 @@
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include "dynarmic/common/assert.h"
+#include <mcl/assert.hpp>
 #include <mcl/scope_exit.hpp>
-#include "dynarmic/common/common_types.h"
+#include <mcl/stdint.hpp>
 #include <mcl/type_traits/integer_of_size.hpp>
 #include <boost/container/static_vector.hpp>
 
@@ -201,19 +198,18 @@ void A64EmitX64::GenTerminalHandlers() {
         code.or_(rbx, rcx);
     };
 
-    Xbyak::Label fast_dispatch_cache_miss;
-    Xbyak::Label rsb_cache_miss;
+    Xbyak::Label fast_dispatch_cache_miss, rsb_cache_miss;
 
     code.align();
     terminal_handler_pop_rsb_hint = code.getCurr<const void*>();
     calculate_location_descriptor();
     code.mov(eax, dword[r15 + offsetof(A64JitState, rsb_ptr)]);
-    code.dec(eax);
+    code.sub(eax, 1);
     code.and_(eax, u32(A64JitState::RSBPtrMask));
     code.mov(dword[r15 + offsetof(A64JitState, rsb_ptr)], eax);
     code.cmp(rbx, qword[r15 + offsetof(A64JitState, rsb_location_descriptors) + rax * sizeof(u64)]);
     if (conf.HasOptimization(OptimizationFlag::FastDispatch)) {
-        code.jne(rsb_cache_miss, code.T_NEAR);
+        code.jne(rsb_cache_miss);
     } else {
         code.jne(code.GetReturnFromRunCodeAddress());
     }

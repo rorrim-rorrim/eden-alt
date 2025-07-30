@@ -8,11 +8,10 @@
 #include <mcl/bit/bit_field.hpp>
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
-#include "dynarmic/frontend/A32/translate/impl/common.h"
 
 namespace Dynarmic::A32 {
 namespace {
-enum class ComparisonATRM {
+enum class Comparison {
     EQ,
     GE,
     GT,
@@ -20,7 +19,7 @@ enum class ComparisonATRM {
     LT,
 };
 
-bool CompareWithZero(TranslatorVisitor& v, bool D, size_t sz, size_t Vd, bool F, bool Q, bool M, size_t Vm, ComparisonATRM type) {
+bool CompareWithZero(TranslatorVisitor& v, bool D, size_t sz, size_t Vd, bool F, bool Q, bool M, size_t Vm, Comparison type) {
     if (sz == 0b11 || (F && sz != 0b10)) {
         return v.UndefinedInstruction();
     }
@@ -37,15 +36,15 @@ bool CompareWithZero(TranslatorVisitor& v, bool D, size_t sz, size_t Vd, bool F,
 
         if (F) {
             switch (type) {
-            case ComparisonATRM::EQ:
+            case Comparison::EQ:
                 return v.ir.FPVectorEqual(32, reg_m, zero, false);
-            case ComparisonATRM::GE:
+            case Comparison::GE:
                 return v.ir.FPVectorGreaterEqual(32, reg_m, zero, false);
-            case ComparisonATRM::GT:
+            case Comparison::GT:
                 return v.ir.FPVectorGreater(32, reg_m, zero, false);
-            case ComparisonATRM::LE:
+            case Comparison::LE:
                 return v.ir.FPVectorGreaterEqual(32, zero, reg_m, false);
-            case ComparisonATRM::LT:
+            case Comparison::LT:
                 return v.ir.FPVectorGreater(32, zero, reg_m, false);
             }
 
@@ -67,6 +66,11 @@ bool CompareWithZero(TranslatorVisitor& v, bool D, size_t sz, size_t Vd, bool F,
     v.ir.SetVector(d, result);
     return true;
 }
+
+enum class AccumulateBehavior {
+    None,
+    Accumulate,
+};
 
 bool PairedAddOperation(TranslatorVisitor& v, bool D, size_t sz, size_t Vd, bool op, bool Q, bool M, size_t Vm, AccumulateBehavior accumulate) {
     if (sz == 0b11) {
@@ -381,23 +385,23 @@ bool TranslatorVisitor::asimd_VQNEG(bool D, size_t sz, size_t Vd, bool Q, bool M
 }
 
 bool TranslatorVisitor::asimd_VCGT_zero(bool D, size_t sz, size_t Vd, bool F, bool Q, bool M, size_t Vm) {
-    return CompareWithZero(*this, D, sz, Vd, F, Q, M, Vm, ComparisonATRM::GT);
+    return CompareWithZero(*this, D, sz, Vd, F, Q, M, Vm, Comparison::GT);
 }
 
 bool TranslatorVisitor::asimd_VCGE_zero(bool D, size_t sz, size_t Vd, bool F, bool Q, bool M, size_t Vm) {
-    return CompareWithZero(*this, D, sz, Vd, F, Q, M, Vm, ComparisonATRM::GE);
+    return CompareWithZero(*this, D, sz, Vd, F, Q, M, Vm, Comparison::GE);
 }
 
 bool TranslatorVisitor::asimd_VCEQ_zero(bool D, size_t sz, size_t Vd, bool F, bool Q, bool M, size_t Vm) {
-    return CompareWithZero(*this, D, sz, Vd, F, Q, M, Vm, ComparisonATRM::EQ);
+    return CompareWithZero(*this, D, sz, Vd, F, Q, M, Vm, Comparison::EQ);
 }
 
 bool TranslatorVisitor::asimd_VCLE_zero(bool D, size_t sz, size_t Vd, bool F, bool Q, bool M, size_t Vm) {
-    return CompareWithZero(*this, D, sz, Vd, F, Q, M, Vm, ComparisonATRM::LE);
+    return CompareWithZero(*this, D, sz, Vd, F, Q, M, Vm, Comparison::LE);
 }
 
 bool TranslatorVisitor::asimd_VCLT_zero(bool D, size_t sz, size_t Vd, bool F, bool Q, bool M, size_t Vm) {
-    return CompareWithZero(*this, D, sz, Vd, F, Q, M, Vm, ComparisonATRM::LT);
+    return CompareWithZero(*this, D, sz, Vd, F, Q, M, Vm, Comparison::LT);
 }
 
 bool TranslatorVisitor::asimd_VABS(bool D, size_t sz, size_t Vd, bool F, bool Q, bool M, size_t Vm) {

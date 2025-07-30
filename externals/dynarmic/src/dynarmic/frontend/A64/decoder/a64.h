@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -16,7 +13,7 @@
 #include <vector>
 
 #include <mcl/bit/bit_count.hpp>
-#include "dynarmic/common/common_types.h"
+#include <mcl/stdint.hpp>
 
 #include "dynarmic/frontend/decoder/decoder_detail.h"
 #include "dynarmic/frontend/decoder/matcher.h"
@@ -36,26 +33,27 @@ inline size_t ToFastLookupIndex(u32 instruction) {
 }  // namespace detail
 
 template<typename V>
-constexpr DecodeTable<V> GetDecodeTable() {
+DecodeTable<V> GetDecodeTable() {
     std::vector<Matcher<V>> list = {
 #define INST(fn, name, bitstring) DYNARMIC_DECODER_GET_MATCHER(Matcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)),
 #include "./a64.inc"
 #undef INST
     };
 
-    // If a matcher has more bits in its mask it is more specific, so it should come first.
     std::stable_sort(list.begin(), list.end(), [](const auto& matcher1, const auto& matcher2) {
         // If a matcher has more bits in its mask it is more specific, so it should come first.
         return mcl::bit::count_ones(matcher1.GetMask()) > mcl::bit::count_ones(matcher2.GetMask());
     });
 
     // Exceptions to the above rule of thumb.
+    const std::set<std::string> comes_first{
+        "MOVI, MVNI, ORR, BIC (vector, immediate)",
+        "FMOV (vector, immediate)",
+        "Unallocated SIMD modified immediate",
+    };
+
     std::stable_partition(list.begin(), list.end(), [&](const auto& matcher) {
-        return std::set<std::string>{
-            "MOVI, MVNI, ORR, BIC (vector, immediate)",
-            "FMOV (vector, immediate)",
-            "Unallocated SIMD modified immediate",
-        }.count(matcher.GetName()) > 0;
+        return comes_first.count(matcher.GetName()) > 0;
     });
 
     DecodeTable<V> table{};
@@ -77,6 +75,7 @@ std::optional<std::reference_wrapper<const Matcher<V>>> Decode(u32 instruction) 
     const auto matches_instruction = [instruction](const auto& matcher) {
         return matcher.Matches(instruction);
     };
+
     const auto& subtable = table[detail::ToFastLookupIndex(instruction)];
     auto iter = std::find_if(subtable.begin(), subtable.end(), matches_instruction);
     return iter != subtable.end() ? std::optional<std::reference_wrapper<const Matcher<V>>>(*iter) : std::nullopt;

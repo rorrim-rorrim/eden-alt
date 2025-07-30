@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2016 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -9,8 +6,8 @@
 #include <cstddef>
 #include <type_traits>
 
-#include "dynarmic/common/assert.h"
-#include "dynarmic/common/common_types.h"
+#include <mcl/assert.hpp>
+#include <mcl/stdint.hpp>
 
 #include "dynarmic/backend/x64/block_of_code.h"
 #include "dynarmic/backend/x64/emit_x64.h"
@@ -995,6 +992,7 @@ static void EmitAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, int bit
         code.seto(overflow);
         ctx.reg_alloc.DefineValue(overflow_inst, overflow);
     }
+
     ctx.reg_alloc.DefineValue(inst, result);
 }
 

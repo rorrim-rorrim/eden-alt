@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2024 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -9,7 +6,7 @@
 #include "dynarmic/backend/riscv64/a32_jitstate.h"
 
 #include <mcl/bit/bit_field.hpp>
-#include "dynarmic/common/common_types.h"
+#include <mcl/stdint.hpp>
 
 namespace Dynarmic::Backend::RV64 {
 

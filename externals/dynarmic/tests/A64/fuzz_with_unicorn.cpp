@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -13,7 +10,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <mcl/scope_exit.hpp>
-#include "dynarmic/common/common_types.h"
+#include <mcl/stdint.hpp>
 
 #include "../fuzz_util.h"
 #include "../rand_int.h"
@@ -157,8 +154,7 @@ static u32 GenFloatInst(u64 pc, bool is_last_inst) {
 }
 
 static Dynarmic::A64::UserConfig GetUserConfig(A64TestEnv& jit_env) {
-    Dynarmic::A64::UserConfig jit_user_config{};
-    jit_user_config.callbacks = &jit_env;
+    Dynarmic::A64::UserConfig jit_user_config{&jit_env};
     jit_user_config.optimizations &= ~OptimizationFlag::FastDispatch;
     // The below corresponds to the settings for qemu's aarch64_max_initfn
     jit_user_config.dczid_el0 = 7;

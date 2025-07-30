@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2016 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -12,7 +9,7 @@
 #include <functional>
 #include <optional>
 
-#include "dynarmic/common/common_types.h"
+#include <mcl/stdint.hpp>
 #include <xbyak/xbyak.h>
 #include <boost/container/static_vector.hpp>
 #include <boost/container/flat_set.hpp>
@@ -95,8 +92,8 @@ private:
     uint8_t max_bit_width = 0; //Valid values: 1,2,4,8,16,32,128
     bool is_scratch : 1 = false; //1
     bool is_set_last_use : 1 = false; //1
-    alignas(16) uint8_t lru_counter = 0; //1
-    friend class RegAlloc;
+
+    alignas(16) char padding;
 };
 static_assert(sizeof(HostLocInfo) == 64);
 
