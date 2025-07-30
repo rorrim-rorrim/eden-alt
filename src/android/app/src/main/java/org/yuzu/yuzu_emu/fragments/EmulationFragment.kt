@@ -360,12 +360,18 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                                 Log.info("[EmulationFragment] Game setup complete for intent launch")
 
                                 if (_binding != null) {
+                                    // Hide loading indicator immediately for intent launches
+                                    binding.loadingIndicator.visibility = View.GONE
+                                    binding.surfaceEmulation.visibility = View.VISIBLE
+
                                     completeViewSetup()
 
-                                    val driverReady = driverViewModel.isInteractionAllowed.value
-                                    if (driverReady && !NativeLibrary.isRunning() && !NativeLibrary.isPaused()) {
-                                        Log.info("[EmulationFragment] Starting emulation after async intent setup - driver ready")
-                                        startEmulation()
+                                    // For intent launches, check if surface is ready and start emulation
+                                    binding.root.post {
+                                        if (binding.surfaceEmulation.holder.surface?.isValid == true && !emulationStarted) {
+                                            emulationStarted = true
+                                            emulationState.newSurface(binding.surfaceEmulation.holder.surface)
+                                        }
                                     }
                                 }
                             } catch (e: Exception) {
@@ -769,20 +775,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
 
         driverViewModel.isInteractionAllowed.collect(viewLifecycleOwner) {
-            Log.info("[EmulationFragment] Driver interaction allowed: $it")
             if (it && !NativeLibrary.isRunning() && !NativeLibrary.isPaused()) {
                 startEmulation()
             }
         }
 
         driverViewModel.onLaunchGame()
-
-        val currentDriverState = driverViewModel.isInteractionAllowed.value
-        Log.info("[EmulationFragment] Checking initial driver state after onLaunchGame: $currentDriverState")
-        if (currentDriverState && !NativeLibrary.isRunning() && !NativeLibrary.isPaused()) {
-            Log.info("[EmulationFragment] Starting emulation immediately - driver already ready")
-            startEmulation()
-        }
     }
 
     private fun startEmulation(programIndex: Int = 0) {
@@ -793,7 +791,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
             updateScreenLayout()
 
-            Log.info("[EmulationFragment] Calling emulationState.run() - surface will start emulation when available")
             emulationState.run(emulationActivity!!.isActivityRecreated, programIndex)
         }
     }
@@ -1261,11 +1258,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
         Log.debug("[EmulationFragment] Surface changed. Resolution: " + width + "x" + height)
         if (!emulationStarted) {
-            Log.info("[EmulationFragment] Starting emulation")
             emulationStarted = true
             emulationState.newSurface(holder.surface)
         } else {
-            Log.debug("[EmulationFragment] Emulation already started, updating surface")
             emulationState.newSurface(holder.surface)
         }
     }
