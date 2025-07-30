@@ -28,10 +28,6 @@ public:
         return syncpoint;
     }
 
-    void SetWait() {
-        wait_needed = true;
-    }
-
 private:
     /// Create the decoder when the codec id is set
     void CreateDecoder(NvdecCommon::VideoCodec codec);
@@ -45,7 +41,6 @@ private:
 
     NvdecCommon::NvdecRegisters regs{};
     std::unique_ptr<Decoder> decoder;
-    bool wait_needed{false};
 };
 
 } // namespace Host1x
