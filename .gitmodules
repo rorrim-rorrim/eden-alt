@@ -12,13 +12,19 @@
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
 [submodule "xbyak"]
 	path = externals/xbyak
-	url = https://github.com/Lizzie841/xbyak.git
+	url = https://github.com/herumi/xbyak.git
 [submodule "opus"]
 	path = externals/opus
 	url = https://github.com/xiph/opus.git
+[submodule "SDL"]
+	path = externals/SDL
+	url = https://github.com/libsdl-org/SDL.git
 [submodule "cpp-httplib"]
 	path = externals/cpp-httplib
 	url = https://github.com/yhirose/cpp-httplib.git
+[submodule "ffmpeg"]
+	path = externals/ffmpeg/ffmpeg
+	url = https://github.com/FFmpeg/FFmpeg.git
 [submodule "vcpkg"]
 	path = externals/vcpkg
 	url = https://github.com/microsoft/vcpkg.git
@@ -43,15 +49,15 @@
 [submodule "externals/dynarmic/externals/unordered_dense"]
 	path = externals/dynarmic/externals/unordered_dense
 	url = https://github.com/Lizzie841/unordered_dense.git
+[submodule "externals/dynarmic/externals/xbyak"]
+	path = externals/dynarmic/externals/xbyak
+	url = https://github.com/herumi/xbyak.git
 [submodule "externals/dynarmic/externals/zycore-c"]
 	path = externals/dynarmic/externals/zycore-c
 	url = https://github.com/zyantific/zycore-c.git
 [submodule "externals/dynarmic/externals/zydis"]
 	path = externals/dynarmic/externals/zydis
 	url = https://github.com/zyantific/zydis.git
-[submodule "externals/dynarmic/externals/xbyak"]
-	path = externals/dynarmic/externals/xbyak
-	url = https://github.com/herumi/xbyak.git
 [submodule "externals/nx_tzdb/tzdb_to_nx/externals/tz/tz"]
 	path = externals/nx_tzdb/tzdb_to_nx/externals/tz/tz
 	url = https://github.com/eggert/tz.git
