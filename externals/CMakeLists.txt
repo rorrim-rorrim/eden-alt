@@ -55,7 +55,8 @@ CPMAddPackage(
 )
 
 if (mbedtls_ADDED)
-    target_include_directories(mbedtls PUBLIC ./mbedtls/include)
+    target_include_directories(mbedtls PUBLIC ${mbedtls_SOURCE_DIR}/include)
+
     if (NOT MSVC)
         target_compile_options(mbedcrypto PRIVATE
             -Wno-unused-but-set-variable
