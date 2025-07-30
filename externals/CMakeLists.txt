@@ -171,10 +171,21 @@ if (cubeb_ADDED)
 endif()
 
 # DiscordRPC
-if (USE_DISCORD_PRESENCE AND NOT TARGET DiscordRPC::discord-rpc)
-    set(BUILD_EXAMPLES OFF)
-    add_subdirectory(discord-rpc)
-    target_include_directories(discord-rpc INTERFACE ./discord-rpc/include)
+if (USE_DISCORD_PRESENCE)
+    set(CPM_USE_LOCAL_PACKAGES OFF)
+
+    CPMAddPackage(
+        NAME discord-rpc
+        URL "https://github.com/discord/discord-rpc/archive/963aa9f3e5.zip"
+        URL_HASH SHA512=386e1344e9a666d730f2d335ee3aef1fd05b1039febefd51aa751b705009cc764411397f3ca08dffd46205c72f75b235c870c737b2091a4ed0c3b061f5919bde
+        OPTIONS
+            "BUILD_EXAMPLES OFF"
+        PATCHES
+        ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0001-cmake-version.patch
+        ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0002-no-clang-format.patch
+    )
+
+    target_include_directories(discord-rpc INTERFACE ${discord-rpc_SOURCE_DIR}/include)
     add_library(DiscordRPC::discord-rpc ALIAS discord-rpc)
 endif()
 

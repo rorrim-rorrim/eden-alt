@@ -429,10 +429,6 @@ if (ENABLE_CUBEB)
     find_package(cubeb CONFIG)
 endif()
 
-if (USE_DISCORD_PRESENCE)
-    find_package(DiscordRPC MODULE)
-endif()
-
 if (YUZU_TESTS)
     find_package(Catch2 3.0.1 REQUIRED)
 endif()
