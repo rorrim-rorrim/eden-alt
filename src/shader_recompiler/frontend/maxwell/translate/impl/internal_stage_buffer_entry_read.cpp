@@ -40,7 +40,17 @@ void TranslatorVisitor::ISBERD(u64 insn) {
         throw NotImplementedException("SKEW");
     }
     if (isberd.o != 0) {
-        throw NotImplementedException("O");
+        IR::U32 address{};
+        IR::F32 result{};
+        if (isberd.src_reg_num == 0xFF) {
+            address = ir.Imm32(isberd.imm);
+            result = ir.GetAttributeIndexed(address);
+        } else {
+            IR::U32 offset = ir.Imm32(isberd.imm);
+            address = ir.IAdd(X(isberd.src_reg), offset);
+            result = ir.GetAttributeIndexed(address);
+        }
+        X(isberd.dest_reg, ir.BitCast<IR::U32>(result));
     }
     if (isberd.mode != Mode::Default) {
         throw NotImplementedException("Mode {}", isberd.mode.Value());
