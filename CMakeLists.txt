@@ -214,13 +214,10 @@ if (YUZU_USE_BUNDLED_VCPKG)
     include(CPM)
     set(CPM_USE_LOCAL_PACKAGES OFF)
 
-    # crueter: unfortunately shallow-downloading vcpkg isn't possible
-    # hence why I want to remove it
     CPMAddPackage(
-        NAME vcpkg
         DOWNLOAD_ONLY YES
         GIT_REPOSITORY "https://github.com/microsoft/vcpkg.git"
-        GIT_TAG ea2a964f93
+        GIT_TAG "ea2a964f93"
     )
 
     include(${vcpkg_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake)
@@ -411,7 +408,6 @@ find_package(stb MODULE)
 find_package(VulkanMemoryAllocator CONFIG)
 find_package(ZLIB 1.2 REQUIRED)
 find_package(zstd 1.5 REQUIRED)
-find_package(Opus 1.3 MODULE)
 
 # if (NOT YUZU_USE_EXTERNAL_VULKAN_HEADERS)
 #     find_package(VulkanHeaders 1.3.274 REQUIRED)

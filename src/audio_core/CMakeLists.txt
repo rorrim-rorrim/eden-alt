@@ -234,8 +234,6 @@ if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
 endif()
 
 if (ENABLE_CUBEB)
-    add_subdirectory(externals/cubeb)
-
     target_sources(audio_core PRIVATE
         sink/cubeb_sink.cpp
         sink/cubeb_sink.h
