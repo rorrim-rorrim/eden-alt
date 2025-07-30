@@ -19,12 +19,6 @@
 [submodule "externals/boost-headers"]
 	path = externals/boost-headers
 	url = https://github.com/boostorg/headers.git
-[submodule "externals/dynarmic/externals/catch"]
-	path = externals/dynarmic/externals/catch
-	url = https://github.com/catchorg/Catch2.git
-[submodule "externals/dynarmic/externals/fmt"]
-	path = externals/dynarmic/externals/fmt
-	url = https://github.com/fmtlib/fmt.git
 [submodule "externals/nx_tzdb/tzdb_to_nx/externals/tz/tz"]
 	path = externals/nx_tzdb/tzdb_to_nx/externals/tz/tz
 	url = https://github.com/eggert/tz.git
