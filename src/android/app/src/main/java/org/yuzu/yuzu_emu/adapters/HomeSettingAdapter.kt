@@ -6,10 +6,8 @@ package org.yuzu.yuzu_emu.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.LifecycleOwner
-import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.CardHomeOptionBinding
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.model.HomeSetting
