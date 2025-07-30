@@ -5677,7 +5677,7 @@ int main(int argc, char* argv[]) {
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
 
 #ifdef _WIN32
-    QApplication::setStyle("Vista");
+    QApplication::setStyle(QStringLiteral("Vista"));
 #endif
 
     QApplication app(argc, argv);
