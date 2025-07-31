@@ -189,8 +189,9 @@ if (USE_DISCORD_PRESENCE)
         OPTIONS
             "BUILD_EXAMPLES OFF"
         PATCHES
-        ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0001-cmake-version.patch
-        ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0002-no-clang-format.patch
+            ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0001-cmake-version.patch
+            ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0002-no-clang-format.patch
+            ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0003-fix-cpp17.patch
     )
 
     target_include_directories(discord-rpc INTERFACE ${discord-rpc_SOURCE_DIR}/include)
