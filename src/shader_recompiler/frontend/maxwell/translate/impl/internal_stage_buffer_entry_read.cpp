@@ -31,8 +31,8 @@ void TranslatorVisitor::ISBERD(u64 insn) {
         u64 raw;
         BitField<0, 8, IR::Reg> dest_reg;
         BitField<8, 8, IR::Reg> src_reg;
-        BitField<8, 8, u32> src_reg_num;
-        BitField<24, 8, u32> imm;
+        BitField<8, 8, u64> src_reg_num;
+        BitField<24, 8, u64> imm;
         BitField<31, 1, u64> skew;
         BitField<32, 1, u64> o;
         BitField<33, 2, Mode> mode;
@@ -48,10 +48,10 @@ void TranslatorVisitor::ISBERD(u64 insn) {
         IR::U32 address{};
         IR::F32 result{};
         if (isberd.src_reg_num == 0xFF) {
-            address = ir.Imm32(isberd.imm);
+            address = ir.Imm32(static_cast<u32>(isberd.imm));
             result = ir.GetAttributeIndexed(address);
         } else {
-            IR::U32 offset = ir.Imm32(isberd.imm);
+            IR::U32 offset = ir.Imm32(static_cast<u32>(isberd.imm));
             address = ir.IAdd(X(isberd.src_reg), offset);
             result = ir.GetAttributeIndexed(address);
         }
@@ -61,9 +61,9 @@ void TranslatorVisitor::ISBERD(u64 insn) {
         IR::F32 result{};
         IR::U32 index{};
         if (isberd.src_reg_num == 0xFF) {
-            index = ir.Imm32(isberd.imm);
+            index = ir.Imm32(static_cast<u32>(isberd.imm));
         } else {
-            index = ir.IAdd(X(isberd.src_reg), ir.Imm32(isberd.imm));
+            index = ir.IAdd(X(isberd.src_reg), ir.Imm32(static_cast<u32>(isberd.imm)));
         }
 
         switch (static_cast<u64>(isberd.mode.Value())) {
