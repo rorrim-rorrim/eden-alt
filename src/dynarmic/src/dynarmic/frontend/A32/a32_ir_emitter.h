@@ -34,7 +34,7 @@ class IREmitter : public IR::IREmitter {
 public:
     IREmitter(IR::Block& block, LocationDescriptor descriptor, ArchVersion arch_version)
             : IR::IREmitter(block), current_location(descriptor), arch_version(arch_version) {}
-    
+
     size_t ArchVersion() const;
 
     u32 PC() const;

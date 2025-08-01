@@ -38,13 +38,6 @@ if (ARCHITECTURE_arm64)
     )
     endif()
 
-# Dynarmic
-if ((ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64) AND NOT TARGET dynarmic::dynarmic)
-    set(DYNARMIC_IGNORE_ASSERTS ON)
-    add_subdirectory(dynarmic)
-    add_library(dynarmic::dynarmic ALIAS dynarmic)
-endif()
-
 # getopt
 if (MSVC)
     add_subdirectory(getopt)

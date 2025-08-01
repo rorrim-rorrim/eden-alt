@@ -20,26 +20,26 @@ namespace Dynarmic {
 
         inline bool empty() const noexcept { return list.empty(); }
         inline size_type size() const noexcept { return list.size(); }
-    
+
         inline value_type& front() noexcept { return list.front(); }
         inline const value_type& front() const noexcept { return list.front(); }
-    
+
         inline value_type& back() noexcept { return list.back(); }
         inline const value_type& back() const noexcept { return list.back(); }
-    
+
         inline iterator begin() noexcept { return list.begin(); }
         inline const_iterator begin() const noexcept { return list.begin(); }
         inline iterator end() noexcept { return list.end(); }
         inline const_iterator end() const noexcept { return list.end(); }
-    
+
         inline reverse_iterator rbegin() noexcept { return list.rbegin(); }
         inline const_reverse_iterator rbegin() const noexcept { return list.rbegin(); }
         inline reverse_iterator rend() noexcept { return list.rend(); }
         inline const_reverse_iterator rend() const noexcept { return list.rend(); }
-    
+
         inline const_iterator cbegin() const noexcept { return list.cbegin(); }
         inline const_iterator cend() const noexcept { return list.cend(); }
-    
+
         inline const_reverse_iterator crbegin() const noexcept { return list.crbegin(); }
         inline const_reverse_iterator crend() const noexcept { return list.crend(); }
 

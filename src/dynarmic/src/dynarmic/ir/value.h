@@ -103,7 +103,6 @@ public:
     inline bool IsUnsignedImmediate(u64 value) const noexcept {
         return IsImmediate() && GetImmediateAsU64() == value;
     }
-    
 
     /// @brief Determines whether or not the contained constant value has all bits set.
     /// @pre The value contains either a U1, U8, U16, U32, or U64 value.
