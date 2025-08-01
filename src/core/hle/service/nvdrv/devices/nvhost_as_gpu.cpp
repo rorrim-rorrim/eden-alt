@@ -311,8 +311,8 @@ NvResult nvhost_as_gpu::Remap(std::span<IoctlRemapEntry> entries) {
 
 NvResult nvhost_as_gpu::MapBufferEx(IoctlMapBufferEx& params) {
     LOG_DEBUG(Service_NVDRV,
-              "called, flags={:X}, nvmap_handle={:X}, buffer_offset={}, mapping_size={}"
-              ", offset={}",
+              "called, flags={:X}, nvmap_handle={:X}, buffer_offset={:X}, mapping_size={:X}"
+              ", offset={:X}",
               params.flags, params.handle, params.buffer_offset, params.mapping_size,
               params.offset);
 
