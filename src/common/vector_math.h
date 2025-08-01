@@ -648,22 +648,24 @@ template <typename T>
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
 
-template <>
-[[nodiscard]] inline float Dot(const Vec4<float>& a, const Vec4<float>& b) {
-#ifdef __ARM_NEON
-    float32x4_t va = vld1q_f32(a.AsArray());
-    float32x4_t vb = vld1q_f32(b.AsArray());
-    float32x4_t result = vmulq_f32(va, vb);
-#if defined(__aarch64__) // Use vaddvq_f32 in ARMv8 architectures
-    return vaddvq_f32(result);
-#else // Use manual addition for older architectures
-    float32x2_t sum2 = vadd_f32(vget_high_f32(result), vget_low_f32(result));
-    return vget_lane_f32(vpadd_f32(sum2, sum2), 0);
-#endif
-#else
-    return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
-#endif
+#ifdef __ARM_NEON__
+// NEON-accelerated overload for float Vec4 dot product
+inline float Dot(const Vec4<float>& a, const Vec4<float>& b) {
+    // Load 4 floats into NEON registers
+    float32x4_t va = vld1q_f32(&a.x);
+    float32x4_t vb = vld1q_f32(&b.x);
+    // Element-wise multiply
+    float32x4_t prod = vmulq_f32(va, vb);
+
+    // Horizontal add across the vector
+    #if defined(__aarch64__)
+        return vaddvq_f32(prod);
+    #else
+        float32x2_t sum2 = vadd_f32(vget_high_f32(prod), vget_low_f32(prod));
+        return vget_lane_f32(vpadd_f32(sum2, sum2), 0);
+    #endif
 }
+#endif
 
 template <typename T>
 [[nodiscard]] constexpr Vec3<decltype(T{} * T{} - T{} * T{})> Cross(const Vec3<T>& a,
