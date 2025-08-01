@@ -37,7 +37,7 @@ void TranslatorVisitor::ISBERD(u64 insn) {
         BitField<32, 1, u64> o;
         BitField<33, 2, Mode> mode;
         BitField<47, 2, Shift> shift;
-    } const isberd{insn};
+    }  const isberd{insn};
 
     if (isberd.skew != 0) {
         IR::U32 current_lane_id{ir.LaneId()};
