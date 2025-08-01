@@ -10,6 +10,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <unordered_set>
 #include <vector>
 
 #include "common/address_space.h"
@@ -109,6 +110,7 @@ private:
     };
     static_assert(sizeof(IoctlRemapEntry) == 20, "IoctlRemapEntry is incorrect size");
 
+    std::unordered_set<s64_le> buffer_offsets{};
     struct IoctlMapBufferEx {
         MappingFlags flags{}; // bit0: fixed_offset, bit2: cacheable
         u32_le kind{};        // -1 is default
