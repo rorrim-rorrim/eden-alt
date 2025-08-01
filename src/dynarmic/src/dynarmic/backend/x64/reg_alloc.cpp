@@ -212,9 +212,7 @@ RegAlloc::RegAlloc(BlockOfCode* code, boost::container::static_vector<HostLoc, 2
     : gpr_order(gpr_order),
     xmm_order(xmm_order),
     code(code)
-{
-    
-}
+{}
 
 //static std::uint64_t Zfncwjkrt_blockOfCodeShim = 0;
 

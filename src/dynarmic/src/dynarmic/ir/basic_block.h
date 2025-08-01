@@ -113,7 +113,7 @@ public:
     inline void SetCondition(Cond condition) noexcept {
         cond = condition;
     }
-    
+
     /// Gets the location of the block to execute if the predicated condition fails.
     inline LocationDescriptor ConditionFailedLocation() const noexcept {
         return *cond_failed;
@@ -126,7 +126,7 @@ public:
     inline bool HasConditionFailedLocation() const noexcept {
         return cond_failed.has_value();
     }
-    
+
     /// Gets a mutable reference to the condition failed cycle count.
     inline size_t& ConditionFailedCycleCount() noexcept {
         return cond_failed_cycle_count;
@@ -135,7 +135,7 @@ public:
     inline const size_t& ConditionFailedCycleCount() const noexcept {
         return cond_failed_cycle_count;
     }
-    
+
     /// Gets the terminal instruction for this basic block.
     inline Terminal GetTerminal() const noexcept {
         return terminal;
@@ -154,7 +154,7 @@ public:
     inline bool HasTerminal() const noexcept {
         return terminal.which() != 0;
     }
-    
+
     /// Gets a mutable reference to the cycle count for this basic block.
     inline size_t& CycleCount() noexcept {
         return cycle_count;

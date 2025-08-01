@@ -63,7 +63,7 @@ protected:
     void GenMemory128Accessors();
     void GenFastmemFallbacks();
     void GenTerminalHandlers();
-    
+
     // Microinstruction emitters
     void EmitPushRSB(EmitContext& ctx, IR::Inst* inst);
 #define OPCODE(...)

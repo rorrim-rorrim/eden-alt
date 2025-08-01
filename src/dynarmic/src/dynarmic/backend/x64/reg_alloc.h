@@ -244,7 +244,7 @@ private:
 
     void SpillRegister(HostLoc loc) noexcept;
     HostLoc FindFreeSpill(bool is_xmm) const noexcept;
-    
+
     inline HostLocInfo& LocInfo(const HostLoc loc) noexcept {
         ASSERT(loc != HostLoc::RSP && loc != ABI_JIT_PTR);
         return hostloc_info[static_cast<size_t>(loc)];
