@@ -77,7 +77,7 @@ public:
     void SignalFence(std::function<void()>&& func) {
         bool delay_fence = Settings::IsGPULevelHigh();
         #ifdef __ANDROID__
-        if (!delay_fence && Settings::values.early_release_fences.GetValue()) {
+        if (!delay_fence && !Settings::values.early_release_fences.GetValue()) {
             TryReleasePendingFences<false>();
         }
         #else
