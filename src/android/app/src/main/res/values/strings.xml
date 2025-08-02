@@ -777,6 +777,7 @@
     <string name="custom_settings_failed_message">Failed to apply custom settings for %1$s: %2$s</string>
     <string name="launch_with_default_settings">Launch with Default Settings</string>
     <string name="launch_cancelled">Launch cancelled</string>
+    <string name="custom_settings_failure_reasons">Unable to apply the requested settings. This may be due to missing GPU drivers or configuration issues.</string>
     <string name="custom_settings_applied">Custom settings applied</string>
     <string name="launching_game">Launching %1$s...</string>
     <string name="failed_to_initialize_game">Failed to initialize game</string>
