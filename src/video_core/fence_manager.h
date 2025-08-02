@@ -176,14 +176,13 @@ private:
         while (!fences.empty()) {
             TFence& current_fence = fences.front();
 
-            const bool should_wait = ShouldWait() && !IsFenceSignaled(current_fence);
 #ifdef __ANDROID__
             const bool allow_early_release = Settings::values.early_release_fences.GetValue();
 #else
             const bool allow_early_release = false;
 #endif
 
-            if (should_wait) {
+            if (ShouldWait() && !IsFenceSignaled(current_fence)) {
                 if constexpr (force_wait) {
                     WaitFence(current_fence);
                 } else if (!allow_early_release) {
