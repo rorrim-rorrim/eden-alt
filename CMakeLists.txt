@@ -253,7 +253,7 @@ function(check_submodules_present)
     foreach(module ${gitmodules})
         string(REGEX REPLACE "path *= *" "" module ${module})
 
-        file(GLOB RESULT "${PROJECT_SOURCE_DIR}/${module}/")
+        file(GLOB RESULT "${PROJECT_SOURCE_DIR}/${module}/*")
         list(LENGTH RESULT RES_LEN)
         if(RES_LEN EQUAL 0)
             message(FATAL_ERROR "Git submodule ${module} not found. "
