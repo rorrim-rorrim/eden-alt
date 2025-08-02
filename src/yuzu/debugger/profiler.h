@@ -3,6 +3,8 @@
 
 #pragma once
 
+#if MICROPROFILE_ENABLED
+
 #include <QWidget>
 
 class QAction;
@@ -25,3 +27,4 @@ protected:
 private:
     QAction* toggle_view_action = nullptr;
 };
+#endif
