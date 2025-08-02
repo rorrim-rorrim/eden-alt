@@ -76,27 +76,16 @@ public:
 
     void SignalFence(std::function<void()>&& func) {
         bool delay_fence = Settings::IsGPULevelHigh();
-        #ifdef __ANDROID__
-        if (!delay_fence && !Settings::values.early_release_fences.GetValue()) {
-            TryReleasePendingFences<false>();
-        }
-        #else
+
         if constexpr (!can_async_check) {
             TryReleasePendingFences<false>();
         }
-        #endif
         const bool should_flush = ShouldFlush();
         CommitAsyncFlushes();
         TFence new_fence = CreateFence(!should_flush);
-        #ifdef __ANDROID__
-        if (delay_fence && !Settings::values.early_release_fences.GetValue()) {
-            guard.lock();
-        }
-        #else
         if constexpr (can_async_check) {
             guard.lock();
         }
-        #endif
         if (delay_fence) {
             uncommitted_operations.emplace_back(std::move(func));
         }
@@ -109,17 +98,10 @@ public:
         if (should_flush) {
             rasterizer.FlushCommands();
         }
-        #ifdef __ANDROID__
-        if (delay_fence && !Settings::values.early_release_fences.GetValue()) {
-            guard.unlock();
-            cv.notify_all();
-        }
-        #else
         if constexpr (can_async_check) {
             guard.unlock();
             cv.notify_all();
         }
-        #endif
         rasterizer.InvalidateGPUCache();
     }
 
@@ -193,10 +175,18 @@ private:
     void TryReleasePendingFences() {
         while (!fences.empty()) {
             TFence& current_fence = fences.front();
-            if (ShouldWait() && !IsFenceSignaled(current_fence)) {
+
+            const bool should_wait = ShouldWait() && !IsFenceSignaled(current_fence);
+#ifdef __ANDROID__
+            const bool allow_early_release = Settings::values.early_release_fences.GetValue();
+#else
+            const bool allow_early_release = false;
+#endif
+
+            if (should_wait) {
                 if constexpr (force_wait) {
                     WaitFence(current_fence);
-                } else {
+                } else if (!allow_early_release) {
                     return;
                 }
             }
