@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -68,9 +71,10 @@ Id GetMaxThreadId(EmitContext& ctx, Id thread_id, Id clamp, Id segmentation_mask
 }
 
 Id SelectValue(EmitContext& ctx, Id in_range, Id value, Id src_thread_id) {
-    return ctx.OpSelect(
+    /*return ctx.OpSelect(
         ctx.U32[1], in_range,
-        ctx.OpGroupNonUniformShuffle(ctx.U32[1], SubgroupScope(ctx), value, src_thread_id), value);
+        ctx.OpGroupNonUniformShuffle(ctx.U32[1], SubgroupScope(ctx), value, src_thread_id), value);*/
+    return value;
 }
 
 Id AddPartitionBase(EmitContext& ctx, Id thread_id) {
