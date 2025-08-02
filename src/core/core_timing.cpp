@@ -56,9 +56,7 @@ CoreTiming::~CoreTiming() {
 
 void CoreTiming::ThreadEntry(CoreTiming& instance) {
     static constexpr char name[] = "HostTiming";
-#if MICROPROFILE_ENABLED
     MicroProfileOnThreadCreate(name);
-#endif
     Common::SetCurrentThreadName(name);
     Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
     instance.on_thread_init();
