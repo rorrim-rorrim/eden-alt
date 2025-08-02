@@ -192,7 +192,9 @@ void CpuManager::RunThread(std::stop_token token, std::size_t core) {
     } else {
         name = "CPUThread";
     }
+#if MICROPROFILE_ENABLED
     MicroProfileOnThreadCreate(name.c_str());
+#endif
     Common::SetCurrentThreadName(name.c_str());
     Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
     auto& data = core_data[core];
@@ -201,7 +203,9 @@ void CpuManager::RunThread(std::stop_token token, std::size_t core) {
     // Cleanup
     SCOPE_EXIT {
         data.host_context->Exit();
+#if MICROPROFILE_ENABLED
         MicroProfileOnThreadExit();
+#endif
     };
 
     // Running

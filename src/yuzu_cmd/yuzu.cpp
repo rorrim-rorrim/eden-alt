@@ -335,10 +335,12 @@ int main(int argc, char** argv) {
     LocalFree(argv_w);
 #endif
 
+#if MICROPROFILE_ENABLED
     MicroProfileOnThreadCreate("EmuThread");
     SCOPE_EXIT {
         MicroProfileShutdown();
     };
+#endif
 
     Common::ConfigureNvidiaEnvironmentFlags();
 

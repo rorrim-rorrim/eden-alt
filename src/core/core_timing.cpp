@@ -56,12 +56,16 @@ CoreTiming::~CoreTiming() {
 
 void CoreTiming::ThreadEntry(CoreTiming& instance) {
     static constexpr char name[] = "HostTiming";
+#if MICROPROFILE_ENABLED
     MicroProfileOnThreadCreate(name);
+#endif
     Common::SetCurrentThreadName(name);
     Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
     instance.on_thread_init();
     instance.ThreadLoop();
+#if MICROPROFILE_ENABLED
     MicroProfileOnThreadExit();
+#endif
 }
 
 void CoreTiming::Initialize(std::function<void()>&& on_thread_init_) {
