@@ -1279,11 +1279,15 @@ void KernelCore::ExceptionalExitApplication() {
 }
 
 void KernelCore::EnterSVCProfile() {
+#if MICROPROFILE_ENABLED
     impl->svc_ticks[CurrentPhysicalCoreIndex()] = MicroProfileEnter(MICROPROFILE_TOKEN(Kernel_SVC));
+#endif
 }
 
 void KernelCore::ExitSVCProfile() {
+#if MICROPROFILE_ENABLED
     MicroProfileLeave(MICROPROFILE_TOKEN(Kernel_SVC), impl->svc_ticks[CurrentPhysicalCoreIndex()]);
+#endif
 }
 
 Init::KSlabResourceCounts& KernelCore::SlabResourceCounts() {
