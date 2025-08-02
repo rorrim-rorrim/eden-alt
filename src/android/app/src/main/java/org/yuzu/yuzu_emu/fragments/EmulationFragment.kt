@@ -304,7 +304,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                             val launchWithDefault = askUserToLaunchWithDefaultSettings(
                                 foundGame.title,
-                                "This could be due to:\n• User cancelled configuration overwrite\n• Driver installation failed\n• Missing required drivers"
+                                getString(R.string.custom_settings_failure_reasons)
                             )
 
                             if (launchWithDefault) {
