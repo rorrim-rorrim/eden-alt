@@ -32,7 +32,7 @@ if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
 endif()
 
 # Oaknut (also used by Dynarmic, so needs to be added first)
-if (ARCHITECTURE_arm64)
+if (ARCHITECTURE_arm64 OR DYNARMIC_TESTS)
     CPMAddPackage(
         NAME oaknut
         VERSION 2.0.1

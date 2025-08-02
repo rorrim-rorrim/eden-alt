@@ -35,7 +35,7 @@ endif()
 # TODO(crueter): dedup
 if (NOT TARGET Catch2::Catch2WithMain)
     if (DYNARMIC_TESTS)
-        add_subdirectory(catch EXCLUDE_FROM_ALL)
+        find_package(Catch2 3.0.1 REQUIRED)
     endif()
 endif()
 
