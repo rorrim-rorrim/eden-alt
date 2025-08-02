@@ -102,7 +102,6 @@ CMAKE_DEPENDENT_OPTION(YUZU_ROOM_STANDALONE "Enable standalone room executable" 
 
 CMAKE_DEPENDENT_OPTION(YUZU_CMD "Compile the eden-cli executable" ON "NOT ANDROID" OFF)
 
-# TODO(crueter): remove? cpm?
 CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
 
 option(YUZU_USE_BUNDLED_VCPKG "Use vcpkg for yuzu dependencies" "${MSVC}")
@@ -392,6 +391,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # =======================================================================
 
 # Enforce the search mode of non-required packages for better and shorter failure messages
+# TODO(crueter): some of these should be converted to CPM
 find_package(enet 1.3 MODULE)
 find_package(fmt 8 REQUIRED)
 find_package(LLVM MODULE COMPONENTS Demangle)
@@ -415,18 +415,6 @@ if (ENABLE_LIBUSB)
     else()
     	find_package(libusb 1.0.24 MODULE)
     endif()
-endif()
-
-if (ARCHITECTURE_arm64)
-    find_package(oaknut 2.0.1 CONFIG)
-endif()
-
-if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
-    find_package(dynarmic 6.4.0 CONFIG)
-endif()
-
-if (ENABLE_CUBEB)
-    find_package(cubeb CONFIG)
 endif()
 
 if (YUZU_TESTS)
@@ -567,6 +555,7 @@ if (UNIX AND NOT APPLE AND NOT ANDROID)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(LIBVA libva)
 endif()
+
 if (NOT YUZU_USE_BUNDLED_FFMPEG)
     # Use system installed FFmpeg
     #find_package(FFmpeg 4.3 REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
