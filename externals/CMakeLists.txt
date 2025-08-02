@@ -21,10 +21,19 @@ set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL ON)
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     set(CPM_USE_LOCAL_PACKAGES OFF)
 
+    if ("${CMAKE_SYSTEM_NAME}" STREQUAL "SunOS")
+        # Fix regset.h collisions
+        set(XBYAK_HASH 51f507b0b3)
+        set(XBYAK_SHA512SUM 4a29a3c2f97f7d5adf667a21a008be03c951fb6696b0d7ba27e7e4afa037bc76eb5e059bb84860e01baf741d4d3ac851b840cd54c99d038812fbe0f1fa6d38a4)
+    else()
+        set(XBYAK_HASH 4e44f4614d)
+        set(XBYAK_SHA512SUM 5824e92159e07fa36a774aedd3b3ef3541d0241371d522cffa4ab3e1f215fa5097b1b77865b47b2481376c704fa079875557ea463ca63d0a7fd6a8a20a589e70)
+    endif()
+
     CPMAddPackage(
         NAME xbyak
-        URL "https://github.com/Lizzie841/xbyak/archive/4e44f4614d.zip"
-        URL_HASH SHA512=5824e92159e07fa36a774aedd3b3ef3541d0241371d522cffa4ab3e1f215fa5097b1b77865b47b2481376c704fa079875557ea463ca63d0a7fd6a8a20a589e70
+        URL "https://github.com/Lizzie841/xbyak/archive/${XBYAK_HASH}.zip"
+        URL_HASH SHA512=${XBYAK_SHA512SUM}
     )
 endif()
 
@@ -109,6 +118,9 @@ if (YUZU_USE_EXTERNAL_SDL2)
         set(SDL_HASH cc016b0046)
         set(SDL_PIPEWIRE OFF) # build errors out with this on
         set(SDL_SHA512SUM 34d5ef58da6a4f9efa6689c82f67badcbd741f5a4f562a9c2c30828fa839830fb07681c5dc6a7851520e261c8405a416ac0a2c2513b51984fb3b4fa4dcb3e20b)
+    elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "SunOS")
+        set(SDL_HASH d310b5679f)
+        set(SDL_SHA512SUM cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e)
     else()
         set(SDL_HASH 2e4c12cd2c)
         set(SDL_SHA512SUM d95af47f469a312876f8ab361074a1e7b8083db19935a102d9c6e5887ace6008e64475a8c54b00164b40cad86492bb1b2366084efdd0b2555e5fea6d9c5da80e)
