@@ -24,6 +24,8 @@ using namespace Common::Literals;
 
 namespace OpenGL {
 namespace {
+
+// TODO: Needs to explicitly enable ARB_TESSELLATION_SHADER for GL_MAX_TESS_CONTROL_UNIFORM_BLOCKS
 constexpr std::array LIMIT_UBOS = {
     GL_MAX_VERTEX_UNIFORM_BLOCKS,          GL_MAX_TESS_CONTROL_UNIFORM_BLOCKS,
     GL_MAX_TESS_EVALUATION_UNIFORM_BLOCKS, GL_MAX_GEOMETRY_UNIFORM_BLOCKS,
@@ -62,7 +64,7 @@ bool HasExtension(std::span<const std::string_view> extensions, std::string_view
 }
 
 std::array<u32, Shader::MaxStageTypes> BuildMaxUniformBuffers() noexcept {
-    std::array<u32, Shader::MaxStageTypes> max;
+    std::array<u32, Shader::MaxStageTypes> max{};
     std::ranges::transform(LIMIT_UBOS, max.begin(), &GetInteger<u32>);
     return max;
 }
