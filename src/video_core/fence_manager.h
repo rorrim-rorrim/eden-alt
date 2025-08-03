@@ -76,31 +76,31 @@ public:
 
     void SignalFence(std::function<void()>&& func) {
         bool delay_fence = Settings::IsGPULevelHigh();
-        if constexpr (!can_async_check) {
-            TryReleasePendingFences<false>();
-        }
+        HandleAndroidPreFenceOperations(delay_fence);
+
         const bool should_flush = ShouldFlush();
         CommitAsyncFlushes();
         TFence new_fence = CreateFence(!should_flush);
-        if constexpr (can_async_check) {
-            guard.lock();
-        }
+
+        LockGuardIfNeeded(delay_fence);
+
         if (delay_fence) {
             uncommitted_operations.emplace_back(std::move(func));
         }
         pending_operations.emplace_back(std::move(uncommitted_operations));
         QueueFence(new_fence);
+
         if (!delay_fence) {
             func();
         }
+
         fences.push(std::move(new_fence));
+
         if (should_flush) {
             rasterizer.FlushCommands();
         }
-        if constexpr (can_async_check) {
-            guard.unlock();
-            cv.notify_all();
-        }
+
+        UnlockGuardAndNotifyIfNeeded(delay_fence);
         rasterizer.InvalidateGPUCache();
     }
 
@@ -266,7 +266,46 @@ private:
         }
         query_cache.CommitAsyncFlushes();
     }
+    void HandleAndroidPreFenceOperations(bool delay_fence)
+    {
+#ifdef __ANDROID__
+        if (!delay_fence && Settings::values.early_release_fences.GetValue()) {
+            TryReleasePendingFences<false>();
+        }
+#else
+        if constexpr (!can_async_check) {
+            TryReleasePendingFences<false>();
+        }
+#endif
+    }
 
+    void LockGuardIfNeeded(bool delay_fence)
+    {
+#ifdef __ANDROID__
+        if (delay_fence && Settings::values.early_release_fences.GetValue()) {
+            guard.lock();
+        }
+#else
+        if constexpr (can_async_check) {
+            guard.lock();
+        }
+#endif
+    }
+
+    void UnlockGuardAndNotifyIfNeeded(bool delay_fence)
+    {
+#ifdef __ANDROID__
+        if (delay_fence && Settings::values.early_release_fences.GetValue()) {
+            guard.unlock();
+            cv.notify_all();
+        }
+#else
+        if constexpr (can_async_check) {
+            guard.unlock();
+            cv.notify_all();
+        }
+#endif
+    }
     std::queue<TFence> fences;
     std::deque<std::function<void()>> uncommitted_operations;
     std::deque<std::deque<std::function<void()>>> pending_operations;
