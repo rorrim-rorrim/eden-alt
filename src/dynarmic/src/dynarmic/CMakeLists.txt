@@ -401,8 +401,6 @@ set_target_properties(dynarmic PROPERTIES
 )
 
 if (TARGET unordered_dense::unordered_dense)
-    message(STATUS "Found system unordered_dense kjbgjdskfsdfb")
-
     # weird quirk of system installs
     target_link_libraries(dynarmic
     PRIVATE
