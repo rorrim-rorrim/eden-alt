@@ -110,7 +110,7 @@ bool IsASTCSupported() {
 
 static bool HasSlowSoftwareAstc(std::string_view vendor_name, std::string_view renderer) {
 // ifdef for Unix reduces string comparisons for non-Windows drivers, and Intel
-#ifdef YUZU_UNIX
+#ifdef __unix__
     // Sorted vaguely by how likely a vendor is to appear
     if (vendor_name == "AMD") {
         // RadeonSI
