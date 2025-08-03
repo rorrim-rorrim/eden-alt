@@ -8,6 +8,8 @@ project(yuzu)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
 
+set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
+
 include(DownloadExternals)
 include(CMakeDependentOption)
 include(CTest)
@@ -98,6 +100,8 @@ endif()
 
 option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
 
+option(FORCE_DOWNLOAD_WIN_BUNDLES "Forcefully download bundled Windows dependencies (useful for CI)" OFF)
+
 CMAKE_DEPENDENT_OPTION(YUZU_ROOM "Enable dedicated room functionality" ON "NOT ANDROID" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_ROOM_STANDALONE "Enable standalone room executable" ON "YUZU_ROOM" OFF)
@@ -163,8 +167,6 @@ if (ANDROID)
     set(CMAKE_SKIP_INSTALL_RULES ON)
     set(CMAKE_POLICY_VERSION_MINIMUM 3.5) # Workaround for Oboe
 endif()
-
-set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
 
 if (YUZU_USE_BUNDLED_VCPKG)
     if (ANDROID)
@@ -447,7 +449,7 @@ if (ENABLE_SDL2)
         endif()
 
         if (DEFINED SDL2_VER)
-            download_bundled_external("sdl2/" ${SDL2_VER} SDL2_PREFIX)
+            download_bundled_external("sdl2/" ${SDL2_VER} "sdl2-bundled" SDL2_PREFIX)
         endif()
 
         set(SDL2_FOUND YES)
@@ -578,7 +580,7 @@ endif()
 
 if (WIN32 AND YUZU_CRASH_DUMPS)
     set(BREAKPAD_VER "breakpad-c89f9dd")
-    download_bundled_external("breakpad/" ${BREAKPAD_VER} BREAKPAD_PREFIX)
+    download_bundled_external("breakpad/" ${BREAKPAD_VER} "breakpad-win" BREAKPAD_PREFIX)
 
     set(BREAKPAD_CLIENT_INCLUDE_DIR "${BREAKPAD_PREFIX}/include")
     set(BREAKPAD_CLIENT_LIBRARY "${BREAKPAD_PREFIX}/lib/libbreakpad_client.lib")

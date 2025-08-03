@@ -23,6 +23,10 @@ set(BUILD_SHARED_LIBS OFF)
 # Skip install rules for all externals
 set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL ON)
 
+if (FORCE_DOWNLOAD_WIN_BUNDLES)
+    download_win_archives()
+endif()
+
 # Xbyak (also used by Dynarmic, so needs to be added first)
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     set(CPM_USE_LOCAL_PACKAGES OFF)
