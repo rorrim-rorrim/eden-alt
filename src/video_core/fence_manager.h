@@ -11,14 +11,11 @@
 #include <cstring>
 #include <deque>
 #include <functional>
-#include <memory>
 #include <mutex>
 #include <thread>
 #include <queue>
 
 #include "common/common_types.h"
-#include "common/microprofile.h"
-#include "common/scope_exit.h"
 #include "common/settings.h"
 #include "common/thread.h"
 #include "video_core/delayed_destruction_ring.h"
@@ -75,18 +72,41 @@ public:
     }
 
     void SignalFence(std::function<void()>&& func) {
-        bool delay_fence = Settings::IsGPULevelHigh();
-        HandleAndroidPreFenceOperations(delay_fence);
+        const bool delay_fence = Settings::IsGPULevelHigh();
+
+        #ifdef __ANDROID__
+        const bool use_optimized = Settings::values.early_release_fences.GetValue();
+        #else
+        constexpr bool use_optimized = false;
+        #endif
 
         const bool should_flush = ShouldFlush();
         CommitAsyncFlushes();
         TFence new_fence = CreateFence(!should_flush);
 
-        LockGuardIfNeeded(delay_fence);
+        if (use_optimized) {
+            if (!delay_fence) {
+                TryReleasePendingFences<false>();
+            }
 
-        if (delay_fence) {
-            uncommitted_operations.emplace_back(std::move(func));
+            if (delay_fence) {
+                guard.lock();
+                uncommitted_operations.emplace_back(std::move(func));
+            }
+        } else {
+            if constexpr (!can_async_check) {
+                TryReleasePendingFences<false>();
+            }
+
+            if constexpr (can_async_check) {
+                guard.lock();
+            }
+
+            if (delay_fence) {
+                uncommitted_operations.emplace_back(std::move(func));
+            }
         }
+
         pending_operations.emplace_back(std::move(uncommitted_operations));
         QueueFence(new_fence);
 
@@ -100,7 +120,18 @@ public:
             rasterizer.FlushCommands();
         }
 
-        UnlockGuardAndNotifyIfNeeded(delay_fence);
+        if (use_optimized) {
+            if (delay_fence) {
+                guard.unlock();
+                cv.notify_all();
+            }
+        } else {
+            if constexpr (can_async_check) {
+                guard.unlock();
+                cv.notify_all();
+            }
+        }
+
         rasterizer.InvalidateGPUCache();
     }
 
@@ -197,14 +228,6 @@ private:
 
     void ReleaseThreadFunc(std::stop_token stop_token) {
         std::string name = "GPUFencingThread";
-        MicroProfileOnThreadCreate(name.c_str());
-
-        // Cleanup
-#if MICROPROFILE_ENABLED
-        SCOPE_EXIT {
-            MicroProfileOnThreadExit();
-        };
-#endif
 
         Common::SetCurrentThreadName(name.c_str());
         Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
@@ -266,46 +289,7 @@ private:
         }
         query_cache.CommitAsyncFlushes();
     }
-    void HandleAndroidPreFenceOperations(bool delay_fence)
-    {
-#ifdef __ANDROID__
-        if (!delay_fence && Settings::values.early_release_fences.GetValue()) {
-            TryReleasePendingFences<false>();
-        }
-#else
-        if constexpr (!can_async_check) {
-            TryReleasePendingFences<false>();
-        }
-#endif
-    }
 
-    void LockGuardIfNeeded(bool delay_fence)
-    {
-#ifdef __ANDROID__
-        if (delay_fence && Settings::values.early_release_fences.GetValue()) {
-            guard.lock();
-        }
-#else
-        if constexpr (can_async_check) {
-            guard.lock();
-        }
-#endif
-    }
-
-    void UnlockGuardAndNotifyIfNeeded(bool delay_fence)
-    {
-#ifdef __ANDROID__
-        if (delay_fence && Settings::values.early_release_fences.GetValue()) {
-            guard.unlock();
-            cv.notify_all();
-        }
-#else
-        if constexpr (can_async_check) {
-            guard.unlock();
-            cv.notify_all();
-        }
-#endif
-    }
     std::queue<TFence> fences;
     std::deque<std::function<void()>> uncommitted_operations;
     std::deque<std::deque<std::function<void()>>> pending_operations;
