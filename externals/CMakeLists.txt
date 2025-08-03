@@ -240,7 +240,7 @@ CPMAddPackage(
 
 # httplib
 if ((ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER))
-    set(CPM_USE_LOCAL_PACKAGES ON)
+    set(CPM_USE_LOCAL_PACKAGES ${YUZU_USE_SYSTEM_HTTPLIB})
 
     # TODO(crueter): fix local package (gentoo?)
     CPMAddPackage(
@@ -274,7 +274,8 @@ if (ENABLE_WEB_SERVICE)
 endif()
 
 # Opus
-set(CPM_USE_LOCAL_PACKAGES ON)
+set(CPM_USE_LOCAL_PACKAGES ${YUZU_USE_SYSTEM_OPUS})
+
 CPMAddPackage(
     NAME Opus
     VERSION 1.3
@@ -287,7 +288,6 @@ CPMAddPackage(
         "OPUS_INSTALL_PKG_CONFIG_MODULE OFF"
         "OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF"
     CUSTOM_CACHE_KEY "5ded"
-
 )
 
 # FFMpeg
