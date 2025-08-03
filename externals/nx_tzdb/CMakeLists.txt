@@ -49,6 +49,7 @@ if ((NOT CAN_BUILD_NX_TZDB OR YUZU_DOWNLOAD_TIME_ZONE_DATA) AND NOT EXISTS ${NX_
         DESTINATION
             ${NX_TZDB_ROMFS_DIR})
 elseif (CAN_BUILD_NX_TZDB AND NOT YUZU_DOWNLOAD_TIME_ZONE_DATA)
+    # TODO(crueter): this sucked to do with cpm, see if i can get it to work again
     add_subdirectory(tzdb_to_nx)
     add_dependencies(nx_tzdb x80e)
 

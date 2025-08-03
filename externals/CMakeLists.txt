@@ -7,6 +7,9 @@
 # cpm
 include(CPM)
 
+# Explicitly declare this option here to propagate to the oaknut CPM call
+option(DYNARMIC_TESTS "Build tests" ${BUILD_TESTING})
+
 # Dynarmic has cmake_minimum_required(3.12) and we may want to override
 # some of its variables, which is only possible in 3.13+
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
