@@ -85,7 +85,6 @@ import org.yuzu.yuzu_emu.utils.CustomSettingsHandler
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import java.io.File
@@ -188,38 +187,35 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
 
         try {
-            if (isCustomSettingsIntent) {
-                Log.info("[EmulationFragment] Using custom settings from intent")
-            } else if (intentGame != null && game != null) {
-                val customConfigFile = SettingsFile.getCustomSettingsFile(game!!)
-                if (customConfigFile.exists()) {
-                    Log.info(
-                        "[EmulationFragment] Found existing custom settings for ${game!!.title}, loading them"
-                    )
-                    SettingsFile.loadCustomConfig(game!!)
-                } else {
-                    Log.info(
-                        "[EmulationFragment] No custom settings found for ${game!!.title}, using global settings"
-                    )
-                    NativeConfig.reloadGlobalConfig()
-                }
-            } else {
-                val isCustomFromArgs = if (game != null && game == args.game) {
-                    try {
-                        args.custom
-                    } catch (e: Exception) {
-                        false
+            when {
+                // Game launched via intent (check for existing custom config)
+                intentGame != null -> {
+                    game?.let { gameInstance ->
+                        val customConfigFile = SettingsFile.getCustomSettingsFile(gameInstance)
+                        if (customConfigFile.exists()) {
+                            Log.info("[EmulationFragment] Found existing custom settings for ${gameInstance.title}, loading them")
+                            SettingsFile.loadCustomConfig(gameInstance)
+                        } else {
+                            Log.info("[EmulationFragment] No custom settings found for ${gameInstance.title}, using global settings")
+                            NativeConfig.reloadGlobalConfig()
+                        }
+                    } ?: run {
+                        Log.info("[EmulationFragment] No game available, using global settings")
+                        NativeConfig.reloadGlobalConfig()
                     }
-                } else {
-                    false
                 }
 
-                if (isCustomFromArgs && game != null) {
-                    SettingsFile.loadCustomConfig(game!!)
-                    Log.info("[EmulationFragment] Loading custom settings for ${game!!.title}")
-                } else {
-                    Log.info("[EmulationFragment] Using global settings")
-                    NativeConfig.reloadGlobalConfig()
+                // Normal game launch from arguments
+                else -> {
+                    val shouldUseCustom = game?.let { it == args.game && args.custom } ?: false
+
+                    if (shouldUseCustom) {
+                        SettingsFile.loadCustomConfig(game!!)
+                        Log.info("[EmulationFragment] Loading custom settings for ${game!!.title}")
+                    } else {
+                        Log.info("[EmulationFragment] Using global settings")
+                        NativeConfig.reloadGlobalConfig()
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -228,9 +224,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             try {
                 NativeConfig.reloadGlobalConfig()
             } catch (fallbackException: Exception) {
-                Log.error(
-                    "[EmulationFragment] Critical error: could not load global config: ${fallbackException.message}"
-                )
+                Log.error("[EmulationFragment] Critical error: could not load global config: ${fallbackException.message}")
                 throw fallbackException
             }
         }
@@ -1259,6 +1253,23 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         Log.debug("[EmulationFragment] Surface changed. Resolution: " + width + "x" + height)
         if (!emulationStarted) {
             emulationStarted = true
+
+            // For intent launches, wait for driver initialization to complete
+            if (isCustomSettingsIntent || intentGame != null) {
+                if (!driverViewModel.isInteractionAllowed.value) {
+                    Log.info("[EmulationFragment] Intent launch: waiting for driver initialization")
+                    // Driver is still initializing, wait for it
+                    lifecycleScope.launch {
+                        driverViewModel.isInteractionAllowed.collect { allowed ->
+                            if (allowed && holder.surface.isValid) {
+                                emulationState.newSurface(holder.surface)
+                            }
+                        }
+                    }
+                    return
+                }
+            }
+
             emulationState.newSurface(holder.surface)
         } else {
             emulationState.newSurface(holder.surface)
