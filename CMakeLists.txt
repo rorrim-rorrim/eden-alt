@@ -217,6 +217,7 @@ if (YUZU_USE_BUNDLED_VCPKG)
         DOWNLOAD_ONLY YES
         GIT_REPOSITORY "https://github.com/microsoft/vcpkg.git"
         GIT_TAG "ea2a964f93"
+        CUSTOM_CACHE_KEY "ea2a"
     )
 
     include(${vcpkg_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake)

@@ -37,6 +37,7 @@ if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
         NAME xbyak
         URL "https://github.com/Lizzie841/xbyak/archive/${XBYAK_HASH}.zip"
         URL_HASH SHA512=${XBYAK_SHA512SUM}
+        CUSTOM_CACHE_KEY ${XBYAK_HASH}
     )
 endif()
 
@@ -47,6 +48,7 @@ if (ARCHITECTURE_arm64 OR DYNARMIC_TESTS)
         VERSION 2.0.1
         URL "https://github.com/Wunkolo/oaknut/archive/d9a104d558.zip"
         URL_HASH SHA512=3702c8cf818a8c2b19edf9b18278b3d2b857f118faf1e05064c9389c6da639aaf6e955c20abd4f8bf92e309efb6df79affdefc0d3a1e0f980f86203525dbbcd8
+        CUSTOM_CACHE_KEY "d9a1"
     )
     endif()
 
@@ -68,6 +70,7 @@ CPMAddPackage(
     URL_HASH SHA512=769ad1e94c570671071e1f2a5c0f1027e0bf6bcdd1a80ea8ac970f2c86bc45ce4e31aa88d6d8110fc1bed1de81c48bc624df1b38a26f8b340a44e109d784a966
     PATCHES
         ${CMAKE_SOURCE_DIR}/.patch/mbedtls/0001-cmake-version.patch
+    CUSTOM_CACHE_KEY "8c88"
 )
 
 if (mbedtls_ADDED)
@@ -138,6 +141,7 @@ if (YUZU_USE_EXTERNAL_SDL2)
         NAME SDL2
         URL "https://github.com/libsdl-org/SDL/archive/${SDL_HASH}.zip"
         URL_HASH SHA512=${SDL_SHA512SUM}
+        CUSTOM_CACHE_KEY "${YUZU_SYSTEM_PROFILE}"
     )
 endif()
 
@@ -159,6 +163,7 @@ CPMAddPackage(
         "USE_SANITIZERS OFF"
         "BUILD_TESTS OFF"
         "BUILD_TOOLS OFF"
+    CUSTOM_CACHE_KEY "fa02"
 )
 
 if (cubeb_ADDED)
@@ -197,6 +202,7 @@ if (USE_DISCORD_PRESENCE)
             ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0001-cmake-version.patch
             ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0002-no-clang-format.patch
             ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0003-fix-cpp17.patch
+        CUSTOM_CACHE_KEY "963a"
     )
 
     target_include_directories(discord-rpc INTERFACE ${discord-rpc_SOURCE_DIR}/include)
@@ -211,6 +217,7 @@ CPMAddPackage(
     NAME SPIRV-Headers
     URL "https://github.com/KhronosGroup/SPIRV-Headers/archive/4e209d3d7e.zip"
     URL_HASH SHA512=f48bbe18341ed55ea0fe280dbbbc0a44bf222278de6e716e143ca1e95ca320b06d4d23d6583fbf8d03e1428f3dac8fa00e5b82ddcd6b425e6236d85af09550a4
+    CUSTOM_CACHE_KEY "4e20"
 )
 
 set(CPM_USE_LOCAL_PACKAGES ON)
@@ -221,6 +228,7 @@ CPMAddPackage(
     URL_HASH SHA512=a8f98ea0c51763b89924d836ad482ebdfe9130251cf4e14733ccaacc885ae8cc4c8b03d1dc43e8861609e5f7929c16f935879c1f6bf61866fd75077954774394
     OPTIONS
         "SIRIT_USE_SYSTEM_SPIRV_HEADERS ON"
+    CUSTOM_CACHE_KEY "51fc"
 )
 
 # httplib
@@ -236,6 +244,7 @@ if ((ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER))
         FIND_PACKAGE_ARGUMENTS "MODULE"
         OPTIONS
             "HTTPLIB_REQUIRE_OPENSSL ON"
+        CUSTOM_CACHE_KEY "a609"
     )
 endif()
 
@@ -253,6 +262,7 @@ if (ENABLE_WEB_SERVICE)
             "CPP_JWT_BUILD_EXAMPLES OFF"
             "CPP_JWT_BUILD_TESTS OFF"
             "CPP_JWT_USE_VENDORED_NLOHMANN_JSON OFF"
+        CUSTOM_CACHE_KEY "10ef"
     )
 endif()
 
@@ -269,6 +279,8 @@ CPMAddPackage(
         "OPUS_BUILD_PROGRAMS OFF"
         "OPUS_INSTALL_PKG_CONFIG_MODULE OFF"
         "OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF"
+    CUSTOM_CACHE_KEY "5ded"
+
 )
 
 # FFMpeg
@@ -294,6 +306,7 @@ CPMAddPackage(
     VERSION 1.3.274
     URL "https://github.com/KhronosGroup/Vulkan-Headers/archive/89268a6d17.zip"
     URL_HASH SHA512=3ab349f74298ba72cafb8561015690c0674d428a09fb91ccd3cd3daca83650d190d46d33fd97b0a8fd4223fe6df2bcabae89136fbbf7c0bfeb8776f9448304c8
+    CUSTOM_CACHE_KEY "8926"
 )
 
 # Vulkan-Utility-Libraries
@@ -307,6 +320,7 @@ CPMAddPackage(
     NAME VulkanUtilityLibraries
     URL "https://github.com/KhronosGroup/Vulkan-Utility-Libraries/archive/df2e358152.zip"
     URL_HASH SHA512=3e468c3d9ff93f6d418d71e5527abe0a12c8c7ab5b0b52278bbbee4d02bb87e99073906729b727e0147242b7e3fd5dedf68b803f1878cb4c0e4f730bc2238d79
+    CUSTOM_CACHE_KEY "df2e"
 )
 
 # SPIRV-Tools
@@ -317,6 +331,7 @@ if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
         URL_HASH SHA512=58d0fb1047d69373cf24c73e6f78c73a72a6cca3b4df1d9f083b9dcc0962745ef154abf3dbe9b3623b835be20c6ec769431cf11733349f45e7568b3525f707aa
         OPTIONS
             "SPIRV_SKIP_EXECUTABLES ON"
+        CUSTOM_CACHE_KEY "40eb"
     )
 endif()
 
@@ -327,6 +342,7 @@ CPMAddPackage(
     NAME boost_headers
     URL "https://github.com/boostorg/headers/archive/0456900fad.zip"
     URL_HASH SHA512=50cd75dcdfc5f082225cdace058f47b4fb114a47585f7aee1d22236a910a80b667186254c214fa2fcebac67ae6d37ba4b6e695e1faea8affd6fd42a03cf996e3
+    CUSTOM_CACHE_KEY "0456"
 )
 
 # TZDB (Time Zone Database)
@@ -340,6 +356,7 @@ CPMAddPackage(
     URL "https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/1076b348ab.zip"
     URL_HASH SHA512=a46b44e4286d08cffda058e856c47f44c7fed3da55fe9555976eb3907fdcc20ead0b1860b0c38319cda01dbf9b1aa5d4b4038c7f1f8fbd97283d837fa9af9772
     FIND_PACKAGE_ARGUMENTS "CONFIG"
+    CUSTOM_CACHE_KEY "1076"
 )
 
 set(VulkanMemoryAllocator_SOURCE_DIR "${VulkanMemoryAllocator_SOURCE_DIR}" PARENT_SCOPE)
@@ -383,6 +400,7 @@ if (ANDROID)
             URL_HASH SHA512=c74fa855f0edebbf25c9bce40b00966daa2447bfc5e15f0cf1a95f86cbf70fc6b02590707edbde16328a0a2a4fb9a1fc419d2dfc22a4a4150971be91892d4edb
             PATCHES
                 ${CMAKE_SOURCE_DIR}/.patch/libadrenotools/0001-linkerns-cpm.patch
+            CUSTOM_CACHE_KEY "8fae"
         )
     endif()
 endif()
@@ -413,6 +431,7 @@ if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
         URL "https://github.com/google/breakpad/archive/f80f288803.zip"
         URL_HASH SHA512=4a87ee88cea99bd633d52a5b00135a649f1475e3b65db325a6df9c804ab82b054ad7e62419b35f6e22cc5dfbbb569214041d7ad5d10fab10106e700bb5050e1d
         DOWNLOAD_ONLY YES
+        CUSTOM_CACHE_KEY "f80f"
     )
 
     # libbreakpad
@@ -519,6 +538,7 @@ if (ANDROID)
         URL_HASH SHA512=02329058a7f9cf7d5039afaae5ab170d9f42f60f4c01e21eaf4f46073886922b057a9ae30eeac040b3ac182f51b9c1bfe9fe1050a2c9f6ce567a1a9a0ec2c768
         OPTIONS
             "SPIRV_SKIP_EXECUTABLES ON"
+        CUSTOM_CACHE_KEY "2bc8"
     )
 
     add_library(oboe::oboe ALIAS oboe)
@@ -538,5 +558,6 @@ if (ENABLE_QT)
         NAME QuaZip-Qt6
         VERSION 1.3
         URL "https://github.com/crueter/quazip-qt6/archive/f838774d63.zip"
+        CUSTOM_CACHE_KEY "f838"
     )
 endif()

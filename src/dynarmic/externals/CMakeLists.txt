@@ -27,6 +27,7 @@ if ("riscv" IN_LIST ARCHITECTURE)
         VERSION 0.9.1
         URL "https://github.com/lioncash/biscuit/archive/76b0be8dae.zip"
         URL_HASH SHA512=47d55ed02d032d6cf3dc107c6c0a9aea686d5f25aefb81d1af91db027b6815bd5add1755505e19d76625feeb17aa2db6cd1668fe0dad2e6a411519bde6ca4489
+        CUSTOM_CACHE_KEY "76b0"
     )
 endif()
 
@@ -55,6 +56,7 @@ CPMAddPackage(
     URL_HASH SHA512=f943bac39c1879986decad7a442ff4288eaeca4a2907684c7914e115a55ecc43c2782ded85c0835763fe04e40d5c82220ce864423e489e648e408a84f54dc4f3
     OPTIONS
         "MCL_INSTALL ON"
+    CUSTOM_CACHE_KEY "7b08"
 )
 
 # oaknut
@@ -76,6 +78,7 @@ CPMAddPackage(
     FIND_PACKAGE_ARGUMENTS "CONFIG"
     OPTIONS
         "UNORDERED_DENSE_INSTALL ON"
+    CUSTOM_CACHE_KEY "e59d"
 )
 
 # xbyak
@@ -94,6 +97,7 @@ if ("x86_64" IN_LIST ARCHITECTURE)
         NAME Zycore
         URL "https://github.com/zyantific/zycore-c/archive/75a36c45ae.zip"
         URL_HASH SHA512=15aa399f39713e042c4345bc3175c82f14dca849fde2a21d4f591f62c43e227b70d868d8bb86beb5f4eb68b1d6bd3792cdd638acf89009e787e3d10ee7401924
+        CUSTOM_CACHE_KEY "75a3"
     )
 
     CPMAddPackage(
@@ -107,5 +111,6 @@ if ("x86_64" IN_LIST ARCHITECTURE)
             "ZYDIS_BUILD_DOXYGEN OFF"
             "ZYAN_ZYCORE_PATH ${Zycore_SOURCE_DIR}"
             "CMAKE_DISABLE_FIND_PACKAGE_Doxygen ON"
+        CUSTOM_CACHE_KEY "c2d2"
     )
 endif()
