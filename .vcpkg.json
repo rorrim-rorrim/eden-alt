@@ -25,6 +25,7 @@
         "fmt",
         "lz4",
         "nlohmann-json",
+	"openssl",
         "zlib",
         "zstd",
        "sdl2"
