@@ -326,7 +326,7 @@ private:
 #ifdef __unix__
     void SetupSigInterrupts();
     static void HandleSigInterrupt(int);
-    void OnSigInterruptNotifierActivated();
+    void OnSigInterruptNotifierActivated(QSocketDescriptor socket, QSocketNotifier::Type type);
     void SetGamemodeEnabled(bool state);
 #endif
 
