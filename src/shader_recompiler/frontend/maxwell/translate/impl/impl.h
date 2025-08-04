@@ -7,6 +7,7 @@
 #include "shader_recompiler/frontend/ir/basic_block.h"
 #include "shader_recompiler/frontend/ir/ir_emitter.h"
 #include "shader_recompiler/frontend/maxwell/instruction.h"
+#include "shader_recompiler/frontend/maxwell/translate/impl/internal_stage_buffer_entry_read.h"
 
 namespace Shader::Maxwell {
 
@@ -381,6 +382,11 @@ public:
     void ResetSFlag();
     void ResetCFlag();
     void ResetOFlag();
+
+    // Helper functions for various translator visitors
+    IR::U32 apply_ISBERD_shift(IR::U32 result, isberd::Shift shift_value);
+    IR::U32 apply_ISBERD_size_read(IR::U32 address, isberd::SZ sz_value);
+    IR::U32 compute_ISBERD_address(IR::Reg src_reg, u32 src_reg_num, u32 imm, u64 skew_value);
 };
 
 } // namespace Shader::Maxwell

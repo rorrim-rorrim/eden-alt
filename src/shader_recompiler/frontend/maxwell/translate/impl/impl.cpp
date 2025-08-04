@@ -268,4 +268,40 @@ void TranslatorVisitor::ResetOFlag() {
     SetOFlag(ir.Imm1(false));
 }
 
+IR::U32 TranslatorVisitor::apply_ISBERD_shift(IR::U32 result, isberd::Shift shift_value) {
+    if (shift_value != isberd::Shift::Default) {
+        return ir.ShiftLeftLogical(result, ir.Imm32(1));
+    }
+    return result;
+}
+
+IR::U32 TranslatorVisitor::apply_ISBERD_size_read(IR::U32 address, isberd::SZ sz) {
+    switch (sz) {
+    case isberd::SZ::U8:
+        return ir.LoadGlobalU8(ir.UConvert(64, address));
+    case isberd::SZ::U16:
+        return ir.LoadGlobalU16(ir.UConvert(64, address));
+    case isberd::SZ::U32:
+    case isberd::SZ::F32:
+        return ir.LoadGlobal32(ir.UConvert(64, address));
+    default:
+        UNREACHABLE();
+    }
+}
+
+IR::U32 TranslatorVisitor::compute_ISBERD_address(IR::Reg src_reg, u32 src_reg_num, u32 imm, u64 skew_value) {
+    IR::U32 address{};
+    if (src_reg_num == 0xFF) {
+        address = ir.Imm32(imm);
+    } else {
+        auto offset = ir.Imm32(imm);
+        address = ir.IAdd(X(src_reg), offset);
+        if (skew_value != 0) {
+            address = ir.IAdd(address, ir.LaneId());
+        }
+    }
+
+    return address;
+};
+
 } // namespace Shader::Maxwell
