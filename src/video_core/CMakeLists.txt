@@ -333,7 +333,7 @@ if (VulkanMemoryAllocator_ADDED)
     target_include_directories(video_core PUBLIC ${VulkanMemoryAllocator_SOURCE_DIR}/include)
 endif()
 
-target_link_libraries(video_core PRIVATE sirit Vulkan::Headers VulkanUtilityHeaders)
+target_link_libraries(video_core PRIVATE sirit Vulkan::Headers)
 
 if (ENABLE_NSIGHT_AFTERMATH)
     if (NOT DEFINED ENV{NSIGHT_AFTERMATH_SDK})
