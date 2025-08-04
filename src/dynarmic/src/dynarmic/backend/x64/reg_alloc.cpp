@@ -567,22 +567,23 @@ void RegAlloc::SpillRegister(HostLoc loc) noexcept {
 }
 
 HostLoc RegAlloc::FindFreeSpill(bool is_xmm) const noexcept {
+#ifdef _WIN32
+    // TODO(lizzie): Ok, Windows hates XMM spills, this means less perf for windows
+    // but it's fine anyways. We can find other ways to cheat it later - but which?!?!
+    // we should NOT save xmm each block entering... MAYBE xbyak has a bug on start/end?
+    // TODO(lizzie): This needs to be investigated further later.
+#else
     // Do not spill XMM into other XMM silly
     if (!is_xmm) {
         // TODO(lizzie): Using lower (xmm0 and such) registers results in issues/crashes - INVESTIGATE WHY
         // Intel recommends to spill GPR onto XMM registers IF POSSIBLE
         // TODO(lizzie): Issues on DBZ, theory: Scratch XMM not properly restored after a function call?
         // Must sync with ABI registers (except XMM0, XMM1 and XMM2)
-#ifdef _WIN32
-        for (size_t i = size_t(HostLoc::XMM5); i >= size_t(HostLoc::XMM3); --i)
-            if (const auto loc = HostLoc(i); LocInfo(loc).IsEmpty())
-                return loc;
-#else
         for (size_t i = size_t(HostLoc::XMM15); i >= size_t(HostLoc::XMM3); --i)
             if (const auto loc = HostLoc(i); LocInfo(loc).IsEmpty())
                 return loc;
-#endif
     }
+#endif
     // Otherwise go to stack spilling
     for (size_t i = size_t(HostLoc::FirstSpill); i < hostloc_info.size(); ++i)
         if (const auto loc = HostLoc(i); LocInfo(loc).IsEmpty())
