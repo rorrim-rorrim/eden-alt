@@ -243,7 +243,7 @@ private:
     void MoveOutOfTheWay(HostLoc reg) noexcept;
 
     void SpillRegister(HostLoc loc) noexcept;
-    HostLoc FindFreeSpill() const noexcept;
+    HostLoc FindFreeSpill(bool is_xmm) const noexcept;
 
     inline HostLocInfo& LocInfo(const HostLoc loc) noexcept {
         ASSERT(loc != HostLoc::RSP && loc != ABI_JIT_PTR);
