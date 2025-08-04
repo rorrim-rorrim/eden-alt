@@ -36,8 +36,8 @@
     <color name="eden_glow_orange">#80FF8000</color> <!-- Orange glow -->
 
     <!-- Neon Border Colors -->
-    <color name="eden_border">#333333</color> <!-- Subtle border -->
-    <color name="eden_border_light">#555555</color> <!-- Lighter border -->
+    <color name="eden_border">#7c757f</color> <!-- Subtle border -->
+    <color name="eden_border_light">#948b98</color> <!-- Lighter border -->
     <color name="eden_border_gradient_start">#FF0080</color> <!-- Neon magenta -->
     <color name="eden_border_gradient_end">#00FFFF</color> <!-- Electric cyan -->
 
