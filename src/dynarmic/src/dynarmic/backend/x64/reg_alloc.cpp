@@ -527,8 +527,10 @@ void RegAlloc::Move(HostLoc to, HostLoc from) noexcept {
     ASSERT(bit_width <= HostLocBitWidth(to));
     ASSERT_MSG(!LocInfo(from).IsEmpty(), "Mov eliminated");
 
-    EmitMove(bit_width, to, from);
-    LocInfo(to) = std::exchange(LocInfo(from), {});
+    if (!LocInfo(from).IsEmpty()) {
+        EmitMove(bit_width, to, from);
+        LocInfo(to) = std::exchange(LocInfo(from), {});
+    }
 }
 
 void RegAlloc::CopyToScratch(size_t bit_width, HostLoc to, HostLoc from) noexcept {
@@ -567,12 +569,11 @@ void RegAlloc::SpillRegister(HostLoc loc) noexcept {
 }
 
 HostLoc RegAlloc::FindFreeSpill(bool is_xmm) const noexcept {
-#ifdef _WIN32
+#if 0
     // TODO(lizzie): Ok, Windows hates XMM spills, this means less perf for windows
     // but it's fine anyways. We can find other ways to cheat it later - but which?!?!
     // we should NOT save xmm each block entering... MAYBE xbyak has a bug on start/end?
     // TODO(lizzie): This needs to be investigated further later.
-#else
     // Do not spill XMM into other XMM silly
     if (!is_xmm) {
         // TODO(lizzie): Using lower (xmm0 and such) registers results in issues/crashes - INVESTIGATE WHY
