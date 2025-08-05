@@ -198,7 +198,7 @@ static void RunTestInstance(Dynarmic::A64::Jit& jit, A64Unicorn& uni, A64TestEnv
     uni.ClearPageCache();
 
     jit_env.ticks_left = instructions.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     uni_env.ticks_left = instructions.size();
     uni.Run();

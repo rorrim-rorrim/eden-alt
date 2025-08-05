@@ -8,13 +8,11 @@
 
 #pragma once
 
-#include <array>
 #include <unordered_map>
-
 #include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
-
 #include "dynarmic/interface/A64/a64.h"
+#include "../native/testenv.h"
 
 using Vector = Dynarmic::A64::Vector;
 
@@ -135,8 +133,7 @@ public:
     char* backing_memory = nullptr;
     bool ignore_invalid_insn = false;
 
-    explicit A64FastmemTestEnv(char* addr)
-            : backing_memory(addr) {}
+    explicit A64FastmemTestEnv(char* addr) : backing_memory(addr) {}
 
     template<typename T>
     T read(u64 vaddr) {
