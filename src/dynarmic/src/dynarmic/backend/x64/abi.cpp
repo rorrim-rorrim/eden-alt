@@ -49,16 +49,11 @@ void ABI_PushRegistersAndAdjustStack(BlockOfCode& code, const size_t frame_size,
     const size_t num_xmms = std::count_if(regs.begin(), regs.end(), HostLocIsXMM);
     const FrameInfo frame_info = CalculateFrameInfo(num_gprs, num_xmms, frame_size);
 
-    for (auto const gpr : regs) {
-        if (HostLocIsGPR(gpr)) {
+    for (auto const gpr : regs)
+        if (HostLocIsGPR(gpr))
             code.push(HostLocToReg64(gpr));
-        }
-    }
-
-    if (frame_info.stack_subtraction != 0) {
+    if (frame_info.stack_subtraction != 0)
         code.sub(rsp, u32(frame_info.stack_subtraction));
-    }
-
     size_t xmm_offset = frame_info.xmm_offset;
     for (auto const xmm : regs) {
         if (HostLocIsXMM(xmm)) {
@@ -80,27 +75,22 @@ void ABI_PopRegistersAndAdjustStack(BlockOfCode& code, const size_t frame_size, 
     const size_t num_xmms = std::count_if(regs.begin(), regs.end(), HostLocIsXMM);
     const FrameInfo frame_info = CalculateFrameInfo(num_gprs, num_xmms, frame_size);
 
-    size_t xmm_offset = frame_info.xmm_offset;
-    for (auto const xmm : regs) {
+    size_t xmm_offset = frame_info.xmm_offset + (num_xmms * XMM_SIZE);
+    for (auto const xmm : mcl::iterator::reverse(regs)) {
         if (HostLocIsXMM(xmm)) {
+            xmm_offset -= XMM_SIZE;
             if (code.HasHostFeature(HostFeature::AVX)) {
                 code.vmovaps(HostLocToXmm(xmm), code.xword[rsp + xmm_offset]);
             } else {
                 code.movaps(HostLocToXmm(xmm), code.xword[rsp + xmm_offset]);
             }
-            xmm_offset += XMM_SIZE;
         }
     }
-
-    if (frame_info.stack_subtraction != 0) {
+    if (frame_info.stack_subtraction != 0)
         code.add(rsp, u32(frame_info.stack_subtraction));
-    }
-
-    for (auto const gpr : mcl::iterator::reverse(regs)) {
-        if (HostLocIsGPR(gpr)) {
+    for (auto const gpr : mcl::iterator::reverse(regs))
+        if (HostLocIsGPR(gpr))
             code.pop(HostLocToReg64(gpr));
-        }
-    }
 }
 
 void ABI_PushCalleeSaveRegistersAndAdjustStack(BlockOfCode& code, const std::size_t frame_size) {
