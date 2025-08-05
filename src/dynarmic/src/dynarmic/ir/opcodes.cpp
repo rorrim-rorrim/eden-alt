@@ -35,9 +35,8 @@ constexpr Type Table = Type::Table;
 constexpr Type AccType = Type::AccType;
 
 struct Meta {
-    std::array<Type, 4> arg_types;
+    std::vector<Type> arg_types;
     Type type;
-    uint8_t count;
 };
 
 // Evil macro magic for Intel C++ compiler
@@ -47,14 +46,20 @@ struct Meta {
 #define PP_ARG_N(_1, _2, _3, _4, _5, N, ...) N
 
 alignas(64) static const Meta opcode_info[] = {
-#define OPCODE(name, type, ...) Meta{{__VA_ARGS__}, type, PP_EXPAND(PP_NARGS(__VA_ARGS__))},
-#define A32OPC(name, type, ...) Meta{{__VA_ARGS__}, type, PP_EXPAND(PP_NARGS(__VA_ARGS__))},
-#define A64OPC(name, type, ...) Meta{{__VA_ARGS__}, type, PP_EXPAND(PP_NARGS(__VA_ARGS__))},
+#define OPCODE(name, type, ...) Meta{{__VA_ARGS__}, type},
+#define A32OPC(name, type, ...) Meta{{__VA_ARGS__}, type},
+#define A64OPC(name, type, ...) Meta{{__VA_ARGS__}, type},
 #include "./opcodes.inc"
 #undef OPCODE
 #undef A32OPC
 #undef A64OPC
 };
+
+// Be aware of trailing commas, they can cause PP_NARG to return 2!
+static_assert(PP_EXPAND(PP_NARGS(u8,)) == 2);
+static_assert(PP_EXPAND(PP_NARGS(u8)) == 1);
+static_assert(PP_EXPAND(PP_NARGS(u8, u16)) == 2);
+static_assert(PP_EXPAND(PP_NARGS(u8, u16, u32)) == 3);
 
 }  // namespace OpcodeInfo
 
@@ -65,7 +70,7 @@ Type GetTypeOf(Opcode op) noexcept {
 
 /// @brief Get the number of arguments an opcode accepts
 size_t GetNumArgsOf(Opcode op) noexcept {
-    return OpcodeInfo::opcode_info[size_t(op)].count;
+    return OpcodeInfo::opcode_info[size_t(op)].arg_types.size();
 }
 
 /// @brief Get the required type of an argument of an opcode
