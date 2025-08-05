@@ -357,7 +357,7 @@ static void RunTestInstance(Dynarmic::A32::Jit& jit,
     uni.ClearPageCache();
 
     jit_env.ticks_left = ticks_left;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     uni_env.ticks_left = instructions.size();  // Unicorn counts thumb instructions weirdly.
     uni.Run();

@@ -28,7 +28,7 @@ TEST_CASE("A64: ADD", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(0) == 3);
     REQUIRE(jit.GetRegister(1) == 1);
@@ -54,7 +54,7 @@ TEST_CASE("A64: ADD{V,P}", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 7;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(1) == Vector{0x0000000000000008, 0x0000000000000000});
     REQUIRE(jit.GetVector(2) == Vector{0x0000000000000010, 0x0000000000000000});
@@ -80,7 +80,7 @@ TEST_CASE("A64: CLZ", "[a64]") {
     jit.SetVector(1, {0xfffcfffdfffeffff, 0x000F000700030001});
     jit.SetVector(2, {0xfffffffdfffffffe, 0x0000000300000001});
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(3) == Vector{0x0, 0x0001020304050607});
     REQUIRE(jit.GetVector(4) == Vector{0x0, 0x000c000d000e000f});
@@ -105,7 +105,7 @@ TEST_CASE("A64: UADDL{V,P}", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 7;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(1) == Vector{0x00000000000007f8, 0x0000000000000000});
     REQUIRE(jit.GetVector(2) == Vector{0x0000000000000ff0, 0x0000000000000000});
@@ -133,7 +133,7 @@ TEST_CASE("A64: SADDL{V,P}", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 7;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(1) == Vector{0x000000000000fff8, 0x0000000000000000});
     REQUIRE(jit.GetVector(2) == Vector{0x000000000000fff0, 0x0000000000000000});
@@ -164,7 +164,7 @@ TEST_CASE("A64: VQADD", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 9;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(2) == Vector{0xff8fff7ffffe7f7f, 0xffffffffffffffff});
     REQUIRE(jit.GetVector(3) == Vector{0xff7f7e7fff7f7f7f, 0xffffffffffffffff});
@@ -197,7 +197,7 @@ TEST_CASE("A64: VQSUB", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 9;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(2) == Vector{0x0100800001000000, 0x0100000001000100});
     REQUIRE(jit.GetVector(3) == Vector{0x8091808180008181, 0x8001010180018001});
@@ -224,7 +224,7 @@ TEST_CASE("A64: REV", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 3;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(0) == 0x11ffeeddccbbaa);
     REQUIRE(jit.GetRegister(1) == 0xddccbbaa);
@@ -244,7 +244,7 @@ TEST_CASE("A64: REV32", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 0xddccbbaa0011ffee);
     REQUIRE(jit.GetPC() == 4);
 }
@@ -265,7 +265,7 @@ TEST_CASE("A64: REV16", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 3;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 0xbbaaddccffee0011);
     REQUIRE(jit.GetRegister(1) == 0xbbaaddcc);
     REQUIRE(jit.GetPC() == 8);
@@ -298,7 +298,7 @@ TEST_CASE("A64: SSHL", "[a64]") {
     jit.SetVector(17, {0x8000000000000000, 0xFFFFFFFFFFFFFFFF});
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(4) == Vector{0xfffffefcf8f0e0c0, 0x0080e0f0f8fcfeff});
     CHECK(jit.GetVector(5) == Vector{0xf800f000e000c000, 0xfff0fff8fffcfffe});
@@ -343,7 +343,7 @@ TEST_CASE("A64: USHL", "[a64]") {
     jit.SetVector(17, {0x8000000000000000, 0x0000000000000001});
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(4) == Vector{0x003f000000000000, 0x0080e0f0f8fcfeff});
     CHECK(jit.GetVector(14) == Vector{0x0000000102040810});
@@ -379,7 +379,7 @@ TEST_CASE("A64: URSHL", "[a64]") {
     jit.SetVector(11, Vector{0xffffffffffffffc1, 0x00555555555555f5});
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(0) == Vector{0x00000001'53500000, 0x00000001'00000000});
     CHECK(jit.GetVector(3) == Vector{0x00000001'00000002, 0x80000000'fffffffe});
@@ -405,7 +405,7 @@ TEST_CASE("A64: XTN", "[a64]") {
     jit.SetVector(2, {0x0000000000000000, 0x1111111111111111});
 
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(3) == Vector{0x7766554433221100, 0x0000000000000000});
     REQUIRE(jit.GetVector(4) == Vector{0x3333222211110000, 0x0000000000000000});
@@ -448,7 +448,7 @@ TEST_CASE("A64: TBL", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 9;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0x001122334455'00'77, 0x0000000000000000});
     REQUIRE(jit.GetVector(1) == Vector{0x001122334455'00'77, 0x8899aabbccddeeff});
@@ -496,7 +496,7 @@ TEST_CASE("A64: TBX", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 9;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0x001122334455'FF'77, 0x0000000000000000});
     REQUIRE(jit.GetVector(1) == Vector{0x001122334455'FF'77, 0x8899aabbccddeeff});
@@ -523,7 +523,7 @@ TEST_CASE("A64: AND", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(0) == 1);
     REQUIRE(jit.GetRegister(1) == 1);
@@ -545,7 +545,7 @@ TEST_CASE("A64: Bitmasks", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(0) == 0x01010101);
     REQUIRE(jit.GetRegister(1) == 0x00F000F0);
@@ -569,7 +569,7 @@ TEST_CASE("A64: ANDS NZCV", "[a64]") {
         jit.SetPC(0);
 
         env.ticks_left = 2;
-        jit.Run();
+        CheckedRun([&]() { jit.Run(); });
 
         REQUIRE(jit.GetRegister(0) == 0xFFFFFFFF);
         REQUIRE(jit.GetRegister(1) == 0xFFFFFFFF);
@@ -585,7 +585,7 @@ TEST_CASE("A64: ANDS NZCV", "[a64]") {
         jit.SetPC(0);
 
         env.ticks_left = 2;
-        jit.Run();
+        CheckedRun([&]() { jit.Run(); });
 
         REQUIRE(jit.GetRegister(0) == 0x00000000);
         REQUIRE(jit.GetRegister(1) == 0xFFFFFFFF);
@@ -600,7 +600,7 @@ TEST_CASE("A64: ANDS NZCV", "[a64]") {
         jit.SetPC(0);
 
         env.ticks_left = 2;
-        jit.Run();
+        CheckedRun([&]() { jit.Run(); });
 
         REQUIRE(jit.GetRegister(0) == 0x12240010);
         REQUIRE(jit.GetRegister(1) == 0x12345678);
@@ -627,7 +627,7 @@ TEST_CASE("A64: CBZ", "[a64]") {
         jit.SetRegister(0, 1);
 
         env.ticks_left = 4;
-        jit.Run();
+        CheckedRun([&]() { jit.Run(); });
 
         REQUIRE(jit.GetRegister(2) == 1);
         REQUIRE(jit.GetPC() == 8);
@@ -638,7 +638,7 @@ TEST_CASE("A64: CBZ", "[a64]") {
         jit.SetRegister(0, 0);
 
         env.ticks_left = 4;
-        jit.Run();
+        CheckedRun([&]() { jit.Run(); });
 
         REQUIRE(jit.GetRegister(2) == 2);
         REQUIRE(jit.GetPC() == 16);
@@ -662,7 +662,7 @@ TEST_CASE("A64: TBZ", "[a64]") {
         jit.SetRegister(0, 0xFF);
 
         env.ticks_left = 4;
-        jit.Run();
+        CheckedRun([&]() { jit.Run(); });
 
         REQUIRE(jit.GetRegister(2) == 1);
         REQUIRE(jit.GetPC() == 8);
@@ -673,7 +673,7 @@ TEST_CASE("A64: TBZ", "[a64]") {
         jit.SetRegister(0, 0);
 
         env.ticks_left = 4;
-        jit.Run();
+        CheckedRun([&]() { jit.Run(); });
 
         REQUIRE(jit.GetRegister(2) == 2);
         REQUIRE(jit.GetPC() == 16);
@@ -684,7 +684,7 @@ TEST_CASE("A64: TBZ", "[a64]") {
         jit.SetRegister(0, 1);
 
         env.ticks_left = 4;
-        jit.Run();
+        CheckedRun([&]() { jit.Run(); });
 
         REQUIRE(jit.GetRegister(2) == 2);
         REQUIRE(jit.GetPC() == 16);
@@ -705,7 +705,7 @@ TEST_CASE("A64: FABD", "[a64]") {
     jit.SetVector(21, {0x56d3f085ff890e2b, 0x6e4b0a41801a2d00});
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(22) == Vector{0x56d3f0857fc90e2b, 0x6e4b0a4144873176});
 }
@@ -727,7 +727,7 @@ TEST_CASE("A64: FABS", "[a64]") {
     jit.SetVector(2, {0xffffffffffffffff, 0x8000000000000000});
 
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(4) == Vector{0x7fff7fff7fff7fff, 0x7fff7fff7fff0000});
     REQUIRE(jit.GetVector(5) == Vector{0x7fbfffff7fc00000, 0x7f80000000000000});
@@ -752,7 +752,7 @@ TEST_CASE("A64: FMIN (example)", "[a64]") {
     jit.SetVector(3, {0xbff0000000000000, 0x6e4b0a41ffffffff});
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0x7fc00000'00000001, 0x00000000'7fd84a37});
     REQUIRE(jit.GetVector(2) == Vector{0xbff0000000000000, 0x3ff0000000000000});
@@ -776,7 +776,7 @@ TEST_CASE("A64: FMAX (example)", "[a64]") {
     jit.SetVector(3, {0xbff0000000000000, 0x6e4b0a41ffffffff});
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0x7fc00000'09503366, 0x6e4b0a41'7fd84a37});
     REQUIRE(jit.GetVector(2) == Vector{0x7fc0000009503366, 0x6e4b0a41ffffffff});
@@ -800,7 +800,7 @@ TEST_CASE("A64: FMINNM (example)", "[a64]") {
     jit.SetVector(3, {0xfff0000000000000, 0xffffffffffffffff});
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0xc1200000'00000001, 0x00000000'7fd84a37});
     REQUIRE(jit.GetVector(2) == Vector{0xfff0000000000000, 0x3ff0000000000000});
@@ -824,7 +824,7 @@ TEST_CASE("A64: FMAXNM (example)", "[a64]") {
     jit.SetVector(3, {0xfff0000000000000, 0xffffffffffffffff});
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0xc1200000'09503366, 0x6e4b0a41'7fd84a37});
     REQUIRE(jit.GetVector(2) == Vector{0x7fc0000009503366, 0x3ff0000000000000});
@@ -845,7 +845,7 @@ TEST_CASE("A64: FMAXNM (example 2)", "[a64]") {
     jit.SetVector(27, {0xbc48d091'c79b271e, 0xff800001'3304c3ef});
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(29) == Vector{0xb485877c'42280000, 0xffc00001'3304c3ef});
 }
@@ -875,7 +875,7 @@ TEST_CASE("A64: 128-bit exclusive read/write", "[a64]") {
     jit.SetRegister(6, 0xd0d0cacad0d0caca);
 
     env.ticks_left = 3;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(1) == 0x7f7e7d7c7b7a7978);
     REQUIRE(jit.GetRegister(2) == 0x8786858483828180);
@@ -902,7 +902,7 @@ TEST_CASE("A64: CNTPCT_EL0", "[a64]") {
     env.code_mem.emplace_back(0x14000000);  // B .
 
     env.ticks_left = 10;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(3) == 7);
 }
@@ -922,7 +922,7 @@ TEST_CASE("A64: FNMSUB 1", "[a64]") {
     jit.SetVector(2, {0x0000000000000000, 0xc79b271e3f000000});
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(28) == Vector{0x66ca513533ee6076, 0x0000000000000000});
 }
@@ -943,7 +943,7 @@ TEST_CASE("A64: FNMSUB 2", "[a64]") {
     jit.SetFpcr(0x00400000);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(14) == Vector{0x0000000080045284, 0x0000000000000000});
 }
@@ -964,7 +964,7 @@ TEST_CASE("A64: FMADD", "[a64]") {
     jit.SetFpcr(0x00400000);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(10) == Vector{0x3f059921bf0dbfff, 0x0000000000000000});
 }
@@ -991,7 +991,7 @@ TEST_CASE("A64: FMLA.4S(lane)", "[a64]") {
     jit.SetVector(15, {0x3ff00000'40000000, 0x40400000'40800000});
 
     env.ticks_left = 5;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0x40b4000040b40000, 0x4070000040700000});
     REQUIRE(jit.GetVector(1) == Vector{0x40ac800040ac8000, 0x4061000040610000});
@@ -1016,7 +1016,7 @@ TEST_CASE("A64: FMUL.4S(lane)", "[a64]") {
     jit.SetVector(15, {0x3ff00000'40000000, 0x40400000'40800000});
 
     env.ticks_left = 5;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0x4070000040700000, 0x4070000040700000});
     REQUIRE(jit.GetVector(1) == Vector{0x4061000040610000, 0x4061000040610000});
@@ -1040,7 +1040,7 @@ TEST_CASE("A64: FMLA.4S (denormal)", "[a64]") {
     jit.SetFpcr(0x01000000);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(12) == Vector{0x7ff800007fc00000, 0xbff0000068e8e581});
 }
@@ -1061,7 +1061,7 @@ TEST_CASE("A64: FMLA.4S (0x80800000)", "[a64]") {
     jit.SetFpcr(0x03000000);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(11) == Vector{0xc79b271e7fc00000, 0x7fc0000080000000});
 }
@@ -1085,7 +1085,7 @@ TEST_CASE("A64: FMADD (0x80800000)", "[a64]") {
     jit.SetFpcr(0x01000000);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(25) == Vector{0x80000000, 0});
 }
@@ -1105,7 +1105,7 @@ TEST_CASE("A64: FNEG failed to zero upper", "[a64]") {
     jit.SetFpcr(0x01000000);
 
     env.ticks_left = 6;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(28) == Vector{0x79ee7a03980db670, 0});
     REQUIRE(FP::FPSR{jit.GetFpsr()}.QC() == false);
@@ -1130,7 +1130,7 @@ TEST_CASE("A64: FRSQRTS", "[a64]") {
     jit.SetFpcr(0x00400000);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(13) == Vector{0xff7fffff, 0});
 }
@@ -1152,7 +1152,7 @@ TEST_CASE("A64: SQDMULH.8H (saturate)", "[a64]") {
     jit.SetFpsr(0);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0x7ffe7fff7ffc7ffe, 0x8001800180028002});
     REQUIRE(FP::FPSR{jit.GetFpsr()}.QC() == true);
@@ -1175,7 +1175,7 @@ TEST_CASE("A64: SQDMULH.4S (saturate)", "[a64]") {
     jit.SetFpsr(0);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0x7ffffffe7fffffff, 0x8000000180000001});
     REQUIRE(FP::FPSR{jit.GetFpsr()}.QC() == true);
@@ -1196,7 +1196,7 @@ TEST_CASE("A64: This is an infinite loop if fast dispatch is enabled", "[a64]") 
     env.code_mem.emplace_back(0x14000000);  // B .
 
     env.ticks_left = 6;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 }
 
 TEST_CASE("A64: EXTR", "[a64]") {
@@ -1213,7 +1213,7 @@ TEST_CASE("A64: EXTR", "[a64]") {
     jit.SetRegister(24, 1);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(23) == 0);
 }
@@ -1248,7 +1248,7 @@ TEST_CASE("A64: Isolated GetNZCVFromOp", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 20;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 }
 
 TEST_CASE("A64: Optimization failure when folding ADD", "[a64]") {
@@ -1301,7 +1301,7 @@ TEST_CASE("A64: Optimization failure when folding ADD", "[a64]") {
     jit.SetPstate(0x30000000);
 
     env.ticks_left = 6;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(0) == 0x46e15845dba57924);
     REQUIRE(jit.GetRegister(1) == 0x6f60d04350581fea);
@@ -1364,7 +1364,7 @@ TEST_CASE("A64: Cache Maintenance Instructions", "[a64]") {
     env.code_mem.emplace_back(0x14000000);  // B .
 
     env.ticks_left = 3;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 }
 
 TEST_CASE("A64: Memory access (fastmem)", "[a64]") {
@@ -1407,7 +1407,7 @@ TEST_CASE("A64: Memory access (fastmem)", "[a64]") {
     jit.SetPstate(0x30000000);
     env.ticks_left = 5;
 
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(strncmp(backing_memory + 0x100, backing_memory + 0x1F0, 23) == 0);
 }
 
@@ -1427,7 +1427,7 @@ TEST_CASE("A64: SQRDMULH QC flag when output invalidated", "[a64]") {
     jit.SetFpcr(0x05400000);
 
     env.ticks_left = 3;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetFpsr() == 0x08000000);
     REQUIRE(jit.GetVector(11) == Vector{0xb4cb'4fec'8563'1032, 0x0000'0000'0000'0000});
@@ -1448,7 +1448,7 @@ TEST_CASE("A64: SDIV maximally", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(0) == 0xffffffffffffffff);
     REQUIRE(jit.GetRegister(1) == 0x8000000000000000);
@@ -1539,7 +1539,7 @@ TEST_CASE("A64: rand1", "[a64]") {
     jit.SetFpcr(0x01080000);
 
     env.ticks_left = 16;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(0) == 0x67e1d59cc30a788c);
     REQUIRE(jit.GetRegister(1) == 0x0e771a2a79dfb060);
@@ -1605,7 +1605,7 @@ TEST_CASE("A64: rand3", "[a64]") {
     jit.SetFpcr(0x01000000);
     env.ticks_left = 110;
     //jit.DumpDisassembly();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 }
 
 TEST_CASE("A64: rand2", "[a64][.]") {
@@ -1707,7 +1707,7 @@ TEST_CASE("A64: rand2", "[a64][.]") {
     jit.SetFpcr(0x01000000);
 
     env.ticks_left = 110;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0x0101010211914707, 0x090000007fd9991a});
     REQUIRE(jit.GetVector(1) == Vector{0x00000000fffffffe, 0x0000000000000000});
@@ -1779,7 +1779,7 @@ TEST_CASE("A64: SABD", "[a64]") {
     jit.SetVector(8, vectors[8]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(0) == vectors[0]);
     CHECK(jit.GetVector(1) == vectors[1]);
@@ -1796,7 +1796,7 @@ TEST_CASE("A64: SABD", "[a64]") {
     jit.SetVector(8, vectors[7]);
 
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(0) == vectors[0]);
     CHECK(jit.GetVector(1) == vectors[1]);
@@ -1818,7 +1818,7 @@ TEST_CASE("A64: UZP{1,2}.2D", "[a64]") {
     jit.SetVector(1, {0xA0A1A2A3A4A5A6A7, 0xB0B1B2B3B4B5B6B7});
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(2) == Vector{0xF0F1F2F3F4F5F6F7, 0xA0A1A2A3A4A5A6A7});
     REQUIRE(jit.GetVector(3) == Vector{0xE0E1E2E3E4E5E6E7, 0xB0B1B2B3B4B5B6B7});
@@ -1841,7 +1841,7 @@ TEST_CASE("A64: UZP{1,2}.S", "[a64]") {
     jit.SetVector(1, {0xA4A5A6A7'A0A1A2A3, 0xB4B5B6B7'B0B1B2B3});
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(2) == Vector{0xA0A1A2A3'F0F1F2F3, 0});
     REQUIRE(jit.GetVector(3) == Vector{0xA4A5A6A7'F4F5F6F7, 0});
@@ -1866,7 +1866,7 @@ TEST_CASE("A64: UZP{1,2}.H", "[a64]") {
     jit.SetVector(1, {0xA6A7'A4A5'A2A3'A0A1, 0xB6B7'B4B5'B2B3'B0B1});
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(2) == Vector{0xA4A5'A0A1'F4F5'F0F1, 0});
     REQUIRE(jit.GetVector(3) == Vector{0xA6A7'A2A3'F6F7'F2F3, 0});
@@ -1891,7 +1891,7 @@ TEST_CASE("A64: UZP{1,2}.B", "[a64]") {
     jit.SetVector(1, {0xA7'A6'A5'A4'A3'A2'A1'A0, 0xB7'B6'B5'B4'B3'B2'B1'B0});
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(2) == Vector{0xA6'A4'A2'A0'F6'F4'F2'F0, 0});
     REQUIRE(jit.GetVector(3) == Vector{0xA7'A5'A3'A1'F7'F5'F3'F1, 0});
@@ -1932,7 +1932,7 @@ TEST_CASE("A64: {S,U}MIN.S, {S,U}MAX.S", "[a64]") {
     jit.SetVector(1, vectors[1]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(2) == vectors[2]);
     CHECK(jit.GetVector(3) == vectors[3]);
@@ -1978,7 +1978,7 @@ TEST_CASE("A64: {S,U}MIN.H, {S,U}MAX.H", "[a64]") {
     jit.SetVector(1, vectors[1]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(2) == vectors[2]);
     CHECK(jit.GetVector(3) == vectors[3]);
@@ -2024,7 +2024,7 @@ TEST_CASE("A64: {S,U}MIN.B, {S,U}MAX.B", "[a64]") {
     jit.SetVector(1, vectors[1]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(2) == vectors[2]);
     CHECK(jit.GetVector(3) == vectors[3]);
@@ -2076,7 +2076,7 @@ TEST_CASE("A64: {S,U}MINP.S, {S,U}MAXP.S", "[a64]") {
     jit.SetVector(1, vectors[1]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(2) == vectors[2]);
     CHECK(jit.GetVector(3) == vectors[3]);
@@ -2095,7 +2095,7 @@ TEST_CASE("A64: {S,U}MINP.S, {S,U}MAXP.S", "[a64]") {
     jit.SetVector(1, vectors[11]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(2) == vectors[2]);
     CHECK(jit.GetVector(3) == vectors[3]);
@@ -2146,7 +2146,7 @@ TEST_CASE("A64: {S,U}MINP.H, {S,U}MAXP.H", "[a64]") {
     jit.SetVector(1, vectors[1]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(2) == vectors[2]);
     CHECK(jit.GetVector(3) == vectors[3]);
@@ -2165,7 +2165,7 @@ TEST_CASE("A64: {S,U}MINP.H, {S,U}MAXP.H", "[a64]") {
     jit.SetVector(1, vectors[11]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(2) == vectors[2]);
     CHECK(jit.GetVector(3) == vectors[3]);
@@ -2216,7 +2216,7 @@ TEST_CASE("A64: {S,U}MINP.B, {S,U}MAXP.B", "[a64]") {
     jit.SetVector(1, vectors[1]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(2) == vectors[2]);
     CHECK(jit.GetVector(3) == vectors[3]);
@@ -2238,7 +2238,7 @@ TEST_CASE("A64: {S,U}MINP.B, {S,U}MAXP.B", "[a64]") {
     jit.SetVector(1, vectors[11]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(2) == vectors[2]);
     CHECK(jit.GetVector(3) == vectors[3]);
@@ -2307,7 +2307,7 @@ TEST_CASE("A64: SQABS", "[a64]") {
     jit.SetVector(13, Vector{0x89C1B48FBC43F53B, 0x5FDD5D671D399E2});
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(0) == Vector{0x2B'7F'14'2A'77'32'7F'10, 0x63'16'7E'45'7F'33'42'04});
     CHECK(FP::FPSR{(uint32_t)jit.GetRegister(0)}.QC() == 1);
@@ -2339,7 +2339,7 @@ TEST_CASE("A64: RBIT{16b}", "[a64]") {
     jit.SetVector(2, { 0xcafedead, 0xbabebeef });
     jit.SetPC(0); // at _start
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetVector(1)[0] == 0x537f7bb5);
     REQUIRE(jit.GetVector(1)[1] == 0x5d7d7df7);
     REQUIRE(jit.GetVector(2)[0] == 0xcafedead);
@@ -2360,7 +2360,7 @@ TEST_CASE("A64: CLZ{X}", "[a64]") {
     jit.SetRegister(5, 0x07fffffeffeffef0);
     jit.SetPC(0); // at _start
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 0);
     REQUIRE(jit.GetRegister(1) == 4);
     REQUIRE(jit.GetRegister(2) == 5);
@@ -2380,7 +2380,7 @@ TEST_CASE("A64: CLZ{W}", "[a64]") {
     jit.SetRegister(5, 0x07fffffe);
     jit.SetPC(0); // at _start
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 0);
     REQUIRE(jit.GetRegister(1) == 4);
     REQUIRE(jit.GetRegister(2) == 5);
