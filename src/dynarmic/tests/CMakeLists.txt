@@ -67,9 +67,12 @@ endif()
 
 if ("x86_64" IN_LIST ARCHITECTURE)
     target_link_libraries(dynarmic_tests PRIVATE xbyak::xbyak)
-
     target_architecture_specific_sources(dynarmic_tests "x86_64"
         x64_cpu_info.cpp
+    )
+
+    target_architecture_specific_sources(dynarmic_tests "x86_64"
+        native/preserve_xmm.cpp
     )
 
     if (NOT MSVC AND NOT DYNARMIC_MULTIARCH_BUILD)
@@ -129,5 +132,7 @@ target_link_libraries(dynarmic_tests PRIVATE dynarmic Boost::headers Catch2::Cat
 target_include_directories(dynarmic_tests PRIVATE . ../src)
 target_compile_options(dynarmic_tests PRIVATE ${DYNARMIC_CXX_FLAGS})
 target_compile_definitions(dynarmic_tests PRIVATE FMT_USE_USER_DEFINED_LITERALS=1)
+
+target_compile_options(dynarmic_tests PRIVATE -mavx2)
 
 add_test(dynarmic_tests dynarmic_tests --durations yes)
