@@ -46,10 +46,9 @@ Check out our [website](https://eden-emu.dev) for the latest news on exciting fe
 
 ## Development
 
-Most of the development happens on our Git server. It is also where [our central repository](https://git.eden-emu.dev/eden-emu/eden) is hosted. For development discussions, please join us on [Discord](https://discord.gg/edenemu).
+Most of the development happens on our Git server. It is also where [our central repository](https://git.eden-emu.dev/eden-emu/eden) is hosted. For development discussions, please join us on [Discord](https://discord.gg/edenemu) or [Revolt](https://rvlt.gg/qKgFEAbH).
 
-If you would like to contribute, we are open to new developers and pull requests. Please ensure that your work is of a high standard and properly documented.
-You can also contact any of the developers on Discord to learn more about the current state of the emulator.
+If you would like to contribute, we are open to new developers and pull requests. Please ensure that your work is of a high standard and properly documented. You can also contact any of the developers on Discord or Revolt to learn more about the current state of the emulator.
 
 ## Building
 
