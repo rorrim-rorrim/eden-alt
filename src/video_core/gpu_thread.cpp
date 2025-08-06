@@ -37,6 +37,7 @@ static void RunThread(std::stop_token stop_token, Core::System& system,
     VideoCore::RasterizerInterface* const rasterizer = renderer.ReadRasterizer();
 
     CommandDataContainer next;
+    size_t frame_counter = 0;
 
     while (!stop_token.stop_requested()) {
         state.queue.PopWait(next, stop_token);
@@ -44,7 +45,15 @@ static void RunThread(std::stop_token stop_token, Core::System& system,
             break;
         }
         if (auto* submit_list = std::get_if<SubmitListCommand>(&next.data)) {
-            scheduler.Push(submit_list->channel, std::move(submit_list->entries));
+            bool skip_frame = false;
+            if (Settings::values.frame_interpolation.GetValue()) {
+                // Skip every other frame
+                skip_frame = (frame_counter % 2 == 1);
+                frame_counter++;
+            }
+            if (!skip_frame) {
+                scheduler.Push(submit_list->channel, std::move(submit_list->entries));
+            }
         } else if (std::holds_alternative<GPUTickCommand>(next.data)) {
             system.GPU().TickWork();
         } else if (const auto* flush = std::get_if<FlushRegionCommand>(&next.data)) {
