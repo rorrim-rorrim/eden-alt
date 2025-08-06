@@ -243,7 +243,7 @@ add_library(shader_recompiler STATIC
     runtime_info.h
     shader_info.h
     varying_state.h
-    frontend/maxwell/translate/impl/internal_stage_buffer_entry_read.h
+
 )
 
 target_link_libraries(shader_recompiler PUBLIC common fmt::fmt sirit SPIRV-Tools-opt SPIRV-Tools SPIRV-Tools-link)

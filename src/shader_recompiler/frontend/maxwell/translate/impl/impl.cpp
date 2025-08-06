@@ -271,21 +271,21 @@ void TranslatorVisitor::ResetOFlag() {
     SetOFlag(ir.Imm1(false));
 }
 
-IR::U32 TranslatorVisitor::apply_ISBERD_shift(IR::U32 result, isberd::Shift shift_value) {
-    if (shift_value != isberd::Shift::Default) {
+IR::U32 TranslatorVisitor::apply_ISBERD_shift(IR::U32 result, Isberd::Shift shift_value) {
+    if (shift_value != Isberd::Shift::Default) {
         return ir.ShiftLeftLogical(result, ir.Imm32(1));
     }
     return result;
 }
 
-IR::U32 TranslatorVisitor::apply_ISBERD_size_read(IR::U32 address, isberd::SZ sz) {
+IR::U32 TranslatorVisitor::apply_ISBERD_size_read(IR::U32 address, Isberd::SZ sz) {
     switch (sz) {
-    case isberd::SZ::U8:
+    case Isberd::SZ::U8:
         return ir.LoadGlobalU8(ir.UConvert(64, address));
-    case isberd::SZ::U16:
+    case Isberd::SZ::U16:
         return ir.LoadGlobalU16(ir.UConvert(64, address));
-    case isberd::SZ::U32:
-    case isberd::SZ::F32:
+    case Isberd::SZ::U32:
+    case Isberd::SZ::F32:
         return ir.LoadGlobal32(ir.UConvert(64, address));
     default:
         UNREACHABLE();

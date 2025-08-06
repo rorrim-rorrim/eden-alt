@@ -10,7 +10,6 @@
 #include "shader_recompiler/frontend/ir/basic_block.h"
 #include "shader_recompiler/frontend/ir/ir_emitter.h"
 #include "shader_recompiler/frontend/maxwell/instruction.h"
-#include "shader_recompiler/frontend/maxwell/translate/impl/internal_stage_buffer_entry_read.h"
 
 namespace Shader::Maxwell {
 
@@ -56,6 +55,30 @@ enum class FPCompareOp : u64 {
     GEU,
     T,
 };
+
+namespace Isberd {
+enum class Mode : u64 {
+    Default,
+    Patch,
+    Prim,
+    Attr,
+};
+
+enum class Shift : u64 {
+    Default,
+    U16,
+    B32,
+};
+
+enum class SZ : u64 {
+    U8,
+    U16,
+    U32,
+    F32,
+};
+
+} // namespace Isberd
+
 
 class TranslatorVisitor {
 public:
@@ -386,9 +409,10 @@ public:
     void ResetCFlag();
     void ResetOFlag();
 
+private:
     // Helper functions for various translator visitors
-    IR::U32 apply_ISBERD_shift(IR::U32 result, isberd::Shift shift_value);
-    IR::U32 apply_ISBERD_size_read(IR::U32 address, isberd::SZ sz_value);
+    IR::U32 apply_ISBERD_shift(IR::U32 result, Isberd::Shift shift_value);
+    IR::U32 apply_ISBERD_size_read(IR::U32 address, Isberd::SZ sz_value);
     IR::U32 compute_ISBERD_address(IR::Reg src_reg, u32 src_reg_num, u32 imm, u64 skew_value);
 };
 

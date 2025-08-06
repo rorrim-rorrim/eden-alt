@@ -7,7 +7,6 @@
 #include "common/bit_field.h"
 #include "common/common_types.h"
 #include "shader_recompiler/frontend/maxwell/translate/impl/impl.h"
-#include "shader_recompiler/frontend/maxwell/translate/impl/internal_stage_buffer_entry_read.h"
 
 namespace Shader::Maxwell {
 
@@ -21,9 +20,9 @@ void TranslatorVisitor::ISBERD(u64 insn) {
         BitField<24, 8, u32> imm;
         BitField<31, 1, u64> skew;
         BitField<32, 1, u64> o;
-        BitField<33, 2, isberd::Mode> mode;
-        BitField<36, 4, isberd::SZ> sz;
-        BitField<47, 2, isberd::Shift> shift;
+        BitField<33, 2, Isberd::Mode> mode;
+        BitField<36, 4, Isberd::SZ> sz;
+        BitField<47, 2, Isberd::Shift> shift;
     } const isberd{insn};
 
     auto address = compute_ISBERD_address(isberd.src_reg, isberd.src_reg_num, isberd.imm, isberd.skew);
@@ -34,16 +33,16 @@ void TranslatorVisitor::ISBERD(u64 insn) {
         return;
     }
 
-    if (isberd.mode != isberd::Mode::Default) {
+    if (isberd.mode != Isberd::Mode::Default) {
         IR::F32 result_f32{};
         switch (isberd.mode.Value()) {
-        case isberd::Mode::Patch:
+        case Isberd::Mode::Patch:
             result_f32 = ir.GetPatch(address.Patch());
             break;
-        case isberd::Mode::Prim:
+        case Isberd::Mode::Prim:
             result_f32 = ir.GetAttribute(address.Attribute());
             break;
-        case isberd::Mode::Attr:
+        case Isberd::Mode::Attr:
             result_f32 = ir.GetAttributeIndexed(address);
             break;
         default:
