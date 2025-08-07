@@ -53,6 +53,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
 
     SOC_OVERLAY_BACKGROUND("soc_overlay_background"),
     ENABLE_INPUT_OVERLAY_AUTO_HIDE("enable_input_overlay_auto_hide"),
+    RESPECT_PRESENT_INTERVAL_ZERO("respect_present_interval_zero"),
 
     PERF_OVERLAY_BACKGROUND("perf_overlay_background"),
     SHOW_PERFORMANCE_OVERLAY("show_performance_overlay"),

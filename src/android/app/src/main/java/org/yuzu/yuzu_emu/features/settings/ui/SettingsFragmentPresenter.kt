@@ -460,6 +460,7 @@ class SettingsFragmentPresenter(
             add(IntSetting.RENDERER_SAMPLE_SHADING_FRACTION.key)
 
             add(HeaderSetting(R.string.veil_renderer))
+            add(BooleanSetting.RESPECT_PRESENT_INTERVAL_ZERO.key)
             add(BooleanSetting.RENDERER_EARLY_RELEASE_FENCES.key)
             add(IntSetting.DMA_ACCURACY.key)
             add(BooleanSetting.BUFFER_REORDER_DISABLE.key)

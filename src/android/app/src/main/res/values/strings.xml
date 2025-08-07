@@ -105,6 +105,8 @@
     <string name="sample_shading_fraction_description">The intensity of the sample shading pass. Higher values improve quality more but also reduce performance to a greater extent.</string>
 
     <string name="veil_renderer">Renderer</string>
+    <string name="respect_present_interval_zero">Respect present interval 0 for unlocked FPS</string>
+    <string name="respect_present_interval_zero_description">When enabled, present interval 0 will be used for games requesting unlocked FPS. This matches console behavior more closely, but may cause higher battery usage and frame pacing issues. When disabled (default), present interval 0 is capped at 120FPS to conserve battery.</string>
     <string name="renderer_early_release_fences">Release Fences Early</string>
     <string name="renderer_early_release_fences_description">Helps fix 0 FPS in games like DKCR:HD, Subnautica Below Zero and Ori 2, but may break loading or performance in Unreal Engine games.</string>
     <string name="sync_memory_operations">Sync Memory Operations</string>

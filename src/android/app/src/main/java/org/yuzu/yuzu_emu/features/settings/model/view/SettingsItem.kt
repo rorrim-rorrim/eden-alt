@@ -239,6 +239,13 @@ abstract class SettingsItem(
 
             put(
                 SwitchSetting(
+                    BooleanSetting.RESPECT_PRESENT_INTERVAL_ZERO,
+                    titleId = R.string.respect_present_interval_zero,
+                    descriptionId = R.string.respect_present_interval_zero_description
+                )
+            )
+            put(
+                SwitchSetting(
                     dockedModeSetting,
                     titleId = R.string.use_docked_mode,
                     descriptionId = R.string.use_docked_mode_description

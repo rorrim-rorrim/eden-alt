@@ -213,6 +213,11 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
         use_asynchronous_gpu_emulation,
         tr("Use asynchronous GPU emulation"),
         tr("Uses an extra CPU thread for rendering.\nThis option should always remain enabled."));
+    INSERT(
+        Settings, respect_present_interval_zero, tr("Respect present interval 0 for unlocked FPS"),
+        tr("When enabled, present interval 0 will be used for games requesting unlocked FPS.\n"
+           "This matches console behavior more closely, but may cause higher battery usage and frame pacing issues.\n"
+           "When disabled (default), present interval 0 is capped at 120FPS to conserve battery."));
     INSERT(Settings,
            nvdec_emulation,
            tr("NVDEC emulation:"),
