@@ -196,16 +196,20 @@ void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebu
         render_window.OnFrameDisplayed();
     };
 
-    // Frame interpolation logic
+    // Frameskip logic
     if (Settings::values.frame_interpolation.GetValue()) {
         skip_next_frame = !skip_next_frame;
-        if (skip_next_frame && last_presented_frame) {
-            // Present the last frame again, skip rendering
+        // Only skip if we have a valid last frame
+        if (skip_next_frame && last_presented_frame != nullptr) {
             present_manager.Present(last_presented_frame);
             gpu.RendererFrameEndNotify();
             rasterizer.TickFrame();
             return;
         }
+    } else {
+        // If frameskip is off, always reset skip state
+        skip_next_frame = false;
+        last_presented_frame = nullptr;
     }
 
     RenderAppletCaptureLayer(framebuffers);
