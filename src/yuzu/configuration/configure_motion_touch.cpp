@@ -19,7 +19,7 @@
 CalibrationConfigurationDialog::CalibrationConfigurationDialog(QWidget* parent,
                                                                const std::string& host, u16 port)
     : QDialog(parent) {
-    layout = new QVBoxLayout;
+    layout = new QVBoxLayout(this);
     status_label = new QLabel(tr("Communicating with the server..."));
     cancel_button = new QPushButton(tr("Cancel"));
     connect(cancel_button, &QPushButton::clicked, this, [this] {
@@ -30,7 +30,6 @@ CalibrationConfigurationDialog::CalibrationConfigurationDialog(QWidget* parent,
     });
     layout->addWidget(status_label);
     layout->addWidget(cancel_button);
-    setLayout(layout);
 
     using namespace InputCommon::CemuhookUDP;
     job = std::make_unique<CalibrationConfigurationJob>(

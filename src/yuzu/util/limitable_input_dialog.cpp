@@ -21,13 +21,11 @@ void LimitableInputDialog::CreateUI() {
     text_label_invalid = new QLabel(this);
     buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
 
-    auto* const layout = new QVBoxLayout;
+    auto* const layout = new QVBoxLayout(this);
     layout->addWidget(text_label);
     layout->addWidget(text_entry);
     layout->addWidget(text_label_invalid);
     layout->addWidget(buttons);
-
-    setLayout(layout);
 }
 
 void LimitableInputDialog::ConnectEvents() {

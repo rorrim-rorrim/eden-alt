@@ -28,7 +28,6 @@ ControllerDialog::ControllerDialog(Core::HID::HIDCore& hid_core_,
     QLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(widget);
-    setLayout(layout);
 
     // Configure focus so that widget is focusable and the dialog automatically forwards focus to
     // it.

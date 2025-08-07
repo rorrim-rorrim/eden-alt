@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <memory>
 #include <utility>
-#include <QGridLayout>
 #include <QInputDialog>
 #include <QMenu>
 #include <QMessageBox>
@@ -13,7 +12,6 @@
 #include "common/assert.h"
 #include "common/param_package.h"
 #include "configuration/qt_config.h"
-#include "frontend_common/config.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
 #include "hid_core/hid_types.h"
