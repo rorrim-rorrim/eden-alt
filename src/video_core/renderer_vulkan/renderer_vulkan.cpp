@@ -273,9 +273,6 @@ void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebu
                                    swapchain.GetImageViewFormat());
         scheduler.Flush(*interpolated_frame->render_ready);
         present_manager.Present(interpolated_frame);
-
-        // Optionally, update previous_frame here if you want to chain interpolations
-        previous_frame = interpolated_frame;
         return;
     }
 
@@ -296,11 +293,6 @@ void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebu
                                swapchain.GetImageViewFormat());
     scheduler.Flush(*frame->render_ready);
     present_manager.Present(frame);
-
-    if (frame_interpolation_enabled) {
-        // Store the current frame for interpolation on the next call
-        previous_frame = frame;
-    }
 
     gpu.RendererFrameEndNotify();
     rasterizer.TickFrame();
