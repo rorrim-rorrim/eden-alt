@@ -251,6 +251,12 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
               "Aggressive mode may severely impact the performance of other applications such as "
               "recording software."));
     INSERT(Settings,
+           frame_interpolation,
+           tr("Enhanced Frame Pacing"),
+           tr("Ensures smooth and consistent frame delivery by synchronizing the timing between frames, "
+              "reducing stuttering and uneven animation. Ideal for games that experience frame timing "
+              "instability or micro-stutters during gameplay."));
+    INSERT(Settings,
            skip_cpu_inner_invalidation,
            tr("Skip CPU Inner Invalidation"),
            tr("Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and "
@@ -333,14 +339,13 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
            barrier_feedback_loops,
            tr("Barrier feedback loops"),
            tr("Improves rendering of transparency effects in specific games."));
-
-    // Renderer (Extensions)
     INSERT(Settings,
            enable_raii,
            tr("RAII"),
            tr("A method of automatic resource management in Vulkan "
               "that ensures proper release of resources "
               "when they are no longer needed, but may cause crashes in bundled games."));
+    // Renderer (Extensions)
     INSERT(Settings,
            dyna_state,
            tr("Extended Dynamic State"),

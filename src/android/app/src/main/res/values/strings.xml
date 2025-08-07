@@ -479,8 +479,6 @@
     <string name="display">Display</string>
     <string name="processing">Post-Processing</string>
 
-    <string name="frame_skipping">WIP: Frameskip</string>
-    <string name="frame_skipping_description">Toggle frame skipping to improve performance by reducing the number of rendered frames. This feature is still being worked on and will be enabled in future releases.</string>
     <string name="renderer_accuracy">Accuracy level</string>
     <string name="renderer_resolution">Resolution (Handheld/Docked)</string>
     <string name="renderer_vsync">VSync mode</string>
