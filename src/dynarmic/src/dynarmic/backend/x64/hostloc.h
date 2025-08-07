@@ -13,9 +13,9 @@
 
 namespace Dynarmic::Backend::X64 {
 
-// Our static vector will contain 32 elements, stt. an uint16_t will fill up 64 bytes
+// Our static vector will contain 32 elements, stt. an uint8_t will fill up 64 bytes
 // (an entire cache line). Thanks.
-enum class HostLoc : uint16_t {
+enum class HostLoc : std::uint8_t {
     // Ordering of the registers is intentional. See also: HostLocToX64.
     RAX,
     RCX,
@@ -60,48 +60,48 @@ enum class HostLoc : uint16_t {
 
 constexpr size_t NonSpillHostLocCount = static_cast<size_t>(HostLoc::FirstSpill);
 
-inline bool HostLocIsGPR(HostLoc reg) {
+constexpr bool HostLocIsGPR(HostLoc reg) {
     return reg >= HostLoc::RAX && reg <= HostLoc::R15;
 }
 
-inline bool HostLocIsXMM(HostLoc reg) {
+constexpr bool HostLocIsXMM(HostLoc reg) {
     return reg >= HostLoc::XMM0 && reg <= HostLoc::XMM15;
 }
 
-inline bool HostLocIsRegister(HostLoc reg) {
+constexpr bool HostLocIsRegister(HostLoc reg) {
     return HostLocIsGPR(reg) || HostLocIsXMM(reg);
 }
 
-inline bool HostLocIsFlag(HostLoc reg) {
+constexpr bool HostLocIsFlag(HostLoc reg) {
     return reg >= HostLoc::CF && reg <= HostLoc::OF;
 }
 
-inline HostLoc HostLocRegIdx(int idx) {
+constexpr HostLoc HostLocRegIdx(int idx) {
     ASSERT(idx >= 0 && idx <= 15);
     return HostLoc(idx);
 }
 
-inline HostLoc HostLocXmmIdx(int idx) {
+constexpr HostLoc HostLocXmmIdx(int idx) {
     ASSERT(idx >= 0 && idx <= 15);
     return HostLoc(size_t(HostLoc::XMM0) + idx);
 }
 
-inline HostLoc HostLocSpill(size_t i) {
+constexpr HostLoc HostLocSpill(size_t i) {
     return HostLoc(size_t(HostLoc::FirstSpill) + i);
 }
 
-inline bool HostLocIsSpill(HostLoc reg) {
+constexpr bool HostLocIsSpill(HostLoc reg) {
     return reg >= HostLoc::FirstSpill;
 }
 
-inline size_t HostLocBitWidth(HostLoc loc) {
+constexpr size_t HostLocBitWidth(HostLoc loc) {
     if (HostLocIsGPR(loc))
         return 64;
-    if (HostLocIsXMM(loc))
+    else if (HostLocIsXMM(loc))
         return 128;
-    if (HostLocIsSpill(loc))
+    else if (HostLocIsSpill(loc))
         return 128;
-    if (HostLocIsFlag(loc))
+    else if (HostLocIsFlag(loc))
         return 1;
     UNREACHABLE();
 }
