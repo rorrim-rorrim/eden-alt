@@ -521,7 +521,11 @@ if (ENABLE_QT)
     endif()
 
     if (UNIX AND NOT APPLE)
-        find_package(Qt6 REQUIRED COMPONENTS DBus GuiPrivate)
+        find_package(Qt6 REQUIRED COMPONENTS DBus)
+    endif()
+
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+        find_package(Qt6 REQUIRED COMPONENTS GuiPrivate)
     endif()
 
     if (ENABLE_QT_TRANSLATION)
