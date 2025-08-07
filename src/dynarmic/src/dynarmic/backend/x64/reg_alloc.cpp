@@ -357,9 +357,8 @@ void RegAlloc::HostCall(IR::Inst* result_def,
     static const boost::container::static_vector<HostLoc, 28> other_caller_save = [args_hostloc]() noexcept {
         boost::container::static_vector<HostLoc, 28> ret(ABI_ALL_CALLER_SAVE.begin(), ABI_ALL_CALLER_SAVE.end());
         ret.erase(std::find(ret.begin(), ret.end(), ABI_RETURN));
-        for (auto const hostloc : args_hostloc) {
+        for (auto const hostloc : args_hostloc)
             ret.erase(std::find(ret.begin(), ret.end(), hostloc));
-        }
         return ret;
     }();
 
@@ -368,7 +367,7 @@ void RegAlloc::HostCall(IR::Inst* result_def,
         DefineValueImpl(result_def, ABI_RETURN);
     }
 
-    for (size_t i = 0; i < args_count; i++) {
+    for (size_t i = 0; i < args.size(); i++) {
         if (args[i] && !args[i]->get().IsVoid()) {
             UseScratch(*args[i], args_hostloc[i]);
             // LLVM puts the burden of zero-extension of 8 and 16 bit values on the caller instead of the callee
@@ -383,36 +382,35 @@ void RegAlloc::HostCall(IR::Inst* result_def,
             case IR::Type::U32:
                 code->mov(reg.cvt32(), reg.cvt32());
                 break;
+            case IR::Type::U64:
+                break; //no op
             default:
-                break;  // Nothing needs to be done
+                UNREACHABLE();
             }
         }
     }
 
-    for (size_t i = 0; i < args_count; i++) {
+    for (size_t i = 0; i < args.size(); i++)
         if (!args[i]) {
             // TODO: Force spill
             ScratchGpr(args_hostloc[i]);
         }
-    }
-
-    for (HostLoc caller_saved : other_caller_save) {
+    for (auto const caller_saved : other_caller_save)
         ScratchImpl({caller_saved});
-    }
 }
 
 void RegAlloc::AllocStackSpace(const size_t stack_space) noexcept {
-    ASSERT(stack_space < static_cast<size_t>(std::numeric_limits<s32>::max()));
+    ASSERT(stack_space < size_t(std::numeric_limits<s32>::max()));
     ASSERT(reserved_stack_space == 0);
     reserved_stack_space = stack_space;
-    code->sub(code->rsp, static_cast<u32>(stack_space));
+    code->sub(code->rsp, u32(stack_space));
 }
 
 void RegAlloc::ReleaseStackSpace(const size_t stack_space) noexcept {
-    ASSERT(stack_space < static_cast<size_t>(std::numeric_limits<s32>::max()));
+    ASSERT(stack_space < size_t(std::numeric_limits<s32>::max()));
     ASSERT(reserved_stack_space == stack_space);
     reserved_stack_space = 0;
-    code->add(code->rsp, static_cast<u32>(stack_space));
+    code->add(code->rsp, u32(stack_space));
 }
 
 HostLoc RegAlloc::SelectARegister(const boost::container::static_vector<HostLoc, 28>& desired_locations) const noexcept {
@@ -494,7 +492,6 @@ void RegAlloc::DefineValueImpl(IR::Inst* def_inst, const IR::Value& use_inst) no
 
 HostLoc RegAlloc::LoadImmediate(IR::Value imm, HostLoc host_loc) noexcept {
     ASSERT_MSG(imm.IsImmediate(), "imm is not an immediate");
-
     if (HostLocIsGPR(host_loc)) {
         const Xbyak::Reg64 reg = HostLocToReg64(host_loc);
         const u64 imm_value = imm.GetImmediateAsU64();
@@ -503,10 +500,7 @@ HostLoc RegAlloc::LoadImmediate(IR::Value imm, HostLoc host_loc) noexcept {
         } else {
             code->mov(reg, imm_value);
         }
-        return host_loc;
-    }
-
-    if (HostLocIsXMM(host_loc)) {
+    } else if (HostLocIsXMM(host_loc)) {
         const Xbyak::Xmm reg = HostLocToXmm(host_loc);
         const u64 imm_value = imm.GetImmediateAsU64();
         if (imm_value == 0) {
@@ -514,23 +508,19 @@ HostLoc RegAlloc::LoadImmediate(IR::Value imm, HostLoc host_loc) noexcept {
         } else {
             MAYBE_AVX(movaps, reg, code->Const(code->xword, imm_value));
         }
-        return host_loc;
+    } else {
+        UNREACHABLE();
     }
-
-    UNREACHABLE();
+    return host_loc;
 }
 
 void RegAlloc::Move(HostLoc to, HostLoc from) noexcept {
     const size_t bit_width = LocInfo(from).GetMaxBitWidth();
-
     ASSERT(LocInfo(to).IsEmpty() && !LocInfo(from).IsLocked());
     ASSERT(bit_width <= HostLocBitWidth(to));
     ASSERT_MSG(!LocInfo(from).IsEmpty(), "Mov eliminated");
-
-    if (!LocInfo(from).IsEmpty()) {
-        EmitMove(bit_width, to, from);
-        LocInfo(to) = std::exchange(LocInfo(from), {});
-    }
+    EmitMove(bit_width, to, from);
+    LocInfo(to) = std::exchange(LocInfo(from), {});
 }
 
 void RegAlloc::CopyToScratch(size_t bit_width, HostLoc to, HostLoc from) noexcept {
