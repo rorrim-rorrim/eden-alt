@@ -72,8 +72,6 @@
     <string name="eden_veil_description">Paramètres expérimentaux pour améliorer les performances et les capacités. Ces paramètres peuvent causer des écrans noirs ou d\'autres problèmes de jeu.</string>
     <string name="eden_veil_warning_title">Paramètres expérimentaux</string>
     <string name="eden_veil_warning_description">Les paramètres du Voile d\'Eden sont très expérimentaux et peuvent causer des problèmes. Si votre jeu ne démarre pas, désactivez toutes les extensions.</string>
-    <string name="frame_skipping">WIP: Saut de frames</string>
-    <string name="frame_skipping_description">Activez ou désactivez le saut d\'images pour améliorer les performances en réduisant le nombre d\'images affichées. Cette fonctionnalité est en cours de développement et sera activée dans les futures versions.</string>
     <string name="frame_interpolation">Synchronisation avancée des frames</string>
     <string name="frame_interpolation_description">Assure une diffusion fluide et régulière des frames en synchronisant leur timing, réduisant ainsi les saccades et les animations irrégulières. Idéal pour les jeux souffrant d`instabilité de timing des frames ou de micro-saccades pendant le jeu.</string>
     <string name="renderer_early_release_fences">Libérer les barrières plus tôt</string>

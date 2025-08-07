@@ -72,8 +72,6 @@
     <string name="eden_veil_description">성능 및 기능을 향상시키기 위한 실험적 설정. 이 설정은 검은 화면 또는 기타 게임 문제를 일으킬 수 있습니다.</string>
     <string name="eden_veil_warning_title">실험적 설정</string>
     <string name="eden_veil_warning_description">에덴의 베일에 포함된 설정은 매우 실험적이며 문제가 발생할 수 있습니다. 게임이 시작되지 않으면 확장 기능을 비활성화하세요.</string>
-    <string name="frame_skipping">작업 중: 프레임 스킵</string>
-    <string name="frame_skipping_description">렌더링되는 프레임 수를 줄여 성능을 향상시키기 위해 프레임 스킵을 전환합니다. 이 기능은 현재 개발 중이며 향후 출시 버전에서 활성화될 예정입니다.</string>
     <string name="frame_interpolation">향상된 프레임 페이싱</string>
     <string name="frame_interpolation_description">프레임 간 타이밍을 동기화하여 부드럽고 일관된 프레임 전달을 보장하며, 끊김과 불균일한 애니메이션을 줄입니다. 프레임 타이밍 불안정이나 게임 플레이 중 미세 끊김이 발생하는 게임에 이상적입니다.</string>
     <string name="renderer_early_release_fences">펜스 조기 해제</string>

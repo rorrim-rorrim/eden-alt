@@ -72,8 +72,6 @@
     <string name="eden_veil_description">Experimentelle Einstellungen zur Verbesserung der Leistung und Funktionalität. Diese Einstellungen können schwarze Bildschirme oder andere Spielprobleme verursachen.</string>
     <string name="eden_veil_warning_title">Experimentelle Einstellungen</string>
     <string name="eden_veil_warning_description">Die in Edens Schleier enthaltenen Einstellungen sind hoch experimentell und können Probleme verursachen. Wenn Ihr Spiel nicht startet, deaktivieren Sie alle Erweiterungen.</string>
-    <string name="frame_skipping">WIP: Frame Skipping</string>
-    <string name="frame_skipping_description">Aktivieren Sie Frame Skipping, um die Leistung durch Reduzierung der gerenderten Frames zu verbessern. Diese Funktion wird noch entwickelt und in zukünftigen Versionen verfügbar sein.</string>
     <string name="frame_interpolation">Erweiterte Frame-Synchronisation</string>
     <string name="frame_interpolation_description">Sorgt für eine gleichmäßige und konsistente Frame-Wiedergabe durch Synchronisierung der Frame-Zeiten, was Ruckeln und ungleichmäßige Animationen reduziert. Ideal für Spiele, die unter instabilen Frame-Zeiten oder Mikrorucklern leiden.</string>
     <string name="renderer_early_release_fences">Zäune früher freigeben</string>

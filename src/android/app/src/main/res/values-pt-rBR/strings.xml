@@ -72,8 +72,6 @@
     <string name="eden_veil_description">Configurações experimentais para melhorar desempenho e capacidade. Essas configurações podem causar telas pretas ou outros problemas no jogo.</string>
     <string name="eden_veil_warning_title">Configurações experimentais</string>
     <string name="eden_veil_warning_description">As configurações no Véu do Éden são altamente experimentais e podem causar problemas. Se seu jogo não iniciar, desative todas as extensões.</string>
-    <string name="frame_skipping">WIP: Pular quadros</string>
-    <string name="frame_skipping_description">Ative ou desative o pulo de quadros para melhorar o desempenho reduzindo o número de quadros renderizados. Este recurso ainda está em desenvolvimento e será habilitado em versões futuras.</string>
     <string name="frame_interpolation">Sincronização avançada de quadros</string>
     <string name="frame_interpolation_description">Garante entrega suave e consistente de quadros sincronizando seu tempo, reduzindo engasgos e animações irregulares. Ideal para jogos com instabilidade no tempo de quadros ou micro-engasgos durante a jogatina.</string>
     <string name="renderer_early_release_fences">Liberar cercas antecipadamente</string>

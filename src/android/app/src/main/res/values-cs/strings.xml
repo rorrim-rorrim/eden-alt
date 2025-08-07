@@ -71,8 +71,6 @@
     <string name="eden_veil_description">Experimentální nastavení pro zlepšení výkonu a schopností. Tato nastavení mohou způsobit černé obrazovky nebo další herní problémy.</string>
     <string name="eden_veil_warning_title">Experimentální nastavení</string>
     <string name="eden_veil_warning_description">Nastavení obsažená v Edenově závoji jsou vysoce experimentální a mohou způsobit problémy. Pokud se vaše hra nespustí, deaktivujte všechna rozšíření.</string>
-    <string name="frame_skipping">WIP: Přeskočení snímků</string>
-    <string name="frame_skipping_description">Přepínání přeskočení snímků pro zlepšení výkonu snížením počtu vykreslených snímků. Tato funkce je stále ve vývoji a bude povolena v budoucích verzích.</string>
     <string name="frame_interpolation">Vylepšené časování snímků</string>
     <string name="frame_interpolation_description">Zajišťuje plynulé a konzistentní zobrazování snímků synchronizací jejich časování, čímž snižuje trhání a nerovnoměrné animace. Ideální pro hry, které trpí nestabilitou časování snímků nebo mikrotrháním během hraní.</string>
     <string name="renderer_early_release_fences">Uvolnit ploty brzy</string>

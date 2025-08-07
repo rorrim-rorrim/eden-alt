@@ -72,8 +72,6 @@
     <string name="eden_veil_description">Definições experimentais para melhorar o desempenho e capacidade. Estas definições podem causar ecrãs pretos ou outros problemas no jogo.</string>
     <string name="eden_veil_warning_title">Definições experimentais</string>
     <string name="eden_veil_warning_description">As configurações no Véu do Éden são altamente experimentais e podem causar problemas. Se o jogo não iniciar, desative todas as extensões.</string>
-    <string name="frame_skipping">WIP: Saltar frames</string>
-    <string name="frame_skipping_description">Ative ou desative o salto de frames para melhorar o desempenho reduzindo o número de frames renderizados. Esta funcionalidade ainda está em desenvolvimento e será ativada em versões futuras.</string>
     <string name="frame_interpolation">Sincronização avançada de frames</string>
     <string name="frame_interpolation_description">Garante uma entrega suave e consistente de frames sincronizando o seu tempo, reduzindo engasgadelas e animações irregulares. Ideal para jogos que experienciam instabilidade no tempo de frames ou micro-engasgadelas durante o jogo.</string>
     <string name="renderer_early_release_fences">Libertar barreiras antecipadamente</string>

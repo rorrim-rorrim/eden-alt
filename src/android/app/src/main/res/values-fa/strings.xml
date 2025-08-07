@@ -72,8 +72,6 @@
     <string name="eden_veil_description">تنظیمات آزمایشی برای بهبود عملکرد و قابلیت. این تنظیمات ممکن است باعث نمایش صفحه سیاه یا سایر مشکلات بازی شود.</string>
     <string name="eden_veil_warning_title">تنظیمات آزمایشی</string>
     <string name="eden_veil_warning_description">تنظیمات موجود در پرده عدن بسیار آزمایشی هستند و ممکن است باعث مشکلاتی شوند. اگر بازی شما اجرا نمی‌شود، همه پسوندها را غیرفعال کنید.</string>
-    <string name="frame_skipping">در حال توسعه: رد کردن فریم‌ها</string>
-    <string name="frame_skipping_description">با فعال کردن رد کردن فریم‌ها، عملکرد را با کاهش تعداد فریم‌های رندر شده بهبود دهید. این قابلیت در حال توسعه است و در نسخه‌های آینده فعال خواهد شد.</string>
     <string name="frame_interpolation">زمان‌بندی پیشرفته فریم‌ها</string>
     <string name="frame_interpolation_description">ارسال یکنواخت و پایدار فریم‌ها را با همگام‌سازی زمان بین آن‌ها تضمین می‌کند، که منجر به کاهش لرزش و انیمیشن‌های ناهموار می‌شود. برای بازی‌هایی که ناپایداری در زمان‌بندی فریم‌ها یا میکرو لرزش در حین بازی دارند ایده‌آل است</string>
     <string name="renderer_early_release_fences">رهاسازی حصارها زودتر</string>

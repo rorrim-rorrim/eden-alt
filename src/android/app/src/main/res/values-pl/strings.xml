@@ -72,8 +72,6 @@
     <string name="eden_veil_description">Eksperymentalne ustawienia poprawiające wydajność i możliwości. Te ustawienia mogą powodować czarne ekrany lub inne problemy z grą.</string>
     <string name="eden_veil_warning_title">Ustawienia eksperymentalne</string>
     <string name="eden_veil_warning_description">Ustawienia w Zasłona Edenu są wysoce eksperymentalne i mogą powodować problemy. Jeśli gra się nie uruchamia, wyłącz wszystkie rozszerzenia.</string>
-    <string name="frame_skipping">WIP: Pomijanie klatek</string>
-    <string name="frame_skipping_description">Włącz lub wyłącz pomijanie klatek, aby poprawić wydajność poprzez zmniejszenie liczby renderowanych klatek. Ta funkcja jest wciąż w fazie rozwoju i zostanie włączona w przyszłych wersjach.</string>
     <string name="frame_interpolation">Zaawansowana synchronizacja klatek</string>
     <string name="frame_interpolation_description">Zapewnia płynne i spójne wyświetlanie klatek poprzez synchronizację ich czasu, redukując zacinanie i nierówną animację. Idealne dla gier z niestabilnym czasem klatek lub mikro-zacinaniem podczas rozgrywki.</string>
     <string name="renderer_early_release_fences">Wcześniejsze zwalnianie zabezpieczeń</string>
