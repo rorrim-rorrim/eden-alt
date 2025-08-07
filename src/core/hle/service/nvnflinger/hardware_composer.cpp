@@ -53,7 +53,7 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
     // Set default speed limit to 100%.
     *out_speed_scale = 1.0f;
 
-    // If no layers are available, skip the logic
+    // If no layers are available, skip the logic.
     bool any_visible = false;
     for (auto& layer : display.stack.layers) {
         if (layer->visible) {
@@ -130,6 +130,19 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
 
         // Composite.
         nvdisp.Composite(composition_stack);
+    }
+
+    // Batch framebuffer releases, instead of one-into-one.
+    std::vector<std::pair<Layer*, Framebuffer*>> to_release;
+    for (auto& [layer_id, framebuffer] : m_framebuffers) {
+        if (framebuffer.release_frame_number > m_frame_number || !framebuffer.is_acquired)
+            continue;
+        if (auto layer = display.stack.FindLayer(layer_id); layer)
+            to_release.emplace_back(layer.get(), &framebuffer);
+    }
+    for (auto& [layer, framebuffer] : to_release) {
+        layer->buffer_item_consumer->ReleaseBuffer(framebuffer->item, android::Fence::NoFence());
+        framebuffer->is_acquired = false;
     }
 
     // Advance by at least one frame.
