@@ -264,7 +264,7 @@ private:
     BlockOfCode* code = nullptr;
     size_t reserved_stack_space = 0;
 };
-// Ensure a cache line is used, this is primordial
-static_assert(sizeof(boost::container::static_vector<HostLoc, 28>) == 64);
+// Ensure a cache line (or less) is used, this is primordial
+static_assert(sizeof(boost::container::static_vector<HostLoc, 28>) == 40);
 
 }  // namespace Dynarmic::Backend::X64
