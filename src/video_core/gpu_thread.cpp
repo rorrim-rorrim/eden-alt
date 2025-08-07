@@ -50,10 +50,10 @@ static void RunThread(std::stop_token stop_token, Core::System& system,
         if (auto* submit_list = std::get_if<SubmitListCommand>(&next.data)) {
             bool skip_frame = false;
             if (Settings::values.frame_interpolation.GetValue()) {
-                // Skip every other frame
+                // Skip every other frame, but render frame 0
                 skip_frame = (frame_counter % 2 == 1);
-                frame_counter++;
             }
+            frame_counter++;
             if (!skip_frame) {
                 scheduler.Push(submit_list->channel, std::move(submit_list->entries));
             }
