@@ -110,7 +110,7 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
     }
 
     // If any new buffers were acquired, we can present.
-    if (has_acquired_buffer) {
+    if (has_acquired_buffer && !composition_stack.empty()) {
         // Sort by Z-index.
         std::stable_sort(composition_stack.begin(), composition_stack.end(),
                          [&](auto& l, auto& r) { return l.z_index < r.z_index; });
