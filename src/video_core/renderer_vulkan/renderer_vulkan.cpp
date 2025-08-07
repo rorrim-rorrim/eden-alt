@@ -297,8 +297,8 @@ void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebu
     scheduler.Flush(*frame->render_ready);
     present_manager.Present(frame);
 
-    // Store the current frame for interpolation on the next call
     if (frame_interpolation_enabled) {
+        // Store the current frame for interpolation on the next call
         previous_frame = frame;
     }
 
