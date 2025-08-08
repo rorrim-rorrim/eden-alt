@@ -14,6 +14,8 @@ QMessageBox::StandardButton ShowMessage(QMessageBox::Icon icon,
     QMessageBox *box = new QMessageBox(icon, title, text, buttons, parent);
     return static_cast<QMessageBox::StandardButton>(box->exec());
 #endif
+    // TODO(crueter): If Qt Widgets is disabled...
+    // need a way to reference icon/buttons too
 }
 
 QMessageBox::StandardButton ShowMessage(QMessageBox::Icon icon,
