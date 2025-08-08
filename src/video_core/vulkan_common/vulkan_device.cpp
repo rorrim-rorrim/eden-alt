@@ -972,11 +972,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
     bool suitable = true;
 
     // Configure properties.
-    VkPhysicalDeviceVulkan12Features features_1_2{};
-    VkPhysicalDeviceVulkan13Features features_1_3{};
-    VkPhysicalDeviceVulkan14Features features_1_4{};
-
-    // Configure properties.
     properties.properties = physical.GetProperties();
 
     // Set instance version.
@@ -1048,19 +1043,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
     // Set next pointer.
     void** next = &features2.pNext;
-
-    // Vulkan 1.2, 1.3 and 1.4 features
-    if (instance_version >= VK_API_VERSION_1_2) {
-        features_1_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
-        features_1_3.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
-        features_1_4.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES;
-
-        features_1_2.pNext = &features_1_3;
-        features_1_3.pNext = &features_1_4;
-
-        *next = &features_1_2;
-        // next = &features_1_4.pNext;
-    }
 
 // Test all features we know about. If the feature is not available in core at our
 // current API version, and was not enabled by an extension, skip testing the feature.
