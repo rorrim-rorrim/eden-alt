@@ -29,10 +29,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
 #define INSERT(SETTINGS, ID, NAME, TOOLTIP) \
     translations->insert(std::pair{SETTINGS::values.ID.Id(), std::pair{(NAME), (TOOLTIP)}})
 
-    // A setting can be ignored by giving it a blank name
+        // A setting can be ignored by giving it a blank name
 
-    // Applets
-    INSERT(Settings, cabinet_applet_mode, tr("Amiibo editor"), QString());
+        // Applets
+        INSERT(Settings, cabinet_applet_mode, tr("Amiibo editor"), QString());
     INSERT(Settings, controller_applet_mode, tr("Controller configuration"), QString());
     INSERT(Settings, data_erase_applet_mode, tr("Data erase"), QString());
     INSERT(Settings, error_applet_mode, tr("Error"), QString());
@@ -648,58 +648,58 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
     translations->insert(
         {Settings::EnumMetadata<Settings::TimeZone>::Index(),
          {
-             {static_cast<u32>(Settings::TimeZone::Auto),
-              tr("Auto (%1)", "Auto select time zone")
-                  .arg(QString::fromStdString(
-                      Settings::GetTimeZoneString(Settings::TimeZone::Auto)))},
-             {static_cast<u32>(Settings::TimeZone::Default),
-              tr("Default (%1)", "Default time zone")
-                  .arg(QString::fromStdString(Common::TimeZone::GetDefaultTimeZone()))},
-             PAIR(TimeZone, Cet, tr("CET")),
-             PAIR(TimeZone, Cst6Cdt, tr("CST6CDT")),
-             PAIR(TimeZone, Cuba, tr("Cuba")),
-             PAIR(TimeZone, Eet, tr("EET")),
-             PAIR(TimeZone, Egypt, tr("Egypt")),
-             PAIR(TimeZone, Eire, tr("Eire")),
-             PAIR(TimeZone, Est, tr("EST")),
-             PAIR(TimeZone, Est5Edt, tr("EST5EDT")),
-             PAIR(TimeZone, Gb, tr("GB")),
-             PAIR(TimeZone, GbEire, tr("GB-Eire")),
-             PAIR(TimeZone, Gmt, tr("GMT")),
-             PAIR(TimeZone, GmtPlusZero, tr("GMT+0")),
-             PAIR(TimeZone, GmtMinusZero, tr("GMT-0")),
-             PAIR(TimeZone, GmtZero, tr("GMT0")),
-             PAIR(TimeZone, Greenwich, tr("Greenwich")),
-             PAIR(TimeZone, Hongkong, tr("Hongkong")),
-             PAIR(TimeZone, Hst, tr("HST")),
-             PAIR(TimeZone, Iceland, tr("Iceland")),
-             PAIR(TimeZone, Iran, tr("Iran")),
-             PAIR(TimeZone, Israel, tr("Israel")),
-             PAIR(TimeZone, Jamaica, tr("Jamaica")),
-             PAIR(TimeZone, Japan, tr("Japan")),
-             PAIR(TimeZone, Kwajalein, tr("Kwajalein")),
-             PAIR(TimeZone, Libya, tr("Libya")),
-             PAIR(TimeZone, Met, tr("MET")),
-             PAIR(TimeZone, Mst, tr("MST")),
-             PAIR(TimeZone, Mst7Mdt, tr("MST7MDT")),
-             PAIR(TimeZone, Navajo, tr("Navajo")),
-             PAIR(TimeZone, Nz, tr("NZ")),
-             PAIR(TimeZone, NzChat, tr("NZ-CHAT")),
-             PAIR(TimeZone, Poland, tr("Poland")),
-             PAIR(TimeZone, Portugal, tr("Portugal")),
-             PAIR(TimeZone, Prc, tr("PRC")),
-             PAIR(TimeZone, Pst8Pdt, tr("PST8PDT")),
-             PAIR(TimeZone, Roc, tr("ROC")),
-             PAIR(TimeZone, Rok, tr("ROK")),
-             PAIR(TimeZone, Singapore, tr("Singapore")),
-             PAIR(TimeZone, Turkey, tr("Turkey")),
-             PAIR(TimeZone, Uct, tr("UCT")),
-             PAIR(TimeZone, Universal, tr("Universal")),
-             PAIR(TimeZone, Utc, tr("UTC")),
-             PAIR(TimeZone, WSu, tr("W-SU")),
-             PAIR(TimeZone, Wet, tr("WET")),
-             PAIR(TimeZone, Zulu, tr("Zulu")),
-         }});
+          {static_cast<u32>(Settings::TimeZone::Auto),
+           tr("Auto (%1)", "Auto select time zone")
+               .arg(QString::fromStdString(
+                   Settings::GetTimeZoneString(Settings::TimeZone::Auto)))},
+          {static_cast<u32>(Settings::TimeZone::Default),
+           tr("Default (%1)", "Default time zone")
+               .arg(QString::fromStdString(Common::TimeZone::GetDefaultTimeZone()))},
+          PAIR(TimeZone, Cet, tr("CET")),
+          PAIR(TimeZone, Cst6Cdt, tr("CST6CDT")),
+          PAIR(TimeZone, Cuba, tr("Cuba")),
+          PAIR(TimeZone, Eet, tr("EET")),
+          PAIR(TimeZone, Egypt, tr("Egypt")),
+          PAIR(TimeZone, Eire, tr("Eire")),
+          PAIR(TimeZone, Est, tr("EST")),
+          PAIR(TimeZone, Est5Edt, tr("EST5EDT")),
+          PAIR(TimeZone, Gb, tr("GB")),
+          PAIR(TimeZone, GbEire, tr("GB-Eire")),
+          PAIR(TimeZone, Gmt, tr("GMT")),
+          PAIR(TimeZone, GmtPlusZero, tr("GMT+0")),
+          PAIR(TimeZone, GmtMinusZero, tr("GMT-0")),
+          PAIR(TimeZone, GmtZero, tr("GMT0")),
+          PAIR(TimeZone, Greenwich, tr("Greenwich")),
+          PAIR(TimeZone, Hongkong, tr("Hongkong")),
+          PAIR(TimeZone, Hst, tr("HST")),
+          PAIR(TimeZone, Iceland, tr("Iceland")),
+          PAIR(TimeZone, Iran, tr("Iran")),
+          PAIR(TimeZone, Israel, tr("Israel")),
+          PAIR(TimeZone, Jamaica, tr("Jamaica")),
+          PAIR(TimeZone, Japan, tr("Japan")),
+          PAIR(TimeZone, Kwajalein, tr("Kwajalein")),
+          PAIR(TimeZone, Libya, tr("Libya")),
+          PAIR(TimeZone, Met, tr("MET")),
+          PAIR(TimeZone, Mst, tr("MST")),
+          PAIR(TimeZone, Mst7Mdt, tr("MST7MDT")),
+          PAIR(TimeZone, Navajo, tr("Navajo")),
+          PAIR(TimeZone, Nz, tr("NZ")),
+          PAIR(TimeZone, NzChat, tr("NZ-CHAT")),
+          PAIR(TimeZone, Poland, tr("Poland")),
+          PAIR(TimeZone, Portugal, tr("Portugal")),
+          PAIR(TimeZone, Prc, tr("PRC")),
+          PAIR(TimeZone, Pst8Pdt, tr("PST8PDT")),
+          PAIR(TimeZone, Roc, tr("ROC")),
+          PAIR(TimeZone, Rok, tr("ROK")),
+          PAIR(TimeZone, Singapore, tr("Singapore")),
+          PAIR(TimeZone, Turkey, tr("Turkey")),
+          PAIR(TimeZone, Uct, tr("UCT")),
+          PAIR(TimeZone, Universal, tr("Universal")),
+          PAIR(TimeZone, Utc, tr("UTC")),
+          PAIR(TimeZone, WSu, tr("W-SU")),
+          PAIR(TimeZone, Wet, tr("WET")),
+          PAIR(TimeZone, Zulu, tr("Zulu")),
+          }});
     translations->insert({Settings::EnumMetadata<Settings::AudioMode>::Index(),
                           {
                               PAIR(AudioMode, Mono, tr("Mono")),

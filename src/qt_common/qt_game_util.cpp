@@ -146,33 +146,33 @@ bool MakeShortcutIcoPath(const u64 program_id, const std::string_view game_file_
     return true;
 }
 
-void OpenRootDataFolder() {
+void OpenEdenFolder(const Common::FS::EdenPath& path) {
     QDesktopServices::openUrl(QUrl(
-        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::EdenDir))));
+        QString::fromStdString(Common::FS::GetEdenPathString(path))));
+}
+
+void OpenRootDataFolder() {
+    OpenEdenFolder(Common::FS::EdenPath::EdenDir);
 }
 
 void OpenNANDFolder()
 {
-    QDesktopServices::openUrl(QUrl::fromLocalFile(
-        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir))));
+    OpenEdenFolder(Common::FS::EdenPath::NANDDir);
 }
 
 void OpenSDMCFolder()
 {
-    QDesktopServices::openUrl(QUrl::fromLocalFile(
-        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::SDMCDir))));
+    OpenEdenFolder(Common::FS::EdenPath::SDMCDir);
 }
 
 void OpenModFolder()
 {
-    QDesktopServices::openUrl(QUrl::fromLocalFile(
-        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::LoadDir))));
+    OpenEdenFolder(Common::FS::EdenPath::LoadDir);
 }
 
 void OpenLogFolder()
 {
-    QDesktopServices::openUrl(QUrl::fromLocalFile(
-        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::LogDir))));
+    OpenEdenFolder(Common::FS::EdenPath::LogDir);
 }
 
 }
