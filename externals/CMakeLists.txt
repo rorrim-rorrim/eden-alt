@@ -209,9 +209,9 @@ set(CPM_USE_LOCAL_PACKAGES OFF)
 
 CPMAddPackage(
     NAME SPIRV-Headers
-    URL "https://github.com/KhronosGroup/SPIRV-Headers/archive/4e209d3d7e.zip"
-    URL_HASH SHA512=f48bbe18341ed55ea0fe280dbbbc0a44bf222278de6e716e143ca1e95ca320b06d4d23d6583fbf8d03e1428f3dac8fa00e5b82ddcd6b425e6236d85af09550a4
-    CUSTOM_CACHE_KEY "4e20"
+    URL "https://github.com/KhronosGroup/SPIRV-Headers/archive/04b76709bf.zip"
+    URL_HASH SHA512=954bbc4794bd369c828937c7d4106b6c7bd17a992c672bf1c2a24c128f2bcf1a13295111f47ce4a0fa77641db424359b153dfea2f4e9d19fe64effb29f411c5c
+    CUSTOM_CACHE_KEY "04b7"
 )
 
 set(CPM_USE_LOCAL_PACKAGES ON)
