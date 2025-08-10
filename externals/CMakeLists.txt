@@ -218,11 +218,11 @@ set(CPM_USE_LOCAL_PACKAGES ON)
 
 CPMAddPackage(
     NAME sirit
-    URL "https://github.com/raphaelthegreat/sirit/archive/51fcf9720f.zip"
-    URL_HASH SHA512=a8f98ea0c51763b89924d836ad482ebdfe9130251cf4e14733ccaacc885ae8cc4c8b03d1dc43e8861609e5f7929c16f935879c1f6bf61866fd75077954774394
+    URL "https://github.com/ReinUsesLisp/sirit/archive/d7ad93a888.zip"
+    URL_HASH SHA512=4532125b180729b13dcc2a0418f36ad5e902b1a628ca3d85adca64547442800a30a6eb8efe45e186c020986f27a6f6a53083a4b74dd58cb19eb5657d5cbaaa71
     OPTIONS
         "SIRIT_USE_SYSTEM_SPIRV_HEADERS ON"
-    CUSTOM_CACHE_KEY "51fc"
+    CUSTOM_CACHE_KEY "d7ad"
 )
 
 # httplib
