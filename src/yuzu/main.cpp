@@ -173,6 +173,24 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/util/clickable_label.h"
 #include "yuzu/vk_device_info.h"
 
+#ifdef _WIN32
+#include <dwmapi.h>
+#include <windows.h>
+#pragma comment(lib, "Dwmapi.lib")
+
+static void ApplyWindowsTitleBarDarkMode(HWND hwnd, bool enabled) {
+    if (!hwnd)
+        return;
+    BOOL val = enabled ? TRUE : FALSE;
+    // 20 = Win11/21H2+
+    if (SUCCEEDED(DwmSetWindowAttribute(hwnd, 20, &val, sizeof(val))))
+        return;
+    // 19 = pre-21H2
+    DwmSetWindowAttribute(hwnd, 19, &val, sizeof(val));
+}
+
+#endif
+
 #ifdef YUZU_CRASH_DUMPS
 #include "yuzu/breakpad.h"
 #endif
@@ -5418,6 +5436,11 @@ void GMainWindow::UpdateUITheme() {
         qApp->setStyleSheet({});
         setStyleSheet({});
     }
+
+#ifdef _WIN32
+    const bool want_dark_titlebar = UISettings::IsDarkTheme();
+    ApplyWindowsTitleBarDarkMode(reinterpret_cast<HWND>(winId()), want_dark_titlebar);
+#endif
 }
 
 void GMainWindow::LoadTranslation() {
@@ -5657,7 +5680,7 @@ int main(int argc, char* argv[]) {
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
 
 #ifdef _WIN32
-    QApplication::setStyle(QStringLiteral("fusion"));
+    QApplication::setStyle(QStringLiteral("windowsvista"));
 #endif
 
     QApplication app(argc, argv);
