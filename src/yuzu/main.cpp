@@ -174,11 +174,12 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/vk_device_info.h"
 
 #ifdef _WIN32
+#include <QPlatformSurfaceEvent>
 #include <dwmapi.h>
 #include <windows.h>
 #pragma comment(lib, "Dwmapi.lib")
 
-static void ApplyWindowsTitleBarDarkMode(HWND hwnd, bool enabled) {
+static inline void ApplyWindowsTitleBarDarkMode(HWND hwnd, bool enabled) {
     if (!hwnd)
         return;
     BOOL val = enabled ? TRUE : FALSE;
@@ -187,6 +188,72 @@ static void ApplyWindowsTitleBarDarkMode(HWND hwnd, bool enabled) {
         return;
     // 19 = pre-21H2
     DwmSetWindowAttribute(hwnd, 19, &val, sizeof(val));
+}
+
+static inline void ApplyDarkToTopLevel(QWidget* w, bool on) {
+    if (!w || !w->isWindow())
+        return;
+    ApplyWindowsTitleBarDarkMode(reinterpret_cast<HWND>(w->winId()), on);
+}
+
+namespace {
+struct TitlebarFilter final : QObject {
+    bool dark;
+    explicit TitlebarFilter(bool is_dark) : QObject(qApp), dark(is_dark) {}
+
+    void setDark(bool is_dark) {
+        dark = is_dark;
+    }
+
+    void onFocusChanged(QWidget*, QWidget* now) {
+        if (now)
+            ApplyDarkToTopLevel(now->window(), dark);
+    }
+
+    bool eventFilter(QObject* obj, QEvent* ev) override {
+        if (auto* w = qobject_cast<QWidget*>(obj)) {
+            switch (ev->type()) {
+            case QEvent::WinIdChange:
+            case QEvent::Show:
+            case QEvent::ShowToParent:
+            case QEvent::Polish:
+            case QEvent::WindowStateChange:
+            case QEvent::ZOrderChange:
+                ApplyDarkToTopLevel(w, dark);
+                break;
+            default:
+                break;
+            }
+        }
+        return QObject::eventFilter(obj, ev);
+    }
+};
+
+static TitlebarFilter* g_filter = nullptr;
+static QMetaObject::Connection g_focusConn;
+
+} // namespace
+
+static void ApplyGlobalDarkTitlebar(bool is_dark) {
+    if (!g_filter) {
+        g_filter = new TitlebarFilter(is_dark);
+        qApp->installEventFilter(g_filter);
+        g_focusConn = QObject::connect(qApp, &QApplication::focusChanged, g_filter,
+                                       &TitlebarFilter::onFocusChanged);
+    } else {
+        g_filter->setDark(is_dark);
+    }
+    for (QWidget* w : QApplication::topLevelWidgets())
+        ApplyDarkToTopLevel(w, is_dark);
+}
+
+static void RemoveTitlebarFilter() {
+    if (!g_filter)
+        return;
+    qApp->removeEventFilter(g_filter);
+    QObject::disconnect(g_focusConn);
+    g_filter->deleteLater();
+    g_filter = nullptr;
 }
 
 #endif
@@ -5438,8 +5505,8 @@ void GMainWindow::UpdateUITheme() {
     }
 
 #ifdef _WIN32
-    const bool want_dark_titlebar = UISettings::IsDarkTheme();
-    ApplyWindowsTitleBarDarkMode(reinterpret_cast<HWND>(winId()), want_dark_titlebar);
+    RemoveTitlebarFilter();
+    ApplyGlobalDarkTitlebar(UISettings::IsDarkTheme());
 #endif
 }
 
