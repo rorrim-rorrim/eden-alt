@@ -290,10 +290,10 @@ endif()
 if (YUZU_USE_EXTERNAL_VULKAN_HEADERS)
     set(CPM_USE_LOCAL_PACKAGES OFF)
 else()
-    set(CPM_USE_LOCAL_PACKAGES ON)
+    set(CPM_USE_LOCAL_PACKAGES OFF)
 endif()
 
-# TODO(crueter): System vk-headers are too new for externals vk-util
+# TODO(crueter): Vk1.4 impl
 
 CPMAddPackage(
     NAME VulkanHeaders
@@ -302,6 +302,14 @@ CPMAddPackage(
     URL_HASH SHA512=3ab349f74298ba72cafb8561015690c0674d428a09fb91ccd3cd3daca83650d190d46d33fd97b0a8fd4223fe6df2bcabae89136fbbf7c0bfeb8776f9448304c8
     CUSTOM_CACHE_KEY "8926"
 )
+
+# CMake's interface generator sucks
+if (VulkanHeaders_ADDED)
+    target_include_directories(Vulkan-Headers INTERFACE ${VulkanHeaders_SOURCE_DIR}/include)
+endif()
+
+set(VulkanHeaders_SOURCE_DIR "${VulkanHeaders_SOURCE_DIR}" PARENT_SCOPE)
+set(VulkanHeaders_ADDED "${VulkanHeaders_ADDED}" PARENT_SCOPE)
 
 # Vulkan-Utility-Libraries
 if (YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES)
