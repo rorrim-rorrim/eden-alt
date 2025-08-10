@@ -96,6 +96,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QStandardPaths>
 #include <QStatusBar>
 #include <QString>
+#include <QStyleHints>
 #include <QSysInfo>
 #include <QUrl>
 #include <QtConcurrent/QtConcurrent>
@@ -299,16 +300,16 @@ static void OverrideWindowsFont() {
 }
 #endif
 
-bool GMainWindow::CheckDarkMode() {
-#ifdef __unix__
-    const QPalette test_palette(qApp->palette());
-    const QColor text_color = test_palette.color(QPalette::Active, QPalette::Text);
-    const QColor window_color = test_palette.color(QPalette::Active, QPalette::Window);
-    return (text_color.value() > window_color.value());
+inline static bool isDarkMode() {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+    const auto scheme = QGuiApplication::styleHints()->colorScheme();
+    return scheme == Qt::ColorScheme::Dark;
 #else
-    // TODO: Windows
-    return false;
-#endif // __unix__
+    const QPalette defaultPalette;
+    const auto text = defaultPalette.color(QPalette::WindowText);
+    const auto window = defaultPalette.color(QPalette::Window);
+    return text.lightness() > window.lightness();
+#endif // QT_VERSION
 }
 
 GMainWindow::GMainWindow(bool has_broken_vulkan)
@@ -358,7 +359,6 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     statusBar()->hide();
 
     // Check dark mode before a theme is loaded
-    os_dark_mode = CheckDarkMode();
     startup_icon_theme = QIcon::themeName();
     // fallback can only be set once, colorful theme icons are okay on both light/dark
     QIcon::setFallbackThemeName(QStringLiteral("colorful"));
@@ -5383,15 +5383,11 @@ void GMainWindow::UpdateUITheme() {
         current_theme = default_theme;
     }
 
-#ifdef _WIN32
-    QIcon::setThemeName(current_theme);
-    AdjustLinkColor();
-#else
     if (current_theme == QStringLiteral("default") || current_theme == QStringLiteral("colorful")) {
         QIcon::setThemeName(current_theme == QStringLiteral("colorful") ? current_theme
                                                                         : startup_icon_theme);
         QIcon::setThemeSearchPaths(QStringList(default_theme_paths));
-        if (CheckDarkMode()) {
+        if (isDarkMode()) {
             current_theme = QStringLiteral("default_dark");
         }
     } else {
@@ -5399,7 +5395,7 @@ void GMainWindow::UpdateUITheme() {
         QIcon::setThemeSearchPaths(QStringList(QStringLiteral(":/icons")));
         AdjustLinkColor();
     }
-#endif
+
     if (current_theme != default_theme) {
         QString theme_uri{QStringLiteral(":%1/style.qss").arg(current_theme)};
         QFile f(theme_uri);
@@ -5661,7 +5657,7 @@ int main(int argc, char* argv[]) {
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
 
 #ifdef _WIN32
-    QApplication::setStyle(QStringLiteral("windowsvista"));
+    QApplication::setStyle(QStringLiteral("fusion"));
 #endif
 
     QApplication app(argc, argv);
