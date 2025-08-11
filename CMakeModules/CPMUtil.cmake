@@ -58,7 +58,9 @@ function(AddPackage)
         set(PKG_KEY ${PKG_ARGS_KEY})
     endif()
 
-    set(PKG_HASH "SHA512=${PKG_ARGS_HASH}")
+    if (DEFINED PKG_ARGS_HASH)
+        set(PKG_HASH "SHA512=${PKG_ARGS_HASH}")
+    endif()
 
     # Default behavior is bundled
     if (DEFINED PKG_ARGS_SYSTEM_PACKAGE)

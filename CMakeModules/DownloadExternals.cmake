@@ -34,6 +34,7 @@ function(download_bundled_external remote_path lib_name cpm_key prefix_var)
         URL ${full_url}
         DOWNLOAD_ONLY YES
         KEY ${CACHE_KEY}
+        # TODO(crueter): hash
     )
 
     set(${prefix_var} "${${cpm_key}_SOURCE_DIR}" PARENT_SCOPE)

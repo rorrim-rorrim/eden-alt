@@ -209,9 +209,9 @@ AddPackage(
 
 AddPackage(
     NAME sirit
-    REPO "ReinUsesLisp/sirit"
-    SHA d7ad93a888
-    HASH 4532125b180729b13dcc2a0418f36ad5e902b1a628ca3d85adca64547442800a30a6eb8efe45e186c020986f27a6f6a53083a4b74dd58cb19eb5657d5cbaaa71
+    REPO "yuzu-mirror/sirit"
+    SHA 4ab79a8c02
+    HASH 1eb6de5b9ee8ded578c4d97ef207d71ad29b5dbb50ab6dd7f05b19143e08822e3e37be61dd42f68dff9ed357dbd3b5c6b40ad2b88de656529bc78ce26f8e3666
     OPTIONS
         "SIRIT_USE_SYSTEM_SPIRV_HEADERS ON"
     SYSTEM_PACKAGE ON
