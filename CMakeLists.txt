@@ -216,14 +216,14 @@ if (YUZU_USE_BUNDLED_VCPKG)
         list(APPEND VCPKG_MANIFEST_FEATURES "android")
     endif()
 
-    include(CPM)
-    set(CPM_USE_LOCAL_PACKAGES OFF)
+    include(CPMUtil)
 
-    CPMAddPackage(
+    AddPackage(
+        NAME vcpkg
         DOWNLOAD_ONLY YES
-        GIT_REPOSITORY "https://github.com/microsoft/vcpkg.git"
+        URL "https://github.com/microsoft/vcpkg.git"
         GIT_TAG "ea2a964f93"
-        CUSTOM_CACHE_KEY "ea2a"
+        KEY "ea2a"
     )
 
     include(${vcpkg_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake)

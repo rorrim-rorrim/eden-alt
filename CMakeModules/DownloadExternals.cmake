@@ -29,13 +29,11 @@ function(download_bundled_external remote_path lib_name cpm_key prefix_var)
     set(package_url "${package_base_url}${package_repo}")
     set(full_url ${package_url}${remote_path}${lib_name}${package_extension})
 
-    set(CPM_USE_LOCAL_PACKAGES OFF)
-
-    CPMAddPackage(
+    AddPackage(
         NAME ${cpm_key}
         URL ${full_url}
         DOWNLOAD_ONLY YES
-        CUSTOM_CACHE_KEY ${CACHE_KEY}
+        KEY ${CACHE_KEY}
     )
 
     set(${prefix_var} "${${cpm_key}_SOURCE_DIR}" PARENT_SCOPE)

@@ -19,14 +19,11 @@ if (NOT WIN32 AND NOT ANDROID)
         message(FATAL_ERROR "Required program `autoconf` not found.")
     endif()
 
-    include(CPM)
-    set(CPM_USE_LOCAL_PACKAGES OFF)
-
-    CPMAddPackage(
+    AddPackage(
         NAME ffmpeg
-        URL "https://github.com/FFmpeg/FFmpeg/archive/c2184b65d2.zip"
-        URL_HASH SHA512=2a89d664119debbb3c006ab1c48d5d7f26e889f4a65ad2e25c8b0503308295123d5a9c5c78bf683aef5ff09acef8c3fc2837f22d3e8c611528b933bf03bcdd97
-        CUSTOM_CACHE_KEY "c218"
+        REPO "FFmpeg/FFmpeg"
+        SHA c2184b65d2
+        HASH 2a89d664119debbb3c006ab1c48d5d7f26e889f4a65ad2e25c8b0503308295123d5a9c5c78bf683aef5ff09acef8c3fc2837f22d3e8c611528b933bf03bcdd97
     )
 
     set(FFmpeg_PREFIX ${ffmpeg_SOURCE_DIR})
