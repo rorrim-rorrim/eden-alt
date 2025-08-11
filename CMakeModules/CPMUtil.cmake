@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # Created-By: crueter
-# Docs will come at a later date, mostly this is to just reduce boilerplate and some cmake magic
-# to allow for runtime viewing of dependency versions
+# Docs will come at a later date, mostly this is to just reduce boilerplate
+# and some cmake magic to allow for runtime viewing of dependency versions
 
 cmake_minimum_required(VERSION 3.22)
 include(CPM)
@@ -35,12 +35,14 @@ function(AddPackage)
 
     if (NOT DEFINED PKG_ARGS_URL)
         if (DEFINED PKG_ARGS_REPO AND DEFINED PKG_ARGS_SHA)
-            set(PKG_URL "https://github.com/${PKG_ARGS_REPO}/archive/${PKG_ARGS_SHA}.zip")
+            set(PKG_GIT_URL https://github.com/${PKG_ARGS_REPO})
+            set(PKG_URL "${PKG_GIT_URL}/archive/${PKG_ARGS_SHA}.zip")
         else()
             message(FATAL_ERROR "CPMUtil: No custom URL and no repository + sha defined")
         endif()
     else()
         set(PKG_URL ${PKG_ARGS_URL})
+        set(PKG_GIT_URL ${PKG_URL})
     endif()
 
     message(STATUS "CPMUtil: Downloading package ${PKG_ARGS_NAME} from ${PKG_URL}")
@@ -85,6 +87,15 @@ function(AddPackage)
 
         ${PKG_ARGS_UNPARSED_ARGUMENTS}
     )
+
+    set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES ${PKG_ARGS_NAME})
+    set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS ${PKG_GIT_URL})
+
+    if (${PKG_ARGS_NAME}_ADDED)
+        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS ${PKG_ARGS_SHA})
+    else()
+        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS "${CPM_PACKAGE_${PKG_ARGS_NAME}_VERSION} (system)")
+    endif()
 
     # pass stuff to parent scope
     set(${PKG_ARGS_NAME}_ADDED "${${PKG_ARGS_NAME}_ADDED}" PARENT_SCOPE)

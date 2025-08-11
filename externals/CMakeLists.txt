@@ -203,7 +203,7 @@ endif()
 AddPackage(
     NAME SPIRV-Headers
     REPO "KhronosGroup/SPIRV-Headers"
-    SHA 04b76709bf.zip
+    SHA 04b76709bf
     HASH 954bbc4794bd369c828937c7d4106b6c7bd17a992c672bf1c2a24c128f2bcf1a13295111f47ce4a0fa77641db424359b153dfea2f4e9d19fe64effb29f411c5c
 )
 

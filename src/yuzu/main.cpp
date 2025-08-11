@@ -159,6 +159,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/debugger/console.h"
 #include "yuzu/debugger/controller.h"
 #include "yuzu/debugger/wait_tree.h"
+#include "yuzu/deps_dialog.h"
 #include "yuzu/discord.h"
 #include "yuzu/game_list.h"
 #include "yuzu/game_list_p.h"
@@ -1684,6 +1685,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Firmware_From_ZIP, &GMainWindow::OnInstallFirmwareFromZIP);
     connect_menu(ui->action_Install_Keys, &GMainWindow::OnInstallDecryptionKeys);
     connect_menu(ui->action_About, &GMainWindow::OnAbout);
+    connect_menu(ui->action_Eden_Dependencies, &GMainWindow::OnEdenDependencies);
 }
 
 void GMainWindow::UpdateMenuState() {
@@ -3657,7 +3659,7 @@ void GMainWindow::OnOpenFAQ() {
 }
 
 void GMainWindow::OnOpenDiscord() {
-    OpenURL(QUrl(QStringLiteral("https://discord.gg/kXAmGCXBGD")));
+    OpenURL(QUrl(QStringLiteral("https://discord.gg/HstXbPch7X")));
 }
 
 void GMainWindow::OnOpenRevolt() {
@@ -4495,6 +4497,11 @@ void GMainWindow::OnInstallDecryptionKeys() {
 void GMainWindow::OnAbout() {
     AboutDialog aboutDialog(this);
     aboutDialog.exec();
+}
+
+void GMainWindow::OnEdenDependencies() {
+    DepsDialog depsDialog(this);
+    depsDialog.exec();
 }
 
 void GMainWindow::OnToggleFilterBar() {

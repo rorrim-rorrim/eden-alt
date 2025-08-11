@@ -223,7 +223,7 @@ if (YUZU_USE_BUNDLED_VCPKG)
         DOWNLOAD_ONLY YES
         URL "https://github.com/microsoft/vcpkg.git"
         GIT_TAG "ea2a964f93"
-        KEY "ea2a"
+        SHA "ea2a964f93"
     )
 
     include(${vcpkg_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake)
@@ -277,6 +277,30 @@ function(check_submodules_present)
             message(FATAL_ERROR "Git submodule ${module} not found. "
                 "Please run: \ngit submodule update --init --recursive")
         endif()
+
+        set(SUBMODULE_DIR "${PROJECT_SOURCE_DIR}/${module}")
+
+        execute_process(
+            COMMAND git rev-parse --short=10 HEAD
+            WORKING_DIRECTORY ${SUBMODULE_DIR}
+            OUTPUT_VARIABLE SUBMODULE_SHA
+        )
+
+        # would probably be better to do string parsing, but whatever
+        execute_process(
+            COMMAND git remote get-url origin
+            WORKING_DIRECTORY ${SUBMODULE_DIR}
+            OUTPUT_VARIABLE SUBMODULE_URL
+        )
+
+        string(REGEX REPLACE "\n|\r" "" SUBMODULE_SHA ${SUBMODULE_SHA})
+        string(REGEX REPLACE "\n|\r|\\.git" "" SUBMODULE_URL ${SUBMODULE_URL})
+
+        get_filename_component(SUBMODULE_NAME ${SUBMODULE_DIR} NAME)
+
+        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES ${SUBMODULE_NAME})
+        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS ${SUBMODULE_SHA})
+        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS ${SUBMODULE_URL})
     endforeach()
 endfunction()
 
@@ -721,7 +745,6 @@ if(ENABLE_QT)
 else()
     set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT yuzu-cmd)
 endif()
-
 
 # Installation instructions
 # =========================
