@@ -240,7 +240,7 @@ elseif(ANDROID)
         message(FATAL_ERROR "Unsupported architecture for Android FFmpeg")
     endif()
 
-    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" FFmpeg_PATH)
+    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" FFmpeg_PATH 7.1.1)
     set(FFmpeg_FOUND YES)
     set(FFmpeg_INCLUDE_DIR "${FFmpeg_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
     set(FFmpeg_LIBRARY_DIR "${FFmpeg_PATH}/lib" CACHE PATH "Path to FFmpeg library directory" FORCE)
@@ -265,7 +265,7 @@ elseif(WIN32)
     # Use yuzu FFmpeg binaries
     set(FFmpeg_EXT_NAME "ffmpeg-7.1.1")
 
-    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" FFmpeg_PATH)
+    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" FFmpeg_PATH 7.1.1)
     set(FFmpeg_FOUND YES)
     set(FFmpeg_INCLUDE_DIR "${FFmpeg_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
     set(FFmpeg_LIBRARY_DIR "${FFmpeg_PATH}/bin" CACHE PATH "Path to FFmpeg library directory" FORCE)

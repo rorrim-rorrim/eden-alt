@@ -477,7 +477,7 @@ if (ENABLE_SDL2)
         endif()
 
         if (DEFINED SDL2_VER)
-            download_bundled_external("sdl2/" ${SDL2_VER} "sdl2-bundled" SDL2_PREFIX)
+            download_bundled_external("sdl2/" ${SDL2_VER} "sdl2-bundled" SDL2_PREFIX 2.32.8)
         endif()
 
         set(SDL2_FOUND YES)
@@ -608,7 +608,7 @@ endif()
 
 if (WIN32 AND YUZU_CRASH_DUMPS)
     set(BREAKPAD_VER "breakpad-c89f9dd")
-    download_bundled_external("breakpad/" ${BREAKPAD_VER} "breakpad-win" BREAKPAD_PREFIX)
+    download_bundled_external("breakpad/" ${BREAKPAD_VER} "breakpad-win" BREAKPAD_PREFIX "c89f9dd")
 
     set(BREAKPAD_CLIENT_INCLUDE_DIR "${BREAKPAD_PREFIX}/include")
     set(BREAKPAD_CLIENT_LIBRARY "${BREAKPAD_PREFIX}/lib/libbreakpad_client.lib")
