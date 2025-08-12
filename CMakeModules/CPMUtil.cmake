@@ -5,6 +5,8 @@
 # Docs will come at a later date, mostly this is to just reduce boilerplate
 # and some cmake magic to allow for runtime viewing of dependency versions
 
+option(CPMUTIL_DEFAULT_SYSTEM "Default to system packages" OFF)
+
 cmake_minimum_required(VERSION 3.22)
 include(CPM)
 
@@ -72,7 +74,7 @@ function(AddPackage)
             set(CPM_USE_LOCAL_PACKAGES ON)
         endif()
     else()
-        set(CPM_USE_LOCAL_PACKAGES OFF)
+        set(CPM_USE_LOCAL_PACKAGES ${CPMUTIL_DEFAULT_SYSTEM})
     endif()
 
     CPMAddPackage(

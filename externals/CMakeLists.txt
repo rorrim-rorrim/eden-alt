@@ -138,10 +138,18 @@ if (YUZU_USE_EXTERNAL_SDL2)
 endif()
 
 # ENet
-if (NOT TARGET enet::enet)
-    add_subdirectory(enet)
-    target_include_directories(enet INTERFACE ./enet/include)
-    add_library(enet::enet ALIAS enet)
+AddPackage(
+    NAME enet
+    REPO lsalzman/enet
+    SHA 2662c0de09
+    VERSION 1.3
+    HASH 3de1beb4fa3d6b1e03eda8dd1e7580694f854af3ed3975dcdabfdcdf76b97f322b9734d35ea7f185855bb490d957842b938b26da4dd2dfded509390f8d2794dd
+    FIND_PACKAGE_ARGUMENTS "MODULE"
+    SYSTEM_PACKAGE ON
+)
+
+if (enet_ADDED)
+    target_include_directories(enet INTERFACE ${enet_SOURCE_DIR}/include)
 endif()
 
 AddPackage(
@@ -229,6 +237,8 @@ if ((ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER))
         OPTIONS
             "HTTPLIB_REQUIRE_OPENSSL ON"
         SYSTEM_PACKAGE ${YUZU_USE_SYSTEM_HTTPLIB}
+        PATCHES
+            ${CMAKE_SOURCE_DIR}/.patch/httplib/0001-ssl-libs.patch
     )
 endif()
 
@@ -238,13 +248,16 @@ if (ENABLE_WEB_SERVICE)
         NAME cpp-jwt
         VERSION 1.4
         REPO "arun11299/cpp-jwt"
-        SHA 10ef5735d8
-        HASH ebba3d26b33a3b0aa909f475e099594560edbce10ecd03e76d7fea68549a28713ea606d363808f88a5495b62c54c3cdb7e47aee2d946eceabd36e310479dadb7
+        SHA a54fa08a3b
+        HASH a90f7e594ada0c7e49d5ff9211c71097534e7742a8e44bf0851b0362642a7271d53f5d83d04eeaae2bad17ef3f35e09e6818434d8eaefa038f3d1f7359d0969a
         FIND_PACKAGE_ARGUMENTS "CONFIG"
         OPTIONS
             "CPP_JWT_BUILD_EXAMPLES OFF"
             "CPP_JWT_BUILD_TESTS OFF"
             "CPP_JWT_USE_VENDORED_NLOHMANN_JSON OFF"
+        PATCHES
+            ${CMAKE_SOURCE_DIR}/.patch/cpp-jwt/0001-no-install.patch
+            ${CMAKE_SOURCE_DIR}/.patch/cpp-jwt/0002-missing-decl.patch
     )
 endif()
 
@@ -325,12 +338,14 @@ if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
 endif()
 
 # Boost headers
-AddPackage(
-    NAME boost_headers
-    REPO "boostorg/headers"
-    SHA 0456900fad
-    HASH 50cd75dcdfc5f082225cdace058f47b4fb114a47585f7aee1d22236a910a80b667186254c214fa2fcebac67ae6d37ba4b6e695e1faea8affd6fd42a03cf996e3
-)
+if (NOT TARGET Boost::headers)
+    AddPackage(
+        NAME boost_headers
+        REPO "boostorg/headers"
+        SHA 0456900fad
+        HASH 50cd75dcdfc5f082225cdace058f47b4fb114a47585f7aee1d22236a910a80b667186254c214fa2fcebac67ae6d37ba4b6e695e1faea8affd6fd42a03cf996e3
+    )
+endif()
 
 # TZDB (Time Zone Database)
 add_subdirectory(nx_tzdb)
@@ -503,7 +518,7 @@ if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
             ${breakpad_SOURCE_DIR}/src/common/linux/memory_mapped_file.cc
             ${breakpad_SOURCE_DIR}/src/common/linux/safe_readlink.cc
             ${breakpad_SOURCE_DIR}/src/tools/linux/dump_syms/dump_syms.cc)
-        target_link_libraries(dump_syms PRIVATE libbreakpad_client ZLIB::ZLIB)
+        target_link_libraries(dump_syms PRIVATE libbreakpad_client)
     endif()
 endif()
 

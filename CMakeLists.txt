@@ -51,6 +51,9 @@ option(ENABLE_QT_UPDATE_CHECKER "Enable update checker for the Qt frontend" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
+CMAKE_DEPENDENT_OPTION(YUZU_USE_CPM "Use CPM for Eden dependencies" "${MSVC}" "NOT YUZU_USE_BUNDLED_VCPKG" OFF)
+CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_VCPKG "Use vcpkg for Eden dependencies" OFF "NOT YUZU_USE_CPM" OFF)
+
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 
@@ -113,8 +116,6 @@ CMAKE_DEPENDENT_OPTION(YUZU_ROOM_STANDALONE "Enable standalone room executable" 
 CMAKE_DEPENDENT_OPTION(YUZU_CMD "Compile the eden-cli executable" ON "NOT ANDROID" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
-
-option(YUZU_USE_BUNDLED_VCPKG "Use vcpkg for yuzu dependencies" "${MSVC}")
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     option(YUZU_CHECK_SUBMODULES "Check if submodules are present" OFF)
@@ -420,23 +421,124 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # System imported libraries
 # =======================================================================
 
-# Enforce the search mode of non-required packages for better and shorter failure messages
-# TODO(crueter): some of these should be converted to CPM
-find_package(enet 1.3 MODULE)
-find_package(fmt 8 REQUIRED)
-find_package(LLVM MODULE COMPONENTS Demangle)
-find_package(lz4 REQUIRED)
-find_package(nlohmann_json 3.8 REQUIRED)
-find_package(RenderDoc MODULE)
-find_package(SimpleIni MODULE)
-find_package(stb MODULE)
-find_package(ZLIB 1.2 REQUIRED)
-find_package(zstd 1.5 REQUIRED)
+# TODO(crueter): Nuke vcpkg entirely and move this to externals
+if (YUZU_USE_CPM)
+    include(CPMUtil)
+    message(STATUS "Fetching needed dependencies with CPM")
 
-# TODO(crueter): Work around this
-if (NOT YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(SPIRV-Tools REQUIRED SPIRV-Tools)
+    set(CPMUTIL_DEFAULT_SYSTEM ON)
+    set(BUILD_SHARED_LIBS OFF)
+    set(BUILD_TESTING OFF)
+
+    # TODO(crueter): renderdoc?
+    AddPackage(
+        NAME boost
+        URL "https://github.com/boostorg/boost/releases/download/boost-1.88.0/boost-1.88.0-cmake.7z"
+        KEY "1880"
+        VERSION 1.57
+    )
+
+    AddPackage(
+        NAME fmt
+        REPO fmtlib/fmt
+        SHA 40626af88b
+        HASH d59f06c24339f223de4ec2afeba1c67b5835a0f350a1ffa86242a72fc3e616a6b8b21798355428d4200c75287308b66634619ffa0b52ba5bd74cc01772ea1a8a
+        VERSION 8
+    )
+
+    AddPackage(
+        NAME lz4
+        REPO lz4/lz4
+        SHA ebb370ca83
+        HASH 43600e87b35256005c0f2498fa56a77de6783937ba4cfce38c099f27c03188d097863e8a50c5779ca0a7c63c29c4f7ed0ae526ec798c1fd2e3736861b62e0a37
+        SYSTEM_PACKAGE ON
+    )
+
+    if (lz4_ADDED)
+        add_subdirectory(${lz4_SOURCE_DIR}/build/cmake ${lz4_BINARY_DIR})
+    endif()
+
+    AddPackage(
+        NAME nlohmann_json
+        REPO nlohmann/json
+        SHA 55f93686c0
+        HASH b739749b066800e21154506ea150d2c5cbce8a45344177f46f884547a1399d26753166fd0df8135269ce28cf223552b1b65cd625b88c844d54753f2434900486
+        VERSION 3.8
+    )
+
+    AddPackage(
+        NAME SimpleIni
+        REPO brofield/simpleini
+        SHA 09c21bda1d
+        HASH 99779ca9b6e040d36558cadf484f9ffdab5b47bcc8fc72e4d33639d1d60c0ceb4410d335ba445d72a4324e455167fd6769d99b459943aa135bec085dff2d4b7c
+    )
+
+    AddPackage(
+        NAME ZLIB
+        REPO madler/zlib
+        SHA 51b7f2abda
+        HASH 16eaf1f3752489d12fd9ce30f7b5f7cbd5cb8ff53d617005a9847ae72d937f65e01e68be747f62d7ac19fd0c9aeba9956e60f16d6b465c5fdc2f3d08b4db2e6c
+        VERSION 1.2
+    )
+
+    set(ZSTD_BUILD_SHARED OFF)
+    AddPackage(
+        NAME zstd
+        REPO facebook/zstd
+        SHA f8745da6ff
+        HASH 3037007f990040fe32573b46f9bef8762fd5dbeeb07ffffcbfeba51ec98167edae39bb9c87f9299efcd61c4e467c5e84f7c19f0df7799bc1fc04864a278792ee
+        VERSION 1.5
+        DOWNLOAD_ONLY YES
+    )
+
+    if (zstd_ADDED)
+        add_subdirectory(${zstd_SOURCE_DIR}/build/cmake ${zstd_BINARY_DIR})
+    endif()
+
+    if (ENABLE_OPENSSL)
+        AddPackage(
+            NAME OpenSSL
+            REPO openssl/openssl
+            SHA 0893a62353
+            HASH a16d7d18b756e3b96a365927f5ea595f0b4bd9a9442cf4e0a8a680a4e2169e70e84028aa0d5fc1f965fcabab90daa177968553f675a7097ea9b02b8d8eaf32a7
+            VERSION 1.1.1
+        )
+    endif()
+
+    if (YUZU_TESTS OR DYNARMIC_TESTS)
+        AddPackage(
+            NAME Catch2
+            REPO catchorg/Catch2
+            SHA 644821ce28
+            HASH f8795f98acf2c02c0db8e734cc866d5caebab4b4a306e93598b97cb3c0c728dafe8283dce27ffe8d42460e5ae7302f3f32e7e274a7f991b73511ac88eef21b1f
+            VERSION 3.0.1
+        )
+    endif()
+
+    set(CPMUTIL_DEFAULT_SYSTEM OFF)
+else()
+    # Enforce the search mode of non-required packages for better and shorter failure messages
+    find_package(fmt 8 REQUIRED)
+    find_package(LLVM MODULE COMPONENTS Demangle)
+    find_package(lz4 REQUIRED)
+    find_package(nlohmann_json 3.8 REQUIRED)
+    find_package(RenderDoc MODULE)
+    find_package(SimpleIni MODULE)
+    find_package(stb MODULE)
+    find_package(ZLIB 1.2 REQUIRED)
+    find_package(zstd 1.5 REQUIRED)
+
+    if (YUZU_TESTS)
+        find_package(Catch2 3.0.1 REQUIRED)
+    endif()
+
+    if(ENABLE_OPENSSL)
+        find_package(OpenSSL 1.1.1 REQUIRED)
+    endif()
+
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID)
+        find_package(gamemode 1.7 MODULE)
+    endif()
 endif()
 
 if (ENABLE_LIBUSB)
@@ -447,16 +549,10 @@ if (ENABLE_LIBUSB)
     endif()
 endif()
 
-if (YUZU_TESTS)
-    find_package(Catch2 3.0.1 REQUIRED)
-endif()
-
-if(ENABLE_OPENSSL)
-    find_package(OpenSSL 1.1.1 REQUIRED)
-endif()
-
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID)
-    find_package(gamemode 1.7 MODULE)
+# TODO(crueter): Work around this
+if (NOT YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SPIRV-Tools REQUIRED SPIRV-Tools)
 endif()
 
 # find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the YUZU_find_package
@@ -618,6 +714,10 @@ find_package(Threads REQUIRED)
 
 # Platform-specific library requirements
 # ======================================
+
+if (NOT TARGET Boost::headers)
+    target_link_libraries(Boost::headers INTERFACE Boost::disable_autolinking)
+endif()
 
 if (APPLE)
     # Umbrella framework for everything GUI-related

@@ -1241,7 +1241,7 @@ endif()
 if(ENABLE_OPENSSL)
     target_sources(core PRIVATE
         hle/service/ssl/ssl_backend_openssl.cpp)
-    target_link_libraries(core PRIVATE OpenSSL::SSL)
+    target_link_libraries(core PRIVATE ssl)
 elseif (APPLE)
     target_sources(core PRIVATE
         hle/service/ssl/ssl_backend_securetransport.cpp)

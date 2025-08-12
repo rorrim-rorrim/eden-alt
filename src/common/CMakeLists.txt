@@ -263,7 +263,13 @@ endif()
 
 target_link_libraries(common PUBLIC Boost::headers fmt::fmt
                                     stb::headers Threads::Threads)
-target_link_libraries(common PRIVATE lz4::lz4 zstd::zstd LLVM::Demangle)
+target_link_libraries(common PRIVATE lz4::lz4 LLVM::Demangle)
+
+if (TARGET libzstd_static)
+  target_link_libraries(common PRIVATE libzstd_static)
+else()
+  target_link_libraries(common PRIVATE zstd)
+endif()
 
 if(ANDROID)
   # For ASharedMemory_create
