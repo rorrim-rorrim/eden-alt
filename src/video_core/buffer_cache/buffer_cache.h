@@ -265,7 +265,7 @@ bool BufferCache<P>::DMAClear(GPUVAddr dst_address, u64 amount, u32 value) {
     const BufferId buffer = FindBuffer(*cpu_dst_address, static_cast<u32>(size));
     Buffer& dest_buffer = slot_buffers[buffer];
     const u32 offset = dest_buffer.Offset(*cpu_dst_address);
-    runtime.ClearBuffer(dest_buffer, offset, size, value);
+    // runtime.ClearBuffer(dest_buffer, offset, size, value);
     dest_buffer.MarkUsage(offset, size);
     return true;
 }
@@ -1349,10 +1349,10 @@ typename BufferCache<P>::OverlapResult BufferCache<P>::ResolveOverlaps(DAddr dev
             // as a stream buffer. Increase the size to skip constantly recreating buffers.
             has_stream_leap = true;
             if (expands_right) {
-                expand_begin(CACHING_PAGESIZE * 128);
+                expand_end(CACHING_PAGESIZE * 128);
             }
             if (expands_left) {
-                expand_end(CACHING_PAGESIZE * 128);
+                expand_begin(CACHING_PAGESIZE * 128);
             }
         }
     }
