@@ -1394,7 +1394,7 @@ BufferId BufferCache<P>::CreateBuffer(DAddr device_addr, u32 wanted_size) {
     const BufferId new_buffer_id = slot_buffers.insert(runtime, overlap.begin, size);
     auto& new_buffer = slot_buffers[new_buffer_id];
     const size_t size_bytes = new_buffer.SizeBytes();
-    runtime.ClearBuffer(new_buffer, 0, size_bytes, 0);
+    //runtime.ClearBuffer(new_buffer, 0, size_bytes, 0);
     new_buffer.MarkUsage(0, size_bytes);
     for (const BufferId overlap_id : overlap.ids) {
         JoinOverlap(new_buffer_id, overlap_id, !overlap.has_stream_leap);
