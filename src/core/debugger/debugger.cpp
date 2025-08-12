@@ -5,7 +5,7 @@
 
 #include <boost/asio.hpp>
 #include <boost/version.hpp>
-#if BOOST_VERSION > 108300 && !defined(_WINDOWS) && !defined(ANDROID)
+#if BOOST_VERSION > 108300 && (!defined(_WINDOWS) || defined(YUZU_BOOST_v1)) && !defined(ANDROID)
 #include <boost/process/v1/async_pipe.hpp>
 #else
 #include <boost/process/async_pipe.hpp>
@@ -329,7 +329,7 @@ private:
 
     struct ConnectionState {
         boost::asio::ip::tcp::socket client_socket;
-#if BOOST_VERSION > 108300 && !defined(_WINDOWS) && !defined(ANDROID)
+#if BOOST_VERSION > 108300 && (!defined(_WINDOWS) || defined(YUZU_BOOST_v1)) && !defined(ANDROID)
         boost::process::v1::async_pipe signal_pipe;
 #else
         boost::process::async_pipe signal_pipe;

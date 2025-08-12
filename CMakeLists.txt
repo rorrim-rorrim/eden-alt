@@ -135,11 +135,6 @@ CMAKE_DEPENDENT_OPTION(USE_SYSTEM_MOLTENVK "Use the system MoltenVK lib (instead
 
 set(DEFAULT_ENABLE_OPENSSL ON)
 if (ANDROID OR WIN32 OR APPLE OR ${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
-    set(DEFAULT_ENABLE_OPENSSL OFF)
-endif()
-option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
-
-if (ANDROID OR WIN32 OR APPLE)
     # - Windows defaults to the Schannel backend.
     # - macOS defaults to the SecureTransport backend.
     # - Android currently has no SSL backend as the NDK doesn't include any SSL
@@ -148,6 +143,11 @@ if (ANDROID OR WIN32 OR APPLE)
     # your own copy of it.
     set(DEFAULT_ENABLE_OPENSSL OFF)
 endif()
+
+if (ENABLE_WEB_SERVICE)
+    set(DEFAULT_ENABLE_OPENSSL ON)
+endif()
+
 option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
 
 if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)
@@ -421,6 +421,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # System imported libraries
 # =======================================================================
 
+if(ENABLE_OPENSSL)
+    if (MSVC)
+        # default for slproweb
+        set(OPENSSL_ROOT_DIR "C:/Program Files/OpenSSL-Win64" CACHE STRING "OpenSSL install path")
+    endif()
+
+    find_package(OpenSSL 1.1.1 REQUIRED)
+endif()
+
 # TODO(crueter): Nuke vcpkg entirely and move this to externals
 if (YUZU_USE_CPM)
     include(CPMUtil)
@@ -431,12 +440,17 @@ if (YUZU_USE_CPM)
     set(BUILD_TESTING OFF)
 
     # TODO(crueter): renderdoc?
+
     AddPackage(
         NAME boost
         URL "https://github.com/boostorg/boost/releases/download/boost-1.88.0/boost-1.88.0-cmake.7z"
         KEY "1880"
         VERSION 1.57
     )
+
+    if (boost_ADDED AND WIN32)
+        add_compile_definitions(YUZU_BOOST_v1)
+    endif()
 
     AddPackage(
         NAME fmt
@@ -479,7 +493,14 @@ if (YUZU_USE_CPM)
         SHA 51b7f2abda
         HASH 16eaf1f3752489d12fd9ce30f7b5f7cbd5cb8ff53d617005a9847ae72d937f65e01e68be747f62d7ac19fd0c9aeba9956e60f16d6b465c5fdc2f3d08b4db2e6c
         VERSION 1.2
+        OPTIONS
+            "ZLIB_BUILD_SHARED OFF"
+            "ZLIB_INSTALL OFF"
     )
+
+    if (ZLIB_ADDED)
+        add_library(ZLIB::ZLIB ALIAS zlibstatic)
+    endif()
 
     set(ZSTD_BUILD_SHARED OFF)
     AddPackage(
@@ -493,16 +514,6 @@ if (YUZU_USE_CPM)
 
     if (zstd_ADDED)
         add_subdirectory(${zstd_SOURCE_DIR}/build/cmake ${zstd_BINARY_DIR})
-    endif()
-
-    if (ENABLE_OPENSSL)
-        AddPackage(
-            NAME OpenSSL
-            REPO openssl/openssl
-            SHA 0893a62353
-            HASH a16d7d18b756e3b96a365927f5ea595f0b4bd9a9442cf4e0a8a680a4e2169e70e84028aa0d5fc1f965fcabab90daa177968553f675a7097ea9b02b8d8eaf32a7
-            VERSION 1.1.1
-        )
     endif()
 
     if (YUZU_TESTS OR DYNARMIC_TESTS)
@@ -530,10 +541,6 @@ else()
 
     if (YUZU_TESTS)
         find_package(Catch2 3.0.1 REQUIRED)
-    endif()
-
-    if(ENABLE_OPENSSL)
-        find_package(OpenSSL 1.1.1 REQUIRED)
     endif()
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID)
