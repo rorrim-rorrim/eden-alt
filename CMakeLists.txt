@@ -178,8 +178,9 @@ if (ANDROID)
     include(CPMUtil)
 
     # download openssl
+    # TODO(crueter): windows
     if (ENABLE_OPENSSL)
-        set(BUILD_SHARED_LIBS OFF)
+        set(BUILD_SHARED_LIBS ON)
         AddPackage(
             NAME OpenSSL
             REPO crueter/OpenSSL-CI
@@ -192,22 +193,7 @@ if (ANDROID)
             BUNDLED_PACKAGE ON
         )
 
-        # TODO(crueter): configure directly doesn't seem to work here, not sure why
-        # needs file generation too
-        set(OPENSSL_INCLUDE_DIR ${OpenSSL_SOURCE_DIR}/include)
-        set(OPENSSL_LIB_DIR ${OpenSSL_SOURCE_DIR}/lib)
-
-        add_library(OpenSSL::Crypto STATIC IMPORTED)
-        set_target_properties(OpenSSL::Crypto PROPERTIES
-                IMPORTED_LOCATION ${OPENSSL_LIB_DIR}/libcrypto.a
-                INCLUDE_DIRECTORIES ${OPENSSL_INCLUDE_DIR}
-        )
-
-        add_library(OpenSSL::SSL STATIC IMPORTED)
-        set_target_properties(OpenSSL::SSL PROPERTIES
-                IMPORTED_LOCATION ${OPENSSL_LIB_DIR}/libssl.a
-                INCLUDE_DIRECTORIES ${OPENSSL_INCLUDE_DIR}
-        )
+        include(${OpenSSL_SOURCE_DIR}/openssl.cmake)
     endif()
 endif()
 
