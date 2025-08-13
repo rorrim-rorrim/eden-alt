@@ -249,22 +249,22 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
 
 template <class P>
 bool BufferCache<P>::DMAClear(GPUVAddr dst_address, u64 amount, u32 value) {
-    const std::optional<DAddr> cpu_dst_address = gpu_memory->GpuToCpuAddress(dst_address);
+    const auto cpu_dst_address = gpu_memory->GpuToCpuAddress(dst_address);
     if (!cpu_dst_address) {
         return false;
     }
-    const bool dest_dirty = IsRegionRegistered(*cpu_dst_address, amount);
-    if (!dest_dirty) {
+    const size_t size = static_cast<size_t>(amount);// amount should be BYTES (same as DMACopy)
+    if (!IsRegionRegistered(*cpu_dst_address, size)) {
         return false;
     }
 
-    const size_t size = amount * sizeof(u32);
-    ClearDownload(*cpu_dst_address, size);
-    gpu_modified_ranges.Subtract(*cpu_dst_address, size);
+    ClearDownload(*cpu_dst_address, size);// cancel pending downloads
 
     const BufferId buffer = FindBuffer(*cpu_dst_address, static_cast<u32>(size));
     Buffer& dest_buffer = slot_buffers[buffer];
     const u32 offset = dest_buffer.Offset(*cpu_dst_address);
+    // GPU is writing here(dma clear is a gpu write not cpu so dont subtract(ifyify), mark as GPU-modified (same as DMACopy and MarkWrittenBuffer)
+    MarkWrittenBuffer(buffer, *cpu_dst_address, static_cast<u32>(size)); // adds + tracks uncommitted
     runtime.ClearBuffer(dest_buffer, offset, size, value);
     dest_buffer.MarkUsage(offset, size);
     return true;
@@ -671,7 +671,7 @@ bool BufferCache<P>::IsRegionRegistered(DAddr addr, size_t size) {
         if (buf_start_addr < end_addr && addr < buf_end_addr) {
             return true;
         }
-        page = Common::DivCeil(end_addr, CACHING_PAGESIZE);
+        page = Common::DivCeil(buf_end_addr, CACHING_PAGESIZE); //fix the scanning
     }
     return false;
 }
@@ -1349,10 +1349,10 @@ typename BufferCache<P>::OverlapResult BufferCache<P>::ResolveOverlaps(DAddr dev
             // as a stream buffer. Increase the size to skip constantly recreating buffers.
             has_stream_leap = true;
             if (expands_right) {
-                expand_begin(CACHING_PAGESIZE * 128);
+                expand_end(CACHING_PAGESIZE * 128); //previous logic seemed inverse so this fixes it
             }
             if (expands_left) {
-                expand_end(CACHING_PAGESIZE * 128);
+                expand_begin(CACHING_PAGESIZE * 128); //same as above
             }
         }
     }
@@ -1393,9 +1393,9 @@ BufferId BufferCache<P>::CreateBuffer(DAddr device_addr, u32 wanted_size) {
     const u32 size = static_cast<u32>(overlap.end - overlap.begin);
     const BufferId new_buffer_id = slot_buffers.insert(runtime, overlap.begin, size);
     auto& new_buffer = slot_buffers[new_buffer_id];
-    const size_t size_bytes = new_buffer.SizeBytes();
-    runtime.ClearBuffer(new_buffer, 0, size_bytes, 0);
-    new_buffer.MarkUsage(0, size_bytes);
+    //const size_t size_bytes = new_buffer.SizeBytes(); vulkan does not require new buffers be filed with zeros save some bandwidth
+    //runtime.ClearBuffer(new_buffer, 0, size_bytes, 0);
+    //new_buffer.MarkUsage(0, size_bytes);
     for (const BufferId overlap_id : overlap.ids) {
         JoinOverlap(new_buffer_id, overlap_id, !overlap.has_stream_leap);
     }
