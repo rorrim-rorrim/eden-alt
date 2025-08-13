@@ -5,7 +5,8 @@
 # Docs will come at a later date, mostly this is to just reduce boilerplate
 # and some cmake magic to allow for runtime viewing of dependency versions
 
-option(CPMUTIL_DEFAULT_SYSTEM "Allow usage of system packages for CPM dependencies" ON)
+include(CMakeDependentOption)
+CMAKE_DEPENDENT_OPTION(CPMUTIL_DEFAULT_SYSTEM "Allow usage of system packages for CPM dependencies" ON "NOT ANDROID" OFF)
 
 cmake_minimum_required(VERSION 3.22)
 include(CPM)

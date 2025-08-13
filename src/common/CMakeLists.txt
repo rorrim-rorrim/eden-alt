@@ -267,8 +267,12 @@ else()
     target_link_libraries(common PUBLIC Boost::headers)
 endif()
 
+if (lz4_ADDED)
+    target_include_directories(common PRIVATE ${lz4_SOURCE_DIR}/lib)
+endif()
+
 target_link_libraries(common PUBLIC fmt::fmt stb::headers Threads::Threads)
-target_link_libraries(common PRIVATE lz4 LLVM::Demangle)
+target_link_libraries(common PRIVATE lz4::lz4 LLVM::Demangle)
 
 if (TARGET libzstd_static)
   target_link_libraries(common PRIVATE libzstd_static)

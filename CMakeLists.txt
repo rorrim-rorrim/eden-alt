@@ -52,8 +52,14 @@ option(ENABLE_QT_UPDATE_CHECKER "Enable update checker for the Qt frontend" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
-CMAKE_DEPENDENT_OPTION(YUZU_USE_CPM "Use CPM for Eden dependencies" "${MSVC}" "NOT YUZU_USE_BUNDLED_VCPKG" OFF)
-CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_VCPKG "Use vcpkg for Eden dependencies" OFF "NOT YUZU_USE_CPM" OFF)
+# TODO(crueter): maybe this should default on everywhere...?
+if (MSVC OR ANDROID)
+    set(CPM_DEFAULT ON)
+else()
+    set(CPM_DEFAULT OFF)
+endif()
+
+option(YUZU_USE_CPM "Use CPM for Eden dependencies" "${CPM_DEFAULT}")
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
@@ -141,7 +147,7 @@ if (ANDROID OR WIN32 OR APPLE OR ${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
     set(DEFAULT_ENABLE_OPENSSL OFF)
 endif()
 
-if (ENABLE_WEB_SERVICE)
+if (ENABLE_WEB_SERVICE AND NOT ANDROID)
     set(DEFAULT_ENABLE_OPENSSL ON)
 endif()
 
@@ -168,61 +174,21 @@ endif()
 if (ANDROID)
     set(CMAKE_SKIP_INSTALL_RULES ON)
     set(CMAKE_POLICY_VERSION_MINIMUM 3.5) # Workaround for Oboe
-endif()
-
-if (YUZU_USE_BUNDLED_VCPKG)
-    if (ANDROID)
-        set(ENV{ANDROID_NDK_HOME} "${ANDROID_NDK}")
-        list(APPEND VCPKG_MANIFEST_FEATURES "android")
-
-        if (CMAKE_ANDROID_ARCH_ABI STREQUAL "arm64-v8a")
-            set(VCPKG_TARGET_TRIPLET "arm64-android")
-            # this is to avoid CMake using the host pkg-config to find the host
-            # libraries when building for Android targets
-            set(PKG_CONFIG_EXECUTABLE "aarch64-none-linux-android-pkg-config" CACHE FILEPATH "" FORCE)
-        elseif (CMAKE_ANDROID_ARCH_ABI STREQUAL "x86_64")
-            set(VCPKG_TARGET_TRIPLET "x64-android")
-            set(PKG_CONFIG_EXECUTABLE "x86_64-none-linux-android-pkg-config" CACHE FILEPATH "" FORCE)
-        else()
-            message(FATAL_ERROR "Unsupported Android architecture ${CMAKE_ANDROID_ARCH_ABI}")
-        endif()
-    endif()
-
-    if (MSVC)
-        set(VCPKG_DOWNLOADS_PATH ${PROJECT_SOURCE_DIR}/externals/vcpkg/downloads)
-        set(NASM_VERSION "2.16.01")
-        set(NASM_DESTINATION_PATH ${VCPKG_DOWNLOADS_PATH}/nasm-${NASM_VERSION}-win64.zip)
-        set(NASM_DOWNLOAD_URL "https://github.com/eden-emulator/ext-windows-bin/raw/master/nasm/nasm-${NASM_VERSION}-win64.zip")
-
-        if (NOT EXISTS ${NASM_DESTINATION_PATH})
-            file(DOWNLOAD ${NASM_DOWNLOAD_URL} ${NASM_DESTINATION_PATH} SHOW_PROGRESS STATUS NASM_STATUS)
-
-            if (NOT NASM_STATUS EQUAL 0)
-                # Warn and not fail since vcpkg is supposed to download this package for us in the first place
-                message(WARNING "External nasm vcpkg package download from ${NASM_DOWNLOAD_URL} failed with status ${NASM_STATUS}")
-            endif()
-        endif()
-    endif()
-
-    if (YUZU_TESTS)
-        list(APPEND VCPKG_MANIFEST_FEATURES "yuzu-tests")
-    endif()
-    if (ENABLE_WEB_SERVICE)
-        list(APPEND VCPKG_MANIFEST_FEATURES "web-service")
-    endif()
-    if (ANDROID)
-        list(APPEND VCPKG_MANIFEST_FEATURES "android")
-    endif()
 
     include(CPMUtil)
 
-    CPMAddPackage("gh:microsoft/vcpkg#10d3b37514")
+    # download openssl
+    # TODO(crueter): should probably fork this repo and not rely on qt
+    set(Qt6_VERSION "6.6.0")
+    AddPackage(
+        NAME OpenSSL
+        REPO KDAB/android_openssl
+        SHA 0025bbe48f
+        HASH d509954107546bf304cb1dfe4266f577ab0bf417ec037b44b2bd284305112e67e5f1704a1c3f97bea4ae79f199949bad0b00ac28e3592bd28cc29db7a08ff9ff
+    )
 
-    include(${vcpkg_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake)
-elseif(NOT "$ENV{VCPKG_TOOLCHAIN_FILE}" STREQUAL "")
-    # Disable manifest mode (use vcpkg classic mode) when using a custom vcpkg installation
-    option(VCPKG_MANIFEST_MODE "")
-    include("$ENV{VCPKG_TOOLCHAIN_FILE}")
+    include(${OpenSSL_SOURCE_DIR}/android_openssl.cmake)
+    include_directories(AFTER ${OpenSSL_SOURCE_DIR}/ssl_3/include)
 endif()
 
 if (YUZU_USE_PRECOMPILED_HEADERS)
@@ -428,7 +394,6 @@ if(ENABLE_OPENSSL)
     find_package(OpenSSL 1.1.1 REQUIRED)
 endif()
 
-# TODO(crueter): Nuke vcpkg entirely and move this to externals
 if (YUZU_USE_CPM)
     include(CPMUtil)
     message(STATUS "Fetching needed dependencies with CPM")
@@ -450,14 +415,17 @@ if (YUZU_USE_CPM)
     set(BOOST_NO_HEADERS ${Boost_ADDED})
 
     if (Boost_ADDED)
-        if (MSVC)
+        if (MSVC OR ANDROID)
             add_compile_definitions(YUZU_BOOST_v1)
         else()
-            message(WARNING "Using bundled Boost on a non-MSVC system is not recommended. You are strongly encouraged to install Boost through your system's package manager.")
+            message(WARNING "Using bundled Boost on a non-MSVC or Android system is not recommended. You are strongly encouraged to install Boost through your system's package manager.")
+        endif()
+
+        if (NOT MSVC)
             # boost sucks
             target_compile_options(boost_heap INTERFACE -Wno-shadow)
             target_compile_options(boost_icl INTERFACE -Wno-shadow)
-            target_compile_options(boost_asio INTERFACE -Wno-conversion)
+            target_compile_options(boost_asio INTERFACE -Wno-conversion -Wno-implicit-fallthrough)
         endif()
     endif()
 
@@ -474,10 +442,11 @@ if (YUZU_USE_CPM)
         REPO lz4/lz4
         SHA ebb370ca83
         HASH 43600e87b35256005c0f2498fa56a77de6783937ba4cfce38c099f27c03188d097863e8a50c5779ca0a7c63c29c4f7ed0ae526ec798c1fd2e3736861b62e0a37
+        SOURCE_SUBDIR build/cmake
     )
 
     if (lz4_ADDED)
-        add_subdirectory(${lz4_SOURCE_DIR}/build/cmake ${lz4_BINARY_DIR})
+        add_library(lz4::lz4 ALIAS lz4_static)
     endif()
 
     AddPackage(
@@ -537,8 +506,8 @@ else()
     # Enforce the search mode of non-required packages for better and shorter failure messages
     find_package(fmt 8 REQUIRED)
     find_package(LLVM MODULE COMPONENTS Demangle)
-    find_package(lz4 REQUIRED)
     find_package(nlohmann_json 3.8 REQUIRED)
+    find_package(lz4 REQUIRED)
     find_package(RenderDoc MODULE)
     find_package(SimpleIni MODULE)
     find_package(stb MODULE)
@@ -630,6 +599,7 @@ find_package(VulkanHeaders REQUIRED)
 find_package(VulkanUtilityLibraries REQUIRED)
 find_package(VulkanMemoryAllocator REQUIRED)
 find_package(httplib REQUIRED)
+
 if (NOT YUZU_USE_BUNDLED_SDL2)
     find_package(SDL2 REQUIRED)
 endif()

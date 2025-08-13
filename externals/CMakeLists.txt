@@ -161,6 +161,7 @@ AddPackage(
         "USE_SANITIZERS OFF"
         "BUILD_TESTS OFF"
         "BUILD_TOOLS OFF"
+        "BUNDLE_SPEEX ON"
 )
 
 if (cubeb_ADDED)
@@ -175,7 +176,7 @@ if (cubeb_ADDED)
             -Wno-shadow
             -Wno-missing-declarations
             -Wno-return-type
-            -Wno-maybe-uninitialized
+            -Wno-uninitialized
         )
     else()
         target_compile_options(cubeb PRIVATE
