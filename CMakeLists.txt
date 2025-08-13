@@ -268,30 +268,31 @@ function(check_submodules_present)
             message(FATAL_ERROR "Git submodule ${module} not found. "
                 "Please run: \ngit submodule update --init --recursive")
         endif()
+        if (EXISTS "${PROJECT_SOURCE_DIR}/${module}/.git")
+            set(SUBMODULE_DIR "${PROJECT_SOURCE_DIR}/${module}")
 
-        set(SUBMODULE_DIR "${PROJECT_SOURCE_DIR}/${module}")
+            execute_process(
+                COMMAND git rev-parse --short=10 HEAD
+                WORKING_DIRECTORY ${SUBMODULE_DIR}
+                OUTPUT_VARIABLE SUBMODULE_SHA
+            )
 
-        execute_process(
-            COMMAND git rev-parse --short=10 HEAD
-            WORKING_DIRECTORY ${SUBMODULE_DIR}
-            OUTPUT_VARIABLE SUBMODULE_SHA
-        )
+            # would probably be better to do string parsing, but whatever
+            execute_process(
+                COMMAND git remote get-url origin
+                WORKING_DIRECTORY ${SUBMODULE_DIR}
+                OUTPUT_VARIABLE SUBMODULE_URL
+            )
 
-        # would probably be better to do string parsing, but whatever
-        execute_process(
-            COMMAND git remote get-url origin
-            WORKING_DIRECTORY ${SUBMODULE_DIR}
-            OUTPUT_VARIABLE SUBMODULE_URL
-        )
+            string(REGEX REPLACE "\n|\r" "" SUBMODULE_SHA ${SUBMODULE_SHA})
+            string(REGEX REPLACE "\n|\r|\\.git" "" SUBMODULE_URL ${SUBMODULE_URL})
 
-        string(REGEX REPLACE "\n|\r" "" SUBMODULE_SHA ${SUBMODULE_SHA})
-        string(REGEX REPLACE "\n|\r|\\.git" "" SUBMODULE_URL ${SUBMODULE_URL})
+            get_filename_component(SUBMODULE_NAME ${SUBMODULE_DIR} NAME)
 
-        get_filename_component(SUBMODULE_NAME ${SUBMODULE_DIR} NAME)
-
-        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES ${SUBMODULE_NAME})
-        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS ${SUBMODULE_SHA})
-        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS ${SUBMODULE_URL})
+            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES ${SUBMODULE_NAME})
+            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS ${SUBMODULE_SHA})
+            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS ${SUBMODULE_URL})
+        endif()
     endforeach()
 endfunction()
 
