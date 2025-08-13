@@ -261,8 +261,13 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   )
 endif()
 
-target_link_libraries(common PUBLIC Boost::algorithm Boost::icl Boost::pool
-                                    fmt::fmt stb::headers Threads::Threads)
+if (BOOST_NO_HEADERS)
+    target_link_libraries(common PUBLIC Boost::algorithm Boost::icl Boost::pool)
+else()
+    target_link_libraries(common PUBLIC Boost::headers)
+endif()
+
+target_link_libraries(common PUBLIC fmt::fmt stb::headers Threads::Threads)
 target_link_libraries(common PRIVATE lz4 LLVM::Demangle)
 
 if (TARGET libzstd_static)

@@ -1186,7 +1186,14 @@ endif()
 
 target_include_directories(core PRIVATE ${OPUS_INCLUDE_DIRS})
 target_link_libraries(core PUBLIC common PRIVATE audio_core hid_core network video_core nx_tzdb tz)
-target_link_libraries(core PUBLIC Boost::container Boost::heap Boost::asio Boost::process Boost::crc PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls RenderDoc::API)
+
+if (BOOST_NO_HEADERS)
+    target_link_libraries(core PUBLIC Boost::container Boost::heap Boost::asio Boost::process Boost::crc)
+else()
+    target_link_libraries(core PUBLIC Boost::headers)
+endif()
+
+target_link_libraries(core PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls RenderDoc::API)
 if (MINGW)
     target_link_libraries(core PRIVATE ${MSWSOCK_LIBRARY})
 endif()

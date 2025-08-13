@@ -44,7 +44,10 @@ function(AddPackage)
         endif()
     else()
         set(PKG_URL ${PKG_ARGS_URL})
-        set(PKG_GIT_URL ${PKG_URL})
+
+        if (DEFINED PKG_ARGS_REPO)
+            set(PKG_GIT_URL https://github.com/${PKG_ARGS_REPO})
+        endif()
     endif()
 
     message(STATUS "[CPMUtil] ${PKG_ARGS_NAME}: Downloading package from ${PKG_URL}")

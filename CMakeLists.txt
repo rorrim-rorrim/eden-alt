@@ -442,14 +442,26 @@ if (YUZU_USE_CPM)
     # TODO(crueter): renderdoc?
 
     AddPackage(
-        NAME boost
+        NAME Boost
         URL "https://github.com/boostorg/boost/releases/download/boost-1.88.0/boost-1.88.0-cmake.7z"
+        REPO boostorg/boost
+        SHA "1.88.0"
         KEY "1880"
         VERSION 1.57
     )
 
-    if (boost_ADDED AND WIN32)
-        add_compile_definitions(YUZU_BOOST_v1)
+    set(BOOST_NO_HEADERS ${Boost_ADDED})
+
+    if (Boost_ADDED)
+        if (MSVC)
+            add_compile_definitions(YUZU_BOOST_v1)
+        else()
+            message(WARNING "Using bundled Boost on a non-MSVC system is not recommended. You are strongly encouraged to install Boost through your system's package manager.")
+            # boost sucks
+            target_compile_options(boost_heap INTERFACE -Wno-shadow)
+            target_compile_options(boost_icl INTERFACE -Wno-shadow)
+            target_compile_options(boost_asio INTERFACE -Wno-conversion)
+        endif()
     endif()
 
     AddPackage(
@@ -465,7 +477,6 @@ if (YUZU_USE_CPM)
         REPO lz4/lz4
         SHA ebb370ca83
         HASH 43600e87b35256005c0f2498fa56a77de6783937ba4cfce38c099f27c03188d097863e8a50c5779ca0a7c63c29c4f7ed0ae526ec798c1fd2e3736861b62e0a37
-        SYSTEM_PACKAGE ON
     )
 
     if (lz4_ADDED)
@@ -618,6 +629,12 @@ function(create_target_directory_groups target_name)
 endfunction()
 
 add_subdirectory(externals)
+
+# pass targets from externals
+find_package(VulkanHeaders REQUIRED)
+find_package(VulkanUtilityLibraries REQUIRED)
+find_package(VulkanMemoryAllocator REQUIRED)
+find_package(httplib REQUIRED)
 
 if (ENABLE_QT)
     if (YUZU_USE_BUNDLED_QT)

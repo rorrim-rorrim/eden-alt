@@ -232,11 +232,9 @@ AddPackage(
 if ((ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER))
     AddPackage(
         NAME httplib
-        VERSION 0.12
         REPO "yhirose/cpp-httplib"
         SHA a609330e4c
         HASH dd3fd0572f8367d8549e1319fd98368b3e75801a293b0c3ac9b4adb806473a4506a484b3d389dc5bee5acc460cb90af7a20e5df705a1696b56496b30b9ce7ed2
-        FIND_PACKAGE_ARGUMENTS "MODULE"
         OPTIONS
             "HTTPLIB_REQUIRE_OPENSSL ${ENABLE_OPENSSL}"
         SYSTEM_PACKAGE ${YUZU_USE_SYSTEM_HTTPLIB}
@@ -259,6 +257,7 @@ if (ENABLE_WEB_SERVICE)
         PATCHES
             ${CMAKE_SOURCE_DIR}/.patch/cpp-jwt/0001-no-install.patch
             ${CMAKE_SOURCE_DIR}/.patch/cpp-jwt/0002-missing-decl.patch
+        SYSTEM_PACKAGE ON
     )
 endif()
 
@@ -311,9 +310,6 @@ if (VulkanHeaders_ADDED)
     target_include_directories(Vulkan-Headers INTERFACE ${VulkanHeaders_SOURCE_DIR}/include)
 endif()
 
-set(VulkanHeaders_SOURCE_DIR "${VulkanHeaders_SOURCE_DIR}" PARENT_SCOPE)
-set(VulkanHeaders_ADDED "${VulkanHeaders_ADDED}" PARENT_SCOPE)
-
 # Vulkan-Utility-Libraries
 AddPackage(
     NAME VulkanUtilityLibraries
@@ -322,9 +318,6 @@ AddPackage(
     HASH 3e468c3d9ff93f6d418d71e5527abe0a12c8c7ab5b0b52278bbbee4d02bb87e99073906729b727e0147242b7e3fd5dedf68b803f1878cb4c0e4f730bc2238d79
     BUNDLED_PACKAGE ${YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES}
 )
-
-set(VulkanUtilityLibraries_SOURCE_DIR "${VulkanUtilityLibraries_SOURCE_DIR}" PARENT_SCOPE)
-set(VulkanUtilityLibraries_ADDED "${VulkanUtilityLibraries_ADDED}" PARENT_SCOPE)
 
 # SPIRV-Tools
 if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
@@ -338,16 +331,6 @@ if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
     )
 endif()
 
-# Boost headers
-if (NOT TARGET Boost::headers)
-    AddPackage(
-        NAME boost_headers
-        REPO "boostorg/headers"
-        SHA 0456900fad
-        HASH 50cd75dcdfc5f082225cdace058f47b4fb114a47585f7aee1d22236a910a80b667186254c214fa2fcebac67ae6d37ba4b6e695e1faea8affd6fd42a03cf996e3
-    )
-endif()
-
 # TZDB (Time Zone Database)
 add_subdirectory(nx_tzdb)
 
@@ -358,11 +341,8 @@ AddPackage(
     SHA 1076b348ab
     HASH a46b44e4286d08cffda058e856c47f44c7fed3da55fe9555976eb3907fdcc20ead0b1860b0c38319cda01dbf9b1aa5d4b4038c7f1f8fbd97283d837fa9af9772
     FIND_PACKAGE_ARGUMENTS "CONFIG"
-    # SYSTEM_PACKAGE ON
+    SYSTEM_PACKAGE ON
 )
-
-set(VulkanMemoryAllocator_SOURCE_DIR "${VulkanMemoryAllocator_SOURCE_DIR}" PARENT_SCOPE)
-set(VulkanMemoryAllocator_ADDED "${VulkanMemoryAllocator_ADDED}" PARENT_SCOPE)
 
 if (NOT TARGET LLVM::Demangle)
     add_library(demangle demangle/ItaniumDemangle.cpp)
