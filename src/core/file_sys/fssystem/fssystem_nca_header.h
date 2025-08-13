@@ -228,6 +228,7 @@ struct NcaFsHeader {
     enum class MetaDataHashType : u8 {
         None = 0,
         HierarchicalIntegrity = 1,
+        HierarchicalIntegritySha3 = 2
     };
 
     union HashData {

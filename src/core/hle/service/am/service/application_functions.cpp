@@ -85,6 +85,7 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_, std::shared_
         {181, nullptr, "UpgradeLaunchRequiredVersion"},
         {190, nullptr, "SendServerMaintenanceOverlayNotification"},
         {200, nullptr, "GetLastApplicationExitReason"},
+        {210, D<&IApplicationFunctions::GetUnknown210Event>, "Unknown210"},
         {500, nullptr, "StartContinuousRecordingFlushForDebug"},
         {1000, nullptr, "CreateMovieMaker"},
         {1001, D<&IApplicationFunctions::PrepareForJit>, "PrepareForJit"},
@@ -484,6 +485,13 @@ Result IApplicationFunctions::GetHealthWarningDisappearedSystemEvent(
     OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_DEBUG(Service_AM, "called");
     *out_event = m_applet->health_warning_disappeared_system_event.GetHandle();
+    R_SUCCEED();
+}
+
+Result IApplicationFunctions::GetUnknown210Event(
+    OutCopyHandle<Kernel::KReadableEvent> out_event) {
+    LOG_DEBUG(Service_AM, "called");
+    *out_event = m_applet->unknown_event.GetHandle();
     R_SUCCEED();
 }
 
