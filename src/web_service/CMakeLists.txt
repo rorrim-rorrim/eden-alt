@@ -14,9 +14,11 @@ add_library(web_service STATIC
     web_result.h
 )
 
+find_package(OpenSSL REQUIRED)
+
 create_target_directory_groups(web_service)
 target_include_directories(web_service PUBLIC ${cpp-jwt_SOURCE_DIR}/include)
-target_link_libraries(web_service PRIVATE common network nlohmann_json::nlohmann_json httplib::httplib PUBLIC cpp-jwt::cpp-jwt OpenSSL::SSL)
+target_link_libraries(web_service PRIVATE common network nlohmann_json::nlohmann_json httplib::httplib OpenSSL::SSL cpp-jwt::cpp-jwt)
 
 if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(web_service PRIVATE precompiled_headers.h)

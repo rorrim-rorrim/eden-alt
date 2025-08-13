@@ -147,7 +147,7 @@ if (ANDROID OR WIN32 OR APPLE OR ${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
     set(DEFAULT_ENABLE_OPENSSL OFF)
 endif()
 
-if (ENABLE_WEB_SERVICE AND NOT ANDROID)
+if (ENABLE_WEB_SERVICE)
     set(DEFAULT_ENABLE_OPENSSL ON)
 endif()
 
@@ -178,17 +178,37 @@ if (ANDROID)
     include(CPMUtil)
 
     # download openssl
-    # TODO(crueter): should probably fork this repo and not rely on qt
-    set(Qt6_VERSION "6.6.0")
-    AddPackage(
-        NAME OpenSSL
-        REPO KDAB/android_openssl
-        SHA 0025bbe48f
-        HASH d509954107546bf304cb1dfe4266f577ab0bf417ec037b44b2bd284305112e67e5f1704a1c3f97bea4ae79f199949bad0b00ac28e3592bd28cc29db7a08ff9ff
-    )
+    if (ENABLE_OPENSSL)
+        set(BUILD_SHARED_LIBS OFF)
+        AddPackage(
+            NAME OpenSSL
+            REPO crueter/OpenSSL-CI
+            TAG v3.5.2
+            VERSION 3.5.2
+            ARTIFACT openssl-android-3.5.2.tar.zst
 
-    include(${OpenSSL_SOURCE_DIR}/android_openssl.cmake)
-    include_directories(AFTER ${OpenSSL_SOURCE_DIR}/ssl_3/include)
+            KEY android
+            HASH_SUFFIX sha512sum
+            BUNDLED_PACKAGE ON
+        )
+
+        # TODO(crueter): configure directly doesn't seem to work here, not sure why
+        # needs file generation too
+        set(OPENSSL_INCLUDE_DIR ${OpenSSL_SOURCE_DIR}/include)
+        set(OPENSSL_LIB_DIR ${OpenSSL_SOURCE_DIR}/lib)
+
+        add_library(OpenSSL::Crypto STATIC IMPORTED)
+        set_target_properties(OpenSSL::Crypto PROPERTIES
+                IMPORTED_LOCATION ${OPENSSL_LIB_DIR}/libcrypto.a
+                INCLUDE_DIRECTORIES ${OPENSSL_INCLUDE_DIR}
+        )
+
+        add_library(OpenSSL::SSL STATIC IMPORTED)
+        set_target_properties(OpenSSL::SSL PROPERTIES
+                IMPORTED_LOCATION ${OPENSSL_LIB_DIR}/libssl.a
+                INCLUDE_DIRECTORIES ${OPENSSL_INCLUDE_DIR}
+        )
+    endif()
 endif()
 
 if (YUZU_USE_PRECOMPILED_HEADERS)
@@ -406,10 +426,13 @@ if (YUZU_USE_CPM)
 
     AddPackage(
         NAME Boost
-        URL "https://github.com/boostorg/boost/releases/download/boost-1.88.0/boost-1.88.0-cmake.7z"
         REPO boostorg/boost
-        SHA "1.88.0"
-        KEY "1880"
+        TAG boost-1.88.0
+        ARTIFACT boost-1.88.0-cmake.7z
+
+        HASH e5b049e5b61964480ca816395f63f95621e66cb9bcf616a8b10e441e0e69f129e22443acb11e77bc1e8170f8e4171b9b7719891efc43699782bfcd4b3a365f01
+
+        GIT_VERSION 1.88.0
         VERSION 1.57
     )
 

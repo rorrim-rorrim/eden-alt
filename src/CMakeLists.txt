@@ -192,6 +192,9 @@ else()
     endif()
 endif()
 
+# propagation shenanigation
+  find_package(OpenSSL 1.1.1 REQUIRED)
+
 add_subdirectory(common)
 add_subdirectory(core)
 add_subdirectory(audio_core)

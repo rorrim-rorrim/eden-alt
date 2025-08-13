@@ -1246,9 +1246,13 @@ if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
 endif()
 
 if(ENABLE_OPENSSL)
+    find_package(OpenSSL REQUIRED)
     target_sources(core PRIVATE
         hle/service/ssl/ssl_backend_openssl.cpp)
     target_link_libraries(core PRIVATE OpenSSL::SSL)
+    message(STATUS "xd ${OPENSSL_INCLUDE_DIR}")
+    target_include_directories(core PUBLIC ${OPENSSL_INCLUDE_DIR})
+    # link_openssl(core)
 elseif (APPLE)
     target_sources(core PRIVATE
         hle/service/ssl/ssl_backend_securetransport.cpp)
