@@ -4,6 +4,9 @@
 # SPDX-FileCopyrightText: 2016 Citra Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+# TODO(crueter): A lot of this should be moved to the root.
+# otherwise we have to do weird shenanigans with library linking and stuff
+
 # cpm
 include(CPMUtil)
 
