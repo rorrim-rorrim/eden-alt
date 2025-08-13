@@ -175,6 +175,7 @@ android {
                     "-DYUZU_USE_CPM=ON",
                     "-DYUZU_USE_BUNDLED_FFMPEG=ON",
                     "-DYUZU_ENABLE_LTO=ON",
+                    "-DDYNARMIC_ENABLE_LTO=ON",
                     "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
                 )
 
