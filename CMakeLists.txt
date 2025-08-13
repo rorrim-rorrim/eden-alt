@@ -708,6 +708,11 @@ if (NOT YUZU_USE_BUNDLED_FFMPEG)
     # Use system installed FFmpeg
     #find_package(FFmpeg 4.3 REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
     find_package(FFmpeg REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
+
+    # TODO(crueter): Version
+    set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES FFmpeg)
+    set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS "unknown (system)")
+    set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS "https://github.com/FFmpeg/FFmpeg")
 endif()
 
 if(ENABLE_QT)
