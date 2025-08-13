@@ -389,6 +389,7 @@ if(ENABLE_OPENSSL)
     if (MSVC)
         # default for slproweb
         set(OPENSSL_ROOT_DIR "C:/Program Files/OpenSSL-Win64" CACHE STRING "OpenSSL install path")
+        message(STATUS "OpenSSL root dir set to ${OPENSSL_ROOT_DIR}")
     endif()
 
     find_package(OpenSSL 1.1.1 REQUIRED)
