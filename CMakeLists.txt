@@ -174,27 +174,6 @@ endif()
 if (ANDROID)
     set(CMAKE_SKIP_INSTALL_RULES ON)
     set(CMAKE_POLICY_VERSION_MINIMUM 3.5) # Workaround for Oboe
-
-    include(CPMUtil)
-
-    # download openssl
-    # TODO(crueter): windows
-    if (ENABLE_OPENSSL)
-        set(BUILD_SHARED_LIBS ON)
-        AddPackage(
-            NAME OpenSSL
-            REPO crueter/OpenSSL-CI
-            TAG v3.5.2
-            VERSION 3.5.2
-            ARTIFACT openssl-android-3.5.2.tar.zst
-
-            KEY android
-            HASH_SUFFIX sha512sum
-            BUNDLED_PACKAGE ON
-        )
-
-        include(${OpenSSL_SOURCE_DIR}/openssl.cmake)
-    endif()
 endif()
 
 if (YUZU_USE_PRECOMPILED_HEADERS)
@@ -391,16 +370,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # System imported libraries
 # =======================================================================
 
-if(ENABLE_OPENSSL)
-    if (MSVC)
-        # default for slproweb
-        set(OPENSSL_ROOT_DIR "C:/Program Files/OpenSSL-Win64" CACHE STRING "OpenSSL install path")
-        message(STATUS "OpenSSL root dir set to ${OPENSSL_ROOT_DIR}")
-    endif()
-
-    find_package(OpenSSL 1.1.1 REQUIRED)
-endif()
-
 if (YUZU_USE_CPM)
     include(CPMUtil)
     message(STATUS "Fetching needed dependencies with CPM")
@@ -409,6 +378,43 @@ if (YUZU_USE_CPM)
     set(BUILD_TESTING OFF)
 
     # TODO(crueter): renderdoc?
+
+    # openssl funniness
+    if (ENABLE_OPENSSL)
+        if (MSVC)
+            set(BUILD_SHARED_LIBS OFF)
+            AddPackage(
+                NAME OpenSSL
+                REPO crueter/OpenSSL-CI
+                TAG v3.5.2
+                VERSION 3.5.2
+                ARTIFACT openssl-windows-3.5.2.tar.zst
+
+                KEY windows
+                HASH_SUFFIX sha512sum
+                BUNDLED_PACKAGE ON
+            )
+
+            include(${OpenSSL_SOURCE_DIR}/openssl.cmake)
+        endif()
+
+        if (ANDROID)
+            set(BUILD_SHARED_LIBS OFF)
+            AddPackage(
+                NAME OpenSSL
+                REPO crueter/OpenSSL-CI
+                TAG v3.5.2
+                VERSION 3.5.2
+                ARTIFACT openssl-android-3.5.2.tar.zst
+
+                KEY android
+                HASH_SUFFIX sha512sum
+                BUNDLED_PACKAGE ON
+            )
+
+            include(${OpenSSL_SOURCE_DIR}/openssl.cmake)
+        endif()
+    endif()
 
     AddPackage(
         NAME Boost
@@ -530,6 +536,10 @@ else()
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID)
         find_package(gamemode 1.7 MODULE)
+    endif()
+
+    if (ENABLE_OPENSSL)
+        find_package(OpenSSL 1.1.1 REQUIRED)
     endif()
 endif()
 
