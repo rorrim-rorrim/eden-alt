@@ -61,8 +61,7 @@ struct Memory::Impl {
         }
 
 #ifdef __linux__
-        heap_tracker.emplace(system.DeviceMemory().buffer);
-        buffer = std::addressof(*heap_tracker);
+        buffer.emplace(system.DeviceMemory().buffer);
 #else
         buffer = std::addressof(system.DeviceMemory().buffer);
 #endif
@@ -1024,9 +1023,8 @@ struct Memory::Impl {
     std::span<Core::GPUDirtyMemoryManager> gpu_dirty_managers;
     std::mutex sys_core_guard;
 
-    std::optional<Common::HeapTracker> heap_tracker;
 #ifdef __linux__
-    Common::HeapTracker* buffer{};
+    std::optional<Common::HeapTracker> buffer;
 #else
     Common::HostMemory* buffer{};
 #endif
