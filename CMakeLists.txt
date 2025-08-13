@@ -34,6 +34,7 @@ endif()
 # On Linux system SDL2 is likely to be lacking HIDAPI support which have drawbacks but is needed for SDL motion
 option(ENABLE_SDL2 "Enable the SDL2 frontend" ON)
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 binaries" ON "ENABLE_SDL2;MSVC" OFF)
+
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" OFF "ENABLE_SDL2;NOT MSVC" OFF)
 else()
@@ -629,6 +630,9 @@ find_package(VulkanHeaders REQUIRED)
 find_package(VulkanUtilityLibraries REQUIRED)
 find_package(VulkanMemoryAllocator REQUIRED)
 find_package(httplib REQUIRED)
+if (NOT YUZU_USE_BUNDLED_SDL2)
+    find_package(SDL2 REQUIRED)
+endif()
 
 if (ENABLE_QT)
     if (YUZU_USE_BUNDLED_QT)
@@ -732,10 +736,6 @@ find_package(Threads REQUIRED)
 
 # Platform-specific library requirements
 # ======================================
-
-if (TARGET Boost::headers)
-    target_link_libraries(Boost::headers INTERFACE Boost::disable_autolinking)
-endif()
 
 if (APPLE)
     # Umbrella framework for everything GUI-related

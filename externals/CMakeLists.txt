@@ -133,6 +133,7 @@ if (YUZU_USE_EXTERNAL_SDL2)
         SHA ${SDL_HASH}
         HASH ${SDL_SHA512SUM}
         KEY ${YUZU_SYSTEM_PROFILE}
+        SYSTEM_PACKAGE OFF
     )
 endif()
 
