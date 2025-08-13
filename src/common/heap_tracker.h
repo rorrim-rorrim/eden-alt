@@ -32,8 +32,6 @@ public:
     inline u8* VirtualBasePointer() noexcept {
         return m_buffer.VirtualBasePointer();
     }
-    bool DeferredMapSeparateHeap(u8* fault_address);
-    bool DeferredMapSeparateHeap(size_t virtual_offset);
 private:
     // TODO: You may want to "fake-map" the first 2GB of 64-bit address space
     // and dedicate it entirely to a recursive PTE mapping :)

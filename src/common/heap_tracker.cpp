@@ -36,6 +36,7 @@ HeapTracker::~HeapTracker() = default;
 
 void HeapTracker::Map(size_t virtual_offset, size_t host_offset, size_t length,
                       MemoryPermission perm, bool is_separate_heap) {
+    bool rebuild_required = false;
     // When mapping other memory, map pages immediately.
     if (!is_separate_heap) {
         m_buffer.Map(virtual_offset, host_offset, length, perm, false);
@@ -45,16 +46,28 @@ void HeapTracker::Map(size_t virtual_offset, size_t host_offset, size_t length,
         // We are mapping part of a separate heap and insert into mappings.
         std::scoped_lock lk{m_lock};
         m_map_count++;
-        m_mappings.insert_or_assign(virtual_offset, SeparateHeapMap{
+        const auto it = m_mappings.insert_or_assign(virtual_offset, SeparateHeapMap{
             .paddr = host_offset,
             .size = length,
             .tick = m_tick++,
             .perm = perm,
             .is_resident = false,
         });
+        // Update tick before possible rebuild.
+        it.first->second.tick = m_tick++;
+        // Check if we need to rebuild.
+        if (m_resident_map_count >= m_max_resident_map_count)
+            rebuild_required = true;
+        // Map the area.
+        m_buffer.Map(it.first->first, it.first->second.paddr, it.first->second.size, it.first->second.perm, false);
+        // This map is now resident.
+        it.first->second.is_resident = true;
+        m_resident_map_count++;
+        m_resident_mappings.insert(*it.first);
     }
-    // Finally, map.
-    this->DeferredMapSeparateHeap(virtual_offset);
+    // A rebuild was required, so perform it now.
+    if (rebuild_required)
+        this->RebuildSeparateHeapAddressSpace();
 }
 
 void HeapTracker::Unmap(size_t virtual_offset, size_t size, bool is_separate_heap) {
@@ -127,46 +140,6 @@ void HeapTracker::Protect(size_t virtual_offset, size_t size, MemoryPermission p
         // Advance.
         cur = next;
     }
-}
-
-bool HeapTracker::DeferredMapSeparateHeap(u8* fault_address) {
-    if (m_buffer.IsInVirtualRange(fault_address))
-        return this->DeferredMapSeparateHeap(fault_address - m_buffer.VirtualBasePointer());
-    return false;
-}
-
-bool HeapTracker::DeferredMapSeparateHeap(size_t virtual_offset) {
-    bool rebuild_required = false;
-    {
-        std::scoped_lock lk{m_lock};
-
-        // Check to ensure this was a non-resident separate heap mapping.
-        const auto it = this->GetNearestHeapMapLocked(virtual_offset);
-        if (it == m_mappings.end() || it->second.is_resident) {
-            return false;
-        }
-
-        // Update tick before possible rebuild.
-        it->second.tick = m_tick++;
-
-        // Check if we need to rebuild.
-        if (m_resident_map_count > m_max_resident_map_count) {
-            rebuild_required = true;
-        }
-
-        // Map the area.
-        m_buffer.Map(it->first, it->second.paddr, it->second.size, it->second.perm, false);
-
-        // This map is now resident.
-        it->second.is_resident = true;
-        m_resident_map_count++;
-        m_resident_mappings.insert(*it);
-    }
-
-    // A rebuild was required, so perform it now.
-    if (rebuild_required)
-        this->RebuildSeparateHeapAddressSpace();
-    return true;
 }
 
 void HeapTracker::RebuildSeparateHeapAddressSpace() {
