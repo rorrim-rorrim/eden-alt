@@ -733,7 +733,7 @@ find_package(Threads REQUIRED)
 # Platform-specific library requirements
 # ======================================
 
-if (NOT TARGET Boost::headers)
+if (TARGET Boost::headers)
     target_link_libraries(Boost::headers INTERFACE Boost::disable_autolinking)
 endif()
 
