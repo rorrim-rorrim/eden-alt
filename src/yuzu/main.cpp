@@ -1908,7 +1908,7 @@ void GMainWindow::HandleSigInterrupt(int sig) {
     (void)ret;
 }
 
-void GMainWindow::OnSigInterruptNotifierActivated(QSocketDescriptor _, QSocketNotifier::Type _) {
+void GMainWindow::OnSigInterruptNotifierActivated() {
     sig_interrupt_notifier->setEnabled(false);
 
     char a;
