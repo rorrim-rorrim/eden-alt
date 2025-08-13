@@ -451,6 +451,8 @@ if (YUZU_USE_CPM)
         SHA 40626af88b
         HASH d59f06c24339f223de4ec2afeba1c67b5835a0f350a1ffa86242a72fc3e616a6b8b21798355428d4200c75287308b66634619ffa0b52ba5bd74cc01772ea1a8a
         VERSION 8
+        OPTIONS
+            "FMT_INSTALL OFF"
     )
 
     AddPackage(
@@ -478,6 +480,7 @@ if (YUZU_USE_CPM)
         REPO brofield/simpleini
         SHA 09c21bda1d
         HASH 99779ca9b6e040d36558cadf484f9ffdab5b47bcc8fc72e4d33639d1d60c0ceb4410d335ba445d72a4324e455167fd6769d99b459943aa135bec085dff2d4b7c
+        EXCLUDE_FROM_ALL ON
     )
 
     AddPackage(
@@ -489,6 +492,7 @@ if (YUZU_USE_CPM)
         OPTIONS
             "ZLIB_BUILD_SHARED OFF"
             "ZLIB_INSTALL OFF"
+        EXCLUDE_FROM_ALL ON
     )
 
     if (ZLIB_ADDED)
@@ -502,12 +506,9 @@ if (YUZU_USE_CPM)
         SHA f8745da6ff
         HASH 3037007f990040fe32573b46f9bef8762fd5dbeeb07ffffcbfeba51ec98167edae39bb9c87f9299efcd61c4e467c5e84f7c19f0df7799bc1fc04864a278792ee
         VERSION 1.5
-        DOWNLOAD_ONLY YES
+        SOURCE_SUBDIR build/cmake
+        EXCLUDE_FROM_ALL ON
     )
-
-    if (zstd_ADDED)
-        add_subdirectory(${zstd_SOURCE_DIR}/build/cmake ${zstd_BINARY_DIR})
-    endif()
 
     if (YUZU_TESTS OR DYNARMIC_TESTS)
         AddPackage(
