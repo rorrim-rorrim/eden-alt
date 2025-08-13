@@ -81,10 +81,6 @@ else()
     option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ON)
 endif()
 
-option(YUZU_USE_SYSTEM_OPUS "Use the system Opus library if available" ON)
-
-option(YUZU_USE_SYSTEM_HTTPLIB "Use the system cpp-httplib if available" ON)
-
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 
 option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
@@ -435,7 +431,6 @@ if (YUZU_USE_CPM)
     include(CPMUtil)
     message(STATUS "Fetching needed dependencies with CPM")
 
-    set(CPMUTIL_DEFAULT_SYSTEM ON)
     set(BUILD_SHARED_LIBS OFF)
     set(BUILD_TESTING OFF)
 
@@ -536,8 +531,6 @@ if (YUZU_USE_CPM)
             VERSION 3.0.1
         )
     endif()
-
-    set(CPMUTIL_DEFAULT_SYSTEM OFF)
 else()
     # Enforce the search mode of non-required packages for better and shorter failure messages
     find_package(fmt 8 REQUIRED)

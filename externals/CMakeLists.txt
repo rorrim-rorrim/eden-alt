@@ -77,7 +77,6 @@ AddPackage(
     HASH 769ad1e94c570671071e1f2a5c0f1027e0bf6bcdd1a80ea8ac970f2c86bc45ce4e31aa88d6d8110fc1bed1de81c48bc624df1b38a26f8b340a44e109d784a966
     PATCHES
         ${CMAKE_SOURCE_DIR}/.patch/mbedtls/0001-cmake-version.patch
-    SYSTEM_PACKAGE ON
 )
 
 if (mbedtls_ADDED)
@@ -116,9 +115,6 @@ if (YUZU_USE_EXTERNAL_SDL2)
         set(SDL_FILE ON)
     endif()
 
-    include(CPM)
-    set(CPM_USE_LOCAL_PACKAGES OFF)
-
     if ("${YUZU_SYSTEM_PROFILE}" STREQUAL "steamdeck")
         set(SDL_HASH cc016b0046)
         set(SDL_PIPEWIRE OFF) # build errors out with this on
@@ -148,7 +144,6 @@ AddPackage(
     VERSION 1.3
     HASH 3de1beb4fa3d6b1e03eda8dd1e7580694f854af3ed3975dcdabfdcdf76b97f322b9734d35ea7f185855bb490d957842b938b26da4dd2dfded509390f8d2794dd
     FIND_PACKAGE_ARGUMENTS "MODULE"
-    SYSTEM_PACKAGE ON
 )
 
 if (enet_ADDED)
@@ -165,7 +160,6 @@ AddPackage(
         "USE_SANITIZERS OFF"
         "BUILD_TESTS OFF"
         "BUILD_TOOLS OFF"
-    SYSTEM_PACKAGE ON
 )
 
 if (cubeb_ADDED)
@@ -225,7 +219,6 @@ AddPackage(
     HASH 73eb3a042848c63a10656545797e85f40d142009dfb7827384548a385e1e28e1ac72f42b25924ce530d58275f8638554281e884d72f9c7aaf4ed08690a414b05
     OPTIONS
         "SIRIT_USE_SYSTEM_SPIRV_HEADERS ON"
-    SYSTEM_PACKAGE ON
 )
 
 # httplib
@@ -237,7 +230,6 @@ if ((ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER))
         HASH dd3fd0572f8367d8549e1319fd98368b3e75801a293b0c3ac9b4adb806473a4506a484b3d389dc5bee5acc460cb90af7a20e5df705a1696b56496b30b9ce7ed2
         OPTIONS
             "HTTPLIB_REQUIRE_OPENSSL ${ENABLE_OPENSSL}"
-        SYSTEM_PACKAGE ${YUZU_USE_SYSTEM_HTTPLIB}
     )
 endif()
 
@@ -257,7 +249,6 @@ if (ENABLE_WEB_SERVICE)
         PATCHES
             ${CMAKE_SOURCE_DIR}/.patch/cpp-jwt/0001-no-install.patch
             ${CMAKE_SOURCE_DIR}/.patch/cpp-jwt/0002-missing-decl.patch
-        SYSTEM_PACKAGE ON
     )
 endif()
 
@@ -274,7 +265,6 @@ AddPackage(
         "OPUS_BUILD_PROGRAMS OFF"
         "OPUS_INSTALL_PKG_CONFIG_MODULE OFF"
         "OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF"
-    SYSTEM_PACKAGE ${YUZU_USE_SYSTEM_OPUS}
 )
 
 # FFMpeg
@@ -287,15 +277,9 @@ if (YUZU_USE_BUNDLED_FFMPEG)
 endif()
 
 # Vulkan-Headers
-if (YUZU_USE_EXTERNAL_VULKAN_HEADERS)
-    set(CPM_USE_LOCAL_PACKAGES OFF)
-else()
-    set(CPM_USE_LOCAL_PACKAGES OFF)
-endif()
 
 # TODO(crueter): Vk1.4 impl
 
-# TODO(crueter): allow sys packages?
 AddPackage(
     NAME VulkanHeaders
     VERSION 1.3.274
@@ -306,9 +290,9 @@ AddPackage(
 )
 
 # CMake's interface generator sucks
-if (VulkanHeaders_ADDED)
-    target_include_directories(Vulkan-Headers INTERFACE ${VulkanHeaders_SOURCE_DIR}/include)
-endif()
+# if (VulkanHeaders_ADDED)
+#     target_include_directories(Vulkan-Headers INTERFACE ${VulkanHeaders_SOURCE_DIR}/include)
+# endif()
 
 # Vulkan-Utility-Libraries
 AddPackage(
@@ -341,7 +325,6 @@ AddPackage(
     SHA 1076b348ab
     HASH a46b44e4286d08cffda058e856c47f44c7fed3da55fe9555976eb3907fdcc20ead0b1860b0c38319cda01dbf9b1aa5d4b4038c7f1f8fbd97283d837fa9af9772
     FIND_PACKAGE_ARGUMENTS "CONFIG"
-    SYSTEM_PACKAGE ON
 )
 
 if (NOT TARGET LLVM::Demangle)
