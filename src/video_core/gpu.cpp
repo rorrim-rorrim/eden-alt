@@ -223,17 +223,23 @@ struct GPU::Impl {
         system.GetPerfStats().EndGameFrame();
     }
 
+    void ResetFrameCounter() {
+        frame_count.store(0, std::memory_order_relaxed);
+    }
+
     /// Performs any additional setup necessary in order to begin GPU emulation.
     /// This can be used to launch any necessary threads and register any necessary
     /// core timing events.
     void Start() {
         Settings::UpdateGPUAccuracy();
+        ResetFrameCounter();
         gpu_thread.StartThread(*renderer, renderer->Context(), *scheduler);
     }
 
     void NotifyShutdown() {
         std::unique_lock lk{sync_mutex};
         shutting_down.store(true, std::memory_order::relaxed);
+        ResetFrameCounter();
         sync_cv.notify_all();
     }
 
@@ -291,10 +297,16 @@ struct GPU::Impl {
 
     void RequestComposite(std::vector<Tegra::FramebufferConfig>&& layers,
                           std::vector<Service::Nvidia::NvFence>&& fences) {
+        // Increment frame counter
+        const u64 current_frame = frame_count.fetch_add(1, std::memory_order_relaxed) + 1;
+        const u32 frame_skip_value = Settings::values.frame_skipping.GetValue();
+        const bool skip_frame = frame_skip_value > 0 &&
+                                (current_frame % (static_cast<u64>(frame_skip_value) + 1) != 0);
+
         size_t num_fences{fences.size()};
         size_t current_request_counter{};
         {
-            std::unique_lock<std::mutex> lk(request_swap_mutex);
+            std::unique_lock<std::mutex> lk{request_swap_mutex};
             if (free_swap_counters.empty()) {
                 current_request_counter = request_swap_counters.size();
                 request_swap_counters.emplace_back(num_fences);
@@ -305,23 +317,33 @@ struct GPU::Impl {
             }
         }
         const auto wait_fence =
-            RequestSyncOperation([this, current_request_counter, &layers, &fences, num_fences] {
+            RequestSyncOperation([this, current_request_counter, &layers, &fences, num_fences, skip_frame] {
                 auto& syncpoint_manager = host1x.GetSyncpointManager();
                 if (num_fences == 0) {
-                    renderer->Composite(layers);
-                }
-                const auto executer = [this, current_request_counter, layers_copy = layers]() {
-                    {
-                        std::unique_lock<std::mutex> lk(request_swap_mutex);
-                        if (--request_swap_counters[current_request_counter] != 0) {
-                            return;
-                        }
-                        free_swap_counters.push_back(current_request_counter);
+                    if (!skip_frame) {
+                        renderer->Composite(layers);
+                    } else {
+                        system.GetPerfStats().EndGameFrame();
                     }
-                    renderer->Composite(layers_copy);
-                };
-                for (size_t i = 0; i < num_fences; i++) {
-                    syncpoint_manager.RegisterGuestAction(fences[i].id, fences[i].value, executer);
+                } else {
+                    const auto executer = [this, current_request_counter, layers_copy = std::move(layers), skip_frame]() {
+                        {
+                            std::unique_lock<std::mutex> lk{request_swap_mutex};
+                            if (--request_swap_counters[current_request_counter] != 0) {
+                                return;
+                            }
+                            free_swap_counters.push_back(current_request_counter);
+                        }
+                        // Handle frame skipping in executer
+                        if (!skip_frame) {
+                            renderer->Composite(layers_copy);
+                        } else {
+                            system.GetPerfStats().EndGameFrame();
+                        }
+                    };
+                    for (size_t i = 0; i < num_fences; i++) {
+                        syncpoint_manager.RegisterGuestAction(fences[i].id, fences[i].value, executer);
+                    }
                 }
             });
         gpu_thread.TickGPU();
@@ -352,6 +374,8 @@ struct GPU::Impl {
     std::unique_ptr<VideoCore::ShaderNotify> shader_notify;
     /// When true, we are about to shut down emulation session, so terminate outstanding tasks
     std::atomic_bool shutting_down{};
+
+    std::atomic<u64> frame_count{0};
 
     std::array<std::atomic<u32>, Service::Nvidia::MaxSyncPoints> syncpoints{};
 

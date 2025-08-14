@@ -21,6 +21,18 @@
         <item>1</item>
     </integer-array>
 
+    <string-array name="frameSkippingNames">
+        <item>@string/disabled</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <integer-array name="frameSkippingValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
     <string-array name="memoryNames">
         <item>@string/memory_4gb</item>
         <item>@string/memory_6gb</item>

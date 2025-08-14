@@ -42,6 +42,7 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     RENDERER_SAMPLE_SHADING_FRACTION("sample_shading_fraction"),
     FAST_CPU_TIME("fast_cpu_time"),
     CPU_TICKS("cpu_ticks"),
+    FRAME_SKIPPING("frame_skipping"),
     FAST_GPU_TIME("fast_gpu_time"),
     BAT_TEMPERATURE_UNIT("bat_temperature_unit"),
     CABINET_APPLET("cabinet_applet_mode"),

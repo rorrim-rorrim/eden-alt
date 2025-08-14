@@ -220,6 +220,9 @@ public:
 
     std::vector<u8> GetAppletCaptureBuffer();
 
+    // Reset frame counter
+    void ResetFrameCounter();
+
     /// Performs any additional setup necessary in order to begin GPU emulation.
     /// This can be used to launch any necessary threads and register any necessary
     /// core timing events.
