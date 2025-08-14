@@ -21,7 +21,9 @@
 namespace VideoCore {
 class RasterizerInterface;
 }
-
+namespace Vulkan {
+    class Scheduler;
+}
 namespace Tegra {
 class GPU;
 }
@@ -53,7 +55,7 @@ public:
                             RuntimeType& runtime_);
 
     ~QueryCacheBase();
-
+    void FramePrologueResets(Vulkan::Scheduler& scheduler);
     void InvalidateRegion(VAddr addr, std::size_t size) {
         IterateCache<true>(addr, size,
                            [this](QueryLocation location) { InvalidateQuery(location); });
