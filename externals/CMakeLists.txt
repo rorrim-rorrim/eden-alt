@@ -318,7 +318,7 @@ if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
 endif()
 
 # Boost headers
-if (NOT Boost_ADDED)
+if (NOT Boost_ADDED AND NOT TARGET Boost::headers)
     AddPackage(
         NAME boost_headers
         REPO "boostorg/headers"
