@@ -61,7 +61,6 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
         case InfoType::AliasRegionSize:
             *result = process->GetPageTable().GetAliasRegionSize();
             R_SUCCEED();
-
         case InfoType::HeapRegionAddress:
             *result = GetInteger(process->GetPageTable().GetHeapRegionStart());
             R_SUCCEED();
@@ -135,9 +134,16 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
             }
             R_SUCCEED();
 
-        case InfoType::AliasRegionExtraSize:
-            // TODO (jarrodnorwell): do this when KIP's NPDM header is finished
+        case InfoType::AliasRegionExtraSize: {
+            if (info_sub_id != 0) {
+                return ResultInvalidCombination;
+            }
+
+            KProcess* current_process = GetCurrentProcessPointer(system.Kernel());
+            *result = current_process->GetPageTable().GetAliasRegionExtraSize();
+
             R_SUCCEED();
+        }
 
         default:
             break;
