@@ -709,7 +709,7 @@ void BufferCache<P>::BindHostIndexBuffer() {
     } else {
         buffer.MarkUsage(offset, size);
         runtime.BindIndexBuffer(draw_state.topology, draw_state.index_buffer.format,
-                                draw_state.index_buffer.first, draw_state.index_buffer.count,
+                                draw_state.base_index, draw_state.index_buffer.count,
                                 buffer, offset, size);
     }
 }
