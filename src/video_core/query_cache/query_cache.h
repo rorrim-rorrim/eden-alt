@@ -27,7 +27,7 @@
 #include "video_core/query_cache/query_cache_base.h"
 #include "video_core/query_cache/query_stream.h"
 #include "video_core/query_cache/types.h"
-
+namespace Vulkan { class Scheduler; }
 namespace VideoCommon {
 
 using Maxwell = Tegra::Engines::Maxwell3D;
@@ -220,6 +220,12 @@ void QueryCacheBase<Traits>::CounterReset(QueryType counter_type) {
         return;
     }
     streamer->ResetCounter();
+}
+
+// Called at frame start to batch vkCmdResetQueryPool outside render passes.
+template <typename Traits>
+void QueryCacheBase<Traits>::FramePrologueResets(Vulkan::Scheduler& scheduler) {
+        impl->runtime.FramePrologueResets(scheduler);
 }
 
 template <typename Traits>
