@@ -538,8 +538,10 @@ if (ENABLE_QT)
         find_package(Qt6 REQUIRED COMPONENTS Multimedia)
     endif()
 
-    if (UNIX AND NOT APPLE)
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         find_package(Qt6 REQUIRED COMPONENTS DBus GuiPrivate)
+    elseif (UNIX AND NOT APPLE)
+        find_package(Qt6 REQUIRED COMPONENTS DBus Gui)
     endif()
 
     if (ENABLE_QT_TRANSLATION)
