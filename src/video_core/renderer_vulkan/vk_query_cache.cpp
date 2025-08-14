@@ -156,7 +156,7 @@ public:
 
         ReserveHostQuery();
 
-        // Ensure outside render pass
+        /* Ensure outside render pass
         scheduler.RequestOutsideRenderPassOperationContext();
 
         // Reset query pool outside render pass
@@ -167,7 +167,7 @@ public:
 
         // Manually restart the render pass (required for vkCmdClearAttachments, etc.)
         scheduler.RequestRenderpass(texture_cache.GetFramebuffer());
-
+        */
         // Begin query inside the newly started render pass
         scheduler.Record([query_pool = current_query_pool,
                                  query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
@@ -400,6 +400,13 @@ public:
             query->value = total;
             query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
         }
+    }
+
+    VkQueryPool GetOrCreateCurrentPoolForPrologue() {
+               if (!current_bank || current_bank->IsClosed()) {
+                        ReserveBank();
+                    }
+                return current_query_pool;
     }
 
 private:
@@ -1303,6 +1310,19 @@ void QueryCacheRuntime::ResumeHostConditionalRendering() {
         });
     }
     impl->is_hcr_running = true;
+}
+
+void QueryCacheRuntime::FramePrologueResets(Scheduler& scheduler) {
+            // Reset the occlusion queries we plan to use this frame in one go.
+                    // Ensure this is recorded OUTSIDE any render pass.
+                            const VkQueryPool pool = impl->sample_streamer.GetOrCreateCurrentPoolForPrologue();
+           scheduler.RequestOutsideRenderPassOperationContext();
+           scheduler.Record([pool](vk::CommandBuffer cmdbuf) {
+            // Reset the whole bank so subsequent BeginQuery calls don't need per-slot resets.
+            cmdbuf.ResetQueryPool(pool,
+                                  /*first*/ 0,
+                                  /*count*/ SamplesQueryBank::BANK_SIZE);
+            });
 }
 
 void QueryCacheRuntime::HostConditionalRenderingCompareValueImpl(VideoCommon::LookupData object,

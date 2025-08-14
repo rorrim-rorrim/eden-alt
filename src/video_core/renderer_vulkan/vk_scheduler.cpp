@@ -257,6 +257,11 @@ u64 Scheduler::SubmitExecution(VkSemaphore signal_semaphore, VkSemaphore wait_se
 
 void Scheduler::AllocateNewContext() {
     // Enable counters once again. These are disabled when a command buffer is finished.
+    // Record per frame query resets outside any render pass, before the first draw.
+    if (query_cache) {
+        query_cache->FramePrologueResets(*this);
+    }
+
 }
 
 void Scheduler::InvalidateState() {
