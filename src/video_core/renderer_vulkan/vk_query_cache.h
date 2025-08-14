@@ -20,7 +20,7 @@ namespace Vulkan {
 class Device;
 class Scheduler;
 class StagingBufferPool;
-
+class Scheduler;
 struct QueryCacheRuntimeImpl;
 
 class QueryCacheRuntime {
@@ -33,7 +33,7 @@ public:
                                ComputePassDescriptorQueue& compute_pass_descriptor_queue,
                                DescriptorPool& descriptor_pool, TextureCache& texture_cache_);
     ~QueryCacheRuntime();
-
+    void FramePrologueResets(Scheduler& scheduler);
     template <typename SyncValuesType>
     void SyncValues(std::span<SyncValuesType> values, VkBuffer base_src_buffer = nullptr);
 
