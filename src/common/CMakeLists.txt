@@ -261,11 +261,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   )
 endif()
 
-if (BOOST_NO_HEADERS)
-    target_link_libraries(common PUBLIC Boost::algorithm Boost::icl Boost::pool)
-else()
-    target_link_libraries(common PUBLIC Boost::headers)
-endif()
+target_link_libraries(common PUBLIC Boost::headers)
 
 if (lz4_ADDED)
     target_include_directories(common PRIVATE ${lz4_SOURCE_DIR}/lib)

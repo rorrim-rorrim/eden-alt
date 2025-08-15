@@ -415,11 +415,7 @@ target_link_libraries(dynarmic
         merry::mcl
 )
 
-if (BOOST_NO_HEADERS)
-target_link_libraries(dynarmic PRIVATE Boost::variant Boost::icl Boost::pool)
-else()
-    target_link_libraries(dynarmic PRIVATE Boost::headers)
-endif()
+target_link_libraries(dynarmic PRIVATE Boost::headers)
 
 if (DYNARMIC_USE_LLVM)
     target_include_directories(dynarmic PRIVATE ${LLVM_INCLUDE_DIRS})
