@@ -32,6 +32,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     RENDERER_DESCRIPTOR_INDEXING("descriptor_indexing"),
     RENDERER_SAMPLE_SHADING("sample_shading"),
     PICTURE_IN_PICTURE("picture_in_picture"),
+    FRAME_SKIPPING("frame_skipping"),
     USE_CUSTOM_RTC("custom_rtc_enabled"),
     BLACK_BACKGROUNDS("black_backgrounds"),
     JOYSTICK_REL_CENTER("joystick_rel_center"),

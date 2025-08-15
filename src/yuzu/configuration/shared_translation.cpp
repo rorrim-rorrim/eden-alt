@@ -270,6 +270,18 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
 
     // Renderer (Advanced Graphics)
     INSERT(Settings,
+           enable_raii,
+           tr("RAII"),
+           tr("A method of automatic resource management in Vulkan "
+              "that ensures proper release of resources "
+              "when they are no longer needed, but may cause crashes in bundled games."));
+    INSERT(Settings,
+           frame_skipping,
+           tr("Frame Skipping"),
+           tr("Skips rendering every other frame while still presenting "
+              "the frame as rendered.\nThis cuts the effective FPS in half, but can make "
+              "games run stable at the game's target FPS on weaker hardware."));
+    INSERT(Settings,
            async_presentation,
            tr("Enable asynchronous presentation (Vulkan only)"),
            tr("Slightly improves performance by moving presentation to a separate CPU thread."));
@@ -335,12 +347,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
            tr("Improves rendering of transparency effects in specific games."));
 
     // Renderer (Extensions)
-    INSERT(Settings,
-           enable_raii,
-           tr("RAII"),
-           tr("A method of automatic resource management in Vulkan "
-              "that ensures proper release of resources "
-              "when they are no longer needed, but may cause crashes in bundled games."));
     INSERT(Settings,
            dyna_state,
            tr("Extended Dynamic State"),

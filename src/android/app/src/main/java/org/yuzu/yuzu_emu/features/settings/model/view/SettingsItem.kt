@@ -243,12 +243,10 @@ abstract class SettingsItem(
                 )
             )
             put(
-                SingleChoiceSetting(
-                    IntSetting.FRAME_SKIPPING,
+                SwitchSetting(
+                    BooleanSetting.FRAME_SKIPPING,
                     titleId = R.string.frame_skipping,
                     descriptionId = R.string.frame_skipping_description,
-                    choicesId = R.array.frameSkippingNames,
-                    valuesId = R.array.frameSkippingValues
                 )
             )
             put(
