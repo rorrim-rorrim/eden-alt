@@ -57,14 +57,7 @@ option(ENABLE_QT_UPDATE_CHECKER "Enable update checker for the Qt frontend" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
-# TODO(crueter): maybe this should default on everywhere...?
-if (MSVC OR ANDROID)
-    set(CPM_DEFAULT ON)
-else()
-    set(CPM_DEFAULT OFF)
-endif()
-
-option(YUZU_USE_CPM "Use CPM for Eden dependencies" "${CPM_DEFAULT}")
+option(YUZU_USE_CPM "Use CPM to fetch Eden dependencies if needed" ON)
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
@@ -436,6 +429,10 @@ if (YUZU_USE_CPM)
         VERSION 1.57
     )
 
+    # really annoying thing where boost::headers doesn't work with cpm
+    # TODO(crueter) investigate
+    set(BOOST_NO_HEADERS ${Boost_ADDED})
+
     if (Boost_ADDED)
         if (MSVC OR ANDROID)
             add_compile_definitions(YUZU_BOOST_v1)
@@ -482,15 +479,6 @@ if (YUZU_USE_CPM)
         SHA 55f93686c0
         HASH b739749b066800e21154506ea150d2c5cbce8a45344177f46f884547a1399d26753166fd0df8135269ce28cf223552b1b65cd625b88c844d54753f2434900486
         VERSION 3.8
-    )
-
-    # SimpleIni
-    AddPackage(
-        NAME SimpleIni
-        REPO brofield/simpleini
-        SHA 09c21bda1d
-        HASH 99779ca9b6e040d36558cadf484f9ffdab5b47bcc8fc72e4d33639d1d60c0ceb4410d335ba445d72a4324e455167fd6769d99b459943aa135bec085dff2d4b7c
-        EXCLUDE_FROM_ALL ON
     )
 
     # zlib
@@ -544,6 +532,10 @@ if (YUZU_USE_CPM)
         FIND_PACKAGE_ARGUMENTS "MODULE"
     )
 
+    if (enet_ADDED)
+        target_include_directories(enet INTERFACE ${enet_SOURCE_DIR}/include)
+    endif()
+
     # Opus
     AddPackage(
         NAME Opus
@@ -595,25 +587,6 @@ if (YUZU_USE_CPM)
             endif()
         endif()
     endif()
-
-    # DiscordRPC
-    if (USE_DISCORD_PRESENCE)
-        AddPackage(
-            NAME discord-rpc
-            REPO "discord/discord-rpc"
-            SHA 963aa9f3e5
-            HASH 386e1344e9a666d730f2d335ee3aef1fd05b1039febefd51aa751b705009cc764411397f3ca08dffd46205c72f75b235c870c737b2091a4ed0c3b061f5919bde
-            OPTIONS
-                "BUILD_EXAMPLES OFF"
-            PATCHES
-                ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0001-cmake-version.patch
-                ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0002-no-clang-format.patch
-                ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0003-fix-cpp17.patch
-        )
-
-        target_include_directories(discord-rpc INTERFACE ${discord-rpc_SOURCE_DIR}/include)
-        add_library(DiscordRPC::discord-rpc ALIAS discord-rpc)
-    endif()
 else()
     # Enforce the search mode of non-required packages for better and shorter failure messages
     find_package(fmt 8 REQUIRED)
@@ -621,7 +594,6 @@ else()
     find_package(nlohmann_json 3.8 REQUIRED)
     find_package(lz4 REQUIRED)
     find_package(RenderDoc MODULE)
-    find_package(SimpleIni MODULE)
     find_package(stb MODULE)
     find_package(enet 1.3 MODULE)
     find_package(Opus 1.3 MODULE)
@@ -662,6 +634,35 @@ if (ENABLE_LIBUSB)
         find_package(libusb 1.0.24 MODULE)
     endif()
 endif()
+
+# DiscordRPC
+if (USE_DISCORD_PRESENCE)
+    AddPackage(
+        NAME discord-rpc
+        REPO "discord/discord-rpc"
+        SHA 963aa9f3e5
+        HASH 386e1344e9a666d730f2d335ee3aef1fd05b1039febefd51aa751b705009cc764411397f3ca08dffd46205c72f75b235c870c737b2091a4ed0c3b061f5919bde
+        OPTIONS
+            "BUILD_EXAMPLES OFF"
+        PATCHES
+            ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0001-cmake-version.patch
+            ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0002-no-clang-format.patch
+            ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0003-fix-cpp17.patch
+    )
+
+    target_include_directories(discord-rpc INTERFACE ${discord-rpc_SOURCE_DIR}/include)
+    add_library(DiscordRPC::discord-rpc ALIAS discord-rpc)
+endif()
+
+# SimpleIni
+AddPackage(
+    NAME SimpleIni
+    REPO brofield/simpleini
+    SHA 09c21bda1d
+    HASH 99779ca9b6e040d36558cadf484f9ffdab5b47bcc8fc72e4d33639d1d60c0ceb4410d335ba445d72a4324e455167fd6769d99b459943aa135bec085dff2d4b7c
+    EXCLUDE_FROM_ALL ON
+    FIND_PACKAGE_ARGUMENTS "MODULE"
+)
 
 # TODO(crueter): Work around this
 if (NOT YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
