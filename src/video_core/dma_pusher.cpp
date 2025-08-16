@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/cityhash.h"
@@ -17,12 +17,6 @@ namespace Tegra {
 
 constexpr u32 MacroRegistersStart = 0xE00;
 constexpr u32 ComputeInline = 0x6D;
-//start on PR#76 of Eden this is a unused variable in android (need to investigate)
-
-// Dummy function that uses ComputeInline
-constexpr void UseComputeInline() {
-    static_cast<void>(ComputeInline); // Suppress unused variable error
-}
 
 DmaPusher::DmaPusher(Core::System& system_, GPU& gpu_, MemoryManager& memory_manager_,
                      Control::ChannelState& channel_state_)
@@ -102,22 +96,23 @@ bool DmaPusher::Step() {
                         &command_headers);
             ProcessCommands(headers);
         };
-
-        // Only use unsafe reads for non-compute macro operations
-        if (Settings::IsGPULevelHigh()) {
-            const bool is_compute = (subchannel_type[dma_state.subchannel] ==
-                                   Engines::EngineTypes::KeplerCompute);
-
-            if (dma_state.method >= MacroRegistersStart && !is_compute) {
-                unsafe_process();
-                return true;
-            }
-
-            // Always use safe reads for compute operations
+        if (Settings::values.force_safe_reads.GetValue()) {
             safe_process();
             return true;
         }
-
+        if (Settings::IsGPULevelHigh()) {
+            if (dma_state.method >= MacroRegistersStart) {
+                unsafe_process();
+                return true;
+            }
+            if (subchannel_type[dma_state.subchannel] == Engines::EngineTypes::KeplerCompute &&
+                dma_state.method == ComputeInline) {
+                unsafe_process();
+                return true;
+            }
+            safe_process();
+            return true;
+        }
         unsafe_process();
     }
     return true;
