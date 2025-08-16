@@ -466,7 +466,7 @@ struct Values {
                                                  true,
                                                  true};
 #endif
-
+    SwitchableSetting<bool> force_safe_reads{linkage, false, "force_safe_reads", Category::RendererAdvanced};
     SwitchableSetting<bool> async_presentation{linkage,
 #ifdef ANDROID
                                                true,

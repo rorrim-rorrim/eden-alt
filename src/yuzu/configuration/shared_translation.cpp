@@ -1,10 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "yuzu/configuration/shared_translation.h"
@@ -269,6 +266,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
     INSERT(Settings, bg_blue, QString(), QString());
 
     // Renderer (Advanced Graphics)
+    INSERT(Settings, force_safe_reads, tr("Force GPU to only use safe reads"),
+           tr("Prevents potential memory corruption issues that could lead to invalid dispatch parameters.\nThis can reduce performance in some cases."));
     INSERT(Settings,
            async_presentation,
            tr("Enable asynchronous presentation (Vulkan only)"),
