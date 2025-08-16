@@ -499,7 +499,7 @@ endif()
 
 # Explicit linking required
 if (${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
-    target_link_libraries(yuzu PRIVATE X11)
+    target_link_libraries(yuzu PRIVATE X11 "/usr/lib/xorg/amd64/libdrm.so")
 endif()
 
 # Extra deps
