@@ -27,7 +27,7 @@ Patch for FFmpeg:
 sed -i 's/ make / gmake /' externals/ffmpeg/CMakeFiles/ffmpeg-build.dir/build.make
 ```
 
-- **Configure**: `cmake -B build -DENABLE_WEB_SERVICE=OFF -DENABLE_OPENSSL=OFF`.
+- **Configure**: `cmake -B build -DENABLE_WEB_SERVICE=OFF -DENABLE_OPENSSL=OFF -DCMAKE_CXX_FLAGS="-I/usr/include/SDL2" -DCMAKE_C_FLAGS="-I/usr/include/SDL2"`.
 - **Build**: `cmake --build build`.
 - **Installing**: `sudo cmake --install build`.
 
