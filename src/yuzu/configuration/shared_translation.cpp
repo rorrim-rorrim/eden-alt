@@ -267,7 +267,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
 
     // Renderer (Advanced Graphics)
     INSERT(Settings, force_safe_reads, tr("Only use safe reads"),
-           tr("Ensures the GPU only uses safe reads.\nThis option may fix issues in some games, but may reduce performance in some cases."));
+           tr("Ensures the GPU only uses safe reads.\nThis option may fix issues in some games, but it can also reduce performance in some cases."));
     INSERT(Settings,
            async_presentation,
            tr("Enable asynchronous presentation (Vulkan only)"),
