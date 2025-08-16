@@ -7,10 +7,16 @@ project(yuzu)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
-if (${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
+if (CMAKE_SYSTEM_NAME STREQUAL "SunOS")
     # Terrific Solaris pkg shenanigans
     list(APPEND CMAKE_PREFIX_PATH "/usr/lib/qt/6.6/lib/amd64/cmake")
     list(APPEND CMAKE_MODULE_PATH "/usr/lib/qt/6.6/lib/amd64/cmake")
+    # For some mighty reason, doing a normal release build sometimes may not trigger
+    # the proper -O3 switch to materialize
+    if (CMAKE_BUILD_TYPE MATCHES "Release")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+    endif()
 endif()
 
 set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)

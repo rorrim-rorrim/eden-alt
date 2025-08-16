@@ -76,9 +76,16 @@ cmake --build /tmp/ramdisk -- -j32
 sudo umount /tmp/ramdisk
 ```
 
-# How to test JIT
+## Debugging (host code)
 
-## gdb
+Ignoring SIGSEGV when debugging in host:
+
+- **gdb**: `handle all nostop pass`.
+- **lldb**: `pro hand -p true -s false -n false SIGSEGV`.
+
+## Debugging (guest code)
+
+### gdb
 
 Run `./build/bin/eden-cli -c <path to your config file (see logs where you run eden normally to see where it is)> -d -g <path to game>`
 
@@ -110,7 +117,7 @@ Expressions can be `variable_names` or `1234` (numbers) or `*var` (dereference o
 
 For more information type `info gdb` and read [the man page](https://man7.org/linux/man-pages/man1/gdb.1.html).
 
-## Bisecting older commits
+# Bisecting older commits
 
 Since going into the past can be tricky (especially due to the dependencies from the project being lost thru time). This should "restore" the URLs for the respective submodules.
 
