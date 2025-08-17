@@ -116,7 +116,9 @@ option(ENABLE_MICROPROFILE "Enables microprofile capabilities" OFF)
 
 option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
-if (PLATFORM_FREEBSD)
+# See https://github.com/llvm/llvm-project/issues/123946
+# OpenBSD va_list doesn't play nice with precompiled headers
+if (PLATFORM_FREEBSD OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
     option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" OFF)
 else()
     option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ON)
