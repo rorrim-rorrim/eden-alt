@@ -1,10 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/cityhash.h"
 #include "common/settings.h"
 #include "core/core.h"
 #include "video_core/dma_pusher.h"
@@ -12,11 +11,13 @@
 #include "video_core/gpu.h"
 #include "video_core/guest_memory.h"
 #include "video_core/memory_manager.h"
+#include "video_core/rasterizer_interface.h"
 
 namespace Tegra {
 
 constexpr u32 MacroRegistersStart = 0xE00;
-constexpr u32 ComputeInline = 0x6D;
+[[maybe_unused]] constexpr u32 ComputeInline = 0x6D;
+
 //start on PR#76 of Eden this is a unused variable in android (need to investigate)
 
 // Dummy function that uses ComputeInline
@@ -27,11 +28,12 @@ constexpr void UseComputeInline() {
 DmaPusher::DmaPusher(Core::System& system_, GPU& gpu_, MemoryManager& memory_manager_,
                      Control::ChannelState& channel_state_)
     : gpu{gpu_}, system{system_}, memory_manager{memory_manager_}, puller{gpu_, memory_manager_,
-                                                                          *this, channel_state_} {}
+                                                                          *this, channel_state_}, signal_sync{false}, synced{false} {}
 
 DmaPusher::~DmaPusher() = default;
 
 void DmaPusher::DispatchCalls() {
+
     dma_pushbuffer_subindex = 0;
 
     dma_state.is_last_call = true;
@@ -69,13 +71,15 @@ bool DmaPusher::Step() {
     } else {
         const CommandListHeader command_list_header{
             command_list.command_lists[dma_pushbuffer_subindex++]};
-        dma_state.dma_get = command_list_header.addr;
 
-        if (dma_pushbuffer_subindex >= command_list.command_lists.size()) {
-            // We've gone through the current list, remove it from the queue
-            dma_pushbuffer.pop();
-            dma_pushbuffer_subindex = 0;
+        if (signal_sync) {
+            std::unique_lock lk(sync_mutex);
+            sync_cv.wait(lk, [this]() { return synced; });
+            signal_sync = false;
+            synced = false;
         }
+
+        dma_state.dma_get = command_list_header.addr;
 
         if (command_list_header.size == 0) {
             return true;
@@ -102,23 +106,33 @@ bool DmaPusher::Step() {
                         &command_headers);
             ProcessCommands(headers);
         };
-
-        // Only use unsafe reads for non-compute macro operations
         if (Settings::IsGPULevelHigh()) {
-            const bool is_compute = (subchannel_type[dma_state.subchannel] ==
-                                   Engines::EngineTypes::KeplerCompute);
-
-            if (dma_state.method >= MacroRegistersStart && !is_compute) {
+			if (dma_state.method >= MacroRegistersStart) {
                 unsafe_process();
-                return true;
-            }
-
-            // Always use safe reads for compute operations
-            safe_process();
-            return true;
+            } else if (subchannel_type[dma_state.subchannel] == Engines::EngineTypes::KeplerCompute && dma_state.method == ComputeInline) {
+                unsafe_process();
+			} else {
+                safe_process();
+			}
+        } else {
+            unsafe_process();
         }
 
-        unsafe_process();
+        if (dma_pushbuffer_subindex >= command_list.command_lists.size()) {
+            // We've gone through the current list, remove it from the queue
+            dma_pushbuffer.pop();
+            dma_pushbuffer_subindex = 0;
+        } else if (command_list.command_lists[dma_pushbuffer_subindex].sync && Settings::values.enable_accurate_barrier.GetValue()) {
+            signal_sync = true;
+        }
+
+        if (signal_sync) {
+            rasterizer->SignalFence([this]() {
+            std::scoped_lock lk(sync_mutex);
+            synced = true;
+            sync_cv.notify_all();
+            });
+        }
     }
     return true;
 }
@@ -226,7 +240,8 @@ void DmaPusher::CallMultiMethod(const u32* base_start, u32 num_methods) const {
     }
 }
 
-void DmaPusher::BindRasterizer(VideoCore::RasterizerInterface* rasterizer) {
+void DmaPusher::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) {
+    rasterizer = rasterizer_;
     puller.BindRasterizer(rasterizer);
 }
 
