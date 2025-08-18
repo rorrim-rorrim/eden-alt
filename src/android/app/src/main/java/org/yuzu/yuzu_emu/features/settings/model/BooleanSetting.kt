@@ -68,6 +68,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     USE_LRU_CACHE("use_lru_cache");
 
     external fun isRaiiEnabled(): Boolean
+
 //  external fun isFrameSkippingEnabled(): Boolean
     external fun isFrameInterpolationEnabled(): Boolean
 
