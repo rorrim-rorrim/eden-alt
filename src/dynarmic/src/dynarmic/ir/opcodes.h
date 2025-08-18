@@ -23,6 +23,16 @@ enum class Opcode {
 #define OPCODE(name, type, ...) name,
 #define A32OPC(name, type, ...) A32##name,
 #define A64OPC(name, type, ...) A64##name,
+
+#if defined(__clang__) || defined(__GNUC__)
+#ifdef RotateRight32
+#undef RotateRight32
+#endif
+#ifdef RotateRight64
+#undef RotateRight64
+#endif
+#endif
+
 #include "./opcodes.inc"
 #undef OPCODE
 #undef A32OPC

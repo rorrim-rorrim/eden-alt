@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
 #include <cstddef>
@@ -15,10 +15,6 @@
 
 // For FileTimeStampRaw
 #include <sys/stat.h>
-
-#ifdef _MSC_VER
-#define stat _stat64
-#endif
 
 #ifdef ANDROID
 #include "common/fs/fs_android.h"
@@ -442,11 +438,12 @@ std::vector<VirtualFile> RealVfsDirectory::GetFiles() const {
 FileTimeStampRaw RealVfsDirectory::GetFileTimeStamp(std::string_view path_) const {
     const auto full_path = FS::SanitizePath(path + '/' + std::string(path_));
     const auto fs_path = std::filesystem::path{FS::ToU8String(full_path)};
-    struct stat file_status;
 
 #ifdef _WIN32
+    struct _stat64 file_status;
     const auto stat_result = _wstat64(fs_path.c_str(), &file_status);
 #else
+    struct stat file_status;
     const auto stat_result = stat(fs_path.c_str(), &file_status);
 #endif
 

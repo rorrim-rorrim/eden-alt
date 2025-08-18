@@ -67,4 +67,9 @@ if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(yuzu-cmd PRIVATE precompiled_headers.h)
 endif()
 
+if (WIN32 AND (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
+    target_link_libraries(yuzu-cmd PRIVATE ws2_32 mswsock iphlpapi wlanapi dwmapi stdc++ winpthread)
+    target_compile_definitions(yuzu-cmd PRIVATE SDL_MAIN_HANDLED)
+endif()
+
 create_target_directory_groups(yuzu-cmd)

@@ -32,7 +32,9 @@
 #undef interface
 #include <wlanapi.h>
 #pragma pop_macro("interface")
+#ifdef _MSC_VER
 #pragma comment(lib, "wlanapi.lib")
+#endif
 #endif
 
 namespace {

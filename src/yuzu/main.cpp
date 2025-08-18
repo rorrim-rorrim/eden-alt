@@ -178,7 +178,11 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QPlatformSurfaceEvent>
 #include <dwmapi.h>
 #include <windows.h>
+
+#ifdef _MSC_VER
 #pragma comment(lib, "Dwmapi.lib")
+#endif
+
 
 static inline void ApplyWindowsTitleBarDarkMode(HWND hwnd, bool enabled) {
     if (!hwnd)
@@ -386,7 +390,7 @@ static void OverrideWindowsFont() {
 }
 #endif
 
-inline static bool isDarkMode() {
+[[maybe_unused]] inline static bool isDarkMode() {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     const auto scheme = QGuiApplication::styleHints()->colorScheme();
     return scheme == Qt::ColorScheme::Dark;

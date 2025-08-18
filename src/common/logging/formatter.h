@@ -1,18 +1,26 @@
-// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 
 #include <type_traits>
-
 #include <fmt/ranges.h>
 
-// adapted from https://github.com/fmtlib/fmt/issues/2704
-// a generic formatter for enum classes
+// Opt-out trait for enums that have their own custom fmt::formatter specialization.
+namespace Common::Logging {
+template <class T>
+struct enable_generic_enum_formatter : std::true_type {};
+} // namespace Common::Logging
+
 #if FMT_VERSION >= 80100
 template <typename T>
-struct fmt::formatter<T, std::enable_if_t<std::is_enum_v<T>, char>>
-    : formatter<std::underlying_type_t<T>> {
+struct fmt::formatter<
+    T,
+    std::enable_if_t<
+        std::is_enum_v<T> &&
+        Common::Logging::enable_generic_enum_formatter<T>::value,
+        char>>
+    : fmt::formatter<std::underlying_type_t<T>> {
     template <typename FormatContext>
     auto format(const T& value, FormatContext& ctx) const -> decltype(ctx.out()) {
         return fmt::formatter<std::underlying_type_t<T>>::format(
