@@ -448,6 +448,7 @@ class SettingsFragmentPresenter(
             add(HeaderSetting(R.string.veil_renderer))
             add(BooleanSetting.ENABLE_RAII.key)
             add(BooleanSetting.RENDERER_EARLY_RELEASE_FENCES.key)
+            add(BooleanSetting.RENDERER_ENABLE_ACCURATE_BARRIER.key)
             add(BooleanSetting.BUFFER_REORDER_DISABLE.key)
             add(BooleanSetting.FRAME_INTERPOLATION.key)
             add(BooleanSetting.RENDERER_FAST_GPU.key)
