@@ -681,6 +681,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.RENDERER_ENABLE_ACCURATE_BARRIER,
+                    titleId = R.string.renderer_enable_accurate_barrier,
+                    descriptionId = R.string.renderer_enable_accurate_barrier_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.BUFFER_REORDER_DISABLE,
                     titleId = R.string.buffer_reorder_disable,
                     descriptionId = R.string.buffer_reorder_disable_description
