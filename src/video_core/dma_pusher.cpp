@@ -109,9 +109,7 @@ bool DmaPusher::Step() {
         if (Settings::IsGPULevelHigh()) {
 			if (dma_state.method >= MacroRegistersStart) {
                 unsafe_process();
-            } else if (subchannel_type[dma_state.subchannel] == Engines::EngineTypes::KeplerCompute && dma_state.method == ComputeInline) {
-                unsafe_process();
-			} else {
+            } else {
                 safe_process();
 			}
         } else {
