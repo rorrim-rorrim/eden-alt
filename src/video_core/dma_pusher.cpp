@@ -105,11 +105,11 @@ bool DmaPusher::Step() {
         if (Settings::IsGPULevelExtreme()) {
             safe_process();
         } else if (Settings::IsGPULevelHigh()) {
-			if (dma_state.method >= MacroRegistersStart) {
+            if (dma_state.method >= MacroRegistersStart) {
                 unsafe_process();
             } else {
                 safe_process();
-			}
+            }
         } else {
             unsafe_process();
         }
