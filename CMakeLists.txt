@@ -394,17 +394,18 @@ if (YUZU_USE_CPM)
     if (ENABLE_OPENSSL)
         set(SSL_VERSION 3.5.2)
 
-        if (MSVC)
-            if (ARCHITECTURE_x86_64)
-                set(ARTIFACT openssl-windows-amd64-${SSL_VERSION}.tar.zst)
-                set(KEY windows-amd64)
+        if ((MSVC AND ARCHITECTURE_x86_64) OR FORCE_DOWNLOAD_OPENSSL)
+            set(ARTIFACT openssl-windows-amd64-${SSL_VERSION}.tar.zst)
+            set(KEY windows-amd64)
+
+            if (MSVC AND ARCHITECTURE_x86_64)
+                set(DOWNLOAD_ONLY OFF)
             else()
-                set(ARTIFACT openssl-windows-arm64-${SSL_VERSION}.tar.zst)
-                set(KEY windows-arm64)
+                set(DOWNLOAD_ONLY ON)
             endif()
 
             AddPackage(
-                NAME OpenSSL
+                NAME OpenSSL-windows-amd64
                 REPO crueter/OpenSSL-CI
                 TAG v${SSL_VERSION}
                 VERSION ${SSL_VERSION}
@@ -413,12 +414,51 @@ if (YUZU_USE_CPM)
                 KEY ${KEY}
                 HASH_SUFFIX sha512sum
                 BUNDLED_PACKAGE ON
+                DOWNLOAD_ONLY ${DOWNLOAD_ONLY}
             )
 
-            include(${OpenSSL_SOURCE_DIR}/openssl.cmake)
-        elseif (ANDROID)
+            if (NOT DOWNLOAD_ONLY)
+                set(OPENSSL_DIR ${OpenSSL-windows-amd64_SOURCE_DIR})
+            endif()
+        endif()
+
+        if ((MSVC AND ARCHITECTURE_arm64) OR FORCE_DOWNLOAD_OPENSSL)
+            set(ARTIFACT openssl-windows-arm64-${SSL_VERSION}.tar.zst)
+            set(KEY windows-arm64)
+
+            if (MSVC AND ARCHITECTURE_arm64)
+                set(DOWNLOAD_ONLY OFF)
+            else()
+                set(DOWNLOAD_ONLY ON)
+            endif()
+
             AddPackage(
-                NAME OpenSSL
+                NAME OpenSSL-windows-arm64
+                REPO crueter/OpenSSL-CI
+                TAG v${SSL_VERSION}
+                VERSION ${SSL_VERSION}
+                ARTIFACT ${ARTIFACT}
+
+                KEY ${KEY}
+                HASH_SUFFIX sha512sum
+                BUNDLED_PACKAGE ON
+                DOWNLOAD_ONLY ${DOWNLOAD_ONLY}
+            )
+
+            if (NOT DOWNLOAD_ONLY)
+                set(OPENSSL_DIR ${OpenSSL-windows-arm64_SOURCE_DIR})
+            endif()
+        endif()
+
+        if (ANDROID OR FORCE_DOWNLOAD_OPENSSL)
+            if (ANDROID)
+                set(DOWNLOAD_ONLY OFF)
+            else()
+                set(DOWNLOAD_ONLY ON)
+            endif()
+
+            AddPackage(
+                NAME OpenSSL-android
                 REPO crueter/OpenSSL-CI
                 TAG v${SSL_VERSION}
                 VERSION ${SSL_VERSION}
@@ -427,12 +467,23 @@ if (YUZU_USE_CPM)
                 KEY android
                 HASH_SUFFIX sha512sum
                 BUNDLED_PACKAGE ON
+                DOWNLOAD_ONLY ${DOWNLOAD_ONLY}
             )
 
-            include(${OpenSSL_SOURCE_DIR}/openssl.cmake)
-        elseif(PLATFORM_SUN)
+            if (NOT DOWNLOAD_ONLY)
+                set(OPENSSL_DIR ${OpenSSL-android_SOURCE_DIR})
+            endif()
+        endif()
+
+        if(PLATFORM_SUN OR FORCE_DOWNLOAD_OPENSSL)
+            if (PLATFORM_SUN)
+                set(DOWNLOAD_ONLY OFF)
+            else()
+                set(DOWNLOAD_ONLY ON)
+            endif()
+
             AddPackage(
-                NAME OpenSSL
+                NAME OpenSSL-solaris
                 REPO crueter/OpenSSL-CI
                 TAG v${SSL_VERSION}
                 VERSION ${SSL_VERSION}
@@ -441,12 +492,23 @@ if (YUZU_USE_CPM)
                 KEY solaris
                 HASH_SUFFIX sha512sum
                 BUNDLED_PACKAGE ON
+                DOWNLOAD_ONLY ${DOWNLOAD_ONLY}
             )
 
-            include(${OpenSSL_SOURCE_DIR}/openssl.cmake)
-        elseif(PLATFORM_FREEBSD)
+            if (NOT DOWNLOAD_ONLY)
+                set(OPENSSL_DIR ${OpenSSL-solaris_SOURCE_DIR})
+            endif()
+        endif()
+
+        if(PLATFORM_FREEBSD OR FORCE_DOWNLOAD_OPENSSL)
+            if (PLATFORM_FREEBSD)
+                set(DOWNLOAD_ONLY OFF)
+            else()
+                set(DOWNLOAD_ONLY ON)
+            endif()
+
             AddPackage(
-                NAME OpenSSL
+                NAME OpenSSL-freebsd
                 REPO crueter/OpenSSL-CI
                 TAG v${SSL_VERSION}
                 VERSION ${SSL_VERSION}
@@ -455,12 +517,23 @@ if (YUZU_USE_CPM)
                 KEY freebsd
                 HASH_SUFFIX sha512sum
                 BUNDLED_PACKAGE ON
+                DOWNLOAD_ONLY ${DOWNLOAD_ONLY}
             )
 
-            include(${OpenSSL_SOURCE_DIR}/openssl.cmake)
-        elseif(PLATFORM_LINUX)
+            if (NOT DOWNLOAD_ONLY)
+                set(OPENSSL_DIR ${OpenSSL-freebsd_SOURCE_DIR})
+            endif()
+        endif()
+
+        if(PLATFORM_LINUX OR FORCE_DOWNLOAD_OPENSSL)
+            if (PLATFORM_LINUX)
+                set(DOWNLOAD_ONLY OFF)
+            else()
+                set(DOWNLOAD_ONLY ON)
+            endif()
+
             AddPackage(
-                NAME OpenSSL
+                NAME OpenSSL-linux
                 REPO crueter/OpenSSL-CI
                 TAG v${SSL_VERSION}
                 VERSION ${SSL_VERSION}
@@ -469,11 +542,26 @@ if (YUZU_USE_CPM)
                 KEY linux
                 HASH_SUFFIX sha512sum
                 BUNDLED_PACKAGE ON
+                DOWNLOAD_ONLY ${DOWNLOAD_ONLY}
             )
 
-            include(${OpenSSL_SOURCE_DIR}/openssl.cmake)
+            if (NOT DOWNLOAD_ONLY)
+                set(OPENSSL_DIR ${OpenSSL-linux_SOURCE_DIR})
+            endif()
+        endif()
+
+        if (DEFINED OPENSSL_DIR)
+            include(${OPENSSL_DIR}/openssl.cmake)
+            set(OpenSSL_ADDED ON)
+
+            # Overrides find package
+            CPMAddPackage(
+                NAME OpenSSL
+                SOURCE_DIR ${OPENSSL_DIR}
+            )
         else()
             find_package(OpenSSL 1.1.1 REQUIRED)
+            set(OpenSSL_ADDED OFF)
         endif()
     endif()
 

@@ -14,8 +14,6 @@ add_library(web_service STATIC
     web_result.h
 )
 
-find_package(OpenSSL REQUIRED)
-
 create_target_directory_groups(web_service)
 target_include_directories(web_service PUBLIC ${cpp-jwt_SOURCE_DIR}/include)
 target_link_libraries(web_service PRIVATE common network nlohmann_json::nlohmann_json httplib::httplib cpp-jwt::cpp-jwt)
@@ -23,6 +21,7 @@ target_link_libraries(web_service PRIVATE common network nlohmann_json::nlohmann
 if (OpenSSL_ADDED)
     link_openssl(web_service)
 else()
+    find_package(OpenSSL REQUIRED)
     target_link_libraries(web_service PRIVATE OpenSSL::SSL)
 endif()
 
