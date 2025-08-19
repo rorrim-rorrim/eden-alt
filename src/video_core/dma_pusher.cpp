@@ -85,6 +85,7 @@ bool DmaPusher::Step() {
                     dma_state.dma_get, command_list_header.size * sizeof(u32));
             }
         }
+
         const auto safe_process = [&] {
             Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader,
                                           Tegra::Memory::GuestMemoryFlags::SafeRead>
@@ -92,6 +93,7 @@ bool DmaPusher::Step() {
                         &command_headers);
             ProcessCommands(headers);
         };
+
         const auto unsafe_process = [&] {
             Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader,
                                           Tegra::Memory::GuestMemoryFlags::UnsafeRead>
@@ -99,7 +101,10 @@ bool DmaPusher::Step() {
                         &command_headers);
             ProcessCommands(headers);
         };
-        if (Settings::IsGPULevelHigh()) {
+
+        if (Settings::IsGPULevelExtreme()) {
+            safe_process();
+        } else if (Settings::IsGPULevelHigh()) {
 			if (dma_state.method >= MacroRegistersStart) {
                 unsafe_process();
             } else {
