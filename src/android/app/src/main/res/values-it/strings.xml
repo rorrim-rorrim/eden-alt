@@ -78,8 +78,8 @@
     <string name="frame_interpolation_description">Garantisce una consegna fluida e costante dei fotogrammi sincronizzandone i tempi, riducendo scatti e animazioni irregolari. Ideale per giochi che presentano instabilità nei tempi dei fotogrammi o micro-scatti durante il gameplay.</string>
     <string name="renderer_early_release_fences">Rilascia le barriere prima</string>
     <string name="renderer_early_release_fences_description">Risolve problemi di 0 FPS in giochi come DKCR:HD, Subnautica Below Zero e Ori 2, ma potrebbe compromettere caricamento o prestazioni in giochi Unreal Engine.</string>
-    <string name="renderer_enable_accurate_barrier">Abilita barriera precisa</string>
-    <string name="renderer_enable_accurate_barrier_description">Garantisce la coerenza dei dati tra le operazioni di calcolo e memoria.\nQuesta opzione dovrebbe risolvere problemi in alcuni giochi, ma potrebbe ridurre le prestazioni in alcuni casi.</string>
+    <string name="renderer_sync_memory_operations">Abilita barriera precisa</string>
+    <string name="renderer_sync_memory_operations_description">Garantisce la coerenza dei dati tra le operazioni di calcolo e memoria.\nQuesta opzione dovrebbe risolvere problemi in alcuni giochi, ma potrebbe ridurre le prestazioni in alcuni casi.</string>
     <string name="buffer_reorder_disable">Disabilita riordino buffer</string>
     <string name="buffer_reorder_disable_description">Se selezionato, disabilita il riordino dei caricamenti di memoria mappata consentendo di associare i caricamenti a disegni specifici. Potrebbe ridurre le prestazioni in alcuni casi.</string>
     <string name="use_lru_cache">Abilita cache LRU</string>

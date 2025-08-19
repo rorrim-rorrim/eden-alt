@@ -113,7 +113,7 @@ bool DmaPusher::Step() {
             // We've gone through the current list, remove it from the queue
             dma_pushbuffer.pop();
             dma_pushbuffer_subindex = 0;
-        } else if (command_list.command_lists[dma_pushbuffer_subindex].sync && Settings::values.enable_accurate_barrier.GetValue()) {
+        } else if (command_list.command_lists[dma_pushbuffer_subindex].sync && Settings::values.sync_memory_operations.GetValue()) {
             signal_sync = true;
         }
 

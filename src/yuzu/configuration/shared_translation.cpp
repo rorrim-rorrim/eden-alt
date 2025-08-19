@@ -269,8 +269,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
     INSERT(Settings, bg_blue, QString(), QString());
 
     // Renderer (Advanced Graphics)
-    INSERT(Settings, enable_accurate_barrier, tr("Enable accurate barrier"),
-           tr("Ensures data consistency between compute and memory operations.\nThis option should fix issues in some games, but may reduce performance in some cases."));
+    INSERT(Settings, sync_memory_operations, tr("Sync Memory Operations"),
+           tr("Ensures data consistency between compute and memory operations.\nThis option should fix issues in some games, but may also reduce performance in some cases.\nThe games with Unreal Engine 4 seem to be the most affected."));
     INSERT(Settings,
            async_presentation,
            tr("Enable asynchronous presentation (Vulkan only)"),
