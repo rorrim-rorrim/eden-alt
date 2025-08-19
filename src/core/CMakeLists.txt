@@ -1249,10 +1249,11 @@ if(ENABLE_OPENSSL)
     target_sources(core PRIVATE
         hle/service/ssl/ssl_backend_openssl.cpp)
 
+    find_package(OpenSSL REQUIRED)
+
     if (OpenSSL_ADDED)
         link_openssl(core)
     else()
-        find_package(OpenSSL REQUIRED)
         target_link_libraries(core PRIVATE OpenSSL::SSL)
     endif()
 elseif (APPLE)
