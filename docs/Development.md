@@ -7,6 +7,16 @@
 * **FreeBSD**: [FreeBSD Building Guide](./docs/build/FreeBSD.md)
 * **macOS**: [macOS Building Guide](./docs/build/macOS.md)
 
+# CPM
+
+CPM (CMake Package Manager) is the preferred method of managing dependencies within Eden. Documentation on adding dependencies/using CPMUtil is in the works.
+
+Notes:
+- `YUZU_USE_CPM` is set by default on MSVC and Android. Other platforms should use this if certain "required" system dependencies (e.g. OpenSSL) are broken or missing
+- `CPMUTIL_DEFAULT_SYSTEM` can be set to `OFF` to force the usage of bundled dependencies. This can marginally decrease the final package size.
+- When adding new prebuilt dependencies a la OpenSSL, SDL2, or FFmpeg, there *must* be a CMake option made available to forcefully download this bundle. See the OpenSSL implementation in the root CMakeLists for an example.
+  * This is necessary to allow for creation of fully-qualified source packs that allow for offline builds after download (some package managers and distros enforce this)
+	
 # Guidelines
 
 ## License Headers

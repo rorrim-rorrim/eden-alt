@@ -27,7 +27,7 @@ Patch for FFmpeg:
 sed -i 's/ make / gmake /' externals/ffmpeg/CMakeFiles/ffmpeg-build.dir/build.make
 ```
 
-- **Configure**: `cmake -B build -DENABLE_WEB_SERVICE=OFF -DENABLE_OPENSSL=OFF -DCMAKE_CXX_FLAGS="-I/usr/include/SDL2" -DCMAKE_C_FLAGS="-I/usr/include/SDL2"`.
+- **Configure**: `cmake -B build -DYUZU_USE_CPM=ON -DCMAKE_CXX_FLAGS="-I/usr/include/SDL2" -DCMAKE_C_FLAGS="-I/usr/include/SDL2"`.
 - **Build**: `cmake --build build`.
 - **Installing**: `sudo cmake --install build`.
 
@@ -48,4 +48,4 @@ export LIBGL_ALWAYS_SOFTWARE=1
 
 - Modify the generated ffmpeg.make (in build dir) if using multiple threads (base system `make` doesn't use `-j4`, so change for `gmake`).
 - If using OpenIndiana, due to a bug in SDL2 cmake configuration; Audio driver defaults to SunOS `<sys/audioio.h>`, which does not exist on OpenIndiana.
-- System OpenSSL is too old and must be build from source to use it
+- System OpenSSL generally does not work. Instead, use `-DYUZU_USE_CPM=ON` to use a bundled static OpenSSL, or build a system dependency from source.
