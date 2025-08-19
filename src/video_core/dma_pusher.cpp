@@ -100,15 +100,10 @@ bool DmaPusher::Step() {
             ProcessCommands(headers);
         };
         if (Settings::IsGPULevelHigh()) {
-			if (dma_state.method >= MacroRegistersStart) {
-                unsafe_process();
-            } else {
-                safe_process();
-			}
+            safe_process();
         } else {
             unsafe_process();
         }
-
         if (dma_pushbuffer_subindex >= command_list.command_lists.size()) {
             // We've gone through the current list, remove it from the queue
             dma_pushbuffer.pop();
@@ -116,7 +111,6 @@ bool DmaPusher::Step() {
         } else if (command_list.command_lists[dma_pushbuffer_subindex].sync && Settings::values.sync_memory_operations.GetValue()) {
             signal_sync = true;
         }
-
         if (signal_sync) {
             rasterizer->SignalFence([this]() {
             std::scoped_lock lk(sync_mutex);
