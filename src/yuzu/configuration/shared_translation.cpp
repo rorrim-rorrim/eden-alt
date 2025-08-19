@@ -270,7 +270,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
 
     // Renderer (Advanced Graphics)
     INSERT(Settings, sync_memory_operations, tr("Sync Memory Operations"),
-           tr("Ensures data consistency between compute and memory operations.\nThis option should fix issues in some games, but may also reduce performance in some cases.\nThe games with Unreal Engine 4 seem to be the most affected."));
+           tr("Ensures data consistency between compute and memory operations.\nThis option should fix issues in some games, but may also reduce performance in some cases.\nUnreal Engine 4 games often see the most significant changes thereof."));
     INSERT(Settings,
            async_presentation,
            tr("Enable asynchronous presentation (Vulkan only)"),
