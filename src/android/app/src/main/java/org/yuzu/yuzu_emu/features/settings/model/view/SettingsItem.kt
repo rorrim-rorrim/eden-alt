@@ -681,9 +681,9 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
-                    BooleanSetting.RENDERER_ENABLE_ACCURATE_BARRIER,
-                    titleId = R.string.renderer_enable_accurate_barrier,
-                    descriptionId = R.string.renderer_enable_accurate_barrier_description
+                    BooleanSetting.RENDERER_SYNC_MEMORY_OPERATIONS,
+                    titleId = R.string.renderer_sync_memory_operations,
+                    descriptionId = R.string.renderer_sync_memory_operations_description
                 )
             )
             put(

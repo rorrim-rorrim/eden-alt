@@ -466,7 +466,7 @@ struct Values {
                                                  true,
                                                  true};
 #endif
-    SwitchableSetting<bool> enable_accurate_barrier{linkage, false, "enable_accurate_barrier", Category::RendererAdvanced};
+    SwitchableSetting<bool> sync_memory_operations{linkage, false, "sync_memory_operations", Category::RendererAdvanced};
     SwitchableSetting<bool> async_presentation{linkage,
 #ifdef ANDROID
                                                true,
