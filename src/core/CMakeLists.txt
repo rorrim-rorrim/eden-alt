@@ -1249,7 +1249,7 @@ if(ENABLE_OPENSSL)
     find_package(OpenSSL REQUIRED)
     target_sources(core PRIVATE
         hle/service/ssl/ssl_backend_openssl.cpp)
-    if (ANDROID OR MSVC)
+    if (OpenSSL_ADDED)
         link_openssl(core)
     else()
         target_link_libraries(core PRIVATE OpenSSL::SSL)
