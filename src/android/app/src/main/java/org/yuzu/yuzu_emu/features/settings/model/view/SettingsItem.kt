@@ -681,6 +681,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.FORCE_SAFE_READS,
+                    titleId = R.string.force_safe_reads,
+                    descriptionId = R.string.force_safe_reads_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.BUFFER_REORDER_DISABLE,
                     titleId = R.string.buffer_reorder_disable,
                     descriptionId = R.string.buffer_reorder_disable_description

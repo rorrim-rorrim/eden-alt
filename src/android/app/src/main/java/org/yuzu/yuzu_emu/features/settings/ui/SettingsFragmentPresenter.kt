@@ -467,6 +467,7 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.SKIP_CPU_INNER_INVALIDATION.key)
             add(BooleanSetting.USE_LRU_CACHE.key)
             add(BooleanSetting.CORE_SYNC_CORE_SPEED.key)
+            add(BooleanSetting.FORCE_SAFE_READS.key)
             add(IntSetting.MEMORY_LAYOUT.key)
         }
     }
