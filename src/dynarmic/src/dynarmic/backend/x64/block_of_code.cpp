@@ -225,10 +225,10 @@ bool IsUnderRosetta() {
 
 }  // anonymous namespace
 
-#ifdef __OpenBSD__
-constexpr auto default_cg_mode = Xbyak::DontSetProtectRWE;
+#ifdef DYNARMIC_ENABLE_NO_EXECUTE_SUPPORT
+static const auto default_cg_mode = Xbyak::DontSetProtectRWE;
 #else
-constexpr auto default_cg_mode = nullptr; //Allow RWE
+static const auto default_cg_mode = nullptr; //Allow RWE
 #endif
 
 BlockOfCode::BlockOfCode(RunCodeCallbacks cb, JitStateInfo jsi, size_t total_code_size, std::function<void(BlockOfCode&)> rcp)
