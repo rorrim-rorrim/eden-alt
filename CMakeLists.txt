@@ -690,7 +690,10 @@ if (ENABLE_SDL2)
     elseif (YUZU_USE_EXTERNAL_SDL2)
         message(STATUS "Using SDL2 from externals.")
     endif()
-    find_package(SDL2 2.26.4 REQUIRED)
+
+    if (NOT YUZU_USE_EXTERNAL_SDL2)
+        find_package(SDL2 2.26.4 REQUIRED)
+    endif()
 endif()
 
 # List of all FFmpeg components required

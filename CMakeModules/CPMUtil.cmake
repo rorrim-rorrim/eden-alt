@@ -360,7 +360,7 @@ function(AddCIPackage)
     endif()
 
     if (DEFINED ARTIFACT_DIR)
-        include(${ARTIFACT_DIR}/${ARTIFACT_NAME}.cmake)
+        include(${ARTIFACT_DIR}/${ARTIFACT_CMAKE}.cmake)
 
         # Overrides find package
         CPMAddPackage(
