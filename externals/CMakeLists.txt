@@ -32,7 +32,7 @@ endif()
 
 # Xbyak (also used by Dynarmic, so needs to be added first)
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
-    if (CMAKE_SYSTEM_NAME STREQUAL "SunOS" OR CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
+    if (PLATFORM_SUN OR CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
         # Fix regset.h collisions
         set(XBYAK_HASH 51f507b0b3)
         set(XBYAK_SHA512SUM 4a29a3c2f97f7d5adf667a21a008be03c951fb6696b0d7ba27e7e4afa037bc76eb5e059bb84860e01baf741d4d3ac851b840cd54c99d038812fbe0f1fa6d38a4)
