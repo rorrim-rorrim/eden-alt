@@ -336,30 +336,73 @@ function(AddCIPackage)
     set(ARTIFACT_PACKAGE ${PKG_ARGS_PACKAGE})
 
     if ((MSVC AND ARCHITECTURE_x86_64) OR ARTIFACT_FORCE_DOWNLOAD AND NOT "windows-amd64" IN_LIST DISABLED_PLATFORMS)
+        # kinda hacky
+        if(MSVC AND ARCHITECTURE_x86_64)
+            set(ARTIFACT_FORCE_DOWNLOAD OFF)
+        else()
+            set(ARTIFACT_FORCE_DOWNLOAD ON)
+        endif()
+
         add_ci_package(windows-amd64)
     endif()
 
     if ((MSVC AND ARCHITECTURE_arm64) OR ARTIFACT_FORCE_DOWNLOAD AND NOT "windows-arm64" IN_LIST DISABLED_PLATFORMS)
+        if(MSVC AND ARCHITECTURE_arm64)
+            set(ARTIFACT_FORCE_DOWNLOAD OFF)
+        else()
+            set(ARTIFACT_FORCE_DOWNLOAD ON)
+        endif()
+
         add_ci_package(windows-arm64)
     endif()
 
     if (ANDROID OR ARTIFACT_FORCE_DOWNLOAD AND NOT "android" IN_LIST DISABLED_PLATFORMS)
+        if(ANDROID)
+            set(ARTIFACT_FORCE_DOWNLOAD OFF)
+        else()
+            set(ARTIFACT_FORCE_DOWNLOAD ON)
+        endif()
+
         add_ci_package(android)
     endif()
 
     if(PLATFORM_SUN OR ARTIFACT_FORCE_DOWNLOAD AND NOT "solaris" IN_LIST DISABLED_PLATFORMS)
+        if(PLATFORM_SUN)
+            set(ARTIFACT_FORCE_DOWNLOAD OFF)
+        else()
+            set(ARTIFACT_FORCE_DOWNLOAD ON)
+        endif()
+
         add_ci_package(solaris)
     endif()
 
     if(PLATFORM_FREEBSD OR ARTIFACT_FORCE_DOWNLOAD AND NOT "freebsd" IN_LIST DISABLED_PLATFORMS)
+        if(PLATFORM_FREEBSD)
+            set(ARTIFACT_FORCE_DOWNLOAD OFF)
+        else()
+            set(ARTIFACT_FORCE_DOWNLOAD ON)
+        endif()
+
         add_ci_package(freebsd)
     endif()
 
     if((PLATFORM_LINUX AND ARCHITECTURE_x86_64) OR ARTIFACT_FORCE_DOWNLOAD AND NOT "linux" IN_LIST DISABLED_PLATFORMS)
+        if(PLATFORM_LINUX AND ARCHITECTURE_x86_64)
+            set(ARTIFACT_FORCE_DOWNLOAD OFF)
+        else()
+            set(ARTIFACT_FORCE_DOWNLOAD ON)
+        endif()
+
         add_ci_package(linux)
     endif()
 
-    if((PLATFORM_LINUX AND ARCHITECTURE_arm64) OR ARTIFACT_FORCE_DOWNLOAD AND NOT "linux" IN_LIST DISABLED_PLATFORMS)
+    if((PLATFORM_LINUX AND ARCHITECTURE_arm64) OR ARTIFACT_FORCE_DOWNLOAD AND NOT "linux-aarch64" IN_LIST DISABLED_PLATFORMS)
+        if(PLATFORM_LINUX AND ARCHITECTURE_arm64)
+            set(ARTIFACT_FORCE_DOWNLOAD OFF)
+        else()
+            set(ARTIFACT_FORCE_DOWNLOAD ON)
+        endif()
+
         add_ci_package(linux-aarch64)
     endif()
 

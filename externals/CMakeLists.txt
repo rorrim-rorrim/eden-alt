@@ -95,7 +95,7 @@ if (ENABLE_LIBUSB AND NOT TARGET libusb::usb)
 endif()
 
 # SDL2
-if (YUZU_USE_EXTERNAL_SDL2)
+if (YUZU_USE_EXTERNAL_SDL2 OR FORCE_DOWNLOAD_SDL2)
     if (NOT WIN32)
         # Yuzu itself needs: Atomic Audio Events Joystick Haptic Sensor Threads Timers
         # Since 2.0.18 Atomic+Threads required for HIDAPI/libusb (see https://github.com/libsdl-org/SDL/issues/5095)
@@ -133,7 +133,7 @@ if (YUZU_USE_EXTERNAL_SDL2)
         SHA ${SDL_HASH}
         HASH ${SDL_SHA512SUM}
         KEY ${YUZU_SYSTEM_PROFILE}
-        BUNDLED_PACKAGE ${YUZU_USE_EXTERNAL_SDL2}
+        BUNDLED_PACKAGE ON
     )
 endif()
 
