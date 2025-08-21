@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 HEADER="$(cat "$PWD/.ci/license/header.txt")"
 
