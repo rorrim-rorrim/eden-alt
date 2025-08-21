@@ -266,7 +266,7 @@ function(add_ci_package key)
         KEY ${key}
         HASH_SUFFIX sha512sum
         BUNDLED_PACKAGE ON
-        DOWNLOAD_ONLY ${ARTIFACT_FORCE_DOWNLOAD}
+        DOWNLOAD_ONLY ON
     )
 
     if (NOT ARTIFACT_FORCE_DOWNLOAD)
