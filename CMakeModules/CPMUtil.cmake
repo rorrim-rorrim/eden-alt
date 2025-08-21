@@ -355,8 +355,12 @@ function(AddCIPackage)
         add_ci_package(freebsd)
     endif()
 
-    if(PLATFORM_LINUX OR ARTIFACT_FORCE_DOWNLOAD AND NOT "linux" IN_LIST DISABLED_PLATFORMS)
+    if((PLATFORM_LINUX AND ARCHITECTURE_x86_64) OR ARTIFACT_FORCE_DOWNLOAD AND NOT "linux" IN_LIST DISABLED_PLATFORMS)
         add_ci_package(linux)
+    endif()
+
+    if((PLATFORM_LINUX AND ARCHITECTURE_arm64) OR ARTIFACT_FORCE_DOWNLOAD AND NOT "linux" IN_LIST DISABLED_PLATFORMS)
+        add_ci_package(linux-aarch64)
     endif()
 
     if (DEFINED ARTIFACT_DIR)

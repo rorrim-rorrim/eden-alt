@@ -412,6 +412,7 @@ if (YUZU_USE_CPM)
                 REPO crueter-ci/OpenSSL
                 VERSION 3.5.2
                 MIN_VERSION 1.1.1
+                FORCE_DOWNLOAD ${FORCE_DOWNLOAD_OPENSSL}
             )
         endif()
 
@@ -684,8 +685,8 @@ if (ENABLE_SDL2)
             REPO crueter-ci/SDL2
             VERSION 2.32.8
             MIN_VERSION 2.26.4
-            DISABLED_PLATFORMS "solaris"
             CMAKE_FILENAME sdl2
+            FORCE_DOWNLOAD ${FORCE_DOWNLOAD_SDL2}
         )
     elseif (YUZU_USE_EXTERNAL_SDL2)
         message(STATUS "Using SDL2 from externals.")
@@ -758,7 +759,7 @@ if (ENABLE_QT)
     endif()
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        find_package(Qt6 REQUIRED COMPONENTS DBus GuiPrivate)
+        find_package(Qt6 REQUIRED COMPONENTS DBus OPTIONAL_COMPONENTS GuiPrivate)
     elseif (UNIX AND NOT APPLE)
         find_package(Qt6 REQUIRED COMPONENTS DBus Gui)
     endif()
