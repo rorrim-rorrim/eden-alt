@@ -679,6 +679,7 @@ endif()
 # TODO(crueter): combine this all with CPM.
 if (ENABLE_SDL2)
     if (YUZU_USE_BUNDLED_SDL2)
+        message(STATUS "Using SDL2 bundled")
         AddCIPackage(
             PACKAGE SDL2
             NAME SDL2
