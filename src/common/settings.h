@@ -518,10 +518,14 @@ struct Values {
                                                    Category::RendererAdvanced};
 
     SwitchableSetting<u8, true> dyna_state{linkage,
-#ifdef ANDROID
-                                           0,
-#else
+#if defined (_WIN32)
                                            3,
+#elif defined(__FreeBSD__)
+                                           3,
+#elif defined(__unix__)
+                                           2,
+#else
+                                           0,
 #endif
                                            0,
                                            3,
