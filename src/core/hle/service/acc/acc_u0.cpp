@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -26,7 +29,7 @@ ACC_U0::ACC_U0(std::shared_ptr<Module> module_, std::shared_ptr<ProfileManager> 
         {102, nullptr, "AuthenticateApplicationAsync"},
         {103, nullptr, "CheckNetworkServiceAvailabilityAsync"}, // 4.0.0+
         {110, &ACC_U0::StoreSaveDataThumbnailApplication, "StoreSaveDataThumbnail"},
-        {111, nullptr, "ClearSaveDataThumbnail"},
+        {111, &ACC_U0::ClearSaveDataThumbnail, "ClearSaveDataThumbnail"},
         {120, nullptr, "CreateGuestLoginRequest"},
         {130, nullptr, "LoadOpenContext"}, // 5.0.0+
         {131, &ACC_U0::ListOpenContextStoredUsers, "ListOpenContextStoredUsers"}, // 6.0.0+

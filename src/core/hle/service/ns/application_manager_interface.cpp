@@ -286,7 +286,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {2517, nullptr, "CreateApplicationInstance"},
         {2518, nullptr, "UpdateQualificationForDebug"},
         {2519, nullptr, "IsQualificationTransitionSupported"},
-        {2520, nullptr, "IsQualificationTransitionSupportedByProcessId"},
+        {2520, D<&IApplicationManagerInterface::IsQualificationTransitionSupportedByProcessId>,"IsQualificationTransitionSupportedByProcessId"},
         {2521, nullptr, "GetRightsUserChangedEvent"},
         {2522, nullptr, "IsRomRedirectionAvailable"},
         {2800, nullptr, "GetApplicationIdOfPreomia"},
@@ -520,6 +520,13 @@ Result IApplicationManagerInterface::GetApplicationTerminateResult(Out<Result> o
                                                                    u64 application_id) {
     LOG_WARNING(Service_NS, "(STUBBED) called. application_id={:016X}", application_id);
     *out_result = ResultSuccess;
+    R_SUCCEED();
+}
+
+Result IApplicationManagerInterface::IsQualificationTransitionSupportedByProcessId(
+    Out<bool> out_is_supported, u64 process_id) {
+    LOG_WARNING(Service_NS, "(STUBBED) called. process_id={:016X}", process_id);
+    *out_is_supported = true;
     R_SUCCEED();
 }
 

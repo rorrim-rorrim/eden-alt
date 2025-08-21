@@ -53,6 +53,7 @@ public:
                                         u64 application_id);
     Result CheckApplicationLaunchVersion(u64 application_id);
     Result GetApplicationTerminateResult(Out<Result> out_result, u64 application_id);
+    Result IsQualificationTransitionSupportedByProcessId(Out<bool> out_is_supported, u64 process_id);
 
 private:
     KernelHelpers::ServiceContext service_context;

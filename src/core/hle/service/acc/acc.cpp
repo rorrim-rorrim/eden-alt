@@ -1108,6 +1108,35 @@ void Module::Interface::StoreSaveDataThumbnail(HLERequestContext& ctx, const Com
     rb.Push(ResultSuccess);
 }
 
+void Module::Interface::ClearSaveDataThumbnail(HLERequestContext& ctx) {
+    LOG_WARNING(Service_ACC, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void Module::Interface::LoadSaveDataThumbnail(HLERequestContext& ctx) {
+    // TODO: Grab thumbnail from Nand so this can be unstubbed
+    // For now, pretend a thumbnail exists and return dummy data
+    std::vector<u8> dummy_thumbnail(THUMBNAIL_SIZE, 0);
+    ctx.WriteBuffer(dummy_thumbnail);
+
+    LOG_WARNING(Service_ACC, "(STUBBED) called. returning dummy thumbnail");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push<u64>(THUMBNAIL_SIZE);
+}
+
+void Module::Interface::GetSaveDataThumbnailExistence(HLERequestContext& ctx) {
+    // TODO: Get actual thumbnail image
+    LOG_WARNING(Service_ACC, "(STUBBED) called. Returning true (dummy thumbnail)");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push<bool>(true);
+}
+
 void Module::Interface::TrySelectUserWithoutInteractionDeprecated(HLERequestContext& ctx) {
     LOG_DEBUG(Service_ACC, "called");
     // A u8 is passed into this function which we can safely ignore. It's to determine if we have
