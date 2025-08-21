@@ -518,7 +518,11 @@ struct Values {
                                                    Category::RendererAdvanced};
 
     SwitchableSetting<u8, true> dyna_state{linkage,
+#ifdef ANDROID
                                            0,
+#else
+                                           3,
+#endif
                                            0,
                                            3,
                                            "dyna_state",

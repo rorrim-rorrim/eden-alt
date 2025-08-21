@@ -346,9 +346,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
     INSERT(Settings,
            dyna_state,
            tr("Extended Dynamic State"),
-           tr("Enables the VkExtendedDynamicState* extensions.\nHigher dynamic states will "
-              "generally improve "
-              "performance, but may cause issues on certain games or devices."));
+           tr("Controls the number of extensions that can be used in Extended Dynamic State.\nHigher numbers allow for more extensions and can increase performance, but may cause issues with some drivers and vendors.\nThe default value is 3, but can be gradually decreased until stability is achieved."));
 
     INSERT(Settings,
            provoking_vertex,
