@@ -678,8 +678,10 @@ endif()
 # find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the YUZU_find_package
 # TODO(crueter): combine this all with CPM.
 if (ENABLE_SDL2)
+    message(STATUS "SDL2 enabled, fetching...")
+
     if (YUZU_USE_BUNDLED_SDL2)
-        message(STATUS "Using SDL2 bundled")
+        message(STATUS "Using bundled SDL2")
         AddCIPackage(
             PACKAGE SDL2
             NAME SDL2
