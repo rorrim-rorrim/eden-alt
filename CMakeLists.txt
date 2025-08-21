@@ -44,22 +44,17 @@ if (PLATFORM_FREEBSD)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
 endif()
 
-# Check if SDL2::SDL2 target exists; if not, create an alias
-if (TARGET SDL2::SDL2-static)
-    add_library(SDL2::SDL2 ALIAS SDL2::SDL2-static)
-elseif (TARGET SDL2::SDL2-shared)
-    add_library(SDL2::SDL2 ALIAS SDL2::SDL2-shared)
-endif()
-
 # Set bundled sdl2/qt as dependent options.
 # On Linux system SDL2 is likely to be lacking HIDAPI support which have drawbacks but is needed for SDL motion
 CMAKE_DEPENDENT_OPTION(ENABLE_SDL2 "Enable the SDL2 frontend" ON "NOT ANDROID" OFF)
 
+set(EXT_DEFAULT ON)
+
 if (PLATFORM_FREEBSD)
-    CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" OFF "ENABLE_SDL2;NOT MSVC" OFF)
-else()
-    CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ON "ENABLE_SDL2;NOT MSVC" OFF)
+    set(EXT_DEFAULT OFF)
 endif()
+
+CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ${EXT_DEFAULT} "ENABLE_SDL2;NOT MSVC" OFF)
 
 cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID" OFF)
 
@@ -77,29 +72,10 @@ option(YUZU_USE_CPM "Use CPM to fetch Eden dependencies if needed" ON)
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 
-if (PLATFORM_FREEBSD)
-    option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" OFF)
-else()
-    option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ON)
-endif()
-
-if (PLATFORM_FREEBSD)
-    option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" OFF)
-else()
-    option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
-endif()
-
-if (PLATFORM_FREEBSD)
-    option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" OFF)
-else()
-    option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ON)
-endif()
-
-if (PLATFORM_FREEBSD)
-    option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" OFF)
-else()
-    option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ON)
-endif()
+option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ${EXT_DEFAULT})
+option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ${EXT_DEFAULT})
+option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ${EXT_DEFAULT})
+option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ${EXT_DEFAULT})
 
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 
@@ -115,11 +91,7 @@ option(ENABLE_MICROPROFILE "Enables microprofile capabilities" OFF)
 
 option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
-if (PLATFORM_FREEBSD)
-    option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" OFF)
-else()
-    option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ON)
-endif()
+option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ${EXT_DEFAULT})
 
 option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
 
@@ -676,8 +648,50 @@ if (NOT YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
 endif()
 
 # find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the YUZU_find_package
-# TODO(crueter): combine this all with CPM.
 if (ENABLE_SDL2)
+    # this was hard to get right, but ultimately I decided to make it so that FORCE_DOWNLOAD_SDL2 also downloads the
+    # external one. Really silly behavior imo but in the interest of getting something out there I'm leaving it for now
+    if (YUZU_USE_EXTERNAL_SDL2 OR FORCE_DOWNLOAD_SDL2)
+        message(STATUS "Using SDL2 from externals.")
+        if (NOT WIN32)
+            # Yuzu itself needs: Atomic Audio Events Joystick Haptic Sensor Threads Timers
+            # Since 2.0.18 Atomic+Threads required for HIDAPI/libusb (see https://github.com/libsdl-org/SDL/issues/5095)
+            # Yuzu-cmd also needs: Video (depends on Loadso/Dlopen)
+            # CPUinfo also required for SDL Audio, at least until 2.28.0 (see https://github.com/libsdl-org/SDL/issues/7809)
+            set(SDL_UNUSED_SUBSYSTEMS
+                File Filesystem
+                Locale Power Render)
+            foreach(_SUB ${SDL_UNUSED_SUBSYSTEMS})
+              string(TOUPPER ${_SUB} _OPT)
+              set(SDL_${_OPT} OFF)
+            endforeach()
+
+            set(HIDAPI ON)
+        endif()
+
+        if (APPLE)
+            set(SDL_FILE ON)
+        endif()
+
+        if ("${YUZU_SYSTEM_PROFILE}" STREQUAL "steamdeck")
+            set(SDL_HASH cc016b0046)
+            set(SDL_PIPEWIRE OFF) # build errors out with this on
+            set(SDL_SHA512SUM 34d5ef58da6a4f9efa6689c82f67badcbd741f5a4f562a9c2c30828fa839830fb07681c5dc6a7851520e261c8405a416ac0a2c2513b51984fb3b4fa4dcb3e20b)
+        else()
+            set(SDL_HASH 54772f345a)
+            set(SDL_SHA512SUM 2a68a0e01c390043aa9d9df63d8a20a52076c88bb460ac4e0f33194ca7d9bc8fadbbcc04e7506872ac4b6354a73fbc267c036f82200da59465789b87c7d9e3a4)
+        endif()
+
+        AddPackage(
+            NAME SDL2
+            REPO "libsdl-org/SDL"
+            SHA ${SDL_HASH}
+            HASH ${SDL_SHA512SUM}
+            KEY ${YUZU_SYSTEM_PROFILE}
+            BUNDLED_PACKAGE ON
+        )
+    endif()
+
     if (YUZU_USE_BUNDLED_SDL2)
         message(STATUS "Using bundled SDL2")
         AddCIPackage(
@@ -688,9 +702,8 @@ if (ENABLE_SDL2)
             MIN_VERSION 2.26.4
             CMAKE_FILENAME sdl2
             FORCE_DOWNLOAD ${FORCE_DOWNLOAD_SDL2}
+            TARGET "SDL2::SDL2"
         )
-    elseif (YUZU_USE_EXTERNAL_SDL2)
-        message(STATUS "Using SDL2 from externals.")
     endif()
 
     if (YUZU_USE_BUNDLED_SDL2 OR NOT YUZU_USE_EXTERNAL_SDL2)
