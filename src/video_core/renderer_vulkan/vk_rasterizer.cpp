@@ -1031,10 +1031,18 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
         return;
     }
     if (!regs.viewport_scale_offset_enabled) {
-        const auto x = static_cast<float>(regs.surface_clip.x);
-        const auto y = static_cast<float>(regs.surface_clip.y);
-        const auto width = static_cast<float>(regs.surface_clip.width);
-        const auto height = static_cast<float>(regs.surface_clip.height);
+                float x = static_cast<float>(regs.surface_clip.x);
+                float y = static_cast<float>(regs.surface_clip.y);
+                float width  = static_cast<float>(regs.surface_clip.width);
+                float height = static_cast<float>(regs.surface_clip.height);
+
+                const bool lower_left =
+                            regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft;
+                if (lower_left) {
+                    // Vulkan viewport space is top-left; emulate lower-left with negative height.
+                    y += height;
+                    height = -height;
+                }
         VkViewport viewport{
             .x = x,
             .y = y,
@@ -1070,15 +1078,20 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
         return;
     }
     if (!regs.viewport_scale_offset_enabled) {
-        const auto x = static_cast<float>(regs.surface_clip.x);
-        const auto y = static_cast<float>(regs.surface_clip.y);
-        const auto width = static_cast<float>(regs.surface_clip.width);
-        const auto height = static_cast<float>(regs.surface_clip.height);
-        VkRect2D scissor;
-        scissor.offset.x = static_cast<u32>(x);
-        scissor.offset.y = static_cast<u32>(y);
-        scissor.extent.width = static_cast<u32>(width != 0.0f ? width : 1.0f);
-        scissor.extent.height = static_cast<u32>(height != 0.0f ? height : 1.0f);
+                u32 x = regs.surface_clip.x;
+                u32 y = regs.surface_clip.y;
+                u32 width  = regs.surface_clip.width  ? regs.surface_clip.width  : 1u;
+                u32 height = regs.surface_clip.height ? regs.surface_clip.height : 1u;
+
+                if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
+                   // Vulkan scissor is top-left; convert from lower-left coordinates.
+                   y = regs.surface_clip.height - (y + height);
+                }
+                VkRect2D scissor{};
+                scissor.offset.x    = static_cast<int32_t>(x);
+                scissor.offset.y    = static_cast<int32_t>(y);
+                scissor.extent.width  = width;
+                scissor.extent.height = height;
         scheduler.Record([scissor](vk::CommandBuffer cmdbuf) { cmdbuf.SetScissor(0, scissor); });
         return;
     }
@@ -1607,7 +1620,7 @@ void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs) 
             highest_dirty_attr = index;
         }
     }
-    for (size_t index = 0; index < highest_dirty_attr; ++index) {
+    for (size_t index = 0; index <= highest_dirty_attr; ++index) {
         const Maxwell::VertexAttribute attribute{regs.vertex_attrib_format[index]};
         const u32 binding{attribute.buffer};
         dirty[Dirty::VertexAttribute0 + index] = false;
