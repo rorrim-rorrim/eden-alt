@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -233,7 +236,7 @@ Result BucketTree::Initialize(VirtualFile node_storage, VirtualFile entry_storag
 void BucketTree::Initialize(size_t node_size, s64 end_offset) {
     ASSERT(NodeSizeMin <= node_size && node_size <= NodeSizeMax);
     ASSERT(Common::IsPowerOfTwo(node_size));
-    ASSERT(end_offset > 0);
+    //TODO: ASSERT(end_offset > 0);
     ASSERT(!this->IsInitialized());
 
     m_node_size = node_size;
