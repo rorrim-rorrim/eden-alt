@@ -299,7 +299,7 @@ Result KPageTableBase::InitializeForProcess(Svc::CreateProcessFlag as_type, bool
     const bool is_64bit_as = (as_type & as_mask) == Svc::CreateProcessFlag::AddressSpace64Bit;
 
     if (is_64bit_as && (as_type & Svc::CreateProcessFlag::EnableAliasRegionExtraSize)
-        != static_cast<Svc::CreateProcessFlag>(0) && alias_region_size) {
+        != Svc::CreateProcessFlag{0} && alias_region_size) {
         const size_t address_space_size = (GetInteger(end) - GetInteger(start));
 
         // Same as address_space_size/8 but faster due to bit shifting operation
