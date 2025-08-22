@@ -49,6 +49,22 @@ using VideoCommon::ImageViewType;
 
 
 namespace {
+
+inline bool IsProblemBlend(const Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (regs.blend_per_target_enabled)
+        return false;
+    if (!regs.blend.enable[0])
+        return false;
+
+    if (Vulkan::MaxwellToVK::BlendFactor(regs.blend.color_source) != VK_BLEND_FACTOR_ONE ||
+        Vulkan::MaxwellToVK::BlendFactor(regs.blend.color_dest) != VK_BLEND_FACTOR_ZERO ||
+        Vulkan::MaxwellToVK::BlendFactor(regs.blend.alpha_source) != VK_BLEND_FACTOR_ONE ||
+        Vulkan::MaxwellToVK::BlendFactor(regs.blend.alpha_dest) != VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA)
+        return false;
+
+    return true;
+}
+
 struct DrawParams {
     u32 base_instance;
     u32 num_instances;
@@ -237,6 +253,14 @@ void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
         const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
         const u32 num_instances{instance_count};
         const DrawParams draw_params{MakeDrawParams(draw_state, num_instances, is_indexed)};
+
+        //TEMP: skips problematic lighting blend detected in ninja gaiden ragebound
+        //TODO: fix blending properly
+        if (IsProblemBlend(maxwell3d->regs)) {
+            // Skip recording the draw = invisible
+            return;
+        }
+
         scheduler.Record([draw_params](vk::CommandBuffer cmdbuf) {
             if (draw_params.is_indexed) {
                 cmdbuf.DrawIndexed(draw_params.num_vertices, draw_params.num_instances,
@@ -1535,27 +1559,61 @@ void RasterizerVulkan::UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs) {
     }
 
     if (state_tracker.TouchBlendEquations()) {
+
         std::array<VkColorBlendEquationEXT, Maxwell::NumRenderTargets> setup_blends{};
-        for (size_t index = 0; index < Maxwell::NumRenderTargets; index++) {
-            const auto blend_setup = [&]<typename T>(const T& guest_blend) {
-                auto& host_blend = setup_blends[index];
-                host_blend.srcColorBlendFactor = MaxwellToVK::BlendFactor(guest_blend.color_source);
-                host_blend.dstColorBlendFactor = MaxwellToVK::BlendFactor(guest_blend.color_dest);
-                host_blend.colorBlendOp = MaxwellToVK::BlendEquation(guest_blend.color_op);
-                host_blend.srcAlphaBlendFactor = MaxwellToVK::BlendFactor(guest_blend.alpha_source);
-                host_blend.dstAlphaBlendFactor = MaxwellToVK::BlendFactor(guest_blend.alpha_dest);
-                host_blend.alphaBlendOp = MaxwellToVK::BlendEquation(guest_blend.alpha_op);
-            };
-            if (!regs.blend_per_target_enabled) {
-                blend_setup(regs.blend);
-                continue;
+
+        const auto blend_setup = [&]<typename T>(VkColorBlendEquationEXT& host_blend, const T& guest_blend) {
+            host_blend.srcColorBlendFactor = MaxwellToVK::BlendFactor(guest_blend.color_source);
+            host_blend.dstColorBlendFactor = MaxwellToVK::BlendFactor(guest_blend.color_dest);
+            host_blend.colorBlendOp = MaxwellToVK::BlendEquation(guest_blend.color_op);
+            host_blend.srcAlphaBlendFactor = MaxwellToVK::BlendFactor(guest_blend.alpha_source);
+            host_blend.dstAlphaBlendFactor = MaxwellToVK::BlendFactor(guest_blend.alpha_dest);
+            host_blend.alphaBlendOp = MaxwellToVK::BlendEquation(guest_blend.alpha_op);
+        };
+
+        bool skip_record = false;
+        if (!regs.blend_per_target_enabled) {
+            if (!regs.blend.enable[0]) {
+                skip_record = true;
+            } else {
+                blend_setup(setup_blends[0], regs.blend);
             }
-            blend_setup(regs.blend_per_target[index]);
+        } else {
+            for (size_t index = 0; index < Maxwell::NumRenderTargets; index++) {
+                blend_setup(setup_blends[index], regs.blend_per_target[index]);
+            }
         }
-        scheduler.Record([setup_blends](vk::CommandBuffer cmdbuf) {
-            cmdbuf.SetColorBlendEquationEXT(0, setup_blends);
-        });
+
+        if (!skip_record) {
+            scheduler.Record([setup_blends](vk::CommandBuffer cmdbuf) {
+                cmdbuf.SetColorBlendEquationEXT(0, setup_blends);
+            });
+        }
     }
+
+    // if (state_tracker.TouchBlendEquations()) {
+    //     std::array<VkColorBlendEquationEXT, Maxwell::NumRenderTargets> setup_blends{};
+    //     for (size_t index = 0; index < Maxwell::NumRenderTargets; index++) {
+    //         const auto blend_setup = [&]<typename T>(const T& guest_blend) {
+    //             auto& host_blend = setup_blends[index];
+    //             host_blend.srcColorBlendFactor = MaxwellToVK::BlendFactor(guest_blend.color_source);
+    //             host_blend.dstColorBlendFactor = MaxwellToVK::BlendFactor(guest_blend.color_dest);
+    //             host_blend.colorBlendOp = MaxwellToVK::BlendEquation(guest_blend.color_op);
+    //             host_blend.srcAlphaBlendFactor = MaxwellToVK::BlendFactor(guest_blend.alpha_source);
+    //             host_blend.dstAlphaBlendFactor = MaxwellToVK::BlendFactor(guest_blend.alpha_dest);
+    //             host_blend.alphaBlendOp = MaxwellToVK::BlendEquation(guest_blend.alpha_op);
+    //         };
+    //         if (!regs.blend_per_target_enabled) {
+    //             blend_setup(regs.blend);
+    //             continue;
+    //         }
+    //         blend_setup(regs.blend_per_target[index]);
+    //     }
+    //     scheduler.Record([setup_blends](vk::CommandBuffer cmdbuf) {
+    //         cmdbuf.SetColorBlendEquationEXT(0, setup_blends);
+    //     });
+    // }
+
 }
 
 void RasterizerVulkan::UpdateStencilTestEnable(Tegra::Engines::Maxwell3D::Regs& regs) {

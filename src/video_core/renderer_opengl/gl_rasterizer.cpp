@@ -1140,40 +1140,57 @@ void RasterizerOpenGL::SyncBlendState() {
     if (!regs.blend_per_target_enabled) {
         if (!regs.blend.enable[0]) {
             glDisable(GL_BLEND);
-            return;
+        } else {
+            glEnable(GL_BLEND);
+
+            //TEMP: skips problematic lighting blend detected in ninja gaiden ragebound
+            //TODO: fix blending properly
+            const bool problem_texture = !regs.blend_per_target_enabled && regs.blend.enable[0] &&
+                MaxwellToGL::BlendFunc(regs.blend.color_source) == GL_ONE &&
+                MaxwellToGL::BlendFunc(regs.blend.color_dest) == GL_ZERO &&
+                MaxwellToGL::BlendFunc(regs.blend.alpha_source) == GL_ONE &&
+                MaxwellToGL::BlendFunc(regs.blend.alpha_dest) == GL_ONE_MINUS_SRC_ALPHA &&
+                MaxwellToGL::BlendEquation(regs.blend.color_op) == GL_FUNC_ADD &&
+                MaxwellToGL::BlendEquation(regs.blend.alpha_op) == GL_FUNC_ADD &&
+                regs.iterated_blend.enable && regs.iterated_blend.pass_count > 0;
+
+            if (problem_texture) {
+                glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE_MINUS_SRC_COLOR, GL_ZERO); //modded call to reach proper blending in this unproper scenario
+                glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+            } else {
+                glBlendFuncSeparate(MaxwellToGL::BlendFunc(regs.blend.color_source),
+                                    MaxwellToGL::BlendFunc(regs.blend.color_dest),
+                                    MaxwellToGL::BlendFunc(regs.blend.alpha_source),
+                                    MaxwellToGL::BlendFunc(regs.blend.alpha_dest));
+                glBlendEquationSeparate(MaxwellToGL::BlendEquation(regs.blend.color_op),
+                                        MaxwellToGL::BlendEquation(regs.blend.alpha_op));
+            }
         }
-        glEnable(GL_BLEND);
-        glBlendFuncSeparate(MaxwellToGL::BlendFunc(regs.blend.color_source),
-                            MaxwellToGL::BlendFunc(regs.blend.color_dest),
-                            MaxwellToGL::BlendFunc(regs.blend.alpha_source),
-                            MaxwellToGL::BlendFunc(regs.blend.alpha_dest));
-        glBlendEquationSeparate(MaxwellToGL::BlendEquation(regs.blend.color_op),
-                                MaxwellToGL::BlendEquation(regs.blend.alpha_op));
-        return;
-    }
+    } else {
+        // Handle per-target blending
+        const bool force = flags[Dirty::BlendIndependentEnabled];
+        flags[Dirty::BlendIndependentEnabled] = false;
 
-    const bool force = flags[Dirty::BlendIndependentEnabled];
-    flags[Dirty::BlendIndependentEnabled] = false;
+        for (std::size_t i = 0; i < Maxwell::NumRenderTargets; ++i) {
+            if (!force && !flags[Dirty::BlendState0 + i]) {
+                continue;
+            }
+            flags[Dirty::BlendState0 + i] = false;
 
-    for (std::size_t i = 0; i < Maxwell::NumRenderTargets; ++i) {
-        if (!force && !flags[Dirty::BlendState0 + i]) {
-            continue;
+            if (!regs.blend.enable[i]) {
+                glDisablei(GL_BLEND, static_cast<GLuint>(i));
+                continue;
+            }
+            glEnablei(GL_BLEND, static_cast<GLuint>(i));
+
+            const auto& src = regs.blend_per_target[i];
+            glBlendFuncSeparatei(static_cast<GLuint>(i), MaxwellToGL::BlendFunc(src.color_source),
+                                MaxwellToGL::BlendFunc(src.color_dest),
+                                MaxwellToGL::BlendFunc(src.alpha_source),
+                                MaxwellToGL::BlendFunc(src.alpha_dest));
+            glBlendEquationSeparatei(static_cast<GLuint>(i), MaxwellToGL::BlendEquation(src.color_op),
+                                    MaxwellToGL::BlendEquation(src.alpha_op));
         }
-        flags[Dirty::BlendState0 + i] = false;
-
-        if (!regs.blend.enable[i]) {
-            glDisablei(GL_BLEND, static_cast<GLuint>(i));
-            continue;
-        }
-        glEnablei(GL_BLEND, static_cast<GLuint>(i));
-
-        const auto& src = regs.blend_per_target[i];
-        glBlendFuncSeparatei(static_cast<GLuint>(i), MaxwellToGL::BlendFunc(src.color_source),
-                             MaxwellToGL::BlendFunc(src.color_dest),
-                             MaxwellToGL::BlendFunc(src.alpha_source),
-                             MaxwellToGL::BlendFunc(src.alpha_dest));
-        glBlendEquationSeparatei(static_cast<GLuint>(i), MaxwellToGL::BlendEquation(src.color_op),
-                                 MaxwellToGL::BlendEquation(src.alpha_op));
     }
 }
 
