@@ -403,6 +403,7 @@ if (YUZU_USE_CPM)
 
         GIT_VERSION 1.88.0
         VERSION 1.57
+        EXCLUDE_FROM_ALL ON
     )
 
     # really annoying thing where boost::headers doesn't work with cpm
@@ -433,6 +434,7 @@ if (YUZU_USE_CPM)
         VERSION 8
         OPTIONS
             "FMT_INSTALL OFF"
+        EXCLUDE_FROM_ALL ON
     )
 
     # lz4
@@ -442,6 +444,7 @@ if (YUZU_USE_CPM)
         SHA ebb370ca83
         HASH 43600e87b35256005c0f2498fa56a77de6783937ba4cfce38c099f27c03188d097863e8a50c5779ca0a7c63c29c4f7ed0ae526ec798c1fd2e3736861b62e0a37
         SOURCE_SUBDIR build/cmake
+        EXCLUDE_FROM_ALL ON
     )
 
     if (lz4_ADDED)
@@ -455,6 +458,7 @@ if (YUZU_USE_CPM)
         SHA 55f93686c0
         HASH b739749b066800e21154506ea150d2c5cbce8a45344177f46f884547a1399d26753166fd0df8135269ce28cf223552b1b65cd625b88c844d54753f2434900486
         VERSION 3.8
+        EXCLUDE_FROM_ALL ON
     )
 
     # zlib
@@ -495,6 +499,7 @@ if (YUZU_USE_CPM)
             SHA 644821ce28
             HASH f8795f98acf2c02c0db8e734cc866d5caebab4b4a306e93598b97cb3c0c728dafe8283dce27ffe8d42460e5ae7302f3f32e7e274a7f991b73511ac88eef21b1f
             VERSION 3.0.1
+            EXCLUDE_FROM_ALL ON
         )
     endif()
 
@@ -506,6 +511,7 @@ if (YUZU_USE_CPM)
         VERSION 1.3
         HASH 3de1beb4fa3d6b1e03eda8dd1e7580694f854af3ed3975dcdabfdcdf76b97f322b9734d35ea7f185855bb490d957842b938b26da4dd2dfded509390f8d2794dd
         FIND_PACKAGE_ARGUMENTS "MODULE"
+        EXCLUDE_FROM_ALL ON
     )
 
     if (enet_ADDED)
@@ -525,6 +531,7 @@ if (YUZU_USE_CPM)
             "OPUS_BUILD_PROGRAMS OFF"
             "OPUS_INSTALL_PKG_CONFIG_MODULE OFF"
             "OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF"
+        EXCLUDE_FROM_ALL ON
     )
 
     if(ENABLE_CUBEB)
@@ -539,6 +546,7 @@ if (YUZU_USE_CPM)
                 "BUILD_TESTS OFF"
                 "BUILD_TOOLS OFF"
                 "BUNDLE_SPEEX ON"
+            EXCLUDE_FROM_ALL ON
         )
 
         if (cubeb_ADDED)
@@ -600,6 +608,7 @@ if(NOT TARGET Boost::headers)
         SHA 0456900fad
         HASH 50cd75dcdfc5f082225cdace058f47b4fb114a47585f7aee1d22236a910a80b667186254c214fa2fcebac67ae6d37ba4b6e695e1faea8affd6fd42a03cf996e3
         BUNDLED_PACKAGE ON
+        EXCLUDE_FROM_ALL ON
     )
 endif()
 
@@ -637,8 +646,8 @@ AddPackage(
     REPO brofield/simpleini
     SHA 09c21bda1d
     HASH 99779ca9b6e040d36558cadf484f9ffdab5b47bcc8fc72e4d33639d1d60c0ceb4410d335ba445d72a4324e455167fd6769d99b459943aa135bec085dff2d4b7c
-    EXCLUDE_FROM_ALL ON
     FIND_PACKAGE_ARGUMENTS "MODULE"
+    EXCLUDE_FROM_ALL ON
 )
 
 # TODO(crueter): Work around this
@@ -689,6 +698,7 @@ if (ENABLE_SDL2)
             HASH ${SDL_SHA512SUM}
             KEY ${YUZU_SYSTEM_PROFILE}
             BUNDLED_PACKAGE ON
+            EXCLUDE_FROM_ALL ON
         )
     endif()
 
@@ -706,9 +716,7 @@ if (ENABLE_SDL2)
         )
     endif()
 
-    if (YUZU_USE_BUNDLED_SDL2 OR NOT YUZU_USE_EXTERNAL_SDL2)
-        find_package(SDL2 2.26.4 REQUIRED)
-    endif()
+    find_package(SDL2 2.26.4 REQUIRED)
 endif()
 
 # List of all FFmpeg components required
