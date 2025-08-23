@@ -295,6 +295,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
               "be changed while playing.\nSome games may require booting on high to render "
               "properly."));
     INSERT(Settings,
+           dma_accuracy,
+           tr("DMA Level:"),
+           tr("Adjusts the DMA precision level. Higher precision may fix some games, but it can also directly impact performance in some cases.\nIf unsure, leave it at Default."));
+    INSERT(Settings,
            use_asynchronous_shaders,
            tr("Use asynchronous shader building (Hack)"),
            tr("Enables asynchronous shader compilation, which may reduce shader stutter.\nThis "
@@ -521,6 +525,13 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent)
                               PAIR(GpuAccuracy, Normal, tr("Normal")),
                               PAIR(GpuAccuracy, High, tr("High")),
                               PAIR(GpuAccuracy, Extreme, tr("Extreme")),
+                          }});
+    translations->insert({Settings::EnumMetadata<Settings::DmaAccuracy>::Index(),
+                          {
+                              PAIR(DmaAccuracy, Default, tr("Default")),
+                              PAIR(DmaAccuracy, Normal, tr("Normal")),
+                              PAIR(DmaAccuracy, High, tr("High")),
+                              PAIR(DmaAccuracy, Extreme, tr("Extreme")),
                           }});
     translations->insert(
         {Settings::EnumMetadata<Settings::CpuAccuracy>::Index(),

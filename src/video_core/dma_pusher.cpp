@@ -102,17 +102,29 @@ bool DmaPusher::Step() {
             ProcessCommands(headers);
         };
 
-        if (Settings::IsGPULevelExtreme()) {
+        if (Settings::values.current_gpu_accuracy == DmaAccuracy::Extreme) {
             safe_process();
-        } else if (Settings::IsGPULevelHigh()) {
+        } else if (Settings::values.current_gpu_accuracy == DmaAccuracy::High) {
             if (dma_state.method >= MacroRegistersStart) {
                 unsafe_process();
             } else {
                 safe_process();
             }
-        } else {
+        } else if (Settings::values.current_gpu_accuracy == DmaAccuracy::Normal) {
             unsafe_process();
-        }
+        } else if (Settings::values.current_gpu_accuracy == DmaAccuracy::Default) {
+            if (Settings::IsGPULevelExtreme()) {
+                safe_process();
+            } else if (Settings::IsGPULevelHigh()) {
+                if (dma_state.method >= MacroRegistersStart) {
+                    unsafe_process();
+                } else {
+                    safe_process();
+                }
+            } else {
+                unsafe_process();
+            }
+	    }
 
         if (dma_pushbuffer_subindex >= command_list.command_lists.size()) {
             // We've gone through the current list, remove it from the queue
