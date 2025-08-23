@@ -102,29 +102,26 @@ bool DmaPusher::Step() {
             ProcessCommands(headers);
         };
 
-        if (Settings::values.current_gpu_accuracy == DmaAccuracy::Extreme) {
+        const Settings::DmaAccuracy accuracy = Settings::values.dma_accuracy.GetValue();
+        const bool use_gpu_accuracy = accuracy == Settings::DmaAccuracy::Default;
+
+        // reduces eye bleeding but also macros are dumb so idk
+#define CHECK_LEVEL(level) use_gpu_accuracy ? Settings::IsGPULevel##level() : accuracy == Settings::DmaAccuracy::level;
+            const bool force_safe = CHECK_LEVEL(Extreme)
+            const bool unsafe_compute = CHECK_LEVEL(High)
+#undef CHECK_LEVEL
+
+        if (force_safe) {
             safe_process();
-        } else if (Settings::values.current_gpu_accuracy == DmaAccuracy::High) {
+        } else if (unsafe_compute) {
             if (dma_state.method >= MacroRegistersStart) {
                 unsafe_process();
             } else {
                 safe_process();
             }
-        } else if (Settings::values.current_gpu_accuracy == DmaAccuracy::Normal) {
+        } else {
             unsafe_process();
-        } else if (Settings::values.current_gpu_accuracy == DmaAccuracy::Default) {
-            if (Settings::IsGPULevelExtreme()) {
-                safe_process();
-            } else if (Settings::IsGPULevelHigh()) {
-                if (dma_state.method >= MacroRegistersStart) {
-                    unsafe_process();
-                } else {
-                    safe_process();
-                }
-            } else {
-                unsafe_process();
-            }
-	    }
+        }
 
         if (dma_pushbuffer_subindex >= command_list.command_lists.size()) {
             // We've gone through the current list, remove it from the queue

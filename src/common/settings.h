@@ -427,17 +427,19 @@ struct Values {
                                                       Specialization::Default,
                                                       true,
                                                       true};
+
     GpuAccuracy current_gpu_accuracy{GpuAccuracy::High};
+
     SwitchableSetting<DmaAccuracy, true> dma_accuracy{linkage,
                                                       DmaAccuracy::Default,
-                                                      DmaAccuracy::Normal,
-                                                      DmaAccuracy::High,
+                                                      DmaAccuracy::Default,
                                                       DmaAccuracy::Extreme,
                                                       "dma_accuracy",
                                                       Category::RendererAdvanced,
                                                       Specialization::Default,
                                                       true,
                                                       true};
+
     SwitchableSetting<AnisotropyMode, true> max_anisotropy{linkage,
 #ifdef ANDROID
                                                            AnisotropyMode::Default,
