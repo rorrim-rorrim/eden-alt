@@ -288,8 +288,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
               "and safe to set at 16x on most GPUs."));
     INSERT(Settings,
            gpu_accuracy,
-           tr("Accuracy Level:"),
-           tr("GPU emulation accuracy.\nMost games render fine with Normal, but High is still "
+           tr("GPU Level:"),
+           tr("Controls the GPU emulation accuracy.\nMost games render fine with Normal, but High is still "
               "required for some.\nParticles tend to only render correctly with High "
               "accuracy.\nExtreme should only be used for debugging.\nThis option can "
               "be changed while playing.\nSome games may require booting on high to render "
@@ -297,7 +297,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
     INSERT(Settings,
            dma_accuracy,
            tr("DMA Level:"),
-           tr("Adjusts the DMA precision level. Higher precision may fix some games, but it can also directly impact performance in some cases.\nIf unsure, leave it at Default."));
+           tr("Controls the DMA precision accuracy. Higher precision can fix issues in some games, but it can also impact performance in some cases.\nIf unsure, leave it at Default."));
     INSERT(Settings,
            use_asynchronous_shaders,
            tr("Use asynchronous shader building (Hack)"),
