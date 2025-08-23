@@ -934,6 +934,12 @@
     <string name="renderer_accuracy_high">High</string>
     <string name="renderer_accuracy_extreme">Extreme (Slow)</string>
 
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">Default</string>
+    <string name="dma_accuracy_normal">Normal</string>
+    <string name="dma_accuracy_high">High</string>
+    <string name="dma_accuracy_extreme">Extreme</string>
+
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">ASTC Decoding Method</string>
     <string name="accelerate_astc_description">Pick how ASTC-compressed textures are decoded for rendering: CPU (slow, safe), GPU (fast, recommended), or CPU Async (no stutters, may cause issues)</string>
