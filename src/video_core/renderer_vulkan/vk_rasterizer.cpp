@@ -1550,7 +1550,18 @@ void RasterizerVulkan::UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs) {
                 host_blend.alphaBlendOp = MaxwellToVK::BlendEquation(guest_blend.alpha_op);
             };
             if (!regs.blend_per_target_enabled) {
-                blend_setup(regs.blend);
+                //TEMP: skips problematic lighting blend detected in ninja gaiden ragebound
+                //TODO: fix blending properly. clue is FCSM_TR (src\shader_recompiler\frontend\ir\ir_emitter.cpp)
+                if (Tegra::Engines::Maxwell3D::IsUnimplementedBlend(regs, Tegra::Engines::Maxwell3D::UnimplementedBlendID::NGR_00)) {
+                    setup_blends[index].srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+                    setup_blends[index].dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
+                    setup_blends[index].colorBlendOp = VK_BLEND_OP_ADD;
+                    setup_blends[index].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
+                    setup_blends[index].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+                    setup_blends[index].alphaBlendOp = VK_BLEND_OP_ADD;
+                } else {
+                    blend_setup(regs.blend);
+                }
                 continue;
             }
             blend_setup(regs.blend_per_target[index]);

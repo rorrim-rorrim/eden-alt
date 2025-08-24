@@ -1143,12 +1143,19 @@ void RasterizerOpenGL::SyncBlendState() {
             return;
         }
         glEnable(GL_BLEND);
-        glBlendFuncSeparate(MaxwellToGL::BlendFunc(regs.blend.color_source),
-                            MaxwellToGL::BlendFunc(regs.blend.color_dest),
-                            MaxwellToGL::BlendFunc(regs.blend.alpha_source),
-                            MaxwellToGL::BlendFunc(regs.blend.alpha_dest));
-        glBlendEquationSeparate(MaxwellToGL::BlendEquation(regs.blend.color_op),
+        //TEMP: skips problematic lighting blend detected in ninja gaiden ragebound
+        //TODO: fix blending properly. clue is FCSM_TR (src\shader_recompiler\frontend\ir\ir_emitter.cpp)
+        if (Tegra::Engines::Maxwell3D::IsUnimplementedBlend(regs, Tegra::Engines::Maxwell3D::UnimplementedBlendID::NGR_00)) {
+            glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE_MINUS_SRC_COLOR, GL_ZERO);
+            glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+        } else {
+            glBlendFuncSeparate(MaxwellToGL::BlendFunc(regs.blend.color_source),
+                                MaxwellToGL::BlendFunc(regs.blend.color_dest),
+                                MaxwellToGL::BlendFunc(regs.blend.alpha_source),
+                                MaxwellToGL::BlendFunc(regs.blend.alpha_dest));
+            glBlendEquationSeparate(MaxwellToGL::BlendEquation(regs.blend.color_op),
                                 MaxwellToGL::BlendEquation(regs.blend.alpha_op));
+        }
         return;
     }
 
