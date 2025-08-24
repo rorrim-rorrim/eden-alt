@@ -174,7 +174,9 @@ NvResult nvhost_gpu::SetErrorNotifier(IoctlSetErrorNotifier& params) {
     }
 
     LOG_DEBUG(Service_NVDRV, "called, SetErrorNotifier initialized, mem=0x{:X}", params.mem);
-    error_notifier_mem = params.mem;
+    system.GPU().EnableErrorNotifier(static_cast<u32>(error_notifier_memory),
+                                   static_cast<u32>(error_notifier_offset),
+                                   static_cast<u32>(error_notifier_size));
     return NvResult::Success;
 }
 
