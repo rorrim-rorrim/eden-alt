@@ -598,7 +598,7 @@ else()
     find_package(enet 1.3 MODULE)
     find_package(Opus 1.3 MODULE)
     find_package(ZLIB 1.2 REQUIRED)
-    find_package(zstd 1.5 REQUIRED)
+    find_package(zstd 1.5 REQUIRED MODULE)
 
     if (ENABLE_CUBEB)
         find_package(cubeb CONFIG)
