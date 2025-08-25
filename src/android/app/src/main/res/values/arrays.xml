@@ -451,7 +451,18 @@
         <item>1</item>
         <item>2</item>
     </integer-array>
-
+    <string-array name="fenceReleaseModeNames">
+        <item>@string/fence_release_mode_default</item>
+        <item>@string/fence_release_mode_delayed</item>
+        <item>@string/fence_release_mode_optimized_safe</item>
+        <item>@string/fence_release_mode_optimized</item>
+    </string-array>
+    <integer-array name="fenceReleaseModeValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </integer-array>
     <string-array name="dmaAccuracyNames">
         <item>@string/dma_accuracy_default</item>
         <item>@string/dma_accuracy_normal</item>
