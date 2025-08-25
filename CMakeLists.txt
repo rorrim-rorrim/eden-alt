@@ -550,6 +550,10 @@ if (YUZU_USE_CPM)
         EXCLUDE_FROM_ALL ON
     )
 
+    if (Opus_ADDED AND NOT TARGET Opus::opus)
+        add_library(Opus::opus ALIAS opus)
+    endif()
+
     if(ENABLE_CUBEB)
         AddPackage(
             NAME cubeb
