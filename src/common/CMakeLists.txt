@@ -274,11 +274,6 @@ endif()
 target_link_libraries(common PUBLIC fmt::fmt stb::headers Threads::Threads)
 target_link_libraries(common PRIVATE lz4::lz4 LLVM::Demangle zstd::zstd)
 
-if (TARGET unordered_dense::unordered_dense)
-  # weird quirk of system installs
-  target_link_libraries(common PUBLIC unordered_dense::unordered_dense)
-endif()
-
 if(ANDROID)
   # For ASharedMemory_create
   target_link_libraries(common PRIVATE android)
