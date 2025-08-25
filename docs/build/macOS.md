@@ -1,6 +1,6 @@
-Please note this article is intended for development, and eden on macOS is not currently ready for regular use.
+Please note this article is intended for development, and Eden on macOS is not currently ready for regular use.
 
-This article was written for developers. eden support for macOS is not ready for casual use.
+This article was written for developers. Eden support for macOS is not ready for casual use.
 
 ## Method I: ninja
 ---
@@ -14,30 +14,21 @@ brew install autoconf automake boost ccache ffmpeg fmt glslang hidapi libtool li
 Clone the repo
 ```sh
 git clone --recursive https://git.eden-emu.dev/eden-emu/eden
-
 cd eden
 ```
 
 Build for release
 ```sh
-mkdir build && cd build
-
 export Qt6_DIR="/opt/homebrew/opt/qt@6/lib/cmake"
-
 export LIBVULKAN_PATH=/opt/homebrew/lib/libvulkan.dylib
-
-cmake .. -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DYUZU_USE_BUNDLED_VCPKG=OFF -DYUZU_TESTS=OFF -DENABLE_WEB_SERVICE=ON -DENABLE_LIBUSB=OFF -DCLANG_FORMAT=ON -DSDL2_DISABLE_INSTALL=ON -DSDL_ALTIVEC=ON
-
+cmake -B build -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DYUZU_TESTS=OFF -DENABLE_WEB_SERVICE=ON -DENABLE_LIBUSB=OFF -DCLANG_FORMAT=ON -DSDL2_DISABLE_INSTALL=ON -DSDL_ALTIVEC=ON
 ninja
 ```
 
-You may also want to include support for Discord Rich Presence by adding `-DUSE_DISCORD_PRESENCE=ON` after `cmake ..`
-
-Build with debug symbols (vcpkg is not currently used due to broken boost-context library):
+You may also want to include support for Discord Rich Presence by adding `-DUSE_DISCORD_PRESENCE=ON`
 ```sh
-mkdir build && cd build
 export Qt6_DIR="/opt/homebrew/opt/qt@6/lib/cmake"
-cmake .. -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DYUZU_USE_BUNDLED_VCPKG=OFF -DYUZU_TESTS=OFF -DENABLE_WEB_SERVICE=OFF -DENABLE_LIBUSB=OFF
+cmake -B build -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DYUZU_TESTS=OFF -DENABLE_WEB_SERVICE=OFF -DENABLE_LIBUSB=OFF
 ninja
 ```
 
@@ -59,30 +50,23 @@ brew install autoconf automake boost ccache ffmpeg fmt glslang hidapi libtool li
 Clone the repo
 ```sh
 git clone --recursive https://git.eden-emu.dev/eden-emu/eden
-
 cd eden
 ```
 
 Build for release
 ```sh
-mkdir build && cd build
-
 export Qt6_DIR="/opt/homebrew/opt/qt@6/lib/cmake"
-
 export LIBVULKAN_PATH=/opt/homebrew/lib/libvulkan.dylib
-
-cmake .. -GXcode -DCMAKE_BUILD_TYPE=RelWithDebInfo -DYUZU_USE_BUNDLED_VCPKG=OFF -DYUZU_TESTS=OFF -DENABLE_WEB_SERVICE=ON -DENABLE_LIBUSB=OFF -DCLANG_FORMAT=ON -DSDL2_DISABLE_INSTALL=ON -DSDL_ALTIVEC=ON
-
-xcodebuild build -project eden.xcodeproj -scheme "eden" -configuration "RelWithDebInfo"
+# Only if having errors about Xcode 15.0
+sudo /usr/bin/xcode-select --switch /Users/admin/Downloads/Xcode.ap
+cmake -B build -GXcode -DCMAKE_BUILD_TYPE=RelWithDebInfo -DYUZU_TESTS=OFF -DENABLE_WEB_SERVICE=ON -DENABLE_LIBUSB=OFF -DCLANG_FORMAT=ON -DSDL2_DISABLE_INSTALL=ON -DSDL_ALTIVEC=ON
+xcodebuild build -project yuzu.xcodeproj -scheme "yuzu" -configuration "RelWithDebInfo"
 ```
 
-You may also want to include support for Discord Rich Presence by adding `-DUSE_DISCORD_PRESENCE=ON` after `cmake ..`
-
-Build with debug symbols (vcpkg is not currently used due to broken boost-context library):
+Build with debug symbols:
 ```sh
-mkdir build && cd build
 export Qt6_DIR="/opt/homebrew/opt/qt@6/lib/cmake"
-cmake .. -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DYUZU_USE_BUNDLED_VCPKG=OFF -DYUZU_TESTS=OFF -DENABLE_WEB_SERVICE=OFF -DENABLE_LIBUSB=OFF
+cmake -B build -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DYUZU_TESTS=OFF -DENABLE_WEB_SERVICE=OFF -DENABLE_LIBUSB=OFF
 ninja
 ```
 
