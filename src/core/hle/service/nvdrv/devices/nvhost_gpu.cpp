@@ -216,14 +216,10 @@ NvResult nvhost_gpu::SetErrorNotifier(IoctlSetErrorNotifier& params) {
 }
 
 void nvhost_gpu::PostErrorNotification(u32 info32, u16 info16, NotifierStatus status) {
-    // Needed to avoid lock ordering issues with error_notifier_event->Signal()
-    {
-        std::scoped_lock lk(channel_mutex);
-
-        if (error_notifier_params.mem == 0 || error_notifier_params.size < sizeof(IoctlGetErrorNotification)) {
-            return;
-        }
+    if (error_notifier_params.mem == 0 || error_notifier_params.size < sizeof(IoctlGetErrorNotification)) {
+        return;
     }
+
 
     auto handle = nvmap.GetHandle(static_cast<NvCore::NvMap::Handle::Id>(error_notifier_params.mem));
     if (!handle || !handle->address) return;
@@ -367,7 +363,7 @@ NvResult nvhost_gpu::SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, Tegra::CommandL
 
     auto& gpu = system.GPU();
 
-    std::unique_lock<std::mutex> lk(channel_mutex);
+    std::scoped_lock lock(channel_mutex);
 
     const auto bind_id = channel_state->bind_id;
 
@@ -375,7 +371,6 @@ NvResult nvhost_gpu::SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, Tegra::CommandL
 
     if (flags.fence_wait.Value()) {
         if (flags.increment_value.Value()) {
-            lk.unlock();
             PostErrorNotification(flags.raw, 0, NotifierStatus::GenericError);
             return NvResult::BadParameter;
         }
