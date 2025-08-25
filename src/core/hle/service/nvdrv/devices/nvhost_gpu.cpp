@@ -222,7 +222,7 @@ NvResult nvhost_gpu::AllocGPFIFOEx2(IoctlAllocGpfifoEx& params, DeviceFD fd) {
 }
 
 NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
-    LOG_DEBUG(Service_NVDRV, "called, class_num=0x{:X}, flags=0x{:X}, obj_id=0x{:X}", params.class_num,
+    LOG_DEBUG(Service_NVDRV, "called, class_num={:#X}, flags={:#X}, obj_id={:#X}", params.class_num,
                 params.flags, params.obj_id);
 
     if (!channel_state->initialized) {
@@ -233,18 +233,16 @@ NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
     std::scoped_lock lk(channel_mutex);
 
     if (params.flags) {
-        LOG_WARNING(Service_NVDRV, "non-zero flags=0x{:X} for class=0x{:X}",
+        LOG_WARNING(Service_NVDRV, "non-zero flags={:#X} for class={:#X}",
                     params.flags, params.class_num);
 
-        constexpr size_t allowed_mask{};
-        if (params.flags & ~allowed_mask) {
-            return NvResult::NotSupported;
-        }
+        constexpr u32 allowed_mask{};
+        params.flags &= allowed_mask;
     }
 
     for (const auto &ctx_obj : ctxObj_params) {
         if (ctx_obj.class_num == params.class_num) {
-            LOG_ERROR(Service_NVDRV, "Object context for class {:X} already allocated on this channel",
+            LOG_ERROR(Service_NVDRV, "Object context for class {:#X} already allocated on this channel",
                       params.class_num);
             return NvResult::AlreadyAllocated;
         }
@@ -260,7 +258,7 @@ NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
         ctxObj_params.push_back(params);
         return NvResult::Success;
     default:
-        LOG_ERROR(Service_NVDRV, "Invalid class number for object context: {:X}", params.class_num);
+        LOG_ERROR(Service_NVDRV, "Invalid class number for object context: {:#X}", params.class_num);
         return NvResult::BadParameter;
     }
 }
