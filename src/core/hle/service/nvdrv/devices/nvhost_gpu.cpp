@@ -132,6 +132,8 @@ void nvhost_gpu::OnOpen(NvCore::SessionId session_id, DeviceFD fd) {
 
 void nvhost_gpu::OnClose(DeviceFD fd) {
     sessions.erase(fd);
+    std::scoped_lock lk(channel_mutex);
+    ctxObj_params.clear();
 }
 
 NvResult nvhost_gpu::SetNVMAPfd(IoctlSetNvmapFD& params) {
@@ -220,12 +222,32 @@ NvResult nvhost_gpu::AllocGPFIFOEx2(IoctlAllocGpfifoEx& params, DeviceFD fd) {
 }
 
 NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
-    LOG_DEBUG(Service_NVDRV, "called, class_num={:X}, flags={:X}, obj_id={:X}", params.class_num,
+    LOG_DEBUG(Service_NVDRV, "called, class_num=0x{:X}, flags=0x{:X}, obj_id=0x{:X}", params.class_num,
                 params.flags, params.obj_id);
 
     if (!channel_state->initialized) {
         LOG_CRITICAL(Service_NVDRV, "No address space bound to allocate a object context!");
         return NvResult::NotInitialized;
+    }
+
+    std::scoped_lock lk(channel_mutex);
+
+    if (params.flags) {
+        LOG_WARNING(Service_NVDRV, "non-zero flags=0x{:X} for class=0x{:X}",
+                    params.flags, params.class_num);
+
+        constexpr size_t allowed_mask{};
+        if (params.flags & ~allowed_mask) {
+            return NvResult::NotSupported;
+        }
+    }
+
+    for (const auto &ctx_obj : ctxObj_params) {
+        if (ctx_obj.class_num == params.class_num) {
+            LOG_ERROR(Service_NVDRV, "Object context for class {:X} already allocated on this channel",
+                      params.class_num);
+            return NvResult::AlreadyAllocated;
+        }
     }
 
     switch (static_cast<CtxClasses>(params.class_num)) { 
