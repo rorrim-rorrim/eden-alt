@@ -101,7 +101,7 @@ AppLoader::LoadResult AppLoader_KIP::Load(Kernel::KProcess& process,
     const VAddr base_address = GetInteger(process.GetEntryPoint());
     process.LoadModule(std::move(codeset), base_address);
 
-    LOG_DEBUG(Loader, "loaded module {} @ 0x{:X}", kip->GetName(), base_address);
+    LOG_DEBUG(Loader, "loaded module {} @ {:#X}", kip->GetName(), base_address);
 
     is_loaded = true;
     return {ResultStatus::Success,

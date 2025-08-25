@@ -89,7 +89,7 @@ NvResult nvmap::IocCreate(IocCreateParams& params) {
     }
     handle_description->orig_size = params.size; // Orig size is the unaligned size
     params.handle = handle_description->id;
-    LOG_DEBUG(Service_NVDRV, "handle: {}, size: 0x{:X}", handle_description->id, params.size);
+    LOG_DEBUG(Service_NVDRV, "handle: {}, size: {:#X}", handle_description->id, params.size);
 
     return NvResult::Success;
 }
