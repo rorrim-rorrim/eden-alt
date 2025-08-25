@@ -75,7 +75,9 @@ option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ${EXT_DEFAULT})
 option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ${EXT_DEFAULT})
 option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ${EXT_DEFAULT})
-option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ${EXT_DEFAULT})
+
+# I hate Apple with a burning passion
+CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ${EXT_DEFAULT} "NOT APPLE" ON)
 
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 
@@ -670,12 +672,6 @@ AddPackage(
     EXCLUDE_FROM_ALL ON
 )
 
-# TODO(crueter): Work around this
-if (NOT YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(SPIRV-Tools REQUIRED SPIRV-Tools)
-endif()
-
 # find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the YUZU_find_package
 if (ENABLE_SDL2)
     # this was hard to get right, but ultimately I decided to make it so that FORCE_DOWNLOAD_SDL2 also downloads the
@@ -782,6 +778,8 @@ endif()
 if (ENABLE_SDL2)
     find_package(SDL2)
 endif()
+
+find_package(SPIRV-Tools)
 
 if (ENABLE_QT)
     if (YUZU_USE_BUNDLED_QT)
