@@ -486,10 +486,26 @@ if (YUZU_USE_CPM)
         HASH 3037007f990040fe32573b46f9bef8762fd5dbeeb07ffffcbfeba51ec98167edae39bb9c87f9299efcd61c4e467c5e84f7c19f0df7799bc1fc04864a278792ee
         VERSION 1.5
         SOURCE_SUBDIR build/cmake
+        FIND_PACKAGE_ARGUMENTS "MODULE"
         OPTIONS
             "ZSTD_BUILD_SHARED OFF"
+            "ZSTD_BUILD_STATIC ON"
         EXCLUDE_FROM_ALL ON
     )
+
+    if (zstd_ADDED AND NOT TARGET zstd::zstd)
+        if (TARGET zstd::libzstd_shared)
+            add_library(zstd::zstd ALIAS zstd::libzstd_shared)
+        elseif (TARGET zstd::libzstd_static)
+            add_library(zstd::zstd ALIAS zstd::libzstd_static)
+        elseif (TARGET libzstd_shared)
+            add_library(zstd::zstd ALIAS libzstd_shared)
+        elseif (TARGET libzstd_static)
+            add_library(zstd::zstd ALIAS libzstd_static)
+        else()
+            message(FATAL_ERROR "Could not determine zstd target")
+        endif()
+    endif()
 
     # Catch2
     if (YUZU_TESTS OR DYNARMIC_TESTS)
