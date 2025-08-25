@@ -220,7 +220,6 @@ void nvhost_gpu::PostErrorNotification(u32 info32, u16 info16, NotifierStatus st
         return;
     }
 
-
     auto handle = nvmap.GetHandle(static_cast<NvCore::NvMap::Handle::Id>(error_notifier_params.mem));
     if (!handle || !handle->address) return;
 
