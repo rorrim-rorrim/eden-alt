@@ -66,6 +66,16 @@ private:
         CtxChannelGPFIFO = 0xB06F,
     };
 
+    enum class NotifierStatus : u16_le {
+        NoError      = 0xFFFF,
+        GenericError = 0x0001,
+        MmuFault     = 0x0002,
+        IllegalMethod= 0x0003,
+        InvalidObject= 0x0004,
+        BadGpfifo    = 0x0005,
+        TimeoutHang  = 0x0006,
+    };
+
     struct IoctlSetNvmapFD {
         s32_le nvmap_fd{};
     };
@@ -97,7 +107,7 @@ private:
     struct IoctlSetErrorNotifier {
         u64_le offset{};
         u64_le size{};
-        u32_le mem{}; // nvmap object handle
+        u32_le mem{}; // nvmap object handle id (0 = de-initialize, !0 = initialize)
         INSERT_PADDING_WORDS(1);
     };
     static_assert(sizeof(IoctlSetErrorNotifier) == 24, "IoctlSetErrorNotifier is incorrect size");
@@ -172,6 +182,7 @@ private:
     s32_le nvmap_fd{};
     u64_le user_data{};
     IoctlZCullBind zcull_params{};
+    IoctlSetErrorNotifier error_notifier_params{};
     std::vector<IoctlAllocObjCtx> ctxObj_params{};
     u32_le channel_priority{};
     u32_le channel_timeslice{};
@@ -195,6 +206,8 @@ private:
     NvResult GetWaitbase(IoctlGetWaitbase& params);
     NvResult ChannelSetTimeout(IoctlChannelSetTimeout& params);
     NvResult ChannelSetTimeslice(IoctlSetTimeslice& params);
+
+    void PostErrorNotification(u32 info32, u16 info16, NotifierStatus status);
 
     EventInterface& events_interface;
     NvCore::Container& core;
