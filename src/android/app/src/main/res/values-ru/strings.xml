@@ -76,8 +76,8 @@
     <string name="enable_raii_description">Метод автоматического управления ресурсами в Vulkan, который обеспечивает правильное освобождение ресурсов при их ненадобности, но может вызывать сбои в бандл-играх.</string>
     <string name="frame_interpolation">Улучшенная синхронизация кадров</string>
     <string name="frame_interpolation_description">Обеспечивает плавную и стабильную подачу кадров за счет синхронизации их времени, уменьшая подтормаживания и неравномерную анимацию. Идеально для игр с нестабильным временем кадров или микро-подтормаживаниями во время игры.</string>
-    <string name="renderer_early_release_fences">Ранний релиз ограждений</string>
-    <string name="renderer_early_release_fences_description">Помогает исправить 0 FPS в играх типа DKCR:HD, Subnautica Below Zero и Ori 2, но может нарушить загрузку или производительность в играх на Unreal Engine.</string>
+    <string name="renderer_fence_release_mode">Режим освобождения ограждения</string>
+    <string name="renderer_fence_release_mode_description">Оптимизировано: Предназначено для исправления 0 FPS в играх, таких как DKCR:HD, Subnautica Below Zero и Ori 2 (только Android). Задержка: Для исправления мерцания текстур, как в Ender Magnolia на обычной точности. Безопасная оптимизация: Задержка + Оптимизация.</string>
     <string name="sync_memory_operations">Синхронизация операций с памятью</string>
     <string name="sync_memory_operations_description">Обеспечивает согласованность данных между вычислительными операциями и операциями с памятью. Эта опция должна исправлять проблемы в некоторых играх, но может снижать производительность в некоторых случаях. Наиболее сильно это затрагивает игры на Unreal Engine 4.</string>
     <string name="buffer_reorder_disable">Отключить переупорядочивание буфера</string>
@@ -919,6 +919,12 @@
     <string name="renderer_accuracy_normal">Нормальная</string>
     <string name="renderer_accuracy_high">Высокая</string>
     <string name="renderer_accuracy_extreme">Экстрим (медленный)</string>
+
+    <!-- Fence Release Mode -->
+    <string name="fence_release_mode_default">По умолчанию</string>
+    <string name="fence_release_mode_delayed">Задержка</string>
+    <string name="fence_release_mode_optimized_safe">Безопасная оптимизация</string>
+    <string name="fence_release_mode_optimized">Оптимизировано</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">По умолчанию</string>

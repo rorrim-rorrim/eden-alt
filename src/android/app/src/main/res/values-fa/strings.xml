@@ -76,8 +76,8 @@
     <string name="frame_skipping_description">با فعال کردن رد کردن فریم‌ها، عملکرد را با کاهش تعداد فریم‌های رندر شده بهبود دهید. این قابلیت در حال توسعه است و در نسخه‌های آینده فعال خواهد شد.</string>
     <string name="frame_interpolation">زمان‌بندی پیشرفته فریم‌ها</string>
     <string name="frame_interpolation_description">ارسال یکنواخت و پایدار فریم‌ها را با همگام‌سازی زمان بین آن‌ها تضمین می‌کند، که منجر به کاهش لرزش و انیمیشن‌های ناهموار می‌شود. برای بازی‌هایی که ناپایداری در زمان‌بندی فریم‌ها یا میکرو لرزش در حین بازی دارند ایده‌آل است</string>
-    <string name="renderer_early_release_fences">رهاسازی حصارها زودتر</string>
-    <string name="renderer_early_release_fences_description">به رفع مشکل 0 فریم بر ثانیه در بازی‌هایی مانند DKCR:HD، Subnautica Below Zero و Ori 2 کمک می‌کند، اما ممکن است بارگذاری یا عملکرد بازی‌های Unreal Engine را مختل کند.</string>
+    <string name="renderer_fence_release_mode">حالت آزادسازی حصار</string>
+    <string name="renderer_fence_release_mode_description">بهینه‌شده: برای رفع 0 FPS در بازی‌هایی مانند DKCR:HD، Subnautica Below Zero و Ori 2 (فقط اندروید). تاخیری: برای رفع چشمک زدن بافت مانند Ender Magnolia در دقت معمولی. بهینه‌شده ایمن: تاخیری + بهینه‌شده.</string>
     <string name="sync_memory_operations">همگام‌سازی عملیات حافظه</string>
     <string name="sync_memory_operations_description">اطمینان از سازگاری داده‌ها بین عملیات محاسباتی و حافظه. این گزینه ممکن است مشکلات برخی بازی‌ها را رفع کند، اما در برخی موارد ممکن است عملکرد را کاهش دهد. به نظر می‌رسد بازی‌های با Unreal Engine 4 بیشترین تأثیر را داشته باشند.</string>
     <string name="buffer_reorder_disable">غیرفعال کردن مرتب‌سازی مجدد بافر</string>
@@ -868,6 +868,12 @@
     <string name="renderer_accuracy_normal">معمولی</string>
     <string name="renderer_accuracy_high">زیاد</string>
     <string name="renderer_accuracy_extreme">افراطی (کند)</string>
+
+    <!-- Fence Release Mode -->
+    <string name="fence_release_mode_default">پیش‌فرض</string>
+    <string name="fence_release_mode_delayed">تاخیری</string>
+    <string name="fence_release_mode_optimized_safe">بهینه‌شده ایمن</string>
+    <string name="fence_release_mode_optimized">بهینه‌شده</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">پیش فرض</string>

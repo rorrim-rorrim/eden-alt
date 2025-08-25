@@ -75,8 +75,8 @@
     <string name="frame_skipping_description">启用或禁用跳帧以减少渲染帧数，提高性能。此功能仍在开发中，将在未来版本中启用。</string>
     <string name="frame_interpolation">增强帧同步</string>
     <string name="frame_interpolation_description">通过同步帧间时间确保流畅一致的帧交付，减少卡顿和不均匀动画。适合存在帧时间不稳定或游戏过程中出现微卡顿的游戏。</string>
-    <string name="renderer_early_release_fences">提前释放围栏</string>
-    <string name="renderer_early_release_fences_description">可修复《大金刚国度:热带寒流》《深海迷航:零度之下》和《奥日2》等游戏中的0 FPS问题，但可能影响Unreal Engine游戏的加载或性能。</string>
+    <string name="renderer_fence_release_mode">围栏释放模式</string>
+    <string name="renderer_fence_release_mode_description">优化：用于修复如 DKCR:HD、Subnautica Below Zero 和 Ori 2 等游戏中的 0 FPS（仅限 Android）。延迟：用于修复如 Ender Magnolia 在普通精度下的纹理闪烁。安全优化：延迟 + 优化。</string>
     <string name="sync_memory_operations">同步内存操作</string>
     <string name="sync_memory_operations_description">确保计算和内存操作之间的数据一致性。 此选项应能修复某些游戏中的问题，但在某些情况下可能会降低性能。 使用Unreal Engine 4的游戏似乎受影响最大。</string>
     <string name="buffer_reorder_disable">禁用缓冲重排序</string>
@@ -911,6 +911,12 @@
     <string name="renderer_accuracy_normal">正常</string>
     <string name="renderer_accuracy_high">高</string>
     <string name="renderer_accuracy_extreme">极高 (慢速)</string>
+
+    <!-- Fence Release Mode -->
+    <string name="fence_release_mode_default">默认</string>
+    <string name="fence_release_mode_delayed">延迟</string>
+    <string name="fence_release_mode_optimized_safe">安全优化</string>
+    <string name="fence_release_mode_optimized">优化</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">默认</string>

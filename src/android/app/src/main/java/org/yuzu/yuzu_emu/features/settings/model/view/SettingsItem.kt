@@ -694,10 +694,12 @@ abstract class SettingsItem(
                 )
             )
             put(
-                SwitchSetting(
-                    BooleanSetting.RENDERER_EARLY_RELEASE_FENCES,
-                    titleId = R.string.renderer_early_release_fences,
-                    descriptionId = R.string.renderer_early_release_fences_description
+                SingleChoiceSetting(
+                    IntSetting.RENDERER_FENCE_RELEASE_MODE,
+                    titleId = R.string.renderer_fence_release_mode,
+                    descriptionId = R.string.renderer_fence_release_mode_description,
+                    choicesId = R.array.fenceReleaseModeNames,
+                    valuesId = R.array.fenceReleaseModeValues
                 )
             )
             put(

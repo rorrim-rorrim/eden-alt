@@ -23,6 +23,7 @@
 #include "video_core/host1x/host1x.h"
 #include "video_core/host1x/syncpoint_manager.h"
 #include "video_core/rasterizer_interface.h"
+#include "common/settings_enums.h"
 
 namespace VideoCommon {
 
@@ -72,13 +73,34 @@ public:
     }
 
     void SignalFence(std::function<void()>&& func) {
-        const bool delay_fence = Settings::IsGPULevelHigh();
+        const auto mode = Settings::values.fence_release_mode.GetValue();
+        bool delay_fence = Settings::IsGPULevelHigh();
+        bool use_optimized = false;
 
-        #ifdef __ANDROID__
-        const bool use_optimized = Settings::values.early_release_fences.GetValue();
-        #else
-        constexpr bool use_optimized = false;
-        #endif
+#if defined(__ANDROID__)
+    const bool is_optimized_available = true;
+#else
+    constexpr bool is_optimized_available = false;
+#endif
+
+        switch (mode) {
+        case Settings::FenceReleaseMode::Default: // Path: early_fence = off, delay_fence = IsGPULevelHigh()
+            // use_optimized = false;
+            // delay_fence = IsGPULevelHigh();
+            break;
+        case Settings::FenceReleaseMode::Delayed: // Path: early_fence = off, delay_fence = forced true
+            // use_optimized = false;
+            delay_fence = true;
+            break;
+        case Settings::FenceReleaseMode::OptimizedSafe: // Path: early_fence = on, delay_fence = forced true
+            use_optimized = is_optimized_available && true;
+            delay_fence = true;
+            break;
+        case Settings::FenceReleaseMode::Optimized: // Path: early_fence = on, delay_fence = IsGPULevelHigh()
+            use_optimized = is_optimized_available && true;
+            // delay_fence = IsGPULevelHigh();
+            break;
+        }
 
         const bool should_flush = ShouldFlush();
         CommitAsyncFlushes();
@@ -87,21 +109,16 @@ public:
         if (use_optimized) {
             if (!delay_fence) {
                 TryReleasePendingFences<false>();
-            }
-
-            if (delay_fence) {
+            } else {
                 guard.lock();
                 uncommitted_operations.emplace_back(std::move(func));
             }
         } else {
             if constexpr (!can_async_check) {
                 TryReleasePendingFences<false>();
-            }
-
-            if constexpr (can_async_check) {
+            } else {
                 guard.lock();
             }
-
             if (delay_fence) {
                 uncommitted_operations.emplace_back(std::move(func));
             }

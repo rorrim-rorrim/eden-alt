@@ -76,8 +76,8 @@
     <string name="frame_skipping_description">تێپەڕاندنی فرەیمەکان بکە بۆ باشترکردنی کارایی بە کەمکردنەوەی ژمارەی فرەیمە ڕێندرکراوەکان. ئەم تایبەتمەندییە هێشتا کاردەکرێت و لە وەشانە داهاتووەکاندا چالاکدەکرێت.</string>
     <string name="frame_interpolation">تحسين توقيت الإطارات</string>
     <string name="frame_interpolation_description">يضمن تسليمًا سلسًا ومتناسقًا للإطارات من خلال مزامنة التوقيت بينها، مما يقلل من التقطيع وعدم انتظام الحركة. مثالي للألعاب التي تعاني من عدم استقرار في توقيت الإطارات أو تقطع دقيق أثناء اللعب.</string>
-    <string name="renderer_early_release_fences">زێدەکردنی پەرستارەکان زووتر</string>
-    <string name="renderer_early_release_fences_description">یارمەتی دەدات لە چارەسەری 0 FPS لە یارییەکانی وەک DKCR:HD، Subnautica Below Zero و Ori 2، بەڵام ڕەنگە بارکردن یان کارایی لە یارییەکانی Unreal Engine تێکبدات.</string>
+    <string name="renderer_fence_release_mode">دۆخی بڵاوکردنەوەی سێرکە</string>
+    <string name="renderer_fence_release_mode_description">باشکراو: بۆ چارەسەری 0 FPS لە یارییەکان وەک DKCR:HD، Subnautica Below Zero و Ori 2 (تەنها Android). دواخراو: بۆ چارەسەری وەڵامدانی تێکستەر وەک Ender Magnolia لە دقتی Normal. باشکراوی سەلامەت: دواخراو + باشکراو.</string>
     <string name="sync_memory_operations">هاوبەشیی کردارەکانی بیرگە</string>
     <string name="sync_memory_operations_description">دڵنیایی داتا لە نێوان کردارەکانی کۆمپیوتەر و بیرگە. ئەم هەڵبژاردە کێشەکان لە هەندێک یاری چارەسەر دەکات، بەڵام لە هەندێک حاڵەت کارایی کەم دەکاتەوە. وا دیارە یارییەکانی Unreal Engine 4 زۆرترین کاریگەریان هەیە.</string>
     <string name="buffer_reorder_disable">ڕێکخستنەوەی بافر ناچالاک بکە</string>
@@ -760,6 +760,12 @@
     <string name="renderer_accuracy_normal">ئاسایی</string>
     <string name="renderer_accuracy_high">بەرز</string>
     <string name="renderer_accuracy_extreme">ئەوپەڕ (خاو)</string>
+
+    <!-- Fence Release Mode -->
+    <string name="fence_release_mode_default">بنەڕەتی</string>
+    <string name="fence_release_mode_delayed">دواکراو</string>
+    <string name="fence_release_mode_optimized_safe">باشکراوی سەلامەت</string>
+    <string name="fence_release_mode_optimized">باشکراو</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">بنەڕەتی</string>

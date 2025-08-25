@@ -76,8 +76,8 @@
     <string name="frame_skipping_description">החלף דילוג על פריימים כדי לשפר ביצועים על ידי הפחתת מספר הפריימים המוצגים. תכונה זו עדיין בפיתוח ותופעל בגרסאות עתידיות.</string>
     <string name="frame_interpolation">סנכרון פריימים מתקדם</string>
     <string name="frame_interpolation_description">מבטיח אספקה חלקה ועקבית של פריימים על ידי סנכרון התזמון ביניהם, מפחית קפיצות ואנימציה לא אחידה. אידיאלי למשחקים עם בעיות בתזמון פריימים או מיקרו-קפיצות במהלך המשחק.</string>
-    <string name="renderer_early_release_fences">שחרר גדרות מוקדם</string>
-    <string name="renderer_early_release_fences_description">עוזר לתקן 0 FPS במשחקים כמו DKCR:HD, Subnautica Below Zero ו-Ori 2, אך עלול לפגוע בטעינה או בביצועים במשחקי Unreal Engine.</string>
+    <string name="renderer_fence_release_mode">מצב שחרור גדר</string>
+    <string name="renderer_fence_release_mode_description">מותאם: נועד לתקן 0 FPS במשחקים כמו DKCR:HD, Subnautica Below Zero ו-Ori 2 (אנדרואיד בלבד). מושהה: נועד לתקן הבהוב טקסטורות כמו ב-Ender Magnolia בדיוק רגיל. מותאם בטוח: מושהה + מותאם.</string>
     <string name="sync_memory_operations">סנכרון פעולות זיכרון</string>
     <string name="sync_memory_operations_description">מבטיח עקביות נתונים בין פעולות חישוב וזיכרון. אפשרות זו אמורה לתקן בעיות במשחקים מסוימים, אך עלולה להפחית ביצועים במקרים מסוימים. נראה שהמשחקים עם Unreal Engine 4 הם המושפעים ביותר.</string>
     <string name="buffer_reorder_disable">השבת סידור מחדש של חוצץ</string>
@@ -799,6 +799,12 @@
     <string name="renderer_accuracy_normal">רגיל</string>
     <string name="renderer_accuracy_high">גבוה</string>
     <string name="renderer_accuracy_extreme">אקסטרים (איטי)</string>
+
+    <!-- Fence Release Mode -->
+    <string name="fence_release_mode_default">ברירת מחדל</string>
+    <string name="fence_release_mode_delayed">מושהה</string>
+    <string name="fence_release_mode_optimized_safe">מותאם בטוח</string>
+    <string name="fence_release_mode_optimized">מותאם</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">ברירת מחדל</string>

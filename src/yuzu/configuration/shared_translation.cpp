@@ -534,6 +534,13 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent)
                               PAIR(GpuAccuracy, High, tr("High")),
                               PAIR(GpuAccuracy, Extreme, tr("Extreme")),
                           }});
+    translations->insert({Settings::EnumMetadata<Settings::FenceReleaseMode>::Index(),
+                          {
+                              PAIR(FenceReleaseMode, Default, tr("Default")),
+                              PAIR(FenceReleaseMode, Delayed, tr("Delayed")),
+                              PAIR(FenceReleaseMode, OptimizedSafe, tr("Optimized Safe")),
+                              PAIR(FenceReleaseMode, Optimized, tr("Optimized")),
+                          }});
     translations->insert({Settings::EnumMetadata<Settings::DmaAccuracy>::Index(),
                           {
                               PAIR(DmaAccuracy, Default, tr("Default")),

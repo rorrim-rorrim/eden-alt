@@ -75,8 +75,8 @@
     <string name="frame_skipping_description">Přepínání přeskočení snímků pro zlepšení výkonu snížením počtu vykreslených snímků. Tato funkce je stále ve vývoji a bude povolena v budoucích verzích.</string>
     <string name="frame_interpolation">Vylepšené časování snímků</string>
     <string name="frame_interpolation_description">Zajišťuje plynulé a konzistentní zobrazování snímků synchronizací jejich časování, čímž snižuje trhání a nerovnoměrné animace. Ideální pro hry, které trpí nestabilitou časování snímků nebo mikrotrháním během hraní.</string>
-    <string name="renderer_early_release_fences">Uvolnit ploty brzy</string>
-    <string name="renderer_early_release_fences_description">Pomáhá opravit 0 FPS v hrách jako DKCR:HD, Subnautica Below Zero a Ori 2, ale může narušit načítání nebo výkon v hrách na Unreal Engine.</string>
+    <string name="renderer_fence_release_mode">Režim uvolnění plotu</string>
+    <string name="renderer_fence_release_mode_description">Optimalizováno: Určeno k opravě 0 FPS ve hrách jako DKCR:HD, Subnautica Below Zero a Ori 2 (pouze Android). Zpožděné: Určeno k opravě blikání textur jako v Ender Magnolia při normální přesnosti. Bezpečně optimalizováno: Zpožděné + Optimalizováno.</string>
     <string name="sync_memory_operations">Synchronizace paměťových operací</string>
     <string name="sync_memory_operations_description">Zajišťuje konzistenci dat mezi výpočetními a paměťovými operacemi. Tato volba by měla opravit problémy v některých hrách, ale může v některých případech snížit výkon. Nejvíce postižené se zdají být hry s Unreal Engine 4.</string>
     <string name="buffer_reorder_disable">Zakázat přeřazování vyrovnávací paměti</string>
@@ -734,6 +734,12 @@
     <string name="renderer_accuracy_normal">Normální</string>
     <string name="renderer_accuracy_high">Vysoká</string>
     <string name="renderer_accuracy_extreme">Extrémní (Pomalé)</string>
+
+    <!-- Fence Release Mode -->
+    <string name="fence_release_mode_default">Výchozí</string>
+    <string name="fence_release_mode_delayed">Zpožděný</string>
+    <string name="fence_release_mode_optimized_safe">Optimalizovaný (Bezpečný)</string>
+    <string name="fence_release_mode_optimized">Optimalizovaný</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Výchozí</string>

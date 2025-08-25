@@ -76,8 +76,8 @@
     <string name="frame_skipping_description">Kapcsolja be a képkihagyást a teljesítmény javításához a renderelt képkockák számának csökkentésével. Ez a funkció még fejlesztés alatt áll, és a jövőbeli kiadásokban lesz elérhető.</string>
     <string name="frame_interpolation">Továbbfejlesztett Képkocka-időzítés</string>
     <string name="frame_interpolation_description">Biztosítja a képkockák sima és egyenletes kézbesítését azok időzítésének szinkronizálásával, csökkentve a megakadásokat és egyenetlen animációkat. Ideális azokhoz a játékokhoz, amelyek képkocka-időzítési instabilitást vagy mikro-reccsenést tapasztalnak játék közben.</string>
-    <string name="renderer_early_release_fences">Korai kerítés-felszabadítás</string>
-    <string name="renderer_early_release_fences_description">Segít javítani a 0 FPS-t olyan játékokban, mint a DKCR:HD, Subnautica Below Zero és az Ori 2, de ronthatja az Unreal Engine játékok betöltését vagy teljesítményét.</string>
+    <string name="renderer_fence_release_mode">Kerítéskioldási mód</string>
+    <string name="renderer_fence_release_mode_description">Optimalizált: 0 FPS javítására, például DKCR:HD, Subnautica Below Zero és Ori 2 játékokban (csak Android). Késleltetett: Textúra villogás javítására, mint az Ender Magnolia normál pontosságban. Biztonságos optimalizált: Késleltetett + Optimalizált.</string>
     <string name="sync_memory_operations">Memória-műveletek szinkronizálása</string>
     <string name="sync_memory_operations_description">Biztosítja az adatok konzisztenciáját a számítási és memória-műveletek között. Ez az opciónak javítania kell néhány játékban előforduló problémát, de bizonyos esetekben csökkentheti a teljesítményt. Az Unreal Engine 4-et használó játékok látszanak a legérintettebbek.</string>
     <string name="buffer_reorder_disable">Puffer újrarendezés letiltása</string>
@@ -906,6 +906,12 @@
     <string name="renderer_accuracy_normal">Normál</string>
     <string name="renderer_accuracy_high">Magas</string>
     <string name="renderer_accuracy_extreme">Extrém (Lassú)</string>
+
+    <!-- Fence Release Mode -->
+    <string name="fence_release_mode_default">Alapértelmezett</string>
+    <string name="fence_release_mode_delayed">Késleltetett</string>
+    <string name="fence_release_mode_optimized_safe">Biztonságos optimalizált</string>
+    <string name="fence_release_mode_optimized">Optimalizált</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Alapértelmezett</string>

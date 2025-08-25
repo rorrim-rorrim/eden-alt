@@ -75,8 +75,8 @@
     <string name="frame_skipping_description">تبديل تخطي الإطارات لتحسين الأداء عن طريق تقليل عدد الإطارات المعروضة. هذه الميزة قيد التطوير وسيتم تمكينها في الإصدارات المستقبلية.</string>
     <string name="frame_interpolation">تحسين توقيت الإطارات</string>
     <string name="frame_interpolation_description">يضمن تسليمًا سلسًا ومتناسقًا للإطارات من خلال مزامنة التوقيت بينها، مما يقلل من التقطيع وعدم انتظام الحركة. مثالي للألعاب التي تعاني من عدم استقرار في توقيت الإطارات أو تقطع دقيق أثناء اللعب.</string>
-    <string name="renderer_early_release_fences">إطلاق الأسوار مبكرًا</string>
-    <string name="renderer_early_release_fences_description">يساعد في إصلاح مشكلة 0 إطار في الثانية في ألعاب مثل DKCR:HD وSubnautica Below Zero وOri 2، ولكن قد يتسبب في تعطيل التحميل أو الأداء في ألعاب Unreal Engine.</string>
+    <string name="renderer_fence_release_mode">وضع تحرير السياج</string>
+    <string name="renderer_fence_release_mode_description">محسّن: يهدف إلى إصلاح 0 إطار في الثانية في ألعاب مثل DKCR:HD وSubnautica Below Zero وOri 2 (أندرويد فقط). مؤجل: يهدف إلى إصلاح وميض النسيج كما في Ender Magnolia في الدقة العادية. محسّن آمن: مؤجل + محسّن.</string>
     <string name="sync_memory_operations">مزامنة عمليات الذاكرة</string>
     <string name="sync_memory_operations_description">يضمن اتساق البيانات بين عمليات الحوسبة والذاكرة. هذا الخيار قد يحل المشكلات في بعض الألعاب، ولكن قد يقلل الأداء في بعض الحالات. يبدو أن الألعاب التي تستخدم Unreal Engine 4 هي الأكثر تأثرًا.</string>
     <string name="buffer_reorder_disable">تعطيل إعادة ترتيب المخزن المؤقت</string>
@@ -791,6 +791,12 @@
     <string name="renderer_accuracy_normal">عادي</string>
     <string name="renderer_accuracy_high">عالي</string>
     <string name="renderer_accuracy_extreme">Extreme (بطيء)</string>
+
+    <!-- Fence Release Mode -->
+    <string name="fence_release_mode_default">افتراضي</string>
+    <string name="fence_release_mode_delayed">مؤجل</string>
+    <string name="fence_release_mode_optimized_safe">محسن آمن</string>
+    <string name="fence_release_mode_optimized">محسن</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">افتراضي</string>

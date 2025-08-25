@@ -76,8 +76,8 @@
     <string name="frame_skipping_description">Activez ou désactivez le saut d\'images pour améliorer les performances en réduisant le nombre d\'images affichées. Cette fonctionnalité est en cours de développement et sera activée dans les futures versions.</string>
     <string name="frame_interpolation">Synchronisation avancée des frames</string>
     <string name="frame_interpolation_description">Assure une diffusion fluide et régulière des frames en synchronisant leur timing, réduisant ainsi les saccades et les animations irrégulières. Idéal pour les jeux souffrant d`instabilité de timing des frames ou de micro-saccades pendant le jeu.</string>
-    <string name="renderer_early_release_fences">Libérer les barrières plus tôt</string>
-    <string name="renderer_early_release_fences_description">Résout les problèmes de 0 FPS dans des jeux comme DKCR:HD, Subnautica Below Zero et Ori 2, mais peut perturber le chargement ou les performances des jeux Unreal Engine.</string>
+    <string name="renderer_fence_release_mode">Mode de libération de clôture</string>
+    <string name="renderer_fence_release_mode_description">Optimisé : Conçu pour corriger 0 FPS dans des jeux comme DKCR:HD, Subnautica Below Zero et Ori 2 (Android uniquement). Retardé : Conçu pour corriger le scintillement des textures comme dans Ender Magnolia en précision normale. Optimisé sécurisé : Retardé + Optimisé.</string>
     <string name="sync_memory_operations">Synchroniser les opérations mémoire</string>
     <string name="sync_memory_operations_description">Garantit la cohérence des données entre les opérations de calcul et de mémoire. Cette option devrait résoudre les problèmes dans certains jeux, mais peut réduire les performances dans certains cas. Les jeux utilisant Unreal Engine 4 semblent être les plus affectés.</string>
     <string name="buffer_reorder_disable">Désactiver le réordonnancement du tampon</string>
@@ -917,6 +917,12 @@
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">Haut</string>
     <string name="renderer_accuracy_extreme">Extrême (Lent)</string>
+
+    <!-- Fence Release Mode -->
+    <string name="fence_release_mode_default">Par défaut</string>
+    <string name="fence_release_mode_delayed">Retardé</string>
+    <string name="fence_release_mode_optimized_safe">Optimisé sécurisé</string>
+    <string name="fence_release_mode_optimized">Optimisé</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Défaut</string>
