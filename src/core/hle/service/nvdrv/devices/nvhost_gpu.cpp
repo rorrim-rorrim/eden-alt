@@ -225,7 +225,7 @@ NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
     LOG_DEBUG(Service_NVDRV, "called, class_num={:#X}, flags={:#X}, obj_id={:#X}", params.class_num,
                 params.flags, params.obj_id);
 
-    if (!channel_state->initialized) {
+    if (!channel_state || !channel_state->initialized) {
         LOG_CRITICAL(Service_NVDRV, "No address space bound to allocate a object context!");
         return NvResult::NotInitialized;
     }
