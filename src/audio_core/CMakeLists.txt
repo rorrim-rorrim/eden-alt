@@ -227,7 +227,7 @@ else()
 endif()
 
 target_include_directories(audio_core PRIVATE ${OPUS_INCLUDE_DIRS})
-target_link_libraries(audio_core PUBLIC common core opus)
+target_link_libraries(audio_core PUBLIC common core Opus::opus)
 
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
     target_link_libraries(audio_core PRIVATE dynarmic::dynarmic)

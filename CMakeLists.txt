@@ -478,7 +478,62 @@ if (YUZU_USE_CPM)
     endif()
 
     # Opus
-    AddJsonPackage(opus)
+    AddPackage(
+        NAME Opus
+        VERSION 1.3
+        REPO "xiph/opus"
+        SHA 5ded705cf4
+        HASH 0dc89e58ddda1f3bc6a7037963994770c5806c10e66f5cc55c59286fc76d0544fe4eca7626772b888fd719f434bc8a92f792bdb350c807968b2ac14cfc04b203
+        FIND_PACKAGE_ARGUMENTS "MODULE"
+        OPTIONS
+            "OPUS_BUILD_TESTING OFF"
+            "OPUS_BUILD_PROGRAMS OFF"
+            "OPUS_INSTALL_PKG_CONFIG_MODULE OFF"
+            "OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF"
+        EXCLUDE_FROM_ALL ON
+    )
+
+    if (Opus_ADDED AND NOT TARGET Opus::opus)
+        add_library(Opus::opus ALIAS opus)
+    endif()
+
+    if(ENABLE_CUBEB)
+        AddPackage(
+            NAME cubeb
+            REPO "mozilla/cubeb"
+            SHA fa02160712
+            HASH 82d808356752e4064de48c8fecbe7856715ade1e76b53937116bf07129fc1cc5b3de5e4b408de3cd000187ba8dc32ca4109661cb7e0355a52e54bd81b9be1c61
+            FIND_PACKAGE_ARGUMENTS "CONFIG" # not sure this works outside of gentoo
+            OPTIONS
+                "USE_SANITIZERS OFF"
+                "BUILD_TESTS OFF"
+                "BUILD_TOOLS OFF"
+                "BUNDLE_SPEEX ON"
+            EXCLUDE_FROM_ALL ON
+        )
+
+        if (cubeb_ADDED)
+            if (NOT MSVC)
+                if (TARGET speex)
+                    target_compile_options(speex PRIVATE -Wno-sign-compare)
+                endif()
+
+                set_target_properties(cubeb PROPERTIES COMPILE_OPTIONS "")
+                target_compile_options(cubeb INTERFACE
+                    -Wno-implicit-const-int-float-conversion
+                    -Wno-shadow
+                    -Wno-missing-declarations
+                    -Wno-return-type
+                    -Wno-uninitialized
+                )
+            else()
+                target_compile_options(cubeb PRIVATE
+                    /wd4456
+                    /wd4458
+                )
+            endif()
+        endif()
+    endif()
 else()
     # Enforce the search mode of non-required packages for better and shorter failure messages
     find_package(fmt 8 REQUIRED)
