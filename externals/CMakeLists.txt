@@ -77,6 +77,7 @@ AddPackage(
     HASH 769ad1e94c570671071e1f2a5c0f1027e0bf6bcdd1a80ea8ac970f2c86bc45ce4e31aa88d6d8110fc1bed1de81c48bc624df1b38a26f8b340a44e109d784a966
     PATCHES
         ${CMAKE_SOURCE_DIR}/.patch/mbedtls/0001-cmake-version.patch
+    BUNDLED_PACKAGE ON
 )
 
 if (mbedtls_ADDED)
