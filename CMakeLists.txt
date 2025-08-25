@@ -492,6 +492,10 @@ else()
     find_package(ZLIB 1.2 REQUIRED)
     find_package(zstd 1.5 REQUIRED MODULE)
 
+    if (ENABLE_CUBEB)
+        find_package(cubeb CONFIG)
+    endif()
+
     if (YUZU_TESTS)
         find_package(Catch2 3.0.1 REQUIRED)
     endif()
