@@ -209,7 +209,7 @@ void NVDRV::QueryEvent(HLERequestContext& ctx) {
 void NVDRV::SetAruid(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     pid = rp.Pop<u64>();
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called, pid=0x{:X}", pid);
+    LOG_WARNING(Service_NVDRV, "(STUBBED) called, pid={:#X}", pid);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
