@@ -237,7 +237,7 @@ NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
                     params.flags, params.class_num);
 
         constexpr u32 allowed_mask{};
-        params.flags &= allowed_mask;
+        params.flags = allowed_mask;
     }
 
     for (const auto &ctx_obj : ctxObj_params) {
