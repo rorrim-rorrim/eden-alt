@@ -75,7 +75,9 @@ option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ${EXT_DEFAULT})
 option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ${EXT_DEFAULT})
 option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ${EXT_DEFAULT})
-option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ${EXT_DEFAULT})
+
+# I hate Apple with a burning passion
+CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ${EXT_DEFAULT} "NOT APPLE" ON)
 
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 
@@ -587,33 +589,6 @@ endif()
 # SimpleIni
 AddJsonPackage(simpleini)
 
-# Most linux distros don't package cubeb, so enable regardless of cpm settings
-if(ENABLE_CUBEB)
-    AddJsonPackage(cubeb)
-
-    if (cubeb_ADDED)
-        if (NOT MSVC)
-            if (TARGET speex)
-                target_compile_options(speex PRIVATE -Wno-sign-compare)
-            endif()
-
-            set_target_properties(cubeb PROPERTIES COMPILE_OPTIONS "")
-            target_compile_options(cubeb INTERFACE
-                -Wno-implicit-const-int-float-conversion
-                -Wno-shadow
-                -Wno-missing-declarations
-                -Wno-return-type
-                -Wno-uninitialized
-            )
-        else()
-            target_compile_options(cubeb PRIVATE
-                /wd4456
-                /wd4458
-            )
-        endif()
-    endif()
-endif()
-
 # find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the YUZU_find_package
 if (ENABLE_SDL2)
     if (YUZU_USE_EXTERNAL_SDL2)
@@ -696,6 +671,8 @@ endif()
 if (ENABLE_SDL2)
     find_package(SDL2)
 endif()
+
+find_package(SPIRV-Tools)
 
 if (ENABLE_QT)
     if (YUZU_USE_BUNDLED_QT)

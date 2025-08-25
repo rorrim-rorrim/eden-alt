@@ -246,7 +246,9 @@ add_library(shader_recompiler STATIC
 
 )
 
-target_link_libraries(shader_recompiler PUBLIC common fmt::fmt sirit SPIRV-Tools::SPIRV-Tools)
+# This can actually cause issues e.g. with Apple
+# but forcing external spirv-tools works there
+target_link_libraries(shader_recompiler PUBLIC common fmt::fmt sirit SPIRV-Tools-opt SPIRV-Tools SPIRV-Tools-link)
 
 if (MSVC)
     target_compile_options(shader_recompiler PRIVATE

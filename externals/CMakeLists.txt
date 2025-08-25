@@ -80,9 +80,15 @@ if (ENABLE_LIBUSB AND NOT TARGET libusb::usb)
 endif()
 
 # Sirit
-# TODO(crueter): spirv-tools doesn't work w/ system
 set(SPIRV_WERROR OFF)
-AddJsonPackage(spirv-headers)
+AddPackage(
+    NAME SPIRV-Headers
+    REPO "KhronosGroup/SPIRV-Headers"
+    SHA 4e209d3d7e
+    HASH f48bbe18341ed55ea0fe280dbbbc0a44bf222278de6e716e143ca1e95ca320b06d4d23d6583fbf8d03e1428f3dac8fa00e5b82ddcd6b425e6236d85af09550a4
+    # spirv-tools is stupid and doesn't know how to utilize system spirv headers
+    BUNDLED_PACKAGE ${YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS}
+)
 
 AddJsonPackage(sirit)
 
@@ -138,16 +144,19 @@ AddJsonPackage(
     BUNDLED_PACKAGE ${YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES}
 )
 
-# SPIRV Tools
-AddJsonPackage(
-    NAME spirv-tools
-    BUNDLED_PACKAGE ${YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS}
+# SPIRV-Tools
+AddPackage(
+    NAME SPIRV-Tools
+    REPO "KhronosGroup/SPIRV-Tools"
+    SHA 40eb301f32
+    HASH 58d0fb1047d69373cf24c73e6f78c73a72a6cca3b4df1d9f083b9dcc0962745ef154abf3dbe9b3623b835be20c6ec769431cf11733349f45e7568b3525f707aa
+    OPTIONS
+        "SPIRV_SKIP_EXECUTABLES ON"
+        "SPIRV_TOOLS_BUILD_STATIC ON"
+    BUNDLED_PACKAGE ${YUZU_USE_EXTERNAL_SPIRV_TOOLS}
 )
 
-if (SPIRV-Tools_ADDED)
-    add_library(SPIRV-Tools::SPIRV-Tools ALIAS SPIRV-Tools-static)
-    target_link_libraries(SPIRV-Tools-static PRIVATE SPIRV-Tools-opt SPIRV-Tools-link)
-endif()
+set(SPIRV-Tools_ADDED "${SPIRV-Tools_ADDED}" PARENT_SCOPE)
 
 # TZDB (Time Zone Database)
 add_subdirectory(nx_tzdb)
