@@ -158,6 +158,9 @@ bool IsFastmemEnabled() {
     if (values.cpu_debug_mode) {
         return static_cast<bool>(values.cpuopt_fastmem);
     }
+    if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Unsafe) {
+        return static_cast<bool>(values.cpuopt_unsafe_mmu);
+    }
     return true;
 }
 
