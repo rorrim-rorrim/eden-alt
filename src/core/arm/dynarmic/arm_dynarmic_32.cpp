@@ -273,7 +273,7 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
         if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Unsafe) {
             config.unsafe_optimizations = true;
             if (!Settings::values.cpuopt_unsafe_mmu) {
-                config.fastmem_pointer = nullptr;
+                config.fastmem_pointer = std::nullopt;
                 config.fastmem_exclusive_access = false;
             }
             if (Settings::values.cpuopt_unsafe_unfuse_fma) {
@@ -296,13 +296,17 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
         // Curated optimizations
         if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Auto) {
             config.unsafe_optimizations = true;
+#if defined(_WIN32) || defined(__linux__) || defined(__ANDROID__)
+            config.fastmem_pointer = std::nullopt;
+            config.fastmem_exclusive_access = false;
+#endif
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreStandardFPCRValue;
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_InaccurateNaN;
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreGlobalMonitor;
         }
 
-        // Paranoia mode for debugging optimizations
+        // Paranoid mode for debugging optimizations
         if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Paranoid) {
             config.unsafe_optimizations = false;
             config.optimizations = Dynarmic::no_optimizations;
