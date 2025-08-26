@@ -161,6 +161,9 @@ bool IsFastmemEnabled() {
     if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Unsafe) {
         return static_cast<bool>(values.cpuopt_unsafe_mmu);
     }
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__)
+    return false;
+#endif
     return true;
 }
 
