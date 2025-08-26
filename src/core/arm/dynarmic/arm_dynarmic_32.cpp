@@ -210,22 +210,12 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
     config.wall_clock_cntpct = m_uses_wall_clock;
     config.enable_cycle_counting = !m_uses_wall_clock;
 
-    // Code cache size
-#ifdef ARCHITECTURE_arm64
-    config.code_cache_size = std::uint32_t(128_MiB);
-#else
-    config.code_cache_size = std::uint32_t(512_MiB);
-#endif
+    // Code cache size (16x2MiB pages)
+    config.code_cache_size = std::uint32_t(32_MiB);
 
     // Allow memory fault handling to work
     if (m_system.DebuggerEnabled()) {
         config.check_halt_on_memory_access = true;
-    }
-
-    // null_jit
-    if (!page_table) {
-        // Don't waste too much memory on null_jit
-        config.code_cache_size = std::uint32_t(8_MiB);
     }
 
     // Safe optimizations
