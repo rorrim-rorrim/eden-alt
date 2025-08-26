@@ -1,5 +1,3 @@
-include(CPMUtil)
-
 # Always build externals as static libraries, even when dynarmic is built as shared
 if (BUILD_SHARED_LIBS)
     set(BUILD_SHARED_LIBS OFF)
@@ -104,7 +102,7 @@ if ("x86_64" IN_LIST ARCHITECTURE)
         OPTIONS
             "CMAKE_DISABLE_FIND_PACKAGE_Doxygen ON"
         EXCLUDE_FROM_ALL ON
-        SYSTEM_PACKAGE OFF
+        BUNDLED_PACKAGE ON
     )
 
     AddPackage(

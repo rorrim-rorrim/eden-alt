@@ -7,9 +7,6 @@
 # TODO(crueter): A lot of this should be moved to the root.
 # otherwise we have to do weird shenanigans with library linking and stuff
 
-# cpm
-include(CPMUtil)
-
 # Explicitly declare this option here to propagate to the oaknut CPM call
 option(DYNARMIC_TESTS "Build tests" ${BUILD_TESTING})
 
@@ -70,14 +67,7 @@ endif()
 add_subdirectory(glad)
 
 # mbedtls
-AddPackage(
-    NAME mbedtls
-    REPO "Mbed-TLS/mbedtls"
-    SHA "8c88150ca1"
-    HASH 769ad1e94c570671071e1f2a5c0f1027e0bf6bcdd1a80ea8ac970f2c86bc45ce4e31aa88d6d8110fc1bed1de81c48bc624df1b38a26f8b340a44e109d784a966
-    PATCHES
-        ${CMAKE_SOURCE_DIR}/.patch/mbedtls/0001-cmake-version.patch
-)
+AddJsonPackage(mbedtls)
 
 if (mbedtls_ADDED)
     target_include_directories(mbedtls PUBLIC ${mbedtls_SOURCE_DIR}/include)
@@ -97,23 +87,13 @@ endif()
 # Sirit
 # TODO(crueter): spirv-tools doesn't work w/ system
 set(SPIRV_WERROR OFF)
-AddPackage(
-    NAME SPIRV-Headers
-    REPO "KhronosGroup/SPIRV-Headers"
-    SHA 4e209d3d7e
-    HASH f48bbe18341ed55ea0fe280dbbbc0a44bf222278de6e716e143ca1e95ca320b06d4d23d6583fbf8d03e1428f3dac8fa00e5b82ddcd6b425e6236d85af09550a4
-)
+AddJsonPackage("spirv-headers")
 
-AddPackage(
-    NAME sirit
-    REPO "eden-emulator/sirit"
-    SHA db1f1e8ab5
-    HASH 73eb3a042848c63a10656545797e85f40d142009dfb7827384548a385e1e28e1ac72f42b25924ce530d58275f8638554281e884d72f9c7aaf4ed08690a414b05
-    OPTIONS
-        "SIRIT_USE_SYSTEM_SPIRV_HEADERS ON"
-)
+AddJsonPackage("sirit")
 
-if(MSVC AND USE_CCACHE AND TARGET sirit)
+message(STATUS "Sirit added: ${sirit_ADDED}")
+
+if(MSVC AND USE_CCACHE AND sirit_ADDED)
     get_target_property(_opts sirit COMPILE_OPTIONS)
     list(FILTER _opts EXCLUDE REGEX "/Zi")
     list(APPEND _opts "/Z7")
@@ -122,33 +102,12 @@ endif()
 
 # httplib
 if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
-    AddPackage(
-        NAME httplib
-        REPO "yhirose/cpp-httplib"
-        SHA a609330e4c
-        HASH dd3fd0572f8367d8549e1319fd98368b3e75801a293b0c3ac9b4adb806473a4506a484b3d389dc5bee5acc460cb90af7a20e5df705a1696b56496b30b9ce7ed2
-        OPTIONS
-            "HTTPLIB_REQUIRE_OPENSSL ${ENABLE_OPENSSL}"
-    )
+    AddJsonPackage("httplib")
 endif()
 
 # cpp-jwt
 if (ENABLE_WEB_SERVICE)
-    AddPackage(
-        NAME cpp-jwt
-        VERSION 1.4
-        REPO "arun11299/cpp-jwt"
-        SHA a54fa08a3b
-        HASH a90f7e594ada0c7e49d5ff9211c71097534e7742a8e44bf0851b0362642a7271d53f5d83d04eeaae2bad17ef3f35e09e6818434d8eaefa038f3d1f7359d0969a
-        FIND_PACKAGE_ARGUMENTS "CONFIG"
-        OPTIONS
-            "CPP_JWT_BUILD_EXAMPLES OFF"
-            "CPP_JWT_BUILD_TESTS OFF"
-            "CPP_JWT_USE_VENDORED_NLOHMANN_JSON OFF"
-        PATCHES
-            ${CMAKE_SOURCE_DIR}/.patch/cpp-jwt/0001-no-install.patch
-            ${CMAKE_SOURCE_DIR}/.patch/cpp-jwt/0002-missing-decl.patch
-    )
+    AddJsonPackage("cpp-jwt")
 endif()
 
 # FFMpeg

@@ -19,8 +19,142 @@ CMAKE_DEPENDENT_OPTION(CPMUTIL_DEFAULT_SYSTEM
 cmake_minimum_required(VERSION 3.22)
 include(CPM)
 
+set(CPMUTIL_JSON_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json" CACHE STRING "Location of cpmfile.json")
+
+if (EXISTS ${CPMUTIL_JSON_FILE})
+    file(READ ${CPMUTIL_JSON_FILE} CPMFILE_CONTENT)
+else()
+    message(WARNING "[CPMUtil] cpmfile ${CPMUTIL_JSON_FILE} does not exist, AddJsonPackage will be a no-op")
+endif()
+
 function(cpm_utils_message level name message)
     message(${level} "[CPMUtil] ${name}: ${message}")
+endfunction()
+
+function(array_to_list array length out)
+    math(EXPR range "${length} - 1")
+
+    foreach(IDX RANGE ${range})
+        string(JSON _element GET "${array}" "${IDX}")
+
+        list(APPEND NEW_LIST ${_element})
+    endforeach()
+
+    set("${out}" "${NEW_LIST}" PARENT_SCOPE)
+endfunction()
+
+function(get_json_element object out member default)
+    string(JSON out_type ERROR_VARIABLE err TYPE "${object}" ${member})
+
+    if (err)
+        set("${out}" "${default}" PARENT_SCOPE)
+        return()
+    endif()
+
+    string(JSON outvar GET "${object}" ${member})
+
+    if (out_type STREQUAL "ARRAY")
+        string(JSON _len LENGTH "${object}" ${member})
+        # array_to_list("${outvar}" ${_len} outvar)
+        set("${out}_LENGTH" "${_len}" PARENT_SCOPE)
+    endif()
+
+    set("${out}" "${outvar}" PARENT_SCOPE)
+endfunction()
+
+
+# Kinda cancerous but whatever
+function(AddJsonPackage name)
+
+    # these are overrides that can be generated at runtime, so can be defined separately from the json
+    set(oneValueArgs
+        DOWNLOAD_ONLY
+        SYSTEM_PACKAGE
+        BUNDLED_PACKAGE
+    )
+
+    set(multiValueArgs OPTIONS)
+
+    cmake_parse_arguments(JSON "" "${oneValueArgs}" "${multiValueArgs}"
+                          "${ARGN}")
+
+    if (NOT DEFINED CPMFILE_CONTENT)
+        cpm_utils_message(WARNING ${name} "No cpmfile, AddJsonPackage is a no-op")
+        return()
+    endif()
+
+    string(JSON object ERROR_VARIABLE err GET "${CPMFILE_CONTENT}" "${name}")
+
+    if (err)
+        cpm_utils_message(FATAL_ERROR ${name} "Not found in cpmfile")
+    endif()
+
+    message(STATUS "JSON: ${object}")
+
+    get_json_element("${object}" package package ${name})
+    get_json_element("${object}" hash hash "")
+    get_json_element("${object}" sha sha "")
+    get_json_element("${object}" repo repo "")
+    get_json_element("${object}" bundled bundled "unset")
+    get_json_element("${object}" version version "")
+    get_json_element("${object}" find_args find_args "")
+    get_json_element("${object}" raw_patches patches "")
+
+    # format patchdir
+    if (raw_patches)
+        math(EXPR range "${raw_patches_LENGTH} - 1")
+
+        foreach(IDX RANGE ${range})
+            string(JSON _patch GET "${raw_patches}" "${IDX}")
+
+            set(full_patch "${CMAKE_SOURCE_DIR}/.patch/${name}/${_patch}")
+            if (NOT EXISTS ${full_patch})
+                cpm_utils_message(FATAL_ERROR ${name} "specifies patch ${full_patch} which does not exist")
+            endif()
+
+            list(APPEND patches "${full_patch}")
+        endforeach()
+    endif()
+    # end format patchdir
+
+    # options
+    get_json_element("${object}" raw_options options "")
+
+    if (raw_options)
+        array_to_list("${raw_options}" ${raw_options_LENGTH} options)
+    elseif(JSON_OPTIONS)
+        set(options ${JSON_OPTIONS})
+    endif()
+    # end options
+
+    # system/bundled
+    cpm_utils_message(STATUS ${name} "system: ${system} bundled: ${bundled}")
+    if (bundled STREQUAL "unset" AND DEFINED JSON_BUNDLED_PACKAGE)
+        set(bundled ${JSON_BUNDLED_PACKAGE})
+    else()
+        set(bundled ON)
+    endif()
+
+    AddPackage(
+        NAME "${package}"
+        VERSION "${version}"
+        HASH "${hash}"
+        SHA "${sha}"
+        REPO "${repo}"
+        PATCHES "${patches}"
+        OPTIONS "${options}"
+        FIND_PACKAGE_ARGUMENTS "${find_args}"
+        BUNDLED_PACKAGE "${bundled}"
+    )
+
+    # pass stuff to parent scope
+    set(${package}_ADDED "${${package}_ADDED}"
+        PARENT_SCOPE)
+    set(${package}_SOURCE_DIR "${${package}_SOURCE_DIR}"
+        PARENT_SCOPE)
+    set(${package}_BINARY_DIR "${${package}_BINARY_DIR}"
+        PARENT_SCOPE)
+
 endfunction()
 
 function(AddPackage)
@@ -43,6 +177,8 @@ function(AddPackage)
           * technically this is unsafe since a hacker can attack that url
 
         NOTE: hash algo defaults to sha512
+
+        patches are in ${CMAKE_SOURCE_DIR}/.patch/{name}/${patchname}
     #]]
     set(oneValueArgs
         NAME
@@ -185,10 +321,9 @@ function(AddPackage)
         set(pkg_hash "${hash_algo}=${pkg_hash_tmp}")
     endif()
 
+    # TODO(crueter): force system/bundled for specific packages via options e.g httplib_SYSTEM
     if (NOT CPMUTIL_DEFAULT_SYSTEM)
         set(CPM_USE_LOCAL_PACKAGES OFF)
-    elseif (DEFINED PKG_ARGS_SYSTEM_PACKAGE)
-        set(CPM_USE_LOCAL_PACKAGES ${PKG_ARGS_SYSTEM_PACKAGE})
     elseif (DEFINED PKG_ARGS_BUNDLED_PACKAGE)
         if (PKG_ARGS_BUNDLED_PACKAGE)
             set(CPM_USE_LOCAL_PACKAGES OFF)
