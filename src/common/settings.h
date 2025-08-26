@@ -299,6 +299,15 @@ struct Values {
                                               Category::CpuDebug};
     Setting<bool> cpuopt_ignore_memory_aborts{linkage, true, "cpuopt_ignore_memory_aborts",
                                               Category::CpuDebug};
+
+    SwitchableSetting<bool> cpuopt_unsafe_mmu{linkage,
+#if defined(_WIN32) || defined(__linux__) || defined(__ANDROID__)
+                                        true,
+#else
+                                        false,
+#endif
+                                        "cpuopt_unsafe_mmu",
+                                        Category::CpuUnsafe};
     SwitchableSetting<bool> cpuopt_unsafe_unfuse_fma{linkage, true, "cpuopt_unsafe_unfuse_fma",
                                                      Category::CpuUnsafe};
     SwitchableSetting<bool> cpuopt_unsafe_reduce_fp_error{
