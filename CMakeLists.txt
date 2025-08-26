@@ -451,6 +451,7 @@ if (YUZU_USE_CPM)
             "ZSTD_BUILD_SHARED OFF"
             "ZSTD_BUILD_STATIC ON"
         EXCLUDE_FROM_ALL ON
+        BUNDLED_PACKAGE ${APPLE}
     )
 
     if (zstd_ADDED AND NOT TARGET zstd::zstd)
