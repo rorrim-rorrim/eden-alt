@@ -291,10 +291,16 @@ MemoryCommit MemoryAllocator::Commit(const VkMemoryRequirements& requirements, M
         return std::move(*commit);
     }
     // Commit has failed, allocate more memory.
-    const u64 chunk_size = AllocationChunkSize(requirements.size);
+    u64 chunk_size = AllocationChunkSize(requirements.size);
     if (!TryAllocMemory(flags, type_mask, chunk_size)) {
-        // TODO(Rodrigo): Handle out of memory situations in some way like flushing to guest memory.
-        throw vk::Exception(VK_ERROR_OUT_OF_DEVICE_MEMORY);
+        const u64 floor = std::max<u64>(requirements.size, 4ull << 20);
+        while (chunk_size > floor && !TryAllocMemory(flags, type_mask, (chunk_size >>= 1))) {
+            // keep halving until we can make progress
+        }
+        if (chunk_size <= floor && !TryAllocMemory(flags, type_mask, floor)) {
+            // TODO(Rodrigo): Handle out of memory situations in some way like flushing to guest memory.
+            throw vk::Exception(VK_ERROR_OUT_OF_DEVICE_MEMORY);
+        }
     }
     // Commit again, this time it won't fail since there's a fresh allocation above.
     // If it does, there's a bug.
@@ -331,11 +337,26 @@ void MemoryAllocator::ReleaseMemory(MemoryAllocation* alloc) {
 
 std::optional<MemoryCommit> MemoryAllocator::TryCommit(const VkMemoryRequirements& requirements,
                                                        VkMemoryPropertyFlags flags) {
+    //conservative, spec-compliant alignment for suballocation
+    VkDeviceSize eff_align = requirements.alignment;
+    const auto& limits = device.GetPhysical().GetProperties().limits;
+    if ((flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) &&
+        !(flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
+        // Non-coherent memory must be invalidated on atom boundary
+        if (limits.nonCoherentAtomSize > eff_align) eff_align = limits.nonCoherentAtomSize;
+    }
+    // Separate buffers to avoid stalls on tilers
+    if (buffer_image_granularity > eff_align)
+    {
+        eff_align = buffer_image_granularity;
+    }
+    eff_align = std::bit_ceil(eff_align);
+
     for (auto& allocation : allocations) {
         if (!allocation->IsCompatible(flags, requirements.memoryTypeBits)) {
             continue;
         }
-        if (auto commit = allocation->Commit(requirements.size, requirements.alignment)) {
+        if (auto commit = allocation->Commit(requirements.size, eff_align)) {
             return commit;
         }
     }
