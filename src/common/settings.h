@@ -301,10 +301,10 @@ struct Values {
                                               Category::CpuDebug};
 
     SwitchableSetting<bool> cpuopt_unsafe_mmu{linkage,
-#if defined(_WIN32) || defined(__linux__) || defined(__ANDROID__)
-                                        true,
-#else
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__)
                                         false,
+#else
+                                        true,
 #endif
                                         "cpuopt_unsafe_mmu",
                                         Category::CpuUnsafe};
