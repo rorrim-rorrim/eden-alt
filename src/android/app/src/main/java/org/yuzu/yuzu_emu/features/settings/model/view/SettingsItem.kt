@@ -675,6 +675,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.CPUOPT_UNSAFE_MMU,
+                    titleId = R.string.cpuopt_unsafe_mmu,
+                    descriptionId = R.string.cpuopt_unsafe_mmu_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.RENDERER_REACTIVE_FLUSHING,
                     titleId = R.string.renderer_reactive_flushing,
                     descriptionId = R.string.renderer_reactive_flushing_description
