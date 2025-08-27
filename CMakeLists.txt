@@ -440,7 +440,7 @@ if (YUZU_USE_CPM)
     AddJsonPackage(zstd)
 
     if (zstd_ADDED)
-        add_library(zstd::zstd ALIS libzstd_static)
+        add_library(zstd::zstd ALIAS libzstd_static)
     endif()
 
     # Catch2
