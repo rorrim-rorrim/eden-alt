@@ -7,6 +7,10 @@
 # TODO(crueter): A lot of this should be moved to the root.
 # otherwise we have to do weird shenanigans with library linking and stuff
 
+# Explicitly include CPMUtil here since we have a separate cpmfile for externals
+set(CPMUTIL_JSON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json)
+include(CPMUtil)
+
 # Explicitly declare this option here to propagate to the oaknut CPM call
 option(DYNARMIC_TESTS "Build tests" ${BUILD_TESTING})
 
@@ -30,32 +34,15 @@ endif()
 # Xbyak (also used by Dynarmic, so needs to be added first)
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     if (PLATFORM_SUN)
-        # Fix regset.h collisions
-        set(XBYAK_HASH 51f507b0b3)
-        set(XBYAK_SHA512SUM 4a29a3c2f97f7d5adf667a21a008be03c951fb6696b0d7ba27e7e4afa037bc76eb5e059bb84860e01baf741d4d3ac851b840cd54c99d038812fbe0f1fa6d38a4)
+        AddJsonPackage(xbyak_sun)
     else()
-        set(XBYAK_HASH 4e44f4614d)
-        set(XBYAK_SHA512SUM 5824e92159e07fa36a774aedd3b3ef3541d0241371d522cffa4ab3e1f215fa5097b1b77865b47b2481376c704fa079875557ea463ca63d0a7fd6a8a20a589e70)
+        AddJsonPackage(xbyak)
     endif()
-
-    AddPackage(
-        NAME xbyak
-        REPO "Lizzie841/xbyak"
-        SHA ${XBYAK_HASH}
-        HASH ${XBYAK_SHA512SUM}
-        BUNDLED_PACKAGE ON
-    )
 endif()
 
 # Oaknut (also used by Dynarmic, so needs to be added first)
 if (ARCHITECTURE_arm64 OR DYNARMIC_TESTS)
-    AddPackage(
-        NAME oaknut
-        VERSION 2.0.1
-        REPO "merryhime/oaknut"
-        SHA 94c726ce03
-        HASH d8d082242fa1881abce3c82f8dafa002c4e561e66a69e7fc038af67faa5eff2630f082d3d19579c88c4c9f9488e54552accc8cb90e7ce743efe043b6230c08ac
-    )
+    AddJsonPackage(oaknut)
 endif()
 
 # getopt
@@ -87,11 +74,9 @@ endif()
 # Sirit
 # TODO(crueter): spirv-tools doesn't work w/ system
 set(SPIRV_WERROR OFF)
-AddJsonPackage("spirv-headers")
+AddJsonPackage(spirv_headers)
 
-AddJsonPackage("sirit")
-
-message(STATUS "Sirit added: ${sirit_ADDED}")
+AddJsonPackage(sirit)
 
 if(MSVC AND USE_CCACHE AND sirit_ADDED)
     get_target_property(_opts sirit COMPILE_OPTIONS)
@@ -102,12 +87,12 @@ endif()
 
 # httplib
 if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
-    AddJsonPackage("httplib")
+    AddJsonPackage(httplib)
 endif()
 
 # cpp-jwt
 if (ENABLE_WEB_SERVICE)
-    AddJsonPackage("cpp-jwt")
+    AddJsonPackage(cpp-jwt)
 endif()
 
 # FFMpeg
@@ -123,47 +108,25 @@ endif()
 
 # TODO(crueter): Vk1.4 impl
 
-AddPackage(
-    NAME VulkanHeaders
-    VERSION 1.3.274
-    REPO "KhronosGroup/Vulkan-Headers"
-    SHA 89268a6d17
-    HASH 3ab349f74298ba72cafb8561015690c0674d428a09fb91ccd3cd3daca83650d190d46d33fd97b0a8fd4223fe6df2bcabae89136fbbf7c0bfeb8776f9448304c8
+AddJsonPackage(
+    NAME vulkan-headers
     BUNDLED_PACKAGE ${YUZU_USE_EXTERNAL_VULKAN_HEADERS}
 )
 
 # Vulkan-Utility-Libraries
-AddPackage(
-    NAME VulkanUtilityLibraries
-    REPO "KhronosGroup/Vulkan-Utility-Libraries"
-    SHA df2e358152
-    HASH 3e468c3d9ff93f6d418d71e5527abe0a12c8c7ab5b0b52278bbbee4d02bb87e99073906729b727e0147242b7e3fd5dedf68b803f1878cb4c0e4f730bc2238d79
+AddJsonPackage(
+    NAME vulkan-utility-libraries
     BUNDLED_PACKAGE ${YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES}
 )
 
-# SPIRV-Tools
-if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
-    AddPackage(
-        NAME SPIRV-Tools
-        REPO "KhronosGroup/SPIRV-Tools"
-        SHA 40eb301f32
-        HASH 58d0fb1047d69373cf24c73e6f78c73a72a6cca3b4df1d9f083b9dcc0962745ef154abf3dbe9b3623b835be20c6ec769431cf11733349f45e7568b3525f707aa
-        OPTIONS
-            "SPIRV_SKIP_EXECUTABLES ON"
-    )
-endif()
+# SPIRV Tools
+AddJsonPackage(spirv-tools)
 
 # TZDB (Time Zone Database)
 add_subdirectory(nx_tzdb)
 
 # VMA
-AddPackage(
-    NAME VulkanMemoryAllocator
-    REPO "GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator"
-    SHA 1076b348ab
-    HASH a46b44e4286d08cffda058e856c47f44c7fed3da55fe9555976eb3907fdcc20ead0b1860b0c38319cda01dbf9b1aa5d4b4038c7f1f8fbd97283d837fa9af9772
-    FIND_PACKAGE_ARGUMENTS "CONFIG"
-)
+AddJsonPackage(vulkan-memory-allocator)
 
 if (NOT TARGET LLVM::Demangle)
     add_library(demangle demangle/ItaniumDemangle.cpp)
@@ -193,17 +156,8 @@ if (NOT TARGET RenderDoc::API)
     add_library(RenderDoc::API ALIAS renderdoc)
 endif()
 
-if (ANDROID)
-    if (ARCHITECTURE_arm64)
-        AddPackage(
-            NAME libadrenotools
-            REPO "bylaws/libadrenotools"
-            SHA 8fae8ce254
-            HASH c74fa855f0edebbf25c9bce40b00966daa2447bfc5e15f0cf1a95f86cbf70fc6b02590707edbde16328a0a2a4fb9a1fc419d2dfc22a4a4150971be91892d4edb
-            PATCHES
-                ${CMAKE_SOURCE_DIR}/.patch/libadrenotools/0001-linkerns-cpm.patch
-        )
-    endif()
+if (ANDROID AND ARCHITECTURE_arm64)
+    AddJsonPackage(libadrenotools)
 endif()
 
 if (UNIX AND NOT APPLE AND NOT TARGET gamemode::headers)
@@ -226,6 +180,7 @@ if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
         _CRT_NONSTDC_NO_DEPRECATE
     )
 
+    # TODO
     AddPackage(
         NAME breakpad
         URL "google/breakpad"
@@ -326,13 +281,7 @@ endif()
 
 # oboe
 if (ANDROID)
-    AddPackage(
-        NAME oboe
-        REPO "google/oboe"
-        SHA 2bc873e53c
-        HASH 02329058a7f9cf7d5039afaae5ab170d9f42f60f4c01e21eaf4f46073886922b057a9ae30eeac040b3ac182f51b9c1bfe9fe1050a2c9f6ce567a1a9a0ec2c768
-        BUNDLED_PACKAGE ON
-    )
+    AddJsonPackage(oboe)
 
     add_library(oboe::oboe ALIAS oboe)
 endif()
