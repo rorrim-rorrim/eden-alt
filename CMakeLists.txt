@@ -407,7 +407,7 @@ if (YUZU_USE_CPM)
         if (NOT MSVC)
             # boost sucks
             if (NOT PLATFORM_LINUX AND NOT ANDROID)
-                target_compile_options(boost_container INTERFACE -pthread)
+                target_compile_definitions(boost_container INTERFACE BOOST_HAS_PTHREADS)
             endif()
 
             target_compile_options(boost_heap INTERFACE -Wno-shadow)
