@@ -32,28 +32,14 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows" OR ANDROID)
 endif()
 
 set(NX_TZDB_VERSION "250725")
-set(NX_TZDB_ARCHIVE "${CPM_SOURCE_CACHE}/nx_tzdb/${NX_TZDB_VERSION}.zip")
 
 set(NX_TZDB_ROMFS_DIR "${CPM_SOURCE_CACHE}/nx_tzdb/tz")
 
 if ((NOT CAN_BUILD_NX_TZDB OR YUZU_DOWNLOAD_TIME_ZONE_DATA) AND NOT EXISTS ${NX_TZDB_ROMFS_DIR})
-    set(NX_TZDB_DOWNLOAD_URL "https://github.com/crueter/tzdb_to_nx/releases/download/${NX_TZDB_VERSION}/${NX_TZDB_VERSION}.zip")
-
-    message(STATUS "Downloading time zone data from ${NX_TZDB_DOWNLOAD_URL}...")
-    file(DOWNLOAD ${NX_TZDB_DOWNLOAD_URL} ${NX_TZDB_ARCHIVE}
-        STATUS NX_TZDB_DOWNLOAD_STATUS)
-    list(GET NX_TZDB_DOWNLOAD_STATUS 0 NX_TZDB_DOWNLOAD_STATUS_CODE)
-    if (NOT NX_TZDB_DOWNLOAD_STATUS_CODE EQUAL 0)
-        message(FATAL_ERROR "Time zone data download failed (status code ${NX_TZDB_DOWNLOAD_STATUS_CODE})")
-    endif()
-
+    message(STATUS "Downloading time zone data...")
     AddJsonPackage(tzdb)
 
-    file(ARCHIVE_EXTRACT
-        INPUT
-            ${NX_TZDB_ARCHIVE}
-        DESTINATION
-            ${NX_TZDB_ROMFS_DIR})
+    set(NX_TZDB_ROMFS_DIR ${nx_tzdb_SOURCE_DIR})
 elseif (CAN_BUILD_NX_TZDB AND NOT YUZU_DOWNLOAD_TIME_ZONE_DATA)
     # TODO(crueter): this sucked to do with cpm, see if i can get it to work again
     message(FATAL_ERROR "Building tzdb is currently unsupported. Check back later.")
