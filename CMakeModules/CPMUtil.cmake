@@ -11,21 +11,22 @@
 # Future crueter: Wow this was a lie and a half, at this point I might as well make my own CPN
 # haha just kidding... unless?
 
-# TODO(crueter): Better solution for separate cpmfiles e.g. per-directory
-include(CMakeDependentOption)
 if (MSVC OR ANDROID)
-    set(SYSTEM_DEFAULT OFF)
+    set(BUNDLED_DEFAULT OFF)
 else()
-    set(SYSTEM_DEFAULT ON)
+    set(BUNDLED_DEFAULT ON)
 endif()
 
-CMAKE_DEPENDENT_OPTION(CPMUTIL_DEFAULT_SYSTEM
-                       "Allow usage of system packages for CPM dependencies" ${SYSTEM_DEFAULT}
-                       "NOT ANDROID" OFF)
+option(CPMUTIL_FORCE_BUNDLED
+    "Force bundled packages for all CPM depdendencies" ${BUNDLED_DEFAULT})
+
+option(CPMUTIL_DEFAULT_SYSTEM
+    "Force system packages for all CPM dependencies (NOT RECOMMENDED)" OFF)
 
 cmake_minimum_required(VERSION 3.22)
 include(CPM)
 
+# TODO(crueter): Better solution for separate cpmfiles e.g. per-directory
 set(CPMUTIL_JSON_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json" CACHE STRING "Location of cpmfile.json")
 
 if (EXISTS ${CPMUTIL_JSON_FILE})
@@ -34,10 +35,12 @@ else()
     message(WARNING "[CPMUtil] cpmfile ${CPMUTIL_JSON_FILE} does not exist, AddJsonPackage will be a no-op")
 endif()
 
+# utility
 function(cpm_utils_message level name message)
     message(${level} "[CPMUtil] ${name}: ${message}")
 endfunction()
 
+# utility
 function(array_to_list array length out)
     math(EXPR range "${length} - 1")
 
@@ -50,6 +53,7 @@ function(array_to_list array length out)
     set("${out}" "${NEW_LIST}" PARENT_SCOPE)
 endfunction()
 
+# utility
 function(get_json_element object out member default)
     string(JSON out_type ERROR_VARIABLE err TYPE "${object}" ${member})
 
@@ -116,7 +120,6 @@ function(AddJsonPackage)
         get_json_element("${object}" extension extension "tar.zst")
         get_json_element("${object}" min_version min_version "")
         get_json_element("${object}" cmake_filename cmake_filename "")
-        get_json_element("${object}" target target "")
         get_json_element("${object}" raw_disabled disabled_platforms "")
 
         if (raw_disabled)
@@ -134,7 +137,6 @@ function(AddJsonPackage)
             MIN_VERSION ${min_version}
             DISABLED_PLATFORMS ${disabled_platforms}
             CMAKE_FILENAME ${cmake_filename}
-            TARGET ${target}
         )
         return()
     endif()
@@ -171,9 +173,10 @@ function(AddJsonPackage)
 
     if (raw_options)
         array_to_list("${raw_options}" ${raw_options_LENGTH} options)
-    elseif(JSON_OPTIONS)
-        set(options ${JSON_OPTIONS})
     endif()
+
+    set(options ${options} ${JSON_OPTIONS})
+
     # end options
 
     # system/bundled
@@ -251,9 +254,6 @@ function(AddPackage)
         GIT_URL
 
         KEY
-        DOWNLOAD_ONLY
-        FIND_PACKAGE_ARGUMENTS
-        SYSTEM_PACKAGE
         BUNDLED_PACKAGE
     )
 
@@ -265,6 +265,9 @@ function(AddPackage)
     if (NOT DEFINED PKG_ARGS_NAME)
         cpm_utils_message(FATAL_ERROR "package" "No package name defined")
     endif()
+
+    option(${PKG_ARGS_NAME}_FORCE_SYSTEM "Force the system package for ${PKG_ARGS_NAME}")
+    option(${PKG_ARGS_NAME}_FORCE_BUNDLED "Force the bundled package for ${PKG_ARGS_NAME}")
 
     if (DEFINED PKG_ARGS_URL)
         set(pkg_url ${PKG_ARGS_URL})
@@ -382,17 +385,38 @@ function(AddPackage)
         endif()
     endif()
 
-    # TODO(crueter): force system/bundled for specific packages via options e.g httplib_SYSTEM
-    if (NOT CPMUTIL_DEFAULT_SYSTEM)
-        set(CPM_USE_LOCAL_PACKAGES OFF)
+    macro(set_precedence local force)
+        set(CPM_USE_LOCAL_PACKAGES ${local})
+        set(CPM_LOCAL_PACKAGES_ONLY ${force})
+    endmacro()
+
+    #[[
+        Precedence:
+        - package_FORCE_SYSTEM
+        - package_FORCE_BUNDLED
+        - CPMUTIL_FORCE_SYSTEM
+        - CPMUTIL_FORCE_BUNDLED
+        - BUNDLED_PACKAGE
+        - default to allow local
+    ]]#
+    if (${PKG_ARGS_NAME}_FORCE_SYSTEM)
+        set_precedence(ON ON)
+    elseif (${PKG_ARGS_NAME}_FORCE_BUNDLED)
+        set_precedence(OFF OFF)
+    elseif (CPMUTIL_FORCE_SYSTEM)
+        set_precedence(ON ON)
+    elseif(NOT CPMUTIL_FORCE_BUNDLED)
+        set_precedence(OFF OFF)
     elseif (DEFINED PKG_ARGS_BUNDLED_PACKAGE)
         if (PKG_ARGS_BUNDLED_PACKAGE)
-            set(CPM_USE_LOCAL_PACKAGES OFF)
+            set(local OFF)
         else()
-            set(CPM_USE_LOCAL_PACKAGES ON)
+            set(local ON)
         endif()
+
+        set_precedence(${local} OFF)
     else()
-        set(CPM_USE_LOCAL_PACKAGES ON)
+        set_precedence(ON OFF)
     endif()
 
     CPMAddPackage(
@@ -468,7 +492,6 @@ function(add_ci_package key)
     set(ARTIFACT_DIR ${${ARTIFACT_PACKAGE}_SOURCE_DIR} PARENT_SCOPE)
 endfunction()
 
-# TODO(crueter): doc
 # name is the artifact name, package is for find_package override
 function(AddCIPackage)
     set(oneValueArgs
@@ -480,7 +503,6 @@ function(AddCIPackage)
         MIN_VERSION
         DISABLED_PLATFORMS
         CMAKE_FILENAME
-        TARGET
     )
 
     cmake_parse_arguments(PKG_ARGS "" "${oneValueArgs}" "" ${ARGN})

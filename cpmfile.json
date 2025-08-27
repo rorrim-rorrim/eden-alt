@@ -150,7 +150,6 @@
         "repo": "crueter-ci/SDL2",
         "version": "2.32.8",
         "min_version": "2.26.4",
-        "cmake_filename": "sdl2",
-        "target": "SDL2::SDL2"
+        "cmake_filename": "sdl2"
     }
 }
