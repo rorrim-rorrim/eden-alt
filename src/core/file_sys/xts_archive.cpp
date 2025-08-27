@@ -56,8 +56,8 @@ NAX::NAX(VirtualFile file_)
         return;
     }
 
-    const std::string two_dir = Common::ToUpper(match[1]);
-    const std::string nca_id = Common::ToLower(match[2]);
+    const std::string two_dir = Common::ToUpper(std::string{match[1]});
+    const std::string nca_id = Common::ToLower(std::string{match[2]});
     status = Parse(fmt::format("/registered/{}/{}.nca", two_dir, nca_id));
 }
 
