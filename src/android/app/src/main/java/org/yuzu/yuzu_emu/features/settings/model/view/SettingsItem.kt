@@ -675,9 +675,9 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
-                    BooleanSetting.CPUOPT_UNSAFE_MMU,
-                    titleId = R.string.cpuopt_unsafe_mmu,
-                    descriptionId = R.string.cpuopt_unsafe_mmu_description
+                    BooleanSetting.CPUOPT_UNSAFE_HOST_MMU,
+                    titleId = R.string.cpuopt_unsafe_host_mmu,
+                    descriptionId = R.string.cpuopt_unsafe_host_mmu_description
                 )
             )
             put(
