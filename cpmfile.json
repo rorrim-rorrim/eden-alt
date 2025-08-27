@@ -107,7 +107,7 @@
         "hash": "50cd75dcdfc5f082225cdace058f47b4fb114a47585f7aee1d22236a910a80b667186254c214fa2fcebac67ae6d37ba4b6e695e1faea8affd6fd42a03cf996e3",
         "bundled": true
     },
-    "discord_rpc": {
+    "discord-rpc": {
         "repo": "discord/discord-rpc",
         "sha": "963aa9f3e5",
         "hash": "386e1344e9a666d730f2d335ee3aef1fd05b1039febefd51aa751b705009cc764411397f3ca08dffd46205c72f75b235c870c737b2091a4ed0c3b061f5919bde",

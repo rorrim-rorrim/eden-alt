@@ -316,8 +316,6 @@ function(AddPackage)
         set(git_version ${PKG_ARGS_VERSION})
     endif()
 
-    message(STATUS "PKG GIT VERSION: ${git_version}")
-
     if (NOT DEFINED PKG_ARGS_KEY)
         if (DEFINED PKG_ARGS_SHA)
             string(SUBSTRING ${PKG_ARGS_SHA} 0 4 pkg_key)

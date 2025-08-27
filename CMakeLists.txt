@@ -523,7 +523,7 @@ endif()
 
 # DiscordRPC
 if (USE_DISCORD_PRESENCE)
-    AddJsonPackage(discord_rpc)
+    AddJsonPackage(discord-rpc)
 
     target_include_directories(discord-rpc INTERFACE ${discord-rpc_SOURCE_DIR}/include)
     add_library(DiscordRPC::discord-rpc ALIAS discord-rpc)
