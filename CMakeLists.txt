@@ -400,6 +400,10 @@ if (YUZU_USE_CPM)
 
         if (NOT MSVC)
             # boost sucks
+            if (NOT PLATFORM_LINUX AND NOT ANDROID)
+                target_compile_options(boost_container INTERFACE -pthread)
+            endif()
+
             target_compile_options(boost_heap INTERFACE -Wno-shadow)
             target_compile_options(boost_icl INTERFACE -Wno-shadow)
             target_compile_options(boost_asio INTERFACE -Wno-conversion -Wno-implicit-fallthrough)
@@ -558,9 +562,7 @@ if (ENABLE_SDL2)
         else()
             AddJsonPackage("sdl2_generic")
         endif()
-    endif()
-
-    if (YUZU_USE_BUNDLED_SDL2)
+    elseif (YUZU_USE_BUNDLED_SDL2)
         message(STATUS "Using bundled SDL2")
         AddJsonPackage(sdl2)
     endif()
