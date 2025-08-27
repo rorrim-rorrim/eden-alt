@@ -74,7 +74,7 @@ endif()
 # Sirit
 # TODO(crueter): spirv-tools doesn't work w/ system
 set(SPIRV_WERROR OFF)
-AddJsonPackage(spirv_headers)
+AddJsonPackage(spirv-headers)
 
 AddJsonPackage(sirit)
 
