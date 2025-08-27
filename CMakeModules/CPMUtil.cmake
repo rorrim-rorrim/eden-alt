@@ -375,9 +375,13 @@ function(AddPackage)
             file(DOWNLOAD ${hash_url} ${outfile})
         endif()
 
-        file(READ ${outfile} pkg_hash_tmp)
+        if (EXISTS ${outfile})
+            file(READ ${outfile} pkg_hash_tmp)
+        endif()
 
-        set(pkg_hash "${hash_algo}=${pkg_hash_tmp}")
+        if (DEFINED ${pkg_hash_tmp})
+            set(pkg_hash "${hash_algo}=${pkg_hash_tmp}")
+        endif()
     endif()
 
     # TODO(crueter): force system/bundled for specific packages via options e.g httplib_SYSTEM
