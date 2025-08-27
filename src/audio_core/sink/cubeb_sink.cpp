@@ -52,7 +52,7 @@ public:
         cubeb_stream_params params{};
         params.rate = TargetSampleRate;
         params.channels = device_channels;
-        params.format = CUBEB_SAMPLE_S16LE;
+        params.format = CUBEB_SAMPLE_S16NE;
         params.prefs = CUBEB_STREAM_PREF_NONE;
         switch (params.channels) {
         case 1:
@@ -62,7 +62,7 @@ public:
             params.layout = CUBEB_LAYOUT_STEREO;
             break;
         case 6:
-            params.layout = CUBEB_LAYOUT_STEREO;
+            params.layout = CUBEB_LAYOUT_3F2_LFE;
             break;
         }
 
@@ -362,7 +362,7 @@ u32 GetCubebLatency() {
     cubeb_stream_params params{};
     params.rate = TargetSampleRate;
     params.channels = 2;
-    params.format = CUBEB_SAMPLE_S16LE;
+    params.format = CUBEB_SAMPLE_S16NE;
     params.prefs = CUBEB_STREAM_PREF_NONE;
     params.layout = CUBEB_LAYOUT_STEREO;
 
