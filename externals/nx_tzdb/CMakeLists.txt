@@ -1,6 +1,10 @@
 # SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+# Explicitly include CPMUtil here since we have a separate cpmfile for nx_tzdb
+set(CPMUTIL_JSON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json)
+include(CPMUtil)
+
 set(NX_TZDB_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
 
 add_library(nx_tzdb INTERFACE)
@@ -43,6 +47,8 @@ if ((NOT CAN_BUILD_NX_TZDB OR YUZU_DOWNLOAD_TIME_ZONE_DATA) AND NOT EXISTS ${NX_
         message(FATAL_ERROR "Time zone data download failed (status code ${NX_TZDB_DOWNLOAD_STATUS_CODE})")
     endif()
 
+    AddJsonPackage(tzdb)
+
     file(ARCHIVE_EXTRACT
         INPUT
             ${NX_TZDB_ARCHIVE}
@@ -50,6 +56,7 @@ if ((NOT CAN_BUILD_NX_TZDB OR YUZU_DOWNLOAD_TIME_ZONE_DATA) AND NOT EXISTS ${NX_
             ${NX_TZDB_ROMFS_DIR})
 elseif (CAN_BUILD_NX_TZDB AND NOT YUZU_DOWNLOAD_TIME_ZONE_DATA)
     # TODO(crueter): this sucked to do with cpm, see if i can get it to work again
+    message(FATAL_ERROR "Building tzdb is currently unsupported. Check back later.")
     add_subdirectory(tzdb_to_nx)
     add_dependencies(nx_tzdb x80e)
 

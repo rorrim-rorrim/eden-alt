@@ -247,6 +247,6 @@ You may omit the first line if you are not utilizing cpmfile.
 
 Currently, `cpm-fetch.sh` defines the following directories for cpmfiles:
 
-`externals src/yuzu/externals externals/ffmpeg src/dynarmic/externals`
+`externals src/yuzu/externals externals/ffmpeg src/dynarmic/externals externals/nx_tzdb`
 
 Whenever you add a new cpmfile, update the script accordingly

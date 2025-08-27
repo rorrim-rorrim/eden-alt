@@ -92,7 +92,7 @@ ci_package() {
 for package in $@
 do
   # prepare for cancer
-  JSON=$(find . externals src/yuzu/externals externals/ffmpeg src/dynarmic/externals -maxdepth 1 -name cpmfile.json -exec jq -r ".\"$package\" | select( . != null )" {} \;)
+  JSON=$(find . externals src/yuzu/externals externals/ffmpeg src/dynarmic/externals externals/nx_tzdb -maxdepth 1 -name cpmfile.json -exec jq -r ".\"$package\" | select( . != null )" {} \;)
 
   [ -z "$JSON" ] && echo "No cpmfile definition for $package" && continue
   echo $JSON

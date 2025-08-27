@@ -143,6 +143,7 @@ function(AddJsonPackage)
 
     get_json_element("${object}" hash hash "")
     get_json_element("${object}" sha sha "")
+    get_json_element("${object}" url url "")
     get_json_element("${object}" tag tag "")
     get_json_element("${object}" artifact artifact "")
     get_json_element("${object}" git_version git_version "")
@@ -189,6 +190,7 @@ function(AddJsonPackage)
     AddPackage(
         NAME "${package}"
         VERSION "${version}"
+        URL "${url}"
         HASH "${hash}"
         SHA "${sha}"
         REPO "${repo}"
