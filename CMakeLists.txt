@@ -529,12 +529,6 @@ if(ENABLE_CUBEB)
     endif()
 endif()
 
-# TODO(crueter): Work around this
-if (NOT YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(SPIRV-Tools REQUIRED SPIRV-Tools)
-endif()
-
 # find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the YUZU_find_package
 if (ENABLE_SDL2)
     if (YUZU_USE_EXTERNAL_SDL2)
@@ -604,6 +598,7 @@ add_subdirectory(externals)
 find_package(VulkanHeaders)
 find_package(VulkanUtilityLibraries)
 find_package(VulkanMemoryAllocator)
+find_package(SPIRV-Tools)
 
 if (ENABLE_WEB_SERVICE)
     find_package(httplib)

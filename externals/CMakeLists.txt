@@ -120,7 +120,15 @@ AddJsonPackage(
 )
 
 # SPIRV Tools
-AddJsonPackage(spirv-tools)
+AddJsonPackage(
+    NAME spirv-tools
+    BUNDLED_PACKAGE ${YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS}
+)
+
+if (SPIRV-Tools_ADDED)
+    add_library(SPIRV-Tools::SPIRV-Tools ALIAS SPIRV-Tools-static)
+    target_link_libraries(SPIRV-Tools-static PRIVATE SPIRV-Tools-opt SPIRV-Tools-link)
+endif()
 
 # TZDB (Time Zone Database)
 add_subdirectory(nx_tzdb)

@@ -67,6 +67,7 @@
         "repo": "KhronosGroup/SPIRV-Tools",
         "sha": "40eb301f32",
         "hash": "58d0fb1047d69373cf24c73e6f78c73a72a6cca3b4df1d9f083b9dcc0962745ef154abf3dbe9b3623b835be20c6ec769431cf11733349f45e7568b3525f707aa",
+        "find_args": "MODULE",
         "options": [
             "SPIRV_SKIP_EXECUTABLES ON"
         ]
