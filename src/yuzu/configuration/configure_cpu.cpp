@@ -91,7 +91,6 @@ void ConfigureCpu::Setup(const ConfigurationShared::Builder& builder) {
     }
 
     UpdateGroup(accuracy_combobox->currentIndex());
-    UpdateGroup(backend_combobox->currentIndex());
 }
 
 void ConfigureCpu::UpdateGroup(int index) {
