@@ -453,32 +453,6 @@ if (YUZU_USE_CPM)
 
     # Opus
     AddJsonPackage(opus)
-
-    if(ENABLE_CUBEB)
-        AddJsonPackage(cubeb)
-
-        if (cubeb_ADDED)
-            if (NOT MSVC)
-                if (TARGET speex)
-                    target_compile_options(speex PRIVATE -Wno-sign-compare)
-                endif()
-
-                set_target_properties(cubeb PROPERTIES COMPILE_OPTIONS "")
-                target_compile_options(cubeb INTERFACE
-                    -Wno-implicit-const-int-float-conversion
-                    -Wno-shadow
-                    -Wno-missing-declarations
-                    -Wno-return-type
-                    -Wno-uninitialized
-                )
-            else()
-                target_compile_options(cubeb PRIVATE
-                    /wd4456
-                    /wd4458
-                )
-            endif()
-        endif()
-    endif()
 else()
     # Enforce the search mode of non-required packages for better and shorter failure messages
     find_package(fmt 8 REQUIRED)
@@ -491,10 +465,6 @@ else()
     find_package(Opus 1.3 MODULE)
     find_package(ZLIB 1.2 REQUIRED)
     find_package(zstd 1.5 REQUIRED)
-
-    if (ENABLE_CUBEB)
-        find_package(cubeb CONFIG)
-    endif()
 
     if (YUZU_TESTS)
         find_package(Catch2 3.0.1 REQUIRED)
@@ -531,6 +501,33 @@ endif()
 
 # SimpleIni
 AddJsonPackage(simpleini)
+
+# Most linux distros don't package cubeb, so enable regardless of cpm settings
+if(ENABLE_CUBEB)
+    AddJsonPackage(cubeb)
+
+    if (cubeb_ADDED)
+        if (NOT MSVC)
+            if (TARGET speex)
+                target_compile_options(speex PRIVATE -Wno-sign-compare)
+            endif()
+
+            set_target_properties(cubeb PROPERTIES COMPILE_OPTIONS "")
+            target_compile_options(cubeb INTERFACE
+                -Wno-implicit-const-int-float-conversion
+                -Wno-shadow
+                -Wno-missing-declarations
+                -Wno-return-type
+                -Wno-uninitialized
+            )
+        else()
+            target_compile_options(cubeb PRIVATE
+                /wd4456
+                /wd4458
+            )
+        endif()
+    endif()
+endif()
 
 # TODO(crueter): Work around this
 if (NOT YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
