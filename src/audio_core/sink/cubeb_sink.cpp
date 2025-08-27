@@ -62,7 +62,7 @@ public:
             params.layout = CUBEB_LAYOUT_STEREO;
             break;
         case 6:
-            params.layout = CUBEB_LAYOUT_3F2_LFE;
+            params.layout = CUBEB_LAYOUT_STEREO;
             break;
         }
 
