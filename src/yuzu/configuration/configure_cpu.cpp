@@ -91,14 +91,11 @@ void ConfigureCpu::Setup(const ConfigurationShared::Builder& builder) {
     }
 
     UpdateGroup(accuracy_combobox->currentIndex());
-    UpdateGroup(backend_combobox->currentIndex());
 }
 
 void ConfigureCpu::UpdateGroup(int index) {
-    const auto accuracy = static_cast<Settings::CpuAccuracy>(
-        combobox_translations.at(Settings::EnumMetadata<Settings::CpuAccuracy>::Index())[index]
-            .first);
-    ui->unsafe_group->setVisible(accuracy == Settings::CpuAccuracy::Unsafe);
+    // TODO(crueter): see if this works on NCE
+    ui->unsafe_group->setVisible(index == (int) Settings::CpuAccuracy::Unsafe);
 }
 
 void ConfigureCpu::ApplyConfiguration() {
