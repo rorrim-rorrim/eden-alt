@@ -20,7 +20,7 @@ endif()
 option(CPMUTIL_FORCE_BUNDLED
     "Force bundled packages for all CPM depdendencies" ${BUNDLED_DEFAULT})
 
-option(CPMUTIL_DEFAULT_SYSTEM
+option(CPMUTIL_FORCE_SYSTEM
     "Force system packages for all CPM dependencies (NOT RECOMMENDED)" OFF)
 
 cmake_minimum_required(VERSION 3.22)

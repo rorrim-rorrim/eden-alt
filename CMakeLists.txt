@@ -439,6 +439,10 @@ if (YUZU_USE_CPM)
     # zstd
     AddJsonPackage(zstd)
 
+    if (zstd_ADDED)
+        add_library(zstd::zstd ALIS libzstd_static)
+    endif()
+
     # Catch2
     if (YUZU_TESTS OR DYNARMIC_TESTS)
         AddJsonPackage(catch2)
@@ -464,7 +468,7 @@ else()
     find_package(enet 1.3 MODULE)
     find_package(Opus 1.3 MODULE)
     find_package(ZLIB 1.2 REQUIRED)
-    find_package(zstd 1.5 REQUIRED)
+    find_package(zstd 1.5 REQUIRED MODULE)
 
     if (YUZU_TESTS)
         find_package(Catch2 3.0.1 REQUIRED)
