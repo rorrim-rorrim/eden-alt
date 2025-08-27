@@ -300,13 +300,13 @@ struct Values {
     Setting<bool> cpuopt_ignore_memory_aborts{linkage, true, "cpuopt_ignore_memory_aborts",
                                               Category::CpuDebug};
 
-    SwitchableSetting<bool> cpuopt_unsafe_mmu{linkage,
+    SwitchableSetting<bool> cpuopt_unsafe_host_mmu{linkage,
 #if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__)
                                         false,
 #else
                                         true,
 #endif
-                                        "cpuopt_unsafe_mmu",
+                                        "cpuopt_unsafe_host_mmu",
                                         Category::CpuUnsafe};
     SwitchableSetting<bool> cpuopt_unsafe_unfuse_fma{linkage, true, "cpuopt_unsafe_unfuse_fma",
                                                      Category::CpuUnsafe};

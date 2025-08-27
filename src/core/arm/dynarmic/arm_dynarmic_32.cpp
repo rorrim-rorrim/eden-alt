@@ -272,7 +272,7 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
         // Unsafe optimizations
         if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Unsafe) {
             config.unsafe_optimizations = true;
-            if (!Settings::values.cpuopt_unsafe_mmu) {
+            if (!Settings::values.cpuopt_unsafe_host_mmu) {
                 config.fastmem_pointer = std::nullopt;
                 config.fastmem_exclusive_access = false;
             }
