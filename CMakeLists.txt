@@ -138,7 +138,7 @@ endif()
 
 option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
 
-if (YUZU_USE_CPM AND ENABLE_OPENSSL)
+if (ENABLE_OPENSSL)
     CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" "${MSVC}" "NOT ANDROID" ON)
 endif()
 
@@ -372,6 +372,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 include(CPMUtil)
 
+# openssl funniness
+if (ENABLE_OPENSSL)
+    if (YUZU_USE_BUNDLED_OPENSSL)
+        AddJsonPackage(openssl)
+    endif()
+
+    find_package(OpenSSL 1.1.1 REQUIRED)
+endif()
+
 if (YUZU_USE_CPM)
     message(STATUS "Fetching needed dependencies with CPM")
 
@@ -379,15 +388,6 @@ if (YUZU_USE_CPM)
     set(BUILD_TESTING OFF)
 
     # TODO(crueter): renderdoc?
-
-    # openssl funniness
-    if (ENABLE_OPENSSL)
-        if (YUZU_USE_BUNDLED_OPENSSL)
-            AddJsonPackage(openssl)
-        endif()
-
-        find_package(OpenSSL 1.1.1 REQUIRED)
-    endif()
 
     # boost
     set(BOOST_INCLUDE_LIBRARIES algorithm icl pool container heap asio headers process filesystem crc variant)

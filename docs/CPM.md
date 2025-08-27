@@ -237,3 +237,16 @@ include(CPMUtil)
 ```
 
 You may omit the first line if you are not utilizing cpmfile.
+
+## Prefetching
+
+- To prefetch a CPM dependency (requires cpmfile):
+  * `tools/cpm-fetch.sh <packages>`
+- To prefetch all CPM dependencies:
+  * `tools/cpm-fetch-all.sh`
+
+Currently, `cpm-fetch.sh` defines the following directories for cpmfiles:
+
+`externals src/yuzu/externals externals/ffmpeg src/dynarmic/externals`
+
+Whenever you add a new cpmfile, update the script accordingly
