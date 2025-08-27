@@ -304,6 +304,12 @@ endif()
 
 message(STATUS "Target architecture: ${ARCHITECTURE}")
 
+if (MSVC AND ARCHITECTURE_x86)
+    message(FATAL_ERROR "Attempting to build with the x86 environment is not supported. \
+        This can typically happen if you used the Developer Command Prompt from the start menu;\
+        instead, run vcvars64.bat directly, located at C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/Build/vcvars64.bat")
+endif()
+
 if (UNIX)
     add_definitions(-DYUZU_UNIX=1)
 endif()
