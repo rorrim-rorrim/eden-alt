@@ -184,11 +184,11 @@ private:
     NvResult SetChannelPriority(IoctlChannelSetPriority& params);
     NvResult AllocGPFIFOEx(IoctlAllocGpfifoEx& params, DeviceFD fd);
     NvResult AllocGPFIFOEx2(IoctlAllocGpfifoEx& params, DeviceFD fd);
-    
     s32_le GetObjectContextClassNumberIndex(CtxClasses class_number);
+
     NvResult AllocateObjectContext(IoctlAllocObjCtx& params);
-    
     NvResult SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, Tegra::CommandList&& entries);
+    
     NvResult SubmitGPFIFOBase1(IoctlSubmitGpfifo& params,
                                std::span<Tegra::CommandListHeader> commands, bool kickoff = false);
     NvResult SubmitGPFIFOBase2(IoctlSubmitGpfifo& params,
