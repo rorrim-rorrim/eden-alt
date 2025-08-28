@@ -121,7 +121,7 @@ public:
         bytes_written += file->WriteString(message);
 
         // Option to log each line rather than 4k buffers
-        if (Settings::values.log_flush_lines.GetValue()) {
+        if (Settings::values.log_flush_line.GetValue()) {
             file->Flush();
         }
 
