@@ -70,9 +70,6 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
 
     external fun isRaiiEnabled(): Boolean
 
-//  external fun isFrameSkippingEnabled(): Boolean
-    external fun isFrameInterpolationEnabled(): Boolean
-
     override fun getBoolean(needsGlobal: Boolean): Boolean =
         NativeConfig.getBoolean(key, needsGlobal)
 
