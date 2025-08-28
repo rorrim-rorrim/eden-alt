@@ -470,8 +470,6 @@
     <string name="backend">Бекенд</string>
     <string name="display">Приказ</string>
     <string name="processing">Постпроцесирање</string>
-    <string name="frame_skipping">ВИП: Фрамескип</string>
-    <string name="frame_skipping_description">Пребацивање оквира прескакање да бисте побољшали перформансе смањењем броја пружених оквира. Ова функција се и даље ради и биће омогућена у будућим издањима.</string>
     <string name="renderer_accuracy">Ниво тачности</string>
     <string name="renderer_resolution">Резолуција (ручно / прикључено)</string>
     <string name="renderer_vsync">Всинц мод</string>

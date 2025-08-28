@@ -72,8 +72,6 @@
     <string name="eden_veil_description">ڕێکخستنە تاقیکارییەکان بۆ باشترکردنی کارایی و توانا. ئەم ڕێکخستنانە لەوانەیە ببێتە هۆی شاشە ڕەشەکان یان کێشەیتری یاری.</string>
     <string name="eden_veil_warning_title">ڕێکخستنە تاقیکارییەکان</string>
     <string name="eden_veil_warning_description">ڕێکخستنەکانی ناو پردی عەدن زۆر تاقیکارییە و ڕەنگە کێشە دروست بکات. ئەگەر یارییەکەت کارینەکات، هەموو زیادکراوەکان ناچالاک بکە.</string>
-    <string name="frame_skipping">قيد التطوير: تخطي الإطارات</string>
-    <string name="frame_skipping_description">تێپەڕاندنی فرەیمەکان بکە بۆ باشترکردنی کارایی بە کەمکردنەوەی ژمارەی فرەیمە ڕێندرکراوەکان. ئەم تایبەتمەندییە هێشتا کاردەکرێت و لە وەشانە داهاتووەکاندا چالاکدەکرێت.</string>
     <string name="frame_interpolation">تحسين توقيت الإطارات</string>
     <string name="frame_interpolation_description">يضمن تسليمًا سلسًا ومتناسقًا للإطارات من خلال مزامنة التوقيت بينها، مما يقلل من التقطيع وعدم انتظام الحركة. مثالي للألعاب التي تعاني من عدم استقرار في توقيت الإطارات أو تقطع دقيق أثناء اللعب.</string>
     <string name="renderer_early_release_fences">زێدەکردنی پەرستارەکان زووتر</string>

@@ -72,8 +72,6 @@
     <string name="eden_veil_description">パフォーマンスと機能を向上させる実験的な設定。これらの設定は黒画面やその他のゲームの問題を引き起こす可能性があります。</string>
     <string name="eden_veil_warning_title">実験的設定</string>
     <string name="eden_veil_warning_description">エデンのベールに含まれる設定は非常に実験的であり、問題を引き起こす可能性があります。ゲームが起動しない場合は、拡張機能を無効にしてください。</string>
-    <string name="frame_skipping">WIP: フレームスキップ</string>
-    <string name="frame_skipping_description">フレームスキップを切り替えて、レンダリングされるフレーム数を減らしパフォーマンスを向上させます。この機能は開発中であり、今後のリリースで有効になります。</string>
     <string name="frame_interpolation">高度なフレーム同期</string>
     <string name="frame_interpolation_description">フレーム間のタイミングを同期させることで、スムーズで一貫したフレーム配信を確保し、カクつきや不均一なアニメーションを軽減します。フレームタイミングの不安定さやマイクロスタッターが発生するゲームに最適です。</string>
     <string name="renderer_early_release_fences">フェンスを早期に解放</string>

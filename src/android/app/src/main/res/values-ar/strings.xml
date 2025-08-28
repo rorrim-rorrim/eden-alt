@@ -71,8 +71,6 @@
     <string name="eden_veil_description">إعدادات تجريبية لتحسين الأداء والقدرة. قد تسبب هذه الإعدادات شاشات سوداء أو مشاكل أخرى في اللعبة.</string>
     <string name="eden_veil_warning_title">إعدادات تجريبية</string>
     <string name="eden_veil_warning_description">الإعدادات الموجودة في حجاب عدن تجريبية جداً وقد تسبب مشاكل. إذا لم تعمل اللعبة، قم بتعطيل جميع الامتدادات.</string>
-    <string name="frame_skipping">قيد التطوير: تخطي الإطارات</string>
-    <string name="frame_skipping_description">تبديل تخطي الإطارات لتحسين الأداء عن طريق تقليل عدد الإطارات المعروضة. هذه الميزة قيد التطوير وسيتم تمكينها في الإصدارات المستقبلية.</string>
     <string name="frame_interpolation">تحسين توقيت الإطارات</string>
     <string name="frame_interpolation_description">يضمن تسليمًا سلسًا ومتناسقًا للإطارات من خلال مزامنة التوقيت بينها، مما يقلل من التقطيع وعدم انتظام الحركة. مثالي للألعاب التي تعاني من عدم استقرار في توقيت الإطارات أو تقطع دقيق أثناء اللعب.</string>
     <string name="renderer_early_release_fences">إطلاق الأسوار مبكرًا</string>

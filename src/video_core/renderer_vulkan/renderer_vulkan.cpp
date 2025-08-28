@@ -259,31 +259,18 @@ void RendererVulkan::InterpolateFrames(Frame* prev_frame, Frame* interpolated_fr
 }
 
 void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebuffers) {
-    static int frame_counter = 0;
-    static int target_fps = 60; // Target FPS (30 or 60)
-    int frame_skip_threshold = 1;
-
-    bool frame_skipping = true;
-
     if (framebuffers.empty()) {
         return;
     }
 
-    if (frame_skipping) {
-        frame_skip_threshold = (target_fps == 30) ? 2 : 2;
-    }
-
-    frame_counter++;
-    if (frame_counter % frame_skip_threshold != 0) {
-        if (Settings::values.frame_interpolation.GetValue() && previous_frame) {
-            Frame* interpolated_frame = present_manager.GetRenderFrame();
-            InterpolateFrames(previous_frame, interpolated_frame);
-            blit_swapchain.DrawToFrame(rasterizer, interpolated_frame, framebuffers,
-                                       render_window.GetFramebufferLayout(), swapchain.GetImageCount(),
-                                       swapchain.GetImageViewFormat());
-            scheduler.Flush(*interpolated_frame->render_ready);
-            present_manager.Present(interpolated_frame);
-        }
+    if (Settings::values.frame_interpolation.GetValue() && previous_frame) {
+        Frame* interpolated_frame = present_manager.GetRenderFrame();
+        InterpolateFrames(previous_frame, interpolated_frame);
+        blit_swapchain.DrawToFrame(rasterizer, interpolated_frame, framebuffers,
+                                    render_window.GetFramebufferLayout(), swapchain.GetImageCount(),
+                                    swapchain.GetImageViewFormat());
+        scheduler.Flush(*interpolated_frame->render_ready);
+        present_manager.Present(interpolated_frame);
         return;
     }
 

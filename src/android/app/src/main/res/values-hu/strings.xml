@@ -72,8 +72,6 @@
     <string name="eden_veil_description">Kísérleti beállítások a teljesítmény és képesség javításához. Ezek a beállítások fekete képernyőket vagy más játékproblémákat okozhatnak.</string>
     <string name="eden_veil_warning_title">Kísérleti beállítások</string>
     <string name="eden_veil_warning_description">Az Eden Fátyla beállításai nagyon kísérleti jellegűek, és problémákat okozhatnak. Ha a játék nem indul el, kérjük, tiltsa le az összes kiterjesztést.</string>
-    <string name="frame_skipping">Folyamatban: Képkihagyás</string>
-    <string name="frame_skipping_description">Kapcsolja be a képkihagyást a teljesítmény javításához a renderelt képkockák számának csökkentésével. Ez a funkció még fejlesztés alatt áll, és a jövőbeli kiadásokban lesz elérhető.</string>
     <string name="frame_interpolation">Továbbfejlesztett Képkocka-időzítés</string>
     <string name="frame_interpolation_description">Biztosítja a képkockák sima és egyenletes kézbesítését azok időzítésének szinkronizálásával, csökkentve a megakadásokat és egyenetlen animációkat. Ideális azokhoz a játékokhoz, amelyek képkocka-időzítési instabilitást vagy mikro-reccsenést tapasztalnak játék közben.</string>
     <string name="renderer_early_release_fences">Korai kerítés-felszabadítás</string>

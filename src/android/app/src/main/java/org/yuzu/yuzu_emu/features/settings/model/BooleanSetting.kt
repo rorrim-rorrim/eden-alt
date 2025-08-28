@@ -53,7 +53,6 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
 
     ENABLE_RAII("enable_raii"),
     FRAME_INTERPOLATION("frame_interpolation"),
-//    FRAME_SKIPPING("frame_skipping"),
 
     PERF_OVERLAY_BACKGROUND("perf_overlay_background"),
     SHOW_PERFORMANCE_OVERLAY("show_performance_overlay"),

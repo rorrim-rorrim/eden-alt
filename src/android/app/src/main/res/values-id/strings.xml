@@ -72,8 +72,6 @@
     <string name="eden_veil_description">Pengaturan eksperimental untuk meningkatkan kinerja dan kemampuan. Pengaturan ini dapat menyebabkan layar hitam atau masalah game lainnya.</string>
     <string name="eden_veil_warning_title">Pengaturan Eksperimental</string>
     <string name="eden_veil_warning_description">Pengaturan di Eden\'s Veil sangat eksperimental dan dapat menyebabkan masalah. Jika game tidak mau berjalan, nonaktifkan semua ekstensi.</string>
-    <string name="frame_skipping">WIP: Loncatan Frame</string>
-    <string name="frame_skipping_description">Aktifkan atau nonaktifkan frame skipping untuk meningkatkan performa dengan mengurangi jumlah frame yang dirender. Fitur ini masih dalam pengembangan dan akan diaktifkan di rilis mendatang.</string>
     <string name="frame_interpolation">Penyelarasan Frame Tingkat Lanjut</string>
     <string name="frame_interpolation_description">Memastikan pengiriman frame yang halus dan konsisten dengan menyinkronkan waktu antar frame, mengurangi stuttering dan animasi tidak rata. Ideal untuk game yang mengalami ketidakstabilan waktu frame atau micro-stutter selama gameplay.</string>
     <string name="renderer_early_release_fences">Lepas Pagar Lebih Awal</string>

@@ -72,8 +72,6 @@
     <string name="eden_veil_description">Eksperimentelle innstillinger for å forbedre ytelse og funksjonalitet. Disse innstillingene kan forårsake svarte skjermer eller andre spillproblemer.</string>
     <string name="eden_veil_warning_title">Eksperimentelle innstillinger</string>
     <string name="eden_veil_warning_description">Innstillingene i Edens slør er svært eksperimentelle og kan forårsake problemer. Hvis spillet ikke starter, deaktiver alle utvidelser.</string>
-    <string name="frame_skipping">WIP: Hoppe over bilder</string>
-    <string name="frame_skipping_description">Slå av/på frame skipping for å forbedre ytelsen ved å redusere antall renderte bilder. Denne funksjonen er fortsatt under utvikling og vil bli aktivert i fremtidige versjoner.</string>
     <string name="frame_interpolation">Avansert bildevindu-synkronisering</string>
     <string name="frame_interpolation_description">Sikrer jevn og konsekvent bildelevering ved å synkronisere tiden mellom bilder, noe som reduserer hakking og ujevn animasjon. Ideelt for spill som opplever ustabil bildetid eller mikro-hakk under spilling.</string>
     <string name="renderer_early_release_fences">Frigjør gjerder tidlig</string>
