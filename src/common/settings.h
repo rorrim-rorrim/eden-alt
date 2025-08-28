@@ -331,8 +331,6 @@ struct Values {
     SwitchableSetting<int> vulkan_device{linkage, 0, "vulkan_device", Category::Renderer,
                                          Specialization::RuntimeList};
     SwitchableSetting<bool> enable_raii{linkage, false, "enable_raii", Category::Renderer};
-    SwitchableSetting<bool> frame_interpolation{linkage, true, "frame_interpolation", Category::Renderer,
-                                                Specialization::RuntimeList};
     SwitchableSetting<bool> use_disk_shader_cache{linkage, true, "use_disk_shader_cache",
                                                   Category::Renderer};
     SwitchableSetting<SpirvOptimizeMode, true> optimize_spirv_output{linkage,
@@ -467,6 +465,8 @@ struct Values {
                                                            VramUsageMode::Aggressive,
                                                            "vram_usage_mode",
                                                            Category::RendererAdvanced};
+    SwitchableSetting<bool> frame_interpolation{linkage, true, "frame_interpolation", Category::Renderer,
+                                                Specialization::RuntimeList};
     SwitchableSetting<bool> skip_cpu_inner_invalidation{linkage,
                                                         false,
                                                         "skip_cpu_inner_invalidation",

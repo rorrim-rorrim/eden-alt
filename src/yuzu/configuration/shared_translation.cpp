@@ -318,7 +318,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
            tr("Fast GPU Time (Hack)"),
            tr("Overclocks the emulated GPU to increase dynamic resolution and render "
               "distance.\nUse 128 for maximal performance and 512 for maximal graphics fidelity."));
-
     INSERT(Settings,
            use_vulkan_driver_pipeline_cache,
            tr("Use Vulkan pipeline cache"),
@@ -371,9 +370,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
            tr("Descriptor Indexing"),
            tr("Improves texture & buffer handling and the Maxwell translation layer.\n"
               "Some Vulkan 1.1+ and all 1.2+ devices support this extension."));
-
     INSERT(Settings, sample_shading, QString(), QString());
-
     INSERT(Settings,
            sample_shading_fraction,
            tr("Sample Shading"),

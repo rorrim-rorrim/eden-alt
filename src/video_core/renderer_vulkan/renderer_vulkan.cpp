@@ -267,8 +267,8 @@ void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebu
         Frame* interpolated_frame = present_manager.GetRenderFrame();
         InterpolateFrames(previous_frame, interpolated_frame);
         blit_swapchain.DrawToFrame(rasterizer, interpolated_frame, framebuffers,
-                                    render_window.GetFramebufferLayout(), swapchain.GetImageCount(),
-                                    swapchain.GetImageViewFormat());
+                                   render_window.GetFramebufferLayout(), swapchain.GetImageCount(),
+                                   swapchain.GetImageViewFormat());
         scheduler.Flush(*interpolated_frame->render_ready);
         present_manager.Present(interpolated_frame);
         return;
