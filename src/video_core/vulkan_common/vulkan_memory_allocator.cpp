@@ -144,6 +144,10 @@ public:
     }
 
 
+
+    [[nodiscard]] bool IsUnoccupied() const { return commits.empty(); }
+    [[nodiscard]] u64 GetSize() const { return allocation_size; }
+    [[nodiscard]] u32 GetMemoryType() const { return std::countr_zero(shifted_memory_type); }
 private:
     [[nodiscard]] static constexpr u32 ShiftType(u32 type) {
         return 1U << type;
@@ -224,9 +228,13 @@ MemoryAllocator::MemoryAllocator(const Device& device_)
     // only allow the stream buffer in this memory heap.
     if (device.HasDebuggingToolAttached()) {
         using namespace Common::Literals;
-        ForEachDeviceLocalHostVisibleHeap(device, [this](size_t index, VkMemoryHeap& heap) {
+        ForEachDeviceLocalHostVisibleHeap(device, [this](size_t heap_idx, VkMemoryHeap& heap) {
             if (heap.size <= 256_MiB) {
-                valid_memory_types &= ~(1u << index);
+                for (u32 t = 0; t < properties.memoryTypeCount; ++t) {
+                    if (properties.memoryTypes[t].heapIndex == heap_idx) {
+                        valid_memory_types &= ~(1u << t);
+                    }
+                }
             }
         });
     }
@@ -283,23 +291,85 @@ vk::Buffer MemoryAllocator::CreateBuffer(const VkBufferCreateInfo& ci, MemoryUsa
                       device.GetDispatchLoader());
 }
 
+bool MemoryAllocator::TryReclaimVmaMemory(u32 heap_index, VkDeviceSize needed_size) {
+        VkDeviceSize reclaimed = 0;
+        std::vector<MemoryAllocation*> to_release;
+        for (const auto& alloc : allocations) {
+        if (alloc->IsUnoccupied() &&
+            properties.memoryTypes[alloc->GetMemoryType()].heapIndex == heap_index) {
+            to_release.push_back(alloc.get());
+            reclaimed += alloc->GetSize();
+            if (reclaimed >= needed_size) break;
+        }
+    }
+    for (auto* alloc : to_release) {
+        ReleaseMemory(alloc);
+    }
+        return reclaimed >= needed_size;
+}
+
+void MemoryAllocator::FreeEmptyAllocations() {
+        std::vector<MemoryAllocation*> to_release;
+        for (const auto& alloc : allocations) {
+            if (alloc->IsUnoccupied()) {  // Also fix the naming here
+                to_release.push_back(alloc.get());
+            }
+        }
+        for (auto* alloc : to_release) {
+            ReleaseMemory(alloc);
+        }
+}
+
 MemoryCommit MemoryAllocator::Commit(const VkMemoryRequirements& requirements, MemoryUsage usage) {
-        // Find the fastest memory flags we can afford with the current requirements
         const u32 type_mask = requirements.memoryTypeBits;
         const VkMemoryPropertyFlags usage_flags = MemoryUsagePropertyFlags(usage);
-        const VkMemoryPropertyFlags flags = MemoryPropertyFlags(type_mask, usage_flags);
+        VkMemoryPropertyFlags flags = MemoryPropertyFlags(type_mask, usage_flags);
+
+        // First attempt with preferred flags
         if (std::optional<MemoryCommit> commit = TryCommit(requirements, flags)) {
             return std::move(*commit);
         }
-        // Commit has failed, allocate more memory.
+
+        // Allocate new chunk
         const u64 chunk_size = AllocationChunkSize(requirements.size);
-        if (!TryAllocMemory(flags, type_mask, chunk_size)) {
-            // TODO(Rodrigo): Handle out of memory situations in some way like flushing to guest memory.
-            throw vk::Exception(VK_ERROR_OUT_OF_DEVICE_MEMORY);
+        if (TryAllocMemory(flags, type_mask, chunk_size)) {
+            if (auto commit = TryCommit(requirements, flags)) {
+                return std::move(*commit);
+            }
         }
-        // Commit again, this time it won't fail since there's a fresh allocation above.
-        // If it does, there's a bug.
-        return TryCommit(requirements, flags).value();
+
+        // Free empty allocations and retry
+        FreeEmptyAllocations();
+        if (TryAllocMemory(flags, type_mask, chunk_size)) {
+            if (auto commit = TryCommit(requirements, flags)) {
+                return std::move(*commit);
+            }
+        }
+
+        // Relax memory requirements if possible
+        if (usage == MemoryUsage::DeviceLocal && (flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
+            flags &= ~VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+            if (auto commit = TryCommit(requirements, flags)) {
+                return std::move(*commit);
+            }
+
+            // Try allocating with relaxed flags
+            if (TryAllocMemory(flags, type_mask, chunk_size)) {
+                if (auto commit = TryCommit(requirements, flags)) {
+                    return std::move(*commit);
+                }
+            }
+        }
+
+        // Last resort: try minimum size allocation
+        const u64 min_chunk = Common::AlignUp(requirements.size, 1ULL << 20);
+        if (min_chunk < chunk_size && TryAllocMemory(flags, type_mask, min_chunk)) {
+            if (auto commit = TryCommit(requirements, flags)) {
+                return std::move(*commit);
+            }
+        }
+
+    throw vk::Exception(VK_ERROR_OUT_OF_DEVICE_MEMORY);
     }
 
 bool MemoryAllocator::TryAllocMemory(VkMemoryPropertyFlags flags, u32 type_mask, u64 size) {
@@ -308,10 +378,22 @@ bool MemoryAllocator::TryAllocMemory(VkMemoryPropertyFlags flags, u32 type_mask,
         return false;
     }
 
-    // Adreno stands firm
+    // Check VMA budget before attempting allocation
+    VmaBudget budgets[VK_MAX_MEMORY_HEAPS];
+    vmaGetHeapBudgets(allocator, budgets);
+    const u32 heap_index = properties.memoryTypes[*type_opt].heapIndex;
+    const VkDeviceSize available = budgets[heap_index].budget - budgets[heap_index].usage;
+    if (available < size) {
+        LOG_WARNING(Render_Vulkan, "Heap {} has insufficient budget: {} < {}",
+                    heap_index, available, size);
+        // Try to free VMA allocations first
+        if (!TryReclaimVmaMemory(heap_index, size)) {
+                return false;
+        }
+    }
+
     const u64 aligned_size = (device.GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) ?
-                            Common::AlignUp(size, 4096) :
-                            size;
+                             Common::AlignUp(size, 4096) : size;
 
     vk::DeviceMemory memory = device.GetLogical().TryAllocateMemory({
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
