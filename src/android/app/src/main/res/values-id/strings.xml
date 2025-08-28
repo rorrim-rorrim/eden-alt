@@ -85,7 +85,7 @@
     <string name="use_lru_cache">Aktifkan LRU Cache</string>
     <string name="use_lru_cache_description">Aktifkan atau nonaktifkan cache LRU untuk meningkatkan performa dengan mengurangi penggunaan proses CPU. Beberapa game seperti TotK 1.2.1 memiliki masalah - nonaktifkan jika game tidak mau berjalan atau crash acak.</string>
     <string name="dyna_state">Status Dinamis Ekstensi</string>
-    <string name="dyna_state_description">Aktifkan fitur Vulkan untuk meningkatkan performa, rendering dan menghemat sumber daya saat pembuatan pipeline sambil mempertahankan penggunaan CPU/GPU yang rendah. Ekstensi ini dapat meningkatkan suhu perangkat, dan GPU seri A6XX lama mungkin tidak merespons dengan benar. Nonaktifkan untuk emulasi format skala.</string>
+    <string name="dyna_state_description">Mengontrol jumlah fitur yang dapat digunakan dalam Extended Dynamic State. Angka yang lebih tinggi memungkinkan lebih banyak fitur dan dapat meningkatkan performa, tetapi dapat menyebabkan masalah dengan beberapa driver dan vendor. Nilai default dapat bervariasi tergantung pada sistem dan kemampuan hardware Anda. Nilai ini dapat diubah hingga stabilitas dan kualitas visual yang lebih baik tercapai.</string>
     <string name="disabled">Dinonaktifkan</string>
     <string name="use_sync_core">Sinkronisasi Kecepatan Inti</string>
     <string name="use_sync_core_description">Sinkronkan kecepatan inti dengan persentase kecepatan maksimum untuk meningkatkan performa tanpa mengubah kecepatan sebenarnya dari permainan.</string>
@@ -126,6 +126,10 @@
     <string name="cpu_ticks">Ticks</string>
     <string name="skip_cpu_inner_invalidation">Lewati Pembatalan Internal CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Melewati beberapa pembatalan cache sisi CPU selama pembaruan memori, mengurangi penggunaan CPU dan meningkatkan kinerjanya. Mungkin menyebabkan gangguan atau crash pada beberapa game.</string>
+    <string name="cpuopt_unsafe_host_mmu">Aktifkan Emulasi MMU Host</string>
+    <string name="cpuopt_unsafe_host_mmu_description">Optimasi ini mempercepat akses memori oleh program tamu. Mengaktifkannya menyebabkan pembacaan/penulisan memori tamu dilakukan langsung ke memori dan memanfaatkan MMU Host. Menonaktifkan ini memaksa semua akses memori menggunakan Emulasi MMU Perangkat Lunak.</string>
+    <string name="dma_accuracy">Level DMA</string>
+    <string name="dma_accuracy_description">Mengontrol akurasi presisi DMA. Presisi yang lebih tinggi dapat memperbaiki masalah di beberapa game, tetapi juga dapat memengaruhi performa dalam beberapa kasus. Jika tidak yakin, biarkan di Bawaan.</string>
 
     <string name="memory_4gb">4GB (Direkomendasikan)</string>
     <string name="memory_6gb">6GB (Tidak Aman)</string>
@@ -741,6 +745,50 @@
     <string name="loader_requires_firmware">Game memerlukan firmware</string>
     <string name="loader_requires_firmware_description"><![CDATA[Game yang ingin Anda jalankan memerlukan firmware untuk boot atau melewati menu pembuka. Silakan <a href="https://yuzu-mirror.github.io/help/quickstart"> dump dan instal firmware</a>, atau tekan "OK" untuk melanjutkan.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Mencari game...</string>
+    <string name="game_not_found_for_title_id">Game tidak ditemukan untuk ID Judul: %1$s</string>
+    <string name="custom_settings_failed_title">Pengaturan Kustom Gagal</string>
+    <string name="custom_settings_failed_message">Gagal menerapkan pengaturan kustom untuk %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Luncurkan dengan Pengaturan Default</string>
+    <string name="launch_cancelled">Peluncuran dibatalkan</string>
+    <string name="custom_settings_failure_reasons">Tidak dapat menerapkan pengaturan yang diminta. Ini mungkin karena driver GPU yang hilang atau masalah konfigurasi.</string>
+    <string name="custom_settings_applied">Pengaturan kustom diterapkan</string>
+    <string name="launching_game">Meluncurkan %1$s...</string>
+    <string name="failed_to_initialize_game">Gagal menginisialisasi game</string>
+    <string name="custom_intent_launch_message_with_settings">Apakah Anda ingin meluncurkan %1$s dengan pengaturan kustom?</string>
+    <string name="custom_intent_launch_message">Apakah Anda ingin meluncurkan %1$s?</string>
+    <string name="custom_intent_launch_title">Luncurkan Game</string>
+    <string name="launch">Luncurkan</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Gagal menulis file konfigurasi</string>
+    <string name="config_apply_failed">Gagal menerapkan konfigurasi</string>
+    <string name="config_already_exists_title">Konfigurasi Sudah Ada</string>
+    <string name="config_already_exists_message">Pengaturan kustom sudah ada untuk %1$s.\n\nApakah Anda ingin menimpa konfigurasi yang ada?\n\nTindakan ini tidak dapat dibatalkan.</string>
+    <string name="config_exists_prompt">Memeriksa konfigurasi yang ada...</string>
+    <string name="overwrite_cancelled">Penimpaan dibatalkan</string>
+    <string name="checking_driver">Memeriksa driver kustom: %1$s</string>
+    <string name="driver_unavailable">Driver kustom tidak tersedia untuk perangkat ini</string>
+    <string name="overwrite">Timpa</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">Driver GPU Hilang</string>
+    <string name="missing_gpu_driver_message">Driver kustom yang dipilih \"%s\" tidak terinstal. Apakah Anda ingin mengunduh dan menginstalnya sekarang?</string>
+    <string name="downloading_driver">Mengunduh driver...</string>
+    <string name="driver_installed">Driver berhasil diinstal</string>
+    <string name="driver_installation_failed_title">Instalasi Driver Gagal</string>
+    <string name="driver_installation_failed_message">Gagal menginstal driver GPU: %s</string>
+    <string name="driver_not_available_title">Driver Tidak Tersedia</string>
+    <string name="driver_not_available_message">Driver yang dipilih tidak tersedia untuk diunduh.</string>
+    <string name="driver_not_found">Driver yang diperlukan tidak terinstal: %s</string>
+    <string name="invalid_driver_file">File driver tidak valid: %s</string>
+    <string name="network_unavailable">Tidak ada koneksi jaringan yang tersedia. Silakan periksa koneksi internet Anda dan coba lagi.</string>
+    <string name="driver_missing_title">Driver GPU Diperlukan</string>
+    <string name="driver_missing_message">Konfigurasi game memerlukan driver GPU \"%s\" yang tidak terinstal di perangkat Anda.\n\nApakah Anda ingin mengunduh dan menginstalnya sekarang?</string>
+    <string name="driver_download_cancelled">Pengunduhan driver dibatalkan. Game tidak dapat diluncurkan tanpa driver yang diperlukan.</string>
+    <string name="download">Unduh</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">Keluar</string>
     <string name="emulation_done">Selesai</string>
@@ -810,6 +858,12 @@
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">Tinggi</string>
     <string name="renderer_accuracy_extreme">Ekstrim (Lambat)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">Bawaan</string>
+    <string name="dma_accuracy_normal">Normal</string>
+    <string name="dma_accuracy_high">Tinggi</string>
+    <string name="dma_accuracy_extreme">Ekstrem</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

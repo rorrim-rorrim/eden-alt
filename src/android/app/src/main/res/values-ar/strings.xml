@@ -84,7 +84,7 @@
     <string name="use_lru_cache">تمكين ذاكرة التخزين المؤقت LRU</string>
     <string name="use_lru_cache_description">تمكين أو تعطيل ذاكرة التخزين المؤقت الأقل استخداماً مؤخراً (LRU) لتحسين الأداء عن طريق تقليل استخدام وحدة المعالجة المركزية. بعض الألعاب قد تواجه مشاكل معه، خاصةً TotK 1.2.1، لذا قم بتعطيله إذا لم تعمل اللعبة أو انهارت عشوائياً.</string>
     <string name="dyna_state">الحالة الديناميكية الممتدة</string>
-    <string name="dyna_state_description">تمكين ميزات فولكان لتحسين الأداء، العرض، وتوفير الموارد أثناء إنشاء خطوط المعالجة مع الحفاظ على استهلاك منخفض لوحدة المعالجة المركزية/وحدة معالجة الرسومات. هذه الامتدادات قد تزيد من حرارة الجهاز، ووحدات معالجة الرسومات من سلسلة A6XX القديمة قد لا تعمل بشكل صحيح. قم بتعطيله لمحاكاة الصيغ المضبوطة.</string>
+    <string name="dyna_state_description">يتحكم في عدد الميزات التي يمكن استخدامها في الحالة الديناميكية الممتدة. الأرقام الأعلى تسمح بالمزيد من Мيزات ويمكن أن تزيد الأداء، ولكن قد تسبب مشاكل مع بعض برامج التشغيل والبائعين. قد تختلف القيمة الافتراضية اعتمادًا على نظامك وقدرات硬件. يمكن تغيير هذه القيمة حتى يتم تحقيق الاستقرار وجودة بصرية أفضل.</string>
     <string name="disabled">معطل</string>
     <string name="use_sync_core">مزامنة سرعة النواة</string>
     <string name="use_sync_core_description">مزامنة سرعة النواة مع النسبة القصوى للسرعة لتحسين الأداء دون تغيير السرعة الفعلية للعبة.</string>
@@ -117,6 +117,10 @@
     <string name="cpu_ticks">دورات</string>
     <string name="skip_cpu_inner_invalidation">تخطي إبطال ذاكرة التخزين المؤقت الداخلية للوحدة المركزية</string>
     <string name="skip_cpu_inner_invalidation_description">يتخطى بعض عمليات إبطال ذاكرة التخزين المؤقت أثناء تحديثات الذاكرة، مما يقلل استخدام المعالج ويحسن أدائه. قد يسبب هذا أعطالاً أو تعطلًا في بعض الألعاب.</string>
+    <string name="cpuopt_unsafe_host_mmu">تمكين محاكاة MMU المضيف</string>
+    <string name="cpuopt_unsafe_host_mmu_description">يعمل هذا التحسين على تسريع وصول الذاكرة بواسطة البرنامج الضيف. يؤدي تمكينه إلى إجراء عمليات قراءة/كتابة ذاكرة الضيف مباشرة في الذاكرة والاستفادة من MMU المضيف. يؤدي تعطيل هذا إلى إجبار جميع عمليات الوصول إلى الذاكرة على استخدام محاكاة MMU البرمجية.</string>
+    <string name="dma_accuracy">مستوى DMA</string>
+    <string name="dma_accuracy_description">يتحكم في دقة تحديد مستوى DMA. الدقة الأعلى يمكنها إصلاح بعض المشاكل في بعض الألعاب، ولكنها قد تؤثر أيضًا على الأداء في بعض الحالات. إذا كنت غير متأكد، اتركه على الوضع الافتراضي.</string>
 
     <!-- Memory Layouts -->
     <string name="memory_4gb">4 جيجابايت (موصى به)</string>
@@ -677,6 +681,50 @@
     <string name="loader_requires_firmware">اللعبة تتطلب برنامجاً ثابتاً</string>
     <string name="loader_requires_firmware_description"><![CDATA[اللعبة التي تحاول تشغيلها تتطلب برنامجاً ثابتاً للتمهيد أو لتجاوز القائمة الافتتاحية. يرجى <a href="https://yuzu-mirror.github.io/help/quickstart">نسخ وتثبيت البرنامج الثابت</a>، أو اضغط "موافق" للمتابعة على أي حال.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">جاري البحث عن اللعبة...</string>
+    <string name="game_not_found_for_title_id">لم يتم العثور على اللعبة لمعرف العنوان: %1$s</string>
+    <string name="custom_settings_failed_title">فشل الإعدادات المخصصة</string>
+    <string name="custom_settings_failed_message">فشل تطبيق الإعدادات المخصصة لـ %1$s: %2$s</string>
+    <string name="launch_with_default_settings">بدء التشغيل بالإعدادات الافتراضية</string>
+    <string name="launch_cancelled">تم إلغاء البدء</string>
+    <string name="custom_settings_failure_reasons">غير قادر على تطبيق الإعدادات المطلوبة. قد يكون هذا بسبب отсут برامج تشغيل GPU أو مشاكل في التهيئة.</string>
+    <string name="custom_settings_applied">تم تطبيق الإعدادات المخصصة</string>
+    <string name="launching_game">جاري تشغيل %1$s...</string>
+    <string name="failed_to_initialize_game">فشل تهيئة اللعبة</string>
+    <string name="custom_intent_launch_message_with_settings">هل تريد تشغيل %1$s بالإعدادات المخصصة؟</string>
+    <string name="custom_intent_launch_message">هل تريد تشغيل %1$s؟</string>
+    <string name="custom_intent_launch_title">تشغيل اللعبة</string>
+    <string name="launch">تشغيل</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">فشل كتابة ملف التهيئة</string>
+    <string name="config_apply_failed">فشل تطبيق التهيئة</string>
+    <string name="config_already_exists_title">التهيئة موجودة بالفعل</string>
+    <string name="config_already_exists_message">توجد إعدادات مخصصة بالفعل لـ %1$s.\n\nهل تريد الكتابة فوق التهيئة الموجودة؟\n\nلا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="config_exists_prompt">جاري التحقق من وجود تهيئة حالية...</string>
+    <string name="overwrite_cancelled">تم إلغاء الكتابة فوق</string>
+    <string name="checking_driver">جاري التحقق من وجود برنامج تشغيل مخصص: %1$s</string>
+    <string name="driver_unavailable">برنامج التشغيل المخصص غير متاح لهذا الجهاز</string>
+    <string name="overwrite">الكتابة فوق</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">برنامج تشغيل GPU مفقود</string>
+    <string name="missing_gpu_driver_message">برنامج التشغيل المخصص المحدد \"%s\" غير مثبت. هل تريد تنزيله وتثبيته الآن؟</string>
+    <string name="downloading_driver">جاري تنزيل برنامج التشغيل...</string>
+    <string name="driver_installed">تم تثبيت برنامج التشغيل بنجاح</string>
+    <string name="driver_installation_failed_title">فشل تثبيت برنامج التشغيل</string>
+    <string name="driver_installation_failed_message">فشل تثبيت برنامج تشغيل GPU: %s</string>
+    <string name="driver_not_available_title">برنامج التشغيل غير متاح</string>
+    <string name="driver_not_available_message">برنامج التشغيل المحدد غير متاح للتنزيل.</string>
+    <string name="driver_not_found">برنامج التشغيل المطلوب غير مثبت: %s</string>
+    <string name="invalid_driver_file">ملف برنامج تشغيل غير صالح: %s</string>
+    <string name="network_unavailable">لا يوجد اتصال بالشبكة. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.</string>
+    <string name="driver_missing_title">مطلوب برنامج تشغيل GPU</string>
+    <string name="driver_missing_message">تكوين اللعبة يتطلب برنامج تشغيل GPU \"%s\" غير المثبت على جهازك.\n\nهل تريد تنزيله وتثبيته الآن?</string>
+    <string name="driver_download_cancelled">تم إلغاء تنزيل برنامج التشغيل. لا يمكن تشغيل اللعبة بدون برنامج التشغيل المطلوب.</string>
+    <string name="download">تنزيل</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">الخروج من المحاكاة</string>
     <string name="emulation_done">إنهاء</string>
@@ -740,6 +788,12 @@
     <string name="renderer_accuracy_normal">عادي</string>
     <string name="renderer_accuracy_high">عالي</string>
     <string name="renderer_accuracy_extreme">Extreme (بطيء)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">افتراضي</string>
+    <string name="dma_accuracy_normal">عادي</string>
+    <string name="dma_accuracy_high">عالي</string>
+    <string name="dma_accuracy_extreme">مفرط</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

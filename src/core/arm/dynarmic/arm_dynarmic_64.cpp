@@ -102,7 +102,7 @@ public:
     void InterpreterFallback(u64 pc, std::size_t num_instructions) override {
         m_parent.LogBacktrace(m_process);
         LOG_ERROR(Core_ARM,
-                  "Unimplemented instruction @ 0x{:X} for {} instructions (instr = {:08X})", pc,
+                  "Unimplemented instruction @ {:#X} for {} instructions (instr = {:08X})", pc,
                   num_instructions, m_memory.Read32(pc));
         ReturnException(pc, PrefetchAbort);
     }
@@ -136,6 +136,7 @@ public:
         case Dynarmic::A64::Exception::SendEvent:
         case Dynarmic::A64::Exception::SendEventLocal:
         case Dynarmic::A64::Exception::Yield:
+            LOG_TRACE(Core_ARM, "ExceptionRaised(exception = {}, pc = {:08X}, code = {:08X})", static_cast<std::size_t>(exception), pc, m_memory.Read32(pc));
             return;
         case Dynarmic::A64::Exception::NoExecuteFault:
             LOG_CRITICAL(Core_ARM, "Cannot execute instruction at unmapped address {:#016x}", pc);
@@ -144,12 +145,10 @@ public:
         default:
             if (m_debugger_enabled) {
                 ReturnException(pc, InstructionBreakpoint);
-                return;
+            } else {
+                m_parent.LogBacktrace(m_process);
+                LOG_CRITICAL(Core_ARM, "ExceptionRaised(exception = {}, pc = {:08X}, code = {:08X})", static_cast<std::size_t>(exception), pc, m_memory.Read32(pc));
             }
-
-            m_parent.LogBacktrace(m_process);
-            LOG_CRITICAL(Core_ARM, "ExceptionRaised(exception = {}, pc = {:08X}, code = {:08X})",
-                         static_cast<std::size_t>(exception), pc, m_memory.Read32(pc));
         }
     }
 
@@ -331,6 +330,10 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
         // Unsafe optimizations
         if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Unsafe) {
             config.unsafe_optimizations = true;
+            if (!Settings::values.cpuopt_unsafe_host_mmu) {
+                config.fastmem_pointer = std::nullopt;
+                config.fastmem_exclusive_access = false;
+            }
             if (Settings::values.cpuopt_unsafe_unfuse_fma) {
                 config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
             }
@@ -351,6 +354,10 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
         // Curated optimizations
         if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Auto) {
             config.unsafe_optimizations = true;
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__)
+            config.fastmem_pointer = std::nullopt;
+            config.fastmem_exclusive_access = false;
+#endif
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
             config.fastmem_address_space_bits = 64;
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreGlobalMonitor;
@@ -367,15 +374,11 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
 }
 
 HaltReason ArmDynarmic64::RunThread(Kernel::KThread* thread) {
-    ScopedJitExecution sj(thread->GetOwnerProcess());
-
     m_jit->ClearExclusiveState();
     return TranslateHaltReason(m_jit->Run());
 }
 
 HaltReason ArmDynarmic64::StepThread(Kernel::KThread* thread) {
-    ScopedJitExecution sj(thread->GetOwnerProcess());
-
     m_jit->ClearExclusiveState();
     return TranslateHaltReason(m_jit->Step());
 }
@@ -415,7 +418,6 @@ ArmDynarmic64::ArmDynarmic64(System& system, bool uses_wall_clock, Kernel::KProc
     auto& page_table = process->GetPageTable().GetBasePageTable();
     auto& page_table_impl = page_table.GetImpl();
     m_jit = MakeJit(&page_table_impl, page_table.GetAddressSpaceWidth());
-    ScopedJitExecution::RegisterHandler();
 }
 
 ArmDynarmic64::~ArmDynarmic64() = default;

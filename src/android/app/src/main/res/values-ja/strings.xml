@@ -85,7 +85,7 @@
     <string name="use_lru_cache">LRUキャッシュを有効化</string>
     <string name="use_lru_cache_description">LRUキャッシュを有効/無効にし、CPUプロセスの使用を節約してパフォーマンスを向上させます。TotK 1.2.1など一部のゲームで問題が発生する可能性があるため、ゲームが起動しない場合やランダムにクラッシュする場合は無効にしてください。</string>
     <string name="dyna_state">拡張ダイナミックステート</string>
-    <string name="dyna_state_description">Vulkan機能を有効にし、パイプライン作成時のCPU/GPU使用率を低く保ちながら、パフォーマンス、レンダリング、リソース節約を改善します。これらの拡張機能はデバイスの温度を上昇させる可能性があり、旧A6XXシリーズのGPUは正しく反応しない場合があります。スケールフォーマットをエミュレートするには無効にしてください。</string>
+    <string name="dyna_state_description">拡張ダイナミックステートで使用できる機能の数を制御します。数値が高いほどより多くの機能が使用可能になり、パフォーマンスが向上する可能性がありますが、一部のドライバーやベンダーで問題が発生する可能性があります。デフォルト値は、お使いのシステムとハードウェアの機能によって異なります。安定性とより良い画質が得られるまでこの値を変更できます。</string>
     <string name="disabled">無効</string>
     <string name="use_sync_core">コア速度の同期</string>
     <string name="use_sync_core_description">コアの速度を最大速度パーセンテージに同期させ、ゲームの実際の速度を変えずにパフォーマンスを向上させます。</string>
@@ -126,6 +126,10 @@
     <string name="cpu_ticks">ティック</string>
     <string name="skip_cpu_inner_invalidation">CPU内部無効化をスキップ</string>
     <string name="skip_cpu_inner_invalidation_description">メモリ更新時のCPU側キャッシュ無効化をスキップし、CPU使用率を減らして性能を向上させます。一部のゲームで不具合やクラッシュが発生する可能性があります。</string>
+    <string name="cpuopt_unsafe_host_mmu">ホストMMUエミュレーションを有効化</string>
+    <string name="cpuopt_unsafe_host_mmu_description">この最適化により、ゲストプログラムによるメモリアクセスが高速化されます。有効にすると、ゲストのメモリ読み書きが直接メモリ内で実行され、ホストのMMUを利用します。無効にすると、すべてのメモリアクセスでソフトウェアMMUエミュレーションが使用されます。</string>
+    <string name="dma_accuracy">DMAレベル</string>
+    <string name="dma_accuracy_description">DMAの精度を制御します。精度を高くすると一部のゲームの問題が修正される場合がありますが、場合によってはパフォーマンスに影響を与える可能性もあります。不明な場合は、デフォルトのままにしてください。</string>
 
     <string name="memory_4gb">4GB (推奨)</string>
     <string name="memory_6gb">6GB (安全でない)</string>
@@ -673,6 +677,50 @@
     <string name="loader_requires_firmware">ゲームにはファームウェアが必要です</string>
     <string name="loader_requires_firmware_description"><![CDATA[起動しようとしているゲームは、起動または開始メニューを通過するためにファームウェアが必要です。<a href="https://yuzu-mirror.github.io/help/quickstart"> ファームウェアをダンプしてインストール</a>するか、"OK"を押して続行してください。]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">ゲームを検索中...</string>
+    <string name="game_not_found_for_title_id">タイトルID: %1$s のゲームが見つかりません</string>
+    <string name="custom_settings_failed_title">カスタム設定の失敗</string>
+    <string name="custom_settings_failed_message">%1$s のカスタム設定の適用に失敗しました: %2$s</string>
+    <string name="launch_with_default_settings">デフォルト設定で起動</string>
+    <string name="launch_cancelled">起動がキャンセルされました</string>
+    <string name="custom_settings_failure_reasons">要求された設定を適用できません。GPUドライバーの不足または設定の問題が原因である可能性があります。</string>
+    <string name="custom_settings_applied">カスタム設定が適用されました</string>
+    <string name="launching_game">%1$s を起動中...</string>
+    <string name="failed_to_initialize_game">ゲームの初期化に失敗しました</string>
+    <string name="custom_intent_launch_message_with_settings">%1$s をカスタム設定で起動しますか？</string>
+    <string name="custom_intent_launch_message">%1$s を起動しますか？</string>
+    <string name="custom_intent_launch_title">ゲームを起動</string>
+    <string name="launch">起動</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">設定ファイルの書き込みに失敗しました</string>
+    <string name="config_apply_failed">設定の適用に失敗しました</string>
+    <string name="config_already_exists_title">設定が既に存在します</string>
+    <string name="config_already_exists_message">%1$s のカスタム設定は既に存在します。\n\n既存の設定を上書きしますか？\n\nこの操作は元に戻せません。</string>
+    <string name="config_exists_prompt">既存の設定を確認中...</string>
+    <string name="overwrite_cancelled">上書きがキャンセルされました</string>
+    <string name="checking_driver">カスタムドライバーを確認中: %1$s</string>
+    <string name="driver_unavailable">このデバイスではカスタムドライバーは利用できません</string>
+    <string name="overwrite">上書き</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">GPUドライバーが見つかりません</string>
+    <string name="missing_gpu_driver_message">選択したカスタムドライバー \"%s\" がインストールされていません。今すぐダウンロードしてインストールしますか？</string>
+    <string name="downloading_driver">ドライバーをダウンロード中...</string>
+    <string name="driver_installed">ドライバーが正常にインストールされました</string>
+    <string name="driver_installation_failed_title">ドライバーのインストールに失敗しました</string>
+    <string name="driver_installation_failed_message">GPUドライバーのインストールに失敗しました: %s</string>
+    <string name="driver_not_available_title">ドライバーが利用できません</string>
+    <string name="driver_not_available_message">選択したドライバーはダウンロードできません。</string>
+    <string name="driver_not_found">必要なドライバーがインストールされていません: %s</string>
+    <string name="invalid_driver_file">無効なドライバーファイル: %s</string>
+    <string name="network_unavailable">ネットワーク接続が利用できません。インターネット接続を確認してからもう一度お試しください。</string>
+    <string name="driver_missing_title">GPUドライバーが必要です</string>
+    <string name="driver_missing_message">ゲーム設定にはGPUドライバー \"%s\" が必要ですが、お使いのデバイスにインストールされていません。\n\n今すぐダウンロードしてインストールしますか？</string>
+    <string name="driver_download_cancelled">ドライバーのダウンロードがキャンセルされました。必要なドライバーがないとゲームを起動できません。</string>
+    <string name="download">ダウンロード</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">終了</string>
     <string name="emulation_done">完了</string>
@@ -738,6 +786,12 @@
     <string name="renderer_accuracy_normal">標準</string>
     <string name="renderer_accuracy_high">高</string>
     <string name="renderer_accuracy_extreme">最高 (低速)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">デフォルト</string>
+    <string name="dma_accuracy_normal">標準</string>
+    <string name="dma_accuracy_high">高</string>
+    <string name="dma_accuracy_extreme">最高</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

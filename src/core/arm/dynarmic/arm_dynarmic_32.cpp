@@ -88,7 +88,7 @@ public:
     void InterpreterFallback(u32 pc, std::size_t num_instructions) override {
         m_parent.LogBacktrace(m_process);
         LOG_ERROR(Core_ARM,
-                  "Unimplemented instruction @ 0x{:X} for {} instructions (instr = {:08X})", pc,
+                  "Unimplemented instruction @ {:#X} for {} instructions (instr = {:08X})", pc,
                   num_instructions, m_memory.Read32(pc));
     }
 
@@ -175,7 +175,6 @@ public:
     Kernel::KProcess* m_process{};
     const bool m_debugger_enabled{};
     const bool m_check_memory_access{};
-    static constexpr u64 MinimumRunCycles = 10000U;
 };
 
 std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* page_table) const {
@@ -272,6 +271,10 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
         // Unsafe optimizations
         if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Unsafe) {
             config.unsafe_optimizations = true;
+            if (!Settings::values.cpuopt_unsafe_host_mmu) {
+                config.fastmem_pointer = std::nullopt;
+                config.fastmem_exclusive_access = false;
+            }
             if (Settings::values.cpuopt_unsafe_unfuse_fma) {
                 config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
             }
@@ -292,13 +295,17 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
         // Curated optimizations
         if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Auto) {
             config.unsafe_optimizations = true;
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__)
+            config.fastmem_pointer = std::nullopt;
+            config.fastmem_exclusive_access = false;
+#endif
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreStandardFPCRValue;
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_InaccurateNaN;
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreGlobalMonitor;
         }
 
-        // Paranoia mode for debugging optimizations
+        // Paranoid mode for debugging optimizations
         if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Paranoid) {
             config.unsafe_optimizations = false;
             config.optimizations = Dynarmic::no_optimizations;
@@ -336,15 +343,11 @@ bool ArmDynarmic32::IsInThumbMode() const {
 }
 
 HaltReason ArmDynarmic32::RunThread(Kernel::KThread* thread) {
-    ScopedJitExecution sj(thread->GetOwnerProcess());
-
     m_jit->ClearExclusiveState();
     return TranslateHaltReason(m_jit->Run());
 }
 
 HaltReason ArmDynarmic32::StepThread(Kernel::KThread* thread) {
-    ScopedJitExecution sj(thread->GetOwnerProcess());
-
     m_jit->ClearExclusiveState();
     return TranslateHaltReason(m_jit->Step());
 }
@@ -386,7 +389,6 @@ ArmDynarmic32::ArmDynarmic32(System& system, bool uses_wall_clock, Kernel::KProc
       m_cp15(std::make_shared<DynarmicCP15>(*this)), m_core_index{core_index} {
     auto& page_table_impl = process->GetPageTable().GetBasePageTable().GetImpl();
     m_jit = MakeJit(&page_table_impl);
-    ScopedJitExecution::RegisterHandler();
 }
 
 ArmDynarmic32::~ArmDynarmic32() = default;

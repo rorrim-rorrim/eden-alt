@@ -85,7 +85,7 @@
     <string name="use_lru_cache">تمكين ذاكرة التخزين المؤقت LRU</string>
     <string name="use_lru_cache_description">چالاک یان ناچالاککردنی کاشەی LRU، کارایی باشتر دەکات بە هەڵگرتنی بەکارهێنانی پرۆسەی CPU. هەندێک یاری کێشەی لەگەڵ هەیە، بەتایبەتی TotK 1.2.1، بۆیە بیخەوێنە ئەگەر یاریەکە نەگەڕێت یان بە هەڕەمەکی بشکێت.</string>
     <string name="dyna_state">الحالة الديناميكية الممتدة</string>
-    <string name="dyna_state_description">کاریگەرییەکانی ڤولکان چالاک بکە بۆ باشترکردنی کارایی، رێندرکردن، و هەڵگرتنی سەرچاوەکان لە دروستکردنی پایپلاین بە هەمان کات کەمترین بەکارهێنانی CPU/GPU بەکاربهێنرێت. ئەم زیادکراوانە ڕەنگە پلەی گەرمی ئامێر زیاد بکەن، و GPU-کانی هێڵی کۆنی A6XX ڕەنگە بە شێوەیەکی گونجاو کارنەکەن. بیخەوێنە بۆ نەخشەکێشانی فۆرماتە پێوانەکراوەکان.</string>
+    <string name="dyna_state_description">کۆntrolی ژمارەی تایبەتمەندییەکان دەکات کە دەتوانرێت لە دۆخی هایپرDynamic بەکاربهێنرێت. ژمارەی زیاتر ڕێگە بە تایبەتمەندییەکی زیاتر دەدات و دەتوانێت کارایی باشتر بکات، بەڵام لەوانەیە کێشە دروست بکات لەگەڵ هەندێک لە درایڤەرەکان و فرۆشەکان. نرخی گریمانەیی دەگۆڕێت بەپێی سیستەم و تواناکانی hardwareی تۆ. دەتوانیت ئەم نرخە بگۆڕیت تا جێگیری و جێیەکی بینینی باشتر دەستبکەوێت.</string>
     <string name="disabled">ناچالاک</string>
     <string name="use_sync_core">مزامنة سرعة النواة</string>
     <string name="use_sync_core_description">خێرایی تیکەکانی ناوک ڕێکبخە لەگەڵ ڕێژەی خێرایی بەرزترین بۆ باشترکردنی کارایی بەبێ گۆڕینی خێرایی ڕاستەقینەی یارییەکە.</string>
@@ -126,6 +126,10 @@
     <string name="cpu_ticks">تیک</string>
     <string name="skip_cpu_inner_invalidation">بازنەکردنی ناوەکی CPU</string>
     <string name="skip_cpu_inner_invalidation_description">هەندێک لە بازنەکردنەکانی هەڵگر لە کاتی نوێکردنەوەی بیرگە دەنێرێت، کەمکردنەوەی بەکارهێنانی CPU و باشترکردنی کارایی. لەوانەیە لە هەندێک یاری کێشە درووست بکات.</string>
+    <string name="cpuopt_unsafe_host_mmu">چالاککردنی میمیکردنی MMU میواندە</string>
+    <string name="cpuopt_unsafe_host_mmu_description">ئەم باشکردنە خێرایی دەستکەوتنی بیرگە لەلایەن پرۆگرامی میوانەکە زیاد دەکات. چالاککردنی وای لێدەکات کە خوێندنەوە/نووسینەکانی بیرگەی میوانەکە ڕاستەوخۆ لە بیرگە ئەنجام بدرێت و میمیکردنی MMU میواندە بەکاربهێنێت. ناچالاککردنی ئەمە هەموو دەستکەوتنەکانی بیرگە ڕەت دەکاتەوە لە بەکارهێنانی میمیکردنی MMU نەرمەکاڵا.</string>
+    <string name="dma_accuracy">ئاستی DMA</string>
+    <string name="dma_accuracy_description">کۆنتڕۆڵی وردی ڕێکخستنی DMA دەکات. وردی زیاتر دەتوانێ هەندێک کێشە لە هەندێک یاری چارەسەر بکات، بەڵام لە هەندێک حاڵەتدا کاریگەری لەسەر کارایی هەیە. ئەگەر دڵنیا نیت، بە ڕێکخستنی بنەڕەتی بێڵە.</string>
 
     <string name="memory_4gb">4GB (پێشنیارکراو)</string>
     <string name="memory_6gb">6GB (نائاسایش)</string>
@@ -654,6 +658,50 @@
     <string name="loader_requires_firmware">یارییەکە فریموێر پێویستە</string>
     <string name="loader_requires_firmware_description"><![CDATA[یارییەکە کە تۆ هەوڵ دەدەیت بیخەیتە کار فریموێر پێویستە بۆ کردنەوە یان تێپەڕاندنی مێنیوی کردنەوە. تکایە <a href="https://yuzu-mirror.github.io/help/quickstart"> فریموێر دامپ بکە و دابنێ</a>, یان پەنجە بنێ سەر "باشە" بۆ بەردەوامبوون هەرچۆنێک بێت.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">گەڕان بە دوای یارییە...</string>
+    <string name="game_not_found_for_title_id">یاری نەدۆزرایەوە بۆ ناسنامەی ناونیشان: %1$s</string>
+    <string name="custom_settings_failed_title">ڕێکخستنە هەڵبژێردراوەکان سەرکەوتوو نەبوو</string>
+    <string name="custom_settings_failed_message">سەرکەوتوو نەبوو لە جێبەجێکردنی ڕێکخستنە هەڵبژێردراوەکان بۆ %1$s: %2$s</string>
+    <string name="launch_with_default_settings">دەستپێکردن بە ڕێکخستنە بنەڕەتییەکان</string>
+    <string name="launch_cancelled">دەستپێکردن هەڵوەشیندراوە</string>
+    <string name="custom_settings_failure_reasons">ناتوانێت ڕێکخستنە داواکراوەکان جێبەجێ بکات. لەوانەیە ئەمە بەهۆی ونبوونی ڕاهێنەری GPU یان کێشەکانی ڕێکخستنەوە بێت.</string>
+    <string name="custom_settings_applied">ڕێکخستنە هەڵبژێردراوەکان جێبەجێ کرا</string>
+    <string name="launching_game">دەستپێکردنی %1$s...</string>
+    <string name="failed_to_initialize_game">سەرکەوتوو نەبوو لە دەستپێکردنی یارییەکە</string>
+    <string name="custom_intent_launch_message_with_settings">ئایا دەتەوێت %1$s بە ڕێکخستنە هەڵبژێردراوەکان دەستپێبکەیت؟</string>
+    <string name="custom_intent_launch_message">ئایا دەتەوێت %1$s دەستپێبکەیت?</string>
+    <string name="custom_intent_launch_title">دەستپێکردنی یاری</string>
+    <string name="launch">دەستپێکردن</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">سەرکەوتوو نەبوو لە نووسینی پەڕگەی ڕێکخستن</string>
+    <string name="config_apply_failed">سەرکەوتوو نەبوو لە جێبەجێکردنی ڕێکخستن</string>
+    <string name="config_already_exists_title">ڕێکخستن هەبووی تری هەیە</string>
+    <string name="config_already_exists_message">ڕێکخستنە هەڵبژێردراوەکان هەڵە بۆ %1$s.\n\nئایا دەتەوێت ڕێکخستنە هەبووەکە بسڕیتەوە؟\n\nناتوانیت ئەم کردارە بگەڕێنیتەوە.</string>
+    <string name="config_exists_prompt">پشکنین بۆ ڕێکخستنی ئێستا...</string>
+    <string name="overwrite_cancelled">سڕینەوە هەڵوەشیندراوە</string>
+    <string name="checking_driver">پشکنین بۆ ڕاهێنەری هەڵبژێردراو: %1$s</string>
+    <string name="driver_unavailable">ڕاهێنەری هەڵبژێردراو بۆ ئەم ئامێرە بەردەست نییە</string>
+    <string name="overwrite">سڕینەوە</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">ڕاهێنەری GPU ونبووە</string>
+    <string name="missing_gpu_driver_message">ڕاهێنەری هەڵبژێردراوی دیاریکراو \"%s\" دامەزراو نییە. ئایا دەتەوێت ئێستا دایببزێنیت و دامەزرێنیت?</string>
+    <string name="downloading_driver">داگرتنی ڕاهێنەر...</string>
+    <string name="driver_installed">ڕاهێنەر بە سەرکەوتوویی دامەزرا</string>
+    <string name="driver_installation_failed_title">دامەزرانی ڕاهێنەر سەرکەوتوو نەبوو</string>
+    <string name="driver_installation_failed_message">سەرکەوتوو نەبوو لە دامەزراندنی ڕاهێنەری GPU: %s</string>
+    <string name="driver_not_available_title">ڕاهێنەر بەردەست نییە</string>
+    <string name="driver_not_available_message">ڕاهێنەری دیاریکراو بۆ داگرتن بەردەست نییە.</string>
+    <string name="driver_not_found">ڕاهێنەری پێویست دامەزراو نییە: %s</string>
+    <string name="invalid_driver_file">پەڕگەی ڕاهێنەری نادروست: %s</string>
+    <string name="network_unavailable">هیچ پەیوەندییەکی تۆڕ بەردەست نییە. تکایە پەیوەندیی ئینتەرنێتەکەت بپشکنە و دووبارە هەوڵبدە.</string>
+    <string name="driver_missing_title">ڕاهێنەری GPU پێویستە</string>
+    <string name="driver_missing_message">ڕێکخستنی یارییەکە پێویستی بە ڕاهێنەری GPU \"%s\" هەیە کە لەسەر ئامێرەکەت دامەزراو نییە.\n\nئایا دەتەوێت ئێستا دایببزێنیت و دامەزرێنیت?</string>
+    <string name="driver_download_cancelled">داگرتنی ڕاهێنەر هەڵوەشیندراوە. ناتوانیت یارییەکە دەستپێبکەیت بەبێ ڕاهێنەری پێویست.</string>
+    <string name="download">داگرتن</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">دەرچوون لە ئیمولەیشن</string>
     <string name="emulation_done">تەواو</string>
@@ -688,6 +736,7 @@
     <string name="fatal_error">هەڵەی کوشندە</string>
     <string name="fatal_error_message">هەڵەیەکی کوشندە ڕوویدا. بۆ وردەکارییەکان لۆگەکە بپشکنە.\nبەردەوامی ئیمولەیشن لەوانەیە ببێتە هۆی تێکچوون و فڕێدانەدەرەوە.</string>
     <string name="performance_warning">کوژاندنەوەی ئەم ڕێکخستنە دەبێتە هۆی کەمکردنەوەی کارایی ئیمولەیشن! بۆ باشترین ئەزموون، باشترە ئەم ڕێکخستنە چالاک بهێڵیتەوە.</string>
+
     <!-- Region Names -->
     <string name="region_japan">ژاپۆن</string>
     <string name="region_usa">ئەمریکا</string>
@@ -699,6 +748,7 @@
 
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
+
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">ڤوڵکان</string>
     <string name="renderer_none">هیچ</string>
@@ -707,6 +757,12 @@
     <string name="renderer_accuracy_normal">ئاسایی</string>
     <string name="renderer_accuracy_high">بەرز</string>
     <string name="renderer_accuracy_extreme">ئەوپەڕ (خاو)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">بنەڕەتی</string>
+    <string name="dma_accuracy_normal">ئاسایی</string>
+    <string name="dma_accuracy_high">بەرز</string>
+    <string name="dma_accuracy_extreme">زۆر بەرز</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

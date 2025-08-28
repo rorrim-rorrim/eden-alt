@@ -85,7 +85,7 @@
     <string name="use_lru_cache">Habilitar caché LRU</string>
     <string name="use_lru_cache_description">Activa o desactiva la caché LRU, mejorando el rendimiento al ahorrar uso del proceso de la CPU. Algunos juegos tienen problemas con ella, notablemente TotK 1.2.1, así que desactívala si el juego no inicia o se cierra aleatoriamente.</string>
     <string name="dyna_state">Estado dinámico extendido</string>
-    <string name="dyna_state_description">Habilita funciones de Vulkan para mejorar el rendimiento, el renderizado y ahorrar recursos en la creación de pipelines manteniendo un uso bajo de CPU/GPU. Estas extensiones pueden aumentar la temperatura del dispositivo, y las GPU de la antigua línea A6XX pueden no reaccionar correctamente. Desactívalo para emular formatos escalados.</string>
+    <string name="dyna_state_description">Controla la cantidad de funciones que se pueden usar en el Estado Dinámico Extendido. Los valores más altos permiten más funciones y pueden aumentar el rendimiento, pero pueden causar problemas con algunos controladores y fabricantes. El valor predeterminado puede variar según su sistema y las capacidades de su hardware. Este valor se puede cambiar hasta lograr estabilidad y una mejor calidad visual.</string>
     <string name="disabled">Desactivado</string>
     <string name="use_sync_core">Sincronizar velocidad del núcleo</string>
     <string name="use_sync_core_description">Sincroniza la velocidad del núcleo con el porcentaje máximo de velocidad para mejorar el rendimiento sin alterar la velocidad real del juego.</string>
@@ -126,6 +126,10 @@
     <string name="cpu_ticks">Ticks</string>
     <string name="skip_cpu_inner_invalidation">Omitir invalidación interna de la CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Omite ciertas invalidaciones de caché durante actualizaciones de memoria, reduciendo el uso de CPU y mejorando su rendimiento. Puede causar fallos en algunos juegos.</string>
+    <string name="cpuopt_unsafe_host_mmu">Habilitar emulación de MMU del host</string>
+    <string name="cpuopt_unsafe_host_mmu_description">Esta optimización acelera los accesos a la memoria por parte del programa invitado. Al habilitarla, las lecturas/escrituras de memoria del invitado se realizan directamente en la memoria y utilizan la MMU del host. Deshabilitar esto obliga a que todos los accesos a la memoria utilicen la emulación de MMU por software.</string>
+    <string name="dma_accuracy">Nivel de DMA</string>
+    <string name="dma_accuracy_description">Controla la precisión del DMA. Una mayor precisión puede solucionar problemas en algunos juegos, pero también puede afectar el rendimiento en algunos casos. Si no está seguro, déjelo en Predeterminado.</string>
 
     <string name="memory_4gb">4GB (Recomendado)</string>
     <string name="memory_6gb">6GB (Inseguro)</string>
@@ -749,6 +753,50 @@
     <string name="loader_requires_firmware">El juego requiere firmware</string>
     <string name="loader_requires_firmware_description"><![CDATA[El juego que intentas iniciar requiere firmware para arrancar o pasar el menú de inicio. Por favor <a href="https://yuzu-mirror.github.io/help/quickstart"> vuelca e instala el firmware</a>, o pulsa "Aceptar" para continuar de todos modos.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Buscando juego...</string>
+    <string name="game_not_found_for_title_id">Juego no encontrado para el ID de título: %1$s</string>
+    <string name="custom_settings_failed_title">Configuración personalizada fallida</string>
+    <string name="custom_settings_failed_message">Error al aplicar la configuración personalizada para %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Iniciar con configuración predeterminada</string>
+    <string name="launch_cancelled">Inicio cancelado</string>
+    <string name="custom_settings_failure_reasons">No se pueden aplicar los ajustes solicitados. Esto puede deberse a controladores GPU faltantes o problemas de configuración.</string>
+    <string name="custom_settings_applied">Configuración personalizada aplicada</string>
+    <string name="launching_game">Iniciando %1$s...</string>
+    <string name="failed_to_initialize_game">Error al inicializar el juego</string>
+    <string name="custom_intent_launch_message_with_settings">¿Quieres iniciar %1$s con configuración personalizada?</string>
+    <string name="custom_intent_launch_message">¿Quieres iniciar %1$s?</string>
+    <string name="custom_intent_launch_title">Iniciar juego</string>
+    <string name="launch">Iniciar</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Error al escribir el archivo de configuración</string>
+    <string name="config_apply_failed">Error al aplicar la configuración</string>
+    <string name="config_already_exists_title">La configuración ya existe</string>
+    <string name="config_already_exists_message">Ya existe una configuración personalizada para %1$s.\n\n¿Quieres sobrescribir la configuración existente?\n\nEsta acción no se puede deshacer.</string>
+    <string name="config_exists_prompt">Comprobando la configuración existente...</string>
+    <string name="overwrite_cancelled">Sobrescritura cancelada</string>
+    <string name="checking_driver">Comprobando controlador personalizado: %1$s</string>
+    <string name="driver_unavailable">Controlador personalizado no disponible para este dispositivo</string>
+    <string name="overwrite">Sobrescribir</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">Falta controlador de GPU</string>
+    <string name="missing_gpu_driver_message">El controlador personalizado seleccionado \"%s\" no está instalado. ¿Quieres descargarlo e instalarlo ahora?</string>
+    <string name="downloading_driver">Descargando controlador...</string>
+    <string name="driver_installed">Controlador instalado correctamente</string>
+    <string name="driver_installation_failed_title">Error en la instalación del controlador</string>
+    <string name="driver_installation_failed_message">Error al instalar el controlador de GPU: %s</string>
+    <string name="driver_not_available_title">Controlador no disponible</string>
+    <string name="driver_not_available_message">El controlador seleccionado no está disponible para descargar.</string>
+    <string name="driver_not_found">Controlador requerido no instalado: %s</string>
+    <string name="invalid_driver_file">Archivo de controlador no válido: %s</string>
+    <string name="network_unavailable">No hay conexión de red disponible. Por favor, compruebe su conexión a Internet e inténtelo de nuevo.</string>
+    <string name="driver_missing_title">Se requiere controlador de GPU</string>
+    <string name="driver_missing_message">La configuración del juego requiere el controlador de GPU \"%s\" que no está instalado en su dispositivo.\n\n¿Quieres descargarlo e instalarlo ahora?</string>
+    <string name="driver_download_cancelled">Descarga del controlador cancelada. El juego no se puede iniciar sin el controlador requerido.</string>
+    <string name="download">Descargar</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">Salir de la emulación</string>
     <string name="emulation_done">Hecho</string>
@@ -818,6 +866,12 @@
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">Alto</string>
     <string name="renderer_accuracy_extreme">Extremo (Lento)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">Predeterminado</string>
+    <string name="dma_accuracy_normal">Normal</string>
+    <string name="dma_accuracy_high">Alto</string>
+    <string name="dma_accuracy_extreme">Extremo</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

@@ -143,6 +143,7 @@ public:
         return (flags & property_flags) == flags && (type_mask & shifted_memory_type) != 0;
     }
 
+
 private:
     [[nodiscard]] static constexpr u32 ShiftType(u32 type) {
         return 1U << type;
@@ -283,43 +284,48 @@ vk::Buffer MemoryAllocator::CreateBuffer(const VkBufferCreateInfo& ci, MemoryUsa
 }
 
 MemoryCommit MemoryAllocator::Commit(const VkMemoryRequirements& requirements, MemoryUsage usage) {
-    // Find the fastest memory flags we can afford with the current requirements
-    const u32 type_mask = requirements.memoryTypeBits;
-    const VkMemoryPropertyFlags usage_flags = MemoryUsagePropertyFlags(usage);
-    const VkMemoryPropertyFlags flags = MemoryPropertyFlags(type_mask, usage_flags);
-    if (std::optional<MemoryCommit> commit = TryCommit(requirements, flags)) {
-        return std::move(*commit);
+        // Find the fastest memory flags we can afford with the current requirements
+        const u32 type_mask = requirements.memoryTypeBits;
+        const VkMemoryPropertyFlags usage_flags = MemoryUsagePropertyFlags(usage);
+        const VkMemoryPropertyFlags flags = MemoryPropertyFlags(type_mask, usage_flags);
+        if (std::optional<MemoryCommit> commit = TryCommit(requirements, flags)) {
+            return std::move(*commit);
+        }
+        // Commit has failed, allocate more memory.
+        const u64 chunk_size = AllocationChunkSize(requirements.size);
+        if (!TryAllocMemory(flags, type_mask, chunk_size)) {
+            // TODO(Rodrigo): Handle out of memory situations in some way like flushing to guest memory.
+            throw vk::Exception(VK_ERROR_OUT_OF_DEVICE_MEMORY);
+        }
+        // Commit again, this time it won't fail since there's a fresh allocation above.
+        // If it does, there's a bug.
+        return TryCommit(requirements, flags).value();
     }
-    // Commit has failed, allocate more memory.
-    const u64 chunk_size = AllocationChunkSize(requirements.size);
-    if (!TryAllocMemory(flags, type_mask, chunk_size)) {
-        // TODO(Rodrigo): Handle out of memory situations in some way like flushing to guest memory.
-        throw vk::Exception(VK_ERROR_OUT_OF_DEVICE_MEMORY);
-    }
-    // Commit again, this time it won't fail since there's a fresh allocation above.
-    // If it does, there's a bug.
-    return TryCommit(requirements, flags).value();
-}
 
 bool MemoryAllocator::TryAllocMemory(VkMemoryPropertyFlags flags, u32 type_mask, u64 size) {
-    const u32 type = FindType(flags, type_mask).value();
+    const auto type_opt = FindType(flags, type_mask);
+    if (!type_opt) {
+        return false;
+    }
+
+    // Adreno stands firm
+    const u64 aligned_size = (device.GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) ?
+                            Common::AlignUp(size, 4096) :
+                            size;
+
     vk::DeviceMemory memory = device.GetLogical().TryAllocateMemory({
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
         .pNext = nullptr,
-        .allocationSize = size,
-        .memoryTypeIndex = type,
+        .allocationSize = aligned_size,
+        .memoryTypeIndex = *type_opt,
     });
+
     if (!memory) {
-        if ((flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0) {
-            // Try to allocate non device local memory
-            return TryAllocMemory(flags & ~VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, type_mask, size);
-        } else {
-            // RIP
-            return false;
-        }
+        return false;
     }
+
     allocations.push_back(
-        std::make_unique<MemoryAllocation>(this, std::move(memory), flags, size, type));
+        std::make_unique<MemoryAllocation>(this, std::move(memory), flags, aligned_size, *type_opt));
     return true;
 }
 
@@ -331,11 +337,25 @@ void MemoryAllocator::ReleaseMemory(MemoryAllocation* alloc) {
 
 std::optional<MemoryCommit> MemoryAllocator::TryCommit(const VkMemoryRequirements& requirements,
                                                        VkMemoryPropertyFlags flags) {
+    // Conservative, spec-compliant alignment for suballocation
+    VkDeviceSize eff_align = requirements.alignment;
+    const auto& limits = device.GetPhysical().GetProperties().limits;
+    if ((flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) &&
+        !(flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
+        // Non-coherent memory must be invalidated on atom boundary
+        if (limits.nonCoherentAtomSize > eff_align) eff_align = limits.nonCoherentAtomSize;
+    }
+    // Separate buffers to avoid stalls on tilers
+    if (buffer_image_granularity > eff_align) {
+        eff_align = buffer_image_granularity;
+    }
+    eff_align = std::bit_ceil(eff_align);
+
     for (auto& allocation : allocations) {
         if (!allocation->IsCompatible(flags, requirements.memoryTypeBits)) {
             continue;
         }
-        if (auto commit = allocation->Commit(requirements.size, requirements.alignment)) {
+        if (auto commit = allocation->Commit(requirements.size, eff_align)) {
             return commit;
         }
     }

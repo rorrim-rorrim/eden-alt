@@ -85,7 +85,7 @@
     <string name="use_lru_cache">LRU-Cache aktivieren</string>
     <string name="use_lru_cache_description">Aktivieren oder deaktivieren Sie den LRU-Cache, um die Leistung durch Einsparung von CPU-Prozessorauslastung zu verbessern. Einige Spiele haben Probleme damit, insbesondere TotK 1.2.1, deaktivieren Sie es also, wenn das Spiel nicht startet oder zufällig abstürzt.</string>
     <string name="dyna_state">Erweiterter dynamischer Status</string>
-    <string name="dyna_state_description">Aktiviert Vulkan-Funktionen zur Verbesserung der Leistung, des Renderings und zur Einsparung von Ressourcen bei der Pipeline-Erstellung bei gleichzeitig geringer CPU/GPU-Auslastung. Diese Erweiterungen können die Gerätetemperatur erhöhen, und ältere GPUs der A6XX-Serie reagieren möglicherweise nicht richtig. Deaktivieren Sie dies, um skalierte Formate zu emulieren.</string>
+    <string name="dyna_state_description">Steuert die Anzahl der Funktionen, die im Erweiterten Dynamischen Zustand verwendet werden können. Höhere Werte ermöglichen mehr Funktionen und können die Leistung steigern, können jedoch bei einigen Treibern und Herstellern zu Problemen führen. Der Standardwert kann je nach System und Hardwarefähigkeiten variieren. Dieser Wert kann geändert werden, bis Stabilität und eine bessere visuelle Qualität erreicht sind.</string>
     <string name="disabled">Deaktiviert</string>
     <string name="use_sync_core">Kern-Geschwindigkeit synchronisieren</string>
     <string name="use_sync_core_description">Synchronisiert die Taktrate des Kerns mit der maximalen Geschwindigkeit, um die Leistung zu verbessern, ohne die tatsächliche Spielgeschwindigkeit zu verändern.</string>
@@ -126,6 +126,10 @@
     <string name="cpu_ticks">Ticks</string>
     <string name="skip_cpu_inner_invalidation">CPU-interne Invalidierung überspringen</string>
     <string name="skip_cpu_inner_invalidation_description">Überspringt bestimmte Cache-Invalidierungen auf CPU-Seite während Speicherupdates, reduziert die CPU-Auslastung und verbessert die Leistung. Kann in einigen Spielen zu Fehlern oder Abstürzen führen.</string>
+    <string name="cpuopt_unsafe_host_mmu">Host-MMU-Emulation aktivieren</string>
+    <string name="cpuopt_unsafe_host_mmu_description">Diese Optimierung beschleunigt Speicherzugriffe durch das Gastprogramm. Wenn aktiviert, erfolgen Speicherlese- und -schreibvorgänge des Gastes direkt im Speicher und nutzen die MMU des Hosts. Das Deaktivieren erzwingt die Verwendung der Software-MMU-Emulation für alle Speicherzugriffe.</string>
+    <string name="dma_accuracy">DMA-Level</string>
+    <string name="dma_accuracy_description">Steuert die DMA-Präzisionsgenauigkeit. Eine höhere Präzision kann Probleme in einigen Spielen beheben, kann aber in einigen Fällen auch die Leistung beeinträchtigen. Im Zweifel auf „Standard“ belassen.</string>
 
     <string name="memory_4gb">4 GB (Empfohlen)</string>
     <string name="memory_6gb">6 GB (Unsicher)</string>
@@ -710,6 +714,50 @@ Wirklich fortfahren?</string>
     <string name="loader_requires_firmware">Spiel erfordert Firmware</string>
     <string name="loader_requires_firmware_description"><![CDATA[Das Spiel, das Sie starten möchten, benötigt Firmware zum Booten oder zum Überspringen des Startmenüs. Bitte <a href="https://yuzu-mirror.github.io/help/quickstart"> dumpen und installieren Sie Firmware</a>, oder drücken Sie "OK", um trotzdem zu starten.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Suche nach Spiel...</string>
+    <string name="game_not_found_for_title_id">Spiel nicht gefunden für Titel-ID: %1$s</string>
+    <string name="custom_settings_failed_title">Benutzerdefinierte Einstellungen fehlgeschlagen</string>
+    <string name="custom_settings_failed_message">Fehler beim Anwenden der benutzerdefinierten Einstellungen für %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Mit Standardeinstellungen starten</string>
+    <string name="launch_cancelled">Start abgebrochen</string>
+    <string name="custom_settings_failure_reasons">Die angeforderten Einstellungen konnten nicht angewendet werden. Dies kann an fehlenden GPU-Treibern oder Konfigurationsproblemen liegen.</string>
+    <string name="custom_settings_applied">Benutzerdefinierte Einstellungen übernommen</string>
+    <string name="launching_game">Starte %1$s...</string>
+    <string name="failed_to_initialize_game">Spielinitialisierung fehlgeschlagen</string>
+    <string name="custom_intent_launch_message_with_settings">Möchten Sie %1$s mit benutzerdefinierten Einstellungen starten?</string>
+    <string name="custom_intent_launch_message">Möchten Sie %1$s starten?</string>
+    <string name="custom_intent_launch_title">Spiel starten</string>
+    <string name="launch">Starten</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Konfigurationsdatei konnte nicht geschrieben werden</string>
+    <string name="config_apply_failed">Konfiguration konnte nicht angewendet werden</string>
+    <string name="config_already_exists_title">Konfiguration existiert bereits</string>
+    <string name="config_already_exists_message">Benutzerdefinierte Einstellungen existieren bereits für %1$s.\n\nMöchten Sie die bestehende Konfiguration überschreiben?\n\nDiese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="config_exists_prompt">Überprüfe auf vorhandene Konfiguration...</string>
+    <string name="overwrite_cancelled">Überschreiben abgebrochen</string>
+    <string name="checking_driver">Üoverprüfe benutzerdefinierten Treiber: %1$s</string>
+    <string name="driver_unavailable">Benutzerdefinierter Treiber für dieses Gerät nicht verfügbar</string>
+    <string name="overwrite">Überschreiben</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">GPU-Treiber fehlt</string>
+    <string name="missing_gpu_driver_message">Der ausgewählte benutzerdefinierte Treiber \"%s\" ist nicht installiert. Möchten Sie ihn jetzt herunterladen und installieren?</string>
+    <string name="downloading_driver">Treiber wird heruntergeladen...</string>
+    <string name="driver_installed">Treiber erfolgreich installiert</string>
+    <string name="driver_installation_failed_title">Treiberinstallation fehlgeschlagen</string>
+    <string name="driver_installation_failed_message">Fehler beim Installieren des GPU-Treibers: %s</string>
+    <string name="driver_not_available_title">Treiber nicht verfügbar</string>
+    <string name="driver_not_available_message">Der ausgewählte Treiber ist nicht zum Download verfügbar.</string>
+    <string name="driver_not_found">Erforderlicher Treiber nicht installiert: %s</string>
+    <string name="invalid_driver_file">Ungültige Treiberdatei: %s</string>
+    <string name="network_unavailable">Keine Netzwerkverbindung verfügbar. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.</string>
+    <string name="driver_missing_title">GPU-Treiber erforderlich</string>
+    <string name="driver_missing_message">Die Spielkonfiguration erfordert den GPU-Treiber \"%s\", der auf Ihrem Gerät nicht installiert ist.\n\nMöchten Sie ihn jetzt herunterladen и installieren?</string>
+    <string name="driver_download_cancelled">Treiberdownload abgebrochen. Das Spiel kann ohne den erforderlichen Treiber nicht gestartet werden.</string>
+    <string name="download">Herunterladen</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">Emulation beenden</string>
     <string name="emulation_done">Fertig</string>
@@ -769,6 +817,12 @@ Wirklich fortfahren?</string>
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">Hoch</string>
     <string name="renderer_accuracy_extreme">Extrem (Langsam)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">Standard</string>
+    <string name="dma_accuracy_normal">Normal</string>
+    <string name="dma_accuracy_high">Hoch</string>
+    <string name="dma_accuracy_extreme">Extrem</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

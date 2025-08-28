@@ -85,7 +85,7 @@
     <string name="use_lru_cache">Włącz pamięć podręczną LRU</string>
     <string name="use_lru_cache_description">Włącz lub wyłącz pamięć podręczną LRU, aby poprawić wydajność poprzez zmniejszenie użycia procesora. Niektóre gry, takie jak TotK 1.2.1, mogą mieć problemy - wyłącz, jeśli gra się nie uruchamia lub losowo zawiesza.</string>
     <string name="dyna_state">Rozszerzony stan dynamiczny</string>
-    <string name="dyna_state_description">Włącza funkcje Vulkan w celu poprawy wydajności, renderowania i oszczędzania zasobów podczas tworzenia potoku, przy jednoczesnym utrzymaniu niskiego wykorzystania CPU/GPU. Te rozszerzenia mogą zwiększać temperaturę urządzenia, a starsze GPU z linii A6XX mogą nie działać poprawnie. Wyłącz, aby emulować formaty skalowane.</string>
+    <string name="dyna_state_description">Kontroluje liczbę funkcji, które mogą być używane w Rozszerzonym Stanie Dynamicznym. Wyższe wartości pozwalają na więcej funkcji i mogą zwiększyć wydajność, ale mogą powodować problemy z niektórymi sterownikami i producentami. Wartość domyślna może się różnić w zależności od systemu i możliwości sprzętowych. Tę wartość można zmieniać, aż do osiągnięcia stabilności i lepszej jakości wizualnej.</string>
     <string name="disabled">Wyłączone</string>
     <string name="use_sync_core">Synchronizuj prędkość rdzenia</string>
     <string name="use_sync_core_description">Synchronizuje prędkość rdzenia z maksymalnym procentem prędkości, aby poprawić wydajność bez zmiany rzeczywistej prędkości gry.</string>
@@ -126,6 +126,10 @@
     <string name="cpu_ticks">Takty</string>
     <string name="skip_cpu_inner_invalidation">Pomiń wewnętrzne unieważnienie CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Pomija niektóre unieważnienia pamięci podręcznej po stronie CPU podczas aktualizacji pamięci, zmniejszając użycie CPU i poprawiając jego wydajność. Może powodować błędy lub awarie w niektórych grach.</string>
+    <string name="cpuopt_unsafe_host_mmu">Włącz emulację MMU hosta</string>
+    <string name="cpuopt_unsafe_host_mmu_description">Ta optymalizacja przyspiesza dostęp do pamięci przez program gościa. Włączenie powoduje, że odczyty/zapisy pamięci gościa są wykonywane bezpośrednio w pamięci i wykorzystują MMU hosta. Wyłączenie wymusza użycie programowej emulacji MMU dla wszystkich dostępów do pamięci.</string>
+    <string name="dma_accuracy">Poziom DMA</string>
+    <string name="dma_accuracy_description">Kontroluje dokładność precyzji DMA. Wyższy poziom może naprawić problemy w niektórych grach, ale może również wpłynąć na wydajność. Jeśli nie jesteś pewien, pozostaw wartość «Domyślny».</string>
 
     <string name="memory_4gb">4GB (Zalecane)</string>
     <string name="memory_6gb">6GB (Niebezpieczne)</string>
@@ -662,6 +666,50 @@
     <string name="loader_requires_firmware">Gra wymaga oprogramowania sprzętowego</string>
     <string name="loader_requires_firmware_description"><![CDATA[Gra, którą próbujesz uruchomić, wymaga oprogramowania sprzętowego do uruchomienia lub przejścia przez menu startowe. Proszę <a href="https://yuzu-mirror.github.io/help/quickstart"> zrzuć i zainstaluj oprogramowanie sprzętowe</a>, lub naciśnij "OK", aby kontynuować mimo to.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Wyszukiwanie gry...</string>
+    <string name="game_not_found_for_title_id">Nie znaleziono gry dla ID tytułu: %1$s</string>
+    <string name="custom_settings_failed_title">Niestandardowe ustawienia nie powiodły się</string>
+    <string name="custom_settings_failed_message">Nie udało się zastosować niestandardowych ustawień dla %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Uruchom z ustawieniami domyślnymi</string>
+    <string name="launch_cancelled">Uruchamianie anulowane</string>
+    <string name="custom_settings_failure_reasons">Nie można zastosować żądanych ustawień. Może to być spowodowane brakującymi sterownikami GPU lub problemami z konfiguracją.</string>
+    <string name="custom_settings_applied">Zastosowano niestandardowe ustawienia</string>
+    <string name="launching_game">Uruchamianie %1$s...</string>
+    <string name="failed_to_initialize_game">Nie udało się zainicjować gry</string>
+    <string name="custom_intent_launch_message_with_settings">Czy chcesz uruchomić %1$s z niestandardowymi ustawieniami?</string>
+    <string name="custom_intent_launch_message">Czy chcesz uruchomić %1$s?</string>
+    <string name="custom_intent_launch_title">Uruchom grę</string>
+    <string name="launch">Uruchom</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Nie udało się zapisać pliku konfiguracyjnego</string>
+    <string name="config_apply_failed">Nie udało się zastosować konfiguracji</string>
+    <string name="config_already_exists_title">Konfiguracja już istnieje</string>
+    <string name="config_already_exists_message">Niestandardowe ustawienia już istnieją dla %1$s.\n\nCzy chcesz nadpisać istniejącą konfigurację?\n\nTej czynności nie można cofnąć.</string>
+    <string name="config_exists_prompt">Sprawdzanie istniejącej konfiguracji...</string>
+    <string name="overwrite_cancelled">Nadpisywanie anulowane</string>
+    <string name="checking_driver">Sprawdzanie niestandardowego sterownika: %1$s</string>
+    <string name="driver_unavailable">Niestandardowy sterownik niedostępny dla tego urządzenia</string>
+    <string name="overwrite">Nadpisz</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">Brak sterownika GPU</string>
+    <string name="missing_gpu_driver_message">Wybrany niestandardowy sterownik \"%s\" nie jest zainstalowany. Czy chcesz go teraz pobrać i zainstalować?</string>
+    <string name="downloading_driver">Pobieranie sterownika...</string>
+    <string name="driver_installed">Sterownik pomyślnie zainstalowany</string>
+    <string name="driver_installation_failed_title">Instalacja sterownika nie powiodła się</string>
+    <string name="driver_installation_failed_message">Nie udało się zainstalować sterownika GPU: %s</string>
+    <string name="driver_not_available_title">Sterownik niedostępny</string>
+    <string name="driver_not_available_message">Wybrany sterownik nie jest dostępny do pobrania.</string>
+    <string name="driver_not_found">Wymagany sterownik nie jest zainstalowany: %s</string>
+    <string name="invalid_driver_file">Nieprawidłowy plik sterownika: %s</string>
+    <string name="network_unavailable">Brak dostępnego połączenia sieciowego. Sprawdź swoje połączenie internetowe i spróbuj ponownie.</string>
+    <string name="driver_missing_title">Wymagany sterownik GPU</string>
+    <string name="driver_missing_message">Konfiguracja gry wymaga sterownika GPU \"%s\", który nie jest zainstalowany na Twoim urządzeniu.\n\nCzy chcesz go teraz pobrać i zainstalować?</string>
+    <string name="driver_download_cancelled">Pobieranie sterownika anulowane. Gra nie może zostać uruchomiona bez wymaganego sterownika.</string>
+    <string name="download">Pobierz</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">Zakończ emulację</string>
     <string name="emulation_done">Gotowe</string>
@@ -707,6 +755,7 @@
 
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
+
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Żadny</string>
@@ -715,6 +764,12 @@
     <string name="renderer_accuracy_normal">Normalny</string>
     <string name="renderer_accuracy_high">Wysoki</string>
     <string name="renderer_accuracy_extreme">Ekstremalny (Wolny)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">預設</string>
+    <string name="dma_accuracy_normal">普通</string>
+    <string name="dma_accuracy_high">高</string>
+    <string name="dma_accuracy_extreme">極高</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

@@ -85,7 +85,7 @@
     <string name="use_lru_cache">Bật bộ nhớ đệm LRU</string>
     <string name="use_lru_cache_description">Bật hoặc tắt bộ nhớ đệm LRU để cải thiện hiệu suất bằng cách tiết kiệm quy trình sử dụng CPU. Một số trò chơi như TotK 1.2.1 có vấn đề - hãy tắt nếu trò chơi không khởi động hoặc bị treo ngẫu nhiên.</string>
     <string name="dyna_state">Trạng thái động mở rộng</string>
-    <string name="dyna_state_description">Kích hoạt tính năng Vulkan để cải thiện hiệu suất, kết xuất và tiết kiệm tài nguyên khi tạo pipeline trong khi vẫn duy trì mức sử dụng CPU/GPU thấp. Các tiện ích mở rộng này có thể làm tăng nhiệt độ thiết bị và GPU thuộc dòng A6XX cũ có thể không phản ứng đúng. Tắt để mô phỏng các định dạng tỷ lệ.</string>
+    <string name="dyna_state_description">Điều khiển số tính năng có thể được sử dụng trong Trạng thái Động Mở rộng. Giá trị cao hơn cho phép nhiều tính năng hơn và có thể tăng hiệu suất, nhưng có thể gây ra sự cố với một số trình điều khiển và nhà cung cấp. Giá trị mặc định có thể thay đổi tùy thuộc vào hệ thống và khả năng phần cứng của bạn. Giá trị này có thể được thay đổi cho đến khi đạt được độ ổn định và chất lượng hình ảnh tốt hơn.</string>
     <string name="disabled">Đã tắt</string>
     <string name="use_sync_core">Đồng bộ tốc độ lõi</string>
     <string name="use_sync_core_description">Đồng bộ tốc độ lõi với tỷ lệ phần trăm tốc độ tối đa để cải thiện hiệu suất mà không làm thay đổi tốc độ thực tế của trò chơi.</string>
@@ -126,6 +126,10 @@
     <string name="cpu_ticks">Tích</string>
     <string name="skip_cpu_inner_invalidation">Bỏ qua vô hiệu hóa bên trong CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Bỏ qua một số lần vô hiệu hóa bộ nhớ đệm phía CPU trong khi cập nhật bộ nhớ, giảm mức sử dụng CPU và cải thiện hiệu suất. Có thể gây ra lỗi hoặc treo máy trong một số trò chơi.</string>
+    <string name="cpuopt_unsafe_host_mmu">Bật giả lập MMU Máy chủ</string>
+    <string name="cpuopt_unsafe_host_mmu_description">Tối ưu hóa này tăng tốc độ truy cập bộ nhớ của chương trình khách. Bật nó lên khiến các thao tác đọc/ghi bộ nhớ khách được thực hiện trực tiếp vào bộ nhớ và sử dụng MMU của Máy chủ. Tắt tính năng này buộc tất cả quyền truy cập bộ nhớ phải sử dụng Giả lập MMU Phần mềm.</string>
+    <string name="dma_accuracy">Cấp độ DMA</string>
+    <string name="dma_accuracy_description">Điều khiển độ chính xác của DMA. Độ chính xác cao hơn có thể sửa lỗi trong một số trò chơi, nhưng cũng có thể ảnh hưởng đến hiệu suất trong một số trường hợp. Nếu không chắc chắn, hãy để ở Mặc định.</string>
 
     <string name="memory_4gb">4GB (Được đề xuất)</string>
     <string name="memory_6gb">6GB (Không an toàn)</string>
@@ -667,6 +671,50 @@
     <string name="loader_requires_firmware">Trò chơi yêu cầu firmware</string>
     <string name="loader_requires_firmware_description"><![CDATA[Trò chơi bạn đang cố khởi chạy yêu cầu firmware để khởi động hoặc vượt qua menu mở đầu. Vui lòng <a href="https://yuzu-mirror.github.io/help/quickstart"> dump và cài đặt firmware</a>, hoặc nhấn "OK" để tiếp tục dù sao đi nữa.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Đang tìm kiếm trò chơi...</string>
+    <string name="game_not_found_for_title_id">Không tìm thấy trò chơi cho ID Tiêu đề: %1$s</string>
+    <string name="custom_settings_failed_title">Cài đặt Tùy chỉnh Thất bại</string>
+    <string name="custom_settings_failed_message">Không thể áp dụng cài đặt tùy chỉnh cho %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Khởi chạy với Cài đặt Mặc định</string>
+    <string name="launch_cancelled">Đã hủy khởi chạy</string>
+    <string name="custom_settings_failure_reasons">Không thể áp dụng các cài đặt được yêu cầu. Điều này có thể do thiếu trình điều khiển GPU hoặc sự cố cấu hình.</string>
+    <string name="custom_settings_applied">Đã áp dụng cài đặt tùy chỉnh</string>
+    <string name="launching_game">Đang khởi chạy %1$s...</string>
+    <string name="failed_to_initialize_game">Không thể khởi tạo trò chơi</string>
+    <string name="custom_intent_launch_message_with_settings">Bạn có muốn khởi chạy %1$s với cài đặt tùy chỉnh không?</string>
+    <string name="custom_intent_launch_message">Bạn có muốn khởi chạy %1$s không?</string>
+    <string name="custom_intent_launch_title">Khởi chạy Trò chơi</string>
+    <string name="launch">Khởi chạy</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Không thể ghi tệp cấu hình</string>
+    <string name="config_apply_failed">Không thể áp dụng cấu hình</string>
+    <string name="config_already_exists_title">Cấu hình Đã Tồn tại</string>
+    <string name="config_already_exists_message">Cài đặt tùy chỉnh đã tồn tại cho %1$s.\n\nBạn có muốn ghi đè cấu hình hiện có không?\n\nHành động này không thể hoàn tác.</string>
+    <string name="config_exists_prompt">Đang kiểm tra cấu hình hiện có...</string>
+    <string name="overwrite_cancelled">Đã hủy ghi đè</string>
+    <string name="checking_driver">Đang kiểm tra trình điều khiển tùy chỉnh: %1$s</string>
+    <string name="driver_unavailable">Trình điều khiển tùy chỉnh không khả dụng cho thiết bị này</string>
+    <string name="overwrite">Ghi đè</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">Thiếu Trình điều khiển GPU</string>
+    <string name="missing_gpu_driver_message">Trình điều khiển tùy chỉnh được chọn \"%s\" chưa được cài đặt. Bạn có muốn tải xuống và cài đặt ngay bây giờ không?</string>
+    <string name="downloading_driver">Đang tải xuống trình điều khiển...</string>
+    <string name="driver_installed">Đã cài đặt trình điều khiển thành công</string>
+    <string name="driver_installation_failed_title">Cài đặt Trình điều khiển Thất bại</string>
+    <string name="driver_installation_failed_message">Không thể cài đặt trình điều khiển GPU: %s</string>
+    <string name="driver_not_available_title">Trình điều khiển Không khả dụng</string>
+    <string name="driver_not_available_message">Trình điều khiển được chọn không có sẵn để tải xuống.</string>
+    <string name="driver_not_found">Không tìm thấy trình điều khiển bắt buộc: %s</string>
+    <string name="invalid_driver_file">Tệp trình điều khiển không hợp lệ: %s</string>
+    <string name="network_unavailable">Không có kết nối mạng khả dụng. Vui lòng kiểm tra kết nối internet của bạn và thử lại.</string>
+    <string name="driver_missing_title">Yêu cầu Trình điều khiển GPU</string>
+    <string name="driver_missing_message">Cấu hình trò chơi yêu cầu trình điều khiển GPU \"%s\" chưa được cài đặt trên thiết bị của bạn.\n\nBạn có muốn tải xuống và cài đặt ngay bây giờ không?</string>
+    <string name="driver_download_cancelled">Đã hủy tải xuống trình điều khiển. Không thể khởi chạy trò chơi nếu thiếu trình điều khiển bắt buộc.</string>
+    <string name="download">Tải xuống</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">Thoát giả lập</string>
     <string name="emulation_done">Hoàn tất</string>
@@ -701,6 +749,7 @@
     <string name="fatal_error">Lỗi nghiêm trọng</string>
     <string name="fatal_error_message">Đã xảy ra lỗi nghiêm trọng. Kiểm tra nhật ký để biết chi tiết.\nViệc tiếp tục giả lập có thể dẫn đến sự cố và lỗi.</string>
     <string name="performance_warning">Tắt cài đặt này sẽ làm giảm đáng kể hiệu suất giả lập! Để có trải nghiệm tốt nhất, bạn nên bật cài này.</string>
+
     <!-- Region Names -->
     <string name="region_japan">Nhật Bản</string>
     <string name="region_usa">Hoa Kỳ</string>
@@ -712,6 +761,7 @@
 
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
+
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Trống</string>
@@ -720,6 +770,12 @@
     <string name="renderer_accuracy_normal">Trung bình</string>
     <string name="renderer_accuracy_high">Khỏe</string>
     <string name="renderer_accuracy_extreme">Tối đa (Chậm)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">Mặc định</string>
+    <string name="dma_accuracy_normal">Bình thường</string>
+    <string name="dma_accuracy_high">Cao</string>
+    <string name="dma_accuracy_extreme">Cực cao</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

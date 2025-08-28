@@ -85,7 +85,7 @@
     <string name="use_lru_cache">LRU 캐시 사용</string>
     <string name="use_lru_cache_description">LRU 캐시를 활성화 또는 비활성화하여 CPU 프로세스 사용을 절약하고 성능을 향상시킵니다. TotK 1.2.1을 포함한 일부 게임에서 문제가 발생할 수 있으므로 게임이 부팅되지 않거나 무작위로 충돌하는 경우 비활성화하세요.</string>
     <string name="dyna_state">확장 동적 상태</string>
-    <string name="dyna_state_description">파이프라인 생성 시 CPU/GPU 사용량을 낮게 유지하면서 성능, 렌더링 및 리소스 절약을 개선하기 위해 Vulkan 기능을 활성화합니다. 이 확장 기능은 장치 온도를 높일 수 있으며 이전 A6XX 라인에 속하는 GPU가 제대로 반응하지 않을 수 있습니다. 스케일된 형식을 에뮬레이트하려면 비활성화하세요.</string>
+    <string name="dyna_state_description">확장 동적 상태에서 사용할 수 있는 기능의 수를 제어합니다. 높은 값은 더 많은 기능을 허용하고 성능을 높일 수 있지만, 일부 드라이버 및 벤더에서 문제를 일으킬 수 있습니다. 기본값은 시스템 및 하드웨어 기능에 따라 다를 수 있습니다. 안정성과 더 나은 시각적 품질이 달성될 때까지 이 값을 변경할 수 있습니다.</string>
     <string name="disabled">비활성화됨</string>
     <string name="use_sync_core">코어 속도 동기화</string>
     <string name="use_sync_core_description">코어 틱 속도를 최대 속도 백분율과 동기화하여 게임의 실제 속도를 변경하지 않고 성능을 향상시킵니다.</string>
@@ -126,6 +126,10 @@
     <string name="cpu_ticks">틱</string>
     <string name="skip_cpu_inner_invalidation">CPU 내부 무효화 건너뛰기</string>
     <string name="skip_cpu_inner_invalidation_description">메모리 업데이트 시 일부 CPU 측 캐시 무효화를 건너뛰어 CPU 사용량을 줄이고 성능을 향상시킵니다. 일부 게임에서 오류 또는 충돌을 일으킬 수 있습니다.</string>
+    <string name="cpuopt_unsafe_host_mmu">호스트 MMU 에뮬레이션 사용</string>
+    <string name="cpuopt_unsafe_host_mmu_description">이 최적화는 게스트 프로그램의 메모리 접근 속도를 높입니다. 활성화하면 게스트의 메모리 읽기/쓰기가 메모리에서 직접 수행되고 호스트의 MMU를 활용합니다. 비활성화하면 모든 메모리 접근에 소프트웨어 MMU 에뮬레이션을 사용하게 됩니다.</string>
+    <string name="dma_accuracy">DMA 수준</string>
+    <string name="dma_accuracy_description">DMA 정밀도를 제어합니다. 높은 정밀도는 일부 게임의 문제를 해결할 수 있지만 경우에 따라 성능에 영향을 미칠 수도 있습니다. 확실하지 않다면 기본값으로 두세요.</string>
 
     <string name="memory_4gb">4GB (권장)</string>
     <string name="memory_6gb">6GB (안전하지 않음)</string>
@@ -741,6 +745,50 @@
     <string name="loader_requires_firmware">게임에 펌웨어가 필요합니다</string>
     <string name="loader_requires_firmware_description"><![CDATA[실행하려는 게임은 부팅하거나 시작 메뉴를 통과하기 위해 펌웨어가 필요합니다. <a href="https://yuzu-mirror.github.io/help/quickstart">펌웨어를 덤프하여 설치</a>하거나 "확인"을 눌러 계속 진행하세요.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">게임 검색 중...</string>
+    <string name="game_not_found_for_title_id">타이틀 ID에 대한 게임을 찾을 수 없음: %1$s</string>
+    <string name="custom_settings_failed_title">사용자 지정 설정 실패</string>
+    <string name="custom_settings_failed_message">%1$s에 대한 사용자 지정 설정 적용 실패: %2$s</string>
+    <string name="launch_with_default_settings">기본 설정으로 실행</string>
+    <string name="launch_cancelled">실행 취소됨</string>
+    <string name="custom_settings_failure_reasons">요청한 설정을 적용할 수 없습니다. GPU 드라이버 누락 또는 구성 문제 때문일 수 있습니다.</string>
+    <string name="custom_settings_applied">사용자 지정 설정이 적용됨</string>
+    <string name="launching_game">%1$s 실행 중...</string>
+    <string name="failed_to_initialize_game">게임 초기화 실패</string>
+    <string name="custom_intent_launch_message_with_settings">%1$s을(를) 사용자 지정 설정으로 실행하시겠습니까?</string>
+    <string name="custom_intent_launch_message">%1$s을(를) 실행하시겠습니까?</string>
+    <string name="custom_intent_launch_title">게임 실행</string>
+    <string name="launch">실행</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">구성 파일 작성 실패</string>
+    <string name="config_apply_failed">구성 적용 실패</string>
+    <string name="config_already_exists_title">구성이 이미 존재함</string>
+    <string name="config_already_exists_message">%1$s에 대한 사용자 지정 설정이 이미 존재합니다.\n\n기존 구성을 덮어쓰시겠습니까?\n\n이 작업은 취소할 수 없습니다.</string>
+    <string name="config_exists_prompt">기존 구성 확인 중...</string>
+    <string name="overwrite_cancelled">덮어쓰기 취소됨</string>
+    <string name="checking_driver">사용자 지정 드라이버 확인 중: %1$s</string>
+    <string name="driver_unavailable">이 기기에서는 사용자 지정 드라이버를 사용할 수 없음</string>
+    <string name="overwrite">덮어쓰기</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">GPU 드라이버 누락</string>
+    <string name="missing_gpu_driver_message">선택한 사용자 지정 드라이버 \"%s\"이(가) 설치되지 않았습니다. 지금 다운로드하여 설치하시겠습니까?</string>
+    <string name="downloading_driver">드라이버 다운로드 중...</string>
+    <string name="driver_installed">드라이버가 성공적으로 설치됨</string>
+    <string name="driver_installation_failed_title">드라이버 설치 실패</string>
+    <string name="driver_installation_failed_message">GPU 드라이버 설치 실패: %s</string>
+    <string name="driver_not_available_title">드라이버를 사용할 수 없음</string>
+    <string name="driver_not_available_message">선택한 드라이버를 다운로드할 수 없습니다.</string>
+    <string name="driver_not_found">필요한 드라이버가 설치되지 않았습니다: %s</string>
+    <string name="invalid_driver_file">잘못된 드라이버 파일: %s</string>
+    <string name="network_unavailable">사용 가능한 네트워크 연결이 없습니다. 인터넷 연결을 확인하고 다시 시도하십시오.</string>
+    <string name="driver_missing_title">GPU 드라이버 필요</string>
+    <string name="driver_missing_message">게임 구성에 GPU 드라이버 \"%s\"이(가) 필요하지만 기기에 설치되어 있지 않습니다.\n\n지금 다운로드하여 설치하시겠습니까?</string>
+    <string name="driver_download_cancelled">드라이버 다운로드가 취소되었습니다. 필요한 드라이버 없이는 게임을 실행할 수 없습니다.</string>
+    <string name="download">다운로드</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">에뮬레이션 종료</string>
     <string name="emulation_done">완료</string>
@@ -809,6 +857,12 @@
     <string name="renderer_accuracy_normal">보통</string>
     <string name="renderer_accuracy_high">높음</string>
     <string name="renderer_accuracy_extreme">극한 (느림)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">기본값</string>
+    <string name="dma_accuracy_normal">보통</string>
+    <string name="dma_accuracy_high">높음</string>
+    <string name="dma_accuracy_extreme">극단적</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

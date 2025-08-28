@@ -84,7 +84,7 @@
     <string name="use_lru_cache">Povolit LRU mezipaměť</string>
     <string name="use_lru_cache_description">Povolte nebo zakažte mezipaměť LRU, čímž zvýšíte výkon snížením využití procesoru CPU. Některé hry s ní mají problémy, zejména TotK 1.2.1, takže ji deaktivujte, pokud hra neběží nebo náhodně padá.</string>
     <string name="dyna_state">Rozšířený dynamický stav</string>
-    <string name="dyna_state_description">Umožňuje funkce Vulkan pro zlepšení výkonu, vykreslování a úsporu zdrojů při vytváření pipeline při zachování nižšího využití CPU/GPU. Tato rozšíření mohou zvýšit teplotu zařízení a starší GPU řady A6XX nemusí správně reagovat. Vypněte pro emulaci měřítkových formátů.</string>
+    <string name="dyna_state_description">Ovládá počet funkcí, které lze použít v rozšířeném dynamickém stavu. Vyšší hodnoty umožňují více funkcí a mohou zvýšit výkon, ale mohou způsobit problémy s některými ovladači a výrobci. Výchozí hodnota se může lišit v závislosti na vašem systému a hardwarových schopnostech. Tuto hodnotu lze měnit, dokud nedosáhnete stability a lepší vizuální kvality.</string>
     <string name="disabled">Vypnuto</string>
     <string name="use_sync_core">Synchronizovat rychlost jádra</string>
     <string name="use_sync_core_description">Synchronizuje rychlost jádra s maximálním procentem rychlosti, aby se zlepšil výkon bez změny skutečné rychlosti hry.</string>
@@ -125,6 +125,10 @@
     <string name="cpu_ticks">Takty</string>
     <string name="skip_cpu_inner_invalidation">Přeskočit vnitřní invalidaci CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Přeskočí některé invalidace mezipaměti na straně CPU během aktualizací paměti, čímž sníží zatížení CPU a zlepší jeho výkon. Může způsobit chyby nebo pády v některých hrách.</string>
+    <string name="cpuopt_unsafe_host_mmu">Povolit emulaci hostitelské MMU</string>
+    <string name="cpuopt_unsafe_host_mmu_description">Tato optimalizace zrychluje přístup do paměti hostovaného programu. Její povolení způsobí, že čtení a zápisy do paměti hosta se provádějí přímo v paměti a využívají hostitelskou MMU. Zakázání této funkce vynutí použití softwarové emulace MMU pro všechny přístupy do paměti.</string>
+    <string name="dma_accuracy">Úroveň DMA</string>
+    <string name="dma_accuracy_description">Ovládá přesnost DMA. Vyšší přesnost může opravit problémy v některých hrách, ale může také ovlivnit výkon. Pokud si nejste jisti, ponechejte výchozí nastavení.</string>
 
     <string name="memory_4gb">4GB (Doporučeno)</string>
     <string name="memory_6gb">6GB (Nebezpečné)</string>
@@ -634,6 +638,50 @@
     <string name="loader_requires_firmware">Hra vyžaduje firmware</string>
     <string name="loader_requires_firmware_description"><![CDATA[Hra, kterou se pokoušíte spustit, vyžaduje firmware pro spuštění nebo pro překročení úvodní nabídky. Prosím <a href="https://yuzu-mirror.github.io/help/quickstart"> převezměte a nainstalujte firmware</a>, nebo stiskněte "OK" pro pokračování v každém případě.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Hledání hry...</string>
+    <string name="game_not_found_for_title_id">Hra nebyla nalezena pro ID titulu: %1$s</string>
+    <string name="custom_settings_failed_title">Vlastní nastavení selhalo</string>
+    <string name="custom_settings_failed_message">Nepodařilo se použít vlastní nastavení pro %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Spustit s výchozím nastavením</string>
+    <string name="launch_cancelled">Spuštění zrušeno</string>
+    <string name="custom_settings_failure_reasons">Nelze použít požadovaná nastavení. Důvodem může být chybějící ovladač GPU nebo problémy s konfigurací.</string>
+    <string name="custom_settings_applied">Vlastní nastavení použito</string>
+    <string name="launching_game">Spouštím %1$s...</string>
+    <string name="failed_to_initialize_game">Nepodařilo se inicializovat hru</string>
+    <string name="custom_intent_launch_message_with_settings">Chcete spustit %1$s s vlastním nastavením?</string>
+    <string name="custom_intent_launch_message">Chcete spustit %1$s?</string>
+    <string name="custom_intent_launch_title">Spustit hru</string>
+    <string name="launch">Spustit</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Nepodařilo se zapsat konfigurační soubor</string>
+    <string name="config_apply_failed">Nepodařilo se použít konfiguraci</string>
+    <string name="config_already_exists_title">Konfigurace již existuje</string>
+    <string name="config_already_exists_message">Vlastní nastavení již existuje pro %1$s.\n\nChcete přepsat stávající konfiguraci?\n\nTuto akci nelze vrátit zpět.</string>
+    <string name="config_exists_prompt">Kontrola existující konfigurace...</string>
+    <string name="overwrite_cancelled">Přepsání zrušeno</string>
+    <string name="checking_driver">Kontrola vlastního ovladače: %1$s</string>
+    <string name="driver_unavailable">Vlastní ovladač není pro toto zařízení k dispozici</string>
+    <string name="overwrite">Přepsat</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">Chybí ovladač GPU</string>
+    <string name="missing_gpu_driver_message">Vybraný vlastní ovladač \"%s\" není nainstalován. Chcete jej nyní stáhnout и nainstalovat?</string>
+    <string name="downloading_driver">Stahování ovladače...</string>
+    <string name="driver_installed">Ovladač byl úspěšně nainstalován</string>
+    <string name="driver_installation_failed_title">Instalace ovladače selhala</string>
+    <string name="driver_installation_failed_message">Nepodařilo se nainstalovat ovladač GPU: %s</string>
+    <string name="driver_not_available_title">Ovladač není k dispozici</string>
+    <string name="driver_not_available_message">Vybraný ovladač není k dispozici ke stažení.</string>
+    <string name="driver_not_found">Požadovaný ovladač není nainstalován: %s</string>
+    <string name="invalid_driver_file">Neplatný soubor ovladače: %s</string>
+    <string name="network_unavailable">Není dostupné síťové připojení. Zkontrolujte prosím připojení k internetu a zkuste to znovu.</string>
+    <string name="driver_missing_title">Vyžadován ovladač GPU</string>
+    <string name="driver_missing_message">Konfigurace hry vyžaduje ovladač GPU \"%s\", který není na vašem zařízení nainstalován.\n\nChcete jej nyní stáhnout a nainstalovat?</string>
+    <string name="driver_download_cancelled">Stahování ovladače bylo zrušeno. Hru nelze spustit bez požadovaného ovladače.</string>
+    <string name="download">Stáhnout</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">Ukončit emulaci</string>
     <string name="emulation_done">Hotovo</string>
@@ -683,6 +731,12 @@
     <string name="renderer_accuracy_normal">Normální</string>
     <string name="renderer_accuracy_high">Vysoká</string>
     <string name="renderer_accuracy_extreme">Extrémní (Pomalé)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">Výchozí</string>
+    <string name="dma_accuracy_normal">Normální</string>
+    <string name="dma_accuracy_high">Vysoká</string>
+    <string name="dma_accuracy_extreme">Extrémní</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

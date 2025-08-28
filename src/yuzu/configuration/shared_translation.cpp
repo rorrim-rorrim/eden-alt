@@ -118,6 +118,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
     // Cpu Debug
 
     // Cpu Unsafe
+    INSERT(Settings, cpuopt_unsafe_host_mmu, tr("Enable Host MMU Emulation (fastmem)"),
+           tr("This optimization speeds up memory accesses by the guest program.\nEnabling it causes guest memory reads/writes to be done directly into memory and make use of Host's MMU.\nDisabling this forces all memory accesses to use Software MMU Emulation."));
     INSERT(
         Settings,
         cpuopt_unsafe_unfuse_fma,
@@ -288,12 +290,16 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
               "and safe to set at 16x on most GPUs."));
     INSERT(Settings,
            gpu_accuracy,
-           tr("Accuracy Level:"),
-           tr("GPU emulation accuracy.\nMost games render fine with Normal, but High is still "
+           tr("GPU Level:"),
+           tr("Controls the GPU emulation accuracy.\nMost games render fine with Normal, but High is still "
               "required for some.\nParticles tend to only render correctly with High "
               "accuracy.\nExtreme should only be used for debugging.\nThis option can "
               "be changed while playing.\nSome games may require booting on high to render "
               "properly."));
+    INSERT(Settings,
+           dma_accuracy,
+           tr("DMA Level:"),
+           tr("Controls the DMA precision accuracy. Higher precision can fix issues in some games, but it can also impact performance in some cases.\nIf unsure, leave it at Default."));
     INSERT(Settings,
            use_asynchronous_shaders,
            tr("Use asynchronous shader building (Hack)"),
@@ -346,9 +352,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
     INSERT(Settings,
            dyna_state,
            tr("Extended Dynamic State"),
-           tr("Enables the VkExtendedDynamicState* extensions.\nHigher dynamic states will "
-              "generally improve "
-              "performance, but may cause issues on certain games or devices."));
+           tr("Controls the number of features that can be used in Extended Dynamic State.\nHigher numbers allow for more features and can increase performance, but may cause issues with some drivers and vendors.\nThe default value may vary depending on your system and hardware capabilities.\nThis value can be changed until stability and a better visual quality are achieved."));
 
     INSERT(Settings,
            provoking_vertex,
@@ -523,6 +527,13 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent)
                               PAIR(GpuAccuracy, Normal, tr("Normal")),
                               PAIR(GpuAccuracy, High, tr("High")),
                               PAIR(GpuAccuracy, Extreme, tr("Extreme")),
+                          }});
+    translations->insert({Settings::EnumMetadata<Settings::DmaAccuracy>::Index(),
+                          {
+                              PAIR(DmaAccuracy, Default, tr("Default")),
+                              PAIR(DmaAccuracy, Normal, tr("Normal")),
+                              PAIR(DmaAccuracy, High, tr("High")),
+                              PAIR(DmaAccuracy, Extreme, tr("Extreme")),
                           }});
     translations->insert(
         {Settings::EnumMetadata<Settings::CpuAccuracy>::Index(),

@@ -74,7 +74,7 @@
 
     <string name="veil_extensions">GPU Extensions</string>
     <string name="dyna_state">Extended Dynamic State</string>
-    <string name="dyna_state_description">Enables Vulkan features to improve performance, rendering, and save resources on pipeline creation while maintaining lower CPU/GPU usage. These extensions may increase device temperature, and GPUs belonging to the older A6XX line may not react properly. Disable to emulate scaled formats.</string>
+    <string name="dyna_state_description">Controls the number of features that can be used in Extended Dynamic State. Higher numbers allow for more features and can increase performance, but may cause issues with some drivers and vendors. The default value may vary depending on your system and hardware capabilities. This value can be changed until stability and a better visual quality are achieved.</string>
     <string name="disabled">Disabled</string>
     <string name="provoking_vertex">Provoking Vertex</string>
     <string name="provoking_vertex_description">Improves lighting and vertex handling in certain games. Only supported on Vulkan 1.0+ GPUs.</string>
@@ -109,10 +109,14 @@
     <string name="cpu_ticks">Ticks</string>
     <string name="skip_cpu_inner_invalidation">Skip CPU Inner Invalidation</string>
     <string name="skip_cpu_inner_invalidation_description">Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and improving it\'s performance. This may cause glitches or crashes on some games.</string>
+    <string name="cpuopt_unsafe_host_mmu">Enable Host MMU Emulation</string>
+    <string name="cpuopt_unsafe_host_mmu_description">This optimization speeds up memory accesses by the guest program. Enabling it causes guest memory reads/writes to be done directly into memory and make use of Host\'s MMU. Disabling this forces all memory accesses to use Software MMU Emulation.</string>
     <string name="fast_cpu_time">CPU Clock</string>
     <string name="fast_cpu_time_description">Use Boost (1700MHz) to run at the Switch\'s highest native clock, or Fast (2000MHz) to run at 2x clock.</string>
     <string name="memory_layout">Memory Layout</string>
     <string name="memory_layout_description">(EXPERIMENTAL) Change the emulated memory layout. This setting will not increase performance, but may help with games utilizing high resolutions via mods. Do not use on phones with 8GB of RAM or less. Only works on the Dynarmic (JIT) backend.</string>
+    <string name="dma_accuracy">DMA Level</string>
+    <string name="dma_accuracy_description">Controls the DMA precision accuracy. Higher precision can fix issues in some games, but it can also impact performance in some cases. If unsure, leave it at Default.</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">Shader Backend</string>
@@ -931,6 +935,12 @@
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">High</string>
     <string name="renderer_accuracy_extreme">Extreme (Slow)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">Default</string>
+    <string name="dma_accuracy_normal">Normal</string>
+    <string name="dma_accuracy_high">High</string>
+    <string name="dma_accuracy_extreme">Extreme</string>
 
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">ASTC Decoding Method</string>

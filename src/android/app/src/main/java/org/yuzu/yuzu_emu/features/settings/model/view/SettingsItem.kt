@@ -603,6 +603,15 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SingleChoiceSetting(
+                    IntSetting.DMA_ACCURACY,
+                    titleId = R.string.dma_accuracy,
+                    descriptionId = R.string.dma_accuracy_description,
+                    choicesId = R.array.dmaAccuracyNames,
+                    valuesId = R.array.dmaAccuracyValues
+                )
+            )
+            put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS,
                     titleId = R.string.renderer_asynchronous_shaders,
@@ -662,6 +671,13 @@ abstract class SettingsItem(
                     BooleanSetting.SKIP_CPU_INNER_INVALIDATION,
                     titleId = R.string.skip_cpu_inner_invalidation,
                     descriptionId = R.string.skip_cpu_inner_invalidation_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.CPUOPT_UNSAFE_HOST_MMU,
+                    titleId = R.string.cpuopt_unsafe_host_mmu,
+                    descriptionId = R.string.cpuopt_unsafe_host_mmu_description
                 )
             )
             put(
