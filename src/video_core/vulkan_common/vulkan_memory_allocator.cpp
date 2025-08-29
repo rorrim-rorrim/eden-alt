@@ -98,34 +98,47 @@ public:
     explicit MemoryAllocation(MemoryAllocator* const allocator_, vk::DeviceMemory memory_,
                               VkMemoryPropertyFlags properties, u64 allocation_size_, u32 type)
         : allocator{allocator_}, memory{std::move(memory_)}, allocation_size{allocation_size_},
-          property_flags{properties}, shifted_memory_type{1U << type} {}
+                  property_flags{properties}, shifted_memory_type{1U << type}
+    {
+        // create the virtual block
+        VmaVirtualBlockCreateInfo vbci{};
+        vbci.size = allocation_size;
+        vbci.flags = 0;
+        vk::Check(vmaCreateVirtualBlock(&vbci, &vblock));
+    }
+
+    ~MemoryAllocation() {
+        if (vblock) vmaDestroyVirtualBlock(vblock);
+        // vk::DeviceMemory releases itself via RAII
+    }
 
     MemoryAllocation& operator=(const MemoryAllocation&) = delete;
     MemoryAllocation(const MemoryAllocation&) = delete;
-
     MemoryAllocation& operator=(MemoryAllocation&&) = delete;
     MemoryAllocation(MemoryAllocation&&) = delete;
 
     [[nodiscard]] std::optional<MemoryCommit> Commit(VkDeviceSize size, VkDeviceSize alignment) {
-        const std::optional<u64> alloc = FindFreeRegion(size, alignment);
-        if (!alloc) {
-            // Signal out of memory, it'll try to do more allocations.
+        VmaVirtualAllocationCreateInfo aci{};
+        aci.size      = size;
+        aci.alignment = alignment;
+        aci.flags     = VMA_VIRTUAL_ALLOCATION_CREATE_STRATEGY_MIN_TIME_BIT;
+        VmaVirtualAllocation h{};
+        VkDeviceSize offset = 0;
+        if (vmaVirtualAllocate(vblock, &aci, &h, &offset) != VK_SUCCESS) {
             return std::nullopt;
         }
-        const Range range{
-            .begin = *alloc,
-            .end = *alloc + size,
-        };
-        commits.insert(std::ranges::upper_bound(commits, *alloc, {}, &Range::begin), range);
-        return std::make_optional<MemoryCommit>(this, *memory, *alloc, *alloc + size);
+        // Track the handle by its offset so our existing MemoryCommit interface can stay unchanged.
+        handles.emplace(offset, h);
+        return std::make_optional<MemoryCommit>(this, *memory, offset, offset + size);
     }
 
     void Free(u64 begin) {
-        const auto it = std::ranges::find(commits, begin, &Range::begin);
-        ASSERT_MSG(it != commits.end(), "Invalid commit");
-        commits.erase(it);
-        if (commits.empty()) {
-            // Do not call any code involving 'this' after this call, the object will be destroyed
+        const auto it = handles.find(begin);
+        ASSERT_MSG(it != handles.end(), "Invalid commit");
+        vmaVirtualFree(vblock, it->second);
+        handles.erase(it);
+        if (handles.empty()) {
+            // Do not touch 'this' after this call, it may delete us.
             allocator->ReleaseMemory(this);
         }
     }
@@ -138,48 +151,27 @@ public:
         return memory_mapped_span;
     }
 
-    /// Returns whether this allocation is compatible with the arguments.
     [[nodiscard]] bool IsCompatible(VkMemoryPropertyFlags flags, u32 type_mask) const {
         return (flags & property_flags) == flags && (type_mask & shifted_memory_type) != 0;
     }
 
-
-
-    [[nodiscard]] bool IsUnoccupied() const { return commits.empty(); }
+    [[nodiscard]] bool IsUnoccupied() const { return handles.empty(); }
     [[nodiscard]] u64 GetSize() const { return allocation_size; }
     [[nodiscard]] u32 GetMemoryType() const { return std::countr_zero(shifted_memory_type); }
+
 private:
-    [[nodiscard]] static constexpr u32 ShiftType(u32 type) {
-        return 1U << type;
-    }
+    static constexpr u32 ShiftType(u32 type) { return 1U << type; }
 
-    [[nodiscard]] std::optional<u64> FindFreeRegion(u64 size, u64 alignment) noexcept {
-        ASSERT(std::has_single_bit(alignment));
-        const u64 alignment_log2 = std::countr_zero(alignment);
-        std::optional<u64> candidate;
-        u64 iterator = 0;
-        auto commit = commits.begin();
-        while (iterator + size <= allocation_size) {
-            candidate = candidate.value_or(iterator);
-            if (commit == commits.end()) {
-                break;
-            }
-            if (commit->Contains(*candidate, size)) {
-                candidate = std::nullopt;
-            }
-            iterator = Common::AlignUpLog2(commit->end, alignment_log2);
-            ++commit;
-        }
-        return candidate;
-    }
+    MemoryAllocator* const allocator{};
+    vk::DeviceMemory memory{};
+    const u64 allocation_size{};
+    const VkMemoryPropertyFlags property_flags{};
+    const u32 shifted_memory_type{};
+    std::span<u8> memory_mapped_span{};
 
-    MemoryAllocator* const allocator;           ///< Parent memory allocation.
-    const vk::DeviceMemory memory;              ///< Vulkan memory allocation handler.
-    const u64 allocation_size;                  ///< Size of this allocation.
-    const VkMemoryPropertyFlags property_flags; ///< Vulkan memory property flags.
-    const u32 shifted_memory_type;              ///< Shifted Vulkan memory type.
-    std::vector<Range> commits;                 ///< All commit ranges done from this allocation.
-    std::span<u8> memory_mapped_span; ///< Memory mapped span. Empty if not queried before.
+    // the virtual block and per-suballoc handles
+    VmaVirtualBlock vblock{VK_NULL_HANDLE};
+    std::unordered_map<u64, VmaVirtualAllocation> handles;
 };
 
 MemoryCommit::MemoryCommit(MemoryAllocation* allocation_, VkDeviceMemory memory_, u64 begin_,
@@ -309,9 +301,10 @@ bool MemoryAllocator::TryReclaimVmaMemory(u32 heap_index, VkDeviceSize needed_si
 }
 
 void MemoryAllocator::FreeEmptyAllocations() {
+    //let VMA handle it
         std::vector<MemoryAllocation*> to_release;
         for (const auto& alloc : allocations) {
-            if (alloc->IsUnoccupied()) {  // Also fix the naming here
+            if (alloc->IsUnoccupied()) {
                 to_release.push_back(alloc.get());
             }
         }
