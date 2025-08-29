@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -117,7 +120,8 @@ public:
 private:
     /// Tries to allocate a chunk of memory.
     bool TryAllocMemory(VkMemoryPropertyFlags flags, u32 type_mask, u64 size);
-
+    bool TryReclaimVmaMemory(u32 heap_index, VkDeviceSize needed_size);
+    void FreeEmptyAllocations();
     /// Releases a chunk of memory.
     void ReleaseMemory(MemoryAllocation* alloc);
 
