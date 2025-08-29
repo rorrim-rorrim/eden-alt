@@ -15,6 +15,10 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     set(PLATFORM_LINUX ON)
 endif()
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(CXX_CLANG ON)
+endif()
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
 if (PLATFORM_SUN)
@@ -29,6 +33,19 @@ if (PLATFORM_SUN)
     endif()
 endif()
 
+# clang-cl prints literally 10000+ warnings without this
+if (MSVC AND CXX_CLANG)
+    add_compile_options(
+        -Wno-unused-command-line-argument
+        -Wno-unsafe-buffer-usage
+        -Wno-unused-value
+        -Wno-extra-semi-stmt
+        -Wno-sign-conversion
+        -Wno-reserved-identifier
+        -Wno-deprecated-declarations
+    )
+endif()
+
 set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
 
 include(DownloadExternals)
@@ -36,7 +53,7 @@ include(CMakeDependentOption)
 include(CTest)
 
 # Disable Warnings as Errors for MSVC
-if (MSVC)
+if (MSVC AND NOT CXX_CLANG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /WX-")
 endif()
 
@@ -274,7 +291,7 @@ if (YUZU_ROOM)
 endif()
 
 # Build/optimization presets
-if (PLATFORM_LINUX)
+if (PLATFORM_LINUX OR CXX_CLANG)
     if (ARCHITECTURE_x86_64)
         set(YUZU_BUILD_PRESET "custom" CACHE STRING "Build preset to use. One of: custom, generic, v3, zen2, zen4, native")
         if (${YUZU_BUILD_PRESET} STREQUAL "generic")
@@ -749,7 +766,7 @@ if (MSVC AND CMAKE_GENERATOR STREQUAL "Ninja")
 endif()
 
 # Adjustments for clang-cl
-if (MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if (MSVC AND CXX_CLANG)
     if (ARCHITECTURE_x86_64)
         set(FILE_ARCH x86_64)
     elseif (ARCHITECTURE_arm64)
@@ -763,7 +780,7 @@ if (MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 
     add_library(llvm-mingw-runtime STATIC IMPORTED)
     set_target_properties(llvm-mingw-runtime PROPERTIES
-        IMPORTED_LOCATION "${EXTRACTED_LIB}"
+        IMPORTED_LOCATION "${LIB_PATH}"
     )
 
     link_libraries(llvm-mingw-runtime)

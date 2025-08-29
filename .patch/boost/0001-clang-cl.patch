@@ -11,16 +11,3 @@ index d49f2ec..a9bdb80 100644
  };
  
  
-diff --git a/libs/context/CMakeLists.txt b/libs/context/CMakeLists.txt
-index 5870537..f8c3e61 100644
---- a/libs/context/CMakeLists.txt
-+++ b/libs/context/CMakeLists.txt
-@@ -189,7 +189,7 @@ if(BOOST_CONTEXT_IMPLEMENTATION STREQUAL "fcontext")
- 
-   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-     set_property(SOURCE ${ASM_SOURCES} APPEND PROPERTY COMPILE_OPTIONS "-x" "assembler-with-cpp")
--  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT MSVC)
-     set_property(SOURCE ${ASM_SOURCES} APPEND PROPERTY COMPILE_OPTIONS "-Wno-unused-command-line-argument")
-   endif()
- 

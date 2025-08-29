@@ -108,8 +108,8 @@
     },
     "boost_headers": {
         "repo": "boostorg/headers",
-        "sha": "0456900fad",
-        "hash": "50cd75dcdfc5f082225cdace058f47b4fb114a47585f7aee1d22236a910a80b667186254c214fa2fcebac67ae6d37ba4b6e695e1faea8affd6fd42a03cf996e3",
+        "sha": "95930ca8f5",
+        "hash": "d1dece16f3b209109de02123c537bfe1adf07a62b16c166367e7e5d62e0f7c323bf804c89b3192dd6871bc58a9d879d25a1cc3f7b9da0e497cf266f165816e2a",
         "bundled": true
     },
     "discord-rpc": {
