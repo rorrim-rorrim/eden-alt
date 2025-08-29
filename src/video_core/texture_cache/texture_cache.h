@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <unordered_set>
 #include <boost/container/small_vector.hpp>
+#include <ankerl/unordered_dense.h>
 
 #include "common/alignment.h"
 #include "common/settings.h"
@@ -2033,7 +2033,7 @@ void TextureCache<P>::UnregisterImage(ImageId image_id) {
     lru_cache.Free(image.lru_index);
     const auto& clear_page_table =
         [image_id](u64 page,
-                   std::unordered_map<u64, std::vector<ImageId>, Common::IdentityHash<u64>>&
+                   ankerl::unordered_dense::map<u64, std::vector<ImageId>, Common::IdentityHash<u64>>&
                        selected_page_table) {
             const auto page_it = selected_page_table.find(page);
             if (page_it == selected_page_table.end()) {
