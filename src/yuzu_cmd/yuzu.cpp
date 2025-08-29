@@ -62,10 +62,7 @@ __declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
 __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 #endif
-
-#ifdef __linux__
-#include "common/linux/gamemode.h"
-#endif
+#include "common/gamemode.h"
 
 static void PrintHelp(const char* argv0) {
     std::cout << "Usage: " << argv0
@@ -432,10 +429,7 @@ int main(int argc, char** argv) {
         // Just exit right away.
         exit(0);
     });
-
-#ifdef __linux__
-    Common::Linux::StartGamemode();
-#endif
+    Common::FeralGamemode::StartGamemode();
 
     void(system.Run());
     if (system.DebuggerEnabled()) {
@@ -447,11 +441,7 @@ int main(int argc, char** argv) {
     system.DetachDebugger();
     void(system.Pause());
     system.ShutdownMainProcess();
-
-#ifdef __linux__
-    Common::Linux::StopGamemode();
-#endif
-
+    Common::FeralGamemode::Stop();
     detached_tasks.WaitForAllTasks();
     return 0;
 }
