@@ -146,12 +146,20 @@ function(AddJsonPackage)
     get_json_element("${object}" url url "")
     get_json_element("${object}" key key "")
     get_json_element("${object}" tag tag "")
-    get_json_element("${object}" artifact artifact "")
+    get_json_element("${object}" raw_artifact artifact "")
     get_json_element("${object}" git_version git_version "")
     get_json_element("${object}" source_subdir source_subdir "")
     get_json_element("${object}" bundled bundled "unset")
     get_json_element("${object}" find_args find_args "")
     get_json_element("${object}" raw_patches patches "")
+
+    if (NOT git_version AND version)
+        set(git_version ${version})
+    endif()
+
+    if (raw_artifact)
+        string(REPLACE "%VERSION%" "${git_version}" artifact ${raw_artifact})
+    endif()
 
     # format patchdir
     if (raw_patches)

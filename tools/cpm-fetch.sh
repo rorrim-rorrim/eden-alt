@@ -59,7 +59,7 @@ download_package() {
   if grep -e "patches" <<< "$JSON" > /dev/null; then
     PATCHES=$(jq -r '.patches | join(" ")' <<< "$JSON")
     for patch in $PATCHES; do
-      patch -p1 < "$ROOTDIR"/.patch/$package/$patch
+      patch --binary -p1 < "$ROOTDIR"/.patch/$package/$patch
     done
   fi
 
@@ -130,6 +130,7 @@ do
 
     TAG=$(jq -r ".tag" <<< "$JSON")
     ARTIFACT=$(jq -r ".artifact" <<< "$JSON")
+    ARTIFACT=$(sed "s/%VERSION%/$VERSION/" <<< $ARTIFACT)
     BRANCH=$(jq -r ".branch" <<< "$JSON")
 
     if [ "$TAG" != "null" ]; then
