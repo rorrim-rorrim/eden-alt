@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -127,21 +130,6 @@ namespace Common {
                                       char h) {
     return u64(a) << 0 | u64(b) << 8 | u64(c) << 16 | u64(d) << 24 | u64(e) << 32 | u64(f) << 40 |
            u64(g) << 48 | u64(h) << 56;
-}
-
-// std::size() does not support zero-size C arrays. We're fixing that.
-template <class C>
-constexpr auto Size(const C& c) -> decltype(c.size()) {
-    return std::size(c);
-}
-
-template <class C>
-constexpr std::size_t Size(const C& c) {
-    if constexpr (sizeof(C) == 0) {
-        return 0;
-    } else {
-        return std::size(c);
-    }
 }
 
 } // namespace Common
