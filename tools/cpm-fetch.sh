@@ -118,19 +118,25 @@ do
     continue
   fi
 
+  VERSION=$(jq -r ".version" <<< "$JSON")
+  GIT_VERSION=$(jq -r ".git_version" <<< "$JSON")
+  TAG=$(jq -r ".tag" <<< "$JSON")
+  SHA=$(jq -r ".sha" <<< "$JSON")
+
+  [ "$GIT_VERSION" == null ] && GIT_VERSION="$VERSION"
+  [ "$GIT_VERSION" == null ] && GIT_VERSION="$TAG"
+
   # url parsing WOOOHOOHOHOOHOHOH
   URL=$(jq -r ".url" <<< "$JSON")
   REPO=$(jq -r ".repo" <<< "$JSON")
-  SHA=$(jq -r ".sha" <<< "$JSON")
 
   if [ "$URL" != "null" ]; then
     DOWNLOAD="$URL"
   elif [ "$REPO" != "null" ]; then
     GIT_URL="https://github.com/$REPO"
 
-    TAG=$(jq -r ".tag" <<< "$JSON")
     ARTIFACT=$(jq -r ".artifact" <<< "$JSON")
-    ARTIFACT=$(sed "s/%VERSION%/$VERSION/" <<< $ARTIFACT)
+    ARTIFACT=$(sed "s/%VERSION%/$GIT_VERSION/" <<< $ARTIFACT)
     BRANCH=$(jq -r ".branch" <<< "$JSON")
 
     if [ "$TAG" != "null" ]; then
@@ -156,16 +162,11 @@ do
   # key parsing
   KEY=$(jq -r ".key" <<< "$JSON")
 
-  if [ "$KEY" == null ]; then
-    VERSION=$(jq -r ".version" <<< "$JSON")
-    GIT_VERSION=$(jq -r ".git_version" <<< "$JSON")
-    
+  if [ "$KEY" == null ]; then    
     if [ "$SHA" != null ]; then
       KEY=$(cut -c1-4 - <<< "$SHA")
     elif [ "$GIT_VERSION" != null ]; then
       KEY="$GIT_VERSION"
-    elif [ "$VERSION" != null ]; then
-      KEY="$VERSION"
     else
       echo "No valid key could be determined for $package. Must define one of: key, sha, version, git_version"
       continue

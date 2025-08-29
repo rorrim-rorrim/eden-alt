@@ -157,6 +157,10 @@ function(AddJsonPackage)
         set(git_version ${version})
     endif()
 
+    if (NOT git_version AND tag)
+        set(git_version ${tag})
+    endif()
+
     if (raw_artifact)
         string(REPLACE "%VERSION%" "${git_version}" artifact ${raw_artifact})
     endif()
