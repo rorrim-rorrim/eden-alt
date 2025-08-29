@@ -10,10 +10,10 @@
     "boost": {
         "package": "Boost",
         "repo": "boostorg/boost",
-        "tag": "boost-1.88.0",
+        "tag": "boost-1.89.0",
         "artifact": "boost-%VERSION%-cmake.7z",
-        "hash": "e5b049e5b61964480ca816395f63f95621e66cb9bcf616a8b10e441e0e69f129e22443acb11e77bc1e8170f8e4171b9b7719891efc43699782bfcd4b3a365f01",
-        "git_version": "1.88.0",
+        "hash": "ed930a99497b23900f1673f590928e7c01a0eff01d7fde84e3198ea68bb6cb420eef3f204cf2dbdf603eb9d3b84ff9c02bb47f57f3c209e3c2c22f55dba1e7a5",
+        "git_version": "1.89.0",
         "version": "1.57",
         "patches": [
             "0001-clang-cl.patch"
@@ -106,8 +106,8 @@
     },
     "boost_headers": {
         "repo": "boostorg/headers",
-        "sha": "0456900fad",
-        "hash": "50cd75dcdfc5f082225cdace058f47b4fb114a47585f7aee1d22236a910a80b667186254c214fa2fcebac67ae6d37ba4b6e695e1faea8affd6fd42a03cf996e3",
+        "sha": "95930ca8f5",
+        "hash": "d1dece16f3b209109de02123c537bfe1adf07a62b16c166367e7e5d62e0f7c323bf804c89b3192dd6871bc58a9d879d25a1cc3f7b9da0e497cf266f165816e2a",
         "bundled": true
     },
     "discord-rpc": {

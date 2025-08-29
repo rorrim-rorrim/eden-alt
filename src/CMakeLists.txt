@@ -69,10 +69,6 @@ if (MSVC)
         /external:anglebrackets # Treats all headers included by #include <header>, where the header file is enclosed in angle brackets (< >), as external headers
         /external:W0            # Sets the default warning level to 0 for external headers, effectively disabling warnings for them.
 
-        # Warnings
-        /W4
-        /WX-
-
         /we4062 # Enumerator 'identifier' in a switch of enum 'enumeration' is not handled
         /we4189 # 'identifier': local variable is initialized but not referenced
         /we4265 # 'class': class has virtual functions, but destructor is not virtual
@@ -96,6 +92,14 @@ if (MSVC)
         /wd4201 # nonstandard extension used : nameless struct/union
         /wd4702 # unreachable code (when used with LTO)
     )
+
+    if (NOT CXX_CLANG)
+        add_compile_options(
+            # Warnings
+            /W4
+            /WX-
+        )
+    endif()
 
     if (USE_CCACHE OR YUZU_USE_PRECOMPILED_HEADERS)
         # when caching, we need to use /Z7 to downgrade debug info to use an older but more cacheable format
