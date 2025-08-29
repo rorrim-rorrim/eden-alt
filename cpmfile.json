@@ -11,12 +11,14 @@
         "package": "Boost",
         "repo": "boostorg/boost",
         "tag": "boost-%VERSION%",
-        "artifact": "%TAG%-cmake.7z",
-        "hash": "e5b049e5b61964480ca816395f63f95621e66cb9bcf616a8b10e441e0e69f129e22443acb11e77bc1e8170f8e4171b9b7719891efc43699782bfcd4b3a365f01",
-        "git_version": "1.88.0",
+        "artifact": "%TAG%-cmake.tar.xz",
+        "hash": "4fb7f6fde92762305aad8754d7643cd918dd1f3f67e104e9ab385b18c73178d72a17321354eb203b790b6702f2cf6d725a5d6e2dfbc63b1e35f9eb59fb42ece9",
+        "git_version": "1.89.0",
         "version": "1.57",
         "patches": [
-            "0001-clang-cl.patch"
+            "0001-clang-cl.patch",
+            "0002-use-marmasm.patch",
+            "0003-armasm-options.patch"
         ]
     },
     "fmt": {
@@ -146,5 +148,12 @@
         "version": "2.32.8",
         "min_version": "2.26.4",
         "cmake_filename": "sdl2"
+    },
+    "llvm-mingw": {
+        "repo": "crueter/llvm-mingw",
+        "tag": "20250828",
+        "version": "20250828",
+        "artifact": "clang-rt-builtins.tar.zst",
+        "hash": "d902392caf94e84f223766e2cc51ca5fab6cae36ab8dc6ef9ef6a683ab1c483bfcfe291ef0bd38ab16a4ecc4078344fa8af72da2f225ab4c378dee23f6186181"
     }
 }

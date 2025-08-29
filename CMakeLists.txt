@@ -748,46 +748,24 @@ if (MSVC AND CMAKE_GENERATOR STREQUAL "Ninja")
     )
 endif()
 
-# Adjustments for Clang-cl
-if (MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND ARCHITECTURE STREQUAL "x86_64")
-    set(LLVM_MINGW_VERSION 20250402)
-    # Set download URL and library path within the ZIP
-    set(ZIP_URL "https://github.com/mstorsjo/llvm-mingw/releases/download/${LLVM_MINGW_VERSION}/llvm-mingw-${LLVM_MINGW_VERSION}-ucrt-x86_64.zip")
-    set(LIB_PATH "llvm-mingw-${LLVM_MINGW_VERSION}-ucrt-x86_64/lib/clang/20/lib/windows/libclang_rt.builtins-x86_64.a")
-    # Set paths for download and extraction
-    set(DOWNLOAD_DIR "${CMAKE_BINARY_DIR}/llvm-mingw-download")
-    set(ZIP_FILE "${DOWNLOAD_DIR}/llvm-mingw.zip")
-    set(EXTRACTED_LIB "${DOWNLOAD_DIR}/${LIB_PATH}")
-    # Create download directory if it doesn't exist
-    file(MAKE_DIRECTORY "${DOWNLOAD_DIR}")
-    # Download and extract if the library doesn't exist
-    if(NOT EXISTS "${EXTRACTED_LIB}")
-        message(STATUS "Downloading llvm-mingw runtime libraries...")
-        # Download the ZIP file
-        file(DOWNLOAD
-            ${ZIP_URL}
-            ${ZIP_FILE}
-            SHOW_PROGRESS
-            # Uncomment and add EXPECTED_HASH if you know the SHA256 checksum
-            EXPECTED_HASH SHA256=4edc13d878b4ec49c2f1a6e9161abb093bbaefc8b7d129f3b3f57a22a4a41d38
-        )
-        message(STATUS "Extracting compiler-rt builtins library...")
-        # Extract the specific file from the ZIP
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} -E tar xvf "${ZIP_FILE}" "${LIB_PATH}"
-            WORKING_DIRECTORY "${DOWNLOAD_DIR}"
-            RESULT_VARIABLE extraction_result
-        )
-        if(NOT extraction_result EQUAL 0)
-            message(FATAL_ERROR "Failed to extract library: ${extraction_result}")
-        endif()
+# Adjustments for clang-cl
+if (MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    if (ARCHITECTURE_x86_64)
+        set(FILE_ARCH x86_64)
+    elseif (ARCHITECTURE_arm64)
+        set(FILE_ARCH aarch64)
+    else()
+        message(FATAL_ERROR "clang-cl: Unsupported architecture ${ARCHITECTURE}")
     endif()
-    # Create imported target for the library
+
+    AddJsonPackage(llvm-mingw)
+    set(LIB_PATH "${llvm-mingw_SOURCE_DIR}/libclang_rt.builtins-${FILE_ARCH}.a")
+
     add_library(llvm-mingw-runtime STATIC IMPORTED)
     set_target_properties(llvm-mingw-runtime PROPERTIES
         IMPORTED_LOCATION "${EXTRACTED_LIB}"
     )
-    # Link the library to all executables in the project
+
     link_libraries(llvm-mingw-runtime)
 endif()
 

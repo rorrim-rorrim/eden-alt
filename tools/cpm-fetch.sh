@@ -59,7 +59,7 @@ download_package() {
   if grep -e "patches" <<< "$JSON" > /dev/null; then
     PATCHES=$(jq -r '.patches | join(" ")' <<< "$JSON")
     for patch in $PATCHES; do
-      patch -p1 < "$ROOTDIR"/.patch/$package/$patch
+      patch --binary -p1 < "$ROOTDIR"/.patch/$package/$patch
     done
   fi
 
@@ -173,7 +173,7 @@ do
   # key parsing
   KEY=$(jq -r ".key" <<< "$JSON")
 
-  if [ "$KEY" == null ]; then    
+  if [ "$KEY" == null ]; then
     if [ "$SHA" != null ]; then
       KEY=$(cut -c1-4 - <<< "$SHA")
     elif [ "$GIT_VERSION" != null ]; then
