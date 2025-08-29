@@ -16,6 +16,7 @@
 #include <unordered_set>
 #include <vector>
 #include <boost/container/small_vector.hpp>
+#include <ankerl/unordered_dense.h>
 #include <queue>
 
 #include "common/common_types.h"
@@ -66,7 +67,7 @@ struct AsyncDecodeContext {
     std::atomic_bool complete;
 };
 
-using TextureCacheGPUMap = std::unordered_map<u64, std::vector<ImageId>, Common::IdentityHash<u64>>;
+using TextureCacheGPUMap = ankerl::unordered_dense::map<u64, std::vector<ImageId>, Common::IdentityHash<u64>>;
 
 class TextureCacheChannelInfo : public ChannelInfo {
 public:
@@ -85,8 +86,8 @@ public:
     std::vector<SamplerId> compute_sampler_ids;
     std::vector<ImageViewId> compute_image_view_ids;
 
-    std::unordered_map<TICEntry, ImageViewId> image_views;
-    std::unordered_map<TSCEntry, SamplerId> samplers;
+    ankerl::unordered_dense::map<TICEntry, ImageViewId> image_views;
+    ankerl::unordered_dense::map<TSCEntry, SamplerId> samplers;
 
     TextureCacheGPUMap* gpu_page_table;
     TextureCacheGPUMap* sparse_page_table;
