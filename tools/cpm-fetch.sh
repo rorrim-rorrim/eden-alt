@@ -118,6 +118,14 @@ do
     continue
   fi
 
+  VERSION=$(jq -r ".version" <<< "$JSON")
+  GIT_VERSION=$(jq -r ".git_version" <<< "$JSON")
+  TAG=$(jq -r ".tag" <<< "$JSON")
+  SHA=$(jq -r ".sha" <<< "$JSON")
+
+  [ "$GIT_VERSION" == null ] && GIT_VERSION="$VERSION"
+  [ "$GIT_VERSION" == null ] && GIT_VERSION="$TAG"
+
   # url parsing WOOOHOOHOHOOHOHOH
   URL=$(jq -r ".url" <<< "$JSON")
   REPO=$(jq -r ".repo" <<< "$JSON")
