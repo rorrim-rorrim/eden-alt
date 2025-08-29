@@ -164,9 +164,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 
 #endif
 
-#ifdef __linux__
 #include "common/linux/gamemode.h"
-#endif
 
 #ifdef _WIN32
 #include "core/core_timing.h"
@@ -423,9 +421,7 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     SetupSigInterrupts();
 #endif
 
-#ifdef __linux__
     SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
-#endif
 
     UISettings::RestoreWindowState(config);
 
@@ -2198,10 +2194,7 @@ void MainWindow::OnEmulationStopped() {
     emulation_running = false;
 
     discord_rpc->Update();
-
-#ifdef __linux__
     Common::Linux::StopGamemode();
-#endif
 
     // The emulation is stopped, so closing the window or not does not matter anymore
     disconnect(render_window, &GRenderWindow::Closed, this, &MainWindow::OnStopGame);
@@ -3072,10 +3065,7 @@ void MainWindow::OnStartGame() {
     play_time_manager->Start();
 
     discord_rpc->Update();
-
-#ifdef __linux__
     Common::Linux::StartGamemode();
-#endif
 }
 
 void MainWindow::OnRestartGame() {
@@ -3449,11 +3439,9 @@ void MainWindow::OnConfigure() {
     if (UISettings::values.enable_discord_presence.GetValue() != old_discord_presence) {
         SetDiscordEnabled(UISettings::values.enable_discord_presence.GetValue());
     }
-#ifdef __linux__
     if (Settings::values.enable_gamemode.GetValue() != old_gamemode) {
         SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
     }
-#endif
 #ifdef __unix__
     if (Settings::values.gui_force_x11.GetValue() != old_force_x11) {
         GraphicsBackend::SetForceX11(Settings::values.gui_force_x11.GetValue());
@@ -4760,13 +4748,11 @@ void MainWindow::SetDiscordEnabled([[maybe_unused]] bool state) {
     discord_rpc->Update();
 }
 
-#ifdef __linux__
 void MainWindow::SetGamemodeEnabled(bool state) {
     if (emulation_running) {
         Common::Linux::SetGamemodeState(state);
     }
 }
-#endif
 
 void MainWindow::changeEvent(QEvent* event) {
 #ifdef __unix__
