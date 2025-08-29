@@ -476,7 +476,7 @@ else()
         find_package(Catch2 3.0.1 REQUIRED)
     endif()
 
-    if (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID)
+    if (PLATFORM_LINUX OR ANDROID)
         find_package(gamemode 1.7 MODULE)
     endif()
 
