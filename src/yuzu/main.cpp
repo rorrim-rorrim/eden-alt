@@ -27,9 +27,7 @@
 #include <sys/socket.h>
 #include "qt_common/gui_settings.h"
 #endif
-#ifdef __linux__
-#include "common/linux/gamemode.h"
-#endif
+#include "common/gamemode.h"
 
 #include <boost/container/flat_set.hpp>
 
@@ -2282,9 +2280,7 @@ void GMainWindow::OnEmulationStopped() {
 
     discord_rpc->Update();
 
-#ifdef __linux__
-    Common::Linux::StopGamemode();
-#endif
+    Common::FeralGamemode::Stop();
 
     // The emulation is stopped, so closing the window or not does not matter anymore
     disconnect(render_window, &GRenderWindow::Closed, this, &GMainWindow::OnStopGame);
@@ -3191,10 +3187,7 @@ void GMainWindow::OnStartGame() {
     play_time_manager->Start();
 
     discord_rpc->Update();
-
-#ifdef __linux__
-    Common::Linux::StartGamemode();
-#endif
+    Common::FeralGamemode::StartGamemode();
 }
 
 void GMainWindow::OnRestartGame() {
@@ -3215,10 +3208,7 @@ void GMainWindow::OnPauseGame() {
     play_time_manager->Stop();
     UpdateMenuState();
     AllowOSSleep();
-
-#ifdef __linux__
-    Common::Linux::StopGamemode();
-#endif
+    Common::FeralGamemode::Stop();
 }
 
 void GMainWindow::OnPauseContinueGame() {
