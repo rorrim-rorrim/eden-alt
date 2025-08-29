@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -57,15 +60,15 @@ constexpr bool IsInvalidCharacterImpl(char c) {
 } // namespace impl
 
 constexpr bool IsInvalidCharacter(char c) {
-    return impl::IsInvalidCharacterImpl<InvalidCharacters, Common::Size(InvalidCharacters)>(c);
+    return impl::IsInvalidCharacterImpl<InvalidCharacters, std::size(InvalidCharacters)>(c);
 }
 constexpr bool IsInvalidCharacterForHostName(char c) {
     return impl::IsInvalidCharacterImpl<InvalidCharactersForHostName,
-                                        Common::Size(InvalidCharactersForHostName)>(c);
+                                        std::size(InvalidCharactersForHostName)>(c);
 }
 constexpr bool IsInvalidCharacterForMountName(char c) {
     return impl::IsInvalidCharacterImpl<InvalidCharactersForMountName,
-                                        Common::Size(InvalidCharactersForMountName)>(c);
+                                        std::size(InvalidCharactersForMountName)>(c);
 }
 
 } // namespace StringTraits
