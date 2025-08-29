@@ -132,7 +132,6 @@ void nvhost_gpu::OnOpen(NvCore::SessionId session_id, DeviceFD fd) {
 
 void nvhost_gpu::OnClose(DeviceFD fd) {
     sessions.erase(fd);
-    std::scoped_lock lk(channel_mutex);
 }
 
 NvResult nvhost_gpu::SetNVMAPfd(IoctlSetNvmapFD& params) {
@@ -252,7 +251,7 @@ NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
         params.flags = allowed_mask;
     }
 
-    u32_le ctx_class_number_index = 
+    s32_le ctx_class_number_index = 
         GetObjectContextClassNumberIndex(static_cast<CtxClasses>(params.class_num));
     if (ctx_class_number_index < 0) {
         LOG_ERROR(Service_NVDRV, "Invalid class number for object context: {:#X}",
@@ -267,6 +266,8 @@ NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
     }
 
     ctxObjs[ctx_class_number_index] = params;
+
+    return NvResult::Success;
 }
 
 static boost::container::small_vector<Tegra::CommandHeader, 512> BuildWaitCommandList(
