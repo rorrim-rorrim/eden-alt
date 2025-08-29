@@ -65,6 +65,8 @@ add_library(
   fs/fs_util.h
   fs/path_util.cpp
   fs/path_util.h
+  gamemode.cpp
+  gamemode.h
   hash.h
   heap_tracker.cpp
   heap_tracker.h
@@ -181,11 +183,7 @@ if(ANDROID)
            android/applets/software_keyboard.h)
 endif()
 
-if(LINUX AND NOT APPLE)
-  target_sources(common PRIVATE linux/gamemode.cpp linux/gamemode.h)
-
-  target_link_libraries(common PRIVATE gamemode::headers)
-endif()
+target_link_libraries(common PRIVATE gamemode::headers)
 
 if(ARCHITECTURE_x86_64)
   target_sources(
