@@ -105,6 +105,6 @@ private:
     const u64& m_pc;
 };
 
-std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, mcontext_t* context);
+std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, void* raw_context);
 
 } // namespace Core

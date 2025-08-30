@@ -23,11 +23,6 @@
 #define GuestContextSp 0xF8
 #define GuestContextHostContext 0x320
 
-#define HostContextSpTpidrEl0 0xE0
-#define HostContextTpidrEl0 0xE8
-#define HostContextRegs 0x0
-#define HostContextVregs 0x60
-
 #define TpidrEl0NativeContext 0x10
 #define TpidrEl0Lock 0x18
 #define TpidrEl0TlsMagic 0x20
@@ -35,3 +30,8 @@
 
 #define SpinLockLocked 0
 #define SpinLockUnlocked 1
+
+#define HostContextSpTpidrEl0 0xE0
+#define HostContextTpidrEl0 0xE8
+#define HostContextRegs 0x0
+#define HostContextVregs 0x60
