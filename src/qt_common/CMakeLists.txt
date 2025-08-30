@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 find_package(Qt6 REQUIRED COMPONENTS Core)
-find_package(Qt6 REQUIRED COMPONENTS Core)
 
 add_library(qt_common STATIC
     qt_common.h
@@ -25,9 +24,13 @@ add_library(qt_common STATIC
 )
 
 create_target_directory_groups(qt_common)
-target_link_libraries(qt_common PUBLIC core Qt6::Widgets SimpleIni::SimpleIni QuaZip::QuaZip)
-target_link_libraries(qt_common PRIVATE Qt6::Core)
-target_link_libraries(qt_common PRIVATE Qt6::Core)
+
+# TODO(crueter)
+if (ENABLE_QT)
+    target_link_libraries(qt_common PRIVATE Qt6::Widgets)
+endif()
+
+target_link_libraries(qt_common PUBLIC core Qt6::Core SimpleIni::SimpleIni QuaZip::QuaZip)
 
 if (NOT WIN32)
     target_include_directories(qt_common PRIVATE ${Qt6Gui_PRIVATE_INCLUDE_DIRS})
