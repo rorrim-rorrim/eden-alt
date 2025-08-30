@@ -17,16 +17,52 @@
 namespace QtCommon::Frontend {
 Q_NAMESPACE
 
+// TODO(crueter) widgets-less impl, choices et al.
 QMessageBox::StandardButton ShowMessage(QMessageBox::Icon icon,
                                         const QString &title,
                                         const QString &text,
                                         QMessageBox::StandardButtons buttons = QMessageBox::NoButton,
-                                        QWidget *parent = nullptr);
+                                        QObject *parent = nullptr);
 
-QMessageBox::StandardButton ShowMessage(QMessageBox::Icon icon,
+QMessageBox::StandardButton Information(QObject *parent,
+                                        const QString &title,
+                                        const QString &text,
+                                        QMessageBox::StandardButtons buttons = QMessageBox::Ok);
+
+QMessageBox::StandardButton Warning(QObject *parent,
+                                    const QString &title,
+                                    const QString &text,
+                                    QMessageBox::StandardButtons buttons = QMessageBox::Ok);
+
+QMessageBox::StandardButton Critical(QObject *parent,
+                                     const QString &title,
+                                     const QString &text,
+                                     QMessageBox::StandardButtons buttons = QMessageBox::Ok);
+
+QMessageBox::StandardButton Question(QObject *parent,
+                                     const QString &title,
+                                     const QString &text,
+                                     QMessageBox::StandardButtons buttons = QMessageBox::Ok);
+
+QMessageBox::StandardButton Information(QObject *parent,
                                         const char *title,
                                         const char *text,
-                                        QMessageBox::StandardButtons buttons = QMessageBox::NoButton,
-                                        QWidget *parent = nullptr);
+                                        QMessageBox::StandardButtons buttons = QMessageBox::Ok);
+
+QMessageBox::StandardButton Warning(QObject *parent,
+                                    const char *title,
+                                    const char *text,
+                                    QMessageBox::StandardButtons buttons = QMessageBox::Ok);
+
+QMessageBox::StandardButton Critical(QObject *parent,
+                                     const char *title,
+                                     const char *text,
+                                     QMessageBox::StandardButtons buttons = QMessageBox::Ok);
+
+QMessageBox::StandardButton Question(QObject *parent,
+                                     const char *title,
+                                     const char *text,
+                                     QMessageBox::StandardButtons buttons = QMessageBox::Ok);
+
 } // namespace QtCommon::Frontend
 #endif // QT_FRONTEND_UTIL_H

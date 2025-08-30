@@ -4,23 +4,25 @@
 #ifndef QT_GAME_UTIL_H
 #define QT_GAME_UTIL_H
 
+#include <QObject>
 #include "common/fs/path_util.h"
-#include "frontend_common/content_manager.h"
-#include <array>
+#include <core/file_sys/vfs/vfs.h>
 
-namespace QtCommon {
+namespace QtCommon::Game {
 
-static constexpr std::array<const char *, 3> GAME_VERIFICATION_RESULTS = {
-    "The operation completed successfully.",
-    "File contents may be corrupt or missing..",
-    "Firmware installation cancelled, firmware may be in a bad state or corrupted. "
-    "File contents could not be checked for validity."
+enum class InstalledEntryType {
+    Game,
+    Update,
+    AddOnContent,
 };
 
-inline constexpr const char *GetGameVerificationResultString(ContentManager::GameVerificationResult result)
-{
-    return GAME_VERIFICATION_RESULTS.at(static_cast<std::size_t>(result));
-}
+enum class GameListRemoveTarget {
+    GlShaderCache,
+    VkShaderCache,
+    AllShaderCache,
+    CustomConfiguration,
+    CacheStorage,
+};
 
 bool CreateShortcutLink(const std::filesystem::path& shortcut_path,
                         const std::string& comment,
@@ -41,6 +43,20 @@ void OpenNANDFolder();
 void OpenSDMCFolder();
 void OpenModFolder();
 void OpenLogFolder();
+
+void RemoveBaseContent(u64 program_id, InstalledEntryType type);
+void RemoveUpdateContent(u64 program_id, InstalledEntryType type);
+void RemoveAddOnContent(u64 program_id, InstalledEntryType type);
+
+void RemoveTransferableShaderCache(u64 program_id, GameListRemoveTarget target);
+void RemoveVulkanDriverPipelineCache(u64 program_id);
+void RemoveAllTransferableShaderCaches(u64 program_id);
+void RemoveCustomConfiguration(u64 program_id, const std::string& game_path);
+void RemoveCacheStorage(u64 program_id, FileSys::VfsFilesystem* vfs);
+
+// Metadata //
+void ResetMetadata();
+
 }
 
 #endif // QT_GAME_UTIL_H

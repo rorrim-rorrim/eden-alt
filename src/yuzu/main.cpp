@@ -14,6 +14,8 @@
 #include "qt_common/qt_common.h"
 #include "qt_common/qt_game_util.h"
 #include "qt_common/qt_path_util.h"
+#include "qt_common/qt_meta.h"
+#include "qt_common/qt_content_util.h"
 
 #ifdef __APPLE__
 #include <unistd.h> // for chdir
@@ -299,14 +301,6 @@ enum class CalloutFlag : uint32_t {
     DRDDeprecation = 0x2,
 };
 
-/**
- * Some games perform worse or straight-up don't work with updates,
- * so this tracks which games are bad in this regard.
- */
-constexpr std::array<u64, 1> bad_update_games{
-    0x0100F2C0115B6000 // Tears of the Kingdom
-};
-
 const int GMainWindow::max_recent_files_item;
 
 static void RemoveCachedContents() {
@@ -389,6 +383,7 @@ static void OverrideWindowsFont() {
 #endif
 
 #ifndef _WIN32
+// TODO(crueter): carboxyl does this, is it needed in qml?
 inline static bool isDarkMode() {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     const auto scheme = QGuiApplication::styleHints()->colorScheme();
@@ -407,6 +402,9 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
       input_subsystem{std::make_shared<InputCommon::InputSubsystem>()}, user_data_migrator{this},
       vfs{std::make_shared<FileSys::RealVfsFilesystem>()},
       provider{std::make_unique<FileSys::ManualContentProvider>()} {
+    QtCommon::SetSystem(system.get());
+    QtCommon::SetRootObject(this);
+
     Common::FS::CreateEdenPaths();
     this->config = std::make_unique<QtConfig>();
 
@@ -463,7 +461,7 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
 
     Network::Init();
 
-    RegisterMetaTypes();
+    QtCommon::Meta::RegisterMetaTypes();
 
     InitializeWidgets();
     InitializeDebugWidgets();
@@ -732,65 +730,6 @@ GMainWindow::~GMainWindow() {
     ::close(sig_interrupt_fds[0]);
     ::close(sig_interrupt_fds[1]);
 #endif
-}
-
-void GMainWindow::RegisterMetaTypes() {
-    // Register integral and floating point types
-    qRegisterMetaType<u8>("u8");
-    qRegisterMetaType<u16>("u16");
-    qRegisterMetaType<u32>("u32");
-    qRegisterMetaType<u64>("u64");
-    qRegisterMetaType<u128>("u128");
-    qRegisterMetaType<s8>("s8");
-    qRegisterMetaType<s16>("s16");
-    qRegisterMetaType<s32>("s32");
-    qRegisterMetaType<s64>("s64");
-    qRegisterMetaType<f32>("f32");
-    qRegisterMetaType<f64>("f64");
-
-    // Register string types
-    qRegisterMetaType<std::string>("std::string");
-    qRegisterMetaType<std::wstring>("std::wstring");
-    qRegisterMetaType<std::u8string>("std::u8string");
-    qRegisterMetaType<std::u16string>("std::u16string");
-    qRegisterMetaType<std::u32string>("std::u32string");
-    qRegisterMetaType<std::string_view>("std::string_view");
-    qRegisterMetaType<std::wstring_view>("std::wstring_view");
-    qRegisterMetaType<std::u8string_view>("std::u8string_view");
-    qRegisterMetaType<std::u16string_view>("std::u16string_view");
-    qRegisterMetaType<std::u32string_view>("std::u32string_view");
-
-    // Register applet types
-
-    // Cabinet Applet
-    qRegisterMetaType<Core::Frontend::CabinetParameters>("Core::Frontend::CabinetParameters");
-    qRegisterMetaType<std::shared_ptr<Service::NFC::NfcDevice>>(
-        "std::shared_ptr<Service::NFC::NfcDevice>");
-
-    // Controller Applet
-    qRegisterMetaType<Core::Frontend::ControllerParameters>("Core::Frontend::ControllerParameters");
-
-    // Profile Select Applet
-    qRegisterMetaType<Core::Frontend::ProfileSelectParameters>(
-        "Core::Frontend::ProfileSelectParameters");
-
-    // Software Keyboard Applet
-    qRegisterMetaType<Core::Frontend::KeyboardInitializeParameters>(
-        "Core::Frontend::KeyboardInitializeParameters");
-    qRegisterMetaType<Core::Frontend::InlineAppearParameters>(
-        "Core::Frontend::InlineAppearParameters");
-    qRegisterMetaType<Core::Frontend::InlineTextParameters>("Core::Frontend::InlineTextParameters");
-    qRegisterMetaType<Service::AM::Frontend::SwkbdResult>("Service::AM::Frontend::SwkbdResult");
-    qRegisterMetaType<Service::AM::Frontend::SwkbdTextCheckResult>(
-        "Service::AM::Frontend::SwkbdTextCheckResult");
-    qRegisterMetaType<Service::AM::Frontend::SwkbdReplyType>(
-        "Service::AM::Frontend::SwkbdReplyType");
-
-    // Web Browser Applet
-    qRegisterMetaType<Service::AM::Frontend::WebExitReason>("Service::AM::Frontend::WebExitReason");
-
-    // Register loader types
-    qRegisterMetaType<Core::SystemResultStatus>("Core::SystemResultStatus");
 }
 
 void GMainWindow::AmiiboSettingsShowDialog(const Core::Frontend::CabinetParameters& parameters,
@@ -1634,8 +1573,9 @@ void GMainWindow::ConnectWidgetEvents() {
     connect(game_list, &GameList::GameChosen, this, &GMainWindow::OnGameListLoadFile);
     connect(game_list, &GameList::OpenDirectory, this, &GMainWindow::OnGameListOpenDirectory);
     connect(game_list, &GameList::OpenFolderRequested, this, &GMainWindow::OnGameListOpenFolder);
-    connect(game_list, &GameList::OpenTransferableShaderCacheRequested, this,
-            &GMainWindow::OnTransferableShaderCacheOpenFile);
+    connect(game_list, &GameList::OpenTransferableShaderCacheRequested, this, [this](u64 program_id) {
+        QtCommon::Path::OpenShaderCache(program_id, this);
+    });
     connect(game_list, &GameList::RemoveInstalledEntryRequested, this,
             &GMainWindow::OnGameListRemoveInstalledEntry);
     connect(game_list, &GameList::RemoveFileRequested, this, &GMainWindow::OnGameListRemoveFile);
@@ -1970,74 +1910,10 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
         nullptr,                                             // Net Connect
     });
 
-    /** Game Updates check */
+    /** firmware check */
 
-    // yuzu's configuration doesn't actually support lists so this is a bit hacky
-    QSettings settings;
-    QStringList currentIgnored = settings.value("ignoredBadUpdates", {}).toStringList();
-
-    if (std::find(bad_update_games.begin(), bad_update_games.end(), params.program_id) !=
-            bad_update_games.end() &&
-        !currentIgnored.contains(QString::number(params.program_id))) {
-        QMessageBox* msg = new QMessageBox(this);
-        msg->setWindowTitle(tr("Game Updates Warning"));
-        msg->setIcon(QMessageBox::Warning);
-        msg->setText(
-            tr("The game you are trying to launch is known to have performance or booting "
-               "issues when updates are applied. Please try increasing the memory layout to "
-               "6GB or 8GB if any issues occur.<br><br>Press \"OK\" to continue launching, or "
-               "\"Cancel\" to cancel the launch."));
-
-        msg->setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-
-        QCheckBox* dontShowAgain = new QCheckBox(msg);
-        dontShowAgain->setText(tr("Don't show again for this game"));
-        msg->setCheckBox(dontShowAgain);
-
-        int result = msg->exec();
-
-        // wtf
-        QMessageBox::ButtonRole role =
-            msg->buttonRole(msg->button((QMessageBox::StandardButton)result));
-
-        switch (role) {
-        case QMessageBox::RejectRole:
-            return false;
-        case QMessageBox::AcceptRole:
-        default:
-            if (dontShowAgain->isChecked()) {
-                currentIgnored << QString::number(params.program_id);
-                settings.setValue("ignoredBadUpdates", currentIgnored);
-                settings.sync();
-            }
-            break;
-        }
-    }
-
-    if (FirmwareManager::GameRequiresFirmware(params.program_id) &&
-        !FirmwareManager::CheckFirmwarePresence(*system)) {
-        QMessageBox* msg = new QMessageBox(this);
-        msg->setWindowTitle(tr("Game Requires Firmware"));
-        msg->setIcon(QMessageBox::Warning);
-        msg->setText(
-            tr("The game you are trying to launch requires firmware to boot or to get past the "
-               "opening menu. Please <a href='https://yuzu-mirror.github.io/help/quickstart'>"
-               "dump and install firmware</a>, or press \"OK\" to launch anyways."));
-
-        msg->setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-
-        int exec_result = msg->exec();
-
-        QMessageBox::ButtonRole role =
-            msg->buttonRole(msg->button((QMessageBox::StandardButton)exec_result));
-
-        switch (role) {
-        case QMessageBox::RejectRole:
-            return false;
-        case QMessageBox::AcceptRole:
-        default:
-            break;
-        }
+    if (!QtCommon::Content::CheckGameFirmware(params.program_id, *system, this)) {
+        return false;
     }
 
     if (!OnCheckNcaVerification()) {
@@ -2459,6 +2335,7 @@ void GMainWindow::ShutdownGame() {
         return;
     }
 
+    // TODO(crueter): make this common as well (frontend_common?)
     play_time_manager->Stop();
     OnShutdownBegin();
     OnEmulationStopTimeExpired();
@@ -2503,6 +2380,7 @@ void GMainWindow::OnGameListLoadFile(QString game_path, u64 program_id) {
     BootGame(game_path, params);
 }
 
+// TODO(crueter): Common profile selector
 void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target,
                                        const std::string& game_path) {
     std::filesystem::path path;
@@ -2611,13 +2489,6 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
     QDesktopServices::openUrl(QUrl::fromLocalFile(qpath));
 }
 
-// TODO(crueter): Transfer ts to showmessage
-void GMainWindow::OnTransferableShaderCacheOpenFile(u64 program_id) {
-    if (!QtCommon::PathUtil::OpenShaderCache(program_id)) {
-        QMessageBox::warning(this, tr("Error Opening Shader Cache"), tr("Failed to create or open shader cache for this title, ensure your app data directory has write permissions."));
-    }
-}
-
 static bool RomFSRawCopy(size_t total_size, size_t& read_size, QProgressDialog& dialog,
                          const FileSys::VirtualDir& src, const FileSys::VirtualDir& dest,
                          bool full) {
@@ -2683,26 +2554,14 @@ static bool RomFSRawCopy(size_t total_size, size_t& read_size, QProgressDialog& 
 // TODO(crueter): All this can be transfered to qt_common
 // Aldoe I need to decide re: message boxes for QML
 // translations_common? strings_common? qt_strings? who knows
-QString GMainWindow::GetGameListErrorRemoving(InstalledEntryType type) const {
-    switch (type) {
-    case InstalledEntryType::Game:
-        return tr("Error Removing Contents");
-    case InstalledEntryType::Update:
-        return tr("Error Removing Update");
-    case InstalledEntryType::AddOnContent:
-        return tr("Error Removing DLC");
-    default:
-        return QStringLiteral("Error Removing <Invalid Type>");
-    }
-}
-void GMainWindow::OnGameListRemoveInstalledEntry(u64 program_id, InstalledEntryType type) {
+void GMainWindow::OnGameListRemoveInstalledEntry(u64 program_id, QtCommon::Game::InstalledEntryType type) {
     const QString entry_question = [type] {
         switch (type) {
-        case InstalledEntryType::Game:
+        case QtCommon::Game::InstalledEntryType::Game:
             return tr("Remove Installed Game Contents?");
-        case InstalledEntryType::Update:
+        case QtCommon::Game::InstalledEntryType::Update:
             return tr("Remove Installed Game Update?");
-        case InstalledEntryType::AddOnContent:
+        case QtCommon::Game::InstalledEntryType::AddOnContent:
             return tr("Remove Installed Game DLC?");
         default:
             return QStringLiteral("Remove Installed Game <Invalid Type>?");
@@ -2714,18 +2573,19 @@ void GMainWindow::OnGameListRemoveInstalledEntry(u64 program_id, InstalledEntryT
         return;
     }
 
+    // TODO(crueter): move this to QtCommon (populate async?)
     switch (type) {
-    case InstalledEntryType::Game:
-        RemoveBaseContent(program_id, type);
+    case QtCommon::Game::InstalledEntryType::Game:
+        QtCommon::Game::RemoveBaseContent(program_id, type);
         [[fallthrough]];
-    case InstalledEntryType::Update:
-        RemoveUpdateContent(program_id, type);
-        if (type != InstalledEntryType::Game) {
+    case QtCommon::Game::InstalledEntryType::Update:
+        QtCommon::Game::RemoveUpdateContent(program_id, type);
+        if (type != QtCommon::Game::InstalledEntryType::Game) {
             break;
         }
         [[fallthrough]];
-    case InstalledEntryType::AddOnContent:
-        RemoveAddOnContent(program_id, type);
+    case QtCommon::Game::InstalledEntryType::AddOnContent:
+        QtCommon::Game::RemoveAddOnContent(program_id, type);
         break;
     }
     Common::FS::RemoveDirRecursively(Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) /
@@ -2733,55 +2593,19 @@ void GMainWindow::OnGameListRemoveInstalledEntry(u64 program_id, InstalledEntryT
     game_list->PopulateAsync(UISettings::values.game_dirs);
 }
 
-void GMainWindow::RemoveBaseContent(u64 program_id, InstalledEntryType type) {
-    const auto res =
-        ContentManager::RemoveBaseContent(system->GetFileSystemController(), program_id);
-    if (res) {
-        QMessageBox::information(this, tr("Successfully Removed"),
-                                 tr("Successfully removed the installed base game."));
-    } else {
-        QMessageBox::warning(
-            this, GetGameListErrorRemoving(type),
-            tr("The base game is not installed in the NAND and cannot be removed."));
-    }
-}
-
-void GMainWindow::RemoveUpdateContent(u64 program_id, InstalledEntryType type) {
-    const auto res = ContentManager::RemoveUpdate(system->GetFileSystemController(), program_id);
-    if (res) {
-        QMessageBox::information(this, tr("Successfully Removed"),
-                                 tr("Successfully removed the installed update."));
-    } else {
-        QMessageBox::warning(this, GetGameListErrorRemoving(type),
-                             tr("There is no update installed for this title."));
-    }
-}
-
-void GMainWindow::RemoveAddOnContent(u64 program_id, InstalledEntryType type) {
-    const size_t count = ContentManager::RemoveAllDLC(*system, program_id);
-    if (count == 0) {
-        QMessageBox::warning(this, GetGameListErrorRemoving(type),
-                             tr("There are no DLC installed for this title."));
-        return;
-    }
-
-    QMessageBox::information(this, tr("Successfully Removed"),
-                             tr("Successfully removed %1 installed DLC.").arg(count));
-}
-
-void GMainWindow::OnGameListRemoveFile(u64 program_id, GameListRemoveTarget target,
+void GMainWindow::OnGameListRemoveFile(u64 program_id, QtCommon::Game::GameListRemoveTarget target,
                                        const std::string& game_path) {
     const QString question = [target] {
         switch (target) {
-        case GameListRemoveTarget::GlShaderCache:
+        case QtCommon::Game::GameListRemoveTarget::GlShaderCache:
             return tr("Delete OpenGL Transferable Shader Cache?");
-        case GameListRemoveTarget::VkShaderCache:
+        case QtCommon::Game::GameListRemoveTarget::VkShaderCache:
             return tr("Delete Vulkan Transferable Shader Cache?");
-        case GameListRemoveTarget::AllShaderCache:
+        case QtCommon::Game::GameListRemoveTarget::AllShaderCache:
             return tr("Delete All Transferable Shader Caches?");
-        case GameListRemoveTarget::CustomConfiguration:
+        case QtCommon::Game::GameListRemoveTarget::CustomConfiguration:
             return tr("Remove Custom Game Configuration?");
-        case GameListRemoveTarget::CacheStorage:
+        case QtCommon::Game::GameListRemoveTarget::CacheStorage:
             return tr("Remove Cache Storage?");
         default:
             return QString{};
@@ -2794,20 +2618,20 @@ void GMainWindow::OnGameListRemoveFile(u64 program_id, GameListRemoveTarget targ
     }
 
     switch (target) {
-    case GameListRemoveTarget::VkShaderCache:
-        RemoveVulkanDriverPipelineCache(program_id);
+    case QtCommon::Game::GameListRemoveTarget::VkShaderCache:
+        QtCommon::Game::RemoveVulkanDriverPipelineCache(program_id);
         [[fallthrough]];
-    case GameListRemoveTarget::GlShaderCache:
-        RemoveTransferableShaderCache(program_id, target);
+    case QtCommon::Game::GameListRemoveTarget::GlShaderCache:
+        QtCommon::Game::RemoveTransferableShaderCache(program_id, target);
         break;
-    case GameListRemoveTarget::AllShaderCache:
-        RemoveAllTransferableShaderCaches(program_id);
+    case QtCommon::Game::GameListRemoveTarget::AllShaderCache:
+        QtCommon::Game::RemoveAllTransferableShaderCaches(program_id);
         break;
-    case GameListRemoveTarget::CustomConfiguration:
-        RemoveCustomConfiguration(program_id, game_path);
+    case QtCommon::Game::GameListRemoveTarget::CustomConfiguration:
+        QtCommon::Game::RemoveCustomConfiguration(program_id, game_path);
         break;
-    case GameListRemoveTarget::CacheStorage:
-        RemoveCacheStorage(program_id);
+    case QtCommon::Game::GameListRemoveTarget::CacheStorage:
+        QtCommon::Game::RemoveCacheStorage(program_id, vfs.get());
         break;
     }
 }
@@ -2821,107 +2645,6 @@ void GMainWindow::OnGameListRemovePlayTimeData(u64 program_id) {
 
     play_time_manager->ResetProgramPlayTime(program_id);
     game_list->PopulateAsync(UISettings::values.game_dirs);
-}
-
-void GMainWindow::RemoveTransferableShaderCache(u64 program_id, GameListRemoveTarget target) {
-    const auto target_file_name = [target] {
-        switch (target) {
-        case GameListRemoveTarget::GlShaderCache:
-            return "opengl.bin";
-        case GameListRemoveTarget::VkShaderCache:
-            return "vulkan.bin";
-        default:
-            return "";
-        }
-    }();
-    const auto shader_cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
-    const auto shader_cache_folder_path = shader_cache_dir / fmt::format("{:016x}", program_id);
-    const auto target_file = shader_cache_folder_path / target_file_name;
-
-    if (!Common::FS::Exists(target_file)) {
-        QMessageBox::warning(this, tr("Error Removing Transferable Shader Cache"),
-                             tr("A shader cache for this title does not exist."));
-        return;
-    }
-    if (Common::FS::RemoveFile(target_file)) {
-        QMessageBox::information(this, tr("Successfully Removed"),
-                                 tr("Successfully removed the transferable shader cache."));
-    } else {
-        QMessageBox::warning(this, tr("Error Removing Transferable Shader Cache"),
-                             tr("Failed to remove the transferable shader cache."));
-    }
-}
-
-void GMainWindow::RemoveVulkanDriverPipelineCache(u64 program_id) {
-    static constexpr std::string_view target_file_name = "vulkan_pipelines.bin";
-
-    const auto shader_cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
-    const auto shader_cache_folder_path = shader_cache_dir / fmt::format("{:016x}", program_id);
-    const auto target_file = shader_cache_folder_path / target_file_name;
-
-    if (!Common::FS::Exists(target_file)) {
-        return;
-    }
-    if (!Common::FS::RemoveFile(target_file)) {
-        QMessageBox::warning(this, tr("Error Removing Vulkan Driver Pipeline Cache"),
-                             tr("Failed to remove the driver pipeline cache."));
-    }
-}
-
-void GMainWindow::RemoveAllTransferableShaderCaches(u64 program_id) {
-    const auto shader_cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
-    const auto program_shader_cache_dir = shader_cache_dir / fmt::format("{:016x}", program_id);
-
-    if (!Common::FS::Exists(program_shader_cache_dir)) {
-        QMessageBox::warning(this, tr("Error Removing Transferable Shader Caches"),
-                             tr("A shader cache for this title does not exist."));
-        return;
-    }
-    if (Common::FS::RemoveDirRecursively(program_shader_cache_dir)) {
-        QMessageBox::information(this, tr("Successfully Removed"),
-                                 tr("Successfully removed the transferable shader caches."));
-    } else {
-        QMessageBox::warning(this, tr("Error Removing Transferable Shader Caches"),
-                             tr("Failed to remove the transferable shader cache directory."));
-    }
-}
-
-void GMainWindow::RemoveCustomConfiguration(u64 program_id, const std::string& game_path) {
-    const auto file_path = std::filesystem::path(Common::FS::ToU8String(game_path));
-    const auto config_file_name =
-        program_id == 0 ? Common::FS::PathToUTF8String(file_path.filename()).append(".ini")
-                        : fmt::format("{:016X}.ini", program_id);
-    const auto custom_config_file_path =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir) / "custom" / config_file_name;
-
-    if (!Common::FS::Exists(custom_config_file_path)) {
-        QMessageBox::warning(this, tr("Error Removing Custom Configuration"),
-                             tr("A custom configuration for this title does not exist."));
-        return;
-    }
-
-    if (Common::FS::RemoveFile(custom_config_file_path)) {
-        QMessageBox::information(this, tr("Successfully Removed"),
-                                 tr("Successfully removed the custom game configuration."));
-    } else {
-        QMessageBox::warning(this, tr("Error Removing Custom Configuration"),
-                             tr("Failed to remove the custom game configuration."));
-    }
-}
-
-void GMainWindow::RemoveCacheStorage(u64 program_id) {
-    const auto nand_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir);
-    auto vfs_nand_dir =
-        vfs->OpenDirectory(Common::FS::PathToUTF8String(nand_dir), FileSys::OpenMode::Read);
-
-    const auto cache_storage_path = FileSys::SaveDataFactory::GetFullPath(
-        {}, vfs_nand_dir, FileSys::SaveDataSpaceId::User, FileSys::SaveDataType::Cache,
-        0 /* program_id */, {}, 0);
-
-    const auto path = Common::FS::ConcatPathSafe(nand_dir, cache_storage_path);
-
-    // Not an error if it wasn't cleared.
-    Common::FS::RemoveDirRecursively(path);
 }
 
 void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_path,
@@ -3052,22 +2775,7 @@ void GMainWindow::OnGameListVerifyIntegrity(const std::string& game_path) {
         return progress.wasCanceled();
     };
 
-    const auto result = ContentManager::VerifyGameContents(*system, game_path, QtProgressCallback);
-    const QString resultString = tr(QtCommon::GetGameVerificationResultString(result));
-    progress.close();
-    switch (result) {
-    case ContentManager::GameVerificationResult::Success:
-        QMessageBox::information(this, tr("Integrity verification succeeded!"),
-                                 resultString);
-        break;
-    case ContentManager::GameVerificationResult::Failed:
-        QMessageBox::critical(this, tr("Integrity verification failed!"),
-                              resultString);
-        break;
-    case ContentManager::GameVerificationResult::NotImplemented:
-        QMessageBox::warning(this, tr("Integrity verification couldn't be performed"),
-                              resultString);
-    }
+    QtCommon::Content::VerifyGameContents(game_path, QtProgressCallback);
 }
 
 void GMainWindow::OnGameListCopyTID(u64 program_id) {
@@ -4103,6 +3811,7 @@ void GMainWindow::OnLoadAmiibo() {
     LoadAmiibo(filename);
 }
 
+// TODO(crueter): does this need to be ported to QML?
 bool GMainWindow::question(QWidget* parent, const QString& title, const QString& text,
                            QMessageBox::StandardButtons buttons,
                            QMessageBox::StandardButton defaultButton) {
@@ -4154,27 +3863,27 @@ void GMainWindow::LoadAmiibo(const QString& filename) {
 }
 
 void GMainWindow::OnOpenRootDataFolder() {
-    QtCommon::OpenRootDataFolder();
+    QtCommon::Game::OpenRootDataFolder();
 }
 
 void GMainWindow::OnOpenNANDFolder()
 {
-    QtCommon::OpenNANDFolder();
+    QtCommon::Game::OpenNANDFolder();
 }
 
 void GMainWindow::OnOpenSDMCFolder()
 {
-    QtCommon::OpenSDMCFolder();
+    QtCommon::Game::OpenSDMCFolder();
 }
 
 void GMainWindow::OnOpenModFolder()
 {
-    QtCommon::OpenModFolder();
+    QtCommon::Game::OpenModFolder();
 }
 
 void GMainWindow::OnOpenLogFolder()
 {
-    QtCommon::OpenLogFolder();
+    QtCommon::Game::OpenLogFolder();
 }
 
 void GMainWindow::OnVerifyInstalledContents() {
@@ -4221,11 +3930,11 @@ void GMainWindow::InstallFirmware(const QString& location, bool recursive) {
         return progress.wasCanceled();
     };
 
-    auto result = QtCommon::InstallFirmware(location, recursive, QtProgressCallback, system.get(), vfs.get(), this);
+    auto result = QtCommon::Content::InstallFirmware(location, recursive, QtProgressCallback, vfs.get());
 
     progress.close();
 
-    if (result != QtCommon::FirmwareInstallResult::Success) return;
+    if (result != QtCommon::Content::FirmwareInstallResult::Success) return;
 
     auto VerifyFirmwareCallback = [&](size_t total_size, size_t processed_size) {
         progress.setValue(90 + static_cast<int>((processed_size * 10) / total_size));
@@ -4292,7 +4001,7 @@ void GMainWindow::OnInstallFirmwareFromZIP() {
         return;
     }
 
-    const QString qCacheDir = QtCommon::UnzipFirmwareToTmp(firmware_zip_location);
+    const QString qCacheDir = QtCommon::Content::UnzipFirmwareToTmp(firmware_zip_location);
 
     // In this case, it has to be done recursively, since sometimes people
     // will pack it into a subdirectory after dumping
@@ -4370,7 +4079,7 @@ void GMainWindow::OnToggleStatusBar() {
 void GMainWindow::OnGameListRefresh()
 {
     // Resets metadata cache and reloads
-    QtCommon::ResetMetadata();
+    QtCommon::Game::ResetMetadata();
     game_list->RefreshGameDirectory();
     SetFirmwareVersion();
 }
@@ -4640,7 +4349,7 @@ void GMainWindow::CreateShortcut(const std::string &game_path, const u64 program
     QImage icon_data =
         QImage::fromData(icon_image_file.data(), static_cast<int>(icon_image_file.size()));
     std::filesystem::path out_icon_path;
-    if (QtCommon::MakeShortcutIcoPath(program_id, game_title, out_icon_path)) {
+    if (QtCommon::Game::MakeShortcutIcoPath(program_id, game_title, out_icon_path)) {
         if (!SaveIconToFile(out_icon_path, icon_data)) {
             LOG_ERROR(Frontend, "Could not write icon to file");
         }
@@ -4674,7 +4383,7 @@ void GMainWindow::CreateShortcut(const std::string &game_path, const u64 program
     const std::string categories = "Game;Emulator;Qt;";
     const std::string keywords = "Switch;Nintendo;";
 
-    if (QtCommon::CreateShortcutLink(shortcut_path, comment, out_icon_path, command,
+    if (QtCommon::Game::CreateShortcutLink(shortcut_path, comment, out_icon_path, command,
                                         arguments, categories, keywords, game_title)) {
         GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_SUCCESS,
                                                qgame_title);
