@@ -1228,7 +1228,16 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
             return blit_image_helper.ConvertABGR8ToD24S8(dst, src_view);
         }
         break;
-
+    case PixelFormat::D16_UNORM:
+        if (src_view.format == PixelFormat::R16_UNORM) {
+            return blit_image_helper.ConvertR16ToD16(dst, src_view);
+        }
+        break;
+    case PixelFormat::R16_UNORM:
+        if (src_view.format == PixelFormat::D16_UNORM) {
+            return blit_image_helper.ConvertD16ToR16(dst, src_view);
+        }
+        break;
     case PixelFormat::A8B8G8R8_UNORM:
     case PixelFormat::A8B8G8R8_SNORM:
     case PixelFormat::A8B8G8R8_SINT:
@@ -1270,7 +1279,6 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
     case PixelFormat::R32G32_SINT:
     case PixelFormat::R32_FLOAT:
     case PixelFormat::R16_FLOAT:
-    case PixelFormat::R16_UNORM:
     case PixelFormat::R16_SNORM:
     case PixelFormat::R16_UINT:
     case PixelFormat::R16_SINT:
@@ -1325,7 +1333,6 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
     case PixelFormat::ASTC_2D_6X5_SRGB:
     case PixelFormat::E5B9G9R9_FLOAT:
     case PixelFormat::D32_FLOAT:
-    case PixelFormat::D16_UNORM:
     case PixelFormat::X8_D24_UNORM:
     case PixelFormat::S8_UINT:
     case PixelFormat::S8_UINT_D24_UNORM:
