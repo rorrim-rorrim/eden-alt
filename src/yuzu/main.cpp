@@ -415,10 +415,7 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
 #ifdef __unix__
     SetupSigInterrupts();
 #endif
-
-#ifdef __linux__
     SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
-#endif
 
     UISettings::RestoreWindowState(config);
 
@@ -3407,9 +3404,7 @@ void GMainWindow::OnConfigure() {
     const auto old_theme = UISettings::values.theme;
     const bool old_discord_presence = UISettings::values.enable_discord_presence.GetValue();
     const auto old_language_index = Settings::values.language_index.GetValue();
-#ifdef __linux__
     const bool old_gamemode = Settings::values.enable_gamemode.GetValue();
-#endif
 
     Settings::SetConfiguringGlobal(true);
     ConfigureDialog configure_dialog(this, hotkey_registry, input_subsystem.get(),
@@ -3469,11 +3464,9 @@ void GMainWindow::OnConfigure() {
     if (UISettings::values.enable_discord_presence.GetValue() != old_discord_presence) {
         SetDiscordEnabled(UISettings::values.enable_discord_presence.GetValue());
     }
-#ifdef __linux__
     if (Settings::values.enable_gamemode.GetValue() != old_gamemode) {
         SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
     }
-#endif
 
     if (!multiplayer_state->IsHostingPublicRoom()) {
         multiplayer_state->UpdateCredentials();
@@ -4755,13 +4748,15 @@ void GMainWindow::SetDiscordEnabled([[maybe_unused]] bool state) {
     discord_rpc->Update();
 }
 
-#ifdef __linux__
 void GMainWindow::SetGamemodeEnabled(bool state) {
     if (emulation_running) {
-        Common::Linux::SetGamemodeState(state);
+        if (state) {
+            Common::FeralGamemode::Start();
+        } else {
+            Common::FeralGamemode::Stop();
+        }
     }
 }
-#endif
 
 void GMainWindow::changeEvent(QEvent* event) {
 #ifdef __unix__
@@ -4920,7 +4915,9 @@ int main(int argc, char* argv[]) {
     // the user folder in the Qt Frontend, we need to cd into that working directory
     const auto bin_path = Common::FS::GetBundleDirectory() / "..";
     chdir(Common::FS::PathToUTF8String(bin_path).c_str());
-#elif defined(__unix__) && !defined(__ANDROID__)
+#endif
+
+#ifdef __unix__
     // Set the DISPLAY variable in order to open web browsers
     // TODO (lat9nq): Find a better solution for AppImages to start external applications
     if (QString::fromLocal8Bit(qgetenv("DISPLAY")).isEmpty()) {
