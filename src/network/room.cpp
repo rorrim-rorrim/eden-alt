@@ -12,6 +12,7 @@
 #include <shared_mutex>
 #include <sstream>
 #include <thread>
+#include "common/polyfill_thread.h"
 #include "common/logging/log.h"
 #include "enet/enet.h"
 #include "network/packet.h"

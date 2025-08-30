@@ -9,6 +9,7 @@
 #include <set>
 #include <thread>
 #include "common/assert.h"
+#include "common/polyfill_thread.h"
 #include "common/socket_types.h"
 #include "enet/enet.h"
 #include "network/packet.h"
