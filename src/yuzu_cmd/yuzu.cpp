@@ -424,7 +424,7 @@ int main(int argc, char** argv) {
         // Just exit right away.
         exit(0);
     });
-    Common::FeralGamemode::StartGamemode();
+    Common::FeralGamemode::Start();
 
     void(system.Run());
     if (system.DebuggerEnabled()) {
