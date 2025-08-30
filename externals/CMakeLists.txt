@@ -147,6 +147,12 @@ add_subdirectory(nx_tzdb)
 # VMA
 AddJsonPackage(vulkan-memory-allocator)
 
+# sadness
+if (VulkanMemoryAllocator_ADDED)
+    set(VulkanMemoryAllocator_ADDED ON PARENT_SCOPE)
+    set(VulkanMemoryAllocator_SOURCE_DIR "${VulkanMemoryAllocator_SOURCE_DIR}" PARENT_SCOPE)
+endif()
+
 if (NOT TARGET LLVM::Demangle)
     add_library(demangle demangle/ItaniumDemangle.cpp)
     target_include_directories(demangle PUBLIC ./demangle)
