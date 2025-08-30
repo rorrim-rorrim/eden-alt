@@ -95,7 +95,11 @@ _ZN4Core6ArmNce50ReturnToRunCodeByExceptionLevelChangeSignalHandlerEiPvS1_:
 
     /* Call the context restorer with the raw context. */
     mov     x0, x2
+#ifdef __APPLE__
+    bl      __ZN4Core6ArmNce19RestoreGuestContextEPv
+#else
     bl      _ZN4Core6ArmNce19RestoreGuestContextEPv
+#endif
 
     /* Save the old value of tpidr_el0. */
     mrs     x8, tpidr_el0
@@ -144,7 +148,11 @@ _ZN4Core6ArmNce29BreakFromRunCodeSignalHandlerEiPvS1_:
 
     /* Tail call the restorer. */
     mov     x1, x2
+#ifdef __APPLE__
+    b       __ZN4Core6ArmNce16SaveGuestContextEPNS_12GuestContextEPv
+#else
     b       _ZN4Core6ArmNce16SaveGuestContextEPNS_12GuestContextEPv
+#endif
 
     /* Returning from here will enter host code. */
 
@@ -195,7 +203,11 @@ _ZN4Core6ArmNce32GuestAlignmentFaultSignalHandlerEiPvS1_:
     msr     tpidr_el0, x3
 
     /* Call the handler. */
+#ifdef __APPLE__
+    bl       __ZN4Core6ArmNce25HandleGuestAlignmentFaultEPNS_12GuestContextEPvS3_
+#else
     bl       _ZN4Core6ArmNce25HandleGuestAlignmentFaultEPNS_12GuestContextEPvS3_
+#endif
 
     /* If the handler returned false, we want to preserve the host tpidr_el0. */
     cbz     x0, 2f
