@@ -8,6 +8,8 @@
 #include <client/windows/handler/exception_handler.h>
 #elif defined(__linux__)
 #include <client/linux/handler/exception_handler.h>
+#elif defined(__sun__)
+#include <client/solaris/handler/exception_handler.h>
 #else
 #error Minidump creation not supported on this platform
 #endif
@@ -49,7 +51,7 @@ static void PruneDumpDirectory(const std::filesystem::path& dump_path) {
     }
 }
 
-#if defined(__linux__)
+#ifdef __linux__
 [[noreturn]] bool DumpCallback(const google_breakpad::MinidumpDescriptor& descriptor, void* context,
                                bool succeeded) {
     // Prevent time- and space-consuming core dumps from being generated, as we have
@@ -63,7 +65,7 @@ void InstallCrashHandler() {
     const auto dump_path = GetEdenPath(Common::FS::EdenPath::CrashDumpsDir);
     PruneDumpDirectory(dump_path);
 
-#if defined(_WIN32)
+#ifdef _WIN32
     // TODO: If we switch to MinGW builds for Windows, this needs to be wrapped in a C API.
     static google_breakpad::ExceptionHandler eh{dump_path, nullptr, nullptr, nullptr,
                                                 google_breakpad::ExceptionHandler::HANDLER_ALL};
@@ -71,6 +73,8 @@ void InstallCrashHandler() {
     static google_breakpad::MinidumpDescriptor descriptor{dump_path};
     static google_breakpad::ExceptionHandler eh{descriptor, nullptr, DumpCallback,
                                                 nullptr,    true,    -1};
+#elif defined(__sun__)
+    static google_breakpad::ExceptionHandler eh{dump_path, nullptr, DumpCallback, nullptr, true};
 #endif
 }
 

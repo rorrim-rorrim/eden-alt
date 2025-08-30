@@ -246,9 +246,7 @@ if (YUZU_CRASH_DUMPS)
         breakpad.cpp
         breakpad.h
     )
-
     target_link_libraries(yuzu PRIVATE libbreakpad_client)
-    target_compile_definitions(yuzu PRIVATE YUZU_CRASH_DUMPS)
 endif()
 
 if (CXX_CLANG)
