@@ -3101,7 +3101,7 @@ void GMainWindow::OnStartGame() {
     play_time_manager->Start();
 
     discord_rpc->Update();
-    Common::FeralGamemode::StartGamemode();
+    Common::FeralGamemode::Start();
 }
 
 void GMainWindow::OnRestartGame() {
