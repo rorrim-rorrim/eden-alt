@@ -22,7 +22,7 @@
 #   else
 #       define CTX_DECLARE(raw_context) \
         ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(raw_context);  \
-        [[maybe_unused]] auto& mctx = reinterpret_cast<ucontext_t*>(raw_context)->uc_mcontext; \
+        [[maybe_unused]] auto& mctx = ucontext->uc_mcontext; \
         [[maybe_unused]] const auto fpctx = GetFloatingPointState(mctx);
 #   endif
 #endif
@@ -54,7 +54,7 @@
 #        define CTX_PC (mctx->__ss.__pc)
 #        define CTX_SP (mctx->__ss.__sp)
 #        define CTX_LR (mctx->__ss.__lr)
-#        define CTX_PSTATE (mctx->__ss.__pstate)
+#        define CTX_PSTATE (mctx->__ss.__cpsr)
 #        define CTX_X(i) (mctx->__ss.__x[i])
 #        define CTX_Q(i) (mctx->__ns.__v[i])
 #        define CTX_FPSR(i) (mctx->__ns.__fpsr)
