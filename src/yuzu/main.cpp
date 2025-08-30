@@ -5278,9 +5278,12 @@ void GMainWindow::OnCheckNcaVerification() {
 
     QMessageBox msgbox(this);
     msgbox.setWindowTitle(tr("NCA Verification Disabled"));
-    msgbox.setText(tr("NCA Verification is now disabled. This feature is required to run new "
-                      "games and updates. Please ensure you are loading trusted NCA files into "
-                      "the emulator, or re-enable verification in Eden's Settings if unsure."));
+    msgbox.setText(tr("NCA Verification is disabled.\n"
+                      "This is required to run new games and updates.\n"
+                      "Running without verification can cause instability or crashes if NCA files "
+                      "are corrupt, modified, or tampered.\n"
+                      "If unsure, re-enable verification in Eden's Settings and use firmware "
+                      "version 19.0.1 or below."));
     msgbox.setIcon(QMessageBox::Warning);
     msgbox.setStandardButtons(QMessageBox::Ok);
     msgbox.setDefaultButton(QMessageBox::Ok);
