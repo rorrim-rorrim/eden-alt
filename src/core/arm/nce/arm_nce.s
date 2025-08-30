@@ -9,9 +9,11 @@
 
 
 /* static HaltReason Core::ArmNce::ReturnToRunCodeByTrampoline(void* tpidr, Core::GuestContext* ctx, u64 trampoline_addr) */
+#ifndef __APPLE__
 .section    .text._ZN4Core6ArmNce27ReturnToRunCodeByTrampolineEPvPNS_12GuestContextEm, "ax", %progbits
-.global     _ZN4Core6ArmNce27ReturnToRunCodeByTrampolineEPvPNS_12GuestContextEm
 .type       _ZN4Core6ArmNce27ReturnToRunCodeByTrampolineEPvPNS_12GuestContextEm, %function
+#endif
+.global     _ZN4Core6ArmNce27ReturnToRunCodeByTrampolineEPvPNS_12GuestContextEm
 _ZN4Core6ArmNce27ReturnToRunCodeByTrampolineEPvPNS_12GuestContextEm:
     /* Back up host sp to x3. */
     /* Back up host tpidr_el0 to x4. */
@@ -50,9 +52,11 @@ _ZN4Core6ArmNce27ReturnToRunCodeByTrampolineEPvPNS_12GuestContextEm:
 
 
 /* static HaltReason Core::ArmNce::ReturnToRunCodeByExceptionLevelChange(int tid, void* tpidr) */
+#ifndef __APPLE__
 .section    .text._ZN4Core6ArmNce37ReturnToRunCodeByExceptionLevelChangeEiPv, "ax", %progbits
-.global     _ZN4Core6ArmNce37ReturnToRunCodeByExceptionLevelChangeEiPv
 .type       _ZN4Core6ArmNce37ReturnToRunCodeByExceptionLevelChangeEiPv, %function
+#endif
+.global     _ZN4Core6ArmNce37ReturnToRunCodeByExceptionLevelChangeEiPv
 _ZN4Core6ArmNce37ReturnToRunCodeByExceptionLevelChangeEiPv:
     /* This jumps to the signal handler, which will restore the entire context. */
     /* On entry, x0 = thread id, which is already in the right place. */
@@ -72,9 +76,11 @@ _ZN4Core6ArmNce37ReturnToRunCodeByExceptionLevelChangeEiPv:
 
 
 /* static void Core::ArmNce::ReturnToRunCodeByExceptionLevelChangeSignalHandler(int sig, void* info, void* raw_context) */
+#ifndef __APPLE__
 .section    .text._ZN4Core6ArmNce50ReturnToRunCodeByExceptionLevelChangeSignalHandlerEiPvS1_, "ax", %progbits
-.global     _ZN4Core6ArmNce50ReturnToRunCodeByExceptionLevelChangeSignalHandlerEiPvS1_
 .type       _ZN4Core6ArmNce50ReturnToRunCodeByExceptionLevelChangeSignalHandlerEiPvS1_, %function
+#endif
+.global     _ZN4Core6ArmNce50ReturnToRunCodeByExceptionLevelChangeSignalHandlerEiPvS1_
 _ZN4Core6ArmNce50ReturnToRunCodeByExceptionLevelChangeSignalHandlerEiPvS1_:
     stp     x29, x30, [sp, #-0x10]!
     mov     x29, sp
@@ -100,9 +106,11 @@ _ZN4Core6ArmNce50ReturnToRunCodeByExceptionLevelChangeSignalHandlerEiPvS1_:
 
 
 /* static void Core::ArmNce::BreakFromRunCodeSignalHandler(int sig, void* info, void* raw_context) */
+#ifndef __APPLE__
 .section    .text._ZN4Core6ArmNce29BreakFromRunCodeSignalHandlerEiPvS1_, "ax", %progbits
-.global     _ZN4Core6ArmNce29BreakFromRunCodeSignalHandlerEiPvS1_
 .type       _ZN4Core6ArmNce29BreakFromRunCodeSignalHandlerEiPvS1_, %function
+#endif
+.global     _ZN4Core6ArmNce29BreakFromRunCodeSignalHandlerEiPvS1_
 _ZN4Core6ArmNce29BreakFromRunCodeSignalHandlerEiPvS1_:
     /* Check to see if we have the correct TLS magic. */
     mrs     x8, tpidr_el0
@@ -131,9 +139,11 @@ _ZN4Core6ArmNce29BreakFromRunCodeSignalHandlerEiPvS1_:
 
 
 /* static void Core::ArmNce::GuestAlignmentFaultSignalHandler(int sig, void* info, void* raw_context) */
+#ifndef __APPLE__
 .section    .text._ZN4Core6ArmNce32GuestAlignmentFaultSignalHandlerEiPvS1_, "ax", %progbits
-.global     _ZN4Core6ArmNce32GuestAlignmentFaultSignalHandlerEiPvS1_
 .type       _ZN4Core6ArmNce32GuestAlignmentFaultSignalHandlerEiPvS1_, %function
+#endif
+.global     _ZN4Core6ArmNce32GuestAlignmentFaultSignalHandlerEiPvS1_
 _ZN4Core6ArmNce32GuestAlignmentFaultSignalHandlerEiPvS1_:
     /* Check to see if we have the correct TLS magic. */
     mrs     x8, tpidr_el0
@@ -177,9 +187,11 @@ _ZN4Core6ArmNce32GuestAlignmentFaultSignalHandlerEiPvS1_:
     ret
 
 /* static void Core::ArmNce::GuestAccessFaultSignalHandler(int sig, void* info, void* raw_context) */
+#ifndef __APPLE__
 .section    .text._ZN4Core6ArmNce29GuestAccessFaultSignalHandlerEiPvS1_, "ax", %progbits
-.global     _ZN4Core6ArmNce29GuestAccessFaultSignalHandlerEiPvS1_
 .type       _ZN4Core6ArmNce29GuestAccessFaultSignalHandlerEiPvS1_, %function
+#endif
+.global     _ZN4Core6ArmNce29GuestAccessFaultSignalHandlerEiPvS1_
 _ZN4Core6ArmNce29GuestAccessFaultSignalHandlerEiPvS1_:
     /* Check to see if we have the correct TLS magic. */
     mrs     x8, tpidr_el0
@@ -224,9 +236,11 @@ _ZN4Core6ArmNce29GuestAccessFaultSignalHandlerEiPvS1_:
 
 
 /* static void Core::ArmNce::LockThreadParameters(void* tpidr) */
+#ifndef __APPLE__
 .section    .text._ZN4Core6ArmNce20LockThreadParametersEPv, "ax", %progbits
-.global     _ZN4Core6ArmNce20LockThreadParametersEPv
 .type       _ZN4Core6ArmNce20LockThreadParametersEPv, %function
+#endif
+.global     _ZN4Core6ArmNce20LockThreadParametersEPv
 _ZN4Core6ArmNce20LockThreadParametersEPv:
     /* Offset to lock member. */
     add     x0, x0, #(TpidrEl0Lock)
@@ -252,9 +266,11 @@ _ZN4Core6ArmNce20LockThreadParametersEPv:
 
 
 /* static void Core::ArmNce::UnlockThreadParameters(void* tpidr) */
+#ifndef __APPLE__
 .section    .text._ZN4Core6ArmNce22UnlockThreadParametersEPv, "ax", %progbits
-.global     _ZN4Core6ArmNce22UnlockThreadParametersEPv
 .type       _ZN4Core6ArmNce22UnlockThreadParametersEPv, %function
+#endif
+.global     _ZN4Core6ArmNce22UnlockThreadParametersEPv
 _ZN4Core6ArmNce22UnlockThreadParametersEPv:
     /* Offset to lock member. */
     add     x0, x0, #(TpidrEl0Lock)
