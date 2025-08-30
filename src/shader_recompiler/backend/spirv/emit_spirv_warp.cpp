@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -37,6 +40,7 @@ Id WarpExtract(EmitContext& ctx, Id value) {
 
 Id LoadMask(EmitContext& ctx, Id mask) {
     const Id value{ctx.OpLoad(ctx.U32[4], mask)};
+    return ctx.OpCompositeExtract(ctx.U32[1], value, 0U);
     if (!ctx.profile.warp_size_potentially_larger_than_guest) {
         return ctx.OpCompositeExtract(ctx.U32[1], value, 0U);
     }
@@ -74,6 +78,7 @@ Id SelectValue(EmitContext& ctx, Id in_range, Id value, Id src_thread_id) {
 }
 
 Id AddPartitionBase(EmitContext& ctx, Id thread_id) {
+    return thread_id;
     const Id partition_idx{ctx.OpShiftRightLogical(ctx.U32[1], GetThreadId(ctx), ctx.Const(5u))};
     const Id partition_base{ctx.OpShiftLeftLogical(ctx.U32[1], partition_idx, ctx.Const(5u))};
     return ctx.OpIAdd(ctx.U32[1], thread_id, partition_base);
@@ -82,6 +87,7 @@ Id AddPartitionBase(EmitContext& ctx, Id thread_id) {
 
 Id EmitLaneId(EmitContext& ctx) {
     const Id id{GetThreadId(ctx)};
+    return id;
     if (!ctx.profile.warp_size_potentially_larger_than_guest) {
         return id;
     }
@@ -166,13 +172,15 @@ Id EmitShuffleIndex(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id cla
     const Id lhs{ctx.OpBitwiseAnd(ctx.U32[1], index, not_seg_mask)};
     Id src_thread_id{ctx.OpBitwiseOr(ctx.U32[1], lhs, min_thread_id)};
     const Id in_range{ctx.OpSLessThanEqual(ctx.U1, src_thread_id, max_thread_id)};
+    const Id same_lane{ctx.OpINotEqual(ctx.U1, src_thread_id, thread_id)};
+    const Id is_value_being_shuffled{ctx.OpLogicalAnd(ctx.U1, in_range, same_lane)};
 
     if (ctx.profile.warp_size_potentially_larger_than_guest) {
         src_thread_id = AddPartitionBase(ctx, src_thread_id);
     }
 
-    SetInBoundsFlag(inst, in_range);
-    return SelectValue(ctx, in_range, value, src_thread_id);
+    SetInBoundsFlag(inst, is_value_being_shuffled);
+    return SelectValue(ctx, is_value_being_shuffled, value, src_thread_id);
 }
 
 Id EmitShuffleUp(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id clamp,
@@ -181,13 +189,15 @@ Id EmitShuffleUp(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id clamp,
     const Id max_thread_id{GetMaxThreadId(ctx, thread_id, clamp, segmentation_mask)};
     Id src_thread_id{ctx.OpISub(ctx.U32[1], thread_id, index)};
     const Id in_range{ctx.OpSGreaterThanEqual(ctx.U1, src_thread_id, max_thread_id)};
+    const Id same_lane{ctx.OpINotEqual(ctx.U1, src_thread_id, thread_id)};
+    const Id is_value_being_shuffled{ctx.OpLogicalAnd(ctx.U1, in_range, same_lane)};
 
     if (ctx.profile.warp_size_potentially_larger_than_guest) {
         src_thread_id = AddPartitionBase(ctx, src_thread_id);
     }
 
-    SetInBoundsFlag(inst, in_range);
-    return SelectValue(ctx, in_range, value, src_thread_id);
+    SetInBoundsFlag(inst, is_value_being_shuffled);
+    return SelectValue(ctx, is_value_being_shuffled, value, src_thread_id);
 }
 
 Id EmitShuffleDown(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id clamp,
@@ -196,13 +206,15 @@ Id EmitShuffleDown(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id clam
     const Id max_thread_id{GetMaxThreadId(ctx, thread_id, clamp, segmentation_mask)};
     Id src_thread_id{ctx.OpIAdd(ctx.U32[1], thread_id, index)};
     const Id in_range{ctx.OpSLessThanEqual(ctx.U1, src_thread_id, max_thread_id)};
+    const Id same_lane{ctx.OpINotEqual(ctx.U1, src_thread_id, thread_id)};
+    const Id is_value_being_shuffled{ctx.OpLogicalAnd(ctx.U1, in_range, same_lane)};
 
     if (ctx.profile.warp_size_potentially_larger_than_guest) {
         src_thread_id = AddPartitionBase(ctx, src_thread_id);
     }
 
-    SetInBoundsFlag(inst, in_range);
-    return SelectValue(ctx, in_range, value, src_thread_id);
+    SetInBoundsFlag(inst, is_value_being_shuffled);
+    return SelectValue(ctx, is_value_being_shuffled, value, src_thread_id);
 }
 
 Id EmitShuffleButterfly(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id clamp,
@@ -211,13 +223,15 @@ Id EmitShuffleButterfly(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id
     const Id max_thread_id{GetMaxThreadId(ctx, thread_id, clamp, segmentation_mask)};
     Id src_thread_id{ctx.OpBitwiseXor(ctx.U32[1], thread_id, index)};
     const Id in_range{ctx.OpSLessThanEqual(ctx.U1, src_thread_id, max_thread_id)};
+    const Id same_lane{ctx.OpINotEqual(ctx.U1, src_thread_id, thread_id)};
+    const Id is_value_being_shuffled{ctx.OpLogicalAnd(ctx.U1, in_range, same_lane)};
 
     if (ctx.profile.warp_size_potentially_larger_than_guest) {
         src_thread_id = AddPartitionBase(ctx, src_thread_id);
     }
 
-    SetInBoundsFlag(inst, in_range);
-    return SelectValue(ctx, in_range, value, src_thread_id);
+    SetInBoundsFlag(inst, is_value_being_shuffled);
+    return SelectValue(ctx, is_value_being_shuffled, value, src_thread_id);
 }
 
 Id EmitFSwizzleAdd(EmitContext& ctx, Id op_a, Id op_b, Id swizzle) {
