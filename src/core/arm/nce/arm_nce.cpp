@@ -40,11 +40,7 @@ constexpr u32 StackSize = 128_KiB;
 } // namespace
 
 void* ArmNce::RestoreGuestContext(void* raw_context) {
-    // Retrieve the host context.
-    auto& host_ctx = static_cast<ucontext_t*>(raw_context)->uc_mcontext;
-    // Retrieve the host floating point state.
-    auto* fpctx = GetFloatingPointState(host_ctx);
-
+    CTX_DECLARE(raw_context);
     // Restore all guest state except tpidr_el0.
     // Thread-local parameters will be located in x9.
     auto* tpidr = reinterpret_cast<NativeExecutionParameters*>(CTX_X(9));
@@ -66,12 +62,7 @@ void* ArmNce::RestoreGuestContext(void* raw_context) {
 }
 
 void ArmNce::SaveGuestContext(GuestContext* guest_ctx, void* raw_context) {
-    // Retrieve the host context.
-    auto& host_ctx = static_cast<ucontext_t*>(raw_context)->uc_mcontext;
-
-    // Retrieve the host floating point state.
-    auto* fpctx = GetFloatingPointState(host_ctx);
-
+    CTX_DECLARE(raw_context);
     // Save all guest registers except tpidr_el0.
     std::memcpy(guest_ctx->cpu_registers.data(), &CTX_X(0), sizeof(guest_ctx->cpu_registers));
     std::memcpy(guest_ctx->vector_registers.data(), &CTX_Q(0), sizeof(guest_ctx->vector_registers));
@@ -95,16 +86,15 @@ void ArmNce::SaveGuestContext(GuestContext* guest_ctx, void* raw_context) {
 }
 
 bool ArmNce::HandleFailedGuestFault(GuestContext* guest_ctx, void* raw_info, void* raw_context) {
-    auto& host_ctx = static_cast<ucontext_t*>(raw_context)->uc_mcontext;
+    CTX_DECLARE(raw_context);
     auto* info = static_cast<siginfo_t*>(raw_info);
 
     // We can't handle the access, so determine why we crashed.
-    const bool is_prefetch_abort = host_ctx.pc == reinterpret_cast<u64>(info->si_addr);
-
+    auto const is_prefetch_abort = CTX_PC == reinterpret_cast<u64>(info->si_addr);
     // For data aborts, skip the instruction and return to guest code.
     // This will allow games to continue in many scenarios where they would otherwise crash.
     if (!is_prefetch_abort) {
-        host_ctx.pc += 4;
+        CTX_PC += 4;
         return true;
     }
 
@@ -129,7 +119,7 @@ bool ArmNce::HandleGuestAlignmentFault(GuestContext* guest_ctx, void* raw_info, 
     auto& memory = guest_ctx->system->ApplicationMemory();
     // Match and execute an instruction.
     if (auto next_pc = MatchAndExecuteOneInstruction(memory, raw_context); next_pc) {
-        host_ctx.pc = *next_pc;
+        CTX_PC = *next_pc;
         return true;
     }
     // We couldn't handle the access.
