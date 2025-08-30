@@ -1383,7 +1383,7 @@ void Device::CollectPhysicalMemoryInfo() {
 
         if (Settings::values.vram_usage_mode.GetValue() != Settings::VramUsageMode::Aggressive) {
             // Account for resolution scaling in memory limits
-            const size_t normal_memory = 8_GiB;
+            const size_t normal_memory = 3_GiB;
             const size_t scaler_memory = 2_GiB * Settings::values.resolution_info.ScaleUp(1);
             device_access_memory =
                 std::min<u64>(device_access_memory, normal_memory + scaler_memory);
@@ -1393,7 +1393,7 @@ void Device::CollectPhysicalMemoryInfo() {
     }
     const s64 available_memory = static_cast<s64>(device_access_memory - device_initial_usage);
     device_access_memory = static_cast<u64>(std::max<s64>(
-        std::min<s64>(available_memory - 6_GiB, 5_GiB), std::min<s64>(local_memory, 5_GiB)));
+        std::min<s64>(available_memory - 8_GiB, 6_GiB), std::min<s64>(local_memory, 6_GiB)));
 }
 
 void Device::CollectToolingInfo() {
