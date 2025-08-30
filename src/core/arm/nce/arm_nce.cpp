@@ -86,7 +86,7 @@ void ArmNce::SaveGuestContext(GuestContext* guest_ctx, void* raw_context) {
     // Restore host callee-saved registers.
     std::memcpy(&CTX_X(19), guest_ctx->host_ctx.host_saved_regs.data(),
                 sizeof(guest_ctx->host_ctx.host_saved_regs));
-    std::memcpy(&fpctx->vregs[8], guest_ctx->host_ctx.host_saved_vregs.data(),
+    std::memcpy(&CTX_Q(8), guest_ctx->host_ctx.host_saved_vregs.data(),
                 sizeof(guest_ctx->host_ctx.host_saved_vregs));
     // Return from the call on exit by setting pc to x30.
     CTX_PC = guest_ctx->host_ctx.host_saved_regs[11];
@@ -125,17 +125,13 @@ bool ArmNce::HandleFailedGuestFault(GuestContext* guest_ctx, void* raw_info, voi
 }
 
 bool ArmNce::HandleGuestAlignmentFault(GuestContext* guest_ctx, void* raw_info, void* raw_context) {
-    auto& host_ctx = static_cast<ucontext_t*>(raw_context)->uc_mcontext;
-    auto* fpctx = GetFloatingPointState(host_ctx);
-    auto& memory = guest_ctx->parent->m_running_thread->GetOwnerProcess()->GetMemory();
-
+    CTX_DECLARE(raw_context);
+    auto& memory = guest_ctx->system->ApplicationMemory();
     // Match and execute an instruction.
-    auto next_pc = MatchAndExecuteOneInstruction(memory, &host_ctx);
-    if (next_pc) {
+    if (auto next_pc = MatchAndExecuteOneInstruction(memory, raw_context); next_pc) {
         host_ctx.pc = *next_pc;
         return true;
     }
-
     // We couldn't handle the access.
     return HandleFailedGuestFault(guest_ctx, raw_info, raw_context);
 }

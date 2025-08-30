@@ -7,6 +7,7 @@
 
 #include <numeric>
 #include "core/arm/nce/interpreter_visitor.h"
+#include "dynarmic/common/context.h"
 
 namespace Core {
 
@@ -761,7 +762,8 @@ bool InterpreterVisitor::LDR_reg_fpsimd(Imm<2> size, Imm<1> opc_1, Reg Rm, Imm<3
     return this->SIMDOffset(scale, shift, opc_0, Rm, option, Rn, Vt);
 }
 
-std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, mcontext_t* context) {
+std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, void* raw_context) {
+    CTX_DECLARE(raw_context);
     std::span<u64, 31> regs(reinterpret_cast<u64*>(&CTX_X(0)), 31);
     std::span<u128, 32> vregs(reinterpret_cast<u128*>(&CTX_Q(0)), 32);
     u64& sp = *reinterpret_cast<u64*>(&CTX_SP);
