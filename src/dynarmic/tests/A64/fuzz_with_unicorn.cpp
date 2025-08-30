@@ -28,7 +28,7 @@
 #include "dynarmic/frontend/A64/translate/a64_translate.h"
 #include "dynarmic/ir/basic_block.h"
 #include "dynarmic/ir/opcodes.h"
-#include "dynarmic/ir/opt/passes.h"
+#include "dynarmic/ir/opt_passes.h"
 
 // Must be declared last for all necessary operator<< to be declared prior to this.
 #include <fmt/format.h>
