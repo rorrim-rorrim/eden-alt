@@ -71,8 +71,8 @@ _ZN4Core6ArmNce37ReturnToRunCodeByExceptionLevelChangeEiPv:
     mov     x1, #(ReturnToRunCodeByExceptionLevelChangeSignal)
 #ifdef __APPLE__
     /* I can never be happy, why no tkill in mach kernel? Ugh ... */
-    /* Signature: 328 AUE_PTHREADKILL ALL { int __pthread_kill(int thread_port, int sig); } */
-    mov     x16, #328
+    /* Signature: 43040 AUE_PTHREADKILL ALL { int __pthread_kill(int thread_port, int sig); } */
+    mov     x16, #(43040)
 #else
     /* Signature: int tgkill(pid_t tgid, pid_t tid, int sig); */
     mov     x8, #(__NR_tkill)
