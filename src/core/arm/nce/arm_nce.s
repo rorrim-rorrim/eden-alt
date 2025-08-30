@@ -59,21 +59,20 @@ _ZN4Core6ArmNce27ReturnToRunCodeByTrampolineEPvPNS_12GuestContextEm:
 .global     _ZN4Core6ArmNce37ReturnToRunCodeByExceptionLevelChangeEiPv
 _ZN4Core6ArmNce37ReturnToRunCodeByExceptionLevelChangeEiPv:
     /* This jumps to the signal handler, which will restore the entire context. */
-    /* On entry, x0 = thread id, which is already in the right place. */
-
+    /* On entry, x0 = thread id, which is already in the right place. Even on macOS. */
     /* Move tpidr to x9 so it is not trampled. */
     mov     x9, x1
-
-    /* Set up arguments. */
-    mov     x8, #(__NR_tkill)
     mov     x1, #(ReturnToRunCodeByExceptionLevelChangeSignal)
-
-    /* Tail call the signal handler. */
-    svc     #0
-
-    /* Block execution from flowing here. */
-    brk     #1000
-
+#ifdef __APPLE__
+    /* I can never be happy, why no tkill in mach kernel? Ugh ... */
+    /* Signature: 328 AUE_PTHREADKILL ALL { int __pthread_kill(int thread_port, int sig); } */
+    mov     x16, #328
+#else
+    /* Signature: int tgkill(pid_t tgid, pid_t tid, int sig); */
+    mov     x8, #(__NR_tkill)
+#endif
+    svc     #0              /* Tail call the signal handler. */
+    brk     #1000           /* Block execution from flowing here. */
 
 /* static void Core::ArmNce::ReturnToRunCodeByExceptionLevelChangeSignalHandler(int sig, void* info, void* raw_context) */
 #ifndef __APPLE__
