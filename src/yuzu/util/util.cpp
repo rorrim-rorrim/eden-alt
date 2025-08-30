@@ -138,7 +138,7 @@ bool SaveIconToFile(const std::filesystem::path& icon_path, const QImage& image)
     icon_file.Close();
 
     return true;
-#elif defined(__linux__) || defined(__FreeBSD__)
+#elif defined(__unix__) && !defined(__APPLE__) && !defined(__ANDROID__)
     // Convert and write the icon as a PNG
     if (!image.save(QString::fromStdString(icon_path.string()))) {
         LOG_ERROR(Frontend, "Could not write icon as PNG to file");
