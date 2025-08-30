@@ -17,13 +17,13 @@
 #endif
 
 #ifndef MCL_ARCHITECTURE_RISCV
-#   ifndef __OpenBSD__
+#   ifdef __OpenBSD__
+#       define CTX_DECLARE(raw_context) ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(raw_context);
+#   else
 #       define CTX_DECLARE(raw_context) \
         ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(raw_context);  \
-        auto& mctx = reinterpret_cast<ucontext_t*>(raw_context)->uc_mcontext; \
+        [[maybe_unused]] auto& mctx = reinterpret_cast<ucontext_t*>(raw_context)->uc_mcontext; \
         [[maybe_unused]] const auto fpctx = GetFloatingPointState(mctx);
-#   else
-#       define CTX_DECLARE(raw_context) ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(raw_context);
 #   endif
 #endif
 
@@ -54,7 +54,7 @@
 #        define CTX_PC (mctx->__ss.__pc)
 #        define CTX_SP (mctx->__ss.__sp)
 #        define CTX_LR (mctx->__ss.__lr)
-#        define CTX_LR (mctx->__ss.__pstate)
+#        define CTX_PSTATE (mctx->__ss.__pstate)
 #        define CTX_X(i) (mctx->__ss.__x[i])
 #        define CTX_Q(i) (mctx->__ns.__v[i])
 #        define CTX_FPSR(i) (mctx->__ns.__fpsr)
@@ -63,7 +63,7 @@
 #        define CTX_PC (mctx.pc)
 #        define CTX_SP (mctx.sp)
 #        define CTX_LR (mctx.regs[30])
-#        define CTX_SP (mctx.pstate)
+#        define CTX_PSTATE (mctx.pstate)
 #        define CTX_X(i) (mctx.regs[i])
 #        define CTX_Q(i) (fpctx->vregs[i])
 #    elif defined(__FreeBSD__)
