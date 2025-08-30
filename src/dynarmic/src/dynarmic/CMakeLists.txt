@@ -56,8 +56,6 @@ add_library(dynarmic
     common/lut_from_list.h
     common/math_util.cpp
     common/math_util.h
-    common/memory_pool.cpp
-    common/memory_pool.h
     common/safe_ops.h
     common/spin_lock.h
     common/string_util.h
@@ -78,7 +76,6 @@ add_library(dynarmic
     ir/basic_block.cpp
     ir/basic_block.h
     ir/cond.h
-    ir/ir_emitter.cpp
     ir/ir_emitter.h
     ir/location_descriptor.cpp
     ir/location_descriptor.h
@@ -87,77 +84,58 @@ add_library(dynarmic
     ir/opcodes.cpp
     ir/opcodes.h
     ir/opcodes.inc
-    ir/opt/constant_propagation_pass.cpp
-    ir/opt/dead_code_elimination_pass.cpp
-    ir/opt/identity_removal_pass.cpp
-    ir/opt/ir_matcher.h
-    ir/opt/naming_pass.cpp
-    ir/opt/passes.h
-    ir/opt/polyfill_pass.cpp
-    ir/opt/verification_pass.cpp
+    ir/opt_passes.cpp
+    ir/opt_passes.h
     ir/terminal.h
     ir/type.cpp
     ir/type.h
     ir/value.cpp
     ir/value.h
+    # A32
+    frontend/A32/a32_ir_emitter.cpp
+    frontend/A32/a32_ir_emitter.h
+    frontend/A32/a32_location_descriptor.cpp
+    frontend/A32/a32_location_descriptor.h
+    frontend/A32/decoder/arm.h
+    frontend/A32/decoder/arm.inc
+    frontend/A32/decoder/asimd.h
+    frontend/A32/decoder/asimd.inc
+    frontend/A32/decoder/thumb16.h
+    frontend/A32/decoder/thumb16.inc
+    frontend/A32/decoder/thumb32.h
+    frontend/A32/decoder/thumb32.inc
+    frontend/A32/decoder/vfp.h
+    frontend/A32/decoder/vfp.inc
+    frontend/A32/disassembler/disassembler.h
+    frontend/A32/disassembler/disassembler_arm.cpp
+    frontend/A32/disassembler/disassembler_thumb.cpp
+    frontend/A32/FPSCR.h
+    frontend/A32/ITState.h
+    frontend/A32/PSR.h
+    frontend/A32/translate/a32_translate.cpp
+    frontend/A32/translate/a32_translate.h
+    frontend/A32/translate/conditional_state.cpp
+    frontend/A32/translate/conditional_state.h
+    frontend/A32/translate/translate_arm.cpp
+    frontend/A32/translate/translate_thumb.cpp
+    interface/A32/a32.h
+    interface/A32/arch_version.h
+    interface/A32/config.h
+    interface/A32/coprocessor.h
+    interface/A32/coprocessor_util.h
+    interface/A32/disassembler.h
+    # A64
+    frontend/A64/a64_ir_emitter.cpp
+    frontend/A64/a64_ir_emitter.h
+    frontend/A64/a64_location_descriptor.cpp
+    frontend/A64/a64_location_descriptor.h
+    frontend/A64/decoder/a64.h
+    frontend/A64/decoder/a64.inc
+    frontend/A64/translate/a64_translate.cpp
+    frontend/A64/translate/a64_translate.h
+    interface/A64/a64.h
+    interface/A64/config.h
 )
-
-if ("A32" IN_LIST DYNARMIC_FRONTENDS)
-    target_sources(dynarmic PRIVATE
-        frontend/A32/a32_ir_emitter.cpp
-        frontend/A32/a32_ir_emitter.h
-        frontend/A32/a32_location_descriptor.cpp
-        frontend/A32/a32_location_descriptor.h
-        frontend/A32/decoder/arm.h
-        frontend/A32/decoder/arm.inc
-        frontend/A32/decoder/asimd.h
-        frontend/A32/decoder/asimd.inc
-        frontend/A32/decoder/thumb16.h
-        frontend/A32/decoder/thumb16.inc
-        frontend/A32/decoder/thumb32.h
-        frontend/A32/decoder/thumb32.inc
-        frontend/A32/decoder/vfp.h
-        frontend/A32/decoder/vfp.inc
-        frontend/A32/disassembler/disassembler.h
-        frontend/A32/disassembler/disassembler_arm.cpp
-        frontend/A32/disassembler/disassembler_thumb.cpp
-        frontend/A32/FPSCR.h
-        frontend/A32/ITState.h
-        frontend/A32/PSR.h
-        frontend/A32/translate/a32_translate.cpp
-        frontend/A32/translate/a32_translate.h
-        frontend/A32/translate/conditional_state.cpp
-        frontend/A32/translate/conditional_state.h
-        frontend/A32/translate/translate_arm.cpp
-        frontend/A32/translate/translate_thumb.cpp
-        interface/A32/a32.h
-        interface/A32/arch_version.h
-        interface/A32/config.h
-        interface/A32/coprocessor.h
-        interface/A32/coprocessor_util.h
-        interface/A32/disassembler.h
-        ir/opt/a32_constant_memory_reads_pass.cpp
-        ir/opt/a32_get_set_elimination_pass.cpp
-    )
-endif()
-
-if ("A64" IN_LIST DYNARMIC_FRONTENDS)
-    target_sources(dynarmic PRIVATE
-        frontend/A64/a64_ir_emitter.cpp
-        frontend/A64/a64_ir_emitter.h
-        frontend/A64/a64_location_descriptor.cpp
-        frontend/A64/a64_location_descriptor.h
-        frontend/A64/decoder/a64.h
-        frontend/A64/decoder/a64.inc
-        frontend/A64/translate/a64_translate.cpp
-        frontend/A64/translate/a64_translate.h
-        interface/A64/a64.h
-        interface/A64/config.h
-        ir/opt/a64_callback_config_pass.cpp
-        ir/opt/a64_get_set_elimination_pass.cpp
-        ir/opt/a64_merge_interpret_blocks.cpp
-    )
-endif()
 
 if ("x86_64" IN_LIST ARCHITECTURE)
     # Newer versions of xbyak (>= 7.25.0) have stricter checks that currently
@@ -215,29 +193,21 @@ if ("x86_64" IN_LIST ARCHITECTURE)
         common/spin_lock_x64.h
         common/x64_disassemble.cpp
         common/x64_disassemble.h
+        # A32
+        backend/x64/a32_emit_x64.cpp
+        backend/x64/a32_emit_x64.h
+        backend/x64/a32_emit_x64_memory.cpp
+        backend/x64/a32_interface.cpp
+        backend/x64/a32_jitstate.cpp
+        backend/x64/a32_jitstate.h
+        # A64
+        backend/x64/a64_emit_x64.cpp
+        backend/x64/a64_emit_x64.h
+        backend/x64/a64_emit_x64_memory.cpp
+        backend/x64/a64_interface.cpp
+        backend/x64/a64_jitstate.cpp
+        backend/x64/a64_jitstate.h
     )
-
-    if ("A32" IN_LIST DYNARMIC_FRONTENDS)
-        target_architecture_specific_sources(dynarmic "x86_64"
-            backend/x64/a32_emit_x64.cpp
-            backend/x64/a32_emit_x64.h
-            backend/x64/a32_emit_x64_memory.cpp
-            backend/x64/a32_interface.cpp
-            backend/x64/a32_jitstate.cpp
-            backend/x64/a32_jitstate.h
-        )
-    endif()
-
-    if ("A64" IN_LIST DYNARMIC_FRONTENDS)
-        target_architecture_specific_sources(dynarmic "x86_64"
-            backend/x64/a64_emit_x64.cpp
-            backend/x64/a64_emit_x64.h
-            backend/x64/a64_emit_x64_memory.cpp
-            backend/x64/a64_interface.cpp
-            backend/x64/a64_jitstate.cpp
-            backend/x64/a64_jitstate.h
-        )
-    endif()
 endif()
 
 if ("arm64" IN_LIST ARCHITECTURE)
@@ -281,25 +251,17 @@ if ("arm64" IN_LIST ARCHITECTURE)
         backend/arm64/verbose_debugging_output.h
         common/spin_lock_arm64.cpp
         common/spin_lock_arm64.h
+        # A32
+        backend/arm64/a32_address_space.cpp
+        backend/arm64/a32_address_space.h
+        backend/arm64/a32_core.h
+        backend/arm64/a32_interface.cpp
+        # A64
+        backend/arm64/a64_address_space.cpp
+        backend/arm64/a64_address_space.h
+        backend/arm64/a64_core.h
+        backend/arm64/a64_interface.cpp
     )
-
-    if ("A32" IN_LIST DYNARMIC_FRONTENDS)
-        target_architecture_specific_sources(dynarmic "arm64"
-            backend/arm64/a32_address_space.cpp
-            backend/arm64/a32_address_space.h
-            backend/arm64/a32_core.h
-            backend/arm64/a32_interface.cpp
-        )
-    endif()
-
-    if ("A64" IN_LIST DYNARMIC_FRONTENDS)
-        target_architecture_specific_sources(dynarmic "arm64"
-            backend/arm64/a64_address_space.cpp
-            backend/arm64/a64_address_space.h
-            backend/arm64/a64_core.h
-            backend/arm64/a64_interface.cpp
-        )
-    endif()
 endif()
 
 if ("riscv" IN_LIST ARCHITECTURE)
@@ -328,21 +290,14 @@ if ("riscv" IN_LIST ARCHITECTURE)
         backend/riscv64/reg_alloc.cpp
         backend/riscv64/reg_alloc.h
         backend/riscv64/stack_layout.h
+        # A32
+        backend/riscv64/a32_address_space.cpp
+        backend/riscv64/a32_address_space.h
+        backend/riscv64/a32_core.h
+        backend/riscv64/a32_interface.cpp
+        backend/riscv64/code_block.h
     )
-
-    if ("A32" IN_LIST DYNARMIC_FRONTENDS)
-        target_sources(dynarmic PRIVATE
-            backend/riscv64/a32_address_space.cpp
-            backend/riscv64/a32_address_space.h
-            backend/riscv64/a32_core.h
-            backend/riscv64/a32_interface.cpp
-            backend/riscv64/code_block.h
-        )
-    endif()
-
-    if ("A64" IN_LIST DYNARMIC_FRONTENDS)
-        message(FATAL_ERROR "TODO: Unimplemented frontend for this host architecture")
-    endif()
+    message(FATAL_ERROR "TODO: Unimplemented frontend for this host architecture")
 endif()
 
 if (WIN32)

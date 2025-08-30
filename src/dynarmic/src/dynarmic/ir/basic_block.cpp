@@ -15,8 +15,6 @@
 
 #include <fmt/format.h>
 #include "dynarmic/common/assert.h"
-
-#include "dynarmic/common/memory_pool.h"
 #include "dynarmic/frontend/A32/a32_types.h"
 #include "dynarmic/frontend/A64/a64_types.h"
 #include "dynarmic/ir/cond.h"
@@ -27,8 +25,7 @@ namespace Dynarmic::IR {
 Block::Block(const LocationDescriptor& location)
     : location{location},
     end_location{location},
-    cond{Cond::AL},
-    instruction_alloc_pool{std::make_unique<std::remove_reference_t<decltype(*instruction_alloc_pool)>>()}
+    cond{Cond::AL}
 {
 
 }
@@ -40,7 +37,7 @@ Block::Block(const LocationDescriptor& location)
 /// @param args            A sequence of Value instances used as arguments for the instruction.
 /// @returns Iterator to the newly created instruction.
 Block::iterator Block::PrependNewInst(iterator insertion_point, Opcode opcode, std::initializer_list<Value> args) noexcept {
-    IR::Inst* inst = new (instruction_alloc_pool->Alloc()) IR::Inst(opcode);
+    IR::Inst* inst = new IR::Inst(opcode);
     DEBUG_ASSERT(args.size() == inst->NumArgs());
     std::for_each(args.begin(), args.end(), [&inst, index = size_t(0)](const auto& arg) mutable {
         inst->SetArg(index, arg);

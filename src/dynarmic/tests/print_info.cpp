@@ -34,7 +34,7 @@
 #include "dynarmic/interface/A32/a32.h"
 #include "dynarmic/interface/A32/disassembler.h"
 #include "dynarmic/ir/basic_block.h"
-#include "dynarmic/ir/opt/passes.h"
+#include "dynarmic/ir/opt_passes.h"
 
 using namespace Dynarmic;
 
