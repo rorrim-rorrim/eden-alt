@@ -162,7 +162,7 @@ public:
     /**
      * @returns A unique identifier for the Setting's internal data type.
      */
-    [[nodiscard]] virtual std::type_index TypeId() const = 0;
+    [[nodiscard]] virtual std::string_view TypeId() const = 0;
 
     /**
      * Returns true if the Setting's internal data type is an enum.
