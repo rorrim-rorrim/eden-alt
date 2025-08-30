@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-FileCopyrightText: Copyright 2014 The Android Open Source Project
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -938,8 +941,6 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         break;
     }
     case TransactionId::GetBufferHistory: {
-        LOG_WARNING(Service_Nvnflinger, "called, transaction=GetBufferHistory");
-
         std::scoped_lock lock{core->mutex};
 
         auto buffer_history_count = std::min(parcel_in.Read<s32>(), (s32)core->history.size());
@@ -955,9 +956,6 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         auto pos = position;
         for (int i = 0; i < buffer_history_count; i++) {
             info[i] = core->history[(pos - i) % core->history.size()];
-            LOG_WARNING(Service_Nvnflinger, "frame_number={}, state={}",
-                        core->history[(pos - i) % core->history.size()].frame_number,
-                        (u32)core->history[(pos - i) % core->history.size()].state);
             pos--;
         }
 

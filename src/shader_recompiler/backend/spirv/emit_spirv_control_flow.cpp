@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,7 +15,7 @@ void EmitJoin(EmitContext&) {
 
 void EmitDemoteToHelperInvocation(EmitContext& ctx) {
     if (ctx.profile.support_demote_to_helper_invocation) {
-        ctx.OpDemoteToHelperInvocationEXT();
+        //ctx.OpDemoteToHelperInvocation();
     } else {
         const Id kill_label{ctx.OpLabel()};
         const Id impossible_label{ctx.OpLabel()};

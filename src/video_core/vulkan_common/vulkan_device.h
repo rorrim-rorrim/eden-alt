@@ -356,6 +356,7 @@ public:
 
     /// Returns true if the device can be forced to use the guest warp size.
     bool IsGuestWarpSizeSupported(VkShaderStageFlagBits stage) const {
+        return properties.subgroup_size_control.minSubgroupSize <= 32;
         return properties.subgroup_size_control.requiredSubgroupSizeStages & stage;
     }
 

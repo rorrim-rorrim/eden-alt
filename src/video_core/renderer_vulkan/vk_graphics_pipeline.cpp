@@ -894,11 +894,10 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
                 .pName = "main",
                 .pSpecializationInfo = nullptr,
             });
-        /*
-        if (program[stage]->entries.uses_warps && device.IsGuestWarpSizeSupported(stage_ci.stage)) {
+        if (device.IsGuestWarpSizeSupported(stage_ci.stage) && (stage_infos[stage].uses_subgroup_invocation_id || stage_infos[stage].uses_subgroup_shuffles)) {
+            LOG_INFO(Render_Vulkan, "Forcing subgroupsize to 32");
             stage_ci.pNext = &subgroup_size_ci;
         }
-        */
     }
     VkPipelineCreateFlags flags{};
     if (device.IsKhrPipelineExecutablePropertiesEnabled() && Settings::values.renderer_debug.GetValue()) {
