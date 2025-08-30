@@ -20,6 +20,7 @@
 #include <signal.h>
 #include <sys/syscall.h>
 #include <unistd.h>
+#include <pthread.h>
 
 namespace Core {
 
