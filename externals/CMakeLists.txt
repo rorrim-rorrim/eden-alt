@@ -147,10 +147,8 @@ add_subdirectory(nx_tzdb)
 # VMA
 AddJsonPackage(vulkan-memory-allocator)
 
-# sadness
-if (VulkanMemoryAllocator_ADDED)
-    set(VulkanMemoryAllocator_ADDED ON PARENT_SCOPE)
-    set(VulkanMemoryAllocator_SOURCE_DIR "${VulkanMemoryAllocator_SOURCE_DIR}" PARENT_SCOPE)
+if (VulkanMemoryAllocator_ADDED AND MSVC)
+    target_compile_options(VulkanMemoryAllocator INTERFACE /wd4189)
 endif()
 
 if (NOT TARGET LLVM::Demangle)
