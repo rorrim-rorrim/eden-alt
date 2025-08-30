@@ -414,6 +414,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
               "\nThis may improve loading speed but risks data corruption or invalid files going "
               "undetected.\n"
               "Is necessary to make games and updates work that needs firmware 20+."));
+    INSERT(Settings, hide_nca_verification_popup, tr("Hide NCA Verification Popup"),
+           tr("Hides the NCA verifcation warning popup on startup."));
 
     // Controls
 

@@ -425,6 +425,7 @@ private slots:
     void OnCaptureScreenshot();
     void OnCheckFirmwareDecryption();
     void OnCheckFirmware();
+    void OnCheckNcaVerification();
     void OnLanguageChanged(const QString& locale);
     void OnMouseActivity();
     bool OnShutdownBegin();
