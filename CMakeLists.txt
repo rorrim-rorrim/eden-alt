@@ -349,6 +349,16 @@ if (PLATFORM_LINUX OR CXX_CLANG)
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv9-a -mtune=generic")
         endif()
     endif()
+elseif (ANDROID OR PLATFORM_FREEBSD OR PLATFORM_OPENBSD OR PLATFORM_SUN)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        # libc++ has stop_token and jthread as experimental
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexperimental-library")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fexperimental-library")
+    else()
+        # Uses glibc, mostly?
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_LIBCPP_ENABLE_EXPERIMENTAL=1")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_LIBCPP_ENABLE_EXPERIMENTAL=1")
+    endif()
 endif()
 
 # Other presets, e.g. steamdeck

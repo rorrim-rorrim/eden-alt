@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2010 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -99,7 +102,7 @@ public:
     T PopWait(std::stop_token stop_token) {
         if (Empty()) {
             std::unique_lock lock{cv_mutex};
-            Common::CondvarWait(cv, lock, stop_token, [this] { return !Empty(); });
+            cv.wait(lock, stop_token, [this] { return !Empty(); });
         }
         if (stop_token.stop_requested()) {
             return T{};
