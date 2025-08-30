@@ -95,7 +95,7 @@
 
 #ifdef __APPLE__
 inline _STRUCT_ARM_NEON_STATE64* GetFloatingPointState(mcontext_t& host_ctx) {
-    return &(host_ctx.__ns);
+    return &(host_ctx->__ns);
 }
 #else
 inline fpsimd_context* GetFloatingPointState(mcontext_t& host_ctx) {
