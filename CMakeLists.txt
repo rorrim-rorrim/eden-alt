@@ -314,7 +314,7 @@ if (UNIX)
     add_definitions(-DYUZU_UNIX=1)
 endif()
 
-if (ARCHITECTURE_arm64 AND (ANDROID OR PLATFORM_LINUX))
+if (ARCHITECTURE_arm64 AND (ANDROID OR APPLE OR PLATFORM_LINUX))
     set(HAS_NCE 1)
     add_definitions(-DHAS_NCE=1)
 endif()
