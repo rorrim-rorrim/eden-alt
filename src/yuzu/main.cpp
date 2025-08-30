@@ -4705,11 +4705,6 @@ void GMainWindow::OnOpenControllerMenu() {
 void GMainWindow::OnHomeMenu() {
     auto result = FirmwareManager::VerifyFirmware(*system.get());
 
-    // FirmwareGood,
-    // ErrorFirmwareMissing,
-    // ErrorFirmwareCorrupted,
-    // ErrorFirmwareTooNew,
-
     switch (result) {
     case FirmwareManager::ErrorFirmwareMissing:
         QMessageBox::warning(this, tr("No firmware available"),
