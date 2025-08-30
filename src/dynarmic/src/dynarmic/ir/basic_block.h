@@ -21,7 +21,6 @@
 #include "dynarmic/ir/terminal.h"
 #include "dynarmic/ir/value.h"
 #include "dynarmic/ir/dense_list.h"
-#include "dynarmic/common/memory_pool.h"
 
 namespace Dynarmic::IR {
 
@@ -174,8 +173,6 @@ private:
     LocationDescriptor end_location;
     /// Conditional to pass in order to execute this block
     Cond cond;
-    /// Memory pool for instruction list
-    std::unique_ptr<Common::Pool<sizeof(Inst), 2097152UL / sizeof(Inst)>> instruction_alloc_pool;
     /// Terminal instruction of this block.
     Terminal terminal = Term::Invalid{};
     /// Number of cycles this block takes to execute if the conditional fails.
