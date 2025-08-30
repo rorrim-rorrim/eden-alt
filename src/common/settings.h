@@ -628,6 +628,8 @@ struct Values {
         linkage, "Eden", "device_name", Category::System, Specialization::Default, true, true};
     SwitchableSetting<bool> disable_nca_verification{linkage, true, "disable_nca_verification",
                                                      Category::System, Specialization::Default};
+    SwitchableSetting<bool> hide_nca_verification_popup{
+        linkage, false, "hide_nca_verification_popup", Category::System, Specialization::Default};
 
     Setting<s32> current_user{linkage, 0, "current_user", Category::System};
 

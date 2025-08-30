@@ -553,6 +553,8 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     // Gen keys if necessary
     OnCheckFirmwareDecryption();
 
+    OnCheckNcaVerification();
+
     game_list->LoadCompatibilityList();
     // force reload on first load to ensure add-ons get updated
     game_list->PopulateAsync(UISettings::values.game_dirs, false);
@@ -5265,6 +5267,36 @@ void GMainWindow::OnCheckFirmwareDecryption() {
     UpdateMenuState();
 }
 
+void GMainWindow::OnCheckNcaVerification() {
+    if (!Settings::values.disable_nca_verification.GetValue())
+        return;
+
+    const bool currently_hidden = Settings::values.hide_nca_verification_popup.GetValue();
+    LOG_INFO(Frontend, "NCA Verification is disabled. Popup State={}", currently_hidden);
+    if (currently_hidden)
+        return;
+
+    QMessageBox msgbox(this);
+    msgbox.setWindowTitle(tr("NCA Verification Disabled"));
+    msgbox.setText(tr("NCA Verification is now disabled. This feature is required to run new "
+                      "games and updates. Please ensure you are loading trusted NCA files into "
+                      "the emulator, or re-enable verification in Eden's Settings if unsure."));
+    msgbox.setIcon(QMessageBox::Warning);
+    msgbox.setStandardButtons(QMessageBox::Ok);
+    msgbox.setDefaultButton(QMessageBox::Ok);
+
+    QCheckBox* cb = new QCheckBox(tr("Don't show this message again"), &msgbox);
+    cb->setChecked(currently_hidden);
+    msgbox.setCheckBox(cb);
+
+    msgbox.exec();
+
+    const bool hide = cb->isChecked();
+    if (hide != currently_hidden) {
+        Settings::values.hide_nca_verification_popup.SetValue(hide);
+    }
+}
+
 bool GMainWindow::CheckFirmwarePresence() {
     return FirmwareManager::CheckFirmwarePresence(*system.get());
 }
@@ -5285,7 +5317,7 @@ void GMainWindow::SetFirmwareVersion() {
     const std::string display_version(firmware_data.display_version.data());
     const std::string display_title(firmware_data.display_title.data());
 
-    LOG_INFO(Frontend, "Installed firmware: {}", display_title);
+    LOG_INFO(Frontend, "Installed firmware: {}", display_version);
 
     firmware_label->setText(QString::fromStdString(display_version));
     firmware_label->setToolTip(QString::fromStdString(display_title));
