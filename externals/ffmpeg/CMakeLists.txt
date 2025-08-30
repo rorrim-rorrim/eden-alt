@@ -1,6 +1,10 @@
 # SPDX-FileCopyrightText: 2021 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+# Explicitly include CPMUtil here since we have a separate cpmfile for ffmpeg
+set(CPMUTIL_JSON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json)
+include(CPMUtil)
+
 if (NOT WIN32 AND NOT ANDROID)
     # Build FFmpeg from externals
     message(STATUS "Using FFmpeg from externals")
@@ -19,13 +23,7 @@ if (NOT WIN32 AND NOT ANDROID)
         message(FATAL_ERROR "Required program `autoconf` not found.")
     endif()
 
-    AddPackage(
-        NAME ffmpeg
-        REPO "FFmpeg/FFmpeg"
-        SHA c2184b65d2
-        HASH 2a89d664119debbb3c006ab1c48d5d7f26e889f4a65ad2e25c8b0503308295123d5a9c5c78bf683aef5ff09acef8c3fc2837f22d3e8c611528b933bf03bcdd97
-        SYSTEM_PACKAGE OFF
-    )
+    AddJsonPackage(ffmpeg)
 
     set(FFmpeg_PREFIX ${ffmpeg_SOURCE_DIR})
     set(FFmpeg_BUILD_DIR ${ffmpeg_BINARY_DIR})
@@ -65,32 +63,44 @@ if (NOT WIN32 AND NOT ANDROID)
     set(FFmpeg_HWACCEL_INCLUDE_DIRS)
     set(FFmpeg_HWACCEL_LDFLAGS)
 
-    if(LIBVA_FOUND)
+    # In Solaris needs explicit linking for ffmpeg which links to /lib/amd64/libX11.so
+    if(PLATFORM_SUN)
+        list(APPEND FFmpeg_HWACCEL_LIBRARIES
+            X11
+            "/usr/lib/xorg/amd64/libdrm.so")
+    else()
         pkg_check_modules(LIBDRM libdrm REQUIRED)
+        list(APPEND FFmpeg_HWACCEL_LIBRARIES
+            ${LIBDRM_LIBRARIES})
+        list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS
+            ${LIBDRM_INCLUDE_DIRS})
+    endif()
+    list(APPEND FFmpeg_HWACCEL_FLAGS
+        --enable-libdrm)
+
+    if(LIBVA_FOUND)
         find_package(X11 REQUIRED)
         pkg_check_modules(LIBVA-DRM libva-drm REQUIRED)
         pkg_check_modules(LIBVA-X11 libva-x11 REQUIRED)
         list(APPEND FFmpeg_HWACCEL_LIBRARIES
-            ${LIBDRM_LIBRARIES}
             ${X11_LIBRARIES}
             ${LIBVA-DRM_LIBRARIES}
             ${LIBVA-X11_LIBRARIES}
             ${LIBVA_LIBRARIES})
-        set(FFmpeg_HWACCEL_FLAGS
+        list(APPEND FFmpeg_HWACCEL_FLAGS
             --enable-hwaccel=h264_vaapi
             --enable-hwaccel=vp8_vaapi
-            --enable-hwaccel=vp9_vaapi
-            --enable-libdrm)
+            --enable-hwaccel=vp9_vaapi)
         list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS
-            ${LIBDRM_INCLUDE_DIRS}
             ${X11_INCLUDE_DIRS}
             ${LIBVA-DRM_INCLUDE_DIRS}
             ${LIBVA-X11_INCLUDE_DIRS}
             ${LIBVA_INCLUDE_DIRS}
         )
-        message(STATUS "VA-API found")
+        message(STATUS "ffmpeg: va-api libraries version ${LIBVA_VERSION} found")
     else()
-        set(FFmpeg_HWACCEL_FLAGS --disable-vaapi)
+        list(APPEND FFmpeg_HWACCEL_FLAGS --disable-vaapi)
+        message(WARNING "ffmpeg: libva-dev not found, disabling Video Aceleraion API (VA-API)...")
     endif()
 
     if (FFNVCODEC_FOUND)
@@ -105,7 +115,7 @@ if (NOT WIN32 AND NOT ANDROID)
         list(APPEND FFmpeg_HWACCEL_LIBRARIES ${FFNVCODEC_LIBRARIES})
         list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS ${FFNVCODEC_INCLUDE_DIRS})
         list(APPEND FFmpeg_HWACCEL_LDFLAGS ${FFNVCODEC_LDFLAGS})
-        message(STATUS "ffnvcodec libraries version ${FFNVCODEC_VERSION} found")
+        message(STATUS "ffmpeg: ffnvcodec libraries version ${FFNVCODEC_VERSION} found")
         # ffnvenc could load CUDA libraries at the runtime using dlopen/dlsym or LoadLibrary/GetProcAddress
         # here we handle the hard-linking senario where CUDA is linked during compilation
         if (CUDA_FOUND)
@@ -114,7 +124,7 @@ if (NOT WIN32 AND NOT ANDROID)
             list(APPEND FFmpeg_HWACCEL_LIBRARIES ${CUDA_LIBRARIES})
             list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS ${CUDA_INCLUDE_DIRS})
             list(APPEND FFmpeg_HWACCEL_LDFLAGS ${CUDA_LDFLAGS})
-            message(STATUS "CUDA libraries found, hard-linking will be performed")
+            message(STATUS "ffmpeg: CUDA libraries found, hard-linking will be performed")
         endif(CUDA_FOUND)
     endif()
 
@@ -127,9 +137,10 @@ if (NOT WIN32 AND NOT ANDROID)
         list(APPEND FFmpeg_HWACCEL_LIBRARIES ${VDPAU_LIBRARIES})
         list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS ${VDPAU_INCLUDE_DIRS})
         list(APPEND FFmpeg_HWACCEL_LDFLAGS ${VDPAU_LDFLAGS})
-        message(STATUS "vdpau libraries version ${VDPAU_VERSION} found")
+        message(STATUS "ffmpeg: vdpau libraries version ${VDPAU_VERSION} found")
     else()
         list(APPEND FFmpeg_HWACCEL_FLAGS --disable-vdpau)
+        message(WARNING "ffmpeg: libvdpau-dev not found, disabling Video Decode and Presentation API for Unix (VDPAU)...")
     endif()
 
     find_program(BASH_PROGRAM bash REQUIRED)

@@ -308,10 +308,7 @@ struct Values {
                                         true,
 #endif
                                         "cpuopt_unsafe_host_mmu",
-                                        Category::CpuUnsafe,
-                                        Specialization::Default,
-                                                 true,
-                                                 true};
+                                        Category::CpuUnsafe};
     SwitchableSetting<bool> cpuopt_unsafe_unfuse_fma{linkage, true, "cpuopt_unsafe_unfuse_fma",
                                                      Category::CpuUnsafe};
     SwitchableSetting<bool> cpuopt_unsafe_reduce_fp_error{
@@ -761,7 +758,7 @@ struct Values {
 
     // Miscellaneous
     Setting<std::string> log_filter{linkage, "*:Info", "log_filter", Category::Miscellaneous};
-    Setting<bool> log_flush_lines{linkage, false, "flush_lines", Category::Miscellaneous, Specialization::Default, true, true};
+    Setting<bool> log_flush_line{linkage, false, "flush_line", Category::Miscellaneous, Specialization::Default, true, true};
     Setting<bool> censor_username{linkage, true, "censor_username", Category::Miscellaneous};
     Setting<bool> use_dev_keys{linkage, false, "use_dev_keys", Category::Miscellaneous};
     Setting<bool> first_launch{linkage, true, "first_launch", Category::Miscellaneous};
