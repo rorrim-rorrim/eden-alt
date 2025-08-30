@@ -95,6 +95,10 @@ if (MSVC)
         /wd4324 # 'struct_name': structure was padded due to __declspec(align())
         /wd4201 # nonstandard extension used : nameless struct/union
         /wd4702 # unreachable code (when used with LTO)
+
+        $<$<CONFIG:Release>:/GS->   # No stack buffer overflow checks
+        /Gy                         # Enable function level linking
+        /GR-                        # Disable run time type information
     )
 
     if (USE_CCACHE OR YUZU_USE_PRECOMPILED_HEADERS)
@@ -112,14 +116,13 @@ if (MSVC)
         add_compile_options(/QIntel-jcc-erratum)
     endif()
 
-    # /GS- - No stack buffer overflow checks
-    add_compile_options("$<$<CONFIG:Release>:/GS->")
-
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG   "/DEBUG /MANIFEST:NO" CACHE STRING "" FORCE)
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/DEBUG /MANIFEST:NO /INCREMENTAL:NO /OPT:REF,ICF" CACHE STRING "" FORCE)
 else()
     add_compile_options(
         -fwrapv
+        -fno-rtti # Disable RTTI
+        -pipe
 
         -Werror=all
         -Werror=extra
