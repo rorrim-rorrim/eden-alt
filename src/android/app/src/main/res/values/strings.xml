@@ -474,6 +474,8 @@
     <string name="use_custom_rtc">Custom RTC</string>
     <string name="use_custom_rtc_description">Allows you to set a custom real-time clock separate from your current system time.</string>
     <string name="set_custom_rtc">Set custom RTC</string>
+    <string name="disable_nca_verification">Disable NCA Verification</string>
+    <string name="disable_nca_verification_description">Disables integrity verification of NCA content archives. This may improve loading speed but risks data corruption or invalid files going undetected. Is necessary to make games and updates work that needs firmware 20+.</string>
 
     <string name="generate">Generate</string>
 
