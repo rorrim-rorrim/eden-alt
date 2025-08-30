@@ -245,9 +245,51 @@ ArmNce::ArmNce(System& system, bool uses_wall_clock, std::size_t core_index)
 
 ArmNce::~ArmNce() = default;
 
+// Borrowed from libusb
+static unsigned int posix_gettid(void) {
+    static _Thread_local unsigned int tl_tid;
+    int tid;
+    if (tl_tid)
+        return tl_tid;
+#if defined(__ANDROID__)
+    tid = gettid();
+#elif defined(__APPLE__)
+#ifdef HAVE_PTHREAD_THREADID_NP
+    uint64_t thread_id;
+    if (pthread_threadid_np(NULL, &thread_id) == 0)
+        tid = (int)thread_id;
+    else
+        tid = -1;
+#else
+    tid = (int)pthread_mach_thread_np(pthread_self());
+#endif
+#elif defined(__HAIKU__)
+    tid = get_pthread_thread_id(pthread_self());
+#elif defined(__linux__)
+    tid = (int)syscall(SYS_gettid);
+#elif defined(__NetBSD__)
+    tid = _lwp_self();
+#elif defined(__OpenBSD__)
+    /* The following only works with OpenBSD > 5.1 as it requires
+    * real thread support. For 5.1 and earlier, -1 is returned. */
+    tid = syscall(SYS_getthrid);
+#elif defined(__sun__)
+    tid = _lwp_self();
+#else
+    tid = -1;
+#endif
+    if (tid == -1) {
+        /* If we don't have a thread ID, at least return a unique
+        * value that can be used to distinguish individual
+        * threads. */
+        tid = (int)(intptr_t)pthread_self();
+    }
+    return tl_tid = (unsigned int)tid;
+}
+
 void ArmNce::Initialize() {
     if (m_thread_id == -1) {
-        m_thread_id = gettid();
+        m_thread_id = posix_gettid();
     }
 
     // Configure signal stack.
@@ -278,7 +320,7 @@ void ArmNce::Initialize() {
             &ArmNce::ReturnToRunCodeByExceptionLevelChangeSignalHandler);
         return_to_run_code_action.sa_mask = signal_mask;
         Common::SigAction(ReturnToRunCodeByExceptionLevelChangeSignal, &return_to_run_code_action,
-                          nullptr);
+                        nullptr);
 
         struct sigaction break_from_run_code_action {};
         break_from_run_code_action.sa_flags = SA_SIGINFO | SA_ONSTACK;
@@ -350,7 +392,11 @@ void ArmNce::SignalInterrupt(Kernel::KThread* thread) {
     if (params->is_running) {
         // We should signal to the running thread.
         // The running thread will unlock the thread context.
+#ifdef __linux__
         syscall(SYS_tkill, m_thread_id, BreakFromRunCodeSignal);
+#else
+        pthread_kill(m_thread_id, BreakFromRunCodeSignal);
+#endif
     } else {
         // If the thread is no longer running, we have nothing to do.
         UnlockThreadParameters(params);
