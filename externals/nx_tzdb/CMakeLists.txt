@@ -37,7 +37,7 @@ endif()
 
 # TODO(crueter): This is a terrible solution, but MSVC fails to link without it
 # Need to investigate further but I still can't reproduce...
-if (OFF)
+if (MSVC)
     set(NX_TZDB_VERSION "250725")
     set(NX_TZDB_ARCHIVE "${CPM_SOURCE_CACHE}/nx_tzdb/${NX_TZDB_VERSION}.zip")
 
