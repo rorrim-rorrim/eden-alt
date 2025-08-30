@@ -105,7 +105,12 @@ private:
     const u64& m_pc;
 };
 
+#ifdef __APPLE__
 std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, mcontext_t* context,
-                                                 fpsimd_context* fpsimd_context);
+                                                 _STRUCT_ARM_NEON_STATE64* fpctx);
+#else
+std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, mcontext_t* context,
+                                                 fpsimd_context* fpctx);
+#endif
 
 } // namespace Core

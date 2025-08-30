@@ -5,13 +5,20 @@
 
 #define __ASSEMBLY__
 
+#ifdef __APPLE__
+/* https://cpip.readthedocs.io/en/stable/_static/dictobject.c/signal.h_bbe000f9714f274340a28e000a369354.html */
+#define ReturnToRunCodeByExceptionLevelChangeSignal 31
+#define BreakFromRunCodeSignal 16
+#define GuestAccessFaultSignal 11
+#define GuestAlignmentFaultSignal 10
+#else
 #include <asm-generic/signal.h>
 #include <asm-generic/unistd.h>
-
 #define ReturnToRunCodeByExceptionLevelChangeSignal SIGUSR2
 #define BreakFromRunCodeSignal SIGURG
 #define GuestAccessFaultSignal SIGSEGV
 #define GuestAlignmentFaultSignal SIGBUS
+#endif
 
 #define GuestContextSp 0xF8
 #define GuestContextHostContext 0x320

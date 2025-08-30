@@ -33,6 +33,11 @@ static_assert(offsetof(NativeExecutionParameters, native_context) == TpidrEl0Nat
 static_assert(offsetof(NativeExecutionParameters, lock) == TpidrEl0Lock);
 static_assert(offsetof(NativeExecutionParameters, magic) == TpidrEl0TlsMagic);
 
+#ifdef __APPLE__
+_STRUCT_ARM_NEON_STATE64* GetFloatingPointState(mcontext_t& host_ctx) {
+    return &(host_ctx.__ns);
+}
+#else
 fpsimd_context* GetFloatingPointState(mcontext_t& host_ctx) {
     _aarch64_ctx* header = reinterpret_cast<_aarch64_ctx*>(&host_ctx.__reserved);
     while (header->magic != FPSIMD_MAGIC) {
@@ -40,6 +45,7 @@ fpsimd_context* GetFloatingPointState(mcontext_t& host_ctx) {
     }
     return reinterpret_cast<fpsimd_context*>(header);
 }
+#endif
 
 using namespace Common::Literals;
 constexpr u32 StackSize = 128_KiB;
@@ -49,32 +55,42 @@ constexpr u32 StackSize = 128_KiB;
 void* ArmNce::RestoreGuestContext(void* raw_context) {
     // Retrieve the host context.
     auto& host_ctx = static_cast<ucontext_t*>(raw_context)->uc_mcontext;
-
-    // Thread-local parameters will be located in x9.
-    auto* tpidr = reinterpret_cast<NativeExecutionParameters*>(host_ctx.regs[9]);
-    auto* guest_ctx = static_cast<GuestContext*>(tpidr->native_context);
-
     // Retrieve the host floating point state.
     auto* fpctx = GetFloatingPointState(host_ctx);
 
+    // Restore all guest state except tpidr_el0.
+#ifdef __APPLE__
+    // Thread-local parameters will be located in x9.
+    auto* tpidr = reinterpret_cast<NativeExecutionParameters*>(host_ctx->__ss.__r[9]);
+    auto* guest_ctx = static_cast<GuestContext*>(tpidr->native_context);
+    // Save host callee-saved registers.
+    std::memcpy(guest_ctx->host_ctx.host_saved_vregs.data(), &fpctx->__v[8],
+                sizeof(guest_ctx->host_ctx.host_saved_vregs));
+    // Save stack pointer.
+    guest_ctx->host_ctx.host_sp = host_ctx->__ss.__sp;
+    host_ctx->__ss.__pc = guest_ctx->sp;
+    host_ctx->__ss.__sp = guest_ctx->pc;
+    host_ctx->__ss.__pstate = guest_ctx->pstate;
+    fpctx->__fpcr = guest_ctx->fpcr;
+    fpctx->__fpsr = guest_ctx->fpsr;
+    std::memcpy(fpctx->__v, guest_ctx->vector_registers.data(), sizeof(fpctx->__v));
+#else
+    // Thread-local parameters will be located in x9.
+    auto* tpidr = reinterpret_cast<NativeExecutionParameters*>(host_ctx.regs[9]);
+    auto* guest_ctx = static_cast<GuestContext*>(tpidr->native_context);
     // Save host callee-saved registers.
     std::memcpy(guest_ctx->host_ctx.host_saved_vregs.data(), &fpctx->vregs[8],
                 sizeof(guest_ctx->host_ctx.host_saved_vregs));
-    std::memcpy(guest_ctx->host_ctx.host_saved_regs.data(), &host_ctx.regs[19],
-                sizeof(guest_ctx->host_ctx.host_saved_regs));
-
     // Save stack pointer.
     guest_ctx->host_ctx.host_sp = host_ctx.sp;
-
-    // Restore all guest state except tpidr_el0.
     host_ctx.sp = guest_ctx->sp;
     host_ctx.pc = guest_ctx->pc;
     host_ctx.pstate = guest_ctx->pstate;
     fpctx->fpcr = guest_ctx->fpcr;
     fpctx->fpsr = guest_ctx->fpsr;
-    std::memcpy(host_ctx.regs, guest_ctx->cpu_registers.data(), sizeof(host_ctx.regs));
     std::memcpy(fpctx->vregs, guest_ctx->vector_registers.data(), sizeof(fpctx->vregs));
-
+#endif
+    std::memcpy(host_ctx.regs, guest_ctx->cpu_registers.data(), sizeof(host_ctx.regs));
     // Return the new thread-local storage pointer.
     return tpidr;
 }
@@ -87,6 +103,26 @@ void ArmNce::SaveGuestContext(GuestContext* guest_ctx, void* raw_context) {
     auto* fpctx = GetFloatingPointState(host_ctx);
 
     // Save all guest registers except tpidr_el0.
+#ifdef __APPLE__
+    std::memcpy(guest_ctx->cpu_registers.data(), host_ctx->__ss.__r, sizeof(host_ctx->__ss.__r));
+    std::memcpy(guest_ctx->vector_registers.data(), fpctx->__v, sizeof(fpctx->__v));
+    guest_ctx->fpsr = fpctx->__fpsr;
+    guest_ctx->fpcr = fpctx->__fpcr;
+    guest_ctx->pstate = static_cast<u32>(host_ctx->__ss.__pstate);
+    guest_ctx->pc = host_ctx->__ss.__pc;
+    guest_ctx->sp = host_ctx->__ss.__sp;
+    // Restore stack pointer.
+    host_ctx->__ss.__sp = guest_ctx->host_ctx.host_sp;
+    // Restore host callee-saved registers.
+    std::memcpy(&host_ctx->__ss.__r[19], guest_ctx->host_ctx.host_saved_regs.data(),
+                sizeof(guest_ctx->host_ctx.host_saved_regs));
+    std::memcpy(&fpctx->__v[8], guest_ctx->host_ctx.host_saved_vregs.data(),
+                sizeof(guest_ctx->host_ctx.host_saved_vregs));
+    // Return from the call on exit by setting pc to x30.
+    host_ctx->__ss.__pc = guest_ctx->host_ctx.host_saved_regs[11];
+    // Clear esr_el1 and return it.
+    host_ctx->__ss.__r[0] = guest_ctx->esr_el1.exchange(0);
+#else
     std::memcpy(guest_ctx->cpu_registers.data(), host_ctx.regs, sizeof(host_ctx.regs));
     std::memcpy(guest_ctx->vector_registers.data(), fpctx->vregs, sizeof(fpctx->vregs));
     guest_ctx->fpsr = fpctx->fpsr;
@@ -103,12 +139,11 @@ void ArmNce::SaveGuestContext(GuestContext* guest_ctx, void* raw_context) {
                 sizeof(guest_ctx->host_ctx.host_saved_regs));
     std::memcpy(&fpctx->vregs[8], guest_ctx->host_ctx.host_saved_vregs.data(),
                 sizeof(guest_ctx->host_ctx.host_saved_vregs));
-
     // Return from the call on exit by setting pc to x30.
     host_ctx.pc = guest_ctx->host_ctx.host_saved_regs[11];
-
     // Clear esr_el1 and return it.
     host_ctx.regs[0] = guest_ctx->esr_el1.exchange(0);
+#endif
 }
 
 bool ArmNce::HandleFailedGuestFault(GuestContext* guest_ctx, void* raw_info, void* raw_context) {
