@@ -11,6 +11,7 @@
 #include "common/fs/path_util.h"
 #include "common/settings.h"
 #include "qt_common/qt_common.h"
+#include "qt_common/qt_game_util.h"
 #include "qt_common/uisettings.h"
 #include "ui_configure_filesystem.h"
 
@@ -130,17 +131,7 @@ void ConfigureFilesystem::SetDirectory(DirectoryTarget target, QLineEdit* edit) 
 }
 
 void ConfigureFilesystem::ResetMetadata() {
-    auto result = QtCommon::ResetMetadata();
-    const QString resultMessage = tr(QtCommon::GetResetMetadataResultString(result));
-    const QString title = tr("Reset Metadata Cache");
-
-    switch (result) {
-    case QtCommon::MetadataResult::Failure:
-        QMessageBox::warning(this, title, resultMessage);
-        break;
-    default:
-        QMessageBox::information(this, title, resultMessage);
-    }
+    QtCommon::Game::ResetMetadata();
 }
 
 void ConfigureFilesystem::UpdateEnabledControls() {

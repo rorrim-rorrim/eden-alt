@@ -17,9 +17,10 @@
 #include <QTranslator>
 
 #include "common/common_types.h"
-#include "qt_common/qt_config.h"
 #include "frontend_common/content_manager.h"
 #include "input_common/drivers/tas_input.h"
+#include "qt_common/qt_config.h"
+#include "qt_common/qt_game_util.h"
 #include "user_data_migration.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/hotkeys.h"
@@ -53,10 +54,8 @@ class QSlider;
 class QHBoxLayout;
 class WaitTreeWidget;
 enum class GameListOpenTarget;
-enum class GameListRemoveTarget;
 enum class GameListShortcutTarget;
 enum class DumpRomFSTarget;
-enum class InstalledEntryType;
 class GameListPlaceholder;
 
 class QtAmiiboSettingsDialog;
@@ -258,8 +257,6 @@ private:
     void LinkActionShortcut(QAction* action, const QString& action_name,
                             const bool tas_allowed = false);
 
-    void RegisterMetaTypes();
-
     void InitializeWidgets();
     void InitializeDebugWidgets();
     void InitializeRecentFileMenuActions();
@@ -353,9 +350,8 @@ private slots:
     void OnGameListLoadFile(QString game_path, u64 program_id);
     void OnGameListOpenFolder(u64 program_id, GameListOpenTarget target,
                               const std::string& game_path);
-    void OnTransferableShaderCacheOpenFile(u64 program_id);
-    void OnGameListRemoveInstalledEntry(u64 program_id, InstalledEntryType type);
-    void OnGameListRemoveFile(u64 program_id, GameListRemoveTarget target,
+    void OnGameListRemoveInstalledEntry(u64 program_id, QtCommon::Game::InstalledEntryType type);
+    void OnGameListRemoveFile(u64 program_id, QtCommon::Game::GameListRemoveTarget target,
                               const std::string& game_path);
     void OnGameListRemovePlayTimeData(u64 program_id);
     void OnGameListDumpRomFS(u64 program_id, const std::string& game_path, DumpRomFSTarget target);
@@ -436,16 +432,7 @@ private slots:
 #endif
 
 private:
-    QString GetGameListErrorRemoving(InstalledEntryType type) const;
-    void RemoveBaseContent(u64 program_id, InstalledEntryType type);
-    void RemoveUpdateContent(u64 program_id, InstalledEntryType type);
-    void RemoveAddOnContent(u64 program_id, InstalledEntryType type);
-    void RemoveTransferableShaderCache(u64 program_id, GameListRemoveTarget target);
-    void RemoveVulkanDriverPipelineCache(u64 program_id);
-    void RemoveAllTransferableShaderCaches(u64 program_id);
-    void RemoveCustomConfiguration(u64 program_id, const std::string& game_path);
     void RemovePlayTimeData(u64 program_id);
-    void RemoveCacheStorage(u64 program_id);
     bool SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id,
                                u64* selected_title_id, u8* selected_content_record_type);
     ContentManager::InstallResult InstallNCA(const QString& filename);

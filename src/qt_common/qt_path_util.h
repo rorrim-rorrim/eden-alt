@@ -5,6 +5,8 @@
 #define QT_PATH_UTIL_H
 
 #include "common/common_types.h"
-namespace QtCommon::PathUtil { bool OpenShaderCache(u64 program_id); }
+#include <QObject>
+
+namespace QtCommon::Path { bool OpenShaderCache(u64 program_id, QObject *parent); }
 
 #endif // QT_PATH_UTIL_H

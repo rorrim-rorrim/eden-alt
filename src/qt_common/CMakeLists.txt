@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Core)
 
 add_library(qt_common STATIC
     qt_common.h
@@ -18,10 +19,14 @@ add_library(qt_common STATIC
     qt_path_util.h qt_path_util.cpp
     qt_game_util.h qt_game_util.cpp
     qt_frontend_util.h qt_frontend_util.cpp
+    qt_meta.h qt_meta.cpp
+    qt_content_util.h qt_content_util.cpp
+    qt_rom_util.h qt_rom_util.cpp
 )
 
 create_target_directory_groups(qt_common)
 target_link_libraries(qt_common PUBLIC core Qt6::Widgets SimpleIni::SimpleIni QuaZip::QuaZip)
+target_link_libraries(qt_common PRIVATE Qt6::Core)
 target_link_libraries(qt_common PRIVATE Qt6::Core)
 
 if (NOT WIN32)

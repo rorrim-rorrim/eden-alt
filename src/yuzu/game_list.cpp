@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <regex>
+#include "yuzu/game_list.h"
 #include <QApplication>
 #include <QDir>
 #include <QFileInfo>
@@ -13,19 +13,20 @@
 #include <QMenu>
 #include <QThreadPool>
 #include <QToolButton>
-#include <fmt/ranges.h>
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
+#include "qt_common/qt_game_util.h"
+#include "qt_common/uisettings.h"
 #include "yuzu/compatibility_list.h"
-#include "yuzu/game_list.h"
 #include "yuzu/game_list_p.h"
 #include "yuzu/game_list_worker.h"
 #include "yuzu/main.h"
-#include "qt_common/uisettings.h"
 #include "yuzu/util/controller_navigation.h"
+#include <fmt/ranges.h>
+#include <regex>
 
 GameListSearchField::KeyReleaseEater::KeyReleaseEater(GameList* gamelist_, QObject* parent)
     : QObject(parent), gamelist{gamelist_} {}
@@ -608,30 +609,30 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     connect(open_transferable_shader_cache, &QAction::triggered,
             [this, program_id]() { emit OpenTransferableShaderCacheRequested(program_id); });
     connect(remove_all_content, &QAction::triggered, [this, program_id]() {
-        emit RemoveInstalledEntryRequested(program_id, InstalledEntryType::Game);
+        emit RemoveInstalledEntryRequested(program_id, QtCommon::Game::InstalledEntryType::Game);
     });
     connect(remove_update, &QAction::triggered, [this, program_id]() {
-        emit RemoveInstalledEntryRequested(program_id, InstalledEntryType::Update);
+        emit RemoveInstalledEntryRequested(program_id, QtCommon::Game::InstalledEntryType::Update);
     });
     connect(remove_dlc, &QAction::triggered, [this, program_id]() {
-        emit RemoveInstalledEntryRequested(program_id, InstalledEntryType::AddOnContent);
+        emit RemoveInstalledEntryRequested(program_id, QtCommon::Game::InstalledEntryType::AddOnContent);
     });
     connect(remove_gl_shader_cache, &QAction::triggered, [this, program_id, path]() {
-        emit RemoveFileRequested(program_id, GameListRemoveTarget::GlShaderCache, path);
+        emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::GlShaderCache, path);
     });
     connect(remove_vk_shader_cache, &QAction::triggered, [this, program_id, path]() {
-        emit RemoveFileRequested(program_id, GameListRemoveTarget::VkShaderCache, path);
+        emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::VkShaderCache, path);
     });
     connect(remove_shader_cache, &QAction::triggered, [this, program_id, path]() {
-        emit RemoveFileRequested(program_id, GameListRemoveTarget::AllShaderCache, path);
+        emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::AllShaderCache, path);
     });
     connect(remove_custom_config, &QAction::triggered, [this, program_id, path]() {
-        emit RemoveFileRequested(program_id, GameListRemoveTarget::CustomConfiguration, path);
+        emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::CustomConfiguration, path);
     });
     connect(remove_play_time_data, &QAction::triggered,
             [this, program_id]() { emit RemovePlayTimeRequested(program_id); });
     connect(remove_cache_storage, &QAction::triggered, [this, program_id, path] {
-        emit RemoveFileRequested(program_id, GameListRemoveTarget::CacheStorage, path);
+        emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::CacheStorage, path);
     });
     connect(dump_romfs, &QAction::triggered, [this, program_id, path]() {
         emit DumpRomFSRequested(program_id, path, DumpRomFSTarget::Normal);
