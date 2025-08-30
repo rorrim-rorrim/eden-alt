@@ -1393,7 +1393,7 @@ void Device::CollectPhysicalMemoryInfo() {
     }
     const s64 available_memory = static_cast<s64>(device_access_memory - device_initial_usage);
     device_access_memory = static_cast<u64>(std::max<s64>(
-        std::min<s64>(available_memory - 6_GiB, 3_GiB), std::min<s64>(local_memory, 3_GiB)));
+        std::min<s64>(available_memory - 6_GiB, 5_GiB), std::min<s64>(local_memory, 5_GiB)));
 }
 
 void Device::CollectToolingInfo() {
