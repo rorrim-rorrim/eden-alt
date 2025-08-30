@@ -396,7 +396,7 @@ void ArmNce::SignalInterrupt(Kernel::KThread* thread) {
 #ifdef __linux__
         syscall(SYS_tkill, m_thread_id, BreakFromRunCodeSignal);
 #else
-        pthread_kill(m_thread_id, BreakFromRunCodeSignal);
+        pthread_kill(pthread_t(m_thread_id), int(BreakFromRunCodeSignal));
 #endif
     } else {
         // If the thread is no longer running, we have nothing to do.
