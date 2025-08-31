@@ -7,7 +7,7 @@
 
 #include <mutex>
 #include <shared_mutex>
-#include <ankerl/unordered_dense.h>
+#include <boost/container/map.hpp>
 #include "common/host_memory.h"
 
 namespace Common {
@@ -35,10 +35,12 @@ public:
 private:
     // TODO: You may want to "fake-map" the first 2GB of 64-bit address space
     // and dedicate it entirely to a recursive PTE mapping :)
-    // However Ankerl is way better than using an RB tree, in all senses
-    using AddrTree = ankerl::unordered_dense::map<VAddr, SeparateHeapMap>;
+    // However Ankerl would be way better than using an RB tree, in all senses - but
+    // there is a strict requirement for ordering to be imposed accross the map itself
+    // which is not achievable with the unordered property.
+    using AddrTree = boost::container::map<VAddr, SeparateHeapMap>;
     AddrTree m_mappings;
-    using TicksTree = ankerl::unordered_dense::map<VAddr, SeparateHeapMap>;
+    using TicksTree = boost::container::map<VAddr, SeparateHeapMap>;
     TicksTree m_resident_mappings;
 private:
     void SplitHeapMap(VAddr offset, size_t size);
