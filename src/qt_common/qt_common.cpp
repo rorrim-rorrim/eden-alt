@@ -23,7 +23,8 @@
 namespace QtCommon {
 
 QObject *rootObject = nullptr;
-Core::System *system = nullptr;
+std::unique_ptr<Core::System> system = nullptr;
+std::shared_ptr<FileSys::RealVfsFilesystem> vfs = nullptr;
 
 Core::Frontend::WindowSystemType GetWindowSystemType()
 {
@@ -78,6 +79,13 @@ const QString tr(const char* str)
 const QString tr(const std::string& str)
 {
     return QGuiApplication::tr(str.c_str());
+}
+
+void Init(QObject* root)
+{
+    system = std::make_unique<Core::System>();
+    rootObject = root;
+    vfs = std::make_unique<FileSys::RealVfsFilesystem>();
 }
 
 } // namespace QtCommon

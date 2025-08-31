@@ -21,6 +21,7 @@ add_library(qt_common STATIC
     qt_meta.h qt_meta.cpp
     qt_content_util.h qt_content_util.cpp
     qt_rom_util.h qt_rom_util.cpp
+    qt_applet_util.h qt_applet_util.cpp
 )
 
 create_target_directory_groups(qt_common)
@@ -30,7 +31,9 @@ if (ENABLE_QT)
     target_link_libraries(qt_common PRIVATE Qt6::Widgets)
 endif()
 
-target_link_libraries(qt_common PUBLIC core Qt6::Core SimpleIni::SimpleIni QuaZip::QuaZip)
+add_subdirectory(externals)
+
+target_link_libraries(qt_common PRIVATE core Qt6::Core SimpleIni::SimpleIni QuaZip::QuaZip)
 
 if (NOT WIN32)
     target_include_directories(qt_common PRIVATE ${Qt6Gui_PRIVATE_INCLUDE_DIRS})

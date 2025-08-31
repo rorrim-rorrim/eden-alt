@@ -5,13 +5,14 @@
 #include "common/fs/fs.h"
 #include "frontend_common/content_manager.h"
 #include "frontend_common/firmware_manager.h"
+#include "qt_common/qt_common.h"
 #include "qt_frontend_util.h"
 
 #include <JlCompress.h>
 
 namespace QtCommon::Content {
 
-bool CheckGameFirmware(u64 program_id, QObject *parent)
+bool CheckGameFirmware(u64 program_id, QObject* parent)
 {
     if (FirmwareManager::GameRequiresFirmware(program_id)
         && !FirmwareManager::CheckFirmwarePresence(*system)) {
@@ -30,11 +31,10 @@ bool CheckGameFirmware(u64 program_id, QObject *parent)
     return true;
 }
 
-FirmwareInstallResult InstallFirmware(
-    const QString& location,
-    bool recursive,
-    QtProgressCallback callback,
-    FileSys::VfsFilesystem* vfs)
+FirmwareInstallResult InstallFirmware(const QString& location,
+                                      bool recursive,
+                                      QtProgressCallback callback,
+                                      FileSys::VfsFilesystem* vfs)
 {
     static constexpr const char* failedTitle = "Firmware Install Failed";
     static constexpr const char* successTitle = "Firmware Install Failed";
@@ -179,16 +179,19 @@ QString UnzipFirmwareToTmp(const QString& location)
 }
 
 // Content //
-void VerifyGameContents(const std::string& game_path, QtProgressCallback callback) {
+void VerifyGameContents(const std::string& game_path, QtProgressCallback callback)
+{
     const auto result = ContentManager::VerifyGameContents(*system, game_path, callback);
 
     switch (result) {
     case ContentManager::GameVerificationResult::Success:
-        QtCommon::Frontend::Information(rootObject, tr("Integrity verification succeeded!"),
+        QtCommon::Frontend::Information(rootObject,
+                                        tr("Integrity verification succeeded!"),
                                         tr("The operation completed successfully."));
         break;
     case ContentManager::GameVerificationResult::Failed:
-        QtCommon::Frontend::Critical(rootObject, tr("Integrity verification failed!"),
+        QtCommon::Frontend::Critical(rootObject,
+                                     tr("Integrity verification failed!"),
                                      tr("File contents may be corrupt or missing."));
         break;
     case ContentManager::GameVerificationResult::NotImplemented:
@@ -200,5 +203,35 @@ void VerifyGameContents(const std::string& game_path, QtProgressCallback callbac
     }
 }
 
+void InstallKeys()
+{
+    const QString key_source_location
+        = QtCommon::Frontend::GetOpenFileName(tr("Select Dumped Keys Location"),
+                                              {},
+                                              QStringLiteral("Decryption Keys (*.keys)"),
+                                              {},
+                                              QtCommon::Frontend::Option::ReadOnly);
 
+    if (key_source_location.isEmpty()) {
+        return;
+    }
+
+    FirmwareManager::KeyInstallResult result = FirmwareManager::InstallKeys(key_source_location
+                                                                                .toStdString(),
+                                                                            "keys");
+
+    system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
+
+    switch (result) {
+    case FirmwareManager::KeyInstallResult::Success:
+        QtCommon::Frontend::Information(tr("Decryption Keys install succeeded"),
+                                        tr("Decryption Keys were successfully installed"));
+        break;
+    default:
+        QtCommon::Frontend::Critical(tr("Decryption Keys install failed"),
+                                     tr(FirmwareManager::GetKeyInstallResultString(result)));
+        break;
+    }
 }
+
+} // namespace QtCommon::Content

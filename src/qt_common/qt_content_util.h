@@ -32,6 +32,11 @@ enum class FirmwareInstallResult {
     FailedCorrupted,
 };
 
+inline constexpr const char *GetFirmwareInstallResultString(FirmwareInstallResult result)
+{
+    return FIRMWARE_RESULTS.at(static_cast<std::size_t>(result));
+}
+
 FirmwareInstallResult InstallFirmware(
     const QString &location,
     bool recursive,
@@ -40,10 +45,8 @@ FirmwareInstallResult InstallFirmware(
 
 QString UnzipFirmwareToTmp(const QString &location);
 
-inline constexpr const char *GetFirmwareInstallResultString(FirmwareInstallResult result)
-{
-    return FIRMWARE_RESULTS.at(static_cast<std::size_t>(result));
-}
+// Keys //
+void InstallKeys();
 
 // Content //
 void VerifyGameContents(const std::string &game_path, QtProgressCallback callback);
