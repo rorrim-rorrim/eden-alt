@@ -71,7 +71,6 @@ enum class StartGameType {
 
 namespace Core {
 enum class SystemResultStatus : u32;
-class System;
 } // namespace Core
 
 namespace Core::Frontend {
@@ -479,7 +478,6 @@ private:
 
     std::unique_ptr<Ui::MainWindow> ui;
 
-    std::unique_ptr<Core::System> system;
     std::unique_ptr<DiscordRPC::DiscordInterface> discord_rpc;
     std::unique_ptr<PlayTime::PlayTimeManager> play_time_manager;
     std::shared_ptr<InputCommon::InputSubsystem> input_subsystem;
@@ -540,7 +538,6 @@ private:
     QString startup_icon_theme;
 
     // FS
-    std::shared_ptr<FileSys::VfsFilesystem> vfs;
     std::unique_ptr<FileSys::ManualContentProvider> provider;
 
     // Debugger panes
