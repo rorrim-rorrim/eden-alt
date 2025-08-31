@@ -3,19 +3,15 @@
 
 #pragma once
 
-#include <atomic>
 #include <mutex>
-#include <set>
 #include <shared_mutex>
+#include <set>
 
 #include "common/host_memory.h"
-#include "common/intrusive_red_black_tree.h"
 
 namespace Common {
 
 struct SeparateHeapMap {
-    Common::IntrusiveRedBlackTreeNode addr_node{};
-    Common::IntrusiveRedBlackTreeNode tick_node{};
     VAddr vaddr{};
     PAddr paddr{};
     size_t size{};
@@ -25,33 +21,22 @@ struct SeparateHeapMap {
 };
 
 struct SeparateHeapMapAddrComparator {
-    static constexpr int Compare(const SeparateHeapMap& lhs, const SeparateHeapMap& rhs) {
-        if (lhs.vaddr < rhs.vaddr) {
-            return -1;
-        } else if (lhs.vaddr <= (rhs.vaddr + rhs.size - 1)) {
-            return 0;
-        } else {
-            return 1;
-        }
+    constexpr bool operator()(const SeparateHeapMap& lhs, const SeparateHeapMap& rhs) const noexcept {
+        return lhs.vaddr < rhs.vaddr;
     }
 };
-
 struct SeparateHeapMapTickComparator {
-    static constexpr int Compare(const SeparateHeapMap& lhs, const SeparateHeapMap& rhs) {
-        if (lhs.tick < rhs.tick) {
-            return -1;
-        } else if (lhs.tick > rhs.tick) {
-            return 1;
-        } else {
-            return SeparateHeapMapAddrComparator::Compare(lhs, rhs);
-        }
+    constexpr bool operator()(const SeparateHeapMap& lhs, const SeparateHeapMap& rhs) const noexcept {
+        if (lhs.tick != rhs.tick)
+            return lhs.tick < rhs.tick;
+        return SeparateHeapMapAddrComparator()(lhs, rhs);
     }
 };
 
 class HeapTracker {
 public:
     explicit HeapTracker(Common::HostMemory& buffer);
-    ~HeapTracker() = default;
+    ~HeapTracker();
 
     void Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perm,
              bool is_separate_heap);
@@ -60,24 +45,12 @@ public:
     inline u8* VirtualBasePointer() noexcept {
         return m_buffer.VirtualBasePointer();
     }
-
-private:
-    using AddrTreeTraits =
-        Common::IntrusiveRedBlackTreeMemberTraitsDeferredAssert<&SeparateHeapMap::addr_node>;
-    using AddrTree = AddrTreeTraits::TreeType<SeparateHeapMapAddrComparator>;
-
-    using TickTreeTraits =
-        Common::IntrusiveRedBlackTreeMemberTraitsDeferredAssert<&SeparateHeapMap::tick_node>;
-    using TickTree = TickTreeTraits::TreeType<SeparateHeapMapTickComparator>;
-
-    AddrTree m_mappings{};
-    TickTree m_resident_mappings{};
-
 private:
     void SplitHeapMap(VAddr offset, size_t size);
     void SplitHeapMapLocked(VAddr offset);
     void RebuildSeparateHeapAddressSpace();
-private:
+    std::set<SeparateHeapMap, SeparateHeapMapAddrComparator> m_mappings{};
+    std::set<SeparateHeapMap, SeparateHeapMapTickComparator> m_resident_mappings{};
     Common::HostMemory& m_buffer;
     const s64 m_max_resident_map_count;
     std::shared_mutex m_rebuild_lock{};

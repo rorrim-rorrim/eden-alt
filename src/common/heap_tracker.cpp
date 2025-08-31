@@ -1,9 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <fstream>
-#include <vector>
-
+#include "common/assert.h"
 #include "common/heap_tracker.h"
 #include "common/logging/log.h"
 
@@ -22,6 +20,8 @@ inline s64 GetMaxPermissibleResidentMapCount() {
 
 HeapTracker::HeapTracker(Common::HostMemory& buffer)
     : m_buffer(buffer), m_max_resident_map_count(GetMaxPermissibleResidentMapCount()) {}
+
+HeapTracker::~HeapTracker() = default;
 
 void HeapTracker::Map(size_t virtual_offset, size_t host_offset, size_t length,
                       MemoryPermission perm, bool is_separate_heap) {
@@ -48,10 +48,10 @@ void HeapTracker::Map(size_t virtual_offset, size_t host_offset, size_t length,
 
         // Insert into mappings.
         m_map_count++;
-        const auto it = m_mappings.insert(*map);
+        auto const [it, _] = m_mappings.insert(*map);
 
         // Update tick before possible rebuild.
-        it->tick = m_tick++;
+        const_cast<SeparateHeapMap&>(*it).tick = m_tick++;
 
         // Check if we need to rebuild.
         if (m_resident_map_count >= m_max_resident_map_count) {
@@ -62,7 +62,7 @@ void HeapTracker::Map(size_t virtual_offset, size_t host_offset, size_t length,
         m_buffer.Map(it->vaddr, it->paddr, it->size, it->perm, false);
 
         // This map is now resident.
-        it->is_resident = true;
+        const_cast<SeparateHeapMap&>(*it).is_resident = true;
         m_resident_map_count++;
         m_resident_mappings.insert(*it);
     }
@@ -95,7 +95,7 @@ void HeapTracker::Unmap(size_t virtual_offset, size_t size, bool is_separate_hea
             // If resident, erase from resident map.
             if (item->is_resident) {
                 ASSERT(--m_resident_map_count >= 0);
-                m_resident_mappings.erase(m_resident_mappings.iterator_to(*item));
+                m_resident_mappings.erase(m_resident_mappings.find(*item));
             }
 
             // Erase from map.
@@ -134,8 +134,7 @@ void HeapTracker::Protect(size_t virtual_offset, size_t size, MemoryPermission p
             };
 
             // Try to get the next mapping corresponding to this address.
-            const auto it = m_mappings.nfind(key);
-
+            const auto it = m_mappings.find(key);
             if (it == m_mappings.end()) {
                 // There are no separate heap mappings remaining.
                 next = end;
@@ -143,7 +142,7 @@ void HeapTracker::Protect(size_t virtual_offset, size_t size, MemoryPermission p
             } else if (it->vaddr == cur) {
                 // We are in range.
                 // Update permission bits.
-                it->perm = perm;
+                const_cast<SeparateHeapMap&>(*it).perm = perm;
 
                 // Determine next address and whether we should protect.
                 next = cur + it->size;
@@ -184,7 +183,7 @@ void HeapTracker::RebuildSeparateHeapAddressSpace() {
 
     for (size_t i = 0; i < evict_count && it != m_resident_mappings.end(); i++) {
         // Unmark and unmap.
-        it->is_resident = false;
+        const_cast<SeparateHeapMap&>(*it).is_resident = false;
         m_buffer.Unmap(it->vaddr, it->size, false);
 
         // Advance.
@@ -215,7 +214,7 @@ void HeapTracker::SplitHeapMapLocked(VAddr offset) {
 
     // Adjust the left map.
     const size_t left_size = offset - left->vaddr;
-    left->size = left_size;
+    const_cast<SeparateHeapMap&>(*left).size = left_size;
 
     // Create the new right map.
     auto* const right = new SeparateHeapMap{
