@@ -60,7 +60,7 @@ struct Memory::Impl {
             current_page_table->fastmem_arena = nullptr;
         }
 
-#ifdef __linux__
+#ifdef __unix__
         buffer.emplace(system.DeviceMemory().buffer);
 #else
         buffer = std::addressof(system.DeviceMemory().buffer);
@@ -1023,7 +1023,7 @@ struct Memory::Impl {
     std::span<Core::GPUDirtyMemoryManager> gpu_dirty_managers;
     std::mutex sys_core_guard;
 
-#ifdef __linux__
+#ifdef __unix__
     std::optional<Common::HeapTracker> buffer;
 #else
     Common::HostMemory* buffer{};
