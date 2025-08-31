@@ -5,17 +5,16 @@
 #include "common/fs/fs.h"
 #include "frontend_common/content_manager.h"
 #include "frontend_common/firmware_manager.h"
-#include "qt_common/qt_game_util.h"
 #include "qt_frontend_util.h"
 
 #include <JlCompress.h>
 
 namespace QtCommon::Content {
 
-bool CheckGameFirmware(u64 program_id, Core::System &system, QObject *parent)
+bool CheckGameFirmware(u64 program_id, QObject *parent)
 {
     if (FirmwareManager::GameRequiresFirmware(program_id)
-        && !FirmwareManager::CheckFirmwarePresence(system)) {
+        && !FirmwareManager::CheckFirmwarePresence(*system)) {
         auto result = QtCommon::Frontend::ShowMessage(
             QMessageBox::Warning,
             "Game Requires Firmware",

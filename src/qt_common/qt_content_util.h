@@ -12,7 +12,7 @@
 namespace QtCommon::Content {
 
 //
-bool CheckGameFirmware(u64 program_id, Core::System &system, QObject *parent);
+bool CheckGameFirmware(u64 program_id, QObject *parent);
 
 static constexpr std::array<const char *, 6> FIRMWARE_RESULTS
     = {"Successfully installed firmware version %1",
