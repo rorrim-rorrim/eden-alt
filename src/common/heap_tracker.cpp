@@ -168,8 +168,7 @@ void HeapTracker::SplitHeapMap(VAddr offset, size_t size) {
 }
 
 void HeapTracker::SplitHeapMapLocked(VAddr offset) {
-    auto it = this->GetNearestHeapMapLocked(offset);
-    if (it != m_mappings.end() && it->first != offset) {
+    if (auto it = this->GetNearestHeapMapLocked(offset); it != m_mappings.end() && it->first != offset) {
         // Adjust left iterator
         auto const orig_size = it->second.size;
         auto const left_size = offset - it->first;
