@@ -1912,7 +1912,7 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
 
     /** firmware check */
 
-    if (!QtCommon::Content::CheckGameFirmware(params.program_id, *system, this)) {
+    if (!QtCommon::Content::CheckGameFirmware(params.program_id, this)) {
         return false;
     }
 
