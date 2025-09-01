@@ -386,7 +386,7 @@ static void OverrideWindowsFont() {
 }
 #endif
 
-inline static bool isDarkMode() {
+[[maybe_unused]] inline static bool isDarkMode() {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     const auto scheme = QGuiApplication::styleHints()->colorScheme();
     return scheme == Qt::ColorScheme::Dark;
