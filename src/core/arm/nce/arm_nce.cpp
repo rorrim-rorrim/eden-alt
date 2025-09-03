@@ -248,7 +248,7 @@ ArmNce::~ArmNce() = default;
 
 // Borrowed from libusb
 static unsigned int posix_gettid(void) {
-    static _Thread_local unsigned int tl_tid;
+    static thread_local unsigned int tl_tid;
     int tid;
     if (tl_tid)
         return tl_tid;
