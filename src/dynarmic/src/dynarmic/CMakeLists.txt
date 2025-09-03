@@ -330,8 +330,7 @@ elseif (APPLE)
             COMMAND_ERROR_IS_FATAL ANY
         )
         target_sources(dynarmic PRIVATE
-            backend/exception_handler_macos.cpp
-            backend/exception_handler_macos_mig.c
+            backend/exception_handler_posix.cpp
         )
     endif()
 elseif (UNIX AND NOT PLATFORM_HAIKU)
