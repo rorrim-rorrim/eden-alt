@@ -19,7 +19,7 @@
 #    endif
 #endif
 
-#ifdef MCL_ARCHITECTURE_x86_64
+#ifdef ARCHITECTURE_x86_64
 #   ifdef __OpenBSD__
 #       define CTX_DECLARE(raw_context) ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(raw_context);
 #   else
