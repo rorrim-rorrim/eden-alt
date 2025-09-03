@@ -14,6 +14,9 @@
 #    ifdef __sun__
 #        include <sys/regset.h>
 #    endif
+#    ifdef __linux__
+#       include <sigcontext.h>
+#    endif
 #endif
 
 #ifndef MCL_ARCHITECTURE_RISCV
