@@ -375,7 +375,8 @@ elseif (APPLE)
                 "${MACH_EXC_DEFS_DIR}/mach/mach_exc.defs"
         )
         target_sources(dynarmic PRIVATE
-            backend/exception_handler_posix.cpp
+            backend/exception_handler_macos.cpp
+            backend/exception_handler_macos_mig.c
         )
     endif()
 elseif (UNIX)
