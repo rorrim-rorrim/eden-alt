@@ -118,7 +118,7 @@ void HostLocInfo::AddValue(IR::Inst* inst) noexcept {
     values.push_back(inst);
     ASSERT(size_t(total_uses) + inst->UseCount() < (std::numeric_limits<uint16_t>::max)());
     total_uses += inst->UseCount();
-    max_bit_width = std::max<uint8_t>(max_bit_width, GetBitWidth(inst->GetType()));
+    max_bit_width = std::max<uint8_t>(max_bit_width, std::countr_zero(GetBitWidth(inst->GetType())));
 }
 
 void HostLocInfo::EmitVerboseDebuggingOutput(BlockOfCode* code, size_t host_loc_index) const noexcept {
