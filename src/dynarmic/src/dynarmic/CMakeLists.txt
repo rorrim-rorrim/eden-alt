@@ -375,7 +375,7 @@ target_link_libraries(dynarmic
 )
 
 if (BOOST_NO_HEADERS)
-target_link_libraries(dynarmic PRIVATE Boost::variant Boost::icl Boost::pool)
+    target_link_libraries(dynarmic PRIVATE Boost::variant Boost::icl Boost::pool)
 else()
     target_link_libraries(dynarmic PRIVATE Boost::headers)
 endif()
