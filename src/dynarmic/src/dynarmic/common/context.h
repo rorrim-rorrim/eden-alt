@@ -15,7 +15,7 @@
 #        include <sys/regset.h>
 #    endif
 #    ifdef __linux__
-#       include <sigcontext.h>
+#       include <sys/syscall.h>
 #    endif
 #endif
 

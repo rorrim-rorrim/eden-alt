@@ -20,9 +20,9 @@
 #include <mcl/bit_cast.hpp>
 #include "dynarmic/common/common_types.h"
 
-#if defined(MCL_ARCHITECTURE_X86_64)
+#if defined(ARCHITECTURE_x86_64)
 #    include "dynarmic/backend/x64/block_of_code.h"
-#elif defined(MCL_ARCHITECTURE_ARM64)
+#elif defined(ARCHITECTURE_arm64)
 #    include <oaknut/code_block.hpp>
 
 #    include "dynarmic/backend/arm64/abi.h"
@@ -210,13 +210,13 @@ private:
 ExceptionHandler::ExceptionHandler() = default;
 ExceptionHandler::~ExceptionHandler() = default;
 
-#if defined(MCL_ARCHITECTURE_X86_64)
+#if defined(ARCHITECTURE_x86_64)
 void ExceptionHandler::Register(X64::BlockOfCode& code) {
     const u64 code_begin = mcl::bit_cast<u64>(code.getCode());
     const u64 code_end = code_begin + code.GetTotalCodeSize();
     impl = std::make_unique<Impl>(code_begin, code_end);
 }
-#elif defined(MCL_ARCHITECTURE_ARM64)
+#elif defined(ARCHITECTURE_arm64)
 void ExceptionHandler::Register(oaknut::CodeBlock& mem, std::size_t size) {
     const u64 code_begin = mcl::bit_cast<u64>(mem.ptr());
     const u64 code_end = code_begin + size;

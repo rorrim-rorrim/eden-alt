@@ -17,7 +17,7 @@ ExceptionHandler::~ExceptionHandler() = default;
 void ExceptionHandler::Register(X64::BlockOfCode&) {
     // Do nothing
 }
-#elif defined(MCL_ARCHITECTURE_ARM64)
+#elif defined(ARCHITECTURE_arm64)
 void ExceptionHandler::Register(oaknut::CodeBlock&, std::size_t) {
     // Do nothing
 }
