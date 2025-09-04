@@ -553,8 +553,6 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     // Gen keys if necessary
     OnCheckFirmwareDecryption();
 
-    OnCheckNcaVerification();
-
     game_list->LoadCompatibilityList();
     // force reload on first load to ensure add-ons get updated
     game_list->PopulateAsync(UISettings::values.game_dirs, false);
@@ -2036,6 +2034,10 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
         default:
             break;
         }
+    }
+
+    if (!OnCheckNcaVerification()) {
+        return false;
     }
 
     /** Exec */
@@ -5267,14 +5269,14 @@ void GMainWindow::OnCheckFirmwareDecryption() {
     UpdateMenuState();
 }
 
-void GMainWindow::OnCheckNcaVerification() {
+bool GMainWindow::OnCheckNcaVerification() {
     if (!Settings::values.disable_nca_verification.GetValue())
-        return;
+        return true;
 
     const bool currently_hidden = Settings::values.hide_nca_verification_popup.GetValue();
     LOG_INFO(Frontend, "NCA Verification is disabled. Popup State={}", currently_hidden);
     if (currently_hidden)
-        return;
+        return true;
 
     QMessageBox msgbox(this);
     msgbox.setWindowTitle(tr("NCA Verification Disabled"));
@@ -5285,19 +5287,21 @@ void GMainWindow::OnCheckNcaVerification() {
                       "If unsure, re-enable verification in Eden's Settings and use firmware "
                       "version 19.0.1 or below."));
     msgbox.setIcon(QMessageBox::Warning);
-    msgbox.setStandardButtons(QMessageBox::Ok);
+    msgbox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     msgbox.setDefaultButton(QMessageBox::Ok);
 
-    QCheckBox* cb = new QCheckBox(tr("Don't show this message again"), &msgbox);
+    QCheckBox* cb = new QCheckBox(tr("Don't show again"), &msgbox);
     cb->setChecked(currently_hidden);
     msgbox.setCheckBox(cb);
 
-    msgbox.exec();
+    int result = msgbox.exec();
 
     const bool hide = cb->isChecked();
     if (hide != currently_hidden) {
         Settings::values.hide_nca_verification_popup.SetValue(hide);
     }
+
+    return result == static_cast<int>(QMessageBox::Ok);
 }
 
 bool GMainWindow::CheckFirmwarePresence() {

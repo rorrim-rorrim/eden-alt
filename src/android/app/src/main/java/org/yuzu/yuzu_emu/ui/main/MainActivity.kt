@@ -127,7 +127,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
         setContentView(binding.root)
 
-        checkAndRequestBluetoothPermissions()
+//        checkAndRequestBluetoothPermissions()
 
         if (savedInstanceState != null) {
             checkedDecryption = savedInstanceState.getBoolean(CHECKED_DECRYPTION)
@@ -140,16 +140,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 checkKeys()
             }
             checkedDecryption = true
-        }
-
-        if (!checkedFirmware) {
-            val firstTimeSetup = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-                .getBoolean(Settings.PREF_FIRST_APP_LAUNCH, true)
-            if (!firstTimeSetup) {
-                checkFirmware()
-                showPreAlphaWarningDialog()
-            }
-            checkedFirmware = true
         }
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -198,13 +188,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             if (it) checkKeys()
         }
 
-        homeViewModel.checkFirmware.collect(
-            this,
-            resetState = { homeViewModel.setCheckFirmware(false) }
-        ) {
-            if (it) checkFirmware()
-        }
-
         setInsets()
     }
 
@@ -243,21 +226,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             ).show(supportFragmentManager, MessageDialogFragment.TAG)
         }
     }
-
-    private fun checkFirmware() {
-        val resultCode: Int = NativeLibrary.verifyFirmware()
-        if (resultCode == 0) return
-
-        val resultString: String =
-            resources.getStringArray(R.array.verifyFirmwareResults)[resultCode]
-
-        MessageDialogFragment.newInstance(
-            titleId = R.string.firmware_invalid,
-            descriptionString = resultString,
-            helpLinkId = R.string.firmware_missing_help
-        ).show(supportFragmentManager, MessageDialogFragment.TAG)
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(CHECKED_DECRYPTION, checkedDecryption)
@@ -434,7 +402,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     cacheFirmwareDir.copyRecursively(firmwarePath, true)
                     NativeLibrary.initializeSystem(true)
                     homeViewModel.setCheckKeys(true)
-                    homeViewModel.setCheckFirmware(true)
                     getString(R.string.save_file_imported_success)
                 }
             } catch (e: Exception) {
@@ -464,7 +431,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     // Optionally reinitialize the system or perform other necessary steps
                     NativeLibrary.initializeSystem(true)
                     homeViewModel.setCheckKeys(true)
-                    homeViewModel.setCheckFirmware(true)
                     messageToShow = getString(R.string.firmware_uninstalled_success)
                 } else {
                     messageToShow = getString(R.string.firmware_uninstalled_failure)
