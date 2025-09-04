@@ -27,14 +27,11 @@ using ASIMDMatcher = Decoder::Matcher<Visitor, u32>;
 
 template<typename V>
 std::vector<ASIMDMatcher<V>> GetASIMDDecodeTable() {
-    std::vector<ASIMDMatcher<V>> table = {
-
-#define INST(fn, name, bitstring) DYNARMIC_DECODER_GET_MATCHER(ASIMDMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)),
+    std::vector<std::pair<const char*, ASIMDMatcher<V>>> table = {
+#define INST(fn, name, bitstring) { name, DYNARMIC_DECODER_GET_MATCHER(ASIMDMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)) },
 #include "./asimd.inc"
 #undef INST
-
     };
-
     // Exceptions to the rule of thumb.
     const std::set<std::string> comes_first{
         "VBIC, VMOV, VMVN, VORR (immediate)",
@@ -53,19 +50,21 @@ std::vector<ASIMDMatcher<V>> GetASIMDDecodeTable() {
         "VQDMULH (scalar)",
         "VQRDMULH (scalar)",
     };
-    const auto sort_begin = std::stable_partition(table.begin(), table.end(), [&](const auto& matcher) {
-        return comes_first.count(matcher.GetName()) > 0;
+    const auto sort_begin = std::stable_partition(table.begin(), table.end(), [&](const auto& e) {
+        return comes_first.count(e.first) > 0;
     });
-    const auto sort_end = std::stable_partition(table.begin(), table.end(), [&](const auto& matcher) {
-        return comes_last.count(matcher.GetName()) == 0;
+    const auto sort_end = std::stable_partition(table.begin(), table.end(), [&](const auto& e) {
+        return comes_last.count(e.first) == 0;
     });
-
     // If a matcher has more bits in its mask it is more specific, so it should come first.
-    std::stable_sort(sort_begin, sort_end, [](const auto& matcher1, const auto& matcher2) {
-        return mcl::bit::count_ones(matcher1.GetMask()) > mcl::bit::count_ones(matcher2.GetMask());
+    std::stable_sort(sort_begin, sort_end, [](const auto& a, const auto& b) {
+        return mcl::bit::count_ones(a.second.GetMask()) > mcl::bit::count_ones(b.second.GetMask());
     });
-
-    return table;
+    std::vector<ASIMDMatcher<V>> final_table;
+    std::transform(table.cbegin(), table.cend(), final_table.begin(), [](auto const& e) {
+        return e.second;
+    });
+    return final_table;
 }
 
 template<typename V>
