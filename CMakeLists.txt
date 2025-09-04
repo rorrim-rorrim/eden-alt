@@ -97,6 +97,7 @@ option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" 
 
 option(FORCE_DOWNLOAD_WIN_BUNDLES "Forcefully download bundled Windows dependencies (useful for CI)" OFF)
 
+# TODO(crueter): Cleanup, each dep that has a bundled option should allow to choose between bundled, external, system
 if (YUZU_USE_CPM AND ENABLE_SDL2)
     option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}")
 endif()
@@ -105,7 +106,7 @@ CMAKE_DEPENDENT_OPTION(YUZU_ROOM "Enable dedicated room functionality" ON "NOT A
 
 CMAKE_DEPENDENT_OPTION(YUZU_ROOM_STANDALONE "Enable standalone room executable" ON "YUZU_ROOM" OFF)
 
-CMAKE_DEPENDENT_OPTION(YUZU_CMD "Compile the eden-cli executable" ON "NOT ANDROID" OFF)
+CMAKE_DEPENDENT_OPTION(YUZU_CMD "Compile the eden-cli executable" ON "ENABLE_SDL2;NOT ANDROID" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
 
@@ -277,7 +278,7 @@ function(detect_architecture symbol arch)
         if (ARCHITECTURE_${arch})
             set(ARCHITECTURE "${arch}" PARENT_SCOPE)
             set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
-            add_definitions(-DARCHITECTURE_${arch}=1)
+            add_compile_definitions(ARCHITECTURE_${arch}=1)
         endif()
     endif()
 endfunction()
@@ -299,7 +300,7 @@ endif()
 if (NOT DEFINED ARCHITECTURE)
     set(ARCHITECTURE "GENERIC")
     set(ARCHITECTURE_GENERIC 1)
-    add_definitions(-DARCHITECTURE_GENERIC=1)
+    add_compile_definitions(ARCHITECTURE_GENERIC=1)
 endif()
 
 message(STATUS "Target architecture: ${ARCHITECTURE}")
@@ -311,16 +312,16 @@ if (MSVC AND ARCHITECTURE_x86)
 endif()
 
 if (UNIX)
-    add_definitions(-DYUZU_UNIX=1)
+    add_compile_definitions(YUZU_UNIX=1)
 endif()
 
 if (ARCHITECTURE_arm64 AND (ANDROID OR PLATFORM_LINUX))
     set(HAS_NCE 1)
-    add_definitions(-DHAS_NCE=1)
+    add_compile_definitions(HAS_NCE=1)
 endif()
 
 if (YUZU_ROOM)
-    add_definitions(-DYUZU_ROOM)
+    add_compile_definitions(YUZU_ROOM)
 endif()
 
 # Build/optimization presets
@@ -736,7 +737,7 @@ if (APPLE)
     list(APPEND PLATFORM_LIBRARIES ${ICONV_LIBRARY})
 elseif (WIN32)
     # Target Windows 10
-    add_definitions(-D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00)
+    add_compile_definitions(_WIN32_WINNT=0x0A00 WINVER=0x0A00)
     set(PLATFORM_LIBRARIES winmm ws2_32 iphlpapi)
     if (MINGW)
         # PSAPI is the Process Status API

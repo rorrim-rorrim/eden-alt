@@ -1152,7 +1152,7 @@ add_library(core STATIC
 
 if (ENABLE_WIFI_SCAN)
     # find_package(libiw REQUIRED)
-    target_compile_definitions(core PRIVATE -DENABLE_WIFI_SCAN)
+    target_compile_definitions(core PRIVATE ENABLE_WIFI_SCAN)
     target_link_libraries(core PRIVATE iw)
 endif()
 
@@ -1199,7 +1199,7 @@ if (MINGW)
 endif()
 
 if (ENABLE_WEB_SERVICE)
-    target_compile_definitions(core PUBLIC -DENABLE_WEB_SERVICE)
+    target_compile_definitions(core PUBLIC ENABLE_WEB_SERVICE)
     target_link_libraries(core PUBLIC web_service)
 endif()
 
