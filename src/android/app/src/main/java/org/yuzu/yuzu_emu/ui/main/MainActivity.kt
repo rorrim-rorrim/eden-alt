@@ -127,7 +127,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
         setContentView(binding.root)
 
-//        checkAndRequestBluetoothPermissions()
+        checkAndRequestBluetoothPermissions()
 
         if (savedInstanceState != null) {
             checkedDecryption = savedInstanceState.getBoolean(CHECKED_DECRYPTION)
