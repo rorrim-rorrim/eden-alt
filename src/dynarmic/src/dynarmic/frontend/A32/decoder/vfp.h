@@ -30,22 +30,18 @@ std::optional<std::reference_wrapper<const VFPMatcher<V>>> DecodeVFP(u32 instruc
     static const struct Tables {
         Table unconditional;
         Table conditional;
-    } tables = [] {
+    } tables = []() {
         Table list = {
-
 #define INST(fn, name, bitstring) DYNARMIC_DECODER_GET_MATCHER(VFPMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)),
 #include "./vfp.inc"
 #undef INST
-
         };
-
-        const auto division = std::stable_partition(list.begin(), list.end(), [&](const auto& matcher) {
+        auto const it = std::stable_partition(list.begin(), list.end(), [&](const auto& matcher) {
             return (matcher.GetMask() & 0xF0000000) == 0xF0000000;
         });
-
         return Tables{
-            Table{list.begin(), division},
-            Table{division, list.end()},
+            Table{list.begin(), it},
+            Table{it, list.end()},
         };
     }();
 

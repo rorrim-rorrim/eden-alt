@@ -31,14 +31,8 @@ public:
     using visitor_type = Visitor;
     using handler_return_type = typename Visitor::instruction_return_type;
     using handler_function = std::function<handler_return_type(Visitor&, opcode_type)>;
-
-    Matcher(const char* const name, opcode_type mask, opcode_type expected, handler_function func)
-            : name{name}, mask{mask}, expected{expected}, fn{std::move(func)} {}
-
-    /// Gets the name of this type of instruction.
-    const char* GetName() const {
-        return name;
-    }
+    Matcher(opcode_type mask, opcode_type expected, handler_function func)
+            : mask{mask}, expected{expected}, fn{std::move(func)} {}
 
     /// Gets the mask for this instruction.
     opcode_type GetMask() const {
@@ -70,7 +64,6 @@ public:
     }
 
 private:
-    const char* name;
     opcode_type mask;
     opcode_type expected;
     handler_function fn;

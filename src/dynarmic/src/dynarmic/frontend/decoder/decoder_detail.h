@@ -163,18 +163,18 @@ struct detail {
     /// @brief Creates a matcher that can match and parse instructions based on bitstring.
     /// See also: GetMaskAndExpect and GetArgInfo for format of bitstring.
     template<auto bitstring, typename F>
-    static constexpr auto GetMatcher(F fn, const char* const name) {
+    static constexpr auto GetMatcher(F fn) {
         constexpr size_t args_count = mcl::parameter_count_v<F>;
         constexpr auto mask = std::get<0>(GetMaskAndExpect(bitstring));
         constexpr auto expect = std::get<1>(GetMaskAndExpect(bitstring));
         constexpr auto arg_masks = std::get<0>(GetArgInfo<args_count>(bitstring));
         constexpr auto arg_shifts = std::get<1>(GetArgInfo<args_count>(bitstring));
         const auto proxy_fn = VisitorCaller<F>::Make(std::make_index_sequence<args_count>(), fn, arg_masks, arg_shifts);
-        return MatcherT(name, mask, expect, proxy_fn);
+        return MatcherT(mask, expect, proxy_fn);
     }
 };
 
-#define DYNARMIC_DECODER_GET_MATCHER(MatcherT, fn, name, bitstring) Decoder::detail::detail<MatcherT<V>>::template GetMatcher<bitstring>(&V::fn, name)
+#define DYNARMIC_DECODER_GET_MATCHER(MatcherT, fn, name, bitstring) Decoder::detail::detail<MatcherT<V>>::template GetMatcher<bitstring>(&V::fn)
 
 }  // namespace detail
 }  // namespace Dynarmic::Decoder
