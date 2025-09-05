@@ -9,6 +9,7 @@
 
 #include <atomic>
 #include <signal.h>
+#include <span>
 #include <unistd.h>
 #include <span>
 
