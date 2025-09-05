@@ -7,6 +7,7 @@
 
 #include <numeric>
 #include "core/arm/nce/interpreter_visitor.h"
+#include "core/memory.h"
 #include "dynarmic/common/context.h"
 
 namespace Core {
