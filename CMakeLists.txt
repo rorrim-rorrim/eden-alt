@@ -156,6 +156,8 @@ set(YUZU_QT_MIRROR "" CACHE STRING "What mirror to use for downloading the bundl
 
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
+# See https://github.com/llvm/llvm-project/issues/123946
+# OpenBSD va_list doesn't play nice with precompiled headers
 set(EXT_DEFAULT OFF)
 if (MSVC OR ANDROID)
     set(EXT_DEFAULT ON)
@@ -453,7 +455,9 @@ if (YUZU_USE_CPM)
 
     # Opus
     AddJsonPackage(opus)
-
+    if (NOT TARGET Opus::opus)
+        add_library(Opus::opus ALIAS opus)
+    endif()
     if (Opus_ADDED)
         if (MSVC AND CXX_CLANG)
             target_compile_options(opus PRIVATE
