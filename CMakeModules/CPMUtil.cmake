@@ -1,6 +1,15 @@
 # SPDX-FileCopyrightText: Copyright 2025 crueter
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+# Created-By: crueter
+# Docs will come at a later date, mostly this is to just reduce boilerplate
+# and some cmake magic to allow for runtime viewing of dependency versions
+
+# Future crueter: Wow this was a lie and a half, at this point I might as well make my own CPN
+# haha just kidding... unless?
+
+cmake_minimum_required(VERSION 3.22)
+
 if (MSVC OR ANDROID)
     set(BUNDLED_DEFAULT ON)
 else()
@@ -13,7 +22,6 @@ option(CPMUTIL_FORCE_BUNDLED
 option(CPMUTIL_FORCE_SYSTEM
     "Force system packages for all CPM dependencies (NOT RECOMMENDED)" OFF)
 
-cmake_minimum_required(VERSION 3.22)
 include(CPM)
 
 # cpmfile parsing
