@@ -48,10 +48,11 @@ endif()
 # On Linux system SDL2 is likely to be lacking HIDAPI support which have drawbacks but is needed for SDL motion
 CMAKE_DEPENDENT_OPTION(ENABLE_SDL2 "Enable the SDL2 frontend" ON "NOT ANDROID" OFF)
 
-set(EXT_DEFAULT ON)
+set(EXT_DEFAULT OFF)
 
-if (PLATFORM_FREEBSD)
-    set(EXT_DEFAULT OFF)
+# TODO(crueter): Proper handling for ffmpeg, sdl2, etc.
+if (MSVC OR ANDROID)
+    set(EXT_DEFAULT ON)
 endif()
 
 CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ${EXT_DEFAULT} "ENABLE_SDL2;NOT MSVC" OFF)
@@ -67,7 +68,7 @@ option(ENABLE_QT_UPDATE_CHECKER "Enable update checker for the Qt frontend" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
-option(YUZU_USE_CPM "Use CPM to fetch Eden dependencies if needed" ${EXT_DEFAULT})
+option(YUZU_USE_CPM "Use CPM to fetch system dependencies (fmt, boost, etc) if needed. Externals will still be fetched." ${EXT_DEFAULT})
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
@@ -93,6 +94,7 @@ option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
 option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ${EXT_DEFAULT})
 
+# TODO(crueter): CI this?
 option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
 
 option(FORCE_DOWNLOAD_WIN_BUNDLES "Forcefully download bundled Windows dependencies (useful for CI)" OFF)

@@ -11,10 +11,11 @@
 # Future crueter: Wow this was a lie and a half, at this point I might as well make my own CPN
 # haha just kidding... unless?
 
+# TODO(crueter): Remember to get more than 6 hours of sleep whenever making giant cmake changes
 if (MSVC OR ANDROID)
-    set(BUNDLED_DEFAULT OFF)
-else()
     set(BUNDLED_DEFAULT ON)
+else()
+    set(BUNDLED_DEFAULT OFF)
 endif()
 
 option(CPMUTIL_FORCE_BUNDLED
