@@ -5,6 +5,7 @@
 #pragma once
 
 #include <signal.h>
+#include <span>
 #include <unistd.h>
 
 #include "core/arm/nce/visitor_base.h"

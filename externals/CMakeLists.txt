@@ -54,6 +54,7 @@ endif()
 add_subdirectory(glad)
 
 # mbedtls
+# TODO(crueter): Findmbedtls that ONLY accepts mbedtls2
 AddJsonPackage(mbedtls)
 
 if (mbedtls_ADDED)

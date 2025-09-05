@@ -50,7 +50,7 @@ CMAKE_DEPENDENT_OPTION(ENABLE_SDL2 "Enable the SDL2 frontend" ON "NOT ANDROID" O
 
 set(EXT_DEFAULT ON)
 
-if (PLATFORM_FREEBSD)
+if (PLATFORM_FREEBSD OR APPLE)
     set(EXT_DEFAULT OFF)
 endif()
 
@@ -455,10 +455,17 @@ if (YUZU_USE_CPM)
 
     if (enet_ADDED)
         target_include_directories(enet INTERFACE ${enet_SOURCE_DIR}/include)
+        if (NOT TARGET enet::enet)
+            add_library(enet::enet ALIAS enet)
+        endif()
     endif()
 
     # Opus
     AddJsonPackage(opus)
+
+    if (NOT TARGET Opus::opus)
+        add_library(Opus::opus ALIAS opus)
+    endif()
 else()
     # Enforce the search mode of non-required packages for better and shorter failure messages
     find_package(fmt 8 REQUIRED)

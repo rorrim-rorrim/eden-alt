@@ -11,10 +11,12 @@
 # Future crueter: Wow this was a lie and a half, at this point I might as well make my own CPN
 # haha just kidding... unless?
 
+cmake_minimum_required(VERSION 3.22)
+
 if (MSVC OR ANDROID)
-    set(BUNDLED_DEFAULT OFF)
-else()
     set(BUNDLED_DEFAULT ON)
+else()
+    set(BUNDLED_DEFAULT OFF)
 endif()
 
 option(CPMUTIL_FORCE_BUNDLED
@@ -23,7 +25,6 @@ option(CPMUTIL_FORCE_BUNDLED
 option(CPMUTIL_FORCE_SYSTEM
     "Force system packages for all CPM dependencies (NOT RECOMMENDED)" OFF)
 
-cmake_minimum_required(VERSION 3.22)
 include(CPM)
 
 # TODO(crueter): Better solution for separate cpmfiles e.g. per-directory
