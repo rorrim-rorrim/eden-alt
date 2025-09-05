@@ -146,6 +146,11 @@ set(EXT_DEFAULT OFF)
 if (MSVC OR ANDROID)
     set(EXT_DEFAULT ON)
 endif()
+# See https://github.com/llvm/llvm-project/issues/123946
+# OpenBSD va_list doesn't play nice with precompiled headers
+if (PLATFORM_FREEBSD OR PLATFORM_OPENBSD OR APPLE)
+    set(EXT_DEFAULT OFF)
+endif()
 
 CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ${EXT_DEFAULT} "ENABLE_SDL2;NOT MSVC" OFF)
 
@@ -448,6 +453,9 @@ if (YUZU_USE_CPM)
 
     if (enet_ADDED)
         target_include_directories(enet INTERFACE ${enet_SOURCE_DIR}/include)
+        if (NOT TARGET enet::enet)
+            add_library(enet::enet ALIAS enet)
+        endif()
     endif()
 
     if (NOT TARGET enet::enet)
@@ -456,7 +464,9 @@ if (YUZU_USE_CPM)
 
     # Opus
     AddJsonPackage(opus)
-
+    if (NOT TARGET Opus::opus)
+        add_library(Opus::opus ALIAS opus)
+    endif()
     if (Opus_ADDED)
         if (MSVC AND CXX_CLANG)
             target_compile_options(opus PRIVATE
