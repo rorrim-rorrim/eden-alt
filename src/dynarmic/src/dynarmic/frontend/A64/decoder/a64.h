@@ -71,12 +71,24 @@ constexpr DecodeTable<V> GetDecodeTable() {
 template<typename V>
 std::optional<std::reference_wrapper<const Matcher<V>>> Decode(u32 instruction) {
     alignas(64) static const auto table = GetDecodeTable<V>();
-    const auto matches_instruction = [instruction](const auto& matcher) {
-        return matcher.Matches(instruction);
-    };
     const auto& subtable = table[detail::ToFastLookupIndex(instruction)];
-    auto iter = std::find_if(subtable.begin(), subtable.end(), matches_instruction);
+    auto iter = std::find_if(subtable.begin(), subtable.end(), [instruction](const auto& matcher) {
+        return matcher.Matches(instruction);
+    });
     return iter != subtable.end() ? std::optional<std::reference_wrapper<const Matcher<V>>>(*iter) : std::nullopt;
+}
+
+template<typename V>
+std::optional<std::string_view> GetName(u32 inst) noexcept {
+    std::vector<std::pair<std::string_view, Matcher<V>>> list = {
+#define INST(fn, name, bitstring) { name, DYNARMIC_DECODER_GET_MATCHER(Matcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)) },
+#include "./a64.inc"
+#undef INST
+    };
+    auto const iter = std::find_if(list.cbegin(), list.cend(), [inst](auto const& m) {
+        return m.second.Matches(inst);
+    });
+    return iter != list.cend() ? std::optional{iter->first} : std::nullopt;
 }
 
 }  // namespace Dynarmic::A64
