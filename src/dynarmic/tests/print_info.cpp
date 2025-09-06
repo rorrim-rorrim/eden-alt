@@ -32,6 +32,7 @@
 #include "dynarmic/frontend/A64/translate/a64_translate.h"
 #include "dynarmic/frontend/A64/translate/impl/impl.h"
 #include "dynarmic/interface/A32/a32.h"
+#include "dynarmic/interface/A32/config.h"
 #include "dynarmic/interface/A32/disassembler.h"
 #include "dynarmic/ir/basic_block.h"
 #include "dynarmic/ir/opt_passes.h"
@@ -39,20 +40,20 @@
 using namespace Dynarmic;
 
 const char* GetNameOfA32Instruction(u32 instruction) {
-    if (auto vfp_decoder = A32::DecodeVFP<A32::TranslatorVisitor>(instruction)) {
+    /*if (auto vfp_decoder = A32::DecodeVFP<A32::TranslatorVisitor>(instruction)) {
         return vfp_decoder->get().GetName();
     } else if (auto asimd_decoder = A32::DecodeASIMD<A32::TranslatorVisitor>(instruction)) {
         return asimd_decoder->get().GetName();
     } else if (auto decoder = A32::DecodeArm<A32::TranslatorVisitor>(instruction)) {
         return decoder->get().GetName();
-    }
+    }*/
     return "<null>";
 }
 
 const char* GetNameOfA64Instruction(u32 instruction) {
-    if (auto decoder = A64::Decode<A64::TranslatorVisitor>(instruction)) {
+    /*if (auto decoder = A64::Decode<A64::TranslatorVisitor>(instruction)) {
         return decoder->get().GetName();
-    }
+    }*/
     return "<null>";
 }
 
@@ -64,18 +65,9 @@ void PrintA32Instruction(u32 instruction) {
     IR::Block ir_block{location};
     const bool should_continue = A32::TranslateSingleInstruction(ir_block, location, instruction);
     fmt::print("should_continue: {}\n\n", should_continue);
-
-    Optimization::NamingPass(ir_block);
-
     fmt::print("IR:\n");
     fmt::print("{}\n", IR::DumpBlock(ir_block));
-
-    Optimization::A32GetSetElimination(ir_block, {});
-    Optimization::DeadCodeElimination(ir_block);
-    Optimization::ConstantPropagation(ir_block);
-    Optimization::DeadCodeElimination(ir_block);
-    Optimization::IdentityRemovalPass(ir_block);
-
+    Optimization::Optimize(ir_block, A32::UserConfig{}, {});
     fmt::print("Optimized IR:\n");
     fmt::print("{}\n", IR::DumpBlock(ir_block));
 }
@@ -88,18 +80,9 @@ void PrintA64Instruction(u32 instruction) {
     IR::Block ir_block{location};
     const bool should_continue = A64::TranslateSingleInstruction(ir_block, location, instruction);
     fmt::print("should_continue: {}\n\n", should_continue);
-
-    Optimization::NamingPass(ir_block);
-
     fmt::print("IR:\n");
     fmt::print("{}\n", IR::DumpBlock(ir_block));
-
-    Optimization::A64GetSetElimination(ir_block);
-    Optimization::DeadCodeElimination(ir_block);
-    Optimization::ConstantPropagation(ir_block);
-    Optimization::DeadCodeElimination(ir_block);
-    Optimization::IdentityRemovalPass(ir_block);
-
+    Optimization::Optimize(ir_block, A64::UserConfig{}, {});
     fmt::print("Optimized IR:\n");
     fmt::print("{}\n", IR::DumpBlock(ir_block));
 }
@@ -115,18 +98,9 @@ void PrintThumbInstruction(u32 instruction) {
     IR::Block ir_block{location};
     const bool should_continue = A32::TranslateSingleInstruction(ir_block, location, instruction);
     fmt::print("should_continue: {}\n\n", should_continue);
-
-    Optimization::NamingPass(ir_block);
-
     fmt::print("IR:\n");
     fmt::print("{}\n", IR::DumpBlock(ir_block));
-
-    Optimization::A32GetSetElimination(ir_block, {});
-    Optimization::DeadCodeElimination(ir_block);
-    Optimization::ConstantPropagation(ir_block);
-    Optimization::DeadCodeElimination(ir_block);
-    Optimization::IdentityRemovalPass(ir_block);
-
+    Optimization::Optimize(ir_block, A32::UserConfig{}, {});
     fmt::print("Optimized IR:\n");
     fmt::print("{}\n", IR::DumpBlock(ir_block));
 }

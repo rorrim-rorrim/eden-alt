@@ -8,6 +8,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "./testenv.h"
+#include "../native/testenv.h"
 #include "dynarmic/frontend/A32/a32_location_descriptor.h"
 #include "dynarmic/interface/A32/a32.h"
 #include "dynarmic/interface/A32/coprocessor.h"

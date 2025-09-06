@@ -6,6 +6,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "./testenv.h"
+#include "../native/testenv.h"
 #include "dynarmic/interface/A64/a64.h"
 
 using namespace Dynarmic;
