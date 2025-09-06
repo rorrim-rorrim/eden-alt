@@ -61,7 +61,7 @@ std::vector<ASIMDMatcher<V>> GetASIMDDecodeTable() {
         return mcl::bit::count_ones(a.second.GetMask()) > mcl::bit::count_ones(b.second.GetMask());
     });
     std::vector<ASIMDMatcher<V>> final_table;
-    std::transform(table.cbegin(), table.cend(), final_table.begin(), [](auto const& e) {
+    std::transform(table.cbegin(), table.cend(), std::back_inserter(final_table), [](auto const& e) {
         return e.second;
     });
     return final_table;
