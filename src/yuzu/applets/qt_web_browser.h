@@ -158,9 +158,6 @@ private:
     void StartInputThread();
     void StopInputThread();
 
-    /// The thread where input is being polled and processed.
-    void InputThread();
-
     /// Loads the extracted fonts using JavaScript.
     void LoadExtractedFonts();
 
@@ -168,24 +165,13 @@ private:
     void FocusFirstLinkElement();
 
     InputCommon::InputSubsystem* input_subsystem;
-
     std::unique_ptr<UrlRequestInterceptor> url_interceptor;
-
     std::unique_ptr<InputInterpreter> input_interpreter;
-
-    std::thread input_thread;
-
-    std::atomic<bool> input_thread_running{};
-
+    std::jthread input_thread;
     std::atomic<bool> finished{};
-
-    Service::AM::Frontend::WebExitReason exit_reason{
-        Service::AM::Frontend::WebExitReason::EndButtonPressed};
-
+    Service::AM::Frontend::WebExitReason exit_reason{Service::AM::Frontend::WebExitReason::EndButtonPressed};
     std::string last_url{"http://localhost/"};
-
     bool is_local{};
-
     QWebEngineProfile* default_profile;
     QWebEngineSettings* global_settings;
 };
