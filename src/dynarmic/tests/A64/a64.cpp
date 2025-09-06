@@ -7,6 +7,7 @@
 #include <oaknut/oaknut.hpp>
 
 #include "./testenv.h"
+#include "../native/testenv.h"
 #include "dynarmic/common/fp/fpsr.h"
 #include "dynarmic/interface/exclusive_monitor.h"
 
