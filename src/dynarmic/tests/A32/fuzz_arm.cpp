@@ -24,6 +24,7 @@
 #include "../rand_int.h"
 #include "../unicorn_emu/a32_unicorn.h"
 #include "./testenv.h"
+#include "../native/testenv.h"
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/common/fp/fpsr.h"
 #include "dynarmic/common/llvm_disassemble.h"

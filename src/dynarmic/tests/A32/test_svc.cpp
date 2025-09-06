@@ -8,6 +8,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "./testenv.h"
+#include "../native/testenv.h"
 
 using namespace Dynarmic;
 
