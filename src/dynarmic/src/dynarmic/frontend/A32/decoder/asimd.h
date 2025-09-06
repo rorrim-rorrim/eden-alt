@@ -26,7 +26,7 @@ template<typename Visitor>
 using ASIMDMatcher = Decoder::Matcher<Visitor, u32>;
 
 template<typename V>
-std::vector<ASIMDMatcher<V>> GetASIMDDecodeTable() {
+std::vector<ASIMDMatcher<V>> GetASIMDDecodeTable() noexcept {
     std::vector<std::pair<const char*, ASIMDMatcher<V>>> table = {
 #define INST(fn, name, bitstring) { name, DYNARMIC_DECODER_GET_MATCHER(ASIMDMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)) },
 #include "./asimd.inc"
@@ -68,13 +68,25 @@ std::vector<ASIMDMatcher<V>> GetASIMDDecodeTable() {
 }
 
 template<typename V>
-std::optional<std::reference_wrapper<const ASIMDMatcher<V>>> DecodeASIMD(u32 instruction) {
-    static const auto table = GetASIMDDecodeTable<V>();
-
-    const auto matches_instruction = [instruction](const auto& matcher) { return matcher.Matches(instruction); };
-
-    auto iter = std::find_if(table.begin(), table.end(), matches_instruction);
+std::optional<std::reference_wrapper<const ASIMDMatcher<V>>> DecodeASIMD(u32 instruction) noexcept {
+    alignas(64) static const auto table = GetASIMDDecodeTable<V>();
+    auto iter = std::find_if(table.begin(), table.end(), [instruction](const auto& matcher) {
+        return matcher.Matches(instruction);
+    });
     return iter != table.end() ? std::optional<std::reference_wrapper<const ASIMDMatcher<V>>>(*iter) : std::nullopt;
+}
+
+template<typename V>
+std::optional<std::string_view> GetNameASIMD(u32 inst) noexcept {
+    std::vector<std::pair<std::string_view, ASIMDMatcher<V>>> list = {
+#define INST(fn, name, bitstring) { name, DYNARMIC_DECODER_GET_MATCHER(ASIMDMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)) },
+#include "./asimd.inc"
+#undef INST
+    };
+    auto const iter = std::find_if(list.cbegin(), list.cend(), [inst](auto const& m) {
+        return m.second.Matches(inst);
+    });
+    return iter != list.cend() ? std::optional{iter->first} : std::nullopt;
 }
 
 }  // namespace Dynarmic::A32
