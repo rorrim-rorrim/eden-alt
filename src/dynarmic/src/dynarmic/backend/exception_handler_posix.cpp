@@ -181,7 +181,6 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
     }
     fmt::print(stderr, "Unhandled {} at rip {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_RIP);
 #elif defined(ARCHITECTURE_arm64)
-    CTX_DECLARE(raw_context);
     {
         std::lock_guard<std::mutex> guard(sig_handler->code_block_infos_mutex);
         const auto iter = sig_handler->FindCodeBlockInfo(CTX_PC);
