@@ -7,10 +7,7 @@
  */
 
 #include <cstring>
-#include <functional>
-#include <memory>
 #include <mutex>
-#include <shared_mutex>
 #include <optional>
 #include <ankerl/unordered_dense.h>
 #include "dynarmic/backend/exception_handler.h"
@@ -118,9 +115,11 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
     CTX_DECLARE(raw_context);
 #if defined(ARCHITECTURE_x86_64)
     {
-        std::shared_lock guard(sig_handler->code_block_infos_mutex);
-        if (auto const iter = sig_handler->FindCodeBlockInfo(CTX_RIP); iter != sig_handler->code_block_infos.end()) {
-            FakeCall fc = iter->second.cb(CTX_RIP);
+        std::lock_guard<std::mutex> guard(sig_handler->code_block_infos_mutex);
+
+        const auto iter = sig_handler->FindCodeBlockInfo(CTX_RIP);
+        if (iter != sig_handler->code_block_infos.end()) {
+            FakeCall fc = iter->cb(CTX_RIP);
             CTX_RSP -= sizeof(u64);
             *mcl::bit_cast<u64*>(CTX_RSP) = fc.ret_rip;
             CTX_RIP = fc.call_rip;
@@ -130,9 +129,10 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
     fmt::print(stderr, "Unhandled {} at rip {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_RIP);
 #elif defined(ARCHITECTURE_arm64)
     {
-        std::shared_lock guard(sig_handler->code_block_infos_mutex);
-        if (const auto iter = sig_handler->FindCodeBlockInfo(CTX_PC); iter != sig_handler->code_block_infos.end()) {
-            FakeCall fc = iter->second.cb(CTX_PC);
+        std::lock_guard<std::mutex> guard(sig_handler->code_block_infos_mutex);
+        const auto iter = sig_handler->FindCodeBlockInfo(CTX_PC);
+        if (iter != sig_handler->code_block_infos.end()) {
+            FakeCall fc = iter->cb(CTX_PC);
             CTX_PC = fc.call_pc;
             return;
         }
@@ -187,15 +187,15 @@ private:
 ExceptionHandler::ExceptionHandler() = default;
 ExceptionHandler::~ExceptionHandler() = default;
 
-#if defined(MCL_ARCHITECTURE_X86_64)
+#if defined(ARCHITECTURE_x86_64)
 void ExceptionHandler::Register(X64::BlockOfCode& code) {
     impl = std::make_unique<Impl>(mcl::bit_cast<u64>(code.getCode()), code.GetTotalCodeSize());
 }
-#elif defined(MCL_ARCHITECTURE_ARM64)
+#elif defined(ARCHITECTURE_arm64)
 void ExceptionHandler::Register(oaknut::CodeBlock& mem, std::size_t size) {
     impl = std::make_unique<Impl>(mcl::bit_cast<u64>(mem.ptr()), size);
 }
-#elif defined(MCL_ARCHITECTURE_RISCV)
+#elif defined(ARCHITECTURE_riscv64)
 void ExceptionHandler::Register(RV64::CodeBlock& mem, std::size_t size) {
     impl = std::make_unique<Impl>(mcl::bit_cast<u64>(mem.ptr<u64>()), size);
 }
