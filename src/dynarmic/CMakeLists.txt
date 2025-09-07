@@ -152,10 +152,18 @@ endif()
 
 find_package(Boost 1.57 REQUIRED)
 find_package(fmt 9 CONFIG)
+
+# Pull in externals CMakeLists for libs where available
+add_subdirectory(externals)
+
 find_package(mcl 0.1.12 REQUIRED)
 
 if ("arm64" IN_LIST ARCHITECTURE OR DYNARMIC_TESTS)
     find_package(oaknut 2.0.1 CONFIG)
+endif()
+
+if ("riscv" IN_LIST ARCHITECTURE)
+    find_package(biscuit 0.9.1 REQUIRED)
 endif()
 
 if ("x86_64" IN_LIST ARCHITECTURE)
@@ -175,9 +183,6 @@ if (DYNARMIC_TESTS)
         find_package(Unicorn REQUIRED)
     endif()
 endif()
-
-# Pull in externals CMakeLists for libs where available
-add_subdirectory(externals)
 
 # Dynarmic project files
 add_subdirectory(src/dynarmic)
