@@ -149,10 +149,31 @@ function(AddJsonPackage)
     get_json_element("${object}" tag tag "")
     get_json_element("${object}" artifact artifact "")
     get_json_element("${object}" git_version git_version "")
+    get_json_element("${object}" git_host git_host "")
     get_json_element("${object}" source_subdir source_subdir "")
     get_json_element("${object}" bundled bundled "unset")
     get_json_element("${object}" find_args find_args "")
     get_json_element("${object}" raw_patches patches "")
+
+    # okay here comes the fun part: REPLACEMENTS!
+    # first: tag gets %VERSION% replaced if applicable, with either git_version (preferred) or version
+    # second: artifact gets %VERSION% and %TAG% replaced accordingly (same rules for VERSION)
+
+    if (git_version)
+        set(version_replace ${git_version})
+    else()
+        set(version_replace ${version})
+    endif()
+
+    # TODO(crueter): fmt module for cmake
+    if (tag)
+        string(REPLACE "%VERSION%" "${version_replace}" tag ${tag})
+    endif()
+
+    if (artifact)
+        string(REPLACE "%VERSION%" "${version_replace}" artifact ${artifact})
+        string(REPLACE "%TAG%" "${tag}" artifact ${artifact})
+    endif()
 
     # format patchdir
     if (raw_patches)
@@ -202,6 +223,8 @@ function(AddJsonPackage)
         SOURCE_SUBDIR "${source_subdir}"
 
         GIT_VERSION ${git_version}
+        GIT_HOST ${git_host}
+
         ARTIFACT ${artifact}
         TAG ${tag}
     )
@@ -241,6 +264,7 @@ function(AddPackage)
         NAME
         VERSION
         GIT_VERSION
+        GIT_HOST
 
         REPO
         TAG
@@ -273,11 +297,17 @@ function(AddPackage)
     option(${PKG_ARGS_NAME}_FORCE_SYSTEM "Force the system package for ${PKG_ARGS_NAME}")
     option(${PKG_ARGS_NAME}_FORCE_BUNDLED "Force the bundled package for ${PKG_ARGS_NAME}")
 
+    if (NOT DEFINED PKG_ARGS_GIT_HOST)
+        set(git_host github.com)
+    else()
+        set(git_host ${PKG_ARGS_GIT_HOST})
+    endif()
+
     if (DEFINED PKG_ARGS_URL)
         set(pkg_url ${PKG_ARGS_URL})
 
         if (DEFINED PKG_ARGS_REPO)
-            set(pkg_git_url https://github.com/${PKG_ARGS_REPO})
+            set(pkg_git_url https://${git_host}/${PKG_ARGS_REPO})
         else()
             if (DEFINED PKG_ARGS_GIT_URL)
                 set(pkg_git_url ${PKG_ARGS_GIT_URL})
@@ -286,7 +316,7 @@ function(AddPackage)
             endif()
         endif()
     elseif (DEFINED PKG_ARGS_REPO)
-        set(pkg_git_url https://github.com/${PKG_ARGS_REPO})
+        set(pkg_git_url https://${git_host}/${PKG_ARGS_REPO})
 
         if (DEFINED PKG_ARGS_TAG)
             set(pkg_key ${PKG_ARGS_TAG})
@@ -317,23 +347,21 @@ function(AddPackage)
 
     cpm_utils_message(STATUS ${PKG_ARGS_NAME} "Download URL is ${pkg_url}")
 
-    if (DEFINED PKG_ARGS_GIT_VERSION)
-        set(git_version ${PKG_ARGS_GIT_VERSION})
-    elseif(DEFINED PKG_ARGS_VERSION)
-        set(git_version ${PKG_ARGS_VERSION})
-    endif()
-
     if (NOT DEFINED PKG_ARGS_KEY)
         if (DEFINED PKG_ARGS_SHA)
             string(SUBSTRING ${PKG_ARGS_SHA} 0 4 pkg_key)
             cpm_utils_message(DEBUG ${PKG_ARGS_NAME}
                         "No custom key defined, using ${pkg_key} from sha")
-        elseif (DEFINED git_version)
-            set(pkg_key ${git_version})
+        elseif(DEFINED PKG_ARGS_GIT_VERSION)
+            set(pkg_key ${PKG_ARGS_GIT_VERSION})
             cpm_utils_message(DEBUG ${PKG_ARGS_NAME}
                         "No custom key defined, using ${pkg_key}")
         elseif (DEFINED PKG_ARGS_TAG)
             set(pkg_key ${PKG_ARGS_TAG})
+            cpm_utils_message(DEBUG ${PKG_ARGS_NAME}
+                        "No custom key defined, using ${pkg_key}")
+        elseif (DEFINED PKG_ARGS_VERSION)
+            set(pkg_key ${PKG_ARGS_VERSION})
             cpm_utils_message(DEBUG ${PKG_ARGS_NAME}
                         "No custom key defined, using ${pkg_key}")
         else()
@@ -446,12 +474,15 @@ function(AddPackage)
         if (DEFINED PKG_ARGS_SHA)
             set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
                          ${PKG_ARGS_SHA})
-        elseif(DEFINED git_version)
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
-                         ${git_version})
+         elseif (DEFINED PKG_ARGS_GIT_VERSION)
+             set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
+                          ${PKG_ARGS_GIT_VERSION})
         elseif (DEFINED PKG_ARGS_TAG)
             set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
                          ${PKG_ARGS_TAG})
+         elseif(DEFINED PKG_ARGS_VERSION)
+             set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
+                          ${PKG_ARGS_VERSION})
         else()
             cpm_utils_message(WARNING ${PKG_ARGS_NAME}
                         "Package has no specified sha, tag, or version")
@@ -496,6 +527,7 @@ function(add_ci_package key)
     set(ARTIFACT_DIR ${${ARTIFACT_PACKAGE}_SOURCE_DIR} PARENT_SCOPE)
 endfunction()
 
+# TODO(crueter): we could do an AddMultiArchPackage, multiplatformpackage?
 # name is the artifact name, package is for find_package override
 function(AddCIPackage)
     set(oneValueArgs

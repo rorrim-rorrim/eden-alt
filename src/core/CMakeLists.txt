@@ -1199,7 +1199,7 @@ else()
     target_link_libraries(core PUBLIC Boost::headers)
 endif()
 
-target_link_libraries(core PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls RenderDoc::API)
+target_link_libraries(core PRIVATE fmt::fmt nlohmann_json::nlohmann_json RenderDoc::API mbedtls)
 if (MINGW)
     target_link_libraries(core PRIVATE ${MSWSOCK_LIBRARY})
 endif()

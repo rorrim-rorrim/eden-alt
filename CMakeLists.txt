@@ -73,8 +73,7 @@ option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 
 option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ${EXT_DEFAULT})
-option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ${EXT_DEFAULT})
-option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ${EXT_DEFAULT})
+option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan Utility Headers from externals" ${EXT_DEFAULT})
 option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ${EXT_DEFAULT})
 
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
@@ -110,8 +109,6 @@ CMAKE_DEPENDENT_OPTION(YUZU_ROOM_STANDALONE "Enable standalone room executable" 
 CMAKE_DEPENDENT_OPTION(YUZU_CMD "Compile the eden-cli executable" ON "ENABLE_SDL2;NOT ANDROID" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
-
-option(YUZU_CHECK_SUBMODULES "Check if submodules are present" ${EXT_DEFAULT})
 
 option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
 
@@ -192,53 +189,6 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/hooks/pre-commit AND NOT EXISTS ${PROJECT_SOURCE
         message(STATUS "Copying pre-commit hook")
         file(COPY hooks/pre-commit DESTINATION ${PROJECT_SOURCE_DIR}/.git/hooks)
     endif()
-endif()
-
-# Sanity check : Check that all submodules are present
-# =======================================================================
-
-function(check_submodules_present)
-    file(READ "${PROJECT_SOURCE_DIR}/.gitmodules" gitmodules)
-    string(REGEX MATCHALL "path *= *[^ \t\r\n]*" gitmodules ${gitmodules})
-    foreach(module ${gitmodules})
-        string(REGEX REPLACE "path *= *" "" module ${module})
-
-        file(GLOB RESULT "${PROJECT_SOURCE_DIR}/${module}/*")
-        list(LENGTH RESULT RES_LEN)
-        if(RES_LEN EQUAL 0)
-            message(FATAL_ERROR "Git submodule ${module} not found. "
-                "Please run: \ngit submodule update --init --recursive")
-        endif()
-        if (EXISTS "${PROJECT_SOURCE_DIR}/${module}/.git")
-            set(SUBMODULE_DIR "${PROJECT_SOURCE_DIR}/${module}")
-
-            execute_process(
-                COMMAND git rev-parse --short=10 HEAD
-                WORKING_DIRECTORY ${SUBMODULE_DIR}
-                OUTPUT_VARIABLE SUBMODULE_SHA
-            )
-
-            # would probably be better to do string parsing, but whatever
-            execute_process(
-                COMMAND git remote get-url origin
-                WORKING_DIRECTORY ${SUBMODULE_DIR}
-                OUTPUT_VARIABLE SUBMODULE_URL
-            )
-
-            string(REGEX REPLACE "\n|\r" "" SUBMODULE_SHA ${SUBMODULE_SHA})
-            string(REGEX REPLACE "\n|\r|\\.git" "" SUBMODULE_URL ${SUBMODULE_URL})
-
-            get_filename_component(SUBMODULE_NAME ${SUBMODULE_DIR} NAME)
-
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES ${SUBMODULE_NAME})
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS ${SUBMODULE_SHA})
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS ${SUBMODULE_URL})
-        endif()
-    endforeach()
-endfunction()
-
-if(EXISTS ${PROJECT_SOURCE_DIR}/.gitmodules AND YUZU_CHECK_SUBMODULES)
-    check_submodules_present()
 endif()
 
 configure_file(${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.qrc
@@ -601,7 +551,6 @@ endfunction()
 add_subdirectory(externals)
 
 # pass targets from externals
-find_package(VulkanHeaders)
 find_package(VulkanUtilityLibraries)
 find_package(VulkanMemoryAllocator)
 find_package(SPIRV-Tools)

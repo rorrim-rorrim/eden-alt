@@ -23,7 +23,7 @@ CPMUtil is a wrapper around CPM that aims to reduce boilerplate and add useful u
 
 - `NAME` (required): The package name (must be the same as the `find_package` name if applicable)
 - `VERSION`: The minimum version of this package that can be used on the system
-- `GIT_VERSION`: The version found within git, only used for identification
+- `GIT_VERSION`: The "version" found within git
 - `URL`: The URL to fetch.
 - `REPO`: The GitHub repo to use (`owner/repo`).
   * Only GitHub is supported for now, though other platforms will see support at some point
@@ -71,8 +71,9 @@ Hashing strategies, descending order of precedence:
 - `KEY`: Custom cache key to use (stored as `.cache/cpm/${packagename_lower}/${key}`)
   * Default is based on, in descending order of precedence:
     - First 4 characters of the sha
-    - `GIT_VERSION`, or `VERSION` if not specified
+    - `GIT_VERSION`
     - Tag
+    - `VERSION`
     - Otherwise, CPM defaults will be used. This is not recommended as it doesn't produce reproducible caches
 - `DOWNLOAD_ONLY`: Whether or not to configure the downloaded package via CMake
   * Useful to turn `OFF` if the project doesn't use CMake
