@@ -281,8 +281,6 @@ if (UNIX AND NOT APPLE AND NOT TARGET gamemode::headers)
 endif()
 
 # Breakpad
-# TODO(crueter): Breakpad needs additional fetches
-# https://github.com/google/breakpad/blob/main/DEPS
 # https://github.com/microsoft/vcpkg/blob/master/ports/breakpad/CMakeLists.txt
 if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
     set(BREAKPAD_WIN32_DEFINES
@@ -294,14 +292,8 @@ if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
         _CRT_NONSTDC_NO_DEPRECATE
     )
 
-    # TODO
-    AddPackage(
-        NAME breakpad
-        URL "google/breakpad"
-        SHA f80f288803
-        HASH 4a87ee88cea99bd633d52a5b00135a649f1475e3b65db325a6df9c804ab82b054ad7e62419b35f6e22cc5dfbbb569214041d7ad5d10fab10106e700bb5050e1d
-        DOWNLOAD_ONLY YES
-    )
+    # TODO(crueter): Can probably put all this cmake crap into the CI repo itself
+    AddJsonPackage(breakpad)
 
     # libbreakpad
     add_library(libbreakpad STATIC)
@@ -344,7 +336,10 @@ if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
     list(APPEND LIBBREAKPAD_CLIENT_SOURCES ${LIBBREAKPAD_COMMON_SOURCES})
     list(FILTER LIBBREAKPAD_CLIENT_SOURCES EXCLUDE REGEX "/sender|/tests|/unittests|/testcases|_unittest|_test")
     target_sources(libbreakpad_client PRIVATE ${LIBBREAKPAD_CLIENT_SOURCES})
-    target_include_directories(libbreakpad_client PRIVATE ${breakpad_SOURCE_DIR}/src)
+    target_include_directories(libbreakpad_client PUBLIC ${breakpad_SOURCE_DIR}/src)
+
+    # thank you Google, very cool
+    target_include_directories(libbreakpad_client PUBLIC ${breakpad_SOURCE_DIR}/src/src)
 
     if (WIN32)
         target_link_libraries(libbreakpad_client PRIVATE wininet.lib)

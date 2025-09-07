@@ -147,6 +147,7 @@ function(AddJsonPackage)
     get_json_element("${object}" git_host git_host "")
     get_json_element("${object}" source_subdir source_subdir "")
     get_json_element("${object}" bundled bundled "unset")
+    get_json_element("${object}" download_only download_only "unset")
     get_json_element("${object}" find_args find_args "")
     get_json_element("${object}" raw_patches patches "")
 
@@ -200,7 +201,17 @@ function(AddJsonPackage)
     # system/bundled
     if (bundled STREQUAL "unset" AND DEFINED JSON_BUNDLED_PACKAGE)
         set(bundled ${JSON_BUNDLED_PACKAGE})
+    else()
+        set(bundled OFF)
     endif()
+
+    # download only
+    if (download_only STREQUAL "unset" AND DEFINED JSON_DOWNLOAD_ONLY)
+        set(download_only ${JSON_DOWNLOAD_ONLY})
+    else()
+        set(download_only OFF)
+    endif()
+
 
     AddPackage(
         NAME "${package}"
@@ -219,6 +230,8 @@ function(AddJsonPackage)
 
         GIT_VERSION ${git_version}
         GIT_HOST ${git_host}
+
+        DOWNLOAD_ONLY ${download_only}
 
         ARTIFACT ${artifact}
         TAG ${tag}
@@ -274,6 +287,8 @@ function(AddPackage)
 
         URL
         GIT_URL
+
+        DOWNLOAD_ONLY
 
         KEY
         BUNDLED_PACKAGE

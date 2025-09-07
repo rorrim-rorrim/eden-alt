@@ -260,7 +260,9 @@ static void RemoveTitlebarFilter() {
 #endif
 
 #ifdef YUZU_CRASH_DUMPS
-#include "yuzu/breakpad.h"
+#  define __STDC_FORMAT_MACROS
+#  include "inttypes.h"
+#  include "yuzu/breakpad.h"
 #endif
 
 using namespace Common::Literals;
@@ -4272,18 +4274,18 @@ void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_vie
 
 std::string GMainWindow::CreateTASFramesString(
     std::array<size_t, InputCommon::TasInput::PLAYER_NUMBER> frames) const {
-    std::string string = "";
+    std::string frame_string = "";
     size_t maxPlayerIndex = 0;
     for (size_t i = 0; i < frames.size(); i++) {
         if (frames[i] != 0) {
             if (maxPlayerIndex != 0)
-                string += ", ";
+                frame_string += ", ";
             while (maxPlayerIndex++ != i)
-                string += "0, ";
-            string += std::to_string(frames[i]);
+                frame_string += "0, ";
+            frame_string += std::to_string(frames[i]);
         }
     }
-    return string;
+    return frame_string;
 }
 
 QString GMainWindow::GetTasStateDescription() const {

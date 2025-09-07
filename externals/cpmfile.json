@@ -210,5 +210,14 @@
         "key": "steamdeck",
         "bundled": true,
         "skip_updates": "true"
+    },
+    "breakpad": {
+        "repo": "scripts/breakpad",
+        "git_host": "git.crueter.xyz",
+        "tag": "f80f288803",
+        "hash": "227aeb765ea4b1f723305d4465931ce94e1c91448a938fc89f0fb06dd470c28d3b85e4ca47898735ef4a90bbeb53210e3cf39a61d592adbe99b3b9c2dfa0753c",
+        "artifact": "breakpad.tar.zst",
+        "bundled": true,
+        "download_only": true
     }
 }
