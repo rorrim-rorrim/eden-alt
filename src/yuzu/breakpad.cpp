@@ -5,19 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
-#include <ranges>
 
-#if defined(_WIN32)
-#include <client/windows/handler/exception_handler.h>
-#elif defined(__linux__)
-#include <client/linux/handler/exception_handler.h>
-#elif defined(__sun__)
-#include <client/solaris/handler/exception_handler.h>
-#else
-#error Minidump creation not supported on this platform
-#endif
-
-#include "common/fs/fs_paths.h"
 #include "common/fs/path_util.h"
 #include "yuzu/breakpad.h"
 
@@ -54,7 +42,7 @@ static void PruneDumpDirectory(const std::filesystem::path& dump_path) {
     }
 }
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__sun__)
 [[noreturn]] bool DumpCallback(const google_breakpad::MinidumpDescriptor& descriptor, void* context,
                                bool succeeded) {
     // Prevent time- and space-consuming core dumps from being generated, as we have

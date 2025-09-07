@@ -70,5 +70,14 @@
         "sha": "73f3cbb237",
         "hash": "c08c03063938339d61392b687562909c1a92615b6ef39ec8df19ea472aa6b6478e70d7d5e33d4a27b5d23f7806daf57fe1bacb8124c8a945c918c7663a9e8532",
         "find_args": "CONFIG"
+    },
+    "breakpad": {
+        "repo": "scripts/breakpad",
+        "git_host": "git.crueter.xyz",
+        "tag": "f80f288803",
+        "hash": "227aeb765ea4b1f723305d4465931ce94e1c91448a938fc89f0fb06dd470c28d3b85e4ca47898735ef4a90bbeb53210e3cf39a61d592adbe99b3b9c2dfa0753c",
+        "artifact": "breakpad.tar.zst",
+        "bundled": true,
+        "download_only": true
     }
 }
