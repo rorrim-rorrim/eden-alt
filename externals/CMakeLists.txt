@@ -68,9 +68,7 @@ if (mbedtls_ADDED)
     elseif(CXX_CLANG)
         foreach(TARGET mbedtls mbedcrypto mbedx509)
             target_compile_options(${TARGET} PRIVATE
-                -Wno-switch-default
-                -Wno-undef
-                -Wno-unused-macros
+                -w
             )
         endforeach()
     endif()
