@@ -29,18 +29,14 @@
     },
     "cpp-jwt": {
         "version": "1.4",
-        "repo": "arun11299/cpp-jwt",
-        "sha": "a54fa08a3b",
-        "hash": "a90f7e594ada0c7e49d5ff9211c71097534e7742a8e44bf0851b0362642a7271d53f5d83d04eeaae2bad17ef3f35e09e6818434d8eaefa038f3d1f7359d0969a",
+        "repo": "crueter/cpp-jwt",
+        "sha": "ce992811fe",
+        "hash": "d86f1495dc42189636cde959fcbd06334113aa81af0abb5b096a9ef29c51ad391cc56e2f1b5d627bf8805efd838d28f39cc1687caa4db6a3d49934232762742c",
         "find_args": "CONFIG",
         "options": [
             "CPP_JWT_BUILD_EXAMPLES OFF",
             "CPP_JWT_BUILD_TESTS OFF",
             "CPP_JWT_USE_VENDORED_NLOHMANN_JSON OFF"
-        ],
-        "patches": [
-            "0001-no-install.patch",
-            "0002-missing-decl.patch"
         ]
     },
     "vulkan-utility-headers": {
@@ -107,12 +103,6 @@
         "repo": "martinus/unordered_dense",
         "sha": "73f3cbb237",
         "hash": "c08c03063938339d61392b687562909c1a92615b6ef39ec8df19ea472aa6b6478e70d7d5e33d4a27b5d23f7806daf57fe1bacb8124c8a945c918c7663a9e8532",
-        "find_args": "CONFIG",
-        "options": [
-            "UNORDERED_DENSE_INSTALL OFF"
-        ],
-        "patches": [
-            "0001-cmake.patch"
-        ]
+        "find_args": "CONFIG"
     }
 }
