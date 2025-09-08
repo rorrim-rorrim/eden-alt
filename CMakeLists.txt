@@ -366,6 +366,12 @@ if (YUZU_USE_CPM)
 
     # boost
     set(BOOST_INCLUDE_LIBRARIES algorithm icl pool container heap asio headers process filesystem crc variant)
+    if (MSVC AND ARCHITECURE_arm64)
+        set(BOOST_USE_PREBUILT OFF)
+        set(BOOST_CONTEXT_ASM OFF)
+        set(BOOST_B2_OPTIONS=address-model=64 architecture=arm target-os=windows toolset=msvc)
+    endif()
+
     AddJsonPackage(boost)
 
     # really annoying thing where boost::headers doesn't work with cpm
