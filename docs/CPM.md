@@ -233,11 +233,8 @@ In order: OpenSSL CI, Boost (tag + artifact), discord-rpc (sha + options + patch
 To include CPMUtil:
 
 ```cmake
-set(CPMUTIL_JSON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json)
 include(CPMUtil)
 ```
-
-You may omit the first line if you are not utilizing cpmfile.
 
 ## Prefetching
 
@@ -246,8 +243,8 @@ You may omit the first line if you are not utilizing cpmfile.
 - To prefetch all CPM dependencies:
   * `tools/cpm-fetch-all.sh`
 
-Currently, `cpm-fetch.sh` defines the following directories for cpmfiles:
+Currently, `cpm-fetch.sh` defines the following directories for cpmfiles (max depth of 2, so subdirs are caught as well):
 
-`externals src/yuzu/externals externals/ffmpeg src/dynarmic/externals externals/nx_tzdb`
+`externals src/yuzu src/dynarmic .`
 
 Whenever you add a new cpmfile, update the script accordingly

@@ -27,8 +27,7 @@ option(CPMUTIL_FORCE_SYSTEM
 cmake_minimum_required(VERSION 3.22)
 include(CPM)
 
-# TODO(crueter): Better solution for separate cpmfiles e.g. per-directory
-set(CPMUTIL_JSON_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json" CACHE STRING "Location of cpmfile.json")
+set(CPMUTIL_JSON_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json")
 
 if (EXISTS ${CPMUTIL_JSON_FILE})
     file(READ ${CPMUTIL_JSON_FILE} CPMFILE_CONTENT)

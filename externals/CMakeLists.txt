@@ -10,8 +10,6 @@
 # TODO(crueter): A lot of this should be moved to the root.
 # otherwise we have to do weird shenanigans with library linking and stuff
 
-# Explicitly include CPMUtil here since we have a separate cpmfile for externals
-set(CPMUTIL_JSON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json)
 include(CPMUtil)
 
 # Explicitly declare this option here to propagate to the oaknut CPM call
@@ -70,43 +68,7 @@ if (mbedtls_ADDED)
 endif()
 
 # libusb
-# TODO(crueter): remove entirely, replace with cpm
-if (ENABLE_LIBUSB AND NOT TARGET libusb::usb)
-    set(module externals/libusb)
-
-    file(GLOB RESULT "${PROJECT_SOURCE_DIR}/${module}/*")
-    list(LENGTH RESULT RES_LEN)
-    if(RES_LEN EQUAL 0)
-        message(FATAL_ERROR "libusb not found. "
-            "Please run: \ngit submodule update --init")
-    endif()
-
-    if (EXISTS "${PROJECT_SOURCE_DIR}/${module}/.git")
-        set(SUBMODULE_DIR "${PROJECT_SOURCE_DIR}/${module}")
-
-        execute_process(
-            COMMAND git rev-parse --short=10 HEAD
-            WORKING_DIRECTORY ${SUBMODULE_DIR}
-            OUTPUT_VARIABLE SUBMODULE_SHA
-        )
-
-        # would probably be better to do string parsing, but whatever
-        execute_process(
-            COMMAND git remote get-url origin
-            WORKING_DIRECTORY ${SUBMODULE_DIR}
-            OUTPUT_VARIABLE SUBMODULE_URL
-        )
-
-        string(REGEX REPLACE "\n|\r" "" SUBMODULE_SHA ${SUBMODULE_SHA})
-        string(REGEX REPLACE "\n|\r|\\.git" "" SUBMODULE_URL ${SUBMODULE_URL})
-
-        get_filename_component(SUBMODULE_NAME ${SUBMODULE_DIR} NAME)
-
-        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES ${SUBMODULE_NAME})
-        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS ${SUBMODULE_SHA})
-        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS ${SUBMODULE_URL})
-    endif()
-
+if (ENABLE_LIBUSB)
     add_subdirectory(libusb)
 endif()
 

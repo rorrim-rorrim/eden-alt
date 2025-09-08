@@ -439,14 +439,6 @@ if(NOT TARGET Boost::headers)
     AddJsonPackage(boost_headers)
 endif()
 
-if (ENABLE_LIBUSB)
-    if (PLATFORM_FREEBSD)
-        find_package(libusb MODULE)
-    else()
-        find_package(libusb 1.0.24 MODULE)
-    endif()
-endif()
-
 # DiscordRPC
 if (USE_DISCORD_PRESENCE)
     AddJsonPackage(discord-rpc)
@@ -552,6 +544,7 @@ add_subdirectory(externals)
 
 # pass targets from externals
 find_package(VulkanUtilityLibraries)
+find_package(libusb)
 find_package(VulkanMemoryAllocator)
 find_package(SPIRV-Tools)
 
