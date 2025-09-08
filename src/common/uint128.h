@@ -65,7 +65,7 @@ namespace Common {
 #endif
 #else
     // This one is bit more inaccurate.
-    return MultiplyAndDivide64(std::numeric_limits<u64>::max(), numerator, divisor);
+    return MultiplyAndDivide64((std::numeric_limits<u64>::max)(), numerator, divisor);
 #endif
 }
 

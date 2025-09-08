@@ -33,17 +33,25 @@ if (PLATFORM_SUN)
     endif()
 endif()
 
-# clang-cl prints literally 10000+ warnings without this
 if (MSVC AND CXX_CLANG)
     add_compile_options(
-        -Wno-unused-command-line-argument
-        -Wno-unsafe-buffer-usage
-        -Wno-unused-value
-        -Wno-extra-semi-stmt
-        -Wno-sign-conversion
-        -Wno-reserved-identifier
-        -Wno-deprecated-declarations
+        # clang-cl prints literally 10000+ warnings without this
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-command-line-argument>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unsafe-buffer-usage>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-value>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-extra-semi-stmt>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-conversion>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-reserved-identifier>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-deprecated-declarations>
+
+        # Required CPU features
+        $<$<COMPILE_LANGUAGE:C,CXX>:-msse4.1>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-mcx16>
     )
+
+    if(CMAKE_ASM_MASM_COMPILER)
+        set(CMAKE_ASM_MASM_FLAGS "/nologo" CACHE STRING "Flags for MASM assembler" FORCE)
+    endif()
 endif()
 
 set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
@@ -367,13 +375,10 @@ if (YUZU_USE_CPM)
     if (Boost_ADDED)
         if (MSVC OR ANDROID)
             add_compile_definitions(YUZU_BOOST_v1)
-        else()
-            message(WARNING "Using bundled Boost on a non-MSVC or Android system is not recommended. You are strongly encouraged to install Boost through your system's package manager.")
         endif()
 
-        if (NOT MSVC)
+        if (NOT MSVC OR CXX_CLANG)
             # boost sucks
-            # Solaris (and probably other NIXes) need explicit pthread definition
             if (PLATFORM_SUN)
                 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthreads")
                 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthreads")

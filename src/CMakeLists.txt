@@ -18,7 +18,7 @@ set_property(DIRECTORY APPEND PROPERTY
     COMPILE_DEFINITIONS $<$<CONFIG:Debug>:_DEBUG> $<$<NOT:$<CONFIG:Debug>>:NDEBUG>)
 
 # Set compilation flags
-if (MSVC)
+if (MSVC AND NOT CXX_CLANG)
     set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING "" FORCE)
 
     # Silence "deprecation" warnings
@@ -137,14 +137,19 @@ else()
         -Wno-missing-field-initializers
     )
 
-    if (CMAKE_CXX_COMPILER_ID MATCHES Clang OR CMAKE_CXX_COMPILER_ID MATCHES IntelLLVM) # Clang or AppleClang
+    if (CMAKE_CXX_COMPILER_ID MATCHES Clang OR CMAKE_CXX_COMPILER_ID MATCHES IntelLLVM) # Clang or AppleClang but NOT clang-cl
+        if (NOT MSVC)
+            add_compile_options(
+                -Werror=shadow-uncaptured-local
+                -Werror=implicit-fallthrough
+                -Werror=type-limits
+            )
+        endif()
+
         add_compile_options(
             -Wno-braced-scalar-init
             -Wno-unused-private-field
             -Wno-nullability-completeness
-            -Werror=shadow-uncaptured-local
-            -Werror=implicit-fallthrough
-            -Werror=type-limits
         )
     endif()
 

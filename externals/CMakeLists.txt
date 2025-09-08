@@ -139,8 +139,16 @@ add_subdirectory(nx_tzdb)
 # VMA
 AddJsonPackage(vulkan-memory-allocator)
 
-if (VulkanMemoryAllocator_ADDED AND MSVC)
-    target_compile_options(VulkanMemoryAllocator INTERFACE /wd4189)
+if (VulkanMemoryAllocator_ADDED)
+    if (CXX_CLANG)
+        target_compile_options(VulkanMemoryAllocator INTERFACE
+            -Wno-unused-variable
+        )
+    elseif(MSVC)
+        target_compile_options(VulkanMemoryAllocator INTERFACE
+            /wd4189
+        )
+    endif()
 endif()
 
 if (NOT TARGET LLVM::Demangle)
