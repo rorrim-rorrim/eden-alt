@@ -30,12 +30,10 @@
     "cpp-jwt": {
         "version": "1.4",
         "repo": "crueter/cpp-jwt",
-        "sha": "ce992811fe",
-        "hash": "d86f1495dc42189636cde959fcbd06334113aa81af0abb5b096a9ef29c51ad391cc56e2f1b5d627bf8805efd838d28f39cc1687caa4db6a3d49934232762742c",
+        "sha": "12e1d43708",
+        "hash": "37ecd93a2ec48f1f0ab81670a264fa3c720c84d104ac7c442a6ff3bb97c90d26ad64e34665bb60f3cc861353bee15e6a0172fe60fd52fcb3aeadf0e78c9689dc",
         "find_args": "CONFIG",
         "options": [
-            "CPP_JWT_BUILD_EXAMPLES OFF",
-            "CPP_JWT_BUILD_TESTS OFF",
             "CPP_JWT_USE_VENDORED_NLOHMANN_JSON OFF"
         ]
     },
