@@ -4,7 +4,7 @@ The main way of accessing memory in JITed programs is via an invoked function, s
 
 The solution? Delegate invalid accesses to a dedicated arena, similar to a swap. The main idea behind such mechanism is to allow the OS to transmit page faults from invalid accesses into the JIT translator directly, bypassing address space calls, while this sacrifices i-cache coherency, it allows for smaller code-size and "faster" throguhput.
 
-Many kernels however, do not support fast signal dispatching (Solaris, *BSD). Only Linux and Windows support relatively "fast" signal dispatching. Hence this feature is better suited for them only.
+Many kernels however, do not support fast signal dispatching (Solaris, OpenBSD, FreeBSD). Only Linux and Windows support relatively "fast" signal dispatching. Hence this feature is better suited for them only.
 
 ![Host to guest translation](./HostToGuest.svg)
 
