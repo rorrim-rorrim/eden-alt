@@ -84,7 +84,7 @@ ci_package() {
 
   for platform in windows-amd64 windows-arm64 android solaris freebsd linux linux-aarch64; do
     FILENAME="${NAME}-${platform}-${VERSION}.${EXT}"
-    DOWNLOAD="https://$GIT_URL/${REPO}/releases/download/v${VERSION}/${FILENAME}"
+    DOWNLOAD="https://$GIT_HOST/${REPO}/releases/download/v${VERSION}/${FILENAME}"
     PACKAGE_NAME="$PACKAGE"
     KEY=$platform
 
