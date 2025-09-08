@@ -12,7 +12,7 @@
         "repo": "boostorg/boost",
         "tag": "boost-%VERSION%",
         "artifact": "%TAG%-cmake.tar.xz",
-        "hash": "4fb7f6fde92762305aad8754d7643cd918dd1f3f67e104e9ab385b18c73178d72a17321354eb203b790b6702f2cf6d725a5d6e2dfbc63b1e35f9eb59fb42ece9",
+        "hash": "56e654724842d891a2755a9d9d7442c5b239c5aeb806e526ae889a7f51748c08e8aabe76b27415e550bdf2e3051bdf87ab39df32aba0edd1c52e1d11cffcb897",
         "git_version": "1.89.0",
         "version": "1.57",
         "patches": [
