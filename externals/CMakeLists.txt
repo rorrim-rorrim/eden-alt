@@ -74,7 +74,7 @@ endif()
 if (ENABLE_LIBUSB AND NOT TARGET libusb::usb)
     set(module externals/libusb)
 
-    file(GLOB RESULT "${PROJECT_SOURCE_DIR}/${module}/")
+    file(GLOB RESULT "${PROJECT_SOURCE_DIR}/${module}/*")
     list(LENGTH RESULT RES_LEN)
     if(RES_LEN EQUAL 0)
         message(FATAL_ERROR "libusb not found. "
