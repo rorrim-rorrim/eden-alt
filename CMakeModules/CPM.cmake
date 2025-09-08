@@ -593,7 +593,7 @@ function(cpm_add_patches)
     endif()
     # Add the patch command to the list
     # use binary because DOS SUCKS
-    list(APPEND temp_list "${PATCH_EXECUTABLE}" "--binary" "-p1" "<" "${PATCH_FILE}")
+    list(APPEND temp_list "${PATCH_EXECUTABLE}" "-p1" "<" "${PATCH_FILE}")
   endforeach()
 
   # Move temp out into parent scope.
