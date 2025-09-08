@@ -136,7 +136,7 @@ CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ${EXT_DEFA
 
 cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID" OFF)
 
-option(ENABLE_OPENGL "Enable OpenGL" ON)
+cmake_dependent_option(ENABLE_OPENGL "Enable OpenGL" ON "NOT WIN32 AND NOT ARCHITECTURE_arm64" OFF)
 mark_as_advanced(FORCE ENABLE_OPENGL)
 
 option(ENABLE_QT "Enable the Qt frontend" ON)
@@ -439,6 +439,14 @@ if (YUZU_USE_CPM)
 
     # Opus
     AddJsonPackage(opus)
+
+    if (Opus_ADDED)
+        if (MSVC AND CXX_CLANG)
+            target_compile_options(opus PRIVATE
+                -Wno-implicit-function-declaration
+            )
+        endif()
+    endif()
 else()
     # Enforce the search mode of non-required packages for better and shorter failure messages
     find_package(fmt 8 REQUIRED)
