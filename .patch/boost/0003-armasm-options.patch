@@ -1,0 +1,13 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8210f65..108ac88 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -174,7 +174,7 @@ if(BOOST_CONTEXT_IMPLEMENTATION STREQUAL "fcontext")
+ 
+   set(IMPL_SOURCES ${ASM_SOURCES} src/fcontext.cpp)
+ 
+-  if(BOOST_CONTEXT_ASSEMBLER STREQUAL masm)
++  if(BOOST_CONTEXT_ASSEMBLER STREQUAL masm OR BOOST_CONTEXT_ASSEMBLER STREQUAL armasm)
+ 
+     set_property(SOURCE ${ASM_SOURCES} APPEND PROPERTY COMPILE_OPTIONS "/nologo")
+ 

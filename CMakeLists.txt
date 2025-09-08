@@ -91,6 +91,7 @@ if (MSVC AND CXX_CLANG)
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-conversion>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-reserved-identifier>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-deprecated-declarations>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-cast-function-type-mismatch>
     )
 
     if (ARCHITECTURE_x86_64)
@@ -468,6 +469,10 @@ endif()
 
 # DiscordRPC
 if (USE_DISCORD_PRESENCE)
+    if (ARCHITECTURE_arm64)
+        add_compile_definitions(RAPIDJSON_ENDIAN=RAPIDJSON_LITTLEENDIAN)
+    endif()
+
     AddJsonPackage(discord-rpc)
 
     target_include_directories(discord-rpc INTERFACE ${discord-rpc_SOURCE_DIR}/include)
