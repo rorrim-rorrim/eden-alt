@@ -122,9 +122,9 @@ do
   URL=$(jq -r ".url" <<< "$JSON")
   REPO=$(jq -r ".repo" <<< "$JSON")
   SHA=$(jq -r ".sha" <<< "$JSON")
-  GIT_URL=$(jq -r ".git_url" <<< "$JSON")
+  GIT_HOST=$(jq -r ".git_host" <<< "$JSON")
 
-  [ "$GIT_URL" == null ] && GIT_URL=github.com
+  [ "$GIT_HOST" == null ] && GIT_HOST=github.com
 
   VERSION=$(jq -r ".version" <<< "$JSON")
   GIT_VERSION=$(jq -r ".git_version" <<< "$JSON")
@@ -146,7 +146,7 @@ do
   if [ "$URL" != "null" ]; then
     DOWNLOAD="$URL"
   elif [ "$REPO" != "null" ]; then
-    GIT_URL="https://$GIT_URL/$REPO"
+    GIT_URL="https://$GIT_HOST/$REPO"
 
     BRANCH=$(jq -r ".branch" <<< "$JSON")
 
