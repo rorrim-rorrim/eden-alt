@@ -2165,20 +2165,9 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
         storage_views = std::make_unique<StorageViews>();
     }
 
-    // Storage images MUST use identity component mapping.
-    // Typeless: use the underlying image's native format.
-    if (image_format == Shader::ImageFormat::Typeless) {
-        auto& view = storage_views->unsigneds[static_cast<size_t>(texture_type)];
-        if (view) {
-            return *view;
-        }
-        const auto fmt_info =
-                MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, /*is_image=*/true, format);
-        const VkFormat vk_format = fmt_info.format;
-        // Storage images are color-aspect only
-        view = MakeView(vk_format, VK_IMAGE_ASPECT_COLOR_BIT); // identity components inside
-        return *view;
-    }
+    // For typeless, reuse the sampling view to preserve game expectations(just to test if it fixes the issue)
+    if (image_format == Shader::ImageFormat::Typeless)
+       return Handle(texture_type);
     const bool is_signed = (image_format == Shader::ImageFormat::R8_SINT ||image_format == Shader::ImageFormat::R16_SINT);
     auto& views = is_signed ? storage_views->signeds : storage_views->unsigneds;
     auto& view  = views[static_cast<size_t>(texture_type)];
