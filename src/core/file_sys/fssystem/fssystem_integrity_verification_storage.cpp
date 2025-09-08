@@ -16,13 +16,12 @@ constexpr inline u32 ILog2(u32 val) {
 
 void IntegrityVerificationStorage::Initialize(VirtualFile hs, VirtualFile ds, s64 verif_block_size,
                                               s64 upper_layer_verif_block_size, bool is_real_data) {
+    // Validate preconditions.
+    ASSERT(verif_block_size >= HashSize);
+
     // Set storages.
     m_hash_storage = hs;
     m_data_storage = ds;
-
-    // Validate preconditions.
-    ASSERT(verif_block_size >= HashSize);
-    ASSERT(m_data_storage != nullptr);
 
     // Set verification block sizes.
     m_verification_block_size = verif_block_size;
@@ -59,7 +58,6 @@ size_t IntegrityVerificationStorage::Read(u8* buffer, size_t size, size_t offset
 
     // Validate arguments.
     ASSERT(buffer != nullptr);
-    ASSERT(m_data_storage != nullptr);
 
     // Validate the offset.
     s64 data_size = m_data_storage->GetSize();
