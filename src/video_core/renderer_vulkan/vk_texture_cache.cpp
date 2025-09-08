@@ -2160,23 +2160,20 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
     if (!image_handle) {
         return VK_NULL_HANDLE;
     }
-
+    if (image_format == Shader::ImageFormat::Typeless) {
+        return Handle(texture_type);
+    }
+    const bool is_signed{image_format == Shader::ImageFormat::R8_SINT ||
+                         image_format == Shader::ImageFormat::R16_SINT};
     if (!storage_views) {
         storage_views = std::make_unique<StorageViews>();
     }
-
-    // For typeless, reuse the sampling view to preserve game expectations(just to test if it fixes the issue)
-    if (image_format == Shader::ImageFormat::Typeless)
-       return Handle(texture_type);
-    const bool is_signed = (image_format == Shader::ImageFormat::R8_SINT ||image_format == Shader::ImageFormat::R16_SINT);
-    auto& views = is_signed ? storage_views->signeds : storage_views->unsigneds;
-    auto& view  = views[static_cast<size_t>(texture_type)];
+    auto& views{is_signed ? storage_views->signeds : storage_views->unsigneds};
+    auto& view{views[static_cast<size_t>(texture_type)]};
     if (view) {
-       return *view;
+        return *view;
     }
-
-    const VkFormat vk_format = Format(image_format);
-    view = MakeView(vk_format, VK_IMAGE_ASPECT_COLOR_BIT);// identity components inside
+    view = MakeView(Format(image_format), VK_IMAGE_ASPECT_COLOR_BIT);
     return *view;
 }
 
