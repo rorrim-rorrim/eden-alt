@@ -22,7 +22,7 @@ void IntegrityVerificationStorage::Initialize(VirtualFile hs, VirtualFile ds, s6
 
     // Validate preconditions.
     ASSERT(verif_block_size >= HashSize);
-    ASSERT(m_data_storage != null);
+    ASSERT(m_data_storage != nullptr);
 
     // Set verification block sizes.
     m_verification_block_size = verif_block_size;
