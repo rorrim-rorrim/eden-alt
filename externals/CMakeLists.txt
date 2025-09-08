@@ -65,6 +65,14 @@ if (mbedtls_ADDED)
             -Wno-unused-but-set-variable
             -Wno-string-concatenation
         )
+    elseif(CXX_CLANG)
+        foreach(TARGET mbedtls mbedcrypto mbedx509)
+            target_compile_options(${TARGET} PRIVATE
+                -Wno-switch-default
+                -Wno-undef
+                -Wno-unused-macros
+            )
+        endforeach()
     endif()
 endif()
 
