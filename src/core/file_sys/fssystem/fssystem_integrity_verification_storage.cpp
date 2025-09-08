@@ -9,15 +9,13 @@
 
 namespace FileSys {
 
-constexpr inline u32 ILog2(u32 val)
-{
+constexpr inline u32 ILog2(u32 val) {
     ASSERT(val > 0);
     return static_cast<u32>((sizeof(u32) * 8) - 1 - std::countl_zero<u32>(val));
 }
 
 void IntegrityVerificationStorage::Initialize(VirtualFile hs, VirtualFile ds, s64 verif_block_size,
                                               s64 upper_layer_verif_block_size, bool is_real_data) {
-
     // Set storages.
     m_hash_storage = hs;
     m_data_storage = ds;
@@ -38,9 +36,11 @@ void IntegrityVerificationStorage::Initialize(VirtualFile hs, VirtualFile ds, s6
     ASSERT(m_upper_layer_verification_block_size == 1ll << m_upper_layer_verification_block_order);
 
     // Validate sizes.
-    s64 hash_size = m_hash_storage->GetSize();
-    s64 data_size = m_data_storage->GetSize();
-    ASSERT(((hash_size / HashSize) * m_verification_block_size) >= data_size);
+    {
+        s64 hash_size = m_hash_storage->GetSize();
+        s64 data_size = m_data_storage->GetSize();
+        ASSERT(((hash_size / HashSize) * m_verification_block_size) >= data_size);
+    }
 
     // Set data.
     m_is_real_data = is_real_data;
@@ -89,8 +89,7 @@ size_t IntegrityVerificationStorage::Read(u8* buffer, size_t size, size_t offset
     return m_data_storage->Read(buffer, read_size, offset);
 }
 
-size_t IntegrityVerificationStorage::GetSize() const
-{
+size_t IntegrityVerificationStorage::GetSize() const {
     return m_data_storage->GetSize();
 }
 
