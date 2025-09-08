@@ -1,7 +1,7 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 8210f65..108ac88 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
+--- a/libs/context/CMakeLists.txt
++++ b/libs/context/CMakeLists.txt
 @@ -174,7 +174,7 @@ if(BOOST_CONTEXT_IMPLEMENTATION STREQUAL "fcontext")
  
    set(IMPL_SOURCES ${ASM_SOURCES} src/fcontext.cpp)

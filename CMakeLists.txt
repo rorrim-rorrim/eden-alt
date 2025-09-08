@@ -372,6 +372,8 @@ if (YUZU_USE_CPM)
     # boost
     set(BOOST_INCLUDE_LIBRARIES algorithm icl pool container heap asio headers process filesystem crc variant)
 
+    # TODO(crueter): Use the tar.gz or tar.xz ones since they use POSIX endings and
+    # makes patching easier.
     AddJsonPackage(boost)
 
     # really annoying thing where boost::headers doesn't work with cpm
