@@ -1,13 +1,14 @@
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 8210f65..108ac88 100644
+diff --git a/libs/context/CMakeLists.txt b/libs/context/CMakeLists.txt
+index d6be702..0e59dd7 100644
 --- a/libs/context/CMakeLists.txt
 +++ b/libs/context/CMakeLists.txt
-@@ -174,7 +174,7 @@ if(BOOST_CONTEXT_IMPLEMENTATION STREQUAL "fcontext")
+@@ -186,7 +186,8 @@ if(BOOST_CONTEXT_IMPLEMENTATION STREQUAL "fcontext")
+       set_property(SOURCE ${ASM_SOURCES} APPEND PROPERTY COMPILE_OPTIONS "/safeseh")
+     endif()
  
-   set(IMPL_SOURCES ${ASM_SOURCES} src/fcontext.cpp)
- 
--  if(BOOST_CONTEXT_ASSEMBLER STREQUAL masm)
-+  if(BOOST_CONTEXT_ASSEMBLER STREQUAL masm OR BOOST_CONTEXT_ASSEMBLER STREQUAL armasm)
- 
-     set_property(SOURCE ${ASM_SOURCES} APPEND PROPERTY COMPILE_OPTIONS "/nologo")
- 
+-  elseif() # masm
++  # armasm doesn't support most of these options
++  elseif(NOT BOOST_CONTEXT_ASSEMBLER STREQUAL armasm) # masm
+     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+       set_property(SOURCE ${ASM_SOURCES} APPEND PROPERTY COMPILE_OPTIONS "-x" "assembler-with-cpp")
+     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
