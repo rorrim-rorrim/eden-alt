@@ -84,7 +84,7 @@
         "package": "Opus",
         "repo": "crueter/opus",
         "sha": "ab19c44fad",
-        "hash": "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e",
+        "hash": "79d0d015b19e74ce6076197fc32b86fe91d724a0b5a79e86adfc4bdcb946ece384e252adbbf742b74d03040913b70bb0e9556eafa59ef20e42d2f3f4d6f2859a ",
         "version": "1.3",
         "find_args": "MODULE",
         "options": [
