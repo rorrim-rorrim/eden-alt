@@ -33,6 +33,54 @@ if (PLATFORM_SUN)
     endif()
 endif()
 
+# Detect current compilation architecture and create standard definitions
+# =======================================================================
+
+include(CheckSymbolExists)
+function(detect_architecture symbol arch)
+    if (NOT DEFINED ARCHITECTURE)
+        set(CMAKE_REQUIRED_QUIET 1)
+        check_symbol_exists("${symbol}" "" ARCHITECTURE_${arch})
+        unset(CMAKE_REQUIRED_QUIET)
+
+        # The output variable needs to be unique across invocations otherwise
+        # CMake's crazy scope rules will keep it defined
+        if (ARCHITECTURE_${arch})
+            set(ARCHITECTURE "${arch}" PARENT_SCOPE)
+            set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
+            add_definitions(-DARCHITECTURE_${arch}=1)
+        endif()
+    endif()
+endfunction()
+
+if (NOT ENABLE_GENERIC)
+    if (MSVC)
+        detect_architecture("_M_AMD64" x86_64)
+        detect_architecture("_M_IX86" x86)
+        detect_architecture("_M_ARM" arm)
+        detect_architecture("_M_ARM64" arm64)
+    else()
+        detect_architecture("__x86_64__" x86_64)
+        detect_architecture("__i386__" x86)
+        detect_architecture("__arm__" arm)
+        detect_architecture("__aarch64__" arm64)
+    endif()
+endif()
+
+if (NOT DEFINED ARCHITECTURE)
+    set(ARCHITECTURE "GENERIC")
+    set(ARCHITECTURE_GENERIC 1)
+    add_definitions(-DARCHITECTURE_GENERIC=1)
+endif()
+
+message(STATUS "Target architecture: ${ARCHITECTURE}")
+
+if (MSVC AND ARCHITECTURE_x86)
+    message(FATAL_ERROR "Attempting to build with the x86 environment is not supported. \
+        This can typically happen if you used the Developer Command Prompt from the start menu;\
+        instead, run vcvars64.bat directly, located at C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/Build/vcvars64.bat")
+endif()
+
 if (MSVC AND CXX_CLANG)
     add_compile_options(
         # clang-cl prints literally 10000+ warnings without this
@@ -43,11 +91,15 @@ if (MSVC AND CXX_CLANG)
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-conversion>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-reserved-identifier>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-deprecated-declarations>
-
-        # Required CPU features
-        $<$<COMPILE_LANGUAGE:C,CXX>:-msse4.1>
-        $<$<COMPILE_LANGUAGE:C,CXX>:-mcx16>
     )
+
+    if (ARCHITECTURE_x86_64)
+        add_compile_options(
+            # Required CPU features for amd64
+            $<$<COMPILE_LANGUAGE:C,CXX>:-msse4.1>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-mcx16>
+        )
+    endif()
 
     if(CMAKE_ASM_MASM_COMPILER)
         set(CMAKE_ASM_MASM_FLAGS "/nologo" CACHE STRING "Flags for MASM assembler" FORCE)
@@ -235,54 +287,6 @@ endif()
 
 if (NOT EXISTS ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
     file(WRITE ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json "")
-endif()
-
-# Detect current compilation architecture and create standard definitions
-# =======================================================================
-
-include(CheckSymbolExists)
-function(detect_architecture symbol arch)
-    if (NOT DEFINED ARCHITECTURE)
-        set(CMAKE_REQUIRED_QUIET 1)
-        check_symbol_exists("${symbol}" "" ARCHITECTURE_${arch})
-        unset(CMAKE_REQUIRED_QUIET)
-
-        # The output variable needs to be unique across invocations otherwise
-        # CMake's crazy scope rules will keep it defined
-        if (ARCHITECTURE_${arch})
-            set(ARCHITECTURE "${arch}" PARENT_SCOPE)
-            set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
-            add_compile_definitions(ARCHITECTURE_${arch}=1)
-        endif()
-    endif()
-endfunction()
-
-if (NOT ENABLE_GENERIC)
-    if (MSVC)
-        detect_architecture("_M_AMD64" x86_64)
-        detect_architecture("_M_IX86" x86)
-        detect_architecture("_M_ARM" arm)
-        detect_architecture("_M_ARM64" arm64)
-    else()
-        detect_architecture("__x86_64__" x86_64)
-        detect_architecture("__i386__" x86)
-        detect_architecture("__arm__" arm)
-        detect_architecture("__aarch64__" arm64)
-    endif()
-endif()
-
-if (NOT DEFINED ARCHITECTURE)
-    set(ARCHITECTURE "GENERIC")
-    set(ARCHITECTURE_GENERIC 1)
-    add_compile_definitions(ARCHITECTURE_GENERIC=1)
-endif()
-
-message(STATUS "Target architecture: ${ARCHITECTURE}")
-
-if (MSVC AND ARCHITECTURE_x86)
-    message(FATAL_ERROR "Attempting to build with the x86 environment is not supported. \
-        This can typically happen if you used the Developer Command Prompt from the start menu;\
-        instead, run vcvars64.bat directly, located at C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/Build/vcvars64.bat")
 endif()
 
 if (UNIX)
