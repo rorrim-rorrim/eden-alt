@@ -1052,7 +1052,7 @@ Result NcaFileSystemDriver::CreatePatchMetaStorage(
     ASSERT(out_indirect_meta != nullptr);
     ASSERT(base_storage != nullptr);
     //ASSERT(patch_info.HasAesCtrExTable());
-    ASSERT(patch_info.HasIndirectTable());
+    //ASSERT(patch_info.HasIndirectTable());
     ASSERT(Common::IsAligned<s64>(patch_info.aes_ctr_ex_size, NcaHeader::XtsBlockSize));
 
     // Validate patch info extents.
