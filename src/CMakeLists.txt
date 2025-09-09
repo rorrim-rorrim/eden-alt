@@ -14,8 +14,10 @@ if ((ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64))
 endif()
 
 # CMake seems to only define _DEBUG on Windows
-set_property(DIRECTORY APPEND PROPERTY
-    COMPILE_DEFINITIONS $<$<CONFIG:Debug>:_DEBUG> $<$<NOT:$<CONFIG:Debug>>:NDEBUG>)
+if (NOT (MSVC AND CXX_CLANG))
+    set_property(DIRECTORY APPEND PROPERTY
+        COMPILE_DEFINITIONS $<$<CONFIG:Debug>:_DEBUG> $<$<NOT:$<CONFIG:Debug>>:NDEBUG>)
+endif()
 
 # Set compilation flags
 if (MSVC AND NOT CXX_CLANG)
@@ -122,9 +124,13 @@ if (MSVC AND NOT CXX_CLANG)
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG   "/DEBUG /MANIFEST:NO" CACHE STRING "" FORCE)
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/DEBUG /MANIFEST:NO /INCREMENTAL:NO /OPT:REF,ICF" CACHE STRING "" FORCE)
 else()
-    add_compile_options(
-        -fwrapv
+    if (NOT MSVC)
+        add_compile_options(
+            -fwrapv
+        )
+    endif()
 
+    add_compile_options(
         -Werror=all
         -Werror=extra
         -Werror=missing-declarations
@@ -137,7 +143,7 @@ else()
         -Wno-missing-field-initializers
     )
 
-    if (CMAKE_CXX_COMPILER_ID MATCHES Clang OR CMAKE_CXX_COMPILER_ID MATCHES IntelLLVM) # Clang or AppleClang but NOT clang-cl
+    if (CXX_CLANG OR CXX_ICC) # Clang or AppleClang
         if (NOT MSVC)
             add_compile_options(
                 -Werror=shadow-uncaptured-local
@@ -157,12 +163,12 @@ else()
         add_compile_options("-mcx16")
     endif()
 
-    if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+    if (APPLE AND CXX_CLANG)
         add_compile_options("-stdlib=libc++")
     endif()
 
     # GCC bugs
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "11" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "11" AND CXX_GCC)
         # These diagnostics would be great if they worked, but are just completely broken
         # and produce bogus errors on external libraries like fmt.
         add_compile_options(

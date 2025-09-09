@@ -17,6 +17,17 @@ endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set(CXX_CLANG ON)
+    if (MSVC)
+        set(CXX_CLANG_CL ON)
+    endif()
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(CXX_GCC ON)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(CXX_CL ON)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+    set(CXX_ICC ON)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    set(CXX_APPLE ON)
 endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
@@ -81,7 +92,7 @@ if (MSVC AND ARCHITECTURE_x86)
         instead, run vcvars64.bat directly, located at C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/Build/vcvars64.bat")
 endif()
 
-if (MSVC AND CXX_CLANG)
+if (CXX_CLANG_CL)
     add_compile_options(
         # clang-cl prints literally 10000+ warnings without this
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-command-line-argument>
@@ -92,6 +103,7 @@ if (MSVC AND CXX_CLANG)
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-reserved-identifier>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-deprecated-declarations>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-cast-function-type-mismatch>
+        $<$<COMPILE_LANGUAGE:C,CXX>:/EHsc> # thanks microsoft
     )
 
     if (ARCHITECTURE_x86_64)
@@ -100,10 +112,6 @@ if (MSVC AND CXX_CLANG)
             $<$<COMPILE_LANGUAGE:C,CXX>:-msse4.1>
             $<$<COMPILE_LANGUAGE:C,CXX>:-mcx16>
         )
-    endif()
-
-    if(CMAKE_ASM_MASM_COMPILER)
-        set(CMAKE_ASM_MASM_FLAGS "/nologo" CACHE STRING "Flags for MASM assembler" FORCE)
     endif()
 endif()
 
@@ -114,7 +122,7 @@ include(CMakeDependentOption)
 include(CTest)
 
 # Disable Warnings as Errors for MSVC
-if (MSVC AND NOT CXX_CLANG)
+if (CXX_CL)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /WX-")
 endif()
 

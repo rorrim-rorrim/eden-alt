@@ -237,7 +237,7 @@ else()
   )
 
   # Get around GCC failing with intrinsics in Debug
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_BUILD_TYPE MATCHES "Debug")
+  if(CXX_GCC AND CMAKE_BUILD_TYPE MATCHES "Debug")
     set_property(
       SOURCE stb.cpp
       APPEND
