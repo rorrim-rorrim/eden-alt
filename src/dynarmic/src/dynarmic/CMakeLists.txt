@@ -61,7 +61,6 @@ add_library(dynarmic
     common/string_util.h
     common/u128.cpp
     common/u128.h
-    common/variant_util.h
     frontend/A32/a32_types.cpp
     frontend/A32/a32_types.h
     frontend/A64/a64_types.cpp
