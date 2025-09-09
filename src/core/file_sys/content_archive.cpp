@@ -85,12 +85,12 @@ NCA::NCA(VirtualFile file_, const NCA* base_nca)
     for (s32 i = 0; i < fs_count; i++) {
         NcaFsHeaderReader header_reader;
         const Result rc = fs.OpenStorage(&filesystems[i], &header_reader, i);
-        if (R_FAILED(rc)) {
+        /*if (R_FAILED(rc)) {
             LOG_ERROR(Loader, "File reader errored out during read of section {}: {:#x}", i,
                       rc.GetInnerValue());
             status = Loader::ResultStatus::ErrorBadNCAHeader;
             return;
-        }
+        }*/
 
         if (header_reader.GetFsType() == NcaFsHeader::FsType::RomFs) {
             files.push_back(filesystems[i]);
