@@ -47,7 +47,7 @@ using namespace Dynarmic;
 
 template<typename Fn>
 bool AnyLocationDescriptorForTerminalHas(IR::Terminal terminal, Fn fn) {
-    return Common::VisitVariant<bool>(terminal, [&](auto t) -> bool {
+    return boost::apply_visitor([&](auto t) -> bool {
         using T = std::decay_t<decltype(t)>;
         if constexpr (std::is_same_v<T, IR::Term::Invalid>) {
             return false;
@@ -73,7 +73,7 @@ bool AnyLocationDescriptorForTerminalHas(IR::Terminal terminal, Fn fn) {
             ASSERT_MSG(false, "Invalid terminal type");
             return false;
         }
-    });
+    }, terminal);
 }
 
 bool ShouldTestInst(u32 instruction, u32 pc, bool is_thumb, bool is_last_inst, A32::ITState it_state = {}) {
