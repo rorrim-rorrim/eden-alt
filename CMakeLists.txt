@@ -144,7 +144,7 @@ CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ${EXT_DEFA
 
 cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID" OFF)
 
-cmake_dependent_option(ENABLE_OPENGL "Enable OpenGL" ON "NOT WIN32 AND NOT ARCHITECTURE_arm64" OFF)
+cmake_dependent_option(ENABLE_OPENGL "Enable OpenGL" ON "NOT WIN32 OR NOT ARCHITECTURE_arm64" OFF)
 mark_as_advanced(FORCE ENABLE_OPENGL)
 
 option(ENABLE_QT "Enable the Qt frontend" ON)
@@ -380,8 +380,6 @@ if (YUZU_USE_CPM)
     # boost
     set(BOOST_INCLUDE_LIBRARIES algorithm icl pool container heap asio headers process filesystem crc variant)
 
-    # TODO(crueter): Use the tar.gz or tar.xz ones since they use POSIX endings and
-    # makes patching easier.
     AddJsonPackage(boost)
 
     # really annoying thing where boost::headers doesn't work with cpm

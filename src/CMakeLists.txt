@@ -14,10 +14,8 @@ if ((ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64))
 endif()
 
 # CMake seems to only define _DEBUG on Windows
-if (NOT (MSVC AND CXX_CLANG))
-    set_property(DIRECTORY APPEND PROPERTY
-        COMPILE_DEFINITIONS $<$<CONFIG:Debug>:_DEBUG> $<$<NOT:$<CONFIG:Debug>>:NDEBUG>)
-endif()
+set_property(DIRECTORY APPEND PROPERTY
+    COMPILE_DEFINITIONS $<$<CONFIG:Debug>:_DEBUG> $<$<NOT:$<CONFIG:Debug>>:NDEBUG>)
 
 # Set compilation flags
 if (MSVC AND NOT CXX_CLANG)

@@ -592,7 +592,6 @@ function(cpm_add_patches)
       list(APPEND temp_list "&&")
     endif()
     # Add the patch command to the list
-    # use binary because DOS SUCKS
     list(APPEND temp_list "${PATCH_EXECUTABLE}" "-p1" "<" "${PATCH_FILE}")
   endforeach()
 

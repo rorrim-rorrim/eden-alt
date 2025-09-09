@@ -147,7 +147,8 @@
         "cmake_filename": "sdl2"
     },
     "llvm-mingw": {
-        "repo": "crueter/llvm-mingw",
+        "repo": "misc/llvm-mingw",
+        "git_host": "git.crueter.xyz",
         "tag": "20250828",
         "version": "20250828",
         "artifact": "clang-rt-builtins.tar.zst",
