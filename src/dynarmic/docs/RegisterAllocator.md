@@ -19,6 +19,9 @@ The member functions on `RegAlloc` are just a combination of the above concepts.
 The following registers are reserved for internal use and should NOT participate in register allocation:
 - `%xmm0`, `%xmm1`, `%xmm2`: Used as scratch in exclusive memory access.
 - `%rsp`: Stack pointer.
+- `%r15`: JIT pointer
+- `%r14`: Page table pointer.
+- `%r13`: Fastmem pointer.
 
 The layout convenes `%r15` as the JIT state pointer - while it may be tempting to turn it into a synthetic pointer, keeping an entire register (out of 12 available) is preferable over inlining a directly computed immediate.
 
