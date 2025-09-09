@@ -71,11 +71,11 @@ private:
 
     std::unique_ptr<InputProfiles> profiles;
 
-    std::array<ConfigureInputPlayer*, 8> player_controllers;
-    std::array<QWidget*, 8> player_tabs;
+    std::array<ConfigureInputPlayer*, 8> player_controllers{};
+    std::array<QWidget*, 8> player_tabs{};
     // Checkboxes representing the "Connected Controllers".
-    std::array<QCheckBox*, 8> connected_controller_checkboxes;
-    ConfigureInputAdvanced* advanced;
+    std::array<QCheckBox*, 8> connected_controller_checkboxes{};
+    ConfigureInputAdvanced* advanced = nullptr;
 
     Core::System& system;
 };

@@ -79,7 +79,7 @@ using DeviceHandle = u64;
 
 // This is nn::nfc::TagInfo
 struct TagInfo {
-    UniqueSerialNumber uuid;
+    UniqueSerialNumber uuid{};
     u8 uuid_length;
     INSERT_PADDING_BYTES(0x15);
     NfcProtocol protocol;

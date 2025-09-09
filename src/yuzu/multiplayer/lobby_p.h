@@ -175,7 +175,7 @@ public:
 private:
     QString username;
     QString nickname;
-    u64 title_id;
+    u64 title_id{};
     QString game_name;
 };
 
