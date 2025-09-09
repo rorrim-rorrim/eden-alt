@@ -18,20 +18,20 @@ set_property(DIRECTORY APPEND PROPERTY
     COMPILE_DEFINITIONS $<$<CONFIG:Debug>:_DEBUG> $<$<NOT:$<CONFIG:Debug>>:NDEBUG>)
 
 # Set compilation flags
-if (MSVC)
+if (MSVC AND NOT CXX_CLANG)
     set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING "" FORCE)
 
     # Silence "deprecation" warnings
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS)
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_DEPRECATE _SCL_SECURE_NO_WARNINGS)
 
     # Avoid windows.h junk
-    add_definitions(-DNOMINMAX)
+    add_compile_definitions(NOMINMAX)
 
     # Avoid windows.h from including some usually unused libs like winsocks.h, since this might cause some redefinition errors.
-    add_definitions(-DWIN32_LEAN_AND_MEAN)
+    add_compile_definitions(WIN32_LEAN_AND_MEAN)
 
     # Ensure that projects are built with Unicode support.
-    add_definitions(-DUNICODE -D_UNICODE)
+    add_compile_definitions(UNICODE _UNICODE)
 
     # /W4                 - Level 4 warnings
     # /MP                 - Multi-threaded compilation
@@ -69,10 +69,6 @@ if (MSVC)
         /external:anglebrackets # Treats all headers included by #include <header>, where the header file is enclosed in angle brackets (< >), as external headers
         /external:W0            # Sets the default warning level to 0 for external headers, effectively disabling warnings for them.
 
-        # Warnings
-        /W4
-        /WX-
-
         /we4062 # Enumerator 'identifier' in a switch of enum 'enumeration' is not handled
         /we4189 # 'identifier': local variable is initialized but not referenced
         /we4265 # 'class': class has virtual functions, but destructor is not virtual
@@ -97,6 +93,14 @@ if (MSVC)
         /wd4702 # unreachable code (when used with LTO)
     )
 
+    if (NOT CXX_CLANG)
+        add_compile_options(
+            # Warnings
+            /W4
+            /WX-
+        )
+    endif()
+
     if (USE_CCACHE OR YUZU_USE_PRECOMPILED_HEADERS)
         # when caching, we need to use /Z7 to downgrade debug info to use an older but more cacheable format
         # Precompiled headers are deleted if not using /Z7. See https://github.com/nanoant/CMakePCHCompiler/issues/21
@@ -118,9 +122,13 @@ if (MSVC)
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG   "/DEBUG /MANIFEST:NO" CACHE STRING "" FORCE)
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/DEBUG /MANIFEST:NO /INCREMENTAL:NO /OPT:REF,ICF" CACHE STRING "" FORCE)
 else()
-    add_compile_options(
-        -fwrapv
+    if (NOT MSVC)
+        add_compile_options(
+            -fwrapv
+        )
+    endif()
 
+    add_compile_options(
         -Werror=all
         -Werror=extra
         -Werror=missing-declarations
@@ -133,14 +141,19 @@ else()
         -Wno-missing-field-initializers
     )
 
-    if (CMAKE_CXX_COMPILER_ID MATCHES Clang OR CMAKE_CXX_COMPILER_ID MATCHES IntelLLVM) # Clang or AppleClang
+    if (CXX_CLANG OR CXX_ICC) # Clang or AppleClang
+        if (NOT MSVC)
+            add_compile_options(
+                -Werror=shadow-uncaptured-local
+                -Werror=implicit-fallthrough
+                -Werror=type-limits
+            )
+        endif()
+
         add_compile_options(
             -Wno-braced-scalar-init
             -Wno-unused-private-field
             -Wno-nullability-completeness
-            -Werror=shadow-uncaptured-local
-            -Werror=implicit-fallthrough
-            -Werror=type-limits
         )
     endif()
 
@@ -148,12 +161,12 @@ else()
         add_compile_options("-mcx16")
     endif()
 
-    if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+    if (APPLE AND CXX_CLANG)
         add_compile_options("-stdlib=libc++")
     endif()
 
     # GCC bugs
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "11" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "11" AND CXX_GCC)
         # These diagnostics would be great if they worked, but are just completely broken
         # and produce bogus errors on external libraries like fmt.
         add_compile_options(
@@ -169,15 +182,15 @@ else()
     # glibc, which may default to 32 bits. glibc allows this to be configured
     # by setting _FILE_OFFSET_BITS.
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR MINGW)
-        add_definitions(-D_FILE_OFFSET_BITS=64)
+        add_compile_definitions(_FILE_OFFSET_BITS=64)
     endif()
 
     if (MINGW)
-        add_definitions(-DMINGW_HAS_SECURE_API)
+        add_compile_definitions(MINGW_HAS_SECURE_API)
         add_compile_options("-msse4.1")
 
         if (MINGW_STATIC_BUILD)
-            add_definitions(-DQT_STATICPLUGIN)
+            add_compile_definitions(QT_STATICPLUGIN)
             add_compile_options("-static")
         endif()
     endif()

@@ -332,8 +332,10 @@ target_link_options(video_core PRIVATE ${FFmpeg_LDFLAGS})
 add_dependencies(video_core host_shaders)
 target_include_directories(video_core PRIVATE ${HOST_SHADERS_INCLUDE})
 
-target_link_libraries(video_core PRIVATE sirit Vulkan::Headers Vulkan::UtilityHeaders)
-target_link_libraries(video_core PUBLIC GPUOpen::VulkanMemoryAllocator)
+target_link_libraries(video_core PRIVATE sirit)
+
+# Header-only stuff needed by all dependent targets
+target_link_libraries(video_core PUBLIC Vulkan::UtilityHeaders GPUOpen::VulkanMemoryAllocator)
 
 if (ENABLE_NSIGHT_AFTERMATH)
     if (NOT DEFINED ENV{NSIGHT_AFTERMATH_SDK})
@@ -371,7 +373,7 @@ else()
     set_source_files_properties(vulkan_common/vma.cpp PROPERTIES COMPILE_OPTIONS "-Wno-conversion;-Wno-unused-variable;-Wno-unused-parameter;-Wno-missing-field-initializers")
 
     # Get around GCC failing with intrinsics in Debug
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_BUILD_TYPE MATCHES "Debug")
+    if (CXX_GCC AND CMAKE_BUILD_TYPE MATCHES "Debug")
         set_source_files_properties(host1x/vic.cpp PROPERTIES COMPILE_OPTIONS "-O2")
     endif()
 endif()

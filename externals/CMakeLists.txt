@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2025 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -7,8 +10,6 @@
 # TODO(crueter): A lot of this should be moved to the root.
 # otherwise we have to do weird shenanigans with library linking and stuff
 
-# Explicitly include CPMUtil here since we have a separate cpmfile for externals
-set(CPMUTIL_JSON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json)
 include(CPMUtil)
 
 # Explicitly declare this option here to propagate to the oaknut CPM call
@@ -62,12 +63,19 @@ if (mbedtls_ADDED)
     if (NOT MSVC)
         target_compile_options(mbedcrypto PRIVATE
             -Wno-unused-but-set-variable
-            -Wno-string-concatenation)
+            -Wno-string-concatenation
+        )
+    elseif(CXX_CLANG)
+        foreach(TARGET mbedtls mbedcrypto mbedx509)
+            target_compile_options(${TARGET} PRIVATE
+                -w
+            )
+        endforeach()
     endif()
 endif()
 
 # libusb
-if (ENABLE_LIBUSB AND NOT TARGET libusb::usb)
+if (ENABLE_LIBUSB)
     add_subdirectory(libusb)
 endif()
 
@@ -83,6 +91,8 @@ if(MSVC AND USE_CCACHE AND sirit_ADDED)
     list(FILTER _opts EXCLUDE REGEX "/Zi")
     list(APPEND _opts "/Z7")
     set_target_properties(sirit PROPERTIES COMPILE_OPTIONS "${_opts}")
+elseif(MSVC AND CXX_CLANG)
+    target_compile_options(sirit PRIVATE -Wno-error=unused-command-line-argument)
 endif()
 
 # httplib
@@ -107,20 +117,16 @@ if (YUZU_USE_BUNDLED_FFMPEG)
     set(FFmpeg_INCLUDE_DIR "${FFmpeg_INCLUDE_DIR}" PARENT_SCOPE)
 endif()
 
-# Vulkan-Headers
-
-# TODO(crueter): Vk1.4 impl
-
+# VulkanUtilityHeaders - pulls in headers and utility libs
 AddJsonPackage(
-    NAME vulkan-headers
-    BUNDLED_PACKAGE ${YUZU_USE_EXTERNAL_VULKAN_HEADERS}
-)
-
-# Vulkan-Utility-Libraries
-AddJsonPackage(
-    NAME vulkan-utility-libraries
+    NAME vulkan-utility-headers
     BUNDLED_PACKAGE ${YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES}
 )
+
+# small hack
+if (NOT VulkanUtilityLibraries_ADDED)
+    find_package(VulkanHeaders 1.3.274 REQUIRED)
+endif()
 
 # SPIRV Tools
 AddJsonPackage(
@@ -139,8 +145,16 @@ add_subdirectory(nx_tzdb)
 # VMA
 AddJsonPackage(vulkan-memory-allocator)
 
-if (VulkanMemoryAllocator_ADDED AND MSVC)
-    target_compile_options(VulkanMemoryAllocator INTERFACE /wd4189)
+if (VulkanMemoryAllocator_ADDED)
+    if (CXX_CLANG)
+        target_compile_options(VulkanMemoryAllocator INTERFACE
+            -Wno-unused-variable
+        )
+    elseif(MSVC)
+        target_compile_options(VulkanMemoryAllocator INTERFACE
+            /wd4189
+        )
+    endif()
 endif()
 
 if (NOT TARGET LLVM::Demangle)
@@ -239,7 +253,7 @@ if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
         file(GLOB_RECURSE LIBBREAKPAD_CLIENT_SOURCES ${breakpad_SOURCE_DIR}/src/client/mac/*.cc ${breakpad_SOURCE_DIR}/src/common/mac/*.cc)
         list(APPEND LIBBREAKPAD_CLIENT_SOURCES ${breakpad_SOURCE_DIR}/src/common/mac/MachIPC.mm)
     else()
-        target_compile_definitions(libbreakpad_client PUBLIC -DHAVE_A_OUT_H)
+        target_compile_definitions(libbreakpad_client PUBLIC HAVE_A_OUT_H)
         file(GLOB_RECURSE LIBBREAKPAD_CLIENT_SOURCES ${breakpad_SOURCE_DIR}/src/client/linux/*.cc ${breakpad_SOURCE_DIR}/src/common/linux/*.cc)
     endif()
     list(APPEND LIBBREAKPAD_CLIENT_SOURCES ${LIBBREAKPAD_COMMON_SOURCES})

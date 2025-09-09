@@ -15,6 +15,21 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     set(PLATFORM_LINUX ON)
 endif()
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(CXX_CLANG ON)
+    if (MSVC)
+        set(CXX_CLANG_CL ON)
+    endif()
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(CXX_GCC ON)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(CXX_CL ON)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+    set(CXX_ICC ON)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    set(CXX_APPLE ON)
+endif()
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
 if (PLATFORM_SUN)
@@ -29,6 +44,77 @@ if (PLATFORM_SUN)
     endif()
 endif()
 
+# Detect current compilation architecture and create standard definitions
+# =======================================================================
+
+include(CheckSymbolExists)
+function(detect_architecture symbol arch)
+    if (NOT DEFINED ARCHITECTURE)
+        set(CMAKE_REQUIRED_QUIET 1)
+        check_symbol_exists("${symbol}" "" ARCHITECTURE_${arch})
+        unset(CMAKE_REQUIRED_QUIET)
+
+        # The output variable needs to be unique across invocations otherwise
+        # CMake's crazy scope rules will keep it defined
+        if (ARCHITECTURE_${arch})
+            set(ARCHITECTURE "${arch}" PARENT_SCOPE)
+            set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
+            add_definitions(-DARCHITECTURE_${arch}=1)
+        endif()
+    endif()
+endfunction()
+
+if (NOT ENABLE_GENERIC)
+    if (MSVC)
+        detect_architecture("_M_AMD64" x86_64)
+        detect_architecture("_M_IX86" x86)
+        detect_architecture("_M_ARM" arm)
+        detect_architecture("_M_ARM64" arm64)
+    else()
+        detect_architecture("__x86_64__" x86_64)
+        detect_architecture("__i386__" x86)
+        detect_architecture("__arm__" arm)
+        detect_architecture("__aarch64__" arm64)
+    endif()
+endif()
+
+if (NOT DEFINED ARCHITECTURE)
+    set(ARCHITECTURE "GENERIC")
+    set(ARCHITECTURE_GENERIC 1)
+    add_definitions(-DARCHITECTURE_GENERIC=1)
+endif()
+
+message(STATUS "Target architecture: ${ARCHITECTURE}")
+
+if (MSVC AND ARCHITECTURE_x86)
+    message(FATAL_ERROR "Attempting to build with the x86 environment is not supported. \
+        This can typically happen if you used the Developer Command Prompt from the start menu;\
+        instead, run vcvars64.bat directly, located at C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/Build/vcvars64.bat")
+endif()
+
+if (CXX_CLANG_CL)
+    add_compile_options(
+        # clang-cl prints literally 10000+ warnings without this
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-command-line-argument>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unsafe-buffer-usage>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-value>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-extra-semi-stmt>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-conversion>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-reserved-identifier>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-deprecated-declarations>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-cast-function-type-mismatch>
+        $<$<COMPILE_LANGUAGE:C,CXX>:/EHsc> # thanks microsoft
+    )
+
+    if (ARCHITECTURE_x86_64)
+        add_compile_options(
+            # Required CPU features for amd64
+            $<$<COMPILE_LANGUAGE:C,CXX>:-msse4.1>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-mcx16>
+        )
+    endif()
+endif()
+
 set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
 
 include(DownloadExternals)
@@ -36,7 +122,7 @@ include(CMakeDependentOption)
 include(CTest)
 
 # Disable Warnings as Errors for MSVC
-if (MSVC)
+if (CXX_CL)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /WX-")
 endif()
 
@@ -48,19 +134,17 @@ endif()
 # On Linux system SDL2 is likely to be lacking HIDAPI support which have drawbacks but is needed for SDL motion
 CMAKE_DEPENDENT_OPTION(ENABLE_SDL2 "Enable the SDL2 frontend" ON "NOT ANDROID" OFF)
 
-set(EXT_DEFAULT ON)
+set(EXT_DEFAULT OFF)
 
-# See https://github.com/llvm/llvm-project/issues/123946
-# OpenBSD va_list doesn't play nice with precompiled headers
-if (PLATFORM_FREEBSD OR PLATFORM_OPENBSD)
-    set(EXT_DEFAULT OFF)
+if (MSVC OR ANDROID)
+    set(EXT_DEFAULT ON)
 endif()
 
 CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ${EXT_DEFAULT} "ENABLE_SDL2;NOT MSVC" OFF)
 
 cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID" OFF)
 
-option(ENABLE_OPENGL "Enable OpenGL" ON)
+cmake_dependent_option(ENABLE_OPENGL "Enable OpenGL" ON "NOT WIN32 OR NOT ARCHITECTURE_arm64" OFF)
 mark_as_advanced(FORCE ENABLE_OPENGL)
 
 option(ENABLE_QT "Enable the Qt frontend" ON)
@@ -69,14 +153,13 @@ option(ENABLE_QT_UPDATE_CHECKER "Enable update checker for the Qt frontend" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
-option(YUZU_USE_CPM "Use CPM to fetch Eden dependencies if needed" ON)
+option(YUZU_USE_CPM "Use CPM to fetch system dependencies (fmt, boost, etc) if needed. Externals will still be fetched." ${EXT_DEFAULT})
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 
 option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ${EXT_DEFAULT})
-option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ${EXT_DEFAULT})
-option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ${EXT_DEFAULT})
+option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan Utility Headers from externals" ${EXT_DEFAULT})
 option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ${EXT_DEFAULT})
 
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
@@ -95,10 +178,12 @@ option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
 option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ${EXT_DEFAULT})
 
+# TODO(crueter): CI this?
 option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
 
 option(FORCE_DOWNLOAD_WIN_BUNDLES "Forcefully download bundled Windows dependencies (useful for CI)" OFF)
 
+# TODO(crueter): Cleanup, each dep that has a bundled option should allow to choose between bundled, external, system
 if (YUZU_USE_CPM AND ENABLE_SDL2)
     option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}")
 endif()
@@ -107,11 +192,9 @@ CMAKE_DEPENDENT_OPTION(YUZU_ROOM "Enable dedicated room functionality" ON "NOT A
 
 CMAKE_DEPENDENT_OPTION(YUZU_ROOM_STANDALONE "Enable standalone room executable" ON "YUZU_ROOM" OFF)
 
-CMAKE_DEPENDENT_OPTION(YUZU_CMD "Compile the eden-cli executable" ON "NOT ANDROID" OFF)
+CMAKE_DEPENDENT_OPTION(YUZU_CMD "Compile the eden-cli executable" ON "ENABLE_SDL2;NOT ANDROID" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
-
-option(YUZU_CHECK_SUBMODULES "Check if submodules are present" ${EXT_DEFAULT})
 
 option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
 
@@ -194,53 +277,6 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/hooks/pre-commit AND NOT EXISTS ${PROJECT_SOURCE
     endif()
 endif()
 
-# Sanity check : Check that all submodules are present
-# =======================================================================
-
-function(check_submodules_present)
-    file(READ "${PROJECT_SOURCE_DIR}/.gitmodules" gitmodules)
-    string(REGEX MATCHALL "path *= *[^ \t\r\n]*" gitmodules ${gitmodules})
-    foreach(module ${gitmodules})
-        string(REGEX REPLACE "path *= *" "" module ${module})
-
-        file(GLOB RESULT "${PROJECT_SOURCE_DIR}/${module}/*")
-        list(LENGTH RESULT RES_LEN)
-        if(RES_LEN EQUAL 0)
-            message(FATAL_ERROR "Git submodule ${module} not found. "
-                "Please run: \ngit submodule update --init --recursive")
-        endif()
-        if (EXISTS "${PROJECT_SOURCE_DIR}/${module}/.git")
-            set(SUBMODULE_DIR "${PROJECT_SOURCE_DIR}/${module}")
-
-            execute_process(
-                COMMAND git rev-parse --short=10 HEAD
-                WORKING_DIRECTORY ${SUBMODULE_DIR}
-                OUTPUT_VARIABLE SUBMODULE_SHA
-            )
-
-            # would probably be better to do string parsing, but whatever
-            execute_process(
-                COMMAND git remote get-url origin
-                WORKING_DIRECTORY ${SUBMODULE_DIR}
-                OUTPUT_VARIABLE SUBMODULE_URL
-            )
-
-            string(REGEX REPLACE "\n|\r" "" SUBMODULE_SHA ${SUBMODULE_SHA})
-            string(REGEX REPLACE "\n|\r|\\.git" "" SUBMODULE_URL ${SUBMODULE_URL})
-
-            get_filename_component(SUBMODULE_NAME ${SUBMODULE_DIR} NAME)
-
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES ${SUBMODULE_NAME})
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS ${SUBMODULE_SHA})
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS ${SUBMODULE_URL})
-        endif()
-    endforeach()
-endfunction()
-
-if(EXISTS ${PROJECT_SOURCE_DIR}/.gitmodules AND YUZU_CHECK_SUBMODULES)
-    check_submodules_present()
-endif()
-
 configure_file(${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.qrc
     ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
     COPYONLY)
@@ -262,69 +298,21 @@ if (NOT EXISTS ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.
     file(WRITE ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json "")
 endif()
 
-# Detect current compilation architecture and create standard definitions
-# =======================================================================
-
-include(CheckSymbolExists)
-function(detect_architecture symbol arch)
-    if (NOT DEFINED ARCHITECTURE)
-        set(CMAKE_REQUIRED_QUIET 1)
-        check_symbol_exists("${symbol}" "" ARCHITECTURE_${arch})
-        unset(CMAKE_REQUIRED_QUIET)
-
-        # The output variable needs to be unique across invocations otherwise
-        # CMake's crazy scope rules will keep it defined
-        if (ARCHITECTURE_${arch})
-            set(ARCHITECTURE "${arch}" PARENT_SCOPE)
-            set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
-            add_definitions(-DARCHITECTURE_${arch}=1)
-        endif()
-    endif()
-endfunction()
-
-if (NOT ENABLE_GENERIC)
-    if (MSVC)
-        detect_architecture("_M_AMD64" x86_64)
-        detect_architecture("_M_IX86" x86)
-        detect_architecture("_M_ARM" arm)
-        detect_architecture("_M_ARM64" arm64)
-    else()
-        detect_architecture("__x86_64__" x86_64)
-        detect_architecture("__i386__" x86)
-        detect_architecture("__arm__" arm)
-        detect_architecture("__aarch64__" arm64)
-    endif()
-endif()
-
-if (NOT DEFINED ARCHITECTURE)
-    set(ARCHITECTURE "GENERIC")
-    set(ARCHITECTURE_GENERIC 1)
-    add_definitions(-DARCHITECTURE_GENERIC=1)
-endif()
-
-message(STATUS "Target architecture: ${ARCHITECTURE}")
-
-if (MSVC AND ARCHITECTURE_x86)
-    message(FATAL_ERROR "Attempting to build with the x86 environment is not supported. \
-        This can typically happen if you used the Developer Command Prompt from the start menu;\
-        instead, run vcvars64.bat directly, located at C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/Build/vcvars64.bat")
-endif()
-
 if (UNIX)
-    add_definitions(-DYUZU_UNIX=1)
+    add_compile_definitions(YUZU_UNIX=1)
 endif()
 
 if (ARCHITECTURE_arm64 AND (ANDROID OR PLATFORM_LINUX))
     set(HAS_NCE 1)
-    add_definitions(-DHAS_NCE=1)
+    add_compile_definitions(HAS_NCE=1)
 endif()
 
 if (YUZU_ROOM)
-    add_definitions(-DYUZU_ROOM)
+    add_compile_definitions(YUZU_ROOM)
 endif()
 
 # Build/optimization presets
-if (PLATFORM_LINUX)
+if (PLATFORM_LINUX OR CXX_CLANG)
     if (ARCHITECTURE_x86_64)
         set(YUZU_BUILD_PRESET "custom" CACHE STRING "Build preset to use. One of: custom, generic, v3, zen2, zen4, native")
         if (${YUZU_BUILD_PRESET} STREQUAL "generic")
@@ -391,6 +379,7 @@ if (YUZU_USE_CPM)
 
     # boost
     set(BOOST_INCLUDE_LIBRARIES algorithm icl pool container heap asio headers process filesystem crc variant)
+
     AddJsonPackage(boost)
 
     # really annoying thing where boost::headers doesn't work with cpm
@@ -400,13 +389,10 @@ if (YUZU_USE_CPM)
     if (Boost_ADDED)
         if (MSVC OR ANDROID)
             add_compile_definitions(YUZU_BOOST_v1)
-        else()
-            message(WARNING "Using bundled Boost on a non-MSVC or Android system is not recommended. You are strongly encouraged to install Boost through your system's package manager.")
         endif()
 
-        if (NOT MSVC)
+        if (NOT MSVC OR CXX_CLANG)
             # boost sucks
-            # Solaris (and probably other NIXes) need explicit pthread definition
             if (PLATFORM_SUN)
                 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthreads")
                 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthreads")
@@ -459,6 +445,14 @@ if (YUZU_USE_CPM)
 
     # Opus
     AddJsonPackage(opus)
+
+    if (Opus_ADDED)
+        if (MSVC AND CXX_CLANG)
+            target_compile_options(opus PRIVATE
+                -Wno-implicit-function-declaration
+            )
+        endif()
+    endif()
 else()
     # Enforce the search mode of non-required packages for better and shorter failure messages
     find_package(fmt 8 REQUIRED)
@@ -489,16 +483,12 @@ if(NOT TARGET Boost::headers)
     AddJsonPackage(boost_headers)
 endif()
 
-if (ENABLE_LIBUSB)
-    if (PLATFORM_FREEBSD)
-        find_package(libusb MODULE)
-    else()
-        find_package(libusb 1.0.24 MODULE)
-    endif()
-endif()
-
 # DiscordRPC
 if (USE_DISCORD_PRESENCE)
+    if (ARCHITECTURE_arm64)
+        add_compile_definitions(RAPIDJSON_ENDIAN=RAPIDJSON_LITTLEENDIAN)
+    endif()
+
     AddJsonPackage(discord-rpc)
 
     target_include_directories(discord-rpc INTERFACE ${discord-rpc_SOURCE_DIR}/include)
@@ -601,8 +591,8 @@ endfunction()
 add_subdirectory(externals)
 
 # pass targets from externals
-find_package(VulkanHeaders)
 find_package(VulkanUtilityLibraries)
+find_package(libusb)
 find_package(VulkanMemoryAllocator)
 find_package(SPIRV-Tools)
 
@@ -736,7 +726,7 @@ if (APPLE)
     list(APPEND PLATFORM_LIBRARIES ${ICONV_LIBRARY})
 elseif (WIN32)
     # Target Windows 10
-    add_definitions(-D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00)
+    add_compile_definitions(_WIN32_WINNT=0x0A00 WINVER=0x0A00)
     set(PLATFORM_LIBRARIES winmm ws2_32 iphlpapi)
     if (MINGW)
         # PSAPI is the Process Status API
@@ -804,6 +794,27 @@ if (MSVC AND CMAKE_GENERATOR STREQUAL "Ninja")
         /wd4711 # function 'function' selected for automatic inline expansion
         /wd4820 # 'bytes' bytes padding added after construct 'member_name'
     )
+endif()
+
+# Adjustments for clang-cl
+if (MSVC AND CXX_CLANG)
+    if (ARCHITECTURE_x86_64)
+        set(FILE_ARCH x86_64)
+    elseif (ARCHITECTURE_arm64)
+        set(FILE_ARCH aarch64)
+    else()
+        message(FATAL_ERROR "clang-cl: Unsupported architecture ${ARCHITECTURE}")
+    endif()
+
+    AddJsonPackage(llvm-mingw)
+    set(LIB_PATH "${llvm-mingw_SOURCE_DIR}/libclang_rt.builtins-${FILE_ARCH}.a")
+
+    add_library(llvm-mingw-runtime STATIC IMPORTED)
+    set_target_properties(llvm-mingw-runtime PROPERTIES
+        IMPORTED_LOCATION "${LIB_PATH}"
+    )
+
+    link_libraries(llvm-mingw-runtime)
 endif()
 
 if (YUZU_USE_FASTER_LD AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")

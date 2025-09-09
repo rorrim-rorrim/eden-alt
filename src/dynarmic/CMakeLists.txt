@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 cmake_minimum_required(VERSION 3.12)
 project(dynarmic LANGUAGES C CXX ASM VERSION 6.7.0)
 
@@ -100,7 +103,7 @@ if (MSVC)
              /WX)
     endif()
 
-    if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    if (CXX_CLANG)
         list(APPEND DYNARMIC_CXX_FLAGS
              -Qunused-arguments
              -Wno-missing-braces)
@@ -128,7 +131,7 @@ else()
              -Wfatal-errors)
     endif()
 
-    if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    if (CXX_GCC)
         # GCC produces bogus -Warray-bounds warnings from xbyak headers for code paths that are not
         # actually reachable.  Specifically, it happens in cases where some code casts an Operand&
         # to Address& after first checking isMEM(), and that code is inlined in a situation where
@@ -138,7 +141,7 @@ else()
         list(APPEND DYNARMIC_CXX_FLAGS -Wstack-usage=4096)
     endif()
 
-    if (CMAKE_CXX_COMPILER_ID MATCHES "[Cc]lang")
+    if (CXX_CLANG)
         # Bracket depth determines maximum size of a fold expression in Clang since 9c9974c3ccb6.
         # And this in turns limits the size of a std::array.
         list(APPEND DYNARMIC_CXX_FLAGS -fbracket-depth=1024)
@@ -147,28 +150,26 @@ else()
     endif()
 endif()
 
-# Forced use of individual bundled libraries for non-REQUIRED library is possible with e.g. cmake -DCMAKE_DISABLE_FIND_PACKAGE_fmt=ON ...
-
-if (DYNARMIC_USE_BUNDLED_EXTERNALS)
-    set(CMAKE_DISABLE_FIND_PACKAGE_biscuit ON)
-    set(CMAKE_DISABLE_FIND_PACKAGE_fmt ON)
-    set(CMAKE_DISABLE_FIND_PACKAGE_mcl ON)
-    set(CMAKE_DISABLE_FIND_PACKAGE_oaknut ON)
-    set(CMAKE_DISABLE_FIND_PACKAGE_unordered_dense ON)
-    set(CMAKE_DISABLE_FIND_PACKAGE_xbyak ON)
-    set(CMAKE_DISABLE_FIND_PACKAGE_Zydis ON)
-    set(CMAKE_DISABLE_FIND_PACKAGE_Zycore ON)
-endif()
-
 find_package(Boost 1.57 REQUIRED)
 find_package(fmt 9 CONFIG)
+
+# Pull in externals CMakeLists for libs where available
+add_subdirectory(externals)
+
+find_package(mcl 0.1.12 REQUIRED)
 
 if ("arm64" IN_LIST ARCHITECTURE OR DYNARMIC_TESTS)
     find_package(oaknut 2.0.1 CONFIG)
 endif()
 
+if ("riscv" IN_LIST ARCHITECTURE)
+    find_package(biscuit 0.9.1 REQUIRED)
+endif()
+
 if ("x86_64" IN_LIST ARCHITECTURE)
     find_package(xbyak 7 CONFIG)
+    find_package(zycore REQUIRED)
+    find_package(zydis 4 REQUIRED)
 endif()
 
 if (DYNARMIC_USE_LLVM)
@@ -182,9 +183,6 @@ if (DYNARMIC_TESTS)
         find_package(Unicorn REQUIRED)
     endif()
 endif()
-
-# Pull in externals CMakeLists for libs where available
-add_subdirectory(externals)
 
 # Dynarmic project files
 add_subdirectory(src/dynarmic)
