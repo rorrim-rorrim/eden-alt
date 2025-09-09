@@ -267,7 +267,7 @@ void QtAmiiboSettings::ShowCabinetApplet(
     const Core::Frontend::CabinetCallback& callback_,
     const Core::Frontend::CabinetParameters& parameters,
     std::shared_ptr<Service::NFC::NfcDevice> nfp_device) const {
-    callback = std::move(callback_);
+    callback = callback_;
     emit MainWindowShowAmiiboSettings(parameters, nfp_device);
 }
 

@@ -53,7 +53,7 @@ struct ChatEntry {
 
 /// Represents a system status message.
 struct StatusMessageEntry {
-    StatusMessageTypes type; ///< Type of the message
+    StatusMessageTypes type{}; ///< Type of the message
     /// Subject of the message. i.e. the user who is joining/leaving/being banned, etc.
     std::string nickname;
     std::string username;

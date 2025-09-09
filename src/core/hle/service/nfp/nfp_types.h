@@ -315,7 +315,7 @@ static_assert(sizeof(ModelInfo) == 0x40, "ModelInfo is an invalid size");
 // This is nn::nfp::RegisterInfo
 struct RegisterInfo {
     Service::Mii::CharInfo mii_char_info;
-    WriteDate creation_date;
+    WriteDate creation_date{};
     AmiiboName amiibo_name;
     u8 font_region;
     INSERT_PADDING_BYTES(0x7A);

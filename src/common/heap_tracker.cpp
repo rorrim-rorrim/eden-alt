@@ -46,14 +46,13 @@ void HeapTracker::Map(size_t virtual_offset, size_t host_offset, size_t length,
         // We are mapping part of a separate heap.
         std::scoped_lock lk{m_lock};
 
-        auto* const map = new SeparateHeapMap{
-            .vaddr = virtual_offset,
-            .paddr = host_offset,
-            .size = length,
-            .tick = m_tick++,
-            .perm = perm,
-            .is_resident = false,
-        };
+        std::unique_ptr<SeparateHeapMap> map;
+        map->vaddr = virtual_offset;
+        map->paddr = host_offset;
+        map->size = length;
+        map->tick = m_tick++;
+        map->perm = perm;
+        map->is_resident = false;
 
         // Insert into mappings.
         m_map_count++;
@@ -250,15 +249,13 @@ void HeapTracker::SplitHeapMapLocked(VAddr offset) {
     const size_t left_size = offset - left->vaddr;
     left->size = left_size;
 
-    // Create the new right map.
-    auto* const right = new SeparateHeapMap{
-        .vaddr = left->vaddr + left_size,
-        .paddr = left->paddr + left_size,
-        .size = orig_size - left_size,
-        .tick = left->tick,
-        .perm = left->perm,
-        .is_resident = left->is_resident,
-    };
+    std::unique_ptr<SeparateHeapMap> right;
+    right->vaddr = left->vaddr + left_size;
+    right->paddr = left->paddr + left_size;
+    right->size = orig_size - left_size;
+    right->tick = left->tick;
+    right->perm = left->perm;
+    right->is_resident = left->is_resident;
 
     // Insert the new right map.
     m_map_count++;
