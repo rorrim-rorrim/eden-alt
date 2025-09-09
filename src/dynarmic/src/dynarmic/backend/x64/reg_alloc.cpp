@@ -9,6 +9,7 @@
 #include "dynarmic/backend/x64/reg_alloc.h"
 
 #include <algorithm>
+#include <limits>
 #include <numeric>
 #include <utility>
 
@@ -152,19 +153,19 @@ bool Argument::GetImmediateU1() const noexcept {
 
 u8 Argument::GetImmediateU8() const noexcept {
     const u64 imm = value.GetImmediateAsU64();
-    ASSERT(imm < 0x100);
+    ASSERT(imm <= u64(std::numeric_limits<u8>::max()));
     return u8(imm);
 }
 
 u16 Argument::GetImmediateU16() const noexcept {
     const u64 imm = value.GetImmediateAsU64();
-    ASSERT(imm < 0x10000);
+    ASSERT(imm <= u64(std::numeric_limits<u16>::max()));
     return u16(imm);
 }
 
 u32 Argument::GetImmediateU32() const noexcept {
     const u64 imm = value.GetImmediateAsU64();
-    ASSERT(imm < 0x100000000);
+    ASSERT(imm <= u64(std::numeric_limits<u32>::max()));
     return u32(imm);
 }
 
