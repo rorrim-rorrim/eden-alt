@@ -31,10 +31,11 @@
 
 namespace Dynarmic::Optimization {
 
-static void A32ConstantMemoryReads(IR::Block& block, A32::UserCallbacks* cb) {
+static void ConstantMemoryReads(IR::Block& block, A32::UserCallbacks* cb) {
     for (auto& inst : block) {
         switch (inst.GetOpcode()) {
-        case IR::Opcode::A32ReadMemory8: {
+        case IR::Opcode::A32ReadMemory8:
+        case IR::Opcode::A64ReadMemory8: {
             if (inst.AreAllArgsImmediates()) {
                 const u32 vaddr = inst.GetArg(1).GetU32();
                 if (cb->IsReadOnlyMemory(vaddr)) {
@@ -44,7 +45,8 @@ static void A32ConstantMemoryReads(IR::Block& block, A32::UserCallbacks* cb) {
             }
             break;
         }
-        case IR::Opcode::A32ReadMemory16: {
+        case IR::Opcode::A32ReadMemory16:
+        case IR::Opcode::A64ReadMemory16: {
             if (inst.AreAllArgsImmediates()) {
                 const u32 vaddr = inst.GetArg(1).GetU32();
                 if (cb->IsReadOnlyMemory(vaddr)) {
@@ -54,7 +56,8 @@ static void A32ConstantMemoryReads(IR::Block& block, A32::UserCallbacks* cb) {
             }
             break;
         }
-        case IR::Opcode::A32ReadMemory32: {
+        case IR::Opcode::A32ReadMemory32:
+        case IR::Opcode::A64ReadMemory32: {
             if (inst.AreAllArgsImmediates()) {
                 const u32 vaddr = inst.GetArg(1).GetU32();
                 if (cb->IsReadOnlyMemory(vaddr)) {
@@ -64,7 +67,8 @@ static void A32ConstantMemoryReads(IR::Block& block, A32::UserCallbacks* cb) {
             }
             break;
         }
-        case IR::Opcode::A32ReadMemory64: {
+        case IR::Opcode::A32ReadMemory64:
+        case IR::Opcode::A64ReadMemory64: {
             if (inst.AreAllArgsImmediates()) {
                 const u32 vaddr = inst.GetArg(1).GetU32();
                 if (cb->IsReadOnlyMemory(vaddr)) {
@@ -667,14 +671,14 @@ using Op = Dynarmic::IR::Opcode;
 // bit size all over the place within folding functions.
 static void ReplaceUsesWith(IR::Inst& inst, bool is_32_bit, u64 value) {
     if (is_32_bit) {
-        inst.ReplaceUsesWith(IR::Value{static_cast<u32>(value)});
+        inst.ReplaceUsesWith(IR::Value{u32(value)});
     } else {
         inst.ReplaceUsesWith(IR::Value{value});
     }
 }
 
 static IR::Value Value(bool is_32_bit, u64 value) {
-    return is_32_bit ? IR::Value{static_cast<u32>(value)} : IR::Value{value};
+    return is_32_bit ? IR::Value{u32(value)} : IR::Value{value};
 }
 
 template<typename ImmFn>
@@ -797,6 +801,23 @@ static void FoldByteReverse(IR::Inst& inst, Op op) {
     } else {
         const u64 result = mcl::bit::swap_bytes_64(operand.GetImmediateAsU64());
         inst.ReplaceUsesWith(IR::Value{result});
+    }
+}
+
+/// Folds leading zero population count
+///
+/// 1. imm -> countl_zero(imm)
+///
+static void FoldCountLeadingZeros(IR::Inst& inst, bool is_32_bit) {
+    const auto operand = inst.GetArg(0);
+    if (operand.IsImmediate()) {
+        if (is_32_bit) {
+            const u32 result = std::countl_zero(u32(operand.GetImmediateAsU64()));
+            inst.ReplaceUsesWith(IR::Value{result});
+        } else {
+            const u64 result = std::countl_zero(operand.GetImmediateAsU64());
+            inst.ReplaceUsesWith(IR::Value{result});
+        }
     }
 }
 
@@ -1020,8 +1041,7 @@ static void FoldZeroExtendXToLong(IR::Inst& inst) {
 
 static void ConstantPropagation(IR::Block& block) {
     for (auto& inst : block) {
-        const auto opcode = inst.GetOpcode();
-
+        auto const opcode = inst.GetOpcode();
         switch (opcode) {
         case Op::LeastSignificantWord:
             FoldLeastSignificantWord(inst);
@@ -1110,12 +1130,12 @@ static void ConstantPropagation(IR::Block& block) {
             break;
         case Op::ArithmeticShiftRightMasked32:
             if (inst.AreAllArgsImmediates()) {
-                ReplaceUsesWith(inst, true, static_cast<s32>(inst.GetArg(0).GetU32()) >> (inst.GetArg(1).GetU32() & 0x1f));
+                ReplaceUsesWith(inst, true, s32(inst.GetArg(0).GetU32()) >> (inst.GetArg(1).GetU32() & 0x1f));
             }
             break;
         case Op::ArithmeticShiftRightMasked64:
             if (inst.AreAllArgsImmediates()) {
-                ReplaceUsesWith(inst, false, static_cast<s64>(inst.GetArg(0).GetU64()) >> (inst.GetArg(1).GetU64() & 0x3f));
+                ReplaceUsesWith(inst, false, s64(inst.GetArg(0).GetU64()) >> (inst.GetArg(1).GetU64() & 0x3f));
             }
             break;
         case Op::RotateRightMasked32:
@@ -1186,6 +1206,10 @@ static void ConstantPropagation(IR::Block& block) {
         case Op::ByteReverseHalf:
         case Op::ByteReverseDual:
             FoldByteReverse(inst, opcode);
+            break;
+        case Op::CountLeadingZeros32:
+        case Op::CountLeadingZeros64:
+            FoldCountLeadingZeros(inst, opcode == Op::CountLeadingZeros32);
             break;
         default:
             break;
@@ -1462,7 +1486,7 @@ void Optimize(IR::Block& block, const A32::UserConfig& conf, const Optimization:
         Optimization::DeadCodeElimination(block);
     }
     if (conf.HasOptimization(OptimizationFlag::ConstProp)) [[likely]] {
-        Optimization::A32ConstantMemoryReads(block, conf.callbacks);
+        Optimization::ConstantMemoryReads(block, conf.callbacks);
         Optimization::ConstantPropagation(block);
         Optimization::DeadCodeElimination(block);
     }
