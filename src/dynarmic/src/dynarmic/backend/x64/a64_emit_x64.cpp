@@ -764,7 +764,7 @@ void A64EmitX64::EmitPatchMovRcx(CodePtr target_code_ptr) {
         target_code_ptr = code.GetReturnFromRunCodeAddress();
     }
     const CodePtr patch_location = code.getCurr();
-    code.mov(code.rcx, reinterpret_cast<u64>(target_code_ptr));
+    code.mov(code.rcx, u64(target_code_ptr));
     code.EnsurePatchLocationSize(patch_location, 10);
 }
 
