@@ -148,8 +148,8 @@ class InputDialogFragment : DialogFragment() {
     }
 
     private fun onKeyEvent(event: KeyEvent): Boolean {
-        if (event.source and InputDevice.SOURCE_JOYSTICK != InputDevice.SOURCE_JOYSTICK &&
-            event.source and InputDevice.SOURCE_GAMEPAD != InputDevice.SOURCE_GAMEPAD
+        if (event.source and InputDevice.SOURCE_KEYBOARD != InputDevice.SOURCE_KEYBOARD &&
+            event.source and InputDevice.SOURCE_MOUSE != InputDevice.SOURCE_MOUSE
         ) {
             return false
         }
@@ -172,8 +172,8 @@ class InputDialogFragment : DialogFragment() {
     }
 
     private fun onMotionEvent(event: MotionEvent): Boolean {
-        if (event.source and InputDevice.SOURCE_JOYSTICK != InputDevice.SOURCE_JOYSTICK &&
-            event.source and InputDevice.SOURCE_GAMEPAD != InputDevice.SOURCE_GAMEPAD
+        if (event.source and InputDevice.SOURCE_KEYBOARD != InputDevice.SOURCE_KEYBOARD &&
+            event.source and InputDevice.SOURCE_MOUSE != InputDevice.SOURCE_MOUSE
         ) {
             return false
         }

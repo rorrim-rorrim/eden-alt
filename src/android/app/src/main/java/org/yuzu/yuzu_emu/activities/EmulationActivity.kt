@@ -213,8 +213,8 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (event.source and InputDevice.SOURCE_JOYSTICK != InputDevice.SOURCE_JOYSTICK &&
-            event.source and InputDevice.SOURCE_GAMEPAD != InputDevice.SOURCE_GAMEPAD
+        if (event.source and InputDevice.SOURCE_KEYBOARD != InputDevice.SOURCE_KEYBOARD &&
+            event.source and InputDevice.SOURCE_MOUSE != InputDevice.SOURCE_MOUSE
         ) {
             return super.dispatchKeyEvent(event)
         }
@@ -227,8 +227,8 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        if (event.source and InputDevice.SOURCE_JOYSTICK != InputDevice.SOURCE_JOYSTICK &&
-            event.source and InputDevice.SOURCE_GAMEPAD != InputDevice.SOURCE_GAMEPAD
+        if (event.source and InputDevice.SOURCE_KEYBOARD != InputDevice.SOURCE_KEYBOARD &&
+            event.source and InputDevice.SOURCE_MOUSE != InputDevice.SOURCE_MOUSE
         ) {
             return super.dispatchGenericMotionEvent(event)
         }
