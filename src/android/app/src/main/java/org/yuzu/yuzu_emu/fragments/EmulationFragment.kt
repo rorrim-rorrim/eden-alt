@@ -913,8 +913,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         val socPosition = IntSetting.SOC_OVERLAY_POSITION.getInt()
         updateSocPosition(socPosition)
 
-        binding.inGameMenu.post {
-            emulationState?.isPaused?.let { updatePauseMenuEntry(it) }
+        emulationState?.let { state ->
+            updatePauseMenuEntry(state.isPaused)
         }
     }
 
