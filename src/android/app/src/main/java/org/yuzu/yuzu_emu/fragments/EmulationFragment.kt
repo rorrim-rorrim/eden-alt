@@ -916,6 +916,16 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         emulationState?.let { state ->
             updatePauseMenuEntry(state.isPaused)
         }
+
+        emulationState?.let { state ->
+            updatePauseMenuEntry(state.isPaused)
+        } ?: run {
+            binding.inGameMenu.post {
+                emulationState?.isPaused?.let { paused ->
+                    updatePauseMenuEntry(paused)
+                }
+            }
+        }
     }
 
     private fun resetInputOverlay() {
