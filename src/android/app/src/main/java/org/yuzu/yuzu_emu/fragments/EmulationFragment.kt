@@ -847,8 +847,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     private fun updateQuickOverlayMenuEntry(isVisible: Boolean) {
-        val menu = binding.inGameMenu.menu
-        val item = menu.findItem(R.id.menu_quick_overlay)
+        val menu = binding?.inGameMenu?.menu ?: return
+        val item = menu.findItem(R.id.menu_quick_overlay) ?: return
+
         if (isVisible) {
             item.title = getString(R.string.emulation_hide_overlay)
             item.icon = ResourcesCompat.getDrawable(
@@ -867,8 +868,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     private fun updatePauseMenuEntry(isPaused: Boolean) {
-        val menu = binding.inGameMenu.menu
-        val pauseItem = menu.findItem(R.id.menu_pause_emulation)
+        val menu = binding?.inGameMenu?.menu ?: return
+        val pauseItem = menu.findItem(R.id.menu_pause_emulation) ?: return
         if (isPaused) {
             pauseItem.title = getString(R.string.emulation_unpause)
             pauseItem.icon = ResourcesCompat.getDrawable(
