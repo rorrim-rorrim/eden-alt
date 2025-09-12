@@ -845,9 +845,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     private fun updateQuickOverlayMenuEntry(isVisible: Boolean) {
-        val menu = binding?.inGameMenu?.menu ?: return
-        val item = menu.findItem(R.id.menu_quick_overlay) ?: return
-
+        val b = _binding ?: return
+        val item = b.inGameMenu.findItem(R.id.menu_quick_overlay) ?: return
+    
         if (isVisible) {
             item.title = getString(R.string.emulation_hide_overlay)
             item.icon = ResourcesCompat.getDrawable(
@@ -866,8 +866,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     private fun updatePauseMenuEntry(isPaused: Boolean) {
-        val menu = binding?.inGameMenu?.menu ?: return
-        val pauseItem = menu.findItem(R.id.menu_pause_emulation) ?: return
+        val b = _binding ?: return
+        val pauseItem = b.inGameMenu.findItem(R.id.menu_pause_emulation) ?: return
         if (isPaused) {
             pauseItem.title = getString(R.string.emulation_unpause)
             pauseItem.icon = ResourcesCompat.getDrawable(
@@ -886,9 +886,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     override fun onPause() {
-        if (emulationState.isRunning && emulationActivity?.isInPictureInPictureMode != true) {
-            emulationState.pause()
-            updatePauseMenuEntry(true)
+        if (this::emulationState.isInitialized) {
+            if (emulationState.isRunning && emulationActivity?.isInPictureInPictureMode != true) {
+                emulationState.pause()
+                updatePauseMenuEntry(true)
+            }
         }
         super.onPause()
     }
@@ -905,7 +907,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     override fun onResume() {
         super.onResume()
-
         val b = _binding ?: return
         updateStatsPosition(IntSetting.PERF_OVERLAY_POSITION.getInt())
         updateSocPosition(IntSetting.SOC_OVERLAY_POSITION.getInt())
