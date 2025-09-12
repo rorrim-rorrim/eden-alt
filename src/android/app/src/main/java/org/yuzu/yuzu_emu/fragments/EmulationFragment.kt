@@ -810,28 +810,26 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        if (_binding == null) {
-            return
-        }
+        val b = _binding ?: return
 
         updateScreenLayout()
         val showInputOverlay = BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()
         if (emulationActivity?.isInPictureInPictureMode == true) {
-            if (binding.drawerLayout.isOpen) {
-                binding.drawerLayout.close()
+            if (b.drawerLayout.isOpen) {
+                b.drawerLayout.close()
             }
             if (showInputOverlay) {
-                binding.surfaceInputOverlay.setVisible(visible = false, gone = false)
+                b.surfaceInputOverlay.setVisible(visible = false, gone = false)
             }
         } else {
-            binding.surfaceInputOverlay.setVisible(
+            b.surfaceInputOverlay.setVisible(
                 showInputOverlay && emulationViewModel.emulationStarted.value
             )
             if (!isInFoldableLayout) {
                 if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                    binding.surfaceInputOverlay.layout = OverlayLayout.Portrait
+                    b.surfaceInputOverlay.layout = OverlayLayout.Portrait
                 } else {
-                    binding.surfaceInputOverlay.layout = OverlayLayout.Landscape
+                    b.surfaceInputOverlay.layout = OverlayLayout.Landscape
                 }
             }
         }
@@ -907,16 +905,15 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     override fun onResume() {
         super.onResume()
-        // If the overlay is enabled, we need to update the position if changed
-        val position = IntSetting.PERF_OVERLAY_POSITION.getInt()
-        updateStatsPosition(position)
 
-        val socPosition = IntSetting.SOC_OVERLAY_POSITION.getInt()
-        updateSocPosition(socPosition)
+        val b = _binding ?: return
+        updateStatsPosition(IntSetting.PERF_OVERLAY_POSITION.getInt())
+        updateSocPosition(IntSetting.SOC_OVERLAY_POSITION.getInt())
 
-        binding.inGameMenu.post {
-            emulationState?.isPaused?.let { paused ->
-                updatePauseMenuEntry(paused)
+        if (this::emulationState.isInitialized) {
+            b.inGameMenu.post {
+                if (!this::emulationState.isInitialized || _binding == null) return@post
+                updatePauseMenuEntry(emulationState.isPaused)
             }
         }
     }
@@ -1232,6 +1229,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     private fun updateScreenLayout() {
+        val b = _binding ?: return
         val verticalAlignment =
             EmulationVerticalAlignment.from(IntSetting.VERTICAL_ALIGNMENT.getInt())
         val aspectRatio = when (IntSetting.RENDERER_ASPECT_RATIO.getInt()) {
@@ -1243,35 +1241,37 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
         when (verticalAlignment) {
             EmulationVerticalAlignment.Top -> {
-                binding.surfaceEmulation.setAspectRatio(aspectRatio)
+                b.surfaceEmulation.setAspectRatio(aspectRatio)
                 val params = FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
                 )
                 params.gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-                binding.surfaceEmulation.layoutParams = params
+                b.surfaceEmulation.layoutParams = params
             }
 
             EmulationVerticalAlignment.Center -> {
-                binding.surfaceEmulation.setAspectRatio(null)
-                binding.surfaceEmulation.updateLayoutParams {
+                b.surfaceEmulation.setAspectRatio(null)
+                b.surfaceEmulation.updateLayoutParams {
                     width = ViewGroup.LayoutParams.MATCH_PARENT
                     height = ViewGroup.LayoutParams.MATCH_PARENT
                 }
             }
 
             EmulationVerticalAlignment.Bottom -> {
-                binding.surfaceEmulation.setAspectRatio(aspectRatio)
+                b.surfaceEmulation.setAspectRatio(aspectRatio)
                 val params =
                     FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                     )
                 params.gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
-                binding.surfaceEmulation.layoutParams = params
+                b.surfaceEmulation.layoutParams = params
             }
         }
-        emulationState.updateSurface()
+        if (this::emulationState.isInitialized) {
+            emulationState.updateSurface()
+        }
         emulationActivity?.buildPictureInPictureParams()
         updateOrientation()
     }
