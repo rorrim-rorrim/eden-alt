@@ -429,7 +429,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Whether or not to check for updates upon startup."));
 
     // Linux
-    INSERT(Settings, enable_gamemode, tr("Enable Gamemode"), QString());
+    INSERT(UISettings,
+            enable_gamemode,
+            tr("Enable Gamemode"),
+            QString());
 
     // Ui Debugging
 
