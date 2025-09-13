@@ -165,7 +165,7 @@ bool MakeShortcutIcoPath(const u64 program_id,
 
 void OpenEdenFolder(const Common::FS::EdenPath& path)
 {
-    QDesktopServices::openUrl(QUrl(QString::fromStdString(Common::FS::GetEdenPathString(path))));
+    QDesktopServices::openUrl(QUrl::fromLocalFile(QString::fromStdString(Common::FS::GetEdenPathString(path))));
 }
 
 void OpenRootDataFolder()
