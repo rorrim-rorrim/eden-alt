@@ -641,8 +641,14 @@ struct Values {
                                                    true,
                                                    true};
 
-    // Linux
-    SwitchableSetting<bool> enable_gamemode{linkage, true, "enable_gamemode", Category::Linux};
+    // Linux/MinGW may support (requires libdl support)
+    SwitchableSetting<bool> enable_gamemode{linkage,
+#ifndef _MSC_VER
+        true,
+#else
+        false,
+#endif
+        "enable_gamemode", Category::UiGeneral};
 
     // Controls
     InputSetting<std::array<PlayerInput, 10>> players;
