@@ -10,11 +10,8 @@
 #include "qt_common/qt_game_util.h"
 #include "qt_common/qt_meta.h"
 #include "qt_common/qt_path_util.h"
-#include "qt_common/qt_progress_dialog.h"
 #include <clocale>
 #include <cmath>
-#include <fstream>
-#include <iostream>
 #include <memory>
 #include <thread>
 
@@ -43,21 +40,16 @@
 #include "configuration/configure_input.h"
 #include "configuration/configure_per_game.h"
 #include "configuration/configure_tas.h"
-#include "core/core_timing.h"
 #include "core/file_sys/romfs_factory.h"
-#include "core/file_sys/vfs/vfs.h"
-#include "core/file_sys/vfs/vfs_real.h"
 #include "core/frontend/applets/cabinet.h"
 #include "core/frontend/applets/controller.h"
 #include "core/frontend/applets/general.h"
 #include "core/frontend/applets/mii_edit.h"
 #include "core/frontend/applets/software_keyboard.h"
-#include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/frontend/applets.h"
-#include "core/hle/service/set/system_settings_server.h"
 #include "frontend_common/content_manager.h"
-#include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
+#include "hid_core/frontend/emulated_controller.h"
 #include "yuzu/multiplayer/state.h"
 #include "yuzu/util/controller_navigation.h"
 
@@ -139,6 +131,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "core/file_sys/savedata_factory.h"
 #include "core/file_sys/submission_package.h"
 #include "core/hle/kernel/k_process.h"
+#include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/sm/sm.h"
@@ -166,7 +159,6 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/discord.h"
 #include "yuzu/game_list.h"
 #include "yuzu/game_list_p.h"
-#include "yuzu/hotkeys.h"
 #include "yuzu/install_dialog.h"
 #include "yuzu/loading_screen.h"
 #include "yuzu/main.h"
