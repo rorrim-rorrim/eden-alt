@@ -113,6 +113,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "common/scm_rev.h"
 #include "common/scope_exit.h"
 #ifdef _WIN32
+#include "core/core_timing.h"
 #include "common/windows/timer_resolution.h"
 #endif
 #ifdef ARCHITECTURE_x86_64
@@ -1470,7 +1471,7 @@ void GMainWindow::InitializeHotkeys() {
     connect_shortcut(QStringLiteral("Toggle Framerate Limit"), [] {
         Settings::values.use_speed_limit.SetValue(!Settings::values.use_speed_limit.GetValue());
     });
-    connect_shortcut(QStringLiteral("Toggle Renderdoc Capture"), [this] {
+    connect_shortcut(QStringLiteral("Toggle Renderdoc Capture"), [] {
         if (Settings::values.enable_renderdoc_hotkey) {
             QtCommon::system->GetRenderdocAPI().ToggleCapture();
         }
@@ -2140,7 +2141,7 @@ void GMainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletP
     std::string title_version;
     const auto res = QtCommon::system->GetGameName(title_name);
 
-    const auto metadata = [this, title_id] {
+    const auto metadata = [title_id] {
         const FileSys::PatchManager pm(title_id, QtCommon::system->GetFileSystemController(),
                                        QtCommon::system->GetContentProvider());
         return pm.GetControlMetadata();
@@ -2371,7 +2372,7 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
     std::filesystem::path path;
     QString open_target;
 
-    const auto [user_save_size, device_save_size] = [this, &game_path, &program_id] {
+    const auto [user_save_size, device_save_size] = [&game_path, &program_id] {
         const FileSys::PatchManager pm{program_id, QtCommon::system->GetFileSystemController(),
                                        QtCommon::system->GetContentProvider()};
         const auto control = pm.GetControlMetadata().first;
@@ -2958,7 +2959,7 @@ void GMainWindow::OnMenuInstallToNAND() {
                 }
                 return false;
             };
-            future = QtConcurrent::run([this, &file, progress_callback] {
+            future = QtConcurrent::run([&file, progress_callback] {
                 return ContentManager::InstallNSP(*QtCommon::system, *QtCommon::vfs, file.toStdString(),
                                                   progress_callback);
             });
