@@ -357,7 +357,7 @@ void RemoveCustomConfiguration(u64 program_id, const std::string& game_path)
     }
 }
 
-void RemoveCacheStorage(u64 program_id, FileSys::VfsFilesystem* vfs)
+void RemoveCacheStorage(u64 program_id)
 {
     const auto nand_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir);
     auto vfs_nand_dir = vfs->OpenDirectory(Common::FS::PathToUTF8String(nand_dir),

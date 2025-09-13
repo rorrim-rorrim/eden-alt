@@ -7,7 +7,6 @@
 #include <QObject>
 #include <QStandardPaths>
 #include "common/fs/path_util.h"
-#include <core/file_sys/vfs/vfs.h>
 
 namespace QtCommon::Game {
 
@@ -65,7 +64,7 @@ void RemoveTransferableShaderCache(u64 program_id, GameListRemoveTarget target);
 void RemoveVulkanDriverPipelineCache(u64 program_id);
 void RemoveAllTransferableShaderCaches(u64 program_id);
 void RemoveCustomConfiguration(u64 program_id, const std::string& game_path);
-void RemoveCacheStorage(u64 program_id, FileSys::VfsFilesystem* vfs);
+void RemoveCacheStorage(u64 program_id);
 
 // Metadata //
 void ResetMetadata();

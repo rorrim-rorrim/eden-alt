@@ -2616,7 +2616,7 @@ void GMainWindow::OnGameListRemoveFile(u64 program_id, QtCommon::Game::GameListR
         QtCommon::Game::RemoveCustomConfiguration(program_id, game_path);
         break;
     case QtCommon::Game::GameListRemoveTarget::CacheStorage:
-        QtCommon::Game::RemoveCacheStorage(program_id, QtCommon::vfs.get());
+        QtCommon::Game::RemoveCacheStorage(program_id);
         break;
     }
 }
