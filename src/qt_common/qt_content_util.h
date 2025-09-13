@@ -6,8 +6,6 @@
 
 #include <QObject>
 #include "common/common_types.h"
-#include "core/core.h"
-#include "qt_common/qt_common.h"
 
 namespace QtCommon::Content {
 
@@ -37,11 +35,7 @@ inline constexpr const char *GetFirmwareInstallResultString(FirmwareInstallResul
     return FIRMWARE_RESULTS.at(static_cast<std::size_t>(result));
 }
 
-FirmwareInstallResult InstallFirmware(
-    const QString &location,
-    bool recursive,
-    QtProgressCallback callback,
-    FileSys::VfsFilesystem *vfs);
+void InstallFirmware(const QString &location, bool recursive);
 
 QString UnzipFirmwareToTmp(const QString &location);
 
@@ -49,6 +43,7 @@ QString UnzipFirmwareToTmp(const QString &location);
 void InstallKeys();
 
 // Content //
-void VerifyGameContents(const std::string &game_path, QtProgressCallback callback);
+void VerifyGameContents(const std::string &game_path);
+void VerifyInstalledContents();
 }
 #endif // QT_CONTENT_UTIL_H

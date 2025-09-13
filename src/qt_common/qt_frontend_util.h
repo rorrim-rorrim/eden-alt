@@ -5,12 +5,12 @@
 #define QT_FRONTEND_UTIL_H
 
 #include <QGuiApplication>
-#include <QMessageBox>
 #include "qt_common/qt_common.h"
 
 #ifdef YUZU_QT_WIDGETS
 #include <QFileDialog>
 #include <QWidget>
+#include <QMessageBox>
 #endif
 
 /**
@@ -23,6 +23,11 @@ Q_NAMESPACE
 #ifdef YUZU_QT_WIDGETS
 using Options = QFileDialog::Options;
 using Option = QFileDialog::Option;
+
+using StandardButton = QMessageBox::StandardButton;
+using StandardButtons = QMessageBox::StandardButtons;
+
+using Icon = QMessageBox::Icon;
 #else
 enum Option {
     ShowDirsOnly = 0x00000001,
@@ -36,44 +41,96 @@ enum Option {
 Q_ENUM_NS(Option)
 Q_DECLARE_FLAGS(Options, Option)
 Q_FLAG_NS(Options)
+
+enum StandardButton {
+    // keep this in sync with QDialogButtonBox::StandardButton and QPlatformDialogHelper::StandardButton
+    NoButton           = 0x00000000,
+    Ok                 = 0x00000400,
+    Save               = 0x00000800,
+    SaveAll            = 0x00001000,
+    Open               = 0x00002000,
+    Yes                = 0x00004000,
+    YesToAll           = 0x00008000,
+    No                 = 0x00010000,
+    NoToAll            = 0x00020000,
+    Abort              = 0x00040000,
+    Retry              = 0x00080000,
+    Ignore             = 0x00100000,
+    Close              = 0x00200000,
+    Cancel             = 0x00400000,
+    Discard            = 0x00800000,
+    Help               = 0x01000000,
+    Apply              = 0x02000000,
+    Reset              = 0x04000000,
+    RestoreDefaults    = 0x08000000,
+
+    FirstButton        = Ok,                // internal
+    LastButton         = RestoreDefaults,   // internal
+
+    YesAll             = YesToAll,          // obsolete
+    NoAll              = NoToAll,           // obsolete
+
+    Default            = 0x00000100,        // obsolete
+    Escape             = 0x00000200,        // obsolete
+    FlagMask           = 0x00000300,        // obsolete
+    ButtonMask         = ~FlagMask          // obsolete
+};
+Q_ENUM_NS(StandardButton)
+
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
+typedef StandardButton Button;
+#endif
+Q_DECLARE_FLAGS(StandardButtons, StandardButton)
+Q_FLAG_NS(StandardButtons)
+
+enum Icon {
+    // keep this in sync with QMessageDialogOptions::StandardIcon
+    NoIcon = 0,
+    Information = 1,
+    Warning = 2,
+    Critical = 3,
+    Question = 4
+};
+Q_ENUM_NS(Icon)
+
 #endif
 
 // TODO(crueter) widgets-less impl, choices et al.
-QMessageBox::StandardButton ShowMessage(QMessageBox::Icon icon,
+StandardButton ShowMessage(Icon icon,
                                         const QString &title,
                                         const QString &text,
-                                        QMessageBox::StandardButtons buttons = QMessageBox::NoButton,
+                                        StandardButtons buttons = StandardButton::NoButton,
                                         QObject *parent = nullptr);
 
 #define UTIL_OVERRIDES(level) \
-    inline QMessageBox::StandardButton level(QObject *parent, \
+    inline StandardButton level(QObject *parent, \
                                              const QString &title, \
                                              const QString &text, \
-                                             QMessageBox::StandardButtons buttons = QMessageBox::Ok) \
+                                             StandardButtons buttons = StandardButton::Ok) \
     { \
-        return ShowMessage(QMessageBox::level, title, text, buttons, parent); \
+        return ShowMessage(Icon::level, title, text, buttons, parent); \
     } \
-    inline QMessageBox::StandardButton level(QObject *parent, \
+    inline StandardButton level(QObject *parent, \
                                              const char *title, \
                                              const char *text, \
-                                             QMessageBox::StandardButtons buttons \
-                                             = QMessageBox::Ok) \
+                                             StandardButtons buttons \
+                                             = StandardButton::Ok) \
     { \
-        return ShowMessage(QMessageBox::level, tr(title), tr(text), buttons, parent); \
+        return ShowMessage(Icon::level, tr(title), tr(text), buttons, parent); \
     } \
-    inline QMessageBox::StandardButton level(const char *title, \
+    inline StandardButton level(const char *title, \
                                              const char *text, \
-                                             QMessageBox::StandardButtons buttons \
-                                             = QMessageBox::Ok) \
+                                             StandardButtons buttons \
+                                             = StandardButton::Ok) \
     { \
-        return ShowMessage(QMessageBox::level, tr(title), tr(text), buttons, rootObject); \
+        return ShowMessage(Icon::level, tr(title), tr(text), buttons, rootObject); \
     } \
-    inline QMessageBox::StandardButton level(const QString title, \
+    inline StandardButton level(const QString title, \
                                              const QString &text, \
-                                             QMessageBox::StandardButtons buttons \
-                                             = QMessageBox::Ok) \
+                                             StandardButtons buttons \
+                                             = StandardButton::Ok) \
     { \
-        return ShowMessage(QMessageBox::level, title, text, buttons, rootObject); \
+        return ShowMessage(Icon::level, title, text, buttons, rootObject); \
     }
 
 UTIL_OVERRIDES(Information)

@@ -29,10 +29,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
 #define INSERT(SETTINGS, ID, NAME, TOOLTIP) \
     translations->insert(std::pair{SETTINGS::values.ID.Id(), std::pair{(NAME), (TOOLTIP)}})
 
-        // A setting can be ignored by giving it a blank name
+    // A setting can be ignored by giving it a blank name
 
-        // Applets
-        INSERT(Settings, cabinet_applet_mode, tr("Amiibo editor"), QString());
+    // Applets
+    INSERT(Settings, cabinet_applet_mode, tr("Amiibo editor"), QString());
     INSERT(Settings, controller_applet_mode, tr("Controller configuration"), QString());
     INSERT(Settings, data_erase_applet_mode, tr("Data erase"), QString());
     INSERT(Settings, error_applet_mode, tr("Error"), QString());
@@ -407,12 +407,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
               "their resolution, details and supported controllers and depending on this setting.\n"
               "Setting to Handheld can help improve performance for low end systems."));
     INSERT(Settings, current_user, QString(), QString());
-    INSERT(Settings, disable_nca_verification, tr("Disable NCA Verification"),
-           tr("Disables integrity verification of NCA content archives."
-              "\nThis may improve loading speed but risks data corruption or invalid files going "
-              "undetected.\n"
-              "Is necessary to make games and updates work that needs firmware 20+."));
-    INSERT(Settings, hide_nca_verification_popup, QString(), QString());
 
     // Controls
 

@@ -5,12 +5,15 @@
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "core/file_sys/savedata_factory.h"
+#include "core/hle/service/am/am_types.h"
 #include "frontend_common/content_manager.h"
 #include "qt_common.h"
 #include "qt_common/uisettings.h"
 #include "qt_frontend_util.h"
+#include "yuzu/util/util.h"
 
 #include <QDesktopServices>
+#include <QStandardPaths>
 #include <QUrl>
 
 #ifdef _WIN32
@@ -396,5 +399,179 @@ void ResetMetadata()
             tr("The metadata cache couldn't be deleted. It might be in use or non-existent."));
     }
 }
+
+// Uhhh //
+
+// Messages in pre-defined message boxes for less code spaghetti
+inline constexpr bool CreateShortcutMessagesGUI(ShortcutMessages imsg, const QString& game_title)
+{
+    int result = 0;
+    QMessageBox::StandardButtons buttons;
+    switch (imsg) {
+    case ShortcutMessages::Fullscreen:
+        buttons = QMessageBox::Yes | QMessageBox::No;
+        result
+            = QtCommon::Frontend::Information(tr("Create Shortcut"),
+                                              tr("Do you want to launch the game in fullscreen?"),
+                                              buttons);
+        return result == QMessageBox::Yes;
+    case ShortcutMessages::Success:
+        QtCommon::Frontend::Information(tr("Shortcut Created"),
+                                        tr("Successfully created a shortcut to %1").arg(game_title));
+        return false;
+    case ShortcutMessages::Volatile:
+        buttons = QMessageBox::StandardButton::Ok | QMessageBox::StandardButton::Cancel;
+        result = QtCommon::Frontend::Warning(
+            tr("Shortcut may be Volatile!"),
+            tr("This will create a shortcut to the current AppImage. This may "
+               "not work well if you update. Continue?"),
+            buttons);
+        return result == QMessageBox::Ok;
+    default:
+        buttons = QMessageBox::Ok;
+        QtCommon::Frontend::Critical(tr("Failed to Create Shortcut"),
+                                     tr("Failed to create a shortcut to %1").arg(game_title),
+                                     buttons);
+        return false;
+    }
+}
+
+void CreateShortcut(const std::string& game_path,
+                    const u64 program_id,
+                    const std::string& game_title_,
+                    const ShortcutTarget &target,
+                    std::string arguments_,
+                    const bool needs_title)
+{
+    // Get path to Eden executable
+    std::filesystem::path command = GetEdenCommand();
+
+    // Shortcut path
+    std::filesystem::path shortcut_path = GetShortcutPath(target);
+
+    if (!std::filesystem::exists(shortcut_path)) {
+        CreateShortcutMessagesGUI(ShortcutMessages::Failed,
+            QString::fromStdString(shortcut_path.generic_string()));
+        LOG_ERROR(Frontend, "Invalid shortcut target {}", shortcut_path.generic_string());
+        return;
+    }
+
+    const FileSys::PatchManager pm{program_id, QtCommon::system->GetFileSystemController(),
+                                   QtCommon::system->GetContentProvider()};
+    const auto control = pm.GetControlMetadata();
+    const auto loader =
+        Loader::GetLoader(*QtCommon::system, QtCommon::vfs->OpenFile(game_path, FileSys::OpenMode::Read));
+
+    std::string game_title{game_title_};
+
+    // Delete illegal characters from title
+    if (needs_title) {
+        game_title = fmt::format("{:016X}", program_id);
+        if (control.first != nullptr) {
+            game_title = control.first->GetApplicationName();
+        } else {
+            loader->ReadTitle(game_title);
+        }
+    }
+
+    const std::string illegal_chars = "<>:\"/\\|?*.";
+    for (auto it = game_title.rbegin(); it != game_title.rend(); ++it) {
+        if (illegal_chars.find(*it) != std::string::npos) {
+            game_title.erase(it.base() - 1);
+        }
+    }
+
+    const QString qgame_title = QString::fromStdString(game_title);
+
+    // Get icon from game file
+    std::vector<u8> icon_image_file{};
+    if (control.second != nullptr) {
+        icon_image_file = control.second->ReadAllBytes();
+    } else if (loader->ReadIcon(icon_image_file) != Loader::ResultStatus::Success) {
+        LOG_WARNING(Frontend, "Could not read icon from {:s}", game_path);
+    }
+
+    QImage icon_data =
+        QImage::fromData(icon_image_file.data(), static_cast<int>(icon_image_file.size()));
+    std::filesystem::path out_icon_path;
+    if (QtCommon::Game::MakeShortcutIcoPath(program_id, game_title, out_icon_path)) {
+        if (!SaveIconToFile(out_icon_path, icon_data)) {
+            LOG_ERROR(Frontend, "Could not write icon to file");
+        }
+    } else {
+        QtCommon::Frontend::Critical(
+            tr("Create Icon"),
+            tr("Cannot create icon file. Path \"%1\" does not exist and cannot be created.")
+                .arg(QString::fromStdString(out_icon_path.string())));
+    }
+
+#if defined(__unix__) && !defined(__APPLE__) && !defined(__ANDROID__)
+    // Special case for AppImages
+    // Warn once if we are making a shortcut to a volatile AppImage
+    if (command.string().ends_with(".AppImage") && !UISettings::values.shortcut_already_warned) {
+        if (!CreateShortcutMessagesGUI(ShortcutMessages::Volatile, qgame_title)) {
+            return;
+        }
+        UISettings::values.shortcut_already_warned = true;
+    }
+#endif
+
+    // Create shortcut
+    std::string arguments{arguments_};
+    if (CreateShortcutMessagesGUI(ShortcutMessages::Fullscreen, qgame_title)) {
+        arguments = "-f " + arguments;
+    }
+    const std::string comment = fmt::format("Start {:s} with the Eden Emulator", game_title);
+    const std::string categories = "Game;Emulator;Qt;";
+    const std::string keywords = "Switch;Nintendo;";
+
+    if (QtCommon::Game::CreateShortcutLink(shortcut_path, comment, out_icon_path, command,
+                                           arguments, categories, keywords, game_title)) {
+        CreateShortcutMessagesGUI(ShortcutMessages::Success,
+                                  qgame_title);
+        return;
+    }
+    CreateShortcutMessagesGUI(ShortcutMessages::Failed,
+                              qgame_title);
+}
+
+constexpr std::string GetShortcutPath(ShortcutTarget target) {
+    {
+        std::string shortcut_path{};
+        if (target == ShortcutTarget::Desktop) {
+            shortcut_path = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation)
+            .toStdString();
+        } else if (target == ShortcutTarget::Applications) {
+            shortcut_path = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation)
+            .toStdString();
+        }
+
+        return shortcut_path;
+    }
+}
+
+void CreateHomeMenuShortcut(ShortcutTarget target) {
+    constexpr u64 QLaunchId = static_cast<u64>(Service::AM::AppletProgramId::QLaunch);
+    auto bis_system = QtCommon::system->GetFileSystemController().GetSystemNANDContents();
+    if (!bis_system) {
+        QtCommon::Frontend::Warning(tr("No firmware available"),
+                                    tr("Please install firmware to use the home menu."));
+        return;
+    }
+
+    auto qlaunch_nca = bis_system->GetEntry(QLaunchId, FileSys::ContentRecordType::Program);
+    if (!qlaunch_nca) {
+        QtCommon::Frontend::Warning(tr("Home Menu Applet"),
+                                    tr("Home Menu is not available. Please reinstall firmware."));
+        return;
+    }
+
+    auto qlaunch_applet_nca = bis_system->GetEntry(QLaunchId, FileSys::ContentRecordType::Program);
+    const auto game_path = qlaunch_applet_nca->GetFullPath();
+
+    // TODO(crueter): Make this use the Eden icon
+    CreateShortcut(game_path, QLaunchId, "Switch Home Menu", target, "-qlaunch", false);
+}
+
 
 } // namespace QtCommon::Game

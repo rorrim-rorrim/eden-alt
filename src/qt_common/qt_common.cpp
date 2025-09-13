@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "qt_common.h"
+#include "common/fs/fs.h"
 
 #include <QGuiApplication>
 #include <QStringLiteral>
@@ -22,9 +23,15 @@
 
 namespace QtCommon {
 
-QObject *rootObject = nullptr;
+#ifdef YUZU_QT_WIDGETS
+QWidget* rootObject = nullptr;
+#else
+QObject* rootObject = nullptr;
+#endif
+
 std::unique_ptr<Core::System> system = nullptr;
 std::shared_ptr<FileSys::RealVfsFilesystem> vfs = nullptr;
+std::unique_ptr<FileSys::ManualContentProvider> provider = nullptr;
 
 Core::Frontend::WindowSystemType GetWindowSystemType()
 {
@@ -81,11 +88,35 @@ const QString tr(const std::string& str)
     return QGuiApplication::tr(str.c_str());
 }
 
+#ifdef YUZU_QT_WIDGETS
+void Init(QWidget* root)
+#else
 void Init(QObject* root)
+#endif
 {
     system = std::make_unique<Core::System>();
     rootObject = root;
     vfs = std::make_unique<FileSys::RealVfsFilesystem>();
+    provider = std::make_unique<FileSys::ManualContentProvider>();
+}
+
+std::filesystem::path GetEdenCommand() {
+    std::filesystem::path command;
+
+    QString appimage = QString::fromLocal8Bit(getenv("APPIMAGE"));
+    if (!appimage.isEmpty()) {
+        command = std::filesystem::path{appimage.toStdString()};
+    } else {
+        const QStringList args = QGuiApplication::arguments();
+        command = args[0].toStdString();
+    }
+
+    // If relative path, make it an absolute path
+    if (command.c_str()[0] == '.') {
+        command = Common::FS::GetCurrentDir() / command;
+    }
+
+    return command;
 }
 
 } // namespace QtCommon

@@ -6,6 +6,7 @@
 #include "frontend_common/content_manager.h"
 #include "frontend_common/firmware_manager.h"
 #include "qt_common/qt_common.h"
+#include "qt_common/qt_progress_dialog.h"
 #include "qt_frontend_util.h"
 
 #include <JlCompress.h>
@@ -31,24 +32,34 @@ bool CheckGameFirmware(u64 program_id, QObject* parent)
     return true;
 }
 
-FirmwareInstallResult InstallFirmware(const QString& location,
-                                      bool recursive,
-                                      QtProgressCallback callback,
-                                      FileSys::VfsFilesystem* vfs)
+void InstallFirmware(const QString& location, bool recursive)
 {
-    static constexpr const char* failedTitle = "Firmware Install Failed";
-    static constexpr const char* successTitle = "Firmware Install Failed";
-    static constexpr QMessageBox::StandardButtons buttons = QMessageBox::Ok;
+    QtCommon::Frontend::QtProgressDialog progress(tr("Installing Firmware..."),
+                                                  tr("Cancel"),
+                                                  0,
+                                                  100,
+                                                  rootObject);
+    progress.setWindowModality(Qt::WindowModal);
+    progress.setMinimumDuration(100);
+    progress.setAutoClose(false);
+    progress.setAutoReset(false);
+    progress.show();
 
+    // Declare progress callback.
+    auto callback = [&](size_t total_size, size_t processed_size) {
+        progress.setValue(static_cast<int>((processed_size * 100) / total_size));
+        return progress.wasCanceled();
+    };
+
+    static constexpr const char* failedTitle = "Firmware Install Failed";
+    static constexpr const char* successTitle = "Firmware Install Succeeded";
     QMessageBox::Icon icon;
     FirmwareInstallResult result;
 
     const auto ShowMessage = [&]() {
         QtCommon::Frontend::ShowMessage(icon,
                                         failedTitle,
-                                        GetFirmwareInstallResultString(result),
-                                        buttons,
-                                        rootObject);
+                                        GetFirmwareInstallResultString(result));
     };
 
     LOG_INFO(Frontend, "Installing firmware from {}", location.toStdString());
@@ -57,7 +68,7 @@ FirmwareInstallResult InstallFirmware(const QString& location,
     // there.)
     std::filesystem::path firmware_source_path = location.toStdString();
     if (!Common::FS::IsDir(firmware_source_path)) {
-        return FirmwareInstallResult::NoOp;
+        return;
     }
 
     std::vector<std::filesystem::path> out;
@@ -86,7 +97,7 @@ FirmwareInstallResult InstallFirmware(const QString& location,
         result = FirmwareInstallResult::NoNCAs;
         icon = QMessageBox::Warning;
         ShowMessage();
-        return result;
+        return;
     }
 
     // Locate and erase the content of nand/system/Content/registered/*.nca, if any.
@@ -96,7 +107,7 @@ FirmwareInstallResult InstallFirmware(const QString& location,
         result = FirmwareInstallResult::FailedDelete;
         icon = QMessageBox::Critical;
         ShowMessage();
-        return result;
+        return;
     }
 
     LOG_INFO(Frontend,
@@ -127,7 +138,7 @@ FirmwareInstallResult InstallFirmware(const QString& location,
             result = FirmwareInstallResult::FailedCorrupted;
             icon = QMessageBox::Warning;
             ShowMessage();
-            return result;
+            return;
         }
     }
 
@@ -135,11 +146,33 @@ FirmwareInstallResult InstallFirmware(const QString& location,
         result = FirmwareInstallResult::FailedCopy;
         icon = QMessageBox::Critical;
         ShowMessage();
-        return result;
+        return;
     }
 
     // Re-scan VFS for the newly placed firmware files.
     system->GetFileSystemController().CreateFactories(*vfs);
+
+    auto VerifyFirmwareCallback = [&](size_t total_size, size_t processed_size) {
+        progress.setValue(90 + static_cast<int>((processed_size * 10) / total_size));
+        return progress.wasCanceled();
+    };
+
+    auto results = ContentManager::VerifyInstalledContents(*QtCommon::system,
+                                                           *QtCommon::provider,
+                                                           VerifyFirmwareCallback,
+                                                           true);
+
+    if (results.size() > 0) {
+        const auto failed_names = QString::fromStdString(
+            fmt::format("{}", fmt::join(results, "\n")));
+        progress.close();
+        QtCommon::Frontend::Critical(tr("Firmware integrity verification failed!"),
+                                     tr("Verification failed for the following files:\n\n%1")
+                                         .arg(failed_names));
+        return;
+    }
+
+    progress.close();
 
     const auto pair = FirmwareManager::GetFirmwareVersion(*system);
     const auto firmware_data = pair.first;
@@ -149,9 +182,7 @@ FirmwareInstallResult InstallFirmware(const QString& location,
     QtCommon::Frontend::Information(rootObject,
                                     tr(successTitle),
                                     tr(GetFirmwareInstallResultString(result))
-                                        .arg(QString::fromStdString(display_version)),
-                                    buttons);
-    return result;
+                                        .arg(QString::fromStdString(display_version)));
 }
 
 QString UnzipFirmwareToTmp(const QString& location)
@@ -179,8 +210,23 @@ QString UnzipFirmwareToTmp(const QString& location)
 }
 
 // Content //
-void VerifyGameContents(const std::string& game_path, QtProgressCallback callback)
+void VerifyGameContents(const std::string& game_path)
 {
+    QtCommon::Frontend::QtProgressDialog progress(tr("Verifying integrity..."),
+                                                  tr("Cancel"),
+                                                  0,
+                                                  100,
+                                                  rootObject);
+    progress.setWindowModality(Qt::WindowModal);
+    progress.setMinimumDuration(100);
+    progress.setAutoClose(false);
+    progress.setAutoReset(false);
+
+    const auto callback = [&](size_t total_size, size_t processed_size) {
+        progress.setValue(static_cast<int>((processed_size * 100) / total_size));
+        return progress.wasCanceled();
+    };
+
     const auto result = ContentManager::VerifyGameContents(*system, game_path, callback);
 
     switch (result) {
@@ -231,6 +277,36 @@ void InstallKeys()
         QtCommon::Frontend::Critical(tr("Decryption Keys install failed"),
                                      tr(FirmwareManager::GetKeyInstallResultString(result)));
         break;
+    }
+}
+
+void VerifyInstalledContents() {
+    // Initialize a progress dialog.
+    QtCommon::Frontend::QtProgressDialog progress(tr("Verifying integrity..."), tr("Cancel"), 0, 100, QtCommon::rootObject);
+    progress.setWindowModality(Qt::WindowModal);
+    progress.setMinimumDuration(100);
+    progress.setAutoClose(false);
+    progress.setAutoReset(false);
+
+    // Declare progress callback.
+    auto QtProgressCallback = [&](size_t total_size, size_t processed_size) {
+        progress.setValue(static_cast<int>((processed_size * 100) / total_size));
+        return progress.wasCanceled();
+    };
+
+    const std::vector<std::string> result =
+        ContentManager::VerifyInstalledContents(*QtCommon::system, *QtCommon::provider, QtProgressCallback);
+    progress.close();
+
+    if (result.empty()) {
+        QtCommon::Frontend::Information(tr("Integrity verification succeeded!"),
+                                        tr("The operation completed successfully."));
+    } else {
+        const auto failed_names =
+            QString::fromStdString(fmt::format("{}", fmt::join(result, "\n")));
+        QtCommon::Frontend::Critical(
+            tr("Integrity verification failed!"),
+            tr("Verification failed for the following files:\n\n%1").arg(failed_names));
     }
 }
 

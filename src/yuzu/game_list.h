@@ -52,11 +52,6 @@ enum class DumpRomFSTarget {
     SDMC,
 };
 
-enum class GameListShortcutTarget {
-    Desktop,
-    Applications,
-};
-
 class GameList : public QWidget {
     Q_OBJECT
 
@@ -113,7 +108,7 @@ signals:
     void VerifyIntegrityRequested(const std::string& game_path);
     void CopyTIDRequested(u64 program_id);
     void CreateShortcut(u64 program_id, const std::string& game_path,
-                        GameListShortcutTarget target);
+                        const QtCommon::Game::ShortcutTarget target);
     void NavigateToGamedbEntryRequested(u64 program_id,
                                         const CompatibilityList& compatibility_list);
     void OpenPerGameGeneralRequested(const std::string& file);

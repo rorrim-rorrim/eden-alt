@@ -10,11 +10,8 @@
 
 namespace QtCommon::Frontend {
 
-QMessageBox::StandardButton ShowMessage(QMessageBox::Icon icon,
-                                        const QString &title,
-                                        const QString &text,
-                                        QMessageBox::StandardButtons buttons,
-                                        QObject *parent)
+StandardButton ShowMessage(
+    Icon icon, const QString &title, const QString &text, StandardButtons buttons, QObject *parent)
 {
 #ifdef YUZU_QT_WIDGETS
     QMessageBox *box = new QMessageBox(icon, title, text, buttons, (QWidget *) parent);

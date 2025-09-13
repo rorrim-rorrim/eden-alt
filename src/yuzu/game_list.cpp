@@ -650,10 +650,10 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
 // TODO: Implement shortcut creation for macOS
 #if !defined(__APPLE__)
     connect(create_desktop_shortcut, &QAction::triggered, [this, program_id, path]() {
-        emit CreateShortcut(program_id, path, GameListShortcutTarget::Desktop);
+        emit CreateShortcut(program_id, path, QtCommon::Game::ShortcutTarget::Desktop);
     });
     connect(create_applications_menu_shortcut, &QAction::triggered, [this, program_id, path]() {
-        emit CreateShortcut(program_id, path, GameListShortcutTarget::Applications);
+        emit CreateShortcut(program_id, path, QtCommon::Game::ShortcutTarget::Applications);
     });
 #endif
     connect(properties, &QAction::triggered,

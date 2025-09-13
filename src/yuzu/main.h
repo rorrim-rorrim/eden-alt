@@ -54,7 +54,6 @@ class QSlider;
 class QHBoxLayout;
 class WaitTreeWidget;
 enum class GameListOpenTarget;
-enum class GameListShortcutTarget;
 enum class DumpRomFSTarget;
 class GameListPlaceholder;
 
@@ -161,13 +160,6 @@ class GMainWindow : public QMainWindow {
     /// Max number of recently loaded items to keep track of
     static const int max_recent_files_item = 10;
 
-    enum {
-        CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES,
-        CREATE_SHORTCUT_MSGBOX_SUCCESS,
-        CREATE_SHORTCUT_MSGBOX_ERROR,
-        CREATE_SHORTCUT_MSGBOX_APPVOLATILE_WARNING,
-    };
-
 public:
     void filterBarSetChecked(bool state);
     void UpdateUITheme();
@@ -177,7 +169,7 @@ public:
     bool DropAction(QDropEvent* event);
     void AcceptDropEvent(QDropEvent* event);
 
-    std::filesystem::path GetShortcutPath(GameListShortcutTarget target);
+    std::filesystem::path GetShortcutPath(QtCommon::Game::ShortcutTarget target);
 
 signals:
 
@@ -358,8 +350,9 @@ private slots:
     void OnGameListCopyTID(u64 program_id);
     void OnGameListNavigateToGamedbEntry(u64 program_id,
                                          const CompatibilityList& compatibility_list);
-    void OnGameListCreateShortcut(u64 program_id, const std::string& game_path,
-                                  GameListShortcutTarget target);
+    void OnGameListCreateShortcut(u64 program_id,
+                                  const std::string& game_path,
+                                  const QtCommon::Game::ShortcutTarget target);
     void OnGameListOpenDirectory(const QString& directory);
     void OnGameListAddDirectory();
     void OnGameListShowList(bool show);
@@ -416,7 +409,6 @@ private slots:
     void OnInitialSetup();
     void OnCreateHomeMenuDesktopShortcut();
     void OnCreateHomeMenuApplicationMenuShortcut();
-    void OnCreateHomeMenuShortcut(GameListShortcutTarget target);
     void OnCaptureScreenshot();
     void OnCheckFirmwareDecryption();
     void OnLanguageChanged(const QString& locale);
@@ -537,9 +529,6 @@ private:
 
     QString startup_icon_theme;
 
-    // FS
-    std::unique_ptr<FileSys::ManualContentProvider> provider;
-
     // Debugger panes
     WaitTreeWidget* waitTreeWidget;
     ControllerDialog* controller_dialog;
@@ -586,7 +575,7 @@ private:
     void CreateShortcut(const std::string& game_path,
                         const u64 program_id,
                         const std::string& game_title,
-                        GameListShortcutTarget target,
+                        QtCommon::Game::ShortcutTarget target,
                         std::string arguments,
                         const bool needs_title);
 

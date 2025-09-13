@@ -5,6 +5,7 @@
 #define QT_GAME_UTIL_H
 
 #include <QObject>
+#include <QStandardPaths>
 #include "common/fs/path_util.h"
 #include <core/file_sys/vfs/vfs.h>
 
@@ -22,6 +23,18 @@ enum class GameListRemoveTarget {
     AllShaderCache,
     CustomConfiguration,
     CacheStorage,
+};
+
+enum class ShortcutTarget {
+    Desktop,
+    Applications,
+};
+
+enum class ShortcutMessages{
+    Fullscreen = 0,
+    Success = 1,
+    Volatile = 2,
+    Failed = 3
 };
 
 bool CreateShortcutLink(const std::filesystem::path& shortcut_path,
@@ -56,6 +69,17 @@ void RemoveCacheStorage(u64 program_id, FileSys::VfsFilesystem* vfs);
 
 // Metadata //
 void ResetMetadata();
+
+// Shortcuts //
+void CreateShortcut(const std::string& game_path,
+                    const u64 program_id,
+                    const std::string& game_title_,
+                    const ShortcutTarget& target,
+                    std::string arguments_,
+                    const bool needs_title);
+
+constexpr std::string GetShortcutPath(ShortcutTarget target);
+void CreateHomeMenuShortcut(ShortcutTarget target);
 
 }
 

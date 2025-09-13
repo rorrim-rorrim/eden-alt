@@ -15,7 +15,6 @@ FILES=`git diff --name-only $BASE`
 
 #FILES=$(git diff --name-only master)
 
-echo $FILES
 echo "Done"
 
 check_header() {

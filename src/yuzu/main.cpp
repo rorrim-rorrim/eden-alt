@@ -1,21 +1,22 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "core/hle/service/am/applet_manager.h"
+#include "core/loader/nca.h"
+#include "core/tools/renderdoc.h"
+#include "frontend_common/firmware_manager.h"
+#include "qt_common/qt_common.h"
+#include "qt_common/qt_content_util.h"
+#include "qt_common/qt_game_util.h"
+#include "qt_common/qt_meta.h"
+#include "qt_common/qt_path_util.h"
+#include "qt_common/qt_progress_dialog.h"
 #include <clocale>
 #include <cmath>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <thread>
-#include "core/hle/service/am/applet_manager.h"
-#include "core/loader/nca.h"
-#include "core/tools/renderdoc.h"
-#include "frontend_common/firmware_manager.h"
-#include "qt_common/qt_common.h"
-#include "qt_common/qt_game_util.h"
-#include "qt_common/qt_path_util.h"
-#include "qt_common/qt_meta.h"
-#include "qt_common/qt_content_util.h"
 
 #ifdef __APPLE__
 #include <unistd.h> // for chdir
@@ -398,8 +399,7 @@ inline static bool isDarkMode() {
 
 GMainWindow::GMainWindow(bool has_broken_vulkan)
     : ui{std::make_unique<Ui::MainWindow>()},
-      input_subsystem{std::make_shared<InputCommon::InputSubsystem>()}, user_data_migrator{this},
-      provider{std::make_unique<FileSys::ManualContentProvider>()} {
+      input_subsystem{std::make_shared<InputCommon::InputSubsystem>()}, user_data_migrator{this} {
     QtCommon::Init(this);
 
     Common::FS::CreateEdenPaths();
@@ -543,7 +543,7 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
 
     QtCommon::system->SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
     QtCommon::system->RegisterContentProvider(FileSys::ContentProviderUnionSlot::FrontendManual,
-                                    provider.get());
+                                    QtCommon::provider.get());
     QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
 
     // Remove cached contents generated during the previous session
@@ -1091,7 +1091,7 @@ void GMainWindow::InitializeWidgets() {
     render_window = new GRenderWindow(this, emu_thread.get(), input_subsystem, *QtCommon::system);
     render_window->hide();
 
-    game_list = new GameList(QtCommon::vfs, provider.get(), *play_time_manager, *QtCommon::system, this);
+    game_list = new GameList(QtCommon::vfs, QtCommon::provider.get(), *play_time_manager, *QtCommon::system, this);
     ui->horizontalLayout->addWidget(game_list);
 
     game_list_placeholder = new GameListPlaceholder(this);
@@ -1913,10 +1913,6 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
         return false;
     }
 
-    if (!OnCheckNcaVerification()) {
-        return false;
-    }
-
     /** Exec */
     const Core::SystemResultStatus result{
         QtCommon::system->Load(*render_window, filename.toStdString(), params)};
@@ -2023,7 +2019,7 @@ void GMainWindow::ConfigureFilesystemProvider(const std::string& filepath) {
     u64 program_id = 0;
     const auto res2 = loader->ReadProgramId(program_id);
     if (res2 == Loader::ResultStatus::Success && file_type == Loader::FileType::NCA) {
-        provider->AddEntry(FileSys::TitleType::Application,
+        QtCommon::provider->AddEntry(FileSys::TitleType::Application,
                            FileSys::GetCRTypeFromNCAType(FileSys::NCA{file}.GetType()), program_id,
                            file);
     } else if (res2 == Loader::ResultStatus::Success &&
@@ -2033,7 +2029,7 @@ void GMainWindow::ConfigureFilesystemProvider(const std::string& filepath) {
                              : FileSys::XCI{file}.GetSecurePartitionNSP();
         for (const auto& title : nsp->GetNCAs()) {
             for (const auto& entry : title.second) {
-                provider->AddEntry(entry.first.first, entry.first.second, title.first,
+                QtCommon::provider->AddEntry(entry.first.first, entry.first.second, title.first,
                                    entry.second->GetBaseFile());
             }
         }
@@ -2761,18 +2757,7 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
 
 // END
 void GMainWindow::OnGameListVerifyIntegrity(const std::string& game_path) {
-    QProgressDialog progress(tr("Verifying integrity..."), tr("Cancel"), 0, 100, this);
-    progress.setWindowModality(Qt::WindowModal);
-    progress.setMinimumDuration(100);
-    progress.setAutoClose(false);
-    progress.setAutoReset(false);
-
-    const auto QtProgressCallback = [&](size_t total_size, size_t processed_size) {
-        progress.setValue(static_cast<int>((processed_size * 100) / total_size));
-        return progress.wasCanceled();
-    };
-
-    QtCommon::Content::VerifyGameContents(game_path, QtProgressCallback);
+    QtCommon::Content::VerifyGameContents(game_path);
 }
 
 void GMainWindow::OnGameListCopyTID(u64 program_id) {
@@ -2793,44 +2778,12 @@ void GMainWindow::OnGameListNavigateToGamedbEntry(u64 program_id,
         QUrl(QStringLiteral("https://eden-emulator.github.io/game/") + directory));
 }
 
-// Messages in pre-defined message boxes for less code spaghetti
-// TODO(crueter): Still need to decide what to do re: message boxes w/ qml
-bool GMainWindow::CreateShortcutMessagesGUI(QWidget* parent, int imsg, const QString& game_title) {
-    int result = 0;
-    QMessageBox::StandardButtons buttons;
-    switch (imsg) {
-    case GMainWindow::CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES:
-        buttons = QMessageBox::Yes | QMessageBox::No;
-        result =
-            QMessageBox::information(parent, tr("Create Shortcut"),
-                                     tr("Do you want to launch the game in fullscreen?"), buttons);
-        return result == QMessageBox::Yes;
-    case GMainWindow::CREATE_SHORTCUT_MSGBOX_SUCCESS:
-        QMessageBox::information(parent, tr("Create Shortcut"),
-                                 tr("Successfully created a shortcut to %1").arg(game_title));
-        return false;
-    case GMainWindow::CREATE_SHORTCUT_MSGBOX_APPVOLATILE_WARNING:
-        buttons = QMessageBox::StandardButton::Ok | QMessageBox::StandardButton::Cancel;
-        result =
-            QMessageBox::warning(this, tr("Create Shortcut"),
-                                 tr("This will create a shortcut to the current AppImage. This may "
-                                    "not work well if you update. Continue?"),
-                                 buttons);
-        return result == QMessageBox::Ok;
-    default:
-        buttons = QMessageBox::Ok;
-        QMessageBox::critical(parent, tr("Create Shortcut"),
-                              tr("Failed to create a shortcut to %1").arg(game_title), buttons);
-        return false;
-    }
-}
-
 void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& game_path,
-                                           GameListShortcutTarget target) {
+                                           const QtCommon::Game::ShortcutTarget target) {
     // Create shortcut
     std::string arguments = fmt::format("-g \"{:s}\"", game_path);
 
-    CreateShortcut(game_path, program_id, "", target, arguments, true);
+    QtCommon::Game::CreateShortcut(game_path, program_id, "", target, arguments, true);
 }
 
 void GMainWindow::OnGameListOpenDirectory(const QString& directory) {
@@ -3884,74 +3837,11 @@ void GMainWindow::OnOpenLogFolder()
 }
 
 void GMainWindow::OnVerifyInstalledContents() {
-    // Initialize a progress dialog.
-    QProgressDialog progress(tr("Verifying integrity..."), tr("Cancel"), 0, 100, this);
-    progress.setWindowModality(Qt::WindowModal);
-    progress.setMinimumDuration(100);
-    progress.setAutoClose(false);
-    progress.setAutoReset(false);
-
-    // Declare progress callback.
-    auto QtProgressCallback = [&](size_t total_size, size_t processed_size) {
-        progress.setValue(static_cast<int>((processed_size * 100) / total_size));
-        return progress.wasCanceled();
-    };
-
-    const std::vector<std::string> result =
-        ContentManager::VerifyInstalledContents(*QtCommon::system, *provider, QtProgressCallback);
-    progress.close();
-
-    if (result.empty()) {
-        QMessageBox::information(this, tr("Integrity verification succeeded!"),
-                                 tr("The operation completed successfully."));
-    } else {
-        const auto failed_names =
-            QString::fromStdString(fmt::format("{}", fmt::join(result, "\n")));
-        QMessageBox::critical(
-            this, tr("Integrity verification failed!"),
-            tr("Verification failed for the following files:\n\n%1").arg(failed_names));
-    }
+    QtCommon::Content::VerifyInstalledContents();
 }
 
 void GMainWindow::InstallFirmware(const QString& location, bool recursive) {
-    QProgressDialog progress(tr("Installing Firmware..."), tr("Cancel"), 0, 100, this);
-    progress.setWindowModality(Qt::WindowModal);
-    progress.setMinimumDuration(100);
-    progress.setAutoClose(false);
-    progress.setAutoReset(false);
-    progress.show();
-
-    // Declare progress callback.
-    auto QtProgressCallback = [&](size_t total_size, size_t processed_size) {
-        progress.setValue(static_cast<int>((processed_size * 100) / total_size));
-        return progress.wasCanceled();
-    };
-
-    auto result = QtCommon::Content::InstallFirmware(location, recursive, QtProgressCallback, QtCommon::vfs.get());
-
-    progress.close();
-
-    if (result != QtCommon::Content::FirmwareInstallResult::Success) return;
-
-    auto VerifyFirmwareCallback = [&](size_t total_size, size_t processed_size) {
-        progress.setValue(90 + static_cast<int>((processed_size * 10) / total_size));
-        return progress.wasCanceled();
-    };
-
-    auto results =
-            ContentManager::VerifyInstalledContents(*QtCommon::system, *provider, VerifyFirmwareCallback, true);
-
-    if (results.size() > 0) {
-        const auto failed_names =
-                QString::fromStdString(fmt::format("{}", fmt::join(results, "\n")));
-        progress.close();
-        QMessageBox::critical(
-            this, tr("Firmware integrity verification failed!"),
-            tr("Verification failed for the following files:\n\n%1").arg(failed_names));
-        return;
-    }
-
-    progress.close();
+    QtCommon::Content::InstallFirmware(location, recursive);
     OnCheckFirmwareDecryption();
 }
 
@@ -4190,8 +4080,6 @@ void GMainWindow::OnHomeMenu() {
         break;
     }
 
-    // TODO(crueter): So much of this crap is common to qt that I should just move it all tbh
-
     constexpr u64 QLaunchId = static_cast<u64>(Service::AM::AppletProgramId::QLaunch);
     auto bis_system = QtCommon::system->GetFileSystemController().GetSystemNANDContents();
 
@@ -4233,164 +4121,11 @@ void GMainWindow::OnInitialSetup() {
 }
 
 void GMainWindow::OnCreateHomeMenuDesktopShortcut() {
-    OnCreateHomeMenuShortcut(GameListShortcutTarget::Desktop);
+    QtCommon::Game::CreateHomeMenuShortcut(QtCommon::Game::ShortcutTarget::Desktop);
 }
 
 void GMainWindow::OnCreateHomeMenuApplicationMenuShortcut() {
-    OnCreateHomeMenuShortcut(GameListShortcutTarget::Applications);
-}
-
-std::filesystem::path GMainWindow::GetEdenCommand() {
-    std::filesystem::path command;
-
-    QString appimage = QString::fromLocal8Bit(getenv("APPIMAGE"));
-    if (!appimage.isEmpty()) {
-        command = std::filesystem::path{appimage.toStdString()};
-    } else {
-        const QStringList args = QApplication::arguments();
-        command = args[0].toStdString();
-    }
-
-    // If relative path, make it an absolute path
-    if (command.c_str()[0] == '.') {
-        command = Common::FS::GetCurrentDir() / command;
-    }
-
-    return command;
-}
-
-std::filesystem::path GMainWindow::GetShortcutPath(GameListShortcutTarget target) {
-    std::filesystem::path shortcut_path{};
-    if (target == GameListShortcutTarget::Desktop) {
-        shortcut_path =
-            QStandardPaths::writableLocation(QStandardPaths::DesktopLocation).toStdString();
-    } else if (target == GameListShortcutTarget::Applications) {
-        shortcut_path =
-            QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation).toStdString();
-    }
-
-    return shortcut_path;
-}
-
-// TODO(crueter): Migrate
-void GMainWindow::CreateShortcut(const std::string &game_path, const u64 program_id, const std::string& game_title_, GameListShortcutTarget target, std::string arguments_, const bool needs_title) {
-    // Get path to Eden executable
-    std::filesystem::path command = GetEdenCommand();
-
-    // Shortcut path
-    std::filesystem::path shortcut_path = GetShortcutPath(target);
-
-    if (!std::filesystem::exists(shortcut_path)) {
-        GMainWindow::CreateShortcutMessagesGUI(
-            this, GMainWindow::CREATE_SHORTCUT_MSGBOX_ERROR,
-            QString::fromStdString(shortcut_path.generic_string()));
-        LOG_ERROR(Frontend, "Invalid shortcut target {}", shortcut_path.generic_string());
-        return;
-    }
-
-    const FileSys::PatchManager pm{program_id, QtCommon::system->GetFileSystemController(),
-                                   QtCommon::system->GetContentProvider()};
-    const auto control = pm.GetControlMetadata();
-    const auto loader =
-        Loader::GetLoader(*QtCommon::system, QtCommon::vfs->OpenFile(game_path, FileSys::OpenMode::Read));
-
-    std::string game_title{game_title_};
-
-    // Delete illegal characters from title
-    if (needs_title) {
-        game_title = fmt::format("{:016X}", program_id);
-        if (control.first != nullptr) {
-            game_title = control.first->GetApplicationName();
-        } else {
-            loader->ReadTitle(game_title);
-        }
-    }
-
-    const std::string illegal_chars = "<>:\"/\\|?*.";
-    for (auto it = game_title.rbegin(); it != game_title.rend(); ++it) {
-        if (illegal_chars.find(*it) != std::string::npos) {
-            game_title.erase(it.base() - 1);
-        }
-    }
-
-    const QString qgame_title = QString::fromStdString(game_title);
-
-    // Get icon from game file
-    std::vector<u8> icon_image_file{};
-    if (control.second != nullptr) {
-        icon_image_file = control.second->ReadAllBytes();
-    } else if (loader->ReadIcon(icon_image_file) != Loader::ResultStatus::Success) {
-        LOG_WARNING(Frontend, "Could not read icon from {:s}", game_path);
-    }
-
-    QImage icon_data =
-        QImage::fromData(icon_image_file.data(), static_cast<int>(icon_image_file.size()));
-    std::filesystem::path out_icon_path;
-    if (QtCommon::Game::MakeShortcutIcoPath(program_id, game_title, out_icon_path)) {
-        if (!SaveIconToFile(out_icon_path, icon_data)) {
-            LOG_ERROR(Frontend, "Could not write icon to file");
-        }
-    } else {
-        QMessageBox::critical(
-            this, tr("Create Icon"),
-            tr("Cannot create icon file. Path \"%1\" does not exist and cannot be created.")
-                .arg(QString::fromStdString(out_icon_path.string())),
-            QMessageBox::StandardButton::Ok);
-    }
-
-#if defined(__unix__) && !defined(__APPLE__) && !defined(__ANDROID__)
-    // Special case for AppImages
-    // Warn once if we are making a shortcut to a volatile AppImage
-    if (command.string().ends_with(".AppImage") && !UISettings::values.shortcut_already_warned) {
-        if (!GMainWindow::CreateShortcutMessagesGUI(
-                this, GMainWindow::CREATE_SHORTCUT_MSGBOX_APPVOLATILE_WARNING, qgame_title)) {
-            return;
-        }
-        UISettings::values.shortcut_already_warned = true;
-    }
-#endif
-
-    // Create shortcut
-    std::string arguments{arguments_};
-    if (GMainWindow::CreateShortcutMessagesGUI(
-            this, GMainWindow::CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES, qgame_title)) {
-        arguments = "-f " + arguments;
-    }
-    const std::string comment = fmt::format("Start {:s} with the Eden Emulator", game_title);
-    const std::string categories = "Game;Emulator;Qt;";
-    const std::string keywords = "Switch;Nintendo;";
-
-    if (QtCommon::Game::CreateShortcutLink(shortcut_path, comment, out_icon_path, command,
-                                        arguments, categories, keywords, game_title)) {
-        GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_SUCCESS,
-                                               qgame_title);
-        return;
-    }
-    GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_ERROR,
-                                           qgame_title);
-}
-
-void GMainWindow::OnCreateHomeMenuShortcut(GameListShortcutTarget target) {
-    constexpr u64 QLaunchId = static_cast<u64>(Service::AM::AppletProgramId::QLaunch);
-    auto bis_system = QtCommon::system->GetFileSystemController().GetSystemNANDContents();
-    if (!bis_system) {
-        QMessageBox::warning(this, tr("No firmware available"),
-                             tr("Please install firmware to use the home menu."));
-        return;
-    }
-
-    auto qlaunch_nca = bis_system->GetEntry(QLaunchId, FileSys::ContentRecordType::Program);
-    if (!qlaunch_nca) {
-        QMessageBox::warning(this, tr("Home Menu Applet"),
-                             tr("Home Menu is not available. Please reinstall firmware."));
-        return;
-    }
-
-    auto qlaunch_applet_nca = bis_system->GetEntry(QLaunchId, FileSys::ContentRecordType::Program);
-    const auto game_path = qlaunch_applet_nca->GetFullPath();
-
-    // TODO(crueter): Make this use the Eden icon
-    CreateShortcut(game_path, QLaunchId, "Switch Home Menu", target, "-qlaunch", false);
+    QtCommon::Game::CreateHomeMenuShortcut(QtCommon::Game::ShortcutTarget::Applications);
 }
 
 void GMainWindow::OnCaptureScreenshot() {
@@ -4718,48 +4453,12 @@ void GMainWindow::OnMouseActivity() {
 }
 
 void GMainWindow::OnCheckFirmwareDecryption() {
-    QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
     if (!ContentManager::AreKeysPresent()) {
         QMessageBox::warning(this, tr("Derivation Components Missing"),
                              tr("Encryption keys are missing."));
     }
     SetFirmwareVersion();
     UpdateMenuState();
-}
-
-bool GMainWindow::OnCheckNcaVerification() {
-    if (!Settings::values.disable_nca_verification.GetValue())
-        return true;
-
-    const bool currently_hidden = Settings::values.hide_nca_verification_popup.GetValue();
-    LOG_INFO(Frontend, "NCA Verification is disabled. Popup State={}", currently_hidden);
-    if (currently_hidden)
-        return true;
-
-    QMessageBox msgbox(this);
-    msgbox.setWindowTitle(tr("NCA Verification Disabled"));
-    msgbox.setText(tr("NCA Verification is disabled.\n"
-                      "This is required to run new games and updates.\n"
-                      "Running without verification can cause instability or crashes if NCA files "
-                      "are corrupt, modified, or tampered.\n"
-                      "If unsure, re-enable verification in Eden's Settings and use firmware "
-                      "version 19.0.1 or below."));
-    msgbox.setIcon(QMessageBox::Warning);
-    msgbox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-    msgbox.setDefaultButton(QMessageBox::Ok);
-
-    QCheckBox* cb = new QCheckBox(tr("Don't show again"), &msgbox);
-    cb->setChecked(currently_hidden);
-    msgbox.setCheckBox(cb);
-
-    int result = msgbox.exec();
-
-    const bool hide = cb->isChecked();
-    if (hide != currently_hidden) {
-        Settings::values.hide_nca_verification_popup.SetValue(hide);
-    }
-
-    return result == static_cast<int>(QMessageBox::Ok);
 }
 
 bool GMainWindow::CheckFirmwarePresence() {
