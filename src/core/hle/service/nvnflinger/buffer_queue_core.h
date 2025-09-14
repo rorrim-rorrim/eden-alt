@@ -91,7 +91,7 @@ private:
     bool buffer_has_been_queued{};
     u64 frame_counter{};
     std::array<BufferHistoryInfo, BUFFER_HISTORY_SIZE> buffer_history{};
-    u32 buffer_history_pos{};
+    u32 buffer_history_pos{BUFFER_HISTORY_SIZE-1};
     u32 transform_hint{};
     bool is_allocating{};
     mutable std::condition_variable_any is_allocating_condition;
