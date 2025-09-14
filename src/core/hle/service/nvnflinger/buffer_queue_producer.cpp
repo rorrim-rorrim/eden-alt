@@ -946,22 +946,44 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
     case TransactionId::GetBufferHistory: {
         LOG_DEBUG(Service_Nvnflinger, "called, transaction=GetBufferHistory");
 
-        const s32 requested_value = parcel_in.Read<s32>();
-        if (requested_value <= 0) {
+        const s32 request = parcel_in.Read<s32>();
+        if (request <= 0) {
             parcel_out.Write(Status::BadValue);
             parcel_out.Write<s32>(0);
             break;
         }
 
-        constexpr s32 buffer_history_size = BufferQueueCore::BUFFER_HISTORY_SIZE ;
-        const s32 buffer_history_count = (requested_value < buffer_history_size) ?
-                                             requested_value : buffer_history_size;
+        constexpr u32 history_max = BufferQueueCore::BUFFER_HISTORY_SIZE;
+        std::array<BufferHistoryInfo, history_max> buffer_history_snapshot{};
+        s32 valid_index{};
+        {
+            std::scoped_lock lk(core->mutex);
 
-        parcel_out.Write(Status::NoError);
-        parcel_out.Write<s32>(buffer_history_count);
-        for (s32 i = 0; i < buffer_history_count; ++i) {
-            parcel_out.Write(core->buffer_history[i]);
+            const u32 current_history_pos = core->buffer_history_pos;
+            u32 index_reversed{};
+            for (u32 i = 0; i < history_max; ++i) {
+                // Wrap values backwards e.g. 7, 6, 5, etc. in the range of 0-7
+                index_reversed = (current_history_pos + history_max - i) % history_max;
+                const auto& current_history_buffer = core->buffer_history[index_reversed];
+
+                // Here we use the frame number as a terminator.
+                // Because a buffer without frame_number is not considered complete
+                if (current_history_buffer.frame_number == 0) {
+                    break;
+                }
+
+                buffer_history_snapshot[valid_index] = current_history_buffer;
+                ++valid_index;
+            }
         }
+
+        const s32 limit = std::min(request, valid_index);
+        parcel_out.Write(Status::NoError);
+        parcel_out.Write<s32>(limit);
+        for (s32 i = 0; i < limit; ++i) {
+            parcel_out.Write(buffer_history_snapshot[i]);
+        }
+        
         break;
     }
     default:
