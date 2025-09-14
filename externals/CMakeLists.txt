@@ -59,6 +59,21 @@ if (ENABLE_LIBUSB)
     add_subdirectory(libusb)
 endif()
 
+# VMA
+AddJsonPackage(vulkan-memory-allocator)
+
+if (VulkanMemoryAllocator_ADDED)
+    if (CXX_CLANG)
+        target_compile_options(VulkanMemoryAllocator INTERFACE
+            -Wno-unused-variable
+        )
+    elseif(MSVC)
+        target_compile_options(VulkanMemoryAllocator INTERFACE
+            /wd4189
+        )
+    endif()
+endif()
+
 # Sirit
 AddJsonPackage(sirit)
 

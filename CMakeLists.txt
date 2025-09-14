@@ -460,21 +460,6 @@ if (YUZU_USE_CPM)
         find_package(VulkanHeaders 1.3.274 REQUIRED)
     endif()
 
-    # VMA
-    AddJsonPackage(vulkan-memory-allocator)
-
-    if (VulkanMemoryAllocator_ADDED)
-        if (CXX_CLANG)
-            target_compile_options(VulkanMemoryAllocator INTERFACE
-                -Wno-unused-variable
-            )
-        elseif(MSVC)
-            target_compile_options(VulkanMemoryAllocator INTERFACE
-                /wd4189
-            )
-        endif()
-    endif()
-
     # SPIRV Tools
     AddJsonPackage(spirv-tools)
 
@@ -634,6 +619,7 @@ add_subdirectory(externals)
 
 # pass targets from externals
 find_package(libusb)
+find_package(VulkanMemoryAllocator)
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     find_package(xbyak)

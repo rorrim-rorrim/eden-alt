@@ -99,13 +99,6 @@
         "git_host": "git.crueter.xyz",
         "hash": "5924629755cb1605c4aa4eee20ef7957a9dd8d61e4df548be656d98054f2730c4109693c1bd35811f401f4705d2ccff9fc849be32b0d8480bc3f73541a5e0964"
     },
-    "vulkan-memory-allocator": {
-        "package": "VulkanMemoryAllocator",
-        "repo": "GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator",
-        "sha": "1076b348ab",
-        "hash": "a46b44e4286d08cffda058e856c47f44c7fed3da55fe9555976eb3907fdcc20ead0b1860b0c38319cda01dbf9b1aa5d4b4038c7f1f8fbd97283d837fa9af9772",
-        "find_args": "CONFIG"
-    },
     "spirv-tools": {
         "package": "SPIRV-Tools",
         "repo": "KhronosGroup/SPIRV-Tools",
