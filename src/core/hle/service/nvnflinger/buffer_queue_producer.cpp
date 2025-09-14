@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-FileCopyrightText: Copyright 2014 The Android Open Source Project
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -530,11 +531,6 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         item.is_droppable = core->dequeue_buffer_cannot_block || async;
         item.swap_interval = swap_interval;
 
-        position = (position + 1) % 8;
-        core->history[position] = {.frame_number = core->frame_counter,
-                                   .queue_time = slots[slot].queue_time,
-                                   .state = BufferState::Queued};
-
         sticky_transform = sticky_transform_;
 
         if (core->queue.empty()) {
@@ -551,6 +547,15 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
                 // mark it as freed
                 if (core->StillTracking(*front)) {
                     slots[front->slot].buffer_state = BufferState::Free;
+
+                    // Mark tracked buffer history records as free
+                    for (auto& buffer_history_record : core->buffer_history) {
+                        if (buffer_history_record.frame_number == front->frame_number) {
+                            buffer_history_record.state = BufferState::Free;
+                            break;
+                        }
+                    }
+
                     // Reset the frame number of the freed buffer so that it is the first in line to
                     // be dequeued again
                     slots[front->slot].frame_number = 0;
@@ -564,6 +569,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
             }
         }
 
+        core->PushHistory(core->frame_counter, slots[slot].queue_time, slots[slot].presentation_time, BufferState::Queued);
         core->buffer_has_been_queued = true;
         core->SignalDequeueCondition();
         output->Inflate(core->default_width, core->default_height, core->transform_hint,
@@ -938,33 +944,24 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         break;
     }
     case TransactionId::GetBufferHistory: {
-        LOG_WARNING(Service_Nvnflinger, "called, transaction=GetBufferHistory");
+        LOG_DEBUG(Service_Nvnflinger, "called, transaction=GetBufferHistory");
 
-        std::scoped_lock lock{core->mutex};
-
-        auto buffer_history_count = (std::min)(parcel_in.Read<s32>(), (s32)core->history.size());
-
-        if (buffer_history_count <= 0) {
+        const s32 requested_value = parcel_in.Read<s32>();
+        if (requested_value <= 0) {
             parcel_out.Write(Status::BadValue);
             parcel_out.Write<s32>(0);
-            status = Status::None;
             break;
         }
 
-        auto info = new BufferInfo[buffer_history_count];
-        auto pos = position;
-        for (int i = 0; i < buffer_history_count; i++) {
-            info[i] = core->history[(pos - i) % core->history.size()];
-            LOG_WARNING(Service_Nvnflinger, "frame_number={}, state={}",
-                        core->history[(pos - i) % core->history.size()].frame_number,
-                        (u32)core->history[(pos - i) % core->history.size()].state);
-            pos--;
-        }
+        constexpr s32 buffer_history_size = BufferQueueCore::BUFFER_HISTORY_SIZE ;
+        const s32 buffer_history_count = (requested_value < buffer_history_size) ?
+                                             requested_value : buffer_history_size;
 
         parcel_out.Write(Status::NoError);
-        parcel_out.Write(buffer_history_count);
-        parcel_out.WriteFlattenedObject<BufferInfo>(info);
-        status = Status::None;
+        parcel_out.Write<s32>(buffer_history_count);
+        for (s32 i = 0; i < buffer_history_count; ++i) {
+            parcel_out.Write(core->buffer_history[i]);
+        }
         break;
     }
     default:
@@ -972,9 +969,7 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         break;
     }
 
-    if (status != Status::None) {
-        parcel_out.Write(status);
-    }
+    parcel_out.Write(status);
 
     const auto serialized = parcel_out.Serialize();
     std::memcpy(parcel_reply.data(), serialized.data(),
