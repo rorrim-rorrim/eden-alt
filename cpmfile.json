@@ -120,7 +120,7 @@
     },
     "mbedtls": {
         "package": "MbedTLS",
-        "repo": "Mbed-TLS/mbedtls/mbedtls",
+        "repo": "Mbed-TLS/mbedtls",
         "tag": "v3.6.4",
         "hash": "67c0ec7824e1ffa3e4f8d02814201776f8c1b2dc0fb8f1f9246495e27a2c03b8c248eff00e8da3e206625b7d0aa82d38cf7ddfd9ed8b4623375b05dc1ecc0677",
         "version": "3"
