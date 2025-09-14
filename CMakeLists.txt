@@ -460,6 +460,9 @@ if (YUZU_USE_CPM)
         find_package(VulkanHeaders 1.3.274 REQUIRED)
     endif()
 
+    # SPIRV Headers
+    AddJsonPackage(spirv-headers)
+
     # SPIRV Tools
     AddJsonPackage(spirv-tools)
 
@@ -467,9 +470,6 @@ if (YUZU_USE_CPM)
         add_library(SPIRV-Tools::SPIRV-Tools ALIAS SPIRV-Tools-static)
         target_link_libraries(SPIRV-Tools-static PRIVATE SPIRV-Tools-opt SPIRV-Tools-link)
     endif()
-
-    # SPIRV Headers
-    AddJsonPackage(spirv-headers)
 
     # mbedtls
     AddJsonPackage(mbedtls)
