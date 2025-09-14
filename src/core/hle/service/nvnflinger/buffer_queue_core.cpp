@@ -63,8 +63,8 @@ s32 BufferQueueCore::GetMaxBufferCountLocked(bool async) const {
         return override_max_buffer_count;
     }
 
-           // Any buffers that are dequeued by the producer or sitting in the queue waiting to be consumed
-           // need to have their slots preserved.
+    // Any buffers that are dequeued by the producer or sitting in the queue waiting to be consumed
+    // need to have their slots preserved.
     for (s32 slot = max_buffer_count; slot < BufferQueueDefs::NUM_BUFFER_SLOTS; ++slot) {
         const auto state = slots[slot].buffer_state;
         if (state == BufferState::Queued || state == BufferState::Dequeued) {
