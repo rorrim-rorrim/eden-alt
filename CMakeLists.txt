@@ -159,8 +159,6 @@ option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 
 option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ${EXT_DEFAULT})
-option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan Utility Headers from externals" ${EXT_DEFAULT})
-option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ${EXT_DEFAULT})
 
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 
@@ -171,8 +169,6 @@ set(YUZU_QT_MIRROR "" CACHE STRING "What mirror to use for downloading the bundl
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
 CMAKE_DEPENDENT_OPTION(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF "ENABLE_QT" OFF)
-
-option(ENABLE_MICROPROFILE "Enables microprofile capabilities" OFF)
 
 option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
@@ -455,6 +451,43 @@ if (YUZU_USE_CPM)
             )
         endif()
     endif()
+
+    # VulkanUtilityHeaders - pulls in headers and utility libs
+    AddJsonPackage(vulkan-utility-headers)
+
+    # small hack
+    if (NOT VulkanUtilityLibraries_ADDED)
+        find_package(VulkanHeaders 1.3.274 REQUIRED)
+    endif()
+
+    # VMA
+    AddJsonPackage(vulkan-memory-allocator)
+
+    if (VulkanMemoryAllocator_ADDED)
+        if (CXX_CLANG)
+            target_compile_options(VulkanMemoryAllocator INTERFACE
+                -Wno-unused-variable
+            )
+        elseif(MSVC)
+            target_compile_options(VulkanMemoryAllocator INTERFACE
+                /wd4189
+            )
+        endif()
+    endif()
+
+    # SPIRV Tools
+    AddJsonPackage(spirv-tools)
+
+    if (SPIRV-Tools_ADDED)
+        add_library(SPIRV-Tools::SPIRV-Tools ALIAS SPIRV-Tools-static)
+        target_link_libraries(SPIRV-Tools-static PRIVATE SPIRV-Tools-opt SPIRV-Tools-link)
+    endif()
+
+    # SPIRV Headers
+    AddJsonPackage(spirv-headers)
+
+    # mbedtls
+    AddJsonPackage(mbedtls)
 else()
     # Enforce the search mode of non-required packages for better and shorter failure messages
     find_package(fmt 8 REQUIRED)
@@ -467,7 +500,13 @@ else()
     find_package(Opus 1.3 MODULE REQUIRED)
     find_package(ZLIB 1.2 REQUIRED)
     find_package(zstd 1.5 REQUIRED MODULE)
-    find_package(Boost 1.79.0 REQUIRED headers context system fiber)
+    find_package(Boost 1.57.0 REQUIRED context system fiber)
+    find_package(MbedTLS 3)
+
+    find_package(VulkanUtilityLibraries REQUIRED)
+    find_package(VulkanHeaders 1.3.274 REQUIRED)
+    find_package(SPIRV-Tools MODULE REQUIRED)
+    find_package(SPIRV-Headers 1.3.274 REQUIRED)
 
     if (YUZU_TESTS)
         find_package(Catch2 3.0.1 REQUIRED)
@@ -594,10 +633,7 @@ endfunction()
 add_subdirectory(externals)
 
 # pass targets from externals
-find_package(VulkanUtilityLibraries)
 find_package(libusb)
-find_package(VulkanMemoryAllocator)
-find_package(SPIRV-Tools)
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     find_package(xbyak)
