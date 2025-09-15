@@ -2040,10 +2040,6 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
         }
     }
 
-    if (!OnCheckNcaVerification()) {
-        return false;
-    }
-
     /** Exec */
     const Core::SystemResultStatus result{
         system->Load(*render_window, filename.toStdString(), params)};
@@ -5272,41 +5268,6 @@ void GMainWindow::OnCheckFirmwareDecryption() {
     }
     SetFirmwareVersion();
     UpdateMenuState();
-}
-
-bool GMainWindow::OnCheckNcaVerification() {
-    if (!Settings::values.disable_nca_verification.GetValue())
-        return true;
-
-    const bool currently_hidden = Settings::values.hide_nca_verification_popup.GetValue();
-    LOG_INFO(Frontend, "NCA Verification is disabled. Popup State={}", currently_hidden);
-    if (currently_hidden)
-        return true;
-
-    QMessageBox msgbox(this);
-    msgbox.setWindowTitle(tr("NCA Verification Disabled"));
-    msgbox.setText(tr("NCA Verification is disabled.\n"
-                      "This is required to run new games and updates.\n"
-                      "Running without verification can cause instability or crashes if NCA files "
-                      "are corrupt, modified, or tampered.\n"
-                      "If unsure, re-enable verification in Eden's Settings and use firmware "
-                      "version 19.0.1 or below."));
-    msgbox.setIcon(QMessageBox::Warning);
-    msgbox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-    msgbox.setDefaultButton(QMessageBox::Ok);
-
-    QCheckBox* cb = new QCheckBox(tr("Don't show again"), &msgbox);
-    cb->setChecked(currently_hidden);
-    msgbox.setCheckBox(cb);
-
-    int result = msgbox.exec();
-
-    const bool hide = cb->isChecked();
-    if (hide != currently_hidden) {
-        Settings::values.hide_nca_verification_popup.SetValue(hide);
-    }
-
-    return result == static_cast<int>(QMessageBox::Ok);
 }
 
 bool GMainWindow::CheckFirmwarePresence() {

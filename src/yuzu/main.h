@@ -486,8 +486,6 @@ private:
                             const std::string& categories, const std::string& keywords,
                             const std::string& name);
 
-    bool OnCheckNcaVerification();
-
     /**
      * Mimic the behavior of QMessageBox::question but link controller navigation to the dialog
      * The only difference is that it returns a boolean.
