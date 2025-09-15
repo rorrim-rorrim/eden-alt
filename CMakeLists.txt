@@ -486,7 +486,7 @@ else()
     find_package(ZLIB 1.2 REQUIRED)
     find_package(zstd 1.5 REQUIRED MODULE)
     find_package(Boost 1.57.0 REQUIRED context system fiber)
-    find_package(MbedTLS 3)
+    find_package(MbedTLS 3 REQUIRED)
 
     find_package(VulkanUtilityLibraries REQUIRED)
     find_package(VulkanHeaders 1.3.274 REQUIRED)
