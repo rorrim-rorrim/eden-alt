@@ -75,7 +75,7 @@ If you are on Windows and prefer to use Clang:
 cmake -S . -B build -G "GENERATOR" -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
 ```
 
-<details>
+</details>
 
 ### CLion
 

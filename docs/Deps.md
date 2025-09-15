@@ -125,6 +125,7 @@ sudo dnf install autoconf ccache cmake fmt-devel gcc{,-c++} glslang hidapi-devel
 
 <details>
 <summary>macOS</summary>
+
 Install dependencies from **[Homebrew](https://brew.sh/)**
 
 ```sh
@@ -198,6 +199,7 @@ Then install the libraies: `sudo pkg install qt6 boost glslang libzip library/lz
 
 <details>
 <summary>MSYS2</summary>
+
 * Open the `MSYS2 MinGW 64-bit` shell (`mingw64.exe`)
 * Download and install all dependencies using:
   * `pacman -Syu git make mingw-w64-x86_64-SDL2 mingw-w64-x86_64-cmake mingw-w64-x86_64-python-pip mingw-w64-x86_64-qt6 mingw-w64-x86_64-toolchain autoconf libtool automake-wrapper`
