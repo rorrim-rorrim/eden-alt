@@ -157,7 +157,7 @@ make -j$(nproc)
 # Generate CMake Makefiles (withou QT)
 cmake .. -G "MSYS Makefiles" -DYUZU_TESTS=OFF -DENABLE_QT=no
 
-$ ...
+# ...
 ```
 
 * Running programs from inside `MSYS2 MinGW x64` shell has a different `%PATH%` than directly from explorer.
