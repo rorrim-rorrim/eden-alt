@@ -490,8 +490,16 @@ else()
 
     find_package(VulkanUtilityLibraries REQUIRED)
     find_package(VulkanHeaders 1.3.274 REQUIRED)
-    find_package(SPIRV-Tools MODULE REQUIRED)
-    find_package(SPIRV-Headers 1.3.274 REQUIRED)
+
+    # freebsd doesn't have spirv-headers package
+    # TODO: solaris, openbsd?
+    if (PLATFORM_FREEBSD)
+        AddJsonPackage(spirv-headers)
+        AddJsonPackage(spirv-tools)
+    else()
+        find_package(SPIRV-Headers 1.3.274 REQUIRED)
+        find_package(SPIRV-Tools MODULE REQUIRED)
+    endif()
 
     if (YUZU_TESTS)
         find_package(Catch2 3.0.1 REQUIRED)
