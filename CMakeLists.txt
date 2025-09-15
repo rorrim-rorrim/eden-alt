@@ -493,20 +493,24 @@ else()
         find_package(Boost 1.57.0 REQUIRED)
     endif()
 
-    find_package(MbedTLS 3 REQUIRED)
+    # OpenBSD does not package mbedtls3 (only 2)
+    if (PLATFORM_OPENBSD)
+        AddJsonPackage(mbedtls)
+    else()
+        find_package(MbedTLS 3 REQUIRED)
+    endif()
 
     find_package(VulkanUtilityLibraries REQUIRED)
     find_package(VulkanHeaders 1.3.274 REQUIRED)
 
-    # freebsd doesn't have spirv-headers package
-    # TODO: solaris, openbsd?
+    # FreeBSD does not package spirv-headers
     if (PLATFORM_FREEBSD)
         AddJsonPackage(spirv-headers)
-        AddJsonPackage(spirv-tools)
     else()
         find_package(SPIRV-Headers 1.3.274 REQUIRED)
-        find_package(SPIRV-Tools MODULE REQUIRED)
     endif()
+
+    find_package(SPIRV-Tools MODULE REQUIRED)
 
     if (YUZU_TESTS)
         find_package(Catch2 3.0.1 REQUIRED)
