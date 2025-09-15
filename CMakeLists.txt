@@ -485,7 +485,14 @@ else()
     find_package(Opus 1.3 MODULE REQUIRED)
     find_package(ZLIB 1.2 REQUIRED)
     find_package(zstd 1.5 REQUIRED MODULE)
-    find_package(Boost 1.57.0 REQUIRED context system fiber)
+
+    # wow
+    if (PLATFORM_LINUX)
+        find_package(Boost 1.57.0 REQUIRED headers context system fiber)
+    else()
+        find_package(Boost 1.57.0 REQUIRED)
+    endif()
+
     find_package(MbedTLS 3 REQUIRED)
 
     find_package(VulkanUtilityLibraries REQUIRED)
