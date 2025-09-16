@@ -917,12 +917,6 @@ uma tentativa de mapeamento automático</string>
     <string name="renderer_accuracy_high">Alto</string>
     <string name="renderer_accuracy_extreme">Estremo (Lento)</string>
 
-    <!-- DMA Accuracy -->
-    <string name="dma_accuracy_default">Predefinido</string>
-    <string name="dma_accuracy_normal">Normal</string>
-    <string name="dma_accuracy_high">Alto</string>
-    <string name="dma_accuracy_extreme">Extremo</string>
-
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>
     <string name="resolution_half">0.5X (360p/540p)</string>

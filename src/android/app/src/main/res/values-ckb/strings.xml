@@ -759,12 +759,6 @@
     <string name="renderer_accuracy_high">بەرز</string>
     <string name="renderer_accuracy_extreme">ئەوپەڕ (خاو)</string>
 
-    <!-- DMA Accuracy -->
-    <string name="dma_accuracy_default">بنەڕەتی</string>
-    <string name="dma_accuracy_normal">ئاسایی</string>
-    <string name="dma_accuracy_high">بەرز</string>
-    <string name="dma_accuracy_extreme">زۆر بەرز</string>
-
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>
     <string name="resolution_half">0.5X (360p/540p)</string>

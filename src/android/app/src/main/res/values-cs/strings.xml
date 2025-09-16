@@ -733,12 +733,6 @@
     <string name="renderer_accuracy_high">Vysoká</string>
     <string name="renderer_accuracy_extreme">Extrémní (Pomalé)</string>
 
-    <!-- DMA Accuracy -->
-    <string name="dma_accuracy_default">Výchozí</string>
-    <string name="dma_accuracy_normal">Normální</string>
-    <string name="dma_accuracy_high">Vysoká</string>
-    <string name="dma_accuracy_extreme">Extrémní</string>
-
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>
     <string name="resolution_half">0.5X (360p/540p)</string>

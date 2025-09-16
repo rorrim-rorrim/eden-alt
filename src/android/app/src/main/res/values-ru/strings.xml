@@ -918,12 +918,6 @@
     <string name="renderer_accuracy_high">Высокая</string>
     <string name="renderer_accuracy_extreme">Экстрим (медленный)</string>
 
-    <!-- DMA Accuracy -->
-    <string name="dma_accuracy_default">По умолчанию</string>
-    <string name="dma_accuracy_normal">Нормальный</string>
-    <string name="dma_accuracy_high">Высокий</string>
-    <string name="dma_accuracy_extreme">Экстремальный</string>
-
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>
     <string name="resolution_half">0.5X (360p/540p)</string>

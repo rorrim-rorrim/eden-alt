@@ -913,12 +913,6 @@
     <string name="renderer_accuracy_high">Високо</string>
     <string name="renderer_accuracy_extreme">Екстремни (спор)</string>
 
-    <!-- DMA Accuracy -->
-    <string name="dma_accuracy_default">Подразумевано</string>
-    <string name="dma_accuracy_normal">Нормално</string>
-    <string name="dma_accuracy_high">Високо</string>
-    <string name="dma_accuracy_extreme">Екстремно</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">АСТЦ метода декодирања</string>
     <string name="accelerate_astc_description">Изаберите како су текстуре са компримираним текстовима декодиране за приказивање: ЦПУ (споро, сигуран), ГПУ (Фаст, Препоручи) или ЦПУ АСИНЦ (без затезача, могу да изазове питања)</string>

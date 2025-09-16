@@ -915,12 +915,6 @@
     <string name="renderer_accuracy_high">高</string>
     <string name="renderer_accuracy_extreme">極高 (慢)</string>
 
-    <!-- DMA Accuracy -->
-    <string name="dma_accuracy_default">預設</string>
-    <string name="dma_accuracy_normal">普通</string>
-    <string name="dma_accuracy_high">高</string>
-    <string name="dma_accuracy_extreme">極高</string>
-
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>
     <string name="resolution_half">0.5X (360p/540p)</string>
