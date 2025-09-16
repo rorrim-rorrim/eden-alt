@@ -288,13 +288,13 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
               "and safe to set at 16x on most GPUs."));
     INSERT(Settings,
            gpu_accuracy,
-           tr("GPU Level:"),
+           tr("GPU Accuracy:"),
            tr("Controls the GPU emulation accuracy.\nMost games render fine with Normal, but High is still "
               "required for some.\nParticles tend to only render correctly with High "
               "accuracy.\nExtreme should only be used as a last resort."));
     INSERT(Settings,
            dma_accuracy,
-           tr("DMA Level:"),
+           tr("DMA Accuracy:"),
            tr("Controls the DMA precision accuracy. Safe precision can fix issues in some games, but it can also impact performance in some cases.\nIf unsure, leave this on Default."));
     INSERT(Settings,
            use_asynchronous_shaders,
