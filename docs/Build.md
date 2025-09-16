@@ -56,6 +56,7 @@ This is recommended for *BSD, Solaris, Linux, and MSYS2. MSVC is possible, but n
 Note that CMake must be in your PATH, and you must be in the cloned Eden directory. On Windows, you must also set up a Visual C++ development environment. This can be done by running `C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat` in the same terminal.
 
 Recommended generators:
+
 - MSYS2: `MSYS Makefiles`
 - MSVC: Install **[ninja](https://ninja-build.org/)** and use `Ninja`, OR use `Visual Studio 17 2022`
 - macOS: `Ninja` (preferred) or `Xcode`
@@ -77,9 +78,44 @@ cmake -S . -B build -G "GENERATOR" -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPI
 
 </details>
 
-### CLion
+### [CLion](https://www.jetbrains.com/clion/)
 
-TODO
+<details>
+<summary>Click to Open</summary>
+
+* Clone the Repository:
+
+<img src="https://user-images.githubusercontent.com/42481638/216899046-0d41d7d6-8e4d-4ed2-9587-b57088af5214.png" width="500">
+<img src="https://user-images.githubusercontent.com/42481638/216899061-b2ea274a-e88c-40ae-bf0b-4450b46e9fea.png" width="500">
+<img src="https://user-images.githubusercontent.com/42481638/216899076-0e5988c4-d431-4284-a5ff-9ecff973db76.png" width="500">
+
+---
+
+### Building & Setup
+
+* Once Cloned, You will be taken to a prompt like the image below:
+
+<img src="https://user-images.githubusercontent.com/42481638/216899092-3fe4cec6-a540-44e3-9e1e-3de9c2fffc2f.png" width="500">
+
+* Set the settings to the image below:
+* Change `Build type: Release`
+* Change `Name: Release`
+* Change `Toolchain Visual Studio`
+* Change `Generator: Let CMake decide`
+* Change `Build directory: build`
+
+<img src="https://user-images.githubusercontent.com/42481638/216899164-6cee8482-3d59-428f-b1bc-e6dc793c9b20.png" width="500">
+
+* Click OK; now Clion will build a directory and index your code to allow for IntelliSense. Please be patient.
+* Once this process has been completed (No loading bar bottom right), you can now build eden
+* In the top right, click on the drop-down menu, select all configurations, then select eden
+
+<img src="https://user-images.githubusercontent.com/42481638/216899226-975048e9-bc6d-4ec1-bc2d-bd8a1e15ed04.png" height="500" >
+
+* Now run by clicking the play button or pressing Shift+F10, and eden will auto-launch once built.
+
+<img src="https://user-images.githubusercontent.com/42481638/216899275-d514ec6a-e563-470e-81e2-3e04f0429b68.png" width="500">
+</details>
 
 ## Troubleshooting
 
@@ -103,7 +139,7 @@ Simply hit Ctrl+B, or the "hammer" icon in the bottom left. To run, hit the "pla
 
 ### Command Line
 
-If you are not on Windows, and are using the `UNIX Makefiles` generator, you must also add `-j$(nproc)` to this command.
+If you are not on Windows and are using the `UNIX Makefiles` generator, you must also add `-j$(nproc)` to this command.
 
 ```
 cmake --build build
@@ -121,4 +157,4 @@ Some platforms have convenience scripts provided for building.
 - **[Linux](scripts/Linux.md)**
 - **[Windows](scripts/Windows.md)**
 
-macOS scripts will come soon. Maybe.
+macOS scripts will come soon.

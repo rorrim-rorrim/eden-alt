@@ -53,6 +53,8 @@ The following options are desktop only:
 - `ENABLE_QT_TRANSLATION` (OFF) Enable translations for the Qt frontend
 - `ENABLE_QT_UPDATE_CHECKER` (OFF) Enable update checker for the Qt frontend
 - `YUZU_USE_BUNDLED_QT` (ON for MSVC) Download bundled Qt binaries
+  * Note that using **system Qt** requires you to include the Qt CMake directory in `CMAKE_PREFIX_PATH`, e.g:
+    * `-DCMAKE_PREFIX_PATH=C:/Qt/6.9.0/msvc2022_64/lib/cmake/Qt6`
 - `YUZU_QT_MIRROR` (string) What mirror to use for downloading the bundled Qt libraries
 - `YUZU_USE_QT_MULTIMEDIA` (OFF) Use QtMultimedia for camera support
 - `YUZU_USE_QT_WEB_ENGINE` (OFF) Use QtWebEngine for web applet implementation (requires the huge QtWebEngine dependency; not recommended)

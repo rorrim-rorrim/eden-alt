@@ -180,7 +180,7 @@ If using FreeBSD 12 or prior, use `devel/pkg-config` instead.
 
 ```sh
 pkg_add -u
-pkg_add cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang gmake llvm-19.1.7p3 qt6 jq
+pkg_add cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang gmake llvm-19.1.7p3 qt6 jq fmt nlohmann-json enet boost vulkan-utility-libraries vulkan-headers spirv-headers spirv-tools catch2 sdl2
 ```
 </details>
 
@@ -194,7 +194,7 @@ Run the usual update + install of essential toolings: `sudo pkg update && sudo p
 - **gcc**: `sudo pkg install developer/gcc-14`.
 - **clang**: Version 20 is broken, use `sudo pkg install developer/clang-19`.
 
-Then install the libraies: `sudo pkg install qt6 boost glslang libzip library/lz4 nlohmann-json openssl opus sdl2 zlib compress/zstd unzip pkg-config nasm autoconf mesa library/libdrm header-drm developer/fmt`.
+Then install the libraries: `sudo pkg install qt6 boost glslang libzip library/lz4 nlohmann-json openssl opus sdl2 zlib compress/zstd unzip pkg-config nasm autoconf mesa library/libdrm header-drm developer/fmt`.
 </details>
 
 <details>
