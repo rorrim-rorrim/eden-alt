@@ -180,7 +180,7 @@ If using FreeBSD 12 or prior, use `devel/pkg-config` instead.
 
 ```sh
 pkg_add -u
-pkg_add cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang gmake llvm-19.1.7p3 qt6 jq fmt nlohmann-json enet boost vulkan-utility-libraries vulkan-headers spirv-headers spirv-tools catch2 sdl2
+pkg_add cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang gmake llvm-19.1.7p3 qt6 jq fmt nlohmann-json enet boost vulkan-utility-libraries vulkan-headers spirv-headers spirv-tools catch2 sdl2 libusb1.1.0.27
 ```
 </details>
 
