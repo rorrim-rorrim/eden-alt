@@ -15,7 +15,7 @@ namespace Service::android {
 
 class GraphicBuffer;
 
-enum class BufferState : s32 {
+enum class BufferState : u32 {
     Free = 0,
     Dequeued = 1,
     Queued = 2,
