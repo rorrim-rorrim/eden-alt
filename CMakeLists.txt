@@ -129,7 +129,7 @@ include(CMakeDependentOption)
 include(CTest)
 
 # Disable Warnings as Errors for MSVC
-if (CXX_CL)
+if (MSVC AND NOT CXX_CLANG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /WX-")
 endif()
 
