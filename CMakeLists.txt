@@ -44,6 +44,13 @@ if (PLATFORM_SUN)
     endif()
 endif()
 
+# Needed for FFmpeg w/ VAAPI and DRM
+if (PLATFORM_OPENBSD)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I/usr/X11R6/include")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/X11R6/include")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/X11R6/lib")
+endif()
+
 # Detect current compilation architecture and create standard definitions
 # =======================================================================
 
@@ -88,7 +95,7 @@ message(STATUS "Target architecture: ${ARCHITECTURE}")
 
 if (MSVC AND ARCHITECTURE_x86)
     message(FATAL_ERROR "Attempting to build with the x86 environment is not supported. \
-        This can typically happen if you used the Developer Command Prompt from the start menu;\
+        This can typically happen if you used the Developer Command Prompt from the start menu; \
         instead, run vcvars64.bat directly, located at C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/Build/vcvars64.bat")
 endif()
 
