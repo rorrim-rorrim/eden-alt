@@ -297,7 +297,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
     INSERT(Settings,
            dma_accuracy,
            tr("DMA Level:"),
-           tr("Controls the DMA precision accuracy. Higher precision can fix issues in some games, but it can also impact performance in some cases.\nIf unsure, leave it at Default."));
+           tr("Controls the DMA precision accuracy. Safe precision can fix issues in some games, but it can also impact performance in some cases.\nIf unsure, leave this on Default."));
     INSERT(Settings,
            use_asynchronous_shaders,
            tr("Use asynchronous shader building (Hack)"),
@@ -529,9 +529,8 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
     translations->insert({Settings::EnumMetadata<Settings::DmaAccuracy>::Index(),
                           {
                               PAIR(DmaAccuracy, Default, tr("Default")),
-                              PAIR(DmaAccuracy, Normal, tr("Normal")),
-                              PAIR(DmaAccuracy, High, tr("High")),
-                              PAIR(DmaAccuracy, Extreme, tr("Extreme")),
+                              PAIR(DmaAccuracy, Unsafe, tr("Unsafe (fast)")),
+                              PAIR(DmaAccuracy, Safe, tr("Safe (stable)")),
                           }});
     translations->insert(
         {Settings::EnumMetadata<Settings::CpuAccuracy>::Index(),
