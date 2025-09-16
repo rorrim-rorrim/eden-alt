@@ -155,11 +155,11 @@ bool IsGPULevelHigh() {
 }
 
 bool IsDMALevelDefault() {
-    return values.dma_accuracy.GetValue() == Settings::DmaAccuracy::Default;
+    return values.dma_accuracy.GetValue() == DmaAccuracy::Default;
 }
 
 bool IsDMALevelSafe() {
-    return values.dma_accuracy.GetValue() == Settings::DmaAccuracy::Safe;
+    return values.dma_accuracy.GetValue() == DmaAccuracy::Safe;
 }
 
 bool IsFastmemEnabled() {
