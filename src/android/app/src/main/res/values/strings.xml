@@ -941,7 +941,7 @@
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Default</string>
     <string name="dma_accuracy_unsafe">Unsafe (fast)</string>
-    <string name="dma_accuracy_safe">Safe (stable)"</string>
+    <string name="dma_accuracy_safe">Safe (stable)</string>
 
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">ASTC Decoding Method</string>
