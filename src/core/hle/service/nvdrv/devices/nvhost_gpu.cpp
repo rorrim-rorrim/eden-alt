@@ -190,7 +190,6 @@ NvResult nvhost_gpu::SetErrorNotifier(IoctlSetErrorNotifier& params) {
         return NvResult::BadParameter;
     }
 
-
     if (params.offset > handle->size || params.size > (handle->size - params.offset)) {
         LOG_ERROR(Service_NVDRV, "Error notifier out of bounds: offset={:#X} size={:#X} handle size={:#X}", params.offset,
                   params.size, handle->size);
