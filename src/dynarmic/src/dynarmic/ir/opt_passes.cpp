@@ -1491,7 +1491,9 @@ void Optimize(IR::Block& block, const A32::UserConfig& conf, const Optimization:
         Optimization::DeadCodeElimination(block);
     }
     Optimization::IdentityRemovalPass(block);
-    Optimization::VerificationPass(block);
+    if (!conf.HasOptimization(OptimizationFlag::DisableVerification)) {
+        Optimization::VerificationPass(block);
+    }
 }
 
 void Optimize(IR::Block& block, const A64::UserConfig& conf, const Optimization::PolyfillOptions& polyfill_options) {
@@ -1509,7 +1511,9 @@ void Optimize(IR::Block& block, const A64::UserConfig& conf, const Optimization:
     if (conf.HasOptimization(OptimizationFlag::MiscIROpt)) [[likely]] {
         Optimization::A64MergeInterpretBlocksPass(block, conf.callbacks);
     }
-    Optimization::VerificationPass(block);
+    if (!conf.HasOptimization(OptimizationFlag::DisableVerification)) {
+        Optimization::VerificationPass(block);
+    }
 }
 
 }  // namespace Dynarmic::Optimization
