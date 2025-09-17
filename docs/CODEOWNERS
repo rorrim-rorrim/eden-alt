@@ -10,10 +10,9 @@
 /.ci                 @crueter
 
 # cmake
-**.cmake             @crueter
-**/CMakeLists.txt    @crueter
-/CMakeLists.txt      @crueter
-**.in                @crueter
+*.cmake             @crueter
+*/CMakeLists.txt    @crueter
+*.in                @crueter
 
 # individual stuff
 /src/web_service     @AleksandrPopovich
