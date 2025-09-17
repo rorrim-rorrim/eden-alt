@@ -35,8 +35,8 @@ public:
 
 private:
     enum class ZBCTypes {
-        color       = 1,
-        depth       = 2,
+        color = 1,
+        depth = 2,
     };
 
     struct IoctlGpuCharacteristics {
