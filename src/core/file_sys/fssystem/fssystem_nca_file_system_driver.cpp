@@ -14,7 +14,6 @@
 #include "core/file_sys/fssystem/fssystem_hierarchical_sha256_storage.h"
 #include "core/file_sys/fssystem/fssystem_indirect_storage.h"
 #include "core/file_sys/fssystem/fssystem_integrity_romfs_storage.h"
-#include "core/file_sys/fssystem/fssystem_passthrough_storage.h"
 #include "core/file_sys/fssystem/fssystem_memory_resource_buffer_hold_storage.h"
 #include "core/file_sys/fssystem/fssystem_nca_file_system_driver.h"
 #include "core/file_sys/fssystem/fssystem_sparse_storage.h"
