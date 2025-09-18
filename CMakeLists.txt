@@ -187,9 +187,7 @@ option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" 
 option(FORCE_DOWNLOAD_WIN_BUNDLES "Forcefully download bundled Windows dependencies (useful for CI)" OFF)
 
 # TODO(crueter): Cleanup, each dep that has a bundled option should allow to choose between bundled, external, system
-if (YUZU_USE_CPM AND ENABLE_SDL2)
-    option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}")
-endif()
+CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}" "ENABLE_SDL2" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_ROOM "Enable dedicated room functionality" ON "NOT ANDROID" OFF)
 
