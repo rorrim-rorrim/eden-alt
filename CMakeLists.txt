@@ -209,6 +209,8 @@ CMAKE_DEPENDENT_OPTION(USE_SYSTEM_MOLTENVK "Use the system MoltenVK lib (instead
 
 set(YUZU_TZDB_PATH "" CACHE STRING "Path to a pre-downloaded timezone database")
 
+option(YUZU_DISABLE_LLVM "Disable LLVM (useful for CI)" OFF)
+
 set(DEFAULT_ENABLE_OPENSSL ON)
 if (ANDROID OR WIN32 OR APPLE OR PLATFORM_SUN)
     # - Windows defaults to the Schannel backend.
@@ -483,7 +485,10 @@ if (YUZU_USE_CPM)
 else()
     # Enforce the search mode of non-required packages for better and shorter failure messages
     find_package(fmt 8 REQUIRED)
-    find_package(LLVM MODULE COMPONENTS Demangle)
+    if (NOT YUZU_DISABLE_LLVM)
+        find_package(LLVM MODULE COMPONENTS Demangle)
+    endif()
+
     find_package(nlohmann_json 3.8 REQUIRED)
     find_package(lz4 REQUIRED)
     find_package(RenderDoc MODULE)
