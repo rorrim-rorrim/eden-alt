@@ -279,4 +279,8 @@ if(YUZU_USE_PRECOMPILED_HEADERS)
   target_precompile_headers(common PRIVATE precompiled_headers.h)
 endif()
 
+if (YUZU_ENABLE_LTO)
+    set_property(TARGET common PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
 create_target_directory_groups(common)

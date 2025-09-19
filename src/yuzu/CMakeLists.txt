@@ -492,4 +492,8 @@ if (YUZU_ROOM)
     target_link_libraries(yuzu PRIVATE yuzu-room)
 endif()
 
+if (YUZU_ENABLE_LTO)
+    set_property(TARGET yuzu PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
 create_target_directory_groups(yuzu)
