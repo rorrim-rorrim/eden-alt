@@ -1396,12 +1396,9 @@ void Device::CollectPhysicalMemoryInfo() {
         device_access_memory += mem_properties.memoryHeaps[element].size;
     }
     if (is_integrated) {
-		const s64 available_memory = static_cast<s64>(device_access_memory - device_initial_usage);
-		if (Settings::values.vram_usage_mode.GetValue() == Settings::VramUsageMode::Aggressive) {
-			device_access_memory = static_cast<u64>(std::max<s64>(std::min<s64>(available_memory - 8_GiB, 6_GiB), std::min<s64>(local_memory, 6_GiB)));
-		} else {
-			device_access_memory = static_cast<u64>(std::max<s64>(std::min<s64>(available_memory - 8_GiB, 4_GiB), std::min<s64>(local_memory, 6_GiB)));
-		}
+        const s64 available_memory = static_cast<s64>(device_access_memory - device_initial_usage);
+        const u64 memory_size = Settings::values.vram_usage_mode.GetValue() == Settings::VramUsageMode::Aggressive ? 6_GiB : 4_GiB;
+        device_access_memory = static_cast<u64>(std::max<s64>(std::min<s64>(available_memory - 8_GiB, memory_size), std::min<s64>(local_memory, 6_GiB)));
     } else {
         const u64 reserve_memory = std::min<u64>(device_access_memory / 8, 1_GiB);
         device_access_memory -= reserve_memory;
@@ -1411,7 +1408,7 @@ void Device::CollectPhysicalMemoryInfo() {
             const size_t scaler_memory = 1_GiB * Settings::values.resolution_info.ScaleUp(1);
             device_access_memory = std::min<u64>(device_access_memory, normal_memory + scaler_memory);
         }
-	}
+    }
 }
 
 void Device::CollectToolingInfo() {
