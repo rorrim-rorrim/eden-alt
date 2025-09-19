@@ -102,7 +102,11 @@ public:
     T PopWait(std::stop_token stop_token) {
         if (Empty()) {
             std::unique_lock lock{cv_mutex};
-            cv.wait(lock, stop_token, [this] { return !Empty(); });
+            if constexpr (with_stop_token) {
+                cv.wait(lock, stop_token, [this] { return !Empty(); });
+            } else {
+                cv.wait(lock, [this] { return !Empty(); });
+            }
         }
         if (stop_token.stop_requested()) {
             return T{};
