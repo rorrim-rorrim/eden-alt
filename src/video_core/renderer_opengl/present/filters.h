@@ -18,6 +18,7 @@ std::unique_ptr<WindowAdaptPass> MakeNearestNeighbor(const Device& device);
 std::unique_ptr<WindowAdaptPass> MakeBilinear(const Device& device);
 std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device);
 std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device);
+std::unique_ptr<WindowAdaptPass> MakeLanczo(const Device& device);
 std::unique_ptr<WindowAdaptPass> MakeScaleForce(const Device& device);
 std::unique_ptr<WindowAdaptPass> MakeArea(const Device& device);
 

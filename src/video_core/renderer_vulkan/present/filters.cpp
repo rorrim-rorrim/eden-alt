@@ -12,6 +12,7 @@
 #include "video_core/host_shaders/present_area_frag_spv.h"
 #include "video_core/host_shaders/present_bicubic_frag_spv.h"
 #include "video_core/host_shaders/present_gaussian_frag_spv.h"
+#include "video_core/host_shaders/present_lanczso_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_scaleforce_fp16_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_scaleforce_fp32_frag_spv.h"
@@ -57,6 +58,11 @@ std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device, VkFormat fram
 std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device, VkFormat frame_format) {
     return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
                                              BuildShader(device, PRESENT_GAUSSIAN_FRAG_SPV));
+}
+
+std::unique_ptr<WindowAdaptPass> MakeLanczo(const Device& device, VkFormat frame_format) {
+    return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
+                                             BuildShader(device, PRESENT_LANCZO_FRAG_SPV));
 }
 
 std::unique_ptr<WindowAdaptPass> MakeScaleForce(const Device& device, VkFormat frame_format) {

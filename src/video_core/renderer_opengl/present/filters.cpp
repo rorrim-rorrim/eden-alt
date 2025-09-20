@@ -37,6 +37,11 @@ std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device) {
                                              HostShaders::PRESENT_GAUSSIAN_FRAG);
 }
 
+std::unique_ptr<WindowAdaptPass> MakeLanczo(const Device& device) {
+    return std::make_unique<WindowAdaptPass>(device, CreateBilinearSampler(),
+                                             HostShaders::PRESENT_LANCZO_FRAG);
+}
+
 std::unique_ptr<WindowAdaptPass> MakeScaleForce(const Device& device) {
     return std::make_unique<WindowAdaptPass>(
         device, CreateBilinearSampler(),
