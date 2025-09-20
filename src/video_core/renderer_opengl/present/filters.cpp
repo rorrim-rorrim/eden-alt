@@ -28,6 +28,11 @@ std::unique_ptr<WindowAdaptPass> MakeBilinear(const Device& device) {
                                              HostShaders::OPENGL_PRESENT_FRAG);
 }
 
+std::unique_ptr<WindowAdaptPass> MakeSpline1(const Device& device) {
+    return std::make_unique<WindowAdaptPass>(device, CreateBilinearSampler(),
+                                             HostShaders::PRESENT_SPLINE1_FRAG);
+}
+
 std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device) {
     return std::make_unique<WindowAdaptPass>(device, CreateBilinearSampler(),
                                              HostShaders::PRESENT_BICUBIC_FRAG);

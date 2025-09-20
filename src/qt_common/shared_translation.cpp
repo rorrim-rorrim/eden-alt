@@ -572,6 +572,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
                               PAIR(ScalingFilter, NearestNeighbor, tr("Nearest Neighbor")),
                               PAIR(ScalingFilter, Bilinear, tr("Bilinear")),
                               PAIR(ScalingFilter, Bicubic, tr("Bicubic")),
+                              PAIR(ScalingFilter, Spline1, tr("Spline-1")),
                               PAIR(ScalingFilter, Gaussian, tr("Gaussian")),
                               PAIR(ScalingFilter, Lanczos, tr("Lanczos")),
                               PAIR(ScalingFilter, ScaleForce, tr("ScaleForce")),
