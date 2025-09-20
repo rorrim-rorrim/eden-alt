@@ -50,8 +50,55 @@ struct IndirectBranchVariable {
     auto operator<=>(const IndirectBranchVariable&) const noexcept = default;
 };
 
-using Variant = std::variant<IR::Reg, IR::Pred, ZeroFlagTag, SignFlagTag, CarryFlagTag,
-                             OverflowFlagTag, GotoVariable, IndirectBranchVariable>;
+
+enum class VarTag : uint8_t { Reg, Pred, Z, S, C, O, Goto, Indirect };
+
+struct VariableKey {
+    uint32_t tag_index; // [31:24]=tag, [23:0]=index
+    bool operator==(const VariableKey&) const = default;
+};
+
+struct VariableKeyHash {
+    size_t operator()(VariableKey k) const noexcept {
+        uint64_t x = k.tag_index * 0x9E3779B185EBCA87ull;
+        x ^= (x >> 33); x *= 0xC2B2AE3D27D4EB4Full; x ^= (x >> 29);
+        return static_cast<size_t>(x);
+    }
+};
+
+constexpr uint32_t PackKey(VarTag tag, uint32_t idx = 0) {
+    return (static_cast<uint32_t>(tag) << 24) | (idx & 0x00FFFFFFu);
+}
+
+inline VariableKey KeyOf(IR::Reg r){
+    return {PackKey(VarTag::Reg,  static_cast<uint32_t>(r))};
+}
+
+inline VariableKey KeyOf(IR::Pred p){
+    return {PackKey(VarTag::Pred, static_cast<uint32_t>(IR::PredIndex(p)))};
+}
+
+inline VariableKey KeyOf(ZeroFlagTag){
+    return {PackKey(VarTag::Z)};
+}
+
+inline VariableKey KeyOf(SignFlagTag){
+    return {PackKey(VarTag::S)};
+}
+inline VariableKey KeyOf(CarryFlagTag){
+    return {PackKey(VarTag::C)};
+}
+inline VariableKey KeyOf(OverflowFlagTag){
+    return {PackKey(VarTag::O)};
+}
+inline VariableKey KeyOf(GotoVariable g){
+    return {PackKey(VarTag::Goto, g.index)};
+}
+inline VariableKey KeyOf(IndirectBranchVariable){
+    return {PackKey(VarTag::Indirect)};
+}
+
+using IncompleteMap = std::unordered_map<VariableKey, IR::Inst*, VariableKeyHash>;
 using ValueMap = std::unordered_map<IR::Block*, IR::Value>;
 
 struct DefTable {
@@ -121,6 +168,10 @@ struct DefTable {
 };
 
 IR::Opcode UndefOpcode(IR::Reg) noexcept {
+    return IR::Opcode::UndefU32;
+}
+
+IR::Opcode UndefOpcode(GotoVariable) noexcept {
     return IR::Opcode::UndefU32;
 }
 
@@ -194,13 +245,14 @@ public:
                     IR::Inst* phi{&*block->PrependNewInst(block->begin(), IR::Opcode::Phi)};
                     phi->SetFlags(IR::TypeOf(UndefOpcode(variable)));
 
-                    incomplete_phis[block].insert_or_assign(variable, phi);
+                    incomplete_phis[block].insert_or_assign(KeyOf(variable), phi);
+                    WriteVariable(variable, block, IR::Value{phi});
                     stack.back().result = IR::Value{&*phi};
                 } else if (const std::span imm_preds = block->ImmPredecessors();
-                           imm_preds.size() == 1) {
-                    // Optimize the common case of one predecessor: no phi needed
-                    stack.back().pc = Status::SetValue;
-                    stack.emplace_back(imm_preds.front());
+                        imm_preds.size() == 1) {
+                    // Tail-advance: reuse this frame
+                    stack.back().block = imm_preds.front();
+                    stack.back().pc = Status::Start;
                     break;
                 } else {
                     // Break potential cycles with operandless phi
@@ -239,13 +291,29 @@ public:
     }
 
     void SealBlock(IR::Block* block) {
-        const auto it{incomplete_phis.find(block)};
-        if (it != incomplete_phis.end()) {
-            for (auto& pair : it->second) {
-                auto& variant{pair.first};
-                auto& phi{pair.second};
-                std::visit([&](auto& variable) { AddPhiOperands(variable, *phi, block); }, variant);
+        if (auto it = incomplete_phis.find(block); it != incomplete_phis.end()) {
+            for (auto& [key, phi] : it->second) {
+                switch (static_cast<VarTag>(key.tag_index >> 24)) {
+                    case VarTag::Reg:
+                        AddPhiOperands(IR::Reg(static_cast<uint32_t>(key.tag_index & 0xFFFFFF)), *phi, block);
+                        break;
+                    case VarTag::Pred:
+                        AddPhiOperands(static_cast<IR::Pred>(key.tag_index & 0xFFFFFF), *phi, block);
+                        break;
+                    case VarTag::Z:  AddPhiOperands(ZeroFlagTag{}, *phi, block); break;
+                    case VarTag::S:  AddPhiOperands(SignFlagTag{}, *phi, block); break;
+                    case VarTag::C:  AddPhiOperands(CarryFlagTag{}, *phi, block); break;
+                    case VarTag::O:  AddPhiOperands(OverflowFlagTag{}, *phi, block); break;
+                    case VarTag::Goto:
+                        AddPhiOperands(GotoVariable{static_cast<uint32_t>(key.tag_index & 0xFFFFFF)}, *phi, block);
+                        break;
+                    case VarTag::Indirect:
+                        AddPhiOperands(IndirectBranchVariable{}, *phi, block);
+                        break;
+                }
             }
+            it->second.clear();
+            incomplete_phis.erase(it);
         }
         block->SsaSeal();
     }
@@ -295,7 +363,7 @@ private:
         return same;
     }
 
-    std::unordered_map<IR::Block*, std::map<Variant, IR::Inst*>> incomplete_phis;
+    std::unordered_map<IR::Block*, IncompleteMap> incomplete_phis;
     DefTable current_def;
 };
 
