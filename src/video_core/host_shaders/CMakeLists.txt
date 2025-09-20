@@ -45,7 +45,7 @@ set(SHADER_FILES
     present_area.frag
     present_bicubic.frag
     present_gaussian.frag
-    present_lanczo.frag
+    present_lanczos.frag
     queries_prefix_scan_sum.comp
     queries_prefix_scan_sum_nosubgroups.comp
     resolve_conditional_render.comp

@@ -12,6 +12,7 @@
 #include "video_core/host_shaders/present_area_frag.h"
 #include "video_core/host_shaders/present_bicubic_frag.h"
 #include "video_core/host_shaders/present_gaussian_frag.h"
+#include "video_core/host_shaders/present_lanczos_frag.h"
 #include "video_core/renderer_opengl/present/filters.h"
 #include "video_core/renderer_opengl/present/util.h"
 
@@ -37,7 +38,7 @@ std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device) {
                                              HostShaders::PRESENT_GAUSSIAN_FRAG);
 }
 
-std::unique_ptr<WindowAdaptPass> MakeLanczo(const Device& device) {
+std::unique_ptr<WindowAdaptPass> MakeLanczos(const Device& device) {
     return std::make_unique<WindowAdaptPass>(device, CreateBilinearSampler(),
                                              HostShaders::PRESENT_LANCZO_FRAG);
 }

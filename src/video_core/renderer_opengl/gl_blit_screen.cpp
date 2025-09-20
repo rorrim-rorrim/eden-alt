@@ -89,8 +89,8 @@ void BlitScreen::CreateWindowAdapt() {
     case Settings::ScalingFilter::Gaussian:
         window_adapt = MakeGaussian(device);
         break;
-    case Settings::ScalingFilter::Lanczo:
-        window_adapt = MakeLanczo(device);
+    case Settings::ScalingFilter::Lanczos:
+        window_adapt = MakeLanczos(device);
         break;
     case Settings::ScalingFilter::ScaleForce:
         window_adapt = MakeScaleForce(device);
