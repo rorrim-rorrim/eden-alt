@@ -243,7 +243,7 @@ if (ENABLE_CUBEB)
         sink/cubeb_sink.h
     )
 
-    target_link_libraries(audio_core PRIVATE cubeb)
+    target_link_libraries(audio_core PRIVATE cubeb::cubeb)
     target_compile_definitions(audio_core PRIVATE HAVE_CUBEB=1)
 endif()
 

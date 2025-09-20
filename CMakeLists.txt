@@ -165,7 +165,8 @@ option(YUZU_USE_CPM "Use CPM to fetch system dependencies (fmt, boost, etc) if n
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 
-option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ${EXT_DEFAULT})
+option(YUZU_USE_BUNDLED_FFMPEG "Download bundled FFmpeg" ${EXT_DEFAULT})
+cmake_dependent_option(YUZU_USE_EXTERNAL_FFMPEG "Build FFmpeg from source" OFF "NOT WIN32 AND NOT ANDROID" OFF)
 
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 
@@ -183,8 +184,6 @@ option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ${EXT_DEFAULT})
 
 # TODO(crueter): CI this?
 option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
-
-option(FORCE_DOWNLOAD_WIN_BUNDLES "Forcefully download bundled Windows dependencies (useful for CI)" OFF)
 
 # TODO(crueter): Cleanup, each dep that has a bundled option should allow to choose between bundled, external, system
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}" "ENABLE_SDL2" OFF)
@@ -579,6 +578,10 @@ if(ENABLE_CUBEB)
             )
         endif()
     endif()
+
+    if (NOT TARGET cubeb::cubeb)
+        add_library(cubeb::cubeb ALIAS cubeb)
+    endif()
 endif()
 
 # find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the YUZU_find_package
@@ -662,10 +665,6 @@ if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
     find_package(cpp-jwt)
 endif()
 
-if (ENABLE_SDL2)
-    find_package(SDL2)
-endif()
-
 if (ENABLE_QT)
     if (YUZU_USE_BUNDLED_QT)
         download_qt(6.8.3)
@@ -738,9 +737,8 @@ if (UNIX AND NOT APPLE AND NOT ANDROID)
     pkg_check_modules(LIBVA libva)
 endif()
 
-if (NOT YUZU_USE_BUNDLED_FFMPEG)
+if (NOT (YUZU_USE_BUNDLED_FFMPEG OR YUZU_USE_EXTERNAL_FFMPEG))
     # Use system installed FFmpeg
-    #find_package(FFmpeg 4.3 REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
     find_package(FFmpeg REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
 
     # TODO(crueter): Version

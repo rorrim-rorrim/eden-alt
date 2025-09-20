@@ -1,53 +1,14 @@
+# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2021 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 include(CPMUtil)
 
-if (NOT WIN32 AND NOT ANDROID)
-    # Build FFmpeg from externals
-    message(STATUS "Using FFmpeg from externals")
+# TODO(crueter, MaranBr): Externals FFmpeg 8.0
 
-    if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86_64|amd64)")
-        # FFmpeg has source that requires one of nasm or yasm to assemble it.
-        # REQUIRED throws an error if not found here during configuration rather than during compilation.
-        find_program(ASSEMBLER NAMES nasm yasm)
-        if ("${ASSEMBLER}" STREQUAL "ASSEMBLER-NOTFOUND")
-            message(FATAL_ERROR "One of either `nasm` or `yasm` not found but is required.")
-        endif()
-    endif()
-
-    find_program(AUTOCONF autoconf)
-    if ("${AUTOCONF}" STREQUAL "AUTOCONF-NOTFOUND")
-        message(FATAL_ERROR "Required program `autoconf` not found.")
-    endif()
-
-    AddJsonPackage(ffmpeg)
-
-    set(FFmpeg_PREFIX ${ffmpeg_SOURCE_DIR})
-    set(FFmpeg_BUILD_DIR ${ffmpeg_BINARY_DIR})
-    set(FFmpeg_MAKEFILE ${FFmpeg_BUILD_DIR}/Makefile)
-    make_directory(${FFmpeg_BUILD_DIR})
-
-    # Read version string from external
-    file(READ ${FFmpeg_PREFIX}/RELEASE FFmpeg_VERSION)
-    set(FFmpeg_FOUND NO)
-    if (NOT FFmpeg_VERSION STREQUAL "")
-        set(FFmpeg_FOUND YES)
-    endif()
-
-    unset(FFmpeg_LIBRARIES CACHE)
-
-    foreach(COMPONENT ${FFmpeg_COMPONENTS})
-        set(FFmpeg_${COMPONENT}_PREFIX "${FFmpeg_BUILD_DIR}/lib${COMPONENT}")
-        set(FFmpeg_${COMPONENT}_LIB_NAME "lib${COMPONENT}.a")
-        set(FFmpeg_${COMPONENT}_LIBRARY "${FFmpeg_${COMPONENT}_PREFIX}/${FFmpeg_${COMPONENT}_LIB_NAME}")
-
-        set(FFmpeg_LIBRARIES
-            ${FFmpeg_LIBRARIES}
-            ${FFmpeg_${COMPONENT}_LIBRARY}
-            CACHE PATH "Paths to FFmpeg libraries" FORCE)
-    endforeach()
-
+if (UNIX)
     find_package(PkgConfig REQUIRED)
     if (NOT ANDROID)
         pkg_check_modules(LIBVA libva)
@@ -142,6 +103,83 @@ if (NOT WIN32 AND NOT ANDROID)
         list(APPEND FFmpeg_HWACCEL_FLAGS --disable-vdpau)
         message(WARNING "ffmpeg: libvdpau-dev not found, disabling Video Decode and Presentation API for Unix (VDPAU)...")
     endif()
+endif()
+
+if (YUZU_USE_BUNDLED_FFMPEG)
+    # MSVC conflicts with ksuser otherwise
+    # TODO(crueter) fix
+    set(BUILD_SHARED_LIBS ${MSVC})
+    AddJsonPackage(ffmpeg-ci)
+
+    set(FFmpeg_INCLUDE_DIR
+        "${FFmpeg_SOURCE_DIR}/include;${FFmpeg_HWACCEL_INCLUDE_DIRS}"
+        PARENT_SCOPE
+    )
+
+    set(FFmpeg_PATH
+        "${FFmpeg_SOURCE_DIR}"
+        PARENT_SCOPE
+    )
+
+    set(FFmpeg_LIBRARY_DIR
+        "${FFmpeg_SOURCE_DIR}/bin"
+        PARENT_SCOPE
+    )
+
+    set(FFmpeg_LIBRARIES
+        cubeb::cubeb
+        ksuser
+        FFmpeg::swscale
+        FFmpeg::avutil
+        FFmpeg::avcodec
+        FFmpeg::avfilter
+        ${FFMPEG_HWACCEL_LIBRARIES}
+        PARENT_SCOPE
+    )
+else()
+    # Build FFmpeg from externals
+    message(STATUS "Using FFmpeg from externals")
+
+    if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86_64|amd64)")
+        # FFmpeg has source that requires one of nasm or yasm to assemble it.
+        # REQUIRED throws an error if not found here during configuration rather than during compilation.
+        find_program(ASSEMBLER NAMES nasm yasm)
+        if ("${ASSEMBLER}" STREQUAL "ASSEMBLER-NOTFOUND")
+            message(FATAL_ERROR "One of either `nasm` or `yasm` not found but is required.")
+        endif()
+    endif()
+
+    find_program(AUTOCONF autoconf)
+    if ("${AUTOCONF}" STREQUAL "AUTOCONF-NOTFOUND")
+        message(FATAL_ERROR "Required program `autoconf` not found.")
+    endif()
+
+    AddJsonPackage(ffmpeg)
+
+    set(FFmpeg_PREFIX ${ffmpeg_SOURCE_DIR})
+    set(FFmpeg_BUILD_DIR ${ffmpeg_BINARY_DIR})
+    set(FFmpeg_MAKEFILE ${FFmpeg_BUILD_DIR}/Makefile)
+    make_directory(${FFmpeg_BUILD_DIR})
+
+    # Read version string from external
+    file(READ ${FFmpeg_PREFIX}/RELEASE FFmpeg_VERSION)
+    set(FFmpeg_FOUND NO)
+    if (NOT FFmpeg_VERSION STREQUAL "")
+        set(FFmpeg_FOUND YES)
+    endif()
+
+    unset(FFmpeg_LIBRARIES CACHE)
+
+    foreach(COMPONENT ${FFmpeg_COMPONENTS})
+        set(FFmpeg_${COMPONENT}_PREFIX "${FFmpeg_BUILD_DIR}/lib${COMPONENT}")
+        set(FFmpeg_${COMPONENT}_LIB_NAME "lib${COMPONENT}.a")
+        set(FFmpeg_${COMPONENT}_LIBRARY "${FFmpeg_${COMPONENT}_PREFIX}/${FFmpeg_${COMPONENT}_LIB_NAME}")
+
+        set(FFmpeg_LIBRARIES
+            ${FFmpeg_LIBRARIES}
+            ${FFmpeg_${COMPONENT}_LIBRARY}
+            CACHE PATH "Paths to FFmpeg libraries" FORCE)
+    endforeach()
 
     find_program(BASH_PROGRAM bash REQUIRED)
 
@@ -242,57 +280,6 @@ if (NOT WIN32 AND NOT ANDROID)
     else()
         message(FATAL_ERROR "FFmpeg not found")
     endif()
-elseif(ANDROID)
-    # Use yuzu FFmpeg binaries
-    if (ARCHITECTURE_arm64)
-        set(FFmpeg_EXT_NAME "ffmpeg-android-7.1.1-aarch64")
-    elseif (ARCHITECTURE_x86_64)
-        set(FFmpeg_EXT_NAME "ffmpeg-android-v5.1.LTS-x86_64")
-    else()
-        message(FATAL_ERROR "Unsupported architecture for Android FFmpeg")
-    endif()
-
-    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" FFmpeg_PATH 7.1.1)
-    set(FFmpeg_FOUND YES)
-    set(FFmpeg_INCLUDE_DIR "${FFmpeg_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
-    set(FFmpeg_LIBRARY_DIR "${FFmpeg_PATH}/lib" CACHE PATH "Path to FFmpeg library directory" FORCE)
-    set(FFmpeg_LDFLAGS "" CACHE STRING "FFmpeg linker flags" FORCE)
-    set(FFmpeg_LIBRARIES
-        ${FFmpeg_LIBRARY_DIR}/libavcodec.so
-        ${FFmpeg_LIBRARY_DIR}/libavdevice.so
-        ${FFmpeg_LIBRARY_DIR}/libavfilter.so
-        ${FFmpeg_LIBRARY_DIR}/libavformat.so
-        ${FFmpeg_LIBRARY_DIR}/libavutil.so
-        ${FFmpeg_LIBRARY_DIR}/libswresample.so
-        ${FFmpeg_LIBRARY_DIR}/libswscale.so
-        ${FFmpeg_LIBRARY_DIR}/libvpx.a
-        ${FFmpeg_LIBRARY_DIR}/libx264.a
-        CACHE PATH "Paths to FFmpeg libraries" FORCE)
-    # exported variables
-    set(FFmpeg_PATH "${FFmpeg_PATH}" PARENT_SCOPE)
-    set(FFmpeg_LDFLAGS "${FFmpeg_LDFLAGS}" PARENT_SCOPE)
-    set(FFmpeg_LIBRARIES "${FFmpeg_LIBRARIES}" PARENT_SCOPE)
-    set(FFmpeg_INCLUDE_DIR "${FFmpeg_INCLUDE_DIR}" PARENT_SCOPE)
-elseif(WIN32)
-    # Use yuzu FFmpeg binaries
-    set(FFmpeg_EXT_NAME "ffmpeg-7.1.1")
-
-    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" FFmpeg_PATH 7.1.1)
-    set(FFmpeg_FOUND YES)
-    set(FFmpeg_INCLUDE_DIR "${FFmpeg_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
-    set(FFmpeg_LIBRARY_DIR "${FFmpeg_PATH}/bin" CACHE PATH "Path to FFmpeg library directory" FORCE)
-    set(FFmpeg_LDFLAGS "" CACHE STRING "FFmpeg linker flags" FORCE)
-    set(FFmpeg_LIBRARIES
-    ${FFmpeg_LIBRARY_DIR}/swscale.lib
-    ${FFmpeg_LIBRARY_DIR}/avcodec.lib
-    ${FFmpeg_LIBRARY_DIR}/avfilter.lib
-    ${FFmpeg_LIBRARY_DIR}/avutil.lib
-    CACHE PATH "Paths to FFmpeg libraries" FORCE)
-    # exported variables
-    set(FFmpeg_PATH "${FFmpeg_PATH}" PARENT_SCOPE)
-    set(FFmpeg_LDFLAGS "${FFmpeg_LDFLAGS}" PARENT_SCOPE)
-    set(FFmpeg_LIBRARIES "${FFmpeg_LIBRARIES}" PARENT_SCOPE)
-    set(FFmpeg_INCLUDE_DIR "${FFmpeg_INCLUDE_DIR}" PARENT_SCOPE)
 endif()
 
 unset(FFmpeg_COMPONENTS)
