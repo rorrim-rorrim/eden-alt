@@ -40,7 +40,7 @@ std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device) {
 
 std::unique_ptr<WindowAdaptPass> MakeLanczos(const Device& device) {
     return std::make_unique<WindowAdaptPass>(device, CreateBilinearSampler(),
-                                             HostShaders::PRESENT_LANCZO_FRAG);
+                                             HostShaders::PRESENT_LANCZOS_FRAG);
 }
 
 std::unique_ptr<WindowAdaptPass> MakeScaleForce(const Device& device) {
