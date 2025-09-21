@@ -26,7 +26,7 @@ download_package() {
   curl "$DOWNLOAD" -sS -L -o "$OUTFILE"
 
   ACTUAL_HASH=$(${HASH_ALGO}sum "$OUTFILE" | cut -d" " -f1)
-  [ "$ACTUAL_HASH" != "$HASH" ] && echo "$FILENAME did not match expected hash; expected $HASH but got $ACTUAL_HASH" && exit 1
+  [ "$ACTUAL_HASH" != "$HASH" ] && echo "!! $FILENAME did not match expected hash; expected $HASH but got $ACTUAL_HASH" && exit 1
 
   mkdir -p "$OUTDIR"
 
@@ -69,29 +69,42 @@ download_package() {
 ci_package() {
   REPO=$(jq -r ".repo" <<< "$JSON")
   EXT=$(jq -r '.extension' <<< "$JSON")
-  [ "$EXT" == null ] && EXT="tar.zst"
+  [ "$EXT" = null ] && EXT="tar.zst"
 
   VERSION=$(jq -r ".version" <<< "$JSON")
-  NAME=$(jq -r ".name | \"$package\"" <<< "$JSON")
+
+  NAME=$(jq -r ".name" <<< "$JSON")
+  [ "$NAME" = null ] && NAME="$PACKAGE"
+
   PACKAGE=$(jq -r ".package | \"$package\"" <<< "$JSON")
 
   # TODO(crueter)
-  # DISABLED=$(jq -j '.disabled_platforms | join(" ")' <<< "$JSON")
+  DISABLED=$(jq -j '.disabled_platforms | join(" ")' <<< "$JSON")
 
-  [ "$REPO" == null ] && echo "No repo defined for CI package $package" && return
+  echo $DISABLED
 
-  echo "CI package $PACKAGE"
+  [ "$REPO" = null ] && echo "No repo defined for CI package $package" && return
+
+  echo "-- CI package $PACKAGE"
 
   for platform in windows-amd64 windows-arm64 android solaris freebsd linux linux-aarch64; do
+    echo "-- * platform $platform"
+
+    case $DISABLED in
+      (*"$platform"*)
+        echo "-- * -- disabled"
+        continue
+        ;;
+      (*) ;;
+    esac
+
     FILENAME="${NAME}-${platform}-${VERSION}.${EXT}"
     DOWNLOAD="https://$GIT_HOST/${REPO}/releases/download/v${VERSION}/${FILENAME}"
     PACKAGE_NAME="$PACKAGE"
     KEY=$platform
 
-    echo "- platform $KEY"
-
     HASH_ALGO=$(jq -r ".hash_algo" <<< "$JSON")
-    [ "$HASH_ALGO" == null ] && HASH_ALGO=sha512
+    [ "$HASH_ALGO" = null ] && HASH_ALGO=sha512
 
     HASH_SUFFIX="${HASH_ALGO}sum"
     HASH_URL="${DOWNLOAD}.${HASH_SUFFIX}"
@@ -106,12 +119,16 @@ for package in $@
 do
   # prepare for cancer
   # TODO(crueter): Fetch json once?
-  JSON=$(find . externals src/qt_common src/dynarmic -maxdepth 1 -name cpmfile.json -exec jq -r ".\"$package\" | select( . != null )" {} \;)
+  JSON=$(find . externals src/qt_common src/dynarmic -maxdepth 2 -name cpmfile.json -exec jq -r ".\"$package\" | select( . != null )" {} \;)
 
-  [ -z "$JSON" ] && echo "No cpmfile definition for $package" && continue
+  [ -z "$JSON" ] && echo "!! No cpmfile definition for $package" && continue
 
   PACKAGE_NAME=$(jq -r ".package" <<< "$JSON")
-  [ "$PACKAGE_NAME" == null ] && PACKAGE_NAME="$package"
+  [ "$PACKAGE_NAME" = null ] && PACKAGE_NAME="$package"
+
+  GIT_HOST=$(jq -r ".git_host" <<< "$JSON")
+  [ "$GIT_HOST" = null ] && GIT_HOST=github.com
+  REPO=$(jq -r ".repo" <<< "$JSON")
 
   CI=$(jq -r ".ci" <<< "$JSON")
   if [ "$CI" != null ]; then
@@ -124,16 +141,12 @@ do
   TAG=$(jq -r ".tag" <<< "$JSON")
   SHA=$(jq -r ".sha" <<< "$JSON")
 
-  [ "$GIT_VERSION" == null ] && GIT_VERSION="$VERSION"
-  [ "$GIT_VERSION" == null ] && GIT_VERSION="$TAG"
+  [ "$GIT_VERSION" = null ] && GIT_VERSION="$VERSION"
+  [ "$GIT_VERSION" = null ] && GIT_VERSION="$TAG"
 
   # url parsing WOOOHOOHOHOOHOHOH
   URL=$(jq -r ".url" <<< "$JSON")
-  REPO=$(jq -r ".repo" <<< "$JSON")
   SHA=$(jq -r ".sha" <<< "$JSON")
-  GIT_HOST=$(jq -r ".git_host" <<< "$JSON")
-
-  [ "$GIT_HOST" == null ] && GIT_HOST=github.com
 
   VERSION=$(jq -r ".version" <<< "$JSON")
   GIT_VERSION=$(jq -r ".git_version" <<< "$JSON")
@@ -168,21 +181,21 @@ do
     elif [ "$SHA" != "null" ]; then
       DOWNLOAD="${GIT_URL}/archive/${SHA}.zip"
     else
-      if [ "$BRANCH" == null ]; then
+      if [ "$BRANCH" = null ]; then
         BRANCH=master
       fi
 
       DOWNLOAD="${GIT_URL}/archive/refs/heads/${BRANCH}.zip"
     fi
   else
-    echo "No repo or URL defined for $package"
+    echo "!! No repo or URL defined for $package"
     continue
   fi
 
   # key parsing
   KEY=$(jq -r ".key" <<< "$JSON")
 
-  if [ "$KEY" == null ]; then
+  if [ "$KEY" = null ]; then
     if [ "$SHA" != null ]; then
       KEY=$(cut -c1-4 - <<< "$SHA")
     elif [ "$GIT_VERSION" != null ]; then
@@ -192,24 +205,24 @@ do
     elif [ "$VERSION" != null ]; then
       KEY="$VERSION"
     else
-      echo "No valid key could be determined for $package. Must define one of: key, sha, tag, version, git_version"
+      echo "!! No valid key could be determined for $package. Must define one of: key, sha, tag, version, git_version"
       continue
     fi
   fi
 
-  echo "Downloading regular package $package, with key $KEY, from $DOWNLOAD"
+  echo "-- Downloading regular package $package, with key $KEY, from $DOWNLOAD"
 
   # hash parsing
   HASH_ALGO=$(jq -r ".hash_algo" <<< "$JSON")
-  [ "$HASH_ALGO" == null ] && HASH_ALGO=sha512
+  [ "$HASH_ALGO" = null ] && HASH_ALGO=sha512
 
   HASH=$(jq -r ".hash" <<< "$JSON")
 
-  if [ "$HASH" == null ]; then
+  if [ "$HASH" = null ]; then
     HASH_SUFFIX="${HASH_ALGO}sum"
     HASH_URL=$(jq -r ".hash_url" <<< "$JSON")
 
-    if [ "$HASH_URL" == null ]; then
+    if [ "$HASH_URL" = null ]; then
       HASH_URL="${DOWNLOAD}.${HASH_SUFFIX}"
     fi
 
