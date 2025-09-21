@@ -77,7 +77,7 @@ inline VariableKey KeyOf(IR::Reg r){
 }
 
 inline VariableKey KeyOf(IR::Pred p){
-    return {PackKey(VarTag::Pred, static_cast<uint32_t>(IR::PredIndex(p)))};
+    return {PackKey(VarTag::Pred, static_cast<uint32_t>(p))};
 }
 
 inline VariableKey KeyOf(ZeroFlagTag){
@@ -251,10 +251,9 @@ public:
                     WriteVariable(variable, block, IR::Value{phi});
                     stack.back().result = IR::Value{&*phi};
                 } else if (const std::span imm_preds = block->ImmPredecessors();
-                        imm_preds.size() == 1) {
-                    // Tail-advance: reuse this frame
-                    stack.back().block = imm_preds.front();
-                    stack.back().pc = Status::Start;
+                           imm_preds.size() == 1) {
+                    stack.back().pc = Status::SetValue;
+                    stack.emplace_back(imm_preds.front());
                     break;
                 } else {
                     // Break potential cycles with operandless phi
