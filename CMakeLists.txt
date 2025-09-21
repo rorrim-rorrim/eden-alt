@@ -460,6 +460,10 @@ if (YUZU_USE_CPM)
         endif()
     endif()
 
+    if (NOT TARGET Opus::opus)
+        add_library(Opus::opus ALIAS opus)
+    endif()
+
     # VulkanUtilityHeaders - pulls in headers and utility libs
     AddJsonPackage(vulkan-utility-headers)
 

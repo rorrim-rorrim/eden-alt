@@ -53,3 +53,4 @@ eden-windows-msvc
 artifacts
 *.AppImage*
 /install*
+/.tx

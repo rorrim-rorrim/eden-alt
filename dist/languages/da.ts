@@ -402,108 +402,133 @@ Dette vil bandlyse både vedkommendes forum-brugernavn og IP-adresse.</translati
         <translation>%</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="52"/>
         <source>Output Engine:</source>
-        <translation type="vanished">Udgangsmotor:</translation>
+        <translation>Udgangsmotor:</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="56"/>
         <source>Volume:</source>
-        <translation type="vanished">Lydstyrke:</translation>
+        <translation>Lydstyrke:</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="58"/>
         <source>Mute audio when in background</source>
-        <translation type="vanished">Gør lydløs, når i baggrunden</translation>
+        <translation>Gør lydløs, når i baggrunden</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="64"/>
         <source>Multicore CPU Emulation</source>
-        <translation type="vanished">Flerkerne-CPU-Emulering</translation>
+        <translation>Flerkerne-CPU-Emulering</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="79"/>
         <source>Limit Speed Percent</source>
-        <translation type="vanished">Begræns Hastighedsprocent</translation>
+        <translation>Begræns Hastighedsprocent</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="95"/>
         <source>Accuracy:</source>
-        <translation type="vanished">Nøjagtighed</translation>
+        <translation>Nøjagtighed</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="124"/>
         <source>Unfuse FMA (improve performance on CPUs without FMA)</source>
-        <translation type="vanished">Adskil FMA (forbedr ydeevne på CPUer uden FMA)</translation>
+        <translation>Adskil FMA (forbedr ydeevne på CPUer uden FMA)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="130"/>
         <source>Faster FRSQRTE and FRECPE</source>
-        <translation type="vanished">Hurtigere FRSQRTE og FRECPE</translation>
+        <translation>Hurtigere FRSQRTE og FRECPE</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="135"/>
         <source>Faster ASIMD instructions (32 bits only)</source>
-        <translation type="vanished">Hurtigere ASIMD-instrukser (kun 32-bit)</translation>
+        <translation>Hurtigere ASIMD-instrukser (kun 32-bit)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="140"/>
         <source>Inaccurate NaN handling</source>
-        <translation type="vanished">Unøjagtig NaN-håndtering</translation>
+        <translation>Unøjagtig NaN-håndtering</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="145"/>
         <source>Disable address space checks</source>
-        <translation type="vanished">Deaktivér adresseplads-kontrol</translation>
+        <translation>Deaktivér adresseplads-kontrol</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="152"/>
         <source>Ignore global monitor</source>
-        <translation type="vanished">Ignorér global overvågning</translation>
+        <translation>Ignorér global overvågning</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="161"/>
         <source>API:</source>
-        <translation type="vanished">API:</translation>
+        <translation>API:</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="165"/>
         <source>Device:</source>
-        <translation type="vanished">Enhed:</translation>
+        <translation>Enhed:</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="169"/>
         <source>Shader Backend:</source>
-        <translation type="vanished">Shader-Bagende:</translation>
+        <translation>Shader-Bagende:</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="177"/>
         <source>Resolution:</source>
-        <translation type="vanished">Opløsning:</translation>
+        <translation>Opløsning:</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="181"/>
         <source>Window Adapting Filter:</source>
-        <translation type="vanished">Vinduestilpassende Filter:</translation>
+        <translation>Vinduestilpassende Filter:</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="188"/>
         <source>Anti-Aliasing Method:</source>
-        <translation type="vanished">Anti-Aliaseringsmetode:</translation>
+        <translation>Anti-Aliaseringsmetode:</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="194"/>
         <source>Fullscreen Mode:</source>
-        <translation type="vanished">Fuldskærmstilstand:</translation>
+        <translation>Fuldskærmstilstand:</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="201"/>
         <source>Aspect Ratio:</source>
-        <translation type="vanished">Skærmformat:</translation>
+        <translation>Skærmformat:</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="207"/>
         <source>Use disk pipeline cache</source>
-        <translation type="vanished">Brug disk-rørlinje-mellemlager</translation>
+        <translation>Brug disk-rørlinje-mellemlager</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="220"/>
         <source>Use asynchronous GPU emulation</source>
-        <translation type="vanished">Brug asynkron GPU-emulering</translation>
+        <translation>Brug asynkron GPU-emulering</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="224"/>
         <source>NVDEC emulation:</source>
-        <translation type="vanished">NVDEC-emulering:</translation>
+        <translation>NVDEC-emulering:</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="283"/>
         <source>Anisotropic Filtering:</source>
-        <translation type="vanished">Anisotropisk Filtrering:</translation>
+        <translation>Anisotropisk Filtrering:</translation>
     </message>
     <message>
         <source>Accuracy Level:</source>
         <translation type="vanished">Nøjagtighedsniveau</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="298"/>
         <source>Use asynchronous shader building (Hack)</source>
-        <translation type="vanished">Brug asynkron shader-opbygning (Hack)</translation>
+        <translation>Brug asynkron shader-opbygning (Hack)</translation>
     </message>
     <message>
         <source>Use Fast GPU Time (Hack)</source>
@@ -514,440 +539,1480 @@ Dette vil bandlyse både vedkommendes forum-brugernavn og IP-adresse.</translati
         <translation type="vanished">Aktiverer Hurtig GPU-Tid. Denne valgmulighed vil tvinge de fleste spil, til at køre i deres højeste indbyggede opløsning.</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="376"/>
         <source>RNG Seed</source>
-        <translation type="vanished">RNG-Seed</translation>
+        <translation>RNG-Seed</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="394"/>
         <source>Note: this can be overridden when region setting is auto-select</source>
-        <translation type="vanished">Bemærk: Dette kan overskrives, når regionsindstillinger er sat til automatisk valg</translation>
+        <translation>Bemærk: Dette kan overskrives, når regionsindstillinger er sat til automatisk valg</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="395"/>
         <source>Region:</source>
-        <translation type="vanished">Region</translation>
+        <translation>Region</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="396"/>
         <source>Time Zone:</source>
-        <translation type="vanished">Tidszone</translation>
+        <translation>Tidszone</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="423"/>
         <source>Prompt for user on game boot</source>
-        <translation type="vanished">Spørg efter bruger, ved opstart af spil</translation>
+        <translation>Spørg efter bruger, ved opstart af spil</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="428"/>
         <source>Pause emulation when in background</source>
-        <translation type="vanished">Sæt emulering på pause, når i baggrund</translation>
+        <translation>Sæt emulering på pause, når i baggrund</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="437"/>
         <source>Hide mouse on inactivity</source>
-        <translation type="vanished">Skjul mus ved inaktivitet</translation>
+        <translation>Skjul mus ved inaktivitet</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="487"/>
         <source>CPU</source>
-        <translation type="vanished">CPU</translation>
+        <translation>CPU</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="515"/>
         <source>GLASM (Assembly Shaders, NVIDIA Only)</source>
-        <translation type="vanished">GLASM (Assembly-Shadere, kun NVIDIA)</translation>
+        <translation>GLASM (Assembly-Shadere, kun NVIDIA)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="533"/>
         <source>Auto</source>
-        <translation type="vanished">Automatisk</translation>
+        <translation>Automatisk</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="534"/>
         <source>Accurate</source>
-        <translation type="vanished">Nøjagtig</translation>
+        <translation>Nøjagtig</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="535"/>
         <source>Unsafe</source>
-        <translation type="vanished">Usikker</translation>
+        <translation>Usikker</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="536"/>
         <source>Paranoid (disables most optimizations)</source>
-        <translation type="vanished">Paranoid (deaktiverer de fleste optimeringer)</translation>
+        <translation>Paranoid (deaktiverer de fleste optimeringer)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="545"/>
         <source>Borderless Windowed</source>
-        <translation type="vanished">Uindrammet Vindue</translation>
+        <translation>Uindrammet Vindue</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="546"/>
         <source>Exclusive Fullscreen</source>
-        <translation type="vanished">Eksklusiv Fuld Skærm</translation>
+        <translation>Eksklusiv Fuld Skærm</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="550"/>
         <source>No Video Output</source>
-        <translation type="vanished">Ingen Video-Output</translation>
+        <translation>Ingen Video-Output</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="551"/>
         <source>CPU Video Decoding</source>
-        <translation type="vanished">CPU-Video Afkodning</translation>
+        <translation>CPU-Video Afkodning</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="552"/>
         <source>GPU Video Decoding (Default)</source>
-        <translation type="vanished">GPU-Video Afkodning (Standard)</translation>
+        <translation>GPU-Video Afkodning (Standard)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="559"/>
         <source>0.75X (540p/810p) [EXPERIMENTAL]</source>
-        <translation type="vanished">0,75X (540p/810p) [EKSPERIMENTEL]</translation>
+        <translation>0,75X (540p/810p) [EKSPERIMENTEL]</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="560"/>
         <source>1X (720p/1080p)</source>
-        <translation type="vanished">1X (720p/1080p)</translation>
+        <translation>1X (720p/1080p)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="562"/>
         <source>2X (1440p/2160p)</source>
-        <translation type="vanished">2X (1440p/2160p)</translation>
+        <translation>2X (1440p/2160p)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="563"/>
         <source>3X (2160p/3240p)</source>
-        <translation type="vanished">3X (2160p/3240p)</translation>
+        <translation>3X (2160p/3240p)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="564"/>
         <source>4X (2880p/4320p)</source>
-        <translation type="vanished">4X (2880p/4320p)</translation>
+        <translation>4X (2880p/4320p)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="565"/>
         <source>5X (3600p/5400p)</source>
-        <translation type="vanished">5X (3600p/5400p)</translation>
+        <translation>5X (3600p/5400p)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="566"/>
         <source>6X (4320p/6480p)</source>
-        <translation type="vanished">6X (4320p/6480p)</translation>
+        <translation>6X (4320p/6480p)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="572"/>
         <source>Nearest Neighbor</source>
-        <translation type="vanished">Nærmeste Nabo</translation>
+        <translation>Nærmeste Nabo</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="573"/>
         <source>Bilinear</source>
-        <translation type="vanished">Bilineær</translation>
+        <translation>Bilineær</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="574"/>
         <source>Bicubic</source>
-        <translation type="vanished">Bikubisk</translation>
+        <translation>Bikubisk</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="575"/>
         <source>Gaussian</source>
-        <translation type="vanished">Gausisk</translation>
+        <translation>Gausisk</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="576"/>
         <source>ScaleForce</source>
-        <translation type="vanished">ScaleForce</translation>
+        <translation>ScaleForce</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="582"/>
         <source>None</source>
-        <translation type="vanished">Ingen</translation>
+        <translation>Ingen</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="583"/>
         <source>FXAA</source>
-        <translation type="vanished">FXAA</translation>
+        <translation>FXAA</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="588"/>
         <source>Default (16:9)</source>
-        <translation type="vanished">Standard (16:9)</translation>
+        <translation>Standard (16:9)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="589"/>
         <source>Force 4:3</source>
-        <translation type="vanished">Tving 4:3</translation>
+        <translation>Tving 4:3</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="590"/>
         <source>Force 21:9</source>
-        <translation type="vanished">Tving 21:9</translation>
+        <translation>Tving 21:9</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="592"/>
         <source>Stretch to Window</source>
-        <translation type="vanished">Stræk til Vindue</translation>
+        <translation>Stræk til Vindue</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="526"/>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="597"/>
         <source>Default</source>
-        <translation type="vanished">Standard</translation>
+        <translation>Standard</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="35"/>
+        <source>Amiibo editor</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="36"/>
+        <source>Controller configuration</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="37"/>
+        <source>Data erase</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="38"/>
+        <source>Error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="39"/>
+        <source>Net connect</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="40"/>
+        <source>Player select</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="41"/>
+        <source>Software keyboard</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="42"/>
+        <source>Mii Edit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="43"/>
+        <source>Online web</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="44"/>
+        <source>Shop</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="45"/>
+        <source>Photo viewer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="46"/>
+        <source>Offline web</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="47"/>
+        <source>Login share</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="48"/>
+        <source>Wifi web auth</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="49"/>
+        <source>My page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="53"/>
+        <source>Output Device:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="54"/>
+        <source>Input Device:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="55"/>
+        <source>Mute audio</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="65"/>
+        <source>This option increases CPU emulation thread use from 1 to the Switch’s maximum of 4.
+This is mainly a debug option and shouldn’t be disabled.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="70"/>
+        <source>Memory Layout</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="71"/>
+        <source>Increases the amount of emulated RAM from the stock 4GB of the retail Switch to the developer kit&apos;s 8/6GB.
+It’s doesn’t improve stability or performance and is intended to let big texture mods fit in emulated RAM.
+Enabling it will increase memory use. It is not recommended to enable unless a specific game with a texture mod needs it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="80"/>
+        <source>Controls the game&apos;s maximum rendering speed, but it’s up to each game if it runs faster or not.
+200% for a 30 FPS game is 60 FPS, and for a 60 FPS game it will be 120 FPS.
+Disabling it means unlocking the framerate to the maximum your PC can reach.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="86"/>
+        <source>Synchronize Core Speed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="87"/>
+        <source>Synchronizes CPU core speed with the game&apos;s maximum rendering speed to boost FPS without affecting game speed (animations, physics, etc.).
+Compatibility varies by game; many (especially older ones) may not respond well.
+Can help reduce stuttering at lower framerates.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="96"/>
+        <source>This setting controls the accuracy of the emulated CPU.
+Don&apos;t change this unless you know what you are doing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="98"/>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="114"/>
+        <source>Backend:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="103"/>
+        <source>Fast CPU Time</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="104"/>
+        <source>Overclocks the emulated CPU to remove some FPS limiters. Weaker CPUs may see reduced performance, and certain games may behave improperly.
+Use Boost (1700MHz) to run at the Switch&apos;s highest native clock, or Fast (2000MHz) to run at 2x clock.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="111"/>
+        <source>Custom CPU Ticks</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="112"/>
+        <source>Set a custom value of CPU ticks. Higher values can increase performance, but may also cause the game to freeze. A range of 77–21000 is recommended.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="119"/>
+        <source>Enable Host MMU Emulation (fastmem)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="120"/>
+        <source>This optimization speeds up memory accesses by the guest program.
+Enabling it causes guest memory reads/writes to be done directly into memory and make use of Host&apos;s MMU.
+Disabling this forces all memory accesses to use Software MMU Emulation.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="125"/>
+        <source>This option improves speed by reducing accuracy of fused-multiply-add instructions on CPUs without native FMA support.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="131"/>
+        <source>This option improves the speed of some approximate floating-point functions by using less accurate native approximations.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="136"/>
+        <source>This option improves the speed of 32 bits ASIMD floating-point functions by running with incorrect rounding modes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="141"/>
+        <source>This option improves speed by removing NaN checking.
+Please note this also reduces accuracy of certain floating-point instructions.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="146"/>
+        <source>This option improves speed by eliminating a safety check before every memory read/write in guest.
+Disabling it may allow a game to read/write the emulator&apos;s memory.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="153"/>
+        <source>This option improves speed by relying only on the semantics of cmpxchg to ensure safety of exclusive access instructions.
+Please note this may result in deadlocks and other race conditions.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="162"/>
+        <source>Switches between the available graphics APIs.
+Vulkan is recommended in most cases.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="166"/>
+        <source>This setting selects the GPU to use with the Vulkan backend.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="170"/>
+        <source>The shader backend to use for the OpenGL renderer.
+GLSL is the fastest in performance and the best in rendering accuracy.
+GLASM is a deprecated NVIDIA-only backend that offers much better shader building performance at the cost of FPS and rendering accuracy.
+SPIR-V compiles the fastest, but yields poor results on most GPU drivers.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="178"/>
+        <source>Forces the game to render at a different resolution.
+Higher resolutions require much more VRAM and bandwidth.
+Options lower than 1X can cause rendering issues.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="184"/>
+        <source>FSR Sharpness:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="185"/>
+        <source>Determines how sharpened the image will look while using FSR’s dynamic contrast.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="189"/>
+        <source>The anti-aliasing method to use.
+SMAA offers the best quality.
+FXAA has a lower performance impact and can produce a better and more stable picture under very low resolutions.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="195"/>
+        <source>The method used to render the window in fullscreen.
+Borderless offers the best compatibility with the on-screen keyboard that some games request for input.
+Exclusive fullscreen may offer better performance and better Freesync/Gsync support.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="202"/>
+        <source>Stretches the game to fit the specified aspect ratio.
+Switch games only support 16:9, so custom game mods are required to get other ratios.
+Also controls the aspect ratio of captured screenshots.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="208"/>
+        <source>Allows saving shaders to storage for faster loading on following game boots.
+Disabling it is only intended for debugging.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="213"/>
+        <source>Optimize SPIRV output shader</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="214"/>
+        <source>Runs an additional optimization pass over generated SPIRV shaders.
+Will increase time required for shader compilation.
+May slightly improve performance.
+This feature is experimental.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="221"/>
+        <source>Uses an extra CPU thread for rendering.
+This option should always remain enabled.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="225"/>
+        <source>Specifies how videos should be decoded.
+It can either use the CPU or the GPU for decoding, or perform no decoding at all (black screen on videos).
+In most cases, GPU decoding provides the best performance.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="230"/>
+        <source>ASTC Decoding Method:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="231"/>
+        <source>This option controls how ASTC textures should be decoded.
+CPU: Use the CPU for decoding, slowest but safest method.
+GPU: Use the GPU&apos;s compute shaders to decode ASTC textures, recommended for most games and users.
+CPU Asynchronously: Use the CPU to decode ASTC textures as they arrive. Completely eliminates ASTC decoding
+stuttering at the cost of rendering issues while the texture is being decoded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="241"/>
+        <source>ASTC Recompression Method:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="242"/>
+        <source>Almost all desktop and laptop dedicated GPUs lack support for ASTC textures, forcing the emulator to decompress to an intermediate format any card supports, RGBA8.
+This option recompresses RGBA8 to either the BC1 or BC3 format, saving VRAM but negatively affecting image quality.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="248"/>
+        <source>VRAM Usage Mode:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="249"/>
+        <source>Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance.
+Aggressive mode may severely impact the performance of other applications such as recording software.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="252"/>
+        <source>Skip CPU Inner Invalidation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="253"/>
+        <source>Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and improving it&apos;s performance. This may cause glitches or crashes on some games.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="258"/>
+        <source>VSync Mode:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="259"/>
+        <source>FIFO (VSync) does not drop frames or exhibit tearing but is limited by the screen refresh rate.
+FIFO Relaxed is similar to FIFO but allows tearing as it recovers from a slow down.
+Mailbox can have lower latency than FIFO and does not tear but may drop frames.
+Immediate (no synchronization) just presents whatever is available and can exhibit tearing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="269"/>
+        <source>Sync Memory Operations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="270"/>
+        <source>Ensures data consistency between compute and memory operations.
+This option should fix issues in some games, but may also reduce performance in some cases.
+Unreal Engine 4 games often see the most significant changes thereof.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="273"/>
+        <source>Enable asynchronous presentation (Vulkan only)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="274"/>
+        <source>Slightly improves performance by moving presentation to a separate CPU thread.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="278"/>
+        <source>Force maximum clocks (Vulkan only)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="279"/>
+        <source>Runs work in the background while waiting for graphics commands to keep the GPU from lowering its clock speed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="284"/>
+        <source>Controls the quality of texture rendering at oblique angles.
+It’s a light setting and safe to set at 16x on most GPUs.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="288"/>
+        <source>GPU Accuracy:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="289"/>
+        <source>Controls the GPU emulation accuracy.
+Most games render fine with Normal, but High is still required for some.
+Particles tend to only render correctly with High accuracy.
+Extreme should only be used as a last resort.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="294"/>
+        <source>DMA Accuracy:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="295"/>
+        <source>Controls the DMA precision accuracy. Safe precision can fix issues in some games, but it can also impact performance in some cases.
+If unsure, leave this on Default.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="299"/>
+        <source>Enables asynchronous shader compilation, which may reduce shader stutter.
+This feature is experimental.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="305"/>
+        <source>Fast GPU Time (Hack)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="306"/>
+        <source>Overclocks the emulated GPU to increase dynamic resolution and render distance.
+Use 128 for maximal performance and 512 for maximal graphics fidelity.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="311"/>
+        <source>Use Vulkan pipeline cache</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="312"/>
+        <source>Enables GPU vendor-specific pipeline cache.
+This option can improve shader loading time significantly in cases where the Vulkan driver does not store pipeline cache files internally.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="318"/>
+        <source>Enable Compute Pipelines (Intel Vulkan Only)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="319"/>
+        <source>Enable compute pipelines, required by some games.
+This setting only exists for Intel proprietary drivers, and may crash if enabled.
+Compute pipelines are always enabled on all other drivers.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="325"/>
+        <source>Enable Reactive Flushing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="326"/>
+        <source>Uses reactive flushing instead of predictive flushing, allowing more accurate memory syncing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="330"/>
+        <source>Sync to framerate of video playback</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="331"/>
+        <source>Run the game at normal speed during video playback, even when the framerate is unlocked.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="335"/>
+        <source>Barrier feedback loops</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="336"/>
+        <source>Improves rendering of transparency effects in specific games.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="341"/>
+        <source>RAII</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="342"/>
+        <source>A method of automatic resource management in Vulkan that ensures proper release of resources when they are no longer needed, but may cause crashes in bundled games.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="347"/>
+        <source>Extended Dynamic State</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="348"/>
+        <source>Controls the number of features that can be used in Extended Dynamic State.
+Higher numbers allow for more features and can increase performance, but may cause issues with some drivers and vendors.
+The default value may vary depending on your system and hardware capabilities.
+This value can be changed until stability and a better visual quality are achieved.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="352"/>
+        <source>Provoking Vertex</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="353"/>
+        <source>Improves lighting and vertex handling in certain games.
+Only Vulkan 1.0+ devices support this extension.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="358"/>
+        <source>Descriptor Indexing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="359"/>
+        <source>Improves texture &amp; buffer handling and the Maxwell translation layer.
+Some Vulkan 1.1+ and all 1.2+ devices support this extension.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="366"/>
+        <source>Sample Shading</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="367"/>
+        <source>Allows the fragment shader to execute per sample in a multi-sampled fragment instead once per fragment. Improves graphics quality at the cost of some performance.
+Higher values improve quality more but also reduce performance to a greater extent.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="377"/>
+        <source>Controls the seed of the random number generator.
+Mainly used for speedrunning purposes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="380"/>
+        <source>Device Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="380"/>
+        <source>The name of the emulated Switch.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="383"/>
+        <source>Custom RTC Date:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="384"/>
+        <source>This option allows to change the emulated clock of the Switch.
+Can be used to manipulate time in games.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="393"/>
+        <source>Language:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="395"/>
+        <source>The region of the emulated Switch.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="396"/>
+        <source>The time zone of the emulated Switch.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="397"/>
+        <source>Sound Output Mode:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="400"/>
+        <source>Console Mode:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="401"/>
+        <source>Selects if the console is emulated in Docked or Handheld mode.
+Games will change their resolution, details and supported controllers and depending on this setting.
+Setting to Handheld can help improve performance for low end systems.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="424"/>
+        <source>Ask to select a user profile on each boot, useful if multiple people use Eden on the same PC.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="429"/>
+        <source>This setting pauses Eden when focusing other windows.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="432"/>
+        <source>Confirm before stopping emulation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="433"/>
+        <source>This setting overrides game prompts asking to confirm stopping the game.
+Enabling it bypasses such prompts and directly exits the emulation.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="438"/>
+        <source>This setting hides the mouse after 2.5s of inactivity.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="441"/>
+        <source>Disable controller applet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="442"/>
+        <source>Forcibly disables the use of the controller applet by guests.
+When a guest attempts to open the controller applet, it is immediately closed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="446"/>
+        <source>Check for updates</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="447"/>
+        <source>Whether or not to check for updates upon startup.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="450"/>
+        <source>Enable Gamemode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="475"/>
+        <source>Custom frontend</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="476"/>
+        <source>Real applet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="481"/>
+        <source>Never</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="482"/>
+        <source>On Load</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="483"/>
+        <source>Always</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="488"/>
+        <source>GPU</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="489"/>
+        <source>CPU Asynchronous</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="494"/>
+        <source>Uncompressed (Best quality)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="495"/>
+        <source>BC1 (Low quality)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="496"/>
+        <source>BC3 (Medium quality)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="500"/>
+        <source>Conservative</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="501"/>
+        <source>Aggressive</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="506"/>
+        <source>OpenGL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="508"/>
+        <source>Vulkan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="509"/>
+        <source>Null</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="514"/>
+        <source>GLSL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="516"/>
+        <source>SPIR-V (Experimental, AMD/Mesa Only)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="520"/>
+        <source>Normal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="521"/>
+        <source>High</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="522"/>
+        <source>Extreme</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="527"/>
+        <source>Unsafe (fast)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="528"/>
+        <source>Safe (stable)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="540"/>
+        <source>Dynarmic</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="541"/>
+        <source>NCE</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="557"/>
+        <source>0.25X (180p/270p) [EXPERIMENTAL]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="558"/>
+        <source>0.5X (360p/540p) [EXPERIMENTAL]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="561"/>
+        <source>1.5X (1080p/1620p) [EXPERIMENTAL]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="567"/>
+        <source>7X (5040p/7560p)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="568"/>
+        <source>8X (5760p/8640p)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="577"/>
+        <source>AMD FidelityFX™️ Super Resolution</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="578"/>
+        <source>Area</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="584"/>
+        <source>SMAA</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="591"/>
+        <source>Force 16:10</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="596"/>
+        <source>Automatic</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="598"/>
+        <source>2x</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="599"/>
+        <source>4x</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="600"/>
+        <source>8x</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="601"/>
+        <source>16x</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="606"/>
         <source>Japanese (日本語)</source>
-        <translation type="vanished">Japansk (日本語)</translation>
+        <translation>Japansk (日本語)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="607"/>
+        <source>American English</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="608"/>
         <source>French (français)</source>
-        <translation type="vanished">Fransk (français)</translation>
+        <translation>Fransk (français)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="609"/>
         <source>German (Deutsch)</source>
-        <translation type="vanished">Tysk (Deutsch)</translation>
+        <translation>Tysk (Deutsch)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="610"/>
         <source>Italian (italiano)</source>
-        <translation type="vanished">Italiensk (italiano)</translation>
+        <translation>Italiensk (italiano)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="611"/>
         <source>Spanish (español)</source>
-        <translation type="vanished">Spansk (español)</translation>
+        <translation>Spansk (español)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="612"/>
         <source>Chinese</source>
-        <translation type="vanished">Kinesisk</translation>
+        <translation>Kinesisk</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="613"/>
         <source>Korean (한국어)</source>
-        <translation type="vanished">Koreansk (한국어)</translation>
+        <translation>Koreansk (한국어)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="614"/>
         <source>Dutch (Nederlands)</source>
-        <translation type="vanished">Hollandsk (Nederlands)</translation>
+        <translation>Hollandsk (Nederlands)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="615"/>
         <source>Portuguese (português)</source>
-        <translation type="vanished">Portugisisk (português)</translation>
+        <translation>Portugisisk (português)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="616"/>
         <source>Russian (Русский)</source>
-        <translation type="vanished">Russisk (Русский)</translation>
+        <translation>Russisk (Русский)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="617"/>
         <source>Taiwanese</source>
-        <translation type="vanished">Taiwanesisk</translation>
+        <translation>Taiwanesisk</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="618"/>
         <source>British English</source>
-        <translation type="vanished">Britisk Engelsk</translation>
+        <translation>Britisk Engelsk</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="619"/>
         <source>Canadian French</source>
-        <translation type="vanished">Candadisk Fransk</translation>
+        <translation>Candadisk Fransk</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="620"/>
         <source>Latin American Spanish</source>
-        <translation type="vanished">Latinamerikansk Spansk</translation>
+        <translation>Latinamerikansk Spansk</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="621"/>
         <source>Simplified Chinese</source>
-        <translation type="vanished">Forenklet Kinesisk</translation>
+        <translation>Forenklet Kinesisk</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="622"/>
         <source>Traditional Chinese (正體中文)</source>
-        <translation type="vanished">Traditionelt Kinesisk (正體中文)</translation>
+        <translation>Traditionelt Kinesisk (正體中文)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="623"/>
         <source>Brazilian Portuguese (português do Brasil)</source>
-        <translation type="vanished">Braziliansk Portugisisk (português do Brasil)</translation>
+        <translation>Braziliansk Portugisisk (português do Brasil)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="624"/>
+        <source>Serbian (српски)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="628"/>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="667"/>
         <source>Japan</source>
-        <translation type="vanished">Japan</translation>
+        <translation>Japan</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="629"/>
         <source>USA</source>
-        <translation type="vanished">USA</translation>
+        <translation>USA</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="630"/>
         <source>Europe</source>
-        <translation type="vanished">Europa</translation>
+        <translation>Europa</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="631"/>
         <source>Australia</source>
-        <translation type="vanished">Australien</translation>
+        <translation>Australien</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="632"/>
         <source>China</source>
-        <translation type="vanished">Kina</translation>
+        <translation>Kina</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="633"/>
         <source>Korea</source>
-        <translation type="vanished">Korea</translation>
+        <translation>Korea</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="634"/>
         <source>Taiwan</source>
-        <translation type="vanished">Taiwan</translation>
+        <translation>Taiwan</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="640"/>
+        <source>Auto (%1)</source>
+        <comment>Auto select time zone</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="644"/>
+        <source>Default (%1)</source>
+        <comment>Default time zone</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="646"/>
         <source>CET</source>
-        <translation type="vanished">CET</translation>
+        <translation>CET</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="647"/>
         <source>CST6CDT</source>
-        <translation type="vanished">CST6CDT</translation>
+        <translation>CST6CDT</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="648"/>
         <source>Cuba</source>
-        <translation type="vanished">Cuba</translation>
+        <translation>Cuba</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="649"/>
         <source>EET</source>
-        <translation type="vanished">EET</translation>
+        <translation>EET</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="650"/>
         <source>Egypt</source>
-        <translation type="vanished">Ægypten</translation>
+        <translation>Ægypten</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="651"/>
         <source>Eire</source>
-        <translation type="vanished">Eire</translation>
+        <translation>Eire</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="652"/>
         <source>EST</source>
-        <translation type="vanished">EST</translation>
+        <translation>EST</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="653"/>
         <source>EST5EDT</source>
-        <translation type="vanished">EST5EDT</translation>
+        <translation>EST5EDT</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="654"/>
         <source>GB</source>
-        <translation type="vanished">GB</translation>
+        <translation>GB</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="655"/>
         <source>GB-Eire</source>
-        <translation type="vanished">GB-Eire</translation>
+        <translation>GB-Eire</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="656"/>
         <source>GMT</source>
-        <translation type="vanished">GMT</translation>
+        <translation>GMT</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="657"/>
         <source>GMT+0</source>
-        <translation type="vanished">GMT+0</translation>
+        <translation>GMT+0</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="658"/>
         <source>GMT-0</source>
-        <translation type="vanished">GMT-0</translation>
+        <translation>GMT-0</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="659"/>
         <source>GMT0</source>
-        <translation type="vanished">GMT0</translation>
+        <translation>GMT0</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="660"/>
         <source>Greenwich</source>
-        <translation type="vanished">Greenwich</translation>
+        <translation>Greenwich</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="661"/>
         <source>Hongkong</source>
-        <translation type="vanished">Hongkong</translation>
+        <translation>Hongkong</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="662"/>
         <source>HST</source>
-        <translation type="vanished">HST</translation>
+        <translation>HST</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="663"/>
         <source>Iceland</source>
-        <translation type="vanished">Island</translation>
+        <translation>Island</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="664"/>
         <source>Iran</source>
-        <translation type="vanished">Iran</translation>
+        <translation>Iran</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="665"/>
         <source>Israel</source>
-        <translation type="vanished">Israel</translation>
+        <translation>Israel</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="666"/>
         <source>Jamaica</source>
-        <translation type="vanished">Jamaica</translation>
+        <translation>Jamaica</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="668"/>
         <source>Kwajalein</source>
-        <translation type="vanished">Kwajalein</translation>
+        <translation>Kwajalein</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="669"/>
         <source>Libya</source>
-        <translation type="vanished">Libyen</translation>
+        <translation>Libyen</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="670"/>
         <source>MET</source>
-        <translation type="vanished">MET</translation>
+        <translation>MET</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="671"/>
         <source>MST</source>
-        <translation type="vanished">MST</translation>
+        <translation>MST</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="672"/>
         <source>MST7MDT</source>
-        <translation type="vanished">MST7MDT</translation>
+        <translation>MST7MDT</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="673"/>
         <source>Navajo</source>
-        <translation type="vanished">Navajo</translation>
+        <translation>Navajo</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="674"/>
         <source>NZ</source>
-        <translation type="vanished">NZ</translation>
+        <translation>NZ</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="675"/>
         <source>NZ-CHAT</source>
-        <translation type="vanished">NZ-CHAT</translation>
+        <translation>NZ-CHAT</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="676"/>
         <source>Poland</source>
-        <translation type="vanished">Polen</translation>
+        <translation>Polen</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="677"/>
         <source>Portugal</source>
-        <translation type="vanished">Portugal</translation>
+        <translation>Portugal</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="678"/>
         <source>PRC</source>
-        <translation type="vanished">PRC</translation>
+        <translation>PRC</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="679"/>
         <source>PST8PDT</source>
-        <translation type="vanished">PST8PDT</translation>
+        <translation>PST8PDT</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="680"/>
         <source>ROC</source>
-        <translation type="vanished">ROC</translation>
+        <translation>ROC</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="681"/>
         <source>ROK</source>
-        <translation type="vanished">ROK</translation>
+        <translation>ROK</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="682"/>
         <source>Singapore</source>
-        <translation type="vanished">Singapore</translation>
+        <translation>Singapore</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="683"/>
         <source>Turkey</source>
-        <translation type="vanished">Tyrkiet</translation>
+        <translation>Tyrkiet</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="684"/>
         <source>UCT</source>
-        <translation type="vanished">UCT</translation>
+        <translation>UCT</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="685"/>
         <source>Universal</source>
-        <translation type="vanished">Universel</translation>
+        <translation>Universel</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="686"/>
         <source>UTC</source>
-        <translation type="vanished">UTC</translation>
+        <translation>UTC</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="687"/>
         <source>W-SU</source>
-        <translation type="vanished">W-SU</translation>
+        <translation>W-SU</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="688"/>
         <source>WET</source>
-        <translation type="vanished">WET</translation>
+        <translation>WET</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="689"/>
         <source>Zulu</source>
-        <translation type="vanished">Zulu</translation>
+        <translation>Zulu</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="693"/>
         <source>Mono</source>
-        <translation type="vanished">Mono</translation>
+        <translation>Mono</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="694"/>
         <source>Stereo</source>
-        <translation type="vanished">Stereo</translation>
+        <translation>Stereo</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="695"/>
         <source>Surround</source>
-        <translation type="vanished">Surround</translation>
+        <translation>Surround</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="699"/>
+        <source>4GB DRAM (Default)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="700"/>
+        <source>6GB DRAM (Unsafe)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="701"/>
+        <source>8GB DRAM</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="702"/>
+        <source>10GB DRAM (Unsafe)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="703"/>
+        <source>12GB DRAM (Unsafe)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="707"/>
         <source>Docked</source>
-        <translation type="vanished">Dokket</translation>
+        <translation>Dokket</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="708"/>
         <source>Handheld</source>
-        <translation type="vanished">Håndholdt</translation>
+        <translation>Håndholdt</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="712"/>
+        <source>Boost (1700MHz)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="713"/>
+        <source>Fast (2000MHz)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="718"/>
+        <source>Always ask (Default)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="719"/>
+        <source>Only if game specifies not to stop</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="720"/>
+        <source>Never ask</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="724"/>
+        <source>Low (128)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="725"/>
+        <source>Medium (256)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="726"/>
+        <source>High (512)</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -5557,6 +6622,7 @@ Would you like to download it?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="45"/>
         <location filename="../../src/yuzu/main.cpp" line="4365"/>
         <source>FSR</source>
         <translation type="unfinished"></translation>
@@ -5606,36 +6672,104 @@ Would you like to download it?</source>
         <translation>Er du sikker på, at du vil stoppe emulereingen? Enhver ulagret data, vil gå tabt.</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="30"/>
         <source>None</source>
-        <translation type="vanished">Ingen</translation>
+        <translation>Ingen</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="31"/>
         <source>FXAA</source>
-        <translation type="vanished">FXAA</translation>
+        <translation>FXAA</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="32"/>
+        <source>SMAA</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="37"/>
+        <source>Nearest</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="39"/>
         <source>Bilinear</source>
-        <translation type="vanished">Bilineær</translation>
+        <translation>Bilineær</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="40"/>
         <source>Bicubic</source>
-        <translation type="vanished">Bikubisk</translation>
+        <translation>Bikubisk</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="42"/>
         <source>Gaussian</source>
-        <translation type="vanished">Gausisk</translation>
+        <translation>Gausisk</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="44"/>
         <source>ScaleForce</source>
-        <translation type="vanished">ScaleForce</translation>
+        <translation>ScaleForce</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="46"/>
+        <source>Area</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="50"/>
         <source>Docked</source>
-        <translation type="vanished">Dokket</translation>
+        <translation>Dokket</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="51"/>
         <source>Handheld</source>
-        <translation type="vanished">Håndholdt</translation>
+        <translation>Håndholdt</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="55"/>
+        <source>Normal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="56"/>
+        <source>High</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="57"/>
+        <source>Extreme</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="61"/>
+        <source>Vulkan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="62"/>
+        <source>OpenGL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="63"/>
+        <source>Null</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="67"/>
+        <source>GLSL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="68"/>
+        <source>GLASM</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="69"/>
+        <source>SPIRV</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -6053,20 +7187,188 @@ Debug Message: </source>
 <context>
     <name>Hotkeys</name>
     <message>
+        <location filename="../../src/qt_common/uisettings.h" line="236"/>
+        <source>Audio Mute/Unmute</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="236"/>
+        <location filename="../../src/qt_common/uisettings.h" line="237"/>
+        <location filename="../../src/qt_common/uisettings.h" line="238"/>
+        <location filename="../../src/qt_common/uisettings.h" line="239"/>
+        <location filename="../../src/qt_common/uisettings.h" line="240"/>
+        <location filename="../../src/qt_common/uisettings.h" line="241"/>
+        <location filename="../../src/qt_common/uisettings.h" line="242"/>
+        <location filename="../../src/qt_common/uisettings.h" line="243"/>
+        <location filename="../../src/qt_common/uisettings.h" line="244"/>
+        <location filename="../../src/qt_common/uisettings.h" line="245"/>
+        <location filename="../../src/qt_common/uisettings.h" line="246"/>
+        <location filename="../../src/qt_common/uisettings.h" line="247"/>
+        <location filename="../../src/qt_common/uisettings.h" line="248"/>
+        <location filename="../../src/qt_common/uisettings.h" line="249"/>
+        <location filename="../../src/qt_common/uisettings.h" line="250"/>
+        <location filename="../../src/qt_common/uisettings.h" line="251"/>
+        <location filename="../../src/qt_common/uisettings.h" line="252"/>
+        <location filename="../../src/qt_common/uisettings.h" line="253"/>
+        <location filename="../../src/qt_common/uisettings.h" line="254"/>
+        <location filename="../../src/qt_common/uisettings.h" line="255"/>
+        <location filename="../../src/qt_common/uisettings.h" line="256"/>
+        <location filename="../../src/qt_common/uisettings.h" line="257"/>
+        <location filename="../../src/qt_common/uisettings.h" line="258"/>
+        <location filename="../../src/qt_common/uisettings.h" line="259"/>
+        <location filename="../../src/qt_common/uisettings.h" line="260"/>
+        <location filename="../../src/qt_common/uisettings.h" line="261"/>
+        <location filename="../../src/qt_common/uisettings.h" line="262"/>
+        <location filename="../../src/qt_common/uisettings.h" line="263"/>
+        <location filename="../../src/qt_common/uisettings.h" line="264"/>
+        <location filename="../../src/qt_common/uisettings.h" line="265"/>
+        <source>Main Window</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="237"/>
+        <source>Audio Volume Down</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="238"/>
+        <source>Audio Volume Up</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="239"/>
         <source>Capture Screenshot</source>
-        <translation type="vanished">Optag Skærmbillede</translation>
+        <translation>Optag Skærmbillede</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/uisettings.h" line="240"/>
+        <source>Change Adapting Filter</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="241"/>
+        <source>Change Docked Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="242"/>
+        <source>Change GPU Accuracy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="243"/>
         <source>Configure</source>
-        <translation type="obsolete">Konfigurér</translation>
+        <translation type="unfinished">Konfigurér</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/uisettings.h" line="244"/>
+        <source>Configure Current Game</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="245"/>
+        <source>Continue/Pause Emulation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="246"/>
+        <source>Exit Fullscreen</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="247"/>
+        <source>Exit Eden</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="248"/>
         <source>Fullscreen</source>
-        <translation type="vanished">Fuldskærm</translation>
+        <translation>Fuldskærm</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/uisettings.h" line="249"/>
         <source>Load File</source>
-        <translation type="vanished">Indlæs Fil</translation>
+        <translation>Indlæs Fil</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="250"/>
+        <source>Load/Remove Amiibo</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="251"/>
+        <source>Multiplayer Browse Public Game Lobby</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="252"/>
+        <source>Multiplayer Create Room</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="253"/>
+        <source>Multiplayer Direct Connect to Room</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="254"/>
+        <source>Multiplayer Leave Room</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="255"/>
+        <source>Multiplayer Show Current Room</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="256"/>
+        <source>Restart Emulation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="257"/>
+        <source>Stop Emulation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="258"/>
+        <source>TAS Record</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="259"/>
+        <source>TAS Reset</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="260"/>
+        <source>TAS Start/Stop</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="261"/>
+        <source>Toggle Filter Bar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="262"/>
+        <source>Toggle Framerate Limit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="263"/>
+        <source>Toggle Mouse Panning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="264"/>
+        <source>Toggle Renderdoc Capture</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/uisettings.h" line="265"/>
+        <source>Toggle Status Bar</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -7374,6 +8676,298 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/applets/qt_amiibo_settings.cpp" line="242"/>
         <source>Do you wish to restore this amiibo?</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>QtCommon::Content</name>
+    <message>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="37"/>
+        <source>Installing Firmware...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="38"/>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="216"/>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="285"/>
+        <source>Cancel</source>
+        <translation type="unfinished">Afbryd</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="169"/>
+        <source>Firmware integrity verification failed!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="170"/>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="309"/>
+        <source>Verification failed for the following files:
+
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="215"/>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="285"/>
+        <source>Verifying integrity...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="235"/>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="302"/>
+        <source>Integrity verification succeeded!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="236"/>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="303"/>
+        <source>The operation completed successfully.</source>
+        <translation type="unfinished">Fuldførelse af opgaven lykkedes.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="240"/>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="308"/>
+        <source>Integrity verification failed!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="241"/>
+        <source>File contents may be corrupt or missing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="246"/>
+        <source>Integrity verification couldn&apos;t be performed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="247"/>
+        <source>Firmware installation cancelled, firmware may be in a bad state or corrupted. File contents could not be checked for validity.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="255"/>
+        <source>Select Dumped Keys Location</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="273"/>
+        <source>Decryption Keys install succeeded</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="274"/>
+        <source>Decryption Keys were successfully installed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_content_util.cpp" line="277"/>
+        <source>Decryption Keys install failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>QtCommon::Game</name>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="200"/>
+        <source>Error Removing Contents</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="202"/>
+        <source>Error Removing Update</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="204"/>
+        <source>Error Removing DLC</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="223"/>
+        <source>The base game is not installed in the NAND and cannot be removed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="237"/>
+        <source>There is no update installed for this title.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="247"/>
+        <source>There are no DLCs installed for this title.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="252"/>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="282"/>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="322"/>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="351"/>
+        <source>Successfully Removed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="253"/>
+        <source>Successfully removed %1 installed DLC.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="276"/>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="286"/>
+        <source>Error Removing Transferable Shader Cache</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="277"/>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="317"/>
+        <source>A shader cache for this title does not exist.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="283"/>
+        <source>Successfully removed the transferable shader cache.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="287"/>
+        <source>Failed to remove the transferable shader cache.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="304"/>
+        <source>Error Removing Vulkan Driver Pipeline Cache</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="305"/>
+        <source>Failed to remove the driver pipeline cache.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="316"/>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="327"/>
+        <source>Error Removing Transferable Shader Caches</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="323"/>
+        <source>Successfully removed the transferable shader caches.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="328"/>
+        <source>Failed to remove the transferable shader cache directory.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="344"/>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="355"/>
+        <source>Error Removing Custom Configuration</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="345"/>
+        <source>A custom configuration for this title does not exist.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="352"/>
+        <source>Successfully removed the custom game configuration.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="356"/>
+        <source>Failed to remove the custom game configuration.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="384"/>
+        <source>Reset Metadata Cache</source>
+        <translation type="unfinished">Nulstil Metadata-Mellemlager</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="388"/>
+        <source>The metadata cache is already empty.</source>
+        <translation type="unfinished">Metadata-mellemlageret er allerede tomt.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="393"/>
+        <source>The operation completed successfully.</source>
+        <translation type="unfinished">Fuldførelse af opgaven lykkedes.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="399"/>
+        <source>The metadata cache couldn&apos;t be deleted. It might be in use or non-existent.</source>
+        <translation type="unfinished">Metadata-mellemlageret kunne ikke slettes. Det kan være i brug eller ikke-eksisterende.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="414"/>
+        <source>Create Shortcut</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="415"/>
+        <source>Do you want to launch the game in fullscreen?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="419"/>
+        <source>Shortcut Created</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="420"/>
+        <source>Successfully created a shortcut to %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="425"/>
+        <source>Shortcut may be Volatile!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="426"/>
+        <source>This will create a shortcut to the current AppImage. This may not work well if you update. Continue?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="432"/>
+        <source>Failed to Create Shortcut</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="433"/>
+        <source>Failed to create a shortcut to %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="503"/>
+        <source>Create Icon</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="504"/>
+        <source>Cannot create icon file. Path &quot;%1&quot; does not exist and cannot be created.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="557"/>
+        <source>No firmware available</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="558"/>
+        <source>Please install firmware to use the home menu.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="564"/>
+        <source>Home Menu Applet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_game_util.cpp" line="565"/>
+        <source>Home Menu is not available. Please reinstall firmware.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
