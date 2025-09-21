@@ -78,10 +78,7 @@ ci_package() {
 
   PACKAGE=$(jq -r ".package | \"$package\"" <<< "$JSON")
 
-  # TODO(crueter)
-  DISABLED=$(jq -j '.disabled_platforms | join(" ")' <<< "$JSON")
-
-  echo $DISABLED
+  DISABLED=$(jq -j '.disabled_platforms' <<< "$JSON")
 
   [ "$REPO" = null ] && echo "No repo defined for CI package $package" && return
 
@@ -103,6 +100,10 @@ ci_package() {
     PACKAGE_NAME="$PACKAGE"
     KEY=$platform
 
+    LOWER_PACKAGE=$(tr '[:upper:]' '[:lower:]' <<< "$PACKAGE_NAME")
+    OUTDIR="${CPM_SOURCE_CACHE}/${LOWER_PACKAGE}/${KEY}"
+    [ -d "$OUTDIR" ] && continue
+
     HASH_ALGO=$(jq -r ".hash_algo" <<< "$JSON")
     [ "$HASH_ALGO" = null ] && HASH_ALGO=sha512
 
@@ -119,7 +120,7 @@ for package in $@
 do
   # prepare for cancer
   # TODO(crueter): Fetch json once?
-  JSON=$(find . externals src/qt_common src/dynarmic -maxdepth 2 -name cpmfile.json -exec jq -r ".\"$package\" | select( . != null )" {} \;)
+  JSON=$(find . src -maxdepth 3 -name cpmfile.json -exec jq -r ".\"$package\" | select( . != null )" {} \;)
 
   [ -z "$JSON" ] && echo "!! No cpmfile definition for $package" && continue
 
