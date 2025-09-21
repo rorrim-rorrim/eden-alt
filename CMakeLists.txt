@@ -449,6 +449,10 @@ if (YUZU_USE_CPM)
         target_include_directories(enet INTERFACE ${enet_SOURCE_DIR}/include)
     endif()
 
+    if (NOT TARGET enet::enet)
+        add_library(enet::enet ALIAS enet)
+    endif()
+
     # Opus
     AddJsonPackage(opus)
 
