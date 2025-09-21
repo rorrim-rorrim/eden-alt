@@ -8,7 +8,12 @@ include(CPMUtil)
 
 # TODO(crueter, MaranBr): Externals FFmpeg 8.0
 
-if (UNIX)
+set(FFmpeg_HWACCEL_LIBRARIES)
+set(FFmpeg_HWACCEL_FLAGS)
+set(FFmpeg_HWACCEL_INCLUDE_DIRS)
+set(FFmpeg_HWACCEL_LDFLAGS)
+
+if (UNIX AND NOT ANDROID)
     find_package(PkgConfig REQUIRED)
     if (NOT ANDROID)
         pkg_check_modules(LIBVA libva)
@@ -16,11 +21,6 @@ if (UNIX)
         pkg_check_modules(FFNVCODEC ffnvcodec)
         pkg_check_modules(VDPAU vdpau)
     endif()
-
-    set(FFmpeg_HWACCEL_LIBRARIES)
-    set(FFmpeg_HWACCEL_FLAGS)
-    set(FFmpeg_HWACCEL_INCLUDE_DIRS)
-    set(FFmpeg_HWACCEL_LDFLAGS)
 
     if (NOT APPLE)
         # In Solaris needs explicit linking for ffmpeg which links to /lib/amd64/libX11.so
@@ -61,7 +61,7 @@ if (UNIX)
         message(STATUS "ffmpeg: va-api libraries version ${LIBVA_VERSION} found")
     else()
         list(APPEND FFmpeg_HWACCEL_FLAGS --disable-vaapi)
-        message(WARNING "ffmpeg: libva-dev not found, disabling Video Aceleraion API (VA-API)...")
+        message(WARNING "ffmpeg: libva-dev not found, disabling Video Acceleration API (VA-API)...")
     endif()
 
     if (FFNVCODEC_FOUND)
@@ -78,14 +78,14 @@ if (UNIX)
         list(APPEND FFmpeg_HWACCEL_LDFLAGS ${FFNVCODEC_LDFLAGS})
         message(STATUS "ffmpeg: ffnvcodec libraries version ${FFNVCODEC_VERSION} found")
         # ffnvenc could load CUDA libraries at the runtime using dlopen/dlsym or LoadLibrary/GetProcAddress
-        # here we handle the hard-linking senario where CUDA is linked during compilation
+        # here we handle the hard-linking scenario where CUDA is linked during compilation
         if (CUDA_FOUND)
             # This line causes build error if CUDA_INCLUDE_DIRS is anything but a single non-empty value
             #list(APPEND FFmpeg_HWACCEL_FLAGS --extra-cflags=-I${CUDA_INCLUDE_DIRS})
             list(APPEND FFmpeg_HWACCEL_LIBRARIES ${CUDA_LIBRARIES})
             list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS ${CUDA_INCLUDE_DIRS})
             list(APPEND FFmpeg_HWACCEL_LDFLAGS ${CUDA_LDFLAGS})
-            message(STATUS "ffmpeg: CUDA libraries found, hard-linking will be performed")
+            message(STATUS "ffmpeg: CUDA libraries version ${CUDA_VERSION} found, hard-linking will be performed")
         endif(CUDA_FOUND)
     endif()
 
@@ -107,8 +107,14 @@ endif()
 
 if (YUZU_USE_BUNDLED_FFMPEG)
     # MSVC conflicts with ksuser otherwise
+    # Android needs some deps to be compiled with PIC (TODO)
     # TODO(crueter) fix
-    set(BUILD_SHARED_LIBS ${MSVC})
+    if (MSVC OR ANDROID)
+        set(BUILD_SHARED_LIBS ON)
+    else()
+        set(BUILD_SHARED_LIBS OFF)
+    endif()
+
     AddJsonPackage(ffmpeg-ci)
 
     set(FFmpeg_INCLUDE_DIR
@@ -127,13 +133,8 @@ if (YUZU_USE_BUNDLED_FFMPEG)
     )
 
     set(FFmpeg_LIBRARIES
-        cubeb::cubeb
-        ksuser
-        FFmpeg::swscale
-        FFmpeg::avutil
-        FFmpeg::avcodec
-        FFmpeg::avfilter
-        ${FFMPEG_HWACCEL_LIBRARIES}
+        FFmpeg::FFmpeg
+        ${FFmpeg_HWACCEL_LIBRARIES}
         PARENT_SCOPE
     )
 else()
