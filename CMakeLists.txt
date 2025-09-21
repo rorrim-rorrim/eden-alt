@@ -467,15 +467,16 @@ if (YUZU_USE_CPM)
 
     # Opus
     AddJsonPackage(opus)
-    if (NOT TARGET Opus::opus)
-        add_library(Opus::opus ALIAS opus)
-    endif()
     if (Opus_ADDED)
         if (MSVC AND CXX_CLANG)
             target_compile_options(opus PRIVATE
                 -Wno-implicit-function-declaration
             )
         endif()
+        if (NOT TARGET Opus::opus)
+            add_library(Opus::opus ALIAS opus)
+        endif()
+    endif()
 
         # Opus
         AddJsonPackage(opus)
