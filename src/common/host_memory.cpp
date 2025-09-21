@@ -399,18 +399,65 @@ private:
 #ifdef ARCHITECTURE_arm64
 
 static void* ChooseVirtualBase(size_t virtual_size) {
-    constexpr uintptr_t Map39BitSize = (1ULL << 39);
     constexpr uintptr_t Map36BitSize = (1ULL << 36);
-
-    // This is not a cryptographic application, we just want something random.
-    std::mt19937_64 rng;
-
+#ifdef __APPLE__
+    // TODO: Fatal flaw, regions may change if map inserts elements, very rare, but MAY HAPPEN!
+    std::map<u64, u64> aspace_list;
+    kern_return_t krc = KERN_SUCCESS;
+    vm_address_t address = 0;
+    vm_size_t r_size = 0;
+    uint32_t depth = 1;
+    do {
+        struct vm_region_submap_info_64 info;
+        mach_msg_type_number_t count = VM_REGION_SUBMAP_INFO_COUNT_64;
+        krc = vm_region_recurse_64(mach_task_self(), &address, &r_size, &depth, (vm_region_info_64_t)&info, &count);
+        if (krc == KERN_INVALID_ADDRESS)
+            break;
+        if (info.is_submap){
+            depth++;
+        } else {
+            aspace_list.insert({ u64(address), u64(r_size) });
+            address += r_size;
+        }
+    } while(1);
+    for (auto it = aspace_list.begin(); it != aspace_list.end(); it++) {
+        auto const next = std::next(it);
+        // properties of hole
+        auto const addr = it->first + it->second;
+        auto const size = (next != aspace_list.end()) ? next->first - addr : std::numeric_limits<u64>::max() - addr;
+        ASSERT(next == aspace_list.end() || it->first < next->first);
+        if (size > virtual_size && uintptr_t(addr + size) >= Map36BitSize) {
+            // valid address for NCE
+            if (uintptr_t(addr) >= Map36BitSize) { //common case: hole after 39 bit
+                if (size >= virtual_size) {
+                    void* p = mmap(reinterpret_cast<void*>(addr), virtual_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+                    if (p == MAP_FAILED)
+                        continue;
+                    return p;
+                }
+                // skip
+            } else { //edge case: hole before 39 bit
+                auto const rem_size = size - (Map36BitSize - uintptr_t(addr));
+                if (rem_size >= virtual_size) {
+                    void* p = mmap(reinterpret_cast<void*>(Map36BitSize), virtual_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+                    if (p == MAP_FAILED)
+                        continue;
+                    return p;
+                }
+                // skip
+            }
+        }
+    }
+    UNREACHABLE();
+#else
+    constexpr uintptr_t Map39BitSize = (1ULL << 39);
     // We want to ensure we are allocating at an address aligned to the L2 block size.
     // For Qualcomm devices, we must also allocate memory above 36 bits.
     const size_t lower = Map36BitSize / HugePageSize;
     const size_t upper = (Map39BitSize - virtual_size) / HugePageSize;
     const size_t range = upper - lower;
-
+    // This is not a cryptographic application, we just want something random.
+    std::mt19937_64 rng;
     // Try up to 64 times to allocate memory at random addresses in the range.
     for (int i = 0; i < 64; i++) {
         // Calculate a possible location.
@@ -434,6 +481,7 @@ static void* ChooseVirtualBase(size_t virtual_size) {
     }
 
     return MAP_FAILED;
+#endif
 }
 
 #else
