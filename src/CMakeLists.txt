@@ -141,7 +141,7 @@ else()
         -Wno-missing-field-initializers
     )
 
-    if (CXX_CLANG OR CXX_ICC) # Clang or AppleClang
+    if (CXX_APPLE OR CXX_CLANG OR CXX_ICC) # Clang or AppleClang
         if (NOT MSVC)
             add_compile_options(
                 -Werror=shadow-uncaptured-local
