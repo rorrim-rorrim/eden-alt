@@ -7,6 +7,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <unordered_map>
 #include <vector>
 
@@ -626,10 +627,10 @@ private:
     StickDevices virtual_stick_devices;
     ControllerMotionDevices virtual_motion_devices;
 
-    mutable std::mutex mutex;
-    mutable std::mutex callback_mutex;
-    mutable std::mutex npad_mutex;
-    mutable std::mutex connect_mutex;
+    mutable std::shared_mutex mutex;
+    mutable std::shared_mutex callback_mutex;
+    mutable std::shared_mutex npad_mutex;
+    mutable std::shared_mutex connect_mutex;
     std::unordered_map<int, ControllerUpdateCallback> callback_list;
     int last_callback_key = 0;
 
