@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <tuple>
 #include <utility>
 
 #include "core/frontend/emu_window.h"
@@ -43,8 +44,11 @@ protected:
     /// Converts a SDL mouse button into MouseInput mouse button
     InputCommon::MouseButton SDLButtonToMouseButton(u32 button) const;
 
-    /// Translates pixel position to float position
-    std::pair<float, float> MouseToTouchPos(s32 touch_x, s32 touch_y) const;
+    // Using std::pair<float,float> will invoke HFA miscompilation bug on g++10
+    // on newer versions it emits an annoying warning, so just not use an HFA
+    // https://stackoverflow.com/questions/77729813/parameter-passing-for-argument-when-c17-is-enabled-changed-to-match-c14
+    using FloatPairNonHFA = std::tuple<float, float, char>;
+    FloatPairNonHFA MouseToTouchPos(s32 touch_x, s32 touch_y) const;
 
     /// Called by WaitEvent when a mouse button is pressed or released
     void OnMouseButton(u32 button, u8 state, s32 x, s32 y);
