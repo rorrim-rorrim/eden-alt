@@ -111,45 +111,8 @@ std::vector<u8> PartitionDataManager::GetSecureMonitor() const {
     return secure_monitor_bytes;
 }
 
-std::array<u8, 16> PartitionDataManager::GetPackage2KeySource() const {
-    return {};
-}
-
-std::array<u8, 16> PartitionDataManager::GetAESKekGenerationSource() const {
-    return {};
-}
-
-std::array<u8, 16> PartitionDataManager::GetTitlekekSource() const {
-    return {};
-}
-
-std::array<std::array<u8, 16>, 32> PartitionDataManager::GetTZMasterKeys(
-    std::array<u8, 0x10> master_key) const {
-    return {};
-}
-
-std::array<u8, 16> PartitionDataManager::GetRSAKekSeed3() const {
-    return {};
-}
-
-std::array<u8, 16> PartitionDataManager::GetRSAKekMask0() const {
-    return {};
-}
-
 std::vector<u8> PartitionDataManager::GetPackage1Decrypted() const {
     return package1_decrypted_bytes;
-}
-
-std::array<u8, 16> PartitionDataManager::GetMasterKeySource() const {
-    return {};
-}
-
-std::array<u8, 16> PartitionDataManager::GetKeyblobMACKeySource() const {
-    return {};
-}
-
-std::array<u8, 16> PartitionDataManager::GetKeyblobKeySource(std::size_t revision) const {
-    return {};
 }
 
 bool PartitionDataManager::HasFuses() const {
@@ -263,44 +226,8 @@ const std::vector<u8>& PartitionDataManager::GetPackage2FSDecompressed(Package2T
     return package2_fs.at(static_cast<size_t>(type));
 }
 
-std::array<u8, 16> PartitionDataManager::GetKeyAreaKeyApplicationSource(Package2Type type) const {
-    return {};
-}
-
-std::array<u8, 16> PartitionDataManager::GetKeyAreaKeyOceanSource(Package2Type type) const {
-    return {};
-}
-
-std::array<u8, 16> PartitionDataManager::GetKeyAreaKeySystemSource(Package2Type type) const {
-    return {};
-}
-
-std::array<u8, 16> PartitionDataManager::GetSDKekSource(Package2Type type) const {
-    return {};
-}
-
-std::array<u8, 32> PartitionDataManager::GetSDSaveKeySource(Package2Type type) const {
-    return {};
-}
-
-std::array<u8, 32> PartitionDataManager::GetSDNCAKeySource(Package2Type type) const {
-    return {};
-}
-
-std::array<u8, 16> PartitionDataManager::GetHeaderKekSource(Package2Type type) const {
-    return {};
-}
-
-std::array<u8, 32> PartitionDataManager::GetHeaderKeySource(Package2Type type) const {
-    return {};
-}
-
 const std::vector<u8>& PartitionDataManager::GetPackage2SPLDecompressed(Package2Type type) const {
     return package2_spl.at(static_cast<size_t>(type));
-}
-
-std::array<u8, 16> PartitionDataManager::GetAESKeyGenerationSource(Package2Type type) const {
-    return {};
 }
 
 bool PartitionDataManager::HasProdInfo() const {
