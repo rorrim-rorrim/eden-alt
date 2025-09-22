@@ -104,6 +104,4 @@ private:
     std::array<std::vector<u8>, 6> package2_spl;
 };
 
-std::array<u8, 0x10> FindKeyFromHex16(const std::vector<u8>& binary, std::array<u8, 0x20> hash);
-
 } // namespace Core::Crypto
