@@ -1377,9 +1377,11 @@ void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
     // As per the size-compatible formats section of vulkan, copy manually via ReinterpretImage
     // these images that aren't size-compatible
     if (BytesPerBlock(src.info.format) != BytesPerBlock(dst.info.format)) {
-        auto oneCopy = VideoCommon::ImageCopy{.src_offset = VideoCommon::Offset3D(0, 0, 0),
-                                              .dst_offset = VideoCommon::Offset3D(0, 0, 0),
-                                              .extent = dst.info.size};
+        auto oneCopy = VideoCommon::ImageCopy{
+            .src_offset = VideoCommon::Offset3D(0, 0, 0),
+            .dst_offset = VideoCommon::Offset3D(0, 0, 0),
+            .extent = dst.info.size
+        };
         return ReinterpretImage(dst, src, std::span{&oneCopy, 1});
     }
     boost::container::small_vector<VkImageCopy, 16> vk_copies(copies.size());
