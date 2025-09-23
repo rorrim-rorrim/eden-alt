@@ -884,19 +884,25 @@ if (MSVC AND CXX_CLANG)
     link_libraries(llvm-mingw-runtime)
 endif()
 
-if (YUZU_USE_FASTER_LD AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    # We will assume that if the compiler is GCC, it will attempt to use ld.bfd by default.
-    # Try to pick a faster linker.
+if (YUZU_USE_FASTER_LD)
+    # clang should always use lld
     find_program(LLD lld)
-    find_program(MOLD mold)
 
-    if (MOLD AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.1")
-        message(NOTICE "Selecting mold as linker")
-        add_link_options("-fuse-ld=mold")
-    elseif (LLD)
-        message(NOTICE "Selecting lld as linker")
-        add_link_options("-fuse-ld=lld")
+    if (LLD)
+        set(LINK_PROGRAM lld)
     endif()
+
+    # GNU appears to work better with mold
+    # TODO: mold has been slow lately, see if lld is faster
+    if (CXX_GCC)
+        find_program(MOLD mold)
+        if (MOLD AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.1")
+            set(LINKER mold)
+        endif()
+    endif()
+
+    message(NOTICE "Selecting ${LINKER} as linker")
+    add_link_options("-fuse-ld=${LINKER}")
 endif()
 
 # Set runtime library to MD/MDd for all configurations
