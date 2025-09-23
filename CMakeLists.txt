@@ -907,7 +907,7 @@ if (YUZU_USE_FASTER_LD)
     if (CXX_GCC)
         find_program(MOLD mold)
         if (MOLD AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.1")
-            # set(LINKER mold)
+            set(LINKER mold)
         endif()
     endif()
 
