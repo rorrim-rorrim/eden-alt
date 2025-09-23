@@ -90,14 +90,8 @@ add_library(dynarmic
     ir/opcodes.cpp
     ir/opcodes.h
     ir/opcodes.inc
-    ir/opt/constant_propagation_pass.cpp
-    ir/opt/dead_code_elimination_pass.cpp
-    ir/opt/identity_removal_pass.cpp
-    ir/opt/ir_matcher.h
-    ir/opt/naming_pass.cpp
-    ir/opt/passes.h
-    ir/opt/polyfill_pass.cpp
-    ir/opt/verification_pass.cpp
+    ir/opt_passes.cpp
+    ir/opt_passes.h
     ir/terminal.h
     ir/type.cpp
     ir/type.h
@@ -139,8 +133,6 @@ if ("A32" IN_LIST DYNARMIC_FRONTENDS)
         interface/A32/coprocessor.h
         interface/A32/coprocessor_util.h
         interface/A32/disassembler.h
-        ir/opt/a32_constant_memory_reads_pass.cpp
-        ir/opt/a32_get_set_elimination_pass.cpp
     )
 endif()
 
@@ -156,9 +148,6 @@ if ("A64" IN_LIST DYNARMIC_FRONTENDS)
         frontend/A64/translate/a64_translate.h
         interface/A64/a64.h
         interface/A64/config.h
-        ir/opt/a64_callback_config_pass.cpp
-        ir/opt/a64_get_set_elimination_pass.cpp
-        ir/opt/a64_merge_interpret_blocks.cpp
     )
 endif()
 
