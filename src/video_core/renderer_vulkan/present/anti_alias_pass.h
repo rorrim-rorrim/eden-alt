@@ -16,10 +16,4 @@ public:
                       VkImageView* inout_image_view) = 0;
 };
 
-class NoAA final : public AntiAliasPass {
-public:
-    void Draw(Scheduler& scheduler, size_t image_index, VkImage* inout_image,
-              VkImageView* inout_image_view) override {}
-};
-
 } // namespace Vulkan
