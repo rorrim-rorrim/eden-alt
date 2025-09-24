@@ -1,0 +1,70 @@
+From 3d0716978930fd315759eb391cf8db904607c61c Mon Sep 17 00:00:00 2001
+From: crueter <crueter@eden-emu.dev>
+Date: Fri, 17 Oct 2025 23:01:36 -0400
+Subject: [PATCH] [cmake] fix Qt download on WoA
+
+Signed-off-by: crueter <crueter@eden-emu.dev>
+---
+ CMakeModules/DownloadExternals.cmake | 17 +++++++++++++----
+ src/qt_common/qt_compat.h            |  2 +-
+ 2 files changed, 14 insertions(+), 5 deletions(-)
+
+diff --git a/CMakeModules/DownloadExternals.cmake b/CMakeModules/DownloadExternals.cmake
+index f6e3aaa4ad..ac9eec02ae 100644
+--- a/CMakeModules/DownloadExternals.cmake
++++ b/CMakeModules/DownloadExternals.cmake
+@@ -60,7 +60,12 @@ endfunction()
+ # Determine installation parameters for OS, architecture, and compiler
+ function(determine_qt_parameters target host_out type_out arch_out arch_path_out host_type_out host_arch_out host_arch_path_out)
+     if (WIN32)
+-        set(host "windows")
++        if (ARCHITECTURE_arm64)
++            message(WARNING "Bundled Qt for Windows/arm64 is slightly broken since it's cross-compiled. You may need a working x86_64 host Qt installed.")
++            set(host "windows_arm64")
++        else()
++            set(host "windows")
++        endif()
+         set(type "desktop")
+ 
+         if (NOT tool)
+@@ -68,9 +73,9 @@ function(determine_qt_parameters target host_out type_out arch_out arch_path_out
+                 set(arch "win64_mingw")
+                 set(arch_path "mingw_64")
+             elseif (MSVC)
+-                if ("arm64" IN_LIST ARCHITECTURE)
++                if (ARCHITECTURE_arm64)
+                     set(arch_path "msvc2022_arm64")
+-                elseif ("x86_64" IN_LIST ARCHITECTURE)
++                elseif (ARCHITECTURE_x86_64)
+                     set(arch_path "msvc2022_64")
+                 else()
+                     message(FATAL_ERROR "Unsupported bundled Qt architecture. Disable YUZU_USE_BUNDLED_QT and provide your own.")
+@@ -134,7 +139,11 @@ function(download_qt_configuration prefix_out target host type arch arch_path ba
+         list(APPEND install_args install-tool --outputdir "${base_path}" "${host}" desktop "${target}")
+     else()
+         set(prefix "${base_path}/${target}/${arch_path}")
+-        list(APPEND install_args install-qt --outputdir "${base_path}" "${host}" "${type}" "${target}" "${arch}" -m qt_base)
++        list(APPEND install_args install-qt --outputdir "${base_path}" "${host}" "${type}" "${target}" "${arch}")
++
++        if (NOT WIN32 OR NOT ARCHITECTURE_arm64)
++            list(APPEND install_args -m qt_base)
++        endif()
+ 
+         if (YUZU_USE_QT_MULTIMEDIA)
+             list(APPEND install_args qtmultimedia)
+diff --git a/src/qt_common/qt_compat.h b/src/qt_common/qt_compat.h
+index 8215b9441f..421c01187d 100644
+--- a/src/qt_common/qt_compat.h
++++ b/src/qt_common/qt_compat.h
+@@ -5,7 +5,7 @@
+ 
+ #include <QtGlobal>
+ 
+-#if QT_VERSION < QT_VERSION_CHECK(6, 9, 0)
++#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+ #define STATE_CHANGED stateChanged
+ #define CHECKSTATE_TYPE int
+ #else
+-- 
+2.51.0
+
