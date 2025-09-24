@@ -36,7 +36,7 @@ Pull requests are only to be merged by core developers when properly tested and 
 - Maintainers are permitted to change namespaces at will.
 - Commits within PRs are not required to be namespaced, but it is highly recommended.
 
-## New settings
+## Adding new settings
 
 When adding new settings, use `tr("Setting:")` if the setting is meant to be a field, otherwise use `tr("Setting")` if the setting is meant to be a Yes/No or checkmark type of setting, see [this short style guide](https://learn.microsoft.com/en-us/style-guide/punctuation/colons#in-ui).
 
@@ -50,9 +50,13 @@ When adding new settings, use `tr("Setting:")` if the setting is meant to be a f
 Some examples:
 - "[...] negatively affecting image quality", "[...] degrading image quality": Same wording but with less filler.
 - "[...] this may cause some glitches or crashes in some games", "[...] this may cause soft-crashes": Crashes implies there may be glitches (as crashes are technically a form of a fatal glitch). The entire sentence is structured as "may cause [...] on some games", which is redundant, because "may cause [...] in games" has the same semantic meaning ("may" is a chance that it will occur on "some" given set).
-- "FIFO Relaxed is similar to FIFO [...]", "FIFO [...]": The name already implies similarity.
+- "FIFO Relaxed is similar to FIFO [...]", "FIFO Relaxed [...]": The name already implies similarity.
 - "[...] but may also reduce performance in some cases", "[...] but may degrade performance": Again, "some cases" and "may" implies there is a probability.
 - "[...] it can [...] in some cases", "[...] it can [...]": Implied probability.
+
+Before adding a new setting, consider:
+- Does the piece of code that the setting pertains to, make a significant difference if it's on/off?
+- Can it be auto-detected?
 
 # IDE setup
 
