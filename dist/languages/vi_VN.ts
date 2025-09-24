@@ -1,25 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.1" language="vi_VN" sourcelanguage="en_US">
+<?xml version="1.0" ?><!DOCTYPE TS><TS version="2.1" language="vi_VN" sourcelanguage="en_US">
 <context>
     <name>AboutDialog</name>
     <message>
-        <source>About yuzu</source>
-        <translation type="vanished">Thông tin về yuzu</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:28pt;&quot;&gt;yuzu&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="vanished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:28pt;&quot;&gt;yuzu&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/aboutdialog.ui" line="14"/>
         <source>About Eden</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/aboutdialog.ui" line="72"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:28pt;&quot;&gt;Eden&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/aboutdialog.ui" line="85"/>
@@ -34,34 +24,14 @@ p, li { white-space: pre-wrap; }
 hr { height: 1px; border-width: 0; }
 li.unchecked::marker { content: &quot;\2610&quot;; }
 li.checked::marker { content: &quot;\2612&quot;; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Noto Sans&apos;; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Noto Sans'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:12pt;&quot;&gt;Eden is an experimental open-source emulator for the Nintendo Switch licensed under GPLv3.0+ which is based on the yuzu emulator which ended development back in March 2024. &lt;br /&gt;&lt;br /&gt;This software should not be used to play games you have not legally obtained.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/aboutdialog.ui" line="131"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://eden-emulator.github.io/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Website&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://git.eden-emu.dev&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Source Code&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://git.eden-emu.dev/eden-emu/eden/activity/contributors&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Contributors&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://git.eden-emu.dev/eden-emu/eden/src/branch/master/LICENSE.txt&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;License&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Ubuntu&apos;; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:12pt;&quot;&gt;yuzu is an experimental open-source emulator for the Nintendo Switch licensed under GPLv3.0+.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:12pt;&quot;&gt;This software should not be used to play games you have not legally obtained.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="vanished">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Ubuntu&apos;; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:12pt;&quot;&gt;yuzu là một phần mềm giả lập thử nghiệm mã nguồn mở cho máy Nintendo Switch, được cấp phép theo giấy phép GPLv3.0+.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:12pt;&quot;&gt;Bạn không được phép sử dụng phần mềm này cho để chơi game mà bạn kiếm được một cách bất hợp pháp.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://yuzu-emu.org/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Website&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://github.com/yuzu-emu&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Source Code&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://github.com/yuzu-emu/yuzu/graphs/contributors&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Contributors&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://github.com/yuzu-emu/yuzu/blob/master/LICENSE.txt&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;License&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="vanished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://yuzu-emu.org/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Trang web&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://github.com/yuzu-emu&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Mã nguồn&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://github.com/yuzu-emu/yuzu/graphs/contributors&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Đóng góp&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://github.com/yuzu-emu/yuzu/blob/master/license.txt&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Giấy phép&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/aboutdialog.ui" line="147"/>
@@ -260,13 +230,9 @@ This would ban both their forum username and their IP address.</source>
         <translation>Báo cáo trò chơi tương thích</translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Should you choose to submit a test case to the &lt;/span&gt;&lt;a href=&quot;https://yuzu-emu.org/game/&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;yuzu Compatibility List&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;, The following information will be collected and displayed on the site:&lt;/span&gt;&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Hardware Information (CPU / GPU / Operating System)&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Which version of yuzu you are running&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The connected yuzu account&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="vanished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Nếu bạn chọn gửi bản kiểm tra vào &lt;/span&gt;&lt;a href=&quot;https://yuzu-emu.org/game/&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;danh sách tương thích yuzu&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;, Thông tin sau sẽ được thu thập và hiển thị lên trang web:&lt;/span&gt;&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Thông tin phần cứng (CPU / GPU / Hệ điều hành)&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Phiên bản yuzu bạn đang chạy&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Tài khoản yuzu đang kết nối&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/compatdb.ui" line="36"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Should you choose to submit a test case to the &lt;/span&gt;&lt;a href=&quot;https://eden-emulator.github.io/game/&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;eden Compatibility List&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;, The following information will be collected and displayed on the site:&lt;/span&gt;&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Hardware Information (CPU / GPU / Operating System)&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Which version of eden you are running&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The connected eden account&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="77"/>
@@ -397,9 +363,19 @@ This would ban both their forum username and their IP address.</source>
 <context>
     <name>ConfigurationShared</name>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_widget.cpp" line="66"/>
-        <source>%</source>
-        <translation>%</translation>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="35"/>
+        <source>Amiibo editor</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="36"/>
+        <source>Controller configuration</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="37"/>
+        <source>Data erase</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="38"/>
@@ -407,9 +383,59 @@ This would ban both their forum username and their IP address.</source>
         <translation>Lỗi</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="39"/>
+        <source>Net connect</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="40"/>
+        <source>Player select</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="41"/>
         <source>Software keyboard</source>
         <translation>Bàn phím mềm</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="42"/>
+        <source>Mii Edit</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="43"/>
+        <source>Online web</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="44"/>
+        <source>Shop</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="45"/>
+        <source>Photo viewer</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="46"/>
+        <source>Offline web</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="47"/>
+        <source>Login share</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="48"/>
+        <source>Wifi web auth</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="49"/>
+        <source>My page</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="52"/>
@@ -427,6 +453,11 @@ This would ban both their forum username and their IP address.</source>
         <translation>Đầu vào thiết bị:</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="55"/>
+        <source>Mute audio</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="56"/>
         <source>Volume:</source>
         <translation>Âm lượng:</translation>
@@ -442,9 +473,46 @@ This would ban both their forum username and their IP address.</source>
         <translation>Giả lập CPU đa nhân</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="65"/>
+        <source>This option increases CPU emulation thread use from 1 to the Switch’s maximum of 4.
+This is mainly a debug option and shouldn’t be disabled.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="70"/>
+        <source>Memory Layout</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="71"/>
+        <source>Increases the amount of emulated RAM from the stock 4GB of the retail Switch to the developer kit's 8/6GB.
+It’s doesn’t improve stability or performance and is intended to let big texture mods fit in emulated RAM.
+Enabling it will increase memory use. It is not recommended to enable unless a specific game with a texture mod needs it.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="79"/>
         <source>Limit Speed Percent</source>
         <translation>Giới hạn phần trăm tốc độ</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="80"/>
+        <source>Controls the game's maximum rendering speed, but it’s up to each game if it runs faster or not.
+200% for a 30 FPS game is 60 FPS, and for a 60 FPS game it will be 120 FPS.
+Disabling it means unlocking the framerate to the maximum your PC can reach.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="86"/>
+        <source>Synchronize Core Speed</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="87"/>
+        <source>Synchronizes CPU core speed with the game's maximum rendering speed to boost FPS without affecting game speed (animations, physics, etc.).
+Compatibility varies by game; many (especially older ones) may not respond well.
+Can help reduce stuttering at lower framerates.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="95"/>
@@ -452,9 +520,59 @@ This would ban both their forum username and their IP address.</source>
         <translation>Độ chính xác</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="96"/>
+        <source>This setting controls the accuracy of the emulated CPU.
+Don&apos;t change this unless you know what you are doing.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="98"/>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="114"/>
+        <source>Backend:</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="103"/>
+        <source>Fast CPU Time</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="104"/>
+        <source>Overclocks the emulated CPU to remove some FPS limiters. Weaker CPUs may see reduced performance, and certain games may behave improperly.
+Use Boost (1700MHz) to run at the Switch&apos;s highest native clock, or Fast (2000MHz) to run at 2x clock.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="111"/>
+        <source>Custom CPU Ticks</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="112"/>
+        <source>Set a custom value of CPU ticks. Higher values can increase performance, but may also cause the game to freeze. A range of 77–21000 is recommended.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="119"/>
+        <source>Enable Host MMU Emulation (fastmem)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="120"/>
+        <source>This optimization speeds up memory accesses by the guest program.
+Enabling it causes guest memory reads/writes to be done directly into memory and make use of Host's MMU.
+Disabling this forces all memory accesses to use Software MMU Emulation.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="124"/>
         <source>Unfuse FMA (improve performance on CPUs without FMA)</source>
         <translation>Không dùng FMA (tăng hiệu suất cho các dòng CPU không hỗ trợ FMA)</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="125"/>
+        <source>This option improves speed by reducing accuracy of fused-multiply-add instructions on CPUs without native FMA support.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="130"/>
@@ -462,9 +580,19 @@ This would ban both their forum username and their IP address.</source>
         <translation>Chạy FRSQRTE và FRECPE nhanh hơn</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="131"/>
+        <source>This option improves the speed of some approximate floating-point functions by using less accurate native approximations.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="135"/>
         <source>Faster ASIMD instructions (32 bits only)</source>
         <translation>Các lệnh ASIMD nhanh hơn (chỉ áp dụng cho 32 bit)</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="136"/>
+        <source>This option improves the speed of 32 bits ASIMD floating-point functions by running with incorrect rounding modes.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="140"/>
@@ -472,9 +600,21 @@ This would ban both their forum username and their IP address.</source>
         <translation>Xử lí NaN gặp lỗi</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="141"/>
+        <source>This option improves speed by removing NaN checking.
+Please note this also reduces accuracy of certain floating-point instructions.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="145"/>
         <source>Disable address space checks</source>
         <translation>Tắt kiểm tra không gian địa chỉ</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="146"/>
+        <source>This option improves speed by eliminating a safety check before every memory read/write in guest.
+Disabling it may allow a game to read/write the emulator&apos;s memory.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="152"/>
@@ -482,9 +622,21 @@ This would ban both their forum username and their IP address.</source>
         <translation>Bỏ qua màn hình chung</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="153"/>
+        <source>This option improves speed by relying only on the semantics of cmpxchg to ensure safety of exclusive access instructions.
+Please note this may result in deadlocks and other race conditions.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="161"/>
         <source>API:</source>
         <translation>API đồ hoạ:</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="162"/>
+        <source>Switches between the available graphics APIs.
+Vulkan is recommended in most cases.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="165"/>
@@ -492,14 +644,34 @@ This would ban both their forum username and their IP address.</source>
         <translation>Thiết bị đồ hoạ:</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="166"/>
+        <source>This setting selects the GPU to use with the Vulkan backend.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="169"/>
         <source>Shader Backend:</source>
         <translation>Backend shader:</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="170"/>
+        <source>The shader backend to use for the OpenGL renderer.
+GLSL is the fastest in performance and the best in rendering accuracy.
+GLASM is a deprecated NVIDIA-only backend that offers much better shader building performance at the cost of FPS and rendering accuracy.
+SPIR-V compiles the fastest, but yields poor results on most GPU drivers.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="177"/>
         <source>Resolution:</source>
         <translation>Độ phân giải:</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="178"/>
+        <source>Forces the game to render at a different resolution.
+Higher resolutions require much more VRAM and bandwidth.
+Options lower than 1X can cause rendering issues.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="181"/>
@@ -512,9 +684,21 @@ This would ban both their forum username and their IP address.</source>
         <translation>Độ sắc nét FSR:</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="185"/>
+        <source>Determines how sharpened the image will look while using FSR’s dynamic contrast.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="188"/>
         <source>Anti-Aliasing Method:</source>
         <translation>Phương pháp khử răng cưa:</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="189"/>
+        <source>The anti-aliasing method to use.
+SMAA offers the best quality.
+FXAA has a lower performance impact and can produce a better and more stable picture under very low resolutions.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="194"/>
@@ -522,9 +706,23 @@ This would ban both their forum username and their IP address.</source>
         <translation>Chế độ Toàn màn hình:</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="195"/>
+        <source>The method used to render the window in fullscreen.
+Borderless offers the best compatibility with the on-screen keyboard that some games request for input.
+Exclusive fullscreen may offer better performance and better Freesync/Gsync support.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="201"/>
         <source>Aspect Ratio:</source>
         <translation>Tỉ lệ khung hình:</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="202"/>
+        <source>Stretches the game to fit the specified aspect ratio.
+Switch games only support 16:9, so custom game mods are required to get other ratios.
+Also controls the aspect ratio of captured screenshots.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="207"/>
@@ -532,14 +730,92 @@ This would ban both their forum username and their IP address.</source>
         <translation>Dùng bộ nhớ đệm pipeline trên ổ cứng</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="208"/>
+        <source>Allows saving shaders to storage for faster loading on following game boots.
+Disabling it is only intended for debugging.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="213"/>
+        <source>Optimize SPIRV output shader</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="214"/>
+        <source>Runs an additional optimization pass over generated SPIRV shaders.
+Will increase time required for shader compilation.
+May slightly improve performance.
+This feature is experimental.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="220"/>
         <source>Use asynchronous GPU emulation</source>
         <translation>Dùng giả lập GPU không đồng bộ</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="221"/>
+        <source>Uses an extra CPU thread for rendering.
+This option should always remain enabled.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="224"/>
         <source>NVDEC emulation:</source>
         <translation>Giả lập NVDEC</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="225"/>
+        <source>Specifies how videos should be decoded.
+It can either use the CPU or the GPU for decoding, or perform no decoding at all (black screen on videos).
+In most cases, GPU decoding provides the best performance.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="230"/>
+        <source>ASTC Decoding Method:</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="231"/>
+        <source>This option controls how ASTC textures should be decoded.
+CPU: Use the CPU for decoding, slowest but safest method.
+GPU: Use the GPU's compute shaders to decode ASTC textures, recommended for most games and users.
+CPU Asynchronously: Use the CPU to decode ASTC textures as they arrive. Completely eliminates ASTC decoding
+stuttering at the cost of rendering issues while the texture is being decoded.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="241"/>
+        <source>ASTC Recompression Method:</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="242"/>
+        <source>Almost all desktop and laptop dedicated GPUs lack support for ASTC textures, forcing the emulator to decompress to an intermediate format any card supports, RGBA8.
+This option recompresses RGBA8 to either the BC1 or BC3 format, saving VRAM but negatively affecting image quality.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="248"/>
+        <source>VRAM Usage Mode:</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="249"/>
+        <source>Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance.
+Aggressive mode may severely impact the performance of other applications such as recording software.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="252"/>
+        <source>Skip CPU Inner Invalidation</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="253"/>
+        <source>Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and improving it&apos;s performance. This may cause glitches or crashes on some games.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="258"/>
@@ -558,9 +834,26 @@ Mailbox có thể có độ trễ thấp hơn FIFO và không gây hiện tượ
 Immediate (không đồng bộ hóa) chỉ hiển thị những gì đã có và có thể gây hiện tượng xé hình.</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="269"/>
+        <source>Sync Memory Operations</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="270"/>
+        <source>Ensures data consistency between compute and memory operations.
+This option should fix issues in some games, but may also reduce performance in some cases.
+Unreal Engine 4 games often see the most significant changes thereof.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="273"/>
         <source>Enable asynchronous presentation (Vulkan only)</source>
         <translation>Bật hiển thị bất đồng bộ (chỉ dành cho Vulkan)</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="274"/>
+        <source>Slightly improves performance by moving presentation to a separate CPU thread.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="278"/>
@@ -578,8 +871,34 @@ Immediate (không đồng bộ hóa) chỉ hiển thị những gì đã có và
         <translation>Bộ lọc góc nghiêng:</translation>
     </message>
     <message>
-        <source>Accuracy Level:</source>
-        <translation type="vanished">Độ chính xác:</translation>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="284"/>
+        <source>Controls the quality of texture rendering at oblique angles.
+It’s a light setting and safe to set at 16x on most GPUs.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="288"/>
+        <source>GPU Accuracy:</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="289"/>
+        <source>Controls the GPU emulation accuracy.
+Most games render fine with Normal, but High is still required for some.
+Particles tend to only render correctly with High accuracy.
+Extreme should only be used as a last resort.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="294"/>
+        <source>DMA Accuracy:</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="295"/>
+        <source>Controls the DMA precision accuracy. Safe precision can fix issues in some games, but it can also impact performance in some cases.
+If unsure, leave this on Default.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="298"/>
@@ -587,12 +906,21 @@ Immediate (không đồng bộ hóa) chỉ hiển thị những gì đã có và
         <translation>Dùng tính năng dựng shader bất đồng bộ (Hack)</translation>
     </message>
     <message>
-        <source>Use Fast GPU Time (Hack)</source>
-        <translation type="vanished">Tăng Tốc Thời Gian GPU (Hack)</translation>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="299"/>
+        <source>Enables asynchronous shader compilation, which may reduce shader stutter.
+This feature is experimental.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
-        <source>Enables Fast GPU Time. This option will force most games to run at their highest native resolution.</source>
-        <translation type="vanished">Bật chế độ Thời gian GPU nhanh. Tùy chọn này sẽ buộc hầu hết các game chạy ở độ phân giải gốc cao nhất của chúng.</translation>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="305"/>
+        <source>Fast GPU Time (Hack)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="306"/>
+        <source>Overclocks the emulated GPU to increase dynamic resolution and render distance.
+Use 128 for maximal performance and 512 for maximal graphics fidelity.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="311"/>
@@ -600,9 +928,32 @@ Immediate (không đồng bộ hóa) chỉ hiển thị những gì đã có và
         <translation>Dùng Vulkan pipeline cache</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="312"/>
+        <source>Enables GPU vendor-specific pipeline cache.
+This option can improve shader loading time significantly in cases where the Vulkan driver does not store pipeline cache files internally.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="318"/>
+        <source>Enable Compute Pipelines (Intel Vulkan Only)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="319"/>
+        <source>Enable compute pipelines, required by some games.
+This setting only exists for Intel proprietary drivers, and may crash if enabled.
+Compute pipelines are always enabled on all other drivers.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="325"/>
         <source>Enable Reactive Flushing</source>
         <translation>Bật xả tương ứng</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="326"/>
+        <source>Uses reactive flushing instead of predictive flushing, allowing more accurate memory syncing.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="330"/>
@@ -625,14 +976,99 @@ Immediate (không đồng bộ hóa) chỉ hiển thị những gì đã có và
         <translation>Cải thiện hiệu quả hiển thị của hiệu ứng trong suốt trong một số trò chơi.</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="341"/>
+        <source>RAII</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="342"/>
+        <source>A method of automatic resource management in Vulkan that ensures proper release of resources when they are no longer needed, but may cause crashes in bundled games.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="347"/>
+        <source>Extended Dynamic State</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="348"/>
+        <source>Controls the number of features that can be used in Extended Dynamic State.
+Higher numbers allow for more features and can increase performance, but may cause issues with some drivers and vendors.
+The default value may vary depending on your system and hardware capabilities.
+This value can be changed until stability and a better visual quality are achieved.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="352"/>
+        <source>Provoking Vertex</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="353"/>
+        <source>Improves lighting and vertex handling in certain games.
+Only Vulkan 1.0+ devices support this extension.</source>
+        <translation>Cải thiện ánh sáng và xử lý điểm 3D vertex trong một số trò chơi.
+Chỉ các thiết bị hỗ trợ Vulkan 1.0+ mới hỗ trợ tiện ích mở rộng này.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="358"/>
+        <source>Descriptor Indexing</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="359"/>
+        <source>Improves texture &amp; buffer handling and the Maxwell translation layer.
+Some Vulkan 1.1+ and all 1.2+ devices support this extension.</source>
+        <translation>Cải thiện việc xử lý texture và bộ đệm buffer, cũng như lớp dịch Maxwell.
+Một số thiết bị hỗ trợ Vulkan 1.1+ và tất cả thiết bị Vulkan 1.2+ đều hỗ trợ tiện ích mở rộng này.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="366"/>
+        <source>Sample Shading</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="367"/>
+        <source>Allows the fragment shader to execute per sample in a multi-sampled fragment instead once per fragment. Improves graphics quality at the cost of some performance.
+Higher values improve quality more but also reduce performance to a greater extent.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="376"/>
         <source>RNG Seed</source>
         <translation>Hạt giống RNG</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="377"/>
+        <source>Controls the seed of the random number generator.
+Mainly used for speedrunning purposes.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="380"/>
         <source>Device Name</source>
         <translation>Tên thiết bị</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="380"/>
+        <source>The name of the emulated Switch.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="383"/>
+        <source>Custom RTC Date:</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="384"/>
+        <source>This option allows to change the emulated clock of the Switch.
+Can be used to manipulate time in games.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="393"/>
+        <source>Language:</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="394"/>
@@ -645,9 +1081,19 @@ Immediate (không đồng bộ hóa) chỉ hiển thị những gì đã có và
         <translation>Vùng:</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="395"/>
+        <source>The region of the emulated Switch.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="396"/>
         <source>Time Zone:</source>
         <translation>Múi giờ:</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="396"/>
+        <source>The time zone of the emulated Switch.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="397"/>
@@ -655,9 +1101,26 @@ Immediate (không đồng bộ hóa) chỉ hiển thị những gì đã có và
         <translation>Chế độ đầu ra âm thanh</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="400"/>
+        <source>Console Mode:</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="401"/>
+        <source>Selects if the console is emulated in Docked or Handheld mode.
+Games will change their resolution, details and supported controllers and depending on this setting.
+Setting to Handheld can help improve performance for low end systems.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="423"/>
         <source>Prompt for user on game boot</source>
         <translation>Hiển thị cửa sổ chọn người dùng khi bắt đầu trò chơi</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="424"/>
+        <source>Ask to select a user profile on each boot, useful if multiple people use Eden on the same PC.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="428"/>
@@ -665,9 +1128,30 @@ Immediate (không đồng bộ hóa) chỉ hiển thị những gì đã có và
         <translation>Tạm dừng giả lập khi chạy nền</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="429"/>
+        <source>This setting pauses Eden when focusing other windows.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="432"/>
+        <source>Confirm before stopping emulation</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="433"/>
+        <source>This setting overrides game prompts asking to confirm stopping the game.
+Enabling it bypasses such prompts and directly exits the emulation.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="437"/>
         <source>Hide mouse on inactivity</source>
         <translation>Ẩn con trỏ chuột khi không dùng</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="438"/>
+        <source>This setting hides the mouse after 2.5s of inactivity.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="441"/>
@@ -675,9 +1159,65 @@ Immediate (không đồng bộ hóa) chỉ hiển thị những gì đã có và
         <translation>Vô hiệu hoá applet tay cầm</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="442"/>
+        <source>Forcibly disables the use of the controller applet by guests.
+When a guest attempts to open the controller applet, it is immediately closed.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="446"/>
+        <source>Check for updates</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="447"/>
+        <source>Whether or not to check for updates upon startup.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="450"/>
+        <source>Enable Gamemode</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="475"/>
+        <source>Custom frontend</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="476"/>
+        <source>Real applet</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="481"/>
+        <source>Never</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="482"/>
+        <source>On Load</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="483"/>
+        <source>Always</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="487"/>
         <source>CPU</source>
         <translation>CPU</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="488"/>
+        <source>GPU</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="489"/>
+        <source>CPU Asynchronous</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="494"/>
@@ -693,6 +1233,16 @@ Immediate (không đồng bộ hóa) chỉ hiển thị những gì đã có và
         <location filename="../../src/qt_common/shared_translation.cpp" line="496"/>
         <source>BC3 (Medium quality)</source>
         <translation>BC3 (Chất lượng trung bình)</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="500"/>
+        <source>Conservative</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="501"/>
+        <source>Aggressive</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="506"/>
@@ -720,6 +1270,11 @@ Immediate (không đồng bộ hóa) chỉ hiển thị những gì đã có và
         <translation>GLASM (Assembly Shaders, Chỉ Cho NVIDIA)</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="516"/>
+        <source>SPIR-V (Experimental, AMD/Mesa Only)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="520"/>
         <source>Normal</source>
         <translation>Trung bình</translation>
@@ -733,6 +1288,22 @@ Immediate (không đồng bộ hóa) chỉ hiển thị những gì đã có và
         <location filename="../../src/qt_common/shared_translation.cpp" line="522"/>
         <source>Extreme</source>
         <translation>Tối đa</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="526"/>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="597"/>
+        <source>Default</source>
+        <translation>Mặc định</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="527"/>
+        <source>Unsafe (fast)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="528"/>
+        <source>Safe (stable)</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="533"/>
@@ -753,6 +1324,16 @@ Immediate (không đồng bộ hóa) chỉ hiển thị những gì đã có và
         <location filename="../../src/qt_common/shared_translation.cpp" line="536"/>
         <source>Paranoid (disables most optimizations)</source>
         <translation>Paranoid (vô hiệu hoá hầu hết sự tối ưu)</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="540"/>
+        <source>Dynarmic</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="541"/>
+        <source>NCE</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="545"/>
@@ -778,6 +1359,16 @@ Immediate (không đồng bộ hóa) chỉ hiển thị những gì đã có và
         <location filename="../../src/qt_common/shared_translation.cpp" line="552"/>
         <source>GPU Video Decoding (Default)</source>
         <translation>Giải mã video bằng GPU (Mặc định)</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="557"/>
+        <source>0.25X (180p/270p) [EXPERIMENTAL]</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="558"/>
+        <source>0.5X (360p/540p) [EXPERIMENTAL]</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="559"/>
@@ -860,6 +1451,11 @@ Immediate (không đồng bộ hóa) chỉ hiển thị những gì đã có và
         <translation>AMD FidelityFX™️ Super Resolution</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/shared_translation.cpp" line="578"/>
+        <source>Area</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="582"/>
         <source>None</source>
         <translation>Trống</translation>
@@ -903,651 +1499,6 @@ Immediate (không đồng bộ hóa) chỉ hiển thị những gì đã có và
         <location filename="../../src/qt_common/shared_translation.cpp" line="596"/>
         <source>Automatic</source>
         <translation>Tự động</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="526"/>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="597"/>
-        <source>Default</source>
-        <translation>Mặc định</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="35"/>
-        <source>Amiibo editor</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="36"/>
-        <source>Controller configuration</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="37"/>
-        <source>Data erase</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="39"/>
-        <source>Net connect</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="40"/>
-        <source>Player select</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="42"/>
-        <source>Mii Edit</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="43"/>
-        <source>Online web</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="44"/>
-        <source>Shop</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="45"/>
-        <source>Photo viewer</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="46"/>
-        <source>Offline web</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="47"/>
-        <source>Login share</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="48"/>
-        <source>Wifi web auth</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="49"/>
-        <source>My page</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="55"/>
-        <source>Mute audio</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="65"/>
-        <source>This option increases CPU emulation thread use from 1 to the Switch’s maximum of 4.
-This is mainly a debug option and shouldn’t be disabled.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="70"/>
-        <source>Memory Layout</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="71"/>
-        <source>Increases the amount of emulated RAM from the stock 4GB of the retail Switch to the developer kit&apos;s 8/6GB.
-It’s doesn’t improve stability or performance and is intended to let big texture mods fit in emulated RAM.
-Enabling it will increase memory use. It is not recommended to enable unless a specific game with a texture mod needs it.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="80"/>
-        <source>Controls the game&apos;s maximum rendering speed, but it’s up to each game if it runs faster or not.
-200% for a 30 FPS game is 60 FPS, and for a 60 FPS game it will be 120 FPS.
-Disabling it means unlocking the framerate to the maximum your PC can reach.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="86"/>
-        <source>Synchronize Core Speed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="87"/>
-        <source>Synchronizes CPU core speed with the game&apos;s maximum rendering speed to boost FPS without affecting game speed (animations, physics, etc.).
-Compatibility varies by game; many (especially older ones) may not respond well.
-Can help reduce stuttering at lower framerates.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="96"/>
-        <source>This setting controls the accuracy of the emulated CPU.
-Don&apos;t change this unless you know what you are doing.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="98"/>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="114"/>
-        <source>Backend:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="103"/>
-        <source>Fast CPU Time</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="104"/>
-        <source>Overclocks the emulated CPU to remove some FPS limiters. Weaker CPUs may see reduced performance, and certain games may behave improperly.
-Use Boost (1700MHz) to run at the Switch&apos;s highest native clock, or Fast (2000MHz) to run at 2x clock.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="111"/>
-        <source>Custom CPU Ticks</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="112"/>
-        <source>Set a custom value of CPU ticks. Higher values can increase performance, but may also cause the game to freeze. A range of 77–21000 is recommended.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="119"/>
-        <source>Enable Host MMU Emulation (fastmem)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="120"/>
-        <source>This optimization speeds up memory accesses by the guest program.
-Enabling it causes guest memory reads/writes to be done directly into memory and make use of Host&apos;s MMU.
-Disabling this forces all memory accesses to use Software MMU Emulation.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="125"/>
-        <source>This option improves speed by reducing accuracy of fused-multiply-add instructions on CPUs without native FMA support.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="131"/>
-        <source>This option improves the speed of some approximate floating-point functions by using less accurate native approximations.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="136"/>
-        <source>This option improves the speed of 32 bits ASIMD floating-point functions by running with incorrect rounding modes.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="141"/>
-        <source>This option improves speed by removing NaN checking.
-Please note this also reduces accuracy of certain floating-point instructions.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="146"/>
-        <source>This option improves speed by eliminating a safety check before every memory read/write in guest.
-Disabling it may allow a game to read/write the emulator&apos;s memory.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="153"/>
-        <source>This option improves speed by relying only on the semantics of cmpxchg to ensure safety of exclusive access instructions.
-Please note this may result in deadlocks and other race conditions.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="162"/>
-        <source>Switches between the available graphics APIs.
-Vulkan is recommended in most cases.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="166"/>
-        <source>This setting selects the GPU to use with the Vulkan backend.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="170"/>
-        <source>The shader backend to use for the OpenGL renderer.
-GLSL is the fastest in performance and the best in rendering accuracy.
-GLASM is a deprecated NVIDIA-only backend that offers much better shader building performance at the cost of FPS and rendering accuracy.
-SPIR-V compiles the fastest, but yields poor results on most GPU drivers.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="178"/>
-        <source>Forces the game to render at a different resolution.
-Higher resolutions require much more VRAM and bandwidth.
-Options lower than 1X can cause rendering issues.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="185"/>
-        <source>Determines how sharpened the image will look while using FSR’s dynamic contrast.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="189"/>
-        <source>The anti-aliasing method to use.
-SMAA offers the best quality.
-FXAA has a lower performance impact and can produce a better and more stable picture under very low resolutions.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="195"/>
-        <source>The method used to render the window in fullscreen.
-Borderless offers the best compatibility with the on-screen keyboard that some games request for input.
-Exclusive fullscreen may offer better performance and better Freesync/Gsync support.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="202"/>
-        <source>Stretches the game to fit the specified aspect ratio.
-Switch games only support 16:9, so custom game mods are required to get other ratios.
-Also controls the aspect ratio of captured screenshots.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="208"/>
-        <source>Allows saving shaders to storage for faster loading on following game boots.
-Disabling it is only intended for debugging.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="213"/>
-        <source>Optimize SPIRV output shader</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="214"/>
-        <source>Runs an additional optimization pass over generated SPIRV shaders.
-Will increase time required for shader compilation.
-May slightly improve performance.
-This feature is experimental.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="221"/>
-        <source>Uses an extra CPU thread for rendering.
-This option should always remain enabled.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="225"/>
-        <source>Specifies how videos should be decoded.
-It can either use the CPU or the GPU for decoding, or perform no decoding at all (black screen on videos).
-In most cases, GPU decoding provides the best performance.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="230"/>
-        <source>ASTC Decoding Method:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="231"/>
-        <source>This option controls how ASTC textures should be decoded.
-CPU: Use the CPU for decoding, slowest but safest method.
-GPU: Use the GPU&apos;s compute shaders to decode ASTC textures, recommended for most games and users.
-CPU Asynchronously: Use the CPU to decode ASTC textures as they arrive. Completely eliminates ASTC decoding
-stuttering at the cost of rendering issues while the texture is being decoded.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="241"/>
-        <source>ASTC Recompression Method:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="242"/>
-        <source>Almost all desktop and laptop dedicated GPUs lack support for ASTC textures, forcing the emulator to decompress to an intermediate format any card supports, RGBA8.
-This option recompresses RGBA8 to either the BC1 or BC3 format, saving VRAM but negatively affecting image quality.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="248"/>
-        <source>VRAM Usage Mode:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="249"/>
-        <source>Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance.
-Aggressive mode may severely impact the performance of other applications such as recording software.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="252"/>
-        <source>Skip CPU Inner Invalidation</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="253"/>
-        <source>Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and improving it&apos;s performance. This may cause glitches or crashes on some games.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="269"/>
-        <source>Sync Memory Operations</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="270"/>
-        <source>Ensures data consistency between compute and memory operations.
-This option should fix issues in some games, but may also reduce performance in some cases.
-Unreal Engine 4 games often see the most significant changes thereof.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="274"/>
-        <source>Slightly improves performance by moving presentation to a separate CPU thread.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="284"/>
-        <source>Controls the quality of texture rendering at oblique angles.
-It’s a light setting and safe to set at 16x on most GPUs.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="288"/>
-        <source>GPU Accuracy:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="289"/>
-        <source>Controls the GPU emulation accuracy.
-Most games render fine with Normal, but High is still required for some.
-Particles tend to only render correctly with High accuracy.
-Extreme should only be used as a last resort.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="294"/>
-        <source>DMA Accuracy:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="295"/>
-        <source>Controls the DMA precision accuracy. Safe precision can fix issues in some games, but it can also impact performance in some cases.
-If unsure, leave this on Default.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="299"/>
-        <source>Enables asynchronous shader compilation, which may reduce shader stutter.
-This feature is experimental.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="305"/>
-        <source>Fast GPU Time (Hack)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="306"/>
-        <source>Overclocks the emulated GPU to increase dynamic resolution and render distance.
-Use 128 for maximal performance and 512 for maximal graphics fidelity.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="312"/>
-        <source>Enables GPU vendor-specific pipeline cache.
-This option can improve shader loading time significantly in cases where the Vulkan driver does not store pipeline cache files internally.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="318"/>
-        <source>Enable Compute Pipelines (Intel Vulkan Only)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="319"/>
-        <source>Enable compute pipelines, required by some games.
-This setting only exists for Intel proprietary drivers, and may crash if enabled.
-Compute pipelines are always enabled on all other drivers.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="326"/>
-        <source>Uses reactive flushing instead of predictive flushing, allowing more accurate memory syncing.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="341"/>
-        <source>RAII</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="342"/>
-        <source>A method of automatic resource management in Vulkan that ensures proper release of resources when they are no longer needed, but may cause crashes in bundled games.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="347"/>
-        <source>Extended Dynamic State</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="348"/>
-        <source>Controls the number of features that can be used in Extended Dynamic State.
-Higher numbers allow for more features and can increase performance, but may cause issues with some drivers and vendors.
-The default value may vary depending on your system and hardware capabilities.
-This value can be changed until stability and a better visual quality are achieved.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="352"/>
-        <source>Provoking Vertex</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="353"/>
-        <source>Improves lighting and vertex handling in certain games.
-Only Vulkan 1.0+ devices support this extension.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="358"/>
-        <source>Descriptor Indexing</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="359"/>
-        <source>Improves texture &amp; buffer handling and the Maxwell translation layer.
-Some Vulkan 1.1+ and all 1.2+ devices support this extension.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="366"/>
-        <source>Sample Shading</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="367"/>
-        <source>Allows the fragment shader to execute per sample in a multi-sampled fragment instead once per fragment. Improves graphics quality at the cost of some performance.
-Higher values improve quality more but also reduce performance to a greater extent.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="377"/>
-        <source>Controls the seed of the random number generator.
-Mainly used for speedrunning purposes.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="380"/>
-        <source>The name of the emulated Switch.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="383"/>
-        <source>Custom RTC Date:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="384"/>
-        <source>This option allows to change the emulated clock of the Switch.
-Can be used to manipulate time in games.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="393"/>
-        <source>Language:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="395"/>
-        <source>The region of the emulated Switch.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="396"/>
-        <source>The time zone of the emulated Switch.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="400"/>
-        <source>Console Mode:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="401"/>
-        <source>Selects if the console is emulated in Docked or Handheld mode.
-Games will change their resolution, details and supported controllers and depending on this setting.
-Setting to Handheld can help improve performance for low end systems.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="424"/>
-        <source>Ask to select a user profile on each boot, useful if multiple people use Eden on the same PC.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="429"/>
-        <source>This setting pauses Eden when focusing other windows.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="432"/>
-        <source>Confirm before stopping emulation</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="433"/>
-        <source>This setting overrides game prompts asking to confirm stopping the game.
-Enabling it bypasses such prompts and directly exits the emulation.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="438"/>
-        <source>This setting hides the mouse after 2.5s of inactivity.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="442"/>
-        <source>Forcibly disables the use of the controller applet by guests.
-When a guest attempts to open the controller applet, it is immediately closed.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="446"/>
-        <source>Check for updates</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="447"/>
-        <source>Whether or not to check for updates upon startup.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="450"/>
-        <source>Enable Gamemode</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="475"/>
-        <source>Custom frontend</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="476"/>
-        <source>Real applet</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="481"/>
-        <source>Never</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="482"/>
-        <source>On Load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="483"/>
-        <source>Always</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="488"/>
-        <source>GPU</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="489"/>
-        <source>CPU Asynchronous</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="500"/>
-        <source>Conservative</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="501"/>
-        <source>Aggressive</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="516"/>
-        <source>SPIR-V (Experimental, AMD/Mesa Only)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="527"/>
-        <source>Unsafe (fast)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="528"/>
-        <source>Safe (stable)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="540"/>
-        <source>Dynarmic</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="541"/>
-        <source>NCE</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="557"/>
-        <source>0.25X (180p/270p) [EXPERIMENTAL]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="558"/>
-        <source>0.5X (360p/540p) [EXPERIMENTAL]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.cpp" line="578"/>
-        <source>Area</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="598"/>
@@ -1662,7 +1613,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="624"/>
         <source>Serbian (српски)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="628"/>
@@ -1945,27 +1896,27 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="699"/>
         <source>4GB DRAM (Default)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="700"/>
         <source>6GB DRAM (Unsafe)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="701"/>
         <source>8GB DRAM</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="702"/>
         <source>10GB DRAM (Unsafe)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="703"/>
         <source>12GB DRAM (Unsafe)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="707"/>
@@ -1980,42 +1931,47 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="712"/>
         <source>Boost (1700MHz)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="713"/>
         <source>Fast (2000MHz)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="718"/>
         <source>Always ask (Default)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="719"/>
         <source>Only if game specifies not to stop</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="720"/>
         <source>Never ask</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="724"/>
         <source>Low (128)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="725"/>
         <source>Medium (256)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/shared_translation.cpp" line="726"/>
         <source>High (512)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_widget.cpp" line="66"/>
+        <source>%</source>
+        <translation>%</translation>
     </message>
 </context>
 <context>
@@ -2028,12 +1984,12 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_applets.ui" line="17"/>
         <source>Applets</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_applets.ui" line="25"/>
         <source>Applet mode preference</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -2118,7 +2074,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="68"/>
         <source>CPU Backend</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="95"/>
@@ -2275,7 +2231,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="140"/>
         <source>
             &lt;div style=&quot;white-space: nowrap&quot;&gt;This optimization speeds up memory accesses by the guest program.&lt;/div&gt;
-            &lt;div style=&quot;white-space: nowrap&quot;&gt;Enabling it causes guest memory reads/writes to be done directly into memory and make use of Host&apos;s MMU.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Enabling it causes guest memory reads/writes to be done directly into memory and make use of Host's MMU.&lt;/div&gt;
             &lt;div style=&quot;white-space: nowrap&quot;&gt;Disabling this forces all memory accesses to use Software MMU Emulation.&lt;/div&gt;
            </source>
         <translation>
@@ -2293,7 +2249,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="154"/>
         <source>
             &lt;div style=&quot;white-space: nowrap&quot;&gt;This optimization speeds up exclusive memory accesses by the guest program.&lt;/div&gt;
-            &lt;div style=&quot;white-space: nowrap&quot;&gt;Enabling it causes guest exclusive memory reads/writes to be done directly into memory and make use of Host&apos;s MMU.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Enabling it causes guest exclusive memory reads/writes to be done directly into memory and make use of Host's MMU.&lt;/div&gt;
             &lt;div style=&quot;white-space: nowrap&quot;&gt;Disabling this forces all exclusive memory accesses to use Software MMU Emulation.&lt;/div&gt;
            </source>
         <translation>
@@ -2327,7 +2283,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="181"/>
         <source>
             &lt;div style=&quot;white-space: nowrap&quot;&gt;This optimization speeds up memory accesses by allowing invalid memory accesses to succeed.&lt;/div&gt;
-            &lt;div style=&quot;white-space: nowrap&quot;&gt;Enabling it reduces the overhead of all memory accesses and has no impact on programs that don&apos;t access invalid memory.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Enabling it reduces the overhead of all memory accesses and has no impact on programs that don't access invalid memory.&lt;/div&gt;
            </source>
         <translation>
             &lt;div style=&quot;white-space: nowrap&quot;&gt;Tối ưu hóa này tăng tốc truy cập bộ nhớ bằng cách cho phép các truy cập bộ nhớ không hợp lệ thành công.&lt;/div&gt;
@@ -2368,11 +2324,6 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <translation>Sổ ghi chép</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="223"/>
-        <source>Open Log Location</source>
-        <translation>Mở vị trí sổ ghi chép</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="190"/>
         <source>Global Log Filter</source>
         <translation>Bộ lọc sổ ghi chép</translation>
@@ -2391,6 +2342,11 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="216"/>
         <source>Show Log in Console</source>
         <translation>Hiện nhật ký trên trong console</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="223"/>
+        <source>Open Log Location</source>
+        <translation>Mở vị trí sổ ghi chép</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="235"/>
@@ -2450,7 +2406,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="312"/>
         <source>Enable Renderdoc Hotkey</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="322"/>
@@ -2495,12 +2451,12 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="384"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When checked, disables reordering of mapped memory uploads which allows to associate uploads with specific draws. May reduce performance in some cases.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="387"/>
         <source>Disable Buffer Reorder</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="397"/>
@@ -2528,18 +2484,9 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <translation>Kích hoạt tất cả các loại tay cầm</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="527"/>
-        <source>Censor username in logs</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="563"/>
-        <source>**This will be reset automatically when Eden closes.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Enable Auto-Stub**</source>
-        <translation type="vanished">Bật Auto-Stub**</translation>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="427"/>
+        <source>Enable Auto-Stub</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="434"/>
@@ -2562,24 +2509,9 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <translation>Vá lỗi</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="506"/>
-        <source>Flush log output on each line</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="513"/>
-        <source>Enable FS Access Log</source>
-        <translation>Bật log truy cập FS</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="496"/>
         <source>Enable this to output the latest generated audio command list to the console. Only affects games using the audio renderer.</source>
         <translation>Bật tính năng này để đưa ra danh sách lệnh âm thanh mới nhất đã tạo ra đến console. Chỉ ảnh hưởng đến các game sử dụng bộ mã hóa âm thanh.</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="427"/>
-        <source>Enable Auto-Stub</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="499"/>
@@ -2587,13 +2519,29 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <translation>Trích xuất các lệnh âm thanh đến console**</translation>
     </message>
     <message>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="506"/>
+        <source>Flush log output on each line</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="513"/>
+        <source>Enable FS Access Log</source>
+        <translation>Bật log truy cập FS</translation>
+    </message>
+    <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="520"/>
         <source>Enable Verbose Reporting Services**</source>
         <translation>Bật dịch vụ báo cáo chi tiết**</translation>
     </message>
     <message>
-        <source>**This will be reset automatically when yuzu closes.</source>
-        <translation type="vanished">**Sẽ tự động thiết lập lại khi tắt yuzu.</translation>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="527"/>
+        <source>Censor username in logs</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="563"/>
+        <source>**This will be reset automatically when Eden closes.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.cpp" line="87"/>
@@ -2641,13 +2589,9 @@ When a guest attempts to open the controller applet, it is immediately closed.</
 <context>
     <name>ConfigureDialog</name>
     <message>
-        <source>yuzu Configuration</source>
-        <translation type="vanished">Thiết lập yuzu</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/configuration/configure.ui" line="20"/>
         <source>Eden Configuration</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure.ui" line="67"/>
@@ -2657,7 +2601,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="69"/>
         <source>Applets</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="70"/>
@@ -2701,7 +2645,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="77"/>
         <source>GraphicsExtensions</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="78"/>
@@ -2862,18 +2806,6 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <source>Select Mod Load Directory...</source>
         <translation>Chọn Thư Mục Chứa Mod...</translation>
     </message>
-    <message>
-        <source>The metadata cache is already empty.</source>
-        <translation type="vanished">Bộ nhớ đệm metadata trống.</translation>
-    </message>
-    <message>
-        <source>The operation completed successfully.</source>
-        <translation type="vanished">Các hoạt động đã hoàn tất thành công.</translation>
-    </message>
-    <message>
-        <source>The metadata cache couldn&apos;t be deleted. It might be in use or non-existent.</source>
-        <translation type="vanished">Bộ nhớ đệm metadata không thể xoá. Nó có thể đang được sử dụng hoặc không tồn tại.</translation>
-    </message>
 </context>
 <context>
     <name>ConfigureGeneral</name>
@@ -2891,7 +2823,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="52"/>
         <source>Linux</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="109"/>
@@ -2899,13 +2831,9 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <translation>Đặt lại mọi tùy chỉnh</translation>
     </message>
     <message>
-        <source>yuzu</source>
-        <translation type="vanished">yuzu</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/configuration/configure_general.cpp" line="102"/>
         <source>Eden</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.cpp" line="103"/>
@@ -2995,28 +2923,28 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_extensions.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished">Mẫu</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_extensions.ui" line="17"/>
         <source>Extensions</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_extensions.ui" line="25"/>
         <source>Vulkan Extensions Settings</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_extensions.cpp" line="47"/>
         <source>%</source>
         <comment>Sample Shading percentage (e.g. 50%)</comment>
-        <translation type="unfinished">%</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_extensions.cpp" line="68"/>
         <source>Extended Dynamic State is disabled on macOS due to MoltenVK compatibility issues that cause black screens.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -3087,12 +3015,12 @@ When a guest attempts to open the controller applet, it is immediately closed.</
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="343"/>
         <source>Invalid hotkey settings</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="344"/>
         <source>An error occurred. Please report this issue on github.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="384"/>
@@ -3436,11 +3364,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2701"/>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2717"/>
         <source>Requires restarting Eden</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Requires restarting yuzu</source>
-        <translation type="vanished">Phải khởi động lại yuzu</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2668"/>
@@ -3595,25 +3519,14 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <translation>Cần trái</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="464"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="506"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="947"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="986"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2523"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2562"/>
-        <source>Up</source>
-        <translation>Lên</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="415"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="454"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="849"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="888"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1889"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2474"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2513"/>
-        <source>Left</source>
-        <translation>Trái</translation>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="317"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="356"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="800"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="839"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2425"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2464"/>
+        <source>Down</source>
+        <translation>Xuống</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="366"/>
@@ -3627,14 +3540,25 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <translation>Phải</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="317"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="356"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="800"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="839"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2425"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2464"/>
-        <source>Down</source>
-        <translation>Xuống</translation>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="415"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="454"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="849"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="888"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1889"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2474"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2513"/>
+        <source>Left</source>
+        <translation>Trái</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="464"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="506"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="947"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="986"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2523"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2562"/>
+        <source>Up</source>
+        <translation>Lên</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="524"/>
@@ -3682,14 +3606,6 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <translation>D-Pad</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1108"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1147"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1743"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1782"/>
-        <source>SL</source>
-        <translation>SL</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1059"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1098"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1694"/>
@@ -3698,11 +3614,12 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <translation>SR</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1283"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1322"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1376"/>
-        <source>L</source>
-        <translation>L</translation>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1108"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1147"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1743"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1782"/>
+        <source>SL</source>
+        <translation>SL</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1218"/>
@@ -3712,16 +3629,17 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <translation>ZL</translation>
     </message>
     <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1283"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1322"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1376"/>
+        <source>L</source>
+        <translation>L</translation>
+    </message>
+    <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1369"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1408"/>
         <source>Minus</source>
         <translation>Trừ</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1948"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1987"/>
-        <source>Capture</source>
-        <translation>Chụp</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1418"/>
@@ -3731,10 +3649,11 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <translation>Cộng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1997"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2036"/>
-        <source>Home</source>
-        <translation>Home</translation>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1525"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1564"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1369"/>
+        <source>ZR</source>
+        <translation>ZR</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1590"/>
@@ -3745,13 +3664,6 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <translation>R</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1525"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1564"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1369"/>
-        <source>ZR</source>
-        <translation>ZR</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1850"/>
         <source>Motion 1</source>
         <translation>Chuyển động 1</translation>
@@ -3760,6 +3672,18 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1899"/>
         <source>Motion 2</source>
         <translation>Chuyển động 2</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1948"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1987"/>
+        <source>Capture</source>
+        <translation>Chụp</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1997"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2036"/>
+        <source>Home</source>
+        <translation>Home</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2075"/>
@@ -3773,10 +3697,10 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <translation>X</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2267"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2306"/>
-        <source>Y</source>
-        <translation>Y</translation>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2169"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2208"/>
+        <source>B</source>
+        <translation>B</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2218"/>
@@ -3785,10 +3709,10 @@ When a guest attempts to open the controller applet, it is immediately closed.</
         <translation>A</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2169"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2208"/>
-        <source>B</source>
-        <translation>B</translation>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2267"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2306"/>
+        <source>Y</source>
+        <translation>Y</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2328"/>
@@ -4071,7 +3995,7 @@ Nếu muốn đảo ngược hướng cần điều khiển, di chuyển cần s
         <location filename="../../src/yuzu/configuration/configure_linux_tab.ui" line="6"/>
         <location filename="../../src/yuzu/configuration/configure_linux_tab.ui" line="12"/>
         <source>Linux</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -4150,27 +4074,14 @@ Nếu muốn đảo ngược hướng cần điều khiển, di chuyển cần s
         <translation>Xóa Server</translation>
     </message>
     <message>
-        <source>&lt;a href=&apos;https://yuzu-emu.org/wiki/using-a-controller-or-android-phone-for-motion-or-touch-input&apos;&gt;&lt;span style=&quot;text-decoration: underline; color:#039be5;&quot;&gt;Learn More&lt;/span&gt;&lt;/a&gt;</source>
-        <translation type="vanished">&lt;a href=&apos;https://yuzu-emu.org/wiki/using-a-controller-or-android-phone-for-motion-or-touch-input&apos;&gt;&lt;span style=&quot;text-decoration: underline; color:#039be5;&quot;&gt;Tìm hiểu thêm&lt;/span&gt;&lt;/a&gt;</translation>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="89"/>
+        <source>&lt;a href=&apos;https://eden-emulator.github.io/wiki/using-a-controller-or-android-phone-for-motion-or-touch-input&apos;&gt;&lt;span style=&quot;text-decoration: underline; color:#039be5;&quot;&gt;Learn More&lt;/span&gt;&lt;/a&gt;</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="170"/>
         <source>%1:%2</source>
         <translation>%1:%2</translation>
-    </message>
-    <message>
-        <source>yuzu</source>
-        <translation type="vanished">yuzu</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="89"/>
-        <source>&lt;a href=&apos;https://eden-emulator.github.io/wiki/using-a-controller-or-android-phone-for-motion-or-touch-input&apos;&gt;&lt;span style=&quot;text-decoration: underline; color:#039be5;&quot;&gt;Learn More&lt;/span&gt;&lt;/a&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="175"/>
-        <source>Port number has invalid characters</source>
-        <translation>Cổng có kí tự không hợp lệ</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="175"/>
@@ -4180,7 +4091,12 @@ Nếu muốn đảo ngược hướng cần điều khiển, di chuyển cần s
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="195"/>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="289"/>
         <source>Eden</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="175"/>
+        <source>Port number has invalid characters</source>
+        <translation>Cổng có kí tự không hợp lệ</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="179"/>
@@ -4362,7 +4278,7 @@ Các giá trị hiện tại lần lượt là %1% và %2%.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_network.ui" line="41"/>
         <source>Enable Airplane Mode</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_network.cpp" line="18"/>
@@ -4450,7 +4366,7 @@ Các giá trị hiện tại lần lượt là %1% và %2%.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="80"/>
         <source>GPU Extensions</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="81"/>
@@ -4465,7 +4381,7 @@ Các giá trị hiện tại lần lượt là %1% và %2%.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="88"/>
         <source>Linux</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="92"/>
@@ -4531,7 +4447,7 @@ Các giá trị hiện tại lần lượt là %1% và %2%.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.ui" line="126"/>
         <source>Select Avatar</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.ui" line="146"/>
@@ -4582,86 +4498,6 @@ Các giá trị hiện tại lần lượt là %1% và %2%.</translation>
         <translation>Chọn một tên mới:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="320"/>
-        <source>Error saving user image</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="321"/>
-        <source>Unable to save image to file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="332"/>
-        <source>Select User Image</source>
-        <translation>Chọn Ảnh cho Người Dùng</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="333"/>
-        <source>Image Formats (*.jpg *.jpeg *.png *.bmp)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="363"/>
-        <source>No firmware available</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="364"/>
-        <source>Please install the firmware to use firmware avatars.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="369"/>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="375"/>
-        <source>Error loading archive</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="370"/>
-        <source>Archive is not available. Please install/reinstall firmware.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="376"/>
-        <source>Archive does not contain romfs. It is probably corrupt.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="381"/>
-        <source>Error extracting archive</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="382"/>
-        <source>Archive could not be extracted. It is probably corrupt.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="387"/>
-        <source>Error finding image directory</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="388"/>
-        <source>Failed to find image directory in the archive.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="408"/>
-        <source>No images found</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="409"/>
-        <source>No avatar images were found in the archive.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>JPEG Images (*.jpg *.jpeg)</source>
-        <translation type="vanished">Ảnh JPEG (*.jpg *.jpeg)</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="297"/>
         <source>Error deleting image</source>
         <translation>Lỗi khi xóa ảnh</translation>
@@ -4692,20 +4528,80 @@ Các giá trị hiện tại lần lượt là %1% và %2%.</translation>
         <translation>Không thể tạo thư mục %1 để chứa ảnh người dùng</translation>
     </message>
     <message>
-        <source>Error copying user image</source>
-        <translation type="vanished">Lỗi chép ảnh người dùng</translation>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="320"/>
+        <source>Error saving user image</source>
+        <translation type="unfinished"/>
     </message>
     <message>
-        <source>Unable to copy image from %1 to %2</source>
-        <translation type="vanished">Không thể chép ảnh từ %1 sang %2</translation>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="321"/>
+        <source>Unable to save image to file</source>
+        <translation type="unfinished"/>
     </message>
     <message>
-        <source>Error resizing user image</source>
-        <translation type="vanished">Lỗi thu phóng ảnh</translation>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="332"/>
+        <source>Select User Image</source>
+        <translation>Chọn Ảnh cho Người Dùng</translation>
     </message>
     <message>
-        <source>Unable to resize image</source>
-        <translation type="vanished">Không thể thu phóng ảnh</translation>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="333"/>
+        <source>Image Formats (*.jpg *.jpeg *.png *.bmp)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="363"/>
+        <source>No firmware available</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="364"/>
+        <source>Please install the firmware to use firmware avatars.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="369"/>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="375"/>
+        <source>Error loading archive</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="370"/>
+        <source>Archive is not available. Please install/reinstall firmware.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="376"/>
+        <source>Archive does not contain romfs. It is probably corrupt.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="381"/>
+        <source>Error extracting archive</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="382"/>
+        <source>Archive could not be extracted. It is probably corrupt.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="387"/>
+        <source>Error finding image directory</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="388"/>
+        <source>Failed to find image directory in the archive.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="408"/>
+        <source>No images found</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="409"/>
+        <source>No avatar images were found in the archive.</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -4713,22 +4609,22 @@ Các giá trị hiện tại lần lượt là %1% và %2%.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="422"/>
         <source>Select</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="423"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="424"/>
         <source>Background Color</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="445"/>
         <source>Select Firmware Avatar</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -4911,13 +4807,9 @@ UUID: %2</translation>
         <translation>TAS</translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reads controller input from scripts in the same format as TAS-nx scripts.&lt;br/&gt;For a more detailed explanation, please consult the &lt;a href=&quot;https://yuzu-emu.org/help/feature/tas/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;help page&lt;/span&gt;&lt;/a&gt; on the yuzu website.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="vanished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reads controller input from scripts in the same format as TAS-nx scripts.&lt;br/&gt;Để biết thêm chi tiết, vui lòng tham khảo &lt;a href=&quot;https://yuzu-emu.org/help/feature/tas/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;trang trợ giúp&lt;/span&gt;&lt;/a&gt; trên website của yuzu.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="17"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reads controller input from scripts in the same format as TAS-nx scripts.&lt;br/&gt;For a more detailed explanation, please consult the &lt;a href=&quot;https://eden-emulator.github.io/help/feature/tas/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;help page&lt;/span&gt;&lt;/a&gt; on the Eden website.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="27"/>
@@ -5078,13 +4970,9 @@ Kéo điểm để thay đổi vị trí, hoặc nhấp đúp chuột vào ô tr
         <translation>Thiết lập màn hình cảm ứng</translation>
     </message>
     <message>
-        <source>Warning: The settings in this page affect the inner workings of yuzu&apos;s emulated touchscreen. Changing them may result in undesirable behavior, such as the touchscreen partially or not working. You should only use this page if you know what you are doing.</source>
-        <translation type="vanished">Chú ý: Cài đặt trong trang này có thể ảnh hưởng đến hoạt động bên trong giả lập màn hình cảm ứng của yuzu&apos;s. Thay đổi chúng có thể dẫn đến hành vi không mong muốn, chẳng hạn như một phần của màn hình cảm ứng sẽ không hoạt động. Bạn chỉ nên sử dụng trang này nếu bạn biết bạn đang làm gì.</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/configuration/configure_touchscreen_advanced.ui" line="26"/>
         <source>Warning: The settings in this page affect the inner workings of Eden&apos;s emulated touchscreen. Changing them may result in undesirable behavior, such as the touchscreen partially or not working. You should only use this page if you know what you are doing.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touchscreen_advanced.ui" line="52"/>
@@ -5237,7 +5125,7 @@ Kéo điểm để thay đổi vị trí, hoặc nhấp đúp chuột vào ô tr
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.ui" line="110"/>
         <source>Show Play Time Column</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.ui" line="119"/>
@@ -5406,28 +5294,7 @@ Kéo điểm để thay đổi vị trí, hoặc nhấp đúp chuột vào ô tr
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.ui" line="25"/>
         <source>Eden Web Service</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_web.ui" line="105"/>
-        <source>Generate</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>yuzu Web Service</source>
-        <translation type="vanished">Dịch vụ Web yuzu</translation>
-    </message>
-    <message>
-        <source>By providing your username and token, you agree to allow yuzu to collect additional usage data, which may include user identifying information.</source>
-        <translation type="vanished">Bằng cách cung cấp tên đăng nhập và mã thông báo của bạn, bạn đã chấp thuận sẽ cho phép yuzu thu thập dữ liệu đã sử dụng, trong đó có thể có thông tin nhận dạng người dùng.</translation>
-    </message>
-    <message>
-        <source>Verify</source>
-        <translation type="vanished">Xác nhận</translation>
-    </message>
-    <message>
-        <source>Sign up</source>
-        <translation type="vanished">Đăng ký</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.ui" line="33"/>
@@ -5440,33 +5307,14 @@ Kéo điểm để thay đổi vị trí, hoặc nhấp đúp chuột vào ô tr
         <translation>Tên người dùng: </translation>
     </message>
     <message>
-        <source>What is my token?</source>
-        <translation type="vanished">Mã thông báo của tôi là gì?</translation>
+        <location filename="../../src/yuzu/configuration/configure_web.ui" line="105"/>
+        <source>Generate</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.ui" line="130"/>
         <source>Web Service configuration can only be changed when a public room isn&apos;t being hosted.</source>
         <translation>Cấu hình dịch vụ web chỉ có thể thay đổi khi không có phòng công khai đang được tổ chức.</translation>
-    </message>
-    <message>
-        <source>Telemetry</source>
-        <translation type="vanished">Viễn trắc</translation>
-    </message>
-    <message>
-        <source>Share anonymous usage data with the yuzu team</source>
-        <translation type="vanished">Chia sẽ dữ liệu sử dụng ẩn danh với nhóm yuzu</translation>
-    </message>
-    <message>
-        <source>Learn more</source>
-        <translation type="vanished">Tìm hiểu thêm</translation>
-    </message>
-    <message>
-        <source>Telemetry ID:</source>
-        <translation type="vanished">ID Viễn trắc: </translation>
-    </message>
-    <message>
-        <source>Regenerate</source>
-        <translation type="vanished">Tạo mới</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.ui" line="142"/>
@@ -5479,78 +5327,23 @@ Kéo điểm để thay đổi vị trí, hoặc nhấp đúp chuột vào ô tr
         <translation>Hiển thị trò chơi hiện tại lên thông tin Discord của bạn</translation>
     </message>
     <message>
-        <source>&lt;a href=&apos;https://yuzu-emu.org/help/feature/telemetry/&apos;&gt;&lt;span style=&quot;text-decoration: underline; color:#039be5;&quot;&gt;Learn more&lt;/span&gt;&lt;/a&gt;</source>
-        <translation type="vanished">&lt;a href=&apos;https://yuzu-emu.org/help/feature/telemetry/&apos;&gt;&lt;span style=&quot;text-decoration: underline; color:#039be5;&quot;&gt;Tìm hiểu thêm&lt;/span&gt;&lt;/a&gt;</translation>
-    </message>
-    <message>
-        <source>&lt;a href=&apos;https://profile.yuzu-emu.org/&apos;&gt;&lt;span style=&quot;text-decoration: underline; color:#039be5;&quot;&gt;Sign up&lt;/span&gt;&lt;/a&gt;</source>
-        <translation type="vanished">&lt;a href=&apos;https://profile.yuzu-emu.org/&apos;&gt;&lt;span style=&quot;text-decoration: underline; color:#039be5;&quot;&gt;Đăng ký&lt;/span&gt;&lt;/a&gt;</translation>
-    </message>
-    <message>
-        <source>&lt;a href=&apos;https://yuzu-emu.org/wiki/yuzu-web-service/&apos;&gt;&lt;span style=&quot;text-decoration: underline; color:#039be5;&quot;&gt;What is my token?&lt;/span&gt;&lt;/a&gt;</source>
-        <translation type="vanished">&lt;a href=&apos;https://yuzu-emu.org/wiki/yuzu-web-service/&apos;&gt;&lt;span style=&quot;text-decoration: underline; color:#039be5;&quot;&gt;Mã thông báo của tôi là gì?&lt;/span&gt;&lt;/a&gt;</translation>
-    </message>
-    <message>
-        <source>Telemetry ID: 0x%1</source>
-        <translation type="vanished">ID Viễn trắc: 0x%1</translation>
-    </message>
-    <message>
-        <source>Unspecified</source>
-        <translation type="vanished">Không xác định</translation>
-    </message>
-    <message>
-        <source>Token not verified</source>
-        <translation type="vanished">Token chưa được xác minh</translation>
-    </message>
-    <message>
-        <source>Token was not verified. The change to your token has not been saved.</source>
-        <translation type="vanished">Token không được xác thực. Thay đổi token của bạn chưa được lưu.</translation>
-    </message>
-    <message>
-        <source>Unverified, please click Verify before saving configuration</source>
-        <comment>Tooltip</comment>
-        <translation type="vanished">Chưa xác minh, vui lòng nhấp vào Xác minh trước khi lưu cấu hình</translation>
-    </message>
-    <message>
-        <source>Verifying...</source>
-        <translation type="vanished">Đang xác minh...</translation>
-    </message>
-    <message>
-        <source>Verified</source>
-        <comment>Tooltip</comment>
-        <translation type="vanished">Đã xác minh</translation>
-    </message>
-    <message>
-        <source>Verification failed</source>
-        <comment>Tooltip</comment>
-        <translation type="vanished">Xác nhận không thành công</translation>
-    </message>
-    <message>
-        <source>Verification failed</source>
-        <translation type="vanished">Xác nhận không thành công</translation>
-    </message>
-    <message>
-        <source>Verification failed. Check that you have entered your token correctly, and that your internet connection is working.</source>
-        <translation type="vanished">Xác thực không thành công. Hãy kiểm tra xem bạn đã nhập token đúng chưa và kết nối internet của bạn có hoạt động hay không.</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/configuration/configure_web.cpp" line="113"/>
         <location filename="../../src/yuzu/configuration/configure_web.cpp" line="121"/>
         <source>All Good</source>
         <comment>Tooltip</comment>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.cpp" line="116"/>
         <source>Must be between 4-20 characters</source>
         <comment>Tooltip</comment>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.cpp" line="124"/>
         <source>Must be 48 characters, and lowercase a-z</source>
         <comment>Tooltip</comment>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -5571,27 +5364,27 @@ Kéo điểm để thay đổi vị trí, hoặc nhấp đúp chuột vào ô tr
     <message>
         <location filename="../../src/yuzu/deps_dialog.ui" line="14"/>
         <source>Eden Dependencies</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/deps_dialog.ui" line="72"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:28pt;&quot;&gt;Eden Dependencies&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/deps_dialog.ui" line="85"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The projects that make Eden possible&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/deps_dialog.cpp" line="25"/>
         <source>Dependency</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/deps_dialog.cpp" line="25"/>
         <source>Version</source>
-        <translation type="unfinished">Phiên Bản</translation>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -5655,121 +5448,218 @@ Kéo điểm để thay đổi vị trí, hoặc nhấp đúp chuột vào ô tr
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="11"/>
         <source>Username is not valid. Must be 4 to 20 alphanumeric characters.</source>
-        <translation type="unfinished">Tên người dùng không hợp lệ. Phải có từ 4 đến 20 ký tự chữ số hoặc chữ cái.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="13"/>
         <source>Room name is not valid. Must be 4 to 20 alphanumeric characters.</source>
-        <translation type="unfinished">Tên phòng không hợp lệ. Phải có từ 4 đến 20 ký tự chữ số hoặc chữ cái.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="15"/>
         <source>Username is already in use or not valid. Please choose another.</source>
-        <translation type="unfinished">Tên người dùng đã được sử dụng hoặc không hợp lệ. Vui lòng chọn tên khác.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="17"/>
         <source>IP is not a valid IPv4 address.</source>
-        <translation type="unfinished">Địa chỉ IP không phải là địa chỉ IPv4 hợp lệ.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="19"/>
         <source>Port must be a number between 0 to 65535.</source>
-        <translation type="unfinished">Cổng phải là một số từ 0 đến 65535.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="20"/>
         <source>You must choose a Preferred Game to host a room. If you do not have any games in your game list yet, add a game folder by clicking on the plus icon in the game list.</source>
-        <translation type="unfinished">Bạn phải chọn một Game ưu thích để tạo một phòng. Nếu bạn chưa có bất kỳ game nào trong danh sách game của bạn, hãy thêm một thư mục game bằng cách nhấp vào biểu tượng dấu cộng trong danh sách game.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="24"/>
         <source>Unable to find an internet connection. Check your internet settings.</source>
-        <translation type="unfinished">Không thể tìm thấy kết nối internet. Kiểm tra cài đặt internet của bạn.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="26"/>
         <source>Unable to connect to the host. Verify that the connection settings are correct. If you still cannot connect, contact the room host and verify that the host is properly configured with the external port forwarded.</source>
-        <translation type="unfinished">Không thể kết nối tới máy chủ. Hãy kiểm tra xem các thiết lập kết nối có đúng không. Nếu vẫn không thể kết nối, hãy liên hệ với người chủ phòng và xác minh rằng máy chủ đã được cấu hình đúng cách với cổng ngoài được chuyển tiếp.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="30"/>
         <source>Unable to connect to the room because it is already full.</source>
-        <translation type="unfinished">Không thể kết nối tới phòng vì nó đã đầy.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="32"/>
         <source>Creating a room failed. Please retry. Restarting Eden might be necessary.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/multiplayer/message.cpp" line="37"/>
-        <source>Version mismatch! Please update to the latest version of Eden. If the problem persists, contact the room host and ask them to update the server.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="34"/>
         <source>The host of the room has banned you. Speak with the host to unban you or try a different room.</source>
-        <translation type="unfinished">Chủ phòng đã ban bạn. Hãy nói chuyện với người chủ phòng để được unban, hoặc thử vào một phòng khác.</translation>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/multiplayer/message.cpp" line="37"/>
+        <source>Version mismatch! Please update to the latest version of Eden. If the problem persists, contact the room host and ask them to update the server.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="39"/>
         <source>Incorrect password.</source>
-        <translation type="unfinished">Mật khẩu sai</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="40"/>
         <source>An unknown error occurred. If this error continues to occur, please open an issue</source>
-        <translation type="unfinished">Đã xảy ra lỗi không xác định. Nếu lỗi này tiếp tục xảy ra, vui lòng mở một issue</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="43"/>
         <source>Connection to room lost. Try to reconnect.</source>
-        <translation type="unfinished">Mất kết nối với phòng. Hãy thử kết nối lại.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="45"/>
         <source>You have been kicked by the room host.</source>
-        <translation type="unfinished">Bạn đã bị kick bởi chủ phòng.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="47"/>
         <source>IP address is already in use. Please choose another.</source>
-        <translation type="unfinished">Địa chỉ IP đã được sử dụng. Vui lòng chọn một địa chỉ khác.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="49"/>
         <source>You do not have enough permission to perform this action.</source>
-        <translation type="unfinished">Bạn không có đủ quyền để thực hiên hành động này.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="50"/>
         <source>The user you are trying to kick/ban could not be found.
 They may have left the room.</source>
-        <translation type="unfinished">Không thể tìm thấy người dùng bạn đang cố gắng kick/ban.
-Họ có thể đã rời phòng.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="52"/>
         <source>No valid network interface is selected.
 Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
-        <translation type="unfinished">Không có giao diện mạng hợp lệ được chọn. Vui lòng vào Cấu hình -&gt; Hệ thống -&gt; Mạng và thực hiện lựa chọn.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="63"/>
         <source>Error</source>
-        <translation type="unfinished">Lỗi</translation>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
     <name>GMainWindow</name>
     <message>
-        <source>&lt;a href=&apos;https://yuzu-emu.org/help/feature/telemetry/&apos;&gt;Anonymous data is collected&lt;/a&gt; to help improve yuzu. &lt;br/&gt;&lt;br/&gt;Would you like to share your usage data with us?</source>
-        <translation type="vanished">&lt;a href=&apos;https://yuzu-emu.org/help/feature/telemetry/&apos;&gt;Dữ liệu ẩn danh được thu thập&lt;/a&gt;để hỗ trợ cải thiện yuzu. &lt;br/&gt;&lt;br/&gt;Bạn có muốn chia sẽ dữ liệu sử dụng cho chúng tôi?</translation>
+        <location filename="../../src/qt_common/shared_translation.h" line="30"/>
+        <source>None</source>
+        <translation>Trống</translation>
     </message>
     <message>
-        <source>Telemetry</source>
-        <translation type="vanished">Viễn trắc</translation>
+        <location filename="../../src/qt_common/shared_translation.h" line="31"/>
+        <source>FXAA</source>
+        <translation>FXAA</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="32"/>
+        <source>SMAA</source>
+        <translation>SMAA</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="37"/>
+        <source>Nearest</source>
+        <translation>Nearest</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="39"/>
+        <source>Bilinear</source>
+        <translation>Bilinear</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="40"/>
+        <source>Bicubic</source>
+        <translation>Bicubic</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="42"/>
+        <source>Gaussian</source>
+        <translation>ScaleForce</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="44"/>
+        <source>ScaleForce</source>
+        <translation>ScaleForce</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="45"/>
+        <location filename="../../src/yuzu/main.cpp" line="4365"/>
+        <source>FSR</source>
+        <translation>FSR</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="46"/>
+        <source>Area</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="50"/>
+        <source>Docked</source>
+        <translation>Chế độ cắm TV</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="51"/>
+        <source>Handheld</source>
+        <translation>Cầm tay</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="55"/>
+        <source>Normal</source>
+        <translation>Trung bình</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="56"/>
+        <source>High</source>
+        <translation>Khỏe</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="57"/>
+        <source>Extreme</source>
+        <translation>Tối đa</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="61"/>
+        <source>Vulkan</source>
+        <translation>Vulkan</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="62"/>
+        <source>OpenGL</source>
+        <translation>OpenGL</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="63"/>
+        <source>Null</source>
+        <translation>Null</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="67"/>
+        <source>GLSL</source>
+        <translation>GLSL</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="68"/>
+        <source>GLASM</source>
+        <translation>GLASM</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/shared_translation.h" line="69"/>
+        <source>SPIRV</source>
+        <translation>SPIRV</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="569"/>
@@ -5777,8 +5667,9 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
         <translation>Phát hiện cài đặt Vulkan bị hỏng</translation>
     </message>
     <message>
-        <source>Vulkan initialization failed during boot.&lt;br&gt;&lt;br&gt;Click &lt;a href=&apos;https://yuzu-emu.org/wiki/faq/#yuzu-starts-with-the-error-broken-vulkan-installation-detected&apos;&gt;here for instructions to fix the issue&lt;/a&gt;.</source>
-        <translation type="vanished">Khởi tạo Vulkan thất bại trong quá trình khởi động.&lt;br&gt;Nhấn &lt;br&gt;&lt;a href=&apos;https://yuzu-emu.org/wiki/faq/#yuzu-starts-with-the-error-broken-vulkan-installation-detected&apos;&gt;vào đây để xem hướng dẫn khắc phục vấn đề&lt;/a&gt;.</translation>
+        <location filename="../../src/yuzu/main.cpp" line="570"/>
+        <source>Vulkan initialization failed during boot.&lt;br&gt;&lt;br&gt;Click &lt;a href=&apos;https://eden-emulator.github.io/wiki/faq/#yuzu-starts-with-the-error-broken-vulkan-installation-detected&apos;&gt;here for instructions to fix the issue&lt;/a&gt;.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="595"/>
@@ -5860,12 +5751,14 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
         <translation>&amp;Tạm dừng</translation>
     </message>
     <message>
-        <source>Warning Outdated Game Format</source>
-        <translation type="vanished">Chú ý định dạng trò chơi đã lỗi thời</translation>
+        <location filename="../../src/yuzu/main.cpp" line="1922"/>
+        <source>Warning: Outdated Game Format</source>
+        <translation type="unfinished"/>
     </message>
     <message>
-        <source>You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;&lt;br&gt;For an explanation of the various Switch formats yuzu supports, &lt;a href=&apos;https://yuzu-emu.org/wiki/overview-of-switch-game-formats&apos;&gt;check out our wiki&lt;/a&gt;. This message will not be shown again.</source>
-        <translation type="vanished">Bạn đang sử dụng định dạng danh mục ROM giải mã cho trò chơi này, và đó là một định dạng lỗi thời đã được thay thế bởi những thứ khác như NCA, NAX, XCI, hoặc NSP. Danh mục ROM giải mã có thể thiếu biểu tượng, metadata, và hỗ trợ cập nhật.&lt;br&gt;&lt;br&gt;Để giải thích về các định dạng khác nhau của Switch mà yuzu hỗ trợ, &lt;a href=&apos;https://yuzu-emu.org/wiki/overview-of-switch-game-formats&apos;&gt;vui lòng kiểm tra trên wiki của chúng tôi&lt;/a&gt;. Thông báo này sẽ không hiển thị lại lần sau.</translation>
+        <location filename="../../src/yuzu/main.cpp" line="1923"/>
+        <source>You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;&lt;br&gt;For an explanation of the various Switch formats Eden supports, &lt;a href=&apos;https://eden-emulator.github.io/wiki/overview-of-switch-game-formats&apos;&gt;check out our wiki&lt;/a&gt;. This message will not be shown again.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1936"/>
@@ -5884,8 +5777,9 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
         <translation>Đã xảy ra lỗi khi khởi tạo lõi video.</translation>
     </message>
     <message>
-        <source>yuzu has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href=&apos;https://yuzu-emu.org/help/reference/log-files/&apos;&gt;How to Upload the Log File&lt;/a&gt;. </source>
-        <translation type="vanished">yuzu đã gặp lỗi khi chạy lõi video. Điều này thường xảy ra do phiên bản driver GPU đã cũ, bao gồm cả driver tích hợp. Vui lòng xem nhật ký để biết thêm chi tiết. Để biết thêm thông tin về cách truy cập nhật ký, vui lòng xem trang sau: &lt;a href=&apos;https://yuzu-emu.org/help/reference/log-files/&apos;&gt;Cách tải lên tập tin nhật ký&lt;/a&gt;. </translation>
+        <location filename="../../src/yuzu/main.cpp" line="1942"/>
+        <source>Eden has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href=&apos;https://yuzu-mirror.github.io/help/reference/log-files/&apos;&gt;How to Upload the Log File&lt;/a&gt;. </source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1957"/>
@@ -5894,14 +5788,10 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
         <translation>Lỗi xảy ra khi nạp ROM! %1</translation>
     </message>
     <message>
-        <source>%1&lt;br&gt;Please follow &lt;a href=&apos;https://yuzu-emu.org/help/quickstart/&apos;&gt;the yuzu quickstart guide&lt;/a&gt; to redump your files.&lt;br&gt;You can refer to the yuzu wiki&lt;/a&gt; or the yuzu Discord&lt;/a&gt; for help.</source>
+        <location filename="../../src/yuzu/main.cpp" line="1960"/>
+        <source>%1&lt;br&gt;Please redump your files or ask on Discord/Revolt for help.</source>
         <comment>%1 signifies an error string.</comment>
-        <translation type="vanished">%1&lt;br&gt;Vui lòng tuân theo &lt;a href=&apos;https://yuzu-emu.org/help/quickstart/&apos;&gt;hướng dẫn nhanh của yuzu&lt;/a&gt; để trích xuất lại các tệp của bạn.&lt;br&gt;Bạn có thể tham khảo yuzu wiki&lt;/a&gt; hoặc yuzu Discord&lt;/a&gt;để được hỗ trợ. </translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="570"/>
-        <source>Vulkan initialization failed during boot.&lt;br&gt;&lt;br&gt;Click &lt;a href=&apos;https://eden-emulator.github.io/wiki/faq/#yuzu-starts-with-the-error-broken-vulkan-installation-detected&apos;&gt;here for instructions to fix the issue&lt;/a&gt;.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1969"/>
@@ -5951,26 +5841,6 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
         <translation>Thư mục này không tồn tại!</translation>
     </message>
     <message>
-        <source>Error Opening Transferable Shader Cache</source>
-        <translation type="vanished">Lỗi khi mở bộ nhớ cache shader có thể chuyển.</translation>
-    </message>
-    <message>
-        <source>Failed to create the shader cache directory for this title.</source>
-        <translation type="vanished">Thất bại khi tạo thư mục bộ nhớ cache shader cho title này.</translation>
-    </message>
-    <message>
-        <source>Error Removing Contents</source>
-        <translation type="vanished">Lỗi khi loại bỏ nội dung</translation>
-    </message>
-    <message>
-        <source>Error Removing Update</source>
-        <translation type="vanished">Lỗi khi loại bỏ cập nhật</translation>
-    </message>
-    <message>
-        <source>Error Removing DLC</source>
-        <translation type="vanished">Lỗi khi loại bỏ DLC</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/main.cpp" line="2547"/>
         <source>Remove Installed Game Contents?</source>
         <translation>Loại bỏ nội dung game đã cài đặt?</translation>
@@ -5989,34 +5859,6 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
         <location filename="../../src/yuzu/main.cpp" line="2557"/>
         <source>Remove Entry</source>
         <translation>Xoá mục</translation>
-    </message>
-    <message>
-        <source>Successfully Removed</source>
-        <translation type="vanished">Loại bỏ thành công</translation>
-    </message>
-    <message>
-        <source>Successfully removed the installed base game.</source>
-        <translation type="vanished">Loại bỏ thành công base game đã cài đặt</translation>
-    </message>
-    <message>
-        <source>The base game is not installed in the NAND and cannot be removed.</source>
-        <translation type="vanished">Base game không được cài đặt trong NAND và không thể loại bỏ.</translation>
-    </message>
-    <message>
-        <source>Successfully removed the installed update.</source>
-        <translation type="vanished">Loại bỏ thành công bản cập nhật đã cài đặt</translation>
-    </message>
-    <message>
-        <source>There is no update installed for this title.</source>
-        <translation type="vanished">Không có bản cập nhật nào được cài đặt cho title này.</translation>
-    </message>
-    <message>
-        <source>There are no DLC installed for this title.</source>
-        <translation type="vanished">Không có DLC nào được cài đặt cho title này.</translation>
-    </message>
-    <message>
-        <source>Successfully removed %1 installed DLC.</source>
-        <translation type="vanished">Loại bỏ thành công %1 DLC đã cài đặt</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="2587"/>
@@ -6051,64 +5893,12 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="2626"/>
         <source>Remove Play Time Data</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="2626"/>
         <source>Reset play time?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Error Removing Transferable Shader Cache</source>
-        <translation type="vanished">Lỗi khi xoá bộ nhớ cache shader chuyển được</translation>
-    </message>
-    <message>
-        <source>A shader cache for this title does not exist.</source>
-        <translation type="vanished">Bộ nhớ cache shader cho title này không tồn tại.</translation>
-    </message>
-    <message>
-        <source>Successfully removed the transferable shader cache.</source>
-        <translation type="vanished">Thành công loại bỏ bộ nhớ cache shader chuyển được</translation>
-    </message>
-    <message>
-        <source>Failed to remove the transferable shader cache.</source>
-        <translation type="vanished">Thất bại khi xoá bộ nhớ cache shader chuyển được.</translation>
-    </message>
-    <message>
-        <source>Error Removing Vulkan Driver Pipeline Cache</source>
-        <translation type="vanished">Lỗi khi xoá bộ nhớ cache pipeline Vulkan</translation>
-    </message>
-    <message>
-        <source>Failed to remove the driver pipeline cache.</source>
-        <translation type="vanished">Thất bại khi xoá bộ nhớ cache pipeline của driver.</translation>
-    </message>
-    <message>
-        <source>Error Removing Transferable Shader Caches</source>
-        <translation type="vanished">Lỗi khi loại bỏ bộ nhớ cache shader chuyển được</translation>
-    </message>
-    <message>
-        <source>Successfully removed the transferable shader caches.</source>
-        <translation type="vanished">Thành công loại bỏ tât cả bộ nhớ cache shader chuyển được.</translation>
-    </message>
-    <message>
-        <source>Failed to remove the transferable shader cache directory.</source>
-        <translation type="vanished">Thất bại khi loại bỏ thư mục bộ nhớ cache shader.</translation>
-    </message>
-    <message>
-        <source>Error Removing Custom Configuration</source>
-        <translation type="vanished">Lỗi khi loại bỏ cấu hình tuỳ chỉnh</translation>
-    </message>
-    <message>
-        <source>A custom configuration for this title does not exist.</source>
-        <translation type="vanished">Cấu hình tuỳ chỉnh cho title này không tồn tại.</translation>
-    </message>
-    <message>
-        <source>Successfully removed the custom game configuration.</source>
-        <translation type="vanished">Loại bỏ thành công cấu hình game tuỳ chỉnh.</translation>
-    </message>
-    <message>
-        <source>Failed to remove the custom game configuration.</source>
-        <translation type="vanished">Thất bại khi xoá cấu hình game tuỳ chỉnh</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="2639"/>
@@ -6166,71 +5956,6 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
         <location filename="../../src/yuzu/main.cpp" line="2742"/>
         <source>The operation completed successfully.</source>
         <translation>Các hoạt động đã hoàn tất thành công.</translation>
-    </message>
-    <message>
-        <source>Integrity verification couldn&apos;t be performed!</source>
-        <translation type="vanished">Không thể thực hiện kiểm tra tính toàn vẹn!</translation>
-    </message>
-    <message>
-        <source>File contents were not checked for validity.</source>
-        <translation type="vanished">Chưa kiểm tra sự hợp lệ của nội dung tập tin.</translation>
-    </message>
-    <message>
-        <source>Verifying integrity...</source>
-        <translation type="vanished">Đang kiểm tra tính toàn vẹn...</translation>
-    </message>
-    <message>
-        <source>Integrity verification succeeded!</source>
-        <translation type="vanished">Kiểm tra tính toàn vẹn thành công!</translation>
-    </message>
-    <message>
-        <source>Integrity verification failed!</source>
-        <translation type="vanished">Kiểm tra tính toàn vẹn thất bại!</translation>
-    </message>
-    <message>
-        <source>File contents may be corrupt.</source>
-        <translation type="vanished">Nội dung tập tin có thể bị hỏng.</translation>
-    </message>
-    <message>
-        <source>Create Shortcut</source>
-        <translation type="vanished">Tạo lối tắt</translation>
-    </message>
-    <message>
-        <source>Successfully created a shortcut to %1</source>
-        <translation type="vanished">Thành công tạo lối tắt tại %1</translation>
-    </message>
-    <message>
-        <source>This will create a shortcut to the current AppImage. This may not work well if you update. Continue?</source>
-        <translation type="vanished">Việc này sẽ tạo một lối tắt tới AppImage hiện tại. Điều này có thể không hoạt động tốt nếu bạn cập nhật. Tiếp tục?</translation>
-    </message>
-    <message>
-        <source>Create Icon</source>
-        <translation type="vanished">Tạo icon</translation>
-    </message>
-    <message>
-        <source>Cannot create icon file. Path &quot;%1&quot; does not exist and cannot be created.</source>
-        <translation type="vanished">Không thể tạo tập tin icon. Đường dẫn &quot;%1&quot; không tồn tại và không thể tạo.</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="1922"/>
-        <source>Warning: Outdated Game Format</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="1923"/>
-        <source>You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;&lt;br&gt;For an explanation of the various Switch formats Eden supports, &lt;a href=&apos;https://eden-emulator.github.io/wiki/overview-of-switch-game-formats&apos;&gt;check out our wiki&lt;/a&gt;. This message will not be shown again.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="1942"/>
-        <source>Eden has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href=&apos;https://yuzu-mirror.github.io/help/reference/log-files/&apos;&gt;How to Upload the Log File&lt;/a&gt;. </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="1960"/>
-        <source>%1&lt;br&gt;Please redump your files or ask on Discord/Revolt for help.</source>
-        <comment>%1 signifies an error string.</comment>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="2800"/>
@@ -6291,10 +6016,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
     <message numerus="yes">
         <location filename="../../src/yuzu/main.cpp" line="2947"/>
         <source>%n file(s) remaining</source>
-        <translation>
-            <numerusform>%n tập tin còn lại</numerusform>
-            <numerusform>%n tập tin còn lại</numerusform>
-        </translation>
+        <translation type="unfinished"><numerusform></numerusform></translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="2949"/>
@@ -6318,28 +6040,19 @@ Vui lòng, chỉ sử dụng tính năng này để cài các bản cập nhật
         <location filename="../../src/yuzu/main.cpp" line="3010"/>
         <source>%n file(s) were newly installed
 </source>
-        <translation>
-            <numerusform>%n đã được cài đặt mới</numerusform>
-            <numerusform>%n đã được cài đặt mới</numerusform>
-        </translation>
+        <translation type="unfinished"><numerusform></numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/yuzu/main.cpp" line="3013"/>
         <source>%n file(s) were overwritten
 </source>
-        <translation>
-            <numerusform>%n tập tin đã được ghi đè</numerusform>
-            <numerusform>%n tập tin đã được ghi đè</numerusform>
-        </translation>
+        <translation type="unfinished"><numerusform></numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/yuzu/main.cpp" line="3015"/>
         <source>%n file(s) failed to install
 </source>
-        <translation>
-            <numerusform>%n tập tin thất bại khi cài đặt</numerusform>
-            <numerusform>%n tập tin thất bại khi cài đặt</numerusform>
-        </translation>
+        <translation type="unfinished"><numerusform></numerusform></translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3025"/>
@@ -6443,108 +6156,7 @@ Vui lòng, chỉ sử dụng tính năng này để cài các bản cập nhật
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3236"/>
         <source>In order to submit a game compatibility test case, you must set up your web token and username.&lt;br&gt;&lt;br/&gt;To link your eden account, go to Emulation &amp;gt; Configuration &amp;gt; Web.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="3879"/>
-        <source>Select Dumped Firmware ZIP</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="3879"/>
-        <source>Zipped Archives (*.zip)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="3894"/>
-        <source>Firmware cleanup failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="3895"/>
-        <source>Failed to clean up extracted firmware cache.
-Check write permissions in the system temp directory and try again.
-OS reported error: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="3951"/>
-        <source>Please install firmware to use the Album applet.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="3974"/>
-        <source>Please install firmware to use the Cabinet applet.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="3998"/>
-        <source>Please install firmware to use the Mii editor.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4021"/>
-        <source>Please install firmware to use the Controller Menu.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4047"/>
-        <source>Please install firmware to use the Home Menu.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4050"/>
-        <source>Firmware Corrupted</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4057"/>
-        <source>Firmware Too New</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4058"/>
-        <source>
-Continue anyways?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4062"/>
-        <source>Don&apos;t show again</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4098"/>
-        <source>Please install firmware to use Starter.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4547"/>
-        <source>Are you sure you want to close Eden?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4548"/>
-        <location filename="../../src/yuzu/main.cpp" line="4628"/>
-        <location filename="../../src/yuzu/main.cpp" line="4640"/>
-        <source>Eden</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4637"/>
-        <source>The currently running application has requested Eden to not exit.
-
-Would you like to bypass this and exit anyway?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4446"/>
-        <source>Encryption keys are missing.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>In order to submit a game compatibility test case, you must link your yuzu account.&lt;br&gt;&lt;br/&gt;To link your yuzu account, go to Emulation &amp;gt; Configuration &amp;gt; Web.</source>
-        <translation type="vanished">Để gửi trường hợp thử nghiệm trò chơi tương thích, bạn phải liên kết tài khoản yuzu.&lt;br&gt;&lt;br/&gt;Để liên kết tải khoản yuzu của bạn, hãy đến Giả lập &amp;gt; Thiết lập &amp;gt; Web.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3252"/>
@@ -6630,29 +6242,43 @@ Would you like to bypass this and exit anyway?</source>
         <translation>Đã xảy ra lỗi không xác định</translation>
     </message>
     <message>
-        <source>Verification failed for the following files:
-
-%1</source>
-        <translation type="vanished">Kiểm tra những tập tin sau thất bại:
-
-%1</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/main.cpp" line="3850"/>
         <location filename="../../src/yuzu/main.cpp" line="3873"/>
         <source>Keys not installed</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3851"/>
         <location filename="../../src/yuzu/main.cpp" line="3874"/>
         <source>Install decryption keys and restart Eden before attempting to install firmware.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3856"/>
         <source>Select Dumped Firmware Source Location</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="3879"/>
+        <source>Select Dumped Firmware ZIP</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="3879"/>
+        <source>Zipped Archives (*.zip)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="3894"/>
+        <source>Firmware cleanup failed</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="3895"/>
+        <source>Failed to clean up extracted firmware cache.
+Check write permissions in the system temp directory and try again.
+OS reported error: %1</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3950"/>
@@ -6662,37 +6288,57 @@ Would you like to bypass this and exit anyway?</source>
         <location filename="../../src/yuzu/main.cpp" line="4046"/>
         <location filename="../../src/yuzu/main.cpp" line="4097"/>
         <source>No firmware available</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="3951"/>
+        <source>Please install firmware to use the Album applet.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3957"/>
         <source>Album Applet</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3958"/>
         <source>Album applet is not available. Please reinstall firmware.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="3974"/>
+        <source>Please install firmware to use the Cabinet applet.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3980"/>
         <source>Cabinet Applet</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3981"/>
         <source>Cabinet applet is not available. Please reinstall firmware.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="3998"/>
+        <source>Please install firmware to use the Mii editor.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4004"/>
         <source>Mii Edit Applet</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4005"/>
         <source>Mii editor is not available. Please reinstall firmware.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4021"/>
+        <source>Please install firmware to use the Controller Menu.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4028"/>
@@ -6702,27 +6348,58 @@ Would you like to bypass this and exit anyway?</source>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4029"/>
         <source>Controller Menu is not available. Please reinstall firmware.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4047"/>
+        <source>Please install firmware to use the Home Menu.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4050"/>
+        <source>Firmware Corrupted</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4057"/>
+        <source>Firmware Too New</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4058"/>
+        <source>
+Continue anyways?</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4062"/>
+        <source>Don&apos;t show again</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4081"/>
         <source>Home Menu Applet</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4082"/>
         <source>Home Menu is not available. Please reinstall firmware.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4098"/>
+        <source>Please install firmware to use Starter.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4104"/>
         <source>Starter Applet</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4105"/>
         <source>Starter is not available. Please reinstall firmware.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4146"/>
@@ -6737,13 +6414,13 @@ Would you like to bypass this and exit anyway?</source>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4191"/>
         <source>Update Available</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4196"/>
         <source>Update %1 for Eden is available.
 Would you like to download it?</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4253"/>
@@ -6788,10 +6465,7 @@ Would you like to download it?</source>
     <message numerus="yes">
         <location filename="../../src/yuzu/main.cpp" line="4302"/>
         <source>Building: %n shader(s)</source>
-        <translation>
-            <numerusform>Đang dựng: %n shader(s)</numerusform>
-            <numerusform>Đang dựng: %n shader(s)</numerusform>
-        </translation>
+        <translation type="unfinished"><numerusform></numerusform></translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4311"/>
@@ -6810,10 +6484,6 @@ Would you like to download it?</source>
         <translation>Tốc độ: %1%</translation>
     </message>
     <message>
-        <source>Game: %1 FPS (Unlocked)</source>
-        <translation type="vanished">Game: %1 FPS (Đã mở khoá)</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/main.cpp" line="4322"/>
         <source>Game: %1 FPS</source>
         <translation>Trò chơi: %1 FPS</translation>
@@ -6827,12 +6497,6 @@ Would you like to download it?</source>
         <location filename="../../src/yuzu/main.cpp" line="4355"/>
         <source>%1 %2</source>
         <translation>%1 %2</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="45"/>
-        <location filename="../../src/yuzu/main.cpp" line="4365"/>
-        <source>FSR</source>
-        <translation>FSR</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4373"/>
@@ -6856,6 +6520,11 @@ Would you like to download it?</source>
         <translation>Thiếu các thành phần chuyển hoá</translation>
     </message>
     <message>
+        <location filename="../../src/yuzu/main.cpp" line="4446"/>
+        <source>Encryption keys are missing.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/yuzu/main.cpp" line="4523"/>
         <source>Select RomFS Dump Target</source>
         <translation>Chọn thư mục để sao chép RomFS</translation>
@@ -6866,12 +6535,16 @@ Would you like to download it?</source>
         <translation>Vui lòng chọn RomFS mà bạn muốn sao chép.</translation>
     </message>
     <message>
-        <source>Are you sure you want to close yuzu?</source>
-        <translation type="vanished">Bạn có chắc chắn muốn đóng yuzu?</translation>
+        <location filename="../../src/yuzu/main.cpp" line="4547"/>
+        <source>Are you sure you want to close Eden?</source>
+        <translation type="unfinished"/>
     </message>
     <message>
-        <source>yuzu</source>
-        <translation type="vanished">yuzu</translation>
+        <location filename="../../src/yuzu/main.cpp" line="4548"/>
+        <location filename="../../src/yuzu/main.cpp" line="4628"/>
+        <location filename="../../src/yuzu/main.cpp" line="4640"/>
+        <source>Eden</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4629"/>
@@ -6879,112 +6552,11 @@ Would you like to download it?</source>
         <translation>Bạn có chắc rằng muốn dừng giả lập? Bất kì tiến trình nào chưa được lưu sẽ bị mất.</translation>
     </message>
     <message>
-        <source>The currently running application has requested yuzu to not exit.
+        <location filename="../../src/yuzu/main.cpp" line="4637"/>
+        <source>The currently running application has requested Eden to not exit.
 
 Would you like to bypass this and exit anyway?</source>
-        <translation type="vanished">Chương trình đang chạy đã yêu cầu yuzu không được thoát.
-
-Bạn có muốn bỏ qua yêu cầu đó và thoát luôn không?</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="30"/>
-        <source>None</source>
-        <translation>Trống</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="31"/>
-        <source>FXAA</source>
-        <translation>FXAA</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="32"/>
-        <source>SMAA</source>
-        <translation>SMAA</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="37"/>
-        <source>Nearest</source>
-        <translation>Nearest</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="39"/>
-        <source>Bilinear</source>
-        <translation>Bilinear</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="40"/>
-        <source>Bicubic</source>
-        <translation>Bicubic</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="42"/>
-        <source>Gaussian</source>
-        <translation>ScaleForce</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="44"/>
-        <source>ScaleForce</source>
-        <translation>ScaleForce</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="46"/>
-        <source>Area</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="50"/>
-        <source>Docked</source>
-        <translation>Chế độ cắm TV</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="51"/>
-        <source>Handheld</source>
-        <translation>Cầm tay</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="55"/>
-        <source>Normal</source>
-        <translation>Trung bình</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="56"/>
-        <source>High</source>
-        <translation>Khỏe</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="57"/>
-        <source>Extreme</source>
-        <translation>Tối đa</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="61"/>
-        <source>Vulkan</source>
-        <translation>Vulkan</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="62"/>
-        <source>OpenGL</source>
-        <translation>OpenGL</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="63"/>
-        <source>Null</source>
-        <translation>Null</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="67"/>
-        <source>GLSL</source>
-        <translation>GLSL</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="68"/>
-        <source>GLASM</source>
-        <translation>GLASM</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/shared_translation.h" line="69"/>
-        <source>SPIRV</source>
-        <translation>SPIRV</translation>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -7001,13 +6573,9 @@ Bạn có muốn bỏ qua yêu cầu đó và thoát luôn không?</translation>
         <translation>Các ngữ cảnh OpenGL chung không được hỗ trợ.</translation>
     </message>
     <message>
-        <source>yuzu has not been compiled with OpenGL support.</source>
-        <translation type="vanished">yuzu không được biên dịch với hỗ trợ OpenGL.</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/bootmanager.cpp" line="1027"/>
         <source>Eden has not been compiled with OpenGL support.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/bootmanager.cpp" line="1051"/>
@@ -7091,7 +6659,7 @@ Bạn có muốn bỏ qua yêu cầu đó và thoát luôn không?</translation>
     <message>
         <location filename="../../src/yuzu/game_list.cpp" line="560"/>
         <source>Remove Play Time Data</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/game_list.cpp" line="561"/>
@@ -7162,11 +6730,7 @@ Bạn có muốn bỏ qua yêu cầu đó và thoát luôn không?</translation>
     <message>
         <location filename="../../src/yuzu/game_list.cpp" line="581"/>
         <source>Configure Game</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Properties</source>
-        <translation type="vanished">Thuộc tính</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/game_list.cpp" line="667"/>
@@ -7226,7 +6790,7 @@ Bạn có muốn bỏ qua yêu cầu đó và thoát luôn không?</translation>
     <message>
         <location filename="../../src/yuzu/game_list.cpp" line="804"/>
         <source>Play time</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -7305,10 +6869,7 @@ Bạn có muốn bỏ qua yêu cầu đó và thoát luôn không?</translation>
     <message numerus="yes">
         <location filename="../../src/yuzu/game_list.cpp" line="87"/>
         <source>%1 of %n result(s)</source>
-        <translation>
-            <numerusform>%1 trong %n kết quả</numerusform>
-            <numerusform>%1 trong %n kết quả</numerusform>
-        </translation>
+        <translation type="unfinished"><numerusform></numerusform></translation>
     </message>
     <message>
         <location filename="../../src/yuzu/game_list.cpp" line="816"/>
@@ -7400,13 +6961,7 @@ Bạn có muốn bỏ qua yêu cầu đó và thoát luôn không?</translation>
         <location filename="../../src/yuzu/multiplayer/host_room.cpp" line="188"/>
         <source>Failed to announce the room to the public lobby. In order to host a room publicly, you must have a valid Eden account configured in Emulation -&gt; Configure -&gt; Web. If you do not want to publish a room in the public lobby, then select Unlisted instead.
 Debug Message: </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Failed to announce the room to the public lobby. In order to host a room publicly, you must have a valid yuzu account configured in Emulation -&gt; Configure -&gt; Web. If you do not want to publish a room in the public lobby, then select Unlisted instead.
-Debug Message: </source>
-        <translation type="vanished">Công bố phòng công khai trong sảnh thất bại. Để tổ chức phòng công khai, bạn cần phải có một tài khoản yuzu hợp lệ tại Giả lập -&gt; Thiết lập -&gt; Web. Nếu không muốn công khai phòng trong sảnh, hãy chọn mục Không công khai.
-Tin nhắn gỡ lỗi:</translation>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -7483,12 +7038,12 @@ Tin nhắn gỡ lỗi:</translation>
     <message>
         <location filename="../../src/qt_common/uisettings.h" line="243"/>
         <source>Configure</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/uisettings.h" line="244"/>
         <source>Configure Current Game</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/uisettings.h" line="245"/>
@@ -7503,11 +7058,7 @@ Tin nhắn gỡ lỗi:</translation>
     <message>
         <location filename="../../src/qt_common/uisettings.h" line="247"/>
         <source>Exit Eden</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Exit yuzu</source>
-        <translation type="vanished">Thoát yuzu</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/uisettings.h" line="248"/>
@@ -7527,27 +7078,27 @@ Tin nhắn gỡ lỗi:</translation>
     <message>
         <location filename="../../src/qt_common/uisettings.h" line="251"/>
         <source>Multiplayer Browse Public Game Lobby</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/uisettings.h" line="252"/>
         <source>Multiplayer Create Room</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/uisettings.h" line="253"/>
         <source>Multiplayer Direct Connect to Room</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/uisettings.h" line="254"/>
         <source>Multiplayer Leave Room</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/uisettings.h" line="255"/>
         <source>Multiplayer Show Current Room</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/uisettings.h" line="256"/>
@@ -7592,7 +7143,7 @@ Tin nhắn gỡ lỗi:</translation>
     <message>
         <location filename="../../src/qt_common/uisettings.h" line="264"/>
         <source>Toggle Renderdoc Capture</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/uisettings.h" line="265"/>
@@ -7627,7 +7178,7 @@ Tin nhắn gỡ lỗi:</translation>
     <name>LimitableInputDialog</name>
     <message>
         <location filename="../../src/yuzu/util/limitable_input_dialog.cpp" line="60"/>
-        <source>The text can&apos;t contain any of the following characters:
+        <source>The text can't contain any of the following characters:
 %1</source>
         <translation>Văn bản không được chứa bất kỳ ký tự sau đây:
 %1</translation>
@@ -7775,7 +7326,7 @@ Tin nhắn gỡ lỗi:</translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="62"/>
         <source>Open &amp;Eden Folders</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="85"/>
@@ -7840,7 +7391,7 @@ Tin nhắn gỡ lỗi:</translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="161"/>
         <source>&amp;Amiibo</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="170"/>
@@ -7850,7 +7401,12 @@ Tin nhắn gỡ lỗi:</translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="180"/>
         <source>&amp;Create Home Menu Shortcut</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="187"/>
+        <source>Install Firmware</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="209"/>
@@ -7890,96 +7446,12 @@ Tin nhắn gỡ lỗi:</translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="271"/>
         <source>&amp;Verify Installed Contents</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="533"/>
-        <source>&amp;Root Data Folder</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="538"/>
-        <source>&amp;NAND Folder</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="543"/>
-        <source>&amp;SDMC Folder</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="548"/>
-        <source>&amp;Mod Folder</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="553"/>
-        <source>&amp;Log Folder</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="558"/>
-        <source>From Folder</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="563"/>
-        <source>From ZIP</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="568"/>
-        <source>&amp;X</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="571"/>
-        <source>X (Twitter)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="579"/>
-        <source>&amp;Revolt</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="582"/>
-        <source>Revolt</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="593"/>
-        <source>&amp;Eden Dependencies</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="505"/>
-        <source>Open Home Menu</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="510"/>
-        <source>&amp;Discord</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="515"/>
-        <source>Open &amp;Setup</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="523"/>
-        <source>&amp;Desktop</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="528"/>
-        <source>&amp;Application Menu</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>&amp;About yuzu</source>
-        <translation type="vanished">&amp;Thông tin về yuzu</translation>
+        <location filename="../../src/yuzu/main.ui" line="276"/>
+        <source>&amp;About Eden</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="284"/>
@@ -7994,7 +7466,7 @@ Tin nhắn gỡ lỗi:</translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="292"/>
         <source>Ctrl+,</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="303"/>
@@ -8077,10 +7549,6 @@ Tin nhắn gỡ lỗi:</translation>
         <translation>&amp;FAQ</translation>
     </message>
     <message>
-        <source>Open &amp;yuzu Folder</source>
-        <translation type="vanished">Mở thư mục &amp;yuzu</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/main.ui" line="417"/>
         <source>&amp;Capture Screenshot</source>
         <translation>&amp;Chụp ảnh màn hình</translation>
@@ -8088,32 +7556,32 @@ Tin nhắn gỡ lỗi:</translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="422"/>
         <source>Open &amp;Album</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="427"/>
         <source>&amp;Set Nickname and Owner</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="432"/>
         <source>&amp;Delete Game Data</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="437"/>
         <source>&amp;Restore Amiibo</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="442"/>
         <source>&amp;Format Amiibo</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="447"/>
         <source>Open &amp;Mii Editor</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="452"/>
@@ -8143,43 +7611,106 @@ Tin nhắn gỡ lỗi:</translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="495"/>
         <source>Open &amp;Controller Menu</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="187"/>
-        <source>Install Firmware</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="276"/>
-        <source>&amp;About Eden</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="500"/>
         <source>Install Decryption Keys</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
-</context>
-<context>
-    <name>MicroProfileDialog</name>
     <message>
-        <source>&amp;MicroProfile</source>
-        <translation type="vanished">&amp;MicroProfile</translation>
+        <location filename="../../src/yuzu/main.ui" line="505"/>
+        <source>Open Home Menu</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="510"/>
+        <source>&amp;Discord</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="515"/>
+        <source>Open &amp;Setup</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="523"/>
+        <source>&amp;Desktop</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="528"/>
+        <source>&amp;Application Menu</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="533"/>
+        <source>&amp;Root Data Folder</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="538"/>
+        <source>&amp;NAND Folder</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="543"/>
+        <source>&amp;SDMC Folder</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="548"/>
+        <source>&amp;Mod Folder</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="553"/>
+        <source>&amp;Log Folder</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="558"/>
+        <source>From Folder</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="563"/>
+        <source>From ZIP</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="568"/>
+        <source>&amp;X</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="571"/>
+        <source>X (Twitter)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="579"/>
+        <source>&amp;Revolt</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="582"/>
+        <source>Revolt</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="593"/>
+        <source>&amp;Eden Dependencies</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
     <name>MigrationWorker</name>
     <message>
-        <location filename="../../src/yuzu/migration_worker.h" line="74"/>
-        <source>Data was migrated successfully.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/migration_worker.cpp" line="52"/>
         <source>Linking the old directory failed. You may need to re-run with administrative privileges on Windows.
 OS gave error: %1</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/migration_worker.cpp" line="70"/>
@@ -8190,7 +7721,7 @@ If this is not desirable, delete the following files:
 %2
 %3
 %4</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/migration_worker.cpp" line="111"/>
@@ -8198,7 +7729,12 @@ If this is not desirable, delete the following files:
 
 If you wish to clean up the files which were left in the old data location, you can do so by deleting the following directory:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/migration_worker.h" line="74"/>
+        <source>Data was migrated successfully.</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -8293,89 +7829,6 @@ Tin nhắn gỡ lỗi: </translation>
 <context>
     <name>NetworkMessage</name>
     <message>
-        <source>Username is not valid. Must be 4 to 20 alphanumeric characters.</source>
-        <translation type="vanished">Tên người dùng không hợp lệ. Phải có từ 4 đến 20 ký tự chữ số hoặc chữ cái.</translation>
-    </message>
-    <message>
-        <source>Room name is not valid. Must be 4 to 20 alphanumeric characters.</source>
-        <translation type="vanished">Tên phòng không hợp lệ. Phải có từ 4 đến 20 ký tự chữ số hoặc chữ cái.</translation>
-    </message>
-    <message>
-        <source>Username is already in use or not valid. Please choose another.</source>
-        <translation type="vanished">Tên người dùng đã được sử dụng hoặc không hợp lệ. Vui lòng chọn tên khác.</translation>
-    </message>
-    <message>
-        <source>IP is not a valid IPv4 address.</source>
-        <translation type="vanished">Địa chỉ IP không phải là địa chỉ IPv4 hợp lệ.</translation>
-    </message>
-    <message>
-        <source>Port must be a number between 0 to 65535.</source>
-        <translation type="vanished">Cổng phải là một số từ 0 đến 65535.</translation>
-    </message>
-    <message>
-        <source>You must choose a Preferred Game to host a room. If you do not have any games in your game list yet, add a game folder by clicking on the plus icon in the game list.</source>
-        <translation type="vanished">Bạn phải chọn một Game ưu thích để tạo một phòng. Nếu bạn chưa có bất kỳ game nào trong danh sách game của bạn, hãy thêm một thư mục game bằng cách nhấp vào biểu tượng dấu cộng trong danh sách game.</translation>
-    </message>
-    <message>
-        <source>Unable to find an internet connection. Check your internet settings.</source>
-        <translation type="vanished">Không thể tìm thấy kết nối internet. Kiểm tra cài đặt internet của bạn.</translation>
-    </message>
-    <message>
-        <source>Unable to connect to the host. Verify that the connection settings are correct. If you still cannot connect, contact the room host and verify that the host is properly configured with the external port forwarded.</source>
-        <translation type="vanished">Không thể kết nối tới máy chủ. Hãy kiểm tra xem các thiết lập kết nối có đúng không. Nếu vẫn không thể kết nối, hãy liên hệ với người chủ phòng và xác minh rằng máy chủ đã được cấu hình đúng cách với cổng ngoài được chuyển tiếp.</translation>
-    </message>
-    <message>
-        <source>Unable to connect to the room because it is already full.</source>
-        <translation type="vanished">Không thể kết nối tới phòng vì nó đã đầy.</translation>
-    </message>
-    <message>
-        <source>Creating a room failed. Please retry. Restarting yuzu might be necessary.</source>
-        <translation type="vanished">Tạo phòng thất bại. Vui lòng thử lại. Có thể cần khởi động lại yuzu.</translation>
-    </message>
-    <message>
-        <source>The host of the room has banned you. Speak with the host to unban you or try a different room.</source>
-        <translation type="vanished">Chủ phòng đã ban bạn. Hãy nói chuyện với người chủ phòng để được unban, hoặc thử vào một phòng khác.</translation>
-    </message>
-    <message>
-        <source>Version mismatch! Please update to the latest version of yuzu. If the problem persists, contact the room host and ask them to update the server.</source>
-        <translation type="vanished">Phiên bản không khớp! Vui lòng cập nhật lên phiên bản mới nhất của yuzu. Nếu vấn đề vẫn tiếp tục, hãy liên hệ với người quản lý phòng và yêu cầu họ cập nhật máy chủ.</translation>
-    </message>
-    <message>
-        <source>Incorrect password.</source>
-        <translation type="vanished">Mật khẩu sai</translation>
-    </message>
-    <message>
-        <source>An unknown error occurred. If this error continues to occur, please open an issue</source>
-        <translation type="vanished">Đã xảy ra lỗi không xác định. Nếu lỗi này tiếp tục xảy ra, vui lòng mở một issue</translation>
-    </message>
-    <message>
-        <source>Connection to room lost. Try to reconnect.</source>
-        <translation type="vanished">Mất kết nối với phòng. Hãy thử kết nối lại.</translation>
-    </message>
-    <message>
-        <source>You have been kicked by the room host.</source>
-        <translation type="vanished">Bạn đã bị kick bởi chủ phòng.</translation>
-    </message>
-    <message>
-        <source>IP address is already in use. Please choose another.</source>
-        <translation type="vanished">Địa chỉ IP đã được sử dụng. Vui lòng chọn một địa chỉ khác.</translation>
-    </message>
-    <message>
-        <source>You do not have enough permission to perform this action.</source>
-        <translation type="vanished">Bạn không có đủ quyền để thực hiên hành động này.</translation>
-    </message>
-    <message>
-        <source>The user you are trying to kick/ban could not be found.
-They may have left the room.</source>
-        <translation type="vanished">Không thể tìm thấy người dùng bạn đang cố gắng kick/ban.
-Họ có thể đã rời phòng.</translation>
-    </message>
-    <message>
-        <source>No valid network interface is selected.
-Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
-        <translation type="vanished">Không có giao diện mạng hợp lệ được chọn. Vui lòng vào Cấu hình -&gt; Hệ thống -&gt; Mạng và thực hiện lựa chọn.</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="68"/>
         <source>Game already running</source>
         <translation>Trò chơi đang chạy</translation>
@@ -8409,13 +7862,6 @@ Tiếp tục?</translation>
     </message>
 </context>
 <context>
-    <name>NetworkMessage::ErrorManager</name>
-    <message>
-        <source>Error</source>
-        <translation type="vanished">Lỗi</translation>
-    </message>
-</context>
-<context>
     <name>OverlayDialog</name>
     <message>
         <location filename="../../src/yuzu/util/overlay_dialog.ui" line="14"/>
@@ -8439,7 +7885,7 @@ Tiếp tục?</translation>
         <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:18pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:18pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -8458,46 +7904,6 @@ p, li { white-space: pre-wrap; }
 </context>
 <context>
     <name>QObject</name>
-    <message>
-        <location filename="../../src/yuzu/multiplayer/lobby_p.h" line="260"/>
-        <source>%1 is not playing a game</source>
-        <translation>%1 hiện không chơi game</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/multiplayer/lobby_p.h" line="262"/>
-        <source>%1 is playing %2</source>
-        <translation>%1 đang chơi %2</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/multiplayer/chat_room.cpp" line="144"/>
-        <source>Not playing a game</source>
-        <translation>Hiện không chơi game</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="273"/>
-        <source>Installed SD Titles</source>
-        <translation>Các title đã cài đặt trên thẻ SD</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="281"/>
-        <source>Installed NAND Titles</source>
-        <translation>Các title đã cài đặt trên NAND</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="289"/>
-        <source>System Titles</source>
-        <translation>Titles hệ thống</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="332"/>
-        <source>Add New Game Directory</source>
-        <translation>Thêm thư mục game</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="355"/>
-        <source>Favorites</source>
-        <translation>Ưa thích</translation>
-    </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="45"/>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="35"/>
@@ -8518,49 +7924,6 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="25"/>
         <source>Alt</source>
         <translation>Alt</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="183"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="251"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="395"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="461"/>
-        <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="35"/>
-        <source>[not set]</source>
-        <translation>[chưa đặt nút]</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="47"/>
-        <source>Hat %1 %2</source>
-        <translation>Mũ %1 %2</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="274"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="278"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="282"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="286"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="484"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="488"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="492"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="496"/>
-        <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="54"/>
-        <source>Axis %1%2</source>
-        <translation>Trục %1%2</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="60"/>
-        <source>Button %1</source>
-        <translation>Nút %1</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="245"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="259"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="289"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="455"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="469"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="499"/>
-        <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="66"/>
-        <source>[unknown]</source>
-        <translation>[không xác định]</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="60"/>
@@ -8609,6 +7972,36 @@ p, li { white-space: pre-wrap; }
         <translation>L</translation>
     </message>
     <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="74"/>
+        <source>ZR</source>
+        <translation>ZR</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="76"/>
+        <source>ZL</source>
+        <translation>ZL</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="78"/>
+        <source>SR</source>
+        <translation>SR</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="80"/>
+        <source>SL</source>
+        <translation>SL</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="82"/>
+        <source>Stick L</source>
+        <translation>Cần L</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="84"/>
+        <source>Stick R</source>
+        <translation>Cần R</translation>
+    </message>
+    <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="86"/>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="64"/>
         <source>A</source>
@@ -8637,6 +8030,27 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="72"/>
         <source>Start</source>
         <translation>Bắt đầu</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="96"/>
+        <source>Plus</source>
+        <translation>Cộng</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="98"/>
+        <source>Minus</source>
+        <translation>Trừ</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="100"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="128"/>
+        <source>Home</source>
+        <translation>Home</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="102"/>
+        <source>Capture</source>
+        <translation>Chụp</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="104"/>
@@ -8711,112 +8125,6 @@ p, li { white-space: pre-wrap; }
         <translation>Tuỳ chọn</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="142"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="98"/>
-        <source>[undefined]</source>
-        <translation>[không xác định]</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="405"/>
-        <source>%1%2</source>
-        <translation>%1%2</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="199"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="409"/>
-        <source>[invalid]</source>
-        <translation>[không hợp lệ]</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="419"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="443"/>
-        <source>%1%2Hat %3</source>
-        <translation>%1%2Mũ %3</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="239"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="423"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="446"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="449"/>
-        <source>%1%2Axis %3</source>
-        <translation>%1%2Trục %3</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="219"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="429"/>
-        <source>%1%2Axis %3,%4,%5</source>
-        <translation>%1%2Trục %3,%4,%5</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="223"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="433"/>
-        <source>%1%2Motion %3</source>
-        <translation>%1%2Chuyển động %3</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="437"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="452"/>
-        <source>%1%2Button %3</source>
-        <translation>%1%2Nút %3</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="269"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="479"/>
-        <source>[unused]</source>
-        <translation>[không sử dụng]</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="74"/>
-        <source>ZR</source>
-        <translation>ZR</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="76"/>
-        <source>ZL</source>
-        <translation>ZL</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="78"/>
-        <source>SR</source>
-        <translation>SR</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="80"/>
-        <source>SL</source>
-        <translation>SL</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="82"/>
-        <source>Stick L</source>
-        <translation>Cần L</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="84"/>
-        <source>Stick R</source>
-        <translation>Cần R</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="96"/>
-        <source>Plus</source>
-        <translation>Cộng</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="98"/>
-        <source>Minus</source>
-        <translation>Trừ</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="100"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="128"/>
-        <source>Home</source>
-        <translation>Home</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="102"/>
-        <source>Capture</source>
-        <translation>Chụp</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="130"/>
         <source>Touch</source>
         <translation>Cảm Ứng</translation>
@@ -8848,9 +8156,30 @@ p, li { white-space: pre-wrap; }
         <translation>Thêm</translation>
     </message>
     <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="142"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="98"/>
+        <source>[undefined]</source>
+        <translation>[không xác định]</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="183"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="251"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="395"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="461"/>
+        <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="35"/>
+        <source>[not set]</source>
+        <translation>[chưa đặt nút]</translation>
+    </message>
+    <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="195"/>
         <source>%1%2%3%4</source>
         <translation>%1%2%3%4</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="199"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="409"/>
+        <source>[invalid]</source>
+        <translation>[không hợp lệ]</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="209"/>
@@ -8865,46 +8194,163 @@ p, li { white-space: pre-wrap; }
         <translation>%1%2%3Trục %4</translation>
     </message>
     <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="219"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="429"/>
+        <source>%1%2Axis %3,%4,%5</source>
+        <translation>%1%2Trục %3,%4,%5</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="223"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="433"/>
+        <source>%1%2Motion %3</source>
+        <translation>%1%2Chuyển động %3</translation>
+    </message>
+    <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="227"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="242"/>
         <source>%1%2%3Button %4</source>
         <translation>%1%2%3Nút %4</translation>
     </message>
     <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="239"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="423"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="446"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="449"/>
+        <source>%1%2Axis %3</source>
+        <translation>%1%2Trục %3</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="245"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="259"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="289"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="455"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="469"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="499"/>
+        <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="66"/>
+        <source>[unknown]</source>
+        <translation>[không xác định]</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="269"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="479"/>
+        <source>[unused]</source>
+        <translation>[không sử dụng]</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="274"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="278"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="282"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="286"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="484"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="488"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="492"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="496"/>
+        <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="54"/>
+        <source>Axis %1%2</source>
+        <translation>Trục %1%2</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="405"/>
+        <source>%1%2</source>
+        <translation>%1%2</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="419"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="443"/>
+        <source>%1%2Hat %3</source>
+        <translation>%1%2Mũ %3</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="437"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="452"/>
+        <source>%1%2Button %3</source>
+        <translation>%1%2Nút %3</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="47"/>
+        <source>Hat %1 %2</source>
+        <translation>Mũ %1 %2</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="60"/>
+        <source>Button %1</source>
+        <translation>Nút %1</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/game_list_p.h" line="273"/>
+        <source>Installed SD Titles</source>
+        <translation>Các title đã cài đặt trên thẻ SD</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/game_list_p.h" line="281"/>
+        <source>Installed NAND Titles</source>
+        <translation>Các title đã cài đặt trên NAND</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/game_list_p.h" line="289"/>
+        <source>System Titles</source>
+        <translation>Titles hệ thống</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/game_list_p.h" line="332"/>
+        <source>Add New Game Directory</source>
+        <translation>Thêm thư mục game</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/game_list_p.h" line="355"/>
+        <source>Favorites</source>
+        <translation>Ưa thích</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/multiplayer/chat_room.cpp" line="144"/>
+        <source>Not playing a game</source>
+        <translation>Hiện không chơi game</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/multiplayer/lobby_p.h" line="260"/>
+        <source>%1 is not playing a game</source>
+        <translation>%1 hiện không chơi game</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/multiplayer/lobby_p.h" line="262"/>
+        <source>%1 is playing %2</source>
+        <translation>%1 đang chơi %2</translation>
+    </message>
+    <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="72"/>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="165"/>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="197"/>
         <source>Migration</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="126"/>
         <source>
 
 </source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="130"/>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="136"/>
         <source>No</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="166"/>
         <source>You can manually re-trigger this prompt by deleting the new config directory:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="182"/>
         <source>Migrating</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="183"/>
         <source>Migrating, this may take a while...</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -9025,19 +8471,19 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="37"/>
         <source>Installing Firmware...</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="38"/>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="216"/>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="285"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="169"/>
         <source>Firmware integrity verification failed!</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="170"/>
@@ -9045,68 +8491,66 @@ p, li { white-space: pre-wrap; }
         <source>Verification failed for the following files:
 
 %1</source>
-        <translation type="unfinished">Kiểm tra những tập tin sau thất bại:
-
-%1</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="215"/>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="285"/>
         <source>Verifying integrity...</source>
-        <translation type="unfinished">Đang kiểm tra tính toàn vẹn...</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="235"/>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="302"/>
         <source>Integrity verification succeeded!</source>
-        <translation type="unfinished">Kiểm tra tính toàn vẹn thành công!</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="236"/>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="303"/>
         <source>The operation completed successfully.</source>
-        <translation type="unfinished">Các hoạt động đã hoàn tất thành công.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="240"/>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="308"/>
         <source>Integrity verification failed!</source>
-        <translation type="unfinished">Kiểm tra tính toàn vẹn thất bại!</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="241"/>
         <source>File contents may be corrupt or missing.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="246"/>
         <source>Integrity verification couldn&apos;t be performed</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="247"/>
         <source>Firmware installation cancelled, firmware may be in a bad state or corrupted. File contents could not be checked for validity.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="255"/>
         <source>Select Dumped Keys Location</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="273"/>
         <source>Decryption Keys install succeeded</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="274"/>
         <source>Decryption Keys were successfully installed</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_content_util.cpp" line="277"/>
         <source>Decryption Keys install failed</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -9114,32 +8558,32 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="200"/>
         <source>Error Removing Contents</source>
-        <translation type="unfinished">Lỗi khi loại bỏ nội dung</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="202"/>
         <source>Error Removing Update</source>
-        <translation type="unfinished">Lỗi khi loại bỏ cập nhật</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="204"/>
         <source>Error Removing DLC</source>
-        <translation type="unfinished">Lỗi khi loại bỏ DLC</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="223"/>
         <source>The base game is not installed in the NAND and cannot be removed.</source>
-        <translation type="unfinished">Base game không được cài đặt trong NAND và không thể loại bỏ.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="237"/>
         <source>There is no update installed for this title.</source>
-        <translation type="unfinished">Không có bản cập nhật nào được cài đặt cho title này.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="247"/>
         <source>There are no DLCs installed for this title.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="252"/>
@@ -9147,171 +8591,171 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/qt_common/qt_game_util.cpp" line="322"/>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="351"/>
         <source>Successfully Removed</source>
-        <translation type="unfinished">Loại bỏ thành công</translation>
+        <translation>Đã gỡ bỏ thành công</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="253"/>
         <source>Successfully removed %1 installed DLC.</source>
-        <translation type="unfinished">Loại bỏ thành công %1 DLC đã cài đặt</translation>
+        <translation>Đã gỡ bỏ thành công DLC %1 </translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="276"/>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="286"/>
         <source>Error Removing Transferable Shader Cache</source>
-        <translation type="unfinished">Lỗi khi xoá bộ nhớ cache shader chuyển được</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="277"/>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="317"/>
         <source>A shader cache for this title does not exist.</source>
-        <translation type="unfinished">Bộ nhớ cache shader cho title này không tồn tại.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="283"/>
         <source>Successfully removed the transferable shader cache.</source>
-        <translation type="unfinished">Thành công loại bỏ bộ nhớ cache shader chuyển được</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="287"/>
         <source>Failed to remove the transferable shader cache.</source>
-        <translation type="unfinished">Thất bại khi xoá bộ nhớ cache shader chuyển được.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="304"/>
         <source>Error Removing Vulkan Driver Pipeline Cache</source>
-        <translation type="unfinished">Lỗi khi xoá bộ nhớ cache pipeline Vulkan</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="305"/>
         <source>Failed to remove the driver pipeline cache.</source>
-        <translation type="unfinished">Thất bại khi xoá bộ nhớ cache pipeline của driver.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="316"/>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="327"/>
         <source>Error Removing Transferable Shader Caches</source>
-        <translation type="unfinished">Lỗi khi loại bỏ bộ nhớ cache shader chuyển được</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="323"/>
         <source>Successfully removed the transferable shader caches.</source>
-        <translation type="unfinished">Thành công loại bỏ tât cả bộ nhớ cache shader chuyển được.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="328"/>
         <source>Failed to remove the transferable shader cache directory.</source>
-        <translation type="unfinished">Thất bại khi loại bỏ thư mục bộ nhớ cache shader.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="344"/>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="355"/>
         <source>Error Removing Custom Configuration</source>
-        <translation type="unfinished">Lỗi khi loại bỏ cấu hình tuỳ chỉnh</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="345"/>
         <source>A custom configuration for this title does not exist.</source>
-        <translation type="unfinished">Cấu hình tuỳ chỉnh cho title này không tồn tại.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="352"/>
         <source>Successfully removed the custom game configuration.</source>
-        <translation type="unfinished">Loại bỏ thành công cấu hình game tuỳ chỉnh.</translation>
+        <translation>Đã xóa thành công cấu hình trò chơi tùy chỉnh.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="356"/>
         <source>Failed to remove the custom game configuration.</source>
-        <translation type="unfinished">Thất bại khi xoá cấu hình game tuỳ chỉnh</translation>
+        <translation>Không thể xóa cấu hình trò chơi tùy chỉnh.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="384"/>
         <source>Reset Metadata Cache</source>
-        <translation type="unfinished">Khôi phục bộ nhớ đệm của metadata</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="388"/>
         <source>The metadata cache is already empty.</source>
-        <translation type="unfinished">Bộ nhớ đệm metadata trống.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="393"/>
         <source>The operation completed successfully.</source>
-        <translation type="unfinished">Các hoạt động đã hoàn tất thành công.</translation>
+        <translation>Thao tác đã hoàn tất thành công.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="399"/>
         <source>The metadata cache couldn&apos;t be deleted. It might be in use or non-existent.</source>
-        <translation type="unfinished">Bộ nhớ đệm metadata không thể xoá. Nó có thể đang được sử dụng hoặc không tồn tại.</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="414"/>
         <source>Create Shortcut</source>
-        <translation type="unfinished">Tạo lối tắt</translation>
+        <translation>Tạo lối tắt</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="415"/>
         <source>Do you want to launch the game in fullscreen?</source>
-        <translation type="unfinished"></translation>
+        <translation>Bạn có muốn khởi chạy trò chơi ở chế độ toàn màn hình không?</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="419"/>
         <source>Shortcut Created</source>
-        <translation type="unfinished"></translation>
+        <translation>Lối tắt đã được tạo</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="420"/>
         <source>Successfully created a shortcut to %1</source>
-        <translation type="unfinished">Thành công tạo lối tắt tại %1</translation>
+        <translation>Đã tạo thành công lối tắt tới %1</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="425"/>
         <source>Shortcut may be Volatile!</source>
-        <translation type="unfinished"></translation>
+        <translation>Lối tắt có thể không ổn định!</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="426"/>
         <source>This will create a shortcut to the current AppImage. This may not work well if you update. Continue?</source>
-        <translation type="unfinished">Việc này sẽ tạo một lối tắt tới AppImage hiện tại. Điều này có thể không hoạt động tốt nếu bạn cập nhật. Tiếp tục?</translation>
+        <translation>Thao tác này sẽ tạo một lối tắt đến AppImage hiện tại. Việc này có thể không hoạt động tốt nếu bạn cập nhật. Bạn có muốn tiếp tục không?</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="432"/>
         <source>Failed to Create Shortcut</source>
-        <translation type="unfinished"></translation>
+        <translation>Không thể tạo lối tắt</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="433"/>
         <source>Failed to create a shortcut to %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Không thể tạo lối tắt tới %1</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="503"/>
         <source>Create Icon</source>
-        <translation type="unfinished">Tạo icon</translation>
+        <translation>Tạo icon</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="504"/>
         <source>Cannot create icon file. Path &quot;%1&quot; does not exist and cannot be created.</source>
-        <translation type="unfinished">Không thể tạo tập tin icon. Đường dẫn &quot;%1&quot; không tồn tại và không thể tạo.</translation>
+        <translation>Không thể tạo icon. Đường dẫn &quot;%1&quot; không tồn tại và không thể tạo được.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="557"/>
         <source>No firmware available</source>
-        <translation type="unfinished"></translation>
+        <translation>Không có firmware khả dụng</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="558"/>
         <source>Please install firmware to use the home menu.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="564"/>
         <source>Home Menu Applet</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_game_util.cpp" line="565"/>
         <source>Home Menu is not available. Please reinstall firmware.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -9536,7 +8980,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2653"/>
         <source>Not enough controllers</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.cpp" line="485"/>
@@ -9710,7 +9154,7 @@ Vui lòng thử lại hoặc liên hệ nhà phát triển của phần mềm.</
         <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:26pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:26pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
