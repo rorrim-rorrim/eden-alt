@@ -373,13 +373,13 @@ bool ConfigureProfileManager::LoadAvatarData() {
     const auto romfs = nca->GetRomFS();
     if (!romfs) {
         QMessageBox::warning(this, tr("Error loading archive"),
-                             tr("Archive does not contain romfs. It is probably corrupt."));
+                             tr("Archive does not contain romfs. It's probably corrupt."));
         return false;
     }
     const auto extracted = FileSys::ExtractRomFS(romfs);
     if (!extracted) {
         QMessageBox::warning(this, tr("Error extracting archive"),
-                             tr("Archive could not be extracted. It is probably corrupt."));
+                             tr("Archive could not be extracted. It's probably corrupt."));
         return false;
     }
     const auto chara_dir = extracted->GetSubdirectory("chara");
