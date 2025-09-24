@@ -178,8 +178,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
     INSERT(Settings,
            anti_aliasing,
            tr("Anti-Aliasing Method:"),
-           tr("The anti-aliasing method to use.\nSMAA offers the best quality.\nFXAA has a "
-              "can produce a better and more stable picture under very low resolutions."));
+           tr("The anti-aliasing method to use.\nSMAA offers the best quality.\nFXAA "
+              "can produce a more stable picture in lower resolutions."));
     INSERT(Settings,
            fullscreen_mode,
            tr("Fullscreen Mode:"),
