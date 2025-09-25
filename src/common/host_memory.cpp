@@ -439,10 +439,11 @@ static void* ChooseVirtualBase(size_t virtual_size) {
 
 #endif
 
-#if defined(__sun__) || defined(__HAIKU__) || defined(__NetBSD__) || defined(__DragonFly__)
+#if defined(__sun__) || defined(__HAIKU__) || defined(__NetBSD__) || defined(__DragonFly__) || (defined(__ANDROID__) && __ANDROID_API__ <= 29)
 /// Most Unices don't have a portable shm_open (AIX, OpenBSD, NetBSD, Solaris 11, OpenIndiana)
 /// Portable implementation of shm_open(SHM_ANON, ...) - roughly equivalent but without
 /// OS support - may fail sporadically, beware!
+/// For example legacy android (ndk <= 29, aka. Android 10) doesn't have memfd_create()
 static int shm_open_anon(int flags, mode_t mode) {
     char name[16] = "/shm-";
     char *const limit = name + sizeof(name) - 1;
@@ -494,7 +495,7 @@ public:
         ASSERT_MSG(page_size == 0x1000, "page size {:#x} is incompatible with 4K paging",
                    page_size);
         // Backing memory initialization
-#if defined(__sun__) || defined(__HAIKU__) || defined(__NetBSD__) || defined(__DragonFly__)
+#if defined(__sun__) || defined(__HAIKU__) || defined(__NetBSD__) || defined(__DragonFly__) || (defined(__ANDROID__) && __ANDROID_API__ <= 29)
         fd = shm_open_anon(O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0600);
 #elif defined(__OpenBSD__)
         fd = shm_open_anon(O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0600);
