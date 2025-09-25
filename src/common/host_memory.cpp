@@ -439,11 +439,10 @@ static void* ChooseVirtualBase(size_t virtual_size) {
 
 #endif
 
-#if defined(__sun__) || defined(__HAIKU__) || defined(__NetBSD__) || defined(__DragonFly__) || (defined(__ANDROID__) && __ANDROID_API__ <= 29)
+#if defined(__sun__) || defined(__HAIKU__) || defined(__NetBSD__) || defined(__DragonFly__)
 /// Most Unices don't have a portable shm_open (AIX, OpenBSD, NetBSD, Solaris 11, OpenIndiana)
 /// Portable implementation of shm_open(SHM_ANON, ...) - roughly equivalent but without
 /// OS support - may fail sporadically, beware!
-/// For example legacy android (ndk <= 29, aka. Android 10) doesn't have memfd_create()
 static int shm_open_anon(int flags, mode_t mode) {
     char name[16] = "/shm-";
     char *const limit = name + sizeof(name) - 1;
@@ -495,15 +494,16 @@ public:
         ASSERT_MSG(page_size == 0x1000, "page size {:#x} is incompatible with 4K paging",
                    page_size);
         // Backing memory initialization
-#if defined(__sun__) || defined(__HAIKU__) || defined(__NetBSD__) || defined(__DragonFly__) || (defined(__ANDROID__) && __ANDROID_API__ <= 29)
+#if defined(__sun__) || defined(__HAIKU__) || defined(__NetBSD__) || defined(__DragonFly__)
         fd = shm_open_anon(O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0600);
 #elif defined(__OpenBSD__)
         fd = shm_open_anon(O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0600);
 #elif defined(__FreeBSD__) && __FreeBSD__ < 13
         // XXX Drop after FreeBSD 12.* reaches EOL on 2024-06-30
         fd = shm_open(SHM_ANON, O_RDWR, 0600);
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) || defined(__ANDROID__)
         // macOS doesn't have memfd_create, use anonymous temporary file
+        /// For example legacy android (ndk <= 29, aka. Android 10) doesn't have memfd_create()
         char template_path[] = "/tmp/eden_mem_XXXXXX";
         fd = mkstemp(template_path);
         if (fd >= 0) {
