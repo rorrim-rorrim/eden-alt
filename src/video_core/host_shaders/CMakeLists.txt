@@ -44,6 +44,9 @@ set(SHADER_FILES
     pitch_unswizzle.comp
     present_area.frag
     present_bicubic.frag
+    present_zero_tangent.frag
+    present_bspline.frag
+    present_mitchell.frag
     present_gaussian.frag
     present_lanczos.frag
     present_spline1.frag

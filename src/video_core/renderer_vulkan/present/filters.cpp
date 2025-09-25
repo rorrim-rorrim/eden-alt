@@ -7,6 +7,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/assert.h"
 #include "common/common_types.h"
 
 #include "video_core/host_shaders/present_area_frag_spv.h"
@@ -14,6 +15,9 @@
 #include "video_core/host_shaders/present_gaussian_frag_spv.h"
 #include "video_core/host_shaders/present_lanczos_frag_spv.h"
 #include "video_core/host_shaders/present_spline1_frag_spv.h"
+#include "video_core/host_shaders/present_mitchell_frag_spv.h"
+#include "video_core/host_shaders/present_bspline_frag_spv.h"
+#include "video_core/host_shaders/present_zero_tangent_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_scaleforce_fp16_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_scaleforce_fp32_frag_spv.h"
@@ -52,13 +56,27 @@ std::unique_ptr<WindowAdaptPass> MakeSpline1(const Device& device, VkFormat fram
                                              BuildShader(device, PRESENT_SPLINE1_FRAG_SPV));
 }
 
-std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device, VkFormat frame_format) {
+std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device, VkFormat frame_format, VkCubicFilterWeightsQCOM qcom_weights) {
     // No need for handrolled shader -- if the VK impl can do it for us ;)
-    if (device.IsExtFilterCubicSupported())
-        return std::make_unique<WindowAdaptPass>(device, frame_format, CreateCubicSampler(device),
-                                                 BuildShader(device, VULKAN_PRESENT_FRAG_SPV));
-    return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
-                                                BuildShader(device, PRESENT_BICUBIC_FRAG_SPV));
+    if (device.IsExtFilterCubicSupported()) {
+        return std::make_unique<WindowAdaptPass>(device, frame_format, CreateCubicSampler(device,
+            qcom_weights), BuildShader(device, VULKAN_PRESENT_FRAG_SPV));
+    } else {
+        return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device), [&](){
+            switch (qcom_weights) {
+            case VK_CUBIC_FILTER_WEIGHTS_CATMULL_ROM_QCOM:
+                return BuildShader(device, PRESENT_BICUBIC_FRAG_SPV);
+            case VK_CUBIC_FILTER_WEIGHTS_ZERO_TANGENT_CARDINAL_QCOM:
+                return BuildShader(device, PRESENT_ZERO_TANGENT_FRAG_SPV);
+            case VK_CUBIC_FILTER_WEIGHTS_B_SPLINE_QCOM:
+                return BuildShader(device, PRESENT_BSPLINE_FRAG_SPV);
+            case VK_CUBIC_FILTER_WEIGHTS_MITCHELL_NETRAVALI_QCOM:
+                return BuildShader(device, PRESENT_MITCHELL_FRAG_SPV);
+            default:
+                UNREACHABLE();
+            }
+        }());
+    }
 }
 
 std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device, VkFormat frame_format) {

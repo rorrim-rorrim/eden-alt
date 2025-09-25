@@ -17,6 +17,9 @@ namespace OpenGL {
 std::unique_ptr<WindowAdaptPass> MakeNearestNeighbor(const Device& device);
 std::unique_ptr<WindowAdaptPass> MakeBilinear(const Device& device);
 std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device);
+std::unique_ptr<WindowAdaptPass> MakeZeroTangent(const Device& device);
+std::unique_ptr<WindowAdaptPass> MakeMitchell(const Device& device);
+std::unique_ptr<WindowAdaptPass> MakeBSpline(const Device& device);
 std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device);
 std::unique_ptr<WindowAdaptPass> MakeSpline1(const Device& device);
 std::unique_ptr<WindowAdaptPass> MakeLanczos(const Device& device);

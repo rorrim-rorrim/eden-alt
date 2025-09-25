@@ -14,6 +14,9 @@
 #include "video_core/host_shaders/present_gaussian_frag.h"
 #include "video_core/host_shaders/present_lanczos_frag.h"
 #include "video_core/host_shaders/present_spline1_frag.h"
+#include "video_core/host_shaders/present_mitchell_frag_spv.h"
+#include "video_core/host_shaders/present_bspline_frag_spv.h"
+#include "video_core/host_shaders/present_zero_tangent_frag_spv.h"
 #include "video_core/renderer_opengl/present/filters.h"
 #include "video_core/renderer_opengl/present/util.h"
 
@@ -37,6 +40,21 @@ std::unique_ptr<WindowAdaptPass> MakeSpline1(const Device& device) {
 std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device) {
     return std::make_unique<WindowAdaptPass>(device, CreateBilinearSampler(),
                                              HostShaders::PRESENT_BICUBIC_FRAG);
+}
+
+std::unique_ptr<WindowAdaptPass> MakeMitchell(const Device& device) {
+    return std::make_unique<WindowAdaptPass>(device, CreateBilinearSampler(),
+                                             HostShaders::PRESENT_MITCHELL_FRAG);
+}
+
+std::unique_ptr<WindowAdaptPass> MakeZeroTangent(const Device& device) {
+    return std::make_unique<WindowAdaptPass>(device, CreateBilinearSampler(),
+                                             HostShaders::PRESENT_ZERO_TANGENT_FRAG);
+}
+
+std::unique_ptr<WindowAdaptPass> MakeBSpline(const Device& device) {
+    return std::make_unique<WindowAdaptPass>(device, CreateBilinearSampler(),
+                                             HostShaders::PRESENT_BSPLINE_FRAG);
 }
 
 std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device) {
