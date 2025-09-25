@@ -7,6 +7,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <vulkan/vulkan_core.h>
 #include "common/assert.h"
 #include "common/common_types.h"
 
@@ -58,7 +59,8 @@ std::unique_ptr<WindowAdaptPass> MakeSpline1(const Device& device, VkFormat fram
 
 std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device, VkFormat frame_format, VkCubicFilterWeightsQCOM qcom_weights) {
     // No need for handrolled shader -- if the VK impl can do it for us ;)
-    if (device.IsExtFilterCubicSupported()) {
+    // Catmull-Rom is default bicubic for all implementations...
+    if (device.IsExtFilterCubicSupported() && (device.IsQcomFilterCubicWeightsSupported() || qcom_weights == VK_CUBIC_FILTER_WEIGHTS_CATMULL_ROM_QCOM)) {
         return std::make_unique<WindowAdaptPass>(device, frame_format, CreateCubicSampler(device,
             qcom_weights), BuildShader(device, VULKAN_PRESENT_FRAG_SPV));
     } else {
