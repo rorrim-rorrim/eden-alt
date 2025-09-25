@@ -227,7 +227,7 @@ public:
                         break;
                     }
                     ++priority;
-                } while (priority <= LowestPriority && priority < m_available_priorities[core].size());
+                } while (priority <= LowestPriority && priority < s32(m_available_priorities[core].size()));
             }
             return next;
         }
