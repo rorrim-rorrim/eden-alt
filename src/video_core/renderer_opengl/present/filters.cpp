@@ -14,9 +14,9 @@
 #include "video_core/host_shaders/present_gaussian_frag.h"
 #include "video_core/host_shaders/present_lanczos_frag.h"
 #include "video_core/host_shaders/present_spline1_frag.h"
-#include "video_core/host_shaders/present_mitchell_frag_spv.h"
-#include "video_core/host_shaders/present_bspline_frag_spv.h"
-#include "video_core/host_shaders/present_zero_tangent_frag_spv.h"
+#include "video_core/host_shaders/present_mitchell_frag.h"
+#include "video_core/host_shaders/present_bspline_frag.h"
+#include "video_core/host_shaders/present_zero_tangent_frag.h"
 #include "video_core/renderer_opengl/present/filters.h"
 #include "video_core/renderer_opengl/present/util.h"
 
