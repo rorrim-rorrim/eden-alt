@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,7 +9,8 @@
 #include <shared_mutex>
 #include <span>
 #include <vector>
-
+#include <array>
+#include <mutex>
 #include "shader_recompiler/shader_info.h"
 #include "video_core/renderer_vulkan/vk_resource_pool.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
@@ -75,6 +79,14 @@ public:
 
 private:
     DescriptorBank& Bank(const DescriptorBankInfo& reqs);
+    struct CacheEntry {
+        DescriptorBankInfo info{};
+        DescriptorBank* bank{nullptr};
+        u64 stamp{0};
+    };
+    std::mutex cache_mutex{};
+    std::array<CacheEntry, 8> cache_{}; //test and then adjust
+    u64 cache_tick_{0};
 
     const Device& device;
     MasterSemaphore& master_semaphore;
