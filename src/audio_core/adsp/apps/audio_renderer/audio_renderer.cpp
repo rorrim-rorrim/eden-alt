@@ -132,11 +132,9 @@ void AudioRenderer::CreateSinkStreams() {
 void AudioRenderer::Main(std::stop_token stop_token) {
     static constexpr char name[]{"DSP_AudioRenderer_Main"};
     Common::SetCurrentThreadName(name);
-    Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
 
     // TODO: Create buffer map/unmap thread + mailbox
     // TODO: Create gMix devices, initialize them here
-
     if (mailbox.Receive(Direction::DSP) != Message::InitializeOK) {
         LOG_ERROR(Service_Audio,
                   "ADSP Audio Renderer -- Failed to receive initialize message from host!");

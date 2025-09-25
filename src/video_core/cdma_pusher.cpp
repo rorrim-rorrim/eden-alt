@@ -29,7 +29,6 @@ CDmaPusher::CDmaPusher(Host1x::Host1x& host1x_, s32 id)
 CDmaPusher::~CDmaPusher() = default;
 
 void CDmaPusher::ProcessEntries(std::stop_token stop_token) {
-    Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
     ChCommandHeaderList command_list{host1x.System().ApplicationMemory(), 0, 0};
     u32 count{};
     u32 method_offset{};

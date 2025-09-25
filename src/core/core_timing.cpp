@@ -56,7 +56,6 @@ CoreTiming::~CoreTiming() {
 void CoreTiming::ThreadEntry(CoreTiming& instance) {
     static constexpr char name[] = "HostTiming";
     Common::SetCurrentThreadName(name);
-    Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
     instance.on_thread_init();
     instance.ThreadLoop();
 }

@@ -228,10 +228,7 @@ private:
 
     void ReleaseThreadFunc(std::stop_token stop_token) {
         std::string name = "GPUFencingThread";
-
         Common::SetCurrentThreadName(name.c_str());
-        Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
-
         TFence current_fence;
         std::deque<std::function<void()>> current_operations;
         while (!stop_token.stop_requested()) {

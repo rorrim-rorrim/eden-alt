@@ -26,7 +26,6 @@ static void RunThread(std::stop_token stop_token, Core::System& system,
     std::string name = "GPU";
 
     Common::SetCurrentThreadName(name.c_str());
-    Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
     system.RegisterHostThread();
 
     auto current_context = context.Acquire();

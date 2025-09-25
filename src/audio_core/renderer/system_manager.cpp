@@ -80,7 +80,6 @@ bool SystemManager::Remove(System& system_) {
 void SystemManager::ThreadFunc(std::stop_token stop_token) {
     static constexpr char name[]{"AudioRenderSystemManager"};
     Common::SetCurrentThreadName(name);
-    Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
     while (active && !stop_token.stop_requested()) {
         {
             std::scoped_lock l{mutex1};
