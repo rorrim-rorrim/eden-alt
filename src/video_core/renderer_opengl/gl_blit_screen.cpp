@@ -111,6 +111,9 @@ void BlitScreen::CreateWindowAdapt() {
     case Settings::ScalingFilter::Area:
         window_adapt = MakeArea(device);
         break;
+    case Settings::ScalingFilter::Mmpx:
+        window_adapt = MakeMmpx(device);
+        break;
     case Settings::ScalingFilter::Fsr:
     case Settings::ScalingFilter::Bilinear:
     default:

@@ -260,6 +260,7 @@
         <item>@string/scaling_filter_scale_force</item>
         <item>@string/scaling_filter_fsr</item>
         <item>@string/scaling_filter_area</item>
+        <item>@string/scaling_filter_mmpx</item>
     </string-array>
 
     <integer-array name="rendererScalingFilterValues">
@@ -275,6 +276,7 @@
         <item>9</item>
         <item>10</item>
         <item>11</item>
+        <item>12</item>
     </integer-array>
 
     <string-array name="rendererAntiAliasingNames">
