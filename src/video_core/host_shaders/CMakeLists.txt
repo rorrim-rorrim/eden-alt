@@ -50,6 +50,7 @@ set(SHADER_FILES
     present_gaussian.frag
     present_lanczos.frag
     present_spline1.frag
+    present_mmpx.frag
     queries_prefix_scan_sum.comp
     queries_prefix_scan_sum_nosubgroups.comp
     resolve_conditional_render.comp

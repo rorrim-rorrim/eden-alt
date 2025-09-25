@@ -23,5 +23,6 @@ std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device, VkFormat fra
 std::unique_ptr<WindowAdaptPass> MakeLanczos(const Device& device, VkFormat frame_format);
 std::unique_ptr<WindowAdaptPass> MakeScaleForce(const Device& device, VkFormat frame_format);
 std::unique_ptr<WindowAdaptPass> MakeArea(const Device& device, VkFormat frame_format);
+std::unique_ptr<WindowAdaptPass> MakeMmpx(const Device& device, VkFormat frame_format);
 
 } // namespace Vulkan
