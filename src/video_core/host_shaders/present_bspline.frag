@@ -8,11 +8,11 @@ vec4 cubic(float x) {
     float x2 = x * x;
     float x3 = x2 * x;
     return vec4(1.0, x, x2, x3) * transpose(mat4x4(
-         0.0,   2.0,  0.0,  0.0,
-        -1.0,   0.0,  1.0,  0.0,
-         2.0,  -5.0,  4.0, -1.0,
+         1.0,   4.0,  1.0,  0.0,
+        -3.0,   0.0,  3.0,  0.0,
+         3.0,  -6.0,  3.0,  0.0,
         -1.0,   3.0, -3.0,  1.0
-    ) * (1.0 / 2.0));
+    ) * (1.0 / 6.0));
 }
 vec4 textureBicubic(sampler2D samp, vec2 uv) {
     vec2 tex_size = vec2(textureSize(samp, 0));

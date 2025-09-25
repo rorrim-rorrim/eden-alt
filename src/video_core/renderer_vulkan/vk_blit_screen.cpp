@@ -7,6 +7,7 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <vulkan/vulkan_core.h>
 #include "video_core/framebuffer_config.h"
 #include "video_core/present.h"
 #include "video_core/renderer_vulkan/present/filters.h"
@@ -41,7 +42,16 @@ void BlitScreen::SetWindowAdaptPass() {
         window_adapt = MakeNearestNeighbor(device, swapchain_view_format);
         break;
     case Settings::ScalingFilter::Bicubic:
-        window_adapt = MakeBicubic(device, swapchain_view_format);
+        window_adapt = MakeBicubic(device, swapchain_view_format, VK_CUBIC_FILTER_WEIGHTS_CATMULL_ROM_QCOM);
+        break;
+    case Settings::ScalingFilter::ZeroTangent:
+        window_adapt = MakeBicubic(device, swapchain_view_format, VK_CUBIC_FILTER_WEIGHTS_ZERO_TANGENT_CARDINAL_QCOM);
+        break;
+    case Settings::ScalingFilter::BSpline:
+        window_adapt = MakeBicubic(device, swapchain_view_format, VK_CUBIC_FILTER_WEIGHTS_B_SPLINE_QCOM);
+        break;
+    case Settings::ScalingFilter::Mitchell:
+        window_adapt = MakeBicubic(device, swapchain_view_format, VK_CUBIC_FILTER_WEIGHTS_MITCHELL_NETRAVALI_QCOM);
         break;
     case Settings::ScalingFilter::Spline1:
         window_adapt = MakeSpline1(device, swapchain_view_format);
