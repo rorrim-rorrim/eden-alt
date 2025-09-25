@@ -195,7 +195,6 @@ void CpuManager::RunThread(std::stop_token token, std::size_t core) {
         name = "CPUThread";
     }
     Common::SetCurrentThreadName(name.c_str());
-    Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
     auto& data = core_data[core];
     data.host_context = Common::Fiber::ThreadToFiber();
 
