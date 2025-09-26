@@ -38,7 +38,8 @@ void DeviceSinkCommand::Process(const AudioRenderer::CommandListProcessor& proce
 
     std::array<s16, TargetSampleCount * MaxChannels> samples{};
     for (u32 channel = 0; channel < input_count; channel++) {
-        const auto offset{inputs[channel] * out_buffer.frames};
+        //const auto offset{inputs[channel] * out_buffer.frames};
+        const auto offset{channel * out_buffer.frames};
 
         for (u32 index = 0; index < out_buffer.frames; index++) {
             samples[index * input_count + channel] =
