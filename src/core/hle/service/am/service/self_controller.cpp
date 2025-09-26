@@ -67,6 +67,7 @@ ISelfController::ISelfController(Core::System& system_, std::shared_ptr<Applet> 
         {110, nullptr, "SetApplicationAlbumUserData"},
         {120, D<&ISelfController::SaveCurrentScreenshot>, "SaveCurrentScreenshot"},
         {130, D<&ISelfController::SetRecordVolumeMuted>, "SetRecordVolumeMuted"},
+        {230, D<&ISelfController::Unknown230>, "Unknown230"},
         {1000, nullptr, "GetDebugStorageChannel"},
     };
     // clang-format on
@@ -400,6 +401,14 @@ Result ISelfController::SetRecordVolumeMuted(bool muted) {
 
     std::scoped_lock lk{m_applet->lock};
     m_applet->record_volume_muted = muted;
+
+    R_SUCCEED();
+}
+
+Result ISelfController::Unknown230(u32 in_val, Out<u16> out_val) {
+    LOG_WARNING(Service_AM, "(STUBBED) called, in_val={}", in_val);
+
+    *out_val = 0;
 
     R_SUCCEED();
 }
