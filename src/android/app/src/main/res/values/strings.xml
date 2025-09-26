@@ -992,7 +992,9 @@
     <string name="scaling_filter_nearest_neighbor">Nearest Neighbor</string>
     <string name="scaling_filter_bilinear">Bilinear</string>
     <string name="scaling_filter_bicubic">Bicubic</string>
+    <string name="scaling_filter_spline1">Spline-1</string>
     <string name="scaling_filter_gaussian">Gaussian</string>
+    <string name="scaling_filter_lanczos">Lanczos</string>
     <string name="scaling_filter_scale_force">ScaleForce</string>
     <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
     <string name="scaling_filter_area">Area</string>
