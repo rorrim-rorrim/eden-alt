@@ -519,10 +519,6 @@ else()
         find_package(Boost 1.57.0 CONFIG REQUIRED)
     endif()
 
-    if (PLATFORM_LINUX OR ANDROID)
-        find_package(gamemode 1.7 MODULE)
-    endif()
-
     if (ENABLE_OPENSSL)
         find_package(OpenSSL 1.1.1 REQUIRED)
     endif()
@@ -568,6 +564,7 @@ find_package(VulkanUtilityLibraries)
 find_package(SimpleIni)
 find_package(SPIRV-Tools)
 find_package(sirit)
+find_package(gamemode) 
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     find_package(xbyak)
