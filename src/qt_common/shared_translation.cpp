@@ -140,8 +140,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            cpuopt_unsafe_fastmem_check,
            tr("Disable address space checks"),
            tr("This option improves speed by eliminating a safety check before every memory "
-              "read/write in guest.\nDisabling it may allow a game to read/write the emulator's "
-              "memory."));
+              "operation.\nDisabling it may allow arbitrary code execution."));
     INSERT(
         Settings,
         cpuopt_unsafe_ignore_global_monitor,
@@ -167,7 +166,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
     INSERT(Settings,
            resolution_setup,
            tr("Resolution:"),
-           tr("Forces the guest to render at a different resolution.\n"
+           tr("Forces to render at a different resolution.\n"
               "Higher resolutions require more VRAM and bandwidth.\n"
               "Options lower than 1X can cause artifacts."));
     INSERT(Settings, scaling_filter, tr("Window Adapting Filter:"), QString());
@@ -361,11 +360,11 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("RNG Seed"),
            tr("Controls the seed of the random number generator.\nMainly used for speedrunning."));
     INSERT(Settings, rng_seed_enabled, QString(), QString());
-    INSERT(Settings, device_name, tr("Device Name"), tr("The name of the guest."));
+    INSERT(Settings, device_name, tr("Device Name"), tr("The name of the console."));
     INSERT(Settings,
            custom_rtc,
            tr("Custom RTC Date:"),
-           tr("This option allows to change the clock of the guest.\n"
+           tr("This option allows to change the clock of the console.\n"
               "Can be used to manipulate time in games."));
     INSERT(Settings, custom_rtc_enabled, QString(), QString());
     INSERT(Settings,
@@ -376,13 +375,13 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            language_index,
            tr("Language:"),
            tr("This option can be overridden when region setting is auto-select"));
-    INSERT(Settings, region_index, tr("Region:"), tr("The region of the guest."));
-    INSERT(Settings, time_zone_index, tr("Time Zone:"), tr("The time zone of the guest."));
+    INSERT(Settings, region_index, tr("Region:"), tr("The region of the console."));
+    INSERT(Settings, time_zone_index, tr("Time Zone:"), tr("The time zone of the console."));
     INSERT(Settings, sound_index, tr("Sound Output Mode:"), QString());
     INSERT(Settings,
            use_docked_mode,
            tr("Console Mode:"),
-           tr("Selects if the guest is in Docked or Handheld mode.\nGames will change "
+           tr("Selects if the console is in Docked or Handheld mode.\nGames will change "
               "their resolution, details and supported controllers and depending on this setting.\n"
               "Setting to Handheld can help improve performance for low end systems."));
     INSERT(Settings, current_user, QString(), QString());
@@ -409,11 +408,11 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
     INSERT(UISettings,
            pause_when_in_background,
            tr("Pause when not in focus"),
-           tr("Pauses the guest when focusing other windows."));
+           tr("Pauses emulation when focusing on other windows."));
     INSERT(UISettings,
            confirm_before_stopping,
            tr("Confirm before stopping emulation"),
-           tr("Overrides prompts asking to confirm stopping the guest.\nEnabling "
+           tr("Overrides prompts asking to confirm stopping the emulation.\nEnabling "
               "it bypasses such prompts and directly exits the emulation."));
     INSERT(UISettings,
            hide_mouse,
@@ -422,8 +421,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
     INSERT(UISettings,
            controller_applet_disabled,
            tr("Disable controller applet"),
-           tr("Forcibly disables the use of the controller applet by guests.\n"
-                "When a guest attempts to open the controller applet, it is immediately closed."));
+           tr("Forcibly disables the use of the controller applet by programs.\n"
+                "When a program attempts to open the controller applet, it is immediately closed."));
     INSERT(UISettings,
            check_for_updates,
            tr("Check for updates"),
