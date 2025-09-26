@@ -203,7 +203,7 @@ if(YUZU_ENABLE_LTO)
     include(CheckIPOSupported)
     check_ipo_supported(RESULT COMPILER_SUPPORTS_LTO)
     if(NOT COMPILER_SUPPORTS_LTO)
-        message(WARNING "LTO is not supported!")
+        message(FATAL_ERROR "Your compiler does not support interprocedural optimization (IPO). Re-run CMake with -DYUZU_ENABLE_LTO=OFF.")
     endif()
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ${COMPILER_SUPPORTS_LTO})
 endif()
@@ -903,7 +903,7 @@ if (YUZU_USE_FASTER_LD)
     endif()
 
     # GNU appears to work better with mold
-    # TODO: mold has been slow lately, see if lld is faster
+    # TODO: mold has been slow lately, see if better options exist (search for gold?)
     if (CXX_GCC)
         find_program(MOLD mold)
         if (MOLD AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.1")
