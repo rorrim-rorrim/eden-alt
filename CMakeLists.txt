@@ -312,7 +312,6 @@ endif()
 if (ARCHITECTURE_arm64 AND (ANDROID OR PLATFORM_LINUX))
     set(HAS_NCE 1)
     add_compile_definitions(HAS_NCE=1)
-    find_package(oaknut 2.0.1)
 endif()
 
 if (YUZU_ROOM)
@@ -538,10 +537,6 @@ else()
         find_package(Catch2 3.0.1 REQUIRED)
     endif()
 
-    if (PLATFORM_LINUX OR ANDROID)
-        find_package(gamemode 1.7 MODULE)
-    endif()
-
     if (ENABLE_OPENSSL)
         find_package(OpenSSL 1.1.1 REQUIRED)
     endif()
@@ -665,6 +660,7 @@ add_subdirectory(externals)
 # pass targets from externals
 find_package(libusb)
 find_package(VulkanMemoryAllocator)
+find_package(gamemode)
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     find_package(xbyak)
