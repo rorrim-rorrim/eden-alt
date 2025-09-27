@@ -7,21 +7,6 @@
         "find_args": "CONFIG",
         "git_version": "3.3.0"
     },
-    "mbedtls": {
-        "repo": "Mbed-TLS/mbedtls",
-        "sha": "8c88150ca1",
-        "hash": "769ad1e94c570671071e1f2a5c0f1027e0bf6bcdd1a80ea8ac970f2c86bc45ce4e31aa88d6d8110fc1bed1de81c48bc624df1b38a26f8b340a44e109d784a966",
-        "patches": [
-            "0001-cmake-version.patch"
-        ],
-        "bundled": true
-    },
-    "spirv-headers": {
-        "package": "SPIRV-Headers",
-        "repo": "KhronosGroup/SPIRV-Headers",
-        "sha": "4e209d3d7e",
-        "hash": "f48bbe18341ed55ea0fe280dbbbc0a44bf222278de6e716e143ca1e95ca320b06d4d23d6583fbf8d03e1428f3dac8fa00e5b82ddcd6b425e6236d85af09550a4"
-    },
     "sirit": {
         "repo": "eden-emulator/sirit",
         "git_version": "1.0.3",
