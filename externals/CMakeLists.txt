@@ -214,20 +214,6 @@ endif()
 # Glad
 add_subdirectory(glad)
 
-# mbedtls
-# TODO(crueter): Findmbedtls that ONLY accepts mbedtls2
-AddJsonPackage(mbedtls)
-
-if (mbedtls_ADDED)
-    target_include_directories(mbedtls PUBLIC ${mbedtls_SOURCE_DIR}/include)
-
-    if (NOT MSVC)
-        target_compile_options(mbedcrypto PRIVATE
-            -Wno-unused-but-set-variable
-            -Wno-string-concatenation)
-    endif()
-endif()
-
 # libusb
 if (ENABLE_LIBUSB)
     add_subdirectory(libusb)
