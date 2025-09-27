@@ -38,6 +38,8 @@
 
 using namespace Dynarmic;
 
+A64::UserConfig conf{};
+
 const char* GetNameOfA32Instruction(u32 instruction) {
     if (auto vfp_decoder = A32::DecodeVFP<A32::TranslatorVisitor>(instruction)) {
         return vfp_decoder->get().GetName();
