@@ -132,7 +132,7 @@ do
   REPO=$(jq -r ".repo" <<< "$JSON")
 
   CI=$(jq -r ".ci" <<< "$JSON")
-  if [ "$CI" != null ]; then
+  if [ "$CI" == "true" ]; then
     ci_package
     continue
   fi
