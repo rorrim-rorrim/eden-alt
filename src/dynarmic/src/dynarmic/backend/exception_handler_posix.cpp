@@ -12,6 +12,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <lock_guard>
 #include <shared_mutex>
 #include <optional>
 #include <bit>
