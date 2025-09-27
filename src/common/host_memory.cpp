@@ -30,6 +30,7 @@
 #include <sys/random.h>
 #include <mach/vm_map.h>
 #include <mach/mach.h>
+#include <map>
 #endif
 
 // FreeBSD
