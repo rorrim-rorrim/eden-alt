@@ -227,9 +227,9 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
         astc_recompression,
         tr("ASTC Recompression Method:"),
         tr("Most GPUs lack support for ASTC textures and must decompress to an"
-            "intermediate format.\n"
-            "RGBA8: This option recompresses RGBA8 to either BC1 or BC3 format, saving VRAM but "
-           " degrading image quality."));
+            "intermediate format: RGBA8.\n"
+            "BC1/BC3: The intermediate format will be recompressed to BC1 or BC3 format,\n"
+            " saving VRAM but degrading image quality."));
     INSERT(Settings,
            vram_usage_mode,
            tr("VRAM Usage Mode:"),
@@ -421,7 +421,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
     INSERT(UISettings,
            controller_applet_disabled,
            tr("Disable controller applet"),
-           tr("Forcibly disables the use of the controller applet by programs.\n"
+           tr("Forcibly disables the use of the controller applet in emulated programs.\n"
                 "When a program attempts to open the controller applet, it is immediately closed."));
     INSERT(UISettings,
            check_for_updates,
