@@ -69,7 +69,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
         memory_layout_mode,
         tr("Memory Layout"),
         tr("Increases the amount of emulated RAM from 4GB of the board to the "
-           "devkit 8/6GB.\nDoesn't affect performance/stability but allows HD texture "
+           "devkit 8/6GB.\nDoesn't affect performance/stability but may allow HD texture "
            "mods to load."));
     INSERT(Settings, use_speed_limit, QString(), QString());
     INSERT(Settings,
@@ -98,7 +98,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            fast_cpu_time,
            tr("Fast CPU Time"),
            tr("Overclocks the emulated CPU to remove some FPS limiters. Weaker CPUs may see reduced performance, "
-              "and certain games may behave improperly.\nUse Boost (1700MHz) to run at the highest native "
+              "and certain games may behave improperly.\nUse Boost (1700MHz) to run at the Switch's highest native "
               "clock, or Fast (2000MHz) to run at 2x clock."));
 
     INSERT(Settings, use_custom_cpu_ticks, QString(), QString());
@@ -189,7 +189,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
     INSERT(Settings,
            aspect_ratio,
            tr("Aspect Ratio:"),
-           tr("Stretches the renderer to fit the specified aspect ratio.\nMost programs only support "
+           tr("Stretches the renderer to fit the specified aspect ratio.\nMost games only support "
               "16:9, so modifications are required to get other ratios.\nAlso controls the "
               "aspect ratio of captured screenshots."));
     INSERT(Settings,
@@ -199,7 +199,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
               "boots.\nDisabling it is only intended for debugging."));
     INSERT(Settings,
            optimize_spirv_output,
-           tr("Optimize SPIRV shader"),
+           tr("Optimize SPIRV output"),
            tr("Runs an additional optimization pass over generated SPIRV shaders.\n"
               "Will increase time required for shader compilation.\nMay slightly improve "
               "performance.\nThis feature is experimental."));
