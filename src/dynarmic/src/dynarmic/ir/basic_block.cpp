@@ -57,7 +57,7 @@ Block::iterator Block::PrependNewInst(iterator insertion_point, Opcode opcode, s
         inst->SetArg(index, arg);
         index++;
     });
-    return instructions.insert(insertion_point, *inst);;
+    return instructions.insert(insertion_point, *inst);
 }
 
 static std::string TerminalToString(const Terminal& terminal_variant) noexcept {
