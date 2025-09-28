@@ -7,11 +7,12 @@
 #pragma once
 
 #include <array>
-#include <deque>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <utility>
+#include <boost/container/devector.hpp>
+#include <boost/container/small_vector.hpp>
 
 #include "common/assert.h"
 #include "common/common_types.h"
@@ -22,7 +23,6 @@
 #include "video_core/gpu.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/memory_manager.h"
-#include "video_core/query_cache/bank_base.h"
 #include "video_core/query_cache/query_base.h"
 #include "video_core/query_cache/query_cache_base.h"
 #include "video_core/query_cache/query_stream.h"
@@ -87,7 +87,7 @@ public:
 
 private:
     RuntimeType& runtime;
-    std::deque<size_t> pending_sync;
+    std::vector<size_t> pending_sync;
 };
 
 template <typename Traits>
@@ -168,7 +168,7 @@ struct QueryCacheBase<Traits>::QueryCacheBaseImpl {
     std::array<StreamerInterface*, static_cast<size_t>(QueryType::MaxQueryTypes)> streamers;
     u64 streamer_mask;
     std::mutex flush_guard;
-    std::deque<u64> flushes_pending;
+    boost::container::devector<u64> flushes_pending;
     std::vector<QueryCacheBase<Traits>::QueryLocation> pending_unregister;
 };
 

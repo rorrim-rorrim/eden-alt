@@ -13,6 +13,8 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <boost/container/devector.hpp>
+
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "common/bit_util.h"
 #include "common/common_types.h"
@@ -37,12 +39,71 @@ using Tegra::Engines::Maxwell3D;
 using VideoCommon::QueryType;
 
 namespace {
-class SamplesQueryBank : public VideoCommon::BankBase {
-public:
+struct BankBase {
+    explicit BankBase(size_t index_, size_t bank_size_) : index{index_}, base_bank_size{bank_size_}, bank_size(bank_size_) {}
+    ~BankBase() = default;
+    std::pair<bool, size_t> Reserve() {
+        if (IsClosed())
+            return {false, bank_size};
+        const size_t result = current_slot++;
+        return {true, result};
+    }
+    void Reset() {
+        current_slot = 0;
+        references = 0;
+        bank_size = base_bank_size;
+    }
+    size_t Size() const {
+        return bank_size;
+    }
+    void AddReference(size_t how_many = 1) {
+        references.fetch_add(how_many, std::memory_order_relaxed);
+    }
+    void CloseReference(size_t how_many = 1) {
+        ASSERT(how_many <= references.load(std::memory_order_relaxed));
+        references.fetch_sub(how_many, std::memory_order_relaxed);
+    }
+    void Close() {
+        bank_size = current_slot;
+    }
+    bool IsClosed() const {
+        return current_slot >= bank_size;
+    }
+    bool IsDead() const {
+        return IsClosed() && references.load(std::memory_order_relaxed) == 0;
+    }
+    size_t index;
+    size_t base_bank_size{};
+    size_t bank_size{};
+    size_t current_slot{};
+    std::atomic<size_t> references{};
+};
+
+template<typename T>
+struct BankPool {
+    // Reserve a bank from the pool and return its index
+    template <typename Func>
+    size_t ReserveBank(Func&& builder) {
+        if (!indices.empty() && elems[indices.front()].IsDead()) {
+            size_t new_index = indices.front();
+            indices.pop_front();
+            elems[new_index].Reset();
+            indices.push_back(new_index);
+            return new_index;
+        }
+        size_t new_index = elems.size();
+        builder(elems, new_index);
+        indices.push_back(new_index);
+        return new_index;
+    }
+    boost::container::deque<T> elems;
+    boost::container::devector<size_t> indices;
+};
+struct SamplesQueryBank final : public BankBase {
     static constexpr size_t BANK_SIZE = 256;
     static constexpr size_t QUERY_SIZE = 8;
     explicit SamplesQueryBank(const Device& device_, size_t index_)
-        : BankBase(BANK_SIZE), device{device_}, index{index_} {
+        : BankBase(index_, BANK_SIZE), device{device_} {
         const auto& dev = device.GetLogical();
         query_pool = dev.CreateQueryPool({
             .sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
@@ -54,12 +115,11 @@ public:
         });
         Reset();
     }
-
     ~SamplesQueryBank() = default;
 
-    void Reset() override {
+    void Reset() {
         ASSERT(references == 0);
-        VideoCommon::BankBase::Reset();
+        BankBase::Reset();
         const auto& dev = device.GetLogical();
         dev.ResetQueryPool(*query_pool, 0, BANK_SIZE);
         host_results.fill(0ULL);
@@ -85,22 +145,62 @@ public:
     VkQueryPool GetInnerPool() {
         return *query_pool;
     }
-
     size_t GetIndex() const {
         return index;
     }
-
     const std::array<u64, BANK_SIZE>& GetResults() const {
         return host_results;
     }
-
-    size_t next_bank;
-
-private:
-    const Device& device;
-    const size_t index;
-    vk::QueryPool query_pool;
+    Device const& device;
     std::array<u64, BANK_SIZE> host_results;
+    vk::QueryPool query_pool;
+    size_t next_bank;
+};
+
+// Transform feedback queries
+struct TFBQueryBank final : public BankBase {
+    static constexpr size_t BANK_SIZE = 1024;
+    static constexpr size_t QUERY_SIZE = 4;
+    explicit TFBQueryBank(Scheduler& scheduler_, const MemoryAllocator& memory_allocator, size_t index_)
+        : BankBase(index_, BANK_SIZE), scheduler{scheduler_} {
+        const VkBufferCreateInfo buffer_ci = {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .size = QUERY_SIZE * BANK_SIZE,
+            .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .queueFamilyIndexCount = 0,
+            .pQueueFamilyIndices = nullptr,
+        };
+        buffer = memory_allocator.CreateBuffer(buffer_ci, MemoryUsage::DeviceLocal);
+    }
+    ~TFBQueryBank() = default;
+    void Reset() {
+        ASSERT(references == 0);
+        BankBase::Reset();
+    }
+    void Sync(StagingBufferRef& stagging_buffer, size_t extra_offset, size_t start, size_t size) {
+        scheduler.RequestOutsideRenderPassOperationContext();
+        scheduler.Record([this, dst_buffer = stagging_buffer.buffer, extra_offset, start,
+                          size](vk::CommandBuffer cmdbuf) {
+            std::array<VkBufferCopy, 1> copy{VkBufferCopy{
+                .srcOffset = start * QUERY_SIZE,
+                .dstOffset = extra_offset,
+                .size = size * QUERY_SIZE,
+            }};
+            cmdbuf.CopyBuffer(*buffer, dst_buffer, copy);
+        });
+    }
+    size_t GetIndex() const {
+        return index;
+    }
+    VkBuffer GetBuffer() const {
+        return *buffer;
+    }
+private:
+    Scheduler& scheduler;
+    vk::Buffer buffer;
 };
 
 using BaseStreamer = VideoCommon::SimpleStreamer<VideoCommon::HostQueryBase>;
@@ -413,7 +513,7 @@ private:
         size_t banks_set = query->size_banks;
         size_t start_slot = query->start_slot;
         for (size_t i = 0; i < banks_set; i++) {
-            auto& the_bank = bank_pool.GetBank(bank_id);
+            auto& the_bank = bank_pool.elems[bank_id];
             size_t amount = (std::min)(the_bank.Size() - start_slot, size_slots);
             func(&the_bank, start_slot, amount);
             bank_id = the_bank.next_bank - 1;
@@ -439,20 +539,19 @@ private:
             });
         }
         for (auto& cont : indexer) {
-            func(&bank_pool.GetBank(cont.first), cont.second.first,
+            func(&bank_pool.elems[cont.first], cont.second.first,
                  cont.second.second - cont.second.first);
         }
     }
 
     void ReserveBank() {
-        current_bank_id =
-            bank_pool.ReserveBank([this](std::deque<SamplesQueryBank>& queue, size_t index) {
-                queue.emplace_back(device, index);
-            });
+        current_bank_id = bank_pool.ReserveBank([this](auto& queue, size_t index) {
+            queue.emplace_back(device, index);
+        });
         if (current_bank) {
             current_bank->next_bank = current_bank_id + 1;
         }
-        current_bank = &bank_pool.GetBank(current_bank_id);
+        current_bank = &bank_pool.elems[current_bank_id];
         current_query_pool = current_bank->GetInnerPool();
     }
 
@@ -474,7 +573,7 @@ private:
             size_t banks_set = current_query->size_banks - 1;
             bool found = bank_id == current_bank_id;
             while (!found && banks_set > 0) {
-                SamplesQueryBank& some_bank = bank_pool.GetBank(bank_id);
+                SamplesQueryBank& some_bank = bank_pool.elems[bank_id];
                 bank_id = some_bank.next_bank - 1;
                 found = bank_id == current_bank_id;
                 banks_set--;
@@ -577,12 +676,12 @@ private:
     const Device& device;
     Scheduler& scheduler;
     const MemoryAllocator& memory_allocator;
-    VideoCommon::BankPool<SamplesQueryBank> bank_pool;
-    std::deque<vk::Buffer> buffers;
+    BankPool<SamplesQueryBank> bank_pool;
+    boost::container::devector<vk::Buffer> buffers;
     std::array<size_t, 32> resolve_table{};
     std::array<size_t, 32> intermediary_table{};
     vk::Buffer accumulation_buffer;
-    std::deque<std::vector<HostSyncValues>> sync_values_stash;
+    boost::container::devector<std::vector<HostSyncValues>> sync_values_stash;
     std::vector<size_t> resolve_buffers;
 
     // syncing queue
@@ -590,7 +689,7 @@ private:
 
     // flush levels
     std::vector<size_t> pending_flush_queries;
-    std::deque<std::vector<size_t>> pending_flush_sets;
+    boost::container::devector<std::vector<size_t>> pending_flush_sets;
 
     // State Machine
     size_t current_bank_slot;
@@ -607,61 +706,6 @@ private:
     std::mutex flush_guard;
 
     std::unique_ptr<QueriesPrefixScanPass> queries_prefix_scan_pass;
-};
-
-// Transform feedback queries
-class TFBQueryBank : public VideoCommon::BankBase {
-public:
-    static constexpr size_t BANK_SIZE = 1024;
-    static constexpr size_t QUERY_SIZE = 4;
-    explicit TFBQueryBank(Scheduler& scheduler_, const MemoryAllocator& memory_allocator,
-                          size_t index_)
-        : BankBase(BANK_SIZE), scheduler{scheduler_}, index{index_} {
-        const VkBufferCreateInfo buffer_ci = {
-            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .size = QUERY_SIZE * BANK_SIZE,
-            .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-            .queueFamilyIndexCount = 0,
-            .pQueueFamilyIndices = nullptr,
-        };
-        buffer = memory_allocator.CreateBuffer(buffer_ci, MemoryUsage::DeviceLocal);
-    }
-
-    ~TFBQueryBank() = default;
-
-    void Reset() override {
-        ASSERT(references == 0);
-        VideoCommon::BankBase::Reset();
-    }
-
-    void Sync(StagingBufferRef& stagging_buffer, size_t extra_offset, size_t start, size_t size) {
-        scheduler.RequestOutsideRenderPassOperationContext();
-        scheduler.Record([this, dst_buffer = stagging_buffer.buffer, extra_offset, start,
-                          size](vk::CommandBuffer cmdbuf) {
-            std::array<VkBufferCopy, 1> copy{VkBufferCopy{
-                .srcOffset = start * QUERY_SIZE,
-                .dstOffset = extra_offset,
-                .size = size * QUERY_SIZE,
-            }};
-            cmdbuf.CopyBuffer(*buffer, dst_buffer, copy);
-        });
-    }
-
-    size_t GetIndex() const {
-        return index;
-    }
-
-    VkBuffer GetBuffer() const {
-        return *buffer;
-    }
-
-private:
-    Scheduler& scheduler;
-    const size_t index;
-    vk::Buffer buffer;
 };
 
 class PrimitivesSucceededStreamer;
@@ -753,7 +797,7 @@ public:
             });
         }
         for (auto& p : sync_values_stash) {
-            auto& bank = bank_pool.GetBank(p.first);
+            auto& bank = bank_pool.elems[p.first];
             runtime.template SyncValues<HostSyncValues>(p.second, bank.GetBuffer());
         }
         pending_sync.clear();
@@ -813,7 +857,7 @@ public:
         size_t offset_base = staging_ref.offset;
         for (auto q : pending_flush_queries) {
             auto* query = GetQuery(q);
-            auto& bank = bank_pool.GetBank(query->start_bank_id);
+            auto& bank = bank_pool.elems[query->start_bank_id];
             bank.Sync(staging_ref, offset_base, query->start_slot, 1);
             offset_base += TFBQueryBank::QUERY_SIZE;
             bank.CloseReference();
@@ -925,11 +969,10 @@ private:
 
     std::pair<size_t, size_t> ProduceCounterBuffer(size_t stream) {
         if (current_bank == nullptr || current_bank->IsClosed()) {
-            current_bank_id =
-                bank_pool.ReserveBank([this](std::deque<TFBQueryBank>& queue, size_t index) {
-                    queue.emplace_back(scheduler, memory_allocator, index);
-                });
-            current_bank = &bank_pool.GetBank(current_bank_id);
+            current_bank_id = bank_pool.ReserveBank([this](auto& queue, size_t index) {
+                queue.emplace_back(scheduler, memory_allocator, index);
+            });
+            current_bank = &bank_pool.elems[current_bank_id];
         }
         auto [dont_care, other] = current_bank->Reserve();
         const size_t slot = other; // workaround to compile bug.
@@ -974,7 +1017,7 @@ private:
     Scheduler& scheduler;
     const MemoryAllocator& memory_allocator;
     StagingBufferPool& staging_pool;
-    VideoCommon::BankPool<TFBQueryBank> bank_pool;
+    BankPool<TFBQueryBank> bank_pool;
     size_t current_bank_id;
     TFBQueryBank* current_bank;
     vk::Buffer counters_buffer;
@@ -984,8 +1027,8 @@ private:
 
     // flush levels
     std::vector<size_t> pending_flush_queries;
-    std::deque<StagingBufferRef> download_buffers;
-    std::deque<std::vector<size_t>> pending_flush_sets;
+    boost::container::devector<StagingBufferRef> download_buffers;
+    boost::container::devector<std::vector<size_t>> pending_flush_sets;
     std::vector<StagingBufferRef> free_queue;
     std::mutex flush_guard;
 
@@ -1167,7 +1210,7 @@ private:
 
     // flush levels
     std::vector<size_t> pending_flush_queries;
-    std::deque<std::vector<size_t>> pending_flush_sets;
+    boost::container::devector<std::vector<size_t>> pending_flush_sets;
     std::mutex flush_guard;
 };
 

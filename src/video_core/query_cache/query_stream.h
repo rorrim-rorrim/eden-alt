@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -9,7 +12,6 @@
 
 #include "common/assert.h"
 #include "common/common_types.h"
-#include "video_core/query_cache/bank_base.h"
 #include "video_core/query_cache/query_base.h"
 
 namespace VideoCommon {

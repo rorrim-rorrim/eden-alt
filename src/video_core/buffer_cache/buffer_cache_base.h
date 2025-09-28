@@ -6,15 +6,11 @@
 
 #pragma once
 
-#include <algorithm>
 #include <array>
-#include <functional>
-#include <memory>
 #include <mutex>
-#include <numeric>
 #include <span>
-#include <unordered_map>
-#include <vector>
+#include <boost/container/deque.hpp>
+#include <boost/container/devector.hpp>
 
 #include "common/common_types.h"
 #include "common/div_ceil.h"
@@ -455,15 +451,14 @@ private:
     MemoryTracker memory_tracker;
     Common::RangeSet<DAddr> uncommitted_gpu_modified_ranges;
     Common::RangeSet<DAddr> gpu_modified_ranges;
-    std::deque<Common::RangeSet<DAddr>> committed_gpu_modified_ranges;
 
     // Async Buffers
     Common::OverlapRangeSet<DAddr> async_downloads;
-    std::deque<std::optional<Async_Buffer>> async_buffers;
-    std::deque<boost::container::small_vector<BufferCopy, 4>> pending_downloads;
     std::optional<Async_Buffer> current_buffer;
-
-    std::deque<Async_Buffer> async_buffers_death_ring;
+    std::vector<Async_Buffer> async_buffers_death_ring;
+    std::vector<Common::RangeSet<DAddr>> committed_gpu_modified_ranges;
+    boost::container::devector<std::optional<Async_Buffer>> async_buffers;
+    boost::container::devector<boost::container::small_vector<BufferCopy, 4>> pending_downloads;
 
     size_t immediate_buffer_capacity = 0;
     Common::ScratchBuffer<u8> immediate_buffer_alloc;
