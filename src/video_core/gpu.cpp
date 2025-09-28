@@ -10,6 +10,7 @@
 #include <condition_variable>
 #include <list>
 #include <memory>
+#include <boost/container/devector.hpp>
 
 #include "common/assert.h"
 #include "common/settings.h"
@@ -378,8 +379,8 @@ struct GPU::Impl {
     Tegra::Control::ChannelState* current_channel;
     s32 bound_channel{-1};
 
-    std::deque<size_t> free_swap_counters;
-    std::deque<size_t> request_swap_counters;
+    boost::container::devector<size_t> free_swap_counters;
+    std::vector<size_t> request_swap_counters;
     std::mutex request_swap_mutex;
 };
 

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,6 +12,7 @@
 #include <mutex>
 #include <thread>
 #include <vector>
+#include <boost/container/devector.hpp>
 
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
@@ -131,7 +135,7 @@ private:
 
     std::mutex command_mutex;
     std::condition_variable_any command_cv;
-    std::deque<ChCommandHeaderList> command_lists;
+    boost::container::devector<ChCommandHeaderList> command_lists;
     std::jthread thread;
 
     ThiRegisters thi_regs{};

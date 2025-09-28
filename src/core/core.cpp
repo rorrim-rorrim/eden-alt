@@ -566,7 +566,7 @@ struct System::Impl {
     std::array<Core::GPUDirtyMemoryManager, Core::Hardware::NUM_CPU_CORES>
         gpu_dirty_memory_managers;
 
-    std::deque<std::vector<u8>> user_channel;
+    boost::container::devector<std::vector<u8>> user_channel;
 };
 
 System::System() : impl{std::make_unique<Impl>(*this)} {}
@@ -976,7 +976,7 @@ void System::ExecuteProgram(std::size_t program_index) {
     }
 }
 
-std::deque<std::vector<u8>>& System::GetUserChannel() {
+boost::container::devector<std::vector<u8>>& System::GetUserChannel() {
     return impl->user_channel;
 }
 

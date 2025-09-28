@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,9 +9,9 @@
 #include <array>
 #include <atomic>
 #include <bit>
-#include <deque>
 #include <memory>
 #include <mutex>
+#include <boost/container/devector.hpp>
 
 #include "common/common_types.h"
 #include "common/range_mutex.h"
@@ -162,8 +165,8 @@ private:
 
     // Process memory interfaces
 
-    std::deque<size_t> id_pool;
-    std::deque<Memory::Memory*> registered_processes;
+    boost::container::devector<size_t> id_pool;
+    boost::container::devector<Memory::Memory*> registered_processes;
 
     // Memory protection management
 

@@ -14,6 +14,7 @@
 #include <span>
 #include <string>
 #include <vector>
+#include <boost/container/devector.hpp>
 
 #include "common/common_types.h"
 #include "core/file_sys/vfs/vfs_types.h"
@@ -426,7 +427,7 @@ public:
      * Gets a reference to the user channel stack.
      * It is used to transfer data between programs.
      */
-    [[nodiscard]] std::deque<std::vector<u8>>& GetUserChannel();
+    [[nodiscard]] boost::container::devector<std::vector<u8>>& GetUserChannel();
 
     /// Type used for the frontend to designate a callback for System to exit the application.
     using ExitCallback = std::function<void()>;

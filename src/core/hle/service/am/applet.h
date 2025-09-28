@@ -9,6 +9,7 @@
 #include <deque>
 #include <mutex>
 #include <stack>
+#include <boost/container/devector.hpp>
 
 #include "common/math_util.h"
 #include "core/hle/service/apm/apm_controller.h"
@@ -95,9 +96,9 @@ struct Applet {
     bool request_exit_to_library_applet_at_execute_next_program_enabled{};
 
     // Channels
-    std::deque<std::vector<u8>> user_channel_launch_parameter{};
-    std::deque<std::vector<u8>> preselected_user_launch_parameter{};
-    std::deque<std::vector<u8>> friend_invitation_storage_channel{};
+    boost::container::devector<std::vector<u8>> user_channel_launch_parameter{};
+    boost::container::devector<std::vector<u8>> preselected_user_launch_parameter{};
+    boost::container::devector<std::vector<u8>> friend_invitation_storage_channel{};
 
     // Context Stack
     std::stack<SharedPointer<IStorage>> context_stack{};

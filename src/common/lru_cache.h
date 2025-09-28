@@ -1,11 +1,14 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
-#include <deque>
-#include <memory>
+#include <vector>
 #include <type_traits>
+#include <boost/container/devector.hpp>
 
 #include "common/common_types.h"
 
@@ -130,8 +133,8 @@ private:
         }
     }
 
-    std::deque<Item> item_pool;
-    std::deque<size_t> free_items;
+    std::vector<Item> item_pool;
+    boost::container::devector<size_t> free_items;
     Item* first_item{};
     Item* last_item{};
 };

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2012 PPSSPP Project
 // SPDX-FileCopyrightText: 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -5,7 +8,7 @@
 #pragma once
 
 #include <array>
-#include <deque>
+#include <boost/container/devector.hpp>
 
 namespace Common {
 
@@ -145,7 +148,7 @@ private:
         // Points to the next active priority, skipping over ones that have never been used.
         Queue* next_nonempty = UnlinkedTag();
         // Double-ended queue of threads in this priority level
-        std::deque<T> data;
+        boost::container::devector<T> data;
     };
 
     /// Special tag used to mark priority levels that have never been used.

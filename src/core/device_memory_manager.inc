@@ -4,7 +4,7 @@
 #include <atomic>
 #include <limits>
 #include <memory>
-#include <type_traits>
+#include <boost/container/devector.hpp>
 
 #include "common/address_space.h"
 #include "common/address_space.inc"
@@ -119,8 +119,8 @@ private:
         u32 value{};
     };
 
-    std::deque<Entry> storage;
-    std::deque<u32> free_entries;
+    boost::container::devector<Entry> storage;
+    boost::container::devector<u32> free_entries;
 };
 
 struct EmptyAllocator {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -13,12 +16,12 @@
 //      https://link.springer.com/chapter/10.1007/978-3-642-37051-9_6
 //
 
-#include <deque>
 #include <map>
 #include <span>
 #include <unordered_map>
 #include <variant>
-#include <vector>
+#include <boost/container/small_vector.hpp>
+#include <boost/container/devector.hpp>
 
 #include "shader_recompiler/frontend/ir/basic_block.h"
 #include "shader_recompiler/frontend/ir/opcodes.h"
@@ -370,7 +373,7 @@ void VisitBlock(Pass& pass, IR::Block* block) {
 }
 
 IR::Type GetConcreteType(IR::Inst* inst) {
-    std::deque<IR::Inst*> queue;
+    boost::container::devector<IR::Inst*> queue;
     queue.push_back(inst);
     while (!queue.empty()) {
         IR::Inst* current = queue.front();

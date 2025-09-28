@@ -8,11 +8,11 @@
 
 #include <algorithm>
 #include <bit>
-#include <deque>
 #include <limits>
 #include <type_traits>
 #include <unordered_set>
 #include <utility>
+#include <boost/container/devector.hpp>
 
 #include "common/alignment.h"
 #include "common/common_types.h"
@@ -289,9 +289,8 @@ private:
         return on_return();
     }
 
-    std::deque<std::array<Manager, MANAGER_POOL_SIZE>> manager_pool;
-    std::deque<Manager*> free_managers;
-
+    boost::container::devector<std::array<Manager, MANAGER_POOL_SIZE>> manager_pool;
+    boost::container::devector<Manager*> free_managers;
     std::array<Manager*, NUM_HIGH_PAGES> top_tier{};
 
     std::unordered_set<u32> cached_pages;

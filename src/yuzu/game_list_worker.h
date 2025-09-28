@@ -10,6 +10,7 @@
 #include <deque>
 #include <memory>
 #include <string>
+#include <boost/container/devector.hpp>
 
 #include <QList>
 #include <QObject>
@@ -92,7 +93,7 @@ private:
 
     std::mutex lock;
     std::condition_variable cv;
-    std::deque<std::function<void(GameList*)>> queued_events;
+    boost::container::devector<std::function<void(GameList*)>> queued_events;
     std::atomic_bool stop_requested = false;
     Common::Event processing_completed;
 
