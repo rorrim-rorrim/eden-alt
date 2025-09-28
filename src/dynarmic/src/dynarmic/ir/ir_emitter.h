@@ -10,10 +10,10 @@
 
 #include <vector>
 
-#include "dynarmic/common/common_types.h"
-#include "dynarmic/common/assert.h"
 #include <mcl/bit_cast.hpp>
 
+#include "dynarmic/common/common_types.h"
+#include "dynarmic/common/assert.h"
 #include "dynarmic/ir/opcodes.h"
 #include "dynarmic/ir/acc_type.h"
 #include "dynarmic/ir/basic_block.h"
@@ -124,7 +124,7 @@ public:
             ASSERT(value.GetType() == Type::U64);
             return value;
         }
-        ASSERT_FALSE("Invalid bitsize");
+        ASSERT_MSG(false, "Invalid bitsize");
     }
 
     U32 LeastSignificantWord(const U64& value) {
@@ -2950,17 +2950,8 @@ public:
         block.SetTerminal(terminal);
     }
 
-    void SetInsertionPointBefore(IR::Inst* new_insertion_point) {
-        insertion_point = IR::Block::iterator{*new_insertion_point};
-    }
-
     void SetInsertionPointBefore(IR::Block::iterator new_insertion_point) {
         insertion_point = new_insertion_point;
-    }
-
-    void SetInsertionPointAfter(IR::Inst* new_insertion_point) {
-        insertion_point = IR::Block::iterator{*new_insertion_point};
-        ++insertion_point;
     }
 
     void SetInsertionPointAfter(IR::Block::iterator new_insertion_point) {
