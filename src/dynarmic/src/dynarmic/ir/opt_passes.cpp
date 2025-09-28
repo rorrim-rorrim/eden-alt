@@ -85,12 +85,10 @@ static void ConstantMemoryReads(IR::Block& block, A32::UserCallbacks* cb) {
 }
 
 static void FlagsPass(IR::Block& block) {
-    using Iterator = std::reverse_iterator<IR::Block::iterator>;
-
     struct FlagInfo {
         bool set_not_required = false;
         bool has_value_request = false;
-        Iterator value_request = {};
+        IR::Block::reverse_iterator value_request = {};
     };
     struct ValuelessFlagInfo {
         bool set_not_required = false;
@@ -101,7 +99,7 @@ static void FlagsPass(IR::Block& block) {
     FlagInfo c_flag;
     FlagInfo ge;
 
-    auto do_set = [&](FlagInfo& info, IR::Value value, Iterator inst) {
+    auto do_set = [&](FlagInfo& info, IR::Value value, IR::Block::reverse_iterator const inst) {
         if (info.has_value_request) {
             info.value_request->ReplaceUsesWith(value);
         }
@@ -113,14 +111,14 @@ static void FlagsPass(IR::Block& block) {
         info.set_not_required = true;
     };
 
-    auto do_set_valueless = [&](ValuelessFlagInfo& info, Iterator inst) {
+    auto do_set_valueless = [&](ValuelessFlagInfo& info, IR::Block::reverse_iterator const inst) {
         if (info.set_not_required) {
             inst->Invalidate();
         }
         info.set_not_required = true;
     };
 
-    auto do_get = [](FlagInfo& info, Iterator inst) {
+    auto do_get = [](FlagInfo& info, IR::Block::reverse_iterator const inst) {
         if (info.has_value_request) {
             info.value_request->ReplaceUsesWith(IR::Value{&*inst});
         }
@@ -447,7 +445,8 @@ static void A64CallbackConfigPass(IR::Block& block, const A64::UserConfig& conf)
         return;
     }
 
-    for (auto& inst : block) {
+    for (auto it = block.begin(); it != block.end(); it++) {
+        auto& inst = *it;
         if (inst.GetOpcode() != IR::Opcode::A64DataCacheOperationRaised) {
             continue;
         }
@@ -456,7 +455,7 @@ static void A64CallbackConfigPass(IR::Block& block, const A64::UserConfig& conf)
         if (op == A64::DataCacheOperation::ZeroByVA) {
             A64::IREmitter ir{block};
             ir.current_location = A64::LocationDescriptor{IR::LocationDescriptor{inst.GetArg(0).GetU64()}};
-            ir.SetInsertionPointBefore(&inst);
+            ir.SetInsertionPointBefore(it);
 
             size_t bytes = 4 << static_cast<size_t>(conf.dczid_el0 & 0b1111);
             IR::U64 addr{inst.GetArg(2)};
@@ -1243,7 +1242,7 @@ static void IdentityRemovalPass(IR::Block& block) {
         }
 
         if (inst.GetOpcode() == IR::Opcode::Identity || inst.GetOpcode() == IR::Opcode::Void) {
-            iter = block.Instructions().erase(inst);
+            iter = block.Instructions().erase(iter);
             to_invalidate.push_back(&inst);
         } else {
             ++iter;
@@ -1405,8 +1404,9 @@ static void PolyfillPass(IR::Block& block, const PolyfillOptions& polyfill) {
 
     IR::IREmitter ir{block};
 
-    for (auto& inst : block) {
-        ir.SetInsertionPointBefore(&inst);
+    for (auto it = block.begin(); it != block.end(); it++) {
+        auto& inst = *it;
+        ir.SetInsertionPointBefore(it);
 
         switch (inst.GetOpcode()) {
         case IR::Opcode::SHA256MessageSchedule0:
