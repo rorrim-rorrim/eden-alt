@@ -12,13 +12,12 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <boost/intrusive/list.hpp>
 
 #include <boost/container/container_fwd.hpp>
 #include <boost/container/static_vector.hpp>
 #include <boost/container/stable_vector.hpp>
-#include <mcl/container/intrusive_list.hpp>
 #include "dynarmic/common/common_types.h"
-
 #include "dynarmic/ir/location_descriptor.h"
 #include "dynarmic/ir/microinstruction.h"
 #include "dynarmic/ir/terminal.h"
@@ -36,7 +35,7 @@ enum class Opcode;
 class alignas(4096) Block final {
 public:
     //using instruction_list_type = dense_list<Inst>;
-    using instruction_list_type = mcl::intrusive_list<Inst>;
+    using instruction_list_type = boost::intrusive::list<Inst>;
     using size_type = instruction_list_type::size_type;
     using iterator = instruction_list_type::iterator;
     using const_iterator = instruction_list_type::const_iterator;
