@@ -54,8 +54,6 @@ struct EmitContext {
     EmitContext(RegAlloc& reg_alloc, IR::Block& block);
     virtual ~EmitContext();
 
-    void EraseInstruction(IR::Inst* inst);
-
     virtual FP::FPCR FPCR(bool fpcr_controlled = true) const = 0;
 
     virtual bool HasOptimization(OptimizationFlag flag) const = 0;
