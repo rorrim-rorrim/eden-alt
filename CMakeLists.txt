@@ -319,8 +319,8 @@ if (YUZU_ROOM)
     add_compile_definitions(YUZU_ROOM)
 endif()
 
-if (ANDROID OR PLATFORM_FREEBSD OR PLATFORM_OPENBSD OR PLATFORM_SUN)
-    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+if (ANDROID OR PLATFORM_FREEBSD OR PLATFORM_OPENBSD OR PLATFORM_SUN OR APPLE)
+    if(CXX_APPLE OR CXX_CLANG)
         # libc++ has stop_token and jthread as experimental
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexperimental-library")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fexperimental-library")
