@@ -894,30 +894,46 @@ if (MSVC AND CXX_CLANG)
     link_libraries(llvm-mingw-runtime)
 endif()
 
+#[[
+    search order:
+    - gold (GCC only) - the best, generally, but unfortunately not packaged anymore
+    - mold (GCC only) - generally does well on GCC
+    - ldd - preferred on clang
+    - bfd - the final fallback
+    - If none are found (macOS uses ld.prime, etc) just use the default linker
+]]
 if (YUZU_USE_FASTER_LD)
-    # fallback if everything fails (bfd)
-    find_program(LINKER_LD ld)
-    if (LINKER_LD)
+    find_program(LINKER_BFD bfd)
+    if (LINKER_BFD)
         set(LINKER bfd)
     endif()
-    # clang should always use lld
+
     find_program(LINKER_LLD lld)
     if (LINKER_LLD)
         set(LINKER lld)
     endif()
-    # GNU appears to work better with mold
-    # TODO: mold has been slow lately, see if better options exist (search for gold?)
+
     if (CXX_GCC)
         find_program(LINKER_MOLD mold)
         if (LINKER_MOLD AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.1")
             set(LINKER mold)
         endif()
+
+        find_program(LINKER_GOLD gold)
+        if (LINKER_GOLD)
+            set(LINKER gold)
+        endif()
     endif()
+
     if (LINKER)
         message(NOTICE "Selecting ${LINKER} as linker")
         add_link_options("-fuse-ld=${LINKER}")
     else()
-        message(WARNING "No fast linker found using default")
+        message(WARNING "No faster linker found--using default")
+    endif()
+
+    if (LINKER STREQUAL "lld" AND CXX_GCC)
+        message(WARNING "Using lld on GCC may cause issues with certain LTO settings. If the program fails to compile, disable YUZU_USE_FASTER_LD, or install mold or GNU gold.")
     endif()
 endif()
 
