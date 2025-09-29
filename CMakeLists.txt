@@ -210,7 +210,7 @@ endif()
 
 option(YUZU_DOWNLOAD_TIME_ZONE_DATA "Always download time zone binaries" ON)
 
-CMAKE_DEPENDENT_OPTION(YUZU_USE_FASTER_LD "Check if a faster linker is available" ON "ANDROID OR LINUX" OFF)
+CMAKE_DEPENDENT_OPTION(YUZU_USE_FASTER_LD "Check if a faster linker is available" ON "LINUX" OFF)
 
 CMAKE_DEPENDENT_OPTION(USE_SYSTEM_MOLTENVK "Use the system MoltenVK lib (instead of the bundled one)" OFF "APPLE" OFF)
 
@@ -896,17 +896,20 @@ endif()
 
 if (YUZU_USE_FASTER_LD)
     # fallback if everything fails (bfd)
-    set(LINKER bfd)
+    find_program(LINKER_LD ld)
+    if (LINKER_LD)
+        set(LINKER bfd)
+    endif()
     # clang should always use lld
-    find_program(LLD lld)
-    if (LLD)
+    find_program(LINKER_LLD lld)
+    if (LINKER_LLD)
         set(LINKER lld)
     endif()
     # GNU appears to work better with mold
     # TODO: mold has been slow lately, see if better options exist (search for gold?)
     if (CXX_GCC)
-        find_program(MOLD mold)
-        if (MOLD AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.1")
+        find_program(LINKER_MOLD mold)
+        if (LINKER_MOLD AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.1")
             set(LINKER mold)
         endif()
     endif()
