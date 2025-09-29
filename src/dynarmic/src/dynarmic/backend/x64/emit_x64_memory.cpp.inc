@@ -420,10 +420,11 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
     const Xbyak::Reg64 vaddr = ctx.reg_alloc.UseGpr(args[1]);
     const Xbyak::Reg32 status = ctx.reg_alloc.ScratchGpr().cvt32();
     const Xbyak::Reg64 tmp = ctx.reg_alloc.ScratchGpr();
+    const Xbyak::Reg64 tmp2 = ctx.reg_alloc.ScratchGpr();
 
     const auto wrapped_fn = exclusive_write_fallbacks[std::make_tuple(ordered, bitsize, vaddr.getIdx(), value.getIdx())];
 
-    EmitExclusiveLock(code, conf, tmp, eax);
+    EmitExclusiveLock(code, conf, tmp, tmp2);
 
     SharedLabel end = GenSharedLabel();
 
