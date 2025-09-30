@@ -1,11 +1,6 @@
-# User configuration
+# User handbook
 
-## Configuration directories
+This handbook is primarily aimed at the end-user - baking useful knowledge for enhancing their emulation experience.
 
-Eden will store configuration in the following directories:
-
-- **Windows**: `%AppData%\Roaming`.
-- **Android**: Data is stored internally.
-- **Linux, macOS, FreeBSD, Solaris, OpenBSD**: `$XDG_DATA_HOME`, `$XDG_CACHE_HOME`, `$XDG_CONFIG_HOME`.
-
-If a `user` directory is present in the current working directory, that will override all global configuration directories and the emulator will use that instead.
+- **[The Basics](docs/Basics.md)**
+- **[Graphics](user/Graphics.md)**
