@@ -15,20 +15,37 @@ Enhancements aimed at removing jagged lines/sharp edges and/or masking artifacts
 Various graphical filters exist - each of them aimed at a specific target/image quality preset.
 
 - **Nearest**: Provides no filtering - useful for debugging.
+  - **Pros**: Fast, works in any hardware.
+  - **Cons**: Less image quality.
 - **Bilinear**: Provides the hardware default filtering of the Tegra X1.
+  - **Pros**: Fast with acceptable image quality.
 - **Bicubic**: Provides a bicubic interpolation using a Catmull-Rom (or hardware-accelerated) implementation.
+  - **Pros**: Better image quality with more rounded edges.
 - **Zero-Tangent, B-Spline, Mitchell**: Provides bicubic interpolation using the respective matrix weights. They're normally not hardware accelerated unless the device supports the `VK_QCOM_filter_cubic_weights` extension. The matrix weights are those matching [the specification itself](https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html#VkSamplerCubicWeightsCreateInfoQCOM).
+  - **Pros/Cons**: Each of them is a variation of the Bicubic interpolation model with different weights, they offer different methods to fix some artifacts present in Catmull-Rom.
 - **Spline-1**: Bicubic interpolation (similar to Mitchell) but with a faster texel fetch method. Generally less blurry than bicubic.
+  - **Pros**: Faster than bicubic even without hardware accelerated bicubic.
 - **Gaussian**: Whole-area blur, an applied gaussian blur is done to the entire frame.
+  - **Pros**: Less edge artifacts.
+  - **Cons**: Slow and has blurrier image.
 - **Lanczos**: An implementation using `a = 3` (49 texel fetches). Provides sharper edges but blurrier artifacts.
+  - **Pros**: Less edge artifacts and less blurry than gaussian.
+  - **Cons**: Slow but with less blurriness.
 - **ScaleForce**: Experimental texture upscale method, see [ScaleFish](https://github.com/BreadFish64/ScaleFish).
+  - **Pros**: Relatively fast.
 - **FSR**: Uses AMD FidelityFX Super Resolution to enhance image quality.
+  - **Pros**: Great for upscaling, and offers more sharp visual quality.
+  - **Cons**: Costly and slow.
 - **Area**: Area interpolation (high kernel count).
+  - **Pros**: Decent for downscaling.
+  - **Cons**: Costly and slow.
 - **MMPX**: Nearest-neighbour filter aimed at providing higher pixel-art quality.
+  - **Pros**: Offers decent pixel-art upscaling.
+  - **Cons**: Only works for pixel-art.
 
 ### External
 
-While stock shaders offer a basic subset of options for most users, programs such as [ReShade](https://github.com/crosire/reshade) offer a more flexible experience.
+While stock shaders offer a basic subset of options for most users, programs such as [ReShade](https://github.com/crosire/reshade) offer a more flexible experience. In addition to that users can also seek out modifications (mods) for enhancing visual experience (60 FPS mods, HDR, etc).
 
 ## Driver specifics
 

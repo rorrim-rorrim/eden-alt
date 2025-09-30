@@ -6,6 +6,26 @@ Eden is a very complicated piece of software, and as such there are many knobs a
 
 This handbook primarily describes such knobs and toggles. Normal configuration options are described within the emulator itself and will not be covered in detail.
 
+## Requirements
+
+The emulator is very demanding on hardware, and as such requires a decent mid-range computer/cellphone.
+
+### Minimum
+
+- **CPU**: Intel i3-650 / AMD FX-8350 / Qualcomm Snapdragon 460.
+- **GPU**: NVIDIA GT 640 / AMD Radeon HD 7330M.
+- **RAM**: 8GB with dedicated GPU, 12GB with iGPU
+
+### Recommended
+
+- **CPU**: Intel i7-4790 / AMD Ryzen 3 3200U / Qualcomm Snapdragon 865.
+- **GPU**: NVIDIA GT 1030 / AMD Radeon HD 7970M X2.
+- **RAM**: 12GB with dedicated GPU, 16GB with iGPU.
+
+The CPU must support FMA for an optimal gameplay experience. GPU needs to support OpenGL 4.6, see [OpenGL compatibility list](https://opengl.gpuinfo.org/), or Vulkan 1.1, see [Vulkan compatibility list](https://vulkan.gpuinfo.org/).
+
+If your GPU doesn't support or is just behind by a minor version, see Mesa environment variables below (*nix only).
+
 ## User configuration
 
 ### Configuration directories
