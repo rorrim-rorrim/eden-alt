@@ -1776,12 +1776,12 @@ void GMainWindow::SetupPrepareForSleep() {
         const auto dbus_logind_service = QStringLiteral("org.freedesktop.login1");
         const auto dbus_logind_path = QStringLiteral("/org/freedesktop/login1");
         const auto dbus_logind_manager_if = QStringLiteral("org.freedesktop.login1.Manager");
-        const auto dbus_logind_session_if = QStringLiteral("org.freedesktop.login1.Session");
+        //const auto dbus_logind_session_if = QStringLiteral("org.freedesktop.login1.Session");
 #else
         const auto dbus_logind_service = QStringLiteral("org.freedesktop.ConsoleKit");
         const auto dbus_logind_path = QStringLiteral("/org/freedesktop/ConsoleKit/Manager");
         const auto dbus_logind_manager_if = QStringLiteral("org.freedesktop.ConsoleKit.Manager");
-        const auto dbus_logind_session_if = QStringLiteral("org.freedesktop.ConsoleKit.Session");
+        //const auto dbus_logind_session_if = QStringLiteral("org.freedesktop.ConsoleKit.Session");
 #endif
         const bool success = bus.connect(
             dbus_logind_service, dbus_logind_path,
