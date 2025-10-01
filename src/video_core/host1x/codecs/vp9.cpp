@@ -242,8 +242,8 @@ constexpr std::array<u8, 254> map_lut{
 } // Anonymous namespace
 
 VP9::VP9(Host1x::Host1x& host1x_, const Host1x::NvdecCommon::NvdecRegisters& regs_, s32 id_,
-         Host1x::FrameQueue& frame_queue_)
-    : Decoder{host1x_, id_, regs_, frame_queue_} {
+         u32 syncpoint_, Host1x::FrameQueue& frame_queue_)
+    : Decoder{host1x_, id_, syncpoint_, regs_, frame_queue_} {
     codec = Host1x::NvdecCommon::VideoCodec::VP9;
     initialized = decode_api.Initialize(codec);
 }
@@ -899,6 +899,8 @@ std::span<const u8> VP9::ComposeFrame() {
               frame_scratch.begin() + uncompressed_header.size() + compressed_header.size());
 
     vp9_hidden_frame = WasFrameHidden();
+
+    host1x.GetSyncpointManager().IncrementGuest(syncpoint);
 
     return GetFrameBytes();
 }

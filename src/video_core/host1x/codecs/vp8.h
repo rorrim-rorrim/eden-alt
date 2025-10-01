@@ -29,7 +29,7 @@ enum class Vp8SurfaceIndex : u32 {
 class VP8 final : public Decoder {
 public:
     explicit VP8(Host1x::Host1x& host1x, const Host1x::NvdecCommon::NvdecRegisters& regs, s32 id,
-                 Host1x::FrameQueue& frame_queue);
+                 u32 syncpoint, Host1x::FrameQueue& frame_queue);
     ~VP8() override;
 
     VP8(const VP8&) = delete;

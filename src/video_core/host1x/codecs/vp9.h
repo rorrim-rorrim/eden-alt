@@ -113,8 +113,8 @@ private:
 
 class VP9 final : public Decoder {
 public:
-    explicit VP9(Host1x::Host1x& host1x, const Host1x::NvdecCommon::NvdecRegisters& regs, s32 id,
-                 Host1x::FrameQueue& frame_queue);
+    VP9(Host1x::Host1x& host1x_, const Host1x::NvdecCommon::NvdecRegisters& regs_, s32 id_,
+        u32 syncpoint_, Host1x::FrameQueue& frame_queue_);
     ~VP9() override;
 
     VP9(const VP9&) = delete;

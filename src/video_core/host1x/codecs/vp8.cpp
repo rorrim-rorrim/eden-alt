@@ -9,8 +9,8 @@
 
 namespace Tegra::Decoders {
 VP8::VP8(Host1x::Host1x& host1x_, const Host1x::NvdecCommon::NvdecRegisters& regs_, s32 id_,
-         Host1x::FrameQueue& frame_queue_)
-    : Decoder{host1x_, id_, regs_, frame_queue_} {
+         u32 syncpoint_, Host1x::FrameQueue& frame_queue_)
+    : Decoder{host1x_, id_, syncpoint_, regs_, frame_queue_} {
     codec = Host1x::NvdecCommon::VideoCodec::VP8;
     initialized = decode_api.Initialize(codec);
 }

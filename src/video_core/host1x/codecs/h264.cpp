@@ -29,8 +29,9 @@ constexpr std::array<u8, 16> zig_zag_scan{
 } // Anonymous namespace
 
 H264::H264(Host1x::Host1x& host1x_, const Host1x::NvdecCommon::NvdecRegisters& regs_, s32 id_,
+           u32 syncpoint_,
            Host1x::FrameQueue& frame_queue_)
-    : Decoder{host1x_, id_, regs_, frame_queue_} {
+    : Decoder{host1x_, id_, syncpoint_, regs_, frame_queue_} {
     codec = Host1x::NvdecCommon::VideoCodec::H264;
     initialized = decode_api.Initialize(codec);
 }

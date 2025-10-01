@@ -242,7 +242,7 @@ ASSERT_POSITION(weight_scale_4x4, 0x1C0);
 class H264 final : public Decoder {
 public:
     explicit H264(Host1x::Host1x& host1x, const Host1x::NvdecCommon::NvdecRegisters& regs, s32 id,
-                  Host1x::FrameQueue& frame_queue);
+                  u32 syncpoint, Host1x::FrameQueue& frame_queue);
     ~H264() override;
 
     H264(const H264&) = delete;

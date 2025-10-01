@@ -48,13 +48,13 @@ void Nvdec::CreateDecoder(NvdecCommon::VideoCodec codec) {
     }
     switch (codec) {
     case NvdecCommon::VideoCodec::H264:
-        decoder = std::make_unique<Decoders::H264>(host1x, regs, id, frame_queue);
+        decoder = std::make_unique<Decoders::H264>(host1x, regs, id, syncpoint, frame_queue);
         break;
     case NvdecCommon::VideoCodec::VP8:
-        decoder = std::make_unique<Decoders::VP8>(host1x, regs, id, frame_queue);
+        decoder = std::make_unique<Decoders::VP8>(host1x, regs, id, syncpoint, frame_queue);
         break;
     case NvdecCommon::VideoCodec::VP9:
-        decoder = std::make_unique<Decoders::VP9>(host1x, regs, id, frame_queue);
+        decoder = std::make_unique<Decoders::VP9>(host1x, regs, id, syncpoint, frame_queue);
         break;
     default:
         UNIMPLEMENTED_MSG("Codec {}", decoder->GetCurrentCodecName());

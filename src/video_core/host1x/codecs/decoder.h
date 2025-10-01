@@ -41,7 +41,7 @@ public:
     [[nodiscard]] virtual std::string_view GetCurrentCodecName() const = 0;
 
 protected:
-    explicit Decoder(Host1x::Host1x& host1x, s32 id,
+    explicit Decoder(Host1x::Host1x& host1x, s32 id, u32 syncpoint,
                      const Host1x::NvdecCommon::NvdecRegisters& regs,
                      Host1x::FrameQueue& frame_queue);
 
@@ -53,6 +53,7 @@ protected:
     Host1x::Host1x& host1x;
     Tegra::MemoryManager& memory_manager;
     const Host1x::NvdecCommon::NvdecRegisters& regs;
+    u32 syncpoint;
     s32 id;
     Host1x::FrameQueue& frame_queue;
     Host1x::NvdecCommon::VideoCodec codec;
