@@ -331,4 +331,8 @@ void Jit::DumpDisassembly() const {
     impl->DumpDisassembly();
 }
 
+std::vector<std::string> Jit::Disassemble() const {
+    return impl->Disassemble();
+}
+
 }  // namespace Dynarmic::A32
