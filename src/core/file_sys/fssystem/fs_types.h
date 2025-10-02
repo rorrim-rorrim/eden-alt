@@ -41,7 +41,7 @@ struct HashSalt {
 static_assert(std::is_trivial_v<HashSalt>);
 static_assert(sizeof(HashSalt) == HashSalt::Size);
 
-constexpr inline size_t IntegrityMinLayerCount = 4;
+constexpr inline size_t IntegrityMinLayerCount = 2;
 constexpr inline size_t IntegrityMaxLayerCount = 7;
 constexpr inline size_t IntegrityLayerCountSave = 5;
 constexpr inline size_t IntegrityLayerCountSaveDataMeta = 4;

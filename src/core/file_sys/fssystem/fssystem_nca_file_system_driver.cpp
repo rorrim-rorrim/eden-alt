@@ -1331,8 +1331,30 @@ Result NcaFileSystemDriver::CreateIntegrityVerificationStorageImpl(
         R_UNLESS(last_layer_info_offset + layer_info.size <= layer_info_offset,
                  ResultRomNcaInvalidIntegrityLayerInfoOffset);
     }
-    storage_info.SetDataStorage(std::make_shared<OffsetVfsFile>(
-        std::move(base_storage), layer_info.size, last_layer_info_offset));
+
+    switch (level_hash_info.max_layers - 1) {
+        case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::MasterStorage:
+            storage_info.SetMasterHashStorage(std::make_shared<OffsetVfsFile>(std::move(base_storage), layer_info.size, last_layer_info_offset));
+            break;
+        case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::Layer1Storage:
+            storage_info.SetLayer1HashStorage(std::make_shared<OffsetVfsFile>(std::move(base_storage), layer_info.size, last_layer_info_offset));
+            break;
+        case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::Layer2Storage:
+            storage_info.SetLayer2HashStorage(std::make_shared<OffsetVfsFile>(std::move(base_storage), layer_info.size, last_layer_info_offset));
+            break;
+        case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::Layer3Storage:
+            storage_info.SetLayer3HashStorage(std::make_shared<OffsetVfsFile>(std::move(base_storage), layer_info.size, last_layer_info_offset));
+            break;
+        case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::Layer4Storage:
+            storage_info.SetLayer4HashStorage(std::make_shared<OffsetVfsFile>(std::move(base_storage), layer_info.size, last_layer_info_offset));
+            break;
+        case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::Layer5Storage:
+            storage_info.SetLayer5HashStorage(std::make_shared<OffsetVfsFile>(std::move(base_storage), layer_info.size, last_layer_info_offset));
+            break;
+        case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::DataStorage:
+            storage_info.SetDataStorage(std::make_shared<OffsetVfsFile>(std::move(base_storage), layer_info.size, last_layer_info_offset));
+            break;
+    }
 
     // Make the integrity romfs storage.
     auto integrity_storage = std::make_shared<IntegrityRomFsStorage>();
