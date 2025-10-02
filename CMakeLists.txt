@@ -183,7 +183,8 @@ option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
 set(YUZU_QT_MIRROR "" CACHE STRING "What mirror to use for downloading the bundled Qt libraries")
 
-option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
+# FreeBSD doesn't have a cubeb port yet, vendoring it isn't required (it's optional anyways)
+cmake_dependent_option(ENABLE_CUBEB "Enables the cubeb audio backend" ON "NOT PLATFORM_FREEBSD" OFF)
 
 set(EXT_DEFAULT OFF)
 if (MSVC OR ANDROID)
@@ -198,12 +199,13 @@ cmake_dependent_option(YUZU_USE_EXTERNAL_FFMPEG "Build FFmpeg from source" "${PL
 # sirit
 option(YUZU_USE_BUNDLED_SIRIT "Download bundled sirit" ${EXT_DEFAULT})
 
-cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID" OFF)
+# Re-allow on FreeBSD once its on mainline ports
+cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "WIN32 OR PLATFORM_LINUX OR APPLE" OFF)
 
 cmake_dependent_option(ENABLE_OPENGL "Enable OpenGL" ON "NOT WIN32 OR NOT ARCHITECTURE_arm64" OFF)
 mark_as_advanced(FORCE ENABLE_OPENGL)
 
-option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
+cmake_dependent_option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON "WIN32 OR ANDROID OR PLATFORM_LINUX OR APPLE" OFF)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 
 cmake_dependent_option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF "ENABLE_QT" OFF)
