@@ -205,7 +205,7 @@ cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "WIN32 OR PLA
 cmake_dependent_option(ENABLE_OPENGL "Enable OpenGL" ON "NOT WIN32 OR NOT ARCHITECTURE_arm64" OFF)
 mark_as_advanced(FORCE ENABLE_OPENGL)
 
-cmake_dependent_option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON "WIN32 OR ANDROID OR PLATFORM_LINUX OR APPLE" OFF)
+option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 
 cmake_dependent_option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF "ENABLE_QT" OFF)
