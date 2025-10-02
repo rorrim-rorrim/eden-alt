@@ -1049,13 +1049,11 @@ Result NcaFileSystemDriver::CreatePatchMetaStorage(
     ASSERT(out_aes_ctr_ex_meta != nullptr);
     ASSERT(out_indirect_meta != nullptr);
     ASSERT(base_storage != nullptr);
-    //ASSERT(patch_info.HasAesCtrExTable());
-    //ASSERT(patch_info.HasIndirectTable());
     ASSERT(Common::IsAligned<s64>(patch_info.aes_ctr_ex_size, NcaHeader::XtsBlockSize));
 
     // Validate patch info extents.
-    R_UNLESS(patch_info.indirect_size > 0, ResultInvalidNcaPatchInfoIndirectSize);
-    R_UNLESS(patch_info.aes_ctr_ex_size >= 0, ResultInvalidNcaPatchInfoAesCtrExSize);
+    R_UNLESS(patch_info.aes_ctr_ex_size >= 0 && patch_info.HasAesCtrExTable(), ResultInvalidNcaPatchInfoAesCtrExSize);
+    R_UNLESS(patch_info.indirect_size > 0 && patch_info.HasIndirectTable(), ResultInvalidNcaPatchInfoIndirectSize);
     R_UNLESS(patch_info.indirect_size + patch_info.indirect_offset <= patch_info.aes_ctr_ex_offset,
              ResultInvalidNcaPatchInfoAesCtrExOffset);
     R_UNLESS(patch_info.aes_ctr_ex_offset + patch_info.aes_ctr_ex_size <=
@@ -1333,10 +1331,8 @@ Result NcaFileSystemDriver::CreateIntegrityVerificationStorageImpl(
         R_UNLESS(last_layer_info_offset + layer_info.size <= layer_info_offset,
                  ResultRomNcaInvalidIntegrityLayerInfoOffset);
     }
-    storage_info[level_hash_info.max_layers - 1]
-        = std::make_shared<OffsetVfsFile>(std::move(base_storage),
-                                          layer_info.size,
-                                          last_layer_info_offset);
+    storage_info.SetDataStorage(std::make_shared<OffsetVfsFile>(
+        std::move(base_storage), layer_info.size, last_layer_info_offset));
 
     // Make the integrity romfs storage.
     auto integrity_storage = std::make_shared<IntegrityRomFsStorage>();
