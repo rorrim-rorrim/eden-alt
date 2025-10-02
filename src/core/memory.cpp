@@ -737,7 +737,7 @@ struct Memory::Impl {
     /// @tparam T The data type to read out of memory.
     /// @returns The instance of T read from the specified virtual address.
     template <typename T>
-    inline T Read(Common::ProcessAddress vaddr) requires(std::is_trivially_copyable_v<T>) noexcept {
+    inline T Read(Common::ProcessAddress vaddr) noexcept requires(std::is_trivially_copyable_v<T>) {
         const u64 addr = GetInteger(vaddr);
         if (auto const ptr = GetPointerImpl(addr, [addr]() {
             LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr);
@@ -758,7 +758,7 @@ struct Memory::Impl {
     /// @param vaddr The virtual address to write the data type to.
     /// @tparam T The data type to write to memory.
     template <typename T>
-    inline void Write(Common::ProcessAddress vaddr, const T data) requires(std::is_trivially_copyable_v<T>) noexcept {
+    inline void Write(Common::ProcessAddress vaddr, const T data) noexcept requires(std::is_trivially_copyable_v<T>) {
         const u64 addr = GetInteger(vaddr);
         if (auto const ptr = GetPointerImpl(addr, [addr, data]() {
             LOG_ERROR(HW_Memory, "Unmapped Write{} @ 0x{:016X} = 0x{:016X}", sizeof(T) * 8, addr, u64(data));
