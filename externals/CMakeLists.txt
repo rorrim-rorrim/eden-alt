@@ -68,7 +68,11 @@ if (VulkanMemoryAllocator_ADDED)
 endif()
 
 # Sirit
-AddJsonPackage(sirit)
+if (YUZU_USE_BUNDLED_SIRIT)
+    AddJsonPackage(sirit-ci)
+else()
+    AddJsonPackage(sirit)
+endif()
 
 if(MSVC AND USE_CCACHE AND sirit_ADDED)
     get_target_property(_opts sirit COMPILE_OPTIONS)

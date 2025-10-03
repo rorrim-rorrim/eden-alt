@@ -147,6 +147,7 @@ if (ENABLE_SDL2)
     option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}")
 endif()
 
+# qt stuff
 option(ENABLE_QT "Enable the Qt frontend" ON)
 option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
 option(ENABLE_QT_UPDATE_CHECKER "Enable update checker for the Qt frontend" OFF)
@@ -163,8 +164,12 @@ if (MSVC OR ANDROID)
 endif()
 option(YUZU_USE_CPM "Use CPM to fetch system dependencies (fmt, boost, etc) if needed. Externals will still be fetched." ${EXT_DEFAULT})
 
+# ffmpeg
 option(YUZU_USE_BUNDLED_FFMPEG "Download bundled FFmpeg" ${EXT_DEFAULT})
 cmake_dependent_option(YUZU_USE_EXTERNAL_FFMPEG "Build FFmpeg from source" OFF "NOT WIN32 AND NOT ANDROID" OFF)
+
+# sirit
+option(YUZU_USE_BUNDLED_SIRIT "Download bundled sirit" ${EXT_DEFAULT})
 
 cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID" OFF)
 
@@ -492,7 +497,22 @@ if (YUZU_USE_CPM)
     endif()
 
     # SPIRV Headers
-    AddJsonPackage(spirv-headers)
+
+    # We only need SPIRV-Headers iff spirv-tools is bundled
+    if (SPIRV-Tools_FORCE_BUNDLED)
+        set(NEED_SPIRV_HEADERS ON)
+    else()
+        find_package(SPIRV-Tools MODULE OPTIONAL QUIET)
+        if (NOT SPIRV-Tools_FOUND)
+            set(NEED_SPIRV_HEADERS ON)
+        else()
+            set(NEED_SPIRV_HEADERS OFF)
+        endif()
+    endif()
+
+    if (NEED_SPIRV_HEADERS)
+        AddJsonPackage(spirv-headers)
+    endif()
 
     # SPIRV Tools
     AddJsonPackage(spirv-tools)
@@ -536,13 +556,6 @@ else()
 
     find_package(VulkanUtilityLibraries REQUIRED)
     find_package(VulkanHeaders 1.3.274 REQUIRED)
-
-    # FreeBSD does not package spirv-headers
-    if (PLATFORM_FREEBSD)
-        AddJsonPackage(spirv-headers)
-    else()
-        find_package(SPIRV-Headers 1.3.274 REQUIRED)
-    endif()
 
     find_package(SPIRV-Tools MODULE REQUIRED)
 
