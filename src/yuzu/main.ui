@@ -221,7 +221,7 @@
     <addaction name="action_Open_FAQ"/>
     <addaction name="separator"/>
     <addaction name="action_Discord"/>
-    <addaction name="action_Revolt"/>
+    <addaction name="action_Stoat"/>
     <addaction name="action_X"/>
     <addaction name="separator"/>
     <addaction name="action_About"/>
@@ -581,12 +581,12 @@
     <string/>
    </property>
   </action>
-  <action name="action_Revolt">
+  <action name="action_Stoat">
    <property name="text">
-    <string>&amp;Revolt</string>
+    <string>&amp;Stoat</string>
    </property>
    <property name="toolTip">
-    <string>Revolt</string>
+    <string>Stoat</string>
    </property>
    <property name="statusTip">
     <string/>
