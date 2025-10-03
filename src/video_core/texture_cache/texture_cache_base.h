@@ -110,17 +110,15 @@ class TextureCache : public VideoCommon::ChannelSetupCaches<TextureCacheChannelI
 
     static constexpr size_t UNSET_CHANNEL{(std::numeric_limits<size_t>::max)()};
 
-    #ifdef ANDROID
+#ifdef YUZU_LEGACY
     static constexpr s64 TARGET_THRESHOLD = 3_GiB;
-    static constexpr s64 DEFAULT_EXPECTED_MEMORY = 1_GiB + 125_MiB;
-    static constexpr s64 DEFAULT_CRITICAL_MEMORY = 1_GiB + 625_MiB;
-    static constexpr size_t GC_EMERGENCY_COUNTS = 2;
-    #else
+#else
     static constexpr s64 TARGET_THRESHOLD = 4_GiB;
+#endif
+
     static constexpr s64 DEFAULT_EXPECTED_MEMORY = 1_GiB + 125_MiB;
     static constexpr s64 DEFAULT_CRITICAL_MEMORY = 1_GiB + 625_MiB;
     static constexpr size_t GC_EMERGENCY_COUNTS = 2;
-    #endif
 
     using Runtime = typename P::Runtime;
     using Image = typename P::Image;
@@ -486,7 +484,7 @@ private:
     };
     Common::LeastRecentlyUsedCache<LRUItemParams> lru_cache;
 
- #ifdef ANDROID
+ #ifdef YUZU_LEGACY
     static constexpr size_t TICKS_TO_DESTROY = 6;
  #else
     static constexpr size_t TICKS_TO_DESTROY = 8;
