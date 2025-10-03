@@ -4,7 +4,6 @@
     <string name="notice_notification_channel_name">התראות ותקלות</string>
     <string name="notice_notification_channel_description">מציג התראות כאשר משהו הולך לא כשורה.</string>
     <string name="notification_permission_not_granted">הרשאות התראות לא ניתנה!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(משופר)</string>
     <string name="process_ram">זיכרון תהליך: %1$d MB</string>
@@ -718,7 +717,6 @@
     <string name="system_archive_general">ארכיון מערכת</string>
     <string name="save_load_error">בעיית שמירה/טעינה</string>
     <string name="fatal_error">שגיאה חמורה</string>
-    <string name="performance_warning">כיבוי הגדרה זו ישפיע משמעותית על ביצועי הסימולציה! לחוויה הטובה ביותר, מומלץ להשאיר את הגדרה זו מופעלת.</string>
     <string name="memory_formatted">%1$s%2$s</string>
     <string name="no_game_present">אין משחק שניתן להריץ!</string>
 
@@ -767,13 +765,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">רגיל</string>
     <string name="renderer_accuracy_high">גבוה</string>
-    <string name="renderer_accuracy_extreme">אקסטרים (איטי)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">ברירת מחדל</string>
-    <string name="dma_accuracy_unsafe">לא בטוח (מהיר)</string>
-    <string name="dma_accuracy_safe">בטוח (יציב)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">שיטת פענוח ASTC</string>
     <string name="accelerate_astc_description">בחר כיצד לפרק את הטקסטורות הדחוסות ב-ASTC עבור רינדור: CPU (איטי, בטוח), GPU (מהיר, מומלץ) או CPU Async (ללא קפיצות, עלול לגרום לבעיות)</string>

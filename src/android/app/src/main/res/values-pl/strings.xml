@@ -4,7 +4,6 @@
     <string name="notice_notification_channel_name">Powiadomienia błędy</string>
     <string name="notice_notification_channel_description">Pokaż powiadomienie gdy coś pójdzie źle</string>
     <string name="notification_permission_not_granted">Nie zezwolono na powiadomienia!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Ulepszony)</string>
     <string name="process_ram">Pamięć procesu: %1$d MB</string>
@@ -699,7 +698,6 @@
     <string name="system_archive_general">Archiwum systemu</string>
     <string name="save_load_error">Błąd odczytu/zapisu</string>
     <string name="fatal_error">Błąd krytyczny</string>
-    <string name="performance_warning">Wyłączenie tej opcji znacząco ograniczy wydajność! Dla najlepszego doświadczenia, zaleca się zostawienie tej opcji włączonej.</string>
     <!-- Region Names -->
     <string name="region_japan">Japonia</string>
     <string name="region_usa">USA</string>
@@ -737,13 +735,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normalny</string>
     <string name="renderer_accuracy_high">Wysoki</string>
-    <string name="renderer_accuracy_extreme">Ekstremalny (Wolny)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">預設</string>
-    <string name="dma_accuracy_unsafe">Niezabezpieczone (szybkie)</string>
-    <string name="dma_accuracy_safe">Bezpieczne (stabilne)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Metoda dekodowania ASTC</string>
     <string name="accelerate_astc_description">Wybierz sposób dekodowania tekstur skompresowanych w formacie ASTC do renderowania: CPU (wolne, bezpieczne), GPU (szybkie, zalecane) lub CPU Async (bez zacięć, może powodować problemy)</string>

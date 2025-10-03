@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
+    <string name="app_disclaimer">Это программное обеспечение предназначено для запуска игр для игровой консоли Nintendo Switch. Игры и ключи в комплект не входят.<br /><br />Прежде чем начать, пожалуйста, найдите файл <![CDATA[<b>prod.keys</b>]]> на вашем устройстве.<br /><br /> <![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Узнать больше</a>]]></string>
     <string name="notice_notification_channel_name">Уведомления и ошибки</string>
-    <string name="notice_notification_channel_description">Показывать уведомления, когда что-то пошло не так</string>
+    <string name="notice_notification_channel_description">Показывает уведомления, когда что-то пошло не так</string>
     <string name="notification_permission_not_granted">Вы не предоставили разрешение на уведомления!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Улучшенный)</string>
     <string name="process_ram">RAM процесса: %1$d МБ</string>
     <string name="shaders_prefix">Компиляция</string>
-    <string name="shaders_suffix">шейдеров</string>
+    <string name="shaders_suffix">Шейдер(ов)</string>
     <string name="charging">(Заряжается)</string>
 
     <string name="system_info_label">Система:</string>
@@ -242,10 +242,12 @@
     <string name="keys_description">Выберите ваш файл &lt;b>prod.keys&lt;/b> с помощью кнопки ниже.</string>
     <string name="select_keys">Выбрать ключи</string>
     <string name="firmware">Прошивка</string>
+    <string name="firmware_description">Выберите файл <b>firmware.zip</b>с помощью кнопки снизу.\nВ настоящее время для Eden требуется версия <b>19.0.1</b> или ниже.</string>
     <string name="select_firmware">Выбрать прошивку</string>
     <string name="games">Игры</string>
     <string name="games_description">Выберите вашу папку с &lt;b>играми&lt;/b> с помощью кнопки ниже.</string>
     <string name="done">Готово</string>
+    <string name="done_description">Всё готово.\nПриятной игры!</string>
     <string name="text_continue">Продолжить</string>
     <string name="next">Далее</string>
     <string name="back">Назад</string>
@@ -260,12 +262,15 @@
     <string name="alphabetical">По алфавиту</string>
     <string name="view_list">Список</string>
     <string name="view_grid">Сетка</string>
+    <string name="view_grid_compact">Компактная сетка</string>
     <string name="view_carousel">Карусель</string>
+    <string name="game_image_desc">Скриншот для %1$s</string>
     <string name="folder">Папка</string>
     <string name="pre_alpha_warning_title">Пре-альфа версия</string>
     <string name="pre_alpha_warning_description">ВНИМАНИЕ: Эта версия не предназначена для публичного использования. Возможны ошибки и неполные функции.</string>
     <string name="dont_show_again">Не показывать снова</string>
     <string name="pre_alpha_warning">ПРЕ-АЛЬФА ВЕРСИЯ; НЕ ДЛЯ ПУБЛИКИ</string>
+    <string name="add_directory_success">Новый каталог игр успешно добавлен</string>
     <string name="home_games">Игры</string>
     <string name="home_search">Поиск</string>
     <string name="home_settings">Настройки</string>
@@ -276,6 +281,7 @@
     <string name="select_games_folder_description">Позволяет Eden заполнить список игр</string>
     <string name="add_games_warning">Пропустить выбор папки с играми?</string>
     <string name="add_games_warning_description">Игры не будут отображаться в списке Игры, если папка не выбрана.</string>
+    <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Найти игры</string>
     <string name="search_settings">Настройки поиска</string>
     <string name="games_dir_selected">Выбрана папка с играми</string>
@@ -283,8 +289,10 @@
     <string name="install_prod_keys_description">Требуется для расшифровки розничных игр</string>
     <string name="install_prod_keys_warning">Пропустить добавление ключей?</string>
     <string name="install_prod_keys_warning_description">Для эмуляции розничных игр требуются действительные ключи. Если вы продолжите, будут работать только homebrew приложения.</string>
+    <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="install_firmware_warning">Пропустить добавление прошивки?</string>
     <string name="install_firmware_warning_description">Многим играм требуется доступ к прошивке для правильной работы.</string>
+    <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Уведомления</string>
     <string name="notifications_description">Предоставьте разрешение уведомлений с помощью кнопки ниже.</string>
     <string name="give_permission">Предоставить разрешение</string>
@@ -301,6 +309,7 @@
     <string name="install_amiibo_keys">Установить ключи Amiibo</string>
     <string name="install_amiibo_keys_description">Необходимо для использования Amiibo в играх</string>
     <string name="install_amiibo_keys_failure_extension_description">Убедитесь, что файл ключей имеет расширение .bin, и повторите попытку.</string>
+    <string name="dumping_keys_quickstart_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
     <string name="gpu_driver_fetcher">Получение драйверов ГПУ</string>
     <string name="gpu_driver_manager">Менеджер драйверов ГП</string>
     <string name="install_gpu_driver">Установить драйвер ГП</string>
@@ -336,6 +345,7 @@
     <string name="firmware_installed_success">Прошивка успешно установлена</string>
     <string name="firmware_installed_failure">Не удалось установить прошивку</string>
     <string name="firmware_installed_failure_description">Убедитесь что файлы прошивки nca находятся в корне zip-архива и повторите попытку.</string>
+    <string name="firmware_uninstalled_failure">Не удалось удалить прошивку</string>
     <string name="share_log">Поделиться журналом отладки</string>
     <string name="share_log_description">Поделиться журналом отладки Eden для устранения проблем</string>
     <string name="share_log_missing">Файл журнала не найден</string>
@@ -350,7 +360,9 @@
     <string name="install_game_content_success">Игровой контент успешно установлен</string>
     <string name="install_game_content_success_install">%1$d Успешно установлено</string>
     <string name="install_game_content_success_overwrite">%1$d Успешно перезаписано</string>
+    <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Пользовательские драйверы не поддерживаются</string>
+    <string name="custom_driver_not_supported_description">Загрузка пользовательского драйвера в настоящее время не поддерживается для этого устройства.\nПроверьте этот параметр в будущем чтобы узнать была ли добавлена ​​поддержка!</string>
     <string name="manage_yuzu_data">Управление данными Eden</string>
     <string name="manage_yuzu_data_description">Импортируйте/экспортируйте прошивку, ключи, пользовательские данные и многое другое!</string>
     <string name="share_save_file">Поделиться файлом сохранения</string>
@@ -378,6 +390,8 @@
 
     <string name="keys_missing">Отсутствуют ключи шифрования</string>
     <string name="keys_missing_description">Прошивка и розничные игры не могут быть расшифрованы</string>
+    <string name="keys_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
+
     <string name="uninstall_firmware">Удалить прошивку</string>
     <string name="uninstall_firmware_description">Удаление прошивки сотрет ее с устройства и может повлиять на совместимость игр.</string>
     <string name="firmware_uninstalling">Удаление прошивки...</string>
@@ -387,6 +401,8 @@
     <string name="error_firmware_missing">Для запуска некоторых игр и системных апплетов требуется прошивка. Eden работает только с прошивкой версии 19.0.1 и ниже.</string>
     <string name="error_firmware_corrupted">Прошивка обнаружена, но не может быть прочитана. Проверьте наличие ключей дешифрования и при необходимости пересохраните прошивку.</string>
     <string name="error_firmware_too_new">Прошивка слишком новая или не может быть прочитана. Eden работает только с прошивкой версии 19.0.1 и ниже.</string>
+    <string name="firmware_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware</string>
+
     <string name="keys_failed">Ошибка установки ключей</string>
     <string name="keys_install_success">Ключи успешно установлены</string>
     <string name="error_keys_copy_failed">Не удалось скопировать один или несколько ключей.</string>
@@ -419,9 +435,11 @@
     <string name="about_app_description">Эмулятор Switch с открытым исходным кодом</string>
     <string name="contributors">Контрибьюторы</string>
     <string name="contributors_description">Сделано с \u2764 от команды Eden</string>
+    <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
     <string name="licenses_description">Проекты, которые сделали Eden для Android возможным</string>
     <string name="build">Сборка</string>
     <string name="user_data">Данные пользователя</string>
+    <string name="user_data_description">Импортировать/экспортировать всё данные приложения.\n\nПри импортировании пользовательских данных, вся существующие пользовательские данные будут удалены!\n\nИмпортирование данных из Citron может вызвать проблемы. Рекоминдовано самим импортировать все данные.</string>
     <string name="exporting_user_data">Экспорт пользовательских данных…</string>
     <string name="importing_user_data">Импорт пользовательских данных…</string>
     <string name="import_user_data">Импортировать пользовательские данные</string>
@@ -734,6 +752,7 @@
     <string name="addon_installed_successfully">Аддон успешно установлен</string>
     <string name="verifying_content">Проверка содержимого...</string>
     <string name="content_install_notice">Уведомление об установке контента</string>
+    <string name="content_install_notice_description">Содержимое которое вы выбрали не соответсвует этой игре. \nВсе равно установить\?</string>
     <string name="confirm_uninstall">Подтверждение удаления</string>
     <string name="confirm_uninstall_description">Вы уверены, что хотите удалить это дополнение?</string>
     <string name="verify_integrity">Проверить целостность</string>
@@ -743,6 +762,8 @@
     <string name="verify_failure_description">Файл может быть поврежден</string>
     <string name="verify_no_result">Проверка целостности не может быть выполнена</string>
     <string name="verify_no_result_description">Файл не проверялся на корректность</string>
+    <string name="verification_failed_for">Проверку не удалась для следующих файлов:\n%1$s</string>
+
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Ваш ROM зашифрованный</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Пожалуйста, следуйте инструкциям по пересохранению <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">игровых картриджей</a> или <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">установленных игр</a>.]]></string>
@@ -775,6 +796,7 @@
     <string name="config_write_failed">Не удалось записать файл конфигурации</string>
     <string name="config_apply_failed">Не удалось применить конфигурацию</string>
     <string name="config_already_exists_title">Конфигурация уже существует</string>
+    <string name="config_already_exists_message">Пользовательские настройки уже существуют для %1$s. \n\nХотиле ли вы переписать существующую конфигурацию\?\n\nЭто действие нельзя отменить.</string>
     <string name="config_exists_prompt">Проверка существующей конфигурации...</string>
     <string name="overwrite_cancelled">Перезапись отменена</string>
     <string name="checking_driver">Проверка пользовательского драйвера: %1$s</string>
@@ -794,6 +816,7 @@
     <string name="invalid_driver_file">Неверный файл драйвера: %s</string>
     <string name="network_unavailable">Сетевое соединение недоступно. Проверьте подключение к интернету и попробуйте снова.</string>
     <string name="driver_missing_title">Требуется драйвер GPU</string>
+    <string name="driver_missing_message">Эта конфигурация игры требует драйвер GPU \"%s\" который не установлен на вашем устройстве. \n\nХотите скачать и установить его сейчас\?</string>
     <string name="driver_download_cancelled">Загрузка драйвера отменена. Игра не может быть запущена без необходимого драйвера.</string>
     <string name="download">Скачать</string>
 
@@ -820,7 +843,6 @@
     <string name="touchscreen">Сенсорный экран</string>
     <string name="lock_drawer">Заморозить док</string>
     <string name="unlock_drawer">Разморозить док</string>
-
     <string name="load_settings">Загрузка настроек...</string>
 
     <!-- Software keyboard -->
@@ -833,7 +855,7 @@
     <string name="system_archive_general">Системный архив</string>
     <string name="save_load_error">Ошибка сохранения/загрузки</string>
     <string name="fatal_error">Фатальная ошибка</string>
-    <string name="performance_warning">Отключение этой настройки значительно снизит производительность эмуляции! Для достижения наилучших результатов рекомендуется оставить эту настройку включенной.</string>
+    <string name="device_memory_inadequate">Оперативной памяти на устройстве: %1$s\nРекоминдовано: %2$s</string>
     <string name="memory_formatted">%1$s%2$s</string>
     <string name="no_game_present">Загрузочной игры нету!</string>
 
@@ -882,13 +904,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Нормальная</string>
     <string name="renderer_accuracy_high">Высокая</string>
-    <string name="renderer_accuracy_extreme">Экстрим (медленный)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">По умолчанию</string>
-    <string name="dma_accuracy_unsafe">Небезопасно (быстро)</string>
-    <string name="dma_accuracy_safe">Безопасно (стабильно)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Метод декодирования ASTC</string>
     <string name="accelerate_astc_description">Выберите способ декодирования сжатых текстур ASTC для рендеринга: ЦП (медленно, безопасно), ГПУ (быстро, рекомендуется) или ЦП асинхронно (без заиканий, могут возникнуть проблемы)</string>
@@ -936,6 +953,8 @@
     <string name="scaling_filter_gaussian">Гаусс</string>
     <string name="scaling_filter_scale_force">ScaleForce</string>
     <string name="scaling_filter_fsr">AMD FidelityFX™️ Super Resolution</string>
+    <string name="scaling_filter_area">Зона</string>
+
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Выкл.</string>
     <string name="anti_aliasing_fxaa">FXAA</string>
@@ -1004,6 +1023,7 @@
 
     <!-- Static Themes -->
     <string name="static_theme_color">Цвет темы</string>
+    <string name="eden_theme">Eden (По умолчанию)</string>
     <string name="violet">Фиолетовый (По умолчанию)</string>
     <string name="blue">Синий</string>
     <string name="cyan">Циановый</string>

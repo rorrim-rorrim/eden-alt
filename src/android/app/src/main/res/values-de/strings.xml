@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
+    <string name="app_disclaimer">Diese Software führt Spiele für die Nintendo Switch-Konsole aus. Es sind keine Spiele oder Keys enthalten.<br /><br />Bevor du beginnst, holen dir bitte deine <![CDATA[<b> prod.keys </b>]]>-Datei von deiner Switch.<br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Mehr Erfahren</a>]]></string>
     <string name="notice_notification_channel_name">Hinweise und Fehler</string>
     <string name="notice_notification_channel_description">Zeigt Benachrichtigungen an, wenn etwas schief läuft.</string>
-    <string name="notification_permission_not_granted">Berechtigung für Benachrichtigungen nicht erlaubt!</string>
-
+    <string name="notification_permission_not_granted">Berechtigung für Benachrichtigungen nicht zugelassen!</string>
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Erweitert)</string>
     <string name="process_ram">Prozess-RAM: %1$d MB</string>
@@ -16,7 +16,7 @@
     <string name="show_stats_overlay">Leistungsstatistik Overlay anzeigen</string>
     <string name="stats_overlay_customization">Anpassung</string>
     <string name="stats_overlay_items">Sichtbarkeit</string>
-    <string name="stats_overlay_options">Overlay</string>
+    <string name="stats_overlay_options">Leistungs Overlay</string>
     <string name="enable_stats_overlay_">Leistungsstatistik Overlay aktivieren</string>
     <string name="stats_overlay_options_description">Konfiguriere angezeigte Informationen im Overlay</string>
     <string name="show_fps">FPS anzeigen</string>
@@ -242,10 +242,12 @@
     <string name="keys_description">Wähle deine &lt;b>prod.keys&lt;/b> Datei mit dem Button unten aus.</string>
     <string name="select_keys">Schlüssel auswählen</string>
     <string name="firmware">Firmware</string>
+    <string name="firmware_description">Wählen mit dem Button unten deine <b>firmware.zip</b>-Datei.\nEden benötigt derzeit Version <b>19.0.1</b> oder niedriger.</string>
     <string name="select_firmware">Firmware auswählen</string>
     <string name="games">Spiele</string>
     <string name="games_description">Wähle mit dem Knopf unten den &lt;b>Spiele&lt;/b>-Ordner aus.</string>
     <string name="done">Fertig</string>
+    <string name="done_description">Du bist start klar.\nViel Spaß mit deinen Spielen!</string>
     <string name="text_continue">Fortsetzen</string>
     <string name="next">Weiter</string>
     <string name="back">Zurück</string>
@@ -268,6 +270,7 @@
     <string name="pre_alpha_warning_description">WARNUNG: Diese Version ist nicht für die Öffentlichkeit bestimmt.</string>
     <string name="dont_show_again">Nicht mehr anzeigen</string>
     <string name="pre_alpha_warning">PRE-ALPHA SOFTWARE; NICHT FÜR ÖFFENTLICHE NUTZUNG</string>
+    <string name="add_directory_success">Neues Spieleverzeichnis erfolgreich hinzugefügt.</string>
     <string name="home_games">Spiele</string>
     <string name="home_search">Suche</string>
     <string name="home_settings">Einstellungen</string>
@@ -360,6 +363,7 @@ Wirklich fortfahren?</string>
     <string name="install_game_content_success_overwrite">%1$d erfolgreich überschrieben</string>
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Benutzerdefinierte Treiber werden nicht unterstützt</string>
+    <string name="custom_driver_not_supported_description">Das Laden von benutzerdefinierten Treibern wird für dieses Gerät momentan nicht unterstützt.\nSchau später einfach nochmal nach, ob die Unterstützung hinzugefügt wurde!</string>
     <string name="manage_yuzu_data">Eden-Daten Verwalten</string>
     <string name="manage_yuzu_data_description">Importieren/Exportieren Sie Firmware, Schlüssel, Benutzerdaten und mehr!</string>
     <string name="share_save_file">Speicherdaten teilen</string>
@@ -832,7 +836,6 @@ Wirklich fortfahren?</string>
     <string name="touchscreen">Touchscreen</string>
     <string name="lock_drawer">Menü sperren</string>
     <string name="unlock_drawer">Menü entsperren</string>
-
     <string name="load_settings">Lade Einstellungen...</string>
 
     <!-- Software keyboard -->
@@ -845,7 +848,6 @@ Wirklich fortfahren?</string>
     <string name="system_archive_general">Ein System-Archiv</string>
     <string name="save_load_error">Speicher-/Ladefehler</string>
     <string name="fatal_error">Schwerwiegender Fehler</string>
-    <string name="performance_warning">Das Deaktivieren dieser Einstellung führt zu erheblichen Leistungsverlusten! Für ein optimales Erlebnis wird empfohlen, sie aktiviert zu lassen.</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">Kein verfügbares Spiel gefunden</string>
 
@@ -894,13 +896,8 @@ Wirklich fortfahren?</string>
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">Hoch</string>
-    <string name="renderer_accuracy_extreme">Extrem (Langsam)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Standard</string>
-    <string name="dma_accuracy_unsafe">Unsicher (schnell)</string>
-    <string name="dma_accuracy_safe">Sicher (stabil)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">ASTC-Decodierung</string>
     <string name="accelerate_astc_description">Wählen Sie aus, wie ASTC-komprimierte Texturen für das Rendering decodiert werden: CPU (langsam, sicher), GPU (schnell, empfohlen) oder CPU Async (kein Ruckeln, kann Probleme verursachen)</string>

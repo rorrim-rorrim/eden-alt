@@ -4,7 +4,6 @@
     <string name="notice_notification_channel_name">알림 및 오류</string>
     <string name="notice_notification_channel_description">문제가 발생하면 알림을 표시합니다.</string>
     <string name="notification_permission_not_granted">알림 권한이 부여되지 않았습니다!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(향상됨)</string>
     <string name="process_ram">프로세스 RAM: %1$d MB</string>
@@ -762,7 +761,6 @@
     <string name="touchscreen">터치 스크린</string>
     <string name="lock_drawer">에뮬레이터 메뉴 잠금</string>
     <string name="unlock_drawer">에뮬레이터 메뉴 잠금 해제</string>
-
     <string name="load_settings">설정 불러오는 중...</string>
 
     <!-- Software keyboard -->
@@ -775,7 +773,6 @@
     <string name="system_archive_general">시스템 아카이브</string>
     <string name="save_load_error">저장하기/불러오기 오류</string>
     <string name="fatal_error">치명적 오류</string>
-    <string name="performance_warning">이 설정을 끄면 에뮬레이션 성능이 크게 저하됩니다! 최상의 환경을 위해 이 설정을 활성화된 상태로 두는 것이 좋습니다.</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">실행 가능한 게임이 없습니다!</string>
 
@@ -824,13 +821,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">보통</string>
     <string name="renderer_accuracy_high">높음</string>
-    <string name="renderer_accuracy_extreme">극한 (느림)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">기본값</string>
-    <string name="dma_accuracy_unsafe">안전하지 않음(빠름)</string>
-    <string name="dma_accuracy_safe">안전함(안정적)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">ASTC 디코딩 방법</string>
     <string name="accelerate_astc_description">ASTC 압축 텍스처의 디코딩 방식을 선택하세요: CPU (느림, 안전), GPU (빠름, 권장), 또는 CPU 비동기 (끊김 없음, 문제 발생 가능)</string>

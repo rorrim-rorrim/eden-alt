@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
+    <string name="app_disclaimer">Este software arrancará juegos para la Consola Nintendo Switch. No incluye juegos o llaves de descifra.<br /><br />Antes de continuar, por favor ubica tu  <![CDATA[<b>prod.keys </b>]]> archivo en tu dispositivo de almacenamiento. <br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Ver más</a>]]></string>
     <string name="notice_notification_channel_name">Avisos y errores</string>
     <string name="notice_notification_channel_description">Mostrar notificaciones cuando algo vaya mal.</string>
     <string name="notification_permission_not_granted">¡Permiso de notificación no concedido!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Mejorado)</string>
     <string name="process_ram">Proceso de RAM: %1$d MB</string>
@@ -73,7 +73,7 @@
     <string name="dyna_state_description">Controla el número de características que se pueden usar en el estado dinámico extendido. Los números más altos permiten más características y pueden aumentar el rendimiento, pero pueden causar problemas con algunos controladores y proveedores. El valor predeterminado puede variar dependiendo de las capacidades de su sistema y hardware. Este valor se puede cambiar hasta que se logre la estabilidad y una mejor calidad visual.</string>
     <string name="disabled">Desactivado</string>
     <string name="provoking_vertex">Vértice provocante</string>
-    <string name="provoking_vertex_description">Mejora la iluminación y el manejo de vértices en ciertos juegos. Solo es compatible con las GPU Vulkan 1.0+.</string>
+    <string name="provoking_vertex_description">Mejora iluminación y el manejo de vértices en ciertos juegos. Solamente los dispositivos que soporten Vulkan 1.0+ son compatibles con este extensión.</string>
     <string name="descriptor_indexing">Indexación del descriptor</string>
     <string name="descriptor_indexing_description">Mejora la textura y el manejo del búfer, así como la capa de traducción Maxwell. Compatible con algunas GPU Vulkan 1.1 y todas las GPU Vulkan 1.2+.</string>
     <string name="sample_shading">Sombreado de muestra</string>
@@ -242,10 +242,12 @@
     <string name="keys_description">Selecciona el archivo &lt;b>prod.keys&lt;/b> utilizando el botón de abajo.</string>
     <string name="select_keys">Seleccionar las claves</string>
     <string name="firmware">Firmware</string>
+    <string name="firmware_description">Selecciona tu archivo <b>firmware.zip</b> con el botón abajo.\nEden actualmente requiere la versión <b>19.0.1</b> o inferior.</string>
     <string name="select_firmware">Seleccionar firmware</string>
     <string name="games">Juegos</string>
     <string name="games_description">Selecciona la carpeta &lt;b>Games&lt;/b> utilizando el botón de abajo</string>
     <string name="done">Hecho</string>
+    <string name="done_description">Todo listo.\n¡Disfrute de sus juegos!</string>
     <string name="text_continue">Continuar</string>
     <string name="next">Siguiente</string>
     <string name="back">Atrás</string>
@@ -268,6 +270,7 @@
     <string name="pre_alpha_warning_description">ADVERTENCIA: Versión inestable. No para uso público.</string>
     <string name="dont_show_again">No mostrar de nuevo</string>
     <string name="pre_alpha_warning">SOFTWARE PRE-ALFA</string>
+    <string name="add_directory_success">Nuevo directorio de juegos anido con exito</string>
     <string name="home_games">Juegos</string>
     <string name="home_search">Buscar</string>
     <string name="home_settings">Ajustes</string>
@@ -359,6 +362,7 @@
     <string name="install_game_content_success_overwrite">%1$d sobreescrito con éxito</string>
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Drivers personalizados no soportados</string>
+    <string name="custom_driver_not_supported_description">la carga de drivers personalizados no está disponible para este dispositivo..\n¡Comprueba esta opción en el futuro para ver si soporte se a anadido!</string>
     <string name="manage_yuzu_data">Administrar datos de Eden</string>
     <string name="manage_yuzu_data_description">Importa/exporta el firmware, las claves, los datos de usuario, ¡y más!</string>
     <string name="share_save_file">Compartir archivo de guardado</string>
@@ -433,6 +437,7 @@
     <string name="licenses_description">Proyectos que hacen que Eden para Android sea una realidad</string>
     <string name="build">Versión</string>
     <string name="user_data">Datos de usuario</string>
+    <string name="user_data_description">Importar/exportar todos los datos de la app.\n\nCuando se importa datos de usuario, todos los datos de usuario existentes serán eliminados!\n\nImportando datos de Citron puede causar problemas. Es recomendado manualmente importar todos los datos necesarios.</string>
     <string name="exporting_user_data">Exportando datos de usuario...</string>
     <string name="importing_user_data">Importando datos de usuario...</string>
     <string name="import_user_data">Importar datos de usuario</string>
@@ -745,6 +750,7 @@
     <string name="addon_installed_successfully">Addon instalado con éxito</string>
     <string name="verifying_content">Verificando contenido...</string>
     <string name="content_install_notice">Aviso importante de contenido</string>
+    <string name="content_install_notice_description">El contenido seleccionado no es de este juego.\n¿Instalar aun que\?</string>
     <string name="confirm_uninstall">Confirmar desinstalación</string>
     <string name="confirm_uninstall_description">¿De verdad quieres desinstalar este addon?</string>
     <string name="verify_integrity">Verificar integridad</string>
@@ -754,6 +760,8 @@
     <string name="verify_failure_description">Los contenidos del archivo pueden estar corruptos</string>
     <string name="verify_no_result">No se pudo ejecutar la verificación de integridad</string>
     <string name="verify_no_result_description">No se ha podido comprobar la validez de los contenidos del archivo</string>
+    <string name="verification_failed_for">La verificación falló en los siguientes archivos:\n%1$s</string>
+
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Su ROM está encriptada</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Siga las guías para volver a volcar sus <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">tarjetas de juego</a> o <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">títulos digitales</a>.]]></string>
@@ -786,6 +794,7 @@
     <string name="config_write_failed">Error al escribir el archivo de configuración</string>
     <string name="config_apply_failed">Error al aplicar la configuración</string>
     <string name="config_already_exists_title">La configuración ya existe</string>
+    <string name="config_already_exists_message">Configuración personalizada ya existe para %1$s.\n\n¿Quieres sobrescribir la configuración existente\?\n\nEsta acción no se puede deshacer.</string>
     <string name="config_exists_prompt">Comprobando la configuración existente...</string>
     <string name="overwrite_cancelled">Sobrescritura cancelada</string>
     <string name="checking_driver">Comprobando controlador personalizado: %1$s</string>
@@ -805,6 +814,7 @@
     <string name="invalid_driver_file">Archivo de controlador no válido: %s</string>
     <string name="network_unavailable">No hay conexión de red disponible. Por favor, compruebe su conexión a Internet e inténtelo de nuevo.</string>
     <string name="driver_missing_title">Se requiere controlador de GPU</string>
+    <string name="driver_missing_message">La configuración del juego requiere el driver de GPU \"%s\" que no está instalado en su dispositivo.\n\n¿Quieres descargarlo e instalarlo ahora\?</string>
     <string name="driver_download_cancelled">Descarga del controlador cancelada. El juego no se puede iniciar sin el controlador requerido.</string>
     <string name="download">Descargar</string>
 
@@ -831,7 +841,6 @@
     <string name="touchscreen">Pantalla táctil</string>
     <string name="lock_drawer">Bloquear menú cajón</string>
     <string name="unlock_drawer">Desbloquear menú cajón</string>
-
     <string name="load_settings">Cargando configuración...</string>
 
     <!-- Software keyboard -->
@@ -844,7 +853,7 @@
     <string name="system_archive_general">Un archivo del sistema</string>
     <string name="save_load_error">Error de Guardado/Carga</string>
     <string name="fatal_error">Error fatal</string>
-    <string name="performance_warning">¡Desactivar esta configuración reducirá significativamente el rendimiento de la emulación!  Para obtener la mejor experiencia, se recomienda dejar esta configuración habilitada.</string>
+    <string name="device_memory_inadequate">RAM de dispositivo: %1$s\nRecomendado: %2$s</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">¡No hay ningún juego ejecutable presente!</string>
 
@@ -893,13 +902,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">Alto</string>
-    <string name="renderer_accuracy_extreme">Extremo (Lento)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Predeterminado</string>
-    <string name="dma_accuracy_unsafe">Inseguro (rápido)</string>
-    <string name="dma_accuracy_safe">Seguro (estable)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Método de decodificación ASTC</string>
     <string name="accelerate_astc_description">Elige cómo se decodifican las texturas comprimidas ASTC para el renderizado: CPU (lento, seguro), GPU (rápido, recomendado) o CPU Async (sin tartamudeos, puede causar problemas)</string>

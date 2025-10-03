@@ -4,7 +4,6 @@
     <string name="notice_notification_channel_name">通知とエラー</string>
     <string name="notice_notification_channel_description">問題の発生時に通知を表示します。</string>
     <string name="notification_permission_not_granted">通知が許可されていません!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(強化)</string>
     <string name="process_ram">プロセスRAM: %1$d MB</string>
@@ -717,7 +716,6 @@
     <string name="system_archive_general">システムアーカイブ</string>
     <string name="save_load_error">セーブ/ロードエラー</string>
     <string name="fatal_error">致命的なエラー</string>
-    <string name="performance_warning">この設定をオフにすると、エミュレーションのパフォーマンスが著しく低下します！最高の体験を得るためには、この設定を有効にしておくことを推奨します。</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">起動できるゲームがありません!</string>
 
@@ -766,13 +764,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">標準</string>
     <string name="renderer_accuracy_high">高</string>
-    <string name="renderer_accuracy_extreme">最高 (低速)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">デフォルト</string>
-    <string name="dma_accuracy_unsafe">安全でない（高速）</string>
-    <string name="dma_accuracy_safe">安全（安定）</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">ASTCデコード方法</string>
     <string name="accelerate_astc_description">ASTC圧縮テクスチャのデコード方法を選択: CPU (低速、安全)、GPU (高速、推奨)、またはCPU非同期 (カクつきなし、問題が発生する可能性あり)</string>

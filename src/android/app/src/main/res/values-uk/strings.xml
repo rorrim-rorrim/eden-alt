@@ -4,7 +4,6 @@
     <string name="notice_notification_channel_name">Сповіщення та помилки</string>
     <string name="notice_notification_channel_description">Виводить сповіщення у разі виникнення проблем.</string>
     <string name="notification_permission_not_granted">Дозвіл на сповіщення не надано!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Покращений)</string>
     <string name="process_ram">RAM процесу: %1$d МБ</string>
@@ -246,6 +245,7 @@
     <string name="games">Ігри</string>
     <string name="games_description">Виберіть вашу теку з &lt;b>іграми&lt;/b> за допомогою кнопки нижче.</string>
     <string name="done">Готово</string>
+    <string name="done_description">Усе готово.\nНасолоджуйтеся грою!</string>
     <string name="text_continue">Продовжити</string>
     <string name="next">Далі</string>
     <string name="back">Назад</string>
@@ -268,6 +268,7 @@
     <string name="pre_alpha_warning_description">УВАГА: Ця версія не призначена для публічного використання. Програмне забезпечення знаходиться на ранній стадії розробки та може містити помилки.</string>
     <string name="dont_show_again">Більше не показувати</string>
     <string name="pre_alpha_warning">ПОПЕРЕДНЯ ВЕРСІЯ; НЕ ДЛЯ ПУБЛІКИ</string>
+    <string name="add_directory_success">Нову теку з іграми успішно додано</string>
     <string name="home_games">Ігри</string>
     <string name="home_search">Пошук</string>
     <string name="home_settings">Налаштування</string>
@@ -327,6 +328,7 @@
     <string name="manage_save_data">Керування даними збережень</string>
     <string name="manage_save_data_description">Знайдено дані збережень. Будь ласка, виберіть варіант нижче.</string>
     <string name="import_save_warning">Імпортувати збереження</string>
+    <string name="import_save_warning_description">Ця дія перезапише всі наявні збереження наданим файлом. Бажаєте продовжити\?</string>
     <string name="import_export_saves_description">Імпорт або експорт файлів збереження</string>
     <string name="save_files_importing">Імпорт файлів збереження...</string>
     <string name="save_files_exporting">Експорт файлів збереження...</string>
@@ -358,6 +360,7 @@
     <string name="install_game_content_success_overwrite">%1$d перезаписано</string>
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Спеціальні драйвери не підтримуються</string>
+    <string name="custom_driver_not_supported_description">Завантаження спеціальних драйверів цим пристроєм наразі не підтримується.\nПідтримку може бути додано пізніше, тож час від часу перевіряйте цей параметр!</string>
     <string name="manage_yuzu_data">Керування даними eden</string>
     <string name="manage_yuzu_data_description">Імпорт/експорт прошивки, ключів, даних користувача та іншого.</string>
     <string name="share_save_file">Поділитися збереженням</string>
@@ -434,6 +437,7 @@
     <string name="licenses_description">Проєкти, які зробили запуск Eden на Android можливим</string>
     <string name="build">Збірка</string>
     <string name="user_data">Дані користувача</string>
+    <string name="user_data_description">Імпортувати/експортувати всі дані програми.\n\nПри імпорті даних користувача всі наявні користувацькі дані буде видалено!\n\nЗавантаження даних із Citron може викликати проблеми. Рекомендується імпортувати всі необхідні дані звідти вручну.</string>
     <string name="exporting_user_data">Експорт даних користувача…</string>
     <string name="importing_user_data">Імпорт даних користувача…</string>
     <string name="import_user_data">Імпортувати дані користувача</string>
@@ -554,10 +558,15 @@
     <string name="deadzone">Мертва зона</string>
     <string name="modifier">Модифікатор</string>
     <string name="modifier_range">Діапазон модифікатора</string>
+    <string name="triggers">Тригери</string>
     <string name="button_l">L</string>
     <string name="button_r">R</string>
     <string name="button_zl">ZL</string>
     <string name="button_zr">ZR</string>
+    <string name="button_sl_left">Ліва SL</string>
+    <string name="button_sr_left">Ліва SR</string>
+    <string name="button_sl_right">Права SL</string>
+    <string name="button_sr_right">Права SR</string>
     <string name="button_z">Z</string>
     <string name="invalid">Некоректний</string>
     <string name="not_set">Не задано</string>
@@ -775,7 +784,6 @@
     <string name="touchscreen">Сенсорний екран</string>
     <string name="lock_drawer">Заблокувати панель</string>
     <string name="unlock_drawer">Розблокувати панель</string>
-
     <string name="load_settings">Завантаження налаштувань…</string>
 
     <!-- Software keyboard -->
@@ -788,7 +796,6 @@
     <string name="system_archive_general">Системний архів</string>
     <string name="save_load_error">Помилка збереження/завантаження</string>
     <string name="fatal_error">Фатальна помилка</string>
-    <string name="performance_warning">Вимкнення цього налаштування значно знизить продуктивність емуляції! Для досягнення найкращих результатів рекомендується залишити це налаштування увімкненим.</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <!-- Region Names -->
     <string name="region_japan">Японія</string>
@@ -835,13 +842,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Нормальна</string>
     <string name="renderer_accuracy_high">Висока</string>
-    <string name="renderer_accuracy_extreme">Екстрим (повільно)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Типово</string>
-    <string name="dma_accuracy_unsafe">Небезпечно (швидко)</string>
-    <string name="dma_accuracy_safe">Безпечно (стабільно)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Метод декодування ASTC</string>
     <string name="accelerate_astc_description">Виберіть спосіб декодування стиснених текстур ASTC для рендерингу: CPU (повільно, безпечно), GPU (швидко, рекомендовано) або CPU Async (без затримок, можуть виникнути несправності)</string>

@@ -4,7 +4,6 @@
     <string name="notice_notification_channel_name">Megjegyzések és hibák</string>
     <string name="notice_notification_channel_description">Értesítések megjelenítése, ha valami rosszul sül el.</string>
     <string name="notification_permission_not_granted">Nincs engedély az értesítés megjelenítéséhez!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Továbbfejlesztett)</string>
     <string name="process_ram">Processz RAM: %1$d MB</string>
@@ -806,7 +805,6 @@
     <string name="touchscreen">Érintőképernyő</string>
     <string name="lock_drawer">Fiók bezárása</string>
     <string name="unlock_drawer">Fiók kinyitása</string>
-
     <string name="load_settings">Beállítások betöltése...</string>
 
     <!-- Software keyboard -->
@@ -819,7 +817,6 @@
     <string name="system_archive_general">Egy rendszerarchívum</string>
     <string name="save_load_error">Mentési/betöltési hiba</string>
     <string name="fatal_error">Végzetes hiba</string>
-    <string name="performance_warning">Ennek a beállításnak a kikapcsolása jelentős mértékben csökkenti a teljesítményt! A legjobb élmény érdekében javasolt a beállítás bekapcsolva tartása.</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">Nincs indítható játék!</string>
 
@@ -868,13 +865,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normál</string>
     <string name="renderer_accuracy_high">Magas</string>
-    <string name="renderer_accuracy_extreme">Extrém (Lassú)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Alapértelmezett</string>
-    <string name="dma_accuracy_unsafe">Nem biztonságos (gyors)</string>
-    <string name="dma_accuracy_safe">Biztonságos (stabil)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">ASTC dekódolási módszer</string>
     <string name="accelerate_astc_description">Válassza ki, hogyan legyenek dekódolva az ASTC tömörített textúrák a rendereléshez: CPU (lassú, biztonságos), GPU (gyors, ajánlott) vagy CPU Async (nincs megakadás, de problémákat okozhat)</string>

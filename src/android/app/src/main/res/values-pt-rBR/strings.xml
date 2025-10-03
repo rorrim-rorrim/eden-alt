@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
+    <string name="app_disclaimer">Este programa serve para rodar jogos do Nintendo Switch. Nenhum jogo ou chaves do sistema são inclusos<br /><br />Antes de começar, localize o seu <![CDATA[<b> prod.keys </b>]]> salvo no seu sistema.<br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Saiba mais</a>]]></string>
     <string name="notice_notification_channel_name">Notificações e erros</string>
     <string name="notice_notification_channel_description">Mostra notificações quando acontecer um erro.</string>
     <string name="notification_permission_not_granted">Acesso às notificações não permitido!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Aprimorado)</string>
     <string name="process_ram">RAM do processo: %1$d MB</string>
@@ -242,10 +242,12 @@
     <string name="keys_description">Selecione seu arquivo &lt;b>prod.keys&lt;/b> com o botão abaixo.</string>
     <string name="select_keys">Selecione as Keys</string>
     <string name="firmware">Firmware</string>
+    <string name="firmware_description">Selecione seu arquivo <b>firmware.zip</b> com o botão abaixo.\nAtualmente, o Eden requer a versão <b>19.0.1</b> ou inferior.</string>
     <string name="select_firmware">Selecionar Firmware</string>
     <string name="games">Jogos</string>
     <string name="games_description">Selecione sua pasta &lt;b>Jogos&lt;/b> com o botão abaixo.</string>
     <string name="done">Pronto</string>
+    <string name="done_description">Tudo certo.\nAproveite seus jogos!</string>
     <string name="text_continue">Continuar</string>
     <string name="next">Próximo</string>
     <string name="back">Voltar</string>
@@ -268,6 +270,7 @@
     <string name="pre_alpha_warning_description">AVISO: Esta versão não deve ser compartilhada. Software em estágio pré-alpha pode conter bugs e recursos incompletos. \nSe você obteve acesso não autorizado a esta versão, é recomendado desinstalá-la imediatamente.</string>
     <string name="dont_show_again">Não Mostrar Novamente</string>
     <string name="pre_alpha_warning">SOFTWARE PRÉ-ALPHA; NÃO PARA USO PÚBLICO</string>
+    <string name="add_directory_success">Pasta do jogo adicionada com sucesso</string>
     <string name="home_games">Jogos</string>
     <string name="home_search">Pesquisar</string>
     <string name="home_settings">Configurações</string>
@@ -359,6 +362,7 @@
     <string name="install_game_content_success_overwrite">%1$d substituído com sucesso</string>
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Drivers personalizados não suportados</string>
+    <string name="custom_driver_not_supported_description">Carregamento de drivers personalizados não suportado para este dispositivo no momento.\nVerifique essa opção novamente no futuro para ver se o suporte foi adicionado!</string>
     <string name="manage_yuzu_data">Administrar dados do Eden</string>
     <string name="manage_yuzu_data_description">Importe/exporte firmware, chaves, dados do usuário e mais!</string>
     <string name="share_save_file">Compartilhar arquivo de dados salvos</string>
@@ -433,6 +437,7 @@
     <string name="licenses_description">Projetos que tornam o Eden para Android possível</string>
     <string name="build">Versão da Compilação</string>
     <string name="user_data">Dados do usuário</string>
+    <string name="user_data_description">Importar/exportar todos os dados do aplicativo.\n\nAo importar dados de usuário, todos os dados existentes serão excluídos!\n\nImportar dados do CItron pode causar problemas. É recomendado importar manualmente só o que for necessário.</string>
     <string name="exporting_user_data">Exportando dados do usuário...</string>
     <string name="importing_user_data">Importando dados do usuário...</string>
     <string name="import_user_data">Importar dados do usuário</string>
@@ -746,6 +751,7 @@ uma tentativa de mapeamento automático</string>
     <string name="addon_installed_successfully">Complemento instalado com sucesso</string>
     <string name="verifying_content">Verificando conteúdo...</string>
     <string name="content_install_notice">Aviso sobre a instalação do conteúdo</string>
+    <string name="content_install_notice_description">O conteúdo que você selecionou não corresponde a este jogo.\nInstalar mesmo assim\?</string>
     <string name="confirm_uninstall">Confirmar desinstalação</string>
     <string name="confirm_uninstall_description">Tem certeza de que quer desinstalar esse complemento?</string>
     <string name="verify_integrity">Verificar integridade</string>
@@ -755,6 +761,8 @@ uma tentativa de mapeamento automático</string>
     <string name="verify_failure_description">Conteúdos do arquivo podem estar corrompidos</string>
     <string name="verify_no_result">A verificação de integridade não pôde ser executada</string>
     <string name="verify_no_result_description">Os conteúdos do arquivo não foram verificados se são válidos</string>
+    <string name="verification_failed_for">A verificação falhou para os seguintes arquivos:\n%1$s</string>
+
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Sua ROM está encriptada</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Siga os guias para refazer o dump de seus <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">cartões de jogo</a> ou <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">títulos digitais</a>.]]></string>
@@ -787,6 +795,7 @@ uma tentativa de mapeamento automático</string>
     <string name="config_write_failed">Falha ao escrever arquivo de configuração</string>
     <string name="config_apply_failed">Falha ao aplicar configuração</string>
     <string name="config_already_exists_title">Configuração Já Existe</string>
+    <string name="config_already_exists_message">Configurações personalizadas já existem para %1$s.\n\nDeseja sobrescrever a configuração existente\?\n\nEsta ação não pode ser desfeita.</string>
     <string name="config_exists_prompt">Verificando configuração existente...</string>
     <string name="overwrite_cancelled">Sobrescrita cancelada</string>
     <string name="checking_driver">Verificando driver personalizado: %1$s</string>
@@ -806,6 +815,7 @@ uma tentativa de mapeamento automático</string>
     <string name="invalid_driver_file">Arquivo de driver inválido: %s</string>
     <string name="network_unavailable">Nenhuma conexão de rede disponível. Verifique sua conexão com a internet e tente novamente.</string>
     <string name="driver_missing_title">Driver de GPU Necessário</string>
+    <string name="driver_missing_message">A configuração do jogo requer o driver de GPU \"%s\", que não está instalado em seu dispositivo.\n\nDeseja baixá-lo e instalá-lo agora\?</string>
     <string name="driver_download_cancelled">Download do driver cancelado. O jogo não pode ser iniciado sem o driver necessário.</string>
     <string name="download">Baixar</string>
 
@@ -832,7 +842,6 @@ uma tentativa de mapeamento automático</string>
     <string name="touchscreen">Tela de toque</string>
     <string name="lock_drawer">Bloquear este menu</string>
     <string name="unlock_drawer">Desbloquear este menu</string>
-
     <string name="load_settings">Carregando configurações...</string>
 
     <!-- Software keyboard -->
@@ -845,7 +854,7 @@ uma tentativa de mapeamento automático</string>
     <string name="system_archive_general">Um arquivo do sistema</string>
     <string name="save_load_error">Erro de Salvamento/Carregamento</string>
     <string name="fatal_error">Erro fatal</string>
-    <string name="performance_warning">Desligar esta configuração irá reduzir a performance da emulação significantemente! Para a melhor experiência é recomendado deixar esta configuração ativada.</string>
+    <string name="device_memory_inadequate">Memória RAM do dispositivo: %1$s\nRecomendada: %2$s</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">Nenhum jogo inicializável presente!</string>
 
@@ -894,13 +903,8 @@ uma tentativa de mapeamento automático</string>
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">Alta</string>
-    <string name="renderer_accuracy_extreme">Extrema (Lenta)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Padrão</string>
-    <string name="dma_accuracy_unsafe">Inseguro (rápido)</string>
-    <string name="dma_accuracy_safe">Seguro (estável)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Método de decodificação ASTC</string>
     <string name="accelerate_astc_description">Escolha como as texturas compactadas em ASTC são decodificadas para renderização: CPU (lento, seguro), GPU (rápido, recomendado) ou CPU Async (sem engasgos, pode causar problemas)</string>
@@ -1044,7 +1048,7 @@ uma tentativa de mapeamento automático</string>
     <string name="bottom">Embaixo</string>
 
     <!-- Applet Modes -->
-    <string name="applets_menu">Applets</string>
+    <string name="applets_menu">Miniaplicativos</string>
     <string name="applets_menu_description">(Em andamento) Alterar frontends e configurações de applets</string>
 
     <string name="applet_hle">Frontend personalizado</string>

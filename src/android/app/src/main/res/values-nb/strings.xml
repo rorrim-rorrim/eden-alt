@@ -4,7 +4,6 @@
     <string name="notice_notification_channel_name">Merknader og feil</string>
     <string name="notice_notification_channel_description">Viser varsler når noe går galt.</string>
     <string name="notification_permission_not_granted">Varslingstillatelse ikke gitt!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Forbedret)</string>
     <string name="process_ram">Prosess-RAM: %1$d MB</string>
@@ -697,7 +696,6 @@
     <string name="system_archive_general">Et systemarkiv</string>
     <string name="save_load_error">Feil ved lagring/innlasting</string>
     <string name="fatal_error">Fatal Feil</string>
-    <string name="performance_warning">Hvis du slår av denne innstillingen, reduseres emuleringsytelsen betydelig! Vi anbefaler at du lar denne innstillingen være aktivert for å få den beste opplevelsen.</string>
     <!-- Region Names -->
     <string name="region_japan">Japan</string>
     <string name="region_usa">USA</string>
@@ -735,13 +733,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">Høy</string>
-    <string name="renderer_accuracy_extreme">Ekstrem (Treg)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Standard</string>
-    <string name="dma_accuracy_unsafe">Usikker (rask)</string>
-    <string name="dma_accuracy_safe">Sikker (stabil)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">ASTC-dekoding</string>
     <string name="accelerate_astc_description">Velg hvordan ASTC-komprimerte teksturer skal dekodes for rendering: CPU (tregt, sikkert), GPU (raskt, anbefalt) eller CPU Async (ingen stuttering, kan forårsake problemer)</string>

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
+    <string name="app_disclaimer">سيشغّل هذا البرنامج ألعابًا لجهاز نينتندو سويتش. لا يتضمن أي عناوين أو مفاتيح ألعاب. قبل البدء، يُرجى تحديد موقع ملف <![CDATA[ prod.keys ]]> على وحدة تخزين جهازك. <![CDATA[اعرف المزيد]]></string>
     <string name="notice_notification_channel_name">الإشعارات والأخطاء</string>
     <string name="notice_notification_channel_description">اظهار اشعار عند حصول اي مشكلة.</string>
     <string name="notification_permission_not_granted">لم يتم منح إذن الإشعار</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(مُحسَّن)</string>
     <string name="process_ram">ذاكرة RAM للعملية: %1$d م.ب</string>
-    <string name="shaders_prefix">جاري بناء</string>
+    <string name="shaders_prefix">بناء</string>
     <string name="shaders_suffix">شادر(شادرات)</string>
     <string name="charging">(يشحن)</string>
 
@@ -17,8 +17,8 @@
     <string name="stats_overlay_customization">تخصيص</string>
     <string name="stats_overlay_items">الرؤية</string>
     <string name="stats_overlay_options">العرض</string>
-    <string name="enable_stats_overlay_">تمكين عرض الإحصائيات</string>
-    <string name="stats_overlay_options_description">تكوين المعلومات المعروضة في عرض الإحصائيات</string>
+    <string name="enable_stats_overlay_">تمكين تراكب إحصائيات الأداء</string>
+    <string name="stats_overlay_options_description">قم بتكوين المعلومات التي يتم عرضها في تراكب إحصائيات الأداء</string>
     <string name="show_fps">عرض معدل الإطارات</string>
     <string name="show_fps_description">عرض معدل الإطارات الحالي</string>
     <string name="show_frametime">عرض وقت الإطار</string>
@@ -59,8 +59,8 @@
     <string name="show_gpu_model_description">عرض طراز GPU المضيف</string>
     <string name="show_soc_model">عرض طراز SoC</string>
     <string name="show_soc_model_description">عرض طراز SoC المضيف</string>
-    <string name="show_fw_version">إظهار إصدار البرنامج الثابت</string>
-    <string name="show_fw_version_description">عرض إصدار البرنامج الثابت المثبت</string>
+    <string name="show_fw_version">إظهار إصدار الفريموير</string>
+    <string name="show_fw_version_description">عرض إصدار الفريموير</string>
 
     <!-- Eden\'s Veil -->
     <string name="eden_veil">حجاب عدن</string>
@@ -122,10 +122,10 @@
     <string name="shader_backend_spirv">Spir-V</string>
 
     <!-- NVDEC Emulation -->
-    <string name="nvdec_emulation">NVDEC Emulation</string>
+    <string name="nvdec_emulation">محاكاة NVDEC</string>
     <string name="nvdec_emulation_description">حدد كيفية التعامل مع فك تشفير الفيديو (NVDEC) خلال المشاهد التمهيدية والمقدمة.</string>
-    <string name="nvdec_emulation_cpu">CPU</string>
-    <string name="nvdec_emulation_gpu">GPU</string>
+    <string name="nvdec_emulation_cpu">وحدة المعالجة المركزية</string>
+    <string name="nvdec_emulation_gpu">وحدة المعالجة الرسومية</string>
     <string name="nvdec_emulation_none">لا شيء</string>
 
     <!-- Optimize Spir-V output -->
@@ -137,7 +137,7 @@
     <string name="multiplayer">متعدد اللاعبين</string>
     <string name="multiplayer_description">استضف غرفة لعبتك الخاصة أو انضم إلى غرفة موجودة للعب مع الآخرين</string>
     <string name="multiplayer_room_title">الغرفة: %1$s</string>
-    <string name="multiplayer_console_id">Console ID：%1$s</string>
+    <string name="multiplayer_console_id">معرّف وحدة التحكم: %1$s</string>
     <string name="multiplayer_create_room">إنشاء</string>
     <string name="multiplayer_join_room">الانضمام</string>
     <string name="multiplayer_public_room">تصفح الغرف العامة</string>
@@ -155,8 +155,8 @@
     <string name="multiplayer_network_error">خطأ في الشبكة</string>
     <string name="multiplayer_lost_connection">فقدان الاتصال</string>
     <string name="multiplayer_name_collision">اسم المستخدم محجوز مسبقاً</string>
-    <string name="multiplayer_mac_collision">MAC Address collision</string>
-    <string name="multiplayer_console_id_collision">Console ID collision</string>
+    <string name="multiplayer_mac_collision">تعارض في عنوان MAC</string>
+    <string name="multiplayer_console_id_collision">تعارض معرف وحدة التحكم</string>
     <string name="multiplayer_wrong_version">إصدار خاطئ</string>
     <string name="multiplayer_wrong_password">كلمة مرور خاطئة</string>
     <string name="multiplayer_could_not_connect">تعذر الاتصال</string>
@@ -175,8 +175,8 @@
     <string name="multiplayer_room_moderator">مشرف الغرفة</string>
     <string name="multiplayer_member_join">%1$s انضم</string>
     <string name="multiplayer_member_leave">%1$s غادر</string>
-    <string name="multiplayer_member_kicked">%1$s طُرِد</string>
-    <string name="multiplayer_member_banned">%1$s حُظِر</string>
+    <string name="multiplayer_member_kicked">%1$s مطرود</string>
+    <string name="multiplayer_member_banned">%1$s محظور</string>
     <string name="multiplayer_address_unbanned">تم إلغاء حظر العنوان</string>
     <string name="multiplayer_kick_member">طرد</string>
     <string name="multiplayer_chat_input_hint">إرسال رسائل…</string>
@@ -189,8 +189,8 @@
     <string name="multiplayer_max_players_value">الحد الأقصى للاعبين: %d</string>
     <string name="multiplayer_chat">الدردشة</string>
     <string name="multiplayer_more_options">المزيد من الخيارات</string>
-    <string name="multiplayer_ip_copied">IP Address copied to clipboard</string>
-    <string name="multiplayer_server_address">Server Address</string>
+    <string name="multiplayer_ip_copied">تم نسخ عنوان IP إلى الحافظة</string>
+    <string name="multiplayer_server_address">عنوان الخادم</string>
     <string name="chat">الدردشة</string>
     <string name="type_message">اكتب رسالة…</string>
     <string name="send">إرسال</string>
@@ -239,17 +239,19 @@
     <string name="welcome_description">تعلم كيفية إعداد <b>عدن</b> والقفز إلى المحاكاة.</string>
     <string name="get_started">لنبدأ</string>
     <string name="keys">المفاتيح</string>
-    <string name="keys_description">Select your &lt;b>prod.keys&lt;/b> file with the button below.</string>
+    <string name="keys_description">اختر ملف <b>prod.keys</b> من الزر ادناه</string>
     <string name="select_keys">إختيار المفاتيح</string>
-    <string name="firmware">البرنامج الثابت</string>
-    <string name="select_firmware">حدد البرنامج الثابت</string>
+    <string name="firmware">الفريموير</string>
+    <string name="firmware_description">حدد ملف firmware.zip بالزر أدناه. يتطلب عدن حاليًا الإصدار 19.0.1 أو إصدارًا أقدم.</string>
+    <string name="select_firmware">حدد الفريموير</string>
     <string name="games">الألعاب</string>
-    <string name="games_description">Select your &lt;b>Games&lt;/b> folder with the button below.</string>
+    <string name="games_description">حدد مجلد <b>العابك</b> من الزر ادناه.</string>
     <string name="done">إنهاء</string>
+    <string name="done_description">أنت جاهز تمامًا.\nاستمتع بألعابك!</string>
     <string name="text_continue">استمر</string>
     <string name="next">التالي</string>
     <string name="back">عودة</string>
-    <string name="add_games">إضافة ألعاب</string>
+    <string name="add_games">إضافة الألعاب</string>
     <string name="add_games_description">حدد مجلد الألعاب الخاص بك</string>
     <string name="step_complete">مكتمل</string>
     <string name="bluetooth_permissions_granted">تم منح أذونات البلوتوث.</string>
@@ -268,18 +270,19 @@
     <string name="pre_alpha_warning_description">تحذير: هذا البرنامج هو في مرحلة ما قبل ألفا وقد يكون الأخطاء وتنفيذات الميزة غير المكتملة.</string>
     <string name="dont_show_again">عدم العرض مجددًا</string>
     <string name="pre_alpha_warning">برنامج ما قبل ألفا</string>
+    <string name="add_directory_success">تمت إضافة مجلد اللعبة الجديد بنجاح</string>
     <string name="home_games">الألعاب</string>
     <string name="home_search">البحث</string>
     <string name="home_settings">الإعدادات</string>
     <string name="empty_gamelist">لم يتم العثور على ملفات أو لم يتم تحديد مجلد الألعاب حتى الآن.</string>
-    <string name="search_and_filter_games">البحث وتصفية الألعاب</string>
+    <string name="search_and_filter_games">البحث وتصنيف الألعاب</string>
     <string name="select_games_folder">حدد مجلد الألعاب</string>
     <string name="manage_game_folders">إدارة مجلدات اللعبة</string>
-    <string name="select_games_folder_description">يسمح لـ Eden بملء قائمة الألعاب</string>
+    <string name="select_games_folder_description">يسمح لـ عدن بملء قائمة الألعاب</string>
     <string name="add_games_warning">تخطي تحديد مجلد الألعاب؟</string>
     <string name="add_games_warning_description">لن يتم عرض الألعاب في قائمة الألعاب إذا لم يتم تحديد مجلد.</string>
     <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
-    <string name="home_search_games">البحث عن ألعاب</string>
+    <string name="home_search_games">البحث عن الألعاب</string>
     <string name="search_settings">إعدادات البحث</string>
     <string name="games_dir_selected">تم تحديد مجلد الألعاب</string>
     <string name="install_prod_keys">تثبيت prod.keys</string>
@@ -287,8 +290,8 @@
     <string name="install_prod_keys_warning">تخطي إضافة المفاتيح؟</string>
     <string name="install_prod_keys_warning_description">مطلوب مفاتيح صالحة لمحاكاة ألعاب البيع بالتجزئة. ستعمل تطبيقات البيرة المنزلية فقط إذا تابعت</string>
     <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
-    <string name="install_firmware_warning">تخطي إضافة البرنامج الثابت؟</string>
-    <string name="install_firmware_warning_description">العديد من الألعاب تتطلب الوصول إلى البرنامج الثابت لتشغيل بشكل صحيح.</string>
+    <string name="install_firmware_warning">تخطي إضافة الفريموير؟</string>
+    <string name="install_firmware_warning_description">العديد من الألعاب تتطلب الوصول إلى الفريموير لتشغيل بشكل صحيح.</string>
     <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">الإشعارات</string>
     <string name="notifications_description">امنح إذن الإشعار باستخدام الزر أدناه</string>
@@ -305,11 +308,11 @@
     <string name="warning_cancel">إلغاء</string>
     <string name="install_amiibo_keys">تثبيت مفاتيح أميبو</string>
     <string name="install_amiibo_keys_description">مطلوب لاستخدام أميبو في اللعبة</string>
-    <string name="install_amiibo_keys_failure_extension_description">Verify your keys file has a .bin extension and try again.</string>
+    <string name="install_amiibo_keys_failure_extension_description">وحاول مرة أخر bin تحقق من أن ملف المفاتيح له امتداد</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
-    <string name="gpu_driver_fetcher">GPU driver fetcher</string>
-    <string name="gpu_driver_manager">GPU driver manager</string>
-    <string name="install_gpu_driver">Install GPU driver</string>
+    <string name="gpu_driver_fetcher">جلب برامج تشغيل GPU</string>
+    <string name="gpu_driver_manager">GPU مدير برنامج تشغيل</string>
+    <string name="install_gpu_driver">GPU تثبيت برنامج تشغيل</string>
     <string name="install_gpu_driver_description">تثبيت برامج تشغيل بديلة لأداء أو دقة أفضل</string>
     <string name="advanced_settings">إعدادات متقدمة</string>
     <string name="advanced_settings_game">إعدادات متقدمة: %1$s</string>
@@ -319,7 +322,7 @@
     <string name="search_retail">بيع بالتجزئة</string>
     <string name="search_homebrew">البيرة المنزلية</string>
     <string name="open_user_folder">افتح مجلد عدن</string>
-    <string name="open_user_folder_description">إدارة الملفات الداخلية لـ Eden</string>
+    <string name="open_user_folder_description">إدارة الملفات الداخلية لـ عدن</string>
     <string name="theme_and_color_description">تعديل مظهر التطبيق</string>
     <string name="no_file_manager">لم يتم العثور على مدير الملفات</string>
     <string name="notification_no_directory_link">لا يمكن فتح مجلد عدن</string>
@@ -337,28 +340,31 @@
     <string name="import_saves">استيراد</string>
     <string name="export_saves">تصدير</string>
     <string name="install_firmware">تثبيت فيرموير</string>
-    <string name="install_firmware_description">Firmware must be in a ZIP archive and is needed to boot some games</string>
+    <string name="install_firmware_description">يجب أن يكون فيرموير في أرشيف مضغوط وهو ضروري لتشغيل بعض الألعاب</string>
     <string name="firmware_installing">تثبيت فيرموير</string>
     <string name="firmware_installed_success">تم تثبيت فيرموير بنجاح</string>
     <string name="firmware_installed_failure">فشل تثبيت فيرموير</string>
-    <string name="firmware_installed_failure_description">تأكد من أن ملفات البرامج الثابتة nca موجودة في جذر ملف zip وحاول مرة أخرى.</string>
-    <string name="firmware_uninstalled_failure">فشل إلغاء تثبيت البرنامج الثابت</string>
+    <string name="firmware_installed_failure_description">تأكد من أن ملفات الفريموير nca موجودة في جذر ملف zip وحاول مرة أخرى.</string>
+    <string name="firmware_uninstalled_failure">فشل إلغاء تثبيت الفريموير</string>
     <string name="share_log">مشاركة سجلات التصحيح</string>
     <string name="share_log_description">مشاركة ملف سجل عدن لتصحيح المشكلات</string>
     <string name="share_log_missing">لم يتم العثور على ملف السجل</string>
     <string name="install_game_content">تثبيت محتوى اللعبة</string>
-    <string name="install_game_content_description">Install game updates or DLC</string>
+    <string name="install_game_content_description">قم بتثبيت تحديثات اللعبة أو الإضافات</string>
     <string name="installing_game_content">جارٍ تثبيت المحتوى...</string>
     <string name="install_game_content_failure">حدث خطأ أثناء تثبيت الملف(ات) على NAND</string>
     <string name="install_game_content_failure_description">يرجى التأكد من صحة المحتوى (المحتويات) وتثبيت ملف prod.keys.</string>
     <string name="install_game_content_failure_base">لا يُسمح بتثبيت الألعاب الأساسية لتجنب التعارضات المحتملة.</string>
     <string name="install_game_content_failure_file_extension">يتم دعم محتوى NSP و XCI فقط. يرجى التحقق من أن محتوى (محتويات) اللعبة صالحة.</string>
-    <string name="install_game_content_success_install">%1$d installed successfully</string>
-    <string name="install_game_content_success_overwrite">%1$d overwritten successfully</string>
+    <string name="install_game_content_failed_count">%1$d حدث خطأ (أخطاء) في التثبيت </string>
+    <string name="install_game_content_success">تم تثبيت محتوى (محتويات) اللعبة بنجاح</string>
+    <string name="install_game_content_success_install">%1$d تم التثبيت بنجاح</string>
+    <string name="install_game_content_success_overwrite">%1$d تمت الكتابة فوقه بنجاح</string>
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">برامج التشغيل المخصصة غير مدعومة</string>
-    <string name="manage_yuzu_data">إدارة بيانات إيدن</string>
-    <string name="manage_yuzu_data_description">Import/export firmware, keys, user data, and more!</string>
+    <string name="custom_driver_not_supported_description">تحميل برنامج التشغيل المخصص غير مدعوم حاليًا لهذا الجهاز. يُرجى إعادة تفعيل هذا الخيار لاحقًا للتحقق من إضافة الدعم.</string>
+    <string name="manage_yuzu_data">إدارة بيانات عدن</string>
+    <string name="manage_yuzu_data_description">استيراد/تصدير فيرموير والمفاتيح وبيانات المستخدم والمزيد</string>
     <string name="share_save_file">مشاركة ملف الحفظ</string>
     <string name="export_save_failed">فشل تصدير الحفظ</string>
     <string name="game_folders">مجلدات اللعبة</string>
@@ -372,7 +378,7 @@
         <item quantity="two">Failed to import %d saves</item>
         <item quantity="few">Failed to import %d saves</item>
         <item quantity="many">Failed to import %d saves</item>
-        <item quantity="other">Failed to import %d saves</item>
+        <item quantity="other">فشل استيراد %d حفظ</item>
     </plurals>
     <plurals name="saves_import_success">
         <item quantity="zero">Successfully imported %d saves</item>
@@ -380,41 +386,41 @@
         <item quantity="two">Successfully imported %d saves</item>
         <item quantity="few">Successfully imported %d saves</item>
         <item quantity="many">Successfully imported %d saves</item>
-        <item quantity="other">Successfully imported %d saves</item>
+        <item quantity="other">تم استيراد %d حفظ بنجاح</item>
     </plurals>
     <string name="no_save_data_found">لم يتم العثور على بيانات الحفظ</string>
     <string name="verify_installed_content">التحقق من المحتوى المثبت</string>
     <string name="verify_installed_content_description">فحص المحتوى المثبت بحثًا عن تلف</string>
 
     <string name="keys_missing">مفاتيح التشفير مفقودة</string>
-    <string name="keys_missing_description">لا يمكن فك تشفير البرنامج الثابت والألعاب</string>
+    <string name="keys_missing_description">لا يمكن فك تشفير الفريموير والألعاب</string>
     <string name="keys_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
 
-    <string name="uninstall_firmware">إزالة البرنامج الثابت</string>
-    <string name="uninstall_firmware_description">سيؤدي إزالة البرنامج الثابت إلى حذفه من الجهاز وقد يؤثر على توافق الألعاب.</string>
-    <string name="firmware_uninstalling">إلغاء تثبيت البرنامج الثابت</string>
-    <string name="firmware_uninstalled_success">تم إزالة البرنامج الثابت بنجاح</string>
+    <string name="uninstall_firmware">إزالة الفريموير</string>
+    <string name="uninstall_firmware_description">سيؤدي إزالة الفريموير إلى حذفه من الجهاز وقد يؤثر على توافق الألعاب.</string>
+    <string name="firmware_uninstalling">إلغاء تثبيت الفريموير</string>
+    <string name="firmware_uninstalled_success">تم إزالة الفريموير بنجاح</string>
 
-    <string name="firmware_invalid">برنامج ثابت غير صالح</string>
-    <string name="error_firmware_missing">البرنامج الثابت مطلوب لتشغيل بعض الألعاب واستخدام التطبيقات. يعمل إيدن فقط مع البرنامج الثابت 19.0.1 أو الأقدم.</string>
-    <string name="error_firmware_corrupted">البرنامج الثابت موجود ولكن لا يمكن قراءته. تحقق من مفاتيح التشفير وأعد نسخ البرنامج الثابت إذا لزم الأمر.</string>
-    <string name="error_firmware_too_new">البرنامج الثابت جديد جداً أو لا يمكن قراءته. يعمل إيدن فقط مع البرنامج الثابت 19.0.1 أو الأقدم.</string>
+    <string name="firmware_invalid">فريموير غير صالح</string>
+    <string name="error_firmware_missing">الفريموير مطلوب لتشغيل بعض الألعاب واستخدام التطبيقات. يعمل عدن فقط مع الفريموير 19.0.1 أو الأقدم.</string>
+    <string name="error_firmware_corrupted">الفريموير موجود ولكن لا يمكن قراءته. تحقق من مفاتيح التشفير وأعد نسخ الفريموير إذا لزم الأمر.</string>
+    <string name="error_firmware_too_new">الفريموير جديد جداً أو لا يمكن قراءته. يعمل عدن فقط مع الفريموير 19.0.1 أو الأقدم.</string>
     <string name="firmware_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware</string>
 
     <string name="keys_failed">فشل تثبيت المفاتيح</string>
     <string name="keys_install_success">تم تثبيت المفاتيح بنجاح</string>
     <string name="error_keys_copy_failed">فشل نسخ مفتاح واحد أو أكثر.</string>
-    <string name="error_keys_invalid_filename">Verify your keys file has a .keys extension and try again.</string>
-    <string name="error_keys_failed_init">Keys failed to initialize. Check that your dumping tools are up to date and re-dump keys.</string>
+    <string name="error_keys_invalid_filename">تأكد أن ملف المفاتيح يحمل امتداد .keys وحاول مرة أخرى.</string>
+    <string name="error_keys_failed_init">فشل تهيئة المفاتيح. تحقق من أن أدوات النسخ محدثة وأعد نسخ المفاتيح.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">تشغيل التطبيقات من الشاشة الرئيسية للنظام</string>
-    <string name="applets">Applet launcher</string>
-    <string name="applets_description">تطبيقات نظام التشغيل باستخدام البرامج الثابتة المثبتة</string>
-    <string name="applets_error_firmware">البرنامج الثابت غير مثبت أو إصدار غير صالح</string>
-    <string name="applets_error_applet">Applet not available</string>
-    <string name="applets_error_description"><![CDATA[Please ensure your <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> file and <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> are installed and try again.<br>Additionally, ensure your firmware is of version 19.0.1 or older.]]></string>
+    <string name="applets">قائمة التطبيقات المصغرة</string>
+    <string name="applets_description">تطبيقات نظام التشغيل باستخدام الفريموير المثبتة</string>
+    <string name="applets_error_firmware">الفريموير غير مثبت أو إصدار غير صالح</string>
+    <string name="applets_error_applet">التطبيق المصغر غير متوفر</string>
+    <string name="applets_error_description"><![CDATA[يرجى التأكد من أن ملف <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> الخاص بك و <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">الفريموير</a> مثبتة وحاول مرة أخرى.<br>بالإضافة إلى ذلك، تأكد من أن الفريموير الخاص بك هو من الإصدار 19.0.1 أو أقدم.]]></string>
     <string name="album_applet">الألبوم</string>
     <string name="album_applet_description">شاهد الصور المخزنة في مجلد لقطات شاشة المستخدم باستخدام عارض صور النظام</string>
     <string name="mii_edit_applet">تحرير Mii</string>
@@ -428,15 +434,16 @@
     <string name="cabinet_formatter">تنسيق</string>
 
     <!-- About screen strings -->
-    <string name="gaia_is_not_real">Gaia isn\'t real</string>
+    <string name="gaia_is_not_real">Gaia غير حقيقي</string>
     <string name="copied_to_clipboard">نسخ إلى الحافظة</string>
     <string name="about_app_description">محاكي سويتش مفتوح المصدر</string>
     <string name="contributors">المساهمين</string>
     <string name="contributors_description">المساهمون الذين جعلوا عدن لنظام اندرويد ممكن</string>
     <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
-    <string name="licenses_description">Projects that make Eden for Android possible</string>
+    <string name="licenses_description">المشاريع التي تجعل عدن لأجهزة أندرويد ممكنة</string>
     <string name="build">البناء</string>
     <string name="user_data">بيانات المستخدم</string>
+    <string name="user_data_description">استيراد/تصدير جميع بيانات التطبيق.\nعند استيراد بيانات المستخدم، سيتم حذف جميع بيانات المستخدم الموجودة!\nقد يُسبب استيراد البيانات من Citron بعض المشاكل. يُنصح باستيراد جميع البيانات المطلوبة يدويًا.</string>
     <string name="exporting_user_data">جارٍ تصدير بيانات المستخدم...</string>
     <string name="importing_user_data">جارٍ استيراد بيانات المستخدم...</string>
     <string name="import_user_data">استيراد بيانات المستخدم</string>
@@ -444,11 +451,13 @@
     <string name="user_data_export_success">تم تصدير بيانات المستخدم بنجاح</string>
     <string name="user_data_import_success">تم استيراد بيانات المستخدم بنجاح</string>
     <string name="user_data_export_cancelled">تم إلغاء التصدير</string>
+    <string name="user_data_import_failed_description">تأكد من أن مجلدات بيانات المستخدم موجودة في جذر مجلد zip وتحتوي على ملف تكوين في config/config.ini وحاول مرة أخرى.</string>
     <!-- General settings strings -->
     <string name="frame_limit_enable">الحد من السرعة</string>
     <string name="frame_limit_enable_description">يحد من سرعة المحاكاة بنسبة محددة من السرعة العادية</string>
     <string name="frame_limit_slider">الحد من السرعة في المئة</string>
     <string name="frame_limit_slider_description">يحدد النسبة المئوية للحد من سرعة المحاكاة. 100% هي السرعة الطبيعية. ستؤدي القيم الأعلى أو الأدنى إلى زيادة أو تقليل حد السرعة.</string>
+    <string name="cpu_backend">خلفية وحدة المعالجة المركزية</string>
     <string name="cpu_accuracy">دقة وحدة المعالجة المركزية</string>
     <string name="value_with_units">%1$s%2$s</string>
 
@@ -485,40 +494,40 @@
     <string name="renderer_vsync">VSync وضع</string>
     <string name="renderer_screen_layout">اتجاه العرض</string>
     <string name="renderer_aspect_ratio">تناسب الابعاد</string>
-    <string name="renderer_scaling_filter">Window adapting filter</string>
-    <string name="fsr_sharpness">FSR sharpness</string>
-    <string name="fsr_sharpness_description">Determines how sharpened the image will look while using FSR\'s dynamic contrast</string>
-    <string name="renderer_anti_aliasing">Anti-aliasing method</string>
+    <string name="renderer_scaling_filter">تصفية تكييف النافذة</string>
+    <string name="fsr_sharpness">حدة FSR</string>
+    <string name="fsr_sharpness_description">تحديد مدى حدة الصورة عند استخدام FSR</string>
+    <string name="renderer_anti_aliasing">طريقة مكافحة التعرج</string>
     <string name="renderer_force_max_clock">إجبار السرعة القصوى (لأجهزة Adreno فقط)</string>
     <string name="renderer_force_max_clock_description">يجبر وحدة معالجة الرسومات على العمل في أقصى الساعات الممكنة (سيستمر تطبيق القيود الحرارية).</string>
-    <string name="renderer_optimize_spirv_output">Optimize Spir-V output</string>
+    <string name="renderer_optimize_spirv_output">تحسين Spir-V</string>
     <string name="renderer_optimize_spirv_output_description">يحسن الشادر المترجم لزيادة كفاءة GPU.</string>
-    <string name="renderer_asynchronous_shaders">Use asynchronous shaders</string>
-    <string name="renderer_asynchronous_shaders_description">Compiles shaders asynchronously. This may reduce stutters but may also introduce glitches.</string>
-    <string name="use_fast_gpu_time">Use Fast GPU Time</string>
-    <string name="use_fast_gpu_time_description">Forces most games to run at their highest native resolution. This option is hacky and may cause issues.</string>
-    <string name="fast_gpu_time">GPU Overclock Factor</string>
-    <string name="fast_gpu_time_description">Use 128 for maximal performance and 512 for maximal graphics fidelity.</string>
-    <string name="renderer_reactive_flushing">Use reactive flushing</string>
-    <string name="renderer_reactive_flushing_description">Improves rendering accuracy in some games at the cost of performance.</string>
-    <string name="use_disk_shader_cache">Disk shader cache</string>
-    <string name="use_disk_shader_cache_description">Reduces stuttering by locally storing and loading generated shaders.</string>
-    <string name="anisotropic_filtering">Anisotropic filtering</string>
-    <string name="anisotropic_filtering_description">Improves the quality of textures when viewed at oblique angles</string>
+    <string name="renderer_asynchronous_shaders">استخدم تظليل غير متزامن</string>
+    <string name="renderer_asynchronous_shaders_description">تجميع الظلال بشكل غير متزامن. قد يقلل هذا من التقطع ولكنه قد يتسبب أيضًا في حدوث أخطاء.</string>
+    <string name="use_fast_gpu_time">استخدام وقت GPU السريع</string>
+    <string name="use_fast_gpu_time_description">يجبر معظم الألعاب على العمل بأعلى دقة أصلية. هذا الخيار غير مثبت وقد يسبب مشاكل.</string>
+    <string name="fast_gpu_time">عامل زيادة سرعة GPU</string>
+    <string name="fast_gpu_time_description">استخدم 128 لأقصى أداء و512 لأقصى دقة رسومية.</string>
+    <string name="renderer_reactive_flushing">استخدم التنظيف التفاعلي</string>
+    <string name="renderer_reactive_flushing_description">تحسين دقة العرض في بعض الألعاب على حساب الأداء</string>
+    <string name="use_disk_shader_cache">ذاكرة التخزين المؤقت للتظليل</string>
+    <string name="use_disk_shader_cache_description">يقلل من التأتأة عن طريق تخزين وتحميل التظليلات التي تم إنشاؤها محليًا.</string>
+    <string name="anisotropic_filtering">تصفية متباينة الخواص</string>
+    <string name="anisotropic_filtering_description">تحسين جودة القوام عند الزوايا المائلة</string>
 
-    <string name="warning_resolution">Resolution scaling to 2x or higher is known to cause issues, and may result in significant slowdowns of your device.</string>
+    <string name="warning_resolution">تغيير دقة العرض إلى 2x أو أعلى قد يسبب مشاكل، وقد يؤدي إلى تباطؤ كبير في جهازك.</string>
 
     <!-- Debug settings strings -->
-    <string name="cpu">CPU</string>
-    <string name="cpu_debug_mode">CPU Debugging</string>
-    <string name="cpu_debug_mode_description">Puts the CPU in a slow debugging mode.</string>
-    <string name="use_auto_stub">Use Auto Stub</string>
-    <string name="use_auto_stub_description">Automatically stub missing services and functions. This may improve compatibility but can cause crashes and stability issues.</string>
+    <string name="cpu">وحدة المعالج المركزية</string>
+    <string name="cpu_debug_mode">تصحيح أخطاء وحدة المعالجة المركزية</string>
+    <string name="cpu_debug_mode_description">يضع وحدة المعالجة المركزية في وضع التصحيح البطيء.</string>
+    <string name="use_auto_stub">استخدام الستاب التلقائي</string>
+    <string name="use_auto_stub_description">يقوم تلقائيًا بإضافة خدمات ووظائف ناقصة. قد يحسن التوافق ولكنه قد يتسبب في تعطل المشغل ومشاكل في الاستقرار.</string>
 
-    <string name="gpu">GPU</string>
-    <string name="renderer_api">API</string>
-    <string name="renderer_debug">Graphics debugging</string>
-    <string name="renderer_debug_description">Sets the graphics API to a slow debugging mode.</string>
+    <string name="gpu">وحدة معالجة الرسومات</string>
+    <string name="renderer_api">واجهة برمجة التطبيقات</string>
+    <string name="renderer_debug">تصحيح الأخطاء الرسومية</string>
+    <string name="renderer_debug_description">يضبط واجهة برمجة تطبيقات الرسومات على وضع تصحيح الأخطاء البطيء.</string>
     <string name="fastmem">Fastmem</string>
 
     <string name="log">التسجيل</string>
@@ -526,7 +535,7 @@
     <string name="flush_by_line_description">يفرغ سجلات التصحيح عند كتابة كل سطر، مما يجعل التصحيح أسهل في حالات التوقف أو التجميد.</string>
 
     <!-- Audio settings strings -->
-    <string name="audio_output_engine">Output engine</string>
+    <string name="audio_output_engine">محرك الإخراج</string>
     <string name="audio_volume">مستوى الصوت</string>
     <string name="audio_volume_description">يحدد مستوى إخراج الصوت</string>
 
@@ -541,32 +550,61 @@
     <string name="button_home">Home</string>
     <string name="button_capture">Capture</string>
     <string name="start_pause">Start/Pause</string>
-    <string name="dpad">أزرار التوجيه</string>
+    <string name="dpad">الأسهم</string>
     <string name="up">فوق</string>
     <string name="down">تحت</string>
     <string name="left">يسار</string>
     <string name="right">يمين</string>
+    <string name="left_stick">العصا اليسرى</string>
     <string name="control_stick">عصا التحكم</string>
+    <string name="right_stick">العصا اليمنى</string>
+    <string name="c_stick">عصا-C</string>
     <string name="pressed">مضغوط</string>
     <string name="range">النطاق</string>
     <string name="deadzone">المنطقة الميتة</string>
     <string name="modifier">المعدل</string>
     <string name="modifier_range">نطاق المعدل</string>
+    <string name="triggers">المحفزات</string>
     <string name="button_l">L</string>
     <string name="button_r">R</string>
     <string name="button_zl">ZL</string>
     <string name="button_zr">ZR</string>
+    <string name="button_sl_left">Left SL</string>
+    <string name="button_sr_left">Left SR</string>
+    <string name="button_sl_right">Right SL</string>
+    <string name="button_sr_right">Right SR</string>
     <string name="button_z">Z</string>
     <string name="invalid">غير صالح</string>
     <string name="not_set">غير محدد</string>
     <string name="unknown">غير معروف</string>
+    <string name="qualified_hat">%1$s%2$s%3$sHat %4$s</string>
+    <string name="qualified_button_stick_axis">%1$s%2$s%3$sAxis %4$s</string>
+    <string name="qualified_button">%1$s%2$s%3$sزر %4$s</string>
+    <string name="qualified_axis">Axis %1$s%2$s</string>
     <string name="unused">غير مستخدم</string>
-    <string name="input_prompt">Move or press an input</string>
-    <string name="unsupported_input">Unsupported input type</string>
-    <string name="input_mapping_filter">Input mapping filter</string>
+    <string name="input_prompt">نقل أو الضغط على إدخال</string>
+    <string name="unsupported_input">نوع الإدخال غير مدعوم</string>
+    <string name="input_mapping_filter">مرشح تعيين الإدخال</string>
+    <string name="input_mapping_filter_description">اختر جهازًا لتصفية مدخلات الخرائط</string>
+    <string name="auto_map">تعيين وحدة التحكم تلقائيًا</string>
+    <string name="auto_map_description">حدد جهازًا لمحاولة رسم الخرائط التلقائية</string>
+    <string name="attempted_auto_map">تم محاولة التعيين التلقائي باستخدام %1$s</string>
     <string name="controller_type">نوع وحدة التحكم</string>
+    <string name="pro_controller">Pro Controller</string>
+    <string name="handheld">محمول</string>
+    <string name="dual_joycons">Dual Joycons</string>
+    <string name="left_joycon">Left Joycon</string>
+    <string name="right_joycon">Right Joycon</string>
+    <string name="gamecube_controller">GameCube ذراع تحكم</string>
+    <string name="invert_axis">Invert axis</string>
+    <string name="invert_button">Invert button</string>
+    <string name="toggle_button">Toggle button</string>
+    <string name="turbo_button">Turbo button</string>
+    <string name="set_threshold">Set threshold</string>
+    <string name="toggle_axis">Toggle axis</string>
     <string name="connected">متصل</string>
     <string name="use_system_vibrator">استخدام هزاز النظام</string>
+    <string name="input_overlay">تراكب الإدخال</string>
     <string name="vibration">الاهتزاز</string>
     <string name="vibration_strength">قوة الاهتزاز</string>
     <string name="profile">الملف الشخصي</string>
@@ -578,6 +616,10 @@
     <string name="player_num_profile">ملف تعريف%d اللاعب</string>
     <string name="delete_input_profile">حذف ملف تعريف الإدخال</string>
     <string name="delete_input_profile_description">هل أنت متأكد من رغبتك في حذف ملف التعريف هذا؟ هذا غير قابل للاسترداد</string>
+    <string name="stick_map_description">حرك العصا إلى اليسار ثم للأعلى أو اضغط على زر</string>
+    <string name="button_map_description">اضغط على زر أو حرك الزناد/العصا</string>
+    <string name="map_dpad_direction">Map to D-Pad %1$s</string>
+    <string name="map_control">Map to %1$s</string>
     <string name="failed_to_load_profile">فشل تحميل ملف التعريف</string>
     <string name="failed_to_save_profile">فشل في حفظ ملف التعريف</string>
     <string name="reset_mapping">إعادة تعيين التعيينات</string>
@@ -587,7 +629,7 @@
     <string name="slider_default">افتراضي</string>
     <string name="ini_saved">الإعدادات المحفوظة</string>
     <string name="gameid_saved">الإعدادات المحفوظة لـ %1$s</string>
-    <string name="error_saving">Error saving %1$s.ini: %2$s</string>
+    <string name="error_saving">خطأ في حفظ %1$s.ini: %2$s</string>
     <string name="unimplemented_menu">قائمة غير منفذة</string>
     <string name="loading">جارٍ التحميل…</string>
     <string name="shutting_down">جارٍ إيقاف التشغيل...</string>
@@ -642,25 +684,25 @@
     <string name="check_connection">تحقق من اتصالك وحاول مرة أخرى.</string>
     <string name="show_releases">عرض الإصدارات</string>
     <string name="view_full_release_notes">ملاحظات الإصدار</string>
-    <string name="failed_to_fetch">Failed to fetch</string>
-    <string name="error_during_fetch">Error during Fetch</string>
-    <string name="toggle_release_notes">Toggle release notes</string>
+    <string name="failed_to_fetch">فشل في الجلب</string>
+    <string name="error_during_fetch">خطأ أثناء الجلب</string>
+    <string name="toggle_release_notes">ملاحظات الإصدار</string>
     <string name="downloads">التحميلات</string>
     <string name="show_downloads">عرض التحميلات</string>
     <string name="hide_downloads">إخفاء التحميلات</string>
-    <string name="failed_cache_dir">Cache directory unavailable</string>
-    <string name="empty_response_body">Empty response body</string>
-    <string name="successfully_installed">%1$s Successfully Installed</string>
-    <string name="driver_failed_title">Driver installation failed</string>
-    <string name="failed_install_driver">Failed to install %1$s driver, does your system support it?</string>
-    <string name="driver_empty">Downloaded driver is empty, check your internet</string>
+    <string name="failed_cache_dir">دليل الذاكرة المؤقتة غير متاح</string>
+    <string name="empty_response_body">نص الاستجابة فارغ</string>
+    <string name="successfully_installed">تم تثبيت %1$s بنجاح</string>
+    <string name="driver_failed_title">فشل تثبيت برنامج التشغيل</string>
+    <string name="failed_install_driver">فشل تثبيت برنامج تشغيل %1$s، هل نظامك يدعمه؟</string>
+    <string name="driver_empty">برنامج التشغيل الذي تم تنزيله فارغ، تحقق من اتصالك بالإنترنت</string>
     <string name="downloading">جارٍ التنزيل...</string>
     <string name="installing">جارٍ التثبيت...</string>
     <string name="latest">الأحدث</string>
-    <string name="recommended_driver">Recommended Driver:</string>
-    <string name="gpu_model">GPU Model:</string>
-    <string name="unsupported_gpu">Unsupported GPU</string>
-    <string name="unsupported_gpu_warning">Your GPU does not support driver injection. Attempting to set custom drivers is not recommended.</string>
+    <string name="recommended_driver">برنامج التشغيل الموصى به:</string>
+    <string name="gpu_model">طراز GPU:</string>
+    <string name="unsupported_gpu">GPU غير مدعوم</string>
+    <string name="unsupported_gpu_warning">GPU الخاص بك لا يدعم حقن برنامج التشغيل. لا يُنصح بمحاولة تعيين برامج تشغيل مخصصة.</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">إعدادات</string>
@@ -672,9 +714,12 @@
     <string name="preferences_audio">الصوت</string>
     <string name="preferences_audio_description">محرك الإخراج ، حجم الصوت</string>
     <string name="preferences_controls">التحكم</string>
+    <string name="preferences_controls_description">مدخلات وحدة تحكم الخريطة</string>
     <string name="preferences_player">اللاعب %d</string>
     <string name="preferences_theme">السمة واللون</string>
     <string name="preferences_debug">تصحيح الأخطاء</string>
+    <string name="preferences_debug_description">CPU/GPU debugging, graphics API, fastmem</string>
+
     <!-- Game properties -->
     <string name="info">معلومات</string>
     <string name="info_description">معرف البرنامج، المطور، الإصدار</string>
@@ -687,7 +732,7 @@
     <string name="version">إصدار</string>
     <string name="copy_details">نسخ التفاصيل</string>
     <string name="add_ons">الإضافات</string>
-    <string name="add_ons_description">Toggle mods, updates and DLC</string>
+    <string name="add_ons_description">التعديلات والتحديثات والإضافات</string>
     <string name="clear_shader_cache">مسح ذاكرة التخزين المؤقت للتظليل</string>
     <string name="clear_shader_cache_description">يزيل جميع التظليلات التي تم إنشاؤها أثناء لعب هذه اللعبة</string>
     <string name="clear_shader_cache_warning_description">سوف تواجه المزيد من التأتأة مع تجديد ذاكرة التخزين المؤقت للتظليل</string>
@@ -698,15 +743,20 @@
     <string name="delete_save_data">حذف حفظ البيانات</string>
     <string name="delete_save_data_description">يزيل كافة البيانات المحفوظة الخاصة بهذه اللعبة</string>
     <string name="delete_save_data_warning_description">يؤدي هذا إلى إزالة كافة البيانات المحفوظة لهذه اللعبة بشكل لا يمكن استرداده. هل أنت متأكد أنك تريد الاستمرار؟</string>
-    <string name="save_data_deleted_successfully">حفظ البيانات تم حذفها بنجاح</string>
+    <string name="save_data_deleted_successfully">تم حذف تخزين اللعبة بنجاح</string>
     <string name="select_content_type">نوع المحتوى</string>
     <string name="updates_and_dlc">التحديثات والمحتوى القابل للتنزيل  </string>
     <string name="mods_and_cheats">تعديل وغش</string>
     <string name="addon_notice">إشعار إضافي مهم</string>
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
+    <string name="addon_notice_description">لتثبيت التعديلات والغش، يجب عليك اختيار مجلد يحتوي على ملفات cheats/ أو romfs/ أو exefs/. لا يمكننا التأكد من توافق هذه الملفات مع لعبتك، لذا كن حذرًا!</string>
     <string name="invalid_directory">مجلد غير صالح</string>
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
+    <string name="invalid_directory_description">يرجى التأكد من أن الدليل الذي حددته يحتوي على مجلد cheats/ أو romfs/ أو exefs/ ثم حاول مرة أخرى.</string>
     <string name="addon_installed_successfully">تم تثبيت الملحق بنجاح</string>
     <string name="verifying_content">جارٍ التحقق من المحتوى…</string>
     <string name="content_install_notice">إشعار تثبيت المحتوى</string>
+    <string name="content_install_notice_description">المحتوى الذي اخترته لا يتوافق مع هذه اللعبة.\n هل ترغب في التثبيت على أي حال؟</string>
     <string name="confirm_uninstall">تأكيد إلغاء التثبيت</string>
     <string name="confirm_uninstall_description">هل أنت متأكد من أنك تريد إلغاء تثبيت هذا الملحق؟</string>
     <string name="verify_integrity">التحقق من السلامة</string>
@@ -716,57 +766,61 @@
     <string name="verify_failure_description">قد تكون محتويات الملف تالفة</string>
     <string name="verify_no_result">تعذر التحقق من السلامة</string>
     <string name="verify_no_result_description">لم يتم التحقق من صحة محتويات الملف</string>
-    <!-- ROM loading errors -->
-    <string name="loader_error_encrypted">Your ROM is encrypted</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Please follow the guides to redump your <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">game cartridges</a> or <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">installed titles</a>.]]></string>
-    <string name="loader_error_encrypted_keys_description"><![CDATA[Please ensure your <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> file is installed so that games can be decrypted.]]></string>
-    <string name="loader_error_video_core">An error occurred initializing the video core</string>
-    <string name="loader_error_video_core_description">This is usually caused by an incompatible GPU driver. Installing a custom GPU driver may resolve this problem.</string>
-    <string name="loader_error_invalid_format">Unable to load ROM</string>
-    <string name="loader_error_file_not_found">ROM file does not exist</string>
+    <string name="verification_failed_for">فشل التحقق من الملفات التالية:\n%1$s</string>
 
-    <string name="loader_requires_firmware">Game Requires Firmware</string>
-    <string name="loader_requires_firmware_description"><![CDATA[The game you are trying to launch requires firmware to boot or to get past the opening menu. Please <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> dump and install firmware</a>, or press \"OK\" to launch anyways.]]></string>
+    <!-- ROM loading errors -->
+    <string name="loader_error_encrypted">الخاص بك ROM تم تشفير</string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[يرجى اتباع الأدلة لإعادة نسخ <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">ألعاب البطاقات</a> أو <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">العناوين الرقمية</a>.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[تأكد من تثبيت <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>]]></string>
+    <string name="loader_error_video_core">حدث خطأ أثناء تهيئة مركز الفيديو</string>
+    <string name="loader_error_video_core_description">قد يكون بسبب تعريف GPU غير متوافق</string>
+    <string name="loader_error_invalid_format">ROM غير قادر على تحميل</string>
+    <string name="loader_error_file_not_found">غير موجود ROM ملف</string>
+
+    <string name="loader_requires_firmware">اللعبة تتطلب فريموير</string>
+    <string name="loader_requires_firmware_description"><![CDATA[اللعبة التي تحاول تشغيلها تتطلب فريموير للتمهيد أو لتجاوز القائمة الافتتاحية. يرجى <a href=\"https://yuzu-mirror.github.io/help/quickstart\">نسخ وتثبيت فريموير</a>، أو اضغط \"موافق\" للمتابعة على أي حال.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">جارٍ البحث عن اللعبة...</string>
-    <string name="game_not_found_for_title_id">Game not found for Title ID: %1$s</string>
+    <string name="game_not_found_for_title_id">لم يتم العثور على اللعبة لمعرف العنوان: %1$s</string>
     <string name="custom_settings_failed_title">فشل الإعدادات المخصصة</string>
-    <string name="custom_settings_failed_message">Failed to apply custom settings for %1$s: %2$s</string>
+    <string name="custom_settings_failed_message">فشل تطبيق الإعدادات المخصصة لـ %1$s: %2$s</string>
     <string name="launch_with_default_settings">بدء التشغيل بالإعدادات الافتراضية</string>
     <string name="launch_cancelled">تم إلغاء البدء</string>
-    <string name="custom_settings_failure_reasons">Unable to apply the requested settings. This may be due to missing GPU drivers or configuration issues.</string>
-    <string name="custom_settings_applied">Custom settings applied</string>
+    <string name="custom_settings_failure_reasons">غير قادر على تطبيق الإعدادات المطلوبة. قد يكون هذا بسبب отсут برامج تشغيل GPU أو مشاكل في التهيئة.</string>
+    <string name="custom_settings_applied">تم تطبيق الإعدادات المخصصة</string>
     <string name="launching_game">جارٍ التشغيل %1$s...</string>
     <string name="failed_to_initialize_game">فشل تهيئة اللعبة</string>
-    <string name="custom_intent_launch_message_with_settings">Would you like to launch %1$s with custom settings?</string>
-    <string name="custom_intent_launch_message">Would you like to launch %1$s?</string>
+    <string name="custom_intent_launch_message_with_settings">هل تريد تشغيل %1$s بالإعدادات المخصصة؟</string>
+    <string name="custom_intent_launch_message">هل تريد تشغيل %1$s؟</string>
     <string name="custom_intent_launch_title">تشغيل اللعبة</string>
     <string name="launch">تشغيل</string>
 
     <!-- Custom Config strings -->
     <string name="config_write_failed">فشل كتابة ملف التهيئة</string>
-    <string name="config_apply_failed">Failed to apply configuration</string>
-    <string name="config_already_exists_title">Configuration Already Exists</string>
-    <string name="config_exists_prompt">Checking for existing configuration...</string>
-    <string name="overwrite_cancelled">Overwrite cancelled</string>
-    <string name="checking_driver">Checking for custom driver: %1$s</string>
-    <string name="driver_unavailable">Custom driver not available for this device</string>
-    <string name="overwrite">Overwrite</string>
+    <string name="config_apply_failed">فشل تطبيق التهيئة</string>
+    <string name="config_already_exists_title">التهيئة موجودة بالفعل</string>
+    <string name="config_already_exists_message">الإعدادات المخصصة موجودة بالفعل لـ  \'%1$s\' .\nهل ترغب في استبدال التكوين الحالي؟\nلا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="config_exists_prompt">جارٍ التحقق من التكوين الحالي...</string>
+    <string name="overwrite_cancelled">تم إلغاء الكتابة فوق</string>
+    <string name="checking_driver">جارٍ التحقق من برنامج التشغيل المخصص: %1$s</string>
+    <string name="driver_unavailable">برنامج التشغيل المخصص غير متاح لهذا الجهاز</string>
+    <string name="overwrite">الكتابة فوق</string>
 
     <!-- Driver strings -->
-    <string name="missing_gpu_driver_title">GPU Driver Missing</string>
-    <string name="missing_gpu_driver_message">The selected custom driver \"%s\" is not installed. Would you like to download and install it now?</string>
-    <string name="downloading_driver">Downloading driver...</string>
-    <string name="driver_installed">Driver installed successfully</string>
-    <string name="driver_installation_failed_title">Driver Installation Failed</string>
-    <string name="driver_installation_failed_message">Failed to install the GPU driver: %s</string>
-    <string name="driver_not_available_title">Driver Not Available</string>
-    <string name="driver_not_available_message">The selected driver is not available for download.</string>
-    <string name="driver_not_found">Required driver not installed: %s</string>
-    <string name="invalid_driver_file">Invalid driver file: %s</string>
-    <string name="network_unavailable">No network connection available. Please check your internet connection and try again.</string>
-    <string name="driver_missing_title">GPU Driver Required</string>
+    <string name="missing_gpu_driver_title">برنامج تشغيل وحدة معالجة الرسومات مفقود</string>
+    <string name="missing_gpu_driver_message">برنامج التشغيل المخصص المحدد \"%s\" غير مثبت. هل تريد تنزيله وتثبيته الآن؟</string>
+    <string name="downloading_driver">جارٍ تنزيل برنامج التشغيل...</string>
+    <string name="driver_installed">تم تثبيت برنامج التشغيل بنجاح</string>
+    <string name="driver_installation_failed_title">فشل تثبيت برنامج التشغيل</string>
+    <string name="driver_installation_failed_message">فشل تثبيت برنامج تشغيل GPU: %s</string>
+    <string name="driver_not_available_title">برنامج التشغيل غير متاح</string>
+    <string name="driver_not_available_message">برنامج التشغيل المحدد غير متاح للتنزيل.</string>
+    <string name="driver_not_found">برنامج التشغيل المطلوب غير مثبت: %s</string>
+    <string name="invalid_driver_file">ملف برنامج تشغيل غير صالح: %s</string>
+    <string name="network_unavailable">لا يوجد اتصال بالشبكة. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.</string>
+    <string name="driver_missing_title">مطلوب برنامج تشغيل وحدة معالجة الرسومات</string>
+    <string name="driver_missing_message">يتطلب إعداد اللعبة برنامج تشغيل وحدة معالجة الرسومات \"\'%s\'\" وهو غير مُثبّت على جهازك.\nهل ترغب بتنزيله وتثبيته الآن؟</string>
     <string name="driver_download_cancelled">تم إلغاء تنزيل برنامج التشغيل. لا يمكن تشغيل اللعبة بدون برنامج التشغيل المطلوب.</string>
     <string name="download">تنزيل</string>
 
@@ -793,7 +847,6 @@
     <string name="touchscreen">شاشة اللمس</string>
     <string name="lock_drawer">قفل الدرج</string>
     <string name="unlock_drawer">فتح الدرج</string>
-
     <string name="load_settings">جارٍ تحميل الإعدادات...</string>
 
     <!-- Software keyboard -->
@@ -806,7 +859,7 @@
     <string name="system_archive_general">أرشيف النظام</string>
     <string name="save_load_error">خطأ في الحفظ/التحميل</string>
     <string name="fatal_error">خطا فادح</string>
-    <string name="performance_warning">سيؤدي إيقاف تشغيل هذا الإعداد إلى تقليل أداء المحاكاة بشكل ملحوظ! للحصول على أفضل تجربة، يوصى بترك هذا الإعداد ممكنًا.</string>
+    <string name="device_memory_inadequate">ذاكرة الوصول العشوائي للجهاز: \'%1$s\'\nموصى به: \'%2$s\' </string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">لا توجد لعبة قابلة للتمهيد</string>
 
@@ -855,13 +908,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">عادي</string>
     <string name="renderer_accuracy_high">عالي</string>
-    <string name="renderer_accuracy_extreme">متطرف (بطيء)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">افتراضي</string>
-    <string name="dma_accuracy_unsafe">غير آمن (سريع)</string>
-    <string name="dma_accuracy_safe">آمن (مستقر)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">طريقة فك ضغط ASTC</string>
     <string name="accelerate_astc_description">اختر كيفية فك ضغط نسيج ASTC للعرض: CPU (بطيء، آمن)، GPU (سريع، موصى به)، أو CPU Async (بدون توقف، قد يسبب مشاكل)</string>
@@ -897,8 +945,8 @@
     <string name="resolution_four">4X (2880p/4320p) (بطيء)</string>
 
     <!-- Renderer VSync -->
-    <string name="renderer_vsync_immediate">Immediate (Off)</string>
-    <string name="renderer_vsync_mailbox">صندوق البريد</string>
+    <string name="renderer_vsync_immediate">فوري (إيقاف)</string>
+    <string name="renderer_vsync_mailbox">Mailbox</string>
     <string name="renderer_vsync_fifo">FIFO (On)</string>
     <string name="renderer_vsync_fifo_relaxed">FIFO Relaxed</string>
 
@@ -909,7 +957,7 @@
     <string name="scaling_filter_gaussian">Gaussian</string>
     <string name="scaling_filter_scale_force">ScaleForce</string>
     <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
-    <string name="scaling_filter_area">منطقة</string>
+    <string name="scaling_filter_area">Area</string>
 
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">لا شيء</string>
@@ -1001,7 +1049,7 @@
     <!-- Emulation vertical alignment -->
     <string name="vertical_alignment">محاذاة عمودية</string>
     <string name="top">أعلى</string>
-    <string name="center">مركز</string>
+    <string name="center">منتصف</string>
     <string name="bottom">أسفل</string>
 
     <!-- Applet Modes -->

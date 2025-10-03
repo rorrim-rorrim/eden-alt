@@ -4,7 +4,6 @@
     <string name="notice_notification_channel_name">Thông báo và lỗi</string>
     <string name="notice_notification_channel_description">Hiển thị thông báo khi có sự cố xảy ra</string>
     <string name="notification_permission_not_granted">Ứng dụng không được cấp quyền thông báo!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Nâng cao)</string>
     <string name="process_ram">RAM tiến trình: %1$d MB</string>
@@ -697,7 +696,6 @@
     <string name="system_archive_general">Một tập tin hệ thống</string>
     <string name="save_load_error">Lỗi Lưu/Tải</string>
     <string name="fatal_error">Lỗi nghiêm trọng</string>
-    <string name="performance_warning">Tắt cài đặt này sẽ làm giảm đáng kể hiệu suất giả lập! Để có trải nghiệm tốt nhất, bạn nên bật cài này.</string>
     <!-- Region Names -->
     <string name="region_japan">Nhật Bản</string>
     <string name="region_usa">Hoa Kỳ</string>
@@ -735,13 +733,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Trung bình</string>
     <string name="renderer_accuracy_high">Khỏe</string>
-    <string name="renderer_accuracy_extreme">Tối đa (Chậm)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Mặc định</string>
-    <string name="dma_accuracy_unsafe">Không an toàn (nhanh)</string>
-    <string name="dma_accuracy_safe">An toàn (ổn định)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Phương thức giải mã ASTC</string>
     <string name="accelerate_astc_description">Chọn cách giải mã texture nén ASTC để kết xuất: CPU (chậm, an toàn), GPU (nhanh, khuyên dùng) hoặc CPU Async (không giật, có thể gây ra sự cố)</string>

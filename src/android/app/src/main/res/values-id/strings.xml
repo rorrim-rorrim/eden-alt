@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
+    <string name="app_disclaimer">Perangkat lunak ini akan menjalankan permainan dari konsol Nintendo Switch. Permainan maupun keys tidak disediakan.<br /><br />Sebelum memulai, tolong temukan berkas <![CDATA[<b> prod.keys </b>]]> didalam tempat penyimpanan mu.<br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Pelajari lebih lanjut</a>]]></string>
     <string name="notice_notification_channel_name">Pemberitahuan dan error</string>
     <string name="notice_notification_channel_description">Menampilkan pemberitahuan ketika terjadi kesalahan.</string>
     <string name="notification_permission_not_granted">Izin notifikasi tidak diberikan!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Ditingkatkan)</string>
     <string name="process_ram">RAM Proses: %1$d MB</string>
@@ -242,10 +242,12 @@
     <string name="keys_description">Pilih file &lt;b>prod.keys&lt;/b> Anda dengan tombol di bawah ini.</string>
     <string name="select_keys">Pilih Kunci</string>
     <string name="firmware">Firmware</string>
+    <string name="firmware_description">Pilih berkas <b>firmware.zip</b> dengan tombol dibawah.\nSaat ini Eden memerlukan versi <b>19.0.1</b> atau dibawahnya.</string>
     <string name="select_firmware">Pilih Firmware</string>
     <string name="games">Permainan</string>
     <string name="games_description">Pilih folder &lt;b>Games&lt;/b> Anda dengan tombol di bawah ini.</string>
     <string name="done">Selesai</string>
+    <string name="done_description">Semuanya telah siap.\nNikmati permainanmu!</string>
     <string name="text_continue">Lanjut</string>
     <string name="next">Berikutnya</string>
     <string name="back">Kembali</string>
@@ -260,12 +262,15 @@
     <string name="alphabetical">Abjad</string>
     <string name="view_list">Daftar</string>
     <string name="view_grid">Grid</string>
+    <string name="view_grid_compact">Pola kotak padu</string>
     <string name="view_carousel">Karousel</string>
+    <string name="game_image_desc">Tangkap layar untuk %1$s</string>
     <string name="folder">Folder</string>
     <string name="pre_alpha_warning_title">Perangkat Lunak Pre-Alpha</string>
     <string name="pre_alpha_warning_description">PERINGATAN: Build ini tidak dimaksudkan untuk dibagikan atau ditunjukkan ke publik. Perangkat lunak ini dalam tahap pre-alpha dan mungkin memiliki bug dan fitur yang belum lengkap. \nJika Anda mendapatkan akses tidak sah ke build ini; sangat disarankan untuk mencopotnya segera</string>
     <string name="dont_show_again">Jangan Tampilkan Lagi</string>
     <string name="pre_alpha_warning">PERANGKAT LUNAK PRE-ALPHA; TIDAK UNTUK PENGGUNAAN PUBLIK</string>
+    <string name="add_directory_success">Direktori permainan baru berhasil ditambahkan</string>
     <string name="home_games">Permainan</string>
     <string name="home_search">Cari</string>
     <string name="home_settings">Pengaturan</string>
@@ -276,6 +281,7 @@
     <string name="select_games_folder_description">Izinkan Eden mengisi daftar game</string>
     <string name="add_games_warning">Lewati pemilihan folder game?</string>
     <string name="add_games_warning_description">Game tidak akan muncul di list jika tidak ada folder yang dipilih.</string>
+    <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Cari permainan</string>
     <string name="search_settings">Cari pengaturan</string>
     <string name="games_dir_selected">Direktori game sudah terpilih</string>
@@ -283,8 +289,10 @@
     <string name="install_prod_keys_description">Diperlukan untuk mendekripsi game retail</string>
     <string name="install_prod_keys_warning">Lewati penginstalan keys?</string>
     <string name="install_prod_keys_warning_description">Perlu keys yang valid untuk meng-emulate game retail. Hanya homebrew apps yang akan berfungsi jika kamu melanjutkan.</string>
+    <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="install_firmware_warning">Lewati penambahan firmware?</string>
     <string name="install_firmware_warning_description">Banyak game memerlukan akses ke firmware untuk berjalan dengan baik.</string>
+    <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Notifikasi</string>
     <string name="notifications_description">Berikan izin notifikasi dengan tombol di bawah ini.</string>
     <string name="give_permission">Berikan izin</string>
@@ -301,6 +309,7 @@
     <string name="install_amiibo_keys">Install Amiibo keys</string>
     <string name="install_amiibo_keys_description">Diperlukan untuk menggunakan Amiibo di dalam game</string>
     <string name="install_amiibo_keys_failure_extension_description">Pastikan file keys anda memiliki format .bin dan coba lagi.</string>
+    <string name="dumping_keys_quickstart_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
     <string name="gpu_driver_fetcher">Pengambil Driver GPU</string>
     <string name="gpu_driver_manager">Manajer driver GPU</string>
     <string name="install_gpu_driver">Install driver GPU</string>
@@ -336,6 +345,7 @@
     <string name="firmware_installed_success">Firmware terpasang.</string>
     <string name="firmware_installed_failure">Gagal memasang Firmware.</string>
     <string name="firmware_installed_failure_description">Pastikan file nca firmware terdapat pada folder utama dari file .zip dan coba lagi.</string>
+    <string name="firmware_uninstalled_failure">Instalasi Firmware gagal</string>
     <string name="share_log">Bagikan log debug</string>
     <string name="share_log_description">Bagikan file log Eden untuk mendebug isu</string>
     <string name="share_log_missing">Tidak ada log file yang ditemukan</string>
@@ -350,7 +360,9 @@
     <string name="install_game_content_success">Konten(-konten) game sudah berhasil terinstal.</string>
     <string name="install_game_content_success_install">%1$d telah berhasil terinstal</string>
     <string name="install_game_content_success_overwrite">%1$d telah berhasil ditimpa.</string>
+    <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Driver kustom tidak didukung</string>
+    <string name="custom_driver_not_supported_description">Pemuatan driver kustom tidak didukung oleh perangkat ini.\nPeriksa lagi opsi ini di masa mendatang untuk melihat apakah dukungan telah ditambahkan!</string>
     <string name="manage_yuzu_data">Kelola data Eden.</string>
     <string name="manage_yuzu_data_description">Impor/expor firmware, key, data pengguna, dan sebagainya!</string>
     <string name="share_save_file">Bagikan file simpanan.</string>
@@ -372,6 +384,8 @@
 
     <string name="keys_missing">Kunci enkripsi hilang</string>
     <string name="keys_missing_description">Firmware dan game retail tidak dapat didekripsi</string>
+    <string name="keys_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
+
     <string name="uninstall_firmware">Copot Firmware</string>
     <string name="uninstall_firmware_description">Mencopot firmware akan menghapusnya dari perangkat dan dapat memengaruhi kompatibilitas game.</string>
     <string name="firmware_uninstalling">Mencopot firmware...</string>
@@ -381,6 +395,8 @@
     <string name="error_firmware_missing">Firmware diperlukan untuk menjalankan game dan aplikasi tertentu. Eden hanya bekerja dengan firmware 19.0.1 atau lebih lama.</string>
     <string name="error_firmware_corrupted">Firmware dilaporkan ada tetapi tidak dapat dibaca. Periksa kunci dekripsi dan dump ulang firmware jika diperlukan.</string>
     <string name="error_firmware_too_new">Firmware terlalu baru atau tidak dapat dibaca. Eden hanya bekerja dengan firmware 19.0.1 atau lebih lama.</string>
+    <string name="firmware_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware</string>
+
     <string name="keys_failed">Gagal menginstal kunci</string>
     <string name="keys_install_success">Kunci berhasil diinstal</string>
     <string name="error_keys_copy_failed">Satu atau lebih kunci gagal disalin.</string>
@@ -413,9 +429,11 @@
     <string name="about_app_description">Emulator Switch Open-Source</string>
     <string name="contributors">Kontributor</string>
     <string name="contributors_description">Dibuat dengan \u2764 dari tim Eden</string>
+    <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
     <string name="licenses_description">Proyek yang memungkinkan Eden untuk Android</string>
     <string name="build">Versi</string>
     <string name="user_data">Data pengguna</string>
+    <string name="user_data_description">Impor/Ekspor semua data aplikasi\n\nketika mengimpor data user, semua data user yang tersedia akan dihapus!\n\nMengimpor data dari Citron dapat menyebabkan masalah. Direkomendasikan untuk melakukan impor manual semua data yang dibutuhkan.</string>
     <string name="exporting_user_data">Mengekspor data pengguna</string>
     <string name="importing_user_data">Mengimpor data pengguna</string>
     <string name="import_user_data">Impor data pengguna</string>
@@ -511,6 +529,8 @@
     <string name="audio_volume">Volume</string>
     <string name="audio_volume_description">Menentukan volume output audio</string>
 
+    <!-- Input strings -->
+    <string name="buttons">Tombol</string>
     <string name="button_a">A</string>
     <string name="button_b">B</string>
     <string name="button_x">X</string>
@@ -519,23 +539,47 @@
     <string name="button_minus">Kurang</string>
     <string name="button_home">Home</string>
     <string name="button_capture">Tangkapan</string>
+    <string name="start_pause">Start/Pause</string>
     <string name="dpad">D-Pad</string>
     <string name="up">Atas</string>
     <string name="down">Bawah</string>
     <string name="left">Kiri</string>
     <string name="right">Kanan</string>
     <string name="left_stick">Left Stick</string>
+    <string name="control_stick">Stik Kontrol</string>
     <string name="right_stick">Right Stick</string>
     <string name="c_stick">C-Stick</string>
     <string name="pressed">Ditekan</string>
     <string name="range">Jangkauan</string>
+    <string name="deadzone">Zona mati</string>
     <string name="modifier">Pemodifikasi</string>
+    <string name="modifier_range">Rentang pengubah</string>
+    <string name="triggers">Trigger</string>
     <string name="button_l">L</string>
     <string name="button_r">R</string>
     <string name="button_zl">ZL</string>
     <string name="button_zr">ZR</string>
+    <string name="button_sl_left">SL Kiri</string>
+    <string name="button_sr_left">SR Kiri</string>
+    <string name="button_sl_right">SL Kanan</string>
+    <string name="button_sr_right">SR Kanan</string>
     <string name="button_z">Z</string>
     <string name="invalid">Tidak valid</string>
+    <string name="not_set">Tidak ditetapkan</string>
+    <string name="unknown">Tidak diketahui</string>
+    <string name="qualified_hat">%1$s%2$s%3$sHat%4$s</string>
+    <string name="qualified_button_stick_axis">%1$s%2$s%3$sAxis%4$s</string>
+    <string name="qualified_button">%1$s%2$s%3$sTombol%4$s</string>
+    <string name="qualified_axis">Axis%1$s%2$s</string>
+    <string name="unused">Tidak digunakan</string>
+    <string name="input_prompt">Gerakkan atau tekan sebuah input</string>
+    <string name="unsupported_input">Jenis input tidak didukung</string>
+    <string name="input_mapping_filter">Filter pemetaan input</string>
+    <string name="input_mapping_filter_description">Pilih perangkat yang digunakan untuk pemetaan input</string>
+    <string name="auto_map">Atur kontroler secara otomatis</string>
+    <string name="auto_map_description">Pilih perangkat yang akan digunakan untuk pemetaan input otomatis</string>
+    <string name="attempted_auto_map">Pemetaan input otomatis dilakukan dengan %1$s</string>
+    <string name="controller_type">Jenis kontroler</string>
     <string name="pro_controller">Kontroler Pro</string>
     <string name="handheld">Jinjing</string>
     <string name="dual_joycons">Joycon Dual</string>
@@ -547,9 +591,30 @@
     <string name="toggle_button">Atur tombol</string>
     <string name="turbo_button">Tombol turbo</string>
     <string name="set_threshold">Atur batasan</string>
+    <string name="toggle_axis">Aktif/nonaktifkan axis</string>
     <string name="connected">Terhubung</string>
+    <string name="use_system_vibrator">Gunakan vibrasi sistem</string>
+    <string name="input_overlay">Overlay input</string>
     <string name="vibration">Getaran</string>
+    <string name="vibration_strength">Kekuatan vibrasi</string>
     <string name="profile">Profil</string>
+    <string name="create_new_profile">Buat profil baru</string>
+    <string name="enter_profile_name">Masukkan nama profil</string>
+    <string name="profile_name_already_exists">Nama profil telah tersedia</string>
+    <string name="invalid_profile_name">Nama profil tidak valid</string>
+    <string name="use_global_input_configuration">Gunakan konfigurasi input global</string>
+    <string name="player_num_profile">Profil pemain %d</string>
+    <string name="delete_input_profile">Hapus profil input</string>
+    <string name="delete_input_profile_description">Apakah Anda yakin untuk menghapus profil ini\? Tindakan ini permanen.</string>
+    <string name="stick_map_description">Gerakan analog ke kiri lalu atas atau tekan tombol analog</string>
+    <string name="button_map_description">Tekan tombol atau gerakan trigger/analog</string>
+    <string name="map_dpad_direction">Petakan ke D-Pad%1$s</string>
+    <string name="map_control">Petakan ke%1$s</string>
+    <string name="failed_to_load_profile">Gagal memuat profil</string>
+    <string name="failed_to_save_profile">Gagal menyimpan profil</string>
+    <string name="reset_mapping">Atur ulang pemetaan</string>
+    <string name="reset_mapping_description">Apakah Anda yakin untuk mengatur ulang semua pemetaan untuk kontroler ini ke setelan awal\? Tindakan ini permanen.</string>
+
     <!-- Miscellaneous -->
     <string name="slider_default">Bawaan</string>
     <string name="ini_saved">Pengaturan yang disimpan</string>
@@ -588,6 +653,9 @@
     <string name="more_options">Opsi Lain</string>
     <string name="use_global_setting">Gunakan Pengaturan Utama</string>
     <string name="operation_completed_successfully">Operasi selsesai dengan sukses</string>
+    <string name="retry">Ulangi</string>
+    <string name="confirm">Konfirmasi</string>
+    <string name="load">Muat</string>
     <string name="save">Simpan</string>
 
     <!-- GPU driver installation -->
@@ -636,6 +704,8 @@
     <string name="preferences_audio">Audio</string>
     <string name="preferences_audio_description">Output audio, volume</string>
     <string name="preferences_controls">Kendali</string>
+    <string name="preferences_controls_description">Petakan input kontroler</string>
+    <string name="preferences_player">Player %d</string>
     <string name="preferences_theme">Tema dan warna</string>
     <string name="preferences_debug">Awakutu</string>
     <string name="preferences_debug_description">CPU/GPU debugging, graphics API, fastmem</string>
@@ -676,6 +746,7 @@
     <string name="addon_installed_successfully">Pengaya Sukses Dipasang</string>
     <string name="verifying_content">Memverifikasi Konten</string>
     <string name="content_install_notice">Pemberitahuan Pemasangan</string>
+    <string name="content_install_notice_description">Konten yang Anda pilih tidak cocok dengan permainan ini. Tetap Instal\?</string>
     <string name="confirm_uninstall">Hapus Installasi</string>
     <string name="confirm_uninstall_description">Apakah Anda yakin ingin menghapus addon ini?</string>
     <string name="verify_integrity">Integritas</string>
@@ -685,6 +756,8 @@
     <string name="verify_failure_description">Konten file mungkin rusak</string>
     <string name="verify_no_result">Tidak Ada Hasil</string>
     <string name="verify_no_result_description">Isi file tidak diperiksa ke validasinya</string>
+    <string name="verification_failed_for">Verifikasi gagal terkait file ini:\n%1$s</string>
+
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROM-mu ter-enkripsi</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Silakan ikuti panduan untuk mendump ulang <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">kartrid game</a> atau <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">judul digital</a> Anda.]]></string>
@@ -717,6 +790,7 @@
     <string name="config_write_failed">Gagal menulis file konfigurasi</string>
     <string name="config_apply_failed">Gagal menerapkan konfigurasi</string>
     <string name="config_already_exists_title">Konfigurasi Sudah Ada</string>
+    <string name="config_already_exists_message">Settingan kustom telah tersedia untuk %1$s.\n\nApakah Anda ingin untuk menimpa konfigurasi yang tersedia\?\n\nTindakan ini permanen.</string>
     <string name="config_exists_prompt">Memeriksa konfigurasi yang ada...</string>
     <string name="overwrite_cancelled">Penimpaan dibatalkan</string>
     <string name="checking_driver">Memeriksa driver kustom: %1$s</string>
@@ -736,6 +810,7 @@
     <string name="invalid_driver_file">File driver tidak valid: %s</string>
     <string name="network_unavailable">Tidak ada koneksi jaringan yang tersedia. Silakan periksa koneksi internet Anda dan coba lagi.</string>
     <string name="driver_missing_title">Driver GPU Diperlukan</string>
+    <string name="driver_missing_message">Konfigurasi game ini memerlukan driver GPU \"%s\" yang tidak terinstal di perangkat Anda.\n\nApakah Anda ingin mengunduh dan menginstalnya\?</string>
     <string name="driver_download_cancelled">Pengunduhan driver dibatalkan. Game tidak dapat diluncurkan tanpa driver yang diperlukan.</string>
     <string name="download">Unduh</string>
 
@@ -762,7 +837,6 @@
     <string name="touchscreen">Layar Sentuh</string>
     <string name="lock_drawer">Kunci Laci</string>
     <string name="unlock_drawer">Buka Kunci Laci</string>
-
     <string name="load_settings">Pengaturan</string>
 
     <!-- Software keyboard -->
@@ -775,7 +849,7 @@
     <string name="system_archive_general">Arsip Umum</string>
     <string name="save_load_error">Kesalahan Memuat</string>
     <string name="fatal_error">Kesalahan Fatal</string>
-    <string name="performance_warning">Matikan pengaturan ini akan signifikan mengurangi kinerja emulasi! Untuk pengalaman terbaik, disarankan agar Anda tetap mengaktifkan pengaturan ini.</string>
+    <string name="device_memory_inadequate">Ram Perangkat: %1$s\nRekomendasi: %2$s</string>
     <string name="memory_formatted">%1$s%2$s</string>
     <string name="no_game_present">Tidak ada permainan yang dapat di-boot!</string>
 
@@ -824,13 +898,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">Tinggi</string>
-    <string name="renderer_accuracy_extreme">Ekstrim (Lambat)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Bawaan</string>
-    <string name="dma_accuracy_unsafe">Tidak Aman (cepat)</string>
-    <string name="dma_accuracy_safe">Aman (stabil)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Metode Dekoding ASTC</string>
     <string name="accelerate_astc_description">Pilih cara tekstur terkompresi ASTC didekode untuk rendering: CPU (lambat, aman), GPU (cepat, direkomendasikan), atau CPU Async (tanpa lag, mungkin menyebabkan masalah)</string>
@@ -878,6 +947,8 @@
     <string name="scaling_filter_gaussian">Gaussian</string>
     <string name="scaling_filter_scale_force">ScaleForce</string>
     <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolusi</string>
+    <string name="scaling_filter_area">Area</string>
+
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Tak ada</string>
     <string name="anti_aliasing_fxaa">FXAA</string>
@@ -946,6 +1017,7 @@
 
     <!-- Static Themes -->
     <string name="static_theme_color">Warna Tema</string>
+    <string name="eden_theme">Eden (Bawaan)</string>
     <string name="violet">Ungu (Bawaan)</string>
     <string name="blue">Biru</string>
     <string name="cyan">Sian</string>

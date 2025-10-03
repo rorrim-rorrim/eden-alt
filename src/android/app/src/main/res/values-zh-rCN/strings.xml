@@ -4,7 +4,6 @@
     <string name="notice_notification_channel_name">通知及错误提醒</string>
     <string name="notice_notification_channel_description">当发生错误时显示通知。</string>
     <string name="notification_permission_not_granted">未授予通知权限！</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(增强)</string>
     <string name="process_ram">进程内存: %1$d MB</string>
@@ -265,6 +264,7 @@
     <string name="pre_alpha_warning_description">警告：此版本不适用于公开分享或展示。软件处于预发布阶段，可能存在错误和功能不完整。\n如果您未经授权获取此版本，强烈建议立即卸载。</string>
     <string name="dont_show_again">不再显示</string>
     <string name="pre_alpha_warning">预发布软件，不适用于公开使用</string>
+    <string name="add_directory_success">游戏目录新增成功</string>
     <string name="home_games">游戏</string>
     <string name="home_search">搜索</string>
     <string name="home_settings">设置</string>
@@ -335,6 +335,7 @@
     <string name="firmware_installed_success">固件已成功安装</string>
     <string name="firmware_installed_failure">固件安装失败</string>
     <string name="firmware_installed_failure_description">请确保固件 nca 文件位于 zip 压缩包的根目录，然后重试。</string>
+    <string name="firmware_uninstalled_failure">固件安装失败</string>
     <string name="share_log">分享调试日志</string>
     <string name="share_log_description">分享 Eden 日志文件以便调试</string>
     <string name="share_log_missing">未找到日志文件</string>
@@ -813,7 +814,6 @@
     <string name="touchscreen">触摸屏</string>
     <string name="lock_drawer">锁定侧边菜单</string>
     <string name="unlock_drawer">解锁侧边菜单</string>
-
     <string name="load_settings">正在载入设定…</string>
 
     <!-- Software keyboard -->
@@ -826,7 +826,6 @@
     <string name="system_archive_general">系统档案</string>
     <string name="save_load_error">保存/载入发生错误</string>
     <string name="fatal_error">致命错误</string>
-    <string name="performance_warning">关闭此项会显著降低模拟性能！建议您将此项保持为启用状态。</string>
     <string name="memory_formatted">%1$s%2$s</string>
     <string name="no_game_present">当前没有可启动的游戏！</string>
 
@@ -875,13 +874,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">正常</string>
     <string name="renderer_accuracy_high">高</string>
-    <string name="renderer_accuracy_extreme">极高 (慢速)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">默认</string>
-    <string name="dma_accuracy_unsafe">不安全（快速）</string>
-    <string name="dma_accuracy_safe">安全（稳定）</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">ASTC解码方式</string>
     <string name="accelerate_astc_description">选择ASTC压缩纹理的解码方式：CPU（慢速、安全）、GPU（快速、推荐）或CPU异步（无卡顿，可能导致问题）</string>

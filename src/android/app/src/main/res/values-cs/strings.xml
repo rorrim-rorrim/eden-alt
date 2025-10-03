@@ -4,7 +4,6 @@
     <string name="notice_notification_channel_name">Upozornění a chyby</string>
     <string name="notice_notification_channel_description">Ukáže oznámení v případě chyby.</string>
     <string name="notification_permission_not_granted">Oznámení nejsou oprávněna!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Vylepšený)</string>
     <string name="process_ram">RAM procesu: %1$d MB</string>
@@ -661,7 +660,6 @@
     <string name="touchscreen">Dotyková obrazovka</string>
     <string name="lock_drawer">Zamknout zásuvku</string>
     <string name="unlock_drawer">Odemknout zásuvku</string>
-
     <string name="load_settings">Načítání nastavení...</string>
 
     <!-- Software keyboard -->
@@ -674,7 +672,6 @@
     <string name="system_archive_general">Systémový archív</string>
     <string name="save_load_error">Ukládací/Načítací chyba</string>
     <string name="fatal_error">Fatální Chyba</string>
-    <string name="performance_warning">Vypnutí sníží výkon!</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">Nenalezena spustitelná hra!</string>
 
@@ -704,13 +701,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normální</string>
     <string name="renderer_accuracy_high">Vysoká</string>
-    <string name="renderer_accuracy_extreme">Extrémní (Pomalé)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Výchozí</string>
-    <string name="dma_accuracy_unsafe">Nebezpečné (rychlé)</string>
-    <string name="dma_accuracy_safe">Bezpečné (stabilní)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Metoda dekódování ASTC</string>
     <string name="accelerate_astc_description">Vyberte způsob dekódování textur komprimovaných pomocí ASTC pro vykreslování: CPU (pomalé, bezpečné), GPU (rychlé, doporučené) nebo CPU Async (žádné zasekávání, ale mohou nastat problémy)</string>

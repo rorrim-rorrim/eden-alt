@@ -4,7 +4,6 @@
     <string name="notice_notification_channel_name">Notificações e erros</string>
     <string name="notice_notification_channel_description">Mostra notificações quendo algo corre mal.</string>
     <string name="notification_permission_not_granted">Permissões de notificação não permitidas </string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Melhorado)</string>
     <string name="process_ram">RAM do processo: %1$d MB</string>
@@ -819,7 +818,6 @@ uma tentativa de mapeamento automático</string>
     <string name="touchscreen">Ecrã Táctil</string>
     <string name="lock_drawer">Bloquear submenu</string>
     <string name="unlock_drawer">Desbloquear submenu</string>
-
     <string name="load_settings">Carregando configurações...</string>
 
     <!-- Software keyboard -->
@@ -832,7 +830,6 @@ uma tentativa de mapeamento automático</string>
     <string name="system_archive_general">Um arquivo do sistema</string>
     <string name="save_load_error">Erro Guardar/Carregar</string>
     <string name="fatal_error">Erro fatal</string>
-    <string name="performance_warning">Desligar esta configuração irá reduzir a performance da emulação significantemente! Para a melhor experiência é recomendado que deixes esta configuração ativada.</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">Nenhum jogo inicializável presente!</string>
 
@@ -881,13 +878,8 @@ uma tentativa de mapeamento automático</string>
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">Alto</string>
-    <string name="renderer_accuracy_extreme">Estremo (Lento)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Predefinido</string>
-    <string name="dma_accuracy_unsafe">Inseguro (rápido)</string>
-    <string name="dma_accuracy_safe">Seguro (estável)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Método ASTC</string>
     <string name="accelerate_astc_description">Escolha como as texturas comprimidas em ASTC são descodificadas para renderização: CPU (lento, seguro), GPU (rápido, recomendado) ou CPU Async (sem engasgos, pode causar problemas)</string>

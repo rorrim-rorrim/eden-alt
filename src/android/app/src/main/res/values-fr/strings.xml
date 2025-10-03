@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
+    <string name="app_disclaimer">Ce logiciel permet de jouer à des jeux de la console Nintendo Switch. Aucun titre ni clé de jeu n\'est inclus.<br /><br />Avant de commencer, veuillez localiser votre fichier <![CDATA[<b> prod.keys </b>]]> sur le stockage de votre appareil.<br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">En savoir plus</a>]]></string>
     <string name="notice_notification_channel_name">Avis et erreurs</string>
     <string name="notice_notification_channel_description">Affiche des notifications en cas de problème.</string>
     <string name="notification_permission_not_granted">Permission de notification non accordée !</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Amélioré)</string>
     <string name="process_ram">RAM processus: %1$d Mo</string>
     <string name="shaders_prefix">Compilation</string>
-    <string name="shaders_suffix">des shaders</string>
+    <string name="shaders_suffix">Shader(s)</string>
     <string name="charging">(En charge)</string>
 
     <string name="system_info_label">Système:</string>
@@ -242,10 +242,12 @@
     <string name="keys_description">Sélectionnez votre fichier &lt;b>prod.keys&lt;/b> avec le bouton ci-dessous.</string>
     <string name="select_keys">Sélectionner les clés</string>
     <string name="firmware">Firmware</string>
+    <string name="firmware_description">Sélectionnez votre <b>firmware.zip</b>avec le bouton ci-dessous.\nEden nécessite actuellement la version <b>19.0.1</b> ou antérieure.</string>
     <string name="select_firmware">Sélectionner le firmware</string>
     <string name="games">Jeux</string>
     <string name="games_description">Sélectionnez votre dossier &lt;b>de Jeux&lt;/b> avec le bouton ci-dessous.</string>
     <string name="done">Terminé</string>
+    <string name="done_description">Vous êtes prêt.\nProfitez de vos jeux !</string>
     <string name="text_continue">Continuer</string>
     <string name="next">Suivant</string>
     <string name="back">Retour</string>
@@ -260,12 +262,15 @@
     <string name="alphabetical">Alphabétique</string>
     <string name="view_list">Liste</string>
     <string name="view_grid">Grille</string>
+    <string name="view_grid_compact">Grille compacte</string>
     <string name="view_carousel">Carrousel</string>
+    <string name="game_image_desc">Captures d\'écran pour %1$s</string>
     <string name="folder">Dossier</string>
     <string name="pre_alpha_warning_title">Logiciel Pré-Alpha</string>
     <string name="pre_alpha_warning_description">AVERTISSEMENT : Cette version ne doit pas être partagée ou montrée au public. Ce logiciel est en phase pré-alpha et peut contenir des bugs et des fonctionnalités incomplètes.\nSi vous avez obtenu un accès non autorisé à cette version, il est fortement recommandé de la désinstaller immédiatement.</string>
     <string name="dont_show_again">Ne plus afficher</string>
     <string name="pre_alpha_warning">LOGICIEL PRÉ-ALPHA ; NON DESTINÉ AU PUBLIC</string>
+    <string name="add_directory_success">Nouveau dossier de jeux ajouté</string>
     <string name="home_games">Jeux</string>
     <string name="home_search">Rechercher</string>
     <string name="home_settings">Paramètres</string>
@@ -276,6 +281,7 @@
     <string name="select_games_folder_description">Permet à Eden de remplir la liste des jeux</string>
     <string name="add_games_warning">Ne pas sélectionner le dossier des jeux ?</string>
     <string name="add_games_warning_description">Les jeux ne seront pas affichés dans la liste des jeux si aucun dossier n\'est sélectionné.</string>
+    <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Rechercher des jeux</string>
     <string name="search_settings">Rechercher un paramètre</string>
     <string name="games_dir_selected">Répertoire de jeux sélectionné</string>
@@ -283,8 +289,10 @@
     <string name="install_prod_keys_description">Nécessaire pour décrypter les jeux commerciaux.</string>
     <string name="install_prod_keys_warning">Sauter l\'ajout des clés ?</string>
     <string name="install_prod_keys_warning_description">Des clés valides sont nécessaires pour émuler des jeux commerciaux. Seules les applications homebrew fonctionneront si vous continuez.</string>
+    <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="install_firmware_warning">Ignorer l\'ajout du firmware ?</string>
     <string name="install_firmware_warning_description">De nombreux jeux nécessitent un accès au firmware pour fonctionner correctement.</string>
+    <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Notifications</string>
     <string name="notifications_description">Accorder la permission de notification avec le bouton ci-dessous.</string>
     <string name="give_permission">Accorder la permission</string>
@@ -301,6 +309,7 @@
     <string name="install_amiibo_keys">Installer les clés Amiibo</string>
     <string name="install_amiibo_keys_description">Nécessaire pour utiliser les Amiibo en jeu</string>
     <string name="install_amiibo_keys_failure_extension_description">Vérifiez que votre fichier de clés a une extension .bin et réessayez.</string>
+    <string name="dumping_keys_quickstart_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
     <string name="gpu_driver_fetcher">Récupérateur de pilotes GPU</string>
     <string name="gpu_driver_manager">Gestionnaire de pilotes du GPU</string>
     <string name="install_gpu_driver">Installer le pilote du GPU</string>
@@ -336,6 +345,7 @@
     <string name="firmware_installed_success">Firmware installé avec succès</string>
     <string name="firmware_installed_failure">L\'installation du firmware a échoué</string>
     <string name="firmware_installed_failure_description">Assurez-vous que les fichiers NCA du firmware se trouvent à la racine du fichier ZIP, puis réessayez.</string>
+    <string name="firmware_uninstalled_failure">Désinstallation du firmware échoué</string>
     <string name="share_log">Partager les logs de débogage</string>
     <string name="share_log_description">Partagez le fichier de log de Eden pour déboguer les problèmes.</string>
     <string name="share_log_missing">Aucun fichier de log trouvé</string>
@@ -350,7 +360,9 @@
     <string name="install_game_content_success">Contenu du jeu installé avec succès</string>
     <string name="install_game_content_success_install">%1$d installé avec succès</string>
     <string name="install_game_content_success_overwrite">%1$d écrasé avec succès</string>
+    <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Pilotes personnalisés non supporté</string>
+    <string name="custom_driver_not_supported_description">Le chargement de pilotes personnalisés n\'est actuellement pas pris en charge pour cet appareil.\nVérifiez à nouveau cette option ultérieurement pour voir si la prise en charge a été ajoutée !</string>
     <string name="manage_yuzu_data">Gérer les données de Eden</string>
     <string name="manage_yuzu_data_description">Importer/exporter le firmware, les clés, les données utilisateur, et bien plus encore !</string>
     <string name="share_save_file">Partager le fichier de sauvegarde</string>
@@ -376,6 +388,8 @@
 
     <string name="keys_missing">Les clés de chiffrement sont manquantes.</string>
     <string name="keys_missing_description">Le firmware et les jeux commerciaux ne peuvent pas être déchiffrés</string>
+    <string name="keys_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
+
     <string name="uninstall_firmware">Désinstaller le firmware</string>
     <string name="uninstall_firmware_description">La désinstallation du firmware le supprimera de l`appareil et peut affecter la compatibilité des jeux.</string>
     <string name="firmware_uninstalling">Désinstallation du firmware...</string>
@@ -385,6 +399,8 @@
     <string name="error_firmware_missing">Le firmware est requis pour exécuter certains jeux et applications. Eden ne fonctionne qu\'avec le firmware 19.0.1 ou antérieur.</string>
     <string name="error_firmware_corrupted">Firmware présent mais illisible. Vérifiez les clés de décryptage et redumpz le firmware si nécessaire.</string>
     <string name="error_firmware_too_new">Firmware trop récent ou illisible. Eden ne supporte que le firmware 19.0.1 ou antérieur.</string>
+    <string name="firmware_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware</string>
+
     <string name="keys_failed">Échec de l\'installation des clés</string>
     <string name="keys_install_success">Clés installées avec succès</string>
     <string name="error_keys_copy_failed">Échec de la copie d\'une ou plusieurs clés.</string>
@@ -417,9 +433,11 @@
     <string name="about_app_description">Un émulateur Switch open source</string>
     <string name="contributors">Contributeurs</string>
     <string name="contributors_description">Fait avec \u2764 de l\'équipe Eden</string>
+    <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
     <string name="licenses_description">Des projets qui rendent possible Eden pour Android</string>
     <string name="build">Build</string>
     <string name="user_data">Données utilisateur</string>
+    <string name="user_data_description">Importer/exporter toutes les données de l\'application\nLors de l\'importation des données utilisateur, toutes les données déjà existantes seront supprimé !\nImporter les données depuis Citron peut poser des problèmes. Il est recommandé de faire l\'importation manuellement de toutes les données nécessaire.</string>
     <string name="exporting_user_data">Exportation des données utilisateur...</string>
     <string name="importing_user_data">Importation des données utilisateur...</string>
     <string name="import_user_data">Importer des données utilisateur</string>
@@ -732,6 +750,7 @@
     <string name="addon_installed_successfully">Addon installé avec succès</string>
     <string name="verifying_content">Vérification du contenu...</string>
     <string name="content_install_notice">Avis d\'installation du contenu</string>
+    <string name="content_install_notice_description">Le contenu que vous avez sélectionné ne correspond pas à ce jeu.\nInstaller quand même \?</string>
     <string name="confirm_uninstall">Confirmer la désinstallation</string>
     <string name="confirm_uninstall_description">Êtes-vous sûr de vouloir désinstaller cette extension ?</string>
     <string name="verify_integrity">Vérifier l\'intégrité</string>
@@ -741,6 +760,8 @@
     <string name="verify_failure_description">Le contenu d\'un fichier peut être corrompu</string>
     <string name="verify_no_result">La vérification de l\'intégrité n\'a pas pu être effectuée</string>
     <string name="verify_no_result_description">La validité du contenu du fichier n\'a pas été vérifiée</string>
+    <string name="verification_failed_for">La vérification a échoué pour les fichiers suivants : %1$s</string>
+
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Votre ROM est cryptée</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Suivez les guides pour redumper vos <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">cartes de jeu</a> ou <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">titres numériques</a>.]]></string>
@@ -773,6 +794,7 @@
     <string name="config_write_failed">Échec de l\'écriture du fichier de configuration</string>
     <string name="config_apply_failed">Échec de l\'application de la configuration</string>
     <string name="config_already_exists_title">Configuration déjà existante</string>
+    <string name="config_already_exists_message">Des paramètres personnalisés existent déjà pour %1$s.\nVoulez-vous écraser la configuration existante \?\nCette action ne peut pas être annulée.</string>
     <string name="config_exists_prompt">Vérification de la configuration existante...</string>
     <string name="overwrite_cancelled">Écrasement annulé</string>
     <string name="checking_driver">Vérification du pilote personnalisé : %1$s</string>
@@ -792,6 +814,7 @@
     <string name="invalid_driver_file">Fichier de pilote invalide : %s</string>
     <string name="network_unavailable">Aucune connexion réseau disponible. Veuillez vérifier votre connexion Internet et réessayer.</string>
     <string name="driver_missing_title">Pilote GPU requis</string>
+    <string name="driver_missing_message">La configuration du jeu nécessite le pilote GPU \"%s\" qui n\'est pas installé sur votre appareil.\nVoulez-vous le télécharger et l\'installer maintenant \?</string>
     <string name="driver_download_cancelled">Téléchargement du pilote annulé. Le jeu ne peut pas être lancé sans le pilote requis.</string>
     <string name="download">Télécharger</string>
 
@@ -818,7 +841,6 @@
     <string name="touchscreen">Écran tactile</string>
     <string name="lock_drawer">Verrouiller le tiroir</string>
     <string name="unlock_drawer">Déverrouiller le tiroir</string>
-
     <string name="load_settings">Chargement des paramètres…</string>
 
     <!-- Software keyboard -->
@@ -831,7 +853,7 @@
     <string name="system_archive_general">Une archive système</string>
     <string name="save_load_error">Erreur de sauvegarde/chargement</string>
     <string name="fatal_error">Erreur fatale</string>
-    <string name="performance_warning">La désactivation de ce paramètre réduira considérablement les performances d\'émulation ! Pour une expérience optimale, il est recommandé de laisser ce paramètre activé.</string>
+    <string name="device_memory_inadequate">Mémoire RAM de l\'appareil : %1$s\nRecommandé : %2$s</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">Aucun jeu démarreable présent !</string>
 
@@ -880,13 +902,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">Haut</string>
-    <string name="renderer_accuracy_extreme">Extrême (Lent)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Défaut</string>
-    <string name="dma_accuracy_unsafe">Dangereux (rapide)</string>
-    <string name="dma_accuracy_safe">Sûr (stable)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Méthode ASTC</string>
     <string name="accelerate_astc_description">Choisissez comment les textures compressées ASTC sont décodées pour le rendu : CPU (lent, sûr), GPU (rapide, recommandé) ou CPU Async (pas de saccades, peut causer des problèmes)</string>
@@ -934,6 +951,8 @@
     <string name="scaling_filter_gaussian">Gaussien</string>
     <string name="scaling_filter_scale_force">ScaleForce</string>
     <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
+    <string name="scaling_filter_area">Zone</string>
+
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Aucune</string>
     <string name="anti_aliasing_fxaa">FXAA</string>
@@ -1002,6 +1021,7 @@
 
     <!-- Static Themes -->
     <string name="static_theme_color">Couleur du thème</string>
+    <string name="eden_theme">Eden (Par défaut)</string>
     <string name="violet">Violet (Par défaut)</string>
     <string name="blue">Bleu</string>
     <string name="cyan">Cyan</string>

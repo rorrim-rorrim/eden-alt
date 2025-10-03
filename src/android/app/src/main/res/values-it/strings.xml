@@ -4,7 +4,6 @@
     <string name="notice_notification_channel_name">Avvisi ed errori</string>
     <string name="notice_notification_channel_description">Mostra le notifiche quando qualcosa va storto.</string>
     <string name="notification_permission_not_granted">Autorizzazione di notifica non concessa!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Migliorato)</string>
     <string name="process_ram">RAM processo: %1$d MB</string>
@@ -749,7 +748,6 @@
     <string name="system_archive_general">Un archivio di sistema</string>
     <string name="save_load_error">Errore di salvataggio/caricamento</string>
     <string name="fatal_error">Errore Fatale</string>
-    <string name="performance_warning">Disattivare questa impostazione può ridurre significativamente le performance di emulazione! Per una migliore esperienza, è consigliato lasciare questa impostazione attivata.</string>
     <string name="memory_formatted">%1$s%2$s</string>
     <string name="no_game_present">Non è presente alcun gioco avviabile.</string>
 
@@ -798,13 +796,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normale</string>
     <string name="renderer_accuracy_high">Alta</string>
-    <string name="renderer_accuracy_extreme">Estrema (Lenta)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Predefinito</string>
-    <string name="dma_accuracy_unsafe">Non sicuro (veloce)</string>
-    <string name="dma_accuracy_safe">Sicuro (stabile)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Metodo decodifica ASTC</string>
     <string name="accelerate_astc_description">Scegli come decodificare le texture compresse ASTC per il rendering: CPU (lento, sicuro), GPU (veloce, consigliato) o CPU Async (senza stuttering, può causare problemi)</string>

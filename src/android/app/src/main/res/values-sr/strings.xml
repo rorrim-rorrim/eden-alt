@@ -4,7 +4,6 @@
     <string name="notice_notification_channel_name">Обавештења и грешке</string>
     <string name="notice_notification_channel_description">Приказује обавештења када нешто пође по злу.</string>
     <string name="notification_permission_not_granted">Дозвола за обавештавање није одобрена!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Побољшано)</string>
     <string name="shaders_prefix">Зграда</string>
@@ -817,7 +816,6 @@
     <string name="touchscreen">Екран осетљив на додир</string>
     <string name="lock_drawer">Ладица за закључавање</string>
     <string name="unlock_drawer">Откључај ладицу</string>
-
     <string name="load_settings">Учитавање поставки ...</string>
 
     <!-- Software keyboard -->
@@ -830,7 +828,6 @@
     <string name="system_archive_general">Архива система</string>
     <string name="save_load_error">Грешка уштеде / учитавање</string>
     <string name="fatal_error">Фатална грешка</string>
-    <string name="performance_warning">Искључивање ове поставке значајно ће смањити перформансе емулације! За најбоље искуство, препоручује се да поставите ово подешавање омогућено.</string>
     <string name="memory_formatted">%1$s%2$s</string>
     <string name="no_game_present">Нема презентације игре за покретање!</string>
 
@@ -879,13 +876,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Нормалан</string>
     <string name="renderer_accuracy_high">Високо</string>
-    <string name="renderer_accuracy_extreme">Екстремни (спор)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Подразумевано</string>
-    <string name="dma_accuracy_unsafe">Небезбедно (брзо)</string>
-    <string name="dma_accuracy_safe">Безбедно (стабилно)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">АСТЦ метода декодирања</string>
     <string name="accelerate_astc_description">Изаберите како су текстуре са компримираним текстовима декодиране за приказивање: ЦПУ (споро, сигуран), ГПУ (Фаст, Препоручи) или ЦПУ АСИНЦ (без затезача, могу да изазове питања)</string>

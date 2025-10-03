@@ -4,7 +4,6 @@
     <string name="notice_notification_channel_name">ئاگاداری و هەڵەکان</string>
     <string name="notice_notification_channel_description">ئاگادارکردنەوەکان پیشان دەدات کاتێک شتێک بە هەڵەدا دەچێت.</string>
     <string name="notification_permission_not_granted">مۆڵەتی ئاگادارکردنەوە نەدراوە!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(پێشکەوتوو)</string>
     <string name="process_ram">RAMی پرۆسە: %1$d MB</string>
@@ -684,7 +683,6 @@
     <string name="system_archive_general">ئەرشیفێکی سیستەم</string>
     <string name="save_load_error">هەڵەی پاشەکەوتکردن/بارکردن</string>
     <string name="fatal_error">هەڵەی کوشندە</string>
-    <string name="performance_warning">کوژاندنەوەی ئەم ڕێکخستنە دەبێتە هۆی کەمکردنەوەی کارایی ئیمولەیشن! بۆ باشترین ئەزموون، باشترە ئەم ڕێکخستنە چالاک بهێڵیتەوە.</string>
     <!-- Region Names -->
     <string name="region_japan">ژاپۆن</string>
     <string name="region_usa">ئەمریکا</string>
@@ -722,13 +720,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">ئاسایی</string>
     <string name="renderer_accuracy_high">بەرز</string>
-    <string name="renderer_accuracy_extreme">ئەوپەڕ (خاو)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">بنەڕەتی</string>
-    <string name="dma_accuracy_unsafe">نەپارێزراو (خێرا)</string>
-    <string name="dma_accuracy_safe">پارێزراو (جێگیر)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">ڕێگای دیکۆدکردنی ASTC</string>
     <string name="accelerate_astc_description">هەڵبژێرە چۆن تێکستوورە پەستووکراوەکانی ASTC دەکرێنەوە بۆ ڕێندرکردن: CPU (هێواش، سەلامەت)، GPU (خێرا، پێشنیارکراو)، یان CPU Async (بێ ستەتەر، لەوانەیە کێشە دروست بکات)</string>
