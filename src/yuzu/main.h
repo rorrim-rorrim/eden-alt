@@ -334,7 +334,7 @@ private slots:
     void OnOpenQuickstartGuide();
     void OnOpenFAQ();
     void OnOpenDiscord();
-    void OnOpenRevolt();
+    void OnOpenStoat();
     void OnOpenX();
 
     /// Called whenever a user selects a game in the game list widget.

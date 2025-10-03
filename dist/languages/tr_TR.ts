@@ -6199,7 +6199,7 @@ Lütfen Yapılandır -&gt; Sistem -&gt; Ağ&apos;a gidip bir seçim yapınız.</
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1960"/>
-        <source>%1&lt;br&gt;Please redump your files or ask on Discord/Revolt for help.</source>
+        <source>%1&lt;br&gt;Please redump your files or ask on Discord/Stoat for help.</source>
         <comment>%1 signifies an error string.</comment>
         <translation type="unfinished"></translation>
     </message>
@@ -7901,12 +7901,12 @@ Debug Message: </source>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="579"/>
-        <source>&amp;Revolt</source>
+        <source>&amp;Stoat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="582"/>
-        <source>Revolt</source>
+        <source>Stoat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
