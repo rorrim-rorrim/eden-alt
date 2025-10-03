@@ -11,4 +11,4 @@
 [ -z "$PACKAGES" ] && PACKAGES=$(find . src -maxdepth 3 -name cpmfile.json | xargs jq -s 'reduce .[] as $item ({}; . * $item)')
 LIBS=$(echo "$PACKAGES" | jq -j 'keys_unsorted | join(" ")')
 
-tools/cpm-fetch.sh $LIBS
+tools/cpm/check-hash.sh $LIBS
