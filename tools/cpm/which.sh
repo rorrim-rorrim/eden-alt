@@ -1,5 +1,8 @@
 #!/bin/sh -e
 
+# SPDX-FileCopyrightText: 2025 crueter
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # check which file a package is in
 
 JSON=$(find . src -maxdepth 3 -name cpmfile.json -exec grep -l "$1" {} \;)
