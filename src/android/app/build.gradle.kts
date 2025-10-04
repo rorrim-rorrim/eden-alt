@@ -124,7 +124,6 @@ android {
                 signingConfigs.getByName("default")
             }
 
-            resValue("string", "app_name_suffixed", "Eden")
             isMinifyEnabled = true
             isDebuggable = false
             proguardFiles(
@@ -137,7 +136,6 @@ android {
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         register("relWithDebInfo") {
             isDefault = true
-            resValue("string", "app_name_suffixed", "Eden Debug Release")
             signingConfig = signingConfigs.getByName("default")
             isDebuggable = true
             proguardFiles(
@@ -153,11 +151,35 @@ android {
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         debug {
             signingConfig = signingConfigs.getByName("default")
-            resValue("string", "app_name_suffixed", "Eden Debug")
             isDebuggable = true
             isJniDebuggable = true
             versionNameSuffix = "-debug"
             applicationIdSuffix = ".debug"
+        }
+    }
+
+        // this is really annoying but idk any other ways to fix this behavior
+    applicationVariants.all {
+        val variant = this
+        when {
+            variant.flavorName == "legacy" && variant.buildType.name == "debug" -> {
+                variant.resValue("string", "app_name_suffixed", "Eden Legacy Debug")
+            }
+            variant.flavorName == "mainline" && variant.buildType.name == "debug" -> {
+                variant.resValue("string", "app_name_suffixed", "Eden Debug")
+            }
+            variant.flavorName == "genshinSpoof" && variant.buildType.name == "debug" -> {
+                variant.resValue("string", "app_name_suffixed", "Eden Optimized Debug")
+            }
+            variant.flavorName == "legacy" && variant.buildType.name == "relWithDebInfo" -> {
+                variant.resValue("string", "app_name_suffixed", "Eden Legacy Debug Release")
+            }
+            variant.flavorName == "mainline" && variant.buildType.name == "relWithDebInfo" -> {
+                variant.resValue("string", "app_name_suffixed", "Eden Debug Release")
+            }
+            variant.flavorName == "genshinSpoof" && variant.buildType.name == "relWithDebInfo" -> {
+                variant.resValue("string", "app_name_suffixed", "Eden Optimized Debug Release")
+            }
         }
     }
 
@@ -166,7 +188,7 @@ android {
         productFlavors {
             create("mainline") {
                 dimension = "version"
-                // No need to set applicationId here
+                resValue("string", "app_name_suffixed", "Eden")
             }
 
             create("genshinSpoof") {
