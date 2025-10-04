@@ -8,7 +8,7 @@
     },
     "sirit": {
         "repo": "eden-emulator/sirit",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "tag": "v%VERSION%",
         "artifact": "sirit-source-%VERSION%.tar.zst",
         "hash_suffix": "sha512sum",
