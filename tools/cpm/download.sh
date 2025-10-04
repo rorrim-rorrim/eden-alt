@@ -56,7 +56,7 @@ download_package() {
         PATCHES=$(echo "$JSON" | jq -r '.patches | join(" ")')
         for patch in $PATCHES; do
             # shellcheck disable=SC2154
-            patch --binary -p1 < "$ROOTDIR/.patch/$package/$patch"
+            patch --binary -p1 < "$ROOTDIR/.patch/$PACKAGE/$patch"
         done
     fi
 

@@ -17,12 +17,17 @@ These scripts are generally reserved for internal use.
     * Generally only used by the fetch scripts.
 - `package.sh`: The actual package parser.
     * Inputs:
-        - `package`: The package key
+        - `PACKAGE`: The package key
     * Outputs:
         - Basically everything. You're best off reading the code rather than me poorly explaining it.
 - `which.sh`: Find which cpmfile a package is located in.
     * Inputs:
         - The package key
+- `replace.sh`: Replace a package's cpmfile definition.
+    * Inputs:
+        - `PACKAGE`: The package key
+        - `NEW_JSON`: All keys to replace/add
+    * Keys not found in the new json are not touched. Keys cannot currently be deleted.
 
 ## Simple Utilities
 

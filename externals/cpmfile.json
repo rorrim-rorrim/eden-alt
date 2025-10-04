@@ -117,7 +117,6 @@
         "repo": "KhronosGroup/SPIRV-Tools",
         "tag": "v%VERSION%",
         "hash": "b17940433ced72e004c5eeffd7dd411b6afcc6a52ee31de6427d88edceb8172369be8ec8bf5b65708a78bf41fdae264d554aa7750b2209831679ab36bc867567",
-        "find_args": "MODULE",
         "git_version": "2025.4",
         "options": [
             "SPIRV_SKIP_EXECUTABLES ON"

@@ -5,6 +5,7 @@
 
 #include <array>
 #include <mutex>
+#include <memory>
 
 #include "common/bit_field.h"
 #include "common/common_types.h"

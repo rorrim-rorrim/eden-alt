@@ -454,6 +454,7 @@ if (YUZU_USE_CPM)
 
     if (zstd_ADDED)
         add_library(zstd::zstd ALIAS libzstd_static)
+        add_library(zstd::libzstd ALIAS libzstd_static)
     endif()
 
     # Opus
@@ -489,9 +490,9 @@ else()
 
     # wow
     if (PLATFORM_LINUX)
-        find_package(Boost 1.57.0 REQUIRED headers context system fiber)
+        find_package(Boost 1.57.0 CONFIG REQUIRED headers context system fiber)
     else()
-        find_package(Boost 1.57.0 REQUIRED)
+        find_package(Boost 1.57.0 CONFIG REQUIRED)
     endif()
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID)
@@ -542,6 +543,7 @@ find_package(MbedTLS)
 find_package(VulkanUtilityLibraries)
 find_package(SimpleIni)
 find_package(SPIRV-Tools)
+find_package(sirit)
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     find_package(xbyak)
@@ -593,6 +595,8 @@ if (ENABLE_QT)
     endif()
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        # yes Qt, we get it
+        set(QT_NO_PRIVATE_MODULE_WARNING ON)
         find_package(Qt6 REQUIRED COMPONENTS DBus OPTIONAL_COMPONENTS GuiPrivate)
     elseif (UNIX AND NOT APPLE)
         find_package(Qt6 REQUIRED COMPONENTS DBus Gui)

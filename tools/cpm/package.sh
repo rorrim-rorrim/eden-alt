@@ -9,12 +9,12 @@
 # shellcheck disable=SC1091
 . tools/cpm/common.sh
 
-[ -z "$package" ] && echo "Package was not specified" && exit 0
+[ -z "$PACKAGE" ] && echo "Package was not specified" && exit 0
 
 # shellcheck disable=SC2153
-JSON=$(echo "$PACKAGES" | jq -r ".\"$package\" | select( . != null )")
+JSON=$(echo "$PACKAGES" | jq -r ".\"$PACKAGE\" | select( . != null )")
 
-[ -z "$JSON" ] && echo "!! No cpmfile definition for $package" && exit 1
+[ -z "$JSON" ] && echo "!! No cpmfile definition for $PACKAGE" && exit 1
 
 # unset stuff
 export PACKAGE_NAME="null"
@@ -48,7 +48,7 @@ REPO=$(value "repo")
 CI=$(value "ci")
 
 PACKAGE_NAME=$(value "package")
-[ "$PACKAGE_NAME" = null ] && PACKAGE_NAME="$package"
+[ "$PACKAGE_NAME" = null ] && PACKAGE_NAME="$PACKAGE"
 
 GIT_HOST=$(value "git_host")
 [ "$GIT_HOST" = null ] && GIT_HOST=github.com
@@ -143,7 +143,7 @@ elif [ "$REPO" != "null" ]; then
 		DOWNLOAD="${GIT_URL}/archive/refs/heads/${BRANCH}.zip"
 	fi
 else
-	echo "!! No repo or URL defined for $package"
+	echo "!! No repo or URL defined for $PACKAGE"
 	exit 1
 fi
 
@@ -166,7 +166,7 @@ if [ "$KEY" = null ]; then
 	elif [ "$VERSION" != null ]; then
 		KEY="$VERSION"
 	else
-		echo "!! No valid key could be determined for $package. Must define one of: key, sha, tag, version, git_version"
+		echo "!! No valid key could be determined for $PACKAGE. Must define one of: key, sha, tag, version, git_version"
 		exit 1
 	fi
 fi

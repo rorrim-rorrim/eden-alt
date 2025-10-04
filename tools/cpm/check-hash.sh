@@ -9,9 +9,9 @@
 # shellcheck disable=SC1091
 . tools/cpm/common.sh
 
-for package in "$@"
+for PACKAGE in "$@"
 do
-	export package
+	export PACKAGE
 	# shellcheck disable=SC1091
 	. tools/cpm/package.sh
 
@@ -22,7 +22,7 @@ do
     [ "$HASH_URL" != null ] && continue
     [ "$HASH_SUFFIX" != null ] && continue
 
-    echo "-- Package $package"
+    echo "-- Package $PACKAGE"
 
     [ "$HASH" = null ] && echo "-- * Warning: no hash specified" && continue
 
@@ -33,13 +33,9 @@ do
     [ "$ACTUAL" != "$HASH" ] && echo "-- * Expected $HASH" && echo "-- * Got      $ACTUAL"
 
     if [ "$UPDATE" = "true" ] && [ "$ACTUAL" != "$HASH" ]; then
+        # shellcheck disable=SC2034
         NEW_JSON=$(echo "$JSON" | jq ".hash = \"$ACTUAL\"")
 
-        FILE=$(tools/cpm/which.sh "$package")
-
-        jq --indent 4 --argjson repl "$NEW_JSON" ".\"$package\" *= \$repl" "$FILE" > "$FILE".new
-        mv "$FILE".new "$FILE"
-
-        echo "-- * -- Updated $FILE"
+		tools/cpm/replace.sh
     fi
 done

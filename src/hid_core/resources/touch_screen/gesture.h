@@ -4,6 +4,7 @@
 #pragma once
 
 #include <mutex>
+#include <memory>
 
 #include "common/common_types.h"
 #include "core/hle/result.h"

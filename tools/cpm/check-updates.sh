@@ -13,9 +13,9 @@
 # shellcheck disable=SC1091
 . tools/cpm/common.sh
 
-for package in "$@"
+for PACKAGE in "$@"
 do
-	export package
+	export PACKAGE
 	# shellcheck disable=SC1091
 	. tools/cpm/package.sh
 
@@ -28,7 +28,7 @@ do
     # shellcheck disable=SC2153
     [ "$TAG" = null ] && continue
 
-    echo "-- Package $package"
+    echo "-- Package $PACKAGE"
 
 	# TODO(crueter): Support for Forgejo updates w/ forgejo_token
     # Use gh-cli to avoid ratelimits lmao
@@ -36,8 +36,8 @@ do
 
     # filter out some commonly known annoyances
 	# TODO add more
-    TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("vulkan-sdk"; "i") | not)]')
-    TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("yotta"; "i") | not)]')
+    TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("vulkan-sdk"; "i") | not)]') # vulkan
+    TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("yotta"; "i") | not)]') # mbedtls
 
     # ignore betas/alphas
     TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("alpha"; "i") | not)]')
@@ -45,7 +45,7 @@ do
     TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("rc"; "i") | not)]')
 
 	# Add package-specific overrides here, e.g. here for fmt:
-    [ "$package" = fmt ] && TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("v0.11"; "i") | not)]')
+    [ "$PACKAGE" = fmt ] && TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("v0.11"; "i") | not)]')
 
     LATEST=$(echo "$TAGS" | jq -r '.[0].name')
 
@@ -68,16 +68,13 @@ do
 
     if [ "$UPDATE" = "true" ]; then
         if [ "$HAS_REPLACE" = "true" ]; then
+            # shellcheck disable=SC2034
             NEW_JSON=$(echo "$JSON" | jq ".hash = \"$HASH\" | .git_version = \"$NEW_GIT_VERSION\"")
         else
+            # shellcheck disable=SC2034
             NEW_JSON=$(echo "$JSON" | jq ".hash = \"$HASH\" | .tag = \"$LATEST\"")
         fi
 
-        FILE=$(tools/cpm/which.sh "$package")
-
-        jq --indent 4 --argjson repl "$NEW_JSON" ".\"$package\" *= \$repl" "$FILE" > "$FILE".new
-        mv "$FILE".new "$FILE"
-
-        echo "-- * -- Updated $FILE"
+		tools/cpm/replace.sh
     fi
 done

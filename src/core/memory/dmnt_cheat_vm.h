@@ -5,6 +5,8 @@
 
 #include <variant>
 #include <vector>
+#include <memory>
+
 #include <fmt/printf.h>
 #include "common/common_types.h"
 #include "core/memory/dmnt_cheat_types.h"
