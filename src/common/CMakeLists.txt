@@ -258,6 +258,10 @@ else()
     target_link_libraries(common PUBLIC Boost::headers)
 endif()
 
+if (TARGET Boost::context)
+  target_link_libraries(common PUBLIC Boost::context)
+endif()
+
 if (lz4_ADDED)
     target_include_directories(common PRIVATE ${lz4_SOURCE_DIR}/lib)
 endif()
