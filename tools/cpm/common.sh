@@ -9,6 +9,9 @@
 # shellcheck disable=SC2038
 # shellcheck disable=SC2016
 [ -z "$PACKAGES" ] && PACKAGES=$(find . src -maxdepth 3 -name cpmfile.json | xargs jq -s 'reduce .[] as $item ({}; . * $item)')
+
+# For your project you'll want to change the PACKAGES call to include whatever locations you may use (externals, src, etc.)
+# Always include .
 LIBS=$(echo "$PACKAGES" | jq -j 'keys_unsorted | join(" ")')
 
 export PACKAGES

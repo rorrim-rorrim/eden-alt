@@ -1,8 +1,5 @@
 #!/bin/sh -e
 
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-# SPDX-License-Identifier: GPL-3.0-or-later
-
 # SPDX-FileCopyrightText: 2025 crueter
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -20,30 +17,28 @@ JSON=$(echo "$PACKAGES" | jq -r ".\"$package\" | select( . != null )")
 [ -z "$JSON" ] && echo "!! No cpmfile definition for $package" && exit 1
 
 # unset stuff
-unset PACKAGE_NAME
-unset REPO
-unset CI
-unset GIT_HOST
-unset EXT
-unset NAME
-unset DISABLED
-unset TAG
-unset ARTIFACT
-unset SHA
-unset VERSION
-unset GIT_VERSION
-unset DOWNLOAD
-unset URL
-unset KEY
-unset HASH
-
-unset ORIGINAL_TAG
-unset HAS_REPLACE
-unset VERSION_REPLACE
-
-unset HASH_URL
-unset HASH_SUFFIX
-unset HASH_ALGO
+export PACKAGE_NAME="null"
+export REPO="null"
+export CI="null"
+export GIT_HOST="null"
+export EXT="null"
+export NAME="null"
+export DISABLED="null"
+export TAG="null"
+export ARTIFACT="null"
+export SHA="null"
+export VERSION="null"
+export GIT_VERSION="null"
+export DOWNLOAD="null"
+export URL="null"
+export KEY="null"
+export HASH="null"
+export ORIGINAL_TAG="null"
+export HAS_REPLACE="null"
+export VERSION_REPLACE="null"
+export HASH_URL="null"
+export HASH_SUFFIX="null"
+export HASH_ALGO="null"
 
 ########
 # Meta #
@@ -76,29 +71,12 @@ if [ "$CI" = "true" ]; then
 	NAME=$(value "name")
 	DISABLED=$(echo "$JSON" | jq -j '.disabled_platforms')
 
-	[ "$NAME" = null ] && NAME="$PACKAGE"
+	[ "$NAME" = null ] && NAME="$PACKAGE_NAME"
 
 	export EXT
 	export NAME
 	export DISABLED
 	export VERSION
-
-	# slight annoyance
-	TAG=null
-	ARTIFACT=null
-	SHA=null
-	VERSION=null
-	GIT_VERSION=null
-	DOWNLOAD=null
-	URL=null
-	KEY=null
-	HASH=null
-	ORIGINAL_TAG=null
-	HAS_REPLACE=null
-	VERSION_REPLACE=null
-	HASH_URL=null
-	HASH_SUFFIX=null
-	HASH_ALGO=null
 
 	return 0
 fi

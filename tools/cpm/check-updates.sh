@@ -25,6 +25,7 @@ do
 
     [ "$REPO" = null ] && continue
     [ "$GIT_HOST" != "github.com" ] && continue # TODO
+    # shellcheck disable=SC2153
     [ "$TAG" = null ] && continue
 
     echo "-- Package $package"
@@ -34,6 +35,7 @@ do
     TAGS=$(gh api --method GET "/repos/$REPO/tags")
 
     # filter out some commonly known annoyances
+	# TODO add more
     TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("vulkan-sdk"; "i") | not)]')
     TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("yotta"; "i") | not)]')
 
@@ -42,7 +44,7 @@ do
     TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("beta"; "i") | not)]')
     TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("rc"; "i") | not)]')
 
-    # thanks fmt
+	# Add package-specific overrides here, e.g. here for fmt:
     [ "$package" = fmt ] && TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("v0.11"; "i") | not)]')
 
     LATEST=$(echo "$TAGS" | jq -r '.[0].name')
