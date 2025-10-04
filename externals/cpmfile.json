@@ -9,18 +9,21 @@
     },
     "sirit": {
         "repo": "eden-emulator/sirit",
-        "git_version": "1.0.1",
+        "git_version": "1.0.2",
         "tag": "v%VERSION%",
         "artifact": "sirit-source-%VERSION%.tar.zst",
         "hash_suffix": "sha512sum",
-        "find_args": "CONFIG"
+        "find_args": "CONFIG",
+        "options": [
+            "SIRIT_USE_SYSTEM_SPIRV_HEADERS ON"
+        ]
     },
     "sirit-ci": {
         "ci": true,
         "package": "sirit",
         "name": "sirit",
         "repo": "eden-emulator/sirit",
-        "version": "1.0.1"
+        "version": "1.0.2"
     },
     "httplib": {
         "repo": "yhirose/cpp-httplib",

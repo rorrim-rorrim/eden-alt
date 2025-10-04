@@ -147,6 +147,9 @@ if (ENABLE_SDL2)
     find_package(SDL2 2.26.4 REQUIRED)
 endif()
 
+# SPIRV Headers
+AddJsonPackage(spirv-headers)
+
 # Sirit
 if (YUZU_USE_BUNDLED_SIRIT)
     AddJsonPackage(sirit-ci)
@@ -160,12 +163,6 @@ else()
     elseif(MSVC AND CXX_CLANG)
         target_compile_options(siritobj PRIVATE -Wno-error=unused-command-line-argument)
     endif()
-endif()
-
-# SPIRV Headers
-
-if (NOT TARGET SPIRV-Headers::SPIRV-Headers)
-    AddJsonPackage(spirv-headers)
 endif()
 
 # SPIRV Tools
