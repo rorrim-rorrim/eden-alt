@@ -39,6 +39,9 @@ if (ARCHITECTURE_arm64 OR DYNARMIC_TESTS)
     AddJsonPackage(oaknut)
 endif()
 
+# fmt
+AddJsonPackage(fmt)
+
 # enet
 AddJsonPackage(enet)
 

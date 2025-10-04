@@ -429,9 +429,6 @@ if (YUZU_USE_CPM)
         endif()
     endif()
 
-    # fmt
-    AddJsonPackage(fmt)
-
     # lz4
     AddJsonPackage(lz4)
 
@@ -473,8 +470,6 @@ if (YUZU_USE_CPM)
     endif()
 else()
     # Enforce the search mode of non-required packages for better and shorter failure messages
-    find_package(fmt 8 REQUIRED)
-
     if (NOT YUZU_DISABLE_LLVM)
         find_package(LLVM MODULE COMPONENTS Demangle)
     endif()
@@ -544,6 +539,7 @@ find_package(VulkanUtilityLibraries)
 find_package(SimpleIni)
 find_package(SPIRV-Tools)
 find_package(sirit)
+find_package(fmt)
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     find_package(xbyak)
