@@ -524,7 +524,7 @@ function(add_ci_package key)
         GIT_VERSION ${ARTIFACT_VERSION}
         ARTIFACT ${ARTIFACT}
 
-        KEY ${key}
+        KEY ${key}-${ARTIFACT_VERSION}
         HASH_SUFFIX sha512sum
         FORCE_BUNDLED_PACKAGE ON
     )
