@@ -13,6 +13,9 @@
 # shellcheck disable=SC1091
 . tools/cpm/common.sh
 
+filter() {
+	TAGS=$(echo "$TAGS" | jq "[.[] | select(.name | test(\"$1\"; \"i\") | not)]") # vulkan
+}
 for PACKAGE in "$@"
 do
 	export PACKAGE
@@ -36,16 +39,17 @@ do
 
     # filter out some commonly known annoyances
 	# TODO add more
-    TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("vulkan-sdk"; "i") | not)]') # vulkan
-    TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("yotta"; "i") | not)]') # mbedtls
 
-    # ignore betas/alphas
-    TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("alpha"; "i") | not)]')
-    TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("beta"; "i") | not)]')
-    TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("rc"; "i") | not)]')
+    filter vulkan-sdk # vulkan
+    filter yotta # mbedtls
+
+    # ignore betas/alphas (remove if needed)
+	filter alpha
+	filter beta
+	filter rc
 
 	# Add package-specific overrides here, e.g. here for fmt:
-    [ "$PACKAGE" = fmt ] && TAGS=$(echo "$TAGS" | jq '[.[] | select(.name | test("v0.11"; "i") | not)]')
+    [ "$PACKAGE" = fmt ] && filter v0.11
 
     LATEST=$(echo "$TAGS" | jq -r '.[0].name')
 
