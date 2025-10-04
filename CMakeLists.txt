@@ -423,6 +423,8 @@ if (YUZU_USE_CPM)
             target_compile_options(boost_icl INTERFACE -Wno-shadow)
             target_compile_options(boost_asio INTERFACE -Wno-conversion -Wno-implicit-fallthrough)
         endif()
+    elseif (PLATFORM_LINUX OR APPLE)
+        find_package(Boost 1.57.0 REQUIRED headers context system fiber)
     endif()
 
     # fmt
@@ -521,7 +523,7 @@ else()
     find_package(zstd 1.5 REQUIRED MODULE)
 
     # wow
-    if (PLATFORM_LINUX)
+    if (PLATFORM_LINUX OR APPLE)
         find_package(Boost 1.57.0 REQUIRED headers context system fiber)
     else()
         find_package(Boost 1.57.0 REQUIRED)
