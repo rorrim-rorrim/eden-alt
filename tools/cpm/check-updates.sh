@@ -13,9 +13,12 @@
 # shellcheck disable=SC1091
 . tools/cpm/common.sh
 
+RETURN=0
+
 filter() {
 	TAGS=$(echo "$TAGS" | jq "[.[] | select(.name | test(\"$1\"; \"i\") | not)]") # vulkan
 }
+
 for PACKAGE in "$@"
 do
 	export PACKAGE
@@ -55,6 +58,8 @@ do
 
     [ "$LATEST" = "$TAG" ] && [ "$FORCE" != "true" ] && echo "-- * Up-to-date" && continue
 
+	RETURN=1
+
     if [ "$HAS_REPLACE" = "true" ]; then
         # this just extracts the tag prefix
         VERSION_PREFIX=$(echo "$ORIGINAL_TAG" | cut -d"%" -f1)
@@ -71,14 +76,18 @@ do
     echo "-- * New hash: $HASH"
 
     if [ "$UPDATE" = "true" ]; then
+		RETURN=0
+
         if [ "$HAS_REPLACE" = "true" ]; then
-            # shellcheck disable=SC2034
             NEW_JSON=$(echo "$JSON" | jq ".hash = \"$HASH\" | .git_version = \"$NEW_GIT_VERSION\"")
         else
-            # shellcheck disable=SC2034
             NEW_JSON=$(echo "$JSON" | jq ".hash = \"$HASH\" | .tag = \"$LATEST\"")
         fi
+
+		export NEW_JSON
 
 		tools/cpm/replace.sh
     fi
 done
+
+exit $RETURN

@@ -9,6 +9,8 @@
 # shellcheck disable=SC1091
 . tools/cpm/common.sh
 
+RETURN=0
+
 for PACKAGE in "$@"
 do
 	export PACKAGE
@@ -30,12 +32,15 @@ do
     ACTUAL=$(tools/cpm/url-hash.sh "$DOWNLOAD")
 
     # shellcheck disable=SC2028
-    [ "$ACTUAL" != "$HASH" ] && echo "-- * Expected $HASH" && echo "-- * Got      $ACTUAL"
+    [ "$ACTUAL" != "$HASH" ] && echo "-- * Expected $HASH" && echo "-- * Got      $ACTUAL" && [ "$UPDATE" != "true" ] && RETURN=1
 
     if [ "$UPDATE" = "true" ] && [ "$ACTUAL" != "$HASH" ]; then
         # shellcheck disable=SC2034
         NEW_JSON=$(echo "$JSON" | jq ".hash = \"$ACTUAL\"")
+		export NEW_JSON
 
 		tools/cpm/replace.sh
     fi
 done
+
+exit $RETURN
