@@ -166,7 +166,7 @@ option(YUZU_USE_CPM "Use CPM to fetch system dependencies (fmt, boost, etc) if n
 
 # ffmpeg
 option(YUZU_USE_BUNDLED_FFMPEG "Download bundled FFmpeg" ${EXT_DEFAULT})
-cmake_dependent_option(YUZU_USE_EXTERNAL_FFMPEG "Build FFmpeg from source" OFF "NOT WIN32 AND NOT ANDROID" OFF)
+cmake_dependent_option(YUZU_USE_EXTERNAL_FFMPEG "Build FFmpeg from source" "${PLATFORM_SUN}" "NOT WIN32 AND NOT ANDROID" OFF)
 
 # sirit
 option(YUZU_USE_BUNDLED_SIRIT "Download bundled sirit" ${EXT_DEFAULT})
@@ -456,11 +456,6 @@ if (YUZU_USE_CPM)
         add_library(zstd::zstd ALIAS libzstd_static)
     endif()
 
-    # Catch2
-    if (YUZU_TESTS OR DYNARMIC_TESTS)
-        AddJsonPackage(catch2)
-    endif()
-
     # Opus
     AddJsonPackage(opus)
 
@@ -497,10 +492,6 @@ else()
         find_package(Boost 1.57.0 REQUIRED headers context system fiber)
     else()
         find_package(Boost 1.57.0 REQUIRED)
-    endif()
-
-    if (YUZU_TESTS)
-        find_package(Catch2 3.0.1 REQUIRED)
     endif()
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID)
@@ -578,6 +569,10 @@ endif()
 
 if (ENABLE_CUBEB)
     find_package(cubeb)
+endif()
+
+if (YUZU_TESTS OR DYNARMIC_TESTS)
+    find_package(Catch2)
 endif()
 
 if (ENABLE_QT)

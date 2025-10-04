@@ -170,6 +170,11 @@ if (SPIRV-Tools_ADDED)
     target_link_libraries(SPIRV-Tools-static PRIVATE SPIRV-Tools-opt SPIRV-Tools-link)
 endif()
 
+# Catch2
+if (YUZU_TESTS OR DYNARMIC_TESTS)
+    AddJsonPackage(catch2)
+endif()
+
 # getopt
 if (MSVC)
     add_subdirectory(getopt)

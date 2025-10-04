@@ -133,6 +133,7 @@
         ]
     },
     "discord-rpc": {
+        "package": "DiscordRPC",
         "repo": "eden-emulator/discord-rpc",
         "sha": "1cf7772bb6",
         "hash": "e9b35e6f2c075823257bcd59f06fe7bb2ccce1976f44818d2e28810435ef79c712a3c4f20f40da41f691342a4058cf86b078eb7f9d9e4dae83c0547c21ec4f97"
@@ -170,5 +171,12 @@
         "disabled_platforms": [
             "macos-universal"
         ]
+    },
+    "catch2": {
+        "package": "Catch2",
+        "repo": "catchorg/Catch2",
+        "sha": "644821ce28",
+        "hash": "f8795f98acf2c02c0db8e734cc866d5caebab4b4a306e93598b97cb3c0c728dafe8283dce27ffe8d42460e5ae7302f3f32e7e274a7f991b73511ac88eef21b1f",
+        "version": "3.0.1"
     }
 }

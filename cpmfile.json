@@ -69,13 +69,6 @@
             "ZSTD_BUILD_SHARED OFF"
         ]
     },
-    "catch2": {
-        "package": "Catch2",
-        "repo": "catchorg/Catch2",
-        "sha": "644821ce28",
-        "hash": "f8795f98acf2c02c0db8e734cc866d5caebab4b4a306e93598b97cb3c0c728dafe8283dce27ffe8d42460e5ae7302f3f32e7e274a7f991b73511ac88eef21b1f",
-        "version": "3.0.1"
-    },
     "opus": {
         "package": "Opus",
         "repo": "crueter/opus",
