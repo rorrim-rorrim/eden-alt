@@ -15,7 +15,8 @@ MAXDEPTH=3
 
 # shellcheck disable=SC2038
 # shellcheck disable=SC2016
-[ -z "$PACKAGES" ] && PACKAGES=$(find "$DIRS" -maxdepth "$MAXDEPTH" -name cpmfile.json | xargs jq -s 'reduce .[] as $item ({}; . * $item)')
+# shellcheck disable=SC2086
+[ -z "$PACKAGES" ] && PACKAGES=$(find $DIRS -maxdepth "$MAXDEPTH" -name cpmfile.json | xargs jq -s 'reduce .[] as $item ({}; . * $item)')
 
 # For your project you'll want to change the PACKAGES call to include whatever locations you may use (externals, src, etc.)
 # Always include .

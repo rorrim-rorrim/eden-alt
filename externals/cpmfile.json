@@ -125,8 +125,8 @@
     "spirv-headers": {
         "package": "SPIRV-Headers",
         "repo": "KhronosGroup/SPIRV-Headers",
-        "sha": "4e209d3d7e",
-        "hash": "f48bbe18341ed55ea0fe280dbbbc0a44bf222278de6e716e143ca1e95ca320b06d4d23d6583fbf8d03e1428f3dac8fa00e5b82ddcd6b425e6236d85af09550a4",
+        "sha": "01e0577914",
+        "hash": "d0f905311faf7d743de686fdf241dc4cb0a4f08e2184f5a3b3b2946e680db3cd89eeb72954eafe6fa457f93550e27d516575c8709cb134d8aecc0b43064636ce",
         "options": [
             "SPIRV_WERROR OFF"
         ]
