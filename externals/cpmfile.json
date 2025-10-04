@@ -20,7 +20,7 @@
         "package": "sirit",
         "name": "sirit",
         "repo": "eden-emulator/sirit",
-        "version": "1.0.0"
+        "version": "1.0.1"
     },
     "httplib": {
         "repo": "yhirose/cpp-httplib",

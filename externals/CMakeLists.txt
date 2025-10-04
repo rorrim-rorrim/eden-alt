@@ -163,21 +163,8 @@ else()
 endif()
 
 # SPIRV Headers
-# We only need SPIRV-Headers iff spirv-tools is bundled
-if (TARGET SPIRV-Headers::SPIRV-Headers)
-    set(NEED_SPIRV_HEADERS OFF)
-elseif (SPIRV-Tools_FORCE_BUNDLED OR CPMUTIL_FORCE_BUNDLED)
-    set(NEED_SPIRV_HEADERS ON)
-else()
-    find_package(SPIRV-Tools QUIET)
-    if (NOT SPIRV-Tools_FOUND)
-        set(NEED_SPIRV_HEADERS ON)
-    else()
-        set(NEED_SPIRV_HEADERS OFF)
-    endif()
-endif()
 
-if (NEED_SPIRV_HEADERS)
+if (NOT TARGET SPIRV-Headers::SPIRV-Headers)
     AddJsonPackage(spirv-headers)
 endif()
 
