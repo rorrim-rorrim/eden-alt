@@ -498,7 +498,7 @@ if (YUZU_USE_CPM)
     # SPIRV Headers
 
     # We only need SPIRV-Headers iff spirv-tools is bundled
-    if (SPIRV-Tools_FORCE_BUNDLED)
+    if (SPIRV-Tools_FORCE_BUNDLED OR CPMUTIL_FORCE_BUNDLED)
         set(NEED_SPIRV_HEADERS ON)
     else()
         find_package(SPIRV-Tools MODULE QUIET)
