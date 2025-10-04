@@ -26,9 +26,10 @@
     },
     "fmt": {
         "repo": "fmtlib/fmt",
-        "tag": "12.0.0",
+        "tag": "%VERSION%",
         "hash": "c4ab814c20fbad7e3f0ae169125a4988a2795631194703251481dc36b18da65c886c4faa9acd046b0a295005217b3689eb0126108a9ba5aac2ca909aae263c2f",
-        "version": "8"
+        "version": "8",
+        "git_version": "12.0.0"
     },
     "lz4": {
         "name": "lz4",

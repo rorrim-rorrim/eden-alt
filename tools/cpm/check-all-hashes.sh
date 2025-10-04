@@ -6,9 +6,10 @@
 # SPDX-FileCopyrightText: 2025 crueter
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# shellcheck disable=SC2038
-# shellcheck disable=SC2016
-[ -z "$PACKAGES" ] && PACKAGES=$(find . src -maxdepth 3 -name cpmfile.json | xargs jq -s 'reduce .[] as $item ({}; . * $item)')
-LIBS=$(echo "$PACKAGES" | jq -j 'keys_unsorted | join(" ")')
+SCRIPT_DIR=$(dirname -- "$0")
 
-tools/cpm/check-hash.sh $LIBS
+# shellcheck disable=SC1091
+. tools/cpm/common.sh
+
+# shellcheck disable=SC2086
+"$SCRIPT_DIR"/check-hash.sh $LIBS

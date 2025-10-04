@@ -49,16 +49,18 @@
     "xbyak": {
         "package": "xbyak",
         "repo": "herumi/xbyak",
-        "sha": "v7.22",
+        "tag": "v%VERSION%",
         "hash": "ff4a461b35ced007adbe9b388a90e4b53c46f9250260a559c04a757ad34ac482baf92700f113c106af6512d6894e849c4409efaf1c003207bf245a5910d848a1",
+        "git_version": "7.22",
         "bundled": true,
         "skip_updates": true
     },
     "oaknut": {
+        "repo": "eden-emulator/oaknut",
         "version": "2.0.1",
-        "repo": "merryhime/oaknut",
-        "sha": "94c726ce03",
-        "hash": "d8d082242fa1881abce3c82f8dafa002c4e561e66a69e7fc038af67faa5eff2630f082d3d19579c88c4c9f9488e54552accc8cb90e7ce743efe043b6230c08ac"
+        "git_version": "2.0.3",
+        "tag": "v%VERSION%",
+        "hash": "9697e80a7d5d9bcb3ce51051a9a24962fb90ca79d215f1f03ae6b58da8ba13a63b5dda1b4dde3d26ac6445029696b8ef2883f4e5a777b342bba01283ed293856"
     },
     "libadrenotools": {
         "repo": "bylaws/libadrenotools",
@@ -70,8 +72,9 @@
     },
     "oboe": {
         "repo": "google/oboe",
-        "tag": "1.10.0",
+        "tag": "%VERSION%",
         "hash": "ce4011afe7345370d4ead3b891cd69a5ef224b129535783586c0ca75051d303ed446e6c7f10bde8da31fff58d6e307f1732a3ffd03b249f9ef1fd48fd4132715",
+        "git_version": "1.10.0",
         "bundled": true
     },
     "unordered-dense": {
@@ -103,7 +106,8 @@
     "vulkan-utility-headers": {
         "package": "VulkanUtilityLibraries",
         "repo": "scripts/VulkanUtilityHeaders",
-        "tag": "1.4.328",
+        "tag": "%VERSION%",
+        "git_version": "1.4.328",
         "artifact": "VulkanUtilityHeaders.tar.zst",
         "git_host": "git.crueter.xyz",
         "hash": "9922217b39faf73cd4fc1510f2fdba14a49aa5c0d77f9ee24ee0512cef16b234d0cabc83c1fec861fa5df1d43e7f086ca9b6501753899119f39c5ca530cb0dae"

@@ -11,7 +11,7 @@ REPO="$1"
 GIT_URL="https://$GIT_HOST/$REPO"
 
 if [ "$USE_TAG" = "true" ]; then
-    if [ -z "$ARTIFACT" ]; then
+    if [ -z "$ARTIFACT" ] || [ "$ARTIFACT" = "null" ]; then
         URL="${GIT_URL}/archive/refs/tags/$2.tar.gz"
     else
         URL="${GIT_URL}/releases/download/$2/${ARTIFACT}"
