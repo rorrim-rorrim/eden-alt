@@ -50,9 +50,17 @@ For the update and hash scripts, set `UPDATE=true` to update the cpmfile with th
 
 - `fetch.sh`: Prefetch a package according to its cpmfile definition
     * Packages are fetched to the `.cache/cpm` directory by default, following the CPMUtil default.
+    * Already-fetched packages will be skipped. You can invalidate the entire cache with `rm -rf .cache/cpm`, or invalidate a specific package with e.g. `rm -rf .cache/cpm/packagename` to force a refetch.
+    * In the future, a force option will be added
+    * Note that full prefetching will take a long time depending on your internet, the amount of dependencies, and the size of each dependency.
 - `check-updates.sh`: Check a package for available updates
     * This only applies to packages that utilize tags.
     * If the tag is a format string, the `git_version` is acted upon instead.
     * Setting `FORCE=true` will forcefully update every package and its hash, even if they are on the latest version (`UPDATE` must also be true)
+    * This script generally runs fast.
+    * Packages that should skip updates (e.g. older versions or packages with poorly-made tag structures... looking at you mbedtls) may specify `"skip_updates": true` in their cpmfile definition. This is unnecessary for untagged (e.g. sha or bare URL) packages.
 - `check-hashes.sh`: Check a package's hash
     * This only applies to packages with hardcoded hashes, NOT ones that use hash URLs.
+    * This script will take a looooooooooooooong time. This is operationally equivalent to a prefetch, and thus checking all hashes will take a while--but it's worth it! Just make sure you're not using dial-up.
+
+You are recommended to run sanity hash checking for every pull request and commit, and weekly update checks.
