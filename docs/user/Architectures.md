@@ -91,7 +91,7 @@ Qualcomm Snapdragon SoCs are generally the most well supported.
   * Generally, if your phone doesn't cost *at least* as much as a Switch itself, it will not *emulate* the Switch very well.
 - Snapdragon 865 and other old-ish SoCs may benefit from the Legacy build. These will reduce performance but *should* drastically improve compatibility.
 - If you're not sure how powerful your SoC is, check [NanoReview](https://nanoreview.net/en/soc-compare) - e.g. [Tensor G5](https://archive.is/ylC4Z).
-  * A good base to compare to is the Snapdragon 865--e.g. [Tensor vs SD865]()
+  * A good base to compare to is the Snapdragon 865--e.g. [Tensor vs SD865](https://archive.is/M1P58)
   * Some benchmarks may be misleading due to thermal throttling OR RAM requirements.
     - For example, a Pixel 6a (Tensor G1) performs about 1/3 as well as an 865 due to its lack of RAM and poor thermals.
   * Remember--always use a cooler if you can, and you MUST have *at least* 8GB of RAM!
