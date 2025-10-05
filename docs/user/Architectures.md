@@ -24,7 +24,9 @@ ARM64/aarch64 is the only supported architecture for Android, with limited exper
 
 ### Caveats
 
-NCE is currently only available on Android and (experimentally) Linux. Support for macOS is in the works, but Windows is extremely unlikely. Generally, if NCE is available, you should pretty much always use it due to the massive performance hit JIT has. When NCE is enabled, do note that the GPU will almost always be the limiting factor. This is especially the case for Android and desktops that lack dedicated GPUs, as Adreno, Mali, PowerVR, etc. GPUs are generally significantly weaker relative to their respective CPUs.
+NCE (Native Code Execution) is currently only available on Android and (experimentally) Linux. Support for macOS is in the works, but Windows is extremely unlikely to ever happen (if you want it--submit patches!). Generally, if NCE is available, you should pretty much always use it due to the massive performance hit JIT has.
+
+When NCE is enabled, do note that the GPU will almost always be the limiting factor. This is especially the case for Android, as well as desktops that lack dedicated GPUs; Adreno, Mali, PowerVR, etc. GPUs are generally significantly weaker relative to their respective CPUs.
 
 Windows/arm64 is *very* experimental and is unlikely to work at all. Support and testing is in the works.
 
@@ -37,6 +39,8 @@ RISC-V/riscv64 is sparsely tested, but preliminary tests from developers have re
 Windows/riscv64 doesn't exist, and may never (until corporate greed no longer consumes Microsoft).
 
 Android/riscv64 is interesting. While support for it may be added if and when RISC-V phones/handhelds ever go mainstream, arm64 devices will always be preferred due to NCE.
+
+Only Fedora/riscv64 has been tested, but in theory, every riscv64 distribution that has *at least* the standard build tools, Qt, FFmpeg, and SDL2 should work.
 
 ## Other
 
@@ -109,15 +113,13 @@ Eden is currently unavailable on F-Droid or the Play Store. Check back occasiona
 
 ## macOS
 
-macOS is relatively stable, with only the occasional crash and bug. Compatibility may suffer due to the MoltenVK layer, however. Do note that building the GUI version with Qt versions higher than 6.7.3 will cause mysterious bugs, Vulkan errors, and crashes; we recommend you build with 6.7.3 (via aqtinstall) or earlier as the CI does.
+macOS is relatively stable, with only the occasional crash and bug. Compatibility may suffer due to the MoltenVK layer, however. Do note that building the GUI version with Qt versions higher than 6.7.3 will cause mysterious bugs, Vulkan errors, and crashes, alongside the cool feature of freezing the entire system UI randomly; we recommend you build with 6.7.3 (via aqtinstall) or earlier as the CI does.
 
 ## *BSD, Solaris
 
-BSD and Solaris distributions tend to lag behind Linux in terms of Vulkan and other library compatibility. For example, OpenIndiana (Solaris) does not properly package Qt, meaning the recommended method of usage is to use `eden-cli` only for now.
+BSD and Solaris distributions tend to lag behind Linux in terms of Vulkan and other library compatibility. For example, OpenIndiana (Solaris) does not properly package Qt, meaning the recommended method of usage is to use `eden-cli` only for now. Solaris also generally works better with OpenGL.
 
 AMD GPU support on these platforms is limited or nonexistent.
-
-Solaris generally works better with OpenGL.
 
 ## VMs
 
