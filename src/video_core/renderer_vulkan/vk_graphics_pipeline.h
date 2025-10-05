@@ -127,7 +127,7 @@ public:
         maxwell3d = maxwell3d_;
         gpu_memory = gpu_memory_;
     }
-
+    void SetFrameNumber(u64 frame) { current_frame_number = frame; }
 private:
     template <typename Spec>
     bool ConfigureImpl(bool is_indexed);
@@ -172,6 +172,7 @@ private:
     std::mutex build_mutex;
     std::atomic_bool is_built{false};
     bool uses_push_descriptor{false};
+    u64 current_frame_number{0};
 };
 
 } // namespace Vulkan

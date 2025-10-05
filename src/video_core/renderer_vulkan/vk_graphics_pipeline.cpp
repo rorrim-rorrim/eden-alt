@@ -514,7 +514,25 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
     const bool update_rescaling{scheduler.UpdateRescaling(is_rescaling)};
     const bool bind_pipeline{scheduler.UpdateGraphicsPipeline(this)};
     const void* const descriptor_data{guest_descriptor_queue.UpdateData()};
-    scheduler.Record([this, descriptor_data, bind_pipeline, rescaling_data = rescaling.Data(),
+
+    // allocate/bind descriptor set and only update if needed
+    VkDescriptorSet descriptor_set = VK_NULL_HANDLE;
+    bool needs_update = false;
+    if (descriptor_set_layout) {
+        if (uses_push_descriptor) {
+            // handled below via push descriptor
+        } else {
+            descriptor_set = descriptor_allocator.CommitWithTracking(current_frame_number, descriptor_data);
+            needs_update = descriptor_allocator.NeedsUpdate(descriptor_set, current_frame_number, descriptor_data);
+            if (needs_update) {
+                const vk::Device& dev{device.GetLogical()};
+                dev.UpdateDescriptorSet(descriptor_set, *descriptor_update_template, descriptor_data);
+                } else {
+                }
+            }
+        }
+
+    scheduler.Record([this, descriptor_data, descriptor_set, bind_pipeline, rescaling_data = rescaling.Data(),
                       is_rescaling, update_rescaling,
                       uses_render_area = render_area.uses_render_area,
                       render_area_data = render_area.words](vk::CommandBuffer cmdbuf) {
@@ -540,12 +558,8 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
             return;
         }
         if (uses_push_descriptor) {
-            cmdbuf.PushDescriptorSetWithTemplateKHR(*descriptor_update_template, *pipeline_layout,
-                                                    0, descriptor_data);
+          cmdbuf.PushDescriptorSetWithTemplateKHR(*descriptor_update_template, *pipeline_layout, 0, descriptor_data);
         } else {
-            const VkDescriptorSet descriptor_set{descriptor_allocator.Commit()};
-            const vk::Device& dev{device.GetLogical()};
-            dev.UpdateDescriptorSet(descriptor_set, *descriptor_update_template, descriptor_data);
             cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline_layout, 0,
                                       descriptor_set, nullptr);
         }
