@@ -160,7 +160,7 @@ private:
     void UpdateDynamicStates();
 
     void HandleTransformFeedback();
-
+    u64 current_frame_number{0};
     void UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs);
