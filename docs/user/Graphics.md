@@ -27,17 +27,17 @@ Various graphical filters exist - each of them aimed at a specific target/image 
   - **Pros**: Faster than bicubic even without hardware accelerated bicubic.
 - **Gaussian**: Whole-area blur, an applied gaussian blur is done to the entire frame.
   - **Pros**: Less edge artifacts.
-  - **Cons**: Slow and has blurrier image.
+  - **Cons**: Slow and sometimes blurry.
 - **Lanczos**: An implementation using `a = 3` (49 texel fetches). Provides sharper edges but blurrier artifacts.
   - **Pros**: Less edge artifacts and less blurry than gaussian.
-  - **Cons**: Slow but with less blurriness.
+  - **Cons**: Slow.
 - **ScaleForce**: Experimental texture upscale method, see [ScaleFish](https://github.com/BreadFish64/ScaleFish).
   - **Pros**: Relatively fast.
 - **FSR**: Uses AMD FidelityFX Super Resolution to enhance image quality.
-  - **Pros**: Great for upscaling, and offers more sharp visual quality.
-  - **Cons**: Costly and slow.
+  - **Pros**: Great for upscaling, and offers sharper visual quality.
+  - **Cons**: Somewhat slow, and may be offputtingly sharp.
 - **Area**: Area interpolation (high kernel count).
-  - **Pros**: Decent for downscaling.
+  - **Pros**: Best for downscaling (internal resolution > display resolution).
   - **Cons**: Costly and slow.
 - **MMPX**: Nearest-neighbour filter aimed at providing higher pixel-art quality.
   - **Pros**: Offers decent pixel-art upscaling.

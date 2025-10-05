@@ -10,9 +10,9 @@ This handbook primarily describes such knobs and toggles. Normal configuration o
 
 The emulator is very demanding on hardware, and as such requires a decent mid-range computer/cellphone.
 
-See [the requirements page](https://web.archive.org/web/20250806061849/https://eden-emu.dev/system-requirements) for recommended and minimum specs.
+See [the requirements page](https://archive.is/sv83h) for recommended and minimum specs.
 
-The CPU must support FMA for an optimal gameplay experience. GPU needs to support OpenGL 4.6, see [OpenGL compatibility list](https://opengl.gpuinfo.org/), or Vulkan 1.1, see [Vulkan compatibility list](https://vulkan.gpuinfo.org/).
+The CPU must support FMA for an optimal gameplay experience. The GPU needs to support OpenGL 4.6 ([compatibility list](https://opengl.gpuinfo.org/)), or Vulkan 1.1 ([compatibility list](https://vulkan.gpuinfo.org/)).
 
 If your GPU doesn't support or is just behind by a minor version, see Mesa environment variables below (*nix only).
 
@@ -30,7 +30,7 @@ If a `user` directory is present in the current working directory, that will ove
 
 ### Environment variables
 
-Throughout the handbook, environment variables are mentioned. These are often either global (system wide) or local (set in a script, bound only to the current session). It's heavily recommended to use them in a local context only, as this allows to rollback changes easily (if for example, there are regressions setting them).
+Throughout the handbook, environment variables are mentioned. These are often either global (system wide) or local (set in a script, bound only to the current session). It's heavily recommended to use them in a local context only, as this allows you to rollback changes easily (if for example, there are regressions setting them).
 
 The recommended way is to create a `.bat` file alongside the emulator `.exe`; contents of which could resemble something like:
 
@@ -42,7 +42,7 @@ eden.exe
 
 Android doesn't have a convenient way to set environment variables.
 
-For other platforms, the recommended method is using a bash script:
+For other platforms, the recommended method is using a shell script:
 
 ```sh
 export __GL_THREADED_OPTIMIZATIONS=1
