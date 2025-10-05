@@ -7,4 +7,4 @@ This handbook is primarily aimed at the end-user - baking useful knowledge for e
 - **[The Basics](docs/Basics.md)**
 - **[Audio](user/Audio.md)**
 - **[Graphics](user/Graphics.md)**
-- **[Platforms and Architectures]*(user/Architectures.md)*
+- **[Platforms and Architectures](user/Architectures.md)**
