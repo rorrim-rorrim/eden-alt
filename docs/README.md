@@ -8,6 +8,6 @@ This contains documentation created by developers. This contains build instructi
 - **[Coding guidelines](Coding.md)**
 - **[Dependencies](Deps.md)**
 - **[Debug Guidelines](./Debug.md)**
-- **[CPM - CMake Package Manager](CPMUtil.md)**
+- **[CMake Dependency Management](CPM.md)**
 - **[Platform-Specific Caveats](Caveats.md)**
 - **[User Handbook](User.md)**

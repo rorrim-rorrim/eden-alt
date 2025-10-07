@@ -413,10 +413,11 @@ if (APPLE)
 
     if (NOT MOLTENVK_LIBRARY OR YUZU_USE_BUNDLED_MOLTENVK)
         message(STATUS "Using bundled MoltenVK")
+        AddJsonPackage(moltenvk)
 
         # TODO: is this portable?
-        set(MVK_STATIC "${MOLTENVK_DIR}/MoltenVK/static/MoltenVK.xcframework/macos-arm64_x86_64/libMoltenVK.a")
-        set(MVK_DYLIB "${MOLTENVK_DIR}/MoltenVK/dylib/${platform}/libMoltenVK.dylib")
+        set(MVK_STATIC "${moltenvk_SOURCE_DIR}/MoltenVK/static/MoltenVK.xcframework/macos-arm64_x86_64/libMoltenVK.a")
+        set(MVK_DYLIB "${moltenvk_SOURCE_DIR}/MoltenVK/dylib/${platform}/libMoltenVK.dylib")
 
         # prefer static lib if it exists for smaller executable size
         if (EXISTS "${MVK_STATIC}")
@@ -424,25 +425,17 @@ if (APPLE)
             find_library(IOSURFACE_LIBRARY IOSurface REQUIRED)
             find_library(QUARTZCORE_LIBRARY QuartzCore REQUIRED)
 
-            add_library(MoltenVK::MoltenVK STATIC IMPORTED)
+            add_library(MoltenVK::MoltenVK STATIC IMPORTED GLOBAL)
             set_target_properties(MoltenVK::MoltenVK PROPERTIES
                 IMPORTED_LOCATION "${MVK_STATIC}"
             )
 
             target_link_libraries(MoltenVK::MoltenVK INTERFACE ${IOSURFACE_LIBRARY} ${QUARTZCORE_LIBRARY})
         else()
-            add_library(MoltenVK::MoltenVK SHARED IMPORTED)
+            add_library(MoltenVK::MoltenVK SHARED IMPORTED GLOBAL)
             set_target_properties(MoltenVK::MoltenVK PROPERTIES
                 IMPORTED_LOCATION "${MVK_DYLIB}"
             )
         endif()
-
-        target_link_libraries(yuzu PRIVATE MoltenVK::MoltenVK)
-    else()
-        message(STATUS "Using MoltenVK at ${MOLTENVK_LIBRARY}.")
-        set_source_files_properties(${MOLTENVK_LIBRARY} PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks
-                                        XCODE_FILE_ATTRIBUTES "CodeSignOnCopy")
-
-        target_sources(yuzu ${MOLTENVK_LIBRARY})
     endif()
 endif()
