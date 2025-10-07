@@ -1,22 +1,56 @@
+# SPDX-FileCopyrightText: 2025 crueter
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+## DetectArchitecture ##
+#[[
+Does exactly as it sounds. Detects common symbols defined for different architectures and
+adds compile definitions thereof. Namely:
+- arm64
+- arm
+- x86_64
+- x86
+- ia64
+- mips
+- ppc64
+- ppc
+- riscv
+- wasm
+
+This file is based off of Yuzu and Dynarmic.
+TODO: add SPARC
+]]
 include(CheckSymbolExists)
 
+# multiarch builds are a special case and also very difficult
+# this is what I have for now, but it's not ideal
+
+# Do note that situations where multiple architectures are defined
+# should NOT be too dependent on the architecture
+# otherwise, you may end up with duplicate code
 if (CMAKE_OSX_ARCHITECTURES)
-    set(DYNARMIC_MULTIARCH_BUILD 1)
+    set(MULTIARCH_BUILD 1)
     set(ARCHITECTURE "${CMAKE_OSX_ARCHITECTURES}")
+
+    # hope and pray the architecture names match
+    foreach(ARCH IN ${CMAKE_OSX_ARCHITECTURES})
+        set(ARCHITECTURE_${ARCH} 1 PARENT_SCOPE)
+        add_definitions(-DARCHITECTURE_${ARCH}=1)
+    endforeach()
+
     return()
 endif()
 
 function(detect_architecture symbol arch)
     if (NOT DEFINED ARCHITECTURE)
-        set(CMAKE_REQUIRED_QUIET YES)
-        check_symbol_exists("${symbol}" "" DETECT_ARCHITECTURE_${arch})
+        set(CMAKE_REQUIRED_QUIET 1)
+        check_symbol_exists("${symbol}" "" ARCHITECTURE_${arch})
         unset(CMAKE_REQUIRED_QUIET)
 
-        if (DETECT_ARCHITECTURE_${arch})
+        if (ARCHITECTURE_${arch})
             set(ARCHITECTURE "${arch}" PARENT_SCOPE)
+            set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
+            add_definitions(-DARCHITECTURE_${arch}=1)
         endif()
-
-        unset(DETECT_ARCHITECTURE_${arch} CACHE)
     endif()
 endfunction()
 

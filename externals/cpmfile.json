@@ -222,5 +222,12 @@
         "patches": [
             "0001-Add-support-for-clang-cl-on-Windows-633.patch"
         ]
+    },
+    "moltenvk": {
+        "repo": "KhronosGroup/MoltenVK",
+        "tag": "v%VERSION%",
+        "git_version": "1.4.0",
+        "artifact": "MoltenVK-macOS.tar",
+        "hash": "63721377503bbfaa9c8df79e7ebc3dc43577d38fa0f4a986c50a56a3904f9629b4cf9001d9c95c184228b574cd06608ff29ab89c14549cb6be8a7fb9cbe1e95a"
     }
 }

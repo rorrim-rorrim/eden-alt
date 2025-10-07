@@ -94,5 +94,13 @@
         "version": "20250828",
         "artifact": "clang-rt-builtins.tar.zst",
         "hash": "d902392caf94e84f223766e2cc51ca5fab6cae36ab8dc6ef9ef6a683ab1c483bfcfe291ef0bd38ab16a4ecc4078344fa8af72da2f225ab4c378dee23f6186181"
+    },
+    "vulkan-validation-layers": {
+        "package": "VVL",
+        "repo": "KhronosGroup/Vulkan-ValidationLayers",
+        "tag": "vulkan-sdk-%VERSION%",
+        "git_version": "1.4.321.0",
+        "artifact": "android-binaries-%VERSION%.zip",
+        "hash": "0a977711101c8f82a9762cee919e05fc48968e41e9c93a6c006971d3b4e348707c98c6f9c865fa2b97eb12654906ee659f29867f40cf643eb5dca1e93d8af73d"
     }
 }

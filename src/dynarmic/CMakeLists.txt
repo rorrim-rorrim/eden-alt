@@ -31,7 +31,7 @@ option(DYNARMIC_ENABLE_LTO "Enable LTO" OFF)
 # Default to a Release build
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
-    message(STATUS "Defaulting to a Release build")
+    message(STATUS "[dynarmic] Defaulting to a Release build")
 endif()
 
 # Set hard requirements for C++
@@ -50,11 +50,10 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules")
 
 # Arch detection
-include(DetectArchitecture)
 if (NOT DEFINED ARCHITECTURE)
-    message(FATAL_ERROR "Unsupported architecture encountered. Ending CMake generation.")
+    message(FATAL_ERROR "[dynarmic] Unsupported architecture encountered. Ending CMake generation.")
 endif()
-message(STATUS "Target architecture: ${ARCHITECTURE}")
+message(STATUS "[dynarmic] Target architecture(s): ${ARCHITECTURE}")
 
 # Compiler flags
 if (MSVC)
@@ -119,8 +118,8 @@ else()
     endif()
 endif()
 
-find_package(Boost 1.57 REQUIRED)
-find_package(fmt 9 CONFIG)
+find_package(Boost 1.57 CONFIG REQUIRED)
+find_package(fmt 8 CONFIG)
 
 # Pull in externals CMakeLists for libs where available
 add_subdirectory(externals)

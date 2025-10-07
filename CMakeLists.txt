@@ -35,7 +35,6 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
 endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
 
 # NB: this does not account for SPARC
 # If you get Eden working on SPARC, please shoot crueter@crueter.xyz multiple emails
@@ -80,36 +79,7 @@ endif()
 # Detect current compilation architecture and create standard definitions
 # =======================================================================
 
-include(CheckSymbolExists)
-function(detect_architecture symbol arch)
-    if (NOT DEFINED ARCHITECTURE)
-        set(CMAKE_REQUIRED_QUIET 1)
-        check_symbol_exists("${symbol}" "" ARCHITECTURE_${arch})
-        unset(CMAKE_REQUIRED_QUIET)
-
-        # The output variable needs to be unique across invocations otherwise
-        # CMake's crazy scope rules will keep it defined
-        if (ARCHITECTURE_${arch})
-            set(ARCHITECTURE "${arch}" PARENT_SCOPE)
-            set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
-            add_definitions(-DARCHITECTURE_${arch}=1)
-        endif()
-    endif()
-endfunction()
-
-if (NOT ENABLE_GENERIC)
-    if (MSVC)
-        detect_architecture("_M_AMD64" x86_64)
-        detect_architecture("_M_IX86" x86)
-        detect_architecture("_M_ARM" arm)
-        detect_architecture("_M_ARM64" arm64)
-    else()
-        detect_architecture("__x86_64__" x86_64)
-        detect_architecture("__i386__" x86)
-        detect_architecture("__arm__" arm)
-        detect_architecture("__aarch64__" arm64)
-    endif()
-endif()
+include(DetectArchitecture)
 
 if (NOT DEFINED ARCHITECTURE)
     set(ARCHITECTURE "GENERIC")
@@ -117,7 +87,7 @@ if (NOT DEFINED ARCHITECTURE)
     add_definitions(-DARCHITECTURE_GENERIC=1)
 endif()
 
-message(STATUS "Target architecture: ${ARCHITECTURE}")
+message(STATUS "Target architecture(s): ${ARCHITECTURE}")
 
 if (MSVC AND ARCHITECTURE_x86)
     message(FATAL_ERROR "Attempting to build with the x86 environment is not supported. \
@@ -150,7 +120,8 @@ endif()
 
 set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
 
-include(DownloadExternals)
+include(DownloadQt)
+include(CPMUtil)
 include(CMakeDependentOption)
 include(CTest)
 
@@ -212,6 +183,21 @@ cmake_dependent_option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF 
 
 option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
+<<<<<<< HEAD
+||||||| parent of da0a031f06 (CMake reorg, use my updated modules, CI vvl)
+option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" OFF)
+if (YUZU_USE_PRECOMPILED_HEADERS)
+    message(STATUS "Using Precompiled Headers.")
+    set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
+endif()
+=======
+option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" OFF)
+if (YUZU_USE_PRECOMPILED_HEADERS)
+    message(STATUS "Using Precompiled Headers.")
+    set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
+endif()
+
+>>>>>>> da0a031f06 (CMake reorg, use my updated modules, CI vvl)
 option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
 if(YUZU_ENABLE_LTO)
     include(CheckIPOSupported)
@@ -222,8 +208,10 @@ if(YUZU_ENABLE_LTO)
     set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ${COMPILER_SUPPORTS_LTO})
 endif()
+
 option(USE_CCACHE "Use ccache for compilation" OFF)
 set(CCACHE_PATH "ccache" CACHE STRING "Path to ccache binary")
+
 if(USE_CCACHE)
     find_program(CCACHE_BINARY ${CCACHE_PATH})
     if(CCACHE_BINARY)
@@ -279,27 +267,12 @@ if (ENABLE_OPENSSL)
 endif()
 
 if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)
-    # TODO(crueter): CPM this
-    set(vvl_version "1.4.321.0")
-    set(vvl_zip_file "${CMAKE_BINARY_DIR}/externals/vvl-android.zip")
-    if (NOT EXISTS "${vvl_zip_file}")
-        # Download and extract validation layer release to externals directory
-        set(vvl_base_url "https://github.com/KhronosGroup/Vulkan-ValidationLayers/releases/download")
-        file(DOWNLOAD "${vvl_base_url}/vulkan-sdk-${vvl_version}/android-binaries-${vvl_version}.zip"
-            "${vvl_zip_file}" SHOW_PROGRESS)
-        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf "${vvl_zip_file}"
-            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/externals")
-    endif()
+    AddJsonPackage(vulkan-validation-layers)
 
     # Copy the arm64 binary to src/android/app/main/jniLibs
     set(vvl_lib_path "${CMAKE_CURRENT_SOURCE_DIR}/src/android/app/src/main/jniLibs/arm64-v8a/")
-    file(COPY "${CMAKE_BINARY_DIR}/externals/android-binaries-${vvl_version}/arm64-v8a/libVkLayer_khronos_validation.so"
+    file(COPY "${VVL_SOURCE_DIR}/arm64-v8a/libVkLayer_khronos_validation.so"
         DESTINATION "${vvl_lib_path}")
-endif()
-
-if (ANDROID)
-    set(CMAKE_SKIP_INSTALL_RULES ON)
-    set(CMAKE_POLICY_VERSION_MINIMUM 3.5) # Workaround for Oboe
 endif()
 
 # We need to downgrade debug info (/Zi -> /Z7) to use an older but more cacheable format
@@ -420,8 +393,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 # System imported libraries
 # =======================================================================
-
-include(CPMUtil)
 
 # openssl funniness
 if (ENABLE_OPENSSL)
@@ -737,17 +708,43 @@ if (NOT (YUZU_USE_BUNDLED_FFMPEG OR YUZU_USE_EXTERNAL_FFMPEG))
     set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS "https://github.com/FFmpeg/FFmpeg")
 endif()
 
+<<<<<<< HEAD
 if (WIN32 AND YUZU_CRASH_DUMPS)
     set(BREAKPAD_VER "breakpad-c89f9dd")
     download_bundled_external("breakpad/" ${BREAKPAD_VER} "breakpad-win" BREAKPAD_PREFIX "c89f9dd")
-
-    set(BREAKPAD_CLIENT_INCLUDE_DIR "${BREAKPAD_PREFIX}/include")
-    set(BREAKPAD_CLIENT_LIBRARY "${BREAKPAD_PREFIX}/lib/libbreakpad_client.lib")
-
-    add_library(libbreakpad_client INTERFACE IMPORTED)
-    target_link_libraries(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_LIBRARY}")
-    target_include_directories(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_INCLUDE_DIR}")
+||||||| parent of da0a031f06 (CMake reorg, use my updated modules, CI vvl)
+if(ENABLE_QT)
+    set_yuzu_qt_components()
+    find_package(Qt6 REQUIRED COMPONENTS ${YUZU_QT_COMPONENTS})
+    set(QT_MAJOR_VERSION 6)
+    # Qt6 sets cxx_std_17 and we need to undo that
+    set_target_properties(Qt6::Platform PROPERTIES INTERFACE_COMPILE_FEATURES "")
 endif()
+
+if (WIN32 AND YUZU_CRASH_DUMPS)
+    set(BREAKPAD_VER "breakpad-c89f9dd")
+    download_bundled_external("breakpad/" ${BREAKPAD_VER} "breakpad-win" BREAKPAD_PREFIX "c89f9dd")
+=======
+if(ENABLE_QT)
+    set_yuzu_qt_components()
+    find_package(Qt6 REQUIRED COMPONENTS ${YUZU_QT_COMPONENTS})
+    set(QT_MAJOR_VERSION 6)
+    # Qt6 sets cxx_std_17 and we need to undo that
+    set_target_properties(Qt6::Platform PROPERTIES INTERFACE_COMPILE_FEATURES "")
+endif()
+
+# if (WIN32 AND YUZU_CRASH_DUMPS)
+#     set(BREAKPAD_VER "breakpad-c89f9dd")
+#     download_bundled_external("breakpad/" ${BREAKPAD_VER} "breakpad-win" BREAKPAD_PREFIX "c89f9dd")
+>>>>>>> da0a031f06 (CMake reorg, use my updated modules, CI vvl)
+
+#     set(BREAKPAD_CLIENT_INCLUDE_DIR "${BREAKPAD_PREFIX}/include")
+#     set(BREAKPAD_CLIENT_LIBRARY "${BREAKPAD_PREFIX}/lib/libbreakpad_client.lib")
+
+#     add_library(libbreakpad_client INTERFACE IMPORTED)
+#     target_link_libraries(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_LIBRARY}")
+#     target_include_directories(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_INCLUDE_DIR}")
+# endif()
 
 # Prefer the -pthread flag on Linux.
 set(THREADS_PREFER_PTHREAD_FLAG ON)
