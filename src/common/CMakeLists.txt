@@ -268,4 +268,13 @@ if(ANDROID)
   target_link_libraries(common PRIVATE android)
 endif()
 
+# IOPS (needed for power state) requires linking to IOKit
+if (APPLE)
+  find_library(IOKIT_LIBRARY IOKit)
+  if(NOT IOKIT_LIBRARY)
+    message(FATAL_ERROR "IOKit not found, did you install XCode tools?")
+  endif()
+  target_link_libraries(common PRIVATE ${IOKIT_LIBRARY})
+endif()
+
 create_target_directory_groups(common)

@@ -238,7 +238,7 @@ function(download_qt target)
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} PARENT_SCOPE)
 endfunction()
 
-function(download_moltenvk version platform)
+function(download_moltenvk platform version)
     if(NOT version)
         message(FATAL_ERROR "download_moltenvk: version argument is required")
     endif()
@@ -249,11 +249,16 @@ function(download_moltenvk version platform)
     set(MOLTENVK_DIR "${CMAKE_BINARY_DIR}/externals/MoltenVK")
     set(MOLTENVK_TAR "${CMAKE_BINARY_DIR}/externals/MoltenVK.tar")
 
+    message(STATUS "Using bundled MoltenVK")
+
     if(NOT EXISTS "${MOLTENVK_DIR}")
         if(NOT EXISTS "${MOLTENVK_TAR}")
+            message(STATUS "Downloading MoltenVK ${version}")
             file(DOWNLOAD "https://github.com/KhronosGroup/MoltenVK/releases/download/${version}/MoltenVK-${platform}.tar"
                           "${MOLTENVK_TAR}" SHOW_PROGRESS)
         endif()
+
+        message(STATUS "Extracting MoltenVK tarball at ${MOLTENVK_TAR}")
 
         execute_process(
             COMMAND ${CMAKE_COMMAND} -E tar xf "${MOLTENVK_TAR}"
@@ -265,7 +270,36 @@ function(download_moltenvk version platform)
             message(FATAL_ERROR "Extracting MoltenVK failed: ${tar_err}")
         endif()
     endif()
-    list(APPEND CMAKE_PREFIX_PATH "${MOLTENVK_DIR}/MoltenVK/dylib/${platform}")
-    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} PARENT_SCOPE)
-endfunction()
 
+    # TODO: is this portable?
+    set(MVK_STATIC "${MOLTENVK_DIR}/MoltenVK/static/MoltenVK.xcframework/macos-arm64_x86_64/libMoltenVK.a")
+    set(MVK_DYLIB "${MOLTENVK_DIR}/MoltenVK/dylib/${platform}/libMoltenVK.dylib")
+
+    # prefer static lib if it exists for smaller executable size
+    if (EXISTS "${MVK_STATIC}")
+        # Using static MoltenVK requires linking to a few extra libraries
+        find_library(IOSURFACE_LIBRARY IOSurface)
+        if(NOT IOSURFACE_LIBRARY)
+            message(FATAL_ERROR "IOSurface not found, did you install XCode tools?")
+        endif()
+
+        find_library(QUARTZCORE_LIBRARY QuartzCore)
+        if(NOT QUARTZCORE_LIBRARY)
+            message(FATAL_ERROR "QuartzCore not found, did you install XCode tools?")
+        endif()
+
+        add_library(moltenvk STATIC IMPORTED)
+        set_target_properties(moltenvk PROPERTIES
+            IMPORTED_LOCATION "${MVK_STATIC}"
+        )
+
+        target_link_libraries(moltenvk INTERFACE ${IOSURFACE_LIBRARY} ${QUARTZCORE_LIBRARY})
+    else()
+        add_library(moltenvk SHARED IMPORTED)
+        set_target_properties(moltenvk PROPERTIES
+            IMPORTED_LOCATION "${MVK_DYLIB}"
+        )
+    endif()
+
+    add_library(MoltenVK::MoltenVK ALIAS moltenvk)
+endfunction()
