@@ -57,7 +57,6 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules")
 if (NOT DEFINED ARCHITECTURE)
     message(FATAL_ERROR "[dynarmic] Unsupported architecture encountered. Ending CMake generation.")
 endif()
-message(STATUS "[dynarmic] Target architecture(s): ${ARCHITECTURE}")
 
 # Compiler flags
 if (MSVC)
@@ -142,7 +141,7 @@ else()
     endif()
 endif()
 
-find_package(Boost 1.57 CONFIG REQUIRED)
+find_package(Boost 1.57 REQUIRED)
 find_package(fmt 8 CONFIG)
 
 # Pull in externals CMakeLists for libs where available
