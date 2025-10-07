@@ -366,18 +366,22 @@ if (APPLE)
     set_target_properties(yuzu PROPERTIES MACOSX_BUNDLE TRUE)
     set_target_properties(yuzu PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
 
-    if (YUZU_USE_BUNDLED_MOLTENVK)
-        set(MOLTENVK_PLATFORM "macOS")
-        set(MOLTENVK_VERSION "v1.3.0")
-        download_moltenvk(${MOLTENVK_PLATFORM} ${MOLTENVK_VERSION})
-    endif()
-    find_library(MOLTENVK_LIBRARY MoltenVK REQUIRED)
-    message(STATUS "Using MoltenVK at ${MOLTENVK_LIBRARY}.")
-    set_source_files_properties(${MOLTENVK_LIBRARY} PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks
-                                    XCODE_FILE_ATTRIBUTES "CodeSignOnCopy")
-    target_sources(yuzu PRIVATE ${MOLTENVK_LIBRARY})
+    find_library(MOLTENVK_LIBRARY MoltenVK)
 
-elseif(WIN32)
+    if (NOT MOLTENVK_LIBRARY OR YUZU_USE_BUNDLED_MOLTENVK)
+        set(MOLTENVK_PLATFORM "macos")
+        set(MOLTENVK_VERSION "v1.4.0")
+        download_moltenvk(${MOLTENVK_PLATFORM} ${MOLTENVK_VERSION})
+        target_link_libraries(yuzu PRIVATE MoltenVK::MoltenVK)
+    else()
+        message(STATUS "Using MoltenVK at ${MOLTENVK_LIBRARY}.")
+        set_source_files_properties(${MOLTENVK_LIBRARY} PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks
+                                        XCODE_FILE_ATTRIBUTES "CodeSignOnCopy")
+        target_link_libraries(yuzu PRIVATE ${MOLTENVK_LIBRARY})
+    endif()
+endif()
+
+if(WIN32)
     # compile as a win32 gui application instead of a console application
     target_link_libraries(yuzu PRIVATE Qt6::EntryPointPrivate)
     if(MSVC)
