@@ -313,7 +313,7 @@ elseif (APPLE)
         message(WARNING "macOS fastmem disabled: unable to find mach/mach_exc.defs")
         target_sources(dynarmic PRIVATE backend/exception_handler_generic.cpp)
     else()
-        message(STATUS "mach/mach_exc.defs location: ${MACH_EXC_DEFS_DIR}")
+        message(STATUS "[dynarmic] mach/mach_exc.defs location: ${MACH_EXC_DEFS_DIR}")
         execute_process(
             COMMAND
                 mkdir -p "${CMAKE_CURRENT_SOURCE_DIR}/backend/x64/mig"
