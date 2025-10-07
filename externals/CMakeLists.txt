@@ -416,25 +416,26 @@ if (APPLE)
             find_library(IOSURFACE_LIBRARY IOSurface REQUIRED)
             find_library(QUARTZCORE_LIBRARY QuartzCore REQUIRED)
 
-            add_library(MoltenVK::MoltenVK STATIC IMPORTED)
+            add_library(MoltenVK::MoltenVK STATIC IMPORTED GLOBAL)
             set_target_properties(MoltenVK::MoltenVK PROPERTIES
                 IMPORTED_LOCATION "${MVK_STATIC}"
             )
 
             target_link_libraries(MoltenVK::MoltenVK INTERFACE ${IOSURFACE_LIBRARY} ${QUARTZCORE_LIBRARY})
         else()
-            add_library(MoltenVK::MoltenVK SHARED IMPORTED)
+            add_library(MoltenVK::MoltenVK SHARED IMPORTED GLOBAL)
             set_target_properties(MoltenVK::MoltenVK PROPERTIES
                 IMPORTED_LOCATION "${MVK_DYLIB}"
             )
         endif()
-
-        target_link_libraries(yuzu PRIVATE MoltenVK::MoltenVK)
     else()
         message(STATUS "Using MoltenVK at ${MOLTENVK_LIBRARY}.")
         set_source_files_properties(${MOLTENVK_LIBRARY} PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks
                                         XCODE_FILE_ATTRIBUTES "CodeSignOnCopy")
 
-        target_sources(yuzu ${MOLTENVK_LIBRARY})
+        add_library(MoltenVK::MoltenVK SHARED IMPORTED GLOBAL)
+        set_target_properties(MoltenVK::MoltenVK PROPERTIES
+            IMPORTED_LOCATION "${MOLTENVK_LIBRARY}"
+        )
     endif()
 endif()
