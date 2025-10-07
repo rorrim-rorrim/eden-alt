@@ -81,13 +81,11 @@ endif()
 
 include(DetectArchitecture)
 
-if (NOT DEFINED ARCHITECTURE)
-    set(ARCHITECTURE "GENERIC")
-    set(ARCHITECTURE_GENERIC 1)
-    add_definitions(-DARCHITECTURE_GENERIC=1)
-endif()
+DetectArchitecture()
 
-message(STATUS "Target architecture(s): ${ARCHITECTURE}")
+if (NOT DEFINED ARCHITECTURE)
+    message(FATAL_ERROR "Architecture didn't make it out of scope, did you delete DetectArchitecture.cmake?")
+endif()
 
 if (MSVC AND ARCHITECTURE_x86)
     message(FATAL_ERROR "Attempting to build with the x86 environment is not supported. \
