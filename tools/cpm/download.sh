@@ -57,6 +57,8 @@ download_package() {
 		mv ./.* "$OUTDIR" 2>/dev/null || true
     fi
 
+	cd "$OUTDIR"
+
     if echo "$JSON" | grep -e "patches" > /dev/null; then
         PATCHES=$(echo "$JSON" | jq -r '.patches | join(" ")')
         for patch in $PATCHES; do

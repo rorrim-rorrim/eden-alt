@@ -19,7 +19,6 @@ adds compile definitions thereof. Namely:
 This file is based off of Yuzu and Dynarmic.
 TODO: add SPARC
 ]]
-include(CheckSymbolExists)
 
 # multiarch builds are a special case and also very difficult
 # this is what I have for now, but it's not ideal
@@ -40,14 +39,17 @@ if (CMAKE_OSX_ARCHITECTURES)
     return()
 endif()
 
+include(CheckSymbolExists)
 function(detect_architecture symbol arch)
+    unset(SYMBOL_EXISTS CACHE)
     if (NOT DEFINED ARCHITECTURE)
         set(CMAKE_REQUIRED_QUIET 1)
-        check_symbol_exists("${symbol}" "" ARCHITECTURE_${arch})
+        check_symbol_exists("${symbol}" "" SYMBOL_EXISTS)
         unset(CMAKE_REQUIRED_QUIET)
 
-        if (ARCHITECTURE_${arch})
-            message(STATUS "[DetectArchitecture] Found architecture symbol ${symbol} for ${arch}")
+        # The output variable needs to be unique across invocations otherwise
+        # CMake's crazy scope rules will keep it defined
+        if (SYMBOL_EXISTS)
             set(ARCHITECTURE "${arch}" PARENT_SCOPE)
             set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
             add_definitions(-DARCHITECTURE_${arch}=1)
@@ -55,47 +57,109 @@ function(detect_architecture symbol arch)
     endif()
 endfunction()
 
+function(detect_architecture_symbols)
+    if (DEFINED ARCHITECTURE)
+        return()
+    endif()
+
+    set(oneValueArgs ARCH)
+    set(multiValueArgs SYMBOLS)
+
+    cmake_parse_arguments(ARGS "" "${oneValueArgs}" "${multiValueArgs}"
+        "${ARGN}")
+
+    set(arch "${ARGS_ARCH}")
+
+    message(STATUS "Architecture: symbols ${ARGS_SYMBOLS} for arch ${arch}")
+
+    foreach(symbol ${ARGS_SYMBOLS})
+        detect_architecture("${symbol}" "${arch}")
+        message(STATUS "Architecture: symbol ${symbol} ${ARCHITECTURE_${arch}}")
+
+        if (ARCHITECTURE_${arch})
+            message(STATUS "[DetectArchitecture] Found architecture symbol ${symbol} for ${arch}")
+            set(ARCHITECTURE "${arch}" PARENT_SCOPE)
+            set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
+            add_definitions(-DARCHITECTURE_${arch}=1)
+
+            return()
+        endif()
+    endforeach()
+endfunction()
+
 function(DetectArchitecture)
-    detect_architecture("__ARM64__" arm64)
-    detect_architecture("__aarch64__" arm64)
-    detect_architecture("_M_ARM64" arm64)
+    detect_architecture_symbols(
+        ARCH arm64
+        SYMBOLS
+            "__ARM64__"
+            "__aarch64__"
+            "_M_ARM64")
 
-    detect_architecture("__arm__" arm)
-    detect_architecture("__TARGET_ARCH_ARM" arm)
-    detect_architecture("_M_ARM" arm)
+    detect_architecture_symbols(
+        ARCH arm
+        SYMBOLS
+            "__arm__"
+            "__TARGET_ARCH_ARM"
+            "_M_ARM")
 
-    detect_architecture("__x86_64" x86_64)
-    detect_architecture("__x86_64__" x86_64)
-    detect_architecture("__amd64" x86_64)
-    detect_architecture("_M_X64" x86_64)
+    detect_architecture_symbols(
+        ARCH x86_64
+        SYMBOLS
+            "__x86_64"
+            "__x86_64__"
+            "__amd64"
+            "_M_X64"
+            "_M_AMD64")
 
-    detect_architecture("__i386" x86)
-    detect_architecture("__i386__" x86)
-    detect_architecture("_M_IX86" x86)
+    detect_architecture_symbols(
+        ARCH x86
+        SYMBOLS
+            "__i386"
+            "__i386__"
+            "_M_IX86")
 
-    detect_architecture("__ia64" ia64)
-    detect_architecture("__ia64__" ia64)
-    detect_architecture("_M_IA64" ia64)
+    detect_architecture_symbols(
+        ARCH ia64
+        SYMBOLS
+            "__ia64"
+            "__ia64__"
+            "_M_IA64")
 
-    detect_architecture("__mips" mips)
-    detect_architecture("__mips__" mips)
-    detect_architecture("_M_MRX000" mips)
+    detect_architecture_symbols(
+        ARCH mips
+        SYMBOLS
+            "__mips"
+            "__mips__"
+            "_M_MRX000")
 
-    detect_architecture("__ppc64__" ppc64)
-    detect_architecture("__powerpc64__" ppc64)
+    detect_architecture_symbols(
+        ARCH ppc64
+        SYMBOLS
+            "__ppc64__"
+            "__powerpc64__")
 
-    detect_architecture("__ppc__" ppc)
-    detect_architecture("__ppc" ppc)
-    detect_architecture("__powerpc__" ppc)
-    detect_architecture("_ARCH_COM" ppc)
-    detect_architecture("_ARCH_PWR" ppc)
-    detect_architecture("_ARCH_PPC" ppc)
-    detect_architecture("_M_MPPC" ppc)
-    detect_architecture("_M_PPC" ppc)
+    detect_architecture_symbols(
+        ARCH ppc
+        SYMBOLS
+            "__ppc__"
+            "__ppc"
+            "__powerpc__"
+            "_ARCH_COM"
+            "_ARCH_PWR"
+            "_ARCH_PPC"
+            "_M_MPPC"
+            "_M_PPC")
 
-    detect_architecture("__riscv" riscv)
+    detect_architecture_symbols(
+        ARCH riscv
+        SYMBOLS
+            "__riscv")
 
-    detect_architecture("__EMSCRIPTEN__" wasm)
+    detect_architecture_symbols(
+        ARCH wasm
+        SYMBOLS
+            "__EMSCRIPTEN__")
+
 
     if (NOT DEFINED ARCHITECTURE)
         set(ARCHITECTURE "GENERIC")
