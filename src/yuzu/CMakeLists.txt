@@ -366,7 +366,16 @@ if (APPLE)
     set_target_properties(yuzu PROPERTIES MACOSX_BUNDLE TRUE)
     set_target_properties(yuzu PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
 
-    target_link_libraries(yuzu PRIVATE MoltenVK::MoltenVK)
+    if (TARGET MoltenVK::MoltenVK)
+        target_link_libraries(yuzu PRIVATE MoltenVK::MoltenVK)
+    else()
+        find_library(MOLTENVK_LIBRARY MoltenVK)
+        message(STATUS "Using MoltenVK at ${MOLTENVK_LIBRARY}.")
+        set_source_files_properties(${MOLTENVK_LIBRARY} PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks
+                                        XCODE_FILE_ATTRIBUTES "CodeSignOnCopy")
+
+        target_sources(yuzu PRIVATE "${MOLTENVK_LIBRARY}")
+    endif()
 endif()
 
 if(WIN32)

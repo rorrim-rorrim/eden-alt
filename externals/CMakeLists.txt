@@ -428,14 +428,5 @@ if (APPLE)
                 IMPORTED_LOCATION "${MVK_DYLIB}"
             )
         endif()
-    else()
-        message(STATUS "Using MoltenVK at ${MOLTENVK_LIBRARY}.")
-        set_source_files_properties(${MOLTENVK_LIBRARY} PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks
-                                        XCODE_FILE_ATTRIBUTES "CodeSignOnCopy")
-
-        add_library(MoltenVK::MoltenVK SHARED IMPORTED GLOBAL)
-        set_target_properties(MoltenVK::MoltenVK PROPERTIES
-            IMPORTED_LOCATION "${MOLTENVK_LIBRARY}"
-        )
     endif()
 endif()
