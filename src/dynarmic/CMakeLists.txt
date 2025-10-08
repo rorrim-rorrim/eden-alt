@@ -61,7 +61,6 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules")
 if (NOT DEFINED ARCHITECTURE)
     message(FATAL_ERROR "[dynarmic] Unsupported architecture encountered. Ending CMake generation.")
 endif()
-message(STATUS "[dynarmic] Target architecture(s): ${ARCHITECTURE}")
 
 # Compiler flags
 if (MSVC)

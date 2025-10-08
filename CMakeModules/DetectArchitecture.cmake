@@ -16,8 +16,14 @@ adds compile definitions thereof. Namely:
 - riscv
 - wasm
 
+Unsupported architectures:
+- ARMv2-6
+- m68k
+- PIC
+
+This file WILL NOT detect endian-ness for you.
+
 This file is based off of Yuzu and Dynarmic.
-TODO: add SPARC
 ]]
 
 # multiarch builds are a special case and also very difficult
@@ -90,7 +96,10 @@ function(DetectArchitecture)
     # notably, amd64, arm64, and riscv (in order) are BY FAR the most common
     # mips is pretty popular in embedded
     # ppc64 is pretty popular in supercomputing
+    # sparc is uh
     # ia64 exists
+    # the rest exist, but are probably less popular than ia64
+
     detect_architecture_symbols(
         ARCH arm64
         SYMBOLS
@@ -133,6 +142,10 @@ function(DetectArchitecture)
             "__ia64__"
             "_M_IA64")
 
+    # mips is probably the least fun to detect due to microMIPS
+    # there's also unfortunately no way to reliably detect bit-width
+    # mips64 itself CAN be detected, but currently I do not have a MIPS environment to test
+    # TODO: crossdev :)
     detect_architecture_symbols(
         ARCH mips
         SYMBOLS
@@ -144,7 +157,9 @@ function(DetectArchitecture)
         ARCH ppc64
         SYMBOLS
             "__ppc64__"
-            "__powerpc64__")
+            "__powerpc64__"
+            "_ARCH_PPC64"
+            "_M_PPC64")
 
     detect_architecture_symbols(
         ARCH ppc
@@ -158,19 +173,32 @@ function(DetectArchitecture)
             "_M_MPPC"
             "_M_PPC")
 
+    # TODO: sparc64
+    detect_architecture_symbols(
+        ARCH sparc
+        SYMBOLS
+            "__sparc__"
+            "__sparc")
+
+    # TODO: riscv32
+    # TODO: loongarch64
     detect_architecture_symbols(
         ARCH wasm
         SYMBOLS
             "__EMSCRIPTEN__")
 
 
+    # "generic" target
+    # If you have reached this point, you're on some as-of-yet unsupported architecture.
+    # See the docs up above for known unsupported architectures
+    # If you're not in the list... I think you know what you're doing.
     if (NOT DEFINED ARCHITECTURE)
         set(ARCHITECTURE "GENERIC")
         set(ARCHITECTURE_GENERIC 1)
         add_definitions(-DARCHITECTURE_GENERIC=1)
     endif()
 
-    message(STATUS "[DetectArchitecture] Target architecture(s): ${ARCHITECTURE}")
+    message(STATUS "[DetectArchitecture] Target architecture: ${ARCHITECTURE}")
     set(ARCHITECTURE "${ARCHITECTURE}" PARENT_SCOPE)
     set(ARCHITECTURE_${ARCHITECTURE} 1 PARENT_SCOPE)
 endfunction()
