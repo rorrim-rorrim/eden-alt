@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "data_dialog.h"
 #include "frontend_common/data_manager.h"
 #include "qt_common/qt_content_util.h"
