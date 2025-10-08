@@ -47,7 +47,7 @@ function(detect_architecture symbol arch)
         unset(CMAKE_REQUIRED_QUIET)
 
         if (ARCHITECTURE_${arch})
-            message(STATUS "Found architecture symbol ${symbol} for ${arch}")
+            message(STATUS "[DetectArchitecture] Found architecture symbol ${symbol} for ${arch}")
             set(ARCHITECTURE "${arch}" PARENT_SCOPE)
             set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
             add_definitions(-DARCHITECTURE_${arch}=1)
