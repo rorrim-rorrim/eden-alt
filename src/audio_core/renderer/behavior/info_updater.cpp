@@ -166,15 +166,15 @@ Result InfoUpdater::UpdateEffectsVersion1(EffectContext& effect_context, const b
 
     for (u32 i = 0; i < effect_count; i++) {
         auto effect_info{&effect_context.GetInfo(i)};
-        if (effect_info->GetType() != in_params[i].type) {
-            effect_info->ForceUnmapBuffers(pool_mapper);
-            ResetEffect(effect_info, in_params[i].type);
-        }
+        effect_info->ForceUnmapBuffers(pool_mapper);
+        ResetEffect(effect_info, in_params[i].type);
 
-        BehaviorInfo::ErrorInfo error_info{};
-        effect_info->Update(error_info, in_params[i], pool_mapper);
-        if (error_info.error_code.IsError()) {
-            behaviour.AppendError(error_info);
+        if (effect_info->GetType() != in_params[i].type) {
+            BehaviorInfo::ErrorInfo error_info{};
+            effect_info->Update(error_info, in_params[i], pool_mapper);
+            if (error_info.error_code.IsError()) {
+                behaviour.AppendError(error_info);
+            }
         }
 
         effect_info->StoreStatus(out_params[i], renderer_active);
@@ -213,16 +213,15 @@ Result InfoUpdater::UpdateEffectsVersion2(EffectContext& effect_context, const b
 
     for (u32 i = 0; i < effect_count; i++) {
         auto effect_info{&effect_context.GetInfo(i)};
+        effect_info->ForceUnmapBuffers(pool_mapper);
+        ResetEffect(effect_info, in_params[i].type);
+
         if (effect_info->GetType() != in_params[i].type) {
-            effect_info->ForceUnmapBuffers(pool_mapper);
-            ResetEffect(effect_info, in_params[i].type);
-        }
-
-        BehaviorInfo::ErrorInfo error_info{};
-        effect_info->Update(error_info, in_params[i], pool_mapper);
-
-        if (error_info.error_code.IsError()) {
-            behaviour.AppendError(error_info);
+            BehaviorInfo::ErrorInfo error_info{};
+            effect_info->Update(error_info, in_params[i], pool_mapper);
+            if (error_info.error_code.IsError()) {
+                behaviour.AppendError(error_info);
+            }
         }
 
         effect_info->StoreStatus(out_params[i], renderer_active);
