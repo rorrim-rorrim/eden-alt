@@ -10,10 +10,13 @@ adds compile definitions thereof. Namely:
 - x86_64
 - x86
 - ia64
+- mips64
 - mips
 - ppc64
 - ppc
 - riscv
+- riscv64
+- loongarch64
 - wasm
 
 Unsupported architectures:
@@ -76,7 +79,6 @@ function(detect_architecture_symbols)
         "${ARGN}")
 
     set(arch "${ARGS_ARCH}")
-
     foreach(symbol ${ARGS_SYMBOLS})
         detect_architecture("${symbol}" "${arch}")
 
@@ -116,8 +118,16 @@ function(DetectArchitecture)
             "_M_X64"
             "_M_AMD64")
 
+    # riscv is interesting since it generally does not define a riscv64-specific symbol
+    # We can, however, check for the rv32 zcf extension which is good enough of a heuristic on GCC
     detect_architecture_symbols(
         ARCH riscv
+        SYMBOLS
+            "__riscv_zcf")
+
+    # if zcf doesn't exist we can safely assume it's riscv64
+    detect_architecture_symbols(
+        ARCH riscv64
         SYMBOLS
             "__riscv")
 
@@ -143,9 +153,12 @@ function(DetectArchitecture)
             "_M_IA64")
 
     # mips is probably the least fun to detect due to microMIPS
-    # there's also unfortunately no way to reliably detect bit-width
-    # mips64 itself CAN be detected, but currently I do not have a MIPS environment to test
-    # TODO: crossdev :)
+    # Because microMIPS is such cancer I'm considering it out of scope for now
+    detect_architecture_symbols(
+        ARCH mips64
+        SYMBOLS
+            "__mips64")
+
     detect_architecture_symbols(
         ARCH mips
         SYMBOLS
@@ -173,20 +186,28 @@ function(DetectArchitecture)
             "_M_MPPC"
             "_M_PPC")
 
-    # TODO: sparc64
+    detect_architecture_symbols(
+        ARCH sparc64
+        SYMBOLS
+            "__sparc_v9__")
+
     detect_architecture_symbols(
         ARCH sparc
         SYMBOLS
             "__sparc__"
             "__sparc")
 
-    # TODO: riscv32
-    # TODO: loongarch64
+    # I don't actually know about loongarch32 since crossdev does not support it, only 64
+    detect_architecture_symbols(
+        ARCH loongarch64
+        SYMBOLS
+            "__loongarch__"
+            "__loongarch64")
+
     detect_architecture_symbols(
         ARCH wasm
         SYMBOLS
             "__EMSCRIPTEN__")
-
 
     # "generic" target
     # If you have reached this point, you're on some as-of-yet unsupported architecture.
