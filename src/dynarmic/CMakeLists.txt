@@ -142,7 +142,7 @@ else()
     endif()
 endif()
 
-find_package(Boost 1.57 CONFIG REQUIRED)
+find_package(Boost 1.57 REQUIRED)
 find_package(fmt 8 CONFIG)
 
 # Pull in externals CMakeLists for libs where available

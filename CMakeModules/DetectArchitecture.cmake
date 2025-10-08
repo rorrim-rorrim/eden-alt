@@ -41,14 +41,15 @@ endif()
 
 include(CheckSymbolExists)
 function(detect_architecture symbol arch)
+    # The output variable needs to be unset between invocations otherwise
+    # CMake's crazy scope rules will keep it defined
     unset(SYMBOL_EXISTS CACHE)
+
     if (NOT DEFINED ARCHITECTURE)
         set(CMAKE_REQUIRED_QUIET 1)
         check_symbol_exists("${symbol}" "" SYMBOL_EXISTS)
         unset(CMAKE_REQUIRED_QUIET)
 
-        # The output variable needs to be unique across invocations otherwise
-        # CMake's crazy scope rules will keep it defined
         if (SYMBOL_EXISTS)
             set(ARCHITECTURE "${arch}" PARENT_SCOPE)
             set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
@@ -70,14 +71,11 @@ function(detect_architecture_symbols)
 
     set(arch "${ARGS_ARCH}")
 
-    message(STATUS "Architecture: symbols ${ARGS_SYMBOLS} for arch ${arch}")
-
     foreach(symbol ${ARGS_SYMBOLS})
         detect_architecture("${symbol}" "${arch}")
-        message(STATUS "Architecture: symbol ${symbol} ${ARCHITECTURE_${arch}}")
 
         if (ARCHITECTURE_${arch})
-            message(STATUS "[DetectArchitecture] Found architecture symbol ${symbol} for ${arch}")
+            message(DEBUG "[DetectArchitecture] Found architecture symbol ${symbol} for ${arch}")
             set(ARCHITECTURE "${arch}" PARENT_SCOPE)
             set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
             add_definitions(-DARCHITECTURE_${arch}=1)
@@ -88,19 +86,17 @@ function(detect_architecture_symbols)
 endfunction()
 
 function(DetectArchitecture)
+    # arches here are put in a sane default order of importance
+    # notably, amd64, arm64, and riscv (in order) are BY FAR the most common
+    # mips is pretty popular in embedded
+    # ppc64 is pretty popular in supercomputing
+    # ia64 exists
     detect_architecture_symbols(
         ARCH arm64
         SYMBOLS
             "__ARM64__"
             "__aarch64__"
             "_M_ARM64")
-
-    detect_architecture_symbols(
-        ARCH arm
-        SYMBOLS
-            "__arm__"
-            "__TARGET_ARCH_ARM"
-            "_M_ARM")
 
     detect_architecture_symbols(
         ARCH x86_64
@@ -112,11 +108,23 @@ function(DetectArchitecture)
             "_M_AMD64")
 
     detect_architecture_symbols(
+        ARCH riscv
+        SYMBOLS
+            "__riscv")
+
+    detect_architecture_symbols(
         ARCH x86
         SYMBOLS
             "__i386"
             "__i386__"
             "_M_IX86")
+
+    detect_architecture_symbols(
+        ARCH arm
+        SYMBOLS
+            "__arm__"
+            "__TARGET_ARCH_ARM"
+            "_M_ARM")
 
     detect_architecture_symbols(
         ARCH ia64
@@ -149,11 +157,6 @@ function(DetectArchitecture)
             "_ARCH_PPC"
             "_M_MPPC"
             "_M_PPC")
-
-    detect_architecture_symbols(
-        ARCH riscv
-        SYMBOLS
-            "__riscv")
 
     detect_architecture_symbols(
         ARCH wasm

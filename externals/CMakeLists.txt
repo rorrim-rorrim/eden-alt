@@ -405,10 +405,11 @@ if (APPLE)
 
     if (NOT MOLTENVK_LIBRARY OR YUZU_USE_BUNDLED_MOLTENVK)
         message(STATUS "Using bundled MoltenVK")
+        AddJsonPackage(moltenvk)
 
         # TODO: is this portable?
-        set(MVK_STATIC "${MOLTENVK_DIR}/MoltenVK/static/MoltenVK.xcframework/macos-arm64_x86_64/libMoltenVK.a")
-        set(MVK_DYLIB "${MOLTENVK_DIR}/MoltenVK/dylib/${platform}/libMoltenVK.dylib")
+        set(MVK_STATIC "${moltenvk_SOURCE_DIR}/MoltenVK/static/MoltenVK.xcframework/macos-arm64_x86_64/libMoltenVK.a")
+        set(MVK_DYLIB "${moltenvk_SOURCE_DIR}/MoltenVK/dylib/${platform}/libMoltenVK.dylib")
 
         # prefer static lib if it exists for smaller executable size
         if (EXISTS "${MVK_STATIC}")
