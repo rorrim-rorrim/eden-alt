@@ -338,7 +338,7 @@ BufferCacheRuntime::BufferCacheRuntime(const Device& device_, MemoryAllocator& m
                                                  compute_pass_descriptor_queue);
     }
     const u32 ubo_align = static_cast<u32>(
-            device.GetUniformBufferAlignment() /* if you have it */
+            device.GetUniformBufferAlignment() //check if the device has it
     );
     // add the ability to change the size in settings in future
     uniform_ring.Init(device, memory_allocator, 8 * 1024 * 1024 /* 8 MiB */, ubo_align ? ubo_align : 256);
