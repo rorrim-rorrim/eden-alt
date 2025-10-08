@@ -6,6 +6,7 @@
 
 #include <QObject>
 #include "common/common_types.h"
+#include "frontend_common/data_manager.h"
 
 namespace QtCommon::Content {
 
@@ -45,6 +46,8 @@ void InstallKeys();
 // Content //
 void VerifyGameContents(const std::string &game_path);
 void VerifyInstalledContents();
+
+void ClearDataDir(FrontendCommon::DataManager::DataDir dir);
 
 // Profiles //
 void FixProfiles();

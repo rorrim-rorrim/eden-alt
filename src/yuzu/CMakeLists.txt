@@ -234,6 +234,8 @@ add_executable(yuzu
     deps_dialog.cpp
     deps_dialog.h
     deps_dialog.ui
+
+    data_dialog.h data_dialog.cpp data_dialog.ui
 )
 
 set_target_properties(yuzu PROPERTIES OUTPUT_NAME "eden")

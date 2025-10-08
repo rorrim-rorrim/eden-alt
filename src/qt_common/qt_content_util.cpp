@@ -348,4 +348,29 @@ void FixProfiles()
     QtCommon::Game::OpenSaveFolder();
 }
 
+void ClearDataDir(FrontendCommon::DataManager::DataDir dir) {
+    auto result = QtCommon::Frontend::Warning("Really clear data?",
+                                              "Important data may be lost!",
+                                              QMessageBox::Yes | QMessageBox::No);
+
+    if (result != QMessageBox::Yes)
+        return;
+
+    result = QtCommon::Frontend::Warning(
+        "Are you REALLY sure?",
+        "Once deleted, your data will NOT come back!\n"
+        "Only do this if you're 100% sure you want to delete this data.",
+        QMessageBox::Yes | QMessageBox::No);
+
+    if (result != QMessageBox::Yes)
+        return;
+
+    QtCommon::Frontend::QtProgressDialog dialog(tr("Clearing..."), QString(), 0, 0);
+    dialog.show();
+
+    FrontendCommon::DataManager::ClearDir(dir);
+
+    dialog.close();
+}
+
 } // namespace QtCommon::Content

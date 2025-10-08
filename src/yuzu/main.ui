@@ -158,7 +158,7 @@
     </property>
     <widget class="QMenu" name="menu_cabinet_applet">
      <property name="title">
-      <string>&amp;Amiibo</string>
+      <string>Am&amp;iibo</string>
      </property>
      <addaction name="action_Load_Cabinet_Nickname_Owner"/>
      <addaction name="action_Load_Cabinet_Eraser"/>
@@ -184,7 +184,7 @@
     </widget>
     <widget class="QMenu" name="menuInstall_Firmware">
      <property name="title">
-      <string>Install Firmware</string>
+      <string>Install &amp;Firmware</string>
      </property>
      <addaction name="action_Firmware_From_Folder"/>
      <addaction name="action_Firmware_From_ZIP"/>
@@ -192,6 +192,7 @@
     <addaction name="action_Install_Keys"/>
     <addaction name="menuInstall_Firmware"/>
     <addaction name="action_Verify_installed_contents"/>
+    <addaction name="action_Data_Manager"/>
     <addaction name="separator"/>
     <addaction name="menu_cabinet_applet"/>
     <addaction name="action_Load_Album"/>
@@ -497,7 +498,7 @@
   </action>
   <action name="action_Install_Keys">
    <property name="text">
-    <string>Install Decryption Keys</string>
+    <string>Install Decryption &amp;Keys</string>
    </property>
   </action>
   <action name="action_Load_Home_Menu">
@@ -591,6 +592,11 @@
   <action name="action_Eden_Dependencies">
    <property name="text">
     <string>&amp;Eden Dependencies</string>
+   </property>
+  </action>
+  <action name="action_Data_Manager">
+   <property name="text">
+    <string>&amp;Data Manager</string>
    </property>
   </action>
  </widget>

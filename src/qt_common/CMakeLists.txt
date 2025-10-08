@@ -4,9 +4,6 @@
 # SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-find_package(Qt6 REQUIRED COMPONENTS Core)
-find_package(Qt6 REQUIRED COMPONENTS Core)
-
 add_library(qt_common STATIC
     qt_common.h
     qt_common.cpp
@@ -27,6 +24,7 @@ add_library(qt_common STATIC
     qt_rom_util.h qt_rom_util.cpp
     qt_applet_util.h qt_applet_util.cpp
     qt_progress_dialog.h qt_progress_dialog.cpp
+    qt_string_lookup.h
 
 )
 
@@ -40,6 +38,7 @@ endif()
 add_subdirectory(externals)
 
 target_link_libraries(qt_common PRIVATE core Qt6::Core SimpleIni::SimpleIni QuaZip::QuaZip)
+target_link_libraries(qt_common PUBLIC frozen::frozen)
 
 if (NOT APPLE AND ENABLE_OPENGL)
     target_compile_definitions(qt_common PUBLIC HAS_OPENGL)
