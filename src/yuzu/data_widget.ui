@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DataWidget</class>
+ <widget class="QWidget" name="DataWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>275</width>
+    <height>200</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="3,2">
+     <item>
+      <widget class="QLabel" name="tooltip">
+       <property name="text">
+        <string>Tooltip</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="size">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string notr="true">Size</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,1">
+     <property name="sizeConstraint">
+      <enum>QLayout::SizeConstraint::SetFixedSize</enum>
+     </property>
+     <property name="bottomMargin">
+      <number>25</number>
+     </property>
+     <item>
+      <widget class="QPushButton" name="open">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>1</horstretch>
+         <verstretch>1</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>52</width>
+         <height>42</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Open with your system file manager</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton {
+ border-style: solid;
+ border-width:1px;
+ border-radius:25px;
+ border-color: transparent;
+ max-width:50px;
+ max-height:40px;
+ min-width:50px;
+ min-height:40px;
+}</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>24</width>
+         <height>24</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="clear">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>1</horstretch>
+         <verstretch>1</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>52</width>
+         <height>42</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Delete all data in this directory. THIS IS 100% IRREVERSABLE!</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton {
+ border-style: solid;
+ border-width:1px;
+ border-radius:25px;
+ border-color: transparent;
+ max-width:50px;
+ max-height:40px;
+ min-width:50px;
+ min-height:40px;
+}</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>24</width>
+         <height>24</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

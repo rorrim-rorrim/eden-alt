@@ -5,11 +5,10 @@
 #define DATA_DIALOG_H
 
 #include <QDialog>
-#include <QFutureWatcher>
-#include <QSortFilterProxyModel>
-#include <QTableWidgetItem>
 #include "frontend_common/data_manager.h"
-#include <qnamespace.h>
+#include "qt_common/qt_string_lookup.h"
+
+#include "ui_data_widget.h"
 
 namespace Ui {
 class DataDialog;
@@ -27,19 +26,21 @@ private:
     std::unique_ptr<Ui::DataDialog> ui;
 };
 
-class DataItem : public QTableWidgetItem
+class DataWidget : public QWidget
 {
+    Q_OBJECT
 public:
-    DataItem(FrontendCommon::DataManager::DataDir data_dir, QWidget *parent);
-    enum DataRole { SIZE = Qt::UserRole + 1, DATA_DIR };
+    explicit DataWidget(FrontendCommon::DataManager::DataDir data_dir,
+                        QtCommon::StringLookup::StringKey tooltip,
+                        QWidget *parent = nullptr);
 
-    bool operator<(const QTableWidgetItem &other) const;
-    void reset();
+public slots:
+    void clear();
+    void open();
     void scan();
 
 private:
-    QWidget *m_parent;
-    QFutureWatcher<u64> *m_watcher = nullptr;
+    std::unique_ptr<Ui::DataWidget> ui;
     FrontendCommon::DataManager::DataDir m_dir;
 };
 

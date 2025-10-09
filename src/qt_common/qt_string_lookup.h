@@ -23,11 +23,11 @@ enum StringKey {
 };
 
 static constexpr const frozen::unordered_map<StringKey, frozen::string, 5> strings = {
-    {SavesTooltip, "DO NOT REMOVE UNLESS YOU KNOW WHAT YOU'RE DOING!"},
-    {ShadersTooltip, "Shader pipeline caches. Generally safe to remove."},
+    {SavesTooltip, "Contains game save data. DO NOT REMOVE UNLESS YOU KNOW WHAT YOU'RE DOING!"},
+    {ShadersTooltip, "Contains Vulkan and OpenGL pipeline caches. Generally safe to remove."},
     {UserNandTooltip, "Contains updates and DLC for games."},
     {SysNandTooltip, "Contains firmware and applet data."},
-    {ModsTooltip, "Contains all of your mod data."},
+    {ModsTooltip, "Contains game mods, patches, and cheats."},
 };
 
 static inline const QString Lookup(StringKey key)
