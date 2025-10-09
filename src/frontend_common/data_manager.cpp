@@ -21,7 +21,9 @@ const std::string GetDataDir(DataDir dir)
     case DataDir::UserNand:
         return (nand_dir / "user" / "Contents" / "registered").string();
     case DataDir::SysNand:
-        return (nand_dir / "system").string();
+        // NB: do NOT delete save
+        // that contains profile data and other stuff
+        return (nand_dir / "system" / "Contents" / "registered").string();
     case DataDir::Mods:
         return Common::FS::GetEdenPathString(Common::FS::EdenPath::LoadDir);
     case DataDir::Shaders:

@@ -48,6 +48,8 @@ void VerifyGameContents(const std::string &game_path);
 void VerifyInstalledContents();
 
 void ClearDataDir(FrontendCommon::DataManager::DataDir dir);
+void ExportDataDir(FrontendCommon::DataManager::DataDir dir, std::function<void()> callback = {});
+void ImportDataDir(FrontendCommon::DataManager::DataDir dir, std::function<void()> callback = {});
 
 // Profiles //
 void FixProfiles();

@@ -37,6 +37,9 @@ public:
 public slots:
     void clear();
     void open();
+    void upload();
+    void download();
+
     void scan();
 
 private:

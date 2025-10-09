@@ -4,12 +4,16 @@
 #include "data_dialog.h"
 #include "frontend_common/data_manager.h"
 #include "qt_common/qt_content_util.h"
+#include "qt_common/qt_frontend_util.h"
+#include "qt_common/qt_progress_dialog.h"
 #include "qt_common/qt_string_lookup.h"
 #include "ui_data_dialog.h"
 
 #include <QDesktopServices>
+#include <QFileDialog>
 #include <QFutureWatcher>
-#include <QtConcurrent/QtConcurrentRun>
+#include <QProgressDialog>
+#include <QtConcurrentRun>
 
 DataDialog::DataDialog(QWidget *parent)
     : QDialog(parent)
@@ -49,23 +53,39 @@ DataWidget::DataWidget(FrontendCommon::DataManager::DataDir data_dir,
 
     ui->tooltip->setText(QtCommon::StringLookup::Lookup(tooltip));
 
-    ui->clear->setIcon(QIcon::fromTheme(QStringLiteral("trash")));
+    ui->clear->setIcon(QIcon::fromTheme(QStringLiteral("user-trash")));
     ui->open->setIcon(QIcon::fromTheme(QStringLiteral("folder")));
+    ui->upload->setIcon(QIcon::fromTheme(QStringLiteral("upload")));
+    ui->download->setIcon(QIcon::fromTheme(QStringLiteral("download")));
 
     connect(ui->clear, &QPushButton::clicked, this, &DataWidget::clear);
     connect(ui->open, &QPushButton::clicked, this, &DataWidget::open);
+    connect(ui->upload, &QPushButton::clicked, this, &DataWidget::upload);
+    connect(ui->download, &QPushButton::clicked, this, &DataWidget::download);
 
     scan();
 }
 
-void DataWidget::clear() {
+void DataWidget::clear()
+{
     QtCommon::Content::ClearDataDir(m_dir);
     scan();
 }
 
-void DataWidget::open() {
+void DataWidget::open()
+{
     QDesktopServices::openUrl(QUrl::fromLocalFile(
         QString::fromStdString(FrontendCommon::DataManager::GetDataDir(m_dir))));
+}
+
+void DataWidget::upload()
+{
+    QtCommon::Content::ExportDataDir(m_dir);
+}
+
+void DataWidget::download()
+{
+    QtCommon::Content::ImportDataDir(m_dir, std::bind(&DataWidget::scan, this));
 }
 
 void DataWidget::scan() {

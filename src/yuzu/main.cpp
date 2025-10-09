@@ -3939,6 +3939,10 @@ void GMainWindow::OnEdenDependencies() {
 void GMainWindow::OnDataDialog() {
     DataDialog dataDialog(this);
     dataDialog.exec();
+
+    // refresh stuff in case it was cleared
+    OnGameListRefresh();
+
 }
 
 void GMainWindow::OnToggleFilterBar() {
@@ -4481,11 +4485,15 @@ void GMainWindow::SetFirmwareVersion() {
 
     if (result.IsError() || !CheckFirmwarePresence()) {
         LOG_INFO(Frontend, "Installed firmware: No firmware available");
+        ui->menu_Applets->setEnabled(false);
+        ui->menu_Create_Shortcuts->setEnabled(false);
         firmware_label->setVisible(false);
         return;
     }
 
     firmware_label->setVisible(true);
+    ui->menu_Applets->setEnabled(true);
+    ui->menu_Create_Shortcuts->setEnabled(true);
 
     const std::string display_version(firmware_data.display_version.data());
     const std::string display_title(firmware_data.display_title.data());
