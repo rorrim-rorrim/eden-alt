@@ -28,8 +28,7 @@ void CommandPool::Allocate(size_t begin, size_t end) {
     pool.handle = device.GetLogical().CreateCommandPool({
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
         .pNext = nullptr,
-        .flags =
-            VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+        .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
         .queueFamilyIndex = device.GetGraphicsFamily(),
     });
     pool.cmdbufs = pool.handle.Allocate(COMMAND_BUFFER_POOL_SIZE);
