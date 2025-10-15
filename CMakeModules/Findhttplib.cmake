@@ -4,7 +4,11 @@
 
 include(FindPackageHandleStandardArgs)
 
-find_package(httplib QUIET CONFIG)
+# FreeBSD has errors with Brotli::*, same with Solaris (when httplib of
+# system is installed)
+if (WIN32 OR ANDROID OR APPLE OR LINUX)
+    find_package(httplib QUIET CONFIG)
+endif()
 if (httplib_CONSIDERED_CONFIGS)
     find_package_handle_standard_args(httplib HANDLE_COMPONENTS CONFIG_MODE)
 else()
