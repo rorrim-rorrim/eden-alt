@@ -415,27 +415,14 @@ if (APPLE)
         message(STATUS "Using bundled MoltenVK")
         AddJsonPackage(moltenvk)
 
-        # TODO: is this portable?
-        set(MVK_STATIC "${moltenvk_SOURCE_DIR}/MoltenVK/static/MoltenVK.xcframework/macos-arm64_x86_64/libMoltenVK.a")
         set(MVK_DYLIB "${moltenvk_SOURCE_DIR}/MoltenVK/dylib/${platform}/libMoltenVK.dylib")
 
         # prefer static lib if it exists for smaller executable size
-        if (EXISTS "${MVK_STATIC}")
-            # Using static MoltenVK requires linking to a few Apple frameworks
-            find_library(IOSURFACE_LIBRARY IOSurface REQUIRED)
-            find_library(QUARTZCORE_LIBRARY QuartzCore REQUIRED)
+        add_library(moltenvk SHARED IMPORTED)
+        set_target_properties(moltenvk PROPERTIES
+            IMPORTED_LOCATION "${MVK_DYLIB}"
+        )
 
-            add_library(MoltenVK::MoltenVK STATIC IMPORTED GLOBAL)
-            set_target_properties(MoltenVK::MoltenVK PROPERTIES
-                IMPORTED_LOCATION "${MVK_STATIC}"
-            )
-
-            target_link_libraries(MoltenVK::MoltenVK INTERFACE ${IOSURFACE_LIBRARY} ${QUARTZCORE_LIBRARY})
-        else()
-            add_library(MoltenVK::MoltenVK SHARED IMPORTED GLOBAL)
-            set_target_properties(MoltenVK::MoltenVK PROPERTIES
-                IMPORTED_LOCATION "${MVK_DYLIB}"
-            )
-        endif()
+        add_library(MoltenVK::MoltenVK ALIAS moltenvk)
     endif()
 endif()

@@ -375,6 +375,7 @@ if (APPLE)
                                         XCODE_FILE_ATTRIBUTES "CodeSignOnCopy")
 
         target_sources(yuzu PRIVATE "${MOLTENVK_LIBRARY}")
+        target_link_libraries(yuzu PRIVATE "${MOLTENVK_LIBRARY}")
     endif()
 endif()
 
