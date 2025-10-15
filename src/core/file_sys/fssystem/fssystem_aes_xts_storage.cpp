@@ -4,6 +4,9 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
+#include <vector>
+
 #include "common/alignment.h"
 #include "common/swap.h"
 #include "core/file_sys/fssystem/fssystem_aes_xts_storage.h"
@@ -68,9 +71,13 @@ size_t AesXtsStorage::Read(u8* buffer, size_t size, size_t offset) const {
             static_cast<size_t>(offset - Common::AlignDown(offset, m_block_size));
         const size_t data_size = (std::min)(size, m_block_size - skip_size);
 
-        // Decrypt into a pooled buffer.
+        // Decrypt into a thread-local pooled buffer to avoid per-call allocations.
         {
-            std::vector<char> tmp_buf(m_block_size, 0);
+            thread_local std::vector<u8> tmp_buf;
+            if (tmp_buf.size() < m_block_size) {
+                tmp_buf.resize(m_block_size);
+            }
+            std::fill(tmp_buf.begin(), tmp_buf.begin() + m_block_size, 0);
             std::memcpy(tmp_buf.data() + skip_size, buffer, data_size);
 
             m_cipher->SetIV(ctr);

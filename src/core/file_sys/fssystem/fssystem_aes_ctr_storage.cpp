@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/alignment.h"
+#include <vector>
 #include "common/swap.h"
 #include "core/file_sys/fssystem/fssystem_aes_ctr_storage.h"
 #include "core/file_sys/fssystem/fssystem_utility.h"
@@ -88,11 +89,14 @@ size_t AesCtrStorage::Write(const u8* buffer, size_t size, size_t offset) {
     s64 cur_offset = 0;
 
     // Get a pooled buffer.
-    std::vector<char> pooled_buffer(BlockSize);
+    thread_local std::vector<u8> pooled_buffer;
+    if (pooled_buffer.size() < BlockSize) {
+        pooled_buffer.resize(BlockSize);
+    }
     while (remaining > 0) {
         // Determine data we're writing and where.
         const size_t write_size = std::min(pooled_buffer.size(), remaining);
-        u8* write_buf = reinterpret_cast<u8*>(pooled_buffer.data());
+        u8* write_buf = pooled_buffer.data();
 
         // Encrypt the data.
         m_cipher->SetIV(ctr);
