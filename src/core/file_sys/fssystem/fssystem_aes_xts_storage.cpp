@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <array>
 #include <vector>
 
 #include "common/alignment.h"
@@ -77,7 +78,7 @@ size_t AesXtsStorage::Read(u8* buffer, size_t size, size_t offset) const {
             if (tmp_buf.size() < m_block_size) {
                 tmp_buf.resize(m_block_size);
             }
-            std::fill(tmp_buf.begin(), tmp_buf.begin() + m_block_size, 0);
+            std::fill_n(tmp_buf.begin(), m_block_size, u8{0});
             std::memcpy(tmp_buf.data() + skip_size, buffer, data_size);
 
             m_cipher->SetIV(ctr);
