@@ -264,7 +264,7 @@ if (ENABLE_WEB_SERVICE)
 endif()
 option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
 if (ENABLE_OPENSSL)
-    cmake_dependent_option(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" "${MSVC}" "NOT ANDROID" ON)
+    cmake_dependent_option(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" ON "MSVC OR PLATFORM_SUN" OFF)
 endif()
 
 if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)
