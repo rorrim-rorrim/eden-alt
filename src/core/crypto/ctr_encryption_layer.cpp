@@ -12,45 +12,37 @@ CTREncryptionLayer::CTREncryptionLayer(FileSys::VirtualFile base_, Key128 key_,
     : EncryptionLayer(std::move(base_)), base_offset(base_offset_), cipher(key_, Mode::CTR) {}
 
 std::size_t CTREncryptionLayer::Read(u8* data, std::size_t length, std::size_t offset) const {
-    if (length == 0) {
+    if (length == 0)
         return 0;
-    }
 
     std::size_t total_read = 0;
-
     // Handle an initial misaligned portion if needed.
-    const auto sector_offset = offset & 0xF;
-    if (sector_offset != 0) {
+    if (auto const sector_offset = offset & 0xF; sector_offset != 0) {
         const std::size_t aligned_off = offset - sector_offset;
         std::array<u8, 0x10> block{};
-        const std::size_t got = base->Read(block.data(), block.size(), aligned_off);
-        if (got == 0) {
+        if (auto const got = base->Read(block.data(), block.size(), aligned_off); got != 0) {
+            UpdateIV(base_offset + aligned_off);
+            cipher.Transcode(block.data(), got, block.data(), Op::Decrypt);
+            auto const to_copy = std::min<std::size_t>(length, got > sector_offset ? got - sector_offset : 0);
+            if (to_copy > 0) {
+                std::memcpy(data, block.data() + sector_offset, to_copy);
+                data += to_copy;
+                offset += to_copy;
+                length -= to_copy;
+                total_read += to_copy;
+            }
+        } else {
             return 0;
         }
-
-        UpdateIV(base_offset + aligned_off);
-        cipher.Transcode(block.data(), got, block.data(), Op::Decrypt);
-
-        const std::size_t to_copy = std::min<std::size_t>(length, got > sector_offset ? got - sector_offset : 0);
-        if (to_copy > 0) {
-            std::memcpy(data, block.data() + sector_offset, to_copy);
-            data += to_copy;
-            offset += to_copy;
-            length -= to_copy;
-            total_read += to_copy;
+    }
+    if (length > 0) {
+        // Now aligned to 0x10
+        UpdateIV(base_offset + offset);
+        const std::size_t got = base->Read(data, length, offset);
+        if (got > 0) {
+            cipher.Transcode(data, got, data, Op::Decrypt);
+            total_read += got;
         }
-    }
-
-    if (length == 0) {
-        return total_read;
-    }
-
-    // Now aligned to 0x10
-    UpdateIV(base_offset + offset);
-    const std::size_t got = base->Read(data, length, offset);
-    if (got > 0) {
-        cipher.Transcode(data, got, data, Op::Decrypt);
-        total_read += got;
     }
     return total_read;
 }

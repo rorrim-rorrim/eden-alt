@@ -73,15 +73,11 @@ void AESCipher<Key, KeySize>::Transcode(const u8* src, std::size_t size, u8* des
     mbedtls_cipher_reset(context);
 
     // Only ECB strictly requires block sized chunks.
-    const auto mode = mbedtls_cipher_get_cipher_mode(context);
-
     std::size_t written = 0;
-    if (mode != MBEDTLS_MODE_ECB) {
+    if (mbedtls_cipher_get_cipher_mode(context) != MBEDTLS_MODE_ECB) {
         mbedtls_cipher_update(context, src, size, dest, &written);
-        if (written != size) {
-            LOG_WARNING(Crypto, "Not all data was processed requested={:016X}, actual={:016X}.",
-                        size, written);
-        }
+        if (written != size)
+            LOG_WARNING(Crypto, "Not all data was processed requested={:016X}, actual={:016X}.", size, written);
         return;
     }
 
@@ -106,8 +102,7 @@ void AESCipher<Key, KeySize>::Transcode(const u8* src, std::size_t size, u8* des
                 std::memcpy(dest + offset, block.data(), length);
                 return;
             }
-            LOG_WARNING(Crypto, "Not all data was processed requested={:016X}, actual={:016X}.",
-                        length, written);
+            LOG_WARNING(Crypto, "Not all data was processed requested={:016X}, actual={:016X}.", length, written);
         }
     }
 }
