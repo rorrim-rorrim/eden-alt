@@ -46,16 +46,15 @@ std::size_t XTSEncryptionLayer::Read(u8* data, std::size_t length, std::size_t o
 
     if (length > 0) {
         // Process aligned middle inplace, in sector sized multiples.
-        while (length >= sector_size) {
-            const std::size_t req = (length / sector_size) * sector_size;
+        while (length >= XTS_SECTOR_SIZE) {
+            const std::size_t req = (length / XTS_SECTOR_SIZE) * XTS_SECTOR_SIZE;
             const std::size_t got = base->Read(data, req, offset);
             if (got == 0) {
                 return total_read;
             }
-            const std::size_t got_rounded = got - (got % sector_size);
+            const std::size_t got_rounded = got - (got % XTS_SECTOR_SIZE);
             if (got_rounded > 0) {
-                cipher.XTSTranscode(data, got_rounded, data, offset / sector_size, sector_size,
-                                    Op::Decrypt);
+                cipher.XTSTranscode(data, got_rounded, data, offset / XTS_SECTOR_SIZE, XTS_SECTOR_SIZE, Op::Decrypt);
                 data += got_rounded;
                 offset += got_rounded;
                 length -= got_rounded;
@@ -69,13 +68,13 @@ std::size_t XTSEncryptionLayer::Read(u8* data, std::size_t length, std::size_t o
         // Handle tail within a sector, if any.
         if (length > 0) {
             std::array<u8, XTS_SECTOR_SIZE> block{};
-            const std::size_t got = base->Read(block.data(), sector_size, offset);
+            const std::size_t got = base->Read(block.data(), XTS_SECTOR_SIZE, offset);
             if (got > 0) {
-                if (got < sector_size) {
-                    std::memset(block.data() + got, 0, sector_size - got);
+                if (got < XTS_SECTOR_SIZE) {
+                    std::memset(block.data() + got, 0, XTS_SECTOR_SIZE - got);
                 }
-                cipher.XTSTranscode(block.data(), sector_size, block.data(),
-                                    offset / sector_size, sector_size, Op::Decrypt);
+                cipher.XTSTranscode(block.data(), XTS_SECTOR_SIZE, block.data(),
+                                    offset / XTS_SECTOR_SIZE, XTS_SECTOR_SIZE, Op::Decrypt);
                 const std::size_t to_copy = std::min<std::size_t>(length, got);
                 std::memcpy(data, block.data(), to_copy);
                 total_read += to_copy;
