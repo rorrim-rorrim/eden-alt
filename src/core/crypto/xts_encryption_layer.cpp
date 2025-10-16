@@ -33,7 +33,7 @@ std::size_t XTSEncryptionLayer::Read(u8* data, std::size_t length, std::size_t o
             return 0;
         }
         if (got < sector_size) {
-            std::fill(block.begin() + got, block.end(), 0);
+            std::fill(block.begin() + got, block.end(), u8{0});
         }
         cipher.XTSTranscode(block.data(), sector_size, block.data(), aligned_off / sector_size,
                             sector_size, Op::Decrypt);
@@ -80,10 +80,10 @@ std::size_t XTSEncryptionLayer::Read(u8* data, std::size_t length, std::size_t o
         const std::size_t got = base->Read(block.data(), sector_size, offset);
         if (got > 0) {
             if (got < sector_size) {
-                std::fill(block.begin() + got, block.end(), 0);
+                std::fill(block.begin() + got, block.end(), u8{0});
             }
-            cipher.XTSTranscode(block.data(), sector_size, block.data(), offset / sec
-                            tor_size,    sector_size, Op::Decrypt);
+            cipher.XTSTranscode(block.data(), sector_size, block.data(),
+                                offset / sector_size, sector_size, Op::Decrypt);
             const std::size_t to_copy = std::min<std::size_t>(length, got);
             std::memcpy(data, block.data(), to_copy);
             total_read += to_copy;
