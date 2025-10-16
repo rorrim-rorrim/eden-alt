@@ -46,8 +46,8 @@
         "package": "xbyak",
         "repo": "herumi/xbyak",
         "tag": "v%VERSION%",
-        "hash": "443c5c0f14182e46b07af18ee5bd631a0557c37c6b92f6b19a3100dcc8f7b8baa100b7f142fc182cb8d74537bd69459f1065b39078a8a8d02f247133c9c46be4",
-        "git_version": "7.28",
+        "hash": "b40dade90fb0e46a2bd52934f7ce461e37be931b571e58cbe2203bc08ed5b54c7ff1a29026c74c7f9805e4e3f6c9636deca528e6b4a8093ce7eae145218599f1",
+        "git_version": "7.29",
         "bundled": true,
         "skip_updates": true
     },
