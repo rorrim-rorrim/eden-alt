@@ -5,12 +5,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <array>
 #include <cstring>
 #include "core/crypto/xts_encryption_layer.h"
 
 namespace Core::Crypto {
 
-constexpr u64 XTS_SECTOR_SIZE = 0x4000;
+constexpr std::size_t XTS_SECTOR_SIZE = 0x4000;
 
 XTSEncryptionLayer::XTSEncryptionLayer(FileSys::VirtualFile base_, Key256 key_)
     : EncryptionLayer(std::move(base_)), cipher(key_, Mode::XTS) {}
@@ -33,7 +34,7 @@ std::size_t XTSEncryptionLayer::Read(u8* data, std::size_t length, std::size_t o
             return 0;
         }
         if (got < sector_size) {
-            std::fill(block.begin() + got, block.end(), u8{0});
+            std::memset(block.data() + got, 0, sector_size - got);
         }
         cipher.XTSTranscode(block.data(), sector_size, block.data(), aligned_off / sector_size,
                             sector_size, Op::Decrypt);
@@ -80,7 +81,7 @@ std::size_t XTSEncryptionLayer::Read(u8* data, std::size_t length, std::size_t o
         const std::size_t got = base->Read(block.data(), sector_size, offset);
         if (got > 0) {
             if (got < sector_size) {
-                std::fill(block.begin() + got, block.end(), u8{0});
+                std::memset(block.data() + got, 0, sector_size - got);
             }
             cipher.XTSTranscode(block.data(), sector_size, block.data(),
                                 offset / sector_size, sector_size, Op::Decrypt);
