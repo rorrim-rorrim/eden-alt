@@ -10,6 +10,11 @@ doc-build/
 AppDir/
 uruntime
 
+dtrace-output/
+dtrace-out/
+log.txt
+*.core
+
 # Generated source files
 src/common/scm_rev.cpp
 dist/english_plurals/generated_en.ts

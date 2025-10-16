@@ -145,35 +145,33 @@ brew install molten-vk vulkan-loader
 <details>
 <summary>FreeBSD</summary>
 
-```
-devel/cmake
-devel/sdl20
-devel/boost-libs
-devel/catch2
-devel/libfmt
-devel/nlohmann-json
-devel/ninja
-devel/nasm
-devel/autoconf
-devel/pkgconf
-devel/qt6-base
-
-net/enet
-
-multimedia/ffnvcodec-headers
-multimedia/ffmpeg
-
-audio/opus
-
-archivers/liblz4
-
-lang/gcc12
-
-graphics/glslang
-graphics/vulkan-utility-libraries
-```
+As root run: `pkg install devel/cmake devel/sdl20 devel/boost-libs devel/catch2 devel/libfmt devel/nlohmann-json devel/ninja devel/nasm devel/autoconf devel/pkgconf devel/qt6-base devel/simpleini net/enet multimedia/ffnvcodec-headers multimedia/ffmpeg audio/opus archivers/liblz4 lang/gcc12 graphics/glslang graphics/vulkan-utility-libraries graphics/spirv-tools www/cpp-httplib devel/jwt-cpp devel/unordered-dense devel/zydis`
 
 If using FreeBSD 12 or prior, use `devel/pkg-config` instead.
+</details>
+
+<details>
+<summary>NetBSD</summary>
+
+Install `pkgin` if not already `pkg_add pkgin`, see also the general [pkgsrc guide](https://www.netbsd.org/docs/pkgsrc/using.html). For NetBSD 10.1 provide `cat 'PKG_PATH="https://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.0_2025Q3/All/"' >/etc/pkg_install.conf`. If `pkgin` is taking too much time consider adding the following to `/etc/rc.conf`:
+```
+ip6addrctl=YES
+ip6addrctl_policy=ipv4_prefer
+```
+
+For NetBSD +10.1: `pkgin install git cmake boost fmtlib SDL2 catch2 libjwt spirv-headers ffmpeg7 libva nlohmann-json jq libopus qt6 mbedtls3 cpp-httplib lz4 vulkan-headers nasm autoconf enet pkg-config`.
+
+glslang is not available on NetBSD, to circumvent this simply build glslang by yourself:
+```sh
+pkgin python313
+git clone https://github.com/KhronosGroup/glslang.git
+cd glslang
+python3.13 ./update_glslang_sources.py
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -- -j`nproc`
+cmake --install build
+```
+
 </details>
 
 <details>

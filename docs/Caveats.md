@@ -50,3 +50,9 @@ After configuration, you may need to modify `externals/ffmpeg/CMakeFiles/ffmpeg-
 Eden is not currently available as a port on FreeBSD, though it is in the works. For now, the recommended method of usage is to compile it yourself.
 
 The available OpenSSL port (3.0.17) is out-of-date, and using a bundled static library instead is recommended; to do so, add `-DYUZU_USE_BUNDLED_OPENSSL=ON` to your CMake configure command.
+
+## NetBSD
+
+System provides a default `g++-10` which doesn't support the current C++ codebase; install `clang-19` with `pkgin install clang-19`. Then build with `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -B build`.
+
+Make may error out when generating C++ headers of SPIRV shaders, hence it's recommended to use `gmake` over the default system one.
