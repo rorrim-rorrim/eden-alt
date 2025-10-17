@@ -110,18 +110,25 @@ sudo apt-get install autoconf cmake g++ gcc git glslang-tools libasound2t64 libb
 </details>
 
 <details>
-<summary>Fedora Linux</summary>
+<summary>AlmaLinux, Fedora, Red Hat Linux</summary>
 
+Fedora:
 ```sh
-sudo dnf install autoconf ccache cmake fmt-devel gcc{,-c++} glslang hidapi-devel json-devel libtool libusb1-devel libzstd-devel lz4-devel nasm ninja-build openssl-devel pulseaudio-libs-devel qt6-linguist qt6-qtbase{-private,}-devel qt6-qtwebengine-devel qt6-qtmultimedia-devel speexdsp-devel wayland-devel zlib-devel ffmpeg-devel libXext-devel
+sudo dnf install autoconf cmake fmt-devel gcc{,-c++} glslang hidapi-devel json-devel libtool libusb1-devel libzstd-devel lz4-devel nasm ninja-build openssl-devel pulseaudio-libs-devel qt6-linguist qt6-qtbase{-private,}-devel qt6-qtwebengine-devel qt6-qtmultimedia-devel speexdsp-devel wayland-devel zlib-devel ffmpeg-devel libXext-devel boost jq
 ```
 
-* Force system libraries via CMake arguments:
-  * SDL2: `-DYUZU_USE_BUNDLED_SDL2=OFF -DYUZU_USE_EXTERNAL_SDL2=OFF`
-  * FFmpeg: `-DYUZU_USE_EXTERNAL_FFMPEG=OFF`
-* [RPM Fusion](https://rpmfusion.org/) is required for `ffmpeg-devel`
+AlmaLinux (use `YUZU_USE_CPM=ON`):
+```sh
+# vvv - Only if RPMfusion is not installed or EPEL isn't either
+sudo dnf install epel-release dnf-utils
+# (run rpmfusion installation afterwards)
+# vvv - This will work for most systems
+sudo dnf install autoconf cmake libtool libudev cmake gcc gcc-c++ qt6-qtbase-devel zlib-devel openssl-devel boost SDL2 ffmpeg-devel libdrm glslang jq patch
+```
+
+* [RPM Fusion](https://rpmfusion.org/Configuration) is required for `ffmpeg-devel`
 * Fedora 32 or later is required.
-* Fedora 36+ users with GCC 12 need Clang and should configure CMake with:
+* Fedora 36+ users with GCC 12 need Clang and should configure CMake with: `cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -B build`
 </details>
 
 <details>
@@ -207,6 +214,16 @@ Then install the libraries: `sudo pkg install qt6 boost glslang libzip library/l
   * `echo 'PATH=/mingw64/bin:$PATH' >> ~/.bashrc`
 * Add VulkanSDK to the PATH:
   * `echo 'PATH=$(readlink -e /c/VulkanSDK/*/Bin/):$PATH' >> ~/.bashrc`
+</details>
+
+<details>
+<summary>RedoxOS</summary>
+
+```sh
+sudo pkg update && sudo pkg install git cmake
+sudo pkg install ffmpeg6 sdl2 zlib llvm18
+```
+
 </details>
 
 ## All Done
