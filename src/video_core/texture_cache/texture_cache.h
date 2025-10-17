@@ -108,7 +108,7 @@ void TextureCache<P>::RunGarbageCollector() {
         }
         if (must_download) {
             auto map = runtime.DownloadStagingBuffer(image.unswizzled_size_bytes);
-            const auto copies = FullDownloadCopies(image.info);
+            const auto copies = FixSmallVectorADL(FullDownloadCopies(image.info));
             image.DownloadMemory(map, copies);
             runtime.Finish();
             SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, map.mapped_span,
@@ -564,7 +564,7 @@ void TextureCache<P>::DownloadMemory(DAddr cpu_addr, size_t size) {
     for (const ImageId image_id : images) {
         Image& image = slot_images[image_id];
         auto map = runtime.DownloadStagingBuffer(image.unswizzled_size_bytes);
-        const auto copies = FullDownloadCopies(image.info);
+        const auto copies = FixSmallVectorADL(FullDownloadCopies(image.info));
         image.DownloadMemory(map, copies);
         runtime.Finish();
         SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, map.mapped_span,
@@ -1088,14 +1088,12 @@ void TextureCache<P>::UploadImageContents(Image& image, StagingBuffer& staging) 
         *gpu_memory, gpu_addr, image.guest_size_bytes, &swizzle_data_buffer);
     if (True(image.flags & ImageFlagBits::Converted)) {
         unswizzle_data_buffer.resize_destructive(image.unswizzled_size_bytes);
-        auto copies =
-            UnswizzleImage(*gpu_memory, gpu_addr, image.info, swizzle_data, unswizzle_data_buffer);
+        auto copies = FixSmallVectorADL(UnswizzleImage(*gpu_memory, gpu_addr, image.info, swizzle_data, unswizzle_data_buffer));
         ConvertImage(unswizzle_data_buffer, image.info, mapped_span, copies);
-        image.UploadMemory(staging, FixSmallVectorADL(copies));
+        image.UploadMemory(staging, copies);
     } else {
-        const auto copies =
-            UnswizzleImage(*gpu_memory, gpu_addr, image.info, swizzle_data, mapped_span);
-        image.UploadMemory(staging, FixSmallVectorADL(copies));
+        const auto copies = FixSmallVectorADL(UnswizzleImage(*gpu_memory, gpu_addr, image.info, swizzle_data, mapped_span));
+        image.UploadMemory(staging, copies);
     }
 }
 
