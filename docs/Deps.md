@@ -124,6 +124,9 @@ sudo dnf install epel-release dnf-utils
 # (run rpmfusion installation afterwards)
 # vvv - This will work for most systems
 sudo dnf install autoconf cmake libtool libudev cmake gcc gcc-c++ qt6-qtbase-devel zlib-devel openssl-devel boost SDL2 ffmpeg-devel libdrm glslang jq patch
+# Qt6 private GUI must be taken from CRB repos
+sudo dnf config-manager --enable crb
+sudo dnf install qt6-qtbase-private-devel
 ```
 
 * [RPM Fusion](https://rpmfusion.org/Configuration) is required for `ffmpeg-devel`
