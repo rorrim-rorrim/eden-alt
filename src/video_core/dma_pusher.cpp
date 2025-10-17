@@ -59,7 +59,7 @@ bool DmaPusher::Step() {
 
     if (command_list.prefetch_command_list.size()) {
         // Prefetched command list from nvdrv, used for things like synchronization
-        ProcessCommands(command_list.prefetch_command_list);
+        ProcessCommands(FixSmallVectorADL(command_list.prefetch_command_list));
         dma_pushbuffer.pop();
     } else {
         const CommandListHeader command_list_header{

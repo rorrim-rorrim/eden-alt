@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -118,5 +121,20 @@ void DeduceBlitImages(ImageInfo& dst_info, ImageInfo& src_info, const ImageBase*
                       const ImageBase* src);
 
 [[nodiscard]] u32 MapSizeBytes(const ImageBase& image);
+
+// TODO: Remove once Debian STABLE no longer has such outdated boost
+template<typename T, size_t N>
+#if BOOST_VERSION >= 108200
+[[nodiscard]] boost::container::small_vector<T, N> FixSmallVectorADL(const boost::container::small_vector<T, N>&& v) {
+    return v;
+}
+#else
+[[nodiscard]] std::vector<T> FixSmallVectorADL(const boost::container::small_vector<T, N>&& v) {
+    std::vector<T> u;
+    for (auto const& e : v)
+        u.push_back(e);
+    return u;
+}
+#endif
 
 } // namespace VideoCommon
