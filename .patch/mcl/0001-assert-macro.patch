@@ -3,13 +3,13 @@ index f77dbe7..9ec0b9c 100644
 --- a/include/mcl/assert.hpp
 +++ b/include/mcl/assert.hpp
 @@ -23,8 +23,11 @@ template<typename... Ts>
- 
+
  }  // namespace mcl::detail
- 
+
 +#ifndef UNREACHABLE
  #define UNREACHABLE() ASSERT_FALSE("Unreachable code!")
 +#endif
- 
+
 +#ifndef ASSERT
  #define ASSERT(expr)                                                     \
      [&] {                                                                \
@@ -19,7 +19,7 @@ index f77dbe7..9ec0b9c 100644
          }                                                                \
      }()
 +#endif
- 
+
 +#ifndef ASSERT_MSG
  #define ASSERT_MSG(expr, ...)                                                \
      [&] {                                                                    \
@@ -29,11 +29,11 @@ index f77dbe7..9ec0b9c 100644
          }                                                                    \
      }()
 +#endif
- 
+
 +#ifndef ASSERT_FALSE
  #define ASSERT_FALSE(...) ::mcl::detail::assert_terminate("false", __VA_ARGS__)
 +#endif
- 
+
  #if defined(NDEBUG) || defined(MCL_IGNORE_ASSERTS)
 -#    define DEBUG_ASSERT(expr) ASSUME(expr)
 -#    define DEBUG_ASSERT_MSG(expr, ...) ASSUME(expr)
