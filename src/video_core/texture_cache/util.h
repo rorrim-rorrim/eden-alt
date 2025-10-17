@@ -123,13 +123,17 @@ void DeduceBlitImages(ImageInfo& dst_info, ImageInfo& src_info, const ImageBase*
 [[nodiscard]] u32 MapSizeBytes(const ImageBase& image);
 
 // TODO: Remove once Debian STABLE no longer has such outdated boost
+// This is a gcc bug where ADL lookup fails for range niebloids of std::span<T>
+// for any given type of the static_vector/small_vector, etc which makes a whole mess
+// for anything using std::span<T> so we just do this terrible hack on older versions of
+// GCC12 because people actually still use stable debian so... yeah
 template<typename T, size_t N>
-#if BOOST_VERSION >= 108200
-[[nodiscard]] boost::container::small_vector<T, N> FixSmallVectorADL(const boost::container::small_vector<T, N>&& v) {
+#if BOOST_VERSION >= 108100 || __GNUC__ > 12
+[[nodiscard]] boost::container::small_vector<T, N> FixSmallVectorADL(const boost::container::small_vector<T, N>& v) {
     return v;
 }
 #else
-[[nodiscard]] std::vector<T> FixSmallVectorADL(const boost::container::small_vector<T, N>&& v) {
+[[nodiscard]] std::vector<T> FixSmallVectorADL(const boost::container::small_vector<T, N>& v) {
     std::vector<T> u;
     for (auto const& e : v)
         u.push_back(e);
