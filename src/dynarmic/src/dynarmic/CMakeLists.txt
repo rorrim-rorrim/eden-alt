@@ -8,7 +8,7 @@ add_library(dynarmic STATIC
     backend/exception_handler.h
     common/assert.cpp
     common/assert.h
-    common/cast_util.h
+    common/type_util.h
     common/common_types.h
     common/crypto/aes.cpp
     common/crypto/aes.h

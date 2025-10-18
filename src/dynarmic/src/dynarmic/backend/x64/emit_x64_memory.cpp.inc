@@ -4,7 +4,7 @@
  */
 
 #include <mcl/macro/concatenate_tokens.hpp>
-#include "dynarmic/common/fp/util.h"
+#include "dynarmic/common/type_util.h"
 
 #define AxxEmitX64 CONCATENATE_TOKENS(Axx, EmitX64)
 #define AxxEmitContext CONCATENATE_TOKENS(Axx, EmitContext)
@@ -224,7 +224,7 @@ void AxxEmitX64::EmitExclusiveReadMemory(AxxEmitContext& ctx, IR::Inst* inst) {
     const bool ordered = IsOrdered(args[2].GetImmediateAccType());
 
     if constexpr (bitsize != 128) {
-        using T = FP::UnsignedIntegerN<bitsize>;
+        using T = Common::UnsignedIntegerN<bitsize>;
 
         ctx.reg_alloc.HostCall(inst, {}, args[1]);
 
@@ -291,7 +291,7 @@ void AxxEmitX64::EmitExclusiveWriteMemory(AxxEmitContext& ctx, IR::Inst* inst) {
     code.mov(code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)], u8(0));
     code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(&conf));
     if constexpr (bitsize != 128) {
-        using T = FP::UnsignedIntegerN<bitsize>;
+        using T = Common::UnsignedIntegerN<bitsize>;
 
         code.CallLambda(
             [](AxxUserConfig& conf, Axx::VAddr vaddr, T value) -> u32 {
