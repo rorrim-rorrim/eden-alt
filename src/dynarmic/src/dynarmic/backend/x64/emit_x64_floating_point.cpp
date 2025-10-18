@@ -24,7 +24,7 @@
 #include "dynarmic/backend/x64/block_of_code.h"
 #include "dynarmic/backend/x64/constants.h"
 #include "dynarmic/backend/x64/emit_x64.h"
-#include "dynarmic/common/cast_util.h"
+#include "dynarmic/common/type_util.h"
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/common/fp/fpsr.h"
 #include "dynarmic/common/fp/info.h"
@@ -35,22 +35,8 @@
 #include "dynarmic/ir/basic_block.h"
 #include "dynarmic/ir/microinstruction.h"
 
-#define FCODE(NAME)                  \
-    [&code](auto... args) {          \
-        if (fsize == 32) { \
-            code.NAME##s(args...);   \
-        } else {                     \
-            code.NAME##d(args...);   \
-        }                            \
-    }
-#define ICODE(NAME)                  \
-    [&code](auto... args) {          \
-        if (fsize == 32) { \
-            code.NAME##d(args...);   \
-        } else {                     \
-            code.NAME##q(args...);   \
-        }                            \
-    }
+#define FCODE(NAME) [&](auto... args) { if (fsize == 32) code.NAME##s(args...); else code.NAME##d(args...); }
+#define ICODE(NAME) [&](auto... args) { if (fsize == 32) code.NAME##d(args...); else code.NAME##q(args...); }
 
 namespace Dynarmic::Backend::X64 {
 
@@ -204,7 +190,7 @@ void PostProcessNaN(BlockOfCode& code, Xbyak::Xmm result, Xbyak::Xmm tmp) {
 // We allow for the case where op1 and result are the same register. We do not read from op1 once result is written to.
 template<size_t fsize>
 void EmitPostProcessNaNs(BlockOfCode& code, Xbyak::Xmm result, Xbyak::Xmm op1, Xbyak::Xmm op2, Xbyak::Reg64 tmp, Xbyak::Label end) {
-    using FPT = FP::UnsignedIntegerN<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
     constexpr FPT exponent_mask = FP::FPInfo<FPT>::exponent_mask;
     constexpr FPT mantissa_msb = FP::FPInfo<FPT>::mantissa_msb;
     constexpr u8 mantissa_msb_bit = static_cast<u8>(FP::FPInfo<FPT>::explicit_mantissa_width - 1);
@@ -279,7 +265,7 @@ void FPTwoOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Function fn) {
     if (!ctx.FPCR().DN() && !ctx.HasOptimization(OptimizationFlag::Unsafe_InaccurateNaN)) {
         end = ProcessNaN<fsize>(code, ctx, result);
     }
-    if (std::is_member_function_pointer_v<Function>) {
+    if constexpr (std::is_member_function_pointer_v<Function>) {
         (code.*fn)(result, result);
     } else {
         fn(result);
@@ -298,7 +284,7 @@ void FPTwoOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Function fn) {
 
 template<size_t fsize, typename Function>
 void FPThreeOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Function fn) {
-    using FPT = FP::UnsignedIntegerN<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -306,7 +292,7 @@ void FPThreeOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Function fn)
         const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(args[0]);
         const Xbyak::Xmm operand = ctx.reg_alloc.UseScratchXmm(args[1]);
 
-        if (std::is_member_function_pointer_v<Function>) {
+        if constexpr (std::is_member_function_pointer_v<Function>) {
             (code.*fn)(result, operand);
         } else {
             fn(result, operand);
@@ -328,7 +314,7 @@ void FPThreeOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Function fn)
     SharedLabel end = GenSharedLabel(), nan = GenSharedLabel();
 
     code.movaps(result, op1);
-    if (std::is_member_function_pointer_v<Function>) {
+    if constexpr (std::is_member_function_pointer_v<Function>) {
         (code.*fn)(result, op2);
     } else {
         fn(result, op2);
@@ -357,7 +343,7 @@ void FPThreeOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Function fn)
 
 template<size_t fsize>
 void FPAbs(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = FP::UnsignedIntegerN<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
     constexpr FPT non_sign_mask = FP::FPInfo<FPT>::sign_mask - FPT(1u);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -383,7 +369,7 @@ void EmitX64::EmitFPAbs64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 void FPNeg(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = FP::UnsignedIntegerN<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
     constexpr FPT sign_mask = FP::FPInfo<FPT>::sign_mask;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -473,7 +459,7 @@ static void EmitFPMinMax(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize, bool is_max>
 static inline void EmitFPMinMaxNumeric(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) noexcept {
-    using FPT = FP::UnsignedIntegerN<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
     constexpr FPT default_nan = FP::FPInfo<FPT>::DefaultNaN();
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -625,7 +611,7 @@ void EmitX64::EmitFPMul64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize, bool negate_product>
 static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = FP::UnsignedIntegerN<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
     const auto fallback_fn = negate_product ? &FP::FPMulSub<FPT> : &FP::FPMulAdd<FPT>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -852,7 +838,7 @@ void EmitX64::EmitFPMulSub64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPMulX(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = FP::UnsignedIntegerN<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -912,7 +898,7 @@ void EmitX64::EmitFPMulX64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPRecipEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = FP::UnsignedIntegerN<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
 
     if (fsize != 16) {
         if (ctx.HasOptimization(OptimizationFlag::Unsafe_ReducedErrorFP)) {
@@ -958,7 +944,7 @@ void EmitX64::EmitFPRecipEstimate64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPRecipExponent(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = FP::UnsignedIntegerN<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.HostCall(inst, args[0]);
@@ -981,7 +967,7 @@ void EmitX64::EmitFPRecipExponent64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPRecipStepFused(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = FP::UnsignedIntegerN<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -1118,7 +1104,7 @@ void EmitX64::EmitFPRoundInt64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPRSqrtEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = FP::UnsignedIntegerN<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
 
     if (fsize != 16) {
         if (ctx.HasOptimization(OptimizationFlag::Unsafe_ReducedErrorFP)) {
@@ -1297,7 +1283,7 @@ void EmitX64::EmitFPRSqrtEstimate64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPRSqrtStepFused(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = FP::UnsignedIntegerN<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -1601,7 +1587,7 @@ void EmitX64::EmitFPDoubleToSingle(EmitContext& ctx, IR::Inst* inst) {
 /// Better than spamming thousands of templates aye?
 template<size_t fsize>
 static u64 EmitFPToFixedThunk(u64 input, FP::FPSR& fpsr, FP::FPCR fpcr, u32 extra_args) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = FP::UnsignedIntegerN<fsize>;
     auto const unsigned_ = ((extra_args >> 24) & 0xff) != 0;
     auto const isize = ((extra_args >> 16) & 0xff);
     auto const rounding = FP::RoundingMode((extra_args >> 8) & 0xff);

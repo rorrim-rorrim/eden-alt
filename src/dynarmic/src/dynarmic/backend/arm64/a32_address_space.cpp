@@ -13,7 +13,7 @@
 #include "dynarmic/backend/arm64/devirtualize.h"
 #include "dynarmic/backend/arm64/emit_arm64.h"
 #include "dynarmic/backend/arm64/stack_layout.h"
-#include "dynarmic/common/cast_util.h"
+#include "dynarmic/common/type_util.h"
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/frontend/A32/a32_location_descriptor.h"
 #include "dynarmic/frontend/A32/translate/a32_translate.h"

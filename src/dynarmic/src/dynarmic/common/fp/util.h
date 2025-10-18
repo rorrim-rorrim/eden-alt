@@ -97,14 +97,4 @@ constexpr std::optional<FPT> ProcessNaNs(FPT a, FPT b, FPT c) {
     return std::nullopt;
 }
 
-namespace Detail {
-template<std::size_t size> struct IntegerOfSize {};
-template<> struct IntegerOfSize<8> { using U = std::uint8_t, S = std::int8_t; };
-template<> struct IntegerOfSize<16> { using U = std::uint16_t, S = std::int16_t; };
-template<> struct IntegerOfSize<32> { using U = std::uint32_t, S = std::int32_t; };
-template<> struct IntegerOfSize<64> { using U = std::uint64_t, S = std::int64_t; };
-}
-template<size_t N> using FP::UnsignedIntegerN = typename Detail::IntegerOfSize<N>::U;
-template<size_t N> using FP::SignedIntegerN = typename Detail::IntegerOfSize<N>::S;
-
 }  // namespace Dynarmic::FP
