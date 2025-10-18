@@ -20,7 +20,6 @@
 #include <fmt/format.h>
 #include "dynarmic/common/assert.h"
 #include <numeric>
-#include <mcl/macro/architecture.hpp>
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/exception_handler.h"

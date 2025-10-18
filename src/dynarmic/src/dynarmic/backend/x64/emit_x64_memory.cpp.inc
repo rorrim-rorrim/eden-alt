@@ -16,15 +16,10 @@ using Vector = std::array<u64, 2>;
 }
 
 std::optional<AxxEmitX64::DoNotFastmemMarker> AxxEmitX64::ShouldFastmem(AxxEmitContext& ctx, IR::Inst* inst) const {
-    if (!conf.fastmem_pointer || !exception_handler.SupportsFastmem()) {
+    if (!conf.fastmem_pointer || !exception_handler.SupportsFastmem())
         return std::nullopt;
-    }
-
     const auto marker = std::make_tuple(ctx.Location(), inst->GetName());
-    if (do_not_fastmem.count(marker) > 0) {
-        return std::nullopt;
-    }
-    return marker;
+    return do_not_fastmem.count(marker) <= 0 ? marker : std::nullopt;
 }
 
 FakeCall AxxEmitX64::FastmemCallback(u64 rip_) {
@@ -59,16 +54,12 @@ void AxxEmitX64::EmitMemoryRead(AxxEmitContext& ctx, IR::Inst* inst) {
         // Neither fastmem nor page table: Use callbacks
         if constexpr (bitsize == 128) {
             ctx.reg_alloc.HostCall(nullptr, {}, args[1]);
-            if (ordered) {
-                code.mfence();
-            }
+            if (ordered) code.mfence();
             code.CallFunction(memory_read_128);
             ctx.reg_alloc.DefineValue(inst, xmm1);
         } else {
             ctx.reg_alloc.HostCall(inst, {}, args[1]);
-            if (ordered) {
-                code.mfence();
-            }
+            if (ordered) code.mfence();
             Devirtualize<callback>(conf.callbacks).EmitCall(code);
             code.ZeroExtendFrom(bitsize, code.ABI_RETURN);
         }
@@ -154,9 +145,7 @@ void AxxEmitX64::EmitMemoryWrite(AxxEmitContext& ctx, IR::Inst* inst) {
             ctx.reg_alloc.HostCall(nullptr, {}, args[1], args[2]);
             Devirtualize<callback>(conf.callbacks).EmitCall(code);
         }
-        if (ordered) {
-            code.mfence();
-        }
+        if (ordered) code.mfence();
         EmitCheckMemoryAbort(ctx, inst);
         return;
     }
@@ -296,11 +285,9 @@ void AxxEmitX64::EmitExclusiveWriteMemory(AxxEmitContext& ctx, IR::Inst* inst) {
         code.CallLambda(
             [](AxxUserConfig& conf, Axx::VAddr vaddr, T value) -> u32 {
                 return conf.global_monitor->DoExclusiveOperation<T>(conf.processor_id, vaddr,
-                                                                    [&](T expected) -> bool {
-                                                                        return (conf.callbacks->*callback)(vaddr, value, expected);
-                                                                    })
-                         ? 0
-                         : 1;
+                    [&](T expected) -> bool {
+                        return (conf.callbacks->*callback)(vaddr, value, expected);
+                    }) ? 0 : 1;
             });
         if (ordered) {
             code.mfence();
@@ -312,11 +299,9 @@ void AxxEmitX64::EmitExclusiveWriteMemory(AxxEmitContext& ctx, IR::Inst* inst) {
         code.CallLambda(
             [](AxxUserConfig& conf, Axx::VAddr vaddr, Vector& value) -> u32 {
                 return conf.global_monitor->DoExclusiveOperation<Vector>(conf.processor_id, vaddr,
-                                                                         [&](Vector expected) -> bool {
-                                                                             return (conf.callbacks->*callback)(vaddr, value, expected);
-                                                                         })
-                         ? 0
-                         : 1;
+                    [&](Vector expected) -> bool {
+                        return (conf.callbacks->*callback)(vaddr, value, expected);
+                    }) ? 0 : 1;
             });
         if (ordered) {
             code.mfence();
@@ -476,25 +461,20 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
         const auto location = code.getCurr();
 
         if constexpr (bitsize == 128) {
-            code.lock();
-            code.cmpxchg16b(ptr[dest_ptr]);
+            code.lock(); code.cmpxchg16b(ptr[dest_ptr]);
         } else {
             switch (bitsize) {
             case 8:
-                code.lock();
-                code.cmpxchg(code.byte[dest_ptr], value.cvt8());
+                code.lock(); code.cmpxchg(code.byte[dest_ptr], value.cvt8());
                 break;
             case 16:
-                code.lock();
-                code.cmpxchg(word[dest_ptr], value.cvt16());
+                code.lock(); code.cmpxchg(word[dest_ptr], value.cvt16());
                 break;
             case 32:
-                code.lock();
-                code.cmpxchg(dword[dest_ptr], value.cvt32());
+                code.lock(); code.cmpxchg(dword[dest_ptr], value.cvt32());
                 break;
             case 64:
-                code.lock();
-                code.cmpxchg(qword[dest_ptr], value.cvt64());
+                code.lock(); code.cmpxchg(qword[dest_ptr], value.cvt64());
                 break;
             default:
                 UNREACHABLE();
