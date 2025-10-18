@@ -104,7 +104,7 @@ template<> struct IntegerOfSize<16> { using U = std::uint16_t, S = std::int16_t;
 template<> struct IntegerOfSize<32> { using U = std::uint32_t, S = std::int32_t; };
 template<> struct IntegerOfSize<64> { using U = std::uint64_t, S = std::int64_t; };
 }
-using UnsignedIntegerN = typename Detail::IntegerOfSize<size>::U;
-using SignedIntegerN = typename Detail::IntegerOfSize<size>::S;
+template<size_t N> using FP::UnsignedIntegerN = typename Detail::IntegerOfSize<N>::U;
+template<size_t N> using FP::SignedIntegerN = typename Detail::IntegerOfSize<N>::S;
 
 }  // namespace Dynarmic::FP
