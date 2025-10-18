@@ -204,7 +204,7 @@ void PostProcessNaN(BlockOfCode& code, Xbyak::Xmm result, Xbyak::Xmm tmp) {
 // We allow for the case where op1 and result are the same register. We do not read from op1 once result is written to.
 template<size_t fsize>
 void EmitPostProcessNaNs(BlockOfCode& code, Xbyak::Xmm result, Xbyak::Xmm op1, Xbyak::Xmm op2, Xbyak::Reg64 tmp, Xbyak::Label end) {
-    using FPT = UnsignedIntegerN<fsize>;
+    using FPT = FP::UnsignedIntegerN<fsize>;
     constexpr FPT exponent_mask = FP::FPInfo<FPT>::exponent_mask;
     constexpr FPT mantissa_msb = FP::FPInfo<FPT>::mantissa_msb;
     constexpr u8 mantissa_msb_bit = static_cast<u8>(FP::FPInfo<FPT>::explicit_mantissa_width - 1);
@@ -298,7 +298,7 @@ void FPTwoOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Function fn) {
 
 template<size_t fsize, typename Function>
 void FPThreeOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Function fn) {
-    using FPT = UnsignedIntegerN<fsize>;
+    using FPT = FP::UnsignedIntegerN<fsize>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -357,7 +357,7 @@ void FPThreeOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Function fn)
 
 template<size_t fsize>
 void FPAbs(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = UnsignedIntegerN<fsize>;
+    using FPT = FP::UnsignedIntegerN<fsize>;
     constexpr FPT non_sign_mask = FP::FPInfo<FPT>::sign_mask - FPT(1u);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -383,7 +383,7 @@ void EmitX64::EmitFPAbs64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 void FPNeg(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = UnsignedIntegerN<fsize>;
+    using FPT = FP::UnsignedIntegerN<fsize>;
     constexpr FPT sign_mask = FP::FPInfo<FPT>::sign_mask;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -473,7 +473,7 @@ static void EmitFPMinMax(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize, bool is_max>
 static inline void EmitFPMinMaxNumeric(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) noexcept {
-    using FPT = UnsignedIntegerN<fsize>;
+    using FPT = FP::UnsignedIntegerN<fsize>;
     constexpr FPT default_nan = FP::FPInfo<FPT>::DefaultNaN();
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -625,7 +625,7 @@ void EmitX64::EmitFPMul64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize, bool negate_product>
 static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = UnsignedIntegerN<fsize>;
+    using FPT = FP::UnsignedIntegerN<fsize>;
     const auto fallback_fn = negate_product ? &FP::FPMulSub<FPT> : &FP::FPMulAdd<FPT>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -852,7 +852,7 @@ void EmitX64::EmitFPMulSub64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPMulX(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = UnsignedIntegerN<fsize>;
+    using FPT = FP::UnsignedIntegerN<fsize>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -912,7 +912,7 @@ void EmitX64::EmitFPMulX64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPRecipEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = UnsignedIntegerN<fsize>;
+    using FPT = FP::UnsignedIntegerN<fsize>;
 
     if (fsize != 16) {
         if (ctx.HasOptimization(OptimizationFlag::Unsafe_ReducedErrorFP)) {
@@ -958,7 +958,7 @@ void EmitX64::EmitFPRecipEstimate64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPRecipExponent(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = UnsignedIntegerN<fsize>;
+    using FPT = FP::UnsignedIntegerN<fsize>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.HostCall(inst, args[0]);
@@ -981,7 +981,7 @@ void EmitX64::EmitFPRecipExponent64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPRecipStepFused(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = UnsignedIntegerN<fsize>;
+    using FPT = FP::UnsignedIntegerN<fsize>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -1118,7 +1118,7 @@ void EmitX64::EmitFPRoundInt64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPRSqrtEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = UnsignedIntegerN<fsize>;
+    using FPT = FP::UnsignedIntegerN<fsize>;
 
     if (fsize != 16) {
         if (ctx.HasOptimization(OptimizationFlag::Unsafe_ReducedErrorFP)) {
@@ -1297,7 +1297,7 @@ void EmitX64::EmitFPRSqrtEstimate64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPRSqrtStepFused(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = UnsignedIntegerN<fsize>;
+    using FPT = FP::UnsignedIntegerN<fsize>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 

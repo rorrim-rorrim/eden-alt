@@ -8,7 +8,7 @@
 #include <optional>
 #include <utility>
 
-#include <mcl/bit_cast.hpp>
+#include <numeric>
 #include <oaknut/oaknut.hpp>
 
 #include "dynarmic/backend/arm64/abi.h"
@@ -548,7 +548,7 @@ void FastmemEmitReadMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::In
             FastmemPatchInfo{
                 .marker = marker,
                 .fc = FakeCall{
-                    .call_pc = mcl::bit_cast<u64>(code.xptr<void*>()),
+                    .call_pc = std::bit_cast<u64>(code.xptr<void*>()),
                 },
                 .recompile = ctx.conf.recompile_on_fastmem_failure,
             });
@@ -598,7 +598,7 @@ void FastmemEmitWriteMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::I
             FastmemPatchInfo{
                 .marker = marker,
                 .fc = FakeCall{
-                    .call_pc = mcl::bit_cast<u64>(code.xptr<void*>()),
+                    .call_pc = std::bit_cast<u64>(code.xptr<void*>()),
                 },
                 .recompile = ctx.conf.recompile_on_fastmem_failure,
             });
