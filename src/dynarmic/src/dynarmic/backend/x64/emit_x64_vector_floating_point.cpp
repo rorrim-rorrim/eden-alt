@@ -20,7 +20,6 @@
 #include <mcl/mp/typelist/list.hpp>
 #include <mcl/mp/typelist/lower_to_tuple.hpp>
 #include <mcl/type_traits/function_info.hpp>
-#include <mcl/type_traits/integer_of_size.hpp>
 #include <xbyak/xbyak.h>
 
 #include "dynarmic/backend/x64/abi.h"
@@ -76,7 +75,7 @@ void MaybeStandardFPSCRValue(BlockOfCode& code, EmitContext& ctx, bool fpcr_cont
 template<size_t fsize, template<typename> class Indexer, size_t narg>
 struct NaNHandler {
 public:
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = UnsignedIntegerN<fsize>;
 
     using function_type = void (*)(std::array<VectorArray<FPT>, narg>&, FP::FPCR);
 
@@ -158,33 +157,33 @@ Xbyak::Address GetVectorOf(BlockOfCode& code) {
 
 template<size_t fsize>
 Xbyak::Address GetNaNVector(BlockOfCode& code) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = UnsignedIntegerN<fsize>;
     return GetVectorOf<fsize, FP::FPInfo<FPT>::DefaultNaN()>(code);
 }
 
 template<size_t fsize>
 Xbyak::Address GetNegativeZeroVector(BlockOfCode& code) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = UnsignedIntegerN<fsize>;
     return GetVectorOf<fsize, FP::FPInfo<FPT>::Zero(true)>(code);
 }
 
 template<size_t fsize>
 Xbyak::Address GetNonSignMaskVector(BlockOfCode& code) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = UnsignedIntegerN<fsize>;
     constexpr FPT non_sign_mask = FP::FPInfo<FPT>::exponent_mask | FP::FPInfo<FPT>::mantissa_mask;
     return GetVectorOf<fsize, non_sign_mask>(code);
 }
 
 template<size_t fsize>
 Xbyak::Address GetSmallestNormalVector(BlockOfCode& code) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = UnsignedIntegerN<fsize>;
     constexpr FPT smallest_normal_number = FP::FPValue<FPT, false, FP::FPInfo<FPT>::exponent_min, 1>();
     return GetVectorOf<fsize, smallest_normal_number>(code);
 }
 
-template<size_t fsize, bool sign, int exponent, mcl::unsigned_integer_of_size<fsize> value>
+template<size_t fsize, bool sign, int exponent, UnsignedIntegerN<fsize> value>
 Xbyak::Address GetVectorOf(BlockOfCode& code) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = UnsignedIntegerN<fsize>;
     return GetVectorOf<fsize, FP::FPValue<FPT, sign, exponent, value>()>(code);
 }
 
@@ -1085,7 +1084,7 @@ static void EmitFPVectorMinMaxNumeric(BlockOfCode& code, EmitContext& ctx, IR::I
 
     if (code.HasHostFeature(HostFeature::AVX)) {
         MaybeStandardFPSCRValue(code, ctx, fpcr_controlled, [&] {
-            using FPT = mcl::unsigned_integer_of_size<fsize>;
+            using FPT = UnsignedIntegerN<fsize>;
 
             // result = xmm_a == SNaN || xmm_b == QNaN
             {
@@ -1158,7 +1157,7 @@ static void EmitFPVectorMinMaxNumeric(BlockOfCode& code, EmitContext& ctx, IR::I
     }
 
     MaybeStandardFPSCRValue(code, ctx, fpcr_controlled, [&] {
-        using FPT = mcl::unsigned_integer_of_size<fsize>;
+        using FPT = UnsignedIntegerN<fsize>;
 
         // result = xmm_a == SNaN || xmm_b == QNaN
         {
@@ -1314,7 +1313,7 @@ static void EmitFPVectorMulAddFallback(VectorArray<FPT>& result, const VectorArr
 
 template<size_t fsize>
 void EmitFPVectorMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = UnsignedIntegerN<fsize>;
 
     const auto fallback_fn = [](VectorArray<FPT>& result, const VectorArray<FPT>& addend, const VectorArray<FPT>& op1, const VectorArray<FPT>& op2, FP::FPCR fpcr, FP::FPSR& fpsr) {
         for (size_t i = 0; i < result.size(); i++) {
@@ -1425,7 +1424,7 @@ void EmitX64::EmitFPVectorMulAdd64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPVectorMulX(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = UnsignedIntegerN<fsize>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const bool fpcr_controlled = args[2].GetImmediateU1();
@@ -1491,7 +1490,7 @@ void EmitX64::EmitFPVectorMulX64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 void FPVectorNeg(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = UnsignedIntegerN<fsize>;
     constexpr FPT sign_mask = FP::FPInfo<FPT>::sign_mask;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -1544,7 +1543,7 @@ void EmitX64::EmitFPVectorPairedAddLower64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitRecipEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = UnsignedIntegerN<fsize>;
 
     if constexpr (fsize != 16) {
         if (ctx.HasOptimization(OptimizationFlag::Unsafe_ReducedErrorFP)) {
@@ -1590,7 +1589,7 @@ void EmitX64::EmitFPVectorRecipEstimate64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitRecipStepFused(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = UnsignedIntegerN<fsize>;
 
     const auto fallback_fn = [](VectorArray<FPT>& result, const VectorArray<FPT>& op1, const VectorArray<FPT>& op2, FP::FPCR fpcr, FP::FPSR& fpsr) {
         for (size_t i = 0; i < result.size(); i++) {
@@ -1760,7 +1759,7 @@ void EmitX64::EmitFPVectorRoundInt64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitRSqrtEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = UnsignedIntegerN<fsize>;
 
     const auto fallback_fn = [](VectorArray<FPT>& result, const VectorArray<FPT>& operand, FP::FPCR fpcr, FP::FPSR& fpsr) {
         for (size_t i = 0; i < result.size(); i++) {
@@ -1852,7 +1851,7 @@ void EmitX64::EmitFPVectorRSqrtEstimate64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitRSqrtStepFused(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = UnsignedIntegerN<fsize>;
 
     const auto fallback_fn = [](VectorArray<FPT>& result, const VectorArray<FPT>& op1, const VectorArray<FPT>& op2, FP::FPCR fpcr, FP::FPSR& fpsr) {
         for (size_t i = 0; i < result.size(); i++) {
@@ -2126,7 +2125,7 @@ void EmitFPVectorToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
                         FCODE(orp)(src, exceed_unsigned);
                     }
                 } else {
-                    using FPT = mcl::unsigned_integer_of_size<fsize>;  // WORKAROUND: For issue 678 on MSVC
+                    using FPT = UnsignedIntegerN<fsize>;  // WORKAROUND: For issue 678 on MSVC
                     constexpr u64 integer_max = FPT((std::numeric_limits<std::conditional_t<unsigned_, FPT, std::make_signed_t<FPT>>>::max)());
 
                     code.movaps(xmm0, GetVectorOf<fsize, float_upper_limit_signed>(code));
@@ -2150,7 +2149,7 @@ void EmitFPVectorToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
         mp::lift_value<FP::RoundingMode::ToNearest_TieAwayFromZero>>;
 
     static const auto lut = Common::GenerateLookupTableFromList([]<typename I>(I) {
-        using FPT = mcl::unsigned_integer_of_size<fsize>;  // WORKAROUND: For issue 678 on MSVC
+        using FPT = UnsignedIntegerN<fsize>;  // WORKAROUND: For issue 678 on MSVC
         return std::pair{
             mp::lower_to_tuple_v<I>,
             Common::FptrCast([](VectorArray<FPT>& output, const VectorArray<FPT>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
