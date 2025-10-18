@@ -52,6 +52,8 @@ private:
 
     Result TranslateResult(Result in_result);
 
+    Result GetAlbumAccessResultForDebug(Out<Result> out_result);
+
     std::shared_ptr<AlbumManager> manager = nullptr;
 };
 

@@ -124,6 +124,7 @@ struct Applet {
     bool window_visible{true};
 
     // Events
+    Event overlay_event;
     Event gpu_error_detected_event;
     Event friend_invitation_storage_channel_event;
     Event notification_storage_channel_event;

@@ -35,6 +35,7 @@ void WindowSystem::Update() {
     // Recursively update each applet root.
     this->UpdateAppletStateLocked(m_home_menu, m_foreground_requested_applet == m_home_menu);
     this->UpdateAppletStateLocked(m_application, m_foreground_requested_applet == m_application);
+    this->UpdateAppletStateLocked(m_overlay_display, true); // overlay is always updated
 }
 
 void WindowSystem::TrackApplet(std::shared_ptr<Applet> applet, bool is_application) {
@@ -43,6 +44,9 @@ void WindowSystem::TrackApplet(std::shared_ptr<Applet> applet, bool is_applicati
     if (applet->applet_id == AppletId::QLaunch) {
         ASSERT(m_home_menu == nullptr);
         m_home_menu = applet.get();
+    } else if (applet->applet_id == AppletId::OverlayDisplay) {
+        // Track overlay display applet
+        m_overlay_display = applet.get();
     } else if (is_application) {
         ASSERT(m_application == nullptr);
         m_application = applet.get();
@@ -139,6 +143,19 @@ void WindowSystem::OnExitRequested() {
 void WindowSystem::OnHomeButtonPressed(ButtonPressDuration type) {
     std::scoped_lock lk{m_lock};
 
+    // Prefer sending to overlay display if present.
+    if (m_overlay_display) {
+        std::scoped_lock lk3{m_overlay_display->lock};
+        if (type == ButtonPressDuration::ShortPressing) {
+            m_overlay_display->lifecycle_manager.PushUnorderedMessage(
+                AppletMessage::DetectShortPressingHomeButton);
+        } else if (type == ButtonPressDuration::LongPressing) {
+            m_overlay_display->lifecycle_manager.PushUnorderedMessage(
+                AppletMessage::DetectLongPressingHomeButton);
+        }
+        return;
+    }
+
     // If we don't have a home menu, nothing to do.
     if (!m_home_menu) {
         return;
@@ -151,6 +168,9 @@ void WindowSystem::OnHomeButtonPressed(ButtonPressDuration type) {
     if (type == ButtonPressDuration::ShortPressing) {
         m_home_menu->lifecycle_manager.PushUnorderedMessage(
             AppletMessage::DetectShortPressingHomeButton);
+    } else if (type == ButtonPressDuration::LongPressing) {
+        m_home_menu->lifecycle_manager.PushUnorderedMessage(
+            AppletMessage::DetectLongPressingHomeButton);
     }
 }
 
@@ -206,6 +226,11 @@ void WindowSystem::PruneTerminatedAppletsLocked() {
                 m_home_menu->lifecycle_manager.PushUnorderedMessage(
                     AppletMessage::ApplicationExited);
             }
+        }
+
+        // If this was the overlay display, clear the pointer.
+        if (applet.get() == m_overlay_display) {
+            m_overlay_display = nullptr;
         }
 
         // Finalize applet.

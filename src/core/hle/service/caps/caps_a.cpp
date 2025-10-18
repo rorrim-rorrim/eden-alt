@@ -53,6 +53,7 @@ IAlbumAccessorService::IAlbumAccessorService(Core::System& system_,
         {8021, nullptr, "GetAlbumEntryFromApplicationAlbumEntryAruid"},
         {10011, nullptr, "SetInternalErrorConversionEnabled"},
         {50000, nullptr, "LoadMakerNoteInfoForDebug"},
+        {50011, C<&IAlbumAccessorService::GetAlbumAccessResultForDebug>, "GetAlbumAccessResultForDebug"},
         {60002, nullptr, "OpenAccessorSession"},
     };
     // clang-format on
@@ -195,6 +196,13 @@ Result IAlbumAccessorService::TranslateResult(Result in_result) {
     }
 
     return in_result;
+}
+
+
+Result IAlbumAccessorService::GetAlbumAccessResultForDebug(Out<Result> out_result) {
+    LOG_WARNING(Service_Capture, "(STUBBED) called");
+    *out_result = ResultSuccess;
+    R_SUCCEED();
 }
 
 } // namespace Service::Capture

@@ -33,6 +33,11 @@ void DisplayLayerManager::Initialize(Core::System& system, Kernel::KProcess* pro
     m_buffer_sharing_enabled = false;
     m_blending_enabled = mode == LibraryAppletMode::PartialForeground ||
                          mode == LibraryAppletMode::PartialForegroundIndirectDisplay;
+
+    // For non-application applets, proactively enable shared buffer session so the layer exists
+    if (m_applet_id != AppletId::Application) {
+        (void)this->IsSystemBufferSharingEnabled();
+    }
 }
 
 void DisplayLayerManager::Finalize() {
@@ -99,13 +104,29 @@ Result DisplayLayerManager::IsSystemBufferSharingEnabled() {
     // Create the shared layer.
     u64 display_id;
     R_TRY(m_display_service->OpenDisplay(&display_id, VI::DisplayName{"Default"}));
-    R_TRY(m_manager_display_service->CreateSharedLayerSession(m_process, &m_system_shared_buffer_id,
-                                                              &m_system_shared_layer_id, display_id,
-                                                              m_blending_enabled));
+    R_TRY(m_manager_display_service->CreateSharedLayerSession(
+        m_process, &m_system_shared_buffer_id, &m_system_shared_layer_id, display_id,
+        m_blending_enabled));
+
+    LOG_DEBUG(Service_VI,
+              "DLM: SharedBuffer enabled buffer_id={} layer_id={} blending={} display={}",
+              m_system_shared_buffer_id, m_system_shared_layer_id, m_blending_enabled, display_id);
 
     // We succeeded, so set up remaining state.
     m_buffer_sharing_enabled = true;
+
+    // Ensure the overlay layer is visible and above the application layer when applicable
     m_manager_display_service->SetLayerVisibility(m_visible, m_system_shared_layer_id);
+    if (m_applet_id != AppletId::Application) {
+        static constexpr s32 kOverlayZ = 100000;
+        m_manager_display_service->SetLayerZIndex(kOverlayZ, m_system_shared_layer_id);
+        m_manager_display_service->SetLayerBlending(m_blending_enabled, m_system_shared_layer_id);
+        LOG_INFO(Service_VI,
+                 "DLM: Overlay session ready buffer_id={} layer_id={} z={} visible={} blending={}",
+                 m_system_shared_buffer_id, m_system_shared_layer_id, kOverlayZ, m_visible,
+                 m_blending_enabled);
+    }
+
     R_SUCCEED();
 }
 

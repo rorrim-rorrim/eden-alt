@@ -15,6 +15,7 @@
 #include "core/hle/service/am/service/storage.h"
 #include "core/hle/service/am/window_system.h"
 #include "hid_core/hid_types.h"
+#include "core/hle/service/am/process_creation.h"
 
 namespace Service::AM {
 
@@ -261,6 +262,19 @@ void AppletManager::SetWindowSystem(WindowSystem* window_system) {
     }
 
     m_cv.wait(lk, [&] { return m_pending_process != nullptr; });
+
+    // Launch overlay applet before tracking the application, if available.
+    if (auto overlay_process = CreateProcess(m_system, static_cast<u64>(AppletProgramId::OverlayDisplay), 0, 0)) {
+        auto overlay_applet = std::make_shared<Applet>(m_system, std::move(overlay_process), false);
+        overlay_applet->program_id = static_cast<u64>(AppletProgramId::OverlayDisplay);
+        overlay_applet->applet_id = AppletId::OverlayDisplay;
+        overlay_applet->type = AppletType::OverlayApplet;
+        // Use PartialForeground so blending is enabled and overlay can be composed on top
+        overlay_applet->library_applet_mode = LibraryAppletMode::PartialForeground;
+        m_window_system->TrackApplet(overlay_applet, true);
+        overlay_applet->process->Run();
+        LOG_INFO(Service_AM, "Overlay applet launched before application");
+    }
 
     const auto& params = m_pending_parameters;
     auto applet = std::make_shared<Applet>(m_system, std::move(m_pending_process),

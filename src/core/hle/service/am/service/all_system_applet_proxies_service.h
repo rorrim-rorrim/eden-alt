@@ -5,6 +5,7 @@
 
 #include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
+#include "core/hle/service/am/service/overlay_applet_proxy.h"
 
 namespace Service {
 
@@ -31,6 +32,9 @@ private:
                                   ClientProcessId pid,
                                   InCopyHandle<Kernel::KProcess> process_handle,
                                   InLargeData<AppletAttribute, BufferAttr_HipcMapAlias> attribute);
+    Result OpenOverlayAppletProxy(Out<SharedPointer<IOverlayAppletProxy>> out_overlay_applet_proxy,
+                           ClientProcessId pid, InCopyHandle<Kernel::KProcess> process_handle,
+                           InLargeData<AppletAttribute, BufferAttr_HipcMapAlias> attribute); 
     Result OpenLibraryAppletProxyOld(
         Out<SharedPointer<ILibraryAppletProxy>> out_library_applet_proxy, ClientProcessId pid,
         InCopyHandle<Kernel::KProcess> process_handle);

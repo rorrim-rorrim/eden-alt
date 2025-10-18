@@ -18,6 +18,7 @@ namespace Service::AM {
 
 struct Applet;
 class ILockAccessor;
+class IStorage; // forward declaration for storage handle type
 
 class ICommonStateGetter final : public ServiceFramework<ICommonStateGetter> {
 public:
@@ -55,6 +56,7 @@ private:
                                     OutArray<AppletId, BufferAttr_HipcMapAlias> out_applet_ids);
     Result GetSettingsPlatformRegion(Out<Set::PlatformRegion> out_settings_platform_region);
     Result SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled();
+    Result PushToGeneralChannel(SharedPointer<IStorage> storage); // cmd 20
 
     void SetCpuBoostMode(HLERequestContext& ctx);
 

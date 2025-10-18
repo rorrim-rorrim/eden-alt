@@ -45,9 +45,10 @@ public:
     void SetLayerVisibility(s32 consumer_binder_id, bool visible);
     void SetLayerBlending(s32 consumer_binder_id, LayerBlending blending);
 
+    std::shared_ptr<Layer> FindLayer(s32 consumer_binder_id);  // expose for Container
+
 private:
     Display* FindDisplay(u64 display_id);
-    std::shared_ptr<Layer> FindLayer(s32 consumer_binder_id);
 
 public:
     // TODO: these don't belong here
@@ -66,4 +67,4 @@ private:
     HardwareComposer m_composer;
 };
 
-} // namespace Service::Nvnflinger
+}  // namespace Service::Nvnflinger

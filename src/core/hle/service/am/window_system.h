@@ -75,6 +75,7 @@ private:
     // Foreground roots.
     Applet* m_home_menu{};
     Applet* m_application{};
+    Applet* m_overlay_display{}; // overlay display applet (DevOverlay)
 
     // Applet map by aruid.
     std::map<u64, std::shared_ptr<Applet>> m_applets{};

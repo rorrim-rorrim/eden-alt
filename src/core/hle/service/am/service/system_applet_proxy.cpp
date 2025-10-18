@@ -44,6 +44,27 @@ ISystemAppletProxy::ISystemAppletProxy(Core::System& system_, std::shared_ptr<Ap
 
 ISystemAppletProxy::~ISystemAppletProxy() = default;
 
+Result ISystemAppletProxy::GetCommonStateGetter(
+    Out<SharedPointer<ICommonStateGetter>> out_common_state_getter) {
+    LOG_DEBUG(Service_AM, "called");
+    *out_common_state_getter = std::make_shared<ICommonStateGetter>(system, m_applet);
+    R_SUCCEED();
+}
+
+Result ISystemAppletProxy::GetSelfController(
+    Out<SharedPointer<ISelfController>> out_self_controller) {
+    LOG_DEBUG(Service_AM, "called");
+    *out_self_controller = std::make_shared<ISelfController>(system, m_applet, m_process);
+    R_SUCCEED();
+}
+
+Result ISystemAppletProxy::GetWindowController(
+    Out<SharedPointer<IWindowController>> out_window_controller) {
+    LOG_DEBUG(Service_AM, "called");
+    *out_window_controller = std::make_shared<IWindowController>(system, m_applet, m_window_system);
+    R_SUCCEED();
+}
+
 Result ISystemAppletProxy::GetAudioController(
     Out<SharedPointer<IAudioController>> out_audio_controller) {
     LOG_DEBUG(Service_AM, "called");
@@ -69,27 +90,6 @@ Result ISystemAppletProxy::GetDebugFunctions(
     Out<SharedPointer<IDebugFunctions>> out_debug_functions) {
     LOG_DEBUG(Service_AM, "called");
     *out_debug_functions = std::make_shared<IDebugFunctions>(system);
-    R_SUCCEED();
-}
-
-Result ISystemAppletProxy::GetWindowController(
-    Out<SharedPointer<IWindowController>> out_window_controller) {
-    LOG_DEBUG(Service_AM, "called");
-    *out_window_controller = std::make_shared<IWindowController>(system, m_applet, m_window_system);
-    R_SUCCEED();
-}
-
-Result ISystemAppletProxy::GetSelfController(
-    Out<SharedPointer<ISelfController>> out_self_controller) {
-    LOG_DEBUG(Service_AM, "called");
-    *out_self_controller = std::make_shared<ISelfController>(system, m_applet, m_process);
-    R_SUCCEED();
-}
-
-Result ISystemAppletProxy::GetCommonStateGetter(
-    Out<SharedPointer<ICommonStateGetter>> out_common_state_getter) {
-    LOG_DEBUG(Service_AM, "called");
-    *out_common_state_getter = std::make_shared<ICommonStateGetter>(system, m_applet);
     R_SUCCEED();
 }
 

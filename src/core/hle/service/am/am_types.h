@@ -15,6 +15,7 @@ class FrontendApplet;
 enum class AppletType {
     Application,
     LibraryApplet,
+    OverlayApplet,
     SystemApplet,
 };
 

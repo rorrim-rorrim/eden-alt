@@ -31,6 +31,10 @@ Result CreateGuestApplication(SharedPointer<IApplicationAccessor>* out_applicati
     std::vector<u8> control;
     std::unique_ptr<Loader::AppLoader> loader;
     Loader::ResultStatus result;
+
+    // Launch overlay first if available.
+    // TryLaunchOverlayApplet(system, window_system);
+
     auto process =
         CreateApplicationProcess(control, loader, result, system, nca_raw, program_id, 0);
     R_UNLESS(process != nullptr, ResultUnknown);

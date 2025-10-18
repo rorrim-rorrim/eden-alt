@@ -6,6 +6,7 @@
 #include "core/hle/service/am/applet.h"
 #include "core/hle/service/am/service/common_state_getter.h"
 #include "core/hle/service/am/service/lock_accessor.h"
+#include "core/hle/service/am/service/storage.h"
 #include "core/hle/service/apm/apm_interface.h"
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/pm/pm.h"
@@ -34,7 +35,7 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_, std::shared_ptr<Ap
         {12, nullptr, "ReleaseSleepLockTransiently"},
         {13, D<&ICommonStateGetter::GetAcquiredSleepLockEvent>, "GetAcquiredSleepLockEvent"},
         {14, nullptr, "GetWakeupCount"},
-        {20, nullptr, "PushToGeneralChannel"},
+        {20, D<&ICommonStateGetter::PushToGeneralChannel>, "PushToGeneralChannel"},
         {30, nullptr, "GetHomeButtonReaderLockAccessor"},
         {31, D<&ICommonStateGetter::GetReaderLockAccessorEx>, "GetReaderLockAccessorEx"},
         {32, D<&ICommonStateGetter::GetWriterLockAccessorEx>, "GetWriterLockAccessorEx"},
@@ -245,7 +246,28 @@ Result ICommonStateGetter::GetBuiltInDisplayType(Out<s32> out_display_type) {
 }
 
 Result ICommonStateGetter::PerformSystemButtonPressingIfInFocus(SystemButtonType type) {
-    LOG_WARNING(Service_AM, "(STUBBED) called, type={}", type);
+    LOG_DEBUG(Service_AM, "called, type={}", type);
+
+    std::scoped_lock lk{m_applet->lock};
+
+    switch (type) {
+    case SystemButtonType::HomeButtonShortPressing:
+        if (!m_applet->home_button_short_pressed_blocked) {
+            m_applet->lifecycle_manager.PushUnorderedMessage(
+                AppletMessage::DetectShortPressingHomeButton);
+        }
+        break;
+    case SystemButtonType::HomeButtonLongPressing:
+        if (!m_applet->home_button_long_pressed_blocked) {
+            m_applet->lifecycle_manager.PushUnorderedMessage(
+                AppletMessage::DetectLongPressingHomeButton);
+        }
+        break;
+    default:
+        // Other buttons ignored for now
+        break;
+    }
+
     R_SUCCEED();
 }
 
@@ -283,6 +305,17 @@ Result ICommonStateGetter::SetRequestExitToLibraryAppletAtExecuteNextProgramEnab
 
     std::scoped_lock lk{m_applet->lock};
     m_applet->request_exit_to_library_applet_at_execute_next_program_enabled = true;
+
+    R_SUCCEED();
+}
+
+Result ICommonStateGetter::PushToGeneralChannel(SharedPointer<IStorage> storage) {
+    LOG_DEBUG(Service_AM, "called");
+
+    std::scoped_lock lk{m_applet->lock};
+    // Push to a general-purpose channel and notify listeners via event
+    m_applet->user_channel_launch_parameter.push_back(storage->GetData());
+    m_applet->pop_from_general_channel_event.Signal();
 
     R_SUCCEED();
 }
