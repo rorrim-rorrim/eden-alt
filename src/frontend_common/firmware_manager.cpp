@@ -131,7 +131,7 @@ FirmwareManager::FirmwareCheckResult FirmwareManager::VerifyFirmware(Core::Syste
 
         // TODO: update this whenever newer firmware is properly supported
         if (firmware_data.major > 20) {
-            //return ErrorFirmwareTooNew;
+            return ErrorFirmwareTooNew;
         }
     }
 
