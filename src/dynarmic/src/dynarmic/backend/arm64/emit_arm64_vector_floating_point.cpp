@@ -14,7 +14,6 @@
 #include <mcl/mp/typelist/list.hpp>
 #include <mcl/mp/typelist/lower_to_tuple.hpp>
 #include <mcl/type_traits/function_info.hpp>
-#include <mcl/type_traits/integer_of_size.hpp>
 #include <oaknut/oaknut.hpp>
 
 #include "dynarmic/backend/arm64/a32_jitstate.h"
