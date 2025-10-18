@@ -468,6 +468,7 @@
     <string name="cpu">CPU</string>
     <string name="use_auto_stub">Sử dụng Auto Stub</string>
     <string name="use_auto_stub_description">Tự động thay thế các dịch vụ và chức năng bị thiếu. Có thể cải thiện khả năng tương thích nhưng gây ra sự cố và vấn đề ổn định.</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Gỡ lỗi đồ hoạ</string>
@@ -795,7 +796,6 @@
     <string name="cpu_accuracy_accurate">Tuyệt đối</string>
     <string name="cpu_accuracy_unsafe">Tương đối</string>
     <string name="cpu_accuracy_paranoid">Paranoid (Chậm)</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">D-pad</string>
     <string name="gamepad_left_stick">Cần xoay trái</string>

@@ -489,6 +489,7 @@
     <string name="cpu">CPU</string>
     <string name="use_auto_stub">Automatikus Stub használata</string>
     <string name="use_auto_stub_description">Automatusan kiegészíti a hiányzó szolgáltatásokat és funkciókat. Növelheti a kompatibilitást, de összeomlásokat és stabilitási problémákat okozhat.</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Grafikai hibakeresés</string>
@@ -936,7 +937,6 @@
     <string name="cpu_accuracy_accurate">Pontos</string>
     <string name="cpu_accuracy_unsafe">Nem biztonságos</string>
     <string name="cpu_accuracy_paranoid">Paranoid</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">D-pad</string>
     <string name="gamepad_left_stick">Bal kar</string>

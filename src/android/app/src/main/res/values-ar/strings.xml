@@ -541,6 +541,7 @@
     <string name="cpu">وحدة المعالج المركزية</string>
     <string name="use_auto_stub">استخدام الستاب التلقائي</string>
     <string name="use_auto_stub_description">يقوم تلقائيًا بإضافة خدمات ووظائف ناقصة. قد يحسن التوافق ولكنه قد يتسبب في تعطل المشغل ومشاكل في الاستقرار.</string>
+
     <string name="gpu">وحدة معالجة الرسومات</string>
     <string name="renderer_api">واجهة برمجة التطبيقات</string>
     <string name="renderer_debug">تصحيح الأخطاء الرسومية</string>
@@ -784,7 +785,6 @@
     <string name="verify_no_result">تعذر التحقق من السلامة</string>
     <string name="verify_no_result_description">لم يتم التحقق من صحة محتويات الملف</string>
     <string name="verification_failed_for">فشل التحقق من الملفات التالية:\n%1$s</string>
-
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">الخاص بك ROM تم تشفير</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[يرجى اتباع الأدلة لإعادة نسخ <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">ألعاب البطاقات</a> أو <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">العناوين الرقمية</a>.]]></string>
@@ -1022,7 +1022,6 @@
     <string name="cpu_accuracy_accurate">دقيق</string>
     <string name="cpu_accuracy_unsafe">غير آمن</string>
     <string name="cpu_accuracy_paranoid">Paranoid</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">الأسهم</string>
     <string name="gamepad_left_stick">العصا اليسرى</string>

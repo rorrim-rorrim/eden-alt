@@ -535,6 +535,7 @@
     <string name="cpu">CPU</string>
     <string name="use_auto_stub">Usar Auto Stub</string>
     <string name="use_auto_stub_description">Preenche automaticamente serviços e funções ausentes. Pode melhorar compatibilidade mas causar crashes e problemas de estabilidade.</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Depuração de gráficos</string>
@@ -779,7 +780,6 @@ uma tentativa de mapeamento automático</string>
     <string name="verify_no_result">A verificação de integridade não pôde ser executada</string>
     <string name="verify_no_result_description">Os conteúdos do arquivo não foram verificados se são válidos</string>
     <string name="verification_failed_for">A verificação falhou para os seguintes arquivos:\n%1$s</string>
-
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Sua ROM está encriptada</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Siga os guias para refazer o dump de seus <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">cartões de jogo</a> ou <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">títulos digitais</a>.]]></string>
@@ -1017,7 +1017,6 @@ uma tentativa de mapeamento automático</string>
     <string name="cpu_accuracy_accurate">Precisa</string>
     <string name="cpu_accuracy_unsafe">Inseguro</string>
     <string name="cpu_accuracy_paranoid">Paranoica</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Botões Direcionais</string>
     <string name="gamepad_left_stick">Analógico esquerdo</string>

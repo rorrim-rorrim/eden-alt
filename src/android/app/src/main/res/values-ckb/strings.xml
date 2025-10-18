@@ -470,6 +470,7 @@
     <string name="cpu">CPU</string>
     <string name="use_auto_stub">استخدام الستاب التلقائي</string>
     <string name="use_auto_stub_description">يقوم تلقائيًا بإضافة خدمات ووظائف ناقصة. قد يحسن التوافق ولكنه قد يتسبب في تعطل المشغل ومشاكل في الاستقرار.</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">چاککردنەوەی گرافیک</string>
@@ -782,7 +783,6 @@
     <string name="cpu_accuracy_accurate">وورد</string>
     <string name="cpu_accuracy_unsafe">ناسەقامگیر</string>
     <string name="cpu_accuracy_paranoid">بەگومان (خاو)</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">4 دوگمەکە</string>
     <string name="gamepad_left_stick">گێڕی چەپ</string>

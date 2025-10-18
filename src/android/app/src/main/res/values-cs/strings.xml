@@ -452,6 +452,7 @@
     <string name="cpu">CPU</string>
     <string name="use_auto_stub">Použít automatický stub</string>
     <string name="use_auto_stub_description">Automaticky doplňuje chybějící služby a funkce. Může zlepšit kompatibilitu, ale také způsobit pády a problémy se stabilitou.</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Ladění grafiky</string>

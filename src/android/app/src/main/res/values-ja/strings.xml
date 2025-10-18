@@ -488,6 +488,7 @@
     <string name="cpu">CPU</string>
     <string name="use_auto_stub">自動スタブを使用</string>
     <string name="use_auto_stub_description">不足しているサービスや機能を自動的にスタブします。互換性が向上する可能性がありますが、クラッシュや安定性の問題を引き起こす可能性があります。</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">グラフィックデバッグ</string>
@@ -833,7 +834,6 @@
     <string name="cpu_accuracy_accurate">正確</string>
     <string name="cpu_accuracy_unsafe">不安定</string>
     <string name="cpu_accuracy_paranoid">パラノイド</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">方向ボタン</string>
     <string name="gamepad_left_stick">Lスティック</string>

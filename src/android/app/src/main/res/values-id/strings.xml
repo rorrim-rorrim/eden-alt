@@ -531,6 +531,7 @@
     <string name="cpu">CPU</string>
     <string name="use_auto_stub">Gunakan Auto Stub</string>
     <string name="use_auto_stub_description">Otomatis menyediakan layanan dan fungsi yang hilang. Dapat meningkatkan kompatibilitas tetapi mungkin menyebabkan crash dan masalah stabilitas.</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Debugging Grafis</string>
@@ -774,7 +775,6 @@
     <string name="verify_no_result">Tidak Ada Hasil</string>
     <string name="verify_no_result_description">Isi file tidak diperiksa ke validasinya</string>
     <string name="verification_failed_for">Verifikasi gagal terkait file ini:\n%1$s</string>
-
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROM-mu ter-enkripsi</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Silakan ikuti panduan untuk mendump ulang <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">kartrid game</a> atau <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">judul digital</a> Anda.]]></string>
@@ -997,7 +997,6 @@
     <string name="cpu_accuracy_accurate">Akurat</string>
     <string name="cpu_accuracy_unsafe">Berbahaya</string>
     <string name="cpu_accuracy_paranoid">Paranoid</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">D Pad</string>
     <string name="gamepad_left_stick">Left Stick</string>

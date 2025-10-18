@@ -537,6 +537,7 @@
     <string name="cpu">CPU</string>
     <string name="use_auto_stub">Використовувати Auto Stub</string>
     <string name="use_auto_stub_description">Автоматично замінює відсутні сервіси та функції. Це може покращити сумісність, але може викликати збої та проблеми зі стабільністю.</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Налагодження графіки</string>
@@ -780,7 +781,6 @@
     <string name="verify_no_result">Неможливо виконати перевірку цілісності</string>
     <string name="verify_no_result_description">Файли вмісту не перевірені на дійсність</string>
     <string name="verification_failed_for">Не вдалося перевірити такі файли:\n%1$s</string>
-
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Ваш ROM зашифрований</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Будь ласка, дотримуйтесь інструкцій для повторного дампу ваших <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">ігрових картриджів</a> або <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">цифрових назв</a>.]]></string>
@@ -1018,7 +1018,6 @@
     <string name="cpu_accuracy_accurate">Точно</string>
     <string name="cpu_accuracy_unsafe">Небезпечно</string>
     <string name="cpu_accuracy_paranoid">Параноїк (повільно)</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Хрестовина</string>
     <string name="gamepad_left_stick">Лівий джойстик</string>

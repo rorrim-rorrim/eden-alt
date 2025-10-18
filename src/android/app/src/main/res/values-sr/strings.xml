@@ -494,6 +494,7 @@
     <string name="cpu">ЦПУ</string>
     <string name="use_auto_stub">Користите ауто-стуб</string>
     <string name="use_auto_stub_description">Аутоматски угушите мрежне услуге и функције. То може побољшати компатибилност, али може проузроковати пад рушења и питања стабилности.</string>
+
     <string name="gpu">ГПУ</string>
     <string name="renderer_api">АПИ</string>
     <string name="renderer_debug">Графички уклањање погрешака</string>
@@ -949,7 +950,6 @@
     <string name="cpu_accuracy_accurate">Тачан</string>
     <string name="cpu_accuracy_unsafe">Несигуран</string>
     <string name="cpu_accuracy_paranoid">Параноичан</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Д-пад</string>
     <string name="gamepad_left_stick">Левичар</string>

@@ -525,6 +525,7 @@
     <string name="cpu">CPU</string>
     <string name="use_auto_stub">使用自動存根</string>
     <string name="use_auto_stub_description">自動補上缺少的服務和功能。可提高相容性但可能導致崩潰和穩定性問題。</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">圖形偵錯</string>
@@ -768,7 +769,6 @@
     <string name="verify_no_result">無法執行完整性驗證</string>
     <string name="verify_no_result_description">未檢查文件的完整性</string>
     <string name="verification_failed_for">以下文件的完整性驗證失敗 %1$s</string>
-
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">您的 ROM 已加密</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[請按照指南重新轉儲您的<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">遊戲卡</a>或<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">數位版遊戲</a>。]]></string>
@@ -1006,7 +1006,6 @@
     <string name="cpu_accuracy_accurate">高準確度</string>
     <string name="cpu_accuracy_unsafe">低準確度（不安全）</string>
     <string name="cpu_accuracy_paranoid">不合理</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">方向鍵</string>
     <string name="gamepad_left_stick">左搖桿</string>

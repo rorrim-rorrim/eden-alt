@@ -537,6 +537,7 @@
     <string name="cpu">ЦП</string>
     <string name="use_auto_stub">Использовать Auto Stub</string>
     <string name="use_auto_stub_description">Автоматически заглушает отсутствующие сервисы и функции. Может улучшить совместимость, но вызывать сбои и проблемы стабильности.</string>
+
     <string name="gpu">ГПУ</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Отладка графики</string>
@@ -780,7 +781,6 @@
     <string name="verify_no_result">Проверка целостности не может быть выполнена</string>
     <string name="verify_no_result_description">Файл не проверялся на корректность</string>
     <string name="verification_failed_for">Проверку не удалась для следующих файлов:\n%1$s</string>
-
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Ваш ROM зашифрованный</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Пожалуйста, следуйте инструкциям по пересохранению <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">игровых картриджей</a> или <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">установленных игр</a>.]]></string>
@@ -1012,7 +1012,6 @@
     <string name="cpu_accuracy_accurate">Точно</string>
     <string name="cpu_accuracy_unsafe">Небезопасно</string>
     <string name="cpu_accuracy_paranoid">Параноик</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Крестовина</string>
     <string name="gamepad_left_stick">Левый стик</string>

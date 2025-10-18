@@ -535,6 +535,7 @@
     <string name="cpu">CPU</string>
     <string name="use_auto_stub">Utiliser le stub automatique</string>
     <string name="use_auto_stub_description">Comble automatiquement les services et fonctions manquants. Peut améliorer la compatibilité mais peut provoquer des plantages et des problèmes de stabilité.</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Débogage des graphismes</string>
@@ -778,7 +779,6 @@
     <string name="verify_no_result">La vérification de l\'intégrité n\'a pas pu être effectuée</string>
     <string name="verify_no_result_description">La validité du contenu du fichier n\'a pas été vérifiée</string>
     <string name="verification_failed_for">La vérification a échoué pour les fichiers suivants : %1$s</string>
-
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Votre ROM est cryptée</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Suivez les guides pour redumper vos <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">cartes de jeu</a> ou <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">titres numériques</a>.]]></string>
@@ -1016,7 +1016,6 @@
     <string name="cpu_accuracy_accurate">Précis</string>
     <string name="cpu_accuracy_unsafe">Risqué</string>
     <string name="cpu_accuracy_paranoid">Paranoïaque</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Pavé directionnel</string>
     <string name="gamepad_left_stick">Stick gauche</string>

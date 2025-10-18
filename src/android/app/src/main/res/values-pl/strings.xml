@@ -537,6 +537,7 @@
     <string name="cpu">CPU</string>
     <string name="use_auto_stub">Użyj Auto Stub</string>
     <string name="use_auto_stub_description">Automatycznie uzupełnia brakujące usługi i funkcje. Może poprawić kompatybilność, ale powodować awarie i problemy ze stabilnością.</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">Interfejs graficzny</string>
     <string name="renderer_debug">Debugowanie grafiki</string>
@@ -780,7 +781,6 @@
     <string name="verify_no_result">Nie można było przeprowadzić weryfikacji integralności</string>
     <string name="verify_no_result_description">Zawartość pliku nie została sprawdzona pod kątem poprawności</string>
     <string name="verification_failed_for">Zawartość pliku nie została sprawdzona pod kątem poprawności:\n%1$s</string>
-
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Twój ROM jest zakodowany</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Postępuj zgodnie z przewodnikami, aby ponownie zrzucić swoje <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">karty gry</a> lub <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">tytuły cyfrowe</a>.]]></string>
@@ -1018,7 +1018,6 @@
     <string name="cpu_accuracy_accurate">Dokładny</string>
     <string name="cpu_accuracy_unsafe">Niebezpieczny</string>
     <string name="cpu_accuracy_paranoid">Paranoid (Wolny)</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">D-pad</string>
     <string name="gamepad_left_stick">Lewa gałka</string>

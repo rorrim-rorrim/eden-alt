@@ -520,6 +520,7 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="cpu">CPU</string>
     <string name="use_auto_stub">Auto-Stub verwenden</string>
     <string name="use_auto_stub_description">Ergänzt automatisch fehlende Dienste und Funktionen. Kann die Kompatibilität verbessern, aber auch zu Abstürzen und Stabilitätsproblemen führen.</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Grafik-Debugging</string>
@@ -978,7 +979,6 @@ Wirklich fortfahren?</string>
     <string name="cpu_accuracy_accurate">Akkurat</string>
     <string name="cpu_accuracy_unsafe">Unsicher</string>
     <string name="cpu_accuracy_paranoid">Paranoid </string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">D-Pad</string>
     <string name="gamepad_left_stick">Linker Stick</string>

@@ -495,6 +495,7 @@
     <string name="cpu">מעבד</string>
     <string name="use_auto_stub">שימוש ב-Auto Stub</string>
     <string name="use_auto_stub_description">משלים אוטומטית שירותים ופונקציות חסרים. עשוי לשפר תאימות אך עלול לגרום לקריסות ובעיות יציבות.</string>
+
     <string name="gpu">מעבד גרפי</string>
     <string name="renderer_api">ממשק תוכנה</string>
     <string name="renderer_debug">דיבאגינג בגרפיקה</string>
@@ -833,7 +834,6 @@
     <string name="cpu_accuracy_accurate">מדויק</string>
     <string name="cpu_accuracy_unsafe">לא בטוח</string>
     <string name="cpu_accuracy_paranoid">פראנואידי</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">D-pad</string>
     <string name="gamepad_left_stick">ג׳ויסטיק שמאלי</string>

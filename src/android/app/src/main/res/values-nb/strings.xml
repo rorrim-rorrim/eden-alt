@@ -470,6 +470,7 @@
     <string name="cpu">CPU</string>
     <string name="use_auto_stub">Bruk Auto Stub</string>
     <string name="use_auto_stub_description">Automatisk stubber manglende tjenester og funksjoner. Kan forbedre kompatibilitet, men kan forårsake krasj og stabilitetsproblemer.</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Grafikkfeilsøking</string>
@@ -795,7 +796,6 @@
     <string name="cpu_accuracy_accurate">Nøyaktig</string>
     <string name="cpu_accuracy_unsafe">Utrygt</string>
     <string name="cpu_accuracy_paranoid">Paranoid (Langsom)</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">D-pad</string>
     <string name="gamepad_left_stick">Venstre spak</string>

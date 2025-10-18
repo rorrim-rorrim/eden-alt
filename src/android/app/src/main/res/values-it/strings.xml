@@ -519,6 +519,7 @@
     <string name="cpu">CPU</string>
     <string name="use_auto_stub">Usa Auto Stub</string>
     <string name="use_auto_stub_description">Aggiunge automaticamente servizi e funzioni mancanti. Può migliorare la compatibilità ma causare crash e problemi di stabilità.</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Debug GPU</string>
@@ -886,7 +887,6 @@
     <string name="cpu_accuracy_accurate">Accurata</string>
     <string name="cpu_accuracy_unsafe">Non sicura</string>
     <string name="cpu_accuracy_paranoid">Paranoico (Lento)</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">D-pad</string>
     <string name="gamepad_left_stick">Analogico sinistro</string>
