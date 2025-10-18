@@ -17,7 +17,6 @@ bool CheckGameFirmware(u64 program_id, QObject *parent);
 
 enum class FirmwareInstallResult {
     Success,
-    NoOp,
     NoNCAs,
     FailedDelete,
     FailedCopy,
