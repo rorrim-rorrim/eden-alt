@@ -22,7 +22,6 @@
 #include "dynarmic/backend/arm64/emit_context.h"
 #include "dynarmic/backend/arm64/fpsr_manager.h"
 #include "dynarmic/backend/arm64/verbose_debugging_output.h"
-#include "dynarmic/common/always_false.h"
 
 namespace Dynarmic::Backend::Arm64 {
 
@@ -301,7 +300,7 @@ int RegAlloc::GenerateImmediate(const IR::Value& value) {
 
         return 0;
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<kind>>);
+        static_assert(false);
     }
 }
 
@@ -370,7 +369,7 @@ int RegAlloc::RealizeReadImpl(const IR::Value& value) {
     } else if constexpr (required_kind == HostLoc::Kind::Flags) {
         ASSERT_FALSE("A simple read from flags is likely a logic error.");
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<required_kind>>);
+        static_assert(false);
     }
 }
 
@@ -395,7 +394,7 @@ int RegAlloc::RealizeWriteImpl(const IR::Inst* value) {
         flags.SetupLocation(value);
         return 0;
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<kind>>);
+        static_assert(false);
     }
 }
 
@@ -416,7 +415,7 @@ int RegAlloc::RealizeReadWriteImpl(const IR::Value& read_value, const IR::Inst* 
     } else if constexpr (kind == HostLoc::Kind::Flags) {
         ASSERT_FALSE("Incorrect function for ReadWrite of flags");
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<kind>>);
+        static_assert(false);
     }
 }
 

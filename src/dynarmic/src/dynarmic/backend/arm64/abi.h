@@ -17,7 +17,6 @@
 #include "dynarmic/common/assert.h"
 #include <oaknut/oaknut.hpp>
 
-#include "dynarmic/common/always_false.h"
 
 namespace Dynarmic::Backend::Arm64 {
 
@@ -30,25 +29,25 @@ constexpr oaknut::XReg Xpagetable{24};
 constexpr oaknut::XReg Xscratch0{16}, Xscratch1{17}, Xscratch2{30};
 constexpr oaknut::WReg Wscratch0{16}, Wscratch1{17}, Wscratch2{30};
 
-template<size_t bitsize>
-constexpr auto Rscratch0() {
+template<size_t bitsize, typename T>
+constexpr T Rscratch0() {
     if constexpr (bitsize == 32) {
         return Wscratch0;
     } else if constexpr (bitsize == 64) {
         return Xscratch0;
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<bitsize>>);
+        static_assert(false);
     }
 }
 
-template<size_t bitsize>
-constexpr auto Rscratch1() {
+template<size_t bitsize, typename T>
+constexpr T Rscratch1() {
     if constexpr (bitsize == 32) {
         return Wscratch1;
     } else if constexpr (bitsize == 64) {
         return Xscratch1;
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<bitsize>>);
+        static_assert(false);
     }
 }
 
