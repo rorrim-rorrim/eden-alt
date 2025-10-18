@@ -511,8 +511,8 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
             }
         }
         if (info.uses_rescaling_uniform) {
-            const f32 float_texture_scaling_mask{Common::BitCast<f32>(texture_scaling_mask)};
-            const f32 float_image_scaling_mask{Common::BitCast<f32>(image_scaling_mask)};
+            const f32 float_texture_scaling_mask{std::bit_cast<f32>(texture_scaling_mask)};
+            const f32 float_image_scaling_mask{std::bit_cast<f32>(image_scaling_mask)};
             const bool is_rescaling{texture_cache.IsRescaling()};
             const f32 config_down_factor{Settings::values.resolution_info.down_factor};
             const f32 down_factor{is_rescaling ? config_down_factor : 1.0f};

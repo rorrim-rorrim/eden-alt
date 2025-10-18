@@ -6,7 +6,7 @@
 #include <sstream>
 #include <vector>
 
-#include "common/bit_cast.h"
+#include <numeric>
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include <ranges>
@@ -123,8 +123,8 @@ std::vector<Network::NetworkInterface> GetAvailableNetworkInterfaces() {
         // Just use 0 as the gateway address
         result.emplace_back(Network::NetworkInterface{
                 .name{ifa->ifa_name},
-                .ip_address{Common::BitCast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr},
-                .subnet_mask{Common::BitCast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr},
+                .ip_address{std::bit_cast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr},
+                .subnet_mask{std::bit_cast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr},
                 .gateway{in_addr{.s_addr = 0}}
         });
 #else
@@ -139,8 +139,8 @@ std::vector<Network::NetworkInterface> GetAvailableNetworkInterfaces() {
             gateway_0.s_addr = gateway;
             result.emplace_back(Network::NetworkInterface{
                 .name = ifa->ifa_name,
-                .ip_address = Common::BitCast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr,
-                .subnet_mask = Common::BitCast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr,
+                .ip_address = std::bit_cast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr,
+                .subnet_mask = std::bit_cast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr,
                 .gateway = gateway_0
             });
             continue;
@@ -191,8 +191,8 @@ std::vector<Network::NetworkInterface> GetAvailableNetworkInterfaces() {
         gateway_0.s_addr = gateway;
         result.emplace_back(Network::NetworkInterface{
             .name = ifa->ifa_name,
-            .ip_address = Common::BitCast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr,
-            .subnet_mask = Common::BitCast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr,
+            .ip_address = std::bit_cast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr,
+            .subnet_mask = std::bit_cast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr,
             .gateway = gateway_0
         });
 #endif // ANDROID
