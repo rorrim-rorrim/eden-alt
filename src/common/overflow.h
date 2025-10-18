@@ -8,7 +8,7 @@
 
 #include <algorithm>
 #include <type_traits>
-#include "bit_cast.h"
+#include <numeric>
 
 namespace Common {
 
