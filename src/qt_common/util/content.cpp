@@ -60,14 +60,14 @@ void InstallFirmware(const QString& location, bool recursive)
         return progress.wasCanceled();
     };
 
-    static constexpr const char* failedTitle = "Firmware Install Failed";
-    static constexpr const char* successTitle = "Firmware Install Succeeded";
+    QString failedTitle = tr("Firmware Install Failed");
+    QString successTitle = tr("Firmware Install Succeeded");
     QMessageBox::Icon icon;
     FirmwareInstallResult result;
 
     const auto ShowMessage = [&]() {
         QtCommon::Frontend::ShowMessage(icon,
-                                        tr(failedTitle),
+                                        failedTitle,
                                         GetFirmwareInstallResultString(result));
     };
 
@@ -188,8 +188,7 @@ void InstallFirmware(const QString& location, bool recursive)
     const std::string display_version(firmware_data.display_version.data());
 
     result = FirmwareInstallResult::Success;
-    QtCommon::Frontend::Information(rootObject,
-                                    tr(successTitle),
+    QtCommon::Frontend::Information(successTitle,
                                     GetFirmwareInstallResultString(result).arg(
                                         QString::fromStdString(display_version)));
 }
@@ -295,7 +294,7 @@ void VerifyInstalledContents()
                                                   tr("Cancel"),
                                                   0,
                                                   100,
-                                                  QtCommon::rootObject);
+                                                  rootObject);
     progress.setWindowModality(Qt::WindowModal);
     progress.setMinimumDuration(100);
     progress.setAutoClose(false);
