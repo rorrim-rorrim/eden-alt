@@ -19,7 +19,9 @@ std::optional<AxxEmitX64::DoNotFastmemMarker> AxxEmitX64::ShouldFastmem(AxxEmitC
     if (!conf.fastmem_pointer || !exception_handler.SupportsFastmem())
         return std::nullopt;
     const auto marker = std::make_tuple(ctx.Location(), inst->GetName());
-    return do_not_fastmem.count(marker) <= 0 ? marker : std::nullopt;
+    if (do_not_fastmem.count(marker) > 0)
+        return std::nullopt;
+    return marker;
 }
 
 FakeCall AxxEmitX64::FastmemCallback(u64 rip_) {
