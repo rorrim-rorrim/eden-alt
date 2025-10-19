@@ -73,7 +73,16 @@ Result DisplayLayerManager::CreateManagedDisplayLayer(u64* out_layer_id) {
     R_TRY(m_manager_display_service->CreateManagedLayer(
         out_layer_id, 0, display_id, Service::AppletResourceUserId{m_process->GetProcessId()}));
 
+    // Ensure visibility follows our state
     m_manager_display_service->SetLayerVisibility(m_visible, *out_layer_id);
+
+    // For non-application applets (e.g., overlay), make sure UI layers blend and render on top
+    if (m_applet_id != AppletId::Application) {
+        static constexpr s32 kOverlayZ = 100000;
+        (void)m_manager_display_service->SetLayerBlending(m_blending_enabled, *out_layer_id);
+        (void)m_manager_display_service->SetLayerZIndex(kOverlayZ, *out_layer_id);
+    }
+
     m_managed_display_layers.emplace(*out_layer_id);
 
     R_SUCCEED();

@@ -271,7 +271,8 @@ void AppletManager::SetWindowSystem(WindowSystem* window_system) {
         overlay_applet->type = AppletType::OverlayApplet;
         // Use PartialForeground so blending is enabled and overlay can be composed on top
         overlay_applet->library_applet_mode = LibraryAppletMode::PartialForeground;
-        m_window_system->TrackApplet(overlay_applet, true);
+        // Track as a non-application so WindowSystem routes it to m_overlay_display
+        m_window_system->TrackApplet(overlay_applet, false);
         overlay_applet->process->Run();
         LOG_INFO(Service_AM, "Overlay applet launched before application");
     }
