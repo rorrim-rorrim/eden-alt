@@ -13,6 +13,7 @@
 #include <optional>
 #include <set>
 #include <vector>
+#include <iterator>
 
 #include <mcl/bit/bit_count.hpp>
 #include "dynarmic/common/common_types.h"
