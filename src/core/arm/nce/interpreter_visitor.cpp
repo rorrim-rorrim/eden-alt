@@ -771,17 +771,16 @@ std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, v
     // Store temporal to not break aliasing rules :)
     u64 tmp_sp = CTX_SP;
     u64 tmp_pc = CTX_PC;
-    InterpreterVisitor visitor(memory, regs, vregs, tmp_sp, tmp_pc);
-    CTX_SP = tmp_sp;
-    CTX_PC = tmp_pc;
-
     u32 instruction = memory.Read32(tmp_pc);
     bool was_executed = false;
+    InterpreterVisitor visitor(memory, regs, vregs, tmp_sp, tmp_pc);
     if (auto decoder = Dynarmic::A64::Decode<VisitorBase>(instruction)) {
         was_executed = decoder->get().call(visitor, instruction);
     } else {
         LOG_ERROR(Core_ARM, "Unallocated encoding: {:#x}", instruction);
     }
+    CTX_SP = tmp_sp;
+    CTX_PC = tmp_pc;
     return was_executed ? std::optional<u64>(tmp_pc + 4) : std::nullopt;
 }
 
