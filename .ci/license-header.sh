@@ -3,15 +3,40 @@
 # SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# argparse
+# specify full path if dupes may exist
+EXCLUDE_FILES="CPM.cmake CPMUtil.cmake GetSCMRev.cmake sse2neon.h tools/cpm"
+
+# license header constants, please change when needed :))))
+YEAR=2025
+HOLDER="Eden Emulator Project"
+LICENSE="GPL-3.0-or-later"
 
 usage() {
 	cat << EOF
-$0: Check license headers compared to this branch's merge base with master.
 Usage: $0 [uc]
-	-u, --update	Fix license headers, if applicable
-	-c, --commit	Commit changes to Git (requires --update)
+Compares the current HEAD to the master branch to check for license
+header discrepancies. Each file changed in a branch MUST have a
+license header, and this script attempts to enforce that.
+
+Options:
+    -u, --update	Fix license headers, if applicable;
+                	if the license header exists but has the incorrect
+                	year or is otherwise malformed, it will be fixed.
+
+    -c, --commit	Commit changes to Git (requires --update)
+
+Copyright $YEAR $HOLDER
+Licensed under $LICENSE
+
+The following files/directories are marked as external
+and thus will not have license headers asserted:
 EOF
+
+	for file in $EXCLUDE_FILES; do
+		echo "- $file"
+	done
+
+	exit 0
 }
 
 while true; do
@@ -26,15 +51,6 @@ while true; do
 
 	shift
 done
-
-# specify full path if dupes may exist
-EXCLUDE_FILES="CPM.cmake CPMUtil.cmake GetSCMRev.cmake sse2neon.h"
-EXCLUDE_FILES=$(echo "$EXCLUDE_FILES" | sed 's/ /|/g')
-
-# license header constants, please change when needed :))))
-YEAR=2025
-HOLDER="Eden Emulator Project"
-LICENSE="GPL-3.0-or-later"
 
 # human-readable header string
 header() {
@@ -83,16 +99,30 @@ FILES=$(git diff --name-only "$BASE")
 for file in $FILES; do
     [ -f "$file" ] || continue
 
-	case $(basename -- "$file") in
-        "$EXCLUDE_FILES")
-			# skip files that are third party (crueter's CMake modules, sse2neon, etc)
-			continue
-            ;;
+	# skip files that are third party (crueter's CMake modules, sse2neon, etc)
+	for pattern in $EXCLUDE_FILES; do
+		case "$file" in
+			*"$pattern"*)
+				excluded=true
+				continue
+				;;
+			*)
+				excluded=false
+				;;
+		esac
+	done
+
+	[ "$excluded" = "true" ] && continue
+
+	case "$file" in
 		*.cmake|*.sh|CMakeLists.txt)
 			begin="#"
 			;;
 		*.kt*|*.cpp|*.h)
 			begin="//"
+			;;
+		*)
+			continue
 			;;
     esac
 
