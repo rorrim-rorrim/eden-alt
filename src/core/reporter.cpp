@@ -6,6 +6,7 @@
 
 #include <ctime>
 #include <fstream>
+#include <sstream>
 #include <iomanip>
 
 #include <fmt/chrono.h>

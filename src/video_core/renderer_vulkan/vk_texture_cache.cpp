@@ -1383,8 +1383,8 @@ void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
         }
 #endif
         auto oneCopy = VideoCommon::ImageCopy{
-            .src_offset = VideoCommon::Offset3D(0, 0, 0),
-            .dst_offset = VideoCommon::Offset3D(0, 0, 0),
+            .src_offset = VideoCommon::Offset3D{0, 0, 0},
+            .dst_offset = VideoCommon::Offset3D{0, 0, 0},
             .extent = dst.info.size
         };
         return ReinterpretImage(dst, src, std::span{&oneCopy, 1});
