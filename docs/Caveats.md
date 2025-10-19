@@ -1,5 +1,11 @@
 # Caveats
 
+## Windows 8.1 and below
+
+DirectX 12 is not available - simply copy and paste a random DLL and name it `d3d12.dll`.
+
+Install [Qt6 compatibility libraries](github.com/ANightly/qt6windows7) specifically Qt 6.9.5.
+
 ## Arch Linux
 
 - httplib AUR package is broken. Set `httplib_FORCE_BUNDLED=ON` if you have it installed.
