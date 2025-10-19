@@ -20,6 +20,8 @@ Tools for Eden and other subprojects.
 - `lanczos_gen.c`
 - `clang-format.sh`: Runs `clang-format` on the entire codebase.
     * Requires: clang
+- `unused-strings.sh`: Finds unused strings in Android `strings.xml` files.
+    * It's recommended to run this after almost any Android change; this operation is relatively fast.
 
 ## Translations
 
