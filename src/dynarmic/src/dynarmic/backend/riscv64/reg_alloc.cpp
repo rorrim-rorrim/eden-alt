@@ -226,7 +226,7 @@ u32 RegAlloc::RealizeReadImpl(const IR::Value& value) {
         fprs[new_location_index].realized = true;
         return new_location_index;
     } else {
-        //static_assert(false);
+        return 0; //static_assert(false);
     }
 }
 
@@ -253,7 +253,7 @@ u32 RegAlloc::RealizeWriteImpl(const IR::Inst* value) {
         setup_location(fprs[new_location_index]);
         return new_location_index;
     } else {
-        //static_assert(false);
+        return 0;//static_assert(false);
     }
 }
 

@@ -178,7 +178,7 @@ void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) 
         } else if constexpr (fsize == 64) {
             return Qto->D2();
         } else {
-            //static_assert(false);
+            return Qto->D2(); //static_assert(false);
         }
     }();
     auto Vfrom = [&] {
@@ -187,7 +187,7 @@ void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) 
         } else if constexpr (fsize == 64) {
             return Qfrom->D2();
         } else {
-            //static_assert(false);
+            return Qfrom->D2(); //static_assert(false);
         }
     }();
 
