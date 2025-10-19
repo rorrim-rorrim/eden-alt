@@ -6,6 +6,7 @@
  * SPDX-License-Identifier: 0BSD
  */
 
+#include <bit>
 #include <numeric>
 #include <oaknut/oaknut.hpp>
 
