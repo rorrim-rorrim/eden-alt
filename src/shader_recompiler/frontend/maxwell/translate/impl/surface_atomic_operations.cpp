@@ -9,21 +9,31 @@
 namespace Shader::Maxwell {
 namespace {
 enum class Type : u64 {
-    _1D,
-    BUFFER_1D,
-    ARRAY_1D,
-    _2D,
-    ARRAY_2D,
-    _3D,
+    _1D = 0,
+    _1D_BUFFER = 1,
+    _1D_ARRAY = 2,
+    _2D = 3,
+    _2D_ARRAY = 4,
+    _3D = 5,
+    _UNK6 = 6,
+    _UNK7 = 7,
+    _1D = 8,
+    _1D_BUFFER = 9,
+    _1D_ARRAY = 10,
+    _2D = 11,
+    _2D_ARRAY = 12,
+    _3D = 13,
+    _UNK14 = 14,
+    _UNK15 = 15,
 };
 
 enum class Size : u64 {
     U32,
     S32,
     U64,
-    S64,
     F32FTZRN,
     F16x2FTZRN,
+    S64,
     SD32,
     SD64,
 };
@@ -50,13 +60,13 @@ TextureType GetType(Type type) {
     switch (type) {
     case Type::_1D:
         return TextureType::Color1D;
-    case Type::BUFFER_1D:
+    case Type::_1D_BUFFER:
         return TextureType::Buffer;
-    case Type::ARRAY_1D:
+    case Type::_1D_ARRAY:
         return TextureType::ColorArray1D;
     case Type::_2D:
         return TextureType::Color2D;
-    case Type::ARRAY_2D:
+    case Type::_2D_ARRAY:
         return TextureType::ColorArray2D;
     case Type::_3D:
         return TextureType::Color3D;
@@ -67,7 +77,7 @@ TextureType GetType(Type type) {
 IR::Value MakeCoords(TranslatorVisitor& v, IR::Reg reg, Type type) {
     switch (type) {
     case Type::_1D:
-    case Type::BUFFER_1D:
+    case Type::_1D_BUFFER:
         return v.X(reg);
     case Type::_2D:
         return v.ir.CompositeConstruct(v.X(reg), v.X(reg + 1));
