@@ -20,14 +20,6 @@ enum class Type : u64 {
     _3D = 5,
     _UNK6 = 6,
     _UNK7 = 7,
-    _1D = 8,
-    _1D_BUFFER = 9,
-    _1D_ARRAY = 10,
-    _2D = 11,
-    _2D_ARRAY = 12,
-    _3D = 13,
-    _UNK14 = 14,
-    _UNK15 = 15,
 };
 
 enum class Size : u64 {
@@ -73,8 +65,9 @@ TextureType GetType(Type type) {
         return TextureType::ColorArray2D;
     case Type::_3D:
         return TextureType::Color3D;
+    default:
+        throw NotImplementedException("Invalid type {}", type);
     }
-    throw NotImplementedException("Invalid type {}", type);
 }
 
 IR::Value MakeCoords(TranslatorVisitor& v, IR::Reg reg, Type type) {
@@ -87,9 +80,8 @@ IR::Value MakeCoords(TranslatorVisitor& v, IR::Reg reg, Type type) {
     case Type::_3D:
         return v.ir.CompositeConstruct(v.X(reg), v.X(reg + 1), v.X(reg + 2));
     default:
-        break;
+        throw NotImplementedException("Invalid type {}", type);
     }
-    throw NotImplementedException("Invalid type {}", type);
 }
 
 IR::Value ApplyAtomicOp(IR::IREmitter& ir, const IR::U32& handle, const IR::Value& coords,
