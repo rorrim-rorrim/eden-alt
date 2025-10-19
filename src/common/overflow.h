@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <type_traits>
 #include <numeric>
+#include <bit>
 
 namespace Common {
 

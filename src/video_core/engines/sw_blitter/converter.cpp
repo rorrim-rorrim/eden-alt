@@ -8,9 +8,9 @@
 #include <cmath>
 #include <span>
 #include <unordered_map>
-
-#include "common/assert.h"
+#include <bit>
 #include <numeric>
+#include "common/assert.h"
 #include "video_core/engines/sw_blitter/converter.h"
 #include "video_core/surface.h"
 #include "video_core/textures/decoders.h"

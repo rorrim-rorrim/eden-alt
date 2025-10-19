@@ -8,7 +8,7 @@
 #include <functional>
 #include <tuple>
 #include <type_traits>
-
+#include <bit>
 #include <numeric>
 #include "shader_recompiler/environment.h"
 #include "shader_recompiler/exception.h"

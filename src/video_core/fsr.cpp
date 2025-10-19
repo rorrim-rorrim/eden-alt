@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cmath>
+#include <bit>
 #include "video_core/fsr.h"
 
 namespace FSR {

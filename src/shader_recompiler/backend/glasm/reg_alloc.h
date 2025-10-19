@@ -7,10 +7,10 @@
 #pragma once
 
 #include <bitset>
-
+#include <bit>
 #include <fmt/ranges.h>
-
 #include <numeric>
+
 #include "common/bit_field.h"
 #include "common/common_types.h"
 #include "shader_recompiler/exception.h"

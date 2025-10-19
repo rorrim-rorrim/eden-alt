@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -46,7 +49,7 @@ public:
         return &rasterizer;
     }
 
-    [[nodiscard]] std::string GetDeviceVendor() const override {
+    [[nodiscard]] std::string_view GetDeviceVendor() const override {
         return device.GetVendorName();
     }
 

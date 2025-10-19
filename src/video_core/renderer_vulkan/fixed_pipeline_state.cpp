@@ -6,11 +6,11 @@
 
 #include <algorithm>
 #include <cstring>
-
+#include <bit>
 #include <numeric>
+#include <ranges>
 #include "common/cityhash.h"
 #include "common/common_types.h"
-#include <ranges>
 #include "video_core/engines/draw_manager.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"

@@ -11,7 +11,7 @@
 #include <memory>
 #include <thread>
 #include <vector>
-
+#include <bit>
 #include <numeric>
 #include "common/cityhash.h"
 #include "common/fs/fs.h"

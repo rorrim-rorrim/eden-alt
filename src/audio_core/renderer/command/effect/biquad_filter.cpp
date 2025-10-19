@@ -8,6 +8,7 @@
 #include "audio_core/renderer/command/effect/biquad_filter.h"
 #include "audio_core/renderer/voice/voice_state.h"
 #include <numeric>
+#include <bit>
 
 namespace AudioCore::Renderer {
 /**

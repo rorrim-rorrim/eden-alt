@@ -10,10 +10,10 @@
 #include <map>
 #include <span>
 #include <vector>
-
+#include <bit>
+#include <numeric>
 #include <boost/intrusive/list.hpp>
 
-#include <numeric>
 #include "common/common_types.h"
 #include "shader_recompiler/frontend/ir/condition.h"
 #include "shader_recompiler/frontend/ir/value.h"

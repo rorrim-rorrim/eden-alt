@@ -5,11 +5,12 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-
 #include <numeric>
+#include <ranges>
+#include <bit>
+
 #include "common/common_types.h"
 #include "common/logging/log.h"
-#include <ranges>
 #include "common/settings.h"
 #include "common/string_util.h"
 #include "core/internal_network/emu_net_state.h"
