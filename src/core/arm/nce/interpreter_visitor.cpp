@@ -767,17 +767,22 @@ std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, v
     CTX_DECLARE(raw_context);
     std::span<u64, 31> regs(reinterpret_cast<u64*>(&CTX_X(0)), 31);
     std::span<u128, 32> vregs(reinterpret_cast<u128*>(&CTX_Q(0)), 32);
-    u64& sp = *reinterpret_cast<u64*>(&CTX_SP);
-    const u64& pc = *reinterpret_cast<u64*>(&CTX_PC);
-    InterpreterVisitor visitor(memory, regs, vregs, sp, pc);
-    u32 instruction = memory.Read32(pc);
+
+    // Store temporal to not break aliasing rules :)
+    u64 tmp_sp = CTX_SP;
+    u64 tmp_pc = CTX_PC;
+    InterpreterVisitor visitor(memory, regs, vregs, tmp_sp, tmp_pc);
+    CTX_SP = tmp_sp;
+    CTX_PC = tmp_pc;
+
+    u32 instruction = memory.Read32(tmp_pc);
     bool was_executed = false;
     if (auto decoder = Dynarmic::A64::Decode<VisitorBase>(instruction)) {
         was_executed = decoder->get().call(visitor, instruction);
     } else {
         LOG_ERROR(Core_ARM, "Unallocated encoding: {:#x}", instruction);
     }
-    return was_executed ? std::optional<u64>(pc + 4) : std::nullopt;
+    return was_executed ? std::optional<u64>(tmp_pc + 4) : std::nullopt;
 }
 
 } // namespace Core
