@@ -7,6 +7,7 @@
 #include <shared_mutex>
 #include <unordered_map>
 #include <utility>
+#include <mutex>
 
 #include "common/logging/log.h"
 
