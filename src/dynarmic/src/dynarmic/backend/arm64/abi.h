@@ -29,8 +29,8 @@ constexpr oaknut::XReg Xpagetable{24};
 constexpr oaknut::XReg Xscratch0{16}, Xscratch1{17}, Xscratch2{30};
 constexpr oaknut::WReg Wscratch0{16}, Wscratch1{17}, Wscratch2{30};
 
-template<size_t bitsize, typename T>
-constexpr T Rscratch0() {
+template<size_t bitsize>
+constexpr auto Rscratch0() {
     if constexpr (bitsize == 32) {
         return Wscratch0;
     } else if constexpr (bitsize == 64) {
@@ -40,8 +40,8 @@ constexpr T Rscratch0() {
     }
 }
 
-template<size_t bitsize, typename T>
-constexpr T Rscratch1() {
+template<size_t bitsize>
+constexpr auto Rscratch1() {
     if constexpr (bitsize == 32) {
         return Wscratch1;
     } else if constexpr (bitsize == 64) {
