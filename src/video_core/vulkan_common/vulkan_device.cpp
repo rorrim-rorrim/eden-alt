@@ -734,8 +734,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         dynamic_state3_enables = true;
     }
 
-    if (is_mvk && Settings::values.dyna_state.GetValue() != 0) {
-        LOG_WARNING(Render_Vulkan, "MoltenVK detected: Forcing dynamic state to 0 to prevent black screen issues");
+    // Mesa Intel drivers on UHD 620 have broken EDS causing extreme flickering - unknown if it affects other iGPUs
+    if ((is_mvk || (is_integrated && is_intel_anv)) && Settings::values.dyna_state.GetValue() != 0) {
+        LOG_WARNING(Render_Vulkan, "Driver has broken dynamic state, forcing to 0 to prevent graphical issues");
         Settings::values.dyna_state.SetValue(0);
     }
 
