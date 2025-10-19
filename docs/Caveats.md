@@ -1,6 +1,7 @@
 # Caveats
 
 <!-- TOC -->
+- [Windows 8.1 and below](#windows-81-and-below)
 - [Arch Linux](#arch-linux)
 - [Gentoo Linux](#gentoo-linux)
 - [macOS](#macos)
@@ -10,6 +11,12 @@
 - [FreeBSD](#freebsd)
 - [NetBSD](#netbsd)
 <!-- /TOC -->
+
+## Windows 8.1 and below
+
+DirectX 12 is not available - simply copy and paste a random DLL and name it `d3d12.dll`.
+
+Install [Qt6 compatibility libraries](github.com/ANightly/qt6windows7) specifically Qt 6.9.5.
 
 ## Arch Linux
 
