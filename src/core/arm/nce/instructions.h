@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2020 Skyline Team and Contributors
+// SPDX-FileCopyrightText: Copyright 2020 Skyline Team and Contributors
 // SPDX-License-Identifier: MPL-2.0
 
 #include "common/bit_field.h"
