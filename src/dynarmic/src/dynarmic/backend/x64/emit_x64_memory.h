@@ -7,6 +7,7 @@
  */
 
 #include <numeric>
+#include <bit>
 #include <xbyak/xbyak.h>
 
 #include "dynarmic/backend/x64/a32_emit_x64.h"

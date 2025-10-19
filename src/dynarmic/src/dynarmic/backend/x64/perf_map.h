@@ -9,7 +9,7 @@
 #pragma once
 
 #include <string_view>
-
+#include <bit>
 #include <numeric>
 
 namespace Dynarmic::Backend::X64 {

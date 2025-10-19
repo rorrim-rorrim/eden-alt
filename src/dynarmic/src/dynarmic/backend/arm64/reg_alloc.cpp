@@ -11,10 +11,10 @@
 #include <algorithm>
 #include <array>
 #include <iterator>
-
+#include <bit>
+#include <numeric>
 #include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_field.hpp>
-#include <numeric>
 #include <mcl/mp/metavalue/lift_value.hpp>
 #include "dynarmic/common/common_types.h"
 

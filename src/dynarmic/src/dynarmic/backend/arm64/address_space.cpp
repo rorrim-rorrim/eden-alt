@@ -7,7 +7,7 @@
  */
 
 #include <cstdio>
-
+#include <bit>
 #include <numeric>
 
 #include "dynarmic/backend/arm64/a64_address_space.h"

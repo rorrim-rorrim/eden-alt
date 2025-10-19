@@ -9,6 +9,7 @@
 #include <cstring>
 #include <memory>
 #include <mutex>
+#include <bit>
 
 #include <boost/icl/interval_set.hpp>
 #include "dynarmic/common/assert.h"

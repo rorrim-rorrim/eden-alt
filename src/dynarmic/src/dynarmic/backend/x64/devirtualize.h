@@ -10,7 +10,7 @@
 
 #include <cstring>
 #include <utility>
-
+#include <bit>
 #include <numeric>
 #include "dynarmic/common/common_types.h"
 #include <mcl/type_traits/function_info.hpp>

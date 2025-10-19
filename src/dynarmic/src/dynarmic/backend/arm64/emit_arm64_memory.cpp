@@ -10,7 +10,7 @@
 
 #include <optional>
 #include <utility>
-
+#include <bit>
 #include <numeric>
 #include <oaknut/oaknut.hpp>
 

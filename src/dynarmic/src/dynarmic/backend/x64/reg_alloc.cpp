@@ -11,10 +11,10 @@
 #include <algorithm>
 #include <numeric>
 #include <utility>
+#include <bit>
 
 #include <fmt/ostream.h>
 #include "dynarmic/common/assert.h"
-#include <numeric>
 #include <xbyak/xbyak.h>
 
 #include "dynarmic/backend/x64/abi.h"
