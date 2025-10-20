@@ -397,8 +397,8 @@ private:
 
 #elif defined(__linux__) || defined(__FreeBSD__) || defined(__sun__) || defined(__APPLE__) // ^^^ Windows ^^^ vvv POSIX vvv
 
-#ifdef ARCHITECTURE_arm64
-
+// Use NCE friendly mapping techniques
+#if defined(ARCHITECTURE_arm64) && defined(HAS_NCE)
 static void* ChooseVirtualBase(size_t virtual_size) {
     constexpr uintptr_t Map36BitSize = (1ULL << 36);
 #ifdef __APPLE__
@@ -484,9 +484,7 @@ static void* ChooseVirtualBase(size_t virtual_size) {
     return MAP_FAILED;
 #endif
 }
-
 #else
-
 static void* ChooseVirtualBase(size_t virtual_size) {
 #if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__sun__) || defined(__HAIKU__) || defined(__managarm__) || defined(__AIX__)
     void* virtual_base = mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_ALIGNED_SUPER, -1, 0);
@@ -495,7 +493,6 @@ static void* ChooseVirtualBase(size_t virtual_size) {
 #endif
     return mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
 }
-
 #endif
 
 #if defined(__sun__) || defined(__HAIKU__) || defined(__NetBSD__) || defined(__DragonFly__)
@@ -609,14 +606,19 @@ public:
         if (True(perms & MemoryPermission::Write)) {
             flags |= PROT_WRITE;
         }
-#ifdef ARCHITECTURE_arm64
+        // W^X and stuff only supported with NCE
+#if defined(ARCHITECTURE_arm64) && defined(HAS_NCE)
         if (True(perms & MemoryPermission::Execute)) {
             flags |= PROT_EXEC;
         }
 #endif
 
-        void* ret = mmap(virtual_base + virtual_offset, length, flags, MAP_SHARED | MAP_FIXED, fd,
-                         host_offset);
+#if defined(ARCHITECTURE_arm64) && defined(__APPLE__)
+        length = ((length / 16384) + 1) * 16384;
+        void* ret = mmap(virtual_base + (virtual_offset & ~16383), length, flags, MAP_SHARED | MAP_FIXED, fd, host_offset);
+#else
+        void* ret = mmap(virtual_base + virtual_offset, length, flags, MAP_SHARED | MAP_FIXED, fd, host_offset);
+#endif
         ASSERT_MSG(ret != MAP_FAILED, "mmap failed: {}", strerror(errno));
     }
 
