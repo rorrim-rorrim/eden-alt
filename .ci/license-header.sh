@@ -79,7 +79,7 @@ check_header() {
 
 	header="$(pcre_header "$begin")"
 
-	if ! echo "$content" | grep -Pzo "$header" > /dev/null; then
+	if ! echo "$content" | grep -zo "$header" > /dev/null; then
 		# SRC_FILES is Kotlin/C++
 		# OTHER_FILES is sh, CMake
 		case "$begin" in
