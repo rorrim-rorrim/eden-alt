@@ -210,7 +210,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 this,
                 titleId = R.string.keys_missing,
                 descriptionId = R.string.keys_missing_description,
-                helpLinkId = R.string.keys_missing_help,
                 positiveButtonTitleId = R.string.dont_show_again,
                 negativeButtonTitleId = R.string.close,
                 showNegativeButton = true,
