@@ -96,19 +96,6 @@ class SetupFragment : Fragment() {
 
         val pages = mutableListOf<SetupPage>()
         pages.apply {
-            add(
-                SetupPage(
-                    R.drawable.ic_yuzu_title,
-                    R.string.welcome,
-                    R.string.welcome_description,
-                    0,
-                    true,
-                    R.string.get_started,
-                    { pageForward() },
-                    false
-                )
-            )
-
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 add(
                     SetupPage(
@@ -198,7 +185,7 @@ class SetupFragment : Fragment() {
                     R.string.games_description,
                     R.drawable.ic_add,
                     true,
-                    R.string.add_games,
+                    R.string.add_games_folder,
                     {
                         gamesDirCallback = it
                         getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data)
@@ -216,6 +203,8 @@ class SetupFragment : Fragment() {
                     }
                 )
             )
+
+            // Needed because finishSetup()
             add(
                 SetupPage(
                     R.drawable.ic_check,

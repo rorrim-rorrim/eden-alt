@@ -202,11 +202,23 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     }
 
     private fun checkKeys() {
-        if (!NativeLibrary.areKeysPresent()) {
+        val shouldDisplayKeysMissingWarning =
+            PreferenceManager.getDefaultSharedPreferences(applicationContext)
+                .getBoolean(Settings.PREF_SHOULD_SHOW_KEYS_MISSING_WARNING, true)
+        if (shouldDisplayKeysMissingWarning && !NativeLibrary.areKeysPresent()) {
             MessageDialogFragment.newInstance(
+                this,
                 titleId = R.string.keys_missing,
                 descriptionId = R.string.keys_missing_description,
-                helpLinkId = R.string.keys_missing_help
+                helpLinkId = R.string.keys_missing_help,
+                positiveButtonTitleId = R.string.dont_show_again,
+                negativeButtonTitleId = R.string.close,
+                showNegativeButton = true,
+                positiveAction = {
+                    PreferenceManager.getDefaultSharedPreferences(applicationContext).edit() {
+                        putBoolean(Settings.PREF_SHOULD_SHOW_KEYS_MISSING_WARNING, false)
+                    }
+                }
             ).show(supportFragmentManager, MessageDialogFragment.TAG)
         }
     }
