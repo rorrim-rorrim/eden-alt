@@ -185,7 +185,7 @@ class SetupFragment : Fragment() {
                     R.string.games_description,
                     R.drawable.ic_add,
                     true,
-                    R.string.add_games_folder,
+                    R.string.add_games,
                     {
                         gamesDirCallback = it
                         getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data)
