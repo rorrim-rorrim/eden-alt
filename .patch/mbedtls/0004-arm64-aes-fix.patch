@@ -1,5 +1,5 @@
 diff --git a/library/common.h b/library/common.h
-index 50f2a29..372e80c 100644
+index 50f2a29..46dc82c 100644
 --- a/library/common.h
 +++ b/library/common.h
 @@ -19,10 +19,10 @@
@@ -11,7 +11,7 @@ index 50f2a29..372e80c 100644
  #include <arm_neon.h>
  #define MBEDTLS_HAVE_NEON_INTRINSICS
 -#elif defined(MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64)
-+#else
++#elif defined(__ANDROID__) || defined(__ARM_NEON)
  #include <arm64_neon.h>
  #define MBEDTLS_HAVE_NEON_INTRINSICS
  #endif
