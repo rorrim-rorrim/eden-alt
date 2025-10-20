@@ -77,7 +77,7 @@ check_header() {
 	line2="$(header_line2 "$begin")"
 
 	# perl and awk are actually awful, so to avoid this problem we avoid it by avoiding it
-	if ! echo "$content" | grep -o "$line1 $line2"; then
+	if ! echo "$content" | grep -o "$line1 $line2" >/dev/null; then
 		# SRC_FILES is Kotlin/C++
 		# OTHER_FILES is sh, CMake
 		case "$begin" in
