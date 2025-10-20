@@ -24,19 +24,14 @@ namespace Core {
 
 class System;
 
-class GDBStub : public DebuggerFrontend {
-public:
-    explicit GDBStub(DebuggerBackend& backend, Core::System& system,
-                     Kernel::KProcess* debug_process);
+struct GDBStub : public DebuggerFrontend {
+    explicit GDBStub(DebuggerBackend& backend, Core::System& system, Kernel::KProcess* debug_process);
     ~GDBStub() override;
-
     void Connected() override;
     void Stopped(Kernel::KThread* thread) override;
     void ShuttingDown() override;
     void Watchpoint(Kernel::KThread* thread, const Kernel::DebugWatchpoint& watch) override;
     std::vector<DebuggerAction> ClientData(std::span<const u8> data) override;
-
-private:
     void ProcessData(std::vector<DebuggerAction>& actions);
     void ExecuteCommand(std::string_view packet, std::vector<DebuggerAction>& actions);
     void HandleVCont(std::string_view command, std::vector<DebuggerAction>& actions);
@@ -47,14 +42,8 @@ private:
     std::vector<char>::const_iterator CommandEnd() const;
     std::optional<std::string> DetachCommand();
     Kernel::KThread* GetThreadByID(u64 thread_id);
-
     void SendReply(std::string_view data);
     void SendStatus(char status);
-
-    Kernel::KProcess* GetProcess();
-    Core::Memory::Memory& GetMemory();
-
-private:
     Core::System& system;
     Kernel::KProcess* debug_process;
     std::unique_ptr<GDBStubArch> arch;
