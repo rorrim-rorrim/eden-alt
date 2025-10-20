@@ -397,8 +397,8 @@ private:
 
 #else // ^^^ Windows ^^^ vvv POSIX vvv
 
-#ifdef ARCHITECTURE_arm64
-
+// Use NCE friendly mapping techniques
+#if defined(ARCHITECTURE_arm64) && defined(HAS_NCE)
 static void* ChooseVirtualBase(size_t virtual_size) {
     constexpr uintptr_t Map36BitSize = (1ULL << 36);
 #ifdef __APPLE__
@@ -484,9 +484,7 @@ static void* ChooseVirtualBase(size_t virtual_size) {
     return MAP_FAILED;
 #endif
 }
-
 #else
-
 static void* ChooseVirtualBase(size_t virtual_size) {
 #if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__sun__) || defined(__HAIKU__) || defined(__managarm__) || defined(__AIX__)
     void* virtual_base = mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_ALIGNED_SUPER, -1, 0);
@@ -495,7 +493,6 @@ static void* ChooseVirtualBase(size_t virtual_size) {
 #endif
     return mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
 }
-
 #endif
 
 #if defined(__sun__) || defined(__HAIKU__) || defined(__NetBSD__) || defined(__DragonFly__)
@@ -622,9 +619,10 @@ public:
             prot_flags |= PROT_READ;
         if (True(perms & MemoryPermission::Write))
             prot_flags |= PROT_WRITE;
-#ifdef ARCHITECTURE_arm64
+        // W^X only supported with NCE
+#if defined(ARCHITECTURE_arm64) && defined(HAS_NCE)
         if (True(perms & MemoryPermission::Execute))
-            prot_flags |= PROT_EXEC;
+            flags |= PROT_EXEC;
 #endif
         int flags = (fd > 0 ? MAP_SHARED : MAP_PRIVATE) | MAP_FIXED;
         void* ret = mmap(virtual_base + virtual_offset, length, prot_flags, flags, fd, host_offset);
