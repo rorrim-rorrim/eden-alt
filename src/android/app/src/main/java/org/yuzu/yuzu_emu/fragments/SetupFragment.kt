@@ -114,9 +114,7 @@ class SetupFragment : Fragment() {
                         R.string.notification_warning_description,
                         0,
                         {
-                            if (NotificationManagerCompat.from(requireContext())
-                                .areNotificationsEnabled()
-                            ) {
+                            if (NotificationManagerCompat.from(requireContext()).areNotificationsEnabled()) {
                                 StepState.COMPLETE
                             } else {
                                 StepState.INCOMPLETE
@@ -141,7 +139,7 @@ class SetupFragment : Fragment() {
                     true,
                     R.string.install_prod_keys_warning,
                     R.string.install_prod_keys_warning_description,
-                    R.string.install_prod_keys_warning_help,
+                    0,
                     {
                         val file = File(DirectoryInitialization.userDirectory + "/keys/prod.keys")
                         if (file.exists() && NativeLibrary.areKeysPresent()) {
@@ -167,7 +165,7 @@ class SetupFragment : Fragment() {
                     true,
                     R.string.install_firmware_warning,
                     R.string.install_firmware_warning_description,
-                    R.string.install_firmware_warning_help,
+                    0,
                     {
                         if (NativeLibrary.isFirmwareAvailable()) {
                             StepState.COMPLETE
@@ -193,7 +191,7 @@ class SetupFragment : Fragment() {
                     true,
                     R.string.add_games_warning,
                     R.string.add_games_warning_description,
-                    R.string.add_games_warning_help,
+                    0,
                     {
                         if (NativeConfig.getGameDirs().isNotEmpty()) {
                             StepState.COMPLETE
@@ -239,19 +237,16 @@ class SetupFragment : Fragment() {
 
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-
-                if (position == 1 && previousPosition == 0) {
-                    ViewUtils.showView(binding.buttonNext)
-                    ViewUtils.showView(binding.buttonBack)
-                } else if (position == 0 && previousPosition == 1) {
+                if (position == 0) {
                     ViewUtils.hideView(binding.buttonBack)
+                } else {
+                    ViewUtils.showView(binding.buttonBack)
+                }
+                if (position == pages.size - 1) {
                     ViewUtils.hideView(binding.buttonNext)
-                } else if (position == pages.size - 1 && previousPosition == pages.size - 2) {
-                    ViewUtils.hideView(binding.buttonNext)
-                } else if (position == pages.size - 2 && previousPosition == pages.size - 1) {
+                } else {
                     ViewUtils.showView(binding.buttonNext)
                 }
-
                 previousPosition = position
             }
         })

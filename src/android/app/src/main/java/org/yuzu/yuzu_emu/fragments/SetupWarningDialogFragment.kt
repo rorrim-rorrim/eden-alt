@@ -46,14 +46,6 @@ class SetupWarningDialogFragment : DialogFragment() {
         if (descriptionId != 0) {
             builder.setMessage(descriptionId)
         }
-        if (helpLinkId != 0) {
-            builder.setNeutralButton(R.string.warning_help) { _: DialogInterface?, _: Int ->
-                val helpLink = resources.getString(R.string.install_prod_keys_warning_help)
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(helpLink))
-                startActivity(intent)
-            }
-        }
-
         return builder.show()
     }
 
