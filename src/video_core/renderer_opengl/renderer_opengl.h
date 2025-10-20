@@ -49,7 +49,7 @@ public:
         return &rasterizer;
     }
 
-    [[nodiscard]] std::string_view GetDeviceVendor() const override {
+    [[nodiscard]] std::string GetDeviceVendor() const override {
         return device.GetVendorName();
     }
 
