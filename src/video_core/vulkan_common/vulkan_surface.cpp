@@ -54,6 +54,20 @@ vk::SurfaceKHR CreateSurface(
             throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
         }
     }
+#elif defined(__HAIKU__)
+    if (window_info.type == Core::Frontend::WindowSystemType::Xcb) {
+        const VkHaikuSurfaceCreateInfoEXT xcb_ci{
+            VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR, nullptr, 0,
+            static_cast<xcb_connection_t*>(window_info.display_connection),
+            reinterpret_cast<xcb_window_t>(window_info.render_surface)};
+        const auto vkCreateXcbSurfaceKHR = reinterpret_cast<PFN_vkCreateXcbSurfaceKHR>(
+            dld.vkGetInstanceProcAddr(*instance, "vkCreateXcbSurfaceKHR"));
+        if (!vkCreateXcbSurfaceKHR ||
+            vkCreateXcbSurfaceKHR(*instance, &xcb_ci, nullptr, &unsafe_surface) != VK_SUCCESS) {
+            LOG_ERROR(Render_Vulkan, "Failed to initialize Xcb surface");
+            throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
+        }
+    }
 #else
     if (window_info.type == Core::Frontend::WindowSystemType::X11) {
         const VkXlibSurfaceCreateInfoKHR xlib_ci{

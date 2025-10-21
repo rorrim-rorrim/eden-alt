@@ -13,7 +13,7 @@ namespace Core::Frontend {
 
 class GraphicsContext;
 
-/// Information for the Graphics Backends signifying what type of screen pointer is in
+/// @brief Information for the Graphics Backends signifying what type of screen pointer is in
 /// WindowInformation
 enum class WindowSystemType {
     Headless,
@@ -22,6 +22,7 @@ enum class WindowSystemType {
     Wayland,
     Cocoa,
     Android,
+    Xcb,
 };
 
 /**

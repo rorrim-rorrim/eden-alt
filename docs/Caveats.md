@@ -51,6 +51,10 @@ For reasons unberknownst to any human being, `glslangValidator` will crash upon 
 
 For this reason this patch is NOT applied to default on all platforms (for obvious reasons) - instead this is a HaikuOS specific patch, apply with `git apply <absolute path to patch>` after cloning SPIRV-Tools then `make -C build` and add the resulting binary (in `build/StandAlone/glslang`) into PATH.
 
+`zydis_devel` package is broken, if you installed it CMake will freak out, uninstall with `pkgman uninstall zydis_devel`.
+
+`cubeb_devel` will also not work, either disable cubeb or uninstall it.
+
 ## OpenBSD
 
 After configuration, you may need to modify `externals/ffmpeg/CMakeFiles/ffmpeg-build/build.make` to use `-j$(nproc)` instead of just `-j`.

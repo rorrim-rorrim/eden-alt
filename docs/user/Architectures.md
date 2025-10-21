@@ -127,6 +127,12 @@ BSD and Solaris distributions tend to lag behind Linux in terms of Vulkan and ot
 
 AMD GPU support on these platforms is limited or nonexistent.
 
+## HaikuOS
+
+HaikuOS supports (see below) Vulkan 1.3 and has Mesa 24.0. Because OpenGL ES is used instead of the desktop flavour of OpenGL the OpenGL backend is actually worse than the Vulkan one in terms of stability and system support. OpenGL is highly not recommended due to it being: out of tree builds of Mesa and generally unstable ones at that. Users are advised to use Vulkan whenever possible.
+
+In order to obtain Vulkan 1.3 support; Swiftshader can be compiled from source [see this thread](https://discuss.haiku-os.org/t/swiftshader-vulkan-software-renderer-on-haiku/11526/6).
+
 ## VMs
 
 Eden "can" run in a VM, but only with the software renderer, *unless* you create a hardware-accelerated KVM with GPU passthrough. If you *really* want to do this and don't have a spare GPU lying around, RX 570 and 580 GPUs are extremely cheap on the black market and are powerful enough to run most commercial games at 60 FPS.

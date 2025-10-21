@@ -164,6 +164,13 @@ Device::Device(Core::Frontend::EmuWindow& emu_window) {
         LOG_ERROR(Render_OpenGL, "OpenGL 4.6 is not available");
         throw std::runtime_error{"Insufficient version"};
     }
+#ifdef __HAIKU__
+    if (glad_glCreateProgramPipelines == nullptr) {
+        LOG_ERROR(Render_OpenGL, "You must compile Mesa +22 manually or use a different libGL.so (GLES is not supported)");
+        throw std::runtime_error{"Outdated mesa"};
+    }
+#endif
+
     vendor_name = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
     const std::string version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
     const std::string renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
