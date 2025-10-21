@@ -47,7 +47,7 @@ It's recommended to do a `pkgman full-sync` before installing. See [HaikuOS: Ins
 
 GPU support is generally lacking/buggy, hence it's recommended to only install `pkgman install mesa_lavapipe`. Performance is acceptable for most homebrew applications and even some retail games.
 
-For reasons unberknownst to any human being, `glslangValidator` will crash upon trying to be executed, the solution to this is to build `glslang` yourself. Apply the patch in `.patch/spirv-tools/0002-haikuos-fix.patch`. The main issue is `ShFinalize()` is deallocating already destroyed memory; the "fix" in question is allowing the program to just leak memory and the OS will take care of the rest.
+For reasons unberknownst to any human being, `glslangValidator` will crash upon trying to be executed, the solution to this is to build `glslang` yourself. Apply the patch in `.patch/glslang/0001-haikuos-fix.patch`. The main issue is `ShFinalize()` is deallocating already destroyed memory; the "fix" in question is allowing the program to just leak memory and the OS will take care of the rest. See [this issue](https://web.archive.org/web/20251021183604/https://github.com/haikuports/haikuports/issues/13083).
 
 For this reason this patch is NOT applied to default on all platforms (for obvious reasons) - instead this is a HaikuOS specific patch, apply with `git apply <absolute path to patch>` after cloning SPIRV-Tools then `make -C build` and add the resulting binary (in `build/StandAlone/glslang`) into PATH.
 

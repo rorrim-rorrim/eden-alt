@@ -131,8 +131,7 @@
             "SPIRV_SKIP_EXECUTABLES ON"
         ],
         "patches": [
-            "0001-netbsd-fix.patch",
-            "0002-haikuos-fix.patch"
+            "0001-netbsd-fix.patch"
         ]
     },
     "spirv-headers": {
