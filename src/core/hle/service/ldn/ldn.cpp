@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -40,7 +43,7 @@ public:
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, C<&ISystemServiceCreator::CreateSystemLocalCommunicationService>, "CreateSystemLocalCommunicationService"},
-            {1, nullptr, "CreateClientProcessMonitor"} // 18.0.0+
+            {1, C<&ISystemServiceCreator::CreateClientProcessMonitor>, "CreateClientProcessMonitor"} // 18.0.0+
         };
         // clang-format on
 
@@ -55,6 +58,14 @@ private:
         *out_interface = std::make_shared<ISystemLocalCommunicationService>(system);
         R_SUCCEED();
     }
+
+    Result CreateClientProcessMonitor(
+        OutInterface<IClientProcessMonitor> out_interface) {
+        LOG_DEBUG(Service_LDN, "called");
+
+        *out_interface = std::make_shared<IClientProcessMonitor>(system);
+        R_SUCCEED();
+    }
 };
 
 class IUserServiceCreator final : public ServiceFramework<IUserServiceCreator> {
@@ -63,7 +74,7 @@ public:
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, C<&IUserServiceCreator::CreateUserLocalCommunicationService>, "CreateUserLocalCommunicationService"},
-            {1, nullptr, "CreateClientProcessMonitor"} // 18.0.0+
+            {1, C<&IUserServiceCreator::CreateClientProcessMonitor>, "CreateClientProcessMonitor"} // 18.0.0+
         };
         // clang-format on
 
@@ -76,6 +87,14 @@ private:
         LOG_DEBUG(Service_LDN, "called");
 
         *out_interface = std::make_shared<IUserLocalCommunicationService>(system);
+        R_SUCCEED();
+    }
+
+    Result CreateClientProcessMonitor(
+        OutInterface<IClientProcessMonitor> out_interface) {
+        LOG_DEBUG(Service_LDN, "called");
+
+        *out_interface = std::make_shared<IClientProcessMonitor>(system);
         R_SUCCEED();
     }
 };
