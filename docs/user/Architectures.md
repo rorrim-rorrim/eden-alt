@@ -52,6 +52,7 @@ IA-64 (Itanium) support is completely unknown. Existing amd64 packages will not 
 
 The vast majority of Eden's testing is done on Windows, Linux, and Android. However, first-class support is also provided for:
 
+- HaikuOS
 - FreeBSD
 - OpenBSD
 - NetBSD
