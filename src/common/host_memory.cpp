@@ -394,7 +394,7 @@ private:
     std::unordered_map<size_t, size_t> placeholder_host_pointers; ///< Placeholder backing offset
 };
 
-#elif defined(__linux__) || defined(__FreeBSD__) || defined(__sun__) || defined(__APPLE__) // ^^^ Windows ^^^ vvv POSIX vvv
+#elif defined(__linux__) || defined(__FreeBSD__) || defined(__sun__) || defined(__APPLE__) || defined(__HAIKU__) // ^^^ Windows ^^^ vvv POSIX vvv
 
 #ifdef ARCHITECTURE_arm64
 

@@ -749,7 +749,11 @@ elseif (WIN32)
     endif()
 elseif (PLATFORM_HAIKU)
     # Haiku is so special :)
-    set(PLATFORM_LIBRARIES bsd network)
+    # Some fucking genius decided to name an entire module "network" in 2019
+    # this caused great disaster amongst the Haiku community who had came first with
+    # their "libnetwork.so"; since CMake doesn't do magic, we have to use an ABSOLUTE PATH
+    # to the library itself, otherwise it will think we are linking to... our network thing
+    set(PLATFORM_LIBRARIES bsd /boot/system/lib/libnetwork.so)
 elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
     set(PLATFORM_LIBRARIES rt)
 endif()

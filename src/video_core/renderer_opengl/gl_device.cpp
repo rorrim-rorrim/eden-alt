@@ -50,20 +50,24 @@ bool TestProgram(const GLchar* glsl) {
     return link_status == GL_TRUE;
 }
 
-std::vector<std::string_view> GetExtensions() {
+/// @brief Query OpenGL extensions
+/// DO NOT use string_view, the driver can immediately free up the extension name and such
+/// do NOT under ANY circumstances use string_view, make a copy, it's required
+std::vector<std::string> GetExtensions() {
     GLint num_extensions;
     glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
-    std::vector<std::string_view> extensions;
-    extensions.reserve(num_extensions);
+    std::vector<std::string> extensions;
     for (GLint index = 0; index < num_extensions; ++index) {
-        extensions.push_back(
-            reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, static_cast<GLuint>(index))));
+        auto const* p = reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, GLuint(index)));
+        if (p != nullptr) // Fuck you? - sincerely, buggy mesa drivers
+            extensions.push_back(std::string{p});
     }
     return extensions;
 }
 
-bool HasExtension(std::span<const std::string_view> extensions, std::string_view extension) {
-    return std::ranges::find(extensions, extension) != extensions.end();
+/// @brief Find extension in set of extensions (string)
+bool HasExtension(std::span<const std::string> extensions, std::string_view extension) {
+    return std::ranges::find(extensions, std::string{extension}) != extensions.end();
 }
 
 std::array<u32, Shader::MaxStageTypes> BuildMaxUniformBuffers() noexcept {
@@ -148,7 +152,7 @@ static bool HasSlowSoftwareAstc(std::string_view vendor_name, std::string_view r
     return false;
 }
 
-[[nodiscard]] bool IsDebugToolAttached(std::span<const std::string_view> extensions) {
+[[nodiscard]] bool IsDebugToolAttached(std::span<const std::string> extensions) {
     const bool nsight = std::getenv("NVTX_INJECTION64_PATH") || std::getenv("NSIGHT_LAUNCHED");
     return nsight || HasExtension(extensions, "GL_EXT_debug_tool") ||
            Settings::values.renderer_debug.GetValue();
@@ -161,9 +165,9 @@ Device::Device(Core::Frontend::EmuWindow& emu_window) {
         throw std::runtime_error{"Insufficient version"};
     }
     vendor_name = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-    const std::string_view version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-    const std::string_view renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-    const std::vector extensions = GetExtensions();
+    const std::string version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    const std::string renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    const std::vector<std::string> extensions = GetExtensions();
 
     const bool is_nvidia = vendor_name == "NVIDIA Corporation";
     const bool is_amd = vendor_name == "ATI Technologies Inc.";
