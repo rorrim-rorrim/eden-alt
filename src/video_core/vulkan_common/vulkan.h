@@ -10,6 +10,8 @@
 #define VK_USE_PLATFORM_METAL_EXT
 #elif defined(__ANDROID__)
 #define VK_USE_PLATFORM_ANDROID_KHR
+#elif defined(__HAIKU__)
+#define VK_USE_PLATFORM_XCB_KHR
 #else
 #define VK_USE_PLATFORM_XLIB_KHR
 #define VK_USE_PLATFORM_WAYLAND_KHR
