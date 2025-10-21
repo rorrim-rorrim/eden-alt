@@ -1,0 +1,56 @@
+diff --git a/StandAlone/StandAlone.cpp b/StandAlone/StandAlone.cpp
+index be7f442..c6fec70 100644
+--- a/StandAlone/StandAlone.cpp
++++ b/StandAlone/StandAlone.cpp
+@@ -1766,8 +1766,8 @@ int singleMain()
+         glslang::FinalizeProcess();
+     } else {
+         ShInitialize();
+-        ShInitialize();  // also test reference counting of users
+-        ShFinalize();    // also test reference counting of users
++        //ShInitialize();  // also test reference counting of users
++        //ShFinalize();    // also test reference counting of users
+ 
+         bool printShaderNames = workList.size() > 1;
+ 
+@@ -1794,7 +1794,7 @@ int singleMain()
+             }
+         }
+ 
+-        ShFinalize();
++        //ShFinalize();
+     }
+ 
+     if (CompileFailed.load())
+@@ -1809,8 +1809,9 @@ int C_DECL main(int argc, char* argv[])
+ {
+     ProcessArguments(WorkItems, argc, argv);
+ 
+-    int ret = 0;
++    int ret = singleMain();
+ 
++#if 0
+     // Loop over the entire init/finalize cycle to watch memory changes
+     const int iterations = 1;
+     if (iterations > 1)
+@@ -1820,6 +1821,7 @@ int C_DECL main(int argc, char* argv[])
+         if (iterations > 1)
+             glslang::OS_DumpMemoryCounters();
+     }
++#endif
+ 
+     return ret;
+ }
+diff --git a/glslang/MachineIndependent/ShaderLang.cpp b/glslang/MachineIndependent/ShaderLang.cpp
+index 62d7253..1f079d4 100644
+--- a/glslang/MachineIndependent/ShaderLang.cpp
++++ b/glslang/MachineIndependent/ShaderLang.cpp
+@@ -1723,7 +1723,7 @@ bool InitializeProcess()
+ 
+ void FinalizeProcess()
+ {
+-    ShFinalize();
++    //ShFinalize();
+ }
+ 
+ class TDeferredCompiler : public TCompiler {
