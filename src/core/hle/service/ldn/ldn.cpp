@@ -7,6 +7,7 @@
 #include "core/core.h"
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/ldn/ldn.h"
+#include "core/hle/service/ldn/client_process_monitor.h"
 #include "core/hle/service/ldn/monitor_service.h"
 #include "core/hle/service/ldn/sf_monitor_service.h"
 #include "core/hle/service/ldn/sf_service.h"
