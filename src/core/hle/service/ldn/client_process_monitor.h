@@ -19,7 +19,7 @@ public:
     ~IClientProcessMonitor() override;
 
 private:
-    Result InitializeSystem2();
+    Result RegisterClient(Handle process_handle, u64 pid_placeholder);
 };
 
 } // namespace Service::LDN

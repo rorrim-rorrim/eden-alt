@@ -4,18 +4,25 @@
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/ldn/ldn_results.h"
 #include "core/hle/service/ldn/client_process_monitor.h"
+#include "core/hle/service/ipc_helpers.h"
 
 namespace Service::LDN {
 
 IClientProcessMonitor::IClientProcessMonitor(Core::System& system_)
     : ServiceFramework{system_, "IClientProcessMonitor"} {
-    //RegisterHandlers(functions);
+    static const FunctionInfo functions[] = {
+        {0, &IClientProcessMonitor::RegisterClient, "RegisterClient"},
+    };
+    RegisterHandlers(functions);
 }
 
 IClientProcessMonitor::~IClientProcessMonitor() = default;
 
-Result IClientProcessMonitor::InitializeSystem2() {
-    LOG_WARNING(Service_LDN, "(STUBBED) called");
+Result IClientProcessMonitor::RegisterClient(Handle process_handle, u64 pid_placeholder) {
+    LOG_WARNING(Service_LDN,
+                "(STUBBED) called, process_handle=0x{:08X}, pid_placeholder=0x{:016X}",
+                process_handle, pid_placeholder);
+
     R_SUCCEED();
 }
 
