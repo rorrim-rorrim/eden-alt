@@ -74,8 +74,8 @@ public:
     explicit IUserServiceCreator(Core::System& system_) : ServiceFramework{system_, "ldn:u"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, C<&IUserServiceCreator::CreateUserLocalCommunicationService>, "CreateUserLocalCommunicationService"},
-            {1, C<&IUserServiceCreator::CreateClientProcessMonitor>, "CreateClientProcessMonitor"} // 18.0.0+
+            {0, D<&IUserServiceCreator::CreateUserLocalCommunicationService>, "CreateUserLocalCommunicationService"},
+            {1, D<&IUserServiceCreator::CreateClientProcessMonitor>, "CreateClientProcessMonitor"} // 18.0.0+
         };
         // clang-format on
 
