@@ -11,7 +11,7 @@ namespace Service::LDN {
 IClientProcessMonitor::IClientProcessMonitor(Core::System& system_)
     : ServiceFramework{system_, "IClientProcessMonitor"} {
     static const FunctionInfo functions[] = {
-        {0, &IClientProcessMonitor::RegisterClient, "RegisterClient"},
+        {0, C<&IClientProcessMonitor::RegisterClient>, "RegisterClient"},
     };
     RegisterHandlers(functions);
 }
@@ -19,8 +19,7 @@ IClientProcessMonitor::IClientProcessMonitor(Core::System& system_)
 IClientProcessMonitor::~IClientProcessMonitor() = default;
 
 Result IClientProcessMonitor::RegisterClient(Handle process_handle, u64 pid_placeholder) {
-    LOG_WARNING(Service_LDN,
-                "(STUBBED) called, process_handle=0x{:08X}, pid_placeholder=0x{:016X}",
+    LOG_WARNING(Service_LDN, "(STUBBED) called, process_handle={}, pid_placeholder={}",
                 process_handle, pid_placeholder);
 
     R_SUCCEED();
