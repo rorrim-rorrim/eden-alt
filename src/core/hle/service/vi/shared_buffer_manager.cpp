@@ -374,6 +374,8 @@ Result SharedBufferManager::PresentSharedFrameBuffer(android::Fence fence,
              VI::ResultOperationFailed);
 
     // Ensure the layer is visible when content is presented.
+    // Re-assert overlay priority in case clients reset it.
+    (void)m_container.SetLayerZIndex(layer_id, 100000);
     (void)m_container.SetLayerVisibility(layer_id, true);
 
     // We succeeded.
