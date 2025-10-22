@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 function(target_architecture_specific_sources project arch)
     if (NOT MULTIARCH_BUILD)
         target_sources("${project}" PRIVATE ${ARGN})
