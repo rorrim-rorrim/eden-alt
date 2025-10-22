@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "qt_common/abstract/qt_frontend_util.h"
 #include "ryujinx_dialog.h"
 #include "ui_ryujinx_dialog.h"

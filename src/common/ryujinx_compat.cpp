@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "ryujinx_compat.h"
 #include "common/fs/path_util.h"
 #include <cstddef>
