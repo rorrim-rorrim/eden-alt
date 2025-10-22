@@ -155,6 +155,7 @@ add_library(
   wall_clock.h
   zstd_compression.cpp
   zstd_compression.h
+  ryujinx_compat.h ryujinx_compat.cpp
 )
 
 if(WIN32)
