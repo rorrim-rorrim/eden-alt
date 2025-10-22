@@ -391,7 +391,7 @@ void ExportDataDir(FrontendCommon::DataManager::DataDir data_dir,
                    std::function<void()> callback)
 {
     using namespace QtCommon::Frontend;
-    const std::string dir = FrontendCommon::DataManager::GetDataDir(data_dir, user_id);
+    const std::string dir = FrontendCommon::DataManager::GetDataDirString(data_dir, user_id);
 
     const QString zip_dump_location = GetSaveFileName(tr("Select Export Location"),
                                                       tr("%1.zip").arg(name),
@@ -455,7 +455,7 @@ void ImportDataDir(FrontendCommon::DataManager::DataDir data_dir,
                    const std::string& user_id,
                    std::function<void()> callback)
 {
-    const std::string dir = FrontendCommon::DataManager::GetDataDir(data_dir, user_id);
+    const std::string dir = FrontendCommon::DataManager::GetDataDirString(data_dir, user_id);
 
     using namespace QtCommon::Frontend;
 
