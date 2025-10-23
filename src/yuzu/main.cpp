@@ -2919,9 +2919,13 @@ void GMainWindow::OnLinkToRyujinx(const u64& program_id)
     namespace fs = std::filesystem;
 
     u64 save_id = QtCommon::GetRyujinxSaveID(program_id);
+    if (save_id == (u64) -1)
+        return;
     fs::path ryu_dir = Common::FS::GetRyuSavePath(save_id);
 
     std::string user_id = GetProfileID();
+    if (user_id.empty())
+        return;
     std::string hex_program = fmt::format("{:016X}", program_id);
     fs::path eden_dir = FrontendCommon::DataManager::GetDataDir(FrontendCommon::DataManager::DataDir::Saves)
                         / user_id / hex_program;

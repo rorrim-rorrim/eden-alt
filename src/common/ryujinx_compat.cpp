@@ -7,7 +7,7 @@
 #include <cstring>
 #include <fmt/ranges.h>
 #include <fstream>
-#include <iostream>
+#include <algorithm>
 
 namespace Common::FS {
 
@@ -31,7 +31,6 @@ IMENReadResult ReadKvdb(const fs::path &path, std::vector<IMEN> &imens)
 {
     std::ifstream kvdb{path, std::ios::binary | std::ios::ate};
 
-    // TODO: error codes
     if (!kvdb) {
         return IMENReadResult::Nonexistent;
     }
@@ -66,20 +65,14 @@ IMENReadResult ReadKvdb(const fs::path &path, std::vector<IMEN> &imens)
         return IMENReadResult::NoImens;
     }
 
-    imens.resize(num_imens / 2);
+    imens.reserve(num_imens);
 
     // initially I wanted to do a struct, but imkvdb is 140 bytes
     // while the compiler will murder you if you try to align u64 to 4 bytes
     for (std::size_t i = 0; i < num_imens; ++i) {
-        char magic [4];
+        char magic[4];
         u64 title_id = 0;
         u64 save_id = 0;
-
-        // I have no idea why this is but we can basically just... ignore every other IMEN
-        if (i % 2 == 0) {
-            kvdb.ignore(IMEN_SIZE);
-            continue;
-        }
 
         kvdb.read(magic, 4);
         if (std::memcmp(magic, IMEN_MAGIC, 4) != 0) {
@@ -92,9 +85,11 @@ IMENReadResult ReadKvdb(const fs::path &path, std::vector<IMEN> &imens)
         kvdb.read(reinterpret_cast<char *>(&save_id), 8);
         kvdb.ignore(0x38);
 
-        imens[i / 2] = IMEN{ title_id, save_id};
+        imens.emplace_back(IMEN{title_id, save_id});
+        fmt::println("TitleID: {:16X} SaveID: {:016X} length: {}", title_id, save_id, imens.size());
     }
 
     return IMENReadResult::Success;
 }
-}
+
+} // namespace Common::FS
