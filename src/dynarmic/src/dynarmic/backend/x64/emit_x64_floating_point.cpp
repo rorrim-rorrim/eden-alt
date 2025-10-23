@@ -1587,7 +1587,7 @@ void EmitX64::EmitFPDoubleToSingle(EmitContext& ctx, IR::Inst* inst) {
 /// Better than spamming thousands of templates aye?
 template<size_t fsize>
 static u64 EmitFPToFixedThunk(u64 input, FP::FPSR& fpsr, FP::FPCR fpcr, u32 extra_args) {
-    using FPT = FP::UnsignedIntegerN<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
     auto const unsigned_ = ((extra_args >> 24) & 0xff) != 0;
     auto const isize = ((extra_args >> 16) & 0xff);
     auto const rounding = FP::RoundingMode((extra_args >> 8) & 0xff);
