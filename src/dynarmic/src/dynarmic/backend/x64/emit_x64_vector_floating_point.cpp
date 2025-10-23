@@ -1700,7 +1700,7 @@ void EmitFPVectorRoundInt(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
     }
 
     // Do not make a LUT out of this, let the compiler do it's thing
-    using FPT = FP::UnsignedIntegerN<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
     switch (rounding) {
     case FP::RoundingMode::ToNearest_TieEven:
         exact
@@ -2112,7 +2112,7 @@ void EmitFPVectorToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
                         FCODE(orp)(src, exceed_unsigned);
                     }
                 } else {
-                    using FPT = FP::UnsignedIntegerN<fsize>;  // WORKAROUND: For issue 678 on MSVC
+                    using FPT = Common::UnsignedIntegerN<fsize>;  // WORKAROUND: For issue 678 on MSVC
                     constexpr u64 integer_max = FPT((std::numeric_limits<std::conditional_t<unsigned_, FPT, std::make_signed_t<FPT>>>::max)());
 
                     code.movaps(xmm0, GetVectorOf<fsize, float_upper_limit_signed>(code));
