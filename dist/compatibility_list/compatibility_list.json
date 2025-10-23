@@ -24,7 +24,7 @@
     "title": "Animal Crossing: New Horizons"
   },
   {
-    "compatibility": 2,
+    "compatibility": 1,
     "directory": "pokemon-legends-z-a",
     "releases": [
       {"id": "0100F43008C44000"}
@@ -70,6 +70,14 @@
       {"id": "0100A3D008C5C000"}
     ],
     "title": "Pokémon Scarlet"
+  },
+    {
+    "compatibility": 1,
+    "directory": "pokemon-violet",
+    "releases": [
+      {"id": "01008F6008C5E000"}
+    ],
+    "title": "Pokémon Violet"
   },
   {
     "compatibility": 2,
