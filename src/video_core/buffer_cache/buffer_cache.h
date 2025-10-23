@@ -790,12 +790,13 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     ++channel_state->uniform_cache_shots[0];
     const Binding& binding = channel_state->uniform_buffers[stage][index];
     const DAddr device_addr = binding.device_addr;
-    const u32 size = (std::min)(binding.size, (*channel_state->uniform_buffer_sizes)[stage][index]);
+    const u32 size = std::min(binding.size, (*channel_state->uniform_buffer_sizes)[stage][index]);
     Buffer& buffer = slot_buffers[binding.buffer_id];
     TouchBuffer(buffer, binding.buffer_id);
     const bool use_fast_buffer = binding.buffer_id != NULL_BUFFER_ID &&
                                  size <= channel_state->uniform_buffer_skip_cache_size &&
-                                 !memory_tracker.IsRegionGpuModified(device_addr, size);
+                                 !memory_tracker.IsRegionGpuModified(device_addr, size) &&
+                                 !memory_tracker.IsRegionCpuModified(device_addr, size);
     if (use_fast_buffer) {
         if constexpr (IS_OPENGL) {
             if (runtime.HasFastBufferSubData()) {
