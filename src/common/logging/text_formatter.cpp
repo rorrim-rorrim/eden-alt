@@ -42,9 +42,9 @@ void PrintMessage(const Entry& entry) {
         case Level::Warning: return ESC "[1;33m"; // Bright yellow
         case Level::Error: return ESC "[1;31m"; // Bright red
         case Level::Critical: return ESC "[1;35m"; // Bright magenta
-        case Level::Trace:
-        case Level::Count: return ESC "[1;30m"; // Grey
+        default: break;
         }
+        return ESC "[1;30m"; // Grey
     }()}.append(FormatLogMessage(entry)).append(ESC "[0m\n");
 #undef ESC
 #endif
@@ -65,9 +65,9 @@ void PrintColoredMessage(const Entry& entry) {
         case Level::Warning: return FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
         case Level::Error: return FOREGROUND_RED | FOREGROUND_INTENSITY;
         case Level::Critical: return FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
-        case Level::Trace:
-        case Level::Count: return FOREGROUND_INTENSITY; // Grey
+        default: break;
         }
+        return FOREGROUND_INTENSITY; // Grey
     }();
     SetConsoleTextAttribute(console_handle, color);
 #endif
