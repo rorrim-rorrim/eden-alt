@@ -41,51 +41,56 @@ ImageViewInfo::ImageViewInfo(const TICEntry& config, s32 base_layer) noexcept
     };
     range.extent.levels = config.res_max_mip_level - config.res_min_mip_level + 1;
     TextureType tex_type = config.texture_type;
-    if (tex_type == TextureType::Texture1D) {
-        if (config.Depth() > 1 || base_layer != 0) {
-            tex_type = TextureType::Texture1DArray;
-        }
-    } else if (tex_type == TextureType::Texture2D) {
-        if (config.Depth() > 1) {
-            tex_type = TextureType::Texture3D;
-        } else if (base_layer != 0) {
-            tex_type = TextureType::Texture2DArray;
-        }
+    if (tex_type == TextureType::Texture1D && (config.Depth() > 1 || base_layer != 0)) {
+        tex_type = TextureType::Texture1DArray;
+    } else if (tex_type == TextureType::Texture2D && (config.Depth() > 1 || base_layer != 0)) {
+        tex_type = TextureType::Texture2DArray;
     }
     switch (tex_type) {
     case TextureType::Texture1D:
         ASSERT(config.Height() == 1);
         ASSERT(config.Depth() == 1);
+        ASSERT(base_layer == 0);
         type = ImageViewType::e1D;
+        range.extent.layers = 1;
         break;
     case TextureType::Texture1DArray:
         ASSERT(config.Height() == 1);
+        ASSERT(config.Depth() > 1 || base_layer != 0);
         type = ImageViewType::e1DArray;
-        range.extent.layers = config.Depth();
+        range.extent.layers = config.Depth() - base_layer;
         break;
     case TextureType::Texture2D:
     case TextureType::Texture2DNoMipmap:
         ASSERT(config.Depth() == 1);
+        ASSERT(base_layer == 0);
         type = config.normalized_coords ? ImageViewType::e2D : ImageViewType::Rect;
+        range.extent.layers = 1;
         break;
     case TextureType::Texture2DArray:
+        ASSERT(config.Depth() > 1 || base_layer != 0);
         type = ImageViewType::e2DArray;
-        range.extent.layers = config.Depth();
+        range.extent.layers = config.Depth() - base_layer;
         break;
     case TextureType::Texture3D:
+        ASSERT(base_layer == 0);
         type = ImageViewType::e3D;
+        range.extent.layers = 1;
         break;
     case TextureType::TextureCubemap:
         ASSERT(config.Depth() == 1);
+        ASSERT(base_layer == 0);
         type = ImageViewType::Cube;
         range.extent.layers = 6;
         break;
     case TextureType::TextureCubeArray:
+        ASSERT(config.Depth() > 0);
         type = ImageViewType::CubeArray;
-        range.extent.layers = config.Depth() * 6;
+        range.extent.layers = (config.Depth() - base_layer) * 6;
         break;
     case TextureType::Texture1DBuffer:
         type = ImageViewType::Buffer;
+        range.extent.layers = 1;
         break;
     default:
         ASSERT_MSG(false, "Invalid texture_type={}", static_cast<int>(tex_type));
