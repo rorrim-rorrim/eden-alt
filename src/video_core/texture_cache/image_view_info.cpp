@@ -55,8 +55,8 @@ ImageViewInfo::ImageViewInfo(const TICEntry& config, s32 base_layer) noexcept
         range.extent.layers = 1;
         break;
     case TextureType::Texture1DArray:
-        ASSERT(config.Height() == 1);
-        ASSERT(config.Depth() > 1 || base_layer != 0);
+        ASSERT(config.Depth() > 0);
+        ASSERT(base_layer < config.Depth());
         type = ImageViewType::e1DArray;
         range.extent.layers = config.Depth() - base_layer;
         break;
@@ -68,7 +68,8 @@ ImageViewInfo::ImageViewInfo(const TICEntry& config, s32 base_layer) noexcept
         range.extent.layers = 1;
         break;
     case TextureType::Texture2DArray:
-        ASSERT(config.Depth() > 1 || base_layer != 0);
+        ASSERT(config.Depth() > 0);
+        ASSERT(base_layer < config.Depth());
         type = ImageViewType::e2DArray;
         range.extent.layers = config.Depth() - base_layer;
         break;
@@ -85,6 +86,7 @@ ImageViewInfo::ImageViewInfo(const TICEntry& config, s32 base_layer) noexcept
         break;
     case TextureType::TextureCubeArray:
         ASSERT(config.Depth() > 0);
+        ASSERT(base_layer < config.Depth());
         type = ImageViewType::CubeArray;
         range.extent.layers = (config.Depth() - base_layer) * 6;
         break;
