@@ -45,6 +45,8 @@ ImageViewInfo::ImageViewInfo(const TICEntry& config, s32 base_layer) noexcept
         tex_type = TextureType::Texture1DArray;
     } else if (tex_type == TextureType::Texture2D && (config.Depth() > 1 || base_layer != 0)) {
         tex_type = TextureType::Texture2DArray;
+    } else if (tex_type == TextureType::TextureCubemap && (config.Depth() > 1 || base_layer != 0)) {
+        tex_type = TextureType::TextureCubeArray;
     }
     switch (tex_type) {
     case TextureType::Texture1D:
