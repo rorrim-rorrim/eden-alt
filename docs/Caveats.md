@@ -53,6 +53,8 @@ For this reason this patch is NOT applied to default on all platforms (for obvio
 
 `cubeb_devel` will also not work, either disable cubeb or uninstall it.
 
+Still will not run flawlessly until `mesa-24` is available. Modify CMakeCache.txt with the `.so` of libGL and libGLESv2 by doing the incredibly difficult task of copy pasting them (`cp /boot/system/lib/libGL.so .`)
+
 ## OpenBSD
 
 After configuration, you may need to modify `externals/ffmpeg/CMakeFiles/ffmpeg-build/build.make` to use `-j$(nproc)` instead of just `-j`.
