@@ -1,5 +1,16 @@
 # Caveats
 
+<!-- TOC -->
+- [Arch Linux](#arch-linux)
+- [Gentoo Linux](#gentoo-linux)
+- [macOS](#macos)
+- [Solaris](#solaris)
+- [HaikuOS](#haikuos)
+- [OpenBSD](#openbsd)
+- [FreeBSD](#freebsd)
+- [NetBSD](#netbsd)
+<!-- /TOC -->
+
 ## Arch Linux
 
 - httplib AUR package is broken. Set `httplib_FORCE_BUNDLED=ON` if you have it installed.
