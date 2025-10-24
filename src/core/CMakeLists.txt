@@ -1185,7 +1185,8 @@ else()
         -Wno-cast-function-type
         $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>
     )
-    # pre-clang19 will spam with "OH DID YOU MEAN THIS?" otherwise...
+    # pre-clang19 will spam with "OH DID YOU MEAN THIS?" otherwise... so we only
+    # enable the warning after/in clang19
     if (CXX_CLANG AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19)
         target_compile_options(core PRIVATE -Wno-cast-function-type-mismatch)
     endif()

@@ -12,8 +12,12 @@ pkgs.mkShellNoCC {
     spirv-tools spirv-headers simpleini vulkan-memory-allocator
     vulkan-loader unzip mbedtls zydis glslang python3 httplib
     cpp-jwt ffmpeg-headless libusb1 cubeb
-    qt6.full # eden
-    SDL2 # eden-cli
-    discord-rpc gamemode # optional components
+    # eden
+    qt6.qtbase qt6.qtmultimedia qt6.qtwayland qt6.qttools
+    qt6.qtwebengine qt6.qt5compat qt6.quazip
+    # eden-cli
+    SDL2
+    # optional components
+    discord-rpc gamemode
   ];
 }
