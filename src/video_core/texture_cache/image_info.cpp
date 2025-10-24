@@ -66,7 +66,8 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         resources.layers = 1;
         break;
     case TextureType::Texture1DArray:
-        ASSERT(config.Depth() > 1);
+        ASSERT(config.Depth() > 0);
+        ASSERT(base_layer < config.Depth());
         type = ImageType::e1D;
         size.width = config.Width();
         resources.layers = config.Depth() - config.BaseLayer();
@@ -82,7 +83,8 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         resources.layers = 1;
         break;
     case TextureType::Texture2DArray:
-        ASSERT(config.Depth() > 1 || config.BaseLayer() != 0);
+        ASSERT(config.Depth() > 0);
+        ASSERT(base_layer < config.Depth());
         type = ImageType::e2D;
         rescaleable = true;
         size.width = config.Width();
