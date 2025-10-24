@@ -819,7 +819,7 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
                     channel_state->uniform_buffer_binding_sizes[stage][binding_index] = size;
                     runtime.BindFastUniformBuffer(stage, binding_index, size);
                 }
-                u32 safe_size = std::min(size, buffer.AllocatedSize() - buffer.Offset(device_addr));
+                u32 safe_size = (std::min)(size, buffer.AllocatedSize() - buffer.Offset(device_addr));
                 const auto span = ImmediateBufferWithData(device_addr, safe_size);
                 runtime.PushFastUniformBuffer(stage, binding_index, span);
                 return;
@@ -828,7 +828,7 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
         channel_state->fast_bound_uniform_buffers[stage] |= 1u << binding_index;
         channel_state->uniform_buffer_binding_sizes[stage][binding_index] = size;
         const std::span<u8> span = runtime.BindMappedUniformBuffer(stage, binding_index, size);
-        u32 safe_size = std::min(size, buffer.AllocatedSize() - buffer.Offset(device_addr));
+        u32 safe_size = (std::min)(size, buffer.AllocatedSize() - buffer.Offset(device_addr));
         device_memory.ReadBlock(device_addr, span.data(), safe_size);
         return;
     }
