@@ -114,6 +114,15 @@ cmake --build build -- -j`nproc`
 cmake --install build
 ```
 
+# DragonFlyBSD
+
+If `libstdc++.so.6` is not found (`GLIBCXX_3.4.30`) then attempt:
+```sh
+rm /usr/local/lib/gcc11/libstdc++.so.6
+ln -s /usr/local/lib/gcc14/libstdc++.so /usr/local/lib/gcc11/libstdc++.so.6
+```
+This may have unforeseen consequences of which we don't need to worry about for now.
+
 ## MSYS2
 
 `qt6-static` isn't supported yet.
@@ -176,3 +185,9 @@ find ./*/ -name "*.dll" | while read -r dll; do deps "$dll"; done
 DirectX 12 is not available - simply copy and paste a random DLL and name it `d3d12.dll`.
 
 Install [Qt6 compatibility libraries](github.com/ANightly/qt6windows7) specifically Qt 6.9.5.
+
+## RedoxOS
+
+The package install may randomly hang at times, in which case it has to be restarted. ALWAYS do a `sudo pkg update` or the chances of it hanging will be close to 90%. If "multiple" installs fail at once, try installing 1 by 1 the packages.
+
+When CMake invokes certain file syscalls - it may sometimes cause crashes or corruptions on the (kernel?) address space - so reboot the system if there is a "hang" in CMake.

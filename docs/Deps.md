@@ -265,7 +265,7 @@ pkg_add cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang gm
 <summary>DragonFlyBSD</summary>
 
 ```sh
-pkg install gcc14 git cmake unzip nasm autoconf bash pkgconf ffmpeg glslang gmake jq nlohmann-json enet spirv-tools sdl2 vulkan-utility-libraries vulkan-headers catch2 libfmt openssl liblz4 boost-libs cpp-httplib qt6-base quazip-qt6 unordered-dense
+pkg install gcc14 git cmake unzip nasm autoconf bash pkgconf ffmpeg glslang gmake jq nlohmann-json enet spirv-tools sdl2 vulkan-utility-libraries vulkan-headers catch2 libfmt openssl liblz4 boost-libs cpp-httplib qt6-base quazip-qt6 unordered-dense libva-vdpau-driver libva-utils libva-intel-driver
 ```
 
 [Caveats](./Caveats.md#dragonflybsd).
@@ -323,11 +323,12 @@ pkgman install git cmake patch libfmt_devel nlohmann_json lz4_devel opus_devel b
 <details>
 <summary>RedoxOS</summary>
 
-TODO: Fix syscall crashes (heavy IO stalls and hangup due to net mutexes?)
 ```sh
-sudo pkg update && sudo pkg install git cmake
-sudo pkg install ffmpeg6 sdl2 zlib llvm18
+sudo pkg update
+sudo pkg install git cmake ffmpeg6 sdl2 zlib llvm18
 ```
+
+[Caveats](./Caveats.md#redoxos).
 
 </details>
 
