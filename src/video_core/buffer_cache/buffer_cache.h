@@ -788,12 +788,11 @@ void BufferCache<P>::BindHostGraphicsUniformBuffers(size_t stage) {
 template <class P>
 void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 binding_index, bool needs_bind) {
     ++channel_state->uniform_cache_shots[0];
-    if (stage >= channel_state->uniform_buffers.size() ||
-        index >= channel_state->uniform_buffers[stage].size()) {
+    if (stage >= channel_state->uniform_buffers.size() || index >= channel_state->uniform_buffers[stage].size()) {
         return;
     }
     const Binding& binding = channel_state->uniform_buffers[stage][index];
-    if (binding.buffer_id >= slot_buffers.size() || binding.buffer_id == NULL_BUFFER_ID) {
+    if (binding.buffer_id == NULL_BUFFER_ID) {
         return;
     }
     const DAddr device_addr = binding.device_addr;
@@ -802,18 +801,12 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
         return;
     }
     Buffer& buffer = slot_buffers[binding.buffer_id];
-    if (!buffer.Contains(device_addr, size)) {
-        return;
-    }
     TouchBuffer(buffer, binding.buffer_id);
-    const bool use_fast_buffer = binding.buffer_id != NULL_BUFFER_ID &&
-                                 size <= channel_state->uniform_buffer_skip_cache_size &&
-                                 !memory_tracker.IsRegionGpuModified(device_addr, size);
+    const bool use_fast_buffer = binding.buffer_id != NULL_BUFFER_ID && size <= channel_state->uniform_buffer_skip_cache_size && !memory_tracker.IsRegionGpuModified(device_addr, size);
     if (use_fast_buffer) {
         if constexpr (IS_OPENGL) {
             if (runtime.HasFastBufferSubData()) {
-                const bool should_fast_bind = !HasFastUniformBufferBound(stage, binding_index) ||
-                                              channel_state->uniform_buffer_binding_sizes[stage][binding_index] != size;
+                const bool should_fast_bind = !HasFastUniformBufferBound(stage, binding_index) || channel_state->uniform_buffer_binding_sizes[stage][binding_index] != size;
                 if (should_fast_bind) {
                     channel_state->fast_bound_uniform_buffers[stage] |= 1u << binding_index;
                     channel_state->uniform_buffer_binding_sizes[stage][binding_index] = size;
