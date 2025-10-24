@@ -56,7 +56,7 @@ ImageViewInfo::ImageViewInfo(const TICEntry& config, s32 base_layer) noexcept
         break;
     case TextureType::Texture1DArray:
         ASSERT(config.Depth() > 0);
-        ASSERT(base_layer < config.Depth());
+        ASSERT(static_cast<u32>(base_layer) < config.Depth());
         type = ImageViewType::e1DArray;
         range.extent.layers = config.Depth() - base_layer;
         break;
@@ -69,14 +69,9 @@ ImageViewInfo::ImageViewInfo(const TICEntry& config, s32 base_layer) noexcept
         break;
     case TextureType::Texture2DArray:
         ASSERT(config.Depth() > 0);
-        ASSERT(base_layer < config.Depth());
+        ASSERT(static_cast<u32>(base_layer) < config.Depth());
         type = ImageViewType::e2DArray;
         range.extent.layers = config.Depth() - base_layer;
-        break;
-    case TextureType::Texture3D:
-        ASSERT(base_layer == 0);
-        type = ImageViewType::e3D;
-        range.extent.layers = config.Depth();
         break;
     case TextureType::TextureCubemap:
         ASSERT(config.Depth() == 1);
@@ -86,9 +81,14 @@ ImageViewInfo::ImageViewInfo(const TICEntry& config, s32 base_layer) noexcept
         break;
     case TextureType::TextureCubeArray:
         ASSERT(config.Depth() > 0);
-        ASSERT(base_layer < config.Depth());
+        ASSERT(static_cast<u32>(base_layer) < config.Depth());
         type = ImageViewType::CubeArray;
         range.extent.layers = (config.Depth() - base_layer) * 6;
+        break;
+    case TextureType::Texture3D:
+        ASSERT(base_layer == 0);
+        type = ImageViewType::e3D;
+        range.extent.layers = 1;
         break;
     case TextureType::Texture1DBuffer:
         type = ImageViewType::Buffer;
