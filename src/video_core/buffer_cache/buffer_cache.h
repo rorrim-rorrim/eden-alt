@@ -788,10 +788,23 @@ void BufferCache<P>::BindHostGraphicsUniformBuffers(size_t stage) {
 template <class P>
 void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 binding_index, bool needs_bind) {
     ++channel_state->uniform_cache_shots[0];
+    if (stage >= channel_state->uniform_buffers.size() ||
+        index >= channel_state->uniform_buffers[stage].size()) {
+        return;
+    }
     const Binding& binding = channel_state->uniform_buffers[stage][index];
+    if (binding.buffer_id >= slot_buffers.size() || binding.buffer_id == NULL_BUFFER_ID) {
+        return;
+    }
     const DAddr device_addr = binding.device_addr;
-    const u32 size = (std::min)(binding.size, (*channel_state->uniform_buffer_sizes)[stage][index]);
+    u32 size = (std::min)(binding.size, (*channel_state->uniform_buffer_sizes)[stage][index]);
+    if (size == 0) {
+        return;
+    }
     Buffer& buffer = slot_buffers[binding.buffer_id];
+    if (!buffer.Contains(device_addr, size)) {
+        return;
+    }
     TouchBuffer(buffer, binding.buffer_id);
     const bool use_fast_buffer = binding.buffer_id != NULL_BUFFER_ID &&
                                  size <= channel_state->uniform_buffer_skip_cache_size &&
@@ -799,34 +812,30 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     if (use_fast_buffer) {
         if constexpr (IS_OPENGL) {
             if (runtime.HasFastBufferSubData()) {
-                // Fast path for Nvidia
-                const bool should_fast_bind =
-                    !HasFastUniformBufferBound(stage, binding_index) ||
-                    channel_state->uniform_buffer_binding_sizes[stage][binding_index] != size;
+                const bool should_fast_bind = !HasFastUniformBufferBound(stage, binding_index) ||
+                                              channel_state->uniform_buffer_binding_sizes[stage][binding_index] != size;
                 if (should_fast_bind) {
-                    // We only have to bind when the currently bound buffer is not the fast version
                     channel_state->fast_bound_uniform_buffers[stage] |= 1u << binding_index;
                     channel_state->uniform_buffer_binding_sizes[stage][binding_index] = size;
                     runtime.BindFastUniformBuffer(stage, binding_index, size);
                 }
-                const auto span = ImmediateBufferWithData(device_addr, size);
+                u32 safe_size = std::min(size, buffer.AllocatedSize() - buffer.Offset(device_addr));
+                const auto span = ImmediateBufferWithData(device_addr, safe_size);
                 runtime.PushFastUniformBuffer(stage, binding_index, span);
                 return;
             }
         }
         channel_state->fast_bound_uniform_buffers[stage] |= 1u << binding_index;
         channel_state->uniform_buffer_binding_sizes[stage][binding_index] = size;
-        // Stream buffer path to avoid stalling on non-Nvidia drivers or Vulkan
         const std::span<u8> span = runtime.BindMappedUniformBuffer(stage, binding_index, size);
-        device_memory.ReadBlockUnsafe(device_addr, span.data(), size);
+        u32 safe_size = std::min(size, buffer.AllocatedSize() - buffer.Offset(device_addr));
+        device_memory.ReadBlock(device_addr, span.data(), safe_size);
         return;
     }
     // Classic cached path
     if (SynchronizeBuffer(buffer, device_addr, size)) {
         ++channel_state->uniform_cache_hits[0];
     }
-    // Skip binding if it's not needed and if the bound buffer is not the fast version
-    // This exists to avoid instances where the fast buffer is bound and a GPU write happens
     needs_bind |= HasFastUniformBufferBound(stage, binding_index);
     if constexpr (HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS) {
         needs_bind |= channel_state->uniform_buffer_binding_sizes[stage][binding_index] != size;
@@ -836,9 +845,8 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     }
     const u32 offset = buffer.Offset(device_addr);
     if constexpr (IS_OPENGL) {
-        // Mark the index as dirty if offset doesn't match
         const bool is_copy_bind = offset != 0 && !runtime.SupportsNonZeroUniformOffset();
-        channel_state->dirty_uniform_buffers[stage] |= (is_copy_bind ? 1U : 0U) << index;
+        channel_state->dirty_uniform_buffers[stage] |= (is_copy_bind ? 1u : 0u) << index;
     }
     if constexpr (HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS) {
         channel_state->uniform_buffer_binding_sizes[stage][binding_index] = size;
