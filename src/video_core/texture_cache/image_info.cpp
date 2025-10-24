@@ -63,13 +63,15 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         ASSERT(config.Depth() == 1);
         type = ImageType::e1D;
         size.width = config.Width();
+        size.depth = 1;
         resources.layers = 1;
         break;
     case TextureType::Texture1DArray:
         ASSERT(config.Depth() > 0);
-        ASSERT(base_layer < config.Depth());
+        ASSERT(config.BaseLayer() < config.Depth());
         type = ImageType::e1D;
         size.width = config.Width();
+        size.depth = 1;
         resources.layers = config.Depth() - config.BaseLayer();
         break;
     case TextureType::Texture2D:
@@ -80,15 +82,17 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         rescaleable = !config.IsPitchLinear();
         size.width = config.Width();
         size.height = config.Height();
+        size.depth = 1;
         resources.layers = 1;
         break;
     case TextureType::Texture2DArray:
         ASSERT(config.Depth() > 0);
-        ASSERT(base_layer < config.Depth());
+        ASSERT(config.BaseLayer() < config.Depth());
         type = ImageType::e2D;
         rescaleable = true;
         size.width = config.Width();
         size.height = config.Height();
+        size.depth = 1;
         resources.layers = config.Depth() - config.BaseLayer();
         break;
     case TextureType::TextureCubemap:
@@ -97,6 +101,7 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         type = ImageType::e2D;
         size.width = config.Width();
         size.height = config.Height();
+        size.depth = 1;
         resources.layers = 6;
         break;
     case TextureType::TextureCubeArray:
@@ -105,6 +110,7 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         type = ImageType::e2D;
         size.width = config.Width();
         size.height = config.Height();
+        size.depth = 1;
         resources.layers = (config.Depth() - config.BaseLayer()) * 6;
         break;
     case TextureType::Texture3D:
@@ -118,6 +124,7 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
     case TextureType::Texture1DBuffer:
         type = ImageType::Buffer;
         size.width = config.Width();
+        size.depth = 1;
         resources.layers = 1;
         break;
     default:

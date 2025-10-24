@@ -76,7 +76,7 @@ ImageViewInfo::ImageViewInfo(const TICEntry& config, s32 base_layer) noexcept
     case TextureType::Texture3D:
         ASSERT(base_layer == 0);
         type = ImageViewType::e3D;
-        range.extent.layers = 1;
+        range.extent.layers = config.Depth();
         break;
     case TextureType::TextureCubemap:
         ASSERT(config.Depth() == 1);
