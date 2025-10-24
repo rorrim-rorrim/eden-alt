@@ -150,6 +150,7 @@ apk add g++ git cmake make mbedtls-dev mbedtls-static mesa-dev qt6-qtbase-dev qt
 `mbedtls-static` has to be specified otherwise `libeverest.a` and `libp256m.a` will fail to be found.
 
 </details>
+<details>
 <summary>Void Linux</summary>
 
 ```sh
@@ -216,7 +217,7 @@ pkg_add -u cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang
 <summary>DragonFlyBSD</summary>
 
 ```sh
-pkg install gcc14 git cmake unzip nasm autoconf bash pkgconf ffmpeg glslang gmake jq nlohmann-json enet spirv-tools sdl2 vulkan-utility-libraries vulkan-headers catch2 libfmt openssl liblz4 boost-libs cpp-httplib qt6-base quazip-qt6
+pkg install gcc14 git cmake unzip nasm autoconf bash pkgconf ffmpeg glslang gmake jq nlohmann-json enet spirv-tools sdl2 vulkan-utility-libraries vulkan-headers catch2 libfmt openssl liblz4 boost-libs cpp-httplib qt6-base quazip-qt6 unordered-dense
 ```
 
 [Caveats](./Caveats.md#dragonflybsd).
@@ -225,14 +226,9 @@ pkg install gcc14 git cmake unzip nasm autoconf bash pkgconf ffmpeg glslang gmak
 <details>
 <summary>Solaris / OpenIndiana</summary>
 
-Always consult [the OpenIndiana package list](https://pkg.openindiana.org/hipster/en/index.shtml) to cross-verify availability.
-
-Run the usual update + install of essential toolings: `sudo pkg update && sudo pkg install git cmake`.
-
-- **gcc**: `sudo pkg install developer/gcc-14`.
-- **clang**: Version 20 is broken, use `sudo pkg install developer/clang-19`.
-
-Then install the libraries: `sudo pkg install qt6 boost glslang libzip library/lz4 libusb-1 nlohmann-json openssl opus sdl2 zlib compress/zstd unzip pkg-config nasm autoconf mesa library/libdrm header-drm developer/fmt`.
+```sh
+sudo pkg install qt6 boost glslang libzip library/lz4 libusb-1 nlohmann-json openssl opus sdl2 zlib compress/zstd unzip pkg-config nasm autoconf mesa library/libdrm header-drm developer/fmt
+```
 
 [Caveats](./Caveats.md#solaris).
 
@@ -259,6 +255,7 @@ pkgman install git cmake patch libfmt_devel nlohmann_json lz4_devel opus_devel b
 [Caveats](./Caveats.md#haikuos).
 
 </details>
+<details>
 <summary>RedoxOS</summary>
 
 TODO: Fix syscall crashes (heavy IO stalls and hangup due to net mutexes?)
