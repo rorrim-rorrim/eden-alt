@@ -30,6 +30,13 @@ macOS is largely untested. Expect crashes, significant Vulkan issues, and other 
 
 ## Solaris
 
+Always consult [the OpenIndiana package list](https://pkg.openindiana.org/hipster/en/index.shtml) to cross-verify availability.
+
+Run the usual update + install of essential toolings: `sudo pkg update && sudo pkg install git cmake`.
+
+- **gcc**: `sudo pkg install developer/gcc-14`.
+- **clang**: Version 20 is broken, use `sudo pkg install developer/clang-19`.
+
 Qt Widgets appears to be broken. For now, add `-DENABLE_QT=OFF` to your configure command. In the meantime, a Qt Quick frontend is in the works--check back later!
 
 This is needed for some dependencies that call cc directly (tz):
