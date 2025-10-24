@@ -206,10 +206,20 @@ For NetBSD +10.1: `pkgin install git cmake boost fmtlib SDL2 catch2 libjwt spirv
 <summary>OpenBSD</summary>
 
 ```sh
-pkg_add -u cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang gmake llvm-19.1.7p3 qt6 jq fmt nlohmann-json enet boost vulkan-utility-libraries vulkan-headers spirv-headers spirv-tools catch2 sdl2 libusb1-1.0.27
+pkg_add -u cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang gmake llvm-19.1.7p3 qt6 jq fmt nlohmann-json enet vulkan-utility-libraries vulkan-headers spirv-headers spirv-tools catch2 sdl2 libusb1-1.0.27
 ```
 
 [Caveats](./Caveats.md#openbsd).
+
+</details>
+<details>
+<summary>DragonFlyBSD</summary>
+
+```sh
+pkg install gcc14 git cmake unzip nasm autoconf bash pkgconf ffmpeg glslang gmake jq nlohmann-json enet spirv-tools sdl2 vulkan-utility-libraries vulkan-headers catch2 libfmt openssl liblz4 boost-libs cpp-httplib qt6-base quazip-qt6
+```
+
+[Caveats](./Caveats.md#dragonflybsd).
 
 </details>
 <details>
