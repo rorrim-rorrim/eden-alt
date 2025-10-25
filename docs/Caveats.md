@@ -9,6 +9,8 @@
 - [OpenBSD](#openbsd)
 - [FreeBSD](#freebsd)
 - [NetBSD](#netbsd)
+- [RedoxOS](#redoxos)
+- [DragonFlyBSD](#dragonflybsd)
 <!-- /TOC -->
 
 ## Arch Linux
@@ -89,6 +91,13 @@ There is also `llvm18` and use `-DCMAKE_CXX_COMPILER=clang++18 -DCMAKE_C_COMPILE
 
 If build hangs, use `hammer2 bulkfree`.
 
+If `libstdc++.so.6` is not found (`GLIBCXX_3.4.30`) then attempt:
+```sh
+rm /usr/local/lib/gcc11/libstdc++.so.6
+ln -s /usr/local/lib/gcc14/libstdc++.so /usr/local/lib/gcc11/libstdc++.so.6
+```
+This may have unforeseen consequences of which we don't need to worry about for now.
+
 ## FreeBSD
 
 Eden is not currently available as a port on FreeBSD, though it is in the works. For now, the recommended method of usage is to compile it yourself.
@@ -123,10 +132,3 @@ cmake --install build
 The package install may randomly hang at times, in which case it has to be restarted. ALWAYS do a `sudo pkg update` or the chances of it hanging will be close to 90%. If "multiple" installs fail at once, try installing 1 by 1 the packages.
 
 When CMake invokes certain file syscalls - it may sometimes cause crashes or corruptions on the (kernel?) address space - so reboot the system if there is a "hang" in CMake.
-
-If `libstdc++.so.6` is not found (`GLIBCXX_3.4.30`) then attempt:
-```sh
-rm /usr/local/lib/gcc11/libstdc++.so.6
-ln -s /usr/local/lib/gcc14/libstdc++.so /usr/local/lib/gcc11/libstdc++.so.6
-```
-This may have unforeseen consequences of which we don't need to worry about for now.
