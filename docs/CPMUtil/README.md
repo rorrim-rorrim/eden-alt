@@ -7,6 +7,8 @@ Global Options:
 - `CPMUTIL_FORCE_SYSTEM` (default `OFF`): Require all CPM dependencies to use system packages. NOT RECOMMENDED!
   * You may optionally override this (section)
 - `CPMUTIL_FORCE_BUNDLED` (default `ON` on MSVC and Android, `OFF` elsewhere): Require all CPM dependencies to use bundled packages.
+- `CPMUTIL_DEFAULT_HOST`: (default `github.com`): Sets the default `git_host`.
+- `CPMUTIL_FORCE_HOST`: (default `OFF`): Forces all CPM packages to use `CPMUTIL_DEFAULT_HOST` instead, even if they have `git_host` defined.
 
 You are highly encouraged to read AddPackage first, even if you plan to only interact with CPMUtil via `AddJsonPackage`.
 
