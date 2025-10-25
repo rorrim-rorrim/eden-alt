@@ -13,6 +13,12 @@ option(CPMUTIL_FORCE_BUNDLED
 option(CPMUTIL_FORCE_SYSTEM
     "Force system packages for all CPM dependencies (NOT RECOMMENDED)" OFF)
 
+option(CPMUTIL_DEFAULT_HOST
+    "Sets the default host when 'git_host' isn't defined" "github.com")
+
+option(CPMUTIL_FORCE_HOST
+    "Force host CPMUTIL_DEFAULT_HOST to be used for all CPM dependencies even when 'git_host' is defined" OFF)
+
 cmake_minimum_required(VERSION 3.22)
 include(CPM)
 
@@ -293,8 +299,8 @@ function(AddPackage)
     option(${PKG_ARGS_NAME}_FORCE_SYSTEM "Force the system package for ${PKG_ARGS_NAME}")
     option(${PKG_ARGS_NAME}_FORCE_BUNDLED "Force the bundled package for ${PKG_ARGS_NAME}")
 
-    if (NOT DEFINED PKG_ARGS_GIT_HOST)
-        set(git_host github.com)
+    if (CPMUTIL_FORCE_HOST OR NOT DEFINED PKG_ARGS_GIT_HOST)
+        set(git_host ${CPMUTIL_DEFAULT_HOST})
     else()
         set(git_host ${PKG_ARGS_GIT_HOST})
     endif()

@@ -32,3 +32,6 @@ It's recommended to run these scritps after almost any Android change, as they a
 ## Translations
 
 - [Translation Scripts](./translations)
+
+## Mirror
+- [Mirroring scripts](./mirror)
