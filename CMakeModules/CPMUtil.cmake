@@ -13,8 +13,7 @@ option(CPMUTIL_FORCE_BUNDLED
 option(CPMUTIL_FORCE_SYSTEM
     "Force system packages for all CPM dependencies (NOT RECOMMENDED)" OFF)
 
-option(CPMUTIL_DEFAULT_HOST
-    "Sets the default host when 'git_host' isn't defined" "github.com")
+set(CPMUTIL_DEFAULT_HOST github.com CACHE STRING "Sets the default host when 'git_host' isn't defined")
 
 option(CPMUTIL_FORCE_HOST
     "Force host CPMUTIL_DEFAULT_HOST to be used for all CPM dependencies even when 'git_host' is defined" OFF)

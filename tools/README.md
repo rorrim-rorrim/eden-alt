@@ -24,6 +24,7 @@ Tools for Eden and other subprojects.
 - `find-unused-strings.sh`: Find any unused strings in the Android app (XML -> Kotlin).
 
 ## Android
+
 It's recommended to run these scritps after almost any Android change, as they are relatively fast and important both for APK bloat and CI.
 
 - `unused-strings.sh`: Finds unused strings in `strings.xml` files.
@@ -34,4 +35,5 @@ It's recommended to run these scritps after almost any Android change, as they a
 - [Translation Scripts](./translations)
 
 ## Mirror
+
 - [Mirroring scripts](./mirror)
