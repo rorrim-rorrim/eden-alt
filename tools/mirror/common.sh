@@ -2,7 +2,9 @@
 # SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 git_clone_mirror_repo() {
-    git clone --mirror $1 $(echo $1 | awk -F"/" '{print $4"/"$5".git"}')
+    NAME=$(echo "$1" | cut -d '/' -f 5)
+    ORG=$(echo "$1" | cut -d '/' -f 4)
+    git clone --mirror $1 $ORG/$NAME
 }
 git_retrieve_file() {
     TMPDIR=$1
