@@ -7,7 +7,6 @@
 #include <cstring>
 #include <fmt/ranges.h>
 #include <fstream>
-#include <algorithm>
 
 namespace Common::FS {
 
@@ -86,7 +85,6 @@ IMENReadResult ReadKvdb(const fs::path &path, std::vector<IMEN> &imens)
         kvdb.ignore(0x38);
 
         imens.emplace_back(IMEN{title_id, save_id});
-        fmt::println("TitleID: {:16X} SaveID: {:016X} length: {}", title_id, save_id, imens.size());
     }
 
     return IMENReadResult::Success;

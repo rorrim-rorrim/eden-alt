@@ -2927,8 +2927,8 @@ void GMainWindow::OnLinkToRyujinx(const u64& program_id)
     if (user_id.empty())
         return;
     std::string hex_program = fmt::format("{:016X}", program_id);
-    fs::path eden_dir = FrontendCommon::DataManager::GetDataDir(FrontendCommon::DataManager::DataDir::Saves)
-                        / user_id / hex_program;
+    fs::path eden_dir = FrontendCommon::DataManager::GetDataDir(FrontendCommon::DataManager::DataDir::Saves, user_id)
+                        / hex_program;
 
     RyujinxDialog dialog(eden_dir, ryu_dir, this);
     dialog.exec();
