@@ -965,7 +965,7 @@ Result ISystemSettingsServer::GetBatteryLot(Out<BatteryLot> out_battery_lot) {
     if (auto const s = ::Settings::values.serial_battery.GetValue(); !s.empty()) {
         auto const max_size = out_battery_lot->lot_number.size();
         auto const end = s.size() > max_size ? s.begin() + max_size : s.end();
-        std::copy(s.begin(), s.end(), out_battery_lot->lot_number.begin());
+        std::copy(s.begin(), end, out_battery_lot->lot_number.begin());
     }
     R_SUCCEED();
 }
@@ -976,7 +976,7 @@ Result ISystemSettingsServer::GetSerialNumber(Out<SerialNumber> out_console_seri
     if (auto const s = ::Settings::values.serial_unit.GetValue(); !s.empty()) {
         auto const max_size = out_console_serial->serial_number.size();
         auto const end = s.size() > max_size ? s.begin() + max_size : s.end();
-        std::copy(s.begin(), s.end(), out_console_serial->serial_number.begin());
+        std::copy(s.begin(), end, out_console_serial->serial_number.begin());
     }
     R_SUCCEED();
 }
