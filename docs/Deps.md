@@ -5,7 +5,6 @@ To build Eden, you MUST have a C++ compiler.
   - GCC 12 also requires Clang 14+
 * On Windows, this is either:
   - **[MSVC](https://visualstudio.microsoft.com/downloads/)** (you should select *Community* option),
-    * *A convenience script to install the Visual Community Studio 2022 with necessary tools is provided in `.ci/windows/install-msvc.ps1`*
   - clang-cl - can be downloaded from the MSVC installer,
   - or **[MSYS2](https://www.msys2.org)**
 * On macOS, this is Apple Clang
@@ -209,7 +208,7 @@ Then install the libraries: `sudo pkg install qt6 boost glslang libzip library/l
 * Open the `MSYS2 MinGW 64-bit` shell (`mingw64.exe`)
 * Download and install all dependencies:
 ```
-BASE="git make autoconf libtool automake-wrapper"
+BASE="git make autoconf libtool automake-wrapper jq patch"
 MINGW="SDL2 cmake python-pip qt6-base toolchain ffmpeg boost catch fmt lz4 nlohmann-json openssl zlib zstd enet opus mbedtls vulkan-devel libusb vulkan-memory-allocator unordered_dense zydis clang ccache"
 
 packages="$BASE"
