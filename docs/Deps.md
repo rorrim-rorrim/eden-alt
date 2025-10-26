@@ -161,11 +161,13 @@ xbps-install -Su git make cmake clang pkg-config patch mbedtls-devel SPIRV-Tools
 Yes, `nlohmann-json` is just named `json-c++`. Why?
 
 </details>
+<details>
 <summary>NixOS</summary>
 
-A convenience script is provided on the root of this project [shell.nix](../shell.nix).
+A convenience script is provided on the root of this project [shell.nix](../shell.nix). Run the usual `nix-shell`.
 
 </details>
+<details>
 <summary>macOS</summary>
 
 Install dependencies from **[Homebrew](https://brew.sh/)**
@@ -202,7 +204,6 @@ For NetBSD +10.1: `pkgin install git cmake boost fmtlib SDL2 catch2 libjwt spirv
 [Caveats](./Caveats.md#netbsd).
 
 </details>
-
 <details>
 <summary>OpenBSD</summary>
 
@@ -214,7 +215,6 @@ pkg_add cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang gm
 [Caveats](./Caveats.md#openbsd).
 
 </details>
-
 <details>
 <summary>Solaris / OpenIndiana</summary>
 
@@ -230,7 +230,6 @@ Then install the libraries: `sudo pkg install qt6 boost glslang libzip library/l
 [Caveats](./Caveats.md#solaris).
 
 </details>
-
 <details>
 <summary>MSYS2</summary>
 
@@ -255,6 +254,7 @@ pacman -Syu --needed --noconfirm $packages
 * Add MinGW binaries to the PATH if they aren't already:
   * `echo 'PATH=/mingw64/bin:$PATH' >> ~/.bashrc`
   * or `echo 'PATH=/mingw64/bin:$PATH' >> ~/.zshrc`
+
 </details>
 <details>
 <summary>HaikuOS</summary>
