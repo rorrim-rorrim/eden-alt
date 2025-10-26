@@ -189,7 +189,7 @@ void A64EmitX64::ClearFastDispatchTable() {
 
 void A64EmitX64::GenTerminalHandlers() {
     // PC ends up in rcx, location_descriptor ends up in rbx
-    static_assert(std::find(ABI_ALL_CALLEE_SAVE.begin(), ABI_ALL_CALLEE_SAVE.end(), HostLoc::R12));
+    static_assert(std::find(ABI_ALL_CALLEE_SAVE.begin(), ABI_ALL_CALLEE_SAVE.end(), HostLoc::R12) != ABI_ALL_CALLEE_SAVE.end());
     const auto calculate_location_descriptor = [this] {
         // This calculation has to match up with A64::LocationDescriptor::UniqueHash
         // TODO: Optimization is available here based on known state of fpcr.
