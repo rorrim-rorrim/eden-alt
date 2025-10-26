@@ -213,7 +213,6 @@
     <!-- Setup strings -->
     <string name="welcome">بەخێربێیت!</string>
     <string name="welcome_description">فێربە چۆن &lt;b>Eden&lt;/b> ڕێکبخەیت و بچییە ناو ئیمولەیشن.</string>
-    <string name="get_started">دەست پێبکە</string>
     <string name="keys">کلیلەکان</string>
     <string name="keys_description">فایلی &lt;b>prod.keys&lt;/b> هەڵبژێرە بە دوگمەی خوارەوە.</string>
     <string name="select_keys">کلیلەکان هەڵبژێرە</string>
@@ -256,7 +255,6 @@
     <string name="permission_denied_description">زۆر جار ئەم مۆڵەتەت ڕەتکردۆتەوە و ئێستا دەبێت بە دەستی ڕێگەپێدان بکەیت لە ڕێکخستنەکانی سیستەمدا.</string>
     <string name="about">دەربارە</string>
     <string name="about_description">وەشانی دروستکردن، بیتبێن و زۆر شتیتر</string>
-    <string name="warning_help">یارمەتی</string>
     <string name="warning">ئاگاداری</string>
     <string name="warning_skip">پەڕاندن</string>
     <string name="warning_cancel">ڕەتکردنەوە</string>
@@ -322,9 +320,6 @@
     <string name="firmware_uninstalling">جاري إزالة البرنامج الثابت</string>
     <string name="firmware_uninstalled_success">تم إزالة البرنامج الثابت بنجاح</string>
 
-    <string name="error_firmware_missing">فریموێر پێویستە بۆ کارپێکردنی هەندێک یاری و بەکارهێنانی بەرنامەکان. ئێدین تەنها لەگەڵ فریموێری 19.0.1 یان کۆنتر کار دەکات.</string>
-    <string name="error_firmware_corrupted">فریموێر هەیە بەڵام ناتوانرێت بخوێنرێتەوە. پشکنین بکە بۆ کلیلی شیکردنەوە و دووبارە فریموێرەکە دامپ بکە ئەگەر پێویست بوو.</string>
-    <string name="error_firmware_too_new">فریموێر زۆر نوێ یان ناتوانرێت بخوێنرێتەوە. ئێدین تەنها لەگەڵ فریموێری 19.0.1 یان کۆنتر کار دەکات.</string>
 
     <string name="keys_failed">سەرکەوتوو نەبوو لە ناساندنی کلیلی</string>
     <string name="keys_install_success">کلیلەکان بە سەرکەوتوویی ناسێندران</string>

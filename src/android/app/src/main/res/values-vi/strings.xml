@@ -213,7 +213,6 @@
     <!-- Setup strings -->
     <string name="welcome">Chào mừng!</string>
     <string name="welcome_description">Tìm hiểu cách cài đặt &lt;b>Eden&lt;/b> và bắt đầu giả lập.</string>
-    <string name="get_started">Bắt đầu</string>
     <string name="keys">Chìa khóa</string>
     <string name="keys_description">Chọn file &lt;b>prod.keys&lt;/b> của bạn bằng nút bên dưới.</string>
     <string name="select_keys">Chọn Chìa khóa</string>
@@ -256,7 +255,6 @@
     <string name="permission_denied_description">Bạn từ chối cấp quyền này quá nhiều lần và giờ bạn phải cấp quyền thủ công trong cài đặt máy.</string>
     <string name="about">Thông tin</string>
     <string name="about_description">Phiên bản, đóng góp và những thứ khác</string>
-    <string name="warning_help">Trợ giúp</string>
     <string name="warning">Cảnh báo</string>
     <string name="warning_skip">Bỏ qua</string>
     <string name="warning_cancel">Huỷ</string>
@@ -320,9 +318,6 @@
     <string name="firmware_uninstalling">Đang gỡ cài đặt firmware...</string>
     <string name="firmware_uninstalled_success">Gỡ cài đặt firmware thành công</string>
 
-    <string name="error_firmware_missing">Firmware là cần thiết để chạy một số trò chơi và ứng dụng. Eden chỉ hoạt động với firmware 19.0.1 trở về trước.</string>
-    <string name="error_firmware_corrupted">Firmware được báo cáo là có nhưng không thể đọc được. Kiểm tra khóa giải mã và dump lại firmware nếu cần.</string>
-    <string name="error_firmware_too_new">Firmware quá mới hoặc không thể đọc. Eden chỉ hoạt động với firmware 19.0.1 trở về trước.</string>
 
     <string name="keys_failed">Không thể cài đặt khóa</string>
     <string name="keys_install_success">Đã cài đặt khóa thành công</string>

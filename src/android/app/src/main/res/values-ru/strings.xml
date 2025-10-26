@@ -235,7 +235,6 @@
     <!-- Setup strings -->
     <string name="welcome">Добро пожаловать!</string>
     <string name="welcome_description">Узнайте, как настроить &lt;b>Eden&lt;/b> и перейти прямиком к эмуляции.</string>
-    <string name="get_started">Начать</string>
     <string name="keys">Ключи</string>
     <string name="keys_description">Выберите ваш файл &lt;b>prod.keys&lt;/b> с помощью кнопки ниже.</string>
     <string name="select_keys">Выбрать ключи</string>
@@ -269,17 +268,14 @@
     <string name="select_games_folder_description">Позволяет Eden заполнить список игр</string>
     <string name="add_games_warning">Пропустить выбор папки с играми?</string>
     <string name="add_games_warning_description">Игры не будут отображаться в списке Игры, если папка не выбрана.</string>
-    <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Найти игры</string>
     <string name="search_settings">Настройки поиска</string>
     <string name="install_prod_keys">Установить prod.keys</string>
     <string name="install_prod_keys_description">Требуется для расшифровки розничных игр</string>
     <string name="install_prod_keys_warning">Пропустить добавление ключей?</string>
     <string name="install_prod_keys_warning_description">Для эмуляции розничных игр требуются действительные ключи. Если вы продолжите, будут работать только homebrew приложения.</string>
-    <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="install_firmware_warning">Пропустить добавление прошивки?</string>
     <string name="install_firmware_warning_description">Многим играм требуется доступ к прошивке для правильной работы.</string>
-    <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Уведомления</string>
     <string name="notifications_description">Предоставьте разрешение уведомлений с помощью кнопки ниже.</string>
     <string name="give_permission">Предоставить разрешение</string>
@@ -289,7 +285,6 @@
     <string name="permission_denied_description">Вы слишком часто отклоняли это разрешение, и теперь вам нужно будет вручную предоставить его в настройках системы.</string>
     <string name="about">О нас</string>
     <string name="about_description">Версия сборки, титры и другое</string>
-    <string name="warning_help">Помощь</string>
     <string name="warning">Предупреждение</string>
     <string name="warning_skip">Пропустить</string>
     <string name="warning_cancel">Отмена</string>
@@ -370,9 +365,6 @@
     <string name="firmware_uninstalling">Удаление прошивки...</string>
     <string name="firmware_uninstalled_success">Прошивка успешно удалена</string>
 
-    <string name="error_firmware_missing">Для запуска некоторых игр и системных апплетов требуется прошивка. Eden работает только с прошивкой версии 19.0.1 и ниже.</string>
-    <string name="error_firmware_corrupted">Прошивка обнаружена, но не может быть прочитана. Проверьте наличие ключей дешифрования и при необходимости пересохраните прошивку.</string>
-    <string name="error_firmware_too_new">Прошивка слишком новая или не может быть прочитана. Eden работает только с прошивкой версии 19.0.1 и ниже.</string>
 
     <string name="keys_failed">Ошибка установки ключей</string>
     <string name="keys_install_success">Ключи успешно установлены</string>

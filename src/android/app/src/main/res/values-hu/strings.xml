@@ -213,7 +213,6 @@
     <!-- Setup strings -->
     <string name="welcome">Üdvözöljük!</string>
     <string name="welcome_description">Ismerkedj meg a &lt;b>Eden&lt;/b> beállításával és ugorj bele az emulációba.</string>
-    <string name="get_started">Vágjunk bele</string>
     <string name="keys">Kulcsok</string>
     <string name="keys_description">Válaszd ki a &lt;b>prod.keys&lt;/b> fájlodat az alábbi gombbal.</string>
     <string name="select_keys">Kulcsok kiválasztása</string>
@@ -259,7 +258,6 @@
     <string name="permission_denied_description">Túl gyakran utasítottad el a hozzáférést, így manuálisan kell jóváhagynod a rendszer beállításokban.</string>
     <string name="about">Névjegy</string>
     <string name="about_description">Build verzió, készítők, és még több</string>
-    <string name="warning_help">Segítség</string>
     <string name="warning">Figyelmeztetés</string>
     <string name="warning_skip">Kihagyás</string>
     <string name="warning_cancel">Mégse</string>
@@ -331,9 +329,6 @@
     <string name="firmware_uninstalling">Firmware eltávolítása...</string>
     <string name="firmware_uninstalled_success">A firmware sikeresen eltávolítva</string>
 
-    <string name="error_firmware_missing">A firmware szükséges egyes játékok és alkalmazások futtatásához. Az Eden csak 19.0.1 vagy régebbi firmware-ekkel működik.</string>
-    <string name="error_firmware_corrupted">A firmware jelen van, de nem olvasható. Ellenőrizze a visszafejtési kulcsokat és szükség esetén dumpolja újra a firmware-t.</string>
-    <string name="error_firmware_too_new">A firmware túl új vagy nem olvasható. Az Eden csak a 19.0.1 vagy régebbi firmware-ekkel működik.</string>
 
     <string name="keys_failed">A kulcsok telepítése sikertelen</string>
     <string name="keys_install_success">A kulcsok sikeresen telepítve</string>

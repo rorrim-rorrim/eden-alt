@@ -213,7 +213,6 @@
     <!-- Setup strings -->
     <string name="welcome">ようこそ!</string>
     <string name="welcome_description">&lt;b>Eden&lt;/b> のセットアップ方法を学び、エミュレーションに飛び込みましょう。</string>
-    <string name="get_started">はじめる</string>
     <string name="keys">キー</string>
     <string name="keys_description">下のボタンから &lt;b>prod.keys&lt;/b> ファイルを選択してください。</string>
     <string name="select_keys">キーを選択</string>
@@ -262,7 +261,6 @@
     <string name="permission_denied_description">この権限を複数回拒否したため、設定から手動で許可する必要があります。</string>
     <string name="about">情報</string>
     <string name="about_description">ビルドバージョン、クレジットなど</string>
-    <string name="warning_help">ヘルプ</string>
     <string name="warning">警告</string>
     <string name="warning_skip">スキップ</string>
     <string name="warning_cancel">キャンセル</string>
@@ -333,9 +331,6 @@
     <string name="firmware_uninstalling">ファームウェアをアンインストール中...</string>
     <string name="firmware_uninstalled_success">ファームウェアのアンインストールが成功しました</string>
 
-    <string name="error_firmware_missing">一部のゲームとアプリケーションを実行するにはファームウェアが必要です。Edenは19.0.1以前のファームウェアでのみ動作します。</string>
-    <string name="error_firmware_corrupted">ファームウェアは存在しますが読み取れません。復号キーを確認し、必要に応じてファームウェアを再ダンプしてください。</string>
-    <string name="error_firmware_too_new">ファームウェアが新しすぎるか読み取れません。Edenは19.0.1以前のファームウェアのみに対応しています。</string>
 
     <string name="keys_failed">キーのインストールに失敗</string>
     <string name="keys_install_success">キーが正常にインストールされました</string>

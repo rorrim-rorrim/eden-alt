@@ -213,7 +213,6 @@
     <!-- Setup strings -->
     <string name="welcome">Benvindo! </string>
     <string name="welcome_description">Aprende como configurar &lt;b>Eden&lt;/b> e arranca a emulação.</string>
-    <string name="get_started">Começa</string>
     <string name="keys">Chaves</string>
     <string name="keys_description">Seleciona o teu ficheiro &lt;b>prod.keys&lt;/b> com o botão abaixo.</string>
     <string name="select_keys">Seleciona as Chaves</string>
@@ -260,7 +259,6 @@
     <string name="permission_denied_description">Você negou essa permissão muitas vezes e agora precisa concedê-la manualmente nas configurações do sistema.</string>
     <string name="about">Sobre</string>
     <string name="about_description">Versão de compilação, créditos e mais</string>
-    <string name="warning_help">Ajuda</string>
     <string name="warning">Aviso</string>
     <string name="warning_skip">Saltar</string>
     <string name="warning_cancel">Cancelar</string>
@@ -334,9 +332,6 @@
     <string name="firmware_uninstalling">A desinstalar firmware...</string>
     <string name="firmware_uninstalled_success">Firmware desinstalado com sucesso</string>
 
-    <string name="error_firmware_missing">É necessário firmware para executar alguns jogos e aplicações. O Eden só funciona com firmware 19.0.1 ou anterior.</string>
-    <string name="error_firmware_corrupted">Firmware está presente mas não pode ser lido. Verifique chaves de descriptografia e volte a fazer dump do firmware se necessário.</string>
-    <string name="error_firmware_too_new">Firmware é demasiado recente ou ilegível. O Eden só funciona com firmware 19.0.1 ou anterior.</string>
 
     <string name="keys_failed">Falha ao instalar chaves</string>
     <string name="keys_install_success">Chaves instaladas com sucesso</string>

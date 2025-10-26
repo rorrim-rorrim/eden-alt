@@ -235,7 +235,6 @@
     <!-- Setup strings -->
     <string name="welcome">Bem-vindo! </string>
     <string name="welcome_description">Aprenda como configurar o <b>Eden</b> e mergulhe na emulação.</string>
-    <string name="get_started">Vamos começar</string>
     <string name="keys">Chaves (Keys)</string>
     <string name="keys_description">Selecione seu arquivo &lt;b>prod.keys&lt;/b> com o botão abaixo.</string>
     <string name="select_keys">Selecione as Chaves (Keys)</string>
@@ -269,17 +268,14 @@
     <string name="select_games_folder_description">Permite ao Eden preencher a lista de jogos</string>
     <string name="add_games_warning">Pular a seleção da pasta de jogos\?</string>
     <string name="add_games_warning_description">Os jogos não serão exibidos na lista de jogos se nenhuma pasta for selecionada.</string>
-    <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Procurar jogos</string>
     <string name="search_settings">Procurar nas configurações</string>
     <string name="install_prod_keys">Instalar a chave prod.keys</string>
     <string name="install_prod_keys_description">Necessário para descriptografar jogos comerciais</string>
     <string name="install_prod_keys_warning">Continuar sem adicionar as chaves (keys)\?</string>
     <string name="install_prod_keys_warning_description">Chaves (keys) válidas são necessárias para emular jogos comerciais. Apenas aplicativos homebrew funcionarão se você continuar.</string>
-    <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="install_firmware_warning">Pular instalação do firmware\?</string>
     <string name="install_firmware_warning_description">Muitos jogos precisam do firmware para funcionar corretamente</string>
-    <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Notificações</string>
     <string name="notifications_description">Conceda a permissão de notificação usando o botão abaixo.</string>
     <string name="give_permission">Conceder permissão</string>
@@ -289,7 +285,6 @@
     <string name="permission_denied_description">Como você negou esta permissão várias vezes, agora precisa ativá-la manualmente nas configurações do sistema.</string>
     <string name="about">Sobre</string>
     <string name="about_description">Versão da compilação, créditos e mais</string>
-    <string name="warning_help">Ajuda</string>
     <string name="warning">Aviso</string>
     <string name="warning_skip">Ignorar</string>
     <string name="warning_cancel">Cancelar</string>
@@ -368,9 +363,6 @@
     <string name="firmware_uninstalling">Desinstalando firmware</string>
     <string name="firmware_uninstalled_success">Firmware desinstalado com sucesso</string>
 
-    <string name="error_firmware_missing">Firmware é necessário para executar certos jogos e aplicativos. Eden só funciona com firmware 19.0.1 ou anterior.</string>
-    <string name="error_firmware_corrupted">Firmware está presente mas não pode ser lido. Verifique as chaves de descriptografia e refaça o dump do firmware se necessário.</string>
-    <string name="error_firmware_too_new">Firmware é muito novo ou não pode ser lido. Eden só funciona com firmware 19.0.1 ou anterior.</string>
 
     <string name="keys_failed">Falha ao instalar chaves (keys)</string>
     <string name="keys_install_success">Chaves (keys) instaladas com sucesso</string>

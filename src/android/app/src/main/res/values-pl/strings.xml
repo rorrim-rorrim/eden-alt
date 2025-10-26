@@ -235,7 +235,6 @@
     <!-- Setup strings -->
     <string name="welcome">Witaj!</string>
     <string name="welcome_description">Zobacz jak skonfigurować &lt;b>Eden&lt;/b> i wskocz w świat emulacji.</string>
-    <string name="get_started">Zaczynamy</string>
     <string name="keys">Klucze</string>
     <string name="keys_description">Wybierz swoje klucze &lt;b>prod.keys&lt;/b> za pomocą przycisku poniżej.</string>
     <string name="select_keys">Wybierz klucze</string>
@@ -269,17 +268,14 @@
     <string name="select_games_folder_description">Pozwala Eden wygenerować listę gier</string>
     <string name="add_games_warning">Pominąć wybór folderu z grami?</string>
     <string name="add_games_warning_description">Aby pokazać listę gier wybierz katalog zawierający gry.</string>
-    <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Szukaj gier</string>
     <string name="search_settings">Wyszukaj ustawienia</string>
     <string name="install_prod_keys">Instaluj klucze prod.keys</string>
     <string name="install_prod_keys_description">Wymagane aby poprawnie odczytać sklepowe gry</string>
     <string name="install_prod_keys_warning">Pominąć dodawanie kluczy?</string>
     <string name="install_prod_keys_warning_description">Poprawne klucze są wymagane aby emulować sklepowe gry. Jeśli przejdziesz dalej, jedynie homebrew będą działać.</string>
-    <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="install_firmware_warning">Pominąć dodawanie firmware?</string>
     <string name="install_firmware_warning_description">Wiele gier wymaga dostępu do firmware do prawidłowego działania.</string>
-    <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Powiadomienia</string>
     <string name="notifications_description">Nadaj uprawnienia dostępu do powiadomień. </string>
     <string name="give_permission">Nadaj uprawnienia</string>
@@ -289,7 +285,6 @@
     <string name="permission_denied_description">Odmówiłeś dostępu do powiadomień zbyt wiele razy, teraz musisz przyznać je w ustawieniach systemowych Androida.</string>
     <string name="about">O aplikacji</string>
     <string name="about_description">Wersja, podziękowania i więcej</string>
-    <string name="warning_help">Pomoc</string>
     <string name="warning">Ostrzeżenie</string>
     <string name="warning_skip">Pomiń</string>
     <string name="warning_cancel">Anuluj</string>
@@ -370,9 +365,6 @@
     <string name="firmware_uninstalling">Odinstalowywanie firmware...</string>
     <string name="firmware_uninstalled_success">Firmware odinstalowany pomyślnie</string>
 
-    <string name="error_firmware_missing">Firmware jest wymagany do uruchamiania niektórych gier i aplikacji. Eden działa tylko z firmwarem 19.0.1 lub starszym.</string>
-    <string name="error_firmware_corrupted">Oprogramowanie sprzętowe jest obecne, ale nie można go odczytać. Sprawdź klucze deszyfrujące i w razie potrzeby zrzuć oprogramowanie ponownie.</string>
-    <string name="error_firmware_too_new">Oprogramowanie sprzętowe jest zbyt nowe lub nie można go odczytać. Eden działa tylko z oprogramowaniem sprzętowym w wersji 19.0.1 lub starszej.</string>
 
     <string name="keys_failed">Nie udało się zainstalować kluczy</string>
     <string name="keys_install_success">Pomyślnie zainstalowano klucze</string>

@@ -240,7 +240,6 @@
     <!-- Setup strings -->
     <string name="welcome">Welcome!</string>
     <string name="welcome_description">Learn how to setup &lt;b>Eden&lt;/b> and jump into emulation.</string>
-    <string name="get_started">Get started</string>
     <string name="keys">Keys</string>
     <string name="keys_description">Select your &lt;b>prod.keys&lt;/b> file with the button below.</string>
     <string name="select_keys">Select Keys</string>
@@ -278,17 +277,14 @@
     <string name="select_games_folder_description">Allows Eden to populate the games list</string>
     <string name="add_games_warning">Skip selecting games folder?</string>
     <string name="add_games_warning_description">Games won\'t be displayed in the Games list if a folder isn\'t selected.</string>
-    <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Search games</string>
     <string name="search_settings">Search settings</string>
     <string name="install_prod_keys">Install prod.keys</string>
     <string name="install_prod_keys_description">Required to decrypt retail games</string>
     <string name="install_prod_keys_warning">Skip adding keys?</string>
     <string name="install_prod_keys_warning_description">Valid keys are required to emulate retail games. Only homebrew apps will function if you continue.</string>
-    <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="install_firmware_warning">Skip adding firmware?</string>
     <string name="install_firmware_warning_description">Many games require access to firmware to run properly.</string>
-    <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Notifications</string>
     <string name="notifications_description">Grant the notification permission with the button below.</string>
     <string name="give_permission">Grant permission</string>
@@ -298,7 +294,6 @@
     <string name="permission_denied_description">You denied this permission too many times and now you have to manually grant it in system settings.</string>
     <string name="about">About</string>
     <string name="about_description">Build version, credits, and more</string>
-    <string name="warning_help">Help</string>
     <string name="warning">Warning</string>
     <string name="warning_skip">Skip</string>
     <string name="warning_cancel">Cancel</string>
@@ -376,9 +371,6 @@
     <string name="firmware_uninstalling">Uninstalling firmware</string>
     <string name="firmware_uninstalled_success">Firmware uninstalled successfully</string>
 
-    <string name="error_firmware_missing">Firmware is required to run certain games and use system applications. Eden only works with firmware 19.0.1 and earlier.</string>
-    <string name="error_firmware_corrupted">Firmware reported as present, but was unable to be read. Check for decryption keys and redump firmware if necessary.</string>
-    <string name="error_firmware_too_new">Firmware is too new or could not be read. Eden only works with firmware 19.0.1 and earlier.</string>
 
     <string name="keys_failed">Failed to Install Keys</string>
     <string name="keys_install_success">Keys successfully installed</string>

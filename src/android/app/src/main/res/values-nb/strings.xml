@@ -213,7 +213,6 @@
     <!-- Setup strings -->
     <string name="welcome">Velkommen!</string>
     <string name="welcome_description">Lær å sette opp &lt;b>Eden&lt;/b> og hopp inn i emulering.</string>
-    <string name="get_started">Kom i gang</string>
     <string name="keys">Nøkler</string>
     <string name="keys_description">Velg din &lt;b>prod.keys&lt;/b> fil ved å bruke knappen under.</string>
     <string name="select_keys">Velg nøkler</string>
@@ -256,7 +255,6 @@
     <string name="permission_denied_description">Du har nektet denne tillatelsen for mange ganger, og nå må du gi den manuelt i systeminnstillingene.</string>
     <string name="about">Om</string>
     <string name="about_description">Byggeversjon, kildehenvisninger og mer</string>
-    <string name="warning_help">Hjelp</string>
     <string name="warning">Advarsel</string>
     <string name="warning_skip">Hopp over</string>
     <string name="warning_cancel">Avbryt</string>
@@ -322,9 +320,6 @@
     <string name="firmware_uninstalling">Avinstallerer firmware...</string>
     <string name="firmware_uninstalled_success">Firmware avinstallert</string>
 
-    <string name="error_firmware_missing">Fastvare kreves for å kjøre enkelte spill og applikasjoner. Eden fungerer bare med fastvare 19.0.1 eller eldre.</string>
-    <string name="error_firmware_corrupted">Fastvare er til stede, men kan ikke leses. Sjekk dekrypteringsnøklene og dump fastvaren på nytt om nødvendig.</string>
-    <string name="error_firmware_too_new">Fastvaren er for ny eller kan ikke leses. Eden fungerer bare med fastvare 19.0.1 eller eldre.</string>
 
     <string name="keys_failed">Kunne ikke installere nøkler</string>
     <string name="keys_install_success">Nøklene ble installert</string>
