@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <iostream>
 #include "symlink.h"
 
 #ifdef _WIN32
-#include <winbase.h>
+#include <windows.h>
 #endif
 
 namespace fs = std::filesystem;
@@ -34,7 +35,8 @@ bool CreateSymlink(const fs::path &from, const fs::path &to)
 bool IsSymlink(const fs::path &path)
 {
 #ifdef _WIN32
-    return fs::status(path).type() == fs::file_type::junction;
+    auto attributes = GetFileAttributesW(path.wstring().c_str());
+    return attributes & FILE_ATTRIBUTE_REPARSE_POINT;
 #else
     return fs::is_symlink(path);
 #endif

@@ -58,7 +58,9 @@ bool CheckUnlink(const fs::path &eden_dir, const fs::path &ryu_dir)
 
     // first cleanup the symlink/junction,
     try {
-        fs::remove_all(linked);
+        // NB: do NOT use remove_all, as Windows treats this as a remove_all to the target,
+        // NOT the junction
+        fs::remove(linked);
     } catch (std::exception &e) {
         QtCommon::Frontend::Critical(
             tr("Failed to unlink old directory"),
