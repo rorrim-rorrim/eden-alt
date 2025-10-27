@@ -3523,7 +3523,7 @@ void EmitX64::EmitVectorReverseElementsInWordGroups8(EmitContext& ctx, IR::Inst*
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const Xbyak::Xmm data = ctx.reg_alloc.UseScratchXmm(args[0]);
     if (code.HasHostFeature(HostFeature::AVX)) {
-        code.vpshufb(data, code.Const(xword, 0x0405060700010203, 0x0c0d0e0f08090a0b));
+        code.vpshufb(data, data, code.Const(xword, 0x0405060700010203, 0x0c0d0e0f08090a0b));
     } else if (code.HasHostFeature(HostFeature::SSSE3)) {
         code.pshufb(data, code.Const(xword, 0x0405060700010203, 0x0c0d0e0f08090a0b));
     } else {
@@ -3550,7 +3550,7 @@ void EmitX64::EmitVectorReverseElementsInLongGroups8(EmitContext& ctx, IR::Inst*
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const Xbyak::Xmm data = ctx.reg_alloc.UseScratchXmm(args[0]);
     if (code.HasHostFeature(HostFeature::AVX)) {
-        code.pshufb(data, code.Const(xword, 0x0001020304050607, 0x08090a0b0c0d0e0f));
+        code.vpshufb(data, data, code.Const(xword, 0x0001020304050607, 0x08090a0b0c0d0e0f));
     } else if (code.HasHostFeature(HostFeature::SSSE3)) {
         code.pshufb(data, code.Const(xword, 0x0001020304050607, 0x08090a0b0c0d0e0f));
     } else {
