@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -35,16 +38,15 @@ void PrintMessage(const Entry& entry) {
     auto const str = FormatLogMessage(entry).append(1, '\n');
 #else
 #define ESC "\x1b"
-    auto const str = std::string{[&]() {
+    auto const str = std::string{[&entry]() -> const char* {
         switch (entry.log_level) {
         case Level::Debug: return ESC "[0;36m"; // Cyan
         case Level::Info: return ESC "[0;37m"; // Bright gray
         case Level::Warning: return ESC "[1;33m"; // Bright yellow
         case Level::Error: return ESC "[1;31m"; // Bright red
         case Level::Critical: return ESC "[1;35m"; // Bright magenta
-        default: break;
+        default: return ESC "[1;30m"; // Grey
         }
-        return ESC "[1;30m"; // Grey
     }()}.append(FormatLogMessage(entry)).append(ESC "[0m\n");
 #undef ESC
 #endif
@@ -58,7 +60,7 @@ void PrintColoredMessage(const Entry& entry) {
         return;
     CONSOLE_SCREEN_BUFFER_INFO original_info = {};
     GetConsoleScreenBufferInfo(console_handle, &original_info);
-    WORD color = [&]() {
+    WORD color = WORD([&entry]() {
         switch (entry.log_level) {
         case Level::Debug: return FOREGROUND_GREEN | FOREGROUND_BLUE; // Cyan
         case Level::Info: return FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE; // Bright gray
@@ -68,7 +70,7 @@ void PrintColoredMessage(const Entry& entry) {
         default: break;
         }
         return FOREGROUND_INTENSITY; // Grey
-    }();
+    }());
     SetConsoleTextAttribute(console_handle, color);
 #endif
     PrintMessage(entry);
