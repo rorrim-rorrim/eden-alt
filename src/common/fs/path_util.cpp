@@ -166,12 +166,11 @@ public:
         GenerateEdenPath(EdenPath::TASDir, eden_path / TAS_DIR);
         GenerateEdenPath(EdenPath::IconsDir, eden_path / ICONS_DIR);
 
-        //
 #ifdef _WIN32
         GenerateLegacyPath(EmuPath::RyujinxDir, GetAppDataRoamingDirectory() / RYUJINX_DIR);
 #else
         // In Ryujinx's infinite wisdom, it places EVERYTHING in the config directory on UNIX
-        // This is incredibly stupid and violates a million XDG standards, but alas,
+        // This is incredibly stupid and violates a million XDG standards, but whatever
         GenerateLegacyPath(EmuPath::RyujinxDir, GetDataDirectory("XDG_CONFIG_HOME") / RYUJINX_DIR);
 #endif
 

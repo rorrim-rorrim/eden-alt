@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <iostream>
 #include "symlink.h"
 
 #ifdef _WIN32
@@ -20,11 +19,9 @@ namespace Common::FS {
 
 bool CreateSymlink(const fs::path &from, const fs::path &to)
 {
-    // TODO: test this, + does it need symlink perms?
 #ifdef _WIN32
-    return CreateSymbolicLinkW(to.wstring().c_str(),
-                               from.wstring().c_str(),
-                               SYMBOLIC_LINK_FLAG_DIRECTORY);
+    const std::string command = fmt::format("mklink /J {} {}", to.string(), from.string());
+    return system(command.c_str()) == 0;
 #else
     std::error_code ec;
     fs::create_directory_symlink(from, to, ec);
