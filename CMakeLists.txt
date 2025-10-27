@@ -181,21 +181,6 @@ cmake_dependent_option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF 
 
 option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
-<<<<<<< HEAD
-||||||| parent of da0a031f06 (CMake reorg, use my updated modules, CI vvl)
-option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" OFF)
-if (YUZU_USE_PRECOMPILED_HEADERS)
-    message(STATUS "Using Precompiled Headers.")
-    set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
-endif()
-=======
-option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" OFF)
-if (YUZU_USE_PRECOMPILED_HEADERS)
-    message(STATUS "Using Precompiled Headers.")
-    set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
-endif()
-
->>>>>>> da0a031f06 (CMake reorg, use my updated modules, CI vvl)
 option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
 if(YUZU_ENABLE_LTO)
     include(CheckIPOSupported)
@@ -706,23 +691,6 @@ if (NOT (YUZU_USE_BUNDLED_FFMPEG OR YUZU_USE_EXTERNAL_FFMPEG))
     set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS "https://github.com/FFmpeg/FFmpeg")
 endif()
 
-<<<<<<< HEAD
-if (WIN32 AND YUZU_CRASH_DUMPS)
-    set(BREAKPAD_VER "breakpad-c89f9dd")
-    download_bundled_external("breakpad/" ${BREAKPAD_VER} "breakpad-win" BREAKPAD_PREFIX "c89f9dd")
-||||||| parent of da0a031f06 (CMake reorg, use my updated modules, CI vvl)
-if(ENABLE_QT)
-    set_yuzu_qt_components()
-    find_package(Qt6 REQUIRED COMPONENTS ${YUZU_QT_COMPONENTS})
-    set(QT_MAJOR_VERSION 6)
-    # Qt6 sets cxx_std_17 and we need to undo that
-    set_target_properties(Qt6::Platform PROPERTIES INTERFACE_COMPILE_FEATURES "")
-endif()
-
-if (WIN32 AND YUZU_CRASH_DUMPS)
-    set(BREAKPAD_VER "breakpad-c89f9dd")
-    download_bundled_external("breakpad/" ${BREAKPAD_VER} "breakpad-win" BREAKPAD_PREFIX "c89f9dd")
-=======
 if(ENABLE_QT)
     set_yuzu_qt_components()
     find_package(Qt6 REQUIRED COMPONENTS ${YUZU_QT_COMPONENTS})
@@ -734,7 +702,6 @@ endif()
 # if (WIN32 AND YUZU_CRASH_DUMPS)
 #     set(BREAKPAD_VER "breakpad-c89f9dd")
 #     download_bundled_external("breakpad/" ${BREAKPAD_VER} "breakpad-win" BREAKPAD_PREFIX "c89f9dd")
->>>>>>> da0a031f06 (CMake reorg, use my updated modules, CI vvl)
 
 #     set(BREAKPAD_CLIENT_INCLUDE_DIR "${BREAKPAD_PREFIX}/include")
 #     set(BREAKPAD_CLIENT_LIBRARY "${BREAKPAD_PREFIX}/lib/libbreakpad_client.lib")
