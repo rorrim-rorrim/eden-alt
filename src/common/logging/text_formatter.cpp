@@ -38,7 +38,7 @@ void PrintMessage(const Entry& entry) {
     auto const str = FormatLogMessage(entry).append(1, '\n');
 #else
 #define ESC "\x1b"
-    auto const str = std::string{[&entry]() -> const char* {
+    auto str = std::string{[&entry]() -> const char* {
         switch (entry.log_level) {
         case Level::Debug: return ESC "[0;36m"; // Cyan
         case Level::Info: return ESC "[0;37m"; // Bright gray
@@ -47,7 +47,9 @@ void PrintMessage(const Entry& entry) {
         case Level::Critical: return ESC "[1;35m"; // Bright magenta
         default: return ESC "[1;30m"; // Grey
         }
-    }()}.append(FormatLogMessage(entry)).append(ESC "[0m\n");
+    }()};
+    str.append(FormatLogMessage(entry));
+    str.append(ESC "[0m\n");
 #undef ESC
 #endif
     fwrite(str.c_str(), 1, str.size(), stderr);
