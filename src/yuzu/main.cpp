@@ -2917,22 +2917,23 @@ std::string GMainWindow::GetProfileID()
 
 void GMainWindow::OnLinkToRyujinx(const u64& program_id)
 {
-    namespace fs = std::filesystem;
-
     u64 save_id = QtCommon::FS::GetRyujinxSaveID(program_id);
     if (save_id == (u64) -1)
         return;
-    fs::path ryu_dir = Common::FS::GetRyuSavePath(save_id);
 
-    std::string user_id = GetProfileID();
-    if (user_id.empty())
+    const std::string user_id = GetProfileID();
+
+    auto paths = QtCommon::FS::GetEmuPaths(program_id, save_id, user_id);
+    if (!paths)
         return;
-    std::string hex_program = fmt::format("{:016X}", program_id);
-    fs::path eden_dir = FrontendCommon::DataManager::GetDataDir(FrontendCommon::DataManager::DataDir::Saves, user_id)
-                        / hex_program;
 
-    RyujinxDialog dialog(eden_dir, ryu_dir, this);
-    dialog.exec();
+    auto eden_dir = paths.value().first;
+    auto ryu_dir = paths.value().second;
+
+    if (!QtCommon::FS::CheckUnlink(eden_dir, ryu_dir)) {
+        RyujinxDialog dialog(eden_dir, ryu_dir, this);
+        dialog.exec();
+    }
 }
 
 void GMainWindow::OnMenuLoadFile() {

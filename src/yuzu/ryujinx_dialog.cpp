@@ -5,7 +5,6 @@
 #include "qt_common/util/fs.h"
 #include "ui_ryujinx_dialog.h"
 #include <filesystem>
-#include <fmt/format.h>
 
 namespace fs = std::filesystem;
 
@@ -31,16 +30,11 @@ RyujinxDialog::~RyujinxDialog()
 void RyujinxDialog::fromEden()
 {
     accept();
-    link(m_eden, m_ryu);
+    QtCommon::FS::LinkRyujinx(m_eden, m_ryu);
 }
 
 void RyujinxDialog::fromRyujinx()
 {
     accept();
-    link(m_ryu, m_eden);
-}
-
-void RyujinxDialog::link(std::filesystem::path &from, std::filesystem::path &to)
-{
-    QtCommon::FS::LinkRyujinx(from, to);
+    QtCommon::FS::LinkRyujinx(m_ryu, m_eden);
 }

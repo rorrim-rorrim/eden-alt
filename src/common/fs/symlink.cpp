@@ -36,7 +36,7 @@ bool IsSymlink(const fs::path &path)
 #ifdef _WIN32
     return fs::status(path).type() == fs::file_type::junction;
 #else
-    return fs::status(path).type() == fs::file_type::symlink;
+    return fs::is_symlink(path);
 #endif
 }
 
