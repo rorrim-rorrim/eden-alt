@@ -5,6 +5,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <fmt/format.h>
 #endif
 
 namespace fs = std::filesystem;
