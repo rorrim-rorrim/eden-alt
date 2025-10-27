@@ -11,7 +11,7 @@
 #include "frontend_common/firmware_manager.h"
 
 #include "compress.h"
-#include "qt_common/abstract/qt_frontend_util.h"
+#include "qt_common/abstract/frontend.h"
 #include "qt_common/abstract/qt_progress_dialog.h"
 #include "qt_common/qt_common.h"
 

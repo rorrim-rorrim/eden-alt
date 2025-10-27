@@ -3,13 +3,13 @@
 
 #include "qt_common.h"
 #include "common/fs/fs.h"
-#include "common/ryujinx_compat.h"
+#include "common/fs/ryujinx_compat.h"
 
 #include <QGuiApplication>
 #include <QStringLiteral>
 #include "common/logging/log.h"
 #include "core/frontend/emu_window.h"
-#include "qt_common/abstract/qt_frontend_util.h"
+#include "qt_common/abstract/frontend.h"
 #include "qt_common/qt_string_lookup.h"
 
 #include <QFile>
@@ -124,32 +124,6 @@ std::filesystem::path GetEdenCommand()
     }
 
     return command;
-}
-
-u64 GetRyujinxSaveID(const u64& program_id)
-{
-    auto path = Common::FS::GetKvdbPath();
-    std::vector<Common::FS::IMEN> imens;
-    Common::FS::IMENReadResult res = Common::FS::ReadKvdb(path, imens);
-
-    if (res == Common::FS::IMENReadResult::Success) {
-        // TODO: this can probably be done with std::find_if but I'm lazy
-        for (const Common::FS::IMEN& imen : imens) {
-            if (imen.title_id == program_id)
-                return imen.save_id;
-        }
-
-        QtCommon::Frontend::Critical(
-            tr("Could not find Ryujinx save data"),
-            StringLookup::Lookup(StringLookup::RyujinxNoSaveId).arg(program_id, 0, 16));
-    } else {
-        // TODO: make this long thing a function or something
-        QString caption = StringLookup::Lookup(
-            static_cast<StringLookup::StringKey>((int) res + (int) StringLookup::KvdbNonexistent));
-        QtCommon::Frontend::Critical(tr("Could not find Ryujinx save data"), caption);
-    }
-
-    return -1;
 }
 
 } // namespace QtCommon

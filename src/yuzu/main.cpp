@@ -6,11 +6,12 @@
 #include "core/tools/renderdoc.h"
 #include "frontend_common/firmware_manager.h"
 #include "qt_common/qt_common.h"
-#include "qt_common/abstract/qt_frontend_util.h"
+#include "qt_common/abstract/frontend.h"
 #include "qt_common/util/content.h"
 #include "qt_common/util/game.h"
 #include "qt_common/util/meta.h"
 #include "qt_common/util/path.h"
+#include "qt_common/util/fs.h"
 #include <clocale>
 #include <cmath>
 #include <memory>
@@ -109,7 +110,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "common/detached_tasks.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
-#include "common/ryujinx_compat.h"
+#include "common/fs/ryujinx_compat.h"
 #include "common/literals.h"
 #include "common/logging/backend.h"
 #include "common/logging/log.h"
@@ -2918,7 +2919,7 @@ void GMainWindow::OnLinkToRyujinx(const u64& program_id)
 {
     namespace fs = std::filesystem;
 
-    u64 save_id = QtCommon::GetRyujinxSaveID(program_id);
+    u64 save_id = QtCommon::FS::GetRyujinxSaveID(program_id);
     if (save_id == (u64) -1)
         return;
     fs::path ryu_dir = Common::FS::GetRyuSavePath(save_id);
