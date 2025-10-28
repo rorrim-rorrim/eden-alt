@@ -1915,6 +1915,10 @@ static void SvcWrap_MapProcessCodeMemory64From32(Core::System& system, std::span
     uint64_t src_address{};
     uint64_t size{};
 
+    LOG_DEBUG(Kernel_SVC, "Raw args: [0]={:#x} [1]={:#x} [2]={:#x} [3]={:#x} [4]={:#x} [5]={:#x} [6]={:#x}",
+          GetArg32(args, 0), GetArg32(args, 1), GetArg32(args, 2),
+          GetArg32(args, 3), GetArg32(args, 4), GetArg32(args, 5), GetArg32(args, 6));
+
     process_handle = Convert<Handle>(GetArg32(args, 0));
     std::array<uint32_t, 2> dst_address_gather{};
     dst_address_gather[0] = GetArg32(args, 2);
