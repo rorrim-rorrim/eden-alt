@@ -3356,18 +3356,6 @@ void GMainWindow::OnOpenFAQ() {
     OpenURL(QUrl(QStringLiteral("https://yuzu-mirror.github.io/help")));
 }
 
-void GMainWindow::OnOpenDiscord() {
-    OpenURL(QUrl(QStringLiteral("https://discord.gg/HstXbPch7X")));
-}
-
-void GMainWindow::OnOpenRevolt() {
-    OpenURL(QUrl(QStringLiteral("https://rvlt.gg/qKgFEAbH")));
-}
-
-void GMainWindow::OnOpenX() {
-    OpenURL(QUrl(QStringLiteral("https://x.com/edenemuofficial")));
-}
-
 void GMainWindow::ToggleFullscreen() {
     if (!emulation_running) {
         return;
