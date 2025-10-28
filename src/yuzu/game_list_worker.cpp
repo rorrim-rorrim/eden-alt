@@ -173,6 +173,10 @@ QString FormatPatchNameVersions(const FileSys::PatchManager& patch_manager,
             continue;
         }
 
+        if (is_update && patch.version.empty()) {
+            continue;
+        }
+
         const QString type =
             QString::fromStdString(patch.enabled ? patch.name : "[D] " + patch.name);
 

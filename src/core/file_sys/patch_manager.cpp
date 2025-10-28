@@ -9,6 +9,8 @@
 #include <cstddef>
 #include <cstring>
 #include <set>
+#include <string>
+#include <vector>
 
 #include "common/hex_util.h"
 #include "common/logging/log.h"
@@ -63,6 +65,30 @@ std::string FormatTitleVersion(u32 version,
         return fmt::format("v{}.{}.{}.{}", bytes[3], bytes[2], bytes[1], bytes[0]);
     }
     return fmt::format("v{}.{}.{}", bytes[3], bytes[2], bytes[1]);
+}
+
+static std::array<int, 4> ParseVersionComponents(std::string_view label) {
+    std::array<int, 4> out{0, 0, 0, 0};
+    if (!label.empty() && (label.front() == 'v' || label.front() == 'V')) {
+        label.remove_prefix(1);
+    }
+    size_t part = 0;
+    size_t start = 0;
+    std::string s(label);
+    while (part < out.size() && start < s.size()) {
+        size_t dot = s.find('.', start);
+        auto token = s.substr(start, dot == std::string::npos ? std::string::npos : dot - start);
+        try {
+            out[part] = std::stoi(token);
+        } catch (...) {
+            out[part] = 0;
+        }
+        ++part;
+        if (dot == std::string::npos)
+            break;
+        start = dot + 1;
+    }
+    return out;
 }
 
 // Returns a directory with name matching name case-insensitive. Returns nullptr if directory
@@ -563,6 +589,30 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
         } else {
             LOG_WARNING(Loader, " RomFS: Update NCA is not valid");
         }
+    } else if (!update_disabled && base_nca != nullptr) {
+        ContentRecordType alt_type = type;
+
+        if (type == ContentRecordType::Program) {
+            alt_type = ContentRecordType::Data;
+        } else if (type == ContentRecordType::Data) {
+            alt_type = ContentRecordType::Program;
+        }
+
+        if (alt_type != type) {
+            const auto alt_update_raw =
+                content_provider.GetEntryRaw(*selected_update_tid, alt_type);
+            if (alt_update_raw != nullptr) {
+                const auto new_nca = std::make_shared<NCA>(alt_update_raw, base_nca);
+                if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
+                    new_nca->GetRomFS() != nullptr) {
+                    LOG_INFO(Loader, "    RomFS: Update (fallback {}) applied successfully",
+                             alt_type == ContentRecordType::Data ? "DATA" : "PROGRAM");
+                    romfs = new_nca->GetRomFS();
+                } else {
+                    LOG_WARNING(Loader, "    RomFS: Update (fallback) NCA is not valid");
+                }
+            }
+        }
     } else if (!update_disabled && packed_update_raw != nullptr && base_nca != nullptr) {
         const auto new_nca = std::make_shared<NCA>(packed_update_raw, base_nca);
         if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
@@ -590,74 +640,87 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
     std::vector<Patch> out;
     const auto& disabled = Settings::values.disabled_addons[title_id];
 
-    // Game Updates (default latest)
-    const auto update_tid = GetUpdateTitleID(title_id);
-    PatchManager update{update_tid, fs_controller, content_provider};
-    const auto metadata = update.GetControlMetadata();
-
-    const auto update_disabled =
-        std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend();
-    Patch update_patch = {.enabled = !update_disabled,
-                          .name = "Update",
-                          .version = "",
-                          .type = PatchType::Update,
-                          .program_id = title_id,
-                          .title_id = title_id};
-
-    out.push_back(update_patch);
-
-    std::optional<u64> selected_variant_tid;
-    if (!update_disabled) {
-        const bool has_pref = HasVariantPreference(Settings::values.disabled_addons[title_id]);
-        if (has_pref) {
-            selected_variant_tid = ChooseUpdateVariant(content_provider, title_id,
-                                                       ContentRecordType::Program, fs_controller);
-        } else {
-            selected_variant_tid = GetUpdateTitleID(title_id);
-        }
-    }
-
-    const auto variant_tids =
+    auto variant_tids =
         EnumerateUpdateVariants(content_provider, title_id, ContentRecordType::Program);
-    std::vector<std::pair<std::string, u64>> variant_labels;
-    variant_labels.reserve(variant_tids.size());
-    for (const auto tid : variant_tids) {
-        variant_labels.emplace_back(GetUpdateVersionLabel(tid, fs_controller, content_provider),
-                                    tid);
+    {
+        auto data_tids =
+            EnumerateUpdateVariants(content_provider, title_id, ContentRecordType::Data);
+        variant_tids.insert(variant_tids.end(), data_tids.begin(), data_tids.end());
+        auto control_tids =
+            EnumerateUpdateVariants(content_provider, title_id, ContentRecordType::Control);
+        variant_tids.insert(variant_tids.end(), control_tids.begin(), control_tids.end());
+        std::sort(variant_tids.begin(), variant_tids.end());
+        variant_tids.erase(std::unique(variant_tids.begin(), variant_tids.end()),
+                           variant_tids.end());
     }
-    std::sort(variant_labels.begin(), variant_labels.end(), [this](auto const& a, auto const& b) {
-        const auto va = content_provider.GetEntryVersion(a.second).value_or(0);
-        const auto vb = content_provider.GetEntryVersion(b.second).value_or(0);
-        if (va != vb)
-            return va > vb;
-        return a.first < b.first;
-    });
-    std::set<std::string> seen_versions;
-    if (!out.empty() && !out.back().version.empty()) {
-        auto ver = out.back().version;
-        if (!ver.empty() && (ver.front() == 'v' || ver.front() == 'V')) {
-            ver.erase(ver.begin());
-        }
-        seen_versions.insert(std::move(ver));
-    }
-    for (const auto& [label, tid] : variant_labels) {
-        std::string version = label;
-        if (!version.empty() && (version.front() == 'v' || version.front() == 'V')) {
-            version.erase(version.begin());
-        }
-        if (seen_versions.find(version) != seen_versions.end()) {
-            continue;
-        }
-        const auto toggle_name = fmt::format("Update {}", label);
-        const bool is_selected = selected_variant_tid.has_value() && tid == *selected_variant_tid;
-        const bool variant_disabled = update_disabled || !is_selected;
-        out.push_back({.enabled = !variant_disabled,
+
+    if (!variant_tids.empty()) {
+        const auto update_disabled =
+            std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend();
+
+        out.push_back({.enabled = !update_disabled,
                        .name = "Update",
-                       .version = version,
+                       .version = "",
                        .type = PatchType::Update,
                        .program_id = title_id,
-                       .title_id = tid});
-        seen_versions.insert(version);
+                       .title_id = title_id});
+
+        std::optional<u64> selected_variant_tid;
+        if (!update_disabled) {
+            const bool has_pref = HasVariantPreference(Settings::values.disabled_addons[title_id]);
+            if (has_pref) {
+                selected_variant_tid = ChooseUpdateVariant(
+                    content_provider, title_id, ContentRecordType::Program, fs_controller);
+            } else {
+                selected_variant_tid = GetUpdateTitleID(title_id);
+            }
+        }
+
+        std::vector<std::pair<std::string, u64>> variant_labels;
+        variant_labels.reserve(variant_tids.size());
+
+        for (const auto tid : variant_tids) {
+            variant_labels.emplace_back(GetUpdateVersionLabel(tid, fs_controller, content_provider),
+                                        tid);
+        }
+
+        std::sort(variant_labels.begin(), variant_labels.end(),
+                  [this](auto const& a, auto const& b) {
+                      const auto va = content_provider.GetEntryVersion(a.second).value_or(0);
+                      const auto vb = content_provider.GetEntryVersion(b.second).value_or(0);
+
+                      if (va != vb)
+                          return va > vb;
+
+                      const auto ca = ParseVersionComponents(a.first);
+                      const auto cb = ParseVersionComponents(b.first);
+
+                      if (ca != cb)
+                          return ca > cb;
+
+                      return a.first > b.first;
+                  });
+
+        std::set<std::string> seen_versions;
+        for (const auto& [label, tid] : variant_labels) {
+            std::string version = label;
+            if (!version.empty() && (version.front() == 'v' || version.front() == 'V')) {
+                version.erase(version.begin());
+            }
+            if (seen_versions.find(version) != seen_versions.end()) {
+                continue;
+            }
+            const bool is_selected =
+                selected_variant_tid.has_value() && tid == *selected_variant_tid;
+            const bool variant_disabled = update_disabled || !is_selected;
+            out.push_back({.enabled = !variant_disabled,
+                           .name = "Update",
+                           .version = version,
+                           .type = PatchType::Update,
+                           .program_id = title_id,
+                           .title_id = tid});
+            seen_versions.insert(version);
+        }
     }
 
     // General Mods (LayeredFS and IPS)
