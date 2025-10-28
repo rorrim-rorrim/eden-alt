@@ -42,8 +42,8 @@ DevirtualizedCall DevirtualizeDefault(mcl::class_type<decltype(mfp)>* this_) {
     u64 fn_ptr = mfp_struct.ptr;
     u64 this_ptr = std::bit_cast<u64>(this_) + (mfp_struct.adj >> 1);
     if (mfp_struct.adj & 1) {
-        u64 vtable = std::bit_cast_pointee<u64>(this_ptr);
-        fn_ptr = std::bit_cast_pointee<u64>(vtable + fn_ptr);
+        u64 vtable = *reinterpret_cast<u64 const*>(this_ptr);
+        fn_ptr = *reinterpret_cast<u64 const*>(vtable + fn_ptr);
     }
     return DevirtualizedCall{fn_ptr, this_ptr};
 }
