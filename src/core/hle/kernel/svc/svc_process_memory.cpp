@@ -200,6 +200,12 @@ Result UnmapProcessCodeMemory(Core::System& system, Handle process_handle, u64 d
               "size=0x{:016X}",
               process_handle, dst_address, src_address, size);
 
+    // Workaround for Skyline 32Bit bug
+    if (size == 0) {
+        LOG_WARNING(Kernel_SVC, "UnmapProcessCodeMemory called with size=0, bypassing for now.");
+        R_RETURN(ResultSuccess);
+    }
+
     if (!Common::Is4KBAligned(dst_address)) {
         LOG_ERROR(Kernel_SVC, "dst_address is not page-aligned (dst_address=0x{:016X}).",
                   dst_address);
