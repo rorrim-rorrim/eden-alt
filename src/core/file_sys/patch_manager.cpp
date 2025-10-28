@@ -583,7 +583,7 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
         if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
             new_nca->GetRomFS() != nullptr) {
             const auto ver_num = content_provider.GetEntryVersion(*selected_update_tid).value_or(0);
-            LOG_INFO(Loader, " RomFS: Update ({}) applied successfully",
+            LOG_DEBUG(Loader, " RomFS: Update ({}) applied successfully",
                      FormatTitleVersion(ver_num));
             romfs = new_nca->GetRomFS();
         } else {
@@ -605,7 +605,7 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
                 const auto new_nca = std::make_shared<NCA>(alt_update_raw, base_nca);
                 if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
                     new_nca->GetRomFS() != nullptr) {
-                    LOG_INFO(Loader, "    RomFS: Update (fallback {}) applied successfully",
+                    LOG_DEBUG(Loader, "    RomFS: Update (fallback {}) applied successfully",
                              alt_type == ContentRecordType::Data ? "DATA" : "PROGRAM");
                     romfs = new_nca->GetRomFS();
                 } else {
@@ -617,7 +617,7 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
         const auto new_nca = std::make_shared<NCA>(packed_update_raw, base_nca);
         if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
             new_nca->GetRomFS() != nullptr) {
-            LOG_INFO(Loader, "    RomFS: Update (PACKED) applied successfully");
+            LOG_DEBUG(Loader, "    RomFS: Update (PACKED) applied successfully");
             romfs = new_nca->GetRomFS();
         } else {
             LOG_WARNING(Loader, "    RomFS: Update (PACKED) NCA is not valid");
