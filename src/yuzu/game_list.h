@@ -89,8 +89,6 @@ public:
     /// Disables events from the emulated controller
     void UnloadController();
 
-    static const QStringList supported_file_extensions;
-
 public slots:
     void RefreshGameDirectory();
 

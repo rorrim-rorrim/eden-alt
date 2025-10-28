@@ -23,6 +23,7 @@ extern QObject *rootObject;
 extern std::unique_ptr<Core::System> system;
 extern std::shared_ptr<FileSys::RealVfsFilesystem> vfs;
 extern std::unique_ptr<FileSys::ManualContentProvider> provider;
+extern const QStringList supported_file_extensions;
 
 typedef std::function<bool(std::size_t, std::size_t)> QtProgressCallback;
 

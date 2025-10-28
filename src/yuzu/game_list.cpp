@@ -878,10 +878,6 @@ void GameList::LoadInterfaceLayout() {
     header->resizeSection(COLUMN_NAME, header->width());
 }
 
-const QStringList GameList::supported_file_extensions = {
-    QStringLiteral("nso"), QStringLiteral("nro"), QStringLiteral("nca"),
-    QStringLiteral("xci"), QStringLiteral("nsp"), QStringLiteral("kip")};
-
 void GameList::RefreshGameDirectory()
 {
     if (!UISettings::values.game_dirs.empty() && current_worker != nullptr) {

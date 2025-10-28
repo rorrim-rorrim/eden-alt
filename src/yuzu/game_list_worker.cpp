@@ -26,11 +26,12 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/submission_package.h"
 #include "core/loader/loader.h"
+#include "qt_common/config/uisettings.h"
+#include "qt_common/qt_common.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/game_list.h"
 #include "yuzu/game_list_p.h"
 #include "yuzu/game_list_worker.h"
-#include "qt_common/config/uisettings.h"
 
 namespace {
 
@@ -144,7 +145,7 @@ void GetMetadataFromControlNCA(const FileSys::PatchManager& patch_manager, const
 
 bool HasSupportedFileExtension(const std::string& file_name) {
     const QFileInfo file = QFileInfo(QString::fromStdString(file_name));
-    return GameList::supported_file_extensions.contains(file.suffix(), Qt::CaseInsensitive);
+    return QtCommon::supported_file_extensions.contains(file.suffix(), Qt::CaseInsensitive);
 }
 
 bool IsExtractedNCAMain(const std::string& file_name) {

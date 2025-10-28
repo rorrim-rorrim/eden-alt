@@ -303,85 +303,6 @@ enum class CalloutFlag : uint32_t {
 
 const int GMainWindow::max_recent_files_item;
 
-static void RemoveCachedContents() {
-    const auto cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir);
-    const auto offline_fonts = cache_dir / "fonts";
-    const auto offline_manual = cache_dir / "offline_web_applet_manual";
-    const auto offline_legal_information = cache_dir / "offline_web_applet_legal_information";
-    const auto offline_system_data = cache_dir / "offline_web_applet_system_data";
-
-    Common::FS::RemoveDirRecursively(offline_fonts);
-    Common::FS::RemoveDirRecursively(offline_manual);
-    Common::FS::RemoveDirRecursively(offline_legal_information);
-    Common::FS::RemoveDirRecursively(offline_system_data);
-}
-
-static void LogRuntimes() {
-#ifdef _MSC_VER
-    // It is possible that the name of the dll will change.
-    // vcruntime140.dll is for 2015 and onwards
-    static constexpr char runtime_dll_name[] = "vcruntime140.dll";
-    UINT sz = GetFileVersionInfoSizeA(runtime_dll_name, nullptr);
-    bool runtime_version_inspection_worked = false;
-    if (sz > 0) {
-        std::vector<u8> buf(sz);
-        if (GetFileVersionInfoA(runtime_dll_name, 0, sz, buf.data())) {
-            VS_FIXEDFILEINFO* pvi;
-            sz = sizeof(VS_FIXEDFILEINFO);
-            if (VerQueryValueA(buf.data(), "\\", reinterpret_cast<LPVOID*>(&pvi), &sz)) {
-                if (pvi->dwSignature == VS_FFI_SIGNATURE) {
-                    runtime_version_inspection_worked = true;
-                    LOG_INFO(Frontend, "MSVC Compiler: {} Runtime: {}.{}.{}.{}", _MSC_VER,
-                             pvi->dwProductVersionMS >> 16, pvi->dwProductVersionMS & 0xFFFF,
-                             pvi->dwProductVersionLS >> 16, pvi->dwProductVersionLS & 0xFFFF);
-                }
-            }
-        }
-    }
-    if (!runtime_version_inspection_worked) {
-        LOG_INFO(Frontend, "Unable to inspect {}", runtime_dll_name);
-    }
-#endif
-    LOG_INFO(Frontend, "Qt Compile: {} Runtime: {}", QT_VERSION_STR, qVersion());
-}
-
-static QString PrettyProductName() {
-#ifdef _WIN32
-    // After Windows 10 Version 2004, Microsoft decided to switch to a different notation: 20H2
-    // With that notation change they changed the registry key used to denote the current version
-    QSettings windows_registry(
-        QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion"),
-        QSettings::NativeFormat);
-    const QString release_id = windows_registry.value(QStringLiteral("ReleaseId")).toString();
-    if (release_id == QStringLiteral("2009")) {
-        const u32 current_build = windows_registry.value(QStringLiteral("CurrentBuild")).toUInt();
-        const QString display_version =
-            windows_registry.value(QStringLiteral("DisplayVersion")).toString();
-        const u32 ubr = windows_registry.value(QStringLiteral("UBR")).toUInt();
-        u32 version = 10;
-        if (current_build >= 22000) {
-            version = 11;
-        }
-        return QStringLiteral("Windows %1 Version %2 (Build %3.%4)")
-            .arg(QString::number(version), display_version, QString::number(current_build),
-                 QString::number(ubr));
-    }
-#endif
-    return QSysInfo::prettyProductName();
-}
-
-#ifdef _WIN32
-static void OverrideWindowsFont() {
-    // Qt5 chooses these fonts on Windows and they have fairly ugly alphanumeric/cyrillic characters
-    // Asking to use "MS Shell Dlg 2" gives better other chars while leaving the Chinese Characters.
-    const QString startup_font = QApplication::font().family();
-    const QStringList ugly_fonts = {QStringLiteral("SimSun"), QStringLiteral("PMingLiU")};
-    if (ugly_fonts.contains(startup_font)) {
-        QApplication::setFont(QFont(QStringLiteral("MS Shell Dlg 2"), 9, QFont::Normal));
-    }
-}
-#endif
-
 #ifndef _WIN32
 // TODO(crueter): carboxyl does this, is it needed in qml?
 inline static bool isDarkMode() {
@@ -402,7 +323,6 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
       input_subsystem{std::make_shared<InputCommon::InputSubsystem>()}, user_data_migrator{this} {
     QtCommon::Init(this);
 
-    Common::FS::CreateEdenPaths();
     this->config = std::make_unique<QtConfig>();
 
     if (user_data_migrator.migrated) {
@@ -432,11 +352,6 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
 
     UISettings::RestoreWindowState(config);
 
-    QtCommon::system->Initialize();
-
-    Common::Log::Initialize();
-    Common::Log::Start();
-
     LoadTranslation();
 
     setAcceptDrops(true);
@@ -456,10 +371,6 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
 
     play_time_manager = std::make_unique<PlayTime::PlayTimeManager>();
 
-    Network::Init();
-
-    QtCommon::Meta::RegisterMetaTypes();
-
     InitializeWidgets();
     InitializeDebugWidgets();
     InitializeRecentFileMenuActions();
@@ -471,52 +382,8 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     ConnectMenuEvents();
     ConnectWidgetEvents();
 
-    QtCommon::system->HIDCore().ReloadInputDevices();
     controller_dialog->refreshConfiguration();
 
-    const auto branch_name = std::string(Common::g_scm_branch);
-    const auto description = std::string(Common::g_scm_desc);
-    const auto build_id = std::string(Common::g_build_id);
-
-    const auto yuzu_build = fmt::format("Eden Development Build | {}-{}", branch_name, description);
-    const auto override_build =
-        fmt::format(fmt::runtime(std::string(Common::g_title_bar_format_idle)), build_id);
-    const auto yuzu_build_version = override_build.empty() ? yuzu_build : override_build;
-    const auto processor_count = std::thread::hardware_concurrency();
-
-    LOG_INFO(Frontend, "Eden Version: {}", yuzu_build_version);
-    LogRuntimes();
-#ifdef ARCHITECTURE_x86_64
-    const auto& caps = Common::GetCPUCaps();
-    std::string cpu_string = caps.cpu_string;
-    if (caps.avx || caps.avx2 || caps.avx512f) {
-        cpu_string += " | AVX";
-        if (caps.avx512f) {
-            cpu_string += "512";
-        } else if (caps.avx2) {
-            cpu_string += '2';
-        }
-        if (caps.fma || caps.fma4) {
-            cpu_string += " | FMA";
-        }
-    }
-    LOG_INFO(Frontend, "Host CPU: {}", cpu_string);
-    if (std::optional<int> processor_core = Common::GetProcessorCount()) {
-        LOG_INFO(Frontend, "Host CPU Cores: {}", *processor_core);
-    }
-#endif
-    LOG_INFO(Frontend, "Host CPU Threads: {}", processor_count);
-    LOG_INFO(Frontend, "Host OS: {}", PrettyProductName().toStdString());
-    LOG_INFO(Frontend, "Host RAM: {:.2f} GiB",
-             Common::GetMemInfo().TotalPhysicalMemory / f64{1_GiB});
-    LOG_INFO(Frontend, "Host Swap: {:.2f} GiB", Common::GetMemInfo().TotalSwapMemory / f64{1_GiB});
-#ifdef _WIN32
-    LOG_INFO(Frontend, "Host Timer Resolution: {:.4f} ms",
-             std::chrono::duration_cast<std::chrono::duration<f64, std::milli>>(
-                 Common::Windows::SetCurrentTimerResolutionToMaximum())
-                 .count());
-    QtCommon::system->CoreTiming().SetTimerResolutionNs(Common::Windows::GetCurrentTimerResolution());
-#endif
     UpdateWindowTitle();
 
     show();
@@ -540,14 +407,6 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
         update_watcher.setFuture(update_future);
     }
 #endif
-
-    QtCommon::system->SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
-    QtCommon::system->RegisterContentProvider(FileSys::ContentProviderUnionSlot::FrontendManual,
-                                    QtCommon::provider.get());
-    QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
-
-    // Remove cached contents generated during the previous session
-    RemoveCachedContents();
 
     // Gen keys if necessary
     OnCheckFirmwareDecryption();
@@ -2944,7 +2803,7 @@ void GMainWindow::OnMenuLoadFile() {
     is_load_file_select_active = true;
     const QString extensions =
         QStringLiteral("*.")
-            .append(GameList::supported_file_extensions.join(QStringLiteral(" *.")))
+            .append(QtCommon::supported_file_extensions.join(QStringLiteral(" *.")))
             .append(QStringLiteral(" main"));
     const QString file_filter = tr("Switch Executable (%1);;All Files (*.*)",
                                    "%1 is an identifier for the Switch executable file extensions.")
