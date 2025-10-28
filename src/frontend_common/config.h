@@ -7,7 +7,12 @@
 #include <string>
 #include "common/settings.h"
 
-#define SI_NO_CONVERSION
+// May be defined on command line by system provided packages (FreeBSD devel/simpleini)
+// but if building from source, it will not be defined, so just do it conditionally.
+// Should probably define on CMake anyways but eh
+#ifndef SI_NO_CONVERSION
+#   define SI_NO_CONVERSION 1
+#endif
 #include <SimpleIni.h>
 #include <boost/algorithm/string/replace.hpp>
 
