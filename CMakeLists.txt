@@ -189,9 +189,9 @@ if (CXX_CLANG_CL)
         $<$<COMPILE_LANGUAGE:C,CXX>:/EHsc> # thanks microsoft
     )
 
-    if (ARCHITECTURE_x86_64)
+    # REQUIRED CPU features IN windows specifically and amd64
+    if (ARCHITECTURE_x86_64 AND WIN32)
         add_compile_options(
-            # Required CPU features for amd64
             $<$<COMPILE_LANGUAGE:C,CXX>:-msse4.1>
             $<$<COMPILE_LANGUAGE:C,CXX>:-mcx16>
         )
