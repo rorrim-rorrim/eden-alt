@@ -1574,31 +1574,24 @@ void BufferCache<P>::MappedUploadMemory(Buffer& buffer,
     if constexpr (USE_MEMORY_MAPS) {
         auto upload_staging = runtime.UploadStagingBuffer(total_size_bytes);
         const std::span<u8> staging_pointer = upload_staging.mapped_span;
-
         if (staging_pointer.size() < total_size_bytes) {
-            LOG_DEBUG(HW_GPU, "Staging buffer too small for total size bytes");
+            LOG_ERROR(HW_GPU, "Staging buffer too small for total size bytes");
             return;
         }
-
         for (BufferCopy& copy : copies) {
             if (copy.src_offset + copy.size > staging_pointer.size()) {
                 LOG_ERROR(HW_GPU, "Copy exceeds staging buffer bounds (src_offset: {}, size: {})", copy.src_offset, copy.size);
                 return;
             }
-
             u8* const src_pointer = staging_pointer.data() + copy.src_offset;
-
             if (copy.dst_offset + copy.size > buffer.Size()) {
                 LOG_ERROR(HW_GPU, "Copy exceeds buffer bounds (dst_offset: {}, size: {})", copy.dst_offset, copy.size);
                 return;
             }
-
             const DAddr device_addr = buffer.CpuAddr() + copy.dst_offset;
             device_memory.ReadBlockUnsafe(device_addr, src_pointer, copy.size);
-
             copy.src_offset += upload_staging.offset;
         }
-
         const bool can_reorder = runtime.CanReorderUpload(buffer, copies);
         runtime.CopyBuffer(buffer, upload_staging.buffer, copies, true, can_reorder);
     }
