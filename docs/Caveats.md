@@ -81,7 +81,7 @@ Still will not run flawlessly until `mesa-24` is available. Modify CMakeCache.tx
 
 After configuration, you may need to modify `externals/ffmpeg/CMakeFiles/ffmpeg-build/build.make` to use `-j$(nproc)` instead of just `-j`.
 
-`-lc++-experimental` doesn't exist in OpenBSD but the LLVM driver still tries to link against it, to solve just symlink `ln -s /usr/lib/libc++.a /usr/lib/libc++experimental.a`.
+`-lc++-experimental` doesn't exist in OpenBSD but the LLVM driver still tries to link against it, to solve just symlink `ln -s /usr/lib/libc++.a /usr/lib/libc++experimental.a`. Builds are currently not working due to lack of `std::jthread` and such, either compile libc++ manually or wait for ports to catch up.
 
 If clang has errors, try using `g++-11`.
 
@@ -122,6 +122,12 @@ rm /usr/local/lib/gcc11/libstdc++.so.6
 ln -s /usr/local/lib/gcc14/libstdc++.so /usr/local/lib/gcc11/libstdc++.so.6
 ```
 This may have unforeseen consequences of which we don't need to worry about for now.
+
+Default `g++` (and the libstdc++) is too outdated - so install `gcc14` and redirect CMake to the new compiler toolchain  `-DCMAKE_CXX_COMPILER=gcc14 -DCMAKE_C_COMPILER=g++14`.
+
+There is also `llvm18` and use `-DCMAKE_CXX_COMPILER=clang++18 -DCMAKE_C_COMPILER=clang18` (note the `18` prefix at the end). NOTE: It doesn't have an updated libcxx so `<span>` will be missing, either build it manually or use gcc.
+
+If build hangs, use `hammer2 bulkfree`.
 
 ## MSYS2
 
