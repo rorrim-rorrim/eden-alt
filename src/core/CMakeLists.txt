@@ -54,6 +54,8 @@ add_library(core STATIC
     file_sys/control_metadata.cpp
     file_sys/control_metadata.h
     file_sys/errors.h
+    file_sys/external_content_index.cpp
+    file_sys/external_content_index.h
     file_sys/fs_directory.h
     file_sys/fs_file.h
     file_sys/fs_filesystem.h

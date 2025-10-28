@@ -759,6 +759,7 @@ struct Values {
 
     // Add-Ons
     std::map<u64, std::vector<std::string>> disabled_addons;
+    std::vector<std::string> external_dirs;
 };
 
 extern Values values;

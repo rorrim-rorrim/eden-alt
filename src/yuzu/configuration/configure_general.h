@@ -45,6 +45,11 @@ private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
 
+    void LoadExternalDirs();
+    void OnAddDirClicked();
+    void OnRemoveDirClicked();
+    void OnDirSelectionChanged();
+
     std::function<void()> reset_callback;
 
     std::unique_ptr<Ui::ConfigureGeneral> ui;

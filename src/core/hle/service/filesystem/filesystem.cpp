@@ -1,7 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <utility>
+#include <filesystem>
 
 #include "common/assert.h"
 #include "common/fs/fs.h"
@@ -12,6 +16,7 @@
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/errors.h"
+#include "core/file_sys/external_content_index.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs_factory.h"
@@ -712,6 +717,36 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
                                                               std::move(sd_load_directory));
         system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::SDMC,
                                        sdmc_factory->GetSDMCContents());
+    }
+
+    if (external_provider == nullptr) {
+        external_provider = std::make_unique<FileSys::ManualContentProvider>();
+        system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::External,
+                                       external_provider.get());
+    }
+
+    RebuildExternalContentIndex();
+}
+
+void FileSystemController::RebuildExternalContentIndex() {
+    if (external_provider == nullptr) {
+        LOG_WARNING(Service_FS, "External provider not initialized, skipping re-index.");
+        return;
+    }
+
+    if (!Settings::values.external_dirs.empty()) {
+        FileSys::ExternalContentPaths paths{};
+        for (const auto& dir : Settings::values.external_dirs) {
+            if (dir.empty())
+                continue;
+            paths.update_dirs.push_back(dir);
+            paths.dlc_dirs.push_back(dir);
+        }
+        FileSys::ExternalContentIndexer indexer{system.GetFilesystem(), *this->external_provider,
+                                                std::move(paths)};
+        indexer.Rebuild();
+    } else {
+        external_provider->ClearAllEntries();
     }
 }
 

@@ -74,6 +74,59 @@
       </widget>
      </item>
      <item>
+      <widget class="QGroupBox" name="DataDirsGroupBox">
+       <property name="title">
+        <string>Additional Directories (Updates, DLC, etc.)</string>
+       </property>
+       <layout class="QVBoxLayout" name="DataDirsVerticalLayout">
+        <item>
+         <widget class="QListWidget" name="external_dirs_list">
+          <property name="toolTip">
+           <string>This list contains directories that will be searched for game updates and DLC.</string>
+          </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::ExtendedSelection</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="DataDirsHorizontalLayout">
+          <item>
+           <spacer name="spacer_dirs_left">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="add_dir_button">
+             <property name="text">
+              <string>Add</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="remove_dir_button">
+             <property name="text">
+              <string>Remove</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+     </item>
+     <item>
       <spacer name="verticalSpacer">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
