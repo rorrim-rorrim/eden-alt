@@ -1574,20 +1574,11 @@ void BufferCache<P>::MappedUploadMemory(Buffer& buffer,
     if constexpr (USE_MEMORY_MAPS) {
         auto upload_staging = runtime.UploadStagingBuffer(total_size_bytes);
         const std::span<u8> staging_pointer = upload_staging.mapped_span;
-        if (staging_pointer.size() < total_size_bytes) {
-            LOG_ERROR(HW_GPU, "Staging buffer too small for total_size_bytes ({} bytes required, {} bytes available)", total_size_bytes, staging_pointer.size());
-            return;
-        }
         for (BufferCopy& copy : copies) {
-            if (copy.src_offset + copy.size > staging_pointer.size()) {
-                LOG_ERROR(HW_GPU, "Copy exceeds staging buffer bounds. src_offset: {}, size: {}", copy.src_offset, copy.size);
-                return;
-            }
             u8* const src_pointer = staging_pointer.data() + copy.src_offset;
             const DAddr device_addr = buffer.CpuAddr() + copy.dst_offset;
-            u8* dst_pointer = device_memory.GetSpan(device_addr, copy.size);
-            if (dst_pointer == nullptr) {
-                LOG_ERROR(HW_GPU, "Attempted copy out of bounds. Destination offset: {}, size: {}, device buffer address: {}", copy.dst_offset, copy.size, device_addr);
+            if (device_memory.GetSpan(device_addr, copy.size) == nullptr) {
+                LOG_DEBUG(HW_GPU, "Read out of bounds: dst_offset={}, size={}, device_addr={}", copy.dst_offset, copy.size, device_addr);
                 return;
             }
             device_memory.ReadBlockUnsafe(device_addr, src_pointer, copy.size);
