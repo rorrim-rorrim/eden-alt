@@ -1828,6 +1828,10 @@ static void SvcWrap_SetProcessMemoryPermission64From32(Core::System& system, std
     uint64_t size{};
     MemoryPermission perm{};
 
+        LOG_DEBUG(Kernel_SVC, "Raw args: [0]={:#x} [1]={:#x} [2]={:#x} [3]={:#x} [4]={:#x} [5]={:#x}",
+              GetArg32(args, 0), GetArg32(args, 1), GetArg32(args, 2),
+              GetArg32(args, 3), GetArg32(args, 4), GetArg32(args, 5));
+
     process_handle = Convert<Handle>(GetArg32(args, 0));
     std::array<uint32_t, 2> address_gather{};
     address_gather[0] = GetArg32(args, 2);
