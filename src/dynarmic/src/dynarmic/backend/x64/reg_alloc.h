@@ -94,8 +94,8 @@ private:
     uint16_t is_being_used_count = 0; //8
     uint16_t current_references = 0; //8
     // Value state
-    uint8_t max_bit_width : 4 = 0; //Valid values: log2(1,2,4,8,16,32,128) = (0, 1, 2, 3, 4, 5, 6)
     uint8_t lru_counter : 2 = 0; //1
+    uint8_t max_bit_width : 4 = 0; //Valid values: log2(1,2,4,8,16,32,128) = (0, 1, 2, 3, 4, 5, 6)
     bool is_scratch : 1 = false; //1
     bool is_set_last_use : 1 = false; //1
     friend class RegAlloc;

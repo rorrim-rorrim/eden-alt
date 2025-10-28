@@ -444,18 +444,18 @@ HostLoc RegAlloc::SelectARegister(const boost::container::static_vector<HostLoc,
             it_empty_candidate = it;
             break;
         // No empty registers for some reason (very evil) - just do normal LRU
-        } else {
-            if (loc_info.lru_counter < min_lru_counter) {
-                // Otherwise a "quasi"-LRU
-                min_lru_counter = loc_info.lru_counter;
-                if (*it >= HostLoc::R8 && *it <= HostLoc::R15) {
-                    it_rex_candidate = it;
-                } else {
-                    it_candidate = it;
-                }
-                if (min_lru_counter == 0)
-                    break; //early exit
+        } else if (loc_info.lru_counter < min_lru_counter) {
+            // Otherwise a "quasi"-LRU
+            min_lru_counter = loc_info.lru_counter;
+            if (*it >= HostLoc::R8 && *it <= HostLoc::R15) {
+                it_rex_candidate = it;
+            } else {
+                it_candidate = it;
             }
+            // There used to be a break here - DO NOT BREAK away you MUST
+            // evaluate ALL of the registers BEFORE making a decision on when to take
+            // otherwise reg pressure will get high and bugs will seep :)
+            // TODO(lizzie): Investigate these god awful annoying reg pressure issues
         }
     }
     // Final resolution goes as follows:
