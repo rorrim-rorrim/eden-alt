@@ -14,7 +14,7 @@
 
 #include <fmt/ostream.h>
 #include "dynarmic/common/assert.h"
-#include <mcl/bit_cast.hpp>
+#include <bit>
 #include <xbyak/xbyak.h>
 
 #include "dynarmic/backend/x64/abi.h"
