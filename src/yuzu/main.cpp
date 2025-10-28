@@ -1708,9 +1708,6 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Mod_Folder, &GMainWindow::OnOpenModFolder);
     connect_menu(ui->action_Log_Folder, &GMainWindow::OnOpenLogFolder);
 
-    connect_menu(ui->action_Discord, &GMainWindow::OnOpenDiscord);
-    connect_menu(ui->action_Revolt, &GMainWindow::OnOpenRevolt);
-    connect_menu(ui->action_X, &GMainWindow::OnOpenX);
     connect_menu(ui->action_Verify_installed_contents, &GMainWindow::OnVerifyInstalledContents);
     connect_menu(ui->action_Firmware_From_Folder, &GMainWindow::OnInstallFirmware);
     connect_menu(ui->action_Firmware_From_ZIP, &GMainWindow::OnInstallFirmwareFromZIP);
