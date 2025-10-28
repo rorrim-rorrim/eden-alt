@@ -8,6 +8,7 @@
 #include <array>
 #include <cstddef>
 #include <cstring>
+#include <set>
 
 #include "common/hex_util.h"
 #include "common/logging/log.h"
@@ -117,6 +118,83 @@ void AppendCommaIfNotEmpty(std::string& to, std::string_view with) {
 bool IsDirValidAndNonEmpty(const VirtualDir& dir) {
     return dir != nullptr && (!dir->GetFiles().empty() || !dir->GetSubdirectories().empty());
 }
+
+static std::vector<u64> EnumerateUpdateVariants(const ContentProvider& provider, u64 base_title_id,
+                                                ContentRecordType type) {
+    std::vector<u64> tids;
+    const auto entries = provider.ListEntriesFilter(TitleType::Update, type);
+    for (const auto& e : entries) {
+        if (GetBaseTitleID(e.title_id) == base_title_id) {
+            tids.push_back(e.title_id);
+        }
+    }
+    std::sort(tids.begin(), tids.end());
+    tids.erase(std::unique(tids.begin(), tids.end()), tids.end());
+    return tids;
+}
+
+static std::string GetUpdateVersionLabel(u64 update_tid,
+                                         const Service::FileSystem::FileSystemController& fs,
+                                         const ContentProvider& provider) {
+    PatchManager pm{update_tid, fs, provider};
+    const auto meta = pm.GetControlMetadata();
+    if (meta.first != nullptr) {
+        auto str = meta.first->GetVersionString();
+        if (!str.empty()) {
+            if (str.front() != 'v' && str.front() != 'V') {
+                str.insert(str.begin(), 'v');
+            }
+            return str;
+        }
+    }
+    const auto ver = provider.GetEntryVersion(update_tid).value_or(0);
+    return FormatTitleVersion(ver);
+}
+
+static std::optional<u64> ChooseUpdateVariant(const ContentProvider& provider, u64 base_title_id,
+                                              ContentRecordType type,
+                                              const Service::FileSystem::FileSystemController& fs) {
+    const auto& disabled = Settings::values.disabled_addons[base_title_id];
+
+    if (std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend()) {
+        return std::nullopt;
+    }
+
+    const auto candidates = EnumerateUpdateVariants(provider, base_title_id, type);
+    if (candidates.empty()) {
+        return std::nullopt;
+    }
+
+    // Sort candidates by numeric version descending, using meta version; fallback to0
+    std::vector<std::pair<u32, u64>> ordered; // (version,uTid)
+    ordered.reserve(candidates.size());
+    for (const auto tid : candidates) {
+        const u32 ver = provider.GetEntryVersion(tid).value_or(0);
+        ordered.emplace_back(ver, tid);
+    }
+    std::sort(ordered.begin(), ordered.end(), [](auto const& a, auto const& b) {
+        return a.first > b.first; // highest version first
+    });
+
+    // Pick the first candidate that is not specifically disabled via "Update vX.Y.Z"
+    for (const auto& [ver, tid] : ordered) {
+        const auto label = GetUpdateVersionLabel(tid, fs, provider);
+        const auto toggle_name = fmt::format("Update {}", label);
+        if (std::find(disabled.cbegin(), disabled.cend(), toggle_name) == disabled.cend()) {
+            return tid;
+        }
+    }
+
+    // All variants disabled, do not apply any update
+    return std::nullopt;
+}
+
+static bool HasVariantPreference(const std::vector<std::string>& disabled) {
+    return std::any_of(disabled.begin(), disabled.end(), [](const std::string& s) {
+        return s.rfind("Update v", 0) == 0;
+    });
+}
+
 } // Anonymous namespace
 
 PatchManager::PatchManager(u64 title_id_,
@@ -141,13 +219,22 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
         std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend();
 
     // Game Updates
-    const auto update_tid = GetUpdateTitleID(title_id);
-    const auto update = content_provider.GetEntry(update_tid, ContentRecordType::Program);
+    std::optional<u64> selected_update_tid;
+    if (!update_disabled) {
+        selected_update_tid = ChooseUpdateVariant(content_provider, title_id,
+                                                  ContentRecordType::Program, fs_controller);
+        if (!selected_update_tid.has_value()) {
+            selected_update_tid = GetUpdateTitleID(title_id);
+        }
+    }
 
-    if (!update_disabled && update != nullptr && update->GetExeFS() != nullptr) {
-        LOG_INFO(Loader, "    ExeFS: Update ({}) applied successfully",
-                 FormatTitleVersion(content_provider.GetEntryVersion(update_tid).value_or(0)));
-        exefs = update->GetExeFS();
+    if (selected_update_tid.has_value()) {
+        const auto update =
+            content_provider.GetEntry(*selected_update_tid, ContentRecordType::Program);
+        if (update != nullptr && update->GetExeFS() != nullptr) {
+            LOG_INFO(Loader, "    ExeFS: Update applied successfully");
+            exefs = update->GetExeFS();
+        }
     }
 
     // LayeredExeFS
@@ -316,7 +403,8 @@ bool PatchManager::HasNSOPatch(const BuildID& build_id_, std::string_view name) 
     return !CollectPatches(patch_dirs, build_id).empty();
 }
 
-std::vector<Core::Memory::CheatEntry> PatchManager::CreateCheatList(const BuildID& build_id_) const {
+std::vector<Core::Memory::CheatEntry> PatchManager::CreateCheatList(
+    const BuildID& build_id_) const {
     const auto load_dir = fs_controller.GetModificationLoadRoot(title_id);
     if (load_dir == nullptr) {
         LOG_ERROR(Loader, "Cannot load mods for invalid title_id={:016X}", title_id);
@@ -325,16 +413,19 @@ std::vector<Core::Memory::CheatEntry> PatchManager::CreateCheatList(const BuildI
 
     const auto& disabled = Settings::values.disabled_addons[title_id];
     auto patch_dirs = load_dir->GetSubdirectories();
-    std::sort(patch_dirs.begin(), patch_dirs.end(), [](auto const& l, auto const& r) { return l->GetName() < r->GetName(); });
+    std::sort(patch_dirs.begin(), patch_dirs.end(),
+              [](auto const& l, auto const& r) { return l->GetName() < r->GetName(); });
 
     // <mod dir> / <folder> / cheats / <build id>.txt
     std::vector<Core::Memory::CheatEntry> out;
     for (const auto& subdir : patch_dirs) {
         if (std::find(disabled.cbegin(), disabled.cend(), subdir->GetName()) == disabled.cend()) {
-            if (auto cheats_dir = FindSubdirectoryCaseless(subdir, "cheats"); cheats_dir != nullptr) {
+            if (auto cheats_dir = FindSubdirectoryCaseless(subdir, "cheats");
+                cheats_dir != nullptr) {
                 if (auto const res = ReadCheatFileFromFolder(title_id, build_id_, cheats_dir, true))
                     std::copy(res->begin(), res->end(), std::back_inserter(out));
-                if (auto const res = ReadCheatFileFromFolder(title_id, build_id_, cheats_dir, false))
+                if (auto const res =
+                        ReadCheatFileFromFolder(title_id, build_id_, cheats_dir, false))
                     std::copy(res->begin(), res->end(), std::back_inserter(out));
             }
         }
@@ -344,14 +435,17 @@ std::vector<Core::Memory::CheatEntry> PatchManager::CreateCheatList(const BuildI
     auto const patch_files = load_dir->GetFiles();
     for (auto const& f : patch_files) {
         auto const name = f->GetName();
-        if (name.starts_with("cheat_") && std::find(disabled.cbegin(), disabled.cend(), name) == disabled.cend()) {
+        if (name.starts_with("cheat_") &&
+            std::find(disabled.cbegin(), disabled.cend(), name) == disabled.cend()) {
             std::vector<u8> data(f->GetSize());
             if (f->Read(data.data(), data.size()) == data.size()) {
                 const Core::Memory::TextCheatParser parser;
-                auto const res = parser.Parse(std::string_view(reinterpret_cast<const char*>(data.data()), data.size()));
+                auto const res = parser.Parse(
+                    std::string_view(reinterpret_cast<const char*>(data.data()), data.size()));
                 std::copy(res.begin(), res.end(), std::back_inserter(out));
             } else {
-                LOG_INFO(Common_Filesystem, "Failed to read cheats file for title_id={:016X}", title_id);
+                LOG_INFO(Common_Filesystem, "Failed to read cheats file for title_id={:016X}",
+                         title_id);
             }
         }
     }
@@ -447,8 +541,12 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
     auto romfs = base_romfs;
 
     // Game Updates
-    const auto update_tid = GetUpdateTitleID(title_id);
-    const auto update_raw = content_provider.GetEntryRaw(update_tid, type);
+    std::optional<u64> selected_update_tid =
+        ChooseUpdateVariant(content_provider, title_id, type, fs_controller);
+    if (!selected_update_tid.has_value()) {
+        selected_update_tid = GetUpdateTitleID(title_id);
+    }
+    const auto update_raw = content_provider.GetEntryRaw(*selected_update_tid, type);
 
     const auto& disabled = Settings::values.disabled_addons[title_id];
     const auto update_disabled =
@@ -458,11 +556,12 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
         const auto new_nca = std::make_shared<NCA>(update_raw, base_nca);
         if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
             new_nca->GetRomFS() != nullptr) {
-            LOG_INFO(Loader, "    RomFS: Update ({}) applied successfully",
-                     FormatTitleVersion(content_provider.GetEntryVersion(update_tid).value_or(0)));
+            const auto ver_num = content_provider.GetEntryVersion(*selected_update_tid).value_or(0);
+            LOG_INFO(Loader, " RomFS: Update ({}) applied successfully",
+                     FormatTitleVersion(ver_num));
             romfs = new_nca->GetRomFS();
-            const auto version =
-                FormatTitleVersion(content_provider.GetEntryVersion(update_tid).value_or(0));
+        } else {
+            LOG_WARNING(Loader, " RomFS: Update NCA is not valid");
         }
     } else if (!update_disabled && packed_update_raw != nullptr && base_nca != nullptr) {
         const auto new_nca = std::make_shared<NCA>(packed_update_raw, base_nca);
@@ -470,6 +569,8 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
             new_nca->GetRomFS() != nullptr) {
             LOG_INFO(Loader, "    RomFS: Update (PACKED) applied successfully");
             romfs = new_nca->GetRomFS();
+        } else {
+            LOG_WARNING(Loader, "    RomFS: Update (PACKED) NCA is not valid");
         }
     }
 
@@ -489,11 +590,10 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
     std::vector<Patch> out;
     const auto& disabled = Settings::values.disabled_addons[title_id];
 
-    // Game Updates
+    // Game Updates (default latest)
     const auto update_tid = GetUpdateTitleID(title_id);
     PatchManager update{update_tid, fs_controller, content_provider};
     const auto metadata = update.GetControlMetadata();
-    const auto& nacp = metadata.first;
 
     const auto update_disabled =
         std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend();
@@ -504,22 +604,60 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
                           .program_id = title_id,
                           .title_id = title_id};
 
-    if (nacp != nullptr) {
-        update_patch.version = nacp->GetVersionString();
-        out.push_back(update_patch);
-    } else {
-        if (content_provider.HasEntry(update_tid, ContentRecordType::Program)) {
-            const auto meta_ver = content_provider.GetEntryVersion(update_tid);
-            if (meta_ver.value_or(0) == 0) {
-                out.push_back(update_patch);
-            } else {
-                update_patch.version = FormatTitleVersion(*meta_ver);
-                out.push_back(update_patch);
-            }
-        } else if (update_raw != nullptr) {
-            update_patch.version = "PACKED";
-            out.push_back(update_patch);
+    out.push_back(update_patch);
+
+    std::optional<u64> selected_variant_tid;
+    if (!update_disabled) {
+        const bool has_pref = HasVariantPreference(Settings::values.disabled_addons[title_id]);
+        if (has_pref) {
+            selected_variant_tid = ChooseUpdateVariant(content_provider, title_id,
+                                                       ContentRecordType::Program, fs_controller);
+        } else {
+            selected_variant_tid = GetUpdateTitleID(title_id);
         }
+    }
+
+    const auto variant_tids =
+        EnumerateUpdateVariants(content_provider, title_id, ContentRecordType::Program);
+    std::vector<std::pair<std::string, u64>> variant_labels;
+    variant_labels.reserve(variant_tids.size());
+    for (const auto tid : variant_tids) {
+        variant_labels.emplace_back(GetUpdateVersionLabel(tid, fs_controller, content_provider),
+                                    tid);
+    }
+    std::sort(variant_labels.begin(), variant_labels.end(), [this](auto const& a, auto const& b) {
+        const auto va = content_provider.GetEntryVersion(a.second).value_or(0);
+        const auto vb = content_provider.GetEntryVersion(b.second).value_or(0);
+        if (va != vb)
+            return va > vb;
+        return a.first < b.first;
+    });
+    std::set<std::string> seen_versions;
+    if (!out.empty() && !out.back().version.empty()) {
+        auto ver = out.back().version;
+        if (!ver.empty() && (ver.front() == 'v' || ver.front() == 'V')) {
+            ver.erase(ver.begin());
+        }
+        seen_versions.insert(std::move(ver));
+    }
+    for (const auto& [label, tid] : variant_labels) {
+        std::string version = label;
+        if (!version.empty() && (version.front() == 'v' || version.front() == 'V')) {
+            version.erase(version.begin());
+        }
+        if (seen_versions.find(version) != seen_versions.end()) {
+            continue;
+        }
+        const auto toggle_name = fmt::format("Update {}", label);
+        const bool is_selected = selected_variant_tid.has_value() && tid == *selected_variant_tid;
+        const bool variant_disabled = update_disabled || !is_selected;
+        out.push_back({.enabled = !variant_disabled,
+                       .name = "Update",
+                       .version = version,
+                       .type = PatchType::Update,
+                       .program_id = title_id,
+                       .title_id = tid});
+        seen_versions.insert(version);
     }
 
     // General Mods (LayeredFS and IPS)

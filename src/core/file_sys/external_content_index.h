@@ -66,7 +66,7 @@ private:
     ManualContentProvider& m_provider;
     ExternalContentPaths m_paths;
 
-    std::unordered_map<TitleID, ParsedUpdate> m_best_update_by_title;
+    std::unordered_map<TitleID, std::vector<ParsedUpdate>> m_updates_by_title;
 
     std::vector<ParsedDlcRecord> m_all_dlc;
 };

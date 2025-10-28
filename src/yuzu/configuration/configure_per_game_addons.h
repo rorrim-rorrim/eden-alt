@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -44,6 +47,8 @@ private:
 
     void LoadConfiguration();
 
+    void OnItemChanged(QStandardItem* item);
+
     std::unique_ptr<Ui::ConfigurePerGameAddons> ui;
     FileSys::VirtualFile file;
     u64 title_id;
@@ -53,6 +58,9 @@ private:
     QStandardItemModel* item_model;
 
     std::vector<QList<QStandardItem*>> list_items;
+
+    QStandardItem* default_update_item = nullptr;
+    std::vector<QStandardItem*> update_variant_items;
 
     Core::System& system;
 };

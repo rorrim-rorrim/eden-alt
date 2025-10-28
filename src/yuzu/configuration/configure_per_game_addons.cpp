@@ -21,10 +21,10 @@
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/xts_archive.h"
 #include "core/loader/loader.h"
+#include "qt_common/config/uisettings.h"
 #include "ui_configure_per_game_addons.h"
 #include "yuzu/configuration/configure_input.h"
 #include "yuzu/configuration/configure_per_game_addons.h"
-#include "qt_common/config/uisettings.h"
 
 ConfigurePerGameAddons::ConfigurePerGameAddons(Core::System& system_, QWidget* parent)
     : QWidget(parent), ui{std::make_unique<Ui::ConfigurePerGameAddons>()}, system{system_} {
@@ -64,6 +64,8 @@ ConfigurePerGameAddons::ConfigurePerGameAddons(Core::System& system_, QWidget* p
 
     ui->scrollArea->setEnabled(!system.IsPoweredOn());
 
+    connect(item_model, &QStandardItemModel::itemChanged, this,
+            &ConfigurePerGameAddons::OnItemChanged);
     connect(item_model, &QStandardItemModel::itemChanged,
             [] { UISettings::values.is_game_list_reload_pending.exchange(true); });
 }
@@ -71,12 +73,26 @@ ConfigurePerGameAddons::ConfigurePerGameAddons(Core::System& system_, QWidget* p
 ConfigurePerGameAddons::~ConfigurePerGameAddons() = default;
 
 void ConfigurePerGameAddons::ApplyConfiguration() {
+    bool any_variant_checked = false;
+    for (auto* v : update_variant_items) {
+        if (v && v->checkState() == Qt::Checked) {
+            any_variant_checked = true;
+            break;
+        }
+    }
+    if (any_variant_checked && default_update_item &&
+        default_update_item->checkState() == Qt::Unchecked) {
+        default_update_item->setCheckState(Qt::Checked);
+    }
+
     std::vector<std::string> disabled_addons;
 
     for (const auto& item : list_items) {
         const auto disabled = item.front()->checkState() == Qt::Unchecked;
-        if (disabled)
-            disabled_addons.push_back(item.front()->text().toStdString());
+        if (disabled) {
+            const auto key = item.front()->data(Qt::UserRole).toString();
+            disabled_addons.push_back(key.toStdString());
+        }
     }
 
     auto current = Settings::values.disabled_addons[title_id];
@@ -116,6 +132,12 @@ void ConfigurePerGameAddons::LoadConfiguration() {
         return;
     }
 
+    // Reset model and caches to avoid duplicates
+    item_model->removeRows(0, item_model->rowCount());
+    list_items.clear();
+    default_update_item = nullptr;
+    update_variant_items.clear();
+
     const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
                                    system.GetContentProvider()};
     const auto loader = Loader::GetLoader(system, file);
@@ -126,21 +148,86 @@ void ConfigurePerGameAddons::LoadConfiguration() {
     const auto& disabled = Settings::values.disabled_addons[title_id];
 
     for (const auto& patch : pm.GetPatches(update_raw)) {
-        const auto name = QString::fromStdString(patch.name);
+        const auto display_name = QString::fromStdString(patch.name);
+        const auto version_q = QString::fromStdString(patch.version);
+
+        QString toggle_key = display_name;
+        const bool is_update = (patch.type == FileSys::PatchType::Update);
+        const bool is_default_update_row = is_update && patch.version.empty();
+        if (is_update) {
+            if (is_default_update_row) {
+                toggle_key = QStringLiteral("Update");
+            } else if (!patch.version.empty() && patch.version != "PACKED") {
+                toggle_key = QStringLiteral("Update v%1").arg(version_q);
+            } else {
+                toggle_key = QStringLiteral("Update");
+            }
+        }
 
         auto* const first_item = new QStandardItem;
-        first_item->setText(name);
+        first_item->setText(display_name);
         first_item->setCheckable(true);
+        first_item->setData(toggle_key, Qt::UserRole);
 
-        const auto patch_disabled =
-            std::find(disabled.begin(), disabled.end(), name.toStdString()) != disabled.end();
+        const bool disabled_match_key =
+            std::find(disabled.begin(), disabled.end(), toggle_key.toStdString()) != disabled.end();
+        const bool disabled_all_updates =
+            is_update &&
+            std::find(disabled.begin(), disabled.end(), std::string("Update")) != disabled.end();
 
+        const bool patch_disabled =
+            disabled_match_key || (is_update && !is_default_update_row && disabled_all_updates);
         first_item->setCheckState(patch_disabled ? Qt::Unchecked : Qt::Checked);
 
-        list_items.push_back(QList<QStandardItem*>{
-            first_item, new QStandardItem{QString::fromStdString(patch.version)}});
-        item_model->appendRow(list_items.back());
+        auto* const second_item = new QStandardItem{version_q};
+
+        if (is_default_update_row) {
+            QList<QStandardItem*> row{first_item, second_item};
+            item_model->appendRow(row);
+            list_items.push_back(row);
+            default_update_item = first_item;
+            tree_view->expand(first_item->index());
+        } else if (is_update && default_update_item != nullptr) {
+            QList<QStandardItem*> row{first_item, second_item};
+            default_update_item->appendRow(row);
+            list_items.push_back(row);
+            update_variant_items.push_back(first_item);
+        } else {
+            QList<QStandardItem*> row{first_item, second_item};
+            item_model->appendRow(row);
+            list_items.push_back(row);
+        }
     }
 
+    tree_view->expandAll();
     tree_view->resizeColumnToContents(1);
+}
+
+void ConfigurePerGameAddons::OnItemChanged(QStandardItem* item) {
+    if (!item)
+        return;
+    const auto key = item->data(Qt::UserRole).toString();
+    const bool is_update_row = key.startsWith(QStringLiteral("Update"));
+    if (!is_update_row)
+        return;
+
+    if (item == default_update_item) {
+        if (default_update_item->checkState() == Qt::Unchecked) {
+            for (auto* v : update_variant_items) {
+                if (v && v->checkState() != Qt::Unchecked)
+                    v->setCheckState(Qt::Unchecked);
+            }
+        }
+        return;
+    }
+
+    if (item->checkState() == Qt::Checked) {
+        for (auto* v : update_variant_items) {
+            if (v && v != item && v->checkState() != Qt::Unchecked)
+                v->setCheckState(Qt::Unchecked);
+        }
+        if (default_update_item && default_update_item->checkState() == Qt::Unchecked) {
+            default_update_item->setCheckState(Qt::Checked);
+        }
+    }
 }
