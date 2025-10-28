@@ -17,7 +17,7 @@ namespace Dynarmic::Backend::Arm64 {
 namespace impl {
 template<typename T, typename P> inline T bit_cast_pointee(const P source_ptr) noexcept {
     std::aligned_storage_t<sizeof(T), alignof(T)> dest;
-    std::memcpy(&dest, bit_cast<void*>(source_ptr), sizeof(T));
+    std::memcpy(&dest, std::bit_cast<void*>(source_ptr), sizeof(T));
     return reinterpret_cast<T&>(dest);
 }
 };
