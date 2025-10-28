@@ -1584,7 +1584,7 @@ void BufferCache<P>::MappedUploadMemory(Buffer& buffer,
                 return;
             }
             u8* const src_pointer = staging_pointer.data() + copy.src_offset;
-            if (copy.dst_offset + copy.size > buffer.Size()) {
+            if (copy.dst_offset + copy.size > buffer.SizeBytes()) {
                 LOG_ERROR(HW_GPU, "Copy exceeds buffer bounds (dst_offset: {}, size: {})", copy.dst_offset, copy.size);
                 return;
             }
