@@ -1579,7 +1579,7 @@ void BufferCache<P>::MappedUploadMemory(Buffer& buffer,
             const DAddr device_addr = buffer.CpuAddr() + copy.dst_offset;
             if (device_memory.GetSpan(device_addr, copy.size) == nullptr) {
                 LOG_ERROR(HW_GPU, "Read out of bounds: dst_offset={}, size={}, device_addr={}", copy.dst_offset, copy.size, device_addr);
-                return;
+                continue;
             }
             device_memory.ReadBlockUnsafe(device_addr, src_pointer, copy.size);
             copy.src_offset += upload_staging.offset;
