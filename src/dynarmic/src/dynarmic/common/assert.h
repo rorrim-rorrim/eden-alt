@@ -34,7 +34,11 @@ template<typename... Ts>
 #define ASSERT(_a_) ASSERT_MSG(_a_, "")
 #endif
 #ifndef UNREACHABLE
-#define UNREACHABLE() ASSERT_MSG(false, "unreachable")
+#   ifdef _MSC_VER
+#       define UNREACHABLE() ASSERT_FALSE("unreachable")
+#   else
+#       define UNREACHABLE() __builtin_unreachable();
+#   endif
 #endif
 #ifdef _DEBUG
 #ifndef DEBUG_ASSERT
