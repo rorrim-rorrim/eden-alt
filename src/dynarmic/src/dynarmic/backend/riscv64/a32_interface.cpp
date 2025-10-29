@@ -121,7 +121,7 @@ struct Jit::Impl final {
 
 private:
     void RequestCacheInvalidation() {
-        // ASSERT(false && "Unimplemented");
+        // UNREACHABLE();
 
         invalidate_entire_cache = false;
         invalid_cache_ranges.clear();

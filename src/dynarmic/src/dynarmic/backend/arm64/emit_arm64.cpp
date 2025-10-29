@@ -112,8 +112,7 @@ void EmitIR<IR::Opcode::GetNZCVFromOp>(oaknut::CodeGenerator& code, EmitContext&
         break;
     }
     default:
-        ASSERT(false && "Invalid type for GetNZCVFromOp");
-        break;
+        UNREACHABLE();
     }
 }
 
@@ -143,8 +142,7 @@ void EmitIR<IR::Opcode::GetNZFromOp>(oaknut::CodeGenerator& code, EmitContext& c
         break;
     }
     default:
-        ASSERT(false && "Invalid type for GetNZFromOp");
-        break;
+        UNREACHABLE();
     }
 }
 

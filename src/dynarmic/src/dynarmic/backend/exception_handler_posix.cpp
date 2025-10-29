@@ -139,7 +139,7 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
     }
     fmt::print(stderr, "Unhandled {} at pc {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_PC);
 #elif defined(ARCHITECTURE_riscv64)
-    ASSERT(false && "Unimplemented");
+    UNREACHABLE();
 #else
 #    error "Invalid architecture"
 #endif

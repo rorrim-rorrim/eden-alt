@@ -258,7 +258,7 @@ void AddressSpace::Link(EmittedBlockInfo& block_info) {
             c.BL(prelude_info.get_ticks_remaining);
             break;
         default:
-            ASSERT(false && "Invalid relocation target");
+            UNREACHABLE();
         }
     }
 

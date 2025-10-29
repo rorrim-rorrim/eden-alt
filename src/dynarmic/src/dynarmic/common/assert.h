@@ -8,11 +8,11 @@
 
 [[noreturn]] void assert_terminate_impl(const char* s);
 #ifndef ASSERT
-#   define ASSERT(expr) do if(!(expr)) [[unlikely]] assert_terminate_impl(#expr); while(0)
+#   define ASSERT(expr) do if(!(expr)) [[unlikely]] assert_terminate_impl(__FILE__ ":" #__LINE__ ": " #expr); while(0)
 #endif
 #ifndef UNREACHABLE
 #   ifdef _MSC_VER
-#       define UNREACHABLE() ASSERT_FALSE("unreachable")
+#       define UNREACHABLE() ASSERT(false && __FILE__ ":" #__LINE__ ": unreachable")
 #   else
 #       define UNREACHABLE() __builtin_unreachable();
 #   endif
