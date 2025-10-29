@@ -1574,18 +1574,20 @@ void BufferCache<P>::MappedUploadMemory(Buffer& buffer,
     if constexpr (USE_MEMORY_MAPS) {
         auto upload_staging = runtime.UploadStagingBuffer(total_size_bytes);
         const std::span<u8> staging_pointer = upload_staging.mapped_span;
+        std::vector<BufferCopy> valid_copies;
         for (BufferCopy& copy : copies) {
-            u8* const src_pointer = staging_pointer.data() + copy.src_offset;
             const DAddr device_addr = buffer.CpuAddr() + copy.dst_offset;
-            if (device_memory.GetSpan(device_addr, copy.size) == nullptr) {
-                LOG_ERROR(HW_GPU, "Read out of bounds: dst_offset={}, size={}, device_addr={}", copy.dst_offset, copy.size, device_addr);
-                continue;
-            }
+            u8* const src_pointer = staging_pointer.data() + copy.src_offset;
             device_memory.ReadBlockUnsafe(device_addr, src_pointer, copy.size);
-            copy.src_offset += upload_staging.offset;
+            if (device_memory.GetSpan(device_addr, copy.size)) {
+                copy.src_offset += upload_staging.offset;
+                valid_copies.push_back(copy);
+            }
         }
-        const bool can_reorder = runtime.CanReorderUpload(buffer, copies);
-        runtime.CopyBuffer(buffer, upload_staging.buffer, copies, true, can_reorder);
+        if (!valid_copies.empty()) {
+            const bool can_reorder = runtime.CanReorderUpload(buffer, valid_copies);
+            runtime.CopyBuffer(buffer, upload_staging.buffer, valid_copies, true, can_reorder);
+        }
     }
 }
 
