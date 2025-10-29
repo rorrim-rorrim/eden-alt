@@ -203,7 +203,7 @@ std::unique_lock<std::mutex> RealVfsFilesystem::RefreshReference(const std::stri
                                                                  FileReference& reference) {
     std::unique_lock lk{list_lock};
 
-    // Temporarily remove from list.
+    // Temporarily remove from list (regardless of the current list).
     this->RemoveReferenceFromListLocked(reference);
 
     // Restore file if needed.
@@ -226,7 +226,7 @@ std::unique_lock<std::mutex> RealVfsFilesystem::RefreshReference(const std::stri
 void RealVfsFilesystem::DropReference(std::unique_ptr<FileReference>&& reference) {
     std::scoped_lock lk{list_lock};
 
-    // Remove from list.
+    // Remove from list if present.
     this->RemoveReferenceFromListLocked(*reference);
 
     // Close the file.
@@ -256,6 +256,12 @@ void RealVfsFilesystem::EvictSingleReferenceLocked() {
 }
 
 void RealVfsFilesystem::InsertReferenceIntoListLocked(FileReference& reference) {
+    // Ensure the node is not already linked to any list before inserting.
+    if (reference.IsLinked()) {
+        // Unlink from whichever list it currently belongs to.
+        open_references.erase(open_references.iterator_to(reference));
+    }
+
     if (reference.file) {
         open_references.push_front(reference);
     } else {
@@ -264,11 +270,13 @@ void RealVfsFilesystem::InsertReferenceIntoListLocked(FileReference& reference) 
 }
 
 void RealVfsFilesystem::RemoveReferenceFromListLocked(FileReference& reference) {
-    if (reference.file) {
-        open_references.erase(open_references.iterator_to(reference));
-    } else {
-        closed_references.erase(closed_references.iterator_to(reference));
+    // Unlink from whichever list the node currently belongs to, if any.
+    if (!reference.IsLinked()) {
+        return;
     }
+
+    // It's safe to erase via either list since erase only uses the node's links.
+    open_references.erase(open_references.iterator_to(reference));
 }
 
 RealVfsFile::RealVfsFile(RealVfsFilesystem& base_, std::unique_ptr<FileReference> reference_,
