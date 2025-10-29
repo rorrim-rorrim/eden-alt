@@ -1579,7 +1579,7 @@ void BufferCache<P>::MappedUploadMemory(Buffer& buffer,
             const DAddr device_addr = buffer.CpuAddr() + copy.dst_offset;
             u8* const src_pointer = staging_pointer.data() + copy.src_offset;
             device_memory.ReadBlockUnsafe(device_addr, src_pointer, copy.size);
-            if (device_memory.GetSpan(device_addr, copy.size)) {
+            if (src_pointer != 0) {
                 copy.src_offset += upload_staging.offset;
                 valid_copies.push_back(copy);
             }
