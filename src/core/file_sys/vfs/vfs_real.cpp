@@ -211,7 +211,8 @@ std::unique_lock<std::mutex> RealVfsFilesystem::RefreshReference(const std::stri
         this->EvictSingleReferenceLocked();
 
         reference.file =
-            FS::FileOpen(path, ModeFlagsToFileAccessMode(perms), FS::FileType::BinaryFile);
+            FS::FileOpen(path, ModeFlagsToFileAccessMode(perms), FS::FileType::BinaryFile,
+                         FS::FileShareFlag::ShareReadWrite);
         if (reference.file) {
             num_open_files++;
         }
@@ -234,6 +235,19 @@ void RealVfsFilesystem::DropReference(std::unique_ptr<FileReference>&& reference
         reference->file.reset();
         num_open_files--;
     }
+}
+
+void RealVfsFilesystem::CloseReference(FileReference& reference) {
+    std::scoped_lock lk{list_lock};
+    if (!reference.file) {
+        return;
+    }
+    this->RemoveReferenceFromListLocked(reference);
+    reference.file.reset();
+    if (num_open_files > 0) {
+        num_open_files--;
+    }
+    this->InsertReferenceIntoListLocked(reference);
 }
 
 void RealVfsFilesystem::EvictSingleReferenceLocked() {
@@ -304,13 +318,19 @@ std::size_t RealVfsFile::GetSize() const {
         return *size;
     }
     auto lk = base.RefreshReference(path, perms, *reference);
-    return reference->file ? reference->file->GetSize() : 0;
+    const auto result = reference->file ? reference->file->GetSize() : 0;
+    lk.unlock();
+    base.CloseReference(*reference);
+    return result;
 }
 
 bool RealVfsFile::Resize(std::size_t new_size) {
     size.reset();
     auto lk = base.RefreshReference(path, perms, *reference);
-    return reference->file ? reference->file->SetSize(new_size) : false;
+    const bool ok = reference->file ? reference->file->SetSize(new_size) : false;
+    lk.unlock();
+    base.CloseReference(*reference);
+    return ok;
 }
 
 VirtualDir RealVfsFile::GetContainingDirectory() const {
@@ -326,20 +346,37 @@ bool RealVfsFile::IsReadable() const {
 }
 
 std::size_t RealVfsFile::Read(u8* data, std::size_t length, std::size_t offset) const {
-    auto lk = base.RefreshReference(path, perms, *reference);
-    if (!reference->file || !reference->file->Seek(static_cast<s64>(offset))) {
+    if (length != 0 && data == nullptr) {
+        LOG_ERROR(Common_Filesystem,
+                  "RealVfsFile::Read called with null buffer (len={}, off={}, path={})",
+                  length, offset, path);
         return 0;
     }
-    return reference->file->ReadSpan(std::span{data, length});
+
+    auto lk = base.RefreshReference(path, perms, *reference);
+    if (!reference->file || !reference->file->Seek(static_cast<s64>(offset))) {
+        lk.unlock();
+        base.CloseReference(*reference);
+        return 0;
+    }
+    const auto read = reference->file->ReadSpan(std::span{data, length});
+    lk.unlock();
+    base.CloseReference(*reference);
+    return read;
 }
 
 std::size_t RealVfsFile::Write(const u8* data, std::size_t length, std::size_t offset) {
     size.reset();
     auto lk = base.RefreshReference(path, perms, *reference);
     if (!reference->file || !reference->file->Seek(static_cast<s64>(offset))) {
+        lk.unlock();
+        base.CloseReference(*reference);
         return 0;
     }
-    return reference->file->WriteSpan(std::span{data, length});
+    const auto written = reference->file->WriteSpan(std::span{data, length});
+    lk.unlock();
+    base.CloseReference(*reference);
+    return written;
 }
 
 bool RealVfsFile::Rename(std::string_view name) {
