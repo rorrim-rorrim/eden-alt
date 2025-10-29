@@ -1665,9 +1665,8 @@ void EmitIR<IR::Opcode::VectorTableLookup64>(oaknut::CodeGenerator& code, EmitCo
             code.TBX(Dresult->B8(), oaknut::List{V0.B16(), V1.B16()}, Dindices->B8());
         }
         break;
-    default:
-        ASSERT(false && "Unsupported table_size");
     }
+    UNREACHABLE();
 }
 
 template<>
@@ -1729,9 +1728,8 @@ void EmitIR<IR::Opcode::VectorTableLookup128>(oaknut::CodeGenerator& code, EmitC
             code.TBX(Qresult->B16(), oaknut::List{V0.B16(), V1.B16(), V2.B16(), V3.B16()}, Qindices->B16());
         }
         break;
-    default:
-        ASSERT(false && "Unsupported table_size");
     }
+    UNREACHABLE();
 }
 
 template<>

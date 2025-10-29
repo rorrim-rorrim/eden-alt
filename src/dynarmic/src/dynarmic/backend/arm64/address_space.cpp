@@ -292,7 +292,7 @@ void AddressSpace::LinkBlockLinks(const CodePtr entry_point, const CodePtr targe
             }
             break;
         default:
-            ASSERT(false && "Invalid BlockRelocationType");
+            UNREACHABLE();
         }
     }
 }

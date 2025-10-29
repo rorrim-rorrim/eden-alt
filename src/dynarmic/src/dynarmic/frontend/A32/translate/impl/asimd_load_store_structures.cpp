@@ -69,7 +69,7 @@ std::optional<std::tuple<size_t, size_t, size_t>> DecodeType(Imm<4> type, size_t
         }
         return std::tuple<size_t, size_t, size_t>{4, 1, 2};
     }
-    ASSERT(false && "Decode error");
+    UNREACHABLE();
 }
 }  // namespace
 

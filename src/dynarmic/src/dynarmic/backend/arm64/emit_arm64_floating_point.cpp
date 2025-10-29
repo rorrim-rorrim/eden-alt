@@ -126,8 +126,7 @@ static void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst*
                 UNREACHABLE();
                 break;
             default:
-                ASSERT(false && "Invalid RoundingMode");
-                break;
+                UNREACHABLE();
             }
         } else {
             switch (rounding_mode) {
@@ -150,8 +149,7 @@ static void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst*
                 UNREACHABLE();
                 break;
             default:
-                ASSERT(false && "Invalid RoundingMode");
-                break;
+                UNREACHABLE();
             }
         }
     }
@@ -467,9 +465,8 @@ void EmitIR<IR::Opcode::FPRoundInt32>(oaknut::CodeGenerator& code, EmitContext& 
         case FP::RoundingMode::ToNearest_TieAwayFromZero:
             code.FRINTA(Sresult, Soperand);
             break;
-        default:
-            ASSERT(false && "Invalid RoundingMode");
         }
+        UNREACHABLE();
     }
 }
 
@@ -505,7 +502,7 @@ void EmitIR<IR::Opcode::FPRoundInt64>(oaknut::CodeGenerator& code, EmitContext& 
             code.FRINTA(Dresult, Doperand);
             break;
         default:
-            ASSERT(false && "Invalid RoundingMode");
+            UNREACHABLE();
         }
     }
 }

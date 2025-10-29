@@ -567,7 +567,7 @@ HostLoc RegAlloc::FindFreeSpill(bool is_xmm) const noexcept {
     for (size_t i = size_t(HostLoc::FirstSpill); i < hostloc_info.size(); ++i)
         if (const auto loc = HostLoc(i); LocInfo(loc).IsEmpty())
             return loc;
-    ASSERT(false && "All spill locations are full");
+    UNREACHABLE();
 };
 
 void RegAlloc::EmitMove(const size_t bit_width, const HostLoc to, const HostLoc from) noexcept {
@@ -654,18 +654,13 @@ void RegAlloc::EmitMove(const size_t bit_width, const HostLoc to, const HostLoc 
             code->mov(Xbyak::util::dword[spill_to_op_arg_helper(to, reserved_stack_space)], HostLocToReg64(from).cvt32());
         }
     } else {
-        ASSERT(false && "Invalid RegAlloc::EmitMove");
+        UNREACHABLE();
     }
 }
 
 void RegAlloc::EmitExchange(const HostLoc a, const HostLoc b) noexcept {
-    if (HostLocIsGPR(a) && HostLocIsGPR(b)) {
-        code->xchg(HostLocToReg64(a), HostLocToReg64(b));
-    } else if (HostLocIsXMM(a) && HostLocIsXMM(b)) {
-        ASSERT(false && "Check your code: Exchanging XMM registers is unnecessary");
-    } else {
-        ASSERT(false && "Invalid RegAlloc::EmitExchange");
-    }
+    ASSERT(HostLocIsGPR(a) && HostLocIsGPR(b) && "Exchanging XMM registers is uneeded OR invalid emit");
+    code->xchg(HostLocToReg64(a), HostLocToReg64(b));
 }
 
 }  // namespace Dynarmic::Backend::X64

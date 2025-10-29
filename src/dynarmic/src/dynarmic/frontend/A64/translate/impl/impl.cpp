@@ -75,9 +75,8 @@ IR::UAny TranslatorVisitor::I(size_t bitsize, u64 value) {
         return ir.Imm32(static_cast<u32>(value));
     case 64:
         return ir.Imm64(value);
-    default:
-        ASSERT(false && "Imm - get: Invalid bitsize");
     }
+    UNREACHABLE();
 }
 
 IR::UAny TranslatorVisitor::X(size_t bitsize, Reg reg) {
@@ -90,9 +89,8 @@ IR::UAny TranslatorVisitor::X(size_t bitsize, Reg reg) {
         return ir.GetW(reg);
     case 64:
         return ir.GetX(reg);
-    default:
-        ASSERT(false && "X - get: Invalid bitsize");
     }
+    UNREACHABLE();
 }
 
 void TranslatorVisitor::X(size_t bitsize, Reg reg, IR::U32U64 value) {
@@ -103,9 +101,8 @@ void TranslatorVisitor::X(size_t bitsize, Reg reg, IR::U32U64 value) {
     case 64:
         ir.SetX(reg, value);
         return;
-    default:
-        ASSERT(false && "X - set: Invalid bitsize");
     }
+    UNREACHABLE();
 }
 
 IR::U32U64 TranslatorVisitor::SP(size_t bitsize) {
@@ -114,9 +111,8 @@ IR::U32U64 TranslatorVisitor::SP(size_t bitsize) {
         return ir.LeastSignificantWord(ir.GetSP());
     case 64:
         return ir.GetSP();
-    default:
-        ASSERT(false && "SP - get : Invalid bitsize");
     }
+    UNREACHABLE();
 }
 
 void TranslatorVisitor::SP(size_t bitsize, IR::U32U64 value) {
@@ -127,9 +123,8 @@ void TranslatorVisitor::SP(size_t bitsize, IR::U32U64 value) {
     case 64:
         ir.SetSP(value);
         break;
-    default:
-        ASSERT(false && "SP - set : Invalid bitsize");
     }
+    UNREACHABLE();
 }
 
 IR::U128 TranslatorVisitor::V(size_t bitsize, Vec vec) {
@@ -140,9 +135,8 @@ IR::U128 TranslatorVisitor::V(size_t bitsize, Vec vec) {
         return ir.GetD(vec);
     case 128:
         return ir.GetQ(vec);
-    default:
-        ASSERT(false && "V - get : Invalid bitsize");
     }
+    UNREACHABLE();
 }
 
 void TranslatorVisitor::V(size_t bitsize, Vec vec, IR::U128 value) {
@@ -157,9 +151,8 @@ void TranslatorVisitor::V(size_t bitsize, Vec vec, IR::U128 value) {
     case 128:
         ir.SetQ(vec, value);
         return;
-    default:
-        ASSERT(false && "V - Set : Invalid bitsize");
     }
+    UNREACHABLE();
 }
 
 IR::UAnyU128 TranslatorVisitor::V_scalar(size_t bitsize, Vec vec) {

@@ -99,9 +99,13 @@ public:
 
     void InterpreterFallback(u32 pc, size_t num_instructions) override { ASSERT(false, "InterpreterFallback({:08x} && {}) code = {:08x}", pc, num_instructions, *MemoryReadCode(pc)); }
 
-    void CallSVC(std::uint32_t swi) override { ASSERT(false && "CallSVC({})", swi); }
+    void CallSVC(std::uint32_t swi) override {
+        UNREACHABLE(); //ASSERT(false && "CallSVC({})", swi);
+    }
 
-    void ExceptionRaised(u32 pc, Dynarmic::A32::Exception /*exception*/) override { ASSERT(false && "ExceptionRaised({:08x}) code = {:08x}", pc, *MemoryReadCode(pc)); }
+    void ExceptionRaised(u32 pc, Dynarmic::A32::Exception /*exception*/) override {
+        UNREACHABLE(); //ASSERT(false && "ExceptionRaised({:08x}) code = {:08x}", pc, *MemoryReadCode(pc));
+    }
 
     void AddTicks(std::uint64_t ticks) override {
         if (ticks > ticks_left) {
@@ -186,9 +190,13 @@ public:
 
     void InterpreterFallback(std::uint32_t pc, size_t num_instructions) override { ASSERT(false, "InterpreterFallback({:016x} && {})", pc, num_instructions); }
 
-    void CallSVC(std::uint32_t swi) override { ASSERT(false && "CallSVC({})", swi); }
+    void CallSVC(std::uint32_t swi) override {
+        UNREACHABLE(); //ASSERT(false && "CallSVC({})", swi);
+    }
 
-    void ExceptionRaised(std::uint32_t pc, Dynarmic::A32::Exception) override { ASSERT(false && "ExceptionRaised({:016x})", pc); }
+    void ExceptionRaised(std::uint32_t pc, Dynarmic::A32::Exception) override {
+        UNREACHABLE(); //ASSERT(false && "ExceptionRaised({:016x})", pc);
+    }
 
     void AddTicks(std::uint64_t ticks) override {
         if (ticks > ticks_left) {

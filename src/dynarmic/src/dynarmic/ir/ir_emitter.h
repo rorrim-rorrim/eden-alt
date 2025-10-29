@@ -124,7 +124,7 @@ public:
             ASSERT(value.GetType() == Type::U64);
             return value;
         }
-        ASSERT(false && "Invalid bitsize");
+        UNREACHABLE();
     }
 
     U32 LeastSignificantWord(const U64& value) {

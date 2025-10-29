@@ -62,9 +62,7 @@ constexpr RegisterList ToRegList(oaknut::Reg reg) {
         return RegisterList{1} << (reg.index() + 32);
     }
 
-    if (reg.index() == 31) {
-        ASSERT(false && "ZR not allowed in reg list");
-    }
+    ASSERT(red.index() != 31 && "ZR not allowed in reg list");
 
     if (reg.index() == -1) {
         return RegisterList{1} << 31;

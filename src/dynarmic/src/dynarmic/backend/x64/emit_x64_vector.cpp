@@ -2425,27 +2425,27 @@ void EmitX64::EmitVectorMultiply64(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitVectorMultiplySignedWiden8(EmitContext&, IR::Inst*) {
-    ASSERT(false && "Unexpected VectorMultiplySignedWiden8");
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVectorMultiplySignedWiden16(EmitContext&, IR::Inst*) {
-    ASSERT(false && "Unexpected VectorMultiplySignedWiden16");
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVectorMultiplySignedWiden32(EmitContext&, IR::Inst*) {
-    ASSERT(false && "Unexpected VectorMultiplySignedWiden32");
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVectorMultiplyUnsignedWiden8(EmitContext&, IR::Inst*) {
-    ASSERT(false && "Unexpected VectorMultiplyUnsignedWiden8");
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVectorMultiplyUnsignedWiden16(EmitContext&, IR::Inst*) {
-    ASSERT(false && "Unexpected VectorMultiplyUnsignedWiden16");
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVectorMultiplyUnsignedWiden32(EmitContext&, IR::Inst*) {
-    ASSERT(false && "Unexpected VectorMultiplyUnsignedWiden32");
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVectorNarrow16(EmitContext& ctx, IR::Inst* inst) {

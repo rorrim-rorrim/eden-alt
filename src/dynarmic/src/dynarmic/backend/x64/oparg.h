@@ -55,9 +55,6 @@ struct OpArg {
             case 64:
                 inner_reg = inner_reg.cvt64();
                 return;
-            default:
-                ASSERT(false && "Invalid bits");
-                return;
             }
         }
         UNREACHABLE();

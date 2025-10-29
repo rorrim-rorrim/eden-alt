@@ -328,8 +328,7 @@ int RegAlloc::RealizeReadImpl(const IR::Value& value) {
 
         switch (current_location->kind) {
         case HostLoc::Kind::Gpr:
-            ASSERT(false && "Logic error");
-            break;
+            UNREACHABLE(); //logic error
         case HostLoc::Kind::Fpr:
             code.FMOV(oaknut::XReg{new_location_index}, oaknut::DReg{current_location->index});
             // ASSERT size fits
@@ -354,8 +353,7 @@ int RegAlloc::RealizeReadImpl(const IR::Value& value) {
             code.FMOV(oaknut::DReg{new_location_index}, oaknut::XReg{current_location->index});
             break;
         case HostLoc::Kind::Fpr:
-            ASSERT(false && "Logic error");
-            break;
+            UNREACHABLE(); //logic error
         case HostLoc::Kind::Spill:
             code.LDR(oaknut::QReg{new_location_index}, SP, spill_offset + current_location->index * spill_slot_size);
             break;
@@ -368,7 +366,7 @@ int RegAlloc::RealizeReadImpl(const IR::Value& value) {
         fprs[new_location_index].realized = true;
         return new_location_index;
     } else if constexpr (required_kind == HostLoc::Kind::Flags) {
-        ASSERT(false && "A simple read from flags is likely a logic error.");
+        UNREACHABLE(); //A simple read from flags is likely a logic error
     } else {
         static_assert(Common::always_false_v<mcl::mp::lift_value<required_kind>>);
     }

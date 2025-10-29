@@ -48,18 +48,16 @@ static Xbyak::Address MJitStateReg(A32::Reg reg) {
 
 static Xbyak::Address MJitStateExtReg(A32::ExtReg reg) {
     if (A32::IsSingleExtReg(reg)) {
-        const size_t index = static_cast<size_t>(reg) - static_cast<size_t>(A32::ExtReg::S0);
+        const size_t index = size_t(reg) - size_t(A32::ExtReg::S0);
         return dword[BlockOfCode::ABI_JIT_PTR + offsetof(A32JitState, ExtReg) + sizeof(u32) * index];
-    }
-    if (A32::IsDoubleExtReg(reg)) {
-        const size_t index = static_cast<size_t>(reg) - static_cast<size_t>(A32::ExtReg::D0);
+    } else if (A32::IsDoubleExtReg(reg)) {
+        const size_t index = size_t(reg) - size_t(A32::ExtReg::D0);
         return qword[BlockOfCode::ABI_JIT_PTR + offsetof(A32JitState, ExtReg) + sizeof(u64) * index];
-    }
-    if (A32::IsQuadExtReg(reg)) {
-        const size_t index = static_cast<size_t>(reg) - static_cast<size_t>(A32::ExtReg::Q0);
+    } else if (A32::IsQuadExtReg(reg)) {
+        const size_t index = size_t(reg) - size_t(A32::ExtReg::Q0);
         return xword[BlockOfCode::ABI_JIT_PTR + offsetof(A32JitState, ExtReg) + 2 * sizeof(u64) * index];
     }
-    ASSERT(false && "Should never happen.");
+    UNREACHABLE();
 }
 
 A32EmitContext::A32EmitContext(const A32::UserConfig& conf, RegAlloc& reg_alloc, IR::Block& block)
@@ -847,7 +845,7 @@ void A32EmitX64::EmitA32SetFpscrNZCV(A32EmitContext& ctx, IR::Inst* inst) {
 }
 
 static void EmitCoprocessorException() {
-    ASSERT(false && "Should raise coproc exception here");
+    UNREACHABLE();
 }
 
 static void CallCoprocCallback(BlockOfCode& code, RegAlloc& reg_alloc, A32::Coprocessor::Callback callback, IR::Inst* inst = nullptr, std::optional<Argument::copyable_reference> arg0 = {}, std::optional<Argument::copyable_reference> arg1 = {}) {
