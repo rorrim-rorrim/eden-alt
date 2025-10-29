@@ -123,8 +123,9 @@ void TranslatorVisitor::SP(size_t bitsize, IR::U32U64 value) {
     case 64:
         ir.SetSP(value);
         break;
+    default:
+        UNREACHABLE();
     }
-    UNREACHABLE();
 }
 
 IR::U128 TranslatorVisitor::V(size_t bitsize, Vec vec) {

@@ -19,7 +19,7 @@
 #   endif
 #endif
 #ifndef DEBUG_ASSERT
-#   ifdef _DEBUG
+#   ifndef NDEBUG
 #       define DEBUG_ASSERT(_a_) ASSERT(_a_)
 #   else
 #       define DEBUG_ASSERT(_a_)
