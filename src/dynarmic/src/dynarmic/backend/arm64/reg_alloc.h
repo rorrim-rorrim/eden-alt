@@ -182,7 +182,7 @@ public:
         } else if constexpr (size == 32) {
             return ReadW(arg);
         } else {
-            ASSERT(false && "Invalid size to ReadReg {}", size);
+            UNREACHABLE();
         }
     }
 
@@ -199,7 +199,7 @@ public:
         } else if constexpr (size == 8) {
             return ReadB(arg);
         } else {
-            ASSERT(false && "Invalid size to ReadVec {}", size);
+            UNREACHABLE();
         }
     }
 
@@ -221,7 +221,7 @@ public:
         } else if constexpr (size == 32) {
             return WriteW(inst);
         } else {
-            ASSERT(false && "Invalid size to WriteReg {}", size);
+            UNREACHABLE();
         }
     }
 
@@ -238,7 +238,7 @@ public:
         } else if constexpr (size == 8) {
             return WriteB(inst);
         } else {
-            ASSERT(false && "Invalid size to WriteVec {}", size);
+            UNREACHABLE();
         }
     }
 
@@ -258,7 +258,7 @@ public:
         } else if constexpr (size == 32) {
             return ReadWriteW(arg, inst);
         } else {
-            ASSERT(false && "Invalid size to ReadWriteReg {}", size);
+            UNREACHABLE();
         }
     }
 
@@ -275,7 +275,7 @@ public:
         } else if constexpr (size == 8) {
             return ReadWriteB(arg, inst);
         } else {
-            ASSERT(false && "Invalid size to ReadWriteVec {}", size);
+            UNREACHABLE();
         }
     }
 

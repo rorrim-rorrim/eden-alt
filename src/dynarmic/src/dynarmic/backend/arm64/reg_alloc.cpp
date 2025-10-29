@@ -484,7 +484,7 @@ void RegAlloc::ReadWriteFlags(Argument& read, IR::Inst* write) {
         code.LDR(Wscratch0, SP, spill_offset + current_location->index * spill_slot_size);
         code.MSR(oaknut::SystemReg::NZCV, Xscratch0);
     } else {
-        ASSERT(false && "Invalid current location for flags");
+        UNREACHABLE(); //ASSERT(false && "Invalid current location for flags");
     }
 
     if (write) {
@@ -556,8 +556,7 @@ void RegAlloc::LoadCopyInto(const IR::Value& value, oaknut::QReg reg) {
         code.LDR(reg, SP, spill_offset + current_location->index * spill_slot_size);
         break;
     case HostLoc::Kind::Flags:
-        ASSERT(false && "Moving from flags into fprs is not currently supported");
-        break;
+        UNREACHABLE(); //ASSERT(false && "Moving from flags into fprs is not currently supported");
     }
 }
 
@@ -590,7 +589,7 @@ HostLocInfo& RegAlloc::ValueInfo(HostLoc host_loc) {
     case HostLoc::Kind::Spill:
         return spills[static_cast<size_t>(host_loc.index)];
     }
-    ASSERT(false && "RegAlloc::ValueInfo: Invalid HostLoc::Kind");
+    UNREACHABLE();
 }
 
 HostLocInfo& RegAlloc::ValueInfo(const IR::Inst* value) {
@@ -598,17 +597,14 @@ HostLocInfo& RegAlloc::ValueInfo(const IR::Inst* value) {
 
     if (const auto iter = std::find_if(gprs.begin(), gprs.end(), contains_value); iter != gprs.end()) {
         return *iter;
-    }
-    if (const auto iter = std::find_if(fprs.begin(), fprs.end(), contains_value); iter != fprs.end()) {
+    } else if (const auto iter = std::find_if(fprs.begin(), fprs.end(), contains_value); iter != fprs.end()) {
         return *iter;
-    }
-    if (contains_value(flags)) {
+    } else if (contains_value(flags)) {
         return flags;
-    }
-    if (const auto iter = std::find_if(spills.begin(), spills.end(), contains_value); iter != spills.end()) {
+    } else if (const auto iter = std::find_if(spills.begin(), spills.end(), contains_value); iter != spills.end()) {
         return *iter;
     }
-    ASSERT(false && "RegAlloc::ValueInfo: Value not found");
+    UNREACHABLE();
 }
 
 }  // namespace Dynarmic::Backend::Arm64

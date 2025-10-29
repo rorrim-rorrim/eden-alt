@@ -342,9 +342,9 @@ FakeCall AddressSpace::FastmemCallback(u64 host_pc) {
     }
 
 fail:
-    fmt::print("dynarmic: Segfault happened within JITted code at host_pc = {:016x}\n", host_pc);
-    fmt::print("Segfault wasn't at a fastmem patch location!\n");
-    ASSERT(false && "segfault");
+    fmt::print("dynarmic: Segfault happened within JITted code at host_pc = {:016x}\n"
+        "Segfault wasn't at a fastmem patch location!\n", host_pc);
+    UNREACHABLE();
 }
 
 }  // namespace Dynarmic::Backend::Arm64
