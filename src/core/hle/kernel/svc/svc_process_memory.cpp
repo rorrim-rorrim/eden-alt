@@ -158,7 +158,8 @@ Result MapProcessCodeMemory(Core::System& system, Handle process_handle, u64 dst
         R_THROW(ResultInvalidAddress);
     }
 
-    if (size == 0 || !Common::Is4KBAligned(size)) {
+    // "size == 0 ||" removed for the workaround, temp. (DO NOT MERGE)
+    if (!Common::Is4KBAligned(size)) {
         LOG_ERROR(Kernel_SVC, "Size is zero or not page-aligned (size=0x{:016X})", size);
         R_THROW(ResultInvalidSize);
     }
@@ -224,7 +225,8 @@ Result UnmapProcessCodeMemory(Core::System& system, Handle process_handle, u64 d
         R_THROW(ResultInvalidAddress);
     }
 
-    if (size == 0 || !Common::Is4KBAligned(size)) {
+    // "size == 0 ||" removed for the workaround, temp. (DO NOT MERGE)
+    if (!Common::Is4KBAligned(size)) {
         LOG_ERROR(Kernel_SVC, "Size is zero or not page-aligned (size=0x{:016X}).", size);
         R_THROW(ResultInvalidSize);
     }
