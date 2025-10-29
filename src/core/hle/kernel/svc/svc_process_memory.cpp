@@ -35,10 +35,17 @@ Result SetProcessMemoryPermission(Core::System& system, Handle process_handle, u
               "called, process_handle={:#X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
               process_handle, address, size, perm);
 
+    // Workaround for Skyline 32-bit bug
+    if (size == 0) {
+        LOG_DEBUG(Kernel_SVC, "called. size=0, bypassing for now.");
+        R_RETURN(ResultSuccess);
+    }
+
     // Validate the address/size.
     R_UNLESS(Common::IsAligned(address, PageSize), ResultInvalidAddress);
     R_UNLESS(Common::IsAligned(size, PageSize), ResultInvalidSize);
-    R_UNLESS(size > 0, ResultInvalidSize);
+    // Removed for the workaround, temp. (DO NOT MERGE)
+    // R_UNLESS(size > 0, ResultInvalidSize);
     R_UNLESS((address < address + size), ResultInvalidCurrentMemory);
     R_UNLESS(address == static_cast<uint64_t>(address), ResultInvalidCurrentMemory);
     R_UNLESS(size == static_cast<uint64_t>(size), ResultInvalidCurrentMemory);
