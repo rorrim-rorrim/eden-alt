@@ -144,7 +144,8 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
 #undef OPCODE
 #undef A32OPC
 #undef A64OPC
-            default: [[unlikely]] ASSERT(false && "Invalid opcode: {:x}", std::size_t(inst->GetOpcode()));
+            default:
+                UNREACHABLE();
             }
             reg_alloc.EndOfAllocScope();
             func(reg_alloc);

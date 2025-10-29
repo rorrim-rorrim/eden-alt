@@ -59,7 +59,7 @@ std::optional<EmitX64::BlockDescriptor> EmitX64::GetBasicBlock(IR::LocationDescr
 }
 
 void EmitX64::EmitInvalid(EmitContext&, IR::Inst* inst) {
-    ASSERT(false && "Invalid opcode: {:x}", std::size_t(inst->GetOpcode()));
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVoid(EmitContext&, IR::Inst*) {

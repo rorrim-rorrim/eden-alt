@@ -232,9 +232,8 @@ IR::UAnyU128 TranslatorVisitor::Mem(IR::U64 address, size_t bytesize, IR::AccTyp
         return ir.ReadMemory64(address, acc_type);
     case 16:
         return ir.ReadMemory128(address, acc_type);
-    default:
-        ASSERT(false && "Invalid bytesize parameter {}", bytesize);
     }
+    UNREACHABLE();
 }
 
 void TranslatorVisitor::Mem(IR::U64 address, size_t bytesize, IR::AccType acc_type, IR::UAnyU128 value) {
@@ -254,9 +253,8 @@ void TranslatorVisitor::Mem(IR::U64 address, size_t bytesize, IR::AccType acc_ty
     case 16:
         ir.WriteMemory128(address, value, acc_type);
         return;
-    default:
-        ASSERT(false && "Invalid bytesize parameter {}", bytesize);
     }
+    UNREACHABLE();
 }
 
 IR::UAnyU128 TranslatorVisitor::ExclusiveMem(IR::U64 address, size_t bytesize, IR::AccType acc_type) {
@@ -271,9 +269,8 @@ IR::UAnyU128 TranslatorVisitor::ExclusiveMem(IR::U64 address, size_t bytesize, I
         return ir.ExclusiveReadMemory64(address, acc_type);
     case 16:
         return ir.ExclusiveReadMemory128(address, acc_type);
-    default:
-        ASSERT(false && "Invalid bytesize parameter {}", bytesize);
     }
+    UNREACHABLE();
 }
 
 IR::U32 TranslatorVisitor::ExclusiveMem(IR::U64 address, size_t bytesize, IR::AccType acc_type, IR::UAnyU128 value) {
@@ -288,9 +285,8 @@ IR::U32 TranslatorVisitor::ExclusiveMem(IR::U64 address, size_t bytesize, IR::Ac
         return ir.ExclusiveWriteMemory64(address, value, acc_type);
     case 16:
         return ir.ExclusiveWriteMemory128(address, value, acc_type);
-    default:
-        ASSERT(false && "Invalid bytesize parameter {}", bytesize);
     }
+    UNREACHABLE();
 }
 
 IR::U32U64 TranslatorVisitor::SignExtend(IR::UAny value, size_t to_size) {
@@ -299,9 +295,8 @@ IR::U32U64 TranslatorVisitor::SignExtend(IR::UAny value, size_t to_size) {
         return ir.SignExtendToWord(value);
     case 64:
         return ir.SignExtendToLong(value);
-    default:
-        ASSERT(false && "Invalid size parameter {}", to_size);
     }
+    UNREACHABLE();
 }
 
 IR::U32U64 TranslatorVisitor::ZeroExtend(IR::UAny value, size_t to_size) {
@@ -310,9 +305,8 @@ IR::U32U64 TranslatorVisitor::ZeroExtend(IR::UAny value, size_t to_size) {
         return ir.ZeroExtendToWord(value);
     case 64:
         return ir.ZeroExtendToLong(value);
-    default:
-        ASSERT(false && "Invalid size parameter {}", to_size);
     }
+    UNREACHABLE();
 }
 
 IR::U32U64 TranslatorVisitor::ShiftReg(size_t bitsize, Reg reg, Imm<2> shift, IR::U8 amount) {

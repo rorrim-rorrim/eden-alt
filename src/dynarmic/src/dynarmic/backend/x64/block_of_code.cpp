@@ -507,8 +507,7 @@ void BlockOfCode::LoadRequiredFlagsForCondFromRax(IR::Cond cond) {
     case IR::Cond::NV:
         break;
     default:
-        ASSERT(false && "Unknown cond {}", static_cast<size_t>(cond));
-        break;
+        UNREACHABLE();
     }
 }
 

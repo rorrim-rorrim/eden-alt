@@ -241,8 +241,7 @@ EmittedBlockInfo EmitArm64(oaknut::CodeGenerator& code, IR::Block block, const E
 #undef A32OPC
 #undef A64OPC
         default:
-            ASSERT(false && "Invalid opcode: {:x}", std::size_t(inst->GetOpcode()));
-            break;
+            UNREACHABLE();
         }
 
         reg_alloc.UpdateAllUses();

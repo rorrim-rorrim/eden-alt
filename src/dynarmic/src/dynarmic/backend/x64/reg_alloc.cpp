@@ -40,18 +40,6 @@ static inline bool CanExchange(const HostLoc a, const HostLoc b) noexcept {
 // Minimum number of bits required to represent a type
 static inline size_t GetBitWidth(const IR::Type type) noexcept {
     switch (type) {
-    case IR::Type::A32Reg:
-    case IR::Type::A32ExtReg:
-    case IR::Type::A64Reg:
-    case IR::Type::A64Vec:
-    case IR::Type::CoprocInfo:
-    case IR::Type::Cond:
-    case IR::Type::Void:
-    case IR::Type::Table:
-    case IR::Type::AccType:
-        ASSERT(false && "Type {} cannot be represented at runtime", type);
-    case IR::Type::Opaque:
-        ASSERT(false && "Not a concrete type");
     case IR::Type::U1:
         return 8;
     case IR::Type::U8:
@@ -66,17 +54,14 @@ static inline size_t GetBitWidth(const IR::Type type) noexcept {
         return 128;
     case IR::Type::NZCVFlags:
         return 32;  // TODO: Update to 16 when flags optimization is done
+    default:
+        // A32REG A32EXTREG A64REG A64VEC COPROCINFO COND VOID TABLE ACCTYPE OPAQUE
+        UNREACHABLE();
     }
-    UNREACHABLE();
 }
 
 static inline bool IsValuelessType(const IR::Type type) noexcept {
-    switch (type) {
-    case IR::Type::Table:
-        return true;
-    default:
-        return false;
-    }
+    return type == IR::Type::Table;
 }
 
 void HostLocInfo::ReleaseOne() noexcept {
