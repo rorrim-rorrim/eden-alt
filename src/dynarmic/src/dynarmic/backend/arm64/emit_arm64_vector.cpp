@@ -956,7 +956,7 @@ void EmitIR<IR::Opcode::VectorMultiply32>(oaknut::CodeGenerator& code, EmitConte
 
 template<>
 void EmitIR<IR::Opcode::VectorMultiply64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    ASSERT_MSG(ctx.conf.very_verbose_debugging_output, "VectorMultiply64 is for debugging only");
+    ASSERT(ctx.conf.very_verbose_debugging_output && "VectorMultiply64 is for debugging only");
     EmitThreeOp(code, ctx, inst, [&](auto& Qresult, auto& Qa, auto& Qb) {
         code.FMOV(Xscratch0, Qa->toD());
         code.FMOV(Xscratch1, Qb->toD());
@@ -1600,7 +1600,7 @@ void EmitIR<IR::Opcode::VectorSub64>(oaknut::CodeGenerator& code, EmitContext& c
 template<>
 void EmitIR<IR::Opcode::VectorTable>(oaknut::CodeGenerator&, EmitContext&, IR::Inst* inst) {
     // Do nothing. We *want* to hold on to the refcount for our arguments, so VectorTableLookup can use our arguments.
-    ASSERT_MSG(inst->UseCount() == 1, "Table cannot be used multiple times");
+    ASSERT(inst->UseCount() == 1 && "Table cannot be used multiple times");
 }
 
 template<>

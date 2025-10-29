@@ -88,7 +88,7 @@ private:
 };
 
 MachHandler::MachHandler() {
-#define KCHECK(x) ASSERT_MSG((x) == KERN_SUCCESS, "dynarmic: macOS MachHandler: init failure at {}", #x)
+#define KCHECK(x) ASSERT((x) == KERN_SUCCESS && "dynarmic: macOS MachHandler: init failure at {}", #x)
 
     KCHECK(mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &server_port));
     KCHECK(mach_port_insert_right(mach_task_self(), server_port, server_port, MACH_MSG_TYPE_MAKE_SEND));

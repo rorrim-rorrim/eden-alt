@@ -20,7 +20,7 @@ bool TranslatorVisitor::thumb32_TST_reg(Reg n, Imm<3> imm3, Imm<2> imm2, ShiftTy
 }
 
 bool TranslatorVisitor::thumb32_AND_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type, Reg m) {
-    ASSERT_MSG(!(d == Reg::PC && S), "Decode error");
+    ASSERT(!(d == Reg::PC && S) && "Decode error");
 
     if ((d == Reg::PC && !S) || n == Reg::PC || m == Reg::PC) {
         return UnpredictableInstruction();
@@ -64,7 +64,7 @@ bool TranslatorVisitor::thumb32_MOV_reg(bool S, Imm<3> imm3, Reg d, Imm<2> imm2,
 }
 
 bool TranslatorVisitor::thumb32_ORR_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type, Reg m) {
-    ASSERT_MSG(n != Reg::PC, "Decode error");
+    ASSERT(n != Reg::PC && "Decode error");
 
     if (d == Reg::PC || m == Reg::PC) {
         return UnpredictableInstruction();
@@ -94,7 +94,7 @@ bool TranslatorVisitor::thumb32_MVN_reg(bool S, Imm<3> imm3, Reg d, Imm<2> imm2,
 }
 
 bool TranslatorVisitor::thumb32_ORN_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type, Reg m) {
-    ASSERT_MSG(n != Reg::PC, "Decode error");
+    ASSERT(n != Reg::PC && "Decode error");
 
     if (d == Reg::PC || m == Reg::PC) {
         return UnpredictableInstruction();
@@ -122,7 +122,7 @@ bool TranslatorVisitor::thumb32_TEQ_reg(Reg n, Imm<3> imm3, Imm<2> imm2, ShiftTy
 }
 
 bool TranslatorVisitor::thumb32_EOR_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type, Reg m) {
-    ASSERT_MSG(!(d == Reg::PC && S), "Decode error");
+    ASSERT(!(d == Reg::PC && S) && "Decode error");
 
     if ((d == Reg::PC && !S) || n == Reg::PC || m == Reg::PC) {
         return UnpredictableInstruction();
@@ -165,7 +165,7 @@ bool TranslatorVisitor::thumb32_CMN_reg(Reg n, Imm<3> imm3, Imm<2> imm2, ShiftTy
 }
 
 bool TranslatorVisitor::thumb32_ADD_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type, Reg m) {
-    ASSERT_MSG(!(d == Reg::PC && S), "Decode error");
+    ASSERT(!(d == Reg::PC && S) && "Decode error");
 
     if ((d == Reg::PC && !S) || n == Reg::PC || m == Reg::PC) {
         return UnpredictableInstruction();
@@ -221,7 +221,7 @@ bool TranslatorVisitor::thumb32_CMP_reg(Reg n, Imm<3> imm3, Imm<2> imm2, ShiftTy
 }
 
 bool TranslatorVisitor::thumb32_SUB_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type, Reg m) {
-    ASSERT_MSG(!(d == Reg::PC && S), "Decode error");
+    ASSERT(!(d == Reg::PC && S) && "Decode error");
 
     if ((d == Reg::PC && !S) || n == Reg::PC || m == Reg::PC) {
         return UnpredictableInstruction();

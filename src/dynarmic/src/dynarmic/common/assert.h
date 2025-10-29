@@ -31,10 +31,10 @@ template<typename... Ts>
 #endif
 
 #ifndef ASSERT
-#define ASSERT(_a_) ASSERT_MSG(_a_, "")
+#define ASSERT(_a_) ASSERT(_a_ && "")
 #endif
 #ifndef UNREACHABLE
-#define UNREACHABLE() ASSERT_MSG(false, "unreachable")
+#define UNREACHABLE() ASSERT(false && "unreachable")
 #endif
 #ifdef _DEBUG
 #ifndef DEBUG_ASSERT

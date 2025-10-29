@@ -56,7 +56,7 @@ struct OpArg {
                 inner_reg = inner_reg.cvt64();
                 return;
             default:
-                ASSERT_MSG(false, "Invalid bits");
+                ASSERT(false && "Invalid bits");
                 return;
             }
         }

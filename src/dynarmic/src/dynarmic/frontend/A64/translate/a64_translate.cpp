@@ -41,7 +41,7 @@ IR::Block Translate(LocationDescriptor descriptor, MemoryReadCodeFuncType memory
         visitor.ir.SetTerm(IR::Term::LinkBlock{*visitor.ir.current_location});
     }
 
-    ASSERT_MSG(block.HasTerminal(), "Terminal has not been set");
+    ASSERT(block.HasTerminal() && "Terminal has not been set");
 
     block.SetEndLocation(*visitor.ir.current_location);
 

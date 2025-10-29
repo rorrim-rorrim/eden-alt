@@ -684,7 +684,7 @@ bool TranslatorVisitor::thumb16_NOP() {
 
 // IT{<x>{<y>{<z>}}} <cond>
 bool TranslatorVisitor::thumb16_IT(Imm<8> imm8) {
-    ASSERT_MSG((imm8.Bits<0, 3>() != 0b0000), "Decode Error");
+    ASSERT((imm8.Bits<0, 3>() != 0b0000) && "Decode Error");
     if (imm8.Bits<4, 7>() == 0b1111 || (imm8.Bits<4, 7>() == 0b1110 && mcl::bit::count_ones(imm8.Bits<0, 3>()) != 1)) {
         return UnpredictableInstruction();
     }

@@ -223,7 +223,7 @@ RegAlloc::ArgumentInfo RegAlloc::GetArgumentInfo(const IR::Inst* inst) noexcept 
         const auto arg = inst->GetArg(i);
         ret[i].value = arg;
         if (!arg.IsImmediate() && !IsValuelessType(arg.GetType())) {
-            ASSERT_MSG(ValueLocation(arg.GetInst()), "argument must already been defined");
+            ASSERT(ValueLocation(arg.GetInst()) && "argument must already been defined");
             LocInfo(*ValueLocation(arg.GetInst())).AddArgReference();
         }
     }
@@ -467,19 +467,19 @@ HostLoc RegAlloc::SelectARegister(const boost::container::static_vector<HostLoc,
     auto const it_final = it_empty_candidate != desired_locations.cend()
         ? it_empty_candidate : it_candidate != desired_locations.cend()
         ? it_candidate : it_rex_candidate;
-    ASSERT_MSG(it_final != desired_locations.cend(), "All candidate registers have already been allocated");
+    ASSERT(it_final != desired_locations.cend() && "All candidate registers have already been allocated");
     // Evil magic - increment LRU counter (will wrap at 256)
     const_cast<RegAlloc*>(this)->LocInfo(*it_final).lru_counter++;
     return *it_final;
 }
 
 void RegAlloc::DefineValueImpl(IR::Inst* def_inst, HostLoc host_loc) noexcept {
-    ASSERT_MSG(!ValueLocation(def_inst), "def_inst has already been defined");
+    ASSERT(!ValueLocation(def_inst) && "def_inst has already been defined");
     LocInfo(host_loc).AddValue(def_inst);
 }
 
 void RegAlloc::DefineValueImpl(IR::Inst* def_inst, const IR::Value& use_inst) noexcept {
-    ASSERT_MSG(!ValueLocation(def_inst), "def_inst has already been defined");
+    ASSERT(!ValueLocation(def_inst) && "def_inst has already been defined");
 
     if (use_inst.IsImmediate()) {
         const HostLoc location = ScratchImpl(gpr_order);
@@ -488,13 +488,13 @@ void RegAlloc::DefineValueImpl(IR::Inst* def_inst, const IR::Value& use_inst) no
         return;
     }
 
-    ASSERT_MSG(ValueLocation(use_inst.GetInst()), "use_inst must already be defined");
+    ASSERT(ValueLocation(use_inst.GetInst()) && "use_inst must already be defined");
     const HostLoc location = *ValueLocation(use_inst.GetInst());
     DefineValueImpl(def_inst, location);
 }
 
 HostLoc RegAlloc::LoadImmediate(IR::Value imm, HostLoc host_loc) noexcept {
-    ASSERT_MSG(imm.IsImmediate(), "imm is not an immediate");
+    ASSERT(imm.IsImmediate() && "imm is not an immediate");
     if (HostLocIsGPR(host_loc)) {
         const Xbyak::Reg64 reg = HostLocToReg64(host_loc);
         const u64 imm_value = imm.GetImmediateAsU64();
@@ -521,7 +521,7 @@ void RegAlloc::Move(HostLoc to, HostLoc from) noexcept {
     const size_t bit_width = LocInfo(from).GetMaxBitWidth();
     ASSERT(LocInfo(to).IsEmpty() && !LocInfo(from).IsLocked());
     ASSERT(bit_width <= HostLocBitWidth(to));
-    ASSERT_MSG(!LocInfo(from).IsEmpty(), "Mov eliminated");
+    ASSERT(!LocInfo(from).IsEmpty() && "Mov eliminated");
     EmitMove(bit_width, to, from);
     LocInfo(to) = std::exchange(LocInfo(from), {});
 }
@@ -554,9 +554,9 @@ void RegAlloc::MoveOutOfTheWay(HostLoc reg) noexcept {
 }
 
 void RegAlloc::SpillRegister(HostLoc loc) noexcept {
-    ASSERT_MSG(HostLocIsRegister(loc), "Only registers can be spilled");
-    ASSERT_MSG(!LocInfo(loc).IsEmpty(), "There is no need to spill unoccupied registers");
-    ASSERT_MSG(!LocInfo(loc).IsLocked(), "Registers that have been allocated must not be spilt");
+    ASSERT(HostLocIsRegister(loc) && "Only registers can be spilled");
+    ASSERT(!LocInfo(loc).IsEmpty() && "There is no need to spill unoccupied registers");
+    ASSERT(!LocInfo(loc).IsLocked() && "Registers that have been allocated must not be spilt");
     auto const new_loc = FindFreeSpill(HostLocIsXMM(loc));
     Move(new_loc, loc);
 }
@@ -589,7 +589,7 @@ void RegAlloc::EmitMove(const size_t bit_width, const HostLoc to, const HostLoc 
     auto const spill_to_op_arg_helper = [&](HostLoc loc, size_t reserved_stack_space) {
         ASSERT(HostLocIsSpill(loc));
         size_t i = size_t(loc) - size_t(HostLoc::FirstSpill);
-        ASSERT_MSG(i < SpillCount, "Spill index greater than number of available spill locations");
+        ASSERT(i < SpillCount && "Spill index greater than number of available spill locations");
         return Xbyak::util::rsp + reserved_stack_space + ABI_SHADOW_SPACE + offsetof(StackLayout, spill) + i * sizeof(StackLayout::spill[0]);
     };
     auto const spill_xmm_to_op = [&](const HostLoc loc) {

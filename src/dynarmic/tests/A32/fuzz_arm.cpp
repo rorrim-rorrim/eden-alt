@@ -70,7 +70,7 @@ bool AnyLocationDescriptorForTerminalHas(IR::Terminal terminal, Fn fn) {
         } else if constexpr (std::is_same_v<T, IR::Term::CheckHalt>) {
             return AnyLocationDescriptorForTerminalHas(t.else_, fn);
         } else {
-            ASSERT_MSG(false, "Invalid terminal type");
+            ASSERT(false && "Invalid terminal type");
             return false;
         }
     }, terminal);
