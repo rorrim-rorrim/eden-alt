@@ -20,7 +20,6 @@
 #include "dynarmic/backend/x64/exclusive_monitor_friend.h"
 #include "dynarmic/backend/x64/perf_map.h"
 #include "dynarmic/common/spin_lock_x64.h"
-#include "dynarmic/common/x64_disassemble.h"
 #include "dynarmic/interface/exclusive_monitor.h"
 
 namespace Dynarmic::Backend::X64 {

@@ -89,14 +89,9 @@ public:
         return is_executing;
     }
 
-    /// Debugging: Dump a disassembly all compiled code to the console.
-    void DumpDisassembly() const;
-
-    /**
-     * Disassemble the instructions following the current pc and return
-     * the resulting instructions as a vector of their string representations.
-     */
-    std::vector<std::string> Disassemble() const;
+    /// @brief Disassemble the instructions following the current pc and return
+    /// the resulting instructions as a vector of their string representations.
+    std::string Disassemble() const;
 
 private:
     bool is_executing = false;
