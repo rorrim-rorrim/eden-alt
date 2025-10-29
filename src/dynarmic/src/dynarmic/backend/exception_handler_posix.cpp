@@ -12,6 +12,8 @@
 #include <mutex>
 #include <shared_mutex>
 #include <optional>
+#include <bit>
+#include <fmt/format.h>
 #include <ankerl/unordered_dense.h>
 #include "dynarmic/backend/exception_handler.h"
 #include "dynarmic/common/assert.h"
@@ -27,7 +29,6 @@
 #else
 #    error "Invalid architecture"
 #endif
-#include <bit>
 
 namespace Dynarmic::Backend {
 
