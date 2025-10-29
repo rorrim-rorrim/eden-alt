@@ -13,6 +13,8 @@ EALT_SVG_ICO="dist/eden_named.svg"
 
 magick -density 256x256 -background transparent $EDEN_SVG_ICO \
     -define icon:auto-resize -colors 256 dist/eden.ico || exit
+magick dist/eden.ico -resize 256x256 dist/eden.ico || exit
+
 convert -density 256x256 -resize 256x256 -background transparent $EDEN_SVG_ICO \
     dist/yuzu.bmp || exit
 
@@ -26,7 +28,7 @@ TMP_PNG="dist/eden-tmp.png"
 magick -size 1024x1024 -background transparent $EDEN_SVG_ICO $TMP_PNG || exit
 composite $TMP_PNG -gravity center -geometry 2048x2048+0+0 \
     src/android/app/src/main/res/drawable/ic_icon_bg_orig.png \
-    src/android/app/src/main/res/drawable/ic_launcher.png
+    src/android/app/src/main/res/drawable/ic_launcher.png || exit
 
 png2icns dist/eden.icns $TMP_PNG
 cp dist/eden.icns dist/yuzu.icns
