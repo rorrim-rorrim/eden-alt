@@ -193,7 +193,7 @@ u32 RegAlloc::RealizeReadImpl(const IR::Value& value) {
 
         switch (current_location->kind) {
         case HostLoc::Kind::Gpr:
-            ASSERT_FALSE("Logic error");
+            ASSERT(false && "Logic error");
             break;
         case HostLoc::Kind::Fpr:
             as.FMV_X_D(biscuit::GPR(new_location_index), biscuit::FPR{current_location->index});
@@ -216,7 +216,7 @@ u32 RegAlloc::RealizeReadImpl(const IR::Value& value) {
             as.FMV_D_X(biscuit::FPR{new_location_index}, biscuit::GPR(current_location->index));
             break;
         case HostLoc::Kind::Fpr:
-            ASSERT_FALSE("Logic error");
+            ASSERT(false && "Logic error");
             break;
         case HostLoc::Kind::Spill:
             as.FLD(biscuit::FPR{new_location_index}, spill_offset + current_location->index * spill_slot_size, biscuit::sp);
@@ -329,7 +329,7 @@ HostLocInfo& RegAlloc::ValueInfo(HostLoc host_loc) {
     case HostLoc::Kind::Spill:
         return spills[static_cast<size_t>(host_loc.index)];
     }
-    ASSERT_FALSE("RegAlloc::ValueInfo: Invalid HostLoc::Kind");
+    ASSERT(false && "RegAlloc::ValueInfo: Invalid HostLoc::Kind");
 }
 
 HostLocInfo& RegAlloc::ValueInfo(const IR::Inst* value) {
@@ -346,7 +346,7 @@ HostLocInfo& RegAlloc::ValueInfo(const IR::Inst* value) {
     if (const auto iter = std::find_if(spills.begin(), spills.end(), contains_value); iter != gprs.end()) {
         return *iter;
     }
-    ASSERT_FALSE("RegAlloc::ValueInfo: Value not found");
+    ASSERT(false && "RegAlloc::ValueInfo: Value not found");
 }
 
 }  // namespace Dynarmic::Backend::RV64

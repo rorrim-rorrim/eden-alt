@@ -20,7 +20,7 @@ namespace Dynarmic::Backend::Arm64 {
 using namespace oaknut::util;
 
 static void EmitCoprocessorException() {
-    ASSERT_FALSE("Should raise coproc exception here");
+    ASSERT(false && "Should raise coproc exception here");
 }
 
 static void CallCoprocCallback(oaknut::CodeGenerator& code, EmitContext& ctx, A32::Coprocessor::Callback callback, IR::Inst* inst = nullptr, std::optional<Argument::copyable_reference> arg0 = {}, std::optional<Argument::copyable_reference> arg1 = {}) {

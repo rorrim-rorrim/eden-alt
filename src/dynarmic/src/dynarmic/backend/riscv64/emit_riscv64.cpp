@@ -143,7 +143,7 @@ EmittedBlockInfo EmitRV64(biscuit::Assembler& as, IR::Block block, const EmitCon
 #undef A32OPC
 #undef A64OPC
         default:
-            ASSERT_FALSE("Invalid opcode: {:x}", std::size_t(inst->GetOpcode()));
+            ASSERT(false && "Invalid opcode: {:x}", std::size_t(inst->GetOpcode()));
             break;
         }
     }

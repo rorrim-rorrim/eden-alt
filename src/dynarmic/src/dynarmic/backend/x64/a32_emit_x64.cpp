@@ -59,7 +59,7 @@ static Xbyak::Address MJitStateExtReg(A32::ExtReg reg) {
         const size_t index = static_cast<size_t>(reg) - static_cast<size_t>(A32::ExtReg::Q0);
         return xword[BlockOfCode::ABI_JIT_PTR + offsetof(A32JitState, ExtReg) + 2 * sizeof(u64) * index];
     }
-    ASSERT_FALSE("Should never happen.");
+    ASSERT(false && "Should never happen.");
 }
 
 A32EmitContext::A32EmitContext(const A32::UserConfig& conf, RegAlloc& reg_alloc, IR::Block& block)
@@ -144,7 +144,7 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
 #undef OPCODE
 #undef A32OPC
 #undef A64OPC
-            default: [[unlikely]] ASSERT_FALSE("Invalid opcode: {:x}", std::size_t(inst->GetOpcode()));
+            default: [[unlikely]] ASSERT(false && "Invalid opcode: {:x}", std::size_t(inst->GetOpcode()));
             }
             reg_alloc.EndOfAllocScope();
             func(reg_alloc);
@@ -846,7 +846,7 @@ void A32EmitX64::EmitA32SetFpscrNZCV(A32EmitContext& ctx, IR::Inst* inst) {
 }
 
 static void EmitCoprocessorException() {
-    ASSERT_FALSE("Should raise coproc exception here");
+    ASSERT(false && "Should raise coproc exception here");
 }
 
 static void CallCoprocCallback(BlockOfCode& code, RegAlloc& reg_alloc, A32::Coprocessor::Callback callback, IR::Inst* inst = nullptr, std::optional<Argument::copyable_reference> arg0 = {}, std::optional<Argument::copyable_reference> arg1 = {}) {

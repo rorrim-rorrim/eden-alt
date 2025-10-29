@@ -2425,27 +2425,27 @@ void EmitX64::EmitVectorMultiply64(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitVectorMultiplySignedWiden8(EmitContext&, IR::Inst*) {
-    ASSERT_FALSE("Unexpected VectorMultiplySignedWiden8");
+    ASSERT(false && "Unexpected VectorMultiplySignedWiden8");
 }
 
 void EmitX64::EmitVectorMultiplySignedWiden16(EmitContext&, IR::Inst*) {
-    ASSERT_FALSE("Unexpected VectorMultiplySignedWiden16");
+    ASSERT(false && "Unexpected VectorMultiplySignedWiden16");
 }
 
 void EmitX64::EmitVectorMultiplySignedWiden32(EmitContext&, IR::Inst*) {
-    ASSERT_FALSE("Unexpected VectorMultiplySignedWiden32");
+    ASSERT(false && "Unexpected VectorMultiplySignedWiden32");
 }
 
 void EmitX64::EmitVectorMultiplyUnsignedWiden8(EmitContext&, IR::Inst*) {
-    ASSERT_FALSE("Unexpected VectorMultiplyUnsignedWiden8");
+    ASSERT(false && "Unexpected VectorMultiplyUnsignedWiden8");
 }
 
 void EmitX64::EmitVectorMultiplyUnsignedWiden16(EmitContext&, IR::Inst*) {
-    ASSERT_FALSE("Unexpected VectorMultiplyUnsignedWiden16");
+    ASSERT(false && "Unexpected VectorMultiplyUnsignedWiden16");
 }
 
 void EmitX64::EmitVectorMultiplyUnsignedWiden32(EmitContext&, IR::Inst*) {
-    ASSERT_FALSE("Unexpected VectorMultiplyUnsignedWiden32");
+    ASSERT(false && "Unexpected VectorMultiplyUnsignedWiden32");
 }
 
 void EmitX64::EmitVectorNarrow16(EmitContext& ctx, IR::Inst* inst) {

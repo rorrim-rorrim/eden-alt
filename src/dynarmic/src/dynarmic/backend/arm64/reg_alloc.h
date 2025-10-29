@@ -182,7 +182,7 @@ public:
         } else if constexpr (size == 32) {
             return ReadW(arg);
         } else {
-            ASSERT_FALSE("Invalid size to ReadReg {}", size);
+            ASSERT(false && "Invalid size to ReadReg {}", size);
         }
     }
 
@@ -199,7 +199,7 @@ public:
         } else if constexpr (size == 8) {
             return ReadB(arg);
         } else {
-            ASSERT_FALSE("Invalid size to ReadVec {}", size);
+            ASSERT(false && "Invalid size to ReadVec {}", size);
         }
     }
 
@@ -221,7 +221,7 @@ public:
         } else if constexpr (size == 32) {
             return WriteW(inst);
         } else {
-            ASSERT_FALSE("Invalid size to WriteReg {}", size);
+            ASSERT(false && "Invalid size to WriteReg {}", size);
         }
     }
 
@@ -238,7 +238,7 @@ public:
         } else if constexpr (size == 8) {
             return WriteB(inst);
         } else {
-            ASSERT_FALSE("Invalid size to WriteVec {}", size);
+            ASSERT(false && "Invalid size to WriteVec {}", size);
         }
     }
 
@@ -258,7 +258,7 @@ public:
         } else if constexpr (size == 32) {
             return ReadWriteW(arg, inst);
         } else {
-            ASSERT_FALSE("Invalid size to ReadWriteReg {}", size);
+            ASSERT(false && "Invalid size to ReadWriteReg {}", size);
         }
     }
 
@@ -275,7 +275,7 @@ public:
         } else if constexpr (size == 8) {
             return ReadWriteB(arg, inst);
         } else {
-            ASSERT_FALSE("Invalid size to ReadWriteVec {}", size);
+            ASSERT(false && "Invalid size to ReadWriteVec {}", size);
         }
     }
 
@@ -372,7 +372,7 @@ void RAReg<T>::Realize() {
         reg = T{reg_alloc.RealizeReadWriteImpl<kind>(read_value, write_value)};
         break;
     default:
-        ASSERT_FALSE("Invalid RWType");
+        ASSERT(false && "Invalid RWType");
     }
 }
 

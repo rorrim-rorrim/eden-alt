@@ -17,7 +17,7 @@ public:
     explicit CodeBlock(std::size_t size) noexcept : memsize(size) {
         mem = (u8*)mmap(nullptr, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_PRIVATE, -1, 0);
         if (mem == nullptr)
-            ASSERT_FALSE("out of memory");
+            ASSERT(false && "out of memory");
     }
 
     ~CodeBlock() noexcept {

@@ -638,7 +638,7 @@ void EmitIR<IR::Opcode::VectorEqual128>(oaknut::CodeGenerator& code, EmitContext
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>
@@ -867,7 +867,7 @@ void EmitIR<IR::Opcode::VectorMaxS64>(oaknut::CodeGenerator& code, EmitContext& 
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>
@@ -890,7 +890,7 @@ void EmitIR<IR::Opcode::VectorMaxU64>(oaknut::CodeGenerator& code, EmitContext& 
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>
@@ -913,7 +913,7 @@ void EmitIR<IR::Opcode::VectorMinS64>(oaknut::CodeGenerator& code, EmitContext& 
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>
@@ -936,7 +936,7 @@ void EmitIR<IR::Opcode::VectorMinU64>(oaknut::CodeGenerator& code, EmitContext& 
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>
@@ -1383,7 +1383,7 @@ void EmitIR<IR::Opcode::VectorSignExtend64>(oaknut::CodeGenerator& code, EmitCon
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>
@@ -1406,7 +1406,7 @@ void EmitIR<IR::Opcode::VectorSignedMultiply16>(oaknut::CodeGenerator& code, Emi
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>
@@ -1414,7 +1414,7 @@ void EmitIR<IR::Opcode::VectorSignedMultiply32>(oaknut::CodeGenerator& code, Emi
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>
@@ -1666,7 +1666,7 @@ void EmitIR<IR::Opcode::VectorTableLookup64>(oaknut::CodeGenerator& code, EmitCo
         }
         break;
     default:
-        ASSERT_FALSE("Unsupported table_size");
+        ASSERT(false && "Unsupported table_size");
     }
 }
 
@@ -1730,7 +1730,7 @@ void EmitIR<IR::Opcode::VectorTableLookup128>(oaknut::CodeGenerator& code, EmitC
         }
         break;
     default:
-        ASSERT_FALSE("Unsupported table_size");
+        ASSERT(false && "Unsupported table_size");
     }
 }
 
@@ -1778,7 +1778,7 @@ void EmitIR<IR::Opcode::VectorUnsignedMultiply16>(oaknut::CodeGenerator& code, E
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>
@@ -1786,7 +1786,7 @@ void EmitIR<IR::Opcode::VectorUnsignedMultiply32>(oaknut::CodeGenerator& code, E
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>

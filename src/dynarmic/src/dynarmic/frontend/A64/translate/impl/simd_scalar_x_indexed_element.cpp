@@ -72,11 +72,11 @@ bool MultiplyByElementHalfPrecision(TranslatorVisitor& v, Imm<1> L, Imm<1> M, Im
         //       for regular multiplication and extended multiplication.
 
         if (extra_behavior == ExtraBehavior::None) {
-            ASSERT_FALSE("half-precision option unimplemented");
+            ASSERT(false && "half-precision option unimplemented");
         }
 
         if (extra_behavior == ExtraBehavior::MultiplyExtended) {
-            ASSERT_FALSE("half-precision option unimplemented");
+            ASSERT(false && "half-precision option unimplemented");
         }
 
         if (extra_behavior == ExtraBehavior::Subtract) {

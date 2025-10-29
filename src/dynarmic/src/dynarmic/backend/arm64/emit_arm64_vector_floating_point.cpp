@@ -227,10 +227,10 @@ void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) 
                     code.FCVTAS(Vto, Vfrom);
                     break;
                 case FP::RoundingMode::ToOdd:
-                    ASSERT_FALSE("Unimplemented");
+                    ASSERT(false && "Unimplemented");
                     break;
                 default:
-                    ASSERT_FALSE("Invalid RoundingMode");
+                    ASSERT(false && "Invalid RoundingMode");
                     break;
                 }
             } else {
@@ -251,10 +251,10 @@ void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) 
                     code.FCVTAU(Vto, Vfrom);
                     break;
                 case FP::RoundingMode::ToOdd:
-                    ASSERT_FALSE("Unimplemented");
+                    ASSERT(false && "Unimplemented");
                     break;
                 default:
-                    ASSERT_FALSE("Invalid RoundingMode");
+                    ASSERT(false && "Invalid RoundingMode");
                     break;
                 }
             }
@@ -340,7 +340,7 @@ void EmitIR<IR::Opcode::FPVectorEqual16>(oaknut::CodeGenerator& code, EmitContex
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>
@@ -465,7 +465,7 @@ void EmitIR<IR::Opcode::FPVectorMulAdd16>(oaknut::CodeGenerator& code, EmitConte
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>
@@ -493,7 +493,7 @@ void EmitIR<IR::Opcode::FPVectorNeg16>(oaknut::CodeGenerator& code, EmitContext&
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>
@@ -538,7 +538,7 @@ void EmitIR<IR::Opcode::FPVectorRecipEstimate16>(oaknut::CodeGenerator& code, Em
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>
@@ -556,7 +556,7 @@ void EmitIR<IR::Opcode::FPVectorRecipStepFused16>(oaknut::CodeGenerator& code, E
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>
@@ -648,7 +648,7 @@ void EmitIR<IR::Opcode::FPVectorRoundInt32>(oaknut::CodeGenerator& code, EmitCon
                 code.FRINTA(Qresult->S4(), Qoperand->S4());
                 break;
             default:
-                ASSERT_FALSE("Invalid RoundingMode");
+                ASSERT(false && "Invalid RoundingMode");
             }
         }
     });
@@ -688,7 +688,7 @@ void EmitIR<IR::Opcode::FPVectorRoundInt64>(oaknut::CodeGenerator& code, EmitCon
                 code.FRINTA(Qresult->D2(), Qoperand->D2());
                 break;
             default:
-                ASSERT_FALSE("Invalid RoundingMode");
+                ASSERT(false && "Invalid RoundingMode");
             }
         }
     });
@@ -699,7 +699,7 @@ void EmitIR<IR::Opcode::FPVectorRSqrtEstimate16>(oaknut::CodeGenerator& code, Em
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>
@@ -717,7 +717,7 @@ void EmitIR<IR::Opcode::FPVectorRSqrtStepFused16>(oaknut::CodeGenerator& code, E
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>
@@ -772,7 +772,7 @@ void EmitIR<IR::Opcode::FPVectorToSignedFixed16>(oaknut::CodeGenerator& code, Em
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>
@@ -790,7 +790,7 @@ void EmitIR<IR::Opcode::FPVectorToUnsignedFixed16>(oaknut::CodeGenerator& code, 
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    ASSERT(false && "Unimplemented");
 }
 
 template<>

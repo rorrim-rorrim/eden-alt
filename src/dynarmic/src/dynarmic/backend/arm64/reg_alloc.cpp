@@ -328,7 +328,7 @@ int RegAlloc::RealizeReadImpl(const IR::Value& value) {
 
         switch (current_location->kind) {
         case HostLoc::Kind::Gpr:
-            ASSERT_FALSE("Logic error");
+            ASSERT(false && "Logic error");
             break;
         case HostLoc::Kind::Fpr:
             code.FMOV(oaknut::XReg{new_location_index}, oaknut::DReg{current_location->index});
@@ -354,13 +354,13 @@ int RegAlloc::RealizeReadImpl(const IR::Value& value) {
             code.FMOV(oaknut::DReg{new_location_index}, oaknut::XReg{current_location->index});
             break;
         case HostLoc::Kind::Fpr:
-            ASSERT_FALSE("Logic error");
+            ASSERT(false && "Logic error");
             break;
         case HostLoc::Kind::Spill:
             code.LDR(oaknut::QReg{new_location_index}, SP, spill_offset + current_location->index * spill_slot_size);
             break;
         case HostLoc::Kind::Flags:
-            ASSERT_FALSE("Moving from flags into fprs is not currently supported");
+            ASSERT(false && "Moving from flags into fprs is not currently supported");
             break;
         }
 
@@ -368,7 +368,7 @@ int RegAlloc::RealizeReadImpl(const IR::Value& value) {
         fprs[new_location_index].realized = true;
         return new_location_index;
     } else if constexpr (required_kind == HostLoc::Kind::Flags) {
-        ASSERT_FALSE("A simple read from flags is likely a logic error.");
+        ASSERT(false && "A simple read from flags is likely a logic error.");
     } else {
         static_assert(Common::always_false_v<mcl::mp::lift_value<required_kind>>);
     }
@@ -414,7 +414,7 @@ int RegAlloc::RealizeReadWriteImpl(const IR::Value& read_value, const IR::Inst* 
         LoadCopyInto(read_value, oaknut::QReg{write_loc});
         return write_loc;
     } else if constexpr (kind == HostLoc::Kind::Flags) {
-        ASSERT_FALSE("Incorrect function for ReadWrite of flags");
+        ASSERT(false && "Incorrect function for ReadWrite of flags");
     } else {
         static_assert(Common::always_false_v<mcl::mp::lift_value<kind>>);
     }
@@ -486,7 +486,7 @@ void RegAlloc::ReadWriteFlags(Argument& read, IR::Inst* write) {
         code.LDR(Wscratch0, SP, spill_offset + current_location->index * spill_slot_size);
         code.MSR(oaknut::SystemReg::NZCV, Xscratch0);
     } else {
-        ASSERT_FALSE("Invalid current location for flags");
+        ASSERT(false && "Invalid current location for flags");
     }
 
     if (write) {
@@ -558,7 +558,7 @@ void RegAlloc::LoadCopyInto(const IR::Value& value, oaknut::QReg reg) {
         code.LDR(reg, SP, spill_offset + current_location->index * spill_slot_size);
         break;
     case HostLoc::Kind::Flags:
-        ASSERT_FALSE("Moving from flags into fprs is not currently supported");
+        ASSERT(false && "Moving from flags into fprs is not currently supported");
         break;
     }
 }
@@ -592,7 +592,7 @@ HostLocInfo& RegAlloc::ValueInfo(HostLoc host_loc) {
     case HostLoc::Kind::Spill:
         return spills[static_cast<size_t>(host_loc.index)];
     }
-    ASSERT_FALSE("RegAlloc::ValueInfo: Invalid HostLoc::Kind");
+    ASSERT(false && "RegAlloc::ValueInfo: Invalid HostLoc::Kind");
 }
 
 HostLocInfo& RegAlloc::ValueInfo(const IR::Inst* value) {
@@ -610,7 +610,7 @@ HostLocInfo& RegAlloc::ValueInfo(const IR::Inst* value) {
     if (const auto iter = std::find_if(spills.begin(), spills.end(), contains_value); iter != spills.end()) {
         return *iter;
     }
-    ASSERT_FALSE("RegAlloc::ValueInfo: Value not found");
+    ASSERT(false && "RegAlloc::ValueInfo: Value not found");
 }
 
 }  // namespace Dynarmic::Backend::Arm64

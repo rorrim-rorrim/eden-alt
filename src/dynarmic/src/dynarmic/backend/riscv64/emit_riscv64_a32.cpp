@@ -113,7 +113,7 @@ void EmitA32Cond(biscuit::Assembler& as, EmitContext&, IR::Cond cond, biscuit::L
 void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step);
 
 void EmitA32Terminal(biscuit::Assembler&, EmitContext&, IR::Term::Interpret, IR::LocationDescriptor, bool) {
-    ASSERT_FALSE("Interpret should never be emitted.");
+    ASSERT(false && "Interpret should never be emitted.");
 }
 
 void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::ReturnToDispatch, IR::LocationDescriptor, bool) {

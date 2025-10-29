@@ -258,7 +258,7 @@ void AddressSpace::Link(EmittedBlockInfo& block_info) {
             c.BL(prelude_info.get_ticks_remaining);
             break;
         default:
-            ASSERT_FALSE("Invalid relocation target");
+            ASSERT(false && "Invalid relocation target");
         }
     }
 
@@ -292,7 +292,7 @@ void AddressSpace::LinkBlockLinks(const CodePtr entry_point, const CodePtr targe
             }
             break;
         default:
-            ASSERT_FALSE("Invalid BlockRelocationType");
+            ASSERT(false && "Invalid BlockRelocationType");
         }
     }
 }
@@ -344,7 +344,7 @@ FakeCall AddressSpace::FastmemCallback(u64 host_pc) {
 fail:
     fmt::print("dynarmic: Segfault happened within JITted code at host_pc = {:016x}\n", host_pc);
     fmt::print("Segfault wasn't at a fastmem patch location!\n");
-    ASSERT_FALSE("segfault");
+    ASSERT(false && "segfault");
 }
 
 }  // namespace Dynarmic::Backend::Arm64

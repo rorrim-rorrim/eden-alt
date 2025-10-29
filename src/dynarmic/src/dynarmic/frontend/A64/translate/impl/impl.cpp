@@ -76,7 +76,7 @@ IR::UAny TranslatorVisitor::I(size_t bitsize, u64 value) {
     case 64:
         return ir.Imm64(value);
     default:
-        ASSERT_FALSE("Imm - get: Invalid bitsize");
+        ASSERT(false && "Imm - get: Invalid bitsize");
     }
 }
 
@@ -91,7 +91,7 @@ IR::UAny TranslatorVisitor::X(size_t bitsize, Reg reg) {
     case 64:
         return ir.GetX(reg);
     default:
-        ASSERT_FALSE("X - get: Invalid bitsize");
+        ASSERT(false && "X - get: Invalid bitsize");
     }
 }
 
@@ -104,7 +104,7 @@ void TranslatorVisitor::X(size_t bitsize, Reg reg, IR::U32U64 value) {
         ir.SetX(reg, value);
         return;
     default:
-        ASSERT_FALSE("X - set: Invalid bitsize");
+        ASSERT(false && "X - set: Invalid bitsize");
     }
 }
 
@@ -115,7 +115,7 @@ IR::U32U64 TranslatorVisitor::SP(size_t bitsize) {
     case 64:
         return ir.GetSP();
     default:
-        ASSERT_FALSE("SP - get : Invalid bitsize");
+        ASSERT(false && "SP - get : Invalid bitsize");
     }
 }
 
@@ -128,7 +128,7 @@ void TranslatorVisitor::SP(size_t bitsize, IR::U32U64 value) {
         ir.SetSP(value);
         break;
     default:
-        ASSERT_FALSE("SP - set : Invalid bitsize");
+        ASSERT(false && "SP - set : Invalid bitsize");
     }
 }
 
@@ -141,7 +141,7 @@ IR::U128 TranslatorVisitor::V(size_t bitsize, Vec vec) {
     case 128:
         return ir.GetQ(vec);
     default:
-        ASSERT_FALSE("V - get : Invalid bitsize");
+        ASSERT(false && "V - get : Invalid bitsize");
     }
 }
 
@@ -158,7 +158,7 @@ void TranslatorVisitor::V(size_t bitsize, Vec vec, IR::U128 value) {
         ir.SetQ(vec, value);
         return;
     default:
-        ASSERT_FALSE("V - Set : Invalid bitsize");
+        ASSERT(false && "V - Set : Invalid bitsize");
     }
 }
 
@@ -233,7 +233,7 @@ IR::UAnyU128 TranslatorVisitor::Mem(IR::U64 address, size_t bytesize, IR::AccTyp
     case 16:
         return ir.ReadMemory128(address, acc_type);
     default:
-        ASSERT_FALSE("Invalid bytesize parameter {}", bytesize);
+        ASSERT(false && "Invalid bytesize parameter {}", bytesize);
     }
 }
 
@@ -255,7 +255,7 @@ void TranslatorVisitor::Mem(IR::U64 address, size_t bytesize, IR::AccType acc_ty
         ir.WriteMemory128(address, value, acc_type);
         return;
     default:
-        ASSERT_FALSE("Invalid bytesize parameter {}", bytesize);
+        ASSERT(false && "Invalid bytesize parameter {}", bytesize);
     }
 }
 
@@ -272,7 +272,7 @@ IR::UAnyU128 TranslatorVisitor::ExclusiveMem(IR::U64 address, size_t bytesize, I
     case 16:
         return ir.ExclusiveReadMemory128(address, acc_type);
     default:
-        ASSERT_FALSE("Invalid bytesize parameter {}", bytesize);
+        ASSERT(false && "Invalid bytesize parameter {}", bytesize);
     }
 }
 
@@ -289,7 +289,7 @@ IR::U32 TranslatorVisitor::ExclusiveMem(IR::U64 address, size_t bytesize, IR::Ac
     case 16:
         return ir.ExclusiveWriteMemory128(address, value, acc_type);
     default:
-        ASSERT_FALSE("Invalid bytesize parameter {}", bytesize);
+        ASSERT(false && "Invalid bytesize parameter {}", bytesize);
     }
 }
 
@@ -300,7 +300,7 @@ IR::U32U64 TranslatorVisitor::SignExtend(IR::UAny value, size_t to_size) {
     case 64:
         return ir.SignExtendToLong(value);
     default:
-        ASSERT_FALSE("Invalid size parameter {}", to_size);
+        ASSERT(false && "Invalid size parameter {}", to_size);
     }
 }
 
@@ -311,7 +311,7 @@ IR::U32U64 TranslatorVisitor::ZeroExtend(IR::UAny value, size_t to_size) {
     case 64:
         return ir.ZeroExtendToLong(value);
     default:
-        ASSERT_FALSE("Invalid size parameter {}", to_size);
+        ASSERT(false && "Invalid size parameter {}", to_size);
     }
 }
 
