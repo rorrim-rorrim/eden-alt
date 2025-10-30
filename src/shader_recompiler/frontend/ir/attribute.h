@@ -235,23 +235,23 @@ enum class Attribute : u64 {
 constexpr size_t NUM_GENERICS = 32;
 constexpr size_t NUM_FIXEDFNCTEXTURE = 10;
 
-[[nodiscard]] bool IsGeneric(Attribute attribute) noexcept {
+[[nodiscard]] inline bool IsGeneric(Attribute attribute) noexcept {
     return attribute >= Attribute::Generic0X && attribute <= Attribute::Generic31X;
 }
 
-[[nodiscard]] u32 GenericAttributeIndex(Attribute attribute) {
+[[nodiscard]] inline u32 GenericAttributeIndex(Attribute attribute) {
     if (!IsGeneric(attribute))
         throw InvalidArgument("Attribute is not generic {}", attribute);
     return (u32(attribute) - u32(Attribute::Generic0X)) / 4u;
 }
 
-[[nodiscard]] u32 GenericAttributeElement(Attribute attribute) {
+[[nodiscard]] inline u32 GenericAttributeElement(Attribute attribute) {
     if (!IsGeneric(attribute))
         throw InvalidArgument("Attribute is not generic {}", attribute);
     return u32(attribute) % 4;
 }
 
-[[nodiscard]] std::string NameOf(Attribute attribute) {
+[[nodiscard]] inline std::string NameOf(Attribute attribute) {
     switch (attribute) {
 #define SRIR_ATTRIBUTE_ELEM(n, v) case Attribute::n: return #n;
     SRIR_ATTRIBUTE_LIST

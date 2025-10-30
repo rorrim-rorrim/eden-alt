@@ -52,7 +52,7 @@ enum class FlowTest : u64 {
 #undef SRIR_FLOW_TEST_ELEM
 };
 
-[[nodiscard]] std::string NameOf(FlowTest flow_test) {
+[[nodiscard]] inline std::string NameOf(FlowTest flow_test) {
     switch (flow_test) {
 #define SRIR_FLOW_TEST_ELEM(n) case FlowTest::n: return #n;
     SRIR_FLOW_TEST_LIST
