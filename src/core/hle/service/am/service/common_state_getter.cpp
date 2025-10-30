@@ -30,8 +30,8 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_, std::shared_ptr<Ap
         {8, D<&ICommonStateGetter::GetBootMode>, "GetBootMode"},
         {9, D<&ICommonStateGetter::GetCurrentFocusState>, "GetCurrentFocusState"},
         {10, D<&ICommonStateGetter::RequestToAcquireSleepLock>, "RequestToAcquireSleepLock"},
-        {11, nullptr, "ReleaseSleepLock"},
-        {12, nullptr, "ReleaseSleepLockTransiently"},
+        {11, D<&ICommonStateGetter::ReleaseSleepLock>, "ReleaseSleepLock"},
+        {12, D<&ICommonStateGetter::ReleaseSleepLockTransiently>, "ReleaseSleepLockTransiently"},
         {13, D<&ICommonStateGetter::GetAcquiredSleepLockEvent>, "GetAcquiredSleepLockEvent"},
         {14, nullptr, "GetWakeupCount"},
         {20, nullptr, "PushToGeneralChannel"},
@@ -109,6 +109,16 @@ Result ICommonStateGetter::RequestToAcquireSleepLock() {
 
     // Sleep lock is acquired immediately.
     m_applet->sleep_lock_event.Signal();
+    R_SUCCEED();
+}
+
+Result ICommonStateGetter::ReleaseSleepLock() {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+    R_SUCCEED();
+}
+
+Result ICommonStateGetter::ReleaseSleepLockTransiently() {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
     R_SUCCEED();
 }
 
