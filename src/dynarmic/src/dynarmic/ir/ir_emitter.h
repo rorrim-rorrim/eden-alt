@@ -113,10 +113,7 @@ public:
         case 16:
             return LeastSignificantHalf(value);
         case 32:
-            if (value.GetType() == Type::U32) {
-                return value;
-            }
-            return LeastSignificantWord(value);
+            return value.GetType() == Type::U32 ? value : LeastSignificantWord(value);
         case 64:
             ASSERT(value.GetType() == Type::U64);
             return value;
