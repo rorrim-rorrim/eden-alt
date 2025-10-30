@@ -762,6 +762,18 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_INFO(Render_Vulkan, "Dynamic state is enabled (dyna_state = 1-3), disabling scaled format emulation");
     }
 
+    if (true) {
+#define EXTENSION(prefix, macro_name, var_name) extensions.var_name = false; //RemoveExtensionFeature(extensions.var_name, features.var_name, VK_##prefix##_##macro_name##_EXTENSION_NAME);
+#define FEATURE_EXTENSION(prefix, struct_name, macro_name, var_name) RemoveExtensionFeature(extensions.var_name, features.var_name, VK_##prefix##_##macro_name##_EXTENSION_NAME);
+        FOR_EACH_VK_FEATURE_1_1(FEATURE_EXTENSION);
+        FOR_EACH_VK_FEATURE_1_2(FEATURE_EXTENSION);
+        FOR_EACH_VK_FEATURE_1_3(FEATURE_EXTENSION);
+        FOR_EACH_VK_FEATURE_EXT(FEATURE_EXTENSION);
+        FOR_EACH_VK_EXTENSION(EXTENSION);
+#undef FEATURE_EXTENSION
+#undef EXTENSION
+    }
+
     logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions), first_next, dld);
 
     graphics_queue = logical.GetQueue(graphics_family);
