@@ -95,6 +95,7 @@ void ABI_PopRegistersAndAdjustStack(BlockOfCode& code, const size_t frame_size, 
         auto const gpr = *it;
         if (HostLocIsGPR(gpr))
             code.pop(HostLocToReg64(gpr));
+    }
     code.pop(rbp);
 }
 
