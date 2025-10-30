@@ -435,19 +435,23 @@ void KThread::StartTermination() {
 }
 
 void KThread::FinishTermination() {
+    // Acquire the scheduler lock.
+    KScopedSchedulerLock lk{m_kernel};
+
     // Ensure that the thread is not executing on any core.
     if (m_parent != nullptr) {
-        for (std::size_t i = 0; i < static_cast<std::size_t>(Core::Hardware::NUM_CPU_CORES); ++i) {
-            KThread* core_thread{};
-            do {
-                core_thread = m_kernel.Scheduler(i).GetSchedulerCurrentThread();
-            } while (core_thread == this);
+        bool wait_thread = true;
+        lk.unlock();
+        while (wait_thread) {
+            // now "pin" the scheduler so it wont change stuff mid-way
+            lk.lock();
+            for (std::size_t i = 0; i < std::size_t(Core::Hardware::NUM_CPU_CORES); ++i)
+                is_on_schedule |= m_kernel.Scheduler(i).GetSchedulerCurrentThread() == this;
+            // let scheduler try again
+            if (wait_thread)
+                lk.unlock();
         }
     }
-
-    // Acquire the scheduler lock.
-    KScopedSchedulerLock sl{m_kernel};
-
     // Signal.
     m_signaled = true;
     KSynchronizationObject::NotifyAvailable();
