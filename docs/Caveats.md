@@ -125,7 +125,7 @@ This may have unforeseen consequences of which we don't need to worry about for 
 
 Default `g++` (and the libstdc++) is too outdated - so install `gcc14` and redirect CMake to the new compiler toolchain  `-DCMAKE_CXX_COMPILER=gcc14 -DCMAKE_C_COMPILER=g++14`.
 
-There is also `llvm18` and use `-DCMAKE_CXX_COMPILER=clang++18 -DCMAKE_C_COMPILER=clang18` (note the `18` prefix at the end). NOTE: It doesn't have an updated libcxx so `<span>` will be missing, either build it manually or use gcc.
+There is also `llvm18` and use `-DCMAKE_CXX_COMPILER=clang++18 -DCMAKE_C_COMPILER=clang18` (note the `18` suffix at the end). NOTE: It doesn't have an updated libcxx so `<span>` will be missing, either build it manually or use gcc.
 
 If build hangs, use `hammer2 bulkfree`.
 
