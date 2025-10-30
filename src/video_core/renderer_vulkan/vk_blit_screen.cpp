@@ -42,16 +42,20 @@ void BlitScreen::SetWindowAdaptPass() {
         window_adapt = MakeNearestNeighbor(device, swapchain_view_format);
         break;
     case Settings::ScalingFilter::Bicubic:
-        window_adapt = MakeBicubic(device, swapchain_view_format, VK_CUBIC_FILTER_WEIGHTS_CATMULL_ROM_QCOM);
+        window_adapt =
+            MakeBicubic(device, swapchain_view_format, VK_CUBIC_FILTER_WEIGHTS_CATMULL_ROM_QCOM);
         break;
     case Settings::ScalingFilter::ZeroTangent:
-        window_adapt = MakeBicubic(device, swapchain_view_format, VK_CUBIC_FILTER_WEIGHTS_ZERO_TANGENT_CARDINAL_QCOM);
+        window_adapt = MakeBicubic(device, swapchain_view_format,
+                                   VK_CUBIC_FILTER_WEIGHTS_ZERO_TANGENT_CARDINAL_QCOM);
         break;
     case Settings::ScalingFilter::BSpline:
-        window_adapt = MakeBicubic(device, swapchain_view_format, VK_CUBIC_FILTER_WEIGHTS_B_SPLINE_QCOM);
+        window_adapt =
+            MakeBicubic(device, swapchain_view_format, VK_CUBIC_FILTER_WEIGHTS_B_SPLINE_QCOM);
         break;
     case Settings::ScalingFilter::Mitchell:
-        window_adapt = MakeBicubic(device, swapchain_view_format, VK_CUBIC_FILTER_WEIGHTS_MITCHELL_NETRAVALI_QCOM);
+        window_adapt = MakeBicubic(device, swapchain_view_format,
+                                   VK_CUBIC_FILTER_WEIGHTS_MITCHELL_NETRAVALI_QCOM);
         break;
     case Settings::ScalingFilter::Spline1:
         window_adapt = MakeSpline1(device, swapchain_view_format);

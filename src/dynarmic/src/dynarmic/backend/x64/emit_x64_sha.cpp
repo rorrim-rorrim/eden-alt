@@ -33,8 +33,8 @@ void EmitX64::EmitSHA256Hash(EmitContext& ctx, IR::Inst* inst) {
     // xmm0 =  -   -  wk1 wk0
 
     code.movaps(xmm0, y);
-    code.shufps(xmm0, x, 0b10111011);  // src1
-    code.shufps(y, x, 0b00010001);     // src2
+    code.shufps(xmm0, x, 0b10111011); // src1
+    code.shufps(y, x, 0b00010001);    // src2
     code.movaps(x, xmm0);
 
     code.movaps(xmm0, w);
@@ -78,4 +78,4 @@ void EmitX64::EmitSHA256MessageSchedule1(EmitContext& ctx, IR::Inst* inst) {
     ctx.reg_alloc.DefineValue(inst, x);
 }
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

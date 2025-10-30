@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "core/hle/service/cmif_serialization.h"
-#include "core/hle/service/ldn/ldn_results.h"
-#include "core/hle/service/ldn/client_process_monitor.h"
 #include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/ldn/client_process_monitor.h"
+#include "core/hle/service/ldn/ldn_results.h"
 
 namespace Service::LDN {
 

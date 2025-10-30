@@ -29,7 +29,8 @@ struct TranslateCallbacks {
     virtual void PreCodeTranslationHook(bool is_thumb, VAddr pc, A32::IREmitter& ir) = 0;
 
     // How many ticks should this instruction take to execute?
-    virtual std::uint64_t GetTicksForCode(bool is_thumb, VAddr vaddr, std::uint32_t instruction) = 0;
+    virtual std::uint64_t GetTicksForCode(bool is_thumb, VAddr vaddr,
+                                          std::uint32_t instruction) = 0;
 };
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

@@ -30,4 +30,4 @@ struct alignas(16) StackLayout {
 
 static_assert(sizeof(StackLayout) % 16 == 0);
 
-}  // namespace Dynarmic::Backend::RV64
+} // namespace Dynarmic::Backend::RV64

@@ -8,25 +8,28 @@
 
 #include "dynarmic/backend/block_range_information.h"
 
+#include <ankerl/unordered_dense.h>
 #include <boost/icl/interval_map.hpp>
 #include <boost/icl/interval_set.hpp>
 #include "dynarmic/common/common_types.h"
-#include <ankerl/unordered_dense.h>
 
 namespace Dynarmic::Backend {
 
-template<typename ProgramCounterType>
-void BlockRangeInformation<ProgramCounterType>::AddRange(boost::icl::discrete_interval<ProgramCounterType> range, IR::LocationDescriptor location) {
+template <typename ProgramCounterType>
+void BlockRangeInformation<ProgramCounterType>::AddRange(
+    boost::icl::discrete_interval<ProgramCounterType> range, IR::LocationDescriptor location) {
     block_ranges.add(std::make_pair(range, std::set<IR::LocationDescriptor>{location}));
 }
 
-template<typename ProgramCounterType>
+template <typename ProgramCounterType>
 void BlockRangeInformation<ProgramCounterType>::ClearCache() {
     block_ranges.clear();
 }
 
-template<typename ProgramCounterType>
-ankerl::unordered_dense::set<IR::LocationDescriptor> BlockRangeInformation<ProgramCounterType>::InvalidateRanges(const boost::icl::interval_set<ProgramCounterType>& ranges) {
+template <typename ProgramCounterType>
+ankerl::unordered_dense::set<IR::LocationDescriptor>
+BlockRangeInformation<ProgramCounterType>::InvalidateRanges(
+    const boost::icl::interval_set<ProgramCounterType>& ranges) {
     ankerl::unordered_dense::set<IR::LocationDescriptor> erase_locations;
     for (auto invalidate_interval : ranges) {
         auto pair = block_ranges.equal_range(invalidate_interval);
@@ -43,4 +46,4 @@ ankerl::unordered_dense::set<IR::LocationDescriptor> BlockRangeInformation<Progr
 template class BlockRangeInformation<u32>;
 template class BlockRangeInformation<u64>;
 
-}  // namespace Dynarmic::Backend
+} // namespace Dynarmic::Backend

@@ -491,8 +491,7 @@ Result IApplicationFunctions::GetHealthWarningDisappearedSystemEvent(
     R_SUCCEED();
 }
 
-Result IApplicationFunctions::GetUnknownEvent210(
-    OutCopyHandle<Kernel::KReadableEvent> out_event) {
+Result IApplicationFunctions::GetUnknownEvent210(OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_DEBUG(Service_AM, "called");
     *out_event = m_applet->unknown_event.GetHandle();
     R_SUCCEED();

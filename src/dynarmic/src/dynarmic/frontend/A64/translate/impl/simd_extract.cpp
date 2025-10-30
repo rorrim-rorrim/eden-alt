@@ -17,11 +17,12 @@ bool TranslatorVisitor::EXT(bool Q, Vec Vm, Imm<4> imm4, Vec Vn, Vec Vd) {
 
     const IR::U128 lo = V(datasize, Vn);
     const IR::U128 hi = V(datasize, Vm);
-    const IR::U128 result = datasize == 64 ? ir.VectorExtractLower(lo, hi, position) : ir.VectorExtract(lo, hi, position);
+    const IR::U128 result = datasize == 64 ? ir.VectorExtractLower(lo, hi, position)
+                                           : ir.VectorExtract(lo, hi, position);
 
     V(datasize, Vd, result);
 
     return true;
 }
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64

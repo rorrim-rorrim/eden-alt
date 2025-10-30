@@ -69,7 +69,7 @@ struct UniformDefinitions {
     Id U32x2{};
     Id U32x4{};
 
-    constexpr static size_t NumElements(Id UniformDefinitions::*member_ptr) {
+    constexpr static size_t NumElements(Id UniformDefinitions::* member_ptr) {
         if (member_ptr == &UniformDefinitions::U8) {
             return 1;
         }
@@ -98,7 +98,7 @@ struct UniformDefinitions {
         return 1;
     }
 
-    constexpr static bool IsFloat(Id UniformDefinitions::*member_ptr) {
+    constexpr static bool IsFloat(Id UniformDefinitions::* member_ptr) {
         if (member_ptr == &UniformDefinitions::F32) {
             return true;
         }

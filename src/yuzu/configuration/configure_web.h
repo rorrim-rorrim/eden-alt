@@ -8,8 +8,8 @@
 
 #include <QRandomGenerator>
 
-#include <QWidget>
 #include <memory>
+#include <QWidget>
 
 namespace Ui {
 class ConfigureWeb;
@@ -32,7 +32,7 @@ private:
     void SetConfiguration();
 
     std::unique_ptr<Ui::ConfigureWeb> ui;
-    QRandomGenerator *m_rng;
+    QRandomGenerator* m_rng;
 
 private slots:
     void GenerateToken();

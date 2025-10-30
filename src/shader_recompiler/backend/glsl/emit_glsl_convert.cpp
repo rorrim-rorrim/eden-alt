@@ -79,17 +79,17 @@ void EmitConvertU32U16([[maybe_unused]] EmitContext& ctx, [[maybe_unused]] IR::I
 }
 
 void EmitConvertU8U32([[maybe_unused]] EmitContext& ctx, [[maybe_unused]] IR::Inst& inst,
-                       [[maybe_unused]] std::string_view value) {
+                      [[maybe_unused]] std::string_view value) {
     NotImplemented();
 }
 
 void EmitConvertU32U8([[maybe_unused]] EmitContext& ctx, [[maybe_unused]] IR::Inst& inst,
-                       [[maybe_unused]] std::string_view value) {
+                      [[maybe_unused]] std::string_view value) {
     NotImplemented();
 }
 
 void EmitConvertS32S8([[maybe_unused]] EmitContext& ctx, [[maybe_unused]] IR::Inst& inst,
-                       [[maybe_unused]] std::string_view value) {
+                      [[maybe_unused]] std::string_view value) {
     NotImplemented();
 }
 

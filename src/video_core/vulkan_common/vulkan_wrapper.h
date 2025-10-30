@@ -627,8 +627,8 @@ class Instance : public Handle<VkInstance, NoOwner, InstanceDispatch> {
 public:
     /// Creates a Vulkan instance.
     /// @throw Exception on initialization error.
-    [[nodiscard]] static Instance Create(u32 version, Span<const char*> layers, Span<const char*> extensions,
-                           InstanceDispatch& dispatch);
+    [[nodiscard]] static Instance Create(u32 version, Span<const char*> layers,
+                                         Span<const char*> extensions, InstanceDispatch& dispatch);
 
     /// Enumerates physical devices.
     /// @return Physical devices and an empty handle on failure.
@@ -717,8 +717,8 @@ public:
     explicit Buffer(VkBuffer handle_, VkDevice owner_, VmaAllocator allocator_,
                     VmaAllocation allocation_, std::span<u8> mapped_, bool is_coherent_,
                     const DeviceDispatch& dld_) noexcept
-        : handle{handle_}, owner{owner_}, allocator{allocator_},
-          allocation{allocation_}, mapped{mapped_}, is_coherent{is_coherent_}, dld{&dld_} {}
+        : handle{handle_}, owner{owner_}, allocator{allocator_}, allocation{allocation_},
+          mapped{mapped_}, is_coherent{is_coherent_}, dld{&dld_} {}
     Buffer() = default;
 
     Buffer(const Buffer&) = delete;
@@ -726,8 +726,8 @@ public:
 
     Buffer(Buffer&& rhs) noexcept
         : handle{std::exchange(rhs.handle, nullptr)}, owner{rhs.owner}, allocator{rhs.allocator},
-          allocation{rhs.allocation}, mapped{rhs.mapped},
-          is_coherent{rhs.is_coherent}, dld{rhs.dld} {}
+          allocation{rhs.allocation}, mapped{rhs.mapped}, is_coherent{rhs.is_coherent},
+          dld{rhs.dld} {}
 
     Buffer& operator=(Buffer&& rhs) noexcept {
         Release();
@@ -1443,23 +1443,20 @@ public:
         dld->vkCmdSetRasterizerDiscardEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
     }
 
-    void SetConservativeRasterizationModeEXT(VkConservativeRasterizationModeEXT mode) const noexcept
-    {
+    void SetConservativeRasterizationModeEXT(
+        VkConservativeRasterizationModeEXT mode) const noexcept {
         dld->vkCmdSetConservativeRasterizationModeEXT(handle, mode);
     }
 
-    void SetLineRasterizationModeEXT(VkLineRasterizationModeEXT mode) const noexcept
-    {
+    void SetLineRasterizationModeEXT(VkLineRasterizationModeEXT mode) const noexcept {
         dld->vkCmdSetLineRasterizationModeEXT(handle, mode);
     }
 
-    void SetLineStippleEnableEXT(bool enable) const noexcept
-    {
+    void SetLineStippleEnableEXT(bool enable) const noexcept {
         dld->vkCmdSetLineStippleEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
     }
 
-    void SetLineStippleEXT(u32 factor, u16 pattern) const noexcept
-    {
+    void SetLineStippleEXT(u32 factor, u16 pattern) const noexcept {
         dld->vkCmdSetLineStippleEXT(handle, factor, pattern);
     }
 

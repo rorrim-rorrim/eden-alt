@@ -13,8 +13,8 @@
 #include <memory>
 #include <utility>
 #include <vector>
-#include <QString>
 #include <QObject>
+#include <QString>
 #include "common/common_types.h"
 #include "common/settings_enums.h"
 
@@ -23,7 +23,7 @@ using TranslationMap = std::map<u32, std::pair<QString, QString>>;
 using ComboboxTranslations = std::vector<std::pair<u32, QString>>;
 using ComboboxTranslationMap = std::map<u32, ComboboxTranslations>;
 
-std::unique_ptr<TranslationMap> InitializeTranslations(QObject *parent);
+std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent);
 
 std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent);
 
@@ -39,15 +39,17 @@ static const std::map<Settings::ScalingFilter, QString> scaling_filter_texts_map
     {Settings::ScalingFilter::Bilinear,
      QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Bilinear"))},
     {Settings::ScalingFilter::Bicubic, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Bicubic"))},
-    {Settings::ScalingFilter::ZeroTangent, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Zero-Tangent"))},
-    {Settings::ScalingFilter::BSpline, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "B-Spline"))},
-    {Settings::ScalingFilter::Mitchell, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Mitchell"))},
-     {Settings::ScalingFilter::Spline1,
+    {Settings::ScalingFilter::ZeroTangent,
+     QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Zero-Tangent"))},
+    {Settings::ScalingFilter::BSpline,
+     QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "B-Spline"))},
+    {Settings::ScalingFilter::Mitchell,
+     QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Mitchell"))},
+    {Settings::ScalingFilter::Spline1,
      QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Spline-1"))},
     {Settings::ScalingFilter::Gaussian,
      QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Gaussian"))},
-     {Settings::ScalingFilter::Lanczos,
-     QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Lanczos"))},
+    {Settings::ScalingFilter::Lanczos, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Lanczos"))},
     {Settings::ScalingFilter::ScaleForce,
      QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "ScaleForce"))},
     {Settings::ScalingFilter::Fsr, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "FSR"))},

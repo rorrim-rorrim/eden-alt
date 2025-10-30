@@ -4,8 +4,8 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <cmath>
 #include <bit>
+#include <cmath>
 #include "video_core/fsr.h"
 
 namespace FSR {
@@ -136,9 +136,9 @@ void FsrEasuConOffset(u32 con0[4], u32 con1[4], u32 con2[4], u32 con3[4],
     FsrEasuCon(con0, con1, con2, con3, inputViewportInPixelsX, inputViewportInPixelsY,
                inputSizeInPixelsX, inputSizeInPixelsY, outputSizeInPixelsX, outputSizeInPixelsY);
     con0[2] = std::bit_cast<u32>(0.5f * inputViewportInPixelsX / outputSizeInPixelsX - 0.5f +
-                                   inputOffsetInPixelsX);
+                                 inputOffsetInPixelsX);
     con0[3] = std::bit_cast<u32>(0.5f * inputViewportInPixelsY / outputSizeInPixelsY - 0.5f +
-                                   inputOffsetInPixelsY);
+                                 inputOffsetInPixelsY);
 }
 
 void FsrRcasCon(u32* con, f32 sharpness) {

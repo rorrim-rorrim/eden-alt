@@ -10,9 +10,9 @@
 namespace Dynarmic::Common {
 
 /// Cast a lambda into an equivalent function pointer.
-template<class Function>
+template <class Function>
 inline auto FptrCast(Function f) noexcept {
     return static_cast<mcl::equivalent_function_type<Function>*>(f);
 }
 
-}  // namespace Dynarmic::Common
+} // namespace Dynarmic::Common

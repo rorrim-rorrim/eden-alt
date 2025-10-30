@@ -16,7 +16,7 @@ namespace Dynarmic {
 
 namespace IR {
 class Block;
-}  // namespace IR
+} // namespace IR
 
 namespace A64 {
 
@@ -42,12 +42,14 @@ struct TranslationOptions {
 
 /**
  * This function translates instructions in memory into our intermediate representation.
- * @param descriptor The starting location of the basic block. Includes information like PC, FPCR state, &c.
+ * @param descriptor The starting location of the basic block. Includes information like PC, FPCR
+ * state, &c.
  * @param memory_read_code The function we should use to read emulated memory.
  * @param options Configures how certain instructions are translated.
  * @return A translated basic block in the intermediate representation.
  */
-IR::Block Translate(LocationDescriptor descriptor, MemoryReadCodeFuncType memory_read_code, TranslationOptions options);
+IR::Block Translate(LocationDescriptor descriptor, MemoryReadCodeFuncType memory_read_code,
+                    TranslationOptions options);
 
 /**
  * This function translates a single provided instruction into our intermediate representation.
@@ -58,5 +60,5 @@ IR::Block Translate(LocationDescriptor descriptor, MemoryReadCodeFuncType memory
  */
 bool TranslateSingleInstruction(IR::Block& block, LocationDescriptor descriptor, u32 instruction);
 
-}  // namespace A64
-}  // namespace Dynarmic
+} // namespace A64
+} // namespace Dynarmic

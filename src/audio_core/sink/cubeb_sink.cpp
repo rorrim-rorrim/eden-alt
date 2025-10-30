@@ -377,7 +377,8 @@ u32 GetCubebLatency() {
     return latency;
 }
 
-// REVERTED back to 3833 - Below namespace section and function IsCubebSuitable() removed, reverting to GetCubebLatency() above. - DIABLO 3 FIX
+// REVERTED back to 3833 - Below namespace section and function IsCubebSuitable() removed, reverting
+// to GetCubebLatency() above. - DIABLO 3 FIX
 /*
 namespace {
 static long TmpDataCallback(cubeb_stream*, void*, const void*, void*, long) {

@@ -14,7 +14,8 @@ enum class Transposition {
     TRN2,
 };
 
-bool VectorTranspose(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd, Transposition type) {
+bool VectorTranspose(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd,
+                     Transposition type) {
     if (!Q && size == 0b11) {
         return v.ReservedValue();
     }
@@ -35,7 +36,8 @@ enum class UnzipType {
     Odd,
 };
 
-bool VectorUnzip(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd, UnzipType type) {
+bool VectorUnzip(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd,
+                 UnzipType type) {
     if (size == 0b11 && !Q) {
         return v.ReservedValue();
     }
@@ -46,13 +48,15 @@ bool VectorUnzip(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec 
     const IR::U128 n = v.V(datasize, Vn);
     const IR::U128 m = v.V(datasize, Vm);
     const IR::U128 result = type == UnzipType::Even
-                              ? (Q ? v.ir.VectorDeinterleaveEven(esize, n, m) : v.ir.VectorDeinterleaveEvenLower(esize, n, m))
-                              : (Q ? v.ir.VectorDeinterleaveOdd(esize, n, m) : v.ir.VectorDeinterleaveOddLower(esize, n, m));
+                                ? (Q ? v.ir.VectorDeinterleaveEven(esize, n, m)
+                                     : v.ir.VectorDeinterleaveEvenLower(esize, n, m))
+                                : (Q ? v.ir.VectorDeinterleaveOdd(esize, n, m)
+                                     : v.ir.VectorDeinterleaveOddLower(esize, n, m));
 
     v.V(datasize, Vd, result);
     return true;
 }
-}  // Anonymous namespace
+} // Anonymous namespace
 
 bool TranslatorVisitor::TRN1(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
     return VectorTranspose(*this, Q, size, Vm, Vn, Vd, Transposition::TRN1);
@@ -110,4 +114,4 @@ bool TranslatorVisitor::ZIP2(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
     return true;
 }
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64

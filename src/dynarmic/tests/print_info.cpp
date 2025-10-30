@@ -56,7 +56,8 @@ std::string_view GetNameOfA64Instruction(u32 instruction) {
 }
 
 void PrintA32Instruction(u32 instruction) {
-    fmt::print("{:08x} {}\n", instruction, Common::DisassembleAArch32(false, 0, (u8*)&instruction, sizeof(instruction)));
+    fmt::print("{:08x} {}\n", instruction,
+               Common::DisassembleAArch32(false, 0, (u8*)&instruction, sizeof(instruction)));
     fmt::print("Name: {}\n", GetNameOfA32Instruction(instruction));
 
     const A32::LocationDescriptor location{0, {}, {}};
@@ -90,7 +91,8 @@ void PrintThumbInstruction(u32 instruction) {
     if (inst_size == 4)
         instruction = mcl::bit::swap_halves_32(instruction);
 
-    fmt::print("{:08x} {}\n", instruction, Common::DisassembleAArch32(true, 0, (u8*)&instruction, inst_size));
+    fmt::print("{:08x} {}\n", instruction,
+               Common::DisassembleAArch32(true, 0, (u8*)&instruction, inst_size));
 
     const A32::LocationDescriptor location{0, A32::PSR{0x1F0}, {}};
     IR::Block ir_block{location};
@@ -141,7 +143,8 @@ public:
     }
 
     void InterpreterFallback(u32 pc, size_t num_instructions) override {
-        fmt::print("> InterpreterFallback({:08x}, {}) code = {:08x}\n", pc, num_instructions, *MemoryReadCode(pc));
+        fmt::print("> InterpreterFallback({:08x}, {}) code = {:08x}\n", pc, num_instructions,
+                   *MemoryReadCode(pc));
     }
     void CallSVC(std::uint32_t swi) override {
         fmt::print("> CallSVC({})\n", swi);
@@ -191,7 +194,8 @@ void ExecuteA32Instruction(u32 instruction) {
     const auto get_line = []() {
         std::string line;
         std::getline(std::cin, line);
-        std::transform(line.begin(), line.end(), line.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+        std::transform(line.begin(), line.end(), line.begin(),
+                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
         return line;
     };
 
@@ -241,7 +245,7 @@ void ExecuteA32Instruction(u32 instruction) {
 
     const u32 initial_pc = regs[15];
     env.MemoryWrite32(initial_pc + 0, instruction);
-    env.MemoryWrite32(initial_pc + 4, 0xEAFFFFFE);  // B +0
+    env.MemoryWrite32(initial_pc + 4, 0xEAFFFFFE); // B +0
 
     cpu.Run();
 
@@ -292,7 +296,8 @@ int main(int argc, char** argv) {
         PrintA32Instruction(instruction);
     } else if (strcmp(argv[1], "a64") == 0) {
         PrintA64Instruction(instruction);
-    } else if (strcmp(argv[1], "t32") == 0 || strcmp(argv[1], "t16") == 0 || strcmp(argv[1], "thumb") == 0) {
+    } else if (strcmp(argv[1], "t32") == 0 || strcmp(argv[1], "t16") == 0 ||
+               strcmp(argv[1], "thumb") == 0) {
         PrintThumbInstruction(instruction);
     } else {
         fmt::print("Invalid mode: {}\nValid values: a32, a64, thumb\n", argv[1]);

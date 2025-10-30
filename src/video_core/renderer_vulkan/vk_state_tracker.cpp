@@ -221,7 +221,7 @@ void SetupDirtyVertexBindings(Tables& tables) {
     }
 }
 
-void SetupRasterModes(Tables &tables) {
+void SetupRasterModes(Tables& tables) {
     auto& table = tables[0];
 
     table[OFF(line_stipple_params)] = LineStippleParams;

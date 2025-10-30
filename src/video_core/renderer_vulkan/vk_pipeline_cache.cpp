@@ -5,14 +5,14 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <bit>
 #include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <numeric>
 #include <thread>
 #include <vector>
-#include <bit>
-#include <numeric>
 #include "common/cityhash.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
@@ -312,7 +312,8 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
       texture_cache{texture_cache_}, shader_notify{shader_notify_},
       use_asynchronous_shaders{Settings::values.use_asynchronous_shaders.GetValue()},
       use_vulkan_pipeline_cache{Settings::values.use_vulkan_driver_pipeline_cache.GetValue()},
-      optimize_spirv_output{Settings::values.optimize_spirv_output.GetValue() != Settings::SpirvOptimizeMode::Never},
+      optimize_spirv_output{Settings::values.optimize_spirv_output.GetValue() !=
+                            Settings::SpirvOptimizeMode::Never},
       workers(device.HasBrokenParallelShaderCompiling() ? 1ULL : GetTotalPipelineWorkers(),
               "VkPipelineBuilder"),
       serialization_thread(1, "VkPipelineSerialization") {
@@ -406,20 +407,26 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
 
     const u8 dynamic_state = Settings::values.dyna_state.GetValue();
 
-    LOG_INFO(Render_Vulkan, "DynamicState value is set to {}", (u32) dynamic_state);
+    LOG_INFO(Render_Vulkan, "DynamicState value is set to {}", (u32)dynamic_state);
 
     dynamic_features = DynamicFeatures{
-        .has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0,
-        .has_extended_dynamic_state_2 = device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1,
-        .has_extended_dynamic_state_2_extra = device.IsExtExtendedDynamicState2ExtrasSupported() && dynamic_state > 1,
-        .has_extended_dynamic_state_3_blend = device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2,
-        .has_extended_dynamic_state_3_enables = device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state =
+            device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0,
+        .has_extended_dynamic_state_2 =
+            device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1,
+        .has_extended_dynamic_state_2_extra =
+            device.IsExtExtendedDynamicState2ExtrasSupported() && dynamic_state > 1,
+        .has_extended_dynamic_state_3_blend =
+            device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_enables =
+            device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2,
         .has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported(),
     };
 
     LOG_INFO(Render_Vulkan, "DynamicState1: {}", dynamic_features.has_extended_dynamic_state);
     LOG_INFO(Render_Vulkan, "DynamicState2: {}", dynamic_features.has_extended_dynamic_state_2);
-    LOG_INFO(Render_Vulkan, "DynamicState3: {}", dynamic_features.has_extended_dynamic_state_3_enables);
+    LOG_INFO(Render_Vulkan, "DynamicState3: {}",
+             dynamic_features.has_extended_dynamic_state_3_enables);
     LOG_INFO(Render_Vulkan, "DynamicVertexInput: {}", dynamic_features.has_dynamic_vertex_input);
 }
 
@@ -682,7 +689,8 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
 
         const auto runtime_info{MakeRuntimeInfo(programs, key, program, previous_stage)};
         ConvertLegacyToGeneric(program, runtime_info);
-        const std::vector<u32> code{EmitSPIRV(profile, runtime_info, program, binding, this->optimize_spirv_output)};
+        const std::vector<u32> code{
+            EmitSPIRV(profile, runtime_info, program, binding, this->optimize_spirv_output)};
         device.SaveShader(code);
         modules[stage_index] = BuildShader(device, code);
         if (device.HasDebuggingToolAttached()) {

@@ -12,8 +12,7 @@ static bool PLDHandler(TranslatorVisitor& v, bool W) {
         return true;
     }
 
-    const auto exception = W ? Exception::PreloadDataWithIntentToWrite
-                             : Exception::PreloadData;
+    const auto exception = W ? Exception::PreloadDataWithIntentToWrite : Exception::PreloadData;
     return v.RaiseException(exception);
 }
 
@@ -27,7 +26,8 @@ static bool PLIHandler(TranslatorVisitor& v) {
 
 using ExtensionFunctionU8 = IR::U32 (IREmitter::*)(const IR::U8&);
 
-static bool LoadByteLiteral(TranslatorVisitor& v, bool U, Reg t, Imm<12> imm12, ExtensionFunctionU8 ext_fn) {
+static bool LoadByteLiteral(TranslatorVisitor& v, bool U, Reg t, Imm<12> imm12,
+                            ExtensionFunctionU8 ext_fn) {
     const u32 imm32 = imm12.ZeroExtend();
     const u32 base = v.ir.AlignPC(4);
     const u32 address = U ? (base + imm32) : (base - imm32);
@@ -37,7 +37,8 @@ static bool LoadByteLiteral(TranslatorVisitor& v, bool U, Reg t, Imm<12> imm12, 
     return true;
 }
 
-static bool LoadByteRegister(TranslatorVisitor& v, Reg n, Reg t, Imm<2> imm2, Reg m, ExtensionFunctionU8 ext_fn) {
+static bool LoadByteRegister(TranslatorVisitor& v, Reg n, Reg t, Imm<2> imm2, Reg m,
+                             ExtensionFunctionU8 ext_fn) {
     if (m == Reg::PC) {
         return v.UnpredictableInstruction();
     }
@@ -52,11 +53,12 @@ static bool LoadByteRegister(TranslatorVisitor& v, Reg n, Reg t, Imm<2> imm2, Re
     return true;
 }
 
-static bool LoadByteImmediate(TranslatorVisitor& v, Reg n, Reg t, bool P, bool U, bool W, Imm<12> imm12, ExtensionFunctionU8 ext_fn) {
+static bool LoadByteImmediate(TranslatorVisitor& v, Reg n, Reg t, bool P, bool U, bool W,
+                              Imm<12> imm12, ExtensionFunctionU8 ext_fn) {
     const u32 imm32 = imm12.ZeroExtend();
     const IR::U32 reg_n = v.ir.GetRegister(n);
-    const IR::U32 offset_address = U ? v.ir.Add(reg_n, v.ir.Imm32(imm32))
-                                     : v.ir.Sub(reg_n, v.ir.Imm32(imm32));
+    const IR::U32 offset_address =
+        U ? v.ir.Add(reg_n, v.ir.Imm32(imm32)) : v.ir.Sub(reg_n, v.ir.Imm32(imm32));
     const IR::U32 address = P ? offset_address : reg_n;
     const IR::U32 data = (v.ir.*ext_fn)(v.ir.ReadMemory8(address, IR::AccType::NORMAL));
 
@@ -108,8 +110,7 @@ bool TranslatorVisitor::thumb32_PLI_reg(Reg /*n*/, Imm<2> /*imm2*/, Reg m) {
 }
 
 bool TranslatorVisitor::thumb32_LDRB_lit(bool U, Reg t, Imm<12> imm12) {
-    return LoadByteLiteral(*this, U, t, imm12,
-                           &IREmitter::ZeroExtendByteToWord);
+    return LoadByteLiteral(*this, U, t, imm12, &IREmitter::ZeroExtendByteToWord);
 }
 
 bool TranslatorVisitor::thumb32_LDRB_imm8(Reg n, Reg t, bool P, bool U, bool W, Imm<8> imm8) {
@@ -133,8 +134,7 @@ bool TranslatorVisitor::thumb32_LDRB_imm12(Reg n, Reg t, Imm<12> imm12) {
 }
 
 bool TranslatorVisitor::thumb32_LDRB_reg(Reg n, Reg t, Imm<2> imm2, Reg m) {
-    return LoadByteRegister(*this, n, t, imm2, m,
-                            &IREmitter::ZeroExtendByteToWord);
+    return LoadByteRegister(*this, n, t, imm2, m, &IREmitter::ZeroExtendByteToWord);
 }
 
 bool TranslatorVisitor::thumb32_LDRBT(Reg n, Reg t, Imm<8> imm8) {
@@ -152,8 +152,7 @@ bool TranslatorVisitor::thumb32_LDRBT(Reg n, Reg t, Imm<8> imm8) {
 }
 
 bool TranslatorVisitor::thumb32_LDRSB_lit(bool U, Reg t, Imm<12> imm12) {
-    return LoadByteLiteral(*this, U, t, imm12,
-                           &IREmitter::SignExtendByteToWord);
+    return LoadByteLiteral(*this, U, t, imm12, &IREmitter::SignExtendByteToWord);
 }
 
 bool TranslatorVisitor::thumb32_LDRSB_imm8(Reg n, Reg t, bool P, bool U, bool W, Imm<8> imm8) {
@@ -177,8 +176,7 @@ bool TranslatorVisitor::thumb32_LDRSB_imm12(Reg n, Reg t, Imm<12> imm12) {
 }
 
 bool TranslatorVisitor::thumb32_LDRSB_reg(Reg n, Reg t, Imm<2> imm2, Reg m) {
-    return LoadByteRegister(*this, n, t, imm2, m,
-                            &IREmitter::SignExtendByteToWord);
+    return LoadByteRegister(*this, n, t, imm2, m, &IREmitter::SignExtendByteToWord);
 }
 
 bool TranslatorVisitor::thumb32_LDRSBT(Reg n, Reg t, Imm<8> imm8) {
@@ -195,4 +193,4 @@ bool TranslatorVisitor::thumb32_LDRSBT(Reg n, Reg t, Imm<8> imm8) {
     return thumb32_LDRSB_imm8(n, t, true, true, false, imm8);
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

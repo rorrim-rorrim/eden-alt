@@ -171,8 +171,6 @@ struct NpadCondition {
 };
 static_assert(sizeof(NpadCondition) == 0x10, "NpadCondition is an invalid size");
 
-
-
 // This is nn::hid::NpadSystemProperties
 struct NPadSystemProperties {
     union {

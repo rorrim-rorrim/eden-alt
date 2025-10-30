@@ -15,10 +15,12 @@ void ArmInterface::LogBacktrace(Kernel::KProcess* process) const {
     Kernel::Svc::ThreadContext ctx;
     this->GetContext(ctx);
     LOG_ERROR(Core_ARM, "Backtrace, sp={:016X}, pc={:016X}", ctx.sp, ctx.pc);
-    LOG_ERROR(Core_ARM, "{:20}{:20}{:20}{:20}{}", "Module Name", "Address", "Original Address", "Offset", "Symbol");
+    LOG_ERROR(Core_ARM, "{:20}{:20}{:20}{:20}{}", "Module Name", "Address", "Original Address",
+              "Offset", "Symbol");
     auto const backtrace = GetBacktraceFromContext(process, ctx);
     for (auto const& entry : backtrace)
-        LOG_ERROR(Core_ARM, "{:20}{:016X}    {:016X}    {:016X}    {}", entry.module, entry.address, entry.original_address, entry.offset, entry.name);
+        LOG_ERROR(Core_ARM, "{:20}{:016X}    {:016X}    {:016X}    {}", entry.module, entry.address,
+                  entry.original_address, entry.offset, entry.name);
 }
 
 const Kernel::DebugWatchpoint* ArmInterface::MatchingWatchpoint(

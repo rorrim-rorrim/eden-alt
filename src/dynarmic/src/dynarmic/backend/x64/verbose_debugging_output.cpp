@@ -13,7 +13,8 @@
 
 namespace Dynarmic::Backend::X64 {
 
-void PrintVerboseDebuggingOutputLine(RegisterData& reg_data, HostLoc hostloc, size_t inst_index, size_t bitsize) {
+void PrintVerboseDebuggingOutputLine(RegisterData& reg_data, HostLoc hostloc, size_t inst_index,
+                                     size_t bitsize) {
     fmt::print("dynarmic debug: %{:05} = ", inst_index);
 
     Vector value = [&]() -> Vector {
@@ -53,4 +54,4 @@ void PrintVerboseDebuggingOutputLine(RegisterData& reg_data, HostLoc hostloc, si
     fmt::print("\n");
 }
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

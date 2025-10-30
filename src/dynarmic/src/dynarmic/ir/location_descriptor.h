@@ -18,8 +18,7 @@ namespace Dynarmic::IR {
 
 class LocationDescriptor {
 public:
-    explicit LocationDescriptor(u64 value)
-            : value(value) {}
+    explicit LocationDescriptor(u64 value) : value(value) {}
 
     bool operator==(const LocationDescriptor& o) const {
         return value == o.Value();
@@ -29,7 +28,9 @@ public:
         return !operator==(o);
     }
 
-    u64 Value() const { return value; }
+    u64 Value() const {
+        return value;
+    }
 
 private:
     u64 value;
@@ -41,26 +42,27 @@ inline bool operator<(const LocationDescriptor& x, const LocationDescriptor& y) 
     return x.Value() < y.Value();
 }
 
-}  // namespace Dynarmic::IR
+} // namespace Dynarmic::IR
 
 namespace std {
-template<>
+template <>
 struct less<Dynarmic::IR::LocationDescriptor> {
-    bool operator()(const Dynarmic::IR::LocationDescriptor& x, const Dynarmic::IR::LocationDescriptor& y) const noexcept {
+    bool operator()(const Dynarmic::IR::LocationDescriptor& x,
+                    const Dynarmic::IR::LocationDescriptor& y) const noexcept {
         return x < y;
     }
 };
-template<>
+template <>
 struct hash<Dynarmic::IR::LocationDescriptor> {
     size_t operator()(const Dynarmic::IR::LocationDescriptor& x) const noexcept {
         return std::hash<u64>()(x.Value());
     }
 };
-}  // namespace std
+} // namespace std
 
-template<>
+template <>
 struct fmt::formatter<Dynarmic::IR::LocationDescriptor> : fmt::formatter<std::string> {
-    template<typename FormatContext>
+    template <typename FormatContext>
     auto format(Dynarmic::IR::LocationDescriptor descriptor, FormatContext& ctx) const {
         return formatter<std::string>::format(ToString(descriptor), ctx);
     }

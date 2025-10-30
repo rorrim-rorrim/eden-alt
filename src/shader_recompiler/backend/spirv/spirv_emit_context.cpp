@@ -265,7 +265,7 @@ void Name(EmitContext& ctx, Id object, std::string_view format_str, Args&&... ar
                          .c_str());
 }
 
-void DefineConstBuffers(EmitContext& ctx, const Info& info, Id UniformDefinitions::*member_type,
+void DefineConstBuffers(EmitContext& ctx, const Info& info, Id UniformDefinitions::* member_type,
                         u32 binding, Id type, char type_char, u32 element_size) {
     const Id array_type{ctx.TypeArray(type, ctx.Const(65536U / element_size))};
     ctx.Decorate(array_type, spv::Decoration::ArrayStride, element_size);
@@ -296,7 +296,7 @@ void DefineConstBuffers(EmitContext& ctx, const Info& info, Id UniformDefinition
 }
 
 void DefineSsbos(EmitContext& ctx, StorageTypeDefinition& type_def,
-                 Id StorageDefinitions::*member_type, const Info& info, u32 binding, Id type,
+                 Id StorageDefinitions::* member_type, const Info& info, u32 binding, Id type,
                  u32 stride) {
     const Id array_type{ctx.TypeRuntimeArray(type)};
     ctx.Decorate(array_type, spv::Decoration::ArrayStride, stride);
@@ -1159,7 +1159,7 @@ void EmitContext::DefineConstantBufferIndirectFunctions(const Info& info) {
     if (!info.uses_cbuf_indirect) {
         return;
     }
-    const auto make_accessor{[&](Id buffer_type, Id UniformDefinitions::*member_ptr) {
+    const auto make_accessor{[&](Id buffer_type, Id UniformDefinitions::* member_ptr) {
         const Id func_type{TypeFunction(buffer_type, U32[1], U32[1])};
         const Id func{OpFunction(buffer_type, spv::FunctionControlMask::MaskNone, func_type)};
         const Id binding{OpFunctionParameter(U32[1])};

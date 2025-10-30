@@ -98,12 +98,12 @@ std::vector<std::string> ListSDLSinkDevices(bool capture);
  */
 u32 GetSDLLatency();
 
-/** REVERTED back to 3833 - Below function IsSDLSuitable() removed, reverting to GetSDLLatency() above. - DIABLO 3 FIX
- * Check if this backend is suitable for use.
- * Checks if enabled, its latency, whether it opens successfully, etc.
+/** REVERTED back to 3833 - Below function IsSDLSuitable() removed, reverting to GetSDLLatency()
+ * above. - DIABLO 3 FIX Check if this backend is suitable for use. Checks if enabled, its latency,
+ * whether it opens successfully, etc.
  *
  * @return True is this backend is suitable, false otherwise.
  */
-//bool IsSDLSuitable(); // REVERTED for GetSDLLatency() from EA-3833
+// bool IsSDLSuitable(); // REVERTED for GetSDLLatency() from EA-3833
 
 } // namespace AudioCore::Sink

@@ -10,7 +10,8 @@ namespace {
 
 using ExtensionFunction = IR::U32 (IREmitter::*)(const IR::UAny&);
 
-bool DotProduct(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd, ExtensionFunction extension) {
+bool DotProduct(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd,
+                ExtensionFunction extension) {
     if (size != 0b10) {
         return v.ReservedValue();
     }
@@ -41,7 +42,7 @@ bool DotProduct(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec V
     return true;
 }
 
-}  // Anonymous namespace
+} // Anonymous namespace
 
 bool TranslatorVisitor::SDOT_vec(bool Q, Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
     return DotProduct(*this, Q, size, Vm, Vn, Vd, &IREmitter::SignExtendToWord);
@@ -85,25 +86,25 @@ bool TranslatorVisitor::FCMLA_vec(bool Q, Imm<2> size, Vec Vm, Imm<2> rot, Vec V
         const size_t second = first + 1;
 
         switch (rot.ZeroExtend()) {
-        case 0b00:  // 0 degrees
+        case 0b00: // 0 degrees
             element1 = ir.VectorGetElement(esize, operand2, first);
             element2 = ir.VectorGetElement(esize, operand1, first);
             element3 = ir.VectorGetElement(esize, operand2, second);
             element4 = ir.VectorGetElement(esize, operand1, first);
             break;
-        case 0b01:  // 90 degrees
+        case 0b01: // 90 degrees
             element1 = ir.FPNeg(ir.VectorGetElement(esize, operand2, second));
             element2 = ir.VectorGetElement(esize, operand1, second);
             element3 = ir.VectorGetElement(esize, operand2, first);
             element4 = ir.VectorGetElement(esize, operand1, second);
             break;
-        case 0b10:  // 180 degrees
+        case 0b10: // 180 degrees
             element1 = ir.FPNeg(ir.VectorGetElement(esize, operand2, first));
             element2 = ir.VectorGetElement(esize, operand1, first);
             element3 = ir.FPNeg(ir.VectorGetElement(esize, operand2, second));
             element4 = ir.VectorGetElement(esize, operand1, first);
             break;
-        case 0b11:  // 270 degrees
+        case 0b11: // 270 degrees
             element1 = ir.VectorGetElement(esize, operand2, second);
             element2 = ir.VectorGetElement(esize, operand1, second);
             element3 = ir.FPNeg(ir.VectorGetElement(esize, operand2, first));
@@ -114,8 +115,10 @@ bool TranslatorVisitor::FCMLA_vec(bool Q, Imm<2> size, Vec Vm, Imm<2> rot, Vec V
         const IR::U32U64 operand3_elem1 = ir.VectorGetElement(esize, operand3, first);
         const IR::U32U64 operand3_elem2 = ir.VectorGetElement(esize, operand3, second);
 
-        result = ir.VectorSetElement(esize, result, first, ir.FPMulAdd(operand3_elem1, element2, element1));
-        result = ir.VectorSetElement(esize, result, second, ir.FPMulAdd(operand3_elem2, element4, element3));
+        result = ir.VectorSetElement(esize, result, first,
+                                     ir.FPMulAdd(operand3_elem1, element2, element1));
+        result = ir.VectorSetElement(esize, result, second,
+                                     ir.FPMulAdd(operand3_elem2, element4, element3));
     }
 
     ir.SetQ(Vd, result);
@@ -171,4 +174,4 @@ bool TranslatorVisitor::FCADD_vec(bool Q, Imm<2> size, Vec Vm, Imm<1> rot, Vec V
     return true;
 }
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64

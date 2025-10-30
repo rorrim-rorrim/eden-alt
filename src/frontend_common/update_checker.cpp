@@ -5,10 +5,10 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "update_checker.h"
+#include <fmt/format.h>
 #include "common/logging/log.h"
 #include "common/scm_rev.h"
-#include <fmt/format.h>
+#include "update_checker.h"
 
 #include <httplib.h>
 
@@ -16,12 +16,11 @@
 #include <openssl/cert.h>
 #endif
 
-#include <nlohmann/json.hpp>
 #include <optional>
 #include <string>
+#include <nlohmann/json.hpp>
 
-std::optional<std::string> UpdateChecker::GetResponse(std::string url, std::string path)
-{
+std::optional<std::string> UpdateChecker::GetResponse(std::string url, std::string path) {
     try {
         constexpr std::size_t timeout_seconds = 15;
 
@@ -53,12 +52,9 @@ std::optional<std::string> UpdateChecker::GetResponse(std::string url, std::stri
             return {};
         }
 
-        const auto &response = result.value();
+        const auto& response = result.value();
         if (response.status >= 400) {
-            LOG_ERROR(Frontend,
-                      "GET to {}{} returned error status code: {}",
-                      url,
-                      path,
+            LOG_ERROR(Frontend, "GET to {}{} returned error status code: {}", url, path,
                       response.status);
             return {};
         }
@@ -68,37 +64,35 @@ std::optional<std::string> UpdateChecker::GetResponse(std::string url, std::stri
         }
 
         return response.body;
-    } catch (std::exception &e) {
-        LOG_ERROR(Frontend,
-                  "GET to {}{} failed during update check: {}",
-                  url,
-                  path,
-                  e.what());
+    } catch (std::exception& e) {
+        LOG_ERROR(Frontend, "GET to {}{} failed during update check: {}", url, path, e.what());
         return std::nullopt;
     }
 }
 
 std::optional<std::string> UpdateChecker::GetLatestRelease(bool include_prereleases) {
     const auto update_check_url = std::string{Common::g_build_auto_update_api};
-    std::string update_check_path = fmt::format("/repos/{}",
-                                                std::string{Common::g_build_auto_update_repo});
+    std::string update_check_path =
+        fmt::format("/repos/{}", std::string{Common::g_build_auto_update_repo});
     try {
         if (include_prereleases) { // This can return either a prerelease or a stable release,
             // whichever is more recent.
             const auto update_check_tags_path = update_check_path + "/tags";
             const auto update_check_releases_path = update_check_path + "/releases";
 
-            const auto tags_response = UpdateChecker::GetResponse(update_check_url, update_check_tags_path);
-            const auto releases_response = UpdateChecker::GetResponse(update_check_url, update_check_releases_path);
+            const auto tags_response =
+                UpdateChecker::GetResponse(update_check_url, update_check_tags_path);
+            const auto releases_response =
+                UpdateChecker::GetResponse(update_check_url, update_check_releases_path);
 
             if (!tags_response || !releases_response)
                 return {};
 
-            const std::string latest_tag
-                = nlohmann::json::parse(tags_response.value()).at(0).at("name");
-            const bool latest_tag_has_release = releases_response.value().find(
-                                                    fmt::format("\"{}\"", latest_tag))
-                                                != std::string::npos;
+            const std::string latest_tag =
+                nlohmann::json::parse(tags_response.value()).at(0).at("name");
+            const bool latest_tag_has_release =
+                releases_response.value().find(fmt::format("\"{}\"", latest_tag)) !=
+                std::string::npos;
 
             // If there is a newer tag, but that tag has no associated release, don't prompt the
             // user to update.
@@ -117,19 +111,17 @@ std::optional<std::string> UpdateChecker::GetLatestRelease(bool include_prerelea
             return latest_tag;
         }
 
-    } catch (nlohmann::detail::out_of_range &) {
+    } catch (nlohmann::detail::out_of_range&) {
         LOG_ERROR(Frontend,
                   "Parsing JSON response from {}{} failed during update check: "
                   "nlohmann::detail::out_of_range",
-                  update_check_url,
-                  update_check_path);
+                  update_check_url, update_check_path);
         return {};
-    } catch (nlohmann::detail::type_error &) {
+    } catch (nlohmann::detail::type_error&) {
         LOG_ERROR(Frontend,
                   "Parsing JSON response from {}{} failed during update check: "
                   "nlohmann::detail::type_error",
-                  update_check_url,
-                  update_check_path);
+                  update_check_url, update_check_path);
         return {};
     }
 }

@@ -89,9 +89,8 @@ public:
     }
 
     void CreateEdenPaths() {
-        std::for_each(eden_paths.begin(), eden_paths.end(), [](auto &path) {
-            void(FS::CreateDir(path.second));
-        });
+        std::for_each(eden_paths.begin(), eden_paths.end(),
+                      [](auto& path) { void(FS::CreateDir(path.second)); });
     }
 
     void SetEdenPathImpl(EdenPath eden_path, const fs::path& new_path) {
@@ -118,9 +117,12 @@ public:
         }
         eden_path_cache = eden_path / CACHE_DIR;
         eden_path_config = eden_path / CONFIG_DIR;
-#define LEGACY_PATH(titleName, upperName) GenerateLegacyPath(EmuPath::titleName##Dir, GetAppDataRoamingDirectory() / upperName##_DIR); \
-        GenerateLegacyPath(EmuPath::titleName##ConfigDir, GetAppDataRoamingDirectory() / upperName##_DIR / CONFIG_DIR); \
-        GenerateLegacyPath(EmuPath::titleName##CacheDir, GetAppDataRoamingDirectory() / upperName##_DIR / CACHE_DIR);
+#define LEGACY_PATH(titleName, upperName)                                                          \
+    GenerateLegacyPath(EmuPath::titleName##Dir, GetAppDataRoamingDirectory() / upperName##_DIR);   \
+    GenerateLegacyPath(EmuPath::titleName##ConfigDir,                                              \
+                       GetAppDataRoamingDirectory() / upperName##_DIR / CONFIG_DIR);               \
+    GenerateLegacyPath(EmuPath::titleName##CacheDir,                                               \
+                       GetAppDataRoamingDirectory() / upperName##_DIR / CACHE_DIR);
         LEGACY_PATH(Citron, CITRON)
         LEGACY_PATH(Sudachi, SUDACHI)
         LEGACY_PATH(Yuzu, YUZU)
@@ -140,9 +142,13 @@ public:
             eden_path_cache = eden_path / CACHE_DIR;
             eden_path_config = eden_path / CONFIG_DIR;
         }
-#define LEGACY_PATH(titleName, upperName) GenerateLegacyPath(EmuPath::titleName##Dir, GetDataDirectory("XDG_DATA_HOME") / upperName##_DIR); \
-        GenerateLegacyPath(EmuPath::titleName##ConfigDir, GetDataDirectory("XDG_CONFIG_HOME") / upperName##_DIR); \
-        GenerateLegacyPath(EmuPath::titleName##CacheDir, GetDataDirectory("XDG_CACHE_HOME") / upperName##_DIR);
+#define LEGACY_PATH(titleName, upperName)                                                          \
+    GenerateLegacyPath(EmuPath::titleName##Dir,                                                    \
+                       GetDataDirectory("XDG_DATA_HOME") / upperName##_DIR);                       \
+    GenerateLegacyPath(EmuPath::titleName##ConfigDir,                                              \
+                       GetDataDirectory("XDG_CONFIG_HOME") / upperName##_DIR);                     \
+    GenerateLegacyPath(EmuPath::titleName##CacheDir,                                               \
+                       GetDataDirectory("XDG_CACHE_HOME") / upperName##_DIR);
         LEGACY_PATH(Citron, CITRON)
         LEGACY_PATH(Sudachi, SUDACHI)
         LEGACY_PATH(Yuzu, YUZU)
@@ -173,7 +179,6 @@ public:
         // This is incredibly stupid and violates a million XDG standards, but whatever
         GenerateLegacyPath(EmuPath::RyujinxDir, GetDataDirectory("XDG_CONFIG_HOME") / RYUJINX_DIR);
 #endif
-
     }
 
 private:
@@ -303,8 +308,7 @@ void SetEdenPath(EdenPath eden_path, const fs::path& new_path) {
     PathManagerImpl::GetInstance().SetEdenPathImpl(eden_path, new_path);
 }
 
-void CreateEdenPaths()
-{
+void CreateEdenPaths() {
     PathManagerImpl::GetInstance().CreateEdenPaths();
 }
 

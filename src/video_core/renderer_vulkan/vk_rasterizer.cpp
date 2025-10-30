@@ -21,6 +21,7 @@
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
+#include "video_core/polygon_mode_utils.h"
 #include "video_core/renderer_vulkan/blit_image.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
@@ -37,7 +38,6 @@
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/shader_cache.h"
 #include "video_core/texture_cache/texture_cache_base.h"
-#include "video_core/polygon_mode_utils.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
@@ -47,7 +47,6 @@ using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 using MaxwellDrawState = Tegra::Engines::DrawManager::State;
 using VideoCommon::ImageViewId;
 using VideoCommon::ImageViewType;
-
 
 namespace {
 struct DrawParams {
@@ -170,9 +169,8 @@ DrawParams MakeDrawParams(const MaxwellDrawState& draw_state, u32 num_instances,
         params.base_vertex = 0;
         params.is_indexed = true;
     }
-    const bool polygon_line =
-        draw_state.topology == Maxwell::PrimitiveTopology::Polygon &&
-        polygon_mode == Maxwell::PolygonMode::Line;
+    const bool polygon_line = draw_state.topology == Maxwell::PrimitiveTopology::Polygon &&
+                              polygon_mode == Maxwell::PolygonMode::Line;
     if (polygon_line) {
         if (params.is_indexed) {
             if (draw_state.index_buffer.count > 1) {
@@ -206,7 +204,8 @@ RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra
                            guest_descriptor_queue, compute_pass_descriptor_queue, descriptor_pool),
       buffer_cache(device_memory, buffer_cache_runtime),
       query_cache_runtime(this, device_memory, buffer_cache, device, memory_allocator, scheduler,
-                          staging_pool, compute_pass_descriptor_queue, descriptor_pool, texture_cache),
+                          staging_pool, compute_pass_descriptor_queue, descriptor_pool,
+                          texture_cache),
       query_cache(gpu, *this, device_memory, query_cache_runtime),
       pipeline_cache(device_memory, device, scheduler, descriptor_pool, guest_descriptor_queue,
                      render_pass_cache, buffer_cache, texture_cache, gpu.ShaderNotify()),
@@ -254,7 +253,8 @@ void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
         const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
         const u32 num_instances{instance_count};
         const auto polygon_mode = VideoCore::EffectivePolygonMode(maxwell3d->regs);
-        const DrawParams draw_params{MakeDrawParams(draw_state, num_instances, is_indexed, polygon_mode)};
+        const DrawParams draw_params{
+            MakeDrawParams(draw_state, num_instances, is_indexed, polygon_mode)};
         scheduler.Record([draw_params](vk::CommandBuffer cmdbuf) {
             if (draw_params.is_indexed) {
                 cmdbuf.DrawIndexed(draw_params.num_vertices, draw_params.num_instances,
@@ -533,8 +533,10 @@ void RasterizerVulkan::DispatchCompute() {
         .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
         .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT,
     };
-    scheduler.Record([](vk::CommandBuffer cmdbuf) { cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                               0, READ_BARRIER); });
+    scheduler.Record([](vk::CommandBuffer cmdbuf) {
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                               VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, READ_BARRIER);
+    });
     scheduler.Record([dim](vk::CommandBuffer cmdbuf) { cmdbuf.Dispatch(dim[0], dim[1], dim[2]); });
 }
 
@@ -957,11 +959,16 @@ void RasterizerVulkan::UpdateDynamicStates() {
     const u8 dynamic_state = Settings::values.dyna_state.GetValue();
 
     auto features = DynamicFeatures{
-        .has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0,
-        .has_extended_dynamic_state_2 = device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1,
-        .has_extended_dynamic_state_2_extra = device.IsExtExtendedDynamicState2ExtrasSupported() && dynamic_state > 1,
-        .has_extended_dynamic_state_3_blend = device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2,
-        .has_extended_dynamic_state_3_enables = device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state =
+            device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0,
+        .has_extended_dynamic_state_2 =
+            device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1,
+        .has_extended_dynamic_state_2_extra =
+            device.IsExtExtendedDynamicState2ExtrasSupported() && dynamic_state > 1,
+        .has_extended_dynamic_state_3_blend =
+            device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_enables =
+            device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2,
         .has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported(),
     };
 
@@ -1021,7 +1028,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
     }
     if (features.has_dynamic_vertex_input) {
         if (auto* gp = pipeline_cache.CurrentGraphicsPipeline();
-                gp && gp->HasDynamicVertexInput()) {
+            gp && gp->HasDynamicVertexInput()) {
             UpdateVertexInput(regs);
         }
     }

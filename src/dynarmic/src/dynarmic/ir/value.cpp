@@ -8,8 +8,8 @@
 
 #include "dynarmic/ir/value.h"
 
-#include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_field.hpp>
+#include "dynarmic/common/assert.h"
 
 #include "dynarmic/ir/microinstruction.h"
 #include "dynarmic/ir/opcodes.h"
@@ -17,68 +17,55 @@
 
 namespace Dynarmic::IR {
 
-Value::Value(Inst* value)
-        : type(Type::Opaque) {
+Value::Value(Inst* value) : type(Type::Opaque) {
     inner.inst = value;
 }
 
-Value::Value(A32::Reg value)
-        : type(Type::A32Reg) {
+Value::Value(A32::Reg value) : type(Type::A32Reg) {
     inner.imm_a32regref = value;
 }
 
-Value::Value(A32::ExtReg value)
-        : type(Type::A32ExtReg) {
+Value::Value(A32::ExtReg value) : type(Type::A32ExtReg) {
     inner.imm_a32extregref = value;
 }
 
-Value::Value(A64::Reg value)
-        : type(Type::A64Reg) {
+Value::Value(A64::Reg value) : type(Type::A64Reg) {
     inner.imm_a64regref = value;
 }
 
-Value::Value(A64::Vec value)
-        : type(Type::A64Vec) {
+Value::Value(A64::Vec value) : type(Type::A64Vec) {
     inner.imm_a64vecref = value;
 }
 
-Value::Value(bool value)
-        : type(Type::U1) {
+Value::Value(bool value) : type(Type::U1) {
     inner.imm_u1 = value;
 }
 
-Value::Value(u8 value)
-        : type(Type::U8) {
+Value::Value(u8 value) : type(Type::U8) {
     inner.imm_u8 = value;
 }
 
-Value::Value(u16 value)
-        : type(Type::U16) {
+Value::Value(u16 value) : type(Type::U16) {
     inner.imm_u16 = value;
 }
 
-Value::Value(u32 value)
-        : type(Type::U32) {
+Value::Value(u32 value) : type(Type::U32) {
     inner.imm_u32 = value;
 }
 
-Value::Value(u64 value)
-        : type(Type::U64) {
+Value::Value(u64 value) : type(Type::U64) {
     inner.imm_u64 = value;
 }
 
-Value::Value(CoprocessorInfo value)
-        : type(Type::CoprocInfo) {
+Value::Value(CoprocessorInfo value) : type(Type::CoprocInfo) {
     inner.imm_coproc = value;
 }
 
-Value::Value(Cond value)
-        : type(Type::Cond) {
+Value::Value(Cond value) : type(Type::Cond) {
     inner.imm_cond = value;
 }
 
-Value::Value(AccType value)
-        : type(Type::AccType) {
+Value::Value(AccType value) : type(Type::AccType) {
     inner.imm_acctype = value;
 }
 
@@ -237,4 +224,4 @@ u64 Value::GetImmediateAsU64() const {
     }
 }
 
-}  // namespace Dynarmic::IR
+} // namespace Dynarmic::IR

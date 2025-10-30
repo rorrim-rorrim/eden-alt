@@ -367,7 +367,8 @@ bool TranslatorVisitor::thumb16_ADD_reg_t2(bool d_n_hi, Reg m, Reg d_n_lo) {
     if (n == Reg::PC && m == Reg::PC) {
         return UnpredictableInstruction();
     }
-    if (d == Reg::PC && ir.current_location.IT().IsInITBlock() && !ir.current_location.IT().IsLastInITBlock()) {
+    if (d == Reg::PC && ir.current_location.IT().IsInITBlock() &&
+        !ir.current_location.IT().IsLastInITBlock()) {
         return UnpredictableInstruction();
     }
 
@@ -402,7 +403,8 @@ bool TranslatorVisitor::thumb16_CMP_reg_t2(bool n_hi, Reg m, Reg n_lo) {
 // MOV <Rd>, <Rm>
 bool TranslatorVisitor::thumb16_MOV_reg(bool d_hi, Reg m, Reg d_lo) {
     const Reg d = d_hi ? (d_lo + 8) : d_lo;
-    if (d == Reg::PC && ir.current_location.IT().IsInITBlock() && !ir.current_location.IT().IsLastInITBlock()) {
+    if (d == Reg::PC && ir.current_location.IT().IsInITBlock() &&
+        !ir.current_location.IT().IsLastInITBlock()) {
         return UnpredictableInstruction();
     }
 
@@ -685,14 +687,16 @@ bool TranslatorVisitor::thumb16_NOP() {
 // IT{<x>{<y>{<z>}}} <cond>
 bool TranslatorVisitor::thumb16_IT(Imm<8> imm8) {
     ASSERT_MSG((imm8.Bits<0, 3>() != 0b0000), "Decode Error");
-    if (imm8.Bits<4, 7>() == 0b1111 || (imm8.Bits<4, 7>() == 0b1110 && mcl::bit::count_ones(imm8.Bits<0, 3>()) != 1)) {
+    if (imm8.Bits<4, 7>() == 0b1111 ||
+        (imm8.Bits<4, 7>() == 0b1110 && mcl::bit::count_ones(imm8.Bits<0, 3>()) != 1)) {
         return UnpredictableInstruction();
     }
     if (ir.current_location.IT().IsInITBlock()) {
         return UnpredictableInstruction();
     }
 
-    const auto next_location = ir.current_location.AdvancePC(2).SetIT(ITState{imm8.ZeroExtend<u8>()});
+    const auto next_location =
+        ir.current_location.AdvancePC(2).SetIT(ITState{imm8.ZeroExtend<u8>()});
     ir.SetTerm(IR::Term::LinkBlockFast{next_location});
     return false;
 }
@@ -822,12 +826,13 @@ bool TranslatorVisitor::thumb16_REV(Reg m, Reg d) {
 // TODO: Consider optimizing
 bool TranslatorVisitor::thumb16_REV16(Reg m, Reg d) {
     const auto Rm = ir.GetRegister(m);
-    const auto upper_half = ir.LeastSignificantHalf(ir.LogicalShiftRight(Rm, ir.Imm8(16), ir.Imm1(0)).result);
+    const auto upper_half =
+        ir.LeastSignificantHalf(ir.LogicalShiftRight(Rm, ir.Imm8(16), ir.Imm1(0)).result);
     const auto lower_half = ir.LeastSignificantHalf(Rm);
     const auto rev_upper_half = ir.ZeroExtendHalfToWord(ir.ByteReverseHalf(upper_half));
     const auto rev_lower_half = ir.ZeroExtendHalfToWord(ir.ByteReverseHalf(lower_half));
-    const auto result = ir.Or(ir.LogicalShiftLeft(rev_upper_half, ir.Imm8(16), ir.Imm1(0)).result,
-                              rev_lower_half);
+    const auto result =
+        ir.Or(ir.LogicalShiftLeft(rev_upper_half, ir.Imm8(16), ir.Imm1(0)).result, rev_lower_half);
 
     ir.SetRegister(d, result);
     return true;
@@ -851,7 +856,8 @@ bool TranslatorVisitor::thumb16_STMIA(Reg n, RegList reg_list) {
     if (mcl::bit::count_ones(reg_list) == 0) {
         return UnpredictableInstruction();
     }
-    if (mcl::bit::get_bit(static_cast<size_t>(n), reg_list) && n != static_cast<Reg>(mcl::bit::lowest_set_bit(reg_list))) {
+    if (mcl::bit::get_bit(static_cast<size_t>(n), reg_list) &&
+        n != static_cast<Reg>(mcl::bit::lowest_set_bit(reg_list))) {
         return UnpredictableInstruction();
     }
 
@@ -975,7 +981,8 @@ bool TranslatorVisitor::thumb16_B_t1(Cond cond, Imm<8> imm8) {
     const auto then_location = ir.current_location.AdvancePC(imm32).AdvanceIT();
     const auto else_location = ir.current_location.AdvancePC(2).AdvanceIT();
 
-    ir.SetTerm(IR::Term::If{cond, IR::Term::LinkBlock{then_location}, IR::Term::LinkBlock{else_location}});
+    ir.SetTerm(
+        IR::Term::If{cond, IR::Term::LinkBlock{then_location}, IR::Term::LinkBlock{else_location}});
     return false;
 }
 
@@ -992,4 +999,4 @@ bool TranslatorVisitor::thumb16_B_t2(Imm<11> imm11) {
     return false;
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

@@ -10,8 +10,8 @@
 
 #include <optional>
 
-#include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_field.hpp>
+#include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/common/fp/rounding_mode.h"
@@ -26,8 +26,7 @@ public:
     FPCR() = default;
     FPCR(const FPCR&) = default;
     FPCR(FPCR&&) = default;
-    explicit FPCR(u32 data)
-            : value{data & mask} {}
+    explicit FPCR(u32 data) : value{data & mask} {}
 
     FPCR& operator=(const FPCR&) = default;
     FPCR& operator=(FPCR&&) = default;
@@ -209,4 +208,4 @@ inline bool operator!=(FPCR lhs, FPCR rhs) {
     return !operator==(lhs, rhs);
 }
 
-}  // namespace Dynarmic::FP
+} // namespace Dynarmic::FP

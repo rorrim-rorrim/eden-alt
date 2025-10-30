@@ -15,7 +15,9 @@
 
 namespace Service::AM::Frontend {
 
-NetConnect::NetConnect(Core::System& system_, std::shared_ptr<Applet> applet_, LibraryAppletMode applet_mode_, const Core::Frontend::NetConnectApplet& frontend_)
+NetConnect::NetConnect(Core::System& system_, std::shared_ptr<Applet> applet_,
+                       LibraryAppletMode applet_mode_,
+                       const Core::Frontend::NetConnectApplet& frontend_)
     : FrontendApplet{system_, applet_, applet_mode_}, frontend{frontend_} {}
 
 NetConnect::~NetConnect() = default;

@@ -28,7 +28,7 @@ void EmitX64::EmitPack2x32To1x64(EmitContext& ctx, IR::Inst* inst) {
     const Xbyak::Reg64 hi = ctx.reg_alloc.UseScratchGpr(args[1]);
 
     code.shl(hi, 32);
-    code.mov(lo.cvt32(), lo.cvt32());  // Zero extend to 64-bits
+    code.mov(lo.cvt32(), lo.cvt32()); // Zero extend to 64-bits
     code.or_(lo, hi);
 
     ctx.reg_alloc.DefineValue(inst, lo);
@@ -137,7 +137,8 @@ void EmitX64::EmitTestBit(EmitContext& ctx, IR::Inst* inst) {
     ctx.reg_alloc.DefineValue(inst, result);
 }
 
-static void EmitConditionalSelect(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, int bitsize) {
+static void EmitConditionalSelect(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst,
+                                  int bitsize) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const Xbyak::Reg32 nzcv = ctx.reg_alloc.ScratchGpr(HostLoc::RAX).cvt32();
     const Xbyak::Reg then_ = ctx.reg_alloc.UseGpr(args[1]).changeBit(bitsize);
@@ -302,8 +303,9 @@ void EmitX64::EmitLogicalShiftLeft32(EmitContext& ctx, IR::Inst* inst) {
             const Xbyak::Reg32 result = ctx.reg_alloc.UseScratchGpr(operand_arg).cvt32();
             const Xbyak::Reg32 zero = ctx.reg_alloc.ScratchGpr().cvt32();
 
-            // The 32-bit x64 SHL instruction masks the shift count by 0x1F before performing the shift.
-            // ARM differs from the behaviour: It does not mask the count, so shifts above 31 result in zeros.
+            // The 32-bit x64 SHL instruction masks the shift count by 0x1F before performing the
+            // shift. ARM differs from the behaviour: It does not mask the count, so shifts above 31
+            // result in zeros.
 
             code.shl(result, code.cl);
             code.xor_(zero, zero);
@@ -390,7 +392,8 @@ void EmitX64::EmitLogicalShiftLeft64(EmitContext& ctx, IR::Inst* inst) {
         const Xbyak::Reg64 zero = ctx.reg_alloc.ScratchGpr();
 
         // The x64 SHL instruction masks the shift count by 0x1F before performing the shift.
-        // ARM differs from the behaviour: It does not mask the count, so shifts above 63 result in zeros.
+        // ARM differs from the behaviour: It does not mask the count, so shifts above 63 result in
+        // zeros.
 
         code.shl(result, code.cl);
         code.xor_(zero.cvt32(), zero.cvt32());
@@ -438,8 +441,9 @@ void EmitX64::EmitLogicalShiftRight32(EmitContext& ctx, IR::Inst* inst) {
             const Xbyak::Reg32 result = ctx.reg_alloc.UseScratchGpr(operand_arg).cvt32();
             const Xbyak::Reg32 zero = ctx.reg_alloc.ScratchGpr().cvt32();
 
-            // The 32-bit x64 SHR instruction masks the shift count by 0x1F before performing the shift.
-            // ARM differs from the behaviour: It does not mask the count, so shifts above 31 result in zeros.
+            // The 32-bit x64 SHR instruction masks the shift count by 0x1F before performing the
+            // shift. ARM differs from the behaviour: It does not mask the count, so shifts above 31
+            // result in zeros.
 
             code.shr(result, code.cl);
             code.xor_(zero, zero);
@@ -524,7 +528,8 @@ void EmitX64::EmitLogicalShiftRight64(EmitContext& ctx, IR::Inst* inst) {
         const Xbyak::Reg64 zero = ctx.reg_alloc.ScratchGpr();
 
         // The x64 SHR instruction masks the shift count by 0x1F before performing the shift.
-        // ARM differs from the behaviour: It does not mask the count, so shifts above 63 result in zeros.
+        // ARM differs from the behaviour: It does not mask the count, so shifts above 63 result in
+        // zeros.
 
         code.shr(result, code.cl);
         code.xor_(zero.cvt32(), zero.cvt32());
@@ -557,10 +562,11 @@ void EmitX64::EmitArithmeticShiftRight32(EmitContext& ctx, IR::Inst* inst) {
             const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr().cvt32();
             const Xbyak::Reg32 const31 = ctx.reg_alloc.ScratchGpr().cvt32();
 
-            // The 32-bit x64 SAR instruction masks the shift count by 0x1F before performing the shift.
-            // ARM differs from the behaviour: It does not mask the count.
+            // The 32-bit x64 SAR instruction masks the shift count by 0x1F before performing the
+            // shift. ARM differs from the behaviour: It does not mask the count.
 
-            // We note that all shift values above 31 have the same behaviour as 31 does, so we saturate `shift` to 31.
+            // We note that all shift values above 31 have the same behaviour as 31 does, so we
+            // saturate `shift` to 31.
             code.mov(const31, 31);
             code.cmp(shift.cvt8(), 31);
             code.cmovnb(shift, const31);
@@ -572,10 +578,11 @@ void EmitX64::EmitArithmeticShiftRight32(EmitContext& ctx, IR::Inst* inst) {
             const Xbyak::Reg32 result = ctx.reg_alloc.UseScratchGpr(operand_arg).cvt32();
             const Xbyak::Reg32 const31 = ctx.reg_alloc.ScratchGpr().cvt32();
 
-            // The 32-bit x64 SAR instruction masks the shift count by 0x1F before performing the shift.
-            // ARM differs from the behaviour: It does not mask the count.
+            // The 32-bit x64 SAR instruction masks the shift count by 0x1F before performing the
+            // shift. ARM differs from the behaviour: It does not mask the count.
 
-            // We note that all shift values above 31 have the same behaviour as 31 does, so we saturate `shift` to 31.
+            // We note that all shift values above 31 have the same behaviour as 31 does, so we
+            // saturate `shift` to 31.
             code.mov(const31, 31);
             code.cmp(code.cl, u32(31));
             code.cmova(code.ecx, const31);
@@ -654,7 +661,8 @@ void EmitX64::EmitArithmeticShiftRight64(EmitContext& ctx, IR::Inst* inst) {
         // The 64-bit x64 SAR instruction masks the shift count by 0x3F before performing the shift.
         // ARM differs from the behaviour: It does not mask the count.
 
-        // We note that all shift values above 63 have the same behaviour as 63 does, so we saturate `shift` to 63.
+        // We note that all shift values above 63 have the same behaviour as 63 does, so we saturate
+        // `shift` to 63.
         code.mov(const63, 63);
         code.cmp(code.cl, u32(63));
         code.cmovnb(code.ecx, const63);
@@ -787,8 +795,9 @@ void EmitX64::EmitRotateRightExtended(EmitContext& ctx, IR::Inst* inst) {
     ctx.reg_alloc.DefineValue(inst, result);
 }
 
-template<typename ShfitFT, typename BMI2FT>
-static void EmitMaskedShift32(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, ShfitFT shift_fn, [[maybe_unused]] BMI2FT bmi2_shift) {
+template <typename ShfitFT, typename BMI2FT>
+static void EmitMaskedShift32(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, ShfitFT shift_fn,
+                              [[maybe_unused]] BMI2FT bmi2_shift) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& operand_arg = args[0];
     auto& shift_arg = args[1];
@@ -824,8 +833,9 @@ static void EmitMaskedShift32(BlockOfCode& code, EmitContext& ctx, IR::Inst* ins
     ctx.reg_alloc.DefineValue(inst, result);
 }
 
-template<typename ShfitFT, typename BMI2FT>
-static void EmitMaskedShift64(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, ShfitFT shift_fn, [[maybe_unused]] BMI2FT bmi2_shift) {
+template <typename ShfitFT, typename BMI2FT>
+static void EmitMaskedShift64(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, ShfitFT shift_fn,
+                              [[maybe_unused]] BMI2FT bmi2_shift) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& operand_arg = args[0];
     auto& shift_arg = args[1];
@@ -863,32 +873,38 @@ static void EmitMaskedShift64(BlockOfCode& code, EmitContext& ctx, IR::Inst* ins
 
 void EmitX64::EmitLogicalShiftLeftMasked32(EmitContext& ctx, IR::Inst* inst) {
     EmitMaskedShift32(
-        code, ctx, inst, [&](auto result, auto shift) { code.shl(result, shift); }, &Xbyak::CodeGenerator::shlx);
+        code, ctx, inst, [&](auto result, auto shift) { code.shl(result, shift); },
+        &Xbyak::CodeGenerator::shlx);
 }
 
 void EmitX64::EmitLogicalShiftLeftMasked64(EmitContext& ctx, IR::Inst* inst) {
     EmitMaskedShift64(
-        code, ctx, inst, [&](auto result, auto shift) { code.shl(result, shift); }, &Xbyak::CodeGenerator::shlx);
+        code, ctx, inst, [&](auto result, auto shift) { code.shl(result, shift); },
+        &Xbyak::CodeGenerator::shlx);
 }
 
 void EmitX64::EmitLogicalShiftRightMasked32(EmitContext& ctx, IR::Inst* inst) {
     EmitMaskedShift32(
-        code, ctx, inst, [&](auto result, auto shift) { code.shr(result, shift); }, &Xbyak::CodeGenerator::shrx);
+        code, ctx, inst, [&](auto result, auto shift) { code.shr(result, shift); },
+        &Xbyak::CodeGenerator::shrx);
 }
 
 void EmitX64::EmitLogicalShiftRightMasked64(EmitContext& ctx, IR::Inst* inst) {
     EmitMaskedShift64(
-        code, ctx, inst, [&](auto result, auto shift) { code.shr(result, shift); }, &Xbyak::CodeGenerator::shrx);
+        code, ctx, inst, [&](auto result, auto shift) { code.shr(result, shift); },
+        &Xbyak::CodeGenerator::shrx);
 }
 
 void EmitX64::EmitArithmeticShiftRightMasked32(EmitContext& ctx, IR::Inst* inst) {
     EmitMaskedShift32(
-        code, ctx, inst, [&](auto result, auto shift) { code.sar(result, shift); }, &Xbyak::CodeGenerator::sarx);
+        code, ctx, inst, [&](auto result, auto shift) { code.sar(result, shift); },
+        &Xbyak::CodeGenerator::sarx);
 }
 
 void EmitX64::EmitArithmeticShiftRightMasked64(EmitContext& ctx, IR::Inst* inst) {
     EmitMaskedShift64(
-        code, ctx, inst, [&](auto result, auto shift) { code.sar(result, shift); }, &Xbyak::CodeGenerator::sarx);
+        code, ctx, inst, [&](auto result, auto shift) { code.sar(result, shift); },
+        &Xbyak::CodeGenerator::sarx);
 }
 
 void EmitX64::EmitRotateRightMasked32(EmitContext& ctx, IR::Inst* inst) {
@@ -905,7 +921,8 @@ static Xbyak::Reg8 DoCarry(RegAlloc& reg_alloc, Argument& carry_in, IR::Inst* ca
     if (carry_in.IsImmediate()) {
         return carry_out ? reg_alloc.ScratchGpr().cvt8() : Xbyak::Reg8{-1};
     } else {
-        return carry_out ? reg_alloc.UseScratchGpr(carry_in).cvt8() : reg_alloc.UseGpr(carry_in).cvt8();
+        return carry_out ? reg_alloc.UseScratchGpr(carry_in).cvt8()
+                         : reg_alloc.UseGpr(carry_in).cvt8();
     }
 }
 
@@ -928,7 +945,8 @@ static void EmitAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, int bit
     auto& carry_in = args[2];
 
     // Consider using LEA.
-    if (!carry_inst && !overflow_inst && !nzcv_inst && carry_in.IsImmediate() && !carry_in.GetImmediateU1()) {
+    if (!carry_inst && !overflow_inst && !nzcv_inst && carry_in.IsImmediate() &&
+        !carry_in.GetImmediateU1()) {
         if (args[1].IsImmediate() && args[1].FitsInImmediateS32()) {
             const Xbyak::Reg op1 = ctx.reg_alloc.UseGpr(args[0]).changeBit(bitsize);
             const Xbyak::Reg result = ctx.reg_alloc.ScratchGpr().changeBit(bitsize);
@@ -951,7 +969,8 @@ static void EmitAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, int bit
     const Xbyak::Reg64 nzcv = DoNZCV(code, ctx.reg_alloc, nzcv_inst);
     const Xbyak::Reg result = ctx.reg_alloc.UseScratchGpr(args[0]).changeBit(bitsize);
     const Xbyak::Reg8 carry = DoCarry(ctx.reg_alloc, carry_in, carry_inst);
-    const Xbyak::Reg8 overflow = overflow_inst ? ctx.reg_alloc.ScratchGpr().cvt8() : Xbyak::Reg8{-1};
+    const Xbyak::Reg8 overflow =
+        overflow_inst ? ctx.reg_alloc.ScratchGpr().cvt8() : Xbyak::Reg8{-1};
 
     if (args[1].IsImmediate() && args[1].GetType() == IR::Type::U32) {
         const u32 op_arg = args[1].GetImmediateU32();
@@ -1013,10 +1032,13 @@ static void EmitSub(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, int bit
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& carry_in = args[2];
-    const bool is_cmp = inst->UseCount() == size_t(!!carry_inst + !!overflow_inst + !!nzcv_inst) && carry_in.IsImmediate() && carry_in.GetImmediateU1();
+    const bool is_cmp = inst->UseCount() == size_t(!!carry_inst + !!overflow_inst + !!nzcv_inst) &&
+                        carry_in.IsImmediate() && carry_in.GetImmediateU1();
 
     // Consider using LEA.
-    if (!carry_inst && !overflow_inst && !nzcv_inst && carry_in.IsImmediate() && carry_in.GetImmediateU1() && args[1].IsImmediate() && args[1].FitsInImmediateS32() && args[1].GetImmediateS32() != 0xffff'ffff'8000'0000) {
+    if (!carry_inst && !overflow_inst && !nzcv_inst && carry_in.IsImmediate() &&
+        carry_in.GetImmediateU1() && args[1].IsImmediate() && args[1].FitsInImmediateS32() &&
+        args[1].GetImmediateS32() != 0xffff'ffff'8000'0000) {
         const Xbyak::Reg op1 = ctx.reg_alloc.UseGpr(args[0]).changeBit(bitsize);
         const Xbyak::Reg result = ctx.reg_alloc.ScratchGpr().changeBit(bitsize);
 
@@ -1027,9 +1049,12 @@ static void EmitSub(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, int bit
     }
 
     const Xbyak::Reg64 nzcv = DoNZCV(code, ctx.reg_alloc, nzcv_inst);
-    const Xbyak::Reg result = (is_cmp ? ctx.reg_alloc.UseGpr(args[0]) : ctx.reg_alloc.UseScratchGpr(args[0])).changeBit(bitsize);
+    const Xbyak::Reg result =
+        (is_cmp ? ctx.reg_alloc.UseGpr(args[0]) : ctx.reg_alloc.UseScratchGpr(args[0]))
+            .changeBit(bitsize);
     const Xbyak::Reg8 carry = DoCarry(ctx.reg_alloc, carry_in, carry_inst);
-    const Xbyak::Reg8 overflow = overflow_inst ? ctx.reg_alloc.ScratchGpr().cvt8() : Xbyak::Reg8{-1};
+    const Xbyak::Reg8 overflow =
+        overflow_inst ? ctx.reg_alloc.ScratchGpr().cvt8() : Xbyak::Reg8{-1};
 
     // Note that x64 CF is inverse of what the ARM carry flag is here.
 
@@ -1233,7 +1258,7 @@ void EmitX64::EmitSignedDiv64(EmitContext& ctx, IR::Inst* inst) {
     code.xor_(eax, eax);
     code.test(divisor, divisor);
     code.jz(end);
-    code.cmp(divisor, 0xffffffff);  // is sign extended
+    code.cmp(divisor, 0xffffffff); // is sign extended
     code.jne(ok);
     code.mov(rax, 0x8000000000000000);
     code.cmp(dividend, rax);
@@ -1288,7 +1313,8 @@ void EmitX64::EmitAnd64(EmitContext& ctx, IR::Inst* inst) {
 void EmitX64::EmitAndNot32(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    if (!args[0].IsImmediate() && !args[1].IsImmediate() && code.HasHostFeature(HostFeature::BMI1)) {
+    if (!args[0].IsImmediate() && !args[1].IsImmediate() &&
+        code.HasHostFeature(HostFeature::BMI1)) {
         Xbyak::Reg32 op_a = ctx.reg_alloc.UseGpr(args[0]).cvt32();
         Xbyak::Reg32 op_b = ctx.reg_alloc.UseGpr(args[1]).cvt32();
         Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr().cvt32();
@@ -1321,7 +1347,8 @@ void EmitX64::EmitAndNot32(EmitContext& ctx, IR::Inst* inst) {
 void EmitX64::EmitAndNot64(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    if (!args[0].IsImmediate() && !args[1].IsImmediate() && code.HasHostFeature(HostFeature::BMI1)) {
+    if (!args[0].IsImmediate() && !args[1].IsImmediate() &&
+        code.HasHostFeature(HostFeature::BMI1)) {
         Xbyak::Reg64 op_a = ctx.reg_alloc.UseGpr(args[0]);
         Xbyak::Reg64 op_b = ctx.reg_alloc.UseGpr(args[1]);
         Xbyak::Reg64 result = ctx.reg_alloc.ScratchGpr();
@@ -1517,7 +1544,7 @@ void EmitX64::EmitZeroExtendHalfToLong(EmitContext& ctx, IR::Inst* inst) {
 void EmitX64::EmitZeroExtendWordToLong(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const Xbyak::Reg64 result = ctx.reg_alloc.UseScratchGpr(args[0]);
-    code.mov(result.cvt32(), result.cvt32());  // x64 zeros upper 32 bits on a 32-bit move
+    code.mov(result.cvt32(), result.cvt32()); // x64 zeros upper 32 bits on a 32-bit move
     ctx.reg_alloc.DefineValue(inst, result);
 }
 
@@ -1700,4 +1727,4 @@ void EmitX64::EmitMinUnsigned64(EmitContext& ctx, IR::Inst* inst) {
     ctx.reg_alloc.DefineValue(inst, y);
 }
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

@@ -185,7 +185,7 @@ private:
     boost::container::small_vector<u8, 0x40> m_object_buffer;
 #if BOOST_VERSION >= 108100 || __GNUC__ > 12
     boost::container::small_vector<u8, 0x200> m_output_buffer;
-#else //TODO: debian stable
+#else // TODO: debian stable
     std::vector<u8> m_output_buffer;
 #endif
 };

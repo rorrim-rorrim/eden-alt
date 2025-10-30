@@ -32,4 +32,4 @@ protected:
     BlockRangeInformation<u32> block_ranges;
 };
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

@@ -9,9 +9,9 @@
 #include "dynarmic/common/fp/op/FPToFixed.h"
 
 #include <fmt/format.h>
-#include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_count.hpp>
 #include <mcl/bit/bit_field.hpp>
+#include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/common/fp/fpcr.h"
@@ -24,8 +24,9 @@
 
 namespace Dynarmic::FP {
 
-template<typename FPT>
-u64 FPToFixed(size_t ibits, FPT op, size_t fbits, bool unsigned_, FPCR fpcr, RoundingMode rounding, FPSR& fpsr) {
+template <typename FPT>
+u64 FPToFixed(size_t ibits, FPT op, size_t fbits, bool unsigned_, FPCR fpcr, RoundingMode rounding,
+              FPSR& fpsr) {
     ASSERT(rounding != RoundingMode::ToOdd);
     ASSERT(ibits <= 64);
     ASSERT(fbits <= ibits);
@@ -56,7 +57,8 @@ u64 FPToFixed(size_t ibits, FPT op, size_t fbits, bool unsigned_, FPCR fpcr, Rou
     bool round_up = false;
     switch (rounding) {
     case RoundingMode::ToNearest_TieEven:
-        round_up = error > ResidualError::Half || (error == ResidualError::Half && mcl::bit::get_bit<0>(int_result));
+        round_up = error > ResidualError::Half ||
+                   (error == ResidualError::Half && mcl::bit::get_bit<0>(int_result));
         break;
     case RoundingMode::TowardsPlusInfinity:
         round_up = error != ResidualError::Zero;
@@ -68,7 +70,8 @@ u64 FPToFixed(size_t ibits, FPT op, size_t fbits, bool unsigned_, FPCR fpcr, Rou
         round_up = error != ResidualError::Zero && mcl::bit::most_significant_bit(int_result);
         break;
     case RoundingMode::ToNearest_TieAwayFromZero:
-        round_up = error > ResidualError::Half || (error == ResidualError::Half && !mcl::bit::most_significant_bit(int_result));
+        round_up = error > ResidualError::Half ||
+                   (error == ResidualError::Half && !mcl::bit::most_significant_bit(int_result));
         break;
     case RoundingMode::ToOdd:
         UNREACHABLE();
@@ -79,7 +82,11 @@ u64 FPToFixed(size_t ibits, FPT op, size_t fbits, bool unsigned_, FPCR fpcr, Rou
     }
 
     // Detect Overflow
-    const int min_exponent_for_overflow = static_cast<int>(ibits) - static_cast<int>(mcl::bit::highest_set_bit(value.mantissa + (round_up ? Safe::LogicalShiftRight<u64>(1, exponent) : 0))) - (unsigned_ ? 0 : 1);
+    const int min_exponent_for_overflow =
+        static_cast<int>(ibits) -
+        static_cast<int>(mcl::bit::highest_set_bit(
+            value.mantissa + (round_up ? Safe::LogicalShiftRight<u64>(1, exponent) : 0))) -
+        (unsigned_ ? 0 : 1);
     if (exponent >= min_exponent_for_overflow) {
         // Positive overflow
         if (unsigned_ || !sign) {
@@ -101,8 +108,11 @@ u64 FPToFixed(size_t ibits, FPT op, size_t fbits, bool unsigned_, FPCR fpcr, Rou
     return int_result & mcl::bit::ones<u64>(ibits);
 }
 
-template u64 FPToFixed<u16>(size_t ibits, u16 op, size_t fbits, bool unsigned_, FPCR fpcr, RoundingMode rounding, FPSR& fpsr);
-template u64 FPToFixed<u32>(size_t ibits, u32 op, size_t fbits, bool unsigned_, FPCR fpcr, RoundingMode rounding, FPSR& fpsr);
-template u64 FPToFixed<u64>(size_t ibits, u64 op, size_t fbits, bool unsigned_, FPCR fpcr, RoundingMode rounding, FPSR& fpsr);
+template u64 FPToFixed<u16>(size_t ibits, u16 op, size_t fbits, bool unsigned_, FPCR fpcr,
+                            RoundingMode rounding, FPSR& fpsr);
+template u64 FPToFixed<u32>(size_t ibits, u32 op, size_t fbits, bool unsigned_, FPCR fpcr,
+                            RoundingMode rounding, FPSR& fpsr);
+template u64 FPToFixed<u64>(size_t ibits, u64 op, size_t fbits, bool unsigned_, FPCR fpcr,
+                            RoundingMode rounding, FPSR& fpsr);
 
-}  // namespace Dynarmic::FP
+} // namespace Dynarmic::FP

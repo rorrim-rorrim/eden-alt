@@ -7,7 +7,7 @@
 
 namespace Dynarmic::Common {
 
-template<typename T>
+template <typename T>
 inline constexpr bool always_false_v = false;
 
-}  // namespace Dynarmic::Common
+} // namespace Dynarmic::Common

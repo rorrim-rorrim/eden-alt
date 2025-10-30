@@ -173,7 +173,8 @@ NvResult nvhost_gpu::SetChannelPriority(IoctlChannelSetPriority& params) {
 }
 
 NvResult nvhost_gpu::AllocGPFIFOEx(IoctlAllocGpfifoEx& params, DeviceFD fd) {
-    LOG_DEBUG(Service_NVDRV, "called, num_entries={:X}, flags={:X}, reserved1={:X}, "
+    LOG_DEBUG(Service_NVDRV,
+              "called, num_entries={:X}, flags={:X}, reserved1={:X}, "
               "reserved2={:X}, reserved3={:X}",
               params.num_entries, params.flags, params.reserved[0], params.reserved[1],
               params.reserved[2]);
@@ -222,13 +223,20 @@ NvResult nvhost_gpu::AllocGPFIFOEx2(IoctlAllocGpfifoEx& params, DeviceFD fd) {
 s32_le nvhost_gpu::GetObjectContextClassNumberIndex(CtxClasses class_number) {
     constexpr s32_le invalid_class_number_index = -1;
     switch (class_number) {
-    case CtxClasses::Ctx2D: return 0;
-    case CtxClasses::Ctx3D: return 1;
-    case CtxClasses::CtxCompute: return 2;
-    case CtxClasses::CtxKepler: return 3;
-    case CtxClasses::CtxDMA: return 4;
-    case CtxClasses::CtxChannelGPFIFO: return 5;
-    default: return invalid_class_number_index;
+    case CtxClasses::Ctx2D:
+        return 0;
+    case CtxClasses::Ctx3D:
+        return 1;
+    case CtxClasses::CtxCompute:
+        return 2;
+    case CtxClasses::CtxKepler:
+        return 3;
+    case CtxClasses::CtxDMA:
+        return 4;
+    case CtxClasses::CtxChannelGPFIFO:
+        return 5;
+    default:
+        return invalid_class_number_index;
     }
 }
 
@@ -251,7 +259,7 @@ NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
         params.flags = allowed_mask;
     }
 
-    s32_le ctx_class_number_index = 
+    s32_le ctx_class_number_index =
         GetObjectContextClassNumberIndex(static_cast<CtxClasses>(params.class_num));
     if (ctx_class_number_index < 0) {
         LOG_ERROR(Service_NVDRV, "Invalid class number for object context: {:#X}",

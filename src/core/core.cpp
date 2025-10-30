@@ -105,8 +105,8 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 
 struct System::Impl {
     explicit Impl(System& system)
-        : kernel{system}, fs_controller{system}, hid_core{}, cpu_manager{system},
-          reporter{system}, applet_manager{system}, frontend_applets{system}, profile_manager{} {}
+        : kernel{system}, fs_controller{system}, hid_core{}, cpu_manager{system}, reporter{system},
+          applet_manager{system}, frontend_applets{system}, profile_manager{} {}
 
     u64 program_id;
 
@@ -292,36 +292,34 @@ struct System::Impl {
         return SystemResultStatus::Success;
     }
 
-
     void LoadOverrides(u64 programId) const {
         std::string vendor = gpu_core->Renderer().GetDeviceVendor();
         LOG_INFO(Core, "GPU Vendor: {}", vendor);
 
         // Insert PC overrides here
 
-    #ifdef ANDROID
+#ifdef ANDROID
         // Example on how to set a setting based on the program ID and vendor
         if (programId == 0x010028600EBDA000 && vendor == "Mali") { // Mario 3d World
-          // Settings::values.example = true;
+            // Settings::values.example = true;
         }
 
         // Example array of program IDs
         const std::array<u64, 10> example_array = {
-                //0xprogramId
-                0x0004000000033400, // Game 1
-                0x0004000000033500 // Game 2
-                // And so on
+            // 0xprogramId
+            0x0004000000033400, // Game 1
+            0x0004000000033500  // Game 2
+                                // And so on
         };
 
         for (auto id : example_array) {
             if (programId == id) {
-             // Settings::values.example = true;
+                // Settings::values.example = true;
                 break;
             }
         }
 
-    #endif
-
+#endif
     }
 
     SystemResultStatus Load(System& system, Frontend::EmuWindow& emu_window,

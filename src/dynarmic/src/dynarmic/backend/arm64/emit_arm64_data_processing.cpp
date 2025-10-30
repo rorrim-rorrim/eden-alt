@@ -21,7 +21,7 @@ namespace Dynarmic::Backend::Arm64 {
 
 using namespace oaknut::util;
 
-template<size_t bitsize, typename EmitFn>
+template <size_t bitsize, typename EmitFn>
 static void EmitTwoOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -32,7 +32,7 @@ static void EmitTwoOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, 
     emit(Rresult, Roperand);
 }
 
-template<size_t bitsize, typename EmitFn>
+template <size_t bitsize, typename EmitFn>
 static void EmitThreeOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -44,8 +44,9 @@ static void EmitThreeOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst
     emit(Rresult, Ra, Rb);
 }
 
-template<>
-void EmitIR<IR::Opcode::Pack2x32To1x64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::Pack2x32To1x64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                        IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     auto Wlo = ctx.reg_alloc.ReadW(args[0]);
@@ -53,14 +54,15 @@ void EmitIR<IR::Opcode::Pack2x32To1x64>(oaknut::CodeGenerator& code, EmitContext
     auto Xresult = ctx.reg_alloc.WriteX(inst);
     RegAlloc::Realize(Wlo, Whi, Xresult);
 
-    code.MOV(Xresult->toW(), Wlo);  // TODO: Move eliminiation
+    code.MOV(Xresult->toW(), Wlo); // TODO: Move eliminiation
     code.BFI(Xresult, Whi->toX(), 32, 32);
 }
 
-template<>
-void EmitIR<IR::Opcode::Pack2x64To1x128>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::Pack2x64To1x128>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                         IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    bool const args_in_gpr[] = { args[0].IsInGpr(), args[1].IsInGpr() };
+    bool const args_in_gpr[] = {args[0].IsInGpr(), args[1].IsInGpr()};
     if (args_in_gpr[0] && args_in_gpr[1]) {
         auto Xlo = ctx.reg_alloc.ReadX(args[0]);
         auto Xhi = ctx.reg_alloc.ReadX(args[1]);
@@ -75,14 +77,15 @@ void EmitIR<IR::Opcode::Pack2x64To1x128>(oaknut::CodeGenerator& code, EmitContex
         RegAlloc::Realize(Xlo, Dhi, Qresult);
 
         code.FMOV(Qresult->toD(), Xlo);
-        code.MOV(oaknut::VRegSelector{Qresult->index()}.D()[1], oaknut::VRegSelector{Dhi->index()}.D()[0]);
+        code.MOV(oaknut::VRegSelector{Qresult->index()}.D()[1],
+                 oaknut::VRegSelector{Dhi->index()}.D()[0]);
     } else if (args_in_gpr[1]) {
         auto Dlo = ctx.reg_alloc.ReadD(args[0]);
         auto Xhi = ctx.reg_alloc.ReadX(args[1]);
         auto Qresult = ctx.reg_alloc.WriteQ(inst);
         RegAlloc::Realize(Dlo, Xhi, Qresult);
 
-        code.FMOV(Qresult->toD(), Dlo);  // TODO: Move eliminiation
+        code.FMOV(Qresult->toD(), Dlo); // TODO: Move eliminiation
         code.MOV(oaknut::VRegSelector{Qresult->index()}.D()[1], Xhi);
     } else {
         auto Dlo = ctx.reg_alloc.ReadD(args[0]);
@@ -90,46 +93,51 @@ void EmitIR<IR::Opcode::Pack2x64To1x128>(oaknut::CodeGenerator& code, EmitContex
         auto Qresult = ctx.reg_alloc.WriteQ(inst);
         RegAlloc::Realize(Dlo, Dhi, Qresult);
 
-        code.FMOV(Qresult->toD(), Dlo);  // TODO: Move eliminiation
-        code.MOV(oaknut::VRegSelector{Qresult->index()}.D()[1], oaknut::VRegSelector{Dhi->index()}.D()[0]);
+        code.FMOV(Qresult->toD(), Dlo); // TODO: Move eliminiation
+        code.MOV(oaknut::VRegSelector{Qresult->index()}.D()[1],
+                 oaknut::VRegSelector{Dhi->index()}.D()[0]);
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::LeastSignificantWord>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::LeastSignificantWord>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     auto Wresult = ctx.reg_alloc.WriteW(inst);
     auto Xoperand = ctx.reg_alloc.ReadX(args[0]);
     RegAlloc::Realize(Wresult, Xoperand);
 
-    code.MOV(Wresult, Xoperand->toW());  // TODO: Zext elimination
+    code.MOV(Wresult, Xoperand->toW()); // TODO: Zext elimination
 }
 
-template<>
-void EmitIR<IR::Opcode::LeastSignificantHalf>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::LeastSignificantHalf>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     auto Wresult = ctx.reg_alloc.WriteW(inst);
     auto Woperand = ctx.reg_alloc.ReadW(args[0]);
     RegAlloc::Realize(Wresult, Woperand);
 
-    code.UXTH(Wresult, Woperand);  // TODO: Zext elimination
+    code.UXTH(Wresult, Woperand); // TODO: Zext elimination
 }
 
-template<>
-void EmitIR<IR::Opcode::LeastSignificantByte>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::LeastSignificantByte>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     auto Wresult = ctx.reg_alloc.WriteW(inst);
     auto Woperand = ctx.reg_alloc.ReadW(args[0]);
     RegAlloc::Realize(Wresult, Woperand);
 
-    code.UXTB(Wresult, Woperand);  // TODO: Zext elimination
+    code.UXTB(Wresult, Woperand); // TODO: Zext elimination
 }
 
-template<>
-void EmitIR<IR::Opcode::MostSignificantWord>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::MostSignificantWord>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                             IR::Inst* inst) {
     const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -149,8 +157,9 @@ void EmitIR<IR::Opcode::MostSignificantWord>(oaknut::CodeGenerator& code, EmitCo
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::MostSignificantBit>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::MostSignificantBit>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                            IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     auto Wresult = ctx.reg_alloc.WriteW(inst);
@@ -160,7 +169,7 @@ void EmitIR<IR::Opcode::MostSignificantBit>(oaknut::CodeGenerator& code, EmitCon
     code.LSR(Wresult, Woperand, 31);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::IsZero32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -173,7 +182,7 @@ void EmitIR<IR::Opcode::IsZero32>(oaknut::CodeGenerator& code, EmitContext& ctx,
     code.CSET(Wresult, EQ);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::IsZero64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -186,7 +195,7 @@ void EmitIR<IR::Opcode::IsZero64>(oaknut::CodeGenerator& code, EmitContext& ctx,
     code.CSET(Wresult, EQ);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::TestBit>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Xresult = ctx.reg_alloc.WriteX(inst);
@@ -198,8 +207,9 @@ void EmitIR<IR::Opcode::TestBit>(oaknut::CodeGenerator& code, EmitContext& ctx, 
     code.UBFX(Xresult, Xoperand, args[1].GetImmediateU8(), 1);
 }
 
-template<>
-void EmitIR<IR::Opcode::ConditionalSelect32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::ConditionalSelect32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                             IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const IR::Cond cond = args[0].GetImmediateCond();
     auto Wresult = ctx.reg_alloc.WriteW(inst);
@@ -215,8 +225,9 @@ void EmitIR<IR::Opcode::ConditionalSelect32>(oaknut::CodeGenerator& code, EmitCo
     code.CSEL(Wresult, Wthen, Welse, static_cast<oaknut::Cond>(cond));
 }
 
-template<>
-void EmitIR<IR::Opcode::ConditionalSelect64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::ConditionalSelect64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                             IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const IR::Cond cond = args[0].GetImmediateCond();
     auto Xresult = ctx.reg_alloc.WriteX(inst);
@@ -232,13 +243,15 @@ void EmitIR<IR::Opcode::ConditionalSelect64>(oaknut::CodeGenerator& code, EmitCo
     code.CSEL(Xresult, Xthen, Xelse, static_cast<oaknut::Cond>(cond));
 }
 
-template<>
-void EmitIR<IR::Opcode::ConditionalSelectNZCV>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::ConditionalSelectNZCV>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                               IR::Inst* inst) {
     EmitIR<IR::Opcode::ConditionalSelect32>(code, ctx, inst);
 }
 
-template<>
-void EmitIR<IR::Opcode::LogicalShiftLeft32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::LogicalShiftLeft32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                            IR::Inst* inst) {
     const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -345,8 +358,9 @@ void EmitIR<IR::Opcode::LogicalShiftLeft32>(oaknut::CodeGenerator& code, EmitCon
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::LogicalShiftLeft64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::LogicalShiftLeft64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                            IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     if (args[1].IsImmediate()) {
@@ -374,8 +388,9 @@ void EmitIR<IR::Opcode::LogicalShiftLeft64>(oaknut::CodeGenerator& code, EmitCon
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::LogicalShiftRight32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::LogicalShiftRight32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                             IR::Inst* inst) {
     const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -483,8 +498,9 @@ void EmitIR<IR::Opcode::LogicalShiftRight32>(oaknut::CodeGenerator& code, EmitCo
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::LogicalShiftRight64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::LogicalShiftRight64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                             IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     if (args[1].IsImmediate()) {
@@ -512,8 +528,9 @@ void EmitIR<IR::Opcode::LogicalShiftRight64>(oaknut::CodeGenerator& code, EmitCo
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::ArithmeticShiftRight32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::ArithmeticShiftRight32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                IR::Inst* inst) {
     const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -617,8 +634,9 @@ void EmitIR<IR::Opcode::ArithmeticShiftRight32>(oaknut::CodeGenerator& code, Emi
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::ArithmeticShiftRight64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::ArithmeticShiftRight64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& operand_arg = args[0];
     auto& shift_arg = args[1];
@@ -638,8 +656,9 @@ void EmitIR<IR::Opcode::ArithmeticShiftRight64>(oaknut::CodeGenerator& code, Emi
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::RotateRight32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::RotateRight32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                       IR::Inst* inst) {
     const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -704,8 +723,9 @@ void EmitIR<IR::Opcode::RotateRight32>(oaknut::CodeGenerator& code, EmitContext&
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::RotateRight64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::RotateRight64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                       IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& operand_arg = args[0];
     auto& shift_arg = args[1];
@@ -725,8 +745,9 @@ void EmitIR<IR::Opcode::RotateRight64>(oaknut::CodeGenerator& code, EmitContext&
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::RotateRightExtended>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::RotateRightExtended>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                             IR::Inst* inst) {
     const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -755,8 +776,9 @@ void EmitIR<IR::Opcode::RotateRightExtended>(oaknut::CodeGenerator& code, EmitCo
     }
 }
 
-template<typename ShiftI, typename ShiftR>
-static void EmitMaskedShift32(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, ShiftI si_fn, ShiftR sr_fn) {
+template <typename ShiftI, typename ShiftR>
+static void EmitMaskedShift32(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst,
+                              ShiftI si_fn, ShiftR sr_fn) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& operand_arg = args[0];
     auto& shift_arg = args[1];
@@ -778,8 +800,9 @@ static void EmitMaskedShift32(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst
     }
 }
 
-template<typename ShiftI, typename ShiftR>
-static void EmitMaskedShift64(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, ShiftI si_fn, ShiftR sr_fn) {
+template <typename ShiftI, typename ShiftR>
+static void EmitMaskedShift64(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst,
+                              ShiftI si_fn, ShiftR sr_fn) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& operand_arg = args[0];
     auto& shift_arg = args[1];
@@ -801,71 +824,79 @@ static void EmitMaskedShift64(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::LogicalShiftLeftMasked32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::LogicalShiftLeftMasked32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                  IR::Inst* inst) {
     EmitMaskedShift32(
         code, ctx, inst,
         [&](auto& Wresult, auto& Woperand, auto shift) { code.LSL(Wresult, Woperand, shift); },
         [&](auto& Wresult, auto& Woperand, auto& Wshift) { code.LSL(Wresult, Woperand, Wshift); });
 }
 
-template<>
-void EmitIR<IR::Opcode::LogicalShiftLeftMasked64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::LogicalShiftLeftMasked64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                  IR::Inst* inst) {
     EmitMaskedShift64(
         code, ctx, inst,
         [&](auto& Xresult, auto& Xoperand, auto shift) { code.LSL(Xresult, Xoperand, shift); },
         [&](auto& Xresult, auto& Xoperand, auto& Xshift) { code.LSL(Xresult, Xoperand, Xshift); });
 }
 
-template<>
-void EmitIR<IR::Opcode::LogicalShiftRightMasked32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::LogicalShiftRightMasked32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                   IR::Inst* inst) {
     EmitMaskedShift32(
         code, ctx, inst,
         [&](auto& Wresult, auto& Woperand, auto shift) { code.LSR(Wresult, Woperand, shift); },
         [&](auto& Wresult, auto& Woperand, auto& Wshift) { code.LSR(Wresult, Woperand, Wshift); });
 }
 
-template<>
-void EmitIR<IR::Opcode::LogicalShiftRightMasked64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::LogicalShiftRightMasked64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                   IR::Inst* inst) {
     EmitMaskedShift64(
         code, ctx, inst,
         [&](auto& Xresult, auto& Xoperand, auto shift) { code.LSR(Xresult, Xoperand, shift); },
         [&](auto& Xresult, auto& Xoperand, auto& Xshift) { code.LSR(Xresult, Xoperand, Xshift); });
 }
 
-template<>
-void EmitIR<IR::Opcode::ArithmeticShiftRightMasked32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::ArithmeticShiftRightMasked32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                      IR::Inst* inst) {
     EmitMaskedShift32(
         code, ctx, inst,
         [&](auto& Wresult, auto& Woperand, auto shift) { code.ASR(Wresult, Woperand, shift); },
         [&](auto& Wresult, auto& Woperand, auto& Wshift) { code.ASR(Wresult, Woperand, Wshift); });
 }
 
-template<>
-void EmitIR<IR::Opcode::ArithmeticShiftRightMasked64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::ArithmeticShiftRightMasked64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                      IR::Inst* inst) {
     EmitMaskedShift64(
         code, ctx, inst,
         [&](auto& Xresult, auto& Xoperand, auto shift) { code.ASR(Xresult, Xoperand, shift); },
         [&](auto& Xresult, auto& Xoperand, auto& Xshift) { code.ASR(Xresult, Xoperand, Xshift); });
 }
 
-template<>
-void EmitIR<IR::Opcode::RotateRightMasked32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::RotateRightMasked32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                             IR::Inst* inst) {
     EmitMaskedShift32(
         code, ctx, inst,
         [&](auto& Wresult, auto& Woperand, auto shift) { code.ROR(Wresult, Woperand, shift); },
         [&](auto& Wresult, auto& Woperand, auto& Wshift) { code.ROR(Wresult, Woperand, Wshift); });
 }
 
-template<>
-void EmitIR<IR::Opcode::RotateRightMasked64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::RotateRightMasked64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                             IR::Inst* inst) {
     EmitMaskedShift64(
         code, ctx, inst,
         [&](auto& Xresult, auto& Xoperand, auto shift) { code.ROR(Xresult, Xoperand, shift); },
         [&](auto& Xresult, auto& Xoperand, auto& Xshift) { code.ROR(Xresult, Xoperand, Xshift); });
 }
 
-template<size_t bitsize, typename EmitFn>
+template <size_t bitsize, typename EmitFn>
 static void MaybeAddSubImm(oaknut::CodeGenerator& code, u64 imm, EmitFn emit_fn) {
     static_assert(bitsize == 32 || bitsize == 64);
     if constexpr (bitsize == 32) {
@@ -879,7 +910,7 @@ static void MaybeAddSubImm(oaknut::CodeGenerator& code, u64 imm, EmitFn emit_fn)
     }
 }
 
-template<size_t bitsize, bool sub>
+template <size_t bitsize, bool sub>
 static void EmitAddSub(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const auto nzcv_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetNZCVFromOp);
     const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
@@ -911,9 +942,11 @@ static void EmitAddSub(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* 
                 RegAlloc::Realize(Rresult, Ra, flags);
 
                 if (args[2].GetImmediateU1()) {
-                    MaybeAddSubImm<bitsize>(code, sub ? imm : ~imm, [&](const auto b) { code.SUBS(Rresult, *Ra, b); });
+                    MaybeAddSubImm<bitsize>(code, sub ? imm : ~imm,
+                                            [&](const auto b) { code.SUBS(Rresult, *Ra, b); });
                 } else {
-                    MaybeAddSubImm<bitsize>(code, sub ? ~imm : imm, [&](const auto b) { code.ADDS(Rresult, *Ra, b); });
+                    MaybeAddSubImm<bitsize>(code, sub ? ~imm : imm,
+                                            [&](const auto b) { code.ADDS(Rresult, *Ra, b); });
                 }
             } else {
                 RegAlloc::Realize(Rresult, Ra);
@@ -927,7 +960,8 @@ static void EmitAddSub(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* 
                     }
                 } else {
                     code.MOV(Rscratch0<bitsize>(), imm);
-                    sub ? code.SBCS(Rresult, Ra, Rscratch0<bitsize>()) : code.ADCS(Rresult, Ra, Rscratch0<bitsize>());
+                    sub ? code.SBCS(Rresult, Ra, Rscratch0<bitsize>())
+                        : code.ADCS(Rresult, Ra, Rscratch0<bitsize>());
                 }
             }
         } else {
@@ -967,9 +1001,11 @@ static void EmitAddSub(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* 
 
             if (args[2].IsImmediate()) {
                 if (args[2].GetImmediateU1()) {
-                    MaybeAddSubImm<bitsize>(code, sub ? imm : ~imm, [&](const auto b) { code.SUB(Rresult, *Ra, b); });
+                    MaybeAddSubImm<bitsize>(code, sub ? imm : ~imm,
+                                            [&](const auto b) { code.SUB(Rresult, *Ra, b); });
                 } else {
-                    MaybeAddSubImm<bitsize>(code, sub ? ~imm : imm, [&](const auto b) { code.ADD(Rresult, *Ra, b); });
+                    MaybeAddSubImm<bitsize>(code, sub ? ~imm : imm,
+                                            [&](const auto b) { code.ADD(Rresult, *Ra, b); });
                 }
             } else {
                 ctx.reg_alloc.ReadWriteFlags(args[2], nullptr);
@@ -982,7 +1018,8 @@ static void EmitAddSub(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* 
                     }
                 } else {
                     code.MOV(Rscratch0<bitsize>(), imm);
-                    sub ? code.SBC(Rresult, Ra, Rscratch0<bitsize>()) : code.ADC(Rresult, Ra, Rscratch0<bitsize>());
+                    sub ? code.SBC(Rresult, Ra, Rscratch0<bitsize>())
+                        : code.ADC(Rresult, Ra, Rscratch0<bitsize>());
                 }
             }
         } else {
@@ -1015,42 +1052,41 @@ static void EmitAddSub(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* 
     }
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::Add32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     EmitAddSub<32, false>(code, ctx, inst);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::Add64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     EmitAddSub<64, false>(code, ctx, inst);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::Sub32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     EmitAddSub<32, true>(code, ctx, inst);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::Sub64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     EmitAddSub<64, true>(code, ctx, inst);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::Mul32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitThreeOp<32>(
-        code, ctx, inst,
-        [&](auto& Wresult, auto& Wa, auto& Wb) { code.MUL(Wresult, Wa, Wb); });
+    EmitThreeOp<32>(code, ctx, inst,
+                    [&](auto& Wresult, auto& Wa, auto& Wb) { code.MUL(Wresult, Wa, Wb); });
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::Mul64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitThreeOp<64>(
-        code, ctx, inst,
-        [&](auto& Xresult, auto& Xa, auto& Xb) { code.MUL(Xresult, Xa, Xb); });
+    EmitThreeOp<64>(code, ctx, inst,
+                    [&](auto& Xresult, auto& Xa, auto& Xb) { code.MUL(Xresult, Xa, Xb); });
 }
 
-template<>
-void EmitIR<IR::Opcode::SignedMultiplyHigh64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::SignedMultiplyHigh64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Xresult = ctx.reg_alloc.WriteX(inst);
     auto Xop1 = ctx.reg_alloc.ReadX(args[0]);
@@ -1060,8 +1096,9 @@ void EmitIR<IR::Opcode::SignedMultiplyHigh64>(oaknut::CodeGenerator& code, EmitC
     code.SMULH(Xresult, Xop1, Xop2);
 }
 
-template<>
-void EmitIR<IR::Opcode::UnsignedMultiplyHigh64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::UnsignedMultiplyHigh64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Xresult = ctx.reg_alloc.WriteX(inst);
     auto Xop1 = ctx.reg_alloc.ReadX(args[0]);
@@ -1071,35 +1108,35 @@ void EmitIR<IR::Opcode::UnsignedMultiplyHigh64>(oaknut::CodeGenerator& code, Emi
     code.UMULH(Xresult, Xop1, Xop2);
 }
 
-template<>
-void EmitIR<IR::Opcode::UnsignedDiv32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitThreeOp<32>(
-        code, ctx, inst,
-        [&](auto& Wresult, auto& Wa, auto& Wb) { code.UDIV(Wresult, Wa, Wb); });
+template <>
+void EmitIR<IR::Opcode::UnsignedDiv32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                       IR::Inst* inst) {
+    EmitThreeOp<32>(code, ctx, inst,
+                    [&](auto& Wresult, auto& Wa, auto& Wb) { code.UDIV(Wresult, Wa, Wb); });
 }
 
-template<>
-void EmitIR<IR::Opcode::UnsignedDiv64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitThreeOp<64>(
-        code, ctx, inst,
-        [&](auto& Xresult, auto& Xa, auto& Xb) { code.UDIV(Xresult, Xa, Xb); });
+template <>
+void EmitIR<IR::Opcode::UnsignedDiv64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                       IR::Inst* inst) {
+    EmitThreeOp<64>(code, ctx, inst,
+                    [&](auto& Xresult, auto& Xa, auto& Xb) { code.UDIV(Xresult, Xa, Xb); });
 }
 
-template<>
-void EmitIR<IR::Opcode::SignedDiv32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitThreeOp<32>(
-        code, ctx, inst,
-        [&](auto& Wresult, auto& Wa, auto& Wb) { code.SDIV(Wresult, Wa, Wb); });
+template <>
+void EmitIR<IR::Opcode::SignedDiv32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                     IR::Inst* inst) {
+    EmitThreeOp<32>(code, ctx, inst,
+                    [&](auto& Wresult, auto& Wa, auto& Wb) { code.SDIV(Wresult, Wa, Wb); });
 }
 
-template<>
-void EmitIR<IR::Opcode::SignedDiv64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitThreeOp<64>(
-        code, ctx, inst,
-        [&](auto& Xresult, auto& Xa, auto& Xb) { code.SDIV(Xresult, Xa, Xb); });
+template <>
+void EmitIR<IR::Opcode::SignedDiv64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                     IR::Inst* inst) {
+    EmitThreeOp<64>(code, ctx, inst,
+                    [&](auto& Xresult, auto& Xa, auto& Xb) { code.SDIV(Xresult, Xa, Xb); });
 }
 
-template<size_t bitsize>
+template <size_t bitsize>
 static bool IsValidBitImm(u64 imm) {
     static_assert(bitsize == 32 || bitsize == 64);
     if constexpr (bitsize == 32) {
@@ -1109,7 +1146,7 @@ static bool IsValidBitImm(u64 imm) {
     }
 }
 
-template<size_t bitsize, typename EmitFn>
+template <size_t bitsize, typename EmitFn>
 static void MaybeBitImm(oaknut::CodeGenerator& code, u64 imm, EmitFn emit_fn) {
     static_assert(bitsize == 32 || bitsize == 64);
     if constexpr (bitsize == 32) {
@@ -1123,8 +1160,9 @@ static void MaybeBitImm(oaknut::CodeGenerator& code, u64 imm, EmitFn emit_fn) {
     }
 }
 
-template<size_t bitsize, typename EmitFn1, typename EmitFn2 = std::nullptr_t>
-static void EmitBitOp(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn1 emit_without_flags, EmitFn2 emit_with_flags = nullptr) {
+template <size_t bitsize, typename EmitFn1, typename EmitFn2 = std::nullptr_t>
+static void EmitBitOp(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst,
+                      EmitFn1 emit_without_flags, EmitFn2 emit_with_flags = nullptr) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Rresult = ctx.reg_alloc.WriteReg<bitsize>(inst);
     auto Ra = ctx.reg_alloc.ReadReg<bitsize>(args[0]);
@@ -1141,7 +1179,8 @@ static void EmitBitOp(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* i
             if (args[1].IsImmediate()) {
                 RegAlloc::Realize(Rresult, Ra, Wflags);
 
-                MaybeBitImm<bitsize>(code, args[1].GetImmediateU64(), [&](const auto& b) { emit_with_flags(Rresult, Ra, b); });
+                MaybeBitImm<bitsize>(code, args[1].GetImmediateU64(),
+                                     [&](const auto& b) { emit_with_flags(Rresult, Ra, b); });
             } else {
                 auto Rb = ctx.reg_alloc.ReadReg<bitsize>(args[1]);
                 RegAlloc::Realize(Rresult, Ra, Rb, Wflags);
@@ -1156,7 +1195,8 @@ static void EmitBitOp(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* i
     if (args[1].IsImmediate()) {
         RegAlloc::Realize(Rresult, Ra);
 
-        MaybeBitImm<bitsize>(code, args[1].GetImmediateU64(), [&](const auto& b) { emit_without_flags(Rresult, Ra, b); });
+        MaybeBitImm<bitsize>(code, args[1].GetImmediateU64(),
+                             [&](const auto& b) { emit_without_flags(Rresult, Ra, b); });
     } else {
         auto Rb = ctx.reg_alloc.ReadReg<bitsize>(args[1]);
         RegAlloc::Realize(Rresult, Ra, Rb);
@@ -1165,7 +1205,7 @@ static void EmitBitOp(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* i
     }
 }
 
-template<size_t bitsize>
+template <size_t bitsize>
 static void EmitAndNot(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const auto nz_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetNZFromOp);
     const auto nzcv_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetNZCVFromOp);
@@ -1182,7 +1222,8 @@ static void EmitAndNot(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* 
         if (args[1].IsImmediate()) {
             RegAlloc::Realize(Rresult, Ra, Wflags);
 
-            const u64 not_imm = bitsize == 32 ? static_cast<u32>(~args[1].GetImmediateU64()) : ~args[1].GetImmediateU64();
+            const u64 not_imm = bitsize == 32 ? static_cast<u32>(~args[1].GetImmediateU64())
+                                              : ~args[1].GetImmediateU64();
 
             if (IsValidBitImm<bitsize>(not_imm)) {
                 code.ANDS(Rresult, Ra, not_imm);
@@ -1203,7 +1244,8 @@ static void EmitAndNot(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* 
     if (args[1].IsImmediate()) {
         RegAlloc::Realize(Rresult, Ra);
 
-        const u64 not_imm = bitsize == 32 ? static_cast<u32>(~args[1].GetImmediateU64()) : ~args[1].GetImmediateU64();
+        const u64 not_imm = bitsize == 32 ? static_cast<u32>(~args[1].GetImmediateU64())
+                                          : ~args[1].GetImmediateU64();
 
         if (IsValidBitImm<bitsize>(not_imm)) {
             code.AND(Rresult, Ra, not_imm);
@@ -1219,141 +1261,135 @@ static void EmitAndNot(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* 
     }
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::And32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     EmitBitOp<32>(
-        code, ctx, inst,
-        [&](auto& result, auto& a, auto& b) { code.AND(result, a, b); },
+        code, ctx, inst, [&](auto& result, auto& a, auto& b) { code.AND(result, a, b); },
         [&](auto& result, auto& a, auto& b) { code.ANDS(result, a, b); });
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::And64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     EmitBitOp<64>(
-        code, ctx, inst,
-        [&](auto& result, auto& a, auto& b) { code.AND(result, a, b); },
+        code, ctx, inst, [&](auto& result, auto& a, auto& b) { code.AND(result, a, b); },
         [&](auto& result, auto& a, auto& b) { code.ANDS(result, a, b); });
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::AndNot32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     EmitAndNot<32>(code, ctx, inst);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::AndNot64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     EmitAndNot<64>(code, ctx, inst);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::Eor32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitBitOp<32>(
-        code, ctx, inst,
-        [&](auto& result, auto& a, auto& b) { code.EOR(result, a, b); });
+    EmitBitOp<32>(code, ctx, inst, [&](auto& result, auto& a, auto& b) { code.EOR(result, a, b); });
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::Eor64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitBitOp<64>(
-        code, ctx, inst,
-        [&](auto& result, auto& a, auto& b) { code.EOR(result, a, b); });
+    EmitBitOp<64>(code, ctx, inst, [&](auto& result, auto& a, auto& b) { code.EOR(result, a, b); });
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::Or32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitBitOp<32>(
-        code, ctx, inst,
-        [&](auto& result, auto& a, auto& b) { code.ORR(result, a, b); });
+    EmitBitOp<32>(code, ctx, inst, [&](auto& result, auto& a, auto& b) { code.ORR(result, a, b); });
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::Or64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitBitOp<64>(
-        code, ctx, inst,
-        [&](auto& result, auto& a, auto& b) { code.ORR(result, a, b); });
+    EmitBitOp<64>(code, ctx, inst, [&](auto& result, auto& a, auto& b) { code.ORR(result, a, b); });
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::Not32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitTwoOp<32>(
-        code, ctx, inst,
-        [&](auto& Wresult, auto& Woperand) { code.MVN(Wresult, Woperand); });
+    EmitTwoOp<32>(code, ctx, inst,
+                  [&](auto& Wresult, auto& Woperand) { code.MVN(Wresult, Woperand); });
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::Not64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitTwoOp<64>(
-        code, ctx, inst,
-        [&](auto& Xresult, auto& Xoperand) { code.MVN(Xresult, Xoperand); });
+    EmitTwoOp<64>(code, ctx, inst,
+                  [&](auto& Xresult, auto& Xoperand) { code.MVN(Xresult, Xoperand); });
 }
 
-template<>
-void EmitIR<IR::Opcode::SignExtendByteToWord>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitTwoOp<32>(
-        code, ctx, inst,
-        [&](auto& Wresult, auto& Woperand) { code.SXTB(Wresult, Woperand); });
+template <>
+void EmitIR<IR::Opcode::SignExtendByteToWord>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
+    EmitTwoOp<32>(code, ctx, inst,
+                  [&](auto& Wresult, auto& Woperand) { code.SXTB(Wresult, Woperand); });
 }
 
-template<>
-void EmitIR<IR::Opcode::SignExtendHalfToWord>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitTwoOp<32>(
-        code, ctx, inst,
-        [&](auto& Wresult, auto& Woperand) { code.SXTH(Wresult, Woperand); });
+template <>
+void EmitIR<IR::Opcode::SignExtendHalfToWord>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
+    EmitTwoOp<32>(code, ctx, inst,
+                  [&](auto& Wresult, auto& Woperand) { code.SXTH(Wresult, Woperand); });
 }
 
-template<>
-void EmitIR<IR::Opcode::SignExtendByteToLong>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitTwoOp<64>(
-        code, ctx, inst,
-        [&](auto& Xresult, auto& Xoperand) { code.SXTB(Xresult, Xoperand->toW()); });
+template <>
+void EmitIR<IR::Opcode::SignExtendByteToLong>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
+    EmitTwoOp<64>(code, ctx, inst,
+                  [&](auto& Xresult, auto& Xoperand) { code.SXTB(Xresult, Xoperand->toW()); });
 }
 
-template<>
-void EmitIR<IR::Opcode::SignExtendHalfToLong>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitTwoOp<64>(
-        code, ctx, inst,
-        [&](auto& Xresult, auto& Xoperand) { code.SXTH(Xresult, Xoperand->toW()); });
+template <>
+void EmitIR<IR::Opcode::SignExtendHalfToLong>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
+    EmitTwoOp<64>(code, ctx, inst,
+                  [&](auto& Xresult, auto& Xoperand) { code.SXTH(Xresult, Xoperand->toW()); });
 }
 
-template<>
-void EmitIR<IR::Opcode::SignExtendWordToLong>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitTwoOp<64>(
-        code, ctx, inst,
-        [&](auto& Xresult, auto& Xoperand) { code.SXTW(Xresult, Xoperand->toW()); });
+template <>
+void EmitIR<IR::Opcode::SignExtendWordToLong>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
+    EmitTwoOp<64>(code, ctx, inst,
+                  [&](auto& Xresult, auto& Xoperand) { code.SXTW(Xresult, Xoperand->toW()); });
 }
 
-template<>
-void EmitIR<IR::Opcode::ZeroExtendByteToWord>(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::ZeroExtendByteToWord>(oaknut::CodeGenerator&, EmitContext& ctx,
+                                              IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.DefineAsExisting(inst, args[0]);
 }
 
-template<>
-void EmitIR<IR::Opcode::ZeroExtendHalfToWord>(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::ZeroExtendHalfToWord>(oaknut::CodeGenerator&, EmitContext& ctx,
+                                              IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.DefineAsExisting(inst, args[0]);
 }
 
-template<>
-void EmitIR<IR::Opcode::ZeroExtendByteToLong>(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::ZeroExtendByteToLong>(oaknut::CodeGenerator&, EmitContext& ctx,
+                                              IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.DefineAsExisting(inst, args[0]);
 }
 
-template<>
-void EmitIR<IR::Opcode::ZeroExtendHalfToLong>(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::ZeroExtendHalfToLong>(oaknut::CodeGenerator&, EmitContext& ctx,
+                                              IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.DefineAsExisting(inst, args[0]);
 }
 
-template<>
-void EmitIR<IR::Opcode::ZeroExtendWordToLong>(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::ZeroExtendWordToLong>(oaknut::CodeGenerator&, EmitContext& ctx,
+                                              IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.DefineAsExisting(inst, args[0]);
 }
 
-template<>
-void EmitIR<IR::Opcode::ZeroExtendLongToQuad>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::ZeroExtendLongToQuad>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Xvalue = ctx.reg_alloc.ReadX(args[0]);
     auto Qresult = ctx.reg_alloc.WriteQ(inst);
@@ -1362,43 +1398,44 @@ void EmitIR<IR::Opcode::ZeroExtendLongToQuad>(oaknut::CodeGenerator& code, EmitC
     code.FMOV(Qresult->toD(), Xvalue);
 }
 
-template<>
-void EmitIR<IR::Opcode::ByteReverseWord>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitTwoOp<32>(
-        code, ctx, inst,
-        [&](auto& Wresult, auto& Woperand) { code.REV(Wresult, Woperand); });
+template <>
+void EmitIR<IR::Opcode::ByteReverseWord>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                         IR::Inst* inst) {
+    EmitTwoOp<32>(code, ctx, inst,
+                  [&](auto& Wresult, auto& Woperand) { code.REV(Wresult, Woperand); });
 }
 
-template<>
-void EmitIR<IR::Opcode::ByteReverseHalf>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitTwoOp<32>(
-        code, ctx, inst,
-        [&](auto& Wresult, auto& Woperand) { code.REV16(Wresult, Woperand); });
+template <>
+void EmitIR<IR::Opcode::ByteReverseHalf>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                         IR::Inst* inst) {
+    EmitTwoOp<32>(code, ctx, inst,
+                  [&](auto& Wresult, auto& Woperand) { code.REV16(Wresult, Woperand); });
 }
 
-template<>
-void EmitIR<IR::Opcode::ByteReverseDual>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitTwoOp<64>(
-        code, ctx, inst,
-        [&](auto& Xresult, auto& Xoperand) { code.REV(Xresult, Xoperand); });
+template <>
+void EmitIR<IR::Opcode::ByteReverseDual>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                         IR::Inst* inst) {
+    EmitTwoOp<64>(code, ctx, inst,
+                  [&](auto& Xresult, auto& Xoperand) { code.REV(Xresult, Xoperand); });
 }
 
-template<>
-void EmitIR<IR::Opcode::CountLeadingZeros32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitTwoOp<32>(
-        code, ctx, inst,
-        [&](auto& Wresult, auto& Woperand) { code.CLZ(Wresult, Woperand); });
+template <>
+void EmitIR<IR::Opcode::CountLeadingZeros32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                             IR::Inst* inst) {
+    EmitTwoOp<32>(code, ctx, inst,
+                  [&](auto& Wresult, auto& Woperand) { code.CLZ(Wresult, Woperand); });
 }
 
-template<>
-void EmitIR<IR::Opcode::CountLeadingZeros64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitTwoOp<64>(
-        code, ctx, inst,
-        [&](auto& Xresult, auto& Xoperand) { code.CLZ(Xresult, Xoperand); });
+template <>
+void EmitIR<IR::Opcode::CountLeadingZeros64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                             IR::Inst* inst) {
+    EmitTwoOp<64>(code, ctx, inst,
+                  [&](auto& Xresult, auto& Xoperand) { code.CLZ(Xresult, Xoperand); });
 }
 
-template<>
-void EmitIR<IR::Opcode::ExtractRegister32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::ExtractRegister32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                           IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ASSERT(args[2].IsImmediate());
 
@@ -1408,11 +1445,12 @@ void EmitIR<IR::Opcode::ExtractRegister32>(oaknut::CodeGenerator& code, EmitCont
     RegAlloc::Realize(Wresult, Wop1, Wop2);
     const u8 lsb = args[2].GetImmediateU8();
 
-    code.EXTR(Wresult, Wop2, Wop1, lsb);  // NB: flipped
+    code.EXTR(Wresult, Wop2, Wop1, lsb); // NB: flipped
 }
 
-template<>
-void EmitIR<IR::Opcode::ExtractRegister64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::ExtractRegister64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                           IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ASSERT(args[2].IsImmediate());
 
@@ -1422,11 +1460,12 @@ void EmitIR<IR::Opcode::ExtractRegister64>(oaknut::CodeGenerator& code, EmitCont
     RegAlloc::Realize(Xresult, Xop1, Xop2);
     const u8 lsb = args[2].GetImmediateU8();
 
-    code.EXTR(Xresult, Xop2, Xop1, lsb);  // NB: flipped
+    code.EXTR(Xresult, Xop2, Xop1, lsb); // NB: flipped
 }
 
-template<>
-void EmitIR<IR::Opcode::ReplicateBit32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::ReplicateBit32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                        IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ASSERT(args[1].IsImmediate());
 
@@ -1439,8 +1478,9 @@ void EmitIR<IR::Opcode::ReplicateBit32>(oaknut::CodeGenerator& code, EmitContext
     code.ASR(Wresult, Wresult, 31);
 }
 
-template<>
-void EmitIR<IR::Opcode::ReplicateBit64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::ReplicateBit64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                        IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ASSERT(args[1].IsImmediate());
 
@@ -1453,7 +1493,8 @@ void EmitIR<IR::Opcode::ReplicateBit64>(oaknut::CodeGenerator& code, EmitContext
     code.ASR(Xresult, Xresult, 63);
 }
 
-static void EmitMaxMin32(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, oaknut::Cond cond) {
+static void EmitMaxMin32(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst,
+                         oaknut::Cond cond) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     auto Wresult = ctx.reg_alloc.WriteW(inst);
@@ -1466,7 +1507,8 @@ static void EmitMaxMin32(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst
     code.CSEL(Wresult, Wop1, Wop2, cond);
 }
 
-static void EmitMaxMin64(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, oaknut::Cond cond) {
+static void EmitMaxMin64(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst,
+                         oaknut::Cond cond) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     auto Xresult = ctx.reg_alloc.WriteX(inst);
@@ -1479,44 +1521,52 @@ static void EmitMaxMin64(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst
     code.CSEL(Xresult, Xop1, Xop2, cond);
 }
 
-template<>
-void EmitIR<IR::Opcode::MaxSigned32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::MaxSigned32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                     IR::Inst* inst) {
     EmitMaxMin32(code, ctx, inst, GT);
 }
 
-template<>
-void EmitIR<IR::Opcode::MaxSigned64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::MaxSigned64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                     IR::Inst* inst) {
     EmitMaxMin64(code, ctx, inst, GT);
 }
 
-template<>
-void EmitIR<IR::Opcode::MaxUnsigned32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::MaxUnsigned32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                       IR::Inst* inst) {
     EmitMaxMin32(code, ctx, inst, HI);
 }
 
-template<>
-void EmitIR<IR::Opcode::MaxUnsigned64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::MaxUnsigned64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                       IR::Inst* inst) {
     EmitMaxMin64(code, ctx, inst, HI);
 }
 
-template<>
-void EmitIR<IR::Opcode::MinSigned32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::MinSigned32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                     IR::Inst* inst) {
     EmitMaxMin32(code, ctx, inst, LT);
 }
 
-template<>
-void EmitIR<IR::Opcode::MinSigned64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::MinSigned64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                     IR::Inst* inst) {
     EmitMaxMin64(code, ctx, inst, LT);
 }
 
-template<>
-void EmitIR<IR::Opcode::MinUnsigned32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::MinUnsigned32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                       IR::Inst* inst) {
     EmitMaxMin32(code, ctx, inst, LO);
 }
 
-template<>
-void EmitIR<IR::Opcode::MinUnsigned64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::MinUnsigned64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                       IR::Inst* inst) {
     EmitMaxMin64(code, ctx, inst, LO);
 }
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

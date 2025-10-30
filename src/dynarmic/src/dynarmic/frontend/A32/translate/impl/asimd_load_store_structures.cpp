@@ -14,56 +14,57 @@ namespace Dynarmic::A32 {
 
 namespace {
 
-std::optional<std::tuple<size_t, size_t, size_t>> DecodeType(Imm<4> type, size_t size, size_t align) {
+std::optional<std::tuple<size_t, size_t, size_t>> DecodeType(Imm<4> type, size_t size,
+                                                             size_t align) {
     switch (type.ZeroExtend()) {
-    case 0b0111:  // VST1 A1 / VLD1 A1
+    case 0b0111: // VST1 A1 / VLD1 A1
         if (mcl::bit::get_bit<1>(align)) {
             return std::nullopt;
         }
         return std::tuple<size_t, size_t, size_t>{1, 1, 0};
-    case 0b1010:  // VST1 A2 / VLD1 A2
+    case 0b1010: // VST1 A2 / VLD1 A2
         if (align == 0b11) {
             return std::nullopt;
         }
         return std::tuple<size_t, size_t, size_t>{1, 2, 0};
-    case 0b0110:  // VST1 A3 / VLD1 A3
+    case 0b0110: // VST1 A3 / VLD1 A3
         if (mcl::bit::get_bit<1>(align)) {
             return std::nullopt;
         }
         return std::tuple<size_t, size_t, size_t>{1, 3, 0};
-    case 0b0010:  // VST1 A4 / VLD1 A4
+    case 0b0010: // VST1 A4 / VLD1 A4
         return std::tuple<size_t, size_t, size_t>{1, 4, 0};
-    case 0b1000:  // VST2 A1 / VLD2 A1
+    case 0b1000: // VST2 A1 / VLD2 A1
         if (size == 0b11 || align == 0b11) {
             return std::nullopt;
         }
         return std::tuple<size_t, size_t, size_t>{2, 1, 1};
-    case 0b1001:  // VST2 A1 / VLD2 A1
+    case 0b1001: // VST2 A1 / VLD2 A1
         if (size == 0b11 || align == 0b11) {
             return std::nullopt;
         }
         return std::tuple<size_t, size_t, size_t>{2, 1, 2};
-    case 0b0011:  // VST2 A2 / VLD2 A2
+    case 0b0011: // VST2 A2 / VLD2 A2
         if (size == 0b11) {
             return std::nullopt;
         }
         return std::tuple<size_t, size_t, size_t>{2, 2, 2};
-    case 0b0100:  // VST3 / VLD3
+    case 0b0100: // VST3 / VLD3
         if (size == 0b11 || mcl::bit::get_bit<1>(align)) {
             return std::nullopt;
         }
         return std::tuple<size_t, size_t, size_t>{3, 1, 1};
-    case 0b0101:  // VST3 / VLD3
+    case 0b0101: // VST3 / VLD3
         if (size == 0b11 || mcl::bit::get_bit<1>(align)) {
             return std::nullopt;
         }
         return std::tuple<size_t, size_t, size_t>{3, 1, 2};
-    case 0b0000:  // VST4 / VLD4
+    case 0b0000: // VST4 / VLD4
         if (size == 0b11) {
             return std::nullopt;
         }
         return std::tuple<size_t, size_t, size_t>{4, 1, 1};
-    case 0b0001:  // VST4 / VLD4
+    case 0b0001: // VST4 / VLD4
         if (size == 0b11) {
             return std::nullopt;
         }
@@ -71,9 +72,10 @@ std::optional<std::tuple<size_t, size_t, size_t>> DecodeType(Imm<4> type, size_t
     }
     ASSERT_FALSE("Decode error");
 }
-}  // namespace
+} // namespace
 
-bool TranslatorVisitor::v8_VST_multiple(bool D, Reg n, size_t Vd, Imm<4> type, size_t size, size_t align, Reg m) {
+bool TranslatorVisitor::v8_VST_multiple(bool D, Reg n, size_t Vd, Imm<4> type, size_t size,
+                                        size_t align, Reg m) {
     if (type == 0b1011 || type.Bits<2, 3>() == 0b11) {
         return DecodeError();
     }
@@ -102,7 +104,8 @@ bool TranslatorVisitor::v8_VST_multiple(bool D, Reg n, size_t Vd, Imm<4> type, s
         for (size_t e = 0; e < elements; e++) {
             for (size_t i = 0; i < nelem; i++) {
                 const ExtReg ext_reg = d + i * inc + r;
-                const IR::U64 shifted_element = ir.LogicalShiftRight(ir.GetExtendedRegister(ext_reg), ir.Imm8(static_cast<u8>(e * ebytes * 8)));
+                const IR::U64 shifted_element = ir.LogicalShiftRight(
+                    ir.GetExtendedRegister(ext_reg), ir.Imm8(static_cast<u8>(e * ebytes * 8)));
                 const IR::UAny element = ir.LeastSignificant(8 * ebytes, shifted_element);
                 ir.WriteMemory(8 * ebytes, address, element, IR::AccType::NORMAL);
 
@@ -115,14 +118,16 @@ bool TranslatorVisitor::v8_VST_multiple(bool D, Reg n, size_t Vd, Imm<4> type, s
         if (register_index) {
             ir.SetRegister(n, ir.Add(ir.GetRegister(n), ir.GetRegister(m)));
         } else {
-            ir.SetRegister(n, ir.Add(ir.GetRegister(n), ir.Imm32(static_cast<u32>(8 * nelem * regs))));
+            ir.SetRegister(n,
+                           ir.Add(ir.GetRegister(n), ir.Imm32(static_cast<u32>(8 * nelem * regs))));
         }
     }
 
     return true;
 }
 
-bool TranslatorVisitor::v8_VLD_multiple(bool D, Reg n, size_t Vd, Imm<4> type, size_t size, size_t align, Reg m) {
+bool TranslatorVisitor::v8_VLD_multiple(bool D, Reg n, size_t Vd, Imm<4> type, size_t size,
+                                        size_t align, Reg m) {
     if (type == 0b1011 || type.Bits<2, 3>() == 0b11) {
         return DecodeError();
     }
@@ -157,11 +162,14 @@ bool TranslatorVisitor::v8_VLD_multiple(bool D, Reg n, size_t Vd, Imm<4> type, s
     for (size_t r = 0; r < regs; r++) {
         for (size_t e = 0; e < elements; e++) {
             for (size_t i = 0; i < nelem; i++) {
-                const IR::U64 element = ir.ZeroExtendToLong(ir.ReadMemory(ebytes * 8, address, IR::AccType::NORMAL));
-                const IR::U64 shifted_element = ir.LogicalShiftLeft(element, ir.Imm8(static_cast<u8>(e * ebytes * 8)));
+                const IR::U64 element =
+                    ir.ZeroExtendToLong(ir.ReadMemory(ebytes * 8, address, IR::AccType::NORMAL));
+                const IR::U64 shifted_element =
+                    ir.LogicalShiftLeft(element, ir.Imm8(static_cast<u8>(e * ebytes * 8)));
 
                 const ExtReg ext_reg = d + i * inc + r;
-                ir.SetExtendedRegister(ext_reg, ir.Or(ir.GetExtendedRegister(ext_reg), shifted_element));
+                ir.SetExtendedRegister(ext_reg,
+                                       ir.Or(ir.GetExtendedRegister(ext_reg), shifted_element));
 
                 address = ir.Add(address, ir.Imm32(static_cast<u32>(ebytes)));
             }
@@ -172,14 +180,16 @@ bool TranslatorVisitor::v8_VLD_multiple(bool D, Reg n, size_t Vd, Imm<4> type, s
         if (register_index) {
             ir.SetRegister(n, ir.Add(ir.GetRegister(n), ir.GetRegister(m)));
         } else {
-            ir.SetRegister(n, ir.Add(ir.GetRegister(n), ir.Imm32(static_cast<u32>(8 * nelem * regs))));
+            ir.SetRegister(n,
+                           ir.Add(ir.GetRegister(n), ir.Imm32(static_cast<u32>(8 * nelem * regs))));
         }
     }
 
     return true;
 }
 
-bool TranslatorVisitor::v8_VLD_all_lanes(bool D, Reg n, size_t Vd, size_t nn, size_t sz, bool T, bool a, Reg m) {
+bool TranslatorVisitor::v8_VLD_all_lanes(bool D, Reg n, size_t Vd, size_t nn, size_t sz, bool T,
+                                         bool a, Reg m) {
     const size_t nelem = nn + 1;
 
     if (nelem == 1 && (sz == 0b11 || (sz == 0b00 && a))) {
@@ -237,14 +247,16 @@ bool TranslatorVisitor::v8_VLD_all_lanes(bool D, Reg n, size_t Vd, size_t nn, si
         if (register_index) {
             ir.SetRegister(n, ir.Add(ir.GetRegister(n), ir.GetRegister(m)));
         } else {
-            ir.SetRegister(n, ir.Add(ir.GetRegister(n), ir.Imm32(static_cast<u32>(nelem * ebytes))));
+            ir.SetRegister(n,
+                           ir.Add(ir.GetRegister(n), ir.Imm32(static_cast<u32>(nelem * ebytes))));
         }
     }
 
     return true;
 }
 
-bool TranslatorVisitor::v8_VST_single(bool D, Reg n, size_t Vd, size_t sz, size_t nn, size_t index_align, Reg m) {
+bool TranslatorVisitor::v8_VST_single(bool D, Reg n, size_t Vd, size_t sz, size_t nn,
+                                      size_t index_align, Reg m) {
     const size_t nelem = nn + 1;
 
     if (sz == 0b11) {
@@ -301,14 +313,16 @@ bool TranslatorVisitor::v8_VST_single(bool D, Reg n, size_t Vd, size_t sz, size_
         if (register_index) {
             ir.SetRegister(n, ir.Add(ir.GetRegister(n), ir.GetRegister(m)));
         } else {
-            ir.SetRegister(n, ir.Add(ir.GetRegister(n), ir.Imm32(static_cast<u32>(nelem * ebytes))));
+            ir.SetRegister(n,
+                           ir.Add(ir.GetRegister(n), ir.Imm32(static_cast<u32>(nelem * ebytes))));
         }
     }
 
     return true;
 }
 
-bool TranslatorVisitor::v8_VLD_single(bool D, Reg n, size_t Vd, size_t sz, size_t nn, size_t index_align, Reg m) {
+bool TranslatorVisitor::v8_VLD_single(bool D, Reg n, size_t Vd, size_t sz, size_t nn,
+                                      size_t index_align, Reg m) {
     const size_t nelem = nn + 1;
 
     if (sz == 0b11) {
@@ -366,10 +380,11 @@ bool TranslatorVisitor::v8_VLD_single(bool D, Reg n, size_t Vd, size_t sz, size_
         if (register_index) {
             ir.SetRegister(n, ir.Add(ir.GetRegister(n), ir.GetRegister(m)));
         } else {
-            ir.SetRegister(n, ir.Add(ir.GetRegister(n), ir.Imm32(static_cast<u32>(nelem * ebytes))));
+            ir.SetRegister(n,
+                           ir.Add(ir.GetRegister(n), ir.Imm32(static_cast<u32>(nelem * ebytes))));
         }
     }
 
     return true;
 }
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

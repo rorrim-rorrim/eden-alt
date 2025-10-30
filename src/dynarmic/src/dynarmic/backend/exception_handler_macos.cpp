@@ -17,33 +17,33 @@
 #include <thread>
 #include <vector>
 
-#include <fmt/format.h>
-#include "dynarmic/common/assert.h"
 #include <bit>
+#include <fmt/format.h>
 #include <mcl/macro/architecture.hpp>
+#include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/exception_handler.h"
 
 #if defined(ARCHITECTURE_x86_64)
 
-#    include "dynarmic/backend/x64/block_of_code.h"
-#    define mig_external extern "C"
-#    include "dynarmic/backend/x64/mig/mach_exc_server.h"
+#include "dynarmic/backend/x64/block_of_code.h"
+#define mig_external extern "C"
+#include "dynarmic/backend/x64/mig/mach_exc_server.h"
 
-#    define THREAD_STATE x86_THREAD_STATE64
-#    define THREAD_STATE_COUNT x86_THREAD_STATE64_COUNT
+#define THREAD_STATE x86_THREAD_STATE64
+#define THREAD_STATE_COUNT x86_THREAD_STATE64_COUNT
 
 using dynarmic_thread_state_t = x86_thread_state64_t;
 
 #elif defined(ARCHITECTURE_arm64)
 
-#    include <oaknut/code_block.hpp>
-#    define mig_external extern "C"
-#    include "dynarmic/backend/arm64/mig/mach_exc_server.h"
+#include <oaknut/code_block.hpp>
+#define mig_external extern "C"
+#include "dynarmic/backend/arm64/mig/mach_exc_server.h"
 
-#    define THREAD_STATE ARM_THREAD_STATE64
-#    define THREAD_STATE_COUNT ARM_THREAD_STATE64_COUNT
+#define THREAD_STATE ARM_THREAD_STATE64
+#define THREAD_STATE_COUNT ARM_THREAD_STATE64_COUNT
 
 using dynarmic_thread_state_t = arm_thread_state64_t;
 
@@ -60,7 +60,7 @@ struct CodeBlockInfo {
 
 struct MachMessage {
     mach_msg_header_t head;
-    char data[2048];  ///< Arbitrary size
+    char data[2048]; ///< Arbitrary size
 };
 
 class MachHandler final {
@@ -75,7 +75,8 @@ public:
 
 private:
     auto FindCodeBlockInfo(u64 rip) {
-        return std::find_if(code_block_infos.begin(), code_block_infos.end(), [&](const auto& x) { return x.code_begin <= rip && x.code_end > rip; });
+        return std::find_if(code_block_infos.begin(), code_block_infos.end(),
+                            [&](const auto& x) { return x.code_begin <= rip && x.code_end > rip; });
     }
 
     std::vector<CodeBlockInfo> code_block_infos;
@@ -88,15 +89,20 @@ private:
 };
 
 MachHandler::MachHandler() {
-#define KCHECK(x) ASSERT_MSG((x) == KERN_SUCCESS, "dynarmic: macOS MachHandler: init failure at {}", #x)
+#define KCHECK(x)                                                                                  \
+    ASSERT_MSG((x) == KERN_SUCCESS, "dynarmic: macOS MachHandler: init failure at {}", #x)
 
     KCHECK(mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &server_port));
-    KCHECK(mach_port_insert_right(mach_task_self(), server_port, server_port, MACH_MSG_TYPE_MAKE_SEND));
-    KCHECK(task_set_exception_ports(mach_task_self(), EXC_MASK_BAD_ACCESS, server_port, EXCEPTION_STATE | MACH_EXCEPTION_CODES, THREAD_STATE));
+    KCHECK(mach_port_insert_right(mach_task_self(), server_port, server_port,
+                                  MACH_MSG_TYPE_MAKE_SEND));
+    KCHECK(task_set_exception_ports(mach_task_self(), EXC_MASK_BAD_ACCESS, server_port,
+                                    EXCEPTION_STATE | MACH_EXCEPTION_CODES, THREAD_STATE));
 
-    // The below doesn't actually work, and I'm not sure why; since this doesn't work we'll have a spurious error message upon shutdown.
+    // The below doesn't actually work, and I'm not sure why; since this doesn't work we'll have a
+    // spurious error message upon shutdown.
     mach_port_t prev;
-    KCHECK(mach_port_request_notification(mach_task_self(), server_port, MACH_NOTIFY_PORT_DESTROYED, 0, server_port, MACH_MSG_TYPE_MAKE_SEND_ONCE, &prev));
+    KCHECK(mach_port_request_notification(mach_task_self(), server_port, MACH_NOTIFY_PORT_DESTROYED,
+                                          0, server_port, MACH_MSG_TYPE_MAKE_SEND_ONCE, &prev));
 
 #undef KCHECK
 
@@ -114,9 +120,13 @@ void MachHandler::MessagePump() {
     MachMessage reply;
 
     while (true) {
-        mr = mach_msg(&request.head, MACH_RCV_MSG | MACH_RCV_LARGE, 0, sizeof(request), server_port, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
+        mr = mach_msg(&request.head, MACH_RCV_MSG | MACH_RCV_LARGE, 0, sizeof(request), server_port,
+                      MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
         if (mr != MACH_MSG_SUCCESS) {
-            fmt::print(stderr, "dynarmic: macOS MachHandler: Failed to receive mach message. error: {:#08x} ({})\n", mr, mach_error_string(mr));
+            fmt::print(stderr,
+                       "dynarmic: macOS MachHandler: Failed to receive mach message. error: "
+                       "{:#08x} ({})\n",
+                       mr, mach_error_string(mr));
             return;
         }
 
@@ -125,9 +135,13 @@ void MachHandler::MessagePump() {
             return;
         }
 
-        mr = mach_msg(&reply.head, MACH_SEND_MSG, reply.head.msgh_size, 0, MACH_PORT_NULL, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
+        mr = mach_msg(&reply.head, MACH_SEND_MSG, reply.head.msgh_size, 0, MACH_PORT_NULL,
+                      MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
         if (mr != MACH_MSG_SUCCESS) {
-            fmt::print(stderr, "dynarmic: macOS MachHandler: Failed to send mach message. error: {:#08x} ({})\n", mr, mach_error_string(mr));
+            fmt::print(
+                stderr,
+                "dynarmic: macOS MachHandler: Failed to send mach message. error: {:#08x} ({})\n",
+                mr, mach_error_string(mr));
             return;
         }
     }
@@ -197,38 +211,41 @@ void RegisterHandler() {
     }
 }
 
-}  // anonymous namespace
+} // anonymous namespace
 
-mig_external kern_return_t catch_mach_exception_raise(mach_port_t, mach_port_t, mach_port_t, exception_type_t, mach_exception_data_t, mach_msg_type_number_t) {
+mig_external kern_return_t catch_mach_exception_raise(mach_port_t, mach_port_t, mach_port_t,
+                                                      exception_type_t, mach_exception_data_t,
+                                                      mach_msg_type_number_t) {
     fmt::print(stderr, "dynarmic: Unexpected mach message: mach_exception_raise\n");
     return KERN_FAILURE;
 }
 
-mig_external kern_return_t catch_mach_exception_raise_state_identity(mach_port_t, mach_port_t, mach_port_t, exception_type_t, mach_exception_data_t, mach_msg_type_number_t, int*, thread_state_t, mach_msg_type_number_t, thread_state_t, mach_msg_type_number_t*) {
+mig_external kern_return_t catch_mach_exception_raise_state_identity(
+    mach_port_t, mach_port_t, mach_port_t, exception_type_t, mach_exception_data_t,
+    mach_msg_type_number_t, int*, thread_state_t, mach_msg_type_number_t, thread_state_t,
+    mach_msg_type_number_t*) {
     fmt::print(stderr, "dynarmic: Unexpected mach message: mach_exception_raise_state_identity\n");
     return KERN_FAILURE;
 }
 
 mig_external kern_return_t catch_mach_exception_raise_state(
-    mach_port_t /*exception_port*/,
-    exception_type_t exception,
-    const mach_exception_data_t /*code*/,  // code[0] is as per kern_return.h, code[1] is rip.
-    mach_msg_type_number_t /*codeCnt*/,
-    int* flavor,
-    const thread_state_t old_state,
-    mach_msg_type_number_t old_stateCnt,
-    thread_state_t new_state,
+    mach_port_t /*exception_port*/, exception_type_t exception,
+    const mach_exception_data_t /*code*/, // code[0] is as per kern_return.h, code[1] is rip.
+    mach_msg_type_number_t /*codeCnt*/, int* flavor, const thread_state_t old_state,
+    mach_msg_type_number_t old_stateCnt, thread_state_t new_state,
     mach_msg_type_number_t* new_stateCnt) {
     if (!flavor || !new_stateCnt) {
         fmt::print(stderr, "dynarmic: catch_mach_exception_raise_state: Invalid arguments.\n");
         return KERN_INVALID_ARGUMENT;
     }
-    if (*flavor != THREAD_STATE || old_stateCnt != THREAD_STATE_COUNT || *new_stateCnt < THREAD_STATE_COUNT) {
+    if (*flavor != THREAD_STATE || old_stateCnt != THREAD_STATE_COUNT ||
+        *new_stateCnt < THREAD_STATE_COUNT) {
         fmt::print(stderr, "dynarmic: catch_mach_exception_raise_state: Unexpected flavor.\n");
         return KERN_INVALID_ARGUMENT;
     }
     if (exception != EXC_BAD_ACCESS) {
-        fmt::print(stderr, "dynarmic: catch_mach_exception_raise_state: Unexpected exception type.\n");
+        fmt::print(stderr,
+                   "dynarmic: catch_mach_exception_raise_state: Unexpected exception type.\n");
         return KERN_FAILURE;
     }
 
@@ -244,9 +261,7 @@ mig_external kern_return_t catch_mach_exception_raise_state(
 }
 
 struct ExceptionHandler::Impl final {
-    Impl(u64 code_begin_, u64 code_end_)
-            : code_begin(code_begin_)
-            , code_end(code_end_) {
+    Impl(u64 code_begin_, u64 code_end_) : code_begin(code_begin_), code_end(code_end_) {
         RegisterHandler();
     }
 
@@ -282,7 +297,7 @@ void ExceptionHandler::Register(oaknut::CodeBlock& mem, std::size_t size) {
     impl = std::make_unique<Impl>(code_begin, code_end);
 }
 #else
-#    error "Invalid architecture"
+#error "Invalid architecture"
 #endif
 
 bool ExceptionHandler::SupportsFastmem() const noexcept {
@@ -293,4 +308,4 @@ void ExceptionHandler::SetFastmemCallback(std::function<FakeCall(u64)> cb) {
     impl->SetCallback(cb);
 }
 
-}  // namespace Dynarmic::Backend
+} // namespace Dynarmic::Backend

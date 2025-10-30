@@ -12,11 +12,11 @@
 
 #include <fmt/ranges.h>
 
+#include <ranges>
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
 #include "common/fs/fs_types.h"
 #include "common/fs/path_util.h"
-#include <ranges>
 #include "common/settings.h"
 #include "common/string_util.h"
 #include "core/hle/service/acc/profile_manager.h"
@@ -94,8 +94,7 @@ bool ProfileManager::RemoveProfileAtIndex(std::size_t index) {
     return true;
 }
 
-void ProfileManager::RemoveAllProfiles()
-{
+void ProfileManager::RemoveAllProfiles() {
     profiles = {};
 }
 
@@ -268,9 +267,8 @@ void ProfileManager::CloseUser(UUID uuid) {
 /// Gets all valid user ids on the system
 UserIDArray ProfileManager::GetAllUsers() const {
     UserIDArray output{};
-    std::ranges::transform(profiles, output.begin(), [](const ProfileInfo& p) {
-        return p.user_uuid;
-    });
+    std::ranges::transform(profiles, output.begin(),
+                           [](const ProfileInfo& p) { return p.user_uuid; });
     return output;
 }
 
@@ -482,14 +480,12 @@ void ProfileManager::WriteUserSaveFile() {
     is_save_needed = false;
 }
 
-void ProfileManager::ResetUserSaveFile()
-{
+void ProfileManager::ResetUserSaveFile() {
     RemoveAllProfiles();
     ParseUserSaveFile();
 }
 
-std::vector<std::string> ProfileManager::FindGoodProfiles()
-{
+std::vector<std::string> ProfileManager::FindGoodProfiles() {
     std::vector<std::string> good_uuids;
 
     for (const ProfileInfo& p : profiles) {
@@ -515,13 +511,12 @@ std::vector<std::string> ProfileManager::FindGoodProfiles()
     return good_uuids;
 }
 
-std::vector<std::string> ProfileManager::FindOrphanedProfiles()
-{
+std::vector<std::string> ProfileManager::FindOrphanedProfiles() {
     std::vector<std::string> good_uuids = FindGoodProfiles();
 
     // TODO: fetch save_id programmatically
-    const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir)
-                      / "user/save/0000000000000000";
+    const auto path =
+        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "user/save/0000000000000000";
 
     std::vector<std::string> orphaned_profiles;
 
@@ -589,6 +584,5 @@ void ProfileManager::SetUserPosition(u64 position, Common::UUID uuid) {
     is_save_needed = true;
     WriteUserSaveFile();
 }
-
 
 }; // namespace Service::Account

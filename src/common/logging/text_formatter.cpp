@@ -5,8 +5,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <array>
-#include <cstdio>
 #include <cstdint>
+#include <cstdio>
 #include <string>
 
 #ifdef _WIN32
@@ -40,12 +40,18 @@ void PrintMessage(const Entry& entry) {
 #define ESC "\x1b"
     auto str = std::string{[&entry]() -> const char* {
         switch (entry.log_level) {
-        case Level::Debug: return ESC "[0;36m"; // Cyan
-        case Level::Info: return ESC "[0;37m"; // Bright gray
-        case Level::Warning: return ESC "[1;33m"; // Bright yellow
-        case Level::Error: return ESC "[1;31m"; // Bright red
-        case Level::Critical: return ESC "[1;35m"; // Bright magenta
-        default: return ESC "[1;30m"; // Grey
+        case Level::Debug:
+            return ESC "[0;36m"; // Cyan
+        case Level::Info:
+            return ESC "[0;37m"; // Bright gray
+        case Level::Warning:
+            return ESC "[1;33m"; // Bright yellow
+        case Level::Error:
+            return ESC "[1;31m"; // Bright red
+        case Level::Critical:
+            return ESC "[1;35m"; // Bright magenta
+        default:
+            return ESC "[1;30m"; // Grey
         }
     }()};
     str.append(FormatLogMessage(entry));
@@ -64,12 +70,18 @@ void PrintColoredMessage(const Entry& entry) {
     GetConsoleScreenBufferInfo(console_handle, &original_info);
     WORD color = WORD([&entry]() {
         switch (entry.log_level) {
-        case Level::Debug: return FOREGROUND_GREEN | FOREGROUND_BLUE; // Cyan
-        case Level::Info: return FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE; // Bright gray
-        case Level::Warning: return FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
-        case Level::Error: return FOREGROUND_RED | FOREGROUND_INTENSITY;
-        case Level::Critical: return FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
-        default: break;
+        case Level::Debug:
+            return FOREGROUND_GREEN | FOREGROUND_BLUE; // Cyan
+        case Level::Info:
+            return FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE; // Bright gray
+        case Level::Warning:
+            return FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+        case Level::Error:
+            return FOREGROUND_RED | FOREGROUND_INTENSITY;
+        case Level::Critical:
+            return FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+        default:
+            break;
         }
         return FOREGROUND_INTENSITY; // Grey
     }());
@@ -85,13 +97,19 @@ void PrintMessageToLogcat(const Entry& entry) {
 #ifdef ANDROID
     android_LogPriority android_log_priority = [&]() {
         switch (entry.log_level) {
-        case Level::Debug: return ANDROID_LOG_DEBUG;
-        case Level::Info: return ANDROID_LOG_INFO;
-        case Level::Warning: return ANDROID_LOG_WARN;
-        case Level::Error: return ANDROID_LOG_ERROR;
-        case Level::Critical: return ANDROID_LOG_FATAL;
+        case Level::Debug:
+            return ANDROID_LOG_DEBUG;
+        case Level::Info:
+            return ANDROID_LOG_INFO;
+        case Level::Warning:
+            return ANDROID_LOG_WARN;
+        case Level::Error:
+            return ANDROID_LOG_ERROR;
+        case Level::Critical:
+            return ANDROID_LOG_FATAL;
         case Level::Count:
-        case Level::Trace: return ANDROID_LOG_VERBOSE;
+        case Level::Trace:
+            return ANDROID_LOG_VERBOSE;
         }
     }();
     auto const str = FormatLogMessage(entry);

@@ -13,11 +13,11 @@
 #include <type_traits>
 #include <vector>
 
-#include <mcl/bitsizeof.hpp>
 #include <ankerl/unordered_dense.h>
+#include <boost/container/small_vector.hpp>
+#include <mcl/bitsizeof.hpp>
 #include <xbyak/xbyak.h>
 #include <xbyak/xbyak_util.h>
-#include <boost/container/small_vector.hpp>
 
 #include "dynarmic/backend/exception_handler.h"
 #include "dynarmic/backend/x64/reg_alloc.h"
@@ -28,11 +28,11 @@
 namespace Dynarmic::IR {
 class Block;
 class Inst;
-}  // namespace Dynarmic::IR
+} // namespace Dynarmic::IR
 
 namespace Dynarmic {
 enum class OptimizationFlag : u32;
-}  // namespace Dynarmic
+} // namespace Dynarmic
 
 namespace Dynarmic::Backend::X64 {
 
@@ -44,10 +44,10 @@ using A64FullVectorWidth = std::integral_constant<size_t, 128>;
 // Array alias that always sizes itself according to the given type T
 // relative to the size of a vector register. e.g. T = u32 would result
 // in a std::array<u32, 4>.
-template<typename T>
+template <typename T>
 using VectorArray = std::array<T, A64FullVectorWidth::value / mcl::bitsizeof<T>>;
 
-template<typename T>
+template <typename T>
 using HalfVectorArray = std::array<T, A64FullVectorWidth::value / mcl::bitsizeof<T> / 2>;
 
 struct EmitContext {
@@ -75,8 +75,8 @@ inline SharedLabel GenSharedLabel() {
 class EmitX64 {
 public:
     struct BlockDescriptor {
-        CodePtr entrypoint;  // Entrypoint of emitted code
-        size_t size;         // Length in bytes of emitted code
+        CodePtr entrypoint; // Entrypoint of emitted code
+        size_t size;        // Length in bytes of emitted code
     };
     static_assert(sizeof(BlockDescriptor) == 16);
 
@@ -90,7 +90,8 @@ public:
     virtual void ClearCache();
 
     /// Invalidates a selection of basic blocks.
-    void InvalidateBasicBlocks(const ankerl::unordered_dense::set<IR::LocationDescriptor>& locations);
+    void InvalidateBasicBlocks(
+        const ankerl::unordered_dense::set<IR::LocationDescriptor>& locations);
 
 protected:
     // Microinstruction emitters
@@ -107,35 +108,50 @@ protected:
     virtual std::string LocationDescriptorToFriendlyName(const IR::LocationDescriptor&) const = 0;
     void EmitAddCycles(size_t cycles);
     Xbyak::Label EmitCond(IR::Cond cond);
-    BlockDescriptor RegisterBlock(const IR::LocationDescriptor& location_descriptor, CodePtr entrypoint, size_t size);
-    void PushRSBHelper(Xbyak::Reg64 loc_desc_reg, Xbyak::Reg64 index_reg, IR::LocationDescriptor target);
+    BlockDescriptor RegisterBlock(const IR::LocationDescriptor& location_descriptor,
+                                  CodePtr entrypoint, size_t size);
+    void PushRSBHelper(Xbyak::Reg64 loc_desc_reg, Xbyak::Reg64 index_reg,
+                       IR::LocationDescriptor target);
 
     void EmitVerboseDebuggingOutput(RegAlloc& reg_alloc);
 
     // Terminal instruction emitters
-    void EmitTerminal(IR::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step);
-    virtual void EmitTerminalImpl(IR::Term::Interpret terminal, IR::LocationDescriptor initial_location, bool is_single_step) = 0;
-    virtual void EmitTerminalImpl(IR::Term::ReturnToDispatch terminal, IR::LocationDescriptor initial_location, bool is_single_step) = 0;
-    virtual void EmitTerminalImpl(IR::Term::LinkBlock terminal, IR::LocationDescriptor initial_location, bool is_single_step) = 0;
-    virtual void EmitTerminalImpl(IR::Term::LinkBlockFast terminal, IR::LocationDescriptor initial_location, bool is_single_step) = 0;
-    virtual void EmitTerminalImpl(IR::Term::PopRSBHint terminal, IR::LocationDescriptor initial_location, bool is_single_step) = 0;
-    virtual void EmitTerminalImpl(IR::Term::FastDispatchHint terminal, IR::LocationDescriptor initial_location, bool is_single_step) = 0;
-    virtual void EmitTerminalImpl(IR::Term::If terminal, IR::LocationDescriptor initial_location, bool is_single_step) = 0;
-    virtual void EmitTerminalImpl(IR::Term::CheckBit terminal, IR::LocationDescriptor initial_location, bool is_single_step) = 0;
-    virtual void EmitTerminalImpl(IR::Term::CheckHalt terminal, IR::LocationDescriptor initial_location, bool is_single_step) = 0;
+    void EmitTerminal(IR::Terminal terminal, IR::LocationDescriptor initial_location,
+                      bool is_single_step);
+    virtual void EmitTerminalImpl(IR::Term::Interpret terminal,
+                                  IR::LocationDescriptor initial_location, bool is_single_step) = 0;
+    virtual void EmitTerminalImpl(IR::Term::ReturnToDispatch terminal,
+                                  IR::LocationDescriptor initial_location, bool is_single_step) = 0;
+    virtual void EmitTerminalImpl(IR::Term::LinkBlock terminal,
+                                  IR::LocationDescriptor initial_location, bool is_single_step) = 0;
+    virtual void EmitTerminalImpl(IR::Term::LinkBlockFast terminal,
+                                  IR::LocationDescriptor initial_location, bool is_single_step) = 0;
+    virtual void EmitTerminalImpl(IR::Term::PopRSBHint terminal,
+                                  IR::LocationDescriptor initial_location, bool is_single_step) = 0;
+    virtual void EmitTerminalImpl(IR::Term::FastDispatchHint terminal,
+                                  IR::LocationDescriptor initial_location, bool is_single_step) = 0;
+    virtual void EmitTerminalImpl(IR::Term::If terminal, IR::LocationDescriptor initial_location,
+                                  bool is_single_step) = 0;
+    virtual void EmitTerminalImpl(IR::Term::CheckBit terminal,
+                                  IR::LocationDescriptor initial_location, bool is_single_step) = 0;
+    virtual void EmitTerminalImpl(IR::Term::CheckHalt terminal,
+                                  IR::LocationDescriptor initial_location, bool is_single_step) = 0;
 
     // Patching
     struct PatchInformation {
-        boost::container::small_vector<CodePtr, 4> jg; //4*8=32
-        boost::container::small_vector<CodePtr, 4> jz; //4*8=32
-        boost::container::small_vector<CodePtr, 4> jmp; //4*8=32
-        boost::container::small_vector<CodePtr, 4> mov_rcx; //4*8=32
+        boost::container::small_vector<CodePtr, 4> jg;      // 4*8=32
+        boost::container::small_vector<CodePtr, 4> jz;      // 4*8=32
+        boost::container::small_vector<CodePtr, 4> jmp;     // 4*8=32
+        boost::container::small_vector<CodePtr, 4> mov_rcx; // 4*8=32
     };
     void Patch(const IR::LocationDescriptor& target_desc, CodePtr target_code_ptr);
     virtual void Unpatch(const IR::LocationDescriptor& target_desc);
-    virtual void EmitPatchJg(const IR::LocationDescriptor& target_desc, CodePtr target_code_ptr = nullptr) = 0;
-    virtual void EmitPatchJz(const IR::LocationDescriptor& target_desc, CodePtr target_code_ptr = nullptr) = 0;
-    virtual void EmitPatchJmp(const IR::LocationDescriptor& target_desc, CodePtr target_code_ptr = nullptr) = 0;
+    virtual void EmitPatchJg(const IR::LocationDescriptor& target_desc,
+                             CodePtr target_code_ptr = nullptr) = 0;
+    virtual void EmitPatchJz(const IR::LocationDescriptor& target_desc,
+                             CodePtr target_code_ptr = nullptr) = 0;
+    virtual void EmitPatchJmp(const IR::LocationDescriptor& target_desc,
+                              CodePtr target_code_ptr = nullptr) = 0;
     virtual void EmitPatchMovRcx(CodePtr target_code_ptr = nullptr) = 0;
 
     // State
@@ -148,4 +164,4 @@ protected:
     friend class A64EmitX64;
 };
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

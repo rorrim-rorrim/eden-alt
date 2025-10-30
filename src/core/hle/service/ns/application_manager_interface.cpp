@@ -321,7 +321,8 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
 
 IApplicationManagerInterface::~IApplicationManagerInterface() = default;
 
-Result IApplicationManagerInterface::UnregisterNetworkServiceAccountWithUserSaveDataDeletion(Common::UUID user_id) {
+Result IApplicationManagerInterface::UnregisterNetworkServiceAccountWithUserSaveDataDeletion(
+    Common::UUID user_id) {
     LOG_DEBUG(Service_NS, "called, user_id={}", user_id.FormattedString());
     R_SUCCEED();
 }
@@ -553,8 +554,7 @@ Result IApplicationManagerInterface::RequestDownloadApplicationControlDataInBack
     R_SUCCEED();
 }
 
-Result IApplicationManagerInterface::Unknown4022(
-    OutCopyHandle<Kernel::KReadableEvent> out_event) {
+Result IApplicationManagerInterface::Unknown4022(OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_WARNING(Service_NS, "(STUBBED) called");
     *out_event = gamecard_update_detection_event.GetHandle();
     R_SUCCEED();

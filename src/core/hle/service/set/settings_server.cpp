@@ -243,7 +243,8 @@ Result ISettingsServer::GetDeviceNickName(
     R_SUCCEED();
 }
 
-Result ISettingsServer::GetKeyCodeMapByPort(OutLargeData<KeyCodeMap, BufferAttr_HipcMapAlias> out_key_code_map, u32 port) {
+Result ISettingsServer::GetKeyCodeMapByPort(
+    OutLargeData<KeyCodeMap, BufferAttr_HipcMapAlias> out_key_code_map, u32 port) {
     LOG_DEBUG(Service_SET, "called, port={}", port);
 
     // Similar to other key code map functions, just pass through to the main implementation

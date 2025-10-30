@@ -10,8 +10,8 @@
 #include <mutex>
 
 #include <boost/icl/interval_set.hpp>
-#include "dynarmic/common/assert.h"
 #include <mcl/scope_exit.hpp>
+#include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/riscv64/a32_address_space.h"
@@ -26,10 +26,7 @@ using namespace Backend::RV64;
 
 struct Jit::Impl final {
     Impl(Jit* jit_interface, A32::UserConfig conf)
-            : jit_interface(jit_interface)
-            , conf(conf)
-            , current_address_space(conf)
-            , core(conf) {}
+        : jit_interface(jit_interface), conf(conf), current_address_space(conf), core(conf) {}
 
     HaltReason Run() {
         ASSERT(!jit_interface->is_executing);
@@ -67,7 +64,8 @@ struct Jit::Impl final {
 
     void InvalidateCacheRange(u32 start_address, size_t length) {
         std::unique_lock lock{invalidation_mutex};
-        invalid_cache_ranges.add(boost::icl::discrete_interval<u32>::closed(start_address, static_cast<u32>(start_address + length - 1)));
+        invalid_cache_ranges.add(boost::icl::discrete_interval<u32>::closed(
+            start_address, static_cast<u32>(start_address + length - 1)));
         HaltExecution(HaltReason::CacheInvalidation);
     }
 
@@ -144,8 +142,7 @@ private:
     bool invalidate_entire_cache = false;
 };
 
-Jit::Jit(UserConfig conf)
-        : impl(std::make_unique<Impl>(this, conf)) {}
+Jit::Jit(UserConfig conf) : impl(std::make_unique<Impl>(this, conf)) {}
 
 Jit::~Jit() = default;
 
@@ -217,4 +214,4 @@ void Jit::DumpDisassembly() const {
     impl->DumpDisassembly();
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

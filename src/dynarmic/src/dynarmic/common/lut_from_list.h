@@ -17,7 +17,7 @@
 #include <mcl/type_traits/is_instance_of_template.hpp>
 
 #ifdef _MSC_VER
-#    include <mcl/mp/typelist/head.hpp>
+#include <mcl/mp/typelist/head.hpp>
 #endif
 
 namespace Dynarmic::Common {
@@ -32,7 +32,7 @@ namespace Dynarmic::Common {
 #pragma clang diagnostic ignored "-Wno-stack-usage"
 #endif
 
-template<typename Function, typename... Values>
+template <typename Function, typename... Values>
 inline auto GenerateLookupTableFromList(Function f, mcl::mp::list<Values...>) {
 #ifdef _MSC_VER
     using PairT = std::invoke_result_t<Function, mcl::mp::head<mcl::mp::list<Values...>>>;
@@ -52,4 +52,4 @@ inline auto GenerateLookupTableFromList(Function f, mcl::mp::list<Values...>) {
 #pragma clang diagnostic pop
 #endif
 
-}  // namespace Dynarmic::Common
+} // namespace Dynarmic::Common

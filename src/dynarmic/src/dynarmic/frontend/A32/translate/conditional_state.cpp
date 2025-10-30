@@ -26,9 +26,8 @@ bool CondCanContinue(const ConditionalState cond_state, const A32::IREmitter& ir
         return true;
 
     // TODO: This is more conservative than necessary.
-    return std::all_of(ir.block.begin(), ir.block.end(), [](const IR::Inst& inst) {
-        return !WritesToCPSR(inst.GetOpcode());
-    });
+    return std::all_of(ir.block.begin(), ir.block.end(),
+                       [](const IR::Inst& inst) { return !WritesToCPSR(inst.GetOpcode()); });
 }
 
 bool IsConditionPassed(TranslatorVisitor& v, IR::Cond cond) {
@@ -47,7 +46,9 @@ bool IsConditionPassed(TranslatorVisitor& v, IR::Cond cond) {
             v.cond_state = ConditionalState::Trailing;
         } else {
             if (cond == v.ir.block.GetCondition()) {
-                v.ir.block.SetConditionFailedLocation(v.ir.current_location.AdvancePC(static_cast<int>(v.current_instruction_size)).AdvanceIT());
+                v.ir.block.SetConditionFailedLocation(
+                    v.ir.current_location.AdvancePC(static_cast<int>(v.current_instruction_size))
+                        .AdvanceIT());
                 v.ir.block.ConditionFailedCycleCount()++;
                 return true;
             }
@@ -78,9 +79,10 @@ bool IsConditionPassed(TranslatorVisitor& v, IR::Cond cond) {
 
     v.cond_state = ConditionalState::Translating;
     v.ir.block.SetCondition(cond);
-    v.ir.block.SetConditionFailedLocation(v.ir.current_location.AdvancePC(static_cast<int>(v.current_instruction_size)).AdvanceIT());
+    v.ir.block.SetConditionFailedLocation(
+        v.ir.current_location.AdvancePC(static_cast<int>(v.current_instruction_size)).AdvanceIT());
     v.ir.block.ConditionFailedCycleCount() = v.ir.block.CycleCount() + 1;
     return true;
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

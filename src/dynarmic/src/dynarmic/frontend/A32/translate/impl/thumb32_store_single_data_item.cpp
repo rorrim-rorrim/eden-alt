@@ -7,8 +7,9 @@
 
 namespace Dynarmic::A32 {
 
-template<typename StoreRegFn>
-static bool StoreRegister(TranslatorVisitor& v, Reg n, Reg t, Imm<2> imm2, Reg m, StoreRegFn store_fn) {
+template <typename StoreRegFn>
+static bool StoreRegister(TranslatorVisitor& v, Reg n, Reg t, Imm<2> imm2, Reg m,
+                          StoreRegFn store_fn) {
     if (n == Reg::PC) {
         return v.UndefinedInstruction();
     }
@@ -43,15 +44,15 @@ static void StoreImmWordFn(TranslatorVisitor& v, const IR::U32& address, const I
     v.ir.WriteMemory32(address, data, IR::AccType::NORMAL);
 }
 
-static bool StoreImmediate(TranslatorVisitor& v, Reg n, Reg t, bool P, bool U, bool W, Imm<12> imm12, StoreImmFn store_fn) {
+static bool StoreImmediate(TranslatorVisitor& v, Reg n, Reg t, bool P, bool U, bool W,
+                           Imm<12> imm12, StoreImmFn store_fn) {
     const auto imm32 = imm12.ZeroExtend();
     const auto reg_n = v.ir.GetRegister(n);
     const auto reg_t = v.ir.GetRegister(t);
 
-    const IR::U32 offset_address = U ? v.ir.Add(reg_n, v.ir.Imm32(imm32))
-                                     : v.ir.Sub(reg_n, v.ir.Imm32(imm32));
-    const IR::U32 address = P ? offset_address
-                              : reg_n;
+    const IR::U32 offset_address =
+        U ? v.ir.Add(reg_n, v.ir.Imm32(imm32)) : v.ir.Sub(reg_n, v.ir.Imm32(imm32));
+    const IR::U32 address = P ? offset_address : reg_n;
 
     store_fn(v, address, reg_t);
     if (W) {
@@ -78,7 +79,8 @@ bool TranslatorVisitor::thumb32_STRB_imm_2(Reg n, Reg t, Imm<8> imm8) {
     if (t == Reg::PC) {
         return UnpredictableInstruction();
     }
-    return StoreImmediate(*this, n, t, true, false, false, Imm<12>{imm8.ZeroExtend()}, StoreImmByteFn);
+    return StoreImmediate(*this, n, t, true, false, false, Imm<12>{imm8.ZeroExtend()},
+                          StoreImmByteFn);
 }
 
 bool TranslatorVisitor::thumb32_STRB_imm_3(Reg n, Reg t, Imm<12> imm12) {
@@ -105,13 +107,15 @@ bool TranslatorVisitor::thumb32_STRBT(Reg n, Reg t, Imm<8> imm8) {
 
     // Treat this as a normal STRB, given we don't support
     // execution levels other than EL0 currently.
-    return StoreImmediate(*this, n, t, true, true, false, Imm<12>{imm8.ZeroExtend()}, StoreImmByteFn);
+    return StoreImmediate(*this, n, t, true, true, false, Imm<12>{imm8.ZeroExtend()},
+                          StoreImmByteFn);
 }
 
 bool TranslatorVisitor::thumb32_STRB(Reg n, Reg t, Imm<2> imm2, Reg m) {
-    return StoreRegister(*this, n, t, imm2, m, [this](const IR::U32& offset_address, const IR::U32& data) {
-        ir.WriteMemory8(offset_address, ir.LeastSignificantByte(data), IR::AccType::NORMAL);
-    });
+    return StoreRegister(
+        *this, n, t, imm2, m, [this](const IR::U32& offset_address, const IR::U32& data) {
+            ir.WriteMemory8(offset_address, ir.LeastSignificantByte(data), IR::AccType::NORMAL);
+        });
 }
 
 bool TranslatorVisitor::thumb32_STRH_imm_1(Reg n, Reg t, bool P, bool U, Imm<8> imm8) {
@@ -131,7 +135,8 @@ bool TranslatorVisitor::thumb32_STRH_imm_2(Reg n, Reg t, Imm<8> imm8) {
     if (t == Reg::PC) {
         return UnpredictableInstruction();
     }
-    return StoreImmediate(*this, n, t, true, false, false, Imm<12>{imm8.ZeroExtend()}, StoreImmHalfFn);
+    return StoreImmediate(*this, n, t, true, false, false, Imm<12>{imm8.ZeroExtend()},
+                          StoreImmHalfFn);
 }
 
 bool TranslatorVisitor::thumb32_STRH_imm_3(Reg n, Reg t, Imm<12> imm12) {
@@ -158,13 +163,15 @@ bool TranslatorVisitor::thumb32_STRHT(Reg n, Reg t, Imm<8> imm8) {
 
     // Treat this as a normal STRH, given we don't support
     // execution levels other than EL0 currently.
-    return StoreImmediate(*this, n, t, true, true, false, Imm<12>{imm8.ZeroExtend()}, StoreImmHalfFn);
+    return StoreImmediate(*this, n, t, true, true, false, Imm<12>{imm8.ZeroExtend()},
+                          StoreImmHalfFn);
 }
 
 bool TranslatorVisitor::thumb32_STRH(Reg n, Reg t, Imm<2> imm2, Reg m) {
-    return StoreRegister(*this, n, t, imm2, m, [this](const IR::U32& offset_address, const IR::U32& data) {
-        ir.WriteMemory16(offset_address, ir.LeastSignificantHalf(data), IR::AccType::NORMAL);
-    });
+    return StoreRegister(
+        *this, n, t, imm2, m, [this](const IR::U32& offset_address, const IR::U32& data) {
+            ir.WriteMemory16(offset_address, ir.LeastSignificantHalf(data), IR::AccType::NORMAL);
+        });
 }
 
 bool TranslatorVisitor::thumb32_STR_imm_1(Reg n, Reg t, bool P, bool U, Imm<8> imm8) {
@@ -184,7 +191,8 @@ bool TranslatorVisitor::thumb32_STR_imm_2(Reg n, Reg t, Imm<8> imm8) {
     if (t == Reg::PC) {
         return UnpredictableInstruction();
     }
-    return StoreImmediate(*this, n, t, true, false, false, Imm<12>{imm8.ZeroExtend()}, StoreImmWordFn);
+    return StoreImmediate(*this, n, t, true, false, false, Imm<12>{imm8.ZeroExtend()},
+                          StoreImmWordFn);
 }
 
 bool TranslatorVisitor::thumb32_STR_imm_3(Reg n, Reg t, Imm<12> imm12) {
@@ -211,13 +219,15 @@ bool TranslatorVisitor::thumb32_STRT(Reg n, Reg t, Imm<8> imm8) {
 
     // Treat this as a normal STR, given we don't support
     // execution levels other than EL0 currently.
-    return StoreImmediate(*this, n, t, true, true, false, Imm<12>{imm8.ZeroExtend()}, StoreImmWordFn);
+    return StoreImmediate(*this, n, t, true, true, false, Imm<12>{imm8.ZeroExtend()},
+                          StoreImmWordFn);
 }
 
 bool TranslatorVisitor::thumb32_STR_reg(Reg n, Reg t, Imm<2> imm2, Reg m) {
-    return StoreRegister(*this, n, t, imm2, m, [this](const IR::U32& offset_address, const IR::U32& data) {
-        ir.WriteMemory32(offset_address, data, IR::AccType::NORMAL);
-    });
+    return StoreRegister(*this, n, t, imm2, m,
+                         [this](const IR::U32& offset_address, const IR::U32& data) {
+                             ir.WriteMemory32(offset_address, data, IR::AccType::NORMAL);
+                         });
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

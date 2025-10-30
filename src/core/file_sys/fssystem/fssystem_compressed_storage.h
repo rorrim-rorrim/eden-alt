@@ -322,7 +322,8 @@ private:
 
                 // Perform the read based on whether we need to allocate a buffer.
                 if (will_allocate_pooled_buffer) {
-                    std::vector<char> pooled_buffer(std::max(m_block_size_max, total_required_size));
+                    std::vector<char> pooled_buffer(
+                        std::max(m_block_size_max, total_required_size));
                     // Read each of the entries.
                     for (s32 entry_idx = 0; entry_idx < entry_count; ++entry_idx) {
                         // Determine the current read size.

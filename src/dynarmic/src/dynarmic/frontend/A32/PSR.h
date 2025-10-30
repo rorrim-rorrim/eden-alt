@@ -52,16 +52,10 @@ public:
     };
 
     /// Instruction sets that may be signified through a PSR.
-    enum class InstructionSet {
-        ARM,
-        Jazelle,
-        Thumb,
-        ThumbEE
-    };
+    enum class InstructionSet { ARM, Jazelle, Thumb, ThumbEE };
 
     PSR() = default;
-    explicit PSR(u32 data)
-            : value{data & mask} {}
+    explicit PSR(u32 data) : value{data & mask} {}
 
     PSR& operator=(u32 data) {
         value = data & mask;
@@ -224,4 +218,4 @@ inline bool operator!=(PSR lhs, PSR rhs) {
     return !operator==(lhs, rhs);
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

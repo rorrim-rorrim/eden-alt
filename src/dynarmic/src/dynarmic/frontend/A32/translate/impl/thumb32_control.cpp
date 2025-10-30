@@ -95,7 +95,8 @@ bool TranslatorVisitor::thumb32_MSR_reg(bool write_spsr, Reg n, Imm<4> mask) {
     } else {
         ir.UpdateUpperLocationDescriptor();
 
-        const u32 cpsr_mask = (write_nzcvq ? 0xF8000000 : 0) | (write_g ? 0x000F0000 : 0) | 0x00000200;
+        const u32 cpsr_mask =
+            (write_nzcvq ? 0xF8000000 : 0) | (write_g ? 0x000F0000 : 0) | 0x00000200;
         const auto old_cpsr = ir.And(ir.GetCpsr(), ir.Imm32(~cpsr_mask));
         const auto new_cpsr = ir.And(value, ir.Imm32(cpsr_mask));
         ir.SetCpsr(ir.Or(old_cpsr, new_cpsr));
@@ -123,4 +124,4 @@ bool TranslatorVisitor::thumb32_MRS_reg(bool read_spsr, Reg d) {
     return true;
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

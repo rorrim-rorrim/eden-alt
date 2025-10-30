@@ -206,16 +206,21 @@ public:
         return Exchange(Dirty::RasterizerDiscardEnable, false);
     }
 
-    bool TouchConservativeRasterizationMode()
-    {
+    bool TouchConservativeRasterizationMode() {
         return Exchange(Dirty::ConservativeRasterizationMode, false);
     }
 
-    bool TouchLineStippleEnable() { return Exchange(Dirty::LineStippleEnable, false); }
+    bool TouchLineStippleEnable() {
+        return Exchange(Dirty::LineStippleEnable, false);
+    }
 
-    bool TouchLineStipple() { return Exchange(Dirty::LineStippleParams, false); }
+    bool TouchLineStipple() {
+        return Exchange(Dirty::LineStippleParams, false);
+    }
 
-    bool TouchDepthBiasEnable() { return Exchange(Dirty::DepthBiasEnable, false); }
+    bool TouchDepthBiasEnable() {
+        return Exchange(Dirty::DepthBiasEnable, false);
+    }
 
     bool TouchLogicOpEnable() {
         return Exchange(Dirty::LogicOpEnable, false);

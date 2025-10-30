@@ -133,8 +133,7 @@ VkResult MasterSemaphore::SubmitQueueTimeline(vk::CommandBuffer& cmdbuf,
 
     const u32 num_wait_semaphores = wait_semaphore ? 1 : 0;
     // Pointers must be null when the count is zero (best-practices)
-    const VkSemaphore* p_wait_sems =
-        (num_wait_semaphores > 0) ? &wait_semaphore : nullptr;
+    const VkSemaphore* p_wait_sems = (num_wait_semaphores > 0) ? &wait_semaphore : nullptr;
     const VkPipelineStageFlags* p_wait_masks =
         (num_wait_semaphores > 0) ? wait_stage_masks.data() : nullptr;
     const VkSemaphore* p_signal_sems =
@@ -144,7 +143,7 @@ VkResult MasterSemaphore::SubmitQueueTimeline(vk::CommandBuffer& cmdbuf,
         .sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO,
         .pNext = nullptr,
         .waitSemaphoreValueCount = num_wait_semaphores,
-        .pWaitSemaphoreValues    = num_wait_semaphores ? &wait_zero : nullptr,
+        .pWaitSemaphoreValues = num_wait_semaphores ? &wait_zero : nullptr,
         .signalSemaphoreValueCount = num_signal_semaphores,
         .pSignalSemaphoreValues = signal_values.data(),
     };
@@ -170,12 +169,10 @@ VkResult MasterSemaphore::SubmitQueueFence(vk::CommandBuffer& cmdbuf,
     const u32 num_signal_semaphores = signal_semaphore ? 1 : 0;
     const u32 num_wait_semaphores = wait_semaphore ? 1 : 0;
 
-    const VkSemaphore* p_wait_sems =
-            (num_wait_semaphores > 0) ? &wait_semaphore : nullptr;
+    const VkSemaphore* p_wait_sems = (num_wait_semaphores > 0) ? &wait_semaphore : nullptr;
     const VkPipelineStageFlags* p_wait_masks =
         (num_wait_semaphores > 0) ? wait_stage_masks.data() : nullptr;
-    const VkSemaphore* p_signal_sems =
-        (num_signal_semaphores > 0) ? &signal_semaphore : nullptr;
+    const VkSemaphore* p_signal_sems = (num_signal_semaphores > 0) ? &signal_semaphore : nullptr;
     const std::array cmdbuffers{*upload_cmdbuf, *cmdbuf};
 
     const VkSubmitInfo submit_info{

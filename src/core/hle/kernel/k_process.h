@@ -87,7 +87,7 @@ private:
     std::array<u64, 4> m_entropy{};
     bool m_is_signaled{};
     bool m_is_initialized{};
-    u32 m_pointer_buffer_size = 0x8000;  // Default pointer buffer size (can be game-specific later)
+    u32 m_pointer_buffer_size = 0x8000; // Default pointer buffer size (can be game-specific later)
     bool m_is_application{};
     bool m_is_default_application_system_resource{};
     bool m_is_hbl{};

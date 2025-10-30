@@ -12,25 +12,25 @@
 #include <functional>
 #include <optional>
 
+#include <boost/container/flat_set.hpp>
+#include <boost/container/static_vector.hpp>
+#include <boost/pool/pool_alloc.hpp>
+#include <xbyak/xbyak.h>
 #include "boost/container/small_vector.hpp"
 #include "dynarmic/common/common_types.h"
-#include <xbyak/xbyak.h>
-#include <boost/container/static_vector.hpp>
-#include <boost/container/flat_set.hpp>
-#include <boost/pool/pool_alloc.hpp>
 
+#include "dynarmic/backend/x64/abi.h"
 #include "dynarmic/backend/x64/block_of_code.h"
 #include "dynarmic/backend/x64/hostloc.h"
-#include "dynarmic/backend/x64/stack_layout.h"
 #include "dynarmic/backend/x64/oparg.h"
-#include "dynarmic/backend/x64/abi.h"
+#include "dynarmic/backend/x64/stack_layout.h"
 #include "dynarmic/ir/cond.h"
 #include "dynarmic/ir/microinstruction.h"
 #include "dynarmic/ir/value.h"
 
 namespace Dynarmic::IR {
 enum class AccType;
-}  // namespace Dynarmic::IR
+} // namespace Dynarmic::IR
 
 namespace Dynarmic::Backend::X64 {
 
@@ -46,7 +46,8 @@ public:
         return is_being_used_count == 0 && values.empty();
     }
     inline bool IsLastUse() const {
-        return is_being_used_count == 0 && current_references == 1 && accumulated_uses + 1 == total_uses;
+        return is_being_used_count == 0 && current_references == 1 &&
+               accumulated_uses + 1 == total_uses;
     }
     inline void SetLastUse() noexcept {
         ASSERT(IsLastUse());
@@ -74,7 +75,7 @@ public:
     /// Checks if the given instruction is in our values set
     /// SAFETY: Const is casted away, irrelevant since this is only used for checking
     inline bool ContainsValue(const IR::Inst* inst) const noexcept {
-        //return values.contains(const_cast<IR::Inst*>(inst));
+        // return values.contains(const_cast<IR::Inst*>(inst));
         return std::find(values.begin(), values.end(), inst) != values.end();
     }
     inline size_t GetMaxBitWidth() const noexcept {
@@ -82,22 +83,23 @@ public:
     }
     void AddValue(IR::Inst* inst) noexcept;
     void EmitVerboseDebuggingOutput(BlockOfCode* code, size_t host_loc_index) const noexcept;
+
 private:
-//non trivial
-    boost::container::small_vector<IR::Inst*, 3> values; //24
+    // non trivial
+    boost::container::small_vector<IR::Inst*, 3> values; // 24
     // Block state
-    uint16_t total_uses = 0; //8
-    //sometimes zeroed
-    uint16_t accumulated_uses = 0; //8
-//always zeroed
-    // Current instruction state
-    uint16_t is_being_used_count = 0; //8
-    uint16_t current_references = 0; //8
+    uint16_t total_uses = 0; // 8
+    // sometimes zeroed
+    uint16_t accumulated_uses = 0; // 8
+    // always zeroed
+    //  Current instruction state
+    uint16_t is_being_used_count = 0; // 8
+    uint16_t current_references = 0;  // 8
     // Value state
-    uint8_t lru_counter : 2 = 0; //1
-    uint8_t max_bit_width : 4 = 0; //Valid values: log2(1,2,4,8,16,32,128) = (0, 1, 2, 3, 4, 5, 6)
-    bool is_scratch : 1 = false; //1
-    bool is_set_last_use : 1 = false; //1
+    uint8_t lru_counter : 2 = 0;   // 1
+    uint8_t max_bit_width : 4 = 0; // Valid values: log2(1,2,4,8,16,32,128) = (0, 1, 2, 3, 4, 5, 6)
+    bool is_scratch : 1 = false;   // 1
+    bool is_set_last_use : 1 = false; // 1
     friend class RegAlloc;
 };
 static_assert(sizeof(HostLocInfo) == 64);
@@ -132,21 +134,23 @@ public:
     bool IsInGpr() const noexcept;
     bool IsInXmm() const noexcept;
     bool IsInMemory() const noexcept;
+
 private:
     friend class RegAlloc;
     explicit Argument(RegAlloc& reg_alloc) : reg_alloc(reg_alloc) {}
 
-//data
-    IR::Value value; //8
-    RegAlloc& reg_alloc; //8
-    bool allocated = false; //1
+    // data
+    IR::Value value;        // 8
+    RegAlloc& reg_alloc;    // 8
+    bool allocated = false; // 1
 };
 
 class RegAlloc final {
 public:
     using ArgumentInfo = std::array<Argument, IR::max_arg_count>;
     RegAlloc() noexcept = default;
-    RegAlloc(BlockOfCode* code, boost::container::static_vector<HostLoc, 28> gpr_order, boost::container::static_vector<HostLoc, 28> xmm_order) noexcept;
+    RegAlloc(BlockOfCode* code, boost::container::static_vector<HostLoc, 28> gpr_order,
+             boost::container::static_vector<HostLoc, 28> xmm_order) noexcept;
 
     ArgumentInfo GetArgumentInfo(const IR::Inst* inst) noexcept;
     void RegisterPseudoOperation(const IR::Inst* inst) noexcept;
@@ -195,11 +199,10 @@ public:
     }
 
     void HostCall(IR::Inst* result_def = nullptr,
-        const std::optional<Argument::copyable_reference> arg0 = {},
-        const std::optional<Argument::copyable_reference> arg1 = {},
-        const std::optional<Argument::copyable_reference> arg2 = {},
-        const std::optional<Argument::copyable_reference> arg3 = {}
-    ) noexcept;
+                  const std::optional<Argument::copyable_reference> arg0 = {},
+                  const std::optional<Argument::copyable_reference> arg1 = {},
+                  const std::optional<Argument::copyable_reference> arg2 = {},
+                  const std::optional<Argument::copyable_reference> arg3 = {}) noexcept;
 
     // TODO: Values in host flags
     void AllocStackSpace(const size_t stack_space) noexcept;
@@ -211,17 +214,20 @@ public:
         }
     }
     inline void AssertNoMoreUses() noexcept {
-        ASSERT(std::all_of(hostloc_info.begin(), hostloc_info.end(), [](const auto& i) noexcept { return i.IsEmpty(); }));
+        ASSERT(std::all_of(hostloc_info.begin(), hostloc_info.end(),
+                           [](const auto& i) noexcept { return i.IsEmpty(); }));
     }
     inline void EmitVerboseDebuggingOutput() noexcept {
         for (size_t i = 0; i < hostloc_info.size(); i++) {
             hostloc_info[i].EmitVerboseDebuggingOutput(code, i);
         }
     }
+
 private:
     friend struct Argument;
 
-    HostLoc SelectARegister(const boost::container::static_vector<HostLoc, 28>& desired_locations) const noexcept;
+    HostLoc SelectARegister(
+        const boost::container::static_vector<HostLoc, 28>& desired_locations) const noexcept;
     inline std::optional<HostLoc> ValueLocation(const IR::Inst* value) const noexcept {
         for (size_t i = 0; i < hostloc_info.size(); i++) {
             if (hostloc_info[i].ContainsValue(value)) {
@@ -231,9 +237,13 @@ private:
         return std::nullopt;
     }
 
-    HostLoc UseImpl(IR::Value use_value, const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept;
-    HostLoc UseScratchImpl(IR::Value use_value, const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept;
-    HostLoc ScratchImpl(const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept;
+    HostLoc UseImpl(IR::Value use_value,
+                    const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept;
+    HostLoc UseScratchImpl(
+        IR::Value use_value,
+        const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept;
+    HostLoc ScratchImpl(
+        const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept;
     void DefineValueImpl(IR::Inst* def_inst, HostLoc host_loc) noexcept;
     void DefineValueImpl(IR::Inst* def_inst, const IR::Value& use_inst) noexcept;
 
@@ -258,7 +268,7 @@ private:
     void EmitMove(const size_t bit_width, const HostLoc to, const HostLoc from) noexcept;
     void EmitExchange(const HostLoc a, const HostLoc b) noexcept;
 
-//data
+    // data
     alignas(64) boost::container::static_vector<HostLoc, 28> gpr_order;
     alignas(64) boost::container::static_vector<HostLoc, 28> xmm_order;
     alignas(64) std::array<HostLocInfo, NonSpillHostLocCount + SpillCount> hostloc_info;
@@ -268,4 +278,4 @@ private:
 // Ensure a cache line (or less) is used, this is primordial
 static_assert(sizeof(boost::container::static_vector<HostLoc, 28>) == 40);
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

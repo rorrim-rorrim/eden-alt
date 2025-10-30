@@ -21,10 +21,10 @@
 #include "dynarmic/common/common_types.h"
 
 #include "../fuzz_util.h"
+#include "../native/testenv.h"
 #include "../rand_int.h"
 #include "../unicorn_emu/a32_unicorn.h"
 #include "./testenv.h"
-#include "../native/testenv.h"
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/common/fp/fpsr.h"
 #include "dynarmic/common/llvm_disassemble.h"
@@ -45,39 +45,45 @@
 namespace {
 using namespace Dynarmic;
 
-template<typename Fn>
+template <typename Fn>
 bool AnyLocationDescriptorForTerminalHas(IR::Terminal terminal, Fn fn) {
-    return boost::apply_visitor([&](auto t) -> bool {
-        using T = std::decay_t<decltype(t)>;
-        if constexpr (std::is_same_v<T, IR::Term::Invalid>) {
-            return false;
-        } else if constexpr (std::is_same_v<T, IR::Term::ReturnToDispatch>) {
-            return false;
-        } else if constexpr (std::is_same_v<T, IR::Term::LinkBlock>) {
-            return fn(t.next);
-        } else if constexpr (std::is_same_v<T, IR::Term::LinkBlockFast>) {
-            return fn(t.next);
-        } else if constexpr (std::is_same_v<T, IR::Term::PopRSBHint>) {
-            return false;
-        } else if constexpr (std::is_same_v<T, IR::Term::Interpret>) {
-            return fn(t.next);
-        } else if constexpr (std::is_same_v<T, IR::Term::FastDispatchHint>) {
-            return false;
-        } else if constexpr (std::is_same_v<T, IR::Term::If>) {
-            return AnyLocationDescriptorForTerminalHas(t.then_, fn) || AnyLocationDescriptorForTerminalHas(t.else_, fn);
-        } else if constexpr (std::is_same_v<T, IR::Term::CheckBit>) {
-            return AnyLocationDescriptorForTerminalHas(t.then_, fn) || AnyLocationDescriptorForTerminalHas(t.else_, fn);
-        } else if constexpr (std::is_same_v<T, IR::Term::CheckHalt>) {
-            return AnyLocationDescriptorForTerminalHas(t.else_, fn);
-        } else {
-            ASSERT_MSG(false, "Invalid terminal type");
-            return false;
-        }
-    }, terminal);
+    return boost::apply_visitor(
+        [&](auto t) -> bool {
+            using T = std::decay_t<decltype(t)>;
+            if constexpr (std::is_same_v<T, IR::Term::Invalid>) {
+                return false;
+            } else if constexpr (std::is_same_v<T, IR::Term::ReturnToDispatch>) {
+                return false;
+            } else if constexpr (std::is_same_v<T, IR::Term::LinkBlock>) {
+                return fn(t.next);
+            } else if constexpr (std::is_same_v<T, IR::Term::LinkBlockFast>) {
+                return fn(t.next);
+            } else if constexpr (std::is_same_v<T, IR::Term::PopRSBHint>) {
+                return false;
+            } else if constexpr (std::is_same_v<T, IR::Term::Interpret>) {
+                return fn(t.next);
+            } else if constexpr (std::is_same_v<T, IR::Term::FastDispatchHint>) {
+                return false;
+            } else if constexpr (std::is_same_v<T, IR::Term::If>) {
+                return AnyLocationDescriptorForTerminalHas(t.then_, fn) ||
+                       AnyLocationDescriptorForTerminalHas(t.else_, fn);
+            } else if constexpr (std::is_same_v<T, IR::Term::CheckBit>) {
+                return AnyLocationDescriptorForTerminalHas(t.then_, fn) ||
+                       AnyLocationDescriptorForTerminalHas(t.else_, fn);
+            } else if constexpr (std::is_same_v<T, IR::Term::CheckHalt>) {
+                return AnyLocationDescriptorForTerminalHas(t.else_, fn);
+            } else {
+                ASSERT_MSG(false, "Invalid terminal type");
+                return false;
+            }
+        },
+        terminal);
 }
 
-bool ShouldTestInst(u32 instruction, u32 pc, bool is_thumb, bool is_last_inst, A32::ITState it_state = {}) {
-    const A32::LocationDescriptor location = A32::LocationDescriptor{pc, {}, {}}.SetTFlag(is_thumb).SetIT(it_state);
+bool ShouldTestInst(u32 instruction, u32 pc, bool is_thumb, bool is_last_inst,
+                    A32::ITState it_state = {}) {
+    const A32::LocationDescriptor location =
+        A32::LocationDescriptor{pc, {}, {}}.SetTFlag(is_thumb).SetIT(it_state);
     IR::Block block{location};
     const bool should_continue = A32::TranslateSingleInstruction(block, location, instruction);
 
@@ -89,7 +95,9 @@ bool ShouldTestInst(u32 instruction, u32 pc, bool is_thumb, bool is_last_inst, A
         return false;
     }
 
-    if (AnyLocationDescriptorForTerminalHas(block.GetTerminal(), [&](IR::LocationDescriptor ld) { return A32::LocationDescriptor{ld}.PC() <= pc; })) {
+    if (AnyLocationDescriptorForTerminalHas(block.GetTerminal(), [&](IR::LocationDescriptor ld) {
+            return A32::LocationDescriptor{ld}.PC() <= pc;
+        })) {
         return false;
     }
 
@@ -137,32 +145,81 @@ u32 GenRandomArmInst(u32 pc, bool is_last_inst) {
         // List of instructions not to test
         static constexpr std::array do_not_test{
             // Translating load/stores
-            "arm_LDRBT", "arm_LDRBT", "arm_LDRHT", "arm_LDRHT", "arm_LDRSBT", "arm_LDRSBT", "arm_LDRSHT", "arm_LDRSHT", "arm_LDRT", "arm_LDRT",
-            "arm_STRBT", "arm_STRBT", "arm_STRHT", "arm_STRHT", "arm_STRT", "arm_STRT",
+            "arm_LDRBT",
+            "arm_LDRBT",
+            "arm_LDRHT",
+            "arm_LDRHT",
+            "arm_LDRSBT",
+            "arm_LDRSBT",
+            "arm_LDRSHT",
+            "arm_LDRSHT",
+            "arm_LDRT",
+            "arm_LDRT",
+            "arm_STRBT",
+            "arm_STRBT",
+            "arm_STRHT",
+            "arm_STRHT",
+            "arm_STRT",
+            "arm_STRT",
             // Exclusive load/stores
-            "arm_LDREXB", "arm_LDREXD", "arm_LDREXH", "arm_LDREX", "arm_LDAEXB", "arm_LDAEXD", "arm_LDAEXH", "arm_LDAEX",
-            "arm_STREXB", "arm_STREXD", "arm_STREXH", "arm_STREX", "arm_STLEXB", "arm_STLEXD", "arm_STLEXH", "arm_STLEX",
-            "arm_SWP", "arm_SWPB",
+            "arm_LDREXB",
+            "arm_LDREXD",
+            "arm_LDREXH",
+            "arm_LDREX",
+            "arm_LDAEXB",
+            "arm_LDAEXD",
+            "arm_LDAEXH",
+            "arm_LDAEX",
+            "arm_STREXB",
+            "arm_STREXD",
+            "arm_STREXH",
+            "arm_STREX",
+            "arm_STLEXB",
+            "arm_STLEXD",
+            "arm_STLEXH",
+            "arm_STLEX",
+            "arm_SWP",
+            "arm_SWPB",
             // Elevated load/store multiple instructions.
-            "arm_LDM_eret", "arm_LDM_usr",
+            "arm_LDM_eret",
+            "arm_LDM_usr",
             "arm_STM_usr",
             // Hint instructions
-            "arm_NOP", "arm_PLD_imm", "arm_PLD_reg", "arm_SEV",
-            "arm_WFE", "arm_WFI", "arm_YIELD",
+            "arm_NOP",
+            "arm_PLD_imm",
+            "arm_PLD_reg",
+            "arm_SEV",
+            "arm_WFE",
+            "arm_WFI",
+            "arm_YIELD",
             // E, T, J
-            "arm_BLX_reg", "arm_BLX_imm", "arm_BXJ", "arm_SETEND",
+            "arm_BLX_reg",
+            "arm_BLX_imm",
+            "arm_BXJ",
+            "arm_SETEND",
             // Coprocessor
-            "arm_CDP", "arm_LDC", "arm_MCR", "arm_MCRR", "arm_MRC", "arm_MRRC", "arm_STC",
+            "arm_CDP",
+            "arm_LDC",
+            "arm_MCR",
+            "arm_MCRR",
+            "arm_MRC",
+            "arm_MRRC",
+            "arm_STC",
             // System
-            "arm_CPS", "arm_RFE", "arm_SRS",
+            "arm_CPS",
+            "arm_RFE",
+            "arm_SRS",
             // Undefined
             "arm_UDF",
             // FPSCR is inaccurate
             "vfp_VMRS",
             // Incorrect Unicorn implementations
-            "asimd_VRECPS",         // Unicorn does not fuse the multiply and subtraction, resulting in being off by 1ULP.
-            "asimd_VRSQRTS",        // Unicorn does not fuse the multiply and subtraction, resulting in being off by 1ULP.
-            "vfp_VCVT_from_fixed",  // Unicorn does not do round-to-nearest-even for this instruction correctly.
+            "asimd_VRECPS",  // Unicorn does not fuse the multiply and subtraction, resulting in
+                             // being off by 1ULP.
+            "asimd_VRSQRTS", // Unicorn does not fuse the multiply and subtraction, resulting in
+                             // being off by 1ULP.
+            "vfp_VCVT_from_fixed", // Unicorn does not do round-to-nearest-even for this instruction
+                                   // correctly.
         };
 
         for (const auto& [fn, bitstring] : list) {
@@ -179,7 +236,8 @@ u32 GenRandomArmInst(u32 pc, bool is_last_inst) {
         const size_t index = RandInt<size_t>(0, instructions.generators.size() - 1);
         const u32 inst = instructions.generators[index].Generate();
 
-        if ((instructions.generators[index].Mask() & 0xF0000000) == 0 && (inst & 0xF0000000) == 0xF0000000) {
+        if ((instructions.generators[index].Mask() & 0xF0000000) == 0 &&
+            (inst & 0xF0000000) == 0xF0000000) {
             continue;
         }
 
@@ -242,8 +300,10 @@ std::vector<u16> GenRandomThumbInst(u32 pc, bool is_last_inst, A32::ITState it_s
             // Unicorn has incorrect implementation (incorrect rounding and unsets CPSR.T??)
             "vfp_VCVT_to_fixed",
             "vfp_VCVT_from_fixed",
-            "asimd_VRECPS",   // Unicorn does not fuse the multiply and subtraction, resulting in being off by 1ULP.
-            "asimd_VRSQRTS",  // Unicorn does not fuse the multiply and subtraction, resulting in being off by 1ULP.
+            "asimd_VRECPS",  // Unicorn does not fuse the multiply and subtraction, resulting in
+                             // being off by 1ULP.
+            "asimd_VRSQRTS", // Unicorn does not fuse the multiply and subtraction, resulting in
+                             // being off by 1ULP.
 
             // Coprocessor
             "thumb32_CDP",
@@ -298,7 +358,8 @@ std::vector<u16> GenRandomThumbInst(u32 pc, bool is_last_inst, A32::ITState it_s
         const u32 inst = instructions.generators[index].Generate();
         const bool is_four_bytes = (inst >> 16) != 0;
 
-        if (ShouldTestInst(is_four_bytes ? mcl::bit::swap_halves_32(inst) : inst, pc, true, is_last_inst, it_state)) {
+        if (ShouldTestInst(is_four_bytes ? mcl::bit::swap_halves_32(inst) : inst, pc, true,
+                           is_last_inst, it_state)) {
             if (is_four_bytes)
                 return {static_cast<u16>(inst >> 16), static_cast<u16>(inst)};
             return {static_cast<u16>(inst)};
@@ -306,7 +367,7 @@ std::vector<u16> GenRandomThumbInst(u32 pc, bool is_last_inst, A32::ITState it_s
     }
 }
 
-template<typename TestEnv>
+template <typename TestEnv>
 Dynarmic::A32::UserConfig GetUserConfig(TestEnv& testenv) {
     Dynarmic::A32::UserConfig user_config;
     user_config.optimizations &= ~OptimizationFlag::FastDispatch;
@@ -315,17 +376,13 @@ Dynarmic::A32::UserConfig GetUserConfig(TestEnv& testenv) {
     return user_config;
 }
 
-template<typename TestEnv>
-static void RunTestInstance(Dynarmic::A32::Jit& jit,
-                            A32Unicorn<TestEnv>& uni,
-                            TestEnv& jit_env,
+template <typename TestEnv>
+static void RunTestInstance(Dynarmic::A32::Jit& jit, A32Unicorn<TestEnv>& uni, TestEnv& jit_env,
                             TestEnv& uni_env,
                             const typename A32Unicorn<TestEnv>::RegisterArray& regs,
                             const typename A32Unicorn<TestEnv>::ExtRegArray& vecs,
                             const std::vector<typename TestEnv::InstructionType>& instructions,
-                            const u32 cpsr,
-                            const u32 fpscr,
-                            const size_t ticks_left) {
+                            const u32 cpsr, const u32 fpscr, const size_t ticks_left) {
     const u32 initial_pc = regs[15];
     const u32 num_words = initial_pc / sizeof(typename TestEnv::InstructionType);
     const u32 code_mem_size = num_words + static_cast<u32>(instructions.size());
@@ -360,12 +417,15 @@ static void RunTestInstance(Dynarmic::A32::Jit& jit,
     jit_env.ticks_left = ticks_left;
     CheckedRun([&]() { jit.Run(); });
 
-    uni_env.ticks_left = instructions.size();  // Unicorn counts thumb instructions weirdly.
+    uni_env.ticks_left = instructions.size(); // Unicorn counts thumb instructions weirdly.
     uni.Run();
 
     SCOPE_FAIL {
         fmt::print("Instruction Listing:\n");
-        fmt::print("{}\n", Common::DisassembleAArch32(std::is_same_v<TestEnv, ThumbTestEnv>, initial_pc, (const u8*)instructions.data(), instructions.size() * sizeof(instructions[0])));
+        fmt::print("{}\n",
+                   Common::DisassembleAArch32(std::is_same_v<TestEnv, ThumbTestEnv>, initial_pc,
+                                              (const u8*)instructions.data(),
+                                              instructions.size() * sizeof(instructions[0])));
 
         fmt::print("Initial register listing:\n");
         for (size_t i = 0; i < regs.size(); ++i) {
@@ -387,29 +447,37 @@ static void RunTestInstance(Dynarmic::A32::Jit& jit,
         fmt::print("     unicorn  dynarmic\n");
         const auto uni_regs = uni.GetRegisters();
         for (size_t i = 0; i < regs.size(); ++i) {
-            fmt::print("{:3s}: {:08x} {:08x} {}\n", static_cast<A32::Reg>(i), uni_regs[i], jit.Regs()[i], uni_regs[i] != jit.Regs()[i] ? "*" : "");
+            fmt::print("{:3s}: {:08x} {:08x} {}\n", static_cast<A32::Reg>(i), uni_regs[i],
+                       jit.Regs()[i], uni_regs[i] != jit.Regs()[i] ? "*" : "");
         }
         const auto uni_ext_regs = uni.GetExtRegs();
         for (size_t i = 0; i < vecs.size(); ++i) {
-            fmt::print("s{:2d}: {:08x} {:08x} {}\n", static_cast<size_t>(i), uni_ext_regs[i], jit.ExtRegs()[i], uni_ext_regs[i] != jit.ExtRegs()[i] ? "*" : "");
+            fmt::print("s{:2d}: {:08x} {:08x} {}\n", static_cast<size_t>(i), uni_ext_regs[i],
+                       jit.ExtRegs()[i], uni_ext_regs[i] != jit.ExtRegs()[i] ? "*" : "");
         }
-        fmt::print("cpsr {:08x} {:08x} {}\n", uni.GetCpsr(), jit.Cpsr(), uni.GetCpsr() != jit.Cpsr() ? "*" : "");
-        fmt::print("fpsr {:08x} {:08x} {}\n", uni.GetFpscr(), jit.Fpscr(), (uni.GetFpscr() & 0xF0000000) != (jit.Fpscr() & 0xF0000000) ? "*" : "");
+        fmt::print("cpsr {:08x} {:08x} {}\n", uni.GetCpsr(), jit.Cpsr(),
+                   uni.GetCpsr() != jit.Cpsr() ? "*" : "");
+        fmt::print("fpsr {:08x} {:08x} {}\n", uni.GetFpscr(), jit.Fpscr(),
+                   (uni.GetFpscr() & 0xF0000000) != (jit.Fpscr() & 0xF0000000) ? "*" : "");
         fmt::print("\n");
 
         fmt::print("Modified memory:\n");
         fmt::print("                 uni dyn\n");
         auto uni_iter = uni_env.modified_memory.begin();
         auto jit_iter = jit_env.modified_memory.begin();
-        while (uni_iter != uni_env.modified_memory.end() || jit_iter != jit_env.modified_memory.end()) {
-            if (uni_iter == uni_env.modified_memory.end() || (jit_iter != jit_env.modified_memory.end() && uni_iter->first > jit_iter->first)) {
+        while (uni_iter != uni_env.modified_memory.end() ||
+               jit_iter != jit_env.modified_memory.end()) {
+            if (uni_iter == uni_env.modified_memory.end() ||
+                (jit_iter != jit_env.modified_memory.end() && uni_iter->first > jit_iter->first)) {
                 fmt::print("{:08x}:    {:02x} *\n", jit_iter->first, jit_iter->second);
                 jit_iter++;
-            } else if (jit_iter == jit_env.modified_memory.end() || jit_iter->first > uni_iter->first) {
+            } else if (jit_iter == jit_env.modified_memory.end() ||
+                       jit_iter->first > uni_iter->first) {
                 fmt::print("{:08x}: {:02x}    *\n", uni_iter->first, uni_iter->second);
                 uni_iter++;
             } else if (uni_iter->first == jit_iter->first) {
-                fmt::print("{:08x}: {:02x} {:02x} {}\n", uni_iter->first, uni_iter->second, jit_iter->second, uni_iter->second != jit_iter->second ? "*" : "");
+                fmt::print("{:08x}: {:02x} {:02x} {}\n", uni_iter->first, uni_iter->second,
+                           jit_iter->second, uni_iter->second != jit_iter->second ? "*" : "");
                 uni_iter++;
                 jit_iter++;
             }
@@ -440,7 +508,8 @@ static void RunTestInstance(Dynarmic::A32::Jit& jit,
 
     if (uni.GetRegisters()[15] > jit.Regs()[15]) {
         int trials = 0;
-        while (jit.Regs()[15] >= initial_pc && jit.Regs()[15] < expected_end_pc && trials++ < 100 && uni.GetRegisters()[15] != jit.Regs()[15]) {
+        while (jit.Regs()[15] >= initial_pc && jit.Regs()[15] < expected_end_pc && trials++ < 100 &&
+               uni.GetRegisters()[15] != jit.Regs()[15]) {
             fmt::print("Warning: Possible unicorn overrrun, attempt recovery\n");
             jit.Step();
         }
@@ -456,7 +525,7 @@ static void RunTestInstance(Dynarmic::A32::Jit& jit,
     REQUIRE(uni_env.modified_memory == jit_env.modified_memory);
     REQUIRE(uni_env.interrupts.empty());
 }
-}  // Anonymous namespace
+} // Anonymous namespace
 
 TEST_CASE("A32: Single random arm instruction", "[arm]") {
     ArmTestEnv jit_env{};
@@ -600,7 +669,7 @@ TEST_CASE("A32: Single random thumb instruction (offset)", "[thumb]") {
         const u32 fpcr = RandomFpcr();
 
         instructions.clear();
-        instructions.push_back(0xbf00);  // NOP
+        instructions.push_back(0xbf00); // NOP
         const std::vector<u16> inst = GenRandomThumbInst(start_address + 2, true);
         instructions.insert(instructions.end(), inst.begin(), inst.end());
 
@@ -632,7 +701,8 @@ TEST_CASE("A32: Small random thumb block", "[thumb]") {
 
         instructions.clear();
         for (size_t i = 0; i < 5; i++) {
-            const std::vector<u16> inst = GenRandomThumbInst(start_address + instructions.size() * 2, i == 4);
+            const std::vector<u16> inst =
+                GenRandomThumbInst(start_address + instructions.size() * 2, i == 4);
             instructions.insert(instructions.end(), inst.begin(), inst.end());
         }
 
@@ -666,7 +736,8 @@ TEST_CASE("A32: Test thumb IT instruction", "[thumb]") {
         instructions.clear();
 
         for (size_t i = 0; i < pre_instructions; i++) {
-            const std::vector<u16> inst = GenRandomThumbInst(start_address + instructions.size() * 2, false);
+            const std::vector<u16> inst =
+                GenRandomThumbInst(start_address + instructions.size() * 2, false);
             instructions.insert(instructions.end(), inst.begin(), inst.end());
         }
 
@@ -674,7 +745,10 @@ TEST_CASE("A32: Test thumb IT instruction", "[thumb]") {
         A32::ITState it_state = [&] {
             while (true) {
                 const u16 imm8 = RandInt<u16>(0, 0xFF);
-                if (mcl::bit::get_bits<0, 3>(imm8) == 0b0000 || mcl::bit::get_bits<4, 7>(imm8) == 0b1111 || (mcl::bit::get_bits<4, 7>(imm8) == 0b1110 && mcl::bit::count_ones(mcl::bit::get_bits<0, 3>(imm8)) != 1)) {
+                if (mcl::bit::get_bits<0, 3>(imm8) == 0b0000 ||
+                    mcl::bit::get_bits<4, 7>(imm8) == 0b1111 ||
+                    (mcl::bit::get_bits<4, 7>(imm8) == 0b1110 &&
+                     mcl::bit::count_ones(mcl::bit::get_bits<0, 3>(imm8)) != 1)) {
                     continue;
                 }
                 instructions.push_back(0b1011111100000000 | imm8);
@@ -683,12 +757,14 @@ TEST_CASE("A32: Test thumb IT instruction", "[thumb]") {
         }();
 
         for (size_t i = 0; i < post_instructions; i++) {
-            const std::vector<u16> inst = GenRandomThumbInst(start_address + instructions.size() * 2, i == post_instructions - 1, it_state);
+            const std::vector<u16> inst = GenRandomThumbInst(
+                start_address + instructions.size() * 2, i == post_instructions - 1, it_state);
             instructions.insert(instructions.end(), inst.begin(), inst.end());
             it_state = it_state.Advance();
         }
 
         regs[15] = start_address;
-        RunTestInstance(jit, uni, jit_env, uni_env, regs, ext_reg, instructions, cpsr, fpcr, pre_instructions + 1 + post_instructions);
+        RunTestInstance(jit, uni, jit_env, uni_env, regs, ext_reg, instructions, cpsr, fpcr,
+                        pre_instructions + 1 + post_instructions);
     }
 }

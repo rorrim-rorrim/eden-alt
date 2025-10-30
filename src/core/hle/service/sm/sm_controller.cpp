@@ -104,12 +104,12 @@ void Controller::SetPointerBufferSize(HLERequestContext& ctx) {
 
     process->SetPointerBufferSize(requested_size);
 
-    LOG_INFO(Service, "Pointer buffer size dynamically updated to {:#x} bytes by process", requested_size);
+    LOG_INFO(Service, "Pointer buffer size dynamically updated to {:#x} bytes by process",
+             requested_size);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
-
 
 // https://switchbrew.org/wiki/IPC_Marshalling
 Controller::Controller(Core::System& system_) : ServiceFramework{system_, "IpcController"} {

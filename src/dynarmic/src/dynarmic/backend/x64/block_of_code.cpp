@@ -9,24 +9,24 @@
 #include "dynarmic/backend/x64/block_of_code.h"
 
 #ifdef _WIN32
-#    define WIN32_LEAN_AND_MEAN
-#    include <windows.h>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #else
-#    include <sys/mman.h>
+#include <sys/mman.h>
 #endif
 
 #ifdef __APPLE__
-#    include <errno.h>
-#    include <fmt/format.h>
-#    include <sys/sysctl.h>
+#include <errno.h>
+#include <fmt/format.h>
+#include <sys/sysctl.h>
 #endif
 
 #include <array>
 #include <cstring>
 
-#include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_field.hpp>
 #include <xbyak/xbyak.h>
+#include "dynarmic/common/assert.h"
 
 #include "dynarmic/backend/x64/a32_jitstate.h"
 #include "dynarmic/backend/x64/abi.h"
@@ -43,7 +43,9 @@ const Xbyak::Reg64 BlockOfCode::ABI_PARAM1 = HostLocToReg64(Dynarmic::Backend::X
 const Xbyak::Reg64 BlockOfCode::ABI_PARAM2 = HostLocToReg64(Dynarmic::Backend::X64::ABI_PARAM2);
 const Xbyak::Reg64 BlockOfCode::ABI_PARAM3 = HostLocToReg64(Dynarmic::Backend::X64::ABI_PARAM3);
 const Xbyak::Reg64 BlockOfCode::ABI_PARAM4 = HostLocToReg64(Dynarmic::Backend::X64::ABI_PARAM4);
-const std::array<Xbyak::Reg64, ABI_PARAM_COUNT> BlockOfCode::ABI_PARAMS = {BlockOfCode::ABI_PARAM1, BlockOfCode::ABI_PARAM2, BlockOfCode::ABI_PARAM3, BlockOfCode::ABI_PARAM4};
+const std::array<Xbyak::Reg64, ABI_PARAM_COUNT> BlockOfCode::ABI_PARAMS = {
+    BlockOfCode::ABI_PARAM1, BlockOfCode::ABI_PARAM2, BlockOfCode::ABI_PARAM3,
+    BlockOfCode::ABI_PARAM4};
 #else
 const Xbyak::Reg64 BlockOfCode::ABI_RETURN = HostLocToReg64(Dynarmic::Backend::X64::ABI_RETURN);
 const Xbyak::Reg64 BlockOfCode::ABI_RETURN2 = HostLocToReg64(Dynarmic::Backend::X64::ABI_RETURN2);
@@ -53,7 +55,9 @@ const Xbyak::Reg64 BlockOfCode::ABI_PARAM3 = HostLocToReg64(Dynarmic::Backend::X
 const Xbyak::Reg64 BlockOfCode::ABI_PARAM4 = HostLocToReg64(Dynarmic::Backend::X64::ABI_PARAM4);
 const Xbyak::Reg64 BlockOfCode::ABI_PARAM5 = HostLocToReg64(Dynarmic::Backend::X64::ABI_PARAM5);
 const Xbyak::Reg64 BlockOfCode::ABI_PARAM6 = HostLocToReg64(Dynarmic::Backend::X64::ABI_PARAM6);
-const std::array<Xbyak::Reg64, ABI_PARAM_COUNT> BlockOfCode::ABI_PARAMS = {BlockOfCode::ABI_PARAM1, BlockOfCode::ABI_PARAM2, BlockOfCode::ABI_PARAM3, BlockOfCode::ABI_PARAM4, BlockOfCode::ABI_PARAM5, BlockOfCode::ABI_PARAM6};
+const std::array<Xbyak::Reg64, ABI_PARAM_COUNT> BlockOfCode::ABI_PARAMS = {
+    BlockOfCode::ABI_PARAM1, BlockOfCode::ABI_PARAM2, BlockOfCode::ABI_PARAM3,
+    BlockOfCode::ABI_PARAM4, BlockOfCode::ABI_PARAM5, BlockOfCode::ABI_PARAM6};
 #endif
 
 namespace {
@@ -77,7 +81,9 @@ public:
         VirtualFree(static_cast<void*>(p), 0, MEM_RELEASE);
     }
 
-    bool useProtect() const override { return false; }
+    bool useProtect() const override {
+        return false;
+    }
 #else
     static constexpr size_t DYNARMIC_PAGE_SIZE = 4096;
 
@@ -87,16 +93,16 @@ public:
         // Waste a page to store the size
         size += DYNARMIC_PAGE_SIZE;
 
-#    if defined(MAP_ANONYMOUS)
+#if defined(MAP_ANONYMOUS)
         int mode = MAP_PRIVATE | MAP_ANONYMOUS;
-#    elif defined(MAP_ANON)
+#elif defined(MAP_ANON)
         int mode = MAP_PRIVATE | MAP_ANON;
-#    else
-#        error "not supported"
-#    endif
-#    ifdef MAP_JIT
+#else
+#error "not supported"
+#endif
+#ifdef MAP_JIT
         mode |= MAP_JIT;
-#    endif
+#endif
 
         void* p = mmap(nullptr, size, PROT_READ | PROT_WRITE, mode, -1, 0);
         if (p == MAP_FAILED) {
@@ -113,9 +119,11 @@ public:
         munmap(p - DYNARMIC_PAGE_SIZE, size);
     }
 
-#    ifdef DYNARMIC_ENABLE_NO_EXECUTE_SUPPORT
-    bool useProtect() const override { return false; }
-#    endif
+#ifdef DYNARMIC_ENABLE_NO_EXECUTE_SUPPORT
+    bool useProtect() const override {
+        return false;
+    }
+#endif
 #endif
 };
 
@@ -124,16 +132,17 @@ CustomXbyakAllocator s_allocator;
 
 #ifdef DYNARMIC_ENABLE_NO_EXECUTE_SUPPORT
 void ProtectMemory(const void* base, size_t size, bool is_executable) {
-#    ifdef _WIN32
+#ifdef _WIN32
     DWORD oldProtect = 0;
-    VirtualProtect(const_cast<void*>(base), size, is_executable ? PAGE_EXECUTE_READ : PAGE_READWRITE, &oldProtect);
-#    else
+    VirtualProtect(const_cast<void*>(base), size,
+                   is_executable ? PAGE_EXECUTE_READ : PAGE_READWRITE, &oldProtect);
+#else
     static const size_t pageSize = sysconf(_SC_PAGESIZE);
     const size_t iaddr = reinterpret_cast<size_t>(base);
     const size_t roundAddr = iaddr & ~(pageSize - static_cast<size_t>(1));
     const int mode = is_executable ? (PROT_READ | PROT_EXEC) : (PROT_READ | PROT_WRITE);
     mprotect(reinterpret_cast<void*>(roundAddr), size + (iaddr - roundAddr), mode);
-#    endif
+#endif
 }
 #endif
 
@@ -216,27 +225,26 @@ bool IsUnderRosetta() {
     size_t result_size = sizeof(result);
     if (sysctlbyname("sysctl.proc_translated", &result, &result_size, nullptr, 0) == -1) {
         if (errno != ENOENT)
-            fmt::print("IsUnderRosetta: Failed to detect Rosetta state, assuming not under Rosetta");
+            fmt::print(
+                "IsUnderRosetta: Failed to detect Rosetta state, assuming not under Rosetta");
         return false;
     }
     return result != 0;
 }
 #endif
 
-}  // anonymous namespace
+} // anonymous namespace
 
 #ifdef DYNARMIC_ENABLE_NO_EXECUTE_SUPPORT
 static const auto default_cg_mode = Xbyak::DontSetProtectRWE;
 #else
-static const auto default_cg_mode = nullptr; //Allow RWE
+static const auto default_cg_mode = nullptr; // Allow RWE
 #endif
 
-BlockOfCode::BlockOfCode(RunCodeCallbacks cb, JitStateInfo jsi, size_t total_code_size, std::function<void(BlockOfCode&)> rcp)
-        : Xbyak::CodeGenerator(total_code_size, default_cg_mode, &s_allocator)
-        , cb(std::move(cb))
-        , jsi(jsi)
-        , constant_pool(*this, CONSTANT_POOL_SIZE)
-        , host_features(GetHostFeatures()) {
+BlockOfCode::BlockOfCode(RunCodeCallbacks cb, JitStateInfo jsi, size_t total_code_size,
+                         std::function<void(BlockOfCode&)> rcp)
+    : Xbyak::CodeGenerator(total_code_size, default_cg_mode, &s_allocator), cb(std::move(cb)),
+      jsi(jsi), constant_pool(*this, CONSTANT_POOL_SIZE), host_features(GetHostFeatures()) {
     EnableWriting();
     EnsureMemoryCommitted(PRELUDE_COMMIT_SIZE);
     GenRunCode(rcp);
@@ -251,21 +259,21 @@ void BlockOfCode::PreludeComplete() {
 
 void BlockOfCode::EnableWriting() {
 #ifdef DYNARMIC_ENABLE_NO_EXECUTE_SUPPORT
-#    ifdef _WIN32
+#ifdef _WIN32
     ProtectMemory(getCode(), committed_size, false);
-#    else
+#else
     ProtectMemory(getCode(), maxSize_, false);
-#    endif
+#endif
 #endif
 }
 
 void BlockOfCode::DisableWriting() {
 #ifdef DYNARMIC_ENABLE_NO_EXECUTE_SUPPORT
-#    ifdef _WIN32
+#ifdef _WIN32
     ProtectMemory(getCode(), committed_size, true);
-#    else
+#else
     ProtectMemory(getCode(), maxSize_, true);
-#    endif
+#endif
 #endif
 }
 
@@ -286,11 +294,11 @@ void BlockOfCode::EnsureMemoryCommitted([[maybe_unused]] size_t codesize) {
 #ifdef _WIN32
     if (committed_size < size_ + codesize) {
         committed_size = std::min<size_t>(maxSize_, committed_size + codesize);
-#    ifdef DYNARMIC_ENABLE_NO_EXECUTE_SUPPORT
+#ifdef DYNARMIC_ENABLE_NO_EXECUTE_SUPPORT
         VirtualAlloc(top_, committed_size, MEM_COMMIT, PAGE_READWRITE);
-#    else
+#else
         VirtualAlloc(top_, committed_size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-#    endif
+#endif
     }
 #endif
 }
@@ -364,7 +372,8 @@ void BlockOfCode::GenRunCode(std::function<void(BlockOfCode&)> rcp) {
 
     cmp(dword[ABI_JIT_PTR + jsi.offsetof_halt_reason], 0);
     jne(return_to_caller_mxcsr_already_exited, T_NEAR);
-    lock(); or_(dword[ABI_JIT_PTR + jsi.offsetof_halt_reason], static_cast<u32>(HaltReason::Step));
+    lock();
+    or_(dword[ABI_JIT_PTR + jsi.offsetof_halt_reason], static_cast<u32>(HaltReason::Step));
 
     SwitchMxcsrOnEntry();
     jmp(ABI_PARAM2);
@@ -470,27 +479,27 @@ void BlockOfCode::LoadRequiredFlagsForCondFromRax(IR::Cond cond) {
     // add al, 0x7F restores OF
 
     switch (cond) {
-    case IR::Cond::EQ:  // z
-    case IR::Cond::NE:  // !z
-    case IR::Cond::CS:  // c
-    case IR::Cond::CC:  // !c
-    case IR::Cond::MI:  // n
-    case IR::Cond::PL:  // !n
+    case IR::Cond::EQ: // z
+    case IR::Cond::NE: // !z
+    case IR::Cond::CS: // c
+    case IR::Cond::CC: // !c
+    case IR::Cond::MI: // n
+    case IR::Cond::PL: // !n
         sahf();
         break;
-    case IR::Cond::VS:  // v
-    case IR::Cond::VC:  // !v
+    case IR::Cond::VS: // v
+    case IR::Cond::VC: // !v
         cmp(al, 0x81);
         break;
-    case IR::Cond::HI:  // c & !z
-    case IR::Cond::LS:  // !c | z
+    case IR::Cond::HI: // c & !z
+    case IR::Cond::LS: // !c | z
         sahf();
         cmc();
         break;
-    case IR::Cond::GE:  // n == v
-    case IR::Cond::LT:  // n != v
-    case IR::Cond::GT:  // !z & (n == v)
-    case IR::Cond::LE:  // z | (n != v)
+    case IR::Cond::GE: // n == v
+    case IR::Cond::LT: // n != v
+    case IR::Cond::GT: // !z & (n == v)
+    case IR::Cond::LE: // z | (n != v)
 #ifdef __APPLE__
         if (is_rosetta) {
             shl(al, 3);
@@ -550,4 +559,4 @@ void BlockOfCode::EnsurePatchLocationSize(CodePtr begin, size_t size) {
     nop(size - current_size);
 }
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

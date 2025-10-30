@@ -91,8 +91,8 @@ static_assert(sizeof(PromotionInfo) == 0x20, "PromotionInfo has incorrect size."
 // TODO(Maufeat): NsApplicationViewWithPromotionInfo is on SDK20+ 0x78 bytes
 /// NsApplicationViewWithPromotionInfo
 struct ApplicationViewWithPromotionInfo {
-    ApplicationView view;           ///< \ref NsApplicationView
-    PromotionInfo promotion;        ///< \ref NsPromotionInfo
+    ApplicationView view;    ///< \ref NsApplicationView
+    PromotionInfo promotion; ///< \ref NsPromotionInfo
 };
 static_assert(sizeof(ApplicationViewWithPromotionInfo) == 0x70,
               "ApplicationViewWithPromotionInfo has incorrect size.");
@@ -127,6 +127,7 @@ struct ApplicationDisplayData {
     std::array<char, 0x200> application_name;
     std::array<char, 0x100> developer_name;
 };
-static_assert(sizeof(ApplicationDisplayData) == 0x300, "ApplicationDisplayData has incorrect size.");
+static_assert(sizeof(ApplicationDisplayData) == 0x300,
+              "ApplicationDisplayData has incorrect size.");
 
 } // namespace Service::NS

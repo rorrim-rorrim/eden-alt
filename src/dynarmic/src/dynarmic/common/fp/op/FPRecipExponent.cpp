@@ -19,7 +19,7 @@
 
 namespace Dynarmic::FP {
 namespace {
-template<typename FPT>
+template <typename FPT>
 FPT DetermineExponentValue(size_t value) {
     if constexpr (sizeof(FPT) == sizeof(u32)) {
         return static_cast<FPT>(mcl::bit::get_bits<23, 30>(value));
@@ -29,9 +29,9 @@ FPT DetermineExponentValue(size_t value) {
         return static_cast<FPT>(mcl::bit::get_bits<10, 14>(value));
     }
 }
-}  // Anonymous namespace
+} // Anonymous namespace
 
-template<typename FPT>
+template <typename FPT>
 FPT FPRecipExponent(FPT op, FPCR fpcr, FPSR& fpsr) {
     const auto [type, sign, value] = FPUnpack<FPT>(op, fpcr, fpsr);
     (void)value;
@@ -51,7 +51,8 @@ FPT FPRecipExponent(FPT op, FPCR fpcr, FPSR& fpsr) {
 
     // Infinities and normals
     const FPT negated_exponent = FPT(~exponent);
-    const FPT adjusted_exponent = FPT(negated_exponent << FPInfo<FPT>::explicit_mantissa_width) & FPInfo<FPT>::exponent_mask;
+    const FPT adjusted_exponent =
+        FPT(negated_exponent << FPInfo<FPT>::explicit_mantissa_width) & FPInfo<FPT>::exponent_mask;
     return FPT(sign_bits | adjusted_exponent);
 }
 
@@ -59,4 +60,4 @@ template u16 FPRecipExponent<u16>(u16 op, FPCR fpcr, FPSR& fpsr);
 template u32 FPRecipExponent<u32>(u32 op, FPCR fpcr, FPSR& fpsr);
 template u64 FPRecipExponent<u64>(u64 op, FPCR fpcr, FPSR& fpsr);
 
-}  // namespace Dynarmic::FP
+} // namespace Dynarmic::FP

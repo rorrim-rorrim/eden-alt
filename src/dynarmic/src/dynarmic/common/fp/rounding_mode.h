@@ -12,7 +12,8 @@ namespace Dynarmic::FP {
 
 /// Ordering of first four values is important as they correspond to bits in FPCR.
 enum class RoundingMode {
-    /// Round to nearest floating point. If there is a tie, round to nearest even digit in required position.
+    /// Round to nearest floating point. If there is a tie, round to nearest even digit in required
+    /// position.
     ToNearest_TieEven,
     /// Round up towards positive infinity.
     TowardsPlusInfinity,
@@ -27,4 +28,4 @@ enum class RoundingMode {
     ToOdd,
 };
 
-}  // namespace Dynarmic::FP
+} // namespace Dynarmic::FP

@@ -10,7 +10,7 @@
 
 namespace Dynarmic::IR {
 class Block;
-}  // namespace Dynarmic::IR
+} // namespace Dynarmic::IR
 
 namespace Dynarmic::Backend::RV64 {
 
@@ -23,4 +23,4 @@ struct EmitContext {
     EmittedBlockInfo& ebi;
 };
 
-}  // namespace Dynarmic::Backend::RV64
+} // namespace Dynarmic::Backend::RV64

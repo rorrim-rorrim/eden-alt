@@ -8,9 +8,9 @@
 
 #include <tuple>
 
-#include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_field.hpp>
 #include <mcl/bit/swap.hpp>
+#include "dynarmic/common/assert.h"
 
 #include "dynarmic/frontend/A32/a32_ir_emitter.h"
 #include "dynarmic/frontend/A32/a32_location_descriptor.h"
@@ -28,10 +28,7 @@
 namespace Dynarmic::A32 {
 namespace {
 
-enum class ThumbInstSize {
-    Thumb16,
-    Thumb32
-};
+enum class ThumbInstSize { Thumb16, Thumb32 };
 
 bool IsThumb16(u16 first_part) {
     return first_part < 0xE800;
@@ -40,14 +37,15 @@ bool IsThumb16(u16 first_part) {
 bool IsUnconditionalInstruction(bool is_thumb_16, u32 instruction) {
     if (!is_thumb_16)
         return false;
-    if ((instruction & 0xFF00) == 0b10111110'00000000)  // BKPT
+    if ((instruction & 0xFF00) == 0b10111110'00000000) // BKPT
         return true;
-    if ((instruction & 0xFFC0) == 0b10111010'10000000)  // HLT
+    if ((instruction & 0xFFC0) == 0b10111010'10000000) // HLT
         return true;
     return false;
 }
 
-std::optional<std::tuple<u32, ThumbInstSize>> ReadThumbInstruction(u32 arm_pc, TranslateCallbacks* tcb) {
+std::optional<std::tuple<u32, ThumbInstSize>> ReadThumbInstruction(u32 arm_pc,
+                                                                   TranslateCallbacks* tcb) {
     u32 instruction;
 
     const std::optional<u32> first_part = tcb->MemoryReadCode(arm_pc & 0xFFFFFFFC);
@@ -94,16 +92,18 @@ u32 ConvertASIMDInstruction(u32 thumb_instruction) {
         return 0xF4000000 | (thumb_instruction & 0x00FFFFFF);
     }
 
-    return 0xF7F0A000;  // UDF
+    return 0xF7F0A000; // UDF
 }
 
 inline bool MaybeVFPOrASIMDInstruction(u32 thumb_instruction) noexcept {
-    return (thumb_instruction & 0xEC000000) == 0xEC000000 || (thumb_instruction & 0xFF100000) == 0xF9000000;
+    return (thumb_instruction & 0xEC000000) == 0xEC000000 ||
+           (thumb_instruction & 0xFF100000) == 0xF9000000;
 }
 
-}  // namespace
+} // namespace
 
-IR::Block TranslateThumb(LocationDescriptor descriptor, TranslateCallbacks* tcb, const TranslationOptions& options) {
+IR::Block TranslateThumb(LocationDescriptor descriptor, TranslateCallbacks* tcb,
+                         const TranslationOptions& options) {
     const bool single_step = descriptor.SingleStepping();
 
     IR::Block block{descriptor};
@@ -127,25 +127,33 @@ IR::Block TranslateThumb(LocationDescriptor descriptor, TranslateCallbacks* tcb,
             tcb->PreCodeTranslationHook(true, arm_pc, visitor.ir);
             ticks_for_instruction = tcb->GetTicksForCode(true, arm_pc, thumb_instruction);
 
-            if (IsUnconditionalInstruction(is_thumb_16, thumb_instruction) || visitor.ThumbConditionPassed()) {
+            if (IsUnconditionalInstruction(is_thumb_16, thumb_instruction) ||
+                visitor.ThumbConditionPassed()) {
                 if (is_thumb_16) {
-                    if (const auto decoder = DecodeThumb16<TranslatorVisitor>(static_cast<u16>(thumb_instruction))) {
-                        should_continue = decoder->get().call(visitor, static_cast<u16>(thumb_instruction));
+                    if (const auto decoder =
+                            DecodeThumb16<TranslatorVisitor>(static_cast<u16>(thumb_instruction))) {
+                        should_continue =
+                            decoder->get().call(visitor, static_cast<u16>(thumb_instruction));
                     } else {
                         should_continue = visitor.thumb16_UDF();
                     }
                 } else {
                     if (MaybeVFPOrASIMDInstruction(thumb_instruction)) {
-                        if (const auto vfp_decoder = DecodeVFP<TranslatorVisitor>(thumb_instruction)) {
+                        if (const auto vfp_decoder =
+                                DecodeVFP<TranslatorVisitor>(thumb_instruction)) {
                             should_continue = vfp_decoder->get().call(visitor, thumb_instruction);
-                        } else if (const auto asimd_decoder = DecodeASIMD<TranslatorVisitor>(ConvertASIMDInstruction(thumb_instruction))) {
-                            should_continue = asimd_decoder->get().call(visitor, ConvertASIMDInstruction(thumb_instruction));
-                        } else if (const auto decoder = DecodeThumb32<TranslatorVisitor>(thumb_instruction)) {
+                        } else if (const auto asimd_decoder = DecodeASIMD<TranslatorVisitor>(
+                                       ConvertASIMDInstruction(thumb_instruction))) {
+                            should_continue = asimd_decoder->get().call(
+                                visitor, ConvertASIMDInstruction(thumb_instruction));
+                        } else if (const auto decoder =
+                                       DecodeThumb32<TranslatorVisitor>(thumb_instruction)) {
                             should_continue = decoder->get().call(visitor, thumb_instruction);
                         } else {
                             should_continue = visitor.thumb32_UDF();
                         }
-                    } else if (const auto decoder = DecodeThumb32<TranslatorVisitor>(thumb_instruction)) {
+                    } else if (const auto decoder =
+                                   DecodeThumb32<TranslatorVisitor>(thumb_instruction)) {
                         should_continue = decoder->get().call(visitor, thumb_instruction);
                     } else {
                         should_continue = visitor.thumb32_UDF();
@@ -162,11 +170,15 @@ IR::Block TranslateThumb(LocationDescriptor descriptor, TranslateCallbacks* tcb,
             break;
         }
 
-        visitor.ir.current_location = visitor.ir.current_location.AdvancePC(static_cast<int>(visitor.current_instruction_size)).AdvanceIT();
+        visitor.ir.current_location =
+            visitor.ir.current_location
+                .AdvancePC(static_cast<int>(visitor.current_instruction_size))
+                .AdvanceIT();
         block.CycleCount() += ticks_for_instruction;
     } while (should_continue && CondCanContinue(visitor.cond_state, visitor.ir) && !single_step);
 
-    if (visitor.cond_state == ConditionalState::Translating || visitor.cond_state == ConditionalState::Trailing || single_step) {
+    if (visitor.cond_state == ConditionalState::Translating ||
+        visitor.cond_state == ConditionalState::Trailing || single_step) {
         if (should_continue) {
             if (single_step) {
                 visitor.ir.SetTerm(IR::Term::LinkBlock{visitor.ir.current_location});
@@ -183,7 +195,8 @@ IR::Block TranslateThumb(LocationDescriptor descriptor, TranslateCallbacks* tcb,
     return block;
 }
 
-bool TranslateSingleThumbInstruction(IR::Block& block, LocationDescriptor descriptor, u32 thumb_instruction) {
+bool TranslateSingleThumbInstruction(IR::Block& block, LocationDescriptor descriptor,
+                                     u32 thumb_instruction) {
     TranslatorVisitor visitor{block, descriptor, {}};
 
     bool should_continue = true;
@@ -194,7 +207,8 @@ bool TranslateSingleThumbInstruction(IR::Block& block, LocationDescriptor descri
     const u64 ticks_for_instruction = 1;
 
     if (is_thumb_16) {
-        if (const auto decoder = DecodeThumb16<TranslatorVisitor>(static_cast<u16>(thumb_instruction))) {
+        if (const auto decoder =
+                DecodeThumb16<TranslatorVisitor>(static_cast<u16>(thumb_instruction))) {
             should_continue = decoder->get().call(visitor, static_cast<u16>(thumb_instruction));
         } else {
             should_continue = visitor.thumb16_UDF();
@@ -204,8 +218,10 @@ bool TranslateSingleThumbInstruction(IR::Block& block, LocationDescriptor descri
         if (MaybeVFPOrASIMDInstruction(thumb_instruction)) {
             if (const auto vfp_decoder = DecodeVFP<TranslatorVisitor>(thumb_instruction)) {
                 should_continue = vfp_decoder->get().call(visitor, thumb_instruction);
-            } else if (const auto asimd_decoder = DecodeASIMD<TranslatorVisitor>(ConvertASIMDInstruction(thumb_instruction))) {
-                should_continue = asimd_decoder->get().call(visitor, ConvertASIMDInstruction(thumb_instruction));
+            } else if (const auto asimd_decoder = DecodeASIMD<TranslatorVisitor>(
+                           ConvertASIMDInstruction(thumb_instruction))) {
+                should_continue =
+                    asimd_decoder->get().call(visitor, ConvertASIMDInstruction(thumb_instruction));
             } else if (const auto decoder = DecodeThumb32<TranslatorVisitor>(thumb_instruction)) {
                 should_continue = decoder->get().call(visitor, thumb_instruction);
             } else {
@@ -227,4 +243,4 @@ bool TranslateSingleThumbInstruction(IR::Block& block, LocationDescriptor descri
     return should_continue;
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

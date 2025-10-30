@@ -4,9 +4,9 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <ranges>
 #include "audio_core/audio_event.h"
 #include "common/assert.h"
-#include <ranges>
 
 namespace AudioCore {
 

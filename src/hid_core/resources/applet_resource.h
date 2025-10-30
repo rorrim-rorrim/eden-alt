@@ -7,8 +7,8 @@
 #pragma once
 
 #include <array>
-#include <mutex>
 #include <memory>
+#include <mutex>
 
 #include "common/bit_field.h"
 #include "common/common_types.h"

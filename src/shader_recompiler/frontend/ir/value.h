@@ -16,8 +16,8 @@
 #include <boost/container/small_vector.hpp>
 #include <boost/intrusive/list.hpp>
 
-#include "common/assert.h"
 #include <numeric>
+#include "common/assert.h"
 #include "common/common_types.h"
 #include "shader_recompiler/exception.h"
 #include "shader_recompiler/frontend/ir/attribute.h"

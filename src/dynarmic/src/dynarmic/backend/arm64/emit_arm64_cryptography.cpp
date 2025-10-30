@@ -18,7 +18,7 @@ namespace Dynarmic::Backend::Arm64 {
 
 using namespace oaknut::util;
 
-template<size_t bitsize, typename EmitFn>
+template <size_t bitsize, typename EmitFn>
 static void EmitCRC(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit_fn) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -30,48 +30,69 @@ static void EmitCRC(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, Em
     emit_fn(Woutput, Winput, Rdata);
 }
 
-template<>
-void EmitIR<IR::Opcode::CRC32Castagnoli8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitCRC<32>(code, ctx, inst, [&](auto& Woutput, auto& Winput, auto& Wdata) { code.CRC32CB(Woutput, Winput, Wdata); });
+template <>
+void EmitIR<IR::Opcode::CRC32Castagnoli8>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                          IR::Inst* inst) {
+    EmitCRC<32>(code, ctx, inst, [&](auto& Woutput, auto& Winput, auto& Wdata) {
+        code.CRC32CB(Woutput, Winput, Wdata);
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::CRC32Castagnoli16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitCRC<32>(code, ctx, inst, [&](auto& Woutput, auto& Winput, auto& Wdata) { code.CRC32CH(Woutput, Winput, Wdata); });
+template <>
+void EmitIR<IR::Opcode::CRC32Castagnoli16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                           IR::Inst* inst) {
+    EmitCRC<32>(code, ctx, inst, [&](auto& Woutput, auto& Winput, auto& Wdata) {
+        code.CRC32CH(Woutput, Winput, Wdata);
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::CRC32Castagnoli32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitCRC<32>(code, ctx, inst, [&](auto& Woutput, auto& Winput, auto& Wdata) { code.CRC32CW(Woutput, Winput, Wdata); });
+template <>
+void EmitIR<IR::Opcode::CRC32Castagnoli32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                           IR::Inst* inst) {
+    EmitCRC<32>(code, ctx, inst, [&](auto& Woutput, auto& Winput, auto& Wdata) {
+        code.CRC32CW(Woutput, Winput, Wdata);
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::CRC32Castagnoli64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitCRC<64>(code, ctx, inst, [&](auto& Woutput, auto& Winput, auto& Xdata) { code.CRC32CX(Woutput, Winput, Xdata); });
+template <>
+void EmitIR<IR::Opcode::CRC32Castagnoli64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                           IR::Inst* inst) {
+    EmitCRC<64>(code, ctx, inst, [&](auto& Woutput, auto& Winput, auto& Xdata) {
+        code.CRC32CX(Woutput, Winput, Xdata);
+    });
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::CRC32ISO8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitCRC<32>(code, ctx, inst, [&](auto& Woutput, auto& Winput, auto& Wdata) { code.CRC32B(Woutput, Winput, Wdata); });
+    EmitCRC<32>(code, ctx, inst, [&](auto& Woutput, auto& Winput, auto& Wdata) {
+        code.CRC32B(Woutput, Winput, Wdata);
+    });
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::CRC32ISO16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitCRC<32>(code, ctx, inst, [&](auto& Woutput, auto& Winput, auto& Wdata) { code.CRC32H(Woutput, Winput, Wdata); });
+    EmitCRC<32>(code, ctx, inst, [&](auto& Woutput, auto& Winput, auto& Wdata) {
+        code.CRC32H(Woutput, Winput, Wdata);
+    });
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::CRC32ISO32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitCRC<32>(code, ctx, inst, [&](auto& Woutput, auto& Winput, auto& Wdata) { code.CRC32W(Woutput, Winput, Wdata); });
+    EmitCRC<32>(code, ctx, inst, [&](auto& Woutput, auto& Winput, auto& Wdata) {
+        code.CRC32W(Woutput, Winput, Wdata);
+    });
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::CRC32ISO64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitCRC<64>(code, ctx, inst, [&](auto& Woutput, auto& Winput, auto& Xdata) { code.CRC32X(Woutput, Winput, Xdata); });
+    EmitCRC<64>(code, ctx, inst, [&](auto& Woutput, auto& Winput, auto& Xdata) {
+        code.CRC32X(Woutput, Winput, Xdata);
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::AESDecryptSingleRound>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::AESDecryptSingleRound>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                               IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qoutput = ctx.reg_alloc.WriteQ(inst);
     auto Qinput = ctx.reg_alloc.ReadQ(args[0]);
@@ -81,8 +102,9 @@ void EmitIR<IR::Opcode::AESDecryptSingleRound>(oaknut::CodeGenerator& code, Emit
     code.AESD(Qoutput->B16(), Qinput->B16());
 }
 
-template<>
-void EmitIR<IR::Opcode::AESEncryptSingleRound>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::AESEncryptSingleRound>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                               IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qoutput = ctx.reg_alloc.WriteQ(inst);
     auto Qinput = ctx.reg_alloc.ReadQ(args[0]);
@@ -92,8 +114,9 @@ void EmitIR<IR::Opcode::AESEncryptSingleRound>(oaknut::CodeGenerator& code, Emit
     code.AESE(Qoutput->B16(), Qinput->B16());
 }
 
-template<>
-void EmitIR<IR::Opcode::AESInverseMixColumns>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::AESInverseMixColumns>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qoutput = ctx.reg_alloc.WriteQ(inst);
     auto Qinput = ctx.reg_alloc.ReadQ(args[0]);
@@ -102,8 +125,9 @@ void EmitIR<IR::Opcode::AESInverseMixColumns>(oaknut::CodeGenerator& code, EmitC
     code.AESIMC(Qoutput->B16(), Qinput->B16());
 }
 
-template<>
-void EmitIR<IR::Opcode::AESMixColumns>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::AESMixColumns>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                       IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qoutput = ctx.reg_alloc.WriteQ(inst);
     auto Qinput = ctx.reg_alloc.ReadQ(args[0]);
@@ -112,15 +136,16 @@ void EmitIR<IR::Opcode::AESMixColumns>(oaknut::CodeGenerator& code, EmitContext&
     code.AESMC(Qoutput->B16(), Qinput->B16());
 }
 
-template<>
-void EmitIR<IR::Opcode::SM4AccessSubstitutionBox>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::SM4AccessSubstitutionBox>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                  IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::SHA256Hash>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const bool part1 = args[3].GetImmediateU1();
@@ -138,12 +163,13 @@ void EmitIR<IR::Opcode::SHA256Hash>(oaknut::CodeGenerator& code, EmitContext& ct
         auto Qz = ctx.reg_alloc.ReadQ(args[2]);
         RegAlloc::Realize(Qx, Qy, Qz);
 
-        code.SHA256H2(Qy, Qx, Qz->S4());  // Yes x and y are swapped
+        code.SHA256H2(Qy, Qx, Qz->S4()); // Yes x and y are swapped
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::SHA256MessageSchedule0>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::SHA256MessageSchedule0>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qa = ctx.reg_alloc.ReadWriteQ(args[0], inst);
     auto Qb = ctx.reg_alloc.ReadQ(args[1]);
@@ -152,8 +178,9 @@ void EmitIR<IR::Opcode::SHA256MessageSchedule0>(oaknut::CodeGenerator& code, Emi
     code.SHA256SU0(Qa->S4(), Qb->S4());
 }
 
-template<>
-void EmitIR<IR::Opcode::SHA256MessageSchedule1>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::SHA256MessageSchedule1>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qa = ctx.reg_alloc.ReadWriteQ(args[0], inst);
     auto Qb = ctx.reg_alloc.ReadQ(args[1]);
@@ -163,4 +190,4 @@ void EmitIR<IR::Opcode::SHA256MessageSchedule1>(oaknut::CodeGenerator& code, Emi
     code.SHA256SU1(Qa->S4(), Qb->S4(), Qc->S4());
 }
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

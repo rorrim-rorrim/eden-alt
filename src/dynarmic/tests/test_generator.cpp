@@ -137,8 +137,10 @@ bool ShouldTestInst(IR::Block& block) {
     return true;
 }
 
-bool ShouldTestA32Inst(u32 instruction, u32 pc, bool is_thumb, bool is_last_inst, A32::ITState it_state = {}) {
-    const A32::LocationDescriptor location = A32::LocationDescriptor{pc, {}, {}}.SetTFlag(is_thumb).SetIT(it_state);
+bool ShouldTestA32Inst(u32 instruction, u32 pc, bool is_thumb, bool is_last_inst,
+                       A32::ITState it_state = {}) {
+    const A32::LocationDescriptor location =
+        A32::LocationDescriptor{pc, {}, {}}.SetTFlag(is_thumb).SetIT(it_state);
     IR::Block block{location};
     const bool should_continue = A32::TranslateSingleInstruction(block, location, instruction);
 
@@ -180,27 +182,68 @@ u32 GenRandomArmInst(u32 pc, bool is_last_inst) {
         // List of instructions not to test
         static constexpr std::array do_not_test{
             // Translating load/stores
-            "arm_LDRBT", "arm_LDRBT", "arm_LDRHT", "arm_LDRHT", "arm_LDRSBT", "arm_LDRSBT", "arm_LDRSHT", "arm_LDRSHT", "arm_LDRT", "arm_LDRT",
-            "arm_STRBT", "arm_STRBT", "arm_STRHT", "arm_STRHT", "arm_STRT", "arm_STRT",
+            "arm_LDRBT",
+            "arm_LDRBT",
+            "arm_LDRHT",
+            "arm_LDRHT",
+            "arm_LDRSBT",
+            "arm_LDRSBT",
+            "arm_LDRSHT",
+            "arm_LDRSHT",
+            "arm_LDRT",
+            "arm_LDRT",
+            "arm_STRBT",
+            "arm_STRBT",
+            "arm_STRHT",
+            "arm_STRHT",
+            "arm_STRT",
+            "arm_STRT",
             // Exclusive load/stores
-            "arm_LDREXB", "arm_LDREXD", "arm_LDREXH", "arm_LDREX", "arm_LDAEXB", "arm_LDAEXD", "arm_LDAEXH", "arm_LDAEX",
-            "arm_STREXB", "arm_STREXD", "arm_STREXH", "arm_STREX", "arm_STLEXB", "arm_STLEXD", "arm_STLEXH", "arm_STLEX",
-            "arm_SWP", "arm_SWPB",
+            "arm_LDREXB",
+            "arm_LDREXD",
+            "arm_LDREXH",
+            "arm_LDREX",
+            "arm_LDAEXB",
+            "arm_LDAEXD",
+            "arm_LDAEXH",
+            "arm_LDAEX",
+            "arm_STREXB",
+            "arm_STREXD",
+            "arm_STREXH",
+            "arm_STREX",
+            "arm_STLEXB",
+            "arm_STLEXD",
+            "arm_STLEXH",
+            "arm_STLEX",
+            "arm_SWP",
+            "arm_SWPB",
             // Elevated load/store multiple instructions.
-            "arm_LDM_eret", "arm_LDM_usr",
+            "arm_LDM_eret",
+            "arm_LDM_usr",
             "arm_STM_usr",
             // Coprocessor
-            "arm_CDP", "arm_LDC", "arm_MCR", "arm_MCRR", "arm_MRC", "arm_MRRC", "arm_STC",
+            "arm_CDP",
+            "arm_LDC",
+            "arm_MCR",
+            "arm_MCRR",
+            "arm_MRC",
+            "arm_MRRC",
+            "arm_STC",
             // System
-            "arm_CPS", "arm_RFE", "arm_SRS",
+            "arm_CPS",
+            "arm_RFE",
+            "arm_SRS",
             // Undefined
             "arm_UDF",
             // FPSCR is inaccurate
             "vfp_VMRS",
             // Incorrect Unicorn implementations
-            "asimd_VRECPS",         // Unicorn does not fuse the multiply and subtraction, resulting in being off by 1ULP.
-            "asimd_VRSQRTS",        // Unicorn does not fuse the multiply and subtraction, resulting in being off by 1ULP.
-            "vfp_VCVT_from_fixed",  // Unicorn does not do round-to-nearest-even for this instruction correctly.
+            "asimd_VRECPS",  // Unicorn does not fuse the multiply and subtraction, resulting in
+                             // being off by 1ULP.
+            "asimd_VRSQRTS", // Unicorn does not fuse the multiply and subtraction, resulting in
+                             // being off by 1ULP.
+            "vfp_VCVT_from_fixed", // Unicorn does not do round-to-nearest-even for this instruction
+                                   // correctly.
         };
 
         for (const auto& [fn, bitstring] : list) {
@@ -217,7 +260,8 @@ u32 GenRandomArmInst(u32 pc, bool is_last_inst) {
         const size_t index = RandInt<size_t>(0, instructions.generators.size() - 1);
         const u32 inst = instructions.generators[index].Generate();
 
-        if ((instructions.generators[index].Mask() & 0xF0000000) == 0 && (inst & 0xF0000000) == 0xF0000000) {
+        if ((instructions.generators[index].Mask() & 0xF0000000) == 0 &&
+            (inst & 0xF0000000) == 0xF0000000) {
             continue;
         }
 
@@ -322,7 +366,8 @@ std::vector<u16> GenRandomThumbInst(u32 pc, bool is_last_inst, A32::ITState it_s
         const u32 inst = instructions.generators[index].Generate();
         const bool is_four_bytes = (inst >> 16) != 0;
 
-        if (ShouldTestA32Inst(is_four_bytes ? mcl::bit::swap_halves_32(inst) : inst, pc, true, is_last_inst, it_state)) {
+        if (ShouldTestA32Inst(is_four_bytes ? mcl::bit::swap_halves_32(inst) : inst, pc, true,
+                              is_last_inst, it_state)) {
             if (is_four_bytes)
                 return {static_cast<u16>(inst >> 16), static_cast<u16>(inst)};
             return {static_cast<u16>(inst)};
@@ -346,7 +391,8 @@ u32 GenRandomA64Inst(u64 pc, bool is_last_inst) {
 
         // List of instructions not to test
         const std::vector<std::string> do_not_test{
-            // Dynarmic and QEMU currently differ on how the exclusive monitor's address range works.
+            // Dynarmic and QEMU currently differ on how the exclusive monitor's address range
+            // works.
             "STXR",
             "STLXR",
             "STXP",
@@ -378,7 +424,8 @@ u32 GenRandomA64Inst(u64 pc, bool is_last_inst) {
         const size_t index = RandInt<size_t>(0, instructions.generators.size() - 1);
         const u32 inst = instructions.generators[index].Generate();
 
-        if (std::any_of(instructions.invalid.begin(), instructions.invalid.end(), [inst](const auto& invalid) { return invalid.Match(inst); })) {
+        if (std::any_of(instructions.invalid.begin(), instructions.invalid.end(),
+                        [inst](const auto& invalid) { return invalid.Match(inst); })) {
             continue;
         }
         if (ShouldTestA64Inst(inst, pc, is_last_inst)) {
@@ -387,7 +434,7 @@ u32 GenRandomA64Inst(u64 pc, bool is_last_inst) {
     }
 }
 
-template<typename TestEnv>
+template <typename TestEnv>
 Dynarmic::A32::UserConfig GetA32UserConfig(TestEnv& testenv, bool noopt) {
     Dynarmic::A32::UserConfig user_config;
     user_config.optimizations &= ~OptimizationFlag::FastDispatch;
@@ -398,16 +445,12 @@ Dynarmic::A32::UserConfig GetA32UserConfig(TestEnv& testenv, bool noopt) {
     return user_config;
 }
 
-template<size_t num_jit_reruns = 1, typename TestEnv>
-void RunTestInstance(Dynarmic::A32::Jit& jit,
-                    TestEnv& jit_env,
-                    const std::array<u32, 16>& regs,
-                    const std::array<u32, 64>& vecs,
-                    const std::vector<typename TestEnv::InstructionType>& instructions,
-                    const u32 cpsr,
-                    const u32 fpscr,
-                    const size_t ticks_left,
-                    const bool show_disas) {
+template <size_t num_jit_reruns = 1, typename TestEnv>
+void RunTestInstance(Dynarmic::A32::Jit& jit, TestEnv& jit_env, const std::array<u32, 16>& regs,
+                     const std::array<u32, 64>& vecs,
+                     const std::vector<typename TestEnv::InstructionType>& instructions,
+                     const u32 cpsr, const u32 fpscr, const size_t ticks_left,
+                     const bool show_disas) {
     const u32 initial_pc = regs[15];
     const u32 num_words = initial_pc / sizeof(typename TestEnv::InstructionType);
     const u32 code_mem_size = num_words + static_cast<u32>(instructions.size());
@@ -468,7 +511,8 @@ void RunTestInstance(Dynarmic::A32::Jit& jit,
         }
         fmt::print("\n");
         fmt::print("final_cpsr: {:08x}\n", jit.Cpsr());
-        fmt::print("final_fpsr: {:08x}\n", mask_fpsr_cum_bits ? jit.Fpscr() & 0xffffff00 : jit.Fpscr());
+        fmt::print("final_fpsr: {:08x}\n",
+                   mask_fpsr_cum_bits ? jit.Fpscr() & 0xffffff00 : jit.Fpscr());
         fmt::print("mod_mem: ");
         for (auto [addr, value] : jit_env.modified_memory) {
             fmt::print("{:08x}:{:02x} ", addr, value);
@@ -496,23 +540,17 @@ Dynarmic::A64::UserConfig GetA64UserConfig(A64TestEnv& jit_env, bool noopt) {
     return jit_user_config;
 }
 
-template<size_t num_jit_reruns = 2>
-void RunTestInstance(Dynarmic::A64::Jit& jit,
-                    A64TestEnv& jit_env,
-                    const std::array<u64, 31>& regs,
-                    const std::array<std::array<u64, 2>, 32>& vecs,
-                    const std::vector<u32>& instructions,
-                    const u32 pstate,
-                    const u32 fpcr,
-                    const u64 initial_sp,
-                    const u64 start_address,
-                    const size_t ticks_left,
-                    const bool show_disas) {
+template <size_t num_jit_reruns = 2>
+void RunTestInstance(Dynarmic::A64::Jit& jit, A64TestEnv& jit_env, const std::array<u64, 31>& regs,
+                     const std::array<std::array<u64, 2>, 32>& vecs,
+                     const std::vector<u32>& instructions, const u32 pstate, const u32 fpcr,
+                     const u64 initial_sp, const u64 start_address, const size_t ticks_left,
+                     const bool show_disas) {
     jit.ClearCache();
 
     for (size_t jit_rerun_count = 0; jit_rerun_count < num_jit_reruns; ++jit_rerun_count) {
         jit_env.code_mem = instructions;
-        jit_env.code_mem.emplace_back(0x14000000);  // B .
+        jit_env.code_mem.emplace_back(0x14000000); // B .
         jit_env.code_mem_start_address = start_address;
         jit_env.modified_memory.clear();
         jit_env.interrupts.clear();
@@ -574,7 +612,7 @@ void RunTestInstance(Dynarmic::A64::Jit& jit,
     }
 }
 
-}  // Anonymous namespace
+} // Anonymous namespace
 
 void TestThumb(size_t num_instructions, size_t num_iterations, bool noopt, bool show_disas) {
     ThumbTestEnv jit_env{};
@@ -594,12 +632,15 @@ void TestThumb(size_t num_instructions, size_t num_iterations, bool noopt, bool 
 
         instructions.clear();
         for (size_t i = 0; i < num_instructions; ++i) {
-            const auto inst = GenRandomThumbInst(static_cast<u32>(start_address + 2 * instructions.size()), i == num_instructions - 1);
+            const auto inst =
+                GenRandomThumbInst(static_cast<u32>(start_address + 2 * instructions.size()),
+                                   i == num_instructions - 1);
             instructions.insert(instructions.end(), inst.begin(), inst.end());
         }
 
         regs[15] = start_address;
-        RunTestInstance(jit, jit_env, regs, ext_reg, instructions, cpsr, fpcr, num_instructions, show_disas);
+        RunTestInstance(jit, jit_env, regs, ext_reg, instructions, cpsr, fpcr, num_instructions,
+                        show_disas);
     }
 }
 
@@ -621,11 +662,14 @@ void TestArm(size_t num_instructions, size_t num_iterations, bool noopt, bool sh
 
         instructions.clear();
         for (size_t i = 0; i < num_instructions; ++i) {
-            instructions.emplace_back(GenRandomArmInst(static_cast<u32>(start_address + 4 * instructions.size()), i == num_instructions - 1));
+            instructions.emplace_back(
+                GenRandomArmInst(static_cast<u32>(start_address + 4 * instructions.size()),
+                                 i == num_instructions - 1));
         }
 
         regs[15] = start_address;
-        RunTestInstance(jit, jit_env, regs, ext_reg, instructions, cpsr, fpcr, num_instructions, show_disas);
+        RunTestInstance(jit, jit_env, regs, ext_reg, instructions, cpsr, fpcr, num_instructions,
+                        show_disas);
     }
 }
 
@@ -648,10 +692,13 @@ void TestA64(size_t num_instructions, size_t num_iterations, bool noopt, bool sh
 
         instructions.clear();
         for (size_t i = 0; i < num_instructions; ++i) {
-            instructions.emplace_back(GenRandomA64Inst(static_cast<u32>(start_address + 4 * instructions.size()), i == num_instructions - 1));
+            instructions.emplace_back(
+                GenRandomA64Inst(static_cast<u32>(start_address + 4 * instructions.size()),
+                                 i == num_instructions - 1));
         }
 
-        RunTestInstance(jit, jit_env, regs, vecs, instructions, pstate, fpcr, initial_sp, start_address, num_instructions, show_disas);
+        RunTestInstance(jit, jit_env, regs, vecs, instructions, pstate, fpcr, initial_sp,
+                        start_address, num_instructions, show_disas);
     }
 }
 
@@ -671,7 +718,9 @@ static std::optional<size_t> str2sz(char const* s) {
 
 int main(int argc, char* argv[]) {
     if (argc < 5 || argc > 6) {
-        fmt::print("Usage: {} <thumb|arm|a64> <seed> <instruction_count> <iteration_count> [noopt]\n", argv[0]);
+        fmt::print(
+            "Usage: {} <thumb|arm|a64> <seed> <instruction_count> <iteration_count> [noopt]\n",
+            argv[0]);
         return 1;
     }
 

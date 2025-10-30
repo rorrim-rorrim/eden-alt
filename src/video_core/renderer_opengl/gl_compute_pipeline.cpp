@@ -4,8 +4,8 @@
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <cstring>
 #include <bit>
+#include <cstring>
 #include <numeric>
 #include "common/cityhash.h"
 #include "common/settings.h" // for enum class Settings::ShaderBackend
@@ -35,8 +35,8 @@ ComputePipeline::ComputePipeline(const Device& device, TextureCache& texture_cac
                                  BufferCache& buffer_cache_, ProgramManager& program_manager_,
                                  const Shader::Info& info_, std::string code,
                                  std::vector<u32> code_v, bool force_context_flush)
-    : texture_cache{texture_cache_}, buffer_cache{buffer_cache_},
-      program_manager{program_manager_}, info{info_} {
+    : texture_cache{texture_cache_}, buffer_cache{buffer_cache_}, program_manager{program_manager_},
+      info{info_} {
     switch (device.GetShaderBackend()) {
     case Settings::ShaderBackend::Glsl:
         source_program = CreateProgram(code, GL_COMPUTE_SHADER);

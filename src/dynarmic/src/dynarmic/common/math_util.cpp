@@ -65,4 +65,4 @@ u8 RecipSqrtEstimate(u64 a) {
     return lut[a & 0x1FF];
 }
 
-}  // namespace Dynarmic::Common
+} // namespace Dynarmic::Common

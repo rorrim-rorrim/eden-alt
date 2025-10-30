@@ -92,16 +92,14 @@ static const constexpr frozen::map<StringKey, frozen::string, 27> strings = {
      QT_TR_NOOP("Would you like to migrate your data for use in Eden?\n"
                 "Select the corresponding button to migrate data from that emulator.\n"
                 "This may take a while.")},
-    {MigrationTooltipClearShader,
-     QT_TR_NOOP("Clearing shader cache is recommended for all "
-                "users.\nDo not uncheck unless you know what "
-                "you're doing.")},
+    {MigrationTooltipClearShader, QT_TR_NOOP("Clearing shader cache is recommended for all "
+                                             "users.\nDo not uncheck unless you know what "
+                                             "you're doing.")},
     {MigrationTooltipKeepOld,
      QT_TR_NOOP("Keeps the old data directory. This is recommended if you aren't\n"
                 "space-constrained and want to keep separate data for the old emulator.")},
-    {MigrationTooltipClearOld,
-     QT_TR_NOOP("Deletes the old data directory.\nThis is recommended on "
-                "devices with space constraints.")},
+    {MigrationTooltipClearOld, QT_TR_NOOP("Deletes the old data directory.\nThis is recommended on "
+                                          "devices with space constraints.")},
     {MigrationTooltipLinkOld,
      QT_TR_NOOP("Creates a filesystem link between the old directory and Eden directory.\n"
                 "This is recommended if you want to share data between emulators.")},
@@ -116,8 +114,7 @@ static const constexpr frozen::map<StringKey, frozen::string, 27> strings = {
     {RyujinxNoSaveId, QT_TR_NOOP("Title %1 not found in Ryujinx title database.")},
 };
 
-static inline const QString Lookup(StringKey key)
-{
+static inline const QString Lookup(StringKey key) {
     return QObject::tr(strings.at(key).data());
 }
 

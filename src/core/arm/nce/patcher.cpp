@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <numeric>
 #include <bit>
+#include <numeric>
 #include "common/arm64/native_clock.h"
 #include "common/literals.h"
 #include "core/arm/nce/arm_nce.h"
@@ -11,28 +11,23 @@
 #include "core/arm/nce/patcher.h"
 #include "core/core.h"
 #include "core/core_timing.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/svc.h"
 #include "core/memory.h"
-#include "core/hle/kernel/k_thread.h"
 
 namespace Core::NCE {
 
 Patcher::Patcher(Patcher&& other) noexcept
     : patch_cache(std::move(other.patch_cache)),
-      m_patch_instructions(std::move(other.m_patch_instructions)),
-      c(m_patch_instructions),
-      m_save_context(other.m_save_context),
-      m_load_context(other.m_load_context),
-      mode(other.mode),
+      m_patch_instructions(std::move(other.m_patch_instructions)), c(m_patch_instructions),
+      m_save_context(other.m_save_context), m_load_context(other.m_load_context), mode(other.mode),
       total_program_size(other.total_program_size),
-      m_relocate_module_index(other.m_relocate_module_index),
-      modules(std::move(other.modules)),
+      m_relocate_module_index(other.m_relocate_module_index), modules(std::move(other.modules)),
       curr_patch(nullptr) {
     if (!modules.empty()) {
         curr_patch = &modules.back();
     }
 }
-
 
 using namespace Common::Literals;
 using namespace oaknut::util;
@@ -44,7 +39,7 @@ constexpr u32 ModuleCodeIndex = 0x24 / sizeof(u32);
 
 Patcher::Patcher() : c(m_patch_instructions) {
     LOG_WARNING(Core_ARM, "Patcher initialized with LRU cache {}",
-        patch_cache.isEnabled() ? "enabled" : "disabled");
+                patch_cache.isEnabled() ? "enabled" : "disabled");
     // The first word of the patch section is always a branch to the first instruction of the
     // module.
     c.dw(0);

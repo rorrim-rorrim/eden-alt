@@ -85,7 +85,8 @@ FrontendAppletSet::FrontendAppletSet(CabinetApplet cabinet_applet,
                                      MiiEdit mii_edit_,
                                      ParentalControlsApplet parental_controls_applet,
                                      PhotoViewer photo_viewer_, ProfileSelect profile_select_,
-                                     SoftwareKeyboard software_keyboard_, WebBrowser web_browser_, NetConnect net_connect_)
+                                     SoftwareKeyboard software_keyboard_, WebBrowser web_browser_,
+                                     NetConnect net_connect_)
     : cabinet{std::move(cabinet_applet)}, controller{std::move(controller_applet)},
       error{std::move(error_applet)}, mii_edit{std::move(mii_edit_)},
       parental_controls{std::move(parental_controls_applet)},

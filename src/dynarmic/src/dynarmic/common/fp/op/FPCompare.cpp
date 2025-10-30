@@ -12,7 +12,7 @@
 
 namespace Dynarmic::FP {
 
-template<typename FPT>
+template <typename FPT>
 bool FPCompareEQ(FPT lhs, FPT rhs, FPCR fpcr, FPSR& fpsr) {
     const auto unpacked1 = FPUnpack(lhs, fpcr, fpsr);
     const auto unpacked2 = FPUnpack(rhs, fpcr, fpsr);
@@ -21,7 +21,8 @@ bool FPCompareEQ(FPT lhs, FPT rhs, FPCR fpcr, FPSR& fpsr) {
     const auto& value1 = std::get<FPUnpacked>(unpacked1);
     const auto& value2 = std::get<FPUnpacked>(unpacked2);
 
-    if (type1 == FPType::QNaN || type1 == FPType::SNaN || type2 == FPType::QNaN || type2 == FPType::SNaN) {
+    if (type1 == FPType::QNaN || type1 == FPType::SNaN || type2 == FPType::QNaN ||
+        type2 == FPType::SNaN) {
         if (type1 == FPType::SNaN || type2 == FPType::SNaN) {
             FPProcessException(FPExc::InvalidOp, fpcr, fpsr);
         }
@@ -37,4 +38,4 @@ template bool FPCompareEQ<u16>(u16 lhs, u16 rhs, FPCR fpcr, FPSR& fpsr);
 template bool FPCompareEQ<u32>(u32 lhs, u32 rhs, FPCR fpcr, FPSR& fpsr);
 template bool FPCompareEQ<u64>(u64 lhs, u64 rhs, FPCR fpcr, FPSR& fpsr);
 
-}  // namespace Dynarmic::FP
+} // namespace Dynarmic::FP

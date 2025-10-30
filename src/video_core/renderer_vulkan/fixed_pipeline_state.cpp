@@ -5,16 +5,16 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
-#include <cstring>
 #include <bit>
+#include <cstring>
 #include <numeric>
 #include <ranges>
 #include "common/cityhash.h"
 #include "common/common_types.h"
 #include "video_core/engines/draw_manager.h"
+#include "video_core/polygon_mode_utils.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
-#include "video_core/polygon_mode_utils.h"
 
 namespace Vulkan {
 namespace {

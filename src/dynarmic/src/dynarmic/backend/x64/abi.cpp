@@ -10,8 +10,8 @@
 
 #include <algorithm>
 
-#include "dynarmic/common/common_types.h"
 #include <xbyak/xbyak.h>
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/x64/block_of_code.h"
 
@@ -26,8 +26,10 @@ struct FrameInfo {
 };
 static_assert(ABI_SHADOW_SPACE <= 32);
 
-static FrameInfo CalculateFrameInfo(const size_t num_gprs, const size_t num_xmms, size_t frame_size) {
-    // We are initially 8 byte aligned because the return value is pushed onto an aligned stack after a call.
+static FrameInfo CalculateFrameInfo(const size_t num_gprs, const size_t num_xmms,
+                                    size_t frame_size) {
+    // We are initially 8 byte aligned because the return value is pushed onto an aligned stack
+    // after a call.
     const size_t rsp_alignment = (num_gprs % 2 == 0) ? 8 : 0;
     const size_t total_xmm_size = num_xmms * XMM_SIZE;
     if (frame_size & 0xF) {
@@ -40,8 +42,9 @@ static FrameInfo CalculateFrameInfo(const size_t num_gprs, const size_t num_xmms
     };
 }
 
-template<typename RegisterArrayT>
-void ABI_PushRegistersAndAdjustStack(BlockOfCode& code, const size_t frame_size, const RegisterArrayT& regs) {
+template <typename RegisterArrayT>
+void ABI_PushRegistersAndAdjustStack(BlockOfCode& code, const size_t frame_size,
+                                     const RegisterArrayT& regs) {
     using namespace Xbyak::util;
 
     const size_t num_gprs = std::count_if(regs.begin(), regs.end(), HostLocIsGPR);
@@ -66,8 +69,9 @@ void ABI_PushRegistersAndAdjustStack(BlockOfCode& code, const size_t frame_size,
     }
 }
 
-template<typename RegisterArrayT>
-void ABI_PopRegistersAndAdjustStack(BlockOfCode& code, const size_t frame_size, const RegisterArrayT& regs) {
+template <typename RegisterArrayT>
+void ABI_PopRegistersAndAdjustStack(BlockOfCode& code, const size_t frame_size,
+                                    const RegisterArrayT& regs) {
     using namespace Xbyak::util;
 
     const size_t num_gprs = std::count_if(regs.begin(), regs.end(), HostLocIsGPR);
@@ -115,60 +119,43 @@ void ABI_PopCallerSaveRegistersAndAdjustStack(BlockOfCode& code, const std::size
 #ifdef _MSC_VER
 void ABI_PushCallerSaveRegistersAndAdjustStackExcept(BlockOfCode& code, const HostLoc exception) {
     std::vector<HostLoc> regs;
-    std::remove_copy(ABI_ALL_CALLER_SAVE.begin(), ABI_ALL_CALLER_SAVE.end(), std::back_inserter(regs), exception);
+    std::remove_copy(ABI_ALL_CALLER_SAVE.begin(), ABI_ALL_CALLER_SAVE.end(),
+                     std::back_inserter(regs), exception);
     ABI_PushRegistersAndAdjustStack(code, 0, regs);
 }
 
 void ABI_PopCallerSaveRegistersAndAdjustStackExcept(BlockOfCode& code, const HostLoc exception) {
     std::vector<HostLoc> regs;
-    std::remove_copy(ABI_ALL_CALLER_SAVE.begin(), ABI_ALL_CALLER_SAVE.end(), std::back_inserter(regs), exception);
+    std::remove_copy(ABI_ALL_CALLER_SAVE.begin(), ABI_ALL_CALLER_SAVE.end(),
+                     std::back_inserter(regs), exception);
     ABI_PopRegistersAndAdjustStack(code, 0, regs);
 }
 #else
 static consteval size_t ABI_AllCallerSaveSize() noexcept {
     return ABI_ALL_CALLER_SAVE.max_size();
 }
-static consteval std::array<HostLoc, ABI_AllCallerSaveSize() - 1> ABI_AllCallerSaveExcept(const std::size_t except) noexcept {
+static consteval std::array<HostLoc, ABI_AllCallerSaveSize() - 1> ABI_AllCallerSaveExcept(
+    const std::size_t except) noexcept {
     std::array<HostLoc, ABI_AllCallerSaveSize() - 1> arr;
-    for(std::size_t i = 0; i < arr.size(); ++i) {
+    for (std::size_t i = 0; i < arr.size(); ++i) {
         arr[i] = static_cast<HostLoc>(i + (i >= except ? 1 : 0));
     }
     return arr;
 }
 
-alignas(64) static constinit std::array<HostLoc, ABI_AllCallerSaveSize() - 1> ABI_CALLER_SAVED_EXCEPT_TABLE[32] = {
-    ABI_AllCallerSaveExcept(0),
-    ABI_AllCallerSaveExcept(1),
-    ABI_AllCallerSaveExcept(2),
-    ABI_AllCallerSaveExcept(3),
-    ABI_AllCallerSaveExcept(4),
-    ABI_AllCallerSaveExcept(5),
-    ABI_AllCallerSaveExcept(6),
-    ABI_AllCallerSaveExcept(7),
-    ABI_AllCallerSaveExcept(8),
-    ABI_AllCallerSaveExcept(9),
-    ABI_AllCallerSaveExcept(10),
-    ABI_AllCallerSaveExcept(11),
-    ABI_AllCallerSaveExcept(12),
-    ABI_AllCallerSaveExcept(13),
-    ABI_AllCallerSaveExcept(14),
-    ABI_AllCallerSaveExcept(15),
-    ABI_AllCallerSaveExcept(16),
-    ABI_AllCallerSaveExcept(17),
-    ABI_AllCallerSaveExcept(18),
-    ABI_AllCallerSaveExcept(19),
-    ABI_AllCallerSaveExcept(20),
-    ABI_AllCallerSaveExcept(21),
-    ABI_AllCallerSaveExcept(22),
-    ABI_AllCallerSaveExcept(23),
-    ABI_AllCallerSaveExcept(24),
-    ABI_AllCallerSaveExcept(25),
-    ABI_AllCallerSaveExcept(26),
-    ABI_AllCallerSaveExcept(27),
-    ABI_AllCallerSaveExcept(28),
-    ABI_AllCallerSaveExcept(29),
-    ABI_AllCallerSaveExcept(30),
-    ABI_AllCallerSaveExcept(31),
+alignas(64) static constinit std::array<HostLoc, ABI_AllCallerSaveSize() -
+                                                     1> ABI_CALLER_SAVED_EXCEPT_TABLE[32] = {
+    ABI_AllCallerSaveExcept(0),  ABI_AllCallerSaveExcept(1),  ABI_AllCallerSaveExcept(2),
+    ABI_AllCallerSaveExcept(3),  ABI_AllCallerSaveExcept(4),  ABI_AllCallerSaveExcept(5),
+    ABI_AllCallerSaveExcept(6),  ABI_AllCallerSaveExcept(7),  ABI_AllCallerSaveExcept(8),
+    ABI_AllCallerSaveExcept(9),  ABI_AllCallerSaveExcept(10), ABI_AllCallerSaveExcept(11),
+    ABI_AllCallerSaveExcept(12), ABI_AllCallerSaveExcept(13), ABI_AllCallerSaveExcept(14),
+    ABI_AllCallerSaveExcept(15), ABI_AllCallerSaveExcept(16), ABI_AllCallerSaveExcept(17),
+    ABI_AllCallerSaveExcept(18), ABI_AllCallerSaveExcept(19), ABI_AllCallerSaveExcept(20),
+    ABI_AllCallerSaveExcept(21), ABI_AllCallerSaveExcept(22), ABI_AllCallerSaveExcept(23),
+    ABI_AllCallerSaveExcept(24), ABI_AllCallerSaveExcept(25), ABI_AllCallerSaveExcept(26),
+    ABI_AllCallerSaveExcept(27), ABI_AllCallerSaveExcept(28), ABI_AllCallerSaveExcept(29),
+    ABI_AllCallerSaveExcept(30), ABI_AllCallerSaveExcept(31),
 };
 
 void ABI_PushCallerSaveRegistersAndAdjustStackExcept(BlockOfCode& code, const HostLoc exception) {
@@ -182,4 +169,4 @@ void ABI_PopCallerSaveRegistersAndAdjustStackExcept(BlockOfCode& code, const Hos
 }
 #endif
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

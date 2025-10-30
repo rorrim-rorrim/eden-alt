@@ -6,14 +6,16 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_field.hpp>
+#include "dynarmic/common/assert.h"
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
 
 namespace Dynarmic::A32 {
 
-bool TranslatorVisitor::asimd_VMOV_imm(Imm<1> a, bool D, Imm<1> b, Imm<1> c, Imm<1> d, size_t Vd, Imm<4> cmode, bool Q, bool op, Imm<1> e, Imm<1> f, Imm<1> g, Imm<1> h) {
+bool TranslatorVisitor::asimd_VMOV_imm(Imm<1> a, bool D, Imm<1> b, Imm<1> c, Imm<1> d, size_t Vd,
+                                       Imm<4> cmode, bool Q, bool op, Imm<1> e, Imm<1> f, Imm<1> g,
+                                       Imm<1> h) {
     if (Q && mcl::bit::get_bit<0>(Vd)) {
         return UndefinedInstruction();
     }
@@ -113,4 +115,4 @@ bool TranslatorVisitor::asimd_VMOV_imm(Imm<1> a, bool D, Imm<1> b, Imm<1> c, Imm
     UNREACHABLE();
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

@@ -9,8 +9,9 @@
 
 namespace Dynarmic::A32 {
 
-template<typename FnT>
-bool TranslatorVisitor::EmitVfpVectorOperation(bool sz, ExtReg d, ExtReg n, ExtReg m, const FnT& fn) {
+template <typename FnT>
+bool TranslatorVisitor::EmitVfpVectorOperation(bool sz, ExtReg d, ExtReg n, ExtReg m,
+                                               const FnT& fn) {
     if (!ir.current_location.FPSCR().Stride()) {
         return UnpredictableInstruction();
     }
@@ -50,9 +51,9 @@ bool TranslatorVisitor::EmitVfpVectorOperation(bool sz, ExtReg d, ExtReg n, ExtR
     // The first and fifth banks in the register file are scalar banks.
     // All the other banks are vector banks.
     const auto belongs_to_scalar_bank = [](ExtReg reg) -> bool {
-        return (reg >= ExtReg::D0 && reg <= ExtReg::D3)
-            || (reg >= ExtReg::D16 && reg <= ExtReg::D19)
-            || (reg >= ExtReg::S0 && reg <= ExtReg::S7);
+        return (reg >= ExtReg::D0 && reg <= ExtReg::D3) ||
+               (reg >= ExtReg::D16 && reg <= ExtReg::D19) ||
+               (reg >= ExtReg::S0 && reg <= ExtReg::S7);
     };
 
     const bool d_is_scalar = belongs_to_scalar_bank(d);
@@ -76,16 +77,16 @@ bool TranslatorVisitor::EmitVfpVectorOperation(bool sz, ExtReg d, ExtReg n, ExtR
     return true;
 }
 
-template<typename FnT>
+template <typename FnT>
 bool TranslatorVisitor::EmitVfpVectorOperation(bool sz, ExtReg d, ExtReg m, const FnT& fn) {
-    return EmitVfpVectorOperation(sz, d, ExtReg::S0, m, [fn](ExtReg d, ExtReg, ExtReg m) {
-        fn(d, m);
-    });
+    return EmitVfpVectorOperation(sz, d, ExtReg::S0, m,
+                                  [fn](ExtReg d, ExtReg, ExtReg m) { fn(d, m); });
 }
 
 // VADD<c>.F64 <Dd>, <Dn>, <Dm>
 // VADD<c>.F32 <Sd>, <Sn>, <Sm>
-bool TranslatorVisitor::vfp_VADD(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VADD(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M,
+                                 size_t Vm) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -104,7 +105,8 @@ bool TranslatorVisitor::vfp_VADD(Cond cond, bool D, size_t Vn, size_t Vd, bool s
 
 // VSUB<c>.F64 <Dd>, <Dn>, <Dm>
 // VSUB<c>.F32 <Sd>, <Sn>, <Sm>
-bool TranslatorVisitor::vfp_VSUB(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VSUB(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M,
+                                 size_t Vm) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -123,7 +125,8 @@ bool TranslatorVisitor::vfp_VSUB(Cond cond, bool D, size_t Vn, size_t Vd, bool s
 
 // VMUL<c>.F64 <Dd>, <Dn>, <Dm>
 // VMUL<c>.F32 <Sd>, <Sn>, <Sm>
-bool TranslatorVisitor::vfp_VMUL(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VMUL(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M,
+                                 size_t Vm) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -142,7 +145,8 @@ bool TranslatorVisitor::vfp_VMUL(Cond cond, bool D, size_t Vn, size_t Vd, bool s
 
 // VMLA<c>.F64 <Dd>, <Dn>, <Dm>
 // VMLA<c>.F32 <Sd>, <Sn>, <Sm>
-bool TranslatorVisitor::vfp_VMLA(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VMLA(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M,
+                                 size_t Vm) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -162,7 +166,8 @@ bool TranslatorVisitor::vfp_VMLA(Cond cond, bool D, size_t Vn, size_t Vd, bool s
 
 // VMLS<c>.F64 <Dd>, <Dn>, <Dm>
 // VMLS<c>.F32 <Sd>, <Sn>, <Sm>
-bool TranslatorVisitor::vfp_VMLS(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VMLS(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M,
+                                 size_t Vm) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -182,7 +187,8 @@ bool TranslatorVisitor::vfp_VMLS(Cond cond, bool D, size_t Vn, size_t Vd, bool s
 
 // VNMUL<c>.F64 <Dd>, <Dn>, <Dm>
 // VNMUL<c>.F32 <Sd>, <Sn>, <Sm>
-bool TranslatorVisitor::vfp_VNMUL(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VNMUL(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M,
+                                  size_t Vm) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -201,7 +207,8 @@ bool TranslatorVisitor::vfp_VNMUL(Cond cond, bool D, size_t Vn, size_t Vd, bool 
 
 // VNMLA<c>.F64 <Dd>, <Dn>, <Dm>
 // VNMLA<c>.F32 <Sd>, <Sn>, <Sm>
-bool TranslatorVisitor::vfp_VNMLA(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VNMLA(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M,
+                                  size_t Vm) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -221,7 +228,8 @@ bool TranslatorVisitor::vfp_VNMLA(Cond cond, bool D, size_t Vn, size_t Vd, bool 
 
 // VNMLS<c>.F64 <Dd>, <Dn>, <Dm>
 // VNMLS<c>.F32 <Sd>, <Sn>, <Sm>
-bool TranslatorVisitor::vfp_VNMLS(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VNMLS(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M,
+                                  size_t Vm) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -241,7 +249,8 @@ bool TranslatorVisitor::vfp_VNMLS(Cond cond, bool D, size_t Vn, size_t Vd, bool 
 
 // VDIV<c>.F64 <Dd>, <Dn>, <Dm>
 // VDIV<c>.F32 <Sd>, <Sn>, <Sm>
-bool TranslatorVisitor::vfp_VDIV(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VDIV(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M,
+                                 size_t Vm) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -260,7 +269,8 @@ bool TranslatorVisitor::vfp_VDIV(Cond cond, bool D, size_t Vn, size_t Vd, bool s
 
 // VFNMS<c>.F64 <Dd>, <Dn>, <Dm>
 // VFNMS<c>.F32 <Sd>, <Sn>, <Sm>
-bool TranslatorVisitor::vfp_VFNMS(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VFNMS(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M,
+                                  size_t Vm) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -280,7 +290,8 @@ bool TranslatorVisitor::vfp_VFNMS(Cond cond, bool D, size_t Vn, size_t Vd, bool 
 
 // VFNMA<c>.F64 <Dd>, <Dn>, <Dm>
 // VFNMA<c>.F32 <Sd>, <Sn>, <Sm>
-bool TranslatorVisitor::vfp_VFNMA(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VFNMA(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M,
+                                  size_t Vm) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -300,7 +311,8 @@ bool TranslatorVisitor::vfp_VFNMA(Cond cond, bool D, size_t Vn, size_t Vd, bool 
 
 // VFMA<c>.F64 <Dd>, <Dn>, <Dm>
 // VFMA<c>.F32 <Sd>, <Sn>, <Sm>
-bool TranslatorVisitor::vfp_VFMA(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VFMA(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M,
+                                 size_t Vm) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -320,7 +332,8 @@ bool TranslatorVisitor::vfp_VFMA(Cond cond, bool D, size_t Vn, size_t Vd, bool s
 
 // VFMS<c>.F64 <Dd>, <Dn>, <Dm>
 // VFMS<c>.F32 <Sd>, <Sn>, <Sm>
-bool TranslatorVisitor::vfp_VFMS(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VFMS(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M,
+                                 size_t Vm) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -340,8 +353,10 @@ bool TranslatorVisitor::vfp_VFMS(Cond cond, bool D, size_t Vn, size_t Vd, bool s
 
 // VSEL<c>.F64 <Dd>, <Dn>, <Dm>
 // VSEL<c>.F32 <Sd>, <Sn>, <Sm>
-bool TranslatorVisitor::vfp_VSEL(bool D, Imm<2> cc, size_t Vn, size_t Vd, bool sz, bool N, bool M, size_t Vm) {
-    const Cond cond = concatenate(cc, Imm<1>{cc.Bit<0>() != cc.Bit<1>()}, Imm<1>{0}).ZeroExtend<Cond>();
+bool TranslatorVisitor::vfp_VSEL(bool D, Imm<2> cc, size_t Vn, size_t Vd, bool sz, bool N, bool M,
+                                 size_t Vm) {
+    const Cond cond =
+        concatenate(cc, Imm<1>{cc.Bit<0>() != cc.Bit<1>()}, Imm<1>{0}).ZeroExtend<Cond>();
 
     const auto d = ToExtReg(sz, Vd, D);
     const auto n = ToExtReg(sz, Vn, N);
@@ -357,7 +372,8 @@ bool TranslatorVisitor::vfp_VSEL(bool D, Imm<2> cc, size_t Vn, size_t Vd, bool s
 
 // VMAXNM.F64 <Dd>, <Dn>, <Dm>
 // VMAXNM.F32 <Sd>, <Sn>, <Sm>
-bool TranslatorVisitor::vfp_VMAXNM(bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VMAXNM(bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M,
+                                   size_t Vm) {
     const auto d = ToExtReg(sz, Vd, D);
     const auto n = ToExtReg(sz, Vn, N);
     const auto m = ToExtReg(sz, Vm, M);
@@ -372,7 +388,8 @@ bool TranslatorVisitor::vfp_VMAXNM(bool D, size_t Vn, size_t Vd, bool sz, bool N
 
 // VMINNM.F64 <Dd>, <Dn>, <Dm>
 // VMINNM.F32 <Sd>, <Sn>, <Sm>
-bool TranslatorVisitor::vfp_VMINNM(bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VMINNM(bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M,
+                                   size_t Vm) {
     const auto d = ToExtReg(sz, Vd, D);
     const auto n = ToExtReg(sz, Vn, N);
     const auto m = ToExtReg(sz, Vm, M);
@@ -546,7 +563,8 @@ bool TranslatorVisitor::vfp_VMOV_from_i32(Cond cond, Imm<1> i, size_t Vd, Reg t,
 }
 
 // VMOV<c>.16 <Dn[x]>, <Rt>
-bool TranslatorVisitor::vfp_VMOV_from_i16(Cond cond, Imm<1> i1, size_t Vd, Reg t, bool D, Imm<1> i2) {
+bool TranslatorVisitor::vfp_VMOV_from_i16(Cond cond, Imm<1> i1, size_t Vd, Reg t, bool D,
+                                          Imm<1> i2) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -568,7 +586,8 @@ bool TranslatorVisitor::vfp_VMOV_from_i16(Cond cond, Imm<1> i1, size_t Vd, Reg t
 }
 
 // VMOV<c>.8 <Dn[x]>, <Rt>
-bool TranslatorVisitor::vfp_VMOV_from_i8(Cond cond, Imm<1> i1, size_t Vd, Reg t, bool D, Imm<2> i2) {
+bool TranslatorVisitor::vfp_VMOV_from_i8(Cond cond, Imm<1> i1, size_t Vd, Reg t, bool D,
+                                         Imm<2> i2) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -611,7 +630,8 @@ bool TranslatorVisitor::vfp_VMOV_to_i32(Cond cond, Imm<1> i, size_t Vn, Reg t, b
 }
 
 // VMOV<c>.{U16,S16} <Rt>, <Dn[x]>
-bool TranslatorVisitor::vfp_VMOV_to_i16(Cond cond, bool U, Imm<1> i1, size_t Vn, Reg t, bool N, Imm<1> i2) {
+bool TranslatorVisitor::vfp_VMOV_to_i16(Cond cond, bool U, Imm<1> i1, size_t Vn, Reg t, bool N,
+                                        Imm<1> i2) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -633,7 +653,8 @@ bool TranslatorVisitor::vfp_VMOV_to_i16(Cond cond, bool U, Imm<1> i1, size_t Vn,
 }
 
 // VMOV<c>.{U8,S8} <Rt>, <Dn[x]>
-bool TranslatorVisitor::vfp_VMOV_to_i8(Cond cond, bool U, Imm<1> i1, size_t Vn, Reg t, bool N, Imm<2> i2) {
+bool TranslatorVisitor::vfp_VMOV_to_i8(Cond cond, bool U, Imm<1> i1, size_t Vn, Reg t, bool N,
+                                       Imm<2> i2) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -684,7 +705,8 @@ bool TranslatorVisitor::vfp_VDUP(Cond cond, Imm<1> B, bool Q, size_t Vd, Reg t, 
 
 // VMOV<c>.F64 <Dd>, #<imm>
 // VMOV<c>.F32 <Sd>, #<imm>
-bool TranslatorVisitor::vfp_VMOV_imm(Cond cond, bool D, Imm<4> imm4H, size_t Vd, bool sz, Imm<4> imm4L) {
+bool TranslatorVisitor::vfp_VMOV_imm(Cond cond, bool D, Imm<4> imm4H, size_t Vd, bool sz,
+                                     Imm<4> imm4L) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -782,7 +804,8 @@ bool TranslatorVisitor::vfp_VSQRT(Cond cond, bool D, size_t Vd, bool sz, bool M,
 // VCVTB<c>.f64.f16 <Dd>, <Dm>
 // VCVTB<c>.f16.f32 <Dd>, <Dm>
 // VCVTB<c>.f16.f64 <Dd>, <Dm>
-bool TranslatorVisitor::vfp_VCVTB(Cond cond, bool D, bool op, size_t Vd, bool sz, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VCVTB(Cond cond, bool D, bool op, size_t Vd, bool sz, bool M,
+                                  size_t Vm) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -795,7 +818,8 @@ bool TranslatorVisitor::vfp_VCVTB(Cond cond, bool D, bool op, size_t Vd, bool sz
 
         return EmitVfpVectorOperation(sz, d, m, [this, sz, rounding_mode](ExtReg d, ExtReg m) {
             const auto reg_m = ir.LeastSignificantHalf(ir.GetExtendedRegister(m));
-            const auto result = sz ? IR::U32U64{ir.FPHalfToDouble(reg_m, rounding_mode)} : IR::U32U64{ir.FPHalfToSingle(reg_m, rounding_mode)};
+            const auto result = sz ? IR::U32U64{ir.FPHalfToDouble(reg_m, rounding_mode)}
+                                   : IR::U32U64{ir.FPHalfToSingle(reg_m, rounding_mode)};
             ir.SetExtendedRegister(d, result);
         });
     } else {
@@ -804,8 +828,10 @@ bool TranslatorVisitor::vfp_VCVTB(Cond cond, bool D, bool op, size_t Vd, bool sz
 
         return EmitVfpVectorOperation(sz, d, m, [this, sz, rounding_mode](ExtReg d, ExtReg m) {
             const auto reg_m = ir.GetExtendedRegister(m);
-            const auto result = sz ? ir.FPDoubleToHalf(reg_m, rounding_mode) : ir.FPSingleToHalf(reg_m, rounding_mode);
-            ir.SetExtendedRegister(d, ir.Or(ir.And(ir.GetExtendedRegister(d), ir.Imm32(0xFFFF0000)), ir.ZeroExtendToWord(result)));
+            const auto result = sz ? ir.FPDoubleToHalf(reg_m, rounding_mode)
+                                   : ir.FPSingleToHalf(reg_m, rounding_mode);
+            ir.SetExtendedRegister(d, ir.Or(ir.And(ir.GetExtendedRegister(d), ir.Imm32(0xFFFF0000)),
+                                            ir.ZeroExtendToWord(result)));
         });
     }
 }
@@ -814,7 +840,8 @@ bool TranslatorVisitor::vfp_VCVTB(Cond cond, bool D, bool op, size_t Vd, bool sz
 // VCVTT<c>.f64.f16 <Dd>, <Dm>
 // VCVTT<c>.f16.f32 <Dd>, <Dm>
 // VCVTT<c>.f16.f64 <Dd>, <Dm>
-bool TranslatorVisitor::vfp_VCVTT(Cond cond, bool D, bool op, size_t Vd, bool sz, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VCVTT(Cond cond, bool D, bool op, size_t Vd, bool sz, bool M,
+                                  size_t Vm) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -826,8 +853,10 @@ bool TranslatorVisitor::vfp_VCVTT(Cond cond, bool D, bool op, size_t Vd, bool sz
         const auto m = ToExtReg(false, Vm, M);
 
         return EmitVfpVectorOperation(sz, d, m, [this, sz, rounding_mode](ExtReg d, ExtReg m) {
-            const auto reg_m = ir.LeastSignificantHalf(ir.LogicalShiftRight(ir.GetExtendedRegister(m), ir.Imm8(16)));
-            const auto result = sz ? IR::U32U64{ir.FPHalfToDouble(reg_m, rounding_mode)} : IR::U32U64{ir.FPHalfToSingle(reg_m, rounding_mode)};
+            const auto reg_m = ir.LeastSignificantHalf(
+                ir.LogicalShiftRight(ir.GetExtendedRegister(m), ir.Imm8(16)));
+            const auto result = sz ? IR::U32U64{ir.FPHalfToDouble(reg_m, rounding_mode)}
+                                   : IR::U32U64{ir.FPHalfToSingle(reg_m, rounding_mode)};
             ir.SetExtendedRegister(d, result);
         });
     } else {
@@ -836,8 +865,11 @@ bool TranslatorVisitor::vfp_VCVTT(Cond cond, bool D, bool op, size_t Vd, bool sz
 
         return EmitVfpVectorOperation(sz, d, m, [this, sz, rounding_mode](ExtReg d, ExtReg m) {
             const auto reg_m = ir.GetExtendedRegister(m);
-            const auto result = sz ? ir.FPDoubleToHalf(reg_m, rounding_mode) : ir.FPSingleToHalf(reg_m, rounding_mode);
-            ir.SetExtendedRegister(d, ir.Or(ir.And(ir.GetExtendedRegister(d), ir.Imm32(0x0000FFFF)), ir.LogicalShiftLeft(ir.ZeroExtendToWord(result), ir.Imm8(16))));
+            const auto result = sz ? ir.FPDoubleToHalf(reg_m, rounding_mode)
+                                   : ir.FPSingleToHalf(reg_m, rounding_mode);
+            ir.SetExtendedRegister(
+                d, ir.Or(ir.And(ir.GetExtendedRegister(d), ir.Imm32(0x0000FFFF)),
+                         ir.LogicalShiftLeft(ir.ZeroExtendToWord(result), ir.Imm8(16))));
         });
     }
 }
@@ -940,7 +972,7 @@ bool TranslatorVisitor::vfp_VCVT_f_to_f(Cond cond, bool D, size_t Vd, bool sz, b
         return true;
     }
 
-    const auto d = ToExtReg(!sz, Vd, D);  // Destination is of opposite size to source
+    const auto d = ToExtReg(!sz, Vd, D); // Destination is of opposite size to source
     const auto m = ToExtReg(sz, Vm, M);
     const auto reg_m = ir.GetExtendedRegister(m);
     const auto rounding_mode = ir.current_location.FPSCR().RMode();
@@ -958,7 +990,8 @@ bool TranslatorVisitor::vfp_VCVT_f_to_f(Cond cond, bool D, size_t Vd, bool sz, b
 
 // VCVT.F32.{S32,U32} <Sd>, <Sm>
 // VCVT.F64.{S32,U32} <Sd>, <Dm>
-bool TranslatorVisitor::vfp_VCVT_from_int(Cond cond, bool D, size_t Vd, bool sz, bool is_signed, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VCVT_from_int(Cond cond, bool D, size_t Vd, bool sz, bool is_signed,
+                                          bool M, size_t Vm) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -969,14 +1002,12 @@ bool TranslatorVisitor::vfp_VCVT_from_int(Cond cond, bool D, size_t Vd, bool sz,
     const auto reg_m = ir.GetExtendedRegister(m);
 
     if (sz) {
-        const auto result = is_signed
-                              ? ir.FPSignedFixedToDouble(reg_m, 0, rounding_mode)
-                              : ir.FPUnsignedFixedToDouble(reg_m, 0, rounding_mode);
+        const auto result = is_signed ? ir.FPSignedFixedToDouble(reg_m, 0, rounding_mode)
+                                      : ir.FPUnsignedFixedToDouble(reg_m, 0, rounding_mode);
         ir.SetExtendedRegister(d, result);
     } else {
-        const auto result = is_signed
-                              ? ir.FPSignedFixedToSingle(reg_m, 0, rounding_mode)
-                              : ir.FPUnsignedFixedToSingle(reg_m, 0, rounding_mode);
+        const auto result = is_signed ? ir.FPSignedFixedToSingle(reg_m, 0, rounding_mode)
+                                      : ir.FPUnsignedFixedToSingle(reg_m, 0, rounding_mode);
         ir.SetExtendedRegister(d, result);
     }
 
@@ -985,7 +1016,8 @@ bool TranslatorVisitor::vfp_VCVT_from_int(Cond cond, bool D, size_t Vd, bool sz,
 
 // VCVT.F32.{S16,U16,S32,U32} <Sdm>, <Sdm>
 // VCVT.F64.{S16,U16,S32,U32} <Ddm>, <Ddm>
-bool TranslatorVisitor::vfp_VCVT_from_fixed(Cond cond, bool D, bool U, size_t Vd, bool sz, bool sx, Imm<1> i, Imm<4> imm4) {
+bool TranslatorVisitor::vfp_VCVT_from_fixed(Cond cond, bool D, bool U, size_t Vd, bool sz, bool sx,
+                                            Imm<1> i, Imm<4> imm4) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -1017,7 +1049,8 @@ bool TranslatorVisitor::vfp_VCVT_from_fixed(Cond cond, bool D, bool U, size_t Vd
 
 // VCVT{,R}.U32.F32 <Sd>, <Sm>
 // VCVT{,R}.U32.F64 <Sd>, <Dm>
-bool TranslatorVisitor::vfp_VCVT_to_u32(Cond cond, bool D, size_t Vd, bool sz, bool round_towards_zero, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VCVT_to_u32(Cond cond, bool D, size_t Vd, bool sz,
+                                        bool round_towards_zero, bool M, size_t Vm) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -1025,7 +1058,9 @@ bool TranslatorVisitor::vfp_VCVT_to_u32(Cond cond, bool D, size_t Vd, bool sz, b
     const ExtReg d = ToExtReg(false, Vd, D);
     const ExtReg m = ToExtReg(sz, Vm, M);
     const auto reg_m = ir.GetExtendedRegister(m);
-    const auto result = ir.FPToFixedU32(reg_m, 0, round_towards_zero ? FP::RoundingMode::TowardsZero : ir.current_location.FPSCR().RMode());
+    const auto result = ir.FPToFixedU32(reg_m, 0,
+                                        round_towards_zero ? FP::RoundingMode::TowardsZero
+                                                           : ir.current_location.FPSCR().RMode());
 
     ir.SetExtendedRegister(d, result);
     return true;
@@ -1033,7 +1068,8 @@ bool TranslatorVisitor::vfp_VCVT_to_u32(Cond cond, bool D, size_t Vd, bool sz, b
 
 // VCVT{,R}.S32.F32 <Sd>, <Sm>
 // VCVT{,R}.S32.F64 <Sd>, <Dm>
-bool TranslatorVisitor::vfp_VCVT_to_s32(Cond cond, bool D, size_t Vd, bool sz, bool round_towards_zero, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VCVT_to_s32(Cond cond, bool D, size_t Vd, bool sz,
+                                        bool round_towards_zero, bool M, size_t Vm) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -1041,7 +1077,9 @@ bool TranslatorVisitor::vfp_VCVT_to_s32(Cond cond, bool D, size_t Vd, bool sz, b
     const auto d = ToExtReg(false, Vd, D);
     const auto m = ToExtReg(sz, Vm, M);
     const auto reg_m = ir.GetExtendedRegister(m);
-    const auto result = ir.FPToFixedS32(reg_m, 0, round_towards_zero ? FP::RoundingMode::TowardsZero : ir.current_location.FPSCR().RMode());
+    const auto result = ir.FPToFixedS32(reg_m, 0,
+                                        round_towards_zero ? FP::RoundingMode::TowardsZero
+                                                           : ir.current_location.FPSCR().RMode());
 
     ir.SetExtendedRegister(d, result);
     return true;
@@ -1049,7 +1087,8 @@ bool TranslatorVisitor::vfp_VCVT_to_s32(Cond cond, bool D, size_t Vd, bool sz, b
 
 // VCVT.{S16,U16,S32,U32}.F32 <Sdm>, <Sdm>
 // VCVT.{S16,U16,S32,U32}.F64 <Ddm>, <Ddm>
-bool TranslatorVisitor::vfp_VCVT_to_fixed(Cond cond, bool D, bool U, size_t Vd, bool sz, bool sx, Imm<1> i, Imm<4> imm4) {
+bool TranslatorVisitor::vfp_VCVT_to_fixed(Cond cond, bool D, bool U, size_t Vd, bool sz, bool sx,
+                                          Imm<1> i, Imm<4> imm4) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -1106,7 +1145,8 @@ bool TranslatorVisitor::vfp_VRINT_rm(bool D, size_t rm, size_t Vd, bool sz, bool
 
 // VCVT{A,N,P,M}.F32 <Sd>, <Sm>
 // VCVT{A,N,P,M}.F64 <Sd>, <Dm>
-bool TranslatorVisitor::vfp_VCVT_rm(bool D, size_t rm, size_t Vd, bool sz, bool U, bool M, size_t Vm) {
+bool TranslatorVisitor::vfp_VCVT_rm(bool D, size_t rm, size_t Vd, bool sz, bool U, bool M,
+                                    size_t Vm) {
     const std::array rm_lookup{
         FP::RoundingMode::ToNearest_TieAwayFromZero,
         FP::RoundingMode::ToNearest_TieEven,
@@ -1121,7 +1161,8 @@ bool TranslatorVisitor::vfp_VCVT_rm(bool D, size_t rm, size_t Vd, bool sz, bool 
 
     return EmitVfpVectorOperation(sz, d, m, [this, rounding_mode, unsigned_](ExtReg d, ExtReg m) {
         const auto reg_m = ir.GetExtendedRegister(m);
-        const auto result = unsigned_ ? ir.FPToFixedU32(reg_m, 0, rounding_mode) : ir.FPToFixedS32(reg_m, 0, rounding_mode);
+        const auto result = unsigned_ ? ir.FPToFixedU32(reg_m, 0, rounding_mode)
+                                      : ir.FPToFixedS32(reg_m, 0, rounding_mode);
         ir.SetExtendedRegister(d, result);
     });
 }
@@ -1247,7 +1288,8 @@ bool TranslatorVisitor::vfp_VPUSH(Cond cond, bool D, size_t Vd, bool sz, Imm<8> 
 
 // VLDR<c> <Dd>, [<Rn>{, #+/-<imm>}]
 // VLDR<c> <Sd>, [<Rn>{, #+/-<imm>}]
-bool TranslatorVisitor::vfp_VLDR(Cond cond, bool U, bool D, Reg n, size_t Vd, bool sz, Imm<8> imm8) {
+bool TranslatorVisitor::vfp_VLDR(Cond cond, bool U, bool D, Reg n, size_t Vd, bool sz,
+                                 Imm<8> imm8) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -1273,7 +1315,8 @@ bool TranslatorVisitor::vfp_VLDR(Cond cond, bool U, bool D, Reg n, size_t Vd, bo
 
 // VSTR<c> <Dd>, [<Rn>{, #+/-<imm>}]
 // VSTR<c> <Sd>, [<Rn>{, #+/-<imm>}]
-bool TranslatorVisitor::vfp_VSTR(Cond cond, bool U, bool D, Reg n, size_t Vd, bool sz, Imm<8> imm8) {
+bool TranslatorVisitor::vfp_VSTR(Cond cond, bool U, bool D, Reg n, size_t Vd, bool sz,
+                                 Imm<8> imm8) {
     if (!VFPConditionPassed(cond)) {
         return true;
     }
@@ -1299,7 +1342,8 @@ bool TranslatorVisitor::vfp_VSTR(Cond cond, bool U, bool D, Reg n, size_t Vd, bo
 }
 
 // VSTM{mode}<c> <Rn>{!}, <list of double registers>
-bool TranslatorVisitor::vfp_VSTM_a1(Cond cond, bool p, bool u, bool D, bool w, Reg n, size_t Vd, Imm<8> imm8) {
+bool TranslatorVisitor::vfp_VSTM_a1(Cond cond, bool p, bool u, bool D, bool w, Reg n, size_t Vd,
+                                    Imm<8> imm8) {
     if (!p && !u && !w) {
         ASSERT_MSG(false, "Decode error");
     }
@@ -1351,7 +1395,8 @@ bool TranslatorVisitor::vfp_VSTM_a1(Cond cond, bool p, bool u, bool D, bool w, R
 }
 
 // VSTM{mode}<c> <Rn>{!}, <list of single registers>
-bool TranslatorVisitor::vfp_VSTM_a2(Cond cond, bool p, bool u, bool D, bool w, Reg n, size_t Vd, Imm<8> imm8) {
+bool TranslatorVisitor::vfp_VSTM_a2(Cond cond, bool p, bool u, bool D, bool w, Reg n, size_t Vd,
+                                    Imm<8> imm8) {
     if (!p && !u && !w) {
         ASSERT_MSG(false, "Decode error");
     }
@@ -1394,7 +1439,8 @@ bool TranslatorVisitor::vfp_VSTM_a2(Cond cond, bool p, bool u, bool D, bool w, R
 }
 
 // VLDM{mode}<c> <Rn>{!}, <list of double registers>
-bool TranslatorVisitor::vfp_VLDM_a1(Cond cond, bool p, bool u, bool D, bool w, Reg n, size_t Vd, Imm<8> imm8) {
+bool TranslatorVisitor::vfp_VLDM_a1(Cond cond, bool p, bool u, bool D, bool w, Reg n, size_t Vd,
+                                    Imm<8> imm8) {
     if (!p && !u && !w) {
         ASSERT_MSG(false, "Decode error");
     }
@@ -1444,7 +1490,8 @@ bool TranslatorVisitor::vfp_VLDM_a1(Cond cond, bool p, bool u, bool D, bool w, R
 }
 
 // VLDM{mode}<c> <Rn>{!}, <list of single registers>
-bool TranslatorVisitor::vfp_VLDM_a2(Cond cond, bool p, bool u, bool D, bool w, Reg n, size_t Vd, Imm<8> imm8) {
+bool TranslatorVisitor::vfp_VLDM_a2(Cond cond, bool p, bool u, bool D, bool w, Reg n, size_t Vd,
+                                    Imm<8> imm8) {
     if (!p && !u && !w) {
         ASSERT_MSG(false, "Decode error");
     }
@@ -1486,4 +1533,4 @@ bool TranslatorVisitor::vfp_VLDM_a2(Cond cond, bool p, bool u, bool D, bool w, R
     return true;
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

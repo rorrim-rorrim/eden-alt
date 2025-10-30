@@ -8,13 +8,13 @@
 
 #include "dynarmic/backend/x64/a64_emit_x64.h"
 
+#include <boost/container/static_vector.hpp>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include "dynarmic/common/assert.h"
 #include <mcl/scope_exit.hpp>
-#include "dynarmic/common/common_types.h"
 #include <mcl/type_traits/integer_of_size.hpp>
-#include <boost/container/static_vector.hpp>
+#include "dynarmic/common/assert.h"
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/x64/a64_jitstate.h"
 #include "dynarmic/backend/x64/abi.h"
@@ -39,7 +39,7 @@ namespace Dynarmic::Backend::X64 {
 using namespace Xbyak::util;
 
 A64EmitContext::A64EmitContext(const A64::UserConfig& conf, RegAlloc& reg_alloc, IR::Block& block)
-        : EmitContext(reg_alloc, block), conf(conf) {}
+    : EmitContext(reg_alloc, block), conf(conf) {}
 
 A64::LocationDescriptor A64EmitContext::Location() const {
     return A64::LocationDescriptor{block.Location()};
@@ -54,16 +54,14 @@ FP::FPCR A64EmitContext::FPCR(bool fpcr_controlled) const {
 }
 
 A64EmitX64::A64EmitX64(BlockOfCode& code, A64::UserConfig conf, A64::Jit* jit_interface)
-        : EmitX64(code), conf(conf), jit_interface{jit_interface} {
+    : EmitX64(code), conf(conf), jit_interface{jit_interface} {
     GenMemory128Accessors();
     GenFastmemFallbacks();
     GenTerminalHandlers();
     code.PreludeComplete();
     ClearFastDispatchTable();
 
-    exception_handler.SetFastmemCallback([this](u64 rip_) {
-        return FastmemCallback(rip_);
-    });
+    exception_handler.SetFastmemCallback([this](u64 rip_) { return FastmemCallback(rip_); });
 }
 
 A64EmitX64::~A64EmitX64() = default;
@@ -122,24 +120,29 @@ A64EmitX64::BlockDescriptor A64EmitX64::Emit(IR::Block& block) noexcept {
         auto const opcode = inst.GetOpcode();
         // Call the relevant Emit* member function.
         switch (opcode) {
-#define OPCODE(name, type, ...) case IR::Opcode::name: goto opcode_branch;
+#define OPCODE(name, type, ...)                                                                    \
+    case IR::Opcode::name:                                                                         \
+        goto opcode_branch;
 #define A32OPC(name, type, ...)
-#define A64OPC(name, type, ...) case IR::Opcode::A64##name: goto a64_branch;
+#define A64OPC(name, type, ...)                                                                    \
+    case IR::Opcode::A64##name:                                                                    \
+        goto a64_branch;
 #include "dynarmic/ir/opcodes.inc"
 #undef OPCODE
 #undef A32OPC
 #undef A64OPC
-        default: [[unlikely]] {
+        default:
+            [[unlikely]] {
                 ASSERT_MSG(false, "Invalid opcode: {:x}", std::size_t(opcode));
-            goto finish_this_inst;
+                goto finish_this_inst;
+            }
         }
-        }
-opcode_branch:
+    opcode_branch:
         (this->*opcode_handlers[size_t(opcode)])(ctx, &inst);
         goto finish_this_inst;
-a64_branch:
+    a64_branch:
         (this->*a64_handlers[size_t(opcode) - std::size(opcode_handlers)])(ctx, &inst);
-finish_this_inst:
+    finish_this_inst:
         ctx.reg_alloc.EndOfAllocScope();
         if (conf.very_verbose_debugging_output) [[unlikely]] {
             EmitVerboseDebuggingOutput(reg_alloc);
@@ -151,7 +154,8 @@ finish_this_inst:
     if (conf.enable_cycle_counting) {
         EmitAddCycles(block.CycleCount());
     }
-    EmitX64::EmitTerminal(block.GetTerminal(), ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
+    EmitX64::EmitTerminal(block.GetTerminal(), ctx.Location().SetSingleStepping(false),
+                          ctx.IsSingleStep());
     code.int3();
 
     for (auto& deferred_emit : ctx.deferred_emits) {
@@ -164,7 +168,8 @@ finish_this_inst:
     const A64::LocationDescriptor descriptor{block.Location()};
     const A64::LocationDescriptor end_location{block.EndLocation()};
 
-    const auto range = boost::icl::discrete_interval<u64>::closed(descriptor.PC(), end_location.PC() - 1);
+    const auto range =
+        boost::icl::discrete_interval<u64>::closed(descriptor.PC(), end_location.PC() - 1);
     block_ranges.AddRange(range, descriptor);
 
     return RegisterBlock(descriptor, entrypoint, size);
@@ -211,15 +216,18 @@ void A64EmitX64::GenTerminalHandlers() {
     code.sub(eax, 1);
     code.and_(eax, u32(A64JitState::RSBPtrMask));
     code.mov(dword[code.ABI_JIT_PTR + offsetof(A64JitState, rsb_ptr)], eax);
-    code.cmp(rbx, qword[code.ABI_JIT_PTR + offsetof(A64JitState, rsb_location_descriptors) + rax * sizeof(u64)]);
+    code.cmp(rbx, qword[code.ABI_JIT_PTR + offsetof(A64JitState, rsb_location_descriptors) +
+                        rax * sizeof(u64)]);
     if (conf.HasOptimization(OptimizationFlag::FastDispatch)) {
         code.jne(rsb_cache_miss, code.T_NEAR);
     } else {
         code.jne(code.GetReturnFromRunCodeAddress());
     }
-    code.mov(rax, qword[code.ABI_JIT_PTR + offsetof(A64JitState, rsb_codeptrs) + rax * sizeof(u64)]);
+    code.mov(rax,
+             qword[code.ABI_JIT_PTR + offsetof(A64JitState, rsb_codeptrs) + rax * sizeof(u64)]);
     code.jmp(rax);
-    PerfMapRegister(terminal_handler_pop_rsb_hint, code.getCurr(), "a64_terminal_handler_pop_rsb_hint");
+    PerfMapRegister(terminal_handler_pop_rsb_hint, code.getCurr(),
+                    "a64_terminal_handler_pop_rsb_hint");
 
     if (conf.HasOptimization(OptimizationFlag::FastDispatch)) {
         code.align();
@@ -241,7 +249,8 @@ void A64EmitX64::GenTerminalHandlers() {
         code.LookupBlock();
         code.mov(ptr[rbp + offsetof(FastDispatchEntry, code_ptr)], rax);
         code.jmp(rax);
-        PerfMapRegister(terminal_handler_fast_dispatch_hint, code.getCurr(), "a64_terminal_handler_fast_dispatch_hint");
+        PerfMapRegister(terminal_handler_fast_dispatch_hint, code.getCurr(),
+                        "a64_terminal_handler_fast_dispatch_hint");
 
         code.align();
         fast_dispatch_table_lookup = code.getCurr<FastDispatchEntry& (*)(u64)>();
@@ -252,7 +261,8 @@ void A64EmitX64::GenTerminalHandlers() {
         code.and_(code.ABI_PARAM1.cvt32(), fast_dispatch_table_mask);
         code.lea(code.ABI_RETURN, code.ptr[code.ABI_PARAM2 + code.ABI_PARAM1]);
         code.ret();
-        PerfMapRegister(fast_dispatch_table_lookup, code.getCurr(), "a64_fast_dispatch_table_lookup");
+        PerfMapRegister(fast_dispatch_table_lookup, code.getCurr(),
+                        "a64_fast_dispatch_table_lookup");
     }
 }
 
@@ -323,7 +333,8 @@ void A64EmitX64::EmitA64GetW(A64EmitContext& ctx, IR::Inst* inst) {
     const A64::Reg reg = inst->GetArg(0).GetA64RegRef();
     const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr().cvt32();
 
-    code.mov(result, dword[code.ABI_JIT_PTR + offsetof(A64JitState, reg) + sizeof(u64) * static_cast<size_t>(reg)]);
+    code.mov(result, dword[code.ABI_JIT_PTR + offsetof(A64JitState, reg) +
+                           sizeof(u64) * static_cast<size_t>(reg)]);
     ctx.reg_alloc.DefineValue(inst, result);
 }
 
@@ -331,13 +342,15 @@ void A64EmitX64::EmitA64GetX(A64EmitContext& ctx, IR::Inst* inst) {
     const A64::Reg reg = inst->GetArg(0).GetA64RegRef();
     const Xbyak::Reg64 result = ctx.reg_alloc.ScratchGpr();
 
-    code.mov(result, qword[code.ABI_JIT_PTR + offsetof(A64JitState, reg) + sizeof(u64) * static_cast<size_t>(reg)]);
+    code.mov(result, qword[code.ABI_JIT_PTR + offsetof(A64JitState, reg) +
+                           sizeof(u64) * static_cast<size_t>(reg)]);
     ctx.reg_alloc.DefineValue(inst, result);
 }
 
 void A64EmitX64::EmitA64GetS(A64EmitContext& ctx, IR::Inst* inst) {
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
-    const auto addr = qword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec)];
+    const auto addr = qword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) +
+                            sizeof(u64) * 2 * static_cast<size_t>(vec)];
 
     const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm();
     code.movd(result, addr);
@@ -346,7 +359,8 @@ void A64EmitX64::EmitA64GetS(A64EmitContext& ctx, IR::Inst* inst) {
 
 void A64EmitX64::EmitA64GetD(A64EmitContext& ctx, IR::Inst* inst) {
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
-    const auto addr = qword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec)];
+    const auto addr = qword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) +
+                            sizeof(u64) * 2 * static_cast<size_t>(vec)];
 
     const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm();
     code.movq(result, addr);
@@ -355,7 +369,8 @@ void A64EmitX64::EmitA64GetD(A64EmitContext& ctx, IR::Inst* inst) {
 
 void A64EmitX64::EmitA64GetQ(A64EmitContext& ctx, IR::Inst* inst) {
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
-    const auto addr = xword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec)];
+    const auto addr = xword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) +
+                            sizeof(u64) * 2 * static_cast<size_t>(vec)];
 
     const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm();
     code.movaps(result, addr);
@@ -388,7 +403,8 @@ void A64EmitX64::EmitA64GetFPSR(A64EmitContext& ctx, IR::Inst* inst) {
 void A64EmitX64::EmitA64SetW(A64EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const A64::Reg reg = inst->GetArg(0).GetA64RegRef();
-    const auto addr = qword[code.ABI_JIT_PTR + offsetof(A64JitState, reg) + sizeof(u64) * static_cast<size_t>(reg)];
+    const auto addr = qword[code.ABI_JIT_PTR + offsetof(A64JitState, reg) +
+                            sizeof(u64) * static_cast<size_t>(reg)];
     if (args[1].FitsInImmediateS32()) {
         code.mov(addr, args[1].GetImmediateS32());
     } else {
@@ -402,7 +418,8 @@ void A64EmitX64::EmitA64SetW(A64EmitContext& ctx, IR::Inst* inst) {
 void A64EmitX64::EmitA64SetX(A64EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const A64::Reg reg = inst->GetArg(0).GetA64RegRef();
-    const auto addr = qword[code.ABI_JIT_PTR + offsetof(A64JitState, reg) + sizeof(u64) * static_cast<size_t>(reg)];
+    const auto addr = qword[code.ABI_JIT_PTR + offsetof(A64JitState, reg) +
+                            sizeof(u64) * static_cast<size_t>(reg)];
     if (args[1].FitsInImmediateS32()) {
         code.mov(addr, args[1].GetImmediateS32());
     } else if (args[1].IsInXmm()) {
@@ -417,7 +434,8 @@ void A64EmitX64::EmitA64SetX(A64EmitContext& ctx, IR::Inst* inst) {
 void A64EmitX64::EmitA64SetS(A64EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
-    const auto addr = xword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec)];
+    const auto addr = xword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) +
+                            sizeof(u64) * 2 * static_cast<size_t>(vec)];
 
     const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[1]);
     const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
@@ -430,17 +448,19 @@ void A64EmitX64::EmitA64SetS(A64EmitContext& ctx, IR::Inst* inst) {
 void A64EmitX64::EmitA64SetD(A64EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
-    const auto addr = xword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec)];
+    const auto addr = xword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) +
+                            sizeof(u64) * 2 * static_cast<size_t>(vec)];
 
     const Xbyak::Xmm to_store = ctx.reg_alloc.UseScratchXmm(args[1]);
-    code.movq(to_store, to_store);  // TODO: Remove when able
+    code.movq(to_store, to_store); // TODO: Remove when able
     code.movaps(addr, to_store);
 }
 
 void A64EmitX64::EmitA64SetQ(A64EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
-    const auto addr = xword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec)];
+    const auto addr = xword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) +
+                            sizeof(u64) * 2 * static_cast<size_t>(vec)];
 
     const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[1]);
     code.movaps(addr, to_store);
@@ -516,10 +536,11 @@ void A64EmitX64::EmitA64ExceptionRaised(A64EmitContext& ctx, IR::Inst* inst) {
     ASSERT(args[0].IsImmediate() && args[1].IsImmediate());
     const u64 pc = args[0].GetImmediateU64();
     const u64 exception = args[1].GetImmediateU64();
-    Devirtualize<&A64::UserCallbacks::ExceptionRaised>(conf.callbacks).EmitCall(code, [&](RegList param) {
-        code.mov(param[0], pc);
-        code.mov(param[1], exception);
-    });
+    Devirtualize<&A64::UserCallbacks::ExceptionRaised>(conf.callbacks)
+        .EmitCall(code, [&](RegList param) {
+            code.mov(param[0], pc);
+            code.mov(param[1], exception);
+        });
 }
 
 void A64EmitX64::EmitA64DataCacheOperationRaised(A64EmitContext& ctx, IR::Inst* inst) {
@@ -531,7 +552,8 @@ void A64EmitX64::EmitA64DataCacheOperationRaised(A64EmitContext& ctx, IR::Inst* 
 void A64EmitX64::EmitA64InstructionCacheOperationRaised(A64EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.HostCall(nullptr, {}, args[0], args[1]);
-    Devirtualize<&A64::UserCallbacks::InstructionCacheOperationRaised>(conf.callbacks).EmitCall(code);
+    Devirtualize<&A64::UserCallbacks::InstructionCacheOperationRaised>(conf.callbacks)
+        .EmitCall(code);
 }
 
 void A64EmitX64::EmitA64DataSynchronizationBarrier(A64EmitContext&, IR::Inst*) {
@@ -549,7 +571,8 @@ void A64EmitX64::EmitA64InstructionSynchronizationBarrier(A64EmitContext& ctx, I
     }
 
     ctx.reg_alloc.HostCall(nullptr);
-    Devirtualize<&A64::UserCallbacks::InstructionSynchronizationBarrierRaised>(conf.callbacks).EmitCall(code);
+    Devirtualize<&A64::UserCallbacks::InstructionSynchronizationBarrierRaised>(conf.callbacks)
+        .EmitCall(code);
 }
 
 void A64EmitX64::EmitA64GetCNTFRQ(A64EmitContext& ctx, IR::Inst* inst) {
@@ -610,28 +633,29 @@ void A64EmitX64::EmitA64SetTPIDR(A64EmitContext& ctx, IR::Inst* inst) {
     }
 }
 
-std::string A64EmitX64::LocationDescriptorToFriendlyName(const IR::LocationDescriptor& ir_descriptor) const {
+std::string A64EmitX64::LocationDescriptorToFriendlyName(
+    const IR::LocationDescriptor& ir_descriptor) const {
     const A64::LocationDescriptor descriptor{ir_descriptor};
-    return fmt::format("a64_{:016X}_fpcr{:08X}",
-                       descriptor.PC(),
-                       descriptor.FPCR().Value());
+    return fmt::format("a64_{:016X}_fpcr{:08X}", descriptor.PC(), descriptor.FPCR().Value());
 }
 
 void A64EmitX64::EmitTerminalImpl(IR::Term::Interpret terminal, IR::LocationDescriptor, bool) {
     code.SwitchMxcsrOnExit();
-    Devirtualize<&A64::UserCallbacks::InterpreterFallback>(conf.callbacks).EmitCall(code, [&](RegList param) {
-        code.mov(param[0], A64::LocationDescriptor{terminal.next}.PC());
-        code.mov(qword[code.ABI_JIT_PTR + offsetof(A64JitState, pc)], param[0]);
-        code.mov(param[1].cvt32(), terminal.num_instructions);
-    });
-    code.ReturnFromRunCode(true);  // TODO: Check cycles
+    Devirtualize<&A64::UserCallbacks::InterpreterFallback>(conf.callbacks)
+        .EmitCall(code, [&](RegList param) {
+            code.mov(param[0], A64::LocationDescriptor{terminal.next}.PC());
+            code.mov(qword[code.ABI_JIT_PTR + offsetof(A64JitState, pc)], param[0]);
+            code.mov(param[1].cvt32(), terminal.num_instructions);
+        });
+    code.ReturnFromRunCode(true); // TODO: Check cycles
 }
 
 void A64EmitX64::EmitTerminalImpl(IR::Term::ReturnToDispatch, IR::LocationDescriptor, bool) {
     code.ReturnFromRunCode();
 }
 
-void A64EmitX64::EmitTerminalImpl(IR::Term::LinkBlock terminal, IR::LocationDescriptor, bool is_single_step) {
+void A64EmitX64::EmitTerminalImpl(IR::Term::LinkBlock terminal, IR::LocationDescriptor,
+                                  bool is_single_step) {
     // Used for patches and linking
     if (conf.HasOptimization(OptimizationFlag::BlockLinking) && !is_single_step) {
         if (conf.enable_cycle_counting) {
@@ -661,7 +685,8 @@ void A64EmitX64::EmitTerminalImpl(IR::Term::LinkBlock terminal, IR::LocationDesc
     }
 }
 
-void A64EmitX64::EmitTerminalImpl(IR::Term::LinkBlockFast terminal, IR::LocationDescriptor, bool is_single_step) {
+void A64EmitX64::EmitTerminalImpl(IR::Term::LinkBlockFast terminal, IR::LocationDescriptor,
+                                  bool is_single_step) {
     if (conf.HasOptimization(OptimizationFlag::BlockLinking) && !is_single_step) {
         patch_information[terminal.next].jmp.push_back(code.getCurr());
         if (auto next_bb = GetBasicBlock(terminal.next)) {
@@ -676,7 +701,8 @@ void A64EmitX64::EmitTerminalImpl(IR::Term::LinkBlockFast terminal, IR::Location
     }
 }
 
-void A64EmitX64::EmitTerminalImpl(IR::Term::PopRSBHint, IR::LocationDescriptor, bool is_single_step) {
+void A64EmitX64::EmitTerminalImpl(IR::Term::PopRSBHint, IR::LocationDescriptor,
+                                  bool is_single_step) {
     if (conf.HasOptimization(OptimizationFlag::ReturnStackBuffer) && !is_single_step) {
         code.jmp(terminal_handler_pop_rsb_hint);
     } else {
@@ -684,7 +710,8 @@ void A64EmitX64::EmitTerminalImpl(IR::Term::PopRSBHint, IR::LocationDescriptor, 
     }
 }
 
-void A64EmitX64::EmitTerminalImpl(IR::Term::FastDispatchHint, IR::LocationDescriptor, bool is_single_step) {
+void A64EmitX64::EmitTerminalImpl(IR::Term::FastDispatchHint, IR::LocationDescriptor,
+                                  bool is_single_step) {
     if (!conf.HasOptimization(OptimizationFlag::FastDispatch) || is_single_step) {
         code.ReturnFromRunCode();
         return;
@@ -693,7 +720,8 @@ void A64EmitX64::EmitTerminalImpl(IR::Term::FastDispatchHint, IR::LocationDescri
     code.jmp(terminal_handler_fast_dispatch_hint);
 }
 
-void A64EmitX64::EmitTerminalImpl(IR::Term::If terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+void A64EmitX64::EmitTerminalImpl(IR::Term::If terminal, IR::LocationDescriptor initial_location,
+                                  bool is_single_step) {
     switch (terminal.if_) {
     case IR::Cond::AL:
     case IR::Cond::NV:
@@ -708,7 +736,8 @@ void A64EmitX64::EmitTerminalImpl(IR::Term::If terminal, IR::LocationDescriptor 
     }
 }
 
-void A64EmitX64::EmitTerminalImpl(IR::Term::CheckBit terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+void A64EmitX64::EmitTerminalImpl(IR::Term::CheckBit terminal,
+                                  IR::LocationDescriptor initial_location, bool is_single_step) {
     Xbyak::Label fail;
     code.cmp(code.byte[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, check_bit)], u8(0));
     code.jz(fail);
@@ -717,7 +746,8 @@ void A64EmitX64::EmitTerminalImpl(IR::Term::CheckBit terminal, IR::LocationDescr
     EmitTerminal(terminal.else_, initial_location, is_single_step);
 }
 
-void A64EmitX64::EmitTerminalImpl(IR::Term::CheckHalt terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+void A64EmitX64::EmitTerminalImpl(IR::Term::CheckHalt terminal,
+                                  IR::LocationDescriptor initial_location, bool is_single_step) {
     code.cmp(dword[code.ABI_JIT_PTR + offsetof(A64JitState, halt_reason)], 0);
     code.jne(code.GetForceReturnFromRunCodeAddress());
     EmitTerminal(terminal.else_, initial_location, is_single_step);
@@ -777,4 +807,4 @@ void A64EmitX64::Unpatch(const IR::LocationDescriptor& location) {
     }
 }
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

@@ -18,7 +18,7 @@ namespace Dynarmic::Common {
  * This function is a workaround for a bug in MSVC 19.12 where fold expressions
  * do not work when the /permissive- flag is enabled.
  */
-template<typename T, typename... Ts>
+template <typename T, typename... Ts>
 constexpr T Sum(T first, Ts&&... rest) {
     if constexpr (sizeof...(rest) == 0) {
         return first;
@@ -47,4 +47,4 @@ u8 RecipEstimate(u64 a);
  */
 u8 RecipSqrtEstimate(u64 a);
 
-}  // namespace Dynarmic::Common
+} // namespace Dynarmic::Common

@@ -6,8 +6,8 @@
 
 #include <ranges>
 
-#include "audio_core/renderer/voice/voice_context.h"
 #include <ranges>
+#include "audio_core/renderer/voice/voice_context.h"
 
 namespace AudioCore::Renderer {
 

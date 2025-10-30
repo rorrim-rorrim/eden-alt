@@ -6,10 +6,10 @@
 
 #include <algorithm>
 #include <array>
-#include <string>
-#include <vector>
 #include <bit>
 #include <numeric>
+#include <string>
+#include <vector>
 #include "common/settings.h" // for enum class Settings::ShaderBackend
 #include "common/thread_worker.h"
 #include "shader_recompiler/shader_info.h"

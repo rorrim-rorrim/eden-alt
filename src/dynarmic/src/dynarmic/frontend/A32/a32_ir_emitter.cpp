@@ -134,7 +134,8 @@ void IREmitter::CallSupervisor(const IR::U32& value) {
 }
 
 void IREmitter::ExceptionRaised(const Exception exception) {
-    Inst(Opcode::A32ExceptionRaised, Imm32(current_location.PC()), Imm64(static_cast<u64>(exception)));
+    Inst(Opcode::A32ExceptionRaised, Imm32(current_location.PC()),
+         Imm64(static_cast<u64>(exception)));
 }
 
 IR::U32 IREmitter::GetCpsr() {
@@ -244,40 +245,49 @@ IR::UAny IREmitter::ReadMemory(size_t bitsize, const IR::U32& vaddr, IR::AccType
 }
 
 IR::U8 IREmitter::ReadMemory8(const IR::U32& vaddr, IR::AccType acc_type) {
-    return Inst<IR::U8>(Opcode::A32ReadMemory8, ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
+    return Inst<IR::U8>(Opcode::A32ReadMemory8, ImmCurrentLocationDescriptor(), vaddr,
+                        IR::Value{acc_type});
 }
 
 IR::U16 IREmitter::ReadMemory16(const IR::U32& vaddr, IR::AccType acc_type) {
-    const auto value = Inst<IR::U16>(Opcode::A32ReadMemory16, ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
+    const auto value = Inst<IR::U16>(Opcode::A32ReadMemory16, ImmCurrentLocationDescriptor(), vaddr,
+                                     IR::Value{acc_type});
     return current_location.EFlag() ? ByteReverseHalf(value) : value;
 }
 
 IR::U32 IREmitter::ReadMemory32(const IR::U32& vaddr, IR::AccType acc_type) {
-    const auto value = Inst<IR::U32>(Opcode::A32ReadMemory32, ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
+    const auto value = Inst<IR::U32>(Opcode::A32ReadMemory32, ImmCurrentLocationDescriptor(), vaddr,
+                                     IR::Value{acc_type});
     return current_location.EFlag() ? ByteReverseWord(value) : value;
 }
 
 IR::U64 IREmitter::ReadMemory64(const IR::U32& vaddr, IR::AccType acc_type) {
-    const auto value = Inst<IR::U64>(Opcode::A32ReadMemory64, ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
+    const auto value = Inst<IR::U64>(Opcode::A32ReadMemory64, ImmCurrentLocationDescriptor(), vaddr,
+                                     IR::Value{acc_type});
     return current_location.EFlag() ? ByteReverseDual(value) : value;
 }
 
 IR::U8 IREmitter::ExclusiveReadMemory8(const IR::U32& vaddr, IR::AccType acc_type) {
-    return Inst<IR::U8>(Opcode::A32ExclusiveReadMemory8, ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
+    return Inst<IR::U8>(Opcode::A32ExclusiveReadMemory8, ImmCurrentLocationDescriptor(), vaddr,
+                        IR::Value{acc_type});
 }
 
 IR::U16 IREmitter::ExclusiveReadMemory16(const IR::U32& vaddr, IR::AccType acc_type) {
-    const auto value = Inst<IR::U16>(Opcode::A32ExclusiveReadMemory16, ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
+    const auto value = Inst<IR::U16>(Opcode::A32ExclusiveReadMemory16,
+                                     ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
     return current_location.EFlag() ? ByteReverseHalf(value) : value;
 }
 
 IR::U32 IREmitter::ExclusiveReadMemory32(const IR::U32& vaddr, IR::AccType acc_type) {
-    const auto value = Inst<IR::U32>(Opcode::A32ExclusiveReadMemory32, ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
+    const auto value = Inst<IR::U32>(Opcode::A32ExclusiveReadMemory32,
+                                     ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
     return current_location.EFlag() ? ByteReverseWord(value) : value;
 }
 
-std::pair<IR::U32, IR::U32> IREmitter::ExclusiveReadMemory64(const IR::U32& vaddr, IR::AccType acc_type) {
-    const auto value = Inst<IR::U64>(Opcode::A32ExclusiveReadMemory64, ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
+std::pair<IR::U32, IR::U32> IREmitter::ExclusiveReadMemory64(const IR::U32& vaddr,
+                                                             IR::AccType acc_type) {
+    const auto value = Inst<IR::U64>(Opcode::A32ExclusiveReadMemory64,
+                                     ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
     const auto lo = LeastSignificantWord(value);
     const auto hi = MostSignificantWord(value).result;
     if (current_location.EFlag()) {
@@ -287,7 +297,8 @@ std::pair<IR::U32, IR::U32> IREmitter::ExclusiveReadMemory64(const IR::U32& vadd
     return std::make_pair(lo, hi);
 }
 
-void IREmitter::WriteMemory(size_t bitsize, const IR::U32& vaddr, const IR::UAny& value, IR::AccType acc_type) {
+void IREmitter::WriteMemory(size_t bitsize, const IR::U32& vaddr, const IR::UAny& value,
+                            IR::AccType acc_type) {
     switch (bitsize) {
     case 8:
         return WriteMemory8(vaddr, value, acc_type);
@@ -302,121 +313,133 @@ void IREmitter::WriteMemory(size_t bitsize, const IR::U32& vaddr, const IR::UAny
 }
 
 void IREmitter::WriteMemory8(const IR::U32& vaddr, const IR::U8& value, IR::AccType acc_type) {
-    Inst(Opcode::A32WriteMemory8, ImmCurrentLocationDescriptor(), vaddr, value, IR::Value{acc_type});
+    Inst(Opcode::A32WriteMemory8, ImmCurrentLocationDescriptor(), vaddr, value,
+         IR::Value{acc_type});
 }
 
 void IREmitter::WriteMemory16(const IR::U32& vaddr, const IR::U16& value, IR::AccType acc_type) {
     if (current_location.EFlag()) {
         const auto v = ByteReverseHalf(value);
-        Inst(Opcode::A32WriteMemory16, ImmCurrentLocationDescriptor(), vaddr, v, IR::Value{acc_type});
+        Inst(Opcode::A32WriteMemory16, ImmCurrentLocationDescriptor(), vaddr, v,
+             IR::Value{acc_type});
     } else {
-        Inst(Opcode::A32WriteMemory16, ImmCurrentLocationDescriptor(), vaddr, value, IR::Value{acc_type});
+        Inst(Opcode::A32WriteMemory16, ImmCurrentLocationDescriptor(), vaddr, value,
+             IR::Value{acc_type});
     }
 }
 
 void IREmitter::WriteMemory32(const IR::U32& vaddr, const IR::U32& value, IR::AccType acc_type) {
     if (current_location.EFlag()) {
         const auto v = ByteReverseWord(value);
-        Inst(Opcode::A32WriteMemory32, ImmCurrentLocationDescriptor(), vaddr, v, IR::Value{acc_type});
+        Inst(Opcode::A32WriteMemory32, ImmCurrentLocationDescriptor(), vaddr, v,
+             IR::Value{acc_type});
     } else {
-        Inst(Opcode::A32WriteMemory32, ImmCurrentLocationDescriptor(), vaddr, value, IR::Value{acc_type});
+        Inst(Opcode::A32WriteMemory32, ImmCurrentLocationDescriptor(), vaddr, value,
+             IR::Value{acc_type});
     }
 }
 
 void IREmitter::WriteMemory64(const IR::U32& vaddr, const IR::U64& value, IR::AccType acc_type) {
     if (current_location.EFlag()) {
         const auto v = ByteReverseDual(value);
-        Inst(Opcode::A32WriteMemory64, ImmCurrentLocationDescriptor(), vaddr, v, IR::Value{acc_type});
+        Inst(Opcode::A32WriteMemory64, ImmCurrentLocationDescriptor(), vaddr, v,
+             IR::Value{acc_type});
     } else {
-        Inst(Opcode::A32WriteMemory64, ImmCurrentLocationDescriptor(), vaddr, value, IR::Value{acc_type});
+        Inst(Opcode::A32WriteMemory64, ImmCurrentLocationDescriptor(), vaddr, value,
+             IR::Value{acc_type});
     }
 }
 
-IR::U32 IREmitter::ExclusiveWriteMemory8(const IR::U32& vaddr, const IR::U8& value, IR::AccType acc_type) {
-    return Inst<IR::U32>(Opcode::A32ExclusiveWriteMemory8, ImmCurrentLocationDescriptor(), vaddr, value, IR::Value{acc_type});
+IR::U32 IREmitter::ExclusiveWriteMemory8(const IR::U32& vaddr, const IR::U8& value,
+                                         IR::AccType acc_type) {
+    return Inst<IR::U32>(Opcode::A32ExclusiveWriteMemory8, ImmCurrentLocationDescriptor(), vaddr,
+                         value, IR::Value{acc_type});
 }
 
-IR::U32 IREmitter::ExclusiveWriteMemory16(const IR::U32& vaddr, const IR::U16& value, IR::AccType acc_type) {
+IR::U32 IREmitter::ExclusiveWriteMemory16(const IR::U32& vaddr, const IR::U16& value,
+                                          IR::AccType acc_type) {
     if (current_location.EFlag()) {
         const auto v = ByteReverseHalf(value);
-        return Inst<IR::U32>(Opcode::A32ExclusiveWriteMemory16, ImmCurrentLocationDescriptor(), vaddr, v, IR::Value{acc_type});
+        return Inst<IR::U32>(Opcode::A32ExclusiveWriteMemory16, ImmCurrentLocationDescriptor(),
+                             vaddr, v, IR::Value{acc_type});
     } else {
-        return Inst<IR::U32>(Opcode::A32ExclusiveWriteMemory16, ImmCurrentLocationDescriptor(), vaddr, value, IR::Value{acc_type});
+        return Inst<IR::U32>(Opcode::A32ExclusiveWriteMemory16, ImmCurrentLocationDescriptor(),
+                             vaddr, value, IR::Value{acc_type});
     }
 }
 
-IR::U32 IREmitter::ExclusiveWriteMemory32(const IR::U32& vaddr, const IR::U32& value, IR::AccType acc_type) {
+IR::U32 IREmitter::ExclusiveWriteMemory32(const IR::U32& vaddr, const IR::U32& value,
+                                          IR::AccType acc_type) {
     if (current_location.EFlag()) {
         const auto v = ByteReverseWord(value);
-        return Inst<IR::U32>(Opcode::A32ExclusiveWriteMemory32, ImmCurrentLocationDescriptor(), vaddr, v, IR::Value{acc_type});
+        return Inst<IR::U32>(Opcode::A32ExclusiveWriteMemory32, ImmCurrentLocationDescriptor(),
+                             vaddr, v, IR::Value{acc_type});
     } else {
-        return Inst<IR::U32>(Opcode::A32ExclusiveWriteMemory32, ImmCurrentLocationDescriptor(), vaddr, value, IR::Value{acc_type});
+        return Inst<IR::U32>(Opcode::A32ExclusiveWriteMemory32, ImmCurrentLocationDescriptor(),
+                             vaddr, value, IR::Value{acc_type});
     }
 }
 
-IR::U32 IREmitter::ExclusiveWriteMemory64(const IR::U32& vaddr, const IR::U32& value_lo, const IR::U32& value_hi, IR::AccType acc_type) {
+IR::U32 IREmitter::ExclusiveWriteMemory64(const IR::U32& vaddr, const IR::U32& value_lo,
+                                          const IR::U32& value_hi, IR::AccType acc_type) {
     if (current_location.EFlag()) {
         const auto vlo = ByteReverseWord(value_lo);
         const auto vhi = ByteReverseWord(value_hi);
-        return Inst<IR::U32>(Opcode::A32ExclusiveWriteMemory64, ImmCurrentLocationDescriptor(), vaddr, Pack2x32To1x64(vlo, vhi), IR::Value{acc_type});
+        return Inst<IR::U32>(Opcode::A32ExclusiveWriteMemory64, ImmCurrentLocationDescriptor(),
+                             vaddr, Pack2x32To1x64(vlo, vhi), IR::Value{acc_type});
     } else {
-        return Inst<IR::U32>(Opcode::A32ExclusiveWriteMemory64, ImmCurrentLocationDescriptor(), vaddr, Pack2x32To1x64(value_lo, value_hi), IR::Value{acc_type});
+        return Inst<IR::U32>(Opcode::A32ExclusiveWriteMemory64, ImmCurrentLocationDescriptor(),
+                             vaddr, Pack2x32To1x64(value_lo, value_hi), IR::Value{acc_type});
     }
 }
 
-void IREmitter::CoprocInternalOperation(size_t coproc_no, bool two, size_t opc1, CoprocReg CRd, CoprocReg CRn, CoprocReg CRm, size_t opc2) {
+void IREmitter::CoprocInternalOperation(size_t coproc_no, bool two, size_t opc1, CoprocReg CRd,
+                                        CoprocReg CRn, CoprocReg CRm, size_t opc2) {
     ASSERT(coproc_no <= 15);
-    const IR::Value::CoprocessorInfo coproc_info{static_cast<u8>(coproc_no),
-                                                 static_cast<u8>(two ? 1 : 0),
-                                                 static_cast<u8>(opc1),
-                                                 static_cast<u8>(CRd),
-                                                 static_cast<u8>(CRn),
-                                                 static_cast<u8>(CRm),
-                                                 static_cast<u8>(opc2)};
+    const IR::Value::CoprocessorInfo coproc_info{
+        static_cast<u8>(coproc_no), static_cast<u8>(two ? 1 : 0), static_cast<u8>(opc1),
+        static_cast<u8>(CRd),       static_cast<u8>(CRn),         static_cast<u8>(CRm),
+        static_cast<u8>(opc2)};
     Inst(Opcode::A32CoprocInternalOperation, IR::Value(coproc_info));
 }
 
-void IREmitter::CoprocSendOneWord(size_t coproc_no, bool two, size_t opc1, CoprocReg CRn, CoprocReg CRm, size_t opc2, const IR::U32& word) {
+void IREmitter::CoprocSendOneWord(size_t coproc_no, bool two, size_t opc1, CoprocReg CRn,
+                                  CoprocReg CRm, size_t opc2, const IR::U32& word) {
     ASSERT(coproc_no <= 15);
-    const IR::Value::CoprocessorInfo coproc_info{static_cast<u8>(coproc_no),
-                                                 static_cast<u8>(two ? 1 : 0),
-                                                 static_cast<u8>(opc1),
-                                                 static_cast<u8>(CRn),
-                                                 static_cast<u8>(CRm),
-                                                 static_cast<u8>(opc2)};
+    const IR::Value::CoprocessorInfo coproc_info{
+        static_cast<u8>(coproc_no), static_cast<u8>(two ? 1 : 0), static_cast<u8>(opc1),
+        static_cast<u8>(CRn),       static_cast<u8>(CRm),         static_cast<u8>(opc2)};
     Inst(Opcode::A32CoprocSendOneWord, IR::Value(coproc_info), word);
 }
 
-void IREmitter::CoprocSendTwoWords(size_t coproc_no, bool two, size_t opc, CoprocReg CRm, const IR::U32& word1, const IR::U32& word2) {
+void IREmitter::CoprocSendTwoWords(size_t coproc_no, bool two, size_t opc, CoprocReg CRm,
+                                   const IR::U32& word1, const IR::U32& word2) {
     ASSERT(coproc_no <= 15);
     const IR::Value::CoprocessorInfo coproc_info{static_cast<u8>(coproc_no),
-                                                 static_cast<u8>(two ? 1 : 0),
-                                                 static_cast<u8>(opc),
+                                                 static_cast<u8>(two ? 1 : 0), static_cast<u8>(opc),
                                                  static_cast<u8>(CRm)};
     Inst(Opcode::A32CoprocSendTwoWords, IR::Value(coproc_info), word1, word2);
 }
 
-IR::U32 IREmitter::CoprocGetOneWord(size_t coproc_no, bool two, size_t opc1, CoprocReg CRn, CoprocReg CRm, size_t opc2) {
+IR::U32 IREmitter::CoprocGetOneWord(size_t coproc_no, bool two, size_t opc1, CoprocReg CRn,
+                                    CoprocReg CRm, size_t opc2) {
     ASSERT(coproc_no <= 15);
-    const IR::Value::CoprocessorInfo coproc_info{static_cast<u8>(coproc_no),
-                                                 static_cast<u8>(two ? 1 : 0),
-                                                 static_cast<u8>(opc1),
-                                                 static_cast<u8>(CRn),
-                                                 static_cast<u8>(CRm),
-                                                 static_cast<u8>(opc2)};
+    const IR::Value::CoprocessorInfo coproc_info{
+        static_cast<u8>(coproc_no), static_cast<u8>(two ? 1 : 0), static_cast<u8>(opc1),
+        static_cast<u8>(CRn),       static_cast<u8>(CRm),         static_cast<u8>(opc2)};
     return Inst<IR::U32>(Opcode::A32CoprocGetOneWord, IR::Value(coproc_info));
 }
 
 IR::U64 IREmitter::CoprocGetTwoWords(size_t coproc_no, bool two, size_t opc, CoprocReg CRm) {
     ASSERT(coproc_no <= 15);
     const IR::Value::CoprocessorInfo coproc_info{static_cast<u8>(coproc_no),
-                                                 static_cast<u8>(two ? 1 : 0),
-                                                 static_cast<u8>(opc),
+                                                 static_cast<u8>(two ? 1 : 0), static_cast<u8>(opc),
                                                  static_cast<u8>(CRm)};
     return Inst<IR::U64>(Opcode::A32CoprocGetTwoWords, IR::Value(coproc_info));
 }
 
-void IREmitter::CoprocLoadWords(size_t coproc_no, bool two, bool long_transfer, CoprocReg CRd, const IR::U32& address, bool has_option, u8 option) {
+void IREmitter::CoprocLoadWords(size_t coproc_no, bool two, bool long_transfer, CoprocReg CRd,
+                                const IR::U32& address, bool has_option, u8 option) {
     ASSERT(coproc_no <= 15);
     const IR::Value::CoprocessorInfo coproc_info{static_cast<u8>(coproc_no),
                                                  static_cast<u8>(two ? 1 : 0),
@@ -427,7 +450,8 @@ void IREmitter::CoprocLoadWords(size_t coproc_no, bool two, bool long_transfer, 
     Inst(Opcode::A32CoprocLoadWords, IR::Value(coproc_info), address);
 }
 
-void IREmitter::CoprocStoreWords(size_t coproc_no, bool two, bool long_transfer, CoprocReg CRd, const IR::U32& address, bool has_option, u8 option) {
+void IREmitter::CoprocStoreWords(size_t coproc_no, bool two, bool long_transfer, CoprocReg CRd,
+                                 const IR::U32& address, bool has_option, u8 option) {
     ASSERT(coproc_no <= 15);
     const IR::Value::CoprocessorInfo coproc_info{static_cast<u8>(coproc_no),
                                                  static_cast<u8>(two ? 1 : 0),
@@ -442,4 +466,4 @@ IR::U64 IREmitter::ImmCurrentLocationDescriptor() {
     return Imm64(IR::LocationDescriptor{current_location}.Value());
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

@@ -241,7 +241,9 @@ public:
 
     void setData(const QVariant& value, int role) override {
         qulonglong time_seconds = value.toULongLong();
-        GameListItem::setData(QString::fromStdString(PlayTime::PlayTimeManager::GetReadablePlayTime(time_seconds)), Qt::DisplayRole);
+        GameListItem::setData(
+            QString::fromStdString(PlayTime::PlayTimeManager::GetReadablePlayTime(time_seconds)),
+            Qt::DisplayRole);
         GameListItem::setData(value, PlayTimeRole);
     }
 

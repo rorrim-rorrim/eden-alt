@@ -54,7 +54,8 @@ bool TranslatorVisitor::DecodeError() {
 
 bool TranslatorVisitor::RaiseException(Exception exception) {
     ir.UpdateUpperLocationDescriptor();
-    ir.BranchWritePC(ir.Imm32(ir.current_location.PC() + static_cast<u32>(current_instruction_size)));
+    ir.BranchWritePC(
+        ir.Imm32(ir.current_location.PC() + static_cast<u32>(current_instruction_size)));
     ir.ExceptionRaised(exception);
     ir.SetTerm(IR::Term::CheckHalt{IR::Term::ReturnToDispatch{}});
     return false;
@@ -75,11 +76,14 @@ IR::UAny TranslatorVisitor::I(size_t bitsize, u64 value) {
     }
 }
 
-IR::ResultAndCarry<IR::U32> TranslatorVisitor::EmitImmShift(IR::U32 value, ShiftType type, Imm<3> imm3, Imm<2> imm2, IR::U1 carry_in) {
+IR::ResultAndCarry<IR::U32> TranslatorVisitor::EmitImmShift(IR::U32 value, ShiftType type,
+                                                            Imm<3> imm3, Imm<2> imm2,
+                                                            IR::U1 carry_in) {
     return EmitImmShift(value, type, concatenate(imm3, imm2), carry_in);
 }
 
-IR::ResultAndCarry<IR::U32> TranslatorVisitor::EmitImmShift(IR::U32 value, ShiftType type, Imm<5> imm5, IR::U1 carry_in) {
+IR::ResultAndCarry<IR::U32> TranslatorVisitor::EmitImmShift(IR::U32 value, ShiftType type,
+                                                            Imm<5> imm5, IR::U1 carry_in) {
     u8 imm5_value = imm5.ZeroExtend<u8>();
     switch (type) {
     case ShiftType::LSL:
@@ -100,7 +104,8 @@ IR::ResultAndCarry<IR::U32> TranslatorVisitor::EmitImmShift(IR::U32 value, Shift
     UNREACHABLE();
 }
 
-IR::ResultAndCarry<IR::U32> TranslatorVisitor::EmitRegShift(IR::U32 value, ShiftType type, IR::U8 amount, IR::U1 carry_in) {
+IR::ResultAndCarry<IR::U32> TranslatorVisitor::EmitRegShift(IR::U32 value, ShiftType type,
+                                                            IR::U8 amount, IR::U1 carry_in) {
     switch (type) {
     case ShiftType::LSL:
         return ir.LogicalShiftLeft(value, amount, carry_in);
@@ -114,4 +119,4 @@ IR::ResultAndCarry<IR::U32> TranslatorVisitor::EmitRegShift(IR::U32 value, Shift
     UNREACHABLE();
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

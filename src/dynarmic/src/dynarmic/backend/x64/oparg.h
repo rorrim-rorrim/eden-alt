@@ -8,18 +8,16 @@
 
 #pragma once
 
-#include "dynarmic/common/assert.h"
 #include <xbyak/xbyak.h>
+#include "dynarmic/common/assert.h"
 
 namespace Dynarmic::Backend::X64 {
 
 struct OpArg {
-    OpArg()
-            : type(Type::Operand), inner_operand() {}
+    OpArg() : type(Type::Operand), inner_operand() {}
     /* implicit */ OpArg(const Xbyak::Address& address)
-            : type(Type::Address), inner_address(address) {}
-    /* implicit */ OpArg(const Xbyak::Reg& reg)
-            : type(Type::Reg), inner_reg(reg) {}
+        : type(Type::Address), inner_address(address) {}
+    /* implicit */ OpArg(const Xbyak::Reg& reg) : type(Type::Reg), inner_reg(reg) {}
 
     Xbyak::Operand& operator*() {
         switch (type) {
@@ -79,4 +77,4 @@ private:
     };
 };
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

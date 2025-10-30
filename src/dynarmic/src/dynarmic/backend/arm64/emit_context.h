@@ -18,7 +18,7 @@
 
 namespace Dynarmic::IR {
 class Block;
-}  // namespace Dynarmic::IR
+} // namespace Dynarmic::IR
 
 namespace Dynarmic::Backend::Arm64 {
 
@@ -48,4 +48,4 @@ struct EmitContext {
     }
 };
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

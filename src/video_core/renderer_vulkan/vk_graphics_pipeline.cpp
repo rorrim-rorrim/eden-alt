@@ -15,6 +15,7 @@
 #include "video_core/renderer_vulkan/pipeline_helper.h"
 
 #include "common/bit_field.h"
+#include "video_core/polygon_mode_utils.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
 #include "video_core/renderer_vulkan/pipeline_statistics.h"
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
@@ -23,7 +24,6 @@
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
-#include "video_core/polygon_mode_utils.h"
 #include "video_core/shader_notify.h"
 #include "video_core/texture_cache/texture_cache.h"
 #include "video_core/vulkan_common/vulkan_device.h"
@@ -93,7 +93,8 @@ bool SupportsPrimitiveRestart(VkPrimitiveTopology topology) {
 
 bool IsLine(VkPrimitiveTopology topology) {
     static constexpr std::array line_topologies{
-        VK_PRIMITIVE_TOPOLOGY_LINE_LIST, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP,
+        VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
+        VK_PRIMITIVE_TOPOLOGY_LINE_STRIP,
         // VK_PRIMITIVE_TOPOLOGY_LINE_LOOP_EXT,
     };
     return std::ranges::find(line_topologies, topology) != line_topologies.end();
@@ -356,11 +357,7 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         const auto add_image{[&](const auto& desc, bool blacklist) LAMBDA_FORCEINLINE {
             for (u32 index = 0; index < desc.count; ++index) {
                 const auto handle{read_handle(desc, index)};
-                views[view_index++] = {
-                    .index = handle.first,
-                    .blacklist = blacklist,
-                    .id = {}
-                };
+                views[view_index++] = {.index = handle.first, .blacklist = blacklist, .id = {}};
             }
         }};
         if constexpr (Spec::has_texture_buffers) {
@@ -564,8 +561,9 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     static_vector<VkVertexInputBindingDivisorDescriptionEXT, 32> vertex_binding_divisors;
     static_vector<VkVertexInputAttributeDescription, 32> vertex_attributes;
     if (!key.state.dynamic_vertex_input) {
-        const size_t num_vertex_arrays = (std::min)(
-            Maxwell::NumVertexArrays, static_cast<size_t>(device.GetMaxVertexInputBindings()));
+        const size_t num_vertex_arrays =
+            (std::min)(Maxwell::NumVertexArrays,
+                       static_cast<size_t>(device.GetMaxVertexInputBindings()));
         for (size_t index = 0; index < num_vertex_arrays; ++index) {
             const bool instanced = key.state.binding_divisors[index] != 0;
             const auto rate =
@@ -616,8 +614,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         vertex_input_ci.pNext = &input_divisor_ci;
     }
     const bool has_tess_stages = spv_modules[1] || spv_modules[2];
-    const auto polygon_mode =
-        FixedPipelineState::UnpackPolygonMode(key.state.polygon_mode.Value());
+    const auto polygon_mode = FixedPipelineState::UnpackPolygonMode(key.state.polygon_mode.Value());
     auto input_assembly_topology =
         MaxwellToVK::PrimitiveTopology(device, key.state.topology, polygon_mode);
     if (input_assembly_topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST) {
@@ -667,16 +664,17 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .flags = 0,
         .topology = input_assembly_topology,
         .primitiveRestartEnable =
-        // MoltenVK/Metal always has primitive restart enabled and cannot disable it
-        device.IsMoltenVK() ? VK_TRUE :
-        (dynamic.primitive_restart_enable != 0 &&
-                ((input_assembly_topology != VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
-                  device.IsTopologyListPrimitiveRestartSupported()) ||
-                 SupportsPrimitiveRestart(input_assembly_topology) ||
-                 (input_assembly_topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
-                  device.IsPatchListPrimitiveRestartSupported()))
+            // MoltenVK/Metal always has primitive restart enabled and cannot disable it
+        device.IsMoltenVK()
             ? VK_TRUE
-            : VK_FALSE),
+            : (dynamic.primitive_restart_enable != 0 &&
+                       ((input_assembly_topology != VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
+                         device.IsTopologyListPrimitiveRestartSupported()) ||
+                        SupportsPrimitiveRestart(input_assembly_topology) ||
+                        (input_assembly_topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
+                         device.IsPatchListPrimitiveRestartSupported()))
+                   ? VK_TRUE
+                   : VK_FALSE),
     };
     const VkPipelineTessellationStateCreateInfo tessellation_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,
@@ -719,11 +717,11 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pNext = nullptr,
         .flags = 0,
         .depthClampEnable =
-        static_cast<VkBool32>(dynamic.depth_clamp_disabled == 0 ? VK_TRUE : VK_FALSE),
+            static_cast<VkBool32>(dynamic.depth_clamp_disabled == 0 ? VK_TRUE : VK_FALSE),
         .rasterizerDiscardEnable =
-        static_cast<VkBool32>(dynamic.rasterize_enable == 0 ? VK_TRUE : VK_FALSE),
+            static_cast<VkBool32>(dynamic.rasterize_enable == 0 ? VK_TRUE : VK_FALSE),
         .polygonMode =
-        MaxwellToVK::PolygonMode(FixedPipelineState::UnpackPolygonMode(key.state.polygon_mode)),
+            MaxwellToVK::PolygonMode(FixedPipelineState::UnpackPolygonMode(key.state.polygon_mode)),
         .cullMode = static_cast<VkCullModeFlags>(
             dynamic.cull_enable ? MaxwellToVK::CullFace(dynamic.CullFace()) : VK_CULL_MODE_NONE),
         .frontFace = MaxwellToVK::FrontFace(dynamic.FrontFace()),
@@ -777,7 +775,8 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .flags = 0,
         .rasterizationSamples = MaxwellToVK::MsaaMode(key.state.msaa_mode),
         .sampleShadingEnable = Settings::values.sample_shading.GetValue() ? VK_TRUE : VK_FALSE,
-        .minSampleShading = static_cast<float>(Settings::values.sample_shading_fraction.GetValue()) / 100.0f,
+        .minSampleShading =
+            static_cast<float>(Settings::values.sample_shading_fraction.GetValue()) / 100.0f,
         .pSampleMask = nullptr,
         .alphaToCoverageEnable = key.state.alpha_to_coverage_enabled != 0 ? VK_TRUE : VK_FALSE,
         .alphaToOneEnable = key.state.alpha_to_one_enabled != 0 ? VK_TRUE : VK_FALSE,
@@ -835,8 +834,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .logicOp = static_cast<VkLogicOp>(dynamic.logic_op.Value()),
         .attachmentCount = static_cast<u32>(cb_attachments.size()),
         .pAttachments = cb_attachments.data(),
-        .blendConstants = {}
-    };
+        .blendConstants = {}};
     static_vector<VkDynamicState, 34> dynamic_states{
         VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
         VK_DYNAMIC_STATE_DEPTH_BIAS,         VK_DYNAMIC_STATE_BLEND_CONSTANTS,
@@ -848,7 +846,8 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         static constexpr std::array extended{
             VK_DYNAMIC_STATE_CULL_MODE_EXT,
             VK_DYNAMIC_STATE_FRONT_FACE_EXT,
-          //VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT, //Disabled for VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME
+            // VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT, //Disabled for
+            // VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME
             VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT,
             VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE_EXT,
             VK_DYNAMIC_STATE_DEPTH_COMPARE_OP_EXT,
@@ -930,7 +929,8 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             });
     }
     VkPipelineCreateFlags flags{};
-    if (device.IsKhrPipelineExecutablePropertiesEnabled() && Settings::values.renderer_debug.GetValue()) {
+    if (device.IsKhrPipelineExecutablePropertiesEnabled() &&
+        Settings::values.renderer_debug.GetValue()) {
         flags |= VK_PIPELINE_CREATE_CAPTURE_STATISTICS_BIT_KHR;
     }
 

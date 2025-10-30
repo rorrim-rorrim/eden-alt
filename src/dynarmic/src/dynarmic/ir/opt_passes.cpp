@@ -12,6 +12,7 @@
 
 #include <ankerl/unordered_dense.h>
 #include "boost/container/small_vector.hpp"
+#include "dynarmic/common/safe_ops.h"
 #include "dynarmic/frontend/A32/a32_ir_emitter.h"
 #include "dynarmic/frontend/A32/a32_location_descriptor.h"
 #include "dynarmic/frontend/A32/a32_types.h"
@@ -21,14 +22,13 @@
 #include "dynarmic/interface/A32/config.h"
 #include "dynarmic/interface/A64/config.h"
 #include "dynarmic/interface/optimization_flags.h"
-#include "dynarmic/common/safe_ops.h"
 #include "dynarmic/ir/basic_block.h"
 #include "dynarmic/ir/microinstruction.h"
 #include "dynarmic/ir/opcodes.h"
 #include "dynarmic/ir/opt_passes.h"
 #include "dynarmic/ir/type.h"
-#include "mcl/bit/swap.hpp"
 #include "mcl/bit/rotate.hpp"
+#include "mcl/bit/swap.hpp"
 
 namespace Dynarmic::Optimization {
 
@@ -140,11 +140,11 @@ static void FlagsPass(IR::Block& block) {
         }
         case IR::Opcode::A32SetCpsrNZCV: {
             if (c_flag.has_value_request) {
-                ir.SetInsertionPointBefore(inst.base());  // base is one ahead
+                ir.SetInsertionPointBefore(inst.base()); // base is one ahead
                 IR::U1 c = ir.GetCFlagFromNZCV(IR::NZCV{inst->GetArg(0)});
                 c_flag.value_request->ReplaceUsesWith(c);
                 c_flag.has_value_request = false;
-                break;  // This case will be executed again because of the above
+                break; // This case will be executed again because of the above
             }
 
             do_set_valueless(nzcv, inst);
@@ -190,7 +190,8 @@ static void FlagsPass(IR::Block& block) {
                 c_flag.has_value_request = false;
             }
 
-            if (!inst->GetArg(1).IsImmediate() && inst->GetArg(1).GetInstRecursive()->GetOpcode() == IR::Opcode::A32GetCFlag) {
+            if (!inst->GetArg(1).IsImmediate() &&
+                inst->GetArg(1).GetInstRecursive()->GetOpcode() == IR::Opcode::A32GetCFlag) {
                 const auto nz_value = inst->GetArg(0);
 
                 inst->Invalidate();
@@ -286,8 +287,11 @@ static void RegisterPass(IR::Block& block) {
     };
     std::array<ExtRegInfo, 64> ext_reg_info;
 
-    const auto do_ext_get = [](ExtValueType type, std::initializer_list<std::reference_wrapper<ExtRegInfo>> infos, Iterator get_inst) {
-        if (!std::all_of(infos.begin(), infos.end(), [type](const auto& info) { return info.get().value_type == type; })) {
+    const auto do_ext_get = [](ExtValueType type,
+                               std::initializer_list<std::reference_wrapper<ExtRegInfo>> infos,
+                               Iterator get_inst) {
+        if (!std::all_of(infos.begin(), infos.end(),
+                         [type](const auto& info) { return info.get().value_type == type; })) {
             for (auto& info : infos) {
                 info.get() = {
                     .value_type = type,
@@ -300,8 +304,11 @@ static void RegisterPass(IR::Block& block) {
         get_inst->ReplaceUsesWith(std::data(infos)[0].get().register_value);
     };
 
-    const auto do_ext_set = [](ExtValueType type, std::initializer_list<std::reference_wrapper<ExtRegInfo>> infos, IR::Value value, Iterator set_inst) {
-        if (std::all_of(infos.begin(), infos.end(), [type](const auto& info) { return info.get().value_type == type; })) {
+    const auto do_ext_set = [](ExtValueType type,
+                               std::initializer_list<std::reference_wrapper<ExtRegInfo>> infos,
+                               IR::Value value, Iterator set_inst) {
+        if (std::all_of(infos.begin(), infos.end(),
+                        [type](const auto& info) { return info.get().value_type == type; })) {
             if (std::data(infos)[0].get().last_set_instruction) {
                 (*std::data(infos)[0].get().last_set_instruction)->Invalidate();
             }
@@ -368,8 +375,7 @@ static void RegisterPass(IR::Block& block) {
                            ext_reg_info[reg_index * 2 + 0],
                            ext_reg_info[reg_index * 2 + 1],
                        },
-                       inst->GetArg(1),
-                       inst);
+                       inst->GetArg(1), inst);
             break;
         }
         case IR::Opcode::A32GetVector: {
@@ -406,8 +412,7 @@ static void RegisterPass(IR::Block& block) {
                                ext_reg_info[reg_index * 2 + 0],
                                ext_reg_info[reg_index * 2 + 1],
                            },
-                           stored_value,
-                           inst);
+                           stored_value, inst);
             } else {
                 DEBUG_ASSERT(A32::IsQuadExtReg(reg));
                 do_ext_set(ExtValueType::VectorQuad,
@@ -417,8 +422,7 @@ static void RegisterPass(IR::Block& block) {
                                ext_reg_info[reg_index * 4 + 2],
                                ext_reg_info[reg_index * 4 + 3],
                            },
-                           inst->GetArg(1),
-                           inst);
+                           inst->GetArg(1), inst);
             }
             break;
         }
@@ -456,7 +460,8 @@ static void A64CallbackConfigPass(IR::Block& block, const A64::UserConfig& conf)
         const auto op = static_cast<A64::DataCacheOperation>(inst.GetArg(1).GetU64());
         if (op == A64::DataCacheOperation::ZeroByVA) {
             A64::IREmitter ir{block};
-            ir.current_location = A64::LocationDescriptor{IR::LocationDescriptor{inst.GetArg(0).GetU64()}};
+            ir.current_location =
+                A64::LocationDescriptor{IR::LocationDescriptor{inst.GetArg(0).GetU64()}};
             ir.SetInsertionPointBefore(&inst);
 
             size_t bytes = 4 << static_cast<size_t>(conf.dczid_el0 & 0b1111);
@@ -509,7 +514,8 @@ static void A64GetSetElimination(IR::Block& block) {
     RegisterInfo sp_info;
     RegisterInfo nzcv_info;
 
-    const auto do_set = [&block](RegisterInfo& info, IR::Value value, Iterator set_inst, TrackingType tracking_type) {
+    const auto do_set = [&block](RegisterInfo& info, IR::Value value, Iterator set_inst,
+                                 TrackingType tracking_type) {
         if (info.set_instruction_present) {
             info.last_set_instruction->Invalidate();
             block.Instructions().erase(info.last_set_instruction);
@@ -682,7 +688,7 @@ static IR::Value Value(bool is_32_bit, u64 value) {
     return is_32_bit ? IR::Value{u32(value)} : IR::Value{value};
 }
 
-template<typename ImmFn>
+template <typename ImmFn>
 static bool FoldCommutative(IR::Inst& inst, bool is_32_bit, ImmFn imm_fn) {
     const auto lhs = inst.GetArg(0);
     const auto rhs = inst.GetArg(1);
@@ -699,7 +705,8 @@ static bool FoldCommutative(IR::Inst& inst, bool is_32_bit, ImmFn imm_fn) {
     if (is_lhs_immediate && !is_rhs_immediate) {
         const IR::Inst* rhs_inst = rhs.GetInstRecursive();
         if (rhs_inst->GetOpcode() == inst.GetOpcode() && rhs_inst->GetArg(1).IsImmediate()) {
-            const u64 combined = imm_fn(lhs.GetImmediateAsU64(), rhs_inst->GetArg(1).GetImmediateAsU64());
+            const u64 combined =
+                imm_fn(lhs.GetImmediateAsU64(), rhs_inst->GetArg(1).GetImmediateAsU64());
             inst.SetArg(0, rhs_inst->GetArg(0));
             inst.SetArg(1, Value(is_32_bit, combined));
         } else {
@@ -712,7 +719,8 @@ static bool FoldCommutative(IR::Inst& inst, bool is_32_bit, ImmFn imm_fn) {
     if (!is_lhs_immediate && is_rhs_immediate) {
         const IR::Inst* lhs_inst = lhs.GetInstRecursive();
         if (lhs_inst->GetOpcode() == inst.GetOpcode() && lhs_inst->GetArg(1).IsImmediate()) {
-            const u64 combined = imm_fn(rhs.GetImmediateAsU64(), lhs_inst->GetArg(1).GetImmediateAsU64());
+            const u64 combined =
+                imm_fn(rhs.GetImmediateAsU64(), lhs_inst->GetArg(1).GetImmediateAsU64());
             inst.SetArg(0, lhs_inst->GetArg(0));
             inst.SetArg(1, Value(is_32_bit, combined));
         }
@@ -740,8 +748,10 @@ static void FoldAdd(IR::Inst& inst, bool is_32_bit) {
 
     if (!lhs.IsImmediate() && rhs.IsImmediate()) {
         const IR::Inst* lhs_inst = lhs.GetInstRecursive();
-        if (lhs_inst->GetOpcode() == inst.GetOpcode() && lhs_inst->GetArg(1).IsImmediate() && lhs_inst->GetArg(2).IsImmediate()) {
-            const u64 combined = rhs.GetImmediateAsU64() + lhs_inst->GetArg(1).GetImmediateAsU64() + lhs_inst->GetArg(2).GetU1();
+        if (lhs_inst->GetOpcode() == inst.GetOpcode() && lhs_inst->GetArg(1).IsImmediate() &&
+            lhs_inst->GetArg(2).IsImmediate()) {
+            const u64 combined = rhs.GetImmediateAsU64() + lhs_inst->GetArg(1).GetImmediateAsU64() +
+                                 lhs_inst->GetArg(2).GetU1();
             if (combined == 0) {
                 inst.ReplaceUsesWith(lhs_inst->GetArg(0));
                 return;
@@ -824,7 +834,8 @@ static void FoldCountLeadingZeros(IR::Inst& inst, bool is_32_bit) {
 
 /// Folds division operations based on the following:
 ///
-/// 1. x / 0 -> 0 (NOTE: This is an ARM-specific behavior defined in the architecture reference manual)
+/// 1. x / 0 -> 0 (NOTE: This is an ARM-specific behavior defined in the architecture reference
+/// manual)
 /// 2. imm_x / imm_y -> result
 /// 3. x / 1 -> x
 ///
@@ -1071,82 +1082,108 @@ static void ConstantPropagation(IR::Block& block) {
             break;
         case Op::LogicalShiftLeft32:
             if (FoldShifts(inst)) {
-                ReplaceUsesWith(inst, true, Safe::LogicalShiftLeft<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU8()));
+                ReplaceUsesWith(
+                    inst, true,
+                    Safe::LogicalShiftLeft<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU8()));
             }
             break;
         case Op::LogicalShiftLeft64:
             if (FoldShifts(inst)) {
-                ReplaceUsesWith(inst, false, Safe::LogicalShiftLeft<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU8()));
+                ReplaceUsesWith(
+                    inst, false,
+                    Safe::LogicalShiftLeft<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU8()));
             }
             break;
         case Op::LogicalShiftRight32:
             if (FoldShifts(inst)) {
-                ReplaceUsesWith(inst, true, Safe::LogicalShiftRight<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU8()));
+                ReplaceUsesWith(
+                    inst, true,
+                    Safe::LogicalShiftRight<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU8()));
             }
             break;
         case Op::LogicalShiftRight64:
             if (FoldShifts(inst)) {
-                ReplaceUsesWith(inst, false, Safe::LogicalShiftRight<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU8()));
+                ReplaceUsesWith(
+                    inst, false,
+                    Safe::LogicalShiftRight<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU8()));
             }
             break;
         case Op::ArithmeticShiftRight32:
             if (FoldShifts(inst)) {
-                ReplaceUsesWith(inst, true, Safe::ArithmeticShiftRight<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU8()));
+                ReplaceUsesWith(inst, true,
+                                Safe::ArithmeticShiftRight<u32>(inst.GetArg(0).GetU32(),
+                                                                inst.GetArg(1).GetU8()));
             }
             break;
         case Op::ArithmeticShiftRight64:
             if (FoldShifts(inst)) {
-                ReplaceUsesWith(inst, false, Safe::ArithmeticShiftRight<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU8()));
+                ReplaceUsesWith(inst, false,
+                                Safe::ArithmeticShiftRight<u64>(inst.GetArg(0).GetU64(),
+                                                                inst.GetArg(1).GetU8()));
             }
             break;
         case Op::RotateRight32:
             if (FoldShifts(inst)) {
-                ReplaceUsesWith(inst, true, mcl::bit::rotate_right<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU8()));
+                ReplaceUsesWith(
+                    inst, true,
+                    mcl::bit::rotate_right<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU8()));
             }
             break;
         case Op::RotateRight64:
             if (FoldShifts(inst)) {
-                ReplaceUsesWith(inst, false, mcl::bit::rotate_right<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU8()));
+                ReplaceUsesWith(
+                    inst, false,
+                    mcl::bit::rotate_right<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU8()));
             }
             break;
         case Op::LogicalShiftLeftMasked32:
             if (inst.AreAllArgsImmediates()) {
-                ReplaceUsesWith(inst, true, inst.GetArg(0).GetU32() << (inst.GetArg(1).GetU32() & 0x1f));
+                ReplaceUsesWith(inst, true,
+                                inst.GetArg(0).GetU32() << (inst.GetArg(1).GetU32() & 0x1f));
             }
             break;
         case Op::LogicalShiftLeftMasked64:
             if (inst.AreAllArgsImmediates()) {
-                ReplaceUsesWith(inst, false, inst.GetArg(0).GetU64() << (inst.GetArg(1).GetU64() & 0x3f));
+                ReplaceUsesWith(inst, false,
+                                inst.GetArg(0).GetU64() << (inst.GetArg(1).GetU64() & 0x3f));
             }
             break;
         case Op::LogicalShiftRightMasked32:
             if (inst.AreAllArgsImmediates()) {
-                ReplaceUsesWith(inst, true, inst.GetArg(0).GetU32() >> (inst.GetArg(1).GetU32() & 0x1f));
+                ReplaceUsesWith(inst, true,
+                                inst.GetArg(0).GetU32() >> (inst.GetArg(1).GetU32() & 0x1f));
             }
             break;
         case Op::LogicalShiftRightMasked64:
             if (inst.AreAllArgsImmediates()) {
-                ReplaceUsesWith(inst, false, inst.GetArg(0).GetU64() >> (inst.GetArg(1).GetU64() & 0x3f));
+                ReplaceUsesWith(inst, false,
+                                inst.GetArg(0).GetU64() >> (inst.GetArg(1).GetU64() & 0x3f));
             }
             break;
         case Op::ArithmeticShiftRightMasked32:
             if (inst.AreAllArgsImmediates()) {
-                ReplaceUsesWith(inst, true, s32(inst.GetArg(0).GetU32()) >> (inst.GetArg(1).GetU32() & 0x1f));
+                ReplaceUsesWith(inst, true,
+                                s32(inst.GetArg(0).GetU32()) >> (inst.GetArg(1).GetU32() & 0x1f));
             }
             break;
         case Op::ArithmeticShiftRightMasked64:
             if (inst.AreAllArgsImmediates()) {
-                ReplaceUsesWith(inst, false, s64(inst.GetArg(0).GetU64()) >> (inst.GetArg(1).GetU64() & 0x3f));
+                ReplaceUsesWith(inst, false,
+                                s64(inst.GetArg(0).GetU64()) >> (inst.GetArg(1).GetU64() & 0x3f));
             }
             break;
         case Op::RotateRightMasked32:
             if (inst.AreAllArgsImmediates()) {
-                ReplaceUsesWith(inst, true, mcl::bit::rotate_right<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU32()));
+                ReplaceUsesWith(
+                    inst, true,
+                    mcl::bit::rotate_right<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU32()));
             }
             break;
         case Op::RotateRightMasked64:
             if (inst.AreAllArgsImmediates()) {
-                ReplaceUsesWith(inst, false, mcl::bit::rotate_right<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU64()));
+                ReplaceUsesWith(
+                    inst, false,
+                    mcl::bit::rotate_right<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU64()));
             }
             break;
         case Op::Add32:
@@ -1386,13 +1423,15 @@ static void PolyfillSHA256Hash(IR::IREmitter& ir, IR::Inst& inst) {
     inst.ReplaceUsesWith(part1 ? x : y);
 }
 
-template<size_t esize, bool is_signed>
+template <size_t esize, bool is_signed>
 static void PolyfillVectorMultiplyWiden(IR::IREmitter& ir, IR::Inst& inst) {
     IR::U128 n = (IR::U128)inst.GetArg(0);
     IR::U128 m = (IR::U128)inst.GetArg(1);
 
-    const IR::U128 wide_n = is_signed ? ir.VectorSignExtend(esize, n) : ir.VectorZeroExtend(esize, n);
-    const IR::U128 wide_m = is_signed ? ir.VectorSignExtend(esize, m) : ir.VectorZeroExtend(esize, m);
+    const IR::U128 wide_n =
+        is_signed ? ir.VectorSignExtend(esize, n) : ir.VectorZeroExtend(esize, n);
+    const IR::U128 wide_m =
+        is_signed ? ir.VectorSignExtend(esize, m) : ir.VectorZeroExtend(esize, m);
 
     const IR::U128 result = ir.VectorMultiply(esize * 2, wide_n, wide_m);
 
@@ -1479,7 +1518,8 @@ static void VerificationPass(const IR::Block& block) {
         ASSERT(pair.first->UseCount() == pair.second);
 }
 
-void Optimize(IR::Block& block, const A32::UserConfig& conf, const Optimization::PolyfillOptions& polyfill_options) {
+void Optimize(IR::Block& block, const A32::UserConfig& conf,
+              const Optimization::PolyfillOptions& polyfill_options) {
     Optimization::PolyfillPass(block, polyfill_options);
     Optimization::NamingPass(block);
     if (conf.HasOptimization(OptimizationFlag::GetSetElimination)) [[likely]] {
@@ -1497,11 +1537,13 @@ void Optimize(IR::Block& block, const A32::UserConfig& conf, const Optimization:
     }
 }
 
-void Optimize(IR::Block& block, const A64::UserConfig& conf, const Optimization::PolyfillOptions& polyfill_options) {
+void Optimize(IR::Block& block, const A64::UserConfig& conf,
+              const Optimization::PolyfillOptions& polyfill_options) {
     Optimization::PolyfillPass(block, polyfill_options);
     Optimization::A64CallbackConfigPass(block, conf);
     Optimization::NamingPass(block);
-    if (conf.HasOptimization(OptimizationFlag::GetSetElimination) && !conf.check_halt_on_memory_access) [[likely]] {
+    if (conf.HasOptimization(OptimizationFlag::GetSetElimination) &&
+        !conf.check_halt_on_memory_access) [[likely]] {
         Optimization::A64GetSetElimination(block);
         Optimization::DeadCodeElimination(block);
     }
@@ -1517,4 +1559,4 @@ void Optimize(IR::Block& block, const A64::UserConfig& conf, const Optimization:
     }
 }
 
-}  // namespace Dynarmic::Optimization
+} // namespace Dynarmic::Optimization

@@ -16,13 +16,13 @@ namespace Dynarmic::Backend::X64 {
 
 namespace detail {
 void PerfMapRegister(const void* start, const void* end, std::string_view friendly_name);
-}  // namespace detail
+} // namespace detail
 
-template<typename T>
+template <typename T>
 void PerfMapRegister(T start, const void* end, std::string_view friendly_name) {
     detail::PerfMapRegister(std::bit_cast<const void*>(start), end, friendly_name);
 }
 
 void PerfMapClear();
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

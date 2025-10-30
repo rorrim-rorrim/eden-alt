@@ -15,9 +15,10 @@
 #include "core/hle/kernel/k_event.h"
 
 // See texture_cache/util.h
-template<typename T, size_t N>
+template <typename T, size_t N>
 #if BOOST_VERSION >= 108100 || __GNUC__ > 12
-[[nodiscard]] boost::container::static_vector<T, N> FixStaticVectorADL(const boost::container::static_vector<T, N>& v) {
+[[nodiscard]] boost::container::static_vector<T, N> FixStaticVectorADL(
+    const boost::container::static_vector<T, N>& v) {
     return v;
 }
 #else
@@ -32,8 +33,8 @@ template<typename T, size_t N>
 namespace AudioCore::AudioIn {
 
 System::System(Core::System& system_, Kernel::KEvent* event_, const size_t session_id_)
-    : system{system_}, buffer_event{event_},
-      session_id{session_id_}, session{std::make_unique<DeviceSession>(system_)} {}
+    : system{system_}, buffer_event{event_}, session_id{session_id_},
+      session{std::make_unique<DeviceSession>(system_)} {}
 
 System::~System() {
     Finalize();

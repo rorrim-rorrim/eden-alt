@@ -41,7 +41,9 @@ bool TranslatorVisitor::RaiseException(Exception exception) {
     return false;
 }
 
-std::optional<TranslatorVisitor::BitMasks> TranslatorVisitor::DecodeBitMasks(bool immN, Imm<6> imms, Imm<6> immr, bool immediate) {
+std::optional<TranslatorVisitor::BitMasks> TranslatorVisitor::DecodeBitMasks(bool immN, Imm<6> imms,
+                                                                             Imm<6> immr,
+                                                                             bool immediate) {
     const int len = mcl::bit::highest_set_bit((immN ? 1 << 6 : 0) | (imms.ZeroExtend() ^ 0b111111));
     if (len < 1) {
         return std::nullopt;
@@ -237,7 +239,8 @@ IR::UAnyU128 TranslatorVisitor::Mem(IR::U64 address, size_t bytesize, IR::AccTyp
     }
 }
 
-void TranslatorVisitor::Mem(IR::U64 address, size_t bytesize, IR::AccType acc_type, IR::UAnyU128 value) {
+void TranslatorVisitor::Mem(IR::U64 address, size_t bytesize, IR::AccType acc_type,
+                            IR::UAnyU128 value) {
     switch (bytesize) {
     case 1:
         ir.WriteMemory8(address, value, acc_type);
@@ -259,7 +262,8 @@ void TranslatorVisitor::Mem(IR::U64 address, size_t bytesize, IR::AccType acc_ty
     }
 }
 
-IR::UAnyU128 TranslatorVisitor::ExclusiveMem(IR::U64 address, size_t bytesize, IR::AccType acc_type) {
+IR::UAnyU128 TranslatorVisitor::ExclusiveMem(IR::U64 address, size_t bytesize,
+                                             IR::AccType acc_type) {
     switch (bytesize) {
     case 1:
         return ir.ExclusiveReadMemory8(address, acc_type);
@@ -276,7 +280,8 @@ IR::UAnyU128 TranslatorVisitor::ExclusiveMem(IR::U64 address, size_t bytesize, I
     }
 }
 
-IR::U32 TranslatorVisitor::ExclusiveMem(IR::U64 address, size_t bytesize, IR::AccType acc_type, IR::UAnyU128 value) {
+IR::U32 TranslatorVisitor::ExclusiveMem(IR::U64 address, size_t bytesize, IR::AccType acc_type,
+                                        IR::UAnyU128 value) {
     switch (bytesize) {
     case 1:
         return ir.ExclusiveWriteMemory8(address, value, acc_type);
@@ -339,19 +344,19 @@ IR::U32U64 TranslatorVisitor::ExtendReg(size_t bitsize, Reg reg, Imm<3> option, 
     bool signed_extend;
 
     switch (option.ZeroExtend()) {
-    case 0b000: {  // UXTB
+    case 0b000: { // UXTB
         val = ir.LeastSignificantByte(val);
         len = 8;
         signed_extend = false;
         break;
     }
-    case 0b001: {  // UXTH
+    case 0b001: { // UXTH
         val = ir.LeastSignificantHalf(val);
         len = 16;
         signed_extend = false;
         break;
     }
-    case 0b010: {  // UXTW
+    case 0b010: { // UXTW
         if (bitsize != 32) {
             val = ir.LeastSignificantWord(val);
         }
@@ -359,24 +364,24 @@ IR::U32U64 TranslatorVisitor::ExtendReg(size_t bitsize, Reg reg, Imm<3> option, 
         signed_extend = false;
         break;
     }
-    case 0b011: {  // UXTX
+    case 0b011: { // UXTX
         len = 64;
         signed_extend = false;
         break;
     }
-    case 0b100: {  // SXTB
+    case 0b100: { // SXTB
         val = ir.LeastSignificantByte(val);
         len = 8;
         signed_extend = true;
         break;
     }
-    case 0b101: {  // SXTH
+    case 0b101: { // SXTH
         val = ir.LeastSignificantHalf(val);
         len = 16;
         signed_extend = true;
         break;
     }
-    case 0b110: {  // SXTW
+    case 0b110: { // SXTW
         if (bitsize != 32) {
             val = ir.LeastSignificantWord(val);
         }
@@ -384,7 +389,7 @@ IR::U32U64 TranslatorVisitor::ExtendReg(size_t bitsize, Reg reg, Imm<3> option, 
         signed_extend = true;
         break;
     }
-    case 0b111: {  // SXTX
+    case 0b111: { // SXTX
         len = 64;
         signed_extend = true;
         break;
@@ -406,4 +411,4 @@ IR::U32U64 TranslatorVisitor::ExtendReg(size_t bitsize, Reg reg, Imm<3> option, 
     return ir.LogicalShiftLeft(extended, ir.Imm8(shift));
 }
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64

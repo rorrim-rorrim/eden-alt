@@ -52,9 +52,7 @@ struct SpinLockImpl {
 std::once_flag flag;
 SpinLockImpl impl;
 
-SpinLockImpl::SpinLockImpl()
-        : mem{4096}
-        , code{mem.ptr(), mem.ptr()} {}
+SpinLockImpl::SpinLockImpl() : mem{4096}, code{mem.ptr(), mem.ptr()} {}
 
 void SpinLockImpl::Initialize() {
     mem.unprotect();
@@ -71,7 +69,7 @@ void SpinLockImpl::Initialize() {
     mem.invalidate_all();
 }
 
-}  // namespace
+} // namespace
 
 void SpinLock::Lock() noexcept {
     std::call_once(flag, &SpinLockImpl::Initialize, impl);
@@ -83,4 +81,4 @@ void SpinLock::Unlock() noexcept {
     impl.unlock(&storage);
 }
 
-}  // namespace Dynarmic
+} // namespace Dynarmic

@@ -9,7 +9,8 @@
 
 namespace Dynarmic::A64 {
 
-static bool TableLookup(TranslatorVisitor& v, bool Q, Vec Vm, Imm<2> len, bool is_tbl, size_t Vn, Vec Vd) {
+static bool TableLookup(TranslatorVisitor& v, bool Q, Vec Vm, Imm<2> len, bool is_tbl, size_t Vn,
+                        Vec Vd) {
     const size_t datasize = Q ? 128 : 64;
 
     const IR::Table table = v.ir.VectorTable([&] {
@@ -37,4 +38,4 @@ bool TranslatorVisitor::TBX(bool Q, Vec Vm, Imm<2> len, size_t Vn, Vec Vd) {
     return TableLookup(*this, Q, Vm, len, false, Vn, Vd);
 }
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64

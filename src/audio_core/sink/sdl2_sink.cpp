@@ -239,7 +239,8 @@ u32 GetSDLLatency() {
     return TargetSampleCount * 2;
 }
 
-// REVERTED back to 3833 - Below function IsSDLSuitable() removed, reverting to GetSDLLatency() above. - DIABLO 3 FIX
+// REVERTED back to 3833 - Below function IsSDLSuitable() removed, reverting to GetSDLLatency()
+// above. - DIABLO 3 FIX
 /*
 bool IsSDLSuitable() {
 #if !defined(HAVE_SDL2)

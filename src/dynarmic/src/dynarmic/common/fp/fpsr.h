@@ -21,8 +21,7 @@ public:
     FPSR() = default;
     FPSR(const FPSR&) = default;
     FPSR(FPSR&&) = default;
-    explicit FPSR(u32 data)
-            : value{data & mask} {}
+    explicit FPSR(u32 data) : value{data & mask} {}
 
     FPSR& operator=(const FPSR&) = default;
     FPSR& operator=(FPSR&&) = default;
@@ -160,4 +159,4 @@ inline bool operator!=(FPSR lhs, FPSR rhs) {
     return !operator==(lhs, rhs);
 }
 
-}  // namespace Dynarmic::FP
+} // namespace Dynarmic::FP

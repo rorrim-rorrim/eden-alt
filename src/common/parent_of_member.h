@@ -92,7 +92,7 @@ struct OffsetOfCalculator {
     }
 
     template <typename CurUnion>
-    static constexpr std::ptrdiff_t OffsetOfImpl(MemberType ParentType::*member,
+    static constexpr std::ptrdiff_t OffsetOfImpl(MemberType ParentType::* member,
                                                  CurUnion& cur_union) {
         constexpr size_t Offset = CurUnion::GetOffset();
         const auto target = std::addressof(GetPointer(U.parent)->*member);
@@ -111,7 +111,7 @@ struct OffsetOfCalculator {
                                       Offset);
     }
 
-    static constexpr std::ptrdiff_t OffsetOf(MemberType ParentType::*member) {
+    static constexpr std::ptrdiff_t OffsetOf(MemberType ParentType::* member) {
         return OffsetOfImpl(member, U.first_union);
     }
 };

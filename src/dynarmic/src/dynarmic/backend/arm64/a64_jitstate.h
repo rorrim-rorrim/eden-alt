@@ -31,10 +31,11 @@ struct A64JitState {
     u32 fpcr = 0;
 
     IR::LocationDescriptor GetLocationDescriptor() const {
-        const u64 fpcr_u64 = static_cast<u64>(fpcr & A64::LocationDescriptor::fpcr_mask) << A64::LocationDescriptor::fpcr_shift;
+        const u64 fpcr_u64 = static_cast<u64>(fpcr & A64::LocationDescriptor::fpcr_mask)
+                             << A64::LocationDescriptor::fpcr_shift;
         const u64 pc_u64 = pc & A64::LocationDescriptor::pc_mask;
         return IR::LocationDescriptor{pc_u64 | fpcr_u64};
     }
 };
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

@@ -14,8 +14,8 @@ namespace Service::AM::Frontend {
 class NetConnect final : public FrontendApplet {
 public:
     explicit NetConnect(Core::System& system_, std::shared_ptr<Applet> applet_,
-                         LibraryAppletMode applet_mode_,
-                         const Core::Frontend::NetConnectApplet& frontend_);
+                        LibraryAppletMode applet_mode_,
+                        const Core::Frontend::NetConnectApplet& frontend_);
     ~NetConnect() override;
 
     void Initialize() override;

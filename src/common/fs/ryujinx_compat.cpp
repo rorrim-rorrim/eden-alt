@@ -1,33 +1,30 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "ryujinx_compat.h"
-#include "common/fs/path_util.h"
 #include <cstddef>
 #include <cstring>
-#include <fmt/ranges.h>
 #include <fstream>
+#include <fmt/ranges.h>
+#include "common/fs/path_util.h"
+#include "ryujinx_compat.h"
 
 namespace Common::FS {
 
 namespace fs = std::filesystem;
 
-fs::path GetKvdbPath()
-{
-    return GetLegacyPath(EmuPath::RyujinxDir) / "bis" / "system" / "save" / "8000000000000000" / "0"
-           / "imkvdb.arc";
+fs::path GetKvdbPath() {
+    return GetLegacyPath(EmuPath::RyujinxDir) / "bis" / "system" / "save" / "8000000000000000" /
+           "0" / "imkvdb.arc";
 }
 
-fs::path GetRyuSavePath(const u64 &save_id)
-{
+fs::path GetRyuSavePath(const u64& save_id) {
     std::string hex = fmt::format("{:016x}", save_id);
 
     // TODO: what's the difference between 0 and 1?
     return GetLegacyPath(EmuPath::RyujinxDir) / "bis" / "user" / "save" / hex / "0";
 }
 
-IMENReadResult ReadKvdb(const fs::path &path, std::vector<IMEN> &imens)
-{
+IMENReadResult ReadKvdb(const fs::path& path, std::vector<IMEN>& imens) {
     std::ifstream kvdb{path, std::ios::binary | std::ios::ate};
 
     if (!kvdb) {
@@ -79,9 +76,9 @@ IMENReadResult ReadKvdb(const fs::path &path, std::vector<IMEN> &imens)
         }
 
         kvdb.ignore(0x8);
-        kvdb.read(reinterpret_cast<char *>(&title_id), 8);
+        kvdb.read(reinterpret_cast<char*>(&title_id), 8);
         kvdb.ignore(0x38);
-        kvdb.read(reinterpret_cast<char *>(&save_id), 8);
+        kvdb.read(reinterpret_cast<char*>(&save_id), 8);
         kvdb.ignore(0x38);
 
         imens.emplace_back(IMEN{title_id, save_id});

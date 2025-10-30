@@ -121,7 +121,6 @@ private:
     boost::asio::basic_waitable_timer<clock> timer;
     udp::socket socket;
 
-
     const u32 client_id;
 
     static constexpr std::size_t PORT_INFO_SIZE = sizeof(Message<Request::PortInfo>);

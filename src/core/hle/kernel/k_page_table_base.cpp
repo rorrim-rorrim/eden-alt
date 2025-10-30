@@ -298,8 +298,10 @@ Result KPageTableBase::InitializeForProcess(Svc::CreateProcessFlag as_type, bool
     const auto as_mask = Svc::CreateProcessFlag::AddressSpaceMask;
     const bool is_64bit_as = (as_type & as_mask) == Svc::CreateProcessFlag::AddressSpace64Bit;
 
-    if (is_64bit_as && (as_type & Svc::CreateProcessFlag::EnableAliasRegionExtraSize)
-        != Svc::CreateProcessFlag{0} && alias_region_size) {
+    if (is_64bit_as &&
+        (as_type & Svc::CreateProcessFlag::EnableAliasRegionExtraSize) !=
+            Svc::CreateProcessFlag{0} &&
+        alias_region_size) {
         const size_t address_space_size = (GetInteger(end) - GetInteger(start));
 
         // Same as address_space_size/8 but faster due to bit shifting operation
@@ -5298,7 +5300,7 @@ Result KPageTableBase::MapPhysicalMemory(KProcessAddress address, size_t size) {
                                     DisableMergeAttribute::None};
                                 const size_t cur_pages =
                                     (std::min)(KProcessAddress(info.GetEndAddress()) - cur_address,
-                                             last_unmap_address + 1 - cur_address) /
+                                               last_unmap_address + 1 - cur_address) /
                                     PageSize;
 
                                 // Unmap.
@@ -5346,7 +5348,7 @@ Result KPageTableBase::MapPhysicalMemory(KProcessAddress address, size_t size) {
                                 : DisableMergeAttribute::None};
                         size_t map_pages =
                             (std::min)(KProcessAddress(info.GetEndAddress()) - cur_address,
-                                     last_address + 1 - cur_address) /
+                                       last_address + 1 - cur_address) /
                             PageSize;
 
                         // While we have pages to map, map them.
@@ -5536,7 +5538,7 @@ Result KPageTableBase::UnmapPhysicalMemory(KProcessAddress address, size_t size)
             const KPageProperties unmap_properties = {KMemoryPermission::None, false, false,
                                                       DisableMergeAttribute::None};
             const size_t cur_pages = (std::min)(KProcessAddress(info.GetEndAddress()) - cur_address,
-                                              last_address + 1 - cur_address) /
+                                                last_address + 1 - cur_address) /
                                      PageSize;
 
             // Unmap.

@@ -11,11 +11,11 @@
 #include <cstddef>
 #include <cstring>
 #include <limits>
+#include <mutex>
 #include <new>
 #include <span>
 #include <type_traits>
 #include <vector>
-#include <mutex>
 
 namespace Common {
 

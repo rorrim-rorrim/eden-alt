@@ -14,7 +14,7 @@ namespace Dynarmic::Backend::Arm64 {
 using namespace oaknut::util;
 
 FpsrManager::FpsrManager(oaknut::CodeGenerator& code, size_t state_fpsr_offset)
-        : code{code}, state_fpsr_offset{state_fpsr_offset} {}
+    : code{code}, state_fpsr_offset{state_fpsr_offset} {}
 
 void FpsrManager::Spill() {
     if (!fpsr_loaded)
@@ -46,4 +46,4 @@ void FpsrManager::GetFpsr(oaknut::WReg dest) {
     }
 }
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

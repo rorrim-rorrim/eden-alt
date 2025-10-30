@@ -227,7 +227,9 @@ HaltReason ArmNce::RunThread(Kernel::KThread* thread) {
     if (auto it = post_handlers.find(m_guest_ctx.pc); it != post_handlers.end()) {
         hr = ReturnToRunCodeByTrampoline(thread_params, &m_guest_ctx, it->second);
     } else {
-        hr = ReturnToRunCodeByExceptionLevelChange(m_thread_id, thread_params);  // Android: Use "process handle SIGUSR2 -n true -p true -s false" (and SIGURG) in LLDB when debugging
+        hr = ReturnToRunCodeByExceptionLevelChange(
+            m_thread_id, thread_params); // Android: Use "process handle SIGUSR2 -n true -p true -s
+                                         // false" (and SIGURG) in LLDB when debugging
     }
 
     // Critical section for thread cleanup
@@ -302,7 +304,7 @@ void ArmNce::Initialize() {
         sigaddset(&signal_mask, GuestAlignmentFaultSignal);
         sigaddset(&signal_mask, GuestAccessFaultSignal);
 
-        struct sigaction return_to_run_code_action {};
+        struct sigaction return_to_run_code_action{};
         return_to_run_code_action.sa_flags = SA_SIGINFO | SA_ONSTACK;
         return_to_run_code_action.sa_sigaction = reinterpret_cast<HandlerType>(
             &ArmNce::ReturnToRunCodeByExceptionLevelChangeSignalHandler);
@@ -310,21 +312,21 @@ void ArmNce::Initialize() {
         Common::SigAction(ReturnToRunCodeByExceptionLevelChangeSignal, &return_to_run_code_action,
                           nullptr);
 
-        struct sigaction break_from_run_code_action {};
+        struct sigaction break_from_run_code_action{};
         break_from_run_code_action.sa_flags = SA_SIGINFO | SA_ONSTACK;
         break_from_run_code_action.sa_sigaction =
             reinterpret_cast<HandlerType>(&ArmNce::BreakFromRunCodeSignalHandler);
         break_from_run_code_action.sa_mask = signal_mask;
         Common::SigAction(BreakFromRunCodeSignal, &break_from_run_code_action, nullptr);
 
-        struct sigaction alignment_fault_action {};
+        struct sigaction alignment_fault_action{};
         alignment_fault_action.sa_flags = SA_SIGINFO | SA_ONSTACK;
         alignment_fault_action.sa_sigaction =
             reinterpret_cast<HandlerType>(&ArmNce::GuestAlignmentFaultSignalHandler);
         alignment_fault_action.sa_mask = signal_mask;
         Common::SigAction(GuestAlignmentFaultSignal, &alignment_fault_action, nullptr);
 
-        struct sigaction access_fault_action {};
+        struct sigaction access_fault_action{};
         access_fault_action.sa_flags = SA_SIGINFO | SA_ONSTACK | SA_RESTART;
         access_fault_action.sa_sigaction =
             reinterpret_cast<HandlerType>(&ArmNce::GuestAccessFaultSignalHandler);
@@ -405,19 +407,19 @@ void ArmNce::ClearInstructionCache() {
 }
 
 void ArmNce::InvalidateCacheRange(u64 addr, std::size_t size) {
-    #if defined(__GNUC__) || defined(__clang__)
-        // Align the start address to cache line boundary for better performance
-        const size_t CACHE_LINE_SIZE = 64;
-        addr &= ~(CACHE_LINE_SIZE - 1);
+#if defined(__GNUC__) || defined(__clang__)
+    // Align the start address to cache line boundary for better performance
+    const size_t CACHE_LINE_SIZE = 64;
+    addr &= ~(CACHE_LINE_SIZE - 1);
 
-        // Round up size to nearest cache line
-        size = (size + CACHE_LINE_SIZE - 1) & ~(CACHE_LINE_SIZE - 1);
+    // Round up size to nearest cache line
+    size = (size + CACHE_LINE_SIZE - 1) & ~(CACHE_LINE_SIZE - 1);
 
-        // Prefetch the range to be invalidated
-        for (size_t offset = 0; offset < size; offset += CACHE_LINE_SIZE) {
-            __builtin_prefetch((void*)(addr + offset), 1, 3);
-        }
-    #endif
+    // Prefetch the range to be invalidated
+    for (size_t offset = 0; offset < size; offset += CACHE_LINE_SIZE) {
+        __builtin_prefetch((void*)(addr + offset), 1, 3);
+    }
+#endif
 
     this->ClearInstructionCache();
 }

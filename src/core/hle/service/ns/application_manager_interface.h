@@ -60,8 +60,7 @@ public:
     Result Unknown4023(Out<u64> out_result);
     Result Unknown4053();
 
-    Result RequestDownloadApplicationControlDataInBackground(u64 unk,
-                                                             u64 application_id);
+    Result RequestDownloadApplicationControlDataInBackground(u64 unk, u64 application_id);
 
 private:
     KernelHelpers::ServiceContext service_context;

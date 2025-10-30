@@ -22,7 +22,8 @@
 
 namespace Dynarmic::A32 {
 
-IR::Block TranslateArm(LocationDescriptor descriptor, TranslateCallbacks* tcb, const TranslationOptions& options) {
+IR::Block TranslateArm(LocationDescriptor descriptor, TranslateCallbacks* tcb,
+                       const TranslationOptions& options) {
     const bool single_step = descriptor.SingleStepping();
 
     IR::Block block{descriptor};
@@ -46,7 +47,8 @@ IR::Block TranslateArm(LocationDescriptor descriptor, TranslateCallbacks* tcb, c
 
             if (const auto vfp_decoder = DecodeVFP<TranslatorVisitor>(*arm_instruction)) {
                 should_continue = vfp_decoder->get().call(visitor, *arm_instruction);
-            } else if (const auto asimd_decoder = DecodeASIMD<TranslatorVisitor>(*arm_instruction)) {
+            } else if (const auto asimd_decoder =
+                           DecodeASIMD<TranslatorVisitor>(*arm_instruction)) {
                 should_continue = asimd_decoder->get().call(visitor, *arm_instruction);
             } else if (const auto decoder = DecodeArm<TranslatorVisitor>(*arm_instruction)) {
                 should_continue = decoder->get().call(visitor, *arm_instruction);
@@ -67,7 +69,8 @@ IR::Block TranslateArm(LocationDescriptor descriptor, TranslateCallbacks* tcb, c
         block.CycleCount() += ticks_for_instruction;
     } while (should_continue && CondCanContinue(visitor.cond_state, visitor.ir) && !single_step);
 
-    if (visitor.cond_state == ConditionalState::Translating || visitor.cond_state == ConditionalState::Trailing || single_step) {
+    if (visitor.cond_state == ConditionalState::Translating ||
+        visitor.cond_state == ConditionalState::Trailing || single_step) {
         if (should_continue) {
             if (single_step) {
                 visitor.ir.SetTerm(IR::Term::LinkBlock{visitor.ir.current_location});
@@ -84,7 +87,8 @@ IR::Block TranslateArm(LocationDescriptor descriptor, TranslateCallbacks* tcb, c
     return block;
 }
 
-bool TranslateSingleArmInstruction(IR::Block& block, LocationDescriptor descriptor, u32 arm_instruction) {
+bool TranslateSingleArmInstruction(IR::Block& block, LocationDescriptor descriptor,
+                                   u32 arm_instruction) {
     TranslatorVisitor visitor{block, descriptor, {}};
 
     bool should_continue = true;
@@ -115,4 +119,4 @@ bool TranslateSingleArmInstruction(IR::Block& block, LocationDescriptor descript
     return should_continue;
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

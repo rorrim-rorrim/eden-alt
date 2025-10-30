@@ -12,8 +12,8 @@
 #include <utility>
 
 #include <bit>
-#include "dynarmic/common/common_types.h"
 #include <mcl/type_traits/function_info.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/x64/callback.h"
 
@@ -22,36 +22,38 @@ namespace Backend::X64 {
 
 namespace impl {
 
-template<typename FunctionType, FunctionType mfp>
+template <typename FunctionType, FunctionType mfp>
 struct ThunkBuilder;
 
-template<typename C, typename R, typename... Args, R (C::*mfp)(Args...)>
+template <typename C, typename R, typename... Args, R (C::*mfp)(Args...)>
 struct ThunkBuilder<R (C::*)(Args...), mfp> {
     static R Thunk(C* this_, Args... args) {
         return (this_->*mfp)(std::forward<Args>(args)...);
     }
 };
 
-template<typename T, typename P> inline T bit_cast_pointee(const P source_ptr) noexcept {
+template <typename T, typename P>
+inline T bit_cast_pointee(const P source_ptr) noexcept {
     std::aligned_storage_t<sizeof(T), alignof(T)> dest;
     std::memcpy(&dest, std::bit_cast<void*>(source_ptr), sizeof(T));
     return reinterpret_cast<T&>(dest);
 }
 
-}  // namespace impl
+} // namespace impl
 
-template<auto mfp>
+template <auto mfp>
 ArgCallback DevirtualizeGeneric(mcl::class_type<decltype(mfp)>* this_) {
-    return ArgCallback{&impl::ThunkBuilder<decltype(mfp), mfp>::Thunk, reinterpret_cast<u64>(this_)};
+    return ArgCallback{&impl::ThunkBuilder<decltype(mfp), mfp>::Thunk,
+                       reinterpret_cast<u64>(this_)};
 }
 
-template<auto mfp>
+template <auto mfp>
 ArgCallback DevirtualizeWindows(mcl::class_type<decltype(mfp)>* this_) {
     static_assert(sizeof(mfp) == 8);
     return ArgCallback{std::bit_cast<u64>(mfp), reinterpret_cast<u64>(this_)};
 }
 
-template<auto mfp>
+template <auto mfp>
 ArgCallback DevirtualizeItanium(mcl::class_type<decltype(mfp)>* this_) {
     struct MemberFunctionPointer {
         /// For a non-virtual function, this is a simple function pointer.
@@ -73,7 +75,7 @@ ArgCallback DevirtualizeItanium(mcl::class_type<decltype(mfp)>* this_) {
     return ArgCallback{fn_ptr, this_ptr};
 }
 
-template<auto mfp>
+template <auto mfp>
 ArgCallback Devirtualize(mcl::class_type<decltype(mfp)>* this_) {
 #if defined(__APPLE__) || defined(linux) || defined(__linux) || defined(__linux__)
     return DevirtualizeItanium<mfp>(this_);
@@ -86,5 +88,5 @@ ArgCallback Devirtualize(mcl::class_type<decltype(mfp)>* this_) {
 #endif
 }
 
-}  // namespace Backend::X64
-}  // namespace Dynarmic
+} // namespace Backend::X64
+} // namespace Dynarmic

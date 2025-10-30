@@ -8,10 +8,10 @@
 
 #include "common/div_ceil.h"
 
+#include <typeinfo>
 #include "core/hle/service/cmif_types.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/service.h"
-#include <typeinfo>
 
 namespace Service {
 

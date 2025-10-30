@@ -14,9 +14,9 @@
 #include <type_traits>
 
 #include <mcl/bit/bit_field.hpp>
-#include "dynarmic/common/common_types.h"
 #include <xbyak/xbyak.h>
 #include <xbyak/xbyak_util.h>
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/x64/abi.h"
 #include "dynarmic/backend/x64/callback.h"
@@ -40,7 +40,8 @@ struct RunCodeCallbacks {
 
 class BlockOfCode final : public Xbyak::CodeGenerator {
 public:
-    BlockOfCode(RunCodeCallbacks cb, JitStateInfo jsi, size_t total_code_size, std::function<void(BlockOfCode&)> rcp);
+    BlockOfCode(RunCodeCallbacks cb, JitStateInfo jsi, size_t total_code_size,
+                std::function<void(BlockOfCode&)> rcp);
     BlockOfCode(const BlockOfCode&) = delete;
 
     /// Call when external emitters have finished emitting their preludes.
@@ -85,9 +86,10 @@ public:
     void LoadRequiredFlagsForCondFromRax(IR::Cond cond);
 
     /// Code emitter: Calls the function
-    template<typename FunctionPointer>
+    template <typename FunctionPointer>
     void CallFunction(FunctionPointer fn) {
-        static_assert(std::is_pointer_v<FunctionPointer> && std::is_function_v<std::remove_pointer_t<FunctionPointer>>,
+        static_assert(std::is_pointer_v<FunctionPointer> &&
+                          std::is_function_v<std::remove_pointer_t<FunctionPointer>>,
                       "Supplied type must be a pointer to a function");
 
         const u64 address = reinterpret_cast<u64>(fn);
@@ -103,7 +105,7 @@ public:
     }
 
     /// Code emitter: Calls the lambda. Lambda must not have any captures.
-    template<typename Lambda>
+    template <typename Lambda>
     void CallLambda(Lambda l) {
         CallFunction(Common::FptrCast(l));
     }
@@ -128,7 +130,7 @@ public:
 
     Xbyak::Address Const(const Xbyak::AddressFrame& frame, u64 lower, u64 upper = 0);
 
-    template<size_t esize>
+    template <size_t esize>
     Xbyak::Address BConst(const Xbyak::AddressFrame& frame, u64 value) {
         return Const(frame, mcl::bit::replicate_element<u64>(esize, value),
                      mcl::bit::replicate_element<u64>(esize, value));
@@ -145,7 +147,9 @@ public:
         return return_from_run_code[FORCE_RETURN];
     }
 
-    void int3() { db(0xCC); }
+    void int3() {
+        db(0xCC);
+    }
 
     /// Allocate memory of `size` bytes from the same block of memory the code is in.
     /// This is useful for objects that need to be placed close to or within code.
@@ -176,7 +180,9 @@ public:
     static const std::array<Xbyak::Reg64, ABI_PARAM_COUNT> ABI_PARAMS;
 #endif
 
-    JitStateInfo GetJitStateInfo() const { return jsi; }
+    JitStateInfo GetJitStateInfo() const {
+        return jsi;
+    }
 
     bool HasHostFeature(HostFeature feature) const {
         return (host_features & feature) == feature;
@@ -203,4 +209,4 @@ private:
     void GenRunCode(std::function<void(BlockOfCode&)> rcp);
 };
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

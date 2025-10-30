@@ -7,13 +7,13 @@
 #include <vector>
 
 #include <common/common_types.h>
-#include <network/network.h>
 #include <network/announce_multiplayer_session.h>
+#include <network/network.h>
 
 namespace Core {
-    class System;
-    class AnnounceMultiplayerSession;
-}
+class System;
+class AnnounceMultiplayerSession;
+} // namespace Core
 
 enum class NetPlayStatus : s32 {
     NO_ERROR,
@@ -63,13 +63,14 @@ public:
 
     void ClearChat();
 
-    NetPlayStatus NetPlayCreateRoom(const std::string &ipaddress, int port,
-                                    const std::string &username, const std::string &preferredGameName,
-                                    const u64 &preferredGameId, const std::string &password,
-                                    const std::string &room_name, int max_players, bool isPublic);
+    NetPlayStatus NetPlayCreateRoom(const std::string& ipaddress, int port,
+                                    const std::string& username,
+                                    const std::string& preferredGameName,
+                                    const u64& preferredGameId, const std::string& password,
+                                    const std::string& room_name, int max_players, bool isPublic);
 
-    NetPlayStatus NetPlayJoinRoom(const std::string &ipaddress, int port,
-                                  const std::string &username, const std::string &password);
+    NetPlayStatus NetPlayJoinRoom(const std::string& ipaddress, int port,
+                                  const std::string& username, const std::string& password);
 
     std::vector<std::string> NetPlayRoomInfo();
 
@@ -79,11 +80,11 @@ public:
 
     bool NetPlayIsModerator();
 
-    void NetPlaySendMessage(const std::string &msg);
+    void NetPlaySendMessage(const std::string& msg);
 
-    void NetPlayKickUser(const std::string &username);
+    void NetPlayKickUser(const std::string& username);
 
-    void NetPlayBanUser(const std::string &username);
+    void NetPlayBanUser(const std::string& username);
 
     void NetPlayLeaveRoom();
 
@@ -91,12 +92,12 @@ public:
 
     std::vector<std::string> NetPlayGetBanList();
 
-    void NetPlayUnbanUser(const std::string &username);
+    void NetPlayUnbanUser(const std::string& username);
 
     std::vector<std::string> NetPlayGetPublicRooms();
 
 private:
     Core::System& system;
-    static std::unique_ptr<Network::VerifyUser::Backend> CreateVerifyBackend(bool use_validation) ;
+    static std::unique_ptr<Network::VerifyUser::Backend> CreateVerifyBackend(bool use_validation);
     std::weak_ptr<Core::AnnounceMultiplayerSession> announce_multiplayer_session;
 };

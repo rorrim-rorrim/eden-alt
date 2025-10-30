@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
+#include <bit>
 #include <fstream>
-#include <sstream>
-#include <vector>
 #include <numeric>
 #include <ranges>
-#include <bit>
+#include <sstream>
+#include <vector>
 
 #include "common/common_types.h"
 #include "common/logging/log.h"
@@ -81,13 +81,12 @@ std::vector<Network::NetworkInterface> GetAvailableNetworkInterfaces() {
             break;
         }
 
-        result.emplace_back(Network::NetworkInterface{
-            .name = Common::UTF16ToUTF8(std::wstring{a->FriendlyName}),
-            .ip_address = ip,
-            .subnet_mask = mask,
-            .gateway = gw,
-            .kind = kind
-        });
+        result.emplace_back(
+            Network::NetworkInterface{.name = Common::UTF16ToUTF8(std::wstring{a->FriendlyName}),
+                                      .ip_address = ip,
+                                      .subnet_mask = mask,
+                                      .gateway = gw,
+                                      .kind = kind});
     }
 
     return result;
@@ -123,11 +122,10 @@ std::vector<Network::NetworkInterface> GetAvailableNetworkInterfaces() {
         // On Android, we can't reliably get gateway info from /proc/net/route
         // Just use 0 as the gateway address
         result.emplace_back(Network::NetworkInterface{
-                .name{ifa->ifa_name},
-                .ip_address{std::bit_cast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr},
-                .subnet_mask{std::bit_cast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr},
-                .gateway{in_addr{.s_addr = 0}}
-        });
+            .name{ifa->ifa_name},
+            .ip_address{std::bit_cast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr},
+            .subnet_mask{std::bit_cast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr},
+            .gateway{in_addr{.s_addr = 0}}});
 #else
         u32 gateway{};
 
@@ -142,8 +140,7 @@ std::vector<Network::NetworkInterface> GetAvailableNetworkInterfaces() {
                 .name = ifa->ifa_name,
                 .ip_address = std::bit_cast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr,
                 .subnet_mask = std::bit_cast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr,
-                .gateway = gateway_0
-            });
+                .gateway = gateway_0});
             continue;
         }
 
@@ -194,8 +191,7 @@ std::vector<Network::NetworkInterface> GetAvailableNetworkInterfaces() {
             .name = ifa->ifa_name,
             .ip_address = std::bit_cast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr,
             .subnet_mask = std::bit_cast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr,
-            .gateway = gateway_0
-        });
+            .gateway = gateway_0});
 #endif // ANDROID
     }
 
@@ -214,11 +210,11 @@ std::optional<Network::NetworkInterface> GetSelectedNetworkInterface() {
         return std::nullopt;
     }
 
-    #ifdef __ANDROID__
-        if (selected_network_interface.empty()) {
-            return network_interfaces[0];
-        }
-    #endif
+#ifdef __ANDROID__
+    if (selected_network_interface.empty()) {
+        return network_interfaces[0];
+    }
+#endif
 
     const auto res =
         std::ranges::find_if(network_interfaces, [&selected_network_interface](const auto& iface) {

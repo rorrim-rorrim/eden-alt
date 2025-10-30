@@ -31,7 +31,8 @@ enum class SignednessSSTS {
     Unsigned,
 };
 
-bool RoundingShiftLeft(TranslatorVisitor& v, Imm<2> size, Vec Vm, Vec Vn, Vec Vd, SignednessSSTS sign) {
+bool RoundingShiftLeft(TranslatorVisitor& v, Imm<2> size, Vec Vm, Vec Vn, Vec Vd,
+                       SignednessSSTS sign) {
     if (size != 0b11) {
         return v.ReservedValue();
     }
@@ -50,7 +51,8 @@ bool RoundingShiftLeft(TranslatorVisitor& v, Imm<2> size, Vec Vm, Vec Vn, Vec Vd
     return true;
 }
 
-bool ScalarCompare(TranslatorVisitor& v, Imm<2> size, std::optional<Vec> Vm, Vec Vn, Vec Vd, ComparisonType type, ComparisonVariant variant) {
+bool ScalarCompare(TranslatorVisitor& v, Imm<2> size, std::optional<Vec> Vm, Vec Vn, Vec Vd,
+                   ComparisonType type, ComparisonVariant variant) {
     if (size != 0b11) {
         return v.ReservedValue();
     }
@@ -59,7 +61,8 @@ bool ScalarCompare(TranslatorVisitor& v, Imm<2> size, std::optional<Vec> Vm, Vec
     const size_t datasize = 64;
 
     const IR::U128 operand1 = v.V(datasize, Vn);
-    const IR::U128 operand2 = variant == ComparisonVariant::Register ? v.V(datasize, *Vm) : v.ir.ZeroVector();
+    const IR::U128 operand2 =
+        variant == ComparisonVariant::Register ? v.V(datasize, *Vm) : v.ir.ZeroVector();
 
     const IR::U128 result = [&] {
         switch (type) {
@@ -85,15 +88,10 @@ bool ScalarCompare(TranslatorVisitor& v, Imm<2> size, std::optional<Vec> Vm, Vec
     return true;
 }
 
-enum class FPComparisonType {
-    EQ,
-    GE,
-    AbsoluteGE,
-    GT,
-    AbsoluteGT
-};
+enum class FPComparisonType { EQ, GE, AbsoluteGE, GT, AbsoluteGT };
 
-bool ScalarFPCompareRegister(TranslatorVisitor& v, bool sz, Vec Vm, Vec Vn, Vec Vd, FPComparisonType type) {
+bool ScalarFPCompareRegister(TranslatorVisitor& v, bool sz, Vec Vm, Vec Vn, Vec Vd,
+                             FPComparisonType type) {
     const size_t esize = sz ? 64 : 32;
     const size_t datasize = esize;
 
@@ -106,14 +104,12 @@ bool ScalarFPCompareRegister(TranslatorVisitor& v, bool sz, Vec Vm, Vec Vn, Vec 
         case FPComparisonType::GE:
             return v.ir.FPVectorGreaterEqual(esize, operand1, operand2);
         case FPComparisonType::AbsoluteGE:
-            return v.ir.FPVectorGreaterEqual(esize,
-                                             v.ir.FPVectorAbs(esize, operand1),
+            return v.ir.FPVectorGreaterEqual(esize, v.ir.FPVectorAbs(esize, operand1),
                                              v.ir.FPVectorAbs(esize, operand2));
         case FPComparisonType::GT:
             return v.ir.FPVectorGreater(esize, operand1, operand2);
         case FPComparisonType::AbsoluteGT:
-            return v.ir.FPVectorGreater(esize,
-                                        v.ir.FPVectorAbs(esize, operand1),
+            return v.ir.FPVectorGreater(esize, v.ir.FPVectorAbs(esize, operand1),
                                         v.ir.FPVectorAbs(esize, operand2));
         }
 
@@ -123,7 +119,7 @@ bool ScalarFPCompareRegister(TranslatorVisitor& v, bool sz, Vec Vm, Vec Vn, Vec 
     v.V_scalar(datasize, Vd, v.ir.VectorGetElement(esize, result, 0));
     return true;
 }
-}  // Anonymous namespace
+} // Anonymous namespace
 
 bool TranslatorVisitor::SQADD_1(Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
     const size_t esize = 8 << size.ZeroExtend<size_t>();
@@ -158,7 +154,8 @@ bool TranslatorVisitor::SQRDMULH_vec_1(Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
 
     const IR::U128 operand1 = ir.ZeroExtendToQuad(ir.VectorGetElement(esize, V(128, Vn), 0));
     const IR::U128 operand2 = ir.ZeroExtendToQuad(ir.VectorGetElement(esize, V(128, Vm), 0));
-    const IR::U128 result = ir.VectorSignedSaturatedDoublingMultiplyHighRounding(esize, operand1, operand2);
+    const IR::U128 result =
+        ir.VectorSignedSaturatedDoublingMultiplyHighRounding(esize, operand1, operand2);
 
     V_scalar(esize, Vd, ir.VectorGetElement(esize, result, 0));
     return true;
@@ -427,4 +424,4 @@ bool TranslatorVisitor::USHL_1(Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
     return true;
 }
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64

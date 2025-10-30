@@ -6,8 +6,8 @@
 
 #include <algorithm>
 
-#include "common/fs/fs_util.h"
 #include <ranges>
+#include "common/fs/fs_util.h"
 
 namespace Common::FS {
 

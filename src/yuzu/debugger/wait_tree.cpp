@@ -7,8 +7,8 @@
 #include <array>
 #include <fmt/ranges.h>
 
-#include "yuzu/debugger/wait_tree.h"
 #include "qt_common/config/uisettings.h"
+#include "yuzu/debugger/wait_tree.h"
 
 #include "core/arm/debug.h"
 #include "core/core.h"

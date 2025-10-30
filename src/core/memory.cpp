@@ -35,8 +35,8 @@
 
 namespace Core::Memory {
 
-static inline bool AddressSpaceContains(const Common::PageTable& table, const Common::ProcessAddress addr,
-                          const std::size_t size) {
+static inline bool AddressSpaceContains(const Common::PageTable& table,
+                                        const Common::ProcessAddress addr, const std::size_t size) {
     const Common::ProcessAddress max_addr = 1ULL << table.GetAddressSpaceBits();
     return addr + size >= addr && addr + size <= max_addr;
 }
@@ -313,7 +313,7 @@ struct Memory::Impl {
                 LOG_ERROR(HW_Memory,
                           "Unmapped ReadBlock @ 0x{:016X} (start address = 0x{:016X}, size = {})",
                           GetInteger(current_vaddr), GetInteger(src_addr), size);
-               std::memset(dest_buffer, 0, copy_amount);
+                std::memset(dest_buffer, 0, copy_amount);
             },
             [&](const std::size_t copy_amount, const u8* const src_ptr) {
                 std::memcpy(dest_buffer, src_ptr, copy_amount);
@@ -406,12 +406,12 @@ struct Memory::Impl {
                           GetInteger(current_vaddr), GetInteger(dest_addr), size);
             },
             [](const std::size_t copy_amount, u8* const dest_ptr) {
-               std::memset(dest_ptr, 0, copy_amount);
+                std::memset(dest_ptr, 0, copy_amount);
             },
             [&](const Common::ProcessAddress current_vaddr, const std::size_t copy_amount,
                 u8* const host_ptr) {
                 HandleRasterizerWrite(GetInteger(current_vaddr), copy_amount);
-               std::memset(host_ptr, 0, copy_amount);
+                std::memset(host_ptr, 0, copy_amount);
             },
             [](const std::size_t copy_amount) {});
     }
@@ -689,8 +689,10 @@ struct Memory::Impl {
             return nullptr;
         } else {
             // Avoid adding any extra logic to this fast-path block
-            const uintptr_t raw_pointer = current_page_table->pointers[vaddr >> YUZU_PAGEBITS].Raw();
-            if (const uintptr_t pointer = Common::PageTable::PageInfo::ExtractPointer(raw_pointer)) {
+            const uintptr_t raw_pointer =
+                current_page_table->pointers[vaddr >> YUZU_PAGEBITS].Raw();
+            if (const uintptr_t pointer =
+                    Common::PageTable::PageInfo::ExtractPointer(raw_pointer)) {
                 return reinterpret_cast<u8*>(pointer + vaddr);
             } else {
                 switch (Common::PageTable::PageInfo::ExtractType(raw_pointer)) {
@@ -725,8 +727,7 @@ struct Memory::Impl {
     }
 
     [[nodiscard]] u8* GetPointerSilent(const Common::ProcessAddress vaddr) const {
-        return GetPointerImpl(
-            GetInteger(vaddr), []() {}, []() {});
+        return GetPointerImpl(GetInteger(vaddr), []() {}, []() {});
     }
 
     /**
@@ -747,10 +748,7 @@ struct Memory::Impl {
         if constexpr (std::is_same_v<T, u8> || std::is_same_v<T, s8>) {
             // 8-bit reads are always aligned
             const u8* const ptr = GetPointerImpl(
-                addr,
-                [addr]() {
-                    LOG_ERROR(HW_Memory, "Unmapped Read8 @ 0x{:016X}", addr);
-                },
+                addr, [addr]() { LOG_ERROR(HW_Memory, "Unmapped Read8 @ 0x{:016X}", addr); },
                 [&]() { HandleRasterizerDownload(addr, sizeof(T)); });
             if (ptr) {
                 return static_cast<T>(*ptr);
@@ -760,10 +758,7 @@ struct Memory::Impl {
             // Check alignment for 16-bit reads
             if ((addr & 1) == 0) {
                 const u8* const ptr = GetPointerImpl(
-                    addr,
-                    [addr]() {
-                        LOG_ERROR(HW_Memory, "Unmapped Read16 @ 0x{:016X}", addr);
-                    },
+                    addr, [addr]() { LOG_ERROR(HW_Memory, "Unmapped Read16 @ 0x{:016X}", addr); },
                     [&]() { HandleRasterizerDownload(addr, sizeof(T)); });
                 if (ptr) {
                     return static_cast<T>(*reinterpret_cast<const u16*>(ptr));
@@ -773,10 +768,7 @@ struct Memory::Impl {
             // Check alignment for 32-bit reads
             if ((addr & 3) == 0) {
                 const u8* const ptr = GetPointerImpl(
-                    addr,
-                    [addr]() {
-                        LOG_ERROR(HW_Memory, "Unmapped Read32 @ 0x{:016X}", addr);
-                    },
+                    addr, [addr]() { LOG_ERROR(HW_Memory, "Unmapped Read32 @ 0x{:016X}", addr); },
                     [&]() { HandleRasterizerDownload(addr, sizeof(T)); });
                 if (ptr) {
                     return static_cast<T>(*reinterpret_cast<const u32*>(ptr));
@@ -786,10 +778,7 @@ struct Memory::Impl {
             // Check alignment for 64-bit reads
             if ((addr & 7) == 0) {
                 const u8* const ptr = GetPointerImpl(
-                    addr,
-                    [addr]() {
-                        LOG_ERROR(HW_Memory, "Unmapped Read64 @ 0x{:016X}", addr);
-                    },
+                    addr, [addr]() { LOG_ERROR(HW_Memory, "Unmapped Read64 @ 0x{:016X}", addr); },
                     [&]() { HandleRasterizerDownload(addr, sizeof(T)); });
                 if (ptr) {
                     return static_cast<T>(*reinterpret_cast<const u64*>(ptr));
@@ -801,9 +790,7 @@ struct Memory::Impl {
         T result = 0;
         const u8* const ptr = GetPointerImpl(
             addr,
-            [addr]() {
-                LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr);
-            },
+            [addr]() { LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr); },
             [&]() { HandleRasterizerDownload(addr, sizeof(T)); });
         if (ptr) {
             std::memcpy(&result, ptr, sizeof(T));
@@ -927,8 +914,7 @@ struct Memory::Impl {
     }
 
     void HandleRasterizerDownload(VAddr v_address, size_t size) {
-        const auto* p = GetPointerImpl(
-            v_address, []() {}, []() {});
+        const auto* p = GetPointerImpl(v_address, []() {}, []() {});
         if (!gpu_device_memory) [[unlikely]] {
             gpu_device_memory = &system.Host1x().MemoryManager();
         }
@@ -945,11 +931,10 @@ struct Memory::Impl {
     }
 
     void HandleRasterizerWrite(VAddr v_address, size_t size) {
-        const auto* p = GetPointerImpl(
-            v_address, []() {}, []() {});
+        const auto* p = GetPointerImpl(v_address, []() {}, []() {});
         constexpr size_t sys_core = Core::Hardware::NUM_CPU_CORES - 1;
         const size_t core = (std::min)(system.GetCurrentHostThreadID(),
-                                     sys_core); // any other calls threads go to syscore.
+                                       sys_core); // any other calls threads go to syscore.
         if (!gpu_device_memory) [[unlikely]] {
             gpu_device_memory = &system.Host1x().MemoryManager();
         }
@@ -966,13 +951,13 @@ struct Memory::Impl {
             auto& current_area = rasterizer_write_areas[core];
             PAddr subaddress = address >> YUZU_PAGEBITS;
             // Performance note:
-            // It may not be a good idea to assume accesses are within the same subaddress (i.e same page)
-            // It is often the case the games like to access wildly different addresses. Hence why I propose
-            // we should let the compiler just do it's thing...
+            // It may not be a good idea to assume accesses are within the same subaddress (i.e same
+            // page) It is often the case the games like to access wildly different addresses. Hence
+            // why I propose we should let the compiler just do it's thing...
             if (current_area.last_address != subaddress) {
                 // Short circuit the need to check for address/size
-                auto const do_collection = (address != 0 && size != 0)
-                    && system.GPU().OnCPUWrite(address, size);
+                auto const do_collection =
+                    (address != 0 && size != 0) && system.GPU().OnCPUWrite(address, size);
                 if (do_collection) {
                     current_area.last_address = subaddress;
                 } else {
@@ -990,7 +975,7 @@ struct Memory::Impl {
     void InvalidateGPUMemory(u8* p, size_t size) {
         constexpr size_t sys_core = Core::Hardware::NUM_CPU_CORES - 1;
         const size_t core = (std::min)(system.GetCurrentHostThreadID(),
-                                     sys_core); // any other calls threads go to syscore.
+                                       sys_core); // any other calls threads go to syscore.
         if (!gpu_device_memory) [[unlikely]] {
             gpu_device_memory = &system.Host1x().MemoryManager();
         }
@@ -1016,7 +1001,7 @@ struct Memory::Impl {
     unsigned int thread_count = 2;
 
     // Minimum size in bytes for which parallel processing is beneficial
-    //size_t PARALLEL_THRESHOLD = (L3 CACHE * NUM PHYSICAL CORES); // 64 KB
+    // size_t PARALLEL_THRESHOLD = (L3 CACHE * NUM PHYSICAL CORES); // 64 KB
     std::array<VideoCore::RasterizerDownloadArea, Core::Hardware::NUM_CPU_CORES>
         rasterizer_read_areas{};
     std::array<GPUDirtyState, Core::Hardware::NUM_CPU_CORES> rasterizer_write_areas{};

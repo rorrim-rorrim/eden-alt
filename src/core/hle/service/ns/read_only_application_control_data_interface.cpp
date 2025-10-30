@@ -10,8 +10,8 @@
 #include "core/file_sys/vfs/vfs.h"
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/ns/language.h"
-#include "core/hle/service/ns/ns_types.h"
 #include "core/hle/service/ns/ns_results.h"
+#include "core/hle/service/ns/ns_types.h"
 #include "core/hle/service/ns/read_only_application_control_data_interface.h"
 #include "core/hle/service/set/settings_server.h"
 
@@ -164,10 +164,8 @@ Result IReadOnlyApplicationControlDataInterface::GetApplicationControlData(
 }
 
 Result IReadOnlyApplicationControlDataInterface::GetApplicationControlDataWithIconSize(
-    OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
-    Out<u64> out_total_size,
-    ApplicationControlSource application_control_source,
-    u64 application_id) {
+    OutBuffer<BufferAttr_HipcMapAlias> out_buffer, Out<u64> out_total_size,
+    ApplicationControlSource application_control_source, u64 application_id) {
     LOG_INFO(Service_NS, "called with control_source={}, application_id={:016X}",
              application_control_source, application_id);
 
@@ -181,7 +179,8 @@ Result IReadOnlyApplicationControlDataInterface::GetApplicationControlDataWithIc
     const auto size = out_buffer.size();
 
     if (size < kExpectedBufferSize) {
-        LOG_ERROR(Service_NS, "output buffer is too small! (actual={:016X}, required={:016X})", size, kExpectedBufferSize);
+        LOG_ERROR(Service_NS, "output buffer is too small! (actual={:016X}, required={:016X})",
+                  size, kExpectedBufferSize);
         R_THROW(ResultUnknown);
     }
 

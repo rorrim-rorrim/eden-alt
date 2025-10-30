@@ -46,11 +46,15 @@ enum class OptimizationFlag : std::uint32_t {
     /// This is an UNSAFE optimization that reduces accuracy of certain floating-point instructions.
     /// This allows results of FRECPE and FRSQRTE to have **less** error than spec allows.
     Unsafe_ReducedErrorFP = 0x00020000,
-    /// This is an UNSAFE optimization that causes floating-point instructions to not produce correct NaNs.
-    /// This may also result in inaccurate results when instructions are given certain special values.
+    /// This is an UNSAFE optimization that causes floating-point instructions to not produce
+    /// correct NaNs.
+    /// This may also result in inaccurate results when instructions are given certain special
+    /// values.
     Unsafe_InaccurateNaN = 0x00040000,
-    /// This is an UNSAFE optimization that causes ASIMD floating-point instructions to be run with incorrect
-    /// rounding modes. This may result in inaccurate results with all floating-point ASIMD instructions.
+    /// This is an UNSAFE optimization that causes ASIMD floating-point instructions to be run with
+    /// incorrect
+    /// rounding modes. This may result in inaccurate results with all floating-point ASIMD
+    /// instructions.
     Unsafe_IgnoreStandardFPCRValue = 0x00080000,
     /// This is an UNSAFE optimization that causes the global monitor to be ignored. This may
     /// result in unexpected behaviour in multithreaded scenarios, including but not limited
@@ -66,11 +70,13 @@ constexpr OptimizationFlag operator~(OptimizationFlag f) {
 }
 
 constexpr OptimizationFlag operator|(OptimizationFlag f1, OptimizationFlag f2) {
-    return static_cast<OptimizationFlag>(static_cast<std::uint32_t>(f1) | static_cast<std::uint32_t>(f2));
+    return static_cast<OptimizationFlag>(static_cast<std::uint32_t>(f1) |
+                                         static_cast<std::uint32_t>(f2));
 }
 
 constexpr OptimizationFlag operator&(OptimizationFlag f1, OptimizationFlag f2) {
-    return static_cast<OptimizationFlag>(static_cast<std::uint32_t>(f1) & static_cast<std::uint32_t>(f2));
+    return static_cast<OptimizationFlag>(static_cast<std::uint32_t>(f1) &
+                                         static_cast<std::uint32_t>(f2));
 }
 
 constexpr OptimizationFlag operator|=(OptimizationFlag& result, OptimizationFlag f) {
@@ -85,4 +91,4 @@ constexpr bool operator!(OptimizationFlag f) {
     return f == no_optimizations;
 }
 
-}  // namespace Dynarmic
+} // namespace Dynarmic

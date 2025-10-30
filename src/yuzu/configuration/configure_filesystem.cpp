@@ -4,16 +4,16 @@
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "yuzu/configuration/configure_filesystem.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/settings.h"
+#include "qt_common/config/uisettings.h"
 #include "qt_common/qt_compat.h"
 #include "qt_common/util/game.h"
-#include "qt_common/config/uisettings.h"
 #include "ui_configure_filesystem.h"
+#include "yuzu/configuration/configure_filesystem.h"
 
 ConfigureFilesystem::ConfigureFilesystem(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureFilesystem>()) {

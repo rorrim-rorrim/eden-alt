@@ -210,8 +210,8 @@ struct fmt::formatter<Service::PSC::Time::CalendarTime> : fmt::formatter<fmt::st
     template <typename FormatContext>
     auto format(const Service::PSC::Time::CalendarTime& calendar, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "[{:02}/{:02}/{:04} {:02}:{:02}:{:02}]", u8(calendar.day),
-                              u8(calendar.month), u16(calendar.year), u8(calendar.hour), u8(calendar.minute),
-                              u8(calendar.second));
+                              u8(calendar.month), u16(calendar.year), u8(calendar.hour),
+                              u8(calendar.minute), u8(calendar.second));
     }
 };
 

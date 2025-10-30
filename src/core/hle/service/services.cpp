@@ -74,78 +74,78 @@ Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem(), false);
 
     // Just a quick C++ lesson
-    // Capturing lambdas will silently create new variables for the objects referenced via <ident> = <expr>
-    // and create a `auto&` sorts of for `&`; with all your usual reference shenanigans.
-    // Do not be confused, `std::function<>` will allocate into the heap and will do so most of the time
-    // The heap is where we'd expect our "stored" values to be placed at.
+    // Capturing lambdas will silently create new variables for the objects referenced via <ident> =
+    // <expr> and create a `auto&` sorts of for `&`; with all your usual reference shenanigans. Do
+    // not be confused, `std::function<>` will allocate into the heap and will do so most of the
+    // time The heap is where we'd expect our "stored" values to be placed at.
     //
-    // Eventually we'd need a "heapless" solution so the overhead is nil - but again a good starting point
-    // is removing all the cold clones ;)
+    // Eventually we'd need a "heapless" solution so the overhead is nil - but again a good starting
+    // point is removing all the cold clones ;)
 
     // BEGONE cold clones of lambdas, for I have merged you all into a SINGLE lambda instead of
     // spamming lambdas like it's some kind of lambda calculus class
     for (auto const& e : std::vector<std::pair<std::string_view, void (*)(Core::System&)>>{
-        {"audio",      &Audio::LoopProcess},
-        {"FS",         &FileSystem::LoopProcess},
-        {"jit",        &JIT::LoopProcess},
-        {"ldn",        &LDN::LoopProcess},
-        {"Loader",     &LDR::LoopProcess},
-        {"nvservices", &Nvidia::LoopProcess},
-        {"bsdsocket",  &Sockets::LoopProcess},
-    })
-        kernel.RunOnHostCoreProcess(std::string(e.first), [&system, f = e.second] { f(system); }).detach();
-    kernel.RunOnHostCoreProcess("vi",         [&, token] { VI::LoopProcess(system, token); }).detach();
+             {"audio", &Audio::LoopProcess},
+             {"FS", &FileSystem::LoopProcess},
+             {"jit", &JIT::LoopProcess},
+             {"ldn", &LDN::LoopProcess},
+             {"Loader", &LDR::LoopProcess},
+             {"nvservices", &Nvidia::LoopProcess},
+             {"bsdsocket", &Sockets::LoopProcess},
+         })
+        kernel.RunOnHostCoreProcess(std::string(e.first), [&system, f = e.second] { f(system); })
+            .detach();
+    kernel.RunOnHostCoreProcess("vi", [&, token] { VI::LoopProcess(system, token); }).detach();
     // Avoid cold clones of lambdas -- succintly
     for (auto const& e : std::vector<std::pair<std::string_view, void (*)(Core::System&)>>{
-        {"sm",         &SM::LoopProcess},
-        {"account",    &Account::LoopProcess},
-        {"am",         &AM::LoopProcess},
-        {"aoc",        &AOC::LoopProcess},
-        {"apm",        &APM::LoopProcess},
-        {"bcat",       &BCAT::LoopProcess},
-        {"bpc",        &BPC::LoopProcess},
-        {"btdrv",      &BtDrv::LoopProcess},
-        {"btm",        &BTM::LoopProcess},
-        {"capsrv",     &Capture::LoopProcess},
-        {"erpt",       &ERPT::LoopProcess},
-        {"es",         &ES::LoopProcess},
-        {"eupld",      &EUPLD::LoopProcess},
-        {"fatal",      &Fatal::LoopProcess},
-        {"fgm",        &FGM::LoopProcess},
-        {"friends",    &Friend::LoopProcess},
-        {"settings",   &Set::LoopProcess},
-        {"psc",        &PSC::LoopProcess},
-        {"glue",       &Glue::LoopProcess},
-        {"grc",        &GRC::LoopProcess},
-        {"hid",        &HID::LoopProcess},
-        {"lbl",        &LBL::LoopProcess},
-        {"LogManager.Prod", &LM::LoopProcess},
-        {"mig",        &Migration::LoopProcess},
-        {"mii",        &Mii::LoopProcess},
-        {"mm",         &MM::LoopProcess},
-        {"mnpp",       &MNPP::LoopProcess},
-        {"nvnflinger", &Nvnflinger::LoopProcess},
-        {"NCM",        &NCM::LoopProcess},
-        {"nfc",        &NFC::LoopProcess},
-        {"nfp",        &NFP::LoopProcess},
-        {"ngc",        &NGC::LoopProcess},
-        {"nifm",       &NIFM::LoopProcess},
-        {"nim",        &NIM::LoopProcess},
-        {"npns",       &NPNS::LoopProcess},
-        {"ns",         &NS::LoopProcess},
-        {"olsc",       &OLSC::LoopProcess},
-        {"omm",        &OMM::LoopProcess},
-        {"pcie",       &PCIe::LoopProcess},
-        {"pctl",       &PCTL::LoopProcess},
-        {"pcv",        &PCV::LoopProcess},
-        {"prepo",      &PlayReport::LoopProcess},
-        {"ProcessManager", &PM::LoopProcess},
-        {"ptm",        &PTM::LoopProcess},
-        {"ro",         &RO::LoopProcess},
-        {"spl",        &SPL::LoopProcess},
-        {"ssl",        &SSL::LoopProcess},
-        {"usb",        &USB::LoopProcess}
-    })
+             {"sm", &SM::LoopProcess},
+             {"account", &Account::LoopProcess},
+             {"am", &AM::LoopProcess},
+             {"aoc", &AOC::LoopProcess},
+             {"apm", &APM::LoopProcess},
+             {"bcat", &BCAT::LoopProcess},
+             {"bpc", &BPC::LoopProcess},
+             {"btdrv", &BtDrv::LoopProcess},
+             {"btm", &BTM::LoopProcess},
+             {"capsrv", &Capture::LoopProcess},
+             {"erpt", &ERPT::LoopProcess},
+             {"es", &ES::LoopProcess},
+             {"eupld", &EUPLD::LoopProcess},
+             {"fatal", &Fatal::LoopProcess},
+             {"fgm", &FGM::LoopProcess},
+             {"friends", &Friend::LoopProcess},
+             {"settings", &Set::LoopProcess},
+             {"psc", &PSC::LoopProcess},
+             {"glue", &Glue::LoopProcess},
+             {"grc", &GRC::LoopProcess},
+             {"hid", &HID::LoopProcess},
+             {"lbl", &LBL::LoopProcess},
+             {"LogManager.Prod", &LM::LoopProcess},
+             {"mig", &Migration::LoopProcess},
+             {"mii", &Mii::LoopProcess},
+             {"mm", &MM::LoopProcess},
+             {"mnpp", &MNPP::LoopProcess},
+             {"nvnflinger", &Nvnflinger::LoopProcess},
+             {"NCM", &NCM::LoopProcess},
+             {"nfc", &NFC::LoopProcess},
+             {"nfp", &NFP::LoopProcess},
+             {"ngc", &NGC::LoopProcess},
+             {"nifm", &NIFM::LoopProcess},
+             {"nim", &NIM::LoopProcess},
+             {"npns", &NPNS::LoopProcess},
+             {"ns", &NS::LoopProcess},
+             {"olsc", &OLSC::LoopProcess},
+             {"omm", &OMM::LoopProcess},
+             {"pcie", &PCIe::LoopProcess},
+             {"pctl", &PCTL::LoopProcess},
+             {"pcv", &PCV::LoopProcess},
+             {"prepo", &PlayReport::LoopProcess},
+             {"ProcessManager", &PM::LoopProcess},
+             {"ptm", &PTM::LoopProcess},
+             {"ro", &RO::LoopProcess},
+             {"spl", &SPL::LoopProcess},
+             {"ssl", &SSL::LoopProcess},
+             {"usb", &USB::LoopProcess}})
         kernel.RunOnGuestCoreProcess(std::string(e.first), [&system, f = e.second] { f(system); });
 }
 

@@ -18,8 +18,8 @@ namespace Service::VI {
 
 IApplicationDisplayService::IApplicationDisplayService(Core::System& system_,
                                                        std::shared_ptr<Container> container)
-    : ServiceFramework{system_, "IApplicationDisplayService"},
-      m_container{std::move(container)}, m_context{system, "IApplicationDisplayService"} {
+    : ServiceFramework{system_, "IApplicationDisplayService"}, m_container{std::move(container)},
+      m_context{system, "IApplicationDisplayService"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {100, C<&IApplicationDisplayService::GetRelayService>, "GetRelayService"},
@@ -94,9 +94,8 @@ Result IApplicationDisplayService::OpenDisplay(Out<u64> out_display_id, DisplayN
     display_name[display_name.size() - 1] = '\0';
 
     // According to switchbrew, only "Default", "External", "Edid", "Internal" and "Null" are valid
-    const std::array<std::string_view, 5> valid_names = {
-        "Default", "External", "Edid", "Internal", "Null"
-    };
+    const std::array<std::string_view, 5> valid_names = {"Default", "External", "Edid", "Internal",
+                                                         "Null"};
 
     bool valid_name = false;
     for (const auto& name : valid_names) {

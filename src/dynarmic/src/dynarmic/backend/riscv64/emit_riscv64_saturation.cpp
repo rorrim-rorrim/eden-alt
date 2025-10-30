@@ -17,114 +17,118 @@
 
 namespace Dynarmic::Backend::RV64 {
 
-template<>
-void EmitIR<IR::Opcode::SignedSaturatedAddWithFlag32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
+template <>
+void EmitIR<IR::Opcode::SignedSaturatedAddWithFlag32>(biscuit::Assembler&, EmitContext&,
+                                                      IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
-void EmitIR<IR::Opcode::SignedSaturatedSubWithFlag32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
+template <>
+void EmitIR<IR::Opcode::SignedSaturatedSubWithFlag32>(biscuit::Assembler&, EmitContext&,
+                                                      IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::SignedSaturation>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::UnsignedSaturation>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::SignedSaturatedAdd8>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::SignedSaturatedAdd16>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::SignedSaturatedAdd32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::SignedSaturatedAdd64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
-void EmitIR<IR::Opcode::SignedSaturatedDoublingMultiplyReturnHigh16>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
+template <>
+void EmitIR<IR::Opcode::SignedSaturatedDoublingMultiplyReturnHigh16>(biscuit::Assembler&,
+                                                                     EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
-void EmitIR<IR::Opcode::SignedSaturatedDoublingMultiplyReturnHigh32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
+template <>
+void EmitIR<IR::Opcode::SignedSaturatedDoublingMultiplyReturnHigh32>(biscuit::Assembler&,
+                                                                     EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::SignedSaturatedSub8>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::SignedSaturatedSub16>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::SignedSaturatedSub32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::SignedSaturatedSub64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::UnsignedSaturatedAdd8>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::UnsignedSaturatedAdd16>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::UnsignedSaturatedAdd32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::UnsignedSaturatedAdd64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::UnsignedSaturatedSub8>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::UnsignedSaturatedSub16>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::UnsignedSaturatedSub32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::UnsignedSaturatedSub64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-}  // namespace Dynarmic::Backend::RV64
+} // namespace Dynarmic::Backend::RV64

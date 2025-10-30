@@ -10,10 +10,10 @@ namespace Dynarmic::FP {
 class FPCR;
 class FPSR;
 
-template<typename FPT>
+template <typename FPT>
 FPT FPMulAdd(FPT addend, FPT op1, FPT op2, FPCR fpcr, FPSR& fpsr);
 
-template<typename FPT>
+template <typename FPT>
 FPT FPMulSub(FPT minuend, FPT op1, FPT op2, FPCR fpcr, FPSR& fpsr);
 
-}  // namespace Dynarmic::FP
+} // namespace Dynarmic::FP

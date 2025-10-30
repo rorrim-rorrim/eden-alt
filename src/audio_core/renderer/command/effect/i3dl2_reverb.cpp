@@ -6,9 +6,9 @@
 
 #include <numbers>
 
+#include <ranges>
 #include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/effect/i3dl2_reverb.h"
-#include <ranges>
 
 namespace AudioCore::Renderer {
 
@@ -81,8 +81,8 @@ static void UpdateI3dl2ReverbEffectParameter(const I3dl2ReverbInfo::ParameterVer
     Common::FixedPoint<50, 14> early_gain{
         (std::min)(params.room_gain + params.reflection_gain, 5000.0f) / 2000.0f};
     state.early_gain = pow_10(early_gain.to_float());
-    Common::FixedPoint<50, 14> late_gain{(std::min)(params.room_gain + params.reverb_gain, 5000.0f) /
-                                         2000.0f};
+    Common::FixedPoint<50, 14> late_gain{
+        (std::min)(params.room_gain + params.reverb_gain, 5000.0f) / 2000.0f};
     state.late_gain = pow_10(late_gain.to_float());
 
     Common::FixedPoint<50, 14> hf_gain{pow_10(params.room_HF_gain / 2000.0f)};

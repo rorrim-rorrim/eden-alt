@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "qt_common.h"
 #include "common/fs/fs.h"
 #include "common/fs/ryujinx_compat.h"
+#include "qt_common.h"
 
 #include <QGuiApplication>
 #include <QStringLiteral>
@@ -36,8 +36,7 @@ std::unique_ptr<Core::System> system = nullptr;
 std::shared_ptr<FileSys::RealVfsFilesystem> vfs = nullptr;
 std::unique_ptr<FileSys::ManualContentProvider> provider = nullptr;
 
-Core::Frontend::WindowSystemType GetWindowSystemType()
-{
+Core::Frontend::WindowSystemType GetWindowSystemType() {
     // Determine WSI type based on Qt platform.
     QString platform_name = QGuiApplication::platformName();
     if (platform_name == QStringLiteral("windows"))
@@ -59,8 +58,7 @@ Core::Frontend::WindowSystemType GetWindowSystemType()
     return Core::Frontend::WindowSystemType::Windows;
 } // namespace Core::Frontend::WindowSystemType
 
-Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window)
-{
+Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window) {
     Core::Frontend::EmuWindow::WindowSystemInfo wsi;
     wsi.type = GetWindowSystemType();
 
@@ -68,8 +66,8 @@ Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window)
     // Our Win32 Qt external doesn't have the private API.
     wsi.render_surface = reinterpret_cast<void*>(window->winId());
 #elif defined(__APPLE__)
-    wsi.render_surface = reinterpret_cast<void* (*) (id, SEL)>(
-        objc_msgSend)(reinterpret_cast<id>(window->winId()), sel_registerName("layer"));
+    wsi.render_surface = reinterpret_cast<void* (*)(id, SEL)>(objc_msgSend)(
+        reinterpret_cast<id>(window->winId()), sel_registerName("layer"));
 #else
     QPlatformNativeInterface* pni = QGuiApplication::platformNativeInterface();
     wsi.display_connection = pni->nativeResourceForWindow("display", window);
@@ -83,13 +81,11 @@ Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window)
     return wsi;
 }
 
-const QString tr(const char* str)
-{
+const QString tr(const char* str) {
     return QGuiApplication::tr(str);
 }
 
-const QString tr(const std::string& str)
-{
+const QString tr(const std::string& str) {
     return QGuiApplication::tr(str.c_str());
 }
 
@@ -105,8 +101,7 @@ void Init(QObject* root)
     provider = std::make_unique<FileSys::ManualContentProvider>();
 }
 
-std::filesystem::path GetEdenCommand()
-{
+std::filesystem::path GetEdenCommand() {
     std::filesystem::path command;
 
     // TODO: flatpak?

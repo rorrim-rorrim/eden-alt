@@ -23,7 +23,10 @@ static void EmitCoprocessorException() {
     ASSERT_FALSE("Should raise coproc exception here");
 }
 
-static void CallCoprocCallback(oaknut::CodeGenerator& code, EmitContext& ctx, A32::Coprocessor::Callback callback, IR::Inst* inst = nullptr, std::optional<Argument::copyable_reference> arg0 = {}, std::optional<Argument::copyable_reference> arg1 = {}) {
+static void CallCoprocCallback(oaknut::CodeGenerator& code, EmitContext& ctx,
+                               A32::Coprocessor::Callback callback, IR::Inst* inst = nullptr,
+                               std::optional<Argument::copyable_reference> arg0 = {},
+                               std::optional<Argument::copyable_reference> arg1 = {}) {
     ctx.reg_alloc.PrepareForCall({}, arg0, arg1);
 
     if (callback.user_arg) {
@@ -38,8 +41,9 @@ static void CallCoprocCallback(oaknut::CodeGenerator& code, EmitContext& ctx, A3
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::A32CoprocInternalOperation>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A32CoprocInternalOperation>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                    IR::Inst* inst) {
     const auto coproc_info = inst->GetArg(0).GetCoprocInfo();
     const size_t coproc_num = coproc_info[0];
     const bool two = coproc_info[1] != 0;
@@ -64,8 +68,9 @@ void EmitIR<IR::Opcode::A32CoprocInternalOperation>(oaknut::CodeGenerator& code,
     CallCoprocCallback(code, ctx, *action);
 }
 
-template<>
-void EmitIR<IR::Opcode::A32CoprocSendOneWord>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A32CoprocSendOneWord>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const auto coproc_info = inst->GetArg(0).GetCoprocInfo();
     const size_t coproc_num = coproc_info[0];
@@ -106,8 +111,9 @@ void EmitIR<IR::Opcode::A32CoprocSendOneWord>(oaknut::CodeGenerator& code, EmitC
     UNREACHABLE();
 }
 
-template<>
-void EmitIR<IR::Opcode::A32CoprocSendTwoWords>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A32CoprocSendTwoWords>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                               IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     const auto coproc_info = inst->GetArg(0).GetCoprocInfo();
@@ -150,8 +156,9 @@ void EmitIR<IR::Opcode::A32CoprocSendTwoWords>(oaknut::CodeGenerator& code, Emit
     UNREACHABLE();
 }
 
-template<>
-void EmitIR<IR::Opcode::A32CoprocGetOneWord>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A32CoprocGetOneWord>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                             IR::Inst* inst) {
     const auto coproc_info = inst->GetArg(0).GetCoprocInfo();
 
     const size_t coproc_num = coproc_info[0];
@@ -192,8 +199,9 @@ void EmitIR<IR::Opcode::A32CoprocGetOneWord>(oaknut::CodeGenerator& code, EmitCo
     UNREACHABLE();
 }
 
-template<>
-void EmitIR<IR::Opcode::A32CoprocGetTwoWords>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A32CoprocGetTwoWords>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
     const auto coproc_info = inst->GetArg(0).GetCoprocInfo();
     const size_t coproc_num = coproc_info[0];
     const bool two = coproc_info[1] != 0;
@@ -234,8 +242,9 @@ void EmitIR<IR::Opcode::A32CoprocGetTwoWords>(oaknut::CodeGenerator& code, EmitC
     UNREACHABLE();
 }
 
-template<>
-void EmitIR<IR::Opcode::A32CoprocLoadWords>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A32CoprocLoadWords>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                            IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     const auto coproc_info = inst->GetArg(0).GetCoprocInfo();
@@ -265,8 +274,9 @@ void EmitIR<IR::Opcode::A32CoprocLoadWords>(oaknut::CodeGenerator& code, EmitCon
     CallCoprocCallback(code, ctx, *action, nullptr, args[1]);
 }
 
-template<>
-void EmitIR<IR::Opcode::A32CoprocStoreWords>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A32CoprocStoreWords>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                             IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     const auto coproc_info = inst->GetArg(0).GetCoprocInfo();
@@ -296,4 +306,4 @@ void EmitIR<IR::Opcode::A32CoprocStoreWords>(oaknut::CodeGenerator& code, EmitCo
     CallCoprocCallback(code, ctx, *action, nullptr, args[1]);
 }
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

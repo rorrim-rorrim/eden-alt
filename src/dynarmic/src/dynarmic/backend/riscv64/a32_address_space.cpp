@@ -20,14 +20,14 @@
 namespace Dynarmic::Backend::RV64 {
 
 A32AddressSpace::A32AddressSpace(const A32::UserConfig& conf)
-        : conf(conf)
-        , cb(conf.code_cache_size)
-        , as(cb.ptr<u8*>(), conf.code_cache_size) {
+    : conf(conf), cb(conf.code_cache_size), as(cb.ptr<u8*>(), conf.code_cache_size) {
     EmitPrelude();
 }
 
 IR::Block A32AddressSpace::GenerateIR(IR::LocationDescriptor descriptor) const {
-    IR::Block ir_block = A32::Translate(A32::LocationDescriptor{descriptor}, conf.callbacks, {conf.arch_version, conf.define_unpredictable_behaviour, conf.hook_hint_instructions});
+    IR::Block ir_block = A32::Translate(
+        A32::LocationDescriptor{descriptor}, conf.callbacks,
+        {conf.arch_version, conf.define_unpredictable_behaviour, conf.hook_hint_instructions});
     Optimization::Optimize(ir_block, conf, {});
     return ir_block;
 }
@@ -107,10 +107,11 @@ EmittedBlockInfo A32AddressSpace::Emit(IR::Block block) {
         ClearCache();
     }
 
-    EmittedBlockInfo block_info = EmitRV64(as, std::move(block), {
-                                                                     .enable_cycle_counting = conf.enable_cycle_counting,
-                                                                     .always_little_endian = conf.always_little_endian,
-                                                                 });
+    EmittedBlockInfo block_info = EmitRV64(as, std::move(block),
+                                           {
+                                               .enable_cycle_counting = conf.enable_cycle_counting,
+                                               .always_little_endian = conf.always_little_endian,
+                                           });
     Link(block_info);
 
     return block_info;
@@ -123,7 +124,8 @@ void A32AddressSpace::Link(EmittedBlockInfo& block_info) {
 
         switch (target) {
         case LinkTarget::ReturnFromRunCode: {
-            std::ptrdiff_t off = prelude_info.return_from_run_code - reinterpret_cast<CodePtr>(a.GetCursorPointer());
+            std::ptrdiff_t off =
+                prelude_info.return_from_run_code - reinterpret_cast<CodePtr>(a.GetCursorPointer());
             a.J(off);
             break;
         }
@@ -133,4 +135,4 @@ void A32AddressSpace::Link(EmittedBlockInfo& block_info) {
     }
 }
 
-}  // namespace Dynarmic::Backend::RV64
+} // namespace Dynarmic::Backend::RV64

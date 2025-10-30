@@ -363,7 +363,8 @@ enum class DirectorySeparator {
 }
 
 // Gets the extension of the filename
-[[nodiscard]] inline std::string_view GetExtensionFromFilename(const std::string_view name) noexcept {
+[[nodiscard]] inline std::string_view GetExtensionFromFilename(
+    const std::string_view name) noexcept {
     if (auto const index = name.rfind('.'); index != std::string_view::npos)
         return name.substr(index + 1);
     return {};

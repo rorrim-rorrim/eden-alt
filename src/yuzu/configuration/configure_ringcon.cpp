@@ -11,12 +11,12 @@
 #include <QTimer>
 #include <fmt/ranges.h>
 
-#include "qt_common/config/qt_config.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
 #include "input_common/drivers/keyboard.h"
 #include "input_common/drivers/mouse.h"
 #include "input_common/main.h"
+#include "qt_common/config/qt_config.h"
 #include "ui_configure_ringcon.h"
 #include "yuzu/bootmanager.h"
 #include "yuzu/configuration/configure_ringcon.h"

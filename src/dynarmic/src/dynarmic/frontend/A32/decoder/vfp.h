@@ -20,10 +20,10 @@
 
 namespace Dynarmic::A32 {
 
-template<typename Visitor>
+template <typename Visitor>
 using VFPMatcher = Decoder::Matcher<Visitor, u32>;
 
-template<typename V>
+template <typename V>
 std::optional<std::reference_wrapper<const VFPMatcher<V>>> DecodeVFP(u32 instruction) {
     using Table = std::vector<VFPMatcher<V>>;
     alignas(64) static const struct Tables {
@@ -31,7 +31,9 @@ std::optional<std::reference_wrapper<const VFPMatcher<V>>> DecodeVFP(u32 instruc
         Table conditional;
     } tables = []() {
         Table list = {
-#define INST(fn, name, bitstring) DYNARMIC_DECODER_GET_MATCHER(VFPMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)),
+#define INST(fn, name, bitstring)                                                                  \
+    DYNARMIC_DECODER_GET_MATCHER(VFPMatcher, fn, name,                                             \
+                                 Decoder::detail::StringToArray<32>(bitstring)),
 #include "./vfp.inc"
 #undef INST
         };
@@ -48,20 +50,22 @@ std::optional<std::reference_wrapper<const VFPMatcher<V>>> DecodeVFP(u32 instruc
     auto iter = std::find_if(table.begin(), table.end(), [instruction](const auto& matcher) {
         return matcher.Matches(instruction);
     });
-    return iter != table.end() ? std::optional<std::reference_wrapper<const VFPMatcher<V>>>(*iter) : std::nullopt;
+    return iter != table.end() ? std::optional<std::reference_wrapper<const VFPMatcher<V>>>(*iter)
+                               : std::nullopt;
 }
 
-template<typename V>
+template <typename V>
 std::optional<std::string_view> GetNameVFP(u32 inst) noexcept {
     std::vector<std::pair<std::string_view, VFPMatcher<V>>> list = {
-#define INST(fn, name, bitstring) { name, DYNARMIC_DECODER_GET_MATCHER(VFPMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)) },
+#define INST(fn, name, bitstring)                                                                  \
+    {name, DYNARMIC_DECODER_GET_MATCHER(VFPMatcher, fn, name,                                      \
+                                        Decoder::detail::StringToArray<32>(bitstring))},
 #include "./vfp.inc"
 #undef INST
     };
-    auto const iter = std::find_if(list.cbegin(), list.cend(), [inst](auto const& m) {
-        return m.second.Matches(inst);
-    });
+    auto const iter = std::find_if(list.cbegin(), list.cend(),
+                                   [inst](auto const& m) { return m.second.Matches(inst); });
     return iter != list.cend() ? std::optional{iter->first} : std::nullopt;
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

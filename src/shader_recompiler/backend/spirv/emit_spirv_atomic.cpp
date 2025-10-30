@@ -35,7 +35,7 @@ Id StorageIndex(EmitContext& ctx, const IR::Value& offset, size_t element_size) 
 }
 
 Id StoragePointer(EmitContext& ctx, const StorageTypeDefinition& type_def,
-                  Id StorageDefinitions::*member_ptr, const IR::Value& binding,
+                  Id StorageDefinitions::* member_ptr, const IR::Value& binding,
                   const IR::Value& offset, size_t element_size) {
     if (!binding.IsImmediate()) {
         throw NotImplementedException("Dynamic storage buffer indexing");

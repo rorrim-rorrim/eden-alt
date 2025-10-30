@@ -39,12 +39,12 @@
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "core/core.h"
+#include "qt_common/config/uisettings.h"
+#include "qt_common/qt_common.h"
 #include "ui_configure_graphics.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_graphics.h"
 #include "yuzu/configuration/shared_widget.h"
-#include "qt_common/qt_common.h"
-#include "qt_common/config/uisettings.h"
 #include "yuzu/vk_device_info.h"
 
 static const std::vector<VkPresentModeKHR> default_present_modes{VK_PRESENT_MODE_IMMEDIATE_KHR,
@@ -298,8 +298,9 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
             api_restore_global_button = widget->restore_button;
 
             if (!Settings::IsConfiguringGlobal()) {
-                api_restore_global_button->connect(api_restore_global_button, &QAbstractButton::clicked,
-                                 [this](bool) { UpdateAPILayout(); });
+                api_restore_global_button->connect(api_restore_global_button,
+                                                   &QAbstractButton::clicked,
+                                                   [this](bool) { UpdateAPILayout(); });
 
                 // Detach API's restore button and place it where we want
                 // Lets us put it on the side, and it will automatically scale if there's a
@@ -331,20 +332,21 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
                 widget->layout()->addWidget(restore_button);
 
                 restore_button->connect(restore_button, &QAbstractButton::clicked,
-                                 [restore_button, this](bool) {
-                                     Settings::values.vsync_mode.SetGlobal(true);
-                                     PopulateVSyncModeSelection(true);
+                                        [restore_button, this](bool) {
+                                            Settings::values.vsync_mode.SetGlobal(true);
+                                            PopulateVSyncModeSelection(true);
 
-                                     restore_button->setVisible(false);
-                                 });
+                                            restore_button->setVisible(false);
+                                        });
 
                 std::function<void()> set_non_global = [restore_button, this]() {
                     Settings::values.vsync_mode.SetGlobal(false);
                     UpdateVsyncSetting();
                     restore_button->setVisible(true);
                 };
-                widget->combobox->connect(widget->combobox, QOverload<int>::of(&QComboBox::activated),
-                                 [set_non_global]() { set_non_global(); });
+                widget->combobox->connect(widget->combobox,
+                                          QOverload<int>::of(&QComboBox::activated),
+                                          [set_non_global]() { set_non_global(); });
                 vsync_restore_global_button = restore_button;
             }
             hold_graphics.emplace(setting->Id(), widget);
@@ -383,15 +385,15 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
         ui->bg_widget->layout()->addWidget(bg_restore_button);
 
         bg_restore_button->connect(bg_restore_button, &QAbstractButton::clicked,
-                         [bg_restore_button, this](bool) {
-                             const int r = Settings::values.bg_red.GetValue(true);
-                             const int g = Settings::values.bg_green.GetValue(true);
-                             const int b = Settings::values.bg_blue.GetValue(true);
-                             UpdateBackgroundColorButton(QColor::fromRgb(r, g, b));
+                                   [bg_restore_button, this](bool) {
+                                       const int r = Settings::values.bg_red.GetValue(true);
+                                       const int g = Settings::values.bg_green.GetValue(true);
+                                       const int b = Settings::values.bg_blue.GetValue(true);
+                                       UpdateBackgroundColorButton(QColor::fromRgb(r, g, b));
 
-                             bg_restore_button->setVisible(false);
-                             bg_restore_button->setEnabled(false);
-                         });
+                                       bg_restore_button->setVisible(false);
+                                       bg_restore_button->setEnabled(false);
+                                   });
 
         ui->bg_button->connect(ui->bg_button, &QAbstractButton::clicked, [bg_restore_button](bool) {
             bg_restore_button->setVisible(true);

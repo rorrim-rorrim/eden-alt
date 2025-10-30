@@ -8,9 +8,9 @@
 
 #include <map>
 
+#include <common/polyfill_thread.h>
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include <common/polyfill_thread.h>
 
 // TODO(crueter): Extract this into frontend_common
 namespace Service::Account {
@@ -51,6 +51,5 @@ private:
     u64 running_program_id;
     std::jthread play_time_thread;
 };
-
 
 } // namespace PlayTime

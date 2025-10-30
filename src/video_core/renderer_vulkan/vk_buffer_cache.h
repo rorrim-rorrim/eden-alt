@@ -128,8 +128,7 @@ public:
     void BindTransformFeedbackBuffers(VideoCommon::HostBindings<Buffer>& bindings);
 
     std::span<u8> BindMappedUniformBuffer([[maybe_unused]] size_t /*stage*/,
-                                          [[maybe_unused]] u32 /*binding_index*/,
-                                          u32 size) {
+                                          [[maybe_unused]] u32 /*binding_index*/, u32 size) {
         u32 offset = 0;
         if (auto span = uniform_ring.Alloc(size, offset); !span.empty()) {
             BindBuffer(*uniform_ring.buffers[uniform_ring.current_frame], offset, size);

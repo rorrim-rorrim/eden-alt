@@ -55,8 +55,8 @@ QtNXWebEngineView::QtNXWebEngineView(QWidget* parent, Core::System& system,
     : QWebEngineView(parent), input_subsystem{input_subsystem_},
       url_interceptor(std::make_unique<UrlRequestInterceptor>()),
       input_interpreter(std::make_unique<InputInterpreter>(system)),
-      default_profile{QWebEngineProfile::defaultProfile()}, global_settings{
-                                                                default_profile->settings()} {
+      default_profile{QWebEngineProfile::defaultProfile()},
+      global_settings{default_profile->settings()} {
     default_profile->setPersistentStoragePath(QString::fromStdString(Common::FS::PathToUTF8String(
         Common::FS::GetEdenPath(Common::FS::EdenPath::EdenDir) / "qtwebengine")));
 

@@ -298,8 +298,10 @@ bool TranslatorVisitor::arm_SMLAWy(Cond cond, Reg d, Reg a, Reg m, bool M, Reg n
     if (M) {
         m32 = ir.LogicalShiftRight(m32, ir.Imm8(16), ir.Imm1(0)).result;
     }
-    const IR::U64 m16 = ir.SignExtendWordToLong(ir.SignExtendHalfToWord(ir.LeastSignificantHalf(m32)));
-    const auto product = ir.LeastSignificantWord(ir.LogicalShiftRight(ir.Mul(n32, m16), ir.Imm8(16)));
+    const IR::U64 m16 =
+        ir.SignExtendWordToLong(ir.SignExtendHalfToWord(ir.LeastSignificantHalf(m32)));
+    const auto product =
+        ir.LeastSignificantWord(ir.LogicalShiftRight(ir.Mul(n32, m16), ir.Imm8(16)));
     const auto result = ir.AddWithCarry(product, ir.GetRegister(a), ir.Imm1(0));
 
     ir.SetRegister(d, result);
@@ -322,7 +324,8 @@ bool TranslatorVisitor::arm_SMULWy(Cond cond, Reg d, Reg m, bool M, Reg n) {
     if (M) {
         m32 = ir.LogicalShiftRight(m32, ir.Imm8(16), ir.Imm1(0)).result;
     }
-    const IR::U64 m16 = ir.SignExtendWordToLong(ir.SignExtendHalfToWord(ir.LeastSignificantHalf(m32)));
+    const IR::U64 m16 =
+        ir.SignExtendWordToLong(ir.SignExtendHalfToWord(ir.LeastSignificantHalf(m32)));
     const auto result = ir.LogicalShiftRight(ir.Mul(n32, m16), ir.Imm8(16));
 
     ir.SetRegister(d, ir.LeastSignificantWord(result));
@@ -601,4 +604,4 @@ bool TranslatorVisitor::arm_SMUSD(Cond cond, Reg d, Reg m, bool M, Reg n) {
     return true;
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

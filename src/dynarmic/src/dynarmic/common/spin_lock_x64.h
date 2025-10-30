@@ -12,4 +12,4 @@ namespace Dynarmic {
 void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Reg64 ptr, Xbyak::Reg32 tmp);
 void EmitSpinLockUnlock(Xbyak::CodeGenerator& code, Xbyak::Reg64 ptr, Xbyak::Reg32 tmp);
 
-}  // namespace Dynarmic
+} // namespace Dynarmic

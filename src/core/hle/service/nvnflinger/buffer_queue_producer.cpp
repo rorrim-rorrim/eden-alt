@@ -571,7 +571,8 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
             }
         }
 
-        core->PushHistory(core->frame_counter, slots[slot].queue_time, slots[slot].presentation_time, BufferState::Queued);
+        core->PushHistory(core->frame_counter, slots[slot].queue_time,
+                          slots[slot].presentation_time, BufferState::Queued);
         core->buffer_has_been_queued = true;
         core->SignalDequeueCondition();
         output->Inflate(core->default_width, core->default_height, core->transform_hint,
@@ -999,6 +1000,5 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
     std::memcpy(parcel_reply.data(), serialized.data(),
                 (std::min)(parcel_reply.size(), serialized.size()));
 }
-
 
 } // namespace Service::android

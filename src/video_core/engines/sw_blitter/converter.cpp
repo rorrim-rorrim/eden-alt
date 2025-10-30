@@ -5,11 +5,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <array>
+#include <bit>
 #include <cmath>
+#include <numeric>
 #include <span>
 #include <unordered_map>
-#include <bit>
-#include <numeric>
 #include "common/assert.h"
 #include "video_core/engines/sw_blitter/converter.h"
 #include "video_core/surface.h"
@@ -745,8 +745,8 @@ private:
                 static constexpr u32 sign_mask = 0x8000;
                 static constexpr u32 mantissa_mask = 0x8000;
                 out_component = std::bit_cast<f32>(((value & sign_mask) << 16) |
-                                                     (((value & 0x7c00) + 0x1C000) << 13) |
-                                                     ((value & mantissa_mask) << 13));
+                                                   (((value & 0x7c00) + 0x1C000) << 13) |
+                                                   ((value & mantissa_mask) << 13));
             } else {
                 out_component = from_fp_n(value, component_sizes[which_component],
                                           component_sizes[which_component] - 5);

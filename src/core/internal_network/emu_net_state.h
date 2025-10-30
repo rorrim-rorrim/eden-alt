@@ -3,8 +3,8 @@
 
 #pragma once
 #include <atomic>
-#include <common/socket_types.h>
 #include <mutex>
+#include <common/socket_types.h>
 
 namespace Network {
 

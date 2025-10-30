@@ -11,8 +11,8 @@
 #include <vector>
 
 #include <mcl/bit/bit_field.hpp>
-#include "dynarmic/common/common_types.h"
 #include <oaknut/oaknut.hpp>
+#include "dynarmic/common/common_types.h"
 
 namespace Dynarmic::Backend::Arm64 {
 
@@ -50,23 +50,22 @@ static FrameInfo CalculateFrameInfo(RegisterList rl, size_t frame_size) {
     const size_t fprs_size = num_fprs * 16;
 
     return {
-        gprs,
-        fprs,
-        frame_size,
-        gprs_size,
-        fprs_size,
+        gprs, fprs, frame_size, gprs_size, fprs_size,
     };
 }
 
-#define DO_IT(TYPE, REG_TYPE, PAIR_OP, SINGLE_OP, OFFSET)                                                                                       \
-    if (frame_info.TYPE##s.size() > 0) {                                                                                                        \
-        for (size_t i = 0; i < frame_info.TYPE##s.size() - 1; i += 2) {                                                                         \
-            code.PAIR_OP(oaknut::REG_TYPE{frame_info.TYPE##s[i]}, oaknut::REG_TYPE{frame_info.TYPE##s[i + 1]}, SP, (OFFSET) + i * TYPE##_size); \
-        }                                                                                                                                       \
-        if (frame_info.TYPE##s.size() % 2 == 1) {                                                                                               \
-            const size_t i = frame_info.TYPE##s.size() - 1;                                                                                     \
-            code.SINGLE_OP(oaknut::REG_TYPE{frame_info.TYPE##s[i]}, SP, (OFFSET) + i * TYPE##_size);                                            \
-        }                                                                                                                                       \
+#define DO_IT(TYPE, REG_TYPE, PAIR_OP, SINGLE_OP, OFFSET)                                          \
+    if (frame_info.TYPE##s.size() > 0) {                                                           \
+        for (size_t i = 0; i < frame_info.TYPE##s.size() - 1; i += 2) {                            \
+            code.PAIR_OP(oaknut::REG_TYPE{frame_info.TYPE##s[i]},                                  \
+                         oaknut::REG_TYPE{frame_info.TYPE##s[i + 1]}, SP,                          \
+                         (OFFSET) + i * TYPE##_size);                                              \
+        }                                                                                          \
+        if (frame_info.TYPE##s.size() % 2 == 1) {                                                  \
+            const size_t i = frame_info.TYPE##s.size() - 1;                                        \
+            code.SINGLE_OP(oaknut::REG_TYPE{frame_info.TYPE##s[i]}, SP,                            \
+                           (OFFSET) + i * TYPE##_size);                                            \
+        }                                                                                          \
     }
 
 void ABI_PushRegisters(oaknut::CodeGenerator& code, RegisterList rl, size_t frame_size) {
@@ -91,4 +90,4 @@ void ABI_PopRegisters(oaknut::CodeGenerator& code, RegisterList rl, size_t frame
     code.ADD(SP, SP, frame_info.gprs_size + frame_info.fprs_size);
 }
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

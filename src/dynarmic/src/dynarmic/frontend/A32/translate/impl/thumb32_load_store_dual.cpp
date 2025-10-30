@@ -23,10 +23,12 @@ static bool TableBranch(TranslatorVisitor& v, Reg n, Reg m, bool half) {
 
     IR::U32 halfwords;
     if (half) {
-        const auto data = v.ir.ReadMemory16(v.ir.Add(reg_n, v.ir.LogicalShiftLeft(reg_m, v.ir.Imm8(1))), IR::AccType::NORMAL);
+        const auto data = v.ir.ReadMemory16(
+            v.ir.Add(reg_n, v.ir.LogicalShiftLeft(reg_m, v.ir.Imm8(1))), IR::AccType::NORMAL);
         halfwords = v.ir.ZeroExtendToWord(data);
     } else {
-        halfwords = v.ir.ZeroExtendToWord(v.ir.ReadMemory8(v.ir.Add(reg_n, reg_m), IR::AccType::NORMAL));
+        halfwords =
+            v.ir.ZeroExtendToWord(v.ir.ReadMemory8(v.ir.Add(reg_n, reg_m), IR::AccType::NORMAL));
     }
 
     const auto current_pc = v.ir.Imm32(v.ir.PC());
@@ -38,7 +40,8 @@ static bool TableBranch(TranslatorVisitor& v, Reg n, Reg m, bool half) {
     return false;
 }
 
-static bool LoadDualImmediate(TranslatorVisitor& v, bool P, bool U, bool W, Reg n, Reg t, Reg t2, Imm<8> imm8) {
+static bool LoadDualImmediate(TranslatorVisitor& v, bool P, bool U, bool W, Reg n, Reg t, Reg t2,
+                              Imm<8> imm8) {
     if (W && (n == t || n == t2)) {
         return v.UnpredictableInstruction();
     }
@@ -48,8 +51,8 @@ static bool LoadDualImmediate(TranslatorVisitor& v, bool P, bool U, bool W, Reg 
 
     const u32 imm = imm8.ZeroExtend() << 2;
     const IR::U32 reg_n = v.ir.GetRegister(n);
-    const IR::U32 offset_address = U ? v.ir.Add(reg_n, v.ir.Imm32(imm))
-                                     : v.ir.Sub(reg_n, v.ir.Imm32(imm));
+    const IR::U32 offset_address =
+        U ? v.ir.Add(reg_n, v.ir.Imm32(imm)) : v.ir.Sub(reg_n, v.ir.Imm32(imm));
     const IR::U32 address = P ? offset_address : reg_n;
 
     // NOTE: If alignment is exactly off by 4, each word is an atomic access.
@@ -95,7 +98,8 @@ static bool LoadDualLiteral(TranslatorVisitor& v, bool U, bool W, Reg t, Reg t2,
     return true;
 }
 
-static bool StoreDual(TranslatorVisitor& v, bool P, bool U, bool W, Reg n, Reg t, Reg t2, Imm<8> imm8) {
+static bool StoreDual(TranslatorVisitor& v, bool P, bool U, bool W, Reg n, Reg t, Reg t2,
+                      Imm<8> imm8) {
     if (W && (n == t || n == t2)) {
         return v.UnpredictableInstruction();
     }
@@ -108,8 +112,8 @@ static bool StoreDual(TranslatorVisitor& v, bool P, bool U, bool W, Reg n, Reg t
     const IR::U32 reg_t = v.ir.GetRegister(t);
     const IR::U32 reg_t2 = v.ir.GetRegister(t2);
 
-    const IR::U32 offset_address = U ? v.ir.Add(reg_n, v.ir.Imm32(imm))
-                                     : v.ir.Sub(reg_n, v.ir.Imm32(imm));
+    const IR::U32 offset_address =
+        U ? v.ir.Add(reg_n, v.ir.Imm32(imm)) : v.ir.Sub(reg_n, v.ir.Imm32(imm));
     const IR::U32 address = P ? offset_address : reg_n;
 
     const IR::U64 data = v.ir.current_location.EFlag() ? v.ir.Pack2x32To1x64(reg_t2, reg_t)
@@ -287,4 +291,4 @@ bool TranslatorVisitor::thumb32_TBH(Reg n, Reg m) {
     return TableBranch(*this, n, m, true);
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

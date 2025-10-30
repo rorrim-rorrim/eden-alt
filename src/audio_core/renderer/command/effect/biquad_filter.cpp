@@ -4,11 +4,11 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <bit>
+#include <numeric>
 #include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/effect/biquad_filter.h"
 #include "audio_core/renderer/voice/voice_state.h"
-#include <numeric>
-#include <bit>
 
 namespace AudioCore::Renderer {
 /**

@@ -24,53 +24,53 @@
 
 namespace Dynarmic::Backend::RV64 {
 
-template<>
+template <>
 void EmitIR<IR::Opcode::Void>(biscuit::Assembler&, EmitContext&, IR::Inst*) {}
 
-template<>
+template <>
 void EmitIR<IR::Opcode::Identity>(biscuit::Assembler&, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.DefineAsExisting(inst, args[0]);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::Breakpoint>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::CallHostFunction>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::PushRSB>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::GetCarryFromOp>(biscuit::Assembler&, EmitContext& ctx, IR::Inst* inst) {
     [[maybe_unused]] auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ASSERT(ctx.reg_alloc.IsValueLive(inst));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::GetOverflowFromOp>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::GetGEFromOp>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::GetNZCVFromOp>(biscuit::Assembler&, EmitContext& ctx, IR::Inst* inst) {
     [[maybe_unused]] auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ASSERT(ctx.reg_alloc.IsValueLive(inst));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::GetNZFromOp>(biscuit::Assembler& as, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -85,18 +85,19 @@ void EmitIR<IR::Opcode::GetNZFromOp>(biscuit::Assembler& as, EmitContext& ctx, I
     as.OR(Xnz, Xnz, Xscratch0);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::GetUpperFromOp>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::GetLowerFromOp>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
-void EmitIR<IR::Opcode::GetCFlagFromNZCV>(biscuit::Assembler& as, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::GetCFlagFromNZCV>(biscuit::Assembler& as, EmitContext& ctx,
+                                          IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     auto Xc = ctx.reg_alloc.WriteX(inst);
@@ -107,7 +108,7 @@ void EmitIR<IR::Opcode::GetCFlagFromNZCV>(biscuit::Assembler& as, EmitContext& c
     as.AND(Xc, Xnzcv, Xscratch0);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::NZCVFromPackedFlags>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
@@ -126,17 +127,17 @@ EmittedBlockInfo EmitRV64(biscuit::Assembler& as, IR::Block block, const EmitCon
         IR::Inst* inst = &*iter;
 
         switch (inst->GetOpcode()) {
-#define OPCODE(name, type, ...)                  \
-    case IR::Opcode::name:                       \
-        EmitIR<IR::Opcode::name>(as, ctx, inst); \
+#define OPCODE(name, type, ...)                                                                    \
+    case IR::Opcode::name:                                                                         \
+        EmitIR<IR::Opcode::name>(as, ctx, inst);                                                   \
         break;
-#define A32OPC(name, type, ...)                       \
-    case IR::Opcode::A32##name:                       \
-        EmitIR<IR::Opcode::A32##name>(as, ctx, inst); \
+#define A32OPC(name, type, ...)                                                                    \
+    case IR::Opcode::A32##name:                                                                    \
+        EmitIR<IR::Opcode::A32##name>(as, ctx, inst);                                              \
         break;
-#define A64OPC(name, type, ...)                       \
-    case IR::Opcode::A64##name:                       \
-        EmitIR<IR::Opcode::A64##name>(as, ctx, inst); \
+#define A64OPC(name, type, ...)                                                                    \
+    case IR::Opcode::A64##name:                                                                    \
+        EmitIR<IR::Opcode::A64##name>(as, ctx, inst);                                              \
         break;
 #include "dynarmic/ir/opcodes.inc"
 #undef OPCODE
@@ -170,8 +171,9 @@ EmittedBlockInfo EmitRV64(biscuit::Assembler& as, IR::Block block, const EmitCon
 }
 
 void EmitRelocation(biscuit::Assembler& as, EmitContext& ctx, LinkTarget link_target) {
-    ctx.ebi.relocations.emplace_back(Relocation{reinterpret_cast<CodePtr>(as.GetCursorPointer()) - ctx.ebi.entry_point, link_target});
+    ctx.ebi.relocations.emplace_back(Relocation{
+        reinterpret_cast<CodePtr>(as.GetCursorPointer()) - ctx.ebi.entry_point, link_target});
     as.NOP();
 }
 
-}  // namespace Dynarmic::Backend::RV64
+} // namespace Dynarmic::Backend::RV64

@@ -38,8 +38,8 @@ jstring ToJString(JNIEnv* env, std::string_view str) {
 }
 
 jobjectArray ToJStringArray(JNIEnv* env, const std::vector<std::string>& strs) {
-    jobjectArray array =
-            env->NewObjectArray(static_cast<jsize>(strs.size()), env->FindClass("java/lang/String"), env->NewStringUTF(""));
+    jobjectArray array = env->NewObjectArray(
+        static_cast<jsize>(strs.size()), env->FindClass("java/lang/String"), env->NewStringUTF(""));
     for (std::size_t i = 0; i < strs.size(); ++i) {
         env->SetObjectArrayElement(array, static_cast<jsize>(i), ToJString(env, strs[i]));
     }

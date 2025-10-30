@@ -10,10 +10,10 @@
 #include <memory>
 #include <mutex>
 
-#include <boost/icl/interval_set.hpp>
-#include "dynarmic/common/assert.h"
 #include <bit>
+#include <boost/icl/interval_set.hpp>
 #include <mcl/scope_exit.hpp>
+#include "dynarmic/common/assert.h"
 
 #include "dynarmic/backend/x64/a64_emit_x64.h"
 #include "dynarmic/backend/x64/a64_jitstate.h"
@@ -31,7 +31,9 @@ namespace Dynarmic::A64 {
 
 using namespace Backend::X64;
 
-static RunCodeCallbacks GenRunCodeCallbacks(A64::UserCallbacks* cb, CodePtr (*LookupBlock)(void* lookup_block_arg), void* arg, const A64::UserConfig& conf) {
+static RunCodeCallbacks GenRunCodeCallbacks(A64::UserCallbacks* cb,
+                                            CodePtr (*LookupBlock)(void* lookup_block_arg),
+                                            void* arg, const A64::UserConfig& conf) {
     return RunCodeCallbacks{
         std::make_unique<ArgCallback>(LookupBlock, reinterpret_cast<u64>(arg)),
         std::make_unique<ArgCallback>(Devirtualize<&A64::UserCallbacks::AddTicks>(cb)),
@@ -61,18 +63,20 @@ static Optimization::PolyfillOptions GenPolyfillOptions(const BlockOfCode& code)
 struct Jit::Impl final {
 public:
     Impl(Jit* jit, UserConfig conf)
-            : conf(conf)
-            , block_of_code(GenRunCodeCallbacks(conf.callbacks, &GetCurrentBlockThunk, this, conf), JitStateInfo{jit_state}, conf.code_cache_size, GenRCP(conf))
-            , emitter(block_of_code, conf, jit)
-            , polyfill_options(GenPolyfillOptions(block_of_code)) {
-        ASSERT(conf.page_table_address_space_bits >= 12 && conf.page_table_address_space_bits <= 64);
+        : conf(conf),
+          block_of_code(GenRunCodeCallbacks(conf.callbacks, &GetCurrentBlockThunk, this, conf),
+                        JitStateInfo{jit_state}, conf.code_cache_size, GenRCP(conf)),
+          emitter(block_of_code, conf, jit), polyfill_options(GenPolyfillOptions(block_of_code)) {
+        ASSERT(conf.page_table_address_space_bits >= 12 &&
+               conf.page_table_address_space_bits <= 64);
     }
 
     ~Impl() = default;
 
     HaltReason Run() {
         ASSERT(!is_executing);
-        PerformRequestedCacheInvalidation(static_cast<HaltReason>(Atomic::Load(&jit_state.halt_reason)));
+        PerformRequestedCacheInvalidation(
+            static_cast<HaltReason>(Atomic::Load(&jit_state.halt_reason)));
 
         is_executing = true;
         SCOPE_EXIT {
@@ -80,7 +84,8 @@ public:
         };
 
         // TODO: Check code alignment
-        const CodePtr aligned_code_ptr = CodePtr((uintptr_t(GetCurrentBlock()) + 15) & ~uintptr_t(15));
+        const CodePtr aligned_code_ptr =
+            CodePtr((uintptr_t(GetCurrentBlock()) + 15) & ~uintptr_t(15));
         const CodePtr current_code_ptr = [this, aligned_code_ptr] {
             // RSB optimization
             const u32 new_rsb_ptr = (jit_state.rsb_ptr - 1) & A64JitState::RSBPtrMask;
@@ -89,7 +94,7 @@ public:
                 return CodePtr(jit_state.rsb_codeptrs[new_rsb_ptr]);
             }
             return aligned_code_ptr;
-            //return GetCurrentBlock();
+            // return GetCurrentBlock();
         }();
 
         const HaltReason hr = block_of_code.RunCode(&jit_state, current_code_ptr);
@@ -101,7 +106,8 @@ public:
 
     HaltReason Step() {
         ASSERT(!is_executing);
-        PerformRequestedCacheInvalidation(static_cast<HaltReason>(Atomic::Load(&jit_state.halt_reason)));
+        PerformRequestedCacheInvalidation(
+            static_cast<HaltReason>(Atomic::Load(&jit_state.halt_reason)));
 
         is_executing = true;
         SCOPE_EXIT {
@@ -232,12 +238,14 @@ public:
     }
 
     void DumpDisassembly() const {
-        const size_t size = reinterpret_cast<const char*>(block_of_code.getCurr()) - reinterpret_cast<const char*>(block_of_code.GetCodeBegin());
+        const size_t size = reinterpret_cast<const char*>(block_of_code.getCurr()) -
+                            reinterpret_cast<const char*>(block_of_code.GetCodeBegin());
         Common::DumpDisassembledX64(block_of_code.GetCodeBegin(), size);
     }
 
     std::vector<std::string> Disassemble() const {
-        const size_t size = reinterpret_cast<const char*>(block_of_code.getCurr()) - reinterpret_cast<const char*>(block_of_code.GetCodeBegin());
+        const size_t size = reinterpret_cast<const char*>(block_of_code.getCurr()) -
+                            reinterpret_cast<const char*>(block_of_code.GetCodeBegin());
         return Common::DisassembleX64(block_of_code.GetCodeBegin(), size);
     }
 
@@ -273,8 +281,9 @@ private:
 
         // JIT Compile
         const auto get_code = [this](u64 vaddr) { return conf.callbacks->MemoryReadCode(vaddr); };
-        IR::Block ir_block = A64::Translate(A64::LocationDescriptor{current_location}, get_code,
-                                            {conf.define_unpredictable_behaviour, conf.wall_clock_cntpct});
+        IR::Block ir_block =
+            A64::Translate(A64::LocationDescriptor{current_location}, get_code,
+                           {conf.define_unpredictable_behaviour, conf.wall_clock_cntpct});
         Optimization::Optimize(ir_block, conf, polyfill_options);
         return emitter.Emit(ir_block).entrypoint;
     }
@@ -314,8 +323,7 @@ private:
     std::mutex invalidation_mutex;
 };
 
-Jit::Jit(UserConfig conf)
-        : impl(std::make_unique<Jit::Impl>(this, conf)) {}
+Jit::Jit(UserConfig conf) : impl(std::make_unique<Jit::Impl>(this, conf)) {}
 
 Jit::~Jit() = default;
 
@@ -435,4 +443,4 @@ std::vector<std::string> Jit::Disassemble() const {
     return impl->Disassemble();
 }
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64

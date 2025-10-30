@@ -31,9 +31,10 @@ enum class Reg;
  */
 class IREmitter : public IR::IREmitter {
     IR::U64 ImmCurrentLocationDescriptor();
+
 public:
     IREmitter(IR::Block& block, LocationDescriptor descriptor, ArchVersion arch_version)
-            : IR::IREmitter(block), current_location(descriptor), arch_version(arch_version) {}
+        : IR::IREmitter(block), current_location(descriptor), arch_version(arch_version) {}
 
     size_t ArchVersion() const;
 
@@ -92,26 +93,37 @@ public:
     IR::U16 ExclusiveReadMemory16(const IR::U32& vaddr, IR::AccType acc_type);
     IR::U32 ExclusiveReadMemory32(const IR::U32& vaddr, IR::AccType acc_type);
     std::pair<IR::U32, IR::U32> ExclusiveReadMemory64(const IR::U32& vaddr, IR::AccType acc_type);
-    void WriteMemory(size_t bitsize, const IR::U32& vaddr, const IR::UAny& value, IR::AccType acc_type);
+    void WriteMemory(size_t bitsize, const IR::U32& vaddr, const IR::UAny& value,
+                     IR::AccType acc_type);
     void WriteMemory8(const IR::U32& vaddr, const IR::U8& value, IR::AccType acc_type);
     void WriteMemory16(const IR::U32& vaddr, const IR::U16& value, IR::AccType acc_type);
     void WriteMemory32(const IR::U32& vaddr, const IR::U32& value, IR::AccType acc_type);
     void WriteMemory64(const IR::U32& vaddr, const IR::U64& value, IR::AccType acc_type);
     IR::U32 ExclusiveWriteMemory8(const IR::U32& vaddr, const IR::U8& value, IR::AccType acc_type);
-    IR::U32 ExclusiveWriteMemory16(const IR::U32& vaddr, const IR::U16& value, IR::AccType acc_type);
-    IR::U32 ExclusiveWriteMemory32(const IR::U32& vaddr, const IR::U32& value, IR::AccType acc_type);
-    IR::U32 ExclusiveWriteMemory64(const IR::U32& vaddr, const IR::U32& value_lo, const IR::U32& value_hi, IR::AccType acc_type);
+    IR::U32 ExclusiveWriteMemory16(const IR::U32& vaddr, const IR::U16& value,
+                                   IR::AccType acc_type);
+    IR::U32 ExclusiveWriteMemory32(const IR::U32& vaddr, const IR::U32& value,
+                                   IR::AccType acc_type);
+    IR::U32 ExclusiveWriteMemory64(const IR::U32& vaddr, const IR::U32& value_lo,
+                                   const IR::U32& value_hi, IR::AccType acc_type);
 
-    void CoprocInternalOperation(size_t coproc_no, bool two, size_t opc1, CoprocReg CRd, CoprocReg CRn, CoprocReg CRm, size_t opc2);
-    void CoprocSendOneWord(size_t coproc_no, bool two, size_t opc1, CoprocReg CRn, CoprocReg CRm, size_t opc2, const IR::U32& word);
-    void CoprocSendTwoWords(size_t coproc_no, bool two, size_t opc, CoprocReg CRm, const IR::U32& word1, const IR::U32& word2);
-    IR::U32 CoprocGetOneWord(size_t coproc_no, bool two, size_t opc1, CoprocReg CRn, CoprocReg CRm, size_t opc2);
+    void CoprocInternalOperation(size_t coproc_no, bool two, size_t opc1, CoprocReg CRd,
+                                 CoprocReg CRn, CoprocReg CRm, size_t opc2);
+    void CoprocSendOneWord(size_t coproc_no, bool two, size_t opc1, CoprocReg CRn, CoprocReg CRm,
+                           size_t opc2, const IR::U32& word);
+    void CoprocSendTwoWords(size_t coproc_no, bool two, size_t opc, CoprocReg CRm,
+                            const IR::U32& word1, const IR::U32& word2);
+    IR::U32 CoprocGetOneWord(size_t coproc_no, bool two, size_t opc1, CoprocReg CRn, CoprocReg CRm,
+                             size_t opc2);
     IR::U64 CoprocGetTwoWords(size_t coproc_no, bool two, size_t opc, CoprocReg CRm);
-    void CoprocLoadWords(size_t coproc_no, bool two, bool long_transfer, CoprocReg CRd, const IR::U32& address, bool has_option, u8 option);
-    void CoprocStoreWords(size_t coproc_no, bool two, bool long_transfer, CoprocReg CRd, const IR::U32& address, bool has_option, u8 option);
+    void CoprocLoadWords(size_t coproc_no, bool two, bool long_transfer, CoprocReg CRd,
+                         const IR::U32& address, bool has_option, u8 option);
+    void CoprocStoreWords(size_t coproc_no, bool two, bool long_transfer, CoprocReg CRd,
+                          const IR::U32& address, bool has_option, u8 option);
+
 public:
     LocationDescriptor current_location;
     enum ArchVersion arch_version;
 };
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

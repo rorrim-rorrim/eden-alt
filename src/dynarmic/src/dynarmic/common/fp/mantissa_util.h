@@ -27,7 +27,8 @@ inline ResidualError ResidualErrorOnRightShift(u64 mantissa, int shift_amount) {
     }
 
     if (shift_amount > static_cast<int>(mcl::bitsizeof<u64>)) {
-        return mcl::bit::most_significant_bit(mantissa) ? ResidualError::GreaterThanHalf : ResidualError::LessThanHalf;
+        return mcl::bit::most_significant_bit(mantissa) ? ResidualError::GreaterThanHalf
+                                                        : ResidualError::LessThanHalf;
     }
 
     const size_t half_bit_position = static_cast<size_t>(shift_amount - 1);
@@ -47,4 +48,4 @@ inline ResidualError ResidualErrorOnRightShift(u64 mantissa, int shift_amount) {
     return ResidualError::GreaterThanHalf;
 }
 
-}  // namespace Dynarmic::FP
+} // namespace Dynarmic::FP

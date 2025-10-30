@@ -18,9 +18,8 @@
 namespace Dynarmic::IR {
 
 bool Inst::AreAllArgsImmediates() const {
-    return std::all_of(args.begin(), args.begin() + NumArgs(), [](const auto& value) {
-        return value.IsImmediate();
-    });
+    return std::all_of(args.begin(), args.begin() + NumArgs(),
+                       [](const auto& value) { return value.IsImmediate(); });
 }
 
 Inst* Inst::GetAssociatedPseudoOperation(Opcode opcode) {
@@ -42,8 +41,12 @@ Type Inst::GetType() const {
 }
 
 void Inst::SetArg(size_t index, Value value) noexcept {
-    DEBUG_ASSERT_MSG(index < GetNumArgsOf(op), "Inst::SetArg: index {} >= number of arguments of {} ({})", index, op, GetNumArgsOf(op));
-    DEBUG_ASSERT_MSG(AreTypesCompatible(value.GetType(), GetArgTypeOf(op, index)), "Inst::SetArg: type {} of argument {} not compatible with operation {} ({})", value.GetType(), index, op, GetArgTypeOf(op, index));
+    DEBUG_ASSERT_MSG(index < GetNumArgsOf(op),
+                     "Inst::SetArg: index {} >= number of arguments of {} ({})", index, op,
+                     GetNumArgsOf(op));
+    DEBUG_ASSERT_MSG(AreTypesCompatible(value.GetType(), GetArgTypeOf(op, index)),
+                     "Inst::SetArg: type {} of argument {} not compatible with operation {} ({})",
+                     value.GetType(), index, op, GetArgTypeOf(op, index));
     if (!args[index].IsImmediate()) {
         UndoUse(args[index]);
     }
@@ -79,7 +82,8 @@ void Inst::Use(const Value& value) {
 
     if (IsAPseudoOperation(op)) {
         if (op == Opcode::GetNZCVFromOp) {
-            ASSERT_MSG(MayGetNZCVFromOp(value.GetInst()->GetOpcode()), "This value doesn't support the GetNZCVFromOp pseduo-op");
+            ASSERT_MSG(MayGetNZCVFromOp(value.GetInst()->GetOpcode()),
+                       "This value doesn't support the GetNZCVFromOp pseduo-op");
         }
 
         Inst* insert_point = value.GetInst();
@@ -105,4 +109,4 @@ void Inst::UndoUse(const Value& value) {
     }
 }
 
-}  // namespace Dynarmic::IR
+} // namespace Dynarmic::IR

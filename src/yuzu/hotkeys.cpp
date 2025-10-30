@@ -10,8 +10,8 @@
 #include <QtGlobal>
 
 #include "hid_core/frontend/emulated_controller.h"
-#include "yuzu/hotkeys.h"
 #include "qt_common/config/uisettings.h"
+#include "yuzu/hotkeys.h"
 
 HotkeyRegistry::HotkeyRegistry() = default;
 HotkeyRegistry::~HotkeyRegistry() = default;

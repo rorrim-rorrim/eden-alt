@@ -12,4 +12,4 @@ namespace Dynarmic {
 void EmitSpinLockLock(oaknut::CodeGenerator& code, oaknut::XReg ptr);
 void EmitSpinLockUnlock(oaknut::CodeGenerator& code, oaknut::XReg ptr);
 
-}  // namespace Dynarmic
+} // namespace Dynarmic

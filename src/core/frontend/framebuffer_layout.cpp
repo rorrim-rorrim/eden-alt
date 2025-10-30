@@ -14,9 +14,12 @@
 namespace Layout {
 
 // Finds the largest size subrectangle contained in window area that is confined to the aspect ratio
-static Common::Rectangle<u32> MaxRectangle(Common::Rectangle<u32> window_area, float screen_aspect_ratio) noexcept {
-    const float scale = (std::min)(float(window_area.GetWidth()), float(window_area.GetHeight()) / screen_aspect_ratio);
-    return Common::Rectangle<u32>{0, 0, u32(std::round(scale)), u32(std::round(scale * screen_aspect_ratio))};
+static Common::Rectangle<u32> MaxRectangle(Common::Rectangle<u32> window_area,
+                                           float screen_aspect_ratio) noexcept {
+    const float scale = (std::min)(float(window_area.GetWidth()),
+                                   float(window_area.GetHeight()) / screen_aspect_ratio);
+    return Common::Rectangle<u32>{0, 0, u32(std::round(scale)),
+                                  u32(std::round(scale * screen_aspect_ratio))};
 }
 
 /// @brief Factory method for constructing a default FramebufferLayout
@@ -26,7 +29,8 @@ static Common::Rectangle<u32> MaxRectangle(Common::Rectangle<u32> window_area, f
 FramebufferLayout DefaultFrameLayout(u32 width, u32 height) noexcept {
     ASSERT(width > 0 && height > 0);
     auto const window_aspect_ratio = float(height) / float(width);
-    auto const emulation_aspect_ratio = EmulationAspectRatio(Settings::values.aspect_ratio.GetValue(), window_aspect_ratio);
+    auto const emulation_aspect_ratio =
+        EmulationAspectRatio(Settings::values.aspect_ratio.GetValue(), window_aspect_ratio);
     Common::Rectangle<u32> const screen_window_area{0, 0, width, height};
     auto screen = MaxRectangle(screen_window_area, emulation_aspect_ratio);
     if (window_aspect_ratio < emulation_aspect_ratio) {

@@ -15,9 +15,7 @@ SDMCFactory::SDMCFactory(VirtualDir sd_dir_, VirtualDir sd_mod_dir_)
     : sd_dir(std::move(sd_dir_)), sd_mod_dir(std::move(sd_mod_dir_)),
       contents(std::make_unique<RegisteredCache>(
           GetOrCreateDirectoryRelative(sd_dir, "/Nintendo/Contents/registered"),
-          [](const VirtualFile& file, const NcaID& id) {
-              return NAX{file, id}.GetDecrypted();
-          })),
+          [](const VirtualFile& file, const NcaID& id) { return NAX{file, id}.GetDecrypted(); })),
       placeholder(std::make_unique<PlaceholderCache>(
           GetOrCreateDirectoryRelative(sd_dir, "/Nintendo/Contents/placehld"))) {}
 

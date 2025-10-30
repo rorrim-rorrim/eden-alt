@@ -21,5 +21,5 @@ enum class ArchVersion : std::uint8_t {
     v8,
 };
 
-}  // namespace A32
-}  // namespace Dynarmic
+} // namespace A32
+} // namespace Dynarmic

@@ -15,25 +15,22 @@
 #include "qt_common/abstract/qt_progress_dialog.h"
 #include "qt_common/qt_common.h"
 
+#include <JlCompress.h>
 #include <QFuture>
 #include <QFutureWatcher>
 #include <QtConcurrentRun>
-#include <JlCompress.h>
 
 namespace QtCommon::Content {
 
-bool CheckGameFirmware(u64 program_id, QObject* parent)
-{
-    if (FirmwareManager::GameRequiresFirmware(program_id)
-        && !FirmwareManager::CheckFirmwarePresence(*system)) {
+bool CheckGameFirmware(u64 program_id, QObject* parent) {
+    if (FirmwareManager::GameRequiresFirmware(program_id) &&
+        !FirmwareManager::CheckFirmwarePresence(*system)) {
         auto result = QtCommon::Frontend::ShowMessage(
-            QMessageBox::Warning,
-            tr("Game Requires Firmware"),
+            QMessageBox::Warning, tr("Game Requires Firmware"),
             tr("The game you are trying to launch requires firmware to boot or to get past the "
                "opening menu. Please <a href='https://yuzu-mirror.github.io/help/quickstart'>"
                "dump and install firmware</a>, or press \"OK\" to launch anyways."),
-            QMessageBox::Ok | QMessageBox::Cancel,
-            parent);
+            QMessageBox::Ok | QMessageBox::Cancel, parent);
 
         return result == QMessageBox::Ok;
     }
@@ -41,13 +38,9 @@ bool CheckGameFirmware(u64 program_id, QObject* parent)
     return true;
 }
 
-void InstallFirmware(const QString& location, bool recursive)
-{
-    QtCommon::Frontend::QtProgressDialog progress(tr("Installing Firmware..."),
-                                                  tr("Cancel"),
-                                                  0,
-                                                  100,
-                                                  rootObject);
+void InstallFirmware(const QString& location, bool recursive) {
+    QtCommon::Frontend::QtProgressDialog progress(tr("Installing Firmware..."), tr("Cancel"), 0,
+                                                  100, rootObject);
     progress.setWindowModality(Qt::WindowModal);
     progress.setMinimumDuration(100);
     progress.setAutoClose(false);
@@ -66,9 +59,7 @@ void InstallFirmware(const QString& location, bool recursive)
     FirmwareInstallResult result;
 
     const auto ShowMessage = [&]() {
-        QtCommon::Frontend::ShowMessage(icon,
-                                        failedTitle,
-                                        GetFirmwareInstallResultString(result));
+        QtCommon::Frontend::ShowMessage(icon, failedTitle, GetFirmwareInstallResultString(result));
     };
 
     LOG_INFO(Frontend, "Installing firmware from {}", location.toStdString());
@@ -93,12 +84,10 @@ void InstallFirmware(const QString& location, bool recursive)
     callback(100, 10);
 
     if (recursive) {
-        Common::FS::IterateDirEntriesRecursively(firmware_source_path,
-                                                 dir_callback,
+        Common::FS::IterateDirEntriesRecursively(firmware_source_path, dir_callback,
                                                  Common::FS::DirEntryFilter::File);
     } else {
-        Common::FS::IterateDirEntries(firmware_source_path,
-                                      dir_callback,
+        Common::FS::IterateDirEntries(firmware_source_path, dir_callback,
                                       Common::FS::DirEntryFilter::File);
     }
 
@@ -111,8 +100,8 @@ void InstallFirmware(const QString& location, bool recursive)
 
     // Locate and erase the content of nand/system/Content/registered/*.nca, if any.
     auto sysnand_content_vdir = system->GetFileSystemController().GetSystemNANDContentDirectory();
-    if (sysnand_content_vdir->IsWritable()
-        && !sysnand_content_vdir->CleanSubdirectoryRecursive("registered")) {
+    if (sysnand_content_vdir->IsWritable() &&
+        !sysnand_content_vdir->CleanSubdirectoryRecursive("registered")) {
         result = FirmwareInstallResult::FailedDelete;
         icon = QMessageBox::Critical;
         ShowMessage();
@@ -130,16 +119,14 @@ void InstallFirmware(const QString& location, bool recursive)
     int i = 0;
     for (const auto& firmware_src_path : out) {
         i++;
-        auto firmware_src_vfile = vfs->OpenFile(firmware_src_path.generic_string(),
-                                                FileSys::OpenMode::Read);
-        auto firmware_dst_vfile = firmware_vdir->CreateFileRelative(
-            firmware_src_path.filename().string());
+        auto firmware_src_vfile =
+            vfs->OpenFile(firmware_src_path.generic_string(), FileSys::OpenMode::Read);
+        auto firmware_dst_vfile =
+            firmware_vdir->CreateFileRelative(firmware_src_path.filename().string());
 
         if (!VfsRawCopy(firmware_src_vfile, firmware_dst_vfile)) {
-            LOG_ERROR(Frontend,
-                      "Failed to copy firmware file {} to {} in registered folder!",
-                      firmware_src_path.generic_string(),
-                      firmware_src_path.filename().string());
+            LOG_ERROR(Frontend, "Failed to copy firmware file {} to {} in registered folder!",
+                      firmware_src_path.generic_string(), firmware_src_path.filename().string());
             success = false;
         }
 
@@ -166,14 +153,12 @@ void InstallFirmware(const QString& location, bool recursive)
         return progress.wasCanceled();
     };
 
-    auto results = ContentManager::VerifyInstalledContents(*QtCommon::system,
-                                                           *QtCommon::provider,
-                                                           VerifyFirmwareCallback,
-                                                           true);
+    auto results = ContentManager::VerifyInstalledContents(*QtCommon::system, *QtCommon::provider,
+                                                           VerifyFirmwareCallback, true);
 
     if (results.size() > 0) {
-        const auto failed_names = QString::fromStdString(
-            fmt::format("{}", fmt::join(results, "\n")));
+        const auto failed_names =
+            QString::fromStdString(fmt::format("{}", fmt::join(results, "\n")));
         progress.close();
         QtCommon::Frontend::Critical(
             tr("Firmware integrity verification failed!"),
@@ -188,13 +173,11 @@ void InstallFirmware(const QString& location, bool recursive)
     const std::string display_version(firmware_data.display_version.data());
 
     result = FirmwareInstallResult::Success;
-    QtCommon::Frontend::Information(successTitle,
-                                    GetFirmwareInstallResultString(result).arg(
-                                        QString::fromStdString(display_version)));
+    QtCommon::Frontend::Information(successTitle, GetFirmwareInstallResultString(result).arg(
+                                                      QString::fromStdString(display_version)));
 }
 
-QString UnzipFirmwareToTmp(const QString& location)
-{
+QString UnzipFirmwareToTmp(const QString& location) {
     namespace fs = std::filesystem;
     fs::path tmp{fs::temp_directory_path()};
 
@@ -219,13 +202,9 @@ QString UnzipFirmwareToTmp(const QString& location)
 }
 
 // Content //
-void VerifyGameContents(const std::string& game_path)
-{
-    QtCommon::Frontend::QtProgressDialog progress(tr("Verifying integrity..."),
-                                                  tr("Cancel"),
-                                                  0,
-                                                  100,
-                                                  rootObject);
+void VerifyGameContents(const std::string& game_path) {
+    QtCommon::Frontend::QtProgressDialog progress(tr("Verifying integrity..."), tr("Cancel"), 0,
+                                                  100, rootObject);
     progress.setWindowModality(Qt::WindowModal);
     progress.setMinimumDuration(100);
     progress.setAutoClose(false);
@@ -240,39 +219,32 @@ void VerifyGameContents(const std::string& game_path)
 
     switch (result) {
     case ContentManager::GameVerificationResult::Success:
-        QtCommon::Frontend::Information(rootObject,
-                                        tr("Integrity verification succeeded!"),
+        QtCommon::Frontend::Information(rootObject, tr("Integrity verification succeeded!"),
                                         tr("The operation completed successfully."));
         break;
     case ContentManager::GameVerificationResult::Failed:
-        QtCommon::Frontend::Critical(rootObject,
-                                     tr("Integrity verification failed!"),
+        QtCommon::Frontend::Critical(rootObject, tr("Integrity verification failed!"),
                                      tr("File contents may be corrupt or missing."));
         break;
     case ContentManager::GameVerificationResult::NotImplemented:
         QtCommon::Frontend::Warning(
-            rootObject,
-            tr("Integrity verification couldn't be performed"),
+            rootObject, tr("Integrity verification couldn't be performed"),
             tr("Firmware installation cancelled, firmware may be in a bad state or corrupted. "
                "File contents could not be checked for validity."));
     }
 }
 
-void InstallKeys()
-{
-    const QString key_source_location
-        = QtCommon::Frontend::GetOpenFileName(tr("Select Dumped Keys Location"),
-                                              {},
-                                              QStringLiteral("Decryption Keys (*.keys)"),
-                                              {},
-                                              QtCommon::Frontend::Option::ReadOnly);
+void InstallKeys() {
+    const QString key_source_location = QtCommon::Frontend::GetOpenFileName(
+        tr("Select Dumped Keys Location"), {}, QStringLiteral("Decryption Keys (*.keys)"), {},
+        QtCommon::Frontend::Option::ReadOnly);
 
     if (key_source_location.isEmpty()) {
         return;
     }
 
-    FirmwareManager::KeyInstallResult result
-        = FirmwareManager::InstallKeys(key_source_location.toStdString(), "keys");
+    FirmwareManager::KeyInstallResult result =
+        FirmwareManager::InstallKeys(key_source_location.toStdString(), "keys");
 
     system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
 
@@ -287,14 +259,10 @@ void InstallKeys()
     }
 }
 
-void VerifyInstalledContents()
-{
+void VerifyInstalledContents() {
     // Initialize a progress dialog.
-    QtCommon::Frontend::QtProgressDialog progress(tr("Verifying integrity..."),
-                                                  tr("Cancel"),
-                                                  0,
-                                                  100,
-                                                  rootObject);
+    QtCommon::Frontend::QtProgressDialog progress(tr("Verifying integrity..."), tr("Cancel"), 0,
+                                                  100, rootObject);
     progress.setWindowModality(Qt::WindowModal);
     progress.setMinimumDuration(100);
     progress.setAutoClose(false);
@@ -306,27 +274,26 @@ void VerifyInstalledContents()
         return progress.wasCanceled();
     };
 
-    const std::vector<std::string> result
-        = ContentManager::VerifyInstalledContents(*QtCommon::system,
-                                                  *QtCommon::provider,
-                                                  QtProgressCallback);
+    const std::vector<std::string> result = ContentManager::VerifyInstalledContents(
+        *QtCommon::system, *QtCommon::provider, QtProgressCallback);
     progress.close();
 
     if (result.empty()) {
         QtCommon::Frontend::Information(tr("Integrity verification succeeded!"),
                                         tr("The operation completed successfully."));
     } else {
-        const auto failed_names = QString::fromStdString(fmt::format("{}", fmt::join(result, "\n")));
+        const auto failed_names =
+            QString::fromStdString(fmt::format("{}", fmt::join(result, "\n")));
         QtCommon::Frontend::Critical(
             tr("Integrity verification failed!"),
             tr("Verification failed for the following files:\n\n%1").arg(failed_names));
     }
 }
 
-void FixProfiles()
-{
+void FixProfiles() {
     // Reset user save files after config is initialized and migration is done.
-    // Doing it at init time causes profiles to read from the wrong place entirely if NAND dir is not default
+    // Doing it at init time causes profiles to read from the wrong place entirely if NAND dir is
+    // not default
     // TODO: better solution
     system->GetProfileManager().ResetUserSaveFile();
     std::vector<std::string> orphaned = system->GetProfileManager().FindOrphanedProfiles();
@@ -372,11 +339,10 @@ void FixProfiles()
     QtCommon::Game::OpenSaveFolder();
 }
 
-void ClearDataDir(FrontendCommon::DataManager::DataDir dir, const std::string& user_id)
-{
-    auto result = QtCommon::Frontend::Warning(tr("Really clear data?"),
-                                              tr("Important data may be lost!"),
-                                              QMessageBox::Yes | QMessageBox::No);
+void ClearDataDir(FrontendCommon::DataManager::DataDir dir, const std::string& user_id) {
+    auto result =
+        QtCommon::Frontend::Warning(tr("Really clear data?"), tr("Important data may be lost!"),
+                                    QMessageBox::Yes | QMessageBox::No);
 
     if (result != QMessageBox::Yes)
         return;
@@ -398,17 +364,13 @@ void ClearDataDir(FrontendCommon::DataManager::DataDir dir, const std::string& u
     dialog.close();
 }
 
-void ExportDataDir(FrontendCommon::DataManager::DataDir data_dir,
-                   const std::string& user_id,
-                   const QString& name,
-                   std::function<void()> callback)
-{
+void ExportDataDir(FrontendCommon::DataManager::DataDir data_dir, const std::string& user_id,
+                   const QString& name, std::function<void()> callback) {
     using namespace QtCommon::Frontend;
     const std::string dir = FrontendCommon::DataManager::GetDataDirString(data_dir, user_id);
 
-    const QString zip_dump_location = GetSaveFileName(tr("Select Export Location"),
-                                                      tr("%1.zip").arg(name),
-                                                      tr("Zipped Archives (*.zip)"));
+    const QString zip_dump_location = GetSaveFileName(
+        tr("Select Export Location"), tr("%1.zip").arg(name), tr("Zipped Archives (*.zip)"));
 
     if (zip_dump_location.isEmpty())
         return;
@@ -426,18 +388,15 @@ void ExportDataDir(FrontendCommon::DataManager::DataDir data_dir,
     QGuiApplication::processEvents();
 
     auto progress_callback = [=](size_t total_size, size_t processed_size) {
-        QMetaObject::invokeMethod(progress,
-                                  "setValue",
-                                  Qt::DirectConnection,
-                                  Q_ARG(int, static_cast<int>((processed_size * 100) / total_size)));
+        QMetaObject::invokeMethod(
+            progress, "setValue", Qt::DirectConnection,
+            Q_ARG(int, static_cast<int>((processed_size * 100) / total_size)));
         return !progress->wasCanceled();
     };
 
     QFuture<bool> future = QtConcurrent::run([=]() {
-        return QtCommon::Compress::compressDir(zip_dump_location,
-                                               QString::fromStdString(dir),
-                                               QtCommon::Compress::Options(),
-                                               progress_callback);
+        return QtCommon::Compress::compressDir(zip_dump_location, QString::fromStdString(dir),
+                                               QtCommon::Compress::Options(), progress_callback);
     });
 
     QFutureWatcher<bool>* watcher = new QFutureWatcher<bool>(rootObject);
@@ -464,26 +423,23 @@ void ExportDataDir(FrontendCommon::DataManager::DataDir data_dir,
     watcher->setFuture(future);
 }
 
-void ImportDataDir(FrontendCommon::DataManager::DataDir data_dir,
-                   const std::string& user_id,
-                   std::function<void()> callback)
-{
+void ImportDataDir(FrontendCommon::DataManager::DataDir data_dir, const std::string& user_id,
+                   std::function<void()> callback) {
     const std::string dir = FrontendCommon::DataManager::GetDataDirString(data_dir, user_id);
 
     using namespace QtCommon::Frontend;
 
-    const QString zip_dump_location = GetOpenFileName(tr("Select Import Location"),
-                                                      {},
-                                                      tr("Zipped Archives (*.zip)"));
+    const QString zip_dump_location =
+        GetOpenFileName(tr("Select Import Location"), {}, tr("Zipped Archives (*.zip)"));
 
     if (zip_dump_location.isEmpty())
         return;
 
-    StandardButton button = Warning(
-        tr("Import Warning"),
-        tr("All previous data in this directory will be deleted. Are you sure you wish to "
-           "proceed?"),
-        StandardButton::Yes | StandardButton::No);
+    StandardButton button =
+        Warning(tr("Import Warning"),
+                tr("All previous data in this directory will be deleted. Are you sure you wish to "
+                   "proceed?"),
+                StandardButton::Yes | StandardButton::No);
 
     if (button != QMessageBox::Yes)
         return;
@@ -512,17 +468,14 @@ void ImportDataDir(FrontendCommon::DataManager::DataDir data_dir,
 
     QObject::connect(delete_watcher, &QFutureWatcher<bool>::finished, rootObject, [=]() {
         auto progress_callback = [=](size_t total_size, size_t processed_size) {
-            QMetaObject::invokeMethod(progress,
-                                      "setValue",
-                                      Qt::DirectConnection,
-                                      Q_ARG(int,
-                                            static_cast<int>((processed_size * 100) / total_size)));
+            QMetaObject::invokeMethod(
+                progress, "setValue", Qt::DirectConnection,
+                Q_ARG(int, static_cast<int>((processed_size * 100) / total_size)));
             return !progress->wasCanceled();
         };
 
         QFuture<bool> future = QtConcurrent::run([=]() {
-            return !QtCommon::Compress::extractDir(zip_dump_location,
-                                                   QString::fromStdString(dir),
+            return !QtCommon::Compress::extractDir(zip_dump_location, QString::fromStdString(dir),
                                                    progress_callback)
                         .empty();
         });

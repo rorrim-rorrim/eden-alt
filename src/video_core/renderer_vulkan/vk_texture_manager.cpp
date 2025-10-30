@@ -75,15 +75,17 @@ void TextureManager::CleanupTextureCache() {
 
     // TODO: track usage and remove unused textures [ZEP]
 
-    LOG_INFO(Render_Vulkan, "Handling texture cache cleanup, current size: {}", texture_cache.size());
+    LOG_INFO(Render_Vulkan, "Handling texture cache cleanup, current size: {}",
+             texture_cache.size());
 }
 
 void TextureManager::HandleTextureRendering(const std::string& texture_path,
-                                          std::function<void(VkImage)> render_callback) {
+                                            std::function<void(VkImage)> render_callback) {
     VkImage texture = GetTexture(texture_path);
 
     if (!IsTextureLoadedCorrectly(texture)) {
-        LOG_ERROR(Render_Vulkan, "Texture failed to load correctly: {}, attempting reload", texture_path);
+        LOG_ERROR(Render_Vulkan, "Texture failed to load correctly: {}, attempting reload",
+                  texture_path);
         ReloadTexture(texture_path);
         texture = GetTexture(texture_path);
     }
@@ -115,26 +117,26 @@ vk::Image TextureManager::LoadTexture(const std::string& texture_path) {
 
 vk::Image TextureManager::CreateDefaultTexture() {
     // Create a small default texture (1x1 pixel) to use as a fallback
-//    const VkExtent2D extent{1, 1};
+    //    const VkExtent2D extent{1, 1};
 
-/*     // Create image
-    const VkImageCreateInfo image_ci{
-        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .imageType = VK_IMAGE_TYPE_2D,
-        .format = texture_format,
-        .extent = {extent.width, extent.height, 1},
-        .mipLevels = 1,
-        .arrayLayers = 1,
-        .samples = VK_SAMPLE_COUNT_1_BIT,
-        .tiling = VK_IMAGE_TILING_OPTIMAL,
-        .usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-        .queueFamilyIndexCount = 0,
-        .pQueueFamilyIndices = nullptr,
-        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-    }; */
+    /*     // Create image
+        const VkImageCreateInfo image_ci{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .imageType = VK_IMAGE_TYPE_2D,
+            .format = texture_format,
+            .extent = {extent.width, extent.height, 1},
+            .mipLevels = 1,
+            .arrayLayers = 1,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .tiling = VK_IMAGE_TILING_OPTIMAL,
+            .usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .queueFamilyIndexCount = 0,
+            .pQueueFamilyIndices = nullptr,
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        }; */
 
     // TODO: create an actual VkImage [ZEP]
     LOG_INFO(Render_Vulkan, "Created default fallback texture");

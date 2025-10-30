@@ -13,8 +13,8 @@
 #include "core/hle/service/acc/profile_manager.h"
 #include "play_time_manager.h"
 
-#include <fmt/format.h>
 #include <algorithm>
+#include <fmt/format.h>
 
 namespace PlayTime {
 
@@ -26,8 +26,7 @@ struct PlayTimeElement {
 };
 
 std::optional<std::filesystem::path> GetCurrentUserPlayTimePath() {
-    return Common::FS::GetEdenPath(Common::FS::EdenPath::PlayTimeDir) /
-           "playtime.bin";
+    return Common::FS::GetEdenPath(Common::FS::EdenPath::PlayTimeDir) / "playtime.bin";
 }
 
 [[nodiscard]] bool ReadPlayTimeFile(PlayTimeDatabase& out_play_time_db) {
@@ -96,8 +95,7 @@ std::optional<std::filesystem::path> GetCurrentUserPlayTimePath() {
 
 } // namespace
 
-PlayTimeManager::PlayTimeManager()
-    : running_program_id() {
+PlayTimeManager::PlayTimeManager() : running_program_id() {
     if (!ReadPlayTimeFile(database)) {
         LOG_ERROR(Frontend, "Failed to read play time database! Resetting to default.");
     }

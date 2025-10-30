@@ -74,58 +74,73 @@ struct EnumMetadata {
 
 #define PP_HEAD(A, ...) A
 
-#define ENUM(NAME, ...) \
-    enum class NAME : u32 { __VA_ARGS__ }; \
-    template<> inline std::vector<std::pair<std::string_view, NAME>> EnumMetadata<NAME>::Canonicalizations() { \
-        return {PAIR(NAME, __VA_ARGS__)}; \
-    } \
-    template<> inline u32 EnumMetadata<NAME>::Index() { \
-        return __COUNTER__; \
-    } \
-    template<> inline NAME EnumMetadata<NAME>::GetFirst() { \
-        return NAME::PP_HEAD(__VA_ARGS__); \
-    } \
-    template<> inline NAME EnumMetadata<NAME>::GetLast() { \
-        return (std::vector<std::pair<std::string_view, NAME>>{PAIR(NAME, __VA_ARGS__)}).back().second; \
+#define ENUM(NAME, ...)                                                                            \
+    enum class NAME : u32 { __VA_ARGS__ };                                                         \
+    template <>                                                                                    \
+    inline std::vector<std::pair<std::string_view, NAME>>                                          \
+    EnumMetadata<NAME>::Canonicalizations() {                                                      \
+        return {PAIR(NAME, __VA_ARGS__)};                                                          \
+    }                                                                                              \
+    template <>                                                                                    \
+    inline u32 EnumMetadata<NAME>::Index() {                                                       \
+        return __COUNTER__;                                                                        \
+    }                                                                                              \
+    template <>                                                                                    \
+    inline NAME EnumMetadata<NAME>::GetFirst() {                                                   \
+        return NAME::PP_HEAD(__VA_ARGS__);                                                         \
+    }                                                                                              \
+    template <>                                                                                    \
+    inline NAME EnumMetadata<NAME>::GetLast() {                                                    \
+        return (std::vector<std::pair<std::string_view, NAME>>{PAIR(NAME, __VA_ARGS__)})           \
+            .back()                                                                                \
+            .second;                                                                               \
     }
 
 // AudioEngine must be specified discretely due to having existing but slightly different
 // canonicalizations
 // TODO (lat9nq): Remove explicit definition of AudioEngine/sink_id
-enum class AudioEngine : u32 { Auto, Cubeb, Sdl2, Null, Oboe, };
-template<>
-inline std::vector<std::pair<std::string_view, AudioEngine>> EnumMetadata<AudioEngine>::Canonicalizations() {
+enum class AudioEngine : u32 {
+    Auto,
+    Cubeb,
+    Sdl2,
+    Null,
+    Oboe,
+};
+template <>
+inline std::vector<std::pair<std::string_view, AudioEngine>>
+EnumMetadata<AudioEngine>::Canonicalizations() {
     return {
         {"auto", AudioEngine::Auto}, {"cubeb", AudioEngine::Cubeb}, {"sdl2", AudioEngine::Sdl2},
         {"null", AudioEngine::Null}, {"oboe", AudioEngine::Oboe},
     };
 }
-/// @brief This is just a sufficiently large number that is more than the number of other enums declared here
-template<>
+/// @brief This is just a sufficiently large number that is more than the number of other enums
+/// declared here
+template <>
 inline u32 EnumMetadata<AudioEngine>::Index() {
     return 100;
 }
-template<>
+template <>
 inline AudioEngine EnumMetadata<AudioEngine>::GetFirst() {
     return AudioEngine::Auto;
 }
-template<>
+template <>
 inline AudioEngine EnumMetadata<AudioEngine>::GetLast() {
     return AudioEngine::Oboe;
 }
 
 ENUM(AudioMode, Mono, Stereo, Surround);
-//static_assert(EnumMetadata<AudioMode>::GetFirst() == AudioMode::Mono);
-//static_assert(EnumMetadata<AudioMode>::GetLast() == AudioMode::Surround);
+// static_assert(EnumMetadata<AudioMode>::GetFirst() == AudioMode::Mono);
+// static_assert(EnumMetadata<AudioMode>::GetLast() == AudioMode::Surround);
 
 ENUM(Language, Japanese, EnglishAmerican, French, German, Italian, Spanish, Chinese, Korean, Dutch,
      Portuguese, Russian, Taiwanese, EnglishBritish, FrenchCanadian, SpanishLatin,
      ChineseSimplified, ChineseTraditional, PortugueseBrazilian, Serbian);
 ENUM(Region, Japan, Usa, Europe, Australia, China, Korea, Taiwan);
 ENUM(TimeZone, Auto, Default, Cet, Cst6Cdt, Cuba, Eet, Egypt, Eire, Est, Est5Edt, Gb, GbEire, Gmt,
-    GmtPlusZero, GmtMinusZero, GmtZero, Greenwich, Hongkong, Hst, Iceland, Iran, Israel, Jamaica,
-    Japan, Kwajalein, Libya, Met, Mst, Mst7Mdt, Navajo, Nz, NzChat, Poland, Portugal, Prc, Pst8Pdt,
-    Roc, Rok, Singapore, Turkey, Uct, Universal, Utc, WSu, Wet, Zulu);
+     GmtPlusZero, GmtMinusZero, GmtZero, Greenwich, Hongkong, Hst, Iceland, Iran, Israel, Jamaica,
+     Japan, Kwajalein, Libya, Met, Mst, Mst7Mdt, Navajo, Nz, NzChat, Poland, Portugal, Prc, Pst8Pdt,
+     Roc, Rok, Singapore, Turkey, Uct, Universal, Utc, WSu, Wet, Zulu);
 ENUM(AnisotropyMode, Automatic, Default, X2, X4, X8, X16);
 ENUM(AstcDecodeMode, Cpu, Gpu, CpuAsynchronous);
 ENUM(AstcRecompression, Uncompressed, Bc1, Bc3);
@@ -142,8 +157,10 @@ ENUM(MemoryLayout, Memory_4Gb, Memory_6Gb, Memory_8Gb, Memory_10Gb, Memory_12Gb)
 ENUM(ConfirmStop, Ask_Always, Ask_Based_On_Game, Ask_Never);
 ENUM(FullscreenMode, Borderless, Exclusive);
 ENUM(NvdecEmulation, Off, Cpu, Gpu);
-ENUM(ResolutionSetup, Res1_4X, Res1_2X, Res3_4X, Res1X, Res5_4X, Res3_2X, Res2X, Res3X, Res4X, Res5X, Res6X, Res7X, Res8X);
-ENUM(ScalingFilter, NearestNeighbor, Bilinear, Bicubic, Gaussian, Lanczos, ScaleForce, Fsr, Area, ZeroTangent, BSpline, Mitchell, Spline1, Mmpx, MaxEnum);
+ENUM(ResolutionSetup, Res1_4X, Res1_2X, Res3_4X, Res1X, Res5_4X, Res3_2X, Res2X, Res3X, Res4X,
+     Res5X, Res6X, Res7X, Res8X);
+ENUM(ScalingFilter, NearestNeighbor, Bilinear, Bicubic, Gaussian, Lanczos, ScaleForce, Fsr, Area,
+     ZeroTangent, BSpline, Mitchell, Spline1, Mmpx, MaxEnum);
 ENUM(AntiAliasing, None, Fxaa, Smaa, MaxEnum);
 ENUM(AspectRatio, R16_9, R4_3, R21_9, R16_10, Stretch);
 ENUM(ConsoleMode, Handheld, Docked);

@@ -11,13 +11,13 @@
 #include "core/file_sys/fssystem/fssystem_compressed_storage.h"
 #include "core/file_sys/fssystem/fssystem_hierarchical_integrity_verification_storage.h"
 #include "core/file_sys/fssystem/fssystem_hierarchical_sha256_storage.h"
+#include "core/file_sys/fssystem/fssystem_hierarchical_sha3_storage.h"
 #include "core/file_sys/fssystem/fssystem_indirect_storage.h"
 #include "core/file_sys/fssystem/fssystem_integrity_romfs_storage.h"
 #include "core/file_sys/fssystem/fssystem_memory_resource_buffer_hold_storage.h"
 #include "core/file_sys/fssystem/fssystem_nca_file_system_driver.h"
 #include "core/file_sys/fssystem/fssystem_sparse_storage.h"
 #include "core/file_sys/fssystem/fssystem_switch_storage.h"
-#include "core/file_sys/fssystem/fssystem_hierarchical_sha3_storage.h"
 #include "core/file_sys/vfs/vfs_offset.h"
 #include "core/file_sys/vfs/vfs_vector.h"
 
@@ -319,7 +319,6 @@ Result NcaFileSystemDriver::CreateStorageByRawStorage(VirtualFile* out,
                   static_cast<int>(header_reader->GetHashType()));
         R_THROW(ResultInvalidNcaFsHeaderHashType);
     }
-
 
     // Process compression layer.
     if (header_reader->ExistsCompressionLayer()) {
@@ -746,7 +745,10 @@ Result NcaFileSystemDriver::CreateSparseStorageWithVerification(
 
         // Check the meta data hash type.
         if (meta_data_hash_type != NcaFsHeader::MetaDataHashType::HierarchicalIntegrity) {
-            LOG_ERROR(Loader, "Sparse meta hash type {} not supported for verification; mounting sparse data WITHOUT verification (temporary).", static_cast<int>(meta_data_hash_type));
+            LOG_ERROR(Loader,
+                      "Sparse meta hash type {} not supported for verification; mounting sparse "
+                      "data WITHOUT verification (temporary).",
+                      static_cast<int>(meta_data_hash_type));
 
             R_TRY(this->CreateBodySubStorage(std::addressof(body_substorage),
                                              sparse_info.physical_offset,
@@ -1052,8 +1054,10 @@ Result NcaFileSystemDriver::CreatePatchMetaStorage(
     ASSERT(Common::IsAligned<s64>(patch_info.aes_ctr_ex_size, NcaHeader::XtsBlockSize));
 
     // Validate patch info extents.
-    R_UNLESS(patch_info.aes_ctr_ex_size >= 0 && patch_info.HasAesCtrExTable(), ResultInvalidNcaPatchInfoAesCtrExSize);
-    R_UNLESS(patch_info.indirect_size > 0 && patch_info.HasIndirectTable(), ResultInvalidNcaPatchInfoIndirectSize);
+    R_UNLESS(patch_info.aes_ctr_ex_size >= 0 && patch_info.HasAesCtrExTable(),
+             ResultInvalidNcaPatchInfoAesCtrExSize);
+    R_UNLESS(patch_info.indirect_size > 0 && patch_info.HasIndirectTable(),
+             ResultInvalidNcaPatchInfoIndirectSize);
     R_UNLESS(patch_info.indirect_size + patch_info.indirect_offset <= patch_info.aes_ctr_ex_offset,
              ResultInvalidNcaPatchInfoAesCtrExOffset);
     R_UNLESS(patch_info.aes_ctr_ex_offset + patch_info.aes_ctr_ex_size <=
@@ -1298,8 +1302,7 @@ Result NcaFileSystemDriver::CreateIntegrityVerificationStorageImpl(
 
     // Validate the meta info.
     HierarchicalIntegrityVerificationInformation level_hash_info;
-    std::memcpy(std::addressof(level_hash_info),
-                std::addressof(meta_info.level_hash_info),
+    std::memcpy(std::addressof(level_hash_info), std::addressof(meta_info.level_hash_info),
                 sizeof(level_hash_info));
 
     R_UNLESS(IntegrityMinLayerCount <= level_hash_info.max_layers,
@@ -1317,9 +1320,8 @@ Result NcaFileSystemDriver::CreateIntegrityVerificationStorageImpl(
         R_UNLESS(layer_info_offset + layer_info.offset + layer_info.size <= base_storage_size,
                  ResultNcaBaseStorageOutOfRangeD);
 
-        storage_info[i + 1] = std::make_shared<OffsetVfsFile>(base_storage,
-                                                              layer_info.size,
-                                                              layer_info_offset + layer_info.offset);
+        storage_info[i + 1] = std::make_shared<OffsetVfsFile>(
+            base_storage, layer_info.size, layer_info_offset + layer_info.offset);
     }
 
     // Set the last layer info.
@@ -1333,27 +1335,41 @@ Result NcaFileSystemDriver::CreateIntegrityVerificationStorageImpl(
     }
 
     switch (level_hash_info.max_layers - 1) {
-        case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::MasterStorage:
-            storage_info.SetMasterHashStorage(std::make_shared<OffsetVfsFile>(std::move(base_storage), layer_info.size, last_layer_info_offset));
-            break;
-        case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::Layer1Storage:
-            storage_info.SetLayer1HashStorage(std::make_shared<OffsetVfsFile>(std::move(base_storage), layer_info.size, last_layer_info_offset));
-            break;
-        case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::Layer2Storage:
-            storage_info.SetLayer2HashStorage(std::make_shared<OffsetVfsFile>(std::move(base_storage), layer_info.size, last_layer_info_offset));
-            break;
-        case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::Layer3Storage:
-            storage_info.SetLayer3HashStorage(std::make_shared<OffsetVfsFile>(std::move(base_storage), layer_info.size, last_layer_info_offset));
-            break;
-        case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::Layer4Storage:
-            storage_info.SetLayer4HashStorage(std::make_shared<OffsetVfsFile>(std::move(base_storage), layer_info.size, last_layer_info_offset));
-            break;
-        case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::Layer5Storage:
-            storage_info.SetLayer5HashStorage(std::make_shared<OffsetVfsFile>(std::move(base_storage), layer_info.size, last_layer_info_offset));
-            break;
-        case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::DataStorage:
-            storage_info.SetDataStorage(std::make_shared<OffsetVfsFile>(std::move(base_storage), layer_info.size, last_layer_info_offset));
-            break;
+    case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::
+        MasterStorage:
+        storage_info.SetMasterHashStorage(std::make_shared<OffsetVfsFile>(
+            std::move(base_storage), layer_info.size, last_layer_info_offset));
+        break;
+    case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::
+        Layer1Storage:
+        storage_info.SetLayer1HashStorage(std::make_shared<OffsetVfsFile>(
+            std::move(base_storage), layer_info.size, last_layer_info_offset));
+        break;
+    case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::
+        Layer2Storage:
+        storage_info.SetLayer2HashStorage(std::make_shared<OffsetVfsFile>(
+            std::move(base_storage), layer_info.size, last_layer_info_offset));
+        break;
+    case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::
+        Layer3Storage:
+        storage_info.SetLayer3HashStorage(std::make_shared<OffsetVfsFile>(
+            std::move(base_storage), layer_info.size, last_layer_info_offset));
+        break;
+    case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::
+        Layer4Storage:
+        storage_info.SetLayer4HashStorage(std::make_shared<OffsetVfsFile>(
+            std::move(base_storage), layer_info.size, last_layer_info_offset));
+        break;
+    case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::
+        Layer5Storage:
+        storage_info.SetLayer5HashStorage(std::make_shared<OffsetVfsFile>(
+            std::move(base_storage), layer_info.size, last_layer_info_offset));
+        break;
+    case FileSys::HierarchicalIntegrityVerificationStorage::HierarchicalStorageInformation::
+        DataStorage:
+        storage_info.SetDataStorage(std::make_shared<OffsetVfsFile>(
+            std::move(base_storage), layer_info.size, last_layer_info_offset));
+        break;
     }
 
     // Make the integrity romfs storage.
@@ -1361,11 +1377,8 @@ Result NcaFileSystemDriver::CreateIntegrityVerificationStorageImpl(
     R_UNLESS(integrity_storage != nullptr, ResultAllocationMemoryFailedAllocateShared);
 
     // Initialize the integrity storage.
-    R_TRY(integrity_storage->Initialize(level_hash_info,
-                                        meta_info.master_hash,
-                                        storage_info,
-                                        max_data_cache_entries,
-                                        max_hash_cache_entries,
+    R_TRY(integrity_storage->Initialize(level_hash_info, meta_info.master_hash, storage_info,
+                                        max_data_cache_entries, max_hash_cache_entries,
                                         buffer_level));
 
     // Set the output.

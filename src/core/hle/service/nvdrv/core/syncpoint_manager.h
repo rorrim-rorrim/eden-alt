@@ -97,7 +97,7 @@ public:
         0x0,  // `Display` is unimplemented
         0x37, // `NvJpg`
         0x0,  // `TSec` is unimplemented
-    };        //!< Maps each channel ID to a constant syncpoint
+    }; //!< Maps each channel ID to a constant syncpoint
 
 private:
     /**

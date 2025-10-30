@@ -17,12 +17,7 @@ enum class Mode : u64 {
     Attr,
 };
 
-enum class SZ : u64 {
-    U8,
-    U16,
-    U32,
-    F32
-};
+enum class SZ : u64 { U8, U16, U32, F32 };
 
 enum class Shift : u64 {
     Default,
@@ -32,21 +27,29 @@ enum class Shift : u64 {
 
 IR::U32 scaleIndex(IR::IREmitter& ir, IR::U32 index, Shift shift) {
     switch (shift) {
-        case Shift::Default: return index;
-        case Shift::U16: return ir.ShiftLeftLogical(index, ir.Imm32(1));
-        case Shift::B32: return ir.ShiftLeftLogical(index, ir.Imm32(2));
-        default: UNREACHABLE();
+    case Shift::Default:
+        return index;
+    case Shift::U16:
+        return ir.ShiftLeftLogical(index, ir.Imm32(1));
+    case Shift::B32:
+        return ir.ShiftLeftLogical(index, ir.Imm32(2));
+    default:
+        UNREACHABLE();
     }
 }
 
 IR::U32 skewBytes(IR::IREmitter& ir, SZ sizeRead) {
     const IR::U32 lane = ir.LaneId();
     switch (sizeRead) {
-        case SZ::U8:  return lane;
-        case SZ::U16: return ir.ShiftLeftLogical(lane, ir.Imm32(1));
-        case SZ::U32:
-        case SZ::F32: return ir.ShiftLeftLogical(lane, ir.Imm32(2));
-        default: UNREACHABLE();
+    case SZ::U8:
+        return lane;
+    case SZ::U16:
+        return ir.ShiftLeftLogical(lane, ir.Imm32(1));
+    case SZ::U32:
+    case SZ::F32:
+        return ir.ShiftLeftLogical(lane, ir.Imm32(2));
+    default:
+        UNREACHABLE();
     }
 }
 
@@ -84,11 +87,18 @@ void TranslatorVisitor::ISBERD(u64 insn) {
         const IR::U64 index64 = ir.UConvert(64, index);
         IR::U32 globalLoaded{};
         switch (isberd.sz.Value()) {
-        case SZ::U8:  globalLoaded = ir.LoadGlobalU8 (index64); break;
-        case SZ::U16: globalLoaded = ir.LoadGlobalU16(index64); break;
+        case SZ::U8:
+            globalLoaded = ir.LoadGlobalU8(index64);
+            break;
+        case SZ::U16:
+            globalLoaded = ir.LoadGlobalU16(index64);
+            break;
         case SZ::U32:
-        case SZ::F32: globalLoaded = ir.LoadGlobal32(index64);  break;
-        default: UNREACHABLE();
+        case SZ::F32:
+            globalLoaded = ir.LoadGlobal32(index64);
+            break;
+        default:
+            UNREACHABLE();
         }
         X(isberd.dest_reg.Value(), globalLoaded);
 
@@ -102,13 +112,17 @@ void TranslatorVisitor::ISBERD(u64 insn) {
 
         IR::F32 float_index{};
         switch (isberd.mode.Value()) {
-        case Mode::Patch: float_index = ir.GetPatch(index.Patch());
+        case Mode::Patch:
+            float_index = ir.GetPatch(index.Patch());
             break;
-        case Mode::Prim:  float_index = ir.GetAttribute(index.Attribute());
+        case Mode::Prim:
+            float_index = ir.GetAttribute(index.Attribute());
             break;
-        case Mode::Attr:  float_index = ir.GetAttributeIndexed(index);
+        case Mode::Attr:
+            float_index = ir.GetAttributeIndexed(index);
             break;
-        default: UNREACHABLE();
+        default:
+            UNREACHABLE();
         }
         X(isberd.dest_reg.Value(), ir.BitCast<IR::U32>(float_index));
 

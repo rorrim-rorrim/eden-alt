@@ -11,12 +11,12 @@
 namespace Dynarmic::A32 {
 struct UserCallbacks;
 struct UserConfig;
-}
+} // namespace Dynarmic::A32
 
 namespace Dynarmic::A64 {
 struct UserCallbacks;
 struct UserConfig;
-}
+} // namespace Dynarmic::A64
 
 namespace Dynarmic::IR {
 class Block;
@@ -31,7 +31,9 @@ struct PolyfillOptions {
     bool operator==(const PolyfillOptions&) const = default;
 };
 
-void Optimize(IR::Block& block, const A32::UserConfig& conf, const Optimization::PolyfillOptions& polyfill_options);
-void Optimize(IR::Block& block, const A64::UserConfig& conf, const Optimization::PolyfillOptions& polyfill_options);
+void Optimize(IR::Block& block, const A32::UserConfig& conf,
+              const Optimization::PolyfillOptions& polyfill_options);
+void Optimize(IR::Block& block, const A64::UserConfig& conf,
+              const Optimization::PolyfillOptions& polyfill_options);
 
-}  // namespace Dynarmic::Optimization
+} // namespace Dynarmic::Optimization

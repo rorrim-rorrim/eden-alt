@@ -13,9 +13,9 @@
 #include <type_traits>
 
 #include <mcl/mp/metavalue/lift_value.hpp>
-#include "dynarmic/common/common_types.h"
-#include "dynarmic/common/assert.h"
 #include <oaknut/oaknut.hpp>
+#include "dynarmic/common/assert.h"
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/common/always_false.h"
 
@@ -30,7 +30,7 @@ constexpr oaknut::XReg Xpagetable{24};
 constexpr oaknut::XReg Xscratch0{16}, Xscratch1{17}, Xscratch2{30};
 constexpr oaknut::WReg Wscratch0{16}, Wscratch1{17}, Wscratch2{30};
 
-template<size_t bitsize>
+template <size_t bitsize>
 constexpr auto Rscratch0() {
     if constexpr (bitsize == 32) {
         return Wscratch0;
@@ -41,7 +41,7 @@ constexpr auto Rscratch0() {
     }
 }
 
-template<size_t bitsize>
+template <size_t bitsize>
 constexpr auto Rscratch1() {
     if constexpr (bitsize == 32) {
         return Wscratch1;
@@ -52,8 +52,10 @@ constexpr auto Rscratch1() {
     }
 }
 
-constexpr std::initializer_list<int> GPR_ORDER{19, 20, 21, 22, 23, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7, 8};
-constexpr std::initializer_list<int> FPR_ORDER{8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
+constexpr std::initializer_list<int> GPR_ORDER{19, 20, 21, 22, 23, 9, 10, 11, 12, 13, 14,
+                                               15, 0,  1,  2,  3,  4, 5,  6,  7,  8};
+constexpr std::initializer_list<int> FPR_ORDER{8,  9,  10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+                                               20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
 
 using RegisterList = u64;
 
@@ -78,4 +80,4 @@ constexpr RegisterList ABI_CALLER_SAVE = 0xffffffff'4000ffff;
 void ABI_PushRegisters(oaknut::CodeGenerator& code, RegisterList rl, size_t stack_space);
 void ABI_PopRegisters(oaknut::CodeGenerator& code, RegisterList rl, size_t stack_space);
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

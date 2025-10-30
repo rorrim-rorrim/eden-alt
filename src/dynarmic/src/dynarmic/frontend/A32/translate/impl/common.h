@@ -5,7 +5,8 @@
 namespace Dynarmic::A32 {
 
 static inline IR::U32 Pack2x16To1x32(A32::IREmitter& ir, IR::U32 lo, IR::U32 hi) noexcept {
-    return ir.Or(ir.And(lo, ir.Imm32(0xFFFF)), ir.LogicalShiftLeft(hi, ir.Imm8(16), ir.Imm1(0)).result);
+    return ir.Or(ir.And(lo, ir.Imm32(0xFFFF)),
+                 ir.LogicalShiftLeft(hi, ir.Imm8(16), ir.Imm1(0)).result);
 }
 
 static inline IR::U16 MostSignificantHalf(A32::IREmitter& ir, IR::U32 value) noexcept {
@@ -28,4 +29,4 @@ enum class AccumulateBehavior {
     Accumulate,
 };
 
-}
+} // namespace Dynarmic::A32

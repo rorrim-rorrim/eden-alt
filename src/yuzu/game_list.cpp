@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "yuzu/game_list.h"
+#include <regex>
 #include <QApplication>
 #include <QDir>
 #include <QFileInfo>
@@ -13,20 +13,20 @@
 #include <QMenu>
 #include <QThreadPool>
 #include <QToolButton>
+#include <fmt/ranges.h>
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
-#include "qt_common/util/game.h"
 #include "qt_common/config/uisettings.h"
+#include "qt_common/util/game.h"
 #include "yuzu/compatibility_list.h"
+#include "yuzu/game_list.h"
 #include "yuzu/game_list_p.h"
 #include "yuzu/game_list_worker.h"
 #include "yuzu/main.h"
 #include "yuzu/util/controller_navigation.h"
-#include <fmt/ranges.h>
-#include <regex>
 
 GameListSearchField::KeyReleaseEater::KeyReleaseEater(GameList* gamelist_, QObject* parent)
     : QObject(parent), gamelist{gamelist_} {}
@@ -619,26 +619,32 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
         emit RemoveInstalledEntryRequested(program_id, QtCommon::Game::InstalledEntryType::Update);
     });
     connect(remove_dlc, &QAction::triggered, [this, program_id]() {
-        emit RemoveInstalledEntryRequested(program_id, QtCommon::Game::InstalledEntryType::AddOnContent);
+        emit RemoveInstalledEntryRequested(program_id,
+                                           QtCommon::Game::InstalledEntryType::AddOnContent);
     });
     connect(remove_gl_shader_cache, &QAction::triggered, [this, program_id, path]() {
-        emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::GlShaderCache, path);
+        emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::GlShaderCache,
+                                 path);
     });
     connect(remove_vk_shader_cache, &QAction::triggered, [this, program_id, path]() {
-        emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::VkShaderCache, path);
+        emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::VkShaderCache,
+                                 path);
     });
     connect(remove_shader_cache, &QAction::triggered, [this, program_id, path]() {
-        emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::AllShaderCache, path);
+        emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::AllShaderCache,
+                                 path);
     });
     connect(remove_custom_config, &QAction::triggered, [this, program_id, path]() {
-        emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::CustomConfiguration, path);
+        emit RemoveFileRequested(program_id,
+                                 QtCommon::Game::GameListRemoveTarget::CustomConfiguration, path);
     });
     connect(set_play_time, &QAction::triggered,
             [this, program_id]() { emit SetPlayTimeRequested(program_id); });
     connect(remove_play_time_data, &QAction::triggered,
             [this, program_id]() { emit RemovePlayTimeRequested(program_id); });
     connect(remove_cache_storage, &QAction::triggered, [this, program_id, path] {
-        emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::CacheStorage, path);
+        emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::CacheStorage,
+                                 path);
     });
     connect(dump_romfs, &QAction::triggered, [this, program_id, path]() {
         emit DumpRomFSRequested(program_id, path, DumpRomFSTarget::Normal);
@@ -665,8 +671,8 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     connect(properties, &QAction::triggered,
             [this, path]() { emit OpenPerGameGeneralRequested(path); });
 
-    connect(ryujinx, &QAction::triggered, [this, program_id]() { emit LinkToRyujinxRequested(program_id);
-    });
+    connect(ryujinx, &QAction::triggered,
+            [this, program_id]() { emit LinkToRyujinxRequested(program_id); });
 };
 
 void GameList::AddCustomDirPopup(QMenu& context_menu, QModelIndex selected) {
@@ -830,8 +836,7 @@ QStandardItemModel* GameList::GetModel() const {
     return item_model;
 }
 
-void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs)
-{
+void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
     tree_view->setEnabled(false);
 
     // Update the columns in case UISettings has changed
@@ -848,12 +853,8 @@ void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs)
     item_model->removeRows(0, item_model->rowCount());
     search_field->clear();
 
-    current_worker = std::make_unique<GameListWorker>(vfs,
-                                                      provider,
-                                                      game_dirs,
-                                                      compatibility_list,
-                                                      play_time_manager,
-                                                      system);
+    current_worker = std::make_unique<GameListWorker>(vfs, provider, game_dirs, compatibility_list,
+                                                      play_time_manager, system);
 
     // Get events from the worker as data becomes available
     connect(current_worker.get(), &GameListWorker::DataAvailable, this, &GameList::WorkerEvent,
@@ -882,8 +883,7 @@ const QStringList GameList::supported_file_extensions = {
     QStringLiteral("nso"), QStringLiteral("nro"), QStringLiteral("nca"),
     QStringLiteral("xci"), QStringLiteral("nsp"), QStringLiteral("kip")};
 
-void GameList::RefreshGameDirectory()
-{
+void GameList::RefreshGameDirectory() {
     if (!UISettings::values.game_dirs.empty() && current_worker != nullptr) {
         LOG_INFO(Frontend, "Change detected in the games directory. Reloading game list.");
         PopulateAsync(UISettings::values.game_dirs);

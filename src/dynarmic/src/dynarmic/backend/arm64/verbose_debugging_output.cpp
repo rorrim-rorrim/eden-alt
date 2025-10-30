@@ -19,7 +19,7 @@ void EmitVerboseDebuggingOutput(oaknut::CodeGenerator& code, EmitContext& ctx) {
     code.SUB(SP, SP, sizeof(RegisterData));
     for (int i = 0; i < 30; i++) {
         if (i == 18) {
-            continue;  // Platform register
+            continue; // Platform register
         }
         code.STR(oaknut::XReg{i}, SP, offsetof(RegisterData, x) + i * sizeof(u64));
     }
@@ -44,14 +44,15 @@ void EmitVerboseDebuggingOutput(oaknut::CodeGenerator& code, EmitContext& ctx) {
     }
     for (int i = 0; i < 30; i++) {
         if (i == 18) {
-            continue;  // Platform register
+            continue; // Platform register
         }
         code.LDR(oaknut::XReg{i}, SP, offsetof(RegisterData, x) + i * sizeof(u64));
     }
     code.ADD(SP, SP, sizeof(RegisterData));
 }
 
-void PrintVerboseDebuggingOutputLine(RegisterData& reg_data, HostLocType reg_type, size_t reg_index, size_t inst_index, IR::Type inst_type) {
+void PrintVerboseDebuggingOutputLine(RegisterData& reg_data, HostLocType reg_type, size_t reg_index,
+                                     size_t inst_index, IR::Type inst_type) {
     fmt::print("dynarmic debug: %{:05} = ", inst_index);
 
     Vector value = [&]() -> Vector {
@@ -105,4 +106,4 @@ void PrintVerboseDebuggingOutputLine(RegisterData& reg_data, HostLocType reg_typ
     fmt::print("\n");
 }
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

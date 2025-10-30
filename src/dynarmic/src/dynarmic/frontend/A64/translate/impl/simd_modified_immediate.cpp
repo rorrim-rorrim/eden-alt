@@ -9,14 +9,16 @@
 
 namespace Dynarmic::A64 {
 
-bool TranslatorVisitor::MOVI(bool Q, bool op, Imm<1> a, Imm<1> b, Imm<1> c, Imm<4> cmode, Imm<1> d, Imm<1> e, Imm<1> f, Imm<1> g, Imm<1> h, Vec Vd) {
+bool TranslatorVisitor::MOVI(bool Q, bool op, Imm<1> a, Imm<1> b, Imm<1> c, Imm<4> cmode, Imm<1> d,
+                             Imm<1> e, Imm<1> f, Imm<1> g, Imm<1> h, Vec Vd) {
     const size_t datasize = Q ? 128 : 64;
 
     // MOVI
     // also FMOV (vector, immediate) when cmode == 0b1111
     const auto movi = [&] {
         const u64 imm64 = AdvSIMDExpandImm(op, cmode, concatenate(a, b, c, d, e, f, g, h));
-        const IR::U128 imm = datasize == 64 ? ir.ZeroExtendToQuad(ir.Imm64(imm64)) : ir.VectorBroadcast(64, ir.Imm64(imm64));
+        const IR::U128 imm = datasize == 64 ? ir.ZeroExtendToQuad(ir.Imm64(imm64))
+                                            : ir.VectorBroadcast(64, ir.Imm64(imm64));
         V(128, Vd, imm);
         return true;
     };
@@ -24,7 +26,8 @@ bool TranslatorVisitor::MOVI(bool Q, bool op, Imm<1> a, Imm<1> b, Imm<1> c, Imm<
     // MVNI
     const auto mvni = [&] {
         const u64 imm64 = ~AdvSIMDExpandImm(op, cmode, concatenate(a, b, c, d, e, f, g, h));
-        const IR::U128 imm = datasize == 64 ? ir.ZeroExtendToQuad(ir.Imm64(imm64)) : ir.VectorBroadcast(64, ir.Imm64(imm64));
+        const IR::U128 imm = datasize == 64 ? ir.ZeroExtendToQuad(ir.Imm64(imm64))
+                                            : ir.VectorBroadcast(64, ir.Imm64(imm64));
         V(128, Vd, imm);
         return true;
     };
@@ -32,7 +35,8 @@ bool TranslatorVisitor::MOVI(bool Q, bool op, Imm<1> a, Imm<1> b, Imm<1> c, Imm<
     // ORR (vector, immediate)
     const auto orr = [&] {
         const u64 imm64 = AdvSIMDExpandImm(op, cmode, concatenate(a, b, c, d, e, f, g, h));
-        const IR::U128 imm = datasize == 64 ? ir.ZeroExtendToQuad(ir.Imm64(imm64)) : ir.VectorBroadcast(64, ir.Imm64(imm64));
+        const IR::U128 imm = datasize == 64 ? ir.ZeroExtendToQuad(ir.Imm64(imm64))
+                                            : ir.VectorBroadcast(64, ir.Imm64(imm64));
         const IR::U128 operand = V(datasize, Vd);
         const IR::U128 result = ir.VectorOr(operand, imm);
         V(datasize, Vd, result);
@@ -42,7 +46,8 @@ bool TranslatorVisitor::MOVI(bool Q, bool op, Imm<1> a, Imm<1> b, Imm<1> c, Imm<
     // BIC (vector, immediate)
     const auto bic = [&] {
         const u64 imm64 = ~AdvSIMDExpandImm(op, cmode, concatenate(a, b, c, d, e, f, g, h));
-        const IR::U128 imm = datasize == 64 ? ir.ZeroExtendToQuad(ir.Imm64(imm64)) : ir.VectorBroadcast(64, ir.Imm64(imm64));
+        const IR::U128 imm = datasize == 64 ? ir.ZeroExtendToQuad(ir.Imm64(imm64))
+                                            : ir.VectorBroadcast(64, ir.Imm64(imm64));
         const IR::U128 operand = V(datasize, Vd);
         const IR::U128 result = ir.VectorAnd(operand, imm);
         V(datasize, Vd, result);
@@ -95,7 +100,8 @@ bool TranslatorVisitor::MOVI(bool Q, bool op, Imm<1> a, Imm<1> b, Imm<1> c, Imm<
     UNREACHABLE();
 }
 
-bool TranslatorVisitor::FMOV_2(bool Q, bool op, Imm<1> a, Imm<1> b, Imm<1> c, Imm<1> d, Imm<1> e, Imm<1> f, Imm<1> g, Imm<1> h, Vec Vd) {
+bool TranslatorVisitor::FMOV_2(bool Q, bool op, Imm<1> a, Imm<1> b, Imm<1> c, Imm<1> d, Imm<1> e,
+                               Imm<1> f, Imm<1> g, Imm<1> h, Vec Vd) {
     const size_t datasize = Q ? 128 : 64;
 
     if (op && !Q) {
@@ -104,12 +110,14 @@ bool TranslatorVisitor::FMOV_2(bool Q, bool op, Imm<1> a, Imm<1> b, Imm<1> c, Im
 
     const u64 imm64 = AdvSIMDExpandImm(op, Imm<4>{0b1111}, concatenate(a, b, c, d, e, f, g, h));
 
-    const IR::U128 imm = datasize == 64 ? ir.ZeroExtendToQuad(ir.Imm64(imm64)) : ir.VectorBroadcast(64, ir.Imm64(imm64));
+    const IR::U128 imm = datasize == 64 ? ir.ZeroExtendToQuad(ir.Imm64(imm64))
+                                        : ir.VectorBroadcast(64, ir.Imm64(imm64));
     V(128, Vd, imm);
     return true;
 }
 
-bool TranslatorVisitor::FMOV_3(bool Q, Imm<1> a, Imm<1> b, Imm<1> c, Imm<1> d, Imm<1> e, Imm<1> f, Imm<1> g, Imm<1> h, Vec Vd) {
+bool TranslatorVisitor::FMOV_3(bool Q, Imm<1> a, Imm<1> b, Imm<1> c, Imm<1> d, Imm<1> e, Imm<1> f,
+                               Imm<1> g, Imm<1> h, Vec Vd) {
     const size_t datasize = Q ? 128 : 64;
 
     const Imm<8> imm8 = concatenate(a, b, c, d, e, f, g, h);
@@ -122,9 +130,10 @@ bool TranslatorVisitor::FMOV_3(bool Q, Imm<1> a, Imm<1> b, Imm<1> c, Imm<1> d, I
     }();
     const u64 imm64 = mcl::bit::replicate_element<u16, u64>(imm16);
 
-    const IR::U128 imm = datasize == 64 ? ir.ZeroExtendToQuad(ir.Imm64(imm64)) : ir.VectorBroadcast(64, ir.Imm64(imm64));
+    const IR::U128 imm = datasize == 64 ? ir.ZeroExtendToQuad(ir.Imm64(imm64))
+                                        : ir.VectorBroadcast(64, ir.Imm64(imm64));
     V(128, Vd, imm);
     return true;
 }
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64

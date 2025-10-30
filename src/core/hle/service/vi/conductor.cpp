@@ -15,9 +15,8 @@ namespace Service::VI {
 
 Conductor::Conductor(Core::System& system, Container& container, DisplayList& displays)
     : m_system(system), m_container(container) {
-    displays.ForEachDisplay([&](Display& display) {
-        m_vsync_managers.insert({display.GetId(), VsyncManager{}});
-    });
+    displays.ForEachDisplay(
+        [&](Display& display) { m_vsync_managers.insert({display.GetId(), VsyncManager{}}); });
 
     if (system.IsMulticore()) {
         m_event = Core::Timing::CreateEvent(

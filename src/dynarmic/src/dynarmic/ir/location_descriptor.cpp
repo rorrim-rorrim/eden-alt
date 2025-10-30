@@ -13,4 +13,4 @@ std::string ToString(const LocationDescriptor& descriptor) {
     return fmt::format("{{{:016x}}}", descriptor.Value());
 }
 
-}  // namespace Dynarmic::IR
+} // namespace Dynarmic::IR

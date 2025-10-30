@@ -24,16 +24,13 @@
 namespace Dynarmic::Backend::Arm64 {
 
 AddressSpace::AddressSpace(size_t code_cache_size)
-        : code_cache_size(code_cache_size)
-        , mem(code_cache_size)
-        , code(mem.ptr(), mem.ptr())
-        , fastmem_manager(exception_handler) {
-    ASSERT_MSG(code_cache_size <= 128 * 1024 * 1024, "code_cache_size > 128 MiB not currently supported");
+    : code_cache_size(code_cache_size), mem(code_cache_size), code(mem.ptr(), mem.ptr()),
+      fastmem_manager(exception_handler) {
+    ASSERT_MSG(code_cache_size <= 128 * 1024 * 1024,
+               "code_cache_size > 128 MiB not currently supported");
 
     exception_handler.Register(mem, code_cache_size);
-    exception_handler.SetFastmemCallback([this](u64 host_pc) {
-        return FastmemCallback(host_pc);
-    });
+    exception_handler.SetFastmemCallback([this](u64 host_pc) { return FastmemCallback(host_pc); });
 }
 
 AddressSpace::~AddressSpace() = default;
@@ -46,7 +43,8 @@ CodePtr AddressSpace::Get(IR::LocationDescriptor descriptor) {
 }
 
 std::optional<IR::LocationDescriptor> AddressSpace::ReverseGetLocation(CodePtr host_pc) {
-    if (auto iter = reverse_block_entries.upper_bound(host_pc); iter != reverse_block_entries.begin()) {
+    if (auto iter = reverse_block_entries.upper_bound(host_pc);
+        iter != reverse_block_entries.begin()) {
         // upper_bound locates the first value greater than host_pc, so we need to decrement
         --iter;
         return iter->second;
@@ -55,7 +53,8 @@ std::optional<IR::LocationDescriptor> AddressSpace::ReverseGetLocation(CodePtr h
 }
 
 CodePtr AddressSpace::ReverseGetEntryPoint(CodePtr host_pc) {
-    if (auto iter = reverse_block_entries.upper_bound(host_pc); iter != reverse_block_entries.begin()) {
+    if (auto iter = reverse_block_entries.upper_bound(host_pc);
+        iter != reverse_block_entries.begin()) {
         // upper_bound locates the first value greater than host_pc, so we need to decrement
         --iter;
         return iter->first;
@@ -73,7 +72,8 @@ CodePtr AddressSpace::GetOrEmit(IR::LocationDescriptor descriptor) {
     return block_info.entry_point;
 }
 
-void AddressSpace::InvalidateBasicBlocks(const ankerl::unordered_dense::set<IR::LocationDescriptor>& descriptors) {
+void AddressSpace::InvalidateBasicBlocks(
+    const ankerl::unordered_dense::set<IR::LocationDescriptor>& descriptors) {
     UnprotectCodeMemory();
 
     for (const auto& descriptor : descriptors) {
@@ -82,8 +82,9 @@ void AddressSpace::InvalidateBasicBlocks(const ankerl::unordered_dense::set<IR::
             continue;
         }
 
-        // Unlink before removal because InvalidateBasicBlocks can be called within a fastmem callback,
-        // and the currently executing block may have references to itself which need to be unlinked.
+        // Unlink before removal because InvalidateBasicBlocks can be called within a fastmem
+        // callback, and the currently executing block may have references to itself which need to
+        // be unlinked.
         RelinkForDescriptor(descriptor, nullptr);
 
         block_entries.erase(iter);
@@ -117,7 +118,8 @@ EmittedBlockInfo AddressSpace::Emit(IR::Block block) {
 
     UnprotectCodeMemory();
 
-    EmittedBlockInfo block_info = EmitArm64(code, std::move(block), GetEmitConfig(), fastmem_manager);
+    EmittedBlockInfo block_info =
+        EmitArm64(code, std::move(block), GetEmitConfig(), fastmem_manager);
 
     ASSERT(block_entries.insert({block.Location(), block_info.entry_point}).second);
     ASSERT(reverse_block_entries.insert({block_info.entry_point, block.Location()}).second);
@@ -274,7 +276,8 @@ void AddressSpace::Link(EmittedBlockInfo& block_info) {
     }
 }
 
-void AddressSpace::LinkBlockLinks(const CodePtr entry_point, const CodePtr target_ptr, const std::vector<BlockRelocation>& block_relocations_list) {
+void AddressSpace::LinkBlockLinks(const CodePtr entry_point, const CodePtr target_ptr,
+                                  const std::vector<BlockRelocation>& block_relocations_list) {
     using namespace oaknut;
     using namespace oaknut::util;
 
@@ -303,12 +306,14 @@ void AddressSpace::LinkBlockLinks(const CodePtr entry_point, const CodePtr targe
     }
 }
 
-void AddressSpace::RelinkForDescriptor(IR::LocationDescriptor target_descriptor, CodePtr target_ptr) {
+void AddressSpace::RelinkForDescriptor(IR::LocationDescriptor target_descriptor,
+                                       CodePtr target_ptr) {
     for (auto code_ptr : block_references[target_descriptor]) {
         if (auto block_iter = block_infos.find(code_ptr); block_iter != block_infos.end()) {
             const EmittedBlockInfo& block_info = block_iter->second;
 
-            if (auto relocation_iter = block_info.block_relocations.find(target_descriptor); relocation_iter != block_info.block_relocations.end()) {
+            if (auto relocation_iter = block_info.block_relocations.find(target_descriptor);
+                relocation_iter != block_info.block_relocations.end()) {
                 LinkBlockLinks(block_info.entry_point, target_ptr, relocation_iter->second);
             }
 
@@ -353,4 +358,4 @@ fail:
     ASSERT_FALSE("segfault");
 }
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

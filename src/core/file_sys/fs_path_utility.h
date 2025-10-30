@@ -90,12 +90,15 @@ private:
     u32 m_value;
 
 public:
-    constexpr PathFlags() : m_value(0) { /* ... */
-    }
+    constexpr PathFlags() : m_value(0) { /* ... */ }
 
 #define DECLARE_PATH_FLAG_HANDLER(__WHICH__)                                                       \
-    constexpr bool Is##__WHICH__##Allowed() const { return (m_value & __WHICH__##Flag) != 0; }     \
-    constexpr void Allow##__WHICH__() { m_value |= __WHICH__##Flag; }
+    constexpr bool Is##__WHICH__##Allowed() const {                                                \
+        return (m_value & __WHICH__##Flag) != 0;                                                   \
+    }                                                                                              \
+    constexpr void Allow##__WHICH__() {                                                            \
+        m_value |= __WHICH__##Flag;                                                                \
+    }
 
     DECLARE_PATH_FLAG_HANDLER(WindowsPath)
     DECLARE_PATH_FLAG_HANDLER(RelativePath)

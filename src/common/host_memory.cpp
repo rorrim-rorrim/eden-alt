@@ -26,10 +26,10 @@
 #if defined(__linux__)
 #include <sys/random.h>
 #elif defined(__APPLE__)
-#include <sys/types.h>
-#include <sys/random.h>
-#include <mach/vm_map.h>
 #include <mach/mach.h>
+#include <mach/vm_map.h>
+#include <sys/random.h>
+#include <sys/types.h>
 #endif
 
 // FreeBSD
@@ -439,12 +439,16 @@ static void* ChooseVirtualBase(size_t virtual_size) {
 #else
 
 static void* ChooseVirtualBase(size_t virtual_size) {
-#if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__sun__) || defined(__HAIKU__) || defined(__managarm__) || defined(__AIX__)
-    void* virtual_base = mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_ALIGNED_SUPER, -1, 0);
+#if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__sun__) ||  \
+    defined(__HAIKU__) || defined(__managarm__) || defined(__AIX__)
+    void* virtual_base =
+        mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE,
+             MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_ALIGNED_SUPER, -1, 0);
     if (virtual_base != MAP_FAILED)
         return virtual_base;
 #endif
-    return mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+    return mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE,
+                MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
 }
 
 #endif
@@ -455,14 +459,14 @@ static void* ChooseVirtualBase(size_t virtual_size) {
 /// OS support - may fail sporadically, beware!
 static int shm_open_anon(int flags, mode_t mode) {
     char name[16] = "/shm-";
-    char *const limit = name + sizeof(name) - 1;
+    char* const limit = name + sizeof(name) - 1;
     *limit = '\0';
-    char *start = name + strlen(name);
+    char* start = name + strlen(name);
     for (int tries = 0; tries < 4; tries++) {
         struct timespec tv;
         clock_gettime(CLOCK_REALTIME, &tv);
         unsigned long r = (unsigned long)tv.tv_sec + (unsigned long)tv.tv_nsec;
-        for (char *fill = start; fill < limit; r /= 8)
+        for (char* fill = start; fill < limit; r /= 8)
             *fill++ = '0' + (r % 8);
         int fd = shm_open(name, flags, mode);
         if (fd != -1) {
@@ -609,7 +613,8 @@ public:
     bool ClearBackingRegion(size_t physical_offset, size_t length) {
 #ifdef __linux__
         // Only incur syscall cost IF memset would be slower (theshold = 16MiB)
-        // TODO(lizzie): Smarter way to dynamically get this threshold (broadwell != raptor lake) for example
+        // TODO(lizzie): Smarter way to dynamically get this threshold (broadwell != raptor lake)
+        // for example
         if (length >= 2097152UL * 8) {
             // Set MADV_REMOVE on backing map to destroy it instantly.
             // This also deletes the area from the backing file.

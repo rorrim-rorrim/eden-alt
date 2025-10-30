@@ -189,8 +189,7 @@ static void InitializeLogging(const std::string& log_file) {
 }
 
 /// Application entry point
-void LaunchRoom(int argc, char** argv, bool called_by_option)
-{
+void LaunchRoom(int argc, char** argv, bool called_by_option) {
     Common::DetachedTasks detached_tasks;
     int option_index = 0;
     char* endarg;
@@ -238,7 +237,8 @@ void LaunchRoom(int argc, char** argv, bool called_by_option)
     InitializeLogging(log_file);
 
     while (optind < argc) {
-        int arg = getopt_long(argc, argv, "n:d:s:p:m:w:g:u:t:a:i:l:hv", long_options, &option_index);
+        int arg =
+            getopt_long(argc, argv, "n:d:s:p:m:w:g:u:t:a:i:l:hv", long_options, &option_index);
         if (arg != -1) {
             char carg = static_cast<char>(arg);
 
@@ -310,8 +310,7 @@ void LaunchRoom(int argc, char** argv, bool called_by_option)
                   "room.\nSet with --preferred-game-id id");
     }
     if (max_members > Network::MaxConcurrentConnections || max_members < 2) {
-        LOG_ERROR(Network,
-                  "max_members needs to be in the range 2 - {}!",
+        LOG_ERROR(Network, "max_members needs to be in the range 2 - {}!",
                   Network::MaxConcurrentConnections);
         PrintHelp(argv[0]);
         std::exit(-1);
@@ -325,9 +324,8 @@ void LaunchRoom(int argc, char** argv, bool called_by_option)
         std::exit(-1);
     }
     if (ban_list_file.empty()) {
-        LOG_ERROR(Network,
-                  "Ban list file not set!\nThis should get set to load and save room ban "
-                  "list.\nSet with --ban-list-file <file>");
+        LOG_ERROR(Network, "Ban list file not set!\nThis should get set to load and save room ban "
+                           "list.\nSet with --ban-list-file <file>");
     }
     bool announce = true;
     if (token.empty() && announce) {

@@ -15,7 +15,6 @@
 #include "input_common/drivers/udp_client.h"
 #include "input_common/helpers/udp_protocol.h"
 
-
 class FakeCemuhookServer {
 public:
     FakeCemuhookServer()

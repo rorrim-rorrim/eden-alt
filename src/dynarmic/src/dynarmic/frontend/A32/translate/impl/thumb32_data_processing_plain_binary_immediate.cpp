@@ -6,8 +6,8 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include "dynarmic/common/assert.h"
 #include <mcl/bitsizeof.hpp>
+#include "dynarmic/common/assert.h"
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
 #include "dynarmic/frontend/A32/translate/impl/common.h"
@@ -16,7 +16,8 @@ namespace Dynarmic::A32 {
 
 using SaturationFunction = IR::ResultAndOverflow<IR::U32> (IREmitter::*)(const IR::U32&, size_t);
 
-static bool Saturation(TranslatorVisitor& v, bool sh, Reg n, Reg d, Imm<5> shift_amount, size_t saturate_to, SaturationFunction sat_fn) {
+static bool Saturation(TranslatorVisitor& v, bool sh, Reg n, Reg d, Imm<5> shift_amount,
+                       size_t saturate_to, SaturationFunction sat_fn) {
     ASSERT_MSG(!(sh && shift_amount == 0), "Invalid decode");
 
     if (d == Reg::PC || n == Reg::PC) {
@@ -32,7 +33,8 @@ static bool Saturation(TranslatorVisitor& v, bool sh, Reg n, Reg d, Imm<5> shift
     return true;
 }
 
-static bool Saturation16(TranslatorVisitor& v, Reg n, Reg d, size_t saturate_to, SaturationFunction sat_fn) {
+static bool Saturation16(TranslatorVisitor& v, Reg n, Reg d, size_t saturate_to,
+                         SaturationFunction sat_fn) {
     if (d == Reg::PC || n == Reg::PC) {
         return v.UnpredictableInstruction();
     }
@@ -122,7 +124,8 @@ bool TranslatorVisitor::thumb32_BFI(Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, Imm<
     const u32 inclusion_mask = mcl::bit::ones<u32>(msbit - lsbit + 1) << lsbit;
     const u32 exclusion_mask = ~inclusion_mask;
     const IR::U32 operand1 = ir.And(ir.GetRegister(d), ir.Imm32(exclusion_mask));
-    const IR::U32 operand2 = ir.And(ir.LogicalShiftLeft(ir.GetRegister(n), ir.Imm8(u8(lsbit))), ir.Imm32(inclusion_mask));
+    const IR::U32 operand2 = ir.And(ir.LogicalShiftLeft(ir.GetRegister(n), ir.Imm8(u8(lsbit))),
+                                    ir.Imm32(inclusion_mask));
     const IR::U32 result = ir.Or(operand1, operand2);
 
     ir.SetRegister(d, result);
@@ -142,7 +145,8 @@ bool TranslatorVisitor::thumb32_MOVT(Imm<1> imm1, Imm<4> imm4, Imm<3> imm3, Reg 
     return true;
 }
 
-bool TranslatorVisitor::thumb32_MOVW_imm(Imm<1> imm1, Imm<4> imm4, Imm<3> imm3, Reg d, Imm<8> imm8) {
+bool TranslatorVisitor::thumb32_MOVW_imm(Imm<1> imm1, Imm<4> imm4, Imm<3> imm3, Reg d,
+                                         Imm<8> imm8) {
     if (d == Reg::PC) {
         return UnpredictableInstruction();
     }
@@ -177,8 +181,10 @@ bool TranslatorVisitor::thumb32_SBFX(Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, Imm
     return true;
 }
 
-bool TranslatorVisitor::thumb32_SSAT(bool sh, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, Imm<5> sat_imm) {
-    return Saturation(*this, sh, n, d, concatenate(imm3, imm2), sat_imm.ZeroExtend() + 1, &IREmitter::SignedSaturation);
+bool TranslatorVisitor::thumb32_SSAT(bool sh, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2,
+                                     Imm<5> sat_imm) {
+    return Saturation(*this, sh, n, d, concatenate(imm3, imm2), sat_imm.ZeroExtend() + 1,
+                      &IREmitter::SignedSaturation);
 }
 
 bool TranslatorVisitor::thumb32_SSAT16(Reg n, Reg d, Imm<4> sat_imm) {
@@ -218,12 +224,14 @@ bool TranslatorVisitor::thumb32_UBFX(Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, Imm
     return true;
 }
 
-bool TranslatorVisitor::thumb32_USAT(bool sh, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, Imm<5> sat_imm) {
-    return Saturation(*this, sh, n, d, concatenate(imm3, imm2), sat_imm.ZeroExtend(), &IREmitter::UnsignedSaturation);
+bool TranslatorVisitor::thumb32_USAT(bool sh, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2,
+                                     Imm<5> sat_imm) {
+    return Saturation(*this, sh, n, d, concatenate(imm3, imm2), sat_imm.ZeroExtend(),
+                      &IREmitter::UnsignedSaturation);
 }
 
 bool TranslatorVisitor::thumb32_USAT16(Reg n, Reg d, Imm<4> sat_imm) {
     return Saturation16(*this, n, d, sat_imm.ZeroExtend(), &IREmitter::UnsignedSaturation);
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

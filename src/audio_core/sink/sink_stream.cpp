@@ -36,26 +36,28 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
         // Front = 1.0; Center = 0.596; LFE = 0.354; Back = 0.707
         static constexpr std::array<f32, 4> tcoeff{1.0f, 0.596f, 0.354f, 0.707f};
         // We're given 6 channels, but our device only outputs 2, so downmix.
-        for (u32 r_offs = 0, w_offs = 0; r_offs < samples.size(); r_offs += system_channels, w_offs += device_channels) {
+        for (u32 r_offs = 0, w_offs = 0; r_offs < samples.size();
+             r_offs += system_channels, w_offs += device_channels) {
             std::array<f32, 6> ccoeff{0.f};
             for (u32 i = 0; i < system_channels; ++i)
                 ccoeff[i] = f32(samples[r_offs + i]);
             std::array<f32, 6> rcoeff{
-                ccoeff[u32(Channels::FrontLeft)],
-                ccoeff[u32(Channels::BackLeft)],
-                ccoeff[u32(Channels::Center)],
-                ccoeff[u32(Channels::LFE)],
-                ccoeff[u32(Channels::BackRight)],
-                ccoeff[u32(Channels::FrontRight)],
+                ccoeff[u32(Channels::FrontLeft)], ccoeff[u32(Channels::BackLeft)],
+                ccoeff[u32(Channels::Center)],    ccoeff[u32(Channels::LFE)],
+                ccoeff[u32(Channels::BackRight)], ccoeff[u32(Channels::FrontRight)],
             };
-            std::array<f32, 6> scoeff{
-                rcoeff[0] * tcoeff[0] + rcoeff[2] * tcoeff[1] + rcoeff[3] * tcoeff[2] + rcoeff[1] * tcoeff[3],
-                rcoeff[5] * tcoeff[0] + rcoeff[2] * tcoeff[1] + rcoeff[3] * tcoeff[2] + rcoeff[4] * tcoeff[3],
-                rcoeff[4] * tcoeff[0] + rcoeff[3] * tcoeff[1] + rcoeff[2] * tcoeff[2] + rcoeff[2] * tcoeff[3],
-                rcoeff[3] * tcoeff[0] + rcoeff[3] * tcoeff[1] + rcoeff[2] * tcoeff[2] + rcoeff[3] * tcoeff[3],
-                rcoeff[2] * tcoeff[0] + rcoeff[4] * tcoeff[1] + rcoeff[1] * tcoeff[2] + rcoeff[0] * tcoeff[3],
-                rcoeff[1] * tcoeff[0] + rcoeff[4] * tcoeff[1] + rcoeff[1] * tcoeff[2] + rcoeff[5] * tcoeff[3]
-            };
+            std::array<f32, 6> scoeff{rcoeff[0] * tcoeff[0] + rcoeff[2] * tcoeff[1] +
+                                          rcoeff[3] * tcoeff[2] + rcoeff[1] * tcoeff[3],
+                                      rcoeff[5] * tcoeff[0] + rcoeff[2] * tcoeff[1] +
+                                          rcoeff[3] * tcoeff[2] + rcoeff[4] * tcoeff[3],
+                                      rcoeff[4] * tcoeff[0] + rcoeff[3] * tcoeff[1] +
+                                          rcoeff[2] * tcoeff[2] + rcoeff[2] * tcoeff[3],
+                                      rcoeff[3] * tcoeff[0] + rcoeff[3] * tcoeff[1] +
+                                          rcoeff[2] * tcoeff[2] + rcoeff[3] * tcoeff[3],
+                                      rcoeff[2] * tcoeff[0] + rcoeff[4] * tcoeff[1] +
+                                          rcoeff[1] * tcoeff[2] + rcoeff[0] * tcoeff[3],
+                                      rcoeff[1] * tcoeff[0] + rcoeff[4] * tcoeff[1] +
+                                          rcoeff[1] * tcoeff[2] + rcoeff[5] * tcoeff[3]};
             for (u32 i = 0; i < system_channels; ++i)
                 samples[w_offs + i] = s16(std::clamp(s32(scoeff[i] * volume), min, max));
         }
@@ -63,9 +65,11 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
     } else if (system_channels < device_channels) {
         // We need moar samples! Not all games will provide 6 channel audio.
         std::vector<s16> new_samples(samples.size() / system_channels * device_channels);
-        for (u32 r_offs = 0, w_offs = 0; r_offs < samples.size(); r_offs += system_channels, w_offs += device_channels)
+        for (u32 r_offs = 0, w_offs = 0; r_offs < samples.size();
+             r_offs += system_channels, w_offs += device_channels)
             for (u32 channel = 0; channel < system_channels; ++channel)
-                new_samples[w_offs + channel] = s16(std::clamp(s32(f32(samples[r_offs + channel]) * volume), min, max));
+                new_samples[w_offs + channel] =
+                    s16(std::clamp(s32(f32(samples[r_offs + channel]) * volume), min, max));
         samples_buffer.Push(new_samples);
     } else {
         for (u32 i = 0; i < samples.size() && volume != 1.0f; ++i)

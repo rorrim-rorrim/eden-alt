@@ -13,9 +13,9 @@
 #include <span>
 #include <utility>
 
-#include "dynarmic/common/common_types.h"
 #include <ankerl/unordered_dense.h>
 #include <xbyak/xbyak.h>
+#include "dynarmic/common/common_types.h"
 
 namespace Dynarmic::Backend::X64 {
 
@@ -32,7 +32,7 @@ public:
     Xbyak::Address GetConstant(const Xbyak::AddressFrame& frame, u64 lower, u64 upper = 0);
 
 private:
-    static constexpr size_t align_size = 16;  // bytes
+    static constexpr size_t align_size = 16; // bytes
 
     using ConstantT = std::pair<u64, u64>;
     static_assert(sizeof(ConstantT) == align_size);
@@ -49,4 +49,4 @@ private:
     std::size_t insertion_point;
 };
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

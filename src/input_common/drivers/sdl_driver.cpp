@@ -121,8 +121,8 @@ public:
         if (vibration.low_frequency > low_start_sensitivity_limit) {
             low_frequency_scale =
                 (std::max)(1.0f - (vibration.low_frequency - low_start_sensitivity_limit) /
-                                    low_width_sensitivity_limit,
-                         0.3f);
+                                      low_width_sensitivity_limit,
+                           0.3f);
         }
         f32 low_amplitude = vibration.low_amplitude * low_frequency_scale;
 
@@ -130,8 +130,8 @@ public:
         if (vibration.high_frequency > high_start_sensitivity_limit) {
             high_frequency_scale =
                 (std::max)(1.0f - (vibration.high_frequency - high_start_sensitivity_limit) /
-                                    high_width_sensitivity_limit,
-                         0.3f);
+                                      high_width_sensitivity_limit,
+                           0.3f);
         }
         f32 high_amplitude = vibration.high_amplitude * high_frequency_scale;
 

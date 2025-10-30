@@ -12,8 +12,7 @@ class System;
 
 namespace Service::LDN {
 
-class IClientProcessMonitor final
-    : public ServiceFramework<IClientProcessMonitor> {
+class IClientProcessMonitor final : public ServiceFramework<IClientProcessMonitor> {
 public:
     explicit IClientProcessMonitor(Core::System& system_);
     ~IClientProcessMonitor() override;

@@ -17,7 +17,8 @@ bool TranslatorVisitor::arm_PLD_imm(bool /*add*/, bool R, Reg /*n*/, Imm<12> /*i
     return RaiseException(exception);
 }
 
-bool TranslatorVisitor::arm_PLD_reg(bool /*add*/, bool R, Reg /*n*/, Imm<5> /*imm5*/, ShiftType /*shift*/, Reg /*m*/) {
+bool TranslatorVisitor::arm_PLD_reg(bool /*add*/, bool R, Reg /*n*/, Imm<5> /*imm5*/,
+                                    ShiftType /*shift*/, Reg /*m*/) {
     if (!options.hook_hint_instructions) {
         return true;
     }
@@ -66,4 +67,4 @@ bool TranslatorVisitor::arm_YIELD() {
     return RaiseException(Exception::Yield);
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

@@ -8,10 +8,10 @@
 
 #include <limits>
 
-#include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_field.hpp>
-#include "dynarmic/common/common_types.h"
 #include <mcl/type_traits/integer_of_size.hpp>
+#include "dynarmic/common/assert.h"
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/x64/block_of_code.h"
 #include "dynarmic/backend/x64/emit_x64.h"
@@ -30,7 +30,7 @@ enum class Op {
     Sub,
 };
 
-template<Op op, size_t size, bool has_overflow_inst = false>
+template <Op op, size_t size, bool has_overflow_inst = false>
 void EmitSignedSaturatedOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -38,7 +38,8 @@ void EmitSignedSaturatedOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) 
     Xbyak::Reg addend = ctx.reg_alloc.UseGpr(args[1]).changeBit(size);
     Xbyak::Reg overflow = ctx.reg_alloc.ScratchGpr().changeBit(size);
 
-    constexpr u64 int_max = static_cast<u64>((std::numeric_limits<mcl::signed_integer_of_size<size>>::max)());
+    constexpr u64 int_max =
+        static_cast<u64>((std::numeric_limits<mcl::signed_integer_of_size<size>>::max)());
     if constexpr (size < 64) {
         code.xor_(overflow.cvt32(), overflow.cvt32());
         code.bt(result.cvt32(), size - 1);
@@ -65,24 +66,27 @@ void EmitSignedSaturatedOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) 
 
     code.seto(overflow.cvt8());
     if constexpr (has_overflow_inst) {
-        if (const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp)) {
+        if (const auto overflow_inst =
+                inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp)) {
             ctx.reg_alloc.DefineValue(overflow_inst, overflow);
         }
     } else {
-        code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], overflow.cvt8());
+        code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc],
+                 overflow.cvt8());
     }
 
     ctx.reg_alloc.DefineValue(inst, result);
 }
 
-template<Op op, size_t size>
+template <Op op, size_t size>
 void EmitUnsignedSaturatedOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     Xbyak::Reg op_result = ctx.reg_alloc.UseScratchGpr(args[0]).changeBit(size);
     Xbyak::Reg addend = ctx.reg_alloc.UseScratchGpr(args[1]).changeBit(size);
 
-    constexpr u64 boundary = op == Op::Add ? (std::numeric_limits<mcl::unsigned_integer_of_size<size>>::max)() : 0;
+    constexpr u64 boundary =
+        op == Op::Add ? (std::numeric_limits<mcl::unsigned_integer_of_size<size>>::max)() : 0;
 
     if constexpr (op == Op::Add) {
         code.add(op_result, addend);
@@ -98,12 +102,13 @@ void EmitUnsignedSaturatedOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst
 
     const Xbyak::Reg overflow = ctx.reg_alloc.ScratchGpr();
     code.setb(overflow.cvt8());
-    code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], overflow.cvt8());
+    code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc],
+             overflow.cvt8());
 
     ctx.reg_alloc.DefineValue(inst, addend);
 }
 
-}  // anonymous namespace
+} // anonymous namespace
 
 void EmitX64::EmitSignedSaturatedAddWithFlag32(EmitContext& ctx, IR::Inst* inst) {
     EmitSignedSaturatedOp<Op::Add, 32, true>(code, ctx, inst);
@@ -141,7 +146,8 @@ void EmitX64::EmitSignedSaturation(EmitContext& ctx, IR::Inst* inst) {
     const Xbyak::Reg32 reg_a = ctx.reg_alloc.UseGpr(args[0]).cvt32();
     const Xbyak::Reg32 overflow = ctx.reg_alloc.ScratchGpr().cvt32();
 
-    // overflow now contains a value between 0 and mask if it was originally between {negative,positive}_saturated_value.
+    // overflow now contains a value between 0 and mask if it was originally between
+    // {negative,positive}_saturated_value.
     code.lea(overflow, code.ptr[reg_a.cvt64() + negative_saturated_value]);
 
     // Put the appropriate saturated value in result
@@ -303,4 +309,4 @@ void EmitX64::EmitUnsignedSaturatedSub64(EmitContext& ctx, IR::Inst* inst) {
     EmitUnsignedSaturatedOp<Op::Sub, 64>(code, ctx, inst);
 }
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

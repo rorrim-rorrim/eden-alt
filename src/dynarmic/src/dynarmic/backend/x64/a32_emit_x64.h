@@ -94,40 +94,53 @@ protected:
 
     // Memory access helpers
     void EmitCheckMemoryAbort(A32EmitContext& ctx, IR::Inst* inst, Xbyak::Label* end = nullptr);
-    template<std::size_t bitsize, auto callback>
+    template <std::size_t bitsize, auto callback>
     void EmitMemoryRead(A32EmitContext& ctx, IR::Inst* inst);
-    template<std::size_t bitsize, auto callback>
+    template <std::size_t bitsize, auto callback>
     void EmitMemoryWrite(A32EmitContext& ctx, IR::Inst* inst);
-    template<std::size_t bitsize, auto callback>
+    template <std::size_t bitsize, auto callback>
     void EmitExclusiveReadMemory(A32EmitContext& ctx, IR::Inst* inst);
-    template<std::size_t bitsize, auto callback>
+    template <std::size_t bitsize, auto callback>
     void EmitExclusiveWriteMemory(A32EmitContext& ctx, IR::Inst* inst);
-    template<std::size_t bitsize, auto callback>
+    template <std::size_t bitsize, auto callback>
     void EmitExclusiveReadMemoryInline(A32EmitContext& ctx, IR::Inst* inst);
-    template<std::size_t bitsize, auto callback>
+    template <std::size_t bitsize, auto callback>
     void EmitExclusiveWriteMemoryInline(A32EmitContext& ctx, IR::Inst* inst);
 
     // Terminal instruction emitters
-    void EmitSetUpperLocationDescriptor(IR::LocationDescriptor new_location, IR::LocationDescriptor old_location);
-    void EmitTerminalImpl(IR::Term::Interpret terminal, IR::LocationDescriptor initial_location, bool is_single_step) override;
-    void EmitTerminalImpl(IR::Term::ReturnToDispatch terminal, IR::LocationDescriptor initial_location, bool is_single_step) override;
-    void EmitTerminalImpl(IR::Term::LinkBlock terminal, IR::LocationDescriptor initial_location, bool is_single_step) override;
-    void EmitTerminalImpl(IR::Term::LinkBlockFast terminal, IR::LocationDescriptor initial_location, bool is_single_step) override;
-    void EmitTerminalImpl(IR::Term::PopRSBHint terminal, IR::LocationDescriptor initial_location, bool is_single_step) override;
-    void EmitTerminalImpl(IR::Term::FastDispatchHint terminal, IR::LocationDescriptor initial_location, bool is_single_step) override;
-    void EmitTerminalImpl(IR::Term::If terminal, IR::LocationDescriptor initial_location, bool is_single_step) override;
-    void EmitTerminalImpl(IR::Term::CheckBit terminal, IR::LocationDescriptor initial_location, bool is_single_step) override;
-    void EmitTerminalImpl(IR::Term::CheckHalt terminal, IR::LocationDescriptor initial_location, bool is_single_step) override;
+    void EmitSetUpperLocationDescriptor(IR::LocationDescriptor new_location,
+                                        IR::LocationDescriptor old_location);
+    void EmitTerminalImpl(IR::Term::Interpret terminal, IR::LocationDescriptor initial_location,
+                          bool is_single_step) override;
+    void EmitTerminalImpl(IR::Term::ReturnToDispatch terminal,
+                          IR::LocationDescriptor initial_location, bool is_single_step) override;
+    void EmitTerminalImpl(IR::Term::LinkBlock terminal, IR::LocationDescriptor initial_location,
+                          bool is_single_step) override;
+    void EmitTerminalImpl(IR::Term::LinkBlockFast terminal, IR::LocationDescriptor initial_location,
+                          bool is_single_step) override;
+    void EmitTerminalImpl(IR::Term::PopRSBHint terminal, IR::LocationDescriptor initial_location,
+                          bool is_single_step) override;
+    void EmitTerminalImpl(IR::Term::FastDispatchHint terminal,
+                          IR::LocationDescriptor initial_location, bool is_single_step) override;
+    void EmitTerminalImpl(IR::Term::If terminal, IR::LocationDescriptor initial_location,
+                          bool is_single_step) override;
+    void EmitTerminalImpl(IR::Term::CheckBit terminal, IR::LocationDescriptor initial_location,
+                          bool is_single_step) override;
+    void EmitTerminalImpl(IR::Term::CheckHalt terminal, IR::LocationDescriptor initial_location,
+                          bool is_single_step) override;
 
     // Patching
     void Unpatch(const IR::LocationDescriptor& target_desc) override;
-    void EmitPatchJg(const IR::LocationDescriptor& target_desc, CodePtr target_code_ptr = nullptr) override;
-    void EmitPatchJz(const IR::LocationDescriptor& target_desc, CodePtr target_code_ptr = nullptr) override;
-    void EmitPatchJmp(const IR::LocationDescriptor& target_desc, CodePtr target_code_ptr = nullptr) override;
+    void EmitPatchJg(const IR::LocationDescriptor& target_desc,
+                     CodePtr target_code_ptr = nullptr) override;
+    void EmitPatchJz(const IR::LocationDescriptor& target_desc,
+                     CodePtr target_code_ptr = nullptr) override;
+    void EmitPatchJmp(const IR::LocationDescriptor& target_desc,
+                      CodePtr target_code_ptr = nullptr) override;
     void EmitPatchMovRcx(CodePtr target_code_ptr = nullptr) override;
 
     const A32::UserConfig conf;
-    RegAlloc reg_alloc; //reusable reg alloc
+    RegAlloc reg_alloc; // reusable reg alloc
     BlockRangeInformation<u32> block_ranges;
     std::array<FastDispatchEntry, fast_dispatch_table_size> fast_dispatch_table;
     ankerl::unordered_dense::map<u64, FastmemPatchInfo> fastmem_patch_info;
@@ -135,12 +148,12 @@ protected:
     std::map<std::tuple<bool, size_t, int, int>, void (*)()> read_fallbacks;
     std::map<std::tuple<bool, size_t, int, int>, void (*)()> write_fallbacks;
     std::map<std::tuple<bool, size_t, int, int>, void (*)()> exclusive_write_fallbacks;
-    void (*memory_read_128)() = nullptr;   // Dummy
-    void (*memory_write_128)() = nullptr;  // Dummy
+    void (*memory_read_128)() = nullptr;  // Dummy
+    void (*memory_write_128)() = nullptr; // Dummy
     const void* terminal_handler_pop_rsb_hint;
     const void* terminal_handler_fast_dispatch_hint = nullptr;
     FastDispatchEntry& (*fast_dispatch_table_lookup)(u64) = nullptr;
     A32::Jit* jit_interface;
 };
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

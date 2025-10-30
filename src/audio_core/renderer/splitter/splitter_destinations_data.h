@@ -62,7 +62,8 @@ public:
         /* 0x04 */ s32 id;
         /* 0x08 */ std::array<f32, MaxMixBuffers> mix_volumes;
         /* 0x68 */ u32 mix_id;
-        /* 0x6C */ std::array<SplitterDestinationData::BiquadFilterParameterLegacy, MaxBiquadFilters>
+        /* 0x6C */ std::array<SplitterDestinationData::BiquadFilterParameterLegacy,
+                              MaxBiquadFilters>
             biquad_filters;
         /* 0x84 */ bool in_use;
         /* 0x85 */ bool reset_prev_volume; // only effective if supported

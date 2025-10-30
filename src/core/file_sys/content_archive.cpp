@@ -9,8 +9,8 @@
 #include <optional>
 #include <utility>
 
-#include "common/logging/log.h"
 #include <ranges>
+#include "common/logging/log.h"
 #include "core/crypto/aes_util.h"
 #include "core/crypto/ctr_encryption_layer.h"
 #include "core/crypto/key_manager.h"
@@ -37,7 +37,9 @@ NCA::NCA(VirtualFile file_, const NCA* base_nca)
     }
 
     reader = std::make_shared<NcaReader>();
-    if (Result rc = reader->Initialize(file, GetCryptoConfiguration(), GetNcaCompressionConfiguration()); R_FAILED(rc)) {
+    if (Result rc =
+            reader->Initialize(file, GetCryptoConfiguration(), GetNcaCompressionConfiguration());
+        R_FAILED(rc)) {
         status = Loader::ResultStatus::ErrorBadNCAHeader;
         return;
     }

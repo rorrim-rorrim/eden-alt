@@ -1,27 +1,22 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "migration_worker.h"
 #include "common/fs/symlink.h"
+#include "migration_worker.h"
 
+#include <filesystem>
 #include <QMap>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <filesystem>
 
 #include "common/fs/path_util.h"
 
 MigrationWorker::MigrationWorker(const Emulator selected_legacy_emu_,
-                                 const bool clear_shader_cache_,
-                                 const MigrationStrategy strategy_)
-    : QObject()
-    , selected_legacy_emu(selected_legacy_emu_)
-    , clear_shader_cache(clear_shader_cache_)
-    , strategy(strategy_)
-{}
+                                 const bool clear_shader_cache_, const MigrationStrategy strategy_)
+    : QObject(), selected_legacy_emu(selected_legacy_emu_), clear_shader_cache(clear_shader_cache_),
+      strategy(strategy_) {}
 
-void MigrationWorker::process()
-{
+void MigrationWorker::process() {
     namespace fs = std::filesystem;
     constexpr auto copy_options = fs::copy_options::update_existing | fs::copy_options::recursive;
 
@@ -37,7 +32,7 @@ void MigrationWorker::process()
 
     try {
         fs::remove_all(eden_dir);
-    } catch (fs::filesystem_error &_) {
+    } catch (fs::filesystem_error& _) {
         // ignore because linux does stupid crap sometimes
     }
 
@@ -48,7 +43,7 @@ void MigrationWorker::process()
         // Windows 11 has random permission nonsense to deal with.
         try {
             Common::FS::CreateSymlink(legacy_user_dir, eden_dir);
-        } catch (const fs::filesystem_error &e) {
+        } catch (const fs::filesystem_error& e) {
             emit error(tr("Linking the old directory failed. You may need to re-run with "
                           "administrative privileges on Windows.\nOS gave error: %1")
                            .arg(tr(e.what())));

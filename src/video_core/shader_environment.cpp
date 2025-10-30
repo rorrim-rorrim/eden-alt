@@ -11,6 +11,7 @@
 #include <optional>
 #include <utility>
 
+#include <ranges>
 #include "common/assert.h"
 #include "common/cityhash.h"
 #include "common/common_types.h"
@@ -18,7 +19,6 @@
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
-#include <ranges>
 #include "shader_recompiler/environment.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/memory_manager.h"
@@ -59,7 +59,8 @@ static Shader::TextureType ConvertTextureType(const Tegra::Texture::TICEntry& en
     case Tegra::Texture::TextureType::TextureCubeArray:
         return Shader::TextureType::ColorArrayCube;
     default:
-        LOG_ERROR(Shader, "Invalid texture_type={}, falling back to texture_type={}", static_cast<int>(entry.texture_type.Value()), Shader::TextureType::Color2D);
+        LOG_ERROR(Shader, "Invalid texture_type={}, falling back to texture_type={}",
+                  static_cast<int>(entry.texture_type.Value()), Shader::TextureType::Color2D);
         return Shader::TextureType::Color2D;
     }
 }
@@ -401,8 +402,8 @@ u32 GraphicsEnvironment::ReadViewportTransformState() {
 ComputeEnvironment::ComputeEnvironment(Tegra::Engines::KeplerCompute& kepler_compute_,
                                        Tegra::MemoryManager& gpu_memory_, GPUVAddr program_base_,
                                        u32 start_address_)
-    : GenericEnvironment{gpu_memory_, program_base_, start_address_}, kepler_compute{
-                                                                          &kepler_compute_} {
+    : GenericEnvironment{gpu_memory_, program_base_, start_address_},
+      kepler_compute{&kepler_compute_} {
     const auto& qmd{kepler_compute->launch_description};
     stage = Shader::Stage::Compute;
     local_memory_size = qmd.local_pos_alloc + qmd.local_crs_alloc;

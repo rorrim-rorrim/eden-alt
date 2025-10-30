@@ -18,11 +18,11 @@
 #include <boost/container/small_vector.hpp>
 #include <queue>
 
+#include <ranges>
 #include "common/common_types.h"
 #include "common/hash.h"
 #include "common/literals.h"
 #include "common/lru_cache.h"
-#include <ranges>
 #include "common/scratch_buffer.h"
 #include "common/slot_vector.h"
 #include "common/thread_worker.h"
@@ -484,9 +484,9 @@ private:
     };
     Common::LeastRecentlyUsedCache<LRUItemParams> lru_cache;
 
- #ifdef YUZU_LEGACY
+#ifdef YUZU_LEGACY
     static constexpr size_t TICKS_TO_DESTROY = 6;
- #else
+#else
     static constexpr size_t TICKS_TO_DESTROY = 8;
 #endif
     DelayedDestructionRing<Image, TICKS_TO_DESTROY> sentenced_images;

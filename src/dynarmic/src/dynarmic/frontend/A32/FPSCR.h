@@ -25,8 +25,7 @@ public:
     FPSCR() = default;
     FPSCR(const FPSCR&) = default;
     FPSCR(FPSCR&&) = default;
-    explicit FPSCR(u32 data)
-            : value{data & mask} {}
+    explicit FPSCR(u32 data) : value{data & mask} {}
 
     FPSCR& operator=(const FPSCR&) = default;
     FPSCR& operator=(FPSCR&&) = default;
@@ -191,4 +190,4 @@ inline bool operator!=(FPSCR lhs, FPSCR rhs) {
     return !operator==(lhs, rhs);
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

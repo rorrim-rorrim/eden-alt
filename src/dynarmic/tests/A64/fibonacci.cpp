@@ -11,8 +11,8 @@
 #include <unordered_map>
 
 #include <catch2/catch_test_macros.hpp>
-#include "dynarmic/common/common_types.h"
 #include <oaknut/oaknut.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/interface/A64/a64.h"
 
@@ -82,8 +82,7 @@ public:
         cpu->HaltExecution();
     }
 
-    void AddTicks(u64) override {
-    }
+    void AddTicks(u64) override {}
 
     u64 GetTicksRemaining() override {
         return 1000000000000;
@@ -96,7 +95,7 @@ public:
     A64::Jit* cpu;
 };
 
-}  // namespace
+} // namespace
 
 TEST_CASE("A64: fibonacci", "[a64]") {
     MyEnvironment env;

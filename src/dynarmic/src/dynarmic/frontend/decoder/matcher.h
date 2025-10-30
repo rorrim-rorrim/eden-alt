@@ -20,7 +20,7 @@ namespace Dynarmic::Decoder {
 ///                 type of the first parameter in a handler function.
 /// @tparam OpcodeType Type representing an opcode. This must be the
 ///                    type of the second parameter in a handler function.
-template<typename Visitor, typename OpcodeType>
+template <typename Visitor, typename OpcodeType>
 class Matcher {
 public:
     using opcode_type = OpcodeType;
@@ -28,7 +28,7 @@ public:
     using handler_return_type = typename Visitor::instruction_return_type;
     using handler_function = std::function<handler_return_type(Visitor&, opcode_type)>;
     Matcher(opcode_type mask, opcode_type expected, handler_function func)
-            : mask{mask}, expected{expected}, fn{std::move(func)} {}
+        : mask{mask}, expected{expected}, fn{std::move(func)} {}
 
     /// Gets the mask for this instruction.
     inline opcode_type GetMask() const noexcept {
@@ -61,4 +61,4 @@ private:
     handler_function fn;
 };
 
-}  // namespace Dynarmic::Decoder
+} // namespace Dynarmic::Decoder

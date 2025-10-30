@@ -23,23 +23,24 @@ namespace Dynarmic::Backend::Arm64 {
 
 using namespace oaknut::util;
 
-template<>
+template <>
 void EmitIR<IR::Opcode::Void>(oaknut::CodeGenerator&, EmitContext&, IR::Inst*) {}
 
-template<>
+template <>
 void EmitIR<IR::Opcode::Identity>(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     ctx.reg_alloc.DefineAsExisting(inst, args[0]);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::Breakpoint>(oaknut::CodeGenerator& code, EmitContext&, IR::Inst*) {
     code.BRK(0);
 }
 
-template<>
-void EmitIR<IR::Opcode::CallHostFunction>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::CallHostFunction>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                          IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     ctx.reg_alloc.PrepareForCall(args[1], args[2], args[3]);
@@ -47,7 +48,7 @@ void EmitIR<IR::Opcode::CallHostFunction>(oaknut::CodeGenerator& code, EmitConte
     code.BLR(Xscratch0);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::PushRSB>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     if (!ctx.conf.HasOptimization(OptimizationFlag::ReturnStackBuffer)) {
         return;
@@ -68,26 +69,28 @@ void EmitIR<IR::Opcode::PushRSB>(oaknut::CodeGenerator& code, EmitContext& ctx, 
     code.STP(Xscratch0, Xscratch1, Xscratch2, offsetof(StackLayout, rsb));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::GetCarryFromOp>(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst) {
     [[maybe_unused]] auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ASSERT(ctx.reg_alloc.WasValueDefined(inst));
 }
 
-template<>
-void EmitIR<IR::Opcode::GetOverflowFromOp>(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::GetOverflowFromOp>(oaknut::CodeGenerator&, EmitContext& ctx,
+                                           IR::Inst* inst) {
     [[maybe_unused]] auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ASSERT(ctx.reg_alloc.WasValueDefined(inst));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::GetGEFromOp>(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst) {
     [[maybe_unused]] auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ASSERT(ctx.reg_alloc.WasValueDefined(inst));
 }
 
-template<>
-void EmitIR<IR::Opcode::GetNZCVFromOp>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::GetNZCVFromOp>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                       IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     if (ctx.reg_alloc.WasValueDefined(inst)) {
@@ -117,8 +120,9 @@ void EmitIR<IR::Opcode::GetNZCVFromOp>(oaknut::CodeGenerator& code, EmitContext&
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::GetNZFromOp>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::GetNZFromOp>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                     IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     if (ctx.reg_alloc.WasValueDefined(inst)) {
@@ -148,20 +152,21 @@ void EmitIR<IR::Opcode::GetNZFromOp>(oaknut::CodeGenerator& code, EmitContext& c
     }
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::GetUpperFromOp>(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst) {
     [[maybe_unused]] auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ASSERT(ctx.reg_alloc.WasValueDefined(inst));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::GetLowerFromOp>(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst) {
     [[maybe_unused]] auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ASSERT(ctx.reg_alloc.WasValueDefined(inst));
 }
 
-template<>
-void EmitIR<IR::Opcode::GetCFlagFromNZCV>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::GetCFlagFromNZCV>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                          IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     auto Wc = ctx.reg_alloc.WriteW(inst);
@@ -171,8 +176,9 @@ void EmitIR<IR::Opcode::GetCFlagFromNZCV>(oaknut::CodeGenerator& code, EmitConte
     code.AND(Wc, Wnzcv, 1 << 29);
 }
 
-template<>
-void EmitIR<IR::Opcode::NZCVFromPackedFlags>(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::NZCVFromPackedFlags>(oaknut::CodeGenerator&, EmitContext& ctx,
+                                             IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     ctx.reg_alloc.DefineAsExisting(inst, args[0]);
@@ -194,7 +200,8 @@ static void EmitAddCycles(oaknut::CodeGenerator& code, EmitContext& ctx, size_t 
     }
 }
 
-EmittedBlockInfo EmitArm64(oaknut::CodeGenerator& code, IR::Block block, const EmitConfig& conf, FastmemManager& fastmem_manager) {
+EmittedBlockInfo EmitArm64(oaknut::CodeGenerator& code, IR::Block block, const EmitConfig& conf,
+                           FastmemManager& fastmem_manager) {
     if (conf.very_verbose_debugging_output) {
         std::puts(IR::DumpBlock(block).c_str());
     }
@@ -224,17 +231,17 @@ EmittedBlockInfo EmitArm64(oaknut::CodeGenerator& code, IR::Block block, const E
         IR::Inst* inst = &*iter;
 
         switch (inst->GetOpcode()) {
-#define OPCODE(name, type, ...)                    \
-    case IR::Opcode::name:                         \
-        EmitIR<IR::Opcode::name>(code, ctx, inst); \
+#define OPCODE(name, type, ...)                                                                    \
+    case IR::Opcode::name:                                                                         \
+        EmitIR<IR::Opcode::name>(code, ctx, inst);                                                 \
         break;
-#define A32OPC(name, type, ...)                         \
-    case IR::Opcode::A32##name:                         \
-        EmitIR<IR::Opcode::A32##name>(code, ctx, inst); \
+#define A32OPC(name, type, ...)                                                                    \
+    case IR::Opcode::A32##name:                                                                    \
+        EmitIR<IR::Opcode::A32##name>(code, ctx, inst);                                            \
         break;
-#define A64OPC(name, type, ...)                         \
-    case IR::Opcode::A64##name:                         \
-        EmitIR<IR::Opcode::A64##name>(code, ctx, inst); \
+#define A64OPC(name, type, ...)                                                                    \
+    case IR::Opcode::A64##name:                                                                    \
+        EmitIR<IR::Opcode::A64##name>(code, ctx, inst);                                            \
         break;
 #include "dynarmic/ir/opcodes.inc"
 #undef OPCODE
@@ -271,12 +278,15 @@ EmittedBlockInfo EmitArm64(oaknut::CodeGenerator& code, IR::Block block, const E
 }
 
 void EmitRelocation(oaknut::CodeGenerator& code, EmitContext& ctx, LinkTarget link_target) {
-    ctx.ebi.relocations.emplace_back(Relocation{code.xptr<CodePtr>() - ctx.ebi.entry_point, link_target});
+    ctx.ebi.relocations.emplace_back(
+        Relocation{code.xptr<CodePtr>() - ctx.ebi.entry_point, link_target});
     code.NOP();
 }
 
-void EmitBlockLinkRelocation(oaknut::CodeGenerator& code, EmitContext& ctx, const IR::LocationDescriptor& descriptor, BlockRelocationType type) {
-    ctx.ebi.block_relocations[descriptor].emplace_back(BlockRelocation{code.xptr<CodePtr>() - ctx.ebi.entry_point, type});
+void EmitBlockLinkRelocation(oaknut::CodeGenerator& code, EmitContext& ctx,
+                             const IR::LocationDescriptor& descriptor, BlockRelocationType type) {
+    ctx.ebi.block_relocations[descriptor].emplace_back(
+        BlockRelocation{code.xptr<CodePtr>() - ctx.ebi.entry_point, type});
     switch (type) {
     case BlockRelocationType::Branch:
         code.NOP();
@@ -290,4 +300,4 @@ void EmitBlockLinkRelocation(oaknut::CodeGenerator& code, EmitContext& ctx, cons
     }
 }
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

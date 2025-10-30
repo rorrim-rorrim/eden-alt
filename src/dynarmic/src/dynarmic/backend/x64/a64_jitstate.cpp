@@ -60,15 +60,15 @@ void A64JitState::SetFpcr(u32 value) {
     asimd_MXCSR &= 0x0000003D;
     guest_MXCSR &= 0x0000003D;
     asimd_MXCSR |= 0x00001f80;
-    guest_MXCSR |= 0x00001f80;  // Mask all exceptions
+    guest_MXCSR |= 0x00001f80; // Mask all exceptions
 
     // RMode
     const std::array<u32, 4> MXCSR_RMode{0x0, 0x4000, 0x2000, 0x6000};
     guest_MXCSR |= MXCSR_RMode[(value >> 22) & 0x3];
 
     if (mcl::bit::get_bit<24>(value)) {
-        guest_MXCSR |= (1 << 15);  // SSE Flush to Zero
-        guest_MXCSR |= (1 << 6);   // SSE Denormals are Zero
+        guest_MXCSR |= (1 << 15); // SSE Flush to Zero
+        guest_MXCSR |= (1 << 6);  // SSE Denormals are Zero
     }
 }
 
@@ -82,8 +82,8 @@ void A64JitState::SetFpcr(u32 value) {
  * UE   bit 4   Underflow Flag
  * OE   bit 3   Overflow Flag
  * ZE   bit 2   Divide By Zero Flag
- * DE   bit 1   Denormal Flag                                 // Appears to only be set when MXCSR.DAZ = 0
- * IE   bit 0   Invalid Operation Flag
+ * DE   bit 1   Denormal Flag                                 // Appears to only be set when
+ * MXCSR.DAZ = 0 IE   bit 0   Invalid Operation Flag
  *
  * A64 FPSR cumulative exception bits
  * ----------------------------------
@@ -99,8 +99,8 @@ void A64JitState::SetFpcr(u32 value) {
 u32 A64JitState::GetFpsr() const {
     const u32 mxcsr = guest_MXCSR | asimd_MXCSR;
     u32 fpsr = 0;
-    fpsr |= (mxcsr & 0b0000000000001);       // IOC = IE
-    fpsr |= (mxcsr & 0b0000000111100) >> 1;  // IXC, UFC, OFC, DZC = PE, UE, OE, ZE
+    fpsr |= (mxcsr & 0b0000000000001);      // IOC = IE
+    fpsr |= (mxcsr & 0b0000000111100) >> 1; // IXC, UFC, OFC, DZC = PE, UE, OE, ZE
     fpsr |= fpsr_exc;
     fpsr |= (fpsr_qc == 0 ? 0 : 1) << 27;
     return fpsr;
@@ -113,4 +113,4 @@ void A64JitState::SetFpsr(u32 value) {
     fpsr_exc = value & 0x9F;
 }
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

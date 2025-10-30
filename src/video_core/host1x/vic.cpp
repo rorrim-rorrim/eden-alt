@@ -76,8 +76,7 @@ void SwizzleSurface(std::span<u8> output, u32 out_stride, std::span<const u8> in
 } // namespace
 
 Vic::Vic(Host1x& host1x_, s32 id_, u32 syncpt, FrameQueue& frame_queue_)
-    : CDmaPusher{host1x_, id_}, id{id_}, syncpoint{syncpt},
-      frame_queue{frame_queue_} {
+    : CDmaPusher{host1x_, id_}, id{id_}, syncpoint{syncpt}, frame_queue{frame_queue_} {
     LOG_INFO(HW_GPU, "Created vic {}", id);
 }
 
@@ -132,12 +131,15 @@ void Vic::Execute() {
                         ReadY8__V8U8_N420(slot_config, regs.surfaces[i], std::move(frame), false);
                         break;
                     default:
-                        UNIMPLEMENTED_MSG("Unimplemented slot pixel format {}", u32(slot_config.surface_config.slot_pixel_format.Value()));
+                        UNIMPLEMENTED_MSG(
+                            "Unimplemented slot pixel format {}",
+                            u32(slot_config.surface_config.slot_pixel_format.Value()));
                         break;
                     }
                     Blend(config, slot_config);
                 } else {
-                    LOG_ERROR(HW_GPU, "Vic {} failed to get frame with offset {:#X}", id, luma_offset);
+                    LOG_ERROR(HW_GPU, "Vic {} failed to get frame with offset {:#X}", id,
+                              luma_offset);
                 }
             }
         }
@@ -155,17 +157,21 @@ void Vic::Execute() {
         WriteY8__V8U8_N420(config.output_surface_config);
         break;
     default:
-        UNIMPLEMENTED_MSG("Unknown video pixel format {}", config.output_surface_config.out_pixel_format.Value());
+        UNIMPLEMENTED_MSG("Unknown video pixel format {}",
+                          config.output_surface_config.out_pixel_format.Value());
         break;
     }
 }
 
-void Vic::ReadProgressiveY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets, std::shared_ptr<const FFmpeg::Frame> frame, bool planar, bool interlaced) {
+void Vic::ReadProgressiveY8__V8U8_N420(const SlotStruct& slot,
+                                       std::span<const PlaneOffsets> offsets,
+                                       std::shared_ptr<const FFmpeg::Frame> frame, bool planar,
+                                       bool interlaced) {
     const auto out_luma_width{slot.surface_config.slot_surface_width + 1};
     auto out_luma_height{slot.surface_config.slot_surface_height + 1};
     const auto out_luma_stride{out_luma_width};
 
-    if(interlaced) {
+    if (interlaced) {
         out_luma_height *= 2;
     }
 
@@ -197,7 +203,7 @@ void Vic::ReadProgressiveY8__V8U8_N420(const SlotStruct& slot, std::span<const P
         for (s32 x = 0; x < in_luma_width; x++) {
             slot_surface[dst + x].r = u16(luma_buffer[src_luma + x] << 2);
             // Chroma samples are duplicated horizontally and vertically.
-            if(planar) {
+            if (planar) {
                 slot_surface[dst + x].g = u16(chroma_u_buffer[src_chroma + x / 2] << 2);
                 slot_surface[dst + x].b = u16(chroma_v_buffer[src_chroma + x / 2] << 2);
             } else {
@@ -209,8 +215,10 @@ void Vic::ReadProgressiveY8__V8U8_N420(const SlotStruct& slot, std::span<const P
     }
 }
 
-void Vic::ReadInterlacedY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets, std::shared_ptr<const FFmpeg::Frame> frame, bool planar, bool top_field) {
-    if(!planar) {
+void Vic::ReadInterlacedY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets,
+                                      std::shared_ptr<const FFmpeg::Frame> frame, bool planar,
+                                      bool top_field) {
+    if (!planar) {
         ReadProgressiveY8__V8U8_N420(slot, offsets, std::move(frame), planar, true);
         return;
     }
@@ -249,7 +257,7 @@ void Vic::ReadInterlacedY8__V8U8_N420(const SlotStruct& slot, std::span<const Pl
             const auto dst{y * out_luma_stride};
             for (s32 x = 0; x < in_luma_width; x++) {
                 slot_surface[dst + x].r = u16(luma_buffer[src_luma + x] << 2);
-                if(planar) {
+                if (planar) {
                     slot_surface[dst + x].g = u16(chroma_u_buffer[src_chroma + x / 2] << 2);
                     slot_surface[dst + x].b = u16(chroma_v_buffer[src_chroma + x / 2] << 2);
                 } else {
@@ -259,7 +267,8 @@ void Vic::ReadInterlacedY8__V8U8_N420(const SlotStruct& slot, std::span<const Pl
                 slot_surface[dst + x].a = alpha;
             }
             s32 other_line = (top_field ? y + 1 : y - 1) * out_luma_stride;
-            std::memcpy(&slot_surface[other_line], &slot_surface[dst], out_luma_width * sizeof(Pixel));
+            std::memcpy(&slot_surface[other_line], &slot_surface[dst],
+                        out_luma_width * sizeof(Pixel));
         }
     };
 
@@ -278,12 +287,14 @@ void Vic::ReadInterlacedY8__V8U8_N420(const SlotStruct& slot, std::span<const Pl
         DecodeBobField();
         break;
     default:
-        UNIMPLEMENTED_MSG("Deinterlace mode {} not implemented!", s32(slot.config.deinterlace_mode.Value()));
+        UNIMPLEMENTED_MSG("Deinterlace mode {} not implemented!",
+                          s32(slot.config.deinterlace_mode.Value()));
         break;
     }
 }
 
-void Vic::ReadY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets, std::shared_ptr<const FFmpeg::Frame> frame, bool planar) {
+void Vic::ReadY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets,
+                            std::shared_ptr<const FFmpeg::Frame> frame, bool planar) {
     switch (slot.config.frame_format) {
     case DXVAHD_FRAME_FORMAT::PROGRESSIVE:
         ReadProgressiveY8__V8U8_N420(slot, offsets, std::move(frame), planar, false);
@@ -295,8 +306,7 @@ void Vic::ReadY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets
         ReadInterlacedY8__V8U8_N420(slot, offsets, std::move(frame), planar, false);
         break;
     default:
-        LOG_ERROR(HW_GPU, "Unknown deinterlace format {}",
-                  s32(slot.config.frame_format.Value()));
+        LOG_ERROR(HW_GPU, "Unknown deinterlace format {}", s32(slot.config.frame_format.Value()));
         break;
     }
 }

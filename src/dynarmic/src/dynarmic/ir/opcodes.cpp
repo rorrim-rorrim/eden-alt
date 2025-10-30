@@ -56,12 +56,12 @@ alignas(64) static const Meta opcode_info[] = {
 };
 
 // Be aware of trailing commas, they can cause PP_NARG to return 2!
-static_assert(PP_EXPAND(PP_NARGS(u8,)) == 2);
+static_assert(PP_EXPAND(PP_NARGS(u8, )) == 2);
 static_assert(PP_EXPAND(PP_NARGS(u8)) == 1);
 static_assert(PP_EXPAND(PP_NARGS(u8, u16)) == 2);
 static_assert(PP_EXPAND(PP_NARGS(u8, u16, u32)) == 3);
 
-}  // namespace OpcodeInfo
+} // namespace OpcodeInfo
 
 /// @brief Get return type of an opcode
 Type GetTypeOf(Opcode op) noexcept {
@@ -92,4 +92,4 @@ std::string_view GetNameOf(Opcode op) noexcept {
     return opcode_names[size_t(op)];
 }
 
-}  // namespace Dynarmic::IR
+} // namespace Dynarmic::IR

@@ -32,30 +32,24 @@ void FmtLogMessage(Class log_class, Level log_level, const char* filename, unsig
 
 #ifdef _DEBUG
 #define LOG_TRACE(log_class, ...)                                                                  \
-    Common::Log::FmtLogMessage(Common::Log::Class::log_class, Common::Log::Level::Trace,           \
-                               __FILE__, __LINE__, __func__,          \
-                               __VA_ARGS__)
+    Common::Log::FmtLogMessage(Common::Log::Class::log_class, Common::Log::Level::Trace, __FILE__, \
+                               __LINE__, __func__, __VA_ARGS__)
 #else
 #define LOG_TRACE(log_class, fmt, ...) (void(0))
 #endif
 
 #define LOG_DEBUG(log_class, ...)                                                                  \
-    ::Common::Log::FmtLogMessage(::Common::Log::Class::log_class, ::Common::Log::Level::Debug,           \
-                               __FILE__, __LINE__, __func__,          \
-                               __VA_ARGS__)
+    ::Common::Log::FmtLogMessage(::Common::Log::Class::log_class, ::Common::Log::Level::Debug,     \
+                                 __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define LOG_INFO(log_class, ...)                                                                   \
-    ::Common::Log::FmtLogMessage(::Common::Log::Class::log_class, ::Common::Log::Level::Info,            \
-                               __FILE__, __LINE__, __func__,          \
-                               __VA_ARGS__)
+    ::Common::Log::FmtLogMessage(::Common::Log::Class::log_class, ::Common::Log::Level::Info,      \
+                                 __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define LOG_WARNING(log_class, ...)                                                                \
-    ::Common::Log::FmtLogMessage(::Common::Log::Class::log_class, ::Common::Log::Level::Warning,         \
-                               __FILE__, __LINE__, __func__,          \
-                               __VA_ARGS__)
+    ::Common::Log::FmtLogMessage(::Common::Log::Class::log_class, ::Common::Log::Level::Warning,   \
+                                 __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define LOG_ERROR(log_class, ...)                                                                  \
-    ::Common::Log::FmtLogMessage(::Common::Log::Class::log_class, ::Common::Log::Level::Error,           \
-                               __FILE__, __LINE__, __func__,          \
-                               __VA_ARGS__)
+    ::Common::Log::FmtLogMessage(::Common::Log::Class::log_class, ::Common::Log::Level::Error,     \
+                                 __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define LOG_CRITICAL(log_class, ...)                                                               \
-    ::Common::Log::FmtLogMessage(::Common::Log::Class::log_class, ::Common::Log::Level::Critical,        \
-                               __FILE__, __LINE__, __func__,          \
-                               __VA_ARGS__)
+    ::Common::Log::FmtLogMessage(::Common::Log::Class::log_class, ::Common::Log::Level::Critical,  \
+                                 __FILE__, __LINE__, __func__, __VA_ARGS__)

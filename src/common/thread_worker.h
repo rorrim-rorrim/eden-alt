@@ -50,8 +50,7 @@ public:
                         if (requests.empty()) {
                             wait_condition.notify_all();
                         }
-                        condition.wait(lock, stop_token,
-                                       [this] { return !requests.empty(); });
+                        condition.wait(lock, stop_token, [this] { return !requests.empty(); });
                         if (stop_token.stop_requested()) {
                             break;
                         }

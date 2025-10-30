@@ -9,8 +9,8 @@
 #include <limits>
 #include <vector>
 
-#include "common/logging/log.h"
 #include <ranges>
+#include "common/logging/log.h"
 #include "common/settings.h"
 #include "core/core.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
@@ -88,9 +88,9 @@ VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, u32 wi
     }
     VkExtent2D extent;
     extent.width = (std::max)(capabilities.minImageExtent.width,
-                            (std::min)(capabilities.maxImageExtent.width, width));
+                              (std::min)(capabilities.maxImageExtent.width, width));
     extent.height = (std::max)(capabilities.minImageExtent.height,
-                             (std::min)(capabilities.maxImageExtent.height, height));
+                               (std::min)(capabilities.maxImageExtent.height, height));
     return extent;
 }
 
@@ -114,18 +114,14 @@ Swapchain::Swapchain(
 #else
     VkSurfaceKHR_T* surface_handle_,
 #endif
-    const Device& device_,
-    Scheduler& scheduler_,
-    u32 width_,
-    u32 height_)
+    const Device& device_, Scheduler& scheduler_, u32 width_, u32 height_)
 #ifdef ANDROID
     : surface(surface_)
 #else
     : surface_handle{surface_handle_}
 #endif
-    , device{device_}
-    , scheduler{scheduler_}
-{
+      ,
+      device{device_}, scheduler{scheduler_} {
 #ifdef ANDROID
     Create(surface, width_, height_);
 #else
@@ -141,9 +137,7 @@ void Swapchain::Create(
 #else
     VkSurfaceKHR_T* surface_handle_,
 #endif
-    u32 width_,
-    u32 height_)
-{
+    u32 width_, u32 height_) {
     is_outdated = false;
     is_suboptimal = false;
     width = width_;
@@ -246,8 +240,8 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
     const auto present_modes = physical_device.GetSurfacePresentModesKHR(surface_handle);
 #endif
 
-    has_mailbox = std::find(present_modes.begin(), present_modes.end(), VK_PRESENT_MODE_MAILBOX_KHR)
-                  != present_modes.end();
+    has_mailbox = std::find(present_modes.begin(), present_modes.end(),
+                            VK_PRESENT_MODE_MAILBOX_KHR) != present_modes.end();
     has_imm = std::find(present_modes.begin(), present_modes.end(),
                         VK_PRESENT_MODE_IMMEDIATE_KHR) != present_modes.end();
     has_fifo_relaxed = std::find(present_modes.begin(), present_modes.end(),

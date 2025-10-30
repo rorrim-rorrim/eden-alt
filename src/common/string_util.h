@@ -93,9 +93,9 @@ template <typename InIt>
 [[nodiscard]] std::string StringFromFixedZeroTerminatedBuffer(std::string_view buffer,
                                                               std::size_t max_len);
 
-/// Creates a UTF-16 std::u16string from a fixed-size NUL-terminated char buffer. If the buffer isn't
-/// null-terminated, then the string ends at the greatest multiple of two less then or equal to
-/// max_len_bytes.
+/// Creates a UTF-16 std::u16string from a fixed-size NUL-terminated char buffer. If the buffer
+/// isn't null-terminated, then the string ends at the greatest multiple of two less then or equal
+/// to max_len_bytes.
 [[nodiscard]] std::u16string UTF16StringFromFixedZeroTerminatedBuffer(std::u16string_view buffer,
                                                                       std::size_t max_len);
 

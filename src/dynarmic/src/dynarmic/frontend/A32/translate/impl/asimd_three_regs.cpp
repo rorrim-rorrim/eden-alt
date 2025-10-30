@@ -23,8 +23,9 @@ enum class WidenBehaviour {
     Both,
 };
 
-template<bool WithDst, typename Callable>
-bool BitwiseInstruction(TranslatorVisitor& v, bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm, Callable fn) {
+template <bool WithDst, typename Callable>
+bool BitwiseInstruction(TranslatorVisitor& v, bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                        size_t Vm, Callable fn) {
     if (Q && (mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm))) {
         return v.UndefinedInstruction();
     }
@@ -49,8 +50,9 @@ bool BitwiseInstruction(TranslatorVisitor& v, bool D, size_t Vn, size_t Vd, bool
     return true;
 }
 
-template<typename Callable>
-bool FloatingPointInstruction(TranslatorVisitor& v, bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm, Callable fn) {
+template <typename Callable>
+bool FloatingPointInstruction(TranslatorVisitor& v, bool D, bool sz, size_t Vn, size_t Vd, bool N,
+                              bool Q, bool M, size_t Vm, Callable fn) {
     if (Q && (mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm))) {
         return v.UndefinedInstruction();
     }
@@ -72,7 +74,8 @@ bool FloatingPointInstruction(TranslatorVisitor& v, bool D, bool sz, size_t Vn, 
     return true;
 }
 
-bool IntegerComparison(TranslatorVisitor& v, bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm, Comparison comparison) {
+bool IntegerComparison(TranslatorVisitor& v, bool U, bool D, size_t sz, size_t Vn, size_t Vd,
+                       bool N, bool Q, bool M, size_t Vm, Comparison comparison) {
     if (sz == 0b11) {
         return v.UndefinedInstruction();
     }
@@ -107,7 +110,8 @@ bool IntegerComparison(TranslatorVisitor& v, bool U, bool D, size_t sz, size_t V
     return true;
 }
 
-bool FloatComparison(TranslatorVisitor& v, bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm, Comparison comparison) {
+bool FloatComparison(TranslatorVisitor& v, bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q,
+                     bool M, size_t Vm, Comparison comparison) {
     if (sz) {
         return v.UndefinedInstruction();
     }
@@ -131,9 +135,11 @@ bool FloatComparison(TranslatorVisitor& v, bool D, bool sz, size_t Vn, size_t Vd
         case Comparison::EQ:
             return v.ir.FPVectorEqual(32, reg_n, reg_m, false);
         case Comparison::AbsoluteGE:
-            return v.ir.FPVectorGreaterEqual(32, v.ir.FPVectorAbs(32, reg_n), v.ir.FPVectorAbs(32, reg_m), false);
+            return v.ir.FPVectorGreaterEqual(32, v.ir.FPVectorAbs(32, reg_n),
+                                             v.ir.FPVectorAbs(32, reg_m), false);
         case Comparison::AbsoluteGT:
-            return v.ir.FPVectorGreater(32, v.ir.FPVectorAbs(32, reg_n), v.ir.FPVectorAbs(32, reg_m), false);
+            return v.ir.FPVectorGreater(32, v.ir.FPVectorAbs(32, reg_n),
+                                        v.ir.FPVectorAbs(32, reg_m), false);
         default:
             return IR::U128{};
         }
@@ -143,7 +149,8 @@ bool FloatComparison(TranslatorVisitor& v, bool D, bool sz, size_t Vn, size_t Vd
     return true;
 }
 
-bool AbsoluteDifference(TranslatorVisitor& v, bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm, AccumulateBehavior accumulate) {
+bool AbsoluteDifference(TranslatorVisitor& v, bool U, bool D, size_t sz, size_t Vn, size_t Vd,
+                        bool N, bool Q, bool M, size_t Vm, AccumulateBehavior accumulate) {
     if (sz == 0b11) {
         return v.UndefinedInstruction();
     }
@@ -175,7 +182,8 @@ bool AbsoluteDifference(TranslatorVisitor& v, bool U, bool D, size_t sz, size_t 
     return true;
 }
 
-bool AbsoluteDifferenceLong(TranslatorVisitor& v, bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool M, size_t Vm, AccumulateBehavior accumulate) {
+bool AbsoluteDifferenceLong(TranslatorVisitor& v, bool U, bool D, size_t sz, size_t Vn, size_t Vd,
+                            bool N, bool M, size_t Vm, AccumulateBehavior accumulate) {
     if (sz == 0b11) {
         return v.DecodeError();
     }
@@ -191,8 +199,10 @@ bool AbsoluteDifferenceLong(TranslatorVisitor& v, bool U, bool D, size_t sz, siz
 
     const auto reg_m = v.ir.GetVector(m);
     const auto reg_n = v.ir.GetVector(n);
-    const auto operand_m = v.ir.VectorZeroExtend(esize, v.ir.ZeroExtendToQuad(v.ir.VectorGetElement(64, reg_m, 0)));
-    const auto operand_n = v.ir.VectorZeroExtend(esize, v.ir.ZeroExtendToQuad(v.ir.VectorGetElement(64, reg_n, 0)));
+    const auto operand_m =
+        v.ir.VectorZeroExtend(esize, v.ir.ZeroExtendToQuad(v.ir.VectorGetElement(64, reg_m, 0)));
+    const auto operand_n =
+        v.ir.VectorZeroExtend(esize, v.ir.ZeroExtendToQuad(v.ir.VectorGetElement(64, reg_n, 0)));
     const auto result = [&] {
         const auto absdiff = U ? v.ir.VectorUnsignedAbsoluteDifference(esize, operand_m, operand_n)
                                : v.ir.VectorSignedAbsoluteDifference(esize, operand_m, operand_n);
@@ -209,8 +219,9 @@ bool AbsoluteDifferenceLong(TranslatorVisitor& v, bool U, bool D, size_t sz, siz
     return true;
 }
 
-template<typename Callable>
-bool WideInstruction(TranslatorVisitor& v, bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool M, size_t Vm, WidenBehaviour widen_behaviour, Callable fn) {
+template <typename Callable>
+bool WideInstruction(TranslatorVisitor& v, bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N,
+                     bool M, size_t Vm, WidenBehaviour widen_behaviour, Callable fn) {
     const size_t esize = 8U << sz;
     const bool widen_first = widen_behaviour == WidenBehaviour::Both;
 
@@ -229,19 +240,22 @@ bool WideInstruction(TranslatorVisitor& v, bool U, bool D, size_t sz, size_t Vn,
     const auto reg_d = v.ir.GetVector(d);
     const auto reg_m = v.ir.GetVector(m);
     const auto reg_n = v.ir.GetVector(n);
-    const auto wide_n = U ? v.ir.VectorZeroExtend(esize, reg_n) : v.ir.VectorSignExtend(esize, reg_n);
-    const auto wide_m = U ? v.ir.VectorZeroExtend(esize, reg_m) : v.ir.VectorSignExtend(esize, reg_m);
+    const auto wide_n =
+        U ? v.ir.VectorZeroExtend(esize, reg_n) : v.ir.VectorSignExtend(esize, reg_n);
+    const auto wide_m =
+        U ? v.ir.VectorZeroExtend(esize, reg_m) : v.ir.VectorSignExtend(esize, reg_m);
     const auto result = fn(esize * 2, reg_d, widen_first ? wide_n : reg_n, wide_m);
 
     v.ir.SetVector(d, result);
     return true;
 }
 
-}  // Anonymous namespace
+} // Anonymous namespace
 
 // ASIMD Three registers of the same length
 
-bool TranslatorVisitor::asimd_VHADD(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VHADD(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                    bool M, size_t Vm) {
     if (Q && (mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm))) {
         return UndefinedInstruction();
     }
@@ -257,13 +271,15 @@ bool TranslatorVisitor::asimd_VHADD(bool U, bool D, size_t sz, size_t Vn, size_t
 
     const IR::U128 reg_n = ir.GetVector(n);
     const IR::U128 reg_m = ir.GetVector(m);
-    const IR::U128 result = U ? ir.VectorHalvingAddUnsigned(esize, reg_n, reg_m) : ir.VectorHalvingAddSigned(esize, reg_n, reg_m);
+    const IR::U128 result = U ? ir.VectorHalvingAddUnsigned(esize, reg_n, reg_m)
+                              : ir.VectorHalvingAddSigned(esize, reg_n, reg_m);
     ir.SetVector(d, result);
 
     return true;
 }
 
-bool TranslatorVisitor::asimd_VQADD(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VQADD(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                    bool M, size_t Vm) {
     if (Q && (mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm))) {
         return UndefinedInstruction();
     }
@@ -279,13 +295,15 @@ bool TranslatorVisitor::asimd_VQADD(bool U, bool D, size_t sz, size_t Vn, size_t
 
     const IR::U128 reg_n = ir.GetVector(n);
     const IR::U128 reg_m = ir.GetVector(m);
-    const IR::U128 result = U ? ir.VectorUnsignedSaturatedAdd(esize, reg_n, reg_m) : ir.VectorSignedSaturatedAdd(esize, reg_n, reg_m);
+    const IR::U128 result = U ? ir.VectorUnsignedSaturatedAdd(esize, reg_n, reg_m)
+                              : ir.VectorSignedSaturatedAdd(esize, reg_n, reg_m);
     ir.SetVector(d, result);
 
     return true;
 }
 
-bool TranslatorVisitor::asimd_VRHADD(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VRHADD(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N,
+                                     bool Q, bool M, size_t Vm) {
     if (Q && (mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm))) {
         return UndefinedInstruction();
     }
@@ -301,61 +319,78 @@ bool TranslatorVisitor::asimd_VRHADD(bool U, bool D, size_t sz, size_t Vn, size_
 
     const IR::U128 reg_n = ir.GetVector(n);
     const IR::U128 reg_m = ir.GetVector(m);
-    const IR::U128 result = U ? ir.VectorRoundingHalvingAddUnsigned(esize, reg_n, reg_m) : ir.VectorRoundingHalvingAddSigned(esize, reg_n, reg_m);
+    const IR::U128 result = U ? ir.VectorRoundingHalvingAddUnsigned(esize, reg_n, reg_m)
+                              : ir.VectorRoundingHalvingAddSigned(esize, reg_n, reg_m);
     ir.SetVector(d, result);
 
     return true;
 }
 
-bool TranslatorVisitor::asimd_VAND_reg(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return BitwiseInstruction<false>(*this, D, Vn, Vd, N, Q, M, Vm, [this](const auto& reg_n, const auto& reg_m) {
-        return ir.VectorAnd(reg_n, reg_m);
-    });
+bool TranslatorVisitor::asimd_VAND_reg(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                       size_t Vm) {
+    return BitwiseInstruction<false>(
+        *this, D, Vn, Vd, N, Q, M, Vm,
+        [this](const auto& reg_n, const auto& reg_m) { return ir.VectorAnd(reg_n, reg_m); });
 }
 
-bool TranslatorVisitor::asimd_VBIC_reg(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return BitwiseInstruction<false>(*this, D, Vn, Vd, N, Q, M, Vm, [this](const auto& reg_n, const auto& reg_m) {
-        return ir.VectorAndNot(reg_n, reg_m);
-    });
+bool TranslatorVisitor::asimd_VBIC_reg(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                       size_t Vm) {
+    return BitwiseInstruction<false>(
+        *this, D, Vn, Vd, N, Q, M, Vm,
+        [this](const auto& reg_n, const auto& reg_m) { return ir.VectorAndNot(reg_n, reg_m); });
 }
 
-bool TranslatorVisitor::asimd_VORR_reg(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return BitwiseInstruction<false>(*this, D, Vn, Vd, N, Q, M, Vm, [this](const auto& reg_n, const auto& reg_m) {
-        return ir.VectorOr(reg_n, reg_m);
-    });
+bool TranslatorVisitor::asimd_VORR_reg(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                       size_t Vm) {
+    return BitwiseInstruction<false>(
+        *this, D, Vn, Vd, N, Q, M, Vm,
+        [this](const auto& reg_n, const auto& reg_m) { return ir.VectorOr(reg_n, reg_m); });
 }
 
-bool TranslatorVisitor::asimd_VORN_reg(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return BitwiseInstruction<false>(*this, D, Vn, Vd, N, Q, M, Vm, [this](const auto& reg_n, const auto& reg_m) {
-        return ir.VectorOr(reg_n, ir.VectorNot(reg_m));
-    });
+bool TranslatorVisitor::asimd_VORN_reg(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                       size_t Vm) {
+    return BitwiseInstruction<false>(*this, D, Vn, Vd, N, Q, M, Vm,
+                                     [this](const auto& reg_n, const auto& reg_m) {
+                                         return ir.VectorOr(reg_n, ir.VectorNot(reg_m));
+                                     });
 }
 
-bool TranslatorVisitor::asimd_VEOR_reg(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return BitwiseInstruction<false>(*this, D, Vn, Vd, N, Q, M, Vm, [this](const auto& reg_n, const auto& reg_m) {
-        return ir.VectorEor(reg_n, reg_m);
-    });
+bool TranslatorVisitor::asimd_VEOR_reg(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                       size_t Vm) {
+    return BitwiseInstruction<false>(
+        *this, D, Vn, Vd, N, Q, M, Vm,
+        [this](const auto& reg_n, const auto& reg_m) { return ir.VectorEor(reg_n, reg_m); });
 }
 
-bool TranslatorVisitor::asimd_VBSL(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return BitwiseInstruction<true>(*this, D, Vn, Vd, N, Q, M, Vm, [this](const auto& reg_d, const auto& reg_n, const auto& reg_m) {
-        return ir.VectorOr(ir.VectorAnd(reg_n, reg_d), ir.VectorAndNot(reg_m, reg_d));
-    });
+bool TranslatorVisitor::asimd_VBSL(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                   size_t Vm) {
+    return BitwiseInstruction<true>(
+        *this, D, Vn, Vd, N, Q, M, Vm,
+        [this](const auto& reg_d, const auto& reg_n, const auto& reg_m) {
+            return ir.VectorOr(ir.VectorAnd(reg_n, reg_d), ir.VectorAndNot(reg_m, reg_d));
+        });
 }
 
-bool TranslatorVisitor::asimd_VBIT(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return BitwiseInstruction<true>(*this, D, Vn, Vd, N, Q, M, Vm, [this](const auto& reg_d, const auto& reg_n, const auto& reg_m) {
-        return ir.VectorOr(ir.VectorAnd(reg_n, reg_m), ir.VectorAndNot(reg_d, reg_m));
-    });
+bool TranslatorVisitor::asimd_VBIT(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                   size_t Vm) {
+    return BitwiseInstruction<true>(
+        *this, D, Vn, Vd, N, Q, M, Vm,
+        [this](const auto& reg_d, const auto& reg_n, const auto& reg_m) {
+            return ir.VectorOr(ir.VectorAnd(reg_n, reg_m), ir.VectorAndNot(reg_d, reg_m));
+        });
 }
 
-bool TranslatorVisitor::asimd_VBIF(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return BitwiseInstruction<true>(*this, D, Vn, Vd, N, Q, M, Vm, [this](const auto& reg_d, const auto& reg_n, const auto& reg_m) {
-        return ir.VectorOr(ir.VectorAnd(reg_d, reg_m), ir.VectorAndNot(reg_n, reg_m));
-    });
+bool TranslatorVisitor::asimd_VBIF(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                   size_t Vm) {
+    return BitwiseInstruction<true>(
+        *this, D, Vn, Vd, N, Q, M, Vm,
+        [this](const auto& reg_d, const auto& reg_n, const auto& reg_m) {
+            return ir.VectorOr(ir.VectorAnd(reg_d, reg_m), ir.VectorAndNot(reg_n, reg_m));
+        });
 }
 
-bool TranslatorVisitor::asimd_VHSUB(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VHSUB(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                    bool M, size_t Vm) {
     if (Q && (mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm))) {
         return UndefinedInstruction();
     }
@@ -371,13 +406,15 @@ bool TranslatorVisitor::asimd_VHSUB(bool U, bool D, size_t sz, size_t Vn, size_t
 
     const IR::U128 reg_n = ir.GetVector(n);
     const IR::U128 reg_m = ir.GetVector(m);
-    const IR::U128 result = U ? ir.VectorHalvingSubUnsigned(esize, reg_n, reg_m) : ir.VectorHalvingSubSigned(esize, reg_n, reg_m);
+    const IR::U128 result = U ? ir.VectorHalvingSubUnsigned(esize, reg_n, reg_m)
+                              : ir.VectorHalvingSubSigned(esize, reg_n, reg_m);
     ir.SetVector(d, result);
 
     return true;
 }
 
-bool TranslatorVisitor::asimd_VQSUB(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VQSUB(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                    bool M, size_t Vm) {
     if (Q && (mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm))) {
         return UndefinedInstruction();
     }
@@ -393,29 +430,35 @@ bool TranslatorVisitor::asimd_VQSUB(bool U, bool D, size_t sz, size_t Vn, size_t
 
     const IR::U128 reg_n = ir.GetVector(n);
     const IR::U128 reg_m = ir.GetVector(m);
-    const IR::U128 result = U ? ir.VectorUnsignedSaturatedSub(esize, reg_n, reg_m) : ir.VectorSignedSaturatedSub(esize, reg_n, reg_m);
+    const IR::U128 result = U ? ir.VectorUnsignedSaturatedSub(esize, reg_n, reg_m)
+                              : ir.VectorSignedSaturatedSub(esize, reg_n, reg_m);
     ir.SetVector(d, result);
 
     return true;
 }
 
-bool TranslatorVisitor::asimd_VCGT_reg(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VCGT_reg(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N,
+                                       bool Q, bool M, size_t Vm) {
     return IntegerComparison(*this, U, D, sz, Vn, Vd, N, Q, M, Vm, Comparison::GT);
 }
 
-bool TranslatorVisitor::asimd_VCGE_reg(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VCGE_reg(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N,
+                                       bool Q, bool M, size_t Vm) {
     return IntegerComparison(*this, U, D, sz, Vn, Vd, N, Q, M, Vm, Comparison::GE);
 }
 
-bool TranslatorVisitor::asimd_VABD(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VABD(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                   bool M, size_t Vm) {
     return AbsoluteDifference(*this, U, D, sz, Vn, Vd, N, Q, M, Vm, AccumulateBehavior::None);
 }
 
-bool TranslatorVisitor::asimd_VABA(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VABA(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                   bool M, size_t Vm) {
     return AbsoluteDifference(*this, U, D, sz, Vn, Vd, N, Q, M, Vm, AccumulateBehavior::Accumulate);
 }
 
-bool TranslatorVisitor::asimd_VADD_int(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VADD_int(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                       bool M, size_t Vm) {
     if (Q && (mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm))) {
         return UndefinedInstruction();
     }
@@ -433,7 +476,8 @@ bool TranslatorVisitor::asimd_VADD_int(bool D, size_t sz, size_t Vn, size_t Vd, 
     return true;
 }
 
-bool TranslatorVisitor::asimd_VSUB_int(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VSUB_int(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                       bool M, size_t Vm) {
     if (Q && (mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm))) {
         return UndefinedInstruction();
     }
@@ -451,7 +495,8 @@ bool TranslatorVisitor::asimd_VSUB_int(bool D, size_t sz, size_t Vn, size_t Vd, 
     return true;
 }
 
-bool TranslatorVisitor::asimd_VSHL_reg(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VSHL_reg(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N,
+                                       bool Q, bool M, size_t Vm) {
     if (Q && (mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm))) {
         return UndefinedInstruction();
     }
@@ -470,7 +515,8 @@ bool TranslatorVisitor::asimd_VSHL_reg(bool U, bool D, size_t sz, size_t Vn, siz
     return true;
 }
 
-bool TranslatorVisitor::asimd_VQSHL_reg(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VQSHL_reg(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N,
+                                        bool Q, bool M, size_t Vm) {
     if (Q && (mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm))) {
         return UndefinedInstruction();
     }
@@ -489,7 +535,8 @@ bool TranslatorVisitor::asimd_VQSHL_reg(bool U, bool D, size_t sz, size_t Vn, si
     return true;
 }
 
-bool TranslatorVisitor::asimd_VRSHL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VRSHL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                    bool M, size_t Vm) {
     if (Q && (mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm))) {
         return UndefinedInstruction();
     }
@@ -508,7 +555,8 @@ bool TranslatorVisitor::asimd_VRSHL(bool U, bool D, size_t sz, size_t Vn, size_t
     return true;
 }
 
-bool TranslatorVisitor::asimd_VMAX(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, bool op, size_t Vm) {
+bool TranslatorVisitor::asimd_VMAX(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                   bool M, bool op, size_t Vm) {
     if (sz == 0b11) {
         return UndefinedInstruction();
     }
@@ -538,7 +586,8 @@ bool TranslatorVisitor::asimd_VMAX(bool U, bool D, size_t sz, size_t Vn, size_t 
     return true;
 }
 
-bool TranslatorVisitor::asimd_VTST(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VTST(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                   size_t Vm) {
     if (Q && (mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm))) {
         return UndefinedInstruction();
     }
@@ -561,11 +610,13 @@ bool TranslatorVisitor::asimd_VTST(bool D, size_t sz, size_t Vn, size_t Vd, bool
     return true;
 }
 
-bool TranslatorVisitor::asimd_VCEQ_reg(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VCEQ_reg(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                       bool M, size_t Vm) {
     return IntegerComparison(*this, false, D, sz, Vn, Vd, N, Q, M, Vm, Comparison::EQ);
 }
 
-bool TranslatorVisitor::asimd_VMLA(bool op, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VMLA(bool op, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                   bool M, size_t Vm) {
     if (sz == 0b11) {
         return UndefinedInstruction();
     }
@@ -583,14 +634,15 @@ bool TranslatorVisitor::asimd_VMLA(bool op, bool D, size_t sz, size_t Vn, size_t
     const auto reg_m = ir.GetVector(m);
     const auto reg_d = ir.GetVector(d);
     const auto multiply = ir.VectorMultiply(esize, reg_n, reg_m);
-    const auto result = op ? ir.VectorSub(esize, reg_d, multiply)
-                           : ir.VectorAdd(esize, reg_d, multiply);
+    const auto result =
+        op ? ir.VectorSub(esize, reg_d, multiply) : ir.VectorAdd(esize, reg_d, multiply);
 
     ir.SetVector(d, result);
     return true;
 }
 
-bool TranslatorVisitor::asimd_VMUL(bool P, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VMUL(bool P, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                   bool M, size_t Vm) {
     if (sz == 0b11 || (P && sz != 0b00)) {
         return UndefinedInstruction();
     }
@@ -606,14 +658,15 @@ bool TranslatorVisitor::asimd_VMUL(bool P, bool D, size_t sz, size_t Vn, size_t 
 
     const auto reg_n = ir.GetVector(n);
     const auto reg_m = ir.GetVector(m);
-    const auto result = P ? ir.VectorPolynomialMultiply(reg_n, reg_m)
-                          : ir.VectorMultiply(esize, reg_n, reg_m);
+    const auto result =
+        P ? ir.VectorPolynomialMultiply(reg_n, reg_m) : ir.VectorMultiply(esize, reg_n, reg_m);
 
     ir.SetVector(d, result);
     return true;
 }
 
-bool TranslatorVisitor::asimd_VPMAX_int(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, bool op, size_t Vm) {
+bool TranslatorVisitor::asimd_VPMAX_int(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N,
+                                        bool Q, bool M, bool op, size_t Vm) {
     if (sz == 0b11 || Q) {
         return UndefinedInstruction();
     }
@@ -643,19 +696,24 @@ bool TranslatorVisitor::asimd_VPMAX_int(bool U, bool D, size_t sz, size_t Vn, si
     return true;
 }
 
-bool TranslatorVisitor::v8_VMAXNM(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm, [this](const auto&, const auto& reg_n, const auto& reg_m) {
-        return ir.FPVectorMaxNumeric(32, reg_n, reg_m, false);
-    });
+bool TranslatorVisitor::v8_VMAXNM(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                  size_t Vm) {
+    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm,
+                                    [this](const auto&, const auto& reg_n, const auto& reg_m) {
+                                        return ir.FPVectorMaxNumeric(32, reg_n, reg_m, false);
+                                    });
 }
 
-bool TranslatorVisitor::v8_VMINNM(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm, [this](const auto&, const auto& reg_n, const auto& reg_m) {
-        return ir.FPVectorMinNumeric(32, reg_n, reg_m, false);
-    });
+bool TranslatorVisitor::v8_VMINNM(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                  size_t Vm) {
+    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm,
+                                    [this](const auto&, const auto& reg_n, const auto& reg_m) {
+                                        return ir.FPVectorMinNumeric(32, reg_n, reg_m, false);
+                                    });
 }
 
-bool TranslatorVisitor::asimd_VQDMULH(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VQDMULH(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                      bool M, size_t Vm) {
     if (Q && (mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm))) {
         return UndefinedInstruction();
     }
@@ -677,7 +735,8 @@ bool TranslatorVisitor::asimd_VQDMULH(bool D, size_t sz, size_t Vn, size_t Vd, b
     return true;
 }
 
-bool TranslatorVisitor::asimd_VQRDMULH(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VQRDMULH(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                       bool M, size_t Vm) {
     if (Q && (mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm))) {
         return UndefinedInstruction();
     }
@@ -699,7 +758,8 @@ bool TranslatorVisitor::asimd_VQRDMULH(bool D, size_t sz, size_t Vn, size_t Vd, 
     return true;
 }
 
-bool TranslatorVisitor::asimd_VPADD(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VPADD(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                    size_t Vm) {
     if (Q || sz == 0b11) {
         return UndefinedInstruction();
     }
@@ -717,129 +777,173 @@ bool TranslatorVisitor::asimd_VPADD(bool D, size_t sz, size_t Vn, size_t Vd, boo
     return true;
 }
 
-bool TranslatorVisitor::asimd_VFMA(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm, [this](const auto& reg_d, const auto& reg_n, const auto& reg_m) {
-        return ir.FPVectorMulAdd(32, reg_d, reg_n, reg_m, false);
-    });
+bool TranslatorVisitor::asimd_VFMA(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                   size_t Vm) {
+    return FloatingPointInstruction(
+        *this, D, sz, Vn, Vd, N, Q, M, Vm,
+        [this](const auto& reg_d, const auto& reg_n, const auto& reg_m) {
+            return ir.FPVectorMulAdd(32, reg_d, reg_n, reg_m, false);
+        });
 }
 
-bool TranslatorVisitor::asimd_VFMS(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm, [this](const auto& reg_d, const auto& reg_n, const auto& reg_m) {
-        return ir.FPVectorMulAdd(32, reg_d, ir.FPVectorNeg(32, reg_n), reg_m, false);
-    });
+bool TranslatorVisitor::asimd_VFMS(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                   size_t Vm) {
+    return FloatingPointInstruction(
+        *this, D, sz, Vn, Vd, N, Q, M, Vm,
+        [this](const auto& reg_d, const auto& reg_n, const auto& reg_m) {
+            return ir.FPVectorMulAdd(32, reg_d, ir.FPVectorNeg(32, reg_n), reg_m, false);
+        });
 }
 
-bool TranslatorVisitor::asimd_VADD_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm, [this](const auto&, const auto& reg_n, const auto& reg_m) {
-        return ir.FPVectorAdd(32, reg_n, reg_m, false);
-    });
+bool TranslatorVisitor::asimd_VADD_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                         bool M, size_t Vm) {
+    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm,
+                                    [this](const auto&, const auto& reg_n, const auto& reg_m) {
+                                        return ir.FPVectorAdd(32, reg_n, reg_m, false);
+                                    });
 }
 
-bool TranslatorVisitor::asimd_VSUB_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm, [this](const auto&, const auto& reg_n, const auto& reg_m) {
-        return ir.FPVectorSub(32, reg_n, reg_m, false);
-    });
+bool TranslatorVisitor::asimd_VSUB_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                         bool M, size_t Vm) {
+    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm,
+                                    [this](const auto&, const auto& reg_n, const auto& reg_m) {
+                                        return ir.FPVectorSub(32, reg_n, reg_m, false);
+                                    });
 }
 
-bool TranslatorVisitor::asimd_VPADD_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VPADD_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                          bool M, size_t Vm) {
     if (Q) {
         return UndefinedInstruction();
     }
-    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm, [this](const auto&, const auto& reg_n, const auto& reg_m) {
-        return ir.FPVectorPairedAddLower(32, reg_n, reg_m, false);
-    });
+    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm,
+                                    [this](const auto&, const auto& reg_n, const auto& reg_m) {
+                                        return ir.FPVectorPairedAddLower(32, reg_n, reg_m, false);
+                                    });
 }
 
-bool TranslatorVisitor::asimd_VABD_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm, [this](const auto&, const auto& reg_n, const auto& reg_m) {
-        return ir.FPVectorAbs(32, ir.FPVectorSub(32, reg_n, reg_m, false));
-    });
+bool TranslatorVisitor::asimd_VABD_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                         bool M, size_t Vm) {
+    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm,
+                                    [this](const auto&, const auto& reg_n, const auto& reg_m) {
+                                        return ir.FPVectorAbs(
+                                            32, ir.FPVectorSub(32, reg_n, reg_m, false));
+                                    });
 }
 
-bool TranslatorVisitor::asimd_VMLA_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm, [this](const auto& reg_d, const auto& reg_n, const auto& reg_m) {
-        const auto product = ir.FPVectorMul(32, reg_n, reg_m, false);
-        return ir.FPVectorAdd(32, reg_d, product, false);
-    });
+bool TranslatorVisitor::asimd_VMLA_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                         bool M, size_t Vm) {
+    return FloatingPointInstruction(
+        *this, D, sz, Vn, Vd, N, Q, M, Vm,
+        [this](const auto& reg_d, const auto& reg_n, const auto& reg_m) {
+            const auto product = ir.FPVectorMul(32, reg_n, reg_m, false);
+            return ir.FPVectorAdd(32, reg_d, product, false);
+        });
 }
 
-bool TranslatorVisitor::asimd_VMLS_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm, [this](const auto& reg_d, const auto& reg_n, const auto& reg_m) {
-        const auto product = ir.FPVectorMul(32, reg_n, reg_m, false);
-        return ir.FPVectorAdd(32, reg_d, ir.FPVectorNeg(32, product), false);
-    });
+bool TranslatorVisitor::asimd_VMLS_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                         bool M, size_t Vm) {
+    return FloatingPointInstruction(
+        *this, D, sz, Vn, Vd, N, Q, M, Vm,
+        [this](const auto& reg_d, const auto& reg_n, const auto& reg_m) {
+            const auto product = ir.FPVectorMul(32, reg_n, reg_m, false);
+            return ir.FPVectorAdd(32, reg_d, ir.FPVectorNeg(32, product), false);
+        });
 }
 
-bool TranslatorVisitor::asimd_VMUL_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm, [this](const auto&, const auto& reg_n, const auto& reg_m) {
-        return ir.FPVectorMul(32, reg_n, reg_m, false);
-    });
+bool TranslatorVisitor::asimd_VMUL_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                         bool M, size_t Vm) {
+    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm,
+                                    [this](const auto&, const auto& reg_n, const auto& reg_m) {
+                                        return ir.FPVectorMul(32, reg_n, reg_m, false);
+                                    });
 }
 
-bool TranslatorVisitor::asimd_VCEQ_reg_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VCEQ_reg_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                             bool M, size_t Vm) {
     return FloatComparison(*this, D, sz, Vn, Vd, N, Q, M, Vm, Comparison::EQ);
 }
 
-bool TranslatorVisitor::asimd_VCGE_reg_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VCGE_reg_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                             bool M, size_t Vm) {
     return FloatComparison(*this, D, sz, Vn, Vd, N, Q, M, Vm, Comparison::GE);
 }
 
-bool TranslatorVisitor::asimd_VCGT_reg_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VCGT_reg_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                             bool M, size_t Vm) {
     return FloatComparison(*this, D, sz, Vn, Vd, N, Q, M, Vm, Comparison::GT);
 }
 
-bool TranslatorVisitor::asimd_VACGE(bool D, bool op, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VACGE(bool D, bool op, bool sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                    bool M, size_t Vm) {
     const auto comparison = op ? Comparison::AbsoluteGT : Comparison::AbsoluteGE;
     return FloatComparison(*this, D, sz, Vn, Vd, N, Q, M, Vm, comparison);
 }
 
-bool TranslatorVisitor::asimd_VMAX_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm, [this](const auto&, const auto& reg_n, const auto& reg_m) {
-        return ir.FPVectorMax(32, reg_n, reg_m, false);
-    });
+bool TranslatorVisitor::asimd_VMAX_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                         bool M, size_t Vm) {
+    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm,
+                                    [this](const auto&, const auto& reg_n, const auto& reg_m) {
+                                        return ir.FPVectorMax(32, reg_n, reg_m, false);
+                                    });
 }
 
-bool TranslatorVisitor::asimd_VMIN_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm, [this](const auto&, const auto& reg_n, const auto& reg_m) {
-        return ir.FPVectorMin(32, reg_n, reg_m, false);
-    });
+bool TranslatorVisitor::asimd_VMIN_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                         bool M, size_t Vm) {
+    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm,
+                                    [this](const auto&, const auto& reg_n, const auto& reg_m) {
+                                        return ir.FPVectorMin(32, reg_n, reg_m, false);
+                                    });
 }
 
-bool TranslatorVisitor::asimd_VPMAX_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VPMAX_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                          bool M, size_t Vm) {
     if (Q) {
         return UndefinedInstruction();
     }
-    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm, [this](const auto&, const auto& reg_n, const auto& reg_m) {
-        const auto bottom = ir.VectorDeinterleaveEvenLower(32, reg_n, reg_m);
-        const auto top = ir.VectorDeinterleaveOddLower(32, reg_n, reg_m);
-        return ir.FPVectorMax(32, bottom, top, false);
-    });
+    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm,
+                                    [this](const auto&, const auto& reg_n, const auto& reg_m) {
+                                        const auto bottom =
+                                            ir.VectorDeinterleaveEvenLower(32, reg_n, reg_m);
+                                        const auto top =
+                                            ir.VectorDeinterleaveOddLower(32, reg_n, reg_m);
+                                        return ir.FPVectorMax(32, bottom, top, false);
+                                    });
 }
 
-bool TranslatorVisitor::asimd_VPMIN_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VPMIN_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q,
+                                          bool M, size_t Vm) {
     if (Q) {
         return UndefinedInstruction();
     }
-    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm, [this](const auto&, const auto& reg_n, const auto& reg_m) {
-        const auto bottom = ir.VectorDeinterleaveEvenLower(32, reg_n, reg_m);
-        const auto top = ir.VectorDeinterleaveOddLower(32, reg_n, reg_m);
-        return ir.FPVectorMin(32, bottom, top, false);
-    });
+    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm,
+                                    [this](const auto&, const auto& reg_n, const auto& reg_m) {
+                                        const auto bottom =
+                                            ir.VectorDeinterleaveEvenLower(32, reg_n, reg_m);
+                                        const auto top =
+                                            ir.VectorDeinterleaveOddLower(32, reg_n, reg_m);
+                                        return ir.FPVectorMin(32, bottom, top, false);
+                                    });
 }
 
-bool TranslatorVisitor::asimd_VRECPS(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm, [this](const auto&, const auto& reg_n, const auto& reg_m) {
-        return ir.FPVectorRecipStepFused(32, reg_n, reg_m, false);
-    });
+bool TranslatorVisitor::asimd_VRECPS(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                     size_t Vm) {
+    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm,
+                                    [this](const auto&, const auto& reg_n, const auto& reg_m) {
+                                        return ir.FPVectorRecipStepFused(32, reg_n, reg_m, false);
+                                    });
 }
 
-bool TranslatorVisitor::asimd_VRSQRTS(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
-    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm, [this](const auto&, const auto& reg_n, const auto& reg_m) {
-        return ir.FPVectorRSqrtStepFused(32, reg_n, reg_m, false);
-    });
+bool TranslatorVisitor::asimd_VRSQRTS(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                      size_t Vm) {
+    return FloatingPointInstruction(*this, D, sz, Vn, Vd, N, Q, M, Vm,
+                                    [this](const auto&, const auto& reg_n, const auto& reg_m) {
+                                        return ir.FPVectorRSqrtStepFused(32, reg_n, reg_m, false);
+                                    });
 }
 
-bool TranslatorVisitor::v8_SHA256H(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::v8_SHA256H(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                   size_t Vm) {
     if (!Q || mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm)) {
         return UndefinedInstruction();
     }
@@ -857,7 +961,8 @@ bool TranslatorVisitor::v8_SHA256H(bool D, size_t Vn, size_t Vd, bool N, bool Q,
     return true;
 }
 
-bool TranslatorVisitor::v8_SHA256H2(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::v8_SHA256H2(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                    size_t Vm) {
     if (!Q || mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm)) {
         return UndefinedInstruction();
     }
@@ -875,7 +980,8 @@ bool TranslatorVisitor::v8_SHA256H2(bool D, size_t Vn, size_t Vd, bool N, bool Q
     return true;
 }
 
-bool TranslatorVisitor::v8_SHA256SU1(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::v8_SHA256SU1(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                                     size_t Vm) {
     if (!Q || mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm)) {
         return UndefinedInstruction();
     }
@@ -895,27 +1001,37 @@ bool TranslatorVisitor::v8_SHA256SU1(bool D, size_t Vn, size_t Vd, bool N, bool 
 
 // ASIMD Three registers of different length
 
-bool TranslatorVisitor::asimd_VADDL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool op, bool N, bool M, size_t Vm) {
-    return WideInstruction(*this, U, D, sz, Vn, Vd, N, M, Vm, op ? WidenBehaviour::Second : WidenBehaviour::Both, [this](size_t esize, const auto&, const auto& reg_n, const auto& reg_m) {
-        return ir.VectorAdd(esize, reg_n, reg_m);
-    });
+bool TranslatorVisitor::asimd_VADDL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool op,
+                                    bool N, bool M, size_t Vm) {
+    return WideInstruction(*this, U, D, sz, Vn, Vd, N, M, Vm,
+                           op ? WidenBehaviour::Second : WidenBehaviour::Both,
+                           [this](size_t esize, const auto&, const auto& reg_n, const auto& reg_m) {
+                               return ir.VectorAdd(esize, reg_n, reg_m);
+                           });
 }
 
-bool TranslatorVisitor::asimd_VSUBL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool op, bool N, bool M, size_t Vm) {
-    return WideInstruction(*this, U, D, sz, Vn, Vd, N, M, Vm, op ? WidenBehaviour::Second : WidenBehaviour::Both, [this](size_t esize, const auto&, const auto& reg_n, const auto& reg_m) {
-        return ir.VectorSub(esize, reg_n, reg_m);
-    });
+bool TranslatorVisitor::asimd_VSUBL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool op,
+                                    bool N, bool M, size_t Vm) {
+    return WideInstruction(*this, U, D, sz, Vn, Vd, N, M, Vm,
+                           op ? WidenBehaviour::Second : WidenBehaviour::Both,
+                           [this](size_t esize, const auto&, const auto& reg_n, const auto& reg_m) {
+                               return ir.VectorSub(esize, reg_n, reg_m);
+                           });
 }
 
-bool TranslatorVisitor::asimd_VABAL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool M, size_t Vm) {
-    return AbsoluteDifferenceLong(*this, U, D, sz, Vn, Vd, N, M, Vm, AccumulateBehavior::Accumulate);
+bool TranslatorVisitor::asimd_VABAL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool M,
+                                    size_t Vm) {
+    return AbsoluteDifferenceLong(*this, U, D, sz, Vn, Vd, N, M, Vm,
+                                  AccumulateBehavior::Accumulate);
 }
 
-bool TranslatorVisitor::asimd_VABDL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VABDL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool M,
+                                    size_t Vm) {
     return AbsoluteDifferenceLong(*this, U, D, sz, Vn, Vd, N, M, Vm, AccumulateBehavior::None);
 }
 
-bool TranslatorVisitor::asimd_VMLAL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool op, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VMLAL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool op,
+                                    bool N, bool M, size_t Vm) {
     const size_t esize = 8U << sz;
 
     if (sz == 0b11) {
@@ -935,14 +1051,15 @@ bool TranslatorVisitor::asimd_VMLAL(bool U, bool D, size_t sz, size_t Vn, size_t
     const auto reg_n = ir.GetVector(n);
     const auto multiply = U ? ir.VectorMultiplyUnsignedWiden(esize, reg_n, reg_m)
                             : ir.VectorMultiplySignedWiden(esize, reg_n, reg_m);
-    const auto result = op ? ir.VectorSub(esize * 2, reg_d, multiply)
-                           : ir.VectorAdd(esize * 2, reg_d, multiply);
+    const auto result =
+        op ? ir.VectorSub(esize * 2, reg_d, multiply) : ir.VectorAdd(esize * 2, reg_d, multiply);
 
     ir.SetVector(d, result);
     return true;
 }
 
-bool TranslatorVisitor::asimd_VMULL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool P, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VMULL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool P, bool N,
+                                    bool M, size_t Vm) {
     if (sz == 0b11) {
         return DecodeError();
     }
@@ -958,12 +1075,12 @@ bool TranslatorVisitor::asimd_VMULL(bool U, bool D, size_t sz, size_t Vn, size_t
 
     const auto reg_n = ir.GetVector(n);
     const auto reg_m = ir.GetVector(m);
-    const auto result = P ? ir.VectorPolynomialMultiplyLong(esize, reg_n, reg_m)
-                      : U ? ir.VectorMultiplyUnsignedWiden(esize, reg_n, reg_m)
-                          : ir.VectorMultiplySignedWiden(esize, reg_n, reg_m);
+    const auto result = P   ? ir.VectorPolynomialMultiplyLong(esize, reg_n, reg_m)
+                        : U ? ir.VectorMultiplyUnsignedWiden(esize, reg_n, reg_m)
+                            : ir.VectorMultiplySignedWiden(esize, reg_n, reg_m);
 
     ir.SetVector(d, result);
     return true;
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

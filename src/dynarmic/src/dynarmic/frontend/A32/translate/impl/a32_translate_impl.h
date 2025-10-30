@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_field.hpp>
 #include <mcl/bit/rotate.hpp>
+#include "dynarmic/common/assert.h"
 
 #include "dynarmic/frontend/A32/a32_ir_emitter.h"
 #include "dynarmic/frontend/A32/a32_location_descriptor.h"
@@ -26,8 +26,9 @@ enum class Exception;
 struct TranslatorVisitor final {
     using instruction_return_type = bool;
 
-    explicit TranslatorVisitor(IR::Block& block, LocationDescriptor descriptor, const TranslationOptions& options)
-            : ir(block, descriptor, options.arch_version), options(options) {}
+    explicit TranslatorVisitor(IR::Block& block, LocationDescriptor descriptor,
+                               const TranslationOptions& options)
+        : ir(block, descriptor, options.arch_version), options(options) {}
 
     A32::IREmitter ir;
     ConditionalState cond_state = ConditionalState::None;
@@ -83,7 +84,8 @@ struct TranslatorVisitor final {
             }();
             return {imm32, carry_in};
         }
-        const u32 imm32 = mcl::bit::rotate_right<u32>((1 << 7) | imm12.Bits<0, 6>(), imm12.Bits<7, 11>());
+        const u32 imm32 =
+            mcl::bit::rotate_right<u32>((1 << 7) | imm12.Bits<0, 6>(), imm12.Bits<7, 11>());
         return {imm32, ir.Imm1(mcl::bit::get_bit<31>(imm32))};
     }
 
@@ -94,12 +96,15 @@ struct TranslatorVisitor final {
     // Creates an immediate of the given value
     IR::UAny I(size_t bitsize, u64 value);
 
-    IR::ResultAndCarry<IR::U32> EmitImmShift(IR::U32 value, ShiftType type, Imm<3> imm3, Imm<2> imm2, IR::U1 carry_in);
-    IR::ResultAndCarry<IR::U32> EmitImmShift(IR::U32 value, ShiftType type, Imm<5> imm5, IR::U1 carry_in);
-    IR::ResultAndCarry<IR::U32> EmitRegShift(IR::U32 value, ShiftType type, IR::U8 amount, IR::U1 carry_in);
-    template<typename FnT>
+    IR::ResultAndCarry<IR::U32> EmitImmShift(IR::U32 value, ShiftType type, Imm<3> imm3,
+                                             Imm<2> imm2, IR::U1 carry_in);
+    IR::ResultAndCarry<IR::U32> EmitImmShift(IR::U32 value, ShiftType type, Imm<5> imm5,
+                                             IR::U1 carry_in);
+    IR::ResultAndCarry<IR::U32> EmitRegShift(IR::U32 value, ShiftType type, IR::U8 amount,
+                                             IR::U1 carry_in);
+    template <typename FnT>
     bool EmitVfpVectorOperation(bool sz, ExtReg d, ExtReg n, ExtReg m, const FnT& fn);
-    template<typename FnT>
+    template <typename FnT>
     bool EmitVfpVectorOperation(bool sz, ExtReg d, ExtReg m, const FnT& fn);
 
     // Barrier instructions
@@ -116,13 +121,18 @@ struct TranslatorVisitor final {
     bool arm_BXJ(Cond cond, Reg m);
 
     // Coprocessor instructions
-    bool arm_CDP(Cond cond, size_t opc1, CoprocReg CRn, CoprocReg CRd, size_t coproc_no, size_t opc2, CoprocReg CRm);
-    bool arm_LDC(Cond cond, bool p, bool u, bool d, bool w, Reg n, CoprocReg CRd, size_t coproc_no, Imm<8> imm8);
-    bool arm_MCR(Cond cond, size_t opc1, CoprocReg CRn, Reg t, size_t coproc_no, size_t opc2, CoprocReg CRm);
+    bool arm_CDP(Cond cond, size_t opc1, CoprocReg CRn, CoprocReg CRd, size_t coproc_no,
+                 size_t opc2, CoprocReg CRm);
+    bool arm_LDC(Cond cond, bool p, bool u, bool d, bool w, Reg n, CoprocReg CRd, size_t coproc_no,
+                 Imm<8> imm8);
+    bool arm_MCR(Cond cond, size_t opc1, CoprocReg CRn, Reg t, size_t coproc_no, size_t opc2,
+                 CoprocReg CRm);
     bool arm_MCRR(Cond cond, Reg t2, Reg t, size_t coproc_no, size_t opc, CoprocReg CRm);
-    bool arm_MRC(Cond cond, size_t opc1, CoprocReg CRn, Reg t, size_t coproc_no, size_t opc2, CoprocReg CRm);
+    bool arm_MRC(Cond cond, size_t opc1, CoprocReg CRn, Reg t, size_t coproc_no, size_t opc2,
+                 CoprocReg CRm);
     bool arm_MRRC(Cond cond, Reg t2, Reg t, size_t coproc_no, size_t opc, CoprocReg CRm);
-    bool arm_STC(Cond cond, bool p, bool u, bool d, bool w, Reg n, CoprocReg CRd, size_t coproc_no, Imm<8> imm8);
+    bool arm_STC(Cond cond, bool p, bool u, bool d, bool w, Reg n, CoprocReg CRd, size_t coproc_no,
+                 Imm<8> imm8);
 
     // CRC32 instructions
     bool arm_CRC32(Cond cond, Imm<2> sz, Reg n, Reg d, Reg m);
@@ -217,10 +227,12 @@ struct TranslatorVisitor final {
     bool arm_STRT();
     bool arm_LDR_lit(Cond cond, bool U, Reg t, Imm<12> imm12);
     bool arm_LDR_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg d, Imm<12> imm12);
-    bool arm_LDR_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg d, Imm<5> imm5, ShiftType shift, Reg m);
+    bool arm_LDR_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg d, Imm<5> imm5, ShiftType shift,
+                     Reg m);
     bool arm_LDRB_lit(Cond cond, bool U, Reg t, Imm<12> imm12);
     bool arm_LDRB_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<12> imm12);
-    bool arm_LDRB_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<5> imm5, ShiftType shift, Reg m);
+    bool arm_LDRB_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<5> imm5, ShiftType shift,
+                      Reg m);
     bool arm_LDRD_lit(Cond cond, bool U, Reg t, Imm<4> imm8a, Imm<4> imm8b);
     bool arm_LDRD_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<4> imm8a, Imm<4> imm8b);
     bool arm_LDRD_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg d, Reg m);
@@ -234,9 +246,11 @@ struct TranslatorVisitor final {
     bool arm_LDRSH_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<4> imm8a, Imm<4> imm8b);
     bool arm_LDRSH_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Reg m);
     bool arm_STR_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<12> imm12);
-    bool arm_STR_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<5> imm5, ShiftType shift, Reg m);
+    bool arm_STR_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<5> imm5, ShiftType shift,
+                     Reg m);
     bool arm_STRB_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<12> imm12);
-    bool arm_STRB_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<5> imm5, ShiftType shift, Reg m);
+    bool arm_STRB_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<5> imm5, ShiftType shift,
+                      Reg m);
     bool arm_STRD_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<4> imm8a, Imm<4> imm8b);
     bool arm_STRD_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Reg m);
     bool arm_STRH_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<4> imm8a, Imm<4> imm8b);
@@ -751,11 +765,16 @@ struct TranslatorVisitor final {
     // thumb32 coprocessor insturctions
     bool thumb32_MCRR(bool two, Reg t2, Reg t, size_t coproc_no, size_t opc, CoprocReg CRm);
     bool thumb32_MRRC(bool two, Reg t2, Reg t, size_t coproc_no, size_t opc, CoprocReg CRm);
-    bool thumb32_STC(bool two, bool p, bool u, bool d, bool w, Reg n, CoprocReg CRd, size_t coproc_no, Imm<8> imm8);
-    bool thumb32_LDC(bool two, bool p, bool u, bool d, bool w, Reg n, CoprocReg CRd, size_t coproc_no, Imm<8> imm8);
-    bool thumb32_CDP(bool two, size_t opc1, CoprocReg CRn, CoprocReg CRd, size_t coproc_no, size_t opc2, CoprocReg CRm);
-    bool thumb32_MCR(bool two, size_t opc1, CoprocReg CRn, Reg t, size_t coproc_no, size_t opc2, CoprocReg CRm);
-    bool thumb32_MRC(bool two, size_t opc1, CoprocReg CRn, Reg t, size_t coproc_no, size_t opc2, CoprocReg CRm);
+    bool thumb32_STC(bool two, bool p, bool u, bool d, bool w, Reg n, CoprocReg CRd,
+                     size_t coproc_no, Imm<8> imm8);
+    bool thumb32_LDC(bool two, bool p, bool u, bool d, bool w, Reg n, CoprocReg CRd,
+                     size_t coproc_no, Imm<8> imm8);
+    bool thumb32_CDP(bool two, size_t opc1, CoprocReg CRn, CoprocReg CRd, size_t coproc_no,
+                     size_t opc2, CoprocReg CRm);
+    bool thumb32_MCR(bool two, size_t opc1, CoprocReg CRn, Reg t, size_t coproc_no, size_t opc2,
+                     CoprocReg CRm);
+    bool thumb32_MRC(bool two, size_t opc1, CoprocReg CRn, Reg t, size_t coproc_no, size_t opc2,
+                     CoprocReg CRm);
 
     // Floating-point three-register data processing instructions
     bool vfp_VADD(Cond cond, bool D, size_t Vn, size_t Vd, bool sz, bool N, bool M, size_t Vm);
@@ -806,11 +825,16 @@ struct TranslatorVisitor final {
     bool vfp_VRINTZ(Cond cond, bool D, size_t Vd, bool sz, bool M, size_t Vm);
     bool vfp_VRINTX(Cond cond, bool D, size_t Vd, bool sz, bool M, size_t Vm);
     bool vfp_VCVT_f_to_f(Cond cond, bool D, size_t Vd, bool sz, bool M, size_t Vm);
-    bool vfp_VCVT_from_int(Cond cond, bool D, size_t Vd, bool sz, bool is_signed, bool M, size_t Vm);
-    bool vfp_VCVT_from_fixed(Cond cond, bool D, bool U, size_t Vd, bool sz, bool sx, Imm<1> i, Imm<4> imm4);
-    bool vfp_VCVT_to_u32(Cond cond, bool D, size_t Vd, bool sz, bool round_towards_zero, bool M, size_t Vm);
-    bool vfp_VCVT_to_s32(Cond cond, bool D, size_t Vd, bool sz, bool round_towards_zero, bool M, size_t Vm);
-    bool vfp_VCVT_to_fixed(Cond cond, bool D, bool U, size_t Vd, bool sz, bool sx, Imm<1> i, Imm<4> imm4);
+    bool vfp_VCVT_from_int(Cond cond, bool D, size_t Vd, bool sz, bool is_signed, bool M,
+                           size_t Vm);
+    bool vfp_VCVT_from_fixed(Cond cond, bool D, bool U, size_t Vd, bool sz, bool sx, Imm<1> i,
+                             Imm<4> imm4);
+    bool vfp_VCVT_to_u32(Cond cond, bool D, size_t Vd, bool sz, bool round_towards_zero, bool M,
+                         size_t Vm);
+    bool vfp_VCVT_to_s32(Cond cond, bool D, size_t Vd, bool sz, bool round_towards_zero, bool M,
+                         size_t Vm);
+    bool vfp_VCVT_to_fixed(Cond cond, bool D, bool U, size_t Vd, bool sz, bool sx, Imm<1> i,
+                           Imm<4> imm4);
     bool vfp_VRINT_rm(bool D, size_t rm, size_t Vd, bool sz, bool M, size_t Vm);
     bool vfp_VCVT_rm(bool D, size_t rm, size_t Vd, bool sz, bool U, bool M, size_t Vm);
 
@@ -829,12 +853,16 @@ struct TranslatorVisitor final {
     bool vfp_VLDM_a2(Cond cond, bool p, bool u, bool D, bool w, Reg n, size_t Vd, Imm<8> imm8);
 
     // Advanced SIMD one register, modified immediate
-    bool asimd_VMOV_imm(Imm<1> a, bool D, Imm<1> b, Imm<1> c, Imm<1> d, size_t Vd, Imm<4> cmode, bool Q, bool op, Imm<1> e, Imm<1> f, Imm<1> g, Imm<1> h);
+    bool asimd_VMOV_imm(Imm<1> a, bool D, Imm<1> b, Imm<1> c, Imm<1> d, size_t Vd, Imm<4> cmode,
+                        bool Q, bool op, Imm<1> e, Imm<1> f, Imm<1> g, Imm<1> h);
 
     // Advanced SIMD three register with same length
-    bool asimd_VHADD(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VQADD(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VRHADD(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
+    bool asimd_VHADD(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                     size_t Vm);
+    bool asimd_VQADD(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                     size_t Vm);
+    bool asimd_VRHADD(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                      size_t Vm);
     bool asimd_VAND_reg(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
     bool asimd_VBIC_reg(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
     bool asimd_VORR_reg(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
@@ -843,23 +871,36 @@ struct TranslatorVisitor final {
     bool asimd_VBSL(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
     bool asimd_VBIT(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
     bool asimd_VBIF(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VHSUB(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VQSUB(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VCGT_reg(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VCGE_reg(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VABD(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VABA(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
+    bool asimd_VHSUB(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                     size_t Vm);
+    bool asimd_VQSUB(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                     size_t Vm);
+    bool asimd_VCGT_reg(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                        size_t Vm);
+    bool asimd_VCGE_reg(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                        size_t Vm);
+    bool asimd_VABD(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                    size_t Vm);
+    bool asimd_VABA(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                    size_t Vm);
     bool asimd_VADD_int(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
     bool asimd_VSUB_int(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VSHL_reg(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VQSHL_reg(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VRSHL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VMAX(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, bool op, size_t Vm);
+    bool asimd_VSHL_reg(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                        size_t Vm);
+    bool asimd_VQSHL_reg(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                         size_t Vm);
+    bool asimd_VRSHL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                     size_t Vm);
+    bool asimd_VMAX(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                    bool op, size_t Vm);
     bool asimd_VTST(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
     bool asimd_VCEQ_reg(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VMLA(bool op, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VMUL(bool P, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VPMAX_int(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, bool op, size_t Vm);
+    bool asimd_VMLA(bool op, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                    size_t Vm);
+    bool asimd_VMUL(bool P, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                    size_t Vm);
+    bool asimd_VPMAX_int(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                         bool op, size_t Vm);
     bool v8_VMAXNM(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
     bool v8_VMINNM(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
     bool asimd_VQDMULH(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
@@ -869,19 +910,26 @@ struct TranslatorVisitor final {
     bool asimd_VFMS(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
     bool asimd_VADD_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
     bool asimd_VSUB_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VPADD_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
+    bool asimd_VPADD_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                           size_t Vm);
     bool asimd_VABD_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
     bool asimd_VMLA_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
     bool asimd_VMLS_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
     bool asimd_VMUL_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VCEQ_reg_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VCGE_reg_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VCGT_reg_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VACGE(bool D, bool op, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
+    bool asimd_VCEQ_reg_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                              size_t Vm);
+    bool asimd_VCGE_reg_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                              size_t Vm);
+    bool asimd_VCGT_reg_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                              size_t Vm);
+    bool asimd_VACGE(bool D, bool op, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                     size_t Vm);
     bool asimd_VMAX_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
     bool asimd_VMIN_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VPMAX_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
-    bool asimd_VPMIN_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
+    bool asimd_VPMAX_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                           size_t Vm);
+    bool asimd_VPMIN_float(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M,
+                           size_t Vm);
     bool asimd_VRECPS(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
     bool asimd_VRSQRTS(bool D, bool sz, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
     bool v8_SHA256H(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
@@ -889,21 +937,31 @@ struct TranslatorVisitor final {
     bool v8_SHA256SU1(bool D, size_t Vn, size_t Vd, bool N, bool Q, bool M, size_t Vm);
 
     // Advanced SIMD three registers with different lengths
-    bool asimd_VADDL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool op, bool N, bool M, size_t Vm);
-    bool asimd_VSUBL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool op, bool N, bool M, size_t Vm);
+    bool asimd_VADDL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool op, bool N, bool M,
+                     size_t Vm);
+    bool asimd_VSUBL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool op, bool N, bool M,
+                     size_t Vm);
     bool asimd_VABAL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool M, size_t Vm);
     bool asimd_VABDL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool M, size_t Vm);
-    bool asimd_VMLAL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool op, bool N, bool M, size_t Vm);
-    bool asimd_VMULL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool P, bool N, bool M, size_t Vm);
+    bool asimd_VMLAL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool op, bool N, bool M,
+                     size_t Vm);
+    bool asimd_VMULL(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool P, bool N, bool M,
+                     size_t Vm);
 
     // Advanced SIMD two registers and a scalar
-    bool asimd_VMLA_scalar(bool Q, bool D, size_t sz, size_t Vn, size_t Vd, bool op, bool F, bool N, bool M, size_t Vm);
-    bool asimd_VMLAL_scalar(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool op, bool N, bool M, size_t Vm);
-    bool asimd_VMUL_scalar(bool Q, bool D, size_t sz, size_t Vn, size_t Vd, bool F, bool N, bool M, size_t Vm);
-    bool asimd_VMULL_scalar(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool M, size_t Vm);
+    bool asimd_VMLA_scalar(bool Q, bool D, size_t sz, size_t Vn, size_t Vd, bool op, bool F, bool N,
+                           bool M, size_t Vm);
+    bool asimd_VMLAL_scalar(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool op, bool N,
+                            bool M, size_t Vm);
+    bool asimd_VMUL_scalar(bool Q, bool D, size_t sz, size_t Vn, size_t Vd, bool F, bool N, bool M,
+                           size_t Vm);
+    bool asimd_VMULL_scalar(bool U, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool M,
+                            size_t Vm);
     bool asimd_VQDMULL_scalar(bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool M, size_t Vm);
-    bool asimd_VQDMULH_scalar(bool Q, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool M, size_t Vm);
-    bool asimd_VQRDMULH_scalar(bool Q, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool M, size_t Vm);
+    bool asimd_VQDMULH_scalar(bool Q, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool M,
+                              size_t Vm);
+    bool asimd_VQRDMULH_scalar(bool Q, bool D, size_t sz, size_t Vn, size_t Vd, bool N, bool M,
+                               size_t Vm);
 
     // Two registers and a shift amount
     bool asimd_SHR(bool U, bool D, size_t imm6, size_t Vd, bool L, bool Q, bool M, size_t Vm);
@@ -913,7 +971,8 @@ struct TranslatorVisitor final {
     bool asimd_VSRI(bool D, size_t imm6, size_t Vd, bool L, bool Q, bool M, size_t Vm);
     bool asimd_VSHL(bool D, size_t imm6, size_t Vd, bool L, bool Q, bool M, size_t Vm);
     bool asimd_VSLI(bool D, size_t imm6, size_t Vd, bool L, bool Q, bool M, size_t Vm);
-    bool asimd_VQSHL(bool U, bool D, size_t imm6, size_t Vd, bool op, bool L, bool Q, bool M, size_t Vm);
+    bool asimd_VQSHL(bool U, bool D, size_t imm6, size_t Vd, bool op, bool L, bool Q, bool M,
+                     size_t Vm);
     bool asimd_VSHRN(bool D, size_t imm6, size_t Vd, bool M, size_t Vm);
     bool asimd_VRSHRN(bool D, size_t imm6, size_t Vd, bool M, size_t Vm);
     bool asimd_VQSHRUN(bool D, size_t imm6, size_t Vd, bool M, size_t Vm);
@@ -921,7 +980,8 @@ struct TranslatorVisitor final {
     bool asimd_VQSHRN(bool U, bool D, size_t imm6, size_t Vd, bool M, size_t Vm);
     bool asimd_VQRSHRN(bool U, bool D, size_t imm6, size_t Vd, bool M, size_t Vm);
     bool asimd_VSHLL(bool U, bool D, size_t imm6, size_t Vd, bool M, size_t Vm);
-    bool asimd_VCVT_fixed(bool U, bool D, size_t imm6, size_t Vd, bool to_fixed, bool Q, bool M, size_t Vm);
+    bool asimd_VCVT_fixed(bool U, bool D, size_t imm6, size_t Vd, bool to_fixed, bool Q, bool M,
+                          size_t Vm);
 
     // Advanced SIMD two register, miscellaneous
     bool asimd_VREV(bool D, size_t sz, size_t Vd, size_t op, bool Q, bool M, size_t Vm);
@@ -966,7 +1026,8 @@ struct TranslatorVisitor final {
     bool v8_VCVTM(bool D, size_t sz, size_t Vd, bool op, bool Q, bool M, size_t Vm);
     bool asimd_VRECPE(bool D, size_t sz, size_t Vd, bool F, bool Q, bool M, size_t Vm);
     bool asimd_VRSQRTE(bool D, size_t sz, size_t Vd, bool F, bool Q, bool M, size_t Vm);
-    bool asimd_VCVT_integer(bool D, size_t sz, size_t Vd, bool op, bool U, bool Q, bool M, size_t Vm);
+    bool asimd_VCVT_integer(bool D, size_t sz, size_t Vd, bool op, bool U, bool Q, bool M,
+                            size_t Vm);
 
     // Advanced SIMD miscellaneous
     bool asimd_VEXT(bool D, size_t Vn, size_t Vd, Imm<4> imm4, bool N, bool Q, bool M, size_t Vm);
@@ -982,4 +1043,4 @@ struct TranslatorVisitor final {
     bool v8_VLD_single(bool D, Reg n, size_t Vd, size_t sz, size_t nn, size_t index_align, Reg m);
 };
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

@@ -8,14 +8,14 @@
 #pragma once
 
 #include <atomic>
+#include <span>
 #include <signal.h>
 #include <unistd.h>
-#include <span>
 
-#include "core/hle/kernel/k_thread.h"
-#include "core/memory.h"
 #include "common/logging/log.h"
 #include "core/arm/nce/visitor_base.h"
+#include "core/hle/kernel/k_thread.h"
+#include "core/memory.h"
 
 namespace Core {
 

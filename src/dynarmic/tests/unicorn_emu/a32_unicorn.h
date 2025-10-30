@@ -12,11 +12,11 @@
 #include <vector>
 
 #ifdef _MSC_VER
-#    pragma warning(push, 0)
-#    include <unicorn/unicorn.h>
-#    pragma warning(pop)
+#pragma warning(push, 0)
+#include <unicorn/unicorn.h>
+#pragma warning(pop)
 #else
-#    include <unicorn/unicorn.h>
+#include <unicorn/unicorn.h>
 #endif
 
 #include "dynarmic/common/common_types.h"
@@ -31,9 +31,9 @@ using ExtRegArray = std::array<u32, num_ext_regs>;
 using RegisterArray = std::array<u32, num_gprs>;
 using RegisterPtrArray = std::array<RegisterArray::pointer, num_gprs>;
 using RegisterConstPtrArray = std::array<RegisterArray::const_pointer, num_gprs>;
-}  // namespace Unicorn::A32
+} // namespace Unicorn::A32
 
-template<class TestEnvironment>
+template <class TestEnvironment>
 class A32Unicorn final {
 public:
     using ExtRegArray = Unicorn::A32::ExtRegArray;
@@ -73,8 +73,10 @@ public:
 
 private:
     static void InterruptHook(uc_engine* uc, u32 interrupt, void* user_data);
-    static bool UnmappedMemoryHook(uc_engine* uc, uc_mem_type type, u32 addr, int size, u64 value, void* user_data);
-    static bool MemoryWriteHook(uc_engine* uc, uc_mem_type type, u32 addr, int size, u64 value, void* user_data);
+    static bool UnmappedMemoryHook(uc_engine* uc, uc_mem_type type, u32 addr, int size, u64 value,
+                                   void* user_data);
+    static bool MemoryWriteHook(uc_engine* uc, uc_mem_type type, u32 addr, int size, u64 value,
+                                void* user_data);
 
     struct Page {
         u32 address;

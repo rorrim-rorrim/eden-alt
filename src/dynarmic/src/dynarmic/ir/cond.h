@@ -28,4 +28,4 @@ enum class Cond {
     LO = CC,
 };
 
-}  // namespace Dynarmic::IR
+} // namespace Dynarmic::IR

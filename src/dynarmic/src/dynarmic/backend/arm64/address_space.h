@@ -11,10 +11,10 @@
 #include <map>
 #include <optional>
 
-#include "dynarmic/common/common_types.h"
+#include <ankerl/unordered_dense.h>
 #include <oaknut/code_block.hpp>
 #include <oaknut/oaknut.hpp>
-#include <ankerl/unordered_dense.h>
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/arm64/emit_arm64.h"
 #include "dynarmic/backend/arm64/fastmem.h"
@@ -41,7 +41,8 @@ public:
 
     CodePtr GetOrEmit(IR::LocationDescriptor descriptor);
 
-    void InvalidateBasicBlocks(const ankerl::unordered_dense::set<IR::LocationDescriptor>& descriptors);
+    void InvalidateBasicBlocks(
+        const ankerl::unordered_dense::set<IR::LocationDescriptor>& descriptors);
 
     void ClearCache();
 
@@ -49,7 +50,8 @@ public:
 
 protected:
     virtual EmitConfig GetEmitConfig() = 0;
-    virtual void RegisterNewBasicBlock(const IR::Block& block, const EmittedBlockInfo& block_info) = 0;
+    virtual void RegisterNewBasicBlock(const IR::Block& block,
+                                       const EmittedBlockInfo& block_info) = 0;
 
     void ProtectCodeMemory() {
 #if defined(DYNARMIC_ENABLE_NO_EXECUTE_SUPPORT) || defined(__APPLE__) || defined(__OpenBSD__)
@@ -66,7 +68,8 @@ protected:
     size_t GetRemainingSize();
     EmittedBlockInfo Emit(IR::Block ir_block);
     void Link(EmittedBlockInfo& block);
-    void LinkBlockLinks(const CodePtr entry_point, const CodePtr target_ptr, const std::vector<BlockRelocation>& block_relocations_list);
+    void LinkBlockLinks(const CodePtr entry_point, const CodePtr target_ptr,
+                        const std::vector<BlockRelocation>& block_relocations_list);
     void RelinkForDescriptor(IR::LocationDescriptor target_descriptor, CodePtr target_ptr);
 
     FakeCall FastmemCallback(u64 host_pc);
@@ -80,7 +83,8 @@ protected:
     std::map<CodePtr, IR::LocationDescriptor> reverse_block_entries;
     ankerl::unordered_dense::map<IR::LocationDescriptor, CodePtr> block_entries;
     ankerl::unordered_dense::map<CodePtr, EmittedBlockInfo> block_infos;
-    ankerl::unordered_dense::map<IR::LocationDescriptor, ankerl::unordered_dense::set<CodePtr>> block_references;
+    ankerl::unordered_dense::map<IR::LocationDescriptor, ankerl::unordered_dense::set<CodePtr>>
+        block_references;
 
     ExceptionHandler exception_handler;
     FastmemManager fastmem_manager;
@@ -88,7 +92,8 @@ protected:
     struct PreludeInfo {
         std::ptrdiff_t end_of_prelude;
 
-        using RunCodeFuncType = HaltReason (*)(CodePtr entry_point, void* jit_state, volatile u32* halt_reason);
+        using RunCodeFuncType = HaltReason (*)(CodePtr entry_point, void* jit_state,
+                                               volatile u32* halt_reason);
         RunCodeFuncType run_code;
         RunCodeFuncType step_code;
         void* return_to_dispatcher;
@@ -137,4 +142,4 @@ protected:
     } prelude_info;
 };
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

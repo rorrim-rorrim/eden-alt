@@ -288,9 +288,8 @@ Result CheckOpenSSLErrors() {
             msg.append(" | ");
             msg.append(data);
         }
-        Common::Log::FmtLogMessage(Common::Log::Class::Service_SSL, Common::Log::Level::Error,
-                                   file, line, func, "OpenSSL: {}",
-                                   msg);
+        Common::Log::FmtLogMessage(Common::Log::Class::Service_SSL, Common::Log::Level::Error, file,
+                                   line, func, "OpenSSL: {}", msg);
     }
     return ResultInternalError;
 }

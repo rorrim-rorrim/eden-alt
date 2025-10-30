@@ -17,16 +17,16 @@
 
 namespace Dynarmic::Safe {
 
-template<typename T>
+template <typename T>
 T LogicalShiftLeft(T value, int shift_amount);
-template<typename T>
+template <typename T>
 T LogicalShiftRight(T value, int shift_amount);
-template<typename T>
+template <typename T>
 T ArithmeticShiftLeft(T value, int shift_amount);
-template<typename T>
+template <typename T>
 T ArithmeticShiftRight(T value, int shift_amount);
 
-template<typename T>
+template <typename T>
 T LogicalShiftLeft(T value, int shift_amount) {
     static_assert(std::is_integral_v<T>);
 
@@ -42,12 +42,12 @@ T LogicalShiftLeft(T value, int shift_amount) {
     return static_cast<T>(unsigned_value << shift_amount);
 }
 
-template<>
+template <>
 inline u128 LogicalShiftLeft(u128 value, int shift_amount) {
     return value << shift_amount;
 }
 
-template<typename T>
+template <typename T>
 T LogicalShiftRight(T value, int shift_amount) {
     static_assert(std::is_integral_v<T>);
 
@@ -63,17 +63,18 @@ T LogicalShiftRight(T value, int shift_amount) {
     return static_cast<T>(unsigned_value >> shift_amount);
 }
 
-template<>
+template <>
 inline u128 LogicalShiftRight(u128 value, int shift_amount) {
     return value >> shift_amount;
 }
 
-template<typename T>
+template <typename T>
 T LogicalShiftRightDouble(T top, T bottom, int shift_amount) {
-    return LogicalShiftLeft(top, int(mcl::bitsizeof<T>) - shift_amount) | LogicalShiftRight(bottom, shift_amount);
+    return LogicalShiftLeft(top, int(mcl::bitsizeof<T>) - shift_amount) |
+           LogicalShiftRight(bottom, shift_amount);
 }
 
-template<typename T>
+template <typename T>
 T ArithmeticShiftLeft(T value, int shift_amount) {
     static_assert(std::is_integral_v<T>);
 
@@ -89,7 +90,7 @@ T ArithmeticShiftLeft(T value, int shift_amount) {
     return static_cast<T>(unsigned_value << shift_amount);
 }
 
-template<typename T>
+template <typename T>
 T ArithmeticShiftRight(T value, int shift_amount) {
     static_assert(std::is_integral_v<T>);
 
@@ -105,14 +106,15 @@ T ArithmeticShiftRight(T value, int shift_amount) {
     return static_cast<T>(signed_value >> shift_amount);
 }
 
-template<typename T>
+template <typename T>
 T ArithmeticShiftRightDouble(T top, T bottom, int shift_amount) {
-    return ArithmeticShiftLeft(top, int(mcl::bitsizeof<T>) - shift_amount) | LogicalShiftRight(bottom, shift_amount);
+    return ArithmeticShiftLeft(top, int(mcl::bitsizeof<T>) - shift_amount) |
+           LogicalShiftRight(bottom, shift_amount);
 }
 
-template<typename T>
+template <typename T>
 T Negate(T value) {
     return static_cast<T>(~static_cast<std::uintmax_t>(value) + 1);
 }
 
-}  // namespace Dynarmic::Safe
+} // namespace Dynarmic::Safe

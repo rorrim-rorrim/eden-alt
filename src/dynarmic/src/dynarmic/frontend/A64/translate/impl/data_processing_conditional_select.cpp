@@ -25,7 +25,8 @@ bool TranslatorVisitor::CSINC(bool sf, Reg Rm, Cond cond, Reg Rn, Reg Rd) {
     const IR::U32U64 operand1 = X(datasize, Rn);
     const IR::U32U64 operand2 = X(datasize, Rm);
 
-    const IR::U32U64 result = ir.ConditionalSelect(cond, operand1, ir.Add(operand2, I(datasize, 1)));
+    const IR::U32U64 result =
+        ir.ConditionalSelect(cond, operand1, ir.Add(operand2, I(datasize, 1)));
 
     X(datasize, Rd, result);
     return true;
@@ -49,10 +50,11 @@ bool TranslatorVisitor::CSNEG(bool sf, Reg Rm, Cond cond, Reg Rn, Reg Rd) {
     const IR::U32U64 operand1 = X(datasize, Rn);
     const IR::U32U64 operand2 = X(datasize, Rm);
 
-    const IR::U32U64 result = ir.ConditionalSelect(cond, operand1, ir.Add(ir.Not(operand2), I(datasize, 1)));
+    const IR::U32U64 result =
+        ir.ConditionalSelect(cond, operand1, ir.Add(ir.Not(operand2), I(datasize, 1)));
 
     X(datasize, Rd, result);
     return true;
 }
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64

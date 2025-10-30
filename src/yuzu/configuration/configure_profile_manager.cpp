@@ -32,8 +32,8 @@
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "ui_configure_profile_manager.h"
-#include "yuzu/util/limitable_input_dialog.h"
 #include "yuzu/configuration/configure_profile_manager.h"
+#include "yuzu/util/limitable_input_dialog.h"
 
 namespace {
 // Same backup JPEG used by acc IProfile::GetImage if no jpeg found
@@ -372,14 +372,16 @@ bool ConfigureProfileManager::LoadAvatarData() {
     }
     const auto romfs = nca->GetRomFS();
     if (!romfs) {
-        QMessageBox::warning(this, tr("Error loading archive"),
-                             tr("Could not locate RomFS. Your file or decryption keys may be corrupted."));
+        QMessageBox::warning(
+            this, tr("Error loading archive"),
+            tr("Could not locate RomFS. Your file or decryption keys may be corrupted."));
         return false;
     }
     const auto extracted = FileSys::ExtractRomFS(romfs);
     if (!extracted) {
-        QMessageBox::warning(this, tr("Error extracting archive"),
-                             tr("Could not extract RomFS. Your file or decryption keys may be corrupted."));
+        QMessageBox::warning(
+            this, tr("Error extracting archive"),
+            tr("Could not extract RomFS. Your file or decryption keys may be corrupted."));
         return false;
     }
     const auto chara_dir = extracted->GetSubdirectory("chara");

@@ -13,10 +13,10 @@
 #include "hid_core/hid_core.h"
 
 #include "frontend_common/config.h"
+#include "qt_common/config/uisettings.h"
 #include "ui_configure_hotkeys.h"
 #include "yuzu/configuration/configure_hotkeys.h"
 #include "yuzu/hotkeys.h"
-#include "qt_common/config/uisettings.h"
 #include "yuzu/util/sequence_dialog/sequence_dialog.h"
 
 constexpr int name_column = 0;

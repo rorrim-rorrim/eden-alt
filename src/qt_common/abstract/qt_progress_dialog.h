@@ -17,15 +17,10 @@ using QtProgressDialog = QProgressDialog;
 
 // TODO(crueter): QML impl
 #else
-class QtProgressDialog
-{
+class QtProgressDialog {
 public:
-    QtProgressDialog(const QString &labelText,
-                     const QString &cancelButtonText,
-                     int minimum,
-                     int maximum,
-                     QObject *parent = nullptr,
-                     Qt::WindowFlags f = Qt::WindowFlags());
+    QtProgressDialog(const QString& labelText, const QString& cancelButtonText, int minimum,
+                     int maximum, QObject* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 
     bool wasCanceled() const;
     void setWindowModality(Qt::WindowModality modality);
@@ -34,7 +29,7 @@ public:
     void setAutoReset(bool autoReset);
 
 public slots:
-    void setLabelText(QString &text);
+    void setLabelText(QString& text);
     void setRange(int min, int max);
     void setValue(int progress);
     bool close();
@@ -43,5 +38,5 @@ public slots:
 };
 #endif // YUZU_QT_WIDGETS
 
-}
+} // namespace QtCommon::Frontend
 #endif // QT_PROGRESS_DIALOG_H

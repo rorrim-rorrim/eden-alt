@@ -1804,7 +1804,8 @@ U8U16U32U64 IR::IREmitter::SConvert(size_t result_bitsize, const U8U16U32U64& va
     default:
         break;
     }
-    throw NotImplementedException("Signed Conversion from {} to {} bits", value.Type(), result_bitsize);
+    throw NotImplementedException("Signed Conversion from {} to {} bits", value.Type(),
+                                  result_bitsize);
 }
 
 F16F32F64 IREmitter::FPConvert(size_t result_bitsize, const F16F32F64& value, FpControl control) {

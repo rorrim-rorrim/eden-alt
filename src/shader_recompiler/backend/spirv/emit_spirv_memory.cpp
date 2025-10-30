@@ -29,7 +29,7 @@ Id StorageIndex(EmitContext& ctx, const IR::Value& offset, size_t element_size,
 
 Id StoragePointer(EmitContext& ctx, const IR::Value& binding, const IR::Value& offset,
                   const StorageTypeDefinition& type_def, size_t element_size,
-                  Id StorageDefinitions::*member_ptr, u32 index_offset = 0) {
+                  Id StorageDefinitions::* member_ptr, u32 index_offset = 0) {
     if (!binding.IsImmediate()) {
         throw NotImplementedException("Dynamic storage buffer indexing");
     }
@@ -40,7 +40,7 @@ Id StoragePointer(EmitContext& ctx, const IR::Value& binding, const IR::Value& o
 
 Id LoadStorage(EmitContext& ctx, const IR::Value& binding, const IR::Value& offset, Id result_type,
                const StorageTypeDefinition& type_def, size_t element_size,
-               Id StorageDefinitions::*member_ptr, u32 index_offset = 0) {
+               Id StorageDefinitions::* member_ptr, u32 index_offset = 0) {
     const Id pointer{
         StoragePointer(ctx, binding, offset, type_def, element_size, member_ptr, index_offset)};
     return ctx.OpLoad(result_type, pointer);
@@ -54,7 +54,7 @@ Id LoadStorage32(EmitContext& ctx, const IR::Value& binding, const IR::Value& of
 
 void WriteStorage(EmitContext& ctx, const IR::Value& binding, const IR::Value& offset, Id value,
                   const StorageTypeDefinition& type_def, size_t element_size,
-                  Id StorageDefinitions::*member_ptr, u32 index_offset = 0) {
+                  Id StorageDefinitions::* member_ptr, u32 index_offset = 0) {
     const Id pointer{
         StoragePointer(ctx, binding, offset, type_def, element_size, member_ptr, index_offset)};
     ctx.OpStore(pointer, value);

@@ -12,7 +12,7 @@
 
 namespace Dynarmic::IR {
 enum class Cond;
-}  // namespace Dynarmic::IR
+} // namespace Dynarmic::IR
 
 namespace Dynarmic::A32 {
 
@@ -26,11 +26,12 @@ enum class ConditionalState {
     Break,
     /// This basic block is made up solely of conditional instructions.
     Translating,
-    /// This basic block is made up of conditional instructions followed by unconditional instructions.
+    /// This basic block is made up of conditional instructions followed by unconditional
+    /// instructions.
     Trailing,
 };
 
 bool CondCanContinue(const ConditionalState cond_state, const A32::IREmitter& ir);
 bool IsConditionPassed(TranslatorVisitor& v, IR::Cond cond);
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

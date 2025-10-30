@@ -18,17 +18,17 @@
 #if defined(ARCHITECTURE_x86_64)
 namespace Dynarmic::Backend::X64 {
 class BlockOfCode;
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64
 #elif defined(ARCHITECTURE_arm64)
 namespace oaknut {
 class CodeBlock;
-}  // namespace oaknut
+} // namespace oaknut
 #elif defined(ARCHITECTURE_riscv64)
 namespace Dynarmic::Backend::RV64 {
 class CodeBlock;
-}  // namespace Dynarmic::Backend::RV64
+} // namespace Dynarmic::Backend::RV64
 #else
-#    error "Invalid architecture"
+#error "Invalid architecture"
 #endif
 
 namespace Dynarmic::Backend {
@@ -43,10 +43,9 @@ struct FakeCall {
     u64 call_pc;
 };
 #elif defined(ARCHITECTURE_riscv64)
-struct FakeCall {
-};
+struct FakeCall {};
 #else
-#    error "Invalid architecture"
+#error "Invalid architecture"
 #endif
 
 class ExceptionHandler final {
@@ -61,7 +60,7 @@ public:
 #elif defined(ARCHITECTURE_riscv64)
     void Register(RV64::CodeBlock& mem, std::size_t mem_size);
 #else
-#    error "Invalid architecture"
+#error "Invalid architecture"
 #endif
 
     bool SupportsFastmem() const noexcept;
@@ -72,4 +71,4 @@ private:
     std::unique_ptr<Impl> impl;
 };
 
-}  // namespace Dynarmic::Backend
+} // namespace Dynarmic::Backend

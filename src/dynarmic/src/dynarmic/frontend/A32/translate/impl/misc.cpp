@@ -50,7 +50,8 @@ bool TranslatorVisitor::arm_BFI(Cond cond, Imm<5> msb, Reg d, Imm<5> lsb, Reg n)
     const u32 inclusion_mask = mcl::bit::ones<u32>(msb_value - lsb_value + 1) << lsb_value;
     const u32 exclusion_mask = ~inclusion_mask;
     const IR::U32 operand1 = ir.And(ir.GetRegister(d), ir.Imm32(exclusion_mask));
-    const IR::U32 operand2 = ir.And(ir.LogicalShiftLeft(ir.GetRegister(n), ir.Imm8(u8(lsb_value))), ir.Imm32(inclusion_mask));
+    const IR::U32 operand2 = ir.And(ir.LogicalShiftLeft(ir.GetRegister(n), ir.Imm8(u8(lsb_value))),
+                                    ir.Imm32(inclusion_mask));
     const IR::U32 result = ir.Or(operand1, operand2);
 
     ir.SetRegister(d, result);
@@ -176,4 +177,4 @@ bool TranslatorVisitor::arm_UBFX(Cond cond, Imm<5> widthm1, Reg d, Imm<5> lsb, R
     return true;
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

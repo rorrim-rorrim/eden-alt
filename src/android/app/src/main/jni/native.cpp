@@ -4,7 +4,6 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-
 #include <codecvt>
 #include <locale>
 #include <span>
@@ -26,9 +25,9 @@
 #include <frontend_common/content_manager.h>
 #include <jni.h>
 
-#include "common/android/multiplayer/multiplayer.h"
 #include "common/android/android_common.h"
 #include "common/android/id_cache.h"
+#include "common/android/multiplayer/multiplayer.h"
 #include "common/detached_tasks.h"
 #include "common/dynamic_library.h"
 #include "common/fs/path_util.h"
@@ -38,7 +37,6 @@
 #include "common/scope_exit.h"
 #include "common/settings.h"
 #include "common/string_util.h"
-#include "frontend_common/play_time_manager.h"
 #include "core/core.h"
 #include "core/cpu_manager.h"
 #include "core/crypto/key_manager.h"
@@ -63,6 +61,7 @@
 #include "core/loader/loader.h"
 #include "frontend_common/config.h"
 #include "frontend_common/firmware_manager.h"
+#include "frontend_common/play_time_manager.h"
 #ifdef ENABLE_UPDATE_CHECKER
 #include "frontend_common/update_checker.h"
 #endif
@@ -71,23 +70,23 @@
 #include "hid_core/hid_types.h"
 #include "input_common/drivers/virtual_amiibo.h"
 #include "jni/native.h"
+#include "network/announce_multiplayer_session.h"
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
+#include "video_core/shader_notify.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_surface.h"
-#include "video_core/shader_notify.h"
-#include "network/announce_multiplayer_session.h"
 
 #define jconst [[maybe_unused]] const auto
 #define jauto [[maybe_unused]] auto
 
 static EmulationSession s_instance;
 
-//Abdroid Multiplayer which can be initialized with parameters
+// Abdroid Multiplayer which can be initialized with parameters
 std::unique_ptr<AndroidMultiplayer> multiplayer{nullptr};
 std::shared_ptr<Core::AnnounceMultiplayerSession> announce_multiplayer_session;
 
-//Power Status default values
+// Power Status default values
 std::atomic<int> g_battery_percentage = {100};
 std::atomic<bool> g_is_charging = {false};
 std::atomic<bool> g_has_battery = {true};
@@ -585,7 +584,9 @@ jobjectArray Java_org_yuzu_yuzu_1emu_utils_GpuDriverHelper_getSystemDriverInfo(
     return j_driver_info;
 }
 
-jstring Java_org_yuzu_yuzu_1emu_utils_GpuDriverHelper_getGpuModel(JNIEnv *env, jobject j_obj, jobject j_surf, jstring j_hook_lib_dir) {
+jstring Java_org_yuzu_yuzu_1emu_utils_GpuDriverHelper_getGpuModel(JNIEnv* env, jobject j_obj,
+                                                                  jobject j_surf,
+                                                                  jstring j_hook_lib_dir) {
     const char* file_redirect_dir_{};
     int featureFlags{};
     std::string hook_lib_dir = Common::Android::GetJString(env, j_hook_lib_dir);
@@ -594,11 +595,11 @@ jstring Java_org_yuzu_yuzu_1emu_utils_GpuDriverHelper_getGpuModel(JNIEnv *env, j
     auto driver_library = std::make_shared<Common::DynamicLibrary>(handle);
     InputCommon::InputSubsystem input_subsystem;
     auto window =
-            std::make_unique<EmuWindow_Android>(ANativeWindow_fromSurface(env, j_surf), driver_library);
+        std::make_unique<EmuWindow_Android>(ANativeWindow_fromSurface(env, j_surf), driver_library);
 
     Vulkan::vk::InstanceDispatch dld;
     Vulkan::vk::Instance vk_instance = Vulkan::CreateInstance(
-            *driver_library, dld, VK_API_VERSION_1_1, Core::Frontend::WindowSystemType::Android);
+        *driver_library, dld, VK_API_VERSION_1_1, Core::Frontend::WindowSystemType::Android);
 
     auto surface = Vulkan::CreateSurface(vk_instance, window->GetWindowInfo());
 
@@ -757,7 +758,8 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_playTimeManagerInit(JNIEnv* env, jobj
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_playTimeManagerStart(JNIEnv* env, jobject obj) {
     if (play_time_manager) {
-        play_time_manager->SetProgramId(EmulationSession::GetInstance().System().GetApplicationProcessProgramID());
+        play_time_manager->SetProgramId(
+            EmulationSession::GetInstance().System().GetApplicationProcessProgramID());
         play_time_manager->Start();
     }
 }
@@ -777,8 +779,9 @@ jlong Java_org_yuzu_yuzu_1emu_NativeLibrary_playTimeManagerGetCurrentTitleId(JNI
     return EmulationSession::GetInstance().System().GetApplicationProcessProgramID();
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_playTimeManagerResetProgramPlayTime(JNIEnv* env, jobject obj,
-                                                                jstring jprogramId) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_playTimeManagerResetProgramPlayTime(JNIEnv* env,
+                                                                               jobject obj,
+                                                                               jstring jprogramId) {
     u64 program_id = EmulationSession::GetProgramId(env, jprogramId);
     if (play_time_manager) {
         play_time_manager->ResetProgramPlayTime(program_id);
@@ -786,7 +789,8 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_playTimeManagerResetProgramPlayTime(J
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_playTimeManagerSetPlayTime(JNIEnv* env, jobject obj,
-                                                                jstring jprogramId, jlong playTimeSeconds) {
+                                                                      jstring jprogramId,
+                                                                      jlong playTimeSeconds) {
     u64 program_id = EmulationSession::GetProgramId(env, jprogramId);
     if (play_time_manager) {
         play_time_manager->SetPlayTime(program_id, static_cast<u64>(playTimeSeconds));
@@ -846,13 +850,15 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_firmwareVersion(JNIEnv* env, jclas
     return Common::Android::ToJString(env, display_version);
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_gameRequiresFirmware(JNIEnv* env, jclass clazz, jstring jprogramId) {
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_gameRequiresFirmware(JNIEnv* env, jclass clazz,
+                                                                    jstring jprogramId) {
     auto program_id = EmulationSession::GetProgramId(env, jprogramId);
 
     return FirmwareManager::GameRequiresFirmware(program_id);
 }
 
-jint Java_org_yuzu_yuzu_1emu_NativeLibrary_installKeys(JNIEnv* env, jclass clazz, jstring jpath, jstring jext) {
+jint Java_org_yuzu_yuzu_1emu_NativeLibrary_installKeys(JNIEnv* env, jclass clazz, jstring jpath,
+                                                       jstring jext) {
     const auto path = Common::Android::GetJString(env, jpath);
     const auto ext = Common::Android::GetJString(env, jext);
 
@@ -1013,8 +1019,7 @@ jint Java_org_yuzu_yuzu_1emu_NativeLibrary_getVirtualAmiiboState(JNIEnv* env, jo
         return static_cast<jint>(InputCommon::VirtualAmiibo::State::Disabled);
     }
 
-    auto* virtual_amiibo =
-        EmulationSession::GetInstance().GetInputSubsystem().GetVirtualAmiibo();
+    auto* virtual_amiibo = EmulationSession::GetInstance().GetInputSubsystem().GetVirtualAmiibo();
     if (virtual_amiibo == nullptr) {
         return static_cast<jint>(InputCommon::VirtualAmiibo::State::Disabled);
     }
@@ -1022,14 +1027,12 @@ jint Java_org_yuzu_yuzu_1emu_NativeLibrary_getVirtualAmiiboState(JNIEnv* env, jo
     return static_cast<jint>(virtual_amiibo->GetCurrentState());
 }
 
-jint Java_org_yuzu_yuzu_1emu_NativeLibrary_loadAmiibo(JNIEnv* env, jobject jobj,
-                                                      jbyteArray jdata) {
+jint Java_org_yuzu_yuzu_1emu_NativeLibrary_loadAmiibo(JNIEnv* env, jobject jobj, jbyteArray jdata) {
     if (!EmulationSession::GetInstance().IsRunning() || jdata == nullptr) {
         return static_cast<jint>(InputCommon::VirtualAmiibo::Info::WrongDeviceState);
     }
 
-    auto* virtual_amiibo =
-        EmulationSession::GetInstance().GetInputSubsystem().GetVirtualAmiibo();
+    auto* virtual_amiibo = EmulationSession::GetInstance().GetInputSubsystem().GetVirtualAmiibo();
     if (virtual_amiibo == nullptr) {
         return static_cast<jint>(InputCommon::VirtualAmiibo::Info::Unknown);
     }
@@ -1037,115 +1040,105 @@ jint Java_org_yuzu_yuzu_1emu_NativeLibrary_loadAmiibo(JNIEnv* env, jobject jobj,
     const jsize length = env->GetArrayLength(jdata);
     std::vector<u8> bytes(static_cast<std::size_t>(length));
     if (length > 0) {
-        env->GetByteArrayRegion(jdata, 0, length,
-                                reinterpret_cast<jbyte*>(bytes.data()));
+        env->GetByteArrayRegion(jdata, 0, length, reinterpret_cast<jbyte*>(bytes.data()));
     }
 
-    const auto info =
-        virtual_amiibo->LoadAmiibo(std::span<u8>(bytes.data(), bytes.size()));
+    const auto info = virtual_amiibo->LoadAmiibo(std::span<u8>(bytes.data(), bytes.size()));
     return static_cast<jint>(info);
 }
 
 JNIEXPORT void JNICALL
-Java_org_yuzu_yuzu_1emu_NativeLibrary_initMultiplayer(
-        JNIEnv* env, [[maybe_unused]] jobject obj) {
+Java_org_yuzu_yuzu_1emu_NativeLibrary_initMultiplayer(JNIEnv* env, [[maybe_unused]] jobject obj) {
     if (multiplayer) {
         return;
     }
 
     announce_multiplayer_session = std::make_shared<Core::AnnounceMultiplayerSession>();
 
-    multiplayer = std::make_unique<AndroidMultiplayer>(s_instance.System(), announce_multiplayer_session);
+    multiplayer =
+        std::make_unique<AndroidMultiplayer>(s_instance.System(), announce_multiplayer_session);
     multiplayer->NetworkInit();
 }
 
-JNIEXPORT jobjectArray JNICALL
-Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayGetPublicRooms(
-        JNIEnv *env, [[maybe_unused]] jobject obj) {
+JNIEXPORT jobjectArray JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayGetPublicRooms(
+    JNIEnv* env, [[maybe_unused]] jobject obj) {
     return Common::Android::ToJStringArray(env, multiplayer->NetPlayGetPublicRooms());
 }
 
 JNIEXPORT jint JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayCreateRoom(
-        JNIEnv* env, [[maybe_unused]] jobject obj, jstring ipaddress, jint port,
-        jstring username, jstring preferredGameName, jlong preferredGameId, jstring password,
-        jstring room_name, jint max_players, jboolean isPublic) {
-    return static_cast<jint>(
-            multiplayer->NetPlayCreateRoom(Common::Android::GetJString(env, ipaddress), port,
-                              Common::Android::GetJString(env, username), Common::Android::GetJString(env, preferredGameName),
-                              preferredGameId,Common::Android::GetJString(env, password),
-                              Common::Android::GetJString(env, room_name), max_players, isPublic));
+    JNIEnv* env, [[maybe_unused]] jobject obj, jstring ipaddress, jint port, jstring username,
+    jstring preferredGameName, jlong preferredGameId, jstring password, jstring room_name,
+    jint max_players, jboolean isPublic) {
+    return static_cast<jint>(multiplayer->NetPlayCreateRoom(
+        Common::Android::GetJString(env, ipaddress), port,
+        Common::Android::GetJString(env, username),
+        Common::Android::GetJString(env, preferredGameName), preferredGameId,
+        Common::Android::GetJString(env, password), Common::Android::GetJString(env, room_name),
+        max_players, isPublic));
 }
 
 JNIEXPORT jint JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayJoinRoom(
-        JNIEnv* env, [[maybe_unused]] jobject obj, jstring ipaddress, jint port,
-        jstring username, jstring password) {
-    return static_cast<jint>(
-            multiplayer->NetPlayJoinRoom(Common::Android::GetJString(env, ipaddress), port,
-                            Common::Android::GetJString(env, username), Common::Android::GetJString(env, password)));
+    JNIEnv* env, [[maybe_unused]] jobject obj, jstring ipaddress, jint port, jstring username,
+    jstring password) {
+    return static_cast<jint>(multiplayer->NetPlayJoinRoom(
+        Common::Android::GetJString(env, ipaddress), port,
+        Common::Android::GetJString(env, username), Common::Android::GetJString(env, password)));
 }
 
-JNIEXPORT jobjectArray JNICALL
-Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayRoomInfo(
-        JNIEnv* env, [[maybe_unused]] jobject obj) {
+JNIEXPORT jobjectArray JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayRoomInfo(
+    JNIEnv* env, [[maybe_unused]] jobject obj) {
     return Common::Android::ToJStringArray(env, multiplayer->NetPlayRoomInfo());
 }
 
-JNIEXPORT jboolean JNICALL
-Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayIsJoined(
-        [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayIsJoined(
+    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
     return multiplayer->NetPlayIsJoined();
 }
 
-JNIEXPORT jboolean JNICALL
-Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayIsHostedRoom(
-        [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayIsHostedRoom(
+    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
     return multiplayer->NetPlayIsHostedRoom();
 }
 
-JNIEXPORT void JNICALL
-Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlaySendMessage(
-        JNIEnv* env, [[maybe_unused]] jobject obj, jstring msg) {
+JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlaySendMessage(
+    JNIEnv* env, [[maybe_unused]] jobject obj, jstring msg) {
     multiplayer->NetPlaySendMessage(Common::Android::GetJString(env, msg));
 }
 
 JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayKickUser(
-        JNIEnv* env, [[maybe_unused]] jobject obj, jstring username) {
+    JNIEnv* env, [[maybe_unused]] jobject obj, jstring username) {
     multiplayer->NetPlayKickUser(Common::Android::GetJString(env, username));
 }
 
 JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayLeaveRoom(
-        [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
+    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
     multiplayer->NetPlayLeaveRoom();
 }
 
-JNIEXPORT jboolean JNICALL
-Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayIsModerator(
-        [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayIsModerator(
+    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
     return multiplayer->NetPlayIsModerator();
 }
 
-JNIEXPORT jobjectArray JNICALL
-Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayGetBanList(
-        JNIEnv* env, [[maybe_unused]] jobject obj) {
+JNIEXPORT jobjectArray JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayGetBanList(
+    JNIEnv* env, [[maybe_unused]] jobject obj) {
     return Common::Android::ToJStringArray(env, multiplayer->NetPlayGetBanList());
 }
 
 JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayBanUser(
-        JNIEnv* env, [[maybe_unused]] jobject obj, jstring username) {
+    JNIEnv* env, [[maybe_unused]] jobject obj, jstring username) {
     multiplayer->NetPlayBanUser(Common::Android::GetJString(env, username));
 }
 
 JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayUnbanUser(
-        JNIEnv* env, [[maybe_unused]] jobject obj, jstring username) {
+    JNIEnv* env, [[maybe_unused]] jobject obj, jstring username) {
     multiplayer->NetPlayUnbanUser(Common::Android::GetJString(env, username));
 }
 
-JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_updatePowerState(
-        JNIEnv* env,
-        jobject,
-        jint percentage,
-        jboolean isCharging,
-        jboolean hasBattery) {
+JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_updatePowerState(JNIEnv* env, jobject,
+                                                                              jint percentage,
+                                                                              jboolean isCharging,
+                                                                              jboolean hasBattery) {
 
     g_battery_percentage.store(percentage, std::memory_order_relaxed);
     g_is_charging.store(isCharging, std::memory_order_relaxed);
@@ -1153,21 +1146,19 @@ JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_updatePowerState(
 }
 
 //  return #ifdef ENABLE_UPDATE_CHECKER
-JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_isUpdateCheckerEnabled(
-        JNIEnv* env,
-        jobject obj) {
+JNIEXPORT jboolean JNICALL
+Java_org_yuzu_yuzu_1emu_NativeLibrary_isUpdateCheckerEnabled(JNIEnv* env, jobject obj) {
 #ifdef ENABLE_UPDATE_CHECKER
     return JNI_TRUE;
 #else
     return JNI_FALSE;
 #endif
-    }
+}
 
 #ifdef ENABLE_UPDATE_CHECKER
 
-JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_checkForUpdate(
-        JNIEnv* env,
-        jobject obj) {
+JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_checkForUpdate(JNIEnv* env,
+                                                                               jobject obj) {
     const bool is_prerelease = ((strstr(Common::g_build_version, "pre-alpha") != nullptr) ||
                                 (strstr(Common::g_build_version, "alpha") != nullptr) ||
                                 (strstr(Common::g_build_version, "beta") != nullptr) ||
@@ -1181,15 +1172,13 @@ JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_checkForUpdate(
     return nullptr;
 }
 
-JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUpdateUrl(
-        JNIEnv* env,
-        jobject obj,
-        jstring version) {
+JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUpdateUrl(JNIEnv* env,
+                                                                             jobject obj,
+                                                                             jstring version) {
     const char* version_str = env->GetStringUTFChars(version, nullptr);
-    const std::string url = fmt::format("{}/{}/releases/tag/{}",
-        std::string{Common::g_build_auto_update_website},
-        std::string{Common::g_build_auto_update_repo},
-        version_str);
+    const std::string url =
+        fmt::format("{}/{}/releases/tag/{}", std::string{Common::g_build_auto_update_website},
+                    std::string{Common::g_build_auto_update_repo}, version_str);
     env->ReleaseStringUTFChars(version, version_str);
     return env->NewStringUTF(url.c_str());
 }

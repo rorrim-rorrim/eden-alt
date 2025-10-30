@@ -39,15 +39,13 @@ std::string_view GetNameOf(Opcode op) noexcept;
 
 /// @brief Determines whether or not this instruction performs an arithmetic shift.
 constexpr bool IsArithmeticShift(const Opcode op) noexcept {
-    return op == Opcode::ArithmeticShiftRight32
-        || op == Opcode::ArithmeticShiftRight64;
+    return op == Opcode::ArithmeticShiftRight32 || op == Opcode::ArithmeticShiftRight64;
 }
 
 /// @brief Determines whether or not this instruction performs a logical shift.
 constexpr bool IsCircularShift(const Opcode op) noexcept {
-    return op == Opcode::RotateRight32
-        || op == Opcode::RotateRight64
-        || op == Opcode::RotateRightExtended;
+    return op == Opcode::RotateRight32 || op == Opcode::RotateRight64 ||
+           op == Opcode::RotateRightExtended;
 }
 
 /// @brief Determines whether or not this instruction performs a circular shift.
@@ -300,7 +298,8 @@ constexpr bool WritesToFPCR(const Opcode op) noexcept {
     }
 }
 
-/// @brief Determines whether or not this instruction both reads from and writes to the FPSR cumulative exception bits.
+/// @brief Determines whether or not this instruction both reads from and writes to the FPSR
+/// cumulative exception bits.
 constexpr bool ReadsFromAndWritesToFPSRCumulativeExceptionBits(const Opcode op) noexcept {
     switch (op) {
     case Opcode::FPAdd32:
@@ -533,37 +532,27 @@ constexpr bool WritesToFPSRCumulativeSaturationBit(const Opcode op) noexcept {
 
 /// @brief Determines whether or not this instruction reads from the FPSR.
 constexpr bool ReadsFromFPSR(const Opcode op) noexcept {
-    return op == Opcode::A32GetFpscr
-        || op == Opcode::A32GetFpscrNZCV
-        || op == Opcode::A64GetFPSR
-        || ReadsFromFPSRCumulativeExceptionBits(op)
-        || ReadsFromFPSRCumulativeSaturationBit(op);
+    return op == Opcode::A32GetFpscr || op == Opcode::A32GetFpscrNZCV || op == Opcode::A64GetFPSR ||
+           ReadsFromFPSRCumulativeExceptionBits(op) || ReadsFromFPSRCumulativeSaturationBit(op);
 }
 
 /// @brief Determines whether or not this instruction writes to the FPSR.
 constexpr bool WritesToFPSR(const Opcode op) noexcept {
-    return op == Opcode::A32SetFpscr
-        || op == Opcode::A32SetFpscrNZCV
-        || op == Opcode::A64SetFPSR
-        || WritesToFPSRCumulativeExceptionBits(op)
-        || WritesToFPSRCumulativeSaturationBit(op);
+    return op == Opcode::A32SetFpscr || op == Opcode::A32SetFpscrNZCV || op == Opcode::A64SetFPSR ||
+           WritesToFPSRCumulativeExceptionBits(op) || WritesToFPSRCumulativeSaturationBit(op);
 }
 
 /// @brief Determines whether or not this instruction causes a CPU exception.
 constexpr bool CausesCPUException(const Opcode op) noexcept {
-    return op == Opcode::Breakpoint
-        || op == Opcode::A32CallSupervisor
-        || op == Opcode::A32ExceptionRaised
-        || op == Opcode::A64CallSupervisor
-        || op == Opcode::A64ExceptionRaised;
+    return op == Opcode::Breakpoint || op == Opcode::A32CallSupervisor ||
+           op == Opcode::A32ExceptionRaised || op == Opcode::A64CallSupervisor ||
+           op == Opcode::A64ExceptionRaised;
 }
 
 /// @brief Determines whether or not this instruction alters memory-exclusivity.
 constexpr bool AltersExclusiveState(const Opcode op) noexcept {
-    return op == Opcode::A32ClearExclusive
-        || op == Opcode::A64ClearExclusive
-        || IsExclusiveMemoryRead(op)
-        || IsExclusiveMemoryWrite(op);
+    return op == Opcode::A32ClearExclusive || op == Opcode::A64ClearExclusive ||
+           IsExclusiveMemoryRead(op) || IsExclusiveMemoryWrite(op);
 }
 
 /// @brief Determines whether or not this instruction accesses a coprocessor.
@@ -585,27 +574,17 @@ constexpr bool IsCoprocessorInstruction(const Opcode op) noexcept {
 
 /// @brief Determines whether or not this instruction is a SetCheckBit operation.
 constexpr bool IsSetCheckBitOperation(const Opcode op) noexcept {
-    return op == Opcode::A32SetCheckBit
-        || op == Opcode::A64SetCheckBit;
+    return op == Opcode::A32SetCheckBit || op == Opcode::A64SetCheckBit;
 }
 
 /// @brief Determines whether or not this instruction may have side-effects.
 constexpr bool MayHaveSideEffects(const Opcode op) noexcept {
-    return op == Opcode::PushRSB
-        || op == Opcode::CallHostFunction
-        || op == Opcode::A64DataCacheOperationRaised
-        || op == Opcode::A64InstructionCacheOperationRaised
-        || IsSetCheckBitOperation(op)
-        || IsBarrier(op)
-        || CausesCPUException(op)
-        || WritesToCoreRegister(op)
-        || WritesToSystemRegister(op)
-        || WritesToCPSR(op)
-        || WritesToFPCR(op)
-        || WritesToFPSR(op)
-        || AltersExclusiveState(op)
-        || IsMemoryWrite(op)
-        || IsCoprocessorInstruction(op);
+    return op == Opcode::PushRSB || op == Opcode::CallHostFunction ||
+           op == Opcode::A64DataCacheOperationRaised ||
+           op == Opcode::A64InstructionCacheOperationRaised || IsSetCheckBitOperation(op) ||
+           IsBarrier(op) || CausesCPUException(op) || WritesToCoreRegister(op) ||
+           WritesToSystemRegister(op) || WritesToCPSR(op) || WritesToFPCR(op) || WritesToFPSR(op) ||
+           AltersExclusiveState(op) || IsMemoryWrite(op) || IsCoprocessorInstruction(op);
 }
 
 /// @brief Determines whether or not this instruction is a pseduo-instruction.
@@ -653,4 +632,4 @@ constexpr bool MayGetNZCVFromOp(const Opcode op) noexcept {
     }
 }
 
-}  // namespace Dynarmic::IR
+} // namespace Dynarmic::IR

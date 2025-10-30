@@ -21,8 +21,8 @@ constexpr u32 MacroRegistersStart = 0xE00;
 
 DmaPusher::DmaPusher(Core::System& system_, GPU& gpu_, MemoryManager& memory_manager_,
                      Control::ChannelState& channel_state_)
-    : gpu{gpu_}, system{system_}, memory_manager{memory_manager_}, puller{gpu_, memory_manager_,
-                                                                          *this, channel_state_}, signal_sync{false}, synced{false} {}
+    : gpu{gpu_}, system{system_}, memory_manager{memory_manager_},
+      puller{gpu_, memory_manager_, *this, channel_state_}, signal_sync{false}, synced{false} {}
 
 DmaPusher::~DmaPusher() = default;
 
@@ -103,7 +103,8 @@ bool DmaPusher::Step() {
             ProcessCommands(headers);
         };
 
-        const bool use_safe = Settings::IsDMALevelDefault() ? Settings::IsGPULevelHigh() : Settings::IsDMALevelSafe();
+        const bool use_safe =
+            Settings::IsDMALevelDefault() ? Settings::IsGPULevelHigh() : Settings::IsDMALevelSafe();
 
         if (use_safe) {
             safe_process();
@@ -115,15 +116,16 @@ bool DmaPusher::Step() {
             // We've gone through the current list, remove it from the queue
             dma_pushbuffer.pop();
             dma_pushbuffer_subindex = 0;
-        } else if (command_list.command_lists[dma_pushbuffer_subindex].sync && Settings::values.sync_memory_operations.GetValue()) {
+        } else if (command_list.command_lists[dma_pushbuffer_subindex].sync &&
+                   Settings::values.sync_memory_operations.GetValue()) {
             signal_sync = true;
         }
 
         if (signal_sync) {
             rasterizer->SignalFence([this]() {
-            std::scoped_lock lk(sync_mutex);
-            synced = true;
-            sync_cv.notify_all();
+                std::scoped_lock lk(sync_mutex);
+                synced = true;
+                sync_cv.notify_all();
             });
         }
     }

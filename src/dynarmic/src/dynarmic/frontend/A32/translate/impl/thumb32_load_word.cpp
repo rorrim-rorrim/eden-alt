@@ -42,10 +42,9 @@ bool TranslatorVisitor::thumb32_LDR_imm8(Reg n, Reg t, bool P, bool U, bool W, I
 
     const u32 imm32 = imm8.ZeroExtend();
     const IR::U32 reg_n = ir.GetRegister(n);
-    const IR::U32 offset_address = U ? ir.Add(reg_n, ir.Imm32(imm32))
-                                     : ir.Sub(reg_n, ir.Imm32(imm32));
-    const IR::U32 address = P ? offset_address
-                              : reg_n;
+    const IR::U32 offset_address =
+        U ? ir.Add(reg_n, ir.Imm32(imm32)) : ir.Sub(reg_n, ir.Imm32(imm32));
+    const IR::U32 address = P ? offset_address : reg_n;
     const IR::U32 data = ir.ReadMemory32(address, IR::AccType::NORMAL);
 
     if (W) {
@@ -129,4 +128,4 @@ bool TranslatorVisitor::thumb32_LDRT(Reg n, Reg t, Imm<8> imm8) {
     return thumb32_LDR_imm8(n, t, true, true, false, imm8);
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

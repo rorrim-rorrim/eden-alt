@@ -36,7 +36,7 @@ void LanStation::OverrideInfo() {
 }
 
 LANDiscovery::LANDiscovery()
-    : stations({{{1, this}, {2, this}, {3, this}, {4, this}, {5, this}, {6, this}, {7, this}}}){}
+    : stations({{{1, this}, {2, this}, {3, this}, {4, this}, {5, this}, {6, this}, {7, this}}}) {}
 
 LANDiscovery::~LANDiscovery() {
     if (inited) {

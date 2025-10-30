@@ -8,7 +8,8 @@
 
 namespace Dynarmic::A32 {
 
-static bool LoadHalfLiteral(TranslatorVisitor& v, bool U, Reg t, Imm<12> imm12, ExtensionFunctionU16 ext_fn) {
+static bool LoadHalfLiteral(TranslatorVisitor& v, bool U, Reg t, Imm<12> imm12,
+                            ExtensionFunctionU16 ext_fn) {
     const auto imm32 = imm12.ZeroExtend();
     const auto base = v.ir.AlignPC(4);
     const auto address = U ? (base + imm32) : (base - imm32);
@@ -18,7 +19,8 @@ static bool LoadHalfLiteral(TranslatorVisitor& v, bool U, Reg t, Imm<12> imm12, 
     return true;
 }
 
-static bool LoadHalfRegister(TranslatorVisitor& v, Reg n, Reg t, Imm<2> imm2, Reg m, ExtensionFunctionU16 ext_fn) {
+static bool LoadHalfRegister(TranslatorVisitor& v, Reg n, Reg t, Imm<2> imm2, Reg m,
+                             ExtensionFunctionU16 ext_fn) {
     if (m == Reg::PC) {
         return v.UnpredictableInstruction();
     }
@@ -33,13 +35,13 @@ static bool LoadHalfRegister(TranslatorVisitor& v, Reg n, Reg t, Imm<2> imm2, Re
     return true;
 }
 
-static bool LoadHalfImmediate(TranslatorVisitor& v, Reg n, Reg t, bool P, bool U, bool W, Imm<12> imm12, ExtensionFunctionU16 ext_fn) {
+static bool LoadHalfImmediate(TranslatorVisitor& v, Reg n, Reg t, bool P, bool U, bool W,
+                              Imm<12> imm12, ExtensionFunctionU16 ext_fn) {
     const u32 imm32 = imm12.ZeroExtend();
     const IR::U32 reg_n = v.ir.GetRegister(n);
-    const IR::U32 offset_address = U ? v.ir.Add(reg_n, v.ir.Imm32(imm32))
-                                     : v.ir.Sub(reg_n, v.ir.Imm32(imm32));
-    const IR::U32 address = P ? offset_address
-                              : reg_n;
+    const IR::U32 offset_address =
+        U ? v.ir.Add(reg_n, v.ir.Imm32(imm32)) : v.ir.Sub(reg_n, v.ir.Imm32(imm32));
+    const IR::U32 address = P ? offset_address : reg_n;
     const IR::U32 data = (v.ir.*ext_fn)(v.ir.ReadMemory16(address, IR::AccType::NORMAL));
 
     if (W) {
@@ -134,4 +136,4 @@ bool TranslatorVisitor::thumb32_LDRSHT(Reg n, Reg t, Imm<8> imm8) {
     return thumb32_LDRSH_imm8(n, t, true, true, false, imm8);
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

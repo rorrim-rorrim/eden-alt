@@ -33,17 +33,21 @@ oaknut::Label EmitA64Cond(oaknut::CodeGenerator& code, EmitContext&, IR::Cond co
     return pass;
 }
 
-void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step);
+void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::Terminal terminal,
+                     IR::LocationDescriptor initial_location, bool is_single_step);
 
-void EmitA64Terminal(oaknut::CodeGenerator&, EmitContext&, IR::Term::Interpret, IR::LocationDescriptor, bool) {
+void EmitA64Terminal(oaknut::CodeGenerator&, EmitContext&, IR::Term::Interpret,
+                     IR::LocationDescriptor, bool) {
     ASSERT_FALSE("Interpret should never be emitted.");
 }
 
-void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::ReturnToDispatch, IR::LocationDescriptor, bool) {
+void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::ReturnToDispatch,
+                     IR::LocationDescriptor, bool) {
     EmitRelocation(code, ctx, LinkTarget::ReturnToDispatcher);
 }
 
-void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::LinkBlock terminal, IR::LocationDescriptor, bool is_single_step) {
+void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::LinkBlock terminal,
+                     IR::LocationDescriptor, bool is_single_step) {
     oaknut::Label fail;
 
     if (ctx.conf.HasOptimization(OptimizationFlag::BlockLinking) && !is_single_step) {
@@ -64,7 +68,9 @@ void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::Li
     EmitRelocation(code, ctx, LinkTarget::ReturnToDispatcher);
 }
 
-void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::LinkBlockFast terminal, IR::LocationDescriptor, bool is_single_step) {
+void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx,
+                     IR::Term::LinkBlockFast terminal, IR::LocationDescriptor,
+                     bool is_single_step) {
     if (ctx.conf.HasOptimization(OptimizationFlag::BlockLinking) && !is_single_step) {
         EmitBlockLinkRelocation(code, ctx, terminal.next, BlockRelocationType::Branch);
     }
@@ -74,7 +80,8 @@ void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::Li
     EmitRelocation(code, ctx, LinkTarget::ReturnToDispatcher);
 }
 
-void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::PopRSBHint, IR::LocationDescriptor, bool is_single_step) {
+void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::PopRSBHint,
+                     IR::LocationDescriptor, bool is_single_step) {
     if (ctx.conf.HasOptimization(OptimizationFlag::ReturnStackBuffer) && !is_single_step) {
         oaknut::Label fail;
 
@@ -104,20 +111,23 @@ void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::Po
     EmitRelocation(code, ctx, LinkTarget::ReturnToDispatcher);
 }
 
-void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::FastDispatchHint, IR::LocationDescriptor, bool) {
+void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::FastDispatchHint,
+                     IR::LocationDescriptor, bool) {
     EmitRelocation(code, ctx, LinkTarget::ReturnToDispatcher);
 
     // TODO: Implement FastDispatchHint optimization
 }
 
-void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::If terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::If terminal,
+                     IR::LocationDescriptor initial_location, bool is_single_step) {
     oaknut::Label pass = EmitA64Cond(code, ctx, terminal.if_);
     EmitA64Terminal(code, ctx, terminal.else_, initial_location, is_single_step);
     code.l(pass);
     EmitA64Terminal(code, ctx, terminal.then_, initial_location, is_single_step);
 }
 
-void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::CheckBit terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::CheckBit terminal,
+                     IR::LocationDescriptor initial_location, bool is_single_step) {
     oaknut::Label fail;
     code.LDRB(Wscratch0, SP, offsetof(StackLayout, check_bit));
     code.CBZ(Wscratch0, fail);
@@ -126,7 +136,8 @@ void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::Ch
     EmitA64Terminal(code, ctx, terminal.else_, initial_location, is_single_step);
 }
 
-void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::CheckHalt terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::CheckHalt terminal,
+                     IR::LocationDescriptor initial_location, bool is_single_step) {
     oaknut::Label fail;
     code.LDAR(Wscratch0, Xhalt);
     code.CBNZ(Wscratch0, fail);
@@ -135,26 +146,33 @@ void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::Ch
     EmitRelocation(code, ctx, LinkTarget::ReturnToDispatcher);
 }
 
-void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
-    boost::apply_visitor([&](const auto& t) { EmitA64Terminal(code, ctx, t, initial_location, is_single_step); }, terminal);
+void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::Terminal terminal,
+                     IR::LocationDescriptor initial_location, bool is_single_step) {
+    boost::apply_visitor(
+        [&](const auto& t) { EmitA64Terminal(code, ctx, t, initial_location, is_single_step); },
+        terminal);
 }
 
 void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx) {
     const A64::LocationDescriptor location{ctx.block.Location()};
-    EmitA64Terminal(code, ctx, ctx.block.GetTerminal(), location.SetSingleStepping(false), location.SingleStepping());
+    EmitA64Terminal(code, ctx, ctx.block.GetTerminal(), location.SetSingleStepping(false),
+                    location.SingleStepping());
 }
 
 void EmitA64ConditionFailedTerminal(oaknut::CodeGenerator& code, EmitContext& ctx) {
     const A64::LocationDescriptor location{ctx.block.Location()};
-    EmitA64Terminal(code, ctx, IR::Term::LinkBlock{ctx.block.ConditionFailedLocation()}, location.SetSingleStepping(false), location.SingleStepping());
+    EmitA64Terminal(code, ctx, IR::Term::LinkBlock{ctx.block.ConditionFailedLocation()},
+                    location.SetSingleStepping(false), location.SingleStepping());
 }
 
-void EmitA64CheckMemoryAbort(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, oaknut::Label& end) {
+void EmitA64CheckMemoryAbort(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst,
+                             oaknut::Label& end) {
     if (!ctx.conf.check_halt_on_memory_access) {
         return;
     }
 
-    const A64::LocationDescriptor current_location{IR::LocationDescriptor{inst->GetArg(0).GetU64()}};
+    const A64::LocationDescriptor current_location{
+        IR::LocationDescriptor{inst->GetArg(0).GetU64()}};
 
     code.LDAR(Xscratch0, Xhalt);
     code.TST(Xscratch0, static_cast<u32>(HaltReason::MemoryAbort));
@@ -164,8 +182,9 @@ void EmitA64CheckMemoryAbort(oaknut::CodeGenerator& code, EmitContext& ctx, IR::
     EmitRelocation(code, ctx, LinkTarget::ReturnFromRunCode);
 }
 
-template<>
-void EmitIR<IR::Opcode::A64SetCheckBit>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A64SetCheckBit>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                        IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     if (args[0].IsImmediate()) {
@@ -182,24 +201,27 @@ void EmitIR<IR::Opcode::A64SetCheckBit>(oaknut::CodeGenerator& code, EmitContext
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::A64GetCFlag>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A64GetCFlag>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                     IR::Inst* inst) {
     auto Wflag = ctx.reg_alloc.WriteW(inst);
     RegAlloc::Realize(Wflag);
     code.LDR(Wflag, Xstate, offsetof(A64JitState, cpsr_nzcv));
     code.AND(Wflag, Wflag, 1 << 29);
 }
 
-template<>
-void EmitIR<IR::Opcode::A64GetNZCVRaw>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A64GetNZCVRaw>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                       IR::Inst* inst) {
     auto Wnzcv = ctx.reg_alloc.WriteW(inst);
     RegAlloc::Realize(Wnzcv);
 
     code.LDR(Wnzcv, Xstate, offsetof(A64JitState, cpsr_nzcv));
 }
 
-template<>
-void EmitIR<IR::Opcode::A64SetNZCVRaw>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A64SetNZCVRaw>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                       IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Wnzcv = ctx.reg_alloc.ReadW(args[0]);
     RegAlloc::Realize(Wnzcv);
@@ -207,7 +229,7 @@ void EmitIR<IR::Opcode::A64SetNZCVRaw>(oaknut::CodeGenerator& code, EmitContext&
     code.STR(Wnzcv, Xstate, offsetof(A64JitState, cpsr_nzcv));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64SetNZCV>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Wnzcv = ctx.reg_alloc.ReadW(args[0]);
@@ -216,7 +238,7 @@ void EmitIR<IR::Opcode::A64SetNZCV>(oaknut::CodeGenerator& code, EmitContext& ct
     code.STR(Wnzcv, Xstate, offsetof(A64JitState, cpsr_nzcv));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64GetW>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const A64::Reg reg = inst->GetArg(0).GetA64RegRef();
 
@@ -228,7 +250,7 @@ void EmitIR<IR::Opcode::A64GetW>(oaknut::CodeGenerator& code, EmitContext& ctx, 
     code.LDR(Wresult, Xstate, offsetof(A64JitState, reg) + sizeof(u64) * static_cast<size_t>(reg));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64GetX>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const A64::Reg reg = inst->GetArg(0).GetA64RegRef();
 
@@ -240,31 +262,34 @@ void EmitIR<IR::Opcode::A64GetX>(oaknut::CodeGenerator& code, EmitContext& ctx, 
     code.LDR(Xresult, Xstate, offsetof(A64JitState, reg) + sizeof(u64) * static_cast<size_t>(reg));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64GetS>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
     auto Sresult = ctx.reg_alloc.WriteS(inst);
     RegAlloc::Realize(Sresult);
-    code.LDR(Sresult, Xstate, offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec));
+    code.LDR(Sresult, Xstate,
+             offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64GetD>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
     auto Dresult = ctx.reg_alloc.WriteD(inst);
     RegAlloc::Realize(Dresult);
-    code.LDR(Dresult, Xstate, offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec));
+    code.LDR(Dresult, Xstate,
+             offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64GetQ>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
     auto Qresult = ctx.reg_alloc.WriteQ(inst);
     RegAlloc::Realize(Qresult);
-    code.LDR(Qresult, Xstate, offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec));
+    code.LDR(Qresult, Xstate,
+             offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64GetSP>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto Xresult = ctx.reg_alloc.WriteX(inst);
     RegAlloc::Realize(Xresult);
@@ -272,7 +297,7 @@ void EmitIR<IR::Opcode::A64GetSP>(oaknut::CodeGenerator& code, EmitContext& ctx,
     code.LDR(Xresult, Xstate, offsetof(A64JitState, sp));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64GetFPCR>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto Wresult = ctx.reg_alloc.WriteW(inst);
     RegAlloc::Realize(Wresult);
@@ -280,7 +305,7 @@ void EmitIR<IR::Opcode::A64GetFPCR>(oaknut::CodeGenerator& code, EmitContext& ct
     code.LDR(Wresult, Xstate, offsetof(A64JitState, fpcr));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64GetFPSR>(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst) {
     auto Wresult = ctx.reg_alloc.WriteW(inst);
     RegAlloc::Realize(Wresult);
@@ -288,7 +313,7 @@ void EmitIR<IR::Opcode::A64GetFPSR>(oaknut::CodeGenerator&, EmitContext& ctx, IR
     ctx.fpsr.GetFpsr(Wresult);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64SetW>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const A64::Reg reg = inst->GetArg(0).GetA64RegRef();
 
@@ -299,10 +324,11 @@ void EmitIR<IR::Opcode::A64SetW>(oaknut::CodeGenerator& code, EmitContext& ctx, 
 
     // TODO: Detect if Gpr vs Fpr is more appropriate
     code.MOV(*Wvalue, Wvalue);
-    code.STR(Wvalue->toX(), Xstate, offsetof(A64JitState, reg) + sizeof(u64) * static_cast<size_t>(reg));
+    code.STR(Wvalue->toX(), Xstate,
+             offsetof(A64JitState, reg) + sizeof(u64) * static_cast<size_t>(reg));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64SetX>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const A64::Reg reg = inst->GetArg(0).GetA64RegRef();
 
@@ -316,7 +342,7 @@ void EmitIR<IR::Opcode::A64SetX>(oaknut::CodeGenerator& code, EmitContext& ctx, 
     code.STR(Xvalue, Xstate, offsetof(A64JitState, reg) + sizeof(u64) * static_cast<size_t>(reg));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64SetS>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
@@ -324,10 +350,11 @@ void EmitIR<IR::Opcode::A64SetS>(oaknut::CodeGenerator& code, EmitContext& ctx, 
     RegAlloc::Realize(Svalue);
 
     code.FMOV(Svalue, Svalue);
-    code.STR(Svalue->toQ(), Xstate, offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec));
+    code.STR(Svalue->toQ(), Xstate,
+             offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64SetD>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
@@ -335,19 +362,21 @@ void EmitIR<IR::Opcode::A64SetD>(oaknut::CodeGenerator& code, EmitContext& ctx, 
     RegAlloc::Realize(Dvalue);
 
     code.FMOV(Dvalue, Dvalue);
-    code.STR(Dvalue->toQ(), Xstate, offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec));
+    code.STR(Dvalue->toQ(), Xstate,
+             offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64SetQ>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
     auto Qvalue = ctx.reg_alloc.ReadQ(args[1]);
     RegAlloc::Realize(Qvalue);
-    code.STR(Qvalue, Xstate, offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec));
+    code.STR(Qvalue, Xstate,
+             offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64SetSP>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Xvalue = ctx.reg_alloc.ReadX(args[0]);
@@ -355,7 +384,7 @@ void EmitIR<IR::Opcode::A64SetSP>(oaknut::CodeGenerator& code, EmitContext& ctx,
     code.STR(Xvalue, Xstate, offsetof(A64JitState, sp));
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64SetFPCR>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Wvalue = ctx.reg_alloc.ReadW(args[0]);
@@ -364,7 +393,7 @@ void EmitIR<IR::Opcode::A64SetFPCR>(oaknut::CodeGenerator& code, EmitContext& ct
     code.MSR(oaknut::SystemReg::FPCR, Wvalue->toX());
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64SetFPSR>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Wvalue = ctx.reg_alloc.ReadW(args[0]);
@@ -373,7 +402,7 @@ void EmitIR<IR::Opcode::A64SetFPSR>(oaknut::CodeGenerator& code, EmitContext& ct
     code.MSR(oaknut::SystemReg::FPSR, Wvalue->toX());
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64SetPC>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Xvalue = ctx.reg_alloc.ReadX(args[0]);
@@ -381,8 +410,9 @@ void EmitIR<IR::Opcode::A64SetPC>(oaknut::CodeGenerator& code, EmitContext& ctx,
     code.STR(Xvalue, Xstate, offsetof(A64JitState, pc));
 }
 
-template<>
-void EmitIR<IR::Opcode::A64CallSupervisor>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A64CallSupervisor>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                           IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.PrepareForCall();
 
@@ -402,8 +432,9 @@ void EmitIR<IR::Opcode::A64CallSupervisor>(oaknut::CodeGenerator& code, EmitCont
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::A64ExceptionRaised>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A64ExceptionRaised>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                            IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.PrepareForCall();
 
@@ -424,32 +455,37 @@ void EmitIR<IR::Opcode::A64ExceptionRaised>(oaknut::CodeGenerator& code, EmitCon
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::A64DataCacheOperationRaised>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A64DataCacheOperationRaised>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                     IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.PrepareForCall({}, args[1], args[2]);
     EmitRelocation(code, ctx, LinkTarget::DataCacheOperationRaised);
 }
 
-template<>
-void EmitIR<IR::Opcode::A64InstructionCacheOperationRaised>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A64InstructionCacheOperationRaised>(oaknut::CodeGenerator& code,
+                                                            EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.PrepareForCall({}, args[0], args[1]);
     EmitRelocation(code, ctx, LinkTarget::InstructionCacheOperationRaised);
 }
 
-template<>
-void EmitIR<IR::Opcode::A64DataSynchronizationBarrier>(oaknut::CodeGenerator& code, EmitContext&, IR::Inst*) {
+template <>
+void EmitIR<IR::Opcode::A64DataSynchronizationBarrier>(oaknut::CodeGenerator& code, EmitContext&,
+                                                       IR::Inst*) {
     code.DSB(oaknut::BarrierOp::SY);
 }
 
-template<>
-void EmitIR<IR::Opcode::A64DataMemoryBarrier>(oaknut::CodeGenerator& code, EmitContext&, IR::Inst*) {
+template <>
+void EmitIR<IR::Opcode::A64DataMemoryBarrier>(oaknut::CodeGenerator& code, EmitContext&,
+                                              IR::Inst*) {
     code.DMB(oaknut::BarrierOp::SY);
 }
 
-template<>
-void EmitIR<IR::Opcode::A64InstructionSynchronizationBarrier>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst*) {
+template <>
+void EmitIR<IR::Opcode::A64InstructionSynchronizationBarrier>(oaknut::CodeGenerator& code,
+                                                              EmitContext& ctx, IR::Inst*) {
     if (!ctx.conf.hook_isb) {
         return;
     }
@@ -458,15 +494,17 @@ void EmitIR<IR::Opcode::A64InstructionSynchronizationBarrier>(oaknut::CodeGenera
     EmitRelocation(code, ctx, LinkTarget::InstructionSynchronizationBarrierRaised);
 }
 
-template<>
-void EmitIR<IR::Opcode::A64GetCNTFRQ>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A64GetCNTFRQ>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                      IR::Inst* inst) {
     auto Xvalue = ctx.reg_alloc.WriteX(inst);
     RegAlloc::Realize(Xvalue);
     code.MOV(Xvalue, ctx.conf.cntfreq_el0);
 }
 
-template<>
-void EmitIR<IR::Opcode::A64GetCNTPCT>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A64GetCNTPCT>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                      IR::Inst* inst) {
     ctx.reg_alloc.PrepareForCall();
     if (!ctx.conf.wall_clock_cntpct && ctx.conf.enable_cycle_counting) {
         code.LDR(X1, SP, offsetof(StackLayout, cycles_to_run));
@@ -480,38 +518,42 @@ void EmitIR<IR::Opcode::A64GetCNTPCT>(oaknut::CodeGenerator& code, EmitContext& 
     ctx.reg_alloc.DefineAsRegister(inst, X0);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A64GetCTR>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto Wvalue = ctx.reg_alloc.WriteW(inst);
     RegAlloc::Realize(Wvalue);
     code.MOV(Wvalue, ctx.conf.ctr_el0);
 }
 
-template<>
-void EmitIR<IR::Opcode::A64GetDCZID>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A64GetDCZID>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                     IR::Inst* inst) {
     auto Wvalue = ctx.reg_alloc.WriteW(inst);
     RegAlloc::Realize(Wvalue);
     code.MOV(Wvalue, ctx.conf.dczid_el0);
 }
 
-template<>
-void EmitIR<IR::Opcode::A64GetTPIDR>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A64GetTPIDR>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                     IR::Inst* inst) {
     auto Xvalue = ctx.reg_alloc.WriteX(inst);
     RegAlloc::Realize(Xvalue);
     code.MOV(Xscratch0, std::bit_cast<u64>(ctx.conf.tpidr_el0));
     code.LDR(Xvalue, Xscratch0);
 }
 
-template<>
-void EmitIR<IR::Opcode::A64GetTPIDRRO>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A64GetTPIDRRO>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                       IR::Inst* inst) {
     auto Xvalue = ctx.reg_alloc.WriteX(inst);
     RegAlloc::Realize(Xvalue);
     code.MOV(Xscratch0, std::bit_cast<u64>(ctx.conf.tpidrro_el0));
     code.LDR(Xvalue, Xscratch0);
 }
 
-template<>
-void EmitIR<IR::Opcode::A64SetTPIDR>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::A64SetTPIDR>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                     IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Xvalue = ctx.reg_alloc.ReadX(args[0]);
     RegAlloc::Realize(Xvalue);
@@ -519,4 +561,4 @@ void EmitIR<IR::Opcode::A64SetTPIDR>(oaknut::CodeGenerator& code, EmitContext& c
     code.STR(Xvalue, Xscratch0);
 }
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

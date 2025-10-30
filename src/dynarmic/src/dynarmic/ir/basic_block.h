@@ -14,16 +14,16 @@
 #include <string>
 
 #include <boost/container/container_fwd.hpp>
-#include <boost/container/static_vector.hpp>
 #include <boost/container/stable_vector.hpp>
+#include <boost/container/static_vector.hpp>
 #include <mcl/container/intrusive_list.hpp>
 #include "dynarmic/common/common_types.h"
 
+#include "dynarmic/ir/dense_list.h"
 #include "dynarmic/ir/location_descriptor.h"
 #include "dynarmic/ir/microinstruction.h"
 #include "dynarmic/ir/terminal.h"
 #include "dynarmic/ir/value.h"
-#include "dynarmic/ir/dense_list.h"
 
 namespace Dynarmic::IR {
 
@@ -36,7 +36,7 @@ enum class Opcode;
 /// order memory accesses.
 class Block final {
 public:
-    //using instruction_list_type = dense_list<Inst>;
+    // using instruction_list_type = dense_list<Inst>;
     using instruction_list_type = mcl::intrusive_list<Inst>;
     using size_type = instruction_list_type::size_type;
     using iterator = instruction_list_type::iterator;
@@ -51,39 +51,77 @@ public:
     Block(Block&&) = default;
     Block& operator=(Block&&) = default;
 
-    bool empty() const { return instructions.empty(); }
-    size_type size() const { return instructions.size(); }
+    bool empty() const {
+        return instructions.empty();
+    }
+    size_type size() const {
+        return instructions.size();
+    }
 
-    Inst& front() { return instructions.front(); }
-    const Inst& front() const { return instructions.front(); }
+    Inst& front() {
+        return instructions.front();
+    }
+    const Inst& front() const {
+        return instructions.front();
+    }
 
-    Inst& back() { return instructions.back(); }
-    const Inst& back() const { return instructions.back(); }
+    Inst& back() {
+        return instructions.back();
+    }
+    const Inst& back() const {
+        return instructions.back();
+    }
 
-    iterator begin() { return instructions.begin(); }
-    const_iterator begin() const { return instructions.begin(); }
-    iterator end() { return instructions.end(); }
-    const_iterator end() const { return instructions.end(); }
+    iterator begin() {
+        return instructions.begin();
+    }
+    const_iterator begin() const {
+        return instructions.begin();
+    }
+    iterator end() {
+        return instructions.end();
+    }
+    const_iterator end() const {
+        return instructions.end();
+    }
 
-    reverse_iterator rbegin() { return instructions.rbegin(); }
-    const_reverse_iterator rbegin() const { return instructions.rbegin(); }
-    reverse_iterator rend() { return instructions.rend(); }
-    const_reverse_iterator rend() const { return instructions.rend(); }
+    reverse_iterator rbegin() {
+        return instructions.rbegin();
+    }
+    const_reverse_iterator rbegin() const {
+        return instructions.rbegin();
+    }
+    reverse_iterator rend() {
+        return instructions.rend();
+    }
+    const_reverse_iterator rend() const {
+        return instructions.rend();
+    }
 
-    const_iterator cbegin() const { return instructions.cbegin(); }
-    const_iterator cend() const { return instructions.cend(); }
+    const_iterator cbegin() const {
+        return instructions.cbegin();
+    }
+    const_iterator cend() const {
+        return instructions.cend();
+    }
 
-    const_reverse_iterator crbegin() const { return instructions.crbegin(); }
-    const_reverse_iterator crend() const { return instructions.crend(); }
+    const_reverse_iterator crbegin() const {
+        return instructions.crbegin();
+    }
+    const_reverse_iterator crend() const {
+        return instructions.crend();
+    }
 
     /// Appends a new instruction to the end of this basic block,
     /// handling any allocations necessary to do so.
     /// @param op   Opcode representing the instruction to add.
     /// @param args A sequence of Value instances used as arguments for the instruction.
-    inline void AppendNewInst(const Opcode opcode, const std::initializer_list<IR::Value> args) noexcept {
+    inline void AppendNewInst(const Opcode opcode,
+                              const std::initializer_list<IR::Value> args) noexcept {
         PrependNewInst(end(), opcode, args);
     }
-    iterator PrependNewInst(iterator insertion_point, Opcode op, std::initializer_list<Value> args) noexcept;
+    iterator PrependNewInst(iterator insertion_point, Opcode op,
+                            std::initializer_list<Value> args) noexcept;
 
     /// Gets a mutable reference to the instruction list for this basic block.
     inline instruction_list_type& Instructions() noexcept {
@@ -165,6 +203,7 @@ public:
     inline const size_t& CycleCount() const noexcept {
         return cycle_count;
     }
+
 private:
     /// "Hot cache" for small blocks so we don't call global allocator
     boost::container::static_vector<Inst, 14> inlined_inst;
@@ -192,4 +231,4 @@ static_assert(sizeof(Block) == 2048);
 /// Returns a string representation of the contents of block. Intended for debugging.
 std::string DumpBlock(const IR::Block& block) noexcept;
 
-}  // namespace Dynarmic::IR
+} // namespace Dynarmic::IR

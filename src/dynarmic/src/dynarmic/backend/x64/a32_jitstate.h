@@ -17,16 +17,18 @@ namespace Dynarmic::Backend::X64 {
 class BlockOfCode;
 
 #ifdef _MSC_VER
-#    pragma warning(push)
-#    pragma warning(disable : 4324)  // Structure was padded due to alignment specifier
+#pragma warning(push)
+#pragma warning(disable : 4324) // Structure was padded due to alignment specifier
 #endif
 
 struct A32JitState {
     using ProgramCounterType = u32;
 
-    A32JitState() { ResetRSB(); }
+    A32JitState() {
+        ResetRSB();
+    }
 
-    std::array<u32, 16> Reg{};  // Current register file.
+    std::array<u32, 16> Reg{}; // Current register file.
     // TODO: Mode-specific register sets unimplemented.
 
     u32 upper_location_descriptor = 0;
@@ -38,7 +40,7 @@ struct A32JitState {
     u32 Cpsr() const;
     void SetCpsr(u32 cpsr);
 
-    alignas(16) std::array<u32, 64> ExtReg{};  // Extension registers.
+    alignas(16) std::array<u32, 64> ExtReg{}; // Extension registers.
 
     // For internal use (See: BlockOfCode::RunCode)
     u32 guest_MXCSR = 0x00001f80;
@@ -48,7 +50,7 @@ struct A32JitState {
     // Exclusive state
     u32 exclusive_state = 0;
 
-    static constexpr size_t RSBSize = 8;  // MUST be a power of 2.
+    static constexpr size_t RSBSize = 8; // MUST be a power of 2.
     static constexpr size_t RSBPtrMask = RSBSize - 1;
     u32 rsb_ptr = 0;
     std::array<u64, RSBSize> rsb_location_descriptors;
@@ -92,9 +94,9 @@ struct A32JitState {
 };
 
 #ifdef _MSC_VER
-#    pragma warning(pop)
+#pragma warning(pop)
 #endif
 
 using CodePtr = const void*;
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

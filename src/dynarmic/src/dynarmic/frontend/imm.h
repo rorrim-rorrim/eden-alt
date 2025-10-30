@@ -10,9 +10,9 @@
 
 #include <type_traits>
 
-#include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_field.hpp>
 #include <mcl/bitsizeof.hpp>
+#include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/common/math_util.h"
@@ -23,35 +23,35 @@ namespace Dynarmic {
  * Imm represents an immediate value in an AArch32/AArch64 instruction.
  * Imm is used during translation as a typesafe way of passing around immediates of fixed sizes.
  */
-template<size_t bit_size_>
+template <size_t bit_size_>
 class Imm {
 public:
     static constexpr size_t bit_size = bit_size_;
 
-    explicit Imm(u32 value)
-            : value(value) {
-        ASSERT_MSG((mcl::bit::get_bits<0, bit_size - 1>(value) == value), "More bits in value than expected");
+    explicit Imm(u32 value) : value(value) {
+        ASSERT_MSG((mcl::bit::get_bits<0, bit_size - 1>(value) == value),
+                   "More bits in value than expected");
     }
 
-    template<typename T = u32>
+    template <typename T = u32>
     T ZeroExtend() const {
         static_assert(mcl::bitsizeof<T> >= bit_size);
         return static_cast<T>(value);
     }
 
-    template<typename T = s32>
+    template <typename T = s32>
     T SignExtend() const {
         static_assert(mcl::bitsizeof<T> >= bit_size);
         return static_cast<T>(mcl::bit::sign_extend<bit_size, std::make_unsigned_t<T>>(value));
     }
 
-    template<size_t bit>
+    template <size_t bit>
     bool Bit() const {
         static_assert(bit < bit_size);
         return mcl::bit::get_bit<bit>(value);
     }
 
-    template<size_t begin_bit, size_t end_bit, typename T = u32>
+    template <size_t begin_bit, size_t end_bit, typename T = u32>
     T Bits() const {
         static_assert(begin_bit <= end_bit && end_bit < bit_size);
         static_assert(mcl::bitsizeof<T> >= end_bit - begin_bit + 1);
@@ -89,62 +89,62 @@ private:
     u32 value;
 };
 
-template<size_t bit_size>
+template <size_t bit_size>
 bool operator==(u32 a, Imm<bit_size> b) {
     return Imm<bit_size>{a} == b;
 }
 
-template<size_t bit_size>
+template <size_t bit_size>
 bool operator==(Imm<bit_size> a, u32 b) {
     return Imm<bit_size>{b} == a;
 }
 
-template<size_t bit_size>
+template <size_t bit_size>
 bool operator!=(u32 a, Imm<bit_size> b) {
     return !operator==(a, b);
 }
 
-template<size_t bit_size>
+template <size_t bit_size>
 bool operator!=(Imm<bit_size> a, u32 b) {
     return !operator==(a, b);
 }
 
-template<size_t bit_size>
+template <size_t bit_size>
 bool operator<(u32 a, Imm<bit_size> b) {
     return Imm<bit_size>{a} < b;
 }
 
-template<size_t bit_size>
+template <size_t bit_size>
 bool operator<(Imm<bit_size> a, u32 b) {
     return a < Imm<bit_size>{b};
 }
 
-template<size_t bit_size>
+template <size_t bit_size>
 bool operator<=(u32 a, Imm<bit_size> b) {
     return !operator<(b, a);
 }
 
-template<size_t bit_size>
+template <size_t bit_size>
 bool operator<=(Imm<bit_size> a, u32 b) {
     return !operator<(b, a);
 }
 
-template<size_t bit_size>
+template <size_t bit_size>
 bool operator>(u32 a, Imm<bit_size> b) {
     return operator<(b, a);
 }
 
-template<size_t bit_size>
+template <size_t bit_size>
 bool operator>(Imm<bit_size> a, u32 b) {
     return operator<(b, a);
 }
 
-template<size_t bit_size>
+template <size_t bit_size>
 bool operator>=(u32 a, Imm<bit_size> b) {
     return !operator<(a, b);
 }
 
-template<size_t bit_size>
+template <size_t bit_size>
 bool operator>=(Imm<bit_size> a, u32 b) {
     return !operator<(a, b);
 }
@@ -154,7 +154,7 @@ bool operator>=(Imm<bit_size> a, u32 b) {
  * Left to right corresponds to most significant imm to least significant imm.
  * This is equivalent to a:b:...:z in ASL.
  */
-template<size_t first_bit_size, size_t... rest_bit_sizes>
+template <size_t first_bit_size, size_t... rest_bit_sizes>
 auto concatenate(Imm<first_bit_size> first, Imm<rest_bit_sizes>... rest) {
     if constexpr (sizeof...(rest) == 0) {
         return first;
@@ -168,4 +168,4 @@ auto concatenate(Imm<first_bit_size> first, Imm<rest_bit_sizes>... rest) {
 /// Expands an Advanced SIMD modified immediate.
 u64 AdvSIMDExpandImm(bool op, Imm<4> cmode, Imm<8> imm8);
 
-}  // namespace Dynarmic
+} // namespace Dynarmic

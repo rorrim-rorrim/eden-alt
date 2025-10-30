@@ -13,7 +13,6 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "common/bit_util.h"
 #include "common/common_types.h"
 #include "video_core/engines/draw_manager.h"
@@ -26,6 +25,7 @@
 #include "video_core/renderer_vulkan/vk_resource_pool.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
+#include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
@@ -116,12 +116,14 @@ struct HostSyncValues {
 class SamplesStreamer : public BaseStreamer {
 public:
     explicit SamplesStreamer(size_t id_, QueryCacheRuntime& runtime_,
-                             VideoCore::RasterizerInterface* rasterizer_, TextureCache& texture_cache_, const Device& device_,
+                             VideoCore::RasterizerInterface* rasterizer_,
+                             TextureCache& texture_cache_, const Device& device_,
                              Scheduler& scheduler_, const MemoryAllocator& memory_allocator_,
                              ComputePassDescriptorQueue& compute_pass_descriptor_queue,
                              DescriptorPool& descriptor_pool)
-        : BaseStreamer(id_), texture_cache{texture_cache_}, runtime{runtime_}, rasterizer{rasterizer_}, device{device_},
-          scheduler{scheduler_}, memory_allocator{memory_allocator_} {
+        : BaseStreamer(id_), texture_cache{texture_cache_}, runtime{runtime_},
+          rasterizer{rasterizer_}, device{device_}, scheduler{scheduler_},
+          memory_allocator{memory_allocator_} {
         current_bank = nullptr;
         current_query = nullptr;
         amend_value = 0;
@@ -161,7 +163,7 @@ public:
 
         // Reset query pool outside render pass
         scheduler.Record([query_pool = current_query_pool,
-                                 query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
+                          query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
             cmdbuf.ResetQueryPool(query_pool, static_cast<u32>(query_index), 1);
         });
 
@@ -170,7 +172,7 @@ public:
 
         // Begin query inside the newly started render pass
         scheduler.Record([query_pool = current_query_pool,
-                                 query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
+                          query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
             const bool use_precise = Settings::IsGPULevelHigh();
             cmdbuf.BeginQuery(query_pool, static_cast<u32>(query_index),
                               use_precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
@@ -178,7 +180,6 @@ public:
 
         has_started = true;
     }
-
 
     void PauseCounter() override {
         if (!has_started) {
@@ -1257,7 +1258,8 @@ QueryCacheRuntime::QueryCacheRuntime(VideoCore::RasterizerInterface* rasterizer,
                                      const MemoryAllocator& memory_allocator_,
                                      Scheduler& scheduler_, StagingBufferPool& staging_pool_,
                                      ComputePassDescriptorQueue& compute_pass_descriptor_queue,
-                                     DescriptorPool& descriptor_pool, TextureCache& texture_cache_) {
+                                     DescriptorPool& descriptor_pool,
+                                     TextureCache& texture_cache_) {
     impl = std::make_unique<QueryCacheRuntimeImpl>(
         *this, rasterizer, device_memory_, buffer_cache_, device_, memory_allocator_, scheduler_,
         staging_pool_, compute_pass_descriptor_queue, descriptor_pool, texture_cache_);

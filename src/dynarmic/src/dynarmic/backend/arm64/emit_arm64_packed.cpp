@@ -19,7 +19,7 @@ namespace Dynarmic::Backend::Arm64 {
 
 using namespace oaknut::util;
 
-template<typename EmitFn>
+template <typename EmitFn>
 static void EmitPackedOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -31,8 +31,9 @@ static void EmitPackedOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* ins
     emit(Vresult, Va, Vb);
 }
 
-template<typename EmitFn>
-static void EmitSaturatedPackedOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
+template <typename EmitFn>
+static void EmitSaturatedPackedOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst,
+                                  EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     auto Vresult = ctx.reg_alloc.WriteD(inst);
@@ -44,8 +45,9 @@ static void EmitSaturatedPackedOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::
     emit(Vresult, Va, Vb);
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedAddU8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::PackedAddU8>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                     IR::Inst* inst) {
     const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -64,8 +66,9 @@ void EmitIR<IR::Opcode::PackedAddU8>(oaknut::CodeGenerator& code, EmitContext& c
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedAddS8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::PackedAddS8>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                     IR::Inst* inst) {
     const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -85,8 +88,9 @@ void EmitIR<IR::Opcode::PackedAddS8>(oaknut::CodeGenerator& code, EmitContext& c
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedSubU8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::PackedSubU8>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                     IR::Inst* inst) {
     const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -106,8 +110,9 @@ void EmitIR<IR::Opcode::PackedSubU8>(oaknut::CodeGenerator& code, EmitContext& c
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedSubS8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::PackedSubS8>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                     IR::Inst* inst) {
     const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -127,8 +132,9 @@ void EmitIR<IR::Opcode::PackedSubS8>(oaknut::CodeGenerator& code, EmitContext& c
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedAddU16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::PackedAddU16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                      IR::Inst* inst) {
     const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -147,8 +153,9 @@ void EmitIR<IR::Opcode::PackedAddU16>(oaknut::CodeGenerator& code, EmitContext& 
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedAddS16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::PackedAddS16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                      IR::Inst* inst) {
     const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -168,8 +175,9 @@ void EmitIR<IR::Opcode::PackedAddS16>(oaknut::CodeGenerator& code, EmitContext& 
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedSubU16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::PackedSubU16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                      IR::Inst* inst) {
     const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -189,8 +197,9 @@ void EmitIR<IR::Opcode::PackedSubU16>(oaknut::CodeGenerator& code, EmitContext& 
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedSubS16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::PackedSubS16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                      IR::Inst* inst) {
     const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -210,7 +219,7 @@ void EmitIR<IR::Opcode::PackedSubS16>(oaknut::CodeGenerator& code, EmitContext& 
     }
 }
 
-template<bool add_is_hi, bool is_signed, bool is_halving>
+template <bool add_is_hi, bool is_signed, bool is_halving>
 static void EmitPackedAddSub(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
 
@@ -262,138 +271,196 @@ static void EmitPackedAddSub(oaknut::CodeGenerator& code, EmitContext& ctx, IR::
     code.XTN(Vresult->H4(), Vresult->toQ().S4());
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedAddSubU16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::PackedAddSubU16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                         IR::Inst* inst) {
     EmitPackedAddSub<true, false, false>(code, ctx, inst);
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedAddSubS16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::PackedAddSubS16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                         IR::Inst* inst) {
     EmitPackedAddSub<true, true, false>(code, ctx, inst);
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedSubAddU16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::PackedSubAddU16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                         IR::Inst* inst) {
     EmitPackedAddSub<false, false, false>(code, ctx, inst);
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedSubAddS16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::PackedSubAddS16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                         IR::Inst* inst) {
     EmitPackedAddSub<false, true, false>(code, ctx, inst);
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedHalvingAddU8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) { code.UHADD(Vresult->B8(), Va->B8(), Vb->B8()); });
+template <>
+void EmitIR<IR::Opcode::PackedHalvingAddU8>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                            IR::Inst* inst) {
+    EmitPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) {
+        code.UHADD(Vresult->B8(), Va->B8(), Vb->B8());
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedHalvingAddS8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) { code.SHADD(Vresult->B8(), Va->B8(), Vb->B8()); });
+template <>
+void EmitIR<IR::Opcode::PackedHalvingAddS8>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                            IR::Inst* inst) {
+    EmitPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) {
+        code.SHADD(Vresult->B8(), Va->B8(), Vb->B8());
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedHalvingSubU8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) { code.UHSUB(Vresult->B8(), Va->B8(), Vb->B8()); });
+template <>
+void EmitIR<IR::Opcode::PackedHalvingSubU8>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                            IR::Inst* inst) {
+    EmitPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) {
+        code.UHSUB(Vresult->B8(), Va->B8(), Vb->B8());
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedHalvingSubS8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) { code.SHSUB(Vresult->B8(), Va->B8(), Vb->B8()); });
+template <>
+void EmitIR<IR::Opcode::PackedHalvingSubS8>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                            IR::Inst* inst) {
+    EmitPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) {
+        code.SHSUB(Vresult->B8(), Va->B8(), Vb->B8());
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedHalvingAddU16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) { code.UHADD(Vresult->H4(), Va->H4(), Vb->H4()); });
+template <>
+void EmitIR<IR::Opcode::PackedHalvingAddU16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                             IR::Inst* inst) {
+    EmitPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) {
+        code.UHADD(Vresult->H4(), Va->H4(), Vb->H4());
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedHalvingAddS16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) { code.SHADD(Vresult->H4(), Va->H4(), Vb->H4()); });
+template <>
+void EmitIR<IR::Opcode::PackedHalvingAddS16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                             IR::Inst* inst) {
+    EmitPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) {
+        code.SHADD(Vresult->H4(), Va->H4(), Vb->H4());
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedHalvingSubU16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) { code.UHSUB(Vresult->H4(), Va->H4(), Vb->H4()); });
+template <>
+void EmitIR<IR::Opcode::PackedHalvingSubU16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                             IR::Inst* inst) {
+    EmitPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) {
+        code.UHSUB(Vresult->H4(), Va->H4(), Vb->H4());
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedHalvingSubS16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) { code.SHSUB(Vresult->H4(), Va->H4(), Vb->H4()); });
+template <>
+void EmitIR<IR::Opcode::PackedHalvingSubS16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                             IR::Inst* inst) {
+    EmitPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) {
+        code.SHSUB(Vresult->H4(), Va->H4(), Vb->H4());
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedHalvingAddSubU16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::PackedHalvingAddSubU16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                IR::Inst* inst) {
     EmitPackedAddSub<true, false, true>(code, ctx, inst);
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedHalvingAddSubS16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::PackedHalvingAddSubS16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                IR::Inst* inst) {
     EmitPackedAddSub<true, true, true>(code, ctx, inst);
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedHalvingSubAddU16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::PackedHalvingSubAddU16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                IR::Inst* inst) {
     EmitPackedAddSub<false, false, true>(code, ctx, inst);
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedHalvingSubAddS16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::PackedHalvingSubAddS16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                IR::Inst* inst) {
     EmitPackedAddSub<false, true, true>(code, ctx, inst);
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedSaturatedAddU8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitSaturatedPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) { code.UQADD(Vresult->B8(), Va->B8(), Vb->B8()); });
+template <>
+void EmitIR<IR::Opcode::PackedSaturatedAddU8>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
+    EmitSaturatedPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) {
+        code.UQADD(Vresult->B8(), Va->B8(), Vb->B8());
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedSaturatedAddS8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitSaturatedPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) { code.SQADD(Vresult->B8(), Va->B8(), Vb->B8()); });
+template <>
+void EmitIR<IR::Opcode::PackedSaturatedAddS8>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
+    EmitSaturatedPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) {
+        code.SQADD(Vresult->B8(), Va->B8(), Vb->B8());
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedSaturatedSubU8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitSaturatedPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) { code.UQSUB(Vresult->B8(), Va->B8(), Vb->B8()); });
+template <>
+void EmitIR<IR::Opcode::PackedSaturatedSubU8>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
+    EmitSaturatedPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) {
+        code.UQSUB(Vresult->B8(), Va->B8(), Vb->B8());
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedSaturatedSubS8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitSaturatedPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) { code.SQSUB(Vresult->B8(), Va->B8(), Vb->B8()); });
+template <>
+void EmitIR<IR::Opcode::PackedSaturatedSubS8>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
+    EmitSaturatedPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) {
+        code.SQSUB(Vresult->B8(), Va->B8(), Vb->B8());
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedSaturatedAddU16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitSaturatedPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) { code.UQADD(Vresult->H4(), Va->H4(), Vb->H4()); });
+template <>
+void EmitIR<IR::Opcode::PackedSaturatedAddU16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                               IR::Inst* inst) {
+    EmitSaturatedPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) {
+        code.UQADD(Vresult->H4(), Va->H4(), Vb->H4());
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedSaturatedAddS16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitSaturatedPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) { code.SQADD(Vresult->H4(), Va->H4(), Vb->H4()); });
+template <>
+void EmitIR<IR::Opcode::PackedSaturatedAddS16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                               IR::Inst* inst) {
+    EmitSaturatedPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) {
+        code.SQADD(Vresult->H4(), Va->H4(), Vb->H4());
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedSaturatedSubU16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitSaturatedPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) { code.UQSUB(Vresult->H4(), Va->H4(), Vb->H4()); });
+template <>
+void EmitIR<IR::Opcode::PackedSaturatedSubU16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                               IR::Inst* inst) {
+    EmitSaturatedPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) {
+        code.UQSUB(Vresult->H4(), Va->H4(), Vb->H4());
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedSaturatedSubS16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    EmitSaturatedPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) { code.SQSUB(Vresult->H4(), Va->H4(), Vb->H4()); });
+template <>
+void EmitIR<IR::Opcode::PackedSaturatedSubS16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                               IR::Inst* inst) {
+    EmitSaturatedPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) {
+        code.SQSUB(Vresult->H4(), Va->H4(), Vb->H4());
+    });
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedAbsDiffSumU8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::PackedAbsDiffSumU8>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                            IR::Inst* inst) {
     EmitPackedOp(code, ctx, inst, [&](auto& Vresult, auto& Va, auto& Vb) {
         code.MOVI(D2, oaknut::RepImm{0b00001111});
         code.UABD(Vresult->B8(), Va->B8(), Vb->B8());
-        code.AND(Vresult->B8(), Vresult->B8(), V2.B8());  // TODO: Zext tracking
+        code.AND(Vresult->B8(), Vresult->B8(), V2.B8()); // TODO: Zext tracking
         code.UADDLV(Vresult->toH(), Vresult->B8());
     });
 }
 
-template<>
-void EmitIR<IR::Opcode::PackedSelect>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::PackedSelect>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                      IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     auto Vresult = ctx.reg_alloc.WriteD(inst);
@@ -402,8 +469,8 @@ void EmitIR<IR::Opcode::PackedSelect>(oaknut::CodeGenerator& code, EmitContext& 
     auto Vb = ctx.reg_alloc.ReadD(args[2]);
     RegAlloc::Realize(Vresult, Vge, Va, Vb);
 
-    code.FMOV(Vresult, Vge);  // TODO: Move elimination
+    code.FMOV(Vresult, Vge); // TODO: Move elimination
     code.BSL(Vresult->B8(), Vb->B8(), Va->B8());
 }
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

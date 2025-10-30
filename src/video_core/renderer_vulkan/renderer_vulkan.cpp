@@ -14,8 +14,8 @@
 
 #include <fmt/ranges.h>
 
-#include "common/logging/log.h"
 #include <ranges>
+#include "common/logging/log.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
 #include "core/core_timing.h"
@@ -102,67 +102,39 @@ Device CreateDevice(const vk::Instance& instance, const vk::InstanceDispatch& dl
 }
 
 RendererVulkan::RendererVulkan(Core::Frontend::EmuWindow& emu_window,
-                               Tegra::MaxwellDeviceMemoryManager& device_memory_,
-                               Tegra::GPU& gpu_,
-                               std::unique_ptr<Core::Frontend::GraphicsContext> context_)
-try
-    : RendererBase(emu_window, std::move(context_))
-    , device_memory(device_memory_)
-    , gpu(gpu_)
-    , library(OpenLibrary(context.get()))
-    , dld()
-    // Create raw Vulkan instance first
-    , instance(CreateInstance(*library,
-                            dld,
-                            VK_API_VERSION_1_1,
-                            render_window.GetWindowInfo().type,
-                            Settings::values.renderer_debug.GetValue()))
-    // Create debug messenger if debug is enabled
-    , debug_messenger(Settings::values.renderer_debug ? CreateDebugUtilsCallback(instance)
-                                                    : vk::DebugUtilsMessenger{})
-    // Create surface
-    , surface(CreateSurface(instance, render_window.GetWindowInfo()))
-    , device(CreateDevice(instance, dld, *surface))
-    , memory_allocator(device)
-    , state_tracker()
-    , scheduler(device, state_tracker)
-    , swapchain(*surface,
-                device,
-                scheduler,
-               render_window.GetFramebufferLayout().width,
-               render_window.GetFramebufferLayout().height)
-    , present_manager(instance,
-                      render_window,
-                      device,
-                      memory_allocator,
-                      scheduler,
-                      swapchain,
+                               Tegra::MaxwellDeviceMemoryManager& device_memory_, Tegra::GPU& gpu_,
+                               std::unique_ptr<Core::Frontend::GraphicsContext> context_) try
+    : RendererBase(emu_window, std::move(context_)), device_memory(device_memory_), gpu(gpu_),
+      library(OpenLibrary(context.get())), dld()
+      // Create raw Vulkan instance first
+      ,
+      instance(CreateInstance(*library, dld, VK_API_VERSION_1_1, render_window.GetWindowInfo().type,
+                              Settings::values.renderer_debug.GetValue()))
+      // Create debug messenger if debug is enabled
+      ,
+      debug_messenger(Settings::values.renderer_debug ? CreateDebugUtilsCallback(instance)
+                                                      : vk::DebugUtilsMessenger{})
+      // Create surface
+      ,
+      surface(CreateSurface(instance, render_window.GetWindowInfo())),
+      device(CreateDevice(instance, dld, *surface)), memory_allocator(device), state_tracker(),
+      scheduler(device, state_tracker),
+      swapchain(*surface, device, scheduler, render_window.GetFramebufferLayout().width,
+                render_window.GetFramebufferLayout().height),
+      present_manager(instance, render_window, device, memory_allocator, scheduler, swapchain,
 #ifdef ANDROID
-                      surface)
-    ,
+                      surface),
 #else
-                      *surface)
-    ,
+                      *surface),
 #endif
-    blit_swapchain(device_memory,
-                   device,
-                   memory_allocator,
-                   present_manager,
-                   scheduler,
-                   PresentFiltersForDisplay)
-    , blit_capture(device_memory,
-                   device,
-                   memory_allocator,
-                   present_manager,
-                   scheduler,
-                   PresentFiltersForDisplay)
-    , blit_applet(device_memory,
-                  device,
-                  memory_allocator,
-                  present_manager,
-                  scheduler,
-                  PresentFiltersForAppletCapture)
-    , rasterizer(render_window, gpu, device_memory, device, memory_allocator, state_tracker, scheduler) {
+      blit_swapchain(device_memory, device, memory_allocator, present_manager, scheduler,
+                     PresentFiltersForDisplay),
+      blit_capture(device_memory, device, memory_allocator, present_manager, scheduler,
+                   PresentFiltersForDisplay),
+      blit_applet(device_memory, device, memory_allocator, present_manager, scheduler,
+                  PresentFiltersForAppletCapture),
+      rasterizer(render_window, gpu, device_memory, device, memory_allocator, state_tracker,
+                 scheduler) {
 
     if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {
         turbo_mode.emplace(instance, dld);
@@ -182,124 +154,118 @@ RendererVulkan::~RendererVulkan() {
 
 #ifdef __ANDROID__
 class BooleanSetting {
-    public:
-//        static BooleanSetting FRAME_SKIPPING;
-        static BooleanSetting FRAME_INTERPOLATION;
-        explicit BooleanSetting(bool initial_value = false) : value(initial_value) {}
+public:
+    //        static BooleanSetting FRAME_SKIPPING;
+    static BooleanSetting FRAME_INTERPOLATION;
+    explicit BooleanSetting(bool initial_value = false) : value(initial_value) {}
 
-        [[nodiscard]] bool getBoolean() const {
-            return value;
-        }
+    [[nodiscard]] bool getBoolean() const {
+        return value;
+    }
 
-        void setBoolean(bool new_value) {
-            value = new_value;
-        }
+    void setBoolean(bool new_value) {
+        value = new_value;
+    }
 
-    private:
-        bool value;
-    };
+private:
+    bool value;
+};
 
-    // Initialize static members
+// Initialize static members
 //    BooleanSetting BooleanSetting::FRAME_SKIPPING(false);
-    BooleanSetting BooleanSetting::FRAME_INTERPOLATION(false);
+BooleanSetting BooleanSetting::FRAME_INTERPOLATION(false);
 
 //    extern "C" JNIEXPORT jboolean JNICALL
-//    Java_org_yuzu_yuzu_1emu_features_settings_model_BooleanSetting_isFrameSkippingEnabled(JNIEnv* env, jobject /* this */) {
+//    Java_org_yuzu_yuzu_1emu_features_settings_model_BooleanSetting_isFrameSkippingEnabled(JNIEnv*
+//    env, jobject /* this */) {
 //        return static_cast<jboolean>(BooleanSetting::FRAME_SKIPPING.getBoolean());
 //    }
 
-    extern "C" JNIEXPORT jboolean JNICALL
-    Java_org_yuzu_yuzu_1emu_features_settings_model_BooleanSetting_isFrameInterpolationEnabled(JNIEnv* env, jobject /* this */) {
-        return static_cast<jboolean>(BooleanSetting::FRAME_INTERPOLATION.getBoolean());
+extern "C" JNIEXPORT jboolean JNICALL
+Java_org_yuzu_yuzu_1emu_features_settings_model_BooleanSetting_isFrameInterpolationEnabled(
+    JNIEnv* env, jobject /* this */) {
+    return static_cast<jboolean>(BooleanSetting::FRAME_INTERPOLATION.getBoolean());
+}
+
+void RendererVulkan::InterpolateFrames(Frame* prev_frame, Frame* interpolated_frame) {
+    if (!prev_frame || !interpolated_frame || !prev_frame->image || !interpolated_frame->image) {
+        return;
     }
 
-    void RendererVulkan::InterpolateFrames(Frame* prev_frame, Frame* interpolated_frame) {
-        if (!prev_frame || !interpolated_frame || !prev_frame->image || !interpolated_frame->image) {
-            return;
-        }
+    const auto& framebuffer_layout = render_window.GetFramebufferLayout();
+    // Fixed aggressive downscale (50%)
+    VkExtent2D dst_extent{.width = framebuffer_layout.width / 2,
+                          .height = framebuffer_layout.height / 2};
 
-        const auto& framebuffer_layout = render_window.GetFramebufferLayout();
-        // Fixed aggressive downscale (50%)
-        VkExtent2D dst_extent{
-            .width = framebuffer_layout.width / 2,
-            .height = framebuffer_layout.height / 2
-        };
-
-        // Check if we need to recreate the destination frame
-        bool needs_recreation = false;  // Only recreate when necessary
-        if (!interpolated_frame->image_view) {
-            needs_recreation = true;  // Need to create initially
+    // Check if we need to recreate the destination frame
+    bool needs_recreation = false; // Only recreate when necessary
+    if (!interpolated_frame->image_view) {
+        needs_recreation = true; // Need to create initially
+    } else {
+        // Check if dimensions have changed
+        if (interpolated_frame->framebuffer) {
+            needs_recreation = (framebuffer_layout.width / 2 != dst_extent.width) ||
+                               (framebuffer_layout.height / 2 != dst_extent.height);
         } else {
-            // Check if dimensions have changed
-            if (interpolated_frame->framebuffer) {
-                needs_recreation = (framebuffer_layout.width / 2 != dst_extent.width) ||
-                                  (framebuffer_layout.height / 2 != dst_extent.height);
-            } else {
-                needs_recreation = true;
-            }
+            needs_recreation = true;
         }
-
-        if (needs_recreation) {
-            interpolated_frame->image = CreateWrappedImage(memory_allocator, dst_extent, swapchain.GetImageViewFormat());
-            interpolated_frame->image_view = CreateWrappedImageView(device, interpolated_frame->image, swapchain.GetImageViewFormat());
-            interpolated_frame->framebuffer = blit_swapchain.CreateFramebuffer(
-                Layout::FramebufferLayout{dst_extent.width, dst_extent.height},
-                *interpolated_frame->image_view,
-                swapchain.GetImageViewFormat());
-        }
-
-        scheduler.RequestOutsideRenderPassOperationContext();
-        scheduler.Record([&](vk::CommandBuffer cmdbuf) {
-            // Transition images to transfer layouts
-            TransitionImageLayout(cmdbuf, *prev_frame->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-            TransitionImageLayout(cmdbuf, *interpolated_frame->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-            // Perform the downscale blit
-            VkImageBlit blit_region{};
-            blit_region.srcSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
-            blit_region.srcOffsets[0] = {0, 0, 0};
-            blit_region.srcOffsets[1] = {
-                static_cast<int32_t>(framebuffer_layout.width),
-                static_cast<int32_t>(framebuffer_layout.height),
-                1
-            };
-            blit_region.dstSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
-            blit_region.dstOffsets[0] = {0, 0, 0};
-            blit_region.dstOffsets[1] = {
-                static_cast<int32_t>(dst_extent.width),
-                static_cast<int32_t>(dst_extent.height),
-                1
-            };
-
-            // Using the wrapper's BlitImage with proper parameters
-            cmdbuf.BlitImage(
-                *prev_frame->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                *interpolated_frame->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                blit_region, VK_FILTER_NEAREST
-            );
-
-            // Transition back to general layout
-            TransitionImageLayout(cmdbuf, *prev_frame->image, VK_IMAGE_LAYOUT_GENERAL);
-            TransitionImageLayout(cmdbuf, *interpolated_frame->image, VK_IMAGE_LAYOUT_GENERAL);
-        });
     }
+
+    if (needs_recreation) {
+        interpolated_frame->image =
+            CreateWrappedImage(memory_allocator, dst_extent, swapchain.GetImageViewFormat());
+        interpolated_frame->image_view = CreateWrappedImageView(device, interpolated_frame->image,
+                                                                swapchain.GetImageViewFormat());
+        interpolated_frame->framebuffer = blit_swapchain.CreateFramebuffer(
+            Layout::FramebufferLayout{dst_extent.width, dst_extent.height},
+            *interpolated_frame->image_view, swapchain.GetImageViewFormat());
+    }
+
+    scheduler.RequestOutsideRenderPassOperationContext();
+    scheduler.Record([&](vk::CommandBuffer cmdbuf) {
+        // Transition images to transfer layouts
+        TransitionImageLayout(cmdbuf, *prev_frame->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+        TransitionImageLayout(cmdbuf, *interpolated_frame->image,
+                              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+        // Perform the downscale blit
+        VkImageBlit blit_region{};
+        blit_region.srcSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
+        blit_region.srcOffsets[0] = {0, 0, 0};
+        blit_region.srcOffsets[1] = {static_cast<int32_t>(framebuffer_layout.width),
+                                     static_cast<int32_t>(framebuffer_layout.height), 1};
+        blit_region.dstSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
+        blit_region.dstOffsets[0] = {0, 0, 0};
+        blit_region.dstOffsets[1] = {static_cast<int32_t>(dst_extent.width),
+                                     static_cast<int32_t>(dst_extent.height), 1};
+
+        // Using the wrapper's BlitImage with proper parameters
+        cmdbuf.BlitImage(*prev_frame->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                         *interpolated_frame->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                         blit_region, VK_FILTER_NEAREST);
+
+        // Transition back to general layout
+        TransitionImageLayout(cmdbuf, *prev_frame->image, VK_IMAGE_LAYOUT_GENERAL);
+        TransitionImageLayout(cmdbuf, *interpolated_frame->image, VK_IMAGE_LAYOUT_GENERAL);
+    });
+}
 #endif
 
 void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebuffers) {
-    #ifdef __ANDROID__
+#ifdef __ANDROID__
     static int frame_counter = 0;
     static int target_fps = 60; // Target FPS (30 or 60)
     int frame_skip_threshold = 1;
 
-    bool frame_skipping = false; //BooleanSetting::FRAME_SKIPPING.getBoolean();
+    bool frame_skipping = false; // BooleanSetting::FRAME_SKIPPING.getBoolean();
     bool frame_interpolation = BooleanSetting::FRAME_INTERPOLATION.getBoolean();
-    #endif
+#endif
 
     if (framebuffers.empty()) {
         return;
     }
 
-    #ifdef __ANDROID__
+#ifdef __ANDROID__
     if (frame_skipping) {
         frame_skip_threshold = (target_fps == 30) ? 2 : 2;
     }
@@ -310,14 +276,14 @@ void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebu
             Frame* interpolated_frame = present_manager.GetRenderFrame();
             InterpolateFrames(previous_frame, interpolated_frame);
             blit_swapchain.DrawToFrame(rasterizer, interpolated_frame, framebuffers,
-                                       render_window.GetFramebufferLayout(), swapchain.GetImageCount(),
-                                       swapchain.GetImageViewFormat());
+                                       render_window.GetFramebufferLayout(),
+                                       swapchain.GetImageCount(), swapchain.GetImageViewFormat());
             scheduler.Flush(*interpolated_frame->render_ready);
             present_manager.Present(interpolated_frame);
         }
         return;
     }
-    #endif
+#endif
 
     SCOPE_EXIT {
         render_window.OnFrameDisplayed();

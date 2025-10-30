@@ -7,9 +7,9 @@
 #pragma once
 
 #include "core/hle/service/cmif_types.h"
-#include "core/hle/service/service.h"
 #include "core/hle/service/ns/language.h"
 #include "core/hle/service/ns/ns_types.h"
+#include "core/hle/service/service.h"
 
 namespace Service::NS {
 
@@ -20,22 +20,20 @@ public:
     ~IReadOnlyApplicationControlDataInterface() override;
 
     Result GetApplicationControlDataOld(OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
-                                     Out<u32> out_actual_size,
-                                     ApplicationControlSource application_control_source,
-                                     u64 application_id);
+                                        Out<u32> out_actual_size,
+                                        ApplicationControlSource application_control_source,
+                                        u64 application_id);
     Result GetApplicationDesiredLanguage(Out<ApplicationLanguage> out_desired_language,
                                          u32 supported_languages);
     Result ConvertApplicationLanguageToLanguageCode(Out<u64> out_language_code,
                                                     ApplicationLanguage application_language);
     Result GetApplicationControlData(OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
-                                        Out<u32> out_actual_size,
-                                        ApplicationControlSource application_control_source,
-                                        u64 application_id);
+                                     Out<u32> out_actual_size,
+                                     ApplicationControlSource application_control_source,
+                                     u64 application_id);
     Result GetApplicationControlDataWithIconSize(
-        OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
-        Out<u64> out_total_size,
-        ApplicationControlSource application_control_source,
-        u64 application_id);
+        OutBuffer<BufferAttr_HipcMapAlias> out_buffer, Out<u64> out_total_size,
+        ApplicationControlSource application_control_source, u64 application_id);
 };
 
 } // namespace Service::NS

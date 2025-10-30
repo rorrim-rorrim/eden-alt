@@ -31,7 +31,7 @@ QString ReadableByteSize(qulonglong size) {
     }
 
     const int digit_groups = (std::min)(static_cast<int>(std::log10(size) / std::log10(1024)),
-                                      static_cast<int>(units.size()));
+                                        static_cast<int>(units.size()));
     return QStringLiteral("%L1 %2")
         .arg(size / std::pow(1024, digit_groups), 0, 'f', 1)
         .arg(QString::fromUtf8(units[digit_groups]));

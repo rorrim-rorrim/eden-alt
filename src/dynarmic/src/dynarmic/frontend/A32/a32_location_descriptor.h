@@ -35,10 +35,8 @@ public:
     static constexpr u32 FPSCR_MODE_MASK = 0x07F70000;
 
     LocationDescriptor(u32 arm_pc, PSR cpsr, FPSCR fpscr, bool single_stepping = false)
-            : arm_pc(arm_pc)
-            , cpsr(cpsr.Value() & CPSR_MODE_MASK)
-            , fpscr(fpscr.Value() & FPSCR_MODE_MASK)
-            , single_stepping(single_stepping) {}
+        : arm_pc(arm_pc), cpsr(cpsr.Value() & CPSR_MODE_MASK),
+          fpscr(fpscr.Value() & FPSCR_MODE_MASK), single_stepping(single_stepping) {}
 
     explicit LocationDescriptor(const IR::LocationDescriptor& o) {
         arm_pc = static_cast<u32>(o.Value());
@@ -49,18 +47,33 @@ public:
         single_stepping = (o.Value() >> 32) & 4;
     }
 
-    u32 PC() const { return arm_pc; }
-    bool TFlag() const { return cpsr.T(); }
-    bool EFlag() const { return cpsr.E(); }
-    ITState IT() const { return cpsr.IT(); }
+    u32 PC() const {
+        return arm_pc;
+    }
+    bool TFlag() const {
+        return cpsr.T();
+    }
+    bool EFlag() const {
+        return cpsr.E();
+    }
+    ITState IT() const {
+        return cpsr.IT();
+    }
 
-    A32::PSR CPSR() const { return cpsr; }
-    A32::FPSCR FPSCR() const { return fpscr; }
+    A32::PSR CPSR() const {
+        return cpsr;
+    }
+    A32::FPSCR FPSCR() const {
+        return fpscr;
+    }
 
-    bool SingleStepping() const { return single_stepping; }
+    bool SingleStepping() const {
+        return single_stepping;
+    }
 
     bool operator==(const LocationDescriptor& o) const {
-        return std::tie(arm_pc, cpsr, fpscr, single_stepping) == std::tie(o.arm_pc, o.cpsr, o.fpscr, o.single_stepping);
+        return std::tie(arm_pc, cpsr, fpscr, single_stepping) ==
+               std::tie(o.arm_pc, o.cpsr, o.fpscr, o.single_stepping);
     }
 
     bool operator!=(const LocationDescriptor& o) const {
@@ -90,7 +103,8 @@ public:
     }
 
     LocationDescriptor SetFPSCR(u32 new_fpscr) const {
-        return LocationDescriptor(arm_pc, cpsr, A32::FPSCR{new_fpscr & FPSCR_MODE_MASK}, single_stepping);
+        return LocationDescriptor(arm_pc, cpsr, A32::FPSCR{new_fpscr & FPSCR_MODE_MASK},
+                                  single_stepping);
     }
 
     LocationDescriptor SetIT(ITState new_it) const {
@@ -126,9 +140,9 @@ public:
     }
 
 private:
-    u32 arm_pc;        ///< Current program counter value.
-    PSR cpsr;          ///< Current program status register.
-    A32::FPSCR fpscr;  ///< Floating point status control register.
+    u32 arm_pc;       ///< Current program counter value.
+    PSR cpsr;         ///< Current program status register.
+    A32::FPSCR fpscr; ///< Floating point status control register.
     bool single_stepping;
 };
 
@@ -139,26 +153,27 @@ private:
  */
 std::string ToString(const LocationDescriptor& descriptor);
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32
 
 namespace std {
-template<>
+template <>
 struct less<Dynarmic::A32::LocationDescriptor> {
-    bool operator()(const Dynarmic::A32::LocationDescriptor& x, const Dynarmic::A32::LocationDescriptor& y) const noexcept {
+    bool operator()(const Dynarmic::A32::LocationDescriptor& x,
+                    const Dynarmic::A32::LocationDescriptor& y) const noexcept {
         return x.UniqueHash() < y.UniqueHash();
     }
 };
-template<>
+template <>
 struct hash<Dynarmic::A32::LocationDescriptor> {
     size_t operator()(const Dynarmic::A32::LocationDescriptor& x) const noexcept {
         return std::hash<u64>()(x.UniqueHash());
     }
 };
-}  // namespace std
+} // namespace std
 
-template<>
+template <>
 struct fmt::formatter<Dynarmic::A32::LocationDescriptor> : fmt::formatter<std::string> {
-    template<typename FormatContext>
+    template <typename FormatContext>
     auto format(Dynarmic::A32::LocationDescriptor descriptor, FormatContext& ctx) const {
         return formatter<std::string>::format(Dynarmic::A32::ToString(descriptor), ctx);
     }

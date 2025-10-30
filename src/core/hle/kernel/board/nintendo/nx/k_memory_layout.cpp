@@ -136,9 +136,10 @@ void SetupPoolPartitionMemoryRegions(KMemoryLayout& memory_layout) {
     // Decide on starting addresses for our pools.
     const u64 application_pool_start = pool_end - application_pool_size;
     const u64 applet_pool_start = application_pool_start - applet_pool_size;
-    const u64 unsafe_system_pool_start = (std::min)(
-        kernel_dram_start + CarveoutSizeMax,
-        Common::AlignDown(applet_pool_start - unsafe_system_pool_min_size, CarveoutAlignment));
+    const u64 unsafe_system_pool_start =
+        (std::min)(kernel_dram_start + CarveoutSizeMax,
+                   Common::AlignDown(applet_pool_start - unsafe_system_pool_min_size,
+                                     CarveoutAlignment));
     const size_t unsafe_system_pool_size = applet_pool_start - unsafe_system_pool_start;
 
     // We want to arrange application pool depending on where the middle of dram is.

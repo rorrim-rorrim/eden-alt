@@ -89,7 +89,8 @@ bool TranslatorVisitor::arm_MSR_reg(Cond cond, unsigned mask, Reg n) {
             ir.SetGEFlagsCompressed(ir.And(value, ir.Imm32(0x000F0000)));
         }
     } else {
-        const u32 cpsr_mask = (write_nzcvq ? 0xF8000000 : 0) | (write_g ? 0x000F0000 : 0) | 0x00000200;
+        const u32 cpsr_mask =
+            (write_nzcvq ? 0xF8000000 : 0) | (write_g ? 0x000F0000 : 0) | 0x00000200;
         const auto old_cpsr = ir.And(ir.GetCpsr(), ir.Imm32(~cpsr_mask));
         const auto new_cpsr = ir.And(value, ir.Imm32(cpsr_mask));
         ir.SetCpsr(ir.Or(old_cpsr, new_cpsr));
@@ -118,4 +119,4 @@ bool TranslatorVisitor::arm_SRS() {
     return InterpretThisInstruction();
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

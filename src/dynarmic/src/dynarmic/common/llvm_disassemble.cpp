@@ -11,12 +11,12 @@
 #include <fmt/format.h>
 
 #ifdef DYNARMIC_USE_LLVM
-#    include <llvm-c/Disassembler.h>
-#    include <llvm-c/Target.h>
+#include <llvm-c/Disassembler.h>
+#include <llvm-c/Target.h>
 #endif
 
-#include "dynarmic/common/assert.h"
 #include <bit>
+#include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/common/llvm_disassemble.h"
@@ -37,7 +37,9 @@ std::string DisassembleX64(const void* begin, const void* end) {
     size_t remaining = reinterpret_cast<size_t>(end) - reinterpret_cast<size_t>(pos);
     while (pos < end) {
         char buffer[80];
-        size_t inst_size = LLVMDisasmInstruction(llvm_ctx, const_cast<u8*>(pos), remaining, reinterpret_cast<u64>(pos), buffer, sizeof(buffer));
+        size_t inst_size =
+            LLVMDisasmInstruction(llvm_ctx, const_cast<u8*>(pos), remaining,
+                                  reinterpret_cast<u64>(pos), buffer, sizeof(buffer));
         ASSERT(inst_size);
         for (const u8* i = pos; i < pos + inst_size; i++)
             result += fmt::format("{:02x} ", *i);
@@ -52,26 +54,32 @@ std::string DisassembleX64(const void* begin, const void* end) {
 
     LLVMDisasmDispose(llvm_ctx);
 #else
-    result += fmt::format("(recompile with DYNARMIC_USE_LLVM=ON to disassemble the generated x86_64 code)\n");
-    result += fmt::format("start: {:016x}, end: {:016x}\n", std::bit_cast<u64>(begin), std::bit_cast<u64>(end));
+    result += fmt::format(
+        "(recompile with DYNARMIC_USE_LLVM=ON to disassemble the generated x86_64 code)\n");
+    result += fmt::format("start: {:016x}, end: {:016x}\n", std::bit_cast<u64>(begin),
+                          std::bit_cast<u64>(end));
 #endif
 
     return result;
 }
 
-std::string DisassembleAArch32([[maybe_unused]] bool is_thumb, [[maybe_unused]] u32 pc, [[maybe_unused]] const u8* instructions, [[maybe_unused]] size_t length) {
+std::string DisassembleAArch32([[maybe_unused]] bool is_thumb, [[maybe_unused]] u32 pc,
+                               [[maybe_unused]] const u8* instructions,
+                               [[maybe_unused]] size_t length) {
     std::string result;
 
 #ifdef DYNARMIC_USE_LLVM
     LLVMInitializeARMTargetInfo();
     LLVMInitializeARMTargetMC();
     LLVMInitializeARMDisassembler();
-    LLVMDisasmContextRef llvm_ctx = LLVMCreateDisasm(is_thumb ? "thumbv8-arm" : "armv8-arm", nullptr, 0, nullptr, nullptr);
+    LLVMDisasmContextRef llvm_ctx =
+        LLVMCreateDisasm(is_thumb ? "thumbv8-arm" : "armv8-arm", nullptr, 0, nullptr, nullptr);
     LLVMSetDisasmOptions(llvm_ctx, LLVMDisassembler_Option_AsmPrinterVariant);
 
     char buffer[1024];
     while (length) {
-        size_t inst_size = LLVMDisasmInstruction(llvm_ctx, const_cast<u8*>(instructions), length, pc, buffer, sizeof(buffer));
+        size_t inst_size = LLVMDisasmInstruction(llvm_ctx, const_cast<u8*>(instructions), length,
+                                                 pc, buffer, sizeof(buffer));
         const char* const disassembled = inst_size > 0 ? buffer : "<invalid instruction>";
 
         if (inst_size == 0)
@@ -115,7 +123,8 @@ std::string DisassembleAArch64([[maybe_unused]] u32 instruction, [[maybe_unused]
     LLVMSetDisasmOptions(llvm_ctx, LLVMDisassembler_Option_AsmPrinterVariant);
 
     char buffer[80];
-    size_t inst_size = LLVMDisasmInstruction(llvm_ctx, (u8*)&instruction, sizeof(instruction), pc, buffer, sizeof(buffer));
+    size_t inst_size = LLVMDisasmInstruction(llvm_ctx, (u8*)&instruction, sizeof(instruction), pc,
+                                             buffer, sizeof(buffer));
     result = fmt::format("{:016x}  {:08x} ", pc, instruction);
     result += inst_size > 0 ? buffer : "<invalid instruction>";
     result += '\n';
@@ -128,4 +137,4 @@ std::string DisassembleAArch64([[maybe_unused]] u32 instruction, [[maybe_unused]
     return result;
 }
 
-}  // namespace Dynarmic::Common
+} // namespace Dynarmic::Common

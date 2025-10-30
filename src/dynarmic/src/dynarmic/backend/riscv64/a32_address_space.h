@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <biscuit/assembler.hpp>
 #include <ankerl/unordered_dense.h>
+#include <biscuit/assembler.hpp>
 
 #include "dynarmic/backend/riscv64/code_block.h"
 #include "dynarmic/backend/riscv64/emit_riscv64.h"
@@ -36,25 +36,25 @@ private:
 
     void EmitPrelude();
 
-    template<typename T>
+    template <typename T>
     T GetMemPtr() {
         static_assert(std::is_pointer_v<T> || std::is_same_v<T, uptr> || std::is_same_v<T, sptr>);
         return reinterpret_cast<T>(as.GetBufferPointer(0));
     }
 
-    template<typename T>
+    template <typename T>
     T GetMemPtr() const {
         static_assert(std::is_pointer_v<T> || std::is_same_v<T, uptr> || std::is_same_v<T, sptr>);
         return reinterpret_cast<const T>(as.GetBufferPointer(0));
     }
 
-    template<typename T>
+    template <typename T>
     T GetCursorPtr() {
         static_assert(std::is_pointer_v<T> || std::is_same_v<T, uptr> || std::is_same_v<T, sptr>);
         return reinterpret_cast<T>(as.GetCursorPointer());
     }
 
-    template<typename T>
+    template <typename T>
     T GetCursorPtr() const {
         static_assert(std::is_pointer_v<T> || std::is_same_v<T, uptr> || std::is_same_v<T, sptr>);
         return reinterpret_cast<const T>(as.GetCursorPointer());
@@ -77,10 +77,11 @@ private:
     struct PreludeInfo {
         CodePtr end_of_prelude;
 
-        using RunCodeFuncType = HaltReason (*)(CodePtr entry_point, A32JitState* context, volatile u32* halt_reason);
+        using RunCodeFuncType = HaltReason (*)(CodePtr entry_point, A32JitState* context,
+                                               volatile u32* halt_reason);
         RunCodeFuncType run_code;
         CodePtr return_from_run_code;
     } prelude_info;
 };
 
-}  // namespace Dynarmic::Backend::RV64
+} // namespace Dynarmic::Backend::RV64

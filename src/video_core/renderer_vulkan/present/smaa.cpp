@@ -6,8 +6,8 @@
 
 #include <list>
 
-#include "common/assert.h"
 #include <ranges>
+#include "common/assert.h"
 
 #include "video_core/renderer_vulkan/present/smaa.h"
 #include "video_core/renderer_vulkan/present/util.h"

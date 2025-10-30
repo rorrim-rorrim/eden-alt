@@ -12,10 +12,10 @@
 #include "common/logging/filter.h"
 #include "common/settings.h"
 #include "core/core.h"
+#include "qt_common/config/uisettings.h"
 #include "ui_configure_debug.h"
 #include "yuzu/configuration/configure_debug.h"
 #include "yuzu/debugger/console.h"
-#include "qt_common/config/uisettings.h"
 
 ConfigureDebug::ConfigureDebug(const Core::System& system_, QWidget* parent)
     : QScrollArea(parent), ui{std::make_unique<Ui::ConfigureDebug>()}, system{system_} {
@@ -44,7 +44,8 @@ void ConfigureDebug::SetConfiguration() {
     ui->log_filter_edit->setText(QString::fromStdString(Settings::values.log_filter.GetValue()));
     ui->flush_line->setChecked(Settings::values.log_flush_line.GetValue());
     ui->censor_username->setChecked(Settings::values.censor_username.GetValue());
-    ui->homebrew_args_edit->setText(QString::fromStdString(Settings::values.program_args.GetValue()));
+    ui->homebrew_args_edit->setText(
+        QString::fromStdString(Settings::values.program_args.GetValue()));
     ui->fs_access_log->setEnabled(runtime_lock);
     ui->fs_access_log->setChecked(Settings::values.enable_fs_access_log.GetValue());
     ui->reporting_services->setChecked(Settings::values.reporting_services.GetValue());
@@ -72,7 +73,8 @@ void ConfigureDebug::SetConfiguration() {
     ui->disable_macro_hle->setEnabled(runtime_lock);
     ui->disable_macro_hle->setChecked(Settings::values.disable_macro_hle.GetValue());
     ui->disable_loop_safety_checks->setEnabled(runtime_lock);
-    ui->disable_loop_safety_checks->setChecked(Settings::values.disable_shader_loop_safety_checks.GetValue());
+    ui->disable_loop_safety_checks->setChecked(
+        Settings::values.disable_shader_loop_safety_checks.GetValue());
     ui->extended_logging->setChecked(Settings::values.extended_logging.GetValue());
     ui->perform_vulkan_check->setChecked(Settings::values.perform_vulkan_check.GetValue());
     ui->disable_web_applet->setChecked(Settings::values.disable_web_applet.GetValue());
@@ -104,7 +106,8 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.enable_nsight_aftermath = ui->enable_nsight_aftermath->isChecked();
     Settings::values.dump_shaders = ui->dump_shaders->isChecked();
     Settings::values.dump_macros = ui->dump_macros->isChecked();
-    Settings::values.disable_shader_loop_safety_checks = ui->disable_loop_safety_checks->isChecked();
+    Settings::values.disable_shader_loop_safety_checks =
+        ui->disable_loop_safety_checks->isChecked();
     Settings::values.disable_macro_jit = ui->disable_macro_jit->isChecked();
     Settings::values.disable_macro_hle = ui->disable_macro_hle->isChecked();
     Settings::values.extended_logging = ui->extended_logging->isChecked();

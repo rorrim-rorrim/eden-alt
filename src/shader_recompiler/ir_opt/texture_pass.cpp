@@ -349,11 +349,13 @@ TextureInst MakeInst(Environment& env, IR::Block* block, IR::Inst& inst) {
         const std::optional<ConstBufferAddr> track_addr{Track(inst.Arg(0), env)};
 
         if (!track_addr) {
-            //throw NotImplementedException("Failed to track bindless texture constant buffer");
-            addr = last_valid_addr; // TODO:xbzk: shall be dropped when Track method cover all bindless stuff
+            // throw NotImplementedException("Failed to track bindless texture constant buffer");
+            addr = last_valid_addr; // TODO:xbzk: shall be dropped when Track method cover all
+                                    // bindless stuff
         } else {
             addr = *track_addr;
-            last_valid_addr = addr; // TODO:xbzk: shall be dropped when Track method cover all bindless stuff
+            last_valid_addr =
+                addr; // TODO:xbzk: shall be dropped when Track method cover all bindless stuff
         }
     } else {
         addr = ConstBufferAddr{

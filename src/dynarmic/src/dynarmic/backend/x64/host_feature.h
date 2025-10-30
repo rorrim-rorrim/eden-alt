@@ -66,4 +66,4 @@ constexpr HostFeature operator&=(HostFeature& result, HostFeature f) {
     return result = (result & f);
 }
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

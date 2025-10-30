@@ -15,7 +15,7 @@ namespace {
 
 thread_local Core::Memory::Memory* g_current_memory{};
 std::once_flag g_registered{};
-struct sigaction g_old_segv {};
+struct sigaction g_old_segv{};
 
 void HandleSigSegv(int sig, siginfo_t* info, void* ctx) {
     if (g_current_memory && g_current_memory->InvalidateSeparateHeap(info->si_addr)) {
@@ -37,7 +37,7 @@ ScopedJitExecution::~ScopedJitExecution() {
 
 void ScopedJitExecution::RegisterHandler() {
     std::call_once(g_registered, [] {
-        struct sigaction sa {};
+        struct sigaction sa{};
         sa.sa_sigaction = &HandleSigSegv;
         sa.sa_flags = SA_SIGINFO | SA_ONSTACK;
         Common::SigAction(SIGSEGV, std::addressof(sa), std::addressof(g_old_segv));

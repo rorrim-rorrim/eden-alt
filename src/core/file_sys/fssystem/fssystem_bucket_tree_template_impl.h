@@ -44,7 +44,7 @@ Result BucketTree::ScanContinuousReading(ContinuousReadingInfo* out_info,
     u8* buffer = reinterpret_cast<u8*>(pool.data());
     const auto ofs = param.entry_set.index * s64(m_node_size);
     R_UNLESS(m_node_size + ofs <= size_t(entry_storage_size),
-                ResultInvalidBucketTreeNodeEntryCount);
+             ResultInvalidBucketTreeNodeEntryCount);
 
     m_entry_storage->Read(buffer, m_node_size, ofs);
 

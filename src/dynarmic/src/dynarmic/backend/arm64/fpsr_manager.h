@@ -13,7 +13,7 @@
 namespace oaknut {
 struct CodeGenerator;
 struct WReg;
-}  // namespace oaknut
+} // namespace oaknut
 
 namespace Dynarmic::Backend::Arm64 {
 
@@ -23,7 +23,9 @@ public:
 
     void Spill();
     void Load();
-    void Overwrite() { fpsr_loaded = false; }
+    void Overwrite() {
+        fpsr_loaded = false;
+    }
 
     void GetFpsr(oaknut::WReg);
 
@@ -33,4 +35,4 @@ private:
     bool fpsr_loaded = false;
 };
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

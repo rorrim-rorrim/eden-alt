@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "core/hle/service/am/service/storage.h"
 #include "core/hle/service/am/am_types.h"
+#include "core/hle/service/am/service/storage.h"
 #include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
 

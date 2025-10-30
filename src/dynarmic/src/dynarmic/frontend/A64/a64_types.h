@@ -126,19 +126,19 @@ inline Vec operator+(Vec vec, size_t number) {
     return static_cast<Vec>(new_vec);
 }
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64
 
-template<>
+template <>
 struct fmt::formatter<Dynarmic::A64::Reg> : fmt::formatter<std::string> {
-    template<typename FormatContext>
+    template <typename FormatContext>
     auto format(Dynarmic::A64::Reg reg, FormatContext& ctx) const {
         return formatter<std::string>::format(Dynarmic::A64::RegToString(reg), ctx);
     }
 };
 
-template<>
+template <>
 struct fmt::formatter<Dynarmic::A64::Vec> : fmt::formatter<std::string> {
-    template<typename FormatContext>
+    template <typename FormatContext>
     auto format(Dynarmic::A64::Vec vec, FormatContext& ctx) const {
         return formatter<std::string>::format(Dynarmic::A64::VecToString(vec), ctx);
     }

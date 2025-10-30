@@ -84,7 +84,7 @@ public:
             return true;
         } else {
             condvar.wait(lk, token,
-                        [this, current_generation] { return current_generation != generation; });
+                         [this, current_generation] { return current_generation != generation; });
             return !token.stop_requested();
         }
     }

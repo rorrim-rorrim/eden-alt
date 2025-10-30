@@ -41,8 +41,9 @@ struct A32JitState {
     void SetFpscr(u32 fpscr);
 
     IR::LocationDescriptor GetLocationDescriptor() const {
-        return IR::LocationDescriptor{regs[15] | (static_cast<u64>(upper_location_descriptor) << 32)};
+        return IR::LocationDescriptor{regs[15] |
+                                      (static_cast<u64>(upper_location_descriptor) << 32)};
     }
 };
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

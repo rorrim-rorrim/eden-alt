@@ -116,5 +116,4 @@ jmethodID GetYuzuDeviceHasKeys();
 jmethodID GetAddNetPlayMessage();
 jmethodID ClearChat();
 
-
 } // namespace Common::Android

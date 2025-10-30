@@ -87,7 +87,8 @@ void AESCipher<Key, KeySize>::Transcode(const u8* src, std::size_t size, u8* des
         const int ret = mbedtls_cipher_update(context, src, size, dest, &written);
         ASSERT(ret == 0);
         if (written != size) {
-            LOG_WARNING(Crypto, "Not all data was processed requested={:016X}, actual={:016X}.", size, written);
+            LOG_WARNING(Crypto, "Not all data was processed requested={:016X}, actual={:016X}.",
+                        size, written);
         }
         return;
     }
@@ -113,12 +114,12 @@ void AESCipher<Key, KeySize>::Transcode(const u8* src, std::size_t size, u8* des
     std::memcpy(tail_buffer.data(), src + whole_block_bytes, tail);
 
     std::size_t tail_written = 0;
-    const int ret = mbedtls_cipher_update(context, tail_buffer.data(), block_size, tail_buffer.data(),
-                                          &tail_written);
+    const int ret = mbedtls_cipher_update(context, tail_buffer.data(), block_size,
+                                          tail_buffer.data(), &tail_written);
     ASSERT(ret == 0);
     if (tail_written != block_size) {
-        LOG_WARNING(Crypto, "Not all data was processed requested={:016X}, actual={:016X}.", block_size,
-                    tail_written);
+        LOG_WARNING(Crypto, "Not all data was processed requested={:016X}, actual={:016X}.",
+                    block_size, tail_written);
     }
 
     std::memcpy(dest + whole_block_bytes, tail_buffer.data(), tail);

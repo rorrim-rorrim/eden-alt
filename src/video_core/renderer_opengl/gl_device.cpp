@@ -15,9 +15,9 @@
 
 #include <glad/glad.h>
 
+#include <ranges>
 #include "common/literals.h"
 #include "common/logging/log.h"
-#include <ranges>
 #include "common/settings.h"
 #include "shader_recompiler/stage.h"
 #include "video_core/renderer_opengl/gl_device.h"
@@ -166,7 +166,8 @@ Device::Device(Core::Frontend::EmuWindow& emu_window) {
     }
 #ifdef __HAIKU__
     if (glad_glCreateProgramPipelines == nullptr) {
-        LOG_ERROR(Render_OpenGL, "You must compile Mesa +22 manually or use a different libGL.so (GLES is not supported)");
+        LOG_ERROR(Render_OpenGL, "You must compile Mesa +22 manually or use a different libGL.so "
+                                 "(GLES is not supported)");
         throw std::runtime_error{"Outdated mesa"};
     }
 #endif

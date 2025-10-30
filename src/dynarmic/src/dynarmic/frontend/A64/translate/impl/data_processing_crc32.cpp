@@ -73,4 +73,4 @@ bool TranslatorVisitor::CRC32C(bool sf, Reg Rm, Imm<2> sz, Reg Rn, Reg Rd) {
     return true;
 }
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64

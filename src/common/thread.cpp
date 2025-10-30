@@ -37,12 +37,18 @@ void SetCurrentThreadPriority(ThreadPriority new_priority) {
 #ifdef _WIN32
     int windows_priority = [&]() {
         switch (new_priority) {
-        case ThreadPriority::Low: return THREAD_PRIORITY_BELOW_NORMAL;
-        case ThreadPriority::Normal: return THREAD_PRIORITY_NORMAL;
-        case ThreadPriority::High: return THREAD_PRIORITY_ABOVE_NORMAL;
-        case ThreadPriority::VeryHigh: return THREAD_PRIORITY_HIGHEST;
-        case ThreadPriority::Critical: return THREAD_PRIORITY_TIME_CRITICAL;
-        default: return THREAD_PRIORITY_NORMAL;
+        case ThreadPriority::Low:
+            return THREAD_PRIORITY_BELOW_NORMAL;
+        case ThreadPriority::Normal:
+            return THREAD_PRIORITY_NORMAL;
+        case ThreadPriority::High:
+            return THREAD_PRIORITY_ABOVE_NORMAL;
+        case ThreadPriority::VeryHigh:
+            return THREAD_PRIORITY_HIGHEST;
+        case ThreadPriority::Critical:
+            return THREAD_PRIORITY_TIME_CRITICAL;
+        default:
+            return THREAD_PRIORITY_NORMAL;
         }
     }();
     SetThreadPriority(GetCurrentThread(), windows_priority);
@@ -50,12 +56,18 @@ void SetCurrentThreadPriority(ThreadPriority new_priority) {
     // TODO: We have priorities for 3D rendering applications - may help lavapipe?
     int priority = [&]() {
         switch (new_priority) {
-        case ThreadPriority::Low: return B_LOW_PRIORITY;
-        case ThreadPriority::Normal: return B_NORMAL_PRIORITY;
-        case ThreadPriority::High: return B_DISPLAY_PRIORITY;
-        case ThreadPriority::VeryHigh: return B_URGENT_DISPLAY_PRIORITY;
-        case ThreadPriority::Critical: return B_URGENT_PRIORITY;
-        default: return B_NORMAL_PRIORITY;
+        case ThreadPriority::Low:
+            return B_LOW_PRIORITY;
+        case ThreadPriority::Normal:
+            return B_NORMAL_PRIORITY;
+        case ThreadPriority::High:
+            return B_DISPLAY_PRIORITY;
+        case ThreadPriority::VeryHigh:
+            return B_URGENT_DISPLAY_PRIORITY;
+        case ThreadPriority::Critical:
+            return B_URGENT_PRIORITY;
+        default:
+            return B_NORMAL_PRIORITY;
         }
     }();
     set_thread_priority(find_thread(NULL), priority);
@@ -98,7 +110,8 @@ void SetCurrentThreadName(const char* name) {
     pthread_set_name_np(pthread_self(), name);
 #elif defined(__NetBSD__)
     pthread_setname_np(pthread_self(), "%s", (void*)name);
-#elif defined(__linux__) || defined(__CYGWIN__) || defined(__sun__) || defined(__glibc__) || defined(__managarm__)
+#elif defined(__linux__) || defined(__CYGWIN__) || defined(__sun__) || defined(__glibc__) ||       \
+    defined(__managarm__)
     int ret = pthread_setname_np(pthread_self(), name);
     if (ret == ERANGE) {
         // Linux limits thread names to 15 characters and will outright reject any

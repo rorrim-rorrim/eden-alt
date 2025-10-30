@@ -17,7 +17,7 @@
 #ifdef DYNARMIC_ENABLE_NO_EXECUTE_SUPPORT
 static const auto default_cg_mode = Xbyak::DontSetProtectRWE;
 #else
-static const auto default_cg_mode = nullptr; //Allow RWE
+static const auto default_cg_mode = nullptr; // Allow RWE
 #endif
 
 namespace Dynarmic {
@@ -69,7 +69,7 @@ void SpinLockImpl::Initialize() {
     code.ret();
 }
 
-}  // namespace
+} // namespace
 
 void SpinLock::Lock() noexcept {
     std::call_once(flag, &SpinLockImpl::Initialize, impl);
@@ -81,4 +81,4 @@ void SpinLock::Unlock() noexcept {
     impl.unlock(&storage);
 }
 
-}  // namespace Dynarmic
+} // namespace Dynarmic

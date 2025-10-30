@@ -26,8 +26,9 @@ constexpr size_t page_bits = 12;
 constexpr size_t page_size = 1 << page_bits;
 constexpr size_t page_mask = (1 << page_bits) - 1;
 
-template<typename EmitContext>
-void EmitDetectMisalignedVAddr(BlockOfCode& code, EmitContext& ctx, size_t bitsize, Xbyak::Label& abort, Xbyak::Reg64 vaddr, Xbyak::Reg64 tmp) {
+template <typename EmitContext>
+void EmitDetectMisalignedVAddr(BlockOfCode& code, EmitContext& ctx, size_t bitsize,
+                               Xbyak::Label& abort, Xbyak::Reg64 vaddr, Xbyak::Reg64 tmp) {
     if (bitsize == 8 || (ctx.conf.detect_misaligned_access_via_page_table & bitsize) == 0) {
         return;
     }
@@ -70,13 +71,18 @@ void EmitDetectMisalignedVAddr(BlockOfCode& code, EmitContext& ctx, size_t bitsi
     }
 }
 
-template<typename EmitContext>
-Xbyak::RegExp EmitVAddrLookup(BlockOfCode& code, EmitContext& ctx, size_t bitsize, Xbyak::Label& abort, Xbyak::Reg64 vaddr);
+template <typename EmitContext>
+Xbyak::RegExp EmitVAddrLookup(BlockOfCode& code, EmitContext& ctx, size_t bitsize,
+                              Xbyak::Label& abort, Xbyak::Reg64 vaddr);
 
-template<>
-[[maybe_unused]] Xbyak::RegExp EmitVAddrLookup<A32EmitContext>(BlockOfCode& code, A32EmitContext& ctx, size_t bitsize, Xbyak::Label& abort, Xbyak::Reg64 vaddr) {
+template <>
+[[maybe_unused]] Xbyak::RegExp EmitVAddrLookup<A32EmitContext>(BlockOfCode& code,
+                                                               A32EmitContext& ctx, size_t bitsize,
+                                                               Xbyak::Label& abort,
+                                                               Xbyak::Reg64 vaddr) {
     const Xbyak::Reg64 page = ctx.reg_alloc.ScratchGpr();
-    const Xbyak::Reg32 tmp = ctx.conf.absolute_offset_page_table ? page.cvt32() : ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg32 tmp =
+        ctx.conf.absolute_offset_page_table ? page.cvt32() : ctx.reg_alloc.ScratchGpr().cvt32();
 
     EmitDetectMisalignedVAddr(code, ctx, bitsize, abort, vaddr, tmp.cvt64());
 
@@ -100,13 +106,17 @@ template<>
     return page + tmp.cvt64();
 }
 
-template<>
-[[maybe_unused]] Xbyak::RegExp EmitVAddrLookup<A64EmitContext>(BlockOfCode& code, A64EmitContext& ctx, size_t bitsize, Xbyak::Label& abort, Xbyak::Reg64 vaddr) {
+template <>
+[[maybe_unused]] Xbyak::RegExp EmitVAddrLookup<A64EmitContext>(BlockOfCode& code,
+                                                               A64EmitContext& ctx, size_t bitsize,
+                                                               Xbyak::Label& abort,
+                                                               Xbyak::Reg64 vaddr) {
     const size_t valid_page_index_bits = ctx.conf.page_table_address_space_bits - page_bits;
     const size_t unused_top_bits = 64 - ctx.conf.page_table_address_space_bits;
 
     const Xbyak::Reg64 page = ctx.reg_alloc.ScratchGpr();
-    const Xbyak::Reg64 tmp = ctx.conf.absolute_offset_page_table ? page : ctx.reg_alloc.ScratchGpr();
+    const Xbyak::Reg64 tmp =
+        ctx.conf.absolute_offset_page_table ? page : ctx.reg_alloc.ScratchGpr();
 
     EmitDetectMisalignedVAddr(code, ctx, bitsize, abort, vaddr, tmp);
 
@@ -153,16 +163,23 @@ template<>
     return page + tmp;
 }
 
-template<typename EmitContext>
-Xbyak::RegExp EmitFastmemVAddr(BlockOfCode& code, EmitContext& ctx, Xbyak::Label& abort, Xbyak::Reg64 vaddr, bool& require_abort_handling, std::optional<Xbyak::Reg64> tmp = std::nullopt);
+template <typename EmitContext>
+Xbyak::RegExp EmitFastmemVAddr(BlockOfCode& code, EmitContext& ctx, Xbyak::Label& abort,
+                               Xbyak::Reg64 vaddr, bool& require_abort_handling,
+                               std::optional<Xbyak::Reg64> tmp = std::nullopt);
 
-template<>
-[[maybe_unused]] Xbyak::RegExp EmitFastmemVAddr<A32EmitContext>(BlockOfCode&, A32EmitContext&, Xbyak::Label&, Xbyak::Reg64 vaddr, bool&, std::optional<Xbyak::Reg64>) {
+template <>
+[[maybe_unused]] Xbyak::RegExp EmitFastmemVAddr<A32EmitContext>(BlockOfCode&, A32EmitContext&,
+                                                                Xbyak::Label&, Xbyak::Reg64 vaddr,
+                                                                bool&,
+                                                                std::optional<Xbyak::Reg64>) {
     return r13 + vaddr;
 }
 
-template<>
-[[maybe_unused]] Xbyak::RegExp EmitFastmemVAddr<A64EmitContext>(BlockOfCode& code, A64EmitContext& ctx, Xbyak::Label& abort, Xbyak::Reg64 vaddr, bool& require_abort_handling, std::optional<Xbyak::Reg64> tmp) {
+template <>
+[[maybe_unused]] Xbyak::RegExp EmitFastmemVAddr<A64EmitContext>(
+    BlockOfCode& code, A64EmitContext& ctx, Xbyak::Label& abort, Xbyak::Reg64 vaddr,
+    bool& require_abort_handling, std::optional<Xbyak::Reg64> tmp) {
     auto const unused_top_bits = 64 - ctx.conf.fastmem_address_space_bits;
     if (unused_top_bits == 0) {
         return r13 + vaddr;
@@ -187,7 +204,8 @@ template<>
             code.jnz(abort, code.T_NEAR);
             require_abort_handling = true;
         } else {
-            // TODO: Consider having TEST as above but coalesce 64-bit constant in register allocator
+            // TODO: Consider having TEST as above but coalesce 64-bit constant in register
+            // allocator
             if (!tmp) {
                 tmp = ctx.reg_alloc.ScratchGpr();
             }
@@ -200,8 +218,9 @@ template<>
     }
 }
 
-template<std::size_t bitsize>
-const void* EmitReadMemoryMov(BlockOfCode& code, int value_idx, const Xbyak::RegExp& addr, bool ordered) {
+template <std::size_t bitsize>
+const void* EmitReadMemoryMov(BlockOfCode& code, int value_idx, const Xbyak::RegExp& addr,
+                              bool ordered) {
     if (ordered) {
         if constexpr (bitsize != 128) {
             code.xor_(Xbyak::Reg32(value_idx), Xbyak::Reg32(value_idx));
@@ -271,8 +290,9 @@ const void* EmitReadMemoryMov(BlockOfCode& code, int value_idx, const Xbyak::Reg
     }
 }
 
-template<std::size_t bitsize>
-const void* EmitWriteMemoryMov(BlockOfCode& code, const Xbyak::RegExp& addr, int value_idx, bool ordered) {
+template <std::size_t bitsize>
+const void* EmitWriteMemoryMov(BlockOfCode& code, const Xbyak::RegExp& addr, int value_idx,
+                               bool ordered) {
     if (ordered) {
         if constexpr (bitsize == 128) {
             code.xor_(eax, eax);
@@ -339,8 +359,9 @@ const void* EmitWriteMemoryMov(BlockOfCode& code, const Xbyak::RegExp& addr, int
     }
 }
 
-template<typename UserConfig>
-void EmitExclusiveLock(BlockOfCode& code, const UserConfig& conf, Xbyak::Reg64 pointer, Xbyak::Reg32 tmp) {
+template <typename UserConfig>
+void EmitExclusiveLock(BlockOfCode& code, const UserConfig& conf, Xbyak::Reg64 pointer,
+                       Xbyak::Reg32 tmp) {
     if (conf.HasOptimization(OptimizationFlag::Unsafe_IgnoreGlobalMonitor)) {
         return;
     }
@@ -349,8 +370,9 @@ void EmitExclusiveLock(BlockOfCode& code, const UserConfig& conf, Xbyak::Reg64 p
     EmitSpinLockLock(code, pointer, tmp);
 }
 
-template<typename UserConfig>
-void EmitExclusiveUnlock(BlockOfCode& code, const UserConfig& conf, Xbyak::Reg64 pointer, Xbyak::Reg32 tmp) {
+template <typename UserConfig>
+void EmitExclusiveUnlock(BlockOfCode& code, const UserConfig& conf, Xbyak::Reg64 pointer,
+                         Xbyak::Reg32 tmp) {
     if (conf.HasOptimization(OptimizationFlag::Unsafe_IgnoreGlobalMonitor)) {
         return;
     }
@@ -359,8 +381,9 @@ void EmitExclusiveUnlock(BlockOfCode& code, const UserConfig& conf, Xbyak::Reg64
     EmitSpinLockUnlock(code, pointer, tmp);
 }
 
-template<typename UserConfig>
-void EmitExclusiveTestAndClear(BlockOfCode& code, const UserConfig& conf, Xbyak::Reg64 vaddr, Xbyak::Reg64 pointer, Xbyak::Reg64 tmp) {
+template <typename UserConfig>
+void EmitExclusiveTestAndClear(BlockOfCode& code, const UserConfig& conf, Xbyak::Reg64 vaddr,
+                               Xbyak::Reg64 pointer, Xbyak::Reg64 tmp) {
     if (conf.HasOptimization(OptimizationFlag::Unsafe_IgnoreGlobalMonitor)) {
         return;
     }
@@ -372,7 +395,8 @@ void EmitExclusiveTestAndClear(BlockOfCode& code, const UserConfig& conf, Xbyak:
             continue;
         }
         Xbyak::Label ok;
-        code.mov(pointer, std::bit_cast<u64>(GetExclusiveMonitorAddressPointer(conf.global_monitor, processor_index)));
+        code.mov(pointer, std::bit_cast<u64>(GetExclusiveMonitorAddressPointer(conf.global_monitor,
+                                                                               processor_index)));
         code.cmp(qword[pointer], vaddr);
         code.jne(ok, code.T_NEAR);
         code.mov(qword[pointer], tmp);
@@ -381,9 +405,10 @@ void EmitExclusiveTestAndClear(BlockOfCode& code, const UserConfig& conf, Xbyak:
 }
 
 inline bool IsOrdered(IR::AccType acctype) {
-    return acctype == IR::AccType::ORDERED || acctype == IR::AccType::ORDEREDRW || acctype == IR::AccType::LIMITEDORDERED;
+    return acctype == IR::AccType::ORDERED || acctype == IR::AccType::ORDEREDRW ||
+           acctype == IR::AccType::LIMITEDORDERED;
 }
 
-}  // namespace
+} // namespace
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

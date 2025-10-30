@@ -548,9 +548,8 @@ bool TouchScreenPreview::eventFilter(QObject* obj, QEvent* event) {
         }
         const auto mouse_event = static_cast<QMouseEvent*>(event);
         if (!drag_state.active) {
-            drag_state.active =
-                (mouse_event->globalPosition().toPoint() - drag_state.start_pos).manhattanLength() >=
-                QApplication::startDragDistance();
+            drag_state.active = (mouse_event->globalPosition().toPoint() - drag_state.start_pos)
+                                    .manhattanLength() >= QApplication::startDragDistance();
             if (!drag_state.active) {
                 break;
             }

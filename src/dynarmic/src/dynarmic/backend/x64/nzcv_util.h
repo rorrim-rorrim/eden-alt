@@ -52,4 +52,4 @@ inline u32 FromX64(u32 x64_flags) {
     return ((x64_flags & x64_mask) * from_x64_multiplier) & arm_mask;
 }
 
-}  // namespace Dynarmic::Backend::X64::NZCV
+} // namespace Dynarmic::Backend::X64::NZCV

@@ -45,7 +45,8 @@ bool TranslatorVisitor::arm_SWPB(Cond cond, Reg n, Reg t, Reg t2) {
 
     // TODO (HACK): Implement bus locking here
     const auto data = ir.ReadMemory8(ir.GetRegister(n), IR::AccType::SWAP);
-    ir.WriteMemory8(ir.GetRegister(n), ir.LeastSignificantByte(ir.GetRegister(t2)), IR::AccType::SWAP);
+    ir.WriteMemory8(ir.GetRegister(n), ir.LeastSignificantByte(ir.GetRegister(t2)),
+                    IR::AccType::SWAP);
     // TODO: Alignment check
     ir.SetRegister(t, ir.ZeroExtendByteToWord(data));
     return true;
@@ -120,7 +121,8 @@ bool TranslatorVisitor::arm_LDAEXB(Cond cond, Reg n, Reg t) {
     }
 
     const auto address = ir.GetRegister(n);
-    ir.SetRegister(t, ir.ZeroExtendByteToWord(ir.ExclusiveReadMemory8(address, IR::AccType::ORDERED)));
+    ir.SetRegister(t,
+                   ir.ZeroExtendByteToWord(ir.ExclusiveReadMemory8(address, IR::AccType::ORDERED)));
     return true;
 }
 
@@ -153,7 +155,8 @@ bool TranslatorVisitor::arm_LDAEXH(Cond cond, Reg n, Reg t) {
     }
 
     const auto address = ir.GetRegister(n);
-    ir.SetRegister(t, ir.ZeroExtendHalfToWord(ir.ExclusiveReadMemory16(address, IR::AccType::ORDERED)));
+    ir.SetRegister(
+        t, ir.ZeroExtendHalfToWord(ir.ExclusiveReadMemory16(address, IR::AccType::ORDERED)));
     return true;
 }
 
@@ -240,7 +243,8 @@ bool TranslatorVisitor::arm_STLEXD(Cond cond, Reg n, Reg d, Reg t) {
     const auto address = ir.GetRegister(n);
     const auto value_lo = ir.GetRegister(t);
     const auto value_hi = ir.GetRegister(t2);
-    const auto passed = ir.ExclusiveWriteMemory64(address, value_lo, value_hi, IR::AccType::ORDERED);
+    const auto passed =
+        ir.ExclusiveWriteMemory64(address, value_lo, value_hi, IR::AccType::ORDERED);
     ir.SetRegister(d, passed);
     return true;
 }
@@ -313,7 +317,8 @@ bool TranslatorVisitor::arm_LDREXB(Cond cond, Reg n, Reg t) {
     }
 
     const auto address = ir.GetRegister(n);
-    ir.SetRegister(t, ir.ZeroExtendByteToWord(ir.ExclusiveReadMemory8(address, IR::AccType::ATOMIC)));
+    ir.SetRegister(t,
+                   ir.ZeroExtendByteToWord(ir.ExclusiveReadMemory8(address, IR::AccType::ATOMIC)));
     return true;
 }
 
@@ -346,7 +351,8 @@ bool TranslatorVisitor::arm_LDREXH(Cond cond, Reg n, Reg t) {
     }
 
     const auto address = ir.GetRegister(n);
-    ir.SetRegister(t, ir.ZeroExtendHalfToWord(ir.ExclusiveReadMemory16(address, IR::AccType::ATOMIC)));
+    ir.SetRegister(t,
+                   ir.ZeroExtendHalfToWord(ir.ExclusiveReadMemory16(address, IR::AccType::ATOMIC)));
     return true;
 }
 
@@ -436,4 +442,4 @@ bool TranslatorVisitor::arm_STREXH(Cond cond, Reg n, Reg d, Reg t) {
     return true;
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

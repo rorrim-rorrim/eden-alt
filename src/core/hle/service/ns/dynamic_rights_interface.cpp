@@ -63,8 +63,8 @@ Result IDynamicRightsInterface::VerifyActivatedRightsOwners(u64 rights_handle) {
     R_SUCCEED();
 }
 
-Result IDynamicRightsInterface::HasAccountRestrictedRightsInRunningApplications(
-    Out<u32> out_status, u64 rights_handle) {
+Result IDynamicRightsInterface::HasAccountRestrictedRightsInRunningApplications(Out<u32> out_status,
+                                                                                u64 rights_handle) {
     LOG_WARNING(Service_NS, "(STUBBED) called, rights_handle={:#x}", rights_handle);
     *out_status = 0;
     R_SUCCEED();

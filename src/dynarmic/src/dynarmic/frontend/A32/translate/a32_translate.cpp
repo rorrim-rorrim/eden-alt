@@ -10,28 +10,34 @@
 
 namespace Dynarmic::A32 {
 
-IR::Block TranslateArm(LocationDescriptor descriptor, TranslateCallbacks* tcb, const TranslationOptions& options);
-IR::Block TranslateThumb(LocationDescriptor descriptor, TranslateCallbacks* tcb, const TranslationOptions& options);
+IR::Block TranslateArm(LocationDescriptor descriptor, TranslateCallbacks* tcb,
+                       const TranslationOptions& options);
+IR::Block TranslateThumb(LocationDescriptor descriptor, TranslateCallbacks* tcb,
+                         const TranslationOptions& options);
 
-IR::Block Translate(LocationDescriptor descriptor, TranslateCallbacks* tcb, const TranslationOptions& options) {
+IR::Block Translate(LocationDescriptor descriptor, TranslateCallbacks* tcb,
+                    const TranslationOptions& options) {
     return (descriptor.TFlag() ? TranslateThumb : TranslateArm)(descriptor, tcb, options);
 }
 
-bool TranslateSingleArmInstruction(IR::Block& block, LocationDescriptor descriptor, u32 instruction);
-bool TranslateSingleThumbInstruction(IR::Block& block, LocationDescriptor descriptor, u32 instruction);
+bool TranslateSingleArmInstruction(IR::Block& block, LocationDescriptor descriptor,
+                                   u32 instruction);
+bool TranslateSingleThumbInstruction(IR::Block& block, LocationDescriptor descriptor,
+                                     u32 instruction);
 
 bool TranslateSingleInstruction(IR::Block& block, LocationDescriptor descriptor, u32 instruction) {
-    return (descriptor.TFlag() ? TranslateSingleThumbInstruction : TranslateSingleArmInstruction)(block, descriptor, instruction);
+    return (descriptor.TFlag() ? TranslateSingleThumbInstruction
+                               : TranslateSingleArmInstruction)(block, descriptor, instruction);
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32
 
 // ls -l | awk '{print "#include \"dynarmic/frontend/A32/translate/impl/" $9 "\""}'
 #include "dynarmic/frontend/A32/translate/impl/a32_branch.cpp"
 #include "dynarmic/frontend/A32/translate/impl/a32_crc32.cpp"
 #include "dynarmic/frontend/A32/translate/impl/a32_exception_generating.cpp"
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.cpp"
-//#include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
+// #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
 #include "dynarmic/frontend/A32/translate/impl/asimd_load_store_structures.cpp"
 #include "dynarmic/frontend/A32/translate/impl/asimd_misc.cpp"
 #include "dynarmic/frontend/A32/translate/impl/asimd_one_reg_modified_immediate.cpp"

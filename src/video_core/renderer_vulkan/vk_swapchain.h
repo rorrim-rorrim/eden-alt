@@ -27,10 +27,7 @@ public:
 #else
         VkSurfaceKHR_T* surface_handle,
 #endif
-        const Device& device,
-        Scheduler& scheduler,
-        u32 width,
-        u32 height);
+        const Device& device, Scheduler& scheduler, u32 width, u32 height);
     ~Swapchain();
 
     /// Creates (or recreates) the swapchain with a given size.
@@ -40,8 +37,7 @@ public:
 #else
         VkSurfaceKHR_T* surface_handle,
 #endif
-        u32 width,
-        u32 height);
+        u32 width, u32 height);
 
     /// Acquires the next image in the swapchain, waits as needed.
     bool AcquireNextImage();

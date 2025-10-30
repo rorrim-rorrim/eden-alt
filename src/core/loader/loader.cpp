@@ -67,8 +67,7 @@ FileType GuessFromFilename(const std::string& name) {
     else if (name == "00")
         return FileType::NCA;
 
-    auto const extension =
-        Common::ToLower(std::string(Common::FS::GetExtensionFromFilename(name)));
+    auto const extension = Common::ToLower(std::string(Common::FS::GetExtensionFromFilename(name)));
     if (extension == "nro")
         return FileType::NRO;
     else if (extension == "nso")

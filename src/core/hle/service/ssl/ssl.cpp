@@ -505,7 +505,6 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
-
     }
 
     void GetOption(HLERequestContext& ctx) {
@@ -644,9 +643,9 @@ private:
 };
 
 class ISslServiceForSystem final : public ServiceFramework<ISslServiceForSystem> {
-    public:
-        explicit ISslServiceForSystem(Core::System& system_) : ServiceFramework{system_, "ssl:s"} {
-            // clang-format off
+public:
+    explicit ISslServiceForSystem(Core::System& system_) : ServiceFramework{system_, "ssl:s"} {
+        // clang-format off
             static const FunctionInfo functions[] = {
                 {0, D<&ISslServiceForSystem::CreateContext>, "CreateContext"},
                 {1, D<&ISslServiceForSystem::GetContextCount>, "GetContextCount"},
@@ -663,123 +662,123 @@ class ISslServiceForSystem final : public ServiceFramework<ISslServiceForSystem>
                 {102, D<&ISslServiceForSystem::GetThreadCoreMask>, "GetThreadCoreMask"},
                 {103, D<&ISslServiceForSystem::VerifySignature>, "VerifySignature"}
             };
-            // clang-format on
-    
-            RegisterHandlers(functions);
-        };
-    
-        Result CreateContext() {
-            LOG_DEBUG(Service_SSL, "(STUBBED) called.");
-    
-            // TODO (jarrodnorwell)
-    
-            return ResultSuccess;
-        };
-    
-        Result GetContextCount() {
-            LOG_DEBUG(Service_SSL, "(STUBBED) called.");
-    
-            // TODO (jarrodnorwell)
-    
-            return ResultSuccess;
-        };
-    
-        Result GetCertificates() {
-            LOG_DEBUG(Service_SSL, "(STUBBED) called.");
-    
-            // TODO (jarrodnorwell)
-    
-            return ResultSuccess;
-        };
-    
-        Result GetCertificateBufSize() {
-            LOG_DEBUG(Service_SSL, "(STUBBED) called.");
-    
-            // TODO (jarrodnorwell)
-    
-            return ResultSuccess;
-        };
-    
-        Result DebugIoctl() {
-            LOG_DEBUG(Service_SSL, "(STUBBED) called.");
-    
-            // TODO (jarrodnorwell)
-    
-            return ResultSuccess;
-        };
-    
-        Result SetInterfaceVersion() {
-            LOG_DEBUG(Service_SSL, "(STUBBED) called.");
-    
-            // TODO (jarrodnorwell)
-    
-            return ResultSuccess;
-        };
-    
-        Result FlushSessionCache() {
-            LOG_DEBUG(Service_SSL, "(STUBBED) called.");
-    
-            // TODO (jarrodnorwell)
-    
-            return ResultSuccess;
-        };
-    
-        Result SetDebugOption() {
-            LOG_DEBUG(Service_SSL, "(STUBBED) called.");
-    
-            // TODO (jarrodnorwell)
-    
-            return ResultSuccess;
-        };
-    
-        Result GetDebugOption() {
-            LOG_DEBUG(Service_SSL, "(STUBBED) called.");
-    
-            // TODO (jarrodnorwell)
-    
-            return ResultSuccess;
-        };
-    
-        Result ClearTls12FallbackFlag() {
-            LOG_DEBUG(Service_SSL, "(STUBBED) called.");
-    
-            // TODO (jarrodnorwell)
-    
-            return ResultSuccess;
-        };
-    
-        Result CreateContextForSystem() {
-            LOG_DEBUG(Service_SSL, "(STUBBED) called.");
-    
-            // TODO (jarrodnorwell)
-    
-            return ResultSuccess;
-        };
-    
-        Result SetThreadCoreMask() {
-            LOG_DEBUG(Service_SSL, "(STUBBED) called.");
-    
-            // TODO (jarrodnorwell)
-    
-            return ResultSuccess;
-        };
-    
-        Result GetThreadCoreMask() {
-            LOG_DEBUG(Service_SSL, "(STUBBED) called.");
-    
-            // TODO (jarrodnorwell)
-    
-            return ResultSuccess;
-        };
-    
-        Result VerifySignature() {
-            LOG_DEBUG(Service_SSL, "(STUBBED) called.");
-    
-            // TODO (jarrodnorwell)
-    
-            return ResultSuccess;
-        };
+        // clang-format on
+
+        RegisterHandlers(functions);
     };
+
+    Result CreateContext() {
+        LOG_DEBUG(Service_SSL, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        return ResultSuccess;
+    };
+
+    Result GetContextCount() {
+        LOG_DEBUG(Service_SSL, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        return ResultSuccess;
+    };
+
+    Result GetCertificates() {
+        LOG_DEBUG(Service_SSL, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        return ResultSuccess;
+    };
+
+    Result GetCertificateBufSize() {
+        LOG_DEBUG(Service_SSL, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        return ResultSuccess;
+    };
+
+    Result DebugIoctl() {
+        LOG_DEBUG(Service_SSL, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        return ResultSuccess;
+    };
+
+    Result SetInterfaceVersion() {
+        LOG_DEBUG(Service_SSL, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        return ResultSuccess;
+    };
+
+    Result FlushSessionCache() {
+        LOG_DEBUG(Service_SSL, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        return ResultSuccess;
+    };
+
+    Result SetDebugOption() {
+        LOG_DEBUG(Service_SSL, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        return ResultSuccess;
+    };
+
+    Result GetDebugOption() {
+        LOG_DEBUG(Service_SSL, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        return ResultSuccess;
+    };
+
+    Result ClearTls12FallbackFlag() {
+        LOG_DEBUG(Service_SSL, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        return ResultSuccess;
+    };
+
+    Result CreateContextForSystem() {
+        LOG_DEBUG(Service_SSL, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        return ResultSuccess;
+    };
+
+    Result SetThreadCoreMask() {
+        LOG_DEBUG(Service_SSL, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        return ResultSuccess;
+    };
+
+    Result GetThreadCoreMask() {
+        LOG_DEBUG(Service_SSL, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        return ResultSuccess;
+    };
+
+    Result VerifySignature() {
+        LOG_DEBUG(Service_SSL, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        return ResultSuccess;
+    };
+};
 
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);

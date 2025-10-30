@@ -10,15 +10,15 @@
 
 #include <optional>
 
-#include "dynarmic/common/common_types.h"
 #include "dynarmic/common/assert.h"
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/frontend/A64/a64_location_descriptor.h"
 #include "dynarmic/frontend/A64/a64_types.h"
 #include "dynarmic/interface/A64/config.h"
 #include "dynarmic/ir/ir_emitter.h"
-#include "dynarmic/ir/value.h"
 #include "dynarmic/ir/opcodes.h"
+#include "dynarmic/ir/value.h"
 
 namespace Dynarmic::A64 {
 
@@ -30,7 +30,8 @@ namespace Dynarmic::A64 {
 class IREmitter : public IR::IREmitter {
 public:
     explicit IREmitter(IR::Block& block) : IR::IREmitter(block) {}
-    explicit IREmitter(IR::Block& block, LocationDescriptor descriptor) : IR::IREmitter(block), current_location(descriptor) {}
+    explicit IREmitter(IR::Block& block, LocationDescriptor descriptor)
+        : IR::IREmitter(block), current_location(descriptor) {}
 
     std::optional<LocationDescriptor> current_location;
 
@@ -74,10 +75,12 @@ public:
     }
 
     void DataCacheOperationRaised(DataCacheOperation op, const IR::U64& value) noexcept {
-        Inst(Opcode::A64DataCacheOperationRaised, ImmCurrentLocationDescriptor(), Imm64(static_cast<u64>(op)), value);
+        Inst(Opcode::A64DataCacheOperationRaised, ImmCurrentLocationDescriptor(),
+             Imm64(static_cast<u64>(op)), value);
     }
 
-    void InstructionCacheOperationRaised(InstructionCacheOperation op, const IR::U64& value) noexcept {
+    void InstructionCacheOperationRaised(InstructionCacheOperation op,
+                                         const IR::U64& value) noexcept {
         Inst(Opcode::A64InstructionCacheOperationRaised, Imm64(static_cast<u64>(op)), value);
     }
 
@@ -126,83 +129,109 @@ public:
     }
 
     IR::U8 ReadMemory8(const IR::U64& vaddr, IR::AccType acc_type) noexcept {
-        return Inst<IR::U8>(Opcode::A64ReadMemory8, ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
+        return Inst<IR::U8>(Opcode::A64ReadMemory8, ImmCurrentLocationDescriptor(), vaddr,
+                            IR::Value{acc_type});
     }
 
     IR::U16 ReadMemory16(const IR::U64& vaddr, IR::AccType acc_type) noexcept {
-        return Inst<IR::U16>(Opcode::A64ReadMemory16, ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
+        return Inst<IR::U16>(Opcode::A64ReadMemory16, ImmCurrentLocationDescriptor(), vaddr,
+                             IR::Value{acc_type});
     }
 
     IR::U32 ReadMemory32(const IR::U64& vaddr, IR::AccType acc_type) noexcept {
-        return Inst<IR::U32>(Opcode::A64ReadMemory32, ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
+        return Inst<IR::U32>(Opcode::A64ReadMemory32, ImmCurrentLocationDescriptor(), vaddr,
+                             IR::Value{acc_type});
     }
 
     IR::U64 ReadMemory64(const IR::U64& vaddr, IR::AccType acc_type) noexcept {
-        return Inst<IR::U64>(Opcode::A64ReadMemory64, ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
+        return Inst<IR::U64>(Opcode::A64ReadMemory64, ImmCurrentLocationDescriptor(), vaddr,
+                             IR::Value{acc_type});
     }
 
     IR::U128 ReadMemory128(const IR::U64& vaddr, IR::AccType acc_type) noexcept {
-        return Inst<IR::U128>(Opcode::A64ReadMemory128, ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
+        return Inst<IR::U128>(Opcode::A64ReadMemory128, ImmCurrentLocationDescriptor(), vaddr,
+                              IR::Value{acc_type});
     }
 
     IR::U8 ExclusiveReadMemory8(const IR::U64& vaddr, IR::AccType acc_type) noexcept {
-        return Inst<IR::U8>(Opcode::A64ExclusiveReadMemory8, ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
+        return Inst<IR::U8>(Opcode::A64ExclusiveReadMemory8, ImmCurrentLocationDescriptor(), vaddr,
+                            IR::Value{acc_type});
     }
 
     IR::U16 ExclusiveReadMemory16(const IR::U64& vaddr, IR::AccType acc_type) noexcept {
-        return Inst<IR::U16>(Opcode::A64ExclusiveReadMemory16, ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
+        return Inst<IR::U16>(Opcode::A64ExclusiveReadMemory16, ImmCurrentLocationDescriptor(),
+                             vaddr, IR::Value{acc_type});
     }
 
     IR::U32 ExclusiveReadMemory32(const IR::U64& vaddr, IR::AccType acc_type) noexcept {
-        return Inst<IR::U32>(Opcode::A64ExclusiveReadMemory32, ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
+        return Inst<IR::U32>(Opcode::A64ExclusiveReadMemory32, ImmCurrentLocationDescriptor(),
+                             vaddr, IR::Value{acc_type});
     }
 
     IR::U64 ExclusiveReadMemory64(const IR::U64& vaddr, IR::AccType acc_type) noexcept {
-        return Inst<IR::U64>(Opcode::A64ExclusiveReadMemory64, ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
+        return Inst<IR::U64>(Opcode::A64ExclusiveReadMemory64, ImmCurrentLocationDescriptor(),
+                             vaddr, IR::Value{acc_type});
     }
 
     IR::U128 ExclusiveReadMemory128(const IR::U64& vaddr, IR::AccType acc_type) noexcept {
-        return Inst<IR::U128>(Opcode::A64ExclusiveReadMemory128, ImmCurrentLocationDescriptor(), vaddr, IR::Value{acc_type});
+        return Inst<IR::U128>(Opcode::A64ExclusiveReadMemory128, ImmCurrentLocationDescriptor(),
+                              vaddr, IR::Value{acc_type});
     }
 
     void WriteMemory8(const IR::U64& vaddr, const IR::U8& value, IR::AccType acc_type) noexcept {
-        Inst(Opcode::A64WriteMemory8, ImmCurrentLocationDescriptor(), vaddr, value, IR::Value{acc_type});
+        Inst(Opcode::A64WriteMemory8, ImmCurrentLocationDescriptor(), vaddr, value,
+             IR::Value{acc_type});
     }
 
     void WriteMemory16(const IR::U64& vaddr, const IR::U16& value, IR::AccType acc_type) noexcept {
-        Inst(Opcode::A64WriteMemory16, ImmCurrentLocationDescriptor(), vaddr, value, IR::Value{acc_type});
+        Inst(Opcode::A64WriteMemory16, ImmCurrentLocationDescriptor(), vaddr, value,
+             IR::Value{acc_type});
     }
 
     void WriteMemory32(const IR::U64& vaddr, const IR::U32& value, IR::AccType acc_type) noexcept {
-        Inst(Opcode::A64WriteMemory32, ImmCurrentLocationDescriptor(), vaddr, value, IR::Value{acc_type});
+        Inst(Opcode::A64WriteMemory32, ImmCurrentLocationDescriptor(), vaddr, value,
+             IR::Value{acc_type});
     }
 
     void WriteMemory64(const IR::U64& vaddr, const IR::U64& value, IR::AccType acc_type) noexcept {
-        Inst(Opcode::A64WriteMemory64, ImmCurrentLocationDescriptor(), vaddr, value, IR::Value{acc_type});
+        Inst(Opcode::A64WriteMemory64, ImmCurrentLocationDescriptor(), vaddr, value,
+             IR::Value{acc_type});
     }
 
-    void WriteMemory128(const IR::U64& vaddr, const IR::U128& value, IR::AccType acc_type) noexcept {
-        Inst(Opcode::A64WriteMemory128, ImmCurrentLocationDescriptor(), vaddr, value, IR::Value{acc_type});
+    void WriteMemory128(const IR::U64& vaddr, const IR::U128& value,
+                        IR::AccType acc_type) noexcept {
+        Inst(Opcode::A64WriteMemory128, ImmCurrentLocationDescriptor(), vaddr, value,
+             IR::Value{acc_type});
     }
 
-    IR::U32 ExclusiveWriteMemory8(const IR::U64& vaddr, const IR::U8& value, IR::AccType acc_type) noexcept {
-        return Inst<IR::U32>(Opcode::A64ExclusiveWriteMemory8, ImmCurrentLocationDescriptor(), vaddr, value, IR::Value{acc_type});
+    IR::U32 ExclusiveWriteMemory8(const IR::U64& vaddr, const IR::U8& value,
+                                  IR::AccType acc_type) noexcept {
+        return Inst<IR::U32>(Opcode::A64ExclusiveWriteMemory8, ImmCurrentLocationDescriptor(),
+                             vaddr, value, IR::Value{acc_type});
     }
 
-    IR::U32 ExclusiveWriteMemory16(const IR::U64& vaddr, const IR::U16& value, IR::AccType acc_type) noexcept {
-        return Inst<IR::U32>(Opcode::A64ExclusiveWriteMemory16, ImmCurrentLocationDescriptor(), vaddr, value, IR::Value{acc_type});
+    IR::U32 ExclusiveWriteMemory16(const IR::U64& vaddr, const IR::U16& value,
+                                   IR::AccType acc_type) noexcept {
+        return Inst<IR::U32>(Opcode::A64ExclusiveWriteMemory16, ImmCurrentLocationDescriptor(),
+                             vaddr, value, IR::Value{acc_type});
     }
 
-    IR::U32 ExclusiveWriteMemory32(const IR::U64& vaddr, const IR::U32& value, IR::AccType acc_type) noexcept {
-        return Inst<IR::U32>(Opcode::A64ExclusiveWriteMemory32, ImmCurrentLocationDescriptor(), vaddr, value, IR::Value{acc_type});
+    IR::U32 ExclusiveWriteMemory32(const IR::U64& vaddr, const IR::U32& value,
+                                   IR::AccType acc_type) noexcept {
+        return Inst<IR::U32>(Opcode::A64ExclusiveWriteMemory32, ImmCurrentLocationDescriptor(),
+                             vaddr, value, IR::Value{acc_type});
     }
 
-    IR::U32 ExclusiveWriteMemory64(const IR::U64& vaddr, const IR::U64& value, IR::AccType acc_type) noexcept {
-        return Inst<IR::U32>(Opcode::A64ExclusiveWriteMemory64, ImmCurrentLocationDescriptor(), vaddr, value, IR::Value{acc_type});
+    IR::U32 ExclusiveWriteMemory64(const IR::U64& vaddr, const IR::U64& value,
+                                   IR::AccType acc_type) noexcept {
+        return Inst<IR::U32>(Opcode::A64ExclusiveWriteMemory64, ImmCurrentLocationDescriptor(),
+                             vaddr, value, IR::Value{acc_type});
     }
 
-    IR::U32 ExclusiveWriteMemory128(const IR::U64& vaddr, const IR::U128& value, IR::AccType acc_type) noexcept {
-        return Inst<IR::U32>(Opcode::A64ExclusiveWriteMemory128, ImmCurrentLocationDescriptor(), vaddr, value, IR::Value{acc_type});
+    IR::U32 ExclusiveWriteMemory128(const IR::U64& vaddr, const IR::U128& value,
+                                    IR::AccType acc_type) noexcept {
+        return Inst<IR::U32>(Opcode::A64ExclusiveWriteMemory128, ImmCurrentLocationDescriptor(),
+                             vaddr, value, IR::Value{acc_type});
     }
 
     IR::U32 GetW(Reg reg) noexcept {
@@ -287,4 +316,4 @@ private:
     }
 };
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64

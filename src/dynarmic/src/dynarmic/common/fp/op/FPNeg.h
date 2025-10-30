@@ -9,9 +9,9 @@
 
 namespace Dynarmic::FP {
 
-template<typename FPT>
+template <typename FPT>
 constexpr FPT FPNeg(FPT op) {
     return op ^ FPInfo<FPT>::sign_mask;
 }
 
-}  // namespace Dynarmic::FP
+} // namespace Dynarmic::FP

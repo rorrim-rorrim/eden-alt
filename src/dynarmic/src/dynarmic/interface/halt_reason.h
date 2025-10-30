@@ -28,11 +28,13 @@ constexpr HaltReason operator~(HaltReason hr) {
 }
 
 constexpr HaltReason operator|(HaltReason hr1, HaltReason hr2) {
-    return static_cast<HaltReason>(static_cast<std::uint32_t>(hr1) | static_cast<std::uint32_t>(hr2));
+    return static_cast<HaltReason>(static_cast<std::uint32_t>(hr1) |
+                                   static_cast<std::uint32_t>(hr2));
 }
 
 constexpr HaltReason operator&(HaltReason hr1, HaltReason hr2) {
-    return static_cast<HaltReason>(static_cast<std::uint32_t>(hr1) & static_cast<std::uint32_t>(hr2));
+    return static_cast<HaltReason>(static_cast<std::uint32_t>(hr1) &
+                                   static_cast<std::uint32_t>(hr2));
 }
 
 constexpr HaltReason operator|=(HaltReason& result, HaltReason hr) {
@@ -51,4 +53,4 @@ constexpr bool Has(HaltReason hr1, HaltReason hr2) {
     return (static_cast<std::uint32_t>(hr1) & static_cast<std::uint32_t>(hr2)) != 0;
 }
 
-}  // namespace Dynarmic
+} // namespace Dynarmic

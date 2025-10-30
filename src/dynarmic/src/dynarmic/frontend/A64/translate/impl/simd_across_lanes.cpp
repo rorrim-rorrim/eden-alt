@@ -7,10 +7,7 @@
 
 namespace Dynarmic::A64 {
 namespace {
-enum class Signedness {
-    Signed,
-    Unsigned
-};
+enum class Signedness { Signed, Unsigned };
 
 bool LongAdd(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vn, Vec Vd, Signedness sign) {
     if ((size == 0b10 && !Q) || size == 0b11) {
@@ -107,7 +104,8 @@ enum class ScalarMinMaxOperation {
     Min,
 };
 
-bool ScalarMinMax(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vn, Vec Vd, ScalarMinMaxOperation operation, Signedness sign) {
+bool ScalarMinMax(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vn, Vec Vd,
+                  ScalarMinMaxOperation operation, Signedness sign) {
     if ((size == 0b10 && !Q) || size == 0b11) {
         return v.ReservedValue();
     }
@@ -162,7 +160,7 @@ bool ScalarMinMax(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vn, Vec Vd, Sca
 
     return true;
 }
-}  // Anonymous namespace
+} // Anonymous namespace
 
 bool TranslatorVisitor::ADDV(bool Q, Imm<2> size, Vec Vn, Vec Vd) {
     if ((size == 0b10 && !Q) || size == 0b11) {
@@ -217,4 +215,4 @@ bool TranslatorVisitor::UMAXV(bool Q, Imm<2> size, Vec Vn, Vec Vd) {
 bool TranslatorVisitor::UMINV(bool Q, Imm<2> size, Vec Vn, Vec Vd) {
     return ScalarMinMax(*this, Q, size, Vn, Vd, ScalarMinMaxOperation::Min, Signedness::Unsigned);
 }
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64

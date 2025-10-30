@@ -40,7 +40,7 @@ Result IDaemonController::GetAutoTransferEnabledForAccountAndApplication(Out<boo
     R_SUCCEED();
 }
 
-Result IDaemonController::GetState(Out<u8> state, Common::UUID user_id,  u64 application_id) {
+Result IDaemonController::GetState(Out<u8> state, Common::UUID user_id, u64 application_id) {
     LOG_WARNING(Service_OLSC, "(STUBBED) called, user_id={} application_id={:016X}",
                 user_id.FormattedString(), application_id);
     *state = 0;

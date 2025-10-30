@@ -97,8 +97,7 @@ static u8 QualityToPercent(const iwrange& r, const wireless_scan* ws) {
     return static_cast<u8>(std::clamp(100 * lvl / max, 0, 100));
 }
 
-static int wifi_callback(int skfd, char* ifname, char* args[], int count)
-{
+static int wifi_callback(int skfd, char* ifname, char* args[], int count) {
     iwrange range;
 
     int res = iw_get_range_info(skfd, ifname, &range);
@@ -125,7 +124,7 @@ static std::vector<Network::ScanData> ScanWifiLinux(std::chrono::milliseconds de
     }
 
     char ifname[IFNAMSIZ] = {0};
-    char *args[1] = {ifname};
+    char* args[1] = {ifname};
 
     iw_enum_devices(sock, &wifi_callback, args, 0);
 

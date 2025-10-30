@@ -142,4 +142,4 @@ u128 StickyLogicalShiftRight(u128 operand, int amount) {
     return {};
 }
 
-}  // namespace Dynarmic
+} // namespace Dynarmic

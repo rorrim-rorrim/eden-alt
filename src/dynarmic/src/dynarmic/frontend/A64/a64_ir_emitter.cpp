@@ -5,7 +5,4 @@
 
 #include "dynarmic/frontend/A64/a64_ir_emitter.h"
 
-namespace Dynarmic::A64 {
-
-
-}  // namespace Dynarmic::A64
+namespace Dynarmic::A64 {} // namespace Dynarmic::A64

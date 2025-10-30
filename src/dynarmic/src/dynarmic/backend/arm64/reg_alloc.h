@@ -14,11 +14,11 @@
 #include <utility>
 #include <vector>
 
-#include "dynarmic/common/assert.h"
-#include "dynarmic/common/common_types.h"
+#include <ankerl/unordered_dense.h>
 #include <mcl/type_traits/is_instance_of_template.hpp>
 #include <oaknut/oaknut.hpp>
-#include <ankerl/unordered_dense.h>
+#include "dynarmic/common/assert.h"
+#include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/arm64/stack_layout.h"
 #include "dynarmic/ir/cond.h"
@@ -52,7 +52,9 @@ public:
     using copyable_reference = std::reference_wrapper<Argument>;
 
     IR::Type GetType() const;
-    bool IsVoid() const { return GetType() == IR::Type::Void; }
+    bool IsVoid() const {
+        return GetType() == IR::Type::Void;
+    }
     bool IsImmediate() const;
 
     bool GetImmediateU1() const;
@@ -65,13 +67,16 @@ public:
 
     // Only valid if not immediate
     HostLoc::Kind CurrentLocationKind() const;
-    bool IsInGpr() const { return !IsImmediate() && CurrentLocationKind() == HostLoc::Kind::Gpr; }
-    bool IsInFpr() const { return !IsImmediate() && CurrentLocationKind() == HostLoc::Kind::Fpr; }
+    bool IsInGpr() const {
+        return !IsImmediate() && CurrentLocationKind() == HostLoc::Kind::Gpr;
+    }
+    bool IsInFpr() const {
+        return !IsImmediate() && CurrentLocationKind() == HostLoc::Kind::Fpr;
+    }
 
 private:
     friend class RegAlloc;
-    explicit Argument(RegAlloc& reg_alloc)
-            : reg_alloc{reg_alloc} {}
+    explicit Argument(RegAlloc& reg_alloc) : reg_alloc{reg_alloc} {}
 
     bool allocated = false;
     RegAlloc& reg_alloc;
@@ -80,52 +85,58 @@ private:
 
 struct FlagsTag final {
 private:
-    template<typename>
+    template <typename>
     friend struct RAReg;
 
     explicit FlagsTag(int) {}
-    int index() const { return 0; }
+    int index() const {
+        return 0;
+    }
 };
 
-template<typename T>
+template <typename T>
 struct RAReg final {
 public:
-    static constexpr HostLoc::Kind kind = !std::is_same_v<FlagsTag, T>
-                                            ? std::is_base_of_v<oaknut::VReg, T>
-                                                ? HostLoc::Kind::Fpr
-                                                : HostLoc::Kind::Gpr
-                                            : HostLoc::Kind::Flags;
+    static constexpr HostLoc::Kind kind =
+        !std::is_same_v<FlagsTag, T>
+            ? std::is_base_of_v<oaknut::VReg, T> ? HostLoc::Kind::Fpr : HostLoc::Kind::Gpr
+            : HostLoc::Kind::Flags;
 
-    operator T() const { return reg.value(); }
+    operator T() const {
+        return reg.value();
+    }
 
     operator oaknut::WRegWsp() const
-    requires(std::is_same_v<T, oaknut::WReg>)
+        requires(std::is_same_v<T, oaknut::WReg>)
     {
         return reg.value();
     }
 
     operator oaknut::XRegSp() const
-    requires(std::is_same_v<T, oaknut::XReg>)
+        requires(std::is_same_v<T, oaknut::XReg>)
     {
         return reg.value();
     }
 
-    T operator*() const { return reg.value(); }
-    const T* operator->() const { return &reg.value(); }
+    T operator*() const {
+        return reg.value();
+    }
+    const T* operator->() const {
+        return &reg.value();
+    }
 
     ~RAReg();
     RAReg(RAReg&& other)
-            : reg_alloc{other.reg_alloc}
-            , rw{std::exchange(other.rw, RWType::Void)}
-            , read_value{std::exchange(other.read_value, {})}
-            , write_value{std::exchange(other.write_value, nullptr)}
-            , reg{std::exchange(other.reg, std::nullopt)} {
-    }
+        : reg_alloc{other.reg_alloc}, rw{std::exchange(other.rw, RWType::Void)},
+          read_value{std::exchange(other.read_value, {})},
+          write_value{std::exchange(other.write_value, nullptr)},
+          reg{std::exchange(other.reg, std::nullopt)} {}
     RAReg& operator=(RAReg&&) = delete;
 
 private:
     friend class RegAlloc;
-    explicit RAReg(RegAlloc& reg_alloc, RWType rw, const IR::Value& read_value, const IR::Inst* write_value);
+    explicit RAReg(RegAlloc& reg_alloc, RWType rw, const IR::Value& read_value,
+                   const IR::Inst* write_value);
 
     RAReg(const RAReg&) = delete;
     RAReg& operator=(const RAReg&) = delete;
@@ -160,22 +171,38 @@ class RegAlloc final {
 public:
     using ArgumentInfo = std::array<Argument, IR::max_arg_count>;
 
-    explicit RegAlloc(oaknut::CodeGenerator& code, FpsrManager& fpsr_manager, std::vector<int> gpr_order, std::vector<int> fpr_order)
-            : code{code}, fpsr_manager{fpsr_manager}, gpr_order{gpr_order}, fpr_order{fpr_order}, rand_gen{std::random_device{}()} {}
+    explicit RegAlloc(oaknut::CodeGenerator& code, FpsrManager& fpsr_manager,
+                      std::vector<int> gpr_order, std::vector<int> fpr_order)
+        : code{code}, fpsr_manager{fpsr_manager}, gpr_order{gpr_order}, fpr_order{fpr_order},
+          rand_gen{std::random_device{}()} {}
 
     ArgumentInfo GetArgumentInfo(IR::Inst* inst);
     bool WasValueDefined(IR::Inst* inst) const;
 
-    auto ReadX(Argument& arg) { return RAReg<oaknut::XReg>{*this, RWType::Read, arg.value, nullptr}; }
-    auto ReadW(Argument& arg) { return RAReg<oaknut::WReg>{*this, RWType::Read, arg.value, nullptr}; }
+    auto ReadX(Argument& arg) {
+        return RAReg<oaknut::XReg>{*this, RWType::Read, arg.value, nullptr};
+    }
+    auto ReadW(Argument& arg) {
+        return RAReg<oaknut::WReg>{*this, RWType::Read, arg.value, nullptr};
+    }
 
-    auto ReadQ(Argument& arg) { return RAReg<oaknut::QReg>{*this, RWType::Read, arg.value, nullptr}; }
-    auto ReadD(Argument& arg) { return RAReg<oaknut::DReg>{*this, RWType::Read, arg.value, nullptr}; }
-    auto ReadS(Argument& arg) { return RAReg<oaknut::SReg>{*this, RWType::Read, arg.value, nullptr}; }
-    auto ReadH(Argument& arg) { return RAReg<oaknut::HReg>{*this, RWType::Read, arg.value, nullptr}; }
-    auto ReadB(Argument& arg) { return RAReg<oaknut::BReg>{*this, RWType::Read, arg.value, nullptr}; }
+    auto ReadQ(Argument& arg) {
+        return RAReg<oaknut::QReg>{*this, RWType::Read, arg.value, nullptr};
+    }
+    auto ReadD(Argument& arg) {
+        return RAReg<oaknut::DReg>{*this, RWType::Read, arg.value, nullptr};
+    }
+    auto ReadS(Argument& arg) {
+        return RAReg<oaknut::SReg>{*this, RWType::Read, arg.value, nullptr};
+    }
+    auto ReadH(Argument& arg) {
+        return RAReg<oaknut::HReg>{*this, RWType::Read, arg.value, nullptr};
+    }
+    auto ReadB(Argument& arg) {
+        return RAReg<oaknut::BReg>{*this, RWType::Read, arg.value, nullptr};
+    }
 
-    template<size_t size>
+    template <size_t size>
     auto ReadReg(Argument& arg) {
         if constexpr (size == 64) {
             return ReadX(arg);
@@ -186,7 +213,7 @@ public:
         }
     }
 
-    template<size_t size>
+    template <size_t size>
     auto ReadVec(Argument& arg) {
         if constexpr (size == 128) {
             return ReadQ(arg);
@@ -203,18 +230,34 @@ public:
         }
     }
 
-    auto WriteX(IR::Inst* inst) { return RAReg<oaknut::XReg>{*this, RWType::Write, {}, inst}; }
-    auto WriteW(IR::Inst* inst) { return RAReg<oaknut::WReg>{*this, RWType::Write, {}, inst}; }
+    auto WriteX(IR::Inst* inst) {
+        return RAReg<oaknut::XReg>{*this, RWType::Write, {}, inst};
+    }
+    auto WriteW(IR::Inst* inst) {
+        return RAReg<oaknut::WReg>{*this, RWType::Write, {}, inst};
+    }
 
-    auto WriteQ(IR::Inst* inst) { return RAReg<oaknut::QReg>{*this, RWType::Write, {}, inst}; }
-    auto WriteD(IR::Inst* inst) { return RAReg<oaknut::DReg>{*this, RWType::Write, {}, inst}; }
-    auto WriteS(IR::Inst* inst) { return RAReg<oaknut::SReg>{*this, RWType::Write, {}, inst}; }
-    auto WriteH(IR::Inst* inst) { return RAReg<oaknut::HReg>{*this, RWType::Write, {}, inst}; }
-    auto WriteB(IR::Inst* inst) { return RAReg<oaknut::BReg>{*this, RWType::Write, {}, inst}; }
+    auto WriteQ(IR::Inst* inst) {
+        return RAReg<oaknut::QReg>{*this, RWType::Write, {}, inst};
+    }
+    auto WriteD(IR::Inst* inst) {
+        return RAReg<oaknut::DReg>{*this, RWType::Write, {}, inst};
+    }
+    auto WriteS(IR::Inst* inst) {
+        return RAReg<oaknut::SReg>{*this, RWType::Write, {}, inst};
+    }
+    auto WriteH(IR::Inst* inst) {
+        return RAReg<oaknut::HReg>{*this, RWType::Write, {}, inst};
+    }
+    auto WriteB(IR::Inst* inst) {
+        return RAReg<oaknut::BReg>{*this, RWType::Write, {}, inst};
+    }
 
-    auto WriteFlags(IR::Inst* inst) { return RAReg<FlagsTag>{*this, RWType::Write, {}, inst}; }
+    auto WriteFlags(IR::Inst* inst) {
+        return RAReg<FlagsTag>{*this, RWType::Write, {}, inst};
+    }
 
-    template<size_t size>
+    template <size_t size>
     auto WriteReg(IR::Inst* inst) {
         if constexpr (size == 64) {
             return WriteX(inst);
@@ -225,7 +268,7 @@ public:
         }
     }
 
-    template<size_t size>
+    template <size_t size>
     auto WriteVec(IR::Inst* inst) {
         if constexpr (size == 128) {
             return WriteQ(inst);
@@ -242,16 +285,30 @@ public:
         }
     }
 
-    auto ReadWriteX(Argument& arg, const IR::Inst* inst) { return RAReg<oaknut::XReg>{*this, RWType::ReadWrite, arg.value, inst}; }
-    auto ReadWriteW(Argument& arg, const IR::Inst* inst) { return RAReg<oaknut::WReg>{*this, RWType::ReadWrite, arg.value, inst}; }
+    auto ReadWriteX(Argument& arg, const IR::Inst* inst) {
+        return RAReg<oaknut::XReg>{*this, RWType::ReadWrite, arg.value, inst};
+    }
+    auto ReadWriteW(Argument& arg, const IR::Inst* inst) {
+        return RAReg<oaknut::WReg>{*this, RWType::ReadWrite, arg.value, inst};
+    }
 
-    auto ReadWriteQ(Argument& arg, const IR::Inst* inst) { return RAReg<oaknut::QReg>{*this, RWType::ReadWrite, arg.value, inst}; }
-    auto ReadWriteD(Argument& arg, const IR::Inst* inst) { return RAReg<oaknut::DReg>{*this, RWType::ReadWrite, arg.value, inst}; }
-    auto ReadWriteS(Argument& arg, const IR::Inst* inst) { return RAReg<oaknut::SReg>{*this, RWType::ReadWrite, arg.value, inst}; }
-    auto ReadWriteH(Argument& arg, const IR::Inst* inst) { return RAReg<oaknut::HReg>{*this, RWType::ReadWrite, arg.value, inst}; }
-    auto ReadWriteB(Argument& arg, const IR::Inst* inst) { return RAReg<oaknut::BReg>{*this, RWType::ReadWrite, arg.value, inst}; }
+    auto ReadWriteQ(Argument& arg, const IR::Inst* inst) {
+        return RAReg<oaknut::QReg>{*this, RWType::ReadWrite, arg.value, inst};
+    }
+    auto ReadWriteD(Argument& arg, const IR::Inst* inst) {
+        return RAReg<oaknut::DReg>{*this, RWType::ReadWrite, arg.value, inst};
+    }
+    auto ReadWriteS(Argument& arg, const IR::Inst* inst) {
+        return RAReg<oaknut::SReg>{*this, RWType::ReadWrite, arg.value, inst};
+    }
+    auto ReadWriteH(Argument& arg, const IR::Inst* inst) {
+        return RAReg<oaknut::HReg>{*this, RWType::ReadWrite, arg.value, inst};
+    }
+    auto ReadWriteB(Argument& arg, const IR::Inst* inst) {
+        return RAReg<oaknut::BReg>{*this, RWType::ReadWrite, arg.value, inst};
+    }
 
-    template<size_t size>
+    template <size_t size>
     auto ReadWriteReg(Argument& arg, const IR::Inst* inst) {
         if constexpr (size == 64) {
             return ReadWriteX(arg, inst);
@@ -262,7 +319,7 @@ public:
         }
     }
 
-    template<size_t size>
+    template <size_t size>
     auto ReadWriteVec(Argument& arg, const IR::Inst* inst) {
         if constexpr (size == 128) {
             return ReadWriteQ(arg, inst);
@@ -279,7 +336,10 @@ public:
         }
     }
 
-    void PrepareForCall(std::optional<Argument::copyable_reference> arg0 = {}, std::optional<Argument::copyable_reference> arg1 = {}, std::optional<Argument::copyable_reference> arg2 = {}, std::optional<Argument::copyable_reference> arg3 = {});
+    void PrepareForCall(std::optional<Argument::copyable_reference> arg0 = {},
+                        std::optional<Argument::copyable_reference> arg1 = {},
+                        std::optional<Argument::copyable_reference> arg2 = {},
+                        std::optional<Argument::copyable_reference> arg3 = {});
 
     void DefineAsExisting(IR::Inst* inst, Argument& arg);
     void DefineAsRegister(IR::Inst* inst, oaknut::Reg reg);
@@ -288,7 +348,7 @@ public:
     void SpillFlags();
     void SpillAll();
 
-    template<typename... Ts>
+    template <typename... Ts>
     static void Realize(Ts&... rs) {
         static_assert((mcl::is_instance_of_template<RAReg, Ts>() && ...));
         (rs.Realize(), ...);
@@ -302,19 +362,20 @@ public:
 
 private:
     friend struct Argument;
-    template<typename>
+    template <typename>
     friend struct RAReg;
 
-    template<HostLoc::Kind kind>
+    template <HostLoc::Kind kind>
     int GenerateImmediate(const IR::Value& value);
-    template<HostLoc::Kind kind>
+    template <HostLoc::Kind kind>
     int RealizeReadImpl(const IR::Value& value);
-    template<HostLoc::Kind kind>
+    template <HostLoc::Kind kind>
     int RealizeWriteImpl(const IR::Inst* value);
-    template<HostLoc::Kind kind>
+    template <HostLoc::Kind kind>
     int RealizeReadWriteImpl(const IR::Value& read_value, const IR::Inst* write_value);
 
-    int AllocateRegister(const std::array<HostLocInfo, 32>& regs, const std::vector<int>& order) const;
+    int AllocateRegister(const std::array<HostLocInfo, 32>& regs,
+                         const std::vector<int>& order) const;
     void SpillGpr(int index);
     void SpillFpr(int index);
     int FindFreeSpill() const;
@@ -341,15 +402,16 @@ private:
     ankerl::unordered_dense::set<const IR::Inst*> defined_insts;
 };
 
-template<typename T>
-RAReg<T>::RAReg(RegAlloc& reg_alloc, RWType rw, const IR::Value& read_value, const IR::Inst* write_value)
-        : reg_alloc{reg_alloc}, rw{rw}, read_value{read_value}, write_value{write_value} {
+template <typename T>
+RAReg<T>::RAReg(RegAlloc& reg_alloc, RWType rw, const IR::Value& read_value,
+                const IR::Inst* write_value)
+    : reg_alloc{reg_alloc}, rw{rw}, read_value{read_value}, write_value{write_value} {
     if (rw != RWType::Write && !read_value.IsImmediate()) {
         reg_alloc.ValueInfo(read_value.GetInst()).locked++;
     }
 }
 
-template<typename T>
+template <typename T>
 RAReg<T>::~RAReg() {
     if (rw != RWType::Write && !read_value.IsImmediate()) {
         reg_alloc.ValueInfo(read_value.GetInst()).locked--;
@@ -359,7 +421,7 @@ RAReg<T>::~RAReg() {
     }
 }
 
-template<typename T>
+template <typename T>
 void RAReg<T>::Realize() {
     switch (rw) {
     case RWType::Read:
@@ -376,4 +438,4 @@ void RAReg<T>::Realize() {
     }
 }
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

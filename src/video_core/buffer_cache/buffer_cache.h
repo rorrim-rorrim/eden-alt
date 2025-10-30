@@ -15,9 +15,9 @@
 #include "video_core/buffer_cache/buffer_cache_base.h"
 #include "video_core/guest_memory.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
-#include "video_core/texture_cache/util.h"
 #include "video_core/polygon_mode_utils.h"
 #include "video_core/renderer_vulkan/line_loop_utils.h"
+#include "video_core/texture_cache/util.h"
 
 namespace VideoCommon {
 
@@ -31,7 +31,8 @@ BufferCache<P>::BufferCache(Tegra::MaxwellDeviceMemoryManager& device_memory_, R
     gpu_modified_ranges.Clear();
     inline_buffer_id = NULL_BUFFER_ID;
 #ifdef YUZU_LEGACY
-    immediately_free = (Settings::values.vram_usage_mode.GetValue() == Settings::VramUsageMode::Aggressive);
+    immediately_free =
+        (Settings::values.vram_usage_mode.GetValue() == Settings::VramUsageMode::Aggressive);
 #endif
     if (!runtime.CanReportMemoryUsage()) {
         minimum_memory = DEFAULT_EXPECTED_MEMORY;
@@ -47,10 +48,10 @@ BufferCache<P>::BufferCache(Tegra::MaxwellDeviceMemoryManager& device_memory_, R
     const s64 min_vacancy_critical = (2 * mem_threshold) / 10;
     minimum_memory = static_cast<u64>(
         (std::max)((std::min)(device_local_memory - min_vacancy_expected, min_spacing_expected),
-                 DEFAULT_EXPECTED_MEMORY));
+                   DEFAULT_EXPECTED_MEMORY));
     critical_memory = static_cast<u64>(
         (std::max)((std::min)(device_local_memory - min_vacancy_critical, min_spacing_critical),
-                 DEFAULT_CRITICAL_MEMORY));
+                   DEFAULT_CRITICAL_MEMORY));
 }
 
 template <class P>
@@ -368,8 +369,8 @@ void BufferCache<P>::BindHostGeometryBuffers(bool is_indexed) {
                 const u32 generated_count = vertex_count + 1;
                 const bool use_u16 = vertex_count <= 0x10000;
                 const u32 element_size = use_u16 ? sizeof(u16) : sizeof(u32);
-                auto staging = runtime.UploadStagingBuffer(
-                    static_cast<size_t>(generated_count) * element_size);
+                auto staging = runtime.UploadStagingBuffer(static_cast<size_t>(generated_count) *
+                                                           element_size);
                 std::span<u8> dst_span{staging.mapped_span.data(),
                                        generated_count * static_cast<size_t>(element_size)};
                 Vulkan::LineLoop::GenerateSequentialWithClosureRaw(dst_span, element_size);
@@ -717,12 +718,12 @@ void BufferCache<P>::BindHostIndexBuffer() {
     const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
     if constexpr (!P::IS_OPENGL) {
         const auto polygon_mode = VideoCore::EffectivePolygonMode(maxwell3d->regs);
-        const bool polygon_line =
-            draw_state.topology == Maxwell::PrimitiveTopology::Polygon &&
-            polygon_mode == Maxwell::PolygonMode::Line;
+        const bool polygon_line = draw_state.topology == Maxwell::PrimitiveTopology::Polygon &&
+                                  polygon_mode == Maxwell::PolygonMode::Line;
         if (polygon_line && draw_state.index_buffer.count > 1) {
             const u32 element_size = draw_state.index_buffer.FormatSizeInBytes();
-            const size_t src_bytes = static_cast<size_t>(draw_state.index_buffer.count) * element_size;
+            const size_t src_bytes =
+                static_cast<size_t>(draw_state.index_buffer.count) * element_size;
             const size_t total_bytes = src_bytes + element_size;
             auto staging = runtime.UploadStagingBuffer(total_bytes);
             std::span<u8> dst_span{staging.mapped_span.data(), total_bytes};
@@ -734,8 +735,8 @@ void BufferCache<P>::BindHostIndexBuffer() {
                 src_span = {src, src_bytes};
             } else if (const u8* const cpu_base =
                            device_memory.GetPointer<u8>(channel_state->index_buffer.device_addr)) {
-                const u8* const src = cpu_base +
-                                      static_cast<size_t>(draw_state.index_buffer.first) * element_size;
+                const u8* const src =
+                    cpu_base + static_cast<size_t>(draw_state.index_buffer.first) * element_size;
                 src_span = {src, src_bytes};
             } else {
                 const DAddr src_addr =
@@ -746,10 +747,10 @@ void BufferCache<P>::BindHostIndexBuffer() {
             }
             Vulkan::LineLoop::CopyWithClosureRaw(dst_span, src_span, element_size);
             buffer.MarkUsage(offset, size);
-            runtime.BindIndexBuffer(draw_state.topology, draw_state.index_buffer.format,
-                                    draw_state.index_buffer.first, draw_state.index_buffer.count + 1,
-                                    staging.buffer, static_cast<u32>(staging.offset),
-                                    static_cast<u32>(total_bytes));
+            runtime.BindIndexBuffer(
+                draw_state.topology, draw_state.index_buffer.format, draw_state.index_buffer.first,
+                draw_state.index_buffer.count + 1, staging.buffer, static_cast<u32>(staging.offset),
+                static_cast<u32>(total_bytes));
             return;
         }
     }
@@ -850,7 +851,8 @@ void BufferCache<P>::BindHostGraphicsUniformBuffers(size_t stage) {
 }
 
 template <class P>
-void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 binding_index, bool needs_bind) {
+void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 binding_index,
+                                                   bool needs_bind) {
     ++channel_state->uniform_cache_shots[0];
     const Binding& binding = channel_state->uniform_buffers[stage][index];
     const DAddr device_addr = binding.device_addr;

@@ -19,8 +19,8 @@ using namespace Common::Literals;
 class DynarmicCallbacks64 : public Dynarmic::A64::UserCallbacks {
 public:
     explicit DynarmicCallbacks64(ArmDynarmic64& parent, Kernel::KProcess* process)
-        : m_parent{parent}, m_memory(process->GetMemory()),
-          m_process(process), m_debugger_enabled{parent.m_system.DebuggerEnabled()},
+        : m_parent{parent}, m_memory(process->GetMemory()), m_process(process),
+          m_debugger_enabled{parent.m_system.DebuggerEnabled()},
           m_check_memory_access{m_debugger_enabled ||
                                 !Settings::values.cpuopt_ignore_memory_aborts.GetValue()} {}
 
@@ -136,7 +136,8 @@ public:
         case Dynarmic::A64::Exception::SendEvent:
         case Dynarmic::A64::Exception::SendEventLocal:
         case Dynarmic::A64::Exception::Yield:
-            LOG_TRACE(Core_ARM, "ExceptionRaised(exception = {}, pc = {:08X}, code = {:08X})", static_cast<std::size_t>(exception), pc, m_memory.Read32(pc));
+            LOG_TRACE(Core_ARM, "ExceptionRaised(exception = {}, pc = {:08X}, code = {:08X})",
+                      static_cast<std::size_t>(exception), pc, m_memory.Read32(pc));
             return;
         case Dynarmic::A64::Exception::NoExecuteFault:
             LOG_CRITICAL(Core_ARM, "Cannot execute instruction at unmapped address {:#016x}", pc);
@@ -147,7 +148,9 @@ public:
                 ReturnException(pc, InstructionBreakpoint);
             } else {
                 m_parent.LogBacktrace(m_process);
-                LOG_CRITICAL(Core_ARM, "ExceptionRaised(exception = {}, pc = {:08X}, code = {:08X})", static_cast<std::size_t>(exception), pc, m_memory.Read32(pc));
+                LOG_CRITICAL(Core_ARM,
+                             "ExceptionRaised(exception = {}, pc = {:08X}, code = {:08X})",
+                             static_cast<std::size_t>(exception), pc, m_memory.Read32(pc));
             }
         }
     }
@@ -241,9 +244,10 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
         config.detect_misaligned_access_via_page_table = 16 | 32 | 64 | 128;
         config.only_detect_misalignment_via_page_table_on_page_boundary = true;
 
-        config.fastmem_pointer = page_table->fastmem_arena ?
-            std::optional<uintptr_t>{reinterpret_cast<uintptr_t>(page_table->fastmem_arena)} :
-            std::nullopt;
+        config.fastmem_pointer =
+            page_table->fastmem_arena
+                ? std::optional<uintptr_t>{reinterpret_cast<uintptr_t>(page_table->fastmem_arena)}
+                : std::nullopt;
         config.fastmem_address_space_bits = std::uint32_t(address_space_bits);
         config.silently_mirror_fastmem = false;
 

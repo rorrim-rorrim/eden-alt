@@ -4,10 +4,10 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <ranges>
 #include "common/algorithm.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
-#include <ranges>
 #include "common/settings.h"
 #include "core/core.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -156,7 +156,6 @@ void MaxwellDMA::Launch() {
 }
 
 void MaxwellDMA::CopyBlockLinearToPitch() {
-   
 
     u32 bytes_per_pixel = 1;
     DMA::ImageOperand src_operand;

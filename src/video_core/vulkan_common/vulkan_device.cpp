@@ -13,9 +13,9 @@
 #include <utility>
 #include <vector>
 
+#include <ranges>
 #include "common/assert.h"
 #include "common/literals.h"
-#include <ranges>
 #include "common/settings.h"
 #include "video_core/vulkan_common/nsight_aftermath_tracker.h"
 #include "video_core/vulkan_common/vma.h"
@@ -293,9 +293,9 @@ std::unordered_map<VkFormat, VkFormatProperties> GetFormatProperties(vk::Physica
 void OverrideBcnFormats(std::unordered_map<VkFormat, VkFormatProperties>& format_properties) {
     // These properties are extracted from Adreno driver 512.687.0
     constexpr VkFormatFeatureFlags tiling_features{
-                                                   VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_BLIT_SRC_BIT |
-                                                   VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT | VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
-                                                   VK_FORMAT_FEATURE_TRANSFER_DST_BIT};
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_BLIT_SRC_BIT |
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT | VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
+        VK_FORMAT_FEATURE_TRANSFER_DST_BIT};
 
     constexpr VkFormatFeatureFlags buffer_features{VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT};
 
@@ -316,7 +316,7 @@ void OverrideBcnFormats(std::unordered_map<VkFormat, VkFormatProperties>& format
 #endif
 
 NvidiaArchitecture GetNvidiaArchitecture(vk::PhysicalDevice physical,
-                                        const std::set<std::string, std::less<>>& exts) {
+                                         const std::set<std::string, std::less<>>& exts) {
     VkPhysicalDeviceProperties2 physical_properties{};
     physical_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
     physical_properties.pNext = nullptr;
@@ -411,7 +411,7 @@ void Device::RemoveExtensionFeatureIfUnsuitable(bool is_suitable, Feature& featu
 Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR surface,
                const vk::InstanceDispatch& dld_)
     : instance{instance_}, dld{dld_}, physical{physical_},
-    format_properties(GetFormatProperties(physical)) {
+      format_properties(GetFormatProperties(physical)) {
     // Get suitability and device properties.
     const bool is_suitable = GetSuitability(surface != nullptr);
 
@@ -448,7 +448,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const void* first_next = &features2;
 
     VkDeviceDiagnosticsConfigCreateInfoNV diagnostics_nv{};
-    const bool use_diagnostics_nv = Settings::values.enable_nsight_aftermath && extensions.device_diagnostics_config;
+    const bool use_diagnostics_nv =
+        Settings::values.enable_nsight_aftermath && extensions.device_diagnostics_config;
     if (use_diagnostics_nv) {
         nsight_aftermath_tracker = std::make_unique<NsightAftermathTracker>();
 
@@ -464,7 +465,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
     VkPhysicalDeviceDescriptorIndexingFeaturesEXT descriptor_indexing{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT,
-        .pNext = use_diagnostics_nv ? static_cast<void*>(&diagnostics_nv) : static_cast<void*>(&features2),
+        .pNext = use_diagnostics_nv ? static_cast<void*>(&diagnostics_nv)
+                                    : static_cast<void*>(&features2),
         .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
         .descriptorBindingPartiallyBound = VK_TRUE,
         .descriptorBindingVariableDescriptorCount = VK_TRUE,
@@ -497,18 +499,19 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     if (is_qualcomm || is_turnip) {
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm and Turnip drivers have broken VK_EXT_custom_border_color");
-        //RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
-        //VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+        // RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
+        // VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
     }
 
     if (is_qualcomm) {
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm drivers have a slow VK_KHR_push_descriptor implementation");
-        //RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
+        // RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
 
-        LOG_WARNING(Render_Vulkan,
-                    "Disabling shader float controls and 64-bit integer features on Qualcomm proprietary drivers");
-        RemoveExtension(extensions.shader_float_controls, VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
+        LOG_WARNING(Render_Vulkan, "Disabling shader float controls and 64-bit integer features on "
+                                   "Qualcomm proprietary drivers");
+        RemoveExtension(extensions.shader_float_controls,
+                        VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64,
                                VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
         features.shader_atomic_int64.shaderBufferInt64Atomics = false;
@@ -547,7 +550,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         } else if (arch <= NvidiaArchitecture::Arch_Volta) {
             if (nv_major_version < 527) {
                 LOG_WARNING(Render_Vulkan, "Volta and older have broken VK_KHR_push_descriptor");
-                //RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
+                // RemoveExtension(extensions.push_descriptor,
+                // VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
             }
         }
         if (nv_major_version >= 510) {
@@ -561,9 +565,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         if (version < VK_MAKE_API_VERSION(0, 21, 2, 0)) {
             LOG_WARNING(Render_Vulkan,
                         "RADV versions older than 21.2 have broken VK_EXT_extended_dynamic_state");
-            //RemoveExtensionFeature(extensions.extended_dynamic_state,
-            //features.extended_dynamic_state,
-            //VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+            // RemoveExtensionFeature(extensions.extended_dynamic_state,
+            // features.extended_dynamic_state,
+            // VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
         }
     }
     if (extensions.extended_dynamic_state2 && is_radv) {
@@ -584,9 +588,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             // Qualcomm Adreno 7xx drivers do not properly support extended_dynamic_state2.
             LOG_WARNING(Render_Vulkan,
                         "Qualcomm Adreno 7xx drivers have broken VK_EXT_extended_dynamic_state2");
-            //RemoveExtensionFeature(extensions.extended_dynamic_state2,
-            //features.extended_dynamic_state2,
-            //VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+            // RemoveExtensionFeature(extensions.extended_dynamic_state2,
+            // features.extended_dynamic_state2,
+            // VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
         }
     }
     if (extensions.extended_dynamic_state3 && is_radv) {
@@ -603,7 +607,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             dynamic_state3_enables = true;
         }
     }
-    if (extensions.extended_dynamic_state3 && (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
+    if (extensions.extended_dynamic_state3 &&
+        (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
         // AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation
         LOG_WARNING(Render_Vulkan,
                     "AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation");
@@ -628,9 +633,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         // Qualcomm drivers do not properly support vertex_input_dynamic_state.
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm drivers have broken VK_EXT_vertex_input_dynamic_state");
-        //RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
-        //  features.vertex_input_dynamic_state,
-        //     VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+        // RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
+        //   features.vertex_input_dynamic_state,
+        //      VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
     }
 
     sets_per_pool = 64;
@@ -664,9 +669,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
         if (version < VK_MAKE_API_VERSION(27, 20, 100, 0)) {
             LOG_WARNING(Render_Vulkan, "Intel has broken VK_EXT_vertex_input_dynamic_state");
-            //RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
-            //features.vertex_input_dynamic_state,
-            //VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+            // RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
+            // features.vertex_input_dynamic_state,
+            // VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
         }
     }
     if (features.shader_float16_int8.shaderFloat16 && is_intel_windows) {
@@ -693,14 +698,14 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             // mesa/mesa/-/commit/ff91c5ca42bc80aa411cb3fd8f550aa6fdd16bdc
             LOG_WARNING(Render_Vulkan,
                         "ANV drivers 22.3.0 to 23.1.0 have broken VK_KHR_push_descriptor");
-            //RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
+            // RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
         }
     } else if (extensions.push_descriptor && is_nvidia) {
         const auto arch = GetNvidiaArch();
         if (arch <= NvidiaArchitecture::Arch_Pascal) {
             LOG_WARNING(Render_Vulkan,
                         "Pascal and older architectures have broken VK_KHR_push_descriptor");
-            //RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
+            // RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
         }
     }
 
@@ -734,35 +739,47 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         dynamic_state3_enables = true;
     }
 
-    // Mesa Intel drivers on UHD 620 have broken EDS causing extreme flickering - unknown if it affects other iGPUs
-    // ALSO affects ALL versions of UHD drivers on Windows 10+, seems to cause even worse issues like straight up crashing
-    // So... Yeah, UHD drivers fucking suck -- maybe one day we can work past this, maybe; some driver hacking?
-    // And then we can rest in peace by doing `< VK_MAKE_API_VERSION(26, 0, 0)` for our beloved mesa drivers... one day
-    if ((is_mvk || (is_integrated && is_intel_anv) || (is_integrated && is_intel_windows)) && Settings::values.dyna_state.GetValue() != 0) {
-        LOG_WARNING(Render_Vulkan, "Driver has broken dynamic state, forcing to 0 to prevent graphical issues");
+    // Mesa Intel drivers on UHD 620 have broken EDS causing extreme flickering - unknown if it
+    // affects other iGPUs ALSO affects ALL versions of UHD drivers on Windows 10+, seems to cause
+    // even worse issues like straight up crashing So... Yeah, UHD drivers fucking suck -- maybe one
+    // day we can work past this, maybe; some driver hacking? And then we can rest in peace by doing
+    // `< VK_MAKE_API_VERSION(26, 0, 0)` for our beloved mesa drivers... one day
+    if ((is_mvk || (is_integrated && is_intel_anv) || (is_integrated && is_intel_windows)) &&
+        Settings::values.dyna_state.GetValue() != 0) {
+        LOG_WARNING(Render_Vulkan,
+                    "Driver has broken dynamic state, forcing to 0 to prevent graphical issues");
         Settings::values.dyna_state.SetValue(0);
     }
 
     if (Settings::values.dyna_state.GetValue() == 0) {
         must_emulate_scaled_formats = true;
-        LOG_INFO(Render_Vulkan, "Dynamic state is disabled (dyna_state = 0), forcing scaled format emulation ON");
+        LOG_INFO(Render_Vulkan,
+                 "Dynamic state is disabled (dyna_state = 0), forcing scaled format emulation ON");
 
         // Disable dynamic state 1-3 and all extensions
-        RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color, VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2, VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3, VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
+                               VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
+                               VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
+                               VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
+                               features.vertex_input_dynamic_state,
+                               VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
+                               VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
         dynamic_state3_blending = false;
         dynamic_state3_enables = false;
 
         LOG_INFO(Render_Vulkan, "All dynamic state extensions and features have been disabled");
     } else {
         must_emulate_scaled_formats = false;
-        LOG_INFO(Render_Vulkan, "Dynamic state is enabled (dyna_state = 1-3), disabling scaled format emulation");
+        LOG_INFO(Render_Vulkan,
+                 "Dynamic state is enabled (dyna_state = 1-3), disabling scaled format emulation");
     }
 
-    logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions), first_next, dld);
+    logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions),
+                                 first_next, dld);
 
     graphics_queue = logical.GetQueue(graphics_family);
     present_queue = logical.GetQueue(present_family);
@@ -776,19 +793,18 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
     }
     const VmaAllocatorCreateInfo allocator_info{
-            .flags = flags,
-            .physicalDevice = physical,
-            .device = *logical,
-            .preferredLargeHeapBlockSize = is_integrated
-                                           ? (64u * 1024u * 1024u)
-                                           : (256u * 1024u * 1024u),
-            .pAllocationCallbacks = nullptr,
-            .pDeviceMemoryCallbacks = nullptr,
-            .pHeapSizeLimit = nullptr,
-            .pVulkanFunctions = &functions,
-            .instance = instance,
-            .vulkanApiVersion = ApiVersion(),
-            .pTypeExternalMemoryHandleTypes = nullptr,
+        .flags = flags,
+        .physicalDevice = physical,
+        .device = *logical,
+        .preferredLargeHeapBlockSize =
+            is_integrated ? (64u * 1024u * 1024u) : (256u * 1024u * 1024u),
+        .pAllocationCallbacks = nullptr,
+        .pDeviceMemoryCallbacks = nullptr,
+        .pHeapSizeLimit = nullptr,
+        .pVulkanFunctions = &functions,
+        .instance = instance,
+        .vulkanApiVersion = ApiVersion(),
+        .pTypeExternalMemoryHandleTypes = nullptr,
     };
 
     vk::Check(vmaCreateAllocator(&allocator_info, &allocator));
@@ -867,9 +883,9 @@ bool Device::ComputeIsOptimalAstcSupported() const {
         return false;
     }
     const auto format_feature_usage{
-                                    VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_BLIT_SRC_BIT |
-                                    VK_FORMAT_FEATURE_BLIT_DST_BIT | VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
-                                    VK_FORMAT_FEATURE_TRANSFER_DST_BIT};
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_BLIT_SRC_BIT |
+        VK_FORMAT_FEATURE_BLIT_DST_BIT | VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
+        VK_FORMAT_FEATURE_TRANSFER_DST_BIT};
     for (const auto format : astc_formats) {
         const auto physical_format_properties{physical.GetFormatProperties(format)};
         if ((physical_format_properties.optimalTilingFeatures & format_feature_usage) == 0) {
@@ -1015,13 +1031,13 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
 #define EXTENSION(prefix, macro_name, var_name)                                                    \
     if (supported_extensions.contains(VK_##prefix##_##macro_name##_EXTENSION_NAME)) {              \
-            loaded_extensions.insert(VK_##prefix##_##macro_name##_EXTENSION_NAME);                     \
-            extensions.var_name = true;                                                                \
+        loaded_extensions.insert(VK_##prefix##_##macro_name##_EXTENSION_NAME);                     \
+        extensions.var_name = true;                                                                \
     }
 #define FEATURE_EXTENSION(prefix, struct_name, macro_name, var_name)                               \
     if (supported_extensions.contains(VK_##prefix##_##macro_name##_EXTENSION_NAME)) {              \
-            loaded_extensions.insert(VK_##prefix##_##macro_name##_EXTENSION_NAME);                     \
-            extensions.var_name = true;                                                                \
+        loaded_extensions.insert(VK_##prefix##_##macro_name##_EXTENSION_NAME);                     \
+        extensions.var_name = true;                                                                \
     }
 
     if (instance_version < VK_API_VERSION_1_2) {
@@ -1040,13 +1056,13 @@ bool Device::GetSuitability(bool requires_swapchain) {
 // Some extensions are mandatory. Check those.
 #define CHECK_EXTENSION(extension_name)                                                            \
     if (!loaded_extensions.contains(extension_name)) {                                             \
-            LOG_ERROR(Render_Vulkan, "Missing required extension {}", extension_name);                 \
-            suitable = false;                                                                          \
+        LOG_ERROR(Render_Vulkan, "Missing required extension {}", extension_name);                 \
+        suitable = false;                                                                          \
     }
 
 #define LOG_EXTENSION(extension_name)                                                              \
     if (!loaded_extensions.contains(extension_name)) {                                             \
-            LOG_INFO(Render_Vulkan, "Device doesn't support extension {}", extension_name);            \
+        LOG_INFO(Render_Vulkan, "Device doesn't support extension {}", extension_name);            \
     }
 
     FOR_EACH_VK_RECOMMENDED_EXTENSION(LOG_EXTENSION);
@@ -1080,13 +1096,13 @@ bool Device::GetSuitability(bool requires_swapchain) {
 // We set the structure sType explicitly here as it is zeroed by the constructor.
 #define FEATURE(prefix, struct_name, macro_name, var_name)                                         \
     features.var_name.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_##macro_name##_FEATURES;           \
-        SetNext(next, features.var_name);
+    SetNext(next, features.var_name);
 
 #define EXT_FEATURE(prefix, struct_name, macro_name, var_name)                                     \
     if (extensions.var_name) {                                                                     \
-            features.var_name.sType =                                                                  \
+        features.var_name.sType =                                                                  \
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_##macro_name##_FEATURES_##prefix;                    \
-            SetNext(next, features.var_name);                                                          \
+        SetNext(next, features.var_name);                                                          \
     }
 
     FOR_EACH_VK_FEATURE_1_1(FEATURE);
@@ -1114,20 +1130,19 @@ bool Device::GetSuitability(bool requires_swapchain) {
 // Some features are mandatory. Check those.
 #define CHECK_FEATURE(feature, name)                                                               \
     if (!features.feature.name) {                                                                  \
-        if (IsMoltenVK() && (strcmp(#name, "geometryShader") == 0 ||                               \
-                            strcmp(#name, "logicOp") == 0 ||                                       \
-                            strcmp(#name, "shaderCullDistance") == 0 ||                            \
-                            strcmp(#name, "wideLines") == 0)) {                                    \
-            LOG_INFO(Render_Vulkan, "MoltenVK missing feature {} - using fallback", #name);       \
-        } else {                                                                                    \
+        if (IsMoltenVK() &&                                                                        \
+            (strcmp(#name, "geometryShader") == 0 || strcmp(#name, "logicOp") == 0 ||              \
+             strcmp(#name, "shaderCullDistance") == 0 || strcmp(#name, "wideLines") == 0)) {       \
+            LOG_INFO(Render_Vulkan, "MoltenVK missing feature {} - using fallback", #name);        \
+        } else {                                                                                   \
             LOG_ERROR(Render_Vulkan, "Missing required feature {}", #name);                        \
-            suitable = false;                                                                       \
-        }                                                                                           \
+            suitable = false;                                                                      \
+        }                                                                                          \
     }
 
 #define LOG_FEATURE(feature, name)                                                                 \
     if (!features.feature.name) {                                                                  \
-            LOG_INFO(Render_Vulkan, "Device doesn't support feature {}", #name);                       \
+        LOG_INFO(Render_Vulkan, "Device doesn't support feature {}", #name);                       \
     }
 
     FOR_EACH_VK_RECOMMENDED_FEATURE(LOG_FEATURE);
@@ -1190,11 +1205,11 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
     const VkPhysicalDeviceLimits& limits{properties.properties.limits};
     const std::array limits_report{
-                                   Limit{65536, limits.maxUniformBufferRange, "maxUniformBufferRange"},
-                                   Limit{16, limits.maxViewports, "maxViewports"},
-                                   Limit{8, limits.maxColorAttachments, "maxColorAttachments"},
-                                   Limit{8, limits.maxClipDistances, "maxClipDistances"},
-                                   };
+        Limit{65536, limits.maxUniformBufferRange, "maxUniformBufferRange"},
+        Limit{16, limits.maxViewports, "maxViewports"},
+        Limit{8, limits.maxColorAttachments, "maxColorAttachments"},
+        Limit{8, limits.maxClipDistances, "maxClipDistances"},
+    };
 
     for (const auto& [min, value, name] : limits_report) {
         if (value < min) {
@@ -1256,15 +1271,13 @@ void Device::RemoveUnsuitableExtensions() {
 
     // VK_EXT_provoking_vertex
     if (Settings::values.provoking_vertex.GetValue()) {
-        extensions.provoking_vertex = features.provoking_vertex.provokingVertexLast
-                                      && features.provoking_vertex
-                                             .transformFeedbackPreservesProvokingVertex;
-        RemoveExtensionFeatureIfUnsuitable(extensions.provoking_vertex,
-                                           features.provoking_vertex,
+        extensions.provoking_vertex =
+            features.provoking_vertex.provokingVertexLast &&
+            features.provoking_vertex.transformFeedbackPreservesProvokingVertex;
+        RemoveExtensionFeatureIfUnsuitable(extensions.provoking_vertex, features.provoking_vertex,
                                            VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
     } else {
-        RemoveExtensionFeature(extensions.provoking_vertex,
-                               features.provoking_vertex,
+        RemoveExtensionFeature(extensions.provoking_vertex, features.provoking_vertex,
                                VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
     }
 
@@ -1410,8 +1423,13 @@ void Device::CollectPhysicalMemoryInfo() {
     }
     if (is_integrated) {
         const s64 available_memory = static_cast<s64>(device_access_memory - device_initial_usage);
-        const u64 memory_size = Settings::values.vram_usage_mode.GetValue() == Settings::VramUsageMode::Aggressive ? 6_GiB : 4_GiB;
-        device_access_memory = static_cast<u64>(std::max<s64>(std::min<s64>(available_memory - 8_GiB, memory_size), std::min<s64>(local_memory, memory_size)));
+        const u64 memory_size =
+            Settings::values.vram_usage_mode.GetValue() == Settings::VramUsageMode::Aggressive
+                ? 6_GiB
+                : 4_GiB;
+        device_access_memory =
+            static_cast<u64>(std::max<s64>(std::min<s64>(available_memory - 8_GiB, memory_size),
+                                           std::min<s64>(local_memory, memory_size)));
     } else {
         const u64 reserve_memory = std::min<u64>(device_access_memory / 8, 1_GiB);
         device_access_memory -= reserve_memory;
@@ -1419,7 +1437,8 @@ void Device::CollectPhysicalMemoryInfo() {
             // Account for resolution scaling in memory limits
             const size_t normal_memory = 6_GiB;
             const size_t scaler_memory = 1_GiB * Settings::values.resolution_info.ScaleUp(1);
-            device_access_memory = std::min<u64>(device_access_memory, normal_memory + scaler_memory);
+            device_access_memory =
+                std::min<u64>(device_access_memory, normal_memory + scaler_memory);
         }
     }
 }

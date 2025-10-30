@@ -7,7 +7,8 @@
 
 namespace Dynarmic::A64 {
 namespace {
-bool FPCompare(TranslatorVisitor& v, Imm<2> type, Vec Vm, Vec Vn, bool exc_on_qnan, bool cmp_with_zero) {
+bool FPCompare(TranslatorVisitor& v, Imm<2> type, Vec Vm, Vec Vn, bool exc_on_qnan,
+               bool cmp_with_zero) {
     const auto datasize = FPGetDataSize(type);
     if (!datasize || *datasize == 16) {
         return v.UnallocatedEncoding();
@@ -25,7 +26,7 @@ bool FPCompare(TranslatorVisitor& v, Imm<2> type, Vec Vm, Vec Vn, bool exc_on_qn
     v.ir.SetNZCV(nzcv);
     return true;
 }
-}  // Anonymous namespace
+} // Anonymous namespace
 
 bool TranslatorVisitor::FCMP_float(Imm<2> type, Vec Vm, Vec Vn, bool cmp_with_zero) {
     return FPCompare(*this, type, Vm, Vn, false, cmp_with_zero);
@@ -35,4 +36,4 @@ bool TranslatorVisitor::FCMPE_float(Imm<2> type, Vec Vm, Vec Vn, bool cmp_with_z
     return FPCompare(*this, type, Vm, Vn, true, cmp_with_zero);
 }
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64

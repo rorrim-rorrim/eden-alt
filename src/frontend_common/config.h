@@ -14,7 +14,7 @@
 // but if building from source, it will not be defined, so just do it conditionally.
 // Should probably define on CMake anyways but eh
 #ifndef SI_NO_CONVERSION
-#   define SI_NO_CONVERSION 1
+#define SI_NO_CONVERSION 1
 #endif
 #include <SimpleIni.h>
 #include <boost/algorithm/string/replace.hpp>

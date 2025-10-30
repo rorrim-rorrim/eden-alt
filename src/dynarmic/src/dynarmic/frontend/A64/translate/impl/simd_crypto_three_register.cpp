@@ -39,7 +39,8 @@ bool SM3TT1(TranslatorVisitor& v, Vec Vm, Imm<2> imm2, Vec Vn, Vec Vd, SM3TTVari
 
     const IR::U128 zero_vector = v.ir.ZeroVector();
     const IR::U128 tmp1 = v.ir.VectorSetElement(32, zero_vector, 0, after_low_d);
-    const IR::U128 tmp2 = v.ir.VectorSetElement(32, tmp1, 1, v.ir.RotateRight(before_top_d, v.ir.Imm8(23)));
+    const IR::U128 tmp2 =
+        v.ir.VectorSetElement(32, tmp1, 1, v.ir.RotateRight(before_top_d, v.ir.Imm8(23)));
     const IR::U128 tmp3 = v.ir.VectorSetElement(32, tmp2, 2, top_d);
     const IR::U128 result = v.ir.VectorSetElement(32, tmp3, 3, final_tt1);
 
@@ -69,19 +70,21 @@ bool SM3TT2(TranslatorVisitor& v, Vec Vm, Imm<2> imm2, Vec Vn, Vec Vd, SM3TTVari
         return v.ir.Or(tmp1, tmp2);
     }();
     const IR::U32 final_tt2 = v.ir.Add(tt2, v.ir.Add(low_d, v.ir.Add(top_n, wj)));
-    const IR::U32 top_result = v.ir.Eor(final_tt2, v.ir.Eor(v.ir.RotateRight(final_tt2, v.ir.Imm8(23)),
-                                                            v.ir.RotateRight(final_tt2, v.ir.Imm8(15))));
+    const IR::U32 top_result =
+        v.ir.Eor(final_tt2, v.ir.Eor(v.ir.RotateRight(final_tt2, v.ir.Imm8(23)),
+                                     v.ir.RotateRight(final_tt2, v.ir.Imm8(15))));
 
     const IR::U128 zero_vector = v.ir.ZeroVector();
     const IR::U128 tmp1 = v.ir.VectorSetElement(32, zero_vector, 0, after_low_d);
-    const IR::U128 tmp2 = v.ir.VectorSetElement(32, tmp1, 1, v.ir.RotateRight(before_top_d, v.ir.Imm8(13)));
+    const IR::U128 tmp2 =
+        v.ir.VectorSetElement(32, tmp1, 1, v.ir.RotateRight(before_top_d, v.ir.Imm8(13)));
     const IR::U128 tmp3 = v.ir.VectorSetElement(32, tmp2, 2, top_d);
     const IR::U128 result = v.ir.VectorSetElement(32, tmp3, 3, top_result);
 
     v.ir.SetQ(Vd, result);
     return true;
 }
-}  // Anonymous namespace
+} // Anonymous namespace
 
 bool TranslatorVisitor::SM3TT1A(Vec Vm, Imm<2> imm2, Vec Vn, Vec Vd) {
     return SM3TT1(*this, Vm, imm2, Vn, Vd, SM3TTVariant::A);
@@ -99,4 +102,4 @@ bool TranslatorVisitor::SM3TT2B(Vec Vm, Imm<2> imm2, Vec Vn, Vec Vd) {
     return SM3TT2(*this, Vm, imm2, Vn, Vd, SM3TTVariant::B);
 }
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64

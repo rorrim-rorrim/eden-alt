@@ -7,10 +7,10 @@
 #ifdef __AVX__
 #include <immintrin.h>
 #endif
-#include <numeric>
 #include <bit>
+#include <numeric>
 
-template<typename F>
+template <typename F>
 void CheckedRun(F&& fn) {
 #ifdef __AVX__
     __m256i xmm0 = _mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, 0);
@@ -26,18 +26,14 @@ void CheckedRun(F&& fn) {
     __m256i xmm10 = _mm256_set_epi32(4, 4, 0, 0, 0, 0, 0, 10);
     __m256i xmm11 = _mm256_set_epi32(4, 4, 0, 0, 0, 0, 0, 11);
     asm volatile(""
-        : "+x"(xmm0), "+x"(xmm1), "+x"(xmm2), "+x"(xmm3)
-        , "+x"(xmm4), "+x"(xmm5), "+x"(xmm6), "+x"(xmm7)
-        , "+x"(xmm8), "+x"(xmm9), "+x"(xmm10), "+x"(xmm11)
-        :
-    );
+                 : "+x"(xmm0), "+x"(xmm1), "+x"(xmm2), "+x"(xmm3), "+x"(xmm4), "+x"(xmm5),
+                   "+x"(xmm6), "+x"(xmm7), "+x"(xmm8), "+x"(xmm9), "+x"(xmm10), "+x"(xmm11)
+                 :);
     fn();
     asm volatile(""
-        : "+x"(xmm0), "+x"(xmm1), "+x"(xmm2), "+x"(xmm3)
-        , "+x"(xmm4), "+x"(xmm5), "+x"(xmm6), "+x"(xmm7)
-        , "+x"(xmm8), "+x"(xmm9), "+x"(xmm10), "+x"(xmm11)
-        :
-    );
+                 : "+x"(xmm0), "+x"(xmm1), "+x"(xmm2), "+x"(xmm3), "+x"(xmm4), "+x"(xmm5),
+                   "+x"(xmm6), "+x"(xmm7), "+x"(xmm8), "+x"(xmm9), "+x"(xmm10), "+x"(xmm11)
+                 :);
     CHECK(std::bit_cast<std::uint64_t>(xmm0[0]) == 0);
     CHECK(std::bit_cast<std::uint64_t>(xmm1[0]) == 1);
     CHECK(std::bit_cast<std::uint64_t>(xmm2[0]) == 2);

@@ -14,8 +14,8 @@
 #include <utility>
 #include <vector>
 
-#include "common/common_types.h"
 #include <ranges>
+#include "common/common_types.h"
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/rasterizer_interface.h"

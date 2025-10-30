@@ -70,7 +70,8 @@ public:
 
     void ConvertABGR8ToD24S8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
 
-    void ConvertABGR8SRGBToD24S8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
+    void ConvertABGR8SRGBToD24S8(const Framebuffer* dst_framebuffer,
+                                 const ImageView& src_image_view);
 
     void ConvertABGR8ToD32F(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
 
@@ -91,10 +92,12 @@ public:
     void ConvertYUV420toRGB(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
     void ConvertRGBtoYUV420(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
     void ConvertBC7toRGBA8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
-    void ConvertASTCHDRtoRGBA16F(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
+    void ConvertASTCHDRtoRGBA16F(const Framebuffer* dst_framebuffer,
+                                 const ImageView& src_image_view);
     void ConvertRGBA16FtoRGBA8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
     void ApplyDitherTemporal(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
-    void ApplyDynamicResolutionScale(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
+    void ApplyDynamicResolutionScale(const Framebuffer* dst_framebuffer,
+                                     const ImageView& src_image_view);
 
 private:
     void Convert(VkPipeline pipeline, const Framebuffer* dst_framebuffer,

@@ -74,4 +74,4 @@ void A32JitState::SetFpscr(u32 fpscr) {
     upper_location_descriptor = (upper_location_descriptor & 0x0000'ffff) | (fpscr & FPCR_MASK);
 }
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

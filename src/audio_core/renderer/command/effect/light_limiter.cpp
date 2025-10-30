@@ -123,7 +123,7 @@ static void ApplyLightLimiterEffect(const LightLimiterInfo::ParameterVersion2& p
                         (std::max)(statistics->channel_max_sample[channel], abs_sample.to_float());
                     statistics->channel_compression_gain_min[channel] =
                         (std::min)(statistics->channel_compression_gain_min[channel],
-                                 state.compression_gain[channel].to_float());
+                                   state.compression_gain[channel].to_float());
                 }
             }
         }

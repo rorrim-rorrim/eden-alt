@@ -7,9 +7,9 @@
 #pragma once
 
 #include <algorithm>
-#include <type_traits>
-#include <numeric>
 #include <bit>
+#include <numeric>
+#include <type_traits>
 
 namespace Common {
 

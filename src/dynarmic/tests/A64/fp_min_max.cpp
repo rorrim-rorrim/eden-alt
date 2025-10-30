@@ -11,8 +11,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include "dynarmic/common/common_types.h"
 
-#include "./testenv.h"
 #include "../native/testenv.h"
+#include "./testenv.h"
 
 using namespace Dynarmic;
 
@@ -29,30 +29,42 @@ struct TestCase {
 
 const std::vector test_cases{
     //                a           b        fmax      fmaxnm        fmin      fminnm
-    TestCase{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000},  // +0.0
-    TestCase{0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000},  // -0.0
-    TestCase{0x3f800000, 0x3f800000, 0x3f800000, 0x3f800000, 0x3f800000, 0x3f800000},  // +1.0
-    TestCase{0xbf800000, 0xbf800000, 0xbf800000, 0xbf800000, 0xbf800000, 0xbf800000},  // -1.0
-    TestCase{0x7f800000, 0x7f800000, 0x7f800000, 0x7f800000, 0x7f800000, 0x7f800000},  // +Inf
-    TestCase{0xff800000, 0xff800000, 0xff800000, 0xff800000, 0xff800000, 0xff800000},  // -Inf
-    TestCase{0x7fc00041, 0x7fc00041, 0x7fc00041, 0x7fc00041, 0x7fc00041, 0x7fc00041},  // QNaN
-    TestCase{0x7f800042, 0x7f800042, 0x7fc00042, 0x7fc00042, 0x7fc00042, 0x7fc00042},  // SNaN
-    TestCase{0x00000000, 0x80000000, 0x00000000, 0x00000000, 0x80000000, 0x80000000},  // (+0.0, -0.0)
-    TestCase{0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0xbf800000},  // (+1.0, -1.0)
-    TestCase{0x3f800000, 0x7f800000, 0x7f800000, 0x7f800000, 0x3f800000, 0x3f800000},  // (+1.0, +Inf)
-    TestCase{0x3f800000, 0xff800000, 0x3f800000, 0x3f800000, 0xff800000, 0xff800000},  // (+1.0, -Inf)
-    TestCase{0x7f800000, 0xff800000, 0x7f800000, 0x7f800000, 0xff800000, 0xff800000},  // (+Inf, -Inf)
-    TestCase{0x3f800000, 0x7fc00041, 0x7fc00041, 0x3f800000, 0x7fc00041, 0x3f800000},  // (+1.0, QNaN)
-    TestCase{0x3f800000, 0x7f800042, 0x7fc00042, 0x7fc00042, 0x7fc00042, 0x7fc00042},  // (+1.0, SNaN)
-    TestCase{0x7f800000, 0x7fc00041, 0x7fc00041, 0x7f800000, 0x7fc00041, 0x7f800000},  // (+Inf, QNaN)
-    TestCase{0x7f800000, 0x7f800042, 0x7fc00042, 0x7fc00042, 0x7fc00042, 0x7fc00042},  // (+Inf, SNaN)
-    TestCase{0x7fc00041, 0x7f800042, 0x7fc00042, 0x7fc00042, 0x7fc00042, 0x7fc00042},  // (QNaN, SNaN)
+    TestCase{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // +0.0
+    TestCase{0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000}, // -0.0
+    TestCase{0x3f800000, 0x3f800000, 0x3f800000, 0x3f800000, 0x3f800000, 0x3f800000}, // +1.0
+    TestCase{0xbf800000, 0xbf800000, 0xbf800000, 0xbf800000, 0xbf800000, 0xbf800000}, // -1.0
+    TestCase{0x7f800000, 0x7f800000, 0x7f800000, 0x7f800000, 0x7f800000, 0x7f800000}, // +Inf
+    TestCase{0xff800000, 0xff800000, 0xff800000, 0xff800000, 0xff800000, 0xff800000}, // -Inf
+    TestCase{0x7fc00041, 0x7fc00041, 0x7fc00041, 0x7fc00041, 0x7fc00041, 0x7fc00041}, // QNaN
+    TestCase{0x7f800042, 0x7f800042, 0x7fc00042, 0x7fc00042, 0x7fc00042, 0x7fc00042}, // SNaN
+    TestCase{0x00000000, 0x80000000, 0x00000000, 0x00000000, 0x80000000,
+             0x80000000}, // (+0.0, -0.0)
+    TestCase{0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000,
+             0xbf800000}, // (+1.0, -1.0)
+    TestCase{0x3f800000, 0x7f800000, 0x7f800000, 0x7f800000, 0x3f800000,
+             0x3f800000}, // (+1.0, +Inf)
+    TestCase{0x3f800000, 0xff800000, 0x3f800000, 0x3f800000, 0xff800000,
+             0xff800000}, // (+1.0, -Inf)
+    TestCase{0x7f800000, 0xff800000, 0x7f800000, 0x7f800000, 0xff800000,
+             0xff800000}, // (+Inf, -Inf)
+    TestCase{0x3f800000, 0x7fc00041, 0x7fc00041, 0x3f800000, 0x7fc00041,
+             0x3f800000}, // (+1.0, QNaN)
+    TestCase{0x3f800000, 0x7f800042, 0x7fc00042, 0x7fc00042, 0x7fc00042,
+             0x7fc00042}, // (+1.0, SNaN)
+    TestCase{0x7f800000, 0x7fc00041, 0x7fc00041, 0x7f800000, 0x7fc00041,
+             0x7f800000}, // (+Inf, QNaN)
+    TestCase{0x7f800000, 0x7f800042, 0x7fc00042, 0x7fc00042, 0x7fc00042,
+             0x7fc00042}, // (+Inf, SNaN)
+    TestCase{0x7fc00041, 0x7f800042, 0x7fc00042, 0x7fc00042, 0x7fc00042,
+             0x7fc00042}, // (QNaN, SNaN)
     TestCase{0xffa57454, 0xe343a6b3, 0xffe57454, 0xffe57454, 0xffe57454, 0xffe57454},
 };
 
 const std::vector unidirectional_test_cases{
-    TestCase{0x7fc00041, 0x7fc00043, 0x7fc00041, 0x7fc00041, 0x7fc00041, 0x7fc00041},  // (QNaN, QNaN)
-    TestCase{0x7f800042, 0x7f800044, 0x7fc00042, 0x7fc00042, 0x7fc00042, 0x7fc00042},  // (SNaN, SNaN)
+    TestCase{0x7fc00041, 0x7fc00043, 0x7fc00041, 0x7fc00041, 0x7fc00041,
+             0x7fc00041}, // (QNaN, QNaN)
+    TestCase{0x7f800042, 0x7f800044, 0x7fc00042, 0x7fc00042, 0x7fc00042,
+             0x7fc00042}, // (SNaN, SNaN)
 };
 
 constexpr u32 default_nan = 0x7fc00000;
@@ -65,15 +77,15 @@ u32 force_default_nan(u32 value) {
     return is_nan(value) ? default_nan : value;
 }
 
-template<typename Fn>
+template <typename Fn>
 void run_test(u32 instruction, Fn fn) {
     A64TestEnv env;
     A64::UserConfig jit_user_config{};
     jit_user_config.callbacks = &env;
     A64::Jit jit{jit_user_config};
 
-    env.code_mem.emplace_back(instruction);  // FMAX S0, S1, S2
-    env.code_mem.emplace_back(0x14000000);   // B .
+    env.code_mem.emplace_back(instruction); // FMAX S0, S1, S2
+    env.code_mem.emplace_back(0x14000000);  // B .
 
     for (const auto base_fpcr : {0, 0x01000000}) {
         for (const auto test_case : test_cases) {
@@ -156,7 +168,7 @@ void run_test(u32 instruction, Fn fn) {
     }
 }
 
-}  // namespace
+} // namespace
 
 TEST_CASE("A64: FMAX (scalar)", "[a64]") {
     run_test(0x1e224820, [](const TestCase& test_case) { return test_case.fmax; });

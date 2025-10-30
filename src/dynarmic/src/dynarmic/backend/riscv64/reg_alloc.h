@@ -14,12 +14,12 @@
 #include <utility>
 #include <vector>
 
+#include <ankerl/unordered_dense.h>
 #include <biscuit/assembler.hpp>
 #include <biscuit/registers.hpp>
+#include <mcl/type_traits/is_instance_of_template.hpp>
 #include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
-#include <mcl/type_traits/is_instance_of_template.hpp>
-#include <ankerl/unordered_dense.h>
 
 #include "dynarmic/backend/riscv64/stack_layout.h"
 #include "dynarmic/ir/cond.h"
@@ -56,26 +56,30 @@ public:
 
 private:
     friend class RegAlloc;
-    explicit Argument(RegAlloc& reg_alloc)
-            : reg_alloc{reg_alloc} {}
+    explicit Argument(RegAlloc& reg_alloc) : reg_alloc{reg_alloc} {}
 
     bool allocated = false;
     RegAlloc& reg_alloc;
     IR::Value value;
 };
 
-template<typename T>
+template <typename T>
 struct RAReg {
 public:
-    static constexpr HostLoc::Kind kind = std::is_base_of_v<biscuit::FPR, T>
-                                            ? HostLoc::Kind::Fpr
-                                            : HostLoc::Kind::Gpr;
+    static constexpr HostLoc::Kind kind =
+        std::is_base_of_v<biscuit::FPR, T> ? HostLoc::Kind::Fpr : HostLoc::Kind::Gpr;
 
-    operator T() const { return *reg; }
+    operator T() const {
+        return *reg;
+    }
 
-    T operator*() const { return *reg; }
+    T operator*() const {
+        return *reg;
+    }
 
-    const T* operator->() const { return &*reg; }
+    const T* operator->() const {
+        return &*reg;
+    }
 
     ~RAReg();
 
@@ -109,23 +113,32 @@ class RegAlloc {
 public:
     using ArgumentInfo = std::array<Argument, IR::max_arg_count>;
 
-    explicit RegAlloc(biscuit::Assembler& as, std::vector<u32> gpr_order, std::vector<u32> fpr_order)
-            : as{as}, gpr_order{gpr_order}, fpr_order{fpr_order}, rand_gen{std::random_device{}()} {}
+    explicit RegAlloc(biscuit::Assembler& as, std::vector<u32> gpr_order,
+                      std::vector<u32> fpr_order)
+        : as{as}, gpr_order{gpr_order}, fpr_order{fpr_order}, rand_gen{std::random_device{}()} {}
 
     ArgumentInfo GetArgumentInfo(IR::Inst* inst);
     bool IsValueLive(IR::Inst* inst) const;
 
-    auto ReadX(Argument& arg) { return RAReg<biscuit::GPR>{*this, false, arg.value}; }
-    auto ReadD(Argument& arg) { return RAReg<biscuit::FPR>{*this, false, arg.value}; }
+    auto ReadX(Argument& arg) {
+        return RAReg<biscuit::GPR>{*this, false, arg.value};
+    }
+    auto ReadD(Argument& arg) {
+        return RAReg<biscuit::FPR>{*this, false, arg.value};
+    }
 
-    auto WriteX(IR::Inst* inst) { return RAReg<biscuit::GPR>{*this, true, IR::Value{inst}}; }
-    auto WriteD(IR::Inst* inst) { return RAReg<biscuit::FPR>{*this, true, IR::Value{inst}}; }
+    auto WriteX(IR::Inst* inst) {
+        return RAReg<biscuit::GPR>{*this, true, IR::Value{inst}};
+    }
+    auto WriteD(IR::Inst* inst) {
+        return RAReg<biscuit::FPR>{*this, true, IR::Value{inst}};
+    }
 
     void DefineAsExisting(IR::Inst* inst, Argument& arg);
 
     void SpillAll();
 
-    template<typename... Ts>
+    template <typename... Ts>
     static void Realize(Ts&... rs) {
         static_assert((mcl::is_instance_of_template<RAReg, Ts>() && ...));
         (rs.Realize(), ...);
@@ -135,17 +148,18 @@ public:
     void AssertNoMoreUses() const;
 
 private:
-    template<typename>
+    template <typename>
     friend struct RAReg;
 
-    template<HostLoc::Kind kind>
+    template <HostLoc::Kind kind>
     u32 GenerateImmediate(const IR::Value& value);
-    template<HostLoc::Kind kind>
+    template <HostLoc::Kind kind>
     u32 RealizeReadImpl(const IR::Value& value);
-    template<HostLoc::Kind kind>
+    template <HostLoc::Kind kind>
     u32 RealizeWriteImpl(const IR::Inst* value);
 
-    u32 AllocateRegister(const std::array<HostLocInfo, 32>& regs, const std::vector<u32>& order) const;
+    u32 AllocateRegister(const std::array<HostLocInfo, 32>& regs,
+                         const std::vector<u32>& order) const;
     void SpillGpr(u32 index);
     void SpillFpr(u32 index);
     u32 FindFreeSpill() const;
@@ -165,15 +179,15 @@ private:
     mutable std::mt19937 rand_gen;
 };
 
-template<typename T>
+template <typename T>
 RAReg<T>::RAReg(RegAlloc& reg_alloc, bool write, const IR::Value& value)
-        : reg_alloc{reg_alloc}, write{write}, value{value} {
+    : reg_alloc{reg_alloc}, write{write}, value{value} {
     if (!write && !value.IsImmediate()) {
         reg_alloc.ValueInfo(value.GetInst()).locked++;
     }
 }
 
-template<typename T>
+template <typename T>
 RAReg<T>::~RAReg() {
     if (!value.IsImmediate()) {
         reg_alloc.ValueInfo(value.GetInst()).locked--;
@@ -183,9 +197,10 @@ RAReg<T>::~RAReg() {
     }
 }
 
-template<typename T>
+template <typename T>
 void RAReg<T>::Realize() {
-    reg = T{write ? reg_alloc.RealizeWriteImpl<kind>(value.GetInst()) : reg_alloc.RealizeReadImpl<kind>(value)};
+    reg = T{write ? reg_alloc.RealizeWriteImpl<kind>(value.GetInst())
+                  : reg_alloc.RealizeReadImpl<kind>(value)};
 }
 
-}  // namespace Dynarmic::Backend::RV64
+} // namespace Dynarmic::Backend::RV64

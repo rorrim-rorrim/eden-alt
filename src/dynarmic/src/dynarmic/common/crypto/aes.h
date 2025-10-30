@@ -23,4 +23,4 @@ void EncryptSingleRound(State& out_state, const State& state);
 void MixColumns(State& out_state, const State& state);
 void InverseMixColumns(State& out_state, const State& state);
 
-}  // namespace Dynarmic::Common::Crypto::AES
+} // namespace Dynarmic::Common::Crypto::AES

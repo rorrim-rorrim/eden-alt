@@ -30,10 +30,8 @@ constexpr u8 RENDER_TARGET_SWIZZLE = (std::numeric_limits<u8>::max)();
 } // Anonymous namespace
 
 ImageViewInfo::ImageViewInfo(const TICEntry& config, s32 base_layer) noexcept
-    : format{PixelFormatFromTIC(config)},
-      x_source{CastSwizzle(config.x_source)},
-      y_source{CastSwizzle(config.y_source)},
-      z_source{CastSwizzle(config.z_source)},
+    : format{PixelFormatFromTIC(config)}, x_source{CastSwizzle(config.x_source)},
+      y_source{CastSwizzle(config.y_source)}, z_source{CastSwizzle(config.z_source)},
       w_source{CastSwizzle(config.w_source)} {
     range.base = SubresourceBase{
         .level = static_cast<s32>(config.res_min_mip_level),

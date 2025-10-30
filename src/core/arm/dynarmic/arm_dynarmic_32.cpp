@@ -19,8 +19,8 @@ using namespace Common::Literals;
 class DynarmicCallbacks32 : public Dynarmic::A32::UserCallbacks {
 public:
     explicit DynarmicCallbacks32(ArmDynarmic32& parent, Kernel::KProcess* process)
-        : m_parent{parent}, m_memory(process->GetMemory()),
-          m_process(process), m_debugger_enabled{parent.m_system.DebuggerEnabled()},
+        : m_parent{parent}, m_memory(process->GetMemory()), m_process(process),
+          m_debugger_enabled{parent.m_system.DebuggerEnabled()},
           m_check_memory_access{m_debugger_enabled ||
                                 !Settings::values.cpuopt_ignore_memory_aborts.GetValue()} {}
 
@@ -194,11 +194,12 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
         config.detect_misaligned_access_via_page_table = 16 | 32 | 64 | 128;
         config.only_detect_misalignment_via_page_table_on_page_boundary = true;
 
-        config.fastmem_pointer = page_table->fastmem_arena ?
-            std::optional<uintptr_t>{reinterpret_cast<uintptr_t>(page_table->fastmem_arena)} :
-            std::nullopt;
+        config.fastmem_pointer =
+            page_table->fastmem_arena
+                ? std::optional<uintptr_t>{reinterpret_cast<uintptr_t>(page_table->fastmem_arena)}
+                : std::nullopt;
 
-        config.fastmem_exclusive_access = config.fastmem_pointer  != std::nullopt;
+        config.fastmem_exclusive_access = config.fastmem_pointer != std::nullopt;
         config.recompile_on_exclusive_fastmem_failure = true;
     }
 

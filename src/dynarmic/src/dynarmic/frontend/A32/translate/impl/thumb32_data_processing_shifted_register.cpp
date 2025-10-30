@@ -19,7 +19,8 @@ bool TranslatorVisitor::thumb32_TST_reg(Reg n, Imm<3> imm3, Imm<2> imm2, ShiftTy
     return true;
 }
 
-bool TranslatorVisitor::thumb32_AND_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type, Reg m) {
+bool TranslatorVisitor::thumb32_AND_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2,
+                                        ShiftType type, Reg m) {
     ASSERT_MSG(!(d == Reg::PC && S), "Decode error");
 
     if ((d == Reg::PC && !S) || n == Reg::PC || m == Reg::PC) {
@@ -35,7 +36,8 @@ bool TranslatorVisitor::thumb32_AND_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2
     return true;
 }
 
-bool TranslatorVisitor::thumb32_BIC_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type, Reg m) {
+bool TranslatorVisitor::thumb32_BIC_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2,
+                                        ShiftType type, Reg m) {
     if (d == Reg::PC || n == Reg::PC || m == Reg::PC) {
         return UnpredictableInstruction();
     }
@@ -49,7 +51,8 @@ bool TranslatorVisitor::thumb32_BIC_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2
     return true;
 }
 
-bool TranslatorVisitor::thumb32_MOV_reg(bool S, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type, Reg m) {
+bool TranslatorVisitor::thumb32_MOV_reg(bool S, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type,
+                                        Reg m) {
     if (d == Reg::PC || m == Reg::PC) {
         return UnpredictableInstruction();
     }
@@ -63,7 +66,8 @@ bool TranslatorVisitor::thumb32_MOV_reg(bool S, Imm<3> imm3, Reg d, Imm<2> imm2,
     return true;
 }
 
-bool TranslatorVisitor::thumb32_ORR_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type, Reg m) {
+bool TranslatorVisitor::thumb32_ORR_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2,
+                                        ShiftType type, Reg m) {
     ASSERT_MSG(n != Reg::PC, "Decode error");
 
     if (d == Reg::PC || m == Reg::PC) {
@@ -79,7 +83,8 @@ bool TranslatorVisitor::thumb32_ORR_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2
     return true;
 }
 
-bool TranslatorVisitor::thumb32_MVN_reg(bool S, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type, Reg m) {
+bool TranslatorVisitor::thumb32_MVN_reg(bool S, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type,
+                                        Reg m) {
     if (d == Reg::PC || m == Reg::PC) {
         return UnpredictableInstruction();
     }
@@ -93,7 +98,8 @@ bool TranslatorVisitor::thumb32_MVN_reg(bool S, Imm<3> imm3, Reg d, Imm<2> imm2,
     return true;
 }
 
-bool TranslatorVisitor::thumb32_ORN_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type, Reg m) {
+bool TranslatorVisitor::thumb32_ORN_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2,
+                                        ShiftType type, Reg m) {
     ASSERT_MSG(n != Reg::PC, "Decode error");
 
     if (d == Reg::PC || m == Reg::PC) {
@@ -121,7 +127,8 @@ bool TranslatorVisitor::thumb32_TEQ_reg(Reg n, Imm<3> imm3, Imm<2> imm2, ShiftTy
     return true;
 }
 
-bool TranslatorVisitor::thumb32_EOR_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type, Reg m) {
+bool TranslatorVisitor::thumb32_EOR_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2,
+                                        ShiftType type, Reg m) {
     ASSERT_MSG(!(d == Reg::PC && S), "Decode error");
 
     if ((d == Reg::PC && !S) || n == Reg::PC || m == Reg::PC) {
@@ -164,7 +171,8 @@ bool TranslatorVisitor::thumb32_CMN_reg(Reg n, Imm<3> imm3, Imm<2> imm2, ShiftTy
     return true;
 }
 
-bool TranslatorVisitor::thumb32_ADD_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type, Reg m) {
+bool TranslatorVisitor::thumb32_ADD_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2,
+                                        ShiftType type, Reg m) {
     ASSERT_MSG(!(d == Reg::PC && S), "Decode error");
 
     if ((d == Reg::PC && !S) || n == Reg::PC || m == Reg::PC) {
@@ -180,7 +188,8 @@ bool TranslatorVisitor::thumb32_ADD_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2
     return true;
 }
 
-bool TranslatorVisitor::thumb32_ADC_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type, Reg m) {
+bool TranslatorVisitor::thumb32_ADC_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2,
+                                        ShiftType type, Reg m) {
     if (d == Reg::PC || n == Reg::PC || m == Reg::PC) {
         return UnpredictableInstruction();
     }
@@ -194,7 +203,8 @@ bool TranslatorVisitor::thumb32_ADC_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2
     return true;
 }
 
-bool TranslatorVisitor::thumb32_SBC_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type, Reg m) {
+bool TranslatorVisitor::thumb32_SBC_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2,
+                                        ShiftType type, Reg m) {
     if (d == Reg::PC || n == Reg::PC || m == Reg::PC) {
         return UnpredictableInstruction();
     }
@@ -220,7 +230,8 @@ bool TranslatorVisitor::thumb32_CMP_reg(Reg n, Imm<3> imm3, Imm<2> imm2, ShiftTy
     return true;
 }
 
-bool TranslatorVisitor::thumb32_SUB_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type, Reg m) {
+bool TranslatorVisitor::thumb32_SUB_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2,
+                                        ShiftType type, Reg m) {
     ASSERT_MSG(!(d == Reg::PC && S), "Decode error");
 
     if ((d == Reg::PC && !S) || n == Reg::PC || m == Reg::PC) {
@@ -236,7 +247,8 @@ bool TranslatorVisitor::thumb32_SUB_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2
     return true;
 }
 
-bool TranslatorVisitor::thumb32_RSB_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2, ShiftType type, Reg m) {
+bool TranslatorVisitor::thumb32_RSB_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2> imm2,
+                                        ShiftType type, Reg m) {
     if (d == Reg::PC || n == Reg::PC || m == Reg::PC) {
         return UnpredictableInstruction();
     }
@@ -250,4 +262,4 @@ bool TranslatorVisitor::thumb32_RSB_reg(bool S, Reg n, Imm<3> imm3, Reg d, Imm<2
     return true;
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

@@ -129,9 +129,10 @@ void DeduceBlitImages(ImageInfo& dst_info, ImageInfo& src_info, const ImageBase*
 // GCC12 because people actually still use stable debian so... yeah
 // One may say: "This is bad for performance" - to which I say, using GCC 12 you already know
 // what kind of bs you will be dealing with anyways.
-template<typename T, size_t N>
+template <typename T, size_t N>
 #if BOOST_VERSION >= 108100 || __GNUC__ > 12
-[[nodiscard]] boost::container::small_vector<T, N> FixSmallVectorADL(const boost::container::small_vector<T, N>& v) {
+[[nodiscard]] boost::container::small_vector<T, N> FixSmallVectorADL(
+    const boost::container::small_vector<T, N>& v) {
     return v;
 }
 #else

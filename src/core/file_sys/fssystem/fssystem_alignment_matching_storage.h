@@ -109,8 +109,8 @@ public:
         s64 bs_size = this->GetSize();
         ASSERT(R_SUCCEEDED(IStorage::CheckAccessRange(offset, size, bs_size)));
         return AlignmentMatchingStorageImpl::Read(m_base_storage, work_buffer.data(),
-                                                  work_buffer.size(), m_data_align,
-                                                  BufferAlign, offset, buffer, size);
+                                                  work_buffer.size(), m_data_align, BufferAlign,
+                                                  offset, buffer, size);
     }
 
     virtual size_t Write(const u8* buffer, size_t size, size_t offset) override {
@@ -124,8 +124,8 @@ public:
         s64 bs_size = this->GetSize();
         ASSERT(R_SUCCEEDED(IStorage::CheckAccessRange(offset, size, bs_size)));
         return AlignmentMatchingStorageImpl::Write(m_base_storage, work_buffer.data(),
-                                                   work_buffer.size(), m_data_align,
-                                                   BufferAlign, offset, buffer, size);
+                                                   work_buffer.size(), m_data_align, BufferAlign,
+                                                   offset, buffer, size);
     }
 
     virtual size_t GetSize() const override {

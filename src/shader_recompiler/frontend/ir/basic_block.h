@@ -6,12 +6,12 @@
 
 #pragma once
 
+#include <bit>
 #include <initializer_list>
 #include <map>
+#include <numeric>
 #include <span>
 #include <vector>
-#include <bit>
-#include <numeric>
 #include <boost/intrusive/list.hpp>
 
 #include "common/common_types.h"

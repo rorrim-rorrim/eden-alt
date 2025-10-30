@@ -10,20 +10,11 @@
 
 namespace Dynarmic::A64 {
 namespace {
-enum class Rounding {
-    None,
-    Round
-};
+enum class Rounding { None, Round };
 
-enum class Accumulating {
-    None,
-    Accumulate
-};
+enum class Accumulating { None, Accumulate };
 
-enum class SignednessSSBI {
-    Signed,
-    Unsigned
-};
+enum class SignednessSSBI { Signed, Unsigned };
 
 enum class NarrowingSSBI {
     Truncation,
@@ -42,13 +33,16 @@ enum class FloatConversionDirectionSSBI {
     FloatToFixed,
 };
 
-IR::U128 PerformRoundingCorrection(TranslatorVisitor& v, size_t esize, u64 round_value, IR::U128 original, IR::U128 shifted) {
+IR::U128 PerformRoundingCorrection(TranslatorVisitor& v, size_t esize, u64 round_value,
+                                   IR::U128 original, IR::U128 shifted) {
     const IR::U128 round_const = v.ir.VectorBroadcast(esize, v.I(esize, round_value));
-    const IR::U128 round_correction = v.ir.VectorEqual(esize, v.ir.VectorAnd(original, round_const), round_const);
+    const IR::U128 round_correction =
+        v.ir.VectorEqual(esize, v.ir.VectorAnd(original, round_const), round_const);
     return v.ir.VectorSub(esize, shifted, round_correction);
 }
 
-bool ShiftRight(TranslatorVisitor& v, bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd, Rounding rounding, Accumulating accumulating, SignednessSSBI SignednessSSBI) {
+bool ShiftRight(TranslatorVisitor& v, bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd,
+                Rounding rounding, Accumulating accumulating, SignednessSSBI SignednessSSBI) {
     if (immh == 0b0000) {
         return v.DecodeError();
     }
@@ -85,7 +79,9 @@ bool ShiftRight(TranslatorVisitor& v, bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, 
     return true;
 }
 
-bool ShiftRightNarrowingSSBI(TranslatorVisitor& v, bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd, Rounding rounding, NarrowingSSBI NarrowingSSBI, SignednessSSBI SignednessSSBI) {
+bool ShiftRightNarrowingSSBI(TranslatorVisitor& v, bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd,
+                             Rounding rounding, NarrowingSSBI NarrowingSSBI,
+                             SignednessSSBI SignednessSSBI) {
     if (immh == 0b0000) {
         return v.DecodeError();
     }
@@ -134,7 +130,8 @@ bool ShiftRightNarrowingSSBI(TranslatorVisitor& v, bool Q, Imm<4> immh, Imm<3> i
     return true;
 }
 
-bool ShiftLeftLong(TranslatorVisitor& v, bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd, SignednessSSBI SignednessSSBI) {
+bool ShiftLeftLong(TranslatorVisitor& v, bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd,
+                   SignednessSSBI SignednessSSBI) {
     if (immh == 0b0000) {
         return v.DecodeError();
     }
@@ -162,7 +159,8 @@ bool ShiftLeftLong(TranslatorVisitor& v, bool Q, Imm<4> immh, Imm<3> immb, Vec V
     return true;
 }
 
-bool SaturatingShiftLeft(TranslatorVisitor& v, bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd, SaturatingShiftLeftTypeSSBI type) {
+bool SaturatingShiftLeft(TranslatorVisitor& v, bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd,
+                         SaturatingShiftLeftTypeSSBI type) {
     if (!Q && immh.Bit<3>()) {
         return v.ReservedValue();
     }
@@ -189,7 +187,9 @@ bool SaturatingShiftLeft(TranslatorVisitor& v, bool Q, Imm<4> immh, Imm<3> immb,
     return true;
 }
 
-bool ConvertFloat(TranslatorVisitor& v, bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd, SignednessSSBI SignednessSSBI, FloatConversionDirectionSSBI direction, FP::RoundingMode rounding_mode) {
+bool ConvertFloat(TranslatorVisitor& v, bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd,
+                  SignednessSSBI SignednessSSBI, FloatConversionDirectionSSBI direction,
+                  FP::RoundingMode rounding_mode) {
     if (immh == 0b0000) {
         return v.DecodeError();
     }
@@ -212,12 +212,12 @@ bool ConvertFloat(TranslatorVisitor& v, bool Q, Imm<4> immh, Imm<3> immb, Vec Vn
         switch (direction) {
         case FloatConversionDirectionSSBI::FixedToFloat:
             return SignednessSSBI == SignednessSSBI::Signed
-                     ? v.ir.FPVectorFromSignedFixed(esize, operand, fbits, rounding_mode)
-                     : v.ir.FPVectorFromUnsignedFixed(esize, operand, fbits, rounding_mode);
+                       ? v.ir.FPVectorFromSignedFixed(esize, operand, fbits, rounding_mode)
+                       : v.ir.FPVectorFromUnsignedFixed(esize, operand, fbits, rounding_mode);
         case FloatConversionDirectionSSBI::FloatToFixed:
             return SignednessSSBI == SignednessSSBI::Signed
-                     ? v.ir.FPVectorToSignedFixed(esize, operand, fbits, rounding_mode)
-                     : v.ir.FPVectorToUnsignedFixed(esize, operand, fbits, rounding_mode);
+                       ? v.ir.FPVectorToSignedFixed(esize, operand, fbits, rounding_mode)
+                       : v.ir.FPVectorToUnsignedFixed(esize, operand, fbits, rounding_mode);
         }
         UNREACHABLE();
     }();
@@ -226,22 +226,26 @@ bool ConvertFloat(TranslatorVisitor& v, bool Q, Imm<4> immh, Imm<3> immb, Vec Vn
     return true;
 }
 
-}  // Anonymous namespace
+} // Anonymous namespace
 
 bool TranslatorVisitor::SSHR_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ShiftRight(*this, Q, immh, immb, Vn, Vd, Rounding::None, Accumulating::None, SignednessSSBI::Signed);
+    return ShiftRight(*this, Q, immh, immb, Vn, Vd, Rounding::None, Accumulating::None,
+                      SignednessSSBI::Signed);
 }
 
 bool TranslatorVisitor::SRSHR_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ShiftRight(*this, Q, immh, immb, Vn, Vd, Rounding::Round, Accumulating::None, SignednessSSBI::Signed);
+    return ShiftRight(*this, Q, immh, immb, Vn, Vd, Rounding::Round, Accumulating::None,
+                      SignednessSSBI::Signed);
 }
 
 bool TranslatorVisitor::SRSRA_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ShiftRight(*this, Q, immh, immb, Vn, Vd, Rounding::Round, Accumulating::Accumulate, SignednessSSBI::Signed);
+    return ShiftRight(*this, Q, immh, immb, Vn, Vd, Rounding::Round, Accumulating::Accumulate,
+                      SignednessSSBI::Signed);
 }
 
 bool TranslatorVisitor::SSRA_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ShiftRight(*this, Q, immh, immb, Vn, Vd, Rounding::None, Accumulating::Accumulate, SignednessSSBI::Signed);
+    return ShiftRight(*this, Q, immh, immb, Vn, Vd, Rounding::None, Accumulating::Accumulate,
+                      SignednessSSBI::Signed);
 }
 
 bool TranslatorVisitor::SHL_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
@@ -264,11 +268,13 @@ bool TranslatorVisitor::SHL_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) 
 }
 
 bool TranslatorVisitor::SHRN(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ShiftRightNarrowingSSBI(*this, Q, immh, immb, Vn, Vd, Rounding::None, NarrowingSSBI::Truncation, SignednessSSBI::Unsigned);
+    return ShiftRightNarrowingSSBI(*this, Q, immh, immb, Vn, Vd, Rounding::None,
+                                   NarrowingSSBI::Truncation, SignednessSSBI::Unsigned);
 }
 
 bool TranslatorVisitor::RSHRN(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ShiftRightNarrowingSSBI(*this, Q, immh, immb, Vn, Vd, Rounding::Round, NarrowingSSBI::Truncation, SignednessSSBI::Unsigned);
+    return ShiftRightNarrowingSSBI(*this, Q, immh, immb, Vn, Vd, Rounding::Round,
+                                   NarrowingSSBI::Truncation, SignednessSSBI::Unsigned);
 }
 
 bool TranslatorVisitor::SQSHL_imm_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
@@ -276,23 +282,28 @@ bool TranslatorVisitor::SQSHL_imm_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Ve
 }
 
 bool TranslatorVisitor::SQSHLU_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return SaturatingShiftLeft(*this, Q, immh, immb, Vn, Vd, SaturatingShiftLeftTypeSSBI::SignedWithUnsignedSaturation);
+    return SaturatingShiftLeft(*this, Q, immh, immb, Vn, Vd,
+                               SaturatingShiftLeftTypeSSBI::SignedWithUnsignedSaturation);
 }
 
 bool TranslatorVisitor::SQSHRN_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ShiftRightNarrowingSSBI(*this, Q, immh, immb, Vn, Vd, Rounding::None, NarrowingSSBI::SaturateToSigned, SignednessSSBI::Signed);
+    return ShiftRightNarrowingSSBI(*this, Q, immh, immb, Vn, Vd, Rounding::None,
+                                   NarrowingSSBI::SaturateToSigned, SignednessSSBI::Signed);
 }
 
 bool TranslatorVisitor::SQRSHRN_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ShiftRightNarrowingSSBI(*this, Q, immh, immb, Vn, Vd, Rounding::Round, NarrowingSSBI::SaturateToSigned, SignednessSSBI::Signed);
+    return ShiftRightNarrowingSSBI(*this, Q, immh, immb, Vn, Vd, Rounding::Round,
+                                   NarrowingSSBI::SaturateToSigned, SignednessSSBI::Signed);
 }
 
 bool TranslatorVisitor::SQSHRUN_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ShiftRightNarrowingSSBI(*this, Q, immh, immb, Vn, Vd, Rounding::None, NarrowingSSBI::SaturateToUnsigned, SignednessSSBI::Signed);
+    return ShiftRightNarrowingSSBI(*this, Q, immh, immb, Vn, Vd, Rounding::None,
+                                   NarrowingSSBI::SaturateToUnsigned, SignednessSSBI::Signed);
 }
 
 bool TranslatorVisitor::SQRSHRUN_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ShiftRightNarrowingSSBI(*this, Q, immh, immb, Vn, Vd, Rounding::Round, NarrowingSSBI::SaturateToUnsigned, SignednessSSBI::Signed);
+    return ShiftRightNarrowingSSBI(*this, Q, immh, immb, Vn, Vd, Rounding::Round,
+                                   NarrowingSSBI::SaturateToUnsigned, SignednessSSBI::Signed);
 }
 
 bool TranslatorVisitor::UQSHL_imm_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
@@ -300,11 +311,13 @@ bool TranslatorVisitor::UQSHL_imm_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Ve
 }
 
 bool TranslatorVisitor::UQSHRN_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ShiftRightNarrowingSSBI(*this, Q, immh, immb, Vn, Vd, Rounding::None, NarrowingSSBI::SaturateToUnsigned, SignednessSSBI::Unsigned);
+    return ShiftRightNarrowingSSBI(*this, Q, immh, immb, Vn, Vd, Rounding::None,
+                                   NarrowingSSBI::SaturateToUnsigned, SignednessSSBI::Unsigned);
 }
 
 bool TranslatorVisitor::UQRSHRN_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ShiftRightNarrowingSSBI(*this, Q, immh, immb, Vn, Vd, Rounding::Round, NarrowingSSBI::SaturateToUnsigned, SignednessSSBI::Unsigned);
+    return ShiftRightNarrowingSSBI(*this, Q, immh, immb, Vn, Vd, Rounding::Round,
+                                   NarrowingSSBI::SaturateToUnsigned, SignednessSSBI::Unsigned);
 }
 
 bool TranslatorVisitor::SSHLL(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
@@ -312,19 +325,23 @@ bool TranslatorVisitor::SSHLL(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) 
 }
 
 bool TranslatorVisitor::URSHR_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ShiftRight(*this, Q, immh, immb, Vn, Vd, Rounding::Round, Accumulating::None, SignednessSSBI::Unsigned);
+    return ShiftRight(*this, Q, immh, immb, Vn, Vd, Rounding::Round, Accumulating::None,
+                      SignednessSSBI::Unsigned);
 }
 
 bool TranslatorVisitor::URSRA_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ShiftRight(*this, Q, immh, immb, Vn, Vd, Rounding::Round, Accumulating::Accumulate, SignednessSSBI::Unsigned);
+    return ShiftRight(*this, Q, immh, immb, Vn, Vd, Rounding::Round, Accumulating::Accumulate,
+                      SignednessSSBI::Unsigned);
 }
 
 bool TranslatorVisitor::USHR_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ShiftRight(*this, Q, immh, immb, Vn, Vd, Rounding::None, Accumulating::None, SignednessSSBI::Unsigned);
+    return ShiftRight(*this, Q, immh, immb, Vn, Vd, Rounding::None, Accumulating::None,
+                      SignednessSSBI::Unsigned);
 }
 
 bool TranslatorVisitor::USRA_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ShiftRight(*this, Q, immh, immb, Vn, Vd, Rounding::None, Accumulating::Accumulate, SignednessSSBI::Unsigned);
+    return ShiftRight(*this, Q, immh, immb, Vn, Vd, Rounding::None, Accumulating::Accumulate,
+                      SignednessSSBI::Unsigned);
 }
 
 bool TranslatorVisitor::USHLL(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
@@ -384,19 +401,25 @@ bool TranslatorVisitor::SLI_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) 
 }
 
 bool TranslatorVisitor::SCVTF_fix_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ConvertFloat(*this, Q, immh, immb, Vn, Vd, SignednessSSBI::Signed, FloatConversionDirectionSSBI::FixedToFloat, ir.current_location->FPCR().RMode());
+    return ConvertFloat(*this, Q, immh, immb, Vn, Vd, SignednessSSBI::Signed,
+                        FloatConversionDirectionSSBI::FixedToFloat,
+                        ir.current_location->FPCR().RMode());
 }
 
 bool TranslatorVisitor::UCVTF_fix_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ConvertFloat(*this, Q, immh, immb, Vn, Vd, SignednessSSBI::Unsigned, FloatConversionDirectionSSBI::FixedToFloat, ir.current_location->FPCR().RMode());
+    return ConvertFloat(*this, Q, immh, immb, Vn, Vd, SignednessSSBI::Unsigned,
+                        FloatConversionDirectionSSBI::FixedToFloat,
+                        ir.current_location->FPCR().RMode());
 }
 
 bool TranslatorVisitor::FCVTZS_fix_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ConvertFloat(*this, Q, immh, immb, Vn, Vd, SignednessSSBI::Signed, FloatConversionDirectionSSBI::FloatToFixed, FP::RoundingMode::TowardsZero);
+    return ConvertFloat(*this, Q, immh, immb, Vn, Vd, SignednessSSBI::Signed,
+                        FloatConversionDirectionSSBI::FloatToFixed, FP::RoundingMode::TowardsZero);
 }
 
 bool TranslatorVisitor::FCVTZU_fix_2(bool Q, Imm<4> immh, Imm<3> immb, Vec Vn, Vec Vd) {
-    return ConvertFloat(*this, Q, immh, immb, Vn, Vd, SignednessSSBI::Unsigned, FloatConversionDirectionSSBI::FloatToFixed, FP::RoundingMode::TowardsZero);
+    return ConvertFloat(*this, Q, immh, immb, Vn, Vd, SignednessSSBI::Unsigned,
+                        FloatConversionDirectionSSBI::FloatToFixed, FP::RoundingMode::TowardsZero);
 }
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64

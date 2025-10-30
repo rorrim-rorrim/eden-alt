@@ -587,10 +587,8 @@ Result IHidServer::ActivateGesture(u32 basic_gesture_id, ClientAppletResourceUse
 
 Result IHidServer::SetGestureOutputRanges(u32 param1, u32 param2, u32 param3, u32 param4) {
     // https://switchbrew.org/wiki/HID_services , Undocumented. 92 [18.0.0+] SetGestureOutputRanges
-    LOG_WARNING(
-        Service_HID,
-        "(STUBBED) called, param1={}, param2={}, param3={}, param4={}",
-        param1, param2, param3, param4);
+    LOG_WARNING(Service_HID, "(STUBBED) called, param1={}, param2={}, param3={}, param4={}", param1,
+                param2, param3, param4);
     R_SUCCEED();
 }
 

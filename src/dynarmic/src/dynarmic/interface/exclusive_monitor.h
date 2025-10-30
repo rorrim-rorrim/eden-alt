@@ -29,7 +29,7 @@ public:
 
     /// Marks a region containing [address, address+size) to be exclusive to
     /// processor processor_id.
-    template<typename T, typename Function>
+    template <typename T, typename Function>
     T ReadAndMark(size_t processor_id, VAddr address, Function op) {
         static_assert(std::is_trivially_copyable_v<T>);
         const VAddr masked_address = address & RESERVATION_GRANULE_MASK;
@@ -46,7 +46,7 @@ public:
     /// specified region. If it does, executes the operation then clears
     /// the exclusive state for processors if their exclusive region(s)
     /// contain [address, address+size).
-    template<typename T, typename Function>
+    template <typename T, typename Function>
     bool DoExclusiveOperation(size_t processor_id, VAddr address, Function op) {
         static_assert(std::is_trivially_copyable_v<T>);
         if (!CheckAndClear(processor_id, address)) {
@@ -85,4 +85,4 @@ private:
     SpinLock lock;
 };
 
-}  // namespace Dynarmic
+} // namespace Dynarmic

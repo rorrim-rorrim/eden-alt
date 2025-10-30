@@ -8,8 +8,8 @@
 
 #include "dynarmic/common/fp/op/FPRoundInt.h"
 
-#include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_field.hpp>
+#include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/common/fp/fpcr.h"
@@ -24,7 +24,7 @@
 
 namespace Dynarmic::FP {
 
-template<typename FPT>
+template <typename FPT>
 u64 FPRoundInt(FPT op, FPCR fpcr, RoundingMode rounding, bool exact, FPSR& fpsr) {
     ASSERT(rounding != RoundingMode::ToOdd);
 
@@ -57,7 +57,8 @@ u64 FPRoundInt(FPT op, FPCR fpcr, RoundingMode rounding, bool exact, FPSR& fpsr)
     bool round_up = false;
     switch (rounding) {
     case RoundingMode::ToNearest_TieEven:
-        round_up = error > ResidualError::Half || (error == ResidualError::Half && mcl::bit::get_bit<0>(int_result));
+        round_up = error > ResidualError::Half ||
+                   (error == ResidualError::Half && mcl::bit::get_bit<0>(int_result));
         break;
     case RoundingMode::TowardsPlusInfinity:
         round_up = error != ResidualError::Zero;
@@ -69,7 +70,8 @@ u64 FPRoundInt(FPT op, FPCR fpcr, RoundingMode rounding, bool exact, FPSR& fpsr)
         round_up = error != ResidualError::Zero && mcl::bit::most_significant_bit(int_result);
         break;
     case RoundingMode::ToNearest_TieAwayFromZero:
-        round_up = error > ResidualError::Half || (error == ResidualError::Half && !mcl::bit::most_significant_bit(int_result));
+        round_up = error > ResidualError::Half ||
+                   (error == ResidualError::Half && !mcl::bit::most_significant_bit(int_result));
         break;
     case RoundingMode::ToOdd:
         UNREACHABLE();
@@ -80,11 +82,14 @@ u64 FPRoundInt(FPT op, FPCR fpcr, RoundingMode rounding, bool exact, FPSR& fpsr)
     }
 
     const bool new_sign = mcl::bit::most_significant_bit(int_result);
-    const u64 abs_int_result = new_sign ? Safe::Negate<u64>(int_result) : static_cast<u64>(int_result);
+    const u64 abs_int_result =
+        new_sign ? Safe::Negate<u64>(int_result) : static_cast<u64>(int_result);
 
-    const FPT result = int_result == 0
-                         ? FPInfo<FPT>::Zero(sign)
-                         : FPRound<FPT>(FPUnpacked{new_sign, normalized_point_position, abs_int_result}, fpcr, RoundingMode::TowardsZero, fpsr);
+    const FPT result =
+        int_result == 0
+            ? FPInfo<FPT>::Zero(sign)
+            : FPRound<FPT>(FPUnpacked{new_sign, normalized_point_position, abs_int_result}, fpcr,
+                           RoundingMode::TowardsZero, fpsr);
 
     if (error != ResidualError::Zero && exact) {
         FPProcessException(FPExc::Inexact, fpcr, fpsr);
@@ -97,4 +102,4 @@ template u64 FPRoundInt<u16>(u16 op, FPCR fpcr, RoundingMode rounding, bool exac
 template u64 FPRoundInt<u32>(u32 op, FPCR fpcr, RoundingMode rounding, bool exact, FPSR& fpsr);
 template u64 FPRoundInt<u64>(u64 op, FPCR fpcr, RoundingMode rounding, bool exact, FPSR& fpsr);
 
-}  // namespace Dynarmic::FP
+} // namespace Dynarmic::FP

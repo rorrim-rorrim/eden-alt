@@ -16,7 +16,6 @@
 
 namespace Vulkan {
 
-
 namespace {
 
 bool CanBlitToSwapchain(const vk::PhysicalDevice& physical_device, VkFormat format) {
@@ -96,30 +95,26 @@ bool CanBlitToSwapchain(const vk::PhysicalDevice& physical_device, VkFormat form
 } // Anonymous namespace
 
 PresentManager::PresentManager(const vk::Instance& instance_,
-                               Core::Frontend::EmuWindow& render_window_,
-                               const Device& device_,
-                               MemoryAllocator& memory_allocator_,
-                               Scheduler& scheduler_,
+                               Core::Frontend::EmuWindow& render_window_, const Device& device_,
+                               MemoryAllocator& memory_allocator_, Scheduler& scheduler_,
                                Swapchain& swapchain_,
 #ifdef ANDROID
                                vk::SurfaceKHR& surface_)
 #else
                                VkSurfaceKHR_T* surface_handle_)
 #endif
-    : instance{instance_}
-    , render_window{render_window_}
-    , device{device_}
-    , memory_allocator{memory_allocator_}
-    , scheduler{scheduler_}
-    , swapchain{swapchain_}
+    : instance{instance_}, render_window{render_window_}, device{device_},
+      memory_allocator{memory_allocator_}, scheduler{scheduler_}, swapchain{swapchain_}
 #ifdef ANDROID
-    , surface{surface_}
+      ,
+      surface{surface_}
 #else
-    , surface_handle{surface_handle_}
+      ,
+      surface_handle{surface_handle_}
 #endif
-    , blit_supported{CanBlitToSwapchain(device.GetPhysical(), swapchain.GetImageViewFormat())}
-    , use_present_thread{Settings::values.async_presentation.GetValue()}
-{
+      ,
+      blit_supported{CanBlitToSwapchain(device.GetPhysical(), swapchain.GetImageViewFormat())},
+      use_present_thread{Settings::values.async_presentation.GetValue()} {
     SetImageCount();
 
     auto& dld = device.GetLogical();

@@ -11,9 +11,9 @@
 #include <cstddef>
 #include <tuple>
 
+#include <ankerl/unordered_dense.h>
 #include <mcl/hash/xmrx.hpp>
 #include "dynarmic/common/common_types.h"
-#include <ankerl/unordered_dense.h>
 
 #include "dynarmic/backend/exception_handler.h"
 #include "dynarmic/ir/location_descriptor.h"
@@ -36,8 +36,7 @@ struct FastmemPatchInfo {
 
 class FastmemManager {
 public:
-    explicit FastmemManager(ExceptionHandler& eh)
-            : exception_handler(eh) {}
+    explicit FastmemManager(ExceptionHandler& eh) : exception_handler(eh) {}
 
     bool SupportsFastmem() const {
         return exception_handler.SupportsFastmem();
@@ -56,4 +55,4 @@ private:
     ankerl::unordered_dense::set<DoNotFastmemMarker, DoNotFastmemMarkerHash> do_not_fastmem;
 };
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

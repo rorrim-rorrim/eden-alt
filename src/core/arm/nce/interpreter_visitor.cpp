@@ -13,7 +13,7 @@ namespace Core {
 namespace {
 // Prefetch tuning parameters
 constexpr size_t CACHE_LINE_SIZE = 64;
-constexpr size_t PREFETCH_STRIDE = 128; // 2 cache lines ahead
+constexpr size_t PREFETCH_STRIDE = 128;        // 2 cache lines ahead
 constexpr size_t SIMD_PREFETCH_THRESHOLD = 32; // Bytes
 } // namespace
 

@@ -16,7 +16,8 @@ namespace Service::android {
 BufferQueueCore::BufferQueueCore() = default;
 BufferQueueCore::~BufferQueueCore() = default;
 
-void BufferQueueCore::PushHistory(u64 frame_number, s64 queue_time, s64 presentation_time, BufferState state) {
+void BufferQueueCore::PushHistory(u64 frame_number, s64 queue_time, s64 presentation_time,
+                                  BufferState state) {
     buffer_history_pos = (buffer_history_pos + 1) % BUFFER_HISTORY_SIZE;
     buffer_history[buffer_history_pos] = BufferHistoryInfo{
         .frame_number = frame_number,

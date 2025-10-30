@@ -110,19 +110,25 @@ void EmitA32Cond(biscuit::Assembler& as, EmitContext&, IR::Cond cond, biscuit::L
     }
 }
 
-void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step);
+void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::Terminal terminal,
+                     IR::LocationDescriptor initial_location, bool is_single_step);
 
-void EmitA32Terminal(biscuit::Assembler&, EmitContext&, IR::Term::Interpret, IR::LocationDescriptor, bool) {
+void EmitA32Terminal(biscuit::Assembler&, EmitContext&, IR::Term::Interpret, IR::LocationDescriptor,
+                     bool) {
     ASSERT_FALSE("Interpret should never be emitted.");
 }
 
-void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::ReturnToDispatch, IR::LocationDescriptor, bool) {
+void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::ReturnToDispatch,
+                     IR::LocationDescriptor, bool) {
     EmitRelocation(as, ctx, LinkTarget::ReturnFromRunCode);
 }
 
-void EmitSetUpperLocationDescriptor(biscuit::Assembler& as, EmitContext& ctx, IR::LocationDescriptor new_location, IR::LocationDescriptor old_location) {
+void EmitSetUpperLocationDescriptor(biscuit::Assembler& as, EmitContext& ctx,
+                                    IR::LocationDescriptor new_location,
+                                    IR::LocationDescriptor old_location) {
     auto get_upper = [](const IR::LocationDescriptor& desc) -> u32 {
-        return static_cast<u32>(A32::LocationDescriptor{desc}.SetSingleStepping(false).UniqueHash() >> 32);
+        return static_cast<u32>(
+            A32::LocationDescriptor{desc}.SetSingleStepping(false).UniqueHash() >> 32);
     };
 
     const u32 old_upper = get_upper(old_location);
@@ -137,7 +143,8 @@ void EmitSetUpperLocationDescriptor(biscuit::Assembler& as, EmitContext& ctx, IR
     }
 }
 
-void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::LinkBlock terminal, IR::LocationDescriptor initial_location, bool) {
+void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::LinkBlock terminal,
+                     IR::LocationDescriptor initial_location, bool) {
     EmitSetUpperLocationDescriptor(as, ctx, terminal.next, initial_location);
 
     as.LI(Xscratch0, terminal.next.Value());
@@ -147,7 +154,8 @@ void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::LinkBlo
     // TODO: Implement LinkBlock optimization
 }
 
-void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::LinkBlockFast terminal, IR::LocationDescriptor initial_location, bool) {
+void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::LinkBlockFast terminal,
+                     IR::LocationDescriptor initial_location, bool) {
     EmitSetUpperLocationDescriptor(as, ctx, terminal.next, initial_location);
 
     as.LI(Xscratch0, terminal.next.Value());
@@ -157,19 +165,22 @@ void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::LinkBlo
     // TODO: Implement LinkBlockFast optimization
 }
 
-void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::PopRSBHint, IR::LocationDescriptor, bool) {
+void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::PopRSBHint,
+                     IR::LocationDescriptor, bool) {
     EmitRelocation(as, ctx, LinkTarget::ReturnFromRunCode);
 
     // TODO: Implement PopRSBHint optimization
 }
 
-void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::FastDispatchHint, IR::LocationDescriptor, bool) {
+void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::FastDispatchHint,
+                     IR::LocationDescriptor, bool) {
     EmitRelocation(as, ctx, LinkTarget::ReturnFromRunCode);
 
     // TODO: Implement FastDispatchHint optimization
 }
 
-void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::If terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::If terminal,
+                     IR::LocationDescriptor initial_location, bool is_single_step) {
     biscuit::Label pass;
     EmitA32Cond(as, ctx, terminal.if_, &pass);
     EmitA32Terminal(as, ctx, terminal.else_, initial_location, is_single_step);
@@ -177,7 +188,8 @@ void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::If term
     EmitA32Terminal(as, ctx, terminal.then_, initial_location, is_single_step);
 }
 
-void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::CheckBit terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::CheckBit terminal,
+                     IR::LocationDescriptor initial_location, bool is_single_step) {
     biscuit::Label fail;
     as.LBU(Xscratch0, offsetof(StackLayout, check_bit), Xstate);
     as.BEQZ(Xscratch0, &fail);
@@ -186,7 +198,8 @@ void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::CheckBi
     EmitA32Terminal(as, ctx, terminal.else_, initial_location, is_single_step);
 }
 
-void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::CheckHalt terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::CheckHalt terminal,
+                     IR::LocationDescriptor initial_location, bool is_single_step) {
     biscuit::Label fail;
     as.LWU(Xscratch0, 0, Xhalt);
     as.FENCE(biscuit::FenceOrder::RW, biscuit::FenceOrder::RW);
@@ -196,21 +209,25 @@ void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::CheckHa
     EmitRelocation(as, ctx, LinkTarget::ReturnFromRunCode);
 }
 
-void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
-    boost::apply_visitor([&](const auto& t) { EmitA32Terminal(as, ctx, t, initial_location, is_single_step); }, terminal);
+void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::Terminal terminal,
+                     IR::LocationDescriptor initial_location, bool is_single_step) {
+    boost::apply_visitor(
+        [&](const auto& t) { EmitA32Terminal(as, ctx, t, initial_location, is_single_step); },
+        terminal);
 }
 
 void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx) {
     const A32::LocationDescriptor location{ctx.block.Location()};
-    EmitA32Terminal(as, ctx, ctx.block.GetTerminal(), location.SetSingleStepping(false), location.SingleStepping());
+    EmitA32Terminal(as, ctx, ctx.block.GetTerminal(), location.SetSingleStepping(false),
+                    location.SingleStepping());
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32SetCheckBit>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32GetRegister>(biscuit::Assembler& as, EmitContext& ctx, IR::Inst* inst) {
     const A32::Reg reg = inst->GetArg(0).GetA32RegRef();
 
@@ -220,22 +237,22 @@ void EmitIR<IR::Opcode::A32GetRegister>(biscuit::Assembler& as, EmitContext& ctx
     as.LWU(Xresult, offsetof(A32JitState, regs) + sizeof(u32) * static_cast<size_t>(reg), Xstate);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32GetExtendedRegister32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32GetExtendedRegister64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32GetVector>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32SetRegister>(biscuit::Assembler& as, EmitContext& ctx, IR::Inst* inst) {
     const A32::Reg reg = inst->GetArg(0).GetA32RegRef();
 
@@ -249,32 +266,32 @@ void EmitIR<IR::Opcode::A32SetRegister>(biscuit::Assembler& as, EmitContext& ctx
     as.SW(Xvalue, offsetof(A32JitState, regs) + sizeof(u32) * static_cast<size_t>(reg), Xstate);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32SetExtendedRegister32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32SetExtendedRegister64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32SetVector>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32GetCpsr>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32SetCpsr>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32SetCpsrNZCV>(biscuit::Assembler& as, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -284,22 +301,22 @@ void EmitIR<IR::Opcode::A32SetCpsrNZCV>(biscuit::Assembler& as, EmitContext& ctx
     as.SW(Xnzcv, offsetof(A32JitState, cpsr_nzcv), Xstate);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32SetCpsrNZCVRaw>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32SetCpsrNZCVQ>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32SetCpsrNZ>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32SetCpsrNZC>(biscuit::Assembler& as, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -318,84 +335,87 @@ void EmitIR<IR::Opcode::A32SetCpsrNZC>(biscuit::Assembler& as, EmitContext& ctx,
     as.SW(Xscratch0, offsetof(A32JitState, cpsr_nzcv), Xstate);
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32GetCFlag>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32OrQFlag>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32GetGEFlags>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32SetGEFlags>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32SetGEFlagsCompressed>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32BXWritePC>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
-void EmitIR<IR::Opcode::A32UpdateUpperLocationDescriptor>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
+template <>
+void EmitIR<IR::Opcode::A32UpdateUpperLocationDescriptor>(biscuit::Assembler&, EmitContext&,
+                                                          IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32CallSupervisor>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32ExceptionRaised>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
-void EmitIR<IR::Opcode::A32DataSynchronizationBarrier>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
+template <>
+void EmitIR<IR::Opcode::A32DataSynchronizationBarrier>(biscuit::Assembler&, EmitContext&,
+                                                       IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32DataMemoryBarrier>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
-void EmitIR<IR::Opcode::A32InstructionSynchronizationBarrier>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
+template <>
+void EmitIR<IR::Opcode::A32InstructionSynchronizationBarrier>(biscuit::Assembler&, EmitContext&,
+                                                              IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32GetFpscr>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32SetFpscr>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32GetFpscrNZCV>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-template<>
+template <>
 void EmitIR<IR::Opcode::A32SetFpscrNZCV>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
-}  // namespace Dynarmic::Backend::RV64
+} // namespace Dynarmic::Backend::RV64

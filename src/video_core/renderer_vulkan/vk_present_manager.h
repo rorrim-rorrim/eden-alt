@@ -37,11 +37,8 @@ struct Frame {
 
 class PresentManager {
 public:
-    PresentManager(const vk::Instance& instance,
-                   Core::Frontend::EmuWindow& render_window,
-                   const Device& device,
-                   MemoryAllocator& memory_allocator,
-                   Scheduler& scheduler,
+    PresentManager(const vk::Instance& instance, Core::Frontend::EmuWindow& render_window,
+                   const Device& device, MemoryAllocator& memory_allocator, Scheduler& scheduler,
                    Swapchain& swapchain,
 #ifdef ANDROID
                    vk::SurfaceKHR& surface);

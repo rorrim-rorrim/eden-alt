@@ -15,8 +15,12 @@ static constexpr auto PERMS = Common::MemoryPermission::ReadWrite;
 static constexpr auto HEAP = false;
 
 TEST_CASE("HostMemory: Initialize and deinitialize", "[common]") {
-    { HostMemory mem(BACKING_SIZE, VIRTUAL_SIZE); }
-    { HostMemory mem(BACKING_SIZE, VIRTUAL_SIZE); }
+    {
+        HostMemory mem(BACKING_SIZE, VIRTUAL_SIZE);
+    }
+    {
+        HostMemory mem(BACKING_SIZE, VIRTUAL_SIZE);
+    }
 }
 
 TEST_CASE("HostMemory: Simple map", "[common]") {

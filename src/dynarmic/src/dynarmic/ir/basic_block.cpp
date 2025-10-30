@@ -23,12 +23,7 @@
 namespace Dynarmic::IR {
 
 Block::Block(const LocationDescriptor& location)
-    : location{location},
-    end_location{location},
-    cond{Cond::AL}
-{
-
-}
+    : location{location}, end_location{location}, cond{Cond::AL} {}
 
 /// Prepends a new instruction to this basic block before the insertion point,
 /// handling any allocations necessary to do so.
@@ -36,12 +31,13 @@ Block::Block(const LocationDescriptor& location)
 /// @param op              Opcode representing the instruction to add.
 /// @param args            A sequence of Value instances used as arguments for the instruction.
 /// @returns Iterator to the newly created instruction.
-Block::iterator Block::PrependNewInst(iterator insertion_point, Opcode opcode, std::initializer_list<Value> args) noexcept {
-    // First try using the "inline" buffer, otherwise fallback to a slower slab-like allocation scheme
-    // purpouse is to avoid many calls to new/delete which invoke malloc which invokes mmap
-    // just pool it!!! - reason why there is an inline buffer is because many small blocks are created
-    // with few instructions due to subpar optimisations on other passes... plus branch-heavy code will
-    // hugely benefit from the coherency of faster allocations...
+Block::iterator Block::PrependNewInst(iterator insertion_point, Opcode opcode,
+                                      std::initializer_list<Value> args) noexcept {
+    // First try using the "inline" buffer, otherwise fallback to a slower slab-like allocation
+    // scheme purpouse is to avoid many calls to new/delete which invoke malloc which invokes mmap
+    // just pool it!!! - reason why there is an inline buffer is because many small blocks are
+    // created with few instructions due to subpar optimisations on other passes... plus
+    // branch-heavy code will hugely benefit from the coherency of faster allocations...
     IR::Inst* inst;
     if (inlined_inst.size() < inlined_inst.max_size()) {
         inst = &inlined_inst[inlined_inst.size()];
@@ -84,10 +80,12 @@ static std::string TerminalToString(const Terminal& terminal_variant) noexcept {
             return "FastDispatchHint{}";
         }
         std::string operator()(const Term::If& terminal) const {
-            return fmt::format("If{{{}, {}, {}}}", A64::CondToString(terminal.if_), TerminalToString(terminal.then_), TerminalToString(terminal.else_));
+            return fmt::format("If{{{}, {}, {}}}", A64::CondToString(terminal.if_),
+                               TerminalToString(terminal.then_), TerminalToString(terminal.else_));
         }
         std::string operator()(const Term::CheckBit& terminal) const {
-            return fmt::format("CheckBit{{{}, {}}}", TerminalToString(terminal.then_), TerminalToString(terminal.else_));
+            return fmt::format("CheckBit{{{}, {}}}", TerminalToString(terminal.then_),
+                               TerminalToString(terminal.else_));
         }
         std::string operator()(const Term::CheckHalt& terminal) const {
             return fmt::format("CheckHalt{{{}}}", TerminalToString(terminal.else_));
@@ -97,9 +95,10 @@ static std::string TerminalToString(const Terminal& terminal_variant) noexcept {
 }
 
 std::string DumpBlock(const IR::Block& block) noexcept {
-    std::string ret = fmt::format("Block: location={}-{}\n", block.Location(), block.EndLocation())
-        + fmt::format("cycles={}", block.CycleCount())
-        + fmt::format(", entry_cond={}", A64::CondToString(block.GetCondition()));
+    std::string ret =
+        fmt::format("Block: location={}-{}\n", block.Location(), block.EndLocation()) +
+        fmt::format("cycles={}", block.CycleCount()) +
+        fmt::format(", entry_cond={}", A64::CondToString(block.GetCondition()));
     if (block.GetCondition() != Cond::AL) {
         ret += fmt::format(", cond_fail={}", block.ConditionFailedLocation());
     }
@@ -161,7 +160,7 @@ std::string DumpBlock(const IR::Block& block) noexcept {
                 ret += "noname = ";
             }
         } else {
-            ret += "         ";  // '%00000 = ' -> 1 + 5 + 3 = 9 spaces
+            ret += "         "; // '%00000 = ' -> 1 + 5 + 3 = 9 spaces
         }
 
         ret += GetNameOf(op);
@@ -176,7 +175,8 @@ std::string DumpBlock(const IR::Block& block) noexcept {
             Type actual_type = arg.GetType();
             Type expected_type = GetArgTypeOf(op, arg_index);
             if (!AreTypesCompatible(actual_type, expected_type)) {
-                ret += fmt::format("<type error: {} != {}>", GetNameOf(actual_type), GetNameOf(expected_type));
+                ret += fmt::format("<type error: {} != {}>", GetNameOf(actual_type),
+                                   GetNameOf(expected_type));
             }
         }
 
@@ -190,4 +190,4 @@ std::string DumpBlock(const IR::Block& block) noexcept {
     return ret;
 }
 
-}  // namespace Dynarmic::IR
+} // namespace Dynarmic::IR

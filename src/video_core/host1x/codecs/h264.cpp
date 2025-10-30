@@ -121,9 +121,9 @@ std::span<const u8> H264::ComposeFrame() {
 
     u32 max_num_ref_frames =
         (std::max)((std::max)(current_context.h264_parameter_set.num_refidx_l0_default_active,
-                          current_context.h264_parameter_set.num_refidx_l1_default_active) +
-                     1,
-                 4);
+                              current_context.h264_parameter_set.num_refidx_l1_default_active) +
+                       1,
+                   4);
     writer.WriteUe(max_num_ref_frames);
     writer.WriteBit(false);
     writer.WriteUe(current_context.h264_parameter_set.pic_width_in_mbs - 1);

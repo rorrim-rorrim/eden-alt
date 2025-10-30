@@ -12,11 +12,11 @@
 #include <vector>
 
 #ifdef _MSC_VER
-#    pragma warning(push, 0)
-#    include <unicorn/unicorn.h>
-#    pragma warning(pop)
+#pragma warning(push, 0)
+#include <unicorn/unicorn.h>
+#pragma warning(pop)
 #else
-#    include <unicorn/unicorn.h>
+#include <unicorn/unicorn.h>
 #endif
 
 #include "dynarmic/common/common_types.h"
@@ -67,8 +67,10 @@ public:
 
 private:
     static void InterruptHook(uc_engine* uc, u32 interrupt, void* user_data);
-    static bool UnmappedMemoryHook(uc_engine* uc, uc_mem_type type, u64 addr, int size, u64 value, void* user_data);
-    static bool MemoryWriteHook(uc_engine* uc, uc_mem_type type, u64 addr, int size, u64 value, void* user_data);
+    static bool UnmappedMemoryHook(uc_engine* uc, uc_mem_type type, u64 addr, int size, u64 value,
+                                   void* user_data);
+    static bool MemoryWriteHook(uc_engine* uc, uc_mem_type type, u64 addr, int size, u64 value,
+                                void* user_data);
 
     struct Page {
         u64 address;

@@ -5,9 +5,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <fstream>
+#include "common/assert.h"
 #include "common/heap_tracker.h"
 #include "common/logging/log.h"
-#include "common/assert.h"
 
 namespace Common {
 
@@ -213,7 +213,8 @@ void HeapTracker::RebuildSeparateHeapAddressSpace() {
     // Despite being worse in theory, this has proven to be better in practice than more
     // regularly dumping a smaller amount, because it significantly reduces average case
     // lock contention.
-    std::size_t const desired_count = (std::min)(m_resident_map_count, m_max_resident_map_count) / 2;
+    std::size_t const desired_count =
+        (std::min)(m_resident_map_count, m_max_resident_map_count) / 2;
     std::size_t const evict_count = m_resident_map_count - desired_count;
     auto it = m_resident_mappings.begin();
 

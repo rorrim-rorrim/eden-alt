@@ -55,7 +55,8 @@ static IR::U32 GetAddress(A32::IREmitter& ir, bool P, bool U, bool W, Reg n, IR:
     const bool add = U;
     const bool wback = !P || W;
 
-    const IR::U32 offset_addr = add ? ir.Add(ir.GetRegister(n), offset) : ir.Sub(ir.GetRegister(n), offset);
+    const IR::U32 offset_addr =
+        add ? ir.Add(ir.GetRegister(n), offset) : ir.Sub(ir.GetRegister(n), offset);
     const IR::U32 address = index ? offset_addr : ir.GetRegister(n);
 
     if (wback) {
@@ -88,7 +89,8 @@ bool TranslatorVisitor::arm_LDR_lit(Cond cond, bool U, Reg t, Imm<12> imm12) {
 
 // LDR <Rt>, [<Rn>, #+/-<imm>]{!}
 // LDR <Rt>, [<Rn>], #+/-<imm>
-bool TranslatorVisitor::arm_LDR_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<12> imm12) {
+bool TranslatorVisitor::arm_LDR_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t,
+                                    Imm<12> imm12) {
     if (n == Reg::PC) {
         return UnpredictableInstruction();
     }
@@ -123,7 +125,8 @@ bool TranslatorVisitor::arm_LDR_imm(Cond cond, bool P, bool U, bool W, Reg n, Re
 
 // LDR <Rt>, [<Rn>, #+/-<Rm>]{!}
 // LDR <Rt>, [<Rn>], #+/-<Rm>
-bool TranslatorVisitor::arm_LDR_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<5> imm5, ShiftType shift, Reg m) {
+bool TranslatorVisitor::arm_LDR_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<5> imm5,
+                                    ShiftType shift, Reg m) {
     ASSERT_MSG(!(!P && W), "T form of instruction unimplemented");
     if (m == Reg::PC) {
         return UnpredictableInstruction();
@@ -169,7 +172,8 @@ bool TranslatorVisitor::arm_LDRB_lit(Cond cond, bool U, Reg t, Imm<12> imm12) {
     const bool add = U;
     const u32 base = ir.AlignPC(4);
     const u32 address = add ? (base + imm32) : (base - imm32);
-    const auto data = ir.ZeroExtendByteToWord(ir.ReadMemory8(ir.Imm32(address), IR::AccType::NORMAL));
+    const auto data =
+        ir.ZeroExtendByteToWord(ir.ReadMemory8(ir.Imm32(address), IR::AccType::NORMAL));
 
     ir.SetRegister(t, data);
     return true;
@@ -177,7 +181,8 @@ bool TranslatorVisitor::arm_LDRB_lit(Cond cond, bool U, Reg t, Imm<12> imm12) {
 
 // LDRB <Rt>, [<Rn>, #+/-<imm>]{!}
 // LDRB <Rt>, [<Rn>], #+/-<imm>
-bool TranslatorVisitor::arm_LDRB_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<12> imm12) {
+bool TranslatorVisitor::arm_LDRB_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t,
+                                     Imm<12> imm12) {
     if (n == Reg::PC) {
         return UnpredictableInstruction();
     }
@@ -206,7 +211,8 @@ bool TranslatorVisitor::arm_LDRB_imm(Cond cond, bool P, bool U, bool W, Reg n, R
 
 // LDRB <Rt>, [<Rn>, #+/-<Rm>]{!}
 // LDRB <Rt>, [<Rn>], #+/-<Rm>
-bool TranslatorVisitor::arm_LDRB_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<5> imm5, ShiftType shift, Reg m) {
+bool TranslatorVisitor::arm_LDRB_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<5> imm5,
+                                     ShiftType shift, Reg m) {
     ASSERT_MSG(!(!P && W), "T form of instruction unimplemented");
     if (t == Reg::PC || m == Reg::PC) {
         return UnpredictableInstruction();
@@ -264,7 +270,8 @@ bool TranslatorVisitor::arm_LDRD_lit(Cond cond, bool U, Reg t, Imm<4> imm8a, Imm
 
 // LDRD <Rt>, [<Rn>, #+/-<imm>]{!}
 // LDRD <Rt>, [<Rn>], #+/-<imm>
-bool TranslatorVisitor::arm_LDRD_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<4> imm8a, Imm<4> imm8b) {
+bool TranslatorVisitor::arm_LDRD_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<4> imm8a,
+                                     Imm<4> imm8b) {
     if (n == Reg::PC) {
         return UnpredictableInstruction();
     }
@@ -349,7 +356,8 @@ bool TranslatorVisitor::arm_LDRD_reg(Cond cond, bool P, bool U, bool W, Reg n, R
 }
 
 // LDRH <Rt>, [PC, #-/+<imm>]
-bool TranslatorVisitor::arm_LDRH_lit(Cond cond, bool P, bool U, bool W, Reg t, Imm<4> imm8a, Imm<4> imm8b) {
+bool TranslatorVisitor::arm_LDRH_lit(Cond cond, bool P, bool U, bool W, Reg t, Imm<4> imm8a,
+                                     Imm<4> imm8b) {
     ASSERT_MSG(!(!P && W), "T form of instruction unimplemented");
     if (P == W) {
         return UnpredictableInstruction();
@@ -367,7 +375,8 @@ bool TranslatorVisitor::arm_LDRH_lit(Cond cond, bool P, bool U, bool W, Reg t, I
     const bool add = U;
     const u32 base = ir.AlignPC(4);
     const u32 address = add ? (base + imm32) : (base - imm32);
-    const auto data = ir.ZeroExtendHalfToWord(ir.ReadMemory16(ir.Imm32(address), IR::AccType::NORMAL));
+    const auto data =
+        ir.ZeroExtendHalfToWord(ir.ReadMemory16(ir.Imm32(address), IR::AccType::NORMAL));
 
     ir.SetRegister(t, data);
     return true;
@@ -375,7 +384,8 @@ bool TranslatorVisitor::arm_LDRH_lit(Cond cond, bool P, bool U, bool W, Reg t, I
 
 // LDRH <Rt>, [<Rn>, #+/-<imm>]{!}
 // LDRH <Rt>, [<Rn>], #+/-<imm>
-bool TranslatorVisitor::arm_LDRH_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<4> imm8a, Imm<4> imm8b) {
+bool TranslatorVisitor::arm_LDRH_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<4> imm8a,
+                                     Imm<4> imm8b) {
     if (n == Reg::PC) {
         return UnpredictableInstruction();
     }
@@ -441,7 +451,8 @@ bool TranslatorVisitor::arm_LDRSB_lit(Cond cond, bool U, Reg t, Imm<4> imm8a, Im
 
     const u32 base = ir.AlignPC(4);
     const u32 address = add ? (base + imm32) : (base - imm32);
-    const auto data = ir.SignExtendByteToWord(ir.ReadMemory8(ir.Imm32(address), IR::AccType::NORMAL));
+    const auto data =
+        ir.SignExtendByteToWord(ir.ReadMemory8(ir.Imm32(address), IR::AccType::NORMAL));
 
     ir.SetRegister(t, data);
     return true;
@@ -449,7 +460,8 @@ bool TranslatorVisitor::arm_LDRSB_lit(Cond cond, bool U, Reg t, Imm<4> imm8a, Im
 
 // LDRSB <Rt>, [<Rn>, #+/-<imm>]{!}
 // LDRSB <Rt>, [<Rn>], #+/-<imm>
-bool TranslatorVisitor::arm_LDRSB_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<4> imm8a, Imm<4> imm8b) {
+bool TranslatorVisitor::arm_LDRSB_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<4> imm8a,
+                                      Imm<4> imm8b) {
     if (n == Reg::PC) {
         return UnpredictableInstruction();
     }
@@ -514,7 +526,8 @@ bool TranslatorVisitor::arm_LDRSH_lit(Cond cond, bool U, Reg t, Imm<4> imm8a, Im
     const bool add = U;
     const u32 base = ir.AlignPC(4);
     const u32 address = add ? (base + imm32) : (base - imm32);
-    const auto data = ir.SignExtendHalfToWord(ir.ReadMemory16(ir.Imm32(address), IR::AccType::NORMAL));
+    const auto data =
+        ir.SignExtendHalfToWord(ir.ReadMemory16(ir.Imm32(address), IR::AccType::NORMAL));
 
     ir.SetRegister(t, data);
     return true;
@@ -522,7 +535,8 @@ bool TranslatorVisitor::arm_LDRSH_lit(Cond cond, bool U, Reg t, Imm<4> imm8a, Im
 
 // LDRSH <Rt>, [<Rn>, #+/-<imm>]{!}
 // LDRSH <Rt>, [<Rn>], #+/-<imm>
-bool TranslatorVisitor::arm_LDRSH_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<4> imm8a, Imm<4> imm8b) {
+bool TranslatorVisitor::arm_LDRSH_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<4> imm8a,
+                                      Imm<4> imm8b) {
     if (n == Reg::PC) {
         return UnpredictableInstruction();
     }
@@ -575,7 +589,8 @@ bool TranslatorVisitor::arm_LDRSH_reg(Cond cond, bool P, bool U, bool W, Reg n, 
 
 // STR <Rt>, [<Rn>, #+/-<imm>]{!}
 // STR <Rt>, [<Rn>], #+/-<imm>
-bool TranslatorVisitor::arm_STR_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<12> imm12) {
+bool TranslatorVisitor::arm_STR_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t,
+                                    Imm<12> imm12) {
     if ((!P || W) && (n == Reg::PC || n == t)) {
         return UnpredictableInstruction();
     }
@@ -592,7 +607,8 @@ bool TranslatorVisitor::arm_STR_imm(Cond cond, bool P, bool U, bool W, Reg n, Re
 
 // STR <Rt>, [<Rn>, #+/-<Rm>]{!}
 // STR <Rt>, [<Rn>], #+/-<Rm>
-bool TranslatorVisitor::arm_STR_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<5> imm5, ShiftType shift, Reg m) {
+bool TranslatorVisitor::arm_STR_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<5> imm5,
+                                    ShiftType shift, Reg m) {
     if (m == Reg::PC) {
         return UnpredictableInstruction();
     }
@@ -613,7 +629,8 @@ bool TranslatorVisitor::arm_STR_reg(Cond cond, bool P, bool U, bool W, Reg n, Re
 
 // STRB <Rt>, [<Rn>, #+/-<imm>]{!}
 // STRB <Rt>, [<Rn>], #+/-<imm>
-bool TranslatorVisitor::arm_STRB_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<12> imm12) {
+bool TranslatorVisitor::arm_STRB_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t,
+                                     Imm<12> imm12) {
     if (t == Reg::PC) {
         return UnpredictableInstruction();
     }
@@ -634,7 +651,8 @@ bool TranslatorVisitor::arm_STRB_imm(Cond cond, bool P, bool U, bool W, Reg n, R
 
 // STRB <Rt>, [<Rn>, #+/-<Rm>]{!}
 // STRB <Rt>, [<Rn>], #+/-<Rm>
-bool TranslatorVisitor::arm_STRB_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<5> imm5, ShiftType shift, Reg m) {
+bool TranslatorVisitor::arm_STRB_reg(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<5> imm5,
+                                     ShiftType shift, Reg m) {
     if (t == Reg::PC || m == Reg::PC) {
         return UnpredictableInstruction();
     }
@@ -655,7 +673,8 @@ bool TranslatorVisitor::arm_STRB_reg(Cond cond, bool P, bool U, bool W, Reg n, R
 
 // STRD <Rt>, [<Rn>, #+/-<imm>]{!}
 // STRD <Rt>, [<Rn>], #+/-<imm>
-bool TranslatorVisitor::arm_STRD_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<4> imm8a, Imm<4> imm8b) {
+bool TranslatorVisitor::arm_STRD_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<4> imm8a,
+                                     Imm<4> imm8b) {
     if (size_t(t) % 2 != 0) {
         return UnpredictableInstruction();
     }
@@ -730,7 +749,8 @@ bool TranslatorVisitor::arm_STRD_reg(Cond cond, bool P, bool U, bool W, Reg n, R
 
 // STRH <Rt>, [<Rn>, #+/-<imm>]{!}
 // STRH <Rt>, [<Rn>], #+/-<imm>
-bool TranslatorVisitor::arm_STRH_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<4> imm8a, Imm<4> imm8b) {
+bool TranslatorVisitor::arm_STRH_imm(Cond cond, bool P, bool U, bool W, Reg n, Reg t, Imm<4> imm8a,
+                                     Imm<4> imm8b) {
     if (t == Reg::PC) {
         return UnpredictableInstruction();
     }
@@ -773,7 +793,8 @@ bool TranslatorVisitor::arm_STRH_reg(Cond cond, bool P, bool U, bool W, Reg n, R
     return true;
 }
 
-static bool LDMHelper(A32::IREmitter& ir, bool W, Reg n, RegList list, IR::U32 start_address, IR::U32 writeback_address) {
+static bool LDMHelper(A32::IREmitter& ir, bool W, Reg n, RegList list, IR::U32 start_address,
+                      IR::U32 writeback_address) {
     auto address = start_address;
     for (size_t i = 0; i <= 14; i++) {
         if (mcl::bit::get_bit(i, list)) {
@@ -809,7 +830,8 @@ bool TranslatorVisitor::arm_LDM(Cond cond, bool W, Reg n, RegList list) {
     }
 
     const auto start_address = ir.GetRegister(n);
-    const auto writeback_address = ir.Add(start_address, ir.Imm32(u32(mcl::bit::count_ones(list) * 4)));
+    const auto writeback_address =
+        ir.Add(start_address, ir.Imm32(u32(mcl::bit::count_ones(list) * 4)));
     return LDMHelper(ir, W, n, list, start_address, writeback_address);
 }
 
@@ -826,7 +848,8 @@ bool TranslatorVisitor::arm_LDMDA(Cond cond, bool W, Reg n, RegList list) {
         return true;
     }
 
-    const auto start_address = ir.Sub(ir.GetRegister(n), ir.Imm32(u32(4 * mcl::bit::count_ones(list) - 4)));
+    const auto start_address =
+        ir.Sub(ir.GetRegister(n), ir.Imm32(u32(4 * mcl::bit::count_ones(list) - 4)));
     const auto writeback_address = ir.Sub(start_address, ir.Imm32(4));
     return LDMHelper(ir, W, n, list, start_address, writeback_address);
 }
@@ -844,7 +867,8 @@ bool TranslatorVisitor::arm_LDMDB(Cond cond, bool W, Reg n, RegList list) {
         return true;
     }
 
-    const auto start_address = ir.Sub(ir.GetRegister(n), ir.Imm32(u32(4 * mcl::bit::count_ones(list))));
+    const auto start_address =
+        ir.Sub(ir.GetRegister(n), ir.Imm32(u32(4 * mcl::bit::count_ones(list))));
     const auto writeback_address = start_address;
     return LDMHelper(ir, W, n, list, start_address, writeback_address);
 }
@@ -863,7 +887,8 @@ bool TranslatorVisitor::arm_LDMIB(Cond cond, bool W, Reg n, RegList list) {
     }
 
     const auto start_address = ir.Add(ir.GetRegister(n), ir.Imm32(4));
-    const auto writeback_address = ir.Add(ir.GetRegister(n), ir.Imm32(u32(4 * mcl::bit::count_ones(list))));
+    const auto writeback_address =
+        ir.Add(ir.GetRegister(n), ir.Imm32(u32(4 * mcl::bit::count_ones(list))));
     return LDMHelper(ir, W, n, list, start_address, writeback_address);
 }
 
@@ -875,7 +900,8 @@ bool TranslatorVisitor::arm_LDM_eret() {
     return InterpretThisInstruction();
 }
 
-static bool STMHelper(A32::IREmitter& ir, bool W, Reg n, RegList list, IR::U32 start_address, IR::U32 writeback_address) {
+static bool STMHelper(A32::IREmitter& ir, bool W, Reg n, RegList list, IR::U32 start_address,
+                      IR::U32 writeback_address) {
     auto address = start_address;
     for (size_t i = 0; i <= 14; i++) {
         if (mcl::bit::get_bit(i, list)) {
@@ -903,7 +929,8 @@ bool TranslatorVisitor::arm_STM(Cond cond, bool W, Reg n, RegList list) {
     }
 
     const auto start_address = ir.GetRegister(n);
-    const auto writeback_address = ir.Add(start_address, ir.Imm32(u32(mcl::bit::count_ones(list) * 4)));
+    const auto writeback_address =
+        ir.Add(start_address, ir.Imm32(u32(mcl::bit::count_ones(list) * 4)));
     return STMHelper(ir, W, n, list, start_address, writeback_address);
 }
 
@@ -917,7 +944,8 @@ bool TranslatorVisitor::arm_STMDA(Cond cond, bool W, Reg n, RegList list) {
         return true;
     }
 
-    const auto start_address = ir.Sub(ir.GetRegister(n), ir.Imm32(u32(4 * mcl::bit::count_ones(list) - 4)));
+    const auto start_address =
+        ir.Sub(ir.GetRegister(n), ir.Imm32(u32(4 * mcl::bit::count_ones(list) - 4)));
     const auto writeback_address = ir.Sub(start_address, ir.Imm32(4));
     return STMHelper(ir, W, n, list, start_address, writeback_address);
 }
@@ -932,7 +960,8 @@ bool TranslatorVisitor::arm_STMDB(Cond cond, bool W, Reg n, RegList list) {
         return true;
     }
 
-    const auto start_address = ir.Sub(ir.GetRegister(n), ir.Imm32(u32(4 * mcl::bit::count_ones(list))));
+    const auto start_address =
+        ir.Sub(ir.GetRegister(n), ir.Imm32(u32(4 * mcl::bit::count_ones(list))));
     const auto writeback_address = start_address;
     return STMHelper(ir, W, n, list, start_address, writeback_address);
 }
@@ -948,7 +977,8 @@ bool TranslatorVisitor::arm_STMIB(Cond cond, bool W, Reg n, RegList list) {
     }
 
     const auto start_address = ir.Add(ir.GetRegister(n), ir.Imm32(4));
-    const auto writeback_address = ir.Add(ir.GetRegister(n), ir.Imm32(u32(4 * mcl::bit::count_ones(list))));
+    const auto writeback_address =
+        ir.Add(ir.GetRegister(n), ir.Imm32(u32(4 * mcl::bit::count_ones(list))));
     return STMHelper(ir, W, n, list, start_address, writeback_address);
 }
 
@@ -956,4 +986,4 @@ bool TranslatorVisitor::arm_STM_usr() {
     return InterpretThisInstruction();
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

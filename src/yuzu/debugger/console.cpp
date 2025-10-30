@@ -11,8 +11,8 @@
 #endif
 
 #include "common/logging/backend.h"
-#include "yuzu/debugger/console.h"
 #include "qt_common/config/uisettings.h"
+#include "yuzu/debugger/console.h"
 
 namespace Debugger {
 void ToggleConsole() {

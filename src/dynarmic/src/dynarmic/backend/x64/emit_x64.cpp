@@ -10,12 +10,12 @@
 
 #include <iterator>
 
-#include "dynarmic/common/assert.h"
+#include <ankerl/unordered_dense.h>
 #include <boost/variant/detail/apply_visitor_binary.hpp>
 #include <mcl/bit/bit_field.hpp>
 #include <mcl/scope_exit.hpp>
+#include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
-#include <ankerl/unordered_dense.h>
 
 #include "dynarmic/backend/x64/block_of_code.h"
 #include "dynarmic/backend/x64/nzcv_util.h"
@@ -34,7 +34,7 @@ namespace Dynarmic::Backend::X64 {
 using namespace Xbyak::util;
 
 EmitContext::EmitContext(RegAlloc& reg_alloc, IR::Block& block)
-        : reg_alloc(reg_alloc), block(block) {}
+    : reg_alloc(reg_alloc), block(block) {}
 
 EmitContext::~EmitContext() = default;
 
@@ -43,14 +43,14 @@ void EmitContext::EraseInstruction(IR::Inst* inst) {
     inst->ClearArgs();
 }
 
-EmitX64::EmitX64(BlockOfCode& code)
-        : code(code) {
+EmitX64::EmitX64(BlockOfCode& code) : code(code) {
     exception_handler.Register(code);
 }
 
 EmitX64::~EmitX64() = default;
 
-std::optional<EmitX64::BlockDescriptor> EmitX64::GetBasicBlock(IR::LocationDescriptor descriptor) const {
+std::optional<EmitX64::BlockDescriptor> EmitX64::GetBasicBlock(
+    IR::LocationDescriptor descriptor) const {
     const auto iter = block_descriptors.find(descriptor);
     if (iter == block_descriptors.end()) {
         return std::nullopt;
@@ -62,8 +62,7 @@ void EmitX64::EmitInvalid(EmitContext&, IR::Inst* inst) {
     ASSERT_MSG(false, "Invalid opcode: {:x}", std::size_t(inst->GetOpcode()));
 }
 
-void EmitX64::EmitVoid(EmitContext&, IR::Inst*) {
-}
+void EmitX64::EmitVoid(EmitContext&, IR::Inst*) {}
 
 void EmitX64::EmitIdentity(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -83,24 +82,27 @@ void EmitX64::EmitCallHostFunction(EmitContext& ctx, IR::Inst* inst) {
     code.call(rax);
 }
 
-void EmitX64::PushRSBHelper(Xbyak::Reg64 loc_desc_reg, Xbyak::Reg64 index_reg, IR::LocationDescriptor target) {
+void EmitX64::PushRSBHelper(Xbyak::Reg64 loc_desc_reg, Xbyak::Reg64 index_reg,
+                            IR::LocationDescriptor target) {
     using namespace Xbyak::util;
 
     const auto iter = block_descriptors.find(target);
-    CodePtr target_code_ptr = iter != block_descriptors.end()
-                                ? iter->second.entrypoint
-                                : code.GetReturnFromRunCodeAddress();
+    CodePtr target_code_ptr = iter != block_descriptors.end() ? iter->second.entrypoint
+                                                              : code.GetReturnFromRunCodeAddress();
 
     code.mov(index_reg.cvt32(), dword[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_rsb_ptr]);
     code.mov(loc_desc_reg, target.Value());
     patch_information[target].mov_rcx.push_back(code.getCurr());
     EmitPatchMovRcx(target_code_ptr);
-    code.mov(qword[code.ABI_JIT_PTR + index_reg * 8 + code.GetJitStateInfo().offsetof_rsb_location_descriptors], loc_desc_reg);
-    code.mov(qword[code.ABI_JIT_PTR + index_reg * 8 + code.GetJitStateInfo().offsetof_rsb_codeptrs], rcx);
+    code.mov(qword[code.ABI_JIT_PTR + index_reg * 8 +
+                   code.GetJitStateInfo().offsetof_rsb_location_descriptors],
+             loc_desc_reg);
+    code.mov(qword[code.ABI_JIT_PTR + index_reg * 8 + code.GetJitStateInfo().offsetof_rsb_codeptrs],
+             rcx);
     // Byte size hack
     DEBUG_ASSERT(code.GetJitStateInfo().rsb_ptr_mask <= 0xFF);
-    code.add(index_reg.cvt32(), 1); //flags trashed, 1 single byte, haswell doesn't care
-    code.and_(index_reg.cvt32(), u32(code.GetJitStateInfo().rsb_ptr_mask)); //trashes flags
+    code.add(index_reg.cvt32(), 1); // flags trashed, 1 single byte, haswell doesn't care
+    code.and_(index_reg.cvt32(), u32(code.GetJitStateInfo().rsb_ptr_mask)); // trashes flags
     // Results ready and sort by least needed: give OOO some break
     code.mov(dword[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_rsb_ptr], index_reg.cvt32());
 }
@@ -278,7 +280,8 @@ void EmitX64::EmitNZCVFromPackedFlags(EmitContext& ctx, IR::Inst* inst) {
 
 void EmitX64::EmitAddCycles(size_t cycles) {
     ASSERT(cycles < (std::numeric_limits<s32>::max)());
-    code.sub(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)], static_cast<u32>(cycles));
+    code.sub(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)],
+             static_cast<u32>(cycles));
 }
 
 Xbyak::Label EmitX64::EmitCond(IR::Cond cond) {
@@ -337,7 +340,8 @@ Xbyak::Label EmitX64::EmitCond(IR::Cond cond) {
     return pass;
 }
 
-EmitX64::BlockDescriptor EmitX64::RegisterBlock(const IR::LocationDescriptor& descriptor, CodePtr entrypoint, size_t size) {
+EmitX64::BlockDescriptor EmitX64::RegisterBlock(const IR::LocationDescriptor& descriptor,
+                                                CodePtr entrypoint, size_t size) {
     PerfMapRegister(entrypoint, code.getCurr(), LocationDescriptorToFriendlyName(descriptor));
     Patch(descriptor, entrypoint);
 
@@ -346,15 +350,18 @@ EmitX64::BlockDescriptor EmitX64::RegisterBlock(const IR::LocationDescriptor& de
     return block_desc;
 }
 
-void EmitX64::EmitTerminal(IR::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
-    boost::apply_visitor([this, initial_location, is_single_step](auto x) {
-        using T = std::decay_t<decltype(x)>;
-        if constexpr (!std::is_same_v<T, IR::Term::Invalid>) {
-            this->EmitTerminalImpl(x, initial_location, is_single_step);
-        } else {
-            ASSERT_MSG(false, "Invalid terminal");
-        }
-    }, terminal);
+void EmitX64::EmitTerminal(IR::Terminal terminal, IR::LocationDescriptor initial_location,
+                           bool is_single_step) {
+    boost::apply_visitor(
+        [this, initial_location, is_single_step](auto x) {
+            using T = std::decay_t<decltype(x)>;
+            if constexpr (!std::is_same_v<T, IR::Term::Invalid>) {
+                this->EmitTerminalImpl(x, initial_location, is_single_step);
+            } else {
+                ASSERT_MSG(false, "Invalid terminal");
+            }
+        },
+        terminal);
 }
 
 void EmitX64::Patch(const IR::LocationDescriptor& target_desc, CodePtr target_code_ptr) {
@@ -397,7 +404,8 @@ void EmitX64::ClearCache() {
     PerfMapClear();
 }
 
-void EmitX64::InvalidateBasicBlocks(const ankerl::unordered_dense::set<IR::LocationDescriptor>& locations) {
+void EmitX64::InvalidateBasicBlocks(
+    const ankerl::unordered_dense::set<IR::LocationDescriptor>& locations) {
     code.EnableWriting();
     SCOPE_EXIT {
         code.DisableWriting();
@@ -415,4 +423,4 @@ void EmitX64::InvalidateBasicBlocks(const ankerl::unordered_dense::set<IR::Locat
     }
 }
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

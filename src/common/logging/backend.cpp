@@ -97,7 +97,8 @@ public:
         static_cast<void>(FS::RemoveFile(old_filename));
         static_cast<void>(FS::RenameFile(filename, old_filename));
 
-        file = std::make_unique<FS::IOFile>(filename, FS::FileAccessMode::Write, FS::FileType::TextFile);
+        file = std::make_unique<FS::IOFile>(filename, FS::FileAccessMode::Write,
+                                            FS::FileType::TextFile);
     }
 
     ~FileBackend() override = default;
@@ -251,8 +252,8 @@ public:
 
     void PushEntry(Class log_class, Level log_level, const char* filename, unsigned int line_num,
                    const char* function, std::string&& message) noexcept {
-        message_queue.EmplaceWait(
-            CreateEntry(log_class, log_level, TrimSourcePath(filename), line_num, function, std::move(message)));
+        message_queue.EmplaceWait(CreateEntry(log_class, log_level, TrimSourcePath(filename),
+                                              line_num, function, std::move(message)));
     }
 
 private:
@@ -363,7 +364,8 @@ void FmtLogMessageImpl(Class log_class, Level log_level, const char* filename,
     if (!initialization_in_progress_suppress_logging) {
         auto& instance = Impl::Instance();
         if (instance.CanPushEntry(log_class, log_level))
-            instance.PushEntry(log_class, log_level, filename, line_num, function, fmt::vformat(format, args));
+            instance.PushEntry(log_class, log_level, filename, line_num, function,
+                               fmt::vformat(format, args));
     }
 }
 } // namespace Common::Log

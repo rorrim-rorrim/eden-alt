@@ -16,10 +16,10 @@
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
+#include "video_core/texture_cache/util.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
-#include "video_core/texture_cache/util.h"
 
 namespace Vulkan {
 namespace {
@@ -338,9 +338,9 @@ BufferCacheRuntime::BufferCacheRuntime(const Device& device_, MemoryAllocator& m
         uint8_pass = std::make_unique<Uint8Pass>(device, scheduler, descriptor_pool, staging_pool,
                                                  compute_pass_descriptor_queue);
     }
-    const u32 ubo_align = static_cast<u32>(
-            device.GetUniformBufferAlignment() //check if the device has it
-    );
+    const u32 ubo_align =
+        static_cast<u32>(device.GetUniformBufferAlignment() // check if the device has it
+        );
     // add the ability to change the size in settings in future
     uniform_ring.Init(memory_allocator, 8 * 1024 * 1024 /* 8 MiB */, ubo_align ? ubo_align : 256);
     quad_array_index_buffer = std::make_shared<QuadArrayIndexBuffer>(device_, memory_allocator_,
@@ -361,14 +361,13 @@ void BufferCacheRuntime::FreeDeferredStagingBuffer(StagingBufferRef& ref) {
     staging_pool.FreeDeferred(ref);
 }
 
-void BufferCacheRuntime::UniformRing::Init(MemoryAllocator& alloc, u64 bytes, u32 alignment)
-{
+void BufferCacheRuntime::UniformRing::Init(MemoryAllocator& alloc, u64 bytes, u32 alignment) {
     for (size_t i = 0; i < NUM_FRAMES; ++i) {
         VkBufferCreateInfo ci{
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
-            .size  = bytes,
+            .size = bytes,
             .usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .queueFamilyIndexCount = 0,
@@ -377,9 +376,9 @@ void BufferCacheRuntime::UniformRing::Init(MemoryAllocator& alloc, u64 bytes, u3
         buffers[i] = alloc.CreateBuffer(ci, MemoryUsage::Upload);
         mapped[i] = buffers[i].Mapped().data();
     }
-    size   = bytes;
-    align  = alignment ? alignment : 256;
-    head   = 0;
+    size = bytes;
+    align = alignment ? alignment : 256;
+    head = 0;
     current_frame = 0;
 }
 
@@ -388,7 +387,7 @@ std::span<u8> BufferCacheRuntime::UniformRing::Alloc(u32 bytes, u32& out_offset)
     u64 end = aligned + bytes;
 
     if (end > size) {
-       return {}; // Fallback to staging pool
+        return {}; // Fallback to staging pool
     }
 
     out_offset = static_cast<u32>(aligned);
@@ -460,7 +459,8 @@ void BufferCacheRuntime::CopyBuffer(VkBuffer dst_buffer, VkBuffer src_buffer,
     if (src_buffer == staging_pool.StreamBuf() && can_reorder_upload) {
         scheduler.RecordWithUploadBuffer([src_buffer, dst_buffer, vk_copies](
                                              vk::CommandBuffer, vk::CommandBuffer upload_cmdbuf) {
-            upload_cmdbuf.CopyBuffer(src_buffer, dst_buffer, VideoCommon::FixSmallVectorADL(vk_copies));
+            upload_cmdbuf.CopyBuffer(src_buffer, dst_buffer,
+                                     VideoCommon::FixSmallVectorADL(vk_copies));
         });
         return;
     }

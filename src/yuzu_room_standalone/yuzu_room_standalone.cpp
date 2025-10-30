@@ -3,7 +3,6 @@
 
 #include "dedicated_room/yuzu_room.h"
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
     LaunchRoom(argc, argv, false);
 }

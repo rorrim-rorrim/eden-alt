@@ -21,4 +21,4 @@ public:
     }
 };
 
-}  // namespace Dynarmic::Backend::RV64
+} // namespace Dynarmic::Backend::RV64

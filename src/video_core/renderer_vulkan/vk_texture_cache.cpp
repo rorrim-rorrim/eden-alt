@@ -6,12 +6,12 @@
 
 #include <algorithm>
 #include <array>
-#include <span>
+#include <bit>
 #include <memory>
+#include <numeric>
+#include <span>
 #include <vector>
 #include <boost/container/small_vector.hpp>
-#include <bit>
-#include <numeric>
 #include "common/bit_util.h"
 #include "common/settings.h"
 
@@ -535,8 +535,8 @@ void CopyBufferToImage(vk::CommandBuffer cmdbuf, VkBuffer src_buffer, VkImage im
                        VkImageAspectFlags aspect_mask, bool is_initialized,
                        std::span<const VkBufferImageCopy> copies) {
     static constexpr VkAccessFlags WRITE_ACCESS_FLAGS =
-                                           VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-                                           VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+        VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
     static constexpr VkAccessFlags READ_ACCESS_FLAGS = VK_ACCESS_SHADER_READ_BIT |
                                                        VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
                                                        VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
@@ -549,43 +549,42 @@ void CopyBufferToImage(vk::CommandBuffer cmdbuf, VkBuffer src_buffer, VkImage im
     const VkImageSubresourceRange subresource_range = range.SubresourceRange(aspect_mask);
 
     const VkImageMemoryBarrier read_barrier{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .pNext = nullptr,
-            .srcAccessMask = WRITE_ACCESS_FLAGS,
-            .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-            .oldLayout = is_initialized ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_UNDEFINED,
-            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = image,
-            .subresourceRange = subresource_range,
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .pNext = nullptr,
+        .srcAccessMask = WRITE_ACCESS_FLAGS,
+        .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+        .oldLayout = is_initialized ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_UNDEFINED,
+        .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .image = image,
+        .subresourceRange = subresource_range,
     };
 
     const VkImageMemoryBarrier write_barrier{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .pNext = nullptr,
-            .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-            .dstAccessMask = WRITE_ACCESS_FLAGS | READ_ACCESS_FLAGS,
-            .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = image,
-            .subresourceRange = subresource_range,
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .pNext = nullptr,
+        .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+        .dstAccessMask = WRITE_ACCESS_FLAGS | READ_ACCESS_FLAGS,
+        .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .image = image,
+        .subresourceRange = subresource_range,
     };
 
     cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
-                           VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-                           VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
-                           read_barrier);
+                               VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                               VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                           VK_PIPELINE_STAGE_TRANSFER_BIT, 0, read_barrier);
     cmdbuf.CopyBufferToImage(src_buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, copies);
     // TODO: Move this to another API
-    cmdbuf.PipelineBarrier(
-            VK_PIPELINE_STAGE_TRANSFER_BIT,
-            VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
-            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            0, nullptr, nullptr, write_barrier);
+    cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT,
+                           VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
+                               VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
+                               VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                           0, nullptr, nullptr, write_barrier);
 }
 
 [[nodiscard]] VkImageBlit MakeImageBlit(const Region2D& dst_region, const Region2D& src_region,
@@ -677,8 +676,6 @@ void TryTransformSwizzleIfNeeded(PixelFormat format, std::array<SwizzleSource, 4
         break;
     }
 }
-
-
 
 [[nodiscard]] VkFormat Format(Shader::ImageFormat format) {
     switch (format) {
@@ -1106,8 +1103,8 @@ void TextureCacheRuntime::BlitImage(Framebuffer* dst_framebuffer, ImageView& dst
         }();
         if (!can_blit_depth_stencil) {
             UNIMPLEMENTED_IF(is_src_msaa || is_dst_msaa);
-            blit_image_helper.BlitDepthStencil(dst_framebuffer, src, dst_region, src_region,
-                                               filter, operation);
+            blit_image_helper.BlitDepthStencil(dst_framebuffer, src, dst_region, src_region, filter,
+                                               operation);
             return;
         }
     }
@@ -1215,8 +1212,8 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
             src_view.format == PixelFormat::B8G8R8A8_SRGB) {
             // Verify format support before conversion
             if (device.IsFormatSupported(VK_FORMAT_D24_UNORM_S8_UINT,
-                                       VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                                       FormatType::Optimal)) {
+                                         VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                                         FormatType::Optimal)) {
                 return blit_image_helper.ConvertABGR8SRGBToD24S8(dst, src_view);
             } else {
                 // Fallback to regular ABGR8 conversion if sRGB not supported
@@ -1332,13 +1329,14 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
     case PixelFormat::D32_FLOAT_S8_UINT:
     case PixelFormat::Invalid:
     default:
-        LOG_ERROR(Render_Vulkan, "Unimplemented texture conversion from {} to {} format type", src_view.format, dst_view.format);
+        LOG_ERROR(Render_Vulkan, "Unimplemented texture conversion from {} to {} format type",
+                  src_view.format, dst_view.format);
         break;
     }
 }
 
 VkFormat TextureCacheRuntime::GetSupportedFormat(VkFormat requested_format,
-                                                VkFormatFeatureFlags required_features) const {
+                                                 VkFormatFeatureFlags required_features) const {
     if (requested_format == VK_FORMAT_A8B8G8R8_SRGB_PACK32 &&
         (required_features & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)) {
         // Force valid depth format when sRGB requested in depth context
@@ -1384,11 +1382,9 @@ void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
             return;
         }
 #endif
-        auto oneCopy = VideoCommon::ImageCopy{
-            .src_offset = VideoCommon::Offset3D(0, 0, 0),
-            .dst_offset = VideoCommon::Offset3D(0, 0, 0),
-            .extent = dst.info.size
-        };
+        auto oneCopy = VideoCommon::ImageCopy{.src_offset = VideoCommon::Offset3D(0, 0, 0),
+                                              .dst_offset = VideoCommon::Offset3D(0, 0, 0),
+                                              .extent = dst.info.size};
         return ReinterpretImage(dst, src, std::span{&oneCopy, 1});
     }
     boost::container::small_vector<VkImageCopy, 16> vk_copies(copies.size());
@@ -1470,17 +1466,17 @@ void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
             },
         };
         cmdbuf.PipelineBarrier(
-                VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
+            VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
                 VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
-                VK_PIPELINE_STAGE_TRANSFER_BIT,
-                0, nullptr, nullptr, pre_barriers);
+            VK_PIPELINE_STAGE_TRANSFER_BIT, 0, nullptr, nullptr, pre_barriers);
         cmdbuf.CopyImage(src_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst_image,
-                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VideoCommon::FixSmallVectorADL(vk_copies));
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                         VideoCommon::FixSmallVectorADL(vk_copies));
         cmdbuf.PipelineBarrier(
-                VK_PIPELINE_STAGE_TRANSFER_BIT,
-                VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
+            VK_PIPELINE_STAGE_TRANSFER_BIT,
+            VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
                 VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
-                0, nullptr, nullptr, post_barriers);
+            0, nullptr, nullptr, post_barriers);
     });
 }
 
@@ -1604,7 +1600,8 @@ void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
 
         scheduler->Record([src_buffer, temp_vk_image, vk_aspect_mask, vk_copies,
                            keep = temp_wrapper](vk::CommandBuffer cmdbuf) {
-            CopyBufferToImage(cmdbuf, src_buffer, temp_vk_image, vk_aspect_mask, false, VideoCommon::FixSmallVectorADL(vk_copies));
+            CopyBufferToImage(cmdbuf, src_buffer, temp_vk_image, vk_aspect_mask, false,
+                              VideoCommon::FixSmallVectorADL(vk_copies));
         });
 
         // Use MSAACopyPass to convert from non-MSAA to MSAA
@@ -1643,7 +1640,8 @@ void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
 
     scheduler->Record([src_buffer, vk_image, vk_aspect_mask, was_initialized,
                        vk_copies](vk::CommandBuffer cmdbuf) {
-        CopyBufferToImage(cmdbuf, src_buffer, vk_image, vk_aspect_mask, was_initialized, VideoCommon::FixSmallVectorADL(vk_copies));
+        CopyBufferToImage(cmdbuf, src_buffer, vk_image, vk_aspect_mask, was_initialized,
+                          VideoCommon::FixSmallVectorADL(vk_copies));
     });
 
     if (is_rescaled) {
@@ -1667,7 +1665,7 @@ void Image::DownloadMemory(VkBuffer buffer, size_t offset,
 }
 
 void Image::DownloadMemory(std::span<VkBuffer> buffers_span, std::span<size_t> offsets_span,
-                            std::span<const VideoCommon::BufferImageCopy> copies) {
+                           std::span<const VideoCommon::BufferImageCopy> copies) {
     const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
     if (is_rescaled) {
         ScaleDown();
@@ -1713,8 +1711,9 @@ void Image::DownloadMemory(std::span<VkBuffer> buffers_span, std::span<size_t> o
             }
 
             scheduler->RequestOutsideRenderPassOperationContext();
-            scheduler->Record([buffers = std::move(buffers_vector), image = *temp_wrapper.original_image,
-                               aspect_mask_ = aspect_mask, vk_copies](vk::CommandBuffer cmdbuf) {
+            scheduler->Record([buffers = std::move(buffers_vector),
+                               image = *temp_wrapper.original_image, aspect_mask_ = aspect_mask,
+                               vk_copies](vk::CommandBuffer cmdbuf) {
                 const VkImageMemoryBarrier read_barrier{
                     .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                     .pNext = nullptr,
@@ -1733,12 +1732,12 @@ void Image::DownloadMemory(std::span<VkBuffer> buffers_span, std::span<size_t> o
                         .layerCount = VK_REMAINING_ARRAY_LAYERS,
                     },
                 };
-                cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                       0, read_barrier);
+                cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                                       VK_PIPELINE_STAGE_TRANSFER_BIT, 0, read_barrier);
 
                 for (size_t index = 0; index < buffers.size(); index++) {
-                    cmdbuf.CopyImageToBuffer(image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffers[index],
-                                             vk_copies[index]);
+                    cmdbuf.CopyImageToBuffer(image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                             buffers[index], vk_copies[index]);
                 }
 
                 const VkMemoryBarrier memory_write_barrier{
@@ -1765,8 +1764,9 @@ void Image::DownloadMemory(std::span<VkBuffer> buffers_span, std::span<size_t> o
                         .layerCount = VK_REMAINING_ARRAY_LAYERS,
                     },
                 };
-                cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                                       0, memory_write_barrier, nullptr, image_write_barrier);
+                cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                       VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, memory_write_barrier,
+                                       nullptr, image_write_barrier);
             });
             return;
         }
@@ -1800,12 +1800,12 @@ void Image::DownloadMemory(std::span<VkBuffer> buffers_span, std::span<size_t> o
                     .layerCount = VK_REMAINING_ARRAY_LAYERS,
                 },
             };
-            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                   0, read_barrier);
+            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                                   VK_PIPELINE_STAGE_TRANSFER_BIT, 0, read_barrier);
 
             for (size_t index = 0; index < buffers.size(); index++) {
-                cmdbuf.CopyImageToBuffer(image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffers[index],
-                                         vk_copies[index]);
+                cmdbuf.CopyImageToBuffer(image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                         buffers[index], vk_copies[index]);
             }
 
             const VkMemoryBarrier memory_write_barrier{
@@ -1832,8 +1832,9 @@ void Image::DownloadMemory(std::span<VkBuffer> buffers_span, std::span<size_t> o
                     .layerCount = VK_REMAINING_ARRAY_LAYERS,
                 },
             };
-            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                                   0, memory_write_barrier, nullptr, image_write_barrier);
+            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                   VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, memory_write_barrier,
+                                   nullptr, image_write_barrier);
         });
     }
 
@@ -1980,9 +1981,8 @@ bool Image::BlitScaleHelper(bool scale_up) {
             blit_framebuffer =
                 std::make_unique<Framebuffer>(*runtime, nullptr, view_ptr, extent, scale_up);
         }
-        runtime->blit_image_helper.BlitDepthStencil(blit_framebuffer.get(), *blit_view,
-                                                    dst_region, src_region, operation,
-                                                    BLIT_OPERATION);
+        runtime->blit_image_helper.BlitDepthStencil(blit_framebuffer.get(), *blit_view, dst_region,
+                                                    src_region, operation, BLIT_OPERATION);
     } else {
         // TODO: Use helper blits where applicable
         flags &= ~ImageFlagBits::Rescaled;
@@ -2310,9 +2310,9 @@ void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
             continue;
         }
         width = (std::min)(width, is_rescaled ? resolution.ScaleUp(color_buffer->size.width)
-                                            : color_buffer->size.width);
+                                              : color_buffer->size.width);
         height = (std::min)(height, is_rescaled ? resolution.ScaleUp(color_buffer->size.height)
-                                              : color_buffer->size.height);
+                                                : color_buffer->size.height);
         attachments.push_back(color_buffer->RenderTarget());
         renderpass_key.color_formats[index] = color_buffer->format;
         num_layers = (std::max)(num_layers, color_buffer->range.extent.layers);
@@ -2325,9 +2325,9 @@ void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
     const size_t num_colors = attachments.size();
     if (depth_buffer) {
         width = (std::min)(width, is_rescaled ? resolution.ScaleUp(depth_buffer->size.width)
-                                            : depth_buffer->size.width);
+                                              : depth_buffer->size.width);
         height = (std::min)(height, is_rescaled ? resolution.ScaleUp(depth_buffer->size.height)
-                                              : depth_buffer->size.height);
+                                                : depth_buffer->size.height);
         attachments.push_back(depth_buffer->RenderTarget());
         renderpass_key.depth_format = depth_buffer->format;
         num_layers = (std::max)(num_layers, depth_buffer->range.extent.layers);

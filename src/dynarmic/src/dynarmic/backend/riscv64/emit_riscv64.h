@@ -15,14 +15,14 @@
 
 namespace biscuit {
 class Assembler;
-}  // namespace biscuit
+} // namespace biscuit
 
 namespace Dynarmic::IR {
 class Block;
 class Inst;
 enum class Cond;
 enum class Opcode;
-}  // namespace Dynarmic::IR
+} // namespace Dynarmic::IR
 
 namespace Dynarmic::Backend::RV64 {
 
@@ -52,10 +52,10 @@ struct EmitContext;
 
 EmittedBlockInfo EmitRV64(biscuit::Assembler& as, IR::Block block, const EmitConfig& emit_conf);
 
-template<IR::Opcode op>
+template <IR::Opcode op>
 void EmitIR(biscuit::Assembler& as, EmitContext& ctx, IR::Inst* inst);
 void EmitRelocation(biscuit::Assembler& as, EmitContext& ctx, LinkTarget link_target);
 void EmitA32Cond(biscuit::Assembler& as, EmitContext& ctx, IR::Cond cond, biscuit::Label* label);
 void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx);
 
-}  // namespace Dynarmic::Backend::RV64
+} // namespace Dynarmic::Backend::RV64

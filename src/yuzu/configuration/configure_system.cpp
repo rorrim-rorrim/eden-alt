@@ -19,8 +19,8 @@
 
 #include "common/settings.h"
 #include "core/core.h"
-#include "ui_configure_system.h"
 #include "qt_common/qt_compat.h"
+#include "ui_configure_system.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_system.h"
 #include "yuzu/configuration/shared_widget.h"
@@ -87,7 +87,8 @@ ConfigureSystem::ConfigureSystem(Core::System& system_,
 
     connect(combo_language, qOverload<int>(&QComboBox::currentIndexChanged), this, locale_check);
     connect(combo_region, qOverload<int>(&QComboBox::currentIndexChanged), this, locale_check);
-    connect(checkbox_rtc, qOverload<CHECKSTATE_TYPE>(&QCheckBox::STATE_CHANGED), this, update_rtc_date);
+    connect(checkbox_rtc, qOverload<CHECKSTATE_TYPE>(&QCheckBox::STATE_CHANGED), this,
+            update_rtc_date);
     connect(date_rtc_offset, qOverload<int>(&QSpinBox::valueChanged), this, update_rtc_date);
     connect(date_rtc, &QDateTimeEdit::dateTimeChanged, this, update_date_offset);
 

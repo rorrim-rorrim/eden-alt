@@ -4,8 +4,8 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/assert.h"
 #include <ranges>
+#include "common/assert.h"
 #include "video_core/renderer_vulkan/present/util.h"
 
 namespace Vulkan {
@@ -648,8 +648,7 @@ vk::Sampler CreateCubicSampler(const Device& device, VkCubicFilterWeightsQCOM qc
     const VkSamplerCubicWeightsCreateInfoQCOM ci_qcom_nn{
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CUBIC_WEIGHTS_CREATE_INFO_QCOM,
         .pNext = nullptr,
-        .cubicWeights = qcom_weights
-    };
+        .cubicWeights = qcom_weights};
     // If not specified, assume Catmull-Rom
     if (qcom_weights != VK_CUBIC_FILTER_WEIGHTS_CATMULL_ROM_QCOM)
         ci_nn.pNext = &ci_qcom_nn;

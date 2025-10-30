@@ -13,7 +13,8 @@
 
 namespace Dynarmic::A64 {
 
-IR::Block Translate(LocationDescriptor descriptor, MemoryReadCodeFuncType memory_read_code, TranslationOptions options) {
+IR::Block Translate(LocationDescriptor descriptor, MemoryReadCodeFuncType memory_read_code,
+                    TranslationOptions options) {
     const bool single_step = descriptor.SingleStepping();
 
     IR::Block block{descriptor};
@@ -66,7 +67,7 @@ bool TranslateSingleInstruction(IR::Block& block, LocationDescriptor descriptor,
     return should_continue;
 }
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64
 
 // ls -l | awk '{print "#include \"dynarmic/frontend/A64/translate/impl/" $9 "\""}'
 #include "dynarmic/frontend/A64/translate/impl/a64_branch.cpp"
@@ -114,8 +115,8 @@ bool TranslateSingleInstruction(IR::Block& block, LocationDescriptor descriptor,
 #include "dynarmic/frontend/A64/translate/impl/simd_scalar_three_same.cpp"
 #include "dynarmic/frontend/A64/translate/impl/simd_scalar_two_register_misc.cpp"
 #include "dynarmic/frontend/A64/translate/impl/simd_scalar_x_indexed_element.cpp"
-#include "dynarmic/frontend/A64/translate/impl/simd_sha512.cpp"
 #include "dynarmic/frontend/A64/translate/impl/simd_sha.cpp"
+#include "dynarmic/frontend/A64/translate/impl/simd_sha512.cpp"
 #include "dynarmic/frontend/A64/translate/impl/simd_shift_by_immediate.cpp"
 #include "dynarmic/frontend/A64/translate/impl/simd_table_lookup.cpp"
 #include "dynarmic/frontend/A64/translate/impl/simd_three_different.cpp"

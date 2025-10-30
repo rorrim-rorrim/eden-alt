@@ -18,8 +18,7 @@ namespace Dynarmic::A32 {
 class ITState final {
 public:
     ITState() = default;
-    explicit ITState(u8 data)
-            : value(data) {}
+    explicit ITState(u8 data) : value(data) {}
 
     ITState& operator=(u8 data) {
         value = data;
@@ -45,7 +44,8 @@ public:
         if (mcl::bit::get_bits<0, 2>(value) == 0b000) {
             return ITState{0b00000000};
         }
-        return ITState{mcl::bit::set_bits<0, 4>(value, static_cast<u8>(mcl::bit::get_bits<0, 4>(value) << 1))};
+        return ITState{
+            mcl::bit::set_bits<0, 4>(value, static_cast<u8>(mcl::bit::get_bits<0, 4>(value) << 1))};
     }
 
     u8 Value() const {
@@ -64,4 +64,4 @@ inline bool operator!=(ITState lhs, ITState rhs) {
     return !operator==(lhs, rhs);
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

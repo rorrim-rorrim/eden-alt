@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "firmware_manager.h"
 #include <filesystem>
 #include <common/fs/fs_paths.h>
+#include "firmware_manager.h"
 
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
@@ -14,30 +14,26 @@
 #include "frontend_common/content_manager.h"
 
 #ifdef ANDROID
-#include <jni.h>
-#include <common/android/id_cache.h>
 #include <common/android/android_common.h>
+#include <common/android/id_cache.h>
+#include <jni.h>
 #endif
 
-FirmwareManager::KeyInstallResult
-FirmwareManager::InstallKeys(std::string location, std::string extension) {
+FirmwareManager::KeyInstallResult FirmwareManager::InstallKeys(std::string location,
+                                                               std::string extension) {
     LOG_INFO(Frontend, "Installing key files from {}", location);
 
     const auto keys_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::KeysDir);
 
 #ifdef ANDROID
-    JNIEnv *env = Common::Android::GetEnvForThread();
+    JNIEnv* env = Common::Android::GetEnvForThread();
 
     jstring jsrc = Common::Android::ToJString(env, location);
 
     jclass native = Common::Android::GetNativeLibraryClass();
     jmethodID getExtension = Common::Android::GetFileExtension();
 
-    jstring jext = static_cast<jstring>(env->CallStaticObjectMethod(
-        native,
-        getExtension,
-        jsrc
-    ));
+    jstring jext = static_cast<jstring>(env->CallStaticObjectMethod(native, getExtension, jsrc));
 
     std::string ext = Common::Android::GetJString(env, jext);
 
@@ -48,12 +44,7 @@ FirmwareManager::InstallKeys(std::string location, std::string extension) {
     jmethodID copyToStorage = Common::Android::GetCopyToStorage();
     jstring jdest = Common::Android::ToJString(env, keys_dir.string() + "/");
 
-    jboolean copyResult = env->CallStaticBooleanMethod(
-        native,
-        copyToStorage,
-        jsrc,
-        jdest
-    );
+    jboolean copyResult = env->CallStaticBooleanMethod(native, copyToStorage, jsrc, jdest);
 
     if (!copyResult) {
         return ErrorFailedCopy;
@@ -91,14 +82,11 @@ FirmwareManager::InstallKeys(std::string location, std::string extension) {
         return ErrorWrongFilename;
     }
 
-    for (const auto &key_file : source_key_files) {
+    for (const auto& key_file : source_key_files) {
         std::filesystem::path destination_key_file = keys_dir / key_file.filename();
-        if (!std::filesystem::copy_file(key_file,
-                                        destination_key_file,
+        if (!std::filesystem::copy_file(key_file, destination_key_file,
                                         std::filesystem::copy_options::overwrite_existing)) {
-            LOG_ERROR(Frontend,
-                      "Failed to copy file {} to {}",
-                      key_file.string(),
+            LOG_ERROR(Frontend, "Failed to copy file {} to {}", key_file.string(),
                       destination_key_file.string());
             return ErrorFailedCopy;
         }
@@ -116,7 +104,7 @@ FirmwareManager::InstallKeys(std::string location, std::string extension) {
     return ErrorFailedInit;
 }
 
-FirmwareManager::FirmwareCheckResult FirmwareManager::VerifyFirmware(Core::System &system) {
+FirmwareManager::FirmwareCheckResult FirmwareManager::VerifyFirmware(Core::System& system) {
     if (!CheckFirmwarePresence(system)) {
         return ErrorFirmwareMissing;
     } else {

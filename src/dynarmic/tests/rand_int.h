@@ -14,9 +14,9 @@ inline std::mt19937 g_rand_int_generator = [] {
     std::mt19937 mt{rd()};
     return mt;
 }();
-}  // namespace detail
+} // namespace detail
 
-template<typename T>
+template <typename T>
 T RandInt(T min, T max) {
     static_assert(std::is_integral_v<T>, "T must be an integral type.");
     static_assert(!std::is_same_v<T, signed char> && !std::is_same_v<T, unsigned char>,

@@ -56,14 +56,14 @@ enum class ShiftType {
     LSL,
     LSR,
     ASR,
-    ROR  ///< RRX falls under this too
+    ROR ///< RRX falls under this too
 };
 
 enum class SignExtendRotation {
-    ROR_0,   ///< ROR #0 or omitted
-    ROR_8,   ///< ROR #8
-    ROR_16,  ///< ROR #16
-    ROR_24   ///< ROR #24
+    ROR_0,  ///< ROR #0 or omitted
+    ROR_8,  ///< ROR #8
+    ROR_16, ///< ROR #16
+    ROR_24  ///< ROR #24
 };
 
 const char* CondToString(Cond cond, bool explicit_al = false);
@@ -109,9 +109,9 @@ inline Reg operator+(Reg reg, size_t number) {
 inline ExtReg operator+(ExtReg reg, size_t number) {
     const auto new_reg = static_cast<ExtReg>(static_cast<size_t>(reg) + number);
 
-    ASSERT((IsSingleExtReg(reg) && IsSingleExtReg(new_reg))
-           || (IsDoubleExtReg(reg) && IsDoubleExtReg(new_reg))
-           || (IsQuadExtReg(reg) && IsQuadExtReg(new_reg)));
+    ASSERT((IsSingleExtReg(reg) && IsSingleExtReg(new_reg)) ||
+           (IsDoubleExtReg(reg) && IsDoubleExtReg(new_reg)) ||
+           (IsQuadExtReg(reg) && IsQuadExtReg(new_reg)));
 
     return new_reg;
 }
@@ -136,35 +136,35 @@ inline ExtReg ToVector(bool Q, size_t base, bool bit) {
     return Q ? ToExtRegQ(base, bit) : ToExtRegD(base, bit);
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32
 
-template<>
+template <>
 struct fmt::formatter<Dynarmic::A32::Reg> : fmt::formatter<const char*> {
-    template<typename FormatContext>
+    template <typename FormatContext>
     auto format(Dynarmic::A32::Reg reg, FormatContext& ctx) const {
         return formatter<const char*>::format(Dynarmic::A32::RegToString(reg), ctx);
     }
 };
 
-template<>
+template <>
 struct fmt::formatter<Dynarmic::A32::ExtReg> : fmt::formatter<const char*> {
-    template<typename FormatContext>
+    template <typename FormatContext>
     auto format(Dynarmic::A32::ExtReg reg, FormatContext& ctx) const {
         return formatter<const char*>::format(Dynarmic::A32::ExtRegToString(reg), ctx);
     }
 };
 
-template<>
+template <>
 struct fmt::formatter<Dynarmic::A32::CoprocReg> : fmt::formatter<const char*> {
-    template<typename FormatContext>
+    template <typename FormatContext>
     auto format(Dynarmic::A32::CoprocReg reg, FormatContext& ctx) const {
         return formatter<const char*>::format(Dynarmic::A32::CoprocRegToString(reg), ctx);
     }
 };
 
-template<>
+template <>
 struct fmt::formatter<Dynarmic::A32::RegList> : fmt::formatter<std::string> {
-    template<typename FormatContext>
+    template <typename FormatContext>
     auto format(Dynarmic::A32::RegList reg_list, FormatContext& ctx) const {
         return formatter<std::string>::format(Dynarmic::A32::RegListToString(reg_list), ctx);
     }

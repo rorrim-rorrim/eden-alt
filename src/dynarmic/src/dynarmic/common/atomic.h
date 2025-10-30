@@ -44,4 +44,4 @@ inline void Barrier() {
 #endif
 }
 
-}  // namespace Dynarmic::Atomic
+} // namespace Dynarmic::Atomic

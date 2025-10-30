@@ -4,8 +4,8 @@
 #include "symlink.h"
 
 #ifdef _WIN32
-#include <windows.h>
 #include <fmt/format.h>
+#include <windows.h>
 #endif
 
 namespace fs = std::filesystem;
@@ -18,8 +18,7 @@ namespace fs = std::filesystem;
 
 namespace Common::FS {
 
-bool CreateSymlink(const fs::path &from, const fs::path &to)
-{
+bool CreateSymlink(const fs::path& from, const fs::path& to) {
 #ifdef _WIN32
     const std::string command = fmt::format("mklink /J {} {}", to.string(), from.string());
     return system(command.c_str()) == 0;
@@ -30,8 +29,7 @@ bool CreateSymlink(const fs::path &from, const fs::path &to)
 #endif
 }
 
-bool IsSymlink(const fs::path &path)
-{
+bool IsSymlink(const fs::path& path) {
 #ifdef _WIN32
     auto attributes = GetFileAttributesW(path.wstring().c_str());
     return attributes & FILE_ATTRIBUTE_REPARSE_POINT;

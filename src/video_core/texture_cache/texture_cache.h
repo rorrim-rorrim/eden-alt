@@ -61,10 +61,10 @@ TextureCache<P>::TextureCache(Runtime& runtime_, Tegra::MaxwellDeviceMemoryManag
         const s64 min_vacancy_critical = (2 * mem_threshold) / 10;
         expected_memory = static_cast<u64>(
             (std::max)((std::min)(device_local_memory - min_vacancy_expected, min_spacing_expected),
-                     DEFAULT_EXPECTED_MEMORY));
+                       DEFAULT_EXPECTED_MEMORY));
         critical_memory = static_cast<u64>(
             (std::max)((std::min)(device_local_memory - min_vacancy_critical, min_spacing_critical),
-                     DEFAULT_CRITICAL_MEMORY));
+                       DEFAULT_CRITICAL_MEMORY));
         minimum_memory = static_cast<u64>((device_local_memory - mem_threshold) / 2);
     } else {
         expected_memory = DEFAULT_EXPECTED_MEMORY + 512_MiB;
@@ -866,7 +866,8 @@ void TextureCache<P>::PopAsyncFlushes() {
                 download_buffer.offset -= Common::AlignUp(image.unswizzled_size_bytes, 64);
                 std::span<u8> download_span =
                     download_buffer.mapped_span.subspan(download_buffer.offset);
-                SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, download_span, swizzle_data_buffer);
+                SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, download_span,
+                             swizzle_data_buffer);
             } else {
                 const BufferDownload& buffer_info = slot_buffer_downloads[download_info.object_id];
                 std::span<u8> download_span =
@@ -914,7 +915,8 @@ void TextureCache<P>::PopAsyncFlushes() {
             }
             const ImageBase& image = slot_images[download_info.object_id];
             const auto copies = FixSmallVectorADL(FullDownloadCopies(image.info));
-            SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, download_span, swizzle_data_buffer);
+            SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, download_span,
+                         swizzle_data_buffer);
             download_map.offset += image.unswizzled_size_bytes;
             download_span = download_span.subspan(image.unswizzled_size_bytes);
         }
@@ -1088,11 +1090,13 @@ void TextureCache<P>::UploadImageContents(Image& image, StagingBuffer& staging) 
         *gpu_memory, gpu_addr, image.guest_size_bytes, &swizzle_data_buffer);
     if (True(image.flags & ImageFlagBits::Converted)) {
         unswizzle_data_buffer.resize_destructive(image.unswizzled_size_bytes);
-        auto copies = FixSmallVectorADL(UnswizzleImage(*gpu_memory, gpu_addr, image.info, swizzle_data, unswizzle_data_buffer));
+        auto copies = FixSmallVectorADL(
+            UnswizzleImage(*gpu_memory, gpu_addr, image.info, swizzle_data, unswizzle_data_buffer));
         ConvertImage(unswizzle_data_buffer, image.info, mapped_span, copies);
         image.UploadMemory(staging, copies);
     } else {
-        const auto copies = FixSmallVectorADL(UnswizzleImage(*gpu_memory, gpu_addr, image.info, swizzle_data, mapped_span));
+        const auto copies = FixSmallVectorADL(
+            UnswizzleImage(*gpu_memory, gpu_addr, image.info, swizzle_data, mapped_span));
         image.UploadMemory(staging, copies);
     }
 }

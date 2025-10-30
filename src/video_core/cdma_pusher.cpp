@@ -21,8 +21,8 @@ namespace Tegra {
 
 CDmaPusher::CDmaPusher(Host1x::Host1x& host1x_, s32 id)
     : host1x{host1x_}, memory_manager{host1x.GMMU()},
-      host_processor{std::make_unique<Host1x::Control>(host1x_)}, current_class{
-                                                                      static_cast<ChClassId>(id)} {
+      host_processor{std::make_unique<Host1x::Control>(host1x_)},
+      current_class{static_cast<ChClassId>(id)} {
     thread = std::jthread([this](std::stop_token stop_token) { ProcessEntries(stop_token); });
 }
 
@@ -39,8 +39,7 @@ void CDmaPusher::ProcessEntries(std::stop_token stop_token) {
     while (!stop_token.stop_requested()) {
         {
             std::unique_lock l{command_mutex};
-            command_cv.wait(l, stop_token,
-                            [this]() { return command_lists.size() > 0; });
+            command_cv.wait(l, stop_token, [this]() { return command_lists.size() > 0; });
             if (stop_token.stop_requested()) {
                 return;
             }

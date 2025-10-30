@@ -20,8 +20,8 @@ enum class HostLoc : std::uint8_t;
 using Vector = std::array<u64, 2>;
 
 #ifdef _MSC_VER
-#    pragma warning(push)
-#    pragma warning(disable : 4324)  // Structure was padded due to alignment specifier
+#pragma warning(push)
+#pragma warning(disable : 4324) // Structure was padded due to alignment specifier
 #endif
 
 struct alignas(16) RegisterData {
@@ -32,9 +32,10 @@ struct alignas(16) RegisterData {
 };
 
 #ifdef _MSC_VER
-#    pragma warning(pop)
+#pragma warning(pop)
 #endif
 
-void PrintVerboseDebuggingOutputLine(RegisterData& reg_data, HostLoc hostloc, size_t inst_index, size_t bitsize);
+void PrintVerboseDebuggingOutputLine(RegisterData& reg_data, HostLoc hostloc, size_t inst_index,
+                                     size_t bitsize);
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

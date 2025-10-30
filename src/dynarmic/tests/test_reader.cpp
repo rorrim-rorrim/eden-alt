@@ -65,7 +65,7 @@ u64 ParseHex(std::string_view hex) {
     return result;
 }
 
-template<typename TestEnv>
+template <typename TestEnv>
 Dynarmic::A32::UserConfig GetA32UserConfig(TestEnv& testenv, bool noopt) {
     Dynarmic::A32::UserConfig user_config;
     user_config.optimizations &= ~OptimizationFlag::FastDispatch;
@@ -77,15 +77,11 @@ Dynarmic::A32::UserConfig GetA32UserConfig(TestEnv& testenv, bool noopt) {
     return user_config;
 }
 
-template<size_t num_jit_reruns = 1, typename TestEnv>
-void RunTestInstance(Dynarmic::A32::Jit& jit,
-                     TestEnv& jit_env,
-                     const std::array<u32, 16>& regs,
+template <size_t num_jit_reruns = 1, typename TestEnv>
+void RunTestInstance(Dynarmic::A32::Jit& jit, TestEnv& jit_env, const std::array<u32, 16>& regs,
                      const std::array<u32, 64>& vecs,
                      const std::vector<typename TestEnv::InstructionType>& instructions,
-                     const u32 cpsr,
-                     const u32 fpscr,
-                     const size_t ticks_left) {
+                     const u32 cpsr, const u32 fpscr, const size_t ticks_left) {
     const u32 initial_pc = regs[15];
     const u32 num_words = initial_pc / sizeof(typename TestEnv::InstructionType);
     const u32 code_mem_size = num_words + static_cast<u32>(instructions.size());
@@ -174,22 +170,16 @@ A64::UserConfig GetA64UserConfig(A64TestEnv& jit_env, bool noopt) {
     return jit_user_config;
 }
 
-template<size_t num_jit_reruns = 1>
-void RunTestInstance(A64::Jit& jit,
-                     A64TestEnv& jit_env,
-                     const std::array<u64, 31>& regs,
+template <size_t num_jit_reruns = 1>
+void RunTestInstance(A64::Jit& jit, A64TestEnv& jit_env, const std::array<u64, 31>& regs,
                      const std::array<std::array<u64, 2>, 32>& vecs,
-                     const std::vector<u32>& instructions,
-                     const u32 pstate,
-                     const u32 fpcr,
-                     const u64 initial_sp,
-                     const u64 start_address,
-                     const size_t ticks_left) {
+                     const std::vector<u32>& instructions, const u32 pstate, const u32 fpcr,
+                     const u64 initial_sp, const u64 start_address, const size_t ticks_left) {
     jit.ClearCache();
 
     for (size_t jit_rerun_count = 0; jit_rerun_count < num_jit_reruns; ++jit_rerun_count) {
         jit_env.code_mem = instructions;
-        jit_env.code_mem.emplace_back(0x14000000);  // B .
+        jit_env.code_mem.emplace_back(0x14000000); // B .
         jit_env.code_mem_start_address = start_address;
         jit_env.modified_memory.clear();
         jit_env.interrupts.clear();
@@ -294,14 +284,8 @@ void RunThumb(bool noopt) {
 
     ThumbTestEnv jit_env{};
     A32::Jit jit{GetA32UserConfig(jit_env, noopt)};
-    RunTestInstance(jit,
-                    jit_env,
-                    initial_regs,
-                    initial_vecs,
-                    instructions,
-                    initial_cpsr,
-                    initial_fpcr,
-                    instructions.size());
+    RunTestInstance(jit, jit_env, initial_regs, initial_vecs, instructions, initial_cpsr,
+                    initial_fpcr, instructions.size());
 }
 
 void RunArm(bool noopt) {
@@ -341,14 +325,8 @@ void RunArm(bool noopt) {
 
     ArmTestEnv jit_env{};
     A32::Jit jit{GetA32UserConfig(jit_env, noopt)};
-    RunTestInstance(jit,
-                    jit_env,
-                    initial_regs,
-                    initial_vecs,
-                    instructions,
-                    initial_cpsr,
-                    initial_fpcr,
-                    instructions.size());
+    RunTestInstance(jit, jit_env, initial_regs, initial_vecs, instructions, initial_cpsr,
+                    initial_fpcr, instructions.size());
 }
 
 void RunA64(bool noopt) {
@@ -396,16 +374,8 @@ void RunA64(bool noopt) {
 
     A64TestEnv jit_env{};
     A64::Jit jit{GetA64UserConfig(jit_env, noopt)};
-    RunTestInstance(jit,
-                    jit_env,
-                    initial_regs,
-                    initial_vecs,
-                    instructions,
-                    initial_pstate,
-                    initial_fpcr,
-                    initial_sp,
-                    start_address,
-                    instructions.size());
+    RunTestInstance(jit, jit_env, initial_regs, initial_vecs, instructions, initial_pstate,
+                    initial_fpcr, initial_sp, start_address, instructions.size());
 }
 
 int main(int argc, char** argv) {

@@ -24,11 +24,14 @@ void DumpDisassembledX64(const void* ptr, size_t size) {
     size_t offset = 0;
     ZydisDecodedInstruction instruction;
     ZydisDecodedOperand operands[ZYDIS_MAX_OPERAND_COUNT];
-    while (ZYAN_SUCCESS(ZydisDecoderDecodeFull(&decoder, static_cast<const char*>(ptr) + offset, size - offset, &instruction, operands))) {
+    while (ZYAN_SUCCESS(ZydisDecoderDecodeFull(&decoder, static_cast<const char*>(ptr) + offset,
+                                               size - offset, &instruction, operands))) {
         fmt::print("{:016x}  ", (u64)ptr + offset);
 
         char buffer[256];
-        ZydisFormatterFormatInstruction(&formatter, &instruction, operands, instruction.operand_count_visible, buffer, sizeof(buffer), reinterpret_cast<u64>(ptr) + offset, ZYAN_NULL);
+        ZydisFormatterFormatInstruction(&formatter, &instruction, operands,
+                                        instruction.operand_count_visible, buffer, sizeof(buffer),
+                                        reinterpret_cast<u64>(ptr) + offset, ZYAN_NULL);
         puts(buffer);
 
         offset += instruction.length;
@@ -46,9 +49,12 @@ std::vector<std::string> DisassembleX64(const void* ptr, size_t size) {
     size_t offset = 0;
     ZydisDecodedInstruction instruction;
     ZydisDecodedOperand operands[ZYDIS_MAX_OPERAND_COUNT];
-    while (ZYAN_SUCCESS(ZydisDecoderDecodeFull(&decoder, static_cast<const char*>(ptr) + offset, size - offset, &instruction, operands))) {
+    while (ZYAN_SUCCESS(ZydisDecoderDecodeFull(&decoder, static_cast<const char*>(ptr) + offset,
+                                               size - offset, &instruction, operands))) {
         char buffer[256];
-        ZydisFormatterFormatInstruction(&formatter, &instruction, operands, instruction.operand_count_visible, buffer, sizeof(buffer), reinterpret_cast<u64>(ptr) + offset, ZYAN_NULL);
+        ZydisFormatterFormatInstruction(&formatter, &instruction, operands,
+                                        instruction.operand_count_visible, buffer, sizeof(buffer),
+                                        reinterpret_cast<u64>(ptr) + offset, ZYAN_NULL);
 
         result.push_back(fmt::format("{:016x}  {}", (u64)ptr + offset, buffer));
 
@@ -57,4 +63,4 @@ std::vector<std::string> DisassembleX64(const void* ptr, size_t size) {
 
     return result;
 }
-}  // namespace Dynarmic::Common
+} // namespace Dynarmic::Common

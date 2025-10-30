@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <catch2/catch_test_macros.hpp>
-#include <oaknut/oaknut.hpp>
 #include <immintrin.h>
+#include <oaknut/oaknut.hpp>
 
 #include "../A64/testenv.h"
 #include "../native/testenv.h"

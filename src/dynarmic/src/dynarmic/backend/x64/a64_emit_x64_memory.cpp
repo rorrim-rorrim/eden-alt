@@ -31,11 +31,13 @@ void A64EmitX64::GenMemory128Accessors() {
     code.align();
     memory_read_128 = code.getCurr<void (*)()>();
 #ifdef _WIN32
-    Devirtualize<&A64::UserCallbacks::MemoryRead128>(conf.callbacks).EmitCallWithReturnPointer(code, [&](Xbyak::Reg64 return_value_ptr, [[maybe_unused]] RegList args) {
-        code.mov(code.ABI_PARAM3, code.ABI_PARAM2);
-        code.lea(rsp, ptr[rsp - (8 + 16 + ABI_SHADOW_SPACE)]);
-        code.lea(return_value_ptr, ptr[rsp + ABI_SHADOW_SPACE]);
-    });
+    Devirtualize<&A64::UserCallbacks::MemoryRead128>(conf.callbacks)
+        .EmitCallWithReturnPointer(
+            code, [&](Xbyak::Reg64 return_value_ptr, [[maybe_unused]] RegList args) {
+                code.mov(code.ABI_PARAM3, code.ABI_PARAM2);
+                code.lea(rsp, ptr[rsp - (8 + 16 + ABI_SHADOW_SPACE)]);
+                code.lea(return_value_ptr, ptr[rsp + ABI_SHADOW_SPACE]);
+            });
     code.movups(xmm1, xword[code.ABI_RETURN]);
     code.add(rsp, 8 + 16 + ABI_SHADOW_SPACE);
 #else
@@ -139,7 +141,8 @@ void A64EmitX64::GenFastmemFallbacks() {
 
             for (int value_idx : idxes) {
                 code.align();
-                read_fallbacks[std::make_tuple(ordered, 128, vaddr_idx, value_idx)] = code.getCurr<void (*)()>();
+                read_fallbacks[std::make_tuple(ordered, 128, vaddr_idx, value_idx)] =
+                    code.getCurr<void (*)()>();
                 ABI_PushCallerSaveRegistersAndAdjustStackExcept(code, HostLocXmmIdx(value_idx));
                 if (vaddr_idx != code.ABI_PARAM2.getIdx()) {
                     code.mov(code.ABI_PARAM2, Xbyak::Reg64{vaddr_idx});
@@ -153,10 +156,12 @@ void A64EmitX64::GenFastmemFallbacks() {
                 }
                 ABI_PopCallerSaveRegistersAndAdjustStackExcept(code, HostLocXmmIdx(value_idx));
                 code.ret();
-                PerfMapRegister(read_fallbacks[std::make_tuple(ordered, 128, vaddr_idx, value_idx)], code.getCurr(), "a64_read_fallback_128");
+                PerfMapRegister(read_fallbacks[std::make_tuple(ordered, 128, vaddr_idx, value_idx)],
+                                code.getCurr(), "a64_read_fallback_128");
 
                 code.align();
-                write_fallbacks[std::make_tuple(ordered, 128, vaddr_idx, value_idx)] = code.getCurr<void (*)()>();
+                write_fallbacks[std::make_tuple(ordered, 128, vaddr_idx, value_idx)] =
+                    code.getCurr<void (*)()>();
                 ABI_PushCallerSaveRegistersAndAdjustStack(code);
                 if (vaddr_idx != code.ABI_PARAM2.getIdx()) {
                     code.mov(code.ABI_PARAM2, Xbyak::Reg64{vaddr_idx});
@@ -170,10 +175,13 @@ void A64EmitX64::GenFastmemFallbacks() {
                 }
                 ABI_PopCallerSaveRegistersAndAdjustStack(code);
                 code.ret();
-                PerfMapRegister(write_fallbacks[std::make_tuple(ordered, 128, vaddr_idx, value_idx)], code.getCurr(), "a64_write_fallback_128");
+                PerfMapRegister(
+                    write_fallbacks[std::make_tuple(ordered, 128, vaddr_idx, value_idx)],
+                    code.getCurr(), "a64_write_fallback_128");
 
                 code.align();
-                exclusive_write_fallbacks[std::make_tuple(ordered, 128, vaddr_idx, value_idx)] = code.getCurr<void (*)()>();
+                exclusive_write_fallbacks[std::make_tuple(ordered, 128, vaddr_idx, value_idx)] =
+                    code.getCurr<void (*)()>();
                 ABI_PushCallerSaveRegistersAndAdjustStackExcept(code, HostLoc::RAX);
                 if (value_idx != 1) {
                     code.movaps(xmm1, Xbyak::Xmm{value_idx});
@@ -192,7 +200,9 @@ void A64EmitX64::GenFastmemFallbacks() {
                 code.call(memory_exclusive_write_128);
                 ABI_PopCallerSaveRegistersAndAdjustStackExcept(code, HostLoc::RAX);
                 code.ret();
-                PerfMapRegister(exclusive_write_fallbacks[std::make_tuple(ordered, 128, vaddr_idx, value_idx)], code.getCurr(), "a64_exclusive_write_fallback_128");
+                PerfMapRegister(
+                    exclusive_write_fallbacks[std::make_tuple(ordered, 128, vaddr_idx, value_idx)],
+                    code.getCurr(), "a64_exclusive_write_fallback_128");
 
                 if (value_idx == 4 || value_idx == 15) {
                     continue;
@@ -200,7 +210,8 @@ void A64EmitX64::GenFastmemFallbacks() {
 
                 for (const auto& [bitsize, callback] : read_callbacks) {
                     code.align();
-                    read_fallbacks[std::make_tuple(ordered, bitsize, vaddr_idx, value_idx)] = code.getCurr<void (*)()>();
+                    read_fallbacks[std::make_tuple(ordered, bitsize, vaddr_idx, value_idx)] =
+                        code.getCurr<void (*)()>();
                     ABI_PushCallerSaveRegistersAndAdjustStackExcept(code, HostLocRegIdx(value_idx));
                     if (vaddr_idx != code.ABI_PARAM2.getIdx()) {
                         code.mov(code.ABI_PARAM2, Xbyak::Reg64{vaddr_idx});
@@ -215,14 +226,18 @@ void A64EmitX64::GenFastmemFallbacks() {
                     ABI_PopCallerSaveRegistersAndAdjustStackExcept(code, HostLocRegIdx(value_idx));
                     code.ZeroExtendFrom(bitsize, Xbyak::Reg64{value_idx});
                     code.ret();
-                    PerfMapRegister(read_fallbacks[std::make_tuple(ordered, bitsize, vaddr_idx, value_idx)], code.getCurr(), fmt::format("a64_read_fallback_{}", bitsize));
+                    PerfMapRegister(
+                        read_fallbacks[std::make_tuple(ordered, bitsize, vaddr_idx, value_idx)],
+                        code.getCurr(), fmt::format("a64_read_fallback_{}", bitsize));
                 }
 
                 for (const auto& [bitsize, callback] : write_callbacks) {
                     code.align();
-                    write_fallbacks[std::make_tuple(ordered, bitsize, vaddr_idx, value_idx)] = code.getCurr<void (*)()>();
+                    write_fallbacks[std::make_tuple(ordered, bitsize, vaddr_idx, value_idx)] =
+                        code.getCurr<void (*)()>();
                     ABI_PushCallerSaveRegistersAndAdjustStack(code);
-                    if (vaddr_idx == code.ABI_PARAM3.getIdx() && value_idx == code.ABI_PARAM2.getIdx()) {
+                    if (vaddr_idx == code.ABI_PARAM3.getIdx() &&
+                        value_idx == code.ABI_PARAM2.getIdx()) {
                         code.xchg(code.ABI_PARAM2, code.ABI_PARAM3);
                     } else if (vaddr_idx == code.ABI_PARAM3.getIdx()) {
                         code.mov(code.ABI_PARAM2, Xbyak::Reg64{vaddr_idx});
@@ -244,14 +259,18 @@ void A64EmitX64::GenFastmemFallbacks() {
                     }
                     ABI_PopCallerSaveRegistersAndAdjustStack(code);
                     code.ret();
-                    PerfMapRegister(write_fallbacks[std::make_tuple(ordered, bitsize, vaddr_idx, value_idx)], code.getCurr(), fmt::format("a64_write_fallback_{}", bitsize));
+                    PerfMapRegister(
+                        write_fallbacks[std::make_tuple(ordered, bitsize, vaddr_idx, value_idx)],
+                        code.getCurr(), fmt::format("a64_write_fallback_{}", bitsize));
                 }
 
                 for (const auto& [bitsize, callback] : exclusive_write_callbacks) {
                     code.align();
-                    exclusive_write_fallbacks[std::make_tuple(ordered, bitsize, vaddr_idx, value_idx)] = code.getCurr<void (*)()>();
+                    exclusive_write_fallbacks[std::make_tuple(
+                        ordered, bitsize, vaddr_idx, value_idx)] = code.getCurr<void (*)()>();
                     ABI_PushCallerSaveRegistersAndAdjustStackExcept(code, HostLoc::RAX);
-                    if (vaddr_idx == code.ABI_PARAM3.getIdx() && value_idx == code.ABI_PARAM2.getIdx()) {
+                    if (vaddr_idx == code.ABI_PARAM3.getIdx() &&
+                        value_idx == code.ABI_PARAM2.getIdx()) {
                         code.xchg(code.ABI_PARAM2, code.ABI_PARAM3);
                     } else if (vaddr_idx == code.ABI_PARAM3.getIdx()) {
                         code.mov(code.ABI_PARAM2, Xbyak::Reg64{vaddr_idx});
@@ -272,7 +291,10 @@ void A64EmitX64::GenFastmemFallbacks() {
                     callback.EmitCall(code);
                     ABI_PopCallerSaveRegistersAndAdjustStackExcept(code, HostLoc::RAX);
                     code.ret();
-                    PerfMapRegister(exclusive_write_fallbacks[std::make_tuple(ordered, bitsize, vaddr_idx, value_idx)], code.getCurr(), fmt::format("a64_exclusive_write_fallback_{}", bitsize));
+                    PerfMapRegister(exclusive_write_fallbacks[std::make_tuple(
+                                        ordered, bitsize, vaddr_idx, value_idx)],
+                                    code.getCurr(),
+                                    fmt::format("a64_exclusive_write_fallback_{}", bitsize));
                 }
             }
         }
@@ -401,7 +423,8 @@ void A64EmitX64::EmitA64ExclusiveWriteMemory64(A64EmitContext& ctx, IR::Inst* in
 
 void A64EmitX64::EmitA64ExclusiveWriteMemory128(A64EmitContext& ctx, IR::Inst* inst) {
     if (conf.fastmem_exclusive_access) {
-        EmitExclusiveWriteMemoryInline<128, &A64::UserCallbacks::MemoryWriteExclusive128>(ctx, inst);
+        EmitExclusiveWriteMemoryInline<128, &A64::UserCallbacks::MemoryWriteExclusive128>(ctx,
+                                                                                          inst);
     } else {
         EmitExclusiveWriteMemory<128, &A64::UserCallbacks::MemoryWriteExclusive128>(ctx, inst);
     }
@@ -414,9 +437,11 @@ void A64EmitX64::EmitCheckMemoryAbort(A64EmitContext&, IR::Inst* inst, Xbyak::La
 
     Xbyak::Label skip;
 
-    const A64::LocationDescriptor current_location{IR::LocationDescriptor{inst->GetArg(0).GetU64()}};
+    const A64::LocationDescriptor current_location{
+        IR::LocationDescriptor{inst->GetArg(0).GetU64()}};
 
-    code.test(dword[code.ABI_JIT_PTR + offsetof(A64JitState, halt_reason)], static_cast<u32>(HaltReason::MemoryAbort));
+    code.test(dword[code.ABI_JIT_PTR + offsetof(A64JitState, halt_reason)],
+              static_cast<u32>(HaltReason::MemoryAbort));
     if (end) {
         code.jz(*end, code.T_NEAR);
     } else {
@@ -428,4 +453,4 @@ void A64EmitX64::EmitCheckMemoryAbort(A64EmitContext&, IR::Inst* inst, Xbyak::La
     code.L(skip);
 }
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

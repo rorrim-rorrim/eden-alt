@@ -8,8 +8,8 @@
 
 #include "dynarmic/backend/x64/a32_jitstate.h"
 
-#include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_field.hpp>
+#include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/x64/block_of_code.h"
@@ -116,8 +116,8 @@ void A32JitState::ResetRSB() {
  * UE   bit 4   Underflow Flag
  * OE   bit 3   Overflow Flag
  * ZE   bit 2   Divide By Zero Flag
- * DE   bit 1   Denormal Flag                                 // Appears to only be set when MXCSR.DAZ = 0
- * IE   bit 0   Invalid Operation Flag
+ * DE   bit 1   Denormal Flag                                 // Appears to only be set when
+ * MXCSR.DAZ = 0 IE   bit 0   Invalid Operation Flag
  *
  * VFP FPSCR cumulative exception bits
  * -----------------------------------
@@ -173,8 +173,8 @@ u32 A32JitState::Fpscr() const {
     const u32 mxcsr = guest_MXCSR | asimd_MXCSR;
 
     u32 FPSCR = fpcr_mode | fpsr_nzcv;
-    FPSCR |= (mxcsr & 0b0000000000001);       // IOC = IE
-    FPSCR |= (mxcsr & 0b0000000111100) >> 1;  // IXC, UFC, OFC, DZC = PE, UE, OE, ZE
+    FPSCR |= (mxcsr & 0b0000000000001);      // IOC = IE
+    FPSCR |= (mxcsr & 0b0000000111100) >> 1; // IXC, UFC, OFC, DZC = PE, UE, OE, ZE
     FPSCR |= fpsr_exc;
     FPSCR |= fpsr_qc != 0 ? 1 << 27 : 0;
 
@@ -203,9 +203,9 @@ void A32JitState::SetFpscr(u32 FPSCR) {
 
     if (mcl::bit::get_bit<24>(FPSCR)) {
         // VFP Flush to Zero
-        guest_MXCSR |= (1 << 15);  // SSE Flush to Zero
-        guest_MXCSR |= (1 << 6);   // SSE Denormals are Zero
+        guest_MXCSR |= (1 << 15); // SSE Flush to Zero
+        guest_MXCSR |= (1 << 6);  // SSE Denormals are Zero
     }
 }
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

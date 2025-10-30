@@ -238,10 +238,8 @@ public:
 
 template <typename T>
 concept HasRedBlackKeyType = requires {
-                                 {
-                                     std::is_same<typename T::RedBlackKeyType, void>::value
-                                     } -> std::convertible_to<bool>;
-                             };
+    { std::is_same<typename T::RedBlackKeyType, void>::value } -> std::convertible_to<bool>;
+};
 
 namespace impl {
 
@@ -497,7 +495,7 @@ public:
 template <auto T, class Derived = Common::impl::GetParentType<T>>
 class IntrusiveRedBlackTreeMemberTraits;
 
-template <class Parent, IntrusiveRedBlackTreeNode Parent::*Member, class Derived>
+template <class Parent, IntrusiveRedBlackTreeNode Parent::* Member, class Derived>
 class IntrusiveRedBlackTreeMemberTraits<Member, Derived> {
 public:
     template <class Comparator>
@@ -530,7 +528,7 @@ private:
 template <auto T, class Derived = Common::impl::GetParentType<T>>
 class IntrusiveRedBlackTreeMemberTraitsDeferredAssert;
 
-template <class Parent, IntrusiveRedBlackTreeNode Parent::*Member, class Derived>
+template <class Parent, IntrusiveRedBlackTreeNode Parent::* Member, class Derived>
 class IntrusiveRedBlackTreeMemberTraitsDeferredAssert<Member, Derived> {
 public:
     template <class Comparator>

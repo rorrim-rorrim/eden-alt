@@ -96,7 +96,8 @@ bool TranslatorVisitor::ISB(Imm<4> /*CRm*/) {
 }
 
 bool TranslatorVisitor::MSR_reg(Imm<1> o0, Imm<3> op1, Imm<4> CRn, Imm<4> CRm, Imm<3> op2, Reg Rt) {
-    const auto sys_reg = concatenate(Imm<1>{1}, o0, CRn, op1, op2, CRm).ZeroExtend<SystemRegisterEncoding>();
+    const auto sys_reg =
+        concatenate(Imm<1>{1}, o0, CRn, op1, op2, CRm).ZeroExtend<SystemRegisterEncoding>();
     switch (sys_reg) {
     case SystemRegisterEncoding::FPCR:
         ir.SetFPCR(X(32, Rt));
@@ -119,13 +120,15 @@ bool TranslatorVisitor::MSR_reg(Imm<1> o0, Imm<3> op1, Imm<4> CRn, Imm<4> CRm, I
 }
 
 bool TranslatorVisitor::MRS(Imm<1> o0, Imm<3> op1, Imm<4> CRn, Imm<4> CRm, Imm<3> op2, Reg Rt) {
-    const auto sys_reg = concatenate(Imm<1>{1}, o0, CRn, op1, op2, CRm).ZeroExtend<SystemRegisterEncoding>();
+    const auto sys_reg =
+        concatenate(Imm<1>{1}, o0, CRn, op1, op2, CRm).ZeroExtend<SystemRegisterEncoding>();
     switch (sys_reg) {
     case SystemRegisterEncoding::CNTFRQ_EL0:
         X(32, Rt, ir.GetCNTFRQ());
         return true;
     case SystemRegisterEncoding::CNTPCT_EL0:
-        // HACK: Ensure that this is the first instruction in the block it's emitted in, so the cycle count is most up-to-date.
+        // HACK: Ensure that this is the first instruction in the block it's emitted in, so the
+        // cycle count is most up-to-date.
         if (!ir.block.empty() && !options.wall_clock_cntpct) {
             ir.block.CycleCount()--;
             ir.SetTerm(IR::Term::LinkBlock{*ir.current_location});
@@ -158,4 +161,4 @@ bool TranslatorVisitor::MRS(Imm<1> o0, Imm<3> op1, Imm<4> CRn, Imm<4> CRm, Imm<3
     return InterpretThisInstruction();
 }
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64

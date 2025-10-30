@@ -12,10 +12,10 @@
 #include <array>
 #include <iterator>
 
-#include "dynarmic/common/assert.h"
-#include <mcl/bit/bit_field.hpp>
 #include <bit>
+#include <mcl/bit/bit_field.hpp>
 #include <mcl/mp/metavalue/lift_value.hpp>
+#include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/arm64/abi.h"
@@ -108,7 +108,8 @@ void HostLocInfo::SetupLocation(const IR::Inst* value) {
 }
 
 bool HostLocInfo::IsCompletelyEmpty() const {
-    return values.empty() && !locked && !realized && !accumulated_uses && !expected_uses && !uses_this_inst;
+    return values.empty() && !locked && !realized && !accumulated_uses && !expected_uses &&
+           !uses_this_inst;
 }
 
 bool HostLocInfo::MaybeAllocatable() const {
@@ -147,7 +148,10 @@ bool RegAlloc::WasValueDefined(IR::Inst* inst) const {
     return defined_insts.count(inst) > 0;
 }
 
-void RegAlloc::PrepareForCall(std::optional<Argument::copyable_reference> arg0, std::optional<Argument::copyable_reference> arg1, std::optional<Argument::copyable_reference> arg2, std::optional<Argument::copyable_reference> arg3) {
+void RegAlloc::PrepareForCall(std::optional<Argument::copyable_reference> arg0,
+                              std::optional<Argument::copyable_reference> arg1,
+                              std::optional<Argument::copyable_reference> arg2,
+                              std::optional<Argument::copyable_reference> arg3) {
     fpsr_manager.Spill();
     SpillFlags();
 
@@ -246,7 +250,7 @@ void RegAlloc::AssertNoMoreUses() const {
 }
 
 void RegAlloc::EmitVerboseDebuggingOutput() {
-    code.MOV(X19, std::bit_cast<u64>(&PrintVerboseDebuggingOutputLine));  // Non-volatile register
+    code.MOV(X19, std::bit_cast<u64>(&PrintVerboseDebuggingOutputLine)); // Non-volatile register
 
     const auto do_location = [&](HostLocInfo& info, HostLocType type, size_t index) {
         using namespace oaknut::util;
@@ -272,7 +276,7 @@ void RegAlloc::EmitVerboseDebuggingOutput() {
     }
 }
 
-template<HostLoc::Kind kind>
+template <HostLoc::Kind kind>
 int RegAlloc::GenerateImmediate(const IR::Value& value) {
     ASSERT(value.GetType() != IR::Type::U1);
     if constexpr (kind == HostLoc::Kind::Gpr) {
@@ -305,7 +309,7 @@ int RegAlloc::GenerateImmediate(const IR::Value& value) {
     }
 }
 
-template<HostLoc::Kind required_kind>
+template <HostLoc::Kind required_kind>
 int RegAlloc::RealizeReadImpl(const IR::Value& value) {
     if (value.IsImmediate()) {
         return GenerateImmediate<required_kind>(value);
@@ -335,7 +339,8 @@ int RegAlloc::RealizeReadImpl(const IR::Value& value) {
             // ASSERT size fits
             break;
         case HostLoc::Kind::Spill:
-            code.LDR(oaknut::XReg{new_location_index}, SP, spill_offset + current_location->index * spill_slot_size);
+            code.LDR(oaknut::XReg{new_location_index}, SP,
+                     spill_offset + current_location->index * spill_slot_size);
             break;
         case HostLoc::Kind::Flags:
             code.MRS(oaknut::XReg{new_location_index}, oaknut::SystemReg::NZCV);
@@ -357,7 +362,8 @@ int RegAlloc::RealizeReadImpl(const IR::Value& value) {
             ASSERT_FALSE("Logic error");
             break;
         case HostLoc::Kind::Spill:
-            code.LDR(oaknut::QReg{new_location_index}, SP, spill_offset + current_location->index * spill_slot_size);
+            code.LDR(oaknut::QReg{new_location_index}, SP,
+                     spill_offset + current_location->index * spill_slot_size);
             break;
         case HostLoc::Kind::Flags:
             ASSERT_FALSE("Moving from flags into fprs is not currently supported");
@@ -374,7 +380,7 @@ int RegAlloc::RealizeReadImpl(const IR::Value& value) {
     }
 }
 
-template<HostLoc::Kind kind>
+template <HostLoc::Kind kind>
 int RegAlloc::RealizeWriteImpl(const IR::Inst* value) {
     defined_insts.insert(value);
 
@@ -399,7 +405,7 @@ int RegAlloc::RealizeWriteImpl(const IR::Inst* value) {
     }
 }
 
-template<HostLoc::Kind kind>
+template <HostLoc::Kind kind>
 int RegAlloc::RealizeReadWriteImpl(const IR::Value& read_value, const IR::Inst* write_value) {
     defined_insts.insert(write_value);
 
@@ -428,16 +434,20 @@ template int RegAlloc::RealizeWriteImpl<HostLoc::Kind::Fpr>(const IR::Inst* valu
 template int RegAlloc::RealizeWriteImpl<HostLoc::Kind::Flags>(const IR::Inst* value);
 template int RegAlloc::RealizeReadWriteImpl<HostLoc::Kind::Gpr>(const IR::Value&, const IR::Inst*);
 template int RegAlloc::RealizeReadWriteImpl<HostLoc::Kind::Fpr>(const IR::Value&, const IR::Inst*);
-template int RegAlloc::RealizeReadWriteImpl<HostLoc::Kind::Flags>(const IR::Value&, const IR::Inst*);
+template int RegAlloc::RealizeReadWriteImpl<HostLoc::Kind::Flags>(const IR::Value&,
+                                                                  const IR::Inst*);
 
-int RegAlloc::AllocateRegister(const std::array<HostLocInfo, 32>& regs, const std::vector<int>& order) const {
-    const auto empty = std::find_if(order.begin(), order.end(), [&](int i) { return regs[i].IsCompletelyEmpty(); });
+int RegAlloc::AllocateRegister(const std::array<HostLocInfo, 32>& regs,
+                               const std::vector<int>& order) const {
+    const auto empty = std::find_if(order.begin(), order.end(),
+                                    [&](int i) { return regs[i].IsCompletelyEmpty(); });
     if (empty != order.end()) {
         return *empty;
     }
 
     std::vector<int> candidates;
-    std::copy_if(order.begin(), order.end(), std::back_inserter(candidates), [&](int i) { return regs[i].MaybeAllocatable(); });
+    std::copy_if(order.begin(), order.end(), std::back_inserter(candidates),
+                 [&](int i) { return regs[i].MaybeAllocatable(); });
 
     // TODO: LRU
     std::uniform_int_distribution<size_t> dis{0, candidates.size() - 1};
@@ -507,7 +517,8 @@ void RegAlloc::SpillFlags() {
 }
 
 int RegAlloc::FindFreeSpill() const {
-    const auto iter = std::find_if(spills.begin(), spills.end(), [](const HostLocInfo& info) { return info.values.empty(); });
+    const auto iter = std::find_if(spills.begin(), spills.end(),
+                                   [](const HostLocInfo& info) { return info.values.empty(); });
     ASSERT_MSG(iter != spills.end(), "All spill locations are full");
     return static_cast<int>(iter - spills.begin());
 }
@@ -566,16 +577,19 @@ void RegAlloc::LoadCopyInto(const IR::Value& value, oaknut::QReg reg) {
 std::optional<HostLoc> RegAlloc::ValueLocation(const IR::Inst* value) const {
     const auto contains_value = [value](const HostLocInfo& info) { return info.Contains(value); };
 
-    if (const auto iter = std::find_if(gprs.begin(), gprs.end(), contains_value); iter != gprs.end()) {
+    if (const auto iter = std::find_if(gprs.begin(), gprs.end(), contains_value);
+        iter != gprs.end()) {
         return HostLoc{HostLoc::Kind::Gpr, static_cast<int>(iter - gprs.begin())};
     }
-    if (const auto iter = std::find_if(fprs.begin(), fprs.end(), contains_value); iter != fprs.end()) {
+    if (const auto iter = std::find_if(fprs.begin(), fprs.end(), contains_value);
+        iter != fprs.end()) {
         return HostLoc{HostLoc::Kind::Fpr, static_cast<int>(iter - fprs.begin())};
     }
     if (contains_value(flags)) {
         return HostLoc{HostLoc::Kind::Flags, 0};
     }
-    if (const auto iter = std::find_if(spills.begin(), spills.end(), contains_value); iter != spills.end()) {
+    if (const auto iter = std::find_if(spills.begin(), spills.end(), contains_value);
+        iter != spills.end()) {
         return HostLoc{HostLoc::Kind::Spill, static_cast<int>(iter - spills.begin())};
     }
     return std::nullopt;
@@ -598,19 +612,22 @@ HostLocInfo& RegAlloc::ValueInfo(HostLoc host_loc) {
 HostLocInfo& RegAlloc::ValueInfo(const IR::Inst* value) {
     const auto contains_value = [value](const HostLocInfo& info) { return info.Contains(value); };
 
-    if (const auto iter = std::find_if(gprs.begin(), gprs.end(), contains_value); iter != gprs.end()) {
+    if (const auto iter = std::find_if(gprs.begin(), gprs.end(), contains_value);
+        iter != gprs.end()) {
         return *iter;
     }
-    if (const auto iter = std::find_if(fprs.begin(), fprs.end(), contains_value); iter != fprs.end()) {
+    if (const auto iter = std::find_if(fprs.begin(), fprs.end(), contains_value);
+        iter != fprs.end()) {
         return *iter;
     }
     if (contains_value(flags)) {
         return flags;
     }
-    if (const auto iter = std::find_if(spills.begin(), spills.end(), contains_value); iter != spills.end()) {
+    if (const auto iter = std::find_if(spills.begin(), spills.end(), contains_value);
+        iter != spills.end()) {
         return *iter;
     }
     ASSERT_FALSE("RegAlloc::ValueInfo: Value not found");
 }
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

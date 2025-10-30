@@ -9,8 +9,8 @@
 #include <memory>
 #include <vector>
 #include <QWidget>
-#include "yuzu/configuration/configuration_shared.h"
 #include "qt_common/config/shared_translation.h"
+#include "yuzu/configuration/configuration_shared.h"
 
 class QComboBox;
 

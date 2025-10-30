@@ -18,8 +18,9 @@ namespace Dynarmic::Backend::Arm64 {
 
 using namespace oaknut::util;
 
-template<>
-void EmitIR<IR::Opcode::SignedSaturatedAddWithFlag32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::SignedSaturatedAddWithFlag32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                      IR::Inst* inst) {
     const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
     ASSERT(overflow_inst);
 
@@ -38,8 +39,9 @@ void EmitIR<IR::Opcode::SignedSaturatedAddWithFlag32>(oaknut::CodeGenerator& cod
     code.CSET(Woverflow, VS);
 }
 
-template<>
-void EmitIR<IR::Opcode::SignedSaturatedSubWithFlag32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::SignedSaturatedSubWithFlag32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                      IR::Inst* inst) {
     const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
     ASSERT(overflow_inst);
 
@@ -58,8 +60,9 @@ void EmitIR<IR::Opcode::SignedSaturatedSubWithFlag32>(oaknut::CodeGenerator& cod
     code.CSET(Woverflow, VS);
 }
 
-template<>
-void EmitIR<IR::Opcode::SignedSaturation>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::SignedSaturation>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                          IR::Inst* inst) {
     const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -99,8 +102,9 @@ void EmitIR<IR::Opcode::SignedSaturation>(oaknut::CodeGenerator& code, EmitConte
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::UnsignedSaturation>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::UnsignedSaturation>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                            IR::Inst* inst) {
     const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -126,148 +130,168 @@ void EmitIR<IR::Opcode::UnsignedSaturation>(oaknut::CodeGenerator& code, EmitCon
     }
 }
 
-template<>
-void EmitIR<IR::Opcode::SignedSaturatedAdd8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::SignedSaturatedAdd8>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                             IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-template<>
-void EmitIR<IR::Opcode::SignedSaturatedAdd16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::SignedSaturatedAdd16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-template<>
-void EmitIR<IR::Opcode::SignedSaturatedAdd32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::SignedSaturatedAdd32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-template<>
-void EmitIR<IR::Opcode::SignedSaturatedAdd64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::SignedSaturatedAdd64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-template<>
-void EmitIR<IR::Opcode::SignedSaturatedDoublingMultiplyReturnHigh16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::SignedSaturatedDoublingMultiplyReturnHigh16>(oaknut::CodeGenerator& code,
+                                                                     EmitContext& ctx,
+                                                                     IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-template<>
-void EmitIR<IR::Opcode::SignedSaturatedDoublingMultiplyReturnHigh32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::SignedSaturatedDoublingMultiplyReturnHigh32>(oaknut::CodeGenerator& code,
+                                                                     EmitContext& ctx,
+                                                                     IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-template<>
-void EmitIR<IR::Opcode::SignedSaturatedSub8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::SignedSaturatedSub8>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                             IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-template<>
-void EmitIR<IR::Opcode::SignedSaturatedSub16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::SignedSaturatedSub16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-template<>
-void EmitIR<IR::Opcode::SignedSaturatedSub32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::SignedSaturatedSub32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-template<>
-void EmitIR<IR::Opcode::SignedSaturatedSub64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::SignedSaturatedSub64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                              IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-template<>
-void EmitIR<IR::Opcode::UnsignedSaturatedAdd8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::UnsignedSaturatedAdd8>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                               IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-template<>
-void EmitIR<IR::Opcode::UnsignedSaturatedAdd16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::UnsignedSaturatedAdd16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-template<>
-void EmitIR<IR::Opcode::UnsignedSaturatedAdd32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::UnsignedSaturatedAdd32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-template<>
-void EmitIR<IR::Opcode::UnsignedSaturatedAdd64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::UnsignedSaturatedAdd64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-template<>
-void EmitIR<IR::Opcode::UnsignedSaturatedSub8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::UnsignedSaturatedSub8>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                               IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-template<>
-void EmitIR<IR::Opcode::UnsignedSaturatedSub16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::UnsignedSaturatedSub16>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-template<>
-void EmitIR<IR::Opcode::UnsignedSaturatedSub32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::UnsignedSaturatedSub32>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-template<>
-void EmitIR<IR::Opcode::UnsignedSaturatedSub64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+template <>
+void EmitIR<IR::Opcode::UnsignedSaturatedSub64>(oaknut::CodeGenerator& code, EmitContext& ctx,
+                                                IR::Inst* inst) {
     (void)code;
     (void)ctx;
     (void)inst;
     ASSERT_FALSE("Unimplemented");
 }
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

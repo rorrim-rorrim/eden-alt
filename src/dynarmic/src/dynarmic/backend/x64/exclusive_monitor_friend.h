@@ -25,4 +25,4 @@ inline Vector* GetExclusiveMonitorValuePointer(ExclusiveMonitor* monitor, size_t
     return monitor->exclusive_values.data() + index;
 }
 
-}  // namespace Dynarmic
+} // namespace Dynarmic

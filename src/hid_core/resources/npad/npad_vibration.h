@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <mutex>
 #include <memory>
+#include <mutex>
 
 #include "common/common_types.h"
 #include "core/hle/result.h"

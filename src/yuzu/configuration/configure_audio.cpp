@@ -16,12 +16,12 @@
 #include "common/settings.h"
 #include "common/settings_common.h"
 #include "core/core.h"
+#include "qt_common/config/shared_translation.h"
+#include "qt_common/config/uisettings.h"
 #include "ui_configure_audio.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_audio.h"
-#include "qt_common/config/shared_translation.h"
 #include "yuzu/configuration/shared_widget.h"
-#include "qt_common/config/uisettings.h"
 
 ConfigureAudio::ConfigureAudio(const Core::System& system_,
                                std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,
@@ -272,7 +272,8 @@ void ConfigureAudio::InitializeAudioSinkComboBox() {
     sink_combo_box->clear();
     sink_combo_box->addItem(QString::fromUtf8(AudioCore::Sink::auto_device_name));
     for (const auto& id : AudioCore::Sink::GetSinkIDs())
-        sink_combo_box->addItem(QString::fromStdString(std::string{Settings::CanonicalizeEnum(id)}));
+        sink_combo_box->addItem(
+            QString::fromStdString(std::string{Settings::CanonicalizeEnum(id)}));
 }
 
 void ConfigureAudio::RetranslateUI() {

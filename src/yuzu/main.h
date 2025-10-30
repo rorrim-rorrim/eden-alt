@@ -21,9 +21,9 @@
 #include "input_common/drivers/tas_input.h"
 #include "qt_common/config/qt_config.h"
 #include "qt_common/util/game.h"
-#include "yuzu/user_data_migration.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/hotkeys.h"
+#include "yuzu/user_data_migration.h"
 
 #ifdef __unix__
 #include <QDBusObjectPath>
@@ -348,8 +348,7 @@ private slots:
     void OnGameListCopyTID(u64 program_id);
     void OnGameListNavigateToGamedbEntry(u64 program_id,
                                          const CompatibilityList& compatibility_list);
-    void OnGameListCreateShortcut(u64 program_id,
-                                  const std::string& game_path,
+    void OnGameListCreateShortcut(u64 program_id, const std::string& game_path,
                                   const QtCommon::Game::ShortcutTarget target);
     void OnGameListOpenDirectory(const QString& directory);
     void OnGameListAddDirectory();
@@ -577,12 +576,9 @@ private:
 
     std::filesystem::path GetEdenCommand();
 
-    void CreateShortcut(const std::string& game_path,
-                        const u64 program_id,
-                        const std::string& game_title,
-                        QtCommon::Game::ShortcutTarget target,
-                        std::string arguments,
-                        const bool needs_title);
+    void CreateShortcut(const std::string& game_path, const u64 program_id,
+                        const std::string& game_title, QtCommon::Game::ShortcutTarget target,
+                        std::string arguments, const bool needs_title);
 
     void InstallFirmware(const QString& location, bool recursive = false);
 

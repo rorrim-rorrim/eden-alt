@@ -113,7 +113,8 @@ public:
     bool IsFormatDitherable(VideoCore::Surface::PixelFormat format);
     bool IsFormatScalable(VideoCore::Surface::PixelFormat format);
 
-    VkFormat GetSupportedFormat(VkFormat requested_format, VkFormatFeatureFlags required_features) const;
+    VkFormat GetSupportedFormat(VkFormat requested_format,
+                                VkFormatFeatureFlags required_features) const;
 
     const Device& device;
     Scheduler& scheduler;
@@ -197,7 +198,7 @@ private:
 
     // Use a pointer to field because it is relative, so that the object can be
     // moved without breaking the reference.
-    vk::Image Image::*current_image{};
+    vk::Image Image::* current_image{};
 
     std::vector<vk::ImageView> storage_image_views;
     VkImageAspectFlags aspect_mask = 0;

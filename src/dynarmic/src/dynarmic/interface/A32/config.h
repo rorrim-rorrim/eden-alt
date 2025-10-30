@@ -20,7 +20,7 @@
 
 namespace Dynarmic {
 class ExclusiveMonitor;
-}  // namespace Dynarmic
+} // namespace Dynarmic
 
 namespace Dynarmic {
 namespace A32 {
@@ -32,18 +32,22 @@ class Coprocessor;
 enum class Exception {
     /// An UndefinedFault occured due to executing instruction with an unallocated encoding
     UndefinedInstruction,
-    /// An unpredictable instruction is to be executed. Implementation-defined behaviour should now happen.
+    /// An unpredictable instruction is to be executed. Implementation-defined behaviour should now
+    /// happen.
     /// This behaviour is up to the user of this library to define.
     UnpredictableInstruction,
     /// A decode error occurred when decoding this instruction. This should never happen.
     DecodeError,
-    /// A SEV instruction was executed. The event register of all PEs should be set. (Hint instruction.)
+    /// A SEV instruction was executed. The event register of all PEs should be set. (Hint
+    /// instruction.)
     SendEvent,
-    /// A SEVL instruction was executed. The event register of the current PE should be set. (Hint instruction.)
+    /// A SEVL instruction was executed. The event register of the current PE should be set. (Hint
+    /// instruction.)
     SendEventLocal,
     /// A WFI instruction was executed. You may now enter a low-power state. (Hint instruction.)
     WaitForInterrupt,
-    /// A WFE instruction was executed. You may now enter a low-power state if the event register is clear. (Hint instruction.)
+    /// A WFE instruction was executed. You may now enter a low-power state if the event register is
+    /// clear. (Hint instruction.)
     WaitForEvent,
     /// A YIELD instruction was executed. (Hint instruction.)
     Yield,
@@ -55,7 +59,8 @@ enum class Exception {
     PreloadDataWithIntentToWrite,
     /// A PLI instruction was executed. (Hint instruction.)
     PreloadInstruction,
-    /// Attempted to execute a code block at an address for which MemoryReadCode returned std::nullopt.
+    /// Attempted to execute a code block at an address for which MemoryReadCode returned
+    /// std::nullopt.
     /// (Intended to be used to emulate memory protection faults.)
     NoExecuteFault,
 };
@@ -66,13 +71,17 @@ struct UserCallbacks : public TranslateCallbacks {
 
     // All reads through this callback are 4-byte aligned.
     // Memory must be interpreted as little endian.
-    std::optional<std::uint32_t> MemoryReadCode(VAddr vaddr) override { return MemoryRead32(vaddr); }
+    std::optional<std::uint32_t> MemoryReadCode(VAddr vaddr) override {
+        return MemoryRead32(vaddr);
+    }
 
     // This function is called before the instruction at pc is read.
     // IR code can be emitted by the callee prior to instruction handling.
     // By returning true the callee precludes the translation of the instruction;
     // in such case the callee is responsible for setting the terminal.
-    bool PreCodeReadHook(bool /*is_thumb*/, VAddr /*pc*/, A32::IREmitter& /*ir*/) override { return true; }
+    bool PreCodeReadHook(bool /*is_thumb*/, VAddr /*pc*/, A32::IREmitter& /*ir*/) override {
+        return true;
+    }
 
     // Thus function is called before the instruction at pc is interpreted.
     // IR code can be emitted by the callee prior to translation of the instruction.
@@ -92,16 +101,30 @@ struct UserCallbacks : public TranslateCallbacks {
     virtual void MemoryWrite64(VAddr vaddr, std::uint64_t value) = 0;
 
     // Writes through these callbacks may not be aligned.
-    virtual bool MemoryWriteExclusive8(VAddr /*vaddr*/, std::uint8_t /*value*/, std::uint8_t /*expected*/) { return false; }
-    virtual bool MemoryWriteExclusive16(VAddr /*vaddr*/, std::uint16_t /*value*/, std::uint16_t /*expected*/) { return false; }
-    virtual bool MemoryWriteExclusive32(VAddr /*vaddr*/, std::uint32_t /*value*/, std::uint32_t /*expected*/) { return false; }
-    virtual bool MemoryWriteExclusive64(VAddr /*vaddr*/, std::uint64_t /*value*/, std::uint64_t /*expected*/) { return false; }
+    virtual bool MemoryWriteExclusive8(VAddr /*vaddr*/, std::uint8_t /*value*/,
+                                       std::uint8_t /*expected*/) {
+        return false;
+    }
+    virtual bool MemoryWriteExclusive16(VAddr /*vaddr*/, std::uint16_t /*value*/,
+                                        std::uint16_t /*expected*/) {
+        return false;
+    }
+    virtual bool MemoryWriteExclusive32(VAddr /*vaddr*/, std::uint32_t /*value*/,
+                                        std::uint32_t /*expected*/) {
+        return false;
+    }
+    virtual bool MemoryWriteExclusive64(VAddr /*vaddr*/, std::uint64_t /*value*/,
+                                        std::uint64_t /*expected*/) {
+        return false;
+    }
 
     // If this callback returns true, the JIT will assume MemoryRead* callbacks will always
     // return the same value at any point in time for this vaddr. The JIT may use this information
     // in optimizations.
     // A conservative implementation that always returns false is safe.
-    virtual bool IsReadOnlyMemory(VAddr /*vaddr*/) { return false; }
+    virtual bool IsReadOnlyMemory(VAddr /*vaddr*/) {
+        return false;
+    }
 
     /// The interpreter must execute exactly num_instructions starting from PC.
     virtual void InterpreterFallback(VAddr pc, size_t num_instructions) = 0;
@@ -119,7 +142,10 @@ struct UserCallbacks : public TranslateCallbacks {
     // How many more ticks am I allowed to execute?
     virtual std::uint64_t GetTicksRemaining() = 0;
     // How many ticks should this instruction take to execute?
-    std::uint64_t GetTicksForCode(bool /*is_thumb*/, VAddr /*vaddr*/, std::uint32_t /*instruction*/) override { return 1; }
+    std::uint64_t GetTicksForCode(bool /*is_thumb*/, VAddr /*vaddr*/,
+                                  std::uint32_t /*instruction*/) override {
+        return 1;
+    }
 };
 
 struct UserConfig {
@@ -160,7 +186,7 @@ struct UserConfig {
 
     /// Minimum size is about 8MiB. Maximum size is about 128MiB (arm64 host) or 2GiB (x64 host).
     /// Maximum size is limited by the maximum length of a x86_64 / arm64 jump.
-    std::uint32_t code_cache_size = 128 * 1024 * 1024;  // bytes
+    std::uint32_t code_cache_size = 128 * 1024 * 1024; // bytes
 
     /// Masks out the first N bits in host pointers from the page table.
     /// The intention behind this is to allow users of Dynarmic to pack attributes in the
@@ -252,5 +278,5 @@ struct UserConfig {
     bool very_verbose_debugging_output = false;
 };
 
-}  // namespace A32
-}  // namespace Dynarmic
+} // namespace A32
+} // namespace Dynarmic

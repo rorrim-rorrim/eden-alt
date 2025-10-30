@@ -33,8 +33,8 @@ MemoryManager::MemoryManager(Core::System& system_, MaxwellDeviceMemoryManager& 
       split_address{split_address_}, page_bits{page_bits_}, big_page_bits{big_page_bits_},
       entries{}, big_entries{}, page_table{address_space_bits, address_space_bits + page_bits - 38,
                                            page_bits != big_page_bits ? page_bits : 0},
-      kind_map{PTEKind::INVALID}, unique_identifier{unique_identifier_generator.fetch_add(
-                                      1, std::memory_order_acq_rel)},
+      kind_map{PTEKind::INVALID},
+      unique_identifier{unique_identifier_generator.fetch_add(1, std::memory_order_acq_rel)},
       accumulator{std::make_unique<VideoCommon::InvalidationAccumulator>()} {
     address_space_size = 1ULL << address_space_bits;
     page_size = 1ULL << page_bits;
@@ -298,7 +298,8 @@ const u8* MemoryManager::GetPointer(GPUVAddr gpu_addr) const {
     return memory.GetPointer<u8>(*address);
 }
 
-#if defined(_MSC_VER) && !defined(__clang__) // no need for gcc / clang but msvc's compiler is more conservative with inlining.
+#if defined(_MSC_VER) && !defined(__clang__) // no need for gcc / clang but msvc's compiler is more
+                                             // conservative with inlining.
 #pragma inline_recursion(on)
 #endif
 

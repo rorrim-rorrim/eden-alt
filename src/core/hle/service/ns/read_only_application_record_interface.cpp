@@ -5,9 +5,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/service/cmif_serialization.h"
-#include "core/hle/service/ns/read_only_application_record_interface.h"
-#include "core/hle/service/ns/ns_types.h"
 #include "core/hle/service/ns/application_manager_interface.h"
+#include "core/hle/service/ns/ns_types.h"
+#include "core/hle/service/ns/read_only_application_record_interface.h"
 
 namespace Service::NS {
 
@@ -45,8 +45,10 @@ Result IReadOnlyApplicationRecordInterface::IsDataCorruptedResult(
 Result IReadOnlyApplicationRecordInterface::ListApplicationRecord(
     OutArray<ApplicationRecord, BufferAttr_HipcMapAlias> out_records, Out<s32> out_count,
     s32 entry_offset) {
-    LOG_DEBUG(Service_NS, "delegating to IApplicationManagerInterface::ListApplicationRecord, offset={} limit={}",
-              entry_offset, out_records.size());
+    LOG_DEBUG(
+        Service_NS,
+        "delegating to IApplicationManagerInterface::ListApplicationRecord, offset={} limit={}",
+        entry_offset, out_records.size());
 
     R_RETURN(IApplicationManagerInterface(system).ListApplicationRecord(out_records, out_count,
                                                                         entry_offset));

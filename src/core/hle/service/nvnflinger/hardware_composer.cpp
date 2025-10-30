@@ -50,7 +50,7 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
                                     Nvidia::Devices::nvdisp_disp0& nvdisp) {
 #if BOOST_VERSION >= 108100 || __GNUC__ > 12
     boost::container::small_vector<HwcLayer, 2> composition_stack;
-#else //TODO: debian stable
+#else // TODO: debian stable
     std::vector<HwcLayer> composition_stack;
 #endif
 

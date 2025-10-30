@@ -8,8 +8,8 @@
 
 #include "dynarmic/frontend/imm.h"
 
-#include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_field.hpp>
+#include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
 
 namespace Dynarmic {
@@ -30,9 +30,11 @@ u64 AdvSIMDExpandImm(bool op, Imm<4> cmode, Imm<8> imm8) {
         return mcl::bit::replicate_element<u16, u64>(imm8.ZeroExtend<u64>() << 8);
     case 0b110:
         if (!cmode.Bit<0>()) {
-            return mcl::bit::replicate_element<u32, u64>((imm8.ZeroExtend<u64>() << 8) | mcl::bit::ones<u64>(8));
+            return mcl::bit::replicate_element<u32, u64>((imm8.ZeroExtend<u64>() << 8) |
+                                                         mcl::bit::ones<u64>(8));
         }
-        return mcl::bit::replicate_element<u32, u64>((imm8.ZeroExtend<u64>() << 16) | mcl::bit::ones<u64>(16));
+        return mcl::bit::replicate_element<u32, u64>((imm8.ZeroExtend<u64>() << 16) |
+                                                     mcl::bit::ones<u64>(16));
     case 0b111:
         if (!cmode.Bit<0>() && !op) {
             return mcl::bit::replicate_element<u8, u64>(imm8.ZeroExtend<u64>());
@@ -67,4 +69,4 @@ u64 AdvSIMDExpandImm(bool op, Imm<4> cmode, Imm<8> imm8) {
     UNREACHABLE();
 }
 
-}  // namespace Dynarmic
+} // namespace Dynarmic

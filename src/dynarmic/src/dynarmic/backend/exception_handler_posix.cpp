@@ -10,22 +10,22 @@
 #include <functional>
 #include <memory>
 #include <mutex>
-#include <shared_mutex>
 #include <optional>
+#include <shared_mutex>
 #include <ankerl/unordered_dense.h>
 #include "dynarmic/backend/exception_handler.h"
 #include "dynarmic/common/assert.h"
-#include "dynarmic/common/context.h"
 #include "dynarmic/common/common_types.h"
+#include "dynarmic/common/context.h"
 #if defined(ARCHITECTURE_x86_64)
-#    include "dynarmic/backend/x64/block_of_code.h"
+#include "dynarmic/backend/x64/block_of_code.h"
 #elif defined(ARCHITECTURE_arm64)
-#    include <oaknut/code_block.hpp>
-#    include "dynarmic/backend/arm64/abi.h"
+#include <oaknut/code_block.hpp>
+#include "dynarmic/backend/arm64/abi.h"
 #elif defined(ARCHITECTURE_riscv64)
-#    include "dynarmic/backend/riscv64/code_block.h"
+#include "dynarmic/backend/riscv64/code_block.h"
 #else
-#    error "Invalid architecture"
+#error "Invalid architecture"
 #endif
 #include <bit>
 
@@ -53,10 +53,12 @@ class SigHandler {
     struct sigaction old_sa_segv;
     struct sigaction old_sa_bus;
     std::size_t signal_stack_size;
+
 public:
     SigHandler() noexcept {
         signal_stack_size = std::max<size_t>(SIGSTKSZ, 2 * 1024 * 1024);
-        signal_stack_memory = mmap(nullptr, signal_stack_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        signal_stack_memory = mmap(nullptr, signal_stack_size, PROT_READ | PROT_WRITE,
+                                   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
         stack_t signal_stack{};
         signal_stack.ss_sp = signal_stack_memory;
@@ -100,7 +102,9 @@ public:
         code_block_infos.erase(offset);
     }
 
-    bool SupportsFastmem() const noexcept { return supports_fast_mem; }
+    bool SupportsFastmem() const noexcept {
+        return supports_fast_mem;
+    }
 };
 
 std::mutex handler_lock;
@@ -119,7 +123,8 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
 #if defined(ARCHITECTURE_x86_64)
     {
         std::shared_lock guard(sig_handler->code_block_infos_mutex);
-        if (auto const iter = sig_handler->FindCodeBlockInfo(CTX_RIP); iter != sig_handler->code_block_infos.end()) {
+        if (auto const iter = sig_handler->FindCodeBlockInfo(CTX_RIP);
+            iter != sig_handler->code_block_infos.end()) {
             FakeCall fc = iter->second.cb(CTX_RIP);
             CTX_RSP -= sizeof(u64);
             *std::bit_cast<u64*>(CTX_RSP) = fc.ret_rip;
@@ -127,24 +132,28 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
             return;
         }
     }
-    fmt::print(stderr, "Unhandled {} at rip {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_RIP);
+    fmt::print(stderr, "Unhandled {} at rip {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS",
+               CTX_RIP);
 #elif defined(ARCHITECTURE_arm64)
     {
         std::shared_lock guard(sig_handler->code_block_infos_mutex);
-        if (const auto iter = sig_handler->FindCodeBlockInfo(CTX_PC); iter != sig_handler->code_block_infos.end()) {
+        if (const auto iter = sig_handler->FindCodeBlockInfo(CTX_PC);
+            iter != sig_handler->code_block_infos.end()) {
             FakeCall fc = iter->second.cb(CTX_PC);
             CTX_PC = fc.call_pc;
             return;
         }
     }
-    fmt::print(stderr, "Unhandled {} at pc {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_PC);
+    fmt::print(stderr, "Unhandled {} at pc {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS",
+               CTX_PC);
 #elif defined(ARCHITECTURE_riscv64)
     ASSERT_FALSE("Unimplemented");
 #else
-#    error "Invalid architecture"
+#error "Invalid architecture"
 #endif
 
-    struct sigaction* retry_sa = sig == SIGSEGV ? &sig_handler->old_sa_segv : &sig_handler->old_sa_bus;
+    struct sigaction* retry_sa =
+        sig == SIGSEGV ? &sig_handler->old_sa_segv : &sig_handler->old_sa_bus;
     if (retry_sa->sa_flags & SA_SIGINFO) {
         retry_sa->sa_sigaction(sig, info, raw_context);
         return;
@@ -159,20 +168,15 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
     retry_sa->sa_handler(sig);
 }
 
-}  // anonymous namespace
+} // anonymous namespace
 
 struct ExceptionHandler::Impl final {
-    Impl(u64 offset_, u64 size_)
-            : offset(offset_)
-            , size(size_) {
+    Impl(u64 offset_, u64 size_) : offset(offset_), size(size_) {
         RegisterHandler();
     }
 
     void SetCallback(std::function<FakeCall(u64)> cb) {
-        sig_handler->AddCodeBlock(offset, CodeBlockInfo{
-            .size = size,
-            .cb = cb
-        });
+        sig_handler->AddCodeBlock(offset, CodeBlockInfo{.size = size, .cb = cb});
     }
 
     ~Impl() {
@@ -200,7 +204,7 @@ void ExceptionHandler::Register(RV64::CodeBlock& mem, std::size_t size) {
     impl = std::make_unique<Impl>(std::bit_cast<u64>(mem.ptr<u64>()), size);
 }
 #else
-#    error "Invalid architecture"
+#error "Invalid architecture"
 #endif
 
 bool ExceptionHandler::SupportsFastmem() const noexcept {
@@ -211,4 +215,4 @@ void ExceptionHandler::SetFastmemCallback(std::function<FakeCall(u64)> cb) {
     impl->SetCallback(cb);
 }
 
-}  // namespace Dynarmic::Backend
+} // namespace Dynarmic::Backend

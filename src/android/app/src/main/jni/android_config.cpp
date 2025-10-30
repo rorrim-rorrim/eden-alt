@@ -103,7 +103,8 @@ void AndroidConfig::ReadOverlayValues() {
             ReadDoubleSetting(std::string("foldable\\x_position"));
         control_data.foldable_position.second =
             ReadDoubleSetting(std::string("foldable\\y_position"));
-        control_data.individual_scale = static_cast<float>(ReadDoubleSetting(std::string("individual_scale")));
+        control_data.individual_scale =
+            static_cast<float>(ReadDoubleSetting(std::string("individual_scale")));
         AndroidSettings::values.overlay_control_data.push_back(control_data);
     }
     EndArray();
@@ -256,7 +257,8 @@ void AndroidConfig::SaveOverlayValues() {
                            control_data.foldable_position.first);
         WriteDoubleSetting(std::string("foldable\\y_position"),
                            control_data.foldable_position.second);
-        WriteDoubleSetting(std::string("individual_scale"), static_cast<double>(control_data.individual_scale));
+        WriteDoubleSetting(std::string("individual_scale"),
+                           static_cast<double>(control_data.individual_scale));
     }
     EndArray();
 

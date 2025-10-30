@@ -60,7 +60,8 @@ TEST_CASE("ResidualErrorOnRightShift Randomized", "[fp]") {
             return ResidualError::GreaterThanHalf;
         }();
 
-        INFO(std::hex << "mantissa " << mantissa << " shift " << shift << " calculated_error " << calculated_error);
+        INFO(std::hex << "mantissa " << mantissa << " shift " << shift << " calculated_error "
+                      << calculated_error);
         REQUIRE(result == expected_result);
     }
 }

@@ -20,10 +20,10 @@
 
 #include "common/common_types.h"
 #include "core/core.h"
+#include "frontend_common/play_time_manager.h"
 #include "qt_common/config/uisettings.h"
 #include "qt_common/util/game.h"
 #include "yuzu/compatibility_list.h"
-#include "frontend_common/play_time_manager.h"
 
 namespace Core {
 class System;
@@ -113,7 +113,7 @@ signals:
     void NavigateToGamedbEntryRequested(u64 program_id,
                                         const CompatibilityList& compatibility_list);
     void OpenPerGameGeneralRequested(const std::string& file);
-    void LinkToRyujinxRequested(const u64 &program_id);
+    void LinkToRyujinxRequested(const u64& program_id);
     void OpenDirectory(const QString& directory);
     void AddDirectory();
     void ShowList(bool show);

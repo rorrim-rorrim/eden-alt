@@ -16,7 +16,8 @@ enum class ComparisonTypeSTRM {
     LT,
 };
 
-bool CompareAgainstZero(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vn, Vec Vd, ComparisonTypeSTRM type) {
+bool CompareAgainstZero(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vn, Vec Vd,
+                        ComparisonTypeSTRM type) {
     if (size == 0b11 && !Q) {
         return v.ReservedValue();
     }
@@ -50,7 +51,8 @@ bool CompareAgainstZero(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vn, Vec V
     return true;
 }
 
-bool FPCompareAgainstZero(TranslatorVisitor& v, bool Q, bool sz, Vec Vn, Vec Vd, ComparisonTypeSTRM type) {
+bool FPCompareAgainstZero(TranslatorVisitor& v, bool Q, bool sz, Vec Vn, Vec Vd,
+                          ComparisonTypeSTRM type) {
     if (sz && !Q) {
         return v.ReservedValue();
     }
@@ -81,12 +83,10 @@ bool FPCompareAgainstZero(TranslatorVisitor& v, bool Q, bool sz, Vec Vn, Vec Vd,
     return true;
 }
 
-enum class SignednessSTRM {
-    Signed,
-    Unsigned
-};
+enum class SignednessSTRM { Signed, Unsigned };
 
-bool IntegerConvertToFloat(TranslatorVisitor& v, bool Q, bool sz, Vec Vn, Vec Vd, SignednessSTRM SignednessSTRM) {
+bool IntegerConvertToFloat(TranslatorVisitor& v, bool Q, bool sz, Vec Vn, Vec Vd,
+                           SignednessSTRM SignednessSTRM) {
     if (sz && !Q) {
         return v.ReservedValue();
     }
@@ -97,14 +97,15 @@ bool IntegerConvertToFloat(TranslatorVisitor& v, bool Q, bool sz, Vec Vn, Vec Vd
 
     const IR::U128 operand = v.V(datasize, Vn);
     const IR::U128 result = SignednessSTRM == SignednessSTRM::Signed
-                              ? v.ir.FPVectorFromSignedFixed(esize, operand, 0, rounding_mode)
-                              : v.ir.FPVectorFromUnsignedFixed(esize, operand, 0, rounding_mode);
+                                ? v.ir.FPVectorFromSignedFixed(esize, operand, 0, rounding_mode)
+                                : v.ir.FPVectorFromUnsignedFixed(esize, operand, 0, rounding_mode);
 
     v.V(datasize, Vd, result);
     return true;
 }
 
-bool FloatConvertToInteger(TranslatorVisitor& v, bool Q, bool sz, Vec Vn, Vec Vd, SignednessSTRM SignednessSTRM, FP::RoundingMode rounding_mode) {
+bool FloatConvertToInteger(TranslatorVisitor& v, bool Q, bool sz, Vec Vn, Vec Vd,
+                           SignednessSTRM SignednessSTRM, FP::RoundingMode rounding_mode) {
     if (sz && !Q) {
         return v.ReservedValue();
     }
@@ -114,14 +115,15 @@ bool FloatConvertToInteger(TranslatorVisitor& v, bool Q, bool sz, Vec Vn, Vec Vd
 
     const IR::U128 operand = v.V(datasize, Vn);
     const IR::U128 result = SignednessSTRM == SignednessSTRM::Signed
-                              ? v.ir.FPVectorToSignedFixed(esize, operand, 0, rounding_mode)
-                              : v.ir.FPVectorToUnsignedFixed(esize, operand, 0, rounding_mode);
+                                ? v.ir.FPVectorToSignedFixed(esize, operand, 0, rounding_mode)
+                                : v.ir.FPVectorToUnsignedFixed(esize, operand, 0, rounding_mode);
 
     v.V(datasize, Vd, result);
     return true;
 }
 
-bool FloatRoundToIntegral(TranslatorVisitor& v, bool Q, bool sz, Vec Vn, Vec Vd, FP::RoundingMode rounding_mode, bool exact) {
+bool FloatRoundToIntegral(TranslatorVisitor& v, bool Q, bool sz, Vec Vn, Vec Vd,
+                          FP::RoundingMode rounding_mode, bool exact) {
     if (sz && !Q) {
         return v.ReservedValue();
     }
@@ -136,7 +138,8 @@ bool FloatRoundToIntegral(TranslatorVisitor& v, bool Q, bool sz, Vec Vn, Vec Vd,
     return true;
 }
 
-bool FloatRoundToIntegralHalfPrecision(TranslatorVisitor& v, bool Q, Vec Vn, Vec Vd, FP::RoundingMode rounding_mode, bool exact) {
+bool FloatRoundToIntegralHalfPrecision(TranslatorVisitor& v, bool Q, Vec Vn, Vec Vd,
+                                       FP::RoundingMode rounding_mode, bool exact) {
     const size_t datasize = Q ? 128 : 64;
     const size_t esize = 16;
 
@@ -147,7 +150,8 @@ bool FloatRoundToIntegralHalfPrecision(TranslatorVisitor& v, bool Q, Vec Vn, Vec
     return true;
 }
 
-bool SaturatedNarrow(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vn, Vec Vd, IR::U128 (IR::IREmitter::*fn)(size_t, const IR::U128&)) {
+bool SaturatedNarrow(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vn, Vec Vd,
+                     IR::U128 (IR::IREmitter::*fn)(size_t, const IR::U128&)) {
     if (size == 0b11) {
         return v.ReservedValue();
     }
@@ -168,7 +172,8 @@ enum class PairedAddLongExtraBehavior {
     Accumulate,
 };
 
-bool PairedAddLong(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vn, Vec Vd, SignednessSTRM sign, PairedAddLongExtraBehavior behavior) {
+bool PairedAddLong(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vn, Vec Vd, SignednessSTRM sign,
+                   PairedAddLongExtraBehavior behavior) {
     if (size == 0b11) {
         return v.ReservedValue();
     }
@@ -197,7 +202,7 @@ bool PairedAddLong(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vn, Vec Vd, Si
     return true;
 }
 
-}  // Anonymous namespace
+} // Anonymous namespace
 
 bool TranslatorVisitor::CLS_asimd(bool Q, Imm<2> size, Vec Vn, Vec Vd) {
     if (size == 0b11) {
@@ -411,19 +416,23 @@ bool TranslatorVisitor::FCVTN(bool Q, bool sz, Vec Vn, Vec Vd) {
 }
 
 bool TranslatorVisitor::FCVTNS_4(bool Q, bool sz, Vec Vn, Vec Vd) {
-    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Signed, FP::RoundingMode::ToNearest_TieEven);
+    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Signed,
+                                 FP::RoundingMode::ToNearest_TieEven);
 }
 
 bool TranslatorVisitor::FCVTMS_4(bool Q, bool sz, Vec Vn, Vec Vd) {
-    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Signed, FP::RoundingMode::TowardsMinusInfinity);
+    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Signed,
+                                 FP::RoundingMode::TowardsMinusInfinity);
 }
 
 bool TranslatorVisitor::FCVTAS_4(bool Q, bool sz, Vec Vn, Vec Vd) {
-    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Signed, FP::RoundingMode::ToNearest_TieAwayFromZero);
+    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Signed,
+                                 FP::RoundingMode::ToNearest_TieAwayFromZero);
 }
 
 bool TranslatorVisitor::FCVTPS_4(bool Q, bool sz, Vec Vn, Vec Vd) {
-    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Signed, FP::RoundingMode::TowardsPlusInfinity);
+    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Signed,
+                                 FP::RoundingMode::TowardsPlusInfinity);
 }
 
 bool TranslatorVisitor::FCVTXN_2(bool Q, bool sz, Vec Vn, Vec Vd) {
@@ -447,31 +456,38 @@ bool TranslatorVisitor::FCVTXN_2(bool Q, bool sz, Vec Vn, Vec Vd) {
 }
 
 bool TranslatorVisitor::FCVTZS_int_4(bool Q, bool sz, Vec Vn, Vec Vd) {
-    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Signed, FP::RoundingMode::TowardsZero);
+    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Signed,
+                                 FP::RoundingMode::TowardsZero);
 }
 
 bool TranslatorVisitor::FCVTNU_4(bool Q, bool sz, Vec Vn, Vec Vd) {
-    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Unsigned, FP::RoundingMode::ToNearest_TieEven);
+    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Unsigned,
+                                 FP::RoundingMode::ToNearest_TieEven);
 }
 
 bool TranslatorVisitor::FCVTMU_4(bool Q, bool sz, Vec Vn, Vec Vd) {
-    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Unsigned, FP::RoundingMode::TowardsMinusInfinity);
+    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Unsigned,
+                                 FP::RoundingMode::TowardsMinusInfinity);
 }
 
 bool TranslatorVisitor::FCVTAU_4(bool Q, bool sz, Vec Vn, Vec Vd) {
-    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Unsigned, FP::RoundingMode::ToNearest_TieAwayFromZero);
+    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Unsigned,
+                                 FP::RoundingMode::ToNearest_TieAwayFromZero);
 }
 
 bool TranslatorVisitor::FCVTPU_4(bool Q, bool sz, Vec Vn, Vec Vd) {
-    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Unsigned, FP::RoundingMode::TowardsPlusInfinity);
+    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Unsigned,
+                                 FP::RoundingMode::TowardsPlusInfinity);
 }
 
 bool TranslatorVisitor::FCVTZU_int_4(bool Q, bool sz, Vec Vn, Vec Vd) {
-    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Unsigned, FP::RoundingMode::TowardsZero);
+    return FloatConvertToInteger(*this, Q, sz, Vn, Vd, SignednessSTRM::Unsigned,
+                                 FP::RoundingMode::TowardsZero);
 }
 
 bool TranslatorVisitor::FRINTN_1(bool Q, Vec Vn, Vec Vd) {
-    return FloatRoundToIntegralHalfPrecision(*this, Q, Vn, Vd, FP::RoundingMode::ToNearest_TieEven, false);
+    return FloatRoundToIntegralHalfPrecision(*this, Q, Vn, Vd, FP::RoundingMode::ToNearest_TieEven,
+                                             false);
 }
 
 bool TranslatorVisitor::FRINTN_2(bool Q, bool sz, Vec Vn, Vec Vd) {
@@ -479,15 +495,18 @@ bool TranslatorVisitor::FRINTN_2(bool Q, bool sz, Vec Vn, Vec Vd) {
 }
 
 bool TranslatorVisitor::FRINTM_1(bool Q, Vec Vn, Vec Vd) {
-    return FloatRoundToIntegralHalfPrecision(*this, Q, Vn, Vd, FP::RoundingMode::TowardsMinusInfinity, false);
+    return FloatRoundToIntegralHalfPrecision(*this, Q, Vn, Vd,
+                                             FP::RoundingMode::TowardsMinusInfinity, false);
 }
 
 bool TranslatorVisitor::FRINTM_2(bool Q, bool sz, Vec Vn, Vec Vd) {
-    return FloatRoundToIntegral(*this, Q, sz, Vn, Vd, FP::RoundingMode::TowardsMinusInfinity, false);
+    return FloatRoundToIntegral(*this, Q, sz, Vn, Vd, FP::RoundingMode::TowardsMinusInfinity,
+                                false);
 }
 
 bool TranslatorVisitor::FRINTP_1(bool Q, Vec Vn, Vec Vd) {
-    return FloatRoundToIntegralHalfPrecision(*this, Q, Vn, Vd, FP::RoundingMode::TowardsPlusInfinity, false);
+    return FloatRoundToIntegralHalfPrecision(*this, Q, Vn, Vd,
+                                             FP::RoundingMode::TowardsPlusInfinity, false);
 }
 
 bool TranslatorVisitor::FRINTP_2(bool Q, bool sz, Vec Vn, Vec Vd) {
@@ -495,7 +514,8 @@ bool TranslatorVisitor::FRINTP_2(bool Q, bool sz, Vec Vn, Vec Vd) {
 }
 
 bool TranslatorVisitor::FRINTZ_1(bool Q, Vec Vn, Vec Vd) {
-    return FloatRoundToIntegralHalfPrecision(*this, Q, Vn, Vd, FP::RoundingMode::TowardsZero, false);
+    return FloatRoundToIntegralHalfPrecision(*this, Q, Vn, Vd, FP::RoundingMode::TowardsZero,
+                                             false);
 }
 
 bool TranslatorVisitor::FRINTZ_2(bool Q, bool sz, Vec Vn, Vec Vd) {
@@ -503,15 +523,18 @@ bool TranslatorVisitor::FRINTZ_2(bool Q, bool sz, Vec Vn, Vec Vd) {
 }
 
 bool TranslatorVisitor::FRINTA_1(bool Q, Vec Vn, Vec Vd) {
-    return FloatRoundToIntegralHalfPrecision(*this, Q, Vn, Vd, FP::RoundingMode::ToNearest_TieAwayFromZero, false);
+    return FloatRoundToIntegralHalfPrecision(*this, Q, Vn, Vd,
+                                             FP::RoundingMode::ToNearest_TieAwayFromZero, false);
 }
 
 bool TranslatorVisitor::FRINTA_2(bool Q, bool sz, Vec Vn, Vec Vd) {
-    return FloatRoundToIntegral(*this, Q, sz, Vn, Vd, FP::RoundingMode::ToNearest_TieAwayFromZero, false);
+    return FloatRoundToIntegral(*this, Q, sz, Vn, Vd, FP::RoundingMode::ToNearest_TieAwayFromZero,
+                                false);
 }
 
 bool TranslatorVisitor::FRINTX_1(bool Q, Vec Vn, Vec Vd) {
-    return FloatRoundToIntegralHalfPrecision(*this, Q, Vn, Vd, ir.current_location->FPCR().RMode(), true);
+    return FloatRoundToIntegralHalfPrecision(*this, Q, Vn, Vd, ir.current_location->FPCR().RMode(),
+                                             true);
 }
 
 bool TranslatorVisitor::FRINTX_2(bool Q, bool sz, Vec Vn, Vec Vd) {
@@ -519,7 +542,8 @@ bool TranslatorVisitor::FRINTX_2(bool Q, bool sz, Vec Vn, Vec Vd) {
 }
 
 bool TranslatorVisitor::FRINTI_1(bool Q, Vec Vn, Vec Vd) {
-    return FloatRoundToIntegralHalfPrecision(*this, Q, Vn, Vd, ir.current_location->FPCR().RMode(), false);
+    return FloatRoundToIntegralHalfPrecision(*this, Q, Vn, Vd, ir.current_location->FPCR().RMode(),
+                                             false);
 }
 
 bool TranslatorVisitor::FRINTI_2(bool Q, bool sz, Vec Vn, Vec Vd) {
@@ -614,7 +638,8 @@ bool TranslatorVisitor::FNEG_2(bool Q, bool sz, Vec Vn, Vec Vd) {
     const size_t mask_value = esize == 64 ? 0x8000000000000000 : 0x8000000080000000;
 
     const IR::U128 operand = V(datasize, Vn);
-    const IR::U128 mask = Q ? ir.VectorBroadcast(esize, I(esize, mask_value)) : ir.VectorBroadcastLower(esize, I(esize, mask_value));
+    const IR::U128 mask = Q ? ir.VectorBroadcast(esize, I(esize, mask_value))
+                            : ir.VectorBroadcastLower(esize, I(esize, mask_value));
     const IR::U128 result = ir.VectorEor(operand, mask);
 
     V(datasize, Vd, result);
@@ -637,11 +662,13 @@ bool TranslatorVisitor::NEG_2(bool Q, Imm<2> size, Vec Vn, Vec Vd) {
 }
 
 bool TranslatorVisitor::SQXTUN_2(bool Q, Imm<2> size, Vec Vn, Vec Vd) {
-    return SaturatedNarrow(*this, Q, size, Vn, Vd, &IR::IREmitter::VectorSignedSaturatedNarrowToUnsigned);
+    return SaturatedNarrow(*this, Q, size, Vn, Vd,
+                           &IR::IREmitter::VectorSignedSaturatedNarrowToUnsigned);
 }
 
 bool TranslatorVisitor::SQXTN_2(bool Q, Imm<2> size, Vec Vn, Vec Vd) {
-    return SaturatedNarrow(*this, Q, size, Vn, Vd, &IR::IREmitter::VectorSignedSaturatedNarrowToSigned);
+    return SaturatedNarrow(*this, Q, size, Vn, Vd,
+                           &IR::IREmitter::VectorSignedSaturatedNarrowToSigned);
 }
 
 bool TranslatorVisitor::UQXTN_2(bool Q, Imm<2> size, Vec Vn, Vec Vd) {
@@ -780,19 +807,23 @@ bool TranslatorVisitor::USQADD_2(bool Q, Imm<2> size, Vec Vn, Vec Vd) {
 }
 
 bool TranslatorVisitor::SADALP(bool Q, Imm<2> size, Vec Vn, Vec Vd) {
-    return PairedAddLong(*this, Q, size, Vn, Vd, SignednessSTRM::Signed, PairedAddLongExtraBehavior::Accumulate);
+    return PairedAddLong(*this, Q, size, Vn, Vd, SignednessSTRM::Signed,
+                         PairedAddLongExtraBehavior::Accumulate);
 }
 
 bool TranslatorVisitor::SADDLP(bool Q, Imm<2> size, Vec Vn, Vec Vd) {
-    return PairedAddLong(*this, Q, size, Vn, Vd, SignednessSTRM::Signed, PairedAddLongExtraBehavior::None);
+    return PairedAddLong(*this, Q, size, Vn, Vd, SignednessSTRM::Signed,
+                         PairedAddLongExtraBehavior::None);
 }
 
 bool TranslatorVisitor::UADALP(bool Q, Imm<2> size, Vec Vn, Vec Vd) {
-    return PairedAddLong(*this, Q, size, Vn, Vd, SignednessSTRM::Unsigned, PairedAddLongExtraBehavior::Accumulate);
+    return PairedAddLong(*this, Q, size, Vn, Vd, SignednessSTRM::Unsigned,
+                         PairedAddLongExtraBehavior::Accumulate);
 }
 
 bool TranslatorVisitor::UADDLP(bool Q, Imm<2> size, Vec Vn, Vec Vd) {
-    return PairedAddLong(*this, Q, size, Vn, Vd, SignednessSTRM::Unsigned, PairedAddLongExtraBehavior::None);
+    return PairedAddLong(*this, Q, size, Vn, Vd, SignednessSTRM::Unsigned,
+                         PairedAddLongExtraBehavior::None);
 }
 
 bool TranslatorVisitor::URECPE(bool Q, bool sz, Vec Vn, Vec Vd) {
@@ -845,4 +876,4 @@ bool TranslatorVisitor::SHLL(bool Q, Imm<2> size, Vec Vn, Vec Vd) {
     return true;
 }
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64

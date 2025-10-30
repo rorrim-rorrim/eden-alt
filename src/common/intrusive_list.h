@@ -538,7 +538,7 @@ public:
 template <auto T, class Derived = Common::impl::GetParentType<T>>
 class IntrusiveListMemberTraits;
 
-template <class Parent, IntrusiveListNode Parent::*Member, class Derived>
+template <class Parent, IntrusiveListNode Parent::* Member, class Derived>
 class IntrusiveListMemberTraits<Member, Derived> {
 public:
     using ListType = IntrusiveList<Derived, IntrusiveListMemberTraits>;
@@ -566,7 +566,7 @@ private:
 template <auto T, class Derived = Common::impl::GetParentType<T>>
 class IntrusiveListMemberTraitsByNonConstexprOffsetOf;
 
-template <class Parent, IntrusiveListNode Parent::*Member, class Derived>
+template <class Parent, IntrusiveListNode Parent::* Member, class Derived>
 class IntrusiveListMemberTraitsByNonConstexprOffsetOf<Member, Derived> {
 public:
     using ListType = IntrusiveList<Derived, IntrusiveListMemberTraitsByNonConstexprOffsetOf>;

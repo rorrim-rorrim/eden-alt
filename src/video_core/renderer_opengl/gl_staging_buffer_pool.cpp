@@ -15,7 +15,6 @@
 #include "common/bit_util.h"
 #include "video_core/renderer_opengl/gl_staging_buffer_pool.h"
 
-
 namespace OpenGL {
 
 StagingBufferMap::~StagingBufferMap() {

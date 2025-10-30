@@ -60,12 +60,12 @@ public:
         u64 voice_size{0};
         if (behavior.IsWaveBufferVer2Supported()) {
             voice_size = (std::max)((std::max)(sizeof(AdpcmDataSourceVersion2Command),
-                                           sizeof(PcmInt16DataSourceVersion2Command)),
-                                  sizeof(PcmFloatDataSourceVersion2Command));
+                                               sizeof(PcmInt16DataSourceVersion2Command)),
+                                    sizeof(PcmFloatDataSourceVersion2Command));
         } else {
             voice_size = (std::max)((std::max)(sizeof(AdpcmDataSourceVersion1Command),
-                                           sizeof(PcmInt16DataSourceVersion1Command)),
-                                  sizeof(PcmFloatDataSourceVersion1Command));
+                                               sizeof(PcmInt16DataSourceVersion1Command)),
+                                    sizeof(PcmFloatDataSourceVersion1Command));
         }
         voice_size += sizeof(BiquadFilterCommand) * MaxBiquadFilters;
         voice_size += sizeof(VolumeRampCommand);

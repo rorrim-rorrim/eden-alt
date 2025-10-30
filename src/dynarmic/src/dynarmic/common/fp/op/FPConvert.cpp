@@ -20,7 +20,7 @@
 
 namespace Dynarmic::FP {
 namespace {
-template<typename FPT_TO, typename FPT_FROM>
+template <typename FPT_TO, typename FPT_FROM>
 FPT_TO FPConvertNaN(FPT_FROM op) {
     const bool sign = mcl::bit::get_bit<mcl::bitsizeof<FPT_FROM> - 1>(op);
     const u64 frac = [op] {
@@ -35,7 +35,8 @@ FPT_TO FPConvertNaN(FPT_FROM op) {
 
     const size_t dest_bit_size = mcl::bitsizeof<FPT_TO>;
     const u64 shifted_sign = u64{sign} << (dest_bit_size - 1);
-    const u64 exponent = mcl::bit::ones<u64>(dest_bit_size - FPInfo<FPT_TO>::explicit_mantissa_width);
+    const u64 exponent =
+        mcl::bit::ones<u64>(dest_bit_size - FPInfo<FPT_TO>::explicit_mantissa_width);
 
     if constexpr (sizeof(FPT_TO) == sizeof(u64)) {
         return FPT_TO(shifted_sign | exponent << 51 | frac);
@@ -45,9 +46,9 @@ FPT_TO FPConvertNaN(FPT_FROM op) {
         return FPT_TO(shifted_sign | exponent << 9 | mcl::bit::get_bits<42, 50>(frac));
     }
 }
-}  // Anonymous namespace
+} // Anonymous namespace
 
-template<typename FPT_TO, typename FPT_FROM>
+template <typename FPT_TO, typename FPT_FROM>
 FPT_TO FPConvert(FPT_FROM op, FPCR fpcr, RoundingMode rounding_mode, FPSR& fpsr) {
     const auto [type, sign, value] = FPUnpackCV<FPT_FROM>(op, fpcr, fpsr);
     const bool is_althp = mcl::bitsizeof<FPT_TO> == 16 && fpcr.AHP();
@@ -93,4 +94,4 @@ template u32 FPConvert<u32, u64>(u64 op, FPCR fpcr, RoundingMode rounding_mode, 
 template u64 FPConvert<u64, u16>(u16 op, FPCR fpcr, RoundingMode rounding_mode, FPSR& fpsr);
 template u64 FPConvert<u64, u32>(u32 op, FPCR fpcr, RoundingMode rounding_mode, FPSR& fpsr);
 
-}  // namespace Dynarmic::FP
+} // namespace Dynarmic::FP

@@ -234,9 +234,8 @@ bool Filter::CheckMessage(Class log_class, Level level) const {
 }
 
 bool Filter::IsDebug() const {
-    return std::any_of(class_levels.begin(), class_levels.end(), [](const Level& l) {
-        return u8(l) <= u8(Level::Debug);
-    });
+    return std::any_of(class_levels.begin(), class_levels.end(),
+                       [](const Level& l) { return u8(l) <= u8(Level::Debug); });
 }
 
 } // namespace Common::Log

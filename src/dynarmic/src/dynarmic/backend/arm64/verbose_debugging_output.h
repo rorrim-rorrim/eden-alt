@@ -17,11 +17,11 @@
 namespace oaknut {
 struct CodeGenerator;
 struct Label;
-}  // namespace oaknut
+} // namespace oaknut
 
 namespace Dynarmic::IR {
 enum class Type : u16;
-}  // namespace Dynarmic::IR
+} // namespace Dynarmic::IR
 
 namespace Dynarmic::Backend::Arm64 {
 
@@ -30,8 +30,8 @@ struct EmitContext;
 using Vector = std::array<u64, 2>;
 
 #ifdef _MSC_VER
-#    pragma warning(push)
-#    pragma warning(disable : 4324)  // Structure was padded due to alignment specifier
+#pragma warning(push)
+#pragma warning(disable : 4324) // Structure was padded due to alignment specifier
 #endif
 
 enum class HostLocType {
@@ -50,10 +50,11 @@ struct alignas(16) RegisterData {
 };
 
 #ifdef _MSC_VER
-#    pragma warning(pop)
+#pragma warning(pop)
 #endif
 
 void EmitVerboseDebuggingOutput(oaknut::CodeGenerator& code, EmitContext& ctx);
-void PrintVerboseDebuggingOutputLine(RegisterData& reg_data, HostLocType reg_type, size_t reg_index, size_t inst_index, IR::Type inst_type);
+void PrintVerboseDebuggingOutputLine(RegisterData& reg_data, HostLocType reg_type, size_t reg_index,
+                                     size_t inst_index, IR::Type inst_type);
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

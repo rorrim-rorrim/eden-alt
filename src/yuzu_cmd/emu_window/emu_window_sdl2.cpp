@@ -57,11 +57,7 @@ EmuWindow_SDL2::FloatPairNonHFA EmuWindow_SDL2::MouseToTouchPos(s32 touch_x, s32
     SDL_GetWindowSize(render_window, &w, &h);
     const float fx = float(touch_x) / w;
     const float fy = float(touch_y) / h;
-    return {
-        std::clamp<float>(fx, 0.0f, 1.0f),
-        std::clamp<float>(fy, 0.0f, 1.0f),
-        0
-    };
+    return {std::clamp<float>(fx, 0.0f, 1.0f), std::clamp<float>(fy, 0.0f, 1.0f), 0};
 }
 
 void EmuWindow_SDL2::OnMouseButton(u32 button, u8 state, s32 x, s32 y) {
@@ -229,12 +225,9 @@ void EmuWindow_SDL2::WaitEvent() {
     const u32 current_time = SDL_GetTicks();
     if (current_time > last_time + 2000) {
         const auto results = system.GetAndResetPerfStats();
-        const auto title = fmt::format("{} | {}-{} | FPS: {:.0f} ({:.0f}%)",
-                                       Common::g_build_fullname,
-                                       Common::g_scm_branch,
-                                       Common::g_scm_desc,
-                                       results.average_game_fps,
-                                       results.emulation_speed * 100.0);
+        const auto title = fmt::format(
+            "{} | {}-{} | FPS: {:.0f} ({:.0f}%)", Common::g_build_fullname, Common::g_scm_branch,
+            Common::g_scm_desc, results.average_game_fps, results.emulation_speed * 100.0);
         SDL_SetWindowTitle(render_window, title.c_str());
         last_time = current_time;
     }

@@ -46,7 +46,7 @@ IR::U128 SHA1HashUpdate(IREmitter& ir, Vec Vm, Vec Vn, Vec Vd, SHA1HashUpdateFun
 
     return x;
 }
-}  // Anonymous namespace
+} // Anonymous namespace
 
 bool TranslatorVisitor::SHA1C(Vec Vm, Vec Vn, Vec Vd) {
     const IR::U128 result = SHA1HashUpdate(ir, Vm, Vn, Vd, SHAchoose);
@@ -91,11 +91,13 @@ bool TranslatorVisitor::SHA1SU1(Vec Vn, Vec Vd) {
     const IR::U128 n = ir.GetQ(Vn);
 
     // Shuffle down the whole vector and zero out the top 32 bits
-    const IR::U128 shuffled_n = ir.VectorSetElement(32, ir.VectorRotateWholeVectorRight(n, 32), 3, ir.Imm32(0));
+    const IR::U128 shuffled_n =
+        ir.VectorSetElement(32, ir.VectorRotateWholeVectorRight(n, 32), 3, ir.Imm32(0));
     const IR::U128 t = ir.VectorEor(d, shuffled_n);
     const IR::U128 rotated_t = ir.VectorRotateLeft(32, t, 1);
 
-    const IR::U32 low_rotated_t = ir.RotateRight(ir.VectorGetElement(32, rotated_t, 0), ir.Imm8(31));
+    const IR::U32 low_rotated_t =
+        ir.RotateRight(ir.VectorGetElement(32, rotated_t, 0), ir.Imm8(31));
     const IR::U32 high_t = ir.VectorGetElement(32, rotated_t, 3);
     const IR::U128 result = ir.VectorSetElement(32, rotated_t, 3, ir.Eor(low_rotated_t, high_t));
 
@@ -146,4 +148,4 @@ bool TranslatorVisitor::SHA256H2(Vec Vm, Vec Vn, Vec Vd) {
     return true;
 }
 
-}  // namespace Dynarmic::A64
+} // namespace Dynarmic::A64

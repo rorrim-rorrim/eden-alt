@@ -10,8 +10,7 @@
 
 namespace Dynarmic::Backend {
 
-struct ExceptionHandler::Impl final {
-};
+struct ExceptionHandler::Impl final {};
 
 ExceptionHandler::ExceptionHandler() = default;
 ExceptionHandler::~ExceptionHandler() = default;
@@ -29,7 +28,7 @@ void ExceptionHandler::Register(RV64::CodeBlock&, std::size_t) {
     // Do nothing
 }
 #else
-#    error "Invalid architecture"
+#error "Invalid architecture"
 #endif
 
 bool ExceptionHandler::SupportsFastmem() const noexcept {
@@ -40,4 +39,4 @@ void ExceptionHandler::SetFastmemCallback(std::function<FakeCall(u64)>) {
     // Do nothing
 }
 
-}  // namespace Dynarmic::Backend
+} // namespace Dynarmic::Backend

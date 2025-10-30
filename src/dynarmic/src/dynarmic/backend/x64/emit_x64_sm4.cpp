@@ -18,4 +18,4 @@ void EmitX64::EmitSM4AccessSubstitutionBox(EmitContext& ctx, IR::Inst* inst) {
     code.movzx(code.ABI_RETURN.cvt32(), code.ABI_RETURN.cvt8());
 }
 
-}  // namespace Dynarmic::Backend::X64
+} // namespace Dynarmic::Backend::X64

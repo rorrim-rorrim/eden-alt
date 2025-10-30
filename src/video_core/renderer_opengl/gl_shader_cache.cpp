@@ -181,7 +181,8 @@ ShaderCache::ShaderCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
       state_tracker{state_tracker_}, shader_notify{shader_notify_},
       use_asynchronous_shaders{device.UseAsynchronousShaders()},
       strict_context_required{device.StrictContextRequired()},
-      optimize_spirv_output{Settings::values.optimize_spirv_output.GetValue() != Settings::SpirvOptimizeMode::Never},
+      optimize_spirv_output{Settings::values.optimize_spirv_output.GetValue() !=
+                            Settings::SpirvOptimizeMode::Never},
       profile{
           .supported_spirv = 0x00010000,
 

@@ -21,4 +21,4 @@ void DumpDisassembledX64(const void* ptr, size_t size);
  * of strings.
  */
 std::vector<std::string> DisassembleX64(const void* ptr, size_t size);
-}  // namespace Dynarmic::Common
+} // namespace Dynarmic::Common

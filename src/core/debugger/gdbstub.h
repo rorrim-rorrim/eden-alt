@@ -28,7 +28,8 @@ namespace Core {
 class System;
 
 struct GDBStub : public DebuggerFrontend {
-    explicit GDBStub(DebuggerBackend& backend, Core::System& system, Kernel::KProcess* debug_process);
+    explicit GDBStub(DebuggerBackend& backend, Core::System& system,
+                     Kernel::KProcess* debug_process);
     ~GDBStub() override;
     void Connected() override;
     void Stopped(Kernel::KThread* thread) override;

@@ -15,7 +15,7 @@
 
 namespace Dynarmic {
 class ExclusiveMonitor;
-}  // namespace Dynarmic
+} // namespace Dynarmic
 
 namespace Dynarmic {
 namespace A64 {
@@ -30,23 +30,28 @@ enum class Exception {
     UnallocatedEncoding,
     /// An UndefinedFault occured due to executing instruction containing a reserved value
     ReservedValue,
-    /// An unpredictable instruction is to be executed. Implementation-defined behaviour should now happen.
+    /// An unpredictable instruction is to be executed. Implementation-defined behaviour should now
+    /// happen.
     /// This behaviour is up to the user of this library to define.
     /// Note: Constraints on unpredictable behaviour are specified in the ARMv8 ARM.
     UnpredictableInstruction,
     /// A WFI instruction was executed. You may now enter a low-power state. (Hint instruction.)
     WaitForInterrupt,
-    /// A WFE instruction was executed. You may now enter a low-power state if the event register is clear. (Hint instruction.)
+    /// A WFE instruction was executed. You may now enter a low-power state if the event register is
+    /// clear. (Hint instruction.)
     WaitForEvent,
-    /// A SEV instruction was executed. The event register of all PEs should be set. (Hint instruction.)
+    /// A SEV instruction was executed. The event register of all PEs should be set. (Hint
+    /// instruction.)
     SendEvent,
-    /// A SEVL instruction was executed. The event register of the current PE should be set. (Hint instruction.)
+    /// A SEVL instruction was executed. The event register of the current PE should be set. (Hint
+    /// instruction.)
     SendEventLocal,
     /// A YIELD instruction was executed. (Hint instruction.)
     Yield,
     /// A BRK instruction was executed. (Hint instruction.)
     Breakpoint,
-    /// Attempted to execute a code block at an address for which MemoryReadCode returned std::nullopt.
+    /// Attempted to execute a code block at an address for which MemoryReadCode returned
+    /// std::nullopt.
     /// (Intended to be used to emulate memory protection faults.)
     NoExecuteFault,
 };
@@ -86,7 +91,9 @@ struct UserCallbacks {
 
     // All reads through this callback are 4-byte aligned.
     // Memory must be interpreted as little endian.
-    virtual std::optional<std::uint32_t> MemoryReadCode(VAddr vaddr) { return MemoryRead32(vaddr); }
+    virtual std::optional<std::uint32_t> MemoryReadCode(VAddr vaddr) {
+        return MemoryRead32(vaddr);
+    }
 
     // Reads through these callbacks may not be aligned.
     virtual std::uint8_t MemoryRead8(VAddr vaddr) = 0;
@@ -103,17 +110,33 @@ struct UserCallbacks {
     virtual void MemoryWrite128(VAddr vaddr, Vector value) = 0;
 
     // Writes through these callbacks may not be aligned.
-    virtual bool MemoryWriteExclusive8(VAddr /*vaddr*/, std::uint8_t /*value*/, std::uint8_t /*expected*/) { return false; }
-    virtual bool MemoryWriteExclusive16(VAddr /*vaddr*/, std::uint16_t /*value*/, std::uint16_t /*expected*/) { return false; }
-    virtual bool MemoryWriteExclusive32(VAddr /*vaddr*/, std::uint32_t /*value*/, std::uint32_t /*expected*/) { return false; }
-    virtual bool MemoryWriteExclusive64(VAddr /*vaddr*/, std::uint64_t /*value*/, std::uint64_t /*expected*/) { return false; }
-    virtual bool MemoryWriteExclusive128(VAddr /*vaddr*/, Vector /*value*/, Vector /*expected*/) { return false; }
+    virtual bool MemoryWriteExclusive8(VAddr /*vaddr*/, std::uint8_t /*value*/,
+                                       std::uint8_t /*expected*/) {
+        return false;
+    }
+    virtual bool MemoryWriteExclusive16(VAddr /*vaddr*/, std::uint16_t /*value*/,
+                                        std::uint16_t /*expected*/) {
+        return false;
+    }
+    virtual bool MemoryWriteExclusive32(VAddr /*vaddr*/, std::uint32_t /*value*/,
+                                        std::uint32_t /*expected*/) {
+        return false;
+    }
+    virtual bool MemoryWriteExclusive64(VAddr /*vaddr*/, std::uint64_t /*value*/,
+                                        std::uint64_t /*expected*/) {
+        return false;
+    }
+    virtual bool MemoryWriteExclusive128(VAddr /*vaddr*/, Vector /*value*/, Vector /*expected*/) {
+        return false;
+    }
 
     // If this callback returns true, the JIT will assume MemoryRead* callbacks will always
     // return the same value at any point in time for this vaddr. The JIT may use this information
     // in optimizations.
     // A conservative implementation that always returns false is safe.
-    virtual bool IsReadOnlyMemory(VAddr /*vaddr*/) { return false; }
+    virtual bool IsReadOnlyMemory(VAddr /*vaddr*/) {
+        return false;
+    }
 
     /// The interpreter must execute exactly num_instructions starting from PC.
     virtual void InterpreterFallback(VAddr pc, size_t num_instructions) = 0;
@@ -123,7 +146,8 @@ struct UserCallbacks {
 
     virtual void ExceptionRaised(VAddr pc, Exception exception) = 0;
     virtual void DataCacheOperationRaised(DataCacheOperation /*op*/, VAddr /*value*/) {}
-    virtual void InstructionCacheOperationRaised(InstructionCacheOperation /*op*/, VAddr /*value*/) {}
+    virtual void InstructionCacheOperationRaised(InstructionCacheOperation /*op*/,
+                                                 VAddr /*value*/) {}
     virtual void InstructionSynchronizationBarrierRaised() {}
 
     // Timing-related callbacks
@@ -201,7 +225,7 @@ struct UserConfig {
 
     // Minimum size is about 8MiB. Maximum size is about 128MiB (arm64 host) or 2GiB (x64 host).
     // Maximum size is limited by the maximum length of a x86_64 / arm64 jump.
-    std::uint32_t code_cache_size = 128 * 1024 * 1024;  // bytes
+    std::uint32_t code_cache_size = 128 * 1024 * 1024; // bytes
 
     /// Determines if we should detect memory accesses via page_table that straddle are
     /// misaligned. Accesses that straddle page boundaries will fallback to the relevant
@@ -304,5 +328,5 @@ struct UserConfig {
     }
 };
 
-}  // namespace A64
-}  // namespace Dynarmic
+} // namespace A64
+} // namespace Dynarmic

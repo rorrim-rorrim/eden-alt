@@ -8,8 +8,9 @@
 
 #include <fmt/format.h>
 
-[[noreturn]] void assert_terminate_impl(const char* expr_str, fmt::string_view msg, fmt::format_args args);
-template<typename... Ts>
+[[noreturn]] void assert_terminate_impl(const char* expr_str, fmt::string_view msg,
+                                        fmt::format_args args);
+template <typename... Ts>
 [[noreturn]] void assert_terminate(const char* expr_str, fmt::string_view msg, Ts... args) {
     assert_terminate_impl(expr_str, msg, fmt::make_format_args(args...));
 }
@@ -17,17 +18,14 @@ template<typename... Ts>
 // Temporary until MCL is fully removed
 #ifndef ASSERT_MSG
 #define ASSERT_MSG(_a_, ...)                                                                       \
-    ([&]() {                                                                        \
+    ([&]() {                                                                                       \
         if (!(_a_)) [[unlikely]] {                                                                 \
             assert_terminate(#_a_, __VA_ARGS__);                                                   \
         }                                                                                          \
     }())
 #endif
 #ifndef ASSERT_FALSE
-#define ASSERT_FALSE(...)                                                     \
-    ([&]() {                                                                  \
-        assert_terminate("false", __VA_ARGS__);                               \
-    }())
+#define ASSERT_FALSE(...) ([&]() { assert_terminate("false", __VA_ARGS__); }())
 #endif
 
 #ifndef ASSERT

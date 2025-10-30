@@ -15,8 +15,8 @@
 namespace Dynarmic::Backend::Arm64 {
 
 #ifdef _MSC_VER
-#    pragma warning(push)
-#    pragma warning(disable : 4324)  // Structure was padded due to alignment specifier
+#pragma warning(push)
+#pragma warning(disable : 4324) // Structure was padded due to alignment specifier
 #endif
 
 constexpr size_t SpillCount = 64;
@@ -44,9 +44,9 @@ struct alignas(16) StackLayout {
 };
 
 #ifdef _MSC_VER
-#    pragma warning(pop)
+#pragma warning(pop)
 #endif
 
 static_assert(sizeof(StackLayout) % 16 == 0);
 
-}  // namespace Dynarmic::Backend::Arm64
+} // namespace Dynarmic::Backend::Arm64

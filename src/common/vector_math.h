@@ -41,7 +41,7 @@ public:
         return Vec2{f, f};
     }
 
-    [[nodiscard]] constexpr Vec2<decltype(T{} + T{})> operator+(const Vec2& other) const {
+    [[nodiscard]] constexpr Vec2<decltype(T{} + T{})> operator+(const Vec2 & other) const {
         return {x + other.x, y + other.y};
     }
     constexpr Vec2& operator+=(const Vec2& other) {
@@ -49,7 +49,7 @@ public:
         y += other.y;
         return *this;
     }
-    [[nodiscard]] constexpr Vec2<decltype(T{} - T{})> operator-(const Vec2& other) const {
+    [[nodiscard]] constexpr Vec2<decltype(T{} - T{})> operator-(const Vec2 & other) const {
         return {x - other.x, y - other.y};
     }
     constexpr Vec2& operator-=(const Vec2& other) {
@@ -62,12 +62,12 @@ public:
     [[nodiscard]] constexpr Vec2<std::enable_if_t<std::is_signed_v<U>, U>> operator-() const {
         return {-x, -y};
     }
-    [[nodiscard]] constexpr Vec2<decltype(T{} * T{})> operator*(const Vec2& other) const {
+    [[nodiscard]] constexpr Vec2<decltype(T{} * T{})> operator*(const Vec2 & other) const {
         return {x * other.x, y * other.y};
     }
 
     template <typename V>
-    [[nodiscard]] constexpr Vec2<decltype(T{} * V{})> operator*(const V& f) const {
+    [[nodiscard]] constexpr Vec2<decltype(T{} * V{})> operator*(const V & f) const {
         using TV = decltype(T{} * V{});
         using C = std::common_type_t<T, V>;
 
@@ -84,7 +84,7 @@ public:
     }
 
     template <typename V>
-    [[nodiscard]] constexpr Vec2<decltype(T{} / V{})> operator/(const V& f) const {
+    [[nodiscard]] constexpr Vec2<decltype(T{} / V{})> operator/(const V & f) const {
         using TV = decltype(T{} / V{});
         using C = std::common_type_t<T, V>;
 
@@ -200,7 +200,7 @@ public:
         return Vec3(f, f, f);
     }
 
-    [[nodiscard]] constexpr Vec3<decltype(T{} + T{})> operator+(const Vec3& other) const {
+    [[nodiscard]] constexpr Vec3<decltype(T{} + T{})> operator+(const Vec3 & other) const {
         return {x + other.x, y + other.y, z + other.z};
     }
 
@@ -211,7 +211,7 @@ public:
         return *this;
     }
 
-    [[nodiscard]] constexpr Vec3<decltype(T{} - T{})> operator-(const Vec3& other) const {
+    [[nodiscard]] constexpr Vec3<decltype(T{} - T{})> operator-(const Vec3 & other) const {
         return {x - other.x, y - other.y, z - other.z};
     }
 
@@ -227,12 +227,12 @@ public:
         return {-x, -y, -z};
     }
 
-    [[nodiscard]] constexpr Vec3<decltype(T{} * T{})> operator*(const Vec3& other) const {
+    [[nodiscard]] constexpr Vec3<decltype(T{} * T{})> operator*(const Vec3 & other) const {
         return {x * other.x, y * other.y, z * other.z};
     }
 
     template <typename V>
-    [[nodiscard]] constexpr Vec3<decltype(T{} * V{})> operator*(const V& f) const {
+    [[nodiscard]] constexpr Vec3<decltype(T{} * V{})> operator*(const V & f) const {
         using TV = decltype(T{} * V{});
         using C = std::common_type_t<T, V>;
 
@@ -249,7 +249,7 @@ public:
         return *this;
     }
     template <typename V>
-    [[nodiscard]] constexpr Vec3<decltype(T{} / V{})> operator/(const V& f) const {
+    [[nodiscard]] constexpr Vec3<decltype(T{} / V{})> operator/(const V & f) const {
         using TV = decltype(T{} / V{});
         using C = std::common_type_t<T, V>;
 
@@ -369,7 +369,9 @@ public:
 // _DEFINE_SWIZZLER2 defines a single such function, DEFINE_SWIZZLER2 defines all of them for all
 // component names (x<->r) and permutations (xy<->yx)
 #define _DEFINE_SWIZZLER2(a, b, name)                                                              \
-    [[nodiscard]] constexpr Vec2<T> name() const { return Vec2<T>(a, b); }
+    [[nodiscard]] constexpr Vec2<T> name() const {                                                 \
+        return Vec2<T>(a, b);                                                                      \
+    }
 #define DEFINE_SWIZZLER2(a, b, a2, b2, a3, b3, a4, b4)                                             \
     _DEFINE_SWIZZLER2(a, b, a##b);                                                                 \
     _DEFINE_SWIZZLER2(a, b, a2##b2);                                                               \
@@ -437,7 +439,7 @@ public:
         return Vec4(f, f, f, f);
     }
 
-    [[nodiscard]] constexpr Vec4<decltype(T{} + T{})> operator+(const Vec4& other) const {
+    [[nodiscard]] constexpr Vec4<decltype(T{} + T{})> operator+(const Vec4 & other) const {
         return {x + other.x, y + other.y, z + other.z, w + other.w};
     }
 
@@ -449,7 +451,7 @@ public:
         return *this;
     }
 
-    [[nodiscard]] constexpr Vec4<decltype(T{} - T{})> operator-(const Vec4& other) const {
+    [[nodiscard]] constexpr Vec4<decltype(T{} - T{})> operator-(const Vec4 & other) const {
         return {x - other.x, y - other.y, z - other.z, w - other.w};
     }
 
@@ -466,12 +468,12 @@ public:
         return {-x, -y, -z, -w};
     }
 
-    [[nodiscard]] constexpr Vec4<decltype(T{} * T{})> operator*(const Vec4& other) const {
+    [[nodiscard]] constexpr Vec4<decltype(T{} * T{})> operator*(const Vec4 & other) const {
         return {x * other.x, y * other.y, z * other.z, w * other.w};
     }
 
     template <typename V>
-    [[nodiscard]] constexpr Vec4<decltype(T{} * V{})> operator*(const V& f) const {
+    [[nodiscard]] constexpr Vec4<decltype(T{} * V{})> operator*(const V & f) const {
         using TV = decltype(T{} * V{});
         using C = std::common_type_t<T, V>;
 
@@ -490,7 +492,7 @@ public:
     }
 
     template <typename V>
-    [[nodiscard]] constexpr Vec4<decltype(T{} / V{})> operator/(const V& f) const {
+    [[nodiscard]] constexpr Vec4<decltype(T{} / V{})> operator/(const V & f) const {
         using TV = decltype(T{} / V{});
         using C = std::common_type_t<T, V>;
 
@@ -562,7 +564,9 @@ public:
 // DEFINE_SWIZZLER2_COMP2 defines two component functions for all component names (x<->r) and
 // permutations (xy<->yx)
 #define _DEFINE_SWIZZLER2(a, b, name)                                                              \
-    [[nodiscard]] constexpr Vec2<T> name() const { return Vec2<T>(a, b); }
+    [[nodiscard]] constexpr Vec2<T> name() const {                                                 \
+        return Vec2<T>(a, b);                                                                      \
+    }
 #define DEFINE_SWIZZLER2_COMP1(a, a2)                                                              \
     _DEFINE_SWIZZLER2(a, a, a##a);                                                                 \
     _DEFINE_SWIZZLER2(a, a, a2##a2)
@@ -587,7 +591,9 @@ public:
 #undef _DEFINE_SWIZZLER2
 
 #define _DEFINE_SWIZZLER3(a, b, c, name)                                                           \
-    [[nodiscard]] constexpr Vec3<T> name() const { return Vec3<T>(a, b, c); }
+    [[nodiscard]] constexpr Vec3<T> name() const {                                                 \
+        return Vec3<T>(a, b, c);                                                                   \
+    }
 #define DEFINE_SWIZZLER3_COMP1(a, a2)                                                              \
     _DEFINE_SWIZZLER3(a, a, a, a##a##a);                                                           \
     _DEFINE_SWIZZLER3(a, a, a, a2##a2##a2)
@@ -619,7 +625,7 @@ public:
 };
 
 template <typename T, typename V>
-[[nodiscard]] constexpr Vec4<decltype(V{} * T{})> operator*(const V& f, const Vec4<T>& vec) {
+[[nodiscard]] constexpr Vec4<decltype(V{} * T{})> operator*(const V & f, const Vec4<T>& vec) {
     using TV = decltype(V{} * T{});
     using C = std::common_type_t<T, V>;
 
@@ -680,9 +686,8 @@ template <typename X>
 
 // linear interpolation via int: 0=begin, base=end
 template <typename X, int base>
-[[nodiscard]] constexpr decltype((X{} * int{} + X{} * int{}) / base) LerpInt(const X& begin,
-                                                                             const X& end,
-                                                                             const int t) {
+[[nodiscard]] constexpr decltype((X{} * int{} + X{} * int{}) /
+                                 base) LerpInt(const X& begin, const X& end, const int t) {
     return (begin * (base - t) + end * t) / base;
 }
 

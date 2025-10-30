@@ -23,8 +23,7 @@ namespace Service::LDN {
 
 IUserLocalCommunicationService::IUserLocalCommunicationService(Core::System& system_)
     : ServiceFramework{system_, "IUserLocalCommunicationService"},
-      service_context{system, "IUserLocalCommunicationService"},
-      lan_discovery{} {
+      service_context{system, "IUserLocalCommunicationService"}, lan_discovery{} {
     // clang-format off
         static const FunctionInfo functions[] = {
             {0, D<&IUserLocalCommunicationService::GetState>, "GetState"},

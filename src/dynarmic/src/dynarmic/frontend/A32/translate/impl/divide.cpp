@@ -25,7 +25,7 @@ bool DivideOperation(TranslatorVisitor& v, Cond cond, Reg d, Reg m, Reg n, Divid
     v.ir.SetRegister(d, result);
     return true;
 }
-}  // Anonymous namespace
+} // Anonymous namespace
 
 // SDIV<c> <Rd>, <Rn>, <Rm>
 bool TranslatorVisitor::arm_SDIV(Cond cond, Reg d, Reg m, Reg n) {
@@ -37,4 +37,4 @@ bool TranslatorVisitor::arm_UDIV(Cond cond, Reg d, Reg m, Reg n) {
     return DivideOperation(*this, cond, d, m, n, &IREmitter::UnsignedDiv);
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

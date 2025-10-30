@@ -8,15 +8,16 @@
 
 #include <vector>
 
-#include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_count.hpp>
 #include <mcl/bit/bit_field.hpp>
+#include "dynarmic/common/assert.h"
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
 
 namespace Dynarmic::A32 {
 
-static bool TableLookup(TranslatorVisitor& v, bool is_vtbl, bool D, size_t Vn, size_t Vd, size_t len, bool N, bool M, size_t Vm) {
+static bool TableLookup(TranslatorVisitor& v, bool is_vtbl, bool D, size_t Vn, size_t Vd,
+                        size_t len, bool N, bool M, size_t Vm) {
     const size_t length = len + 1;
     const auto d = ToVector(false, Vd, D);
     const auto m = ToVector(false, Vm, M);
@@ -41,7 +42,8 @@ static bool TableLookup(TranslatorVisitor& v, bool is_vtbl, bool D, size_t Vn, s
     return true;
 }
 
-bool TranslatorVisitor::asimd_VEXT(bool D, size_t Vn, size_t Vd, Imm<4> imm4, bool N, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VEXT(bool D, size_t Vn, size_t Vd, Imm<4> imm4, bool N, bool Q,
+                                   bool M, size_t Vm) {
     if (Q && (mcl::bit::get_bit<0>(Vd) || mcl::bit::get_bit<0>(Vn) || mcl::bit::get_bit<0>(Vm))) {
         return UndefinedInstruction();
     }
@@ -57,21 +59,25 @@ bool TranslatorVisitor::asimd_VEXT(bool D, size_t Vn, size_t Vd, Imm<4> imm4, bo
 
     const auto reg_n = ir.GetVector(n);
     const auto reg_m = ir.GetVector(m);
-    const auto result = Q ? ir.VectorExtract(reg_n, reg_m, position) : ir.VectorExtractLower(reg_n, reg_m, position);
+    const auto result = Q ? ir.VectorExtract(reg_n, reg_m, position)
+                          : ir.VectorExtractLower(reg_n, reg_m, position);
 
     ir.SetVector(d, result);
     return true;
 }
 
-bool TranslatorVisitor::asimd_VTBL(bool D, size_t Vn, size_t Vd, size_t len, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VTBL(bool D, size_t Vn, size_t Vd, size_t len, bool N, bool M,
+                                   size_t Vm) {
     return TableLookup(*this, true, D, Vn, Vd, len, N, M, Vm);
 }
 
-bool TranslatorVisitor::asimd_VTBX(bool D, size_t Vn, size_t Vd, size_t len, bool N, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VTBX(bool D, size_t Vn, size_t Vd, size_t len, bool N, bool M,
+                                   size_t Vm) {
     return TableLookup(*this, false, D, Vn, Vd, len, N, M, Vm);
 }
 
-bool TranslatorVisitor::asimd_VDUP_scalar(bool D, Imm<4> imm4, size_t Vd, bool Q, bool M, size_t Vm) {
+bool TranslatorVisitor::asimd_VDUP_scalar(bool D, Imm<4> imm4, size_t Vd, bool Q, bool M,
+                                          size_t Vm) {
     if (Q && mcl::bit::get_bit<0>(Vd)) {
         return UndefinedInstruction();
     }
@@ -93,4 +99,4 @@ bool TranslatorVisitor::asimd_VDUP_scalar(bool D, Imm<4> imm4, size_t Vd, bool Q
     return true;
 }
 
-}  // namespace Dynarmic::A32
+} // namespace Dynarmic::A32

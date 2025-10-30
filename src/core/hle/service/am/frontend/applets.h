@@ -10,8 +10,8 @@
 #include <queue>
 
 #include "common/swap.h"
-#include "core/hle/service/am/applet.h"
 #include "core/frontend/applets/net_connect.h"
+#include "core/hle/service/am/applet.h"
 
 union Result;
 

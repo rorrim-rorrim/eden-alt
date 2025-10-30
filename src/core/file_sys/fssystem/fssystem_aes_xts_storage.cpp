@@ -60,7 +60,8 @@ size_t AesXtsStorage::Read(u8* buffer, size_t size, size_t offset) const {
 
     // Handle any unaligned data before the start; then read said data into a local pooled
     // buffer that resides on the stack, do not use the global memory allocator this is a
-    // very tiny (512 bytes) buffer so should be fine to keep on the stack (Nca::XtsBlockSize wide buffer)
+    // very tiny (512 bytes) buffer so should be fine to keep on the stack (Nca::XtsBlockSize wide
+    // buffer)
     size_t processed_size = 0;
     if ((offset % m_block_size) != 0) {
         // Decrypt into our pooled stack buffer (max bound = NCA::XtsBlockSize)
@@ -74,7 +75,8 @@ size_t AesXtsStorage::Read(u8* buffer, size_t size, size_t offset) const {
             std::fill_n(tmp_buf.begin(), skip_size, u8{0});
         std::memcpy(tmp_buf.data() + skip_size, buffer, data_size);
         m_cipher->SetIV(ctr);
-        m_cipher->Transcode(tmp_buf.data(), m_block_size, tmp_buf.data(), Core::Crypto::Op::Decrypt);
+        m_cipher->Transcode(tmp_buf.data(), m_block_size, tmp_buf.data(),
+                            Core::Crypto::Op::Decrypt);
         std::memcpy(buffer, tmp_buf.data() + skip_size, data_size);
 
         AddCounter(ctr.data(), IvSize, 1);
@@ -84,10 +86,10 @@ size_t AesXtsStorage::Read(u8* buffer, size_t size, size_t offset) const {
 
     // Decrypt aligned chunks.
     auto* cur = buffer + processed_size;
-    for (size_t remaining = size - processed_size; remaining > 0; ) {
+    for (size_t remaining = size - processed_size; remaining > 0;) {
         auto const cur_size = (std::min)(m_block_size, remaining);
         m_cipher->SetIV(ctr);
-        auto* char_cur = reinterpret_cast<char*>(cur); //same repr cur - diff signedness
+        auto* char_cur = reinterpret_cast<char*>(cur); // same repr cur - diff signedness
         m_cipher->Transcode(char_cur, cur_size, char_cur, Core::Crypto::Op::Decrypt);
         remaining -= cur_size;
         cur += cur_size;

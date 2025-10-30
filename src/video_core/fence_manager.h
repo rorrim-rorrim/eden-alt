@@ -74,11 +74,11 @@ public:
     void SignalFence(std::function<void()>&& func) {
         const bool delay_fence = Settings::IsGPULevelHigh();
 
-        #ifdef __ANDROID__
+#ifdef __ANDROID__
         const bool use_optimized = Settings::values.early_release_fences.GetValue();
-        #else
+#else
         constexpr bool use_optimized = false;
-        #endif
+#endif
 
         const bool should_flush = ShouldFlush();
         CommitAsyncFlushes();
