@@ -10,6 +10,7 @@
 #include <fmt/ranges.h>
 
 #include "common/common_types.h"
+#include "shader_recompiler/exception.h"
 
 namespace Shader::IR {
 
