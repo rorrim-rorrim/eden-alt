@@ -221,7 +221,7 @@ std::unique_lock<std::mutex> RealVfsFilesystem::RefreshReference(const std::stri
     // Reinsert into list.
     this->InsertReferenceIntoListLocked(reference);
 
-    return std::move(lk);
+    return lk;
 }
 
 void RealVfsFilesystem::DropReference(std::unique_ptr<FileReference>&& reference) {
