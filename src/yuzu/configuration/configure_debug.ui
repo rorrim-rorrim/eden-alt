@@ -368,16 +368,6 @@
            </property>
           </spacer>
          </item>
-         <item row="2" column="0">
-          <widget class="QCheckBox" name="enable_shader_feedback">
-           <property name="toolTip">
-            <string>When checked, yuzu will log statistics about the compiled pipeline cache</string>
-           </property>
-           <property name="text">
-            <string>Enable Shader Feedback</string>
-           </property>
-          </widget>
-         </item>
          <item row="5" column="0">
           <widget class="QCheckBox" name="disable_buffer_reorder">
            <property name="toolTip">
@@ -570,7 +560,6 @@
   <tabstop>open_log_button</tabstop>
   <tabstop>homebrew_args_edit</tabstop>
   <tabstop>enable_graphics_debugging</tabstop>
-  <tabstop>enable_shader_feedback</tabstop>
   <tabstop>enable_nsight_aftermath</tabstop>
   <tabstop>fs_access_log</tabstop>
   <tabstop>reporting_services</tabstop>
