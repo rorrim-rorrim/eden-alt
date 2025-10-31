@@ -221,7 +221,7 @@ std::unique_lock<std::mutex> RealVfsFilesystem::RefreshReference(const std::stri
     // Reinsert into list.
     this->InsertReferenceIntoListLocked(reference);
 
-    return lk;
+    return std::move(lk);
 }
 
 void RealVfsFilesystem::DropReference(std::unique_ptr<FileReference>&& reference) {
@@ -275,7 +275,9 @@ void RealVfsFilesystem::InsertReferenceIntoListLocked(FileReference& reference) 
         // Unlink from the list it currently belongs to.
         if (reference.file) {
             open_references.erase(open_references.iterator_to(reference));
-        } else {
+        }
+
+        if (reference.IsLinked()) {
             closed_references.erase(closed_references.iterator_to(reference));
         }
     }
@@ -296,7 +298,9 @@ void RealVfsFilesystem::RemoveReferenceFromListLocked(FileReference& reference) 
     // Erase from the correct list to avoid cross-list corruption.
     if (reference.file) {
         open_references.erase(open_references.iterator_to(reference));
-    } else {
+    }
+
+    if(reference.IsLinked()) {
         closed_references.erase(closed_references.iterator_to(reference));
     }
 }
