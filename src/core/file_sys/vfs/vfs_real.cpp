@@ -272,7 +272,11 @@ void RealVfsFilesystem::EvictSingleReferenceLocked() {
 void RealVfsFilesystem::InsertReferenceIntoListLocked(FileReference& reference) {
     // Ensure the node is not already linked to any list before inserting.
     if (reference.IsLinked()) {
-        open_references.erase(open_references.iterator_to(reference));
+        // Unlink from the list it currently belongs to.
+        if (reference.file) {
+            open_references.erase(open_references.iterator_to(reference));
+        }
+
         if (reference.IsLinked()) {
             closed_references.erase(closed_references.iterator_to(reference));
         }
@@ -291,9 +295,12 @@ void RealVfsFilesystem::RemoveReferenceFromListLocked(FileReference& reference) 
         return;
     }
 
-    // Erase from both lists defensively. The second erase will be a no-op if already unlinked.
-    open_references.erase(open_references.iterator_to(reference));
-    if (reference.IsLinked()) {
+    // Erase from the correct list to avoid cross-list corruption.
+    if (reference.file) {
+        open_references.erase(open_references.iterator_to(reference));
+    }
+
+    if(reference.IsLinked()) {
         closed_references.erase(closed_references.iterator_to(reference));
     }
 }
