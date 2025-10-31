@@ -1292,7 +1292,6 @@ Result KPageTableBase::UnmapCodeMemory(KProcessAddress dst_address, KProcessAddr
                                  KMemoryPermission::None, KMemoryAttribute::All,
                                  KMemoryAttribute::Locked));
 
-    // WIP 2 step verification:
     // Check one page to determine the state
     KMemoryState dst_state;
     size_t num_dst_allocator_blocks_first;

@@ -35,17 +35,10 @@ Result SetProcessMemoryPermission(Core::System& system, Handle process_handle, u
               "called, process_handle={:#X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
               process_handle, address, size, perm);
 
-    // Workaround for Skyline 32-bit bug
-    if (size == 0) {
-        LOG_DEBUG(Kernel_SVC, "called. size=0, bypassing for now.");
-        R_RETURN(ResultSuccess);
-    }
-
     // Validate the address/size.
     R_UNLESS(Common::IsAligned(address, PageSize), ResultInvalidAddress);
     R_UNLESS(Common::IsAligned(size, PageSize), ResultInvalidSize);
-    // Removed for the workaround, temp. (DO NOT MERGE)
-    // R_UNLESS(size > 0, ResultInvalidSize);
+    R_UNLESS(size > 0, ResultInvalidSize);
     R_UNLESS((address < address + size), ResultInvalidCurrentMemory);
     R_UNLESS(address == static_cast<uint64_t>(address), ResultInvalidCurrentMemory);
     R_UNLESS(size == static_cast<uint64_t>(size), ResultInvalidCurrentMemory);
@@ -147,12 +140,6 @@ Result MapProcessCodeMemory(Core::System& system, Handle process_handle, u64 dst
               "src_address=0x{:016X}, size=0x{:016X}",
               process_handle, dst_address, src_address, size);
 
-    // Workaround for Skyline 32Bit bug
-    if (size == 0) {
-        LOG_WARNING(Kernel_SVC, "called. size=0, bypassing for now.");
-        R_RETURN(ResultSuccess);
-    }
-
     if (!Common::Is4KBAligned(src_address)) {
         LOG_ERROR(Kernel_SVC, "src_address is not page-aligned (src_address=0x{:016X}).",
                   src_address);
@@ -165,8 +152,7 @@ Result MapProcessCodeMemory(Core::System& system, Handle process_handle, u64 dst
         R_THROW(ResultInvalidAddress);
     }
 
-    // "size == 0 ||" removed for the workaround, temp. (DO NOT MERGE)
-    if (!Common::Is4KBAligned(size)) {
+    if (size == 0 || !Common::Is4KBAligned(size)) {
         LOG_ERROR(Kernel_SVC, "Size is zero or not page-aligned (size=0x{:016X})", size);
         R_THROW(ResultInvalidSize);
     }
@@ -214,12 +200,6 @@ Result UnmapProcessCodeMemory(Core::System& system, Handle process_handle, u64 d
               "size=0x{:016X}",
               process_handle, dst_address, src_address, size);
 
-    // Workaround for Skyline 32Bit bug
-    if (size == 0) {
-        LOG_WARNING(Kernel_SVC, "called. size=0, bypassing for now.");
-        R_RETURN(ResultSuccess);
-    }
-
     if (!Common::Is4KBAligned(dst_address)) {
         LOG_ERROR(Kernel_SVC, "dst_address is not page-aligned (dst_address=0x{:016X}).",
                   dst_address);
@@ -232,8 +212,7 @@ Result UnmapProcessCodeMemory(Core::System& system, Handle process_handle, u64 d
         R_THROW(ResultInvalidAddress);
     }
 
-    // "size == 0 ||" removed for the workaround, temp. (DO NOT MERGE)
-    if (!Common::Is4KBAligned(size)) {
+    if (size == 0 || !Common::Is4KBAligned(size)) {
         LOG_ERROR(Kernel_SVC, "Size is zero or not page-aligned (size=0x{:016X}).", size);
         R_THROW(ResultInvalidSize);
     }
