@@ -1,6 +1,7 @@
-<!--
-SPDX-FileCopyrightText: 2018 yuzu Emulator Project
-SPDX-License-Identifier: GPL-2.0-or-later
--->
+# Contributing
 
-**The Contributor's Guide has moved to [the yuzu wiki](https://github.com/yuzu-emu/yuzu/wiki/Contributing).**
+Want to contribute to Eden? That's awesome!
+
+- [Get started by building the emulator](./docs/Build.md)
+- [Make an account on the git](./docs/SIGNUP.md)
+- [Read the documentation](./docs/README.md)

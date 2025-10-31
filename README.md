@@ -82,7 +82,7 @@ Any donations received will go towards things such as:
 * Additional hardware (e.g. GPUs as needed to improve rendering support, other peripherals to add support for, etc.)
 * CI Infrastructure
 
-If you would prefer to support us in a different way, please join our [Discord](https://discord.gg/edenemu) and talk to Camille or any of our other developers.
+If you would prefer to support us in a different way, please join our [Discord](https://discord.gg/kXAmGCXBGD) and talk to Camille or any of our other developers.
 
 ## License
 
