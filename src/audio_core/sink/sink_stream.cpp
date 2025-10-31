@@ -52,10 +52,8 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
                 ccoeff[u32(Channels::FrontRight)],
             };
 
-            const f32 left  = rcoeff[0] * tcoeff[0] + rcoeff[2] * tcoeff[1] +
-                              rcoeff[3] * tcoeff[2] + rcoeff[1] * tcoeff[3];
-            const f32 right = rcoeff[5] * tcoeff[0] + rcoeff[2] * tcoeff[1] +
-                              rcoeff[3] * tcoeff[2] + rcoeff[4] * tcoeff[3];
+            const f32 left  = rcoeff[0] * tcoeff[0] + rcoeff[2] * tcoeff[1] + rcoeff[3] * tcoeff[2] + rcoeff[1] * tcoeff[3];
+            const f32 right = rcoeff[5] * tcoeff[0] + rcoeff[2] * tcoeff[1] + rcoeff[3] * tcoeff[2] + rcoeff[4] * tcoeff[3];
 
             samples[w_offs + 0] = s16(std::clamp(s32(left * volume),  min, max));
             samples[w_offs + 1] = s16(std::clamp(s32(right * volume), min, max));
