@@ -867,7 +867,14 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
     for (size_t index_a = 0; index_a < VideoCore::Surface::MaxPixelFormat; index_a++) {
         const auto image_format = static_cast<PixelFormat>(index_a);
         if (IsPixelFormatASTC(image_format) && !device.IsOptimalAstcSupported()) {
-            view_formats[index_a].push_back(VK_FORMAT_A8B8G8R8_UNORM_PACK32);
+            auto& formats = view_formats[index_a];
+            const auto append_unique = [&](VkFormat vk_format) {
+                if (std::find(formats.begin(), formats.end(), vk_format) == formats.end()) {
+                    formats.push_back(vk_format);
+                }
+            };
+            append_unique(VK_FORMAT_A8B8G8R8_UNORM_PACK32);
+            append_unique(VK_FORMAT_R8G8B8A8_UNORM);
         }
         for (size_t index_b = 0; index_b < VideoCore::Surface::MaxPixelFormat; index_b++) {
             const auto view_format = static_cast<PixelFormat>(index_b);
@@ -1545,8 +1552,10 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
             Settings::AstcRecompression::Uncompressed) {
         const auto& device = runtime->device.GetLogical();
         for (s32 level = 0; level < info.resources.levels; ++level) {
+            // The ASTC compute decoder writes to an rgba8 storage image; expose an RGBA view so the
+            // descriptor format matches the shader declaration.
             storage_image_views[level] =
-                MakeStorageView(device, level, *original_image, VK_FORMAT_A8B8G8R8_UNORM_PACK32);
+                MakeStorageView(device, level, *original_image, VK_FORMAT_R8G8B8A8_UNORM);
         }
     }
 }
@@ -1857,8 +1866,14 @@ VkImageView Image::StorageImageView(s32 level) noexcept {
     if (!view) {
         const auto format_info =
             MaxwellToVK::SurfaceFormat(runtime->device, FormatType::Optimal, true, info.format);
+        VkFormat storage_format = format_info.format;
+        if (IsPixelFormatASTC(info.format) && !runtime->device.IsOptimalAstcSupported() &&
+            Settings::values.astc_recompression.GetValue() ==
+                Settings::AstcRecompression::Uncompressed) {
+            storage_format = VK_FORMAT_R8G8B8A8_UNORM;
+        }
         view = MakeStorageView(runtime->device.GetLogical(), level, *(this->*current_image),
-                               format_info.format);
+                               storage_format);
     }
     return *view;
 }
@@ -2029,15 +2044,24 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
         }
     }
     const auto format_info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
-    if (ImageUsageFlags(format_info, format) != image.UsageFlags()) {
-        LOG_WARNING(Render_Vulkan,
-                    "Image view format {} has different usage flags than image format {}", format,
-                    image.info.format);
+    // Ensure the view only exposes usage flags also supported by the backing image.
+    const VkImageUsageFlags view_usage = ImageUsageFlags(format_info, format);
+    const VkImageUsageFlags image_usage = image.UsageFlags();
+    const VkImageUsageFlags unsupported_usage = view_usage & ~image_usage;
+    const VkImageUsageFlags sanitized_usage = view_usage & image_usage;
+    ASSERT_MSG(sanitized_usage != 0,
+               "No compatible usage flags between view format {} and image format {}", format,
+               image.info.format);
+    if (unsupported_usage != 0) {
+        LOG_DEBUG(Render_Vulkan,
+                  "Image view format {} requested usage flags {:08X} not supported by image format "
+                  "{}; dropping them",
+                  format, unsupported_usage, image.info.format);
     }
     const VkImageViewUsageCreateInfo image_view_usage{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO,
         .pNext = nullptr,
-        .usage = ImageUsageFlags(format_info, format),
+        .usage = sanitized_usage,
     };
     const VkImageViewCreateInfo create_info{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
