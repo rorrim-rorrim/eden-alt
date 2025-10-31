@@ -245,9 +245,9 @@ u64 SinkStream::GetExpectedPlayedSampleCount() {
 
 void SinkStream::WaitFreeSpace(std::stop_token stop_token) {
     std::unique_lock lk{release_mutex};
-    release_cv.wait_for(lk, std::chrono::milliseconds(5),
+    release_cv.wait_for(lk, std::chrono::milliseconds(10),
                         [this]() { return paused || queued_buffers < max_queue_size; });
-    if (queued_buffers > max_queue_size + 3) {
+    if (queued_buffers > max_queue_size + 10) {
         release_cv.wait(lk, stop_token, [this] {
             return paused || queued_buffers < max_queue_size;
         });
