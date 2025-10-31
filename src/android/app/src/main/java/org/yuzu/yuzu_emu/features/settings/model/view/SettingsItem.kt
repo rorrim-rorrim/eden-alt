@@ -199,7 +199,7 @@ abstract class SettingsItem(
             put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_TRANSFORM_FEEDBACK,
-                    titleId = R.string.shader_demtransform_feedbackote_to_helper_invocation,
+                    titleId = R.string.transform_feedback,
                     descriptionId = 0
                 )
             )
