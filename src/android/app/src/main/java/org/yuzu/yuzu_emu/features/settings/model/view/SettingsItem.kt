@@ -169,6 +169,139 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_SHADER_ATOMIC_INT64,
+                    titleId = R.string.shader_atomic_int64,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_SHADER_DEMOTE_TO_HELPER_INVOCATION,
+                    titleId = R.string.shader_demote_to_helper_invocation,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_SHADER_DEMOTE_TO_HELPER_INVOCATION,
+                    titleId = R.string.shader_demote_to_helper_invocation,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_SUBGROUP_SIZE_CONTROL,
+                    titleId = R.string.subgroup_size_control,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_TRANSFORM_FEEDBACK,
+                    titleId = R.string.shader_demtransform_feedbackote_to_helper_invocation,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_VERTEX_INPUT_DYNAMIC_STATE,
+                    titleId = R.string.vertex_input_dynamic_state,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_PIPELINE_EXECUTABLE_PROPERTIES,
+                    titleId = R.string.pipeline_executable_properties,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_PIPELINE_EXECUTABLE_PROPERTIES,
+                    titleId = R.string.pipeline_executable_properties,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_WORKGROUP_MEMORY_EXPLICIT_LAYOUT,
+                    titleId = R.string.workgroup_memory_explicit_layout,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_CUSTOM_BORDER_CONTROL,
+                    titleId = R.string.custom_border_color,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_DEPTH_BIAS_CONTROL,
+                    titleId = R.string.depth_bias_control,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_DEPTH_CLIP_CONTROL,
+                    titleId = R.string.depth_clip_control,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_SHADER_FLOAT16_INT8,
+                    titleId = R.string.shader_float16_int8,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_UNIFORM_BUFFER_STANDARD_LAYOUT,
+                    titleId = R.string.uniform_buffer_standard_layout,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_VARIABLE_POINTER,
+                    titleId = R.string.variable_pointer,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_HOST_QUERY_RESET,
+                    titleId = R.string.host_query_reset,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_BIT8_STORAGE,
+                    titleId = R.string.bit8_storage,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_TIMELINE_SEMAPHORE,
+                    titleId = R.string.timeline_semaphore,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_SPIRV_1_4,
+                    titleId = R.string.spirv_1_4,
+                    descriptionId = 0
+                )
+            )
+            put(
                 SliderSetting(
                     ShortSetting.RENDERER_SPEED_LIMIT,
                     titleId = R.string.frame_limit_slider,

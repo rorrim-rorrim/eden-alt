@@ -324,31 +324,74 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Improves rendering of transparency effects in specific games."));
 
     // Renderer (Extensions)
-    INSERT(Settings,
-           dyna_state,
-           tr("Extended Dynamic State"),
-           tr("Controls the number of features that can be used in Extended Dynamic State.\nHigher numbers allow for more features and can increase performance, but may cause issues.\nThe default value is per-system."));
-
-    INSERT(Settings,
-           provoking_vertex,
-           tr("Provoking Vertex"),
-           tr("Improves lighting and vertex handling in some games.\n"
-              "Only Vulkan 1.0+ devices support this extension."));
-
-    INSERT(Settings,
-           descriptor_indexing,
-           tr("Descriptor Indexing"),
-           tr("Improves texture & buffer handling and the Maxwell translation layer.\n"
-              "Some Vulkan 1.1+ and all 1.2+ devices support this extension."));
-
+    INSERT(Settings, dyna_state,
+        tr("Extended Dynamic State"),
+        tr("Controls the number of features that can be used in Extended Dynamic State.\nHigher numbers allow for more features and can increase performance, but may cause issues.\nThe default value is per-system."));
+    INSERT(Settings, sample_shading_fraction,
+        tr("Sample Shading"),
+        tr("Allows the fragment shader to execute per sample in a multi-sampled fragment "
+            "instead of once per fragment. Improves graphics quality at the cost of performance.\n"
+            "Higher values improve quality but degrade performance."));
+    INSERT(Settings, provoking_vertex,
+        tr("Provoking Vertex"),
+        tr("Improves lighting and vertex handling in some games.\n"
+            "Only Vulkan 1.0+ devices support this extension."));
+    INSERT(Settings, descriptor_indexing,
+        tr("Descriptor Indexing"),
+        tr("Improves texture & buffer handling and the Maxwell translation layer.\n"
+            "Some Vulkan 1.1+ and all 1.2+ devices support this extension."));
     INSERT(Settings, sample_shading, QString(), QString());
-
-    INSERT(Settings,
-           sample_shading_fraction,
-           tr("Sample Shading"),
-           tr("Allows the fragment shader to execute per sample in a multi-sampled fragment "
-              "instead of once per fragment. Improves graphics quality at the cost of performance.\n"
-              "Higher values improve quality but degrade performance."));
+    INSERT(Settings, shader_atomic_int64,
+        tr("Shader Atomic Int64"),
+        QString());
+    INSERT(Settings, shader_demote_to_helper_invocation,
+        tr("Shader Demote to helper invocation"),
+        QString());
+    INSERT(Settings, subgroup_size_control,
+        tr("Subgroup size controls"),
+        QString());
+    INSERT(Settings, transform_feedback,
+        tr("Transform feedback"),
+        QString());
+    INSERT(Settings, vertex_input_dynamic_state,
+        tr("Vertex input dynamic state"),
+        QString());
+    INSERT(Settings, pipeline_executable_properties,
+        tr("Pipeline executable properties"),
+        QString());
+    INSERT(Settings, workgroup_memory_explicit_layout,
+        tr("Workgroup memory explicit layout"),
+        QString());
+    INSERT(Settings, custom_border_color,
+        tr("Custom border colour"),
+        QString());
+    INSERT(Settings, depth_bias_control,
+        tr("Depth bias control"),
+        QString());
+    INSERT(Settings, depth_clip_control,
+        tr("Depth clip control"),
+        QString());
+    INSERT(Settings, shader_float16_int8,
+        tr("Shader Float16 Int8"),
+        QString());
+    INSERT(Settings, uniform_buffer_standard_layout,
+        tr("Uniform buffer standard layout"),
+        QString());
+    INSERT(Settings, variable_pointer,
+        tr("Variable pointers"),
+        QString());
+    INSERT(Settings, host_query_reset,
+        tr("Host query reset"),
+        QString());
+    INSERT(Settings, bit8_storage,
+        tr("8-bit storage"),
+        QString());
+    INSERT(Settings, timeline_semaphore,
+        tr("Timeline semaphore"),
+        QString());
+    INSERT(Settings, spirv_1_4,
+        tr("SPIRV 1.4"),
+        QString());
 
     // Renderer (Debug)
 

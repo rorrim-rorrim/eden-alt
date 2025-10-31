@@ -59,8 +59,6 @@ void ConfigureDebug::SetConfiguration() {
     ui->disable_buffer_reorder->setChecked(Settings::values.disable_buffer_reorder.GetValue());
     ui->enable_graphics_debugging->setEnabled(runtime_lock);
     ui->enable_graphics_debugging->setChecked(Settings::values.renderer_debug.GetValue());
-    ui->enable_shader_feedback->setEnabled(runtime_lock);
-    ui->enable_shader_feedback->setChecked(Settings::values.renderer_shader_feedback.GetValue());
     ui->enable_nsight_aftermath->setEnabled(runtime_lock);
     ui->enable_nsight_aftermath->setChecked(Settings::values.enable_nsight_aftermath.GetValue());
     ui->dump_shaders->setEnabled(runtime_lock);
@@ -101,7 +99,6 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.renderer_debug = ui->enable_graphics_debugging->isChecked();
     Settings::values.enable_renderdoc_hotkey = ui->enable_renderdoc_hotkey->isChecked();
     Settings::values.disable_buffer_reorder = ui->disable_buffer_reorder->isChecked();
-    Settings::values.renderer_shader_feedback = ui->enable_shader_feedback->isChecked();
     Settings::values.enable_nsight_aftermath = ui->enable_nsight_aftermath->isChecked();
     Settings::values.dump_shaders = ui->dump_shaders->isChecked();
     Settings::values.dump_macros = ui->dump_macros->isChecked();

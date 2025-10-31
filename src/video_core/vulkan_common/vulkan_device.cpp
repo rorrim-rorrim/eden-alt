@@ -1208,129 +1208,116 @@ bool Device::GetSuitability(bool requires_swapchain) {
 }
 
 void Device::RemoveUnsuitableExtensions() {
+// Enables without an expression predicate
+#define ENABLE_IF_EXT(vk_name, var_name) \
+    if (!Settings::values.var_name.GetValue()) \
+        RemoveExtensionFeature(extensions.var_name, features.var_name, vk_name);
+#define ENABLE_IF_EXT_P(vk_name, var_name, expr) \
+    if (Settings::values.var_name.GetValue()) { \
+        extensions.var_name = expr; \
+        RemoveExtensionFeatureIfUnsuitable(extensions.var_name, features.var_name, vk_name); \
+    } else { \
+        RemoveExtensionFeature(extensions.var_name, features.var_name, vk_name); \
+    }
+#define ENABLE_IF_NO_FEAT(vk_name, var_name) \
+    if (!Settings::values.var_name.GetValue()) \
+        extensions.var_name = false;
+
+    // Extensions without a feature without a predicate
+    // VK_KHR_spirv_1_4
+    ENABLE_IF_NO_FEAT(VK_KHR_SPIRV_1_4_NAME, spirv_1_4)
+
+    // Extensions (+features) without a predicate
+    // VK_KHR_shader_float16_int8
+    ENABLE_IF_EXT(VK_KHR_SHADER_FLOAT16_INT8_EXTENSION_NAME, shader_float16_int8)
+    // VK_KHR_uniform_buffer_standard_layout
+    ENABLE_IF_EXT(VK_KHR_UNIFORM_BUFFER_STANDARD_LAYOUT_EXTENSION_NAME, uniform_buffer_standard_layout)
+    // VK_KHR_variable_pointers
+    ENABLE_IF_EXT(VK_KHR_VARIABLE_POINTERS_EXTENSION_NAME, variable_pointer)
+    // VK_EXT_host_query_reset
+    ENABLE_IF_EXT(VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME, host_query_reset)
+    // VK_KHR_bit8_storage
+    ENABLE_IF_EXT(VK_KHR_8BIT_STORAGE_EXTENSION_NAME, bit8_storage)
+    // VK_KHR_timeline_semaphore
+    ENABLE_IF_EXT(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME, timeline_semaphore)
+
+    // Predicated extensions (+features)
     // VK_EXT_custom_border_color
-    extensions.custom_border_color = features.custom_border_color.customBorderColors &&
-                                     features.custom_border_color.customBorderColorWithoutFormat;
-    RemoveExtensionFeatureIfUnsuitable(extensions.custom_border_color, features.custom_border_color,
-                                       VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
-
+    ENABLE_IF_EXT_P(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME, custom_border_color,
+        features.custom_border_color.customBorderColors
+        && features.custom_border_color.customBorderColorWithoutFormat)
     // VK_EXT_depth_bias_control
-    extensions.depth_bias_control =
-        features.depth_bias_control.depthBiasControl &&
-        features.depth_bias_control.leastRepresentableValueForceUnormRepresentation;
-    RemoveExtensionFeatureIfUnsuitable(extensions.depth_bias_control, features.depth_bias_control,
-                                       VK_EXT_DEPTH_BIAS_CONTROL_EXTENSION_NAME);
-
+    ENABLE_IF_EXT_P(VK_EXT_DEPTH_BIAS_CONTROL_EXTENSION_NAME, depth_bias_control,
+        features.depth_bias_control.depthBiasControl
+        && features.depth_bias_control.leastRepresentableValueForceUnormRepresentation)
     // VK_EXT_depth_clip_control
-    extensions.depth_clip_control = features.depth_clip_control.depthClipControl;
-    RemoveExtensionFeatureIfUnsuitable(extensions.depth_clip_control, features.depth_clip_control,
-                                       VK_EXT_DEPTH_CLIP_CONTROL_EXTENSION_NAME);
+    ENABLE_IF_EXT_P(VK_EXT_DEPTH_CLIP_CONTROL_EXTENSION_NAME, depth_clip_control,
+        features.depth_clip_control.depthClipControl)
+    // VK_EXT_provoking_vertex
+    ENABLE_IF_EXT_P(VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME, provoking_vertex,
+        features.provoking_vertex.provokingVertexLast
+        && features.provoking_vertex.transformFeedbackPreservesProvokingVertex)
+    // VK_KHR_shader_atomic_int64
+    ENABLE_IF_EXT_P(VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME, shader_atomic_int64,
+        features.shader_atomic_int64.shaderBufferInt64Atomics
+        && features.shader_atomic_int64.shaderSharedInt64Atomics)
+    // VK_EXT_shader_demote_to_helper_invocation
+    ENABLE_IF_EXT_P(VK_EXT_SHADER_DEMOTE_TO_HELPER_INVOCATION_EXTENSION_NAME, shader_demote_to_helper_invocation,
+        features.shader_demote_to_helper_invocation.shaderDemoteToHelperInvocation)
+    // VK_EXT_subgroup_size_control
+    ENABLE_IF_EXT_P(VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME, subgroup_size_control,
+        features.subgroup_size_control.subgroupSizeControl
+        && properties.subgroup_size_control.minSubgroupSize <= GuestWarpSize
+        && properties.subgroup_size_control.maxSubgroupSize >= GuestWarpSize)
+    // VK_EXT_transform_feedback
+    ENABLE_IF_EXT_P(VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME, transform_feedback,
+        features.transform_feedback.transformFeedback
+        && features.transform_feedback.geometryStreams
+        && properties.transform_feedback.maxTransformFeedbackStreams >= 4
+        && properties.transform_feedback.maxTransformFeedbackBuffers > 0
+        && properties.transform_feedback.transformFeedbackQueries
+        && properties.transform_feedback.transformFeedbackDraw)
+    // VK_EXT_vertex_input_dynamic_state
+    ENABLE_IF_EXT_P(VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME, vertex_input_dynamic_state,
+        features.vertex_input_dynamic_state.vertexInputDynamicState)
+    // VK_KHR_pipeline_executable_properties
+    ENABLE_IF_EXT_P(VK_KHR_PIPELINE_EXECUTABLE_PROPERTIES_EXTENSION_NAME, pipeline_executable_properties,
+        features.pipeline_executable_properties.pipelineExecutableInfo)
+    // VK_KHR_workgroup_memory_explicit_layout
+    ENABLE_IF_EXT_P(VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME, workgroup_memory_explicit_layout,
+        features.features.shaderInt16
+        && features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout
+        && features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout8BitAccess
+        && features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout16BitAccess
+        && features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayoutScalarBlockLayout)
+#undef ENABLE_IF_EXT_P
+#undef ENABLE_IF_EXT
+#undef ENABLE_IF_FEAT
 
-    /* */ // VK_EXT_extended_dynamic_state
+    // EDS is treated specially :)
+    // VK_EXT_extended_dynamic_state
     extensions.extended_dynamic_state = features.extended_dynamic_state.extendedDynamicState;
     RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state,
                                        features.extended_dynamic_state,
                                        VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
-
     // VK_EXT_extended_dynamic_state2
     extensions.extended_dynamic_state2 = features.extended_dynamic_state2.extendedDynamicState2;
     RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state2,
                                        features.extended_dynamic_state2,
                                        VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-
     // VK_EXT_extended_dynamic_state3
     dynamic_state3_blending =
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable &&
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation &&
-        features.extended_dynamic_state3.extendedDynamicState3ColorWriteMask;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable
+        && features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation
+        && features.extended_dynamic_state3.extendedDynamicState3ColorWriteMask;
     dynamic_state3_enables =
-        features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable &&
-        features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable;
-
+        features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable
+        && features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable;
     extensions.extended_dynamic_state3 = dynamic_state3_blending || dynamic_state3_enables;
     dynamic_state3_blending = dynamic_state3_blending && extensions.extended_dynamic_state3;
     dynamic_state3_enables = dynamic_state3_enables && extensions.extended_dynamic_state3;
     RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state3,
-                                       features.extended_dynamic_state3,
-                                       VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-
-    // VK_EXT_provoking_vertex
-    if (Settings::values.provoking_vertex.GetValue()) {
-        extensions.provoking_vertex = features.provoking_vertex.provokingVertexLast
-                                      && features.provoking_vertex
-                                             .transformFeedbackPreservesProvokingVertex;
-        RemoveExtensionFeatureIfUnsuitable(extensions.provoking_vertex,
-                                           features.provoking_vertex,
-                                           VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
-    } else {
-        RemoveExtensionFeature(extensions.provoking_vertex,
-                               features.provoking_vertex,
-                               VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
-    }
-
-    // VK_KHR_shader_atomic_int64
-    extensions.shader_atomic_int64 = features.shader_atomic_int64.shaderBufferInt64Atomics &&
-                                     features.shader_atomic_int64.shaderSharedInt64Atomics;
-    RemoveExtensionFeatureIfUnsuitable(extensions.shader_atomic_int64, features.shader_atomic_int64,
-                                       VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
-
-    // VK_EXT_shader_demote_to_helper_invocation
-    extensions.shader_demote_to_helper_invocation =
-        features.shader_demote_to_helper_invocation.shaderDemoteToHelperInvocation;
-    RemoveExtensionFeatureIfUnsuitable(extensions.shader_demote_to_helper_invocation,
-                                       features.shader_demote_to_helper_invocation,
-                                       VK_EXT_SHADER_DEMOTE_TO_HELPER_INVOCATION_EXTENSION_NAME);
-
-    // VK_EXT_subgroup_size_control
-    extensions.subgroup_size_control =
-        features.subgroup_size_control.subgroupSizeControl &&
-        properties.subgroup_size_control.minSubgroupSize <= GuestWarpSize &&
-        properties.subgroup_size_control.maxSubgroupSize >= GuestWarpSize;
-    RemoveExtensionFeatureIfUnsuitable(extensions.subgroup_size_control,
-                                       features.subgroup_size_control,
-                                       VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME);
-
-    // VK_EXT_transform_feedback
-    extensions.transform_feedback =
-        features.transform_feedback.transformFeedback &&
-        features.transform_feedback.geometryStreams &&
-        properties.transform_feedback.maxTransformFeedbackStreams >= 4 &&
-        properties.transform_feedback.maxTransformFeedbackBuffers > 0 &&
-        properties.transform_feedback.transformFeedbackQueries &&
-        properties.transform_feedback.transformFeedbackDraw;
-    RemoveExtensionFeatureIfUnsuitable(extensions.transform_feedback, features.transform_feedback,
-                                       VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
-
-    // VK_EXT_vertex_input_dynamic_state
-    extensions.vertex_input_dynamic_state =
-        features.vertex_input_dynamic_state.vertexInputDynamicState;
-    RemoveExtensionFeatureIfUnsuitable(extensions.vertex_input_dynamic_state,
-                                       features.vertex_input_dynamic_state,
-                                       VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
-
-    // VK_KHR_pipeline_executable_properties
-    if (Settings::values.renderer_shader_feedback.GetValue()) {
-        extensions.pipeline_executable_properties =
-            features.pipeline_executable_properties.pipelineExecutableInfo;
-        RemoveExtensionFeatureIfUnsuitable(extensions.pipeline_executable_properties,
-                                           features.pipeline_executable_properties,
-                                           VK_KHR_PIPELINE_EXECUTABLE_PROPERTIES_EXTENSION_NAME);
-    } else {
-        RemoveExtensionFeature(extensions.pipeline_executable_properties,
-                               features.pipeline_executable_properties,
-                               VK_KHR_PIPELINE_EXECUTABLE_PROPERTIES_EXTENSION_NAME);
-    }
-
-    // VK_KHR_workgroup_memory_explicit_layout
-    extensions.workgroup_memory_explicit_layout =
-        features.features.shaderInt16 &&
-        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout &&
-        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout8BitAccess &&
-        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout16BitAccess &&
-        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayoutScalarBlockLayout;
-    RemoveExtensionFeatureIfUnsuitable(extensions.workgroup_memory_explicit_layout,
-                                       features.workgroup_memory_explicit_layout,
-                                       VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME);
+        features.extended_dynamic_state3, VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
 }
 
 void Device::SetupFamilies(VkSurfaceKHR surface) {

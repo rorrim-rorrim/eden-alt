@@ -530,39 +530,46 @@ struct Values {
 
     SwitchableSetting<u8, true> dyna_state{linkage,
 #if defined (_WIN32)
-                                           3,
+        3,
 #elif defined (__FreeBSD__)
-                                           3,
+        3,
 #elif defined (ANDROID)
-                                           0,
+        0,
 #elif defined (__APPLE__)
-                                           0,
+        0,
 #else
-                                           2,
+        2,
 #endif
-                                           0,
-                                           3,
-                                           "dyna_state",
-                                           Category::RendererExtensions,
-                                           Specialization::Scalar};
-
+        0,
+        3,
+        "dyna_state",
+        Category::RendererExtensions,
+        Specialization::Scalar};
+    SwitchableSetting<bool> force_unsupported_extensions{linkage, false, "force_unsupported_extensions", Category::RendererExtensions};
+    // This bool must be BEFORE the option its referencing, otherwise very EVIL things will occur :)
+    SwitchableSetting<bool> sample_shading{linkage, false, "sample_shading", Category::RendererExtensions, Specialization::Paired};
+    SwitchableSetting<u32, true> sample_shading_fraction{linkage, 50, 0, 100, "sample_shading_fraction", Category::RendererExtensions, Specialization::Scalar, true, false, &sample_shading};
     SwitchableSetting<bool> provoking_vertex{linkage, false, "provoking_vertex", Category::RendererExtensions};
     SwitchableSetting<bool> descriptor_indexing{linkage, false, "descriptor_indexing", Category::RendererExtensions};
-    SwitchableSetting<bool> sample_shading{linkage, false, "sample_shading", Category::RendererExtensions, Specialization::Paired};
-    SwitchableSetting<u32, true> sample_shading_fraction{linkage,
-                                                         50,
-                                                         0,
-                                                         100,
-                                                         "sample_shading_fraction",
-                                                         Category::RendererExtensions,
-                                                         Specialization::Scalar,
-                                                         true,
-                                                         false,
-                                                         &sample_shading};
+    SwitchableSetting<bool> shader_atomic_int64{linkage, true, "shader_atomic_int64", Category::RendererExtensions};
+    SwitchableSetting<bool> shader_demote_to_helper_invocation{linkage, true, "shader_demote_to_helper_invocation", Category::RendererExtensions};
+    SwitchableSetting<bool> subgroup_size_control{linkage, true, "subgroup_size_control", Category::RendererExtensions};
+    SwitchableSetting<bool> transform_feedback{linkage, true, "transform_feedback", Category::RendererExtensions};
+    SwitchableSetting<bool> vertex_input_dynamic_state{linkage, true, "vertex_input_dynamic_state", Category::RendererExtensions};
+    SwitchableSetting<bool> pipeline_executable_properties{linkage, true, "pipeline_executable_properties", Category::RendererExtensions};
+    SwitchableSetting<bool> workgroup_memory_explicit_layout{linkage, true, "workgroup_memory_explicit_layout", Category::RendererExtensions};
+    SwitchableSetting<bool> custom_border_color{linkage, true, "custom_border_color", Category::RendererExtensions};
+    SwitchableSetting<bool> depth_bias_control{linkage, true, "depth_bias_control", Category::RendererExtensions};
+    SwitchableSetting<bool> depth_clip_control{linkage, true, "depth_clip_control", Category::RendererExtensions};
+    SwitchableSetting<bool> shader_float16_int8{linkage, true, "shader_float16_int8", Category::RendererExtensions};
+    SwitchableSetting<bool> uniform_buffer_standard_layout{linkage, true, "uniform_buffer_standard_layout", Category::RendererExtensions};
+    SwitchableSetting<bool> variable_pointer{linkage, true, "variable_pointer", Category::RendererExtensions};
+    SwitchableSetting<bool> host_query_reset{linkage, true, "host_query_reset", Category::RendererExtensions};
+    SwitchableSetting<bool> bit8_storage{linkage, true, "bit8_storage", Category::RendererExtensions};
+    SwitchableSetting<bool> timeline_semaphore{linkage, true, "timeline_semaphore", Category::RendererExtensions};
+    SwitchableSetting<bool> spirv_1_4{linkage, true, "spirv_1_4", Category::RendererExtensions};
 
     Setting<bool> renderer_debug{linkage, false, "debug", Category::RendererDebug};
-    Setting<bool> renderer_shader_feedback{linkage, false, "shader_feedback",
-                                           Category::RendererDebug};
     Setting<bool> enable_nsight_aftermath{linkage, false, "nsight_aftermath",
                                           Category::RendererDebug};
     Setting<bool> disable_shader_loop_safety_checks{
