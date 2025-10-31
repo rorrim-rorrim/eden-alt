@@ -48,6 +48,10 @@ void TranslatorVisitor::CCTLL(u64) {
     ThrowNotImplemented(Opcode::CCTLL);
 }
 
+void TranslatorVisitor::CCTLT(u64) {
+    ThrowNotImplemented(Opcode::CCTLT);
+}
+
 void TranslatorVisitor::CONT(u64) {
     ThrowNotImplemented(Opcode::CONT);
 }
