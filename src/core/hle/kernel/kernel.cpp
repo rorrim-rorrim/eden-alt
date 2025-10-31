@@ -380,9 +380,8 @@ struct KernelCore::Impl {
             ASSERT(KThread::InitializeDummyThread(thread, nullptr).IsSuccess());
             return thread;
         }};
-
-        KThread raw_thread{system.Kernel()};
-        KThread* thread = existing_thread ? existing_thread : initialize(&raw_thread);
+        thread_local KThread raw_thread{system.Kernel()};
+        thread_local KThread* thread = existing_thread ? existing_thread : initialize(&raw_thread);
         return thread;
     }
 
