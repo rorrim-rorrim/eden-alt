@@ -194,8 +194,7 @@ void SinkStream::ProcessAudioOutAndRender(std::span<s16> output_buffer, std::siz
             release_cv.notify_one();
         }
 
-        const size_t frames_available =
-            std::min<u64>(playing_buffer.frames - playing_buffer.frames_played, num_frames - frames_written);
+        const size_t frames_available = std::min<u64>(playing_buffer.frames - playing_buffer.frames_played, num_frames - frames_written);
 
         samples_buffer.Pop(&output_buffer[frames_written * frame_size], frames_available * frame_size);
 
