@@ -38,7 +38,6 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
     if (system_channels > device_channels) {
         static constexpr std::array<f32, 4> tcoeff{1.0f, 0.596f, 0.354f, 0.707f};
         for (u32 r_offs = 0, w_offs = 0; r_offs < samples.size(); r_offs += system_channels, w_offs += device_channels) {
-
             std::array<f32, 6> ccoeff{0.f};
             for (u32 i = 0; i < system_channels; ++i)
                 ccoeff[i] = f32(samples[r_offs + i]);
@@ -74,6 +73,7 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
             for (u32 i = 0; i < samples.size(); ++i)
                 samples[i] = s16(std::clamp(s32(f32(samples[i]) * volume), min, max));
         }
+
         queue.EmplaceWait(buffer);
         samples_buffer.Push(samples);
     }
