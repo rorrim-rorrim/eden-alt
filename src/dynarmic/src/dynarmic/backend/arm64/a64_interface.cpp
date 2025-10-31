@@ -152,9 +152,7 @@ struct Jit::Impl final {
     }
 
     std::string Disassemble() const {
-        const size_t size = reinterpret_cast<const char*>(block_of_code.getCurr()) - reinterpret_cast<const char*>(block_of_code.GetCodeBegin());
-        auto const* p = reinterpret_cast<const char*>(block_of_code.GetCodeBegin());
-        return Common::DisassembleX64(p, p + size);
+        UNREACHABLE();
     }
 
 private:
