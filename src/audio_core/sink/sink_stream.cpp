@@ -37,8 +37,7 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
 
     if (system_channels > device_channels) {
         static constexpr std::array<f32, 4> tcoeff{1.0f, 0.596f, 0.354f, 0.707f};
-        for (u32 r_offs = 0, w_offs = 0; r_offs < samples.size();
-             r_offs += system_channels, w_offs += device_channels) {
+        for (u32 r_offs = 0, w_offs = 0; r_offs < samples.size(); r_offs += system_channels, w_offs += device_channels) {
 
             std::array<f32, 6> ccoeff{0.f};
             for (u32 i = 0; i < system_channels; ++i)
@@ -66,8 +65,7 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
         samples_buffer.Push(samples.subspan(0, samples.size() / system_channels * device_channels));
     } else if (system_channels < device_channels) {
         std::vector<s16> new_samples(samples.size() / system_channels * device_channels);
-        for (u32 r_offs = 0, w_offs = 0; r_offs < samples.size();
-             r_offs += system_channels, w_offs += device_channels)
+        for (u32 r_offs = 0, w_offs = 0; r_offs < samples.size(); r_offs += system_channels, w_offs += device_channels)
             for (u32 channel = 0; channel < system_channels; ++channel)
                 new_samples[w_offs + channel] = s16(std::clamp(s32(f32(samples[r_offs + channel]) * volume), min, max));
 
