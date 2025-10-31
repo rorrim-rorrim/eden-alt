@@ -1292,27 +1292,12 @@ Result KPageTableBase::UnmapCodeMemory(KProcessAddress dst_address, KProcessAddr
                                  KMemoryPermission::None, KMemoryAttribute::All,
                                  KMemoryAttribute::Locked));
 
-    // Check one page to determine the state
-    KMemoryState dst_state;
-    size_t num_dst_allocator_blocks_first;
-    R_TRY(this->CheckMemoryState(
-        std::addressof(dst_state), nullptr, nullptr,
-        std::addressof(num_dst_allocator_blocks_first), dst_address, PageSize,
-        KMemoryState::FlagCanCodeAlias, KMemoryState::FlagCanCodeAlias,
-        KMemoryPermission::None, KMemoryPermission::None,
+    // Verify that the destination memory is aliasable code.
+    size_t num_dst_allocator_blocks;
+    R_TRY(this->CheckMemoryStateContiguous(
+        std::addressof(num_dst_allocator_blocks), dst_address, size, KMemoryState::FlagCanCodeAlias,
+        KMemoryState::FlagCanCodeAlias, KMemoryPermission::None, KMemoryPermission::None,
         KMemoryAttribute::All & ~KMemoryAttribute::PermissionLocked, KMemoryAttribute::None));
-
-    // Verify the entire region has that state
-    size_t num_dst_allocator_blocks_second;
-    R_TRY(this->CheckMemoryState(
-        std::addressof(num_dst_allocator_blocks_second), dst_address, size,
-        KMemoryState::All, dst_state,
-        KMemoryPermission::None, KMemoryPermission::None,
-        KMemoryAttribute::All & ~KMemoryAttribute::PermissionLocked, KMemoryAttribute::None));
-
-    // Use the maximum allocator block count
-    const size_t num_dst_allocator_blocks =
-        std::max(num_dst_allocator_blocks_first, num_dst_allocator_blocks_second);
 
     // Determine whether any pages being unmapped are code.
     bool any_code_pages = false;
