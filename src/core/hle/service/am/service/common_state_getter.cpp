@@ -115,14 +115,14 @@ Result ICommonStateGetter::RequestToAcquireSleepLock() {
 Result ICommonStateGetter::ReleaseSleepLock() {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
-    sleep_lock_event.Clear();
+    m_applet->sleep_lock_event.Clear();
     R_SUCCEED();
 }
 
 Result ICommonStateGetter::ReleaseSleepLockTransiently() {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
-    sleep_lock_event.Clear();
+    m_applet->sleep_lock_event.Clear();
     R_SUCCEED();
 }
 
