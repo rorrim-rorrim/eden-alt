@@ -9,7 +9,7 @@
 #include "core/frontend/applets/profile_select.h"
 
 class ControllerNavigation;
-class GMainWindow;
+class MainWindow;
 class QDialogButtonBox;
 class QGraphicsScene;
 class QLabel;
@@ -69,7 +69,7 @@ class QtProfileSelector final : public QObject, public Core::Frontend::ProfileSe
     Q_OBJECT
 
 public:
-    explicit QtProfileSelector(GMainWindow& parent);
+    explicit QtProfileSelector(MainWindow& parent);
     ~QtProfileSelector() override;
 
     void Close() const override;

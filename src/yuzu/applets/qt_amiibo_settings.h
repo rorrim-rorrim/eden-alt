@@ -8,7 +8,7 @@
 #include <QDialog>
 #include "core/frontend/applets/cabinet.h"
 
-class GMainWindow;
+class MainWindow;
 class QCheckBox;
 class QComboBox;
 class QDialogButtonBox;
@@ -65,7 +65,7 @@ class QtAmiiboSettings final : public QObject, public Core::Frontend::CabinetApp
     Q_OBJECT
 
 public:
-    explicit QtAmiiboSettings(GMainWindow& parent);
+    explicit QtAmiiboSettings(MainWindow& parent);
     ~QtAmiiboSettings() override;
 
     void Close() const override;

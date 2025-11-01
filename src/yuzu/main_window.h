@@ -29,7 +29,6 @@
 #include <QDBusObjectPath>
 #include <QVariant>
 #include <QtDBus/QDBusInterface>
-#include <QtDBus/QtDBus>
 #endif
 
 #ifdef ENABLE_UPDATE_CHECKER
@@ -38,7 +37,6 @@
 #endif
 
 class QtConfig;
-class ClickableLabel;
 class EmuThread;
 class GameList;
 class GImageInfo;
@@ -154,7 +152,7 @@ private:
     constexpr static int MaxMultiplier = 8;
 };
 
-class GMainWindow : public QMainWindow {
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
     /// Max number of recently loaded items to keep track of
@@ -163,8 +161,8 @@ class GMainWindow : public QMainWindow {
 public:
     void filterBarSetChecked(bool state);
     void UpdateUITheme();
-    explicit GMainWindow(bool has_broken_vulkan);
-    ~GMainWindow() override;
+    explicit MainWindow(bool has_broken_vulkan);
+    ~MainWindow() override;
 
     bool DropAction(QDropEvent* event);
     void AcceptDropEvent(QDropEvent* event);
@@ -467,7 +465,7 @@ private:
      */
     bool question(QWidget* parent, const QString& title, const QString& text,
                   QMessageBox::StandardButtons buttons =
-                      QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No),
+                  QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No),
                   QMessageBox::StandardButton defaultButton = QMessageBox::NoButton);
 
     std::string GetProfileID();

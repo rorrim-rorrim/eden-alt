@@ -8,7 +8,7 @@
 #include <QDialog>
 #include "core/frontend/applets/controller.h"
 
-class GMainWindow;
+class MainWindow;
 class QCheckBox;
 class QComboBox;
 class QDialogButtonBox;
@@ -163,7 +163,7 @@ class QtControllerSelector final : public QObject, public Core::Frontend::Contro
     Q_OBJECT
 
 public:
-    explicit QtControllerSelector(GMainWindow& parent);
+    explicit QtControllerSelector(MainWindow& parent);
     ~QtControllerSelector() override;
 
     void Close() const override;

@@ -7,13 +7,13 @@
 
 #include "core/frontend/applets/error.h"
 
-class GMainWindow;
+class MainWindow;
 
 class QtErrorDisplay final : public QObject, public Core::Frontend::ErrorApplet {
     Q_OBJECT
 
 public:
-    explicit QtErrorDisplay(GMainWindow& parent);
+    explicit QtErrorDisplay(MainWindow& parent);
     ~QtErrorDisplay() override;
 
     void Close() const override;
