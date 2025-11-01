@@ -29,6 +29,7 @@
 #include <QDBusObjectPath>
 #include <QVariant>
 #include <QtDBus/QDBusInterface>
+#include <QSocketNotifier>
 #endif
 
 #ifdef ENABLE_UPDATE_CHECKER
@@ -568,7 +569,7 @@ private:
 
 #ifdef __unix__
     QSocketNotifier* sig_interrupt_notifier;
-    static std::array<int, 3> sig_interrupt_fds;
+    static std::array<int, 3> sig_interrupt_QSocketNotifds;
 #endif
 
     std::filesystem::path GetEdenCommand();

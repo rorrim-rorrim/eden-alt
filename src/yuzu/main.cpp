@@ -16,6 +16,20 @@
 
 #include "main_window.h"
 
+#ifdef _WIN32
+#include <QScreen>
+
+static void OverrideWindowsFont() {
+    // Qt5 chooses these fonts on Windows and they have fairly ugly alphanumeric/cyrillic characters
+    // Asking to use "MS Shell Dlg 2" gives better other chars while leaving the Chinese Characters.
+    const QString startup_font = QApplication::font().family();
+    const QStringList ugly_fonts = {QStringLiteral("SimSun"), QStringLiteral("PMingLiU")};
+    if (ugly_fonts.contains(startup_font)) {
+        QApplication::setFont(QFont(QStringLiteral("MS Shell Dlg 2"), 9, QFont::Normal));
+    }
+}
+#endif
+
 static void SetHighDPIAttributes() {
 #ifdef _WIN32
     // For Windows, we want to avoid scaling artifacts on fractional scaling ratios.
