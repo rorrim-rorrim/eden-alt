@@ -41,6 +41,7 @@
 #include "multiplayer/state.h"
 
 // Qt Stuff //
+#define QT_NO_OPENGL
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 #include <QStyleHints>
 #endif
@@ -71,6 +72,17 @@
 #include "qt_common/util/meta.h"
 #include "qt_common/util/content.h"
 #include "qt_common/util/fs.h"
+
+// These are wrappers to avoid the calls to CreateDirectory and CreateFile because of the Windows
+// defines.
+static FileSys::VirtualDir VfsFilesystemCreateDirectoryWrapper(const std::string& path, FileSys::OpenMode mode) {
+    return QtCommon::vfs->CreateDirectory(path, mode);
+}
+
+static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::VirtualDir& dir,
+                                                          const std::string& path) {
+    return dir->CreateFile(path);
+}
 
 // Frontend //
 #include "frontend_common/play_time_manager.h"
@@ -126,6 +138,8 @@
 #include <boost/container/flat_set.hpp>
 
 // Platform stuff //
+#include <boost/container/flat_set.hpp>
+
 #ifdef __APPLE__
 #include <unistd.h> // for chdir
 #endif
@@ -141,6 +155,11 @@
 
 #ifdef __linux__
 #include "common/linux/gamemode.h"
+#endif
+
+#ifdef _WIN32
+#include "core/core_timing.h"
+#include "common/windows/timer_resolution.h"
 #endif
 
 #ifdef _WIN32
@@ -236,12 +255,10 @@ static void RemoveTitlebarFilter() {
 
 using namespace Common::Literals;
 
+#include "qt_common/discord/discord.h"
+
 #ifdef USE_DISCORD_PRESENCE
 #include "qt_common/discord/discord_impl.h"
-
-#include <applets/qt_web_browser.h>
-
-#include <boost/container/flat_set.hpp>
 #endif
 
 #ifdef QT_STATICPLUGIN
@@ -285,17 +302,6 @@ static void RemoveCachedContents() {
     Common::FS::RemoveDirRecursively(offline_manual);
     Common::FS::RemoveDirRecursively(offline_legal_information);
     Common::FS::RemoveDirRecursively(offline_system_data);
-}
-
-// These are wrappers to avoid the calls to CreateDirectory and CreateFile because of the Windows
-// defines.
-static FileSys::VirtualDir VfsFilesystemCreateDirectoryWrapper(const std::string& path, FileSys::OpenMode mode) {
-    return QtCommon::vfs->CreateDirectory(path, mode);
-}
-
-static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::VirtualDir& dir,
-                                                          const std::string& path) {
-    return dir->CreateFile(path);
 }
 
 static void LogRuntimes() {
