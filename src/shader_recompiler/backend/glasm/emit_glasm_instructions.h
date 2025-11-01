@@ -313,6 +313,7 @@ void EmitUDiv32(EmitContext& ctx, IR::Inst& inst, ScalarU32 a, ScalarU32 b);
 void EmitINeg32(EmitContext& ctx, IR::Inst& inst, ScalarS32 value);
 void EmitINeg64(EmitContext& ctx, IR::Inst& inst, Register value);
 void EmitIAbs32(EmitContext& ctx, IR::Inst& inst, ScalarS32 value);
+void EmitIAbs64(EmitContext& ctx, IR::Inst& inst, ScalarS32 value);
 void EmitShiftLeftLogical32(EmitContext& ctx, IR::Inst& inst, ScalarU32 base, ScalarU32 shift);
 void EmitShiftLeftLogical64(EmitContext& ctx, IR::Inst& inst, ScalarRegister base, ScalarU32 shift);
 void EmitShiftRightLogical32(EmitContext& ctx, IR::Inst& inst, ScalarU32 base, ScalarU32 shift);
