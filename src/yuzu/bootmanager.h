@@ -29,7 +29,7 @@
 #include "common/thread.h"
 #include "core/frontend/emu_window.h"
 
-class GMainWindow;
+class MainWindow;
 class QCamera;
 class QCameraImageCapture;
 class QCloseEvent;
@@ -146,7 +146,7 @@ class GRenderWindow : public QWidget, public Core::Frontend::EmuWindow {
     Q_OBJECT
 
 public:
-    explicit GRenderWindow(GMainWindow* parent, EmuThread* emu_thread_,
+    explicit GRenderWindow(MainWindow* parent, EmuThread* emu_thread_,
                            std::shared_ptr<InputCommon::InputSubsystem> input_subsystem_,
                            Core::System& system_);
     ~GRenderWindow() override;

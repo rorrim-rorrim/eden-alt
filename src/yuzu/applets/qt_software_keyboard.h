@@ -27,7 +27,7 @@ namespace Ui {
 class QtSoftwareKeyboardDialog;
 }
 
-class GMainWindow;
+class MainWindow;
 
 class QtSoftwareKeyboardDialog final : public QDialog {
     Q_OBJECT
@@ -230,7 +230,7 @@ class QtSoftwareKeyboard final : public QObject, public Core::Frontend::Software
     Q_OBJECT
 
 public:
-    explicit QtSoftwareKeyboard(GMainWindow& parent);
+    explicit QtSoftwareKeyboard(MainWindow& parent);
     ~QtSoftwareKeyboard() override;
 
     void Close() const override {
