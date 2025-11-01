@@ -249,7 +249,7 @@ cmake_dependent_option(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" 
 option(YUZU_DOWNLOAD_TIME_ZONE_DATA "Always download time zone binaries" ON)
 set(YUZU_TZDB_PATH "" CACHE STRING "Path to a pre-downloaded timezone database")
 
-cmake_dependent_option(YUZU_USE_FASTER_LD "Check if a faster linker is available" ON "LINUX" OFF)
+cmake_dependent_option(YUZU_USE_FASTER_LD "Check if a faster linker is available" ON "LINUX OR MINGW" OFF)
 
 cmake_dependent_option(YUZU_USE_BUNDLED_MOLTENVK "Download bundled MoltenVK lib" ON "APPLE" OFF)
 

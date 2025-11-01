@@ -586,6 +586,7 @@ function(AddCIPackage)
     set(ARTIFACT_REPO ${PKG_ARGS_REPO})
     set(ARTIFACT_PACKAGE ${PKG_ARGS_PACKAGE})
 
+    # TODO: separate MinGW packages if applicable
     if ((WIN32 AND ARCHITECTURE_x86_64) AND NOT "windows-amd64" IN_LIST DISABLED_PLATFORMS)
         add_ci_package(windows-amd64)
     endif()
