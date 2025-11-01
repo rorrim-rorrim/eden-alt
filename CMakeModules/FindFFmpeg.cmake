@@ -75,16 +75,16 @@ function(find_ffmpeg LIBNAME)
     )
   else()
     list(APPEND INCLUDE_PATHS
-      /usr/local/include/ffmpeg
-      /usr/local/include/lib${LIBNAME}
-      /usr/include/ffmpeg
-      /usr/include/lib${LIBNAME}
-      /usr/include/ffmpeg/lib${LIBNAME}
+      ${CMAKE_SYSROOT}/usr/local/include/ffmpeg
+      ${CMAKE_SYSROOT}/usr/local/include/lib${LIBNAME}
+      ${CMAKE_SYSROOT}/usr/include/ffmpeg
+      ${CMAKE_SYSROOT}/usr/include/lib${LIBNAME}
+      ${CMAKE_SYSROOT}/usr/include/ffmpeg/lib${LIBNAME}
     )
 
     list(APPEND LIB_PATHS
-      /usr/local/lib
-      /usr/lib
+      ${CMAKE_SYSROOT}/usr/local/lib
+      ${CMAKE_SYSROOT}/usr/lib
     )
   endif()
 
