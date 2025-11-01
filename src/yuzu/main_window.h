@@ -569,7 +569,7 @@ private:
 
 #ifdef __unix__
     QSocketNotifier* sig_interrupt_notifier;
-    static std::array<int, 3> sig_interrupt_QSocketNotifds;
+    static std::array<int, 3> sig_interrupt_fds;
 #endif
 
     std::filesystem::path GetEdenCommand();
