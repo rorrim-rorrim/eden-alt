@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -1272,8 +1269,13 @@ void KProcess::InitializeInterfaces() {
 
 #ifdef HAS_NCE
     if (this->IsApplication() && Settings::IsNceEnabled()) {
-        for (size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++)
+        // Register the scoped JIT handler before creating any NCE instances
+        // so that its signal handler will appear first in the signal chain.
+        Core::ScopedJitExecution::RegisterHandler();
+
+        for (size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
             m_arm_interfaces[i] = std::make_unique<Core::ArmNce>(m_kernel.System(), true, i);
+        }
     } else
 #endif
         if (this->Is64Bit()) {
