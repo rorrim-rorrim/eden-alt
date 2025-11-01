@@ -221,6 +221,7 @@ if(YUZU_ENABLE_LTO)
     set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ${COMPILER_SUPPORTS_LTO})
 endif()
+
 option(USE_CCACHE "Use ccache for compilation" OFF)
 set(CCACHE_PATH "ccache" CACHE STRING "Path to ccache binary")
 if(USE_CCACHE)
@@ -249,7 +250,7 @@ cmake_dependent_option(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" 
 option(YUZU_DOWNLOAD_TIME_ZONE_DATA "Always download time zone binaries" ON)
 set(YUZU_TZDB_PATH "" CACHE STRING "Path to a pre-downloaded timezone database")
 
-cmake_dependent_option(YUZU_USE_FASTER_LD "Check if a faster linker is available" ON "LINUX OR MINGW" OFF)
+cmake_dependent_option(YUZU_USE_FASTER_LD "Check if a faster linker is available" ON "LINUX" OFF)
 
 cmake_dependent_option(YUZU_USE_BUNDLED_MOLTENVK "Download bundled MoltenVK lib" ON "APPLE" OFF)
 
@@ -265,9 +266,11 @@ if (ANDROID OR WIN32 OR APPLE OR PLATFORM_SUN)
     # your own copy of it.
     set(DEFAULT_ENABLE_OPENSSL OFF)
 endif()
+
 if (ENABLE_WEB_SERVICE)
     set(DEFAULT_ENABLE_OPENSSL ON)
 endif()
+
 option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
 if (ENABLE_OPENSSL)
     set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL OFF)
@@ -892,6 +895,14 @@ if(MSVC)
         $<$<CONFIG:RelWithDebInfo>:/MD>
         $<$<CONFIG:MinSizeRel>:/MD>
     )
+endif()
+
+if (MINGW)
+    # This saves a truly ridiculous amount of time during linking
+    # In my tests, without this it takes 2 mins, with it takes 10 seconds
+    set(MINGW_FLAGS "-Wl,--strip-all -Wl,--gc-sections")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${MINGW_FLAGS}")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${MINGW_FLAGS}")
 endif()
 
 add_subdirectory(src)
