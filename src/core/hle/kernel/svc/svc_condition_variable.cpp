@@ -28,14 +28,7 @@ Result WaitProcessWideKeyAtomic(Core::System& system, u64 address, u64 cv_key, u
     s64 timeout{};
     if (timeout_ns > 0) {
         const s64 offset_tick(timeout_ns);
-        if (offset_tick > 0) {
-            timeout = system.Kernel().HardwareTimer().GetTick() + offset_tick + 2;
-            if (timeout <= 0) {
-                timeout = (std::numeric_limits<s64>::max)();
-            }
-        } else {
-            timeout = (std::numeric_limits<s64>::max)();
-        }
+        timeout = (std::numeric_limits<s64>::max)();
     } else {
         timeout = timeout_ns;
     }
