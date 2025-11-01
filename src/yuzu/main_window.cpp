@@ -119,7 +119,7 @@
 #include "video_core/shader_notify.h"
 
 #ifdef HAVE_SDL2
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #endif
 
 // Platform stuff //
