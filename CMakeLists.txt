@@ -899,10 +899,10 @@ endif()
 
 if (MINGW)
     # This saves a truly ridiculous amount of time during linking
-    # In my tests, without this it takes 2 mins, with it takes 10 seconds
+    # In my tests, without this it takes 2 mins, with it takes 3-5 seconds
+    # or on GitHub Actions, 10 minutes -> 3 seconds
     set(MINGW_FLAGS "-Wl,--strip-all -Wl,--gc-sections")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${MINGW_FLAGS}")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${MINGW_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} ${MINGW_FLAGS}")
 endif()
 
 add_subdirectory(src)
