@@ -242,6 +242,9 @@ endif()
 # TZDB (Time Zone Database)
 add_subdirectory(nx_tzdb)
 
+# PowerPC emitter
+add_subdirectory(powah)
+
 if (NOT TARGET LLVM::Demangle)
     add_library(demangle demangle/ItaniumDemangle.cpp)
     target_include_directories(demangle PUBLIC ./demangle)
