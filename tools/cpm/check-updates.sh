@@ -13,7 +13,7 @@ filter() {
 }
 
 usage() {
-	cat << EOF
+	cat <<EOF
 Usage: $0 [uf] [PACKAGE]...
 Check a specific package or packages for updates.
 
