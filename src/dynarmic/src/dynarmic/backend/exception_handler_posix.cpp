@@ -26,6 +26,8 @@
 #    include "dynarmic/backend/arm64/abi.h"
 #elif defined(ARCHITECTURE_riscv64)
 #    include "dynarmic/backend/riscv64/code_block.h"
+#elif defined(ARCHITECTURE_ppc64)
+#    include "dynarmic/backend/ppc64/code_block.h"
 #else
 #    error "Invalid architecture"
 #endif
@@ -139,10 +141,8 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
         }
     }
     fmt::print(stderr, "Unhandled {} at pc {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_PC);
-#elif defined(ARCHITECTURE_riscv64)
-    UNREACHABLE();
 #else
-#    error "Invalid architecture"
+    UNREACHABLE();
 #endif
 
     struct sigaction* retry_sa = sig == SIGSEGV ? &sig_handler->old_sa_segv : &sig_handler->old_sa_bus;
@@ -198,6 +198,10 @@ void ExceptionHandler::Register(oaknut::CodeBlock& mem, std::size_t size) {
 }
 #elif defined(ARCHITECTURE_riscv64)
 void ExceptionHandler::Register(RV64::CodeBlock& mem, std::size_t size) {
+    impl = std::make_unique<Impl>(std::bit_cast<u64>(mem.ptr<u64>()), size);
+}
+#elif defined(ARCHITECTURE_ppc64)
+void ExceptionHandler::Register(PPC64::CodeBlock& mem, std::size_t size) {
     impl = std::make_unique<Impl>(std::bit_cast<u64>(mem.ptr<u64>()), size);
 }
 #else
