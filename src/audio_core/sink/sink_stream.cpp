@@ -188,7 +188,7 @@ void SinkStream::ProcessAudioOutAndRender(std::span<s16> output_buffer, std::siz
             }
             // Successfully dequeued a new buffer.
             {
-                std::unique_lock lk{release_mutex};\
+                std::unique_lock lk2{release_mutex};\
                 queued_buffers--;
             }
             release_cv.notify_one();
