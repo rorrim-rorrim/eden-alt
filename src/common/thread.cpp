@@ -109,7 +109,7 @@ void SetCurrentThreadName(const char* name) {
         buf[len] = '\0';
         pthread_setname_np(pthread_self(), buf);
     }
-#elif !defined(_WIN32) || defined(_MSC_VER)
+#elif defined(__MINGW64__)
     // mingw stub
     (void)name;
 #else
