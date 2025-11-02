@@ -202,6 +202,7 @@ void SinkStream::ProcessAudioOutAndRender(std::span<s16> output_buffer, std::siz
         actual_frames_written += frames_available;
         playing_buffer.frames_played += frames_available;
 
+        
         if (playing_buffer.frames_played >= playing_buffer.frames)
             playing_buffer.consumed = true;
     }
