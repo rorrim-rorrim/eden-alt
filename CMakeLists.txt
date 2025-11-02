@@ -37,6 +37,12 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
 
+# https://gitlab.kitware.com/cmake/cmake/-/merge_requests/11112
+# This works totally fine on MinGW64, but not CLANG{,ARM}64
+if(MINGW AND CXX_CLANG)
+    set(CMAKE_SYSTEM_VERSION 10.0.0)
+endif()
+
 # NB: this does not account for SPARC
 # If you get Eden working on SPARC, please shoot crueter@crueter.xyz multiple emails
 # and you will be hailed for eternity
