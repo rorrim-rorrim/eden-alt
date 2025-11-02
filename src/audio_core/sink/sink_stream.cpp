@@ -186,9 +186,11 @@ void SinkStream::ProcessAudioOutAndRender(std::span<s16> output_buffer, std::siz
                 frames_written = num_frames;
                 continue;
             }
-
-            --queued_buffers;
-            lk.unlock();
+            // Successfully dequeued a new buffer.
+            {
+                std::unique_lock lk{release_mutex};\
+                queued_buffers--;
+            }
             release_cv.notify_one();
         }
 
@@ -226,15 +228,9 @@ u64 SinkStream::GetExpectedPlayedSampleCount() {
 
 void SinkStream::WaitFreeSpace(std::stop_token stop_token) {
     std::unique_lock lk{release_mutex};
-
-    auto can_continue = [this]() {
-        return paused || queued_buffers < max_queue_size;
-    };
-
-    release_cv.wait_for(lk, std::chrono::milliseconds(10), can_continue);
-
-    if (queued_buffers > max_queue_size + 10) {
-        release_cv.wait(lk, stop_token, can_continue);
+    release_cv.wait_for(lk, std::chrono::milliseconds(5), [this]() { return paused || queued_buffers < max_queue_size; });
+    if (queued_buffers > max_queue_size + 3) {
+        release_cv.wait(lk, stop_token, [this] { return paused || queued_buffers < max_queue_size; });
     }
 }
 
