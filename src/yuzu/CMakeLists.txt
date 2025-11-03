@@ -438,9 +438,7 @@ if (ENABLE_SDL2)
 endif()
 
 if (MSVC)
-    include(CopyYuzuSDLDeps)
     include(CopyYuzuFFmpegDeps)
-    copy_yuzu_SDL_deps(yuzu)
     copy_yuzu_FFmpeg_deps(yuzu)
 endif()
 

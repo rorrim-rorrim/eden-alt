@@ -118,17 +118,17 @@ if (YUZU_USE_BUNDLED_FFMPEG)
     AddJsonPackage(ffmpeg-ci)
 
     set(FFmpeg_INCLUDE_DIR
-        "${FFmpeg_SOURCE_DIR}/include;${FFmpeg_HWACCEL_INCLUDE_DIRS}"
+        "${FFmpeg_INCLUDE_DIR};${FFmpeg_HWACCEL_INCLUDE_DIRS}"
         PARENT_SCOPE
     )
 
     set(FFmpeg_PATH
-        "${FFmpeg_SOURCE_DIR}"
+        "${FFmpeg_PATH}"
         PARENT_SCOPE
     )
 
     set(FFmpeg_LIBRARY_DIR
-        "${FFmpeg_SOURCE_DIR}/bin"
+        "${FFmpeg_LIBRARY_DIR}"
         PARENT_SCOPE
     )
 
