@@ -243,7 +243,9 @@ endif()
 add_subdirectory(nx_tzdb)
 
 # PowerPC emitter
-add_subdirectory(powah)
+if (ARCHITECTURE_ppc64)
+    add_subdirectory(powah)
+endif()
 
 if (NOT TARGET LLVM::Demangle)
     add_library(demangle demangle/ItaniumDemangle.cpp)
