@@ -109,7 +109,7 @@ if (YUZU_USE_BUNDLED_FFMPEG)
     # MSVC conflicts with ksuser otherwise
     # Android needs some deps to be compiled with PIC (TODO)
     # TODO(crueter) fix
-    if (MSVC OR ANDROID)
+    if (ANDROID)
         set(BUILD_SHARED_LIBS ON)
     else()
         set(BUILD_SHARED_LIBS OFF)
