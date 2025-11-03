@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -23,8 +26,11 @@ public:
 
 protected:
     friend class A64Core;
+
+    void EmitPrelude();
     EmitConfig GetEmitConfig() override;
     void RegisterNewBasicBlock(const IR::Block& block, const EmittedBlockInfo& block_info) override;
+
     const A64::UserConfig conf;
     BlockRangeInformation<u64> block_ranges;
 };
