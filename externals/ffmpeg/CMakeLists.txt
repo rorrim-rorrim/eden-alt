@@ -117,26 +117,20 @@ if (YUZU_USE_BUNDLED_FFMPEG)
 
     AddJsonPackage(ffmpeg-ci)
 
-    set(FFmpeg_INCLUDE_DIR
-        "${FFmpeg_INCLUDE_DIR};${FFmpeg_HWACCEL_INCLUDE_DIRS}"
-        PARENT_SCOPE
-    )
+    set(FFmpeg_INCLUDE_DIR "${FFmpeg_INCLUDE_DIR};${FFmpeg_HWACCEL_INCLUDE_DIRS}" PARENT_SCOPE)
 
-    set(FFmpeg_PATH
-        "${FFmpeg_PATH}"
-        PARENT_SCOPE
-    )
+    if (MSVC AND BUILD_SHARED_LIBS)
+        set(FFmpeg_LIBRARY_DIR "${FFmpeg_SOURCE_DIR}/bin" PARENT_SCOPE)
+    else()
+        set(FFmpeg_LIBRARY_DIR "${FFmpeg_SOURCE_DIR}/lib" PARENT_SCOPE)
+    endif()
 
-    set(FFmpeg_LIBRARY_DIR
-        "${FFmpeg_LIBRARY_DIR}"
-        PARENT_SCOPE
-    )
+    set(FFmpeg_PATH "${FFmpeg_SOURCE_DIR}" PARENT_SCOPE)
 
     set(FFmpeg_LIBRARIES
         FFmpeg::FFmpeg
         ${FFmpeg_HWACCEL_LIBRARIES}
-        PARENT_SCOPE
-    )
+        PARENT_SCOPE)
 else()
     # Build FFmpeg from externals
     message(STATUS "Using FFmpeg from externals")
