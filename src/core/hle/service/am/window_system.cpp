@@ -312,10 +312,22 @@ void WindowSystem::UpdateAppletStateLocked(Applet* applet, bool is_foreground) {
     }();
 
     // Update visibility state.
-    applet->display_layer_manager.SetWindowVisibility(is_foreground && applet->window_visible);
+    // Overlay applets should always be visible when window_visible is true, regardless of foreground state
+    const bool should_be_visible = (applet->applet_id == AppletId::OverlayDisplay)
+                                     ? applet->window_visible
+                                     : (is_foreground && applet->window_visible);
+    if (applet->applet_id == AppletId::OverlayDisplay) {
+        LOG_INFO(Service_AM, "WindowSystem: Overlay visibility update - window_visible={} should_be_visible={} is_foreground={}",
+                 applet->window_visible, should_be_visible, is_foreground);
+    }
+    applet->display_layer_manager.SetWindowVisibility(should_be_visible);
 
     // Update interactibility state.
-    applet->SetInteractibleLocked(is_foreground && applet->window_visible);
+    // Overlay applets should be interactible when visible, as they need to handle input (e.g. home button)
+    const bool should_be_interactible = (applet->applet_id == AppletId::OverlayDisplay)
+                                          ? applet->window_visible
+                                          : (is_foreground && applet->window_visible);
+    applet->SetInteractibleLocked(should_be_interactible);
 
     // Update focus state and suspension.
     const bool is_obscured = has_obscuring_child_applets || !applet->window_visible;

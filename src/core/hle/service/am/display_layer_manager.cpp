@@ -158,10 +158,14 @@ void DisplayLayerManager::SetWindowVisibility(bool visible) {
 
     if (m_manager_display_service) {
         if (m_system_shared_layer_id) {
+            LOG_INFO(Service_VI, "DLM: SetWindowVisibility shared_layer={} visible={} applet_id={}",
+                     m_system_shared_layer_id, m_visible, static_cast<u32>(m_applet_id));
             m_manager_display_service->SetLayerVisibility(m_visible, m_system_shared_layer_id);
         }
 
         for (const auto layer_id : m_managed_display_layers) {
+            LOG_INFO(Service_VI, "DLM: SetWindowVisibility managed_layer={} visible={} applet_id={}",
+                     layer_id, m_visible, static_cast<u32>(m_applet_id));
             m_manager_display_service->SetLayerVisibility(m_visible, layer_id);
         }
     }

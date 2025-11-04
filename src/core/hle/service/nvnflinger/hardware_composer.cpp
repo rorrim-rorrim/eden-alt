@@ -130,7 +130,7 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
     if (has_acquired_buffer && !composition_stack.empty()) {
         // Sort back-to-front: lower z first, higher z last so top-most draws last (on top).
         std::stable_sort(composition_stack.begin(), composition_stack.end(),
-                         [&](const HwcLayer& l, const HwcLayer& r) { return l.z_index > r.z_index; });
+                         [&](const HwcLayer& l, const HwcLayer& r) { return l.z_index < r.z_index; });
 
         // Composite.
         nvdisp.Composite(composition_stack);
