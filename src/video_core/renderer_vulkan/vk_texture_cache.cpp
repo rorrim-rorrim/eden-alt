@@ -10,8 +10,8 @@
 #include <memory>
 #include <vector>
 #include <boost/container/small_vector.hpp>
-
-#include "common/bit_cast.h"
+#include <bit>
+#include <numeric>
 #include "common/bit_util.h"
 #include "common/settings.h"
 
@@ -1377,7 +1377,9 @@ void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
     // As per the size-compatible formats section of vulkan, copy manually via ReinterpretImage
     // these images that aren't size-compatible
     if (BytesPerBlock(src.info.format) != BytesPerBlock(dst.info.format)) {
-#ifdef __WIN32__
+#ifdef _WIN32
+        // On Windows, linear images cause device loss when used in image copies.
+        // Tested with TitleID: 0x010067300059A00 (Mario + Rabbids Kingdom Battle)
         if (src.info.type == ImageType::Linear || dst.info.type == ImageType::Linear) {
             return;
         }
@@ -2216,7 +2218,7 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT,
         .pNext = nullptr,
         // TODO: Make use of std::bit_cast once libc++ supports it.
-        .customBorderColor = Common::BitCast<VkClearColorValue>(color),
+        .customBorderColor = std::bit_cast<VkClearColorValue>(color),
         .format = VK_FORMAT_UNDEFINED,
     };
     const void* pnext = nullptr;

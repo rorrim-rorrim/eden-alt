@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
  */
 
-#include <mcl/bit_cast.hpp>
+#include <bit>
 #include <xbyak/xbyak.h>
 
 #include "dynarmic/backend/x64/a32_emit_x64.h"
@@ -240,7 +243,7 @@ const void* EmitReadMemoryMov(BlockOfCode& code, int value_idx, const Xbyak::Reg
             }
             break;
         default:
-            ASSERT_FALSE("Invalid bitsize");
+            UNREACHABLE();
         }
         return fastmem_location;
     } else {
@@ -262,7 +265,7 @@ const void* EmitReadMemoryMov(BlockOfCode& code, int value_idx, const Xbyak::Reg
             code.movups(Xbyak::Xmm(value_idx), xword[addr]);
             break;
         default:
-            ASSERT_FALSE("Invalid bitsize");
+            UNREACHABLE();
         }
         return fastmem_location;
     }
@@ -308,7 +311,7 @@ const void* EmitWriteMemoryMov(BlockOfCode& code, const Xbyak::RegExp& addr, int
             break;
         }
         default:
-            ASSERT_FALSE("Invalid bitsize");
+            UNREACHABLE();
         }
         return fastmem_location;
     } else {
@@ -330,7 +333,7 @@ const void* EmitWriteMemoryMov(BlockOfCode& code, const Xbyak::RegExp& addr, int
             code.movups(xword[addr], Xbyak::Xmm(value_idx));
             break;
         default:
-            ASSERT_FALSE("Invalid bitsize");
+            UNREACHABLE();
         }
         return fastmem_location;
     }
@@ -342,7 +345,7 @@ void EmitExclusiveLock(BlockOfCode& code, const UserConfig& conf, Xbyak::Reg64 p
         return;
     }
 
-    code.mov(pointer, mcl::bit_cast<u64>(GetExclusiveMonitorLockPointer(conf.global_monitor)));
+    code.mov(pointer, std::bit_cast<u64>(GetExclusiveMonitorLockPointer(conf.global_monitor)));
     EmitSpinLockLock(code, pointer, tmp);
 }
 
@@ -352,7 +355,7 @@ void EmitExclusiveUnlock(BlockOfCode& code, const UserConfig& conf, Xbyak::Reg64
         return;
     }
 
-    code.mov(pointer, mcl::bit_cast<u64>(GetExclusiveMonitorLockPointer(conf.global_monitor)));
+    code.mov(pointer, std::bit_cast<u64>(GetExclusiveMonitorLockPointer(conf.global_monitor)));
     EmitSpinLockUnlock(code, pointer, tmp);
 }
 
@@ -369,7 +372,7 @@ void EmitExclusiveTestAndClear(BlockOfCode& code, const UserConfig& conf, Xbyak:
             continue;
         }
         Xbyak::Label ok;
-        code.mov(pointer, mcl::bit_cast<u64>(GetExclusiveMonitorAddressPointer(conf.global_monitor, processor_index)));
+        code.mov(pointer, std::bit_cast<u64>(GetExclusiveMonitorAddressPointer(conf.global_monitor, processor_index)));
         code.cmp(qword[pointer], vaddr);
         code.jne(ok, code.T_NEAR);
         code.mov(qword[pointer], tmp);

@@ -6,10 +6,12 @@
 #include "core/tools/renderdoc.h"
 #include "frontend_common/firmware_manager.h"
 #include "qt_common/qt_common.h"
+#include "qt_common/abstract/frontend.h"
 #include "qt_common/util/content.h"
 #include "qt_common/util/game.h"
 #include "qt_common/util/meta.h"
 #include "qt_common/util/path.h"
+#include "qt_common/util/fs.h"
 #include <clocale>
 #include <cmath>
 #include <memory>
@@ -23,6 +25,7 @@
 #ifdef __unix__
 #include <csignal>
 #include <sys/socket.h>
+#include "qt_common/gui_settings.h"
 #endif
 #ifdef __linux__
 #include "common/linux/gamemode.h"
@@ -54,8 +57,8 @@
 #include "yuzu/multiplayer/state.h"
 #include "yuzu/util/controller_navigation.h"
 
-#ifdef ENABLE_QT_UPDATE_CHECKER
-#include "yuzu/update_checker.h"
+#ifdef ENABLE_UPDATE_CHECKER
+#include "frontend_common/update_checker.h"
 #endif
 
 #ifdef YUZU_ROOM
@@ -108,6 +111,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "common/detached_tasks.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
+#include "common/fs/ryujinx_compat.h"
 #include "common/literals.h"
 #include "common/logging/backend.h"
 #include "common/logging/log.h"
@@ -160,6 +164,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/debugger/wait_tree.h"
 #include "yuzu/data_dialog.h"
 #include "yuzu/deps_dialog.h"
+#include "yuzu/ryujinx_dialog.h"
 #include "qt_common/discord/discord.h"
 #include "yuzu/game_list.h"
 #include "yuzu/game_list_p.h"
@@ -406,7 +411,7 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
 #define MIGRATE_DIR(type)                                                                          \
     std::string type##path = Common::FS::GetEdenPathString(Common::FS::EdenPath::type##Dir);       \
     if (type##path.starts_with(user_data_migrator.selected_emu.get_user_dir())) {                  \
-        boost::replace_all(type##path, user_data_migrator.selected_emu.lower_name(), "eden");      \
+        boost::replace_all(type##path, user_data_migrator.selected_emu.lower_name().toStdString(), "eden");      \
         Common::FS::SetEdenPath(Common::FS::EdenPath::type##Dir, type##path);                      \
     }
 
@@ -517,7 +522,7 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
 
     show();
 
-#ifdef ENABLE_QT_UPDATE_CHECKER
+#ifdef ENABLE_UPDATE_CHECKER
     if (UISettings::values.check_for_updates) {
         update_future = QtConcurrent::run([]() -> QString {
             const bool is_prerelease = ((strstr(Common::g_build_version, "pre-alpha") != NULL) ||
@@ -547,6 +552,10 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
 
     // Gen keys if necessary
     OnCheckFirmwareDecryption();
+
+#ifdef __unix__
+    OnCheckGraphicsBackend();
+#endif
 
     // Check for orphaned profiles and reset profile data if necessary
     QtCommon::Content::FixProfiles();
@@ -1597,6 +1606,8 @@ void GMainWindow::ConnectWidgetEvents() {
 
     connect(game_list, &GameList::OpenPerGameGeneralRequested, this,
             &GMainWindow::OnGameListOpenPerGameProperties);
+    connect(game_list, &GameList::LinkToRyujinxRequested, this,
+            &GMainWindow::OnLinkToRyujinx);
 
     connect(this, &GMainWindow::UpdateInstallProgress, this,
             &GMainWindow::IncrementInstallProgress);
@@ -1702,9 +1713,6 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Mod_Folder, &GMainWindow::OnOpenModFolder);
     connect_menu(ui->action_Log_Folder, &GMainWindow::OnOpenLogFolder);
 
-    connect_menu(ui->action_Discord, &GMainWindow::OnOpenDiscord);
-    connect_menu(ui->action_Revolt, &GMainWindow::OnOpenRevolt);
-    connect_menu(ui->action_X, &GMainWindow::OnOpenX);
     connect_menu(ui->action_Verify_installed_contents, &GMainWindow::OnVerifyInstalledContents);
     connect_menu(ui->action_Firmware_From_Folder, &GMainWindow::OnInstallFirmware);
     connect_menu(ui->action_Firmware_From_ZIP, &GMainWindow::OnInstallFirmwareFromZIP);
@@ -2875,6 +2883,61 @@ void GMainWindow::OnGameListOpenPerGameProperties(const std::string& file) {
     OpenPerGameConfiguration(title_id, file);
 }
 
+std::string GMainWindow::GetProfileID()
+{
+    const auto select_profile = [this] {
+        const Core::Frontend::ProfileSelectParameters parameters{
+            .mode = Service::AM::Frontend::UiMode::UserSelector,
+            .invalid_uid_list = {},
+            .display_options = {},
+            .purpose = Service::AM::Frontend::UserSelectionPurpose::General,
+        };
+        QtProfileSelectionDialog dialog(*QtCommon::system, this, parameters);
+        dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint
+                              | Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
+        dialog.setWindowModality(Qt::WindowModal);
+
+        if (dialog.exec() == QDialog::Rejected) {
+            return -1;
+        }
+
+        return dialog.GetIndex();
+    };
+
+    const auto index = select_profile();
+    if (index == -1) {
+        return "";
+    }
+
+    const auto uuid = QtCommon::system->GetProfileManager().GetUser(static_cast<std::size_t>(index));
+    ASSERT(uuid);
+
+    const auto user_id = uuid->AsU128();
+
+    return fmt::format("{:016X}{:016X}", user_id[1], user_id[0]);
+}
+
+void GMainWindow::OnLinkToRyujinx(const u64& program_id)
+{
+    u64 save_id = QtCommon::FS::GetRyujinxSaveID(program_id);
+    if (save_id == (u64) -1)
+        return;
+
+    const std::string user_id = GetProfileID();
+
+    auto paths = QtCommon::FS::GetEmuPaths(program_id, save_id, user_id);
+    if (!paths)
+        return;
+
+    auto eden_dir = paths.value().first;
+    auto ryu_dir = paths.value().second;
+
+    if (!QtCommon::FS::CheckUnlink(eden_dir, ryu_dir)) {
+        RyujinxDialog dialog(eden_dir, ryu_dir, this);
+        dialog.exec();
+    }
+}
+
 void GMainWindow::OnMenuLoadFile() {
     if (is_load_file_select_active) {
         return;
@@ -3298,18 +3361,6 @@ void GMainWindow::OnOpenFAQ() {
     OpenURL(QUrl(QStringLiteral("https://yuzu-mirror.github.io/help")));
 }
 
-void GMainWindow::OnOpenDiscord() {
-    OpenURL(QUrl(QStringLiteral("https://discord.gg/HstXbPch7X")));
-}
-
-void GMainWindow::OnOpenRevolt() {
-    OpenURL(QUrl(QStringLiteral("https://rvlt.gg/qKgFEAbH")));
-}
-
-void GMainWindow::OnOpenX() {
-    OpenURL(QUrl(QStringLiteral("https://x.com/edenemuofficial")));
-}
-
 void GMainWindow::ToggleFullscreen() {
     if (!emulation_running) {
         return;
@@ -3422,9 +3473,7 @@ void GMainWindow::ToggleWindowMode() {
 }
 
 void GMainWindow::ResetWindowSize(u32 width, u32 height) {
-    const auto aspect_ratio = Layout::EmulationAspectRatio(
-        static_cast<Layout::AspectRatio>(Settings::values.aspect_ratio.GetValue()),
-        static_cast<float>(height) / width);
+    const auto aspect_ratio = Layout::EmulationAspectRatio(Settings::values.aspect_ratio.GetValue(), float(height) / width);
     if (!ui->action_Single_Window_Mode->isChecked()) {
         render_window->resize(height / aspect_ratio, height);
     } else {
@@ -3452,6 +3501,9 @@ void GMainWindow::OnConfigure() {
     const auto old_language_index = Settings::values.language_index.GetValue();
 #ifdef __linux__
     const bool old_gamemode = Settings::values.enable_gamemode.GetValue();
+#endif
+#ifdef __unix__
+    const bool old_force_x11 = Settings::values.gui_force_x11.GetValue();
 #endif
 
     Settings::SetConfiguringGlobal(true);
@@ -3515,6 +3567,11 @@ void GMainWindow::OnConfigure() {
 #ifdef __linux__
     if (Settings::values.enable_gamemode.GetValue() != old_gamemode) {
         SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
+    }
+#endif
+#ifdef __unix__
+    if (Settings::values.gui_force_x11.GetValue() != old_force_x11) {
+        GraphicsBackend::SetForceX11(Settings::values.gui_force_x11.GetValue());
     }
 #endif
 
@@ -4222,7 +4279,7 @@ void GMainWindow::MigrateConfigFiles() {
     }
 }
 
-#ifdef ENABLE_QT_UPDATE_CHECKER
+#ifdef ENABLE_UPDATE_CHECKER
 void GMainWindow::OnEmulatorUpdateAvailable() {
     QString version_string = update_future.result();
     if (version_string.isEmpty())
@@ -4491,6 +4548,54 @@ void GMainWindow::OnCheckFirmwareDecryption() {
     SetFirmwareVersion();
     UpdateMenuState();
 }
+
+#ifdef __unix__
+void GMainWindow::OnCheckGraphicsBackend() {
+    const QString platformName = QGuiApplication::platformName();
+    const QByteArray qtPlatform = qgetenv("QT_QPA_PLATFORM");
+
+    if (platformName == QStringLiteral("xcb") || qtPlatform == "xcb")
+        return;
+
+    const bool isWayland = platformName.startsWith(QStringLiteral("wayland"), Qt::CaseInsensitive) || qtPlatform.startsWith("wayland");
+    if (!isWayland)
+        return;
+
+    const bool currently_hidden = Settings::values.gui_hide_backend_warning.GetValue();
+    if (currently_hidden)
+        return;
+
+    QMessageBox msgbox(this);
+    msgbox.setWindowTitle(tr("Wayland Detected!"));
+    msgbox.setText(tr("Wayland is known to have significant performance issues and mysterious bugs.\n"
+                      "It's recommended to use X11 instead.\n\n"
+                      "Would you like to force it for future launches?"));
+    msgbox.setIcon(QMessageBox::Warning);
+
+    QPushButton* okButton = msgbox.addButton(tr("Use X11"), QMessageBox::AcceptRole);
+    msgbox.addButton(tr("Continue with Wayland"), QMessageBox::RejectRole);
+    msgbox.setDefaultButton(okButton);
+
+    QCheckBox* cb = new QCheckBox(tr("Don't show again"), &msgbox);
+    cb->setChecked(currently_hidden);
+    msgbox.setCheckBox(cb);
+
+    msgbox.exec();
+
+    const bool hide = cb->isChecked();
+    if (hide != currently_hidden) {
+        Settings::values.gui_hide_backend_warning.SetValue(hide);
+    }
+
+    if (msgbox.clickedButton() == okButton) {
+        Settings::values.gui_force_x11.SetValue(true);
+        GraphicsBackend::SetForceX11(true);
+        QMessageBox::information(this,
+            tr("Restart Required"),
+            tr("Restart Eden to apply the X11 backend."));
+    }
+}
+#endif
 
 bool GMainWindow::CheckFirmwarePresence() {
     return FirmwareManager::CheckFirmwarePresence(*QtCommon::system.get());
@@ -4984,6 +5089,9 @@ int main(int argc, char* argv[]) {
     if (QString::fromLocal8Bit(qgetenv("DISPLAY")).isEmpty()) {
         qputenv("DISPLAY", ":0");
     }
+
+    if (GraphicsBackend::GetForceX11() && qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM"))
+        qputenv("QT_QPA_PLATFORM", "xcb");
 
     // Fix the Wayland appId. This needs to match the name of the .desktop file without the .desktop
     // suffix.

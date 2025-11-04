@@ -122,17 +122,15 @@ A64EmitX64::BlockDescriptor A64EmitX64::Emit(IR::Block& block) noexcept {
         auto const opcode = inst.GetOpcode();
         // Call the relevant Emit* member function.
         switch (opcode) {
-#define OPCODE(name, type, ...) [[likely]] case IR::Opcode::name: goto opcode_branch;
+#define OPCODE(name, type, ...) case IR::Opcode::name: goto opcode_branch;
 #define A32OPC(name, type, ...)
-#define A64OPC(name, type, ...) [[likely]] case IR::Opcode::A64##name: goto a64_branch;
+#define A64OPC(name, type, ...) case IR::Opcode::A64##name: goto a64_branch;
 #include "dynarmic/ir/opcodes.inc"
 #undef OPCODE
 #undef A32OPC
 #undef A64OPC
-        default: [[unlikely]] {
-                ASSERT_MSG(false, "Invalid opcode: {:x}", std::size_t(opcode));
-            goto finish_this_inst;
-        }
+        default:
+            UNREACHABLE();
         }
 opcode_branch:
         (this->*opcode_handlers[size_t(opcode)])(ctx, &inst);
@@ -764,7 +762,7 @@ void A64EmitX64::EmitPatchMovRcx(CodePtr target_code_ptr) {
         target_code_ptr = code.GetReturnFromRunCodeAddress();
     }
     const CodePtr patch_location = code.getCurr();
-    code.mov(code.rcx, reinterpret_cast<u64>(target_code_ptr));
+    code.mov(code.rcx, u64(target_code_ptr));
     code.EnsurePatchLocationSize(patch_location, 10);
 }
 

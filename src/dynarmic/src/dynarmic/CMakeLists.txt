@@ -58,14 +58,11 @@ add_library(dynarmic STATIC
     common/lut_from_list.h
     common/math_util.cpp
     common/math_util.h
-    common/memory_pool.cpp
-    common/memory_pool.h
     common/safe_ops.h
     common/spin_lock.h
     common/string_util.h
     common/u128.cpp
     common/u128.h
-    common/variant_util.h
     frontend/A32/a32_types.cpp
     frontend/A32/a32_types.h
     frontend/A64/a64_types.cpp
@@ -80,7 +77,6 @@ add_library(dynarmic STATIC
     ir/basic_block.cpp
     ir/basic_block.h
     ir/cond.h
-    ir/ir_emitter.cpp
     ir/ir_emitter.h
     ir/location_descriptor.cpp
     ir/location_descriptor.h
@@ -148,11 +144,7 @@ if ("x86_64" IN_LIST ARCHITECTURE)
     target_compile_definitions(dynarmic PRIVATE XBYAK_STRICT_CHECK_MEM_REG_SIZE=0)
 
     target_compile_definitions(dynarmic PRIVATE XBYAK_OLD_DISP_CHECK=1)
-    target_link_libraries(dynarmic
-        PRIVATE
-            xbyak::xbyak
-            Zydis::Zydis
-    )
+    target_link_libraries(dynarmic PRIVATE xbyak::xbyak)
 
     target_architecture_specific_sources(dynarmic "x86_64"
         backend/x64/abi.cpp
@@ -196,8 +188,6 @@ if ("x86_64" IN_LIST ARCHITECTURE)
         backend/x64/verbose_debugging_output.h
         common/spin_lock_x64.cpp
         common/spin_lock_x64.h
-        common/x64_disassemble.cpp
-        common/x64_disassemble.h
         # A32
         backend/x64/a32_emit_x64.cpp
         backend/x64/a32_emit_x64.h
@@ -325,6 +315,7 @@ elseif (APPLE)
                 -server "${CMAKE_CURRENT_SOURCE_DIR}/backend/x64/mig/mach_exc_server.c"
                 -sheader "${CMAKE_CURRENT_SOURCE_DIR}/backend/x64/mig/mach_exc_server.h"
                 "${MACH_EXC_DEFS_DIR}/mach/mach_exc.defs"
+            COMMAND_ERROR_IS_FATAL ANY
         )
         execute_process(
             COMMAND
@@ -337,13 +328,15 @@ elseif (APPLE)
                 -server "${CMAKE_CURRENT_SOURCE_DIR}/backend/arm64/mig/mach_exc_server.c"
                 -sheader "${CMAKE_CURRENT_SOURCE_DIR}/backend/arm64/mig/mach_exc_server.h"
                 "${MACH_EXC_DEFS_DIR}/mach/mach_exc.defs"
+            COMMAND_ERROR_IS_FATAL ANY
         )
         target_sources(dynarmic PRIVATE
             backend/exception_handler_macos.cpp
             backend/exception_handler_macos_mig.c
         )
     endif()
-elseif (UNIX)
+elseif (UNIX AND NOT PLATFORM_HAIKU)
+    # Haiku lacks <ucontext.h>
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         target_link_libraries(dynarmic PRIVATE rt)
     endif()
@@ -406,16 +399,4 @@ target_compile_definitions(dynarmic PRIVATE FMT_USE_USER_DEFINED_LITERALS=1)
 
 if (DYNARMIC_ENABLE_LTO)
     set_property(TARGET dynarmic PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-endif()
-
-if (DYNARMIC_USE_PRECOMPILED_HEADERS)
-    set(PRECOMPILED_HEADERS "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/ir/ir_emitter.h>")
-    if ("x86_64" IN_LIST ARCHITECTURE)
-        list(PREPEND PRECOMPILED_HEADERS "$<$<COMPILE_LANGUAGE:CXX>:<xbyak/xbyak.h$<ANGLE-R>>")
-    endif()
-    if ("arm64" IN_LIST ARCHITECTURE)
-        list(PREPEND PRECOMPILED_HEADERS "$<$<COMPILE_LANGUAGE:CXX>:<oaknut/oaknut.hpp$<ANGLE-R>>")
-    endif()
-    target_precompile_headers(dynarmic PRIVATE ${PRECOMPILED_HEADERS})
-    set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
 endif()

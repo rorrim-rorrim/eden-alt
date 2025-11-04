@@ -82,9 +82,6 @@ class SettingsFragmentPresenter(
     }
 
     fun onViewCreated() {
-        if (menuTag == MenuTag.SECTION_EDEN_VEIL) {
-            showEdenVeilWarningDialog()
-        }
         loadSettingsList()
     }
 
@@ -108,7 +105,7 @@ class SettingsFragmentPresenter(
             MenuTag.SECTION_INPUT_PLAYER_SIX -> addInputPlayer(sl, 5)
             MenuTag.SECTION_INPUT_PLAYER_SEVEN -> addInputPlayer(sl, 6)
             MenuTag.SECTION_INPUT_PLAYER_EIGHT -> addInputPlayer(sl, 7)
-            MenuTag.SECTION_THEME -> addThemeSettings(sl)
+            MenuTag.SECTION_APP_SETTINGS -> addThemeSettings(sl)
             MenuTag.SECTION_DEBUG -> addDebugSettings(sl)
             MenuTag.SECTION_EDEN_VEIL -> addEdenVeilSettings(sl)
             MenuTag.SECTION_APPLETS -> addAppletSettings(sl)
@@ -1033,6 +1030,14 @@ class SettingsFragmentPresenter(
                 override fun reset() = IntSetting.THEME.setInt(defaultValue)
             }
 
+            if (NativeLibrary.isUpdateCheckerEnabled()) {
+                add(HeaderSetting(R.string.app_settings))
+                add(BooleanSetting.ENABLE_UPDATE_CHECKS.key)
+            }
+
+            add(HeaderSetting(R.string.theme_and_color))
+
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 add(
                     SingleChoiceSetting(
@@ -1162,31 +1167,6 @@ class SettingsFragmentPresenter(
 
             add(HeaderSetting(R.string.log))
             add(BooleanSetting.DEBUG_FLUSH_BY_LINE.key)
-        }
-    }
-
-    fun showEdenVeilWarningDialog() {
-        val shouldDisplayVeilWarning =
-            PreferenceManager.getDefaultSharedPreferences(activity!!.applicationContext)
-                .getBoolean(Settings.PREF_SHOULD_SHOW_EDENS_VEIL_DIALOG, true)
-
-        if (shouldDisplayVeilWarning) {
-            activity?.let {
-                MessageDialogFragment.newInstance(
-                    it,
-                    titleId = R.string.eden_veil_warning_title,
-                    descriptionId = R.string.eden_veil_warning_description,
-                    positiveButtonTitleId = R.string.dont_show_again,
-                    negativeButtonTitleId = R.string.close,
-                    showNegativeButton = true,
-                    positiveAction = {
-                        PreferenceManager.getDefaultSharedPreferences(activity!!.applicationContext)
-                            .edit() {
-                                putBoolean(Settings.PREF_SHOULD_SHOW_EDENS_VEIL_DIALOG, false)
-                            }
-                    }
-                ).show(it.supportFragmentManager, MessageDialogFragment.TAG)
-            }
         }
     }
 }

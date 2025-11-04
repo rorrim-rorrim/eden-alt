@@ -13,6 +13,8 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
     set(PLATFORM_OPENBSD ON)
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "NetBSD")
     set(PLATFORM_NETBSD ON)
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Haiku")
+    set(PLATFORM_HAIKU ON)
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     set(PLATFORM_LINUX ON)
 endif()
@@ -35,17 +37,23 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
 
+# https://gitlab.kitware.com/cmake/cmake/-/merge_requests/11112
+# This works totally fine on MinGW64, but not CLANG{,ARM}64
+if(MINGW AND CXX_CLANG)
+    set(CMAKE_SYSTEM_VERSION 10.0.0)
+endif()
+
 # NB: this does not account for SPARC
 # If you get Eden working on SPARC, please shoot crueter@crueter.xyz multiple emails
 # and you will be hailed for eternity
 if (PLATFORM_SUN)
     # Terrific Solaris pkg shenanigans
-    list(APPEND CMAKE_PREFIX_PATH "/usr/lib/qt/6.6/lib/amd64/cmake")
-    list(APPEND CMAKE_MODULE_PATH "/usr/lib/qt/6.6/lib/amd64/cmake")
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SYSROOT}/usr/lib/qt/6.6/lib/amd64/cmake")
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_SYSROOT}/usr/lib/qt/6.6/lib/amd64/cmake")
 
     # Amazing - absolutely incredible
-    list(APPEND CMAKE_PREFIX_PATH "/usr/lib/amd64/cmake")
-    list(APPEND CMAKE_MODULE_PATH "/usr/lib/amd64/cmake")
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SYSROOT}/usr/lib/amd64/cmake")
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_SYSROOT}/usr/lib/amd64/cmake")
 
     # For some mighty reason, doing a normal release build sometimes may not trigger
     # the proper -O3 switch to materialize
@@ -61,18 +69,18 @@ endif()
 
 # Needed for FFmpeg w/ VAAPI and DRM
 if (PLATFORM_OPENBSD)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I/usr/X11R6/include")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/X11R6/include")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/X11R6/lib")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R6/include")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R6/include")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${CMAKE_SYSROOT}/usr/X11R6/lib")
 elseif (PLATFORM_NETBSD)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I/usr/X11R7/include")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/X11R7/include")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/X11R7/lib")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R7/include")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R7/include")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${CMAKE_SYSROOT}/usr/X11R7/lib")
 endif()
 
 # NetBSD: Fun for the whole family!
 if (PLATFORM_NETBSD)
-    set(ENV{PKG_CONFIG_PATH} "${PKG_CONFIG_PATH}:/usr/pkg/lib/ffmpeg7/pkgconfig")
+    set(ENV{PKG_CONFIG_PATH} "${PKG_CONFIG_PATH}:${CMAKE_SYSROOT}/usr/pkg/lib/ffmpeg7/pkgconfig")
 endif()
 
 # Detect current compilation architecture and create standard definitions
@@ -90,12 +98,14 @@ function(detect_architecture symbol arch)
         if (ARCHITECTURE_${arch})
             set(ARCHITECTURE "${arch}" PARENT_SCOPE)
             set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
-            add_definitions(-DARCHITECTURE_${arch}=1)
+            add_definitions("-DARCHITECTURE_${arch}=1")
         endif()
     endif()
 endfunction()
 
 if (NOT ENABLE_GENERIC)
+    # https://sourceforge.net/p/predef/wiki/Architectures/
+    # TODO: THIS IS FUCKING FLAWED ONLY THE FIRST SYMBOL THAT APPEARS WILL BE CONSIDERED :(
     if (MSVC)
         detect_architecture("_M_AMD64" x86_64)
         detect_architecture("_M_IX86" x86)
@@ -107,6 +117,48 @@ if (NOT ENABLE_GENERIC)
         detect_architecture("__arm__" arm)
         detect_architecture("__aarch64__" arm64)
     endif()
+    detect_architecture("__ARM64__" arm64)
+    detect_architecture("__aarch64__" arm64)
+    detect_architecture("_M_ARM64" arm64)
+
+    detect_architecture("__arm__" arm)
+    detect_architecture("__TARGET_ARCH_ARM" arm)
+    detect_architecture("_M_ARM" arm)
+
+    detect_architecture("__x86_64" x86_64)
+    detect_architecture("__x86_64__" x86_64)
+    detect_architecture("__amd64" x86_64)
+    detect_architecture("_M_X64" x86_64)
+
+    detect_architecture("__i386" x86)
+    detect_architecture("__i386__" x86)
+    detect_architecture("_M_IX86" x86)
+
+    detect_architecture("__ia64" ia64)
+    detect_architecture("__ia64__" ia64)
+    detect_architecture("_M_IA64" ia64)
+
+    detect_architecture("__mips" mips)
+    detect_architecture("__mips__" mips)
+    detect_architecture("_M_MRX000" mips)
+
+    detect_architecture("__powerpc64__" ppc64)
+    detect_architecture("__ppc64__" ppc64)
+    detect_architecture("__PPC64__" ppc64)
+    detect_architecture("_ARCH_PPC64" ppc64)
+
+    detect_architecture("__ppc__" ppc)
+    detect_architecture("__ppc" ppc)
+    detect_architecture("__powerpc__" ppc)
+    detect_architecture("_ARCH_COM" ppc)
+    detect_architecture("_ARCH_PWR" ppc)
+    detect_architecture("_ARCH_PPC" ppc)
+    detect_architecture("_M_MPPC" ppc)
+    detect_architecture("_M_PPC" ppc)
+
+    detect_architecture("__riscv" riscv)
+
+    detect_architecture("__EMSCRIPTEN__" wasm)
 endif()
 
 if (NOT DEFINED ARCHITECTURE)
@@ -158,7 +210,7 @@ if (MSVC AND NOT CXX_CLANG)
 endif()
 
 if (PLATFORM_FREEBSD)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${CMAKE_SYSROOT}/usr/local/lib")
 
 endif()
 
@@ -175,7 +227,7 @@ endif()
 # qt stuff
 option(ENABLE_QT "Enable the Qt frontend" ON)
 option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
-option(ENABLE_QT_UPDATE_CHECKER "Enable update checker for the Qt frontend" OFF)
+option(ENABLE_UPDATE_CHECKER "Enable update checker (for Qt and Android)" OFF)
 cmake_dependent_option(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
@@ -196,7 +248,8 @@ cmake_dependent_option(YUZU_USE_EXTERNAL_FFMPEG "Build FFmpeg from source" "${PL
 # sirit
 option(YUZU_USE_BUNDLED_SIRIT "Download bundled sirit" ${EXT_DEFAULT})
 
-cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID" OFF)
+# Re-allow on FreeBSD once its on mainline ports
+cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "WIN32 OR PLATFORM_LINUX OR APPLE" OFF)
 
 cmake_dependent_option(ENABLE_OPENGL "Enable OpenGL" ON "NOT WIN32 OR NOT ARCHITECTURE_arm64" OFF)
 mark_as_advanced(FORCE ENABLE_OPENGL)
@@ -208,11 +261,6 @@ cmake_dependent_option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF 
 
 option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
-option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" OFF)
-if (YUZU_USE_PRECOMPILED_HEADERS)
-    message(STATUS "Using Precompiled Headers.")
-    set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
-endif()
 option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
 if(YUZU_ENABLE_LTO)
     include(CheckIPOSupported)
@@ -223,6 +271,7 @@ if(YUZU_ENABLE_LTO)
     set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ${COMPILER_SUPPORTS_LTO})
 endif()
+
 option(USE_CCACHE "Use ccache for compilation" OFF)
 set(CCACHE_PATH "ccache" CACHE STRING "Path to ccache binary")
 if(USE_CCACHE)
@@ -231,11 +280,8 @@ if(USE_CCACHE)
         message(STATUS "Found ccache at: ${CCACHE_BINARY}")
         set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_BINARY})
         set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_BINARY})
-        if (YUZU_USE_PRECOMPILED_HEADERS)
-            message(FATAL_ERROR "Precompiled headers are incompatible with ccache. Re-run CMake with -DYUZU_USE_PRECOMPILED_HEADERS=OFF.")
-        endif()
     else()
-        message(WARNING "USE_CCACHE enabled, but no executable found at: ${CCACHE_PATH}")
+        message(FATAL_ERROR "USE_CCACHE enabled, but no executable found at: ${CCACHE_PATH}")
     endif()
 endif()
 
@@ -270,9 +316,11 @@ if (ANDROID OR WIN32 OR APPLE OR PLATFORM_SUN)
     # your own copy of it.
     set(DEFAULT_ENABLE_OPENSSL OFF)
 endif()
+
 if (ENABLE_WEB_SERVICE)
     set(DEFAULT_ENABLE_OPENSSL ON)
 endif()
+
 option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
 if (ENABLE_OPENSSL)
     set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL OFF)
@@ -348,10 +396,6 @@ if (NOT EXISTS ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.
     file(WRITE ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json "")
 endif()
 
-if (UNIX)
-    add_compile_definitions(YUZU_UNIX=1)
-endif()
-
 if (YUZU_LEGACY)
     message(WARNING "Making legacy build. Performance may suffer.")
     add_compile_definitions(YUZU_LEGACY)
@@ -381,6 +425,8 @@ endif()
 # Build/optimization presets
 if (PLATFORM_LINUX OR CXX_CLANG)
     if (ARCHITECTURE_x86_64)
+        # See https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html
+        # Generic supports Pentium Pro instruction set and above
         set(YUZU_BUILD_PRESET "custom" CACHE STRING "Build preset to use. One of: custom, generic, v3, zen2, zen4, native")
         if (${YUZU_BUILD_PRESET} STREQUAL "generic")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -mtune=generic")
@@ -399,13 +445,17 @@ if (PLATFORM_LINUX OR CXX_CLANG)
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -mtune=native")
         endif()
     elseif(ARCHITECTURE_arm64)
-        set(YUZU_BUILD_PRESET "custom" CACHE STRING "Build preset to use. One of: custom, generic, armv9")
+        # See https://gcc.gnu.org/onlinedocs/gcc/AArch64-Options.html
+        set(YUZU_BUILD_PRESET "custom" CACHE STRING "Build preset to use. One of: custom, generic, armv9, native")
         if (${YUZU_BUILD_PRESET} STREQUAL "generic")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv8-a -mtune=generic")
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv8-a -mtune=generic")
         elseif (${YUZU_BUILD_PRESET} STREQUAL "armv9")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv9-a -mtune=generic")
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv9-a -mtune=generic")
+        elseif (${YUZU_BUILD_PRESET} STREQUAL "native")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -mtune=native")
         endif()
     endif()
 endif()
@@ -431,6 +481,9 @@ include(CPMUtil)
 if (ENABLE_OPENSSL)
     if (YUZU_USE_BUNDLED_OPENSSL)
         AddJsonPackage(openssl)
+        if (OpenSSL_ADDED)
+            add_compile_definitions(YUZU_BUNDLED_OPENSSL)
+        endif()
     endif()
 
     find_package(OpenSSL 1.1.1 REQUIRED)
@@ -532,11 +585,7 @@ else()
     find_package(zstd 1.5 REQUIRED MODULE)
 
     # wow
-    if (PLATFORM_LINUX)
-        find_package(Boost 1.57.0 CONFIG REQUIRED headers context system fiber)
-    else()
-        find_package(Boost 1.57.0 CONFIG REQUIRED)
-    endif()
+    find_package(Boost 1.57.0 CONFIG REQUIRED OPTIONAL_COMPONENTS headers context system fiber)
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID)
         find_package(gamemode 1.7 MODULE)
@@ -576,6 +625,35 @@ function(create_target_directory_groups target_name)
     endforeach()
 endfunction()
 
+# Platform-specific library requirements
+# Put these BEFORE EXTERNALS or Boost WILL die
+# =============================================
+
+if (APPLE)
+    # Umbrella framework for everything GUI-related
+    find_library(COCOA_LIBRARY Cocoa)
+    set(PLATFORM_LIBRARIES ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
+    find_library(ICONV_LIBRARY iconv REQUIRED)
+    list(APPEND PLATFORM_LIBRARIES ${ICONV_LIBRARY})
+elseif (WIN32)
+    # Target Windows 10
+    add_compile_definitions(_WIN32_WINNT=0x0A00 WINVER=0x0A00)
+    set(PLATFORM_LIBRARIES winmm ws2_32 iphlpapi)
+    if (MINGW)
+        # PSAPI is the Process Status API
+        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} psapi imm32 version)
+    endif()
+elseif (PLATFORM_HAIKU)
+    # Haiku is so special :)
+    # Some fucking genius decided to name an entire module "network" in 2019
+    # this caused great disaster amongst the Haiku community who had came first with
+    # their "libnetwork.so"; since CMake doesn't do magic, we have to use an ABSOLUTE PATH
+    # to the library itself, otherwise it will think we are linking to... our network thing
+    set(PLATFORM_LIBRARIES bsd /boot/system/lib/libnetwork.so)
+elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
+    set(PLATFORM_LIBRARIES rt)
+endif()
+
 add_subdirectory(externals)
 
 # pass targets from externals
@@ -597,7 +675,7 @@ if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
     # find_package(httplib CONFIG)
 endif()
 
-if (ENABLE_WEB_SERVICE)
+if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)
     find_package(cpp-jwt)
 endif()
 
@@ -684,11 +762,16 @@ function(set_yuzu_qt_components)
     if (ENABLE_QT_TRANSLATION)
         list(APPEND YUZU_QT_COMPONENTS2 LinguistTools)
     endif()
-    if (USE_DISCORD_PRESENCE)
-        list(APPEND YUZU_QT_COMPONENTS2 Network)
-    endif()
     set(YUZU_QT_COMPONENTS ${YUZU_QT_COMPONENTS2} PARENT_SCOPE)
 endfunction(set_yuzu_qt_components)
+
+if(ENABLE_QT)
+    set_yuzu_qt_components()
+    find_package(Qt6 REQUIRED COMPONENTS ${YUZU_QT_COMPONENTS})
+    set(QT_MAJOR_VERSION 6)
+    # Qt6 sets cxx_std_17 and we need to undo that
+    set_target_properties(Qt6::Platform PROPERTIES INTERFACE_COMPILE_FEATURES "")
+endif()
 
 if (UNIX AND NOT APPLE AND NOT ANDROID)
     find_package(PkgConfig REQUIRED)
@@ -703,14 +786,6 @@ if (NOT (YUZU_USE_BUNDLED_FFMPEG OR YUZU_USE_EXTERNAL_FFMPEG))
     set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES FFmpeg)
     set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS "unknown (system)")
     set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS "https://github.com/FFmpeg/FFmpeg")
-endif()
-
-if(ENABLE_QT)
-    set_yuzu_qt_components()
-    find_package(Qt6 REQUIRED COMPONENTS ${YUZU_QT_COMPONENTS})
-    set(QT_MAJOR_VERSION 6)
-    # Qt6 sets cxx_std_17 and we need to undo that
-    set_target_properties(Qt6::Platform PROPERTIES INTERFACE_COMPILE_FEATURES "")
 endif()
 
 if (WIN32 AND YUZU_CRASH_DUMPS)
@@ -728,27 +803,6 @@ endif()
 # Prefer the -pthread flag on Linux.
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-
-# Platform-specific library requirements
-# ======================================
-
-if (APPLE)
-    # Umbrella framework for everything GUI-related
-    find_library(COCOA_LIBRARY Cocoa)
-    set(PLATFORM_LIBRARIES ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
-    find_library(ICONV_LIBRARY iconv REQUIRED)
-    list(APPEND PLATFORM_LIBRARIES ${ICONV_LIBRARY})
-elseif (WIN32)
-    # Target Windows 10
-    add_compile_definitions(_WIN32_WINNT=0x0A00 WINVER=0x0A00)
-    set(PLATFORM_LIBRARIES winmm ws2_32 iphlpapi)
-    if (MINGW)
-        # PSAPI is the Process Status API
-        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} psapi imm32 version)
-    endif()
-elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
-    set(PLATFORM_LIBRARIES rt)
-endif()
 
 # Setup a custom clang-format target (if clang-format can be found) that will run
 # against all the src files. This should be used before making a pull request.
@@ -891,6 +945,14 @@ if(MSVC)
         $<$<CONFIG:RelWithDebInfo>:/MD>
         $<$<CONFIG:MinSizeRel>:/MD>
     )
+endif()
+
+if (MINGW)
+    # This saves a truly ridiculous amount of time during linking
+    # In my tests, without this it takes 2 mins, with it takes 3-5 seconds
+    # or on GitHub Actions, 10 minutes -> 3 seconds
+    set(MINGW_FLAGS "-Wl,--strip-all -Wl,--gc-sections")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} ${MINGW_FLAGS}")
 endif()
 
 add_subdirectory(src)

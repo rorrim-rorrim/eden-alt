@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -29,31 +32,9 @@
 #define INSERT_PADDING_WORDS_NOINIT(num_words)                                                     \
     [[maybe_unused]] std::array<u32, num_words> CONCAT2(pad, __LINE__)
 
-#ifndef _MSC_VER
-
-#if defined(ARCHITECTURE_x86_64)
-#define Crash() __asm__ __volatile__("int $3")
-#elif defined(ARCHITECTURE_arm64)
-#define Crash() __asm__ __volatile__("brk #0")
-#else
-#define Crash() exit(1)
-#endif
-
-#define LTO_NOINLINE __attribute__((noinline))
-
-#else // _MSC_VER
-
-#define LTO_NOINLINE
-
-// Locale Cross-Compatibility
-#define locale_t _locale_t
-
-extern "C" {
-__declspec(dllimport) void __stdcall DebugBreak(void);
-}
-#define Crash() DebugBreak()
-
-#endif // _MSC_VER ndef
+#ifdef _MSC_VER
+#   define locale_t _locale_t // Locale Cross-Compatibility
+#endif // _MSC_VER
 
 #define DECLARE_ENUM_FLAG_OPERATORS(type)                                                          \
     [[nodiscard]] constexpr type operator|(type a, type b) noexcept {                              \
@@ -127,21 +108,6 @@ namespace Common {
                                       char h) {
     return u64(a) << 0 | u64(b) << 8 | u64(c) << 16 | u64(d) << 24 | u64(e) << 32 | u64(f) << 40 |
            u64(g) << 48 | u64(h) << 56;
-}
-
-// std::size() does not support zero-size C arrays. We're fixing that.
-template <class C>
-constexpr auto Size(const C& c) -> decltype(c.size()) {
-    return std::size(c);
-}
-
-template <class C>
-constexpr std::size_t Size(const C& c) {
-    if constexpr (sizeof(C) == 0) {
-        return 0;
-    } else {
-        return std::size(c);
-    }
 }
 
 } // namespace Common

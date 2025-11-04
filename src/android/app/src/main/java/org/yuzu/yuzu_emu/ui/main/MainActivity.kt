@@ -23,6 +23,7 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.color.MaterialColors
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.io.File
 import java.io.FilenameFilter
 import org.yuzu.yuzu_emu.NativeLibrary
@@ -50,6 +51,8 @@ import java.util.zip.ZipInputStream
 import androidx.core.content.edit
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import kotlin.text.compareTo
+import androidx.core.net.toUri
+import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 
 class MainActivity : AppCompatActivity(), ThemeProvider {
     private lateinit var binding: ActivityMainBinding
@@ -64,43 +67,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     private val CHECKED_DECRYPTION = "CheckedDecryption"
     private var checkedDecryption = false
-
-    private val CHECKED_FIRMWARE = "CheckedFirmware"
-    private var checkedFirmware = false
-
-    private val requestBluetoothPermissionsLauncher =
-        registerForActivityResult(
-            androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()
-        ) { permissions ->
-            val granted = permissions.entries.all { it.value }
-            if (granted) {
-                // Permissions were granted.
-                Toast.makeText(this, R.string.bluetooth_permissions_granted, Toast.LENGTH_SHORT)
-                    .show()
-            } else {
-                // Permissions were denied.
-                Toast.makeText(this, R.string.bluetooth_permissions_denied, Toast.LENGTH_LONG)
-                    .show()
-            }
-        }
-
-    private fun checkAndRequestBluetoothPermissions() {
-        // This check is only necessary for Android 12 (API level 31) and above.
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-            val permissionsToRequest = arrayOf(
-                android.Manifest.permission.BLUETOOTH_SCAN,
-                android.Manifest.permission.BLUETOOTH_CONNECT
-            )
-
-            val permissionsNotGranted = permissionsToRequest.filter {
-                checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED
-            }
-
-            if (permissionsNotGranted.isNotEmpty()) {
-                requestBluetoothPermissionsLauncher.launch(permissionsNotGranted.toTypedArray())
-            }
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -128,11 +94,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
         setContentView(binding.root)
 
-        checkAndRequestBluetoothPermissions()
-
         if (savedInstanceState != null) {
             checkedDecryption = savedInstanceState.getBoolean(CHECKED_DECRYPTION)
-            checkedFirmware = savedInstanceState.getBoolean(CHECKED_FIRMWARE)
         }
         if (!checkedDecryption) {
             val firstTimeSetup = PreferenceManager.getDefaultSharedPreferences(applicationContext)
@@ -192,29 +155,46 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         // Dismiss previous notifications (should not happen unless a crash occurred)
         EmulationActivity.stopForegroundService(this)
 
+        val firstTimeSetup = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+                .getBoolean(Settings.PREF_FIRST_APP_LAUNCH, true)
+
+        if (!firstTimeSetup && NativeLibrary.isUpdateCheckerEnabled() && BooleanSetting.ENABLE_UPDATE_CHECKS.getBoolean()) {
+             checkForUpdates()
+        }
         setInsets()
     }
 
-    fun showPreAlphaWarningDialog() {
-        val shouldDisplayAlphaWarning =
-            PreferenceManager.getDefaultSharedPreferences(applicationContext)
-                .getBoolean(Settings.PREF_SHOULD_SHOW_PRE_ALPHA_WARNING, true)
-        if (shouldDisplayAlphaWarning) {
-            MessageDialogFragment.newInstance(
-                this,
-                titleId = R.string.pre_alpha_warning_title,
-                descriptionId = R.string.pre_alpha_warning_description,
-                positiveButtonTitleId = R.string.dont_show_again,
-                negativeButtonTitleId = R.string.close,
-                showNegativeButton = true,
-                positiveAction = {
-                    PreferenceManager.getDefaultSharedPreferences(applicationContext).edit() {
-                        putBoolean(Settings.PREF_SHOULD_SHOW_PRE_ALPHA_WARNING, false)
-                    }
+    private fun checkForUpdates() {
+        Thread {
+            val latestVersion = NativeLibrary.checkForUpdate()
+            if (latestVersion != null) {
+                runOnUiThread {
+                    showUpdateDialog(latestVersion)
                 }
-            ).show(supportFragmentManager, MessageDialogFragment.TAG)
-        }
+            }
+        }.start()
     }
+
+    private fun showUpdateDialog(version: String) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.update_available)
+            .setMessage(getString(R.string.update_available_description, version))
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val url = NativeLibrary.getUpdateUrl(version)
+                val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+                startActivity(intent)
+            }
+            .setNeutralButton(R.string.cancel) { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.dont_show_again) { dialog, _ ->
+                BooleanSetting.ENABLE_UPDATE_CHECKS.setBoolean(false)
+                NativeConfig.saveGlobalConfig()
+                dialog.dismiss()
+            }
+            .show()
+    }
+
 
     fun displayMultiplayerDialog() {
         val dialog = NetPlayDialog(this)
@@ -233,7 +213,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(CHECKED_DECRYPTION, checkedDecryption)
-        outState.putBoolean(CHECKED_FIRMWARE, checkedFirmware)
     }
 
     fun finishSetup(navController: NavController) {

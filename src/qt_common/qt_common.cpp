@@ -3,11 +3,14 @@
 
 #include "qt_common.h"
 #include "common/fs/fs.h"
+#include "common/fs/ryujinx_compat.h"
 
 #include <QGuiApplication>
 #include <QStringLiteral>
 #include "common/logging/log.h"
 #include "core/frontend/emu_window.h"
+#include "qt_common/abstract/frontend.h"
+#include "qt_common/qt_string_lookup.h"
 
 #include <QFile>
 
@@ -49,6 +52,8 @@ Core::Frontend::WindowSystemType GetWindowSystemType()
         return Core::Frontend::WindowSystemType::Cocoa;
     else if (platform_name == QStringLiteral("android"))
         return Core::Frontend::WindowSystemType::Android;
+    else if (platform_name == QStringLiteral("haiku"))
+        return Core::Frontend::WindowSystemType::Xcb;
 
     LOG_CRITICAL(Frontend, "Unknown Qt platform {}!", platform_name.toStdString());
     return Core::Frontend::WindowSystemType::Windows;
@@ -100,9 +105,11 @@ void Init(QObject* root)
     provider = std::make_unique<FileSys::ManualContentProvider>();
 }
 
-std::filesystem::path GetEdenCommand() {
+std::filesystem::path GetEdenCommand()
+{
     std::filesystem::path command;
 
+    // TODO: flatpak?
     QString appimage = QString::fromLocal8Bit(getenv("APPIMAGE"));
     if (!appimage.isEmpty()) {
         command = std::filesystem::path{appimage.toStdString()};

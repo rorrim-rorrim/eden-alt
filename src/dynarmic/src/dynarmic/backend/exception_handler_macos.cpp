@@ -19,7 +19,7 @@
 
 #include <fmt/format.h>
 #include "dynarmic/common/assert.h"
-#include <mcl/bit_cast.hpp>
+#include <bit>
 #include <mcl/macro/architecture.hpp>
 #include "dynarmic/common/common_types.h"
 
@@ -88,16 +88,14 @@ private:
 };
 
 MachHandler::MachHandler() {
-#define KCHECK(x) ASSERT_MSG((x) == KERN_SUCCESS, "dynarmic: macOS MachHandler: init failure at {}", #x)
-
+#define KCHECK(x) ASSERT((x) == KERN_SUCCESS && "init failure at " #x)
     KCHECK(mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &server_port));
     KCHECK(mach_port_insert_right(mach_task_self(), server_port, server_port, MACH_MSG_TYPE_MAKE_SEND));
     KCHECK(task_set_exception_ports(mach_task_self(), EXC_MASK_BAD_ACCESS, server_port, EXCEPTION_STATE | MACH_EXCEPTION_CODES, THREAD_STATE));
-
-    // The below doesn't actually work, and I'm not sure why; since this doesn't work we'll have a spurious error message upon shutdown.
+    // The below doesn't actually work, and I'm not sure why; since this doesn't work we'll have a spurious
+    // error message upon shutdown.
     mach_port_t prev;
     KCHECK(mach_port_request_notification(mach_task_self(), server_port, MACH_NOTIFY_PORT_DESTROYED, 0, server_port, MACH_MSG_TYPE_MAKE_SEND_ONCE, &prev));
-
 #undef KCHECK
 
     thread = std::thread(&MachHandler::MessagePump, this);
@@ -146,7 +144,7 @@ kern_return_t MachHandler::HandleRequest(x86_thread_state64_t* ts) {
     FakeCall fc = iter->cb(ts->__rip);
 
     ts->__rsp -= sizeof(u64);
-    *mcl::bit_cast<u64*>(ts->__rsp) = fc.ret_rip;
+    *std::bit_cast<u64*>(ts->__rsp) = fc.ret_rip;
     ts->__rip = fc.call_rip;
 
     return KERN_SUCCESS;
@@ -271,13 +269,13 @@ ExceptionHandler::~ExceptionHandler() = default;
 
 #if defined(ARCHITECTURE_x86_64)
 void ExceptionHandler::Register(X64::BlockOfCode& code) {
-    const u64 code_begin = mcl::bit_cast<u64>(code.getCode());
+    const u64 code_begin = std::bit_cast<u64>(code.getCode());
     const u64 code_end = code_begin + code.GetTotalCodeSize();
     impl = std::make_unique<Impl>(code_begin, code_end);
 }
 #elif defined(ARCHITECTURE_arm64)
 void ExceptionHandler::Register(oaknut::CodeBlock& mem, std::size_t size) {
-    const u64 code_begin = mcl::bit_cast<u64>(mem.ptr());
+    const u64 code_begin = std::bit_cast<u64>(mem.ptr());
     const u64 code_end = code_begin + size;
     impl = std::make_unique<Impl>(code_begin, code_end);
 }

@@ -210,12 +210,9 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
     config.wall_clock_cntpct = m_uses_wall_clock;
     config.enable_cycle_counting = !m_uses_wall_clock;
 
-    // Code cache size
-#ifdef ARCHITECTURE_arm64
+    // Code cache size - max in ARM is 128MiB, max in x86_64 is 2GiB
+    // Solaris doesn't support kPageSize >= 512MiB
     config.code_cache_size = std::uint32_t(128_MiB);
-#else
-    config.code_cache_size = std::uint32_t(512_MiB);
-#endif
 
     // Allow memory fault handling to work
     if (m_system.DebuggerEnabled()) {
@@ -295,7 +292,7 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
     // Curated optimizations
     case Settings::CpuAccuracy::Auto:
         config.unsafe_optimizations = true;
-#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__)
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__) || defined(__HAIKU__)
         config.fastmem_pointer = std::nullopt;
         config.fastmem_exclusive_access = false;
 #endif
@@ -344,15 +341,11 @@ bool ArmDynarmic32::IsInThumbMode() const {
 }
 
 HaltReason ArmDynarmic32::RunThread(Kernel::KThread* thread) {
-    ScopedJitExecution sj(thread->GetOwnerProcess());
-
     m_jit->ClearExclusiveState();
     return TranslateHaltReason(m_jit->Run());
 }
 
 HaltReason ArmDynarmic32::StepThread(Kernel::KThread* thread) {
-    ScopedJitExecution sj(thread->GetOwnerProcess());
-
     m_jit->ClearExclusiveState();
     return TranslateHaltReason(m_jit->Step());
 }
@@ -394,7 +387,6 @@ ArmDynarmic32::ArmDynarmic32(System& system, bool uses_wall_clock, Kernel::KProc
       m_cp15(std::make_shared<DynarmicCP15>(*this)), m_core_index{core_index} {
     auto& page_table_impl = process->GetPageTable().GetBasePageTable().GetImpl();
     m_jit = MakeJit(&page_table_impl);
-    ScopedJitExecution::RegisterHandler();
 }
 
 ArmDynarmic32::~ArmDynarmic32() = default;

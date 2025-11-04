@@ -22,7 +22,6 @@ Notes:
 - `YUZU_USE_BUNDLED_FFMPEG` (ON for non-UNIX) Download (Windows, Android) or build (UNIX) bundled FFmpeg
 - `ENABLE_CUBEB` (ON) Enables the cubeb audio backend
 - `YUZU_TESTS` (ON) Compile tests - requires Catch2
-- `YUZU_USE_PRECOMPILED_HEADERS` (ON for non-UNIX) Use precompiled headers
 - `YUZU_DOWNLOAD_ANDROID_VVL` (ON) Download validation layer binary for Android
 - `YUZU_ENABLE_LTO` (OFF) Enable link-time optimization
   * Not recommended on Windows
@@ -38,6 +37,7 @@ Notes:
 - `YUZU_USE_BUNDLED_OPENSSL` (ON for MSVC) Download bundled OpenSSL build
   * Always on for Android
   * Unavailable on OpenBSD
+- `ENABLE_UPDATE_CHECKER` (OFF) Enable update checker for the Qt an Android frontends
 
 The following options are desktop only:
 - `ENABLE_SDL2` (ON) Enable the SDL2 desktop, audio, and input frontend (HIGHLY RECOMMENDED!)
@@ -51,7 +51,6 @@ The following options are desktop only:
   * Unavailable on Windows/ARM64 and Android
 - `ENABLE_QT` (ON) Enable the Qt frontend (recommended)
 - `ENABLE_QT_TRANSLATION` (OFF) Enable translations for the Qt frontend
-- `ENABLE_QT_UPDATE_CHECKER` (OFF) Enable update checker for the Qt frontend
 - `YUZU_USE_BUNDLED_QT` (ON for MSVC) Download bundled Qt binaries
   * Note that using **system Qt** requires you to include the Qt CMake directory in `CMAKE_PREFIX_PATH`, e.g:
     * `-DCMAKE_PREFIX_PATH=C:/Qt/6.9.0/msvc2022_64/lib/cmake/Qt6`

@@ -12,7 +12,8 @@
 
 #include <boost/icl/interval_set.hpp>
 #include "dynarmic/common/assert.h"
-#include <mcl/bit_cast.hpp>
+#include "dynarmic/common/llvm_disassemble.h"
+#include <bit>
 #include <mcl/scope_exit.hpp>
 
 #include "dynarmic/backend/x64/a64_emit_x64.h"
@@ -21,7 +22,6 @@
 #include "dynarmic/backend/x64/devirtualize.h"
 #include "dynarmic/backend/x64/jitstate_info.h"
 #include "dynarmic/common/atomic.h"
-#include "dynarmic/common/x64_disassemble.h"
 #include "dynarmic/frontend/A64/translate/a64_translate.h"
 #include "dynarmic/interface/A64/a64.h"
 #include "dynarmic/ir/basic_block.h"
@@ -43,7 +43,7 @@ static RunCodeCallbacks GenRunCodeCallbacks(A64::UserCallbacks* cb, CodePtr (*Lo
 static std::function<void(BlockOfCode&)> GenRCP(const A64::UserConfig& conf) {
     return [conf](BlockOfCode& code) {
         if (conf.page_table) {
-            code.mov(code.r14, mcl::bit_cast<u64>(conf.page_table));
+            code.mov(code.r14, std::bit_cast<u64>(conf.page_table));
         }
         if (conf.fastmem_pointer) {
             code.mov(code.r13, *conf.fastmem_pointer);
@@ -80,16 +80,16 @@ public:
         };
 
         // TODO: Check code alignment
-
-        const CodePtr current_code_ptr = [this] {
+        const CodePtr aligned_code_ptr = CodePtr((uintptr_t(GetCurrentBlock()) + 15) & ~uintptr_t(15));
+        const CodePtr current_code_ptr = [this, aligned_code_ptr] {
             // RSB optimization
             const u32 new_rsb_ptr = (jit_state.rsb_ptr - 1) & A64JitState::RSBPtrMask;
             if (jit_state.GetUniqueHash() == jit_state.rsb_location_descriptors[new_rsb_ptr]) {
                 jit_state.rsb_ptr = new_rsb_ptr;
-                return reinterpret_cast<CodePtr>(jit_state.rsb_codeptrs[new_rsb_ptr]);
+                return CodePtr(jit_state.rsb_codeptrs[new_rsb_ptr]);
             }
-
-            return GetCurrentBlock();
+            return aligned_code_ptr;
+            //return GetCurrentBlock();
         }();
 
         const HaltReason hr = block_of_code.RunCode(&jit_state, current_code_ptr);
@@ -231,14 +231,10 @@ public:
         return is_executing;
     }
 
-    void DumpDisassembly() const {
+    std::string Disassemble() const {
         const size_t size = reinterpret_cast<const char*>(block_of_code.getCurr()) - reinterpret_cast<const char*>(block_of_code.GetCodeBegin());
-        Common::DumpDisassembledX64(block_of_code.GetCodeBegin(), size);
-    }
-
-    std::vector<std::string> Disassemble() const {
-        const size_t size = reinterpret_cast<const char*>(block_of_code.getCurr()) - reinterpret_cast<const char*>(block_of_code.GetCodeBegin());
-        return Common::DisassembleX64(block_of_code.GetCodeBegin(), size);
+        auto const* p = reinterpret_cast<const char*>(block_of_code.GetCodeBegin());
+        return Common::DisassembleX64(p, p + size);
     }
 
 private:
@@ -427,11 +423,7 @@ bool Jit::IsExecuting() const {
     return impl->IsExecuting();
 }
 
-void Jit::DumpDisassembly() const {
-    return impl->DumpDisassembly();
-}
-
-std::vector<std::string> Jit::Disassemble() const {
+std::string Jit::Disassemble() const {
     return impl->Disassemble();
 }
 

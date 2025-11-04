@@ -13,9 +13,10 @@
 #include <boost/icl/interval_set.hpp>
 #include <fmt/format.h>
 #include "dynarmic/common/assert.h"
-#include <mcl/bit_cast.hpp>
+#include <bit>
 #include <mcl/scope_exit.hpp>
 #include "dynarmic/common/common_types.h"
+#include "dynarmic/common/llvm_disassemble.h"
 
 #include "dynarmic/backend/x64/a32_emit_x64.h"
 #include "dynarmic/backend/x64/a32_jitstate.h"
@@ -24,7 +25,6 @@
 #include "dynarmic/backend/x64/devirtualize.h"
 #include "dynarmic/backend/x64/jitstate_info.h"
 #include "dynarmic/common/atomic.h"
-#include "dynarmic/common/x64_disassemble.h"
 #include "dynarmic/frontend/A32/translate/a32_translate.h"
 #include "dynarmic/interface/A32/a32.h"
 #include "dynarmic/ir/basic_block.h"
@@ -47,7 +47,7 @@ static RunCodeCallbacks GenRunCodeCallbacks(A32::UserCallbacks* cb, CodePtr (*Lo
 static std::function<void(BlockOfCode&)> GenRCP(const A32::UserConfig& conf) {
     return [conf](BlockOfCode& code) {
         if (conf.page_table) {
-            code.mov(code.r14, mcl::bit_cast<u64>(conf.page_table));
+            code.mov(code.r14, std::bit_cast<u64>(conf.page_table));
         }
         if (conf.fastmem_pointer) {
             code.mov(code.r13, *conf.fastmem_pointer);
@@ -176,14 +176,10 @@ struct Jit::Impl {
         return jit_state.SetFpscr(value);
     }
 
-    void DumpDisassembly() const {
+    std::string Disassemble() const {
         const size_t size = reinterpret_cast<const char*>(block_of_code.getCurr()) - reinterpret_cast<const char*>(block_of_code.GetCodeBegin());
-        Common::DumpDisassembledX64(block_of_code.GetCodeBegin(), size);
-    }
-
-    std::vector<std::string> Disassemble() const {
-        const size_t size = reinterpret_cast<const char*>(block_of_code.getCurr()) - reinterpret_cast<const char*>(block_of_code.GetCodeBegin());
-        return Common::DisassembleX64(block_of_code.GetCodeBegin(), size);
+        auto const* p = reinterpret_cast<const char*>(block_of_code.GetCodeBegin());
+        return Common::DisassembleX64(p, p + size);
     }
 
 private:
@@ -327,8 +323,8 @@ void Jit::ClearExclusiveState() {
     impl->ClearExclusiveState();
 }
 
-void Jit::DumpDisassembly() const {
-    impl->DumpDisassembly();
+std::string Jit::Disassemble() const {
+    return impl->Disassemble();
 }
 
 }  // namespace Dynarmic::A32

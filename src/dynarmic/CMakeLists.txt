@@ -20,16 +20,12 @@ option(DYNARMIC_ENABLE_CPU_FEATURE_DETECTION "Turning this off causes dynarmic t
 
 option(DYNARMIC_ENABLE_NO_EXECUTE_SUPPORT "Enables support for systems that require W^X" ${PLATFORM_OPENBSD})
 
-option(DYNARMIC_FATAL_ERRORS "Errors are fatal" OFF)
 option(DYNARMIC_IGNORE_ASSERTS "Ignore asserts" OFF)
 option(DYNARMIC_TESTS_USE_UNICORN "Enable fuzzing tests against unicorn" OFF)
 CMAKE_DEPENDENT_OPTION(DYNARMIC_USE_LLVM "Support disassembly of jitted x86_64 code using LLVM" OFF "NOT YUZU_DISABLE_LLVM" OFF)
 
-option(DYNARMIC_USE_PRECOMPILED_HEADERS "Use precompiled headers" OFF)
-
 option(DYNARMIC_INSTALL "Install dynarmic headers and CMake files" OFF)
 option(DYNARMIC_USE_BUNDLED_EXTERNALS "Use all bundled externals (useful when e.g. cross-compiling)" OFF)
-option(DYNARMIC_WARNINGS_AS_ERRORS "Warnings as errors" ${MASTER_PROJECT})
 option(DYNARMIC_ENABLE_LTO "Enable LTO" OFF)
 
 # Default to a Release build
@@ -54,7 +50,6 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules")
 
 # Arch detection
-include(DetectArchitecture)
 if (NOT DEFINED ARCHITECTURE)
     message(FATAL_ERROR "Unsupported architecture encountered. Ending CMake generation.")
 endif()
@@ -91,11 +86,6 @@ if (MSVC)
         string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
    endif()
 
-    if (DYNARMIC_WARNINGS_AS_ERRORS)
-        list(APPEND DYNARMIC_CXX_FLAGS
-             /WX)
-    endif()
-
     if (CXX_CLANG)
         list(APPEND DYNARMIC_CXX_FLAGS
              -Qunused-arguments
@@ -108,21 +98,6 @@ else()
         -Wcast-qual
         -pedantic
         -Wno-missing-braces)
-
-    if (ARCHITECTURE STREQUAL "x86_64")
-        list(APPEND DYNARMIC_CXX_FLAGS -mtune=core2)
-    endif()
-
-    if (DYNARMIC_WARNINGS_AS_ERRORS)
-        list(APPEND DYNARMIC_CXX_FLAGS
-             -pedantic-errors
-             -Werror)
-    endif()
-
-    if (DYNARMIC_FATAL_ERRORS)
-        list(APPEND DYNARMIC_CXX_FLAGS
-             -Wfatal-errors)
-    endif()
 
     if (CXX_GCC)
         # GCC produces bogus -Warray-bounds warnings from xbyak headers for code paths that are not
@@ -161,8 +136,6 @@ endif()
 
 if ("x86_64" IN_LIST ARCHITECTURE)
     find_package(xbyak 7 CONFIG)
-    find_package(zycore REQUIRED)
-    find_package(zydis 4 REQUIRED)
 endif()
 
 if (DYNARMIC_USE_LLVM)

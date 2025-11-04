@@ -6,14 +6,15 @@
 
 #include <algorithm>
 #include <cstring>
-
-#include "common/bit_cast.h"
+#include <bit>
+#include <numeric>
+#include <ranges>
 #include "common/cityhash.h"
 #include "common/common_types.h"
-#include <ranges>
 #include "video_core/engines/draw_manager.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
+#include "video_core/polygon_mode_utils.h"
 
 namespace Vulkan {
 namespace {
@@ -64,7 +65,7 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     dynamic_vertex_input.Assign(features.has_dynamic_vertex_input ? 1 : 0);
     xfb_enabled.Assign(regs.transform_feedback_enabled != 0);
     ndc_minus_one_to_one.Assign(regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1 : 0);
-    polygon_mode.Assign(PackPolygonMode(regs.polygon_mode_front));
+    polygon_mode.Assign(PackPolygonMode(VideoCore::EffectivePolygonMode(regs)));
     tessellation_primitive.Assign(static_cast<u32>(regs.tessellation.params.domain_type.Value()));
     tessellation_spacing.Assign(static_cast<u32>(regs.tessellation.params.spacing.Value()));
     tessellation_clockwise.Assign(regs.tessellation.params.output_primitives.Value() ==
@@ -98,8 +99,8 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     for (size_t i = 0; i < regs.rt.size(); ++i) {
         color_formats[i] = static_cast<u8>(regs.rt[i].format);
     }
-    alpha_test_ref = Common::BitCast<u32>(regs.alpha_test_ref);
-    point_size = Common::BitCast<u32>(regs.point_size);
+    alpha_test_ref = std::bit_cast<u32>(regs.alpha_test_ref);
+    point_size = std::bit_cast<u32>(regs.point_size);
 
     if (maxwell3d.dirty.flags[Dirty::VertexInput]) {
         if (features.has_dynamic_vertex_input) {

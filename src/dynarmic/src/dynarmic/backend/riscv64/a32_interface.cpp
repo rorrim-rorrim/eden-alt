@@ -119,13 +119,9 @@ struct Jit::Impl final {
         current_state.exclusive_state = false;
     }
 
-    void DumpDisassembly() const {
-        UNIMPLEMENTED();
-    }
-
 private:
     void RequestCacheInvalidation() {
-        // ASSERT_FALSE("Unimplemented");
+        // UNREACHABLE();
 
         invalidate_entire_cache = false;
         invalid_cache_ranges.clear();
@@ -211,10 +207,6 @@ void Jit::SetFpscr(u32 value) {
 
 void Jit::ClearExclusiveState() {
     impl->ClearExclusiveState();
-}
-
-void Jit::DumpDisassembly() const {
-    impl->DumpDisassembly();
 }
 
 }  // namespace Dynarmic::A32

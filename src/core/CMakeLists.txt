@@ -712,6 +712,8 @@ add_library(core STATIC
     hle/service/kernel_helpers.h
     hle/service/lbl/lbl.cpp
     hle/service/lbl/lbl.h
+    hle/service/ldn/client_process_monitor.cpp
+    hle/service/ldn/client_process_monitor.h
     hle/service/ldn/lan_discovery.cpp
     hle/service/ldn/lan_discovery.h
     hle/service/ldn/ldn.cpp
@@ -1148,7 +1150,6 @@ add_library(core STATIC
     memory/dmnt_cheat_vm.h
     perf_stats.cpp
     perf_stats.h
-    precompiled_headers.h
     reporter.cpp
     reporter.h
     tools/freezer.cpp
@@ -1183,13 +1184,14 @@ if (MSVC)
 else()
     target_compile_options(core PRIVATE
         -Werror=conversion
-
         -Wno-sign-conversion
         -Wno-cast-function-type
-
         $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>
-        $<$<CXX_COMPILER_ID:Clang>:-Wno-cast-function-type-mismatch>
     )
+    # pre-clang19 will spam with "OH DID YOU MEAN THIS?" otherwise...
+    if (CXX_CLANG AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19)
+        target_compile_options(core PRIVATE -Wno-cast-function-type-mismatch)
+    endif()
 endif()
 
 target_include_directories(core PRIVATE ${OPUS_INCLUDE_DIRS})
@@ -1203,7 +1205,7 @@ endif()
 
 target_link_libraries(core PRIVATE fmt::fmt nlohmann_json::nlohmann_json RenderDoc::API MbedTLS::mbedcrypto MbedTLS::mbedtls)
 if (MINGW)
-    target_link_libraries(core PRIVATE ${MSWSOCK_LIBRARY})
+    target_link_libraries(core PRIVATE ws2_32 mswsock wlanapi)
 endif()
 
 if (ENABLE_WEB_SERVICE)
@@ -1233,7 +1235,6 @@ endif()
 
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
     target_sources(core PRIVATE
-        arm/dynarmic/arm_dynarmic.cpp
         arm/dynarmic/arm_dynarmic.h
         arm/dynarmic/arm_dynarmic_64.cpp
         arm/dynarmic/arm_dynarmic_64.h
@@ -1271,11 +1272,6 @@ elseif (WIN32)
 else()
     target_sources(core PRIVATE
         hle/service/ssl/ssl_backend_none.cpp)
-endif()
-
-
-if (YUZU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(core PRIVATE precompiled_headers.h)
 endif()
 
 create_target_directory_groups(core)

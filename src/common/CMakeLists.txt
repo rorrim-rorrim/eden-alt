@@ -28,16 +28,13 @@ add_library(
   announce_multiplayer_room.h
   assert.cpp
   assert.h
-  atomic_helpers.h
   atomic_ops.h
-  bit_cast.h
   bit_field.h
   bit_util.h
   bounded_threadsafe_queue.h
   cityhash.cpp
   cityhash.h
   common_funcs.h
-  common_precompiled_headers.h
   common_types.h
   concepts.h
   container_hash.h
@@ -103,7 +100,6 @@ add_library(
   param_package.h
   parent_of_member.h
   point.h
-  precompiled_headers.h
   quaternion.h
   range_map.h
   range_mutex.h
@@ -156,6 +152,8 @@ add_library(
   wall_clock.h
   zstd_compression.cpp
   zstd_compression.h
+  fs/ryujinx_compat.h fs/ryujinx_compat.cpp
+  fs/symlink.h fs/symlink.cpp
 )
 
 if(WIN32)
@@ -269,10 +267,6 @@ target_link_libraries(common PRIVATE lz4::lz4 LLVM::Demangle zstd::zstd)
 if(ANDROID)
   # For ASharedMemory_create
   target_link_libraries(common PRIVATE android)
-endif()
-
-if(YUZU_USE_PRECOMPILED_HEADERS)
-  target_precompile_headers(common PRIVATE precompiled_headers.h)
 endif()
 
 create_target_directory_groups(common)

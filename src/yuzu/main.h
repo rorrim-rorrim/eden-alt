@@ -32,7 +32,7 @@
 #include <QtDBus/QtDBus>
 #endif
 
-#ifdef ENABLE_QT_UPDATE_CHECKER
+#ifdef ENABLE_UPDATE_CHECKER
 #include <QFuture>
 #include <QFutureWatcher>
 #endif
@@ -333,9 +333,6 @@ private slots:
     void OnOpenModsPage();
     void OnOpenQuickstartGuide();
     void OnOpenFAQ();
-    void OnOpenDiscord();
-    void OnOpenRevolt();
-    void OnOpenX();
 
     /// Called whenever a user selects a game in the game list widget.
     void OnGameListLoadFile(QString game_path, u64 program_id);
@@ -358,6 +355,7 @@ private slots:
     void OnGameListAddDirectory();
     void OnGameListShowList(bool show);
     void OnGameListOpenPerGameProperties(const std::string& file);
+    void OnLinkToRyujinx(const u64& program_id);
     void OnMenuLoadFile();
     void OnMenuLoadFolder();
     void IncrementInstallProgress();
@@ -413,6 +411,9 @@ private slots:
     void OnCreateHomeMenuApplicationMenuShortcut();
     void OnCaptureScreenshot();
     void OnCheckFirmwareDecryption();
+#ifdef __unix__
+    void OnCheckGraphicsBackend();
+#endif
     void OnLanguageChanged(const QString& locale);
     void OnMouseActivity();
     bool OnShutdownBegin();
@@ -420,7 +421,7 @@ private slots:
     void OnEmulationStopped();
     void OnEmulationStopTimeExpired();
 
-#ifdef ENABLE_QT_UPDATE_CHECKER
+#ifdef ENABLE_UPDATE_CHECKER
     void OnEmulatorUpdateAvailable();
 #endif
 
@@ -470,13 +471,15 @@ private:
                       QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No),
                   QMessageBox::StandardButton defaultButton = QMessageBox::NoButton);
 
+    std::string GetProfileID();
+
     std::unique_ptr<Ui::MainWindow> ui;
 
     std::unique_ptr<DiscordRPC::DiscordInterface> discord_rpc;
     std::unique_ptr<PlayTime::PlayTimeManager> play_time_manager;
     std::shared_ptr<InputCommon::InputSubsystem> input_subsystem;
 
-#ifdef ENABLE_QT_UPDATE_CHECKER
+#ifdef ENABLE_UPDATE_CHECKER
     QFuture<QString> update_future;
     QFutureWatcher<QString> update_watcher;
 #endif

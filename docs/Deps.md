@@ -5,7 +5,6 @@ To build Eden, you MUST have a C++ compiler.
   - GCC 12 also requires Clang 14+
 * On Windows, this is either:
   - **[MSVC](https://visualstudio.microsoft.com/downloads/)** (you should select *Community* option),
-    * *A convenience script to install the Visual Community Studio 2022 with necessary tools is provided in `.ci/windows/install-msvc.ps1`*
   - clang-cl - can be downloaded from the MSVC installer,
   - or **[MSYS2](https://www.msys2.org)**
 * On macOS, this is Apple Clang
@@ -25,6 +24,9 @@ If you are on desktop and plan to use the Qt frontend, you *must* install Qt 6, 
 * MSVC/clang-cl users on Windows must install through the [official installer](https://www.qt.io/download-qt-installer-oss)
 * Linux and macOS users may choose to use the installer as well.
 * MSYS2 can also install Qt 6 via the package manager
+
+If you are on Windows, a convenience script to install MSVC, MSYS2, Qt, all necessary packages for MSYS2, and set up a zsh environment with useful keybinds and aliases can be found [here](https://git.crueter.xyz/scripts/windev).
+- For help setting up Qt Creator, run `./install.sh -h qtcreator`
 
 If you are on Windows and NOT building with MSYS2, you may go [back home](Build.md) and continue.
 
@@ -62,7 +64,7 @@ Certain other dependencies will be fetched by CPM regardless. System packages *c
 * [libusb](https://github.com/libusb/libusb)
 * [VulkanMemoryAllocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator)
 * [sirit](https://github.com/eden-emulator/sirit)
-* [httplib](https://github.com/yhirose/cpp-httplib) - if `ENABLE_QT_UPDATE_CHECKER` or `ENABLE_WEB_SERVICE` are on
+* [httplib](https://github.com/yhirose/cpp-httplib) - if `ENABLE_UPDATE_CHECKER` or `ENABLE_WEB_SERVICE` are on
   - This package is known to be broken on the AUR.
 * [cpp-jwt](https://github.com/arun11299/cpp-jwt) 1.4+ - if `ENABLE_WEB_SERVICE` is on
 * [unordered-dense](https://github.com/martinus/unordered_dense)
@@ -70,9 +72,6 @@ Certain other dependencies will be fetched by CPM regardless. System packages *c
 
 On amd64:
 * [xbyak](https://github.com/herumi/xbyak) - 7.22 or earlier is recommended
-* [zycore](https://github.com/zyantific/zycore-c)
-* [zydis](https://github.com/zyantific/zydis) 4+
-* Note: zydis and zycore-c MUST match. Using one as a system dependency and the other as a bundled dependency WILL break things
 
 On aarch64 OR if `DYNARMIC_TESTS` is on:
 * [oaknut](https://github.com/merryhime/oaknut) 2.0.1+
@@ -84,13 +83,62 @@ On riscv64:
 
 These are commands to install all necessary dependencies on various Linux and BSD distributions, as well as macOS. Always review what you're running before you hit Enter!
 
+Notes for writers: Include build tools as well, assume user has NOTHING installed (i.e a fresh install) but that they have updated beforehand so no `upgrade && update` or equivalent should be mentioned - except for rolling release systems like Arch.
+
 Click on the arrows to expand.
+
+<details>
+<summary>Gentoo Linux</summary>
+
+GURU must be enabled:
+
+```
+sudo emerge -a app-eselect/eselect-repository
+sudo eselect repository enable guru
+sudo emaint sync -r guru
+```
+
+Now, install all deps:
+
+```sh
+sudo emerge -a \
+    app-arch/lz4 app-arch/zstd app-arch/unzip \
+    dev-libs/libfmt dev-libs/libusb dev-libs/mcl dev-libs/sirit \
+    dev-libs/unordered_dense dev-libs/boost dev-libs/openssl dev-libs/discord-rpc \
+    dev-util/spirv-tools dev-util/spirv-headers dev-util/vulkan-headers \
+    dev-util/vulkan-utility-libraries dev-util/glslang \
+    media-gfx/renderdoc media-libs/libva media-libs/opus media-video/ffmpeg \
+    media-libs/VulkanMemoryAllocator media-libs/libsdl2 media-libs/cubeb \
+    net-libs/enet net-libs/mbedtls \
+    sys-libs/zlib \
+    dev-cpp/nlohmann_json dev-cpp/simpleini dev-cpp/cpp-httplib dev-cpp/cpp-jwt \
+    games-util/gamemode \
+    net-wireless/wireless-tools \
+    dev-qt/qtbase:6 dev-libs/quazip \
+    virtual/pkgconfig
+```
+
+- On `amd64`, also add `dev-libs/xbyak`
+- On `riscv64`, also add `dev-libs/biscuit` (currently unavailable)
+- On `aarch64`, also add `dev-libs/oaknut`
+- If tests are enabled, also add `dev-libs/oaknut` and `dev-cpp/catch`
+
+Required USE flags:
+- `dev-qt/qtbase network concurrent dbus gui widgets`
+- `dev-libs/quazip qt6`
+- `net-libs/mbedtls cmac`
+- `media-libs/libsdl2 haptic joystick sound video`
+- `dev-cpp/cpp-httplib ssl`
+
+[Caveats](./Caveats.md#gentoo-linux)
+
+</details>
 
 <details>
 <summary>Arch Linux</summary>
 
 ```sh
-sudo pacman -Syu --needed base-devel boost catch2 cmake enet ffmpeg fmt git glslang libzip lz4 mbedtls ninja nlohmann-json openssl opus qt6-base qt6-multimedia sdl2 zlib zstd zip unzip zydis zycore vulkan-headers vulkan-utility-libraries libusb spirv-tools spirv-headers
+sudo pacman -Syu --needed base-devel boost catch2 cmake enet ffmpeg fmt git glslang libzip lz4 mbedtls ninja nlohmann-json openssl opus qt6-base qt6-multimedia sdl2 zlib zstd zip unzip vulkan-headers vulkan-utility-libraries libusb spirv-tools spirv-headers
 ```
 
 * Building with QT Web Engine requires `qt6-webengine` as well.
@@ -102,7 +150,7 @@ sudo pacman -Syu --needed base-devel boost catch2 cmake enet ffmpeg fmt git glsl
 <summary>Ubuntu, Debian, Mint Linux</summary>
 
 ```sh
-sudo apt-get install autoconf cmake g++ gcc git glslang-tools libglu1-mesa-dev libhidapi-dev libpulse-dev libtool libudev-dev libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxext-dev libxkbcommon-x11-0 mesa-common-dev nasm ninja-build qt6-base-private-dev libmbedtls-dev catch2 libfmt-dev liblz4-dev nlohmann-json3-dev libzstd-dev libssl-dev libavfilter-dev libavcodec-dev libswscale-dev pkg-config zlib1g-dev libva-dev libvdpau-dev qt6-tools-dev libzydis-dev zydis-tools libzycore-dev libvulkan-dev spirv-tools spirv-headers libusb-1.0-0-dev libxbyak-dev libboost-dev libboost-fiber-dev libboost-context-dev libsdl2-dev libopus-dev libasound2t64 vulkan-utility-libraries-dev
+sudo apt-get install autoconf cmake g++ gcc git glslang-tools libglu1-mesa-dev libhidapi-dev libpulse-dev libtool libudev-dev libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxext-dev libxkbcommon-x11-0 mesa-common-dev nasm ninja-build qt6-base-private-dev libmbedtls-dev catch2 libfmt-dev liblz4-dev nlohmann-json3-dev libzstd-dev libssl-dev libavfilter-dev libavcodec-dev libswscale-dev pkg-config zlib1g-dev libva-dev libvdpau-dev qt6-tools-dev libvulkan-dev spirv-tools spirv-headers libusb-1.0-0-dev libxbyak-dev libboost-dev libboost-fiber-dev libboost-context-dev libsdl2-dev libopus-dev libasound2t64 vulkan-utility-libraries-dev
 ```
 
 * Ubuntu 22.04, Linux Mint 20, or Debian 12 or later is required.
@@ -135,6 +183,38 @@ sudo dnf install qt6-qtbase-private-devel
 </details>
 
 <details>
+<summary>Alpine Linux</summary>
+
+First, enable the community repository; [see here](https://wiki.alpinelinux.org/wiki/Repositories#Enabling_the_community_repository).
+```sh
+# Enable the community repository
+setup-apkrepos -c
+# Install
+apk add g++ git cmake make mbedtls-dev mbedtls-static mesa-dev qt6-qtbase-dev qt6-qtbase-private-dev libquazip1-qt6 ffmpeg-dev libusb-dev libtool boost-dev sdl2-dev zstd-dev vulkan-utility-libraries spirv-tools-dev openssl-dev nlohmann-json lz4-dev opus-dev jq patch
+```
+
+`mbedtls-static` has to be specified otherwise `libeverest.a` and `libp256m.a` will fail to be found.
+
+</details>
+
+<details>
+<summary>Void Linux</summary>
+
+```sh
+xbps-install -Su git make cmake clang pkg-config patch mbedtls-devel SPIRV-Tools-devel SPIRV-Headers lz4 liblz4-devel boost-devel ffmpeg6-devel catch2 Vulkan-Utility-Libraries Vulkan-Headers glslang openssl-devel SDL2-devel quazip-qt6-devel qt6-base-devel qt6-qt5compat-devel fmt-devel json-c++ libenet-devel libusb-devel
+```
+
+Yes, `nlohmann-json` is just named `json-c++`. Why?
+
+</details>
+
+<details>
+<summary>NixOS</summary>
+
+A convenience script is provided on the root of this project [shell.nix](../shell.nix). Run the usual `nix-shell`.
+
+</details>
+<details>
 <summary>macOS</summary>
 
 Install dependencies from **[Homebrew](https://brew.sh/)**
@@ -150,40 +230,27 @@ To run with MoltenVK, install additional dependencies:
 brew install molten-vk vulkan-loader
 ```
 
-</details>
+[Caveats](./Caveats.md#macos).
 
+</details>
 <details>
 <summary>FreeBSD</summary>
 
-As root run: `pkg install devel/cmake devel/sdl20 devel/boost-libs devel/catch2 devel/libfmt devel/nlohmann-json devel/ninja devel/nasm devel/autoconf devel/pkgconf devel/qt6-base devel/simpleini net/enet multimedia/ffnvcodec-headers multimedia/ffmpeg audio/opus archivers/liblz4 lang/gcc12 graphics/glslang graphics/vulkan-utility-libraries graphics/spirv-tools www/cpp-httplib devel/jwt-cpp devel/unordered-dense devel/zydis`
+As root run: `pkg install devel/cmake devel/sdl20 devel/boost-libs devel/catch2 devel/libfmt devel/nlohmann-json devel/ninja devel/nasm devel/autoconf devel/pkgconf devel/qt6-base devel/simpleini net/enet multimedia/ffnvcodec-headers multimedia/ffmpeg audio/opus archivers/liblz4 lang/gcc12 graphics/glslang graphics/vulkan-utility-libraries graphics/spirv-tools www/cpp-httplib devel/jwt-cpp devel/unordered-dense`
 
 If using FreeBSD 12 or prior, use `devel/pkg-config` instead.
-</details>
 
+[Caveats](./Caveats.md#freebsd).
+
+</details>
 <details>
 <summary>NetBSD</summary>
 
-Install `pkgin` if not already `pkg_add pkgin`, see also the general [pkgsrc guide](https://www.netbsd.org/docs/pkgsrc/using.html). For NetBSD 10.1 provide `cat 'PKG_PATH="https://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.0_2025Q3/All/"' >/etc/pkg_install.conf`. If `pkgin` is taking too much time consider adding the following to `/etc/rc.conf`:
-```
-ip6addrctl=YES
-ip6addrctl_policy=ipv4_prefer
-```
-
 For NetBSD +10.1: `pkgin install git cmake boost fmtlib SDL2 catch2 libjwt spirv-headers ffmpeg7 libva nlohmann-json jq libopus qt6 mbedtls3 cpp-httplib lz4 vulkan-headers nasm autoconf enet pkg-config libusb1`.
 
-glslang is not available on NetBSD, to circumvent this simply build glslang by yourself:
-```sh
-pkgin python313
-git clone https://github.com/KhronosGroup/glslang.git
-cd glslang
-python3.13 ./update_glslang_sources.py
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -- -j`nproc`
-cmake --install build
-```
+[Caveats](./Caveats.md#netbsd).
 
 </details>
-
 <details>
 <summary>OpenBSD</summary>
 
@@ -192,8 +259,9 @@ pkg_add -u
 pkg_add cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang gmake llvm-19.1.7p3 qt6 jq fmt nlohmann-json enet boost vulkan-utility-libraries vulkan-headers spirv-headers spirv-tools catch2 sdl2 libusb1-1.0.27
 ```
 
-</details>
+[Caveats](./Caveats.md#openbsd).
 
+</details>
 <details>
 <summary>Solaris / OpenIndiana</summary>
 
@@ -205,23 +273,54 @@ Run the usual update + install of essential toolings: `sudo pkg update && sudo p
 - **clang**: Version 20 is broken, use `sudo pkg install developer/clang-19`.
 
 Then install the libraries: `sudo pkg install qt6 boost glslang libzip library/lz4 libusb-1 nlohmann-json openssl opus sdl2 zlib compress/zstd unzip pkg-config nasm autoconf mesa library/libdrm header-drm developer/fmt`.
-</details>
 
+[Caveats](./Caveats.md#solaris).
+
+</details>
 <details>
 <summary>MSYS2</summary>
 
 * Open the `MSYS2 MinGW 64-bit` shell (`mingw64.exe`)
-* Download and install all dependencies using:
-  * `pacman -Syu git make mingw-w64-x86_64-SDL2 mingw-w64-x86_64-cmake mingw-w64-x86_64-python-pip mingw-w64-x86_64-qt6 mingw-w64-x86_64-toolchain autoconf libtool automake-wrapper`
-* Add MinGW binaries to the PATH:
+* Download and install all dependencies:
+```
+BASE="git make autoconf libtool automake-wrapper jq patch"
+
+MINGW="qt6-base qt6-tools qt6-translations qt6-svg cmake toolchain clang python-pip openssl vulkan-memory-allocator vulkan-devel glslang boost fmt lz4 nlohmann-json zlib zstd enet opus mbedtls libusb unordered_dense"
+
+packages="$BASE"
+for pkg in $MINGW; do
+    packages="$packages mingw-w64-x86_64-$pkg"
+done
+
+pacman -Syuu --needed --noconfirm $packages
+```
+* Notes:
+  - Using `qt6-static` is possible but currently untested.
+  - Other environments are entirely untested, but should theoretically work provided you install all the necessary packages.
+  - GCC is proven to work better with the MinGW environment. If you choose to use Clang, you *may* be better off using the clang64 environment.
+  - Add `qt-creator` to the `MINGW` variable to install Qt Creator. You can then create a Start Menu shortcut to the MinGW Qt Creator by running `powershell "\$s=(New-Object -COM WScript.Shell).CreateShortcut('C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Qt Creator.lnk');\$s.TargetPath='C:\\msys64\\mingw64\\bin\\qtcreator.exe';\$s.Save()"` in Git Bash or MSYS2.
+* Add MinGW binaries to the PATH if they aren't already:
   * `echo 'PATH=/mingw64/bin:$PATH' >> ~/.bashrc`
-* Add VulkanSDK to the PATH:
-  * `echo 'PATH=$(readlink -e /c/VulkanSDK/*/Bin/):$PATH' >> ~/.bashrc`
+  * or `echo 'PATH=/mingw64/bin:$PATH' >> ~/.zshrc`
+
+[Caveats](./Caveats.md#msys2).
+
+</details>
+<details>
+<summary>HaikuOS</summary>
+
+```sh
+pkgman install git cmake patch libfmt_devel nlohmann_json lz4_devel opus_devel boost1.89_devel vulkan_devel qt6_base_devel libsdl2_devel ffmpeg7_devel libx11_devel enet_devel catch2_devel quazip1_qt6_devel qt6_5compat_devel libusb1_devel libz_devel mbedtls3_devel glslang
+```
+
+[Caveats](./Caveats.md#haikuos).
+
 </details>
 
 <details>
 <summary>RedoxOS</summary>
 
+TODO: Fix syscall crashes (heavy IO stalls and hangup due to net mutexes?)
 ```sh
 sudo pkg update && sudo pkg install git cmake
 sudo pkg install ffmpeg6 sdl2 zlib llvm18

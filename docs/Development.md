@@ -1,4 +1,4 @@
-# Guidelines
+# Development guidelines
 
 ## License Headers
 All commits must have proper license header accreditation.
@@ -6,18 +6,20 @@ All commits must have proper license header accreditation.
 You can easily add all necessary license headers by running:
 ```sh
 git fetch origin master:master
-FIX=true COMMIT=true .ci/license-header.sh
+.ci/license-header.sh -u -c
 git push
 ```
 
-Alternatively, you may omit `COMMIT=true` and do an amend commit:
+Alternatively, you may omit `-c` and do an amend commit:
 ```sh
 git fetch origin master:master
-FIX=true .ci/license-header.sh
+.ci/license-header.sh
 git commit --amend -a --no-edit
 ```
 
 If the work is licensed/vendored from other people or projects, you may omit the license headers. Additionally, if you wish to retain authorship over a piece of code, you may attribute it to yourself; however, the code may be changed at any given point and brought under the attribution of Eden.
+
+For more information on the license header script, run `.ci/license-header.sh -h`.
 
 ## Pull Requests
 Pull requests are only to be merged by core developers when properly tested and discussions conclude on Discord or other communication channels. Labels are recommended but not required. However, all PRs MUST be namespaced and optionally typed:
@@ -100,49 +102,6 @@ A general rule of thumb, before uploading files:
 May not be used but worth mentioning nonethless:
 - OGG files: Use [OptiVorbis](https://github.com/OptiVorbis/OptiVorbis).
 - Video files: Use ffmpeg, preferably re-encode as AV1.
-
-# Debugging
-
-## Debugging (host code)
-
-Ignoring SIGSEGV when debugging in host:
-
-- **gdb**: `handle all nostop pass`.
-- **lldb**: `pro hand -p true -s false -n false SIGSEGV`.
-
-## Debugging (guest code)
-
-### gdb
-
-Run `./build/bin/eden-cli -c <path to your config file (see logs where you run eden normally to see where it is)> -d -g <path to game>`
-
-Then hook up an aarch64-gdb (use `yay aarch64-gdb` or `sudo pkg in arch64-gdb` to install)
-Then type `target remote localhost:1234` and type `c` (for continue) - and then if it crashes just do a `bt` (backtrace) and `layout asm`.
-
-### gdb cheatsheet
-
-- `mo <cmd>`: Monitor commands, `get info`, `get fastmem` and `get mappings` are available. Type `mo help` for more info.
-- `detach`: Detach from remote (i.e restarting the emulator).
-- `c`: Continue
-- `p <expr>`: Print variable, `p/x <expr>` for hexadecimal.
-- `r`: Run
-- `bt`: Print backtrace
-- `info threads`: Print all active threads
-- `thread <number>`: Switch to the given thread (see `info threads`)
-- `layout asm`: Display in assembly mode (TUI)
-- `si`: Step assembly instruction
-- `s` or `step`: Step over LINE OF CODE (not assembly)
-- `display <expr>`: Display variable each step.
-- `n`: Next (skips over call frame of a function)
-- `frame <number>`: Switches to the given frame (from `bt`)
-- `br <expr>`: Set breakpoint at `<expr>`.
-- `delete`: Deletes all breakpoints.
-- `catch throw`: Breakpoint at throw. Can also use `br __cxa_throw`
-- `br _mesa_error`: Break on mesa errors (set environment variable `MESA_DEBUG=1` beforehand), see [MESA_DEBUG](https://mesa-docs.readthedocs.io/en/latest/debugging.html).
-
-Expressions can be `variable_names` or `1234` (numbers) or `*var` (dereference of a pointer) or `*(1 + var)` (computed expression).
-
-For more information type `info gdb` and read [the man page](https://man7.org/linux/man-pages/man1/gdb.1.html).
 
 # Bisecting older commits
 

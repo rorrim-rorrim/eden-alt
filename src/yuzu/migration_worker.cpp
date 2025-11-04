@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "migration_worker.h"
+#include "common/fs/symlink.h"
 
 #include <QMap>
 #include <boost/algorithm/string/predicate.hpp>
@@ -24,20 +25,20 @@ void MigrationWorker::process()
     namespace fs = std::filesystem;
     constexpr auto copy_options = fs::copy_options::update_existing | fs::copy_options::recursive;
 
-    const fs::path legacy_user_dir   = selected_legacy_emu.get_user_dir();
+    const fs::path legacy_user_dir = selected_legacy_emu.get_user_dir();
     const fs::path legacy_config_dir = selected_legacy_emu.get_config_dir();
-    const fs::path legacy_cache_dir  = selected_legacy_emu.get_cache_dir();
+    const fs::path legacy_cache_dir = selected_legacy_emu.get_cache_dir();
 
     // TODO(crueter): Make these constexpr since they're defaulted
-    const fs::path eden_dir   = Common::FS::GetEdenPath(Common::FS::EdenPath::EdenDir);
+    const fs::path eden_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::EdenDir);
     const fs::path config_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir);
-    const fs::path cache_dir  = Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir);
+    const fs::path cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir);
     const fs::path shader_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
 
     try {
         fs::remove_all(eden_dir);
     } catch (fs::filesystem_error &_) {
-        // ignore because linux does stupid crap sometimes.
+        // ignore because linux does stupid crap sometimes
     }
 
     switch (strategy) {
@@ -46,7 +47,7 @@ void MigrationWorker::process()
 
         // Windows 11 has random permission nonsense to deal with.
         try {
-            fs::create_directory_symlink(legacy_user_dir, eden_dir);
+            Common::FS::CreateSymlink(legacy_user_dir, eden_dir);
         } catch (const fs::filesystem_error &e) {
             emit error(tr("Linking the old directory failed. You may need to re-run with "
                           "administrative privileges on Windows.\nOS gave error: %1")
@@ -58,17 +59,17 @@ void MigrationWorker::process()
 // are already children of the root directory
 #ifndef WIN32
         if (fs::is_directory(legacy_config_dir)) {
-            fs::create_directory_symlink(legacy_config_dir, config_dir);
+            Common::FS::CreateSymlink(legacy_config_dir, config_dir);
         }
 
         if (fs::is_directory(legacy_cache_dir)) {
-            fs::create_directory_symlink(legacy_cache_dir, cache_dir);
+            Common::FS::CreateSymlink(legacy_cache_dir, cache_dir);
         }
 #endif
 
         success_text.append(tr("\n\nNote that your configuration and data will be shared with %1.\n"
                                "If this is not desirable, delete the following files:\n%2\n%3\n%4")
-                                .arg(tr(selected_legacy_emu.name),
+                                .arg(selected_legacy_emu.name(),
                                      QString::fromStdString(eden_dir.string()),
                                      QString::fromStdString(config_dir.string()),
                                      QString::fromStdString(cache_dir.string())));

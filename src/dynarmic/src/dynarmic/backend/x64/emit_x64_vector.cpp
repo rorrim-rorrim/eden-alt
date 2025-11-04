@@ -609,8 +609,8 @@ void EmitX64::EmitVectorArithmeticVShift16(EmitContext& ctx, IR::Inst* inst) {
 
         const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(args[0]);
         const Xbyak::Xmm left_shift = ctx.reg_alloc.UseScratchXmm(args[1]);
-        const Xbyak::Xmm right_shift = xmm16;
-        const Xbyak::Xmm tmp = xmm17;
+        const Xbyak::Xmm right_shift = ctx.reg_alloc.ScratchXmm();
+        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
 
         code.vmovdqa32(tmp, code.Const(xword, 0x00FF00FF00FF00FF, 0x00FF00FF00FF00FF));
         code.vpxord(right_shift, right_shift, right_shift);
@@ -674,8 +674,8 @@ void EmitX64::EmitVectorArithmeticVShift64(EmitContext& ctx, IR::Inst* inst) {
 
         const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(args[0]);
         const Xbyak::Xmm left_shift = ctx.reg_alloc.UseScratchXmm(args[1]);
-        const Xbyak::Xmm right_shift = xmm16;
-        const Xbyak::Xmm tmp = xmm17;
+        const Xbyak::Xmm right_shift = ctx.reg_alloc.ScratchXmm();
+        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
 
         code.vmovdqa32(tmp, code.Const(xword, 0x00000000000000FF, 0x00000000000000FF));
         code.vpxorq(right_shift, right_shift, right_shift);
@@ -1955,8 +1955,8 @@ void EmitX64::EmitVectorLogicalVShift16(EmitContext& ctx, IR::Inst* inst) {
 
         const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(args[0]);
         const Xbyak::Xmm left_shift = ctx.reg_alloc.UseScratchXmm(args[1]);
-        const Xbyak::Xmm right_shift = xmm16;
-        const Xbyak::Xmm tmp = xmm17;
+        const Xbyak::Xmm right_shift = ctx.reg_alloc.ScratchXmm();
+        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
 
         code.vmovdqa32(tmp, code.Const(xword, 0x00FF00FF00FF00FF, 0x00FF00FF00FF00FF));
         code.vpxord(right_shift, right_shift, right_shift);
@@ -2425,27 +2425,27 @@ void EmitX64::EmitVectorMultiply64(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitVectorMultiplySignedWiden8(EmitContext&, IR::Inst*) {
-    ASSERT_FALSE("Unexpected VectorMultiplySignedWiden8");
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVectorMultiplySignedWiden16(EmitContext&, IR::Inst*) {
-    ASSERT_FALSE("Unexpected VectorMultiplySignedWiden16");
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVectorMultiplySignedWiden32(EmitContext&, IR::Inst*) {
-    ASSERT_FALSE("Unexpected VectorMultiplySignedWiden32");
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVectorMultiplyUnsignedWiden8(EmitContext&, IR::Inst*) {
-    ASSERT_FALSE("Unexpected VectorMultiplyUnsignedWiden8");
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVectorMultiplyUnsignedWiden16(EmitContext&, IR::Inst*) {
-    ASSERT_FALSE("Unexpected VectorMultiplyUnsignedWiden16");
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVectorMultiplyUnsignedWiden32(EmitContext&, IR::Inst*) {
-    ASSERT_FALSE("Unexpected VectorMultiplyUnsignedWiden32");
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVectorNarrow16(EmitContext& ctx, IR::Inst* inst) {
@@ -2737,7 +2737,7 @@ void EmitX64::EmitVectorPairedAddSignedWiden32(EmitContext& ctx, IR::Inst* inst)
     const Xbyak::Xmm a = ctx.reg_alloc.UseScratchXmm(args[0]);
 
     if (code.HasHostFeature(HostFeature::AVX512_Ortho)) {
-        const Xbyak::Xmm c = xmm16;
+        const Xbyak::Xmm c = ctx.reg_alloc.ScratchXmm();
         code.vpsraq(c, a, 32);
         code.vpsllq(a, a, 32);
         code.vpsraq(a, a, 32);
@@ -3521,48 +3521,47 @@ void EmitX64::EmitVectorReverseElementsInHalfGroups8(EmitContext& ctx, IR::Inst*
 
 void EmitX64::EmitVectorReverseElementsInWordGroups8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-
     const Xbyak::Xmm data = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
-
-    // TODO: PSHUFB
-
-    code.movdqa(tmp, data);
-    code.psllw(tmp, 8);
-    code.psrlw(data, 8);
-    code.por(data, tmp);
-    code.pshuflw(data, data, 0b10110001);
-    code.pshufhw(data, data, 0b10110001);
-
+    if (code.HasHostFeature(HostFeature::AVX)) {
+        code.vpshufb(data, data, code.Const(xword, 0x0405060700010203, 0x0c0d0e0f08090a0b));
+    } else if (code.HasHostFeature(HostFeature::SSSE3)) {
+        code.pshufb(data, code.Const(xword, 0x0405060700010203, 0x0c0d0e0f08090a0b));
+    } else {
+        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
+        code.movdqa(tmp, data);
+        code.psllw(tmp, 8);
+        code.psrlw(data, 8);
+        code.por(data, tmp);
+        code.pshuflw(data, data, 0b10110001);
+        code.pshufhw(data, data, 0b10110001);
+    }
     ctx.reg_alloc.DefineValue(inst, data);
 }
 
 void EmitX64::EmitVectorReverseElementsInWordGroups16(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-
     const Xbyak::Xmm data = ctx.reg_alloc.UseScratchXmm(args[0]);
-
     code.pshuflw(data, data, 0b10110001);
     code.pshufhw(data, data, 0b10110001);
-
     ctx.reg_alloc.DefineValue(inst, data);
 }
 
 void EmitX64::EmitVectorReverseElementsInLongGroups8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-
     const Xbyak::Xmm data = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
-
-    // TODO: PSHUFB
-
-    code.movdqa(tmp, data);
-    code.psllw(tmp, 8);
-    code.psrlw(data, 8);
-    code.por(data, tmp);
-    code.pshuflw(data, data, 0b00011011);
-    code.pshufhw(data, data, 0b00011011);
-
+    if (code.HasHostFeature(HostFeature::AVX)) {
+        code.vpshufb(data, data, code.Const(xword, 0x0001020304050607, 0x08090a0b0c0d0e0f));
+    } else if (code.HasHostFeature(HostFeature::SSSE3)) {
+        code.pshufb(data, code.Const(xword, 0x0001020304050607, 0x08090a0b0c0d0e0f));
+    } else {
+        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
+        code.movdqa(tmp, data);
+        code.psllw(tmp, 8);
+        code.psrlw(data, 8);
+        code.por(data, tmp);
+        code.pshuflw(data, data, 0b00011011);
+        code.pshufhw(data, data, 0b00011011);
+    }
     ctx.reg_alloc.DefineValue(inst, data);
 }
 
@@ -5040,7 +5039,7 @@ void EmitX64::EmitVectorSub64(EmitContext& ctx, IR::Inst* inst) {
 
 void EmitX64::EmitVectorTable(EmitContext&, IR::Inst* inst) {
     // Do nothing. We *want* to hold on to the refcount for our arguments, so VectorTableLookup can use our arguments.
-    ASSERT_MSG(inst->UseCount() == 1, "Table cannot be used multiple times");
+    ASSERT(inst->UseCount() == 1 && "Table cannot be used multiple times");
 }
 
 void EmitX64::EmitVectorTableLookup64(EmitContext& ctx, IR::Inst* inst) {
@@ -5461,7 +5460,7 @@ void EmitX64::EmitVectorTableLookup128(EmitContext& ctx, IR::Inst* inst) {
     if (code.HasHostFeature(HostFeature::AVX512_Ortho | HostFeature::AVX512BW)) {
         const Xbyak::Xmm indicies = ctx.reg_alloc.UseXmm(args[2]);
         const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(args[0]);
-        const Xbyak::Xmm masked = xmm16;
+        const Xbyak::Xmm masked = ctx.reg_alloc.ScratchXmm();
 
         code.vpandd(masked, indicies, code.Const(xword_b, 0xF0F0F0F0F0F0F0F0, 0xF0F0F0F0F0F0F0F0));
 

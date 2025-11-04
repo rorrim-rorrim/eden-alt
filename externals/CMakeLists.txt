@@ -141,11 +141,16 @@ if (ENABLE_SDL2)
         endif()
     elseif (YUZU_USE_BUNDLED_SDL2)
         message(STATUS "Using bundled SDL2")
+        if (PLATFORM_FREEBSD)
+            set(BUILD_SHARED_LIBS ON)
+        endif()
         AddJsonPackage(sdl2)
     endif()
 
     find_package(SDL2 2.26.4 REQUIRED)
 endif()
+
+set(BUILD_SHARED_LIBS OFF)
 
 # SPIRV Headers
 AddJsonPackage(spirv-headers)
@@ -209,12 +214,12 @@ if (VulkanMemoryAllocator_ADDED)
 endif()
 
 # httplib
-if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
+if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)
     AddJsonPackage(httplib)
 endif()
 
 # cpp-jwt
-if (ENABLE_WEB_SERVICE)
+if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)
     AddJsonPackage(cpp-jwt)
 endif()
 
@@ -393,10 +398,4 @@ if (ANDROID)
     AddJsonPackage(oboe)
 
     add_library(oboe::oboe ALIAS oboe)
-endif()
-
-# sse2neon
-if (ARCHITECTURE_arm64 AND NOT TARGET sse2neon)
-    add_library(sse2neon INTERFACE)
-    target_include_directories(sse2neon INTERFACE sse2neon)
 endif()

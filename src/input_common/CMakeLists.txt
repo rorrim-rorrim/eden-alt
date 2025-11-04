@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -32,7 +35,6 @@ add_library(input_common STATIC
     input_poller.h
     main.cpp
     main.h
-    precompiled_headers.h
 )
 
 if (MSVC)
@@ -83,15 +85,11 @@ if (ENABLE_LIBUSB)
         drivers/gc_adapter.h
     )
     target_link_libraries(input_common PRIVATE libusb::usb)
-    target_compile_definitions(input_common PRIVATE HAVE_LIBUSB)
+    target_compile_definitions(input_common PRIVATE ENABLE_LIBUSB)
 endif()
 
 create_target_directory_groups(input_common)
 target_link_libraries(input_common PUBLIC hid_core PRIVATE common Boost::headers)
-
-if (YUZU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(input_common PRIVATE precompiled_headers.h)
-endif()
 
 if (ANDROID)
     target_sources(input_common PRIVATE

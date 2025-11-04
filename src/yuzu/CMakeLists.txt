@@ -198,7 +198,6 @@ add_executable(yuzu
     multiplayer/state.cpp
     multiplayer/state.h
     multiplayer/validation.h
-    precompiled_headers.h
     startup_checks.cpp
     startup_checks.h
     set_play_time_dialog.cpp
@@ -237,6 +236,7 @@ add_executable(yuzu
 
     data_dialog.h data_dialog.cpp data_dialog.ui
     data_widget.ui
+    ryujinx_dialog.h ryujinx_dialog.cpp ryujinx_dialog.ui
 )
 
 set_target_properties(yuzu PROPERTIES OUTPUT_NAME "eden")
@@ -263,10 +263,8 @@ file(GLOB COMPAT_LIST
 file(GLOB_RECURSE ICONS ${PROJECT_SOURCE_DIR}/dist/icons/*)
 file(GLOB_RECURSE THEMES ${PROJECT_SOURCE_DIR}/dist/qt_themes/*)
 
-if (ENABLE_QT_UPDATE_CHECKER)
-    target_link_libraries(yuzu PRIVATE httplib::httplib)
-    target_sources(yuzu PRIVATE update_checker.cpp)
-    target_compile_definitions(yuzu PUBLIC ENABLE_QT_UPDATE_CHECKER)
+if (ENABLE_UPDATE_CHECKER)
+    target_compile_definitions(yuzu PUBLIC ENABLE_UPDATE_CHECKER)
 endif()
 
 if (ENABLE_QT_TRANSLATION)
@@ -388,6 +386,7 @@ elseif(WIN32)
         set_target_properties(yuzu PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
     elseif(MINGW)
         set_target_properties(yuzu PROPERTIES LINK_FLAGS_RELEASE "-Wl,--subsystem,windows")
+        target_link_libraries(yuzu PRIVATE dwmapi)
     endif()
 endif()
 
@@ -438,19 +437,8 @@ if (ENABLE_SDL2)
     target_compile_definitions(yuzu PRIVATE HAVE_SDL2)
 endif()
 
-if (MSVC)
-    include(CopyYuzuSDLDeps)
-    include(CopyYuzuFFmpegDeps)
-    copy_yuzu_SDL_deps(yuzu)
-    copy_yuzu_FFmpeg_deps(yuzu)
-endif()
-
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
     target_link_libraries(yuzu PRIVATE dynarmic::dynarmic)
-endif()
-
-if (YUZU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(yuzu PRIVATE precompiled_headers.h)
 endif()
 
 if (YUZU_ROOM)

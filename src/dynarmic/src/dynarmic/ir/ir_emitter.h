@@ -124,7 +124,7 @@ public:
             ASSERT(value.GetType() == Type::U64);
             return value;
         }
-        ASSERT_FALSE("Invalid bitsize");
+        UNREACHABLE();
     }
 
     U32 LeastSignificantWord(const U64& value) {
@@ -992,7 +992,7 @@ public:
     }
 
     UAny VectorGetElement(size_t esize, const U128& a, size_t index) {
-        ASSERT_MSG(esize * index < 128, "Invalid index");
+        ASSERT(esize * index < 128 && "Invalid index");
         switch (esize) {
         case 8:
             return Inst<U8>(Opcode::VectorGetElement8, a, Imm8(static_cast<u8>(index)));
@@ -1008,7 +1008,7 @@ public:
     }
 
     U128 VectorSetElement(size_t esize, const U128& a, size_t index, const IR::UAny& elem) {
-        ASSERT_MSG(esize * index < 128, "Invalid index");
+        ASSERT(esize * index < 128 && "Invalid index");
         switch (esize) {
         case 8:
             return Inst<U128>(Opcode::VectorSetElement8, a, Imm8(static_cast<u8>(index)), elem);
@@ -1114,7 +1114,7 @@ public:
     }
 
     U128 VectorBroadcastElementLower(size_t esize, const U128& a, size_t index) {
-        ASSERT_MSG(esize * index < 128, "Invalid index");
+        ASSERT(esize * index < 128 && "Invalid index");
         switch (esize) {
         case 8:
             return Inst<U128>(Opcode::VectorBroadcastElementLower8, a, u8(index));
@@ -1127,7 +1127,7 @@ public:
     }
 
     U128 VectorBroadcastElement(size_t esize, const U128& a, size_t index) {
-        ASSERT_MSG(esize * index < 128, "Invalid index");
+        ASSERT(esize * index < 128 && "Invalid index");
         switch (esize) {
         case 8:
             return Inst<U128>(Opcode::VectorBroadcastElement8, a, u8(index));
@@ -2931,19 +2931,19 @@ public:
     }
 
     void CallHostFunction(void (*fn)(void)) {
-        Inst(Opcode::CallHostFunction, Imm64(mcl::bit_cast<u64>(fn)), Value{}, Value{}, Value{});
+        Inst(Opcode::CallHostFunction, Imm64(std::bit_cast<u64>(fn)), Value{}, Value{}, Value{});
     }
 
     void CallHostFunction(void (*fn)(u64), const U64& arg1) {
-        Inst(Opcode::CallHostFunction, Imm64(mcl::bit_cast<u64>(fn)), arg1, Value{}, Value{});
+        Inst(Opcode::CallHostFunction, Imm64(std::bit_cast<u64>(fn)), arg1, Value{}, Value{});
     }
 
     void CallHostFunction(void (*fn)(u64, u64), const U64& arg1, const U64& arg2) {
-        Inst(Opcode::CallHostFunction, Imm64(mcl::bit_cast<u64>(fn)), arg1, arg2, Value{});
+        Inst(Opcode::CallHostFunction, Imm64(std::bit_cast<u64>(fn)), arg1, arg2, Value{});
     }
 
     void CallHostFunction(void (*fn)(u64, u64, u64), const U64& arg1, const U64& arg2, const U64& arg3) {
-        Inst(Opcode::CallHostFunction, Imm64(mcl::bit_cast<u64>(fn)), arg1, arg2, arg3);
+        Inst(Opcode::CallHostFunction, Imm64(std::bit_cast<u64>(fn)), arg1, arg2, arg3);
     }
 
     void SetTerm(const Terminal& terminal) {

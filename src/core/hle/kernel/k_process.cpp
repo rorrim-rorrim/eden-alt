@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -24,6 +27,9 @@
 namespace Kernel {
 
 namespace {
+
+// TODO: Remove this workaround when proper ASLR is implemented for all address spaces.
+constexpr u64 CodeStartOffset = 0x500000UL;
 
 Result TerminateChildren(KernelCore& kernel, KProcess* process,
                          const KThread* thread_to_not_terminate) {
@@ -1195,11 +1201,11 @@ Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std:
         break;
     case FileSys::ProgramAddressSpaceType::Is32Bit:
         flag |= Svc::CreateProcessFlag::AddressSpace32Bit;
-        code_address = 0x20'0000;
+        code_address = 0x20'0000 + CodeStartOffset;
         break;
     case FileSys::ProgramAddressSpaceType::Is32BitNoMap:
         flag |= Svc::CreateProcessFlag::AddressSpace32BitWithoutAlias;
-        code_address = 0x20'0000;
+        code_address = 0x20'0000 + CodeStartOffset;
         break;
     }
 
@@ -1266,13 +1272,8 @@ void KProcess::InitializeInterfaces() {
 
 #ifdef HAS_NCE
     if (this->IsApplication() && Settings::IsNceEnabled()) {
-        // Register the scoped JIT handler before creating any NCE instances
-        // so that its signal handler will appear first in the signal chain.
-        Core::ScopedJitExecution::RegisterHandler();
-
-        for (size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+        for (size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++)
             m_arm_interfaces[i] = std::make_unique<Core::ArmNce>(m_kernel.System(), true, i);
-        }
     } else
 #endif
         if (this->Is64Bit()) {

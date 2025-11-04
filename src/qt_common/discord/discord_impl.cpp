@@ -8,8 +8,8 @@
 #include <string>
 
 #include <QEventLoop>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
+#include <boost/algorithm/string/replace.hpp>
+#include <httplib.h>
 
 #include <discord_rpc.h>
 #include <fmt/format.h>
@@ -18,7 +18,12 @@
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/loader/loader.h"
-#include "qt_common/discord/discord_impl.h"
+
+#include "discord_impl.h"
+
+#ifdef YUZU_BUNDLED_OPENSSL
+#include <openssl/cert.h>
+#endif
 
 namespace DiscordRPC {
 
@@ -44,6 +49,7 @@ std::string DiscordImpl::GetGameString(const std::string& title) {
 
     // Replace spaces with dashes
     std::replace(icon_name.begin(), icon_name.end(), ' ', '-');
+    boost::replace_all(icon_name, "é", "e");
 
     // Remove non-alphanumeric characters but keep dashes
     std::erase_if(icon_name, [](char c) { return !std::isalnum(c) && c != '-'; });
@@ -66,7 +72,7 @@ std::string DiscordImpl::GetGameString(const std::string& title) {
 void DiscordImpl::UpdateGameStatus(bool use_default) {
     const std::string default_text = "Eden is an emulator for the Nintendo Switch";
     const std::string default_image = "https://git.eden-emu.dev/eden-emu/eden/raw/branch/master/"
-                                      "dist/qt_themes/default/icons/256x256/eden_named.png";
+                                      "dist/qt_themes/default/icons/256x256/eden.png";
     const std::string url = use_default ? default_image : game_url;
     s64 start_time = std::chrono::duration_cast<std::chrono::seconds>(
                          std::chrono::system_clock::now().time_since_epoch())
@@ -86,7 +92,7 @@ void DiscordImpl::UpdateGameStatus(bool use_default) {
 void DiscordImpl::Update() {
     const std::string default_text = "Eden is an emulator for the Nintendo Switch";
     const std::string default_image = "https://git.eden-emu.dev/eden-emu/eden/raw/branch/master/"
-                                      "dist/qt_themes/default/icons/256x256/eden_named.png";
+                                      "dist/qt_themes/default/icons/256x256/eden.png";
 
     if (system.IsPoweredOn()) {
         system.GetAppLoader().ReadTitle(game_title);
@@ -97,15 +103,22 @@ void DiscordImpl::Update() {
             "https://raw.githubusercontent.com/eden-emulator/boxart/refs/heads/master/img/{}.png",
             icon_name);
 
-        QNetworkAccessManager manager;
-        QNetworkRequest request;
-        request.setUrl(QUrl(QString::fromStdString(game_url)));
-        request.setTransferTimeout(3000);
-        QNetworkReply* reply = manager.head(request);
-        QEventLoop request_event_loop;
-        reply->connect(reply, &QNetworkReply::finished, &request_event_loop, &QEventLoop::quit);
-        request_event_loop.exec();
-        UpdateGameStatus(reply->error());
+        httplib::SSLClient client(game_url);
+        client.set_connection_timeout(3);
+        client.set_read_timeout(3);
+        client.set_follow_location(true);
+
+#ifdef YUZU_BUNDLED_OPENSSL
+        client.load_ca_cert_store(kCert, sizeof(kCert));
+#endif
+
+        httplib::Request request{
+            .method = "HEAD",
+            .path = game_url,
+        };
+
+        auto res = client.send(request);
+        UpdateGameStatus(res && res->status == 200);
 
         return;
     }

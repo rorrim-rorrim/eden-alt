@@ -12,6 +12,8 @@
 #include <mutex>
 #include <shared_mutex>
 #include <optional>
+#include <bit>
+#include <fmt/format.h>
 #include <ankerl/unordered_dense.h>
 #include "dynarmic/backend/exception_handler.h"
 #include "dynarmic/common/assert.h"
@@ -27,7 +29,6 @@
 #else
 #    error "Invalid architecture"
 #endif
-#include <mcl/bit_cast.hpp>
 
 namespace Dynarmic::Backend {
 
@@ -122,7 +123,7 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
         if (auto const iter = sig_handler->FindCodeBlockInfo(CTX_RIP); iter != sig_handler->code_block_infos.end()) {
             FakeCall fc = iter->second.cb(CTX_RIP);
             CTX_RSP -= sizeof(u64);
-            *mcl::bit_cast<u64*>(CTX_RSP) = fc.ret_rip;
+            *std::bit_cast<u64*>(CTX_RSP) = fc.ret_rip;
             CTX_RIP = fc.call_rip;
             return;
         }
@@ -139,7 +140,7 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
     }
     fmt::print(stderr, "Unhandled {} at pc {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_PC);
 #elif defined(ARCHITECTURE_riscv64)
-    ASSERT_FALSE("Unimplemented");
+    UNREACHABLE();
 #else
 #    error "Invalid architecture"
 #endif
@@ -189,15 +190,15 @@ ExceptionHandler::~ExceptionHandler() = default;
 
 #if defined(MCL_ARCHITECTURE_X86_64)
 void ExceptionHandler::Register(X64::BlockOfCode& code) {
-    impl = std::make_unique<Impl>(mcl::bit_cast<u64>(code.getCode()), code.GetTotalCodeSize());
+    impl = std::make_unique<Impl>(std::bit_cast<u64>(code.getCode()), code.GetTotalCodeSize());
 }
 #elif defined(MCL_ARCHITECTURE_ARM64)
 void ExceptionHandler::Register(oaknut::CodeBlock& mem, std::size_t size) {
-    impl = std::make_unique<Impl>(mcl::bit_cast<u64>(mem.ptr()), size);
+    impl = std::make_unique<Impl>(std::bit_cast<u64>(mem.ptr()), size);
 }
 #elif defined(MCL_ARCHITECTURE_RISCV)
 void ExceptionHandler::Register(RV64::CodeBlock& mem, std::size_t size) {
-    impl = std::make_unique<Impl>(mcl::bit_cast<u64>(mem.ptr<u64>()), size);
+    impl = std::make_unique<Impl>(std::bit_cast<u64>(mem.ptr<u64>()), size);
 }
 #else
 #    error "Invalid architecture"

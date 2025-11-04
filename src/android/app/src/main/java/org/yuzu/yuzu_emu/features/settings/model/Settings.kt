@@ -24,7 +24,7 @@ object Settings {
         SECTION_INPUT_PLAYER_SIX,
         SECTION_INPUT_PLAYER_SEVEN,
         SECTION_INPUT_PLAYER_EIGHT,
-        SECTION_THEME(R.string.preferences_theme),
+        SECTION_APP_SETTINGS(R.string.app_settings),
         SECTION_DEBUG(R.string.preferences_debug),
         SECTION_EDEN_VEIL(R.string.eden_veil),
         SECTION_APPLETS(R.string.applets_menu);
@@ -35,8 +35,6 @@ object Settings {
 
     const val PREF_FIRST_APP_LAUNCH = "FirstApplicationLaunch"
     const val PREF_SHOULD_SHOW_DRIVER_WARNING = "ShouldShowDriverWarning"
-    const val PREF_SHOULD_SHOW_PRE_ALPHA_WARNING = "ShouldShowPreAlphaWarning"
-    const val PREF_SHOULD_SHOW_EDENS_VEIL_DIALOG = "ShouldShowEdensVeilDialog"
     const val PREF_MEMORY_WARNING_SHOWN = "MemoryWarningShown"
     const val SECTION_STATS_OVERLAY = "Stats Overlay"
 

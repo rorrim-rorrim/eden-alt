@@ -10,15 +10,15 @@
 #include "frontend_common/data_manager.h"
 #include "frontend_common/firmware_manager.h"
 
-#include "qt_common/qt_common.h"
 #include "compress.h"
+#include "qt_common/abstract/frontend.h"
 #include "qt_common/abstract/qt_progress_dialog.h"
-#include "qt_common/abstract/qt_frontend_util.h"
+#include "qt_common/qt_common.h"
 
 #include <QFuture>
+#include <QFutureWatcher>
 #include <QtConcurrentRun>
 #include <JlCompress.h>
-#include <QFutureWatcher>
 
 namespace QtCommon::Content {
 
@@ -60,15 +60,15 @@ void InstallFirmware(const QString& location, bool recursive)
         return progress.wasCanceled();
     };
 
-    static constexpr const char* failedTitle = "Firmware Install Failed";
-    static constexpr const char* successTitle = "Firmware Install Succeeded";
+    QString failedTitle = tr("Firmware Install Failed");
+    QString successTitle = tr("Firmware Install Succeeded");
     QMessageBox::Icon icon;
     FirmwareInstallResult result;
 
     const auto ShowMessage = [&]() {
         QtCommon::Frontend::ShowMessage(icon,
-                                        tr(failedTitle),
-                                        tr(GetFirmwareInstallResultString(result)));
+                                        failedTitle,
+                                        GetFirmwareInstallResultString(result));
     };
 
     LOG_INFO(Frontend, "Installing firmware from {}", location.toStdString());
@@ -188,10 +188,9 @@ void InstallFirmware(const QString& location, bool recursive)
     const std::string display_version(firmware_data.display_version.data());
 
     result = FirmwareInstallResult::Success;
-    QtCommon::Frontend::Information(
-        rootObject,
-        tr(successTitle),
-        tr(GetFirmwareInstallResultString(result)).arg(QString::fromStdString(display_version)));
+    QtCommon::Frontend::Information(successTitle,
+                                    GetFirmwareInstallResultString(result).arg(
+                                        QString::fromStdString(display_version)));
 }
 
 QString UnzipFirmwareToTmp(const QString& location)
@@ -277,14 +276,13 @@ void InstallKeys()
 
     system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
 
+    const QString resMsg = GetKeyInstallResultString(result);
     switch (result) {
     case FirmwareManager::KeyInstallResult::Success:
-        QtCommon::Frontend::Information(tr("Decryption Keys install succeeded"),
-                                        tr("Decryption Keys were successfully installed"));
+        QtCommon::Frontend::Information(tr("Decryption Keys install succeeded"), resMsg);
         break;
     default:
-        QtCommon::Frontend::Critical(tr("Decryption Keys install failed"),
-                                     tr(FirmwareManager::GetKeyInstallResultString(result)));
+        QtCommon::Frontend::Critical(tr("Decryption Keys install failed"), resMsg);
         break;
     }
 }
@@ -296,7 +294,7 @@ void VerifyInstalledContents()
                                                   tr("Cancel"),
                                                   0,
                                                   100,
-                                                  QtCommon::rootObject);
+                                                  rootObject);
     progress.setWindowModality(Qt::WindowModal);
     progress.setMinimumDuration(100);
     progress.setAutoClose(false);
@@ -332,6 +330,7 @@ void FixProfiles()
     // TODO: better solution
     system->GetProfileManager().ResetUserSaveFile();
     std::vector<std::string> orphaned = system->GetProfileManager().FindOrphanedProfiles();
+    std::vector<std::string> good = system->GetProfileManager().FindGoodProfiles();
 
     // no orphaned dirs--all good :)
     if (orphaned.empty())
@@ -341,22 +340,35 @@ void FixProfiles()
     QString qorphaned;
 
     // max. of 8 orphaned profiles is fair, I think
-    // 33 = 32 (UUID) + 1 (\n)
-    qorphaned.reserve(8 * 33);
+    // 36 = 32 (UUID) + 4 (<br>)
+    qorphaned.reserve(8 * 36);
 
     for (const std::string& s : orphaned) {
-        qorphaned = qorphaned % QStringLiteral("\n") % QString::fromStdString(s);
+        qorphaned = qorphaned % QStringLiteral("<br>") % QString::fromStdString(s);
+    }
+
+    QString qgood;
+
+    // max. of 8 good profiles is fair, I think
+    // 36 = 32 (UUID) + 4 (<br>)
+    qgood.reserve(8 * 36);
+
+    for (const std::string& s : good) {
+        qgood = qgood % QStringLiteral("<br>") % QString::fromStdString(s);
     }
 
     QtCommon::Frontend::Critical(
         tr("Orphaned Profiles Detected!"),
-        tr("UNEXPECTED BAD THINGS MAY HAPPEN IF YOU DON'T READ THIS!\n"
-           "Eden has detected the following save directories with no attached profile:\n"
-           "%1\n\n"
-           "Click \"OK\" to open your save folder and fix up your profiles.\n"
-           "Hint: copy the contents of the largest or last-modified folder  elsewhere, "
-           "delete all orphaned profiles, and move your copied contents to the good profile.")
-            .arg(qorphaned));
+        tr("UNEXPECTED BAD THINGS MAY HAPPEN IF YOU DON'T READ THIS!<br>"
+           "Eden has detected the following save directories with no attached profile:<br>"
+           "%1<br><br>"
+           "The following profiles are valid:<br>"
+           "%2<br><br>"
+           "Click \"OK\" to open your save folder and fix up your profiles.<br>"
+           "Hint: copy the contents of the largest or last-modified folder elsewhere, "
+           "delete all orphaned profiles, and move your copied contents to the good profile.<br><br>"
+           "Still confused? See the <a href='https://git.eden-emu.dev/eden-emu/eden/src/branch/master/docs/user/Orphaned.md'>help page</a>.<br>")
+            .arg(qorphaned, qgood));
 
     QtCommon::Game::OpenSaveFolder();
 }
@@ -393,7 +405,7 @@ void ExportDataDir(FrontendCommon::DataManager::DataDir data_dir,
                    std::function<void()> callback)
 {
     using namespace QtCommon::Frontend;
-    const std::string dir = FrontendCommon::DataManager::GetDataDir(data_dir, user_id);
+    const std::string dir = FrontendCommon::DataManager::GetDataDirString(data_dir, user_id);
 
     const QString zip_dump_location = GetSaveFileName(tr("Select Export Location"),
                                                       tr("%1.zip").arg(name),
@@ -415,7 +427,9 @@ void ExportDataDir(FrontendCommon::DataManager::DataDir data_dir,
     QGuiApplication::processEvents();
 
     auto progress_callback = [=](size_t total_size, size_t processed_size) {
-        QMetaObject::invokeMethod(progress, "setValue", Qt::DirectConnection,
+        QMetaObject::invokeMethod(progress,
+                                  "setValue",
+                                  Qt::DirectConnection,
                                   Q_ARG(int, static_cast<int>((processed_size * 100) / total_size)));
         return !progress->wasCanceled();
     };
@@ -455,7 +469,7 @@ void ImportDataDir(FrontendCommon::DataManager::DataDir data_dir,
                    const std::string& user_id,
                    std::function<void()> callback)
 {
-    const std::string dir = FrontendCommon::DataManager::GetDataDir(data_dir, user_id);
+    const std::string dir = FrontendCommon::DataManager::GetDataDirString(data_dir, user_id);
 
     using namespace QtCommon::Frontend;
 
@@ -499,8 +513,11 @@ void ImportDataDir(FrontendCommon::DataManager::DataDir data_dir,
 
     QObject::connect(delete_watcher, &QFutureWatcher<bool>::finished, rootObject, [=]() {
         auto progress_callback = [=](size_t total_size, size_t processed_size) {
-            QMetaObject::invokeMethod(progress, "setValue", Qt::DirectConnection,
-                                      Q_ARG(int, static_cast<int>((processed_size * 100) / total_size)));
+            QMetaObject::invokeMethod(progress,
+                                      "setValue",
+                                      Qt::DirectConnection,
+                                      Q_ARG(int,
+                                            static_cast<int>((processed_size * 100) / total_size)));
             return !progress->wasCanceled();
         };
 

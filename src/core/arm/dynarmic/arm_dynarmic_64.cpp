@@ -269,12 +269,9 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
     config.wall_clock_cntpct = m_uses_wall_clock;
     config.enable_cycle_counting = !m_uses_wall_clock;
 
-    // Code cache size
-#ifdef ARCHITECTURE_arm64
+    // Code cache size - max in ARM is 128MiB, max in x86_64 is 2GiB
+    // Solaris doesn't support kPageSize >= 512MiB
     config.code_cache_size = std::uint32_t(128_MiB);
-#else
-    config.code_cache_size = std::uint32_t(512_MiB);
-#endif
 
     // Allow memory fault handling to work
     if (m_system.DebuggerEnabled()) {
@@ -354,7 +351,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
     // Safe optimisations
     case Settings::CpuAccuracy::Auto:
         config.unsafe_optimizations = true;
-#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__)
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__) || defined(__HAIKU__)
         config.fastmem_pointer = std::nullopt;
         config.fastmem_exclusive_access = false;
 #endif
@@ -375,15 +372,11 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
 }
 
 HaltReason ArmDynarmic64::RunThread(Kernel::KThread* thread) {
-    ScopedJitExecution sj(thread->GetOwnerProcess());
-
     m_jit->ClearExclusiveState();
     return TranslateHaltReason(m_jit->Run());
 }
 
 HaltReason ArmDynarmic64::StepThread(Kernel::KThread* thread) {
-    ScopedJitExecution sj(thread->GetOwnerProcess());
-
     m_jit->ClearExclusiveState();
     return TranslateHaltReason(m_jit->Step());
 }
@@ -423,7 +416,6 @@ ArmDynarmic64::ArmDynarmic64(System& system, bool uses_wall_clock, Kernel::KProc
     auto& page_table = process->GetPageTable().GetBasePageTable();
     auto& page_table_impl = page_table.GetImpl();
     m_jit = MakeJit(&page_table_impl, page_table.GetAddressSpaceWidth());
-    ScopedJitExecution::RegisterHandler();
 }
 
 ArmDynarmic64::~ArmDynarmic64() = default;

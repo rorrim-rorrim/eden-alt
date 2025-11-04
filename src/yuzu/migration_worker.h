@@ -10,11 +10,11 @@
 using namespace Common::FS;
 
 typedef struct Emulator {
-    const char *name;
+    const char *m_name;
 
-    LegacyPath e_user_dir;
-    LegacyPath e_config_dir;
-    LegacyPath e_cache_dir;
+    EmuPath e_user_dir;
+    EmuPath e_config_dir;
+    EmuPath e_cache_dir;
 
     const std::string get_user_dir() const {
         return Common::FS::GetLegacyPath(e_user_dir).string();
@@ -28,23 +28,19 @@ typedef struct Emulator {
         return Common::FS::GetLegacyPath(e_cache_dir).string();
     }
 
-    const std::string lower_name() const {
-        std::string lower_name{name};
-        std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(),
-                       [](unsigned char c){ return std::tolower(c); });
+    const QString name() const { return QObject::tr(m_name);
+    }
 
-        return lower_name;
+    const QString lower_name() const { return name().toLower();
     }
 } Emulator;
 
-#define EMU(name) Emulator{#name, name##Dir, name##ConfigDir, name##CacheDir}
 static constexpr std::array<Emulator, 4> legacy_emus = {
-    EMU(Citron),
-    EMU(Sudachi),
-    EMU(Suyu),
-    EMU(Yuzu),
+    Emulator{QT_TR_NOOP("Citron"), CitronDir, CitronConfigDir, CitronCacheDir},
+    Emulator{QT_TR_NOOP("Sudachi"), SudachiDir, SudachiConfigDir, SudachiCacheDir},
+    Emulator{QT_TR_NOOP("Suyu"), SuyuDir, SuyuConfigDir, SuyuCacheDir},
+    Emulator{QT_TR_NOOP("Yuzu"), YuzuDir, YuzuConfigDir, YuzuCacheDir},
 };
-#undef EMU
 
 class MigrationWorker : public QObject
 {

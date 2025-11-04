@@ -109,6 +109,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
               "cause deadlocks. A range of 77-21000 is recommended."));
     INSERT(Settings, cpu_backend, tr("Backend:"), QString());
 
+    INSERT(Settings, vtable_bouncing,
+        tr("Virtual Table Bouncing"),
+        tr("Bounces (by emulating a 0-valued return) any functions that triggers a prefetch abort"));
+
     // Cpu Debug
 
     // Cpu Unsafe
@@ -424,6 +428,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
 
     // Linux
     INSERT(Settings, enable_gamemode, tr("Enable Gamemode"), QString());
+#ifdef __unix__
+    INSERT(Settings, gui_force_x11, tr("Force X11 as Graphics Backend"), QString());
+    INSERT(Settings, gui_hide_backend_warning, QString(), QString());
+#endif
 
     // Ui Debugging
 
@@ -553,7 +561,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
                               PAIR(ScalingFilter, Gaussian, tr("Gaussian")),
                               PAIR(ScalingFilter, Lanczos, tr("Lanczos")),
                               PAIR(ScalingFilter, ScaleForce, tr("ScaleForce")),
-                              PAIR(ScalingFilter, Fsr, tr("AMD FidelityFX™️ Super Resolution")),
+                              PAIR(ScalingFilter, Fsr, tr("AMD FidelityFX Super Resolution")),
                               PAIR(ScalingFilter, Area, tr("Area")),
                               PAIR(ScalingFilter, Mmpx, tr("MMPX")),
                               PAIR(ScalingFilter, ZeroTangent, tr("Zero-Tangent")),

@@ -200,6 +200,21 @@ object NativeLibrary {
 
     external fun logSettings()
 
+    /**
+     * Checks for available updates.
+     */
+    external fun checkForUpdate(): String?
+
+    /**
+     * Return the URL to the release page
+     */
+    external fun getUpdateUrl(version: String): String
+
+    /**
+     * Returns whether the update checker is enabled through CMAKE options.
+     */
+    external fun isUpdateCheckerEnabled(): Boolean
+
     enum class CoreError {
         ErrorSystemFiles,
         ErrorSavestate,
@@ -440,13 +455,6 @@ object NativeLibrary {
     external fun firmwareVersion(): String
 
     /**
-     * Verifies installed firmware.
-     *
-     * @return The result code.
-     */
-    external fun verifyFirmware(): Int
-
-    /**
      * Check if a game requires firmware to be playable.
      *
      * @param programId The game's Program ID.
@@ -540,6 +548,21 @@ object NativeLibrary {
      * Clears all files added to the manual filesystem provider in our EmulationSession instance
      */
     external fun clearFilesystemProvider()
+
+    /**
+     * Gets the current virtual amiibo state reported by the core.
+     *
+     * @return Native enum value for the current amiibo state.
+     */
+    external fun getVirtualAmiiboState(): Int
+
+    /**
+     * Loads amiibo data into the currently running emulation session.
+     *
+     * @param data Raw amiibo file contents.
+     * @return Native enum value representing the load result.
+     */
+    external fun loadAmiibo(data: ByteArray): Int
 
     /**
      * Checks if all necessary keys are present for decryption

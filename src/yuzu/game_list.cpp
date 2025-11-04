@@ -542,6 +542,7 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
 }
 
 void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::string& path) {
+    // TODO(crueter): Refactor this and make it less bad
     QAction* favorite = context_menu.addAction(tr("Favorite"));
     context_menu.addSeparator();
     QAction* start_game = context_menu.addAction(tr("Start Game"));
@@ -552,6 +553,7 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     QAction* open_mod_location = context_menu.addAction(tr("Open Mod Data Location"));
     QAction* open_transferable_shader_cache =
         context_menu.addAction(tr("Open Transferable Pipeline Cache"));
+    QAction* ryujinx = context_menu.addAction(tr("Link to Ryujinx"));
     context_menu.addSeparator();
     QMenu* remove_menu = context_menu.addMenu(tr("Remove"));
     QAction* remove_update = remove_menu->addAction(tr("Remove Installed Update"));
@@ -662,6 +664,9 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
 #endif
     connect(properties, &QAction::triggered,
             [this, path]() { emit OpenPerGameGeneralRequested(path); });
+
+    connect(ryujinx, &QAction::triggered, [this, program_id]() { emit LinkToRyujinxRequested(program_id);
+    });
 };
 
 void GameList::AddCustomDirPopup(QMenu& context_menu, QModelIndex selected) {

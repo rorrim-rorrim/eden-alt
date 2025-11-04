@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -5,7 +8,7 @@
 
 #include <cstdio>
 
-#include <mcl/bit_cast.hpp>
+#include <bit>
 
 #include "dynarmic/backend/arm64/a64_address_space.h"
 #include "dynarmic/backend/arm64/a64_jitstate.h"
@@ -25,7 +28,7 @@ AddressSpace::AddressSpace(size_t code_cache_size)
         , mem(code_cache_size)
         , code(mem.ptr(), mem.ptr())
         , fastmem_manager(exception_handler) {
-    ASSERT_MSG(code_cache_size <= 128 * 1024 * 1024, "code_cache_size > 128 MiB not currently supported");
+    ASSERT(code_cache_size <= 128 * 1024 * 1024 && "code_cache_size > 128 MiB not currently supported");
 
     exception_handler.Register(mem, code_cache_size);
     exception_handler.SetFastmemCallback([this](u64 host_pc) {
@@ -95,12 +98,6 @@ void AddressSpace::ClearCache() {
     block_infos.clear();
     block_references.clear();
     code.set_offset(prelude_info.end_of_prelude);
-}
-
-void AddressSpace::DumpDisassembly() const {
-    for (u32* ptr = mem.ptr(); ptr < code.xptr<u32*>(); ptr++) {
-        std::printf("%s", Common::DisassembleAArch64(*ptr, mcl::bit_cast<u64>(ptr)).c_str());
-    }
 }
 
 size_t AddressSpace::GetRemainingSize() {
@@ -261,7 +258,7 @@ void AddressSpace::Link(EmittedBlockInfo& block_info) {
             c.BL(prelude_info.get_ticks_remaining);
             break;
         default:
-            ASSERT_FALSE("Invalid relocation target");
+            UNREACHABLE();
         }
     }
 
@@ -295,7 +292,7 @@ void AddressSpace::LinkBlockLinks(const CodePtr entry_point, const CodePtr targe
             }
             break;
         default:
-            ASSERT_FALSE("Invalid BlockRelocationType");
+            UNREACHABLE();
         }
     }
 }
@@ -316,7 +313,7 @@ void AddressSpace::RelinkForDescriptor(IR::LocationDescriptor target_descriptor,
 
 FakeCall AddressSpace::FastmemCallback(u64 host_pc) {
     {
-        const auto host_ptr = mcl::bit_cast<CodePtr>(host_pc);
+        const auto host_ptr = std::bit_cast<CodePtr>(host_pc);
 
         const auto entry_point = ReverseGetEntryPoint(host_ptr);
         if (!entry_point) {
@@ -345,9 +342,9 @@ FakeCall AddressSpace::FastmemCallback(u64 host_pc) {
     }
 
 fail:
-    fmt::print("dynarmic: Segfault happened within JITted code at host_pc = {:016x}\n", host_pc);
-    fmt::print("Segfault wasn't at a fastmem patch location!\n");
-    ASSERT_FALSE("segfault");
+    fmt::print("dynarmic: Segfault happened within JITted code at host_pc = {:016x}\n"
+        "Segfault wasn't at a fastmem patch location!\n", host_pc);
+    UNREACHABLE();
 }
 
 }  // namespace Dynarmic::Backend::Arm64

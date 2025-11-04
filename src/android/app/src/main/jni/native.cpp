@@ -7,8 +7,10 @@
 
 #include <codecvt>
 #include <locale>
+#include <span>
 #include <string>
 #include <string_view>
+#include <vector>
 #include <dlfcn.h>
 
 #ifdef ARCHITECTURE_arm64
@@ -61,9 +63,13 @@
 #include "core/loader/loader.h"
 #include "frontend_common/config.h"
 #include "frontend_common/firmware_manager.h"
+#ifdef ENABLE_UPDATE_CHECKER
+#include "frontend_common/update_checker.h"
+#endif
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
 #include "hid_core/hid_types.h"
+#include "input_common/drivers/virtual_amiibo.h"
 #include "jni/native.h"
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
@@ -840,10 +846,6 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_firmwareVersion(JNIEnv* env, jclas
     return Common::Android::ToJString(env, display_version);
 }
 
-jint Java_org_yuzu_yuzu_1emu_NativeLibrary_verifyFirmware(JNIEnv* env, jclass clazz) {
-    return static_cast<int>(FirmwareManager::VerifyFirmware(EmulationSession::GetInstance().System()));
-}
-
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_gameRequiresFirmware(JNIEnv* env, jclass clazz, jstring jprogramId) {
     auto program_id = EmulationSession::GetProgramId(env, jprogramId);
 
@@ -1006,6 +1008,44 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_areKeysPresent(JNIEnv* env, jobje
     return ContentManager::AreKeysPresent();
 }
 
+jint Java_org_yuzu_yuzu_1emu_NativeLibrary_getVirtualAmiiboState(JNIEnv* env, jobject jobj) {
+    if (!EmulationSession::GetInstance().IsRunning()) {
+        return static_cast<jint>(InputCommon::VirtualAmiibo::State::Disabled);
+    }
+
+    auto* virtual_amiibo =
+        EmulationSession::GetInstance().GetInputSubsystem().GetVirtualAmiibo();
+    if (virtual_amiibo == nullptr) {
+        return static_cast<jint>(InputCommon::VirtualAmiibo::State::Disabled);
+    }
+
+    return static_cast<jint>(virtual_amiibo->GetCurrentState());
+}
+
+jint Java_org_yuzu_yuzu_1emu_NativeLibrary_loadAmiibo(JNIEnv* env, jobject jobj,
+                                                      jbyteArray jdata) {
+    if (!EmulationSession::GetInstance().IsRunning() || jdata == nullptr) {
+        return static_cast<jint>(InputCommon::VirtualAmiibo::Info::WrongDeviceState);
+    }
+
+    auto* virtual_amiibo =
+        EmulationSession::GetInstance().GetInputSubsystem().GetVirtualAmiibo();
+    if (virtual_amiibo == nullptr) {
+        return static_cast<jint>(InputCommon::VirtualAmiibo::Info::Unknown);
+    }
+
+    const jsize length = env->GetArrayLength(jdata);
+    std::vector<u8> bytes(static_cast<std::size_t>(length));
+    if (length > 0) {
+        env->GetByteArrayRegion(jdata, 0, length,
+                                reinterpret_cast<jbyte*>(bytes.data()));
+    }
+
+    const auto info =
+        virtual_amiibo->LoadAmiibo(std::span<u8>(bytes.data(), bytes.size()));
+    return static_cast<jint>(info);
+}
+
 JNIEXPORT void JNICALL
 Java_org_yuzu_yuzu_1emu_NativeLibrary_initMultiplayer(
         JNIEnv* env, [[maybe_unused]] jobject obj) {
@@ -1111,4 +1151,48 @@ JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_updatePowerState(
     g_is_charging.store(isCharging, std::memory_order_relaxed);
     g_has_battery.store(hasBattery, std::memory_order_relaxed);
 }
+
+//  return #ifdef ENABLE_UPDATE_CHECKER
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_isUpdateCheckerEnabled(
+        JNIEnv* env,
+        jobject obj) {
+#ifdef ENABLE_UPDATE_CHECKER
+    return JNI_TRUE;
+#else
+    return JNI_FALSE;
+#endif
+    }
+
+#ifdef ENABLE_UPDATE_CHECKER
+
+JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_checkForUpdate(
+        JNIEnv* env,
+        jobject obj) {
+    const bool is_prerelease = ((strstr(Common::g_build_version, "pre-alpha") != nullptr) ||
+                                (strstr(Common::g_build_version, "alpha") != nullptr) ||
+                                (strstr(Common::g_build_version, "beta") != nullptr) ||
+                                (strstr(Common::g_build_version, "rc") != nullptr));
+    const std::optional<std::string> latest_release_tag =
+        UpdateChecker::GetLatestRelease(is_prerelease);
+
+    if (latest_release_tag && latest_release_tag.value() != Common::g_build_version) {
+        return env->NewStringUTF(latest_release_tag.value().c_str());
+    }
+    return nullptr;
+}
+
+JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUpdateUrl(
+        JNIEnv* env,
+        jobject obj,
+        jstring version) {
+    const char* version_str = env->GetStringUTFChars(version, nullptr);
+    const std::string url = fmt::format("{}/{}/releases/tag/{}",
+        std::string{Common::g_build_auto_update_website},
+        std::string{Common::g_build_auto_update_repo},
+        version_str);
+    env->ReleaseStringUTFChars(version, version_str);
+    return env->NewStringUTF(url.c_str());
+}
+#endif
+
 } // extern "C"

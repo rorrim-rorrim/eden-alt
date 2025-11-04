@@ -20,14 +20,19 @@ add_library(qt_common STATIC
     util/applet.h util/applet.cpp
     util/compress.h util/compress.cpp
 
-    abstract/qt_frontend_util.h abstract/qt_frontend_util.cpp
+    abstract/frontend.h abstract/frontend.cpp
     abstract/qt_progress_dialog.h abstract/qt_progress_dialog.cpp
 
     qt_string_lookup.h
     qt_compat.h
 
     discord/discord.h
+    util/fs.h util/fs.cpp
 )
+
+if (UNIX)
+    target_sources(qt_common PRIVATE gui_settings.cpp gui_settings.h)
+endif()
 
 create_target_directory_groups(qt_common)
 
@@ -36,7 +41,11 @@ if (USE_DISCORD_PRESENCE)
         discord/discord_impl.cpp
         discord/discord_impl.h
     )
-    target_link_libraries(qt_common PUBLIC DiscordRPC::discord-rpc Qt6::Network)
+    target_link_libraries(qt_common PUBLIC DiscordRPC::discord-rpc httplib::httplib)
+    if (YUZU_USE_BUNDLED_OPENSSL)
+        target_link_libraries(qt_common PUBLIC OpenSSL::SSL)
+        target_compile_definitions(qt_common PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
+    endif()
     target_compile_definitions(qt_common PUBLIC USE_DISCORD_PRESENCE)
 endif()
 
@@ -66,7 +75,8 @@ target_compile_definitions(qt_common PUBLIC
 
 add_subdirectory(externals)
 
-find_package(frozen REQUIRED)
+# pass targets
+find_package(frozen)
 
 target_link_libraries(qt_common PRIVATE core Qt6::Core Qt6::Concurrent SimpleIni::SimpleIni QuaZip::QuaZip)
 target_link_libraries(qt_common PUBLIC frozen::frozen-headers)
