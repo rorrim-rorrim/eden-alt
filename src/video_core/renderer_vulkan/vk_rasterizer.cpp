@@ -969,7 +969,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
                 UpdateDepthBiasEnable(regs);
             }
 
-            if (features.has_extended_dynamic_state_3_enables) {
+            if (device.IsExtExtendedDynamicState3Supported()) {
                 using namespace Tegra::Engines;
 
                 if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE ||
