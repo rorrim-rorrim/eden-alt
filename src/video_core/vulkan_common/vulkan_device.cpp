@@ -507,7 +507,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
     }
 
-    if (is_qualcomm) {
+    if (is_qualcomm || is_arm) {
         if (!force_extensions) {
             LOG_WARNING(Render_Vulkan,
                         "Qualcomm drivers have a slow VK_KHR_push_descriptor implementation");
@@ -515,7 +515,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         }
 
         LOG_WARNING(Render_Vulkan,
-                    "Disabling shader float controls and 64-bit integer features on Qualcomm proprietary drivers");
+                    "Disabling shader float controls and 64-bit integer features on Qualcomm and ARM Mali proprietary drivers");
         RemoveExtension(extensions.shader_float_controls, VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64,
                                VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
@@ -585,13 +585,14 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                                    VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
         }
     }
-    if (extensions.extended_dynamic_state2 && is_qualcomm) {
+    if (extensions.extended_dynamic_state2 && is_qualcomm || is_arm) {
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
         if (version >= VK_MAKE_API_VERSION(0, 0, 676, 0) &&
             version < VK_MAKE_API_VERSION(0, 0, 680, 0) && !force_extensions) {
+            // Arm Mali Inmortalis drivers have broken extendedDynamicState2LogicOp.   
             // Qualcomm Adreno 7xx drivers do not properly support extended_dynamic_state2.
             LOG_WARNING(Render_Vulkan,
-                        "Qualcomm Adreno 7xx drivers have broken VK_EXT_extended_dynamic_state2");
+                        "Qualcomm Adreno 7xx and Arm Mali Inmortalis drivers have broken VK_EXT_extended_dynamic_state2");
             RemoveExtensionFeature(extensions.extended_dynamic_state2,
                                    features.extended_dynamic_state2,
                                    VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
@@ -1178,8 +1179,35 @@ bool Device::GetSuitability(bool requires_swapchain) {
     // Store base properties
     properties.properties = properties2.properties;
 
+    // Diagnostic logging for shader float controls on Qualcomm/ARM drivers.
+    // Print the reported per-float-size properties so we can debug denorm/flush issues.
+    {
+        const auto driver_id = properties.driver.driverID;
+        if (driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY || driver_id == VK_DRIVER_ID_ARM_PROPRIETARY) {
+            const auto& fc = properties.float_controls;
+            LOG_INFO(Render_Vulkan,
+                     "Driver '{}' id={} reports VK_KHR_shader_float_controls extension present={} -- "
+                     "denormPreserveF16={} denormPreserveF32={} flushToZeroF16={} flushToZeroF32={} "
+                     "denormBehaviorIndependence={} roundingModeIndependence={}",
+                     properties.driver.driverName, driver_id, extensions.shader_float_controls,
+                     (fc.shaderDenormPreserveFloat16 == VK_TRUE), (fc.shaderDenormPreserveFloat32 == VK_TRUE),
+                     (fc.shaderDenormFlushToZeroFloat16 == VK_TRUE), (fc.shaderDenormFlushToZeroFloat32 == VK_TRUE),
+                     fc.denormBehaviorIndependence, fc.roundingModeIndependence);
+        }
+    }
+
     // Unload extensions if feature support is insufficient.
     RemoveUnsuitableExtensions();
+
+    // Log final state of shader float controls extension on Qualcomm/ARM for diagnostics.
+    {
+        const auto driver_id = properties.driver.driverID;
+        if (driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY || driver_id == VK_DRIVER_ID_ARM_PROPRIETARY) {
+            LOG_INFO(Render_Vulkan,
+                     "Final shader float controls extension enabled={} after suitability checks for driver '{}' id={}",
+                     extensions.shader_float_controls, properties.driver.driverName, driver_id);
+        }
+    }
 
     // Check limits.
     struct Limit {
