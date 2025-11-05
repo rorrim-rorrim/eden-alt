@@ -445,6 +445,11 @@ public:
         return extensions.shader_float_controls;
     }
 
+    /// Returns true if VK_KHR_sampler_mirror_clamp_to_edge is enabled.
+    bool IsKhrSamplerMirrorClampToEdgeSupported() const {
+        return extensions.sampler_mirror_clamp_to_edge;
+    }
+
     /// Returns true if the device supports VK_KHR_workgroup_memory_explicit_layout.
     bool IsKhrWorkgroupMemoryExplicitLayoutSupported() const {
         return extensions.workgroup_memory_explicit_layout;
