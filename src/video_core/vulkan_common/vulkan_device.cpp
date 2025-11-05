@@ -514,11 +514,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
         }
 
-        LOG_WARNING(Render_Vulkan,
-                    "Disabling shader float controls and 64-bit integer features on Qualcomm and ARM Mali proprietary drivers");
-        RemoveExtension(extensions.shader_float_controls, VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64,
-                               VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
+    LOG_WARNING(Render_Vulkan,
+            "Disabling 64-bit integer features on Qualcomm and ARM Mali proprietary drivers");
+    RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64,
+                   VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
         features.shader_atomic_int64.shaderBufferInt64Atomics = false;
         features.shader_atomic_int64.shaderSharedInt64Atomics = false;
         features.features.shaderInt64 = false;
