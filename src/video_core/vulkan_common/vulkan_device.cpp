@@ -739,7 +739,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                                VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
     }
 
-    if (!extensions.extended_dynamic_state2 && extensions.extended_dynamic_state3 && !force_extensions) {
+    if (!extensions.extended_dynamic_state2 && extensions.extended_dynamic_state3) {
         LOG_INFO(Render_Vulkan,
                  "Removing extendedDynamicState3 due to missing extendedDynamicState2");
         RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
