@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -31,9 +34,6 @@ Result CreateGuestApplication(SharedPointer<IApplicationAccessor>* out_applicati
     std::vector<u8> control;
     std::unique_ptr<Loader::AppLoader> loader;
     Loader::ResultStatus result;
-
-    // Launch overlay first if available.
-    // TryLaunchOverlayApplet(system, window_system);
 
     auto process =
         CreateApplicationProcess(control, loader, result, system, nca_raw, program_id, 0);
