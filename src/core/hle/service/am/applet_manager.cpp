@@ -272,15 +272,10 @@ void AppletManager::SetWindowSystem(WindowSystem* window_system) {
             overlay_applet->program_id = static_cast<u64>(AppletProgramId::OverlayDisplay);
             overlay_applet->applet_id = AppletId::OverlayDisplay;
             overlay_applet->type = AppletType::OverlayApplet;
-            // Use PartialForeground so blending is enabled and overlay can be composed on top
             overlay_applet->library_applet_mode = LibraryAppletMode::PartialForeground;
-            // Start with overlay visible but with low z-index (showing vignette behind app)
-            // Home button will toggle it to foreground (high z-index) to show full overlay
             overlay_applet->window_visible = true;
-            // Enable home button watching so overlay can be toggled with home button
             overlay_applet->home_button_short_pressed_blocked = false;
             overlay_applet->home_button_long_pressed_blocked = false;
-            // Track as a non-application so WindowSystem routes it to m_overlay_display
             m_window_system->TrackApplet(overlay_applet, false);
             overlay_applet->process->Run();
             LOG_INFO(Service_AM, "called, Overlay applet launched before application (initially hidden, watching home button)");

@@ -40,7 +40,6 @@ private:
     KernelHelpers::ServiceContext service_context;
     Kernel::KEvent* receive_event;
 
-    // Message sources map (source name -> message queue)
     std::map<std::string, std::vector<std::pair<OverlayNotification, MessageFlags>>> message_sources;
 };
 

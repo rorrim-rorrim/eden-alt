@@ -140,7 +140,6 @@ Result Container::SetLayerZIndex(u64 layer_id, s32 z_index) {
     auto* const layer = m_layers.GetLayerById(layer_id);
     R_UNLESS(layer != nullptr, VI::ResultNotFound);
 
-    // Forward to nvnflinger layer via surface flinger (store on the layer struct)
     if (auto layer_ref = m_surface_flinger->FindLayer(layer->GetConsumerBinderId())) {
         LOG_DEBUG(Service_VI, "called, SetLayerZIndex layer_id={} z={} (cid={})", layer_id,
                  z_index, layer->GetConsumerBinderId());
