@@ -1249,6 +1249,14 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.depth_clip_control, features.depth_clip_control,
                                        VK_EXT_DEPTH_CLIP_CONTROL_EXTENSION_NAME);
 
+    // VK_EXT_robustness2
+    // Enable the extension only if at least one of the useful robustness2 features is present.
+    extensions.robustness2 = features.robustness2.nullDescriptor ||
+                             features.robustness2.robustBufferAccess2 ||
+                             features.robustness2.robustImageAccess2;
+    RemoveExtensionFeatureIfUnsuitable(extensions.robustness2, features.robustness2,
+                                       VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
+
     // VK_EXT_extended_dynamic_state
     extensions.extended_dynamic_state = features.extended_dynamic_state.extendedDynamicState;
     RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state,
