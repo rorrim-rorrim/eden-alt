@@ -131,18 +131,16 @@ Result DisplayLayerManager::IsSystemBufferSharingEnabled() {
 
     // Ensure the overlay layer is visible
     m_manager_display_service->SetLayerVisibility(m_visible, m_system_shared_layer_id);
-    if (m_applet_id != AppletId::Application) {
-        m_manager_display_service->SetLayerBlending(m_blending_enabled, m_system_shared_layer_id);
-        s32 initial_z = 100000;
-        if (m_applet_id == AppletId::OverlayDisplay) {
-            initial_z = -100000;
-        }
-        m_manager_display_service->SetLayerZIndex(initial_z, m_system_shared_layer_id);
-        LOG_INFO(Service_VI,
-                 "DLM: Overlay session ready buffer_id={} layer_id={} z={} visible={} blending={}",
-                 m_system_shared_buffer_id, m_system_shared_layer_id, initial_z, m_visible,
-                 m_blending_enabled);
+    m_manager_display_service->SetLayerBlending(m_blending_enabled, m_system_shared_layer_id);
+    s32 initial_z = 100;
+    if (m_applet_id == AppletId::OverlayDisplay) {
+        initial_z = -100000;
     }
+    m_manager_display_service->SetLayerZIndex(initial_z, m_system_shared_layer_id);
+    LOG_INFO(Service_VI,
+             "DLM: Overlay session ready buffer_id={} layer_id={} z={} visible={} blending={}",
+             m_system_shared_buffer_id, m_system_shared_layer_id, initial_z, m_visible,
+             m_blending_enabled);
 
     R_SUCCEED();
 }

@@ -49,7 +49,7 @@ Result IOverlayFunctions::BeginToWatchShortHomeButtonMessage() {
         m_applet->overlay_in_foreground = true;
         m_applet->home_button_short_pressed_blocked = false;
 
-        static constexpr s32 kOverlayForegroundZ = 100;
+        static constexpr s32 kOverlayForegroundZ = 100000;
         m_applet->display_layer_manager.SetOverlayZIndex(kOverlayForegroundZ);
 
         LOG_INFO(Service_AM, "called, Overlay moved to FOREGROUND (z={}, overlay_in_foreground=true)", kOverlayForegroundZ);
