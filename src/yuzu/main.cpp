@@ -1531,9 +1531,9 @@ void GMainWindow::RestoreUIState() {
 
     ui->action_Fullscreen->setChecked(UISettings::values.fullscreen.GetValue());
 
-    ui->action_Display_Dock_Widget_Headers->setChecked(
-        UISettings::values.display_titlebar.GetValue());
-    OnDisplayTitleBars(ui->action_Display_Dock_Widget_Headers->isChecked());
+    ui->action_Enable_Overlay_Applet->setChecked(
+        Settings::values.enable_overlay.GetValue());
+    OnEnableOverlayApplet(ui->action_Enable_Overlay_Applet->isChecked());
 
     ui->action_Show_Filter_Bar->setChecked(UISettings::values.show_filter_bar.GetValue());
     game_list->SetFilterVisible(ui->action_Show_Filter_Bar->isChecked());
@@ -1657,7 +1657,7 @@ void GMainWindow::ConnectMenuEvents() {
     // View
     connect_menu(ui->action_Fullscreen, &GMainWindow::ToggleFullscreen);
     connect_menu(ui->action_Single_Window_Mode, &GMainWindow::ToggleWindowMode);
-    connect_menu(ui->action_Display_Dock_Widget_Headers, &GMainWindow::OnDisplayTitleBars);
+    connect_menu(ui->action_Enable_Overlay_Applet, &GMainWindow::OnEnableOverlayApplet);
     connect_menu(ui->action_Show_Filter_Bar, &GMainWindow::OnToggleFilterBar);
     connect_menu(ui->action_Show_Status_Bar, &GMainWindow::OnToggleStatusBar);
 
@@ -1752,6 +1752,8 @@ void GMainWindow::UpdateMenuState() {
     ui->action_Firmware_From_ZIP->setEnabled(!emulation_running);
     ui->action_Install_Keys->setEnabled(!emulation_running);
 
+    ui->action_Enable_Overlay_Applet->setEnabled(!emulation_running);
+
     for (QAction* action : applet_actions) {
         action->setEnabled(is_firmware_available && !emulation_running);
     }
@@ -1767,24 +1769,8 @@ void GMainWindow::UpdateMenuState() {
     multiplayer_state->UpdateNotificationStatus();
 }
 
-void GMainWindow::OnDisplayTitleBars(bool show) {
-    QList<QDockWidget*> widgets = findChildren<QDockWidget*>();
-
-    if (show) {
-        for (QDockWidget* widget : widgets) {
-            QWidget* old = widget->titleBarWidget();
-            widget->setTitleBarWidget(nullptr);
-            if (old != nullptr)
-                delete old;
-        }
-    } else {
-        for (QDockWidget* widget : widgets) {
-            QWidget* old = widget->titleBarWidget();
-            widget->setTitleBarWidget(new QWidget());
-            if (old != nullptr)
-                delete old;
-        }
-    }
+void GMainWindow::OnEnableOverlayApplet(bool enable) {
+        Settings::values.enable_overlay.SetValue(enable);
 }
 
 void GMainWindow::SetupPrepareForSleep() {
@@ -4505,7 +4491,6 @@ void GMainWindow::UpdateUISettings() {
     UISettings::values.state = saveState();
     UISettings::values.single_window_mode = ui->action_Single_Window_Mode->isChecked();
     UISettings::values.fullscreen = ui->action_Fullscreen->isChecked();
-    UISettings::values.display_titlebar = ui->action_Display_Dock_Widget_Headers->isChecked();
     UISettings::values.show_filter_bar = ui->action_Show_Filter_Bar->isChecked();
     UISettings::values.show_status_bar = ui->action_Show_Status_Bar->isChecked();
     UISettings::values.first_start = false;

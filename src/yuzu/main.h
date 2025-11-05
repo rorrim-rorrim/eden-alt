@@ -390,7 +390,7 @@ private slots:
     void OnToggleFilterBar();
     void OnToggleStatusBar();
     void OnGameListRefresh();
-    void OnDisplayTitleBars(bool);
+    void OnEnableOverlayApplet(bool);
     void InitializeHotkeys();
     void ToggleFullscreen();
     bool UsingExclusiveFullscreen();

@@ -759,6 +759,8 @@ struct Values {
 
     // Add-Ons
     std::map<u64, std::vector<std::string>> disabled_addons;
+
+    Setting<bool> enable_overlay{linkage, false, "enable_overlay", Category::Core};
 };
 
 extern Values values;
