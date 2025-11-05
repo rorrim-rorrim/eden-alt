@@ -579,7 +579,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             //      VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
         }
     }
-    if (extensions.extended_dynamic_state2 && (is_qualcomm || is_arm)) {
+    if (extensions.extended_dynamic_state2 && is_qualcomm || is_arm) {
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
         if (version >= VK_MAKE_API_VERSION(0, 0, 676, 0) &&
             version < VK_MAKE_API_VERSION(0, 0, 680, 0) && !force_extensions) {
