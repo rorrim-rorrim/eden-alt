@@ -1,7 +1,10 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "core/core.h"
 #include "core/hle/service/am/applet.h"
+#include "core/hle/service/am/applet_manager.h"
+#include "core/hle/service/am/window_system.h"
 #include "core/hle/service/am/service/overlay_functions.h"
 #include "core/hle/service/cmif_serialization.h"
 
@@ -40,22 +43,50 @@ IOverlayFunctions::~IOverlayFunctions() = default;
 
 Result IOverlayFunctions::BeginToWatchShortHomeButtonMessage() {
     LOG_DEBUG(Service_AM, "called");
-    std::scoped_lock lk{m_applet->lock};
-    m_applet->home_button_short_pressed_blocked = false;
+    {
+        std::scoped_lock lk{m_applet->lock};
+
+        m_applet->overlay_in_foreground = true;
+        m_applet->home_button_short_pressed_blocked = false;
+
+        static constexpr s32 kOverlayForegroundZ = 100;
+        m_applet->display_layer_manager.SetOverlayZIndex(kOverlayForegroundZ);
+
+        LOG_INFO(Service_AM, "called, Overlay moved to FOREGROUND (z={}, overlay_in_foreground=true)", kOverlayForegroundZ);
+    }
+
+    if (auto* window_system = system.GetAppletManager().GetWindowSystem()) {
+        window_system->RequestUpdate();
+    }
+
     R_SUCCEED();
 }
 
 Result IOverlayFunctions::EndToWatchShortHomeButtonMessage() {
     LOG_DEBUG(Service_AM, "called");
-    std::scoped_lock lk{m_applet->lock};
-    m_applet->home_button_short_pressed_blocked = true;
+
+    {
+        std::scoped_lock lk{m_applet->lock};
+
+        m_applet->overlay_in_foreground = false;
+        m_applet->home_button_short_pressed_blocked = false;
+
+        static constexpr s32 kOverlayBackgroundZ = -100;
+        m_applet->display_layer_manager.SetOverlayZIndex(kOverlayBackgroundZ);
+
+        LOG_INFO(Service_AM, "Overlay moved to BACKGROUND (z={}, overlay_in_foreground=false)", kOverlayBackgroundZ);
+    }
+
+    if (auto* window_system = system.GetAppletManager().GetWindowSystem()) {
+        window_system->RequestUpdate();
+    }
+
     R_SUCCEED();
 }
 
 Result IOverlayFunctions::GetApplicationIdForLogo(Out<u64> out_application_id) {
     LOG_DEBUG(Service_AM, "called");
 
-    // Prefer explicit application_id if available, else fall back to program_id
     std::scoped_lock lk{m_applet->lock};
     u64 id = m_applet->screen_shot_identity.application_id;
     if (id == 0) {
@@ -66,7 +97,7 @@ Result IOverlayFunctions::GetApplicationIdForLogo(Out<u64> out_application_id) {
 }
 
 Result IOverlayFunctions::SetAutoSleepTimeAndDimmingTimeEnabled(bool enabled) {
-    LOG_WARNING(Service_AM, "(STUBBED) called, enabled={}", enabled);
+    LOG_WARNING(Service_AM, "called, enabled={}", enabled);
     std::scoped_lock lk{m_applet->lock};
     m_applet->auto_sleep_disabled = !enabled;
     R_SUCCEED();
@@ -75,7 +106,7 @@ Result IOverlayFunctions::SetAutoSleepTimeAndDimmingTimeEnabled(bool enabled) {
 Result IOverlayFunctions::SetHandlingHomeButtonShortPressedEnabled(bool enabled) {
     LOG_DEBUG(Service_AM, "called, enabled={}", enabled);
     std::scoped_lock lk{m_applet->lock};
-    m_applet->home_button_short_pressed_blocked = !enabled;
+    m_applet->home_button_short_pressed_blocked = false;
     R_SUCCEED();
 }
 

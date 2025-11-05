@@ -63,7 +63,15 @@ void Applet::SetInteractibleLocked(bool interactible) {
 
     is_interactible = interactible;
 
-    hid_registration.EnableAppletToGetInput(interactible && !lifecycle_manager.GetExitRequested());
+    const bool exit_requested = lifecycle_manager.GetExitRequested();
+    const bool input_enabled = interactible && !exit_requested;
+
+    if (applet_id == AppletId::OverlayDisplay || applet_id == AppletId::Application) {
+        LOG_DEBUG(Service_AM, "called, applet={} interactible={} exit_requested={} input_enabled={} overlay_in_foreground={}",
+                 static_cast<u32>(applet_id), interactible, exit_requested, input_enabled, overlay_in_foreground);
+    }
+
+    hid_registration.EnableAppletToGetInput(input_enabled);
 }
 
 void Applet::OnProcessTerminatedLocked() {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,7 +14,6 @@
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/pm/pm.h"
 #include "core/hle/service/sm/sm.h"
-#include "core/hle/service/vi/vi.h"
 #include "core/hle/service/vi/vi_types.h"
 
 namespace Service::AM {
@@ -92,6 +94,9 @@ Result ICommonStateGetter::ReceiveMessage(Out<AppletMessage> out_applet_message)
         LOG_ERROR(Service_AM, "Tried to pop message but none was available!");
         R_THROW(AM::ResultNoMessages);
     }
+
+    LOG_INFO(Service_AM, "called, returning message={} to applet_id={}",
+             static_cast<u32>(*out_applet_message), static_cast<u32>(m_applet->applet_id));
 
     R_SUCCEED();
 }

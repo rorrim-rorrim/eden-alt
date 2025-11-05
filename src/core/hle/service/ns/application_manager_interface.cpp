@@ -19,7 +19,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
       service_context{system, "IApplicationManagerInterface"},
       record_update_system_event{service_context}, sd_card_mount_status_event{service_context},
       gamecard_update_detection_event{service_context},
-      gamecard_mount_status_event{service_context}, gamecard_mount_failure_event{service_context} {
+      gamecard_mount_status_event{service_context}, gamecard_mount_failure_event{service_context}, gamecard_waken_ready_event{service_context} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, D<&IApplicationManagerInterface::ListApplicationRecord>, "ListApplicationRecord"},
@@ -138,6 +138,8 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {508, nullptr, "GetLastGameCardMountFailureResult"},
         {509, nullptr, "ListApplicationIdOnGameCard"},
         {510, nullptr, "GetGameCardPlatformRegion"},
+        {511, D<&IApplicationManagerInterface::GetGameCardWakenReadyEvent>, "GetGameCardWakenReadyEvent"},
+        {512, D<&IApplicationManagerInterface::IsGameCardApplicationRunning>, "IsGameCardApplicationRunning"},
         {600, nullptr, "CountApplicationContentMeta"},
         {601, nullptr, "ListApplicationContentMetaStatus"},
         {602, nullptr, "ListAvailableAddOnContent"},
@@ -400,6 +402,19 @@ Result IApplicationManagerInterface::GetGameCardMountFailureEvent(
     OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_WARNING(Service_NS, "(STUBBED) called");
     *out_event = gamecard_mount_failure_event.GetHandle();
+    R_SUCCEED();
+}
+
+Result IApplicationManagerInterface::GetGameCardWakenReadyEvent(
+    OutCopyHandle<Kernel::KReadableEvent> out_event) {
+    LOG_WARNING(Service_NS, "(STUBBED) called");
+    *out_event = gamecard_waken_ready_event.GetHandle();
+    R_SUCCEED();
+}
+
+Result IApplicationManagerInterface::IsGameCardApplicationRunning(Out<bool> out_is_running) {
+    LOG_WARNING(Service_NS, "(STUBBED) called");
+    *out_is_running = false;
     R_SUCCEED();
 }
 

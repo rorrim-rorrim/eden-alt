@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -139,11 +142,11 @@ Result Container::SetLayerZIndex(u64 layer_id, s32 z_index) {
 
     // Forward to nvnflinger layer via surface flinger (store on the layer struct)
     if (auto layer_ref = m_surface_flinger->FindLayer(layer->GetConsumerBinderId())) {
-        LOG_INFO(Service_VI, "Container: SetLayerZIndex layer_id={} z={} (cid={})", layer_id,
+        LOG_DEBUG(Service_VI, "called, SetLayerZIndex layer_id={} z={} (cid={})", layer_id,
                  z_index, layer->GetConsumerBinderId());
         layer_ref->z_index = z_index;
     } else {
-        LOG_INFO(Service_VI, "Container: SetLayerZIndex failed to find layer for layer_id={} (cid={})",
+        LOG_DEBUG(Service_VI, "called, SetLayerZIndex failed to find layer for layer_id={} (cid={})",
                  layer_id, layer->GetConsumerBinderId());
     }
 

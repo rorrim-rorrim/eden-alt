@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -32,6 +35,7 @@ public:
 public:
     void SetEventObserver(EventObserver* event_observer);
     void Update();
+    void RequestUpdate();
 
 public:
     void TrackApplet(std::shared_ptr<Applet> applet, bool is_application);
@@ -56,7 +60,7 @@ private:
     void PruneTerminatedAppletsLocked();
     bool LockHomeMenuIntoForegroundLocked();
     void TerminateChildAppletsLocked(Applet* applet);
-    void UpdateAppletStateLocked(Applet* applet, bool is_foreground);
+    void UpdateAppletStateLocked(Applet* applet, bool is_foreground, bool overlay_blocking = false);
 
 private:
     // System reference.
