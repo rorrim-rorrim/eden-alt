@@ -222,7 +222,13 @@ template <typename Key, typename Envs>
 void SerializePipeline(const Key& key, const Envs& envs, const std::filesystem::path& filename,
                        u32 cache_version) {
     static_assert(std::is_trivially_copyable_v<Key>);
-    static_assert(std::has_unique_object_representations_v<Key>);
+    // Note: we relax the unique object representation requirement because some
+    // pipeline/key types (e.g. GraphicsPipelineCacheKey) contain unions or
+    // bitfield-backed types that do not guarantee "unique object
+    // representations" across compilers/platforms. We still require
+    // trivially-copyable so the raw byte serialization is well-defined for a
+    // given build. Be aware that serialized blobs may not be portable across
+    // builds with different compilers or packing rules.
     SerializePipeline(std::span(reinterpret_cast<const char*>(&key), sizeof(key)),
                       std::span(envs.data(), envs.size()), filename, cache_version);
 }
