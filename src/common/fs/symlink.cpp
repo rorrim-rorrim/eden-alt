@@ -8,9 +8,7 @@
 #include <fmt/format.h>
 #endif
 
-#ifndef __MINGW32__
 #include <boost/filesystem.hpp>
-#endif
 
 namespace fs = std::filesystem;
 
@@ -40,18 +38,7 @@ bool CreateSymlink(const fs::path &from, const fs::path &to)
 
 bool IsSymlink(const fs::path &path)
 {
-    // boost's is_symlink is broken on MinGW
-    // use win32 api in this case
-#ifdef __MINGW32__
-    DWORD attrs = GetFileAttributesW(path.wstring().c_str());
-    if (INVALID_FILE_ATTRIBUTES == attrs) {
-        return false;
-    }
-    return attrs & FILE_ATTRIBUTE_DIRECTORY &&
-           attrs & FILE_ATTRIBUTE_REPARSE_POINT;
-#else
     return boost::filesystem::is_symlink(boost::filesystem::path{path});
-#endif
 }
 
 } // namespace Common::FS
