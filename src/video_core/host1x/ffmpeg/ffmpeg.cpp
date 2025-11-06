@@ -35,8 +35,8 @@ constexpr std::array PreferredGpuDecoders = {
     AV_HWDEVICE_TYPE_VDPAU,
 #elif defined(__linux__)
     AV_HWDEVICE_TYPE_CUDA,
-    AV_HWDEVICE_TYPE_VULKAN,
     AV_HWDEVICE_TYPE_VAAPI,
+    AV_HWDEVICE_TYPE_VULKAN,
     AV_HWDEVICE_TYPE_VDPAU,
 #else
     AV_HWDEVICE_TYPE_VULKAN,
