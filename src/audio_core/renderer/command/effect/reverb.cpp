@@ -84,15 +84,14 @@ static void UpdateReverbEffectParameter(const ReverbInfo::ParameterVersion2& par
     const auto pow_10 = [](f32 val) -> f32 {
         return (val >= 0.0f) ? 1.0f : (val <= -5.3f) ? 0.0f : std::pow(10.0f, val);
     };
+
     const auto cos = [](f32 degrees) -> f32 {
         return std::cos(degrees * std::numbers::pi_v<f32> / 180.0f);
     };
 
-    static bool unk_initialized{false};
-    static Common::FixedPoint<50, 14> unk_value{};
-
     const auto sample_rate{Common::FixedPoint<50, 14>::from_base(params.sample_rate)};
     const auto pre_delay_time{Common::FixedPoint<50, 14>::from_base(params.pre_delay)};
+    const auto unk_value{Common::FixedPoint<50, 14>::from_base(cos((1280.0f / sample_rate).to_float()))};
 
     for (u32 i = 0; i < ReverbInfo::MaxDelayTaps; i++) {
         auto early_delay{
@@ -111,11 +110,6 @@ static void UpdateReverbEffectParameter(const ReverbInfo::ParameterVersion2& par
     auto pre_time{
         ((pre_delay_time + EarlyDelayTimes[params.early_mode][10]) * sample_rate).to_int()};
     state.pre_delay_time = (std::min)(pre_time, state.pre_delay_line.sample_count_max);
-
-    if (!unk_initialized) {
-        unk_value = cos((1280.0f / sample_rate).to_float());
-        unk_initialized = true;
-    }
 
     for (u32 i = 0; i < ReverbInfo::MaxDelayLines; i++) {
         const auto fdn_delay{(FdnDelayTimes[params.late_mode][i] * sample_rate).to_int()};
@@ -190,6 +184,8 @@ static void InitializeReverbEffect(const ReverbInfo::ParameterVersion2& params,
 
     const auto center_delay_time{(5 * delay).to_uint_floor()};
     state.center_delay_line.Initialize(center_delay_time, 1.0f);
+
+    UpdateReverbEffectParameter(params, state);
 
     for (u32 i = 0; i < ReverbInfo::MaxDelayLines; i++) {
         std::ranges::fill(state.fdn_delay_lines[i].buffer, 0);
