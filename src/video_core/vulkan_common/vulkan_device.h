@@ -465,6 +465,31 @@ public:
         return extensions.maintenance4;
     }
 
+    /// Returns true if VK_KHR_maintenance5 is enabled.
+    bool IsKhrMaintenance5Supported() const {
+        return extensions.maintenance5;
+    }
+
+    /// Returns true if VK_KHR_maintenance6 is enabled.
+    bool IsKhrMaintenance6Supported() const {
+        return extensions.maintenance6;
+    }
+
+    /// Returns true if VK_KHR_maintenance7 is enabled.
+    bool IsKhrMaintenance7Supported() const {
+        return extensions.maintenance7;
+    }
+
+    /// Returns true if VK_KHR_maintenance8 is enabled.
+    bool IsKhrMaintenance8Supported() const {
+        return extensions.maintenance8;
+    }
+
+    /// Returns true if VK_KHR_maintenance9 is enabled.
+    bool IsKhrMaintenance9Supported() const {
+        return extensions.maintenance9;
+    }
+
     /// Returns true if VK_KHR_sampler_mirror_clamp_to_edge is enabled.
     bool IsKhrSamplerMirrorClampToEdgeSupported() const {
         return extensions.sampler_mirror_clamp_to_edge;
