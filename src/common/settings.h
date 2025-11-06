@@ -547,10 +547,6 @@ struct Values {
                                            Specialization::Scalar};
 
     SwitchableSetting<bool> force_unsupported_extensions{linkage, false, "force_unsupported_extensions", Category::RendererExtensions};
-    // Developer toggle to enable FTZ (flush-to-zero) optimizations for testing on
-    // Qualcomm devices. Default false for safety; when true, pipeline code may
-    // emit FTZ-friendly SPIR-V and allow fast-math transforms for Adreno GPUs.
-    SwitchableSetting<bool> enable_ftz{linkage, false, "enable_ftz", Category::RendererExtensions};
     SwitchableSetting<bool> provoking_vertex{linkage, false, "provoking_vertex", Category::RendererExtensions};
     SwitchableSetting<bool> descriptor_indexing{linkage, false, "descriptor_indexing", Category::RendererExtensions};
     SwitchableSetting<bool> sample_shading{linkage, false, "sample_shading", Category::RendererExtensions, Specialization::Paired};

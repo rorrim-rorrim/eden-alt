@@ -447,24 +447,19 @@ GraphicsPipeline* PipelineCache::CurrentGraphicsPipeline() {
     graphics_key.state.Refresh(*maxwell3d, dynamic_features);
 
     // Decide per-pipeline FTZ (flush-to-zero) usage based on device float-controls
-    // properties and a dedicated enable_ftz developer toggle. FTZ is gated to
-    // Qualcomm drivers for initial testing to avoid widespread regressions.
-    const bool enable_ftz_setting = Settings::values.enable_ftz.GetValue();
+    // properties and vendor-specific workarounds, going initially for Qualcomm drivers
+    const bool force_extensions = Settings::values.force_unsupported_extensions.GetValue();
+    const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     const auto& float_control = device.FloatControlProperties();
     const bool has_khr_float_controls = device.IsKhrShaderFloatControlsSupported();
     const bool denorm_indep_all = float_control.denormBehaviorIndependence == VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL;
     const bool denorm_indep_32 = denorm_indep_all || float_control.denormBehaviorIndependence == VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_32_BIT_ONLY;
 
-    const bool is_qualcomm = device.GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
-    const bool allow_ftz = enable_ftz_setting && is_qualcomm;
-
-    graphics_key.use_ftz_f32 = (has_khr_float_controls && (float_control.shaderDenormFlushToZeroFloat32 == VK_TRUE) && denorm_indep_32 && allow_ftz) ? 1 : 0;
-    graphics_key.use_ftz_f16 = (has_khr_float_controls && (float_control.shaderDenormFlushToZeroFloat16 == VK_TRUE) && denorm_indep_all && allow_ftz) ? 1 : 0;
-
-    if (allow_ftz && (graphics_key.use_ftz_f32 || graphics_key.use_ftz_f16)) {
-        LOG_INFO(Render_Vulkan, "Enabling per-pipeline FTZ (fast-math) for Qualcomm device: f32={} f16={}",
-                 graphics_key.use_ftz_f32, graphics_key.use_ftz_f16);
-    }
+    // Allow FTZ when device reports support the device is a Qualcomm driver 
+    // (we allow Qualcomm to opt-in automatically to work around driver reporting differences).
+    const bool allow_ftz_override = force_extensions || is_qualcomm;
+    graphics_key.use_ftz_f32 = (has_khr_float_controls && (float_control.shaderDenormFlushToZeroFloat32 == VK_TRUE) && denorm_indep_32 && allow_ftz_override) ? 1 : 0;
+    graphics_key.use_ftz_f16 = (has_khr_float_controls && (float_control.shaderDenormFlushToZeroFloat16 == VK_TRUE) && denorm_indep_all && allow_ftz_override) ? 1 : 0;
 
     if (current_pipeline) {
         GraphicsPipeline* const next{current_pipeline->Next(graphics_key)};
@@ -717,7 +712,16 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
     // (allow optimizations); otherwise we set it to true to prevent unsafe
     // transformations.
     Shader::Profile emit_profile = profile;
+    // Per-pipeline override: control fast-math (FTZ) for FP32 via the pipeline key.
     emit_profile.need_fastmath_off = (key.use_ftz_f32 == 0);
+    // Per-pipeline FP16 FTZ selection is stored in the pipeline key but was not
+    // previously propagated to the SPIR-V emitter. Some drivers (notably certain
+    // Qualcomm builds) report FP16 float-control support incorrectly. Respect the
+    // pipeline's FP16 FTZ choice here and disable emitting FP16 DenormFlush when
+    // the pipeline explicitly disables it.
+    if (key.use_ftz_f16 == 0) {
+        emit_profile.support_fp16_denorm_flush = false;
+    }
     const std::vector<u32> code{EmitSPIRV(emit_profile, runtime_info, program, binding, this->optimize_spirv_output)};
         device.SaveShader(code);
         modules[stage_index] = BuildShader(device, code);
