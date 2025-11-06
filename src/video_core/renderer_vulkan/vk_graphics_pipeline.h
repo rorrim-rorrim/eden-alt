@@ -31,6 +31,10 @@ namespace Vulkan {
 struct GraphicsPipelineCacheKey {
     std::array<u64, 6> unique_hashes;
     FixedPipelineState state;
+    // Per-pipeline float control choices (selected at pipeline key time).
+    // 0 = disabled, 1 = enabled
+    uint8_t use_ftz_f32{};
+    uint8_t use_ftz_f16{};
 
     size_t Hash() const noexcept;
 
@@ -41,7 +45,7 @@ struct GraphicsPipelineCacheKey {
     }
 
     size_t Size() const noexcept {
-        return sizeof(unique_hashes) + state.Size();
+        return sizeof(unique_hashes) + state.Size() + sizeof(use_ftz_f32) + sizeof(use_ftz_f16);
     }
 };
 static_assert(std::has_unique_object_representations_v<GraphicsPipelineCacheKey>);
