@@ -446,6 +446,26 @@ GraphicsPipeline* PipelineCache::CurrentGraphicsPipeline() {
     }
     graphics_key.state.Refresh(*maxwell3d, dynamic_features);
 
+    // Decide per-pipeline FTZ (flush-to-zero) usage based on device float-controls
+    // properties and a dedicated enable_ftz developer toggle. FTZ is gated to
+    // Qualcomm drivers for initial testing to avoid widespread regressions.
+    const bool enable_ftz_setting = Settings::values.enable_ftz.GetValue();
+    const auto& float_control = device.FloatControlProperties();
+    const bool has_khr_float_controls = device.IsKhrShaderFloatControlsSupported();
+    const bool denorm_indep_all = float_control.denormBehaviorIndependence == VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL;
+    const bool denorm_indep_32 = denorm_indep_all || float_control.denormBehaviorIndependence == VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_32_BIT_ONLY;
+
+    const bool is_qualcomm = device.GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
+    const bool allow_ftz = enable_ftz_setting && is_qualcomm;
+
+    graphics_key.use_ftz_f32 = (has_khr_float_controls && (float_control.shaderDenormFlushToZeroFloat32 == VK_TRUE) && denorm_indep_32 && allow_ftz) ? 1 : 0;
+    graphics_key.use_ftz_f16 = (has_khr_float_controls && (float_control.shaderDenormFlushToZeroFloat16 == VK_TRUE) && denorm_indep_all && allow_ftz) ? 1 : 0;
+
+    if (allow_ftz && (graphics_key.use_ftz_f32 || graphics_key.use_ftz_f16)) {
+        LOG_INFO(Render_Vulkan, "Enabling per-pipeline FTZ (fast-math) for Qualcomm device: f32={} f16={}",
+                 graphics_key.use_ftz_f32, graphics_key.use_ftz_f16);
+    }
+
     if (current_pipeline) {
         GraphicsPipeline* const next{current_pipeline->Next(graphics_key)};
         if (next) {
@@ -690,7 +710,15 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
 
         const auto runtime_info{MakeRuntimeInfo(programs, key, program, previous_stage)};
         ConvertLegacyToGeneric(program, runtime_info);
-        const std::vector<u32> code{EmitSPIRV(profile, runtime_info, program, binding, this->optimize_spirv_output)};
+    // Forward a pipeline-specific profile to the SPIR-V emitter so it can
+    // enable/disable fast-math (FTZ) optimizations per-pipeline. We use the
+    // GraphicsPipelineCacheKey's FTZ choice to decide whether to allow
+    // fast-math. When fast-math is enabled we keep need_fastmath_off=false
+    // (allow optimizations); otherwise we set it to true to prevent unsafe
+    // transformations.
+    Shader::Profile emit_profile = profile;
+    emit_profile.need_fastmath_off = (key.use_ftz_f32 == 0);
+    const std::vector<u32> code{EmitSPIRV(emit_profile, runtime_info, program, binding, this->optimize_spirv_output)};
         device.SaveShader(code);
         modules[stage_index] = BuildShader(device, code);
         if (device.HasDebuggingToolAttached()) {

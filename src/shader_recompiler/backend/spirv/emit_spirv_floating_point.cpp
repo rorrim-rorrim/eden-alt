@@ -73,15 +73,33 @@ Id EmitFPAdd64(EmitContext& ctx, IR::Inst* inst, Id a, Id b) {
 }
 
 Id EmitFPFma16(EmitContext& ctx, IR::Inst* inst, Id a, Id b, Id c) {
-    return Decorate(ctx, inst, ctx.OpFma(ctx.F16[1], a, b, c));
+    // Use OpFma only when fast-math is allowed. Some drivers/targets require
+    // conservative separate mul+add semantics; when need_fastmath_off is true
+    // we emit separate FMul + FAdd to avoid relying on fused behavior.
+    if (!ctx.profile.need_fastmath_off) {
+        return Decorate(ctx, inst, ctx.OpFma(ctx.F16[1], a, b, c));
+    } else {
+        const Id mul = ctx.OpFMul(ctx.F16[1], a, b);
+        return Decorate(ctx, inst, ctx.OpFAdd(ctx.F16[1], mul, c));
+    }
 }
 
 Id EmitFPFma32(EmitContext& ctx, IR::Inst* inst, Id a, Id b, Id c) {
-    return Decorate(ctx, inst, ctx.OpFma(ctx.F32[1], a, b, c));
+    if (!ctx.profile.need_fastmath_off) {
+        return Decorate(ctx, inst, ctx.OpFma(ctx.F32[1], a, b, c));
+    } else {
+        const Id mul = ctx.OpFMul(ctx.F32[1], a, b);
+        return Decorate(ctx, inst, ctx.OpFAdd(ctx.F32[1], mul, c));
+    }
 }
 
 Id EmitFPFma64(EmitContext& ctx, IR::Inst* inst, Id a, Id b, Id c) {
-    return Decorate(ctx, inst, ctx.OpFma(ctx.F64[1], a, b, c));
+    if (!ctx.profile.need_fastmath_off) {
+        return Decorate(ctx, inst, ctx.OpFma(ctx.F64[1], a, b, c));
+    } else {
+        const Id mul = ctx.OpFMul(ctx.F64[1], a, b);
+        return Decorate(ctx, inst, ctx.OpFAdd(ctx.F64[1], mul, c));
+    }
 }
 
 Id EmitFPMax32(EmitContext& ctx, Id a, Id b) {
