@@ -349,7 +349,9 @@ struct Values {
                                                            linkage, true, "use_asynchronous_gpu_emulation", Category::Renderer};
     SwitchableSetting<AstcDecodeMode, true> accelerate_astc{linkage,
 #ifdef ANDROID
-                                                            AstcDecodeMode::Cpu,
+                                                            // Most modern Android devices have native ASTC support
+                                                            // and benefit from GPU decoding. Default to GPU there.
+                                                            AstcDecodeMode::Gpu,
 #else
                                                             AstcDecodeMode::Gpu,
 #endif
