@@ -10,6 +10,8 @@
 #include "video_core/rasterizer_interface.h"
 #include "common/android/multiplayer/multiplayer.h"
 #include <network/network.h>
+#include "common/settings.h"
+#include "common/logging/log.h"
 
 
 static JavaVM *s_java_vm;
@@ -523,6 +525,13 @@ namespace Common::Android {
         s_patch_program_id_field = env->GetFieldID(patch_class, "programId", "Ljava/lang/String;");
         s_patch_title_id_field = env->GetFieldID(patch_class, "titleId", "Ljava/lang/String;");
         env->DeleteLocalRef(patch_class);
+
+    // Prefer hardware decoding on Android by default, forcing this setting will
+    // make the native side attempt GPU decoding first. If the platform lacks a usable
+    // FFmpeg HW device, FFmpeg will fall back to CPU automatically.
+    Settings::values.nvdec_emulation.SetValue(Settings::NvdecEmulation::Gpu);
+    LOG_INFO(HW_GPU, "Android JNI_OnLoad: forced nvdec_emulation = GPU");
+
 
         const jclass double_class = env->FindClass("java/lang/Double");
         s_double_class = reinterpret_cast<jclass>(env->NewGlobalRef(double_class));
