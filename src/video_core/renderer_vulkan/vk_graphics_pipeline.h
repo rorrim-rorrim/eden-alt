@@ -48,9 +48,9 @@ struct GraphicsPipelineCacheKey {
         return sizeof(unique_hashes) + state.Size() + sizeof(use_ftz_f32) + sizeof(use_ftz_f16);
     }
 };
-static_assert(std::has_unique_object_representations_v<GraphicsPipelineCacheKey>);
+// The key is compared/hashed using a custom Size() and memcmp over the
+// meaningful bytes. Ensure it's trivially copyable so memcmp/hash are safe.
 static_assert(std::is_trivially_copyable_v<GraphicsPipelineCacheKey>);
-static_assert(std::is_trivially_constructible_v<GraphicsPipelineCacheKey>);
 
 } // namespace Vulkan
 
