@@ -616,22 +616,23 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     // VIDS causes black screen when EDS=0, must be off in this case
     // May cause glitches on RDNA2:
     // https://gitlab.freedesktop.org/mesa/mesa/-/issues/6577
-    if (extensions.vertex_input_dynamic_state && is_radv) {
-        const bool is_rdna2 =
-            supported_extensions.contains(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME);
-
-        // Always disable VIDS when EDS=0 to prevent black screen
-        if (Settings::values.dyna_state.GetValue() == 0) {
+    if (extensions.vertex_input_dynamic_state) {
+        // Always disable VIDS when dyna_state = 0 to prevent black screen (all drivers)
+        if (Settings::values.dyna_state.GetValue() == 0 && !force_extensions) {
             LOG_WARNING(Render_Vulkan,
                         "Disabling VK_EXT_vertex_input_dynamic_state due to black screen with EDS=0");
             RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
                                    features.vertex_input_dynamic_state,
                                    VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
-        } else if (is_rdna2) {
-            // RDNA1 status unknown
-            // Warn about glitches on RDNA2
-            LOG_WARNING(Render_Vulkan,
-                        "RADV glitchy VK_EXT_vertex_input_dynamic_state may cause glitches on some driver versions");
+        } else if (is_radv) {
+            const bool is_rdna2 =
+                supported_extensions.contains(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME);
+            if (is_rdna2) {
+                // RDNA1 status unknown
+                // Warn about glitches on RDNA2
+                LOG_WARNING(Render_Vulkan,
+                            "RADV glitchy VK_EXT_vertex_input_dynamic_state may cause glitches on some driver versions");
+            }
         }
     }
     if (extensions.extended_dynamic_state3 &&
