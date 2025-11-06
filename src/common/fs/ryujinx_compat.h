@@ -7,16 +7,18 @@
 #include <filesystem>
 #include <vector>
 
-namespace fs = std::filesystem;
-
 namespace Common::FS {
+
+namespace fs = std::filesystem;
 
 constexpr const char IMEN_MAGIC[4] = {0x49, 0x4d, 0x45, 0x4e};
 constexpr const char IMKV_MAGIC[4] = {0x49, 0x4d, 0x4b, 0x56};
 constexpr const u8 IMEN_SIZE = 0x8c;
 
 fs::path GetKvdbPath();
-fs::path GetRyuSavePath(const u64 &program_id);
+fs::path GetKvdbPath(const fs::path &path);
+fs::path GetRyuSavePath(const u64 &save_id);
+fs::path GetRyuSavePath(const fs::path &path, const u64 &save_id);
 
 enum class IMENReadResult {
     Nonexistent,  // ryujinx not found

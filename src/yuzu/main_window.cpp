@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "common/fs/symlink.h"
 #include "main_window.h"
 #include "network/network.h"
 #include "qt_common/discord/discord.h"
@@ -160,10 +161,9 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #ifdef _WIN32
 #include "core/core_timing.h"
 #include "common/windows/timer_resolution.h"
-#endif
 
-#ifdef _WIN32
 #include <QPlatformSurfaceEvent>
+#include <QSettings>
 #include <dwmapi.h>
 #include <windows.h>
 #ifdef _MSC_VER
@@ -2859,22 +2859,51 @@ std::string MainWindow::GetProfileID()
 
 void MainWindow::OnLinkToRyujinx(const u64& program_id)
 {
-    u64 save_id = QtCommon::FS::GetRyujinxSaveID(program_id);
-    if (save_id == (u64) -1)
-        return;
+    namespace fs = std::filesystem;
 
     const std::string user_id = GetProfileID();
+    const std::string hex_program = fmt::format("{:016X}", program_id);
 
-    auto paths = QtCommon::FS::GetEmuPaths(program_id, save_id, user_id);
-    if (!paths)
-        return;
+    const fs::path eden_dir
+        = FrontendCommon::DataManager::GetDataDir(FrontendCommon::DataManager::DataDir::Saves,
+                                                  user_id)
+          / hex_program;
 
-    auto eden_dir = paths.value().first;
-    auto ryu_dir = paths.value().second;
+    fs::path ryu_dir;
 
+    // If the Eden directory is a symlink we can just read that and use it as our Ryu dir
+    if (Common::FS::IsSymlink(eden_dir)) {
+        ryu_dir = fs::read_symlink(eden_dir);
+
+        // Fallback: if the Eden save dir is symlinked to a nonexistent location,
+        // just delete and recreate it to remove the symlink.
+        if (!fs::exists(ryu_dir)) {
+            fs::remove(eden_dir);
+            fs::create_directories(eden_dir);
+            ryu_dir = fs::path{};
+        }
+    }
+
+    // Otherwise, prompt the user
+    if (ryu_dir.empty()) {
+        const fs::path existing_path =
+            UISettings::values.ryujinx_link_paths
+                .value(program_id, QDir(Common::FS::GetLegacyPath(Common::FS::RyujinxDir)))
+                .filesystemAbsolutePath();
+
+        ryu_dir = QtCommon::FS::GetRyujinxSavePath(existing_path, program_id);
+    }
+
+    // CheckUnlink basically just checks to see if one or both are linked, and prompts the user to
+    // unlink if this is the case.
+    // If it returns false, neither dir is linked so it's fine to continue
     if (!QtCommon::FS::CheckUnlink(eden_dir, ryu_dir)) {
         RyujinxDialog dialog(eden_dir, ryu_dir, this);
-        dialog.exec();
+        if (dialog.exec() == QDialog::Accepted) {
+            UISettings::values.ryujinx_link_paths.insert(program_id, QString::fromStdString(ryu_dir.string()));
+        }
+    } else {
+        UISettings::values.ryujinx_link_paths.remove(program_id);
     }
 }
 
