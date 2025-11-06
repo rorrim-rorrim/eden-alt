@@ -22,6 +22,11 @@ fs::path GetKvdbPath(const fs::path& path) {
            / "imkvdb.arc";
 }
 
+fs::path GetRyuPathFromSavePath(const fs::path& path) {
+    // This is a horrible hack, but I cba to find something better
+    return path.parent_path().parent_path().parent_path().parent_path().parent_path();
+}
+
 fs::path GetRyuSavePath(const u64 &save_id)
 {
     return GetRyuSavePath(GetLegacyPath(EmuPath::RyujinxDir), save_id);
@@ -97,6 +102,5 @@ IMENReadResult ReadKvdb(const fs::path &path, std::vector<IMEN> &imens)
 
     return IMENReadResult::Success;
 }
-
 
 } // namespace Common::FS

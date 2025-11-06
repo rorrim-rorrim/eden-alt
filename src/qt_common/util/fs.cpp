@@ -108,6 +108,7 @@ const fs::path GetRyujinxSavePath(const fs::path &path_hint, const u64 &program_
                 return fs::path{};
 
             ryu_path = selected_path;
+
             // In case the user selects the actual ryujinx installation dir INSTEAD OF
             // the portable dir
             if (fs::exists(ryu_path / "portable")) {

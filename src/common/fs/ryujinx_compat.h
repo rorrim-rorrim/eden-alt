@@ -17,6 +17,7 @@ constexpr const u8 IMEN_SIZE = 0x8c;
 
 fs::path GetKvdbPath();
 fs::path GetKvdbPath(const fs::path &path);
+fs::path GetRyuPathFromSavePath(const fs::path &path);
 fs::path GetRyuSavePath(const u64 &save_id);
 fs::path GetRyuSavePath(const fs::path &path, const u64 &save_id);
 

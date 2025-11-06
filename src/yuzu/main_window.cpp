@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "common/fs/ryujinx_compat.h"
 #include "common/fs/symlink.h"
 #include "main_window.h"
 #include "network/network.h"
@@ -2864,13 +2865,16 @@ void MainWindow::OnLinkToRyujinx(const u64& program_id)
     const std::string user_id = GetProfileID();
     const std::string hex_program = fmt::format("{:016X}", program_id);
 
-    const fs::path eden_dir
-        = FrontendCommon::DataManager::GetDataDir(FrontendCommon::DataManager::DataDir::Saves,
-                                                  user_id)
-          / hex_program;
+    const fs::path eden_dir = FrontendCommon::DataManager::GetDataDir(
+                                  FrontendCommon::DataManager::DataDir::Saves, user_id) /
+                              hex_program;
 
     fs::path ryu_dir;
 
+    // filesystem error: read_symlink: Function not implemented
+    // Theoretically, the check immediately after this should account for it;
+    // keyword THEORETICALLY
+#ifndef __MINGW32__
     // If the Eden directory is a symlink we can just read that and use it as our Ryu dir
     if (Common::FS::IsSymlink(eden_dir)) {
         ryu_dir = fs::read_symlink(eden_dir);
@@ -2883,6 +2887,7 @@ void MainWindow::OnLinkToRyujinx(const u64& program_id)
             ryu_dir = fs::path{};
         }
     }
+#endif
 
     // Otherwise, prompt the user
     if (ryu_dir.empty()) {
@@ -2892,6 +2897,8 @@ void MainWindow::OnLinkToRyujinx(const u64& program_id)
                 .filesystemAbsolutePath();
 
         ryu_dir = QtCommon::FS::GetRyujinxSavePath(existing_path, program_id);
+
+        if (ryu_dir.empty()) return;
     }
 
     // CheckUnlink basically just checks to see if one or both are linked, and prompts the user to
@@ -2900,7 +2907,9 @@ void MainWindow::OnLinkToRyujinx(const u64& program_id)
     if (!QtCommon::FS::CheckUnlink(eden_dir, ryu_dir)) {
         RyujinxDialog dialog(eden_dir, ryu_dir, this);
         if (dialog.exec() == QDialog::Accepted) {
-            UISettings::values.ryujinx_link_paths.insert(program_id, QString::fromStdString(ryu_dir.string()));
+            UISettings::values.ryujinx_link_paths.insert(
+                program_id,
+                QString::fromStdString(Common::FS::GetRyuPathFromSavePath(ryu_dir).string()));
         }
     } else {
         UISettings::values.ryujinx_link_paths.remove(program_id);
