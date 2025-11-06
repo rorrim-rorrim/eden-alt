@@ -848,6 +848,11 @@ private:
     bool maintenance2{};
     bool maintenance3{};
     bool maintenance4{};
+    bool maintenance5{};
+    bool maintenance6{};
+    bool maintenance7{};
+    bool maintenance8{};
+    bool maintenance9{};
 
 #undef EXTENSION
 #undef FEATURE
