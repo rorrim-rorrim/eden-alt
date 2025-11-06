@@ -732,6 +732,10 @@ public:
         return properties.driver.driverID == VK_DRIVER_ID_MOLTENVK;
     }
 
+    bool IsQualcomm() const noexcept {
+        return properties.driver.driverID == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
+    }
+
     NvidiaArchitecture GetNvidiaArch() const noexcept {
         return nvidia_arch;
     }
