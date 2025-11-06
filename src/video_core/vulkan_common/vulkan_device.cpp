@@ -645,9 +645,17 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
     if (extensions.extended_dynamic_state3 &&
         (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
+        // Windows on AMD is really picky for some reason
+        #if defined (_WIN32)
+            LOG_WARNING(Render_Vulkan,
+                        "AMD drivers have glitchy extendedDynamicState3ColorBlendEquation");
+            features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = true;
+            features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = true;
+            dynamic_state3_blending = true;
+        #else
         // AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation
         if (!force_extensions) {
-             LOG_WARNING(Render_Vulkan,
+            LOG_WARNING(Render_Vulkan,
                         "AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation");
             features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
             features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
@@ -657,6 +665,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = true;
             dynamic_state3_blending = true;
         }
+        #endif
     }
     if (extensions.vertex_input_dynamic_state && is_qualcomm && !force_extensions) {
         // Qualcomm drivers do not properly support vertex_input_dynamic_state.
@@ -759,7 +768,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                                VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
     }
 
-    if (!extensions.extended_dynamic_state2 && extensions.extended_dynamic_state3 && !force_extensions) {
+    if (!extensions.extended_dynamic_state2 && extensions.extended_dynamic_state3) {
         LOG_INFO(Render_Vulkan,
                  "Removing extendedDynamicState3 due to missing extendedDynamicState2");
         RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
