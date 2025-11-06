@@ -501,10 +501,25 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     if ((is_qualcomm || is_turnip) && !force_extensions) {
-        LOG_WARNING(Render_Vulkan,
-                    "Qualcomm and Turnip drivers have broken VK_EXT_custom_border_color");
-        RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
-        VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+        // Some Qualcomm/Turnip drivers have a broken implementation of
+        // VK_EXT_custom_border_color, but on certain devices the driver may
+        // still implement a subset of the extension's functions. If the
+        // driver reports any of the useful custom border color features, allow
+        // them; otherwise remove the extension to avoid crashes.
+        const bool has_custom_border_colors =
+            features.custom_border_color.customBorderColors ||
+            features.custom_border_color.customBorderColorWithoutFormat;
+        if (!has_custom_border_colors) {
+            LOG_WARNING(Render_Vulkan,
+                        "Qualcomm and Turnip drivers have broken VK_EXT_custom_border_color");
+            RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
+                                   VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+        } else {
+            LOG_INFO(Render_Vulkan,
+                     "Partial VK_EXT_custom_border_color support detected on driver '{}'; enabling available features",
+                     properties.driver.driverName);
+            // Keep extensions.custom_border_color set based on RemoveUnsuitableExtensions later.
+        }
     }
 
     if (is_qualcomm || is_arm) {
@@ -1034,6 +1049,25 @@ bool Device::GetSuitability(bool requires_swapchain) {
     FOR_EACH_VK_FEATURE_EXT(FEATURE_EXTENSION);
     FOR_EACH_VK_EXTENSION(EXTENSION);
 
+    // Maintenance extensions may not have corresponding macros in older Vulkan
+    // headers. Detect them by name and enable them if present.
+    if (supported_extensions.contains("VK_KHR_maintenance1")) {
+        loaded_extensions.insert("VK_KHR_maintenance1");
+        extensions.maintenance1 = true;
+    }
+    if (supported_extensions.contains("VK_KHR_maintenance2")) {
+        loaded_extensions.insert("VK_KHR_maintenance2");
+        extensions.maintenance2 = true;
+    }
+    if (supported_extensions.contains("VK_KHR_maintenance3")) {
+        loaded_extensions.insert("VK_KHR_maintenance3");
+        extensions.maintenance3 = true;
+    }
+    if (supported_extensions.contains("VK_KHR_maintenance4")) {
+        loaded_extensions.insert("VK_KHR_maintenance4");
+        extensions.maintenance4 = true;
+    }
+
 #undef FEATURE_EXTENSION
 #undef EXTENSION
 
@@ -1254,9 +1288,30 @@ bool Device::GetSuitability(bool requires_swapchain) {
 }
 
 void Device::RemoveUnsuitableExtensions() {
+    // Restrict NV-specific extensions to NVIDIA drivers only.
+    if (!IsNvidia()) {
+        RemoveExtension(extensions.device_diagnostics_config,
+                        VK_NV_DEVICE_DIAGNOSTICS_CONFIG_EXTENSION_NAME);
+        RemoveExtension(extensions.geometry_shader_passthrough,
+                        VK_NV_GEOMETRY_SHADER_PASSTHROUGH_EXTENSION_NAME);
+        RemoveExtension(extensions.viewport_array2, VK_NV_VIEWPORT_ARRAY2_EXTENSION_NAME);
+        RemoveExtension(extensions.viewport_swizzle, VK_NV_VIEWPORT_SWIZZLE_EXTENSION_NAME);
+    }
+
     // VK_EXT_custom_border_color
-    extensions.custom_border_color = features.custom_border_color.customBorderColors &&
-                                     features.custom_border_color.customBorderColorWithoutFormat;
+    // On most drivers we require both customBorderColors and
+    // customBorderColorWithoutFormat. However, some Qualcomm drivers expose a
+    // subset of the functionality; when running on Qualcomm, enable the
+    // extension if the driver reports any useful feature.
+    if (IsQualcomm()) {
+        extensions.custom_border_color =
+            features.custom_border_color.customBorderColors ||
+            features.custom_border_color.customBorderColorWithoutFormat;
+    } else {
+        extensions.custom_border_color =
+            features.custom_border_color.customBorderColors &&
+            features.custom_border_color.customBorderColorWithoutFormat;
+    }
     RemoveExtensionFeatureIfUnsuitable(extensions.custom_border_color, features.custom_border_color,
                                        VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
 

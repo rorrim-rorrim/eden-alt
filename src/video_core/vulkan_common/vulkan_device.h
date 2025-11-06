@@ -445,6 +445,26 @@ public:
         return extensions.shader_float_controls;
     }
 
+    /// Returns true if VK_KHR_maintenance1 is enabled.
+    bool IsKhrMaintenance1Supported() const {
+        return extensions.maintenance1;
+    }
+
+    /// Returns true if VK_KHR_maintenance2 is enabled.
+    bool IsKhrMaintenance2Supported() const {
+        return extensions.maintenance2;
+    }
+
+    /// Returns true if VK_KHR_maintenance3 is enabled.
+    bool IsKhrMaintenance3Supported() const {
+        return extensions.maintenance3;
+    }
+
+    /// Returns true if VK_KHR_maintenance4 is enabled.
+    bool IsKhrMaintenance4Supported() const {
+        return extensions.maintenance4;
+    }
+
     /// Returns true if VK_KHR_sampler_mirror_clamp_to_edge is enabled.
     bool IsKhrSamplerMirrorClampToEdgeSupported() const {
         return extensions.sampler_mirror_clamp_to_edge;
@@ -792,11 +812,17 @@ private:
 #define EXTENSION(prefix, macro_name, var_name) bool var_name{};
 #define FEATURE(prefix, struct_name, macro_name, var_name) bool var_name{};
 
-        FOR_EACH_VK_FEATURE_1_1(FEATURE);
-        FOR_EACH_VK_FEATURE_1_2(FEATURE);
-        FOR_EACH_VK_FEATURE_1_3(FEATURE);
-        FOR_EACH_VK_FEATURE_EXT(FEATURE);
-        FOR_EACH_VK_EXTENSION(EXTENSION);
+    FOR_EACH_VK_FEATURE_1_1(FEATURE);
+    FOR_EACH_VK_FEATURE_1_2(FEATURE);
+    FOR_EACH_VK_FEATURE_1_3(FEATURE);
+    FOR_EACH_VK_FEATURE_EXT(FEATURE);
+    FOR_EACH_VK_EXTENSION(EXTENSION);
+
+    // Maintenance extensions (may not be present in older Vulkan headers).
+    bool maintenance1{};
+    bool maintenance2{};
+    bool maintenance3{};
+    bool maintenance4{};
 
 #undef EXTENSION
 #undef FEATURE
