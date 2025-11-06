@@ -599,10 +599,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         }
     }
     if (extensions.extended_dynamic_state3 && is_radv) {
-        LOG_WARNING(Render_Vulkan, "RADV has broken extendedDynamicState3ColorBlendEquation");
         if (!force_extensions) {
              LOG_WARNING(Render_Vulkan,
-                        "AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation");
+                        "RADV has broken extendedDynamicState3ColorBlendEquation");
             features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
             features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
             dynamic_state3_blending = false;
@@ -776,6 +775,15 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     if ((is_mvk || (is_integrated && is_intel_anv) || (is_integrated && is_intel_windows)) && Settings::values.dyna_state.GetValue() != 0) {
         LOG_WARNING(Render_Vulkan, "Driver has broken dynamic state, forcing to 0 to prevent graphical issues");
         Settings::values.dyna_state.SetValue(0);
+    }
+
+    // When EDS=0, force scaled format emulation
+    if (Settings::values.dyna_state.GetValue() == 0) {
+        must_emulate_scaled_formats = true;
+        LOG_INFO(Render_Vulkan, "Extended Dynamic state is disabled, forcing scaled format emulation ON");
+    } else {
+        must_emulate_scaled_formats = false;
+        LOG_INFO(Render_Vulkan, "Extended Dynamic state is enabled, disabling scaled format emulation");
     }
 
     logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions), first_next, dld);
