@@ -1195,6 +1195,25 @@ bool Device::GetSuitability(bool requires_swapchain) {
         }
     }
 
+    // Some drivers (notably Qualcomm and certain ARM drivers) misreport the
+    // VK_KHR_shader_float_controls capabilities. Disable the extension and
+    // clear the reported properties unless the user explicitly forces
+    // unsupported extensions via settings.
+    {
+        const auto driver_id = properties.driver.driverID;
+        const bool force_extensions = Settings::values.force_unsupported_extensions.GetValue();
+        if ((driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
+             driver_id == VK_DRIVER_ID_ARM_PROPRIETARY) &&
+            !force_extensions) {
+            LOG_WARNING(Render_Vulkan,
+                        "Disabling VK_KHR_shader_float_controls for driver '{}' id={} due to unreliable float-control reporting",
+                        properties.driver.driverName, driver_id);
+            extensions.shader_float_controls = false;
+            // Zero-out the structure to avoid accidental use of reported values.
+            properties.float_controls = {};
+        }
+    }
+
     // Unload extensions if feature support is insufficient.
     RemoveUnsuitableExtensions();
 
