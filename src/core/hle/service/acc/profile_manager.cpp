@@ -16,6 +16,7 @@
 #include "common/fs/fs.h"
 #include "common/fs/fs_types.h"
 #include "common/fs/path_util.h"
+#include "common/fs/symlink.h"
 #include "common/settings.h"
 #include "common/string_util.h"
 #include "core/file_sys/savedata_factory.h"
@@ -559,7 +560,8 @@ std::vector<std::string> ProfileManager::FindOrphanedProfiles()
                             override = true;
 
                         // if there are any regular files (NOT directories) there, do NOT delete it :p
-                        if (file.is_regular_file())
+                        // Also: check for symlinks
+                        if (file.is_regular_file() || Common::FS::IsSymlink(file.path()))
                             return false;
                     }
                 } catch (const fs::filesystem_error& e) {
