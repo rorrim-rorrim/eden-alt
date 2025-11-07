@@ -4,8 +4,8 @@
 #include "symlink.h"
 
 #ifdef _WIN32
-#include <windows.h>
 #include <fmt/format.h>
+#include <windows.h>
 #endif
 
 #include <boost/filesystem.hpp>
@@ -22,18 +22,30 @@ namespace fs = std::filesystem;
 // because of their security policy.
 // I don't know what kind of drugs the Windows developers have been on since NT started.
 
+// Microsoft still has not implemented any of this in their std::filesystem implemenation,
+// which ALSO means that it DOES NOT FOLLOW ANY DIRECTORY JUNCTIONS... AT ALL.
+// Nor does any of their command line utilities or APIs. So you're quite literally
+// on your own.
+
 namespace Common::FS {
 
-bool CreateSymlink(const fs::path &from, const fs::path &to)
+bool CreateSymlink(fs::path from, fs::path to)
 {
-#ifdef _WIN32
-    const std::string command = fmt::format("mklink /J \"{}\" \"{}\"", to.string(), from.string());
-    return system(command.c_str()) == 0;
-#else
+    from.make_preferred();
+    to.make_preferred();
+
     std::error_code ec;
     fs::create_directory_symlink(from, to, ec);
-    return !ec;
+#ifdef _WIN32
+    if (ec) {
+        const std::string command = fmt::format("mklink /J \"{}\" \"{}\"",
+                                                to.string(),
+                                                from.string());
+        return system(command.c_str()) == 0;
+    }
 #endif
+
+    return !ec;
 }
 
 bool IsSymlink(const fs::path &path)

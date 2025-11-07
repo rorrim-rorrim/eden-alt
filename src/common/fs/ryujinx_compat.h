@@ -9,17 +9,15 @@
 
 namespace Common::FS {
 
-namespace fs = std::filesystem;
-
 constexpr const char IMEN_MAGIC[4] = {0x49, 0x4d, 0x45, 0x4e};
 constexpr const char IMKV_MAGIC[4] = {0x49, 0x4d, 0x4b, 0x56};
 constexpr const u8 IMEN_SIZE = 0x8c;
 
-fs::path GetKvdbPath();
-fs::path GetKvdbPath(const fs::path &path);
-fs::path GetRyuPathFromSavePath(const fs::path &path);
-fs::path GetRyuSavePath(const u64 &save_id);
-fs::path GetRyuSavePath(const fs::path &path, const u64 &save_id);
+std::filesystem::path GetKvdbPath();
+std::filesystem::path GetKvdbPath(const std::filesystem::path &path);
+std::filesystem::path GetRyuPathFromSavePath(const std::filesystem::path &path);
+std::filesystem::path GetRyuSavePath(const u64 &save_id);
+std::filesystem::path GetRyuSavePath(const std::filesystem::path &path, const u64 &save_id);
 
 enum class IMENReadResult {
     Nonexistent,  // ryujinx not found
@@ -38,6 +36,6 @@ struct IMEN
 
 static_assert(sizeof(IMEN) == 0x10, "IMEN has incorrect size.");
 
-IMENReadResult ReadKvdb(const fs::path &path, std::vector<IMEN> &imens);
+IMENReadResult ReadKvdb(const std::filesystem::path &path, std::vector<IMEN> &imens);
 
 } // namespace Common::FS

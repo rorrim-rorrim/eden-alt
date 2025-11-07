@@ -7,8 +7,6 @@
 #include <algorithm>
 #include <cstring>
 #include <filesystem>
-#include <iostream>
-#include <random>
 
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/find.hpp>
@@ -22,7 +20,6 @@
 #include "common/string_util.h"
 #include "core/file_sys/savedata_factory.h"
 #include "core/hle/service/acc/profile_manager.h"
-#include <ranges>
 
 namespace Service::Account {
 

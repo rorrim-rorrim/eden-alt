@@ -1,11 +1,10 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <algorithm>
 #include <filesystem>
-#include "common/fs/path_util.h"
 #include "common/fs/ryujinx_compat.h"
 #include "common/fs/symlink.h"
-#include "frontend_common/data_manager.h"
 #include "fs.h"
 #include "qt_common/abstract/frontend.h"
 #include "qt_common/qt_string_lookup.h"
@@ -132,7 +131,6 @@ const fs::path GetRyujinxSavePath(const fs::path &path_hint, const u64 &program_
     Common::FS::IMENReadResult res = Common::FS::ReadKvdb(kvdb_path, imens);
 
     if (res == Common::FS::IMENReadResult::Success) {
-        // TODO: this can probably be done with std::find_if but I'm lazy
         for (const Common::FS::IMEN &imen : imens) {
             if (imen.title_id == program_id)
                 return Common::FS::GetRyuSavePath(ryu_path, imen.save_id);
@@ -143,8 +141,7 @@ const fs::path GetRyujinxSavePath(const fs::path &path_hint, const u64 &program_
             StringLookup::Lookup(StringLookup::RyujinxNoSaveId).arg(program_id, 0, 16));
     } else {
         // TODO: make this long thing a function or something
-        QString caption = StringLookup::Lookup(
-            static_cast<StringLookup::StringKey>((int) res + (int) StringLookup::KvdbNonexistent));
+        QString caption = LOOKUP_ENUM(res, KvdbNonexistent);
         QtCommon::Frontend::Critical(tr("Could not find Ryujinx save data"), caption);
     }
 
