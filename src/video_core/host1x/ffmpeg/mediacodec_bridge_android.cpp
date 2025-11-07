@@ -114,4 +114,6 @@ std::optional<std::vector<uint8_t>> PopDecodedFrame(int id, int& width, int& hei
     return st->frame;
 }
 
+} // namespace FFmpeg::MediaCodecBridge
+
 #endif // __ANDROID__
