@@ -315,7 +315,7 @@ void PresentManager::CopyToSwapchain(Frame* frame) {
             // Recreate surface and swapchain if needed.
             if (requires_recreation) {
 #ifdef ANDROID
-                surface = reinterpret_cast<VkSurfaceKHR_T*>(CreateSurface(instance, render_window.GetWindowInfo()));
+                surface = reinterpret_cast<VkSurfaceKHR_T*>(CreateSurface(instance, render_window.GetWindowInfo()).address());
 #endif
                 RecreateSwapchain(frame);
             }
