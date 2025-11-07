@@ -424,7 +424,7 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
 
     const auto wrapped_fn = exclusive_write_fallbacks[std::make_tuple(ordered, bitsize, vaddr.getIdx(), value.getIdx())];
 
-    EmitExclusiveLock(code, conf, tmp, tmp2);
+    EmitExclusiveLock(code, conf, tmp, tmp2.cvt32());
 
     SharedLabel end = GenSharedLabel();
 
