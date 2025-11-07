@@ -399,13 +399,13 @@ public:
 
     /// Construct a handle transferring the ownership from another handle.
     Handle(Handle&& rhs) noexcept
-        : handle{std::exchange(rhs.handle, nullptr)}, owner{rhs.owner}, dld{rhs.dld} {}
+        : handle{std::exchange(rhs.handle, Type{})}, owner{rhs.owner}, dld{rhs.dld} {}
 
     /// Assign the current handle transferring the ownership from another handle.
     /// Destroys any previously held object.
     Handle& operator=(Handle&& rhs) noexcept {
         Release();
-        handle = std::exchange(rhs.handle, nullptr);
+        handle = std::exchange(rhs.handle, Type{});
         owner = rhs.owner;
         dld = rhs.dld;
         return *this;
@@ -419,7 +419,7 @@ public:
     /// Destroys any held object.
     void reset() noexcept {
         Release();
-        handle = nullptr;
+        handle = Type{};
     }
 
     /// Returns the address of the held object.
@@ -435,7 +435,7 @@ public:
 
     /// Returns true when there's a held object.
     explicit operator bool() const noexcept {
-        return handle != nullptr;
+        return handle != Type{};
     }
 
 #ifndef ANDROID
@@ -450,7 +450,7 @@ public:
 #endif
 
 protected:
-    Type handle = nullptr;
+    Type handle{};
     OwnerType owner = nullptr;
     const Dispatch* dld = nullptr;
 
@@ -458,7 +458,7 @@ private:
     /// Destroys the held object if it exists.
     void Release() noexcept {
         if (handle) {
-            Destroy(owner, handle, *dld);
+            Destroy(OwnerType(owner), Type(handle), *dld);
         }
     }
 };
@@ -501,7 +501,7 @@ public:
     /// Destroys any held object.
     void reset() noexcept {
         Release();
-        handle = nullptr;
+        handle = {};
     }
 
     /// Returns the address of the held object.
@@ -517,7 +517,7 @@ public:
 
     /// Returns true when there's a held object.
     explicit operator bool() const noexcept {
-        return handle != nullptr;
+        return handle != Type{};
     }
 
 #ifndef ANDROID
@@ -532,7 +532,7 @@ public:
 #endif
 
 protected:
-    Type handle = nullptr;
+    Type handle{};
     const Dispatch* dld = nullptr;
 
 private:
@@ -602,7 +602,7 @@ private:
     std::unique_ptr<AllocationType[]> allocations;
     std::size_t num = 0;
     VkDevice device = nullptr;
-    PoolType pool = nullptr;
+    PoolType pool{};
     const DeviceDispatch* dld = nullptr;
 };
 
@@ -664,12 +664,12 @@ public:
     Image& operator=(const Image&) = delete;
 
     Image(Image&& rhs) noexcept
-        : handle{std::exchange(rhs.handle, nullptr)}, usage{rhs.usage}, owner{rhs.owner},
+        : handle{std::exchange(rhs.handle, VkImage{})}, usage{rhs.usage}, owner{rhs.owner},
           allocator{rhs.allocator}, allocation{rhs.allocation}, dld{rhs.dld} {}
 
     Image& operator=(Image&& rhs) noexcept {
         Release();
-        handle = std::exchange(rhs.handle, nullptr);
+        handle = std::exchange(rhs.handle, VkImage{});
         usage = rhs.usage;
         owner = rhs.owner;
         allocator = rhs.allocator;
@@ -688,11 +688,11 @@ public:
 
     void reset() noexcept {
         Release();
-        handle = nullptr;
+        handle = VkImage{};
     }
 
     explicit operator bool() const noexcept {
-        return handle != nullptr;
+        return handle != VkImage{};
     }
 
     void SetObjectNameEXT(const char* name) const;
@@ -704,7 +704,7 @@ public:
 private:
     void Release() const noexcept;
 
-    VkImage handle = nullptr;
+    VkImage handle{};
     VkImageUsageFlags usage{};
     VkDevice owner = nullptr;
     VmaAllocator allocator = nullptr;
@@ -725,13 +725,13 @@ public:
     Buffer& operator=(const Buffer&) = delete;
 
     Buffer(Buffer&& rhs) noexcept
-        : handle{std::exchange(rhs.handle, nullptr)}, owner{rhs.owner}, allocator{rhs.allocator},
+        : handle{std::exchange(rhs.handle, VkBuffer{})}, owner{rhs.owner}, allocator{rhs.allocator},
           allocation{rhs.allocation}, mapped{rhs.mapped},
           is_coherent{rhs.is_coherent}, dld{rhs.dld} {}
 
     Buffer& operator=(Buffer&& rhs) noexcept {
         Release();
-        handle = std::exchange(rhs.handle, nullptr);
+        handle = std::exchange(rhs.handle, VkBuffer{});
         owner = rhs.owner;
         allocator = rhs.allocator;
         allocation = rhs.allocation;
@@ -751,11 +751,11 @@ public:
 
     void reset() noexcept {
         Release();
-        handle = nullptr;
+        handle = VkBuffer{};
     }
 
     explicit operator bool() const noexcept {
-        return handle != nullptr;
+        return handle != VkBuffer{};
     }
 
     /// Returns the host mapped memory, an empty span otherwise.
@@ -781,7 +781,7 @@ public:
 private:
     void Release() const noexcept;
 
-    VkBuffer handle = nullptr;
+    VkBuffer handle{};
     VkDevice owner = nullptr;
     VmaAllocator allocator = nullptr;
     VmaAllocation allocation = nullptr;
@@ -1015,10 +1015,10 @@ public:
     [[nodiscard]] PipelineLayout CreatePipelineLayout(const VkPipelineLayoutCreateInfo& ci) const;
 
     [[nodiscard]] Pipeline CreateGraphicsPipeline(const VkGraphicsPipelineCreateInfo& ci,
-                                                  VkPipelineCache cache = nullptr) const;
+                                                  VkPipelineCache cache = {}) const;
 
     [[nodiscard]] Pipeline CreateComputePipeline(const VkComputePipelineCreateInfo& ci,
-                                                 VkPipelineCache cache = nullptr) const;
+                                                 VkPipelineCache cache = {}) const;
 
     [[nodiscard]] Sampler CreateSampler(const VkSamplerCreateInfo& ci) const;
 
