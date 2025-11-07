@@ -222,7 +222,7 @@
     "gamemode": {
         "repo": "FeralInteractive/gamemode",
         "sha": "ce6fe122f3",
-        "hash": "ff62f3c8638528e7afb7336f7c8f9940453d2871446c36f639e3114cc8b5c7f9a817ed209c45e0e061793fc3ee9ba35a4b05140d39f5175c2aacfa0703fddfc4",
+        "hash": "e87ec14ed3e826d578ebf095c41580069dda603792ba91efa84f45f4571a28f4d91889675055fd6f042d7dc25b0b9443daf70963ae463e38b11bcba95f4c65a9",
         "version": "1.7",
         "find_args": "MODULE"
     }
