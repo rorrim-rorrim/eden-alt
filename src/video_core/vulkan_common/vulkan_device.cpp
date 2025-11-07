@@ -645,14 +645,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
     if (extensions.extended_dynamic_state3 &&
         (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
-        // Windows on AMD is really picky for some reason
-        #if defined (_WIN32)
-            LOG_WARNING(Render_Vulkan,
-                        "AMD drivers have glitchy extendedDynamicState3ColorBlendEquation");
-            features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = true;
-            features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = true;
-            dynamic_state3_blending = true;
-        #else
         // AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation
         if (!force_extensions) {
             LOG_WARNING(Render_Vulkan,
@@ -665,7 +657,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = true;
             dynamic_state3_blending = true;
         }
-        #endif
     }
     if (extensions.vertex_input_dynamic_state && is_qualcomm && !force_extensions) {
         // Qualcomm drivers do not properly support vertex_input_dynamic_state.
