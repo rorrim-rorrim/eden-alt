@@ -1035,6 +1035,25 @@ bool Device::GetSuitability(bool requires_swapchain) {
     FOR_EACH_VK_FEATURE_EXT(FEATURE_EXTENSION);
     FOR_EACH_VK_EXTENSION(EXTENSION);
 
+    // Maintenance extensions may not have corresponding macros in older Vulkan
+    // headers. Detect them by name and enable them if present.
+    if (supported_extensions.contains("VK_KHR_maintenance1")) {
+        loaded_extensions.insert("VK_KHR_maintenance1");
+        extensions.maintenance1 = true;
+    }
+    if (supported_extensions.contains("VK_KHR_maintenance2")) {
+        loaded_extensions.insert("VK_KHR_maintenance2");
+        extensions.maintenance2 = true;
+    }
+    if (supported_extensions.contains("VK_KHR_maintenance3")) {
+        loaded_extensions.insert("VK_KHR_maintenance3");
+        extensions.maintenance3 = true;
+    }
+    if (supported_extensions.contains("VK_KHR_maintenance4")) {
+        loaded_extensions.insert("VK_KHR_maintenance4");
+        extensions.maintenance4 = true;
+    }
+
 #undef FEATURE_EXTENSION
 #undef EXTENSION
 

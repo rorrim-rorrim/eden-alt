@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <optional>
 #include <span>
 
 #include "common/common_funcs.h"
@@ -50,6 +51,8 @@ public:
     std::string_view GetCurrentCodecName() const override {
         return "VP8";
     }
+
+    [[nodiscard]] std::optional<std::pair<int, int>> CurrentFrameDimensions() const override;
 
 private:
     Common::ScratchBuffer<u8> frame_scratch;

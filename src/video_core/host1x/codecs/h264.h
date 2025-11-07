@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <optional>
 #include <span>
 #include <vector>
 
@@ -261,6 +262,8 @@ public:
     std::string_view GetCurrentCodecName() const override {
         return "H264";
     }
+
+    [[nodiscard]] std::optional<std::pair<int, int>> CurrentFrameDimensions() const override;
 
 private:
     bool is_first_frame{true};

@@ -25,6 +25,11 @@ void Decoder::Decode() {
     }
 
     const auto packet_data = ComposeFrame();
+#ifdef __ANDROID__
+    if (const auto frame_dims = CurrentFrameDimensions()) {
+        decode_api.EnsureMediaCodecDecoder(frame_dims->first, frame_dims->second);
+    }
+#endif
     // Send assembled bitstream to decoder.
     if (!decode_api.SendPacket(packet_data)) {
         return;

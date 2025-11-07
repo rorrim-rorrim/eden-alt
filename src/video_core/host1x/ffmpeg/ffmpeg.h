@@ -216,10 +216,20 @@ public:
     bool SendPacket(std::span<const u8> packet_data);
     std::shared_ptr<Frame> ReceiveFrame();
 
+#ifdef __ANDROID__
+    void EnsureMediaCodecDecoder(int width, int height);
+#endif
+
 private:
     std::optional<FFmpeg::Decoder> m_decoder;
     std::optional<FFmpeg::DecoderContext> m_decoder_context;
     std::optional<FFmpeg::HardwareContext> m_hardware_context;
+#ifdef __ANDROID__
+    int m_mediacodec_decoder_id = 0;
+    const char* m_mediacodec_mime = nullptr;
+    int m_mediacodec_width = 0;
+    int m_mediacodec_height = 0;
+#endif
 };
 
 } // namespace FFmpeg

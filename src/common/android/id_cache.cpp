@@ -524,6 +524,13 @@ namespace Common::Android {
         s_patch_title_id_field = env->GetFieldID(patch_class, "titleId", "Ljava/lang/String;");
         env->DeleteLocalRef(patch_class);
 
+    // Prefer hardware decoding on Android by default, forcing this setting will
+    // make the native side attempt GPU decoding first. If the platform lacks a usable
+    // FFmpeg HW device, FFmpeg will fall back to CPU automatically.
+    Settings::values.nvdec_emulation.SetValue(Settings::NvdecEmulation::Gpu);
+    LOG_INFO(HW_GPU, "Android JNI_OnLoad: forced nvdec_emulation = GPU");
+
+
         const jclass double_class = env->FindClass("java/lang/Double");
         s_double_class = reinterpret_cast<jclass>(env->NewGlobalRef(double_class));
         s_double_constructor = env->GetMethodID(double_class, "<init>", "(D)V");

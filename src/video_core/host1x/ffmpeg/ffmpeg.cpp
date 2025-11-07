@@ -4,12 +4,18 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
+#include <cstring>
+
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
 #include "core/memory.h"
 #include "video_core/host1x/ffmpeg/ffmpeg.h"
+#ifdef __ANDROID__
+#include "video_core/host1x/ffmpeg/mediacodec_bridge.h"
+#endif
 #include "video_core/memory_manager.h"
 
 extern "C" {
@@ -270,6 +276,15 @@ std::shared_ptr<Frame> DecoderContext::ReceiveFrame() {
 }
 
 void DecodeApi::Reset() {
+#ifdef __ANDROID__
+	if (m_mediacodec_decoder_id != 0) {
+		FFmpeg::MediaCodecBridge::DestroyDecoder(m_mediacodec_decoder_id);
+		m_mediacodec_decoder_id = 0;
+	}
+	m_mediacodec_mime = nullptr;
+	m_mediacodec_width = 0;
+	m_mediacodec_height = 0;
+#endif
 	m_hardware_context.reset();
 	m_decoder_context.reset();
 	m_decoder.reset();
@@ -282,8 +297,34 @@ bool DecodeApi::Initialize(Tegra::Host1x::NvdecCommon::VideoCodec codec) {
 
 	// Enable GPU decoding if requested.
 	if (Settings::values.nvdec_emulation.GetValue() == Settings::NvdecEmulation::Gpu) {
+#ifdef __ANDROID__
+		if (FFmpeg::MediaCodecBridge::IsAvailable()) {
+			// Register mime type for deferred MediaCodec creation.
+			switch (codec) {
+			case Tegra::Host1x::NvdecCommon::VideoCodec::H264:
+				m_mediacodec_mime = "video/avc";
+				break;
+			case Tegra::Host1x::NvdecCommon::VideoCodec::VP8:
+				m_mediacodec_mime = "video/x-vnd.on2.vp8";
+				break;
+			case Tegra::Host1x::NvdecCommon::VideoCodec::VP9:
+				m_mediacodec_mime = "video/x-vnd.on2.vp9";
+				break;
+			default:
+				m_mediacodec_mime = nullptr;
+				break;
+			}
+		}
+#endif
+	#ifdef __ANDROID__
+		if (m_mediacodec_mime == nullptr) {
+			m_hardware_context.emplace();
+			m_hardware_context->InitializeForDecoder(*m_decoder_context, *m_decoder);
+		}
+	#else
 		m_hardware_context.emplace();
 		m_hardware_context->InitializeForDecoder(*m_decoder_context, *m_decoder);
+#endif
 	}
 
 	// Open the decoder context.
@@ -295,12 +336,103 @@ bool DecodeApi::Initialize(Tegra::Host1x::NvdecCommon::VideoCodec codec) {
 	return true;
 }
 
+#ifdef __ANDROID__
+void DecodeApi::EnsureMediaCodecDecoder(int width, int height) {
+	if (!m_mediacodec_mime || width <= 0 || height <= 0) {
+		return;
+	}
+	if (!FFmpeg::MediaCodecBridge::IsAvailable()) {
+		return;
+	}
+	if (m_mediacodec_decoder_id > 0 && width == m_mediacodec_width && height == m_mediacodec_height) {
+		return;
+	}
+	if (m_mediacodec_decoder_id != 0) {
+		FFmpeg::MediaCodecBridge::DestroyDecoder(m_mediacodec_decoder_id);
+		m_mediacodec_decoder_id = 0;
+		m_mediacodec_width = 0;
+		m_mediacodec_height = 0;
+	}
+	const int id = FFmpeg::MediaCodecBridge::CreateDecoder(m_mediacodec_mime, width, height);
+	if (id > 0) {
+		m_mediacodec_decoder_id = id;
+		m_mediacodec_width = width;
+		m_mediacodec_height = height;
+		LOG_INFO(HW_GPU, "MediaCodec bridge created decoder id={} ({}x{})", id, width, height);
+	} else {
+		LOG_DEBUG(HW_GPU, "MediaCodec bridge failed to create decoder for {} ({}x{})", m_mediacodec_mime,
+		          width, height);
+		m_mediacodec_mime = nullptr;
+		m_mediacodec_width = 0;
+		m_mediacodec_height = 0;
+	}
+}
+#endif
+
 bool DecodeApi::SendPacket(std::span<const u8> packet_data) {
+#ifdef __ANDROID__
+	if (m_mediacodec_decoder_id > 0) {
+		if (FFmpeg::MediaCodecBridge::SendPacket(m_mediacodec_decoder_id, packet_data.data(), packet_data.size(), 0)) {
+			return true;
+		}
+		LOG_DEBUG(HW_GPU, "MediaCodec bridge failed to queue packet, falling back to FFmpeg");
+	}
+#endif
 	FFmpeg::Packet packet(packet_data);
 	return m_decoder_context->SendPacket(packet);
 }
 
 std::shared_ptr<Frame> DecodeApi::ReceiveFrame() {
+#ifdef __ANDROID__
+	if (m_mediacodec_decoder_id > 0) {
+		int width = 0;
+		int height = 0;
+		int64_t pts = 0;
+		if (auto frame_data = FFmpeg::MediaCodecBridge::PopDecodedFrame(m_mediacodec_decoder_id, width, height, pts)) {
+			if (width > 0 && height > 0 && !frame_data->empty()) {
+				auto frame = std::make_shared<Frame>();
+				AVFrame* av_frame = frame->GetFrame();
+				av_frame->format = AV_PIX_FMT_NV12;
+				av_frame->width = width;
+				av_frame->height = height;
+				av_frame->pts = pts;
+				if (const int ret = av_frame_get_buffer(av_frame, 32); ret < 0) {
+					LOG_ERROR(HW_GPU, "av_frame_get_buffer failed: {}", AVError(ret));
+				} else {
+					const size_t y_stride = static_cast<size_t>(width);
+					const size_t y_plane_size = y_stride * static_cast<size_t>(height);
+					if (frame_data->size() < y_plane_size) {
+						LOG_WARNING(HW_GPU, "MediaCodec frame too small: {} < {}", frame_data->size(), y_plane_size);
+					} else {
+						const u8* src_y = frame_data->data();
+						u8* dst_y = av_frame->data[0];
+						for (int row = 0; row < height; ++row) {
+							std::memcpy(dst_y + static_cast<size_t>(row) * av_frame->linesize[0],
+								src_y + static_cast<size_t>(row) * y_stride, y_stride);
+						}
+						const int chroma_height = (height + 1) / 2;
+						const size_t chroma_plane_size = frame_data->size() - y_plane_size;
+						const size_t chroma_stride = chroma_height > 0
+							                            ? chroma_plane_size / static_cast<size_t>(chroma_height)
+							                            : 0;
+						if (chroma_height > 0 && chroma_stride * static_cast<size_t>(chroma_height) != chroma_plane_size) {
+							LOG_WARNING(HW_GPU, "MediaCodec chroma plane misaligned: stride {} * height {} != {}",
+							           chroma_stride, chroma_height, chroma_plane_size);
+						}
+						const u8* src_uv = frame_data->data() + y_plane_size;
+						u8* dst_uv = av_frame->data[1];
+						const size_t copy_stride = std::min(chroma_stride, static_cast<size_t>(av_frame->linesize[1]));
+						for (int row = 0; row < chroma_height; ++row) {
+							std::memcpy(dst_uv + static_cast<size_t>(row) * av_frame->linesize[1],
+								src_uv + static_cast<size_t>(row) * chroma_stride, copy_stride);
+						}
+						return frame;
+					}
+				}
+			}
+		}
+	}
+#endif
 	// Receive raw frame from decoder.
 	return m_decoder_context->ReceiveFrame();
 }
