@@ -51,14 +51,16 @@ u64 ClearDir(DataDir dir, const std::string &user_id)
 
 const std::string ReadableBytesSize(u64 size)
 {
-    static constexpr std::array units{"B", "KiB", "MiB", "GiB", "TiB", "PiB"};
+    static constexpr u64 base = 1000;
+    static constexpr std::array<std::string, 6> units{"B", "KB", "MB", "GB", "TB", "PB"};
+
     if (size == 0) {
         return "0 B";
     }
 
-    const int digit_groups = (std::min) (static_cast<int>(std::log10(size) / std::log10(1024)),
-                                         static_cast<int>(units.size()));
-    return fmt::format("{:.1f} {}", size / std::pow(1024, digit_groups), units[digit_groups]);
+    auto const digit_groups = std::min<u64>(static_cast<u64>(std::log10(size) / std::log10(base)),
+                                         static_cast<u64>(units.size()));
+    return fmt::format("{:.1f} {}", size / std::pow(base, digit_groups), units[digit_groups]);
 }
 
 u64 DataDirSize(DataDir dir)

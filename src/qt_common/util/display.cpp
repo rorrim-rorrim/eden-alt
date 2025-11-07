@@ -4,7 +4,6 @@
 // SPDX-FileCopyrightText: 2015 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <array>
 #include <cmath>
 #include <QPainter>
 
@@ -29,13 +28,7 @@ QFont GetMonospaceFont() {
 }
 
 QString ReadableByteSize(qulonglong size) {
-    static constexpr std::array units{"B", "KB", "MB", "GB", "TB", "PB"};
-    if (size == 0)
-        return {};
-    auto const digit_groups = std::min<qulonglong>(std::log10(size) / std::log10(1000), units.size());
-    return QStringLiteral("%L1 %2")
-        .arg(size / std::pow(1000, digit_groups), 0, 'f', 1)
-        .arg(QString::fromUtf8(units[digit_groups]));
+    return QString::fromStdString(FrontendCommon::DataManager::ReadableBytesSize(size));
 }
 
 QPixmap CreateCirclePixmapFromColor(const QColor& color) {
