@@ -342,7 +342,7 @@ void Scheduler::EndRenderPass()
             );
         });
 
-        state.renderpass = nullptr;
+        state.renderpass = VkRenderPass{};
         num_renderpass_images = 0;
     }
 
