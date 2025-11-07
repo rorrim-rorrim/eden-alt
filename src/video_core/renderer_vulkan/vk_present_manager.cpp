@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/settings.h"
+#include "common/logging/log.h"
 #include "common/thread.h"
 #include "core/frontend/emu_window.h"
 #include "video_core/renderer_vulkan/vk_present_manager.h"
@@ -13,6 +14,10 @@
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_surface.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+#ifdef __ANDROID__
+#include "video_core/vulkan_common/ahardwarebuffer_vulkan.h"
+#include "video_core/host1x/ffmpeg/mediacodec_bridge.h"
+#endif
 
 namespace Vulkan {
 
@@ -169,6 +174,23 @@ Frame* PresentManager::GetRenderFrame() {
     // Wait for the presentation to be finished so all frame resources are free
     frame->present_done.Wait();
     frame->present_done.Reset();
+
+#ifdef ANDROID
+    // Free any imported AHardwareBuffer-backed resources from the previous submission.
+    VkDevice vkdev = static_cast<VkDevice>(*device.GetLogical());
+    for (VkImage img : frame->imported_images) {
+        vkDestroyImage(vkdev, img, nullptr);
+    }
+    for (VkDeviceMemory mem : frame->imported_mem) {
+        vkFreeMemory(vkdev, mem, nullptr);
+    }
+    for (AHardwareBuffer* ahb : frame->imported_ahb) {
+        AHardwareBuffer_release(ahb);
+    }
+    frame->imported_images.clear();
+    frame->imported_mem.clear();
+    frame->imported_ahb.clear();
+#endif
 
     return frame;
 }
@@ -366,6 +388,12 @@ void PresentManager::CopyToSwapchainImpl(Frame* frame) {
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
         .pInheritanceInfo = nullptr,
     });
+    // If Android MediaCodec produced an AHardwareBuffer-backed frame, import and blit it directly to
+    // the swapchain image. This implements a prototype zero-copy path: the mediacodec bridge enqueues
+    // AHardwareBuffer handles which are then imported here and copied into the swapchain image.
+    // We'll attempt to consume an AHardwareBuffer-backed frame after the swapchain image
+    // has been transitioned to TRANSFER_DST_OPTIMAL (below). This ensures correct ordering
+    // and avoids doing copies before layout transitions.
 
     const VkImage image{swapchain.CurrentImage()};
     const VkExtent2D extent = swapchain.GetExtent();
@@ -449,15 +477,78 @@ void PresentManager::CopyToSwapchainImpl(Frame* frame) {
     cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, {},
                            {}, {}, pre_barriers);
 
-    if (blit_supported) {
-        cmdbuf.BlitImage(*frame->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, image,
-                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                         MakeImageBlit(frame->width, frame->height, extent.width, extent.height),
-                         VK_FILTER_LINEAR);
-    } else {
-        cmdbuf.CopyImage(*frame->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, image,
-                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                         MakeImageCopy(frame->width, frame->height, extent.width, extent.height));
+#ifdef __ANDROID__
+    // Try to pop a hardware buffer produced by MediaCodec. If available and extension enabled,
+    // import it and copy it into the swapchain image. Imported resources are tracked on the frame
+    // for cleanup after presentation.
+    AHardwareBuffer* ahb = nullptr;
+    int ahb_w = 0, ahb_h = 0;
+    int64_t ahb_pts = 0;
+    bool used_imported = false;
+    const bool ahb_ext_supported = device.IsAndroidHardwareBufferExternalMemorySupported();
+    if (!ahb_ext_supported) {
+        // Drain and release any queued buffers to avoid leaks if producer is still enqueuing.
+        int drained = 0;
+        while (FFmpeg::MediaCodecBridge::TryPopHardwareBufferForPresent(&ahb, ahb_w, ahb_h, ahb_pts)) {
+            AHardwareBuffer_release(ahb);
+            ++drained;
+        }
+        if (drained > 0) {
+            LOG_INFO(Render_Vulkan, "Released {} queued AHardwareBuffer(s) (extension unsupported)", drained);
+        }
+    } else if (FFmpeg::MediaCodecBridge::TryPopHardwareBufferForPresent(&ahb, ahb_w, ahb_h, ahb_pts)) {
+        VkDevice vkdev = static_cast<VkDevice>(*device.GetLogical());
+        VkPhysicalDevice vkphysical = static_cast<VkPhysicalDevice>(*device.GetPhysical());
+        VkImage imported_image = VK_NULL_HANDLE;
+        VkDeviceMemory imported_mem = VK_NULL_HANDLE;
+        VkFormat imported_fmt = VK_FORMAT_UNDEFINED;
+        if (::ImportAHardwareBufferToVk(device.GetDispatchLoader(), vkdev, vkphysical, ahb, &imported_image, &imported_mem, &imported_fmt)) {
+            // Track imported resources on the frame so they can be freed after present
+            frame->imported_images.push_back(imported_image);
+            frame->imported_mem.push_back(imported_mem);
+            frame->imported_ahb.push_back(ahb);
+            LOG_INFO(Render_Vulkan, "Imported AHardwareBuffer {}x{} fmt={} pts={} into Vulkan image", ahb_w, ahb_h, imported_fmt, (long long)ahb_pts);
+
+            // Transition imported image to TRANSFER_SRC_OPTIMAL
+            VkImageMemoryBarrier barrier_src{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                                            .pNext = nullptr,
+                                            .srcAccessMask = 0,
+                                            .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+                                            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                                            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                                            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                                            .image = imported_image,
+                                            .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1}};
+
+            const std::array<VkImageMemoryBarrier, 1> src_barriers{barrier_src};
+            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, {}, {}, {}, src_barriers);
+
+            // Copy imported image -> swapchain image
+            VkImageCopy copy_region = MakeImageCopy(static_cast<u32>(ahb_w), static_cast<u32>(ahb_h), extent.width, extent.height);
+            cmdbuf.CopyImage(imported_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy_region);
+            used_imported = true;
+        } else {
+            LOG_WARNING(Render_Vulkan, "AHardwareBuffer import failed; releasing buffer ({}x{} pts={})", ahb_w, ahb_h, (long long)ahb_pts);
+            AHardwareBuffer_release(ahb);
+        }
+    }
+#endif
+
+    if (!used_imported) {
+        if (blit_supported) {
+            cmdbuf.BlitImage(*frame->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, image,
+                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                             MakeImageBlit(frame->width, frame->height, extent.width, extent.height),
+                             VK_FILTER_LINEAR);
+        } else {
+            cmdbuf.CopyImage(*frame->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, image,
+                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                             MakeImageCopy(frame->width, frame->height, extent.width, extent.height));
+        }
+        if (ahb_ext_supported) {
+            LOG_DEBUG(Render_Vulkan, "No AHardwareBuffer available; used standard frame copy");
+        }
     }
 
     cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, {},

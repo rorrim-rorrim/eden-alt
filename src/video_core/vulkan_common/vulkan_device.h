@@ -91,6 +91,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(EXT, DESCRIPTOR_INDEXING, descriptor_indexing)                                       \
     EXTENSION(EXT, FILTER_CUBIC, filter_cubic)                                                     \
     EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)                                    \
+    EXTENSION(ANDROID, EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER, external_memory_android_hardware_buffer) \
     EXTENSION(KHR, MAINTENANCE_1, maintenance1)                                        \
     EXTENSION(KHR, MAINTENANCE_2, maintenance2)                                           \
     EXTENSION(KHR, MAINTENANCE_3, maintenance3)                                           \
@@ -512,6 +513,11 @@ public:
     /// Returns true if the device supports VK_KHR_image_format_list.
     bool IsKhrImageFormatListSupported() const {
         return extensions.image_format_list || instance_version >= VK_API_VERSION_1_2;
+    }
+
+    /// Returns true if VK_ANDROID_external_memory_android_hardware_buffer is enabled.
+    bool IsAndroidHardwareBufferExternalMemorySupported() const {
+        return extensions.external_memory_android_hardware_buffer;
     }
 
     /// Returns true if the device supports VK_EXT_primitive_topology_list_restart.

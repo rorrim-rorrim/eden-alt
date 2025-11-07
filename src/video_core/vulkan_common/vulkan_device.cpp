@@ -1110,6 +1110,23 @@ bool Device::GetSuitability(bool requires_swapchain) {
         CHECK_EXTENSION(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
 
+#ifdef ANDROID
+    // Prefer enabling VK_ANDROID_external_memory_android_hardware_buffer when available so
+    // MediaCodec AHardwareBuffer frames can be imported with zero-copy.
+    if (supported_extensions.contains(VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME)) {
+        if (!loaded_extensions.contains(VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME)) {
+            loaded_extensions.insert(VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME);
+            extensions.external_memory_android_hardware_buffer = true;
+            LOG_INFO(Render_Vulkan, "Enabled VK_ANDROID_external_memory_android_hardware_buffer for AHardwareBuffer import path");
+        }
+        else {
+            LOG_INFO(Render_Vulkan, "VK_ANDROID_external_memory_android_hardware_buffer already enabled");
+        }
+    } else {
+        LOG_INFO(Render_Vulkan, "Device does not advertise VK_ANDROID_external_memory_android_hardware_buffer; falling back to CPU decode copy path");
+    }
+#endif
+
 #undef LOG_EXTENSION
 #undef CHECK_EXTENSION
 

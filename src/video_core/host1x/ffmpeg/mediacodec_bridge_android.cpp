@@ -15,6 +15,9 @@
 #include <cstdint>
 #include "common/android/id_cache.h"
 #include "common/logging/log.h"
+#include <android/hardware_buffer_jni.h>
+#include <deque>
+#include <queue>
 
 namespace FFmpeg::MediaCodecBridge {
 
@@ -31,10 +34,44 @@ struct DecoderState {
     int height = 0;
     int64_t pts = 0;
     bool has_frame = false;
+    // Queue of AHardwareBuffer pointers for zero-copy path.
+    std::deque<AHardwareBuffer*> hw_queue;
+    std::deque<int64_t> hw_pts_queue;
 };
 
 static std::mutex s_global_mtx;
 static std::map<int, std::shared_ptr<DecoderState>> s_decoders;
+
+#ifdef __ANDROID__
+// Global queue for AHardwareBuffer presentation (producer: mediacodec, consumer: PresentManager)
+static std::mutex s_present_queue_mtx;
+static std::deque<AHardwareBuffer*> s_present_queue_ahb;
+static std::deque<int> s_present_queue_w;
+static std::deque<int> s_present_queue_h;
+static std::deque<int64_t> s_present_queue_pts;
+
+void EnqueueHardwareBufferForPresent(AHardwareBuffer* ahb, int width, int height, int64_t pts) {
+    std::lock_guard lock(s_present_queue_mtx);
+    s_present_queue_ahb.push_back(ahb);
+    s_present_queue_w.push_back(width);
+    s_present_queue_h.push_back(height);
+    s_present_queue_pts.push_back(pts);
+}
+
+bool TryPopHardwareBufferForPresent(AHardwareBuffer** out_ahb, int& out_width, int& out_height, int64_t& out_pts) {
+    std::lock_guard lock(s_present_queue_mtx);
+    if (s_present_queue_ahb.empty()) return false;
+    *out_ahb = s_present_queue_ahb.front();
+    out_width = s_present_queue_w.front();
+    out_height = s_present_queue_h.front();
+    out_pts = s_present_queue_pts.front();
+    s_present_queue_ahb.pop_front();
+    s_present_queue_w.pop_front();
+    s_present_queue_h.pop_front();
+    s_present_queue_pts.pop_front();
+    return true;
+}
+#endif
 
 extern "C" JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_media_NativeMediaCodec_onFrameDecoded(
     JNIEnv* env, jclass, jint decoderId, jbyteArray data, jint width, jint height, jlong pts) {
@@ -49,6 +86,32 @@ extern "C" JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_media_NativeMediaCodec
     st->height = height;
     st->pts = pts;
     st->has_frame = true;
+}
+
+extern "C" JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_media_NativeMediaCodec_onHardwareBufferAvailable(
+    JNIEnv* env, jclass, jint decoderId, jobject hardwareBuffer, jlong pts) {
+    if (hardwareBuffer == nullptr) return;
+    std::lock_guard lock(s_global_mtx);
+    auto it = s_decoders.find(decoderId);
+    if (it == s_decoders.end()) return;
+    auto& st = it->second;
+
+    // Convert Java HardwareBuffer to AHardwareBuffer*
+    AHardwareBuffer* ahb = AHardwareBuffer_fromHardwareBuffer(env, hardwareBuffer);
+    if (!ahb) return;
+    // Acquire to extend lifetime
+    AHardwareBuffer_acquire(ahb);
+
+    // Optionally get description to set width/height for caller convenience
+    AHardwareBuffer_Desc desc;
+    AHardwareBuffer_describe(ahb, &desc);
+
+    st->hw_queue.push_back(ahb);
+    st->hw_pts_queue.push_back(static_cast<int64_t>(pts));
+    LOG_DEBUG(Render_Vulkan, "Enqueued AHardwareBuffer for decoder {} size={}x{} pts={}", decoderId, desc.width, desc.height, (long long)pts);
+    st->has_frame = true;
+    // Also enqueue for presentation (global present queue). PresentManager will consume these.
+    EnqueueHardwareBufferForPresent(ahb, static_cast<int>(desc.width), static_cast<int>(desc.height), static_cast<int64_t>(pts));
 }
 
 bool IsAvailable() {
@@ -115,5 +178,25 @@ std::optional<std::vector<uint8_t>> PopDecodedFrame(int id, int& width, int& hei
 }
 
 } // namespace FFmpeg::MediaCodecBridge
+
+#ifdef __ANDROID__
+std::optional<AHardwareBuffer*> FFmpeg::MediaCodecBridge::PopDecodedHardwareBuffer(int id, int& width, int& height, int64_t& pts) {
+    std::lock_guard lock(s_global_mtx);
+    auto it = s_decoders.find(id);
+    if (it == s_decoders.end()) return std::nullopt;
+    auto& st = it->second;
+    if (st->hw_queue.empty()) return std::nullopt;
+    AHardwareBuffer* ahb = st->hw_queue.front();
+    st->hw_queue.pop_front();
+    pts = st->hw_pts_queue.front();
+    st->hw_pts_queue.pop_front();
+    // Fill width/height from the buffer description
+    AHardwareBuffer_Desc desc;
+    AHardwareBuffer_describe(ahb, &desc);
+    width = static_cast<int>(desc.width);
+    height = static_cast<int>(desc.height);
+    return std::optional<AHardwareBuffer*>{ahb};
+}
+#endif
 
 #endif // __ANDROID__

@@ -7,6 +7,10 @@
 #include <vector>
 #include <cstdint>
 
+#ifdef __ANDROID__
+#include <android/hardware_buffer.h>
+#endif
+
 namespace FFmpeg::MediaCodecBridge {
 
 bool IsAvailable();
@@ -21,5 +25,19 @@ bool SendPacket(int id, const uint8_t* data, size_t size, int64_t pts);
 
 // Pop a decoded NV12 frame. Returns std::nullopt if none available. On success, fills width,height,pts
 std::optional<std::vector<uint8_t>> PopDecodedFrame(int id, int& width, int& height, int64_t& pts);
+
+#ifdef __ANDROID__
+// Pop a decoded AHardwareBuffer (zero-copy path). Returns std::nullopt if none available.
+std::optional<AHardwareBuffer*> PopDecodedHardwareBuffer(int id, int& width, int& height, int64_t& pts);
+#endif
+
+#ifdef __ANDROID__
+// Enqueue an AHardwareBuffer for presentation; PresentManager will consume these.
+void EnqueueHardwareBufferForPresent(AHardwareBuffer* ahb, int width, int height, int64_t pts);
+
+// Try to pop an AHardwareBuffer for presentation. Returns true if a buffer was popped.
+bool TryPopHardwareBufferForPresent(AHardwareBuffer** out_ahb, int& out_width, int& out_height, int64_t& out_pts);
+#endif
+} // namespace FFmpeg::MediaCodecBridge
 
 } // namespace FFmpeg::MediaCodecBridge

@@ -333,6 +333,7 @@ target_link_options(video_core PRIVATE ${FFmpeg_LDFLAGS})
 
 if(ANDROID)
     target_sources(video_core PRIVATE host1x/ffmpeg/mediacodec_bridge_android.cpp)
+    target_sources(video_core PRIVATE vulkan_common/ahardwarebuffer_vulkan.cpp)
 endif()
 
 add_dependencies(video_core host_shaders)

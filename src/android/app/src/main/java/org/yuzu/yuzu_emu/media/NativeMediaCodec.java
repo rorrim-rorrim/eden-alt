@@ -4,6 +4,9 @@
 package org.yuzu.yuzu_emu.media;
 
 import android.media.Image;
+import android.media.ImageReader;
+import android.view.Surface;
+import android.hardware.HardwareBuffer;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
@@ -31,8 +34,32 @@ public class NativeMediaCodec {
             }
             final int id = nextId.getAndIncrement();
             decoders.put(id, codec);
-            // Request YUV_420_888 output (Image) if available
+            // Use ImageReader-backed Surface so the codec can produce AHardwareBuffer-backed images
+            ImageReader imageReader = null;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                imageReader = ImageReader.newInstance(width, height, android.graphics.ImageFormat.YUV_420_888, 4);
+                final ImageReader ir = imageReader;
+                ir.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
+                    @Override
+                    public void onImageAvailable(ImageReader reader) {
+                        Image image = null;
+                        try {
+                            image = reader.acquireLatestImage();
+                            if (image == null) return;
+                            long pts = image.getTimestamp();
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                HardwareBuffer hb = image.getHardwareBuffer();
+                                if (hb != null) {
+                                    onHardwareBufferAvailable(id, hb, pts);
+                                }
+                            }
+                        } catch (Throwable t) {
+                            Log.w(TAG, "onImageAvailable failed: " + t);
+                        } finally {
+                            if (image != null) image.close();
+                        }
+                    }
+                }, null);
                 codec.setCallback(new MediaCodec.Callback() {
                     private final int decoderId = id;
 
@@ -43,17 +70,14 @@ public class NativeMediaCodec {
 
                     @Override
                     public void onOutputBufferAvailable(MediaCodec mc, int index, MediaCodec.BufferInfo info) {
+                        // We configure the codec to output to the ImageReader surface; the ImageReader listener
+                        // will handle delivering AHardwareBuffer-backed images to native code. Still release the
+                        // output buffer if requested by codec (some codecs may not use getOutputImage when a
+                        // Surface is provided).
                         try {
-                            Image image = mc.getOutputImage(index);
-                            if (image != null) {
-                                byte[] data = ImageToNV12(image);
-                                onFrameDecoded(decoderId, data, image.getWidth(), image.getHeight(), info.presentationTimeUs);
-                                image.close();
-                            }
-                        } catch (Throwable t) {
-                            Log.w(TAG, "onOutputBufferAvailable failed: " + t);
-                        } finally {
                             try { mc.releaseOutputBuffer(index, false); } catch (Throwable ignored) {}
+                        } catch (Throwable t) {
+                            Log.w(TAG, "onOutputBufferAvailable release failed: " + t);
                         }
                     }
 
@@ -69,7 +93,13 @@ public class NativeMediaCodec {
                 });
             }
 
-            codec.configure(format, null, null, 0);
+            // Configure codec to output to the ImageReader surface when possible to enable GPU-backed buffers.
+            if (imageReader != null) {
+                Surface surf = imageReader.getSurface();
+                codec.configure(format, surf, null, 0);
+            } else {
+                codec.configure(format, null, null, 0);
+            }
             codec.start();
             return id;
         } catch (Exception e) {
@@ -77,6 +107,9 @@ public class NativeMediaCodec {
             return 0;
         }
     }
+
+    // Called from Java when an AHardwareBuffer-backed image is available (API26+).
+    private static native void onHardwareBufferAvailable(int decoderId, Object hardwareBuffer, long pts);
 
     private static byte[] ImageToNV12(Image image) {
         // Convert YUV_420_888 to NV12 (Y plane, interleaved UV)

@@ -6,11 +6,15 @@
 #include <condition_variable>
 #include <mutex>
 #include <queue>
+#include <vector>
 
 #include "common/common_types.h"
 #include "common/polyfill_thread.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+#ifdef ANDROID
+#include <android/hardware_buffer.h>
+#endif
 
 struct VkSurfaceKHR_T;
 
@@ -33,6 +37,12 @@ struct Frame {
     vk::CommandBuffer cmdbuf;
     vk::Semaphore render_ready;
     vk::Fence present_done;
+#ifdef ANDROID
+    // Imported resources for a submitted frame that must be freed after present is done.
+    std::vector<VkImage> imported_images;
+    std::vector<VkDeviceMemory> imported_mem;
+    std::vector<AHardwareBuffer*> imported_ahb;
+#endif
 };
 
 class PresentManager {

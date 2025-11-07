@@ -223,6 +223,9 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkGetPipelineExecutablePropertiesKHR);
     X(vkGetPipelineExecutableStatisticsKHR);
     X(vkGetSemaphoreCounterValue);
+    // Android AHardwareBuffer external memory extension (present on Android when enabled)
+    X(vkGetAndroidHardwareBufferPropertiesANDROID);
+    X(vkGetMemoryAndroidHardwareBufferANDROID);
     X(vkMapMemory);
     X(vkQueueSubmit);
     X(vkResetFences);
