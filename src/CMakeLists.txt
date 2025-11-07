@@ -178,7 +178,7 @@ else()
 
     if (MINGW)
         add_compile_definitions(MINGW_HAS_SECURE_API)
-        # Only windows has this requirement, or does it?
+        # Only windows has this requirement, thanks windows
         if (WIN32)
             add_compile_options("-msse4.1")
         endif()
