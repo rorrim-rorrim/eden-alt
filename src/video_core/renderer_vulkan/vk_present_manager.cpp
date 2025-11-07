@@ -477,6 +477,9 @@ void PresentManager::CopyToSwapchainImpl(Frame* frame) {
     cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, {},
                            {}, {}, pre_barriers);
 
+    // Track whether we consumed an imported Android HardwareBuffer this frame
+    bool used_imported = false;
+
 #ifdef __ANDROID__
     // Try to pop a hardware buffer produced by MediaCodec. If available and extension enabled,
     // import it and copy it into the swapchain image. Imported resources are tracked on the frame
@@ -484,7 +487,6 @@ void PresentManager::CopyToSwapchainImpl(Frame* frame) {
     AHardwareBuffer* ahb = nullptr;
     int ahb_w = 0, ahb_h = 0;
     int64_t ahb_pts = 0;
-    bool used_imported = false;
     const bool ahb_ext_supported = device.IsAndroidHardwareBufferExternalMemorySupported();
     if (!ahb_ext_supported) {
         // Drain and release any queued buffers to avoid leaks if producer is still enqueuing.
@@ -546,9 +548,12 @@ void PresentManager::CopyToSwapchainImpl(Frame* frame) {
                              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                              MakeImageCopy(frame->width, frame->height, extent.width, extent.height));
         }
+        // Only log AHB fallback info on Android builds
+        #ifdef __ANDROID__
         if (ahb_ext_supported) {
             LOG_DEBUG(Render_Vulkan, "No AHardwareBuffer available; used standard frame copy");
         }
+        #endif
     }
 
     cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, {},
