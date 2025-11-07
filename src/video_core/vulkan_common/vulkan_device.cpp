@@ -703,17 +703,15 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         CheckBrokenCompute(properties.driver.driverID, properties.properties.driverVersion) &&
         !Settings::values.enable_compute_pipelines.GetValue();
 
-    // Qualcomm driver version where VK_KHR_maintenance5 and A1B5G5R5 become reliable
-    // Check if VK_KHR_maintenance5 is supported
-    constexpr uint32_t QUALCOMM_FIXED_DRIVER_VERSION = VK_MAKE_VERSION(512, 800, 1);
-    bool has_maintenance5 = HasExtension(VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
     must_emulate_bgr565 = false; // Default: assume emulation required
-
     if (is_intel_anv) {
         LOG_WARNING(Render_Vulkan, "Intel ANV driver does not support native BGR format");
         must_emulate_bgr565 = true;
     } else if (is_qualcomm) {
-        if (has_maintenance5 && properties.properties.driverVersion >= QUALCOMM_FIXED_DRIVER_VERSION) {
+        // Qualcomm driver version where VK_KHR_maintenance5 and A1B5G5R5 become reliable
+        constexpr uint32_t QUALCOMM_FIXED_DRIVER_VERSION = VK_MAKE_VERSION(512, 800, 1);
+        // Check if VK_KHR_maintenance5 is supported
+        if (extensions.maintenance5 && properties.properties.driverVersion >= QUALCOMM_FIXED_DRIVER_VERSION) {
             LOG_INFO(Render_Vulkan, "Qualcomm driver supports VK_KHR_maintenance5, disabling BGR emulation");
             must_emulate_bgr565 = false;
         } else {
