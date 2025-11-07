@@ -18,6 +18,10 @@
 #include "common/common_types.h"
 #include "video_core/vulkan_common/vulkan.h"
 
+#ifdef __ANDROID__
+#include <vulkan/vk_android_external_memory_android_hardware_buffer.h>
+#endif
+
 #ifdef _MSC_VER
 #pragma warning(disable : 26812) // Disable prefer enum class over enum
 #endif
@@ -324,8 +328,10 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkGetQueryPoolResults vkGetQueryPoolResults{};
     PFN_vkGetSemaphoreCounterValue vkGetSemaphoreCounterValue{};
     // Android hardware buffer external memory extension functions
+#ifdef __ANDROID__
     PFN_vkGetAndroidHardwareBufferPropertiesANDROID vkGetAndroidHardwareBufferPropertiesANDROID{};
     PFN_vkGetMemoryAndroidHardwareBufferANDROID vkGetMemoryAndroidHardwareBufferANDROID{};
+#endif
     PFN_vkMapMemory vkMapMemory{};
     PFN_vkQueueSubmit vkQueueSubmit{};
     PFN_vkResetFences vkResetFences{};

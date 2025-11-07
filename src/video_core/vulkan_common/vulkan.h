@@ -21,6 +21,11 @@
 #endif
 
 #include <vulkan/vulkan.h>
+// Ensure extension name macro exists even with older SDKs
+#ifndef VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME
+#define VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME \
+	"VK_ANDROID_external_memory_android_hardware_buffer"
+#endif
 
 
 #ifndef VK_KHR_MAINTENANCE_1_EXTENSION_NAME
