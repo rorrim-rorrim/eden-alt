@@ -516,6 +516,7 @@ void QtConfig::SaveUIGamelistValues() {
 
     while (iter.hasNext()) {
         iter.next();
+
         SetArrayIndex(i);
         WriteIntegerSetting("program_id", iter.key());
         WriteStringSetting("ryujinx_path", iter.value().absolutePath().toStdString());

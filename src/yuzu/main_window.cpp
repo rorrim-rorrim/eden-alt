@@ -2914,6 +2914,8 @@ void MainWindow::OnLinkToRyujinx(const u64& program_id)
     } else {
         UISettings::values.ryujinx_link_paths.remove(program_id);
     }
+
+    config->SaveAllValues();
 }
 
 void MainWindow::OnMenuLoadFile() {
