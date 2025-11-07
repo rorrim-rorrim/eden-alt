@@ -73,4 +73,13 @@ std::span<const u8> VP8::ComposeFrame() {
     return frame_scratch;
 }
 
+std::optional<std::pair<int, int>> VP8::CurrentFrameDimensions() const {
+    const int width = static_cast<int>(current_context.frame_width);
+    const int height = static_cast<int>(current_context.frame_height);
+    if (width <= 0 || height <= 0) {
+        return std::nullopt;
+    }
+    return std::pair{width, height};
+}
+
 } // namespace Tegra::Decoders

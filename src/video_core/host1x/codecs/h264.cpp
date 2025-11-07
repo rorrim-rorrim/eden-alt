@@ -318,4 +318,20 @@ void H264BitWriter::Flush() {
     buffer = 0;
     buffer_pos = 0;
 }
+
+std::optional<std::pair<int, int>> H264::CurrentFrameDimensions() const {
+    const u32 width_mbs = current_context.h264_parameter_set.pic_width_in_mbs;
+    const u32 height_mbs = current_context.h264_parameter_set.frame_height_in_mbs;
+    if (width_mbs == 0 || height_mbs == 0) {
+        return std::nullopt;
+    }
+    const bool frame_mbs_only = current_context.h264_parameter_set.frame_mbs_only_flag != 0;
+    const u32 pic_height_mbs = height_mbs / (frame_mbs_only ? 1u : 2u);
+    const int width = static_cast<int>(width_mbs) * 16;
+    const int height = static_cast<int>(pic_height_mbs) * 16;
+    if (width <= 0 || height <= 0) {
+        return std::nullopt;
+    }
+    return std::pair{width, height};
+}
 } // namespace Tegra::Decoders

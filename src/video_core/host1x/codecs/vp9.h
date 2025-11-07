@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <optional>
 #include <span>
 #include <vector>
 
@@ -135,6 +136,8 @@ public:
     std::string_view GetCurrentCodecName() const override {
         return "VP9";
     }
+
+    [[nodiscard]] std::optional<std::pair<int, int>> CurrentFrameDimensions() const override;
 
 private:
     /// Returns true if the most recent frame was a hidden frame.

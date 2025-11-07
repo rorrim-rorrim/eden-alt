@@ -1090,26 +1090,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
         loaded_extensions.insert("VK_KHR_maintenance4");
         extensions.maintenance4 = true;
     }
-    if (supported_extensions.contains("VK_KHR_maintenance5")) {
-        loaded_extensions.insert("VK_KHR_maintenance5");
-        extensions.maintenance5 = true;
-    }
-    if (supported_extensions.contains("VK_KHR_maintenance6")) {
-        loaded_extensions.insert("VK_KHR_maintenance6");
-        extensions.maintenance6 = true;
-    }
-    if (supported_extensions.contains("VK_KHR_maintenance7")) {
-        loaded_extensions.insert("VK_KHR_maintenance7");
-        extensions.maintenance7 = true;
-    }
-    if (supported_extensions.contains("VK_KHR_maintenance8")) {
-        loaded_extensions.insert("VK_KHR_maintenance8");
-        extensions.maintenance8 = true;
-    }
-    if (supported_extensions.contains("VK_KHR_maintenance9")) {
-        loaded_extensions.insert("VK_KHR_maintenance9");
-        extensions.maintenance9 = true;
-    }
 
 #undef FEATURE_EXTENSION
 #undef EXTENSION

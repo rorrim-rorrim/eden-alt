@@ -6,6 +6,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <utility>
 #include <string_view>
 #include <unordered_map>
 #include <queue>
@@ -39,6 +40,11 @@ public:
 
     /// Return name of the current codec
     [[nodiscard]] virtual std::string_view GetCurrentCodecName() const = 0;
+
+    /// Returns the current frame dimensions if available
+    [[nodiscard]] virtual std::optional<std::pair<int, int>> CurrentFrameDimensions() const {
+        return std::nullopt;
+    }
 
 protected:
     explicit Decoder(Host1x::Host1x& host1x, s32 id,

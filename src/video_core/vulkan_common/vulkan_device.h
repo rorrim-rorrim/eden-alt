@@ -854,6 +854,12 @@ private:
     bool maintenance8{};
     bool maintenance9{};
 
+    // Maintenance extensions (may not be present in older Vulkan headers).
+    bool maintenance1{};
+    bool maintenance2{};
+    bool maintenance3{};
+    bool maintenance4{};
+
 #undef EXTENSION
 #undef FEATURE
     };

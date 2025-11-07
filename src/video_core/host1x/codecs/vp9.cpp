@@ -489,6 +489,15 @@ Vp9FrameContainer VP9::GetCurrentFrame() {
     return current_frame;
 }
 
+std::optional<std::pair<int, int>> VP9::CurrentFrameDimensions() const {
+    const int width = static_cast<int>(current_frame_info.frame_size.width);
+    const int height = static_cast<int>(current_frame_info.frame_size.height);
+    if (width <= 0 || height <= 0) {
+        return std::nullopt;
+    }
+    return std::pair{width, height};
+}
+
 std::vector<u8> VP9::ComposeCompressedHeader() {
     VpxRangeEncoder writer{};
     const bool update_probs = !current_frame_info.is_key_frame && current_frame_info.show_frame;
