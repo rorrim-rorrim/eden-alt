@@ -625,7 +625,15 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     // May cause glitches on RDNA2:
     // https://gitlab.freedesktop.org/mesa/mesa/-/issues/6577
     if (extensions.vertex_input_dynamic_state) {
-        // Always disable VIDS when dyna_state = 0 to prevent black screen (all drivers)
+        #if defined (_WIN32)
+        if (is_amd_driver) {
+            LOG_WARNING(Render_Vulkan,
+                        "Disabling Broken VK_EXT_vertex_input_dynamic_state due to Windows being Windows");
+            RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
+                                   features.vertex_input_dynamic_state,
+                                   VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+        #else
+        // Always disable VIDS when EDS=0 to prevent black screen (all drivers aside from windows)
         if (Settings::values.dyna_state.GetValue() == 0 && !force_extensions) {
             LOG_WARNING(Render_Vulkan,
                         "Disabling VK_EXT_vertex_input_dynamic_state due to black screen with EDS=0");
@@ -642,6 +650,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                             "RADV glitchy VK_EXT_vertex_input_dynamic_state may cause glitches on some driver versions");
             }
         }
+        #endif
     }
     if (extensions.extended_dynamic_state3 &&
         (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
