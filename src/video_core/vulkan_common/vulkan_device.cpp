@@ -416,7 +416,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_suitable = GetSuitability(surface != nullptr);
 
     const VkDriverId driver_id = properties.driver.driverID;
-    const auto device_id = properties.properties.deviceID;
     const bool is_radv = driver_id == VK_DRIVER_ID_MESA_RADV;
     const bool is_amd_driver =
         driver_id == VK_DRIVER_ID_AMD_PROPRIETARY || driver_id == VK_DRIVER_ID_AMD_OPEN_SOURCE;
@@ -427,7 +426,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_mvk = driver_id == VK_DRIVER_ID_MOLTENVK;
     const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
-    const bool is_s8gen2 = device_id == 0x43050a01;
     const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
 
     if ((is_mvk || is_qualcomm || is_turnip || is_arm) && !is_suitable) {
@@ -700,29 +698,30 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_WARNING(Render_Vulkan, "Intel proprietary drivers do not support MSAA image blits");
         cant_blit_msaa = true;
     }
-has_broken_compute =
-    CheckBrokenCompute(properties.driver.driverID, properties.properties.driverVersion) &&
-    !Settings::values.enable_compute_pipelines.GetValue();
 
-// Qualcomm driver version where VK_KHR_maintenance5 and A1B5G5R5 become reliable
-// Check if VK_KHR_maintenance5 is supported
-constexpr uint32_t QUALCOMM_FIXED_DRIVER_VERSION = VK_MAKE_VERSION(512, 800, 1);
-bool has_maintenance5 = HasExtension(VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
-must_emulate_bgr565 = false; // Default: assume emulation required
+    has_broken_compute =
+        CheckBrokenCompute(properties.driver.driverID, properties.properties.driverVersion) &&
+        !Settings::values.enable_compute_pipelines.GetValue();
 
-if (is_intel_anv) {
-    LOG_WARNING(Render_Vulkan, "Intel ANV driver does not support native BGR format");
-    must_emulate_bgr565 = true;
-} else if (is_qualcomm) {
-    if (has_maintenance5 && properties.properties.driverVersion >= QUALCOMM_FIXED_DRIVER_VERSION) {
-        LOG_INFO(Render_Vulkan, "Qualcomm driver supports VK_KHR_maintenance5, disabling BGR emulation");
-        must_emulate_bgr565 = false;
-    } else {
-        LOG_WARNING(Render_Vulkan, "Qualcomm driver doesn't support native BGR, emulating formats");
+    // Qualcomm driver version where VK_KHR_maintenance5 and A1B5G5R5 become reliable
+    // Check if VK_KHR_maintenance5 is supported
+    constexpr uint32_t QUALCOMM_FIXED_DRIVER_VERSION = VK_MAKE_VERSION(512, 800, 1);
+    bool has_maintenance5 = HasExtension(VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
+    must_emulate_bgr565 = false; // Default: assume emulation required
+
+    if (is_intel_anv) {
+        LOG_WARNING(Render_Vulkan, "Intel ANV driver does not support native BGR format");
         must_emulate_bgr565 = true;
+    } else if (is_qualcomm) {
+        if (has_maintenance5 && properties.properties.driverVersion >= QUALCOMM_FIXED_DRIVER_VERSION) {
+            LOG_INFO(Render_Vulkan, "Qualcomm driver supports VK_KHR_maintenance5, disabling BGR emulation");
+            must_emulate_bgr565 = false;
+        } else {
+            LOG_WARNING(Render_Vulkan, "Qualcomm driver doesn't support native BGR, emulating formats");
+            must_emulate_bgr565 = true;
+        }
     }
-}
-    }
+
     if (extensions.push_descriptor && is_intel_anv) {
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
         if (version >= VK_MAKE_API_VERSION(0, 22, 3, 0) &&
@@ -1097,13 +1096,13 @@ bool Device::GetSuitability(bool requires_swapchain) {
 // Some extensions are mandatory. Check those.
 #define CHECK_EXTENSION(extension_name)                                                            \
     if (!loaded_extensions.contains(extension_name)) {                                             \
-            LOG_ERROR(Render_Vulkan, "Missing required extension {}", extension_name);                 \
-            suitable = false;                                                                          \
+        LOG_ERROR(Render_Vulkan, "Missing required extension " extension_name);                 \
+        suitable = false;                                                                          \
     }
 
 #define LOG_EXTENSION(extension_name)                                                              \
     if (!loaded_extensions.contains(extension_name)) {                                             \
-            LOG_INFO(Render_Vulkan, "Device doesn't support extension {}", extension_name);            \
+        LOG_INFO(Render_Vulkan, "Device doesn't support extension " extension_name);            \
     }
 
     FOR_EACH_VK_RECOMMENDED_EXTENSION(LOG_EXTENSION);

@@ -90,7 +90,16 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(NV, VIEWPORT_SWIZZLE, viewport_swizzle)                                              \
     EXTENSION(EXT, DESCRIPTOR_INDEXING, descriptor_indexing)                                       \
     EXTENSION(EXT, FILTER_CUBIC, filter_cubic)                                                     \
-    EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)
+    EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)                                    \
+    EXTENSION(KHR, MAINTENANCE_1, maintenance1)                                        \
+    EXTENSION(KHR, MAINTENANCE_2, maintenance2)                                           \
+    EXTENSION(KHR, MAINTENANCE_3, maintenance3)                                           \
+    EXTENSION(KHR, MAINTENANCE_4, maintenance4)                                           \
+    EXTENSION(KHR, MAINTENANCE_5, maintenance5)                                           \
+    EXTENSION(KHR, MAINTENANCE_6, maintenance6)                                           \
+    EXTENSION(KHR, MAINTENANCE_7, maintenance7)                                           \
+    EXTENSION(KHR, MAINTENANCE_8, maintenance8)                                           \
+    EXTENSION(KHR, MAINTENANCE_9, maintenance9)                                           \
 
 // Define extensions which must be supported.
 #define FOR_EACH_VK_MANDATORY_EXTENSION(EXTENSION_NAME)                                            \
@@ -842,23 +851,6 @@ private:
     FOR_EACH_VK_FEATURE_1_3(FEATURE);
     FOR_EACH_VK_FEATURE_EXT(FEATURE);
     FOR_EACH_VK_EXTENSION(EXTENSION);
-
-    // Maintenance extensions (may not be present in older Vulkan headers).
-    bool maintenance1{};
-    bool maintenance2{};
-    bool maintenance3{};
-    bool maintenance4{};
-    bool maintenance5{};
-    bool maintenance6{};
-    bool maintenance7{};
-    bool maintenance8{};
-    bool maintenance9{};
-
-    // Maintenance extensions (may not be present in older Vulkan headers).
-    bool maintenance1{};
-    bool maintenance2{};
-    bool maintenance3{};
-    bool maintenance4{};
 
 #undef EXTENSION
 #undef FEATURE
