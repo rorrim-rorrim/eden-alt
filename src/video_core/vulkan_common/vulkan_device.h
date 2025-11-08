@@ -52,6 +52,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, 4444Formats, 4444_FORMATS, format_a4b4g4r4)                                       \
     FEATURE(EXT, IndexTypeUint8, INDEX_TYPE_UINT8, index_type_uint8)                               \
     FEATURE(EXT, LineRasterization, LINE_RASTERIZATION, line_rasterization)                        \
+    FEATURE(EXT, ImageRobustness, IMAGE_ROBUSTNESS, image_robustness)                              \
     FEATURE(EXT, PrimitiveTopologyListRestart, PRIMITIVE_TOPOLOGY_LIST_RESTART,                    \
             primitive_topology_list_restart)                                                       \
     FEATURE(EXT, ProvokingVertex, PROVOKING_VERTEX, provoking_vertex)                              \
@@ -82,7 +83,9 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(KHR, SHADER_FLOAT_CONTROLS, shader_float_controls)                                   \
     EXTENSION(KHR, SPIRV_1_4, spirv_1_4)                                                           \
     EXTENSION(KHR, SWAPCHAIN, swapchain)                                                           \
+    EXTENSION(KHR, INCREMENTAL_PRESENT, incremental_present)                                     \
     EXTENSION(KHR, SWAPCHAIN_MUTABLE_FORMAT, swapchain_mutable_format)                             \
+    EXTENSION(EXT, SWAPCHAIN_MAINTENANCE_1, swapchain_maintenance1)                                \
     EXTENSION(KHR, IMAGE_FORMAT_LIST, image_format_list)                                           \
     EXTENSION(NV, DEVICE_DIAGNOSTICS_CONFIG, device_diagnostics_config)                            \
     EXTENSION(NV, GEOMETRY_SHADER_PASSTHROUGH, geometry_shader_passthrough)                        \
@@ -91,6 +94,15 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(EXT, DESCRIPTOR_INDEXING, descriptor_indexing)                                       \
     EXTENSION(EXT, FILTER_CUBIC, filter_cubic)                                                     \
     EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)
+    EXTENSION(KHR, MAINTENANCE_1, maintenance1)                                        \
+    EXTENSION(KHR, MAINTENANCE_2, maintenance2)                                           \
+    EXTENSION(KHR, MAINTENANCE_3, maintenance3)                                           \
+    EXTENSION(KHR, MAINTENANCE_4, maintenance4)                                           \
+    EXTENSION(KHR, MAINTENANCE_5, maintenance5)                                           \
+    EXTENSION(KHR, MAINTENANCE_6, maintenance6)                                           \
+    EXTENSION(KHR, MAINTENANCE_7, maintenance7)                                           \
+    EXTENSION(KHR, MAINTENANCE_8, maintenance8)                                           \
+    EXTENSION(KHR, MAINTENANCE_9, maintenance9)                                           \
 
 // Define extensions which must be supported.
 #define FOR_EACH_VK_MANDATORY_EXTENSION(EXTENSION_NAME)                                            \
@@ -453,6 +465,11 @@ public:
     /// Returns true if the device supports VK_KHR_image_format_list.
     bool IsKhrImageFormatListSupported() const {
         return extensions.image_format_list || instance_version >= VK_API_VERSION_1_2;
+    }
+
+    /// Returns true if the device supports VK_KHR_incremental_present.
+    bool IsKhrIncrementalPresentSupported() const {
+        return extensions.incremental_present;
     }
 
     /// Returns true if the device supports VK_EXT_primitive_topology_list_restart.
