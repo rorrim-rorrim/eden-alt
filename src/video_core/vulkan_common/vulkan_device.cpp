@@ -753,7 +753,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             // dson't allow to optimize away
             (void)test_sampler;
             // Destroy immediately; this is just a capability test.
-            logical.Destroy(test_sampler);
+            test_sampler.~Handle();
             LOG_INFO(Render_Vulkan, "VK_EXT_custom_border_color runtime test passed");
         } catch (const vk::Exception& e) {
             LOG_WARNING(Render_Vulkan, "VK_EXT_custom_border_color advertised but sampler create failed: {}. Disabling feature.", e.what());
