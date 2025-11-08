@@ -6,6 +6,7 @@
 
 #include "common/assert.h"
 #include "video_core/renderer_vulkan/present/util.h"
+#include "video_core/vulkan_common/vulkan_device.h"
 
 namespace Vulkan {
 
