@@ -490,6 +490,32 @@ void ProfileManager::ResetUserSaveFile()
     ParseUserSaveFile();
 }
 
+std::vector<UUID> ProfileManager::FindExistingProfileUUIDs()
+{
+    std::vector<UUID> uuids;
+    for (const ProfileInfo& p : profiles) {
+        auto uuid = p.user_uuid;
+        if (!uuid.IsInvalid()) {
+            uuids.emplace_back(uuid);
+        }
+    }
+
+    return uuids;
+}
+
+std::vector<std::string> ProfileManager::FindExistingProfileStrings()
+{
+    std::vector<UUID> uuids = FindExistingProfileUUIDs();
+    std::vector<std::string> uuid_strings;
+
+    for (const UUID &uuid : uuids) {
+        auto user_id = uuid.AsU128();
+        uuid_strings.emplace_back(fmt::format("{:016X}{:016X}", user_id[1], user_id[0]));
+    }
+
+    return uuid_strings;
+}
+
 std::vector<std::string> ProfileManager::FindGoodProfiles()
 {
     namespace fs = std::filesystem;
@@ -499,31 +525,17 @@ std::vector<std::string> ProfileManager::FindGoodProfiles()
     const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir)
                       / "user/save/0000000000000000";
 
-    // some exceptions because certain games just LOVE TO CAUSE ISSUES
-    static constexpr const std::array<const char* const, 2> EXCEPTION_UUIDS
-        = {"5755CC2A545A87128500000000000000", "00000000000000000000000000000000"};
+    // some exceptions, e.g. the "system" profile
+    static constexpr const std::array<const char* const, 1> EXCEPTION_UUIDS
+        = {"00000000000000000000000000000000"};
 
     for (const char *const uuid : EXCEPTION_UUIDS) {
         if (fs::exists(path / uuid))
             good_uuids.emplace_back(uuid);
     }
 
-    for (const ProfileInfo& p : profiles) {
-        std::string uuid_string = [p]() -> std::string {
-            auto uuid = p.user_uuid;
-
-            // "ignore" invalid uuids
-            if (uuid.IsInvalid()) {
-                return "0";
-            }
-
-            auto user_id = uuid.AsU128();
-
-            return fmt::format("{:016X}{:016X}", user_id[1], user_id[0]);
-        }();
-
-        if (uuid_string != "0") good_uuids.emplace_back(uuid_string);
-    }
+    auto existing = FindExistingProfileStrings();
+    good_uuids.insert(good_uuids.end(), existing.begin(), existing.end());
 
     return good_uuids;
 }

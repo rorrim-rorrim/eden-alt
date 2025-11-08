@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "common/fs/ryujinx_compat.h"
-#include "common/fs/symlink.h"
 #include "main_window.h"
 #include "network/network.h"
 #include "qt_common/discord/discord.h"
@@ -2371,33 +2370,8 @@ void MainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target,
 
         if (has_user_save) {
             // User save data
-            const auto select_profile = [this] {
-                const Core::Frontend::ProfileSelectParameters parameters{
-                                                                         .mode = Service::AM::Frontend::UiMode::UserSelector,
-                                                                         .invalid_uid_list = {},
-                                                                         .display_options = {},
-                                                                         .purpose = Service::AM::Frontend::UserSelectionPurpose::General,
-                                                                         };
-                QtProfileSelectionDialog dialog(*QtCommon::system, this, parameters);
-                dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
-                                      Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
-                dialog.setWindowModality(Qt::WindowModal);
-
-                if (dialog.exec() == QDialog::Rejected) {
-                    return -1;
-                }
-
-                return dialog.GetIndex();
-            };
-
-            const auto index = select_profile();
-            if (index == -1) {
-                return;
-            }
-
-            const auto user_id =
-                QtCommon::system->GetProfileManager().GetUser(static_cast<std::size_t>(index));
-            ASSERT(user_id);
+            const auto user_id = GetProfileID();
+            assert(user_id);
 
             const auto user_save_data_path = FileSys::SaveDataFactory::GetFullPath(
                 {}, vfs_nand_dir, FileSys::SaveDataSpaceId::User, FileSys::SaveDataType::Account,
@@ -2824,8 +2798,14 @@ void MainWindow::OnGameListOpenPerGameProperties(const std::string& file) {
     OpenPerGameConfiguration(title_id, file);
 }
 
-std::string MainWindow::GetProfileID()
+const std::optional<Common::UUID> MainWindow::GetProfileID()
 {
+    // if there's only a single profile, the user probably wants to use that... right?
+    const auto& profiles = QtCommon::system->GetProfileManager().FindExistingProfileUUIDs();
+    if (profiles.size() == 1) {
+        return profiles[0];
+    }
+
     const auto select_profile = [this] {
         const Core::Frontend::ProfileSelectParameters parameters{
                                                                  .mode = Service::AM::Frontend::UiMode::UserSelector,
@@ -2847,13 +2827,21 @@ std::string MainWindow::GetProfileID()
 
     const auto index = select_profile();
     if (index == -1) {
-        return "";
+        return std::nullopt;
     }
 
     const auto uuid = QtCommon::system->GetProfileManager().GetUser(static_cast<std::size_t>(index));
     ASSERT(uuid);
 
-    const auto user_id = uuid->AsU128();
+    return uuid;
+}
+
+std::string MainWindow::GetProfileIDString()
+{
+    const auto uuid = GetProfileID();
+    if (!uuid) return "";
+
+    auto user_id = uuid->AsU128();
 
     return fmt::format("{:016X}{:016X}", user_id[1], user_id[0]);
 }
@@ -2862,44 +2850,29 @@ void MainWindow::OnLinkToRyujinx(const u64& program_id)
 {
     namespace fs = std::filesystem;
 
-    const std::string user_id = GetProfileID();
+    fs::path ryu_dir;
+
+    // find an existing Ryujinx linked path in config.ini; if it exists, use it as a "hint"
+    // If it's not defined in config.ini, use default
+    const fs::path existing_path =
+        UISettings::values.ryujinx_link_paths
+            .value(program_id, QDir(Common::FS::GetLegacyPath(Common::FS::RyujinxDir)))
+            .filesystemAbsolutePath();
+
+    // this function also prompts the user to manually specify a portable location
+    ryu_dir = QtCommon::FS::GetRyujinxSavePath(existing_path, program_id);
+
+    if (ryu_dir.empty()) return;
+
+    const std::string user_id = GetProfileIDString();
+    if (user_id.empty()) return;
+
     const std::string hex_program = fmt::format("{:016X}", program_id);
 
     const fs::path eden_dir = FrontendCommon::DataManager::GetDataDir(
                                   FrontendCommon::DataManager::DataDir::Saves, user_id) /
                               hex_program;
 
-    fs::path ryu_dir;
-
-    // filesystem error: read_symlink: Function not implemented
-    // Theoretically, the check immediately after this should account for it;
-    // keyword THEORETICALLY
-#ifndef __MINGW32__
-    // If the Eden directory is a symlink we can just read that and use it as our Ryu dir
-    if (Common::FS::IsSymlink(eden_dir)) {
-        ryu_dir = fs::read_symlink(eden_dir);
-
-        // Fallback: if the Eden save dir is symlinked to a nonexistent location,
-        // just delete and recreate it to remove the symlink.
-        if (!fs::exists(ryu_dir)) {
-            fs::remove(eden_dir);
-            fs::create_directories(eden_dir);
-            ryu_dir = fs::path{};
-        }
-    }
-#endif
-
-    // Otherwise, prompt the user
-    if (ryu_dir.empty()) {
-        const fs::path existing_path =
-            UISettings::values.ryujinx_link_paths
-                .value(program_id, QDir(Common::FS::GetLegacyPath(Common::FS::RyujinxDir)))
-                .filesystemAbsolutePath();
-
-        ryu_dir = QtCommon::FS::GetRyujinxSavePath(existing_path, program_id);
-
-        if (ryu_dir.empty()) return;
-    }
 
     // CheckUnlink basically just checks to see if one or both are linked, and prompts the user to
     // unlink if this is the case.

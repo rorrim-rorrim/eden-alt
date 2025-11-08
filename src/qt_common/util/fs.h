@@ -3,6 +3,7 @@
 
 #include "common/common_types.h"
 #include <filesystem>
+#include <optional>
 
 #pragma once
 

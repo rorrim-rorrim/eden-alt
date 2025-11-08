@@ -469,7 +469,8 @@ private:
                   QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No),
                   QMessageBox::StandardButton defaultButton = QMessageBox::NoButton);
 
-    std::string GetProfileID();
+    const std::optional<Common::UUID> GetProfileID();
+    std::string GetProfileIDString();
 
     std::unique_ptr<Ui::MainWindow> ui;
 

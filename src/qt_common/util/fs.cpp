@@ -140,7 +140,6 @@ const fs::path GetRyujinxSavePath(const fs::path &path_hint, const u64 &program_
             tr("Could not find Ryujinx save data"),
             StringLookup::Lookup(StringLookup::RyujinxNoSaveId).arg(program_id, 0, 16));
     } else {
-        // TODO: make this long thing a function or something
         QString caption = LOOKUP_ENUM(res, KvdbNonexistent);
         QtCommon::Frontend::Critical(tr("Could not find Ryujinx save data"), caption);
     }
