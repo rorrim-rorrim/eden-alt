@@ -66,7 +66,7 @@ android {
 
         ndk {
             @SuppressLint("ChromeOsAbiSupport")
-            abiFilters += listOf("x86_64", "arm64-v8a")
+            abiFilters += listOf("arm64-v8a")
         }
 
         buildConfigField("String", "GIT_HASH", "\"${getGitHash()}\"")
@@ -94,7 +94,7 @@ android {
                         *extraCMakeArgs.toTypedArray()
                 ))
 
-                abiFilters("x86_64", "arm64-v8a")
+                abiFilters("arm64-v8a")
             }
         }
     }
