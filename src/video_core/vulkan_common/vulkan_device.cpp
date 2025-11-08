@@ -750,8 +750,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         };
         try {
             const auto test_sampler = logical.CreateSampler(sampler_ci);
+            // dson't allow to optimize away
+            (void)test_sampler;
             // Destroy immediately; this is just a capability test.
-            logical.DestroySampler(test_sampler);
+            logical.Destroy(test_sampler);
             LOG_INFO(Render_Vulkan, "VK_EXT_custom_border_color runtime test passed");
         } catch (const vk::Exception& e) {
             LOG_WARNING(Render_Vulkan, "VK_EXT_custom_border_color advertised but sampler create failed: {}. Disabling feature.", e.what());
