@@ -607,9 +607,17 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         // AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation
         LOG_WARNING(Render_Vulkan,
                     "AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
-        dynamic_state3_blending = false;
+
+        // Only set to false when EDS = 0, otherwise keep true
+        if (Settings::values.dyna_state.GetValue() == 0) {
+            features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
+            features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
+            dynamic_state3_blending = false;
+        } else {
+            features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = true;
+            features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = true;
+            dynamic_state3_blending = true;
+        }
     }
     // VK_EXT_vertex_input_dynamic_state (VIDS) workaround
     // VIDS causes black screen when EDS=0, must be off in this case
@@ -751,10 +759,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     if ((is_mvk || (is_integrated && is_intel_anv) || (is_integrated && is_intel_windows)) && Settings::values.dyna_state.GetValue() != 0) {
         LOG_WARNING(Render_Vulkan, "Driver has broken dynamic state, forcing to 0 to prevent graphical issues");
         Settings::values.dyna_state.SetValue(0);
-    }
-
-    if (Settings::values.dyna_state.GetValue() == 0) {
-
     }
 
     logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions), first_next, dld);
