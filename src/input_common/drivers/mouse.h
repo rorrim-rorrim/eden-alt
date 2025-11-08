@@ -95,10 +95,8 @@ public:
     Common::Input::ButtonNames GetUIName(const Common::ParamPackage& params) const override;
 
 private:
-    void UpdateThread(std::stop_token stop_token);
     void UpdateStickInput();
     void UpdateMotionInput();
-
     bool IsMousePanningEnabled();
 
     Common::Input::ButtonNames GetUIButtonName(const Common::ParamPackage& params) const;
