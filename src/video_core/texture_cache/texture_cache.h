@@ -1513,8 +1513,7 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DA
                 // If we cannot determine a base mapping, fallback to preserving the
                 // overlap (avoid deleting GPU-modified data) and log the event so
                 // it can be investigated, we're trying to pinpoint the issue of texture flickering.
-                LOG_WARNING(HW_GPU, "Could not map overlap gpu_addr {:#x} into new image; preserving overlap {}",
-                            overlap.gpu_addr, overlap_id);
+                LOG_WARNING(HW_GPU, "Could not map overlap gpu_addr {:#x} into new image; preserving overlap", u64(overlap.gpu_addr));
                 continue;
             }
         }
