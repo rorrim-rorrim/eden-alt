@@ -61,7 +61,7 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_, std::shared_ptr<Ap
         {80, D<&ICommonStateGetter::PerformSystemButtonPressingIfInFocus>, "PerformSystemButtonPressingIfInFocus"},
         {90, nullptr, "SetPerformanceConfigurationChangedNotification"},
         {91, nullptr, "GetCurrentPerformanceConfiguration"},
-        {100, nullptr, "SetHandlingHomeButtonShortPressedEnabled"},
+        {100, D<&ICommonStateGetter::SetHandlingHomeButtonShortPressedEnabled>, "SetHandlingHomeButtonShortPressedEnabled"},
         {110, nullptr, "OpenMyGpuErrorHandler"},
         {120, D<&ICommonStateGetter::GetAppletLaunchedHistory>, "GetAppletLaunchedHistory"},
         {200, D<&ICommonStateGetter::GetOperationModeSystemInfo>, "GetOperationModeSystemInfo"},
@@ -268,6 +268,18 @@ Result ICommonStateGetter::PerformSystemButtonPressingIfInFocus(SystemButtonType
                 AppletMessage::DetectLongPressingHomeButton);
         }
         break;
+    case SystemButtonType::CaptureButtonShortPressing:
+        if (m_applet->handling_capture_button_short_pressed_message_enabled_for_applet) {
+            m_applet->lifecycle_manager.PushUnorderedMessage(
+                AppletMessage::DetectShortPressingCaptureButton);
+        }
+        break;
+    case SystemButtonType::CaptureButtonLongPressing:
+        if (m_applet->handling_capture_button_long_pressed_message_enabled_for_applet) {
+            m_applet->lifecycle_manager.PushUnorderedMessage(
+                AppletMessage::DetectLongPressingCaptureButton);
+        }
+        break;
     default:
         // Other buttons ignored for now
         break;
@@ -316,12 +328,15 @@ Result ICommonStateGetter::SetRequestExitToLibraryAppletAtExecuteNextProgramEnab
 
 Result ICommonStateGetter::PushToGeneralChannel(SharedPointer<IStorage> storage) {
     LOG_DEBUG(Service_AM, "called");
+    system.PushGeneralChannelData(storage->GetData());
+    R_SUCCEED();
+}
+
+Result ICommonStateGetter::SetHandlingHomeButtonShortPressedEnabled(bool enabled) {
+    LOG_DEBUG(Service_AM, "called, enabled={} applet_id={}", enabled, m_applet->applet_id);
 
     std::scoped_lock lk{m_applet->lock};
-    // Push to a general-purpose channel and notify listeners via event
-    m_applet->user_channel_launch_parameter.push_back(storage->GetData());
-    m_applet->pop_from_general_channel_event.Signal();
-
+    m_applet->home_button_short_pressed_blocked = !enabled;
     R_SUCCEED();
 }
 

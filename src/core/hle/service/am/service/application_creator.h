@@ -19,6 +19,7 @@ public:
 
 private:
     Result CreateApplication(Out<SharedPointer<IApplicationAccessor>>, u64 application_id);
+    Result CreateSystemApplication(Out<SharedPointer<IApplicationAccessor>>, u64 application_id);
 
     WindowSystem& m_window_system;
 };

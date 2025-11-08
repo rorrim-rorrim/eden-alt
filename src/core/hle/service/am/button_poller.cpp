@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/core.h"
+#include "core/hle/service/am/am_types.h"
 #include "core/hle/service/am/button_poller.h"
 #include "core/hle/service/am/window_system.h"
 #include "hid_core/frontend/emulated_controller.h"
@@ -73,11 +74,17 @@ void ButtonPoller::OnButtonStateChanged() {
 
     // Buttons released which were previously held
     if (!home_button && m_home_button_press_start) {
-        m_window_system.OnHomeButtonPressed(ClassifyPressDuration(*m_home_button_press_start));
+        const auto duration = ClassifyPressDuration(*m_home_button_press_start);
+        m_window_system.OnSystemButtonPress(
+            duration == ButtonPressDuration::ShortPressing ? SystemButtonType::HomeButtonShortPressing
+                                                           : SystemButtonType::HomeButtonLongPressing);
         m_home_button_press_start = std::nullopt;
     }
     if (!capture_button && m_capture_button_press_start) {
-        // TODO
+        const auto duration = ClassifyPressDuration(*m_capture_button_press_start);
+        m_window_system.OnSystemButtonPress(
+            duration == ButtonPressDuration::ShortPressing ? SystemButtonType::CaptureButtonShortPressing
+                                                           : SystemButtonType::CaptureButtonLongPressing);
         m_capture_button_press_start = std::nullopt;
     }
     // if (!power_button && m_power_button_press_start) {

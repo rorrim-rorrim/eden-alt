@@ -60,6 +60,7 @@ private:
     Result GetSettingsPlatformRegion(Out<Set::PlatformRegion> out_settings_platform_region);
     Result SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled();
     Result PushToGeneralChannel(SharedPointer<IStorage> storage); // cmd 20
+    Result SetHandlingHomeButtonShortPressedEnabled(bool enabled);
 
     void SetCpuBoostMode(HLERequestContext& ctx);
 
