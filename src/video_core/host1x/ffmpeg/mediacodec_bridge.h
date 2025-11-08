@@ -38,6 +38,4 @@ void EnqueueHardwareBufferForPresent(AHardwareBuffer* ahb, int width, int height
 // Try to pop an AHardwareBuffer for presentation. Returns true if a buffer was popped.
 bool TryPopHardwareBufferForPresent(AHardwareBuffer** out_ahb, int& out_width, int& out_height, int64_t& out_pts);
 #endif
-} // namespace FFmpeg::MediaCodecBridge
-
-} // namespace FFmpeg::MediaCodecBridge
+// namespace FFmpeg::MediaCodecBridge
