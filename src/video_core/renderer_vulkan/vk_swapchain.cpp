@@ -210,7 +210,7 @@ void Swapchain::Present(VkSemaphore render_semaphore) {
     // on the first present to validate the driver/compositor accepts present-region info.
     VkPresentRegionsKHR present_regions{};
     VkPresentRegionKHR region{};
-    VkRect2D rect{};
+    VkRectLayerKHR layer{};
 
     VkPresentInfoKHR present_info{
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -225,10 +225,10 @@ void Swapchain::Present(VkSemaphore render_semaphore) {
 
     if (incremental_present_usable && !incremental_present_probed) {
         // Build a minimal present-region describing a single 1x1 dirty rect at (0,0).
-        rect.offset = {0, 0};
-        rect.extent = {1, 1};
+        layer.offset = {0, 0};
+        layer.extent = {1, 1};
         region.rectangleCount = 1;
-        region.pRectangles = &rect;
+        region.pRectangles = &layer;
         present_regions.sType = VK_STRUCTURE_TYPE_PRESENT_REGIONS_KHR;
         present_regions.pNext = nullptr;
         present_regions.swapchainCount = 1;
