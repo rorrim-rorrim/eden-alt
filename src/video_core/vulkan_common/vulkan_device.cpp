@@ -717,20 +717,63 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     if (extensions.memory_budget) {
         flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
     }
+
+    // Runtime sanity check: some drivers (notably Qualcomm and Turnip) advertise
+    // VK_EXT_custom_border_color but mis-implement it. Try creating a sampler
+    // with a formatless custom border color and disable the feature if it fails.
+    if (extensions.custom_border_color) {
+        VkSamplerCustomBorderColorCreateInfoEXT border_ci{
+            .sType = VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT,
+            .pNext = nullptr,
+            .customBorderColor = VkClearColorValue{{1.0f, 0.0f, 0.0f, 1.0f}},
+            .format = VK_FORMAT_UNDEFINED,
+        };
+        VkSamplerCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+            .pNext = &border_ci,
+            .flags = 0,
+            .magFilter = VK_FILTER_NEAREST,
+            .minFilter = VK_FILTER_NEAREST,
+            .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
+            .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+            .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+            .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+            .mipLodBias = 0.0f,
+            .anisotropyEnable = VK_FALSE,
+            .maxAnisotropy = 1.0f,
+            .compareEnable = VK_FALSE,
+            .compareOp = VK_COMPARE_OP_ALWAYS,
+            .minLod = 0.0f,
+            .maxLod = 0.0f,
+            .borderColor = VK_BORDER_COLOR_FLOAT_CUSTOM_EXT,
+            .unnormalizedCoordinates = VK_FALSE,
+        };
+        try {
+            const auto test_sampler = logical.CreateSampler(sampler_ci);
+            // Destroy immediately; this is just a capability test.
+            logical.DestroySampler(test_sampler);
+            LOG_INFO(Render_Vulkan, "VK_EXT_custom_border_color runtime test passed");
+        } catch (const vk::Exception& e) {
+            LOG_WARNING(Render_Vulkan, "VK_EXT_custom_border_color advertised but sampler create failed: {}. Disabling feature.", e.what());
+            // Disable the extension feature so the runtime falls back to fixed border colors.
+            RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color, VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+        }
+    }
+
     const VmaAllocatorCreateInfo allocator_info{
-            .flags = flags,
-            .physicalDevice = physical,
-            .device = *logical,
-            .preferredLargeHeapBlockSize = is_integrated
-                                           ? (64u * 1024u * 1024u)
-                                           : (256u * 1024u * 1024u),
-            .pAllocationCallbacks = nullptr,
-            .pDeviceMemoryCallbacks = nullptr,
-            .pHeapSizeLimit = nullptr,
-            .pVulkanFunctions = &functions,
-            .instance = instance,
-            .vulkanApiVersion = ApiVersion(),
-            .pTypeExternalMemoryHandleTypes = nullptr,
+        .flags = flags,
+        .physicalDevice = physical,
+        .device = *logical,
+        .preferredLargeHeapBlockSize = is_integrated
+                                        ? (64u * 1024u * 1024u)
+                                        : (256u * 1024u * 1024u),
+        .pAllocationCallbacks = nullptr,
+        .pDeviceMemoryCallbacks = nullptr,
+        .pHeapSizeLimit = nullptr,
+        .pVulkanFunctions = &functions,
+        .instance = instance,
+        .vulkanApiVersion = ApiVersion(),
+        .pTypeExternalMemoryHandleTypes = nullptr,
     };
 
     vk::Check(vmaCreateAllocator(&allocator_info, &allocator));
