@@ -121,7 +121,7 @@ else()
         -Werror=unused
 
         -Wno-attributes
-        -Wno-invalid-offsetof
+        $<$<COMPILE_LANGUAGE:CXX>:-Wno-invalid-offsetof>
         -Wno-unused-parameter
         -Wno-missing-field-initializers
     )
