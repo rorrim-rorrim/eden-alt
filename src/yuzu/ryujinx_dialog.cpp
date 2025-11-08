@@ -40,7 +40,7 @@ void RyujinxDialog::fromEden()
         fs::copy(m_eden, m_ryu, fs::copy_options::recursive);
     } catch (std::exception &e) {
         QtCommon::Frontend::Critical(tr("Failed to link save data"),
-                                     tr("OS returned error: %1").arg(e.what()));
+                                     tr("OS returned error: %1").arg(QString::fromStdString(e.what())));
     }
 
     // ?ploo
