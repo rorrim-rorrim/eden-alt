@@ -753,6 +753,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         Settings::values.dyna_state.SetValue(0);
     }
 
+    if (Settings::values.dyna_state.GetValue() == 0) {
+
+    }
+
     logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions), first_next, dld);
 
     graphics_queue = logical.GetQueue(graphics_family);
