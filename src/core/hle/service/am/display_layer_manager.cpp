@@ -80,10 +80,10 @@ Result DisplayLayerManager::CreateManagedDisplayLayer(u64* out_layer_id) {
     if (m_applet_id != AppletId::Application) {
         (void)m_manager_display_service->SetLayerBlending(m_blending_enabled, *out_layer_id);
         if (m_applet_id == AppletId::OverlayDisplay) {
-            static constexpr s32 kOverlayBackgroundZ = -100000;
+            static constexpr s32 kOverlayBackgroundZ = -1;
             (void)m_manager_display_service->SetLayerZIndex(kOverlayBackgroundZ, *out_layer_id);
         } else {
-            static constexpr s32 kOverlayZ = 100000;
+            static constexpr s32 kOverlayZ = 3;
             (void)m_manager_display_service->SetLayerZIndex(kOverlayZ, *out_layer_id);
         }
     }
@@ -132,9 +132,9 @@ Result DisplayLayerManager::IsSystemBufferSharingEnabled() {
     // Ensure the overlay layer is visible
     m_manager_display_service->SetLayerVisibility(m_visible, m_system_shared_layer_id);
     m_manager_display_service->SetLayerBlending(m_blending_enabled, m_system_shared_layer_id);
-    s32 initial_z = 100;
+    s32 initial_z = 1;
     if (m_applet_id == AppletId::OverlayDisplay) {
-        initial_z = -100000;
+        initial_z = -1;
     }
     m_manager_display_service->SetLayerZIndex(initial_z, m_system_shared_layer_id);
     LOG_INFO(Service_VI,
@@ -164,13 +164,13 @@ void DisplayLayerManager::SetWindowVisibility(bool visible) {
 
     if (m_manager_display_service) {
         if (m_system_shared_layer_id) {
-            LOG_INFO(Service_VI, "DLM: SetWindowVisibility shared_layer={} visible={} applet_id={}",
+            LOG_INFO(Service_VI, "shared_layer={} visible={} applet_id={}",
                      m_system_shared_layer_id, m_visible, static_cast<u32>(m_applet_id));
             m_manager_display_service->SetLayerVisibility(m_visible, m_system_shared_layer_id);
         }
 
         for (const auto layer_id : m_managed_display_layers) {
-            LOG_INFO(Service_VI, "DLM: SetWindowVisibility managed_layer={} visible={} applet_id={}",
+            LOG_INFO(Service_VI, "managed_layer={} visible={} applet_id={}",
                      layer_id, m_visible, static_cast<u32>(m_applet_id));
             m_manager_display_service->SetLayerVisibility(m_visible, layer_id);
         }

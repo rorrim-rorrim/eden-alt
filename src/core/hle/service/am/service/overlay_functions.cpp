@@ -43,17 +43,9 @@ IOverlayFunctions::~IOverlayFunctions() = default;
 
 Result IOverlayFunctions::BeginToWatchShortHomeButtonMessage() {
     LOG_DEBUG(Service_AM, "called");
-    {
-        std::scoped_lock lk{m_applet->lock};
 
-        m_applet->overlay_in_foreground = true;
-        m_applet->home_button_short_pressed_blocked = false;
-
-        static constexpr s32 kOverlayForegroundZ = 100000;
-        m_applet->display_layer_manager.SetOverlayZIndex(kOverlayForegroundZ);
-
-        LOG_INFO(Service_AM, "called, Overlay moved to FOREGROUND (z={}, overlay_in_foreground=true)", kOverlayForegroundZ);
-    }
+    m_applet->overlay_in_foreground = true;
+    m_applet->home_button_short_pressed_blocked = false;
 
     if (auto* window_system = system.GetAppletManager().GetWindowSystem()) {
         window_system->RequestUpdate();
@@ -65,17 +57,8 @@ Result IOverlayFunctions::BeginToWatchShortHomeButtonMessage() {
 Result IOverlayFunctions::EndToWatchShortHomeButtonMessage() {
     LOG_DEBUG(Service_AM, "called");
 
-    {
-        std::scoped_lock lk{m_applet->lock};
-
-        m_applet->overlay_in_foreground = false;
-        m_applet->home_button_short_pressed_blocked = false;
-
-        static constexpr s32 kOverlayBackgroundZ = -100;
-        m_applet->display_layer_manager.SetOverlayZIndex(kOverlayBackgroundZ);
-
-        LOG_INFO(Service_AM, "Overlay moved to BACKGROUND (z={}, overlay_in_foreground=false)", kOverlayBackgroundZ);
-    }
+    m_applet->overlay_in_foreground = false;
+    m_applet->home_button_short_pressed_blocked = false;
 
     if (auto* window_system = system.GetAppletManager().GetWindowSystem()) {
         window_system->RequestUpdate();
@@ -106,7 +89,7 @@ Result IOverlayFunctions::SetAutoSleepTimeAndDimmingTimeEnabled(bool enabled) {
 Result IOverlayFunctions::SetHandlingHomeButtonShortPressedEnabled(bool enabled) {
     LOG_DEBUG(Service_AM, "called, enabled={}", enabled);
     std::scoped_lock lk{m_applet->lock};
-    m_applet->home_button_short_pressed_blocked = false;
+    m_applet->home_button_short_pressed_blocked = !enabled;
     R_SUCCEED();
 }
 

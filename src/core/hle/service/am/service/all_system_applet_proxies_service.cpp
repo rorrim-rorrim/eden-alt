@@ -75,7 +75,7 @@ Result IAllSystemAppletProxiesService::OpenOverlayAppletProxy(
     Out<SharedPointer<IOverlayAppletProxy>> out_overlay_applet_proxy, ClientProcessId pid,
     InCopyHandle<Kernel::KProcess> process_handle,
     InLargeData<AppletAttribute, BufferAttr_HipcMapAlias> attribute) {
-    LOG_DEBUG(Service_AM, "called");
+    LOG_WARNING(Service_AM, "called");
 
     if (const auto applet = this->GetAppletFromProcessId(pid); applet) {
         *out_overlay_applet_proxy = std::make_shared<IOverlayAppletProxy>(

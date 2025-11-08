@@ -158,58 +158,67 @@ void WindowSystem::OnExitRequested() {
     }
 }
 
-void WindowSystem::OnHomeButtonPressed(ButtonPressDuration type) {
-    std::scoped_lock lk{m_lock};
-
-    LOG_INFO(Service_AM, "WindowSystem::OnHomeButtonPressed - type={} overlay={} home_menu={} application={} foreground={}",
-             type == ButtonPressDuration::ShortPressing ? "Short" : "Long",
-             m_overlay_display != nullptr, m_home_menu != nullptr, m_application != nullptr,
-             m_foreground_requested_applet == m_home_menu ? "home_menu" :
-             m_foreground_requested_applet == m_application ? "application" : "none");
-
-    // Priority 1: Check overlay first (works everywhere, even in qlaunch)
-    // Long press always goes to overlay for toggling
-    // Short press only when overlay is already open (to close it)
-    if (m_overlay_display) {
-        std::scoped_lock lk3{m_overlay_display->lock};
-        const bool overlay_should_handle = !m_overlay_display->home_button_short_pressed_blocked;
-
-        if (overlay_should_handle) {
-            const bool overlay_in_fg = m_overlay_display->overlay_in_foreground;
-
-            if (type == ButtonPressDuration::LongPressing ||
-                (type == ButtonPressDuration::ShortPressing && overlay_in_fg)) {
-
-                LOG_INFO(Service_AM, "Sending {} press to overlay (foreground={})",
-                         type == ButtonPressDuration::ShortPressing ? "short" : "long",
-                         overlay_in_fg);
-
-                if (type == ButtonPressDuration::ShortPressing) {
-                    m_overlay_display->lifecycle_manager.PushUnorderedMessage(
-                        AppletMessage::DetectShortPressingHomeButton);
-                } else {
-                    m_overlay_display->lifecycle_manager.PushUnorderedMessage(
-                        AppletMessage::DetectLongPressingHomeButton);
-                }
-                return;
-            }
-        }
-    }
-
+void WindowSystem::SendButtonAppletMessageLocked(AppletMessage message) {
     if (m_home_menu) {
-        std::scoped_lock lk2{m_home_menu->lock};
-        LOG_DEBUG(Service_AM, "called, Sending home button to home menu");
-        if (type == ButtonPressDuration::ShortPressing) {
-            m_home_menu->lifecycle_manager.PushUnorderedMessage(
-                AppletMessage::DetectShortPressingHomeButton);
-        } else if (type == ButtonPressDuration::LongPressing) {
-            m_home_menu->lifecycle_manager.PushUnorderedMessage(
-                AppletMessage::DetectLongPressingHomeButton);
-        }
-        return;
+        std::scoped_lock lk_home{m_home_menu->lock};
+        m_home_menu->lifecycle_manager.PushUnorderedMessage(message);
     }
+    if (m_overlay_display) {
+        std::scoped_lock lk_overlay{m_overlay_display->lock};
+        m_overlay_display->lifecycle_manager.PushUnorderedMessage(message);
+    }
+    if (m_application) {
+        std::scoped_lock lk_application{m_application->lock};
+        m_application->lifecycle_manager.PushUnorderedMessage(message);
+    }
+    if (m_event_observer) {
+        m_event_observer->RequestUpdate();
+    }
+}
 
-    LOG_DEBUG(Service_AM, "called, No target for home button press");
+void WindowSystem::OnSystemButtonPress(SystemButtonType type) {
+    std::scoped_lock lk{m_lock};
+    switch (type) {
+    case SystemButtonType::HomeButtonShortPressing:
+        SendButtonAppletMessageLocked(AppletMessage::DetectShortPressingHomeButton);
+        break;
+    case SystemButtonType::HomeButtonLongPressing: {
+        // Toggle overlay foreground visibility on long home press
+        if (m_overlay_display) {
+            std::scoped_lock lk_overlay{m_overlay_display->lock};
+            m_overlay_display->overlay_in_foreground = !m_overlay_display->overlay_in_foreground;
+            // Tie window visibility to foreground state so hidden when not active
+            m_overlay_display->window_visible = m_overlay_display->overlay_in_foreground;
+            LOG_INFO(Service_AM, "Overlay long-press toggle: overlay_in_foreground={} window_visible={}", m_overlay_display->overlay_in_foreground, m_overlay_display->window_visible);
+        }
+        SendButtonAppletMessageLocked(AppletMessage::DetectLongPressingHomeButton);
+        // Force a state update after toggling overlay
+        if (m_event_observer) {
+            m_event_observer->RequestUpdate();
+        }
+        break; }
+    case SystemButtonType::CaptureButtonShortPressing:
+        SendButtonAppletMessageLocked(AppletMessage::DetectShortPressingCaptureButton);
+        break;
+    case SystemButtonType::CaptureButtonLongPressing:
+        SendButtonAppletMessageLocked(AppletMessage::DetectLongPressingCaptureButton);
+        break;
+    default:
+        break;
+    }
+}
+
+void WindowSystem::OnHomeButtonPressed(ButtonPressDuration type) {
+    // Map duration to SystemButtonType for legacy callers
+    switch (type) {
+    case ButtonPressDuration::ShortPressing:
+        OnSystemButtonPress(SystemButtonType::HomeButtonShortPressing);
+        break;
+    case ButtonPressDuration::MiddlePressing:
+    case ButtonPressDuration::LongPressing:
+        OnSystemButtonPress(SystemButtonType::HomeButtonLongPressing);
+        break;
+    }
 }
 
 void WindowSystem::PruneTerminatedAppletsLocked() {
@@ -381,6 +390,20 @@ void WindowSystem::UpdateAppletStateLocked(Applet* applet, bool is_foreground, b
         applet->lifecycle_manager.SetActivityState(visible_state);
         applet->UpdateSuspensionStateLocked(true);
     }
+
+    // Z-index logic like in reference C# implementation (tuned for overlay extremes)
+    s32 z_index = 0;
+    const bool now_foreground = inherited_foreground;
+    if (applet->applet_id == AppletId::OverlayDisplay) {
+        z_index = applet->overlay_in_foreground ? 100000 : -100000;
+    } else if (now_foreground && !is_obscured) {
+        z_index = 2;
+    } else if (now_foreground) {
+        z_index = 1;
+    } else {
+        z_index = 0;
+    }
+    applet->display_layer_manager.SetOverlayZIndex(z_index);
 
     // Recurse into child applets.
     for (const auto& child_applet : applet->child_applets) {

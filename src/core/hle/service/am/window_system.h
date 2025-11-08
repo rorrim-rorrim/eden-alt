@@ -11,6 +11,7 @@
 #include <mutex>
 
 #include "common/common_types.h"
+#include "core/hle/service/am/am_types.h" // added for SystemButtonType, AppletMessage
 
 namespace Core {
 class System;
@@ -52,8 +53,9 @@ public:
 public:
     void OnOperationModeChanged();
     void OnExitRequested();
-    void OnHomeButtonPressed(ButtonPressDuration type);
-    void OnCaptureButtonPressed(ButtonPressDuration type) {}
+    void OnHomeButtonPressed(ButtonPressDuration type); // legacy mapping
+    void OnSystemButtonPress(SystemButtonType type);
+    void OnCaptureButtonPressed(ButtonPressDuration type) { /* legacy no-op */ }
     void OnPowerButtonPressed(ButtonPressDuration type) {}
 
 private:
@@ -61,6 +63,7 @@ private:
     bool LockHomeMenuIntoForegroundLocked();
     void TerminateChildAppletsLocked(Applet* applet);
     void UpdateAppletStateLocked(Applet* applet, bool is_foreground, bool overlay_blocking = false);
+    void SendButtonAppletMessageLocked(AppletMessage message);
 
 private:
     // System reference.
