@@ -158,6 +158,8 @@ private:
 
     bool is_outdated{};
     bool is_suboptimal{};
+    bool incremental_present_usable{};
+    bool incremental_present_probed{};
 };
 
 } // namespace Vulkan
