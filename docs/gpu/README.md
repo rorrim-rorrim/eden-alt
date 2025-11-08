@@ -227,11 +227,17 @@ Continue.
 # CS2R
 `0101 0000 1100 1---`
 
+Move Special Register to Register.
+
 # CSET
 `0101 0000 1001 1---`
 
+Test Condition Code And Set.
+
 # CSETP
 `0101 0000 1010 0---`
+
+Test Condition Code and Set Predicate.
 
 # DADD
 - **DADD_reg**: `0101 1100 0111 0---`
@@ -606,6 +612,8 @@ No operation.
 - **P2R_cbuf**: `0100 1100 1110 1---`
 - **P2R_imm**: `0011 1000 1110 1---`
 
+Move Predicate Register To Register.
+
 # PBK
 `1110 0010 1010 ----`
 
@@ -650,16 +658,24 @@ Pre-return from subroutine. Pushes the return address to the CRS stack.
 # PSET
 `0101 0000 1000 1---`
 
+Combine Predicates and Set.
+
 # PSETP
 `0101 0000 1001 0---`
 
+Combine Predicates and Set Predicate.
+
 # R2B
 `1111 0000 1100 0---`
+
+Move Register to Barrier.
 
 # R2P
 - **R2P_reg**: `0101 1100 1111 0---`
 - **R2P_cbuf**: `0100 1100 1111 0---`
 - **R2P_imm**: `0011 100- 1111 0---`
+
+Move Register To Predicate/CC Register.
 
 # RAM
 `1110 0011 1000 ----`
@@ -721,20 +737,32 @@ Return.
 # SSY
 `1110 0010 1001 ----`
 
+Set Synchronization Point.
+
 # ST
 `101- ---- ---- ----`
+
+Store to generic Memory.
 
 # STG
 `1110 1110 1101 1---`
 
+Store to global Memory.
+
 # STL
 `1110 1111 0101 0---`
+
+Store within Local or Shared Window.
 
 # STP
 `1110 1110 1010 0---`
 
+Store to generic Memory and Predicate.
+
 # STS
 `1110 1111 0101 1---`
+
+Store within Local or Shared Window.
 
 # SUATOM
 - **SUATOM**: `1110 1010 0--- ----`
@@ -765,21 +793,21 @@ Surface Store.
 - **TEX_b**: `1101 1110 10-- ----`
 - **TEXS**: `1101 -00- ---- ----`
 
-Texture Fetch.
+Texture Fetch with scalar/non-vec4 source/destinations.
 
 # TLD
 - **TLD**: `1101 1100 ---- ----`
 - **TLD_b**: `1101 1101 ---- ----`
 - **TLDS**: `1101 -01- ---- ----`
 
-Texture Load.
+Texture Load with scalar/non-vec4 source/destinations.
 
 # TLD4
 - **TLD4**: `1100 10-- ---- ----`
 - **TLD4_b**: `1101 1110 11-- ----`
 - **TLD4S**: `1101 1111 -0-- ----`
 
-Texture Load 4.
+Texture Load 4 with scalar/non-vec4 source/destinations.
 
 # TMML
 - **TMML**: `1101 1111 0101 1---`
@@ -821,6 +849,8 @@ Texture Query.
 - **VOTE**: `0101 0000 1101 1---`
 - **VOTE_vtg**: `0101 0000 1110 0---`
 
+Vote Across SIMD Thread Group
+
 # VSET
 `0100 000- ---- ----`
 
@@ -838,3 +868,5 @@ Texture Query.
 - **XMAD_rc**: `0101 0001 0--- ----`
 - **XMAD_cr**: `0100 111- ---- ----`
 - **XMAD_imm**: `0011 011- 00-- ----`
+
+Integer Short Multiply Add.
