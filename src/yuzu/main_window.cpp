@@ -21,6 +21,7 @@
 #include "loading_screen.h"
 #include "ryujinx_dialog.h"
 #include "set_play_time_dialog.h"
+#include "util/util.h"
 #include "vk_device_info.h"
 
 #include "applets/qt_amiibo_settings.h"
@@ -2796,54 +2797,6 @@ void MainWindow::OnGameListOpenPerGameProperties(const std::string& file) {
     }
 
     OpenPerGameConfiguration(title_id, file);
-}
-
-const std::optional<Common::UUID> MainWindow::GetProfileID()
-{
-    // if there's only a single profile, the user probably wants to use that... right?
-    const auto& profiles = QtCommon::system->GetProfileManager().FindExistingProfileUUIDs();
-    if (profiles.size() == 1) {
-        return profiles[0];
-    }
-
-    const auto select_profile = [this] {
-        const Core::Frontend::ProfileSelectParameters parameters{
-                                                                 .mode = Service::AM::Frontend::UiMode::UserSelector,
-                                                                 .invalid_uid_list = {},
-                                                                 .display_options = {},
-                                                                 .purpose = Service::AM::Frontend::UserSelectionPurpose::General,
-                                                                 };
-        QtProfileSelectionDialog dialog(*QtCommon::system, this, parameters);
-        dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint
-                              | Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
-        dialog.setWindowModality(Qt::WindowModal);
-
-        if (dialog.exec() == QDialog::Rejected) {
-            return -1;
-        }
-
-        return dialog.GetIndex();
-    };
-
-    const auto index = select_profile();
-    if (index == -1) {
-        return std::nullopt;
-    }
-
-    const auto uuid = QtCommon::system->GetProfileManager().GetUser(static_cast<std::size_t>(index));
-    ASSERT(uuid);
-
-    return uuid;
-}
-
-std::string MainWindow::GetProfileIDString()
-{
-    const auto uuid = GetProfileID();
-    if (!uuid) return "";
-
-    auto user_id = uuid->AsU128();
-
-    return fmt::format("{:016X}{:016X}", user_id[1], user_id[0]);
 }
 
 void MainWindow::OnLinkToRyujinx(const u64& program_id)
