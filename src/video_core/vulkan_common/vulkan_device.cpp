@@ -109,7 +109,6 @@ constexpr std::array E5B9G9R9_UFLOAT_PACK32{
 
 } // namespace Alternatives
 
-
 template <typename T>
 void SetNext(void**& next, T& data) {
     *next = &data;
