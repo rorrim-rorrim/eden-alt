@@ -1491,7 +1491,32 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DA
     for (const ImageId overlap_id : join_ignore_textures) {
         Image& overlap = slot_images[overlap_id];
         if (True(overlap.flags & ImageFlagBits::GpuModified)) {
-            UNIMPLEMENTED();
+            // Merge GPU-modified contents from the overlapping image into the newly
+            // created image to preserve guest-visible data. Compute shrink/scale
+            // copies and dispatch a GPU-side copy. This mirrors the behavior used
+            // for overlaps handled in join_copies_to_do above.
+            new_image.flags |= ImageFlagBits::GpuModified;
+            const auto& resolution = Settings::values.resolution_info;
+            const auto base_opt = new_image.TryFindBase(overlap.gpu_addr);
+            if (base_opt) {
+                const SubresourceBase base = base_opt.value();
+                const u32 up_scale = can_rescale ? resolution.up_scale : 1;
+                const u32 down_shift = can_rescale ? resolution.down_shift : 0;
+                auto copies = MakeShrinkImageCopies(new_info, overlap.info, base, up_scale, down_shift);
+                if (overlap.info.num_samples != new_image.info.num_samples) {
+                    runtime.CopyImageMSAA(new_image, overlap, FixSmallVectorADL(copies));
+                } else {
+                    runtime.CopyImage(new_image, overlap, FixSmallVectorADL(copies));
+                }
+                new_image.modification_tick = overlap.modification_tick;
+            } else {
+                // If we cannot determine a base mapping, fallback to preserving the
+                // overlap (avoid deleting GPU-modified data) and log the event so
+                // it can be investigated, we're trying to pinpoint the issue of texture flickering.
+                LOG_WARNING(HW_GPU, "Could not map overlap gpu_addr {:#x} into new image; preserving overlap {}",
+                            overlap.gpu_addr, overlap_id);
+                continue;
+            }
         }
         if (True(overlap.flags & ImageFlagBits::Tracked)) {
             UntrackImage(overlap, overlap_id);
