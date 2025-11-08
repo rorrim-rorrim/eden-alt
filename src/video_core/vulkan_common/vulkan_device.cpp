@@ -728,7 +728,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             .customBorderColor = VkClearColorValue{{1.0f, 0.0f, 0.0f, 1.0f}},
             .format = VK_FORMAT_UNDEFINED,
         };
-        VkSamplerCreateInfo{
+        VkSamplerCreateInfo sampler_ci{
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
             .pNext = &border_ci,
             .flags = 0,
