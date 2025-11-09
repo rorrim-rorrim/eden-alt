@@ -38,6 +38,9 @@ struct Profile {
     bool support_gl_nv_gpu_shader_5{};
     bool support_gl_amd_gpu_shader_half_float{};
     bool support_gl_texture_shadow_lod{};
+    bool support_gl_shader_atomic_float{};
+    bool support_gl_shader_atomic_fp16_vector{};
+    bool support_gl_shader_atomic_int64{};
     bool support_gl_warp_intrinsics{};
     bool support_gl_variable_aoffi{};
     bool support_gl_sparse_textures{};

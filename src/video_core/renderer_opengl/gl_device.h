@@ -152,6 +152,18 @@ public:
         return has_draw_texture;
     }
 
+    bool HasShaderAtomicFloat() const {
+        return has_shader_atomic_float;
+    }
+
+    bool HasShaderAtomicFp16Vector() const {
+        return has_shader_atomic_fp16_vector;
+    }
+
+    bool HasShaderAtomicInt64() const {
+        return has_shader_atomic_int64;
+    }
+
     bool IsWarpSizePotentiallyLargerThanGuest() const {
         return warp_size_potentially_larger_than_guest;
     }
@@ -235,6 +247,9 @@ private:
     bool has_amd_shader_half_float{};
     bool has_sparse_texture_2{};
     bool has_draw_texture{};
+    bool has_shader_atomic_float{};
+    bool has_shader_atomic_fp16_vector{};
+    bool has_shader_atomic_int64{};
     bool warp_size_potentially_larger_than_guest{};
     bool need_fastmath_off{};
     bool has_cbuf_ftou_bug{};
