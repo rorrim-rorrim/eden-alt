@@ -49,6 +49,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, ExtendedDynamicState, EXTENDED_DYNAMIC_STATE, extended_dynamic_state)             \
     FEATURE(EXT, ExtendedDynamicState2, EXTENDED_DYNAMIC_STATE_2, extended_dynamic_state2)         \
     FEATURE(EXT, ExtendedDynamicState3, EXTENDED_DYNAMIC_STATE_3, extended_dynamic_state3)         \
+    FEATURE(EXT, ShaderAtomicFloat, SHADER_ATOMIC_FLOAT, shader_atomic_float)                      \
     FEATURE(EXT, 4444Formats, 4444_FORMATS, format_a4b4g4r4)                                       \
     FEATURE(EXT, IndexTypeUint8, INDEX_TYPE_UINT8, index_type_uint8)                               \
     FEATURE(EXT, LineRasterization, LINE_RASTERIZATION, line_rasterization)                        \
@@ -609,6 +610,11 @@ public:
     /// Returns true if the device supports VK_KHR_shader_atomic_int64.
     bool IsExtShaderAtomicInt64Supported() const {
         return extensions.shader_atomic_int64;
+    }
+
+    /// Returns true if the device supports VK_EXT_shader_atomic_float.
+    bool IsExtShaderAtomicFloatSupported() const {
+        return extensions.shader_atomic_float;
     }
 
     bool IsExtConditionalRendering() const {
