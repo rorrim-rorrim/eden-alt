@@ -1304,6 +1304,43 @@ void Device::RemoveUnsuitableExtensions() {
                                VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
     }
 
+    // VK_KHR_shader_float16_int8
+    const bool float16_int8_requested = extensions.shader_float16_int8;
+    const bool float16_int8_usable =
+        features.shader_float16_int8.shaderFloat16 || features.shader_float16_int8.shaderInt8;
+    if (float16_int8_requested && !float16_int8_usable) {
+        LOG_WARNING(Render_Vulkan,
+                    "Disabling VK_KHR_shader_float16_int8 — no shaderFloat16/shaderInt8 features reported");
+    }
+    extensions.shader_float16_int8 = float16_int8_requested && float16_int8_usable;
+    RemoveExtensionFeatureIfUnsuitable(float16_int8_usable, features.shader_float16_int8,
+                                       VK_KHR_SHADER_FLOAT16_INT8_EXTENSION_NAME);
+
+    // VK_EXT_shader_atomic_float
+    const bool atomic_float_requested = extensions.shader_atomic_float;
+    const auto& atomic_float_features = features.shader_atomic_float;
+    const bool supports_buffer_f32 = atomic_float_features.shaderBufferFloat32Atomics ||
+                                     atomic_float_features.shaderBufferFloat32AtomicAdd;
+    const bool supports_shared_f32 = atomic_float_features.shaderSharedFloat32Atomics ||
+                                     atomic_float_features.shaderSharedFloat32AtomicAdd;
+    const bool supports_image_f32 = atomic_float_features.shaderImageFloat32Atomics ||
+                                    atomic_float_features.shaderImageFloat32AtomicAdd;
+    const bool supports_sparse_f32 = atomic_float_features.sparseImageFloat32Atomics ||
+                                     atomic_float_features.sparseImageFloat32AtomicAdd;
+    const bool supports_buffer_f64 = atomic_float_features.shaderBufferFloat64Atomics ||
+                                     atomic_float_features.shaderBufferFloat64AtomicAdd;
+    const bool supports_shared_f64 = atomic_float_features.shaderSharedFloat64Atomics ||
+                                     atomic_float_features.shaderSharedFloat64AtomicAdd;
+    const bool atomic_float_usable = supports_buffer_f32 || supports_shared_f32 || supports_image_f32 ||
+                                     supports_sparse_f32 || supports_buffer_f64 || supports_shared_f64;
+    if (atomic_float_requested && !atomic_float_usable) {
+        LOG_WARNING(Render_Vulkan,
+                    "Disabling VK_EXT_shader_atomic_float — no usable atomic float feature bits reported");
+    }
+    extensions.shader_atomic_float = atomic_float_requested && atomic_float_usable;
+    RemoveExtensionFeatureIfUnsuitable(atomic_float_usable, features.shader_atomic_float,
+                                       VK_EXT_SHADER_ATOMIC_FLOAT_EXTENSION_NAME);
+
     // VK_KHR_shader_atomic_int64
     extensions.shader_atomic_int64 = features.shader_atomic_int64.shaderBufferInt64Atomics &&
                                      features.shader_atomic_int64.shaderSharedInt64Atomics;

@@ -380,13 +380,14 @@ void EmitContext::SetupExtensions() {
     if (info.uses_int64 && profile.support_int64) {
         header += "#extension GL_ARB_gpu_shader_int64 : enable\n";
     }
-    if (info.uses_int64_bit_atomics) {
+    if (info.uses_int64_bit_atomics && profile.support_gl_shader_atomic_int64) {
         header += "#extension GL_NV_shader_atomic_int64 : enable\n";
     }
-    if (info.uses_atomic_f32_add) {
+    if (info.uses_atomic_f32_add && profile.support_gl_shader_atomic_float) {
         header += "#extension GL_NV_shader_atomic_float : enable\n";
     }
-    if (info.uses_atomic_f16x2_add || info.uses_atomic_f16x2_min || info.uses_atomic_f16x2_max) {
+    if ((info.uses_atomic_f16x2_add || info.uses_atomic_f16x2_min || info.uses_atomic_f16x2_max) &&
+        profile.support_gl_shader_atomic_fp16_vector) {
         header += "#extension GL_NV_shader_atomic_fp16_vector : enable\n";
     }
     if (info.uses_fp16) {
