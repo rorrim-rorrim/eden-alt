@@ -604,20 +604,12 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         }
     }
     if (extensions.extended_dynamic_state3 && (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
-        // Only set to false when EDS = 0, otherwise keep true
-        if (Settings::values.dyna_state.GetValue() == 0) {
-            LOG_WARNING(Render_Vulkan,
-                        "AMD and Samsung drivers have glitchy extendedDynamicState3ColorBlendEquation disabling for EDS 0.");
-            features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-            features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
-            dynamic_state3_blending = false;
-        } else {
+        // AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation
         LOG_WARNING(Render_Vulkan,
-                    "AMD and Samsung drivers have glitchy extendedDynamicState3ColorBlendEquation enabling for now.");
-            features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = true;
-            features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = true;
-            dynamic_state3_blending = true;
-        }
+                    "AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation");
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
+        dynamic_state3_blending = false;
     }
     // VK_EXT_vertex_input_dynamic_state (VIDS) workaround
     // VIDS causes black screen when EDS=0, must be off in this case
@@ -761,10 +753,12 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         Settings::values.dyna_state.SetValue(0);
     }
 
-    if (Settings::values.dyna_state.GetValue() == 0) {
-        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2, VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3, VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+    if (Settings::values.dyna_state.GetValue() != 0) {
+        if (Settings::values.dyna_state.GetValue() == 0) {
+            RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+            RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2, VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+            RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3, VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+        }
     }
 
     logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions), first_next, dld);
