@@ -607,8 +607,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         // AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation
         LOG_WARNING(Render_Vulkan,
                     "AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
+        // features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
+        // features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
         dynamic_state3_blending = false;
         dynamic_state3_enables = true;
     }
