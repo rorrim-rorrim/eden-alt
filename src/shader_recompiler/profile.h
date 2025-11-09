@@ -22,6 +22,8 @@ struct Profile {
     bool support_fp32_denorm_preserve{};
     bool support_fp16_denorm_flush{};
     bool support_fp32_denorm_flush{};
+    bool support_fp16_round_rte{};
+    bool support_fp32_round_rte{};
     bool support_fp16_signed_zero_nan_preserve{};
     bool support_fp32_signed_zero_nan_preserve{};
     bool support_fp64_signed_zero_nan_preserve{};
@@ -45,6 +47,9 @@ struct Profile {
     bool support_scaled_attributes{};
     bool support_multi_viewport{};
     bool support_geometry_streams{};
+
+    /// FTZ is default mode so no need to specify it again (QCOM)
+    bool uses_ftz_as_default{};
 
     bool warp_size_potentially_larger_than_guest{};
 

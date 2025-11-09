@@ -335,12 +335,11 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .support_fp32_denorm_preserve = float_control.shaderDenormPreserveFloat32 != VK_FALSE,
         .support_fp16_denorm_flush = float_control.shaderDenormFlushToZeroFloat16 != VK_FALSE,
         .support_fp32_denorm_flush = float_control.shaderDenormFlushToZeroFloat32 != VK_FALSE,
-        .support_fp16_signed_zero_nan_preserve =
-            float_control.shaderSignedZeroInfNanPreserveFloat16 != VK_FALSE,
-        .support_fp32_signed_zero_nan_preserve =
-            float_control.shaderSignedZeroInfNanPreserveFloat32 != VK_FALSE,
-        .support_fp64_signed_zero_nan_preserve =
-            float_control.shaderSignedZeroInfNanPreserveFloat64 != VK_FALSE,
+        .support_fp16_round_rte = float_control.shaderRoundingModeRTEFloat16 != VK_FALSE,
+        .support_fp32_round_rte = float_control.shaderRoundingModeRTEFloat32 != VK_FALSE,
+        .support_fp16_signed_zero_nan_preserve = float_control.shaderSignedZeroInfNanPreserveFloat16 != VK_FALSE,
+        .support_fp32_signed_zero_nan_preserve = float_control.shaderSignedZeroInfNanPreserveFloat32 != VK_FALSE,
+        .support_fp64_signed_zero_nan_preserve = float_control.shaderSignedZeroInfNanPreserveFloat64 != VK_FALSE,
         .support_explicit_workgroup_layout = device.IsKhrWorkgroupMemoryExplicitLayoutSupported(),
         .support_vote = device.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_VOTE_BIT),
         .support_viewport_index_layer_non_geometry =
@@ -357,6 +356,7 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .support_multi_viewport = device.SupportsMultiViewport(),
         .support_geometry_streams = device.AreTransformFeedbackGeometryStreamsSupported(),
 
+        .uses_ftz_as_default = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY,
         .warp_size_potentially_larger_than_guest = device.IsWarpSizePotentiallyBiggerThanGuest(),
 
         .lower_left_origin_mode = false,
