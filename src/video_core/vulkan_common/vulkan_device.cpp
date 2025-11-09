@@ -495,11 +495,23 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectPhysicalMemoryInfo();
     CollectToolingInfo();
 
-    if (is_qualcomm || is_turnip) {
-        LOG_WARNING(Render_Vulkan,
-                    "Qualcomm and Turnip drivers have broken VK_EXT_custom_border_color");
-        //RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
-        //VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+    // Driver-specific handling for VK_EXT_custom_border_color
+    // On some Qualcomm/Turnip/ARM drivers the extension may be partially implemented.
+    // Enable it if ANY useful feature bit is reported; otherwise, let the removal pass drop it.
+    if (is_qualcomm || is_turnip || is_arm) {
+        const bool has_any_custom_border_color =
+            features.custom_border_color.customBorderColors ||
+            features.custom_border_color.customBorderColorWithoutFormat;
+        if (!has_any_custom_border_color) {
+            LOG_WARNING(Render_Vulkan,
+                        "Disabling VK_EXT_custom_border_color on '{}' — no usable custom border color features reported",
+                        properties.driver.driverName);
+            // Do not clear here; final removal happens in RemoveUnsuitableExtensions based on bits.
+        } else {
+            LOG_INFO(Render_Vulkan,
+                     "Partial VK_EXT_custom_border_color support detected on '{}' — enabling available features",
+                     properties.driver.driverName);
+        }
     }
 
     if (is_qualcomm) {
@@ -705,6 +717,15 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             must_emulate_bgr565 = false;
         } else {
             LOG_WARNING(Render_Vulkan, "Turnip driver doesn't support native BGR, emulating formats");
+            must_emulate_bgr565 = true;
+        }
+    } else if (is_arm) {
+        // ARM Mali: stop emulating BGR5 formats when VK_KHR_maintenance5 is available
+        if (extensions.maintenance5) {
+            LOG_INFO(Render_Vulkan, "ARM driver supports VK_KHR_maintenance5, disabling BGR emulation");
+            must_emulate_bgr565 = false;
+        } else {
+            LOG_WARNING(Render_Vulkan, "ARM driver doesn't support native BGR, emulating formats");
             must_emulate_bgr565 = true;
         }
     }
