@@ -235,6 +235,15 @@ struct ImageDescriptor {
 };
 using ImageDescriptors = boost::container::small_vector<ImageDescriptor, 4>;
 
+enum class FloatDenormKind : u32 {
+    None = 0,
+    DenormPreserve,
+    DenormFlushToZero,
+    SignedZeroInfNanPreserve,
+    RoundingModeRTE,
+    RoundingModeRTZ
+};
+
 struct Info {
     static constexpr size_t MAX_INDIRECT_CBUFS{14};
     static constexpr size_t MAX_CBUFS{18};
@@ -273,10 +282,8 @@ struct Info {
 
     bool uses_fp16{};
     bool uses_fp64{};
-    bool uses_fp16_denorms_flush{};
-    bool uses_fp16_denorms_preserve{};
-    bool uses_fp32_denorms_flush{};
-    bool uses_fp32_denorms_preserve{};
+    FloatDenormKind fp16_denorm{};
+    FloatDenormKind fp32_denorm{};
     bool uses_int8{};
     bool uses_int16{};
     bool uses_int64{};

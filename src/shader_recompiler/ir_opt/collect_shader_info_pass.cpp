@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/alignment.h"
+#include "common/assert.h"
 #include "shader_recompiler/environment.h"
 #include "shader_recompiler/frontend/ir/modifiers.h"
 #include "shader_recompiler/frontend/ir/program.h"
@@ -769,6 +770,15 @@ void VisitUsages(Info& info, IR::Inst& inst) {
     }
 }
 
+constexpr Shader::FloatDenormKind FloatDenormModeToShaderMode(IR::FmzMode const mode) noexcept {
+    switch (mode) {
+    case IR::FmzMode::DontCare: return Shader::FloatDenormKind::None;
+    case IR::FmzMode::FTZ: return Shader::FloatDenormKind::DenormFlushToZero;
+    case IR::FmzMode::FMZ: return Shader::FloatDenormKind::RoundingModeRTE;
+    case IR::FmzMode::None: return Shader::FloatDenormKind::DenormPreserve;
+    }
+}
+
 void VisitFpModifiers(Info& info, IR::Inst& inst) {
     switch (inst.GetOpcode()) {
     case IR::Opcode::FPAdd16:
@@ -778,18 +788,10 @@ void VisitFpModifiers(Info& info, IR::Inst& inst) {
     case IR::Opcode::FPFloor16:
     case IR::Opcode::FPCeil16:
     case IR::Opcode::FPTrunc16: {
-        const auto control{inst.Flags<IR::FpControl>()};
-        switch (control.fmz_mode) {
-        case IR::FmzMode::DontCare:
-            break;
-        case IR::FmzMode::FTZ:
-        case IR::FmzMode::FMZ:
-            info.uses_fp16_denorms_flush = true;
-            break;
-        case IR::FmzMode::None:
-            info.uses_fp16_denorms_preserve = true;
-            break;
-        }
+        auto const control = inst.Flags<IR::FpControl>();
+        auto const denorm = FloatDenormModeToShaderMode(control.fmz_mode);
+        ASSERT(info.fp16_denorm == FloatDenormKind::None || info.fp16_denorm == denorm);
+        info.fp16_denorm = denorm;
         break;
     }
     case IR::Opcode::FPAdd32:
@@ -813,18 +815,10 @@ void VisitFpModifiers(Info& info, IR::Inst& inst) {
     case IR::Opcode::FPUnordGreaterThanEqual32:
     case IR::Opcode::ConvertF16F32:
     case IR::Opcode::ConvertF64F32: {
-        const auto control{inst.Flags<IR::FpControl>()};
-        switch (control.fmz_mode) {
-        case IR::FmzMode::DontCare:
-            break;
-        case IR::FmzMode::FTZ:
-        case IR::FmzMode::FMZ:
-            info.uses_fp32_denorms_flush = true;
-            break;
-        case IR::FmzMode::None:
-            info.uses_fp32_denorms_preserve = true;
-            break;
-        }
+        const auto control = inst.Flags<IR::FpControl>();
+        auto const denorm = FloatDenormModeToShaderMode(control.fmz_mode);
+        ASSERT(info.fp32_denorm == FloatDenormKind::None || info.fp32_denorm == denorm);
+        info.fp32_denorm = denorm;
         break;
     }
     default:
