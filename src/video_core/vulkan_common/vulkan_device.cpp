@@ -610,6 +610,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
         dynamic_state3_blending = false;
+        dynamic_state3_enables = true;
     }
     // VK_EXT_vertex_input_dynamic_state (VIDS) workaround
     // VIDS causes black screen when EDS=0, must be off in this case
