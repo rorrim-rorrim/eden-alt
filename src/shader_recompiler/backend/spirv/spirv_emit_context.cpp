@@ -462,8 +462,8 @@ EmitContext::EmitContext(const Profile& profile_, const RuntimeInfo& runtime_inf
                          IR::Program& program, Bindings& bindings)
         : Sirit::Module(profile_.supported_spirv), profile{profile_}, runtime_info{runtime_info_},
             stage{program.stage},
-            // Enable int64 emulation if host lacks int64 but we either use int64 ops
-            // or we need 64-bit addressing for global memory operations.
+            // Enable int64 emulation if host lacks int64 but we either use
+            // int64 ops or we need 64-bit addressing for global memory operations.
             emulate_int64{!profile.support_int64 &&
                           (program.info.uses_int64 || program.info.uses_global_memory)},
             texture_rescaling_index{bindings.texture_scaling_index},
