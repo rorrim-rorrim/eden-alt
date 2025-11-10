@@ -555,6 +555,26 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             cant_blit_msaa = true;
         }
     }
+    // Disable EDS extensions based on EDS setting
+    if (Settings::values.dyna_state.GetValue() == 0) {
+        // Completely disable all EDS extensions when EDS is 0
+        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
+                            VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
+                            VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
+                            VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+    } else if (Settings::values.dyna_state.GetValue() == 1) {
+        // Only EDS1, disable EDS2 and EDS3
+        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
+                            VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
+                            VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+    } else if (Settings::values.dyna_state.GetValue() == 2) {
+        // Only EDS1 and EDS2, disable EDS3
+        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
+                            VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+    }
     if (extensions.extended_dynamic_state && is_radv) {
         // Mask driver version variant
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
@@ -607,10 +627,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         // AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation
         LOG_WARNING(Render_Vulkan,
                     "AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation");
-        // features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-        // features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
         dynamic_state3_blending = false;
-        dynamic_state3_enables = true;
     }
     // VK_EXT_vertex_input_dynamic_state (VIDS) workaround
     // VIDS causes black screen when EDS=0, must be off in this case
@@ -675,9 +694,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
         if (version < VK_MAKE_API_VERSION(27, 20, 100, 0)) {
             LOG_WARNING(Render_Vulkan, "Intel has broken VK_EXT_vertex_input_dynamic_state");
-            //RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
-            //features.vertex_input_dynamic_state,
-            //VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+            RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
+            features.vertex_input_dynamic_state,
+            VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
         }
     }
     if (features.shader_float16_int8.shaderFloat16 && is_intel_windows) {
