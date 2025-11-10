@@ -164,6 +164,12 @@ if (YUZU_STATIC_BUILD)
     # libharfbuzz.a
     extra_libs(graphite2 rpcrt4)
 
+    # libbrotlienc.a
+    extra_libs(brotlicommon)
+
+    # openssl
+    extra_libs(crypt32)
+
     # msys2 quazip does not build a static lib
     set(QuaZip-Qt6_FORCE_BUNDLED ON)
 endif()
