@@ -619,10 +619,10 @@ public:
             prot_flags |= PROT_READ;
         if (True(perms & MemoryPermission::Write))
             prot_flags |= PROT_WRITE;
-        // W^X only supported with NCE
-#if defined(ARCHITECTURE_arm64) && defined(HAS_NCE)
+        // W^X only supported (and needed) with NCE
+#ifdef HAS_NCE
         if (True(perms & MemoryPermission::Execute))
-            flags |= PROT_EXEC;
+            prot_flags |= PROT_EXEC;
 #endif
         int flags = (fd > 0 ? MAP_SHARED : MAP_PRIVATE) | MAP_FIXED;
         void* ret = mmap(virtual_base + virtual_offset, length, prot_flags, flags, fd, host_offset);
@@ -650,16 +650,13 @@ public:
         AdjustMap(&virtual_offset, &length);
 
         int flags = PROT_NONE;
-        if (read) {
+        if (read)
             flags |= PROT_READ;
-        }
-        if (write) {
+        if (write)
             flags |= PROT_WRITE;
-        }
 #ifdef HAS_NCE
-        if (execute) {
+        if (execute)
             flags |= PROT_EXEC;
-        }
 #endif
         int ret = mprotect(virtual_base + virtual_offset, length, flags);
         ASSERT_MSG(ret == 0, "mprotect failed: {}", strerror(errno));
