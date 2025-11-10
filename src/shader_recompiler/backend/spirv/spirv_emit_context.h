@@ -207,6 +207,15 @@ public:
     const Profile& profile;
     const RuntimeInfo& runtime_info;
     Stage stage{};
+    const bool emulate_int64{};
+
+    bool SupportsNativeInt64() const {
+        return profile.support_int64;
+    }
+
+    bool UsesInt64Emulation() const {
+        return emulate_int64;
+    }
 
     Id void_id{};
     Id U1{};
