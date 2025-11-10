@@ -3,9 +3,6 @@
 
 #ifdef QT_STATICPLUGIN
 #undef VMA_IMPLEMENTATION
-#else
-#define VMA_IMPLEMENTATION
-#include "video_core/vulkan_common/vma.h"
 #endif
 
 #include "common/fs/ryujinx_compat.h"
@@ -4905,4 +4902,9 @@ void VolumeButton::ResetMultiplier() {
 
 #ifdef main
 #undef main
+#endif
+
+#ifndef QT_STATICPLUGIN
+#define VMA_IMPLEMENTATION
+#include "video_core/vulkan_common/vma.h"
 #endif

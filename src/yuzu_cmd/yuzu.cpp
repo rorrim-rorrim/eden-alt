@@ -4,9 +4,6 @@
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#define VMA_IMPLEMENTATION
-#include "video_core/vulkan_common/vma.h"
-
 #include <iostream>
 #include <memory>
 #include <regex>
@@ -453,3 +450,6 @@ int main(int argc, char** argv) {
     detached_tasks.WaitForAllTasks();
     return 0;
 }
+
+#define VMA_IMPLEMENTATION
+#include "video_core/vulkan_common/vma.h"

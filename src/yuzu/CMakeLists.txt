@@ -447,4 +447,12 @@ if (YUZU_ROOM)
 target_link_libraries(yuzu PRIVATE Qt6::Widgets)
 endif()
 
+if (YUZU_STATIC_BUILD)
+    # needed for vma
+    target_compile_options(yuzu PRIVATE
+        -Wno-conversion
+        -Wno-unused-variable
+        -Wno-unused-parameter
+        -Wno-missing-field-initializers)
+endif()
 create_target_directory_groups(yuzu)
