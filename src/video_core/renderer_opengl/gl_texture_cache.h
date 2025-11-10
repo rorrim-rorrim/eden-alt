@@ -97,6 +97,10 @@ public:
         return true;
     }
 
+    bool CanDownloadMSAA() const noexcept {
+        return true;
+    }
+
     void CopyImage(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies);
 
     void CopyImageMSAA(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies);

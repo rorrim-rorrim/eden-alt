@@ -426,6 +426,8 @@ private:
     bool ScaleUp(Image& image);
     bool ScaleDown(Image& image);
     u64 GetScaledImageSizeBytes(const ImageBase& image);
+    [[nodiscard]] bool HasMsaaUploadSupport(const ImageInfo& info) const noexcept;
+    [[nodiscard]] bool HasMsaaDownloadSupport(const ImageInfo& info) const noexcept;
 
     void QueueAsyncDecode(Image& image, ImageId image_id);
     void TickAsyncDecode();
