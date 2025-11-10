@@ -555,23 +555,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             cant_blit_msaa = true;
         }
     }
-    // Disable EDS extensions based on EDS setting
     if (Settings::values.dyna_state.GetValue() == 0) {
-        // Completely disable all EDS extensions when EDS is 0
-        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
-                            VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
-                            VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
-                            VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-    } else if (Settings::values.dyna_state.GetValue() == 1) {
-        // Only EDS1, disable EDS2 and EDS3
-        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
-                            VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
-                            VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-    } else if (Settings::values.dyna_state.GetValue() == 2) {
-        // Only EDS1 and EDS2, disable EDS3
         RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
                             VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
     }
