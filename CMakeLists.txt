@@ -162,13 +162,10 @@ if (YUZU_STATIC_BUILD)
     extra_libs(bz2 Lerc)
 
     # libharfbuzz.a
-    extra_libs(graphite2 rpcrt4)
+    extra_libs(graphite2)
 
     # libbrotlienc.a
-    extra_libs(brotlicommon)
-
-    # openssl
-    extra_libs(crypt32)
+    extra_libs(brotlienc brotlidec brotlicommon)
 
     # msys2 quazip does not build a static lib
     set(QuaZip-Qt6_FORCE_BUNDLED ON)
@@ -732,7 +729,7 @@ elseif (WIN32)
     set(PLATFORM_LIBRARIES winmm ws2_32 iphlpapi)
     if (MINGW)
         # PSAPI is the Process Status API
-        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} psapi imm32 version)
+        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} psapi imm32 version crypt32 rpcrt4)
     endif()
 elseif (PLATFORM_HAIKU)
     # Haiku is so special :)
