@@ -1520,6 +1520,7 @@ u64 Device::GetDeviceMemoryUsage() const {
     return result;
 }
 
+
 void Device::CollectPhysicalMemoryInfo() {
     // Calculate limits using memory budget
     VkPhysicalDeviceMemoryBudgetPropertiesEXT budget{};
