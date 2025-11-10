@@ -85,6 +85,10 @@ public:
         return msaa_copy_pass.operator bool();
     }
 
+    bool CanDownloadMSAA() const noexcept {
+        return msaa_copy_pass.operator bool();
+    }
+
     void AccelerateImageUpload(Image&, const StagingBufferRef&,
                                std::span<const VideoCommon::SwizzleParameters>);
 

@@ -131,10 +131,6 @@ bool ImageBase::IsSafeDownload() const noexcept {
     if (True(flags & ImageFlagBits::CpuModified)) {
         return false;
     }
-    if (info.num_samples > 1) {
-        LOG_WARNING(HW_GPU, "MSAA image downloads are not implemented");
-        return false;
-    }
     return true;
 }
 
