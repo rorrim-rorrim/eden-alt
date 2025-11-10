@@ -65,8 +65,10 @@ if (YUZU_STATIC_BUILD)
 endif()
 
 # needed for vma
-target_compile_options(yuzu-cmd PRIVATE
-    -Wno-conversion
-    -Wno-unused-variable
-    -Wno-unused-parameter
-    -Wno-missing-field-initializers)
+if (NOT MSVC)
+    target_compile_options(yuzu-cmd PRIVATE
+        -Wno-conversion
+        -Wno-unused-variable
+        -Wno-unused-parameter
+        -Wno-missing-field-initializers)
+endif()
