@@ -101,7 +101,8 @@ void ButtonPoller::OnButtonStateChanged() {
      }
 
     // Buttons released which were previously held
-    if (!home_button && m_home_button_press_start) { (!m_home_button_long_sent) {
+    if (!home_button && m_home_button_press_start) {
+        if(!m_home_button_long_sent) {
             const auto duration = ClassifyPressDuration(*m_home_button_press_start);
             m_window_system.OnSystemButtonPress(
                 duration == ButtonPressDuration::ShortPressing ? SystemButtonType::HomeButtonShortPressing
@@ -128,7 +129,7 @@ void ButtonPoller::OnButtonStateChanged() {
 
 void ButtonPoller::ThreadLoop() {
     using namespace std::chrono_literals;
-    std::unique_lock<std::mutex> lk{m_mutex};
+    std::unique_lock lk{m_mutex};
     while (!m_stop) {
         m_cv.wait_for(lk, 50ms);
         if (m_stop) break;
