@@ -20,9 +20,9 @@ ButtonPressDuration ClassifyPressDuration(std::chrono::steady_clock::time_point 
 
     // TODO: determine actual thresholds
     // TODO: these are likely different for each button
-    if (dur < 500ms) {
+    if (dur < 400ms) {
         return ButtonPressDuration::ShortPressing;
-    } else if (dur < 1000ms) {
+    } else if (dur < 800ms) {
         return ButtonPressDuration::MiddlePressing;
     } else {
         return ButtonPressDuration::LongPressing;
