@@ -62,4 +62,11 @@ if (YUZU_STATIC_BUILD)
     # At a guess, it's probably because Qt handles the Qt executable for us, whereas this does not
     target_link_options(yuzu-cmd PRIVATE -static -lpthread)
     target_link_options(yuzu-cmd PRIVATE -static-libgcc -static-libstdc++)
+
+    # needed for vma
+    target_compile_options(yuzu-cmd PRIVATE
+        -Wno-conversion
+        -Wno-unused-variable
+        -Wno-unused-parameter
+        -Wno-missing-field-initializers)
 endif()
