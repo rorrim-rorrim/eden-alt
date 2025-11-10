@@ -3,6 +3,9 @@
 
 #ifdef QT_STATICPLUGIN
 #undef VMA_IMPLEMENTATION
+#else
+#define VMA_IMPLEMENTATION
+#include "video_core/vulkan_common/vma.h"
 #endif
 
 #include "common/fs/ryujinx_compat.h"
@@ -48,6 +51,7 @@
 
 // Qt Stuff //
 #define QT_NO_OPENGL
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 #include <QStyleHints>
 #endif

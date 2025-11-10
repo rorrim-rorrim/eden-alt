@@ -28,6 +28,12 @@ if (zstd_FOUND AND NOT TARGET zstd::zstd)
     endif()
 endif()
 
+get_target_property(ZSTD_TARGET zstd::zstd ALIASED_TARGET)
+
 if (NOT TARGET zstd::libzstd)
-    add_library(zstd::libzstd ALIAS zstd::zstd)
+    if (ZSTD_TARGET)
+        add_library(zstd::libzstd ALIAS ${ZSTD_TARGET})
+    else()
+        add_library(zstd::libzstd ALIAS zstd::zstd)
+    endif()
 endif()
