@@ -56,3 +56,10 @@ if(WIN32)
 endif()
 
 create_target_directory_groups(yuzu-cmd)
+
+if (YUZU_STATIC_BUILD)
+    # yuzu-cmd requires us to explicitly link libpthread, libgcc, and libstdc++ as static
+    # At a guess, it's probably because Qt handles the Qt executable for us
+    target_link_options(yuzu-cmd PRIVATE -static -lpthread)
+    target_link_options(yuzu-cmd PRIVATE -static-libgcc -static-libstdc++)
+endif()

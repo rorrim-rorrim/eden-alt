@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#ifdef QT_STATICPLUGIN
+#undef VMA_IMPLEMENTATION
+#endif
+
 #include "common/fs/ryujinx_compat.h"
 #include "main_window.h"
 #include "network/network.h"
@@ -263,6 +267,7 @@ using namespace Common::Literals;
 #endif
 
 #ifdef QT_STATICPLUGIN
+#include <QtPlugin>
 Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
 #endif
 

@@ -4,12 +4,13 @@
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <chrono>
+#define VMA_IMPLEMENTATION
+#include "video_core/vulkan_common/vma.h"
+
 #include <iostream>
 #include <memory>
 #include <regex>
 #include <string>
-#include <thread>
 
 #include <fmt/ostream.h>
 
@@ -17,7 +18,6 @@
 #include "common/logging/backend.h"
 #include "common/logging/log.h"
 #include "common/scm_rev.h"
-#include "common/scope_exit.h"
 #include "common/settings.h"
 #include "common/string_util.h"
 #include "core/core.h"

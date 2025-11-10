@@ -178,13 +178,15 @@ else()
 
     if (MINGW)
         add_compile_definitions(MINGW_HAS_SECURE_API)
+
         # Only windows has this requirement, thanks windows
-        if (WIN32)
+        if (WIN32 AND ARCHITECTURE_x86_64)
             add_compile_options("-msse4.1")
         endif()
-        if (MINGW_STATIC_BUILD)
+
+        if (YUZU_STATIC_BUILD)
             add_compile_definitions(QT_STATICPLUGIN)
-            add_compile_options("-static")
+            add_compile_options(-static)
         endif()
     endif()
 
