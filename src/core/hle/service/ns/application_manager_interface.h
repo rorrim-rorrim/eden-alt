@@ -62,7 +62,7 @@ public:
     Result Unknown4023(Out<u64> out_result);
     Result Unknown4053();
 
-    Result RequestDownloadApplicationControlDataInBackground(u64 unk,
+    Result RequestDownloadApplicationControlDataInBackground(u64 control_source,
                                                              u64 application_id);
 
 private:
@@ -73,6 +73,7 @@ private:
     Event gamecard_mount_status_event;
     Event gamecard_mount_failure_event;
     Event gamecard_waken_ready_event;
+    Event unknown_event;
 };
 
 } // namespace Service::NS

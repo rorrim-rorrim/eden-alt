@@ -4,6 +4,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "core/file_sys/control_metadata.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/service/cmif_serialization.h"
@@ -11,6 +12,7 @@
 #include "core/hle/service/ns/application_manager_interface.h"
 #include "core/hle/service/ns/content_management_interface.h"
 #include "core/hle/service/ns/read_only_application_control_data_interface.h"
+#include "core/file_sys/patch_manager.h"
 
 namespace Service::NS {
 
@@ -19,7 +21,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
       service_context{system, "IApplicationManagerInterface"},
       record_update_system_event{service_context}, sd_card_mount_status_event{service_context},
       gamecard_update_detection_event{service_context},
-      gamecard_mount_status_event{service_context}, gamecard_mount_failure_event{service_context}, gamecard_waken_ready_event{service_context} {
+      gamecard_mount_status_event{service_context}, gamecard_mount_failure_event{service_context}, gamecard_waken_ready_event{service_context}, unknown_event{service_context} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, D<&IApplicationManagerInterface::ListApplicationRecord>, "ListApplicationRecord"},
@@ -331,7 +333,7 @@ Result IApplicationManagerInterface::GetApplicationControlData(
     OutBuffer<BufferAttr_HipcMapAlias> out_buffer, Out<u32> out_actual_size,
     ApplicationControlSource application_control_source, u64 application_id) {
     LOG_DEBUG(Service_NS, "called");
-    R_RETURN(IReadOnlyApplicationControlDataInterface(system).GetApplicationControlDataOld(
+    R_RETURN(IReadOnlyApplicationControlDataInterface(system).GetApplicationControlData(
         out_buffer, out_actual_size, application_control_source, application_id));
 }
 
@@ -563,15 +565,19 @@ Result IApplicationManagerInterface::GetApplicationTerminateResult(Out<Result> o
 }
 
 Result IApplicationManagerInterface::RequestDownloadApplicationControlDataInBackground(
-    u64 unk, u64 application_id) {
-    LOG_WARNING(Service_NS, "(STUBBED), app={:016X} unk={}", application_id, unk);
+    u64 control_source, u64 application_id) {
+    LOG_INFO(Service_NS, "called, control_source={} app={:016X}",
+             control_source, application_id);
+
+    unknown_event.Signal();
     R_SUCCEED();
 }
 
 Result IApplicationManagerInterface::Unknown4022(
     OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_WARNING(Service_NS, "(STUBBED) called");
-    *out_event = gamecard_update_detection_event.GetHandle();
+    unknown_event.Signal();
+    *out_event = unknown_event.GetHandle();
     R_SUCCEED();
 }
 

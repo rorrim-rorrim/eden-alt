@@ -13,8 +13,8 @@ namespace Service::AM {
 
 void LoopProcess(Core::System& system) {
     WindowSystem window_system(system);
-    ButtonPoller button_poller(system, window_system);
     EventObserver event_observer(system, window_system);
+    ButtonPoller button_poller(system, window_system);
 
     auto server_manager = std::make_unique<ServerManager>(system);
 
