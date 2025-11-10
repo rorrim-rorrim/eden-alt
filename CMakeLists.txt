@@ -165,7 +165,7 @@ if (YUZU_STATIC_BUILD)
     extra_libs(graphite2)
 
     # libbrotlienc.a
-    extra_libs(brotlienc brotlidec brotlicommon)
+    extra_libs(brotlicommon brotlienc brotlidec)
 
     # msys2 quazip does not build a static lib
     set(QuaZip-Qt6_FORCE_BUNDLED ON)
