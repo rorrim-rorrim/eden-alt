@@ -92,7 +92,7 @@ void EmitLoadGlobalS16(EmitContext&) {
 }
 
 Id EmitLoadGlobal32(EmitContext& ctx, Id address) {
-    if (ctx.profile.support_int64) {
+    if (ctx.SupportsNativeInt64() || ctx.UsesInt64Emulation()) {
         return ctx.OpFunctionCall(ctx.U32[1], ctx.load_global_func_u32, address);
     }
     LOG_WARNING(Shader_SPIRV, "Int64 not supported, ignoring memory operation");
@@ -100,7 +100,7 @@ Id EmitLoadGlobal32(EmitContext& ctx, Id address) {
 }
 
 Id EmitLoadGlobal64(EmitContext& ctx, Id address) {
-    if (ctx.profile.support_int64) {
+    if (ctx.SupportsNativeInt64() || ctx.UsesInt64Emulation()) {
         return ctx.OpFunctionCall(ctx.U32[2], ctx.load_global_func_u32x2, address);
     }
     LOG_WARNING(Shader_SPIRV, "Int64 not supported, ignoring memory operation");
@@ -108,7 +108,7 @@ Id EmitLoadGlobal64(EmitContext& ctx, Id address) {
 }
 
 Id EmitLoadGlobal128(EmitContext& ctx, Id address) {
-    if (ctx.profile.support_int64) {
+    if (ctx.SupportsNativeInt64() || ctx.UsesInt64Emulation()) {
         return ctx.OpFunctionCall(ctx.U32[4], ctx.load_global_func_u32x4, address);
     }
     LOG_WARNING(Shader_SPIRV, "Int64 not supported, ignoring memory operation");
@@ -132,7 +132,7 @@ void EmitWriteGlobalS16(EmitContext&) {
 }
 
 void EmitWriteGlobal32(EmitContext& ctx, Id address, Id value) {
-    if (ctx.profile.support_int64) {
+    if (ctx.SupportsNativeInt64() || ctx.UsesInt64Emulation()) {
         ctx.OpFunctionCall(ctx.void_id, ctx.write_global_func_u32, address, value);
         return;
     }
@@ -140,7 +140,7 @@ void EmitWriteGlobal32(EmitContext& ctx, Id address, Id value) {
 }
 
 void EmitWriteGlobal64(EmitContext& ctx, Id address, Id value) {
-    if (ctx.profile.support_int64) {
+    if (ctx.SupportsNativeInt64() || ctx.UsesInt64Emulation()) {
         ctx.OpFunctionCall(ctx.void_id, ctx.write_global_func_u32x2, address, value);
         return;
     }
@@ -148,7 +148,7 @@ void EmitWriteGlobal64(EmitContext& ctx, Id address, Id value) {
 }
 
 void EmitWriteGlobal128(EmitContext& ctx, Id address, Id value) {
-    if (ctx.profile.support_int64) {
+    if (ctx.SupportsNativeInt64() || ctx.UsesInt64Emulation()) {
         ctx.OpFunctionCall(ctx.void_id, ctx.write_global_func_u32x4, address, value);
         return;
     }
