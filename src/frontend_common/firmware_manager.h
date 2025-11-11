@@ -58,7 +58,6 @@ enum FirmwareCheckResult {
     FirmwareGood,
     ErrorFirmwareMissing,
     ErrorFirmwareCorrupted,
-    ErrorFirmwareTooNew,
 };
 
 static constexpr std::array<const char *, 4> FIRMWARE_CHECK_STRINGS = {
@@ -66,8 +65,7 @@ static constexpr std::array<const char *, 4> FIRMWARE_CHECK_STRINGS = {
     "Firmware missing. Firmware is required to run certain games and use the Home Menu. "
     "Eden only works with firmware 19.0.1 and earlier.",
     "Firmware reported as present, but was unable to be read. Check for decryption keys and "
-    "redump firmware if necessary.",
-    "Firmware is too new or could not be read. Eden only works with firmware 19.0.1 and earlier.",
+    "redump firmware if necessary."
 };
 
 /**

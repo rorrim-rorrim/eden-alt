@@ -16,7 +16,7 @@ namespace HLE::ApiVersion {
 
 constexpr u8 HOS_VERSION_MAJOR = 21;
 constexpr u8 HOS_VERSION_MINOR = 0;
-constexpr u8 HOS_VERSION_MICRO = 1;
+constexpr u8 HOS_VERSION_MICRO = 0;
 
 // NintendoSDK version constants.
 
