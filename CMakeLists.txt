@@ -132,14 +132,6 @@ if (YUZU_STATIC_BUILD)
     ## some libraries use CMAKE_IMPORT_LIBRARY_SUFFIX e.g. Harfbuzz ##
     set(CMAKE_IMPORT_LIBRARY_SUFFIX ".a")
 
-    ## certain libraries need extra static libs to be linked ##
-    macro(extra_libs)
-        foreach(lib ${ARGN})
-            find_library(${lib}_LIBRARY ${lib} REQUIRED)
-            link_libraries(${${lib}_LIBRARY})
-        endforeach()
-    endmacro()
-
     if (MINGW)
         # simple hook to reject dynamic libs
         function(find_library var)
@@ -158,18 +150,6 @@ if (YUZU_STATIC_BUILD)
             endif()
         endfunction()
 
-        # libtiff.a
-        extra_libs(jbig lzma deflate)
-
-        # libfreetype.a
-        extra_libs(bz2 Lerc)
-
-        # libharfbuzz.a
-        extra_libs(graphite2)
-
-        # openssl
-        extra_libs(ws2_32)
-
         # msys2 quazip does not build a static lib
         set(QuaZip-Qt6_FORCE_BUNDLED ON)
 
@@ -180,10 +160,16 @@ if (YUZU_STATIC_BUILD)
     elseif(APPLE)
         # these libs do not properly provide static libs/let you do it with cmake
         set(YUZU_USE_CPM ON)
+
+        # IMPORTED_IMPLIB not set for imported target
+        # TODO(crueter): wtf
         set(YUZU_USE_BUNDLED_FFMPEG ON)
+        set(YUZU_USE_EXTERNAL_SDL2 ON)
+
         set(fmt_FORCE_BUNDLED ON)
         set(SPIRV-Tools_FORCE_BUNDLED ON)
         set(SPIRV-Headers_FORCE_BUNDLED ON)
+        set(zstd_FORCE_BUNDLED ON)
     endif()
 endif()
 
@@ -742,10 +728,10 @@ if (APPLE)
 elseif (WIN32)
     # Target Windows 10
     add_compile_definitions(_WIN32_WINNT=0x0A00 WINVER=0x0A00)
-    set(PLATFORM_LIBRARIES winmm ws2_32 iphlpapi)
+    set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} winmm iphlpapi ws2_32 wlanapi)
     if (MINGW)
         # PSAPI is the Process Status API
-        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} psapi imm32 version crypt32 rpcrt4)
+        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} psapi imm32 version crypt32 rpcrt4 gdi32 wldap32 mswsock)
     endif()
 elseif (PLATFORM_HAIKU)
     # Haiku is so special :)
@@ -757,6 +743,8 @@ elseif (PLATFORM_HAIKU)
 elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
     set(PLATFORM_LIBRARIES rt)
 endif()
+
+message(STATUS "Platform Libraries: ${PLATFORM_LIBRARIES}")
 
 add_subdirectory(externals)
 
