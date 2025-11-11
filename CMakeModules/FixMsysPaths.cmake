@@ -4,9 +4,16 @@
 function(FixMsysPath target)
     get_target_property(include_dir ${target} INTERFACE_INCLUDE_DIRECTORIES)
 
-    if (include_dir MATCHES "^C:")
+    if (NOT (include_dir MATCHES "^/"))
         return()
     endif()
+
+    set(root_default $ENV{MSYS2_LOCATION})
+    if (root_default STREQUAL "")
+        set(root_default "C:/msys64")
+    endif()
+
+    set(MSYS_ROOT_PATH ${root_default} CACHE STRING "Location of the MSYS2 root")
 
     set(include_dir "C:/msys64${include_dir}")
     set_target_properties(${target} PROPERTIES
