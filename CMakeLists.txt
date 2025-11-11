@@ -128,7 +128,11 @@ if (YUZU_STATIC_BUILD)
     set(YUZU_STATIC_SUFFIX _static)
 
     ## some libraries use CMAKE_IMPORT_LIBRARY_SUFFIX e.g. Harfbuzz ##
-    set(CMAKE_IMPORT_LIBRARY_SUFFIX ".a;.tbd;.dylib")
+    if (APPLE)
+        set(CMAKE_IMPORT_LIBRARY_SUFFIX ".a;.tbd;.dylib")
+    else()
+        set(CMAKE_IMPORT_LIBRARY_SUFFIX ".a")
+    endif()
 
     ## certain libraries need extra static libs to be linked ##
     macro(extra_libs)
