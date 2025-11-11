@@ -35,6 +35,7 @@ IAudioDevice::IAudioDevice(Core::System& system_, u64 applet_resource_user_id, u
         {18, nullptr, "ReleaseAudioOutputDeviceNotification"},      // 17.0.0+
         {19, nullptr, "SetAudioDeviceOutputVolumeAutoTuneEnabled"}, // 18.0.0+
         {20, nullptr, "IsAudioDeviceOutputVolumeAutoTuneEnabled"}   // 18.0.0+
+        {21, nullptr, "IsActiveOutputDeviceEstimatedLowLatency"}   // 21.0.0+
     };
     RegisterHandlers(functions);
 
