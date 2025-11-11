@@ -68,6 +68,7 @@ IAudioController::IAudioController(Core::System& system_)
         {10104, nullptr, "GetAudioOutputChannelCountForPlayReport"},
         {10105, nullptr, "BindAudioOutputChannelCountUpdateEventForPlayReport"},
         {10106, nullptr, "GetDefaultAudioOutputTargetForPlayReport"},
+        {10200, nullptr, "Unknown10200"}, // [20.0.0+]
         {50000, nullptr, "SetAnalogInputBoostGainForPrototyping"},
         {50001, nullptr, "OverrideDefaultTargetForDebug"},
         {50003, nullptr, "SetForceOverrideExternalDeviceNameForDebug"},
