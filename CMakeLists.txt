@@ -172,10 +172,6 @@ if (YUZU_STATIC_BUILD)
         # msys2 quazip does not build a static lib
         set(QuaZip-Qt6_FORCE_BUNDLED ON)
     elseif(APPLE)
-        # foreach(prefix zlib vdpau)
-        #     list(APPEND CMAKE_LIBRARY_PATH "/opt/homebrew/opt/${prefix}/lib")
-        # endforeach()
-
         # these libs do not properly provide static libs/let you do it with cmake
         set(YUZU_USE_CPM ON)
         set(YUZU_USE_BUNDLED_FFMPEG ON)
