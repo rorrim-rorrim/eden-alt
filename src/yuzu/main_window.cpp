@@ -4067,26 +4067,7 @@ void MainWindow::OnHomeMenu() {
         QMessageBox::warning(this, tr("Firmware Corrupted"),
                              tr(FirmwareManager::GetFirmwareCheckString(result)));
         return;
-    case FirmwareManager::ErrorFirmwareTooNew: {
-        if (!UISettings::values.show_fw_warning.GetValue()) break;
-
-        QMessageBox box(QMessageBox::Warning,
-                        tr("Firmware Too New"),
-                        tr(FirmwareManager::GetFirmwareCheckString(result)) + tr("\nContinue anyways?"),
-                        QMessageBox::Yes | QMessageBox::No,
-                        this);
-
-        QCheckBox *checkbox = new QCheckBox(tr("Don't show again"));
-        box.setCheckBox(checkbox);
-
-        int button = box.exec();
-        if (checkbox->isChecked()) {
-            UISettings::values.show_fw_warning.SetValue(false);
-        }
-
-        if (button == static_cast<int>(QMessageBox::No)) return;
-        break;
-    } default:
+    default:
         break;
     }
 
