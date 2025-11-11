@@ -128,26 +128,9 @@ if (YUZU_STATIC_BUILD)
     set(YUZU_STATIC_SUFFIX _static)
 
     ## some libraries use CMAKE_IMPORT_LIBRARY_SUFFIX e.g. Harfbuzz ##
-    set(CMAKE_IMPORT_LIBRARY_SUFFIX ".a")
+    set(CMAKE_IMPORT_LIBRARY_SUFFIX ".a;.tbd;.dylib")
 
-    # simple hook to reject ".dll.a" libraries
-    function(find_library var)
-        # also skip previously-found libraries cuz... yaknow
-        if (${var})
-            return()
-        endif()
-
-        _find_library(${var} ${ARGN})
-        if (${var})
-            get_filename_component(lib_name "${${var}}" NAME)
-            if (lib_name MATCHES "dll\\.a$")
-                unset(${var} CACHE)
-                set(${var} "${var}-NOTFOUND" CACHE INTERNAL "" FORCE)
-            endif()
-        endif()
-    endfunction()
-
-    ## other hooks needed ##
+    ## certain libraries need extra static libs to be linked ##
     macro(extra_libs)
         foreach(lib ${ARGN})
             find_library(${lib}_LIBRARY ${lib} REQUIRED)
@@ -155,20 +138,51 @@ if (YUZU_STATIC_BUILD)
         endforeach()
     endmacro()
 
-    # libtiff.a
-    extra_libs(jbig lzma deflate)
+    if (MINGW)
+        set(SKIP_LIBRARY_SUFFIX "dll\\.a$")
+        # simple hook to reject dynamic libs
+        function(find_library var)
+            # also skip previously-found libraries cuz... yaknow
+            if (${var})
+                return()
+            endif()
 
-    # libfreetype.a
-    extra_libs(bz2 Lerc)
+            _find_library(${var} ${ARGN})
+            if (${var})
+                get_filename_component(lib_name "${${var}}" NAME)
+                if (lib_name MATCHES "${SKIP_LIBRARY_SUFFIX}")
+                    unset(${var} CACHE)
+                    set(${var} "${var}-NOTFOUND" CACHE INTERNAL "" FORCE)
+                endif()
+            endif()
+        endfunction()
 
-    # libharfbuzz.a
-    extra_libs(graphite2)
+        # libtiff.a
+        extra_libs(jbig lzma deflate)
 
-    # libbrotlienc.a
-    extra_libs(brotlienc brotlidec brotlicommon)
+        # libfreetype.a
+        extra_libs(bz2 Lerc)
 
-    # msys2 quazip does not build a static lib
-    set(QuaZip-Qt6_FORCE_BUNDLED ON)
+        # libharfbuzz.a
+        extra_libs(graphite2)
+
+        # libbrotlienc.a
+        extra_libs(brotlienc brotlidec brotlicommon brotlienc brotlidec)
+
+        # msys2 quazip does not build a static lib
+        set(QuaZip-Qt6_FORCE_BUNDLED ON)
+    elseif(APPLE)
+        # foreach(prefix zlib vdpau)
+        #     list(APPEND CMAKE_LIBRARY_PATH "/opt/homebrew/opt/${prefix}/lib")
+        # endforeach()
+
+        # these libs do not properly provide static libs/let you do it with cmake
+        set(YUZU_USE_CPM ON)
+        set(YUZU_USE_BUNDLED_FFMPEG ON)
+        set(fmt_FORCE_BUNDLED ON)
+        set(SPIRV-Tools_FORCE_BUNDLED ON)
+        set(SPIRV-Headers_FORCE_BUNDLED ON)
+    endif()
 endif()
 
 # Detect current compilation architecture and create standard definitions
@@ -721,8 +735,8 @@ if (APPLE)
     # Umbrella framework for everything GUI-related
     find_library(COCOA_LIBRARY Cocoa)
     set(PLATFORM_LIBRARIES ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
-    find_library(ICONV_LIBRARY iconv REQUIRED)
-    list(APPEND PLATFORM_LIBRARIES ${ICONV_LIBRARY})
+    # find_library(ICONV_LIBRARY iconv REQUIRED)
+    # list(APPEND PLATFORM_LIBRARIES ${ICONV_LIBRARY})
 elseif (WIN32)
     # Target Windows 10
     add_compile_definitions(_WIN32_WINNT=0x0A00 WINVER=0x0A00)

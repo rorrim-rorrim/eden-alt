@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifdef QT_STATICPLUGIN
+// Qt on macOS doesn't define VMA shit
+#if defined(QT_STATICPLUGIN) && !defined(__APPLE__)
 #undef VMA_IMPLEMENTATION
 #endif
 
@@ -269,7 +270,13 @@ using namespace Common::Literals;
 
 #ifdef QT_STATICPLUGIN
 #include <QtPlugin>
+
+#if defined(_WIN32)
 Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
+#elif defined(__APPLE__)
+Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin)
+#endif
+
 #endif
 
 #ifdef _WIN32
@@ -4904,7 +4911,7 @@ void VolumeButton::ResetMultiplier() {
 #undef main
 #endif
 
-#ifndef QT_STATICPLUGIN
+#if !defined(QT_STATICPLUGIN) || defined(__APPLE__)
 #define VMA_IMPLEMENTATION
 #include "video_core/vulkan_common/vma.h"
 #endif

@@ -447,7 +447,7 @@ if (YUZU_ROOM)
 target_link_libraries(yuzu PRIVATE Qt6::Widgets)
 endif()
 
-if (NOT MSVC AND NOT YUZU_STATIC_BUILD)
+if (NOT MSVC AND (APPLE OR NOT YUZU_STATIC_BUILD))
     # needed for vma
     target_compile_options(yuzu PRIVATE
         -Wno-conversion
