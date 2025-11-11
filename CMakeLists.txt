@@ -92,6 +92,7 @@ endif()
 
 # MSYS2 utilities
 if (PLATFORM_MSYS)
+    include(FixMsysPaths)
     # really, really dumb heuristic to detect what environment we are in
     macro(system var)
         if (CMAKE_COMMAND MATCHES ${var})
@@ -110,7 +111,8 @@ if (PLATFORM_MSYS)
 
     # we (generally) want to prioritize environment-specific binaries if possible
     # some, like autoconf, are not present on environments besides msys2 though
-    set(CMAKE_PROGRAM_PATH C:/msys64/${MSYSTEM}/usr/bin C:/msys64/usr/bin)
+    set(CMAKE_PROGRAM_PATH C:/msys64/${MSYSTEM}/bin C:/msys64/usr/bin)
+    set(ENV{PKG_CONFIG_PATH} C:/msys64/${MSYSTEM}/lib/pkgconfig)
 endif()
 
 # static stuff
@@ -139,7 +141,6 @@ if (YUZU_STATIC_BUILD)
     endmacro()
 
     if (MINGW)
-        set(SKIP_LIBRARY_SUFFIX "dll\\.a$")
         # simple hook to reject dynamic libs
         function(find_library var)
             # also skip previously-found libraries cuz... yaknow
@@ -150,7 +151,7 @@ if (YUZU_STATIC_BUILD)
             _find_library(${var} ${ARGN})
             if (${var})
                 get_filename_component(lib_name "${${var}}" NAME)
-                if (lib_name MATCHES "${SKIP_LIBRARY_SUFFIX}")
+                if (lib_name MATCHES "dll\\.a$")
                     unset(${var} CACHE)
                     set(${var} "${var}-NOTFOUND" CACHE INTERNAL "" FORCE)
                 endif()
@@ -166,11 +167,16 @@ if (YUZU_STATIC_BUILD)
         # libharfbuzz.a
         extra_libs(graphite2)
 
-        # libbrotlienc.a
-        extra_libs(brotlienc brotlidec brotlicommon brotlienc brotlidec)
+        # openssl
+        extra_libs(ws2_32)
 
         # msys2 quazip does not build a static lib
         set(QuaZip-Qt6_FORCE_BUNDLED ON)
+
+        set(YUZU_USE_BUNDLED_FFMPEG ON)
+        set(YUZU_USE_BUNDLED_SDL2 ON)
+
+        set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF)
     elseif(APPLE)
         # these libs do not properly provide static libs/let you do it with cmake
         set(YUZU_USE_CPM ON)
