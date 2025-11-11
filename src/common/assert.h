@@ -22,33 +22,21 @@ void AssertFailSoftImpl();
 #define YUZU_NO_INLINE __attribute__((noinline))
 #endif
 
-#define ASSERT(_a_)                                                                                \
-    ([&]() YUZU_NO_INLINE {                                                                        \
-        if (!(_a_)) [[unlikely]] {                                                                 \
-            LOG_CRITICAL(Debug, #_a_ ": assert");                                              \
-            AssertFailSoftImpl();                                                                    \
-        }                                                                                          \
-    }())
-
 #define ASSERT_MSG(_a_, ...)                                                                       \
     ([&]() YUZU_NO_INLINE {                                                                        \
         if (!(_a_)) [[unlikely]] {                                                                 \
-            LOG_CRITICAL(Debug, #_a_ ": assert\n" __VA_ARGS__);                                \
+            LOG_CRITICAL(Debug, "assert\n" __VA_ARGS__);                                \
             AssertFailSoftImpl();                                                                    \
         }                                                                                          \
     }())
-
-#define UNREACHABLE()                                                                              \
-    do {                                                                                           \
-        LOG_CRITICAL(Debug, "Unreachable");                                                  \
-        AssertFatalImpl();                                                                        \
-    } while (0)
+#define ASSERT(_a_) ASSERT_MSG(_a_, "{}", #_a_)
 
 #define UNREACHABLE_MSG(...)                                                                       \
     do {                                                                                           \
-        LOG_CRITICAL(Debug, "Unreachable\n" __VA_ARGS__);                                    \
+        LOG_CRITICAL(Debug, "unreachable\n" __VA_ARGS__);                                    \
         AssertFatalImpl();                                                                        \
     } while (0)
+#define UNREACHABLE() UNREACHABLE_MSG("")
 
 #ifdef _DEBUG
 #define DEBUG_ASSERT(_a_) ASSERT(_a_)
@@ -67,21 +55,3 @@ void AssertFailSoftImpl();
 
 #define UNIMPLEMENTED_IF(cond) ASSERT_MSG(!(cond), "Unimplemented code!")
 #define UNIMPLEMENTED_IF_MSG(cond, ...) ASSERT_MSG(!(cond), __VA_ARGS__)
-
-// If the assert is ignored, execute _b_
-#define ASSERT_OR_EXECUTE(_a_, _b_)                                                                \
-    do {                                                                                           \
-        ASSERT(_a_);                                                                               \
-        if (!(_a_)) [[unlikely]] {                                                                 \
-            _b_                                                                                    \
-        }                                                                                          \
-    } while (0)
-
-// If the assert is ignored, execute _b_
-#define ASSERT_OR_EXECUTE_MSG(_a_, _b_, ...)                                                       \
-    do {                                                                                           \
-        ASSERT_MSG(_a_, __VA_ARGS__);                                                              \
-        if (!(_a_)) [[unlikely]] {                                                                 \
-            _b_                                                                                    \
-        }                                                                                          \
-    } while (0)
