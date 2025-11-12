@@ -482,6 +482,9 @@ if (YUZU_STATIC_BUILD AND MINGW)
     # libharfbuzz.a
     extra_libs(harfbuzz graphite2)
 
+    # ffmpeg
+    extra_libs(iconv)
+
     extra_libs(wsock32 ws2_32 crypt32 mswsock wlanapi)
 endif()
 
