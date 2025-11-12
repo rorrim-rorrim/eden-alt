@@ -3086,10 +3086,7 @@ void MainWindow::OnPauseGame() {
     play_time_manager->Stop();
     UpdateMenuState();
     AllowOSSleep();
-
-#ifdef __linux__
     Common::Linux::StopGamemode();
-#endif
 }
 
 void MainWindow::OnPauseContinueGame() {
@@ -3374,9 +3371,7 @@ void MainWindow::OnConfigure() {
     const auto old_theme = UISettings::values.theme;
     const bool old_discord_presence = UISettings::values.enable_discord_presence.GetValue();
     const auto old_language_index = Settings::values.language_index.GetValue();
-#ifdef __linux__
     const bool old_gamemode = Settings::values.enable_gamemode.GetValue();
-#endif
 #ifdef __unix__
     const bool old_force_x11 = Settings::values.gui_force_x11.GetValue();
 #endif
