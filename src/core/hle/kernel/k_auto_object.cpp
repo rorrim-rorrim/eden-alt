@@ -8,6 +8,7 @@ namespace Kernel {
 
 KAutoObject* KAutoObject::Create(KAutoObject* obj) {
     obj->m_ref_count = 1;
+    obj->m_class_token = obj->GetTypeObj().GetClassToken();
     return obj;
 }
 
