@@ -60,7 +60,7 @@ struct Memory::Impl {
             current_page_table->fastmem_arena = nullptr;
         }
 
-#ifdef __ANDROID__
+#ifdef __linux__
         heap_tracker.emplace(system.DeviceMemory().buffer);
         buffer = std::addressof(*heap_tracker);
 #else
@@ -73,7 +73,8 @@ struct Memory::Impl {
                          bool separate_heap) {
         ASSERT_MSG((size & YUZU_PAGEMASK) == 0, "non-page aligned size: {:016X}", size);
         ASSERT_MSG((base & YUZU_PAGEMASK) == 0, "non-page aligned base: {:016X}", GetInteger(base));
-        ASSERT_MSG(target >= DramMemoryMap::Base, "Out of bounds target: {:016X}", GetInteger(target));
+        ASSERT_MSG(target >= DramMemoryMap::Base, "Out of bounds target: {:016X}",
+                   GetInteger(target));
         MapPages(page_table, base / YUZU_PAGESIZE, size / YUZU_PAGESIZE, target,
                  Common::PageType::Memory);
 
@@ -1024,7 +1025,7 @@ struct Memory::Impl {
     std::mutex sys_core_guard;
 
     std::optional<Common::HeapTracker> heap_tracker;
-#ifdef __ANDROID__
+#ifdef __linux__
     Common::HeapTracker* buffer{};
 #else
     Common::HostMemory* buffer{};
@@ -1230,7 +1231,7 @@ bool Memory::InvalidateNCE(Common::ProcessAddress vaddr, size_t size) {
         impl->InvalidateGPUMemory(ptr, size);
     }
 
-#ifdef __ANDROID__
+#ifdef __linux__
     if (!rasterizer && mapped) {
         impl->buffer->DeferredMapSeparateHeap(GetInteger(vaddr));
     }
@@ -1240,7 +1241,7 @@ bool Memory::InvalidateNCE(Common::ProcessAddress vaddr, size_t size) {
 }
 
 bool Memory::InvalidateSeparateHeap(void* fault_address) {
-#ifdef __ANDROID__
+#ifdef __linux__
     return impl->buffer->DeferredMapSeparateHeap(static_cast<u8*>(fault_address));
 #else
     return false;
