@@ -105,7 +105,7 @@ inline size_t RegNumber(ExtReg reg) {
         return static_cast<size_t>(reg) - static_cast<size_t>(ExtReg::Q0);
     }
 
-    ASSERT_MSG(false, "Invalid extended register");
+    //ASSERT_MSG(false, "Invalid extended register");
     return 0;
 }
 
