@@ -27,4 +27,24 @@ constexpr HaltReason TranslateHaltReason(Dynarmic::HaltReason hr) {
     return HaltReason(hr);
 }
 
+#ifdef __linux__
+
+class ScopedJitExecution {
+public:
+    explicit ScopedJitExecution(Kernel::KProcess* process);
+    ~ScopedJitExecution();
+    static void RegisterHandler();
+};
+
+#else
+
+class ScopedJitExecution {
+public:
+    explicit ScopedJitExecution(Kernel::KProcess* process) {}
+    ~ScopedJitExecution() {}
+    static void RegisterHandler() {}
+};
+
+#endif
+
 } // namespace Core
