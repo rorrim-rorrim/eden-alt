@@ -9,9 +9,12 @@
 #pragma once
 
 #include <string>
+#include <utility>
+
 #include <fmt/format.h>
 #include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
+
 #include "dynarmic/interface/A32/coprocessor_util.h"
 #include "dynarmic/ir/cond.h"
 
@@ -86,17 +89,24 @@ constexpr bool IsQuadExtReg(ExtReg reg) {
 
 inline size_t RegNumber(Reg reg) {
     ASSERT(reg != Reg::INVALID_REG);
-    return size_t(reg);
+    return static_cast<size_t>(reg);
 }
 
 inline size_t RegNumber(ExtReg reg) {
     if (IsSingleExtReg(reg)) {
-        return size_t(reg) - size_t(ExtReg::S0);
-    } else if (IsDoubleExtReg(reg)) {
-        return size_t(reg) - size_t(ExtReg::D0);
+        return static_cast<size_t>(reg) - static_cast<size_t>(ExtReg::S0);
     }
-    ASSERT(IsQuadExtReg(reg));
-    return size_t(reg) - size_t(ExtReg::Q0);
+
+    if (IsDoubleExtReg(reg)) {
+        return static_cast<size_t>(reg) - static_cast<size_t>(ExtReg::D0);
+    }
+
+    if (IsQuadExtReg(reg)) {
+        return static_cast<size_t>(reg) - static_cast<size_t>(ExtReg::Q0);
+    }
+
+    ASSERT_MSG(false, "Invalid extended register");
+    return 0;
 }
 
 inline Reg operator+(Reg reg, size_t number) {

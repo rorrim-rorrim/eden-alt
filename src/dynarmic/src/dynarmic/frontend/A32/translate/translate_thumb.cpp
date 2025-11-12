@@ -97,7 +97,7 @@ u32 ConvertASIMDInstruction(u32 thumb_instruction) {
     return 0xF7F0A000;  // UDF
 }
 
-inline bool MaybeVFPOrASIMDInstruction(u32 thumb_instruction) noexcept {
+bool MaybeVFPOrASIMDInstruction(u32 thumb_instruction) {
     return (thumb_instruction & 0xEC000000) == 0xEC000000 || (thumb_instruction & 0xFF100000) == 0xF9000000;
 }
 

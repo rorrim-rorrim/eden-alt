@@ -15,6 +15,8 @@
 
 #include <fmt/format.h>
 #include "dynarmic/common/assert.h"
+
+#include "dynarmic/common/memory_pool.h"
 #include "dynarmic/frontend/A32/a32_types.h"
 #include "dynarmic/frontend/A64/a64_types.h"
 #include "dynarmic/ir/cond.h"
@@ -25,7 +27,8 @@ namespace Dynarmic::IR {
 Block::Block(const LocationDescriptor& location)
     : location{location},
     end_location{location},
-    cond{Cond::AL}
+    cond{Cond::AL},
+    instruction_alloc_pool{std::make_unique<std::remove_reference_t<decltype(*instruction_alloc_pool)>>()}
 {
 
 }
@@ -37,21 +40,7 @@ Block::Block(const LocationDescriptor& location)
 /// @param args            A sequence of Value instances used as arguments for the instruction.
 /// @returns Iterator to the newly created instruction.
 Block::iterator Block::PrependNewInst(iterator insertion_point, Opcode opcode, std::initializer_list<Value> args) noexcept {
-    // First try using the "inline" buffer, otherwise fallback to a slower slab-like allocation scheme
-    // purpouse is to avoid many calls to new/delete which invoke malloc which invokes mmap
-    // just pool it!!! - reason why there is an inline buffer is because many small blocks are created
-    // with few instructions due to subpar optimisations on other passes... plus branch-heavy code will
-    // hugely benefit from the coherency of faster allocations...
-    IR::Inst* inst;
-    if (inlined_inst.size() < inlined_inst.max_size()) {
-        inlined_inst.emplace_back(opcode);
-        inst = &inlined_inst[inlined_inst.size() - 1];
-    } else {
-        if (pooled_inst.empty() || pooled_inst.back().size() == pooled_inst.back().max_size())
-            pooled_inst.emplace_back();
-        pooled_inst.back().emplace_back(opcode);
-        inst = &pooled_inst.back()[pooled_inst.back().size() - 1];
-    }
+    IR::Inst* inst = new (instruction_alloc_pool->Alloc()) IR::Inst(opcode);
     DEBUG_ASSERT(args.size() == inst->NumArgs());
     std::for_each(args.begin(), args.end(), [&inst, index = size_t(0)](const auto& arg) mutable {
         inst->SetArg(index, arg);
