@@ -40,10 +40,9 @@ public:
     HostMemory(HostMemory&& other) noexcept;
     HostMemory& operator=(HostMemory&& other) noexcept;
 
-    void Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perms,
-             bool separate_heap);
+    void Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perms);
 
-    void Unmap(size_t virtual_offset, size_t length, bool separate_heap);
+    void Unmap(size_t virtual_offset, size_t length);
 
     void Protect(size_t virtual_offset, size_t length, MemoryPermission perms);
 

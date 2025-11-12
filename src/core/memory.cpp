@@ -15,7 +15,6 @@
 #include "common/assert.h"
 #include "common/atomic_ops.h"
 #include "common/common_types.h"
-#include "common/heap_tracker.h"
 #include "common/logging/log.h"
 #include "common/page_table.h"
 #include "common/scope_exit.h"
@@ -60,17 +59,11 @@ struct Memory::Impl {
             current_page_table->fastmem_arena = nullptr;
         }
 
-#ifdef __ANDROID__
-        heap_tracker.emplace(system.DeviceMemory().buffer);
-        buffer = std::addressof(*heap_tracker);
-#else
         buffer = std::addressof(system.DeviceMemory().buffer);
-#endif
     }
 
     void MapMemoryRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size,
-                         Common::PhysicalAddress target, Common::MemoryPermission perms,
-                         bool separate_heap) {
+                         Common::PhysicalAddress target, Common::MemoryPermission perms) {
         ASSERT_MSG((size & YUZU_PAGEMASK) == 0, "non-page aligned size: {:016X}", size);
         ASSERT_MSG((base & YUZU_PAGEMASK) == 0, "non-page aligned base: {:016X}", GetInteger(base));
         ASSERT_MSG(target >= DramMemoryMap::Base, "Out of bounds target: {:016X}", GetInteger(target));
@@ -78,20 +71,18 @@ struct Memory::Impl {
                  Common::PageType::Memory);
 
         if (current_page_table->fastmem_arena) {
-            buffer->Map(GetInteger(base), GetInteger(target) - DramMemoryMap::Base, size, perms,
-                        separate_heap);
+            buffer->Map(GetInteger(base), GetInteger(target) - DramMemoryMap::Base, size, perms);
         }
     }
 
-    void UnmapRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size,
-                     bool separate_heap) {
+    void UnmapRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size) {
         ASSERT_MSG((size & YUZU_PAGEMASK) == 0, "non-page aligned size: {:016X}", size);
         ASSERT_MSG((base & YUZU_PAGEMASK) == 0, "non-page aligned base: {:016X}", GetInteger(base));
         MapPages(page_table, base / YUZU_PAGESIZE, size / YUZU_PAGESIZE, 0,
                  Common::PageType::Unmapped);
 
         if (current_page_table->fastmem_arena) {
-            buffer->Unmap(GetInteger(base), size, separate_heap);
+            buffer->Unmap(GetInteger(base), size);
         }
     }
 
@@ -1022,13 +1013,7 @@ struct Memory::Impl {
     std::array<Common::ScratchBuffer<u32>, Core::Hardware::NUM_CPU_CORES> scratch_buffers{};
     std::span<Core::GPUDirtyMemoryManager> gpu_dirty_managers;
     std::mutex sys_core_guard;
-
-    std::optional<Common::HeapTracker> heap_tracker;
-#ifdef __ANDROID__
-    Common::HeapTracker* buffer{};
-#else
     Common::HostMemory* buffer{};
-#endif
 };
 
 Memory::Memory(Core::System& system_) : system{system_} {
@@ -1046,14 +1031,12 @@ void Memory::SetCurrentPageTable(Kernel::KProcess& process) {
 }
 
 void Memory::MapMemoryRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size,
-                             Common::PhysicalAddress target, Common::MemoryPermission perms,
-                             bool separate_heap) {
-    impl->MapMemoryRegion(page_table, base, size, target, perms, separate_heap);
+                             Common::PhysicalAddress target, Common::MemoryPermission perms) {
+    impl->MapMemoryRegion(page_table, base, size, target, perms);
 }
 
-void Memory::UnmapRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size,
-                         bool separate_heap) {
-    impl->UnmapRegion(page_table, base, size, separate_heap);
+void Memory::UnmapRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size) {
+    impl->UnmapRegion(page_table, base, size);
 }
 
 void Memory::ProtectRegion(Common::PageTable& page_table, Common::ProcessAddress vaddr, u64 size,
@@ -1216,35 +1199,15 @@ void Memory::MarkRegionDebug(Common::ProcessAddress vaddr, u64 size, bool debug)
 
 bool Memory::InvalidateNCE(Common::ProcessAddress vaddr, size_t size) {
     [[maybe_unused]] bool mapped = true;
-    [[maybe_unused]] bool rasterizer = false;
-
-    u8* const ptr = impl->GetPointerImpl(
-        GetInteger(vaddr),
-        [&] {
-            LOG_ERROR(HW_Memory, "Unmapped InvalidateNCE for {} bytes @ {:#x}", size,
-                      GetInteger(vaddr));
-            mapped = false;
-        },
-        [&] { rasterizer = true; });
-    if (rasterizer) {
-        impl->InvalidateGPUMemory(ptr, size);
-    }
-
-#ifdef __ANDROID__
-    if (!rasterizer && mapped) {
-        impl->buffer->DeferredMapSeparateHeap(GetInteger(vaddr));
-    }
-#endif
-
+    u8* const ptr = impl->GetPointerImpl(GetInteger(vaddr),
+    [&] {
+        LOG_ERROR(HW_Memory, "Unmapped InvalidateNCE for {} bytes @ {:#x}", size, GetInteger(vaddr));
+        mapped = false;
+    },
+    [&] {
+        impl->system.GPU().InvalidateRegion(GetInteger(vaddr), size);
+    });
     return mapped && ptr != nullptr;
-}
-
-bool Memory::InvalidateSeparateHeap(void* fault_address) {
-#ifdef __ANDROID__
-    return impl->buffer->DeferredMapSeparateHeap(static_cast<u8*>(fault_address));
-#else
-    return false;
-#endif
 }
 
 } // namespace Core::Memory
