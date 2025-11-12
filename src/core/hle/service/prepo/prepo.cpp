@@ -3,6 +3,9 @@
 
 #include "common/hex_util.h"
 #include "common/logging/log.h"
+#include "common/uuid.h"
+#include <cstring>
+
 #include "core/core.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/ipc_helpers.h"
@@ -145,10 +148,12 @@ private:
         const auto data1 = ctx.ReadBufferA(0);
         const auto data2 = ctx.ReadBufferX(0);
 
+        Common::UUID uuid{};
+        std::memcpy(uuid.uuid.data(), user_id.data(), sizeof(Common::UUID));
+
         LOG_ERROR(Service_PREPO,
-                  "called, user_id={:016X}{:016X}, title_id={:016X}, data1_size={:016X}, "
-                  "data2_size={:016X}",
-                  user_id[1], user_id[0], title_id, data1.size(), data2.size());
+                  "called, user_id={}, title_id={:016X}, data1_size={:016X}, data2_size={:016X}",
+                  uuid.FormattedString(), title_id, data1.size(), data2.size());
 
         const auto& reporter{system.GetReporter()};
         reporter.SavePlayReport(Core::Reporter::PlayReportType::System, title_id, {data1, data2},
@@ -182,16 +187,20 @@ private:
     void SaveSystemReportWithUser(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
 
+        // 21.0.0+: field0 (u64), user_id (u128), title_id (u64)
+        const auto field0 = rp.PopRaw<u64>();
         const auto user_id = rp.PopRaw<u128>();
         const auto title_id = rp.PopRaw<u64>();
-        const auto reserved = rp.PopRaw<u64>();
 
         const auto data_x = ctx.ReadBufferX(0);
         const auto data_a = ctx.ReadBufferA(0);
 
+        Common::UUID uuid{};
+        std::memcpy(uuid.uuid.data(), user_id.data(), sizeof(Common::UUID));
+
         LOG_ERROR(Service_PREPO,
-                  "called, user_id={:016X}{:016X}, title_id={:016X}, reserved={}, data_a_size={}, data_x_size={}",
-                  user_id[1], user_id[0], title_id, reserved, data_a.size(), data_x.size());
+                  "called, user_id={}, field0={:016X}, title_id={:016X}, data_a_size={}, data_x_size={}",
+                  uuid.FormattedString(), field0, title_id, data_a.size(), data_x.size());
 
         const auto& reporter{system.GetReporter()};
         reporter.SavePlayReport(Core::Reporter::PlayReportType::System, title_id, {data_a, data_x},
