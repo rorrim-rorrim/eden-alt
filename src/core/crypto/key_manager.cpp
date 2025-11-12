@@ -41,7 +41,7 @@
 namespace Core::Crypto {
 namespace {
 
-constexpr u64 CURRENT_CRYPTO_REVISION = 0x5;
+constexpr u64 CURRENT_CRYPTO_REVISION = 0x15;
 
 using Common::AsArray;
 
