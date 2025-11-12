@@ -725,8 +725,7 @@ HostMemory::HostMemory(HostMemory&&) noexcept = default;
 
 HostMemory& HostMemory::operator=(HostMemory&&) noexcept = default;
 
-void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length,
-                     MemoryPermission perms, bool separate_heap) {
+void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perms) {
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(host_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
@@ -738,7 +737,7 @@ void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length,
     impl->Map(virtual_offset + virtual_base_offset, host_offset, length, perms);
 }
 
-void HostMemory::Unmap(size_t virtual_offset, size_t length, bool separate_heap) {
+void HostMemory::Unmap(size_t virtual_offset, size_t length) {
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
     ASSERT(virtual_offset + length <= virtual_size);
