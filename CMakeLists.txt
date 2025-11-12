@@ -173,6 +173,19 @@ if (YUZU_STATIC_BUILD)
     endif()
 endif()
 
+## certain libraries need extra static libs to be linked ##
+if (YUZU_STATIC_BUILD AND MINGW)
+    macro(extra_libs)
+        foreach(lib ${ARGN})
+            find_library(${lib}_LIBRARY ${lib} REQUIRED)
+            link_libraries(${${lib}_LIBRARY})
+        endforeach()
+    endmacro()
+
+    # ffmpeg
+    extra_libs(iconv)
+endif()
+
 # Detect current compilation architecture and create standard definitions
 # =======================================================================
 
