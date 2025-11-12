@@ -155,17 +155,19 @@ if (YUZU_STATIC_BUILD)
 
         set(YUZU_USE_BUNDLED_FFMPEG ON)
         set(YUZU_USE_BUNDLED_SDL2 ON)
+        set(YUZU_USE_BUNDLED_OPENSSL ON)
 
         set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF)
     elseif(APPLE)
         # these libs do not properly provide static libs/let you do it with cmake
         set(YUZU_USE_CPM ON)
 
-        # IMPORTED_IMPLIB not set for imported target
-        # TODO(crueter): wtf
         set(YUZU_USE_BUNDLED_FFMPEG ON)
         set(YUZU_USE_EXTERNAL_SDL2 ON)
+        set(YUZU_USE_BUNDLED_OPENSSL ON)
 
+        # IMPORTED_IMPLIB not set for imported target
+        # TODO(crueter): wtf
         set(fmt_FORCE_BUNDLED ON)
         set(SPIRV-Tools_FORCE_BUNDLED ON)
         set(SPIRV-Headers_FORCE_BUNDLED ON)
