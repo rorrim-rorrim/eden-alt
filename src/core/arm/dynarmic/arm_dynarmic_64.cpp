@@ -270,7 +270,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
     config.enable_cycle_counting = !m_uses_wall_clock;
 
     // Code cache size
-#ifdef ARCHITECTURE_arm64
+#if defined(ARCHITECTURE_arm64) || defined(__sun__)
     config.code_cache_size = std::uint32_t(128_MiB);
 #else
     config.code_cache_size = std::uint32_t(512_MiB);
