@@ -66,6 +66,12 @@ private:
         CtxChannelGPFIFO = 0xB06F,
     };
 
+    enum class ChannelPriority : u32 {
+        low = 0x32,
+        medium = 0x64,
+        high = 0x96,
+    };
+
     struct IoctlSetNvmapFD {
         s32_le nvmap_fd{};
     };
