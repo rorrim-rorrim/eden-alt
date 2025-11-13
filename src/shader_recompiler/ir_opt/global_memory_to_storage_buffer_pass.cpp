@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -293,6 +296,14 @@ std::optional<LowAddrInfo> TrackLowAddress(IR::Inst* inst) {
     }
     // This address is expected to either be a PackUint2x32, a IAdd64, or a CompositeConstructU32x2
     IR::Inst* addr_inst{addr.InstRecursive()};
+    // Unwrap Identity ops introduced by lowerings (e.g., PackUint2x32 -> Identity)
+    while (addr_inst->GetOpcode() == IR::Opcode::Identity) {
+        const IR::Value id_arg{addr_inst->Arg(0)};
+        if (id_arg.IsImmediate()) {
+            return std::nullopt;
+        }
+        addr_inst = id_arg.InstRecursive();
+    }
     s32 imm_offset{0};
     if (addr_inst->GetOpcode() == IR::Opcode::IAdd64) {
         // If it's an IAdd64, get the immediate offset it is applying and grab the address
@@ -308,6 +319,14 @@ std::optional<LowAddrInfo> TrackLowAddress(IR::Inst* inst) {
             return std::nullopt;
         }
         addr_inst = iadd_addr.InstRecursive();
+        // Unwrap Identity again if present after folding IAdd64
+        while (addr_inst->GetOpcode() == IR::Opcode::Identity) {
+            const IR::Value id_arg{addr_inst->Arg(0)};
+            if (id_arg.IsImmediate()) {
+                return std::nullopt;
+            }
+            addr_inst = id_arg.InstRecursive();
+        }
     }
     // With IAdd64 handled, now PackUint2x32 is expected
     if (addr_inst->GetOpcode() == IR::Opcode::PackUint2x32) {
@@ -317,6 +336,14 @@ std::optional<LowAddrInfo> TrackLowAddress(IR::Inst* inst) {
             return std::nullopt;
         }
         addr_inst = vector.InstRecursive();
+        // Unwrap Identity that may replace PackUint2x32
+        while (addr_inst->GetOpcode() == IR::Opcode::Identity) {
+            const IR::Value id_arg{addr_inst->Arg(0)};
+            if (id_arg.IsImmediate()) {
+                return std::nullopt;
+            }
+            addr_inst = id_arg.InstRecursive();
+        }
     }
     // The vector is expected to be a CompositeConstructU32x2
     if (addr_inst->GetOpcode() != IR::Opcode::CompositeConstructU32x2) {
