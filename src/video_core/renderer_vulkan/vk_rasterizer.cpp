@@ -984,11 +984,11 @@ void RasterizerVulkan::UpdateDynamicStates() {
                     auto has_float = std::any_of(regs.vertex_attrib_format.begin(), regs.vertex_attrib_format.end(), In(Maxwell3D::Regs::VertexAttribute::Type::Float));
                     if (regs.logic_op.enable) {
                         regs.logic_op.enable = static_cast<u32>(!has_float);
-					}
+                    }
                     UpdateLogicOpEnable(regs);
                 } else {
                     UpdateLogicOpEnable(regs);
-				}
+                }
                 UpdateDepthClampEnable(regs);
                 UpdateLineStippleEnable(regs);
                 UpdateConservativeRasterizationMode(regs);
@@ -1002,9 +1002,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
         }
     }
     if (device.IsExtVertexInputDynamicStateSupported() && dynamic_state > 2) {
-        if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput()) {
-            UpdateVertexInput(regs);
-        }
+        UpdateVertexInput(regs);
     }
 }
 
@@ -1031,18 +1029,16 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
         return;
     }
     if (!regs.viewport_scale_offset_enabled) {
-                float x = static_cast<float>(regs.surface_clip.x);
-                float y = static_cast<float>(regs.surface_clip.y);
-                float width  = static_cast<float>(regs.surface_clip.width);
-                float height = static_cast<float>(regs.surface_clip.height);
-
-                const bool lower_left =
-                            regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft;
-                if (lower_left) {
-                    // Vulkan viewport space is top-left; emulate lower-left with negative height.
-                    y += height;
-                    height = -height;
-                }
+        float x = static_cast<float>(regs.surface_clip.x);
+        float y = static_cast<float>(regs.surface_clip.y);
+        float width  = static_cast<float>(regs.surface_clip.width);
+        float height = static_cast<float>(regs.surface_clip.height);
+        const bool lower_left = regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft;
+        if (lower_left) {
+            // Vulkan viewport space is top-left; emulate lower-left with negative height.
+            y += height;
+            height = -height;
+        }
         VkViewport viewport{
             .x = x,
             .y = y,
@@ -1078,20 +1074,19 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
         return;
     }
     if (!regs.viewport_scale_offset_enabled) {
-                u32 x = regs.surface_clip.x;
-                u32 y = regs.surface_clip.y;
-                u32 width  = regs.surface_clip.width  ? regs.surface_clip.width  : 1u;
-                u32 height = regs.surface_clip.height ? regs.surface_clip.height : 1u;
-
-                if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
-                   // Vulkan scissor is top-left; convert from lower-left coordinates.
-                   y = regs.surface_clip.height - (y + height);
-                }
-                VkRect2D scissor{};
-                scissor.offset.x    = static_cast<int32_t>(x);
-                scissor.offset.y    = static_cast<int32_t>(y);
-                scissor.extent.width  = width;
-                scissor.extent.height = height;
+        u32 x = regs.surface_clip.x;
+        u32 y = regs.surface_clip.y;
+        u32 width  = regs.surface_clip.width  ? regs.surface_clip.width  : 1u;
+        u32 height = regs.surface_clip.height ? regs.surface_clip.height : 1u;
+        if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
+           // Vulkan scissor is top-left; convert from lower-left coordinates.
+           y = regs.surface_clip.height - (y + height);
+        }
+        VkRect2D scissor{};
+        scissor.offset.x    = static_cast<int32_t>(x);
+        scissor.offset.y    = static_cast<int32_t>(y);
+        scissor.extent.width  = width;
+        scissor.extent.height = height;
         scheduler.Record([scissor](vk::CommandBuffer cmdbuf) { cmdbuf.SetScissor(0, scissor); });
         return;
     }
