@@ -1074,8 +1074,8 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
     if (!regs.viewport_scale_offset_enabled) {
         u32 x = regs.surface_clip.x;
         u32 y = regs.surface_clip.y;
-        u32 width  = regs.surface_clip.width  ? regs.surface_clip.width  : 1u;
-        u32 height = regs.surface_clip.height ? regs.surface_clip.height : 1u;
+        u32 width  = static_cast<u32>(regs.surface_clip.width)  ? static_cast<u32>(regs.surface_clip.width)  : 1u;
+        u32 height = static_cast<u32>(regs.surface_clip.height) ? static_cast<u32>(regs.surface_clip.height) : 1u;
         if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
            // Vulkan scissor is top-left; convert from lower-left coordinates.
            y = regs.surface_clip.height - (y + height);
