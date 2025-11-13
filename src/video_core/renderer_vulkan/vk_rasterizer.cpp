@@ -985,10 +985,8 @@ void RasterizerVulkan::UpdateDynamicStates() {
                     if (regs.logic_op.enable) {
                         regs.logic_op.enable = static_cast<u32>(!has_float);
                     }
-                    UpdateLogicOpEnable(regs);
-                } else {
-                    UpdateLogicOpEnable(regs);
                 }
+                UpdateLogicOpEnable(regs);
                 UpdateDepthClampEnable(regs);
                 UpdateLineStippleEnable(regs);
                 UpdateConservativeRasterizationMode(regs);
