@@ -341,6 +341,20 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
             float_control.shaderSignedZeroInfNanPreserveFloat32 != VK_FALSE,
         .support_fp64_signed_zero_nan_preserve =
             float_control.shaderSignedZeroInfNanPreserveFloat64 != VK_FALSE,
+        
+#ifdef ANDROID
+        // User-forced float behavior overrides (Eden Veil/Extensions)
+        .force_fp32_denorm_flush = Settings::values.shader_float_ftz.GetValue(),
+        .force_fp32_denorm_preserve = Settings::values.shader_float_denorm_preserve.GetValue(),
+        .force_fp32_rte_rounding = Settings::values.shader_float_rte.GetValue(),
+        .force_fp32_signed_zero_inf_nan = Settings::values.shader_float_signed_zero_inf_nan.GetValue(),
+#else
+        .force_fp32_denorm_flush = false,
+        .force_fp32_denorm_preserve = false,
+        .force_fp32_rte_rounding = false,
+        .force_fp32_signed_zero_inf_nan = false,
+#endif
+        
         .support_explicit_workgroup_layout = device.IsKhrWorkgroupMemoryExplicitLayoutSupported(),
         .support_vote = device.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_VOTE_BIT),
         .support_viewport_index_layer_non_geometry =

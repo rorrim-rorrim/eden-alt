@@ -341,19 +341,35 @@ void DefineEntryPoint(const IR::Program& program, EmitContext& ctx, Id main) {
 void SetupDenormControl(const Profile& profile, const IR::Program& program, EmitContext& ctx,
                         Id main_func) {
     const Info& info{program.info};
+    
+    // User-forced behavior overrides (Android Eden Veil/Extensions)
+    // When force flags are active, they take precedence over shader-declared behavior
+    const bool force_flush = profile.force_fp32_denorm_flush;
+    const bool force_preserve = profile.force_fp32_denorm_preserve;
+    
+    if (force_flush && force_preserve) {
+        LOG_WARNING(Shader_SPIRV, "Both FTZ and Preserve forced simultaneously - FTZ takes precedence");
+    }
+    
     if (info.uses_fp32_denorms_flush && info.uses_fp32_denorms_preserve) {
         LOG_DEBUG(Shader_SPIRV, "Fp32 denorm flush and preserve on the same shader");
-    } else if (info.uses_fp32_denorms_flush) {
+    } else if (force_flush || info.uses_fp32_denorms_flush) {
         if (profile.support_fp32_denorm_flush) {
             ctx.AddCapability(spv::Capability::DenormFlushToZero);
             ctx.AddExecutionMode(main_func, spv::ExecutionMode::DenormFlushToZero, 32U);
+            if (force_flush) {
+                LOG_DEBUG(Shader_SPIRV, "Fp32 DenormFlushToZero FORCED by user setting");
+            }
         } else {
             // Drivers will most likely flush denorms by default, no need to warn
         }
-    } else if (info.uses_fp32_denorms_preserve) {
+    } else if (force_preserve || info.uses_fp32_denorms_preserve) {
         if (profile.support_fp32_denorm_preserve) {
             ctx.AddCapability(spv::Capability::DenormPreserve);
             ctx.AddExecutionMode(main_func, spv::ExecutionMode::DenormPreserve, 32U);
+            if (force_preserve) {
+                LOG_DEBUG(Shader_SPIRV, "Fp32 DenormPreserve FORCED by user setting");
+            }
         } else {
             LOG_DEBUG(Shader_SPIRV, "Fp32 denorm preserve used in shader without host support");
         }
@@ -386,13 +402,24 @@ void SetupSignedNanCapabilities(const Profile& profile, const IR::Program& progr
     if (profile.has_broken_fp16_float_controls && program.info.uses_fp16) {
         return;
     }
+    
+    // User-forced behavior (Android Eden Veil/Extensions)
+    const bool force_signed_zero_inf_nan = profile.force_fp32_signed_zero_inf_nan;
+    
     if (program.info.uses_fp16 && profile.support_fp16_signed_zero_nan_preserve) {
         ctx.AddCapability(spv::Capability::SignedZeroInfNanPreserve);
         ctx.AddExecutionMode(main_func, spv::ExecutionMode::SignedZeroInfNanPreserve, 16U);
     }
-    if (profile.support_fp32_signed_zero_nan_preserve) {
-        ctx.AddCapability(spv::Capability::SignedZeroInfNanPreserve);
-        ctx.AddExecutionMode(main_func, spv::ExecutionMode::SignedZeroInfNanPreserve, 32U);
+    if (force_signed_zero_inf_nan || profile.support_fp32_signed_zero_nan_preserve) {
+        if (profile.support_fp32_signed_zero_nan_preserve) {
+            ctx.AddCapability(spv::Capability::SignedZeroInfNanPreserve);
+            ctx.AddExecutionMode(main_func, spv::ExecutionMode::SignedZeroInfNanPreserve, 32U);
+            if (force_signed_zero_inf_nan) {
+                LOG_DEBUG(Shader_SPIRV, "Fp32 SignedZeroInfNanPreserve FORCED by user setting");
+            }
+        } else if (force_signed_zero_inf_nan) {
+            LOG_WARNING(Shader_SPIRV, "SignedZeroInfNanPreserve forced but driver doesn't support it");
+        }
     }
     if (program.info.uses_fp64 && profile.support_fp64_signed_zero_nan_preserve) {
         ctx.AddCapability(spv::Capability::SignedZeroInfNanPreserve);
