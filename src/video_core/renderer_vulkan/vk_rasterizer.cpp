@@ -955,7 +955,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateLineWidth(regs);
 
     const u8 dynamic_state = Settings::values.dyna_state.GetValue();
-    const bool force_rasterizer = Settings::values.force_rasterizer_state.GetValue();
+    const bool force_rasterizer = Settings::values.force_rasterizer_state_updates.GetValue();
 
     if (device.IsExtExtendedDynamicStateSupported() && (dynamic_state > 0 || force_rasterizer)) {
         UpdateCullMode(regs);

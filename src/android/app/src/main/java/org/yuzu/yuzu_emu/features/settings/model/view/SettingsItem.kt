@@ -141,9 +141,9 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
-                    BooleanSetting.RENDERER_FORCE_RASTERIZER_STATE,
-                    titleId = R.string.force_rasterizer_state,
-                    descriptionId = R.string.force_rasterizer_state_description
+                    BooleanSetting.RENDERER_FORCE_RASTERIZER_STATE_UPDATES,
+                    titleId = R.string.force_rasterizer_state_updates,
+                    descriptionId = R.string.force_rasterizer_state_updates_description
                 )
             )
             put(
