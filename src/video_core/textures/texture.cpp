@@ -82,9 +82,6 @@ float TSCEntry::MaxAnisotropy() const noexcept {
     case Settings::AnisotropyMode::X16:
     case Settings::AnisotropyMode::X32:
     case Settings::AnisotropyMode::X64:
-    case Settings::AnisotropyMode::X128:
-    case Settings::AnisotropyMode::X256:
-    case Settings::AnisotropyMode::X512:
         added_anisotropic = u32(anisotropic_settings) - 1U;
         break;
     case Settings::AnisotropyMode::Automatic:
@@ -92,7 +89,7 @@ float TSCEntry::MaxAnisotropy() const noexcept {
         added_anisotropic = (std::max)(added_anisotropic - 1U, 0U);
         break;
     case Settings::AnisotropyMode::None:
-        return 0.f;
+        return 1.0f; //No use of anisotropy
     }
     return float(1U << (max_anisotropy + added_anisotropic));
 }
