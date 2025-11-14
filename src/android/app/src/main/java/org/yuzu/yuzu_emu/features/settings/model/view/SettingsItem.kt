@@ -667,10 +667,11 @@ abstract class SettingsItem(
                 )
             )
             put(
-                SliderSetting(
+                SpinBoxSetting(
                     IntSetting.CPU_TICKS,
                     titleId = R.string.cpu_ticks,
                     descriptionId = 0,
+                    valueHint = R.string.cpu_ticks,
                     min = 77,
                     max = 65535
                 )
@@ -754,6 +755,15 @@ abstract class SettingsItem(
                 SwitchSetting(
                     BooleanSetting.ENABLE_UPDATE_CHECKS,
                     titleId = R.string.enable_update_checks,
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.APP_LANGUAGE,
+                    titleId = R.string.app_language,
+                    descriptionId = R.string.app_language_description,
+                    choicesId = R.array.appLanguageNames,
+                    valuesId = R.array.appLanguageValues
                 )
             )
             put(
