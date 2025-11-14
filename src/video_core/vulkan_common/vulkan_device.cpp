@@ -107,14 +107,6 @@ constexpr std::array E5B9G9R9_UFLOAT_PACK32{
     VK_FORMAT_UNDEFINED,
 };
 
-/// Helper function to detect HDR formats that commonly fail with MSAA on some Android drivers
-[[nodiscard]] constexpr bool IsProblematicHDRFormat(VkFormat format) {
-    // These formats are known to cause texture flickering/black screens across multiple game engines
-    // when combined with MSAA on certain Android drivers (Qualcomm < 800, Mali pre-maintenance5)
-    return format == VK_FORMAT_B10G11R11_UFLOAT_PACK32 || // UE5, custom engines
-           format == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32;    // Unity, RE Engine, others
-}
-
 } // namespace Alternatives
 
 template <typename T>
