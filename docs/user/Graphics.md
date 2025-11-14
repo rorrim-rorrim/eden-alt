@@ -47,7 +47,7 @@ Various graphical filters exist - each of them aimed at a specific target/image 
 
 The anisotropy value is (value game wants + the set value); **Default** will use the native anisotropy value as it would be on hardware. **Automatic** sets it according to screen resolution. Turning off anisotropy is not recommended as it can break a myriad of games, however it is provided in the name of flexibility.
 
-Values from x2, x4, x8, x16, x32 up to x512 values are provided. This should be enough to not need to revise those values in my lifetime ever again.
+Values from x2, x4, x8, x16, x32 up to x64 values are provided. This should be enough to not need to revise those values in my lifetime ever again.
 
 ### External
 
