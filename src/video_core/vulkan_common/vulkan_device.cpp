@@ -90,6 +90,31 @@ constexpr std::array VK_FORMAT_A4B4G4R4_UNORM_PACK16{
     VK_FORMAT_UNDEFINED,
 };
 
+// B10G11R11_UFLOAT (R11G11B10 float) is used by Unreal Engine 5 for HDR textures
+// Some Android drivers (Qualcomm pre-800, Mali pre-maintenance5) have issues with this format
+// when used with MSAA or certain tiling modes, causing texture flickering/black screens
+constexpr std::array B10G11R11_UFLOAT_PACK32{
+    VK_FORMAT_R16G16B16A16_SFLOAT, // Fallback: RGBA16F (more memory, but widely supported)
+    VK_FORMAT_E5B9G9R9_UFLOAT_PACK32, // Alternative: E5B9G9R9 shared exponent format
+    VK_FORMAT_UNDEFINED,
+};
+
+// E5B9G9R9_UFLOAT (shared exponent RGB9E5) used by various engines (Unity, custom engines)
+// Also problematic on some Android drivers, especially with MSAA and as render target
+constexpr std::array E5B9G9R9_UFLOAT_PACK32{
+    VK_FORMAT_R16G16B16A16_SFLOAT, // Fallback: RGBA16F (safest option)
+    VK_FORMAT_B10G11R11_UFLOAT_PACK32, // Alternative: might work if E5B9G9R9 fails
+    VK_FORMAT_UNDEFINED,
+};
+
+/// Helper function to detect HDR formats that commonly fail with MSAA on some Android drivers
+[[nodiscard]] constexpr bool IsProblematicHDRFormat(VkFormat format) {
+    // These formats are known to cause texture flickering/black screens across multiple game engines
+    // when combined with MSAA on certain Android drivers (Qualcomm < 800, Mali pre-maintenance5)
+    return format == VK_FORMAT_B10G11R11_UFLOAT_PACK32 || // UE5, custom engines
+           format == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32;    // Unity, RE Engine, others
+}
+
 } // namespace Alternatives
 
 template <typename T>
@@ -122,6 +147,10 @@ constexpr const VkFormat* GetFormatAlternatives(VkFormat format) {
         return Alternatives::VK_FORMAT_R32G32B32_SFLOAT.data();
     case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
         return Alternatives::VK_FORMAT_A4B4G4R4_UNORM_PACK16.data();
+    case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+        return Alternatives::B10G11R11_UFLOAT_PACK32.data();
+    case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
+        return Alternatives::E5B9G9R9_UFLOAT_PACK32.data();
     default:
         return nullptr;
     }
@@ -844,15 +873,33 @@ Device::~Device() {
 VkFormat Device::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags wanted_usage,
                                     FormatType format_type) const {
     if (IsFormatSupported(wanted_format, wanted_usage, format_type)) {
-        return wanted_format;
+        // CRITICAL FIX: Even if format is "supported", check for STORAGE + HDR + no MSAA support
+        // Driver may report STORAGE_IMAGE_BIT but shaderStorageImageMultisample=false means
+        // it will fail at runtime when used with MSAA (CopyImageMSAA silently fails)
+        const bool requests_storage = (wanted_usage & VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT) != 0;
+        const bool is_hdr_format = wanted_format == VK_FORMAT_B10G11R11_UFLOAT_PACK32 ||
+                                   wanted_format == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32;
+        
+        // If driver doesn't support shader storage image with MSAA, and we're requesting storage
+        // for an HDR format (which will likely be used with MSAA), force fallback
+        if (requests_storage && is_hdr_format && !features.features.shaderStorageImageMultisample) {
+            LOG_WARNING(Render_Vulkan,
+                      "Format {} reports STORAGE_IMAGE_BIT but driver doesn't support "
+                      "shaderStorageImageMultisample. Forcing fallback for MSAA compatibility.",
+                      wanted_format);
+            // Continue to alternatives search below
+        } else {
+            return wanted_format;
+        }
     }
     // The wanted format is not supported by hardware, search for alternatives
     const VkFormat* alternatives = GetFormatAlternatives(wanted_format);
     if (alternatives == nullptr) {
         LOG_ERROR(Render_Vulkan,
-                  "Format={} with usage={} and type={} has no defined alternatives and host "
-                  "hardware does not support it",
-                  wanted_format, wanted_usage, format_type);
+                  "Format={} (0x{:X}) with usage={} and type={} has no defined alternatives and host "
+                  "hardware does not support it. Driver: {} Device: {}",
+                  wanted_format, static_cast<u32>(wanted_format), wanted_usage, format_type,
+                  GetDriverName(), properties.properties.deviceName);
         return wanted_format;
     }
 
@@ -861,9 +908,22 @@ VkFormat Device::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags
         if (!IsFormatSupported(alternative, wanted_usage, format_type)) {
             continue;
         }
-        LOG_DEBUG(Render_Vulkan,
+        // Special logging for HDR formats (common across multiple engines) on problematic drivers
+        if (wanted_format == VK_FORMAT_B10G11R11_UFLOAT_PACK32) {
+            LOG_WARNING(Render_Vulkan,
+                  "Emulating B10G11R11_UFLOAT (HDR format: UE5, custom engines) with {} on {}. "
+                  "Native format not supported by driver, using fallback.",
+                  alternative, properties.properties.deviceName);
+        } else if (wanted_format == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32) {
+            LOG_WARNING(Render_Vulkan,
+                  "Emulating E5B9G9R9_UFLOAT (HDR format: Unity, RE Engine) with {} on {}. "
+                  "Native format not supported by driver, using fallback.",
+                  alternative, properties.properties.deviceName);
+        } else {
+            LOG_DEBUG(Render_Vulkan,
                   "Emulating format={} with alternative format={} with usage={} and type={}",
                   wanted_format, alternative, wanted_usage, format_type);
+        }
         return alternative;
     }
 
