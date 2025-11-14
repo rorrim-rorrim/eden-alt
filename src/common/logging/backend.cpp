@@ -115,6 +115,10 @@ public:
                 auto* s = getenv("USER");
                 if (s == nullptr)
                     s = getenv("USERNAME");
+
+                if (s == nullptr)
+                    return "";
+
                 return std::string{s};
             }();
             if (!username.empty())
