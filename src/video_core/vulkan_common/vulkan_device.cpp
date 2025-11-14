@@ -105,6 +105,7 @@ constexpr std::array E5B9G9R9_UFLOAT_PACK32{
     VK_FORMAT_B10G11R11_UFLOAT_PACK32, // Alternative: might work if E5B9G9R9 fails
     VK_FORMAT_UNDEFINED,
 };
+
 } // namespace Alternatives
 
 template <typename T>
