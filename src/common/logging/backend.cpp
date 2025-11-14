@@ -117,6 +117,9 @@ public:
                     s = getenv("USERNAME");
 
                 if (s == nullptr)
+                    s = getenv("LOGNAME");
+
+                if (s == nullptr)
                     return "";
 
                 return std::string{s};
