@@ -539,9 +539,74 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                     "Qualcomm drivers have a slow VK_KHR_push_descriptor implementation");
         //RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
 
+#ifdef ANDROID
+        // Shader Float Controls handling for Qualcomm Adreno
+        // Default: DISABLED due to historical issues with binning precision causing visual glitches
+        const bool force_enable = Settings::values.shader_float_controls_force_enable.GetValue();
+        
+        if (force_enable) {
+            // User explicitly enabled float controls - log detected capabilities and user config
+            LOG_INFO(Render_Vulkan, "Shader Float Controls FORCE ENABLED by user (Eden Veil/Extensions)");
+            
+            // Log driver capabilities
+            const auto& fc = float_control;
+            LOG_INFO(Render_Vulkan, "Driver Float Controls Capabilities:");
+            LOG_INFO(Render_Vulkan, "  - Denorm Flush FP32: {}", fc.shaderDenormFlushToZeroFloat32 ? "YES" : "NO");
+            LOG_INFO(Render_Vulkan, "  - Denorm Preserve FP32: {}", fc.shaderDenormPreserveFloat32 ? "YES" : "NO");
+            LOG_INFO(Render_Vulkan, "  - RTE Rounding FP32: {}", fc.shaderRoundingModeRTEFloat32 ? "YES" : "NO");
+            LOG_INFO(Render_Vulkan, "  - Signed Zero/Inf/Nan FP32: {}", fc.shaderSignedZeroInfNanPreserveFloat32 ? "YES" : "NO");
+            LOG_INFO(Render_Vulkan, "  - Independence: {}", 
+                     fc.denormBehaviorIndependence == VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL ? "ALL" : "LIMITED");
+            
+            // Log user selections
+            bool ftz = Settings::values.shader_float_ftz.GetValue();
+            bool preserve = Settings::values.shader_float_denorm_preserve.GetValue();
+            const bool rte = Settings::values.shader_float_rte.GetValue();
+            const bool signed_zero = Settings::values.shader_float_signed_zero_inf_nan.GetValue();
+            
+            // Validate mutually exclusive options
+            if (ftz && preserve) {
+                LOG_WARNING(Render_Vulkan, 
+                            "CONFLICT: FTZ and DenormPreserve are mutually exclusive!");
+                LOG_WARNING(Render_Vulkan, 
+                            "  -> DenormPreserve will take precedence (accuracy over speed)");
+                ftz = false; // Preserve takes priority for correctness
+            }
+            
+            LOG_INFO(Render_Vulkan, "User Float Behavior Selection:");
+            LOG_INFO(Render_Vulkan, "  - Flush To Zero (FTZ): {}", ftz ? "ENABLED" : "disabled");
+            LOG_INFO(Render_Vulkan, "  - Denorm Preserve: {}", preserve ? "ENABLED" : "disabled");
+            LOG_INFO(Render_Vulkan, "  - Round To Even (RTE): {}", rte ? "ENABLED" : "disabled");
+            LOG_INFO(Render_Vulkan, "  - Signed Zero/Inf/Nan: {}", signed_zero ? "ENABLED" : "disabled");
+            
+            // Analyze configuration vs Switch native behavior
+            const bool matches_switch = ftz && !preserve && rte && signed_zero;
+            if (matches_switch) {
+                LOG_INFO(Render_Vulkan, "Configuration MATCHES Switch/Maxwell native behavior (FTZ+RTE+SignedZero)");
+            } else if (!ftz && !preserve && !rte && !signed_zero) {
+                LOG_WARNING(Render_Vulkan, "No float behaviors selected - using driver default (may cause glitches)");
+            } else {
+                LOG_INFO(Render_Vulkan, "Configuration is CUSTOM - testing mode active");
+            }
+            
+            // Extension stays enabled
+            LOG_INFO(Render_Vulkan, "VK_KHR_shader_float_controls: ENABLED");
+        } else {
+            // Default behavior - disable float controls
+            LOG_WARNING(Render_Vulkan,
+                        "Disabling shader float controls on Qualcomm (historical binning precision issues)");
+            LOG_INFO(Render_Vulkan, 
+                     "To enable: Eden Veil -> Extensions -> Shader Float Controls (Force Enable)");
+            RemoveExtension(extensions.shader_float_controls, VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
+        }
+#else
+        // Non-Android: keep original behavior
         LOG_WARNING(Render_Vulkan,
                     "Disabling shader float controls and 64-bit integer features on Qualcomm proprietary drivers");
         RemoveExtension(extensions.shader_float_controls, VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
+#endif
+        
+        // Int64 atomics - genuinely broken, always disable
         RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64,
                                VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
         features.shader_atomic_int64.shaderBufferInt64Atomics = false;

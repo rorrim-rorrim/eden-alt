@@ -560,6 +560,60 @@ struct Values {
                                                          false,
                                                          &sample_shading};
 
+#ifdef ANDROID
+    // Shader Float Controls (Android only) - Eden Veil / Extensions
+    // Force enable VK_KHR_shader_float_controls even if driver has known issues
+    // Allows fine-tuning float behavior to match Switch/Maxwell or optimize performance
+    SwitchableSetting<bool> shader_float_controls_force_enable{linkage, 
+                                                               false, 
+                                                               "shader_float_controls_force_enable", 
+                                                               Category::RendererExtensions,
+                                                               Specialization::Paired};
+    
+    // Individual float behavior controls (visible only when force_enable is true)
+    // Multiple can be active simultaneously EXCEPT FTZ and DenormPreserve (mutually exclusive)
+    // 
+    // Recommended configurations:
+    //   Switch-native: FTZ=ON, RTE=ON, SignedZero=ON (matches Maxwell behavior)
+    //   Performance:   FTZ=ON only (fastest)
+    //   Accuracy:      DenormPreserve=ON, RTE=ON, SignedZero=ON (slowest, highest precision)
+    SwitchableSetting<bool> shader_float_ftz{linkage,
+                                             false,
+                                             "shader_float_ftz",
+                                             Category::RendererExtensions,
+                                             Specialization::Default,
+                                             true,
+                                             false,
+                                             &shader_float_controls_force_enable};
+    
+    SwitchableSetting<bool> shader_float_denorm_preserve{linkage,
+                                                         false,
+                                                         "shader_float_denorm_preserve",
+                                                         Category::RendererExtensions,
+                                                         Specialization::Default,
+                                                         true,
+                                                         false,
+                                                         &shader_float_controls_force_enable};
+    
+    SwitchableSetting<bool> shader_float_rte{linkage,
+                                             false,
+                                             "shader_float_rte",
+                                             Category::RendererExtensions,
+                                             Specialization::Default,
+                                             true,
+                                             false,
+                                             &shader_float_controls_force_enable};
+    
+    SwitchableSetting<bool> shader_float_signed_zero_inf_nan{linkage,
+                                                             false,
+                                                             "shader_float_signed_zero_inf_nan",
+                                                             Category::RendererExtensions,
+                                                             Specialization::Default,
+                                                             true,
+                                                             false,
+                                                             &shader_float_controls_force_enable};
+#endif
+
     Setting<bool> renderer_debug{linkage, false, "debug", Category::RendererDebug};
     Setting<bool> renderer_shader_feedback{linkage, false, "shader_feedback",
                                            Category::RendererDebug};
