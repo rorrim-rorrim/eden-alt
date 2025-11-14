@@ -1000,7 +1000,9 @@ void RasterizerVulkan::UpdateDynamicStates() {
         }
     }
     if (device.IsExtVertexInputDynamicStateSupported() && dynamic_state > 2) {
-        UpdateVertexInput(regs);
+        if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput()) {
+            UpdateVertexInput(regs);
+        }
     }
 }
 
@@ -1029,23 +1031,23 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
     if (!regs.viewport_scale_offset_enabled) {
         float x = static_cast<float>(regs.surface_clip.x);
         float y = static_cast<float>(regs.surface_clip.y);
-        float width  = static_cast<float>(regs.surface_clip.width);
-        float height = static_cast<float>(regs.surface_clip.height);
-        const bool lower_left = regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft;
-        if (lower_left) {
-            // Vulkan viewport space is top-left; emulate lower-left with negative height.
+        float width = std::max(1.0f, static_cast<float>(regs.surface_clip.width));
+        float height = std::max(1.0f, static_cast<float>(regs.surface_clip.height));
+        if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
             y += height;
             height = -height;
         }
         VkViewport viewport{
             .x = x,
             .y = y,
-            .width = width != 0.0f ? width : 1.0f,
-            .height = height != 0.0f ? height : 1.0f,
+            .width = width,
+            .height = height,
             .minDepth = 0.0f,
             .maxDepth = 1.0f,
         };
-        scheduler.Record([viewport](vk::CommandBuffer cmdbuf) { cmdbuf.SetViewport(0, viewport); });
+        scheduler.Record([viewport](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetViewport(0, viewport);
+        });
         return;
     }
     const bool is_rescaling{texture_cache.IsRescaling()};
@@ -1074,18 +1076,19 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
     if (!regs.viewport_scale_offset_enabled) {
         u32 x = regs.surface_clip.x;
         u32 y = regs.surface_clip.y;
-        u32 width  = static_cast<u32>(regs.surface_clip.width)  ? static_cast<u32>(regs.surface_clip.width)  : 1u;
-        u32 height = static_cast<u32>(regs.surface_clip.height) ? static_cast<u32>(regs.surface_clip.height) : 1u;
+        u32 width = std::max(1u, static_cast<u32>(regs.surface_clip.width));
+        u32 height = std::max(1u, static_cast<u32>(regs.surface_clip.height));
         if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
-           // Vulkan scissor is top-left; convert from lower-left coordinates.
-           y = regs.surface_clip.height - (y + height);
+            y = regs.surface_clip.height - (y + height);
         }
         VkRect2D scissor{};
-        scissor.offset.x    = static_cast<int32_t>(x);
-        scissor.offset.y    = static_cast<int32_t>(y);
+        scissor.offset.x = static_cast<int32_t>(x);
+        scissor.offset.y = static_cast<int32_t>(y);
         scissor.extent.width  = width;
         scissor.extent.height = height;
-        scheduler.Record([scissor](vk::CommandBuffer cmdbuf) { cmdbuf.SetScissor(0, scissor); });
+        scheduler.Record([scissor](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetScissor(0, scissor);
+        });
         return;
     }
     u32 up_scale = 1;
