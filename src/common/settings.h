@@ -546,7 +546,7 @@ struct Values {
                                            Category::RendererExtensions,
                                            Specialization::Scalar};
 
-    SwitchableSetting<bool> force_rasterizer_state{linkage, false, "force_rasterizer_state", Category::RendererExtensions};
+    SwitchableSetting<bool> force_rasterizer_state_updates{linkage, false, "force_rasterizer_state_updates", Category::RendererExtensions};
     SwitchableSetting<bool> provoking_vertex{linkage, false, "provoking_vertex", Category::RendererExtensions};
     SwitchableSetting<bool> descriptor_indexing{linkage, false, "descriptor_indexing", Category::RendererExtensions};
     SwitchableSetting<bool> sample_shading{linkage, false, "sample_shading", Category::RendererExtensions, Specialization::Paired};
