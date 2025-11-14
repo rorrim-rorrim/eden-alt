@@ -329,6 +329,11 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Extended Dynamic State"),
            tr("Controls the number of features that can be used in Extended Dynamic State.\nHigher numbers allow for more features and can increase performance, but may cause issues.\nThe default value is per-system."));
 
+    INSERT(Settings, force_rasterizer_state, tr("Force Rasterizer State Updates"),
+       tr("Forces rasterizer to update dynamic state even when EDS is set to 0.\n"
+          "Fixes vertex explosions in Pokemon Legends: Z-A with EDS 0.\n"
+          "Only enable if experiencing rendering issues with EDS 0."));
+
     INSERT(Settings,
            provoking_vertex,
            tr("Provoking Vertex"),

@@ -611,17 +611,24 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = true;
         dynamic_state3_blending = true;
     }
-    if (extensions.vertex_input_dynamic_state && is_radv) {
-        // TODO(ameerj): Blacklist only offending driver versions
-        // TODO(ameerj): Confirm if RDNA1 is affected
-        const bool is_rdna2 =
-            supported_extensions.contains(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME);
-        if (is_rdna2) {
+    // VIDS causes black screen when EDS=0, must be off in this case
+    if (extensions.vertex_input_dynamic_state) {
+        // Always disable VIDS when EDS=0 to prevent black screen (all drivers)
+        if (Settings::values.dyna_state.GetValue() == 0) {
             LOG_WARNING(Render_Vulkan,
-                        "RADV has broken VK_EXT_vertex_input_dynamic_state on RDNA2 hardware");
-            //  RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
-            //      features.vertex_input_dynamic_state,
-            //    VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+                        "Disabling VK_EXT_vertex_input_dynamic_state due to black screen with EDS=0");
+            RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
+                                   features.vertex_input_dynamic_state,
+                                   VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+        } else if (is_radv) {
+            const bool is_rdna2 =
+                supported_extensions.contains(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME);
+            if (is_rdna2) {
+                // RDNA1 status unknown
+                // Warn about glitches on RDNA2
+                LOG_WARNING(Render_Vulkan,
+                            "RADV glitchy VK_EXT_vertex_input_dynamic_state may cause glitches on some driver versions");
+            }
         }
     }
     if (extensions.vertex_input_dynamic_state && is_qualcomm) {
@@ -744,21 +751,13 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     if (Settings::values.dyna_state.GetValue() == 0) {
-        must_emulate_scaled_formats = true;
-        LOG_INFO(Render_Vulkan, "Extended dynamic state is fully disabled, scaled format emulation is ON");
-
-        RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color, VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2, VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3, VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
         dynamic_state3_blending = false;
         dynamic_state3_enables = false;
 
         LOG_INFO(Render_Vulkan, "All dynamic state extensions and features have been disabled");
-    } else {
-        must_emulate_scaled_formats = false;
-        LOG_INFO(Render_Vulkan, "Extended dynamic state is enabled, scaled format emulation is OFF");
     }
 
     logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions), first_next, dld);

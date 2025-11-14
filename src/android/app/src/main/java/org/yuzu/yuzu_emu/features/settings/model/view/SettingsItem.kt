@@ -141,6 +141,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.RENDERER_FORCE_RASTERIZER_STATE,
+                    titleId = R.string.force_rasterizer_state,
+                    descriptionId = R.string.force_rasterizer_state_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.RENDERER_PROVOKING_VERTEX,
                     titleId = R.string.provoking_vertex,
                     descriptionId = R.string.provoking_vertex_description
