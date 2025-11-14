@@ -67,9 +67,9 @@ private:
     };
 
     enum class ChannelPriority : u32 {
-        low = 0x32,
-        medium = 0x64,
-        high = 0x96,
+        Low = 0x32,
+        Medium = 0x64,
+        High = 0x96,
     };
 
     struct IoctlSetNvmapFD {
