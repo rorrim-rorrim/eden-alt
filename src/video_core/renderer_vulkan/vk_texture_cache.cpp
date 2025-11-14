@@ -1598,6 +1598,24 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
                 MakeStorageView(device, level, *original_image, VK_FORMAT_A8B8G8R8_UNORM_PACK32);
         }
     }
+
+    // Proactive warning for problematic HDR format + MSAA combinations on Android
+    // These combinations commonly cause texture flickering/black screens across multiple game engines
+    // Note: MSAA is native Switch rendering technique, cannot be disabled by emulator
+    if (info.num_samples > 1) {
+        const auto vk_format = MaxwellToVK::SurfaceFormat(runtime->device, FormatType::Optimal, 
+                                                          false, info.format).format;
+        const bool is_hdr_format = vk_format == VK_FORMAT_B10G11R11_UFLOAT_PACK32 || 
+                                   vk_format == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32;
+        
+        if (is_hdr_format) {
+            LOG_WARNING(Render_Vulkan,
+                      "Creating MSAA image ({}x samples) with HDR format {} (Maxwell: {}). "
+                      "Driver support may be limited on Android (Qualcomm < 800, Mali pre-maintenance5). "
+                      "Format fallback to RGBA16F should prevent issues.",
+                      info.num_samples, vk_format, info.format);
+        }
+    }
 }
 
 Image::Image(const VideoCommon::NullImageParams& params) : VideoCommon::ImageBase{params} {}
