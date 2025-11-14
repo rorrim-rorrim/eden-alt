@@ -1061,9 +1061,6 @@
     <string name="multiplier_x16">x16</string>
     <string name="multiplier_x32">x32</string>
     <string name="multiplier_x64">x64</string>
-    <string name="multiplier_x128">x128</string>
-    <string name="multiplier_x256">x256</string>
-    <string name="multiplier_x512">x512</string>
     <string name="multiplier_none">None</string>
 
     <!-- Black backgrounds theme -->

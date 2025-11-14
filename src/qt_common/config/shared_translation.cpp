@@ -598,9 +598,6 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
                               PAIR(AnisotropyMode, X16, tr("16x")),
                               PAIR(AnisotropyMode, X32, tr("32x")),
                               PAIR(AnisotropyMode, X64, tr("64x")),
-                              PAIR(AnisotropyMode, X128, tr("128x")),
-                              PAIR(AnisotropyMode, X256, tr("256x")),
-                              PAIR(AnisotropyMode, X512, tr("512x")),
                               PAIR(AnisotropyMode, None, tr("None")),
                           }});
     translations->insert(
