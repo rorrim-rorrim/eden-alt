@@ -38,8 +38,6 @@ struct hash<Vulkan::RenderPassKey> {
     [[nodiscard]] size_t operator()(const Vulkan::RenderPassKey& key) const noexcept {
         size_t value = static_cast<size_t>(key.depth_format) << 48;
         value ^= static_cast<size_t>(key.samples) << 52;
-        value ^= (static_cast<size_t>(key.tbdr_will_clear) << 56);
-        value ^= (static_cast<size_t>(key.tbdr_discard_after) << 57);
         for (size_t i = 0; i < key.color_formats.size(); ++i) {
             value ^= static_cast<size_t>(key.color_formats[i]) << (i * 6);
         }

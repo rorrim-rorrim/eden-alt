@@ -27,21 +27,8 @@ public:
     DescriptorLayoutBuilder(const Device& device_) : device{&device_} {}
 
     bool CanUsePushDescriptor() const noexcept {
-        if (!device->IsKhrPushDescriptorSupported()) {
-            return false;
-        }
-        if (num_descriptors > device->MaxPushDescriptors()) {
-            return false;
-        }
-
-        // Qualcomm has slow push descriptor implementation - use conservative threshold
-        // Prefer descriptor pools for complex shaders (>8 descriptors)
-        const bool is_qualcomm = device->GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
-        if (is_qualcomm && num_descriptors > 8) {
-            return false;
-        }
-
-        return true;
+        return device->IsKhrPushDescriptorSupported() &&
+               num_descriptors <= device->MaxPushDescriptors();
     }
 
     // TODO(crueter): utilize layout binding flags

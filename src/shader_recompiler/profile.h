@@ -28,14 +28,6 @@ struct Profile {
     bool support_fp16_signed_zero_nan_preserve{};
     bool support_fp32_signed_zero_nan_preserve{};
     bool support_fp64_signed_zero_nan_preserve{};
-    
-    // User-forced float behavior overrides (Android Eden Veil/Extensions)
-    // When shader_float_controls_force_enable is true, these override shader-declared behavior
-    bool force_fp32_denorm_flush{};           // Force FTZ for all FP32 ops
-    bool force_fp32_denorm_preserve{};        // Force denorm preservation for all FP32 ops
-    bool force_fp32_rte_rounding{};           // Force Round-To-Even for all FP32 ops
-    bool force_fp32_signed_zero_inf_nan{};    // Force signed zero/inf/nan preservation
-    
     bool support_explicit_workgroup_layout{};
     bool support_vote{};
     bool support_viewport_index_layer_non_geometry{};

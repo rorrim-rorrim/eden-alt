@@ -8,7 +8,6 @@
 
 #include <boost/container/static_vector.hpp>
 
-#include "common/logging/log.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
 #include "video_core/renderer_vulkan/vk_render_pass_cache.h"
 #include "video_core/surface.h"
@@ -19,23 +18,6 @@ namespace Vulkan {
 namespace {
 using VideoCore::Surface::PixelFormat;
 using VideoCore::Surface::SurfaceType;
-
-        // Check if the driver uses tile-based deferred rendering (TBDR) architecture
-        // These GPUs benefit from optimized load/store operations to keep data on-chip
-        // 
-        // TBDR GPUs supported in Eden:
-        // - Qualcomm Adreno (Snapdragon): Most Android flagship/midrange devices
-        // - ARM Mali: Android devices (Samsung Exynos, MediaTek, etc.)
-        // - Imagination PowerVR: Older iOS devices, some Android tablets
-        // - Samsung Xclipse: Galaxy S22+ (AMD RDNA2-based, but uses TBDR mode)
-        // - Broadcom VideoCore: Raspberry Pi
-        [[nodiscard]] constexpr bool IsTBDRGPU(VkDriverId driver_id) {
-            return driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
-                   driver_id == VK_DRIVER_ID_ARM_PROPRIETARY ||
-                   driver_id == VK_DRIVER_ID_IMAGINATION_PROPRIETARY ||
-                   driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY ||
-                   driver_id == VK_DRIVER_ID_BROADCOM_PROPRIETARY;
-        }
 
         constexpr SurfaceType GetSurfaceType(PixelFormat format) {
             switch (format) {
@@ -62,51 +44,23 @@ using VideoCore::Surface::SurfaceType;
         }
 
         VkAttachmentDescription AttachmentDescription(const Device& device, PixelFormat format,
-                                                      VkSampleCountFlagBits samples,
-                                                      bool tbdr_will_clear,
-                                                      bool tbdr_discard_after) {
+                                                      VkSampleCountFlagBits samples) {
             using MaxwellToVK::SurfaceFormat;
 
             const SurfaceType surface_type = GetSurfaceType(format);
             const bool has_stencil = surface_type == SurfaceType::DepthStencil ||
                                      surface_type == SurfaceType::Stencil;
 
-            // TBDR optimization: Apply hints only on tile-based GPUs
-            // Desktop GPUs (NVIDIA/AMD/Intel) ignore these hints and use standard behavior
-            const bool is_tbdr = IsTBDRGPU(device.GetDriverID());
-            
-            // On TBDR: Use DONT_CARE if clear is guaranteed (avoids loading from main memory)
-            // On Desktop: Always LOAD to preserve existing content (safer default)
-            VkAttachmentLoadOp load_op = VK_ATTACHMENT_LOAD_OP_LOAD;
-            if (is_tbdr && tbdr_will_clear) {
-                load_op = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-            }
-
-            // On TBDR: Use DONT_CARE if content won't be read (avoids storing to main memory)
-            // On Desktop: Always STORE (safer default)
-            VkAttachmentStoreOp store_op = VK_ATTACHMENT_STORE_OP_STORE;
-            if (is_tbdr && tbdr_discard_after) {
-                store_op = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            }
-
-            // Stencil operations follow same logic
-            VkAttachmentLoadOp stencil_load_op = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-            VkAttachmentStoreOp stencil_store_op = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            if (has_stencil) {
-                stencil_load_op = (is_tbdr && tbdr_will_clear) ? VK_ATTACHMENT_LOAD_OP_DONT_CARE
-                                                                : VK_ATTACHMENT_LOAD_OP_LOAD;
-                stencil_store_op = (is_tbdr && tbdr_discard_after) ? VK_ATTACHMENT_STORE_OP_DONT_CARE
-                                                                    : VK_ATTACHMENT_STORE_OP_STORE;
-            }
-
             return {
                 .flags = {},
                 .format = SurfaceFormat(device, FormatType::Optimal, true, format).format,
                 .samples = samples,
-                .loadOp = load_op,
-                .storeOp = store_op,
-                .stencilLoadOp = stencil_load_op,
-                .stencilStoreOp = stencil_store_op,
+                .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+                .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                .stencilLoadOp = has_stencil ? VK_ATTACHMENT_LOAD_OP_LOAD
+                                                 : VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                .stencilStoreOp = has_stencil ? VK_ATTACHMENT_STORE_OP_STORE
+                                                  : VK_ATTACHMENT_STORE_OP_DONT_CARE,
                 .initialLayout = VK_IMAGE_LAYOUT_GENERAL,
                 .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
             };
@@ -121,13 +75,6 @@ VkRenderPass RenderPassCache::Get(const RenderPassKey& key) {
     if (!is_new) {
         return *pair->second;
     }
-
-    const bool is_tbdr = IsTBDRGPU(device->GetDriverID());
-    if (is_tbdr && (key.tbdr_will_clear || key.tbdr_discard_after)) {
-        LOG_DEBUG(Render_Vulkan, "Creating TBDR-optimized render pass (driver={}, clear={}, discard={})",
-                  static_cast<u32>(device->GetDriverID()), key.tbdr_will_clear, key.tbdr_discard_after);
-    }
-
     boost::container::static_vector<VkAttachmentDescription, 9> descriptions;
     std::array<VkAttachmentReference, 8> references{};
     u32 num_attachments{};
@@ -140,8 +87,7 @@ VkRenderPass RenderPassCache::Get(const RenderPassKey& key) {
             .layout = VK_IMAGE_LAYOUT_GENERAL,
         };
         if (is_valid) {
-            descriptions.push_back(AttachmentDescription(*device, format, key.samples,
-                                                         key.tbdr_will_clear, key.tbdr_discard_after));
+            descriptions.push_back(AttachmentDescription(*device, format, key.samples));
             num_attachments = static_cast<u32>(index + 1);
             ++num_colors;
         }
@@ -153,8 +99,7 @@ VkRenderPass RenderPassCache::Get(const RenderPassKey& key) {
             .attachment = num_colors,
             .layout = VK_IMAGE_LAYOUT_GENERAL,
         };
-        descriptions.push_back(AttachmentDescription(*device, key.depth_format, key.samples,
-                                                     key.tbdr_will_clear, key.tbdr_discard_after));
+        descriptions.push_back(AttachmentDescription(*device, key.depth_format, key.samples));
     }
     VkSubpassDescriptionFlags subpass_flags = 0;
     if (key.qcom_shader_resolve) {
