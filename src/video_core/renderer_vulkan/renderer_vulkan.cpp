@@ -177,6 +177,8 @@ try
 
 RendererVulkan::~RendererVulkan() {
     scheduler.RegisterOnSubmit([] {});
+    // Acquire submit_mutex before WaitIdle to prevent simultaneous queue access
+    std::scoped_lock lock{scheduler.submit_mutex};
     void(device.GetLogical().WaitIdle());
 }
 
