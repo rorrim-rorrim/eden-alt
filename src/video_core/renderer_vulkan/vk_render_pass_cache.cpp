@@ -165,7 +165,8 @@ VkRenderPass RenderPassCache::Get(const RenderPassKey& key) {
     VkSubpassDescriptionFlags subpass_flags = 0;
     if (key.qcom_shader_resolve) {
         // VK_QCOM_render_pass_shader_resolve: enables custom shader resolve in fragment shader
-        // This must be the last subpass in the dependency chain
+        // This flag allows using a programmable fragment shader for MSAA resolve instead of
+        // fixed-function hardware resolve, enabling better quality and HDR format support
         subpass_flags |= 0x00000004; // VK_SUBPASS_DESCRIPTION_SHADER_RESOLVE_BIT_QCOM
     }
     
