@@ -160,41 +160,6 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     };
 }
 
-/// Emergency fallback: degrade MSAA to non-MSAA for HDR formats when no resolve support exists
-[[nodiscard]] ImageInfo AdjustMSAAForHDRFormats(const Device& device, ImageInfo info) {
-    if (info.num_samples <= 1) {
-        return info;
-    }
-
-    const auto vk_format = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, 
-                                                      false, info.format).format;
-    const bool is_hdr_format = vk_format == VK_FORMAT_B10G11R11_UFLOAT_PACK32 ||
-                               vk_format == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32;
-
-    if (!is_hdr_format) {
-        return info;
-    }
-
-    // Qualcomm: VK_QCOM_render_pass_shader_resolve handles HDR+MSAA
-    if (device.GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) {
-        if (device.IsQcomRenderPassShaderResolveSupported()) {
-            return info;
-        }
-    }
-
-    // Other vendors: shaderStorageImageMultisample handles HDR+MSAA
-    if (device.IsStorageImageMultisampleSupported()) {
-        return info;
-    }
-
-    // No suitable resolve method - degrade to non-MSAA
-    LOG_WARNING(Render_Vulkan, "HDR format {} with MSAA not supported, degrading to 1x samples",
-                vk_format);
-    info.num_samples = 1;
-    
-    return info;
-}
-
 [[nodiscard]] vk::Image MakeImage(const Device& device, const MemoryAllocator& allocator,
                                   const ImageInfo& info, std::span<const VkFormat> view_formats) {
     if (info.type == ImageType::Buffer) {
@@ -1548,20 +1513,10 @@ void TextureCacheRuntime::TickFrame() {}
 Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu_addr_,
              VAddr cpu_addr_)
     : VideoCommon::ImageBase(info_, gpu_addr_, cpu_addr_), scheduler{&runtime_.scheduler},
-      runtime{&runtime_} {
-    // CRITICAL: Adjust MSAA for HDR formats if driver doesn't support shaderStorageImageMultisample
-    // This prevents texture corruption by degrading to non-MSAA when msaa_copy_pass would fail
-    const ImageInfo adjusted_info = AdjustMSAAForHDRFormats(runtime_.device, info_);
-    
-    // Update our stored info with adjusted values (may have num_samples=1 now)
-    info = adjusted_info;
-    
-    // Create image with adjusted info
-    original_image = MakeImage(runtime_.device, runtime_.memory_allocator, adjusted_info,
-                              runtime->ViewFormats(adjusted_info.format));
-    aspect_mask = ImageAspectMask(adjusted_info.format);
-    
-    if (IsPixelFormatASTC(adjusted_info.format) && !runtime->device.IsOptimalAstcSupported()) {
+      runtime{&runtime_}, original_image(MakeImage(runtime_.device, runtime_.memory_allocator, info,
+                                                   runtime->ViewFormats(info.format))),
+      aspect_mask(ImageAspectMask(info.format)) {
+    if (IsPixelFormatASTC(info.format) && !runtime->device.IsOptimalAstcSupported()) {
         switch (Settings::values.accelerate_astc.GetValue()) {
         case Settings::AstcDecodeMode::Gpu:
             if (Settings::values.astc_recompression.GetValue() ==
@@ -1595,6 +1550,24 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
         for (s32 level = 0; level < info.resources.levels; ++level) {
             storage_image_views[level] =
                 MakeStorageView(device, level, *original_image, VK_FORMAT_A8B8G8R8_UNORM_PACK32);
+        }
+    }
+
+    // Proactive warning for problematic HDR format + MSAA combinations on Android
+    // These combinations commonly cause texture flickering/black screens across multiple game engines
+    // Note: MSAA is native Switch rendering technique, cannot be disabled by emulator
+    if (info.num_samples > 1) {
+        const auto vk_format = MaxwellToVK::SurfaceFormat(runtime->device, FormatType::Optimal,
+                                                          false, info.format).format;
+        const bool is_hdr_format = vk_format == VK_FORMAT_B10G11R11_UFLOAT_PACK32 ||
+                                   vk_format == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32;
+
+        if (is_hdr_format) {
+            LOG_WARNING(Render_Vulkan,
+                      "Creating MSAA image ({}x samples) with HDR format {} (Maxwell: {}). "
+                      "Driver support may be limited on Android (Qualcomm < 800, Mali pre-maintenance5). "
+                      "Format fallback to RGBA16F should prevent issues.",
+                      info.num_samples, vk_format, info.format);
         }
     }
 }
