@@ -37,6 +37,7 @@ class CarouselRecyclerView @JvmOverloads constructor(
     private var overlapDecoration: OverlappingDecoration? = null
     private var pagerSnapHelper: PagerSnapHelper? = null
     private var scalingScrollListener: OnScrollListener? = null
+    private var lastNonZeroBottomInset: Int = 0
 
     companion object {
         private const val CAROUSEL_CARD_SIZE_FACTOR = "CarouselCardSizeMultiplier"
@@ -202,12 +203,21 @@ class CarouselRecyclerView @JvmOverloads constructor(
         }
     }
 
+    private fun resolveBottomInset(currentBottom: Int): Int {
+        if (currentBottom > 0) {
+            lastNonZeroBottomInset = currentBottom
+            return currentBottom
+        }
+        return if (lastNonZeroBottomInset > 0) lastNonZeroBottomInset else 0
+    }
+
     fun setCarouselMode(enabled: Boolean, gameAdapter: GameAdapter? = null) {
         if (enabled) {
             useCustomDrawingOrder = true
 
             val insets = rootWindowInsets?.let { WindowInsetsCompat.toWindowInsetsCompat(it, this) }
-            val bottomInset = insets?.getInsets(WindowInsetsCompat.Type.systemBars())?.bottom ?: 0
+            val rawBottomInset = insets?.getInsets(WindowInsetsCompat.Type.systemBars())?.bottom ?: 0
+            val bottomInset = resolveBottomInset(rawBottomInset)
             val internalFactor = resources.getFraction(R.fraction.carousel_card_size_factor, 1, 1)
             val userFactor = preferences.getFloat(CAROUSEL_CARD_SIZE_FACTOR, internalFactor).coerceIn(
                 0f,
