@@ -95,6 +95,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(EXT, DESCRIPTOR_INDEXING, descriptor_indexing)                                       \
     EXTENSION(EXT, FILTER_CUBIC, filter_cubic)                                                     \
     EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)                                    \
+    EXTENSION(QCOM, RENDER_PASS_SHADER_RESOLVE, render_pass_shader_resolve)                        \
     EXTENSION(KHR, MAINTENANCE_1, maintenance1)                                                    \
     EXTENSION(KHR, MAINTENANCE_2, maintenance2)                                                    \
     EXTENSION(KHR, MAINTENANCE_3, maintenance3)                                                    \
@@ -580,6 +581,21 @@ public:
     /// Returns true if the device supports VK_QCOM_filter_cubic_weights
     bool IsQcomFilterCubicWeightsSupported() const {
         return extensions.filter_cubic_weights;
+    }
+
+    /// Returns true if the device supports VK_QCOM_render_pass_shader_resolve
+    bool IsQcomRenderPassShaderResolveSupported() const {
+        return extensions.render_pass_shader_resolve;
+    }
+
+    /// Returns true if MSAA copy operations are supported via compute shader (upload/download)
+    /// Qualcomm uses render pass shader resolve instead, so this returns false for Qualcomm
+    bool CanUploadMSAA() const {
+        return IsStorageImageMultisampleSupported();
+    }
+
+    bool CanDownloadMSAA() const {
+        return CanUploadMSAA();
     }
 
     /// Returns true if the device supports VK_EXT_line_rasterization.

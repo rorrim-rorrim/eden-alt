@@ -160,43 +160,39 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     };
 }
 
-/// Emergency fallback for MSAA with HDR formats: degrade to non-MSAA if driver doesn't support
-/// shaderStorageImageMultisample (required for msaa_copy_pass)
+/// Emergency fallback: degrade MSAA to non-MSAA for HDR formats when no resolve support exists
 [[nodiscard]] ImageInfo AdjustMSAAForHDRFormats(const Device& device, ImageInfo info) {
-    // Only apply emergency fallback if MSAA is requested
     if (info.num_samples <= 1) {
         return info;
     }
 
-    // Check if this is an HDR format that commonly fails with MSAA
     const auto vk_format = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, 
                                                       false, info.format).format;
     const bool is_hdr_format = vk_format == VK_FORMAT_B10G11R11_UFLOAT_PACK32 ||
                                vk_format == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32;
 
     if (!is_hdr_format) {
-        return info; // Not an HDR format, no adjustment needed
-    }
-
-    // If driver doesn't support shader storage image multisample, MSAACopyPass will fail
-    // Emergency fallback: degrade to non-MSAA (1 sample) to avoid texture corruption
-    if (!device.IsStorageImageMultisampleSupported()) {
-        LOG_ERROR(Render_Vulkan,
-                  "EMERGENCY MSAA FALLBACK: Driver doesn't support shaderStorageImageMultisample. "
-                  "Degrading HDR format {} from {}x MSAA to 1x (non-MSAA) to prevent texture corruption. "
-                  "This will cause visual quality loss but prevents black textures.",
-                  vk_format, info.num_samples);
-        
-        // Degrade to non-MSAA
-        // NOTE: We only change num_samples, NOT dimensions. The ImageInfo dimensions are already
-        // in "logical" space (full resolution), and MakeImageCreateInfo will handle the conversion
-        // to physical GPU dimensions based on num_samples automatically.
-        info.num_samples = 1;
-        
         return info;
     }
 
-    return info; // Driver supports MSAA storage images, no adjustment needed
+    // Qualcomm: VK_QCOM_render_pass_shader_resolve handles HDR+MSAA
+    if (device.GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) {
+        if (device.IsQcomRenderPassShaderResolveSupported()) {
+            return info;
+        }
+    }
+
+    // Other vendors: shaderStorageImageMultisample handles HDR+MSAA
+    if (device.IsStorageImageMultisampleSupported()) {
+        return info;
+    }
+
+    // No suitable resolve method - degrade to non-MSAA
+    LOG_WARNING(Render_Vulkan, "HDR format {} with MSAA not supported, degrading to 1x samples",
+                vk_format);
+    info.num_samples = 1;
+    
+    return info;
 }
 
 [[nodiscard]] vk::Image MakeImage(const Device& device, const MemoryAllocator& allocator,
@@ -896,6 +892,9 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
         astc_decoder_pass.emplace(device, scheduler, descriptor_pool, staging_buffer_pool,
                                   compute_pass_descriptor_queue, memory_allocator);
     }
+    
+    // MSAA copy support via compute shader (only for non-Qualcomm with shaderStorageImageMultisample)
+    // Qualcomm uses VK_QCOM_render_pass_shader_resolve (fragment shader in render pass)
     if (device.IsStorageImageMultisampleSupported()) {
         msaa_copy_pass = std::make_unique<MSAACopyPass>(
             device, scheduler, descriptor_pool, staging_buffer_pool, compute_pass_descriptor_queue);

@@ -156,8 +156,15 @@ VkRenderPass RenderPassCache::Get(const RenderPassKey& key) {
         descriptions.push_back(AttachmentDescription(*device, key.depth_format, key.samples,
                                                      key.tbdr_will_clear, key.tbdr_discard_after));
     }
+    VkSubpassDescriptionFlags subpass_flags = 0;
+    if (key.qcom_shader_resolve) {
+        // VK_QCOM_render_pass_shader_resolve: enables custom shader resolve in fragment shader
+        // This must be the last subpass in the dependency chain
+        subpass_flags |= 0x00000004; // VK_SUBPASS_DESCRIPTION_SHADER_RESOLVE_BIT_QCOM
+    }
+    
     const VkSubpassDescription subpass{
-        .flags = 0,
+        .flags = subpass_flags,
         .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
         .inputAttachmentCount = 0,
         .pInputAttachments = nullptr,

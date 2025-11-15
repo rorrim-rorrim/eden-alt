@@ -549,7 +549,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             LOG_INFO(Render_Vulkan, "Shader Float Controls FORCE ENABLED by user (Eden Veil/Extensions)");
             
             // Log driver capabilities
-            const auto& fc = float_control;
+            const auto& fc = properties.float_controls;
             LOG_INFO(Render_Vulkan, "Driver Float Controls Capabilities:");
             LOG_INFO(Render_Vulkan, "  - Denorm Flush FP32: {}", fc.shaderDenormFlushToZeroFloat32 ? "YES" : "NO");
             LOG_INFO(Render_Vulkan, "  - Denorm Preserve FP32: {}", fc.shaderDenormPreserveFloat32 ? "YES" : "NO");

@@ -95,6 +95,8 @@ public:
     void ConvertRGBA16FtoRGBA8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
     void ApplyDitherTemporal(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
     void ApplyDynamicResolutionScale(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
+    
+    void ResolveMSAAQcom(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
 
 private:
     void Convert(VkPipeline pipeline, const Framebuffer* dst_framebuffer,
@@ -159,6 +161,7 @@ private:
     vk::ShaderModule convert_rgba16f_to_rgba8_frag;
     vk::ShaderModule dither_temporal_frag;
     vk::ShaderModule dynamic_resolution_scale_comp;
+    vk::ShaderModule qcom_msaa_resolve_frag;
     vk::Sampler linear_sampler;
     vk::Sampler nearest_sampler;
 
@@ -188,6 +191,7 @@ private:
     vk::Pipeline convert_rgba16f_to_rgba8_pipeline;
     vk::Pipeline dither_temporal_pipeline;
     vk::Pipeline dynamic_resolution_scale_pipeline;
+    vk::Pipeline qcom_msaa_resolve_pipeline;
 };
 
 } // namespace Vulkan
