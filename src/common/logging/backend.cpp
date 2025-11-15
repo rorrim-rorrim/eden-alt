@@ -112,11 +112,18 @@ public:
             // This must be a static otherwise it would get checked on EVERY
             // instance of logging an entry...
             static std::string username = []() -> std::string {
-                char* s;
+                // in order of precedence
+                static constexpr const std::array<const char*, 3> environment_variables = {
+                    "LOGNAME",
+                    "USERNAME",
+                    "USER",
+                };
 
-                if ((s = getenv("USER")) != nullptr || (s = getenv("USERNAME")) != nullptr
-                    || (s = getenv("LOGNAME")) != nullptr)
-                    return std::string{s};
+                for (const char* var : environment_variables) {
+                    const char* s = getenv(var);
+                    if (s != nullptr)
+                        return std::string{s};
+                }
 
                 return std::string{};
             }();
