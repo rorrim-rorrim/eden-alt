@@ -750,7 +750,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         Settings::values.dyna_state.SetValue(0);
     }
 
-    if (Settings::values.dyna_state.GetValue() == 0) {
+    const bool force_rasterizer = Settings::values.force_rasterizer_state_updates.GetValue();
+
+    if (Settings::values.dyna_state.GetValue() == 0 && !force_rasterizer) {
         RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2, VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3, VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
