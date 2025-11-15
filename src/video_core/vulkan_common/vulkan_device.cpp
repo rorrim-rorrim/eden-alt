@@ -89,20 +89,11 @@ constexpr std::array VK_FORMAT_A4B4G4R4_UNORM_PACK16{
     VK_FORMAT_UNDEFINED,
 };
 
-// B10G11R11_UFLOAT (R11G11B10 float) is used by Unreal Engine 5 for HDR textures
-// Some Android drivers (Qualcomm pre-800, Mali pre-maintenance5) have issues with this format
-// when used with MSAA or certain tiling modes, causing texture flickering/black screens
+// B10G11R11_UFLOAT (R11G11B10F) - PRIMARY HDR format for Nintendo Switch
+// Nintendo Switch hardware validation: FULL support (COLOR_ATTACHMENT + STORAGE_IMAGE + BLEND)
+// Reference: vp_gpuinfo_nintendo_switch_v2_495_0_0_0 - All required feature bits present
 constexpr std::array B10G11R11_UFLOAT_PACK32{
-    VK_FORMAT_R16G16B16A16_SFLOAT, // Fallback: RGBA16F (more memory, but widely supported)
-    VK_FORMAT_E5B9G9R9_UFLOAT_PACK32, // Alternative: E5B9G9R9 shared exponent format
-    VK_FORMAT_UNDEFINED,
-};
-
-// E5B9G9R9_UFLOAT (shared exponent RGB9E5) used by various engines (Unity, custom engines)
-// Also problematic on some Android drivers, especially with MSAA and as render target
-constexpr std::array E5B9G9R9_UFLOAT_PACK32{
-    VK_FORMAT_R16G16B16A16_SFLOAT, // Fallback: RGBA16F (safest option)
-    VK_FORMAT_B10G11R11_UFLOAT_PACK32, // Alternative: might work if E5B9G9R9 fails
+    VK_FORMAT_R16G16B16A16_SFLOAT, // Fallback: RGBA16F (4x memory, slower, but universally supported)
     VK_FORMAT_UNDEFINED,
 };
 
@@ -140,8 +131,6 @@ constexpr const VkFormat* GetFormatAlternatives(VkFormat format) {
         return Alternatives::VK_FORMAT_A4B4G4R4_UNORM_PACK16.data();
     case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
         return Alternatives::B10G11R11_UFLOAT_PACK32.data();
-    case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
-        return Alternatives::E5B9G9R9_UFLOAT_PACK32.data();
     default:
         return nullptr;
     }
@@ -229,7 +218,6 @@ std::unordered_map<VkFormat, VkFormatProperties> GetFormatProperties(vk::Physica
         VK_FORMAT_D24_UNORM_S8_UINT,
         VK_FORMAT_D32_SFLOAT,
         VK_FORMAT_D32_SFLOAT_S8_UINT,
-        VK_FORMAT_E5B9G9R9_UFLOAT_PACK32,
         VK_FORMAT_R16G16B16A16_SFLOAT,
         VK_FORMAT_R16G16B16A16_SINT,
         VK_FORMAT_R16G16B16A16_SNORM,
@@ -944,8 +932,7 @@ VkFormat Device::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags
         // Driver may report STORAGE_IMAGE_BIT but shaderStorageImageMultisample=false means
         // it will fail at runtime when used with MSAA (CopyImageMSAA silently fails)
         const bool requests_storage = (wanted_usage & VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT) != 0;
-        const bool is_hdr_format = wanted_format == VK_FORMAT_B10G11R11_UFLOAT_PACK32 ||
-                                   wanted_format == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32;
+        const bool is_hdr_format = wanted_format == VK_FORMAT_B10G11R11_UFLOAT_PACK32;
         
         // If driver doesn't support shader storage image with MSAA, and we're requesting storage
         // for an HDR format (which will likely be used with MSAA), force fallback
@@ -978,13 +965,8 @@ VkFormat Device::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags
         // Special logging for HDR formats (common across multiple engines) on problematic drivers
         if (wanted_format == VK_FORMAT_B10G11R11_UFLOAT_PACK32) {
             LOG_WARNING(Render_Vulkan,
-                  "Emulating B10G11R11_UFLOAT (HDR format: UE5, custom engines) with {} on {}. "
-                  "Native format not supported by driver, using fallback.",
-                  alternative, properties.properties.deviceName);
-        } else if (wanted_format == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32) {
-            LOG_WARNING(Render_Vulkan,
-                  "Emulating E5B9G9R9_UFLOAT (HDR format: Unity, RE Engine) with {} on {}. "
-                  "Native format not supported by driver, using fallback.",
+                  "B10G11R11_UFLOAT_PACK32 (R11G11B10F HDR format) not fully supported. "
+                  "Falling back to {} on {}. Expect 4x memory usage and reduced performance.",
                   alternative, properties.properties.deviceName);
         } else {
             LOG_DEBUG(Render_Vulkan,
