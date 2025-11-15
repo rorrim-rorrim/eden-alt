@@ -25,6 +25,9 @@ struct RenderPassKey {
     // These flags indicate the expected usage pattern to optimize load/store operations
     bool tbdr_will_clear{false};  // Attachment will be cleared with vkCmdClearAttachments
     bool tbdr_discard_after{false};  // Attachment won't be read after render pass
+    
+    // VK_QCOM_render_pass_shader_resolve support
+    bool qcom_shader_resolve{false};  // Use shader resolve instead of fixed-function (last subpass)
 };
 
 } // namespace Vulkan

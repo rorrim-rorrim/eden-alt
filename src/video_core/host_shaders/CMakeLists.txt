@@ -76,6 +76,7 @@ set(SHADER_FILES
     vulkan_quad_indexed.comp
     vulkan_turbo_mode.comp
     vulkan_uint8.comp
+    vulkan_qcom_msaa_resolve.frag
     convert_rgba8_to_bgra8.frag
     convert_yuv420_to_rgb.comp
     convert_rgb_to_yuv420.comp

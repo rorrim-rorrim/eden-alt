@@ -40,6 +40,7 @@
 #include "video_core/host_shaders/convert_rgba16f_to_rgba8_frag_spv.h"
 #include "video_core/host_shaders/dither_temporal_frag_spv.h"
 #include "video_core/host_shaders/dynamic_resolution_scale_comp_spv.h"
+#include "video_core/host_shaders/vulkan_qcom_msaa_resolve_frag_spv.h"
 
 namespace Vulkan {
 
@@ -545,6 +546,7 @@ BlitImageHelper::BlitImageHelper(const Device& device_, Scheduler& scheduler_,
       convert_rgba16f_to_rgba8_frag(BuildShader(device, CONVERT_RGBA16F_TO_RGBA8_FRAG_SPV)),
       dither_temporal_frag(BuildShader(device, DITHER_TEMPORAL_FRAG_SPV)),
       dynamic_resolution_scale_comp(BuildShader(device, DYNAMIC_RESOLUTION_SCALE_COMP_SPV)),
+      qcom_msaa_resolve_frag(BuildShader(device, VULKAN_QCOM_MSAA_RESOLVE_FRAG_SPV)),
       linear_sampler(device.GetLogical().CreateSampler(SAMPLER_CREATE_INFO<VK_FILTER_LINEAR>)),
       nearest_sampler(device.GetLogical().CreateSampler(SAMPLER_CREATE_INFO<VK_FILTER_NEAREST>)) {}
 
@@ -1238,6 +1240,32 @@ void BlitImageHelper::ApplyDynamicResolutionScale(const Framebuffer* dst_framebu
                     dst_framebuffer->RenderPass(),
                     false);
     Convert(*dynamic_resolution_scale_pipeline, dst_framebuffer, src_image_view);
+}
+
+void BlitImageHelper::ResolveMSAAQcom(const Framebuffer* dst_framebuffer,
+                                      const ImageView& src_image_view) {
+    // VK_QCOM_render_pass_shader_resolve implementation
+    // This must be used within a render pass with VK_SUBPASS_DESCRIPTION_SHADER_RESOLVE_BIT_QCOM
+    ConvertPipeline(qcom_msaa_resolve_pipeline,
+                    dst_framebuffer->RenderPass(),
+                    false);
+    
+    RecordShaderReadBarrier(scheduler, src_image_view);
+    scheduler.RequestRenderpass(dst_framebuffer);
+    
+    const VkImageView src_view = src_image_view.Handle(Shader::TextureType::Color2D);
+    const VkPipelineLayout layout = *one_texture_pipeline_layout;
+    const VkPipeline pipeline = *qcom_msaa_resolve_pipeline;
+    
+    scheduler.Record([this, src_view, layout, pipeline](vk::CommandBuffer cmdbuf) {
+        const VkDescriptorSet descriptor_set = one_texture_descriptor_allocator.Commit();
+        UpdateOneTextureDescriptorSet(device, descriptor_set, *nearest_sampler, src_view);
+        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, descriptor_set, nullptr);
+        cmdbuf.Draw(3, 1, 0, 0);
+    });
+    
+    scheduler.InvalidateState();
 }
 
 } // namespace Vulkan
