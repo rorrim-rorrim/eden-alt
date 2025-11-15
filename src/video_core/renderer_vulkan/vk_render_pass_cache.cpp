@@ -64,7 +64,8 @@ using VideoCore::Surface::SurfaceType;
         VkAttachmentDescription AttachmentDescription(const Device& device, PixelFormat format,
                                                       VkSampleCountFlagBits samples,
                                                       bool tbdr_will_clear,
-                                                      bool tbdr_discard_after) {
+                                                      bool tbdr_discard_after,
+                                                      bool tbdr_read_only = false) {
             using MaxwellToVK::SurfaceFormat;
 
             const SurfaceType surface_type = GetSurfaceType(format);
@@ -84,15 +85,20 @@ using VideoCore::Surface::SurfaceType;
 
             // On TBDR: Use DONT_CARE if content won't be read (avoids storing to main memory)
             // On Desktop: Always STORE (safer default)
+            // VK_QCOM_render_pass_store_ops: Use NONE_QCOM for read-only attachments (preserves outside render area)
             VkAttachmentStoreOp store_op = VK_ATTACHMENT_STORE_OP_STORE;
             if (is_tbdr && tbdr_discard_after) {
                 store_op = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            } else if (is_tbdr && tbdr_read_only && device.IsQcomRenderPassStoreOpsSupported()) {
+                store_op = static_cast<VkAttachmentStoreOp>(1000301000); // VK_ATTACHMENT_STORE_OP_NONE_QCOM
             }
 
             // Stencil operations follow same logic
             VkAttachmentLoadOp stencil_load_op = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             VkAttachmentStoreOp stencil_store_op = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            if (has_stencil) {
+            if (has_stencil && tbdr_read_only && device.IsQcomRenderPassStoreOpsSupported()) {
+                stencil_store_op = static_cast<VkAttachmentStoreOp>(1000301000); // VK_ATTACHMENT_STORE_OP_NONE_QCOM
+            } else if (has_stencil) {
                 stencil_load_op = (is_tbdr && tbdr_will_clear) ? VK_ATTACHMENT_LOAD_OP_DONT_CARE
                                                                 : VK_ATTACHMENT_LOAD_OP_LOAD;
                 stencil_store_op = (is_tbdr && tbdr_discard_after) ? VK_ATTACHMENT_STORE_OP_DONT_CARE
@@ -154,7 +160,7 @@ VkRenderPass RenderPassCache::Get(const RenderPassKey& key) {
             .layout = VK_IMAGE_LAYOUT_GENERAL,
         };
         descriptions.push_back(AttachmentDescription(*device, key.depth_format, key.samples,
-                                                     key.tbdr_will_clear, key.tbdr_discard_after));
+                                                     key.tbdr_will_clear, key.tbdr_discard_after, key.tbdr_read_only));
     }
     VkSubpassDescriptionFlags subpass_flags = 0;
     if (key.qcom_shader_resolve) {

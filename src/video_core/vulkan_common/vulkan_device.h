@@ -63,7 +63,8 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(KHR, PipelineExecutableProperties, PIPELINE_EXECUTABLE_PROPERTIES,                     \
             pipeline_executable_properties)                                                        \
     FEATURE(KHR, WorkgroupMemoryExplicitLayout, WORKGROUP_MEMORY_EXPLICIT_LAYOUT,                  \
-            workgroup_memory_explicit_layout)
+            workgroup_memory_explicit_layout)                                                      \
+    FEATURE(QCOM, TileProperties, TILE_PROPERTIES, tile_properties_qcom)
 
 // Define miscellaneous extensions which may be used by the implementation here.
 #define FOR_EACH_VK_EXTENSION(EXTENSION)                                                           \
@@ -96,6 +97,8 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(EXT, FILTER_CUBIC, filter_cubic)                                                     \
     EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)                                    \
     EXTENSION(QCOM, RENDER_PASS_SHADER_RESOLVE, render_pass_shader_resolve)                        \
+    EXTENSION(QCOM, RENDER_PASS_STORE_OPS, render_pass_store_ops)                                  \
+    EXTENSION(QCOM, TILE_PROPERTIES, tile_properties)                                               \
     EXTENSION(KHR, MAINTENANCE_1, maintenance1)                                                    \
     EXTENSION(KHR, MAINTENANCE_2, maintenance2)                                                    \
     EXTENSION(KHR, MAINTENANCE_3, maintenance3)                                                    \
@@ -588,6 +591,26 @@ public:
         return extensions.render_pass_shader_resolve;
     }
 
+    /// Returns true if the device supports VK_QCOM_render_pass_store_ops
+    bool IsQcomRenderPassStoreOpsSupported() const {
+        return extensions.render_pass_store_ops;
+    }
+
+    /// Returns true if the device supports VK_QCOM_tile_properties
+    bool IsQcomTilePropertiesSupported() const {
+        return extensions.tile_properties;
+    }
+
+    /// Returns Qualcomm tile size (width, height, depth). Returns {0,0,0} if not queried or unsupported
+    VkExtent3D GetQcomTileSize() const {
+        return properties.qcom_tile_size;
+    }
+
+    /// Returns Qualcomm tile apron size. Returns {0,0} if not queried or unsupported
+    VkExtent2D GetQcomApronSize() const {
+        return properties.qcom_apron_size;
+    }
+
     /// Returns true if MSAA copy operations are supported via compute shader (upload/download)
     /// Qualcomm uses render pass shader resolve instead, so this returns false for Qualcomm
     bool CanUploadMSAA() const {
@@ -857,6 +880,8 @@ private:
         VkPhysicalDeviceSubgroupSizeControlProperties subgroup_size_control{};
         VkPhysicalDeviceTransformFeedbackPropertiesEXT transform_feedback{};
         VkPhysicalDeviceProperties properties{};
+        VkExtent3D qcom_tile_size{};          // Qualcomm tile dimensions (0 if not queried)
+        VkExtent2D qcom_apron_size{};         // Qualcomm tile apron size
     };
 
     Extensions extensions{};
