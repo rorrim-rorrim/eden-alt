@@ -691,7 +691,17 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
 
         const auto runtime_info{MakeRuntimeInfo(programs, key, program, previous_stage)};
         ConvertLegacyToGeneric(program, runtime_info);
-        const std::vector<u32> code{EmitSPIRV(profile, runtime_info, program, binding, this->optimize_spirv_output)};
+        
+        // Adreno don't support subgroup operations in vertex stages
+        // Disable subgroup features for vertex shaders if not supported by the device
+        Shader::Profile stage_profile = profile;
+        if (program.stage == Shader::Stage::VertexA || program.stage == Shader::Stage::VertexB) {
+            if (!device.IsSubgroupSupportedForStage(VK_SHADER_STAGE_VERTEX_BIT)) {
+                stage_profile.support_vote = false;
+            }
+        }
+        
+        const std::vector<u32> code{EmitSPIRV(stage_profile, runtime_info, program, binding, this->optimize_spirv_output)};
         device.SaveShader(code);
         modules[stage_index] = BuildShader(device, code);
         if (device.HasDebuggingToolAttached()) {
@@ -785,6 +795,17 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
     }
 
     auto program{TranslateProgram(pools.inst, pools.block, env, cfg, host_info)};
+    
+    // Adreno have lower shared memory limits (32KB)
+    // Clamp shared memory usage to device maximum to avoid validation errors
+    const u32 max_shared_memory = device.GetMaxComputeSharedMemorySize();
+    if (program.shared_memory_size > max_shared_memory) {
+        LOG_WARNING(Render_Vulkan, 
+                    "Compute shader 0x{:016x} requests {}KB shared memory but device max is {}KB - clamping",
+                    key.unique_hash, program.shared_memory_size / 1024, max_shared_memory / 1024);
+        program.shared_memory_size = max_shared_memory;
+    }
+    
     const std::vector<u32> code{EmitSPIRV(profile, program, this->optimize_spirv_output)};
     device.SaveShader(code);
     vk::ShaderModule spv_module{BuildShader(device, code)};
