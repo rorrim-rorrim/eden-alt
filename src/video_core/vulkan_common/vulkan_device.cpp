@@ -105,6 +105,17 @@ constexpr std::array B10G11R11_UFLOAT_PACK32{
     VK_FORMAT_UNDEFINED,
 };
 
+// E5B9G9R9_UFLOAT (RGB9E5) - INVALID for COLOR_ATTACHMENT on Nintendo Switch
+// Nintendo Switch hardware validation: NO COLOR_ATTACHMENT_BIT (only SAMPLED_IMAGE)
+// Reference: vp_gpuinfo_nintendo_switch_v2_495_0_0_0 - Missing required attachment bits
+// This format should NEVER be used as render target, only for texture sampling
+constexpr std::array E5B9G9R9_UFLOAT_PACK32{
+    VK_FORMAT_B10G11R11_UFLOAT_PACK32,    // Upgrade to proper HDR format with attachment support
+    VK_FORMAT_A8B8G8R8_UNORM_PACK32,      // Fallback: RGBA8 LDR
+    VK_FORMAT_R16G16B16A16_SFLOAT,        // Last resort: RGBA16F
+    VK_FORMAT_UNDEFINED,
+};
+
 } // namespace Alternatives
 
 template <typename T>
@@ -139,6 +150,8 @@ constexpr const VkFormat* GetFormatAlternatives(VkFormat format) {
         return Alternatives::VK_FORMAT_A4B4G4R4_UNORM_PACK16.data();
     case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
         return Alternatives::B10G11R11_UFLOAT_PACK32.data();
+    case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
+        return Alternatives::E5B9G9R9_UFLOAT_PACK32.data();
     default:
         return nullptr;
     }
@@ -974,7 +987,7 @@ VkFormat Device::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags
         if (wanted_format == VK_FORMAT_B10G11R11_UFLOAT_PACK32) {
             LOG_WARNING(Render_Vulkan,
                   "B10G11R11_UFLOAT_PACK32 (R11G11B10F HDR format) not fully supported. "
-                  "Falling back to {} on {}. Expect 4x memory usage and reduced performance.",
+                  "Falling back to {} on {}",
                   alternative, properties.properties.deviceName);
         } else {
             LOG_DEBUG(Render_Vulkan,

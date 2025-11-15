@@ -168,8 +168,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
 
     const auto vk_format = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, 
                                                       false, info.format).format;
-    const bool is_hdr_format = vk_format == VK_FORMAT_B10G11R11_UFLOAT_PACK32 ||
-                               vk_format == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32;
+    const bool is_hdr_format = vk_format == VK_FORMAT_B10G11R11_UFLOAT_PACK32;
 
     if (!is_hdr_format) {
         return info;
@@ -1361,7 +1360,6 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
     case PixelFormat::ASTC_2D_8X6_SRGB:
     case PixelFormat::ASTC_2D_6X5_UNORM:
     case PixelFormat::ASTC_2D_6X5_SRGB:
-    case PixelFormat::E5B9G9R9_FLOAT:
     case PixelFormat::D32_FLOAT:
     case PixelFormat::D16_UNORM:
     case PixelFormat::X8_D24_UNORM:
