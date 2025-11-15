@@ -985,8 +985,10 @@ void RasterizerVulkan::UpdateDynamicStates() {
                     if (regs.logic_op.enable) {
                         regs.logic_op.enable = static_cast<u32>(!has_float);
                     }
+                    UpdateLogicOpEnable(regs);
+                } else {
+                    UpdateLogicOpEnable(regs);
                 }
-                UpdateLogicOpEnable(regs);
                 UpdateDepthClampEnable(regs);
                 UpdateLineStippleEnable(regs);
                 UpdateConservativeRasterizationMode(regs);
@@ -1614,7 +1616,7 @@ void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs) 
             highest_dirty_attr = index;
         }
     }
-    for (size_t index = 0; index < highest_dirty_attr; ++index) {
+    for (size_t index = 0; index <= highest_dirty_attr; ++index) {
         const Maxwell::VertexAttribute attribute{regs.vertex_attrib_format[index]};
         const u32 binding{attribute.buffer};
         dirty[Dirty::VertexAttribute0 + index] = false;
