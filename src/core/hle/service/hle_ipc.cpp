@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -393,6 +396,24 @@ std::size_t HLERequestContext::WriteBuffer(const void* buffer, std::size_t size,
     const bool is_buffer_b{BufferDescriptorB().size() > buffer_index &&
                            BufferDescriptorB()[buffer_index].Size()};
     const std::size_t buffer_size{GetWriteBufferSize(buffer_index)};
+    
+    // Defensive check: if client didn't provide output buffer, log detailed error but don't crash
+    if (buffer_size == 0) {
+        LOG_ERROR(Core,
+                  "WriteBuffer called but client provided NO output buffer! "
+                  "Requested size: 0x{:X}, buffer_index: {}, is_buffer_b: {}, "
+                  "BufferB count: {}, BufferC count: {}",
+                  size, buffer_index, is_buffer_b, BufferDescriptorB().size(),
+                  BufferDescriptorC().size());
+        
+        // Log command context for debugging
+        LOG_ERROR(Core, "IPC Command: 0x{:X}, Type: {}", GetCommand(), 
+                  static_cast<u32>(GetCommandType()));
+        
+        // Return 0 instead of crashing - let service handle error
+        return 0;
+    }
+    
     if (size > buffer_size) {
         LOG_CRITICAL(Core, "size ({:016X}) is greater than buffer_size ({:016X})", size,
                      buffer_size);
