@@ -957,7 +957,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
     const u8 dynamic_state = Settings::values.dyna_state.GetValue();
     const bool force_rasterizer = Settings::values.force_rasterizer_state_updates.GetValue();
 
-    if (device.IsExtExtendedDynamicStateSupported() && (dynamic_state > 0 || force_rasterizer)) {
+    if ((device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0) || force_rasterizer) {
         UpdateCullMode(regs);
         UpdateDepthCompareOp(regs);
         UpdateFrontFace(regs);
@@ -967,7 +967,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
             UpdateDepthTestEnable(regs);
             UpdateDepthWriteEnable(regs);
             UpdateStencilTestEnable(regs);
-            if (device.IsExtExtendedDynamicState2Supported() && (dynamic_state > 1 || force_rasterizer)) {
+            if ((device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1) || force_rasterizer) {
                 UpdatePrimitiveRestartEnable(regs);
                 UpdateRasterizerDiscardEnable(regs);
                 UpdateDepthBiasEnable(regs);
@@ -993,7 +993,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
                 UpdateConservativeRasterizationMode(regs);
             }
         }
-        if (device.IsExtExtendedDynamicState2ExtrasSupported() && (dynamic_state > 1 || force_rasterizer)) {
+        if ((device.IsExtExtendedDynamicState2ExtrasSupported() && dynamic_state > 1) || force_rasterizer) {
             UpdateLogicOp(regs);
         }
         if (device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2) {
