@@ -133,10 +133,7 @@ private:
         const auto data1 = ctx.ReadBufferA(0);
         const auto data2 = ctx.ReadBufferX(0);
 
-        LOG_ERROR(Service_PREPO, "called, title_id={:016X}, data1_size={:016X}, data2_size={:016X}",
-                  title_id, data1.size(), data2.size());
-
-        LOG_ERROR(Service_PREPO, "called, title_id={:016X}, data1_size={:016X}, data2_size={:016X}",
+        LOG_DEBUG(Service_PREPO, "called, title_id={:016X}, data1_size={:016X}, data2_size={:016X}",
                   title_id, data1.size(), data2.size());
 
         IPC::ResponseBuilder rb{ctx, 2};
@@ -201,7 +198,7 @@ private:
         Common::UUID uuid{};
         std::memcpy(uuid.uuid.data(), user_id.data(), sizeof(Common::UUID));
 
-        LOG_ERROR(Service_PREPO,
+        LOG_DEBUG(Service_PREPO,
                   "called, user_id={}, field0={:016X}, title_id={:016X}, data_a_size={}, data_x_size={}",
                   uuid.FormattedString(), field0, title_id, data_a.size(), data_x.size());
 
