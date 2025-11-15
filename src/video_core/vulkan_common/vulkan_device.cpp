@@ -539,6 +539,17 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                     "Qualcomm drivers have a slow VK_KHR_push_descriptor implementation");
         //RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
 
+        // Log Qualcomm-specific optimizations
+        if (extensions.render_pass_store_ops) {
+            LOG_INFO(Render_Vulkan, "VK_QCOM_render_pass_store_ops: ENABLED (TBDR store optimization)");
+        }
+        if (extensions.tile_properties) {
+            LOG_INFO(Render_Vulkan, "VK_QCOM_tile_properties: ENABLED (tile size queries available)");
+        }
+        if (extensions.render_pass_shader_resolve) {
+            LOG_INFO(Render_Vulkan, "VK_QCOM_render_pass_shader_resolve: ENABLED (HDR+MSAA shader resolve)");
+        }
+
 #ifdef ANDROID
         // Shader Float Controls handling for Qualcomm Adreno
         // Default: DISABLED due to historical issues with binning precision causing visual glitches
