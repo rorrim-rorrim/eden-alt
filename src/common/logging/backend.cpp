@@ -112,7 +112,7 @@ public:
             // This must be a static otherwise it would get checked on EVERY
             // instance of logging an entry...
             static std::string username = []() -> std::string {
-                auto* s = getenv("USER");
+                const char* s = getenv("USER");
                 if (s == nullptr)
                     s = getenv("USERNAME");
 
@@ -120,7 +120,7 @@ public:
                     s = getenv("LOGNAME");
 
                 if (s == nullptr)
-                    return "";
+                    return std::string{};
 
                 return std::string{s};
             }();
