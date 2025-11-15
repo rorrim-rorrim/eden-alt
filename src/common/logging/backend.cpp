@@ -113,15 +113,15 @@ public:
             // instance of logging an entry...
             static std::string username = []() -> std::string {
                 // in order of precedence
-                static constexpr const std::array<const char*, 3> environment_variables = {
-                    "LOGNAME",
-                    "USERNAME",
-                    "USER",
-                };
-
-                for (const char* var : environment_variables) {
-                    const char* s = getenv(var);
-                    if (s != nullptr)
+                // LOGNAME usually works on UNIX, USERNAME on Windows
+                // Some UNIX systems suck and don't use LOGNAME so we also
+                // need USER :(
+                for (auto const var : {
+                         "LOGNAME",
+                         "USERNAME",
+                         "USER",
+                     }) {
+                    if (auto const s = getenv(var); s != nullptr)
                         return std::string{s};
                 }
 
