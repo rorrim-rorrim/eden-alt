@@ -112,17 +112,13 @@ public:
             // This must be a static otherwise it would get checked on EVERY
             // instance of logging an entry...
             static std::string username = []() -> std::string {
-                const char* s = getenv("USER");
-                if (s == nullptr)
-                    s = getenv("USERNAME");
+                char* s;
 
-                if (s == nullptr)
-                    s = getenv("LOGNAME");
+                if ((s = getenv("USER")) != nullptr || (s = getenv("USERNAME")) != nullptr
+                    || (s = getenv("LOGNAME")) != nullptr)
+                    return std::string{s};
 
-                if (s == nullptr)
-                    return std::string{};
-
-                return std::string{s};
+                return std::string{};
             }();
             if (!username.empty())
                 boost::replace_all(message, username, "user");
