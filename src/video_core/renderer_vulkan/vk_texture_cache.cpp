@@ -66,10 +66,20 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     }
 }
 
-[[nodiscard]] VkImageType ConvertImageType(const ImageType type) {
+[[nodiscard]] VkImageType ConvertImageType(const ImageType type, const Device& device) {
     switch (type) {
     case ImageType::e1D:
-        return VK_IMAGE_TYPE_1D;
+        // Mobile Vulkan (Adreno, Mali, PowerVR, IMG) lacks Sampled1D SPIR-V capability
+        // Emulate as 2D texture with height=1 on mobile, use native 1D on desktop
+        {
+            const auto driver_id = device.GetDriverID();
+            const bool is_mobile = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
+                                   driver_id == VK_DRIVER_ID_MESA_TURNIP ||
+                                   driver_id == VK_DRIVER_ID_ARM_PROPRIETARY ||
+                                   driver_id == VK_DRIVER_ID_BROADCOM_PROPRIETARY ||
+                                   driver_id == VK_DRIVER_ID_IMAGINATION_PROPRIETARY;
+            return is_mobile ? VK_IMAGE_TYPE_2D : VK_IMAGE_TYPE_1D;
+        }
     case ImageType::e2D:
     case ImageType::Linear:
         return VK_IMAGE_TYPE_2D;
@@ -141,7 +151,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = nullptr,
         .flags = flags,
-        .imageType = ConvertImageType(info.type),
+        .imageType = ConvertImageType(info.type, device),
         .format = format_info.format,
         .extent{
             .width = info.size.width >> samples_x,
@@ -306,10 +316,18 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     return VK_COMPONENT_SWIZZLE_ZERO;
 }
 
-[[nodiscard]] VkImageViewType ImageViewType(Shader::TextureType type) {
+[[nodiscard]] VkImageViewType ImageViewType(Shader::TextureType type, const Device& device) {
+    const auto driver_id = device.GetDriverID();
+    const bool is_mobile = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
+                           driver_id == VK_DRIVER_ID_MESA_TURNIP ||
+                           driver_id == VK_DRIVER_ID_ARM_PROPRIETARY ||
+                           driver_id == VK_DRIVER_ID_BROADCOM_PROPRIETARY ||
+                           driver_id == VK_DRIVER_ID_IMAGINATION_PROPRIETARY;
+    
     switch (type) {
     case Shader::TextureType::Color1D:
-        return VK_IMAGE_VIEW_TYPE_1D;
+        // Emulate 1D as 2D with height=1 on mobile (no Sampled1D capability)
+        return is_mobile ? VK_IMAGE_VIEW_TYPE_2D : VK_IMAGE_VIEW_TYPE_1D;
     case Shader::TextureType::Color2D:
     case Shader::TextureType::Color2DRect:
         return VK_IMAGE_VIEW_TYPE_2D;
@@ -318,7 +336,8 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     case Shader::TextureType::Color3D:
         return VK_IMAGE_VIEW_TYPE_3D;
     case Shader::TextureType::ColorArray1D:
-        return VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+        // Emulate 1D array as 2D array with height=1 on mobile
+        return is_mobile ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_1D_ARRAY;
     case Shader::TextureType::ColorArray2D:
         return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
     case Shader::TextureType::ColorArrayCube:
@@ -331,10 +350,18 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     return VK_IMAGE_VIEW_TYPE_2D;
 }
 
-[[nodiscard]] VkImageViewType ImageViewType(VideoCommon::ImageViewType type) {
+[[nodiscard]] VkImageViewType ImageViewType(VideoCommon::ImageViewType type, const Device& device) {
+    const auto driver_id = device.GetDriverID();
+    const bool is_mobile = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
+                           driver_id == VK_DRIVER_ID_MESA_TURNIP ||
+                           driver_id == VK_DRIVER_ID_ARM_PROPRIETARY ||
+                           driver_id == VK_DRIVER_ID_BROADCOM_PROPRIETARY ||
+                           driver_id == VK_DRIVER_ID_IMAGINATION_PROPRIETARY;
+    
     switch (type) {
     case VideoCommon::ImageViewType::e1D:
-        return VK_IMAGE_VIEW_TYPE_1D;
+        // Emulate 1D as 2D with height=1 on mobile (no Sampled1D capability)
+        return is_mobile ? VK_IMAGE_VIEW_TYPE_2D : VK_IMAGE_VIEW_TYPE_1D;
     case VideoCommon::ImageViewType::e2D:
     case VideoCommon::ImageViewType::Rect:
         return VK_IMAGE_VIEW_TYPE_2D;
@@ -343,7 +370,8 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     case VideoCommon::ImageViewType::e3D:
         return VK_IMAGE_VIEW_TYPE_3D;
     case VideoCommon::ImageViewType::e1DArray:
-        return VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+        // Emulate 1D array as 2D array with height=1 on mobile
+        return is_mobile ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_1D_ARRAY;
     case VideoCommon::ImageViewType::e2DArray:
         return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
     case VideoCommon::ImageViewType::CubeArray:
@@ -2119,7 +2147,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     };
     const auto create = [&](TextureType tex_type, std::optional<u32> num_layers) {
         VkImageViewCreateInfo ci{create_info};
-        ci.viewType = ImageViewType(tex_type);
+        ci.viewType = ImageViewType(tex_type, *device);
         if (num_layers) {
             ci.subresourceRange.layerCount = *num_layers;
         }
@@ -2260,7 +2288,7 @@ vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_
         .pNext = nullptr,
         .flags = 0,
         .image = image_handle,
-        .viewType = ImageViewType(type),
+        .viewType = ImageViewType(type, *device),
         .format = vk_format,
         .components{
             .r = VK_COMPONENT_SWIZZLE_IDENTITY,
