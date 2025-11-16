@@ -20,4 +20,9 @@ function(static_qt_link target)
 
     # libharfbuzz.a
     extra_libs(harfbuzz graphite2)
+
+    # sijfjkfnjkdfjsbjsbsdfhvbdf
+    if (ENABLE_OPENSSL)
+        target_link_libraries(${target} PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+    endif()
 endfunction()

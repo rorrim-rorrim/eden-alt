@@ -461,9 +461,6 @@ endif()
 
 if (YUZU_STATIC_BUILD AND MINGW)
     static_qt_link(yuzu)
-
-    # sijfjkfnjkdfjsbjsbsdfhvbdf
-    target_link_libraries(yuzu PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 endif()
 
 create_target_directory_groups(yuzu)
