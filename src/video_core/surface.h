@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -108,7 +111,6 @@ enum class PixelFormat {
     ASTC_2D_8X6_SRGB,
     ASTC_2D_6X5_UNORM,
     ASTC_2D_6X5_SRGB,
-    E5B9G9R9_FLOAT,
 
     MaxColorFormat,
 
@@ -249,7 +251,6 @@ constexpr std::array<u8, MaxPixelFormat> BLOCK_WIDTH_TABLE = {{
     8,  // ASTC_2D_8X6_SRGB
     6,  // ASTC_2D_6X5_UNORM
     6,  // ASTC_2D_6X5_SRGB
-    1,  // E5B9G9R9_FLOAT
     1,  // D32_FLOAT
     1,  // D16_UNORM
     1,  // X8_D24_UNORM
@@ -359,7 +360,6 @@ constexpr std::array<u8, MaxPixelFormat> BLOCK_HEIGHT_TABLE = {{
     6,  // ASTC_2D_8X6_SRGB
     5,  // ASTC_2D_6X5_UNORM
     5,  // ASTC_2D_6X5_SRGB
-    1,  // E5B9G9R9_FLOAT
     1,  // D32_FLOAT
     1,  // D16_UNORM
     1,  // X8_D24_UNORM
@@ -469,7 +469,6 @@ constexpr std::array<u8, MaxPixelFormat> BITS_PER_BLOCK_TABLE = {{
     128, // ASTC_2D_8X6_SRGB
     128, // ASTC_2D_6X5_UNORM
     128, // ASTC_2D_6X5_SRGB
-    32,  // E5B9G9R9_FLOAT
     32,  // D32_FLOAT
     16,  // D16_UNORM
     32,  // X8_D24_UNORM

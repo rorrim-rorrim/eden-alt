@@ -389,6 +389,12 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .ignore_nan_fp_comparisons = false,
         .has_broken_spirv_subgroup_mask_vector_extract_dynamic =
             driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY,
+        .needs_1d_texture_emulation = 
+            driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
+            driver_id == VK_DRIVER_ID_MESA_TURNIP ||
+            driver_id == VK_DRIVER_ID_ARM_PROPRIETARY ||
+            driver_id == VK_DRIVER_ID_BROADCOM_PROPRIETARY ||
+            driver_id == VK_DRIVER_ID_IMAGINATION_PROPRIETARY,
         .has_broken_robust =
             device.IsNvidia() && device.GetNvidiaArch() <= NvidiaArchitecture::Arch_Pascal,
         .min_ssbo_alignment = device.GetStorageBufferAlignment(),

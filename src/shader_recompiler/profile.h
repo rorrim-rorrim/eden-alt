@@ -95,6 +95,8 @@ struct Profile {
     bool ignore_nan_fp_comparisons{};
     /// Some drivers have broken support for OpVectorExtractDynamic on subgroup mask inputs
     bool has_broken_spirv_subgroup_mask_vector_extract_dynamic{};
+    /// Mobile GPUs lack Sampled1D capability - need to emulate 1D textures as 2D with height=1
+    bool needs_1d_texture_emulation{};
 
     u32 gl_max_compute_smem_size{};
 

@@ -130,7 +130,7 @@ enum class TexturePixelFormat {
     ASTC_2D_8X6_SRGB,
     ASTC_2D_6X5_UNORM,
     ASTC_2D_6X5_SRGB,
-    E5B9G9R9_FLOAT,
+
     D32_FLOAT,
     D16_UNORM,
     X8_D24_UNORM,
