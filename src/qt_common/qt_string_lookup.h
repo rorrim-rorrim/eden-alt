@@ -20,11 +20,11 @@ Q_NAMESPACE
 
 // TODO(crueter): QML interface
 enum StringKey {
-    SavesTooltip,
-    ShadersTooltip,
-    UserNandTooltip,
-    SysNandTooltip,
-    ModsTooltip,
+    DataManagerSavesTooltip,
+    DataManagerShadersTooltip,
+    DataManagerUserNandTooltip,
+    DataManagerSysNandTooltip,
+    DataManagerModsTooltip,
 
     // Key install results
     KeyInstallSuccess,
@@ -65,13 +65,13 @@ enum StringKey {
 // always triple-check the size arg
 static const constexpr frozen::map<StringKey, frozen::string, 29> strings = {
     // 0-4
-    {SavesTooltip,
+    {DataManagerSavesTooltip,
      QT_TR_NOOP("Contains game save data. DO NOT REMOVE UNLESS YOU KNOW WHAT YOU'RE DOING!")},
-    {ShadersTooltip,
+    {DataManagerShadersTooltip,
      QT_TR_NOOP("Contains Vulkan and OpenGL pipeline caches. Generally safe to remove.")},
-    {UserNandTooltip, QT_TR_NOOP("Contains updates and DLC for games.")},
-    {SysNandTooltip, QT_TR_NOOP("Contains firmware and applet data.")},
-    {ModsTooltip, QT_TR_NOOP("Contains game mods, patches, and cheats.")},
+    {DataManagerUserNandTooltip, QT_TR_NOOP("Contains updates and DLC for games.")},
+    {DataManagerSysNandTooltip, QT_TR_NOOP("Contains firmware and applet data.")},
+    {DataManagerModsTooltip, QT_TR_NOOP("Contains game mods, patches, and cheats.")},
 
     // Key install
     // 5-9
