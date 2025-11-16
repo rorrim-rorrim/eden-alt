@@ -33,11 +33,17 @@ Id ImageType(EmitContext& ctx, const TextureDescriptor& desc) {
     const Id type{ctx.F32[1]};
     const bool depth{desc.is_depth};
     const bool ms{desc.is_multisample};
+    
+    // Mobile GPUs lack Sampled1D SPIR-V capability - emulate 1D as 2D with array layer
+    const bool emulate_1d = ctx.profile.needs_1d_texture_emulation;
+    
     switch (desc.type) {
     case TextureType::Color1D:
-        return ctx.TypeImage(type, spv::Dim::Dim1D, depth, false, false, 1, format);
+        return emulate_1d ? ctx.TypeImage(type, spv::Dim::Dim2D, depth, false, false, 1, format)
+                          : ctx.TypeImage(type, spv::Dim::Dim1D, depth, false, false, 1, format);
     case TextureType::ColorArray1D:
-        return ctx.TypeImage(type, spv::Dim::Dim1D, depth, true, false, 1, format);
+        return emulate_1d ? ctx.TypeImage(type, spv::Dim::Dim2D, depth, true, false, 1, format)
+                          : ctx.TypeImage(type, spv::Dim::Dim1D, depth, true, false, 1, format);
     case TextureType::Color2D:
     case TextureType::Color2DRect:
         return ctx.TypeImage(type, spv::Dim::Dim2D, depth, false, ms, 1, format);
@@ -79,11 +85,15 @@ spv::ImageFormat GetImageFormat(ImageFormat format) {
 
 Id ImageType(EmitContext& ctx, const ImageDescriptor& desc, Id sampled_type) {
     const spv::ImageFormat format{GetImageFormat(desc.format)};
+    const bool emulate_1d = ctx.profile.needs_1d_texture_emulation;
+    
     switch (desc.type) {
     case TextureType::Color1D:
-        return ctx.TypeImage(sampled_type, spv::Dim::Dim1D, false, false, false, 2, format);
+        return emulate_1d ? ctx.TypeImage(sampled_type, spv::Dim::Dim2D, false, false, false, 2, format)
+                          : ctx.TypeImage(sampled_type, spv::Dim::Dim1D, false, false, false, 2, format);
     case TextureType::ColorArray1D:
-        return ctx.TypeImage(sampled_type, spv::Dim::Dim1D, false, true, false, 2, format);
+        return emulate_1d ? ctx.TypeImage(sampled_type, spv::Dim::Dim2D, false, true, false, 2, format)
+                          : ctx.TypeImage(sampled_type, spv::Dim::Dim1D, false, true, false, 2, format);
     case TextureType::Color2D:
         return ctx.TypeImage(sampled_type, spv::Dim::Dim2D, false, false, false, 2, format);
     case TextureType::ColorArray2D:
@@ -1605,6 +1615,15 @@ void EmitContext::DefineInputs(const IR::Program& program) {
         subgroup_mask_le = DefineInput(*this, U32[4], false, spv::BuiltIn::SubgroupLeMaskKHR);
         subgroup_mask_gt = DefineInput(*this, U32[4], false, spv::BuiltIn::SubgroupGtMaskKHR);
         subgroup_mask_ge = DefineInput(*this, U32[4], false, spv::BuiltIn::SubgroupGeMaskKHR);
+        
+        // Vulkan spec: Fragment shader Input variables with integer/float type must have Flat decoration
+        if (stage == Stage::Fragment) {
+            Decorate(subgroup_mask_eq, spv::Decoration::Flat);
+            Decorate(subgroup_mask_lt, spv::Decoration::Flat);
+            Decorate(subgroup_mask_le, spv::Decoration::Flat);
+            Decorate(subgroup_mask_gt, spv::Decoration::Flat);
+            Decorate(subgroup_mask_ge, spv::Decoration::Flat);
+        }
     }
     if (info.uses_fswzadd || info.uses_subgroup_invocation_id || info.uses_subgroup_shuffles ||
         (profile.warp_size_potentially_larger_than_guest &&

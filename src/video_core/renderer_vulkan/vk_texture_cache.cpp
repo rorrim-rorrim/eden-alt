@@ -2121,8 +2121,9 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     }
     const auto format_info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
     
-    // This causes validation errors and undefined behavior (flickering, missing geometry) on certain games
-    // Reinterpret R32_UINT as R32_SFLOAT for sampled images to match shader expectations
+    // Workaround: Nintendo Switch games incorrectly use R32_UINT textures with float samplers
+    // This causes validation errors and undefined behavior (flickering, missing geometry)
+    // Reinterpret R32_UINT as R16_SFLOAT for sampled images (R32_SFLOAT lacks LINEAR filter support on Adreno)
     VkFormat view_format = format_info.format;
     if (view_format == VK_FORMAT_R32_UINT && 
         !info.IsRenderTarget() &&
@@ -2130,8 +2131,8 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
         // Only reinterpret if NOT used as storage image (storage requires matching types)
         const bool is_storage = (ImageUsageFlags(format_info, format) & VK_IMAGE_USAGE_STORAGE_BIT) != 0;
         if (!is_storage) {
-            view_format = VK_FORMAT_R32_SFLOAT;
-            LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_UINT as R32_SFLOAT for sampled image compatibility");
+            view_format = VK_FORMAT_R16_SFLOAT;
+            LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_UINT as R16_SFLOAT for sampled image compatibility (LINEAR filter support)");
         }
     }
     
