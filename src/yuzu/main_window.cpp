@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // Qt on macOS doesn't define VMA shit
+#include "qt_common/qt_string_lookup.h"
 #if defined(QT_STATICPLUGIN) && !defined(__APPLE__)
 #undef VMA_IMPLEMENTATION
 #endif
@@ -4058,14 +4059,16 @@ void MainWindow::OnOpenControllerMenu() {
 void MainWindow::OnHomeMenu() {
     auto result = FirmwareManager::VerifyFirmware(*QtCommon::system.get());
 
+    using namespace QtCommon::StringLookup;
+
     switch (result) {
     case FirmwareManager::ErrorFirmwareMissing:
         QMessageBox::warning(this, tr("No firmware available"),
-                             tr("Please install firmware to use the Home Menu."));
+                             Lookup(FwCheckErrorFirmwareMissing));
         return;
     case FirmwareManager::ErrorFirmwareCorrupted:
         QMessageBox::warning(this, tr("Firmware Corrupted"),
-                             tr(FirmwareManager::GetFirmwareCheckString(result)));
+                             Lookup(FwCheckErrorFirmwareCorrupted));
         return;
     default:
         break;
