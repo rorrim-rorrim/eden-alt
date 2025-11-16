@@ -2130,14 +2130,14 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
         !info.IsRenderTarget() &&
         (ImageUsageFlags(format_info, format) & VK_IMAGE_USAGE_SAMPLED_BIT)) {
         // Skip small textures (likely atlases, lookup tables, or integer data)
-        const bool is_likely_atlas = info.size.width <= 1024 || info.size.height <= 1024;
+        const bool is_likely_atlas = image.info.size.width <= 1024 || image.info.size.height <= 1024;
         const bool is_storage = (ImageUsageFlags(format_info, format) & VK_IMAGE_USAGE_STORAGE_BIT) != 0;
         
         // Only reinterpret large textures that are NOT storage and NOT likely atlases
         if (!is_storage && !is_likely_atlas) {
             view_format = VK_FORMAT_R32_SFLOAT;
             LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_UINT→R32_SFLOAT for {}x{} texture", 
-                      info.size.width, info.size.height);
+                      image.info.size.width, image.info.size.height);
         }
     }
     
