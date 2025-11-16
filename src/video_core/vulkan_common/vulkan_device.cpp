@@ -93,6 +93,11 @@ constexpr std::array VK_FORMAT_A4B4G4R4_UNORM_PACK16{
 // B10G11R11_UFLOAT (R11G11B10F) - PRIMARY HDR format for Nintendo Switch
 // Nintendo Switch hardware validation: FULL support (COLOR_ATTACHMENT + STORAGE_IMAGE + BLEND)
 // Reference: vp_gpuinfo_nintendo_switch_v2_495_0_0_0 - All required feature bits present
+//
+// Fallback strategy: Degrade to LDR instead of expensive HDR emulation
+// - RGBA8 UNORM/SRGB: Universal support, 32-bit (same size as B10G11R11), acceptable quality
+// - RGB10A2: Better precision if available, still 32-bit
+// - RGBA16F: Last resort only if RGB8 variants fail (should never happen)
 constexpr std::array B10G11R11_UFLOAT_PACK32{
     #ifdef ANDROID
         VK_FORMAT_A8B8G8R8_SRGB_PACK32,       // sRGB variant (for gamma-correct fallback)
