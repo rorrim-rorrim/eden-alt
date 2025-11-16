@@ -691,17 +691,7 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
 
         const auto runtime_info{MakeRuntimeInfo(programs, key, program, previous_stage)};
         ConvertLegacyToGeneric(program, runtime_info);
-        
-        // Adreno don't support subgroup operations in vertex stages
-        // Disable subgroup features for vertex shaders if not supported by the device
-        Shader::Profile stage_profile = profile;
-        if (program.stage == Shader::Stage::VertexA || program.stage == Shader::Stage::VertexB) {
-            if (!device.IsSubgroupSupportedForStage(VK_SHADER_STAGE_VERTEX_BIT)) {
-                stage_profile.support_vote = false;
-            }
-        }
-        
-        const std::vector<u32> code{EmitSPIRV(stage_profile, runtime_info, program, binding, this->optimize_spirv_output)};
+        const std::vector<u32> code{EmitSPIRV(profile, runtime_info, program, binding, this->optimize_spirv_output)};
         device.SaveShader(code);
         modules[stage_index] = BuildShader(device, code);
         if (device.HasDebuggingToolAttached()) {

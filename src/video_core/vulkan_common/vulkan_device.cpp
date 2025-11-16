@@ -98,11 +98,14 @@ constexpr std::array VK_FORMAT_A4B4G4R4_UNORM_PACK16{
 // - RGB10A2: Better precision if available, still 32-bit
 // - RGBA16F: Last resort only if RGB8 variants fail (should never happen)
 constexpr std::array B10G11R11_UFLOAT_PACK32{
-    VK_FORMAT_A8B8G8R8_UNORM_PACK32,      // Primary fallback: RGBA8 LDR (32-bit, universal)
-    VK_FORMAT_A2B10G10R10_UNORM_PACK32,   // Better precision: RGB10A2 (32-bit, common)
-    VK_FORMAT_A8B8G8R8_SRGB_PACK32,       // sRGB variant (for gamma-correct fallback)
-    VK_FORMAT_R16G16B16A16_SFLOAT,        // Emergency fallback: RGBA16F (64-bit, should never reach)
-    VK_FORMAT_UNDEFINED,
+    #ifdef ANDROID
+        VK_FORMAT_A8B8G8R8_SRGB_PACK32,       // sRGB variant (for gamma-correct fallback)
+    #else
+        VK_FORMAT_A8B8G8R8_UNORM_PACK32,      // Primary fallback: RGBA8 LDR (32-bit, universal)
+        VK_FORMAT_A2B10G10R10_UNORM_PACK32,   // Better precision: RGB10A2 (32-bit, common)
+    #endif
+        VK_FORMAT_R16G16B16A16_SFLOAT,        // Emergency fallback: RGBA16F (64-bit, should never reach)
+        VK_FORMAT_UNDEFINED,
 };
 
 // E5B9G9R9_UFLOAT (RGB9E5) - INVALID for COLOR_ATTACHMENT on Nintendo Switch
