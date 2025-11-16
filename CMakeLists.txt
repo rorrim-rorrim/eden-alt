@@ -119,6 +119,8 @@ endif()
 option(YUZU_STATIC_BUILD "Use static libraries and executables if available" OFF)
 
 if (YUZU_STATIC_BUILD)
+    include(StaticQtLibs)
+
     # lol
     set(Boost_USE_STATIC_LIBS ON)
     set(BUILD_SHARED_LIBS OFF)
@@ -136,7 +138,8 @@ if (YUZU_STATIC_BUILD)
         # simple hook to reject dynamic libs
         function(find_library var)
             # also skip previously-found libraries cuz... yaknow
-            if (${var})
+            # UNLESS they are dll.a :{
+            if (${var} AND NOT ${var} MATCHES "dll\\.a$")
                 return()
             endif()
 
@@ -163,7 +166,7 @@ if (YUZU_STATIC_BUILD)
         set(YUZU_USE_CPM ON)
 
         set(YUZU_USE_BUNDLED_FFMPEG ON)
-        set(YUZU_USE_EXTERNAL_SDL2 ON)
+        set(YUZU_USE_BUNDLED_SDL2 ON)
         set(YUZU_USE_BUNDLED_OPENSSL ON)
 
         # IMPORTED_IMPLIB not set for imported target
@@ -173,19 +176,6 @@ if (YUZU_STATIC_BUILD)
         set(SPIRV-Headers_FORCE_BUNDLED ON)
         set(zstd_FORCE_BUNDLED ON)
     endif()
-endif()
-
-## certain libraries need extra static libs to be linked ##
-if (YUZU_STATIC_BUILD AND MINGW)
-    macro(extra_libs)
-        foreach(lib ${ARGN})
-            find_library(${lib}_LIBRARY ${lib} REQUIRED)
-            link_libraries(${${lib}_LIBRARY})
-        endforeach()
-    endmacro()
-
-    # ffmpeg
-    extra_libs(iconv)
 endif()
 
 # Detect current compilation architecture and create standard definitions
