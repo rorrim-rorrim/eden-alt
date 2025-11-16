@@ -30,8 +30,7 @@ BlitScreen::~BlitScreen() = default;
 void BlitScreen::WaitIdle() {
     present_manager.WaitPresent();
     scheduler.Finish();
-    // Note: scheduler.Finish() already waits for GPU and synchronizes submit_mutex
-    // Calling device.WaitIdle() here causes threading errors (simultaneous queue access)
+    device.GetLogical().WaitIdle();
 }
 
 void BlitScreen::SetWindowAdaptPass() {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -318,13 +321,23 @@ void AddOffsetToCoordinates(EmitContext& ctx, const IR::TextureInstInfo& info, I
         return;
     }
 
+    // Mobile GPUs: 1D textures emulated as 2D with height=1
+    const bool emulate_1d = ctx.profile.needs_1d_texture_emulation;
+    
     Id result_type{};
     switch (info.type) {
     case TextureType::Buffer:
-    case TextureType::Color1D: {
         result_type = ctx.U32[1];
         break;
-    }
+    case TextureType::Color1D:
+        if (emulate_1d) {
+            // Treat as 2D: offset needs Y component
+            offset = ctx.OpCompositeConstruct(ctx.U32[2], offset, ctx.u32_zero_value);
+            result_type = ctx.U32[2];
+        } else {
+            result_type = ctx.U32[1];
+        }
+        break;
     case TextureType::ColorArray1D:
         offset = ctx.OpCompositeConstruct(ctx.U32[2], offset, ctx.u32_zero_value);
         [[fallthrough]];
@@ -348,6 +361,29 @@ void AddOffsetToCoordinates(EmitContext& ctx, const IR::TextureInstInfo& info, I
     }
     coords = ctx.OpIAdd(result_type, coords, offset);
 }
+
+// Helper: Convert 1D coordinates to 2D when emulating 1D textures on mobile GPUs
+[[nodiscard]] Id AdjustCoordinatesForEmulation(EmitContext& ctx, const IR::TextureInstInfo& info,
+                                               Id coords) {
+    if (!ctx.profile.needs_1d_texture_emulation) {
+        return coords;
+    }
+    
+    switch (info.type) {
+    case TextureType::Color1D:
+        // Convert scalar → vec2(x, 0.0)
+        return ctx.OpCompositeConstruct(ctx.F32[2], coords, ctx.f32_zero_value);
+    case TextureType::ColorArray1D:
+        // Convert vec2(x, layer) → vec3(x, 0.0, layer)
+        // ColorArray1D coords are always vec2 in IR
+        const Id x = ctx.OpCompositeExtract(ctx.F32[1], coords, 0);
+        const Id layer = ctx.OpCompositeExtract(ctx.F32[1], coords, 1);
+        return ctx.OpCompositeConstruct(ctx.F32[3], x, ctx.f32_zero_value, layer);
+    default:
+        return coords;
+    }
+}
+
 } // Anonymous namespace
 
 Id EmitBindlessImageSampleImplicitLod(EmitContext&) {
@@ -449,6 +485,7 @@ Id EmitBoundImageWrite(EmitContext&) {
 Id EmitImageSampleImplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords,
                               Id bias_lc, const IR::Value& offset) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
+    coords = AdjustCoordinatesForEmulation(ctx, info, coords);
     if (ctx.stage == Stage::Fragment) {
         const ImageOperands operands(ctx, info.has_bias != 0, false, info.has_lod_clamp != 0,
                                      bias_lc, offset);
@@ -470,6 +507,7 @@ Id EmitImageSampleImplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Value&
 Id EmitImageSampleExplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords,
                               Id lod, const IR::Value& offset) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
+    coords = AdjustCoordinatesForEmulation(ctx, info, coords);
     const ImageOperands operands(ctx, false, true, false, lod, offset);
     return Emit(&EmitContext::OpImageSparseSampleExplicitLod,
                 &EmitContext::OpImageSampleExplicitLod, ctx, inst, ctx.F32[4],
@@ -479,6 +517,7 @@ Id EmitImageSampleExplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Value&
 Id EmitImageSampleDrefImplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Value& index,
                                   Id coords, Id dref, Id bias_lc, const IR::Value& offset) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
+    coords = AdjustCoordinatesForEmulation(ctx, info, coords);
     if (ctx.stage == Stage::Fragment) {
         const ImageOperands operands(ctx, info.has_bias != 0, false, info.has_lod_clamp != 0,
                                      bias_lc, offset);
@@ -500,6 +539,7 @@ Id EmitImageSampleDrefImplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Va
 Id EmitImageSampleDrefExplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Value& index,
                                   Id coords, Id dref, Id lod, const IR::Value& offset) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
+    coords = AdjustCoordinatesForEmulation(ctx, info, coords);
     const ImageOperands operands(ctx, false, true, false, lod, offset);
     return Emit(&EmitContext::OpImageSparseSampleDrefExplicitLod,
                 &EmitContext::OpImageSampleDrefExplicitLod, ctx, inst, ctx.F32[1],
@@ -509,6 +549,7 @@ Id EmitImageSampleDrefExplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Va
 Id EmitImageGather(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords,
                    const IR::Value& offset, const IR::Value& offset2) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
+    coords = AdjustCoordinatesForEmulation(ctx, info, coords);
     const ImageOperands operands(ctx, offset, offset2);
     if (ctx.profile.need_gather_subpixel_offset) {
         coords = ImageGatherSubpixelOffset(ctx, info, TextureImage(ctx, info, index), coords);
@@ -521,6 +562,7 @@ Id EmitImageGather(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id 
 Id EmitImageGatherDref(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords,
                        const IR::Value& offset, const IR::Value& offset2, Id dref) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
+    coords = AdjustCoordinatesForEmulation(ctx, info, coords);
     const ImageOperands operands(ctx, offset, offset2);
     if (ctx.profile.need_gather_subpixel_offset) {
         coords = ImageGatherSubpixelOffset(ctx, info, TextureImage(ctx, info, index), coords);
@@ -533,6 +575,7 @@ Id EmitImageGatherDref(EmitContext& ctx, IR::Inst* inst, const IR::Value& index,
 Id EmitImageFetch(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords, Id offset,
                   Id lod, Id ms) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
+    coords = AdjustCoordinatesForEmulation(ctx, info, coords);
     AddOffsetToCoordinates(ctx, info, coords, offset);
     if (info.type == TextureType::Buffer) {
         lod = Id{};
@@ -559,9 +602,20 @@ Id EmitImageQueryDimensions(EmitContext& ctx, IR::Inst* inst, const IR::Value& i
         return uses_lod ? ctx.OpImageQuerySizeLod(type, image, lod)
                         : ctx.OpImageQuerySize(type, image);
     }};
+    
+    // Mobile GPUs: 1D textures emulated as 2D, query returns vec2 instead of scalar
+    const bool emulate_1d = ctx.profile.needs_1d_texture_emulation;
+    
     switch (info.type) {
     case TextureType::Color1D:
-        return ctx.OpCompositeConstruct(ctx.U32[4], query(ctx.U32[1]), zero, zero, mips());
+        if (emulate_1d) {
+            // Query as 2D, extract only X component for 1D size
+            const Id size_2d = query(ctx.U32[2]);
+            const Id width = ctx.OpCompositeExtract(ctx.U32[1], size_2d, 0);
+            return ctx.OpCompositeConstruct(ctx.U32[4], width, zero, zero, mips());
+        } else {
+            return ctx.OpCompositeConstruct(ctx.U32[4], query(ctx.U32[1]), zero, zero, mips());
+        }
     case TextureType::ColorArray1D:
     case TextureType::Color2D:
     case TextureType::ColorCube:
@@ -579,6 +633,7 @@ Id EmitImageQueryDimensions(EmitContext& ctx, IR::Inst* inst, const IR::Value& i
 
 Id EmitImageQueryLod(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
+    coords = AdjustCoordinatesForEmulation(ctx, info, coords);
     const Id zero{ctx.f32_zero_value};
     const Id sampler{Texture(ctx, info, index)};
     return ctx.OpCompositeConstruct(ctx.F32[4], ctx.OpImageQueryLod(ctx.F32[2], sampler, coords),
@@ -588,6 +643,7 @@ Id EmitImageQueryLod(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, I
 Id EmitImageGradient(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords,
                      Id derivatives, const IR::Value& offset, Id lod_clamp) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
+    coords = AdjustCoordinatesForEmulation(ctx, info, coords);
     const auto operands = info.num_derivatives == 3
                               ? ImageOperands(ctx, info.has_lod_clamp != 0, derivatives,
                                               ctx.Def(offset), {}, lod_clamp)
@@ -600,6 +656,7 @@ Id EmitImageGradient(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, I
 
 Id EmitImageRead(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
+    coords = AdjustCoordinatesForEmulation(ctx, info, coords);
     if (info.image_format == ImageFormat::Typeless && !ctx.profile.support_typeless_image_loads) {
         LOG_WARNING(Shader_SPIRV, "Typeless image read not supported by host");
         return ctx.ConstantNull(ctx.U32[4]);
@@ -616,6 +673,7 @@ Id EmitImageRead(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id co
 
 void EmitImageWrite(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords, Id color) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
+    coords = AdjustCoordinatesForEmulation(ctx, info, coords);
     const auto [image, is_integer] = Image(ctx, index, info);
     if (!is_integer) {
         color = ctx.OpBitcast(ctx.F32[4], color);
