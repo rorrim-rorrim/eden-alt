@@ -370,18 +370,29 @@ void AddOffsetToCoordinates(EmitContext& ctx, const IR::TextureInstInfo& info, I
     }
     
     switch (info.type) {
-    case TextureType::Color1D:
+    case TextureType::Color1D: {
         // Convert scalar → vec2(x, 0.0)
         return ctx.OpCompositeConstruct(ctx.F32[2], coords, ctx.f32_zero_value);
-    case TextureType::ColorArray1D:
+    }
+    case TextureType::ColorArray1D: {
         // Convert vec2(x, layer) → vec3(x, 0.0, layer)
         // ColorArray1D coords are always vec2 in IR
         const Id x = ctx.OpCompositeExtract(ctx.F32[1], coords, 0);
         const Id layer = ctx.OpCompositeExtract(ctx.F32[1], coords, 1);
         return ctx.OpCompositeConstruct(ctx.F32[3], x, ctx.f32_zero_value, layer);
-    default:
+    }
+    case TextureType::Color2D:
+    case TextureType::ColorArray2D:
+    case TextureType::Color3D:
+    case TextureType::ColorCube:
+    case TextureType::ColorArrayCube:
+    case TextureType::Buffer:
+    case TextureType::Color2DRect:
+        // No adjustment needed for non-1D textures
         return coords;
     }
+    
+    return coords; // Unreachable, but silences -Werror=return-type
 }
 
 } // Anonymous namespace
