@@ -37,6 +37,13 @@ Id ImageType(EmitContext& ctx, const TextureDescriptor& desc) {
     // Mobile GPUs lack Sampled1D SPIR-V capability - emulate 1D as 2D with array layer
     const bool emulate_1d = ctx.profile.needs_1d_texture_emulation;
     
+    // Debug log for 1D emulation
+    if (desc.type == TextureType::Color1D || desc.type == TextureType::ColorArray1D) {
+        LOG_WARNING(Shader_SPIRV, "ImageType(texture): Creating {} texture, emulate_1d={}", 
+                    desc.type == TextureType::Color1D ? "Color1D" : "ColorArray1D",
+                    emulate_1d);
+    }
+    
     switch (desc.type) {
     case TextureType::Color1D:
         return emulate_1d ? ctx.TypeImage(type, spv::Dim::Dim2D, depth, false, false, 1, format)
@@ -86,6 +93,13 @@ spv::ImageFormat GetImageFormat(ImageFormat format) {
 Id ImageType(EmitContext& ctx, const ImageDescriptor& desc, Id sampled_type) {
     const spv::ImageFormat format{GetImageFormat(desc.format)};
     const bool emulate_1d = ctx.profile.needs_1d_texture_emulation;
+    
+    // Debug log for 1D emulation
+    if (desc.type == TextureType::Color1D || desc.type == TextureType::ColorArray1D) {
+        LOG_WARNING(Shader_SPIRV, "ImageType: Creating {} image, emulate_1d={}", 
+                    desc.type == TextureType::Color1D ? "Color1D" : "ColorArray1D",
+                    emulate_1d);
+    }
     
     switch (desc.type) {
     case TextureType::Color1D:
