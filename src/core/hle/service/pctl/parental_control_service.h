@@ -60,6 +60,7 @@ private:
     Result SetStereoVisionRestriction(bool stereo_vision_restriction);
     Result ResetConfirmedStereoVisionPermission();
     Result GetPlayTimerSettings(Out<PlayTimerSettings> out_play_timer_settings);
+    Result SetPlayTimerSettings(Out<PlayTimerSettings> out_play_timer_settings);
 
     struct States {
         u64 current_tid{};
@@ -83,6 +84,8 @@ private:
     RestrictionSettings restriction_settings{};
     std::array<char, 8> pin_code{};
     Capability capability{};
+    // TODO: this is RAW as fuck
+    PlayTimerSettings raw_play_timer_settings{};
 
     KernelHelpers::ServiceContext service_context;
     Event synchronization_event;

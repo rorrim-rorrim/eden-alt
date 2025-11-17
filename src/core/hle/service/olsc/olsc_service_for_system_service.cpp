@@ -35,8 +35,10 @@ IOlscServiceForSystemService::IOlscServiceForSystemService(Core::System& system_
         {203, nullptr, "UpdateDataTransferPolicy"},
         {204, nullptr, "CleanupDataTransferPolicyInfo"},
         {205, nullptr, "RequestDataTransferPolicy"},
+        {206, nullptr, "Unknown206"}, //21.0.0+
         {300, nullptr, "GetAutoTransferSeriesInfo"},
         {301, nullptr, "UpdateAutoTransferSeriesInfo"},
+        {302, nullptr, "Unknown302"}, //21.0.0+
         {400, nullptr, "CleanupSaveDataArchiveInfoType1"},
         {900, nullptr, "CleanupTransferTask"},
         {902, nullptr, "CleanupSeriesInfoType0"},
