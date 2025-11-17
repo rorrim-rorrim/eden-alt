@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -77,31 +80,33 @@ public:
             {57, nullptr, "RegisterAppletResourceUserId"},
             {58, nullptr, "UnregisterAppletResourceUserId"},
             {59, nullptr, "SetAppletResourceUserId"},
-            {60, nullptr, "Unknown60"},
-            {61, nullptr, "Unknown61"},
-            {62, nullptr, "Unknown62"},
-            {63, nullptr, "Unknown63"},
-            {64, nullptr, "Unknown64"},
-            {65, nullptr, "Unknown65"},
-            {66, nullptr, "Unknown66"},
-            {67, nullptr, "Unknown67"},
-            {68, nullptr, "Unknown68"},
-            {69, nullptr, "Unknown69"},
-            {70, nullptr, "Unknown70"},
-            {71, nullptr, "Unknown71"},
-            {72, nullptr, "Unknown72"},
-            {73, nullptr, "Unknown73"},
-            {74, nullptr, "Unknown74"},
-            {75, nullptr, "Unknown75"},
-            {76, nullptr, "Unknown76"},
-            {100, nullptr, "Unknown100"},
-            {101, nullptr, "Unknown101"},
-            {110, nullptr, "Unknown110"},
-            {111, nullptr, "Unknown111"},
+            {60, nullptr, "AcquireBleConnectionParameterUpdateEvent"},
+            {61, nullptr, "SetCeLength"},
+            {62, nullptr, "EnsureSlotExpansion"},
+            {63, nullptr, "IsSlotExpansionEnsured"},
+            {64, nullptr, "CancelConnectionTrigger"},
+            {65, nullptr, "GetConnectionCapacity"},
+            {66, nullptr, "GetWlanMode"},
+            {67, nullptr, "IsSlotSavingEnabled"},
+            {68, nullptr, "IsSlotSavingForPairingEnabled"},
+            {69, nullptr, "AcquireAudioDeviceConnectionEvent"},
+            {70, nullptr, "GetConnectedAudioDevices"},
+            {71, nullptr, "SetAudioSourceVolume"},
+            {72, nullptr, "GetAudioSourceVolume"},
+            {73, nullptr, "RequestAudioDeviceConnectionRejection"},
+            {74, nullptr, "CancelAudioDeviceConnectionRejection"},
+            {75, nullptr, "GetPairedAudioDevices"},
+            {76, nullptr, "SetWlanModeWithOption"},
+            {100, nullptr, "AcquireConnectionDisallowedEvent"},
+            {101, nullptr, "GetUsecaseViolationFactor"},
+            {110, nullptr, "GetShortenedDeviceInfo"},
+            {111, nullptr, "AcquirePairingCountUpdateEvent"},
             {112, nullptr, "Unknown112"},
             {113, nullptr, "Unknown113"},
-            {114, nullptr, "Unknown114"},
-            {115, nullptr, "Unknown115"},
+            {114, nullptr, "IsFirstAudioControlConnection"}, //14.0.0+
+            {115, nullptr, "GetShortenedDeviceCondition"}, //14.0.0+
+            {116, nullptr, "SetAudioSinkVolume"}, //15.0.0+
+            {117, nullptr, "GetAudioSinkVolume"}, //15.0.0+
         };
         // clang-format on
 

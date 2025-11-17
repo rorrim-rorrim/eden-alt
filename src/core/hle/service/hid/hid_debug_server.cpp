@@ -125,13 +125,10 @@ IHidDebugServer::IHidDebugServer(Core::System& system_, std::shared_ptr<Resource
         {250, nullptr, "IsVirtual"},
         {251, nullptr, "GetAnalogStickModuleParam"},
         {253, nullptr, "ClearStorageForShipment"}, //19.0.0+
-        {254, nullptr, "Unknown254"},
-        {255, nullptr, "Unknown255"},
-        {256, nullptr, "Unknown256"},
-        {261, nullptr, "UpdateDesignInfo12"},
-        {262, nullptr, "GetUniquePadButtonCount"},
-        {267, nullptr, "Unknown267"},
-        {268, nullptr, "Unknown268"},
+        {261, nullptr, "UpdateDesignInfo12"}, //21.0.0+
+        {266, nullptr, "GetUniquePadButtonCount"}, //21.0.0+
+        {267, nullptr, "SetAnalogStickCalibration"}, //21.0.0+
+        {268, nullptr, "ResetAnalogStickCalibration"}, //21.0.0+
         {301, nullptr, "GetAbstractedPadHandles"},
         {302, nullptr, "GetAbstractedPadState"},
         {303, nullptr, "GetAbstractedPadsState"},
@@ -162,7 +159,7 @@ IHidDebugServer::IHidDebugServer(Core::System& system_, std::shared_ptr<Resource
         {650, nullptr, "AddButtonPlayData"},
         {651, nullptr, "StartButtonPlayData"},
         {652, nullptr, "StopButtonPlayData"},
-        {700, nullptr, "Unknown700"},
+        {700, nullptr, "GetRailAttachEventCount"}, //21.0.0+
         {2000, nullptr, "DeactivateDigitizer"},
         {2001, nullptr, "SetDigitizerAutoPilotState"},
         {2002, nullptr, "UnsetDigitizerAutoPilotState"},
