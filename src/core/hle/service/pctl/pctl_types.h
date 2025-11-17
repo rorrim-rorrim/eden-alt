@@ -34,10 +34,16 @@ struct RestrictionSettings {
 };
 static_assert(sizeof(RestrictionSettings) == 0x3, "RestrictionSettings has incorrect size.");
 
-// This is nn::pctl::PlayTimerSettings
-struct PlayTimerSettings {
+// This is nn::pctl::PlayTimerSettingsOld
+struct PlayTimerSettingsOld {
     std::array<u32, 13> settings;
 };
-static_assert(sizeof(PlayTimerSettings) == 0x34, "PlayTimerSettings has incorrect size.");
+static_assert(sizeof(PlayTimerSettingsOld) == 0x34, "PlayTimerSettingsOld has incorrect size.");
+
+// This is nn::pctl::PlayTimerSettings
+struct PlayTimerSettings {
+    std::array<u32, 17> settings; //21.0.0+ now takes 0x44
+};
+static_assert(sizeof(PlayTimerSettings) == 0x44, "PlayTimerSettings has incorrect size.");
 
 } // namespace Service::PCTL

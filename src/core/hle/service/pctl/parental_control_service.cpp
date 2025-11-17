@@ -39,6 +39,9 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {1017, D<&IParentalControlService::EndFreeCommunication>, "EndFreeCommunication"},
         {1018, D<&IParentalControlService::IsFreeCommunicationAvailable>, "IsFreeCommunicationAvailable"},
         {1019, D<&IParentalControlService::ConfirmLaunchApplicationPermission>, "ConfirmLaunchApplicationPermission"},
+        {1020, nullptr, "ConfirmLaunchSharedApplicationPermission"}, //20.0.0+
+        {1021, nullptr, "TryBeginFreeCommunicationForStreamPlay"}, //21.0.0+
+        {1022, nullptr, "EndFreeCommunicationForStreamPlay"}, //21.0.0+
         {1031, D<&IParentalControlService::IsRestrictionEnabled>, "IsRestrictionEnabled"},
         {1032, D<&IParentalControlService::GetSafetyLevel>, "GetSafetyLevel"},
         {1033, nullptr, "SetSafetyLevel"},
@@ -56,6 +59,8 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {1047, nullptr, "NotifyApplicationDownloadStarted"},
         {1048, nullptr, "NotifyNetworkProfileCreated"},
         {1049, nullptr, "ResetFreeCommunicationApplicationList"},
+        {1050, nullptr, "AddToFreeCommunicationApplicationList"}, //20.0.0+
+        {1051, nullptr, "NotifyApplicationDownloadStarted"}, //20.0.0+
         {1061, D<&IParentalControlService::ConfirmStereoVisionRestrictionConfigurable>, "ConfirmStereoVisionRestrictionConfigurable"},
         {1062, D<&IParentalControlService::GetStereoVisionRestriction>, "GetStereoVisionRestriction"},
         {1063, D<&IParentalControlService::SetStereoVisionRestriction>, "SetStereoVisionRestriction"},
@@ -128,6 +133,7 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {2015, nullptr, "FinishSynchronizeParentalControlSettingsWithLastUpdated"},
         {2016, nullptr, "RequestUpdateExemptionListAsync"},
         {145601, D<&IParentalControlService::GetPlayTimerSettings>, "GetPlayTimerSettings"} // 18.0.0+
+        {195101, D<&IParentalControlService::SetPlayTimerSettings>, "SetPlayTimerSettingsForDebug"}, //18.0.0+
     };
     // clang-format on
     RegisterHandlers(functions);
@@ -392,17 +398,22 @@ Result IParentalControlService::IsRestrictedByPlayTimer(Out<bool> out_is_restric
     R_SUCCEED();
 }
 
-Result IParentalControlService::GetPlayTimerSettingsOld(
-    Out<PlayTimerSettings> out_play_timer_settings) {
+// TODO: fuck me why?
+Result IParentalControlService::GetPlayTimerSettingsOld(Out<PlayTimerSettingsOld> out_play_timer_settings) {
     LOG_WARNING(Service_PCTL, "(STUBBED) called");
     *out_play_timer_settings = {};
     R_SUCCEED();
 }
 
-Result IParentalControlService::GetPlayTimerSettings(
-    Out<PlayTimerSettings> out_play_timer_settings) {
+Result IParentalControlService::GetPlayTimerSettings(Out<PlayTimerSettings> out_play_timer_settings) {
     LOG_WARNING(Service_PCTL, "(STUBBED) called");
-    *out_play_timer_settings = {};
+    *out_play_timer_settings = raw_play_timer_settings;
+    R_SUCCEED();
+}
+
+Result IParentalControlService::SetPlayTimerSettings(PlayTimerSettings play_timer_settings) {
+    LOG_WARNING(Service_PCTL, "(STUBBED) called");
+    play_timer_settings = play_timer_settings;
     R_SUCCEED();
 }
 
