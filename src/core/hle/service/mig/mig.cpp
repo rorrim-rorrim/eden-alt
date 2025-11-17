@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,17 +17,20 @@ public:
     explicit MIG_USR(Core::System& system_) : ServiceFramework{system_, "mig:usr"} {
         // clang-format off
         static const FunctionInfo functions[] = {
+            {0, nullptr, "Unknown0"}, //19.0.0+
+            {1, nullptr, "Unknown1"}, //20.0.0+
+            {2, nullptr, "Unknown2"}, //20.0.0+
             {10, nullptr, "TryGetLastMigrationInfo"},
-            {100, nullptr, "CreateServer"},
-            {101, nullptr, "ResumeServer"},
-            {200, nullptr, "CreateClient"},
-            {201, nullptr, "ResumeClient"},
-            {1001, nullptr, "Unknown1001"},
-            {1010, nullptr, "Unknown1010"},
-            {1100, nullptr, "Unknown1100"},
-            {1101, nullptr, "Unknown1101"},
-            {1200, nullptr, "Unknown1200"},
-            {1201, nullptr, "Unknown1201"}
+            {100, nullptr, "CreateUserMigrationServer"},
+            {101, nullptr, "ResumeUserMigrationServer"},
+            {200, nullptr, "CreateUserMigrationClient"},
+            {201, nullptr, "ResumeUserMigrationClient"},
+            {1001, nullptr, "GetSaveDataMigrationPolicyInfoAsync"},
+            {1010, nullptr, "TryGetLastSaveDataMigrationInfo"},
+            {1100, nullptr, "CreateSaveDataMigrationServer"},
+            {1101, nullptr, "ResumeSaveDataMigrationServer"},
+            {1200, nullptr, "CreateSaveDataMigrationClient"},
+            {1201, nullptr, "ResumeSaveDataMigrationClient"}
         };
         // clang-format on
 

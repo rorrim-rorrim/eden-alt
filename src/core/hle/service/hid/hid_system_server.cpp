@@ -69,7 +69,10 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {327, nullptr, "GetAbstractedPadIdDataFromNpad"},
         {328, nullptr, "AttachAbstractedPadToNpad"},
         {329, nullptr, "DetachAbstractedPadAll"},
-        {330, nullptr, "CheckAbstractedPadConnection"},
+        {330, nullptr, "CheckAbstractedPadConnection"}, //14.0.0+
+        {332, nullptr, "ConvertAppletDetailedUiTypeFromPlayReportType"}, //19.0.0+
+        {333, nullptr, "SetNpadUserSpgApplet"}, //20.0.0+
+        {334, nullptr, "AcquireUniquePadButtonStateChangedEventHandle"}, //20.0.0+
         {500, nullptr, "SetAppletResourceUserId"},
         {501, &IHidSystemServer::RegisterAppletResourceUserId, "RegisterAppletResourceUserId"},
         {502, &IHidSystemServer::UnregisterAppletResourceUserId, "UnregisterAppletResourceUserId"},
@@ -169,6 +172,8 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1155, &IHidSystemServer::SetForceHandheldStyleVibration, "SetForceHandheldStyleVibration"},
         {1156, nullptr, "SendConnectionTriggerWithoutTimeoutEvent"},
         {1157, nullptr, "CancelConnectionTrigger"},
+        {1158, nullptr, "SetConnectionLimitForSplay"}, //20.1.0+
+        {1159, nullptr, "ClearConnectionLimitForSplay"}, //20.1.0+
         {1200, nullptr, "IsButtonConfigSupported"},
         {1201, nullptr, "IsButtonConfigEmbeddedSupported"},
         {1202, nullptr, "DeleteButtonConfig"},
@@ -235,7 +240,7 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1323, nullptr, "StartTouchScreenAutoTuneForSystemSettings"}, // 21.0.0+
         {1324, nullptr, "AcquireTouchScreenAutoTuneCompletedEvent"}, // 21.0.0+
         {1325, nullptr, "IsTouchScreenAutoTuneRequiredForRepairProviderReplacement"}, // 21.0.0+
-        {1326, nullptr, "Unknown1326"}, // 21.0.0+
+        {1326, nullptr, "SetTouchScreenOffset"}, // 21.0.0+
         {1420, nullptr, "GetAppletResourceProperty"}, // 19.0.0+
     };
     // clang-format on
