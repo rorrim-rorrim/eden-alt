@@ -2120,26 +2120,13 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
         }
     }
     const auto format_info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
-    
-    // Workaround: Some Switch games incorrectly use R32_UINT textures with float samplers
-    // causing flickering/missing geometry. However, glyph atlases and lookup tables 
-    // CORRECTLY use R32_UINT for integer data - reinterpreting breaks text rendering.
-    // Conservative heuristic: Only reinterpret large textures (likely geometry/effects)
     VkFormat view_format = format_info.format;
-    if (view_format == VK_FORMAT_R32_UINT && 
-        !info.IsRenderTarget() &&
-        (ImageUsageFlags(format_info, format) & VK_IMAGE_USAGE_SAMPLED_BIT)) {
-        // Skip small textures (likely atlases, lookup tables, or integer data)
-        const bool is_likely_atlas = image.info.size.width <= 1024 || image.info.size.height <= 1024;
-        const bool is_storage = (ImageUsageFlags(format_info, format) & VK_IMAGE_USAGE_STORAGE_BIT) != 0;
-        
-        // Only reinterpret large textures that are NOT storage and NOT likely atlases
-        if (!is_storage && !is_likely_atlas) {
-            view_format = VK_FORMAT_R32_SFLOAT;
-            LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_UINT→R32_SFLOAT for {}x{} texture", 
-                      image.info.size.width, image.info.size.height);
-        }
-    }
+    
+    // TODO: Format reinterpretation toggles (per-game settings)
+    // Some games incorrectly use integer formats with float samplers:
+    // - R32_UINT with texture() instead of texelFetch() causes flickering
+    // - R8_UINT with LINEAR filter causes validation errors
+    // Cannot auto-detect: need user toggles to force format reinterpretation
     
     if (ImageUsageFlags(format_info, format) != image.UsageFlags()) {
         LOG_WARNING(Render_Vulkan,

@@ -802,14 +802,15 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
 
     auto program{TranslateProgram(pools.inst, pools.block, env, cfg, host_info)};
     
-    // Adreno have lower shared memory limits (32KB)
-    // Clamp shared memory usage to device maximum to avoid validation errors
+    // Adreno and mobile GPUs have lower shared memory limits (32KB vs Switch's 48KB)
+    // Skip shader compilation if it exceeds device limits to prevent GPU crashes
     const u32 max_shared_memory = device.GetMaxComputeSharedMemorySize();
     if (program.shared_memory_size > max_shared_memory) {
-        LOG_WARNING(Render_Vulkan, 
-                    "Compute shader 0x{:016x} requests {}KB shared memory but device max is {}KB - clamping",
-                    key.unique_hash, program.shared_memory_size / 1024, max_shared_memory / 1024);
-        program.shared_memory_size = max_shared_memory;
+        LOG_ERROR(Render_Vulkan, 
+                  "Compute shader 0x{:016x} requests {}KB shared memory but device max is {}KB - "
+                  "SKIPPING compilation to prevent GPU crash. Visual effect will be missing.",
+                  key.unique_hash, program.shared_memory_size / 1024, max_shared_memory / 1024);
+        return nullptr;
     }
     
     const std::vector<u32> code{EmitSPIRV(profile, program, this->optimize_spirv_output)};
