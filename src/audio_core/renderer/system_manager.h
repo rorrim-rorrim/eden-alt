@@ -66,11 +66,6 @@ public:
     bool Remove(System& system);
 
 private:
-    /**
-     * Main thread responsible for command generation.
-     */
-    void ThreadFunc(std::stop_token stop_token);
-
     /// Core system
     Core::System& core;
     /// List of pointers to managed systems
