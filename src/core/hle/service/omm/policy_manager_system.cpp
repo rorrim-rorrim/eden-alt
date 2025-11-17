@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,8 +13,8 @@ IPolicyManagerSystem::IPolicyManagerSystem(Core::System& system_)
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetAutoPowerDownEvent"},
-        {1, nullptr, "IsAutoPowerDownRequested"},
-        {2, nullptr, "Unknown2"},
+        {1, nullptr, "IsAutoPowerDownRequested"}, //7.0.0+
+        {2, nullptr, "Unknown2"}, //1.0.0-3.0.2
         {3, nullptr, "SetHandlingContext"},
         {4, nullptr, "LoadAndApplySettings"},
         {5, nullptr, "ReportUserIsActive"},

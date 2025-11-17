@@ -34,9 +34,9 @@ public:
             {10300, &PlayReport::GetTransmissionStatus, "GetTransmissionStatus"},
             {10400, &PlayReport::GetSystemSessionId, "GetSystemSessionId"},
             {20100, &PlayReport::SaveSystemReportOld, "SaveSystemReport"},
-{20101, &PlayReport::SaveSystemReportWithUserOld, "SaveSystemReportWithUser"},
-{20102, &PlayReport::SaveSystemReport, "SaveSystemReport"},
-{20103, &PlayReport::SaveSystemReportWithUser, "SaveSystemReportWithUser"},
+            {20101, &PlayReport::SaveSystemReportWithUserOld, "SaveSystemReportWithUser"},
+            {20102, &PlayReport::SaveSystemReport, "SaveSystemReport"},
+            {20103, &PlayReport::SaveSystemReportWithUser, "SaveSystemReportWithUser"},
             {20200, nullptr, "SetOperationMode"},
             {30100, nullptr, "ClearStorage"},
             {30200, nullptr, "ClearStatistics"},
@@ -49,8 +49,8 @@ public:
             {40101, nullptr, "SetUserAgreementCheckEnabled"},
             {50100, nullptr, "ReadAllApplicationReportFiles"},
             {90100, nullptr, "ReadAllReportFiles"},
-            {90101, nullptr, "Unknown90101"},
-            {90102, nullptr, "Unknown90102"},
+            {90101, nullptr, "Unknown90101"}, //1.0.0
+            {90102, nullptr, "Unknown90102"}, //1.0.0
             {90200, nullptr, "GetStatistics"},
             {90201, nullptr, "GetThroughputHistory"},
             {90300, nullptr, "GetLastUploadError"},
