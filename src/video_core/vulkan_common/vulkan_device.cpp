@@ -551,23 +551,13 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             LOG_INFO(Render_Vulkan, "VK_QCOM_render_pass_shader_resolve: ENABLED");
         }
 
-        // Shader Float Controls for Qualcomm Adreno
-        LOG_INFO(Render_Vulkan, "Enabling Shader Float Controls with Switch/Maxwell native configuration");
-        
-        // Log driver capabilities
-        const auto& fc = properties.float_controls;
-        LOG_INFO(Render_Vulkan, "Driver Capabilities:");
-        LOG_INFO(Render_Vulkan, "  - Denorm Flush FP32: {}", fc.shaderDenormFlushToZeroFloat32 ? "YES" : "NO");
-        LOG_INFO(Render_Vulkan, "  - RTE Rounding FP32: {}", fc.shaderRoundingModeRTEFloat32 ? "YES" : "NO");
-        LOG_INFO(Render_Vulkan, "  - Signed Zero/Inf/Nan FP32: {}", fc.shaderSignedZeroInfNanPreserveFloat32 ? "YES" : "NO");
-        
-        // Apply Switch/Maxwell native float behavior
-        LOG_INFO(Render_Vulkan, "Applying Switch/Maxwell native float behavior:");
-        LOG_INFO(Render_Vulkan, "  - FTZ (Flush-To-Zero): ON - Matches Switch hardware behavior");
-        LOG_INFO(Render_Vulkan, "  - RTE (Round-To-Even): ON - IEEE 754 standard precision");
-        LOG_INFO(Render_Vulkan, "  - SignedZero/Inf/NaN: ON - Mathematical correctness");
-        
-        LOG_INFO(Render_Vulkan, "VK_KHR_shader_float_controls: ENABLED (auto-configured)");
+        // Shader Float Controls: Keep extension ENABLED for FP32 precision control
+        // Stock Qualcomm: Disable FP16 support (broken hardware), force FP32 fallback
+        // Turnip Mesa: Full float controls support
+        if (!is_turnip) {
+            LOG_WARNING(Render_Vulkan, "Disabling FP16 support for Stock Qualcomm (broken driver)");
+            features.shader_float16_int8.shaderFloat16 = false;
+        }
         
         // Int64 atomics - genuinely broken, always disable
         RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64,
