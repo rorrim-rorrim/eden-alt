@@ -753,13 +753,14 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool force_rasterizer = Settings::values.force_rasterizer_state_updates.GetValue();
 
     if (Settings::values.dyna_state.GetValue() == 0 && !force_rasterizer) {
+        must_emulate_scaled_formats = true;
         RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2, VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3, VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
         dynamic_state3_blending = false;
         dynamic_state3_enables = false;
 
-        LOG_INFO(Render_Vulkan, "All dynamic state extensions and features have been disabled");
+        LOG_INFO(Render_Vulkan, "All dynamic state extensions and features have been disabled and scaled formate enabled.");
     }
 
     logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions), first_next, dld);
