@@ -954,9 +954,10 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
 
-    const u8 dynamic_state = Settings::values.dyna_state.GetValue();
+    const auto& dynamic_features = pipeline_cache.GetDynamicFeatures();
 
-    if (device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0) {
+    // EDS1 - Extended Dynamic State 1
+    if (dynamic_features.has_extended_dynamic_state) {
         UpdateCullMode(regs);
         UpdateDepthCompareOp(regs);
         UpdateFrontFace(regs);
@@ -966,37 +967,6 @@ void RasterizerVulkan::UpdateDynamicStates() {
             UpdateDepthTestEnable(regs);
             UpdateDepthWriteEnable(regs);
             UpdateStencilTestEnable(regs);
-            if (device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1) {
-                UpdatePrimitiveRestartEnable(regs);
-                UpdateRasterizerDiscardEnable(regs);
-                UpdateDepthBiasEnable(regs);
-            }
-            if (device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2) {
-                using namespace Tegra::Engines;
-                if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE || device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
-                    struct In {
-                        const Maxwell3D::Regs::VertexAttribute::Type d;
-                        In(Maxwell3D::Regs::VertexAttribute::Type n) : d(n) {}
-                        bool operator()(Maxwell3D::Regs::VertexAttribute n) const {
-                            return n.type == d;
-                        }
-                    };
-                    auto has_float = std::any_of(regs.vertex_attrib_format.begin(), regs.vertex_attrib_format.end(), In(Maxwell3D::Regs::VertexAttribute::Type::Float));
-                    if (regs.logic_op.enable) {
-                        regs.logic_op.enable = static_cast<u32>(!has_float);
-                    }
-                }
-                UpdateLogicOpEnable(regs);
-                UpdateDepthClampEnable(regs);
-                UpdateLineStippleEnable(regs);
-                UpdateConservativeRasterizationMode(regs);
-            }
-        }
-        if (device.IsExtExtendedDynamicState2ExtrasSupported() && dynamic_state > 1) {
-            UpdateLogicOp(regs);
-        }
-        if (device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2) {
-            UpdateBlending(regs);
         }
     }
     if (device.IsExtVertexInputDynamicStateSupported() && dynamic_state > 0)

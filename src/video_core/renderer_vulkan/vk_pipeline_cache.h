@@ -113,6 +113,10 @@ public:
     void LoadDiskResources(u64 title_id, std::stop_token stop_loading,
                            const VideoCore::DiskResourceLoadCallback& callback);
 
+    [[nodiscard]] const DynamicFeatures& GetDynamicFeatures() const noexcept {
+        return dynamic_features;
+    }
+
 private:
     [[nodiscard]] GraphicsPipeline* CurrentGraphicsPipelineSlowPath();
 
