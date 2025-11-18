@@ -502,10 +502,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     is_warp_potentially_bigger = !extensions.subgroup_size_control ||
                                  properties.subgroup_size_control.maxSubgroupSize > GuestWarpSize;
 
-    is_integrated = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
-    is_virtual = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
-    is_non_gpu = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_OTHER ||
-                 properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU;
+    //const bool is_virtual = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
+    //const bool is_non_gpu = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_OTHER ||
+    //             properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU;
 
     supports_d24_depth =
         IsFormatSupported(VK_FORMAT_D24_UNORM_S8_UINT,
@@ -566,13 +565,11 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         // Turnip Mesa: Works correctly, keep enabled
         if (!is_turnip) {
             LOG_WARNING(Render_Vulkan, "Disabling Shader Float Controls for Stock Qualcomm (broken implementation)");
-            RemoveExtensionFeature(extensions.shader_float_controls, features.shader_float_controls,
-                                   VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
+            extensions.shader_float_controls = false; // Just a feature not an extension
         }
         
         // Int64 atomics - genuinely broken, always disable
-        RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64,
-                               VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64, VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
         features.shader_atomic_int64.shaderBufferInt64Atomics = false;
         features.shader_atomic_int64.shaderSharedInt64Atomics = false;
         features.features.shaderInt64 = false;
@@ -766,13 +763,12 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     if (extensions.memory_budget) {
         flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
     }
+    const bool is_integrated = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
     const VmaAllocatorCreateInfo allocator_info{
             .flags = flags,
             .physicalDevice = physical,
             .device = *logical,
-            .preferredLargeHeapBlockSize = is_integrated
-                                           ? (64u * 1024u * 1024u)
-                                           : (256u * 1024u * 1024u),
+            .preferredLargeHeapBlockSize = (is_integrated ? 64u : 256u) * 1024u * 1024u,
             .pAllocationCallbacks = nullptr,
             .pDeviceMemoryCallbacks = nullptr,
             .pHeapSizeLimit = nullptr,
@@ -1601,8 +1597,8 @@ void Device::CollectPhysicalMemoryInfo() {
     // Calculate limits using memory budget
     VkPhysicalDeviceMemoryBudgetPropertiesEXT budget{};
     budget.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_BUDGET_PROPERTIES_EXT;
-    const auto mem_info =
-        physical.GetMemoryProperties(extensions.memory_budget ? &budget : nullptr);
+    const bool is_integrated = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
+    const auto mem_info = physical.GetMemoryProperties(extensions.memory_budget ? &budget : nullptr);
     const auto& mem_properties = mem_info.memoryProperties;
     const size_t num_properties = mem_properties.memoryHeapCount;
     device_access_memory = 0;
