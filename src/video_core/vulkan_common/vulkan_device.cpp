@@ -839,9 +839,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     if (Settings::values.dyna_state.GetValue() == 0) {
-        must_emulate_scaled_formats = true;
-        LOG_INFO(Render_Vulkan, "Extended dynamic state is fully disabled, scaled format emulation is ON");
-
         RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color, VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2, VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
@@ -850,11 +847,22 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         dynamic_state3_blending = false;
         dynamic_state3_enables = false;
 
-        LOG_INFO(Render_Vulkan, "All dynamic state extensions and features have been disabled");
+        LOG_INFO(Render_Vulkan, "Extended dynamic state is fully disabled");
+    }
+
+#ifdef ANDROID
+    // Stock Qualcomm and ARM Mali drivers don't report VK_FORMAT_*_SSCALED/USCALED formats
+    // Turnip implements them in software, so only force emulation for stock drivers
+    if ((is_qualcomm && !is_turnip) || is_arm) {
+        must_emulate_scaled_formats = true;
+        LOG_INFO(Render_Vulkan, "Mobile GPU detected: forcing scaled format emulation (hardware limitation)");
     } else {
         must_emulate_scaled_formats = false;
-        LOG_INFO(Render_Vulkan, "Extended dynamic state is enabled, scaled format emulation is OFF");
     }
+#else
+    // Desktop GPUs support scaled formats natively
+    must_emulate_scaled_formats = false;
+#endif
 
     logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions), first_next, dld);
 
