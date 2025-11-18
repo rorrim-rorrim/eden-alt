@@ -426,39 +426,34 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
 
     LOG_INFO(Render_Vulkan, "DynamicState value is set to {}", (u32) dynamic_state);
 
-    dynamic_features.raw0 = 0;
-    
+    dynamic_features = {};
     // EDS1 - All-or-nothing (enabled if driver supports AND setting > 0)
-    dynamic_features.has_extended_dynamic_state.Assign(device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0);
-    
+    dynamic_features.has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0;
     // EDS2 - Core features (enabled if driver supports AND setting > 1)
-    dynamic_features.has_extended_dynamic_state_2.Assign(device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1);
-    dynamic_features.has_extended_dynamic_state_2_logic_op.Assign(device.IsExtExtendedDynamicState2LogicOpSupported() && dynamic_state > 1);
-    dynamic_features.has_extended_dynamic_state_2_patch_control_points.Assign(device.IsExtExtendedDynamicState2PatchControlPointsSupported() && dynamic_state > 1);
-    
+    dynamic_features.has_extended_dynamic_state_2 = device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1;
+    dynamic_features.has_extended_dynamic_state_2_logic_op = device.IsExtExtendedDynamicState2LogicOpSupported() && dynamic_state > 1;
+    dynamic_features.has_extended_dynamic_state_2_patch_control_points = device.IsExtExtendedDynamicState2PatchControlPointsSupported() && dynamic_state > 1;
     // EDS3 - Granular features (enabled if driver supports AND setting > 2)
-    dynamic_features.has_extended_dynamic_state_3_blend.Assign(device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2);
-    dynamic_features.has_extended_dynamic_state_3_enables.Assign(device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2);
-    dynamic_features.has_extended_dynamic_state_3_depth_clamp.Assign(device.IsExtExtendedDynamicState3DepthClampEnableSupported() && dynamic_state > 2);
-    dynamic_features.has_extended_dynamic_state_3_logic_op_enable.Assign(device.IsExtExtendedDynamicState3LogicOpEnableSupported() && dynamic_state > 2);
-    dynamic_features.has_extended_dynamic_state_3_tessellation_domain_origin.Assign(device.IsExtExtendedDynamicState3TessellationDomainOriginSupported() && dynamic_state > 2);
-    dynamic_features.has_extended_dynamic_state_3_polygon_mode.Assign(device.IsExtExtendedDynamicState3PolygonModeSupported() && dynamic_state > 2);
-    dynamic_features.has_extended_dynamic_state_3_rasterization_samples.Assign(device.IsExtExtendedDynamicState3RasterizationSamplesSupported() && dynamic_state > 2);
-    dynamic_features.has_extended_dynamic_state_3_sample_mask.Assign(device.IsExtExtendedDynamicState3SampleMaskSupported() && dynamic_state > 2);
-    dynamic_features.has_extended_dynamic_state_3_alpha_to_coverage_enable.Assign(device.IsExtExtendedDynamicState3AlphaToCoverageEnableSupported() && dynamic_state > 2);
-    dynamic_features.has_extended_dynamic_state_3_alpha_to_one_enable.Assign(device.IsExtExtendedDynamicState3AlphaToOneEnableSupported() && dynamic_state > 2);
-    dynamic_features.has_extended_dynamic_state_3_depth_clip_enable.Assign(device.IsExtExtendedDynamicState3DepthClipEnableSupported() && dynamic_state > 2);
-    dynamic_features.has_extended_dynamic_state_3_depth_clip_negative_one_to_one.Assign(device.IsExtExtendedDynamicState3DepthClipNegativeOneToOneSupported() && dynamic_state > 2);
-    dynamic_features.has_extended_dynamic_state_3_line_rasterization_mode.Assign(device.IsExtExtendedDynamicState3LineRasterizationModeSupported() && dynamic_state > 2);
-    dynamic_features.has_extended_dynamic_state_3_line_stipple_enable.Assign(device.IsExtExtendedDynamicState3LineStippleEnableSupported() && dynamic_state > 2);
-    dynamic_features.has_extended_dynamic_state_3_provoking_vertex_mode.Assign(device.IsExtExtendedDynamicState3ProvokingVertexModeSupported() && dynamic_state > 2);
-    dynamic_features.has_extended_dynamic_state_3_conservative_rasterization_mode.Assign(device.IsExtExtendedDynamicState3ConservativeRasterizationModeSupported() && dynamic_state > 2);
-    dynamic_features.has_extended_dynamic_state_3_sample_locations_enable.Assign(device.IsExtExtendedDynamicState3SampleLocationsEnableSupported() && dynamic_state > 2);
-    dynamic_features.has_extended_dynamic_state_3_rasterization_stream.Assign(device.IsExtExtendedDynamicState3RasterizationStreamSupported() && dynamic_state > 2);
-    
+    dynamic_features.has_extended_dynamic_state_3_blend = device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2;
+    dynamic_features.has_extended_dynamic_state_3_enables = device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2;
+    dynamic_features.has_extended_dynamic_state_3_depth_clamp = device.IsExtExtendedDynamicState3DepthClampEnableSupported() && dynamic_state > 2;
+    dynamic_features.has_extended_dynamic_state_3_logic_op_enable = device.IsExtExtendedDynamicState3LogicOpEnableSupported() && dynamic_state > 2;
+    dynamic_features.has_extended_dynamic_state_3_tessellation_domain_origin = device.IsExtExtendedDynamicState3TessellationDomainOriginSupported() && dynamic_state > 2;
+    dynamic_features.has_extended_dynamic_state_3_polygon_mode = device.IsExtExtendedDynamicState3PolygonModeSupported() && dynamic_state > 2;
+    dynamic_features.has_extended_dynamic_state_3_rasterization_samples = device.IsExtExtendedDynamicState3RasterizationSamplesSupported() && dynamic_state > 2;
+    dynamic_features.has_extended_dynamic_state_3_sample_mask = device.IsExtExtendedDynamicState3SampleMaskSupported() && dynamic_state > 2;
+    dynamic_features.has_extended_dynamic_state_3_alpha_to_coverage_enable = device.IsExtExtendedDynamicState3AlphaToCoverageEnableSupported() && dynamic_state > 2;
+    dynamic_features.has_extended_dynamic_state_3_alpha_to_one_enable = device.IsExtExtendedDynamicState3AlphaToOneEnableSupported() && dynamic_state > 2;
+    dynamic_features.has_extended_dynamic_state_3_depth_clip_enable = device.IsExtExtendedDynamicState3DepthClipEnableSupported() && dynamic_state > 2;
+    dynamic_features.has_extended_dynamic_state_3_depth_clip_negative_one_to_one = device.IsExtExtendedDynamicState3DepthClipNegativeOneToOneSupported() && dynamic_state > 2;
+    dynamic_features.has_extended_dynamic_state_3_line_rasterization_mode = device.IsExtExtendedDynamicState3LineRasterizationModeSupported() && dynamic_state > 2;
+    dynamic_features.has_extended_dynamic_state_3_line_stipple_enable = device.IsExtExtendedDynamicState3LineStippleEnableSupported() && dynamic_state > 2;
+    dynamic_features.has_extended_dynamic_state_3_provoking_vertex_mode = device.IsExtExtendedDynamicState3ProvokingVertexModeSupported() && dynamic_state > 2;
+    dynamic_features.has_extended_dynamic_state_3_conservative_rasterization_mode = device.IsExtExtendedDynamicState3ConservativeRasterizationModeSupported() && dynamic_state > 2;
+    dynamic_features.has_extended_dynamic_state_3_sample_locations_enable = device.IsExtExtendedDynamicState3SampleLocationsEnableSupported() && dynamic_state > 2;
+    dynamic_features.has_extended_dynamic_state_3_rasterization_stream = device.IsExtExtendedDynamicState3RasterizationStreamSupported() && dynamic_state > 2;
     // Vertex input dynamic state (independent toggle)
-    dynamic_features.has_dynamic_vertex_input.Assign(device.IsExtVertexInputDynamicStateSupported() && 
-                                                     Settings::values.vertex_input_dynamic_state.GetValue());
+    dynamic_features.has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported() &&  Settings::values.vertex_input_dynamic_state.GetValue();
 }
 
 PipelineCache::~PipelineCache() {
