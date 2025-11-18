@@ -560,29 +560,29 @@ void PipelineCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading
         file.read(reinterpret_cast<char*>(&key), sizeof(key));
 
         // Validate dynamic features compatibility - granular per-feature check
-        if ((key.state.extended_dynamic_state != 0) != dynamic_features.has_extended_dynamic_state ||
-            (key.state.extended_dynamic_state_2 != 0) != dynamic_features.has_extended_dynamic_state_2 ||
-            (key.state.extended_dynamic_state_2_logic_op != 0) != dynamic_features.has_extended_dynamic_state_2_logic_op ||
-            (key.state.extended_dynamic_state_2_patch_control_points != 0) != dynamic_features.has_extended_dynamic_state_2_patch_control_points ||
-            (key.state.extended_dynamic_state_3_blend != 0) != dynamic_features.has_extended_dynamic_state_3_blend ||
-            (key.state.extended_dynamic_state_3_enables != 0) != dynamic_features.has_extended_dynamic_state_3_enables ||
-            (key.state.extended_dynamic_state_3_depth_clamp != 0) != dynamic_features.has_extended_dynamic_state_3_depth_clamp ||
-            (key.state.extended_dynamic_state_3_logic_op_enable != 0) != dynamic_features.has_extended_dynamic_state_3_logic_op_enable ||
-            (key.state.extended_dynamic_state_3_tessellation_domain_origin != 0) != dynamic_features.has_extended_dynamic_state_3_tessellation_domain_origin ||
-            (key.state.extended_dynamic_state_3_polygon_mode != 0) != dynamic_features.has_extended_dynamic_state_3_polygon_mode ||
-            (key.state.extended_dynamic_state_3_rasterization_samples != 0) != dynamic_features.has_extended_dynamic_state_3_rasterization_samples ||
-            (key.state.extended_dynamic_state_3_sample_mask != 0) != dynamic_features.has_extended_dynamic_state_3_sample_mask ||
-            (key.state.extended_dynamic_state_3_alpha_to_coverage_enable != 0) != dynamic_features.has_extended_dynamic_state_3_alpha_to_coverage_enable ||
-            (key.state.extended_dynamic_state_3_alpha_to_one_enable != 0) != dynamic_features.has_extended_dynamic_state_3_alpha_to_one_enable ||
-            (key.state.extended_dynamic_state_3_depth_clip_enable != 0) != dynamic_features.has_extended_dynamic_state_3_depth_clip_enable ||
-            (key.state.extended_dynamic_state_3_depth_clip_negative_one_to_one != 0) != dynamic_features.has_extended_dynamic_state_3_depth_clip_negative_one_to_one ||
-            (key.state.extended_dynamic_state_3_line_rasterization_mode != 0) != dynamic_features.has_extended_dynamic_state_3_line_rasterization_mode ||
-            (key.state.extended_dynamic_state_3_line_stipple_enable != 0) != dynamic_features.has_extended_dynamic_state_3_line_stipple_enable ||
-            (key.state.extended_dynamic_state_3_provoking_vertex_mode != 0) != dynamic_features.has_extended_dynamic_state_3_provoking_vertex_mode ||
-            (key.state.extended_dynamic_state_3_conservative_rasterization_mode != 0) != dynamic_features.has_extended_dynamic_state_3_conservative_rasterization_mode ||
-            (key.state.extended_dynamic_state_3_sample_locations_enable != 0) != dynamic_features.has_extended_dynamic_state_3_sample_locations_enable ||
-            (key.state.extended_dynamic_state_3_rasterization_stream != 0) != dynamic_features.has_extended_dynamic_state_3_rasterization_stream ||
-            (key.state.dynamic_vertex_input != 0) != dynamic_features.has_dynamic_vertex_input) {
+        if ((key.state.extended_dynamic_state != 0) != dynamic_features.has_extended_dynamic_state
+        || (key.state.extended_dynamic_state_2 != 0) != dynamic_features.has_extended_dynamic_state_2
+        || (key.state.extended_dynamic_state_2_logic_op != 0) != dynamic_features.has_extended_dynamic_state_2_logic_op
+        || (key.state.extended_dynamic_state_2_patch_control_points != 0) != dynamic_features.has_extended_dynamic_state_2_patch_control_points
+        || (key.state.extended_dynamic_state_3_blend != 0) != dynamic_features.has_extended_dynamic_state_3_blend
+        || (key.state.extended_dynamic_state_3_enables != 0) != dynamic_features.has_extended_dynamic_state_3_enables
+        || (key.state.extended_dynamic_state_3_depth_clamp != 0) != dynamic_features.has_extended_dynamic_state_3_depth_clamp
+        || (key.state.extended_dynamic_state_3_logic_op_enable != 0) != dynamic_features.has_extended_dynamic_state_3_logic_op_enable
+        || (key.state.extended_dynamic_state_3_tessellation_domain_origin != 0) != dynamic_features.has_extended_dynamic_state_3_tessellation_domain_origin
+        || (key.state.extended_dynamic_state_3_polygon_mode != 0) != dynamic_features.has_extended_dynamic_state_3_polygon_mode
+        || (key.state.extended_dynamic_state_3_rasterization_samples != 0) != dynamic_features.has_extended_dynamic_state_3_rasterization_samples
+        || (key.state.extended_dynamic_state_3_sample_mask != 0) != dynamic_features.has_extended_dynamic_state_3_sample_mask
+        || (key.state.extended_dynamic_state_3_alpha_to_coverage_enable != 0) != dynamic_features.has_extended_dynamic_state_3_alpha_to_coverage_enable
+        || (key.state.extended_dynamic_state_3_alpha_to_one_enable != 0) != dynamic_features.has_extended_dynamic_state_3_alpha_to_one_enable
+        || (key.state.extended_dynamic_state_3_depth_clip_enable != 0) != dynamic_features.has_extended_dynamic_state_3_depth_clip_enable
+        || (key.state.extended_dynamic_state_3_depth_clip_negative_one_to_one != 0) != dynamic_features.has_extended_dynamic_state_3_depth_clip_negative_one_to_one
+        || (key.state.extended_dynamic_state_3_line_rasterization_mode != 0) != dynamic_features.has_extended_dynamic_state_3_line_rasterization_mode
+        || (key.state.extended_dynamic_state_3_line_stipple_enable != 0) != dynamic_features.has_extended_dynamic_state_3_line_stipple_enable
+        || (key.state.extended_dynamic_state_3_provoking_vertex_mode != 0) != dynamic_features.has_extended_dynamic_state_3_provoking_vertex_mode
+        || (key.state.extended_dynamic_state_3_conservative_rasterization_mode != 0) != dynamic_features.has_extended_dynamic_state_3_conservative_rasterization_mode
+        || (key.state.extended_dynamic_state_3_sample_locations_enable != 0) != dynamic_features.has_extended_dynamic_state_3_sample_locations_enable
+        || (key.state.extended_dynamic_state_3_rasterization_stream != 0) != dynamic_features.has_extended_dynamic_state_3_rasterization_stream
+        || (key.state.dynamic_vertex_input != 0) != dynamic_features.has_dynamic_vertex_input) {
             return;
         }
         workers.QueueWork([this, key, envs_ = std::move(envs), &state, &callback]() mutable {
