@@ -518,19 +518,20 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
     // Driver-specific handling for VK_EXT_custom_border_color
     // On some Qualcomm/Turnip/ARM drivers the extension may be partially implemented.
-    // Enable it if ANY useful feature bit is reported; otherwise, let the removal pass drop it.
+    // Disable completely if no feature bits are reported to avoid crashes/undefined behavior.
     if (is_qualcomm || is_turnip || is_arm) {
         const bool has_any_custom_border_color =
             features.custom_border_color.customBorderColors ||
             features.custom_border_color.customBorderColorWithoutFormat;
         if (!has_any_custom_border_color) {
             LOG_WARNING(Render_Vulkan,
-                        "Disabling VK_EXT_custom_border_color on '{}' — no usable custom border color features reported",
+                        "Disabling VK_EXT_custom_border_color on '{}' — no usable features reported",
                         properties.driver.driverName);
-            // Do not clear here; final removal happens in RemoveUnsuitableExtensions based on bits.
+            RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
+                                   VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
         } else {
             LOG_INFO(Render_Vulkan,
-                     "Partial VK_EXT_custom_border_color support detected on '{}' — enabling available features",
+                     "VK_EXT_custom_border_color enabled on '{}' (partial support detected)",
                      properties.driver.driverName);
         }
     }
@@ -542,21 +543,31 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
         // Log Qualcomm-specific optimizations
         if (extensions.render_pass_store_ops) {
-            LOG_INFO(Render_Vulkan, "VK_QCOM_render_pass_store_ops: ENABLED");
+            LOG_INFO(Render_Vulkan, "VK_QCOM_render_pass_store_ops: Enabled");
         }
         if (extensions.tile_properties) {
-            LOG_INFO(Render_Vulkan, "VK_QCOM_tile_properties: ENABLED (tile size queries available)");
+            LOG_INFO(Render_Vulkan, "VK_QCOM_tile_properties: Enabled");
         }
         if (extensions.render_pass_shader_resolve) {
-            LOG_INFO(Render_Vulkan, "VK_QCOM_render_pass_shader_resolve: ENABLED");
+            LOG_INFO(Render_Vulkan, "VK_QCOM_render_pass_shader_resolve: Enabled");
+        }
+        if (extensions.render_pass_transform) {
+            LOG_INFO(Render_Vulkan, "VK_QCOM_render_pass_transform: Enabled");
+        }
+        if (extensions.rotated_copy_commands) {
+            LOG_INFO(Render_Vulkan, "VK_QCOM_rotated_copy_commands: Enabled");
+        }
+        if (extensions.image_processing) {
+            LOG_INFO(Render_Vulkan, "VK_QCOM_image_processing: Enabled");
         }
 
-        // Shader Float Controls: Keep extension ENABLED for FP32 precision control
-        // Stock Qualcomm: Disable FP16 support (broken hardware), force FP32 fallback
-        // Turnip Mesa: Full float controls support
+        // Shader Float Controls: Completely broken on Stock Qualcomm
+        // The extension causes rendering issues regardless of FP16/FP32 mode
+        // Turnip Mesa: Works correctly, keep enabled
         if (!is_turnip) {
-            LOG_WARNING(Render_Vulkan, "Disabling FP16 support for Stock Qualcomm (broken driver)");
-            features.shader_float16_int8.shaderFloat16 = false;
+            LOG_WARNING(Render_Vulkan, "Disabling Shader Float Controls for Stock Qualcomm (broken implementation)");
+            RemoveExtensionFeature(extensions.shader_float_controls, features.shader_float_controls,
+                                   VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
         }
         
         // Int64 atomics - genuinely broken, always disable
