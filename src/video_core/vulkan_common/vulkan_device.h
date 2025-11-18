@@ -64,6 +64,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
             pipeline_executable_properties)                                                        \
     FEATURE(KHR, WorkgroupMemoryExplicitLayout, WORKGROUP_MEMORY_EXPLICIT_LAYOUT,                  \
             workgroup_memory_explicit_layout)                                                      \
+    FEATURE(QCOM, ImageProcessing, IMAGE_PROCESSING, image_processing_qcom)                        \
     FEATURE(QCOM, TileProperties, TILE_PROPERTIES, tile_properties_qcom)
 
 // Define miscellaneous extensions which may be used by the implementation here.
@@ -98,6 +99,9 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)                                    \
     EXTENSION(QCOM, RENDER_PASS_SHADER_RESOLVE, render_pass_shader_resolve)                        \
     EXTENSION(QCOM, RENDER_PASS_STORE_OPS, render_pass_store_ops)                                  \
+    EXTENSION(QCOM, RENDER_PASS_TRANSFORM, render_pass_transform)                                  \
+    EXTENSION(QCOM, ROTATED_COPY_COMMANDS, rotated_copy_commands)                                  \
+    EXTENSION(QCOM, IMAGE_PROCESSING, image_processing)                                            \
     EXTENSION(QCOM, TILE_PROPERTIES, tile_properties)                                               \
     EXTENSION(KHR, MAINTENANCE_1, maintenance1)                                                    \
     EXTENSION(KHR, MAINTENANCE_2, maintenance2)                                                    \
@@ -712,6 +716,21 @@ public:
     /// Returns true if the device supports VK_QCOM_tile_properties
     bool IsQcomTilePropertiesSupported() const {
         return extensions.tile_properties;
+    }
+
+    /// Returns true if the device supports VK_QCOM_render_pass_transform
+    bool IsQcomRenderPassTransformSupported() const {
+        return extensions.render_pass_transform;
+    }
+
+    /// Returns true if the device supports VK_QCOM_rotated_copy_commands
+    bool IsQcomRotatedCopyCommandsSupported() const {
+        return extensions.rotated_copy_commands;
+    }
+
+    /// Returns true if the device supports VK_QCOM_image_processing
+    bool IsQcomImageProcessingSupported() const {
+        return extensions.image_processing;
     }
 
     /// Returns Qualcomm tile size (width, height, depth). Returns {0,0,0} if not queried or unsupported
