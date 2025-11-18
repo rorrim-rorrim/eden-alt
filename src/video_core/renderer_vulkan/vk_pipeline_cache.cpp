@@ -342,18 +342,14 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .support_fp64_signed_zero_nan_preserve =
             float_control.shaderSignedZeroInfNanPreserveFloat64 != VK_FALSE,
         
-#ifdef ANDROID
-        // User-forced float behavior overrides (Eden Veil/Extensions)
-        .force_fp32_denorm_flush = Settings::values.shader_float_ftz.GetValue(),
-        .force_fp32_denorm_preserve = Settings::values.shader_float_denorm_preserve.GetValue(),
-        .force_fp32_rte_rounding = Settings::values.shader_float_rte.GetValue(),
-        .force_fp32_signed_zero_inf_nan = Settings::values.shader_float_signed_zero_inf_nan.GetValue(),
-#else
-        .force_fp32_denorm_flush = false,
-        .force_fp32_denorm_preserve = false,
-        .force_fp32_rte_rounding = false,
-        .force_fp32_signed_zero_inf_nan = false,
-#endif
+        // Switch/Maxwell native float behavior (auto-configured on Qualcomm)
+        .force_fp32_denorm_flush = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY && 
+                                   device.IsKhrShaderFloatControlsSupported(),
+        .force_fp32_denorm_preserve = false,  // FTZ dominates
+        .force_fp32_rte_rounding = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY && 
+                                   device.IsKhrShaderFloatControlsSupported(),
+        .force_fp32_signed_zero_inf_nan = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY && 
+                                          device.IsKhrShaderFloatControlsSupported(),
         
         .support_explicit_workgroup_layout = device.IsKhrWorkgroupMemoryExplicitLayoutSupported(),
         .support_vote = device.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_VOTE_BIT),
