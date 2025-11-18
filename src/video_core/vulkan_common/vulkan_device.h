@@ -548,6 +548,21 @@ public:
         return extensions.custom_border_color;
     }
 
+    /// Base Vulkan Dynamic State support checks.
+    /// These provide granular control over each base dynamic state, allowing individual states
+    /// to be disabled if broken driver implementations are detected at device initialization.
+    /// By default all states are enabled. If a specific driver has issues with certain states,
+    /// they can be disabled in vulkan_device.cpp constructor (see has_broken_compute pattern).
+    bool SupportsDynamicViewport() const { return supports_dynamic_viewport; }
+    bool SupportsDynamicScissor() const { return supports_dynamic_scissor; }
+    bool SupportsDynamicLineWidth() const { return supports_dynamic_line_width; }
+    bool SupportsDynamicDepthBias() const { return supports_dynamic_depth_bias; }
+    bool SupportsDynamicBlendConstants() const { return supports_dynamic_blend_constants; }
+    bool SupportsDynamicDepthBounds() const { return supports_dynamic_depth_bounds; }
+    bool SupportsDynamicStencilCompareMask() const { return supports_dynamic_stencil_compare; }
+    bool SupportsDynamicStencilWriteMask() const { return supports_dynamic_stencil_write; }
+    bool SupportsDynamicStencilReference() const { return supports_dynamic_stencil_reference; }
+
     /// Returns true if the device supports VK_EXT_extended_dynamic_state.
     bool IsExtExtendedDynamicStateSupported() const {
         return extensions.extended_dynamic_state;
@@ -580,6 +595,98 @@ public:
     /// Returns true if the device supports VK_EXT_extended_dynamic_state3.
     bool IsExtExtendedDynamicState3EnablesSupported() const {
         return dynamic_state3_enables;
+    }
+
+    // EDS2 granular feature checks
+    bool IsExtExtendedDynamicState2LogicOpSupported() const {
+        return extensions.extended_dynamic_state2 && 
+               features.extended_dynamic_state2.extendedDynamicState2LogicOp;
+    }
+
+    bool IsExtExtendedDynamicState2PatchControlPointsSupported() const {
+        return extensions.extended_dynamic_state2 && 
+               features.extended_dynamic_state2.extendedDynamicState2PatchControlPoints;
+    }
+
+    // EDS3 granular feature checks
+    bool IsExtExtendedDynamicState3DepthClampEnableSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable;
+    }
+
+    bool IsExtExtendedDynamicState3LogicOpEnableSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable;
+    }
+
+    bool IsExtExtendedDynamicState3TessellationDomainOriginSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3TessellationDomainOrigin;
+    }
+
+    bool IsExtExtendedDynamicState3PolygonModeSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3PolygonMode;
+    }
+
+    bool IsExtExtendedDynamicState3RasterizationSamplesSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3RasterizationSamples;
+    }
+
+    bool IsExtExtendedDynamicState3SampleMaskSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3SampleMask;
+    }
+
+    bool IsExtExtendedDynamicState3AlphaToCoverageEnableSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3AlphaToCoverageEnable;
+    }
+
+    bool IsExtExtendedDynamicState3AlphaToOneEnableSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3AlphaToOneEnable;
+    }
+
+    bool IsExtExtendedDynamicState3DepthClipEnableSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3DepthClipEnable;
+    }
+
+    bool IsExtExtendedDynamicState3DepthClipNegativeOneToOneSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3DepthClipNegativeOneToOne;
+    }
+
+    bool IsExtExtendedDynamicState3LineRasterizationModeSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3LineRasterizationMode;
+    }
+
+    bool IsExtExtendedDynamicState3LineStippleEnableSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3LineStippleEnable;
+    }
+
+    bool IsExtExtendedDynamicState3ProvokingVertexModeSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3ProvokingVertexMode;
+    }
+
+    bool IsExtExtendedDynamicState3ConservativeRasterizationModeSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3ConservativeRasterizationMode;
+    }
+
+    bool IsExtExtendedDynamicState3SampleLocationsEnableSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3SampleLocationsEnable;
+    }
+
+    bool IsExtExtendedDynamicState3RasterizationStreamSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3RasterizationStream;
     }
 
     /// Returns true if the device supports VK_EXT_filter_cubic
@@ -918,6 +1025,22 @@ private:
     bool dynamic_state3_blending{};            ///< Has all blending features of dynamic_state3.
     bool dynamic_state3_enables{};             ///< Has all enables features of dynamic_state3.
     bool supports_conditional_barriers{};      ///< Allows barriers in conditional control flow.
+
+    /// Base Vulkan Dynamic State support flags (granular fallback for broken drivers).
+    /// All default to true. These can be individually disabled in vulkan_device.cpp
+    /// if specific broken driver implementations are detected during initialization.
+    /// This provides emergency protection against drivers that report support but crash/misbehave.
+    /// Pattern: Check driver/device and set to false in vulkan_device.cpp constructor.
+    bool supports_dynamic_viewport{true};         ///< VK_DYNAMIC_STATE_VIEWPORT
+    bool supports_dynamic_scissor{true};          ///< VK_DYNAMIC_STATE_SCISSOR
+    bool supports_dynamic_line_width{true};       ///< VK_DYNAMIC_STATE_LINE_WIDTH
+    bool supports_dynamic_depth_bias{true};       ///< VK_DYNAMIC_STATE_DEPTH_BIAS
+    bool supports_dynamic_blend_constants{true};  ///< VK_DYNAMIC_STATE_BLEND_CONSTANTS
+    bool supports_dynamic_depth_bounds{true};     ///< VK_DYNAMIC_STATE_DEPTH_BOUNDS
+    bool supports_dynamic_stencil_compare{true};  ///< VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK
+    bool supports_dynamic_stencil_write{true};    ///< VK_DYNAMIC_STATE_STENCIL_WRITE_MASK
+    bool supports_dynamic_stencil_reference{true};///< VK_DYNAMIC_STATE_STENCIL_REFERENCE
+
     u64 device_access_memory{};                ///< Total size of device local memory in bytes.
     u32 sets_per_pool{};                       ///< Sets per Description Pool
     NvidiaArchitecture nvidia_arch{NvidiaArchitecture::Arch_AmpereOrNewer};

@@ -954,9 +954,10 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
 
-    const u8 dynamic_state = Settings::values.dyna_state.GetValue();
+    const auto& dynamic_features = pipeline_cache.GetDynamicFeatures();
 
-    if (device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0) {
+    // EDS1 - Extended Dynamic State 1
+    if (dynamic_features.has_extended_dynamic_state) {
         UpdateCullMode(regs);
         UpdateDepthCompareOp(regs);
         UpdateFrontFace(regs);
@@ -966,40 +967,78 @@ void RasterizerVulkan::UpdateDynamicStates() {
             UpdateDepthTestEnable(regs);
             UpdateDepthWriteEnable(regs);
             UpdateStencilTestEnable(regs);
-            if (device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1) {
-                UpdatePrimitiveRestartEnable(regs);
-                UpdateRasterizerDiscardEnable(regs);
-                UpdateDepthBiasEnable(regs);
-            }
-            if (device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2) {
-                using namespace Tegra::Engines;
-                if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE || device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
-                    struct In {
-                        const Maxwell3D::Regs::VertexAttribute::Type d;
-                        In(Maxwell3D::Regs::VertexAttribute::Type n) : d(n) {}
-                        bool operator()(Maxwell3D::Regs::VertexAttribute n) const {
-                            return n.type == d;
-                        }
-                    };
-                    auto has_float = std::any_of(regs.vertex_attrib_format.begin(), regs.vertex_attrib_format.end(), In(Maxwell3D::Regs::VertexAttribute::Type::Float));
-                    if (regs.logic_op.enable) {
-                        regs.logic_op.enable = static_cast<u32>(!has_float);
-                    }
-                }
-                UpdateLogicOpEnable(regs);
-                UpdateDepthClampEnable(regs);
-                UpdateLineStippleEnable(regs);
-                UpdateConservativeRasterizationMode(regs);
-            }
-        }
-        if (device.IsExtExtendedDynamicState2ExtrasSupported() && dynamic_state > 1) {
-            UpdateLogicOp(regs);
-        }
-        if (device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2) {
-            UpdateBlending(regs);
         }
     }
-    if (device.IsExtVertexInputDynamicStateSupported() && dynamic_state > 2) {
+
+    // EDS2 - Extended Dynamic State 2 Core
+    if (dynamic_features.has_extended_dynamic_state_2) {
+        if (state_tracker.TouchStateEnable()) {
+            UpdatePrimitiveRestartEnable(regs);
+            UpdateRasterizerDiscardEnable(regs);
+            UpdateDepthBiasEnable(regs);
+        }
+    }
+
+    // EDS2 - LogicOp (granular feature)
+    if (dynamic_features.has_extended_dynamic_state_2_logic_op) {
+        UpdateLogicOp(regs);
+    }
+
+    // EDS3 - Depth Clamp Enable (granular)
+    if (dynamic_features.has_extended_dynamic_state_3_depth_clamp || 
+        dynamic_features.has_extended_dynamic_state_3_enables) {
+        if (state_tracker.TouchStateEnable()) {
+            UpdateDepthClampEnable(regs);
+        }
+    }
+
+    // EDS3 - Logic Op Enable (granular)
+    if (dynamic_features.has_extended_dynamic_state_3_logic_op_enable || 
+        dynamic_features.has_extended_dynamic_state_3_enables) {
+        if (state_tracker.TouchStateEnable()) {
+            using namespace Tegra::Engines;
+            // AMD workaround for logic op with float vertex attributes
+            if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE || 
+                device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
+                struct In {
+                    const Maxwell3D::Regs::VertexAttribute::Type d;
+                    In(Maxwell3D::Regs::VertexAttribute::Type n) : d(n) {}
+                    bool operator()(Maxwell3D::Regs::VertexAttribute n) const {
+                        return n.type == d;
+                    }
+                };
+                auto has_float = std::any_of(regs.vertex_attrib_format.begin(), 
+                                            regs.vertex_attrib_format.end(), 
+                                            In(Maxwell3D::Regs::VertexAttribute::Type::Float));
+                if (regs.logic_op.enable) {
+                    regs.logic_op.enable = static_cast<u32>(!has_float);
+                }
+            }
+            UpdateLogicOpEnable(regs);
+        }
+    }
+
+    // EDS3 - Line Stipple Enable (granular)
+    if (dynamic_features.has_extended_dynamic_state_3_line_stipple_enable) {
+        if (state_tracker.TouchStateEnable()) {
+            UpdateLineStippleEnable(regs);
+        }
+    }
+
+    // EDS3 - Conservative Rasterization Mode (granular)
+    if (dynamic_features.has_extended_dynamic_state_3_conservative_rasterization_mode) {
+        if (state_tracker.TouchStateEnable()) {
+            UpdateConservativeRasterizationMode(regs);
+        }
+    }
+
+    // EDS3 - Blending (composite feature: ColorBlendEnable + ColorBlendEquation + ColorWriteMask)
+    if (dynamic_features.has_extended_dynamic_state_3_blend) {
+        UpdateBlending(regs);
+    }
+
+    // Vertex Input Dynamic State
+    if (dynamic_features.has_dynamic_vertex_input) {
         if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput()) {
             UpdateVertexInput(regs);
         }

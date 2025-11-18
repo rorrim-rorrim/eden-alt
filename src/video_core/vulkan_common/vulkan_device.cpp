@@ -843,11 +843,11 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2, VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3, VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
         dynamic_state3_blending = false;
         dynamic_state3_enables = false;
 
         LOG_INFO(Render_Vulkan, "Extended dynamic state is fully disabled");
+        // Note: vertex_input_dynamic_state has its own independent toggle and is NOT affected by dyna_state = 0
     }
 
 #ifdef ANDROID
@@ -1481,11 +1481,18 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionIfUnsuitable(extensions.swapchain_maintenance1, VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
 
     // VK_EXT_vertex_input_dynamic_state
-    extensions.vertex_input_dynamic_state =
-        features.vertex_input_dynamic_state.vertexInputDynamicState;
-    RemoveExtensionFeatureIfUnsuitable(extensions.vertex_input_dynamic_state,
-                                       features.vertex_input_dynamic_state,
-                                       VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+    if (Settings::values.vertex_input_dynamic_state.GetValue()) {
+        extensions.vertex_input_dynamic_state =
+            features.vertex_input_dynamic_state.vertexInputDynamicState;
+        RemoveExtensionFeatureIfUnsuitable(extensions.vertex_input_dynamic_state,
+                                           features.vertex_input_dynamic_state,
+                                           VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+    } else {
+        RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
+                               features.vertex_input_dynamic_state,
+                               VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+        LOG_INFO(Render_Vulkan, "Vertex Input Dynamic State disabled by user setting");
+    }
 
     // VK_KHR_pipeline_executable_properties
     if (Settings::values.renderer_shader_feedback.GetValue()) {
