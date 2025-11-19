@@ -825,6 +825,12 @@ public:
         return has_broken_parallel_compiling;
     }
 
+    /// Returns true when VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE is broken.
+    /// Qualcomm Adreno drivers < 762.24 have broken BindVertexBuffers2EXT validation.
+    bool HasBrokenVertexInputStride() const {
+        return has_broken_vertex_input_stride;
+    }
+
     /// Returns the vendor name reported from Vulkan.
     std::string_view GetVendorName() const {
         return properties.driver.driverName;
@@ -1031,6 +1037,7 @@ private:
     bool has_broken_compute{};                 ///< Compute shaders can cause crashes
     bool has_broken_cube_compatibility{};      ///< Has broken cube compatibility bit
     bool has_broken_parallel_compiling{};      ///< Has broken parallel shader compiling.
+    bool has_broken_vertex_input_stride{};     ///< VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE broken
     bool has_renderdoc{};                      ///< Has RenderDoc attached
     bool has_nsight_graphics{};                ///< Has Nsight Graphics attached
     bool has_radeon_gpu_profiler{};            ///< Has Radeon GPU Profiler attached.
