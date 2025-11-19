@@ -2122,11 +2122,34 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     const auto format_info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
     VkFormat view_format = format_info.format;
     
-    // TODO: Format reinterpretation toggles (per-game settings)
-    // Some games incorrectly use integer formats with float samplers:
-    // - R32_UINT with texture() instead of texelFetch() causes flickering
-    // - R8_UINT with LINEAR filter causes validation errors
-    // Cannot auto-detect: need user toggles to force format reinterpretation
+    // Format reinterpretation for games with incorrect format usage
+    // Some games declare render targets as R32_UINT but sample them
+    // as float textures.
+    const auto reinterpretation_mode = Settings::values.format_reinterpretation.GetValue();
+    if (reinterpretation_mode != Settings::FormatReinterpretation::Disabled) {
+        switch (reinterpretation_mode) {
+        case Settings::FormatReinterpretation::R32UintToR32Sfloat:
+            if (view_format == VK_FORMAT_R32_UINT) {
+                view_format = VK_FORMAT_R32_SFLOAT;
+                LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_UINT -> R32_SFLOAT for texture view");
+            }
+            break;
+        case Settings::FormatReinterpretation::R32SintToR32Uint:
+            if (view_format == VK_FORMAT_R32_SINT) {
+                view_format = VK_FORMAT_R32_UINT;
+                LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_SINT -> R32_UINT for texture view");
+            }
+            break;
+        case Settings::FormatReinterpretation::R32SfloatToR32Sint:
+            if (view_format == VK_FORMAT_R32_SFLOAT) {
+                view_format = VK_FORMAT_R32_SINT;
+                LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_SFLOAT -> R32_SINT for texture view");
+            }
+            break;
+        default:
+            break;
+        }
+    }
     
     if (ImageUsageFlags(format_info, format) != image.UsageFlags()) {
         LOG_WARNING(Render_Vulkan,
