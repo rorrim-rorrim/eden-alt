@@ -884,7 +884,8 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         
         // Note: VERTEX_INPUT_BINDING_STRIDE is part of EDS1, not VIDS
         // When VIDS is disabled, we still need dynamic stride with BindVertexBuffers2EXT
-        if (!key.state.dynamic_vertex_input) {
+        // Skip on Qualcomm Adreno < 762.24 (broken implementation)
+        if (!key.state.dynamic_vertex_input && !device.HasBrokenVertexInputStride()) {
             dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT);
         }
     }
