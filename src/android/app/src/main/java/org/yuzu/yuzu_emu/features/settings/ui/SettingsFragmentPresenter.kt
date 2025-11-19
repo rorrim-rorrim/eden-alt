@@ -470,6 +470,7 @@ class SettingsFragmentPresenter(
             add(IntSetting.RENDERER_ASTC_DECODE_METHOD.key)
             add(IntSetting.RENDERER_ASTC_RECOMPRESSION.key)
             add(IntSetting.RENDERER_FORMAT_REINTERPRETATION.key)
+            add(BooleanSetting.RENDERER_VERTEX_INPUT_DYNAMIC_STATE.key)
             add(IntSetting.RENDERER_VRAM_USAGE_MODE.key)
             add(IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT.key)
 
