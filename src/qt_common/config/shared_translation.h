@@ -55,6 +55,17 @@ static const std::map<Settings::ScalingFilter, QString> scaling_filter_texts_map
     {Settings::ScalingFilter::Mmpx, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "MMPX"))},
 };
 
+static const std::map<Settings::FormatReinterpretation, QString> format_reinterpretation_texts_map = {
+    {Settings::FormatReinterpretation::Disabled,
+     QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Disabled"))},
+    {Settings::FormatReinterpretation::R32UintToR32Sfloat,
+     QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "R32 Uint to R32 Float"))},
+    {Settings::FormatReinterpretation::R32SintToR32Uint,
+     QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "R32 Sint to R32 Uint"))},
+    {Settings::FormatReinterpretation::R32SfloatToR32Sint,
+     QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "R32 Float to R32 Sint"))},
+};
+
 static const std::map<Settings::ConsoleMode, QString> use_docked_mode_texts_map = {
     {Settings::ConsoleMode::Docked, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Docked"))},
     {Settings::ConsoleMode::Handheld, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Handheld"))},

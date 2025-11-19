@@ -197,6 +197,11 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
               "16:9, so modifications are required to get other ratios.\nAlso controls the "
               "aspect ratio of captured screenshots."));
     INSERT(Settings,
+            format_reinterpretation,
+            tr("Format Reinterpretation:"),
+            tr("Reinterprets certain texture formats to improve performance.\nMay cause "
+               "graphical issues in some games."));
+    INSERT(Settings,
            use_disk_shader_cache,
            tr("Use persistent pipeline cache"),
            tr("Allows saving shaders to storage for faster loading on following game "
@@ -716,6 +721,13 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
                               PAIR(GpuOverclock, Low, tr("Low (128)")),
                               PAIR(GpuOverclock, Medium, tr("Medium (256)")),
                               PAIR(GpuOverclock, High, tr("High (512)")),
+                          }});
+    translations->insert({Settings::EnumMetadata<Settings::FormatReinterpretation>::Index(),
+                          {
+                              PAIR(FormatReinterpretation, Disabled, tr("Disabled")),
+                              PAIR(FormatReinterpretation, R32UintToR32Sfloat, tr("R32 Uint to R32 Float")),
+                              PAIR(FormatReinterpretation, R32SintToR32Uint, tr("R32 Sint to R32 Uint")),
+                              PAIR(FormatReinterpretation, R32SfloatToR32Sint, tr("R32 Float to R32 Sint")),
                           }});
 
 #undef PAIR
