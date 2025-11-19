@@ -361,6 +361,14 @@ abstract class SettingsItem(
             )
             put(
                 SingleChoiceSetting(
+                    IntSetting.RENDERER_FORMAT_REINTERPRETATION,
+                    titleId = R.string.format_reinterpretation,
+                    choicesId = R.array.formatReinterpretationNames,
+                    valuesId = R.array.formatReinterpretationValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
                     IntSetting.RENDERER_VRAM_USAGE_MODE,
                     titleId = R.string.vram_usage_mode,
                     descriptionId = R.string.vram_usage_mode_description,

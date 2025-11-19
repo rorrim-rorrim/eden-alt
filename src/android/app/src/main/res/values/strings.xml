@@ -943,7 +943,14 @@
     <string name="astc_recompression_bc1">BC1 (Low Quality)</string>
     <string name="astc_recompression_bc3">BC3 (Medium Quality)</string>
 
-    <!-- ASTC Recompression Method Choices -->
+    <!-- Format Reinterpretation -->
+    <string name="format_reinterpretation">Format Reinterpretation</string>
+    <string name="format_reinterpretation_disabled">Disabled</string>
+    <string name="format_reinterpretation_r32uint_to_r32sfloat">R32 UInt to R32 SFloat</string>
+    <string name="format_reinterpretation_r32sint_to_r32uint">R32 SInt to R32 UInt</string>
+    <string name="format_reinterpretation_r32sfloat_to_r32sint">R32 SFloat to R32 SInt</string>
+
+    <!-- VRAM Usage Mode -->
     <string name="vram_usage_mode">VRAM Usage Mode</string>
     <string name="vram_usage_mode_description">Control how aggressively the emulator allocates and frees GPU memory.</string>
     <string name="vram_usage_conservative">Conservative</string>

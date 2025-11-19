@@ -161,6 +161,22 @@
         <item>2</item> <!-- BC3 -->
     </integer-array>
 
+    <!-- Format Reinterpretation Choices -->
+    <string-array name="formatReinterpretationNames">
+        <item>@string/format_reinterpretation_disabled</item>
+        <item>@string/format_reinterpretation_r32uint_to_r32sfloat</item>
+        <item>@string/format_reinterpretation_r32sint_to_r32uint</item>
+        <item>@string/format_reinterpretation_r32sfloat_to_r32sint</item>
+    </string-array>
+
+    <!-- Format Reinterpretation Values -->
+    <integer-array name="formatReinterpretationValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </integer-array>
+
     <!-- NVDEC Emulation Choices -->
     <string-array name="rendererNvdecNames">
         <item>@string/nvdec_emulation_none</item> <!-- Off -->
