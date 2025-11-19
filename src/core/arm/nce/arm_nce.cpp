@@ -398,7 +398,7 @@ void ArmNce::ClearInstructionCache() {
 }
 
 void ArmNce::InvalidateCacheRange(u64 addr, std::size_t size) {
-    std::atomic_thread_fence(std::memory_order_acquire);
+    ClearInstructionCache();
 }
 
 } // namespace Core
