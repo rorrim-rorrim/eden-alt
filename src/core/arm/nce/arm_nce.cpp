@@ -388,16 +388,11 @@ void ArmNce::SignalInterrupt(Kernel::KThread* thread) {
 const std::size_t CACHE_PAGE_SIZE = 4096;
 
 void ArmNce::ClearInstructionCache() {
-#ifdef __aarch64__
-    // Ensure all previous memory operations complete
-    asm volatile("dmb ish" ::: "memory");
-    asm volatile("dsb ish" ::: "memory");
-    asm volatile("isb" ::: "memory");
-#endif
+    std::atomic_thread_fence(std::memory_order_acquire);
 }
 
 void ArmNce::InvalidateCacheRange(u64 addr, std::size_t size) {
-    this->ClearInstructionCache();
+    std::atomic_thread_fence(std::memory_order_acquire);
 }
 
 } // namespace Core

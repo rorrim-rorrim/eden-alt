@@ -183,17 +183,16 @@ bool InterpreterVisitor::Ordered(size_t size, bool L, bool o0, Reg Rn, Reg Rt) {
     u64 address = (Rn == Reg::SP) ? this->GetSp() : this->GetReg(Rn);
     switch (memop) {
     case MemOp::Store: {
-        std::atomic_thread_fence(std::memory_order_seq_cst);
+        std::atomic_thread_fence(std::memory_order_release);
         u64 value = this->GetReg(Rt);
         m_memory.WriteBlock(address, &value, dbytes);
-        std::atomic_thread_fence(std::memory_order_seq_cst);
         break;
     }
     case MemOp::Load: {
         u64 value = 0;
         m_memory.ReadBlock(address, &value, dbytes);
+        std::atomic_thread_fence(std::memory_order_acquire);
         this->SetReg(Rt, value);
-        std::atomic_thread_fence(std::memory_order_seq_cst);
         break;
     }
     default:
