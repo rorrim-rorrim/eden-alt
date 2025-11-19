@@ -69,6 +69,7 @@ SWITCHABLE(AstcRecompression, true);
 SWITCHABLE(AudioMode, true);
 SWITCHABLE(CpuBackend, true);
 SWITCHABLE(CpuAccuracy, true);
+SWITCHABLE(FormatReinterpretation, true);
 SWITCHABLE(FullscreenMode, true);
 SWITCHABLE(GpuAccuracy, true);
 SWITCHABLE(Language, true);
@@ -451,6 +452,11 @@ struct Values {
                                                                   AstcRecompression::Uncompressed,
                                                                   "astc_recompression",
                                                                   Category::RendererAdvanced};
+    SwitchableSetting<FormatReinterpretation, true> format_reinterpretation{
+        linkage,
+        FormatReinterpretation::Disabled,
+        "format_reinterpretation",
+        Category::RendererAdvanced};
     SwitchableSetting<VramUsageMode, true> vram_usage_mode{linkage,
                                                            VramUsageMode::Conservative,
                                                            "vram_usage_mode",

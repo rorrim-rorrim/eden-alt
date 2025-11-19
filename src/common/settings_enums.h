@@ -151,6 +151,7 @@ ENUM(AppletMode, HLE, LLE);
 ENUM(SpirvOptimizeMode, Never, OnLoad, Always);
 ENUM(GpuOverclock, Low, Medium, High)
 ENUM(TemperatureUnits, Celsius, Fahrenheit)
+ENUM(FormatReinterpretation, Disabled, R32UintToR32Sfloat, R32SintToR32Uint, R32SfloatToR32Sint)
 
 // Shader Float Controls behavior modes
 // These control how floating-point denormals and special values are handled in shaders
