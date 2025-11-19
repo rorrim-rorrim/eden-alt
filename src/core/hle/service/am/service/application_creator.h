@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,20 +10,21 @@
 #include "core/hle/service/service.h"
 
 namespace Service::AM {
+    class IApplicationAccessor;
+    struct Applet;
+    class WindowSystem;
 
-class IApplicationAccessor;
-struct Applet;
-class WindowSystem;
+    class IApplicationCreator final : public ServiceFramework<IApplicationCreator> {
+    public:
+        explicit IApplicationCreator(Core::System &system_, WindowSystem &window_system);
 
-class IApplicationCreator final : public ServiceFramework<IApplicationCreator> {
-public:
-    explicit IApplicationCreator(Core::System& system_, WindowSystem& window_system);
-    ~IApplicationCreator() override;
+        ~IApplicationCreator() override;
 
-private:
-    Result CreateApplication(Out<SharedPointer<IApplicationAccessor>>, u64 application_id);
+    private:
+        Result CreateApplication(Out<SharedPointer<IApplicationAccessor> >, u64 application_id);
 
-    WindowSystem& m_window_system;
-};
+        Result CreateSystemApplication(Out<SharedPointer<IApplicationAccessor> >, u64 application_id);
 
+        WindowSystem &m_window_system;
+    };
 } // namespace Service::AM

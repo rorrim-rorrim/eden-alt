@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,21 +10,21 @@
 #include "core/hle/service/am/service/application_proxy.h"
 #include "core/hle/service/am/service/library_applet_proxy.h"
 #include "core/hle/service/am/service/system_applet_proxy.h"
+#include "core/hle/service/am/service/overlay_applet_proxy.h"
 #include "core/hle/service/am/window_system.h"
 #include "core/hle/service/cmif_serialization.h"
 
 namespace Service::AM {
-
-IAllSystemAppletProxiesService::IAllSystemAppletProxiesService(Core::System& system_,
-                                                               WindowSystem& window_system)
-    : ServiceFramework{system_, "appletAE"}, m_window_system{window_system} {
+    IAllSystemAppletProxiesService::IAllSystemAppletProxiesService(Core::System &system_,
+                                                                   WindowSystem &window_system)
+        : ServiceFramework{system_, "appletAE"}, m_window_system{window_system} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {100, D<&IAllSystemAppletProxiesService::OpenSystemAppletProxy>, "OpenSystemAppletProxy"},
         {110, D<&IAllSystemAppletProxiesService::OpenSystemAppletProxy>, "OpenSystemAppletProxyEx"},
         {200, D<&IAllSystemAppletProxiesService::OpenLibraryAppletProxyOld>, "OpenLibraryAppletProxyOld"},
         {201, D<&IAllSystemAppletProxiesService::OpenLibraryAppletProxy>, "OpenLibraryAppletProxy"},
-        {300, nullptr, "OpenOverlayAppletProxy"},
+        {300, D<&IAllSystemAppletProxiesService::OpenOverlayAppletProxy>, "OpenOverlayAppletProxy"},
         {350, D<&IAllSystemAppletProxiesService::OpenSystemApplicationProxy>, "OpenSystemApplicationProxy"},
         {400, nullptr, "CreateSelfLibraryAppletCreatorForDevelop"},
         {410, nullptr, "GetSystemAppletControllerForDebug"},
@@ -29,89 +32,104 @@ IAllSystemAppletProxiesService::IAllSystemAppletProxiesService(Core::System& sys
         {460, D<&IAllSystemAppletProxiesService::GetAppletAlternativeFunctions>, "GetAppletAlternativeFunctions"}, // 20.0.0+
         {1000, nullptr, "GetDebugFunctions"},
     };
-    // clang-format on
+        // clang-format on
 
-    RegisterHandlers(functions);
-}
-
-IAllSystemAppletProxiesService::~IAllSystemAppletProxiesService() = default;
-
-Result IAllSystemAppletProxiesService::OpenSystemAppletProxy(
-    Out<SharedPointer<ISystemAppletProxy>> out_system_applet_proxy, ClientProcessId pid,
-    InCopyHandle<Kernel::KProcess> process_handle) {
-    LOG_DEBUG(Service_AM, "called");
-
-    if (const auto applet = this->GetAppletFromProcessId(pid); applet) {
-        *out_system_applet_proxy = std::make_shared<ISystemAppletProxy>(
-            system, applet, process_handle.Get(), m_window_system);
-        R_SUCCEED();
-    } else {
-        UNIMPLEMENTED();
-        R_THROW(ResultUnknown);
+        RegisterHandlers(functions);
     }
-}
 
-Result IAllSystemAppletProxiesService::OpenLibraryAppletProxy(
-    Out<SharedPointer<ILibraryAppletProxy>> out_library_applet_proxy, ClientProcessId pid,
-    InCopyHandle<Kernel::KProcess> process_handle,
-    InLargeData<AppletAttribute, BufferAttr_HipcMapAlias> attribute) {
-    LOG_DEBUG(Service_AM, "called");
+    IAllSystemAppletProxiesService::~IAllSystemAppletProxiesService() = default;
 
-    if (const auto applet = this->GetAppletFromProcessId(pid); applet) {
-        *out_library_applet_proxy = std::make_shared<ILibraryAppletProxy>(
-            system, applet, process_handle.Get(), m_window_system);
-        R_SUCCEED();
-    } else {
-        UNIMPLEMENTED();
-        R_THROW(ResultUnknown);
+    Result IAllSystemAppletProxiesService::OpenSystemAppletProxy(
+        Out<SharedPointer<ISystemAppletProxy> > out_system_applet_proxy, ClientProcessId pid,
+        InCopyHandle<Kernel::KProcess> process_handle) {
+        LOG_DEBUG(Service_AM, "called");
+
+        if (const auto applet = this->GetAppletFromProcessId(pid); applet) {
+            *out_system_applet_proxy = std::make_shared<ISystemAppletProxy>(
+                system, applet, process_handle.Get(), m_window_system);
+            R_SUCCEED();
+        } else {
+            UNIMPLEMENTED();
+            R_THROW(ResultUnknown);
+        }
     }
-}
 
-Result IAllSystemAppletProxiesService::OpenSystemApplicationProxy(
-    Out<SharedPointer<IApplicationProxy>> out_system_application_proxy, ClientProcessId pid,
-    InCopyHandle<Kernel::KProcess> process_handle,
-    InLargeData<AppletAttribute, BufferAttr_HipcMapAlias> attribute) {
-    LOG_DEBUG(Service_AM, "called");
+    Result IAllSystemAppletProxiesService::OpenLibraryAppletProxy(
+        Out<SharedPointer<ILibraryAppletProxy> > out_library_applet_proxy, ClientProcessId pid,
+        InCopyHandle<Kernel::KProcess> process_handle,
+        InLargeData<AppletAttribute, BufferAttr_HipcMapAlias> attribute) {
+        LOG_DEBUG(Service_AM, "called");
 
-    if (const auto applet = this->GetAppletFromProcessId(pid); applet) {
-        *out_system_application_proxy = std::make_shared<IApplicationProxy>(
-            system, applet, process_handle.Get(), m_window_system);
-        R_SUCCEED();
-    } else {
-        UNIMPLEMENTED();
-        R_THROW(ResultUnknown);
+        if (const auto applet = this->GetAppletFromProcessId(pid); applet) {
+            *out_library_applet_proxy = std::make_shared<ILibraryAppletProxy>(
+                system, applet, process_handle.Get(), m_window_system);
+            R_SUCCEED();
+        } else {
+            UNIMPLEMENTED();
+            R_THROW(ResultUnknown);
+        }
     }
-}
 
-Result IAllSystemAppletProxiesService::OpenLibraryAppletProxyOld(
-    Out<SharedPointer<ILibraryAppletProxy>> out_library_applet_proxy, ClientProcessId pid,
-    InCopyHandle<Kernel::KProcess> process_handle) {
-    LOG_DEBUG(Service_AM, "called");
+    Result IAllSystemAppletProxiesService::OpenOverlayAppletProxy(
+        Out<SharedPointer<IOverlayAppletProxy> > out_overlay_applet_proxy, ClientProcessId pid,
+        InCopyHandle<Kernel::KProcess> process_handle,
+        InLargeData<AppletAttribute, BufferAttr_HipcMapAlias> attribute) {
+        LOG_WARNING(Service_AM, "called");
 
-    AppletAttribute attribute{};
-    R_RETURN(
-        this->OpenLibraryAppletProxy(out_library_applet_proxy, pid, process_handle, attribute));
-}
+        if (const auto applet = this->GetAppletFromProcessId(pid); applet) {
+            *out_overlay_applet_proxy = std::make_shared<IOverlayAppletProxy>(
+                system, applet, process_handle.Get(), m_window_system);
+            R_SUCCEED();
+        } else {
+            UNIMPLEMENTED();
+            R_THROW(ResultUnknown);
+        }
+    }
 
-Result IAllSystemAppletProxiesService::GetSystemProcessCommonFunctions() {
-    LOG_DEBUG(Service_AM, "(STUBBED) called.");
+    Result IAllSystemAppletProxiesService::OpenSystemApplicationProxy(
+        Out<SharedPointer<IApplicationProxy> > out_system_application_proxy, ClientProcessId pid,
+        InCopyHandle<Kernel::KProcess> process_handle,
+        InLargeData<AppletAttribute, BufferAttr_HipcMapAlias> attribute) {
+        LOG_DEBUG(Service_AM, "called");
 
-    // TODO (jarrodnorwell)
+        if (const auto applet = this->GetAppletFromProcessId(pid); applet) {
+            *out_system_application_proxy = std::make_shared<IApplicationProxy>(
+                system, applet, process_handle.Get(), m_window_system);
+            R_SUCCEED();
+        } else {
+            UNIMPLEMENTED();
+            R_THROW(ResultUnknown);
+        }
+    }
 
-    R_SUCCEED();
-}
+    Result IAllSystemAppletProxiesService::OpenLibraryAppletProxyOld(
+        Out<SharedPointer<ILibraryAppletProxy> > out_library_applet_proxy, ClientProcessId pid,
+        InCopyHandle<Kernel::KProcess> process_handle) {
+        LOG_DEBUG(Service_AM, "called");
 
-Result IAllSystemAppletProxiesService::GetAppletAlternativeFunctions() {
-    LOG_DEBUG(Service_AM, "(STUBBED) called.");
+        AppletAttribute attribute{};
+        R_RETURN(
+            this->OpenLibraryAppletProxy(out_library_applet_proxy, pid, process_handle, attribute));
+    }
 
-    // TODO (maufeat)
+    Result IAllSystemAppletProxiesService::GetSystemProcessCommonFunctions() {
+        LOG_DEBUG(Service_AM, "(STUBBED) called.");
 
-    R_SUCCEED();
-}
+        // TODO (jarrodnorwell)
 
-std::shared_ptr<Applet> IAllSystemAppletProxiesService::GetAppletFromProcessId(
-    ProcessId process_id) {
-    return m_window_system.GetByAppletResourceUserId(process_id.pid);
-}
+        R_SUCCEED();
+    }
 
+    Result IAllSystemAppletProxiesService::GetAppletAlternativeFunctions() {
+        LOG_DEBUG(Service_AM, "(STUBBED) called.");
+
+        // TODO (maufeat)
+
+        R_SUCCEED();
+    }
+
+    std::shared_ptr<Applet> IAllSystemAppletProxiesService::GetAppletFromProcessId(
+        ProcessId process_id) {
+        return m_window_system.GetByAppletResourceUserId(process_id.pid);
+    }
 } // namespace Service::AM

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,22 +10,27 @@
 #include "core/hle/service/service.h"
 
 namespace Service::AM {
+    struct Applet;
 
-struct Applet;
+    class IAppletCommonFunctions final : public ServiceFramework<IAppletCommonFunctions> {
+    public:
+        explicit IAppletCommonFunctions(Core::System &system_, std::shared_ptr<Applet> applet_);
 
-class IAppletCommonFunctions final : public ServiceFramework<IAppletCommonFunctions> {
-public:
-    explicit IAppletCommonFunctions(Core::System& system_, std::shared_ptr<Applet> applet_);
-    ~IAppletCommonFunctions() override;
+        ~IAppletCommonFunctions() override;
 
-private:
-    Result SetHomeButtonDoubleClickEnabled(bool home_button_double_click_enabled);
-    Result GetHomeButtonDoubleClickEnabled(Out<bool> out_home_button_double_click_enabled);
-    Result SetCpuBoostRequestPriority(s32 priority);
-    Result GetCurrentApplicationId(Out<u64> out_application_id);
-    Result Unknown350(Out<u16> out_unknown);
+    private:
+        Result SetHomeButtonDoubleClickEnabled(bool home_button_double_click_enabled);
 
-    const std::shared_ptr<Applet> applet;
-};
+        Result GetHomeButtonDoubleClickEnabled(Out<bool> out_home_button_double_click_enabled);
 
+        Result SetDisplayMagnification(f32 x, f32 y, f32 width, f32 height);
+
+        Result SetCpuBoostRequestPriority(s32 priority);
+
+        Result GetCurrentApplicationId(Out<u64> out_application_id);
+
+        Result Unknown350(Out<u16> out_unknown);
+
+        const std::shared_ptr<Applet> applet;
+    };
 } // namespace Service::AM

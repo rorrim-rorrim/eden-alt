@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,11 +14,10 @@
 #include "core/hle/service/service.h"
 
 namespace Service::NPNS {
-
-class INpnsSystem final : public ServiceFramework<INpnsSystem> {
-public:
-    explicit INpnsSystem(Core::System& system_)
-        : ServiceFramework{system_, "npns:s"}, service_context{system, "npns:s"} {
+    class INpnsSystem final : public ServiceFramework<INpnsSystem> {
+    public:
+        explicit INpnsSystem(Core::System &system_)
+            : ServiceFramework{system_, "npns:s"}, service_context{system, "npns:s"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {1, nullptr, "ListenAll"},
@@ -85,81 +87,82 @@ public:
             {305, nullptr, "GetDigitalTwinSummary"}, // 18.0.0+
             {306, nullptr, "GetDigitalTwinValue"}, // 18.0.0+
         };
-        // clang-format on
+            // clang-format on
 
-        RegisterHandlers(functions);
+            RegisterHandlers(functions);
 
-        get_receive_event = service_context.CreateEvent("npns:s:GetReceiveEvent");
-        get_request_change_state_cancel_event =
-            service_context.CreateEvent("npns:s:GetRequestChangeStateCancelEvent");
-    }
+            get_receive_event = service_context.CreateEvent("npns:s:GetReceiveEvent");
+            get_request_change_state_cancel_event =
+                    service_context.CreateEvent("npns:s:GetRequestChangeStateCancelEvent");
+        }
 
-    ~INpnsSystem() override {
-        service_context.CloseEvent(get_receive_event);
-        service_context.CloseEvent(get_request_change_state_cancel_event);
-    }
+        ~INpnsSystem() override {
+            service_context.CloseEvent(get_receive_event);
+            service_context.CloseEvent(get_request_change_state_cancel_event);
+        }
 
-private:
-    Result ListenTo(u32 program_id) {
-        LOG_WARNING(Service_NPNS, "(STUBBED) called, program_id={}", program_id);
-        R_SUCCEED();
-    }
+    private:
+        Result ListenTo(u32 program_id) {
+            LOG_WARNING(Service_NPNS, "(STUBBED) called, program_id={}", program_id);
+            R_SUCCEED();
+        }
 
-    Result GetReceiveEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
-        LOG_WARNING(Service_NPNS, "(STUBBED) called");
+        Result GetReceiveEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
+            LOG_WARNING(Service_NPNS, "(STUBBED) called");
 
-        *out_event = &get_receive_event->GetReadableEvent();
-        R_SUCCEED();
-    }
+            *out_event = &get_receive_event->GetReadableEvent();
+            R_SUCCEED();
+        }
 
-    Result ListenToByName() {
-        LOG_DEBUG(Service_NPNS, "(STUBBED) called.");
+        Result ListenToByName() {
+            LOG_DEBUG(Service_NPNS, "(STUBBED) called.");
 
-        // TODO (jarrodnorwell)
+            // TODO (jarrodnorwell)
 
-        R_SUCCEED();
-    }
+            R_SUCCEED();
+        }
 
-    Result GetState(Out<u32> out_state) {
-        LOG_WARNING(Service_NPNS, "(STUBBED) called");
-        *out_state = 0;
-        R_SUCCEED();
-    }
+        Result GetState(Out<u32> out_state) {
+            LOG_WARNING(Service_NPNS, "(STUBBED) called");
+            *out_state = 0;
+            R_SUCCEED();
+        }
 
-    Result GetLastNotifiedTime(Out<s64> out_last_notified_time) {
-        LOG_WARNING(Service_NPNS, "(STUBBED) called");
+        Result GetLastNotifiedTime(Out<s64> out_last_notified_time) {
+            LOG_WARNING(Service_NPNS, "(STUBBED) called");
 
-        *out_last_notified_time = 0;
-        R_SUCCEED();
-    }
+            *out_last_notified_time = 0;
+            R_SUCCEED();
+        }
 
-    Result GetRequestChangeStateCancelEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
-        LOG_DEBUG(Service_NPNS, "(STUBBED) called.");
+        Result GetRequestChangeStateCancelEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
+            LOG_DEBUG(Service_NPNS, "(STUBBED) called.");
 
-        // TODO (jarrodnorwell)
+            // TODO (jarrodnorwell)
 
-        *out_event = &get_request_change_state_cancel_event->GetReadableEvent();
+            *out_event = &get_request_change_state_cancel_event->GetReadableEvent();
 
-        R_SUCCEED();
-    }
+            R_SUCCEED();
+        }
 
-    KernelHelpers::ServiceContext service_context;
-    Kernel::KEvent* get_receive_event;
-    Kernel::KEvent* get_request_change_state_cancel_event;
-};
+        KernelHelpers::ServiceContext service_context;
+        Kernel::KEvent *get_receive_event;
+        Kernel::KEvent *get_request_change_state_cancel_event;
+    };
 
-class INpnsUser final : public ServiceFramework<INpnsUser> {
-public:
-    explicit INpnsUser(Core::System& system_) : ServiceFramework{system_, "npns:u"} {
+    class INpnsUser final : public ServiceFramework<INpnsUser> {
+    public:
+        explicit INpnsUser(Core::System &system_)
+            : ServiceFramework{system_, "npns:u"}, service_context{system, "npns:u"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {1, nullptr, "ListenAll"},
             {2, nullptr, "ListenTo"},
             {3, nullptr, "Receive"},
             {4, nullptr, "ReceiveRaw"},
-            {5, nullptr, "GetReceiveEvent"},
+            {5, C<&INpnsUser::GetReceiveEvent>, "GetReceiveEvent"},
             {7, nullptr, "GetStateChangeEvent"},
-            {8, nullptr, "ListenToByName"}, // 18.0.0+
+            {8, C<&INpnsUser::ListenToByName>, "ListenToByName"}, // 18.0.0+
             {21, nullptr, "CreateToken"},
             {23, nullptr, "DestroyToken"},
             {25, nullptr, "QueryIsTokenValid"},
@@ -175,18 +178,41 @@ public:
             {153, nullptr, "GetDropEventWithHandover"},
             {154, nullptr, "CreateTokenAsync"},
         };
-        // clang-format on
+            // clang-format on
 
-        RegisterHandlers(functions);
+            RegisterHandlers(functions);
+
+            get_receive_event = service_context.CreateEvent("npns:u:GetReceiveEvent");
+        }
+
+        ~INpnsUser() override {
+            service_context.CloseEvent(get_receive_event);
+        }
+
+    private:
+        Result ListenToByName(InBuffer<BufferAttr_HipcMapAlias> name_buffer) {
+            const std::string name(reinterpret_cast<const char *>(name_buffer.data()), name_buffer.size());
+            LOG_DEBUG(Service_NPNS, "called, name={}", name);
+
+            R_SUCCEED();
+        }
+
+        Result GetReceiveEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
+            LOG_DEBUG(Service_NPNS, "called");
+
+            *out_event = &get_receive_event->GetReadableEvent();
+            R_SUCCEED();
+        }
+
+        KernelHelpers::ServiceContext service_context;
+        Kernel::KEvent *get_receive_event;
+    };
+
+    void LoopProcess(Core::System &system) {
+        auto server_manager = std::make_unique<ServerManager>(system);
+
+        server_manager->RegisterNamedService("npns:s", std::make_shared<INpnsSystem>(system));
+        server_manager->RegisterNamedService("npns:u", std::make_shared<INpnsUser>(system));
+        ServerManager::RunServer(std::move(server_manager));
     }
-};
-
-void LoopProcess(Core::System& system) {
-    auto server_manager = std::make_unique<ServerManager>(system);
-
-    server_manager->RegisterNamedService("npns:s", std::make_shared<INpnsSystem>(system));
-    server_manager->RegisterNamedService("npns:u", std::make_shared<INpnsUser>(system));
-    ServerManager::RunServer(std::move(server_manager));
-}
-
 } // namespace Service::NPNS

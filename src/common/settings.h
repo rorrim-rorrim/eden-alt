@@ -760,6 +760,8 @@ struct Values {
     // Add-Ons
     std::map<u64, std::vector<std::string>> disabled_addons;
 
+    Setting<bool> enable_overlay{linkage, false, "enable_overlay", Category::Core};
+
     // Per-game overrides
     bool use_squashed_iterated_blend;
 };

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,54 +12,57 @@
 #include "core/hle/service/am/am_types.h"
 
 namespace Core {
-class System;
+    class System;
 }
 
 namespace Service {
-class Process;
+    class Process;
 }
 
 namespace Service::AM {
+    class WindowSystem;
 
-class WindowSystem;
+    enum class LaunchType {
+        FrontendInitiated,
+        ApplicationInitiated,
+    };
 
-enum class LaunchType {
-    FrontendInitiated,
-    ApplicationInitiated,
-};
+    struct FrontendAppletParameters {
+        ProgramId program_id{};
+        AppletId applet_id{};
+        AppletType applet_type{};
+        LaunchType launch_type{};
+        s32 program_index{};
+        s32 previous_program_index{-1};
+    };
 
-struct FrontendAppletParameters {
-    ProgramId program_id{};
-    AppletId applet_id{};
-    AppletType applet_type{};
-    LaunchType launch_type{};
-    s32 program_index{};
-    s32 previous_program_index{-1};
-};
+    class AppletManager {
+    public:
+        explicit AppletManager(Core::System &system);
 
-class AppletManager {
-public:
-    explicit AppletManager(Core::System& system);
-    ~AppletManager();
+        ~AppletManager();
 
-    void CreateAndInsertByFrontendAppletParameters(std::unique_ptr<Process> process,
-                                                   const FrontendAppletParameters& params);
-    void RequestExit();
-    void OperationModeChanged();
+        void CreateAndInsertByFrontendAppletParameters(std::unique_ptr<Process> process,
+                                                       const FrontendAppletParameters &params);
 
-public:
-    void SetWindowSystem(WindowSystem* window_system);
+        void RequestExit();
 
-private:
-    Core::System& m_system;
+        void OperationModeChanged();
 
-    std::mutex m_lock;
-    std::condition_variable m_cv;
+    public:
+        void SetWindowSystem(WindowSystem *window_system);
 
-    WindowSystem* m_window_system{};
+        [[nodiscard]] WindowSystem *GetWindowSystem() const { return m_window_system; }
 
-    FrontendAppletParameters m_pending_parameters{};
-    std::unique_ptr<Process> m_pending_process{};
-};
+    private:
+        Core::System &m_system;
 
+        std::mutex m_lock;
+        std::condition_variable m_cv;
+
+        WindowSystem *m_window_system{};
+
+        FrontendAppletParameters m_pending_parameters{};
+        std::unique_ptr<Process> m_pending_process{};
+    };
 } // namespace Service::AM

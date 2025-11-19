@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,15 +10,23 @@
 #include "common/common_types.h"
 
 namespace Service::PSC {
+    using OverlayNotification = std::array<u64, 0x10>;
+    static_assert(sizeof(OverlayNotification) == 0x80, "OverlayNotification has incorrect size");
 
-using OverlayNotification = std::array<u64, 0x10>;
-static_assert(sizeof(OverlayNotification) == 0x80, "OverlayNotification has incorrect size");
+    union MessageFlags {
+        u64 raw;
+        BitField<0, 8, u64> message_type;
+        BitField<8, 8, u64> queue_type;
+    };
 
-union MessageFlags {
-    u64 raw;
-    BitField<0, 8, u64> message_type;
-    BitField<8, 8, u64> queue_type;
-};
-static_assert(sizeof(MessageFlags) == 0x8, "MessageFlags has incorrect size");
+    static_assert(sizeof(MessageFlags) == 0x8, "MessageFlags has incorrect size");
 
+    struct SourceName {
+        char name[0x16];
+
+        const char *GetString() const {
+            return name;
+        }
+    };
+    ;
 } // namespace Service::PSC

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,60 +13,66 @@
 #include "core/hle/service/nvnflinger/hardware_composer.h"
 
 namespace Core {
-class System;
+    class System;
 }
 
 namespace Service::Nvidia {
-class Module;
+    class Module;
 }
 
 // TODO: ISurfaceComposer
 // TODO: ISurfaceComposerClient
 
 namespace Service::Nvnflinger {
+    struct Display;
+    class HosBinderDriverServer;
+    enum class LayerBlending : u32;
+    struct Layer;
 
-struct Display;
-class HosBinderDriverServer;
-enum class LayerBlending : u32;
-struct Layer;
+    class SurfaceFlinger {
+    public:
+        explicit SurfaceFlinger(Core::System &system, HosBinderDriverServer &server);
 
-class SurfaceFlinger {
-public:
-    explicit SurfaceFlinger(Core::System& system, HosBinderDriverServer& server);
-    ~SurfaceFlinger();
+        ~SurfaceFlinger();
 
-    void AddDisplay(u64 display_id);
-    void RemoveDisplay(u64 display_id);
-    bool ComposeDisplay(s32* out_swap_interval, f32* out_compose_speed_scale, u64 display_id);
+        void AddDisplay(u64 display_id);
 
-    void CreateLayer(s32 consumer_binder_id);
-    void DestroyLayer(s32 consumer_binder_id);
+        void RemoveDisplay(u64 display_id);
 
-    void AddLayerToDisplayStack(u64 display_id, s32 consumer_binder_id);
-    void RemoveLayerFromDisplayStack(u64 display_id, s32 consumer_binder_id);
+        bool ComposeDisplay(s32 *out_swap_interval, f32 *out_compose_speed_scale, u64 display_id);
 
-    void SetLayerVisibility(s32 consumer_binder_id, bool visible);
-    void SetLayerBlending(s32 consumer_binder_id, LayerBlending blending);
+        void CreateLayer(s32 consumer_binder_id);
 
-private:
-    Display* FindDisplay(u64 display_id);
-    std::shared_ptr<Layer> FindLayer(s32 consumer_binder_id);
+        void DestroyLayer(s32 consumer_binder_id);
 
-public:
-    // TODO: these don't belong here
-    void CreateBufferQueue(s32* out_consumer_binder_id, s32* out_producer_binder_id);
-    void DestroyBufferQueue(s32 consumer_binder_id, s32 producer_binder_id);
+        void AddLayerToDisplayStack(u64 display_id, s32 consumer_binder_id);
 
-private:
-    Core::System& m_system;
-    HosBinderDriverServer& m_server;
-    KernelHelpers::ServiceContext m_context;
+        void RemoveLayerFromDisplayStack(u64 display_id, s32 consumer_binder_id);
 
-    std::vector<Display> m_displays;
-    LayerStack m_layers;
-    std::shared_ptr<Nvidia::Module> nvdrv;
-    s32 disp_fd;
-    HardwareComposer m_composer;
-};
+        void SetLayerVisibility(s32 consumer_binder_id, bool visible);
 
+        void SetLayerBlending(s32 consumer_binder_id, LayerBlending blending);
+
+        std::shared_ptr<Layer> FindLayer(s32 consumer_binder_id); // expose for Container
+
+    private:
+        Display *FindDisplay(u64 display_id);
+
+    public:
+        // TODO: these don't belong here
+        void CreateBufferQueue(s32 *out_consumer_binder_id, s32 *out_producer_binder_id);
+
+        void DestroyBufferQueue(s32 consumer_binder_id, s32 producer_binder_id);
+
+    private:
+        Core::System &m_system;
+        HosBinderDriverServer &m_server;
+        KernelHelpers::ServiceContext m_context;
+
+        std::vector<Display> m_displays;
+        LayerStack m_layers;
+        std::shared_ptr<Nvidia::Module> nvdrv;
+        s32 disp_fd;
+        HardwareComposer m_composer;
+    };
 } // namespace Service::Nvnflinger

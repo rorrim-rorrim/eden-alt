@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,76 +11,99 @@
 #include <mutex>
 
 #include "common/common_types.h"
+#include "core/hle/service/am/am_types.h" // added for SystemButtonType, AppletMessage
 
 namespace Core {
-class System;
+    class System;
 }
 
 namespace Service::AM {
+    struct Applet;
+    class EventObserver;
 
-struct Applet;
-class EventObserver;
+    enum class ButtonPressDuration {
+        ShortPressing,
+        MiddlePressing,
+        LongPressing,
+    };
 
-enum class ButtonPressDuration {
-    ShortPressing,
-    MiddlePressing,
-    LongPressing,
-};
+    class WindowSystem {
+    public:
+        explicit WindowSystem(Core::System &system);
 
-class WindowSystem {
-public:
-    explicit WindowSystem(Core::System& system);
-    ~WindowSystem();
+        ~WindowSystem();
 
-public:
-    void SetEventObserver(EventObserver* event_observer);
-    void Update();
+    public:
+        void SetEventObserver(EventObserver *event_observer);
 
-public:
-    void TrackApplet(std::shared_ptr<Applet> applet, bool is_application);
-    std::shared_ptr<Applet> GetByAppletResourceUserId(u64 aruid);
-    std::shared_ptr<Applet> GetMainApplet();
+        void Update();
 
-public:
-    void RequestHomeMenuToGetForeground();
-    void RequestApplicationToGetForeground();
-    void RequestLockHomeMenuIntoForeground();
-    void RequestUnlockHomeMenuIntoForeground();
-    void RequestAppletVisibilityState(Applet& applet, bool visible);
+        void RequestUpdate();
 
-public:
-    void OnOperationModeChanged();
-    void OnExitRequested();
-    void OnHomeButtonPressed(ButtonPressDuration type);
-    void OnCaptureButtonPressed(ButtonPressDuration type) {}
-    void OnPowerButtonPressed(ButtonPressDuration type) {}
+    public:
+        void TrackApplet(std::shared_ptr<Applet> applet, bool is_application);
 
-private:
-    void PruneTerminatedAppletsLocked();
-    bool LockHomeMenuIntoForegroundLocked();
-    void TerminateChildAppletsLocked(Applet* applet);
-    void UpdateAppletStateLocked(Applet* applet, bool is_foreground);
+        std::shared_ptr<Applet> GetByAppletResourceUserId(u64 aruid);
 
-private:
-    // System reference.
-    Core::System& m_system;
+        std::shared_ptr<Applet> GetMainApplet();
 
-    // Event observer.
-    EventObserver* m_event_observer{};
+    public:
+        void RequestHomeMenuToGetForeground();
 
-    // Lock.
-    std::mutex m_lock{};
+        void RequestApplicationToGetForeground();
 
-    // Home menu state.
-    bool m_home_menu_foreground_locked{};
-    Applet* m_foreground_requested_applet{};
+        void RequestLockHomeMenuIntoForeground();
 
-    // Foreground roots.
-    Applet* m_home_menu{};
-    Applet* m_application{};
+        void RequestUnlockHomeMenuIntoForeground();
 
-    // Applet map by aruid.
-    std::map<u64, std::shared_ptr<Applet>> m_applets{};
-};
+        void RequestAppletVisibilityState(Applet &applet, bool visible);
 
+    public:
+        void OnOperationModeChanged();
+
+        void OnExitRequested();
+
+        void OnHomeButtonPressed(ButtonPressDuration type); // legacy mapping
+        void OnSystemButtonPress(SystemButtonType type);
+
+        void OnCaptureButtonPressed(ButtonPressDuration type) {
+            /* legacy no-op */
+        }
+
+        void OnPowerButtonPressed(ButtonPressDuration type) {
+        }
+
+    private:
+        void PruneTerminatedAppletsLocked();
+
+        bool LockHomeMenuIntoForegroundLocked();
+
+        void TerminateChildAppletsLocked(Applet *applet);
+
+        void UpdateAppletStateLocked(Applet *applet, bool is_foreground, bool overlay_blocking = false);
+
+        void SendButtonAppletMessageLocked(AppletMessage message);
+
+    private:
+        // System reference.
+        Core::System &m_system;
+
+        // Event observer.
+        EventObserver *m_event_observer{};
+
+        // Lock.
+        std::mutex m_lock{};
+
+        // Home menu state.
+        bool m_home_menu_foreground_locked{};
+        Applet *m_foreground_requested_applet{};
+
+        // Foreground roots.
+        Applet *m_home_menu{};
+        Applet *m_application{};
+        Applet *m_overlay_display{}; // overlay display applet (DevOverlay)
+
+        // Applet map by aruid.
+        std::map<u64, std::shared_ptr<Applet> > m_applets{};
+    };
 } // namespace Service::AM

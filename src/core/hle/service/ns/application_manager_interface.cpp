@@ -4,6 +4,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "core/file_sys/control_metadata.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/service/cmif_serialization.h"
@@ -11,15 +12,16 @@
 #include "core/hle/service/ns/application_manager_interface.h"
 #include "core/hle/service/ns/content_management_interface.h"
 #include "core/hle/service/ns/read_only_application_control_data_interface.h"
+#include "core/file_sys/patch_manager.h"
 
 namespace Service::NS {
-
-IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_)
-    : ServiceFramework{system_, "IApplicationManagerInterface"},
-      service_context{system, "IApplicationManagerInterface"},
-      record_update_system_event{service_context}, sd_card_mount_status_event{service_context},
-      gamecard_update_detection_event{service_context},
-      gamecard_mount_status_event{service_context}, gamecard_mount_failure_event{service_context} {
+    IApplicationManagerInterface::IApplicationManagerInterface(Core::System &system_)
+        : ServiceFramework{system_, "IApplicationManagerInterface"},
+          service_context{system, "IApplicationManagerInterface"},
+          record_update_system_event{service_context}, sd_card_mount_status_event{service_context},
+          gamecard_update_detection_event{service_context},
+          gamecard_mount_status_event{service_context}, gamecard_mount_failure_event{service_context},
+          gamecard_waken_ready_event{service_context}, unknown_event{service_context} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, D<&IApplicationManagerInterface::ListApplicationRecord>, "ListApplicationRecord"},
@@ -138,6 +140,8 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {508, nullptr, "GetLastGameCardMountFailureResult"},
         {509, nullptr, "ListApplicationIdOnGameCard"},
         {510, nullptr, "GetGameCardPlatformRegion"},
+        {511, D<&IApplicationManagerInterface::GetGameCardWakenReadyEvent>, "GetGameCardWakenReadyEvent"},
+        {512, D<&IApplicationManagerInterface::IsGameCardApplicationRunning>, "IsGameCardApplicationRunning"},
         {600, nullptr, "CountApplicationContentMeta"},
         {601, nullptr, "ListApplicationContentMetaStatus"},
         {602, nullptr, "ListAvailableAddOnContent"},
@@ -314,261 +318,278 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {4053, D<&IApplicationManagerInterface::Unknown4053>, "Unknown4053"},
         {9999, nullptr, "GetApplicationCertificate"},
     };
-    // clang-format on
+        // clang-format on
 
-    RegisterHandlers(functions);
-}
+        RegisterHandlers(functions);
+    }
 
-IApplicationManagerInterface::~IApplicationManagerInterface() = default;
+    IApplicationManagerInterface::~IApplicationManagerInterface() = default;
 
-Result IApplicationManagerInterface::UnregisterNetworkServiceAccountWithUserSaveDataDeletion(Common::UUID user_id) {
-    LOG_DEBUG(Service_NS, "called, user_id={}", user_id.FormattedString());
-    R_SUCCEED();
-}
-Result IApplicationManagerInterface::GetApplicationControlData(
-    OutBuffer<BufferAttr_HipcMapAlias> out_buffer, Out<u32> out_actual_size,
-    ApplicationControlSource application_control_source, u64 application_id) {
-    LOG_DEBUG(Service_NS, "called");
-    R_RETURN(IReadOnlyApplicationControlDataInterface(system).GetApplicationControlDataOld(
-        out_buffer, out_actual_size, application_control_source, application_id));
-}
+    Result IApplicationManagerInterface::UnregisterNetworkServiceAccountWithUserSaveDataDeletion(Common::UUID user_id) {
+        LOG_DEBUG(Service_NS, "called, user_id={}", user_id.FormattedString());
+        R_SUCCEED();
+    }
 
-Result IApplicationManagerInterface::GetApplicationDesiredLanguage(
-    Out<ApplicationLanguage> out_desired_language, u32 supported_languages) {
-    LOG_DEBUG(Service_NS, "called");
-    R_RETURN(IReadOnlyApplicationControlDataInterface(system).GetApplicationDesiredLanguage(
-        out_desired_language, supported_languages));
-}
+    Result IApplicationManagerInterface::GetApplicationControlData(
+        OutBuffer<BufferAttr_HipcMapAlias> out_buffer, Out<u32> out_actual_size,
+        ApplicationControlSource application_control_source, u64 application_id) {
+        LOG_DEBUG(Service_NS, "called");
+        R_RETURN(IReadOnlyApplicationControlDataInterface(system).GetApplicationControlData(
+            out_buffer, out_actual_size, application_control_source, application_id));
+    }
 
-Result IApplicationManagerInterface::ConvertApplicationLanguageToLanguageCode(
-    Out<u64> out_language_code, ApplicationLanguage application_language) {
-    LOG_DEBUG(Service_NS, "called");
-    R_RETURN(
-        IReadOnlyApplicationControlDataInterface(system).ConvertApplicationLanguageToLanguageCode(
-            out_language_code, application_language));
-}
+    Result IApplicationManagerInterface::GetApplicationDesiredLanguage(
+        Out<ApplicationLanguage> out_desired_language, u32 supported_languages) {
+        LOG_DEBUG(Service_NS, "called");
+        R_RETURN(IReadOnlyApplicationControlDataInterface(system).GetApplicationDesiredLanguage(
+            out_desired_language, supported_languages));
+    }
 
-Result IApplicationManagerInterface::ListApplicationRecord(
-    OutArray<ApplicationRecord, BufferAttr_HipcMapAlias> out_records, Out<s32> out_count,
-    s32 offset) {
-    const auto limit = out_records.size();
+    Result IApplicationManagerInterface::ConvertApplicationLanguageToLanguageCode(
+        Out<u64> out_language_code, ApplicationLanguage application_language) {
+        LOG_DEBUG(Service_NS, "called");
+        R_RETURN(
+            IReadOnlyApplicationControlDataInterface(system).ConvertApplicationLanguageToLanguageCode(
+                out_language_code, application_language));
+    }
 
-    LOG_WARNING(Service_NS, "(STUBBED) called");
-    const auto& cache = system.GetContentProviderUnion();
-    const auto installed_games = cache.ListEntriesFilterOrigin(
-        std::nullopt, FileSys::TitleType::Application, FileSys::ContentRecordType::Program);
+    Result IApplicationManagerInterface::ListApplicationRecord(
+        OutArray<ApplicationRecord, BufferAttr_HipcMapAlias> out_records, Out<s32> out_count,
+        s32 offset) {
+        const auto limit = out_records.size();
 
-    size_t i = 0;
-    u8 ii = 24;
+        LOG_WARNING(Service_NS, "(STUBBED) called");
+        const auto &cache = system.GetContentProviderUnion();
+        const auto installed_games = cache.ListEntriesFilterOrigin(
+            std::nullopt, FileSys::TitleType::Application, FileSys::ContentRecordType::Program);
 
-    for (const auto& [slot, game] : installed_games) {
-        if (i >= limit) {
-            break;
+        size_t i = 0;
+        u8 ii = 24;
+
+        for (const auto &[slot, game]: installed_games) {
+            if (i >= limit) {
+                break;
+            }
+            if (game.title_id == 0 || game.title_id < 0x0100000000001FFFull) {
+                continue;
+            }
+            if (offset > 0) {
+                offset--;
+                continue;
+            }
+
+            ApplicationRecord record{};
+            record.application_id = game.title_id;
+            record.type = ApplicationRecordType::Installed;
+            record.unknown = 0; // 2 = needs update
+            record.unknown2 = ii++;
+
+            out_records[i++] = record;
         }
-        if (game.title_id == 0 || game.title_id < 0x0100000000001FFFull) {
-            continue;
+
+        *out_count = static_cast<s32>(i);
+        R_SUCCEED();
+    }
+
+    Result IApplicationManagerInterface::GetApplicationRecordUpdateSystemEvent(
+        OutCopyHandle<Kernel::KReadableEvent> out_event) {
+        LOG_WARNING(Service_NS, "(STUBBED) called");
+
+        record_update_system_event.Signal();
+        *out_event = record_update_system_event.GetHandle();
+
+        R_SUCCEED();
+    }
+
+    Result IApplicationManagerInterface::GetGameCardMountFailureEvent(
+        OutCopyHandle<Kernel::KReadableEvent> out_event) {
+        LOG_WARNING(Service_NS, "(STUBBED) called");
+        *out_event = gamecard_mount_failure_event.GetHandle();
+        R_SUCCEED();
+    }
+
+    Result IApplicationManagerInterface::GetGameCardWakenReadyEvent(
+        OutCopyHandle<Kernel::KReadableEvent> out_event) {
+        LOG_WARNING(Service_NS, "(STUBBED) called");
+        *out_event = gamecard_waken_ready_event.GetHandle();
+        R_SUCCEED();
+    }
+
+    Result IApplicationManagerInterface::IsGameCardApplicationRunning(Out<bool> out_is_running) {
+        LOG_WARNING(Service_NS, "(STUBBED) called");
+        *out_is_running = false;
+        R_SUCCEED();
+    }
+
+    Result IApplicationManagerInterface::IsAnyApplicationEntityInstalled(
+        Out<bool> out_is_any_application_entity_installed) {
+        LOG_WARNING(Service_NS, "(STUBBED) called");
+        *out_is_any_application_entity_installed = true;
+        R_SUCCEED();
+    }
+
+    Result IApplicationManagerInterface::GetApplicationViewDeprecated(
+        OutArray<ApplicationView, BufferAttr_HipcMapAlias> out_application_views,
+        InArray<u64, BufferAttr_HipcMapAlias> application_ids) {
+        const auto size = (std::min)(out_application_views.size(), application_ids.size());
+        LOG_WARNING(Service_NS, "(STUBBED) called, size={}", application_ids.size());
+
+        for (size_t i = 0; i < size; i++) {
+            ApplicationView view{};
+            view.application_id = application_ids[i];
+            view.version = 0x70000;
+            view.flags = 0x401f17;
+
+            out_application_views[i] = view;
         }
-        if (offset > 0) {
-            offset--;
-            continue;
+
+        R_SUCCEED();
+    }
+
+    Result IApplicationManagerInterface::GetApplicationViewWithPromotionInfo(
+        OutArray<ApplicationViewWithPromotionInfo, BufferAttr_HipcMapAlias> out_application_views,
+        InArray<u64, BufferAttr_HipcMapAlias> application_ids) {
+        const auto size = (std::min)(out_application_views.size(), application_ids.size());
+        LOG_WARNING(Service_NS, "(STUBBED) called, size={}", application_ids.size());
+
+        for (size_t i = 0; i < size; i++) {
+            ApplicationViewWithPromotionInfo view{};
+            view.view.application_id = application_ids[i];
+            view.view.version = 0x70000;
+            view.view.flags = 0x401f17;
+            view.promotion = {};
+
+            out_application_views[i] = view;
         }
 
-        ApplicationRecord record{};
-        record.application_id = game.title_id;
-        record.type = ApplicationRecordType::Installed;
-        record.unknown = 0; // 2 = needs update
-        record.unknown2 = ii++;
-
-        out_records[i++] = record;
+        R_SUCCEED();
     }
 
-    *out_count = static_cast<s32>(i);
-    R_SUCCEED();
-}
+    Result IApplicationManagerInterface::GetApplicationView(
+        OutArray<ApplicationView, BufferAttr_HipcMapAlias> out_application_views,
+        InArray<u64, BufferAttr_HipcMapAlias> application_ids) {
+        const auto size = (std::min)(out_application_views.size(), application_ids.size());
+        LOG_WARNING(Service_NS, "(STUBBED) called, size={}", application_ids.size());
 
-Result IApplicationManagerInterface::GetApplicationRecordUpdateSystemEvent(
-    OutCopyHandle<Kernel::KReadableEvent> out_event) {
-    LOG_WARNING(Service_NS, "(STUBBED) called");
+        for (size_t i = 0; i < size; i++) {
+            ApplicationView view{};
+            view.application_id = application_ids[i];
+            view.version = 0x70000;
+            view.flags = 0x401f17;
 
-    record_update_system_event.Signal();
-    *out_event = record_update_system_event.GetHandle();
+            out_application_views[i] = view;
+        }
 
-    R_SUCCEED();
-}
-
-Result IApplicationManagerInterface::GetGameCardMountFailureEvent(
-    OutCopyHandle<Kernel::KReadableEvent> out_event) {
-    LOG_WARNING(Service_NS, "(STUBBED) called");
-    *out_event = gamecard_mount_failure_event.GetHandle();
-    R_SUCCEED();
-}
-
-Result IApplicationManagerInterface::IsAnyApplicationEntityInstalled(
-    Out<bool> out_is_any_application_entity_installed) {
-    LOG_WARNING(Service_NS, "(STUBBED) called");
-    *out_is_any_application_entity_installed = true;
-    R_SUCCEED();
-}
-
-Result IApplicationManagerInterface::GetApplicationViewDeprecated(
-    OutArray<ApplicationView, BufferAttr_HipcMapAlias> out_application_views,
-    InArray<u64, BufferAttr_HipcMapAlias> application_ids) {
-    const auto size = (std::min)(out_application_views.size(), application_ids.size());
-    LOG_WARNING(Service_NS, "(STUBBED) called, size={}", application_ids.size());
-
-    for (size_t i = 0; i < size; i++) {
-        ApplicationView view{};
-        view.application_id = application_ids[i];
-        view.version = 0x70000;
-        view.flags = 0x401f17;
-
-        out_application_views[i] = view;
+        R_SUCCEED();
     }
 
-    R_SUCCEED();
-}
+    Result IApplicationManagerInterface::GetApplicationRightsOnClient(
+        OutArray<ApplicationRightsOnClient, BufferAttr_HipcMapAlias> out_rights, Out<u32> out_count,
+        u32 flags, u64 application_id, Uid account_id) {
+        LOG_WARNING(Service_NS, "(STUBBED) called, flags={}, application_id={:016X}, account_id={}",
+                    flags, application_id, account_id.uuid.FormattedString());
 
-Result IApplicationManagerInterface::GetApplicationViewWithPromotionInfo(
-    OutArray<ApplicationViewWithPromotionInfo, BufferAttr_HipcMapAlias> out_application_views,
-    InArray<u64, BufferAttr_HipcMapAlias> application_ids) {
-    const auto size = (std::min)(out_application_views.size(), application_ids.size());
-    LOG_WARNING(Service_NS, "(STUBBED) called, size={}", application_ids.size());
+        if (!out_rights.empty()) {
+            ApplicationRightsOnClient rights{};
+            rights.application_id = application_id;
+            rights.uid = account_id.uuid;
+            rights.flags = 0;
+            rights.flags2 = 0;
 
-    for (size_t i = 0; i < size; i++) {
-        ApplicationViewWithPromotionInfo view{};
-        view.view.application_id = application_ids[i];
-        view.view.version = 0x70000;
-        view.view.flags = 0x401f17;
-        view.promotion = {};
+            out_rights[0] = rights;
+            *out_count = 1;
+        } else {
+            *out_count = 0;
+        }
 
-        out_application_views[i] = view;
+        R_SUCCEED();
     }
 
-    R_SUCCEED();
-}
-
-Result IApplicationManagerInterface::GetApplicationView(
-    OutArray<ApplicationView, BufferAttr_HipcMapAlias> out_application_views,
-    InArray<u64, BufferAttr_HipcMapAlias> application_ids) {
-    const auto size = (std::min)(out_application_views.size(), application_ids.size());
-    LOG_WARNING(Service_NS, "(STUBBED) called, size={}", application_ids.size());
-
-    for (size_t i = 0; i < size; i++) {
-        ApplicationView view{};
-        view.application_id = application_ids[i];
-        view.version = 0x70000;
-        view.flags = 0x401f17;
-
-        out_application_views[i] = view;
+    Result IApplicationManagerInterface::CheckSdCardMountStatus() {
+        LOG_DEBUG(Service_NS, "called");
+        R_RETURN(IContentManagementInterface(system).CheckSdCardMountStatus());
     }
 
-    R_SUCCEED();
-}
-
-Result IApplicationManagerInterface::GetApplicationRightsOnClient(
-    OutArray<ApplicationRightsOnClient, BufferAttr_HipcMapAlias> out_rights, Out<u32> out_count,
-    u32 flags, u64 application_id, Uid account_id) {
-    LOG_WARNING(Service_NS, "(STUBBED) called, flags={}, application_id={:016X}, account_id={}",
-                flags, application_id, account_id.uuid.FormattedString());
-
-    if (!out_rights.empty()) {
-        ApplicationRightsOnClient rights{};
-        rights.application_id = application_id;
-        rights.uid = account_id.uuid;
-        rights.flags = 0;
-        rights.flags2 = 0;
-
-        out_rights[0] = rights;
-        *out_count = 1;
-    } else {
-        *out_count = 0;
+    Result IApplicationManagerInterface::GetSdCardMountStatusChangedEvent(
+        OutCopyHandle<Kernel::KReadableEvent> out_event) {
+        LOG_WARNING(Service_NS, "(STUBBED) called");
+        *out_event = sd_card_mount_status_event.GetHandle();
+        R_SUCCEED();
     }
 
-    R_SUCCEED();
-}
+    Result IApplicationManagerInterface::GetFreeSpaceSize(Out<s64> out_free_space_size,
+                                                          FileSys::StorageId storage_id) {
+        LOG_DEBUG(Service_NS, "called");
+        R_RETURN(IContentManagementInterface(system).GetFreeSpaceSize(out_free_space_size, storage_id));
+    }
 
-Result IApplicationManagerInterface::CheckSdCardMountStatus() {
-    LOG_DEBUG(Service_NS, "called");
-    R_RETURN(IContentManagementInterface(system).CheckSdCardMountStatus());
-}
+    Result IApplicationManagerInterface::GetGameCardUpdateDetectionEvent(
+        OutCopyHandle<Kernel::KReadableEvent> out_event) {
+        LOG_WARNING(Service_NS, "(STUBBED) called");
+        *out_event = gamecard_update_detection_event.GetHandle();
+        R_SUCCEED();
+    }
 
-Result IApplicationManagerInterface::GetSdCardMountStatusChangedEvent(
-    OutCopyHandle<Kernel::KReadableEvent> out_event) {
-    LOG_WARNING(Service_NS, "(STUBBED) called");
-    *out_event = sd_card_mount_status_event.GetHandle();
-    R_SUCCEED();
-}
+    Result IApplicationManagerInterface::ResumeAll() {
+        LOG_WARNING(Service_NS, "(STUBBED) called");
+        R_SUCCEED();
+    }
 
-Result IApplicationManagerInterface::GetFreeSpaceSize(Out<s64> out_free_space_size,
-                                                      FileSys::StorageId storage_id) {
-    LOG_DEBUG(Service_NS, "called");
-    R_RETURN(IContentManagementInterface(system).GetFreeSpaceSize(out_free_space_size, storage_id));
-}
+    Result IApplicationManagerInterface::GetStorageSize(Out<s64> out_total_space_size,
+                                                        Out<s64> out_free_space_size,
+                                                        FileSys::StorageId storage_id) {
+        LOG_INFO(Service_NS, "called, storage_id={}", storage_id);
+        *out_total_space_size = system.GetFileSystemController().GetTotalSpaceSize(storage_id);
+        *out_free_space_size = system.GetFileSystemController().GetFreeSpaceSize(storage_id);
+        R_SUCCEED();
+    }
 
-Result IApplicationManagerInterface::GetGameCardUpdateDetectionEvent(
-    OutCopyHandle<Kernel::KReadableEvent> out_event) {
-    LOG_WARNING(Service_NS, "(STUBBED) called");
-    *out_event = gamecard_update_detection_event.GetHandle();
-    R_SUCCEED();
-}
+    Result IApplicationManagerInterface::IsApplicationUpdateRequested(Out<bool> out_update_required,
+                                                                      Out<u32> out_update_version,
+                                                                      u64 application_id) {
+        LOG_WARNING(Service_NS, "(STUBBED) called. application_id={:016X}", application_id);
+        *out_update_required = false;
+        *out_update_version = 0;
+        R_SUCCEED();
+    }
 
-Result IApplicationManagerInterface::ResumeAll() {
-    LOG_WARNING(Service_NS, "(STUBBED) called");
-    R_SUCCEED();
-}
+    Result IApplicationManagerInterface::CheckApplicationLaunchVersion(u64 application_id) {
+        LOG_WARNING(Service_NS, "(STUBBED) called. application_id={:016X}", application_id);
+        R_SUCCEED();
+    }
 
-Result IApplicationManagerInterface::GetStorageSize(Out<s64> out_total_space_size,
-                                                    Out<s64> out_free_space_size,
-                                                    FileSys::StorageId storage_id) {
-    LOG_INFO(Service_NS, "called, storage_id={}", storage_id);
-    *out_total_space_size = system.GetFileSystemController().GetTotalSpaceSize(storage_id);
-    *out_free_space_size = system.GetFileSystemController().GetFreeSpaceSize(storage_id);
-    R_SUCCEED();
-}
+    Result IApplicationManagerInterface::GetApplicationTerminateResult(Out<Result> out_result,
+                                                                       u64 application_id) {
+        LOG_WARNING(Service_NS, "(STUBBED) called. application_id={:016X}", application_id);
+        *out_result = ResultSuccess;
+        R_SUCCEED();
+    }
 
-Result IApplicationManagerInterface::IsApplicationUpdateRequested(Out<bool> out_update_required,
-                                                                  Out<u32> out_update_version,
-                                                                  u64 application_id) {
-    LOG_WARNING(Service_NS, "(STUBBED) called. application_id={:016X}", application_id);
-    *out_update_required = false;
-    *out_update_version = 0;
-    R_SUCCEED();
-}
+    Result IApplicationManagerInterface::RequestDownloadApplicationControlDataInBackground(
+        u64 control_source, u64 application_id) {
+        LOG_INFO(Service_NS, "called, control_source={} app={:016X}",
+                 control_source, application_id);
 
-Result IApplicationManagerInterface::CheckApplicationLaunchVersion(u64 application_id) {
-    LOG_WARNING(Service_NS, "(STUBBED) called. application_id={:016X}", application_id);
-    R_SUCCEED();
-}
+        unknown_event.Signal();
+        R_SUCCEED();
+    }
 
-Result IApplicationManagerInterface::GetApplicationTerminateResult(Out<Result> out_result,
-                                                                   u64 application_id) {
-    LOG_WARNING(Service_NS, "(STUBBED) called. application_id={:016X}", application_id);
-    *out_result = ResultSuccess;
-    R_SUCCEED();
-}
+    Result IApplicationManagerInterface::Unknown4022(
+        OutCopyHandle<Kernel::KReadableEvent> out_event) {
+        LOG_WARNING(Service_NS, "(STUBBED) called");
+        unknown_event.Signal();
+        *out_event = unknown_event.GetHandle();
+        R_SUCCEED();
+    }
 
-Result IApplicationManagerInterface::RequestDownloadApplicationControlDataInBackground(
-    u64 control_source, u64 application_id) {
-    LOG_WARNING(Service_NS, "(STUBBED), control_source={} app={:016X}", control_source, application_id);
-    R_SUCCEED();
-}
+    Result IApplicationManagerInterface::Unknown4023(Out<u64> out_result) {
+        LOG_WARNING(Service_NS, "(STUBBED) called.");
+        *out_result = 0;
+        R_SUCCEED();
+    }
 
-Result IApplicationManagerInterface::Unknown4022(
-    OutCopyHandle<Kernel::KReadableEvent> out_event) {
-    LOG_WARNING(Service_NS, "(STUBBED) called");
-    *out_event = gamecard_update_detection_event.GetHandle();
-    R_SUCCEED();
-}
-
-Result IApplicationManagerInterface::Unknown4023(Out<u64> out_result) {
-    LOG_WARNING(Service_NS, "(STUBBED) called.");
-    *out_result = 0;
-    R_SUCCEED();
-}
-
-Result IApplicationManagerInterface::Unknown4053() {
-    LOG_WARNING(Service_NS, "(STUBBED) called.");
-    R_SUCCEED();
-}
-
+    Result IApplicationManagerInterface::Unknown4053() {
+        LOG_WARNING(Service_NS, "(STUBBED) called.");
+        R_SUCCEED();
+    }
 } // namespace Service::NS
