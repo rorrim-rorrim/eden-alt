@@ -237,7 +237,7 @@ FormatInfo SurfaceFormat(const Device& device, FormatType format_type, bool with
 #undef SURFACE_FORMAT_ELEM
 #undef SURFACE_FORMAT_LIST
     }
-    LOG_WARNING(Frontend, "FORMAT {}", pixel_format);
+    //LOG_WARNING(Frontend, "FORMAT {}", pixel_format);
     bool const is_srgb = with_srgb && VideoCore::Surface::IsPixelFormatSRGB(pixel_format);
     // Transcode on hardware that doesn't support ASTC natively
     if (!device.IsOptimalAstcSupported() && VideoCore::Surface::IsPixelFormatASTC(pixel_format)) {
