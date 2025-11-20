@@ -75,7 +75,7 @@ VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t in
         h = -h;
     // In theory, a raster flip is equivalent to a texture flip for a whole square viewport
     // TODO: one day implement this properly and raster flip the triangles, not the whole viewport... guh
-    if (regs.window_origin.flip_y != 0)
+    if(regs.viewport_transform[1].scale_y == 0 && regs.window_origin.flip_y != 0)
         h = -h;
     float const x = src.translate_x - w;
     float const y = src.translate_y - h;
@@ -1015,10 +1015,10 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
         return;
     }
     if (!regs.viewport_scale_offset_enabled) {
-        float x = static_cast<float>(regs.surface_clip.x);
-        float y = static_cast<float>(regs.surface_clip.y);
-        float width = (std::max)(1.0f, static_cast<float>(regs.surface_clip.width));
-        float height = (std::max)(1.0f, static_cast<float>(regs.surface_clip.height));
+        float x = float(regs.surface_clip.x);
+        float y = float(regs.surface_clip.y);
+        float width = (std::max)(1.0f, float(regs.surface_clip.width));
+        float height = (std::max)(1.0f, float(regs.surface_clip.height));
         if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
             y += height;
             height = -height;
