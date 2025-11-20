@@ -241,6 +241,18 @@ FormatInfo SurfaceFormat(const Device& device, FormatType format_type, bool with
                          PixelFormat pixel_format) {
     ASSERT(static_cast<size_t>(pixel_format) < std::size(tex_format_tuples));
     FormatTuple tuple = tex_format_tuples[static_cast<size_t>(pixel_format)];
+    
+    // Force LDR formats to sRGB when toggle is enabled (fixes gamma on Adreno GPUs)
+    if (Settings::values.force_ldr_to_srgb.GetValue() && !with_srgb) {
+        if (pixel_format == PixelFormat::A8B8G8R8_UNORM) {
+            tuple.format = VK_FORMAT_A8B8G8R8_SRGB_PACK32;
+            with_srgb = true; // Ensure we use sRGB variant
+        } else if (pixel_format == PixelFormat::A2B10G10R10_UNORM) {
+            // A2B10G10R10 doesn't have sRGB variant in Vulkan, keep as UNORM
+            // The gamma correction will be handled by shaders if needed
+        }
+    }
+    
     // Transcode on hardware that doesn't support ASTC natively
     if (!device.IsOptimalAstcSupported() && VideoCore::Surface::IsPixelFormatASTC(pixel_format)) {
         const bool is_srgb = with_srgb && VideoCore::Surface::IsPixelFormatSRGB(pixel_format);

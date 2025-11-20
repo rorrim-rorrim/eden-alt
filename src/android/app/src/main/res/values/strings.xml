@@ -954,7 +954,11 @@
 
     <!-- Force Identity Swizzle -->
     <string name="force_identity_swizzle">Force Identity Swizzle</string>
-    <string name="force_identity_swizzle_description">Forces identity component swizzle for storage and input attachment images. Required by Vulkan spec. Disable only for debugging driver issues.</string>
+    <string name="force_identity_swizzle_description">Forces identity component swizzle for storage and input attachment images. Required by Vulkan spec. Disable if graphical issues.</string>
+
+    <!-- Force LDR to sRGB -->
+    <string name="force_ldr_to_srgb">Force LDR to sRGB</string>
+    <string name="force_ldr_to_srgb_description">Converts LDR texture formats to sRGB for proper gamma correction. Fixes washed out colors on Adreno GPUs. Enable if textures look too bright or desaturated.</string>
 
     <!-- VRAM Usage Mode -->
     <string name="vram_usage_mode">VRAM Usage Mode</string>

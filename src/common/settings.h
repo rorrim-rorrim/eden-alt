@@ -461,6 +461,10 @@ struct Values {
                                                      false,
                                                      "force_identity_swizzle",
                                                      Category::RendererAdvanced};
+    SwitchableSetting<bool> force_ldr_to_srgb{linkage,
+                                               false,
+                                               "force_ldr_to_srgb",
+                                               Category::RendererAdvanced};
     SwitchableSetting<VramUsageMode, true> vram_usage_mode{linkage,
                                                            VramUsageMode::Conservative,
                                                            "vram_usage_mode",
