@@ -969,6 +969,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
             UpdateStencilTestEnable(regs);
         }
     }
+<<<<<<< HEAD
 
     // EDS2 - Extended Dynamic State 2 Core
     if (dynamic_features.has_extended_dynamic_state_2) {
@@ -1040,9 +1041,11 @@ void RasterizerVulkan::UpdateDynamicStates() {
     // Vertex Input Dynamic State
     if (dynamic_features.has_dynamic_vertex_input) {
         if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput()) {
+=======
+    if (device.IsExtVertexInputDynamicStateSupported() && dynamic_state > 0)
+        if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput())
+>>>>>>> a35e761f82c3e9285fc0f3b819a0031807f26b74
             UpdateVertexInput(regs);
-        }
-    }
 }
 
 void RasterizerVulkan::HandleTransformFeedback() {
@@ -1070,8 +1073,8 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
     if (!regs.viewport_scale_offset_enabled) {
         float x = static_cast<float>(regs.surface_clip.x);
         float y = static_cast<float>(regs.surface_clip.y);
-        float width = std::max(1.0f, static_cast<float>(regs.surface_clip.width));
-        float height = std::max(1.0f, static_cast<float>(regs.surface_clip.height));
+        float width = (std::max)(1.0f, static_cast<float>(regs.surface_clip.width));
+        float height = (std::max)(1.0f, static_cast<float>(regs.surface_clip.height));
         if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
             y += height;
             height = -height;
@@ -1115,8 +1118,8 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
     if (!regs.viewport_scale_offset_enabled) {
         u32 x = regs.surface_clip.x;
         u32 y = regs.surface_clip.y;
-        u32 width = std::max(1u, static_cast<u32>(regs.surface_clip.width));
-        u32 height = std::max(1u, static_cast<u32>(regs.surface_clip.height));
+        u32 width = (std::max)(1u, static_cast<u32>(regs.surface_clip.width));
+        u32 height = (std::max)(1u, static_cast<u32>(regs.surface_clip.height));
         if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
             y = regs.surface_clip.height - (y + height);
         }
@@ -1655,7 +1658,7 @@ void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs) 
             highest_dirty_attr = index;
         }
     }
-    for (size_t index = 0; index <= highest_dirty_attr; ++index) {
+    for (size_t index = 0; index < highest_dirty_attr; ++index) {
         const Maxwell::VertexAttribute attribute{regs.vertex_attrib_format[index]};
         const u32 binding{attribute.buffer};
         dirty[Dirty::VertexAttribute0 + index] = false;

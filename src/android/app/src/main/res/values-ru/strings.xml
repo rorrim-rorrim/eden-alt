@@ -195,6 +195,7 @@
     <string name="multiplayer_chat">Чат</string>
     <string name="multiplayer_more_options">Дополнительные настройки</string>
     <string name="chat">Чат</string>
+    <string name="clear">Очистить</string>
     <string name="type_message">Введите сообщение…</string>
     <string name="send_message">Отправить сообщение</string>
     <string name="multiplayer_moderation">Модерация</string>
@@ -240,7 +241,7 @@
     <string name="keys_description">Выберите ваш файл &lt;b>prod.keys&lt;/b> с помощью кнопки ниже.</string>
     <string name="select_keys">Выбрать ключи</string>
     <string name="firmware">Прошивка</string>
-    <string name="firmware_description">Выберете свой <b>firmware.zip</b>файл с кнопкой внизу.</string>
+    <string name="firmware_description">Выберите файл <b>firmware.zip</b> с помощью кнопки ниже.</string>
     <string name="select_firmware">Выбрать прошивку</string>
     <string name="games">Игры</string>
     <string name="games_description">Выберите вашу папку с &lt;b>играми&lt;/b> с помощью кнопки ниже.</string>
@@ -293,6 +294,23 @@
     <string name="permission_denied_description">Вы слишком часто отклоняли это разрешение, и теперь вам нужно будет вручную предоставить его в настройках системы.</string>
     <string name="about">О нас</string>
     <string name="about_description">Версия сборки, титры и другое</string>
+    <string name="system_information">Системная информация</string>
+    <string name="system_information_description">Просмотреть подробную информацию об устройстве</string>
+    <string name="device_manufacturer">Производитель</string>
+    <string name="device_model">Модель</string>
+    <string name="product">Продукт</string>
+    <string name="android_version">Версия Android</string>
+    <string name="android_security_patch">Патч безопасности</string>
+    <string name="build_id">ID сборки</string>
+    <string name="general_information">Общая информация</string>
+    <string name="hardware">Аппаратное обеспечение</string>
+    <string name="supported_abis">Поддерживаемые ABI</string>
+    <string name="cpu_info">Информация о ЦП</string>
+    <string name="gpu_information">Информация о ГПУ</string>
+    <string name="vulkan_driver_version">Версия драйвера Vulkan</string>
+    <string name="error_getting_emulator_info">Ошибка получения информации об эмуляторе</string>
+    <string name="memory_info">Информация о памяти</string>
+    <string name="total_memory">Общий объем памяти</string>
     <string name="warning_help">Помощь</string>
     <string name="warning">Предупреждение</string>
     <string name="warning_skip">Пропустить</string>
@@ -648,7 +666,7 @@
     <string name="installing">Установка…</string>
     <string name="latest">Последний</string>
     <string name="recommended_driver">Рекомендуемый драйвер:</string>
-    <string name="gpu_model">Модель ГПУ:</string>
+    <string name="gpu_model">Модель ГПУ</string>
     <string name="unsupported_gpu">ГПУ не поддерживается</string>
     <string name="unsupported_gpu_warning">Ваш ГПУ не поддерживает замену драйверов. Установка сторонних драйверов не рекомендуется.</string>
 
@@ -679,6 +697,7 @@
     <string name="copy_details">Копировать детали</string>
     <string name="add_ons">Дополнения</string>
     <string name="add_ons_description">Включение модов, обновлений и DLC</string>
+    <string name="playtime">Игровое время: </string>
     <string name="reset_playtime">Очистить игровое время</string>
     <string name="reset_playtime_description">Сбрасывает игровое время текущей игры обратно до 0 секунд</string>
     <string name="reset_playtime_warning_description">Это очистит данные о игровом времени текущей игры. Вы уверены\?</string>
@@ -694,6 +713,8 @@
     <string name="clear_shader_cache_description">Удаляет все шейдеры, созданные во время игры.</string>
     <string name="clear_shader_cache_warning_description">У вас будет больше лагов во время повторной генерации кэша шейдеров</string>
     <string name="cleared_shaders_successfully">Успешно очищены шейдеры</string>
+    <string name="driver_shader_wipe_dialog_title">Шейдеры очищены</string>
+    <string name="driver_shader_wipe_dialog_message">Eden автоматически очистил все кэши шейдеров для поддержания валидации Vulkan-конвейера. Это необходимо при переключении драйверов графического процессора для предотвращения сбоев и графических артефактов. Вы можете столкнуться с некоторыми подтормаживаниями во время перекомпиляции шейдеров.</string>
     <string name="addons_game">Аддоны: %1$s</string>
     <string name="save_data">Сохранить данные</string>
     <string name="save_data_description">Управлять сохранениями этой игры.</string>
@@ -792,10 +813,21 @@
     <string name="emulation_pause">Пауза эмуляции</string>
     <string name="emulation_unpause">Возобновить эмуляцию</string>
     <string name="emulation_input_overlay">Настройка оверлея</string>
+    <string name="load_amiibo">Загрузить Amiibo</string>
     <string name="touchscreen">Сенсорный экран</string>
     <string name="lock_drawer">Заморозить док</string>
     <string name="unlock_drawer">Разморозить док</string>
     <string name="reset">Сброс</string>
+
+    <!-- Amiibo -->
+    <string name="amiibo_title">Amiibo</string>
+    <string name="amiibo_removed_message">Текущий amiibo был убран</string>
+    <string name="amiibo_wrong_state">Текущая игра не ищет amiibo</string>
+    <string name="amiibo_not_valid">Выбранный файл не является допустимым amiibo</string>
+    <string name="amiibo_in_use">Выбранный файл уже используется</string>
+    <string name="amiibo_unknown_error">Произошла неизвестная ошибка</string>
+    <string name="amiibo_load_success">Amiibo загружен</string>
+
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Виртуальная клавиатура</string>
@@ -987,10 +1019,39 @@
     <string name="use_black_backgrounds">Чёрный фон</string>
     <string name="use_black_backgrounds_description">При использовании темной темы применяйте черный фон.</string>
 
+    <!-- App Language -->
+    <string name="app_language">Язык приложения</string>
+    <string name="app_language_description">Поменять язык интерфейса приложения</string>
+    <string name="app_language_system">Следовать системе</string>
+    <string name="app_language_english">Английский</string>
+    <string name="app_language_spanish">Испанский</string>
+    <string name="app_language_french">Французский</string>
+    <string name="app_language_german">Немецкий</string>
+    <string name="app_language_italian">Итальянский</string>
+    <string name="app_language_portuguese">Португальский</string>
+    <string name="app_language_brazilian_portuguese">Португальский бразильский</string>
+    <string name="app_language_russian">Русский</string>
+    <string name="app_language_japanese">Японский</string>
+    <string name="app_language_korean">Корейский</string>
+    <string name="app_language_simplified_chinese">Упрощенный китайский</string>
+    <string name="app_language_traditional_chinese">Традиционный китайский</string>
+    <string name="app_language_polish">Польский</string>
+    <string name="app_language_czech">Чешский</string>
+    <string name="app_language_norwegian">Норвежский</string>
+    <string name="app_language_hungarian">Магуайр</string>
+    <string name="app_language_ukrainian">Украинский</string>
+    <string name="app_language_vietnamese">Вьетнамский</string>
+    <string name="app_language_indonesian">Индонезийский</string>
+    <string name="app_language_arabic">Арабский</string>
+    <string name="app_language_central_kurdish">Персидский язык</string>
+    <string name="app_language_persian">Фарси</string>
+    <string name="app_language_hebrew">Израильский</string>
+    <string name="app_language_serbian">Сербский</string>
+
     <!-- Static Themes -->
     <string name="static_theme_color">Цвет темы</string>
     <string name="eden_theme">Eden (По умолчанию)</string>
-    <string name="violet">Фиолетовый (По умолчанию)</string>
+    <string name="violet">Фиолетовый </string>
     <string name="blue">Синий</string>
     <string name="cyan">Циановый</string>
     <string name="red">Красный</string>

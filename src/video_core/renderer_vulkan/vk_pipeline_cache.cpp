@@ -426,6 +426,7 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
 
     LOG_INFO(Render_Vulkan, "DynamicState value is set to {}", (u32) dynamic_state);
 
+<<<<<<< HEAD
     dynamic_features = {};
     // EDS1 - All-or-nothing (enabled if driver supports AND setting > 0)
     dynamic_features.has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0;
@@ -454,6 +455,22 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
     dynamic_features.has_extended_dynamic_state_3_rasterization_stream = device.IsExtExtendedDynamicState3RasterizationStreamSupported() && dynamic_state > 2;
     // Vertex input dynamic state (independent toggle)
     dynamic_features.has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported() &&  Settings::values.vertex_input_dynamic_state.GetValue();
+=======
+    dynamic_features = DynamicFeatures{
+        // EDS1 - All-or-nothing (enabled if driver supports AND setting > 0)
+        .has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0,
+        
+        // EDS2 - Core features (enabled if driver supports AND setting > 1)
+        .has_extended_dynamic_state_2 = device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1,
+        .has_extended_dynamic_state_2_logic_op = device.IsExtExtendedDynamicState2LogicOpSupported() && dynamic_state > 1,
+        .has_extended_dynamic_state_2_patch_control_points = device.IsExtExtendedDynamicState2PatchControlPointsSupported() && dynamic_state > 1,
+        
+        // EDS3 - Granular features (enabled if driver supports AND setting > 2)
+        .has_extended_dynamic_state_3_blend = device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_enables = device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2,
+        .has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported() && dynamic_state > 0,
+    };
+>>>>>>> a35e761f82c3e9285fc0f3b819a0031807f26b74
 }
 
 PipelineCache::~PipelineCache() {

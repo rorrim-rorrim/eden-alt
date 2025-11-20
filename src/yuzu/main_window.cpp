@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // Qt on macOS doesn't define VMA shit
+#include "qt_common/qt_string_lookup.h"
 #if defined(QT_STATICPLUGIN) && !defined(__APPLE__)
 #undef VMA_IMPLEMENTATION
 #endif
@@ -73,6 +74,8 @@
 // Qt Common //
 #include "qt_common/config/uisettings.h"
 #include "qt_common/config/shared_translation.h"
+
+#include "qt_common/abstract/frontend.h"
 
 #include "qt_common/qt_common.h"
 
@@ -3227,37 +3230,41 @@ void MainWindow::ErrorDisplayRequestExit() {
 }
 
 void MainWindow::OnMenuReportCompatibility() {
-#if defined(ARCHITECTURE_x86_64) && !defined(__APPLE__)
-    const auto& caps = Common::GetCPUCaps();
-    const bool has_fma = caps.fma || caps.fma4;
-    const auto processor_count = std::thread::hardware_concurrency();
-    const bool has_4threads = processor_count == 0 || processor_count >= 4;
-    const bool has_8gb_ram = Common::GetMemInfo().TotalPhysicalMemory >= 8_GiB;
-    const bool has_broken_vulkan = UISettings::values.has_broken_vulkan;
+    QtCommon::Frontend::Critical(
+        tr("Function Disabled"),
+        tr("Compatibility list reporting is currently disabled. Check back later!"));
 
-    if (!has_fma || !has_4threads || !has_8gb_ram || has_broken_vulkan) {
-        QMessageBox::critical(this, tr("Hardware requirements not met"),
-                              tr("Your system does not meet the recommended hardware requirements. "
-                                 "Compatibility reporting has been disabled."));
-        return;
-    }
+// #if defined(ARCHITECTURE_x86_64) && !defined(__APPLE__)
+//     const auto& caps = Common::GetCPUCaps();
+//     const bool has_fma = caps.fma || caps.fma4;
+//     const auto processor_count = std::thread::hardware_concurrency();
+//     const bool has_4threads = processor_count == 0 || processor_count >= 4;
+//     const bool has_8gb_ram = Common::GetMemInfo().TotalPhysicalMemory >= 8_GiB;
+//     const bool has_broken_vulkan = UISettings::values.has_broken_vulkan;
 
-    if (!Settings::values.eden_token.GetValue().empty() &&
-        !Settings::values.eden_username.GetValue().empty()) {
-    } else {
-        QMessageBox::critical(
-            this, tr("Missing yuzu Account"),
-            tr("In order to submit a game compatibility test case, you must set up your web token "
-               "and "
-               "username.<br><br/>To link your eden account, go to Emulation &gt; Configuration "
-               "&gt; "
-               "Web."));
-    }
-#else
-    QMessageBox::critical(this, tr("Hardware requirements not met"),
-                          tr("Your system does not meet the recommended hardware requirements. "
-                             "Compatibility reporting has been disabled."));
-#endif
+//     if (!has_fma || !has_4threads || !has_8gb_ram || has_broken_vulkan) {
+//         QMessageBox::critical(this, tr("Hardware requirements not met"),
+//                               tr("Your system does not meet the recommended hardware requirements. "
+//                                  "Compatibility reporting has been disabled."));
+//         return;
+//     }
+
+//     if (!Settings::values.eden_token.GetValue().empty() &&
+//         !Settings::values.eden_username.GetValue().empty()) {
+//     } else {
+//         QMessageBox::critical(
+//             this, tr("Missing yuzu Account"),
+//             tr("In order to submit a game compatibility test case, you must set up your web token "
+//                "and "
+//                "username.<br><br/>To link your eden account, go to Emulation &gt; Configuration "
+//                "&gt; "
+//                "Web."));
+//     }
+// #else
+//     QMessageBox::critical(this, tr("Hardware requirements not met"),
+//                           tr("Your system does not meet the recommended hardware requirements. "
+//                              "Compatibility reporting has been disabled."));
+// #endif
 }
 
 void MainWindow::OpenURL(const QUrl& url) {
@@ -4058,35 +4065,18 @@ void MainWindow::OnOpenControllerMenu() {
 void MainWindow::OnHomeMenu() {
     auto result = FirmwareManager::VerifyFirmware(*QtCommon::system.get());
 
+    using namespace QtCommon::StringLookup;
+
     switch (result) {
     case FirmwareManager::ErrorFirmwareMissing:
         QMessageBox::warning(this, tr("No firmware available"),
-                             tr("Please install firmware to use the Home Menu."));
+                             Lookup(FwCheckErrorFirmwareMissing));
         return;
     case FirmwareManager::ErrorFirmwareCorrupted:
         QMessageBox::warning(this, tr("Firmware Corrupted"),
-                             tr(FirmwareManager::GetFirmwareCheckString(result)));
+                             Lookup(FwCheckErrorFirmwareCorrupted));
         return;
-    case FirmwareManager::ErrorFirmwareTooNew: {
-        if (!UISettings::values.show_fw_warning.GetValue()) break;
-
-        QMessageBox box(QMessageBox::Warning,
-                        tr("Firmware Too New"),
-                        tr(FirmwareManager::GetFirmwareCheckString(result)) + tr("\nContinue anyways?"),
-                        QMessageBox::Yes | QMessageBox::No,
-                        this);
-
-        QCheckBox *checkbox = new QCheckBox(tr("Don't show again"));
-        box.setCheckBox(checkbox);
-
-        int button = box.exec();
-        if (checkbox->isChecked()) {
-            UISettings::values.show_fw_warning.SetValue(false);
-        }
-
-        if (button == static_cast<int>(QMessageBox::No)) return;
-        break;
-    } default:
+    default:
         break;
     }
 
