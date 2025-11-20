@@ -952,6 +952,10 @@
     <string name="format_reinterpretation_r32sint_to_r32uint">R32 SInt to R32 UInt</string>
     <string name="format_reinterpretation_r32sfloat_to_r32sint">R32 SFloat to R32 SInt</string>
 
+    <!-- Force Identity Swizzle -->
+    <string name="force_identity_swizzle">Force Identity Swizzle</string>
+    <string name="force_identity_swizzle_description">Forces identity component swizzle for storage and input attachment images. Required by Vulkan spec. Disable only for debugging driver issues.</string>
+
     <!-- VRAM Usage Mode -->
     <string name="vram_usage_mode">VRAM Usage Mode</string>
     <string name="vram_usage_mode_description">Control how aggressively the emulator allocates and frees GPU memory.</string>

@@ -2168,6 +2168,11 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
         .usage = ImageUsageFlags(format_info, format),
     };
     
+    // Vulkan spec: STORAGE_IMAGE and INPUT_ATTACHMENT descriptors MUST use identity swizzle
+    // Using non-identity swizzle causes validation error and undefined behavior
+    const bool requires_identity_swizzle = Settings::values.force_identity_swizzle.GetValue() &&
+        (image_view_usage.usage & (VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)) != 0;
+    
     const VkImageViewCreateInfo create_info{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext = &image_view_usage,
@@ -2176,10 +2181,10 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
         .viewType = VkImageViewType{},
         .format = view_format,
         .components{
-            .r = ComponentSwizzle(swizzle[0]),
-            .g = ComponentSwizzle(swizzle[1]),
-            .b = ComponentSwizzle(swizzle[2]),
-            .a = ComponentSwizzle(swizzle[3]),
+            .r = requires_identity_swizzle ? VK_COMPONENT_SWIZZLE_IDENTITY : ComponentSwizzle(swizzle[0]),
+            .g = requires_identity_swizzle ? VK_COMPONENT_SWIZZLE_IDENTITY : ComponentSwizzle(swizzle[1]),
+            .b = requires_identity_swizzle ? VK_COMPONENT_SWIZZLE_IDENTITY : ComponentSwizzle(swizzle[2]),
+            .a = requires_identity_swizzle ? VK_COMPONENT_SWIZZLE_IDENTITY : ComponentSwizzle(swizzle[3]),
         },
         .subresourceRange = MakeSubresourceRange(aspect_mask, info.range),
     };

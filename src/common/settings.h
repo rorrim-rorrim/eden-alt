@@ -350,7 +350,7 @@ struct Values {
                                                            linkage, true, "use_asynchronous_gpu_emulation", Category::Renderer};
     SwitchableSetting<AstcDecodeMode, true> accelerate_astc{linkage,
 #ifdef ANDROID
-                                                            AstcDecodeMode::Cpu,
+                                                            AstcDecodeMode::Gpu,
 #else
                                                             AstcDecodeMode::Gpu,
 #endif
@@ -401,7 +401,7 @@ struct Values {
                                                   true,
                                                   true};
     SwitchableSetting<int, true> fsr_sharpening_slider{linkage,
-                                                       25,
+                                                       0,
                                                        0,
                                                        200,
                                                        "fsr_sharpening_slider",
@@ -457,6 +457,10 @@ struct Values {
         FormatReinterpretation::Disabled,
         "format_reinterpretation",
         Category::RendererAdvanced};
+    SwitchableSetting<bool> force_identity_swizzle{linkage,
+                                                     false,
+                                                     "force_identity_swizzle",
+                                                     Category::RendererAdvanced};
     SwitchableSetting<VramUsageMode, true> vram_usage_mode{linkage,
                                                            VramUsageMode::Conservative,
                                                            "vram_usage_mode",

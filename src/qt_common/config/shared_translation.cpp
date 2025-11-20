@@ -197,10 +197,15 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
               "16:9, so modifications are required to get other ratios.\nAlso controls the "
               "aspect ratio of captured screenshots."));
     INSERT(Settings,
-            format_reinterpretation,
-            tr("Format Reinterpretation:"),
-            tr("Reinterprets certain texture formats to improve performance.\nMay cause "
-               "graphical issues in some games."));
+           format_reinterpretation,
+           tr("Format Reinterpretation:"),
+           tr("Reinterprets certain texture formats for accuracy rendering.\nMay cause "
+              "graphical issues in some games."));
+    INSERT(Settings,
+           force_identity_swizzle,
+           tr("Force Identity Swizzle"),
+           tr("Forces identity component swizzle for storage and input attachment images.\n"
+              "Required by Vulkan spec. Disable only for debugging driver issues."));
     INSERT(Settings,
            use_disk_shader_cache,
            tr("Use persistent pipeline cache"),
