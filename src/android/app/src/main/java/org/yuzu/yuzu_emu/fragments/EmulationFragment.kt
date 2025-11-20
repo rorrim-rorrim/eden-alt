@@ -1133,7 +1133,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                         var fpsText = String.format("FPS: %.1f", actualFps)
                         if (enableFrameInterpolation) {
-                            fpsText = String.format("IFPS: %.1f", actualFps)
+                            fpsText = String.format("GFPS: %.1f", actualFps)
                         }
                         sb.append(fpsText)
                     }
