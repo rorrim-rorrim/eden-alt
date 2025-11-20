@@ -969,7 +969,6 @@ void RasterizerVulkan::UpdateDynamicStates() {
             UpdateStencilTestEnable(regs);
         }
     }
-<<<<<<< HEAD
 
     // EDS2 - Extended Dynamic State 2 Core
     if (dynamic_features.has_extended_dynamic_state_2) {
@@ -1041,11 +1040,9 @@ void RasterizerVulkan::UpdateDynamicStates() {
     // Vertex Input Dynamic State
     if (dynamic_features.has_dynamic_vertex_input) {
         if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput()) {
-=======
-    if (device.IsExtVertexInputDynamicStateSupported() && dynamic_state > 0)
-        if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput())
->>>>>>> a35e761f82c3e9285fc0f3b819a0031807f26b74
             UpdateVertexInput(regs);
+        }
+    }
 }
 
 void RasterizerVulkan::HandleTransformFeedback() {
