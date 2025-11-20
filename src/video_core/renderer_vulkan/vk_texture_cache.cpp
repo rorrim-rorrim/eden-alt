@@ -2123,31 +2123,37 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     VkFormat view_format = format_info.format;
     
     // Format reinterpretation for games with incorrect format usage
-    // Some games declare render targets as R32_UINT but sample them
-    // as float textures.
+    // Only apply to sampled images (not render targets, not storage images)
     const auto reinterpretation_mode = Settings::values.format_reinterpretation.GetValue();
-    if (reinterpretation_mode != Settings::FormatReinterpretation::Disabled) {
-        switch (reinterpretation_mode) {
-        case Settings::FormatReinterpretation::R32UintToR32Sfloat:
-            if (view_format == VK_FORMAT_R32_UINT) {
-                view_format = VK_FORMAT_R32_SFLOAT;
-                LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_UINT -> R32_SFLOAT for texture view");
+    if (reinterpretation_mode != Settings::FormatReinterpretation::Disabled &&
+        !info.IsRenderTarget() &&
+        (ImageUsageFlags(format_info, format) & VK_IMAGE_USAGE_SAMPLED_BIT)) {
+        
+        // Only reinterpret if NOT used as storage image (storage requires matching types)
+        const bool is_storage = (ImageUsageFlags(format_info, format) & VK_IMAGE_USAGE_STORAGE_BIT) != 0;
+        if (!is_storage) {
+            switch (reinterpretation_mode) {
+            case Settings::FormatReinterpretation::R32UintToR32Sfloat:
+                if (view_format == VK_FORMAT_R32_UINT) {
+                    view_format = VK_FORMAT_R32_SFLOAT;
+                    LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_UINT -> R32_SFLOAT for sampled image");
+                }
+                break;
+            case Settings::FormatReinterpretation::R32SintToR32Uint:
+                if (view_format == VK_FORMAT_R32_SINT) {
+                    view_format = VK_FORMAT_R32_UINT;
+                    LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_SINT -> R32_UINT for sampled image");
+                }
+                break;
+            case Settings::FormatReinterpretation::R32SfloatToR32Sint:
+                if (view_format == VK_FORMAT_R32_SFLOAT) {
+                    view_format = VK_FORMAT_R32_SINT;
+                    LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_SFLOAT -> R32_SINT for sampled image");
+                }
+                break;
+            default:
+                break;
             }
-            break;
-        case Settings::FormatReinterpretation::R32SintToR32Uint:
-            if (view_format == VK_FORMAT_R32_SINT) {
-                view_format = VK_FORMAT_R32_UINT;
-                LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_SINT -> R32_UINT for texture view");
-            }
-            break;
-        case Settings::FormatReinterpretation::R32SfloatToR32Sint:
-            if (view_format == VK_FORMAT_R32_SFLOAT) {
-                view_format = VK_FORMAT_R32_SINT;
-                LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_SFLOAT -> R32_SINT for texture view");
-            }
-            break;
-        default:
-            break;
         }
     }
     
