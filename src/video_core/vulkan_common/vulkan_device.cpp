@@ -1257,21 +1257,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
         }
     }
     
-    // Qualcomm Adreno < 762.24: Broken VERTEX_INPUT_BINDING_STRIDE
-    // EDS1 works fine for other states, but vkCmdBindVertexBuffers2EXT triggers validation errors:
-    // "VkPipeline doesn't set up VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE"
-    // Tested working: 676.0 (with VIDS), 762.24, 819.2
-    // Solution: Keep EDS1 enabled, but use legacy BindVertexBuffers path
-    if (extensions.extended_dynamic_state && is_qualcomm) {
-        const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version <= VK_MAKE_API_VERSION(0, 0, 762, 24)) {
-            LOG_WARNING(Render_Vulkan,
-                        "Qualcomm Adreno ≤ 762.24: VERTEX_INPUT_BINDING_STRIDE broken, "
-                        "using legacy vertex buffer binding");
-            has_broken_vertex_input_stride = true;
-        }
-    }
-    
     // VK_EXT_extended_dynamic_state2
     
     // RADV < 22.3.1: Broken ExtendedDynamicState2 implementation
@@ -1281,6 +1266,18 @@ bool Device::GetSuitability(bool requires_swapchain) {
         if (version < VK_MAKE_API_VERSION(0, 22, 3, 1)) {
             LOG_WARNING(Render_Vulkan,
                         "RADV < 22.3.1: Disabling broken VK_EXT_extended_dynamic_state2");
+            features.extended_dynamic_state2.extendedDynamicState2 = false;
+        }
+    }
+    
+    // Qualcomm Adreno 7xx (drivers 676.0 - 679.x): Broken ExtendedDynamicState2
+    // Disable ExtendedDynamicState2 on affected driver versions
+    if (extensions.extended_dynamic_state2 && is_qualcomm) {
+        const u32 version = (properties.properties.driverVersion << 3) >> 3;
+        if (version >= VK_MAKE_API_VERSION(0, 0, 676, 0) &&
+            version < VK_MAKE_API_VERSION(0, 0, 680, 0)) {
+            LOG_WARNING(Render_Vulkan,
+                        "Qualcomm Adreno 7xx (676-679): Disabling broken VK_EXT_extended_dynamic_state2");
             features.extended_dynamic_state2.extendedDynamicState2 = false;
         }
     }
@@ -1324,6 +1321,14 @@ bool Device::GetSuitability(bool requires_swapchain) {
                         "RADV + RDNA2: Disabling broken VK_EXT_vertex_input_dynamic_state");
             features.vertex_input_dynamic_state.vertexInputDynamicState = false;
         }
+    }
+    
+    // Qualcomm: Broken VertexInputDynamicState implementation
+    // Disable VertexInputDynamicState on all Qualcomm drivers
+    if (extensions.vertex_input_dynamic_state && is_qualcomm) {
+        LOG_WARNING(Render_Vulkan,
+                    "Qualcomm: Disabling broken VK_EXT_vertex_input_dynamic_state");
+        features.vertex_input_dynamic_state.vertexInputDynamicState = false;
     }
     
     // Intel Windows < 27.20.100.0: Broken VertexInputDynamicState
