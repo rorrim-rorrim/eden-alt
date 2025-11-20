@@ -155,6 +155,20 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.FORCE_IDENTITY_SWIZZLE,
+                    titleId = R.string.force_identity_swizzle,
+                    descriptionId = R.string.force_identity_swizzle_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.FORCE_LDR_TO_SRGB,
+                    titleId = R.string.force_ldr_to_srgb,
+                    descriptionId = R.string.force_ldr_to_srgb_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.RENDERER_DESCRIPTOR_INDEXING,
                     titleId = R.string.descriptor_indexing,
                     descriptionId = R.string.descriptor_indexing_description
