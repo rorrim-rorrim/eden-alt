@@ -2362,8 +2362,8 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
     // 2. If only customBorderColors: Use VK_BORDER_COLOR_FLOAT_CUSTOM_EXT + specific format (spec compliant)
     // 3. If only customBorderColorWithoutFormat: Shouldn't happen per spec, but handle as case 2
     // 4. If neither: Use standard border colors (fallback)
-    const bool has_custom_colors = device.features.custom_border_color.customBorderColors;
-    const bool has_without_format = device.features.custom_border_color.customBorderColorWithoutFormat;
+    const bool has_custom_colors = device.HasCustomBorderColorFeature();
+    const bool has_without_format = device.HasCustomBorderColorWithoutFormatFeature();
     const bool use_custom_border = arbitrary_borders && has_custom_colors;
     
     const VkSamplerCustomBorderColorCreateInfoEXT border_ci{

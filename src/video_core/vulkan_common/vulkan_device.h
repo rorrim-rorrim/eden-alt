@@ -552,6 +552,16 @@ public:
         return extensions.custom_border_color;
     }
 
+    /// Returns true if customBorderColors feature is enabled (allows VK_BORDER_COLOR_*_CUSTOM_EXT).
+    bool HasCustomBorderColorFeature() const {
+        return features.custom_border_color.customBorderColors;
+    }
+
+    /// Returns true if customBorderColorWithoutFormat feature is enabled (allows VK_FORMAT_UNDEFINED).
+    bool HasCustomBorderColorWithoutFormatFeature() const {
+        return features.custom_border_color.customBorderColorWithoutFormat;
+    }
+
     /// Base Vulkan Dynamic State support checks.
     /// These provide granular control over each base dynamic state, allowing individual states
     /// to be disabled if broken driver implementations are detected at device initialization.
