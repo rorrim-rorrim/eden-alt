@@ -1337,8 +1337,11 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
 void Device::RemoveUnsuitableExtensions() {
     // VK_EXT_custom_border_color
-    extensions.custom_border_color = features.custom_border_color.customBorderColors &&
-                                     features.custom_border_color.customBorderColorWithoutFormat;
+    // Enable if at least one feature is available (customBorderColors OR customBorderColorWithoutFormat)
+    const bool has_any_custom_border_color =
+        features.custom_border_color.customBorderColors ||
+        features.custom_border_color.customBorderColorWithoutFormat;
+    extensions.custom_border_color = has_any_custom_border_color;
     RemoveExtensionFeatureIfUnsuitable(extensions.custom_border_color, features.custom_border_color,
                                        VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
 
