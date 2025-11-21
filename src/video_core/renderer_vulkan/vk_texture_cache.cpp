@@ -204,124 +204,19 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     return info;
 }
 
-// Vulkan format class compatibility validation according to spec
-// Formats must have same size AND be in the same compatibility class
-[[nodiscard]] bool AreFormatsClassCompatible(VkFormat format_a, VkFormat format_b) {
-    if (format_a == format_b) {
-        return true;
-    }
-    
-    // Get format properties (size in bytes per texel)
-    const auto get_format_size = [](VkFormat format) -> u32 {
-        switch (format) {
-            // 8-bit formats
-            case VK_FORMAT_R8_UNORM:
-            case VK_FORMAT_R8_SNORM:
-            case VK_FORMAT_R8_UINT:
-            case VK_FORMAT_R8_SINT:
-            case VK_FORMAT_R8_SRGB:
-                return 1;
-            
-            // 16-bit formats
-            case VK_FORMAT_R16_UNORM:
-            case VK_FORMAT_R16_SNORM:
-            case VK_FORMAT_R16_UINT:
-            case VK_FORMAT_R16_SINT:
-            case VK_FORMAT_R16_SFLOAT:
-            case VK_FORMAT_R8G8_UNORM:
-            case VK_FORMAT_R8G8_SNORM:
-            case VK_FORMAT_R8G8_UINT:
-            case VK_FORMAT_R8G8_SINT:
-            case VK_FORMAT_R8G8_SRGB:
-                return 2;
-            
-            // 32-bit formats
-            case VK_FORMAT_R32_UINT:
-            case VK_FORMAT_R32_SINT:
-            case VK_FORMAT_R32_SFLOAT:
-            case VK_FORMAT_R16G16_UNORM:
-            case VK_FORMAT_R16G16_SNORM:
-            case VK_FORMAT_R16G16_UINT:
-            case VK_FORMAT_R16G16_SINT:
-            case VK_FORMAT_R16G16_SFLOAT:
-            case VK_FORMAT_R8G8B8A8_UNORM:
-            case VK_FORMAT_R8G8B8A8_SNORM:
-            case VK_FORMAT_R8G8B8A8_UINT:
-            case VK_FORMAT_R8G8B8A8_SINT:
-            case VK_FORMAT_R8G8B8A8_SRGB:
-            case VK_FORMAT_B8G8R8A8_UNORM:
-            case VK_FORMAT_B8G8R8A8_SRGB:
-            case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-            case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-            case VK_FORMAT_A8B8G8R8_UINT_PACK32:
-            case VK_FORMAT_A8B8G8R8_SINT_PACK32:
-            case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
-            case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
-            case VK_FORMAT_A2B10G10R10_UINT_PACK32:
-            case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
-                return 4;
-            
-            // 64-bit formats
-            case VK_FORMAT_R16G16B16A16_UNORM:
-            case VK_FORMAT_R16G16B16A16_SNORM:
-            case VK_FORMAT_R16G16B16A16_UINT:
-            case VK_FORMAT_R16G16B16A16_SINT:
-            case VK_FORMAT_R16G16B16A16_SFLOAT:
-            case VK_FORMAT_R32G32_UINT:
-            case VK_FORMAT_R32G32_SINT:
-            case VK_FORMAT_R32G32_SFLOAT:
-                return 8;
-            
-            // 128-bit formats
-            case VK_FORMAT_R32G32B32A32_UINT:
-            case VK_FORMAT_R32G32B32A32_SINT:
-            case VK_FORMAT_R32G32B32A32_SFLOAT:
-                return 16;
-            
-            // Compressed and depth formats return 0 (not compatible with anything except themselves)
-            default:
-                return 0;
-        }
-    };
-    
-    const u32 size_a = get_format_size(format_a);
-    const u32 size_b = get_format_size(format_b);
-    
-    // Different sizes = not compatible
-    if (size_a != size_b || size_a == 0) {
-        return false;
-    }
-    
-    // Same size formats are class-compatible (simplified rule)
-    // More strict: should also check component layout, but this catches most issues
-    return true;
-}
-
 [[nodiscard]] vk::Image MakeImage(const Device& device, const MemoryAllocator& allocator,
                                   const ImageInfo& info, std::span<const VkFormat> view_formats) {
     if (info.type == ImageType::Buffer) {
         return vk::Image{};
     }
     VkImageCreateInfo image_ci = MakeImageCreateInfo(device, info);
-    
-    // Filter view_formats to only include Vulkan class-compatible formats
-    // This prevents validation errors on strict drivers (Qualcomm stock, Mali)
-    boost::container::small_vector<VkFormat, 16> compatible_formats;
-    const VkFormat base_format = image_ci.format;
-    
-    for (const VkFormat view_format : view_formats) {
-        if (AreFormatsClassCompatible(base_format, view_format)) {
-            compatible_formats.push_back(view_format);
-        }
-    }
-    
     const VkImageFormatListCreateInfo image_format_list = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO,
         .pNext = nullptr,
-        .viewFormatCount = static_cast<u32>(compatible_formats.size()),
-        .pViewFormats = compatible_formats.data(),
+        .viewFormatCount = static_cast<u32>(view_formats.size()),
+        .pViewFormats = view_formats.data(),
     };
-    if (compatible_formats.size() > 1) {
+    if (view_formats.size() > 1) {
         image_ci.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
         if (device.IsKhrImageFormatListSupported()) {
             image_ci.pNext = &image_format_list;
