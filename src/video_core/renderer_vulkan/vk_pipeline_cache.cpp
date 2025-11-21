@@ -837,7 +837,6 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
     // Clamp shared memory usage to device maximum to prevent missing textures/effects
     const auto driver_id = device.GetDriverID();
     const bool is_mobile = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
-                           driver_id == VK_DRIVER_ID_MESA_TURNIP ||
                            driver_id == VK_DRIVER_ID_ARM_PROPRIETARY ||
                            driver_id == VK_DRIVER_ID_BROADCOM_PROPRIETARY ||
                            driver_id == VK_DRIVER_ID_IMAGINATION_PROPRIETARY;
