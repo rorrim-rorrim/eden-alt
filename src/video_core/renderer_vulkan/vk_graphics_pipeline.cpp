@@ -845,17 +845,18 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         VK_DYNAMIC_STATE_LINE_WIDTH,
     };
     if (key.state.extended_dynamic_state) {
-        static constexpr std::array extended{
-            VK_DYNAMIC_STATE_CULL_MODE_EXT,
-            VK_DYNAMIC_STATE_FRONT_FACE_EXT,
-            VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT,
-            VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT,
-            VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE_EXT,
-            VK_DYNAMIC_STATE_DEPTH_COMPARE_OP_EXT,
-            VK_DYNAMIC_STATE_DEPTH_BOUNDS_TEST_ENABLE_EXT,
-            VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE_EXT,
-            VK_DYNAMIC_STATE_STENCIL_OP_EXT,
-        };
+        std::vector<VkDynamicState> extended;
+        extended.push_back(VK_DYNAMIC_STATE_CULL_MODE_EXT);
+        extended.push_back(VK_DYNAMIC_STATE_FRONT_FACE_EXT);
+        extended.push_back(VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT);
+        extended.push_back(VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE_EXT);
+        extended.push_back(VK_DYNAMIC_STATE_DEPTH_COMPARE_OP_EXT);
+        extended.push_back(VK_DYNAMIC_STATE_DEPTH_BOUNDS_TEST_ENABLE_EXT);
+        extended.push_back(VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE_EXT);
+        extended.push_back(VK_DYNAMIC_STATE_STENCIL_OP_EXT);
+        if (!device.IsExtVertexInputDynamicStateSupported()) {
+            extended.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT);
+        }
         if (key.state.dynamic_vertex_input) {
             dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_EXT);
         }

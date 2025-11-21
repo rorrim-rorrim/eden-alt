@@ -991,6 +991,10 @@ void RasterizerVulkan::UpdateDynamicStates() {
         if (device.IsExtExtendedDynamicState3BlendingSupported()) {
             UpdateBlending(regs);
         }
+        if (device.IsExtExtendedDynamicState3EnablesSupported()) {
+            UpdateLineStippleEnable(regs);
+            UpdateConservativeRasterizationMode(regs);
+        }
     }
     if (device.IsExtVertexInputDynamicStateSupported()) {
         if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput()) {
