@@ -2170,8 +2170,15 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     
     // Vulkan spec: STORAGE_IMAGE and INPUT_ATTACHMENT descriptors MUST use identity swizzle
     // Using non-identity swizzle causes validation error and undefined behavior
+    // IMPORTANT: Only force identity swizzle for render targets OR input attachments.
+    // For sampled textures (even if they have storage capability), use the shader-specified
+    // swizzle to avoid breaking UE4 lighting and other games. The actual storage writes happen
+    // through StorageView() which uses MakeView() with hardcoded identity swizzle, so that
+    // path is already spec-compliant.
+    const bool is_input_attachment = 
+        (image_view_usage.usage & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT) != 0;
     const bool requires_identity_swizzle = Settings::values.force_identity_swizzle.GetValue() &&
-        (image_view_usage.usage & (VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)) != 0;
+        (info.IsRenderTarget() || is_input_attachment);
     
     const VkImageViewCreateInfo create_info{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
