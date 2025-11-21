@@ -1697,7 +1697,7 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
              VAddr cpu_addr_)
     : VideoCommon::ImageBase(info_, gpu_addr_, cpu_addr_), scheduler{&runtime_.scheduler},
       runtime{&runtime_} {
-    // CRITICAL: Adjust MSAA for HDR formats if driver doesn't support shaderStorageImageMultisample
+    // Adjust MSAA for HDR formats if driver doesn't support shaderStorageImageMultisample
     // This prevents texture corruption by degrading to non-MSAA when msaa_copy_pass would fail
     const ImageInfo adjusted_info = AdjustMSAAForHDRFormats(runtime_.device, info_);
     
@@ -2228,37 +2228,35 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     VkFormat view_format = format_info.format;
     
     // Format reinterpretation for games with incorrect format usage
-    // Only apply to sampled images (not render targets, not storage images)
+    // Only apply to sampled images (not render targets)
+    // NOTE: Storage images use separate views created via StorageView()/MakeView(), 
+    // so reinterpretation here only affects sampled texture reads, not storage writes
     const auto reinterpretation_mode = Settings::values.format_reinterpretation.GetValue();
     if (reinterpretation_mode != Settings::FormatReinterpretation::Disabled &&
         !info.IsRenderTarget() &&
         (ImageUsageFlags(format_info, format) & VK_IMAGE_USAGE_SAMPLED_BIT)) {
         
-        // Only reinterpret if NOT used as storage image (storage requires matching types)
-        const bool is_storage = (ImageUsageFlags(format_info, format) & VK_IMAGE_USAGE_STORAGE_BIT) != 0;
-        if (!is_storage) {
-            switch (reinterpretation_mode) {
-            case Settings::FormatReinterpretation::R32UintToR32Sfloat:
-                if (view_format == VK_FORMAT_R32_UINT) {
-                    view_format = VK_FORMAT_R32_SFLOAT;
-                    LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_UINT -> R32_SFLOAT for sampled image");
-                }
-                break;
-            case Settings::FormatReinterpretation::R32SintToR32Uint:
-                if (view_format == VK_FORMAT_R32_SINT) {
-                    view_format = VK_FORMAT_R32_UINT;
-                    LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_SINT -> R32_UINT for sampled image");
-                }
-                break;
-            case Settings::FormatReinterpretation::R32SfloatToR32Sint:
-                if (view_format == VK_FORMAT_R32_SFLOAT) {
-                    view_format = VK_FORMAT_R32_SINT;
-                    LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_SFLOAT -> R32_SINT for sampled image");
-                }
-                break;
-            default:
-                break;
+        switch (reinterpretation_mode) {
+        case Settings::FormatReinterpretation::R32UintToR32Sfloat:
+            if (view_format == VK_FORMAT_R32_UINT) {
+                view_format = VK_FORMAT_R32_SFLOAT;
+                LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_UINT -> R32_SFLOAT for sampled image");
             }
+            break;
+        case Settings::FormatReinterpretation::R32SintToR32Uint:
+            if (view_format == VK_FORMAT_R32_SINT) {
+                view_format = VK_FORMAT_R32_UINT;
+                LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_SINT -> R32_UINT for sampled image");
+            }
+            break;
+        case Settings::FormatReinterpretation::R32SfloatToR32Sint:
+            if (view_format == VK_FORMAT_R32_SFLOAT) {
+                view_format = VK_FORMAT_R32_SINT;
+                LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_SFLOAT -> R32_SINT for sampled image");
+            }
+            break;
+        default:
+            break;
         }
     }
     
