@@ -833,15 +833,24 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
 
     auto program{TranslateProgram(pools.inst, pools.block, env, cfg, host_info)};
     
-    // Adreno and mobile GPUs have lower shared memory limits (32KB vs Switch's 48KB)
-    // Skip shader compilation if it exceeds device limits to prevent GPU crashes
-    const u32 max_shared_memory = device.GetMaxComputeSharedMemorySize();
-    if (program.shared_memory_size > max_shared_memory) {
-        LOG_ERROR(Render_Vulkan, 
-                  "Compute shader 0x{:016x} requests {}KB shared memory but device max is {}KB - "
-                  "SKIPPING compilation to prevent GPU crash. Visual effect will be missing.",
-                  key.unique_hash, program.shared_memory_size / 1024, max_shared_memory / 1024);
-        return nullptr;
+    // Mobile GPUs (Adreno, Mali, etc.) have lower shared memory limits (32KB vs Switch's 48KB)
+    // Clamp shared memory usage to device maximum to prevent missing textures/effects
+    const auto driver_id = device.GetDriverID();
+    const bool is_mobile = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
+                           driver_id == VK_DRIVER_ID_MESA_TURNIP ||
+                           driver_id == VK_DRIVER_ID_ARM_PROPRIETARY ||
+                           driver_id == VK_DRIVER_ID_BROADCOM_PROPRIETARY ||
+                           driver_id == VK_DRIVER_ID_IMAGINATION_PROPRIETARY;
+    
+    if (is_mobile) {
+        const u32 max_shared_memory = device.GetMaxComputeSharedMemorySize();
+        if (program.shared_memory_size > max_shared_memory) {
+            LOG_WARNING(Render_Vulkan, 
+                        "Compute shader 0x{:016x} requests {}KB shared memory but device max is {}KB - "
+                        "clamping to device limit (may cause artifacts if shader accesses out of bounds)",
+                        key.unique_hash, program.shared_memory_size / 1024, max_shared_memory / 1024);
+            program.shared_memory_size = max_shared_memory;
+        }
     }
     
     const std::vector<u32> code{EmitSPIRV(profile, program, this->optimize_spirv_output)};
