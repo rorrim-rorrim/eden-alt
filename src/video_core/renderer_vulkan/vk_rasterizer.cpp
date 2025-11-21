@@ -983,8 +983,6 @@ void RasterizerVulkan::UpdateDynamicStates() {
                 }
                 UpdateLogicOpEnable(regs);
                 UpdateDepthClampEnable(regs);
-                UpdateLineStippleEnable(regs);
-                UpdateConservativeRasterizationMode(regs);
             }
         }
         if (device.IsExtExtendedDynamicState2ExtrasSupported()) {
@@ -992,6 +990,10 @@ void RasterizerVulkan::UpdateDynamicStates() {
         }
         if (device.IsExtExtendedDynamicState3BlendingSupported()) {
             UpdateBlending(regs);
+        }
+        if (device.IsExtExtendedDynamicState3EnablesSupported()) {
+            UpdateLineStippleEnable(regs);
+            UpdateConservativeRasterizationMode(regs);
         }
     }
     if (device.IsExtVertexInputDynamicStateSupported()) {
