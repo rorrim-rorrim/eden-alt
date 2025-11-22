@@ -18,37 +18,45 @@ namespace Vulkan {
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
 struct DynamicFeatures {
-    // VK_EXT_extended_dynamic_state (EDS1) - All-or-nothing
-    bool has_extended_dynamic_state;
-    
-    // VK_EXT_extended_dynamic_state2 (EDS2) - Granular features
-    bool has_extended_dynamic_state_2;              // Core EDS2 (RasterizerDiscard, DepthBias, PrimitiveRestart)
-    bool has_extended_dynamic_state_2_logic_op;     // LogicOp support
-    bool has_extended_dynamic_state_2_patch_control_points; // TessellationPatchControlPoints
-    
-    // VK_EXT_extended_dynamic_state3 (EDS3) - Highly granular features
-    bool has_extended_dynamic_state_3_blend;        // ColorBlendEnable + ColorBlendEquation + ColorWriteMask
-    bool has_extended_dynamic_state_3_enables;      // DepthClampEnable + LogicOpEnable
-    bool has_extended_dynamic_state_3_depth_clamp;  // DepthClampEnable only
-    bool has_extended_dynamic_state_3_logic_op_enable; // LogicOpEnable only
-    bool has_extended_dynamic_state_3_tessellation_domain_origin; // TessellationDomainOrigin
-    bool has_extended_dynamic_state_3_polygon_mode; // PolygonMode
-    bool has_extended_dynamic_state_3_rasterization_samples; // RasterizationSamples
-    bool has_extended_dynamic_state_3_sample_mask;  // SampleMask
-    bool has_extended_dynamic_state_3_alpha_to_coverage_enable; // AlphaToCoverageEnable
-    bool has_extended_dynamic_state_3_alpha_to_one_enable; // AlphaToOneEnable
-    bool has_extended_dynamic_state_3_depth_clip_enable; // DepthClipEnable
-    bool has_extended_dynamic_state_3_depth_clip_negative_one_to_one; // DepthClipNegativeOneToOne
-    bool has_extended_dynamic_state_3_line_rasterization_mode; // LineRasterizationMode
-    bool has_extended_dynamic_state_3_line_stipple_enable; // LineStippleEnable
-    bool has_extended_dynamic_state_3_provoking_vertex_mode; // ProvokingVertexMode
-    bool has_extended_dynamic_state_3_conservative_rasterization_mode; // ConservativeRasterizationMode
-    bool has_extended_dynamic_state_3_sample_locations_enable; // SampleLocationsEnable
-    bool has_extended_dynamic_state_3_rasterization_stream; // RasterizationStream
-    
-    // VK_EXT_vertex_input_dynamic_state
-    bool has_dynamic_vertex_input;
+    union {
+        u32 raw0;
+        // VK_EXT_extended_dynamic_state (EDS1) - Bit 0
+        BitField<0, 1, u32> has_extended_dynamic_state;
+        
+        // VK_EXT_extended_dynamic_state2 (EDS2) - Bits 1-3
+        BitField<1, 1, u32> has_extended_dynamic_state_2;              // Core EDS2
+        BitField<2, 1, u32> has_extended_dynamic_state_2_logic_op;     // LogicOp
+        BitField<3, 1, u32> has_extended_dynamic_state_2_patch_control_points; // Tessellation
+        
+        // VK_EXT_extended_dynamic_state3 (EDS3) - Bits 4-5
+        BitField<4, 1, u32> has_extended_dynamic_state_3_blend;        // Blending composite
+        BitField<5, 1, u32> has_extended_dynamic_state_3_enables;      // Enables composite
+        
+        // VK_EXT_vertex_input_dynamic_state - Bit 6
+        BitField<6, 1, u32> has_dynamic_vertex_input;
+        
+        // EDS3 Granular Features - Bits 7-15
+        BitField<7, 1, u32> has_extended_dynamic_state_3_depth_clamp;
+        BitField<8, 1, u32> has_extended_dynamic_state_3_logic_op_enable;
+        BitField<9, 1, u32> has_extended_dynamic_state_3_tessellation_domain_origin;
+        BitField<10, 1, u32> has_extended_dynamic_state_3_polygon_mode;
+        BitField<11, 1, u32> has_extended_dynamic_state_3_rasterization_samples;
+        BitField<12, 1, u32> has_extended_dynamic_state_3_sample_mask;
+        BitField<13, 1, u32> has_extended_dynamic_state_3_alpha_to_coverage_enable;
+        BitField<14, 1, u32> has_extended_dynamic_state_3_alpha_to_one_enable;
+        BitField<15, 1, u32> has_extended_dynamic_state_3_depth_clip_enable;
+        
+        // EDS3 Additional Features - Bits 16-22
+        BitField<16, 1, u32> has_extended_dynamic_state_3_depth_clip_negative_one_to_one;
+        BitField<17, 1, u32> has_extended_dynamic_state_3_line_rasterization_mode;
+        BitField<18, 1, u32> has_extended_dynamic_state_3_line_stipple_enable;
+        BitField<19, 1, u32> has_extended_dynamic_state_3_provoking_vertex_mode;
+        BitField<20, 1, u32> has_extended_dynamic_state_3_conservative_rasterization_mode;
+        BitField<21, 1, u32> has_extended_dynamic_state_3_sample_locations_enable;
+        BitField<22, 1, u32> has_extended_dynamic_state_3_rasterization_stream;
+    };
 };
+static_assert(std::has_unique_object_representations_v<DynamicFeatures>);
 
 struct FixedPipelineState {
     static u32 PackComparisonOp(Maxwell::ComparisonOp op) noexcept;
