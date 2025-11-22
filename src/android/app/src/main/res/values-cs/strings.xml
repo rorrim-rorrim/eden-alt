@@ -5,7 +5,6 @@
     <string name="notice_notification_channel_description">Ukáže oznámení v případě chyby.</string>
     <string name="notification_permission_not_granted">Oznámení nejsou oprávněna!</string>
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Vylepšený)</string>
     <string name="process_ram">RAM procesu: %1$d MB</string>
     <string name="shaders_prefix">Sestavování</string>
     <string name="shaders_suffix">shaderů</string>

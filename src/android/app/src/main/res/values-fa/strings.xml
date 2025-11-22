@@ -7,7 +7,6 @@
     <string name="notification_permission_not_granted">مجوز اعلان داده نشده!</string>
 
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(بهبودیافته)</string>
     <string name="process_ram">حافظه فرآیند: %1$d مگابایت</string>
     <string name="shaders_prefix">در حال ساخت</string>
     <string name="shaders_suffix">شیدر(ها)</string>

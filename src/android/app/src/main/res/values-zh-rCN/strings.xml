@@ -27,7 +27,6 @@
 
 
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(增强)</string>
     <string name="process_ram">进程内存: %1$d MB</string>
     <string name="shaders_prefix">正在编译</string>
     <string name="shaders_suffix">着色器</string>

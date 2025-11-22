@@ -5,7 +5,6 @@
     <string name="notice_notification_channel_description">ئاگادارکردنەوەکان پیشان دەدات کاتێک شتێک بە هەڵەدا دەچێت.</string>
     <string name="notification_permission_not_granted">مۆڵەتی ئاگادارکردنەوە نەدراوە!</string>
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(پێشکەوتوو)</string>
     <string name="process_ram">RAMی پرۆسە: %1$d MB</string>
     <string name="shaders_prefix">بیناکردنی</string>
     <string name="shaders_suffix">شەیدەر(ەکان)</string>

@@ -5,7 +5,6 @@
     <string name="notice_notification_channel_description">問題の発生時に通知を表示します。</string>
     <string name="notification_permission_not_granted">通知が許可されていません!</string>
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(強化)</string>
     <string name="process_ram">プロセスRAM: %1$d MB</string>
     <string name="shaders_prefix">シェーダー</string>
     <string name="shaders_suffix">を構築中</string>

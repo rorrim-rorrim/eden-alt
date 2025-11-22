@@ -5,7 +5,6 @@
     <string name="notice_notification_channel_description">Mostra notificações quendo algo corre mal.</string>
     <string name="notification_permission_not_granted">Permissões de notificação não permitidas </string>
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Melhorado)</string>
     <string name="process_ram">RAM do processo: %1$d MB</string>
     <string name="shaders_prefix">A compilar</string>
     <string name="shaders_suffix">shader(s)</string>

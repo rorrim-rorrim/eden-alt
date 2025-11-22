@@ -27,7 +27,6 @@
 
 
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Улучшенный)</string>
     <string name="process_ram">ОЗУ процесса: %1$d МБ</string>
     <string name="shaders_prefix">Компиляция</string>
     <string name="shaders_suffix">Шейдер(ов)</string>

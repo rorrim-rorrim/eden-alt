@@ -5,7 +5,6 @@
     <string name="notice_notification_channel_description">Приказује обавештења када нешто пође по злу.</string>
     <string name="notification_permission_not_granted">Дозвола за обавештавање није одобрена!</string>
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Побољшано)</string>
     <string name="shaders_prefix">Зграда</string>
     <string name="shaders_suffix">Схадер (с)</string>
     <string name="charging">(Пуњење)</string>

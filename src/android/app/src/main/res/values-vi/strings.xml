@@ -5,7 +5,6 @@
     <string name="notice_notification_channel_description">Hiển thị thông báo khi có sự cố xảy ra</string>
     <string name="notification_permission_not_granted">Ứng dụng không được cấp quyền thông báo!</string>
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Nâng cao)</string>
     <string name="process_ram">RAM tiến trình: %1$d MB</string>
     <string name="shaders_prefix">Đang xây dựng</string>
     <string name="shaders_suffix">shader</string>
