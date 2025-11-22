@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -42,7 +45,7 @@ constexpr std::array VIEW_CLASS_32_BITS{
     PixelFormat::A2B10G10R10_UNORM, PixelFormat::R16G16_UINT,     PixelFormat::R32_UINT,
     PixelFormat::R16G16_SINT,       PixelFormat::R32_SINT,        PixelFormat::A8B8G8R8_UNORM,
     PixelFormat::R16G16_UNORM,      PixelFormat::A8B8G8R8_SNORM,  PixelFormat::R16G16_SNORM,
-    PixelFormat::A8B8G8R8_SRGB,     PixelFormat::E5B9G9R9_FLOAT,  PixelFormat::B8G8R8A8_UNORM,
+    PixelFormat::A8B8G8R8_SRGB,     PixelFormat::B8G8R8A8_UNORM,
     PixelFormat::B8G8R8A8_SRGB,     PixelFormat::A8B8G8R8_UINT,   PixelFormat::A8B8G8R8_SINT,
     PixelFormat::A2B10G10R10_UINT,
 };
@@ -52,7 +55,7 @@ constexpr std::array VIEW_CLASS_32_BITS_NO_BGR{
     PixelFormat::A2B10G10R10_UNORM, PixelFormat::R16G16_UINT,      PixelFormat::R32_UINT,
     PixelFormat::R16G16_SINT,       PixelFormat::R32_SINT,         PixelFormat::A8B8G8R8_UNORM,
     PixelFormat::R16G16_UNORM,      PixelFormat::A8B8G8R8_SNORM,   PixelFormat::R16G16_SNORM,
-    PixelFormat::A8B8G8R8_SRGB,     PixelFormat::E5B9G9R9_FLOAT,   PixelFormat::A8B8G8R8_UINT,
+    PixelFormat::A8B8G8R8_SRGB,     PixelFormat::A8B8G8R8_UINT,
     PixelFormat::A8B8G8R8_SINT,     PixelFormat::A2B10G10R10_UINT,
 };
 

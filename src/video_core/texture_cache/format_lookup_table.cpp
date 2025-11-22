@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -135,7 +138,7 @@ PixelFormat PixelFormatFromTextureInfo(TextureFormat format, ComponentType red, 
     case Hash(TextureFormat::R32, SINT):
         return PixelFormat::R32_SINT;
     case Hash(TextureFormat::E5B9G9R9, FLOAT):
-        return PixelFormat::E5B9G9R9_FLOAT;
+        return PixelFormat::B10G11R11_FLOAT;
     case Hash(TextureFormat::Z32, FLOAT):
         return PixelFormat::D32_FLOAT;
     case Hash(TextureFormat::Z32, FLOAT, UINT, UINT, UINT, LINEAR):

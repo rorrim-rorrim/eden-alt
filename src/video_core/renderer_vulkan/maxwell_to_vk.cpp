@@ -214,7 +214,6 @@ struct FormatTuple {
     {VK_FORMAT_ASTC_8x6_SRGB_BLOCK},                           // ASTC_2D_8X6_SRGB
     {VK_FORMAT_ASTC_6x5_UNORM_BLOCK},                          // ASTC_2D_6X5_UNORM
     {VK_FORMAT_ASTC_6x5_SRGB_BLOCK},                           // ASTC_2D_6X5_SRGB
-    {VK_FORMAT_E5B9G9R9_UFLOAT_PACK32},                        // E5B9G9R9_FLOAT
 
     // Depth formats
     {VK_FORMAT_D32_SFLOAT, Attachable},          // D32_FLOAT

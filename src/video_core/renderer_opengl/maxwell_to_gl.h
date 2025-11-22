@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -113,7 +116,6 @@ constexpr std::array<FormatTuple, VideoCore::Surface::MaxPixelFormat> FORMAT_TAB
     {GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR},                        // ASTC_2D_8X6_SRGB
     {GL_COMPRESSED_RGBA_ASTC_6x5_KHR},                                // ASTC_2D_6X5_UNORM
     {GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR},                        // ASTC_2D_6X5_SRGB
-    {GL_RGB9_E5, GL_RGB, GL_UNSIGNED_INT_5_9_9_9_REV},                // E5B9G9R9_FLOAT
     {GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT},            // D32_FLOAT
     {GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT},    // D16_UNORM
     {GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT_24_8}, // X8_D24_UNORM

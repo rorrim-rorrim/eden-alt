@@ -49,9 +49,11 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, ExtendedDynamicState, EXTENDED_DYNAMIC_STATE, extended_dynamic_state)             \
     FEATURE(EXT, ExtendedDynamicState2, EXTENDED_DYNAMIC_STATE_2, extended_dynamic_state2)         \
     FEATURE(EXT, ExtendedDynamicState3, EXTENDED_DYNAMIC_STATE_3, extended_dynamic_state3)         \
+    FEATURE(EXT, ShaderAtomicFloat, SHADER_ATOMIC_FLOAT, shader_atomic_float)                      \
     FEATURE(EXT, 4444Formats, 4444_FORMATS, format_a4b4g4r4)                                       \
     FEATURE(EXT, IndexTypeUint8, INDEX_TYPE_UINT8, index_type_uint8)                               \
     FEATURE(EXT, LineRasterization, LINE_RASTERIZATION, line_rasterization)                        \
+    FEATURE(EXT, ImageRobustness, IMAGE_ROBUSTNESS, image_robustness)                              \
     FEATURE(EXT, PrimitiveTopologyListRestart, PRIMITIVE_TOPOLOGY_LIST_RESTART,                    \
             primitive_topology_list_restart)                                                       \
     FEATURE(EXT, ProvokingVertex, PROVOKING_VERTEX, provoking_vertex)                              \
@@ -61,7 +63,8 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(KHR, PipelineExecutableProperties, PIPELINE_EXECUTABLE_PROPERTIES,                     \
             pipeline_executable_properties)                                                        \
     FEATURE(KHR, WorkgroupMemoryExplicitLayout, WORKGROUP_MEMORY_EXPLICIT_LAYOUT,                  \
-            workgroup_memory_explicit_layout)
+            workgroup_memory_explicit_layout)                                                      \
+    FEATURE(QCOM, TileProperties, TILE_PROPERTIES, tile_properties_qcom)
 
 // Define miscellaneous extensions which may be used by the implementation here.
 #define FOR_EACH_VK_EXTENSION(EXTENSION)                                                           \
@@ -82,7 +85,9 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(KHR, SHADER_FLOAT_CONTROLS, shader_float_controls)                                   \
     EXTENSION(KHR, SPIRV_1_4, spirv_1_4)                                                           \
     EXTENSION(KHR, SWAPCHAIN, swapchain)                                                           \
+    EXTENSION(KHR, INCREMENTAL_PRESENT, incremental_present)                                       \
     EXTENSION(KHR, SWAPCHAIN_MUTABLE_FORMAT, swapchain_mutable_format)                             \
+    EXTENSION(EXT, SWAPCHAIN_MAINTENANCE_1, swapchain_maintenance1)                                \
     EXTENSION(KHR, IMAGE_FORMAT_LIST, image_format_list)                                           \
     EXTENSION(NV, DEVICE_DIAGNOSTICS_CONFIG, device_diagnostics_config)                            \
     EXTENSION(NV, GEOMETRY_SHADER_PASSTHROUGH, geometry_shader_passthrough)                        \
@@ -90,7 +95,19 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(NV, VIEWPORT_SWIZZLE, viewport_swizzle)                                              \
     EXTENSION(EXT, DESCRIPTOR_INDEXING, descriptor_indexing)                                       \
     EXTENSION(EXT, FILTER_CUBIC, filter_cubic)                                                     \
-    EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)
+    EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)                                    \
+    EXTENSION(QCOM, RENDER_PASS_SHADER_RESOLVE, render_pass_shader_resolve)                        \
+    EXTENSION(QCOM, RENDER_PASS_STORE_OPS, render_pass_store_ops)                                  \
+    EXTENSION(QCOM, TILE_PROPERTIES, tile_properties)                                               \
+    EXTENSION(KHR, MAINTENANCE_1, maintenance1)                                                    \
+    EXTENSION(KHR, MAINTENANCE_2, maintenance2)                                                    \
+    EXTENSION(KHR, MAINTENANCE_3, maintenance3)                                                    \
+    EXTENSION(KHR, MAINTENANCE_4, maintenance4)                                                    \
+    EXTENSION(KHR, MAINTENANCE_5, maintenance5)                                                    \
+    EXTENSION(KHR, MAINTENANCE_6, maintenance6)                                                    \
+    EXTENSION(KHR, MAINTENANCE_7, maintenance7)                                                    \
+    EXTENSION(KHR, MAINTENANCE_8, maintenance8)                                                    \
+    EXTENSION(KHR, MAINTENANCE_9, maintenance9)
 
 // Define extensions which must be supported.
 #define FOR_EACH_VK_MANDATORY_EXTENSION(EXTENSION_NAME)                                            \
@@ -365,6 +382,12 @@ public:
         return properties.subgroup_properties.supportedOperations & feature;
     }
 
+    /// Returns true if subgroup operations are supported in the specified shader stage.
+    /// Mobile GPUs (Qualcomm Adreno) often only support subgroups in fragment/compute stages.
+    bool IsSubgroupSupportedForStage(VkShaderStageFlagBits stage) const {
+        return properties.subgroup_properties.supportedStages & stage;
+    }
+
     /// Returns the maximum number of push descriptors.
     u32 MaxPushDescriptors() const {
         return properties.push_descriptor.maxPushDescriptors;
@@ -455,6 +478,11 @@ public:
         return extensions.image_format_list || instance_version >= VK_API_VERSION_1_2;
     }
 
+    /// Returns true if the device supports VK_KHR_incremental_present.
+    bool IsKhrIncrementalPresentSupported() const {
+        return extensions.incremental_present;
+    }
+
     /// Returns true if the device supports VK_EXT_primitive_topology_list_restart.
     bool IsTopologyListPrimitiveRestartSupported() const {
         return features.primitive_topology_list_restart.primitiveTopologyListRestart;
@@ -520,6 +548,21 @@ public:
         return extensions.custom_border_color;
     }
 
+    /// Base Vulkan Dynamic State support checks.
+    /// These provide granular control over each base dynamic state, allowing individual states
+    /// to be disabled if broken driver implementations are detected at device initialization.
+    /// By default all states are enabled. If a specific driver has issues with certain states,
+    /// they can be disabled in vulkan_device.cpp constructor (see has_broken_compute pattern).
+    bool SupportsDynamicViewport() const { return supports_dynamic_viewport; }
+    bool SupportsDynamicScissor() const { return supports_dynamic_scissor; }
+    bool SupportsDynamicLineWidth() const { return supports_dynamic_line_width; }
+    bool SupportsDynamicDepthBias() const { return supports_dynamic_depth_bias; }
+    bool SupportsDynamicBlendConstants() const { return supports_dynamic_blend_constants; }
+    bool SupportsDynamicDepthBounds() const { return supports_dynamic_depth_bounds; }
+    bool SupportsDynamicStencilCompareMask() const { return supports_dynamic_stencil_compare; }
+    bool SupportsDynamicStencilWriteMask() const { return supports_dynamic_stencil_write; }
+    bool SupportsDynamicStencilReference() const { return supports_dynamic_stencil_reference; }
+
     /// Returns true if the device supports VK_EXT_extended_dynamic_state.
     bool IsExtExtendedDynamicStateSupported() const {
         return extensions.extended_dynamic_state;
@@ -554,6 +597,98 @@ public:
         return dynamic_state3_enables;
     }
 
+    // EDS2 granular feature checks
+    bool IsExtExtendedDynamicState2LogicOpSupported() const {
+        return extensions.extended_dynamic_state2 && 
+               features.extended_dynamic_state2.extendedDynamicState2LogicOp;
+    }
+
+    bool IsExtExtendedDynamicState2PatchControlPointsSupported() const {
+        return extensions.extended_dynamic_state2 && 
+               features.extended_dynamic_state2.extendedDynamicState2PatchControlPoints;
+    }
+
+    // EDS3 granular feature checks
+    bool IsExtExtendedDynamicState3DepthClampEnableSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable;
+    }
+
+    bool IsExtExtendedDynamicState3LogicOpEnableSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable;
+    }
+
+    bool IsExtExtendedDynamicState3TessellationDomainOriginSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3TessellationDomainOrigin;
+    }
+
+    bool IsExtExtendedDynamicState3PolygonModeSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3PolygonMode;
+    }
+
+    bool IsExtExtendedDynamicState3RasterizationSamplesSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3RasterizationSamples;
+    }
+
+    bool IsExtExtendedDynamicState3SampleMaskSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3SampleMask;
+    }
+
+    bool IsExtExtendedDynamicState3AlphaToCoverageEnableSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3AlphaToCoverageEnable;
+    }
+
+    bool IsExtExtendedDynamicState3AlphaToOneEnableSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3AlphaToOneEnable;
+    }
+
+    bool IsExtExtendedDynamicState3DepthClipEnableSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3DepthClipEnable;
+    }
+
+    bool IsExtExtendedDynamicState3DepthClipNegativeOneToOneSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3DepthClipNegativeOneToOne;
+    }
+
+    bool IsExtExtendedDynamicState3LineRasterizationModeSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3LineRasterizationMode;
+    }
+
+    bool IsExtExtendedDynamicState3LineStippleEnableSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3LineStippleEnable;
+    }
+
+    bool IsExtExtendedDynamicState3ProvokingVertexModeSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3ProvokingVertexMode;
+    }
+
+    bool IsExtExtendedDynamicState3ConservativeRasterizationModeSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3ConservativeRasterizationMode;
+    }
+
+    bool IsExtExtendedDynamicState3SampleLocationsEnableSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3SampleLocationsEnable;
+    }
+
+    bool IsExtExtendedDynamicState3RasterizationStreamSupported() const {
+        return extensions.extended_dynamic_state3 && 
+               features.extended_dynamic_state3.extendedDynamicState3RasterizationStream;
+    }
+
     /// Returns true if the device supports VK_EXT_filter_cubic
     bool IsExtFilterCubicSupported() const {
         return extensions.filter_cubic;
@@ -562,6 +697,41 @@ public:
     /// Returns true if the device supports VK_QCOM_filter_cubic_weights
     bool IsQcomFilterCubicWeightsSupported() const {
         return extensions.filter_cubic_weights;
+    }
+
+    /// Returns true if the device supports VK_QCOM_render_pass_shader_resolve
+    bool IsQcomRenderPassShaderResolveSupported() const {
+        return extensions.render_pass_shader_resolve;
+    }
+
+    /// Returns true if the device supports VK_QCOM_render_pass_store_ops
+    bool IsQcomRenderPassStoreOpsSupported() const {
+        return extensions.render_pass_store_ops;
+    }
+
+    /// Returns true if the device supports VK_QCOM_tile_properties
+    bool IsQcomTilePropertiesSupported() const {
+        return extensions.tile_properties;
+    }
+
+    /// Returns Qualcomm tile size (width, height, depth). Returns {0,0,0} if not queried or unsupported
+    VkExtent3D GetQcomTileSize() const {
+        return properties.qcom_tile_size;
+    }
+
+    /// Returns Qualcomm tile apron size. Returns {0,0} if not queried or unsupported
+    VkExtent2D GetQcomApronSize() const {
+        return properties.qcom_apron_size;
+    }
+
+    /// Returns true if MSAA copy operations are supported via compute shader (upload/download)
+    /// Qualcomm uses render pass shader resolve instead, so this returns false for Qualcomm
+    bool CanUploadMSAA() const {
+        return IsStorageImageMultisampleSupported();
+    }
+
+    bool CanDownloadMSAA() const {
+        return CanUploadMSAA();
     }
 
     /// Returns true if the device supports VK_EXT_line_rasterization.
@@ -592,6 +762,11 @@ public:
     /// Returns true if the device supports VK_KHR_shader_atomic_int64.
     bool IsExtShaderAtomicInt64Supported() const {
         return extensions.shader_atomic_int64;
+    }
+
+    /// Returns true if the device supports VK_EXT_shader_atomic_float.
+    bool IsExtShaderAtomicFloatSupported() const {
+        return extensions.shader_atomic_float;
     }
 
     bool IsExtConditionalRendering() const {
@@ -817,8 +992,9 @@ private:
         VkPhysicalDevicePushDescriptorPropertiesKHR push_descriptor{};
         VkPhysicalDeviceSubgroupSizeControlProperties subgroup_size_control{};
         VkPhysicalDeviceTransformFeedbackPropertiesEXT transform_feedback{};
-
         VkPhysicalDeviceProperties properties{};
+        VkExtent3D qcom_tile_size{};          // Qualcomm tile dimensions (0 if not queried)
+        VkExtent2D qcom_apron_size{};         // Qualcomm tile apron size
     };
 
     Extensions extensions{};
@@ -849,6 +1025,22 @@ private:
     bool dynamic_state3_blending{};            ///< Has all blending features of dynamic_state3.
     bool dynamic_state3_enables{};             ///< Has all enables features of dynamic_state3.
     bool supports_conditional_barriers{};      ///< Allows barriers in conditional control flow.
+
+    /// Base Vulkan Dynamic State support flags (granular fallback for broken drivers).
+    /// All default to true. These can be individually disabled in vulkan_device.cpp
+    /// if specific broken driver implementations are detected during initialization.
+    /// This provides emergency protection against drivers that report support but crash/misbehave.
+    /// Pattern: Check driver/device and set to false in vulkan_device.cpp constructor.
+    bool supports_dynamic_viewport{true};         ///< VK_DYNAMIC_STATE_VIEWPORT
+    bool supports_dynamic_scissor{true};          ///< VK_DYNAMIC_STATE_SCISSOR
+    bool supports_dynamic_line_width{true};       ///< VK_DYNAMIC_STATE_LINE_WIDTH
+    bool supports_dynamic_depth_bias{true};       ///< VK_DYNAMIC_STATE_DEPTH_BIAS
+    bool supports_dynamic_blend_constants{true};  ///< VK_DYNAMIC_STATE_BLEND_CONSTANTS
+    bool supports_dynamic_depth_bounds{true};     ///< VK_DYNAMIC_STATE_DEPTH_BOUNDS
+    bool supports_dynamic_stencil_compare{true};  ///< VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK
+    bool supports_dynamic_stencil_write{true};    ///< VK_DYNAMIC_STATE_STENCIL_WRITE_MASK
+    bool supports_dynamic_stencil_reference{true};///< VK_DYNAMIC_STATE_STENCIL_REFERENCE
+
     u64 device_access_memory{};                ///< Total size of device local memory in bytes.
     u32 sets_per_pool{};                       ///< Sets per Description Pool
     NvidiaArchitecture nvidia_arch{NvidiaArchitecture::Arch_AmpereOrNewer};

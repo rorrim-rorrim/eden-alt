@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -205,8 +208,7 @@ struct fmt::formatter<VideoCore::Surface::PixelFormat> : fmt::formatter<fmt::str
                 return "ASTC_2D_6X5_UNORM";
             case PixelFormat::ASTC_2D_6X5_SRGB:
                 return "ASTC_2D_6X5_SRGB";
-            case PixelFormat::E5B9G9R9_FLOAT:
-                return "E5B9G9R9_FLOAT";
+
             case PixelFormat::D32_FLOAT:
                 return "D32_FLOAT";
             case PixelFormat::D16_UNORM:

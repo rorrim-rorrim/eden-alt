@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -25,6 +28,14 @@ struct Profile {
     bool support_fp16_signed_zero_nan_preserve{};
     bool support_fp32_signed_zero_nan_preserve{};
     bool support_fp64_signed_zero_nan_preserve{};
+    
+    // User-forced float behavior overrides (Android Eden Veil/Extensions)
+    // When shader_float_controls_force_enable is true, these override shader-declared behavior
+    bool force_fp32_denorm_flush{};           // Force FTZ for all FP32 ops
+    bool force_fp32_denorm_preserve{};        // Force denorm preservation for all FP32 ops
+    bool force_fp32_rte_rounding{};           // Force Round-To-Even for all FP32 ops
+    bool force_fp32_signed_zero_inf_nan{};    // Force signed zero/inf/nan preservation
+    
     bool support_explicit_workgroup_layout{};
     bool support_vote{};
     bool support_viewport_index_layer_non_geometry{};
@@ -38,6 +49,9 @@ struct Profile {
     bool support_gl_nv_gpu_shader_5{};
     bool support_gl_amd_gpu_shader_half_float{};
     bool support_gl_texture_shadow_lod{};
+    bool support_gl_shader_atomic_float{};
+    bool support_gl_shader_atomic_fp16_vector{};
+    bool support_gl_shader_atomic_int64{};
     bool support_gl_warp_intrinsics{};
     bool support_gl_variable_aoffi{};
     bool support_gl_sparse_textures{};
@@ -81,6 +95,8 @@ struct Profile {
     bool ignore_nan_fp_comparisons{};
     /// Some drivers have broken support for OpVectorExtractDynamic on subgroup mask inputs
     bool has_broken_spirv_subgroup_mask_vector_extract_dynamic{};
+    /// Mobile GPUs lack Sampled1D capability - need to emulate 1D textures as 2D with height=1
+    bool needs_1d_texture_emulation{};
 
     u32 gl_max_compute_smem_size{};
 

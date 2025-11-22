@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -158,6 +161,8 @@ private:
 
     bool is_outdated{};
     bool is_suboptimal{};
+    bool incremental_present_usable{};
+    bool incremental_present_probed{};
 };
 
 } // namespace Vulkan

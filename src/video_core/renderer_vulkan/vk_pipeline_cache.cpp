@@ -341,6 +341,16 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
             float_control.shaderSignedZeroInfNanPreserveFloat32 != VK_FALSE,
         .support_fp64_signed_zero_nan_preserve =
             float_control.shaderSignedZeroInfNanPreserveFloat64 != VK_FALSE,
+        
+        // Switch/Maxwell native float behavior (auto-configured on Qualcomm)
+        .force_fp32_denorm_flush = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY && 
+                                   device.IsKhrShaderFloatControlsSupported(),
+        .force_fp32_denorm_preserve = false,  // FTZ dominates
+        .force_fp32_rte_rounding = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY && 
+                                   device.IsKhrShaderFloatControlsSupported(),
+        .force_fp32_signed_zero_inf_nan = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY && 
+                                          device.IsKhrShaderFloatControlsSupported(),
+        
         .support_explicit_workgroup_layout = device.IsKhrWorkgroupMemoryExplicitLayoutSupported(),
         .support_vote = device.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_VOTE_BIT),
         .support_viewport_index_layer_non_geometry =
@@ -375,6 +385,12 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .ignore_nan_fp_comparisons = false,
         .has_broken_spirv_subgroup_mask_vector_extract_dynamic =
             driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY,
+        .needs_1d_texture_emulation = 
+            driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
+            driver_id == VK_DRIVER_ID_MESA_TURNIP ||
+            driver_id == VK_DRIVER_ID_ARM_PROPRIETARY ||
+            driver_id == VK_DRIVER_ID_BROADCOM_PROPRIETARY ||
+            driver_id == VK_DRIVER_ID_IMAGINATION_PROPRIETARY,
         .has_broken_robust =
             device.IsNvidia() && device.GetNvidiaArch() <= NvidiaArchitecture::Arch_Pascal,
         .min_ssbo_alignment = device.GetStorageBufferAlignment(),
@@ -404,13 +420,42 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
                     device.GetMaxVertexInputBindings(), Maxwell::NumVertexArrays);
     }
 
+    const u8 dynamic_state = Settings::values.dyna_state.GetValue();
+
+    LOG_INFO(Render_Vulkan, "DynamicState value is set to {}", (u32) dynamic_state);
+
     dynamic_features = DynamicFeatures{
-        .has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported(),
-        .has_extended_dynamic_state_2 = device.IsExtExtendedDynamicState2Supported(),
-        .has_extended_dynamic_state_2_extra = device.IsExtExtendedDynamicState2ExtrasSupported(),
-        .has_extended_dynamic_state_3_blend = device.IsExtExtendedDynamicState3BlendingSupported(),
-        .has_extended_dynamic_state_3_enables = device.IsExtExtendedDynamicState3EnablesSupported(),
-        .has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported(),
+        // EDS1 - All-or-nothing (enabled if driver supports AND setting > 0)
+        .has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0,
+        
+        // EDS2 - Core features (enabled if driver supports AND setting > 1)
+        .has_extended_dynamic_state_2 = device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1,
+        .has_extended_dynamic_state_2_logic_op = device.IsExtExtendedDynamicState2LogicOpSupported() && dynamic_state > 1,
+        .has_extended_dynamic_state_2_patch_control_points = device.IsExtExtendedDynamicState2PatchControlPointsSupported() && dynamic_state > 1,
+        
+        // EDS3 - Granular features (enabled if driver supports AND setting > 2)
+        .has_extended_dynamic_state_3_blend = device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_enables = device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_depth_clamp = device.IsExtExtendedDynamicState3DepthClampEnableSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_logic_op_enable = device.IsExtExtendedDynamicState3LogicOpEnableSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_tessellation_domain_origin = device.IsExtExtendedDynamicState3TessellationDomainOriginSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_polygon_mode = device.IsExtExtendedDynamicState3PolygonModeSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_rasterization_samples = device.IsExtExtendedDynamicState3RasterizationSamplesSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_sample_mask = device.IsExtExtendedDynamicState3SampleMaskSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_alpha_to_coverage_enable = device.IsExtExtendedDynamicState3AlphaToCoverageEnableSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_alpha_to_one_enable = device.IsExtExtendedDynamicState3AlphaToOneEnableSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_depth_clip_enable = device.IsExtExtendedDynamicState3DepthClipEnableSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_depth_clip_negative_one_to_one = device.IsExtExtendedDynamicState3DepthClipNegativeOneToOneSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_line_rasterization_mode = device.IsExtExtendedDynamicState3LineRasterizationModeSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_line_stipple_enable = device.IsExtExtendedDynamicState3LineStippleEnableSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_provoking_vertex_mode = device.IsExtExtendedDynamicState3ProvokingVertexModeSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_conservative_rasterization_mode = device.IsExtExtendedDynamicState3ConservativeRasterizationModeSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_sample_locations_enable = device.IsExtExtendedDynamicState3SampleLocationsEnableSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_rasterization_stream = device.IsExtExtendedDynamicState3RasterizationStreamSupported() && dynamic_state > 2,
+        
+        // Vertex input dynamic state
+        .has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported() && 
+                                    Settings::values.vertex_input_dynamic_state.GetValue(),
     };
 }
 
@@ -512,16 +557,29 @@ void PipelineCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading
         GraphicsPipelineCacheKey key;
         file.read(reinterpret_cast<char*>(&key), sizeof(key));
 
-        if ((key.state.extended_dynamic_state != 0) !=
-                dynamic_features.has_extended_dynamic_state ||
-            (key.state.extended_dynamic_state_2 != 0) !=
-                dynamic_features.has_extended_dynamic_state_2 ||
-            (key.state.extended_dynamic_state_2_extra != 0) !=
-                dynamic_features.has_extended_dynamic_state_2_extra ||
-            (key.state.extended_dynamic_state_3_blend != 0) !=
-                dynamic_features.has_extended_dynamic_state_3_blend ||
-            (key.state.extended_dynamic_state_3_enables != 0) !=
-                dynamic_features.has_extended_dynamic_state_3_enables ||
+        // Validate dynamic features compatibility - granular per-feature check
+        if ((key.state.extended_dynamic_state != 0) != dynamic_features.has_extended_dynamic_state ||
+            (key.state.extended_dynamic_state_2 != 0) != dynamic_features.has_extended_dynamic_state_2 ||
+            (key.state.extended_dynamic_state_2_logic_op != 0) != dynamic_features.has_extended_dynamic_state_2_logic_op ||
+            (key.state.extended_dynamic_state_2_patch_control_points != 0) != dynamic_features.has_extended_dynamic_state_2_patch_control_points ||
+            (key.state.extended_dynamic_state_3_blend != 0) != dynamic_features.has_extended_dynamic_state_3_blend ||
+            (key.state.extended_dynamic_state_3_enables != 0) != dynamic_features.has_extended_dynamic_state_3_enables ||
+            (key.state.extended_dynamic_state_3_depth_clamp != 0) != dynamic_features.has_extended_dynamic_state_3_depth_clamp ||
+            (key.state.extended_dynamic_state_3_logic_op_enable != 0) != dynamic_features.has_extended_dynamic_state_3_logic_op_enable ||
+            (key.state.extended_dynamic_state_3_tessellation_domain_origin != 0) != dynamic_features.has_extended_dynamic_state_3_tessellation_domain_origin ||
+            (key.state.extended_dynamic_state_3_polygon_mode != 0) != dynamic_features.has_extended_dynamic_state_3_polygon_mode ||
+            (key.state.extended_dynamic_state_3_rasterization_samples != 0) != dynamic_features.has_extended_dynamic_state_3_rasterization_samples ||
+            (key.state.extended_dynamic_state_3_sample_mask != 0) != dynamic_features.has_extended_dynamic_state_3_sample_mask ||
+            (key.state.extended_dynamic_state_3_alpha_to_coverage_enable != 0) != dynamic_features.has_extended_dynamic_state_3_alpha_to_coverage_enable ||
+            (key.state.extended_dynamic_state_3_alpha_to_one_enable != 0) != dynamic_features.has_extended_dynamic_state_3_alpha_to_one_enable ||
+            (key.state.extended_dynamic_state_3_depth_clip_enable != 0) != dynamic_features.has_extended_dynamic_state_3_depth_clip_enable ||
+            (key.state.extended_dynamic_state_3_depth_clip_negative_one_to_one != 0) != dynamic_features.has_extended_dynamic_state_3_depth_clip_negative_one_to_one ||
+            (key.state.extended_dynamic_state_3_line_rasterization_mode != 0) != dynamic_features.has_extended_dynamic_state_3_line_rasterization_mode ||
+            (key.state.extended_dynamic_state_3_line_stipple_enable != 0) != dynamic_features.has_extended_dynamic_state_3_line_stipple_enable ||
+            (key.state.extended_dynamic_state_3_provoking_vertex_mode != 0) != dynamic_features.has_extended_dynamic_state_3_provoking_vertex_mode ||
+            (key.state.extended_dynamic_state_3_conservative_rasterization_mode != 0) != dynamic_features.has_extended_dynamic_state_3_conservative_rasterization_mode ||
+            (key.state.extended_dynamic_state_3_sample_locations_enable != 0) != dynamic_features.has_extended_dynamic_state_3_sample_locations_enable ||
+            (key.state.extended_dynamic_state_3_rasterization_stream != 0) != dynamic_features.has_extended_dynamic_state_3_rasterization_stream ||
             (key.state.dynamic_vertex_input != 0) != dynamic_features.has_dynamic_vertex_input) {
             return;
         }
@@ -673,7 +731,17 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
 
         const auto runtime_info{MakeRuntimeInfo(programs, key, program, previous_stage)};
         ConvertLegacyToGeneric(program, runtime_info);
-        const std::vector<u32> code{EmitSPIRV(profile, runtime_info, program, binding, this->optimize_spirv_output)};
+        
+        // Adreno don't support subgroup operations in vertex stages
+        // Disable subgroup features for vertex shaders if not supported by the device
+        Shader::Profile stage_profile = profile;
+        if (program.stage == Shader::Stage::VertexA || program.stage == Shader::Stage::VertexB) {
+            if (!device.IsSubgroupSupportedForStage(VK_SHADER_STAGE_VERTEX_BIT)) {
+                stage_profile.support_vote = false;
+            }
+        }
+        
+        const std::vector<u32> code{EmitSPIRV(stage_profile, runtime_info, program, binding, this->optimize_spirv_output)};
         device.SaveShader(code);
         modules[stage_index] = BuildShader(device, code);
         if (device.HasDebuggingToolAttached()) {
@@ -767,6 +835,18 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
     }
 
     auto program{TranslateProgram(pools.inst, pools.block, env, cfg, host_info)};
+    
+    // Adreno and mobile GPUs have lower shared memory limits (32KB vs Switch's 48KB)
+    // Skip shader compilation if it exceeds device limits to prevent GPU crashes
+    const u32 max_shared_memory = device.GetMaxComputeSharedMemorySize();
+    if (program.shared_memory_size > max_shared_memory) {
+        LOG_ERROR(Render_Vulkan, 
+                  "Compute shader 0x{:016x} requests {}KB shared memory but device max is {}KB - "
+                  "SKIPPING compilation to prevent GPU crash. Visual effect will be missing.",
+                  key.unique_hash, program.shared_memory_size / 1024, max_shared_memory / 1024);
+        return nullptr;
+    }
+    
     const std::vector<u32> code{EmitSPIRV(profile, program, this->optimize_spirv_output)};
     device.SaveShader(code);
     vk::ShaderModule spv_module{BuildShader(device, code)};

@@ -101,8 +101,12 @@ void TextureCache<P>::RunGarbageCollector() {
         if (!aggressive_mode && True(image.flags & ImageFlagBits::CostlyLoad)) {
             return false;
         }
-        const bool must_download =
-            image.IsSafeDownload() && False(image.flags & ImageFlagBits::BadOverlap);
+        const bool supports_msaa_download = HasMsaaDownloadSupport(image.info);
+        if (!supports_msaa_download && image.info.num_samples > 1) {
+            LOG_WARNING(HW_GPU, "MSAA image downloads are not implemented");
+        }
+        const bool must_download = supports_msaa_download && image.IsSafeDownload() &&
+                                    False(image.flags & ImageFlagBits::BadOverlap);
         if (!high_priority_mode && must_download) {
             return false;
         }
@@ -548,8 +552,12 @@ void TextureCache<P>::WriteMemory(DAddr cpu_addr, size_t size) {
 template <class P>
 void TextureCache<P>::DownloadMemory(DAddr cpu_addr, size_t size) {
     boost::container::small_vector<ImageId, 16> images;
-    ForEachImageInRegion(cpu_addr, size, [&images](ImageId image_id, ImageBase& image) {
+    ForEachImageInRegion(cpu_addr, size, [this, &images](ImageId image_id, ImageBase& image) {
         if (!image.IsSafeDownload()) {
+            return;
+        }
+        if (!HasMsaaDownloadSupport(image.info)) {
+            LOG_WARNING(HW_GPU, "MSAA image downloads are not implemented");
             return;
         }
         image.flags &= ~ImageFlagBits::GpuModified;
@@ -930,6 +938,17 @@ ImageId TextureCache<P>::DmaImageId(const Tegra::DMA::ImageOperand& operand, boo
         return NULL_IMAGE_ID;
     }
     auto& image = slot_images[dst_id];
+    if (image.info.num_samples > 1) {
+        if (is_upload) {
+            if (!HasMsaaUploadSupport(image.info)) {
+                return NULL_IMAGE_ID;
+            }
+        } else {
+            if (!HasMsaaDownloadSupport(image.info)) {
+                return NULL_IMAGE_ID;
+            }
+        }
+    }
     if (False(image.flags & ImageFlagBits::GpuModified)) {
         // No need to waste time on an image that's synced with guest
         return NULL_IMAGE_ID;
@@ -1056,7 +1075,7 @@ void TextureCache<P>::RefreshContents(Image& image, ImageId image_id) {
     image.flags &= ~ImageFlagBits::CpuModified;
     TrackImage(image, image_id);
 
-    if (image.info.num_samples > 1 && !runtime.CanUploadMSAA()) {
+    if (!HasMsaaUploadSupport(image.info)) {
         LOG_WARNING(HW_GPU, "MSAA image uploads are not implemented");
         runtime.TransitionImageLayout(image);
         return;
@@ -1272,6 +1291,16 @@ u64 TextureCache<P>::GetScaledImageSizeBytes(const ImageBase& image) {
     const u64 tentative_size = (image_size_bytes * scale_up) >> down_shift;
     const u64 fitted_size = Common::AlignUp(tentative_size, 1024);
     return fitted_size;
+}
+
+template <class P>
+bool TextureCache<P>::HasMsaaUploadSupport(const ImageInfo& info) const noexcept {
+    return info.num_samples <= 1 || runtime.CanUploadMSAA();
+}
+
+template <class P>
+bool TextureCache<P>::HasMsaaDownloadSupport(const ImageInfo& info) const noexcept {
+    return info.num_samples <= 1 || runtime.CanDownloadMSAA();
 }
 
 template <class P>
@@ -1491,7 +1520,31 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DA
     for (const ImageId overlap_id : join_ignore_textures) {
         Image& overlap = slot_images[overlap_id];
         if (True(overlap.flags & ImageFlagBits::GpuModified)) {
-            UNIMPLEMENTED();
+            // Merge GPU-modified contents from the overlapping image into the newly
+            // created image to preserve guest-visible data. Compute shrink/scale
+            // copies and dispatch a GPU-side copy. This mirrors the behavior used
+            // for overlaps handled in join_copies_to_do above.
+            new_image.flags |= ImageFlagBits::GpuModified;
+            const auto& resolution = Settings::values.resolution_info;
+            const auto base_opt = new_image.TryFindBase(overlap.gpu_addr);
+            if (base_opt) {
+                const SubresourceBase base = base_opt.value();
+                const u32 up_scale = can_rescale ? resolution.up_scale : 1;
+                const u32 down_shift = can_rescale ? resolution.down_shift : 0;
+                auto copies = MakeShrinkImageCopies(new_info, overlap.info, base, up_scale, down_shift);
+                if (overlap.info.num_samples != new_image.info.num_samples) {
+                    runtime.CopyImageMSAA(new_image, overlap, FixSmallVectorADL(copies));
+                } else {
+                    runtime.CopyImage(new_image, overlap, FixSmallVectorADL(copies));
+                }
+                new_image.modification_tick = overlap.modification_tick;
+            } else {
+                // If we cannot determine a base mapping, fallback to preserving the
+                // overlap (avoid deleting GPU-modified data) and log the event so
+                // it can be investigated, we're trying to pinpoint the issue of texture flickering.
+                LOG_WARNING(HW_GPU, "Could not map overlap gpu_addr {:#x} into new image; preserving overlap", u64(overlap.gpu_addr));
+                continue;
+            }
         }
         if (True(overlap.flags & ImageFlagBits::Tracked)) {
             UntrackImage(overlap, overlap_id);
@@ -1551,6 +1604,10 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DA
     for (const auto& copy_object : join_copies_to_do) {
         Image& overlap = slot_images[copy_object.id];
         if (copy_object.is_alias) {
+            if (!HasMsaaDownloadSupport(overlap.info)) {
+                LOG_WARNING(HW_GPU, "MSAA image downloads are not implemented");
+                continue;
+            }
             if (!overlap.IsSafeDownload()) {
                 continue;
             }
@@ -2467,8 +2524,13 @@ void TextureCache<P>::BindRenderTarget(ImageViewId* old_id, ImageViewId new_id) 
     if (new_id) {
         const ImageViewBase& old_view = slot_image_views[new_id];
         if (True(old_view.flags & ImageViewFlagBits::PreemtiveDownload)) {
-            const PendingDownload new_download{true, 0, old_view.image_id};
-            uncommitted_downloads.emplace_back(new_download);
+            const ImageBase& image = slot_images[old_view.image_id];
+            if (!HasMsaaDownloadSupport(image.info)) {
+                LOG_WARNING(HW_GPU, "MSAA image downloads are not implemented");
+            } else {
+                const PendingDownload new_download{true, 0, old_view.image_id};
+                uncommitted_downloads.emplace_back(new_download);
+            }
         }
     }
     *old_id = new_id;

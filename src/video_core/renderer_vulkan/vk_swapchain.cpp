@@ -171,6 +171,10 @@ void Swapchain::Create(
 
     resource_ticks.clear();
     resource_ticks.resize(image_count);
+
+    // Initialize incremental-present probe flags for this swapchain.
+    incremental_present_usable = device.IsKhrIncrementalPresentSupported();
+    incremental_present_probed = false;
 }
 
 bool Swapchain::AcquireNextImage() {
@@ -202,7 +206,13 @@ bool Swapchain::AcquireNextImage() {
 
 void Swapchain::Present(VkSemaphore render_semaphore) {
     const auto present_queue{device.GetPresentQueue()};
-    const VkPresentInfoKHR present_info{
+    // If the device advertises VK_KHR_incremental_present, we attempt a one-time probe
+    // on the first present to validate the driver/compositor accepts present-region info.
+    VkPresentRegionsKHR present_regions{};
+    VkPresentRegionKHR region{};
+    VkRectLayerKHR layer{};
+
+    VkPresentInfoKHR present_info{
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
         .pNext = nullptr,
         .waitSemaphoreCount = render_semaphore ? 1U : 0U,
@@ -212,6 +222,20 @@ void Swapchain::Present(VkSemaphore render_semaphore) {
         .pImageIndices = &image_index,
         .pResults = nullptr,
     };
+
+    if (incremental_present_usable && !incremental_present_probed) {
+        // Build a minimal present-region describing a single 1x1 dirty rect at (0,0).
+        layer.offset = {0, 0};
+        layer.extent = {1, 1};
+        region.rectangleCount = 1;
+        region.pRectangles = &layer;
+        present_regions.sType = VK_STRUCTURE_TYPE_PRESENT_REGIONS_KHR;
+        present_regions.pNext = nullptr;
+        present_regions.swapchainCount = 1;
+        present_regions.pRegions = &region;
+
+        present_info.pNext = &present_regions;
+    }
     std::scoped_lock lock{scheduler.submit_mutex};
     switch (const VkResult result = present_queue.Present(present_info)) {
     case VK_SUCCESS:
@@ -227,7 +251,17 @@ void Swapchain::Present(VkSemaphore render_semaphore) {
         break;
     default:
         LOG_CRITICAL(Render_Vulkan, "Failed to present with error {}", string_VkResult(result));
+        // If the first present with incremental-present pNext failed, disable future use.
+        if (incremental_present_usable && !incremental_present_probed) {
+            incremental_present_usable = false;
+            LOG_WARNING(Render_Vulkan, "Disabling VK_KHR_incremental_present for this swapchain due to present failure: {}", string_VkResult(result));
+        }
         break;
+    }
+    if (incremental_present_usable && !incremental_present_probed) {
+        // Mark probe as completed if we reached here (success or handled failure above).
+        incremental_present_probed = true;
+        LOG_INFO(Render_Vulkan, "VK_KHR_incremental_present probe completed: usable={}", incremental_present_usable);
     }
     ++frame_index;
     if (frame_index >= image_count) {

@@ -58,12 +58,41 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     const auto topology_ = maxwell3d.draw_manager->GetDrawState().topology;
 
     raw1 = 0;
+    raw1_eds3_extended = 0;
+    
+    // EDS1
     extended_dynamic_state.Assign(features.has_extended_dynamic_state ? 1 : 0);
+    
+    // EDS2
     extended_dynamic_state_2.Assign(features.has_extended_dynamic_state_2 ? 1 : 0);
-    extended_dynamic_state_2_extra.Assign(features.has_extended_dynamic_state_2_extra ? 1 : 0);
+    extended_dynamic_state_2_logic_op.Assign(features.has_extended_dynamic_state_2_logic_op ? 1 : 0);
+    extended_dynamic_state_2_patch_control_points.Assign(features.has_extended_dynamic_state_2_patch_control_points ? 1 : 0);
+    
+    // EDS3 - Blending/Enables
     extended_dynamic_state_3_blend.Assign(features.has_extended_dynamic_state_3_blend ? 1 : 0);
     extended_dynamic_state_3_enables.Assign(features.has_extended_dynamic_state_3_enables ? 1 : 0);
+    
+    // EDS3 - Granular features
+    extended_dynamic_state_3_depth_clamp.Assign(features.has_extended_dynamic_state_3_depth_clamp ? 1 : 0);
+    extended_dynamic_state_3_logic_op_enable.Assign(features.has_extended_dynamic_state_3_logic_op_enable ? 1 : 0);
+    extended_dynamic_state_3_tessellation_domain_origin.Assign(features.has_extended_dynamic_state_3_tessellation_domain_origin ? 1 : 0);
+    extended_dynamic_state_3_polygon_mode.Assign(features.has_extended_dynamic_state_3_polygon_mode ? 1 : 0);
+    extended_dynamic_state_3_rasterization_samples.Assign(features.has_extended_dynamic_state_3_rasterization_samples ? 1 : 0);
+    extended_dynamic_state_3_sample_mask.Assign(features.has_extended_dynamic_state_3_sample_mask ? 1 : 0);
+    extended_dynamic_state_3_alpha_to_coverage_enable.Assign(features.has_extended_dynamic_state_3_alpha_to_coverage_enable ? 1 : 0);
+    extended_dynamic_state_3_alpha_to_one_enable.Assign(features.has_extended_dynamic_state_3_alpha_to_one_enable ? 1 : 0);
+    extended_dynamic_state_3_depth_clip_enable.Assign(features.has_extended_dynamic_state_3_depth_clip_enable ? 1 : 0);
+    extended_dynamic_state_3_depth_clip_negative_one_to_one.Assign(features.has_extended_dynamic_state_3_depth_clip_negative_one_to_one ? 1 : 0);
+    extended_dynamic_state_3_line_rasterization_mode.Assign(features.has_extended_dynamic_state_3_line_rasterization_mode ? 1 : 0);
+    extended_dynamic_state_3_line_stipple_enable.Assign(features.has_extended_dynamic_state_3_line_stipple_enable ? 1 : 0);
+    extended_dynamic_state_3_provoking_vertex_mode.Assign(features.has_extended_dynamic_state_3_provoking_vertex_mode ? 1 : 0);
+    extended_dynamic_state_3_conservative_rasterization_mode.Assign(features.has_extended_dynamic_state_3_conservative_rasterization_mode ? 1 : 0);
+    extended_dynamic_state_3_sample_locations_enable.Assign(features.has_extended_dynamic_state_3_sample_locations_enable ? 1 : 0);
+    extended_dynamic_state_3_rasterization_stream.Assign(features.has_extended_dynamic_state_3_rasterization_stream ? 1 : 0);
+    
+    // Vertex Input
     dynamic_vertex_input.Assign(features.has_dynamic_vertex_input ? 1 : 0);
+    
     xfb_enabled.Assign(regs.transform_feedback_enabled != 0);
     ndc_minus_one_to_one.Assign(regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1 : 0);
     polygon_mode.Assign(PackPolygonMode(VideoCore::EffectivePolygonMode(regs)));

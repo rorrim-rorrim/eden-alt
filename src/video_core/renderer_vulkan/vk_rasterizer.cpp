@@ -62,29 +62,41 @@ struct DrawParams {
 VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t index, float scale) {
     const auto& src = regs.viewport_transform[index];
     const auto conv = [scale](float value) {
-        float const new_value = value * scale;
-        return scale < 1.0f
-            ? std::round(std::abs(new_value)) * (std::signbit(new_value) ? -1.f : 1.f)
-            : new_value;
+        float new_value = value * scale;
+        if (scale < 1.0f) {
+            const bool sign = std::signbit(value);
+            new_value = std::round(std::abs(new_value));
+            new_value = sign ? -new_value : new_value;
+        }
+        return new_value;
     };
-    float const w = src.scale_x;
-    float h = src.scale_y;
-    if (regs.window_origin.mode == Maxwell::WindowOrigin::Mode::LowerLeft) // Flip by surface clip height
-        h = -h;
-    if (!device.IsNvViewportSwizzleSupported() && src.swizzle.y == Maxwell::ViewportSwizzle::NegativeY) // Flip by viewport height
-        h = -h;
-    // In theory, a raster flip is equivalent to a texture flip for a whole square viewport
-    // TODO: one day implement this properly and raster flip the triangles, not the whole viewport... guh
-    if(regs.viewport_transform[1].scale_y == 0 && regs.window_origin.flip_y != 0)
-        h = -h;
-    float const x = src.translate_x - w;
-    float const y = src.translate_y - h;
-    float const reduce_z = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1.0f : 0.0f;
+    const float x = conv(src.translate_x - src.scale_x);
+    const float width = conv(src.scale_x * 2.0f);
+    float y = conv(src.translate_y - src.scale_y);
+    float height = conv(src.scale_y * 2.0f);
+
+    const bool lower_left = regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft;
+    const bool y_negate = !device.IsNvViewportSwizzleSupported() &&
+                          src.swizzle.y == Maxwell::ViewportSwizzle::NegativeY;
+
+    if (lower_left) {
+        // Flip by surface clip height
+        y += conv(static_cast<f32>(regs.surface_clip.height));
+        height = -height;
+    }
+
+    if (y_negate) {
+        // Flip by viewport height
+        y += height;
+        height = -height;
+    }
+
+    const float reduce_z = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1.0f : 0.0f;
     VkViewport viewport{
-        .x = conv(x),
-        .y = conv(y),
-        .width = w != 0.0f ? conv(w * 2.f) : 1.0f,
-        .height = h != 0.0f ? conv(h * 2.f) : 1.0f,
+        .x = x,
+        .y = y,
+        .width = width != 0.0f ? width : 1.0f,
+        .height = height != 0.0f ? height : 1.0f,
         .minDepth = src.translate_z - src.scale_z * reduce_z,
         .maxDepth = src.translate_z + src.scale_z,
     };
@@ -933,6 +945,7 @@ bool AccelerateDMA::BufferToImage(const Tegra::DMA::ImageCopy& copy_info,
 
 void RasterizerVulkan::UpdateDynamicStates() {
     auto& regs = maxwell3d->regs;
+
     UpdateViewportsState(regs);
     UpdateScissorsState(regs);
     UpdateDepthBias(regs);
@@ -940,7 +953,11 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateDepthBounds(regs);
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
-    if (device.IsExtExtendedDynamicStateSupported()) {
+
+    const auto& dynamic_features = pipeline_cache.GetDynamicFeatures();
+
+    // EDS1 - Extended Dynamic State 1
+    if (dynamic_features.has_extended_dynamic_state) {
         UpdateCullMode(regs);
         UpdateDepthCompareOp(regs);
         UpdateFrontFace(regs);
@@ -950,41 +967,78 @@ void RasterizerVulkan::UpdateDynamicStates() {
             UpdateDepthTestEnable(regs);
             UpdateDepthWriteEnable(regs);
             UpdateStencilTestEnable(regs);
-            if (device.IsExtExtendedDynamicState2Supported()) {
-                UpdatePrimitiveRestartEnable(regs);
-                UpdateRasterizerDiscardEnable(regs);
-                UpdateDepthBiasEnable(regs);
-            }
-            if (device.IsExtExtendedDynamicState3EnablesSupported()) {
-                using namespace Tegra::Engines;
-                if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE || device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
-                    const auto has_float = std::any_of(
-                        regs.vertex_attrib_format.begin(),
-                        regs.vertex_attrib_format.end(),
-                        [](const auto& attrib) {
-                            return attrib.type == Maxwell3D::Regs::VertexAttribute::Type::Float;
-                        }
-                    );
-                    if (regs.logic_op.enable) {
-                        regs.logic_op.enable = static_cast<u32>(!has_float);
+        }
+    }
+
+    // EDS2 - Extended Dynamic State 2 Core
+    if (dynamic_features.has_extended_dynamic_state_2) {
+        if (state_tracker.TouchStateEnable()) {
+            UpdatePrimitiveRestartEnable(regs);
+            UpdateRasterizerDiscardEnable(regs);
+            UpdateDepthBiasEnable(regs);
+        }
+    }
+
+    // EDS2 - LogicOp (granular feature)
+    if (dynamic_features.has_extended_dynamic_state_2_logic_op) {
+        UpdateLogicOp(regs);
+    }
+
+    // EDS3 - Depth Clamp Enable (granular)
+    if (dynamic_features.has_extended_dynamic_state_3_depth_clamp || 
+        dynamic_features.has_extended_dynamic_state_3_enables) {
+        if (state_tracker.TouchStateEnable()) {
+            UpdateDepthClampEnable(regs);
+        }
+    }
+
+    // EDS3 - Logic Op Enable (granular)
+    if (dynamic_features.has_extended_dynamic_state_3_logic_op_enable || 
+        dynamic_features.has_extended_dynamic_state_3_enables) {
+        if (state_tracker.TouchStateEnable()) {
+            using namespace Tegra::Engines;
+            // AMD workaround for logic op with float vertex attributes
+            if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE || 
+                device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
+                struct In {
+                    const Maxwell3D::Regs::VertexAttribute::Type d;
+                    In(Maxwell3D::Regs::VertexAttribute::Type n) : d(n) {}
+                    bool operator()(Maxwell3D::Regs::VertexAttribute n) const {
+                        return n.type == d;
                     }
+                };
+                auto has_float = std::any_of(regs.vertex_attrib_format.begin(), 
+                                            regs.vertex_attrib_format.end(), 
+                                            In(Maxwell3D::Regs::VertexAttribute::Type::Float));
+                if (regs.logic_op.enable) {
+                    regs.logic_op.enable = static_cast<u32>(!has_float);
                 }
-                UpdateLogicOpEnable(regs);
-                UpdateDepthClampEnable(regs);
             }
+            UpdateLogicOpEnable(regs);
         }
-        if (device.IsExtExtendedDynamicState2ExtrasSupported()) {
-            UpdateLogicOp(regs);
-        }
-        if (device.IsExtExtendedDynamicState3BlendingSupported()) {
-            UpdateBlending(regs);
-        }
-        if (device.IsExtExtendedDynamicState3EnablesSupported()) {
+    }
+
+    // EDS3 - Line Stipple Enable (granular)
+    if (dynamic_features.has_extended_dynamic_state_3_line_stipple_enable) {
+        if (state_tracker.TouchStateEnable()) {
             UpdateLineStippleEnable(regs);
+        }
+    }
+
+    // EDS3 - Conservative Rasterization Mode (granular)
+    if (dynamic_features.has_extended_dynamic_state_3_conservative_rasterization_mode) {
+        if (state_tracker.TouchStateEnable()) {
             UpdateConservativeRasterizationMode(regs);
         }
     }
-    if (device.IsExtVertexInputDynamicStateSupported()) {
+
+    // EDS3 - Blending (composite feature: ColorBlendEnable + ColorBlendEquation + ColorWriteMask)
+    if (dynamic_features.has_extended_dynamic_state_3_blend) {
+        UpdateBlending(regs);
+    }
+
+    // Vertex Input Dynamic State
+    if (dynamic_features.has_dynamic_vertex_input) {
         if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput()) {
             UpdateVertexInput(regs);
         }
@@ -1014,10 +1068,10 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
         return;
     }
     if (!regs.viewport_scale_offset_enabled) {
-        float x = float(regs.surface_clip.x);
-        float y = float(regs.surface_clip.y);
-        float width = (std::max)(1.0f, float(regs.surface_clip.width));
-        float height = (std::max)(1.0f, float(regs.surface_clip.height));
+        float x = static_cast<float>(regs.surface_clip.x);
+        float y = static_cast<float>(regs.surface_clip.y);
+        float width = std::max(1.0f, static_cast<float>(regs.surface_clip.width));
+        float height = std::max(1.0f, static_cast<float>(regs.surface_clip.height));
         if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
             y += height;
             height = -height;
@@ -1025,14 +1079,12 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
         VkViewport viewport{
             .x = x,
             .y = y,
-            .width = width,
-            .height = height,
+            .width = width != 0.0f ? width : 1.0f,
+            .height = height != 0.0f ? height : 1.0f,
             .minDepth = 0.0f,
             .maxDepth = 1.0f,
         };
-        scheduler.Record([viewport](vk::CommandBuffer cmdbuf) {
-            cmdbuf.SetViewport(0, viewport);
-        });
+        scheduler.Record([viewport](vk::CommandBuffer cmdbuf) { cmdbuf.SetViewport(0, viewport); });
         return;
     }
     const bool is_rescaling{texture_cache.IsRescaling()};
@@ -1061,8 +1113,8 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
     if (!regs.viewport_scale_offset_enabled) {
         u32 x = regs.surface_clip.x;
         u32 y = regs.surface_clip.y;
-        u32 width = (std::max)(1u, static_cast<u32>(regs.surface_clip.width));
-        u32 height = (std::max)(1u, static_cast<u32>(regs.surface_clip.height));
+        u32 width = std::max(1u, static_cast<u32>(regs.surface_clip.width));
+        u32 height = std::max(1u, static_cast<u32>(regs.surface_clip.height));
         if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
             y = regs.surface_clip.height - (y + height);
         }

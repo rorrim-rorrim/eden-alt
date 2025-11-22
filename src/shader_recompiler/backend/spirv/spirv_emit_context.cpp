@@ -33,11 +33,24 @@ Id ImageType(EmitContext& ctx, const TextureDescriptor& desc) {
     const Id type{ctx.F32[1]};
     const bool depth{desc.is_depth};
     const bool ms{desc.is_multisample};
+    
+    // Mobile GPUs lack Sampled1D SPIR-V capability - emulate 1D as 2D with array layer
+    const bool emulate_1d = ctx.profile.needs_1d_texture_emulation;
+    
+    // Debug log for 1D emulation
+    if (desc.type == TextureType::Color1D || desc.type == TextureType::ColorArray1D) {
+        LOG_WARNING(Shader_SPIRV, "ImageType(texture): Creating {} texture, emulate_1d={}", 
+                    desc.type == TextureType::Color1D ? "Color1D" : "ColorArray1D",
+                    emulate_1d);
+    }
+    
     switch (desc.type) {
     case TextureType::Color1D:
-        return ctx.TypeImage(type, spv::Dim::Dim1D, depth, false, false, 1, format);
+        return emulate_1d ? ctx.TypeImage(type, spv::Dim::Dim2D, depth, false, false, 1, format)
+                          : ctx.TypeImage(type, spv::Dim::Dim1D, depth, false, false, 1, format);
     case TextureType::ColorArray1D:
-        return ctx.TypeImage(type, spv::Dim::Dim1D, depth, true, false, 1, format);
+        return emulate_1d ? ctx.TypeImage(type, spv::Dim::Dim2D, depth, true, false, 1, format)
+                          : ctx.TypeImage(type, spv::Dim::Dim1D, depth, true, false, 1, format);
     case TextureType::Color2D:
     case TextureType::Color2DRect:
         return ctx.TypeImage(type, spv::Dim::Dim2D, depth, false, ms, 1, format);
@@ -79,11 +92,22 @@ spv::ImageFormat GetImageFormat(ImageFormat format) {
 
 Id ImageType(EmitContext& ctx, const ImageDescriptor& desc, Id sampled_type) {
     const spv::ImageFormat format{GetImageFormat(desc.format)};
+    const bool emulate_1d = ctx.profile.needs_1d_texture_emulation;
+    
+    // Debug log for 1D emulation
+    if (desc.type == TextureType::Color1D || desc.type == TextureType::ColorArray1D) {
+        LOG_WARNING(Shader_SPIRV, "ImageType: Creating {} image, emulate_1d={}", 
+                    desc.type == TextureType::Color1D ? "Color1D" : "ColorArray1D",
+                    emulate_1d);
+    }
+    
     switch (desc.type) {
     case TextureType::Color1D:
-        return ctx.TypeImage(sampled_type, spv::Dim::Dim1D, false, false, false, 2, format);
+        return emulate_1d ? ctx.TypeImage(sampled_type, spv::Dim::Dim2D, false, false, false, 2, format)
+                          : ctx.TypeImage(sampled_type, spv::Dim::Dim1D, false, false, false, 2, format);
     case TextureType::ColorArray1D:
-        return ctx.TypeImage(sampled_type, spv::Dim::Dim1D, false, true, false, 2, format);
+        return emulate_1d ? ctx.TypeImage(sampled_type, spv::Dim::Dim2D, false, true, false, 2, format)
+                          : ctx.TypeImage(sampled_type, spv::Dim::Dim1D, false, true, false, 2, format);
     case TextureType::Color2D:
         return ctx.TypeImage(sampled_type, spv::Dim::Dim2D, false, false, false, 2, format);
     case TextureType::ColorArray2D:
@@ -460,9 +484,14 @@ void VectorTypes::Define(Sirit::Module& sirit_ctx, Id base_type, std::string_vie
 
 EmitContext::EmitContext(const Profile& profile_, const RuntimeInfo& runtime_info_,
                          IR::Program& program, Bindings& bindings)
-    : Sirit::Module(profile_.supported_spirv), profile{profile_}, runtime_info{runtime_info_},
-      stage{program.stage}, texture_rescaling_index{bindings.texture_scaling_index},
-      image_rescaling_index{bindings.image_scaling_index} {
+        : Sirit::Module(profile_.supported_spirv), profile{profile_}, runtime_info{runtime_info_},
+            stage{program.stage},
+            // Enable int64 emulation if host lacks int64 but we either use int64 ops
+            // or we need 64-bit addressing for global memory operations.
+            emulate_int64{!profile.support_int64 &&
+                          (program.info.uses_int64 || program.info.uses_global_memory)},
+            texture_rescaling_index{bindings.texture_scaling_index},
+            image_rescaling_index{bindings.image_scaling_index} {
     const bool is_unified{profile.unified_descriptor_binding};
     u32& uniform_binding{is_unified ? bindings.unified : bindings.uniform_buffer};
     u32& storage_binding{is_unified ? bindings.unified : bindings.storage_buffer};
@@ -932,11 +961,163 @@ void EmitContext::DefineWriteStorageCasLoopFunction(const Info& info) {
 }
 
 void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
-    if (!info.uses_global_memory || !profile.support_int64) {
+    if (!info.uses_global_memory) {
         return;
     }
     using DefPtr = Id StorageDefinitions::*;
     const Id zero{u32_zero_value};
+
+    if (SupportsNativeInt64()) {
+        const auto define_body{[&](DefPtr ssbo_member, Id addr, Id element_pointer, u32 shift,
+                                   auto&& callback) {
+            AddLabel();
+            const size_t num_buffers{info.storage_buffers_descriptors.size()};
+            for (size_t index = 0; index < num_buffers; ++index) {
+                if (!info.nvn_buffer_used[index]) {
+                    continue;
+                }
+                const auto& ssbo{info.storage_buffers_descriptors[index]};
+                const Id ssbo_addr_cbuf_offset{Const(ssbo.cbuf_offset / 8)};
+                const Id ssbo_size_cbuf_offset{Const(ssbo.cbuf_offset / 4 + 2)};
+                const Id ssbo_addr_pointer{OpAccessChain(
+                    uniform_types.U32x2, cbufs[ssbo.cbuf_index].U32x2, zero,
+                    ssbo_addr_cbuf_offset)};
+                const Id ssbo_size_pointer{OpAccessChain(
+                    uniform_types.U32, cbufs[ssbo.cbuf_index].U32, zero, ssbo_size_cbuf_offset)};
+
+                const u64 ssbo_align_mask{~(profile.min_ssbo_alignment - 1U)};
+                const Id unaligned_addr{OpBitcast(U64, OpLoad(U32[2], ssbo_addr_pointer))};
+                const Id ssbo_addr{OpBitwiseAnd(U64, unaligned_addr, Constant(U64, ssbo_align_mask))};
+                const Id ssbo_size{OpUConvert(U64, OpLoad(U32[1], ssbo_size_pointer))};
+                const Id ssbo_end{OpIAdd(U64, ssbo_addr, ssbo_size)};
+                const Id cond{OpLogicalAnd(U1, OpUGreaterThanEqual(U1, addr, ssbo_addr),
+                                           OpULessThan(U1, addr, ssbo_end))};
+                const Id then_label{OpLabel()};
+                const Id else_label{OpLabel()};
+                OpSelectionMerge(else_label, spv::SelectionControlMask::MaskNone);
+                OpBranchConditional(cond, then_label, else_label);
+                AddLabel(then_label);
+                const Id ssbo_id{ssbos[index].*ssbo_member};
+                const Id ssbo_offset{OpUConvert(U32[1], OpISub(U64, addr, ssbo_addr))};
+                const Id ssbo_index{OpShiftRightLogical(U32[1], ssbo_offset, Const(shift))};
+                const Id ssbo_pointer{OpAccessChain(element_pointer, ssbo_id, zero, ssbo_index)};
+                callback(ssbo_pointer);
+                AddLabel(else_label);
+            }
+        }};
+        const auto define_load{[&](DefPtr ssbo_member, Id element_pointer, Id type, u32 shift) {
+            const Id function_type{TypeFunction(type, U64)};
+            const Id func_id{OpFunction(type, spv::FunctionControlMask::MaskNone, function_type)};
+            const Id addr{OpFunctionParameter(U64)};
+            define_body(ssbo_member, addr, element_pointer, shift,
+                        [&](Id ssbo_pointer) { OpReturnValue(OpLoad(type, ssbo_pointer)); });
+            OpReturnValue(ConstantNull(type));
+            OpFunctionEnd();
+            return func_id;
+        }};
+        const auto define_write{[&](DefPtr ssbo_member, Id element_pointer, Id type, u32 shift) {
+            const Id function_type{TypeFunction(void_id, U64, type)};
+            const Id func_id{
+                OpFunction(void_id, spv::FunctionControlMask::MaskNone, function_type)};
+            const Id addr{OpFunctionParameter(U64)};
+            const Id data{OpFunctionParameter(type)};
+            define_body(ssbo_member, addr, element_pointer, shift, [&](Id ssbo_pointer) {
+                OpStore(ssbo_pointer, data);
+                OpReturn();
+            });
+            OpReturn();
+            OpFunctionEnd();
+            return func_id;
+        }};
+        const auto define{
+            [&](DefPtr ssbo_member, const StorageTypeDefinition& type_def, Id type, size_t size) {
+                const Id element_type{type_def.element};
+                const u32 shift{static_cast<u32>(std::countr_zero(size))};
+                const Id load_func{define_load(ssbo_member, element_type, type, shift)};
+                const Id write_func{define_write(ssbo_member, element_type, type, shift)};
+                return std::make_pair(load_func, write_func);
+            }};
+        std::tie(load_global_func_u32, write_global_func_u32) =
+            define(&StorageDefinitions::U32, storage_types.U32, U32[1], sizeof(u32));
+        std::tie(load_global_func_u32x2, write_global_func_u32x2) =
+            define(&StorageDefinitions::U32x2, storage_types.U32x2, U32[2], sizeof(u32[2]));
+        std::tie(load_global_func_u32x4, write_global_func_u32x4) =
+            define(&StorageDefinitions::U32x4, storage_types.U32x4, U32[4], sizeof(u32[4]));
+        return;
+    }
+
+    if (!UsesInt64Emulation()) {
+        return;
+    }
+
+    const auto make_pair = [&](Id lo, Id hi) {
+        return OpCompositeConstruct(U32[2], lo, hi);
+    };
+    const auto split_pair = [&](Id value) {
+        return std::array<Id, 2>{OpCompositeExtract(U32[1], value, 0U),
+                                 OpCompositeExtract(U32[1], value, 1U)};
+    };
+    const auto bool_to_u32 = [&](Id predicate) {
+        return OpSelect(U32[1], predicate, Const(1u), zero);
+    };
+    const auto and_pair = [&](Id value, Id mask) {
+        const auto value_parts{split_pair(value)};
+        const auto mask_parts{split_pair(mask)};
+        return make_pair(OpBitwiseAnd(U32[1], value_parts[0], mask_parts[0]),
+                         OpBitwiseAnd(U32[1], value_parts[1], mask_parts[1]));
+    };
+    const auto add_pair = [&](Id lhs, Id rhs) {
+        const auto lhs_parts{split_pair(lhs)};
+        const auto rhs_parts{split_pair(rhs)};
+        const Id sum_lo{OpIAdd(U32[1], lhs_parts[0], rhs_parts[0])};
+        const Id carry{OpULessThan(U1, sum_lo, lhs_parts[0])};
+        Id sum_hi{OpIAdd(U32[1], lhs_parts[1], rhs_parts[1])};
+        sum_hi = OpIAdd(U32[1], sum_hi, bool_to_u32(carry));
+        return make_pair(sum_lo, sum_hi);
+    };
+    const auto sub_pair = [&](Id lhs, Id rhs) {
+        const auto lhs_parts{split_pair(lhs)};
+        const auto rhs_parts{split_pair(rhs)};
+        const Id borrow{OpULessThan(U1, lhs_parts[0], rhs_parts[0])};
+        const Id diff_lo{OpISub(U32[1], lhs_parts[0], rhs_parts[0])};
+        Id diff_hi{OpISub(U32[1], lhs_parts[1], rhs_parts[1])};
+        diff_hi = OpISub(U32[1], diff_hi, bool_to_u32(borrow));
+        return make_pair(diff_lo, diff_hi);
+    };
+    const auto shift_right_pair = [&](Id value, u32 shift) {
+        if (shift == 0) {
+            return value;
+        }
+        const auto parts{split_pair(value)};
+        const Id shift_id{Const(shift)};
+        const Id high_shifted{OpShiftRightLogical(U32[1], parts[1], shift_id)};
+        Id low_shifted{OpShiftRightLogical(U32[1], parts[0], shift_id)};
+        const Id carry_bits{OpShiftLeftLogical(U32[1], parts[1], Const(32u - shift))};
+        low_shifted = OpBitwiseOr(U32[1], low_shifted, carry_bits);
+        return make_pair(low_shifted, high_shifted);
+    };
+    const auto greater_equal_pair = [&](Id lhs, Id rhs) {
+        const auto lhs_parts{split_pair(lhs)};
+        const auto rhs_parts{split_pair(rhs)};
+        const Id hi_gt{OpUGreaterThan(U1, lhs_parts[1], rhs_parts[1])};
+        const Id hi_eq{OpIEqual(U1, lhs_parts[1], rhs_parts[1])};
+        const Id lo_ge{OpUGreaterThanEqual(U1, lhs_parts[0], rhs_parts[0])};
+        return OpLogicalOr(U1, hi_gt, OpLogicalAnd(U1, hi_eq, lo_ge));
+    };
+    const auto less_than_pair = [&](Id lhs, Id rhs) {
+        const auto lhs_parts{split_pair(lhs)};
+        const auto rhs_parts{split_pair(rhs)};
+        const Id hi_lt{OpULessThan(U1, lhs_parts[1], rhs_parts[1])};
+        const Id hi_eq{OpIEqual(U1, lhs_parts[1], rhs_parts[1])};
+        const Id lo_lt{OpULessThan(U1, lhs_parts[0], rhs_parts[0])};
+        return OpLogicalOr(U1, hi_lt, OpLogicalAnd(U1, hi_eq, lo_lt));
+    };
+
+    const u64 ssbo_align_mask_value{~(profile.min_ssbo_alignment - 1U)};
+    const Id ssbo_align_mask{
+        Const(static_cast<u32>(ssbo_align_mask_value & 0xFFFFFFFFu),
+              static_cast<u32>(ssbo_align_mask_value >> 32))};
+
     const auto define_body{[&](DefPtr ssbo_member, Id addr, Id element_pointer, u32 shift,
                                auto&& callback) {
         AddLabel();
@@ -953,40 +1134,44 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
             const Id ssbo_size_pointer{OpAccessChain(uniform_types.U32, cbufs[ssbo.cbuf_index].U32,
                                                      zero, ssbo_size_cbuf_offset)};
 
-            const u64 ssbo_align_mask{~(profile.min_ssbo_alignment - 1U)};
-            const Id unaligned_addr{OpBitcast(U64, OpLoad(U32[2], ssbo_addr_pointer))};
-            const Id ssbo_addr{OpBitwiseAnd(U64, unaligned_addr, Constant(U64, ssbo_align_mask))};
-            const Id ssbo_size{OpUConvert(U64, OpLoad(U32[1], ssbo_size_pointer))};
-            const Id ssbo_end{OpIAdd(U64, ssbo_addr, ssbo_size)};
-            const Id cond{OpLogicalAnd(U1, OpUGreaterThanEqual(U1, addr, ssbo_addr),
-                                       OpULessThan(U1, addr, ssbo_end))};
+            const Id unaligned_addr_pair{OpLoad(U32[2], ssbo_addr_pointer)};
+            const Id ssbo_addr_pair{and_pair(unaligned_addr_pair, ssbo_align_mask)};
+            const Id ssbo_size_value{OpLoad(U32[1], ssbo_size_pointer)};
+            const Id ssbo_size_pair{make_pair(ssbo_size_value, zero)};
+            const Id ssbo_end_pair{add_pair(ssbo_addr_pair, ssbo_size_pair)};
+            const Id cond{OpLogicalAnd(U1, greater_equal_pair(addr, ssbo_addr_pair),
+                                       less_than_pair(addr, ssbo_end_pair))};
             const Id then_label{OpLabel()};
             const Id else_label{OpLabel()};
             OpSelectionMerge(else_label, spv::SelectionControlMask::MaskNone);
             OpBranchConditional(cond, then_label, else_label);
             AddLabel(then_label);
             const Id ssbo_id{ssbos[index].*ssbo_member};
-            const Id ssbo_offset{OpUConvert(U32[1], OpISub(U64, addr, ssbo_addr))};
-            const Id ssbo_index{OpShiftRightLogical(U32[1], ssbo_offset, Const(shift))};
+            const Id ssbo_offset_pair{sub_pair(addr, ssbo_addr_pair)};
+            const Id ssbo_index_pair{shift_right_pair(ssbo_offset_pair, shift)};
+            const Id ssbo_index{OpCompositeExtract(U32[1], ssbo_index_pair, 0U)};
             const Id ssbo_pointer{OpAccessChain(element_pointer, ssbo_id, zero, ssbo_index)};
             callback(ssbo_pointer);
             AddLabel(else_label);
         }
     }};
+
     const auto define_load{[&](DefPtr ssbo_member, Id element_pointer, Id type, u32 shift) {
-        const Id function_type{TypeFunction(type, U64)};
+        const Id function_type{TypeFunction(type, U32[2])};
         const Id func_id{OpFunction(type, spv::FunctionControlMask::MaskNone, function_type)};
-        const Id addr{OpFunctionParameter(U64)};
+        const Id addr{OpFunctionParameter(U32[2])};
         define_body(ssbo_member, addr, element_pointer, shift,
                     [&](Id ssbo_pointer) { OpReturnValue(OpLoad(type, ssbo_pointer)); });
         OpReturnValue(ConstantNull(type));
         OpFunctionEnd();
         return func_id;
     }};
+
     const auto define_write{[&](DefPtr ssbo_member, Id element_pointer, Id type, u32 shift) {
-        const Id function_type{TypeFunction(void_id, U64, type)};
-        const Id func_id{OpFunction(void_id, spv::FunctionControlMask::MaskNone, function_type)};
-        const Id addr{OpFunctionParameter(U64)};
+        const Id function_type{TypeFunction(void_id, U32[2], type)};
+        const Id func_id{
+            OpFunction(void_id, spv::FunctionControlMask::MaskNone, function_type)};
+        const Id addr{OpFunctionParameter(U32[2])};
         const Id data{OpFunctionParameter(type)};
         define_body(ssbo_member, addr, element_pointer, shift, [&](Id ssbo_pointer) {
             OpStore(ssbo_pointer, data);
@@ -996,6 +1181,7 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
         OpFunctionEnd();
         return func_id;
     }};
+
     const auto define{
         [&](DefPtr ssbo_member, const StorageTypeDefinition& type_def, Id type, size_t size) {
             const Id element_type{type_def.element};
@@ -1004,6 +1190,7 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
             const Id write_func{define_write(ssbo_member, element_type, type, shift)};
             return std::make_pair(load_func, write_func);
         }};
+
     std::tie(load_global_func_u32, write_global_func_u32) =
         define(&StorageDefinitions::U32, storage_types.U32, U32[1], sizeof(u32));
     std::tie(load_global_func_u32x2, write_global_func_u32x2) =
@@ -1442,6 +1629,15 @@ void EmitContext::DefineInputs(const IR::Program& program) {
         subgroup_mask_le = DefineInput(*this, U32[4], false, spv::BuiltIn::SubgroupLeMaskKHR);
         subgroup_mask_gt = DefineInput(*this, U32[4], false, spv::BuiltIn::SubgroupGtMaskKHR);
         subgroup_mask_ge = DefineInput(*this, U32[4], false, spv::BuiltIn::SubgroupGeMaskKHR);
+        
+        // Vulkan spec: Fragment shader Input variables with integer/float type must have Flat decoration
+        if (stage == Stage::Fragment) {
+            Decorate(subgroup_mask_eq, spv::Decoration::Flat);
+            Decorate(subgroup_mask_lt, spv::Decoration::Flat);
+            Decorate(subgroup_mask_le, spv::Decoration::Flat);
+            Decorate(subgroup_mask_gt, spv::Decoration::Flat);
+            Decorate(subgroup_mask_ge, spv::Decoration::Flat);
+        }
     }
     if (info.uses_fswzadd || info.uses_subgroup_invocation_id || info.uses_subgroup_shuffles ||
         (profile.warp_size_potentially_larger_than_guest &&

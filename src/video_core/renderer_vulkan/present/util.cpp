@@ -5,7 +5,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/assert.h"
-#include <ranges>
 #include "video_core/renderer_vulkan/present/util.h"
 
 namespace Vulkan {

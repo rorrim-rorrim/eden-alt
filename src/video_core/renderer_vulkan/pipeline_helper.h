@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -24,8 +27,13 @@ public:
     DescriptorLayoutBuilder(const Device& device_) : device{&device_} {}
 
     bool CanUsePushDescriptor() const noexcept {
-        return device->IsKhrPushDescriptorSupported() &&
-               num_descriptors <= device->MaxPushDescriptors();
+        if (!device->IsKhrPushDescriptorSupported()) {
+            return false;
+        }
+        if (num_descriptors > device->MaxPushDescriptors()) {
+            return false;
+        }
+        return true;
     }
 
     // TODO(crueter): utilize layout binding flags
