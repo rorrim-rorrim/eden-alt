@@ -705,6 +705,9 @@ Device::~Device() {
 
 VkFormat Device::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags wanted_usage,
                                     FormatType format_type) const {
+    if (wanted_format == VK_FORMAT_D24_UNORM_S8_UINT) {
+        return VK_FORMAT_D32_SFLOAT_S8_UINT;
+    }
     if (IsFormatSupported(wanted_format, wanted_usage, format_type)) {
         return wanted_format;
     }
