@@ -868,12 +868,11 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         dynamic_states.push_back(VK_DYNAMIC_STATE_STENCIL_REFERENCE);
     }
 
-    // EDS1 - Extended Dynamic State (12 states)
+    // EDS1 - Extended Dynamic State
     if (key.state.extended_dynamic_state) {
         static constexpr std::array extended{
             VK_DYNAMIC_STATE_CULL_MODE_EXT,
             VK_DYNAMIC_STATE_FRONT_FACE_EXT,
-          //VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT, //Disabled for VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME
             VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT,
             VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE_EXT,
             VK_DYNAMIC_STATE_DEPTH_COMPARE_OP_EXT,
@@ -882,9 +881,15 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             VK_DYNAMIC_STATE_STENCIL_OP_EXT,
         };
         dynamic_states.insert(dynamic_states.end(), extended.begin(), extended.end());
+
+        // Note: VERTEX_INPUT_BINDING_STRIDE is part of EDS1, not VIDS
+        // When VIDS is disabled, we still need dynamic stride with BindVertexBuffers2EXT
+        if (!key.state.dynamic_vertex_input) {
+            dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT);
+        }
     }
 
-    // Vertex Input Dynamic State (independent toggle)
+    // Vertex Input Dynamic State (independent toggle, replaces VERTEX_INPUT_BINDING_STRIDE when enabled)
     if (key.state.dynamic_vertex_input) {
         dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_EXT);
     }
