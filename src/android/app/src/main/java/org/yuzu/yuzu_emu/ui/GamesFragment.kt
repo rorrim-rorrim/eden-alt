@@ -44,6 +44,17 @@ import androidx.core.content.edit
 import androidx.core.view.doOnNextLayout
 
 class GamesFragment : Fragment() {
+    private lateinit var safRecursiveTimestampWriter: org.yuzu.yuzu_emu.utils.SAFWriter
+    private val REQUEST_CODE_OPEN_DOCUMENT_TREE = 1001
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_OPEN_DOCUMENT_TREE && resultCode == android.app.Activity.RESULT_OK) {
+            val uri = data?.data ?: return
+            safRecursiveTimestampWriter.handlePermissionResult(uri)
+        }
+    }
+
     private var _binding: FragmentGamesBinding? = null
     private val binding get() = _binding!!
 
@@ -112,9 +123,25 @@ class GamesFragment : Fragment() {
 
         applyGridGamesBinding()
 
+    safRecursiveTimestampWriter = org.yuzu.yuzu_emu.utils.SAFWriter(requireContext())
+
         binding.swipeRefresh.apply {
             (binding.swipeRefresh as? SwipeRefreshLayout)?.setOnRefreshListener {
-                gamesViewModel.reloadGames(false)
+                safRecursiveTimestampWriter.refreshGamesFolder(
+                    folders = gamesViewModel.folders.value,
+                    requestPermission = { uri ->
+                        val intent = android.content.Intent(android.content.Intent.ACTION_OPEN_DOCUMENT_TREE)
+                        intent.putExtra(android.provider.DocumentsContract.EXTRA_INITIAL_URI, uri)
+                        intent.addFlags(
+                            android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                            android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
+                            android.content.Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or
+                            android.content.Intent.FLAG_GRANT_PREFIX_URI_PERMISSION
+                        )
+                        startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT_TREE)
+                    },
+                    reloadGames = { gamesViewModel.reloadGames(false) }
+                )
             }
             (binding.swipeRefresh as? SwipeRefreshLayout)?.setProgressBackgroundColorSchemeColor(
                 com.google.android.material.color.MaterialColors.getColor(
