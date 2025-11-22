@@ -900,7 +900,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     }
 
     // EDS2 - Logic Op (granular feature)
-    if (key.state.extended_dynamic_state_2_extra) {
+    if (key.state.extended_dynamic_state_2_logic_op) {
         dynamic_states.push_back(VK_DYNAMIC_STATE_LOGIC_OP_EXT);
     }
 
