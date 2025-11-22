@@ -61,37 +61,37 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     raw1_eds3_extended = 0;
     
     // EDS1
-    extended_dynamic_state.Assign(features.has_extended_dynamic_state ? 1 : 0);
+    extended_dynamic_state.Assign(features.has_extended_dynamic_state);
     
     // EDS2
-    extended_dynamic_state_2.Assign(features.has_extended_dynamic_state_2 ? 1 : 0);
-    extended_dynamic_state_2_logic_op.Assign(features.has_extended_dynamic_state_2_logic_op ? 1 : 0);
-    extended_dynamic_state_2_patch_control_points.Assign(features.has_extended_dynamic_state_2_patch_control_points ? 1 : 0);
+    extended_dynamic_state_2.Assign(features.has_extended_dynamic_state_2);
+    extended_dynamic_state_2_logic_op.Assign(features.has_extended_dynamic_state_2_logic_op);
+    extended_dynamic_state_2_patch_control_points.Assign(features.has_extended_dynamic_state_2_patch_control_points);
     
     // EDS3 - Blending/Enables
-    extended_dynamic_state_3_blend.Assign(features.has_extended_dynamic_state_3_blend ? 1 : 0);
-    extended_dynamic_state_3_enables.Assign(features.has_extended_dynamic_state_3_enables ? 1 : 0);
+    extended_dynamic_state_3_blend.Assign(features.has_extended_dynamic_state_3_blend);
+    extended_dynamic_state_3_enables.Assign(features.has_extended_dynamic_state_3_enables);
     
     // EDS3 - Granular features
-    extended_dynamic_state_3_depth_clamp.Assign(features.has_extended_dynamic_state_3_depth_clamp ? 1 : 0);
-    extended_dynamic_state_3_logic_op_enable.Assign(features.has_extended_dynamic_state_3_logic_op_enable ? 1 : 0);
-    extended_dynamic_state_3_tessellation_domain_origin.Assign(features.has_extended_dynamic_state_3_tessellation_domain_origin ? 1 : 0);
-    extended_dynamic_state_3_polygon_mode.Assign(features.has_extended_dynamic_state_3_polygon_mode ? 1 : 0);
-    extended_dynamic_state_3_rasterization_samples.Assign(features.has_extended_dynamic_state_3_rasterization_samples ? 1 : 0);
-    extended_dynamic_state_3_sample_mask.Assign(features.has_extended_dynamic_state_3_sample_mask ? 1 : 0);
-    extended_dynamic_state_3_alpha_to_coverage_enable.Assign(features.has_extended_dynamic_state_3_alpha_to_coverage_enable ? 1 : 0);
-    extended_dynamic_state_3_alpha_to_one_enable.Assign(features.has_extended_dynamic_state_3_alpha_to_one_enable ? 1 : 0);
-    extended_dynamic_state_3_depth_clip_enable.Assign(features.has_extended_dynamic_state_3_depth_clip_enable ? 1 : 0);
-    extended_dynamic_state_3_depth_clip_negative_one_to_one.Assign(features.has_extended_dynamic_state_3_depth_clip_negative_one_to_one ? 1 : 0);
-    extended_dynamic_state_3_line_rasterization_mode.Assign(features.has_extended_dynamic_state_3_line_rasterization_mode ? 1 : 0);
-    extended_dynamic_state_3_line_stipple_enable.Assign(features.has_extended_dynamic_state_3_line_stipple_enable ? 1 : 0);
-    extended_dynamic_state_3_provoking_vertex_mode.Assign(features.has_extended_dynamic_state_3_provoking_vertex_mode ? 1 : 0);
-    extended_dynamic_state_3_conservative_rasterization_mode.Assign(features.has_extended_dynamic_state_3_conservative_rasterization_mode ? 1 : 0);
-    extended_dynamic_state_3_sample_locations_enable.Assign(features.has_extended_dynamic_state_3_sample_locations_enable ? 1 : 0);
-    extended_dynamic_state_3_rasterization_stream.Assign(features.has_extended_dynamic_state_3_rasterization_stream ? 1 : 0);
+    extended_dynamic_state_3_depth_clamp.Assign(features.has_extended_dynamic_state_3_depth_clamp);
+    extended_dynamic_state_3_logic_op_enable.Assign(features.has_extended_dynamic_state_3_logic_op_enable);
+    extended_dynamic_state_3_tessellation_domain_origin.Assign(features.has_extended_dynamic_state_3_tessellation_domain_origin);
+    extended_dynamic_state_3_polygon_mode.Assign(features.has_extended_dynamic_state_3_polygon_mode);
+    extended_dynamic_state_3_rasterization_samples.Assign(features.has_extended_dynamic_state_3_rasterization_samples);
+    extended_dynamic_state_3_sample_mask.Assign(features.has_extended_dynamic_state_3_sample_mask);
+    extended_dynamic_state_3_alpha_to_coverage_enable.Assign(features.has_extended_dynamic_state_3_alpha_to_coverage_enable);
+    extended_dynamic_state_3_alpha_to_one_enable.Assign(features.has_extended_dynamic_state_3_alpha_to_one_enable);
+    extended_dynamic_state_3_depth_clip_enable.Assign(features.has_extended_dynamic_state_3_depth_clip_enable);
+    extended_dynamic_state_3_depth_clip_negative_one_to_one.Assign(features.has_extended_dynamic_state_3_depth_clip_negative_one_to_one);
+    extended_dynamic_state_3_line_rasterization_mode.Assign(features.has_extended_dynamic_state_3_line_rasterization_mode);
+    extended_dynamic_state_3_line_stipple_enable.Assign(features.has_extended_dynamic_state_3_line_stipple_enable);
+    extended_dynamic_state_3_provoking_vertex_mode.Assign(features.has_extended_dynamic_state_3_provoking_vertex_mode);
+    extended_dynamic_state_3_conservative_rasterization_mode.Assign(features.has_extended_dynamic_state_3_conservative_rasterization_mode);
+    extended_dynamic_state_3_sample_locations_enable.Assign(features.has_extended_dynamic_state_3_sample_locations_enable);
+    extended_dynamic_state_3_rasterization_stream.Assign(features.has_extended_dynamic_state_3_rasterization_stream);
     
     // Vertex Input
-    dynamic_vertex_input.Assign(features.has_dynamic_vertex_input ? 1 : 0);
+    dynamic_vertex_input.Assign(features.has_dynamic_vertex_input);
     
     xfb_enabled.Assign(regs.transform_feedback_enabled != 0);
     ndc_minus_one_to_one.Assign(regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1 : 0);
@@ -187,7 +187,7 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
             return static_cast<u16>(array.stride.Value());
         });
     }
-    if (!extended_dynamic_state_2_extra) {
+    if (!extended_dynamic_state_2_logic_op) {
         dynamic_state.Refresh2(regs, topology_, extended_dynamic_state_2);
     }
     if (!extended_dynamic_state_3_blend) {
