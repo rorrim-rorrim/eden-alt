@@ -881,26 +881,8 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE_EXT,
             VK_DYNAMIC_STATE_STENCIL_OP_EXT,
         };
-        if (key.state.dynamic_vertex_input) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_EXT);
-        }
         dynamic_states.insert(dynamic_states.end(), extended.begin(), extended.end());
-        if (key.state.extended_dynamic_state_2) {
-            static constexpr std::array extended2{
-                VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE_EXT,
-                VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE_EXT,
-                VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE_EXT,
-            };
-            dynamic_states.insert(dynamic_states.end(), extended2.begin(), extended2.end());
-        }
-        if (key.state.extended_dynamic_state_2_extra) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_LOGIC_OP_EXT);
-        }
-        if (key.state.extended_dynamic_state_3_blend) {
-            static constexpr std::array extended3{
-                VK_DYNAMIC_STATE_COLOR_BLEND_ENABLE_EXT,
-                VK_DYNAMIC_STATE_COLOR_BLEND_EQUATION_EXT,
-                VK_DYNAMIC_STATE_COLOR_WRITE_MASK_EXT,
+    }
 
     // Vertex Input Dynamic State (independent toggle)
     if (key.state.dynamic_vertex_input) {
@@ -917,7 +899,10 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         dynamic_states.insert(dynamic_states.end(), extended2.begin(), extended2.end());
     }
 
-                VK_DYNAMIC_STATE_CONSERVATIVE_RASTERIZATION_MODE_EXT,
+    // EDS2 - Logic Op (granular feature)
+    if (key.state.extended_dynamic_state_2_logic_op) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_LOGIC_OP_EXT);
+    }
 
     // EDS3 - Blending (composite: ColorBlendEnable + Equation + WriteMask)
     if (key.state.extended_dynamic_state_3_blend) {
