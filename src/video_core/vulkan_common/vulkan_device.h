@@ -1009,9 +1009,6 @@ private:
     bool is_blit_depth24_stencil8_supported{}; ///< Support for blitting from and to D24S8.
     bool is_blit_depth32_stencil8_supported{}; ///< Support for blitting from and to D32S8.
     bool is_warp_potentially_bigger{};         ///< Host warp size can be bigger than guest.
-    bool is_integrated{};                      ///< Is GPU an iGPU.
-    bool is_virtual{};                         ///< Is GPU a virtual GPU.
-    bool is_non_gpu{};                         ///< Is SoftwareRasterizer, FPGA, non-GPU device.
     bool has_broken_compute{};                 ///< Compute shaders can cause crashes
     bool has_broken_cube_compatibility{};      ///< Has broken cube compatibility bit
     bool has_broken_parallel_compiling{};      ///< Has broken parallel shader compiling.
