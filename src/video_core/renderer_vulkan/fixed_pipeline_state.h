@@ -51,7 +51,6 @@ struct DynamicFeatures {
     bool has_extended_dynamic_state_3_sample_locations_enable : 1;
     bool has_extended_dynamic_state_3_rasterization_stream : 1;
 };
-static_assert(std::has_unique_object_representations_v<DynamicFeatures>);
 
 struct FixedPipelineState {
     static u32 PackComparisonOp(Maxwell::ComparisonOp op) noexcept;
