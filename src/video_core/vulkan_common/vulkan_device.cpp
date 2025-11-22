@@ -1286,44 +1286,20 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
     // VK_EXT_extended_dynamic_state3
 
-    // AMD/Samsung: Broken extendedDynamicState3ColorBlendEquation
+    // AMD/Samsung/RADV: Broken extendedDynamicState3ColorBlendEquation
     // Disable blend equation dynamic state, force static pipeline state
     if (extensions.extended_dynamic_state3 &&
         (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
+        (is_amd_driver || is_radv || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
         LOG_WARNING(Render_Vulkan,
-                    "AMD/Samsung: Disabling broken extendedDynamicState3ColorBlendEquation");
+                    "AMD/Samsung/RADV: Disabling broken extendedDynamicState3ColorBlendEquation");
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
-    }
-
-    // RADV: Broken extendedDynamicState3ColorBlendEquation
-    // Disable problematic features based on driver version < 23.1.0
-    if (extensions.extended_dynamic_state3 && is_radv) {
-        LOG_WARNING(Render_Vulkan, "RADV: Disabling broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
-
-        const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version < VK_MAKE_API_VERSION(0, 23, 1, 0)) {
-            LOG_WARNING(Render_Vulkan,
-                        "RADV < 23.1.0: Disabling broken depth clamp dynamic state");
-            features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable = false;
-        }
     }
 
     // VK_EXT_vertex_input_dynamic_state
 
-    // RADV + RDNA2: Broken VertexInputDynamicState on RDNA2 hardware
-    // Disable VertexInputDynamicState on RDNA2
-    if (extensions.vertex_input_dynamic_state && is_radv) {
-        const bool is_rdna2 =
-            supported_extensions.contains(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME);
-        if (is_rdna2) {
-            LOG_WARNING(Render_Vulkan,
-                        "RADV + RDNA2: Disabling broken VK_EXT_vertex_input_dynamic_state");
-            features.vertex_input_dynamic_state.vertexInputDynamicState = false;
-        }
-    }
+    // No RADV workarounds - assume modern drivers
 
     // Qualcomm: Broken VertexInputDynamicState implementation
     // Disable VertexInputDynamicState on all Qualcomm drivers
