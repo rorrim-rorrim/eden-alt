@@ -59,6 +59,7 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
 
     raw1 = 0;
     raw1_eds3_extended = 0;
+    pad_align_u64 = 0;
     
     // EDS1
     extended_dynamic_state.Assign(features.has_extended_dynamic_state);

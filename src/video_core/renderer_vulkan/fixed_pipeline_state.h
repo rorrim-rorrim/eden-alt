@@ -283,12 +283,15 @@ struct FixedPipelineState {
         BitField<16, 1, u32> alpha_to_one_enabled;
         BitField<17, 3, Tegra::Engines::Maxwell3D::EngineHint> app_stage;
     };
-    std::array<u8, Maxwell::NumRenderTargets> color_formats;
 
     u32 alpha_test_ref;
     u32 point_size;
 
+    std::array<u8, Maxwell::NumRenderTargets> color_formats;
     std::array<u16, Maxwell::NumViewports> viewport_swizzles;
+
+    u32 pad_align_u64;
+
     union {
         u64 attribute_types; // Used with VK_EXT_vertex_input_dynamic_state
         u64 enabled_divisors;
