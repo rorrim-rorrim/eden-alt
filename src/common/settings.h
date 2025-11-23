@@ -739,6 +739,16 @@ struct Values {
     Setting<bool> perform_vulkan_check{linkage, true, "perform_vulkan_check", Category::Debugging};
     Setting<bool> disable_web_applet{linkage, true, "disable_web_applet", Category::Debugging};
 
+    SwitchableSetting<u16, true> debug_knobs{linkage,
+                                           0,
+                                           0,
+                                           65535,
+                                           "debug_knobs",
+                                           Category::Debugging,
+                                           Specialization::Countable,
+                                           true,
+                                           true};
+
     // Miscellaneous
     Setting<std::string> log_filter{linkage, "*:Info", "log_filter", Category::Miscellaneous};
     Setting<bool> log_flush_line{linkage, false, "flush_line", Category::Miscellaneous, Specialization::Default, true, true};
@@ -766,6 +776,8 @@ struct Values {
 };
 
 extern Values values;
+
+bool getDebugKnobAt(u8 i);
 
 void UpdateGPUAccuracy();
 bool IsGPULevelExtreme();

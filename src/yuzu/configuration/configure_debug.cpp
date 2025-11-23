@@ -75,6 +75,7 @@ void ConfigureDebug::SetConfiguration() {
     ui->disable_loop_safety_checks->setChecked(Settings::values.disable_shader_loop_safety_checks.GetValue());
     ui->extended_logging->setChecked(Settings::values.extended_logging.GetValue());
     ui->perform_vulkan_check->setChecked(Settings::values.perform_vulkan_check.GetValue());
+    ui->debug_knobs_spinbox->setValue(Settings::values.debug_knobs.GetValue());
 #ifdef YUZU_USE_QT_WEB_ENGINE
     ui->disable_web_applet->setChecked(Settings::values.disable_web_applet.GetValue());
 #else
@@ -111,6 +112,7 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.extended_logging = ui->extended_logging->isChecked();
     Settings::values.perform_vulkan_check = ui->perform_vulkan_check->isChecked();
     Settings::values.disable_web_applet = ui->disable_web_applet->isChecked();
+    Settings::values.debug_knobs = ui->debug_knobs_spinbox->value();
     Debugger::ToggleConsole();
     Common::Log::Filter filter;
     filter.ParseFilterString(Settings::values.log_filter.GetValue());
