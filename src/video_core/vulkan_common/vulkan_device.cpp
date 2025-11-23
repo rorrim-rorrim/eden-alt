@@ -1115,6 +1115,95 @@ bool Device::GetSuitability(bool requires_swapchain) {
         }
     }
 
+    // VK_DYNAMIC_STATE
+    
+    // VK_EXT_extended_dynamic_state
+    
+    // RADV < 21.2.0: Broken ExtendedDynamicState implementation
+    // Disable entire extension on old drivers
+    if (extensions.extended_dynamic_state && is_radv) {
+        const u32 version = (properties.properties.driverVersion << 3) >> 3;
+        if (version < VK_MAKE_API_VERSION(0, 21, 2, 0)) {
+            LOG_WARNING(Render_Vulkan,
+                        "RADV < 21.2.0: Disabling broken VK_EXT_extended_dynamic_state");
+            features.extended_dynamic_state.extendedDynamicState = false;
+        }
+    }
+    
+    // VK_EXT_extended_dynamic_state2
+    
+    // RADV < 22.3.1: Broken ExtendedDynamicState2 implementation
+    // Disable entire extension on old drivers
+    if (extensions.extended_dynamic_state2 && is_radv) {
+        const u32 version = (properties.properties.driverVersion << 3) >> 3;
+        if (version < VK_MAKE_API_VERSION(0, 22, 3, 1)) {
+            LOG_WARNING(Render_Vulkan,
+                        "RADV < 22.3.1: Disabling broken VK_EXT_extended_dynamic_state2");
+            features.extended_dynamic_state2.extendedDynamicState2 = false;
+        }
+    }
+    
+    // Qualcomm Adreno 7xx (drivers 676.0 - 679.x): Broken ExtendedDynamicState2
+    // Disable ExtendedDynamicState2 on affected driver versions
+    if (extensions.extended_dynamic_state2 && is_qualcomm) {
+        const u32 version = (properties.properties.driverVersion << 3) >> 3;
+        if (version >= VK_MAKE_API_VERSION(0, 0, 676, 0) &&
+            version < VK_MAKE_API_VERSION(0, 0, 680, 0)) {
+            LOG_WARNING(Render_Vulkan,
+                        "Qualcomm Adreno 7xx (676-679): Disabling broken VK_EXT_extended_dynamic_state2");
+            features.extended_dynamic_state2.extendedDynamicState2 = false;
+        }
+    }
+    
+    // VK_EXT_extended_dynamic_state3
+    
+    // AMD/Samsung/RADV: Broken extendedDynamicState3ColorBlendEquation
+    // Disable blend equation dynamic state, force static pipeline state
+    if (extensions.extended_dynamic_state3 && 
+        (is_amd_driver || is_radv || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
+        LOG_WARNING(Render_Vulkan,
+                    "AMD/Samsung/RADV: Disabling broken extendedDynamicState3ColorBlendEquation");
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
+    }
+
+    // VK_EXT_vertex_input_dynamic_state
+    // No RADV workarounds - assume modern drivers
+    
+    // Qualcomm: Broken VertexInputDynamicState implementation
+    // Disable VertexInputDynamicState on all Qualcomm drivers
+    if (extensions.vertex_input_dynamic_state && is_qualcomm) {
+        LOG_WARNING(Render_Vulkan,
+                    "Qualcomm: Disabling broken VK_EXT_vertex_input_dynamic_state");
+        features.vertex_input_dynamic_state.vertexInputDynamicState = false;
+    }
+    
+    // Intel Windows < 27.20.100.0: Broken VertexInputDynamicState
+    // Disable VertexInputDynamicState on old Intel Windows drivers
+    if (extensions.vertex_input_dynamic_state && is_intel_windows) {
+        const u32 version = (properties.properties.driverVersion << 3) >> 3;
+        if (version < VK_MAKE_API_VERSION(27, 20, 100, 0)) {
+            LOG_WARNING(Render_Vulkan,
+                        "Intel Windows < 27.20.100.0: Disabling broken VK_EXT_vertex_input_dynamic_state");
+            features.vertex_input_dynamic_state.vertexInputDynamicState = false;
+        }
+    }
+    
+    // If user setting is dyna_state=0, disable all dynamic state features
+    if (Settings::values.dyna_state.GetValue() == 0) {
+        LOG_INFO(Render_Vulkan, "Dynamic state disabled by user setting, clearing all EDS features");
+        features.custom_border_color.customBorderColors = false;
+        features.custom_border_color.customBorderColorWithoutFormat = false;
+        features.extended_dynamic_state.extendedDynamicState = false;
+        features.extended_dynamic_state2.extendedDynamicState2 = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorWriteMask = false;
+        features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable = false;
+        features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable = false;
+        // Note: vertex_input_dynamic_state has independent toggle, NOT affected by dyna_state=0
+    }
+
     // Return whether we were suitable.
     return suitable;
 }
