@@ -1104,6 +1104,8 @@ void TextureCacheRuntime::BlitImage(Framebuffer* dst_framebuffer, ImageView& dst
                 UNREACHABLE();
             }
         }();
+        // Use shader-based depth/stencil blits if hardware doesn't support the format
+        // Note: MSAA resolves (MSAA->single) use vkCmdResolveImage which works fine
         if (!can_blit_depth_stencil) {
             UNIMPLEMENTED_IF(is_src_msaa || is_dst_msaa);
             blit_image_helper.BlitDepthStencil(dst_framebuffer, src, dst_region, src_region,
@@ -1118,6 +1120,15 @@ void TextureCacheRuntime::BlitImage(Framebuffer* dst_framebuffer, ImageView& dst
     const VkImage src_image = src.ImageHandle();
     const VkImageSubresourceLayers dst_layers = MakeSubresourceLayers(&dst);
     const VkImageSubresourceLayers src_layers = MakeSubresourceLayers(&src);
+    const bool is_msaa_to_msaa = is_src_msaa && is_dst_msaa;
+    
+    // NVIDIA 510+ and Intel crash on MSAA->MSAA blits (scaling operations)
+    // Fall back to 3D helpers for MSAA scaling
+    if (is_msaa_to_msaa && device.CantBlitMSAA()) {
+        // This should be handled by NeedsScaleHelper() and use 3D helpers instead
+        UNIMPLEMENTED_MSG("MSAA to MSAA blit not supported on this driver");
+        return;
+    }
     const bool is_resolve = is_src_msaa && !is_dst_msaa;
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([filter, dst_region, src_region, dst_image, src_image, dst_layers, src_layers,

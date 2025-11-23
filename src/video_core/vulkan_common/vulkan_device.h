@@ -493,8 +493,16 @@ public:
     }
 
     /// Returns true if the device supports VK_EXT_shader_stencil_export.
+    /// Note: Most Mali/NVIDIA drivers don't support this. Use hardware blits as fallback.
     bool IsExtShaderStencilExportSupported() const {
         return extensions.shader_stencil_export;
+    }
+
+    /// Returns true if depth/stencil operations can be performed efficiently.
+    /// Either through shader export or hardware blits.
+    bool CanPerformDepthStencilOperations() const {
+        return extensions.shader_stencil_export || is_blit_depth24_stencil8_supported ||
+               is_blit_depth32_stencil8_supported;
     }
 
     /// Returns true if the device supports VK_EXT_depth_range_unrestricted.
