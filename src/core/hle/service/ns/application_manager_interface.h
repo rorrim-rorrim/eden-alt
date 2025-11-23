@@ -32,6 +32,8 @@ public:
                                  Out<s32> out_count, s32 offset);
     Result GetApplicationRecordUpdateSystemEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result GetGameCardMountFailureEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
+    Result GetGameCardWakenReadyEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
+    Result IsGameCardApplicationRunning(Out<bool> out_is_running);
     Result IsAnyApplicationEntityInstalled(Out<bool> out_is_any_application_entity_installed);
     Result GetApplicationViewDeprecated(
         OutArray<ApplicationView, BufferAttr_HipcMapAlias> out_application_views,
@@ -60,7 +62,7 @@ public:
     Result Unknown4023(Out<u64> out_result);
     Result Unknown4053();
 
-    Result RequestDownloadApplicationControlDataInBackground(u64 unk,
+    Result RequestDownloadApplicationControlDataInBackground(u64 control_source,
                                                              u64 application_id);
 
 private:
@@ -70,6 +72,8 @@ private:
     Event gamecard_update_detection_event;
     Event gamecard_mount_status_event;
     Event gamecard_mount_failure_event;
+    Event gamecard_waken_ready_event;
+    Event unknown_event;
 };
 
 } // namespace Service::NS

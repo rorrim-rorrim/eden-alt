@@ -934,6 +934,7 @@ Result Module::Interface::InitializeApplicationInfoBase() {
         application_info.application_type = ApplicationType::GameCard;
         break;
     case FileSys::StorageId::Host:
+    case FileSys::StorageId::NandSystem:
     case FileSys::StorageId::NandUser:
     case FileSys::StorageId::SdCard:
     case FileSys::StorageId::None: // Yuzu specific, differs from hardware
@@ -1052,6 +1053,17 @@ void Module::Interface::GetProfileEditor(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
     rb.PushIpcInterface<IProfileEditor>(system, user_id, *profile_manager);
+}
+
+void Module::Interface::GetBaasAccountAdministrator(HLERequestContext &ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto uuid = rp.PopRaw<Common::UUID>();
+
+    LOG_INFO(Service_ACC, "called, uuid=0x{}", uuid.RawString());
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(ResultSuccess);
+    rb.PushIpcInterface<IAdministrator>(system, uuid);
 }
 
 void Module::Interface::ListQualifiedUsers(HLERequestContext& ctx) {
