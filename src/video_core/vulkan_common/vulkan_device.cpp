@@ -1160,16 +1160,16 @@ bool Device::GetSuitability(bool requires_swapchain) {
     
     // Driver detection variables for workarounds in GetSuitability
     const VkDriverId driver_id = properties.driver.driverID;
-    const bool is_amd_driver =
+    [[maybe_unused]] const bool is_amd_driver =
         driver_id == VK_DRIVER_ID_AMD_PROPRIETARY || driver_id == VK_DRIVER_ID_AMD_OPEN_SOURCE;
     const bool is_intel_windows = driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS;
-    const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
+    [[maybe_unused]] const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     
     // VK_EXT_extended_dynamic_state2 below this will appear drivers that need workarounds.
     
     // VK_EXT_extended_dynamic_state3 below this will appear drivers that need workarounds.
     
-    const auto device_id = properties.properties.deviceID;
+    [[maybe_unused]] const auto device_id = properties.properties.deviceID;
     
     // Samsung: Broken extendedDynamicState3ColorBlendEquation
     // Disable blend equation dynamic state, force static pipeline state
