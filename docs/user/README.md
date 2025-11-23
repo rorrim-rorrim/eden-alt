@@ -15,3 +15,4 @@ This handbook is primarily aimed at the end-user - baking useful knowledge for e
 - **[Command Line](CommandLine.md)**
 - **[Native Application Development](Native.md)**
 - **[Adding Boolean Settings Toggles](AddingBooleanToggles.md)**
+- **[Troubleshooting](./Troubleshoot.md)**

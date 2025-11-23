@@ -183,6 +183,8 @@ sudo dnf config-manager --enable crb
 sudo dnf install qt6-qtbase-private-devel
 ```
 
+For systems like OpenEuler or derivates, don't forget to also install: `SDL2-devel pkg-config`.
+
 * [RPM Fusion](https://rpmfusion.org/Configuration) is required for `ffmpeg-devel`
 * Fedora 32 or later is required.
 * Fedora 36+ users with GCC 12 need Clang and should configure CMake with: `cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -B build`
@@ -251,7 +253,7 @@ If using FreeBSD 12 or prior, use `devel/pkg-config` instead.
 <details>
 <summary>NetBSD</summary>
 
-For NetBSD +10.1: `pkgin install git cmake boost fmtlib SDL2 catch2 libjwt spirv-headers ffmpeg7 libva nlohmann-json jq libopus qt6 mbedtls3 cpp-httplib lz4 vulkan-headers nasm autoconf enet pkg-config libusb1`.
+For NetBSD +10.1: `pkgin install git cmake boost fmtlib SDL2 catch2 libjwt spirv-headers ffmpeg7 libva nlohmann-json jq libopus qt6 mbedtls3 cpp-httplib lz4 vulkan-headers nasm autoconf enet pkg-config libusb1 spirv-headers`.
 
 [Caveats](./Caveats.md#netbsd).
 
