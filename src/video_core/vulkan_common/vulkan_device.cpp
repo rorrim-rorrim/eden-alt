@@ -541,25 +541,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         }
     }
 
-    if (extensions.extended_dynamic_state3 && is_radv) {
-        LOG_WARNING(Render_Vulkan, "RADV has broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
-        dynamic_state3_blending = false;
-
-        const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version < VK_MAKE_API_VERSION(0, 23, 1, 0)) {
-            LOG_WARNING(Render_Vulkan,
-                        "RADV versions older than 23.1.0 have broken depth clamp dynamic state");
-            features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable = false;
-            dynamic_state3_enables = false;
-        }
-    }
-
     if (extensions.extended_dynamic_state3 && (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
-        // AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation
+        // Samsung drivers have broken extendedDynamicState3ColorBlendEquation
         LOG_WARNING(Render_Vulkan,
-                    "AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation");
+                    "Samsung drivers have broken extendedDynamicState3ColorBlendEquation");
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
         dynamic_state3_blending = false;
@@ -622,8 +607,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             (std::min)(properties.properties.limits.maxVertexInputBindings, 16U);
     }
 
-    if (is_turnip) {
-        LOG_WARNING(Render_Vulkan, "Turnip requires higher-than-reported binding limits");
+    if (is_turnip || is_qualcomm) {
+        LOG_WARNING(Render_Vulkan, "Driver requires higher-than-reported binding limits");
         properties.properties.limits.maxVertexInputBindings = 32;
     }
 
@@ -1119,64 +1104,24 @@ bool Device::GetSuitability(bool requires_swapchain) {
     
     // Driver detection variables for workarounds
     const VkDriverId driver_id = properties.driver.driverID;
-    const bool is_radv = driver_id == VK_DRIVER_ID_MESA_RADV;
     const bool is_amd_driver =
         driver_id == VK_DRIVER_ID_AMD_PROPRIETARY || driver_id == VK_DRIVER_ID_AMD_OPEN_SOURCE;
     const bool is_intel_windows = driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS;
     const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     
-    // VK_EXT_extended_dynamic_state
+    // VK_EXT_extended_dynamic_state2 below this will appear drivers that need workarounds.
     
-    // RADV < 21.2.0: Broken ExtendedDynamicState implementation
-    // Disable entire extension on old drivers
-    if (extensions.extended_dynamic_state && is_radv) {
-        const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version < VK_MAKE_API_VERSION(0, 21, 2, 0)) {
-            LOG_WARNING(Render_Vulkan,
-                        "RADV < 21.2.0: Disabling broken VK_EXT_extended_dynamic_state");
-            features.extended_dynamic_state.extendedDynamicState = false;
-        }
-    }
+    // VK_EXT_extended_dynamic_state3 below this will appear drivers that need workarounds.
     
-    // VK_EXT_extended_dynamic_state2
-    
-    // RADV < 22.3.1: Broken ExtendedDynamicState2 implementation
-    // Disable entire extension on old drivers
-    if (extensions.extended_dynamic_state2 && is_radv) {
-        const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version < VK_MAKE_API_VERSION(0, 22, 3, 1)) {
-            LOG_WARNING(Render_Vulkan,
-                        "RADV < 22.3.1: Disabling broken VK_EXT_extended_dynamic_state2");
-            features.extended_dynamic_state2.extendedDynamicState2 = false;
-        }
-    }
-    
-    // Qualcomm Adreno 7xx (drivers 676.0 - 679.x): Broken ExtendedDynamicState2
-    // Disable ExtendedDynamicState2 on affected driver versions
-    if (extensions.extended_dynamic_state2 && is_qualcomm) {
-        const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version >= VK_MAKE_API_VERSION(0, 0, 676, 0) &&
-            version < VK_MAKE_API_VERSION(0, 0, 680, 0)) {
-            LOG_WARNING(Render_Vulkan,
-                        "Qualcomm Adreno 7xx (676-679): Disabling broken VK_EXT_extended_dynamic_state2");
-            features.extended_dynamic_state2.extendedDynamicState2 = false;
-        }
-    }
-    
-    // VK_EXT_extended_dynamic_state3
-    
-    // AMD/Samsung/RADV: Broken extendedDynamicState3ColorBlendEquation
+    // AMD/Samsung: Broken extendedDynamicState3ColorBlendEquation
     // Disable blend equation dynamic state, force static pipeline state
     if (extensions.extended_dynamic_state3 && 
-        (is_amd_driver || is_radv || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
+        (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
         LOG_WARNING(Render_Vulkan,
-                    "AMD/Samsung/RADV: Disabling broken extendedDynamicState3ColorBlendEquation");
+                    "AMD/Samsung: Disabling broken extendedDynamicState3ColorBlendEquation");
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
     }
-
-    // VK_EXT_vertex_input_dynamic_state
-    // No RADV workarounds - assume modern drivers
     
     // Qualcomm: Broken VertexInputDynamicState implementation
     // Disable VertexInputDynamicState on all Qualcomm drivers
