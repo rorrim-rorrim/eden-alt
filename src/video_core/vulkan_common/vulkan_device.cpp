@@ -1167,14 +1167,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
     }
     
-    // Qualcomm: Broken VertexInputDynamicState implementation
-    // Disable VertexInputDynamicState on all Qualcomm drivers
-    if (extensions.vertex_input_dynamic_state && is_qualcomm) {
-        LOG_WARNING(Render_Vulkan,
-                    "Qualcomm: Disabling broken VK_EXT_vertex_input_dynamic_state");
-        features.vertex_input_dynamic_state.vertexInputDynamicState = false;
-    }
-    
     // Intel Windows < 27.20.100.0: Broken VertexInputDynamicState
     // Disable VertexInputDynamicState on old Intel Windows drivers
     if (extensions.vertex_input_dynamic_state && is_intel_windows) {
