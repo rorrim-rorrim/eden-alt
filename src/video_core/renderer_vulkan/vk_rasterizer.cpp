@@ -956,11 +956,14 @@ void RasterizerVulkan::UpdateDynamicStates() {
             UpdateDepthTestEnable(regs);
             UpdateDepthWriteEnable(regs);
             UpdateStencilTestEnable(regs);
-            if (device.IsExtExtendedDynamicState2Supported()) {
-                UpdatePrimitiveRestartEnable(regs);
-                UpdateRasterizerDiscardEnable(regs);
-                UpdateDepthBiasEnable(regs);
-            }
+        }
+        // EDS2 states must always be set, not just when TouchStateEnable() is true
+        if (device.IsExtExtendedDynamicState2Supported()) {
+            UpdatePrimitiveRestartEnable(regs);
+            UpdateRasterizerDiscardEnable(regs);
+            UpdateDepthBiasEnable(regs);
+        }
+        if (state_tracker.TouchStateEnable()) {
             if (device.IsExtExtendedDynamicState3EnablesSupported()) {
                 using namespace Tegra::Engines;
                 if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE || device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
