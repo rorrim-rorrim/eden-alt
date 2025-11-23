@@ -540,15 +540,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         }
     }
 
-    if (extensions.extended_dynamic_state3 && (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
-        // Samsung drivers have broken extendedDynamicState3ColorBlendEquation
-        LOG_WARNING(Render_Vulkan,
-                    "Samsung drivers have broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
-        dynamic_state3_blending = false;
-    }
-
     sets_per_pool = 64;
     if (is_amd_driver) {
         // AMD drivers need a higher amount of Sets per Pool in certain circumstances like in XC2.
@@ -1146,7 +1137,7 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
     // VK_DYNAMIC_STATE
     
-    // Driver detection variables for workarounds
+    // Driver detection variables for workarounds in GetSuitability
     const VkDriverId driver_id = properties.driver.driverID;
     const bool is_amd_driver =
         driver_id == VK_DRIVER_ID_AMD_PROPRIETARY || driver_id == VK_DRIVER_ID_AMD_OPEN_SOURCE;
@@ -1157,12 +1148,12 @@ bool Device::GetSuitability(bool requires_swapchain) {
     
     // VK_EXT_extended_dynamic_state3 below this will appear drivers that need workarounds.
     
-    // AMD/Samsung: Broken extendedDynamicState3ColorBlendEquation
+    // Samsung: Broken extendedDynamicState3ColorBlendEquation
     // Disable blend equation dynamic state, force static pipeline state
     if (extensions.extended_dynamic_state3 && 
-        (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
+        (driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
         LOG_WARNING(Render_Vulkan,
-                    "AMD/Samsung: Disabling broken extendedDynamicState3ColorBlendEquation");
+                    "Samsung: Disabling broken extendedDynamicState3ColorBlendEquation");
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
     }
