@@ -427,7 +427,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_mvk = driver_id == VK_DRIVER_ID_MOLTENVK;
     const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
-    const bool is_s8gen2 = device_id == 0x43050a01;
     const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
 
     if ((is_mvk || is_qualcomm || is_turnip || is_arm) && !is_suitable) {
@@ -593,9 +592,40 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     has_broken_compute =
         CheckBrokenCompute(properties.driver.driverID, properties.properties.driverVersion) &&
         !Settings::values.enable_compute_pipelines.GetValue();
-    if (is_intel_anv || (is_qualcomm && !is_s8gen2)) {
-        LOG_WARNING(Render_Vulkan, "Driver does not support native BGR format");
+    must_emulate_bgr565 = false; // Default: assume emulation isn't required
+
+    if (is_intel_anv) {
+        LOG_WARNING(Render_Vulkan, "Intel ANV driver does not support native BGR format");
         must_emulate_bgr565 = true;
+    } else if (is_qualcomm) {
+        // Qualcomm driver version where VK_KHR_maintenance5 and A1B5G5R5 become reliable
+        constexpr uint32_t QUALCOMM_FIXED_DRIVER_VERSION = VK_MAKE_VERSION(512, 800, 1);
+        // Check if VK_KHR_maintenance5 is supported
+        if (extensions.maintenance5 && properties.properties.driverVersion >= QUALCOMM_FIXED_DRIVER_VERSION) {
+            LOG_INFO(Render_Vulkan, "Qualcomm driver supports VK_KHR_maintenance5, disabling BGR emulation");
+            must_emulate_bgr565 = false;
+        } else {
+            LOG_WARNING(Render_Vulkan, "Qualcomm driver doesn't support native BGR, emulating formats");
+            must_emulate_bgr565 = true;
+        }
+    } else if (is_turnip) {
+        // Mesa Turnip added support for maintenance5 in Mesa 25.0
+        if (extensions.maintenance5) {
+            LOG_INFO(Render_Vulkan, "Turnip driver supports VK_KHR_maintenance5, disabling BGR emulation");
+            must_emulate_bgr565 = false;
+        } else {
+            LOG_WARNING(Render_Vulkan, "Turnip driver doesn't support native BGR, emulating formats");
+            must_emulate_bgr565 = true;
+        }
+    } else if (is_arm) {
+        // ARM Mali: stop emulating BGR5 formats when VK_KHR_maintenance5 is available
+        if (extensions.maintenance5) {
+            LOG_INFO(Render_Vulkan, "ARM driver supports VK_KHR_maintenance5, disabling BGR emulation");
+            must_emulate_bgr565 = false;
+        } else {
+            LOG_WARNING(Render_Vulkan, "ARM driver doesn't support native BGR, emulating formats");
+            must_emulate_bgr565 = true;
+        }
     }
 
     if (is_mvk) {
@@ -1285,6 +1315,53 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.workgroup_memory_explicit_layout,
                                        features.workgroup_memory_explicit_layout,
                                        VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME);
+
+    // VK_EXT_swapchain_maintenance1 (extension only, has features)
+    extensions.swapchain_maintenance1 = features.swapchain_maintenance1.swapchainMaintenance1;
+    RemoveExtensionFeatureIfUnsuitable(extensions.swapchain_maintenance1, features.swapchain_maintenance1,
+                                       VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
+
+    // VK_KHR_maintenance1 (core in Vulkan 1.1, no features)
+    extensions.maintenance1 = loaded_extensions.contains(VK_KHR_MAINTENANCE_1_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance1, VK_KHR_MAINTENANCE_1_EXTENSION_NAME);
+
+    // VK_KHR_maintenance2 (core in Vulkan 1.1, no features)
+    extensions.maintenance2 = loaded_extensions.contains(VK_KHR_MAINTENANCE_2_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance2, VK_KHR_MAINTENANCE_2_EXTENSION_NAME);
+
+    // VK_KHR_maintenance3 (core in Vulkan 1.1, no features)
+    extensions.maintenance3 = loaded_extensions.contains(VK_KHR_MAINTENANCE_3_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance3, VK_KHR_MAINTENANCE_3_EXTENSION_NAME);
+
+    // VK_KHR_maintenance4
+    extensions.maintenance4 = features.maintenance4.maintenance4;
+    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance4, features.maintenance4,
+                                       VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
+
+    // VK_KHR_maintenance5
+    extensions.maintenance5 = features.maintenance5.maintenance5;
+    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance5, features.maintenance5,
+                                       VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
+
+    // VK_KHR_maintenance6
+    extensions.maintenance6 = features.maintenance6.maintenance6;
+    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance6, features.maintenance6,
+                                       VK_KHR_MAINTENANCE_6_EXTENSION_NAME);
+
+    // VK_KHR_maintenance7
+    extensions.maintenance7 = features.maintenance7.maintenance7;
+    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance7, features.maintenance7,
+                                       VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
+
+    // VK_KHR_maintenance8
+    extensions.maintenance8 = features.maintenance8.maintenance8;
+    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance8, features.maintenance8,
+                                       VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
+
+    // VK_KHR_maintenance9
+    extensions.maintenance9 = features.maintenance9.maintenance9;
+    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance9, features.maintenance9,
+                                       VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
 }
 
 void Device::SetupFamilies(VkSurfaceKHR surface) {
