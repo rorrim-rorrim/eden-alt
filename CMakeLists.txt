@@ -125,14 +125,16 @@ if (YUZU_STATIC_BUILD)
     set(Boost_USE_STATIC_LIBS ON)
     set(BUILD_SHARED_LIBS OFF)
 
-    ## find .a libs first (static, usually)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+    if (NOT PLATFORM_LINUX)
+        ## find .a libs first (static, usually)
+        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 
-    ## some libraries define a Library::Name_static alternative ##
-    set(YUZU_STATIC_SUFFIX _static)
+        ## some libraries define a Library::Name_static alternative ##
+        set(YUZU_STATIC_SUFFIX _static)
 
-    ## some libraries use CMAKE_IMPORT_LIBRARY_SUFFIX e.g. Harfbuzz ##
-    set(CMAKE_IMPORT_LIBRARY_SUFFIX ".a")
+        ## some libraries use CMAKE_IMPORT_LIBRARY_SUFFIX e.g. Harfbuzz ##
+        set(CMAKE_IMPORT_LIBRARY_SUFFIX ".a")
+    endif()
 
     if (MINGW)
         # simple hook to reject dynamic libs
@@ -175,6 +177,15 @@ if (YUZU_STATIC_BUILD)
         set(SPIRV-Tools_FORCE_BUNDLED ON)
         set(SPIRV-Headers_FORCE_BUNDLED ON)
         set(zstd_FORCE_BUNDLED ON)
+    elseif(PLATFORM_LINUX)
+        # Most distros don't package static libs :(
+        set(YUZU_USE_CPM ON)
+        set(CPMUTIL_FORCE_BUNDLED ON)
+
+        set(YUZU_USE_BUNDLED_FFMPEG ON)
+        set(YUZU_USE_BUNDLED_SDL2 ON)
+        set(YUZU_USE_BUNDLED_OPENSSL ON)
+        set(YUZU_USE_BUNDLED_SIRIT ON)
     endif()
 endif()
 
@@ -800,6 +811,16 @@ endif()
 
 if (YUZU_TESTS OR DYNARMIC_TESTS)
     find_package(Catch2)
+endif()
+
+# Qt expects this target
+if (YUZU_STATIC_BUILD AND PLATFORM_LINUX)
+    get_target_property(RDOC_TARGET RenderDoc::API ALIASED_TARGET)
+    if (RDOC_TARGET)
+        add_library(RenderDoc::RenderDoc ALIAS ${RDOC_TARGET})
+    else()
+        add_library(RenderDoc::RenderDoc ALIAS RenderDoc::API)
+    endif()
 endif()
 
 if (ENABLE_QT)

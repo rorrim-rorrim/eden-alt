@@ -174,7 +174,7 @@ else()
         add_compile_definitions(QT_STATICPLUGIN)
 
         # macos doesn't even let you make static executables... wtf?
-        if (NOT APPLE)
+        if (NOT APPLE AND NOT PLATFORM_LINUX)
             add_compile_options(-static)
             if (YUZU_STATIC_BUILD)
                 # yuzu-cmd requires us to explicitly link libpthread, libgcc, and libstdc++ as static

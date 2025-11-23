@@ -16,13 +16,15 @@ function(static_qt_link target)
     # NB: yes, we have to put them here twice. I have no idea why
 
     # libtiff.a
-    extra_libs(tiff jbig bz2 lzma deflate jpeg tiff)
+    if (MINGW)
+        extra_libs(tiff jbig bz2 lzma deflate jpeg tiff)
 
-    # libfreetype.a
-    extra_libs(freetype bz2 Lerc brotlidec brotlicommon freetype)
+        # libfreetype.a
+        extra_libs(freetype bz2 Lerc brotlidec brotlicommon freetype)
 
-    # libharfbuzz.a
-    extra_libs(harfbuzz graphite2)
+        # libharfbuzz.a
+        extra_libs(harfbuzz graphite2)
+    endif()
 
     # sijfjkfnjkdfjsbjsbsdfhvbdf
     if (ENABLE_OPENSSL)
