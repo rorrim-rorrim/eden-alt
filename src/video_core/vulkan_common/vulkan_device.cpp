@@ -22,6 +22,17 @@
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
+// Define maintenance 7-9 extension names (not yet in official Vulkan 1.3 headers)
+#ifndef VK_KHR_MAINTENANCE_7_EXTENSION_NAME
+#define VK_KHR_MAINTENANCE_7_EXTENSION_NAME "VK_KHR_maintenance7"
+#endif
+#ifndef VK_KHR_MAINTENANCE_8_EXTENSION_NAME
+#define VK_KHR_MAINTENANCE_8_EXTENSION_NAME "VK_KHR_maintenance8"
+#endif
+#ifndef VK_KHR_MAINTENANCE_9_EXTENSION_NAME
+#define VK_KHR_MAINTENANCE_9_EXTENSION_NAME "VK_KHR_maintenance9"
+#endif
+
 #if defined(ANDROID) && defined(ARCHITECTURE_arm64)
 #include <adrenotools/bcenabler.h>
 #endif
@@ -416,7 +427,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_suitable = GetSuitability(surface != nullptr);
 
     const VkDriverId driver_id = properties.driver.driverID;
-    const auto device_id = properties.properties.deviceID;
     const bool is_radv = driver_id == VK_DRIVER_ID_MESA_RADV;
     const bool is_amd_driver =
         driver_id == VK_DRIVER_ID_AMD_PROPRIETARY || driver_id == VK_DRIVER_ID_AMD_OPEN_SOURCE;
@@ -649,6 +659,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         dynamic_state3_enables = false;
     }
 
+    // Base dynamic states (VIEWPORT, SCISSOR, DEPTH_BIAS, etc.) are ALWAYS active in vk_graphics_pipeline.cpp
+    // This slider only controls EXTENDED dynamic states (VK_EXT_extended_dynamic_state 1/2/3)
+    
     // Mesa Intel drivers on UHD 620 have broken EDS causing extreme flickering - unknown if it affects other iGPUs
     // ALSO affects ALL versions of UHD drivers on Windows 10+, seems to cause even worse issues like straight up crashing
     // So... Yeah, UHD drivers fucking suck -- maybe one day we can work past this, maybe; some driver hacking?
@@ -909,7 +922,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
     // Configure properties.
     VkPhysicalDeviceVulkan12Features features_1_2{};
     VkPhysicalDeviceVulkan13Features features_1_3{};
-    VkPhysicalDeviceVulkan14Features features_1_4{};
 
     // Configure properties.
     properties.properties = physical.GetProperties();
@@ -949,9 +961,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
     if (instance_version < VK_API_VERSION_1_3) {
         FOR_EACH_VK_FEATURE_1_3(FEATURE_EXTENSION);
     }
-    if (instance_version < VK_API_VERSION_1_4) {
-        FOR_EACH_VK_FEATURE_1_4(FEATURE_EXTENSION);
-    }
 
     FOR_EACH_VK_FEATURE_EXT(FEATURE_EXTENSION);
     FOR_EACH_VK_EXTENSION(EXTENSION);
@@ -987,15 +996,10 @@ bool Device::GetSuitability(bool requires_swapchain) {
     // Set next pointer.
     void** next = &features2.pNext;
 
-    // Vulkan 1.2, 1.3 and 1.4 features
+    // Vulkan 1.2 and 1.3 features
     if (instance_version >= VK_API_VERSION_1_2) {
         features_1_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
         features_1_3.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
-
-        if (instance_version >= VK_API_VERSION_1_4) {
-            features_1_4.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES;
-            features_1_3.pNext = &features_1_4;
-        }
 
         features_1_2.pNext = &features_1_3;
 
@@ -1027,11 +1031,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
         FOR_EACH_VK_FEATURE_1_3(FEATURE);
     } else {
         FOR_EACH_VK_FEATURE_1_3(EXT_FEATURE);
-    }
-    if (instance_version >= VK_API_VERSION_1_4) {
-        FOR_EACH_VK_FEATURE_1_4(FEATURE);
-    } else {
-        FOR_EACH_VK_FEATURE_1_4(EXT_FEATURE);
     }
 
 #undef EXT_FEATURE
@@ -1148,6 +1147,8 @@ bool Device::GetSuitability(bool requires_swapchain) {
     
     // VK_EXT_extended_dynamic_state3 below this will appear drivers that need workarounds.
     
+    const auto device_id = properties.properties.deviceID;
+    
     // Samsung: Broken extendedDynamicState3ColorBlendEquation
     // Disable blend equation dynamic state, force static pipeline state
     if (extensions.extended_dynamic_state3 && 
@@ -1169,9 +1170,8 @@ bool Device::GetSuitability(bool requires_swapchain) {
         }
     }
     
-    // If user setting is dyna_state=0, disable all dynamic state features
     if (Settings::values.dyna_state.GetValue() == 0) {
-        LOG_INFO(Render_Vulkan, "Dynamic state disabled by user setting, clearing all EDS features");
+        LOG_INFO(Render_Vulkan, "Extended Dynamic State disabled by user setting, clearing all EDS features");
         features.custom_border_color.customBorderColors = false;
         features.custom_border_color.customBorderColorWithoutFormat = false;
         features.extended_dynamic_state.extendedDynamicState = false;
@@ -1181,7 +1181,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
         features.extended_dynamic_state3.extendedDynamicState3ColorWriteMask = false;
         features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable = false;
         features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable = false;
-        // Note: vertex_input_dynamic_state has independent toggle, NOT affected by dyna_state=0
     }
 
     // Return whether we were suitable.
@@ -1345,15 +1344,15 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.maintenance6, features.maintenance6,
                                        VK_KHR_MAINTENANCE_6_EXTENSION_NAME);
 
-    // VK_KHR_maintenance7 (core in Vulkan 1.4, no features)
+    // VK_KHR_maintenance7 (proposed for Vulkan 1.4, no features)
     extensions.maintenance7 = loaded_extensions.contains(VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance7, VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
 
-    // VK_KHR_maintenance8 (core in Vulkan 1.4, no features)
+    // VK_KHR_maintenance8 (proposed for Vulkan 1.4, no features)
     extensions.maintenance8 = loaded_extensions.contains(VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance8, VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
 
-    // VK_KHR_maintenance9 (core in Vulkan 1.4, no features)
+    // VK_KHR_maintenance9 (proposed for Vulkan 1.4, no features)
     extensions.maintenance9 = loaded_extensions.contains(VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance9, VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
 }
