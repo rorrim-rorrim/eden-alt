@@ -42,6 +42,10 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, SubgroupSizeControl, SUBGROUP_SIZE_CONTROL, subgroup_size_control)                \
     FEATURE(KHR, Maintenance4, MAINTENANCE_4, maintenance4)
 
+#define FOR_EACH_VK_FEATURE_1_4(FEATURE)                                                           \
+    FEATURE(KHR, Maintenance5, MAINTENANCE_5, maintenance5)                                        \
+    FEATURE(KHR, Maintenance6, MAINTENANCE_6, maintenance6)
+
 // Define all features which may be used by the implementation and require an extension here.
 #define FOR_EACH_VK_FEATURE_EXT(FEATURE)                                                           \
     FEATURE(EXT, CustomBorderColor, CUSTOM_BORDER_COLOR, custom_border_color)                      \
@@ -60,8 +64,6 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, TransformFeedback, TRANSFORM_FEEDBACK, transform_feedback)                        \
     FEATURE(EXT, VertexInputDynamicState, VERTEX_INPUT_DYNAMIC_STATE, vertex_input_dynamic_state)  \
     FEATURE(EXT, SwapchainMaintenance1, SWAPCHAIN_MAINTENANCE_1, swapchain_maintenance1)           \
-    FEATURE(KHR, Maintenance5, MAINTENANCE_5, maintenance5)                                        \
-    FEATURE(KHR, Maintenance6, MAINTENANCE_6, maintenance6)                                        \
     FEATURE(KHR, Maintenance7, MAINTENANCE_7, maintenance7)                                        \
     FEATURE(KHR, Maintenance8, MAINTENANCE_8, maintenance8)                                        \
     FEATURE(KHR, Maintenance9, MAINTENANCE_9, maintenance9)                                        \
@@ -844,6 +846,7 @@ private:
         FOR_EACH_VK_FEATURE_1_1(FEATURE);
         FOR_EACH_VK_FEATURE_1_2(FEATURE);
         FOR_EACH_VK_FEATURE_1_3(FEATURE);
+        FOR_EACH_VK_FEATURE_1_4(FEATURE);
         FOR_EACH_VK_FEATURE_EXT(FEATURE);
         FOR_EACH_VK_EXTENSION(EXTENSION);
 
@@ -860,6 +863,7 @@ private:
         FOR_EACH_VK_FEATURE_1_1(FEATURE_CORE);
         FOR_EACH_VK_FEATURE_1_2(FEATURE_CORE);
         FOR_EACH_VK_FEATURE_1_3(FEATURE_CORE);
+        FOR_EACH_VK_FEATURE_1_4(FEATURE_CORE);
         FOR_EACH_VK_FEATURE_EXT(FEATURE_EXT);
 
 #undef FEATURE_CORE

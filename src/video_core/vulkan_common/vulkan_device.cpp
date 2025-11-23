@@ -918,6 +918,7 @@ bool Device::GetSuitability(bool requires_swapchain) {
     // Configure properties.
     VkPhysicalDeviceVulkan12Features features_1_2{};
     VkPhysicalDeviceVulkan13Features features_1_3{};
+    VkPhysicalDeviceVulkan14Features features_1_4{};
 
     // Configure properties.
     properties.properties = physical.GetProperties();
@@ -956,6 +957,9 @@ bool Device::GetSuitability(bool requires_swapchain) {
     }
     if (instance_version < VK_API_VERSION_1_3) {
         FOR_EACH_VK_FEATURE_1_3(FEATURE_EXTENSION);
+    }
+    if (instance_version < VK_API_VERSION_1_4) {
+        FOR_EACH_VK_FEATURE_1_4(FEATURE_EXTENSION);
     }
 
     FOR_EACH_VK_FEATURE_EXT(FEATURE_EXTENSION);
@@ -997,6 +1001,11 @@ bool Device::GetSuitability(bool requires_swapchain) {
         features_1_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
         features_1_3.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
 
+        if (instance_version >= VK_API_VERSION_1_4) {
+            features_1_4.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES;
+            features_1_3.pNext = &features_1_4;
+        }
+
         features_1_2.pNext = &features_1_3;
 
         *next = &features_1_2;
@@ -1027,6 +1036,11 @@ bool Device::GetSuitability(bool requires_swapchain) {
         FOR_EACH_VK_FEATURE_1_3(FEATURE);
     } else {
         FOR_EACH_VK_FEATURE_1_3(EXT_FEATURE);
+    }
+    if (instance_version >= VK_API_VERSION_1_4) {
+        FOR_EACH_VK_FEATURE_1_4(FEATURE);
+    } else {
+        FOR_EACH_VK_FEATURE_1_4(EXT_FEATURE);
     }
 
 #undef EXT_FEATURE
