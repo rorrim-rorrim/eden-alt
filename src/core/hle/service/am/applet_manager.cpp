@@ -28,10 +28,7 @@ namespace Service::AM {
             u32 magic;
             u32 is_account_selected;
             Common::UUID current_user;
-            INSERT_PADDING_BYTES (
-
-            0x70
-            );
+            INSERT_PADDING_BYTES (0x70);
         };
 
         static_assert(sizeof(LaunchParameterAccountPreselectedUser) == 0x88);

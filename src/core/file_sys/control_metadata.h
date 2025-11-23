@@ -41,10 +41,7 @@ namespace FileSys {
         bool screenshot_enabled;
         u8 video_capture_mode;
         bool data_loss_confirmation;
-        INSERT_PADDING_BYTES (
-
-        1
-        );
+        INSERT_PADDING_BYTES (1);
         u64_le presence_group_id;
         std::array<u8, 0x20> rating_age;
         std::array<char, 0x10> version_string;
@@ -60,16 +57,10 @@ namespace FileSys {
         u8 logo_type;
         u8 logo_handling;
         bool runtime_add_on_content_install;
-        INSERT_PADDING_BYTES (
-
-        5
-        );
+        INSERT_PADDING_BYTES (5);
         u64_le seed_for_pseudo_device_id;
         std::array<u8, 0x41> bcat_passphrase;
-        INSERT_PADDING_BYTES (
-
-        7
-        );
+        INSERT_PADDING_BYTES (7);
         u64_le user_account_save_data_max_size;
         u64_le user_account_save_data_max_journal_size;
         u64_le device_save_data_max_size;
@@ -79,47 +70,25 @@ namespace FileSys {
         u64_le cache_storage_journal_size;
         u64_le cache_storage_data_and_journal_max_size;
         u16_le cache_storage_max_index;
-        INSERT_PADDING_BYTES (
-
-        0x8B
-        );
+        INSERT_PADDING_BYTES (0x8B);
         u8 app_error_code_prefix;
-        INSERT_PADDING_BYTES (
-
-        1
-        );
+        INSERT_PADDING_BYTES (1);
         u8 acd_index;
         u8 apparent_platform;
-        INSERT_PADDING_BYTES (
-
-        0x22F
-        );
+        INSERT_PADDING_BYTES (0x22F);
         std::array<u8, 0x89> app_control_data_condition;
         u8 initial_program_index;
-        INSERT_PADDING_BYTES (
-
-        2
-        );
+        INSERT_PADDING_BYTES (2);
         u32_le accessible_program_index_flags;
         u8 album_file_export;
-        INSERT_PADDING_BYTES (
-
-        7
-        );
+        INSERT_PADDING_BYTES (7);
         std::array<u8, 0x80> save_data_certificate_bytes;
         u8 has_ingame_voice_chat;
-        INSERT_PADDING_BYTES (
-
-        3
-        );
+        INSERT_PADDING_BYTES (3);
         u32_le supported_extra_addon_content_flag;
-        INSERT_PADDING_BYTES (
-
-        0x698
-        );
+        INSERT_PADDING_BYTES (0x698);
         std::array<u8, 0x400> platform_specific_region;
     };
-
     static_assert(sizeof(RawNACP) == 0x4000, "RawNACP has incorrect size.");
 
     // A language on the NX. These are for names and icons.
@@ -143,7 +112,6 @@ namespace FileSys {
 
         Default = 255,
     };
-
     extern const std::array<const char *, 16> LANGUAGE_NAMES;
 
     // A class representing the format used by NX metadata files, typically named Control.nacp.

@@ -84,7 +84,6 @@ namespace Service::AM {
 
         std::vector<u8> control;
         std::unique_ptr<Loader::AppLoader> loader;
-        Loader::ResultStatus result;
 
         auto process =
                 CreateProcess(system, application_id, 1, 21);

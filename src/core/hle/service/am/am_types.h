@@ -53,10 +53,7 @@ namespace Service::AM {
 
     struct AppletProcessLaunchReason {
         u8 flag;
-        INSERT_PADDING_BYTES (
-
-        3
-        );
+        INSERT_PADDING_BYTES (3);
     };
 
     static_assert(sizeof(AppletProcessLaunchReason) == 0x4,
@@ -216,10 +213,7 @@ namespace Service::AM {
 
     struct AppletIdentityInfo {
         AppletId applet_id;
-        INSERT_PADDING_BYTES (
-
-        0x4
-        );
+        INSERT_PADDING_BYTES (0x4);
         u64 application_id;
     };
 
