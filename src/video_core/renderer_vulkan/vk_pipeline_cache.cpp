@@ -404,14 +404,33 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
                     device.GetMaxVertexInputBindings(), Maxwell::NumVertexArrays);
     }
 
-    dynamic_features = DynamicFeatures{
-        .has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported(),
-        .has_extended_dynamic_state_2 = device.IsExtExtendedDynamicState2Supported(),
-        .has_extended_dynamic_state_2_extra = device.IsExtExtendedDynamicState2ExtrasSupported(),
-        .has_extended_dynamic_state_3_blend = device.IsExtExtendedDynamicState3BlendingSupported(),
-        .has_extended_dynamic_state_3_enables = device.IsExtExtendedDynamicState3EnablesSupported(),
-        .has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported(),
-    };
+    const auto dynamic_state = u32(Settings::values.dyna_state.GetValue());
+    
+    LOG_INFO(Render_Vulkan, "DynamicState value is set to {}", dynamic_state);
+    
+    dynamic_features = {};
+    
+    // EDS1 - Level 1 (all-or-nothing, enabled if driver supports AND setting > 0)
+    dynamic_features.has_extended_dynamic_state = 
+        device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0;
+    
+    // EDS2 - Level 2 (core + granular features, enabled if driver supports AND setting > 1)
+    dynamic_features.has_extended_dynamic_state_2 = 
+        device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1;
+    dynamic_features.has_extended_dynamic_state_2_logic_op = 
+        device.IsExtExtendedDynamicState2ExtrasSupported() && dynamic_state > 1;
+    dynamic_features.has_extended_dynamic_state_2_patch_control_points = false;
+    
+    // EDS3 - Level 3 (granular features, enabled if driver supports AND setting > 2)
+    dynamic_features.has_extended_dynamic_state_3_blend = 
+        device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2;
+    dynamic_features.has_extended_dynamic_state_3_enables = 
+        device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2;
+    
+    // VIDS - Independent toggle (not affected by dyna_state levels)
+    dynamic_features.has_dynamic_vertex_input = 
+        device.IsExtVertexInputDynamicStateSupported() && 
+        Settings::values.vertex_input_dynamic_state.GetValue();
 }
 
 PipelineCache::~PipelineCache() {
@@ -516,8 +535,8 @@ void PipelineCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading
                 dynamic_features.has_extended_dynamic_state ||
             (key.state.extended_dynamic_state_2 != 0) !=
                 dynamic_features.has_extended_dynamic_state_2 ||
-            (key.state.extended_dynamic_state_2_extra != 0) !=
-                dynamic_features.has_extended_dynamic_state_2_extra ||
+            (key.state.extended_dynamic_state_2_logic_op != 0) !=
+                dynamic_features.has_extended_dynamic_state_2_logic_op ||
             (key.state.extended_dynamic_state_3_blend != 0) !=
                 dynamic_features.has_extended_dynamic_state_3_blend ||
             (key.state.extended_dynamic_state_3_enables != 0) !=

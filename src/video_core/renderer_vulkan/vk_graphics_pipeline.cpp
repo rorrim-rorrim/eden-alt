@@ -813,7 +813,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         VK_DYNAMIC_STATE_LINE_WIDTH,
     };
     if (key.state.extended_dynamic_state) {
-        std::vector<VkDynamicState> extended{
+        static constexpr std::array extended{
             VK_DYNAMIC_STATE_CULL_MODE_EXT,
             VK_DYNAMIC_STATE_FRONT_FACE_EXT,
             VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT,
@@ -823,52 +823,58 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE_EXT,
             VK_DYNAMIC_STATE_STENCIL_OP_EXT,
         };
-        if (!device.IsExtVertexInputDynamicStateSupported()) {
-            extended.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT);
-        }
-        if (key.state.dynamic_vertex_input) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_EXT);
-        }
         dynamic_states.insert(dynamic_states.end(), extended.begin(), extended.end());
-        if (key.state.extended_dynamic_state_2) {
-            static constexpr std::array extended2{
-                VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE_EXT,
-                VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE_EXT,
-                VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE_EXT,
-            };
-            dynamic_states.insert(dynamic_states.end(), extended2.begin(), extended2.end());
+        
+        // VERTEX_INPUT_BINDING_STRIDE is part of EDS1, not VIDS
+        if (!key.state.dynamic_vertex_input) {
+            dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT);
         }
-        if (key.state.extended_dynamic_state_2_extra) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_LOGIC_OP_EXT);
-        }
-        if (key.state.extended_dynamic_state_3_blend) {
-            static constexpr std::array extended3{
-                VK_DYNAMIC_STATE_COLOR_BLEND_ENABLE_EXT,
-                VK_DYNAMIC_STATE_COLOR_BLEND_EQUATION_EXT,
-                VK_DYNAMIC_STATE_COLOR_WRITE_MASK_EXT,
-
-                // VK_DYNAMIC_STATE_COLOR_BLEND_ADVANCED_EXT,
-            };
-            dynamic_states.insert(dynamic_states.end(), extended3.begin(), extended3.end());
-        }
-        if (key.state.extended_dynamic_state_3_enables) {
-            static constexpr std::array extended3{
-                VK_DYNAMIC_STATE_DEPTH_CLAMP_ENABLE_EXT,
-                VK_DYNAMIC_STATE_LOGIC_OP_ENABLE_EXT,
-
-                // additional state3 extensions
-                VK_DYNAMIC_STATE_LINE_RASTERIZATION_MODE_EXT,
-
-                VK_DYNAMIC_STATE_CONSERVATIVE_RASTERIZATION_MODE_EXT,
-
-                VK_DYNAMIC_STATE_LINE_STIPPLE_ENABLE_EXT,
-                VK_DYNAMIC_STATE_ALPHA_TO_COVERAGE_ENABLE_EXT,
-                VK_DYNAMIC_STATE_ALPHA_TO_ONE_ENABLE_EXT,
-                VK_DYNAMIC_STATE_DEPTH_CLIP_ENABLE_EXT,
-                VK_DYNAMIC_STATE_PROVOKING_VERTEX_MODE_EXT,
-            };
-            dynamic_states.insert(dynamic_states.end(), extended3.begin(), extended3.end());
-        }
+    }
+    
+    // Vertex Input Dynamic State (replaces VERTEX_INPUT_BINDING_STRIDE)
+    if (key.state.dynamic_vertex_input) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_EXT);
+    }
+    
+    // EDS2 - Core (3 states)
+    if (key.state.extended_dynamic_state_2) {
+        static constexpr std::array extended2{
+            VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE_EXT,
+            VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE_EXT,
+            VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE_EXT,
+        };
+        dynamic_states.insert(dynamic_states.end(), extended2.begin(), extended2.end());
+    }
+    
+    // EDS2 - LogicOp (granular)
+    if (key.state.extended_dynamic_state_2_logic_op) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_LOGIC_OP_EXT);
+    }
+    
+    // EDS3 - Blending (composite: 3 states)
+    if (key.state.extended_dynamic_state_3_blend) {
+        static constexpr std::array extended3{
+            VK_DYNAMIC_STATE_COLOR_BLEND_ENABLE_EXT,
+            VK_DYNAMIC_STATE_COLOR_BLEND_EQUATION_EXT,
+            VK_DYNAMIC_STATE_COLOR_WRITE_MASK_EXT,
+        };
+        dynamic_states.insert(dynamic_states.end(), extended3.begin(), extended3.end());
+    }
+    
+    // EDS3 - Enables (composite: 9 states)
+    if (key.state.extended_dynamic_state_3_enables) {
+        static constexpr std::array extended3{
+            VK_DYNAMIC_STATE_DEPTH_CLAMP_ENABLE_EXT,
+            VK_DYNAMIC_STATE_LOGIC_OP_ENABLE_EXT,
+            VK_DYNAMIC_STATE_LINE_RASTERIZATION_MODE_EXT,
+            VK_DYNAMIC_STATE_CONSERVATIVE_RASTERIZATION_MODE_EXT,
+            VK_DYNAMIC_STATE_LINE_STIPPLE_ENABLE_EXT,
+            VK_DYNAMIC_STATE_ALPHA_TO_COVERAGE_ENABLE_EXT,
+            VK_DYNAMIC_STATE_ALPHA_TO_ONE_ENABLE_EXT,
+            VK_DYNAMIC_STATE_DEPTH_CLIP_ENABLE_EXT,
+            VK_DYNAMIC_STATE_PROVOKING_VERTEX_MODE_EXT,
+        };
+        dynamic_states.insert(dynamic_states.end(), extended3.begin(), extended3.end());
     }
 
     const VkPipelineDynamicStateCreateInfo dynamic_state_ci{
