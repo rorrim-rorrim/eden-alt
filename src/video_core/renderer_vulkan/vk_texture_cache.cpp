@@ -1269,6 +1269,10 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
     case PixelFormat::R32G32_FLOAT:
     case PixelFormat::R32G32_SINT:
     case PixelFormat::R32_FLOAT:
+        if (src_view.format == PixelFormat::D32_FLOAT) {
+            return blit_image_helper.ConvertD32ToR32(dst, src_view);
+        }
+        break;
     case PixelFormat::R16_FLOAT:
     case PixelFormat::R16_UNORM:
     case PixelFormat::R16_SNORM:
@@ -1325,7 +1329,7 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
     case PixelFormat::ASTC_2D_6X5_SRGB:
     case PixelFormat::E5B9G9R9_FLOAT:
     case PixelFormat::D32_FLOAT:
-    case PixelFormat::D16_UNORM:
+        case PixelFormat::D16_UNORM:
     case PixelFormat::X8_D24_UNORM:
     case PixelFormat::S8_UINT:
     case PixelFormat::S8_UINT_D24_UNORM:
