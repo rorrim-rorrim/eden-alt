@@ -1354,20 +1354,17 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.maintenance6, features.maintenance6,
                                        VK_KHR_MAINTENANCE_6_EXTENSION_NAME);
 
-    // VK_KHR_maintenance7
-    extensions.maintenance7 = features.maintenance7.maintenance7;
-    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance7, features.maintenance7,
-                                       VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
+    // VK_KHR_maintenance7 (core in Vulkan 1.4, no features)
+    extensions.maintenance7 = loaded_extensions.contains(VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance7, VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
 
-    // VK_KHR_maintenance8
-    extensions.maintenance8 = features.maintenance8.maintenance8;
-    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance8, features.maintenance8,
-                                       VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
+    // VK_KHR_maintenance8 (core in Vulkan 1.4, no features)
+    extensions.maintenance8 = loaded_extensions.contains(VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance8, VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
 
-    // VK_KHR_maintenance9
-    extensions.maintenance9 = features.maintenance9.maintenance9;
-    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance9, features.maintenance9,
-                                       VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
+    // VK_KHR_maintenance9 (core in Vulkan 1.4, no features)
+    extensions.maintenance9 = loaded_extensions.contains(VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance9, VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
 }
 
 void Device::SetupFamilies(VkSurfaceKHR surface) {
