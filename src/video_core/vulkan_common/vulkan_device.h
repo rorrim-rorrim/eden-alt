@@ -39,7 +39,10 @@ VK_DEFINE_HANDLE(VmaAllocator)
 #define FOR_EACH_VK_FEATURE_1_3(FEATURE)                                                           \
     FEATURE(EXT, ShaderDemoteToHelperInvocation, SHADER_DEMOTE_TO_HELPER_INVOCATION,               \
             shader_demote_to_helper_invocation)                                                    \
-    FEATURE(EXT, SubgroupSizeControl, SUBGROUP_SIZE_CONTROL, subgroup_size_control)
+    FEATURE(EXT, SubgroupSizeControl, SUBGROUP_SIZE_CONTROL, subgroup_size_control)                \
+    FEATURE(KHR, Maintenance4, MAINTENANCE_4, maintenance4)
+
+#define FOR_EACH_VK_FEATURE_1_4(FEATURE)
 
 // Define all features which may be used by the implementation and require an extension here.
 #define FOR_EACH_VK_FEATURE_EXT(FEATURE)                                                           \
@@ -58,6 +61,9 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, Robustness2, ROBUSTNESS_2, robustness2)                                           \
     FEATURE(EXT, TransformFeedback, TRANSFORM_FEEDBACK, transform_feedback)                        \
     FEATURE(EXT, VertexInputDynamicState, VERTEX_INPUT_DYNAMIC_STATE, vertex_input_dynamic_state)  \
+    FEATURE(EXT, SwapchainMaintenance1, SWAPCHAIN_MAINTENANCE_1, swapchain_maintenance1)           \
+    FEATURE(KHR, Maintenance5, MAINTENANCE_5, maintenance5)                                        \
+    FEATURE(KHR, Maintenance6, MAINTENANCE_6, maintenance6)                                        \
     FEATURE(KHR, PipelineExecutableProperties, PIPELINE_EXECUTABLE_PROPERTIES,                     \
             pipeline_executable_properties)                                                        \
     FEATURE(KHR, WorkgroupMemoryExplicitLayout, WORKGROUP_MEMORY_EXPLICIT_LAYOUT,                  \
@@ -84,6 +90,12 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(KHR, SWAPCHAIN, swapchain)                                                           \
     EXTENSION(KHR, SWAPCHAIN_MUTABLE_FORMAT, swapchain_mutable_format)                             \
     EXTENSION(KHR, IMAGE_FORMAT_LIST, image_format_list)                                           \
+    EXTENSION(KHR, MAINTENANCE_1, maintenance1)                                                    \
+    EXTENSION(KHR, MAINTENANCE_2, maintenance2)                                                    \
+    EXTENSION(KHR, MAINTENANCE_3, maintenance3)                                                    \
+    EXTENSION(KHR, MAINTENANCE_7, maintenance7)                                                    \
+    EXTENSION(KHR, MAINTENANCE_8, maintenance8)                                                    \
+    EXTENSION(KHR, MAINTENANCE_9, maintenance9)                                                    \
     EXTENSION(NV, DEVICE_DIAGNOSTICS_CONFIG, device_diagnostics_config)                            \
     EXTENSION(NV, GEOMETRY_SHADER_PASSTHROUGH, geometry_shader_passthrough)                        \
     EXTENSION(NV, VIEWPORT_ARRAY2, viewport_array2)                                                \
@@ -440,6 +452,11 @@ public:
         return extensions.swapchain_mutable_format;
     }
 
+    /// Returns true if VK_EXT_swapchain_maintenance1 is enabled.
+    bool IsExtSwapchainMaintenance1Enabled() const {
+        return extensions.swapchain_maintenance1;
+    }
+
     /// Returns true if VK_KHR_shader_float_controls is enabled.
     bool IsKhrShaderFloatControlsSupported() const {
         return extensions.shader_float_controls;
@@ -703,6 +720,51 @@ public:
         return features2.features.multiViewport;
     }
 
+    /// Returns true if the device supports VK_KHR_maintenance1.
+    bool IsKhrMaintenance1Supported() const {
+        return extensions.maintenance1;
+    }
+
+    /// Returns true if the device supports VK_KHR_maintenance2.
+    bool IsKhrMaintenance2Supported() const {
+        return extensions.maintenance2;
+    }
+
+    /// Returns true if the device supports VK_KHR_maintenance3.
+    bool IsKhrMaintenance3Supported() const {
+        return extensions.maintenance3;
+    }
+
+    /// Returns true if the device supports VK_KHR_maintenance4.
+    bool IsKhrMaintenance4Supported() const {
+        return extensions.maintenance4;
+    }
+
+    /// Returns true if the device supports VK_KHR_maintenance5.
+    bool IsKhrMaintenance5Supported() const {
+        return extensions.maintenance5;
+    }
+
+    /// Returns true if the device supports VK_KHR_maintenance6.
+    bool IsKhrMaintenance6Supported() const {
+        return extensions.maintenance6;
+    }
+
+    /// Returns true if the device supports VK_KHR_maintenance7.
+    bool IsKhrMaintenance7Supported() const {
+        return extensions.maintenance7;
+    }
+
+    /// Returns true if the device supports VK_KHR_maintenance8.
+    bool IsKhrMaintenance8Supported() const {
+        return extensions.maintenance8;
+    }
+
+    /// Returns true if the device supports VK_KHR_maintenance9.
+    bool IsKhrMaintenance9Supported() const {
+        return extensions.maintenance9;
+    }
+
     [[nodiscard]] static constexpr bool CheckBrokenCompute(VkDriverId driver_id,
                                                            u32 driver_version) {
         if (driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) {
@@ -786,6 +848,7 @@ private:
         FOR_EACH_VK_FEATURE_1_1(FEATURE);
         FOR_EACH_VK_FEATURE_1_2(FEATURE);
         FOR_EACH_VK_FEATURE_1_3(FEATURE);
+        FOR_EACH_VK_FEATURE_1_4(FEATURE);
         FOR_EACH_VK_FEATURE_EXT(FEATURE);
         FOR_EACH_VK_EXTENSION(EXTENSION);
 
@@ -802,6 +865,7 @@ private:
         FOR_EACH_VK_FEATURE_1_1(FEATURE_CORE);
         FOR_EACH_VK_FEATURE_1_2(FEATURE_CORE);
         FOR_EACH_VK_FEATURE_1_3(FEATURE_CORE);
+        FOR_EACH_VK_FEATURE_1_4(FEATURE_CORE);
         FOR_EACH_VK_FEATURE_EXT(FEATURE_EXT);
 
 #undef FEATURE_CORE

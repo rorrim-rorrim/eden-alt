@@ -23,6 +23,17 @@
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
+// Define maintenance 7-9 extension names (not yet in official Vulkan 1.3 headers)
+#ifndef VK_KHR_MAINTENANCE_7_EXTENSION_NAME
+#define VK_KHR_MAINTENANCE_7_EXTENSION_NAME "VK_KHR_maintenance7"
+#endif
+#ifndef VK_KHR_MAINTENANCE_8_EXTENSION_NAME
+#define VK_KHR_MAINTENANCE_8_EXTENSION_NAME "VK_KHR_maintenance8"
+#endif
+#ifndef VK_KHR_MAINTENANCE_9_EXTENSION_NAME
+#define VK_KHR_MAINTENANCE_9_EXTENSION_NAME "VK_KHR_maintenance9"
+#endif
+
 #if defined(ANDROID) && defined(ARCHITECTURE_arm64)
 #include <adrenotools/bcenabler.h>
 #include <android/api-level.h>
@@ -418,7 +429,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_suitable = GetSuitability(surface != nullptr);
 
     const VkDriverId driver_id = properties.driver.driverID;
-    const auto device_id = properties.properties.deviceID;
 
     const bool is_radv = driver_id == VK_DRIVER_ID_MESA_RADV;
     const bool is_amd_driver =
@@ -432,8 +442,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_mvk = driver_id == VK_DRIVER_ID_MOLTENVK;
     const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
-    const bool is_s8gen2 = device_id == 0x43050a01;
-    //const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
+    const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
 
     if (!is_suitable)
         LOG_WARNING(Render_Vulkan, "Unsuitable driver - continuing anyways");
@@ -618,9 +627,40 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     has_broken_compute =
         CheckBrokenCompute(properties.driver.driverID, properties.properties.driverVersion) &&
         !Settings::values.enable_compute_pipelines.GetValue();
-    if (is_intel_anv || (is_qualcomm && !is_s8gen2)) {
-        LOG_WARNING(Render_Vulkan, "Driver does not support native BGR format");
+    must_emulate_bgr565 = false; // Default: assume emulation isn't required
+
+    if (is_intel_anv) {
+        LOG_WARNING(Render_Vulkan, "Intel ANV driver does not support native BGR format");
         must_emulate_bgr565 = true;
+    } else if (is_qualcomm) {
+        // Qualcomm driver version where VK_KHR_maintenance5 and A1B5G5R5 become reliable
+        constexpr uint32_t QUALCOMM_FIXED_DRIVER_VERSION = VK_MAKE_VERSION(512, 800, 1);
+        // Check if VK_KHR_maintenance5 is supported
+        if (extensions.maintenance5 && properties.properties.driverVersion >= QUALCOMM_FIXED_DRIVER_VERSION) {
+            LOG_INFO(Render_Vulkan, "Qualcomm driver supports VK_KHR_maintenance5, disabling BGR emulation");
+            must_emulate_bgr565 = false;
+        } else {
+            LOG_WARNING(Render_Vulkan, "Qualcomm driver doesn't support native BGR, emulating formats");
+            must_emulate_bgr565 = true;
+        }
+    } else if (is_turnip) {
+        // Mesa Turnip added support for maintenance5 in Mesa 25.0
+        if (extensions.maintenance5) {
+            LOG_INFO(Render_Vulkan, "Turnip driver supports VK_KHR_maintenance5, disabling BGR emulation");
+            must_emulate_bgr565 = false;
+        } else {
+            LOG_WARNING(Render_Vulkan, "Turnip driver doesn't support native BGR, emulating formats");
+            must_emulate_bgr565 = true;
+        }
+    } else if (is_arm) {
+        // ARM Mali: stop emulating BGR5 formats when VK_KHR_maintenance5 is available
+        if (extensions.maintenance5) {
+            LOG_INFO(Render_Vulkan, "ARM driver supports VK_KHR_maintenance5, disabling BGR emulation");
+            must_emulate_bgr565 = false;
+        } else {
+            LOG_WARNING(Render_Vulkan, "ARM driver doesn't support native BGR, emulating formats");
+            must_emulate_bgr565 = true;
+        }
     }
 
     if (is_mvk) {
@@ -655,6 +695,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
     const auto dyna_state = u32(Settings::values.dyna_state.GetValue());
 
+    // Base dynamic states (VIEWPORT, SCISSOR, DEPTH_BIAS, etc.) are ALWAYS active in vk_graphics_pipeline.cpp
+    // This slider only controls EXTENDED dynamic states (VK_EXT_extended_dynamic_state 1/2/3)
+    
     // Mesa Intel drivers on UHD 620 have broken EDS causing extreme flickering - unknown if it affects other iGPUs
     // ALSO affects ALL versions of UHD drivers on Windows 10+, seems to cause even worse issues like straight up crashing
     // So... Yeah, UHD drivers fucking suck -- maybe one day we can work past this, maybe; some driver hacking?
@@ -985,7 +1028,7 @@ bool Device::GetSuitability(bool requires_swapchain) {
     // Set next pointer.
     void** next = &features2.pNext;
 
-    // Vulkan 1.2, 1.3 and 1.4 features
+    // Vulkan 1.2 and 1.3 features
     if (instance_version >= VK_API_VERSION_1_2) {
         features_1_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
         features_1_3.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
@@ -1156,9 +1199,8 @@ bool Device::GetSuitability(bool requires_swapchain) {
         }
     }
     
-    // If user setting is dyna_state=0, disable all dynamic state features
     if (u32(Settings::values.dyna_state.GetValue()) == 0) {
-        LOG_INFO(Render_Vulkan, "Dynamic state disabled by user setting, clearing all EDS features");
+        LOG_INFO(Render_Vulkan, "Extended Dynamic State disabled by user setting, clearing all EDS features");
         features.custom_border_color.customBorderColors = false;
         features.custom_border_color.customBorderColorWithoutFormat = false;
         features.extended_dynamic_state.extendedDynamicState = false;
@@ -1168,7 +1210,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
         features.extended_dynamic_state3.extendedDynamicState3ColorWriteMask = false;
         features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable = false;
         features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable = false;
-        // Note: vertex_input_dynamic_state has independent toggle, NOT affected by dyna_state=0
     }
 
     // Return whether we were suitable.
@@ -1299,6 +1340,50 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.workgroup_memory_explicit_layout,
                                        features.workgroup_memory_explicit_layout,
                                        VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME);
+
+    // VK_EXT_swapchain_maintenance1 (extension only, has features)
+    extensions.swapchain_maintenance1 = features.swapchain_maintenance1.swapchainMaintenance1;
+    RemoveExtensionFeatureIfUnsuitable(extensions.swapchain_maintenance1, features.swapchain_maintenance1,
+                                       VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
+
+    // VK_KHR_maintenance1 (core in Vulkan 1.1, no features)
+    extensions.maintenance1 = loaded_extensions.contains(VK_KHR_MAINTENANCE_1_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance1, VK_KHR_MAINTENANCE_1_EXTENSION_NAME);
+
+    // VK_KHR_maintenance2 (core in Vulkan 1.1, no features)
+    extensions.maintenance2 = loaded_extensions.contains(VK_KHR_MAINTENANCE_2_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance2, VK_KHR_MAINTENANCE_2_EXTENSION_NAME);
+
+    // VK_KHR_maintenance3 (core in Vulkan 1.1, no features)
+    extensions.maintenance3 = loaded_extensions.contains(VK_KHR_MAINTENANCE_3_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance3, VK_KHR_MAINTENANCE_3_EXTENSION_NAME);
+
+    // VK_KHR_maintenance4
+    extensions.maintenance4 = features.maintenance4.maintenance4;
+    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance4, features.maintenance4,
+                                       VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
+
+    // VK_KHR_maintenance5
+    extensions.maintenance5 = features.maintenance5.maintenance5;
+    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance5, features.maintenance5,
+                                       VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
+
+    // VK_KHR_maintenance6
+    extensions.maintenance6 = features.maintenance6.maintenance6;
+    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance6, features.maintenance6,
+                                       VK_KHR_MAINTENANCE_6_EXTENSION_NAME);
+
+    // VK_KHR_maintenance7 (proposed for Vulkan 1.4, no features)
+    extensions.maintenance7 = loaded_extensions.contains(VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance7, VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
+
+    // VK_KHR_maintenance8 (proposed for Vulkan 1.4, no features)
+    extensions.maintenance8 = loaded_extensions.contains(VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance8, VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
+
+    // VK_KHR_maintenance9 (proposed for Vulkan 1.4, no features)
+    extensions.maintenance9 = loaded_extensions.contains(VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance9, VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
 }
 
 void Device::SetupFamilies(VkSurfaceKHR surface) {
