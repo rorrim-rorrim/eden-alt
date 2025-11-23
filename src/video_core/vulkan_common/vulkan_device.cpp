@@ -1289,7 +1289,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
     // AMD/Samsung/RADV: Broken extendedDynamicState3ColorBlendEquation
     // Disable blend equation dynamic state, force static pipeline state
     if (extensions.extended_dynamic_state3 &&
-        (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
         (is_amd_driver || is_radv || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
         LOG_WARNING(Render_Vulkan,
                     "AMD/Samsung/RADV: Disabling broken extendedDynamicState3ColorBlendEquation");
