@@ -570,8 +570,28 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         }
 
         if (nv_major_version >= 510) {
-            LOG_WARNING(Render_Vulkan, "NVIDIA Drivers >= 510 do not support MSAA image blits");
+            LOG_WARNING(Render_Vulkan, 
+                        "NVIDIA Drivers >= 510 do not support MSAA->MSAA image blits. "
+                        "MSAA scaling will use 3D helpers. MSAA resolves work normally.");
             cant_blit_msaa = true;
+        }
+
+        // Mali/ NVIDIA proprietary drivers: Shader stencil export not supported
+        // Use hardware depth/stencil blits instead when available
+        if (!extensions.shader_stencil_export) {
+            LOG_INFO(Render_Vulkan,
+                     "NVIDIA: VK_EXT_shader_stencil_export not supported, using hardware blits "
+                     "for depth/stencil operations");
+            LOG_INFO(Render_Vulkan, "  D24S8 hardware blit support: {}",
+                     is_blit_depth24_stencil8_supported);
+            LOG_INFO(Render_Vulkan, "  D32S8 hardware blit support: {}",
+                     is_blit_depth32_stencil8_supported);
+            
+            if (!is_blit_depth24_stencil8_supported && !is_blit_depth32_stencil8_supported) {
+                LOG_WARNING(Render_Vulkan,
+                            "NVIDIA: Neither shader export nor hardware blits available for "
+                            "depth/stencil. Performance may be degraded.");
+            }
         }
     }
 
@@ -611,7 +631,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     if (is_intel_windows) {
-        LOG_WARNING(Render_Vulkan, "Intel proprietary drivers do not support MSAA image blits");
+        LOG_WARNING(Render_Vulkan, 
+                    "Intel proprietary drivers do not support MSAA->MSAA image blits. "
+                    "MSAA scaling will use 3D helpers. MSAA resolves work normally.");
         cant_blit_msaa = true;
     }
 
