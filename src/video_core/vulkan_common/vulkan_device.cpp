@@ -655,24 +655,12 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         properties.properties.limits.maxVertexInputBindings = 32;
     }
 
-    if (!extensions.extended_dynamic_state && extensions.extended_dynamic_state2) {
-        LOG_INFO(Render_Vulkan,
-                 "Removing extendedDynamicState2 due to missing extendedDynamicState");
-        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
-                               VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-    }
-
-    if (!extensions.extended_dynamic_state2 && extensions.extended_dynamic_state3) {
-        LOG_INFO(Render_Vulkan,
-                 "Removing extendedDynamicState3 due to missing extendedDynamicState2");
-        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
-                               VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-        dynamic_state3_blending = false;
-        dynamic_state3_enables = false;
-    }
-
     // Base dynamic states (VIEWPORT, SCISSOR, DEPTH_BIAS, etc.) are ALWAYS active in vk_graphics_pipeline.cpp
-    // This slider only controls EXTENDED dynamic states (VK_EXT_extended_dynamic_state 1/2/3)
+    // This slider controls EXTENDED dynamic states with accumulative levels per Vulkan specs:
+    //   Level 0 = Core Dynamic States only (Vulkan 1.0)
+    //   Level 1 = Core + VK_EXT_extended_dynamic_state
+    //   Level 2 = Core + VK_EXT_extended_dynamic_state + VK_EXT_extended_dynamic_state2
+    //   Level 3 = Core + VK_EXT_extended_dynamic_state + VK_EXT_extended_dynamic_state2 + VK_EXT_extended_dynamic_state3
     
     // Mesa Intel drivers on UHD 620 have broken EDS causing extreme flickering - unknown if it affects other iGPUs
     // ALSO affects ALL versions of UHD drivers on Windows 10+, seems to cause even worse issues like straight up crashing
@@ -685,15 +673,35 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
     switch (Settings::values.dyna_state.GetValue()) {
     case 0:
-        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
-        [[fallthrough]];
-    case 1:
-        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2, VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-        [[fallthrough]];
-    case 2:
-        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3, VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+        // Level 0: Disable all extended dynamic state extensions
+        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state, 
+                              VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2, 
+                              VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3, 
+                              VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
         dynamic_state3_blending = false;
         dynamic_state3_enables = false;
+        break;
+    case 1:
+        // Level 1: Enable EDS1, disable EDS2 and EDS3
+        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2, 
+                              VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3, 
+                              VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+        dynamic_state3_blending = false;
+        dynamic_state3_enables = false;
+        break;
+    case 2:
+        // Level 2: Enable EDS1 + EDS2, disable EDS3
+        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3, 
+                              VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+        dynamic_state3_blending = false;
+        dynamic_state3_enables = false;
+        break;
+    case 3:
+    default:
+        // Level 3: Enable all (EDS1 + EDS2 + EDS3)
         break;
     }
 
