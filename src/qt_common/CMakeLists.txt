@@ -5,6 +5,9 @@ add_library(qt_common STATIC
     qt_common.h
     qt_common.cpp
 
+    gamemode.cpp
+    gamemode.h
+
     config/uisettings.cpp
     config/uisettings.h
     config/qt_config.cpp

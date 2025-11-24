@@ -9,15 +9,15 @@
 #ifdef __unix__
 #include <lib/gamemode_client.h>
 #endif
-#include "common/gamemode.h"
+#include "qt_common/gamemode.h"
 #include "common/logging/log.h"
-#include "common/settings.h"
+#include "qt_common/config/uisettings.h"
 
 namespace Common::FeralGamemode {
 
 /// @brief Start the gamemode client
 void Start() noexcept {
-    if (Settings::values.enable_gamemode) {
+    if (UISettings::values.enable_gamemode) {
 #ifdef __unix__
         if (gamemode_request_start() < 0) {
 #ifdef __linux__
@@ -34,7 +34,7 @@ void Start() noexcept {
 
 /// @brief Stop the gmemode client
 void Stop() noexcept {
-    if (Settings::values.enable_gamemode) {
+    if (UISettings::values.enable_gamemode) {
 #ifdef __unix__
         if (gamemode_request_end() < 0) {
 #ifdef __linux__

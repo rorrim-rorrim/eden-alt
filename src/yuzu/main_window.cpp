@@ -164,7 +164,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 
 #endif
 
-#include "common/gamemode.h"
+#include "qt_common/gamemode.h"
 
 #ifdef _WIN32
 #include "core/core_timing.h"
@@ -421,7 +421,7 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     SetupSigInterrupts();
 #endif
 
-    SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
+    SetGamemodeEnabled(UISettings::values.enable_gamemode.GetValue());
 
     UISettings::RestoreWindowState(config);
 
@@ -3371,9 +3371,9 @@ void MainWindow::OnConfigure() {
     const auto old_theme = UISettings::values.theme;
     const bool old_discord_presence = UISettings::values.enable_discord_presence.GetValue();
     const auto old_language_index = Settings::values.language_index.GetValue();
-    const bool old_gamemode = Settings::values.enable_gamemode.GetValue();
+    const bool old_gamemode = UISettings::values.enable_gamemode.GetValue();
 #ifdef __unix__
-    const bool old_force_x11 = Settings::values.gui_force_x11.GetValue();
+    const bool old_force_x11 = UISettings::values.gui_force_x11.GetValue();
 #endif
 
     Settings::SetConfiguringGlobal(true);
@@ -3434,12 +3434,12 @@ void MainWindow::OnConfigure() {
     if (UISettings::values.enable_discord_presence.GetValue() != old_discord_presence) {
         SetDiscordEnabled(UISettings::values.enable_discord_presence.GetValue());
     }
-    if (Settings::values.enable_gamemode.GetValue() != old_gamemode) {
-        SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
+    if (UISettings::values.enable_gamemode.GetValue() != old_gamemode) {
+        SetGamemodeEnabled(UISettings::values.enable_gamemode.GetValue());
     }
 #ifdef __unix__
-    if (Settings::values.gui_force_x11.GetValue() != old_force_x11) {
-        GraphicsBackend::SetForceX11(Settings::values.gui_force_x11.GetValue());
+    if (UISettings::values.gui_force_x11.GetValue() != old_force_x11) {
+        GraphicsBackend::SetForceX11(UISettings::values.gui_force_x11.GetValue());
     }
 #endif
 
@@ -4386,7 +4386,7 @@ void MainWindow::OnCheckGraphicsBackend() {
     if (!isWayland)
         return;
 
-    const bool currently_hidden = Settings::values.gui_hide_backend_warning.GetValue();
+    const bool currently_hidden = UISettings::values.gui_hide_backend_warning.GetValue();
     if (currently_hidden)
         return;
 
@@ -4409,11 +4409,11 @@ void MainWindow::OnCheckGraphicsBackend() {
 
     const bool hide = cb->isChecked();
     if (hide != currently_hidden) {
-        Settings::values.gui_hide_backend_warning.SetValue(hide);
+        UISettings::values.gui_hide_backend_warning.SetValue(hide);
     }
 
     if (msgbox.clickedButton() == okButton) {
-        Settings::values.gui_force_x11.SetValue(true);
+        UISettings::values.gui_force_x11.SetValue(true);
         GraphicsBackend::SetForceX11(true);
         QMessageBox::information(this,
                                  tr("Restart Required"),
