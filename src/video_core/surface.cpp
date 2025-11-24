@@ -443,6 +443,39 @@ std::optional<PixelFormat> NormalizedCompatibleFormat(PixelFormat format) {
     }
 }
 
+std::optional<PixelFormat> IntegerCompatibleFormat(PixelFormat format) {
+    switch (format) {
+    case PixelFormat::A8B8G8R8_UNORM:
+        return PixelFormat::A8B8G8R8_UINT;
+    case PixelFormat::A8B8G8R8_SNORM:
+        return PixelFormat::A8B8G8R8_SINT;
+    case PixelFormat::A2B10G10R10_UNORM:
+        return PixelFormat::A2B10G10R10_UINT;
+    case PixelFormat::R8_UNORM:
+        return PixelFormat::R8_UINT;
+    case PixelFormat::R8_SNORM:
+        return PixelFormat::R8_SINT;
+    case PixelFormat::R8G8_UNORM:
+        return PixelFormat::R8G8_UINT;
+    case PixelFormat::R8G8_SNORM:
+        return PixelFormat::R8G8_SINT;
+    case PixelFormat::R16_UNORM:
+        return PixelFormat::R16_UINT;
+    case PixelFormat::R16_SNORM:
+        return PixelFormat::R16_SINT;
+    case PixelFormat::R16G16_UNORM:
+        return PixelFormat::R16G16_UINT;
+    case PixelFormat::R16G16_SNORM:
+        return PixelFormat::R16G16_SINT;
+    case PixelFormat::R16G16B16A16_UNORM:
+        return PixelFormat::R16G16B16A16_UINT;
+    case PixelFormat::R16G16B16A16_SNORM:
+        return PixelFormat::R16G16B16A16_SINT;
+    default:
+        return std::nullopt;
+    }
+}
+
 size_t PixelComponentSizeBitsInteger(PixelFormat format) {
     switch (format) {
     case PixelFormat::A8B8G8R8_SINT:

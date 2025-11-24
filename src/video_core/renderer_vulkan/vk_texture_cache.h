@@ -247,7 +247,8 @@ public:
         return *image_views[static_cast<size_t>(texture_type)];
     }
 
-    [[nodiscard]] VkImageView SampledHandle(Shader::TextureType texture_type);
+    [[nodiscard]] VkImageView SampledHandle(Shader::TextureType texture_type,
+                                            bool use_integer_view);
 
     [[nodiscard]] VkImage ImageHandle() const noexcept {
         return image_handle;
@@ -284,6 +285,7 @@ private:
 
     std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> image_views;
     std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> sampled_float_views;
+    std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> sampled_integer_views;
     std::array<std::optional<u32>, Shader::NUM_TEXTURE_TYPES> view_layer_counts{};
     std::unique_ptr<StorageViews> storage_views;
     vk::ImageView depth_view;
