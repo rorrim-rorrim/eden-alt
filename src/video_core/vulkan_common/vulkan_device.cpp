@@ -23,17 +23,6 @@
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
-// Define maintenance 7-9 extension names (not yet in official Vulkan 1.3 headers)
-#ifndef VK_KHR_MAINTENANCE_7_EXTENSION_NAME
-#define VK_KHR_MAINTENANCE_7_EXTENSION_NAME "VK_KHR_maintenance7"
-#endif
-#ifndef VK_KHR_MAINTENANCE_8_EXTENSION_NAME
-#define VK_KHR_MAINTENANCE_8_EXTENSION_NAME "VK_KHR_maintenance8"
-#endif
-#ifndef VK_KHR_MAINTENANCE_9_EXTENSION_NAME
-#define VK_KHR_MAINTENANCE_9_EXTENSION_NAME "VK_KHR_maintenance9"
-#endif
-
 #if defined(ANDROID) && defined(ARCHITECTURE_arm64)
 #include <adrenotools/bcenabler.h>
 #include <android/api-level.h>
