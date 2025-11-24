@@ -60,28 +60,18 @@ struct DrawParams {
 };
 
 VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t index, float scale) {
-    const auto& src = regs.viewport_transform[index];
-    const auto conv = [scale](float value) {
-        float new_value = value * scale;
-        if (scale < 1.0f) {
-            const bool sign = std::signbit(value);
-            new_value = std::round(std::abs(new_value));
-            new_value = sign ? -new_value : new_value;
-        }
-        return new_value;
-    };
     float x = conv(src.translate_x - src.scale_x);
     float width = conv(src.scale_x * 2.0f);
     float y = conv(src.translate_y - src.scale_y);
     float height = conv(src.scale_y * 2.0f);
-    const bool y_negate = !device.IsNvViewportSwizzleSupported() && src.swizzle.y == Maxwell::ViewportSwizzle::NegativeY;
     const bool lower_left = regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft;
-    if (y_negate) {
-        y += height;
-        height = -height;
-    }
+    const bool y_negate = !device.IsNvViewportSwizzleSupported() && src.swizzle.y == Maxwell::ViewportSwizzle::NegativeY;
     if (lower_left) {
         y = static_cast<float>(regs.surface_clip.height) - (y + height);
+        height = -height;
+    }
+    if (y_negate) {
+        y += height;
         height = -height;
     }
     const float reduce_z = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1.0f : 0.0f;
