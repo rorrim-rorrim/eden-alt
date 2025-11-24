@@ -158,6 +158,7 @@ add_executable(yuzu
     debugger/console.h
     debugger/controller.cpp
     debugger/controller.h
+
     game_list.cpp
     game_list.h
     game_list_p.h
@@ -214,7 +215,8 @@ add_executable(yuzu
     util/sequence_dialog/sequence_dialog.h
     util/url_request_interceptor.cpp
     util/url_request_interceptor.h
-
+    util/util.cpp
+    util/util.h
     vk_device_info.cpp
     vk_device_info.h
     compatdb.cpp

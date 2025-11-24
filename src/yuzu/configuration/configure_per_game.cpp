@@ -42,7 +42,7 @@
 #include "yuzu/configuration/configure_per_game_addons.h"
 #include "yuzu/configuration/configure_system.h"
 #include "qt_common/config/uisettings.h"
-#include "qt_common/util/display.h"
+#include "yuzu/util/util.h"
 #include "yuzu/vk_device_info.h"
 
 ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::string& file_name,

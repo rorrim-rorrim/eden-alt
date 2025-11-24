@@ -11,7 +11,7 @@
 #include "qt_common/abstract/frontend.h"
 #include "qt_common/config/uisettings.h"
 #include "qt_common/qt_common.h"
-#include "qt_common/util/display.h"
+#include "yuzu/util/util.h"
 
 #include <QDesktopServices>
 #include <QStandardPaths>

@@ -23,7 +23,7 @@
 #include "common/string_util.h"
 #include "frontend_common/play_time_manager.h"
 #include "qt_common/config/uisettings.h"
-#include "qt_common/util/display.h"
+#include "yuzu/util/util.h"
 
 enum class GameListItemType {
     Game = QStandardItem::UserType + 1,
