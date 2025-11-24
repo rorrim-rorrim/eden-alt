@@ -14,6 +14,10 @@
 #include "common/settings_enums.h"
 #include "config.h"
 
+#ifdef _WIN32
+#include "common/string_util.h"
+#endif
+
 #include <boost/algorithm/string/replace.hpp>
 
 #include "common/assert.h"
