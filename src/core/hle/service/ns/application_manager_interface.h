@@ -54,6 +54,7 @@ public:
     Result ResumeAll();
     Result GetStorageSize(Out<s64> out_total_space_size, Out<s64> out_free_space_size,
                           FileSys::StorageId storage_id);
+    Result TouchApplication(u64 application_id);
     Result IsApplicationUpdateRequested(Out<bool> out_update_required, Out<u32> out_update_version,
                                         u64 application_id);
     Result CheckApplicationLaunchVersion(u64 application_id);

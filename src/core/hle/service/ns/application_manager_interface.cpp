@@ -45,7 +45,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {26, nullptr, "BeginInstallApplication"},
         {27, nullptr, "DeleteApplicationRecord"},
         {30, nullptr, "RequestApplicationUpdateInfo"},
-        {31, nullptr, "Unknown31"},
+        {31, nullptr, "RequestUpdateApplication"},
         {32, nullptr, "CancelApplicationDownload"},
         {33, nullptr, "ResumeApplicationDownload"},
         {35, nullptr, "UpdateVersionList"},
@@ -167,7 +167,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {901, nullptr, "GetApplicationRecordProperty"},
         {902, nullptr, "EnableApplicationAutoUpdate"},
         {903, nullptr, "DisableApplicationAutoUpdate"},
-        {904, nullptr, "TouchApplication"},
+        {904, D<&IApplicationManagerInterface::TouchApplication>, "TouchApplication"},
         {905, nullptr, "RequestApplicationUpdate"},
         {906, D<&IApplicationManagerInterface::IsApplicationUpdateRequested>, "IsApplicationUpdateRequested"},
         {907, nullptr, "WithdrawApplicationUpdateRequest"},
@@ -541,6 +541,11 @@ Result IApplicationManagerInterface::GetStorageSize(Out<s64> out_total_space_siz
     LOG_INFO(Service_NS, "called, storage_id={}", storage_id);
     *out_total_space_size = system.GetFileSystemController().GetTotalSpaceSize(storage_id);
     *out_free_space_size = system.GetFileSystemController().GetFreeSpaceSize(storage_id);
+    R_SUCCEED();
+}
+
+Result IApplicationManagerInterface::TouchApplication(u64 application_id) {
+    LOG_WARNING(Service_NS, "(STUBBED) called. application_id={:016X}", application_id);
     R_SUCCEED();
 }
 
