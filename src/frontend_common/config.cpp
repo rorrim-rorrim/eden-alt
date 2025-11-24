@@ -293,11 +293,17 @@ void Config::ReadDataStorageValues()
 {
     BeginGroup(Settings::TranslateCategory(Settings::Category::DataStorage));
 
-    FS::SetEdenPath(FS::EdenPath::NANDDir, ReadStringSetting(std::string("nand_directory")));
-    FS::SetEdenPath(FS::EdenPath::SDMCDir, ReadStringSetting(std::string("sdmc_directory")));
-    FS::SetEdenPath(FS::EdenPath::LoadDir, ReadStringSetting(std::string("load_directory")));
-    FS::SetEdenPath(FS::EdenPath::DumpDir, ReadStringSetting(std::string("dump_directory")));
-    FS::SetEdenPath(FS::EdenPath::TASDir, ReadStringSetting(std::string("tas_directory")));
+    using namespace Common::FS;
+
+    const auto setPath = [this](const EdenPath& path, const char* setting) {
+        SetEdenPath(path, ReadStringSetting(std::string(setting)));
+    };
+
+    setPath(EdenPath::NANDDir, "nand_directory");
+    setPath(EdenPath::SDMCDir, "sdmc_directory");
+    setPath(EdenPath::LoadDir, "load_directory");
+    setPath(EdenPath::DumpDir, "dump_directory");
+    setPath(EdenPath::TASDir,  "tas_directory");
 
     ReadCategory(Settings::Category::DataStorage);
 
@@ -625,21 +631,19 @@ void Config::SaveDataStorageValues()
 {
     BeginGroup(Settings::TranslateCategory(Settings::Category::DataStorage));
 
-    WriteStringSetting(std::string("nand_directory"),
-                       FS::GetEdenPathString(FS::EdenPath::NANDDir),
-                       std::make_optional(FS::GetEdenPathString(FS::EdenPath::NANDDir)));
-    WriteStringSetting(std::string("sdmc_directory"),
-                       FS::GetEdenPathString(FS::EdenPath::SDMCDir),
-                       std::make_optional(FS::GetEdenPathString(FS::EdenPath::SDMCDir)));
-    WriteStringSetting(std::string("load_directory"),
-                       FS::GetEdenPathString(FS::EdenPath::LoadDir),
-                       std::make_optional(FS::GetEdenPathString(FS::EdenPath::LoadDir)));
-    WriteStringSetting(std::string("dump_directory"),
-                       FS::GetEdenPathString(FS::EdenPath::DumpDir),
-                       std::make_optional(FS::GetEdenPathString(FS::EdenPath::DumpDir)));
-    WriteStringSetting(std::string("tas_directory"),
-                       FS::GetEdenPathString(FS::EdenPath::TASDir),
-                       std::make_optional(FS::GetEdenPathString(FS::EdenPath::TASDir)));
+    using namespace Common::FS;
+
+    const auto writePath = [this](const char* setting, const EdenPath& path) {
+        WriteStringSetting(std::string(setting),
+                           FS::GetEdenPathString(path),
+                           std::make_optional(FS::GetEdenPathString(path)));
+    };
+
+    writePath("nand_directory", EdenPath::NANDDir);
+    writePath("sdmc_directory", EdenPath::SDMCDir);
+    writePath("load_directory", EdenPath::LoadDir);
+    writePath("dump_directory", EdenPath::DumpDir);
+    writePath("tas_directory",  EdenPath::TASDir);
 
     WriteCategory(Settings::Category::DataStorage);
 
