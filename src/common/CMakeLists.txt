@@ -181,8 +181,6 @@ if(ANDROID)
            android/applets/software_keyboard.h)
 endif()
 
-target_link_libraries(common PRIVATE gamemode::headers)
-
 if(ARCHITECTURE_x86_64)
   target_sources(
     common
