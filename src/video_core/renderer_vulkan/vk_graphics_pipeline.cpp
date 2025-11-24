@@ -263,6 +263,7 @@ GraphicsPipeline::GraphicsPipeline(
         std::ranges::copy(info->constant_buffer_used_sizes, uniform_buffer_sizes[stage].begin());
         num_textures += Shader::NumDescriptors(info->texture_descriptors);
     }
+    fragment_has_color0_output = stage_infos[NUM_STAGES - 1].stores_frag_color[0];
     auto func{[this, shader_notify, &render_pass_cache, &descriptor_pool, pipeline_statistics] {
         DescriptorLayoutBuilder builder{MakeBuilder(device, stage_infos)};
         uses_push_descriptor = builder.CanUsePushDescriptor();
@@ -739,6 +740,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         provoking_vertex.pNext = std::exchange(rasterization_ci.pNext, &provoking_vertex);
     }
 
+    const bool supports_alpha_output = fragment_has_color0_output;
     const VkPipelineMultisampleStateCreateInfo multisample_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
         .pNext = nullptr,
@@ -747,8 +749,10 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .sampleShadingEnable = Settings::values.sample_shading.GetValue() ? VK_TRUE : VK_FALSE,
         .minSampleShading = static_cast<float>(Settings::values.sample_shading_fraction.GetValue()) / 100.0f,
         .pSampleMask = nullptr,
-        .alphaToCoverageEnable = key.state.alpha_to_coverage_enabled != 0 ? VK_TRUE : VK_FALSE,
-        .alphaToOneEnable = key.state.alpha_to_one_enabled != 0 ? VK_TRUE : VK_FALSE,
+        .alphaToCoverageEnable =
+            supports_alpha_output && key.state.alpha_to_coverage_enabled != 0 ? VK_TRUE : VK_FALSE,
+        .alphaToOneEnable =
+            supports_alpha_output && key.state.alpha_to_one_enabled != 0 ? VK_TRUE : VK_FALSE,
     };
     const VkPipelineDepthStencilStateCreateInfo depth_stencil_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
