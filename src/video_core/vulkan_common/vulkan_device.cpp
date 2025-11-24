@@ -707,10 +707,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         break;
     }
 
-    if (!extensions.extended_dynamic_state) {
-        Settings::values.vertex_input_dynamic_state.SetValue(false);
-    }
-
+    // VK_EXT_vertex_input_dynamic_state is independent from EDS
+    // It can be enabled even without extended_dynamic_state
     if (!Settings::values.vertex_input_dynamic_state.GetValue()) {
         RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
     }
@@ -1188,7 +1186,9 @@ bool Device::GetSuitability(bool requires_swapchain) {
         if (version < VK_MAKE_API_VERSION(27, 20, 100, 0)) {
             LOG_WARNING(Render_Vulkan,
                         "Intel Windows < 27.20.100.0: Disabling broken VK_EXT_vertex_input_dynamic_state");
-            features.vertex_input_dynamic_state.vertexInputDynamicState = false;
+            RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
+                                   features.vertex_input_dynamic_state,
+                                   VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
         }
     }
     
