@@ -1148,6 +1148,11 @@ bool Device::GetSuitability(bool requires_swapchain) {
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_PROPERTIES_EXT;
         SetNext(next, properties.transform_feedback);
     }
+    if (extensions.maintenance5) {
+        properties.maintenance5.sType =
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_PROPERTIES_KHR;
+        SetNext(next, properties.maintenance5);
+    }
 
     // Perform the property fetch.
     physical.GetProperties2(properties2);
@@ -1431,6 +1436,17 @@ void Device::RemoveUnsuitableExtensions() {
 
     // VK_KHR_maintenance5
     extensions.maintenance5 = features.maintenance5.maintenance5;
+    
+    if (extensions.maintenance5) {
+        LOG_INFO(Render_Vulkan, "VK_KHR_maintenance5 properties: polygonModePointSize={} "
+                                "depthStencilSwizzleOne={} earlyFragmentTests={} nonStrictWideLines={}",
+                 properties.maintenance5.polygonModePointSize,
+                 properties.maintenance5.depthStencilSwizzleOneSupport,
+                 properties.maintenance5.earlyFragmentMultisampleCoverageAfterSampleCounting &&
+                 properties.maintenance5.earlyFragmentSampleMaskTestBeforeSampleCounting,
+                 properties.maintenance5.nonStrictWideLinesUseParallelogram);
+    }
+    
     RemoveExtensionFeatureIfUnsuitable(extensions.maintenance5, features.maintenance5,
                                        VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
 
