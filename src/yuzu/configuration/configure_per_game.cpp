@@ -79,13 +79,6 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
     ui->tabWidget->addTab(audio_tab.get(), tr("Audio"));
     ui->tabWidget->addTab(input_tab.get(), tr("Input Profiles"));
 
-    // Only show Linux tab on Unix
-    linux_tab->setVisible(false);
-#ifdef __unix__
-    linux_tab->setVisible(true);
-    ui->tabWidget->addTab(linux_tab.get(), tr("Linux"));
-#endif
-
     setFocusPolicy(Qt::ClickFocus);
     setWindowTitle(tr("Properties"));
 
