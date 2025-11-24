@@ -61,28 +61,26 @@ struct DrawParams {
 
 VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t index, float scale) {
     const auto& src = regs.viewport_transform[index];
-    const auto conv = [scale](float value) {
+    auto conv = [scale](float value) {
         float new_value = value * scale;
         if (scale < 1.0f) {
-            const bool sign = std::signbit(value);
+            bool sign = std::signbit(value);
             new_value = std::round(std::abs(new_value));
             new_value = sign ? -new_value : new_value;
         }
         return new_value;
     };
-    const float x = conv(src.translate_x - src.scale_x);
+    float x = conv(src.translate_x - src.scale_x);
     float width = conv(src.scale_x * 2.0f);
     float y = conv(src.translate_y - src.scale_y);
     float height = conv(src.scale_y * 2.0f);
-    const bool lower_left = regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft;
-    const bool y_negate = !device.IsNvViewportSwizzleSupported() && src.swizzle.y == Maxwell::ViewportSwizzle::NegativeY;
-    const bool is_offscreen = (height != conv(static_cast<float>(regs.surface_clip.height)));
-    const bool need_flip = !is_offscreen && (lower_left != y_negate);
-    if (need_flip) {
+    bool lower_left = regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft;
+    bool is_main_framebuffer = (width == conv(static_cast<float>(regs.surface_clip.width)) && height == conv(static_cast<float>(regs.surface_clip.height)));
+    if (is_main_framebuffer && lower_left) {
         y += height;
         height = -height;
     }
-    const float reduce_z = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1.0f : 0.0f;
+    float reduce_z = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1.0f : 0.0f;
     VkViewport viewport{
         .x = x,
         .y = y,
