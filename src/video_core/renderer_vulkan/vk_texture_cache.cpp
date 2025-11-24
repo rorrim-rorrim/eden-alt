@@ -45,6 +45,7 @@ using VideoCore::Surface::BytesPerBlock;
 using VideoCore::Surface::HasAlpha;
 using VideoCore::Surface::IsPixelFormatASTC;
 using VideoCore::Surface::IsPixelFormatInteger;
+using VideoCore::Surface::NormalizedCompatibleFormat;
 using VideoCore::Surface::SurfaceType;
 
 namespace {
@@ -2051,7 +2052,8 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
       samples(ConvertSampleCount(image.info.num_samples)) {
     using Shader::TextureType;
 
-    const VkImageAspectFlags aspect_mask = ImageViewAspectMask(info);
+        const VkImageAspectFlags aspect_mask_local = ImageViewAspectMask(info);
+        aspect_mask = aspect_mask_local;
     std::array<SwizzleSource, 4> swizzle{
         SwizzleSource::R,
         SwizzleSource::G,
@@ -2083,6 +2085,14 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
         .pNext = nullptr,
         .usage = view_usage,
     };
+    view_usage_flags = view_usage;
+    const VkComponentMapping components{
+        .r = ComponentSwizzle(swizzle[0]),
+        .g = ComponentSwizzle(swizzle[1]),
+        .b = ComponentSwizzle(swizzle[2]),
+        .a = ComponentSwizzle(swizzle[3]),
+    };
+    component_mapping = components;
     const VkImageViewCreateInfo create_info{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext = &image_view_usage,
@@ -2090,13 +2100,8 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
         .image = image.Handle(),
         .viewType = VkImageViewType{},
         .format = format_info.format,
-        .components{
-            .r = ComponentSwizzle(swizzle[0]),
-            .g = ComponentSwizzle(swizzle[1]),
-            .b = ComponentSwizzle(swizzle[2]),
-            .a = ComponentSwizzle(swizzle[3]),
-        },
-        .subresourceRange = MakeSubresourceRange(aspect_mask, info.range),
+        .components = components,
+        .subresourceRange = MakeSubresourceRange(aspect_mask_local, info.range),
     };
     const auto create = [&](TextureType tex_type, std::optional<u32> num_layers) {
         VkImageViewCreateInfo ci{create_info};
@@ -2109,6 +2114,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
             handle.SetObjectNameEXT(VideoCommon::Name(*this, gpu_addr).c_str());
         }
         image_views[static_cast<size_t>(tex_type)] = std::move(handle);
+        view_layer_counts[static_cast<size_t>(tex_type)] = num_layers;
     };
     switch (info.type) {
     case VideoCommon::ImageViewType::e1D:
@@ -2162,6 +2168,8 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::NullImageV
 
     null_image = MakeImage(*device, runtime.memory_allocator, info, {});
     image_handle = *null_image;
+    aspect_mask = VK_IMAGE_ASPECT_COLOR_BIT;
+    view_usage_flags = VK_IMAGE_USAGE_SAMPLED_BIT;
     for (u32 i = 0; i < Shader::NUM_TEXTURE_TYPES; i++) {
         image_views[i] = MakeView(VK_FORMAT_A8B8G8R8_UNORM_PACK32, VK_IMAGE_ASPECT_COLOR_BIT);
     }
@@ -2226,6 +2234,24 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
     return *view;
 }
 
+VkImageView ImageView::SampledHandle(Shader::TextureType texture_type) {
+    if (!IsPixelFormatInteger(format)) {
+        return Handle(texture_type);
+    }
+    const auto compatible_format = NormalizedCompatibleFormat(format);
+    if (!compatible_format) {
+        return Handle(texture_type);
+    }
+    auto& view = sampled_float_views[static_cast<size_t>(texture_type)];
+    if (view) {
+        return *view;
+    }
+    const auto format_info =
+        MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, *compatible_format);
+    view = CreateSampledView(texture_type, format_info.format);
+    return *view;
+}
+
 bool ImageView::IsRescaled() const noexcept {
     if (!slot_images) {
         return false;
@@ -2251,6 +2277,30 @@ vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_
         },
         .subresourceRange = MakeSubresourceRange(aspect_mask, range),
     });
+}
+
+vk::ImageView ImageView::CreateSampledView(Shader::TextureType texture_type,
+                                           VkFormat vk_format) const {
+    const VkImageViewUsageCreateInfo usage_info{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO,
+        .pNext = nullptr,
+        .usage = view_usage_flags,
+    };
+    VkImageViewCreateInfo create_info{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext = &usage_info,
+        .flags = 0,
+        .image = image_handle,
+        .viewType = ImageViewType(texture_type),
+        .format = vk_format,
+        .components = component_mapping,
+        .subresourceRange = MakeSubresourceRange(aspect_mask, range),
+    };
+    const auto idx = static_cast<size_t>(texture_type);
+    if (view_layer_counts[idx]) {
+        create_info.subresourceRange.layerCount = *view_layer_counts[idx];
+    }
+    return device->GetLogical().CreateImageView(create_info);
 }
 
 Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& tsc) {
