@@ -7,7 +7,7 @@
 // While technically available on al *NIX platforms, Linux is only available
 // as the primary target of libgamemode.so - so warnings are suppressed
 #ifdef __unix__
-#include <gamemode_client.h>
+#include <lib/gamemode_client.h>
 #endif
 #include "common/gamemode.h"
 #include "common/logging/log.h"
@@ -15,6 +15,7 @@
 
 namespace Common::FeralGamemode {
 
+/// @brief Start the gamemode client
 void Start() noexcept {
     if (Settings::values.enable_gamemode) {
 #ifdef __unix__
@@ -31,6 +32,7 @@ void Start() noexcept {
     }
 }
 
+/// @brief Stop the gmemode client
 void Stop() noexcept {
     if (Settings::values.enable_gamemode) {
 #ifdef __unix__
