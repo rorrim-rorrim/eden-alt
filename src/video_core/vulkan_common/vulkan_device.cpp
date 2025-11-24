@@ -431,7 +431,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
 
     if (!is_suitable)
-        LOG_ERROR(Render_Vulkan, "Unsuitable driver - continuing anyways");
+        LOG_WARNING(Render_Vulkan, "Unsuitable driver - continuing anyways");
 
     if (is_nvidia) {
         nvidia_arch = GetNvidiaArchitecture(physical, supported_extensions);
