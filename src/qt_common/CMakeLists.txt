@@ -85,6 +85,7 @@ find_package(frozen)
 
 target_link_libraries(qt_common PRIVATE core Qt6::Core Qt6::Concurrent SimpleIni::SimpleIni QuaZip::QuaZip)
 target_link_libraries(qt_common PUBLIC frozen::frozen-headers)
+target_link_libraries(qt_common PRIVATE gamemode::headers)
 
 if (NOT APPLE AND ENABLE_OPENGL)
     target_compile_definitions(qt_common PUBLIC HAS_OPENGL)
