@@ -1,23 +1,19 @@
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <algorithm>
-#include <array>
+#include "config.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "common/settings_common.h"
 #include "common/settings_enums.h"
-#include "config.h"
-#include "core/core.h"
-#include "core/hle/service/acc/profile_manager.h"
-#include "hid_core/resources/npad/npad.h"
-#include "network/network.h"
+#include <algorithm>
+#include <array>
 
 #include <boost/algorithm/string/replace.hpp>
 
-#include "common/string_util.h"
+#include "common/assert.h"
 
 namespace FS = Common::FS;
 
@@ -926,8 +922,7 @@ void Config::ReadSettingGeneric(Settings::BasicSetting* const setting) {
         const bool is_default =
             ReadBooleanSetting(std::string(key).append("\\default"), std::make_optional(true));
         if (!is_default) {
-            const std::string setting_string = ReadStringSetting(key, default_value);
-            setting->LoadString(setting_string);
+            setting->LoadString(ReadStringSetting(key, default_value));
         } else {
             // Empty string resets the Setting to default
             setting->LoadString("");
