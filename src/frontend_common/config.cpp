@@ -4,15 +4,15 @@
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "config.h"
+#include <algorithm>
+#include <array>
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "common/settings_common.h"
 #include "common/settings_enums.h"
-#include <algorithm>
-#include <array>
+#include "config.h"
 
 #include <boost/algorithm/string/replace.hpp>
 
@@ -21,12 +21,9 @@
 namespace FS = Common::FS;
 
 Config::Config(const ConfigType config_type)
-    : type(config_type)
-    , global{config_type == ConfigType::GlobalConfig}
-{}
+    : type(config_type), global{config_type == ConfigType::GlobalConfig} {}
 
-void Config::Initialize(const std::string& config_name)
-{
+void Config::Initialize(const std::string& config_name) {
     const std::filesystem::path fs_config_loc = FS::GetEdenPath(FS::EdenPath::ConfigDir);
     const auto config_file = fmt::format("{}.ini", config_name);
 
@@ -51,18 +48,16 @@ void Config::Initialize(const std::string& config_name)
     }
 }
 
-void Config::Initialize(const std::optional<std::string> config_path)
-{
-    const std::filesystem::path default_sdl_config_path = FS::GetEdenPath(FS::EdenPath::ConfigDir)
-                                                          / "sdl2-config.ini";
+void Config::Initialize(const std::optional<std::string> config_path) {
+    const std::filesystem::path default_sdl_config_path =
+        FS::GetEdenPath(FS::EdenPath::ConfigDir) / "sdl2-config.ini";
     config_loc = config_path.value_or(FS::PathToUTF8String(default_sdl_config_path));
     void(FS::CreateParentDir(config_loc));
     SetUpIni();
     Reload();
 }
 
-void Config::WriteToIni() const
-{
+void Config::WriteToIni() const {
     std::string config_type;
     switch (type) {
     case ConfigType::GlobalConfig:
@@ -96,8 +91,7 @@ void Config::WriteToIni() const
     fclose(fp);
 }
 
-void Config::SetUpIni()
-{
+void Config::SetUpIni() {
     config = std::make_unique<CSimpleIniA>();
     config->SetUnicode(true);
     config->SetSpaces(false);
@@ -126,13 +120,11 @@ void Config::SetUpIni()
     fclose(fp);
 }
 
-bool Config::IsCustomConfig() const
-{
+bool Config::IsCustomConfig() const {
     return type == ConfigType::PerGameConfig;
 }
 
-void Config::ReadPlayerValues(const std::size_t player_index)
-{
+void Config::ReadPlayerValues(const std::size_t player_index) {
     std::string player_prefix;
     if (type != ConfigType::InputProfile) {
         player_prefix.append("player_").append(ToString(player_index)).append("_");
@@ -156,8 +148,8 @@ void Config::ReadPlayerValues(const std::size_t player_index)
             ReadIntegerSetting(std::string(player_prefix).append("type"),
                                u8(Settings::ControllerType::ProController)));
 
-        if (controller == Settings::ControllerType::LeftJoycon
-            || controller == Settings::ControllerType::RightJoycon) {
+        if (controller == Settings::ControllerType::LeftJoycon ||
+            controller == Settings::ControllerType::RightJoycon) {
             player.controller_type = controller;
         }
     } else {
@@ -173,42 +165,37 @@ void Config::ReadPlayerValues(const std::size_t player_index)
             ReadIntegerSetting(std::string(player_prefix).append("type"),
                                u8(Settings::ControllerType::ProController)));
 
-        player.vibration_enabled
-            = ReadBooleanSetting(std::string(player_prefix).append("vibration_enabled"),
-                                 std::make_optional(true));
+        player.vibration_enabled = ReadBooleanSetting(
+            std::string(player_prefix).append("vibration_enabled"), std::make_optional(true));
 
-        player.vibration_strength = int(
-            ReadIntegerSetting(std::string(player_prefix).append("vibration_strength"), 100));
+        player.vibration_strength =
+            int(ReadIntegerSetting(std::string(player_prefix).append("vibration_strength"), 100));
 
-        player.body_color_left = u32(
-            ReadIntegerSetting(std::string(player_prefix).append("body_color_left"),
-                               Settings::JOYCON_BODY_NEON_BLUE));
-        player.body_color_right = u32(
-            ReadIntegerSetting(std::string(player_prefix).append("body_color_right"),
-                               Settings::JOYCON_BODY_NEON_RED));
-        player.button_color_left = u32(
-            ReadIntegerSetting(std::string(player_prefix).append("button_color_left"),
-                               Settings::JOYCON_BUTTONS_NEON_BLUE));
-        player.button_color_right = u32(
-            ReadIntegerSetting(std::string(player_prefix).append("button_color_right"),
-                               Settings::JOYCON_BUTTONS_NEON_RED));
+        player.body_color_left = u32(ReadIntegerSetting(
+            std::string(player_prefix).append("body_color_left"), Settings::JOYCON_BODY_NEON_BLUE));
+        player.body_color_right = u32(ReadIntegerSetting(
+            std::string(player_prefix).append("body_color_right"), Settings::JOYCON_BODY_NEON_RED));
+        player.button_color_left =
+            u32(ReadIntegerSetting(std::string(player_prefix).append("button_color_left"),
+                                   Settings::JOYCON_BUTTONS_NEON_BLUE));
+        player.button_color_right =
+            u32(ReadIntegerSetting(std::string(player_prefix).append("button_color_right"),
+                                   Settings::JOYCON_BUTTONS_NEON_RED));
     }
 }
 
-void Config::ReadTouchscreenValues()
-{
-    Settings::values.touchscreen.enabled = ReadBooleanSetting(std::string("touchscreen_enabled"),
-                                                              std::make_optional(true));
-    Settings::values.touchscreen.rotation_angle = u32(
-        ReadIntegerSetting(std::string("touchscreen_angle"), 0));
-    Settings::values.touchscreen.diameter_x = u32(
-        ReadIntegerSetting(std::string("touchscreen_diameter_x"), 90));
-    Settings::values.touchscreen.diameter_y = u32(
-        ReadIntegerSetting(std::string("touchscreen_diameter_y"), 90));
+void Config::ReadTouchscreenValues() {
+    Settings::values.touchscreen.enabled =
+        ReadBooleanSetting(std::string("touchscreen_enabled"), std::make_optional(true));
+    Settings::values.touchscreen.rotation_angle =
+        u32(ReadIntegerSetting(std::string("touchscreen_angle"), 0));
+    Settings::values.touchscreen.diameter_x =
+        u32(ReadIntegerSetting(std::string("touchscreen_diameter_x"), 90));
+    Settings::values.touchscreen.diameter_y =
+        u32(ReadIntegerSetting(std::string("touchscreen_diameter_y"), 90));
 }
 
-void Config::ReadAudioValues()
-{
+void Config::ReadAudioValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Audio));
 
     ReadCategory(Settings::Category::Audio);
@@ -217,8 +204,7 @@ void Config::ReadAudioValues()
     EndGroup();
 }
 
-void Config::ReadControlValues()
-{
+void Config::ReadControlValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Controls));
 
     ReadCategory(Settings::Category::Controls);
@@ -245,8 +231,7 @@ void Config::ReadControlValues()
     EndGroup();
 }
 
-void Config::ReadMotionTouchValues()
-{
+void Config::ReadMotionTouchValues() {
     Settings::values.touch_from_button_maps.clear();
     int num_touch_from_button_maps = BeginArray(std::string("touch_from_button_maps"));
 
@@ -274,14 +259,11 @@ void Config::ReadMotionTouchValues()
     }
     EndArray(); // touch_from_button_maps
 
-    Settings::values.touch_from_button_map_index
-        = std::clamp(Settings::values.touch_from_button_map_index.GetValue(),
-                     0,
-                     num_touch_from_button_maps - 1);
+    Settings::values.touch_from_button_map_index = std::clamp(
+        Settings::values.touch_from_button_map_index.GetValue(), 0, num_touch_from_button_maps - 1);
 }
 
-void Config::ReadCoreValues()
-{
+void Config::ReadCoreValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Core));
 
     ReadCategory(Settings::Category::Core);
@@ -289,8 +271,7 @@ void Config::ReadCoreValues()
     EndGroup();
 }
 
-void Config::ReadDataStorageValues()
-{
+void Config::ReadDataStorageValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::DataStorage));
 
     using namespace Common::FS;
@@ -303,20 +284,19 @@ void Config::ReadDataStorageValues()
     setPath(EdenPath::SDMCDir, "sdmc_directory");
     setPath(EdenPath::LoadDir, "load_directory");
     setPath(EdenPath::DumpDir, "dump_directory");
-    setPath(EdenPath::TASDir,  "tas_directory");
+    setPath(EdenPath::TASDir, "tas_directory");
 
     ReadCategory(Settings::Category::DataStorage);
 
     EndGroup();
 }
 
-void Config::ReadDebuggingValues()
-{
+void Config::ReadDebuggingValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Debugging));
 
     // Intentionally not using the QT default setting as this is intended to be changed in the ini
-    Settings::values.record_frame_times = ReadBooleanSetting(std::string("record_frame_times"),
-                                                             std::make_optional(false));
+    Settings::values.record_frame_times =
+        ReadBooleanSetting(std::string("record_frame_times"), std::make_optional(false));
 
     ReadCategory(Settings::Category::Debugging);
     ReadCategory(Settings::Category::DebuggingGraphics);
@@ -325,8 +305,7 @@ void Config::ReadDebuggingValues()
 }
 
 #ifdef __unix__
-void Config::ReadLinuxValues()
-{
+void Config::ReadLinuxValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Linux));
 
     ReadCategory(Settings::Category::Linux);
@@ -335,8 +314,7 @@ void Config::ReadLinuxValues()
 }
 #endif
 
-void Config::ReadServiceValues()
-{
+void Config::ReadServiceValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Services));
 
     ReadCategory(Settings::Category::Services);
@@ -344,8 +322,7 @@ void Config::ReadServiceValues()
     EndGroup();
 }
 
-void Config::ReadDisabledAddOnValues()
-{
+void Config::ReadDisabledAddOnValues() {
     // Custom config section
     BeginGroup(std::string("DisabledAddOns"));
 
@@ -367,8 +344,7 @@ void Config::ReadDisabledAddOnValues()
     EndGroup();
 }
 
-void Config::ReadMiscellaneousValues()
-{
+void Config::ReadMiscellaneousValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Miscellaneous));
 
     ReadCategory(Settings::Category::Miscellaneous);
@@ -376,8 +352,7 @@ void Config::ReadMiscellaneousValues()
     EndGroup();
 }
 
-void Config::ReadCpuValues()
-{
+void Config::ReadCpuValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Cpu));
 
     ReadCategory(Settings::Category::Cpu);
@@ -387,8 +362,7 @@ void Config::ReadCpuValues()
     EndGroup();
 }
 
-void Config::ReadRendererValues()
-{
+void Config::ReadRendererValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Renderer));
 
     ReadCategory(Settings::Category::Renderer);
@@ -399,18 +373,17 @@ void Config::ReadRendererValues()
     EndGroup();
 }
 
-void Config::ReadScreenshotValues()
-{
+void Config::ReadScreenshotValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Screenshots));
 
     ReadCategory(Settings::Category::Screenshots);
-    FS::SetEdenPath(FS::EdenPath::ScreenshotsDir, ReadStringSetting(std::string("screenshot_path")));
+    FS::SetEdenPath(FS::EdenPath::ScreenshotsDir,
+                    ReadStringSetting(std::string("screenshot_path")));
 
     EndGroup();
 }
 
-void Config::ReadSystemValues()
-{
+void Config::ReadSystemValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::System));
 
     ReadCategory(Settings::Category::System);
@@ -419,8 +392,7 @@ void Config::ReadSystemValues()
     EndGroup();
 }
 
-void Config::ReadWebServiceValues()
-{
+void Config::ReadWebServiceValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::WebService));
 
     ReadCategory(Settings::Category::WebService);
@@ -428,8 +400,7 @@ void Config::ReadWebServiceValues()
     EndGroup();
 }
 
-void Config::ReadNetworkValues()
-{
+void Config::ReadNetworkValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Services));
 
     ReadCategory(Settings::Category::Network);
@@ -437,8 +408,7 @@ void Config::ReadNetworkValues()
     EndGroup();
 }
 
-void Config::ReadLibraryAppletValues()
-{
+void Config::ReadLibraryAppletValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::LibraryApplet));
 
     ReadCategory(Settings::Category::LibraryApplet);
@@ -446,8 +416,7 @@ void Config::ReadLibraryAppletValues()
     EndGroup();
 }
 
-void Config::ReadValues()
-{
+void Config::ReadValues() {
     if (global) {
         ReadDataStorageValues();
         ReadDebuggingValues();
@@ -469,8 +438,7 @@ void Config::ReadValues()
     ReadSystemValues();
 }
 
-void Config::SavePlayerValues(const std::size_t player_index)
-{
+void Config::SavePlayerValues(const std::size_t player_index) {
     std::string player_prefix;
     if (type != ConfigType::InputProfile) {
         player_prefix = std::string("player_").append(ToString(player_index)).append("_");
@@ -482,31 +450,25 @@ void Config::SavePlayerValues(const std::size_t player_index)
             // No custom profile selected
             return;
         }
-        WriteStringSetting(std::string(player_prefix).append("profile_name"),
-                           player.profile_name,
+        WriteStringSetting(std::string(player_prefix).append("profile_name"), player.profile_name,
                            std::make_optional(std::string("")));
     }
 
-    WriteIntegerSetting(std::string(player_prefix).append("type"),
-                        u8(player.controller_type),
+    WriteIntegerSetting(std::string(player_prefix).append("type"), u8(player.controller_type),
                         std::make_optional(u8(Settings::ControllerType::ProController)));
 
     if (!player_prefix.empty() || !Settings::IsConfiguringGlobal()) {
         if (global) {
             const auto& player_global = Settings::values.players.GetValue(true)[player_index];
             WriteStringSetting(std::string(player_prefix).append("profile_name"),
-                               player_global.profile_name,
-                               std::make_optional(std::string("")));
+                               player_global.profile_name, std::make_optional(std::string("")));
         }
-        WriteBooleanSetting(std::string(player_prefix).append("connected"),
-                            player.connected,
+        WriteBooleanSetting(std::string(player_prefix).append("connected"), player.connected,
                             std::make_optional(player_index == 0));
         WriteIntegerSetting(std::string(player_prefix).append("vibration_enabled"),
-                            player.vibration_enabled,
-                            std::make_optional(true));
+                            player.vibration_enabled, std::make_optional(true));
         WriteIntegerSetting(std::string(player_prefix).append("vibration_strength"),
-                            player.vibration_strength,
-                            std::make_optional(100));
+                            player.vibration_strength, std::make_optional(100));
         WriteIntegerSetting(std::string(player_prefix).append("body_color_left"),
                             player.body_color_left,
                             std::make_optional(Settings::JOYCON_BODY_NEON_BLUE));
@@ -522,36 +484,30 @@ void Config::SavePlayerValues(const std::size_t player_index)
     }
 }
 
-void Config::SaveTouchscreenValues()
-{
+void Config::SaveTouchscreenValues() {
     const auto& touchscreen = Settings::values.touchscreen;
 
-    WriteBooleanSetting(std::string("touchscreen_enabled"),
-                        touchscreen.enabled,
+    WriteBooleanSetting(std::string("touchscreen_enabled"), touchscreen.enabled,
                         std::make_optional(true));
 
-    WriteIntegerSetting(std::string("touchscreen_angle"),
-                        touchscreen.rotation_angle,
+    WriteIntegerSetting(std::string("touchscreen_angle"), touchscreen.rotation_angle,
                         std::make_optional(u32(0)));
-    WriteIntegerSetting(std::string("touchscreen_diameter_x"),
-                        touchscreen.diameter_x,
+    WriteIntegerSetting(std::string("touchscreen_diameter_x"), touchscreen.diameter_x,
                         std::make_optional(u32(90)));
-    WriteIntegerSetting(std::string("touchscreen_diameter_y"),
-                        touchscreen.diameter_y,
+    WriteIntegerSetting(std::string("touchscreen_diameter_y"), touchscreen.diameter_y,
                         std::make_optional(u32(90)));
 }
 
-void Config::SaveMotionTouchValues()
-{
+void Config::SaveMotionTouchValues() {
     BeginArray(std::string("touch_from_button_maps"));
     for (std::size_t p = 0; p < Settings::values.touch_from_button_maps.size(); ++p) {
         SetArrayIndex(int(p));
-        WriteStringSetting(std::string("name"),
-                           Settings::values.touch_from_button_maps[p].name,
+        WriteStringSetting(std::string("name"), Settings::values.touch_from_button_maps[p].name,
                            std::make_optional(std::string("default")));
 
         BeginArray(std::string("entries"));
-        for (std::size_t q = 0; q < Settings::values.touch_from_button_maps[p].buttons.size(); ++q) {
+        for (std::size_t q = 0; q < Settings::values.touch_from_button_maps[p].buttons.size();
+             ++q) {
             SetArrayIndex(int(q));
             WriteStringSetting(std::string("bind"),
                                Settings::values.touch_from_button_maps[p].buttons[q]);
@@ -561,8 +517,7 @@ void Config::SaveMotionTouchValues()
     EndArray(); // touch_from_button_maps
 }
 
-void Config::SaveValues()
-{
+void Config::SaveValues() {
     if (global) {
         LOG_DEBUG(Config, "Saving global generic configuration values");
         SaveDataStorageValues();
@@ -588,8 +543,7 @@ void Config::SaveValues()
     WriteToIni();
 }
 
-void Config::SaveAudioValues()
-{
+void Config::SaveAudioValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Audio));
 
     WriteCategory(Settings::Category::Audio);
@@ -598,8 +552,7 @@ void Config::SaveAudioValues()
     EndGroup();
 }
 
-void Config::SaveControlValues()
-{
+void Config::SaveControlValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Controls));
 
     WriteCategory(Settings::Category::Controls);
@@ -618,8 +571,7 @@ void Config::SaveControlValues()
     EndGroup();
 }
 
-void Config::SaveCoreValues()
-{
+void Config::SaveCoreValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Core));
 
     WriteCategory(Settings::Category::Core);
@@ -627,15 +579,13 @@ void Config::SaveCoreValues()
     EndGroup();
 }
 
-void Config::SaveDataStorageValues()
-{
+void Config::SaveDataStorageValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::DataStorage));
 
     using namespace Common::FS;
 
     const auto writePath = [this](const char* setting, const EdenPath& path) {
-        WriteStringSetting(std::string(setting),
-                           FS::GetEdenPathString(path),
+        WriteStringSetting(std::string(setting), FS::GetEdenPathString(path),
                            std::make_optional(FS::GetEdenPathString(path)));
     };
 
@@ -643,15 +593,14 @@ void Config::SaveDataStorageValues()
     writePath("sdmc_directory", EdenPath::SDMCDir);
     writePath("load_directory", EdenPath::LoadDir);
     writePath("dump_directory", EdenPath::DumpDir);
-    writePath("tas_directory",  EdenPath::TASDir);
+    writePath("tas_directory", EdenPath::TASDir);
 
     WriteCategory(Settings::Category::DataStorage);
 
     EndGroup();
 }
 
-void Config::SaveDebuggingValues()
-{
+void Config::SaveDebuggingValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Debugging));
 
     // Intentionally not using the QT default setting as this is intended to be changed in the ini
@@ -664,8 +613,7 @@ void Config::SaveDebuggingValues()
 }
 
 #ifdef __unix__
-void Config::SaveLinuxValues()
-{
+void Config::SaveLinuxValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Linux));
 
     WriteCategory(Settings::Category::Linux);
@@ -674,8 +622,7 @@ void Config::SaveLinuxValues()
 }
 #endif
 
-void Config::SaveNetworkValues()
-{
+void Config::SaveNetworkValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Services));
 
     WriteCategory(Settings::Category::Network);
@@ -683,8 +630,7 @@ void Config::SaveNetworkValues()
     EndGroup();
 }
 
-void Config::SaveDisabledAddOnValues()
-{
+void Config::SaveDisabledAddOnValues() {
     // Custom config section
     BeginGroup(std::string("DisabledAddOns"));
 
@@ -696,8 +642,7 @@ void Config::SaveDisabledAddOnValues()
         BeginArray(std::string("disabled"));
         for (std::size_t j = 0; j < elem.second.size(); ++j) {
             SetArrayIndex(int(j));
-            WriteStringSetting(std::string("d"),
-                               elem.second[j],
+            WriteStringSetting(std::string("d"), elem.second[j],
                                std::make_optional(std::string("")));
         }
         EndArray(); // disabled
@@ -708,8 +653,7 @@ void Config::SaveDisabledAddOnValues()
     EndGroup();
 }
 
-void Config::SaveMiscellaneousValues()
-{
+void Config::SaveMiscellaneousValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Miscellaneous));
 
     WriteCategory(Settings::Category::Miscellaneous);
@@ -717,8 +661,7 @@ void Config::SaveMiscellaneousValues()
     EndGroup();
 }
 
-void Config::SaveCpuValues()
-{
+void Config::SaveCpuValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Cpu));
 
     WriteCategory(Settings::Category::Cpu);
@@ -728,8 +671,7 @@ void Config::SaveCpuValues()
     EndGroup();
 }
 
-void Config::SaveRendererValues()
-{
+void Config::SaveRendererValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Renderer));
 
     WriteCategory(Settings::Category::Renderer);
@@ -740,8 +682,7 @@ void Config::SaveRendererValues()
     EndGroup();
 }
 
-void Config::SaveScreenshotValues()
-{
+void Config::SaveScreenshotValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Screenshots));
 
     WriteStringSetting(std::string("screenshot_path"),
@@ -751,8 +692,7 @@ void Config::SaveScreenshotValues()
     EndGroup();
 }
 
-void Config::SaveSystemValues()
-{
+void Config::SaveSystemValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::System));
 
     WriteCategory(Settings::Category::System);
@@ -761,8 +701,7 @@ void Config::SaveSystemValues()
     EndGroup();
 }
 
-void Config::SaveWebServiceValues()
-{
+void Config::SaveWebServiceValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::WebService));
 
     WriteCategory(Settings::Category::WebService);
@@ -770,8 +709,7 @@ void Config::SaveWebServiceValues()
     EndGroup();
 }
 
-void Config::SaveLibraryAppletValues()
-{
+void Config::SaveLibraryAppletValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::LibraryApplet));
 
     WriteCategory(Settings::Category::LibraryApplet);
@@ -779,26 +717,22 @@ void Config::SaveLibraryAppletValues()
     EndGroup();
 }
 
-bool Config::ReadBooleanSetting(const std::string& key, const std::optional<bool> default_value)
-{
+bool Config::ReadBooleanSetting(const std::string& key, const std::optional<bool> default_value) {
     std::string full_key = GetFullKey(key, false);
     if (!default_value.has_value()) {
         return config->GetBoolValue(GetSection().c_str(), full_key.c_str(), false);
     }
 
     if (config->GetBoolValue(GetSection().c_str(),
-                             std::string(full_key).append("\\default").c_str(),
-                             false)) {
+                             std::string(full_key).append("\\default").c_str(), false)) {
         return bool(default_value.value());
     } else {
-        return config->GetBoolValue(GetSection().c_str(),
-                                    full_key.c_str(),
+        return config->GetBoolValue(GetSection().c_str(), full_key.c_str(),
                                     bool(default_value.value()));
     }
 }
 
-s64 Config::ReadIntegerSetting(const std::string& key, const std::optional<s64> default_value)
-{
+s64 Config::ReadIntegerSetting(const std::string& key, const std::optional<s64> default_value) {
     std::string full_key = GetFullKey(key, false);
     if (!default_value.has_value()) {
         try {
@@ -811,15 +745,12 @@ s64 Config::ReadIntegerSetting(const std::string& key, const std::optional<s64> 
 
     s64 result = 0;
     if (config->GetBoolValue(GetSection().c_str(),
-                             std::string(full_key).append("\\default").c_str(),
-                             true)) {
+                             std::string(full_key).append("\\default").c_str(), true)) {
         result = default_value.value();
     } else {
         try {
-            result = std::stoll(
-                std::string(config->GetValue(GetSection().c_str(),
-                                             full_key.c_str(),
-                                             ToString(default_value.value()).c_str())));
+            result = std::stoll(std::string(config->GetValue(
+                GetSection().c_str(), full_key.c_str(), ToString(default_value.value()).c_str())));
         } catch (...) {
             result = default_value.value();
         }
@@ -828,8 +759,7 @@ s64 Config::ReadIntegerSetting(const std::string& key, const std::optional<s64> 
 }
 
 u64 Config::ReadUnsignedIntegerSetting(const std::string& key,
-                                       const std::optional<u64> default_value)
-{
+                                       const std::optional<u64> default_value) {
     std::string full_key = GetFullKey(key, false);
     if (!default_value.has_value()) {
         try {
@@ -842,15 +772,12 @@ u64 Config::ReadUnsignedIntegerSetting(const std::string& key,
 
     u64 result = 0;
     if (config->GetBoolValue(GetSection().c_str(),
-                             std::string(full_key).append("\\default").c_str(),
-                             true)) {
+                             std::string(full_key).append("\\default").c_str(), true)) {
         result = default_value.value();
     } else {
         try {
-            result = std::stoull(
-                std::string(config->GetValue(GetSection().c_str(),
-                                             full_key.c_str(),
-                                             ToString(default_value.value()).c_str())));
+            result = std::stoull(std::string(config->GetValue(
+                GetSection().c_str(), full_key.c_str(), ToString(default_value.value()).c_str())));
         } catch (...) {
             result = default_value.value();
         }
@@ -858,8 +785,8 @@ u64 Config::ReadUnsignedIntegerSetting(const std::string& key,
     return result;
 }
 
-double Config::ReadDoubleSetting(const std::string& key, const std::optional<double> default_value)
-{
+double Config::ReadDoubleSetting(const std::string& key,
+                                 const std::optional<double> default_value) {
     std::string full_key = GetFullKey(key, false);
     if (!default_value.has_value()) {
         return config->GetDoubleValue(GetSection().c_str(), full_key.c_str(), 0);
@@ -867,20 +794,17 @@ double Config::ReadDoubleSetting(const std::string& key, const std::optional<dou
 
     double result;
     if (config->GetBoolValue(GetSection().c_str(),
-                             std::string(full_key).append("\\default").c_str(),
-                             true)) {
+                             std::string(full_key).append("\\default").c_str(), true)) {
         result = default_value.value();
     } else {
-        result = config->GetDoubleValue(GetSection().c_str(),
-                                        full_key.c_str(),
-                                        default_value.value());
+        result =
+            config->GetDoubleValue(GetSection().c_str(), full_key.c_str(), default_value.value());
     }
     return result;
 }
 
 std::string Config::ReadStringSetting(const std::string& key,
-                                      const std::optional<std::string> default_value)
-{
+                                      const std::optional<std::string> default_value) {
     std::string result;
     std::string full_key = GetFullKey(key, false);
     if (!default_value.has_value()) {
@@ -890,30 +814,25 @@ std::string Config::ReadStringSetting(const std::string& key,
     }
 
     if (config->GetBoolValue(GetSection().c_str(),
-                             std::string(full_key).append("\\default").c_str(),
-                             true)) {
+                             std::string(full_key).append("\\default").c_str(), true)) {
         result = default_value.value();
     } else {
-        result = config->GetValue(GetSection().c_str(),
-                                  full_key.c_str(),
-                                  default_value.value().c_str());
+        result =
+            config->GetValue(GetSection().c_str(), full_key.c_str(), default_value.value().c_str());
     }
     boost::replace_all(result, "\"", "");
     boost::replace_all(result, "//", "/");
     return result;
 }
 
-bool Config::Exists(const std::string& section, const std::string& key) const
-{
+bool Config::Exists(const std::string& section, const std::string& key) const {
     const std::string value = config->GetValue(section.c_str(), key.c_str(), "");
     return !value.empty();
 }
 
-void Config::WriteBooleanSetting(const std::string& key,
-                                 const bool& value,
+void Config::WriteBooleanSetting(const std::string& key, const bool& value,
                                  const std::optional<bool>& default_value,
-                                 const std::optional<bool>& use_global)
-{
+                                 const std::optional<bool>& use_global) {
     std::optional<std::string> string_default = std::nullopt;
     if (default_value.has_value()) {
         string_default = std::make_optional(ToString(default_value.value()));
@@ -921,11 +840,9 @@ void Config::WriteBooleanSetting(const std::string& key,
     WritePreparedSetting(key, AdjustOutputString(ToString(value)), string_default, use_global);
 }
 
-void Config::WriteDoubleSetting(const std::string& key,
-                                const double& value,
+void Config::WriteDoubleSetting(const std::string& key, const double& value,
                                 const std::optional<double>& default_value,
-                                const std::optional<bool>& use_global)
-{
+                                const std::optional<bool>& use_global) {
     std::optional<std::string> string_default = std::nullopt;
     if (default_value.has_value()) {
         string_default = std::make_optional(ToString(default_value.value()));
@@ -933,11 +850,9 @@ void Config::WriteDoubleSetting(const std::string& key,
     WritePreparedSetting(key, AdjustOutputString(ToString(value)), string_default, use_global);
 }
 
-void Config::WriteStringSetting(const std::string& key,
-                                const std::string& value,
+void Config::WriteStringSetting(const std::string& key, const std::string& value,
                                 const std::optional<std::string>& default_value,
-                                const std::optional<bool>& use_global)
-{
+                                const std::optional<bool>& use_global) {
     std::optional string_default = default_value;
     if (default_value.has_value()) {
         string_default.value().append(AdjustOutputString(default_value.value()));
@@ -945,11 +860,9 @@ void Config::WriteStringSetting(const std::string& key,
     WritePreparedSetting(key, AdjustOutputString(value), string_default, use_global);
 }
 
-void Config::WritePreparedSetting(const std::string& key,
-                                  const std::string& adjusted_value,
+void Config::WritePreparedSetting(const std::string& key, const std::string& adjusted_value,
                                   const std::optional<std::string>& adjusted_default_value,
-                                  const std::optional<bool>& use_global)
-{
+                                  const std::optional<bool>& use_global) {
     std::string full_key = GetFullKey(key, false);
     if (adjusted_default_value.has_value() && use_global.has_value()) {
         if (!global) {
@@ -969,44 +882,37 @@ void Config::WritePreparedSetting(const std::string& key,
     }
 }
 
-void Config::WriteString(const std::string& key, const std::string& value)
-{
+void Config::WriteString(const std::string& key, const std::string& value) {
     config->SetValue(GetSection().c_str(), key.c_str(), value.c_str());
 }
 
-void Config::Reload()
-{
+void Config::Reload() {
     ReadValues();
     // To apply default value changes
     SaveValues();
 }
 
-void Config::ClearControlPlayerValues() const
-{
+void Config::ClearControlPlayerValues() const {
     // Removes the entire [Controls] section
     const char* section = Settings::TranslateCategory(Settings::Category::Controls);
     config->Delete(section, nullptr, true);
 }
 
-const std::string& Config::GetConfigFilePath() const
-{
+const std::string& Config::GetConfigFilePath() const {
     return config_loc;
 }
 
-void Config::ReadCategory(const Settings::Category category)
-{
+void Config::ReadCategory(const Settings::Category category) {
     const auto& settings = FindRelevantList(category);
     std::ranges::for_each(settings, [&](const auto& setting) { ReadSettingGeneric(setting); });
 }
 
-void Config::WriteCategory(const Settings::Category category)
-{
+void Config::WriteCategory(const Settings::Category category) {
     const auto& settings = FindRelevantList(category);
     std::ranges::for_each(settings, [&](const auto& setting) { WriteSettingGeneric(setting); });
 }
 
-void Config::ReadSettingGeneric(Settings::BasicSetting* const setting)
-{
+void Config::ReadSettingGeneric(Settings::BasicSetting* const setting) {
     if (!setting->Save() || (!setting->Switchable() && !global)) {
         return;
     }
@@ -1016,14 +922,14 @@ void Config::ReadSettingGeneric(Settings::BasicSetting* const setting)
 
     bool use_global = true;
     if (setting->Switchable() && !global) {
-        use_global = ReadBooleanSetting(std::string(key).append("\\use_global"),
-                                        std::make_optional(true));
+        use_global =
+            ReadBooleanSetting(std::string(key).append("\\use_global"), std::make_optional(true));
         setting->SetGlobal(use_global);
     }
 
     if (global || !use_global) {
-        const bool is_default = ReadBooleanSetting(std::string(key).append("\\default"),
-                                                   std::make_optional(true));
+        const bool is_default =
+            ReadBooleanSetting(std::string(key).append("\\default"), std::make_optional(true));
         if (!is_default) {
             setting->LoadString(ReadStringSetting(key, default_value));
         } else {
@@ -1033,8 +939,7 @@ void Config::ReadSettingGeneric(Settings::BasicSetting* const setting)
     }
 }
 
-void Config::WriteSettingGeneric(const Settings::BasicSetting* const setting)
-{
+void Config::WriteSettingGeneric(const Settings::BasicSetting* const setting) {
     if (!setting->Save()) {
         return;
     }
@@ -1057,16 +962,14 @@ void Config::WriteSettingGeneric(const Settings::BasicSetting* const setting)
     }
 }
 
-void Config::BeginGroup(const std::string& group)
-{
+void Config::BeginGroup(const std::string& group) {
     // You can't begin a group while reading/writing from a config array
     ASSERT(array_stack.empty());
 
     key_stack.push_back(AdjustKey(group));
 }
 
-void Config::EndGroup()
-{
+void Config::EndGroup() {
     // You can't end a group if you haven't started one yet
     ASSERT(!key_stack.empty());
 
@@ -1076,8 +979,7 @@ void Config::EndGroup()
     key_stack.pop_back();
 }
 
-std::string Config::GetSection()
-{
+std::string Config::GetSection() {
     if (key_stack.empty()) {
         return std::string{""};
     }
@@ -1085,8 +987,7 @@ std::string Config::GetSection()
     return key_stack.front();
 }
 
-std::string Config::GetGroup() const
-{
+std::string Config::GetGroup() const {
     if (key_stack.size() <= 1) {
         return std::string{""};
     }
@@ -1098,16 +999,14 @@ std::string Config::GetGroup() const
     return key;
 }
 
-std::string Config::AdjustKey(const std::string& key)
-{
+std::string Config::AdjustKey(const std::string& key) {
     std::string adjusted_key(key);
     boost::replace_all(adjusted_key, "/", "\\");
     boost::replace_all(adjusted_key, " ", "%20");
     return adjusted_key;
 }
 
-std::string Config::AdjustOutputString(const std::string& string)
-{
+std::string Config::AdjustOutputString(const std::string& string) {
     std::string adjusted_string(string);
     boost::replace_all(adjusted_string, "\\", "/");
 
@@ -1133,8 +1032,7 @@ std::string Config::AdjustOutputString(const std::string& string)
     return adjusted_string;
 }
 
-std::string Config::GetFullKey(const std::string& key, bool skipArrayIndex)
-{
+std::string Config::GetFullKey(const std::string& key, bool skipArrayIndex) {
     if (array_stack.empty()) {
         return std::string(GetGroup()).append(AdjustKey(key));
     }
@@ -1153,18 +1051,15 @@ std::string Config::GetFullKey(const std::string& key, bool skipArrayIndex)
     return final_key;
 }
 
-int Config::BeginArray(const std::string& array)
-{
+int Config::BeginArray(const std::string& array) {
     array_stack.push_back(ConfigArray{AdjustKey(array), 0, 0});
     const int size = config->GetLongValue(GetSection().c_str(),
-                                          GetFullKey(std::string("size"), true).c_str(),
-                                          0);
+                                          GetFullKey(std::string("size"), true).c_str(), 0);
     array_stack.back().size = size;
     return size;
 }
 
-void Config::EndArray()
-{
+void Config::EndArray() {
     // You can't end a config array before starting one
     ASSERT(!array_stack.empty());
 
@@ -1186,8 +1081,7 @@ void Config::EndArray()
     array_stack.pop_back();
 }
 
-void Config::SetArrayIndex(const int index)
-{
+void Config::SetArrayIndex(const int index) {
     // You can't set the array index if you haven't started one yet
     ASSERT(!array_stack.empty());
 
