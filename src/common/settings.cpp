@@ -267,8 +267,6 @@ const char* TranslateCategory(Category category) {
         return "Services";
     case Category::Paths:
         return "Paths";
-    case Category::Linux:
-        return "Linux";
     case Category::MaxEnum:
         break;
     }
