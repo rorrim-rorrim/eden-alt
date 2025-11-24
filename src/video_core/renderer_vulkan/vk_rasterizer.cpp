@@ -64,7 +64,9 @@ VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t in
     const auto conv = [scale](float value) {
         float new_value = value * scale;
         if (scale < 1.0f) {
-            new_value = std::round(new_value);
+            const bool sign = std::signbit(value);
+            new_value = std::round(std::abs(new_value));
+            new_value = sign ? -new_value : new_value;
         }
         return new_value;
     };
@@ -72,31 +74,30 @@ VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t in
     float width = conv(src.scale_x * 2.0f);
     float y = conv(src.translate_y - src.scale_y);
     float height = conv(src.scale_y * 2.0f);
-    const bool lower_left = regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft;
     const bool y_negate = !device.IsNvViewportSwizzleSupported() && src.swizzle.y == Maxwell::ViewportSwizzle::NegativeY;
-    if (lower_left) {
-        y = conv(static_cast<float>(regs.surface_clip.height)) - (y + height);
+    const bool lower_left = regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft;
+    if (y_negate) {
+        y += height;
         height = -height;
     }
-    if (y_negate) {
-        y = y + height;
+    if (lower_left) {
+        y = regs.surface_clip.height - (y + height);
         height = -height;
     }
     const float reduce_z = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1.0f : 0.0f;
-    float min_z = src.translate_z - src.scale_z * reduce_z;
-    float max_z = src.translate_z + src.scale_z;
-    if (!device.IsExtDepthRangeUnrestrictedSupported()) {
-        min_z = std::clamp(min_z, 0.0f, 1.0f);
-        max_z = std::clamp(max_z, 0.0f, 1.0f);
-    }
-    return VkViewport{
+    VkViewport viewport{
         .x = x,
         .y = y,
         .width = width != 0.0f ? width : 1.0f,
         .height = height != 0.0f ? height : 1.0f,
-        .minDepth = min_z,
-        .maxDepth = max_z
+        .minDepth = src.translate_z - src.scale_z * reduce_z,
+        .maxDepth = src.translate_z + src.scale_z,
     };
+    if (!device.IsExtDepthRangeUnrestrictedSupported()) {
+        viewport.minDepth = std::clamp(viewport.minDepth, 0.0f, 1.0f);
+        viewport.maxDepth = std::clamp(viewport.maxDepth, 0.0f, 1.0f);
+    }
+    return viewport;
 }
 
 VkRect2D GetScissorState(const Maxwell& regs, size_t index, u32 up_scale = 1, u32 down_shift = 0) {
