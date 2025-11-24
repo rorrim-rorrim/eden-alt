@@ -520,6 +520,7 @@ bool IsPixelFormatInteger(PixelFormat format);
 bool IsPixelFormatSignedInteger(PixelFormat format);
 
 std::optional<PixelFormat> NormalizedCompatibleFormat(PixelFormat format);
+std::optional<PixelFormat> IntegerCompatibleFormat(PixelFormat format);
 
 size_t PixelComponentSizeBitsInteger(PixelFormat format);
 
