@@ -630,8 +630,8 @@ struct Values {
 #endif
         "enable_gamemode", Category::UiGeneral};
 #ifdef __unix__
-    SwitchableSetting<bool> gui_force_x11{linkage, false, "gui_force_x11", Category::Linux};
-    Setting<bool> gui_hide_backend_warning{linkage, false, "gui_hide_backend_warning", Category::Linux};
+    SwitchableSetting<bool> gui_force_x11{linkage, false, "gui_force_x11", Category::UiGeneral};
+    Setting<bool> gui_hide_backend_warning{linkage, false, "gui_hide_backend_warning", Category::UiGeneral};
 #endif
 
     // Controls
