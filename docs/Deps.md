@@ -183,7 +183,7 @@ sudo dnf config-manager --enable crb
 sudo dnf install qt6-qtbase-private-devel
 ```
 
-For systems like OpenEuler or derivates, don't forget to also install: `SDL2-devel pkg-config`.
+For systems like OpenEuler or derivates, don't forget to also install: `SDL2-devel pkg-config fmt-dev nlohmann-json-dev`.
 
 * [RPM Fusion](https://rpmfusion.org/Configuration) is required for `ffmpeg-devel`
 * Fedora 32 or later is required.
