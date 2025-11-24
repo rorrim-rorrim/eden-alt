@@ -404,30 +404,32 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
                     device.GetMaxVertexInputBindings(), Maxwell::NumVertexArrays);
     }
 
-    const auto dynamic_state = u32(Settings::values.dyna_state.GetValue());
-    
-    LOG_INFO(Render_Vulkan, "DynamicState value is set to {}", dynamic_state);
+    LOG_INFO(Render_Vulkan, "DynamicState setting value: {}", u32(Settings::values.dyna_state.GetValue()));
     
     dynamic_features = {};
     
-    // EDS1 - Level 1 (all-or-nothing, enabled if driver supports AND setting > 0)
-    dynamic_features.has_extended_dynamic_state = 
-        device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0;
+    // User granularity enforced in vulkan_device.cpp switch statement:
+    //   Level 0: Core Dynamic States only
+    //   Level 1: Core + EDS1
+    //   Level 2: Core + EDS1 + EDS2 (accumulative)
+    //   Level 3: Core + EDS1 + EDS2 + EDS3 (accumulative)
+    // Here we only verify if extensions were successfully loaded by the device
     
-    // EDS2 - Level 2 (core + granular features, enabled if driver supports AND setting > 1)
+    dynamic_features.has_extended_dynamic_state = 
+        device.IsExtExtendedDynamicStateSupported();
+    
     dynamic_features.has_extended_dynamic_state_2 = 
-        device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1;
+        device.IsExtExtendedDynamicState2Supported();
     dynamic_features.has_extended_dynamic_state_2_logic_op = 
-        device.IsExtExtendedDynamicState2ExtrasSupported() && dynamic_state > 1;
+        device.IsExtExtendedDynamicState2ExtrasSupported();
     dynamic_features.has_extended_dynamic_state_2_patch_control_points = false;
     
-    // EDS3 - Level 3 (granular features, enabled if driver supports AND setting > 2)
     dynamic_features.has_extended_dynamic_state_3_blend = 
-        device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2;
+        device.IsExtExtendedDynamicState3BlendingSupported();
     dynamic_features.has_extended_dynamic_state_3_enables = 
-        device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2;
+        device.IsExtExtendedDynamicState3EnablesSupported();
     
-    // VIDS - Independent toggle (not affected by dyna_state levels)
+    // VIDS: Independent toggle (not affected by dyna_state levels)
     dynamic_features.has_dynamic_vertex_input = 
         device.IsExtVertexInputDynamicStateSupported() && 
         Settings::values.vertex_input_dynamic_state.GetValue();

@@ -919,6 +919,8 @@ bool AccelerateDMA::BufferToImage(const Tegra::DMA::ImageCopy& copy_info,
 
 void RasterizerVulkan::UpdateDynamicStates() {
     auto& regs = maxwell3d->regs;
+    
+    // Core Dynamic States (Vulkan 1.0) - Always active regardless of dyna_state setting
     UpdateViewportsState(regs);
     UpdateScissorsState(regs);
     UpdateDepthBias(regs);
@@ -926,6 +928,15 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateDepthBounds(regs);
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
+    
+    // Extended Dynamic States (EDS) - Controlled by dyna_state setting in vulkan_device.cpp
+    // User granularity levels (accumulative):
+    //   Level 0: Core only
+    //   Level 1: Core + EDS1
+    //   Level 2: Core + EDS1 + EDS2
+    //   Level 3: Core + EDS1 + EDS2 + EDS3
+    
+    // EDS1: CullMode, DepthCompare, FrontFace, StencilOp, DepthBoundsTest, DepthTest, DepthWrite, StencilTest
     if (device.IsExtExtendedDynamicStateSupported()) {
         UpdateCullMode(regs);
         UpdateDepthCompareOp(regs);
@@ -937,42 +948,49 @@ void RasterizerVulkan::UpdateDynamicStates() {
             UpdateDepthWriteEnable(regs);
             UpdateStencilTestEnable(regs);
         }
-        // EDS2 states must always be set, not just when TouchStateEnable() is true
-        if (device.IsExtExtendedDynamicState2Supported()) {
-            UpdatePrimitiveRestartEnable(regs);
-            UpdateRasterizerDiscardEnable(regs);
-            UpdateDepthBiasEnable(regs);
-        }
-        if (state_tracker.TouchStateEnable()) {
-            if (device.IsExtExtendedDynamicState3EnablesSupported()) {
-                using namespace Tegra::Engines;
-                if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE || device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
-                    const auto has_float = std::any_of(
-                        regs.vertex_attrib_format.begin(),
-                        regs.vertex_attrib_format.end(),
-                        [](const auto& attrib) {
-                            return attrib.type == Maxwell3D::Regs::VertexAttribute::Type::Float;
-                        }
-                    );
-                    if (regs.logic_op.enable) {
-                        regs.logic_op.enable = static_cast<u32>(!has_float);
-                    }
+    }
+    
+    // EDS2: PrimitiveRestart, RasterizerDiscard, DepthBias enable/disable
+    if (device.IsExtExtendedDynamicState2Supported()) {
+        UpdatePrimitiveRestartEnable(regs);
+        UpdateRasterizerDiscardEnable(regs);
+        UpdateDepthBiasEnable(regs);
+    }
+    
+    // EDS2 Extras: LogicOp operation selection
+    if (device.IsExtExtendedDynamicState2ExtrasSupported()) {
+        UpdateLogicOp(regs);
+    }
+    
+    // EDS3 Enables: LogicOpEnable, DepthClamp, LineStipple, ConservativeRaster
+    if (device.IsExtExtendedDynamicState3EnablesSupported()) {
+        using namespace Tegra::Engines;
+        // AMD Workaround: LogicOp incompatible with float render targets
+        if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE || 
+            device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
+            const auto has_float = std::any_of(
+                regs.vertex_attrib_format.begin(),
+                regs.vertex_attrib_format.end(),
+                [](const auto& attrib) {
+                    return attrib.type == Maxwell3D::Regs::VertexAttribute::Type::Float;
                 }
-                UpdateLogicOpEnable(regs);
-                UpdateDepthClampEnable(regs);
+            );
+            if (regs.logic_op.enable) {
+                regs.logic_op.enable = static_cast<u32>(!has_float);
             }
         }
-        if (device.IsExtExtendedDynamicState2ExtrasSupported()) {
-            UpdateLogicOp(regs);
-        }
-        if (device.IsExtExtendedDynamicState3BlendingSupported()) {
-            UpdateBlending(regs);
-        }
-        if (device.IsExtExtendedDynamicState3EnablesSupported()) {
-            UpdateLineStippleEnable(regs);
-            UpdateConservativeRasterizationMode(regs);
-        }
+        UpdateLogicOpEnable(regs);
+        UpdateDepthClampEnable(regs);
+        UpdateLineStippleEnable(regs);
+        UpdateConservativeRasterizationMode(regs);
     }
+    
+    // EDS3 Blending: ColorBlendEnable, ColorBlendEquation, ColorWriteMask
+    if (device.IsExtExtendedDynamicState3BlendingSupported()) {
+        UpdateBlending(regs);
+    }
+    
+    // Vertex Input Dynamic State: Independent from EDS levels
     if (device.IsExtVertexInputDynamicStateSupported()) {
         if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput()) {
             UpdateVertexInput(regs);
