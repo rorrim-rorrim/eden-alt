@@ -29,12 +29,15 @@ QFont GetMonospaceFont() {
 }
 
 QString ReadableByteSize(qulonglong size) {
-    static constexpr std::array units{"B", "KB", "MB", "GB", "TB", "PB"};
-    if (size == 0)
-        return {};
-    auto const digit_groups = std::min<qulonglong>(std::log10(size) / std::log10(1000), units.size());
+    static constexpr std::array units{"B", "KiB", "MiB", "GiB", "TiB", "PiB"};
+    if (size == 0) {
+        return QStringLiteral("0");
+    }
+
+    const int digit_groups = (std::min)(static_cast<int>(std::log10(size) / std::log10(1024)),
+                                      static_cast<int>(units.size()));
     return QStringLiteral("%L1 %2")
-        .arg(size / std::pow(1000, digit_groups), 0, 'f', 1)
+        .arg(size / std::pow(1024, digit_groups), 0, 'f', 1)
         .arg(QString::fromUtf8(units[digit_groups]));
 }
 
