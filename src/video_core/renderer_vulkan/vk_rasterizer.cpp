@@ -74,9 +74,9 @@ VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t in
     const float width = conv(src.scale_x * 2.0f);
     float y = conv(src.translate_y - src.scale_y);
     float height = conv(src.scale_y * 2.0f);
-    const bool y_negate = src.swizzle.y == Maxwell::ViewportSwizzle::NegativeY;
-    if (y_negate) {
-        y += height;
+    const bool lower_left = regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft;
+    if (lower_left) {
+        y += conv(static_cast<f32>(regs.surface_clip.height));
         height = -height;
     }
     const float reduce_z = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1.0f : 0.0f;
