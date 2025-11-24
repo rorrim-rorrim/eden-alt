@@ -131,8 +131,15 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {2013, nullptr, "SynchronizeParentalControlSettingsAsync"},
         {2014, nullptr, "FinishSynchronizeParentalControlSettings"},
         {2015, nullptr, "FinishSynchronizeParentalControlSettingsWithLastUpdated"},
-        {2016, nullptr, "RequestUpdateExemptionListAsync"},
-        {145601, D<&IParentalControlService::GetPlayTimerSettings>, "GetPlayTimerSettings"} // 18.0.0+
+        {2016, nullptr, "RequestUpdateExemptionListAsync"}, //5.0.0+
+        {2017, nullptr, "AuthorizePairingAsync"}, //19.0.0+
+        {2019, nullptr, "RequestUpdateDeviceUsersBackground"}, //19.0.0+
+        {2021, nullptr, "RequestCopyPairingAsync"}, //20.0.0+
+        {2022, nullptr, "FinishRequestCopyPairing"}, //20.0.0+
+        {2023, nullptr, "IsFromPairingActiveDevice"}, //20.0.0+
+        {2024, nullptr, "RollbackCopyPairing"}, //21.0.0+
+        {3001, nullptr, "GetErrorContextChangedEvent"}, //20.0.0+
+        {145601, D<&IParentalControlService::GetPlayTimerSettings>, "GetPlayTimerSettings"}, // 18.0.0+
         {195101, D<&IParentalControlService::SetPlayTimerSettings>, "SetPlayTimerSettingsForDebug"}, //18.0.0+
     };
     // clang-format on
