@@ -1489,9 +1489,11 @@ void RasterizerVulkan::UpdateAlphaToCoverageEnable(Tegra::Engines::Maxwell3D::Re
     if (!state_tracker.TouchAlphaToCoverageEnable()) {
         return;
     }
-    scheduler.Record([enable = regs.anti_alias_alpha_control.alpha_to_coverage](
-                         vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetAlphaToCoverageEnableEXT(enable != 0);
+    GraphicsPipeline* const pipeline = pipeline_cache.CurrentGraphicsPipeline();
+    const bool enable = pipeline != nullptr && pipeline->SupportsAlphaToCoverage() &&
+                        regs.anti_alias_alpha_control.alpha_to_coverage != 0;
+    scheduler.Record([enable](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetAlphaToCoverageEnableEXT(enable ? VK_TRUE : VK_FALSE);
     });
 }
 
@@ -1499,9 +1501,11 @@ void RasterizerVulkan::UpdateAlphaToOneEnable(Tegra::Engines::Maxwell3D::Regs& r
     if (!state_tracker.TouchAlphaToOneEnable()) {
         return;
     }
-    scheduler.Record([enable = regs.anti_alias_alpha_control.alpha_to_one](
-                         vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetAlphaToOneEnableEXT(enable != 0);
+    GraphicsPipeline* const pipeline = pipeline_cache.CurrentGraphicsPipeline();
+    const bool enable = pipeline != nullptr && pipeline->SupportsAlphaToOne() &&
+                        regs.anti_alias_alpha_control.alpha_to_one != 0;
+    scheduler.Record([enable](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetAlphaToOneEnableEXT(enable ? VK_TRUE : VK_FALSE);
     });
 }
 

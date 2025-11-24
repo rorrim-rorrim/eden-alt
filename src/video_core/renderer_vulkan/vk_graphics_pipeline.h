@@ -82,6 +82,13 @@ public:
         const std::array<const Shader::Info*, NUM_STAGES>& infos);
 
     bool HasDynamicVertexInput() const noexcept { return key.state.dynamic_vertex_input; }
+    bool SupportsAlphaToCoverage() const noexcept {
+        return fragment_has_color0_output;
+    }
+
+    bool SupportsAlphaToOne() const noexcept {
+        return fragment_has_color0_output;
+    }
     GraphicsPipeline& operator=(GraphicsPipeline&&) noexcept = delete;
     GraphicsPipeline(GraphicsPipeline&&) noexcept = delete;
 
@@ -149,6 +156,7 @@ private:
     std::array<u32, 5> enabled_uniform_buffer_masks{};
     VideoCommon::UniformBufferSizes uniform_buffer_sizes{};
     u32 num_textures{};
+    bool fragment_has_color0_output{};
 
     vk::DescriptorSetLayout descriptor_set_layout;
     DescriptorAllocator descriptor_allocator;
