@@ -147,6 +147,8 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdSetDepthWriteEnableEXT);
     X(vkCmdSetPrimitiveRestartEnableEXT);
     X(vkCmdSetRasterizerDiscardEnableEXT);
+    X(vkCmdSetAlphaToCoverageEnableEXT);
+    X(vkCmdSetAlphaToOneEnableEXT);
     X(vkCmdSetConservativeRasterizationModeEXT);
     X(vkCmdSetLineRasterizationModeEXT);
     X(vkCmdSetLineStippleEnableEXT);
