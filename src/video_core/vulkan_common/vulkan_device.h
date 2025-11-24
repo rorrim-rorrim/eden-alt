@@ -796,6 +796,23 @@ public:
         return extensions.maintenance5;
     }
 
+    /// Returns true if polygon mode POINT supports gl_PointSize.
+    bool SupportsPolygonModePointSize() const {
+        return extensions.maintenance5 && properties.maintenance5.polygonModePointSize;
+    }
+
+    /// Returns true if depth/stencil swizzle ONE is supported.
+    bool SupportsDepthStencilSwizzleOne() const {
+        return extensions.maintenance5 && properties.maintenance5.depthStencilSwizzleOneSupport;
+    }
+
+    /// Returns true if early fragment tests optimizations are available.
+    bool SupportsEarlyFragmentTests() const {
+        return extensions.maintenance5 && 
+               properties.maintenance5.earlyFragmentMultisampleCoverageAfterSampleCounting &&
+               properties.maintenance5.earlyFragmentSampleMaskTestBeforeSampleCounting;
+    }
+
     /// Returns true if the device supports VK_KHR_maintenance6.
     bool IsKhrMaintenance6Supported() const {
         return extensions.maintenance6;
@@ -932,6 +949,7 @@ private:
         VkPhysicalDevicePushDescriptorPropertiesKHR push_descriptor{};
         VkPhysicalDeviceSubgroupSizeControlProperties subgroup_size_control{};
         VkPhysicalDeviceTransformFeedbackPropertiesEXT transform_feedback{};
+        VkPhysicalDeviceMaintenance5PropertiesKHR maintenance5{};
 
         VkPhysicalDeviceProperties properties{};
     };
