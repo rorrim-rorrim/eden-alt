@@ -1353,7 +1353,22 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME);
 
     // VK_EXT_swapchain_maintenance1 (extension only, has features)
+    // Requires VK_EXT_surface_maintenance1 instance extension
     extensions.swapchain_maintenance1 = features.swapchain_maintenance1.swapchainMaintenance1;
+    if (extensions.swapchain_maintenance1) {
+        // Check if VK_EXT_surface_maintenance1 instance extension is available
+        const auto instance_extensions = vk::EnumerateInstanceExtensionProperties(dld);
+        const bool has_surface_maintenance1 = instance_extensions && std::ranges::any_of(*instance_extensions,
+            [](const VkExtensionProperties& prop) {
+                return std::strcmp(prop.extensionName, VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME) == 0;
+            });
+        if (!has_surface_maintenance1) {
+            LOG_WARNING(Render_Vulkan,
+                        "VK_EXT_swapchain_maintenance1 requires VK_EXT_surface_maintenance1, disabling");
+            extensions.swapchain_maintenance1 = false;
+            features.swapchain_maintenance1.swapchainMaintenance1 = false;
+        }
+    }
     RemoveExtensionFeatureIfUnsuitable(extensions.swapchain_maintenance1, features.swapchain_maintenance1,
                                        VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
 
