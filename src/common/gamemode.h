@@ -8,10 +8,7 @@
 
 namespace Common::FeralGamemode {
 
-/// @brief Start the gamemode client
 void Start() noexcept;
-
-/// @brief Stop the gmemode client
 void Stop() noexcept;
 
 } // namespace Common::FeralGamemode

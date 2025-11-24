@@ -164,7 +164,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 
 #endif
 
-#include "common/linux/gamemode.h"
+#include "common/gamemode.h"
 
 #ifdef _WIN32
 #include "core/core_timing.h"
