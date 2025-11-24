@@ -51,9 +51,9 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         LOG_WARNING(Render_Vulkan,
                     "HDR format 0x{:02X} has non-FLOAT components (r={} g={} b={} a={}), "
                     "possible register corruption",
-                    static_cast<u32>(tex_format),
-                    static_cast<u32>(config.r_type), static_cast<u32>(config.g_type),
-                    static_cast<u32>(config.b_type), static_cast<u32>(config.a_type));
+                    static_cast<u32>(tex_format.Value()),
+                    static_cast<u32>(config.r_type.Value()), static_cast<u32>(config.g_type.Value()),
+                    static_cast<u32>(config.b_type.Value()), static_cast<u32>(config.a_type.Value()));
     }
     
     format = PixelFormatFromTextureInfo(config.format, config.r_type, config.g_type, config.b_type,
@@ -70,9 +70,9 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         LOG_ERROR(Render_Vulkan,
                   "Format mismatch: HDR format 0x{:02X} mapped to depth/stencil {}. "
                   "TIC components: r={} g={} b={} a={} srgb={}",
-                  static_cast<u32>(tex_format), format,
-                  static_cast<u32>(config.r_type), static_cast<u32>(config.g_type),
-                  static_cast<u32>(config.b_type), static_cast<u32>(config.a_type),
+                  static_cast<u32>(tex_format.Value()), format,
+                  static_cast<u32>(config.r_type.Value()), static_cast<u32>(config.g_type.Value()),
+                  static_cast<u32>(config.b_type.Value()), static_cast<u32>(config.a_type.Value()),
                   config.srgb_conversion);
     }
     
@@ -81,9 +81,9 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         LOG_ERROR(Render_Vulkan,
                   "Format mismatch: Depth/stencil format 0x{:02X} mapped to color {}. "
                   "TIC components: r={} g={} b={} a={} srgb={}",
-                  static_cast<u32>(tex_format), format,
-                  static_cast<u32>(config.r_type), static_cast<u32>(config.g_type),
-                  static_cast<u32>(config.b_type), static_cast<u32>(config.a_type),
+                  static_cast<u32>(tex_format.Value()), format,
+                  static_cast<u32>(config.r_type.Value()), static_cast<u32>(config.g_type.Value()),
+                  static_cast<u32>(config.b_type.Value()), static_cast<u32>(config.a_type.Value()),
                   config.srgb_conversion);
     }
     
