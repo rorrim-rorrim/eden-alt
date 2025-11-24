@@ -61,6 +61,8 @@ enum : u8 {
     LogicOp,
     LogicOpEnable,
     DepthClampEnable,
+    AlphaToCoverageEnable,
+    AlphaToOneEnable,
 
     Blending,
     BlendEnable,
@@ -223,6 +225,14 @@ public:
 
     bool TouchDepthClampEnable() {
         return Exchange(Dirty::DepthClampEnable, false);
+    }
+
+    bool TouchAlphaToCoverageEnable() {
+        return Exchange(Dirty::AlphaToCoverageEnable, false);
+    }
+
+    bool TouchAlphaToOneEnable() {
+        return Exchange(Dirty::AlphaToOneEnable, false);
     }
 
     bool TouchDepthCompareOp() {
