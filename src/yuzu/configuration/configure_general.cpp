@@ -54,7 +54,6 @@ void ConfigureGeneral::Setup(const ConfigurationShared::Builder& builder) {
     };
 
     push(UISettings::values.linkage.by_category[Settings::Category::UiGeneral]);
-    push(Settings::values.linkage.by_category[Settings::Category::Linux]);
 
     // Only show Linux group on Unix
 #ifndef __unix__
@@ -75,9 +74,6 @@ void ConfigureGeneral::Setup(const ConfigurationShared::Builder& builder) {
         switch (setting->GetCategory()) {
         case Settings::Category::UiGeneral:
             general_hold.emplace(setting->Id(), widget);
-            break;
-        case Settings::Category::Linux:
-            linux_hold.emplace(setting->Id(), widget);
             break;
         default:
             widget->deleteLater();
