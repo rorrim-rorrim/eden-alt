@@ -545,6 +545,16 @@ public:
         return extensions.custom_border_color;
     }
 
+    /// Returns true if customBorderColors feature is available (required for custom colors).
+    bool IsCustomBorderColorsSupported() const {
+        return features.custom_border_color.customBorderColors;
+    }
+
+    /// Returns true if customBorderColorWithoutFormat feature is available (allows VK_FORMAT_UNDEFINED).
+    bool IsCustomBorderColorWithoutFormatSupported() const {
+        return features.custom_border_color.customBorderColorWithoutFormat;
+    }
+
     /// Returns true if the device supports VK_EXT_extended_dynamic_state.
     bool IsExtExtendedDynamicStateSupported() const {
         return extensions.extended_dynamic_state;

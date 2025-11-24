@@ -2239,18 +2239,26 @@ vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_
 
 Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& tsc) {
     const auto& device = runtime.device;
-    const bool arbitrary_borders = runtime.device.IsExtCustomBorderColorSupported();
+    // Check if custom border colors are supported
+    const bool has_custom_border_colors = runtime.device.IsCustomBorderColorsSupported();
+    const bool has_format_undefined = runtime.device.IsCustomBorderColorWithoutFormatSupported();
     const auto color = tsc.BorderColor();
+
+    // Determine border format based on available features:
+    // - If customBorderColorWithoutFormat is available: use VK_FORMAT_UNDEFINED (most flexible)
+    // - If only customBorderColors is available: use concrete format (R8G8B8A8_UNORM)
+    // - If neither is available: use standard border colors (handled by ConvertBorderColor)
+    const VkFormat border_format = has_format_undefined ? VK_FORMAT_UNDEFINED
+                                                        : VK_FORMAT_R8G8B8A8_UNORM;
 
     const VkSamplerCustomBorderColorCreateInfoEXT border_ci{
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT,
         .pNext = nullptr,
-        // TODO: Make use of std::bit_cast once libc++ supports it.
         .customBorderColor = std::bit_cast<VkClearColorValue>(color),
-        .format = VK_FORMAT_UNDEFINED,
+        .format = border_format,
     };
     const void* pnext = nullptr;
-    if (arbitrary_borders) {
+    if (has_custom_border_colors) {
         pnext = &border_ci;
     }
     const VkSamplerReductionModeCreateInfoEXT reduction_ci{
@@ -2284,8 +2292,8 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
             .compareOp = MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func),
             .minLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.0f : tsc.MinLod(),
             .maxLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.25f : tsc.MaxLod(),
-            .borderColor =
-                arbitrary_borders ? VK_BORDER_COLOR_FLOAT_CUSTOM_EXT : ConvertBorderColor(color),
+            .borderColor = has_custom_border_colors ? VK_BORDER_COLOR_FLOAT_CUSTOM_EXT
+                                                    : ConvertBorderColor(color),
             .unnormalizedCoordinates = VK_FALSE,
         });
     };
