@@ -129,7 +129,7 @@ protected:
         } else if constexpr (std::is_floating_point_v<Type>) {
             return fmt::format("{:f}", value_);
         } else if constexpr (std::is_enum_v<Type>) {
-            return std::to_string(static_cast<u32>(value_));
+            return std::to_string(u32(value_));
         } else {
             return std::to_string(value_);
         }

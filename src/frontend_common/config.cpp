@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -141,9 +144,9 @@ void Config::ReadPlayerValues(const std::size_t player_index) {
     }
 
     if (player_prefix.empty() && Settings::IsConfiguringGlobal()) {
-        const auto controller = static_cast<Settings::ControllerType>(
+        const auto controller = Settings::ControllerType(
             ReadIntegerSetting(std::string(player_prefix).append("type"),
-                               static_cast<u8>(Settings::ControllerType::ProController)));
+                               u8(Settings::ControllerType::ProController)));
 
         if (controller == Settings::ControllerType::LeftJoycon ||
             controller == Settings::ControllerType::RightJoycon) {
@@ -158,24 +161,24 @@ void Config::ReadPlayerValues(const std::size_t player_index) {
         player.connected = ReadBooleanSetting(connected_key.append("connected"),
                                               std::make_optional(player_index == 0));
 
-        player.controller_type = static_cast<Settings::ControllerType>(
+        player.controller_type = Settings::ControllerType(
             ReadIntegerSetting(std::string(player_prefix).append("type"),
-                               static_cast<u8>(Settings::ControllerType::ProController)));
+                               u8(Settings::ControllerType::ProController)));
 
         player.vibration_enabled = ReadBooleanSetting(
             std::string(player_prefix).append("vibration_enabled"), std::make_optional(true));
 
-        player.vibration_strength = static_cast<int>(
+        player.vibration_strength = int(
             ReadIntegerSetting(std::string(player_prefix).append("vibration_strength"), 100));
 
-        player.body_color_left = static_cast<u32>(ReadIntegerSetting(
+        player.body_color_left = u32(ReadIntegerSetting(
             std::string(player_prefix).append("body_color_left"), Settings::JOYCON_BODY_NEON_BLUE));
-        player.body_color_right = static_cast<u32>(ReadIntegerSetting(
+        player.body_color_right = u32(ReadIntegerSetting(
             std::string(player_prefix).append("body_color_right"), Settings::JOYCON_BODY_NEON_RED));
-        player.button_color_left = static_cast<u32>(
+        player.button_color_left = u32(
             ReadIntegerSetting(std::string(player_prefix).append("button_color_left"),
                                Settings::JOYCON_BUTTONS_NEON_BLUE));
-        player.button_color_right = static_cast<u32>(
+        player.button_color_right = u32(
             ReadIntegerSetting(std::string(player_prefix).append("button_color_right"),
                                Settings::JOYCON_BUTTONS_NEON_RED));
     }
@@ -185,11 +188,11 @@ void Config::ReadTouchscreenValues() {
     Settings::values.touchscreen.enabled =
         ReadBooleanSetting(std::string("touchscreen_enabled"), std::make_optional(true));
     Settings::values.touchscreen.rotation_angle =
-        static_cast<u32>(ReadIntegerSetting(std::string("touchscreen_angle"), 0));
+        u32(ReadIntegerSetting(std::string("touchscreen_angle"), 0));
     Settings::values.touchscreen.diameter_x =
-        static_cast<u32>(ReadIntegerSetting(std::string("touchscreen_diameter_x"), 90));
+        u32(ReadIntegerSetting(std::string("touchscreen_diameter_x"), 90));
     Settings::values.touchscreen.diameter_y =
-        static_cast<u32>(ReadIntegerSetting(std::string("touchscreen_diameter_y"), 90));
+        u32(ReadIntegerSetting(std::string("touchscreen_diameter_y"), 90));
 }
 
 void Config::ReadAudioValues() {
@@ -446,8 +449,8 @@ void Config::SavePlayerValues(const std::size_t player_index) {
     }
 
     WriteIntegerSetting(
-        std::string(player_prefix).append("type"), static_cast<u8>(player.controller_type),
-        std::make_optional(static_cast<u8>(Settings::ControllerType::ProController)));
+        std::string(player_prefix).append("type"), u8(player.controller_type),
+        std::make_optional(u8(Settings::ControllerType::ProController)));
 
     if (!player_prefix.empty() || !Settings::IsConfiguringGlobal()) {
         if (global) {
@@ -483,24 +486,24 @@ void Config::SaveTouchscreenValues() {
                         std::make_optional(true));
 
     WriteIntegerSetting(std::string("touchscreen_angle"), touchscreen.rotation_angle,
-                        std::make_optional(static_cast<u32>(0)));
+                        std::make_optional(u32(0)));
     WriteIntegerSetting(std::string("touchscreen_diameter_x"), touchscreen.diameter_x,
-                        std::make_optional(static_cast<u32>(90)));
+                        std::make_optional(u32(90)));
     WriteIntegerSetting(std::string("touchscreen_diameter_y"), touchscreen.diameter_y,
-                        std::make_optional(static_cast<u32>(90)));
+                        std::make_optional(u32(90)));
 }
 
 void Config::SaveMotionTouchValues() {
     BeginArray(std::string("touch_from_button_maps"));
     for (std::size_t p = 0; p < Settings::values.touch_from_button_maps.size(); ++p) {
-        SetArrayIndex(static_cast<int>(p));
+        SetArrayIndex(int(p));
         WriteStringSetting(std::string("name"), Settings::values.touch_from_button_maps[p].name,
                            std::make_optional(std::string("default")));
 
         BeginArray(std::string("entries"));
         for (std::size_t q = 0; q < Settings::values.touch_from_button_maps[p].buttons.size();
              ++q) {
-            SetArrayIndex(static_cast<int>(q));
+            SetArrayIndex(int(q));
             WriteStringSetting(std::string("bind"),
                                Settings::values.touch_from_button_maps[p].buttons[q]);
         }
@@ -629,10 +632,10 @@ void Config::SaveDisabledAddOnValues() {
     for (const auto& elem : Settings::values.disabled_addons) {
         SetArrayIndex(i);
         WriteIntegerSetting(std::string("title_id"), elem.first,
-                            std::make_optional(static_cast<u64>(0)));
+                            std::make_optional(u64(0)));
         BeginArray(std::string("disabled"));
         for (std::size_t j = 0; j < elem.second.size(); ++j) {
-            SetArrayIndex(static_cast<int>(j));
+            SetArrayIndex(int(j));
             WriteStringSetting(std::string("d"), elem.second[j],
                                std::make_optional(std::string("")));
         }
@@ -716,10 +719,10 @@ bool Config::ReadBooleanSetting(const std::string& key, const std::optional<bool
 
     if (config->GetBoolValue(GetSection().c_str(),
                              std::string(full_key).append("\\default").c_str(), false)) {
-        return static_cast<bool>(default_value.value());
+        return bool(default_value.value());
     } else {
         return config->GetBoolValue(GetSection().c_str(), full_key.c_str(),
-                                    static_cast<bool>(default_value.value()));
+                                    bool(default_value.value()));
     }
 }
 
