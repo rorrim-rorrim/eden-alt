@@ -346,8 +346,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Improves texture & buffer handling and the Maxwell translation layer.\n"
               "Some Vulkan 1.1+ and all 1.2+ devices support this extension."));
 
-    INSERT(Settings, sample_shading, QString(), QString());
-
     INSERT(Settings,
            sample_shading_fraction,
            tr("Sample Shading"),
