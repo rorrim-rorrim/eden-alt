@@ -45,6 +45,7 @@ using VideoCore::Surface::BytesPerBlock;
 using VideoCore::Surface::HasAlpha;
 using VideoCore::Surface::IsPixelFormatASTC;
 using VideoCore::Surface::IsPixelFormatInteger;
+using VideoCore::Surface::IntegerCompatibleFormat;
 using VideoCore::Surface::NormalizedCompatibleFormat;
 using VideoCore::Surface::SurfaceType;
 
@@ -2234,22 +2235,40 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
     return *view;
 }
 
-VkImageView ImageView::SampledHandle(Shader::TextureType texture_type) {
-    if (!IsPixelFormatInteger(format)) {
-        return Handle(texture_type);
+VkImageView ImageView::SampledHandle(Shader::TextureType texture_type, bool use_integer_view) {
+    const auto type_index = static_cast<size_t>(texture_type);
+
+    if (use_integer_view || !IsPixelFormatInteger(format)) {
+        if (!use_integer_view || IsPixelFormatInteger(format)) {
+            return Handle(texture_type);
+        }
+
+        const auto compatible_integer = IntegerCompatibleFormat(format);
+        if (!compatible_integer) {
+            return Handle(texture_type);
+        }
+        auto& int_view = sampled_integer_views[type_index];
+        if (int_view) {
+            return *int_view;
+        }
+        const auto format_info =
+            MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, *compatible_integer);
+        int_view = CreateSampledView(texture_type, format_info.format);
+        return *int_view;
     }
+
     const auto compatible_format = NormalizedCompatibleFormat(format);
     if (!compatible_format) {
         return Handle(texture_type);
     }
-    auto& view = sampled_float_views[static_cast<size_t>(texture_type)];
-    if (view) {
-        return *view;
+    auto& float_view = sampled_float_views[type_index];
+    if (float_view) {
+        return *float_view;
     }
     const auto format_info =
         MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, *compatible_format);
-    view = CreateSampledView(texture_type, format_info.format);
-    return *view;
+    float_view = CreateSampledView(texture_type, format_info.format);
+    return *float_view;
 }
 
 bool ImageView::IsRescaled() const noexcept {
