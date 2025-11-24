@@ -1233,8 +1233,18 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
 void Device::RemoveUnsuitableExtensions() {
     // VK_EXT_custom_border_color
-    extensions.custom_border_color = features.custom_border_color.customBorderColors &&
-                                     features.custom_border_color.customBorderColorWithoutFormat;
+    // Enable extension if driver supports it, then check individual features
+    // - customBorderColors: Required to use VK_BORDER_COLOR_FLOAT_CUSTOM_EXT
+    // - customBorderColorWithoutFormat: Optional, allows VK_FORMAT_UNDEFINED
+    // If only customBorderColors is available, we must provide a specific format
+    if (extensions.custom_border_color) {
+        // Verify that at least customBorderColors is available
+        if (!features.custom_border_color.customBorderColors) {
+            LOG_WARNING(Render_Vulkan,
+                        "VK_EXT_custom_border_color reported but customBorderColors feature not available, disabling");
+            extensions.custom_border_color = false;
+        }
+    }
     RemoveExtensionFeatureIfUnsuitable(extensions.custom_border_color, features.custom_border_color,
                                        VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
 
