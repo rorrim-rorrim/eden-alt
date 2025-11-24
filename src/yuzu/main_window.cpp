@@ -2194,7 +2194,7 @@ void MainWindow::OnEmulationStopped() {
     emulation_running = false;
 
     discord_rpc->Update();
-    Common::Linux::StopGamemode();
+    Common::FeralGamemode::Stop();
 
     // The emulation is stopped, so closing the window or not does not matter anymore
     disconnect(render_window, &GRenderWindow::Closed, this, &MainWindow::OnStopGame);
@@ -3065,7 +3065,7 @@ void MainWindow::OnStartGame() {
     play_time_manager->Start();
 
     discord_rpc->Update();
-    Common::Linux::StartGamemode();
+    Common::FeralGamemode::Start();
 }
 
 void MainWindow::OnRestartGame() {
@@ -3086,7 +3086,7 @@ void MainWindow::OnPauseGame() {
     play_time_manager->Stop();
     UpdateMenuState();
     AllowOSSleep();
-    Common::Linux::StopGamemode();
+    Common::FeralGamemode::Stop();
 }
 
 void MainWindow::OnPauseContinueGame() {
@@ -4745,7 +4745,10 @@ void MainWindow::SetDiscordEnabled([[maybe_unused]] bool state) {
 
 void MainWindow::SetGamemodeEnabled(bool state) {
     if (emulation_running) {
-        Common::Linux::SetGamemodeState(state);
+        if (state)
+            Common::FeralGamemode::Start();
+        else
+            Common::FeralGamemode::Stop();
     }
 }
 
