@@ -56,6 +56,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, 4444Formats, 4444_FORMATS, format_a4b4g4r4)                                       \
     FEATURE(EXT, IndexTypeUint8, INDEX_TYPE_UINT8, index_type_uint8)                               \
     FEATURE(EXT, LineRasterization, LINE_RASTERIZATION, line_rasterization)                        \
+    FEATURE(EXT, MultiDraw, MULTI_DRAW, multi_draw)                                                \
     FEATURE(EXT, PrimitiveTopologyListRestart, PRIMITIVE_TOPOLOGY_LIST_RESTART,                    \
             primitive_topology_list_restart)                                                       \
     FEATURE(EXT, ProvokingVertex, PROVOKING_VERTEX, provoking_vertex)                              \
@@ -818,6 +819,11 @@ public:
         return extensions.maintenance6;
     }
 
+    /// Returns true if the device supports VK_EXT_multi_draw.
+    bool IsExtMultiDrawSupported() const {
+        return extensions.multi_draw;
+    }
+
     /// Returns true if the device supports VK_KHR_maintenance7.
     bool IsKhrMaintenance7Supported() const {
         return extensions.maintenance7;
@@ -950,6 +956,7 @@ private:
         VkPhysicalDeviceSubgroupSizeControlProperties subgroup_size_control{};
         VkPhysicalDeviceTransformFeedbackPropertiesEXT transform_feedback{};
         VkPhysicalDeviceMaintenance5PropertiesKHR maintenance5{};
+        VkPhysicalDeviceMultiDrawPropertiesEXT multi_draw{};
 
         VkPhysicalDeviceProperties properties{};
     };
