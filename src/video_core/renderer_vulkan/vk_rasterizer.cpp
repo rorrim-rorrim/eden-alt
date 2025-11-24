@@ -1034,6 +1034,8 @@ void RasterizerVulkan::UpdateDynamicStates() {
         UpdateDepthClampEnable(regs);
         UpdateLineStippleEnable(regs);
         UpdateConservativeRasterizationMode(regs);
+        UpdateAlphaToCoverageEnable(regs);
+        UpdateAlphaToOneEnable(regs);
     }
     
     // EDS3 Blending: ColorBlendEnable, ColorBlendEquation, ColorWriteMask
@@ -1481,6 +1483,26 @@ void RasterizerVulkan::UpdateDepthClampEnable(Tegra::Engines::Maxwell3D::Regs& r
                             Maxwell::ViewportClipControl::GeometryClip::FrustumZ);
     scheduler.Record(
         [is_enabled](vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthClampEnableEXT(is_enabled); });
+}
+
+void RasterizerVulkan::UpdateAlphaToCoverageEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchAlphaToCoverageEnable()) {
+        return;
+    }
+    scheduler.Record([enable = regs.anti_alias_alpha_control.alpha_to_coverage](
+                         vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetAlphaToCoverageEnableEXT(enable != 0);
+    });
+}
+
+void RasterizerVulkan::UpdateAlphaToOneEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchAlphaToOneEnable()) {
+        return;
+    }
+    scheduler.Record([enable = regs.anti_alias_alpha_control.alpha_to_one](
+                         vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetAlphaToOneEnableEXT(enable != 0);
+    });
 }
 
 void RasterizerVulkan::UpdateDepthCompareOp(Tegra::Engines::Maxwell3D::Regs& regs) {
