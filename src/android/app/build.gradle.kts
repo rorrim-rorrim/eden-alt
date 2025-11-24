@@ -8,6 +8,7 @@ import android.annotation.SuppressLint
 import kotlin.collections.setOf
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 import com.github.triplet.gradle.androidpublisher.ReleaseStatus
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
 
 plugins {
     id("com.android.application")
@@ -63,11 +64,6 @@ android {
         versionName = getGitVersion()
         versionCode = autoVersion
 
-        ndk {
-            @SuppressLint("ChromeOsAbiSupport")
-            abiFilters += listOf("arm64-v8a")
-        }
-
         externalNativeBuild {
             cmake {
                 val extraCMakeArgs =
@@ -90,9 +86,15 @@ android {
                         *extraCMakeArgs.toTypedArray()
                     )
                 )
-
-                abiFilters("arm64-v8a")
             }
+        }
+    }
+
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "x86_64")
         }
     }
 
@@ -127,7 +129,7 @@ android {
             isMinifyEnabled = true
             isDebuggable = false
             proguardFiles(
-                getDefaultProguardFile("proguard-android.txt"),
+                getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
@@ -139,7 +141,7 @@ android {
             signingConfig = signingConfigs.getByName("default")
             isDebuggable = true
             proguardFiles(
-                getDefaultProguardFile("proguard-android.txt"),
+                getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
             versionNameSuffix = "-relWithDebInfo"
@@ -320,4 +322,31 @@ fun getGitVersion(): String {
         gitVersion
     }
     return versionName.ifEmpty { "0.0" }
+}
+
+// this sucks but it works
+afterEvaluate {
+    android.applicationVariants.all { variant ->
+        val variantName = variant.name.replaceFirstChar { it.uppercase() }
+
+        val packageTask = tasks.named("package${variantName}")
+
+        val copyTask = tasks.register<Copy>("copy${variantName}Output") {
+            val outDir = file("../../../artifacts")
+            into(outDir)
+            doFirst { outDir.mkdirs() }
+
+            from(packageTask.map { it.outputs.files }) {
+                include("*.apk")
+            }
+
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        }
+
+        tasks.named("assemble${variantName}").configure {
+            finalizedBy(copyTask)
+        }
+
+        true
+    }
 }
