@@ -60,6 +60,16 @@ struct DrawParams {
 };
 
 VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t index, float scale) {
+    const auto& src = regs.viewport_transform[index];
+    const auto conv = [scale](float value) {
+        float new_value = value * scale;
+        if (scale < 1.0f) {
+            const bool sign = std::signbit(value);
+            new_value = std::round(std::abs(new_value));
+            new_value = sign ? -new_value : new_value;
+        }
+        return new_value;
+    };
     float x = conv(src.translate_x - src.scale_x);
     float width = conv(src.scale_x * 2.0f);
     float y = conv(src.translate_y - src.scale_y);
