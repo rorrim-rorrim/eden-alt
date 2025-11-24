@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -245,9 +248,13 @@ PixelFormat PixelFormatFromTextureInfo(TextureFormat format, ComponentType red, 
     case Hash(TextureFormat::ASTC_2D_6X5, UNORM, SRGB):
         return PixelFormat::ASTC_2D_6X5_SRGB;
     }
-    UNIMPLEMENTED_MSG("texture format={} srgb={} components={{{} {} {} {}}}",
-                      static_cast<int>(format), is_srgb, static_cast<int>(red),
-                      static_cast<int>(green), static_cast<int>(blue), static_cast<int>(alpha));
+    const u32 hash_value = Hash(format, red, green, blue, alpha, is_srgb);
+    LOG_ERROR(Render_Vulkan, 
+              "Unmapped texture format: format=0x{:02X} ({}) srgb={} "
+              "components={{r={} g={} b={} a={}}} hash=0x{:08X}",
+              static_cast<u32>(format), static_cast<int>(format), is_srgb, 
+              static_cast<int>(red), static_cast<int>(green), 
+              static_cast<int>(blue), static_cast<int>(alpha), hash_value);
     return PixelFormat::A8B8G8R8_UNORM;
 }
 
