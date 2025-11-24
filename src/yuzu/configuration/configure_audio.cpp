@@ -241,7 +241,6 @@ void ConfigureAudio::ApplyConfiguration() {
     }
 
     const u32 new_sink_id = [this]() {
-        u32 new_sink_id = 0;
         const std::string sink_id = sink_combo_box->currentText().toStdString();
         const auto canonicalizations
             = Settings::EnumMetadata<Settings::AudioEngine>::Canonicalizations();
