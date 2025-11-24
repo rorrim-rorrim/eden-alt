@@ -25,16 +25,16 @@ void AssertFailSoftImpl();
 #define ASSERT_MSG(_a_, ...)                                                                       \
     ([&]() YUZU_NO_INLINE {                                                                        \
         if (!(_a_)) [[unlikely]] {                                                                 \
-            LOG_CRITICAL(Debug, "assert\n" __VA_ARGS__);                                \
-            AssertFailSoftImpl();                                                                    \
+            LOG_CRITICAL(Debug, __FILE__ ": assert\n" __VA_ARGS__);                                \
+            AssertFailSoftImpl();                                                                  \
         }                                                                                          \
     }())
 #define ASSERT(_a_) ASSERT_MSG(_a_, "{}", #_a_)
 
 #define UNREACHABLE_MSG(...)                                                                       \
     do {                                                                                           \
-        LOG_CRITICAL(Debug, "unreachable\n" __VA_ARGS__);                                    \
-        AssertFatalImpl();                                                                        \
+        LOG_CRITICAL(Debug, __FILE__ ": unreachable\n" __VA_ARGS__);                               \
+        AssertFatalImpl();                                                                         \
     } while (0)
 #define UNREACHABLE() UNREACHABLE_MSG("")
 
@@ -55,3 +55,13 @@ void AssertFailSoftImpl();
 
 #define UNIMPLEMENTED_IF(cond) ASSERT_MSG(!(cond), "Unimplemented code!")
 #define UNIMPLEMENTED_IF_MSG(cond, ...) ASSERT_MSG(!(cond), __VA_ARGS__)
+
+// If the assert is ignored, execute _b_
+#define ASSERT_OR_EXECUTE_MSG(_a_, _b_, ...)                                                       \
+    do {                                                                                           \
+        ASSERT_MSG(_a_, __VA_ARGS__);                                                              \
+        if (!(_a_)) { _b_ }                                                                        \
+    } while (0)
+
+// If the assert is ignored, execute _b_
+#define ASSERT_OR_EXECUTE(_a_, _b_) ASSERT_OR_EXECUTE_MSG(_a_, _b_, "{}", #_a_)
