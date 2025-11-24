@@ -825,13 +825,15 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         };
         dynamic_states.insert(dynamic_states.end(), extended.begin(), extended.end());
         
-        // VERTEX_INPUT_BINDING_STRIDE is part of EDS1, not VIDS
+        // VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT is part of EDS1
+        // Only use it if VIDS is not active (VIDS replaces it with full vertex input control)
         if (!key.state.dynamic_vertex_input) {
             dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT);
         }
     }
     
-    // Vertex Input Dynamic State (replaces VERTEX_INPUT_BINDING_STRIDE)
+    // VK_DYNAMIC_STATE_VERTEX_INPUT_EXT (VIDS) - Independent from EDS
+    // Provides full dynamic vertex input control, replaces VERTEX_INPUT_BINDING_STRIDE
     if (key.state.dynamic_vertex_input) {
         dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_EXT);
     }
