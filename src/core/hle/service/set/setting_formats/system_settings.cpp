@@ -38,7 +38,7 @@ SystemSettings DefaultSystemSettings() {
     };
 
     settings.initial_launch_settings_packed = {
-        .flags = {0x0},
+        .flags = {0x10001},
         .timestamp = {},
     };
 
