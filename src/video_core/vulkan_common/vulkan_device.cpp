@@ -1260,13 +1260,37 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
 
     // VK_EXT_extended_dynamic_state3
-    dynamic_state3_blending =
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable &&
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation &&
+    const bool supports_color_blend_enable =
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable;
+    const bool supports_color_blend_equation =
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation;
+    const bool supports_color_write_mask =
         features.extended_dynamic_state3.extendedDynamicState3ColorWriteMask;
-    dynamic_state3_enables =
-        features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable &&
+    dynamic_state3_blending = supports_color_blend_enable && supports_color_blend_equation &&
+                              supports_color_write_mask;
+
+    const bool supports_depth_clamp_enable =
+        features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable;
+    const bool supports_logic_op_enable =
         features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable;
+    const bool supports_line_raster_mode =
+        features.extended_dynamic_state3.extendedDynamicState3LineRasterizationMode &&
+        extensions.line_rasterization;
+    const bool supports_conservative_raster_mode =
+        features.extended_dynamic_state3.extendedDynamicState3ConservativeRasterizationMode &&
+        extensions.conservative_rasterization;
+    const bool supports_line_stipple_enable =
+        features.extended_dynamic_state3.extendedDynamicState3LineStippleEnable &&
+        extensions.line_rasterization;
+    const bool supports_alpha_to_coverage =
+        features.extended_dynamic_state3.extendedDynamicState3AlphaToCoverageEnable;
+    const bool supports_alpha_to_one =
+        features.extended_dynamic_state3.extendedDynamicState3AlphaToOneEnable;
+
+    dynamic_state3_enables = supports_depth_clamp_enable && supports_logic_op_enable &&
+                             supports_line_raster_mode && supports_conservative_raster_mode &&
+                             supports_line_stipple_enable && supports_alpha_to_coverage &&
+                             supports_alpha_to_one;
 
     extensions.extended_dynamic_state3 = dynamic_state3_blending || dynamic_state3_enables;
     dynamic_state3_blending = dynamic_state3_blending && extensions.extended_dynamic_state3;
