@@ -1516,6 +1516,10 @@ bool TextureCacheRuntime::CanReportMemoryUsage() const {
     return device.CanReportMemoryUsage();
 }
 
+std::optional<size_t> TextureCacheRuntime::GetSamplerHeapBudget() const {
+    return device.GetSamplerHeapBudget();
+}
+
 void TextureCacheRuntime::TickFrame() {}
 
 Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu_addr_,
