@@ -1462,7 +1462,9 @@ void EmitContext::DefineInputs(const IR::Program& program) {
         AddCapability(spv::Capability::GroupNonUniform);
         subgroup_local_invocation_id =
             DefineInput(*this, U32[1], false, spv::BuiltIn::SubgroupLocalInvocationId);
-        Decorate(subgroup_local_invocation_id, spv::Decoration::Flat);
+        if (stage == Stage::Fragment) {
+            Decorate(subgroup_local_invocation_id, spv::Decoration::Flat);
+        }
     }
     if (info.uses_fswzadd) {
         const Id f32_one{Const(1.0f)};
