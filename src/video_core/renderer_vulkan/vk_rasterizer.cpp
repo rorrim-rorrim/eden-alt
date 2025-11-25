@@ -1032,6 +1032,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
         }
         UpdateLogicOpEnable(regs);
         UpdateDepthClampEnable(regs);
+        UpdateLineRasterizationMode(regs);
         UpdateLineStippleEnable(regs);
         UpdateConservativeRasterizationMode(regs);
         UpdateAlphaToCoverageEnable(regs);
@@ -1414,17 +1415,19 @@ void RasterizerVulkan::UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& 
 }
 
 void RasterizerVulkan::UpdateLineRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs) {
-    // if (!state_tracker.TouchLi()) {
-    //     return;
-    // }
+    if (!device.IsExtLineRasterizationSupported()) {
+        return;
+    }
+    if (!state_tracker.TouchLineRasterizationMode()) {
+        return;
+    }
 
-    // TODO: The maxwell emulator does not capture line rasters
-
-    // scheduler.Record([enable = regs.line](vk::CommandBuffer cmdbuf) {
-    //     cmdbuf.SetConservativeRasterizationModeEXT(
-    //         enable ? VK_CONSERVATIVE_RASTERIZATION_MODE_UNDERESTIMATE_EXT
-    //                : VK_CONSERVATIVE_RASTERIZATION_MODE_DISABLED_EXT);
-    // });
+    const VkLineRasterizationModeEXT mode =
+        regs.line_anti_alias_enable != 0 ? VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT
+                                         : VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT;
+    scheduler.Record([mode](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetLineRasterizationModeEXT(mode);
+    });
 }
 
 void RasterizerVulkan::UpdateDepthBiasEnable(Tegra::Engines::Maxwell3D::Regs& regs) {

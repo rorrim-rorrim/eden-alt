@@ -58,6 +58,7 @@ Flags MakeInvalidationFlags() {
         DepthClampEnable,
         AlphaToCoverageEnable,
         AlphaToOneEnable,
+        LineRasterizationMode,
         LogicOp,
         Blending,
         ColorMask,
@@ -231,6 +232,7 @@ void SetupRasterModes(Tables &tables) {
 
     table[OFF(line_stipple_params)] = LineStippleParams;
     table[OFF(conservative_raster_enable)] = ConservativeRasterizationMode;
+    table[OFF(line_anti_alias_enable)] = LineRasterizationMode;
 }
 } // Anonymous namespace
 
