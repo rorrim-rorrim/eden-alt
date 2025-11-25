@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <optional>
 #include <set>
 #include <span>
 #include <string>
@@ -641,6 +642,8 @@ public:
         return has_broken_parallel_compiling;
     }
 
+    std::optional<size_t> GetSamplerHeapBudget() const;
+
     /// Returns the vendor name reported from Vulkan.
     std::string_view GetVendorName() const {
         return properties.driver.driverName;
@@ -859,6 +862,7 @@ private:
     bool dynamic_state3_blending{};            ///< Has all blending features of dynamic_state3.
     bool dynamic_state3_enables{};             ///< Has all enables features of dynamic_state3.
     bool supports_conditional_barriers{};      ///< Allows barriers in conditional control flow.
+    size_t sampler_heap_budget{};              ///< Sampler budget for buggy drivers (0 = unlimited).
     u64 device_access_memory{};                ///< Total size of device local memory in bytes.
     u32 sets_per_pool{};                       ///< Sets per Description Pool
     NvidiaArchitecture nvidia_arch{NvidiaArchitecture::Arch_AmpereOrNewer};

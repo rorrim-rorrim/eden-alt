@@ -62,6 +62,8 @@ public:
 
     bool CanReportMemoryUsage() const;
 
+    std::optional<size_t> GetSamplerHeapBudget() const;
+
     void BlitImage(Framebuffer* dst_framebuffer, ImageView& dst, ImageView& src,
                    const Region2D& dst_region, const Region2D& src_region,
                    Tegra::Engines::Fermi2D::Filter filter,
