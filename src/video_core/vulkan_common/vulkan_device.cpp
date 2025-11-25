@@ -498,6 +498,11 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectToolingInfo();
 
     if (is_qualcomm) {
+        // Qualcomm Adreno GPUs doesn't handle scaled vertex attributes; keep emulation enabled
+        must_emulate_scaled_formats = true;
+        LOG_WARNING(Render_Vulkan,
+                    "Qualcomm drivers require scaled vertex format emulation; forcing fallback");
+
         LOG_WARNING(Render_Vulkan,
                     "Disabling shader float controls and 64-bit integer features on Qualcomm proprietary drivers");
         RemoveExtension(extensions.shader_float_controls, VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
