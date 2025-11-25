@@ -1281,26 +1281,45 @@ void Device::RemoveUnsuitableExtensions() {
         features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable;
     const bool supports_line_raster_mode =
         features.extended_dynamic_state3.extendedDynamicState3LineRasterizationMode &&
-        extensions.line_rasterization;
+        extensions.line_rasterization && features.line_rasterization.rectangularLines;
     const bool supports_conservative_raster_mode =
         features.extended_dynamic_state3.extendedDynamicState3ConservativeRasterizationMode &&
         extensions.conservative_rasterization;
     const bool supports_line_stipple_enable =
         features.extended_dynamic_state3.extendedDynamicState3LineStippleEnable &&
-        extensions.line_rasterization;
+        extensions.line_rasterization && features.line_rasterization.stippledRectangularLines;
     const bool supports_alpha_to_coverage =
         features.extended_dynamic_state3.extendedDynamicState3AlphaToCoverageEnable;
     const bool supports_alpha_to_one =
-        features.extended_dynamic_state3.extendedDynamicState3AlphaToOneEnable;
+        features.extended_dynamic_state3.extendedDynamicState3AlphaToOneEnable &&
+        features.features.alphaToOne;
 
-    dynamic_state3_enables = supports_depth_clamp_enable && supports_logic_op_enable &&
-                             supports_line_raster_mode && supports_conservative_raster_mode &&
-                             supports_line_stipple_enable && supports_alpha_to_coverage &&
-                             supports_alpha_to_one;
+    dynamic_state3_depth_clamp_enable = supports_depth_clamp_enable;
+    dynamic_state3_logic_op_enable = supports_logic_op_enable;
+    dynamic_state3_line_raster_mode = supports_line_raster_mode;
+    dynamic_state3_conservative_raster_mode = supports_conservative_raster_mode;
+    dynamic_state3_line_stipple_enable = supports_line_stipple_enable;
+    dynamic_state3_alpha_to_coverage = supports_alpha_to_coverage;
+    dynamic_state3_alpha_to_one = supports_alpha_to_one;
+
+    dynamic_state3_enables = dynamic_state3_depth_clamp_enable || dynamic_state3_logic_op_enable ||
+                             dynamic_state3_line_raster_mode ||
+                             dynamic_state3_conservative_raster_mode ||
+                             dynamic_state3_line_stipple_enable ||
+                             dynamic_state3_alpha_to_coverage || dynamic_state3_alpha_to_one;
 
     extensions.extended_dynamic_state3 = dynamic_state3_blending || dynamic_state3_enables;
-    dynamic_state3_blending = dynamic_state3_blending && extensions.extended_dynamic_state3;
-    dynamic_state3_enables = dynamic_state3_enables && extensions.extended_dynamic_state3;
+    if (!extensions.extended_dynamic_state3) {
+        dynamic_state3_blending = false;
+        dynamic_state3_enables = false;
+        dynamic_state3_depth_clamp_enable = false;
+        dynamic_state3_logic_op_enable = false;
+        dynamic_state3_line_raster_mode = false;
+        dynamic_state3_conservative_raster_mode = false;
+        dynamic_state3_line_stipple_enable = false;
+        dynamic_state3_alpha_to_coverage = false;
+        dynamic_state3_alpha_to_one = false;
+    }
     RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state3,
                                        features.extended_dynamic_state3,
                                        VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
