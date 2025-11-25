@@ -604,6 +604,11 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                         "allowing Eden to use {} (75%) to avoid heap exhaustion",
                         sampler_limit, reserved, sampler_heap_budget);
         }
+        const u32 version = (properties.properties.driverVersion << 3) >> 3;
+        if (version < VK_MAKE_API_VERSION(0, 255, 615, 512) ||
+            version == VK_MAKE_API_VERSION(0, 512, 800, 51)) {
+            has_broken_parallel_compiling = true;
+        }
     }
 
     if (extensions.sampler_filter_minmax && is_amd) {
