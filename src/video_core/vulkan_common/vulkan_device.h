@@ -326,6 +326,16 @@ public:
         return properties.properties.limits.maxComputeSharedMemorySize;
     }
 
+    /// Returns the maximum number of dynamic storage buffer descriptors per set.
+    u32 GetMaxDescriptorSetStorageBuffersDynamic() const {
+        return properties.properties.limits.maxDescriptorSetStorageBuffersDynamic;
+    }
+
+    /// Returns the maximum number of dynamic uniform buffer descriptors per set.
+    u32 GetMaxDescriptorSetUniformBuffersDynamic() const {
+        return properties.properties.limits.maxDescriptorSetUniformBuffersDynamic;
+    }
+
     /// Returns float control properties of the device.
     const VkPhysicalDeviceFloatControlsPropertiesKHR& FloatControlProperties() const {
         return properties.float_controls;
