@@ -103,7 +103,9 @@ System provides a default `g++-10` which doesn't support the current C++ codebas
 
 Make may error out when generating C++ headers of SPIRV shaders, hence it's recommended to use `gmake` over the default system one.
 
-glslang is not available on NetBSD, to circumvent this simply build glslang by yourself:
+[parallel/spirv-tools](https://iso.us.netbsd.org/pub/pkgsrc/current/pkgsrc/parallel/spirv-tools/index.html) isn't available in binary form and must be build from source.
+
+Such that glslang is not available on NetBSD, to circumvent this simply build glslang by yourself:
 ```sh
 pkgin python313
 git clone --depth=1 https://github.com/KhronosGroup/glslang.git
@@ -113,6 +115,8 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -- -j`nproc`
 cmake --install build
 ```
+
+However, pkgsrc is highly recommended, see [getting pkgsrc](https://iso.us.netbsd.org/pub/pkgsrc/current/pkgsrc/doc/pkgsrc.html#getting). You must get `current` not the `2025Q2` version.
 
 # DragonFlyBSD
 
