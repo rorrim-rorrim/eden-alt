@@ -97,6 +97,10 @@ public:
         (*flags)[Dirty::Scissors] = true;
     }
 
+    void InvalidateStateEnableFlag() {
+        (*flags)[Dirty::StateEnable] = true;
+    }
+
     bool TouchViewports() {
         const bool dirty_viewports = Exchange(Dirty::Viewports, false);
         const bool rescale_viewports = Exchange(VideoCommon::Dirty::RescaleViewports, false);
