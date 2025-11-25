@@ -89,6 +89,10 @@ public:
     bool SupportsAlphaToOne() const noexcept {
         return fragment_has_color0_output;
     }
+
+    bool UsesExtendedDynamicState() const noexcept {
+        return key.state.extended_dynamic_state != 0;
+    }
     GraphicsPipeline& operator=(GraphicsPipeline&&) noexcept = delete;
     GraphicsPipeline(GraphicsPipeline&&) noexcept = delete;
 

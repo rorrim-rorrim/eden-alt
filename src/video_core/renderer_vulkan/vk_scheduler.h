@@ -214,6 +214,7 @@ private:
         GraphicsPipeline* graphics_pipeline = nullptr;
         bool is_rescaling = false;
         bool rescaling_defined = false;
+        bool needs_state_enable_refresh = false;
     };
 
     void WorkerThread(std::stop_token stop_token);
