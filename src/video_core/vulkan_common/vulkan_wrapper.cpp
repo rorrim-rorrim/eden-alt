@@ -91,6 +91,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkBindImageMemory);
     X(vkCmdBeginConditionalRenderingEXT);
     X(vkCmdBeginQuery);
+    X(vkCmdBeginRendering);
     X(vkCmdBeginRenderPass);
     X(vkCmdBeginTransformFeedbackEXT);
     X(vkCmdBeginDebugUtilsLabelEXT);
@@ -118,6 +119,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdDrawIndirectByteCountEXT);
     X(vkCmdEndConditionalRenderingEXT);
     X(vkCmdEndQuery);
+    X(vkCmdEndRendering);
     X(vkCmdEndRenderPass);
     X(vkCmdResetQueryPool);
     X(vkCmdEndTransformFeedbackEXT);
@@ -250,6 +252,12 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     if (!dld.vkCmdDrawIndirectCount) {
         Proc(dld.vkCmdDrawIndirectCount, dld, "vkCmdDrawIndirectCountKHR", device);
         Proc(dld.vkCmdDrawIndexedIndirectCount, dld, "vkCmdDrawIndexedIndirectCountKHR", device);
+    }
+
+    // Support for dynamic rendering is optional in Vulkan 1.2 (via KHR) and core in 1.3
+    if (!dld.vkCmdBeginRendering) {
+        Proc(dld.vkCmdBeginRendering, dld, "vkCmdBeginRenderingKHR", device);
+        Proc(dld.vkCmdEndRendering, dld, "vkCmdEndRenderingKHR", device);
     }
 #undef X
 }

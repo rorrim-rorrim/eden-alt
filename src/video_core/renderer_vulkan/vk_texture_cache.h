@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -340,6 +343,10 @@ public:
         return render_area;
     }
 
+    [[nodiscard]] u32 Layers() const noexcept {
+        return layers;
+    }
+
     [[nodiscard]] VkSampleCountFlagBits Samples() const noexcept {
         return samples;
     }
@@ -354,6 +361,10 @@ public:
 
     [[nodiscard]] const std::array<VkImage, 9>& Images() const noexcept {
         return images;
+    }
+
+    [[nodiscard]] const std::array<VkImageView, 9>& ImageViews() const noexcept {
+        return image_views;
     }
 
     [[nodiscard]] const std::array<VkImageSubresourceRange, 9>& ImageRanges() const noexcept {
@@ -376,16 +387,27 @@ public:
         return is_rescaled;
     }
 
+    [[nodiscard]] bool IsColorAttachmentValid(size_t index) const noexcept {
+        return (valid_color_attachments & (1 << index)) != 0;
+    }
+
+    [[nodiscard]] size_t GetImageIndex(size_t index) const noexcept {
+        return rt_map[index];
+    }
+
 private:
     vk::Framebuffer framebuffer;
     VkRenderPass renderpass{};
     VkExtent2D render_area{};
+    u32 layers = 1;
     VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
     u32 num_color_buffers = 0;
     u32 num_images = 0;
     std::array<VkImage, 9> images{};
+    std::array<VkImageView, 9> image_views{};
     std::array<VkImageSubresourceRange, 9> image_ranges{};
     std::array<size_t, NUM_RT> rt_map{};
+    u8 valid_color_attachments = 0;
     bool has_depth{};
     bool has_stencil{};
     bool is_rescaled{};

@@ -15,6 +15,7 @@
 #include "video_core/renderer_vulkan/pipeline_helper.h"
 
 #include "common/bit_field.h"
+#include "video_core/surface.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
 #include "video_core/renderer_vulkan/pipeline_statistics.h"
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
@@ -279,7 +280,10 @@ GraphicsPipeline::GraphicsPipeline(
         descriptor_update_template =
             builder.CreateTemplate(set_layout, *pipeline_layout, uses_push_descriptor);
 
-        const VkRenderPass render_pass{render_pass_cache.Get(MakeRenderPassKey(key.state))};
+        VkRenderPass render_pass = VK_NULL_HANDLE;
+        if (!device.IsDynamicRenderingSupported()) {
+            render_pass = render_pass_cache.Get(MakeRenderPassKey(key.state));
+        }
         Validate();
         MakePipeline(render_pass);
         if (pipeline_statistics) {
@@ -936,10 +940,57 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         flags |= VK_PIPELINE_CREATE_CAPTURE_STATISTICS_BIT_KHR;
     }
 
+    VkPipelineRenderingCreateInfo rendering_create_info{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+        .pNext = nullptr,
+        .viewMask = 0, // Multiview not currently supported, set to 0 for single-view rendering
+        .colorAttachmentCount = 0,
+        .pColorAttachmentFormats = nullptr,
+        .depthAttachmentFormat = VK_FORMAT_UNDEFINED,
+        .stencilAttachmentFormat = VK_FORMAT_UNDEFINED,
+    };
+
+    std::vector<VkFormat> color_attachment_formats;
+    const void* pNext = nullptr;
+
+    if (device.IsDynamicRenderingSupported()) {
+        const auto pass_key = MakeRenderPassKey(key.state);
+        color_attachment_formats.reserve(pass_key.color_formats.size());
+        for (const auto& format : pass_key.color_formats) {
+            if (format != PixelFormat::Invalid) {
+                color_attachment_formats.push_back(
+                    MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, true, format).format);
+            } else {
+                color_attachment_formats.push_back(VK_FORMAT_UNDEFINED);
+            }
+        }
+        rendering_create_info.colorAttachmentCount = static_cast<u32>(color_attachment_formats.size());
+        rendering_create_info.pColorAttachmentFormats = color_attachment_formats.data();
+
+        if (pass_key.depth_format != PixelFormat::Invalid) {
+            const auto depth_format =
+                MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, true, pass_key.depth_format)
+                    .format;
+            // Determine which aspects are present
+            const auto surface_type = VideoCore::Surface::GetFormatType(pass_key.depth_format);
+            const bool has_depth = surface_type == VideoCore::Surface::SurfaceType::Depth ||
+                                   surface_type == VideoCore::Surface::SurfaceType::DepthStencil;
+            const bool has_stencil = surface_type == VideoCore::Surface::SurfaceType::Stencil ||
+                                     surface_type == VideoCore::Surface::SurfaceType::DepthStencil;
+            if (has_depth) {
+                rendering_create_info.depthAttachmentFormat = depth_format;
+            }
+            if (has_stencil) {
+                rendering_create_info.stencilAttachmentFormat = depth_format;
+            }
+        }
+        pNext = &rendering_create_info;
+    }
+
     pipeline = device.GetLogical().CreateGraphicsPipeline(
         {
             .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-            .pNext = nullptr,
+            .pNext = pNext,
             .flags = flags,
             .stageCount = static_cast<u32>(shader_stages.size()),
             .pStages = shader_stages.data(),

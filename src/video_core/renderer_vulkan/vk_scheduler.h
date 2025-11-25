@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,6 +13,7 @@
 #include <thread>
 #include <utility>
 #include <queue>
+#include <unordered_set>
 
 #include "common/alignment.h"
 #include "common/common_types.h"
@@ -55,9 +59,26 @@ public:
     /// Requests to begin a renderpass.
     void RequestRenderpass(const Framebuffer* framebuffer);
 
+    /// Signals that the next renderpass will perform a clear operation.
+    void SetNextRenderpassClears(bool clear_color, bool clear_depth, bool clear_stencil,
+                                 const VkClearColorValue& color_val = {},
+                                 const VkClearDepthStencilValue& depth_stencil_val = {}) {
+        // Clear all color attachment flags
+        for (int i = 0; i < 8; i++) {
+            next_clear_state.color[i] = clear_color;
+        }
+        next_clear_state.depth = clear_depth;
+        next_clear_state.stencil = clear_stencil;
+        next_clear_state.clear_color = color_val;
+        next_clear_state.clear_depth_stencil = depth_stencil_val;
+    }
+
     /// Requests the current execution context to be able to execute operations only allowed outside
     /// of a renderpass.
     void RequestOutsideRenderPassOperationContext();
+
+    /// Unregisters an image from the scheduler, removing it from initialized tracking.
+    void UnregisterImage(VkImage image);
 
     /// Update the pipeline to the current execution context.
     bool UpdateGraphicsPipeline(GraphicsPipeline* pipeline);
@@ -214,6 +235,7 @@ private:
         GraphicsPipeline* graphics_pipeline = nullptr;
         bool is_rescaling = false;
         bool rescaling_defined = false;
+        bool is_dynamic_rendering = false;
     };
 
     void WorkerThread(std::stop_token stop_token);
@@ -245,6 +267,19 @@ private:
     std::function<void()> on_submit;
 
     State state;
+
+    // Clear operation tracking for dynamic rendering
+    struct ClearState {
+        bool color[8] = {false};  // Which color attachments to clear
+        bool depth = false;
+        bool stencil = false;
+        VkClearColorValue clear_color{};
+        VkClearDepthStencilValue clear_depth_stencil{};
+    };
+    ClearState next_clear_state;
+
+    // Tracks images that have been initialized/transitioned at least once to avoid UNDEFINED loads
+    std::unordered_set<VkImage> initialized_images;
 
     u32 num_renderpass_images = 0;
     std::array<VkImage, 9> renderpass_images{};

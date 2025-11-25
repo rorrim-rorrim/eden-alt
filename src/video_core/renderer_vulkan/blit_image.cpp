@@ -46,7 +46,7 @@ namespace Vulkan {
 using VideoCommon::ImageViewType;
 
 namespace {
-    
+
 [[nodiscard]] VkImageAspectFlags AspectMaskFromFormat(VideoCore::Surface::PixelFormat format) {
     using VideoCore::Surface::SurfaceType;
     switch (VideoCore::Surface::GetFormatType(format)) {
@@ -307,11 +307,12 @@ constexpr std::array<VkPipelineShaderStageCreateInfo, 2> MakeStages(
 }
 
 void UpdateOneTextureDescriptorSet(const Device& device, VkDescriptorSet descriptor_set,
-                                   VkSampler sampler, VkImageView image_view) {
+                                   VkSampler sampler, VkImageView image_view,
+                                   VkImageLayout layout = VK_IMAGE_LAYOUT_GENERAL) {
     const VkDescriptorImageInfo image_info{
         .sampler = sampler,
         .imageView = image_view,
-        .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+        .imageLayout = layout,
     };
     const VkWriteDescriptorSet write_descriptor_set{
         .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -330,16 +331,17 @@ void UpdateOneTextureDescriptorSet(const Device& device, VkDescriptorSet descrip
 
 void UpdateTwoTexturesDescriptorSet(const Device& device, VkDescriptorSet descriptor_set,
                                     VkSampler sampler, VkImageView image_view_0,
-                                    VkImageView image_view_1) {
+                                    VkImageView image_view_1,
+                                    VkImageLayout layout = VK_IMAGE_LAYOUT_GENERAL) {
     const VkDescriptorImageInfo image_info_0{
         .sampler = sampler,
         .imageView = image_view_0,
-        .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+        .imageLayout = layout,
     };
     const VkDescriptorImageInfo image_info_1{
         .sampler = sampler,
         .imageView = image_view_1,
-        .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+        .imageLayout = layout,
     };
     const std::array write_descriptor_sets{
         VkWriteDescriptorSet{
@@ -454,7 +456,7 @@ void RecordShaderReadBarrier(Scheduler& scheduler, const ImageView& image_view) 
     const VkImageSubresourceRange subresource_range = SubresourceRangeFromView(image_view);
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([image, subresource_range](vk::CommandBuffer cmdbuf) {
-        const VkImageMemoryBarrier barrier{
+        const VkImageMemoryBarrier barrier_to_read{
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
             .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
@@ -463,23 +465,49 @@ void RecordShaderReadBarrier(Scheduler& scheduler, const ImageView& image_view) 
                              VK_ACCESS_TRANSFER_WRITE_BIT,
             .dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
             .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+            .newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = image,
+            .subresourceRange = subresource_range,
+        };
+
+        const VkImageMemoryBarrier barrier_to_general{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+            .dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
             .newLayout = VK_IMAGE_LAYOUT_GENERAL,
             .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .image = image,
             .subresourceRange = subresource_range,
         };
+
         cmdbuf.PipelineBarrier(
             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
                 VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
                 VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+                VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+                VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
+                VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+                VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
                 VK_PIPELINE_STAGE_TRANSFER_BIT |
                 VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
                 VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
                 VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
             0,
-            barrier);
+            barrier_to_read);
+
+        cmdbuf.PipelineBarrier(
+            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+            0,
+            barrier_to_general);
     });
 }
 
@@ -595,13 +623,16 @@ void BlitImageHelper::BlitColor(const Framebuffer* dst_framebuffer, VkImageView 
         TransitionImageLayout(cmdbuf, src_image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         BeginRenderPass(cmdbuf, dst_framebuffer);
         const VkDescriptorSet descriptor_set = one_texture_descriptor_allocator.Commit();
-        UpdateOneTextureDescriptorSet(device, descriptor_set, src_sampler, src_image_view);
+        UpdateOneTextureDescriptorSet(device, descriptor_set, src_sampler, src_image_view,
+                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, descriptor_set,
                                   nullptr);
         BindBlitState(cmdbuf, layout, dst_region, src_region, src_size);
         cmdbuf.Draw(3, 1, 0, 0);
         cmdbuf.EndRenderPass();
+        TransitionImageLayout(cmdbuf, src_image, VK_IMAGE_LAYOUT_GENERAL,
+                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     });
 }
 

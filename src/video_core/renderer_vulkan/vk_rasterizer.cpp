@@ -381,11 +381,6 @@ void RasterizerVulkan::Clear(u32 layer_count) {
     texture_cache.UpdateRenderTargets(true);
     const Framebuffer* const framebuffer = texture_cache.GetFramebuffer();
     const VkExtent2D render_area = framebuffer->RenderArea();
-    scheduler.RequestRenderpass(framebuffer);
-
-    query_cache.NotifySegment(true);
-    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
-                              maxwell3d->regs.zpass_pixel_count_enable);
 
     u32 up_scale = 1;
     u32 down_shift = 0;
@@ -393,7 +388,6 @@ void RasterizerVulkan::Clear(u32 layer_count) {
         up_scale = Settings::values.resolution_info.up_scale;
         down_shift = Settings::values.resolution_info.down_shift;
     }
-    UpdateViewportsState(regs);
 
     VkRect2D default_scissor;
     default_scissor.offset.x = 0;
@@ -415,8 +409,66 @@ void RasterizerVulkan::Clear(u32 layer_count) {
         .height = (std::min)(clear_rect.rect.extent.height, render_area.height),
     };
 
+    // Check if full screen clear
+    const bool is_full_screen = clear_rect.rect.offset.x == 0 &&
+                                clear_rect.rect.offset.y == 0 &&
+                                clear_rect.rect.extent.width == render_area.width &&
+                                clear_rect.rect.extent.height == render_area.height;
+
+    const auto& clear_regs = maxwell3d->regs.clear_surface;
+    const bool use_color = clear_regs.R || clear_regs.G || clear_regs.B || clear_regs.A;
+    const bool use_depth = clear_regs.Z;
+    const bool use_stencil = clear_regs.S;
+    const bool full_color_mask = clear_regs.R && clear_regs.G && clear_regs.B && clear_regs.A;
+
+    // Extract clear values
+    VkClearColorValue clear_color_value{};
     const u32 color_attachment = regs.clear_surface.RT;
-    if (use_color && framebuffer->HasAspectColorBit(color_attachment)) {
+    if (framebuffer->HasAspectColorBit(color_attachment)) {
+         const auto format = VideoCore::Surface::PixelFormatFromRenderTargetFormat(regs.rt[color_attachment].format);
+         bool is_integer = IsPixelFormatInteger(format);
+         bool is_signed = IsPixelFormatSignedInteger(format);
+         size_t int_size = PixelComponentSizeBitsInteger(format);
+         if (!is_integer) {
+             std::memcpy(clear_color_value.float32, regs.clear_color.data(), regs.clear_color.size() * sizeof(f32));
+         } else if (!is_signed) {
+             for (size_t i = 0; i < 4; i++) {
+                 clear_color_value.uint32[i] = static_cast<u32>(static_cast<f32>(static_cast<u64>(int_size) << 1U) * regs.clear_color[i]);
+             }
+         } else {
+             for (size_t i = 0; i < 4; i++) {
+                 clear_color_value.int32[i] = static_cast<s32>(static_cast<f32>(static_cast<s64>(int_size - 1) << 1) * (regs.clear_color[i] - 0.5f));
+             }
+         }
+    }
+
+    VkClearDepthStencilValue clear_depth_stencil_value{
+        .depth = regs.clear_depth,
+        .stencil = regs.clear_stencil,
+    };
+
+    const bool use_renderpass_clear_color = is_full_screen && full_color_mask && use_color;
+    const bool use_renderpass_clear_depth = is_full_screen && use_depth;
+    const bool use_renderpass_clear_stencil = is_full_screen && use_stencil && (regs.stencil_front_mask == 0xFF);
+
+    // Only use LOAD_OP_CLEAR if full screen and full mask (and safe stencil mask)
+    scheduler.SetNextRenderpassClears(
+        use_renderpass_clear_color,
+        use_renderpass_clear_depth,
+        use_renderpass_clear_stencil,
+        clear_color_value,
+        clear_depth_stencil_value
+    );
+
+    scheduler.RequestRenderpass(framebuffer);
+
+    query_cache.NotifySegment(true);
+    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
+                              maxwell3d->regs.zpass_pixel_count_enable);
+
+    UpdateViewportsState(regs);
+
+    if (use_color && !use_renderpass_clear_color && framebuffer->HasAspectColorBit(color_attachment)) {
         const auto format =
             VideoCore::Surface::PixelFormatFromRenderTargetFormat(regs.rt[color_attachment].format);
         bool is_integer = IsPixelFormatInteger(format);
@@ -466,10 +518,10 @@ void RasterizerVulkan::Clear(u32 layer_count) {
         return;
     }
     VkImageAspectFlags aspect_flags = 0;
-    if (use_depth && framebuffer->HasAspectDepthBit()) {
+    if (use_depth && !use_renderpass_clear_depth && framebuffer->HasAspectDepthBit()) {
         aspect_flags |= VK_IMAGE_ASPECT_DEPTH_BIT;
     }
-    if (use_stencil && framebuffer->HasAspectStencilBit()) {
+    if (use_stencil && !use_renderpass_clear_stencil && framebuffer->HasAspectStencilBit()) {
         aspect_flags |= VK_IMAGE_ASPECT_STENCIL_BIT;
     }
     if (aspect_flags == 0) {
@@ -483,7 +535,7 @@ void RasterizerVulkan::Clear(u32 layer_count) {
             Offset2D{.x = clear_rect.rect.offset.x + static_cast<s32>(clear_rect.rect.extent.width),
                      .y = clear_rect.rect.offset.y +
                           static_cast<s32>(clear_rect.rect.extent.height)}};
-        blit_image.ClearDepthStencil(framebuffer, use_depth, regs.clear_depth,
+        blit_image.ClearDepthStencil(framebuffer, use_depth && !use_renderpass_clear_depth, regs.clear_depth,
                                      static_cast<u8>(regs.stencil_front_mask), regs.clear_stencil,
                                      regs.stencil_front_func_mask, dst_region);
     } else {

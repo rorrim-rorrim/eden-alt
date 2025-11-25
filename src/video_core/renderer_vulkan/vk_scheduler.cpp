@@ -93,6 +93,217 @@ void Scheduler::RequestRenderpass(const Framebuffer* framebuffer) {
     const VkRenderPass renderpass = framebuffer->RenderPass();
     const VkFramebuffer framebuffer_handle = framebuffer->Handle();
     const VkExtent2D render_area = framebuffer->RenderArea();
+    if (device.IsDynamicRenderingSupported()) {
+        bool is_clear_pending = next_clear_state.depth || next_clear_state.stencil;
+        for (bool c : next_clear_state.color) {
+            is_clear_pending |= c;
+        }
+
+        if (!is_clear_pending && state.is_dynamic_rendering && framebuffer_handle == state.framebuffer &&
+            render_area.width == state.render_area.width &&
+            render_area.height == state.render_area.height) {
+            return;
+        }
+        EndRenderPass();
+
+        state.is_dynamic_rendering = true;
+        state.framebuffer = framebuffer_handle;
+        state.render_area = render_area;
+        state.renderpass = nullptr;
+
+        const u32 layers = framebuffer->Layers();
+        const auto& image_views = framebuffer->ImageViews();
+        const auto& image_ranges = framebuffer->ImageRanges();
+        const auto& images = framebuffer->Images();
+        const u32 num_images = framebuffer->NumImages();
+
+        std::array<VkImageView, 8> attachments_views{};
+        for (size_t i = 0; i < 8; ++i) {
+            if (framebuffer->IsColorAttachmentValid(i)) {
+                attachments_views[i] = image_views[framebuffer->GetImageIndex(i)];
+            } else {
+                attachments_views[i] = VK_NULL_HANDLE;
+            }
+        }
+
+        VkImageView depth_view = VK_NULL_HANDLE;
+        bool has_depth = framebuffer->HasAspectDepthBit();
+        bool has_stencil = framebuffer->HasAspectStencilBit();
+        if (has_depth || has_stencil) {
+             depth_view = image_views[framebuffer->NumColorBuffers()];
+        }
+
+        // Determine initialization state for barriers
+        // If we haven't seen this image before, we must assume it is UNDEFINED.
+        // This prevents validation errors and artifacts on mobile when loading from UNDEFINED.
+        std::array<bool, 9> is_first_use;
+        for(size_t i=0; i<num_images; ++i) {
+            if (images[i] != VK_NULL_HANDLE) {
+                is_first_use[i] = initialized_images.find(images[i]) == initialized_images.end();
+                if (is_first_use[i]) {
+                    initialized_images.insert(images[i]);
+                }
+            } else {
+                is_first_use[i] = false;
+            }
+        }
+
+        // Add pre rendering barriers to transition images to optimal layouts
+        Record([num_images, images, image_ranges, is_first_use](vk::CommandBuffer cmdbuf) {
+            std::array<VkImageMemoryBarrier, 9> pre_barriers;
+            for (size_t i = 0; i < num_images; ++i) {
+                const VkImageSubresourceRange& range = image_ranges[i];
+                const bool is_color = (range.aspectMask & VK_IMAGE_ASPECT_COLOR_BIT) != 0;
+                const bool is_depth_stencil = (range.aspectMask & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) != 0;
+
+                VkImageLayout optimal_layout = VK_IMAGE_LAYOUT_GENERAL;
+                if (is_color) {
+                    optimal_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                } else if (is_depth_stencil) {
+                    optimal_layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                }
+
+                // If first use, transition from UNDEFINED to discard garbage data safely.
+                // Otherwise, transition from GENERAL to preserve existing data.
+                const VkImageLayout old_layout = is_first_use[i] ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_GENERAL;
+
+                // For first use (UNDEFINED), we don't need to wait for any previous access.
+                const VkAccessFlags src_access_mask = is_first_use[i] ? 0 : (VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
+                                     VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                                     VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
+
+                pre_barriers[i] = VkImageMemoryBarrier{
+                    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                    .pNext = nullptr,
+                    .srcAccessMask = src_access_mask,
+                    .dstAccessMask = is_color ? (VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
+                                              : (VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT),
+                    .oldLayout = old_layout,
+                    .newLayout = optimal_layout,
+                    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                    .image = images[i],
+                    .subresourceRange = range,
+                };
+            }
+
+            if (num_images > 0) {
+                cmdbuf.PipelineBarrier(
+                    VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+                    0, nullptr, nullptr,
+                    vk::Span(pre_barriers.data(), num_images)
+                );
+            }
+        });
+
+        // Capture the clear state and reset it for next time
+        const ClearState current_clear_state = next_clear_state;
+        // Reset for next renderpass
+        next_clear_state = ClearState{};
+
+        // Capture image indices to allow looking up is_first_use in the lambda
+        std::array<size_t, 8> color_indices{};
+        for (size_t i = 0; i < 8; ++i) {
+            if (framebuffer->IsColorAttachmentValid(i)) {
+                color_indices[i] = framebuffer->GetImageIndex(i);
+            } else {
+                color_indices[i] = 0;
+            }
+        }
+        const size_t depth_index = framebuffer->NumColorBuffers();
+
+        Record([render_area, layers, attachments_views, depth_view, has_depth, has_stencil, current_clear_state, is_first_use, color_indices, depth_index](vk::CommandBuffer cmdbuf) {
+            std::array<VkRenderingAttachmentInfo, 8> color_attachments{};
+            for (size_t i = 0; i < 8; ++i) {
+                // Determine proper load operation per attachment:
+                // - DONT_CARE: Null attachments (not used)
+                // - CLEAR: When we're clearing this specific color attachment
+                // - LOAD: Normal rendering (preserve existing content)
+                VkAttachmentLoadOp load_op;
+                if (attachments_views[i] == VK_NULL_HANDLE) {
+                    load_op = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                } else if (current_clear_state.color[i]) {
+                    load_op = VK_ATTACHMENT_LOAD_OP_CLEAR;
+                } else {
+                    // Spec Compliance & Turnip Optimization:
+                    // If we transitioned from UNDEFINED (is_first_use), we should use DONT_CARE.
+                    // This avoids loading garbage data and prevents tile loads on mobile GPUs.
+                    // We use the captured image index to check the initialization state.
+                    if (is_first_use[color_indices[i]]) {
+                        load_op = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                    } else {
+                        load_op = VK_ATTACHMENT_LOAD_OP_LOAD;
+                    }
+                }
+
+                color_attachments[i] = {
+                    .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+                    .pNext = nullptr,
+                    .imageView = attachments_views[i],
+                    .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                    .resolveMode = VK_RESOLVE_MODE_NONE,
+                    .resolveImageView = VK_NULL_HANDLE,
+                    .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                    .loadOp = load_op,
+                    .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                    .clearValue = {.color = current_clear_state.clear_color},
+                };
+            }
+
+            VkRenderingAttachmentInfo depth_attachment{
+                .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+                .pNext = nullptr,
+                .imageView = depth_view,
+                .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                .resolveMode = VK_RESOLVE_MODE_NONE,
+                .resolveImageView = VK_NULL_HANDLE,
+                .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                .loadOp = current_clear_state.depth ? VK_ATTACHMENT_LOAD_OP_CLEAR
+                          : (has_depth && is_first_use[depth_index] ? VK_ATTACHMENT_LOAD_OP_DONT_CARE : VK_ATTACHMENT_LOAD_OP_LOAD),
+                .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                .clearValue = {.depthStencil = current_clear_state.clear_depth_stencil},
+            };
+
+            VkRenderingAttachmentInfo stencil_attachment{
+                .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+                .pNext = nullptr,
+                .imageView = depth_view,
+                .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                .resolveMode = VK_RESOLVE_MODE_NONE,
+                .resolveImageView = VK_NULL_HANDLE,
+                .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                .loadOp = current_clear_state.stencil ? VK_ATTACHMENT_LOAD_OP_CLEAR
+                          : (has_stencil && is_first_use[depth_index] ? VK_ATTACHMENT_LOAD_OP_DONT_CARE : VK_ATTACHMENT_LOAD_OP_LOAD),
+                .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                .clearValue = {.depthStencil = current_clear_state.clear_depth_stencil},
+            };
+
+            const VkRenderingInfo rendering_info{
+                .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .renderArea = {
+                    .offset = {0, 0},
+                    .extent = render_area,
+                },
+                .layerCount = layers,
+                .viewMask = 0,
+                .colorAttachmentCount = 8,
+                .pColorAttachments = color_attachments.data(),
+                .pDepthAttachment = has_depth ? &depth_attachment : nullptr,
+                .pStencilAttachment = has_stencil ? &stencil_attachment : nullptr,
+            };
+
+            cmdbuf.BeginRendering(rendering_info);
+        });
+
+        num_renderpass_images = framebuffer->NumImages();
+        renderpass_images = framebuffer->Images();
+        renderpass_image_ranges = framebuffer->ImageRanges();
+        return;
+    }
+
     if (renderpass == state.renderpass && framebuffer_handle == state.framebuffer &&
         render_area.width == state.render_area.width &&
         render_area.height == state.render_area.height) {
@@ -262,6 +473,7 @@ void Scheduler::AllocateNewContext() {
 void Scheduler::InvalidateState() {
     state.graphics_pipeline = nullptr;
     state.rescaling_defined = false;
+    state.is_dynamic_rendering = false;
     state_tracker.InvalidateCommandBufferState();
 }
 
@@ -270,18 +482,19 @@ void Scheduler::EndPendingOperations() {
     EndRenderPass();
 }
 
-void Scheduler::EndRenderPass()
-    {
-        if (!state.renderpass) {
+    void Scheduler::EndRenderPass() {
+        if (!state.renderpass && !state.is_dynamic_rendering) {
             return;
         }
 
         query_cache->CounterEnable(VideoCommon::QueryType::ZPassPixelCount64, false);
         query_cache->NotifySegment(false);
 
+        const bool is_dynamic_rendering = state.is_dynamic_rendering;
         Record([num_images = num_renderpass_images,
                        images = renderpass_images,
-                       ranges = renderpass_image_ranges](vk::CommandBuffer cmdbuf) {
+                       ranges = renderpass_image_ranges,
+                       is_dynamic_rendering](vk::CommandBuffer cmdbuf) {
             std::array<VkImageMemoryBarrier, 9> barriers;
             VkPipelineStageFlags src_stages = 0;
 
@@ -294,16 +507,23 @@ void Scheduler::EndRenderPass()
 
                 VkAccessFlags src_access = 0;
                 VkPipelineStageFlags this_stage = 0;
+                VkImageLayout old_layout = VK_IMAGE_LAYOUT_GENERAL;
 
                 if (is_color) {
                     src_access |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
                     this_stage |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                    if (is_dynamic_rendering) {
+                        old_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                    }
                 }
 
                 if (is_depth_stencil) {
                     src_access |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
                     this_stage |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
                                   | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+                    if (is_dynamic_rendering) {
+                        old_layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                    }
                 }
 
                 src_stages |= this_stage;
@@ -317,7 +537,7 @@ void Scheduler::EndRenderPass()
                                          | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
                                          | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT
                                          | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-                        .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+                        .oldLayout = old_layout,
                         .newLayout = VK_IMAGE_LAYOUT_GENERAL,
                         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
@@ -331,7 +551,11 @@ void Scheduler::EndRenderPass()
                     VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
                     VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
-            cmdbuf.EndRenderPass();
+            if (is_dynamic_rendering) {
+                cmdbuf.EndRendering();
+            } else {
+                cmdbuf.EndRenderPass();
+            }
 
             cmdbuf.PipelineBarrier(src_stages,
                                    VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
@@ -343,9 +567,14 @@ void Scheduler::EndRenderPass()
         });
 
         state.renderpass = nullptr;
+        state.is_dynamic_rendering = false;
         num_renderpass_images = 0;
     }
+}
 
+void Scheduler::UnregisterImage(VkImage image) {
+    initialized_images.erase(image);
+}
 
 void Scheduler::AcquireNewChunk() {
     std::scoped_lock rl{reserve_mutex};
