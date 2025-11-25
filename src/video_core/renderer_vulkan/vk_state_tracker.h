@@ -54,6 +54,7 @@ enum : u8 {
     PrimitiveRestartEnable,
     RasterizerDiscardEnable,
     ConservativeRasterizationMode,
+    LineRasterizationMode,
     LineStippleEnable,
     LineStippleParams,
     DepthBiasEnable,
@@ -269,6 +270,10 @@ public:
 
     bool TouchLogicOp() {
         return Exchange(Dirty::LogicOp, false);
+    }
+
+    bool TouchLineRasterizationMode() {
+        return Exchange(Dirty::LineRasterizationMode, false);
     }
 
     bool ChangePrimitiveTopology(Maxwell::PrimitiveTopology new_topology) {
