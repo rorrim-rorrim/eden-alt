@@ -18,11 +18,12 @@ endif()
 # Dynarmic project options
 option(DYNARMIC_ENABLE_CPU_FEATURE_DETECTION "Turning this off causes dynarmic to assume the host CPU doesn't support anything later than SSE3" ON)
 
-set(HAS_NO_EXECUTE_POLICY OFF)
 if (PLATFORM_OPENBSD OR PLATFORM_DRAGONFLY OR PLATFORM_NETBSD)
-    set(HAS_NO_EXECUTE_POLICY ON)
+    set(REQUIRE_WX ON)
+else()
+    set(REQUIRE_WX OFF)
 endif()
-option(DYNARMIC_ENABLE_NO_EXECUTE_SUPPORT "Enables support for systems that require W^X" ${HAS_NO_EXECUTE_POLICY})
+option(DYNARMIC_ENABLE_NO_EXECUTE_SUPPORT "Enables support for systems that require W^X" ${REQUIRE_WX})
 
 option(DYNARMIC_IGNORE_ASSERTS "Ignore asserts" OFF)
 option(DYNARMIC_TESTS_USE_UNICORN "Enable fuzzing tests against unicorn" OFF)
