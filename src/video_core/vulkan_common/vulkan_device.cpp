@@ -605,6 +605,17 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         if (version < VK_MAKE_API_VERSION(0, 255, 615, 512)) {
             has_broken_parallel_compiling = true;
         }
+        const size_t sampler_limit = properties.properties.limits.maxSamplerAllocationCount;
+        if (sampler_limit > 0) {
+            constexpr size_t MIN_SAMPLER_BUDGET = 1024U;
+            const size_t derived_budget =
+                (std::max)(MIN_SAMPLER_BUDGET, sampler_limit / 4U);
+            sampler_heap_budget = derived_budget;
+            LOG_WARNING(Render_Vulkan,
+                        "Qualcomm driver reports max {} samplers; clamping cache to {} (25%) to "
+                        "avoid heap exhaustion",
+                        sampler_limit, sampler_heap_budget);
+        }
     }
 
     if (extensions.sampler_filter_minmax && is_amd) {
@@ -1527,6 +1538,13 @@ void Device::SetupFamilies(VkSurfaceKHR surface) {
     if (present) {
         present_family = *present;
     }
+}
+
+std::optional<size_t> Device::GetSamplerHeapBudget() const {
+    if (sampler_heap_budget == 0) {
+        return std::nullopt;
+    }
+    return sampler_heap_budget;
 }
 
 u64 Device::GetDeviceMemoryUsage() const {
