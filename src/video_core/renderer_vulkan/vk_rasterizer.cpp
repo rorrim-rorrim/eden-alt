@@ -437,13 +437,48 @@ void RasterizerVulkan::Clear(u32 layer_count) {
         .baseArrayLayer = regs.clear_surface.layer,
         .layerCount = layer_count,
     };
-    if (clear_rect.rect.extent.width == 0 || clear_rect.rect.extent.height == 0) {
+    const auto clamp_rect_to_render_area = [render_area](VkRect2D& rect) -> bool {
+        const auto clamp_axis = [](s32& offset, u32& extent, u32 limit) {
+            auto clamp_offset = [&offset, limit]() {
+                if (limit == 0) {
+                    offset = 0;
+                    return;
+                }
+                offset = std::clamp(offset, 0, static_cast<s32>(limit));
+            };
+
+            if (extent == 0) {
+                clamp_offset();
+                return;
+            }
+            if (offset < 0) {
+                const u32 shrink = (std::min)(extent, static_cast<u32>(-offset));
+                extent -= shrink;
+                offset = 0;
+            }
+            if (limit == 0) {
+                extent = 0;
+                offset = 0;
+                return;
+            }
+            if (offset >= static_cast<s32>(limit)) {
+                offset = static_cast<s32>(limit);
+                extent = 0;
+                return;
+            }
+            const u64 end_coord = static_cast<u64>(offset) + extent;
+            if (end_coord > limit) {
+                extent = limit - static_cast<u32>(offset);
+            }
+        };
+
+        clamp_axis(rect.offset.x, rect.extent.width, render_area.width);
+        clamp_axis(rect.offset.y, rect.extent.height, render_area.height);
+        return rect.extent.width != 0 && rect.extent.height != 0;
+    };
+    if (!clamp_rect_to_render_area(clear_rect.rect)) {
         return;
     }
-    clear_rect.rect.extent = VkExtent2D{
-        .width = (std::min)(clear_rect.rect.extent.width, render_area.width),
-        .height = (std::min)(clear_rect.rect.extent.height, render_area.height),
-    };
 
     const u32 color_attachment = regs.clear_surface.RT;
     if (use_color && framebuffer->HasAspectColorBit(color_attachment)) {
