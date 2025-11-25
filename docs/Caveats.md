@@ -99,7 +99,11 @@ ip6addrctl=YES
 ip6addrctl_policy=ipv4_prefer
 ```
 
-System provides a default `g++-10` which doesn't support the current C++ codebase; install `clang-19` with `pkgin install clang-19`. Then build with `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -B build`.
+System provides a default `g++-10` which doesn't support the current C++ codebase; install `clang-19` with `pkgin install clang-19`. Or install `gcc14` (or `gcc15` with current pkgsrc). Provided that, the following CMake commands may work:
+
+- `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -Bbuild`
+- `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/pkg/gcc14/bin/gcc -DCMAKE_CXX_COMPILER=/usr/pkg/gcc14/bin/g++ -Bbuild`
+- `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/pkg/gcc15/bin/gcc -DCMAKE_CXX_COMPILER=/usr/pkg/gcc15/bin/g++ -Bbuild`
 
 Make may error out when generating C++ headers of SPIRV shaders, hence it's recommended to use `gmake` over the default system one.
 
