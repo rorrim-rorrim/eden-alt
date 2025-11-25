@@ -877,8 +877,6 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             VK_DYNAMIC_STATE_LINE_STIPPLE_ENABLE_EXT,
             VK_DYNAMIC_STATE_ALPHA_TO_COVERAGE_ENABLE_EXT,
             VK_DYNAMIC_STATE_ALPHA_TO_ONE_ENABLE_EXT,
-            VK_DYNAMIC_STATE_DEPTH_CLIP_ENABLE_EXT,
-            VK_DYNAMIC_STATE_PROVOKING_VERTEX_MODE_EXT,
         };
         dynamic_states.insert(dynamic_states.end(), extended3.begin(), extended3.end());
     }
