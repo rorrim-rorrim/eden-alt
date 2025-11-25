@@ -638,6 +638,50 @@ public:
         return extensions.line_rasterization;
     }
 
+    bool SupportsRectangularLines() const {
+        return features.line_rasterization.rectangularLines != VK_FALSE;
+    }
+
+    bool SupportsSmoothLines() const {
+        return features.line_rasterization.smoothLines != VK_FALSE;
+    }
+
+    bool SupportsStippledRectangularLines() const {
+        return features.line_rasterization.stippledRectangularLines != VK_FALSE;
+    }
+
+    bool SupportsAlphaToOne() const {
+        return features.features.alphaToOne != VK_FALSE;
+    }
+
+    bool SupportsDynamicState3DepthClampEnable() const {
+        return dynamic_state3_depth_clamp_enable;
+    }
+
+    bool SupportsDynamicState3LogicOpEnable() const {
+        return dynamic_state3_logic_op_enable;
+    }
+
+    bool SupportsDynamicState3LineRasterizationMode() const {
+        return dynamic_state3_line_raster_mode;
+    }
+
+    bool SupportsDynamicState3ConservativeRasterizationMode() const {
+        return dynamic_state3_conservative_raster_mode;
+    }
+
+    bool SupportsDynamicState3LineStippleEnable() const {
+        return dynamic_state3_line_stipple_enable;
+    }
+
+    bool SupportsDynamicState3AlphaToCoverageEnable() const {
+        return dynamic_state3_alpha_to_coverage;
+    }
+
+    bool SupportsDynamicState3AlphaToOneEnable() const {
+        return dynamic_state3_alpha_to_one;
+    }
+
     /// Returns true if the device supports VK_EXT_vertex_input_dynamic_state.
     bool IsExtVertexInputDynamicStateSupported() const {
         return extensions.vertex_input_dynamic_state;
@@ -986,8 +1030,15 @@ private:
     bool cant_blit_msaa{};                     ///< Does not support MSAA<->MSAA blitting.
     bool must_emulate_scaled_formats{};        ///< Requires scaled vertex format emulation
     bool must_emulate_bgr565{};                ///< Emulates BGR565 by swizzling RGB565 format.
-    bool dynamic_state3_blending{};            ///< Has all blending features of dynamic_state3.
-    bool dynamic_state3_enables{};             ///< Has all enables features of dynamic_state3.
+    bool dynamic_state3_blending{};            ///< Has blending features of dynamic_state3.
+    bool dynamic_state3_enables{};             ///< Has at least one enable feature of dynamic_state3.
+    bool dynamic_state3_depth_clamp_enable{};
+    bool dynamic_state3_logic_op_enable{};
+    bool dynamic_state3_line_raster_mode{};
+    bool dynamic_state3_conservative_raster_mode{};
+    bool dynamic_state3_line_stipple_enable{};
+    bool dynamic_state3_alpha_to_coverage{};
+    bool dynamic_state3_alpha_to_one{};
     bool supports_conditional_barriers{};      ///< Allows barriers in conditional control flow.
     u64 device_access_memory{};                ///< Total size of device local memory in bytes.
     u32 sets_per_pool{};                       ///< Sets per Description Pool
