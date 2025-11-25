@@ -636,34 +636,13 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_WARNING(Render_Vulkan, "Intel ANV driver does not support native BGR format");
         must_emulate_bgr565 = true;
     } else if (is_qualcomm) {
-        // Qualcomm driver version where VK_KHR_maintenance5 and A1B5G5R5 become reliable
-        constexpr uint32_t QUALCOMM_FIXED_DRIVER_VERSION = VK_MAKE_VERSION(512, 800, 1);
-        // Check if VK_KHR_maintenance5 is supported
-        if (extensions.maintenance5 && properties.properties.driverVersion >= QUALCOMM_FIXED_DRIVER_VERSION) {
-            LOG_INFO(Render_Vulkan, "Qualcomm driver supports VK_KHR_maintenance5, disabling BGR emulation");
-            must_emulate_bgr565 = false;
-        } else {
-            LOG_WARNING(Render_Vulkan, "Qualcomm driver doesn't support native BGR, emulating formats");
-            must_emulate_bgr565 = true;
-        }
-    } else if (is_turnip) {
-        // Mesa Turnip added support for maintenance5 in Mesa 25.0
-        if (extensions.maintenance5) {
-            LOG_INFO(Render_Vulkan, "Turnip driver supports VK_KHR_maintenance5, disabling BGR emulation");
-            must_emulate_bgr565 = false;
-        } else {
-            LOG_WARNING(Render_Vulkan, "Turnip driver doesn't support native BGR, emulating formats");
-            must_emulate_bgr565 = true;
-        }
+        LOG_WARNING(Render_Vulkan,
+                    "Qualcomm driver mishandles BGR5 formats even with VK_KHR_maintenance5, forcing emulation");
+        must_emulate_bgr565 = true;
     } else if (is_arm) {
-        // ARM Mali: stop emulating BGR5 formats when VK_KHR_maintenance5 is available
-        if (extensions.maintenance5) {
-            LOG_INFO(Render_Vulkan, "ARM driver supports VK_KHR_maintenance5, disabling BGR emulation");
-            must_emulate_bgr565 = false;
-        } else {
-            LOG_WARNING(Render_Vulkan, "ARM driver doesn't support native BGR, emulating formats");
-            must_emulate_bgr565 = true;
-        }
+        LOG_WARNING(Render_Vulkan,
+                    "ARM Mali driver mishandles BGR5 formats even with VK_KHR_maintenance5, forcing emulation");
+        must_emulate_bgr565 = true;
     }
 
     if (is_mvk) {
