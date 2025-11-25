@@ -433,6 +433,12 @@ void BufferCache<P>::SetComputeUniformBufferState(u32 mask,
 
 template <class P>
 void BufferCache<P>::UnbindGraphicsStorageBuffers(size_t stage) {
+    if constexpr (requires { runtime.ShouldLimitDynamicStorageBuffers(); }) {
+        if (runtime.ShouldLimitDynamicStorageBuffers()) {
+            channel_state->total_graphics_storage_buffers -=
+                static_cast<u32>(std::popcount(channel_state->enabled_storage_buffers[stage]));
+        }
+    }
     channel_state->enabled_storage_buffers[stage] = 0;
     channel_state->written_storage_buffers[stage] = 0;
 }
@@ -440,8 +446,26 @@ void BufferCache<P>::UnbindGraphicsStorageBuffers(size_t stage) {
 template <class P>
 bool BufferCache<P>::BindGraphicsStorageBuffer(size_t stage, size_t ssbo_index, u32 cbuf_index,
                                                u32 cbuf_offset, bool is_written) {
+    const bool already_enabled =
+        ((channel_state->enabled_storage_buffers[stage] >> ssbo_index) & 1U) != 0;
+    if constexpr (requires { runtime.ShouldLimitDynamicStorageBuffers(); }) {
+        if (runtime.ShouldLimitDynamicStorageBuffers() && !already_enabled) {
+            const u32 max_bindings = runtime.GetMaxDynamicStorageBuffers();
+            if (channel_state->total_graphics_storage_buffers >= max_bindings) {
+                LOG_WARNING(HW_GPU,
+                            "Skipping graphics storage buffer {} due to driver limit {}",
+                            ssbo_index, max_bindings);
+                return false;
+            }
+        }
+    }
     channel_state->enabled_storage_buffers[stage] |= 1U << ssbo_index;
     channel_state->written_storage_buffers[stage] |= (is_written ? 1U : 0U) << ssbo_index;
+    if constexpr (requires { runtime.ShouldLimitDynamicStorageBuffers(); }) {
+        if (runtime.ShouldLimitDynamicStorageBuffers() && !already_enabled) {
+            ++channel_state->total_graphics_storage_buffers;
+        }
+    }
 
     const auto& cbufs = maxwell3d->state.shader_stages[stage];
     const GPUVAddr ssbo_addr = cbufs.const_buffers[cbuf_index].address + cbuf_offset;
@@ -472,6 +496,12 @@ void BufferCache<P>::BindGraphicsTextureBuffer(size_t stage, size_t tbo_index, G
 
 template <class P>
 void BufferCache<P>::UnbindComputeStorageBuffers() {
+    if constexpr (requires { runtime.ShouldLimitDynamicStorageBuffers(); }) {
+        if (runtime.ShouldLimitDynamicStorageBuffers()) {
+            channel_state->total_compute_storage_buffers -=
+                static_cast<u32>(std::popcount(channel_state->enabled_compute_storage_buffers));
+        }
+    }
     channel_state->enabled_compute_storage_buffers = 0;
     channel_state->written_compute_storage_buffers = 0;
     channel_state->image_compute_texture_buffers = 0;
@@ -485,8 +515,26 @@ void BufferCache<P>::BindComputeStorageBuffer(size_t ssbo_index, u32 cbuf_index,
                   ssbo_index);
         return;
     }
+    const bool already_enabled =
+        ((channel_state->enabled_compute_storage_buffers >> ssbo_index) & 1U) != 0;
+    if constexpr (requires { runtime.ShouldLimitDynamicStorageBuffers(); }) {
+        if (runtime.ShouldLimitDynamicStorageBuffers() && !already_enabled) {
+            const u32 max_bindings = runtime.GetMaxDynamicStorageBuffers();
+            if (channel_state->total_compute_storage_buffers >= max_bindings) {
+                LOG_WARNING(HW_GPU,
+                            "Skipping compute storage buffer {} due to driver limit {}",
+                            ssbo_index, max_bindings);
+                return;
+            }
+        }
+    }
     channel_state->enabled_compute_storage_buffers |= 1U << ssbo_index;
     channel_state->written_compute_storage_buffers |= (is_written ? 1U : 0U) << ssbo_index;
+    if constexpr (requires { runtime.ShouldLimitDynamicStorageBuffers(); }) {
+        if (runtime.ShouldLimitDynamicStorageBuffers() && !already_enabled) {
+            ++channel_state->total_compute_storage_buffers;
+        }
+    }
 
     const auto& launch_desc = kepler_compute->launch_description;
     if (((launch_desc.const_buffer_enable_mask >> cbuf_index) & 1) == 0) {
