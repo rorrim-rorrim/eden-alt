@@ -2039,6 +2039,7 @@ SamplerId TextureCache<P>::FindSampler(const TSCEntry& config) {
     }
     const auto [pair, is_new] = channel_state->samplers.try_emplace(config);
     if (is_new) {
+        EnforceSamplerBudget();
         pair->second = slot_samplers.insert(runtime, config);
         EnforceSamplerBudget();
     }
