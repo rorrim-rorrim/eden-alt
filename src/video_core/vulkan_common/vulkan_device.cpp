@@ -1168,6 +1168,18 @@ bool Device::GetSuitability(bool requires_swapchain) {
     // Driver detection variables for workarounds in GetSuitability
     const VkDriverId driver_id = properties.driver.driverID;
     const bool is_intel_windows = driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS;
+    const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
+
+    // VK_EXT_CUSTOM_BORDER_COLOR
+    
+    if (extensions.custom_border_color && (is_qualcomm || is_turnip)) {
+        const char* driver_name = is_turnip ? "Turnip" : "Adreno";
+        LOG_WARNING(Render_Vulkan,
+                    "{} driver has broken custom border color handling; disabling VK_EXT_custom_border_color",
+                    driver_name);
+        RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
+                               VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+    }
     
     // VK_EXT_extended_dynamic_state2 below this will appear drivers that need workarounds.
     
