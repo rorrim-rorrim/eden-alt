@@ -296,6 +296,7 @@ void Scheduler::EndRenderPass()
         }
 
         query_cache->CounterEnable(VideoCommon::QueryType::ZPassPixelCount64, false);
+        query_cache->CounterEnable(VideoCommon::QueryType::StreamingByteCount, false);
         query_cache->NotifySegment(false);
 
         Record([num_images = num_renderpass_images,
