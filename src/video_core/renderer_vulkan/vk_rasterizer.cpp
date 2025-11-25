@@ -1015,13 +1015,6 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
     
-    // Extended Dynamic States (EDS) - Controlled by dyna_state setting in vulkan_device.cpp
-    // User granularity levels (accumulative):
-    //   Level 0: Core only
-    //   Level 1: Core + EDS1
-    //   Level 2: Core + EDS1 + EDS2
-    //   Level 3: Core + EDS1 + EDS2 + EDS3
-    
     // EDS1: CullMode, DepthCompare, FrontFace, StencilOp, DepthBoundsTest, DepthTest, DepthWrite, StencilTest
     if (device.IsExtExtendedDynamicStateSupported()) {
         UpdateCullMode(regs);
@@ -1052,11 +1045,10 @@ void RasterizerVulkan::UpdateDynamicStates() {
     if (device.IsExtExtendedDynamicState3EnablesSupported()) {
         using namespace Tegra::Engines;
         // AMD Workaround: LogicOp incompatible with float render targets
-        if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE || 
+        if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE ||
             device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
             const auto has_float = std::any_of(
-                regs.vertex_attrib_format.begin(),
-                regs.vertex_attrib_format.end(),
+                regs.vertex_attrib_format.begin(), regs.vertex_attrib_format.end(),
                 [](const auto& attrib) {
                     return attrib.type == Maxwell3D::Regs::VertexAttribute::Type::Float;
                 }
