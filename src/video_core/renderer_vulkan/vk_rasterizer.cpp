@@ -1406,6 +1406,10 @@ void RasterizerVulkan::UpdateConservativeRasterizationMode(Tegra::Engines::Maxwe
         return;
     }
 
+    if (!device.SupportsDynamicState3ConservativeRasterizationMode()) {
+        return;
+    }
+
     scheduler.Record([enable = regs.conservative_raster_enable](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetConservativeRasterizationModeEXT(
             enable ? VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT
@@ -1415,6 +1419,10 @@ void RasterizerVulkan::UpdateConservativeRasterizationMode(Tegra::Engines::Maxwe
 
 void RasterizerVulkan::UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchLineStippleEnable()) {
+        return;
+    }
+
+    if (!device.SupportsDynamicState3LineStippleEnable()) {
         return;
     }
 
@@ -1431,9 +1439,30 @@ void RasterizerVulkan::UpdateLineRasterizationMode(Tegra::Engines::Maxwell3D::Re
         return;
     }
 
-    const VkLineRasterizationModeEXT mode =
-        regs.line_anti_alias_enable != 0 ? VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT
-                                         : VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT;
+    if (!device.SupportsDynamicState3LineRasterizationMode()) {
+        static std::once_flag warn_missing_rect;
+        std::call_once(warn_missing_rect, [] {
+            LOG_WARNING(Render_Vulkan,
+                        "Driver lacks rectangular line rasterization support; skipping dynamic "
+                        "line state updates");
+        });
+        return;
+    }
+
+    const bool wants_smooth = regs.line_anti_alias_enable != 0;
+    VkLineRasterizationModeEXT mode = VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT;
+    if (wants_smooth) {
+        if (device.SupportsSmoothLines()) {
+            mode = VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT;
+        } else {
+            static std::once_flag warn_missing_smooth;
+            std::call_once(warn_missing_smooth, [] {
+                LOG_WARNING(Render_Vulkan,
+                            "Line anti-aliasing requested but smoothLines feature unavailable; "
+                            "using rectangular rasterization");
+            });
+        }
+    }
     scheduler.Record([mode](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetLineRasterizationModeEXT(mode);
     });
@@ -1478,6 +1507,9 @@ void RasterizerVulkan::UpdateLogicOpEnable(Tegra::Engines::Maxwell3D::Regs& regs
     if (!state_tracker.TouchLogicOpEnable()) {
         return;
     }
+    if (!device.SupportsDynamicState3LogicOpEnable()) {
+        return;
+    }
     scheduler.Record([enable = regs.logic_op.enable](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetLogicOpEnableEXT(enable != 0);
     });
@@ -1485,6 +1517,9 @@ void RasterizerVulkan::UpdateLogicOpEnable(Tegra::Engines::Maxwell3D::Regs& regs
 
 void RasterizerVulkan::UpdateDepthClampEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchDepthClampEnable()) {
+        return;
+    }
+    if (!device.SupportsDynamicState3DepthClampEnable()) {
         return;
     }
     bool is_enabled = !(regs.viewport_clip_control.geometry_clip ==
@@ -1501,6 +1536,9 @@ void RasterizerVulkan::UpdateAlphaToCoverageEnable(Tegra::Engines::Maxwell3D::Re
     if (!state_tracker.TouchAlphaToCoverageEnable()) {
         return;
     }
+    if (!device.SupportsDynamicState3AlphaToCoverageEnable()) {
+        return;
+    }
     GraphicsPipeline* const pipeline = pipeline_cache.CurrentGraphicsPipeline();
     const bool enable = pipeline != nullptr && pipeline->SupportsAlphaToCoverage() &&
                         regs.anti_alias_alpha_control.alpha_to_coverage != 0;
@@ -1511,6 +1549,14 @@ void RasterizerVulkan::UpdateAlphaToCoverageEnable(Tegra::Engines::Maxwell3D::Re
 
 void RasterizerVulkan::UpdateAlphaToOneEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchAlphaToOneEnable()) {
+        return;
+    }
+    if (!device.SupportsDynamicState3AlphaToOneEnable()) {
+        static std::once_flag warn_alpha_to_one;
+        std::call_once(warn_alpha_to_one, [] {
+            LOG_WARNING(Render_Vulkan,
+                        "Alpha-to-one is not supported on this device; forcing it disabled");
+        });
         return;
     }
     GraphicsPipeline* const pipeline = pipeline_cache.CurrentGraphicsPipeline();
