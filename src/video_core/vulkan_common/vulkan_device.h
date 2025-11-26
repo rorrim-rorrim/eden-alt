@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <optional>
 #include <set>
 #include <span>
@@ -315,12 +316,14 @@ public:
 
     /// Returns uniform buffer alignment requirement.
     VkDeviceSize GetUniformBufferAlignment() const {
-        return properties.properties.limits.minUniformBufferOffsetAlignment;
+        return (std::max)(properties.properties.limits.minUniformBufferOffsetAlignment,
+                          uniform_buffer_alignment_minimum);
     }
 
     /// Returns storage alignment requirement.
     VkDeviceSize GetStorageBufferAlignment() const {
-        return properties.properties.limits.minStorageBufferOffsetAlignment;
+        return (std::max)(properties.properties.limits.minStorageBufferOffsetAlignment,
+                          storage_buffer_alignment_minimum);
     }
 
     /// Returns the maximum range for storage buffers.
@@ -371,6 +374,11 @@ public:
     /// Returns true if descriptor aliasing is natively supported.
     bool IsDescriptorAliasingSupported() const {
         return GetDriverID() != VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
+    }
+
+    /// Returns true when the driver should use the mobile mega buffer allocator.
+    bool ShouldUseMobileMegaBuffer() const {
+        return use_mobile_megabuffer;
     }
 
     /// Returns true if the device supports float64 natively.
@@ -1076,6 +1084,7 @@ private:
     bool cant_blit_msaa{};                     ///< Does not support MSAA<->MSAA blitting.
     bool must_emulate_scaled_formats{};        ///< Requires scaled vertex format emulation
     bool must_emulate_bgr565{};                ///< Emulates BGR565 by swizzling RGB565 format.
+    bool use_mobile_megabuffer{};              ///< Use the Android mega buffer path.
     bool dynamic_state3_blending{};            ///< Has blending features of dynamic_state3.
     bool dynamic_state3_enables{};             ///< Has at least one enable feature of dynamic_state3.
     bool dynamic_state3_depth_clamp_enable{};
@@ -1087,6 +1096,8 @@ private:
     bool dynamic_state3_alpha_to_one{};
     bool supports_conditional_barriers{};      ///< Allows barriers in conditional control flow.
     size_t sampler_heap_budget{};              ///< Sampler budget for buggy drivers (0 = unlimited).
+    VkDeviceSize uniform_buffer_alignment_minimum{}; ///< Minimum enforced UBO alignment.
+    VkDeviceSize storage_buffer_alignment_minimum{}; ///< Minimum enforced SSBO alignment.
     u64 device_access_memory{};                ///< Total size of device local memory in bytes.
     u32 sets_per_pool{};                       ///< Sets per Description Pool
     NvidiaArchitecture nvidia_arch{NvidiaArchitecture::Arch_AmpereOrNewer};
