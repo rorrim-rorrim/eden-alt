@@ -1244,6 +1244,9 @@ void RasterizerVulkan::UpdateBlendConstants(Tegra::Engines::Maxwell3D::Regs& reg
     if (!state_tracker.TouchBlendConstants()) {
         return;
     }
+    if (!device.UsesAdvancedCoreDynamicState()) {
+        return;
+    }
     const std::array blend_color = {regs.blend_color.r, regs.blend_color.g, regs.blend_color.b,
                                     regs.blend_color.a};
     scheduler.Record(
@@ -1254,12 +1257,19 @@ void RasterizerVulkan::UpdateDepthBounds(Tegra::Engines::Maxwell3D::Regs& regs) 
     if (!state_tracker.TouchDepthBounds()) {
         return;
     }
+    if (!device.UsesAdvancedCoreDynamicState() || !device.IsDepthBoundsSupported()) {
+        return;
+    }
     scheduler.Record([min = regs.depth_bounds[0], max = regs.depth_bounds[1]](
                          vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthBounds(min, max); });
 }
 
 void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchStencilProperties()) {
+        return;
+    }
+    if (!device.UsesAdvancedCoreDynamicState()) {
+        state_tracker.ClearStencilReset();
         return;
     }
     bool update_references = state_tracker.TouchStencilReference();
