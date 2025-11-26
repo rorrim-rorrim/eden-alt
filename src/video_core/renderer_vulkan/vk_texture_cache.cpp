@@ -1241,19 +1241,6 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
         break;
 
     case PixelFormat::A8B8G8R8_UNORM:
-    case PixelFormat::B8G8R8A8_UNORM:
-        // Depth/stencil to color conversions
-        if (src_view.format == PixelFormat::D24_UNORM_S8_UINT) {
-            return blit_image_helper.ConvertD24S8ToABGR8(dst, src_view);
-        }
-        if (src_view.format == PixelFormat::S8_UINT_D24_UNORM) {
-            return blit_image_helper.ConvertS8D24ToABGR8(dst, src_view);
-        }
-        if (src_view.format == PixelFormat::D32_FLOAT) {
-            return blit_image_helper.ConvertD32FToABGR8(dst, src_view);
-        }
-        break;
-
     case PixelFormat::A8B8G8R8_SNORM:
     case PixelFormat::A8B8G8R8_SINT:
     case PixelFormat::A8B8G8R8_UINT:
@@ -1287,6 +1274,7 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
     case PixelFormat::BC6H_UFLOAT:
     case PixelFormat::BC6H_SFLOAT:
     case PixelFormat::ASTC_2D_4X4_UNORM:
+    case PixelFormat::B8G8R8A8_UNORM:
     case PixelFormat::R32G32B32A32_FLOAT:
     case PixelFormat::R32G32B32A32_SINT:
     case PixelFormat::R32G32_FLOAT:
@@ -1366,11 +1354,7 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
     case PixelFormat::D32_FLOAT_S8_UINT:
     case PixelFormat::Invalid:
     default:
-        // Log both formats for debugging impossible conversions
-        LOG_ERROR(Render_Vulkan, 
-                  "Unimplemented texture conversion: src={} dst={} "
-                  "(Possible format aliasing or invalid operation)", 
-                  src_view.format, dst_view.format);
+        LOG_ERROR(Render_Vulkan, "Unimplemented texture conversion from {} to {} format type", src_view.format, dst_view.format);
         break;
     }
 }
