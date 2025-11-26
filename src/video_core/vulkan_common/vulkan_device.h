@@ -62,6 +62,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, ProvokingVertex, PROVOKING_VERTEX, provoking_vertex)                              \
     FEATURE(EXT, Robustness2, ROBUSTNESS_2, robustness2)                                           \
     FEATURE(EXT, TransformFeedback, TRANSFORM_FEEDBACK, transform_feedback)                        \
+    FEATURE(EXT, SampleLocations, SAMPLE_LOCATIONS, sample_locations)                              \
     FEATURE(EXT, VertexInputDynamicState, VERTEX_INPUT_DYNAMIC_STATE, vertex_input_dynamic_state)  \
     FEATURE(KHR, Maintenance5, MAINTENANCE_5, maintenance5)                                        \
     FEATURE(KHR, Maintenance6, MAINTENANCE_6, maintenance6)                                        \
@@ -340,6 +341,11 @@ public:
         return properties.float_controls;
     }
 
+    /// Returns sample location properties (VK_EXT_sample_locations).
+    const VkPhysicalDeviceSampleLocationsPropertiesEXT& SampleLocationProperties() const {
+        return properties.sample_locations;
+    }
+
     /// Returns true if ASTC is natively supported.
     bool IsOptimalAstcSupported() const {
         return features.features.textureCompressionASTC_LDR;
@@ -547,6 +553,17 @@ public:
     bool IsTransformFeedbackQueriesSupported() const {
         return extensions.transform_feedback &&
                properties.transform_feedback.transformFeedbackQueries;
+    }
+    
+    /// Returns true if the device supports VK_EXT_sample_locations.
+    bool IsExtSampleLocationsSupported() const {
+        return extensions.sample_locations;
+    }
+
+    /// Returns true if the device supports custom sample locations for the given sample count.
+    bool SupportsSampleLocationsFor(VkSampleCountFlagBits samples) const {
+        return extensions.sample_locations &&
+               (properties.sample_locations.sampleLocationSampleCounts & samples) != 0;
     }
 
     /// Returns true if the device supports VK_EXT_transform_feedback properly.
@@ -995,6 +1012,7 @@ private:
         VkPhysicalDevicePushDescriptorPropertiesKHR push_descriptor{};
         VkPhysicalDeviceSubgroupSizeControlProperties subgroup_size_control{};
         VkPhysicalDeviceTransformFeedbackPropertiesEXT transform_feedback{};
+        VkPhysicalDeviceSampleLocationsPropertiesEXT sample_locations{};
         VkPhysicalDeviceMaintenance5PropertiesKHR maintenance5{};
 
         VkPhysicalDeviceProperties properties{};
