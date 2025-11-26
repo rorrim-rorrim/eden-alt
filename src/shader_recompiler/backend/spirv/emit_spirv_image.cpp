@@ -544,19 +544,10 @@ Id EmitImageFetch(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id c
         // This image is multisampled, lod must be implicit
         lod = Id{};
     }
-    const bool is_integer_fetch = info.type == TextureType::Buffer
-                                      ? false
-                                      : ctx.textures.at(info.descriptor_index).is_integer;
     const ImageOperands operands(lod, ms);
-    const Id image = TextureImage(ctx, info, index);
-    const Id result_type = is_integer_fetch ? ctx.U32[4] : ctx.F32[4];
-    const Id sample =
-        Emit(&EmitContext::OpImageSparseFetch, &EmitContext::OpImageFetch, ctx, inst, result_type,
-             image, coords, operands.MaskOptional(), operands.Span());
-    if (!is_integer_fetch) {
-        return sample;
-    }
-    return ctx.OpBitcast(ctx.F32[4], sample);
+    return Emit(&EmitContext::OpImageSparseFetch, &EmitContext::OpImageFetch, ctx, inst,
+                ctx.F32[4], TextureImage(ctx, info, index), coords, operands.MaskOptional(),
+                operands.Span());
 }
 
 Id EmitImageQueryDimensions(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id lod,
