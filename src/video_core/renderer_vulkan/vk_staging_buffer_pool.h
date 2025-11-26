@@ -1,9 +1,14 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 
 #include <climits>
+#include <memory>
+#include <optional>
 #include <vector>
 
 #include "common/common_types.h"
@@ -15,6 +20,7 @@ namespace Vulkan {
 
 class Device;
 class Scheduler;
+class MobileMegaBuffer;
 
 struct StagingBufferRef {
     VkBuffer buffer;
@@ -115,6 +121,8 @@ private:
     StagingBuffersCache device_local_cache;
     StagingBuffersCache upload_cache;
     StagingBuffersCache download_cache;
+
+    std::unique_ptr<MobileMegaBuffer> mobile_megabuffer;
 
     size_t current_delete_level = 0;
     u64 buffer_index = 0;
