@@ -11,6 +11,7 @@
 
 namespace Shader::Maxwell {
 namespace {
+
 enum class Type : u64 {
     _1D = 0,
     _1D_BUFFER = 1,
@@ -22,9 +23,6 @@ enum class Type : u64 {
     _UNK7 = 7,
 };
 
-/// For any would be newcomer to here: Yes - GPU dissasembly says S64 should
-/// be after F16x2FTZRN. However if you do plan to revert this, you MUST test
-/// ToTK beforehand. As the game will break with the subtle change
 enum class Size : u64 {
     U32,
     S32,
@@ -147,30 +145,33 @@ bool IsSizeInt32(Size size) {
 void ImageAtomOp(TranslatorVisitor& v, IR::Reg dest_reg, IR::Reg operand_reg, IR::Reg coord_reg,
                  std::optional<IR::Reg> bindless_reg, AtomicOp op, Clamp clamp, Size size, Type type,
                  u64 bound_offset, bool is_bindless, bool write_result) {
+
     if (clamp != Clamp::IGN) {
         throw NotImplementedException("Clamp {}", clamp);
     }
     if (!IsSizeInt32(size)) {
         throw NotImplementedException("Size {}", size);
     }
-    const bool is_signed{size == Size::S32};
-    const ImageFormat format{Format(size)};
-    const TextureType tex_type{GetType(type)};
-    const IR::Value coords{MakeCoords(v, coord_reg, type)};
 
-    const IR::U32 handle = is_bindless ? v.X(*bindless_reg) : v.ir.Imm32(u32(bound_offset * 4));
+    const bool is_signed = size == Size::S32;
+    const ImageFormat format = Format(size);
+    const TextureType tex_type = GetType(type);
+    const IR::Value coords = MakeCoords(v, coord_reg, type);
+
+    const IR::U32 handle = is_bindless ? v.X(*bindless_reg) : v.ir.Imm32(static_cast<u32>(bound_offset * 4));
+
     IR::TextureInstInfo info{};
     info.type.Assign(tex_type);
     info.image_format.Assign(format);
 
-    // TODO: float/64-bit operand
-    const IR::Value op_b{v.X(operand_reg)};
-    const IR::Value color{ApplyAtomicOp(v.ir, handle, coords, op_b, info, op, is_signed)};
+    const IR::Value op_b = v.X(operand_reg);
+    const IR::Value color = ApplyAtomicOp(v.ir, handle, coords, op_b, info, op, is_signed);
 
     if (write_result) {
         v.X(dest_reg, IR::U32{color});
     }
 }
+
 } // Anonymous namespace
 
 void TranslatorVisitor::SUATOM(u64 insn) {
@@ -184,31 +185,32 @@ void TranslatorVisitor::SUATOM(u64 insn) {
         BitField<0, 8, IR::Reg> dest_reg;
         BitField<8, 8, IR::Reg> coord_reg;
         BitField<20, 8, IR::Reg> operand_reg;
-        BitField<36, 13, u64> bound_offset; // !is_bindless
-        BitField<39, 8, IR::Reg> bindless_reg; // is_bindless
+        BitField<36, 13, u64> bound_offset; // !bindless
+        BitField<39, 8, IR::Reg> bindless_reg; // bindless
     } const suatom{insn};
 
-    ImageAtomOp(*this, suatom.dest_reg, suatom.operand_reg, suatom.coord_reg, suatom.bindless_reg,
-                suatom.op, suatom.clamp, suatom.size, suatom.type, suatom.bound_offset,
-                suatom.is_bindless != 0, true);
+    ImageAtomOp(*this, suatom.dest_reg, suatom.operand_reg, suatom.coord_reg,
+                suatom.bindless_reg, suatom.op, suatom.clamp, suatom.size,
+                suatom.type, suatom.bound_offset, suatom.is_bindless != 0,
+                true);
 }
 
 void TranslatorVisitor::SURED(u64 insn) {
-    // TODO: confirm offsets
-    // SURED unlike SUATOM does NOT have a binded register
+
     union {
         u64 raw;
-        BitField<24, 3, AtomicOp> op; //OK - 24 (SURedOp)
-        BitField<33, 3, Type> type; //OK? - 33 (Dim)
-        BitField<20, 3, Size> size; //?
-        BitField<49, 2, Clamp> clamp; //OK - 49 (Clamp4)
-        BitField<0, 8, IR::Reg> operand_reg; //RA?
-        BitField<8, 8, IR::Reg> coord_reg; //RB?
-        BitField<36, 13, u64> bound_offset; //OK 33 (TidB)
+        BitField<0, 8, IR::Reg> operand_reg; // RA
+        BitField<8, 8, IR::Reg> coord_reg; // RB
+        BitField<20, 3, Size> size; // 20–22
+        BitField<21, 3, AtomicOp> op; // 21–23
+        BitField<33, 3, Type> type; // Dim
+        BitField<36, 13, u64> bound_offset; // Texture binding index
+        BitField<49, 2, Clamp> clamp; // clamp
     } const sured{insn};
-    ImageAtomOp(*this, IR::Reg::RZ, sured.operand_reg, sured.coord_reg, std::nullopt,
-                sured.op, sured.clamp, sured.size, sured.type, sured.bound_offset,
-                false, false);
+
+    ImageAtomOp(*this, IR::Reg::RZ, sured.operand_reg, sured.coord_reg,
+                std::nullopt, sured.op, sured.clamp, sured.size, sured.type,
+                sured.bound_offset, false, false);
 }
 
 } // namespace Shader::Maxwell
