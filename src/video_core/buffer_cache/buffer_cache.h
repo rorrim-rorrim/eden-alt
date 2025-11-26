@@ -905,9 +905,23 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     const u32 size = (std::min)(binding.size, (*channel_state->uniform_buffer_sizes)[stage][index]);
     Buffer& buffer = slot_buffers[binding.buffer_id];
     TouchBuffer(buffer, binding.buffer_id);
-    const bool use_fast_buffer = binding.buffer_id != NULL_BUFFER_ID &&
-                                 size <= channel_state->uniform_buffer_skip_cache_size &&
-                                 !memory_tracker.IsRegionGpuModified(device_addr, size);
+    const bool has_host_buffer = binding.buffer_id != NULL_BUFFER_ID;
+    const u32 offset = has_host_buffer ? buffer.Offset(device_addr) : 0;
+    const bool needs_alignment_stream = [&]() {
+        if constexpr (IS_OPENGL) {
+            return false;
+        } else {
+            if (!has_host_buffer) {
+                return false;
+            }
+            const u32 alignment = runtime.GetUniformBufferAlignment();
+            return alignment > 1 && (offset % alignment) != 0;
+        }
+    }();
+    const bool use_fast_buffer = needs_alignment_stream ||
+                                 (has_host_buffer &&
+                                  size <= channel_state->uniform_buffer_skip_cache_size &&
+                                  !memory_tracker.IsRegionGpuModified(device_addr, size));
     if (use_fast_buffer) {
         if constexpr (IS_OPENGL) {
             if (runtime.HasFastBufferSubData()) {
@@ -946,7 +960,6 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     if (!needs_bind) {
         return;
     }
-    const u32 offset = buffer.Offset(device_addr);
     if constexpr (IS_OPENGL) {
         // Mark the index as dirty if offset doesn't match
         const bool is_copy_bind = offset != 0 && !runtime.SupportsNonZeroUniformOffset();
@@ -1063,9 +1076,30 @@ void BufferCache<P>::BindHostComputeUniformBuffers() {
         TouchBuffer(buffer, binding.buffer_id);
         const u32 size =
             (std::min)(binding.size, (*channel_state->compute_uniform_buffer_sizes)[index]);
+        const bool has_host_buffer = binding.buffer_id != NULL_BUFFER_ID;
+        const u32 offset = has_host_buffer ? buffer.Offset(binding.device_addr) : 0;
+        const bool needs_alignment_stream = [&]() {
+            if constexpr (IS_OPENGL) {
+                return false;
+            } else {
+                if (!has_host_buffer) {
+                    return false;
+                }
+                const u32 alignment = runtime.GetUniformBufferAlignment();
+                return alignment > 1 && (offset % alignment) != 0;
+            }
+        }();
+        if constexpr (!IS_OPENGL) {
+            if (needs_alignment_stream) {
+                const std::span<u8> span =
+                    runtime.BindMappedUniformBuffer(0, binding_index, size);
+                device_memory.ReadBlockUnsafe(binding.device_addr, span.data(), size);
+                return;
+            }
+        }
+
         SynchronizeBuffer(buffer, binding.device_addr, size);
 
-        const u32 offset = buffer.Offset(binding.device_addr);
         buffer.MarkUsage(offset, size);
         if constexpr (NEEDS_BIND_UNIFORM_INDEX) {
             runtime.BindComputeUniformBuffer(binding_index, buffer, offset, size);
