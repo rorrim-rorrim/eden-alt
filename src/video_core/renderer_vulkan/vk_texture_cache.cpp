@@ -2051,21 +2051,15 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
         }
     }
     const auto format_info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
-    const VkImageUsageFlags desired_usage = ImageUsageFlags(format_info, format);
-    const VkImageUsageFlags image_usage = image.UsageFlags();
-    
-    // ImageView usage must be a subset of the original image usage
-    const VkImageUsageFlags view_usage = desired_usage & image_usage;
-    
-    if (desired_usage != image_usage) {
-        LOG_DEBUG(Render_Vulkan,
-                  "Image view format {} usage flags (0x{:X}) restricted to image usage (0x{:X}), result: 0x{:X}",
-                  format, desired_usage, image_usage, view_usage);
+    if (ImageUsageFlags(format_info, format) != image.UsageFlags()) {
+        LOG_WARNING(Render_Vulkan,
+                    "Image view format {} has different usage flags than image format {}", format,
+                    image.info.format);
     }
     const VkImageViewUsageCreateInfo image_view_usage{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO,
         .pNext = nullptr,
-        .usage = view_usage,
+        .usage = ImageUsageFlags(format_info, format),
     };
     const VkImageViewCreateInfo create_info{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
