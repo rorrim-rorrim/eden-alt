@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <array>
-#include <optional>
 #include <span>
 
 #include "video_core/texture_cache/texture_cache_base.h"
@@ -243,10 +241,6 @@ public:
     [[nodiscard]] VkImageView Handle(Shader::TextureType texture_type) const noexcept {
         return *image_views[static_cast<size_t>(texture_type)];
     }
-
-    [[nodiscard]] VkImageView SampledHandle(Shader::TextureType texture_type,
-                                            bool use_integer_view);
-
     [[nodiscard]] VkImage ImageHandle() const noexcept {
         return image_handle;
     }
@@ -274,16 +268,11 @@ private:
     };
 
     [[nodiscard]] vk::ImageView MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask);
-    [[nodiscard]] vk::ImageView CreateSampledView(Shader::TextureType texture_type,
-                                                 VkFormat vk_format) const;
 
     const Device* device = nullptr;
     const SlotVector<Image>* slot_images = nullptr;
 
     std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> image_views;
-    std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> sampled_float_views;
-    std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> sampled_integer_views;
-    std::array<std::optional<u32>, Shader::NUM_TEXTURE_TYPES> view_layer_counts{};
     std::unique_ptr<StorageViews> storage_views;
     vk::ImageView depth_view;
     vk::ImageView stencil_view;
@@ -292,14 +281,6 @@ private:
     VkImage image_handle = VK_NULL_HANDLE;
     VkImageView render_target = VK_NULL_HANDLE;
     VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
-    VkComponentMapping component_mapping{
-        VK_COMPONENT_SWIZZLE_IDENTITY,
-        VK_COMPONENT_SWIZZLE_IDENTITY,
-        VK_COMPONENT_SWIZZLE_IDENTITY,
-        VK_COMPONENT_SWIZZLE_IDENTITY,
-    };
-    VkImageAspectFlags aspect_mask = 0;
-    VkImageUsageFlags view_usage_flags = 0;
     u32 buffer_size = 0;
 };
 
