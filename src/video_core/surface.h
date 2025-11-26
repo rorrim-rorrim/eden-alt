@@ -4,7 +4,6 @@
 #pragma once
 
 #include <climits>
-#include <optional>
 #include <utility>
 #include "common/assert.h"
 #include "common/common_types.h"
@@ -515,9 +514,6 @@ bool IsPixelFormatSRGB(PixelFormat format);
 bool IsPixelFormatInteger(PixelFormat format);
 
 bool IsPixelFormatSignedInteger(PixelFormat format);
-
-std::optional<PixelFormat> NormalizedCompatibleFormat(PixelFormat format);
-std::optional<PixelFormat> IntegerCompatibleFormat(PixelFormat format);
 
 size_t PixelComponentSizeBitsInteger(PixelFormat format);
 
