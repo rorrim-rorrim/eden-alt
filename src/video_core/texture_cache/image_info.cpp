@@ -31,61 +31,8 @@ constexpr u32 DownscaleHeightThreshold = 512;
 ImageInfo::ImageInfo(const TICEntry& config) noexcept {
     forced_flushed = config.IsPitchLinear() && !Settings::values.use_reactive_flushing.GetValue();
     dma_downloaded = forced_flushed;
-    
-    // Validate component types match format expectations
-    const auto tex_format = config.format;
-    const bool is_depth_stencil = 
-        tex_format == Tegra::Texture::TextureFormat::Z24S8 ||
-        tex_format == Tegra::Texture::TextureFormat::S8Z24 ||
-        tex_format == Tegra::Texture::TextureFormat::Z32 ||
-        tex_format == Tegra::Texture::TextureFormat::Z16 ||
-        tex_format == Tegra::Texture::TextureFormat::X8Z24 ||
-        tex_format == Tegra::Texture::TextureFormat::Z32_X24S8;
-    
-    const bool is_hdr_float = 
-        tex_format == Tegra::Texture::TextureFormat::B10G11R11 ||
-        tex_format == Tegra::Texture::TextureFormat::E5B9G9R9;
-    
-    // Sanity check: HDR formats should use FLOAT components, depth should use UNORM/UINT
-    if (is_hdr_float && config.r_type != Tegra::Texture::ComponentType::FLOAT) {
-        LOG_WARNING(Render_Vulkan,
-                    "HDR format 0x{:02X} has non-FLOAT components (r={} g={} b={} a={}), "
-                    "possible register corruption",
-                    static_cast<u32>(tex_format.Value()),
-                    static_cast<u32>(config.r_type.Value()), static_cast<u32>(config.g_type.Value()),
-                    static_cast<u32>(config.b_type.Value()), static_cast<u32>(config.a_type.Value()));
-    }
-    
     format = PixelFormatFromTextureInfo(config.format, config.r_type, config.g_type, config.b_type,
                                         config.a_type, config.srgb_conversion);
-    
-    // Validate final format makes sense
-    const bool detected_as_depth = 
-        format == PixelFormat::D32_FLOAT || format == PixelFormat::D16_UNORM ||
-        format == PixelFormat::X8_D24_UNORM || format == PixelFormat::S8_UINT ||
-        format == PixelFormat::S8_UINT_D24_UNORM || format == PixelFormat::D24_UNORM_S8_UINT ||
-        format == PixelFormat::D32_FLOAT_S8_UINT;
-    
-    if (is_hdr_float && detected_as_depth) {
-        LOG_ERROR(Render_Vulkan,
-                  "Format mismatch: HDR format 0x{:02X} mapped to depth/stencil {}. "
-                  "TIC components: r={} g={} b={} a={} srgb={}",
-                  static_cast<u32>(tex_format.Value()), format,
-                  static_cast<u32>(config.r_type.Value()), static_cast<u32>(config.g_type.Value()),
-                  static_cast<u32>(config.b_type.Value()), static_cast<u32>(config.a_type.Value()),
-                  config.srgb_conversion);
-    }
-    
-    if (is_depth_stencil && !detected_as_depth && 
-        format != PixelFormat::A8B8G8R8_UNORM) { // Allow fallback
-        LOG_ERROR(Render_Vulkan,
-                  "Format mismatch: Depth/stencil format 0x{:02X} mapped to color {}. "
-                  "TIC components: r={} g={} b={} a={} srgb={}",
-                  static_cast<u32>(tex_format.Value()), format,
-                  static_cast<u32>(config.r_type.Value()), static_cast<u32>(config.g_type.Value()),
-                  static_cast<u32>(config.b_type.Value()), static_cast<u32>(config.a_type.Value()),
-                  config.srgb_conversion);
-    }
     
     num_samples = NumSamples(config.msaa_mode);
     resources.levels = config.max_mip_level + 1;
