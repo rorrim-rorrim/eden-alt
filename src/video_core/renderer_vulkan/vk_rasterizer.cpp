@@ -37,6 +37,7 @@
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/shader_cache.h"
 #include "video_core/texture_cache/texture_cache_base.h"
+#include "video_core/texture_cache/samples_helper.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
@@ -996,6 +997,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateDepthBounds(regs);
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
+    UpdateSampleLocations(regs);
     
     // EDS1: CullMode, DepthCompare, FrontFace, StencilOp, DepthBoundsTest, DepthTest, DepthWrite, StencilTest
     if (device.IsExtExtendedDynamicStateSupported()) {
@@ -1356,6 +1358,58 @@ void RasterizerVulkan::UpdateLineWidth(Tegra::Engines::Maxwell3D::Regs& regs) {
     const float width =
         regs.line_anti_alias_enable ? regs.line_width_smooth : regs.line_width_aliased;
     scheduler.Record([width](vk::CommandBuffer cmdbuf) { cmdbuf.SetLineWidth(width); });
+}
+
+void RasterizerVulkan::UpdateSampleLocations(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!device.IsExtSampleLocationsSupported()) {
+        state_tracker.TouchSampleLocations();
+        return;
+    }
+    if (!state_tracker.TouchSampleLocations()) {
+        return;
+    }
+
+    const auto msaa_mode = regs.anti_alias_samples_mode;
+    const u32 sample_count = static_cast<u32>(VideoCommon::NumSamples(msaa_mode));
+    if (sample_count <= 1) {
+        return;
+    }
+
+    const VkSampleCountFlagBits vk_samples = MaxwellToVK::MsaaMode(msaa_mode);
+    if (!device.SupportsSampleLocationsFor(vk_samples)) {
+        return;
+    }
+
+    const auto& props = device.SampleLocationProperties();
+    std::array<VkSampleLocationEXT, 16> locations{};
+    constexpr float unit = 1.0f / 16.0f;
+    const auto clamp_coord = [&](float coord) {
+        return std::clamp(coord, props.sampleLocationCoordinateRange[0],
+                          props.sampleLocationCoordinateRange[1]);
+    };
+
+    for (u32 sample_index = 0; sample_index < sample_count; ++sample_index) {
+        const auto& packed = regs.multisample_sample_locations[sample_index / 4];
+        const auto [raw_x, raw_y] = packed.Location(sample_index % 4);
+        const float x = clamp_coord((static_cast<int>(raw_x) - 8) * unit);
+        const float y = clamp_coord((static_cast<int>(raw_y) - 8) * unit);
+        locations[sample_index] = VkSampleLocationEXT{.x = x, .y = y};
+    }
+
+    VkSampleLocationsInfoEXT info{
+        .sType = VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT,
+        .pNext = nullptr,
+        .sampleLocationsPerPixel = vk_samples,
+        .sampleLocationGridSize = {1u, 1u},
+        .sampleLocationsCount = sample_count,
+        .pSampleLocations = locations.data(),
+    };
+
+    scheduler.Record([info, locations](vk::CommandBuffer cmdbuf) mutable {
+        auto info_copy = info;
+        info_copy.pSampleLocations = locations.data();
+        cmdbuf.SetSampleLocationsEXT(info_copy);
+    });
 }
 
 void RasterizerVulkan::UpdateCullMode(Tegra::Engines::Maxwell3D::Regs& regs) {

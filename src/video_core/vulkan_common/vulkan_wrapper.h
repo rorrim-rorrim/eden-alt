@@ -265,6 +265,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdSetColorWriteMaskEXT vkCmdSetColorWriteMaskEXT{};
     PFN_vkCmdSetColorBlendEnableEXT vkCmdSetColorBlendEnableEXT{};
     PFN_vkCmdSetColorBlendEquationEXT vkCmdSetColorBlendEquationEXT{};
+    PFN_vkCmdSetSampleLocationsEXT vkCmdSetSampleLocationsEXT{};
     PFN_vkCmdWaitEvents vkCmdWaitEvents{};
     PFN_vkCreateBuffer vkCreateBuffer{};
     PFN_vkCreateBufferView vkCreateBufferView{};
@@ -1519,6 +1520,10 @@ public:
     void SetColorBlendEquationEXT(u32 first,
                                   Span<VkColorBlendEquationEXT> equations) const noexcept {
         dld->vkCmdSetColorBlendEquationEXT(handle, first, equations.size(), equations.data());
+    }
+
+    void SetSampleLocationsEXT(const VkSampleLocationsInfoEXT& info) const noexcept {
+        dld->vkCmdSetSampleLocationsEXT(handle, &info);
     }
 
     void SetLineWidth(float line_width) const noexcept {
