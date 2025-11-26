@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <array>
 #include <iostream>
 #include <span>
 
@@ -23,6 +24,7 @@
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/shader_notify.h"
+#include "video_core/texture_cache/samples_helper.h"
 #include "video_core/texture_cache/texture_cache.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 
@@ -747,11 +749,13 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
 
     const bool supports_alpha_output = fragment_has_color0_output;
     const bool alpha_to_one_supported = device.SupportsAlphaToOne();
-    const VkPipelineMultisampleStateCreateInfo multisample_ci{
+    const auto msaa_mode = key.state.msaa_mode.Value();
+    const VkSampleCountFlagBits vk_samples = MaxwellToVK::MsaaMode(msaa_mode);
+    VkPipelineMultisampleStateCreateInfo multisample_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .rasterizationSamples = MaxwellToVK::MsaaMode(key.state.msaa_mode),
+        .rasterizationSamples = vk_samples,
         .sampleShadingEnable = Settings::values.sample_shading.GetValue() > 0 ? VK_TRUE : VK_FALSE,
         .minSampleShading = f32(Settings::values.sample_shading.GetValue()) / 100.0f,
         .pSampleMask = nullptr,
@@ -760,6 +764,27 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .alphaToOneEnable = supports_alpha_output && alpha_to_one_supported &&
                            key.state.alpha_to_one_enabled != 0 ? VK_TRUE : VK_FALSE,
     };
+
+    std::array<VkSampleLocationEXT, 16> default_sample_locations{};
+    VkSampleLocationsInfoEXT sample_locations_info{
+        .sType = VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT,
+        .pNext = nullptr,
+        .sampleLocationsPerPixel = vk_samples,
+        .sampleLocationGridSize = {1u, 1u},
+        .sampleLocationsCount = static_cast<u32>(VideoCommon::NumSamples(msaa_mode)),
+        .pSampleLocations = default_sample_locations.data(),
+    };
+    VkPipelineSampleLocationsStateCreateInfoEXT sample_locations_ci{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_SAMPLE_LOCATIONS_STATE_CREATE_INFO_EXT,
+        .pNext = nullptr,
+        .sampleLocationsEnable = VK_FALSE,
+        .sampleLocationsInfo = sample_locations_info,
+    };
+    if (device.IsExtSampleLocationsSupported() && sample_locations_info.sampleLocationsCount > 1 &&
+        device.SupportsSampleLocationsFor(vk_samples)) {
+        sample_locations_ci.sampleLocationsEnable = VK_TRUE;
+        sample_locations_ci.pNext = std::exchange(multisample_ci.pNext, &sample_locations_ci);
+    }
     const VkPipelineDepthStencilStateCreateInfo depth_stencil_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
         .pNext = nullptr,
@@ -907,6 +932,10 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         if (device.SupportsDynamicState3AlphaToOneEnable()) {
             dynamic_states.push_back(VK_DYNAMIC_STATE_ALPHA_TO_ONE_ENABLE_EXT);
         }
+    }
+
+    if (sample_locations_ci.sampleLocationsEnable) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_EXT);
     }
 
     const VkPipelineDynamicStateCreateInfo dynamic_state_ci{
