@@ -1393,8 +1393,10 @@ void RasterizerVulkan::UpdateSampleLocations(Tegra::Engines::Maxwell3D::Regs& re
     for (u32 sample_index = 0; sample_index < sample_count; ++sample_index) {
         const auto& packed = regs.multisample_sample_locations[sample_index / 4];
         const auto [raw_x, raw_y] = packed.Location(sample_index % 4);
-        const float x = clamp_coord((static_cast<int>(raw_x) - 8) * unit);
-        const float y = clamp_coord((static_cast<int>(raw_y) - 8) * unit);
+        const float offset_x = static_cast<float>(static_cast<int>(raw_x) - 8);
+        const float offset_y = static_cast<float>(static_cast<int>(raw_y) - 8);
+        const float x = clamp_coord(offset_x * unit);
+        const float y = clamp_coord(offset_y * unit);
         locations[sample_index] = VkSampleLocationEXT{.x = x, .y = y};
     }
 
@@ -1404,12 +1406,13 @@ void RasterizerVulkan::UpdateSampleLocations(Tegra::Engines::Maxwell3D::Regs& re
         .sampleLocationsPerPixel = vk_samples,
         .sampleLocationGridSize = {1u, 1u},
         .sampleLocationsCount = sample_count,
-        .pSampleLocations = locations.data(),
+        .pSampleLocations = nullptr,
     };
 
-    scheduler.Record([info, locations](vk::CommandBuffer cmdbuf) mutable {
+    const auto sample_locations = locations;
+    scheduler.Record([info, sample_locations](vk::CommandBuffer cmdbuf) {
         auto info_copy = info;
-        info_copy.pSampleLocations = locations.data();
+        info_copy.pSampleLocations = sample_locations.data();
         cmdbuf.SetSampleLocationsEXT(info_copy);
     });
 }
