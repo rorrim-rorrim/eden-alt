@@ -857,18 +857,11 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     const u32 size = (std::min)(binding.size, (*channel_state->uniform_buffer_sizes)[stage][index]);
     Buffer& buffer = slot_buffers[binding.buffer_id];
     TouchBuffer(buffer, binding.buffer_id);
-    const bool use_fast_buffer = binding.buffer_id != NULL_BUFFER_ID &&
-                                 size <= channel_state->uniform_buffer_skip_cache_size &&
-                                 !memory_tracker.IsRegionGpuModified(device_addr, size);
-    if (use_fast_buffer) {
+    if (binding.buffer_id != NULL_BUFFER_ID && size <= channel_state->uniform_buffer_skip_cache_size && !memory_tracker.IsRegionGpuModified(device_addr, size)) {
+        const bool should_fast_bind = !HasFastUniformBufferBound(stage, binding_index) || channel_state->uniform_buffer_binding_sizes[stage][binding_index] != size;
         if constexpr (IS_OPENGL) {
             if (runtime.HasFastBufferSubData()) {
-                // Fast path for Nvidia
-                const bool should_fast_bind =
-                    !HasFastUniformBufferBound(stage, binding_index) ||
-                    channel_state->uniform_buffer_binding_sizes[stage][binding_index] != size;
                 if (should_fast_bind) {
-                    // We only have to bind when the currently bound buffer is not the fast version
                     channel_state->fast_bound_uniform_buffers[stage] |= 1u << binding_index;
                     channel_state->uniform_buffer_binding_sizes[stage][binding_index] = size;
                     runtime.BindFastUniformBuffer(stage, binding_index, size);
@@ -878,10 +871,12 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
                 return;
             }
         }
-        channel_state->fast_bound_uniform_buffers[stage] |= 1u << binding_index;
-        channel_state->uniform_buffer_binding_sizes[stage][binding_index] = size;
-        // Stream buffer path to avoid stalling on non-Nvidia drivers or Vulkan
-        const std::span<u8> span = runtime.BindMappedUniformBuffer(stage, binding_index, size);
+        if (should_fast_bind) {
+            channel_state->fast_bound_uniform_buffers[stage] |= 1u << binding_index;
+            channel_state->uniform_buffer_binding_sizes[stage][binding_index] = size;
+            runtime.BindMappedUniformBuffer(stage, binding_index, size);
+        }
+        const std::span<u8> span = runtime.GetMappedUniformBufferSpan(stage, binding_index);
         device_memory.ReadBlockUnsafe(device_addr, span.data(), size);
         return;
     }
