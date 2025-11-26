@@ -4,8 +4,6 @@
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <optional>
-
 #include "common/common_types.h"
 #include "common/math_util.h"
 #include "common/settings.h"
@@ -407,72 +405,6 @@ bool IsPixelFormatSignedInteger(PixelFormat format) {
         return true;
     default:
         return false;
-    }
-}
-
-std::optional<PixelFormat> NormalizedCompatibleFormat(PixelFormat format) {
-    switch (format) {
-    case PixelFormat::A8B8G8R8_UINT:
-        return PixelFormat::A8B8G8R8_UNORM;
-    case PixelFormat::A8B8G8R8_SINT:
-        return PixelFormat::A8B8G8R8_SNORM;
-    case PixelFormat::A2B10G10R10_UINT:
-        return PixelFormat::A2B10G10R10_UNORM;
-    case PixelFormat::R8_UINT:
-        return PixelFormat::R8_UNORM;
-    case PixelFormat::R8_SINT:
-        return PixelFormat::R8_SNORM;
-    case PixelFormat::R8G8_UINT:
-        return PixelFormat::R8G8_UNORM;
-    case PixelFormat::R8G8_SINT:
-        return PixelFormat::R8G8_SNORM;
-    case PixelFormat::R16_UINT:
-        return PixelFormat::R16_UNORM;
-    case PixelFormat::R16_SINT:
-        return PixelFormat::R16_SNORM;
-    case PixelFormat::R16G16_UINT:
-        return PixelFormat::R16G16_UNORM;
-    case PixelFormat::R16G16_SINT:
-        return PixelFormat::R16G16_SNORM;
-    case PixelFormat::R16G16B16A16_UINT:
-        return PixelFormat::R16G16B16A16_UNORM;
-    case PixelFormat::R16G16B16A16_SINT:
-        return PixelFormat::R16G16B16A16_SNORM;
-    default:
-        return std::nullopt;
-    }
-}
-
-std::optional<PixelFormat> IntegerCompatibleFormat(PixelFormat format) {
-    switch (format) {
-    case PixelFormat::A8B8G8R8_UNORM:
-        return PixelFormat::A8B8G8R8_UINT;
-    case PixelFormat::A8B8G8R8_SNORM:
-        return PixelFormat::A8B8G8R8_SINT;
-    case PixelFormat::A2B10G10R10_UNORM:
-        return PixelFormat::A2B10G10R10_UINT;
-    case PixelFormat::R8_UNORM:
-        return PixelFormat::R8_UINT;
-    case PixelFormat::R8_SNORM:
-        return PixelFormat::R8_SINT;
-    case PixelFormat::R8G8_UNORM:
-        return PixelFormat::R8G8_UINT;
-    case PixelFormat::R8G8_SNORM:
-        return PixelFormat::R8G8_SINT;
-    case PixelFormat::R16_UNORM:
-        return PixelFormat::R16_UINT;
-    case PixelFormat::R16_SNORM:
-        return PixelFormat::R16_SINT;
-    case PixelFormat::R16G16_UNORM:
-        return PixelFormat::R16G16_UINT;
-    case PixelFormat::R16G16_SNORM:
-        return PixelFormat::R16G16_SINT;
-    case PixelFormat::R16G16B16A16_UNORM:
-        return PixelFormat::R16G16B16A16_UINT;
-    case PixelFormat::R16G16B16A16_SNORM:
-        return PixelFormat::R16G16B16A16_SINT;
-    default:
-        return std::nullopt;
     }
 }
 

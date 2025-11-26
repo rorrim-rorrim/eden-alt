@@ -189,7 +189,7 @@ inline void PushImageDescriptors(TextureCache& texture_cache,
             const VideoCommon::ImageViewId image_view_id{(views++)->id};
             const VideoCommon::SamplerId sampler_id{*(samplers++)};
             ImageView& image_view{texture_cache.GetImageView(image_view_id)};
-            const VkImageView vk_image_view{image_view.SampledHandle(desc.type, desc.is_integer)};
+            const VkImageView vk_image_view{image_view.Handle(desc.type)};
             const Sampler& sampler{texture_cache.GetSampler(sampler_id)};
             const bool use_fallback_sampler{sampler.HasAddedAnisotropy() &&
                                             !image_view.SupportsAnisotropy()};
