@@ -2274,12 +2274,6 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
     // Some games have samplers with garbage. Sanitize them here.
     const f32 max_anisotropy = std::clamp(tsc.MaxAnisotropy(), 1.0f, 16.0f);
 
-    // Depth compare only works with depth formats. Disable if linear filtering is used (color sampler).
-    const bool likely_color_sampler = 
-        tsc.mag_filter == Tegra::Texture::TextureFilter::Linear ||
-        tsc.min_filter == Tegra::Texture::TextureFilter::Linear;
-    const bool use_depth_compare = tsc.depth_compare_enabled && !likely_color_sampler;
-
     const auto create_sampler = [&](const f32 anisotropy) {
         return device.GetLogical().CreateSampler(VkSamplerCreateInfo{
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -2294,7 +2288,7 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
             .mipLodBias = tsc.LodBias(),
             .anisotropyEnable = static_cast<VkBool32>(anisotropy > 1.0f ? VK_TRUE : VK_FALSE),
             .maxAnisotropy = anisotropy,
-            .compareEnable = use_depth_compare,
+            .compareEnable = tsc.depth_compare_enabled,
             .compareOp = MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func),
             .minLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.0f : tsc.MinLod(),
             .maxLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.25f : tsc.MaxLod(),
