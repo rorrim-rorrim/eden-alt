@@ -608,13 +608,14 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         const size_t sampler_limit = properties.properties.limits.maxSamplerAllocationCount;
         if (sampler_limit > 0) {
             constexpr size_t MIN_SAMPLER_BUDGET = 1024U;
+            const size_t reserved = sampler_limit / 4U;
             const size_t derived_budget =
-                (std::max)(MIN_SAMPLER_BUDGET, sampler_limit / 4U);
+                (std::max)(MIN_SAMPLER_BUDGET, sampler_limit - reserved);
             sampler_heap_budget = derived_budget;
             LOG_WARNING(Render_Vulkan,
-                        "Qualcomm driver reports max {} samplers; clamping cache to {} (25%) to "
-                        "avoid heap exhaustion",
-                        sampler_limit, sampler_heap_budget);
+                        "Qualcomm driver reports max {} samplers; reserving {} (25%) and "
+                        "allowing Eden to use {} (75%) to avoid heap exhaustion",
+                        sampler_limit, reserved, sampler_heap_budget);
         }
     }
 
