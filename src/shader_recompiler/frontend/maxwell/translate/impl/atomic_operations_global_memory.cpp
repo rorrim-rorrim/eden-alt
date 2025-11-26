@@ -166,6 +166,7 @@ IR::Value ApplyAtomOp(TranslatorVisitor& v, IR::Reg operand_reg, const IR::U64& 
     switch (size) {
     case AtomSize::U32:
     case AtomSize::S32:
+        return ApplyIntegerAtomOp(v.ir, offset, v.X(operand_reg), op, size);
     case AtomSize::U64:
     case AtomSize::S64:
         return ApplyIntegerAtomOp(v.ir, offset, v.L(operand_reg), op, size);
