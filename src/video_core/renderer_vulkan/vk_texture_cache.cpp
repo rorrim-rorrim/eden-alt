@@ -2280,7 +2280,7 @@ bool ImageView::IsRescaled() const noexcept {
     return src_image.IsRescaled();
 }
 
-vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags view_aspect_mask) {
+vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask) {
     return device->GetLogical().CreateImageView({
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext = nullptr,
@@ -2294,7 +2294,7 @@ vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags view_as
             .b = VK_COMPONENT_SWIZZLE_IDENTITY,
             .a = VK_COMPONENT_SWIZZLE_IDENTITY,
         },
-        .subresourceRange = MakeSubresourceRange(view_aspect_mask, range),
+        .subresourceRange = MakeSubresourceRange(aspect_mask, range),
     });
 }
 
