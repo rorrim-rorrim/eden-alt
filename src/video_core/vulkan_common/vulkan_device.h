@@ -20,6 +20,16 @@
 
 VK_DEFINE_HANDLE(VmaAllocator)
 
+#ifndef VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLE_LOCATIONS_FEATURES_EXT
+#define VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLE_LOCATIONS_FEATURES_EXT \
+    static_cast<VkStructureType>(1000143001)
+typedef struct VkPhysicalDeviceSampleLocationsFeaturesEXT {
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 sampleLocations;
+} VkPhysicalDeviceSampleLocationsFeaturesEXT;
+#endif // VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLE_LOCATIONS_FEATURES_EXT
+
 // Define all features which may be used by the implementation here.
 // Vulkan version in the macro describes the minimum version required for feature availability.
 // If the Vulkan version is lower than the required version, the named extension is required.
