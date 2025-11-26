@@ -797,13 +797,17 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
                            key.state.alpha_to_one_enabled != 0 ? VK_TRUE : VK_FALSE,
     };
 
-    std::array<VkSampleLocationEXT, 16> default_sample_locations{};
+    const auto [sample_grid_width, sample_grid_height] =
+        VideoCommon::SampleLocationGridSize(msaa_mode);
+    const u32 sample_count = static_cast<u32>(VideoCommon::NumSamples(msaa_mode));
+    const u32 total_sample_locations = sample_count * sample_grid_width * sample_grid_height;
+    std::array<VkSampleLocationEXT, VideoCommon::MaxSampleLocationSlots> default_sample_locations{};
     VkSampleLocationsInfoEXT sample_locations_info{
         .sType = VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT,
         .pNext = nullptr,
         .sampleLocationsPerPixel = vk_samples,
-        .sampleLocationGridSize = {1u, 1u},
-        .sampleLocationsCount = static_cast<u32>(VideoCommon::NumSamples(msaa_mode)),
+        .sampleLocationGridSize = {sample_grid_width, sample_grid_height},
+        .sampleLocationsCount = total_sample_locations,
         .pSampleLocations = default_sample_locations.data(),
     };
     VkPipelineSampleLocationsStateCreateInfoEXT sample_locations_ci{
@@ -812,7 +816,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .sampleLocationsEnable = VK_FALSE,
         .sampleLocationsInfo = sample_locations_info,
     };
-    if (device.IsExtSampleLocationsSupported() && sample_locations_info.sampleLocationsCount > 1 &&
+    if (device.IsExtSampleLocationsSupported() && total_sample_locations > 0 &&
         device.SupportsSampleLocationsFor(vk_samples)) {
         sample_locations_ci.sampleLocationsEnable = VK_TRUE;
         sample_locations_ci.pNext = std::exchange(multisample_ci.pNext, &sample_locations_ci);
