@@ -876,7 +876,7 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
             channel_state->uniform_buffer_binding_sizes[stage][binding_index] = size;
             runtime.BindMappedUniformBuffer(stage, binding_index, size);
         }
-        const std::span<u8> span = runtime.GetMappedUniformBufferSpan(stage, binding_index);
+        const std::span<u8> span = runtime.BindMappedUniformBuffer(stage, binding_index, size);
         device_memory.ReadBlockUnsafe(device_addr, span.data(), size);
         return;
     }
