@@ -600,11 +600,39 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         }
     }
 
+    const bool needs_mobile_alignment_clamp = is_qualcomm || is_arm;
+    use_mobile_megabuffer = needs_mobile_alignment_clamp;
+
     if (is_qualcomm) {
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
         if (version < VK_MAKE_API_VERSION(0, 255, 615, 512)) {
             has_broken_parallel_compiling = true;
         }
+    }
+
+    if (needs_mobile_alignment_clamp) {
+        const char* driver_label = is_qualcomm ? "Qualcomm" : "ARM";
+
+        constexpr VkDeviceSize MIN_UNIFORM_ALIGNMENT = 256;
+        const VkDeviceSize reported_uniform_alignment =
+            properties.properties.limits.minUniformBufferOffsetAlignment;
+        if (reported_uniform_alignment < MIN_UNIFORM_ALIGNMENT) {
+            uniform_buffer_alignment_minimum = MIN_UNIFORM_ALIGNMENT;
+            LOG_WARNING(Render_Vulkan,
+                        "{} driver reports {}-byte minUniformBufferOffsetAlignment; clamping to {}",
+                        driver_label, reported_uniform_alignment, uniform_buffer_alignment_minimum);
+        }
+
+        constexpr VkDeviceSize MIN_STORAGE_ALIGNMENT = 64;
+        const VkDeviceSize reported_storage_alignment =
+            properties.properties.limits.minStorageBufferOffsetAlignment;
+        if (reported_storage_alignment < MIN_STORAGE_ALIGNMENT) {
+            storage_buffer_alignment_minimum = MIN_STORAGE_ALIGNMENT;
+            LOG_WARNING(Render_Vulkan,
+                        "{} driver reports {}-byte minStorageBufferOffsetAlignment; clamping to {}",
+                        driver_label, reported_storage_alignment, storage_buffer_alignment_minimum);
+        }
+
         const size_t sampler_limit = properties.properties.limits.maxSamplerAllocationCount;
         if (sampler_limit > 0) {
             constexpr size_t MIN_SAMPLER_BUDGET = 1024U;
@@ -613,9 +641,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                 (std::max)(MIN_SAMPLER_BUDGET, sampler_limit - reserved);
             sampler_heap_budget = derived_budget;
             LOG_WARNING(Render_Vulkan,
-                        "Qualcomm driver reports max {} samplers; reserving {} (25%) and "
+                        "{} driver reports max {} samplers; reserving {} (25%) and "
                         "allowing Eden to use {} (75%) to avoid heap exhaustion",
-                        sampler_limit, reserved, sampler_heap_budget);
+                        driver_label, sampler_limit, reserved, sampler_heap_budget);
         }
     }
 
