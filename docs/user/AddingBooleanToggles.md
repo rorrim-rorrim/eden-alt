@@ -1,4 +1,4 @@
-# Adding Boolean Settings Toggles
+# User Handbook - Adding Boolean Settings Toggles
 
 > [!WARNING]
 > This guide is intended for developers ONLY. If you are not a developer, this likely irrelevant to yourself.
