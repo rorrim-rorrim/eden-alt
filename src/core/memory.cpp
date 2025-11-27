@@ -60,7 +60,7 @@ struct Memory::Impl {
             current_page_table->fastmem_arena = nullptr;
         }
 
-#ifdef __linux__
+#ifdef __ANDROID__
         heap_tracker.emplace(system.DeviceMemory().buffer);
         buffer = std::addressof(*heap_tracker);
 #else
@@ -1025,7 +1025,7 @@ struct Memory::Impl {
     std::mutex sys_core_guard;
 
     std::optional<Common::HeapTracker> heap_tracker;
-#ifdef __linux__
+#ifdef __ANDROID__
     Common::HeapTracker* buffer{};
 #else
     Common::HostMemory* buffer{};
@@ -1231,7 +1231,7 @@ bool Memory::InvalidateNCE(Common::ProcessAddress vaddr, size_t size) {
         impl->InvalidateGPUMemory(ptr, size);
     }
 
-#ifdef __linux__
+#ifdef __ANDROID__
     if (!rasterizer && mapped) {
         impl->buffer->DeferredMapSeparateHeap(GetInteger(vaddr));
     }
@@ -1241,7 +1241,7 @@ bool Memory::InvalidateNCE(Common::ProcessAddress vaddr, size_t size) {
 }
 
 bool Memory::InvalidateSeparateHeap(void* fault_address) {
-#ifdef __linux__
+#ifdef __ANDROID__
     return impl->buffer->DeferredMapSeparateHeap(static_cast<u8*>(fault_address));
 #else
     return false;
