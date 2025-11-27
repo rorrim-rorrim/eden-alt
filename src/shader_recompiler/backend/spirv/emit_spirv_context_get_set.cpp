@@ -41,7 +41,185 @@ struct OutAttr {
 
     Id pointer{};
     Id type{};
+    const GenericElementInfo* generic_info{};
+    u32 generic_element{};
+    bool is_position{};
+    u32 position_component{};
 };
+
+bool NeedsVectorAccessWorkaround(const EmitContext& ctx) {
+    return ctx.profile.has_broken_spirv_vector_access_chain;
+}
+
+bool StageHasPerVertexInputs(const EmitContext& ctx) {
+    switch (ctx.stage) {
+    case Stage::TessellationControl:
+    case Stage::TessellationEval:
+    case Stage::Geometry:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool StageHasPerInvocationOutputs(const EmitContext& ctx) {
+    return ctx.stage == Stage::TessellationControl;
+}
+
+Id ApplyGenericConversion(EmitContext& ctx, const InputGenericInfo& generic, Id value) {
+    switch (generic.load_op) {
+    case InputGenericLoadOp::Bitcast:
+        return ctx.OpBitcast(ctx.F32[1], value);
+    case InputGenericLoadOp::SToF:
+        return ctx.OpConvertSToF(ctx.F32[1], value);
+    case InputGenericLoadOp::UToF:
+        return ctx.OpConvertUToF(ctx.F32[1], value);
+    default:
+        return value;
+    }
+}
+
+Id InputGenericVectorPointer(EmitContext& ctx, const InputGenericInfo& generic, Id vertex,
+                             bool use_vertex) {
+    if (use_vertex) {
+        return ctx.OpAccessChain(generic.composite_pointer_type, generic.id, vertex);
+    }
+    return generic.id;
+}
+
+Id LoadGenericComponentConst(EmitContext& ctx, const InputGenericInfo& generic, Id vertex,
+                             u32 component, bool use_vertex) {
+    if (!NeedsVectorAccessWorkaround(ctx)) {
+        const Id pointer{
+            AttrPointer(ctx, generic.pointer_type, vertex, generic.id, ctx.Const(component))};
+        const Id value{ctx.OpLoad(generic.component_type, pointer)};
+        return ApplyGenericConversion(ctx, generic, value);
+    }
+    const Id vector_pointer{InputGenericVectorPointer(ctx, generic, vertex, use_vertex)};
+    const Id vector_value{ctx.OpLoad(generic.composite_type, vector_pointer)};
+    const Id component_value{
+        ctx.OpCompositeExtract(generic.component_type, vector_value, component)};
+    return ApplyGenericConversion(ctx, generic, component_value);
+}
+
+Id OutputGenericVectorPointer(EmitContext& ctx, const GenericElementInfo& info,
+                              bool use_invocation) {
+    if (use_invocation) {
+        const Id invocation_id{ctx.OpLoad(ctx.U32[1], ctx.invocation_id)};
+        return ctx.OpAccessChain(info.composite_pointer_type, info.id, invocation_id);
+    }
+    return info.id;
+}
+
+void StoreGenericComponentConst(EmitContext& ctx, const GenericElementInfo& info,
+                                u32 attribute_element, Id value, bool use_invocation) {
+    const u32 local_component{attribute_element - info.first_element};
+    if (!NeedsVectorAccessWorkaround(ctx) || info.num_components <= 1) {
+        const Id pointer{
+            OutputAccessChain(ctx, ctx.output_f32, info.id, ctx.Const(local_component))};
+        ctx.OpStore(pointer, value);
+        return;
+    }
+    const Id vector_pointer{OutputGenericVectorPointer(ctx, info, use_invocation)};
+    const Id vector_value{ctx.OpLoad(info.composite_type, vector_pointer)};
+    const Id updated{
+        ctx.OpCompositeInsert(info.composite_type, value, vector_value, local_component)};
+    ctx.OpStore(vector_pointer, updated);
+}
+
+Id InputPositionPointer(EmitContext& ctx, Id vertex, bool use_vertex) {
+    const Id vector_pointer_type{ctx.TypePointer(spv::StorageClass::Input, ctx.F32[4])};
+    if (ctx.need_input_position_indirect) {
+        if (use_vertex) {
+            return ctx.OpAccessChain(vector_pointer_type, ctx.input_position, vertex,
+                                     ctx.u32_zero_value);
+        }
+        return ctx.OpAccessChain(vector_pointer_type, ctx.input_position, ctx.u32_zero_value);
+    }
+    if (use_vertex) {
+        return ctx.OpAccessChain(vector_pointer_type, ctx.input_position, vertex);
+    }
+    return ctx.input_position;
+}
+
+Id LoadPositionComponent(EmitContext& ctx, Id vertex, u32 component, bool use_vertex) {
+    if (!NeedsVectorAccessWorkaround(ctx)) {
+        return ctx.OpLoad(
+            ctx.F32[1],
+            ctx.need_input_position_indirect
+                ? AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_position, ctx.u32_zero_value,
+                              ctx.Const(component))
+                : AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_position,
+                              ctx.Const(component)));
+    }
+    const Id pointer{InputPositionPointer(ctx, vertex, use_vertex)};
+    const Id vector_value{ctx.OpLoad(ctx.F32[4], pointer)};
+    return ctx.OpCompositeExtract(ctx.F32[1], vector_value, component);
+}
+
+void StorePositionComponent(EmitContext& ctx, u32 component, Id value) {
+    if (!NeedsVectorAccessWorkaround(ctx)) {
+        const Id pointer{OutputAccessChain(ctx, ctx.output_f32, ctx.output_position,
+                                           ctx.Const(component))};
+        ctx.OpStore(pointer, value);
+        return;
+    }
+    const bool use_invocation{StageHasPerInvocationOutputs(ctx)};
+    const Id pointer_type{ctx.TypePointer(spv::StorageClass::Output, ctx.F32[4])};
+    const Id target_pointer{use_invocation
+                                ? ctx.OpAccessChain(pointer_type, ctx.output_position,
+                                                    ctx.OpLoad(ctx.U32[1], ctx.invocation_id))
+                                : ctx.output_position};
+    const Id vector_value{ctx.OpLoad(ctx.F32[4], target_pointer)};
+    const Id updated{ctx.OpCompositeInsert(ctx.F32[4], value, vector_value, component)};
+    ctx.OpStore(target_pointer, updated);
+}
+
+Id LoadBuiltinVectorComponent(EmitContext& ctx, Id pointer, Id pointer_type, Id vector_type,
+                              u32 component) {
+    if (!NeedsVectorAccessWorkaround(ctx)) {
+        const Id comp_id{ctx.Const(component)};
+        const Id elem_ptr{ctx.OpAccessChain(pointer_type, pointer, comp_id)};
+        return ctx.OpLoad(ctx.F32[1], elem_ptr);
+    }
+    const Id vector_value{ctx.OpLoad(vector_type, pointer)};
+    return ctx.OpCompositeExtract(ctx.F32[1], vector_value, component);
+}
+
+Id LoadPatchComponent(EmitContext& ctx, Id patch, u32 component) {
+    if (!NeedsVectorAccessWorkaround(ctx)) {
+        const Id pointer{ctx.OpAccessChain(ctx.stage == Stage::TessellationControl ? ctx.output_f32
+                                                                                  : ctx.input_f32,
+                                           patch, ctx.Const(component))};
+        return ctx.OpLoad(ctx.F32[1], pointer);
+    }
+    const Id vector_value{ctx.OpLoad(ctx.F32[4], patch)};
+    return ctx.OpCompositeExtract(ctx.F32[1], vector_value, component);
+}
+
+void StorePatchComponent(EmitContext& ctx, Id patch, u32 component, Id value) {
+    if (!NeedsVectorAccessWorkaround(ctx)) {
+        const Id pointer{ctx.OpAccessChain(ctx.output_f32, patch, ctx.Const(component))};
+        ctx.OpStore(pointer, value);
+        return;
+    }
+    const Id vector_value{ctx.OpLoad(ctx.F32[4], patch)};
+    const Id updated{ctx.OpCompositeInsert(ctx.F32[4], value, vector_value, component)};
+    ctx.OpStore(patch, updated);
+}
+
+void StoreFragColorComponent(EmitContext& ctx, u32 index, u32 component, Id value) {
+    if (!NeedsVectorAccessWorkaround(ctx)) {
+        const Id component_id{ctx.Const(component)};
+        const Id pointer{
+            ctx.OpAccessChain(ctx.output_f32, ctx.frag_color.at(index), component_id)};
+        ctx.OpStore(pointer, value);
+        return;
+    }
+    const Id vector_value{ctx.OpLoad(ctx.F32[4], ctx.frag_color.at(index))};
+    const Id updated{ctx.OpCompositeInsert(ctx.F32[4], value, vector_value, component)};
+    ctx.OpStore(ctx.frag_color.at(index), updated);
+}
 
 std::optional<OutAttr> OutputAttrPointer(EmitContext& ctx, IR::Attribute attr) {
     if (IR::IsGeneric(attr)) {
@@ -49,11 +227,17 @@ std::optional<OutAttr> OutputAttrPointer(EmitContext& ctx, IR::Attribute attr) {
         const u32 element{IR::GenericAttributeElement(attr)};
         const GenericElementInfo& info{ctx.output_generics.at(index).at(element)};
         if (info.num_components == 1) {
-            return info.id;
+            OutAttr out{info.id};
+            out.generic_info = &info;
+            out.generic_element = element;
+            return out;
         } else {
             const u32 index_element{element - info.first_element};
             const Id index_id{ctx.Const(index_element)};
-            return OutputAccessChain(ctx, ctx.output_f32, info.id, index_id);
+            OutAttr out{OutputAccessChain(ctx, ctx.output_f32, info.id, index_id)};
+            out.generic_info = &info;
+            out.generic_element = element;
+            return out;
         }
     }
 
@@ -66,7 +250,10 @@ std::optional<OutAttr> OutputAttrPointer(EmitContext& ctx, IR::Attribute attr) {
     case IR::Attribute::PositionW: {
         const u32 element{static_cast<u32>(attr) % 4};
         const Id element_id{ctx.Const(element)};
-        return OutputAccessChain(ctx, ctx.output_f32, ctx.output_position, element_id);
+        OutAttr out{OutputAccessChain(ctx, ctx.output_f32, ctx.output_position, element_id)};
+        out.is_position = true;
+        out.position_component = element;
+        return out;
     }
     case IR::Attribute::ClipDistance0:
     case IR::Attribute::ClipDistance1:
@@ -316,21 +503,8 @@ Id EmitGetAttribute(EmitContext& ctx, IR::Attribute attr, Id vertex) {
             // Attribute is disabled or varying component is not written
             return ctx.Const(element == 3 ? 1.0f : 0.0f);
         }
-        const Id pointer{
-            AttrPointer(ctx, generic.pointer_type, vertex, generic.id, ctx.Const(element))};
-        const Id value{ctx.OpLoad(generic.component_type, pointer)};
-        return [&ctx, generic, value]() {
-            switch (generic.load_op) {
-            case InputGenericLoadOp::Bitcast:
-                return ctx.OpBitcast(ctx.F32[1], value);
-            case InputGenericLoadOp::SToF:
-                return ctx.OpConvertSToF(ctx.F32[1], value);
-            case InputGenericLoadOp::UToF:
-                return ctx.OpConvertUToF(ctx.F32[1], value);
-            default:
-                return value;
-            };
-        }();
+        const bool use_vertex{StageHasPerVertexInputs(ctx)};
+        return LoadGenericComponentConst(ctx, generic, vertex, element, use_vertex);
     }
     switch (attr) {
     case IR::Attribute::PrimitiveId:
@@ -341,12 +515,7 @@ Id EmitGetAttribute(EmitContext& ctx, IR::Attribute attr, Id vertex) {
     case IR::Attribute::PositionY:
     case IR::Attribute::PositionZ:
     case IR::Attribute::PositionW:
-        return ctx.OpLoad(
-            ctx.F32[1],
-            ctx.need_input_position_indirect
-                ? AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_position, ctx.u32_zero_value,
-                              ctx.Const(element))
-                : AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_position, ctx.Const(element)));
+        return LoadPositionComponent(ctx, vertex, element, StageHasPerVertexInputs(ctx));
     case IR::Attribute::InstanceId:
         if (ctx.profile.support_vertex_instance_id) {
             return ctx.OpBitcast(ctx.F32[1], ctx.OpLoad(ctx.U32[1], ctx.instance_id));
@@ -372,17 +541,13 @@ Id EmitGetAttribute(EmitContext& ctx, IR::Attribute attr, Id vertex) {
                             ctx.OpBitcast(ctx.F32[1], ctx.Const((std::numeric_limits<u32>::max)())),
                             ctx.f32_zero_value);
     case IR::Attribute::PointSpriteS:
-        return ctx.OpLoad(ctx.F32[1],
-                          ctx.OpAccessChain(ctx.input_f32, ctx.point_coord, ctx.u32_zero_value));
+        return LoadBuiltinVectorComponent(ctx, ctx.point_coord, ctx.input_f32, ctx.F32[2], 0);
     case IR::Attribute::PointSpriteT:
-        return ctx.OpLoad(ctx.F32[1],
-                          ctx.OpAccessChain(ctx.input_f32, ctx.point_coord, ctx.Const(1U)));
+        return LoadBuiltinVectorComponent(ctx, ctx.point_coord, ctx.input_f32, ctx.F32[2], 1);
     case IR::Attribute::TessellationEvaluationPointU:
-        return ctx.OpLoad(ctx.F32[1],
-                          ctx.OpAccessChain(ctx.input_f32, ctx.tess_coord, ctx.u32_zero_value));
+        return LoadBuiltinVectorComponent(ctx, ctx.tess_coord, ctx.input_f32, ctx.F32[3], 0);
     case IR::Attribute::TessellationEvaluationPointV:
-        return ctx.OpLoad(ctx.F32[1],
-                          ctx.OpAccessChain(ctx.input_f32, ctx.tess_coord, ctx.Const(1U)));
+        return LoadBuiltinVectorComponent(ctx, ctx.tess_coord, ctx.input_f32, ctx.F32[3], 1);
     default:
         throw NotImplementedException("Read attribute {}", attr);
     }
@@ -433,6 +598,20 @@ void EmitSetAttribute(EmitContext& ctx, IR::Attribute attr, Id value, [[maybe_un
         const u32 idx = (u32) attr - (u32) cd0;
         clip_distance_written.set(idx);
     }
+
+    if (NeedsVectorAccessWorkaround(ctx)) {
+        const bool use_invocation{StageHasPerInvocationOutputs(ctx)};
+        if (output->generic_info) {
+            StoreGenericComponentConst(ctx, *output->generic_info, output->generic_element, value,
+                                       use_invocation);
+            return;
+        }
+        if (output->is_position) {
+            StorePositionComponent(ctx, output->position_component, value);
+            return;
+        }
+    }
+
     ctx.OpStore(output->pointer, value);
 }
 
@@ -456,18 +635,20 @@ Id EmitGetPatch(EmitContext& ctx, IR::Patch patch) {
         throw NotImplementedException("Non-generic patch load");
     }
     const u32 index{IR::GenericPatchIndex(patch)};
-    const Id element{ctx.Const(IR::GenericPatchElement(patch))};
-    const Id type{ctx.stage == Stage::TessellationControl ? ctx.output_f32 : ctx.input_f32};
-    const Id pointer{ctx.OpAccessChain(type, ctx.patches.at(index), element)};
-    return ctx.OpLoad(ctx.F32[1], pointer);
+    const u32 element{IR::GenericPatchElement(patch)};
+    return LoadPatchComponent(ctx, ctx.patches.at(index), element);
 }
 
 void EmitSetPatch(EmitContext& ctx, IR::Patch patch, Id value) {
     const Id pointer{[&] {
         if (IR::IsGeneric(patch)) {
             const u32 index{IR::GenericPatchIndex(patch)};
-            const Id element{ctx.Const(IR::GenericPatchElement(patch))};
-            return ctx.OpAccessChain(ctx.output_f32, ctx.patches.at(index), element);
+            const u32 element{IR::GenericPatchElement(patch)};
+            if (NeedsVectorAccessWorkaround(ctx)) {
+                StorePatchComponent(ctx, ctx.patches.at(index), element, value);
+                return Id{};
+            }
+            return ctx.OpAccessChain(ctx.output_f32, ctx.patches.at(index), ctx.Const(element));
         }
         switch (patch) {
         case IR::Patch::TessellationLodLeft:
@@ -487,11 +668,18 @@ void EmitSetPatch(EmitContext& ctx, IR::Patch patch, Id value) {
             throw NotImplementedException("Patch {}", patch);
         }
     }()};
+    if (!Sirit::ValidId(pointer)) {
+        return;
+    }
     ctx.OpStore(pointer, value);
 }
 
 void EmitSetFragColor(EmitContext& ctx, u32 index, u32 component, Id value) {
     const Id component_id{ctx.Const(component)};
+    if (NeedsVectorAccessWorkaround(ctx)) {
+        StoreFragColorComponent(ctx, index, component, value);
+        return;
+    }
     const Id pointer{ctx.OpAccessChain(ctx.output_f32, ctx.frag_color.at(index), component_id)};
     ctx.OpStore(pointer, value);
 }

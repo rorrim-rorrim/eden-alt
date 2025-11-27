@@ -377,6 +377,8 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
                                        driver_id == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA,
 
         .has_broken_spirv_clamp = driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS,
+        .has_broken_spirv_vector_access_chain = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY,
+        .has_broken_spirv_access_chain_opt = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY,
         .has_broken_spirv_position_input = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY,
         .has_broken_unsigned_image_offsets = false,
         .has_broken_signed_operations = false,
@@ -703,7 +705,10 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
 
         const auto runtime_info{MakeRuntimeInfo(programs, key, program, previous_stage, device)};
         ConvertLegacyToGeneric(program, runtime_info);
-        const std::vector<u32> code{EmitSPIRV(profile, runtime_info, program, binding, this->optimize_spirv_output)};
+        const bool optimize_shader{this->optimize_spirv_output &&
+                        !profile.has_broken_spirv_access_chain_opt};
+        const std::vector<u32> code{EmitSPIRV(profile, runtime_info, program, binding,
+                              optimize_shader)};
         device.SaveShader(code);
         modules[stage_index] = BuildShader(device, code);
         if (device.HasDebuggingToolAttached()) {
@@ -810,7 +815,9 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
                     max_shared_memory / 1024);
         program.shared_memory_size = max_shared_memory;
     }
-    const std::vector<u32> code{EmitSPIRV(profile, program, this->optimize_spirv_output)};
+    const bool optimize_shader{this->optimize_spirv_output &&
+                                !profile.has_broken_spirv_access_chain_opt};
+    const std::vector<u32> code{EmitSPIRV(profile, program, optimize_shader)};
     device.SaveShader(code);
     vk::ShaderModule spv_module{BuildShader(device, code)};
     if (device.HasDebuggingToolAttached()) {
