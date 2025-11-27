@@ -92,6 +92,11 @@ constexpr std::array VK_FORMAT_A4B4G4R4_UNORM_PACK16{
 
 } // namespace Alternatives
 
+constexpr VkShaderStageFlags GraphicsStageMask =
+    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT |
+    VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT | VK_SHADER_STAGE_GEOMETRY_BIT |
+    VK_SHADER_STAGE_FRAGMENT_BIT;
+
 template <typename T>
 void SetNext(void**& next, T& data) {
     *next = &data;
@@ -1548,6 +1553,44 @@ void Device::RemoveUnsuitableExtensions() {
     // VK_KHR_maintenance9 (proposed for Vulkan 1.4, no features)
     extensions.maintenance9 = loaded_extensions.contains(VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance9, VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
+}
+
+bool Device::SupportsSubgroupStage(VkShaderStageFlags stage_mask) const {
+    if (stage_mask == 0) {
+        return true;
+    }
+    const VkShaderStageFlags supported = properties.subgroup_properties.supportedStages;
+    if ((supported & stage_mask) == stage_mask) {
+        return true;
+    }
+    if ((stage_mask & GraphicsStageMask) != 0 &&
+        (supported & (VK_SHADER_STAGE_ALL_GRAPHICS | VK_SHADER_STAGE_ALL)) != 0) {
+        return true;
+    }
+    if ((stage_mask & VK_SHADER_STAGE_COMPUTE_BIT) != 0 &&
+        (supported & (VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_ALL)) != 0) {
+        return true;
+    }
+    return (supported & VK_SHADER_STAGE_ALL) != 0;
+}
+
+bool Device::IsSubgroupFeatureSupported(VkSubgroupFeatureFlagBits feature,
+                                        VkShaderStageFlags stage_mask) const {
+    if ((properties.subgroup_properties.supportedOperations & feature) == 0) {
+        return false;
+    }
+    return SupportsSubgroupStage(stage_mask);
+}
+
+bool Device::SupportsWarpIntrinsics(VkShaderStageFlagBits stage) const {
+    constexpr VkSubgroupFeatureFlags required_ops =
+        VK_SUBGROUP_FEATURE_BASIC_BIT | VK_SUBGROUP_FEATURE_VOTE_BIT |
+        VK_SUBGROUP_FEATURE_ARITHMETIC_BIT | VK_SUBGROUP_FEATURE_BALLOT_BIT |
+        VK_SUBGROUP_FEATURE_SHUFFLE_BIT | VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT;
+    if ((properties.subgroup_properties.supportedOperations & required_ops) != required_ops) {
+        return false;
+    }
+    return SupportsSubgroupStage(stage);
 }
 
 void Device::SetupFamilies(VkSurfaceKHR surface) {

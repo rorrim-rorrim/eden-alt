@@ -401,10 +401,25 @@ public:
         return properties.subgroup_size_control.requiredSubgroupSizeStages & stage;
     }
 
-    /// Returns true if the device supports the provided subgroup feature.
-    bool IsSubgroupFeatureSupported(VkSubgroupFeatureFlagBits feature) const {
-        return properties.subgroup_properties.supportedOperations & feature;
+    /// Returns true if the device supports the provided subgroup feature for the given stages.
+    bool IsSubgroupFeatureSupported(VkSubgroupFeatureFlagBits feature,
+                                    VkShaderStageFlags stage_mask = 0) const;
+
+    /// Returns true if the device reports subgroup support for the provided shader stages.
+    bool SupportsSubgroupStage(VkShaderStageFlags stage_mask) const;
+
+    /// Returns the set of stages that report subgroup support.
+    VkShaderStageFlags GetSubgroupSupportedStages() const {
+        return properties.subgroup_properties.supportedStages;
     }
+
+    /// Returns the set of subgroup operations reported by the driver.
+    VkSubgroupFeatureFlags GetSubgroupSupportedOperations() const {
+        return properties.subgroup_properties.supportedOperations;
+    }
+
+    /// Returns true if the driver can execute all warp intrinsics for the given shader stage.
+    bool SupportsWarpIntrinsics(VkShaderStageFlagBits stage) const;
 
     /// Returns the maximum number of push descriptors.
     u32 MaxPushDescriptors() const {

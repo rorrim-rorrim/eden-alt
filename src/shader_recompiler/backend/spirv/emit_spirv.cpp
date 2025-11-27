@@ -11,6 +11,7 @@
 #include <vector>
 #include <spirv-tools/optimizer.hpp>
 
+#include "common/logging/log.h"
 #include "common/settings.h"
 #include "shader_recompiler/backend/spirv/emit_spirv.h"
 #include "shader_recompiler/backend/spirv/emit_spirv_instructions.h"
@@ -439,15 +440,23 @@ void SetupCapabilities(const Profile& profile, const Info& info, EmitContext& ct
         ctx.AddExtension("SPV_KHR_shader_draw_parameters");
         ctx.AddCapability(spv::Capability::DrawParameters);
     }
-    if ((info.uses_subgroup_vote || info.uses_subgroup_invocation_id ||
-         info.uses_subgroup_shuffles) &&
-        profile.support_vote) {
+    const bool stage_supports_warp = profile.SupportsWarpIntrinsics(ctx.stage);
+    const bool needs_warp_intrinsics = info.uses_subgroup_vote ||
+                                       info.uses_subgroup_invocation_id ||
+                                       info.uses_subgroup_shuffles;
+
+    if (needs_warp_intrinsics && profile.support_vote && stage_supports_warp) {
         ctx.AddCapability(spv::Capability::GroupNonUniformBallot);
         ctx.AddCapability(spv::Capability::GroupNonUniformShuffle);
         if (!profile.warp_size_potentially_larger_than_guest) {
             // vote ops are only used when not taking the long path
             ctx.AddCapability(spv::Capability::GroupNonUniformVote);
         }
+    } else if (needs_warp_intrinsics && !stage_supports_warp) {
+        LOG_WARNING(Shader,
+                    "Warp intrinsics requested in stage {} but the device does not report subgroup "
+                    "support; falling back to scalar approximations",
+                    static_cast<u32>(ctx.stage));
     }
     if (info.uses_int64_bit_atomics && profile.support_int64_atomics) {
         ctx.AddCapability(spv::Capability::Int64Atomics);
