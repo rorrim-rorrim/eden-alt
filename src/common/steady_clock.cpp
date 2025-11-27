@@ -35,7 +35,7 @@ static s64 GetSystemTimeNS() {
         // Convert Windows epoch to Unix epoch.
         constexpr s64 WindowsEpochToUnixEpoch = 0x19DB1DED53E8000LL;
         FILETIME filetime;
-        GetSystemTimePreciseAsFileTime(&filetime);
+        pf(&filetime);
         return Multiplier * ((s64(filetime.dwHighDateTime) << 32) + s64(filetime.dwLowDateTime) - WindowsEpochToUnixEpoch);
     } else {
         // Only Windows XP and below error out here
