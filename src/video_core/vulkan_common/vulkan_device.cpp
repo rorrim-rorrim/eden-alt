@@ -502,6 +502,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectToolingInfo();
 
     if (is_qualcomm) {
+        disable_graphics_subgroups = true;
+        LOG_WARNING(Render_Vulkan,
+                    "Qualcomm drivers force subgroup emulation; disabling graphics warp intrinsics");
         // Qualcomm Adreno GPUs doesn't handle scaled vertex attributes; keep emulation enabled
         must_emulate_scaled_formats = true;
         LOG_WARNING(Render_Vulkan,
@@ -1579,19 +1582,23 @@ bool Device::SupportsSubgroupStage(VkShaderStageFlags stage_mask) const {
     if (stage_mask == 0) {
         return true;
     }
+    if (disable_graphics_subgroups && (stage_mask & GraphicsStageMask) != 0) {
+        return false;
+    }
     const VkShaderStageFlags supported = properties.subgroup_properties.supportedStages;
     if ((supported & stage_mask) == stage_mask) {
         return true;
     }
     if ((stage_mask & GraphicsStageMask) != 0 &&
-        (supported & (VK_SHADER_STAGE_ALL_GRAPHICS | VK_SHADER_STAGE_ALL)) != 0) {
+        ((supported & VK_SHADER_STAGE_ALL_GRAPHICS) == VK_SHADER_STAGE_ALL_GRAPHICS ||
+         (supported & VK_SHADER_STAGE_ALL) == VK_SHADER_STAGE_ALL)) {
         return true;
     }
     if ((stage_mask & VK_SHADER_STAGE_COMPUTE_BIT) != 0 &&
-        (supported & (VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_ALL)) != 0) {
+        (supported & VK_SHADER_STAGE_ALL) == VK_SHADER_STAGE_ALL) {
         return true;
     }
-    return (supported & VK_SHADER_STAGE_ALL) != 0;
+    return false;
 }
 
 bool Device::IsSubgroupFeatureSupported(VkSubgroupFeatureFlagBits feature,
