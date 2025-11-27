@@ -146,8 +146,6 @@ struct InputGenericInfo {
     Id id;
     Id pointer_type;
     Id component_type;
-    Id composite_type;
-    Id composite_pointer_type;
     InputGenericLoadOp load_op;
 };
 
@@ -155,8 +153,6 @@ struct GenericElementInfo {
     Id id{};
     u32 first_element{};
     u32 num_components{};
-    Id composite_type{};
-    Id composite_pointer_type{};
 };
 
 class EmitContext final : public Sirit::Module {
