@@ -578,7 +578,10 @@ public:
 #endif
         int flags = (fd > 0 ? MAP_SHARED : MAP_PRIVATE) | MAP_FIXED;
         void* ret = mmap(virtual_base + virtual_offset, length, prot_flags, flags, fd, host_offset);
-        ASSERT_MSG(ret != MAP_FAILED, "mmap: {}", strerror(errno));
+        ASSERT_MSG(ret != MAP_FAILED,
+               "mmap(virt_off=0x{:X}, host_off=0x{:X}, len=0x{:X}, virt_size=0x{:X}, backing_size=0x{:X}, perms=0x{:X}) failed: {}",
+               virtual_offset, host_offset, length, virtual_size, backing_size,
+               static_cast<u32>(perms), strerror(errno));
     }
 
     void Unmap(size_t virtual_offset, size_t length) {
