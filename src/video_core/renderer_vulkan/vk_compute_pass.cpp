@@ -459,10 +459,14 @@ QueriesPrefixScanPass::QueriesPrefixScanPass(
           device_, descriptor_pool_, QUERIES_SCAN_DESCRIPTOR_SET_BINDINGS,
           QUERIES_SCAN_DESCRIPTOR_UPDATE_TEMPLATE, QUERIES_SCAN_BANK_INFO,
           COMPUTE_PUSH_CONSTANT_RANGE<sizeof(QueriesPrefixScanPushConstants)>,
-          device_.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_BASIC_BIT) &&
-                  device_.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_ARITHMETIC_BIT) &&
-                  device_.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_SHUFFLE_BIT) &&
-                  device_.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT)
+          device_.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_BASIC_BIT,
+                                             VK_SHADER_STAGE_COMPUTE_BIT) &&
+                  device_.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_ARITHMETIC_BIT,
+                                                      VK_SHADER_STAGE_COMPUTE_BIT) &&
+                  device_.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_SHUFFLE_BIT,
+                                                      VK_SHADER_STAGE_COMPUTE_BIT) &&
+                  device_.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT,
+                                                      VK_SHADER_STAGE_COMPUTE_BIT)
               ? std::span<const u32>(QUERIES_PREFIX_SCAN_SUM_COMP_SPV)
               : std::span<const u32>(QUERIES_PREFIX_SCAN_SUM_NOSUBGROUPS_COMP_SPV)),
       scheduler{scheduler_}, compute_pass_descriptor_queue{compute_pass_descriptor_queue_} {}
