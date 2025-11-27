@@ -21,7 +21,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
     <key>CFBundleIconName</key>
     <string>eden_liquidglass</string>
     <key>CFBundleIdentifier</key>
-    <string>com.yuzu-emu.yuzu</string> <!-- May be required by 3rd party ext -->
+    <string>com.eden-emu.eden</string> <!-- May be required by 3rd party ext -->
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleLongVersionString</key>
@@ -186,15 +186,5 @@ SPDX-License-Identifier: GPL-2.0-or-later
             </dict>
         </dict>
     </array>
-
-    <!-- ITS -->
-    <key>ITSAppUsesNonExemptEncryption</key>
-    <false/>
-
-    <!-- GC -->
-    <!-- Game mode is supposed to be automatically enabled by the app category specification above,
-        but for some reason it needs to be explicitly enabled with this key. -->
-    <key>GCSupportsGameMode</key>
-    <true/>
 </dict>
 </plist>
