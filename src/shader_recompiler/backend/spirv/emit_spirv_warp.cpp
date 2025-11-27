@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -78,9 +81,25 @@ Id AddPartitionBase(EmitContext& ctx, Id thread_id) {
     const Id partition_base{ctx.OpShiftLeftLogical(ctx.U32[1], partition_idx, ctx.Const(5u))};
     return ctx.OpIAdd(ctx.U32[1], thread_id, partition_base);
 }
+
+bool SupportsWarpIntrinsics(const EmitContext& ctx) {
+    return ctx.profile.SupportsWarpIntrinsics(ctx.stage);
+}
+
+void SetAlwaysInBounds(EmitContext& ctx, IR::Inst* inst) {
+    SetInBoundsFlag(inst, ctx.true_value);
+}
+
+Id FallbackBallotMask(EmitContext& ctx, Id pred) {
+    const Id full_mask{ctx.Const(0xFFFFFFFFu)};
+    return ctx.OpSelect(ctx.U32[1], pred, full_mask, ctx.u32_zero_value);
+}
 } // Anonymous namespace
 
 Id EmitLaneId(EmitContext& ctx) {
+    if (!SupportsWarpIntrinsics(ctx)) {
+        return ctx.u32_zero_value;
+    }
     const Id id{GetThreadId(ctx)};
     if (!ctx.profile.warp_size_potentially_larger_than_guest) {
         return id;
@@ -89,6 +108,9 @@ Id EmitLaneId(EmitContext& ctx) {
 }
 
 Id EmitVoteAll(EmitContext& ctx, Id pred) {
+    if (!SupportsWarpIntrinsics(ctx)) {
+        return pred;
+    }
     if (!ctx.profile.warp_size_potentially_larger_than_guest) {
         return ctx.OpGroupNonUniformAll(ctx.U1, SubgroupScope(ctx), pred);
     }
@@ -102,6 +124,9 @@ Id EmitVoteAll(EmitContext& ctx, Id pred) {
 }
 
 Id EmitVoteAny(EmitContext& ctx, Id pred) {
+    if (!SupportsWarpIntrinsics(ctx)) {
+        return pred;
+    }
     if (!ctx.profile.warp_size_potentially_larger_than_guest) {
         return ctx.OpGroupNonUniformAny(ctx.U1, SubgroupScope(ctx), pred);
     }
@@ -115,6 +140,9 @@ Id EmitVoteAny(EmitContext& ctx, Id pred) {
 }
 
 Id EmitVoteEqual(EmitContext& ctx, Id pred) {
+    if (!SupportsWarpIntrinsics(ctx)) {
+        return pred;
+    }
     if (!ctx.profile.warp_size_potentially_larger_than_guest) {
         return ctx.OpGroupNonUniformAllEqual(ctx.U1, SubgroupScope(ctx), pred);
     }
@@ -129,6 +157,9 @@ Id EmitVoteEqual(EmitContext& ctx, Id pred) {
 }
 
 Id EmitSubgroupBallot(EmitContext& ctx, Id pred) {
+    if (!SupportsWarpIntrinsics(ctx)) {
+        return FallbackBallotMask(ctx, pred);
+    }
     const Id ballot{ctx.OpGroupNonUniformBallot(ctx.U32[4], SubgroupScope(ctx), pred)};
     if (!ctx.profile.warp_size_potentially_larger_than_guest) {
         return ctx.OpCompositeExtract(ctx.U32[1], ballot, 0U);
@@ -137,27 +168,46 @@ Id EmitSubgroupBallot(EmitContext& ctx, Id pred) {
 }
 
 Id EmitSubgroupEqMask(EmitContext& ctx) {
+    if (!SupportsWarpIntrinsics(ctx)) {
+        return ctx.u32_zero_value;
+    }
     return LoadMask(ctx, ctx.subgroup_mask_eq);
 }
 
 Id EmitSubgroupLtMask(EmitContext& ctx) {
+    if (!SupportsWarpIntrinsics(ctx)) {
+        return ctx.u32_zero_value;
+    }
     return LoadMask(ctx, ctx.subgroup_mask_lt);
 }
 
 Id EmitSubgroupLeMask(EmitContext& ctx) {
+    if (!SupportsWarpIntrinsics(ctx)) {
+        return ctx.u32_zero_value;
+    }
     return LoadMask(ctx, ctx.subgroup_mask_le);
 }
 
 Id EmitSubgroupGtMask(EmitContext& ctx) {
+    if (!SupportsWarpIntrinsics(ctx)) {
+        return ctx.u32_zero_value;
+    }
     return LoadMask(ctx, ctx.subgroup_mask_gt);
 }
 
 Id EmitSubgroupGeMask(EmitContext& ctx) {
+    if (!SupportsWarpIntrinsics(ctx)) {
+        return ctx.u32_zero_value;
+    }
     return LoadMask(ctx, ctx.subgroup_mask_ge);
 }
 
 Id EmitShuffleIndex(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id clamp,
                     Id segmentation_mask) {
+    if (!SupportsWarpIntrinsics(ctx)) {
+        SetAlwaysInBounds(ctx, inst);
+        return value;
+    }
     const Id not_seg_mask{ctx.OpNot(ctx.U32[1], segmentation_mask)};
     const Id thread_id{EmitLaneId(ctx)};
     const Id min_thread_id{ComputeMinThreadId(ctx, thread_id, segmentation_mask)};
@@ -177,6 +227,10 @@ Id EmitShuffleIndex(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id cla
 
 Id EmitShuffleUp(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id clamp,
                  Id segmentation_mask) {
+    if (!SupportsWarpIntrinsics(ctx)) {
+        SetAlwaysInBounds(ctx, inst);
+        return value;
+    }
     const Id thread_id{EmitLaneId(ctx)};
     const Id max_thread_id{GetMaxThreadId(ctx, thread_id, clamp, segmentation_mask)};
     Id src_thread_id{ctx.OpISub(ctx.U32[1], thread_id, index)};
@@ -192,6 +246,10 @@ Id EmitShuffleUp(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id clamp,
 
 Id EmitShuffleDown(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id clamp,
                    Id segmentation_mask) {
+    if (!SupportsWarpIntrinsics(ctx)) {
+        SetAlwaysInBounds(ctx, inst);
+        return value;
+    }
     const Id thread_id{EmitLaneId(ctx)};
     const Id max_thread_id{GetMaxThreadId(ctx, thread_id, clamp, segmentation_mask)};
     Id src_thread_id{ctx.OpIAdd(ctx.U32[1], thread_id, index)};
@@ -207,6 +265,10 @@ Id EmitShuffleDown(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id clam
 
 Id EmitShuffleButterfly(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id clamp,
                         Id segmentation_mask) {
+    if (!SupportsWarpIntrinsics(ctx)) {
+        SetAlwaysInBounds(ctx, inst);
+        return value;
+    }
     const Id thread_id{EmitLaneId(ctx)};
     const Id max_thread_id{GetMaxThreadId(ctx, thread_id, clamp, segmentation_mask)};
     Id src_thread_id{ctx.OpBitwiseXor(ctx.U32[1], thread_id, index)};
