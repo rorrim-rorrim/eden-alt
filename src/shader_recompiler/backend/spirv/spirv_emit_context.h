@@ -39,8 +39,10 @@ struct TextureDefinition {
     Id sampled_type;
     Id pointer_type;
     Id image_type;
+    Id result_type;
     u32 count;
     bool is_multisample;
+    SamplerComponentType component_type;
 };
 
 struct TextureBufferDefinition {
