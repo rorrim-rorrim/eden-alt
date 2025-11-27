@@ -1426,9 +1426,10 @@ void Device::RemoveUnsuitableExtensions() {
     }
 
     // VK_EXT_sample_locations
-    extensions.sample_locations = features.sample_locations.sampleLocations;
-    RemoveExtensionFeatureIfUnsuitable(extensions.sample_locations, features.sample_locations,
-                                       VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME);
+    extensions.sample_locations =
+        loaded_extensions.contains(VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.sample_locations,
+                                VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME);
 
     // VK_EXT_vertex_input_dynamic_state
     extensions.vertex_input_dynamic_state =
