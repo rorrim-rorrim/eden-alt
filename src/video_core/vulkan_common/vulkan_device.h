@@ -963,13 +963,13 @@ private:
     void RemoveUnsuitableExtensions();
 
     void RemoveExtension(bool& extension, const std::string& extension_name);
-    void RemoveExtensionIfUnsuitable(bool is_suitable, const std::string& extension_name);
+    void RemoveExtensionIfUnsuitable(bool& extension, const std::string& extension_name);
 
     template <typename Feature>
     void RemoveExtensionFeature(bool& extension, Feature& feature,
                                 const std::string& extension_name);
     template <typename Feature>
-    void RemoveExtensionFeatureIfUnsuitable(bool is_suitable, Feature& feature,
+    void RemoveExtensionFeatureIfUnsuitable(bool& extension, Feature& feature,
                                             const std::string& extension_name);
 
     /// Sets up queue families.
