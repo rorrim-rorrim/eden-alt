@@ -195,6 +195,20 @@ Id Texture(EmitContext& ctx, IR::TextureInstInfo info, [[maybe_unused]] const IR
     }
 }
 
+Id TextureColorResultType(EmitContext& ctx, const TextureDefinition& def) {
+    switch (def.component_type) {
+    case SamplerComponentType::Float:
+    case SamplerComponentType::Depth:
+        return ctx.F32[4];
+    case SamplerComponentType::Sint:
+    case SamplerComponentType::Stencil:
+        return ctx.S32[4];
+    case SamplerComponentType::Uint:
+        return ctx.U32[4];
+    }
+    throw InvalidArgument("Invalid sampler component type {}", def.component_type);
+}
+
 Id TextureImage(EmitContext& ctx, IR::TextureInstInfo info, const IR::Value& index) {
     if (!index.IsImmediate() || index.U32() != 0) {
         throw NotImplementedException("Indirect image indexing");
@@ -449,12 +463,15 @@ Id EmitBoundImageWrite(EmitContext&) {
 Id EmitImageSampleImplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords,
                               Id bias_lc, const IR::Value& offset) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
+    const TextureDefinition& def{ctx.textures.at(info.descriptor_index)};
+    const Id color_type{TextureColorResultType(ctx, def)};
+    const Id texture{Texture(ctx, info, index)};
     if (ctx.stage == Stage::Fragment) {
         const ImageOperands operands(ctx, info.has_bias != 0, false, info.has_lod_clamp != 0,
                                      bias_lc, offset);
         return Emit(&EmitContext::OpImageSparseSampleImplicitLod,
-                    &EmitContext::OpImageSampleImplicitLod, ctx, inst, ctx.F32[4],
-                    Texture(ctx, info, index), coords, operands.MaskOptional(), operands.Span());
+                    &EmitContext::OpImageSampleImplicitLod, ctx, inst, color_type, texture, coords,
+                    operands.MaskOptional(), operands.Span());
     } else {
         // We can't use implicit lods on non-fragment stages on SPIR-V. Maxwell hardware behaves as
         // if the lod was explicitly zero.  This may change on Turing with implicit compute
@@ -462,17 +479,19 @@ Id EmitImageSampleImplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Value&
         const Id lod{ctx.Const(0.0f)};
         const ImageOperands operands(ctx, false, true, info.has_lod_clamp != 0, lod, offset);
         return Emit(&EmitContext::OpImageSparseSampleExplicitLod,
-                    &EmitContext::OpImageSampleExplicitLod, ctx, inst, ctx.F32[4],
-                    Texture(ctx, info, index), coords, operands.Mask(), operands.Span());
+                    &EmitContext::OpImageSampleExplicitLod, ctx, inst, color_type, texture, coords,
+                    operands.Mask(), operands.Span());
     }
 }
 
 Id EmitImageSampleExplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords,
                               Id lod, const IR::Value& offset) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
+    const TextureDefinition& def{ctx.textures.at(info.descriptor_index)};
+    const Id color_type{TextureColorResultType(ctx, def)};
     const ImageOperands operands(ctx, false, true, false, lod, offset);
     return Emit(&EmitContext::OpImageSparseSampleExplicitLod,
-                &EmitContext::OpImageSampleExplicitLod, ctx, inst, ctx.F32[4],
+                &EmitContext::OpImageSampleExplicitLod, ctx, inst, color_type,
                 Texture(ctx, info, index), coords, operands.Mask(), operands.Span());
 }
 
@@ -509,12 +528,15 @@ Id EmitImageSampleDrefExplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Va
 Id EmitImageGather(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords,
                    const IR::Value& offset, const IR::Value& offset2) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
+    const TextureDefinition& def{ctx.textures.at(info.descriptor_index)};
+    const Id color_type{TextureColorResultType(ctx, def)};
     const ImageOperands operands(ctx, offset, offset2);
+    const Id texture{Texture(ctx, info, index)};
     if (ctx.profile.need_gather_subpixel_offset) {
         coords = ImageGatherSubpixelOffset(ctx, info, TextureImage(ctx, info, index), coords);
     }
     return Emit(&EmitContext::OpImageSparseGather, &EmitContext::OpImageGather, ctx, inst,
-                ctx.F32[4], Texture(ctx, info, index), coords, ctx.Const(info.gather_component),
+                color_type, texture, coords, ctx.Const(info.gather_component),
                 operands.MaskOptional(), operands.Span());
 }
 
@@ -533,6 +555,9 @@ Id EmitImageGatherDref(EmitContext& ctx, IR::Inst* inst, const IR::Value& index,
 Id EmitImageFetch(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords, Id offset,
                   Id lod, Id ms) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
+    const TextureDefinition* def =
+        info.type == TextureType::Buffer ? nullptr : &ctx.textures.at(info.descriptor_index);
+    const Id result_type{def ? TextureColorResultType(ctx, *def) : ctx.F32[4]};
     AddOffsetToCoordinates(ctx, info, coords, offset);
     if (info.type == TextureType::Buffer) {
         lod = Id{};
@@ -542,8 +567,9 @@ Id EmitImageFetch(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id c
         lod = Id{};
     }
     const ImageOperands operands(lod, ms);
-    return Emit(&EmitContext::OpImageSparseFetch, &EmitContext::OpImageFetch, ctx, inst, ctx.F32[4],
-                TextureImage(ctx, info, index), coords, operands.MaskOptional(), operands.Span());
+    return Emit(&EmitContext::OpImageSparseFetch, &EmitContext::OpImageFetch, ctx, inst,
+                result_type, TextureImage(ctx, info, index), coords, operands.MaskOptional(),
+                operands.Span());
 }
 
 Id EmitImageQueryDimensions(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id lod,
@@ -588,13 +614,15 @@ Id EmitImageQueryLod(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, I
 Id EmitImageGradient(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords,
                      Id derivatives, const IR::Value& offset, Id lod_clamp) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
+    const TextureDefinition& def{ctx.textures.at(info.descriptor_index)};
+    const Id color_type{TextureColorResultType(ctx, def)};
     const auto operands = info.num_derivatives == 3
                               ? ImageOperands(ctx, info.has_lod_clamp != 0, derivatives,
                                               ctx.Def(offset), {}, lod_clamp)
                               : ImageOperands(ctx, info.has_lod_clamp != 0, derivatives,
                                               info.num_derivatives, offset, lod_clamp);
     return Emit(&EmitContext::OpImageSparseSampleExplicitLod,
-                &EmitContext::OpImageSampleExplicitLod, ctx, inst, ctx.F32[4],
+                &EmitContext::OpImageSampleExplicitLod, ctx, inst, color_type,
                 Texture(ctx, info, index), coords, operands.Mask(), operands.Span());
 }
 
