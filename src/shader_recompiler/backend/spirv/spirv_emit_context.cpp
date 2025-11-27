@@ -13,26 +13,23 @@
 
 #include <fmt/ranges.h>
 
-        const Id vec_type{ctx.F32[4]};
+#include "common/common_types.h"
 #include "common/div_ceil.h"
 #include "shader_recompiler/backend/spirv/emit_spirv.h"
 #include "shader_recompiler/backend/spirv/spirv_emit_context.h"
-                                vec_type,
-                                ctx.TypePointer(spv::StorageClass::Input, vec_type),
+
+namespace Shader::Backend::SPIRV {
 namespace {
 enum class Operation {
     Increment,
-        const Id vec_type{ctx.U32[4]};
     Decrement,
     FPAdd,
     FPMin,
-                                vec_type,
-                                ctx.TypePointer(spv::StorageClass::Input, vec_type),
+    FPMax,
+};
 
 Id ImageType(EmitContext& ctx, const TextureDescriptor& desc) {
     const spv::ImageFormat format{spv::ImageFormat::Unknown};
-        const Id scalar_type{ctx.TypeInt(32, true)};
-        const Id vec_type{ctx.TypeVector(scalar_type, 4)};
     const Id type{ctx.F32[1]};
     const bool depth{desc.is_depth};
     const bool ms{desc.is_multisample};
@@ -42,39 +39,35 @@ Id ImageType(EmitContext& ctx, const TextureDescriptor& desc) {
     case TextureType::ColorArray1D:
         return ctx.TypeImage(type, spv::Dim::Dim1D, depth, true, false, 1, format);
     case TextureType::Color2D:
-            const Id vec_type{ctx.F32[4]};
     case TextureType::Color2DRect:
         return ctx.TypeImage(type, spv::Dim::Dim2D, depth, false, ms, 1, format);
     case TextureType::ColorArray2D:
-                                    vec_type,
-                                    ctx.TypePointer(spv::StorageClass::Input, vec_type),
+        return ctx.TypeImage(type, spv::Dim::Dim2D, depth, true, ms, 1, format);
+    case TextureType::Color3D:
         return ctx.TypeImage(type, spv::Dim::Dim3D, depth, false, false, 1, format);
     case TextureType::ColorCube:
-        const Id scalar_type{ctx.TypeInt(32, true)};
-        const Id vec_type{ctx.TypeVector(scalar_type, 4)};
-        return InputGenericInfo{id,
-                                ctx.input_s32,
-                                scalar_type,
-                                vec_type,
-                                ctx.TypePointer(spv::StorageClass::Input, vec_type),
-                                InputGenericLoadOp::SToF};
+        return ctx.TypeImage(type, spv::Dim::Cube, depth, false, false, 1, format);
+    case TextureType::ColorArrayCube:
+        return ctx.TypeImage(type, spv::Dim::Cube, depth, true, false, 1, format);
+    case TextureType::Buffer:
+        break;
+    }
+    throw InvalidArgument("Invalid texture type {}", desc.type);
 }
 
-            const Id vec_type{ctx.F32[4]};
 spv::ImageFormat GetImageFormat(ImageFormat format) {
     switch (format) {
     case ImageFormat::Typeless:
-                                    vec_type,
-                                    ctx.TypePointer(spv::StorageClass::Input, vec_type),
+        return spv::ImageFormat::Unknown;
+    case ImageFormat::R8_UINT:
         return spv::ImageFormat::R8ui;
     case ImageFormat::R8_SINT:
-        const Id vec_type{ctx.U32[4]};
-        return InputGenericInfo{id,
-                                ctx.input_u32,
-                                ctx.U32[1],
-                                vec_type,
-                                ctx.TypePointer(spv::StorageClass::Input, vec_type),
-                                InputGenericLoadOp::UToF};
+        return spv::ImageFormat::R8i;
+    case ImageFormat::R16_UINT:
+        return spv::ImageFormat::R16ui;
+    case ImageFormat::R16_SINT:
+        return spv::ImageFormat::R16i;
+    case ImageFormat::R32_UINT:
         return spv::ImageFormat::R32ui;
     case ImageFormat::R32G32_UINT:
         return spv::ImageFormat::Rg32ui;
@@ -192,14 +185,10 @@ void DefineGenericOutput(EmitContext& ctx, size_t index, std::optional<u32> invo
         } else {
             ctx.Name(id, fmt::format("out_attr{}", index));
         }
-        const Id vector_type{ctx.F32[num_components]};
         const GenericElementInfo info{
             .id = id,
             .first_element = element,
             .num_components = num_components,
-            .composite_type = vector_type,
-            .composite_pointer_type =
-                ctx.TypePointer(spv::StorageClass::Output, vector_type),
         };
         std::fill_n(ctx.output_generics[index].begin() + element, num_components, info);
         element += num_components;
@@ -228,58 +217,21 @@ Id GetAttributeType(EmitContext& ctx, AttributeType type) {
 InputGenericInfo GetAttributeInfo(EmitContext& ctx, AttributeType type, Id id) {
     switch (type) {
     case AttributeType::Float:
-        return InputGenericInfo{id,
-                                ctx.input_f32,
-                                ctx.F32[1],
-                                ctx.F32[4],
-                                ctx.TypePointer(spv::StorageClass::Input, ctx.F32[4]),
-                                InputGenericLoadOp::None};
+        return InputGenericInfo{id, ctx.input_f32, ctx.F32[1], InputGenericLoadOp::None};
     case AttributeType::UnsignedInt:
-        return InputGenericInfo{id,
-                                ctx.input_u32,
-                                ctx.U32[1],
-                                ctx.U32[4],
-                                ctx.TypePointer(spv::StorageClass::Input, ctx.U32[4]),
-                                InputGenericLoadOp::Bitcast};
+        return InputGenericInfo{id, ctx.input_u32, ctx.U32[1], InputGenericLoadOp::Bitcast};
     case AttributeType::SignedInt:
-        return InputGenericInfo{id,
-                                ctx.input_s32,
-                                ctx.TypeInt(32, true),
-                                ctx.TypeVector(ctx.TypeInt(32, true), 4),
-                                ctx.TypePointer(spv::StorageClass::Input,
-                                                ctx.TypeVector(ctx.TypeInt(32, true), 4)),
+        return InputGenericInfo{id, ctx.input_s32, ctx.TypeInt(32, true),
                                 InputGenericLoadOp::Bitcast};
     case AttributeType::SignedScaled:
-        if (ctx.profile.support_scaled_attributes) {
-            return InputGenericInfo{id,
-                                    ctx.input_f32,
-                                    ctx.F32[1],
-                                    ctx.F32[4],
-                                    ctx.TypePointer(spv::StorageClass::Input, ctx.F32[4]),
-                                    InputGenericLoadOp::None};
-        }
-        return InputGenericInfo{id,
-                                ctx.input_s32,
-                                ctx.TypeInt(32, true),
-                                ctx.TypeVector(ctx.TypeInt(32, true), 4),
-                                ctx.TypePointer(spv::StorageClass::Input,
-                                                ctx.TypeVector(ctx.TypeInt(32, true), 4)),
-                                InputGenericLoadOp::SToF};
+        return ctx.profile.support_scaled_attributes
+                   ? InputGenericInfo{id, ctx.input_f32, ctx.F32[1], InputGenericLoadOp::None}
+                   : InputGenericInfo{id, ctx.input_s32, ctx.TypeInt(32, true),
+                                      InputGenericLoadOp::SToF};
     case AttributeType::UnsignedScaled:
-        if (ctx.profile.support_scaled_attributes) {
-            return InputGenericInfo{id,
-                                    ctx.input_f32,
-                                    ctx.F32[1],
-                                    ctx.F32[4],
-                                    ctx.TypePointer(spv::StorageClass::Input, ctx.F32[4]),
-                                    InputGenericLoadOp::None};
-        }
-        return InputGenericInfo{id,
-                                ctx.input_u32,
-                                ctx.U32[1],
-                                ctx.U32[4],
-                                ctx.TypePointer(spv::StorageClass::Input, ctx.U32[4]),
-                                InputGenericLoadOp::UToF};
+        return ctx.profile.support_scaled_attributes
+                   ? InputGenericInfo{id, ctx.input_f32, ctx.F32[1], InputGenericLoadOp::None}
+                   : InputGenericInfo{id, ctx.input_u32, ctx.U32[1], InputGenericLoadOp::UToF};
     case AttributeType::Disabled:
         return InputGenericInfo{};
     }
@@ -750,8 +702,7 @@ void EmitContext::DefineSharedMemoryFunctions(const IR::Program& program) {
 
 void EmitContext::DefineAttributeMemAccess(const Info& info) {
     const auto make_load{[&] {
-        const bool is_array{stage == Stage::Geometry || stage == Stage::TessellationControl ||
-                    stage == Stage::TessellationEval};
+        const bool is_array{stage == Stage::Geometry};
         const Id end_block{OpLabel()};
         const Id default_label{OpLabel()};
 
@@ -786,28 +737,6 @@ void EmitContext::DefineAttributeMemAccess(const Info& info) {
         size_t label_index{0};
         if (info.loads.AnyComponent(IR::Attribute::PositionX)) {
             AddLabel(labels[label_index]);
-            if (ctx.profile.has_broken_spirv_vector_access_chain) {
-                const Id pointer_type{TypePointer(spv::StorageClass::Input, F32[4])};
-                const Id vector_pointer{[&]() {
-                    if (need_input_position_indirect) {
-                        if (is_array) {
-                            return OpAccessChain(pointer_type, input_position, vertex,
-                                                 u32_zero_value);
-                        }
-                        return OpAccessChain(pointer_type, input_position, u32_zero_value);
-                    } else {
-                        if (is_array) {
-                            return OpAccessChain(pointer_type, input_position, vertex);
-                        }
-                        return input_position;
-                    }
-                }()};
-                const Id vector_value{OpLoad(F32[4], vector_pointer)};
-                const Id result{OpVectorExtractDynamic(F32[1], vector_value, masked_index)};
-                OpReturnValue(result);
-                ++label_index;
-                continue;
-            }
             const Id pointer{[&]() {
                 if (need_input_position_indirect) {
                     if (is_array)
@@ -839,36 +768,22 @@ void EmitContext::DefineAttributeMemAccess(const Info& info) {
                 ++label_index;
                 continue;
             }
-            const auto convert_value{[&](Id component) {
+            const Id pointer{
+                is_array ? OpAccessChain(generic.pointer_type, generic_id, vertex, masked_index)
+                         : OpAccessChain(generic.pointer_type, generic_id, masked_index)};
+            const Id value{OpLoad(generic.component_type, pointer)};
+            const Id result{[this, generic, value]() {
                 switch (generic.load_op) {
                 case InputGenericLoadOp::Bitcast:
-                    return OpBitcast(F32[1], component);
+                    return OpBitcast(F32[1], value);
                 case InputGenericLoadOp::SToF:
-                    return OpConvertSToF(F32[1], component);
+                    return OpConvertSToF(F32[1], value);
                 case InputGenericLoadOp::UToF:
-                    return OpConvertUToF(F32[1], component);
+                    return OpConvertUToF(F32[1], value);
                 default:
-                    return component;
-                }
-            }};
-            Id result{};
-            if (ctx.profile.has_broken_spirv_vector_access_chain) {
-                const Id vector_pointer{is_array
-                                            ? OpAccessChain(generic.composite_pointer_type,
-                                                            generic_id, vertex)
-                                            : generic_id};
-                const Id vector_value{OpLoad(generic.composite_type, vector_pointer)};
-                const Id component_value{
-                    OpVectorExtractDynamic(generic.component_type, vector_value, masked_index)};
-                result = convert_value(component_value);
-            } else {
-                const Id pointer{
-                    is_array ? OpAccessChain(generic.pointer_type, generic_id, vertex,
-                                              masked_index)
-                             : OpAccessChain(generic.pointer_type, generic_id, masked_index)};
-                const Id value{OpLoad(generic.component_type, pointer)};
-                result = convert_value(value);
-            }
+                    return value;
+                };
+            }()};
             OpReturnValue(result);
             ++label_index;
         }
@@ -920,19 +835,6 @@ void EmitContext::DefineAttributeMemAccess(const Info& info) {
         size_t label_index{0};
         if (info.stores.AnyComponent(IR::Attribute::PositionX)) {
             AddLabel(labels[label_index]);
-            if (ctx.profile.has_broken_spirv_vector_access_chain) {
-                const bool use_invocation{ctx.stage == Stage::TessellationControl};
-                const Id pointer_type{TypePointer(spv::StorageClass::Output, F32[4])};
-                const Id vector_pointer{use_invocation
-                                            ? OpAccessChain(pointer_type, output_position,
-                                                            OpLoad(U32[1], invocation_id))
-                                            : output_position};
-                const Id vector_value{OpLoad(F32[4], vector_pointer)};
-                const Id updated{
-                    OpVectorInsertDynamic(F32[4], vector_value, store_value, masked_index)};
-                OpStore(vector_pointer, updated);
-                OpReturn();
-            }
             const Id pointer{OpAccessChain(output_f32, output_position, masked_index)};
             OpStore(pointer, store_value);
             OpReturn();
@@ -946,27 +848,7 @@ void EmitContext::DefineAttributeMemAccess(const Info& info) {
                 throw NotImplementedException("Physical stores and transform feedbacks");
             }
             AddLabel(labels[label_index]);
-            const GenericElementInfo& element_info{output_generics[index][0]};
-            if (ctx.profile.has_broken_spirv_vector_access_chain) {
-                Id local_index{masked_index};
-                if (element_info.first_element != 0) {
-                    local_index = OpISub(U32[1], masked_index, Const(element_info.first_element));
-                }
-                const bool use_invocation{ctx.stage == Stage::TessellationControl};
-                const Id pointer_type{
-                    TypePointer(spv::StorageClass::Output, element_info.composite_type)};
-                const Id invocation{use_invocation ? OpLoad(U32[1], invocation_id) : Id{}};
-                const Id vector_pointer{use_invocation
-                                            ? OpAccessChain(pointer_type, element_info.id,
-                                                            invocation)
-                                            : element_info.id};
-                const Id vector_value{OpLoad(element_info.composite_type, vector_pointer)};
-                const Id updated{OpVectorInsertDynamic(element_info.composite_type, vector_value,
-                                                       store_value, local_index)};
-                OpStore(vector_pointer, updated);
-                OpReturn();
-            }
-            const Id generic_id{element_info.id};
+            const Id generic_id{output_generics[index][0].id};
             const Id pointer{OpAccessChain(output_f32, generic_id, masked_index)};
             OpStore(pointer, store_value);
             OpReturn();
