@@ -21,16 +21,6 @@
 
 VK_DEFINE_HANDLE(VmaAllocator)
 
-#ifndef VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLE_LOCATIONS_FEATURES_EXT
-#define VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLE_LOCATIONS_FEATURES_EXT \
-    static_cast<VkStructureType>(1000143001)
-typedef struct VkPhysicalDeviceSampleLocationsFeaturesEXT {
-    VkStructureType sType;
-    void* pNext;
-    VkBool32 sampleLocations;
-} VkPhysicalDeviceSampleLocationsFeaturesEXT;
-#endif // VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLE_LOCATIONS_FEATURES_EXT
-
 // Define all features which may be used by the implementation here.
 // Vulkan version in the macro describes the minimum version required for feature availability.
 // If the Vulkan version is lower than the required version, the named extension is required.
@@ -74,7 +64,6 @@ typedef struct VkPhysicalDeviceSampleLocationsFeaturesEXT {
     FEATURE(EXT, ProvokingVertex, PROVOKING_VERTEX, provoking_vertex)                              \
     FEATURE(EXT, Robustness2, ROBUSTNESS_2, robustness2)                                           \
     FEATURE(EXT, TransformFeedback, TRANSFORM_FEEDBACK, transform_feedback)                        \
-    FEATURE(EXT, SampleLocations, SAMPLE_LOCATIONS, sample_locations)                              \
     FEATURE(EXT, VertexInputDynamicState, VERTEX_INPUT_DYNAMIC_STATE, vertex_input_dynamic_state)  \
     FEATURE(EXT, SwapchainMaintenance1, SWAPCHAIN_MAINTENANCE_1, swapchain_maintenance1)           \
     FEATURE(KHR, Maintenance5, MAINTENANCE_5, maintenance5)                                        \
@@ -91,6 +80,7 @@ typedef struct VkPhysicalDeviceSampleLocationsFeaturesEXT {
     EXTENSION(EXT, DEPTH_RANGE_UNRESTRICTED, depth_range_unrestricted)                             \
     EXTENSION(EXT, MEMORY_BUDGET, memory_budget)                                                   \
     EXTENSION(EXT, ROBUSTNESS_2, robustness_2)                                                     \
+    EXTENSION(EXT, SAMPLE_LOCATIONS, sample_locations)                                             \
     EXTENSION(EXT, SAMPLER_FILTER_MINMAX, sampler_filter_minmax)                                   \
     EXTENSION(EXT, SHADER_STENCIL_EXPORT, shader_stencil_export)                                   \
     EXTENSION(EXT, SHADER_VIEWPORT_INDEX_LAYER, shader_viewport_index_layer)                       \
