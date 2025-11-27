@@ -63,13 +63,12 @@ TimerResolution GetTimerResolution() {
 void SetHighQoS() {
     // https://learn.microsoft.com/en-us/windows/win32/procthread/quality-of-service
     PROCESS_POWER_THROTTLING_STATE PowerThrottling{
-        .Version{PROCESS_POWER_THROTTLING_CURRENT_VERSION},
-        .ControlMask{PROCESS_POWER_THROTTLING_EXECUTION_SPEED |
-                     PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION},
-        .StateMask{},
+        .Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION,
+        .ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED | PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION,
+        .StateMask = 0,
     };
-    SetProcessInformation(GetCurrentProcess(), ProcessPowerThrottling, &PowerThrottling,
-                          sizeof(PROCESS_POWER_THROTTLING_STATE));
+    if (auto pf = (decltype(&SetProcessInformation))(void*)GetProcAddress(GetModuleHandle(TEXT("Kernel32.dll")), "SetProcessInformation"); pf)
+        pf(GetCurrentProcess(), ProcessPowerThrottling, &PowerThrottling, sizeof(PROCESS_POWER_THROTTLING_STATE)); // Windows 7+
 }
 
 } // Anonymous namespace
