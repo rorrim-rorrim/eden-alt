@@ -32,6 +32,9 @@
 #ifndef VK_KHR_MAINTENANCE_9_EXTENSION_NAME
 #define VK_KHR_MAINTENANCE_9_EXTENSION_NAME "VK_KHR_maintenance9"
 #endif
+#ifndef VK_MVK_MACOS_SURFACE_EXTENSION_NAME
+#define VK_MVK_MACOS_SURFACE_EXTENSION_NAME "VK_MVK_macos_surface"
+#endif
 
 // Sanitize macros
 #undef CreateEvent
