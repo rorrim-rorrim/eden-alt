@@ -354,19 +354,14 @@ std::optional<StorageBufferAddr> Track(const IR::Value& value, const Bias* bias)
             .index = index.U32(),
             .offset = offset.U32(),
         };
-        if (bias) {
-            if (!MeetsBias(storage_buffer, *bias)) {
-                // We have to blacklist some addresses in case we wrongly
-                // point to them
-                return std::nullopt;
-            }
-            const u32 relative_offset{storage_buffer.offset - bias->offset_begin};
-            if (!Common::IsAligned(relative_offset, bias->alignment)) {
-                // NVN descriptors are tightly packed but the range base is biased
-                return std::nullopt;
-            }
-        } else if (!Common::IsAligned(storage_buffer.offset, 16U)) {
+        const u32 alignment{bias ? bias->alignment : 16U};
+        if (!Common::IsAligned(storage_buffer.offset, alignment)) {
             // The SSBO pointer has to be aligned
+            return std::nullopt;
+        }
+        if (bias && !MeetsBias(storage_buffer, *bias)) {
+            // We have to blacklist some addresses in case we wrongly
+            // point to them
             return std::nullopt;
         }
         return storage_buffer;
