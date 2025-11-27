@@ -1023,9 +1023,8 @@ struct Memory::Impl {
     std::array<Common::ScratchBuffer<u32>, Core::Hardware::NUM_CPU_CORES> scratch_buffers{};
     std::span<Core::GPUDirtyMemoryManager> gpu_dirty_managers;
     std::mutex sys_core_guard;
-
-    std::optional<Common::HeapTracker> heap_tracker;
 #ifdef __ANDROID__
+    std::optional<Common::HeapTracker> heap_tracker;
     Common::HeapTracker* buffer{};
 #else
     Common::HostMemory* buffer{};
