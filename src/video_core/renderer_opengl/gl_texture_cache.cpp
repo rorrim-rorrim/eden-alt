@@ -1229,6 +1229,13 @@ GLuint ImageView::StorageView(Shader::TextureType texture_type, Shader::ImageFor
     return view;
 }
 
+GLuint ImageView::SampledView(Shader::TextureType view_type,
+                              Shader::SamplerComponentType /*component_type*/) {
+    // OpenGL swizzles already configure depth/stencil selection per TIC entry,
+    // so fall back to the default view handle.
+    return Handle(view_type);
+}
+
 void ImageView::SetupView(Shader::TextureType view_type) {
     views[static_cast<size_t>(view_type)] = MakeView(view_type, internal_format);
 }
