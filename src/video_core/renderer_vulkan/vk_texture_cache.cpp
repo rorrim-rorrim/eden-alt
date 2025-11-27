@@ -24,6 +24,7 @@
 #include "video_core/renderer_vulkan/vk_render_pass_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
+#include "video_core/surface.h"
 #include "video_core/texture_cache/formatter.h"
 #include "video_core/texture_cache/samples_helper.h"
 #include "video_core/texture_cache/util.h"
@@ -2209,6 +2210,29 @@ VkImageView ImageView::ColorView() {
     }
     color_view = MakeView(VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
     return *color_view;
+}
+
+VkImageView ImageView::SampledView(Shader::TextureType texture_type,
+                                   Shader::SamplerComponentType component_type) {
+    using VideoCore::Surface::GetFormatType;
+    using VideoCore::Surface::SurfaceType;
+
+    const SurfaceType surface_type = GetFormatType(format);
+    switch (component_type) {
+    case Shader::SamplerComponentType::Depth:
+        if (surface_type == SurfaceType::Depth || surface_type == SurfaceType::DepthStencil) {
+            return DepthView();
+        }
+        break;
+    case Shader::SamplerComponentType::Stencil:
+        if (surface_type == SurfaceType::Stencil || surface_type == SurfaceType::DepthStencil) {
+            return StencilView();
+        }
+        break;
+    default:
+        break;
+    }
+    return Handle(texture_type);
 }
 
 VkImageView ImageView::StorageView(Shader::TextureType texture_type,
