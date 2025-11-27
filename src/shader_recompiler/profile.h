@@ -1,9 +1,15 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
+#include <limits>
+
 #include "common/common_types.h"
+#include "shader_recompiler/stage.h"
 
 namespace Shader {
 
@@ -45,6 +51,8 @@ struct Profile {
     bool support_scaled_attributes{};
     bool support_multi_viewport{};
     bool support_geometry_streams{};
+
+    u32 warp_stage_support_mask{std::numeric_limits<u32>::max()};
 
     bool warp_size_potentially_larger_than_guest{};
 
@@ -90,6 +98,11 @@ struct Profile {
     u64 min_ssbo_alignment{};
 
     u32 max_user_clip_distances{};
+
+    bool SupportsWarpIntrinsics(Stage stage) const {
+        const u32 bit = 1u << static_cast<u32>(stage);
+        return (warp_stage_support_mask & bit) != 0;
+    }
 };
 
 } // namespace Shader
