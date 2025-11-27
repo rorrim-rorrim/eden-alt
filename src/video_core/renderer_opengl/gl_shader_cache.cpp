@@ -228,7 +228,9 @@ ShaderCache::ShaderCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
           .need_fastmath_off = device.NeedsFastmathOff(),
           .need_gather_subpixel_offset = device.IsAmd() || device.IsIntel(),
 
-          .has_broken_spirv_clamp = true,
+        .has_broken_spirv_clamp = true,
+        .has_broken_spirv_vector_access_chain = false,
+        .has_broken_spirv_access_chain_opt = false,
           .has_broken_unsigned_image_offsets = true,
           .has_broken_signed_operations = true,
           .has_broken_fp16_float_controls = false,
@@ -541,7 +543,9 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
         case Settings::ShaderBackend::SpirV:
             ConvertLegacyToGeneric(program, runtime_info);
             sources_spirv[stage_index] =
-                EmitSPIRV(profile, runtime_info, program, binding, this->optimize_spirv_output);
+                const bool optimize_shader{this->optimize_spirv_output &&
+                                            !profile.has_broken_spirv_access_chain_opt};
+                EmitSPIRV(profile, runtime_info, program, binding, optimize_shader);
             break;
         }
         previous_program = &program;
@@ -600,7 +604,9 @@ std::unique_ptr<ComputePipeline> ShaderCache::CreateComputePipeline(
         code = EmitGLASM(profile, info, program);
         break;
     case Settings::ShaderBackend::SpirV:
-        code_spirv = EmitSPIRV(profile, program, this->optimize_spirv_output);
+        const bool optimize_shader{this->optimize_spirv_output &&
+                        !profile.has_broken_spirv_access_chain_opt};
+        code_spirv = EmitSPIRV(profile, program, optimize_shader);
         break;
     }
 
