@@ -65,7 +65,7 @@ TimerResolution GetTimerResolution() {
 
 void SetHighQoS() {
     // https://learn.microsoft.com/en-us/windows/win32/procthread/quality-of-service
-    static auto auto pf = (decltype(&SetProcessInformation))(void*)GetProcAddress(GetModuleHandle(TEXT("Kernel32.dll")), "SetProcessInformation");
+    static auto pf = (decltype(&SetProcessInformation))(void*)GetProcAddress(GetModuleHandle(TEXT("Kernel32.dll")), "SetProcessInformation");
     if (pf) {
         PROCESS_POWER_THROTTLING_STATE PowerThrottling{
             .Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION,
