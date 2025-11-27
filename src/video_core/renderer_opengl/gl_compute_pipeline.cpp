@@ -205,7 +205,8 @@ void ComputePipeline::Configure() {
     for (const auto& desc : info.texture_descriptors) {
         for (u32 index = 0; index < desc.count; ++index) {
             ImageView& image_view{texture_cache.GetImageView((views_it++)->id)};
-            textures[texture_binding] = image_view.Handle(desc.type);
+            textures[texture_binding] =
+                image_view.SampledView(desc.type, desc.component_type);
             if (texture_cache.IsRescaling(image_view)) {
                 texture_scaling_mask |= 1u << texture_binding;
             }
