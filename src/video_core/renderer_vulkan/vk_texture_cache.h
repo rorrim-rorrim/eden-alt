@@ -236,6 +236,9 @@ public:
 
     [[nodiscard]] VkImageView ColorView();
 
+    [[nodiscard]] VkImageView SampledView(Shader::TextureType texture_type,
+                                          Shader::SamplerComponentType component_type);
+
     [[nodiscard]] VkImageView StorageView(Shader::TextureType texture_type,
                                           Shader::ImageFormat image_format);
 
