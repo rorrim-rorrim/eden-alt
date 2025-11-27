@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -61,6 +64,10 @@ struct Profile {
 
     /// OpFClamp is broken and OpFMax + OpFMin should be used instead
     bool has_broken_spirv_clamp{};
+    /// Driver mishandles vector OpAccessChain operations
+    bool has_broken_spirv_vector_access_chain{};
+    /// Driver crashes when spirv-opt folds certain OpAccessChain chains
+    bool has_broken_spirv_access_chain_opt{};
     /// The Position builtin needs to be wrapped in a struct when used as an input
     bool has_broken_spirv_position_input{};
     /// Offset image operands with an unsigned type do not work
