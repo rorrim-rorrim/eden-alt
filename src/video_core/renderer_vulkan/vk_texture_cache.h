@@ -114,6 +114,10 @@ public:
         return view_formats[static_cast<std::size_t>(format)];
     }
 
+    bool RequiresBlockCompatibleViewFormats(PixelFormat format) const noexcept {
+        return requires_block_view_formats[static_cast<std::size_t>(format)];
+    }
+
     void BarrierFeedbackLoop();
 
     bool IsFormatDitherable(VideoCore::Surface::PixelFormat format);
@@ -137,6 +141,7 @@ public:
     std::optional<MSAACopyPass> msaa_copy_pass;
     const Settings::ResolutionScalingInfo& resolution;
     std::array<std::vector<VkFormat>, VideoCore::Surface::MaxPixelFormat> view_formats;
+    std::array<bool, VideoCore::Surface::MaxPixelFormat> requires_block_view_formats{};
 
     static constexpr size_t indexing_slots = 8 * sizeof(size_t);
     std::array<vk::Buffer, indexing_slots> buffers{};
@@ -268,6 +273,30 @@ public:
         return (this->*current_image).UsageFlags();
     }
 
+    void TrackGpuReadTick(u64 tick) noexcept {
+        TrackPendingReadTick(tick);
+    }
+
+    void TrackGpuWriteTick(u64 tick) noexcept {
+        TrackPendingWriteTick(tick);
+    }
+
+    void CompleteGpuReadTick(u64 completed_tick) noexcept {
+        ClearPendingReadTick(completed_tick);
+    }
+
+    void CompleteGpuWriteTick(u64 completed_tick) noexcept {
+        ClearPendingWriteTick(completed_tick);
+    }
+
+    [[nodiscard]] std::optional<u64> PendingGpuReadTick() const noexcept {
+        return PendingReadTick();
+    }
+
+    [[nodiscard]] std::optional<u64> PendingGpuWriteTick() const noexcept {
+        return PendingWriteTick();
+    }
+
     /// Returns true when the image is already initialized and mark it as initialized
     [[nodiscard]] bool ExchangeInitialization() noexcept {
         return std::exchange(initialized, true);
@@ -339,10 +368,15 @@ public:
 
     [[nodiscard]] VkImageView ColorView();
 
-    [[nodiscard]] VkImageView StorageView(Shader::TextureType texture_type,
-                                          Shader::ImageFormat image_format);
+    [[nodiscard]] VkImageView SampledView(Shader::TextureType texture_type, Shader::SamplerComponentType component_type);
+    [[nodiscard]] VkImageView StorageView(Shader::TextureType texture_type, Shader::ImageFormat image_format);
 
     [[nodiscard]] bool IsRescaled() const noexcept;
+
+    [[nodiscard]] bool SupportsDepthCompareSampling() const noexcept;
+    [[nodiscard]] bool Is3DImage() const noexcept {
+        return is_3d_image;
+    }
 
     [[nodiscard]] VkImageView Handle(Shader::TextureType texture_type) const noexcept {
         return *image_views[static_cast<size_t>(texture_type)];
@@ -372,15 +406,26 @@ private:
     struct StorageViews {
         std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> signeds;
         std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> unsigneds;
+        std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> typeless;
     };
 
-    [[nodiscard]] vk::ImageView MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask);
+    static constexpr size_t NUMERIC_VIEW_TYPES = 3;
+
+    [[nodiscard]] Shader::TextureType BaseTextureType() const noexcept;
+    [[nodiscard]] std::optional<u32> LayerCountOverride(Shader::TextureType texture_type) const noexcept;
+    [[nodiscard]] VkImageView DepthView(Shader::TextureType texture_type);
+    [[nodiscard]] VkImageView StencilView(Shader::TextureType texture_type);
+	[[nodiscard]] vk::ImageView MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask);
+    [[nodiscard]] vk::ImageView MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask, Shader::TextureType texture_type);
 
     const Device* device = nullptr;
     const SlotVector<Image>* slot_images = nullptr;
 
     std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> image_views;
     std::optional<StorageViews> storage_views;
+    std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> depth_views;
+    std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> stencil_views;
+    std::array<std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES>, NUMERIC_VIEW_TYPES> sampled_component_views;
     vk::ImageView depth_view;
     vk::ImageView stencil_view;
     vk::ImageView color_view;
@@ -389,6 +434,7 @@ private:
     VkImageView render_target = VK_NULL_HANDLE;
     VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
     u32 buffer_size = 0;
+    bool is_3d_image = false;
 };
 
 class ImageAlloc : public VideoCommon::ImageAllocBase {};
@@ -406,12 +452,20 @@ public:
     }
 
     [[nodiscard]] bool HasAddedAnisotropy() const noexcept {
-        return static_cast<bool>(sampler_default_anisotropy);
+        return bool(sampler_default_anisotropy);
     }
+
+    [[nodiscard]] VkSampler SelectHandle(bool supports_linear_filter, bool supports_anisotropy, bool allow_depth_compare) const noexcept;
 
 private:
     vk::Sampler sampler;
     vk::Sampler sampler_default_anisotropy;
+    vk::Sampler sampler_force_point;
+    vk::Sampler sampler_compare_disabled;
+    vk::Sampler sampler_default_anisotropy_compare_disabled;
+    vk::Sampler sampler_force_point_compare_disabled;
+    bool uses_linear_filter = false;
+    bool depth_compare_enabled = false;
 };
 
 struct TextureCacheParams {

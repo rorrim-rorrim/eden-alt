@@ -270,6 +270,9 @@ public:
     [[nodiscard]] GLuint StorageView(Shader::TextureType texture_type,
                                      Shader::ImageFormat image_format);
 
+    [[nodiscard]] GLuint SampledView(Shader::TextureType view_type,
+                                     Shader::SamplerComponentType component_type);
+
     [[nodiscard]] GLuint Handle(Shader::TextureType handle_type) const noexcept {
         return views[static_cast<size_t>(handle_type)];
     }

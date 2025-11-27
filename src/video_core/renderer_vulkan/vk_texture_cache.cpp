@@ -2297,6 +2297,29 @@ VkImageView ImageView::ColorView() {
     return *color_view;
 }
 
+VkImageView ImageView::SampledView(Shader::TextureType texture_type,
+                                   Shader::SamplerComponentType component_type) {
+    using VideoCore::Surface::GetFormatType;
+    using VideoCore::Surface::SurfaceType;
+
+    const SurfaceType surface_type = GetFormatType(format);
+    switch (component_type) {
+    case Shader::SamplerComponentType::Depth:
+        if (surface_type == SurfaceType::Depth || surface_type == SurfaceType::DepthStencil) {
+            return DepthView();
+        }
+        break;
+    case Shader::SamplerComponentType::Stencil:
+        if (surface_type == SurfaceType::Stencil || surface_type == SurfaceType::DepthStencil) {
+            return StencilView();
+        }
+        break;
+    default:
+        break;
+    }
+    return Handle(texture_type);
+}
+
 VkImageView ImageView::StorageView(Shader::TextureType texture_type,
                                    Shader::ImageFormat image_format) {
     if (image_handle) {
