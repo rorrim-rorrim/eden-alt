@@ -377,10 +377,10 @@ void Device::RemoveExtension(bool& extension, const std::string& extension_name)
     loaded_extensions.erase(extension_name);
 }
 
-void Device::RemoveExtensionIfUnsuitable(bool is_suitable, const std::string& extension_name) {
-    if (loaded_extensions.contains(extension_name) && !is_suitable) {
+void Device::RemoveExtensionIfUnsuitable(bool& extension, const std::string& extension_name) {
+    if (loaded_extensions.contains(extension_name) && !extension) {
         LOG_WARNING(Render_Vulkan, "Removing unsuitable extension {}", extension_name);
-        this->RemoveExtension(is_suitable, extension_name);
+        this->RemoveExtension(extension, extension_name);
     }
 }
 
@@ -401,11 +401,12 @@ void Device::RemoveExtensionFeature(bool& extension, Feature& feature,
 }
 
 template <typename Feature>
-void Device::RemoveExtensionFeatureIfUnsuitable(bool is_suitable, Feature& feature,
+void Device::RemoveExtensionFeatureIfUnsuitable(bool& extension, Feature& feature,
                                                 const std::string& extension_name) {
-    if (loaded_extensions.contains(extension_name) && !is_suitable) {
-        LOG_WARNING(Render_Vulkan, "Removing features for unsuitable extension {}", extension_name);
-        this->RemoveExtensionFeature(is_suitable, feature, extension_name);
+    if (loaded_extensions.contains(extension_name) && !extension) {
+        LOG_WARNING(Render_Vulkan,
+                    "Removing features for unsuitable extension {}", extension_name);
+        this->RemoveExtensionFeature(extension, feature, extension_name);
     }
 }
 
