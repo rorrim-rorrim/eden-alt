@@ -22,6 +22,10 @@
 
 #include <vulkan/vulkan.h>
 
+#ifndef VK_MVK_MACOS_SURFACE_EXTENSION_NAME
+#   define VK_MVK_MACOS_SURFACE_EXTENSION_NAME "VK_MVK_macos_surface"
+#endif
+
 // Sanitize macros
 #undef CreateEvent
 #undef CreateSemaphore
