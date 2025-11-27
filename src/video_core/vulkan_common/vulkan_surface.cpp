@@ -40,8 +40,7 @@ vk::SurfaceKHR CreateSurface(
         };
         const auto vkCreateMetalSurfaceEXT = reinterpret_cast<PFN_vkCreateMetalSurfaceEXT>(dld.vkGetInstanceProcAddr(*instance, "vkCreateMetalSurfaceEXT"));
         if (!vkCreateMetalSurfaceEXT || vkCreateMetalSurfaceEXT(*instance, &metal_ci, nullptr, &unsafe_surface) != VK_SUCCESS) {
-// TODO: Way to fallback? - where's my vulkan headers
-#if 0
+            // TODO: Way to fallback? - where's my vulkan headers
             // Attempt to make a macOS surface instead then...
             // This is the deprecated VkMacOSSurfaceCreateInfoMVK(3) version; but should work if the above failed
             // https://registry.khronos.org/vulkan/specs/latest/man/html/VkMacOSSurfaceCreateInfoMVK.html
@@ -56,9 +55,7 @@ vk::SurfaceKHR CreateSurface(
                 LOG_ERROR(Render_Vulkan, "Failed to initialize Metal/macOS surface");
                 throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
             }
-#endif
             LOG_ERROR(Render_Vulkan, "Failed to initialize Metal/macOS surface");
-            throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
         }
     }
 #elif defined(__ANDROID__)

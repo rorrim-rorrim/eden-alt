@@ -48,6 +48,8 @@ namespace {
 #elif defined(__APPLE__)
     case Core::Frontend::WindowSystemType::Cocoa:
         extensions.push_back(VK_EXT_METAL_SURFACE_EXTENSION_NAME);
+        extensions.push_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
+        //extensions.push_back(VK_MVK_MOLTENVK_EXTENSION_NAME);
         break;
 #elif defined(__ANDROID__)
     case Core::Frontend::WindowSystemType::Android:
