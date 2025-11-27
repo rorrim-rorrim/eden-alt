@@ -432,11 +432,10 @@ VkResult Free(VkDevice device, VkCommandPool handle, Span<VkCommandBuffer> buffe
 
 Instance Instance::Create(u32 version, Span<const char*> layers, Span<const char*> extensions,
                           InstanceDispatch& dispatch) {
-#ifdef __APPLE__
-    constexpr VkFlags ci_flags{VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR};
-#else
-    constexpr VkFlags ci_flags{};
-#endif
+    VkFlags ci_flags{};
+// #ifdef __APPLE__
+//     ci_flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+// #endif
     // DO NOT TOUCH, breaks RNDA3!!
     // Don't know why, but gloom + yellow line glitch appears
     const VkApplicationInfo application_info{
@@ -463,6 +462,7 @@ Instance Instance::Create(u32 version, Span<const char*> layers, Span<const char
     if (!Proc(dispatch.vkDestroyInstance, dispatch, "vkDestroyInstance", instance)) {
         // We successfully created an instance but the destroy function couldn't be loaded.
         // This is a good moment to panic.
+        LOG_ERROR(Render_Vulkan, "No vkDestroyInstance found");
         throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
     }
     return Instance(instance, dispatch);
