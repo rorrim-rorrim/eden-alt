@@ -1202,21 +1202,24 @@ struct QueryCacheRuntimeImpl {
         hcr_setup.pNext = nullptr;
         hcr_setup.flags = 0;
 
-        conditional_resolve_pass = std::make_unique<ConditionalRenderingResolvePass>(
-            device, scheduler, descriptor_pool, compute_pass_descriptor_queue);
+        if (device.IsExtConditionalRendering()) {
+            conditional_resolve_pass = std::make_unique<ConditionalRenderingResolvePass>(
+                device, scheduler, descriptor_pool, compute_pass_descriptor_queue);
 
-        const VkBufferCreateInfo buffer_ci = {
-            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .size = sizeof(u32),
-            .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                     VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-            .queueFamilyIndexCount = 0,
-            .pQueueFamilyIndices = nullptr,
-        };
-        hcr_resolve_buffer = memory_allocator.CreateBuffer(buffer_ci, MemoryUsage::DeviceLocal);
+            const VkBufferCreateInfo buffer_ci = {
+                .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .size = sizeof(u32),
+                .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                         VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT,
+                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                .queueFamilyIndexCount = 0,
+                .pQueueFamilyIndices = nullptr,
+            };
+            hcr_resolve_buffer =
+                memory_allocator.CreateBuffer(buffer_ci, MemoryUsage::DeviceLocal);
+        }
     }
 
     VideoCore::RasterizerInterface* rasterizer;
