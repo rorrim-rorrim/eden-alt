@@ -10,7 +10,8 @@
 #ifdef _WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
 #elif defined(__APPLE__)
-#define VK_USE_PLATFORM_METAL_EXT
+//#define VK_USE_PLATFORM_METAL_EXT
+#define VK_USE_PLATFORM_MACOS_MVK
 #elif defined(__ANDROID__)
 #define VK_USE_PLATFORM_ANDROID_KHR
 #elif defined(__HAIKU__)
@@ -22,6 +23,9 @@
 
 #include <vulkan/vulkan.h>
 
+#ifndef VK_EXT_METAL_SURFACE_EXTENSION_NAME
+#   define VK_EXT_METAL_SURFACE_EXTENSION_NAME "VK_EXT_metal_surface"
+#endif
 #ifndef VK_MVK_MACOS_SURFACE_EXTENSION_NAME
 #   define VK_MVK_MACOS_SURFACE_EXTENSION_NAME "VK_MVK_macos_surface"
 #endif
