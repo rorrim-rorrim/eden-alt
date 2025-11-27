@@ -608,6 +608,13 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         if (version < VK_MAKE_API_VERSION(0, 255, 615, 512)) {
             has_broken_parallel_compiling = true;
         }
+
+        if (extensions.push_descriptor) {
+            LOG_WARNING(Render_Vulkan,
+                        "Qualcomm driver mishandles push descriptors; disabling "
+                        "VK_KHR_push_descriptor to avoid incomplete descriptor writes");
+            RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
+        }
     }
 
     if (needs_mobile_alignment_clamp) {
