@@ -33,5 +33,4 @@ optipng -o7 dist/qt_themes/default/icons/256x256/eden_named.png
 optipng -o7 dist/qt_themes/default/icons/256x256/eden.png
 
 png2icns dist/eden.icns $TMP_PNG || echo 'non fatal'
-cp dist/eden.icns dist/yuzu.icns
 rm $TMP_PNG
