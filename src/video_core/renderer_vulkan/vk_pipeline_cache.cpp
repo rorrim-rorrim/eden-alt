@@ -105,6 +105,26 @@ Shader::CompareFunction MaxwellToCompareFunction(Maxwell::ComparisonOp compariso
     return {};
 }
 
+VkShaderStageFlagBits StageToVkStage(Shader::Stage stage) {
+    switch (stage) {
+    case Shader::Stage::VertexA:
+    case Shader::Stage::VertexB:
+        return VK_SHADER_STAGE_VERTEX_BIT;
+    case Shader::Stage::TessellationControl:
+        return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+    case Shader::Stage::TessellationEval:
+        return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+    case Shader::Stage::Geometry:
+        return VK_SHADER_STAGE_GEOMETRY_BIT;
+    case Shader::Stage::Fragment:
+        return VK_SHADER_STAGE_FRAGMENT_BIT;
+    case Shader::Stage::Compute:
+        return VK_SHADER_STAGE_COMPUTE_BIT;
+    default:
+        return VK_SHADER_STAGE_VERTEX_BIT;
+    }
+}
+
 Shader::AttributeType CastAttributeType(const FixedPipelineState::VertexAttribute& attr) {
     if (attr.enabled == 0) {
         return Shader::AttributeType::Disabled;
@@ -403,6 +423,27 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .support_geometry_shader_passthrough = device.IsNvGeometryShaderPassthroughSupported(),
         .support_conditional_barrier = device.SupportsConditionalBarriers(),
     };
+
+    profile.warp_stage_support_mask = 0;
+    static constexpr std::array kAllStages{
+        Shader::Stage::VertexA,          Shader::Stage::VertexB,
+        Shader::Stage::TessellationControl, Shader::Stage::TessellationEval,
+        Shader::Stage::Geometry,         Shader::Stage::Fragment,
+        Shader::Stage::Compute,
+    };
+    for (const auto stage : kAllStages) {
+        const auto vk_stage = StageToVkStage(stage);
+        if (device.SupportsWarpIntrinsics(vk_stage)) {
+            profile.warp_stage_support_mask |= 1u << static_cast<u32>(stage);
+        }
+    }
+    profile.support_vote = profile.warp_stage_support_mask != 0;
+
+    if (!profile.SupportsWarpIntrinsics(Shader::Stage::Fragment)) {
+        LOG_WARNING(Render_Vulkan,
+                    "Fragment shaders lack subgroup support on this driver; warp intrinsics will be "
+                    "approximated and visual artifacts may remain");
+    }
 
     if (device.GetMaxVertexInputAttributes() < Maxwell::NumVertexAttributes) {
         LOG_WARNING(Render_Vulkan, "maxVertexInputAttributes is too low: {} < {}",
