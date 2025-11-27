@@ -114,6 +114,7 @@ public:
 
     bool IsFormatDitherable(VideoCore::Surface::PixelFormat format);
     bool IsFormatScalable(VideoCore::Surface::PixelFormat format);
+    bool SupportsLinearFilter(VideoCore::Surface::PixelFormat format) const;
 
     VkFormat GetSupportedFormat(VkFormat requested_format, VkFormatFeatureFlags required_features) const;
 
