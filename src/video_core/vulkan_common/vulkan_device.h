@@ -1100,7 +1100,6 @@ private:
     bool dynamic_state3_alpha_to_coverage{};
     bool dynamic_state3_alpha_to_one{};
     bool supports_conditional_barriers{};      ///< Allows barriers in conditional control flow.
-    bool disable_graphics_subgroups{};          ///< Forces subgroup emulation on graphics stages.
     size_t sampler_heap_budget{};              ///< Sampler budget for buggy drivers (0 = unlimited).
     VkDeviceSize uniform_buffer_alignment_minimum{}; ///< Minimum enforced UBO alignment.
     VkDeviceSize storage_buffer_alignment_minimum{}; ///< Minimum enforced SSBO alignment.
