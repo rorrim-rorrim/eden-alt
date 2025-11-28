@@ -186,5 +186,15 @@ SPDX-License-Identifier: GPL-2.0-or-later
             </dict>
         </dict>
     </array>
+
+    <!-- ITS -->
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+
+    <!-- GC -->
+    <!-- Game mode is supposed to be automatically enabled by the app category specification above,
+        but for some reason it needs to be explicitly enabled with this key. -->
+    <key>GCSupportsGameMode</key>
+    <true/>
 </dict>
 </plist>
