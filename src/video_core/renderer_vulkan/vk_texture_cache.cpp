@@ -886,6 +886,15 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
                 view_formats[index_a].push_back(view_info.format);
             }
         }
+        if (VideoCore::Surface::GetFormatType(image_format) ==
+            VideoCore::Surface::SurfaceType::DepthStencil) {
+            const auto stencil_info = MaxwellToVK::SurfaceFormat(
+                device, FormatType::Optimal, true, PixelFormat::S8_UINT);
+            auto& formats = view_formats[index_a];
+            if (std::ranges::find(formats, stencil_info.format) == formats.end()) {
+                formats.push_back(stencil_info.format);
+            }
+        }
     }
 }
 
@@ -2203,7 +2212,12 @@ VkImageView ImageView::StencilView() {
     if (stencil_view) {
         return *stencil_view;
     }
-    const auto& info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
+    PixelFormat view_format = format;
+    if (VideoCore::Surface::GetFormatType(format) ==
+        VideoCore::Surface::SurfaceType::DepthStencil) {
+        view_format = PixelFormat::S8_UINT;
+    }
+    const auto& info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, view_format);
     stencil_view = MakeView(info.format, VK_IMAGE_ASPECT_STENCIL_BIT);
     return *stencil_view;
 }
