@@ -563,7 +563,6 @@ void EmitContext::DefineCommonTypes(const Info& info) {
 
     output_f32 = Name(TypePointer(spv::StorageClass::Output, F32[1]), "output_f32");
     output_u32 = Name(TypePointer(spv::StorageClass::Output, U32[1]), "output_u32");
-    output_s32 = Name(TypePointer(spv::StorageClass::Output, S32[1]), "output_s32");
 
     if (info.uses_int8 && profile.support_int8) {
         AddCapability(spv::Capability::Int8);
@@ -1700,18 +1699,7 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
             if (!info.stores_frag_color[index] && !profile.need_declared_frag_colors) {
                 continue;
             }
-            const AttributeType output_type{runtime_info.color_output_types[index]};
-            const Id vec_type = [&, output_type]() -> Id {
-                switch (output_type) {
-                case AttributeType::SignedInt:
-                    return S32[4];
-                case AttributeType::UnsignedInt:
-                    return U32[4];
-                default:
-                    return F32[4];
-                }
-            }();
-            frag_color[index] = DefineOutput(*this, vec_type, std::nullopt);
+            frag_color[index] = DefineOutput(*this, F32[4], std::nullopt);
             Decorate(frag_color[index], spv::Decoration::Location, index);
             Name(frag_color[index], fmt::format("frag_color{}", index));
         }

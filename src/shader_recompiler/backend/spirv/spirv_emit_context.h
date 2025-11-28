@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -249,7 +246,6 @@ public:
 
     Id output_f32{};
     Id output_u32{};
-    Id output_s32{};
 
     Id image_buffer_type{};
     Id image_u32{};
