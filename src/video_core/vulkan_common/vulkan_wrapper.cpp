@@ -433,9 +433,9 @@ VkResult Free(VkDevice device, VkCommandPool handle, Span<VkCommandBuffer> buffe
 Instance Instance::Create(u32 version, Span<const char*> layers, Span<const char*> extensions,
                           InstanceDispatch& dispatch) {
     VkFlags ci_flags{};
-// #ifdef __APPLE__
-//     ci_flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
-// #endif
+#ifdef __APPLE__
+    ci_flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+#endif
     // DO NOT TOUCH, breaks RNDA3!!
     // Don't know why, but gloom + yellow line glitch appears
     const VkApplicationInfo application_info{
