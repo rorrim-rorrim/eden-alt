@@ -202,8 +202,9 @@ Id TextureColorResultType(EmitContext& ctx, const TextureDefinition& def) {
     case SamplerComponentType::Depth:
         return ctx.F32[4];
     case SamplerComponentType::Sint:
-    case SamplerComponentType::Stencil:
         return ctx.S32[4];
+    case SamplerComponentType::Stencil:
+        return ctx.U32[4];
     case SamplerComponentType::Uint:
         return ctx.U32[4];
     }
@@ -216,8 +217,9 @@ Id TextureSampleResultToFloat(EmitContext& ctx, const TextureDefinition& def, Id
     case SamplerComponentType::Depth:
         return color;
     case SamplerComponentType::Sint:
-    case SamplerComponentType::Stencil:
         return ctx.OpConvertSToF(ctx.F32[4], color);
+    case SamplerComponentType::Stencil:
+        return ctx.OpConvertUToF(ctx.F32[4], color);
     case SamplerComponentType::Uint:
         return ctx.OpConvertUToF(ctx.F32[4], color);
     }
