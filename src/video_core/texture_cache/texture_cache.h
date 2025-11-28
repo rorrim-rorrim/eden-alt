@@ -2423,6 +2423,7 @@ void TextureCache<P>::SynchronizeAliases(ImageId image_id) {
 template <class P>
 void TextureCache<P>::PrepareImage(ImageId image_id, bool is_modification, bool invalidate) {
     Image& image = slot_images[image_id];
+    runtime.TransitionImageLayout(image);
     if (invalidate) {
         image.flags &= ~(ImageFlagBits::CpuModified | ImageFlagBits::GpuModified);
         if (False(image.flags & ImageFlagBits::Tracked)) {
