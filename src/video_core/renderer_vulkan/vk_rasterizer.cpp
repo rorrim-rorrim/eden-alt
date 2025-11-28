@@ -828,9 +828,7 @@ void RasterizerVulkan::FragmentBarrier() {
 }
 
 void RasterizerVulkan::TiledCacheBarrier() {
-    // Maxwell expects color writes to become visible to subsequent draws; reuse the
-    // render-pass teardown path so all attachments receive the usual image barriers.
-    scheduler.RequestOutsideRenderPassOperationContext();
+    // TODO: Implementing tiled barriers requires rewriting a good chunk of the Vulkan backend
 }
 
 void RasterizerVulkan::FlushCommands() {
