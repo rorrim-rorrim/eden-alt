@@ -54,16 +54,19 @@ FP::FPCR A64EmitContext::FPCR(bool fpcr_controlled) const {
 }
 
 A64EmitX64::A64EmitX64(BlockOfCode& code, A64::UserConfig conf, A64::Jit* jit_interface)
-        : EmitX64(code), conf(conf), jit_interface{jit_interface} {
+    : EmitX64(code), conf(conf), jit_interface{jit_interface} {
+    if (conf.fastmem_pointer)
+        GenFastmemFallbacks();
+    //
     GenMemory128Accessors();
-    GenFastmemFallbacks();
     GenTerminalHandlers();
     code.PreludeComplete();
     ClearFastDispatchTable();
-
-    exception_handler.SetFastmemCallback([this](u64 rip_) {
-        return FastmemCallback(rip_);
-    });
+    //
+    if (conf.fastmem_pointer)
+        exception_handler.SetFastmemCallback([this](u64 rip_) {
+            return FastmemCallback(rip_);
+        });
 }
 
 A64EmitX64::~A64EmitX64() = default;
