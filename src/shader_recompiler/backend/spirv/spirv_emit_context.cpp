@@ -34,8 +34,9 @@ Id ComponentScalarType(EmitContext& ctx, SamplerComponentType component_type) {
     case SamplerComponentType::Depth:
         return ctx.F32[1];
     case SamplerComponentType::Sint:
-    case SamplerComponentType::Stencil:
         return ctx.S32[1];
+    case SamplerComponentType::Stencil:
+        return ctx.U32[1];
     case SamplerComponentType::Uint:
         return ctx.U32[1];
     }
