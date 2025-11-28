@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -32,7 +29,8 @@ enum class AtomSize : u64 {
     S64,
 };
 
-IR::U32U64 ApplyIntegerAtomOp(IR::IREmitter& ir, const IR::U32U64& offset, const IR::U32U64& op_b, AtomOp op, AtomSize size) {
+IR::U32U64 ApplyIntegerAtomOp(IR::IREmitter& ir, const IR::U32U64& offset, const IR::U32U64& op_b,
+                              AtomOp op, AtomSize size) {
     bool const is_signed = size == AtomSize::S64 || size == AtomSize::S32;
     switch (op) {
     case AtomOp::ADD:
@@ -73,7 +71,7 @@ IR::Value ApplyFpAtomOp(IR::IREmitter& ir, const IR::U64& offset, const IR::Valu
     switch (op) {
     case AtomOp::ADD:
         return size == AtomSize::F32 ? ir.GlobalAtomicF32Add(offset, op_b, f32_control)
-            : ir.GlobalAtomicF16x2Add(offset, op_b, f16_control);
+                                     : ir.GlobalAtomicF16x2Add(offset, op_b, f16_control);
     case AtomOp::MIN:
         return ir.GlobalAtomicF16x2Min(offset, op_b, f16_control);
     case AtomOp::MAX:
@@ -93,34 +91,29 @@ IR::U64 AtomOffset(TranslatorVisitor& v, u64 insn) {
     } const mem{insn};
 
     const IR::U64 address{[&]() -> IR::U64 {
-        if (mem.e == 0)
+        if (mem.e == 0) {
             return v.ir.UConvert(64, v.X(mem.addr_reg));
+        }
         return v.L(mem.addr_reg);
     }()};
     const u64 addr_offset{[&]() -> u64 {
         if (mem.addr_reg == IR::Reg::RZ) {
-            // When RZ is used, the address is an absolute address
-            return u64(mem.rz_addr_offset.Value());
+            return static_cast<u64>(mem.rz_addr_offset.Value());
         } else {
-            return u64(mem.addr_offset.Value());
+            return static_cast<u64>(mem.addr_offset.Value());
         }
     }()};
     return v.ir.IAdd(address, v.ir.Imm64(addr_offset));
 }
 
-// INC, DEC for U32/S32/U64 does nothing
-// ADD, INC, DEC for S64 does nothing
-// Only ADD does something for F32
-// Only ADD, MIN and MAX does something for F16x2
 bool AtomOpNotApplicable(AtomSize size, AtomOp op) {
-    // TODO: SAFEADD
     switch (size) {
     case AtomSize::U32:
-    case AtomSize::S32:
     case AtomSize::U64:
         return (op == AtomOp::INC || op == AtomOp::DEC);
+    case AtomSize::S32:
     case AtomSize::S64:
-        return (op == AtomOp::ADD || op == AtomOp::INC || op == AtomOp::DEC);
+        return false;
     case AtomSize::F32:
         return op != AtomOp::ADD;
     case AtomSize::F16x2:
@@ -181,11 +174,15 @@ IR::Value ApplyAtomOp(TranslatorVisitor& v, IR::Reg operand_reg, const IR::U64& 
 
 void GlobalAtomic(TranslatorVisitor& v, IR::Reg dest_reg, IR::Reg operand_reg,
                   const IR::U64& offset, AtomSize size, AtomOp op, bool write_dest) {
-    IR::Value result = AtomOpNotApplicable(size, op)
-        ? LoadGlobal(v.ir, offset, size)
-        : ApplyAtomOp(v, operand_reg, offset, size, op);
-    if (write_dest)
+    IR::Value result;
+    if (AtomOpNotApplicable(size, op)) {
+        result = LoadGlobal(v.ir, offset, size);
+    } else {
+        result = ApplyAtomOp(v, operand_reg, offset, size, op);
+    }
+    if (write_dest) {
         StoreResult(v, dest_reg, result, size);
+    }
 }
 } // Anonymous namespace
 
@@ -206,7 +203,7 @@ void TranslatorVisitor::RED(u64 insn) {
         u64 raw;
         BitField<0, 8, IR::Reg> operand_reg;
         BitField<20, 3, AtomSize> size;
-        BitField<23, 3, AtomOp> op;
+        BitField<23, 4, AtomOp> op;
     } const red{insn};
     const IR::U64 offset{AtomOffset(*this, insn)};
     GlobalAtomic(*this, IR::Reg::RZ, red.operand_reg, offset, red.size, red.op, true);
