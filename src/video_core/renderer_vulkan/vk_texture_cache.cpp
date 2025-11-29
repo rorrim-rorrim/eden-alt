@@ -36,6 +36,7 @@ namespace Vulkan {
 
 using Tegra::Engines::Fermi2D;
 using Tegra::Texture::SwizzleSource;
+using Tegra::Texture::TextureFilter;
 using Tegra::Texture::TextureMipmapFilter;
 using VideoCommon::BufferImageCopy;
 using VideoCommon::ImageFlagBits;
