@@ -5,9 +5,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <string>
+#include <thread>
+#include <sys/_cpuset.h>
+#include <sys/cpuset.h>
 
 #include "common/error.h"
 #include "common/logging/log.h"
+#include "common/assert.h"
 #include "common/thread.h"
 #ifdef __APPLE__
 #include <mach/mach.h>
@@ -28,7 +32,7 @@
 #endif
 
 #ifdef __FreeBSD__
-#define cpu_set_t cpuset_t
+#   define cpu_set_t cpuset_t
 #endif
 
 namespace Common {
@@ -77,22 +81,14 @@ void SetCurrentThreadPriority(ThreadPriority new_priority) {
 #endif
 }
 
+void SetCurrentThreadName(const char* name) {
 #ifdef _MSC_VER
-
-// Sets the debugger-visible name of the current thread.
-void SetCurrentThreadName(const char* name) {
-    static auto pf = (decltype(&SetThreadDescription))(void*)GetProcAddress(GetModuleHandle(TEXT("KernelBase.dll")), "SetThreadDescription");
-    if (pf)
+    // Sets the debugger-visible name of the current thread.
+    if (auto pf = (decltype(&SetThreadDescription))(void*)GetProcAddress(GetModuleHandle(TEXT("KernelBase.dll")), "SetThreadDescription"); pf)
         pf(GetCurrentThread(), UTF8ToUTF16W(name).data()); // Windows 10+
-}
-
-#else // !MSVC_VER, so must be POSIX threads
-
-// MinGW with the POSIX threading model does not support pthread_setname_np
-void SetCurrentThreadName(const char* name) {
-    // See for reference
-    // https://gitlab.freedesktop.org/mesa/mesa/-/blame/main/src/util/u_thread.c?ref_type=heads#L75
-#ifdef __APPLE__
+    else
+        ; // No-op
+#elif  defined(__APPLE__)
     pthread_setname_np(name);
 #elif defined(__HAIKU__)
     rename_thread(find_thread(NULL), name);
@@ -112,13 +108,33 @@ void SetCurrentThreadName(const char* name) {
         pthread_setname_np(pthread_self(), buf);
     }
 #elif defined(_WIN32)
-    // mingw stub
+    // MinGW with the POSIX threading model does not support pthread_setname_np
+    // See for reference
+    // https://gitlab.freedesktop.org/mesa/mesa/-/blame/main/src/util/u_thread.c?ref_type=heads#L75
     (void)name;
 #else
     pthread_setname_np(pthread_self(), name);
 #endif
 }
 
+void PinCurrentThreadToPerformanceCore(size_t core_id) {
+    ASSERT(core_id >= 0 && core_id < 4);
+    // If we set a flag for a CPU that doesn't exist, the thread may not be allowed to
+    // run in ANY processor!
+    auto const total_cores = std::thread::hardware_concurrency();
+    if (core_id < total_cores) {
+#if defined(__linux__) || defined(__FreeBSD__)
+        cpu_set_t set;
+        CPU_ZERO(&set);
+        CPU_SET(core_id, &set);
+        pthread_setaffinity_np(pthread_self(), sizeof(set), &set);
+#elif defined(_WIN32)
+        DWORD set = 1UL << core_id;
+        SetThreadAffinityMask(GetCurrentThread(), set);
+#else
+        // No pin functionality implemented
 #endif
+    }
+}
 
 } // namespace Common
