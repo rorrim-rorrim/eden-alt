@@ -17,7 +17,6 @@
 #include "common/div_ceil.h"
 #include "shader_recompiler/backend/spirv/emit_spirv.h"
 #include "shader_recompiler/backend/spirv/spirv_emit_context.h"
-#include "shader_recompiler/backend/spirv/texture_helpers.h"
 
 namespace Shader::Backend::SPIRV {
 namespace {
@@ -48,8 +47,7 @@ Id ImageType(EmitContext& ctx, const TextureDescriptor& desc, Id sampled_type) {
     const spv::ImageFormat format{spv::ImageFormat::Unknown};
     const bool depth{desc.is_depth};
     const bool ms{desc.is_multisample};
-    const TextureType type{EffectiveTextureType(ctx.profile, desc.type)};
-    switch (type) {
+    switch (desc.type) {
     case TextureType::Color1D:
         return ctx.TypeImage(sampled_type, spv::Dim::Dim1D, depth, false, false, 1, format);
     case TextureType::ColorArray1D:
@@ -95,8 +93,7 @@ spv::ImageFormat GetImageFormat(ImageFormat format) {
 
 Id ImageType(EmitContext& ctx, const ImageDescriptor& desc, Id sampled_type) {
     const spv::ImageFormat format{GetImageFormat(desc.format)};
-    const TextureType type{EffectiveTextureType(ctx.profile, desc.type)};
-    switch (type) {
+    switch (desc.type) {
     case TextureType::Color1D:
         return ctx.TypeImage(sampled_type, spv::Dim::Dim1D, false, false, false, 2, format);
     case TextureType::ColorArray1D:
