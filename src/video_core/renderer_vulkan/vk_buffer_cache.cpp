@@ -749,6 +749,8 @@ vk::Buffer BufferCacheRuntime::CreateNullBuffer() {
     }
 
     scheduler.RequestOutsideRenderPassOperationContext();
+
+    } // namespace Vulkan
     scheduler.Record([buffer = *ret](vk::CommandBuffer cmdbuf) {
         cmdbuf.FillBuffer(buffer, 0, VK_WHOLE_SIZE, 0);
     });
