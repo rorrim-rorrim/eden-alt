@@ -318,9 +318,14 @@ public:
         return static_cast<bool>(sampler_default_anisotropy);
     }
 
+    [[nodiscard]] VkSampler SelectHandle(bool supports_linear_filter,
+                                         bool supports_anisotropy) const noexcept;
+
 private:
     vk::Sampler sampler;
     vk::Sampler sampler_default_anisotropy;
+    vk::Sampler sampler_force_point;
+    bool uses_linear_filter = false;
 };
 
 class Framebuffer {

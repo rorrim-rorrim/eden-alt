@@ -1263,8 +1263,12 @@ void RasterizerVulkan::UpdateDepthBounds(Tegra::Engines::Maxwell3D::Regs& regs) 
     if (!device.IsDepthBoundsSupported()) {
         return;
     }
-    scheduler.Record([min_depth = regs.depth_bounds[0], max_depth = regs.depth_bounds[1]](
-                         vk::CommandBuffer cmdbuf) {
+    const bool unrestricted = device.IsExtDepthRangeUnrestrictedSupported();
+    const float min_depth = unrestricted ? regs.depth_bounds[0]
+                                         : std::clamp(regs.depth_bounds[0], 0.0f, 1.0f);
+    const float max_depth = unrestricted ? regs.depth_bounds[1]
+                                         : std::clamp(regs.depth_bounds[1], 0.0f, 1.0f);
+    scheduler.Record([min_depth, max_depth](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetDepthBounds(min_depth, max_depth);
     });
 }
