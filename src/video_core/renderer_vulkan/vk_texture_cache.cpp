@@ -2279,13 +2279,20 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
     if (!image_handle) {
         return VK_NULL_HANDLE;
     }
-    if (image_format == Shader::ImageFormat::Typeless) {
-        return Handle(texture_type);
-    }
     const bool is_signed{image_format == Shader::ImageFormat::R8_SINT ||
                          image_format == Shader::ImageFormat::R16_SINT};
     if (!storage_views) {
         storage_views = std::make_unique<StorageViews>();
+    }
+    if (image_format == Shader::ImageFormat::Typeless) {
+        auto& view = storage_views->typeless[static_cast<size_t>(texture_type)];
+        if (view) {
+            return *view;
+        }
+        const auto& format_info =
+            MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
+        view = MakeView(format_info.format, VK_IMAGE_ASPECT_COLOR_BIT, texture_type);
+        return *view;
     }
     auto& views{is_signed ? storage_views->signeds : storage_views->unsigneds};
     auto& view{views[static_cast<size_t>(texture_type)]};
