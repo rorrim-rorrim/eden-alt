@@ -15,6 +15,7 @@
 #include <vector>
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "common/bit_util.h"
+#include "common/settings.h"
 #include "common/common_types.h"
 #include "video_core/engines/draw_manager.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
@@ -556,7 +557,9 @@ private:
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
-            .size = SamplesQueryBank::QUERY_SIZE * (1ULL << log_2),
+            .size = ::Settings::values.force_smaller_buffers.GetValue()
+                ? (SamplesQueryBank::QUERY_SIZE * (1ULL << log_2))
+                : (SamplesQueryBank::QUERY_SIZE * num_needed),
             .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
                      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,

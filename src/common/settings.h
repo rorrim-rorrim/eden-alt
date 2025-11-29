@@ -525,6 +525,8 @@ struct Values {
                                                      Category::RendererAdvanced};
     SwitchableSetting<bool> use_video_framerate{linkage, false, "use_video_framerate",
                                                 Category::RendererAdvanced};
+    SwitchableSetting<bool> force_smaller_buffers{linkage, false, "force_smaller_buffers",
+                                                Category::RendererAdvanced};
     SwitchableSetting<bool> barrier_feedback_loops{linkage, true, "barrier_feedback_loops",
                                                    Category::RendererAdvanced};
 
