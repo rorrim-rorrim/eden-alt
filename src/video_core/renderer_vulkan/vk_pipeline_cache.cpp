@@ -366,6 +366,7 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
               "VkPipelineBuilder"),
       serialization_thread(1, "VkPipelineSerialization") {
     const auto& float_control{device.FloatControlProperties()};
+    const bool float_controls_supported{device.IsKhrShaderFloatControlsSupported()};
     const VkDriverId driver_id{device.GetDriverID()};
     profile = Shader::Profile{
         .supported_spirv = device.SupportedSpirvVersion(),
@@ -375,20 +376,24 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .support_int16 = device.IsShaderInt16Supported(),
         .support_int64 = device.IsShaderInt64Supported(),
         .support_vertex_instance_id = false,
-        .support_float_controls = device.IsKhrShaderFloatControlsSupported(),
-        .support_separate_denorm_behavior =
+        .support_float_controls = float_controls_supported,
+        .support_separate_denorm_behavior = float_controls_supported &&
             float_control.denormBehaviorIndependence == VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL,
-        .support_separate_rounding_mode =
+        .support_separate_rounding_mode = float_controls_supported &&
             float_control.roundingModeIndependence == VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL,
-        .support_fp16_denorm_preserve = float_control.shaderDenormPreserveFloat16 != VK_FALSE,
-        .support_fp32_denorm_preserve = float_control.shaderDenormPreserveFloat32 != VK_FALSE,
-        .support_fp16_denorm_flush = float_control.shaderDenormFlushToZeroFloat16 != VK_FALSE,
-        .support_fp32_denorm_flush = float_control.shaderDenormFlushToZeroFloat32 != VK_FALSE,
-        .support_fp16_signed_zero_nan_preserve =
+        .support_fp16_denorm_preserve = float_controls_supported &&
+            float_control.shaderDenormPreserveFloat16 != VK_FALSE,
+        .support_fp32_denorm_preserve = float_controls_supported &&
+            float_control.shaderDenormPreserveFloat32 != VK_FALSE,
+        .support_fp16_denorm_flush = float_controls_supported &&
+            float_control.shaderDenormFlushToZeroFloat16 != VK_FALSE,
+        .support_fp32_denorm_flush = float_controls_supported &&
+            float_control.shaderDenormFlushToZeroFloat32 != VK_FALSE,
+        .support_fp16_signed_zero_nan_preserve = float_controls_supported &&
             float_control.shaderSignedZeroInfNanPreserveFloat16 != VK_FALSE,
-        .support_fp32_signed_zero_nan_preserve =
+        .support_fp32_signed_zero_nan_preserve = float_controls_supported &&
             float_control.shaderSignedZeroInfNanPreserveFloat32 != VK_FALSE,
-        .support_fp64_signed_zero_nan_preserve =
+        .support_fp64_signed_zero_nan_preserve = float_controls_supported &&
             float_control.shaderSignedZeroInfNanPreserveFloat64 != VK_FALSE,
         .support_explicit_workgroup_layout = device.IsKhrWorkgroupMemoryExplicitLayoutSupported(),
         .support_vote = device.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_VOTE_BIT),
