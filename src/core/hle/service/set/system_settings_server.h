@@ -167,7 +167,6 @@ private:
     bool StoreSettingsFile(std::filesystem::path& path, auto& settings);
     void SetupSettings();
     void StoreSettings();
-    void StoreSettingsThreadFunc(std::stop_token stop_token);
     void SetSaveNeeded();
 
     Core::System& m_system;
