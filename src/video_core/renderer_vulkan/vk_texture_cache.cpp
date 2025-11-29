@@ -838,9 +838,6 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
         msaa_copy_pass = std::make_unique<MSAACopyPass>(
             device, scheduler, descriptor_pool, staging_buffer_pool, compute_pass_descriptor_queue);
     }
-    if (!device.IsKhrImageFormatListSupported()) {
-        return;
-    }
     for (size_t index_a = 0; index_a < VideoCore::Surface::MaxPixelFormat; index_a++) {
         const auto image_format = static_cast<PixelFormat>(index_a);
         if (IsPixelFormatASTC(image_format) && !device.IsOptimalAstcSupported()) {
@@ -2357,20 +2354,29 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
     // Some games have samplers with garbage. Sanitize them here.
     const f32 max_anisotropy = std::clamp(tsc.MaxAnisotropy(), 1.0f, 16.0f);
 
-    const auto create_sampler = [&](const f32 anisotropy) {
+    const auto create_sampler = [&](const f32 anisotropy, bool force_point_filter) {
+        const VkFilter mag_filter = force_point_filter ? VK_FILTER_NEAREST
+                                                       : MaxwellToVK::Sampler::Filter(tsc.mag_filter);
+        const VkFilter min_filter = force_point_filter ? VK_FILTER_NEAREST
+                                                       : MaxwellToVK::Sampler::Filter(tsc.min_filter);
+        const VkSamplerMipmapMode mipmap_mode = force_point_filter
+                                                    ? VK_SAMPLER_MIPMAP_MODE_NEAREST
+                                                    : MaxwellToVK::Sampler::MipmapMode(tsc.mipmap_filter);
+        const float resolved_anisotropy = force_point_filter ? 1.0f : anisotropy;
+        const bool enable_anisotropy = resolved_anisotropy > 1.0f && !force_point_filter;
         return device.GetLogical().CreateSampler(VkSamplerCreateInfo{
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
             .pNext = pnext,
             .flags = 0,
-            .magFilter = MaxwellToVK::Sampler::Filter(tsc.mag_filter),
-            .minFilter = MaxwellToVK::Sampler::Filter(tsc.min_filter),
-            .mipmapMode = MaxwellToVK::Sampler::MipmapMode(tsc.mipmap_filter),
+            .magFilter = mag_filter,
+            .minFilter = min_filter,
+            .mipmapMode = mipmap_mode,
             .addressModeU = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_u, tsc.mag_filter),
             .addressModeV = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_v, tsc.mag_filter),
             .addressModeW = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_p, tsc.mag_filter),
             .mipLodBias = tsc.LodBias(),
-            .anisotropyEnable = static_cast<VkBool32>(anisotropy > 1.0f ? VK_TRUE : VK_FALSE),
-            .maxAnisotropy = anisotropy,
+            .anisotropyEnable = static_cast<VkBool32>(enable_anisotropy ? VK_TRUE : VK_FALSE),
+            .maxAnisotropy = enable_anisotropy ? resolved_anisotropy : 1.0f,
             .compareEnable = tsc.depth_compare_enabled,
             .compareOp = MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func),
             .minLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.0f : tsc.MinLod(),
@@ -2381,12 +2387,31 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
         });
     };
 
-    sampler = create_sampler(max_anisotropy);
+    sampler = create_sampler(max_anisotropy, false);
 
     const f32 max_anisotropy_default = static_cast<f32>(1U << tsc.max_anisotropy);
     if (max_anisotropy > max_anisotropy_default) {
-        sampler_default_anisotropy = create_sampler(max_anisotropy_default);
+        sampler_default_anisotropy = create_sampler(max_anisotropy_default, false);
     }
+
+    uses_linear_filter = (tsc.mag_filter == TextureFilter::Linear) ||
+                         (tsc.min_filter == TextureFilter::Linear) || (max_anisotropy > 1.0f);
+    if (uses_linear_filter) {
+        sampler_force_point = create_sampler(1.0f, true);
+    }
+}
+
+VkSampler Sampler::SelectHandle(bool supports_linear_filter,
+                                bool supports_anisotropy) const noexcept {
+    const bool needs_linear_fallback = uses_linear_filter && !supports_linear_filter;
+    if (needs_linear_fallback && sampler_force_point) {
+        return *sampler_force_point;
+    }
+    const bool needs_aniso_fallback = HasAddedAnisotropy() && !supports_anisotropy;
+    if (needs_aniso_fallback) {
+        return HandleWithDefaultAnisotropy();
+    }
+    return Handle();
 }
 
 Framebuffer::Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM_RT> color_buffers,

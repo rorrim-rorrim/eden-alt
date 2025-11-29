@@ -192,10 +192,10 @@ inline void PushImageDescriptors(TextureCache& texture_cache,
             const VkImageView vk_image_view{
                 image_view.SampledView(desc.type, desc.component_type)};
             const Sampler& sampler{texture_cache.GetSampler(sampler_id)};
-            const bool use_fallback_sampler{sampler.HasAddedAnisotropy() &&
-                                            !image_view.SupportsAnisotropy()};
-            const VkSampler vk_sampler{use_fallback_sampler ? sampler.HandleWithDefaultAnisotropy()
-                                                            : sampler.Handle()};
+            const bool supports_linear_filter{
+                texture_cache.SupportsLinearFilter(image_view.format)};
+            const VkSampler vk_sampler{
+                sampler.SelectHandle(supports_linear_filter, image_view.SupportsAnisotropy())};
             guest_descriptor_queue.AddSampledImage(vk_image_view, vk_sampler);
             rescaling.PushTexture(texture_cache.IsRescaling(image_view));
         }
