@@ -1029,7 +1029,6 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateDepthBounds(regs);
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
-    UpdateSampleLocations(regs);
     
     // EDS1: CullMode, DepthCompare, FrontFace, StencilOp, DepthBoundsTest, DepthTest, DepthWrite, StencilTest
     if (device.IsExtExtendedDynamicStateSupported()) {
@@ -1279,15 +1278,15 @@ void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
     });
 }
 
-void RasterizerVulkan::UpdateBlendConstants(Tegra::Engines::Maxwell3D::Regs& regs) {
-    if (!state_tracker.TouchBlendConstants()) {
-        return;
-    }
-    const std::array blend_color = {regs.blend_color.r, regs.blend_color.g, regs.blend_color.b,
-                                    regs.blend_color.a};
-    scheduler.Record(
-        [blend_color](vk::CommandBuffer cmdbuf) { cmdbuf.SetBlendConstants(blend_color.data()); });
-}
+// void RasterizerVulkan::UpdateLineWidth(Tegra::Engines::Maxwell3D::Regs& regs) {
+//     if (!state_tracker.TouchLineWidth()) {
+//         return;
+//     }
+//     const std::array blend_color = {regs.blend_color.r, regs.blend_color.g, regs.blend_color.b,
+//                                     regs.blend_color.a};
+//     scheduler.Record(
+//         [blend_color](vk::CommandBuffer cmdbuf) { cmdbuf.SetBlendConstants(blend_color.data()); });
+// }
 
 void RasterizerVulkan::UpdateDepthBounds(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchDepthBounds()) {
@@ -1396,66 +1395,6 @@ void RasterizerVulkan::UpdateLineWidth(Tegra::Engines::Maxwell3D::Regs& regs) {
     const float width =
         regs.line_anti_alias_enable ? regs.line_width_smooth : regs.line_width_aliased;
     scheduler.Record([width](vk::CommandBuffer cmdbuf) { cmdbuf.SetLineWidth(width); });
-}
-
-void RasterizerVulkan::UpdateSampleLocations(Tegra::Engines::Maxwell3D::Regs& regs) {
-    if (!device.IsExtSampleLocationsSupported()) {
-        state_tracker.TouchSampleLocations();
-        return;
-    }
-    if (!state_tracker.TouchSampleLocations()) {
-        return;
-    }
-
-    const auto msaa_mode = regs.anti_alias_samples_mode;
-    const u32 sample_count = static_cast<u32>(VideoCommon::NumSamples(msaa_mode));
-
-    const VkSampleCountFlagBits vk_samples = MaxwellToVK::MsaaMode(msaa_mode);
-    if (!device.SupportsSampleLocationsFor(vk_samples)) {
-        return;
-    }
-
-    const auto [grid_width, grid_height] = VideoCommon::SampleLocationGridSize(msaa_mode);
-    const u32 total_locations = sample_count * grid_width * grid_height;
-    if (total_locations == 0 || total_locations > VideoCommon::MaxSampleLocationSlots) {
-        LOG_WARNING(Render_Vulkan, "Unsupported sample-location grid configuration: samples={}, grid={}x{}",
-                    sample_count, grid_width, grid_height);
-        return;
-    }
-
-    const auto& props = device.SampleLocationProperties();
-    std::array<VkSampleLocationEXT, VideoCommon::MaxSampleLocationSlots> locations{};
-    constexpr float unit = 1.0f / 16.0f;
-    const auto clamp_coord = [&](float coord) {
-        return std::clamp(coord, props.sampleLocationCoordinateRange[0],
-                          props.sampleLocationCoordinateRange[1]);
-    };
-
-    for (u32 index = 0; index < total_locations; ++index) {
-        const auto& packed = regs.multisample_sample_locations[index / 4];
-        const auto [raw_x, raw_y] = packed.Location(index % 4);
-        const float offset_x = static_cast<float>(static_cast<int>(raw_x) - 8);
-        const float offset_y = static_cast<float>(static_cast<int>(raw_y) - 8);
-        const float x = clamp_coord(offset_x * unit);
-        const float y = clamp_coord(offset_y * unit);
-        locations[index] = VkSampleLocationEXT{.x = x, .y = y};
-    }
-
-    VkSampleLocationsInfoEXT info{
-        .sType = VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT,
-        .pNext = nullptr,
-        .sampleLocationsPerPixel = vk_samples,
-        .sampleLocationGridSize = {grid_width, grid_height},
-        .sampleLocationsCount = total_locations,
-        .pSampleLocations = nullptr,
-    };
-
-    const auto sample_locations = locations;
-    scheduler.Record([info, sample_locations](vk::CommandBuffer cmdbuf) {
-        auto info_copy = info;
-        info_copy.pSampleLocations = sample_locations.data();
-        cmdbuf.SetSampleLocationsEXT(info_copy);
-    });
 }
 
 void RasterizerVulkan::UpdateCullMode(Tegra::Engines::Maxwell3D::Regs& regs) {
