@@ -343,7 +343,6 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
 
 ISystemSettingsServer::~ISystemSettingsServer() {
     SetSaveNeeded();
-    m_save_thread.request_stop();
 }
 
 bool ISystemSettingsServer::LoadSettingsFile(std::filesystem::path& path, auto&& default_func) {
