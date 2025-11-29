@@ -2173,10 +2173,7 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
         if (view) {
             return *view;
         }
-        const auto fmt_info =
-                MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, /*is_image=*/true, format);
-        const VkFormat vk_format = fmt_info.format;
-        view = MakeView(vk_format, VK_IMAGE_ASPECT_COLOR_BIT);
+        view = MakeView(format, VK_IMAGE_ASPECT_COLOR_BIT);
         return *view;
     }
     const bool is_signed{image_format == Shader::ImageFormat::R8_SINT ||
