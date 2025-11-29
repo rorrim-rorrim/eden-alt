@@ -341,6 +341,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Run the game at normal speed during video playback, even when the framerate is "
               "unlocked."));
     INSERT(Settings,
+           force_smaller_buffers,
+           tr("Force smaller buffers"),
+           tr("Forces buffers to be smaller, may cause reads/writes out of bounds for some games but can fix Out-of-memory errors."));
+    INSERT(Settings,
            barrier_feedback_loops,
            tr("Barrier feedback loops"),
            tr("Improves rendering of transparency effects in specific games."));
