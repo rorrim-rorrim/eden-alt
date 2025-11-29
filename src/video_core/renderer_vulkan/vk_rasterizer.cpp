@@ -997,7 +997,6 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateDepthBounds(regs);
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
-    UpdateSampleLocations(regs);
     
     // EDS1: CullMode, DepthCompare, FrontFace, StencilOp, DepthBoundsTest, DepthTest, DepthWrite, StencilTest
     if (device.IsExtExtendedDynamicStateSupported()) {
@@ -1231,79 +1230,15 @@ void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
     });
 }
 
-void RasterizerVulkan::UpdateBlendConstants(Tegra::Engines::Maxwell3D::Regs& regs) {
-    if (!state_tracker.TouchBlendConstants()) {
+void RasterizerVulkan::UpdateLineWidth(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchLineWidth()) {
         return;
     }
-    if (!device.UsesAdvancedCoreDynamicState()) {
-        return;
-    }
-    const std::array blend_color = {regs.blend_color.r, regs.blend_color.g, regs.blend_color.b,
-                                    regs.blend_color.a};
-    scheduler.Record(
-        [blend_color](vk::CommandBuffer cmdbuf) { cmdbuf.SetBlendConstants(blend_color.data()); });
+    const float width =
+        regs.line_anti_alias_enable ? regs.line_width_smooth : regs.line_width_aliased;
+    scheduler.Record([width](vk::CommandBuffer cmdbuf) { cmdbuf.SetLineWidth(width); });
 }
 
-void RasterizerVulkan::UpdateDepthBounds(Tegra::Engines::Maxwell3D::Regs& regs) {
-    if (!state_tracker.TouchDepthBounds()) {
-        return;
-    }
-    if (!device.UsesAdvancedCoreDynamicState() || !device.IsDepthBoundsSupported()) {
-        return;
-    }
-    scheduler.Record([min = regs.depth_bounds[0], max = regs.depth_bounds[1]](
-                         vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthBounds(min, max); });
-}
-
-void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs) {
-    if (!state_tracker.TouchStencilProperties()) {
-        return;
-    }
-    if (!device.UsesAdvancedCoreDynamicState()) {
-        state_tracker.ClearStencilReset();
-        return;
-    }
-    bool update_references = state_tracker.TouchStencilReference();
-    bool update_write_mask = state_tracker.TouchStencilWriteMask();
-    bool update_compare_masks = state_tracker.TouchStencilCompare();
-    if (state_tracker.TouchStencilSide(regs.stencil_two_side_enable != 0)) {
-        update_references = true;
-        update_write_mask = true;
-        update_compare_masks = true;
-    }
-    if (update_references) {
-        [&]() {
-            if (regs.stencil_two_side_enable) {
-                if (!state_tracker.CheckStencilReferenceFront(regs.stencil_front_ref) &&
-                    !state_tracker.CheckStencilReferenceBack(regs.stencil_back_ref)) {
-                    return;
-                }
-            } else {
-                if (!state_tracker.CheckStencilReferenceFront(regs.stencil_front_ref)) {
-                    return;
-                }
-            }
-            scheduler.Record([front_ref = regs.stencil_front_ref, back_ref = regs.stencil_back_ref,
-                              two_sided = regs.stencil_two_side_enable](vk::CommandBuffer cmdbuf) {
-                const bool set_back = two_sided && front_ref != back_ref;
-                // Front face
-                cmdbuf.SetStencilReference(set_back ? VK_STENCIL_FACE_FRONT_BIT
-                                                    : VK_STENCIL_FACE_FRONT_AND_BACK,
-                                           front_ref);
-                if (set_back) {
-                    cmdbuf.SetStencilReference(VK_STENCIL_FACE_BACK_BIT, back_ref);
-                }
-            });
-        }();
-    }
-    if (update_write_mask) {
-        [&]() {
-            if (regs.stencil_two_side_enable) {
-                if (!state_tracker.CheckStencilWriteMaskFront(regs.stencil_front_mask) &&
-                    !state_tracker.CheckStencilWriteMaskBack(regs.stencil_back_mask)) {
-                    return;
-                }
-            } else {
                 if (!state_tracker.CheckStencilWriteMaskFront(regs.stencil_front_mask)) {
                     return;
                 }
@@ -1360,66 +1295,6 @@ void RasterizerVulkan::UpdateLineWidth(Tegra::Engines::Maxwell3D::Regs& regs) {
     scheduler.Record([width](vk::CommandBuffer cmdbuf) { cmdbuf.SetLineWidth(width); });
 }
 
-void RasterizerVulkan::UpdateSampleLocations(Tegra::Engines::Maxwell3D::Regs& regs) {
-    if (!device.IsExtSampleLocationsSupported()) {
-        state_tracker.TouchSampleLocations();
-        return;
-    }
-    if (!state_tracker.TouchSampleLocations()) {
-        return;
-    }
-
-    const auto msaa_mode = regs.anti_alias_samples_mode;
-    const u32 sample_count = static_cast<u32>(VideoCommon::NumSamples(msaa_mode));
-
-    const VkSampleCountFlagBits vk_samples = MaxwellToVK::MsaaMode(msaa_mode);
-    if (!device.SupportsSampleLocationsFor(vk_samples)) {
-        return;
-    }
-
-    const auto [grid_width, grid_height] = VideoCommon::SampleLocationGridSize(msaa_mode);
-    const u32 total_locations = sample_count * grid_width * grid_height;
-    if (total_locations == 0 || total_locations > VideoCommon::MaxSampleLocationSlots) {
-        LOG_WARNING(Render_Vulkan, "Unsupported sample-location grid configuration: samples={}, grid={}x{}",
-                    sample_count, grid_width, grid_height);
-        return;
-    }
-
-    const auto& props = device.SampleLocationProperties();
-    std::array<VkSampleLocationEXT, VideoCommon::MaxSampleLocationSlots> locations{};
-    constexpr float unit = 1.0f / 16.0f;
-    const auto clamp_coord = [&](float coord) {
-        return std::clamp(coord, props.sampleLocationCoordinateRange[0],
-                          props.sampleLocationCoordinateRange[1]);
-    };
-
-    for (u32 index = 0; index < total_locations; ++index) {
-        const auto& packed = regs.multisample_sample_locations[index / 4];
-        const auto [raw_x, raw_y] = packed.Location(index % 4);
-        const float offset_x = static_cast<float>(static_cast<int>(raw_x) - 8);
-        const float offset_y = static_cast<float>(static_cast<int>(raw_y) - 8);
-        const float x = clamp_coord(offset_x * unit);
-        const float y = clamp_coord(offset_y * unit);
-        locations[index] = VkSampleLocationEXT{.x = x, .y = y};
-    }
-
-    VkSampleLocationsInfoEXT info{
-        .sType = VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT,
-        .pNext = nullptr,
-        .sampleLocationsPerPixel = vk_samples,
-        .sampleLocationGridSize = {grid_width, grid_height},
-        .sampleLocationsCount = total_locations,
-        .pSampleLocations = nullptr,
-    };
-
-    const auto sample_locations = locations;
-    scheduler.Record([info, sample_locations](vk::CommandBuffer cmdbuf) {
-        auto info_copy = info;
-        info_copy.pSampleLocations = sample_locations.data();
-        cmdbuf.SetSampleLocationsEXT(info_copy);
-    });
-}
-
 void RasterizerVulkan::UpdateCullMode(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchCullMode()) {
         return;
@@ -1430,64 +1305,6 @@ void RasterizerVulkan::UpdateCullMode(Tegra::Engines::Maxwell3D::Regs& regs) {
     });
 }
 
-void RasterizerVulkan::UpdateDepthBoundsTestEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
-    if (!state_tracker.TouchDepthBoundsTestEnable()) {
-        return;
-    }
-    bool enabled = regs.depth_bounds_enable;
-    if (enabled && !device.IsDepthBoundsSupported()) {
-        LOG_WARNING(Render_Vulkan, "Depth bounds is enabled but not supported");
-        enabled = false;
-    }
-    scheduler.Record([enable = enabled](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetDepthBoundsTestEnableEXT(enable);
-    });
-}
-
-void RasterizerVulkan::UpdateDepthTestEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
-    if (!state_tracker.TouchDepthTestEnable()) {
-        return;
-    }
-    scheduler.Record([enable = regs.depth_test_enable](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetDepthTestEnableEXT(enable);
-    });
-}
-
-void RasterizerVulkan::UpdateDepthWriteEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
-    if (!state_tracker.TouchDepthWriteEnable()) {
-        return;
-    }
-    scheduler.Record([enable = regs.depth_write_enabled](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetDepthWriteEnableEXT(enable);
-    });
-}
-
-void RasterizerVulkan::UpdatePrimitiveRestartEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
-    if (!state_tracker.TouchPrimitiveRestartEnable()) {
-        return;
-    }
-    scheduler.Record([enable = regs.primitive_restart.enabled](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetPrimitiveRestartEnableEXT(enable);
-    });
-}
-
-void RasterizerVulkan::UpdateRasterizerDiscardEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
-    if (!state_tracker.TouchRasterizerDiscardEnable()) {
-        return;
-    }
-    scheduler.Record([disable = regs.rasterize_enable](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetRasterizerDiscardEnableEXT(disable == 0);
-    });
-}
-
-void RasterizerVulkan::UpdateConservativeRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs) {
-    if (!state_tracker.TouchConservativeRasterizationMode()) {
-        return;
-    }
-
-    if (!device.SupportsDynamicState3ConservativeRasterizationMode()) {
-        return;
-    }
 
     scheduler.Record([enable = regs.conservative_raster_enable](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetConservativeRasterizationModeEXT(
