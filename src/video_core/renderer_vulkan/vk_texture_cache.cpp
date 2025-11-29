@@ -331,31 +331,6 @@ void SanitizeDepthStencilSwizzle(std::array<SwizzleSource, 4>& swizzle,
     return VK_IMAGE_VIEW_TYPE_2D;
 }
 
-[[nodiscard]] VkImageViewType ImageViewType(VideoCommon::ImageViewType type) {
-    switch (type) {
-    case VideoCommon::ImageViewType::e1D:
-        return VK_IMAGE_VIEW_TYPE_1D;
-    case VideoCommon::ImageViewType::e2D:
-    case VideoCommon::ImageViewType::Rect:
-        return VK_IMAGE_VIEW_TYPE_2D;
-    case VideoCommon::ImageViewType::Cube:
-        return VK_IMAGE_VIEW_TYPE_CUBE;
-    case VideoCommon::ImageViewType::e3D:
-        return VK_IMAGE_VIEW_TYPE_3D;
-    case VideoCommon::ImageViewType::e1DArray:
-        return VK_IMAGE_VIEW_TYPE_1D_ARRAY;
-    case VideoCommon::ImageViewType::e2DArray:
-        return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
-    case VideoCommon::ImageViewType::CubeArray:
-        return VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
-    case VideoCommon::ImageViewType::Buffer:
-        ASSERT_MSG(false, "Texture buffers can't be image views");
-        return VK_IMAGE_VIEW_TYPE_1D;
-    }
-    ASSERT_MSG(false, "Invalid image view type={}", type);
-    return VK_IMAGE_VIEW_TYPE_2D;
-}
-
 [[nodiscard]] VkImageSubresourceLayers MakeImageSubresourceLayers(
     VideoCommon::SubresourceLayers subresource, VkImageAspectFlags aspect_mask) {
     return VkImageSubresourceLayers{
