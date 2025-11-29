@@ -274,15 +274,22 @@ private:
         std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> unsigneds;
     };
 
+    [[nodiscard]] Shader::TextureType BaseTextureType() const noexcept;
+    [[nodiscard]] std::optional<u32> LayerCountOverride(Shader::TextureType texture_type) const noexcept;
+    [[nodiscard]] VkImageView DepthView(Shader::TextureType texture_type);
+    [[nodiscard]] VkImageView StencilView(Shader::TextureType texture_type);
+
     [[nodiscard]] vk::ImageView MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask);
+    [[nodiscard]] vk::ImageView MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask,
+                                        Shader::TextureType texture_type);
 
     const Device* device = nullptr;
     const SlotVector<Image>* slot_images = nullptr;
 
     std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> image_views;
     std::unique_ptr<StorageViews> storage_views;
-    vk::ImageView depth_view;
-    vk::ImageView stencil_view;
+    std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> depth_views;
+    std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> stencil_views;
     vk::ImageView color_view;
     vk::Image null_image;
     VkImage image_handle = VK_NULL_HANDLE;
