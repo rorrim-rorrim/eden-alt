@@ -1051,11 +1051,12 @@ bool Device::GetSuitability(bool requires_swapchain) {
     // Vulkan 1.2 and 1.3 features
     if (instance_version >= VK_API_VERSION_1_2) {
         features_1_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
-        features_1_3.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+        SetNext(next, features_1_2);
 
-        features_1_2.pNext = &features_1_3;
-
-        *next = &features_1_2;
+        if (instance_version >= VK_API_VERSION_1_3) {
+            features_1_3.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+            SetNext(next, features_1_3);
+        }
     }
 
 // Test all features we know about. If the feature is not available in core at our
