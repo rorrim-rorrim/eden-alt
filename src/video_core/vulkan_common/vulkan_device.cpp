@@ -94,7 +94,7 @@ constexpr std::array VK_FORMAT_A4B4G4R4_UNORM_PACK16{
 
 } // namespace Alternatives
 
-constexpr VkShaderStageFlags GraphicsStageMask =
+[[maybe_unused]] constexpr VkShaderStageFlags GraphicsStageMask =
     VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT |
     VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT | VK_SHADER_STAGE_GEOMETRY_BIT |
     VK_SHADER_STAGE_FRAGMENT_BIT;
