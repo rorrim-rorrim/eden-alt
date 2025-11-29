@@ -42,7 +42,8 @@ public:
     static constexpr size_t BANK_SIZE = 256;
     static constexpr size_t QUERY_SIZE = 8;
     explicit SamplesQueryBank(const Device& device_, size_t index_)
-        : BankBase(BANK_SIZE), device{device_}, index{index_} {
+        : BankBase(BANK_SIZE), device{device_}, index{index_},
+          supports_host_query_reset{device_.SupportsHostQueryReset()} {
         const auto& dev = device.GetLogical();
         query_pool = dev.CreateQueryPool({
             .sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
@@ -60,8 +61,10 @@ public:
     void Reset() override {
         ASSERT(references == 0);
         VideoCommon::BankBase::Reset();
-        const auto& dev = device.GetLogical();
-        dev.ResetQueryPool(*query_pool, 0, BANK_SIZE);
+        if (supports_host_query_reset) {
+            const auto& dev = device.GetLogical();
+            dev.ResetQueryPool(*query_pool, 0, BANK_SIZE);
+        }
         host_results.fill(0ULL);
         next_bank = 0;
     }
@@ -99,6 +102,7 @@ public:
 private:
     const Device& device;
     const size_t index;
+    const bool supports_host_query_reset;
     vk::QueryPool query_pool;
     std::array<u64, BANK_SIZE> host_results;
 };
