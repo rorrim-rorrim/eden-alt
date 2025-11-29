@@ -852,11 +852,11 @@ Id EmitImageQueryDimensions(EmitContext& ctx, IR::Inst* inst, const IR::Value& i
     const Id query_type{ctx.U32[std::max(1u, query_components)]};
     const Id size = uses_lod ? ctx.OpImageQuerySizeLod(query_type, image, lod)
                              : ctx.OpImageQuerySize(query_type, image);
-    const auto extract = [&](u32 component_index) -> Id {
+    const auto extract = [&](u32 index) -> Id {
         if (query_components == 1) {
             return size;
         }
-        return ctx.OpCompositeExtract(ctx.U32[1], size, component_index);
+        return ctx.OpCompositeExtract(ctx.U32[1], size, index);
     };
 
     switch (info.type) {
