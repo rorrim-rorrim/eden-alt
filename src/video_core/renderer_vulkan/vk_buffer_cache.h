@@ -131,6 +131,9 @@ public:
 
     void BindTransformFeedbackBuffers(VideoCommon::HostBindings<Buffer>& bindings);
 
+    /// Forces destruction and recreation of the shared null buffer so new usage flags take effect.
+    void RefreshNullBuffer();
+
     std::span<u8> BindMappedUniformBuffer([[maybe_unused]] size_t /*stage*/,
                                           [[maybe_unused]] u32 /*binding_index*/,
                                           u32 size) {
@@ -174,6 +177,7 @@ private:
 
     void ReserveNullBuffer();
     vk::Buffer CreateNullBuffer();
+    VkBufferUsageFlags NullBufferUsageFlags() const;
 
     struct UniformRing {
         static constexpr size_t NUM_FRAMES = 3;
@@ -203,6 +207,7 @@ private:
     std::shared_ptr<QuadStripIndexBuffer> quad_strip_index_buffer;
 
     vk::Buffer null_buffer;
+    VkBufferUsageFlags null_buffer_usage_flags = 0;
 
     std::unique_ptr<Uint8Pass> uint8_pass;
     QuadIndexedPass quad_index_pass;
