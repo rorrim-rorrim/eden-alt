@@ -116,6 +116,7 @@ void ConfigurePerGame::ApplyConfiguration() {
     }
     addons_tab->ApplyConfiguration();
     input_tab->ApplyConfiguration();
+    network_tab->ApplyConfiguration();
 
     if (Settings::IsDockedMode() && Settings::values.players.GetValue()[0].controller_type ==
                                         Settings::ControllerType::Handheld) {
