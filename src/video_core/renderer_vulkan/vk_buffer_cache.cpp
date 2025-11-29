@@ -594,6 +594,12 @@ void BufferCacheRuntime::BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset
     if (index >= device.GetMaxVertexInputBindings()) {
         return;
     }
+    if (!device.HasNullDescriptor() && buffer == VK_NULL_HANDLE) {
+        ReserveNullBuffer();
+        buffer = *null_buffer;
+        offset = 0;
+        size = VK_WHOLE_SIZE;
+    }
     // Use BindVertexBuffers2EXT only if EDS1 is supported AND VIDS is not active
     // When VIDS is active, the pipeline doesn't declare VERTEX_INPUT_BINDING_STRIDE as dynamic
     if (device.IsExtExtendedDynamicStateSupported() && !device.IsExtVertexInputDynamicStateSupported()) {
