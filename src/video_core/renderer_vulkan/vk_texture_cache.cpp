@@ -2169,11 +2169,18 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
         storage_views = std::make_unique<StorageViews>();
     }
     if (image_format == Shader::ImageFormat::Typeless) {
+        auto& unsigned_view = storage_views->unsigneds[static_cast<size_t>(texture_type)];
+        if (unsigned_view) {
+            return *unsigned_view;
+        }
         auto& view = storage_views->typeless_views[static_cast<size_t>(texture_type)];
         if (view) {
             return *view;
         }
-        view = MakeView(format, VK_IMAGE_ASPECT_COLOR_BIT);
+        const auto fmt_info =
+                MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, /*is_image=*/true, format);
+        const VkFormat vk_format = fmt_info.format;
+        view = MakeView(vk_format, VK_IMAGE_ASPECT_COLOR_BIT);
         return *view;
     }
     const bool is_signed{image_format == Shader::ImageFormat::R8_SINT ||
