@@ -272,6 +272,7 @@ private:
     struct StorageViews {
         std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> signeds;
         std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> unsigneds;
+        std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> typeless;
     };
 
     [[nodiscard]] Shader::TextureType BaseTextureType() const noexcept;
