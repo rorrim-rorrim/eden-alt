@@ -2359,18 +2359,27 @@ VkImageView ImageView::SampledView(Shader::TextureType texture_type,
 
 VkImageView ImageView::StorageView(Shader::TextureType texture_type,
                                    Shader::ImageFormat image_format) {
-    if (image_handle) {
-        if (image_format == Shader::ImageFormat::Typeless) {
-            return Handle(texture_type);
+    if (!image_handle) {
+        return VK_NULL_HANDLE;
+    }
+    const bool is_signed{image_format == Shader::ImageFormat::R8_SINT ||
+                         image_format == Shader::ImageFormat::R16_SINT};
+    if (!storage_views) {
+        storage_views.emplace();
+    }
+    if (image_format == Shader::ImageFormat::Typeless) {
+        auto& view = storage_views->typeless[static_cast<size_t>(texture_type)];
+        if (view) {
+            return *view;
         }
-        const bool is_signed = image_format == Shader::ImageFormat::R8_SINT
-            || image_format == Shader::ImageFormat::R16_SINT;
-        if (!storage_views)
-            storage_views.emplace();
-        auto& views{is_signed ? storage_views->signeds : storage_views->unsigneds};
-        auto& view{views[size_t(texture_type)]};
-        if (!view)
-            view = MakeView(Format(image_format), VK_IMAGE_ASPECT_COLOR_BIT);
+        const auto& format_info =
+            MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
+        view = MakeView(format_info.format, VK_IMAGE_ASPECT_COLOR_BIT, texture_type);
+        return *view;
+    }
+    auto& views{is_signed ? storage_views->signeds : storage_views->unsigneds};
+    auto& view{views[static_cast<size_t>(texture_type)]};
+    if (view) {
         return *view;
     }
     return VK_NULL_HANDLE;
