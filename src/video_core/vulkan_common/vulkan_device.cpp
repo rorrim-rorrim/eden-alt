@@ -1456,12 +1456,13 @@ void Device::RemoveUnsuitableExtensions() {
 
     // VK_EXT_multi_draw
     extensions.multi_draw = features.multi_draw.multiDraw;
-    
     if (extensions.multi_draw) {
+        features.multi_draw.multiDraw = VK_TRUE;
         LOG_INFO(Render_Vulkan, "VK_EXT_multi_draw: maxMultiDrawCount={}",
                  properties.multi_draw.maxMultiDrawCount);
+    } else {
+        features.multi_draw.multiDraw = VK_FALSE;
     }
-    
     RemoveExtensionFeatureIfUnsuitable(extensions.multi_draw, features.multi_draw,
                                        VK_EXT_MULTI_DRAW_EXTENSION_NAME);
 
