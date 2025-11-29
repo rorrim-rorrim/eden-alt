@@ -664,22 +664,41 @@ void BufferCacheRuntime::ReserveNullBuffer() {
     }
 }
 
+VkBufferUsageFlags BufferCacheRuntime::NullBufferUsageFlags() const {
+    VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+                              VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT |
+                              VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT |
+                              VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                              VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
+                              VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+    if (device.IsExtTransformFeedbackSupported()) {
+        usage |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT;
+    }
+    return usage;
+}
+
+void BufferCacheRuntime::RefreshNullBuffer() {
+    if (!null_buffer) {
+        return;
+    }
+    scheduler.Finish();
+    null_buffer.reset();
+    null_buffer = CreateNullBuffer();
+}
+
 vk::Buffer BufferCacheRuntime::CreateNullBuffer() {
     VkBufferCreateInfo create_info{
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
         .size = 4,
-        .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
-                 VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
+        .usage = NullBufferUsageFlags(),
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
     };
-    if (device.IsExtTransformFeedbackSupported()) {
-        create_info.usage |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT;
-    }
     vk::Buffer ret = memory_allocator.CreateBuffer(create_info, MemoryUsage::DeviceLocal);
+    null_buffer_usage_flags = create_info.usage;
     if (device.HasDebuggingToolAttached()) {
         ret.SetObjectNameEXT("Null buffer");
     }
@@ -690,6 +709,10 @@ vk::Buffer BufferCacheRuntime::CreateNullBuffer() {
     });
 
     return ret;
-}
-
-} // namespace Vulkan
+        const VkBufferUsageFlags expected_usage = NullBufferUsageFlags();
+        if (null_buffer && null_buffer_usage_flags != expected_usage) {
+            RefreshNullBuffer();
+        }
+        if (!null_buffer) {
+            null_buffer = CreateNullBuffer();
+        }
