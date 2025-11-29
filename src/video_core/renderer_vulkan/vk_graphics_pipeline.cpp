@@ -797,30 +797,6 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
                            key.state.alpha_to_one_enabled != 0 ? VK_TRUE : VK_FALSE,
     };
 
-    const auto [sample_grid_width, sample_grid_height] =
-        VideoCommon::SampleLocationGridSize(msaa_mode);
-    const u32 sample_count = static_cast<u32>(VideoCommon::NumSamples(msaa_mode));
-    const u32 total_sample_locations = sample_count * sample_grid_width * sample_grid_height;
-    std::array<VkSampleLocationEXT, VideoCommon::MaxSampleLocationSlots> default_sample_locations{};
-    VkSampleLocationsInfoEXT sample_locations_info{
-        .sType = VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT,
-        .pNext = nullptr,
-        .sampleLocationsPerPixel = vk_samples,
-        .sampleLocationGridSize = {sample_grid_width, sample_grid_height},
-        .sampleLocationsCount = total_sample_locations,
-        .pSampleLocations = default_sample_locations.data(),
-    };
-    VkPipelineSampleLocationsStateCreateInfoEXT sample_locations_ci{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_SAMPLE_LOCATIONS_STATE_CREATE_INFO_EXT,
-        .pNext = nullptr,
-        .sampleLocationsEnable = VK_FALSE,
-        .sampleLocationsInfo = sample_locations_info,
-    };
-    if (device.IsExtSampleLocationsSupported() && total_sample_locations > 0 &&
-        device.SupportsSampleLocationsFor(vk_samples)) {
-        sample_locations_ci.sampleLocationsEnable = VK_TRUE;
-        sample_locations_ci.pNext = std::exchange(multisample_ci.pNext, &sample_locations_ci);
-    }
     const VkPipelineDepthStencilStateCreateInfo depth_stencil_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
         .pNext = nullptr,
@@ -968,10 +944,6 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         if (device.SupportsDynamicState3AlphaToOneEnable()) {
             dynamic_states.push_back(VK_DYNAMIC_STATE_ALPHA_TO_ONE_ENABLE_EXT);
         }
-    }
-
-    if (sample_locations_ci.sampleLocationsEnable) {
-        dynamic_states.push_back(VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_EXT);
     }
 
     const VkPipelineDynamicStateCreateInfo dynamic_state_ci{
