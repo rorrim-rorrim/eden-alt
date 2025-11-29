@@ -771,10 +771,11 @@ public:
 
     /// Returns the minimum supported version of SPIR-V.
     u32 SupportedSpirvVersion() const {
-        if (instance_version >= VK_API_VERSION_1_3) {
+        const bool has_float_controls = extensions.shader_float_controls;
+        if (instance_version >= VK_API_VERSION_1_3 && has_float_controls) {
             return 0x00010600U;
         }
-        if (extensions.spirv_1_4) {
+        if (extensions.spirv_1_4 && has_float_controls) {
             return 0x00010400U;
         }
         return 0x00010300U;
