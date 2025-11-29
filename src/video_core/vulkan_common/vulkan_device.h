@@ -881,6 +881,10 @@ public:
         return features2.features.multiViewport;
     }
 
+    bool SupportsSampled1D() const {
+        return supports_sampled_1d;
+    }
+
     /// Returns true if the device supports VK_KHR_maintenance1.
     bool IsKhrMaintenance1Supported() const {
         return extensions.maintenance1;
@@ -1108,6 +1112,7 @@ private:
     bool dynamic_state3_alpha_to_coverage{};
     bool dynamic_state3_alpha_to_one{};
     bool supports_conditional_barriers{};      ///< Allows barriers in conditional control flow.
+    bool supports_sampled_1d{true};            ///< Supports declaring Sampled1D in shaders.
     size_t sampler_heap_budget{};              ///< Sampler budget for buggy drivers (0 = unlimited).
     VkDeviceSize uniform_buffer_alignment_minimum{}; ///< Minimum enforced UBO alignment.
     VkDeviceSize storage_buffer_alignment_minimum{}; ///< Minimum enforced SSBO alignment.
