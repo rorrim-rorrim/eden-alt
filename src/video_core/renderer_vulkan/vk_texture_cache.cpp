@@ -713,7 +713,7 @@ void TryTransformSwizzleIfNeeded(PixelFormat format, std::array<SwizzleSource, 4
 
 void BlitScale(Scheduler& scheduler, VkImage src_image, VkImage dst_image, const ImageInfo& info,
                VkImageAspectFlags aspect_mask, const Settings::ResolutionScalingInfo& resolution,
-               bool up_scaling = true) {
+               bool supports_linear_filter, bool up_scaling = true) {
     const bool is_2d = info.type == ImageType::e2D;
     const auto resources = info.resources;
     const VkExtent2D extent{
@@ -722,7 +722,8 @@ void BlitScale(Scheduler& scheduler, VkImage src_image, VkImage dst_image, const
     };
     // Depth and integer formats must use NEAREST filter for blits.
     const bool is_color{aspect_mask == VK_IMAGE_ASPECT_COLOR_BIT};
-    const bool is_bilinear{is_color && !IsPixelFormatInteger(info.format)};
+    const bool is_bilinear = supports_linear_filter && is_color &&
+                             !IsPixelFormatInteger(info.format);
     const VkFilter vk_filter = is_bilinear ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
 
     scheduler.RequestOutsideRenderPassOperationContext();
@@ -1089,12 +1090,17 @@ void TextureCacheRuntime::BlitImage(Framebuffer* dst_framebuffer, ImageView& dst
     const VkImageAspectFlags aspect_mask = ImageAspectMask(src.format);
     const bool is_dst_msaa = dst.Samples() != VK_SAMPLE_COUNT_1_BIT;
     const bool is_src_msaa = src.Samples() != VK_SAMPLE_COUNT_1_BIT;
+    const bool supports_linear_filter = SupportsLinearFilter(src.format);
+    const auto effective_filter =
+        (filter == Fermi2D::Filter::Bilinear && supports_linear_filter)
+            ? Fermi2D::Filter::Bilinear
+            : Fermi2D::Filter::Point;
     if (aspect_mask != ImageAspectMask(dst.format)) {
         UNIMPLEMENTED_MSG("Incompatible blit from format {} to {}", src.format, dst.format);
         return;
     }
     if (aspect_mask == VK_IMAGE_ASPECT_COLOR_BIT && !is_src_msaa && !is_dst_msaa) {
-        blit_image_helper.BlitColor(dst_framebuffer, src, dst_region, src_region, filter,
+        blit_image_helper.BlitColor(dst_framebuffer, src, dst_region, src_region, effective_filter,
                                     operation);
         return;
     }
@@ -1117,7 +1123,7 @@ void TextureCacheRuntime::BlitImage(Framebuffer* dst_framebuffer, ImageView& dst
         if (!can_blit_depth_stencil) {
             UNIMPLEMENTED_IF(is_src_msaa || is_dst_msaa);
             blit_image_helper.BlitDepthStencil(dst_framebuffer, src, dst_region, src_region,
-                                               filter, operation);
+                                               effective_filter, operation);
             return;
         }
     }
@@ -1139,8 +1145,8 @@ void TextureCacheRuntime::BlitImage(Framebuffer* dst_framebuffer, ImageView& dst
     }
     const bool is_resolve = is_src_msaa && !is_dst_msaa;
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([filter, dst_region, src_region, dst_image, src_image, dst_layers, src_layers,
-                      aspect_mask, is_resolve](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([effective_filter, dst_region, src_region, dst_image, src_image, dst_layers,
+                      src_layers, aspect_mask, is_resolve](vk::CommandBuffer cmdbuf) {
         const std::array read_barriers{
             VkImageMemoryBarrier{
                 .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -1211,7 +1217,7 @@ void TextureCacheRuntime::BlitImage(Framebuffer* dst_framebuffer, ImageView& dst
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                 MakeImageResolve(dst_region, src_region, dst_layers, src_layers));
         } else {
-            const bool is_linear = filter == Fermi2D::Filter::Bilinear;
+            const bool is_linear = effective_filter == Fermi2D::Filter::Bilinear;
             const VkFilter vk_filter = is_linear ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
             cmdbuf.BlitImage(
                 src_image, VK_IMAGE_LAYOUT_GENERAL, dst_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -1400,6 +1406,20 @@ bool TextureCacheRuntime::IsFormatScalable(PixelFormat format) {
     default:
         return false;
     }
+}
+
+bool TextureCacheRuntime::SupportsLinearFilter(PixelFormat format) const {
+    if (IsPixelFormatInteger(format)) {
+        return false;
+    }
+    if (VideoCore::Surface::GetFormatType(format) != SurfaceType::ColorTexture) {
+        return false;
+    }
+    const auto vk_format =
+        MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, format).format;
+    constexpr VkFormatFeatureFlags linear_filter_feature =
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
+    return device.IsFormatSupported(vk_format, linear_filter_feature, FormatType::Optimal);
 }
 
 void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
@@ -1933,7 +1953,9 @@ bool Image::ScaleUp(bool ignore) {
     if (NeedsScaleHelper()) {
         return BlitScaleHelper(true);
     } else {
-        BlitScale(*scheduler, *original_image, *scaled_image, info, aspect_mask, resolution);
+        const bool supports_linear_filter = runtime->SupportsLinearFilter(info.format);
+        BlitScale(*scheduler, *original_image, *scaled_image, info, aspect_mask, resolution,
+                  supports_linear_filter);
     }
     return true;
 }
@@ -1958,7 +1980,9 @@ bool Image::ScaleDown(bool ignore) {
     if (NeedsScaleHelper()) {
         return BlitScaleHelper(false);
     } else {
-        BlitScale(*scheduler, *scaled_image, *original_image, info, aspect_mask, resolution, false);
+        const bool supports_linear_filter = runtime->SupportsLinearFilter(info.format);
+        BlitScale(*scheduler, *scaled_image, *original_image, info, aspect_mask, resolution,
+                  supports_linear_filter, false);
     }
     return true;
 }
@@ -1967,9 +1991,10 @@ bool Image::BlitScaleHelper(bool scale_up) {
     using namespace VideoCommon;
     static constexpr auto BLIT_OPERATION = Tegra::Engines::Fermi2D::Operation::SrcCopy;
     const bool is_color{aspect_mask == VK_IMAGE_ASPECT_COLOR_BIT};
-    const bool is_bilinear{is_color && !IsPixelFormatInteger(info.format)};
-    const auto operation = is_bilinear ? Tegra::Engines::Fermi2D::Filter::Bilinear
-                                       : Tegra::Engines::Fermi2D::Filter::Point;
+    const bool supports_linear_filter = runtime->SupportsLinearFilter(info.format);
+    const bool is_bilinear = is_color && supports_linear_filter;
+    const auto filter_mode = is_bilinear ? Tegra::Engines::Fermi2D::Filter::Bilinear
+                                         : Tegra::Engines::Fermi2D::Filter::Point;
 
     const bool is_2d = info.type == ImageType::e2D;
     const auto& resolution = runtime->resolution;
@@ -2008,14 +2033,14 @@ bool Image::BlitScaleHelper(bool scale_up) {
         }
 
         runtime->blit_image_helper.BlitColor(blit_framebuffer.get(), *blit_view, dst_region,
-                                             src_region, operation, BLIT_OPERATION);
+                                             src_region, filter_mode, BLIT_OPERATION);
     } else if (aspect_mask == (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
         if (!blit_framebuffer) {
             blit_framebuffer =
                 std::make_unique<Framebuffer>(*runtime, nullptr, view_ptr, extent, scale_up);
         }
         runtime->blit_image_helper.BlitDepthStencil(blit_framebuffer.get(), *blit_view,
-                                                    dst_region, src_region, operation,
+                                                    dst_region, src_region, filter_mode,
                                                     BLIT_OPERATION);
     } else {
         // TODO: Use helper blits where applicable
