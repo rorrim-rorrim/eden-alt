@@ -743,9 +743,10 @@ public:
         return Settings::values.dyna_state.GetValue() > 0;
     }
 
-    /// Returns true if the device supports VK_EXT_vertex_input_dynamic_state.
+    /// Returns true if VK_EXT_vertex_input_dynamic_state is enabled on the device.
     bool IsExtVertexInputDynamicStateSupported() const {
-        return extensions.vertex_input_dynamic_state;
+        return extensions.vertex_input_dynamic_state &&
+               features.vertex_input_dynamic_state.vertexInputDynamicState;
     }
 
     /// Returns true if the device supports VK_EXT_shader_demote_to_helper_invocation
