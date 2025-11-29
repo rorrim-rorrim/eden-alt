@@ -366,6 +366,11 @@ public:
         return GetDriverID() != VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     }
 
+    /// Returns true if vkResetQueryPool can be used from the host.
+    bool SupportsHostQueryReset() const {
+        return features.host_query_reset.hostQueryReset;
+    }
+
     /// Returns true when the driver should use the mobile mega buffer allocator.
     bool ShouldUseMobileMegaBuffer() const {
         return use_mobile_megabuffer;
