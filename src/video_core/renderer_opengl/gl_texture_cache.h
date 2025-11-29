@@ -16,6 +16,7 @@
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_staging_buffer_pool.h"
 #include "video_core/renderer_opengl/util_shaders.h"
+#include "video_core/surface.h"
 #include "video_core/texture_cache/image_view_base.h"
 #include "video_core/texture_cache/texture_cache_base.h"
 
@@ -131,6 +132,8 @@ public:
         // OpenGL does not have native support for the BGR internal format
         return false;
     }
+
+    bool SupportsLinearFilter(VideoCore::Surface::PixelFormat format) const noexcept;
 
     bool HasBrokenTextureViewFormats() const noexcept {
         return has_broken_texture_view_formats;
