@@ -700,6 +700,10 @@ void BufferCacheRuntime::BindTransformFeedbackBuffers(VideoCommon::HostBindings<
 }
 
 void BufferCacheRuntime::ReserveNullBuffer() {
+    const VkBufferUsageFlags expected_usage = NullBufferUsageFlags();
+    if (null_buffer && null_buffer_usage_flags != expected_usage) {
+        RefreshNullBuffer();
+    }
     if (!null_buffer) {
         null_buffer = CreateNullBuffer();
     }
@@ -750,10 +754,3 @@ vk::Buffer BufferCacheRuntime::CreateNullBuffer() {
     });
 
     return ret;
-        const VkBufferUsageFlags expected_usage = NullBufferUsageFlags();
-        if (null_buffer && null_buffer_usage_flags != expected_usage) {
-            RefreshNullBuffer();
-        }
-        if (!null_buffer) {
-            null_buffer = CreateNullBuffer();
-        }
