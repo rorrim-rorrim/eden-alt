@@ -221,7 +221,12 @@ Id TextureSampleResultToFloat(EmitContext& ctx, const TextureDefinition& def, Id
     case SamplerComponentType::Sint:
         return ctx.OpConvertSToF(ctx.F32[4], color);
     case SamplerComponentType::Stencil:
-        return ctx.OpConvertUToF(ctx.F32[4], color);
+        {
+            const Id converted{ctx.OpConvertUToF(ctx.F32[4], color)};
+            const Id inv255{ctx.Const(1.0f / 255.0f)};
+            const Id scale{ctx.ConstantComposite(ctx.F32[4], inv255, inv255, inv255, inv255)};
+            return ctx.OpFMul(ctx.F32[4], converted, scale);
+        }
     case SamplerComponentType::Uint:
         return ctx.OpConvertUToF(ctx.F32[4], color);
     }

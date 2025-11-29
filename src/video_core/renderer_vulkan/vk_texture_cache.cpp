@@ -2113,11 +2113,11 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
         },
         .subresourceRange = MakeSubresourceRange(aspect_mask, info.range),
     };
-    const auto create = [&](TextureType tex_type, std::optional<u32> num_layers) {
+    const auto create = [&](TextureType tex_type) {
         VkImageViewCreateInfo ci{create_info};
         ci.viewType = ImageViewType(tex_type);
-        if (num_layers) {
-            ci.subresourceRange.layerCount = *num_layers;
+        if (const auto override_layers = LayerCountOverride(tex_type)) {
+            ci.subresourceRange.layerCount = *override_layers;
         }
         vk::ImageView handle = device->GetLogical().CreateImageView(ci);
         if (device->HasDebuggingToolAttached()) {
@@ -2128,25 +2128,29 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     switch (info.type) {
     case VideoCommon::ImageViewType::e1D:
     case VideoCommon::ImageViewType::e1DArray:
-        create(TextureType::Color1D, 1);
-        create(TextureType::ColorArray1D, std::nullopt);
+        create(TextureType::Color1D);
+        create(TextureType::ColorArray1D);
         render_target = Handle(TextureType::ColorArray1D);
         break;
     case VideoCommon::ImageViewType::e2D:
     case VideoCommon::ImageViewType::e2DArray:
+        create(TextureType::Color2D);
+        create(TextureType::ColorArray2D);
+        render_target = Handle(Shader::TextureType::ColorArray2D);
+        break;
     case VideoCommon::ImageViewType::Rect:
-        create(TextureType::Color2D, 1);
-        create(TextureType::ColorArray2D, std::nullopt);
+        create(TextureType::Color2DRect);
+        create(TextureType::ColorArray2D);
         render_target = Handle(Shader::TextureType::ColorArray2D);
         break;
     case VideoCommon::ImageViewType::e3D:
-        create(TextureType::Color3D, std::nullopt);
+        create(TextureType::Color3D);
         render_target = Handle(Shader::TextureType::Color3D);
         break;
     case VideoCommon::ImageViewType::Cube:
     case VideoCommon::ImageViewType::CubeArray:
-        create(TextureType::ColorCube, 6);
-        create(TextureType::ColorArrayCube, std::nullopt);
+        create(TextureType::ColorCube);
+        create(TextureType::ColorArrayCube);
         break;
     case VideoCommon::ImageViewType::Buffer:
         ASSERT(false);
@@ -2184,28 +2188,76 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::NullImageV
 
 ImageView::~ImageView() = default;
 
+Shader::TextureType ImageView::BaseTextureType() const noexcept {
+    using VideoCommon::ImageViewType;
+    switch (type) {
+    case ImageViewType::e1D:
+        return Shader::TextureType::Color1D;
+    case ImageViewType::e1DArray:
+        return Shader::TextureType::ColorArray1D;
+    case ImageViewType::e2D:
+        return Shader::TextureType::Color2D;
+    case ImageViewType::e2DArray:
+        return Shader::TextureType::ColorArray2D;
+    case ImageViewType::Rect:
+        return Shader::TextureType::Color2DRect;
+    case ImageViewType::e3D:
+        return Shader::TextureType::Color3D;
+    case ImageViewType::Cube:
+        return Shader::TextureType::ColorCube;
+    case ImageViewType::CubeArray:
+        return Shader::TextureType::ColorArrayCube;
+    case ImageViewType::Buffer:
+        break;
+    }
+    return Shader::TextureType::Color2D;
+}
+
+std::optional<u32> ImageView::LayerCountOverride(Shader::TextureType texture_type) const noexcept {
+    switch (texture_type) {
+    case Shader::TextureType::Color1D:
+    case Shader::TextureType::Color2D:
+    case Shader::TextureType::Color2DRect:
+        return 1u;
+    case Shader::TextureType::ColorCube:
+        return 6u;
+    default:
+        return std::nullopt;
+    }
+}
+
 VkImageView ImageView::DepthView() {
+    return DepthView(BaseTextureType());
+}
+
+VkImageView ImageView::DepthView(Shader::TextureType texture_type) {
     if (!image_handle) {
         return VK_NULL_HANDLE;
     }
-    if (depth_view) {
-        return *depth_view;
+    auto& view = depth_views[static_cast<size_t>(texture_type)];
+    if (view) {
+        return *view;
     }
     const auto& info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
-    depth_view = MakeView(info.format, VK_IMAGE_ASPECT_DEPTH_BIT);
-    return *depth_view;
+    view = MakeView(info.format, VK_IMAGE_ASPECT_DEPTH_BIT, texture_type);
+    return *view;
 }
 
 VkImageView ImageView::StencilView() {
+    return StencilView(BaseTextureType());
+}
+
+VkImageView ImageView::StencilView(Shader::TextureType texture_type) {
     if (!image_handle) {
         return VK_NULL_HANDLE;
     }
-    if (stencil_view) {
-        return *stencil_view;
+    auto& view = stencil_views[static_cast<size_t>(texture_type)];
+    if (view) {
+        return *view;
     }
     const auto& info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
-    stencil_view = MakeView(info.format, VK_IMAGE_ASPECT_STENCIL_BIT);
-    return *stencil_view;
+    view = MakeView(info.format, VK_IMAGE_ASPECT_STENCIL_BIT, texture_type);
+    return *view;
 }
 
 VkImageView ImageView::ColorView() {
@@ -2228,12 +2280,12 @@ VkImageView ImageView::SampledView(Shader::TextureType texture_type,
     switch (component_type) {
     case Shader::SamplerComponentType::Depth:
         if (surface_type == SurfaceType::Depth || surface_type == SurfaceType::DepthStencil) {
-            return DepthView();
+            return DepthView(texture_type);
         }
         break;
     case Shader::SamplerComponentType::Stencil:
         if (surface_type == SurfaceType::Stencil || surface_type == SurfaceType::DepthStencil) {
-            return StencilView();
+            return StencilView(texture_type);
         }
         break;
     default:
@@ -2274,12 +2326,17 @@ bool ImageView::IsRescaled() const noexcept {
 }
 
 vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask) {
-    return device->GetLogical().CreateImageView({
+    return MakeView(vk_format, aspect_mask, BaseTextureType());
+}
+
+vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask,
+                                  Shader::TextureType texture_type) {
+    VkImageViewCreateInfo ci{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
         .image = image_handle,
-        .viewType = ImageViewType(type),
+        .viewType = ImageViewType(texture_type),
         .format = vk_format,
         .components{
             .r = VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -2288,7 +2345,11 @@ vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_
             .a = VK_COMPONENT_SWIZZLE_IDENTITY,
         },
         .subresourceRange = MakeSubresourceRange(aspect_mask, range),
-    });
+    };
+    if (const auto override_layers = LayerCountOverride(texture_type)) {
+        ci.subresourceRange.layerCount = *override_layers;
+    }
+    return device->GetLogical().CreateImageView(ci);
 }
 
 Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& tsc) {
