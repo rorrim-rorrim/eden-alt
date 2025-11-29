@@ -1959,6 +1959,18 @@ bool Image::BlitScaleHelper(bool scale_up) {
     using namespace VideoCommon;
     static constexpr auto BLIT_OPERATION = Tegra::Engines::Fermi2D::Operation::SrcCopy;
     const bool is_color{aspect_mask == VK_IMAGE_ASPECT_COLOR_BIT};
+    const bool has_depth = (aspect_mask & VK_IMAGE_ASPECT_DEPTH_BIT) != 0;
+    const bool has_stencil = (aspect_mask & VK_IMAGE_ASPECT_STENCIL_BIT) != 0;
+    const bool is_depth_only = has_depth && !has_stencil;
+    const bool is_stencil_only = has_stencil && !has_depth;
+    if ((is_depth_only || is_stencil_only) && info.num_samples == 1) {
+        const VkImage src_image = scale_up ? *original_image : *scaled_image;
+        const VkImage dst_image = scale_up ? *scaled_image : *original_image;
+        BlitScale(*scheduler, src_image, dst_image, info, aspect_mask, runtime->resolution,
+                  /*supports_linear_filter=*/false, scale_up);
+        return true;
+    }
+
     const bool supports_linear_filter = runtime->SupportsLinearFilter(info.format);
     const bool is_bilinear = is_color && supports_linear_filter;
     const auto filter_mode = is_bilinear ? Tegra::Engines::Fermi2D::Filter::Bilinear
@@ -1994,7 +2006,7 @@ bool Image::BlitScaleHelper(bool scale_up) {
     };
 
     auto* view_ptr = blit_view.get();
-    if (aspect_mask == VK_IMAGE_ASPECT_COLOR_BIT) {
+    if (is_color) {
         if (!blit_framebuffer) {
             blit_framebuffer =
                 std::make_unique<Framebuffer>(*runtime, view_ptr, nullptr, extent, scale_up);
@@ -2002,7 +2014,7 @@ bool Image::BlitScaleHelper(bool scale_up) {
 
         runtime->blit_image_helper.BlitColor(blit_framebuffer.get(), *blit_view, dst_region,
                                              src_region, filter_mode, BLIT_OPERATION);
-    } else if (aspect_mask == (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
+    } else if (has_depth && has_stencil) {
         if (!blit_framebuffer) {
             blit_framebuffer =
                 std::make_unique<Framebuffer>(*runtime, nullptr, view_ptr, extent, scale_up);
