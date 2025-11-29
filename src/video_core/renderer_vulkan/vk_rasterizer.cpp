@@ -1241,59 +1241,130 @@ void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
     });
 }
 
-void RasterizerVulkan::UpdateLineWidth(Tegra::Engines::Maxwell3D::Regs& regs) {
-    if (!state_tracker.TouchLineWidth()) {
+void RasterizerVulkan::UpdateBlendConstants(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchBlendConstants()) {
         return;
     }
-    const float width =
-        regs.line_anti_alias_enable ? regs.line_width_smooth : regs.line_width_aliased;
-    scheduler.Record([width](vk::CommandBuffer cmdbuf) { cmdbuf.SetLineWidth(width); });
+    const std::array<float, 4> blend_constants{
+        regs.blend_color.r,
+        regs.blend_color.g,
+        regs.blend_color.b,
+        regs.blend_color.a,
+    };
+    scheduler.Record([blend_constants](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetBlendConstants(blend_constants.data());
+    });
 }
 
-                if (!state_tracker.CheckStencilWriteMaskFront(regs.stencil_front_mask)) {
-                    return;
-                }
-            }
-            scheduler.Record([front_write_mask = regs.stencil_front_mask,
-                              back_write_mask = regs.stencil_back_mask,
-                              two_sided = regs.stencil_two_side_enable](vk::CommandBuffer cmdbuf) {
-                const bool set_back = two_sided && front_write_mask != back_write_mask;
-                // Front face
-                cmdbuf.SetStencilWriteMask(set_back ? VK_STENCIL_FACE_FRONT_BIT
-                                                    : VK_STENCIL_FACE_FRONT_AND_BACK,
-                                           front_write_mask);
-                if (set_back) {
-                    cmdbuf.SetStencilWriteMask(VK_STENCIL_FACE_BACK_BIT, back_write_mask);
-                }
-            });
-        }();
+void RasterizerVulkan::UpdateDepthBounds(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchDepthBounds()) {
+        return;
     }
+    if (!device.IsDepthBoundsSupported()) {
+        return;
+    }
+    scheduler.Record([min_depth = regs.depth_bounds[0], max_depth = regs.depth_bounds[1]](
+                         vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetDepthBounds(min_depth, max_depth);
+    });
+}
+
+void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs) {
+    const bool two_sided = regs.stencil_two_side_enable != 0;
+    const bool update_properties = state_tracker.TouchStencilProperties();
+    const bool update_side = state_tracker.TouchStencilSide(two_sided);
+    const bool refs_dirty = state_tracker.TouchStencilReference();
+    const bool write_dirty = state_tracker.TouchStencilWriteMask();
+    const bool compare_dirty = state_tracker.TouchStencilCompare();
+
+    const bool update_references = update_properties || update_side || refs_dirty;
+    const bool update_write_masks = update_properties || update_side || write_dirty;
+    const bool update_compare_masks = update_properties || update_side || compare_dirty;
+
+    if (!update_references && !update_write_masks && !update_compare_masks) {
+        state_tracker.ClearStencilReset();
+        return;
+    }
+
+    if (update_references) {
+        if (two_sided) {
+            const bool front_dirty =
+                state_tracker.CheckStencilReferenceFront(regs.stencil_front_ref);
+            const bool back_dirty =
+                state_tracker.CheckStencilReferenceBack(regs.stencil_back_ref);
+            if (front_dirty || back_dirty) {
+                scheduler.Record([front_ref = regs.stencil_front_ref,
+                                  back_ref = regs.stencil_back_ref,
+                                  two_sided](vk::CommandBuffer cmdbuf) {
+                    const bool set_back = two_sided && front_ref != back_ref;
+                    cmdbuf.SetStencilReference(set_back ? VK_STENCIL_FACE_FRONT_BIT
+                                                        : VK_STENCIL_FACE_FRONT_AND_BACK,
+                                               front_ref);
+                    if (set_back) {
+                        cmdbuf.SetStencilReference(VK_STENCIL_FACE_BACK_BIT, back_ref);
+                    }
+                });
+            }
+        } else if (state_tracker.CheckStencilReferenceFront(regs.stencil_front_ref)) {
+            const u32 reference = regs.stencil_front_ref;
+            scheduler.Record([reference](vk::CommandBuffer cmdbuf) {
+                cmdbuf.SetStencilReference(VK_STENCIL_FACE_FRONT_AND_BACK, reference);
+            });
+        }
+    }
+
+    if (update_write_masks) {
+        if (two_sided) {
+            if (state_tracker.CheckStencilWriteMaskFront(regs.stencil_front_mask) ||
+                state_tracker.CheckStencilWriteMaskBack(regs.stencil_back_mask)) {
+                scheduler.Record([
+                                     front_write_mask = regs.stencil_front_mask,
+                                     back_write_mask = regs.stencil_back_mask,
+                                     two_sided = regs.stencil_two_side_enable
+                                 ](vk::CommandBuffer cmdbuf) {
+                    const bool set_back = two_sided && front_write_mask != back_write_mask;
+                    cmdbuf.SetStencilWriteMask(set_back ? VK_STENCIL_FACE_FRONT_BIT
+                                                        : VK_STENCIL_FACE_FRONT_AND_BACK,
+                                               front_write_mask);
+                    if (set_back) {
+                        cmdbuf.SetStencilWriteMask(VK_STENCIL_FACE_BACK_BIT, back_write_mask);
+                    }
+                });
+            }
+        } else if (state_tracker.CheckStencilWriteMaskFront(regs.stencil_front_mask)) {
+            const u32 front_write_mask = regs.stencil_front_mask;
+            scheduler.Record([front_write_mask](vk::CommandBuffer cmdbuf) {
+                cmdbuf.SetStencilWriteMask(VK_STENCIL_FACE_FRONT_AND_BACK, front_write_mask);
+            });
+        }
+    }
+
     if (update_compare_masks) {
-        [&]() {
-            if (regs.stencil_two_side_enable) {
-                if (!state_tracker.CheckStencilCompareMaskFront(regs.stencil_front_func_mask) &&
-                    !state_tracker.CheckStencilCompareMaskBack(regs.stencil_back_func_mask)) {
-                    return;
-                }
-            } else {
-                if (!state_tracker.CheckStencilCompareMaskFront(regs.stencil_front_func_mask)) {
-                    return;
-                }
+        if (two_sided) {
+            if (state_tracker.CheckStencilCompareMaskFront(regs.stencil_front_func_mask) ||
+                state_tracker.CheckStencilCompareMaskBack(regs.stencil_back_func_mask)) {
+                scheduler.Record([
+                                     front_test_mask = regs.stencil_front_func_mask,
+                                     back_test_mask = regs.stencil_back_func_mask,
+                                     two_sided = regs.stencil_two_side_enable
+                                 ](vk::CommandBuffer cmdbuf) {
+                    const bool set_back = two_sided && front_test_mask != back_test_mask;
+                    cmdbuf.SetStencilCompareMask(set_back ? VK_STENCIL_FACE_FRONT_BIT
+                                                          : VK_STENCIL_FACE_FRONT_AND_BACK,
+                                                 front_test_mask);
+                    if (set_back) {
+                        cmdbuf.SetStencilCompareMask(VK_STENCIL_FACE_BACK_BIT, back_test_mask);
+                    }
+                });
             }
-            scheduler.Record([front_test_mask = regs.stencil_front_func_mask,
-                              back_test_mask = regs.stencil_back_func_mask,
-                              two_sided = regs.stencil_two_side_enable](vk::CommandBuffer cmdbuf) {
-                const bool set_back = two_sided && front_test_mask != back_test_mask;
-                // Front face
-                cmdbuf.SetStencilCompareMask(set_back ? VK_STENCIL_FACE_FRONT_BIT
-                                                      : VK_STENCIL_FACE_FRONT_AND_BACK,
-                                             front_test_mask);
-                if (set_back) {
-                    cmdbuf.SetStencilCompareMask(VK_STENCIL_FACE_BACK_BIT, back_test_mask);
-                }
+        } else if (state_tracker.CheckStencilCompareMaskFront(regs.stencil_front_func_mask)) {
+            const u32 front_test_mask = regs.stencil_front_func_mask;
+            scheduler.Record([front_test_mask](vk::CommandBuffer cmdbuf) {
+                cmdbuf.SetStencilCompareMask(VK_STENCIL_FACE_FRONT_AND_BACK, front_test_mask);
             });
-        }();
+        }
     }
+
     state_tracker.ClearStencilReset();
 }
 
@@ -1316,7 +1387,15 @@ void RasterizerVulkan::UpdateCullMode(Tegra::Engines::Maxwell3D::Regs& regs) {
     });
 }
 
-
+void RasterizerVulkan::UpdateConservativeRasterizationMode(
+    Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchConservativeRasterizationMode()) {
+        return;
+    }
+    if (!device.SupportsDynamicState3ConservativeRasterizationMode() ||
+        !device.IsExtConservativeRasterizationSupported()) {
+        return;
+    }
     scheduler.Record([enable = regs.conservative_raster_enable](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetConservativeRasterizationModeEXT(
             enable ? VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT
@@ -1372,6 +1451,25 @@ void RasterizerVulkan::UpdateLineRasterizationMode(Tegra::Engines::Maxwell3D::Re
     }
     scheduler.Record([mode](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetLineRasterizationModeEXT(mode);
+    });
+}
+
+void RasterizerVulkan::UpdatePrimitiveRestartEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchPrimitiveRestartEnable()) {
+        return;
+    }
+    scheduler.Record([enable = regs.primitive_restart.enabled != 0](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetPrimitiveRestartEnableEXT(enable);
+    });
+}
+
+void RasterizerVulkan::UpdateRasterizerDiscardEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchRasterizerDiscardEnable()) {
+        return;
+    }
+    const bool discard = regs.rasterize_enable == 0;
+    scheduler.Record([discard](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetRasterizerDiscardEnableEXT(discard);
     });
 }
 
@@ -1480,6 +1578,36 @@ void RasterizerVulkan::UpdateDepthCompareOp(Tegra::Engines::Maxwell3D::Regs& reg
     }
     scheduler.Record([func = regs.depth_test_func](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetDepthCompareOpEXT(MaxwellToVK::ComparisonOp(func));
+    });
+}
+
+void RasterizerVulkan::UpdateDepthBoundsTestEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchDepthBoundsTestEnable()) {
+        return;
+    }
+    if (!device.IsDepthBoundsSupported()) {
+        return;
+    }
+    scheduler.Record([enable = regs.depth_bounds_enable != 0](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetDepthBoundsTestEnableEXT(enable);
+    });
+}
+
+void RasterizerVulkan::UpdateDepthTestEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchDepthTestEnable()) {
+        return;
+    }
+    scheduler.Record([enable = regs.depth_test_enable != 0](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetDepthTestEnableEXT(enable);
+    });
+}
+
+void RasterizerVulkan::UpdateDepthWriteEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchDepthWriteEnable()) {
+        return;
+    }
+    scheduler.Record([enable = regs.depth_write_enabled != 0](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetDepthWriteEnableEXT(enable);
     });
 }
 
