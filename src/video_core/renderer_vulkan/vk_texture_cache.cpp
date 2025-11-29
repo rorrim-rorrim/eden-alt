@@ -128,18 +128,9 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     return usage;
 }
 
-[[nodiscard]] bool Needs1DPromotion(const Device& device, ImageType type) {
-    return type == ImageType::e1D && !device.SupportsSampled1D();
-}
-
-[[nodiscard]] ImageType HostImageType(const Device& device, ImageType type) {
-    return Needs1DPromotion(device, type) ? ImageType::e2D : type;
-}
-
 [[nodiscard]] VkImageCreateInfo MakeImageCreateInfo(const Device& device, const ImageInfo& info) {
     const auto format_info =
         MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, info.format);
-    const ImageType host_type = HostImageType(device, info.type);
     VkImageCreateFlags flags{};
     if (info.type == ImageType::e2D && info.resources.layers >= 6 &&
         info.size.width == info.size.height && !device.HasBrokenCubeImageCompatibility()) {
@@ -153,7 +144,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = nullptr,
         .flags = flags,
-        .imageType = ConvertImageType(host_type),
+        .imageType = ConvertImageType(info.type),
         .format = format_info.format,
         .extent{
             .width = info.size.width >> samples_x,
@@ -308,11 +299,10 @@ void SanitizeDepthStencilSwizzle(std::array<SwizzleSource, 4>& swizzle,
                     SwizzleSource::Zero);
 }
 
-[[nodiscard]] VkImageViewType ImageViewType(const Device& device, Shader::TextureType type) {
-    const bool promote_1d = !device.SupportsSampled1D();
+[[nodiscard]] VkImageViewType ImageViewType(Shader::TextureType type) {
     switch (type) {
     case Shader::TextureType::Color1D:
-        return promote_1d ? VK_IMAGE_VIEW_TYPE_2D : VK_IMAGE_VIEW_TYPE_1D;
+        return VK_IMAGE_VIEW_TYPE_1D;
     case Shader::TextureType::Color2D:
     case Shader::TextureType::Color2DRect:
         return VK_IMAGE_VIEW_TYPE_2D;
@@ -321,7 +311,7 @@ void SanitizeDepthStencilSwizzle(std::array<SwizzleSource, 4>& swizzle,
     case Shader::TextureType::Color3D:
         return VK_IMAGE_VIEW_TYPE_3D;
     case Shader::TextureType::ColorArray1D:
-        return promote_1d ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+        return VK_IMAGE_VIEW_TYPE_1D_ARRAY;
     case Shader::TextureType::ColorArray2D:
         return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
     case Shader::TextureType::ColorArrayCube:
@@ -2176,7 +2166,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     };
     const auto create = [&](TextureType tex_type) {
         VkImageViewCreateInfo ci{create_info};
-        ci.viewType = ImageViewType(*device, tex_type);
+        ci.viewType = ImageViewType(tex_type);
         if (const auto override_layers = LayerCountOverride(tex_type)) {
             ci.subresourceRange.layerCount = *override_layers;
         }
@@ -2389,7 +2379,7 @@ vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_
         .pNext = nullptr,
         .flags = 0,
         .image = image_handle,
-        .viewType = ImageViewType(*device, texture_type),
+        .viewType = ImageViewType(texture_type),
         .format = vk_format,
         .components{
             .r = VK_COMPONENT_SWIZZLE_IDENTITY,

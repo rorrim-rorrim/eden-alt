@@ -36,7 +36,6 @@ struct Profile {
     bool support_viewport_index_layer_non_geometry{};
     bool support_viewport_mask{};
     bool support_typeless_image_loads{};
-    bool support_sampled_1d{true};
     bool support_demote_to_helper_invocation{};
     bool support_int64_atomics{};
     bool support_derivative_control{};
