@@ -182,6 +182,11 @@ public:
     /// Return a reference to the given sampler id
     [[nodiscard]] Sampler& GetSampler(SamplerId id) noexcept;
 
+    /// Returns true when the runtime format supports linear filtering
+    [[nodiscard]] bool SupportsLinearFilter(PixelFormat format) const noexcept {
+        return runtime.SupportsLinearFilter(format);
+    }
+
     /// Refresh the state for graphics image view and sampler descriptors
     void SynchronizeGraphicsDescriptors();
 
