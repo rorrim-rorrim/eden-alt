@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
+#include <limits>
 #include <span>
 #include <vector>
 
@@ -598,7 +599,7 @@ void BufferCacheRuntime::BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset
         ReserveNullBuffer();
         buffer = *null_buffer;
         offset = 0;
-        size = VK_WHOLE_SIZE;
+        size = std::numeric_limits<u32>::max();
     }
     // Use BindVertexBuffers2EXT only if EDS1 is supported AND VIDS is not active
     // When VIDS is active, the pipeline doesn't declare VERTEX_INPUT_BINDING_STRIDE as dynamic
@@ -750,9 +751,11 @@ vk::Buffer BufferCacheRuntime::CreateNullBuffer() {
 
     scheduler.RequestOutsideRenderPassOperationContext();
 
-    } // namespace Vulkan
     scheduler.Record([buffer = *ret](vk::CommandBuffer cmdbuf) {
         cmdbuf.FillBuffer(buffer, 0, VK_WHOLE_SIZE, 0);
     });
 
     return ret;
+
+
+} // namespace Vulkan
