@@ -36,6 +36,7 @@
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_shader_util.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
+#include "video_core/surface.h"
 #include "video_core/shader_cache.h"
 #include "video_core/shader_environment.h"
 #include "video_core/shader_notify.h"
@@ -103,6 +104,21 @@ Shader::CompareFunction MaxwellToCompareFunction(Maxwell::ComparisonOp compariso
     }
     UNIMPLEMENTED_MSG("Unimplemented comparison op={}", comparison);
     return {};
+}
+
+Shader::AttributeType RenderTargetAttributeType(Tegra::RenderTargetFormat format) {
+    if (format == Tegra::RenderTargetFormat::NONE) {
+        return Shader::AttributeType::Float;
+    }
+    const auto pixel_format{
+        VideoCore::Surface::PixelFormatFromRenderTargetFormat(format)};
+    if (!VideoCore::Surface::IsPixelFormatInteger(pixel_format)) {
+        return Shader::AttributeType::Float;
+    }
+    if (VideoCore::Surface::IsPixelFormatSignedInteger(pixel_format)) {
+        return Shader::AttributeType::SignedInt;
+    }
+    return Shader::AttributeType::UnsignedInt;
 }
 
 VkShaderStageFlagBits StageToVkStage(Shader::Stage stage) {
@@ -249,6 +265,10 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
         info.alpha_test_func = MaxwellToCompareFunction(
             key.state.UnpackComparisonOp(key.state.alpha_test_func.Value()));
         info.alpha_test_reference = std::bit_cast<float>(key.state.alpha_test_ref);
+        for (size_t index = 0; index < Maxwell::NumRenderTargets; ++index) {
+            const auto format = static_cast<Tegra::RenderTargetFormat>(key.state.color_formats[index]);
+            info.color_output_types[index] = RenderTargetAttributeType(format);
+        }
         break;
     default:
         break;
