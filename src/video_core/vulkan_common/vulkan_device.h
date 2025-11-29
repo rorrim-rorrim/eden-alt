@@ -707,9 +707,15 @@ public:
         return dynamic_state3_alpha_to_one;
     }
 
-    /// Returns true if the device supports VK_EXT_vertex_input_dynamic_state.
+    /// Returns true when the user enabled extended core dynamic states (level > 0).
+    bool UsesAdvancedCoreDynamicState() const {
+        return u32(Settings::values.dyna_state.GetValue()) > 0;
+    }
+
+    /// Returns true if VK_EXT_vertex_input_dynamic_state is enabled on the device.
     bool IsExtVertexInputDynamicStateSupported() const {
-        return extensions.vertex_input_dynamic_state;
+        return extensions.vertex_input_dynamic_state &&
+               features.vertex_input_dynamic_state.vertexInputDynamicState;
     }
 
     /// Returns true if the device supports VK_EXT_shader_demote_to_helper_invocation
