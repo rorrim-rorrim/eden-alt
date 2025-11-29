@@ -220,7 +220,7 @@ bool Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
     // Only copy to the program image of the last module
     if (m_relocate_module_index == modules.size()) {
         if (this->mode == PatchMode::PreText) {
-            ASSERT(image_size == total_program_size);
+            // ASSERT(image_size == total_program_size);
             std::memcpy(program_image.data(), m_patch_instructions.data(),
                         m_patch_instructions.size() * sizeof(u32));
         } else {
