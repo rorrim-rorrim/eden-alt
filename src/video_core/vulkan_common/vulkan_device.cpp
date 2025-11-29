@@ -440,9 +440,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
     const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
 
-    // Qualcomm hardware (both proprietary and Turnip drivers) rejects Sampled1D capability.
-    supports_sampled_1d = !(is_qualcomm || is_turnip);
-
     if (!is_suitable)
         LOG_WARNING(Render_Vulkan, "Unsuitable driver - continuing anyways");
 
