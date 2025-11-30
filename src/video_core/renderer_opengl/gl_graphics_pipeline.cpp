@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <array>
+#include <optional>
 #include <string>
 #include <vector>
 #include <bit>
@@ -18,6 +19,7 @@
 #include "video_core/renderer_opengl/gl_shader_util.h"
 #include "video_core/renderer_opengl/gl_state_tracker.h"
 #include "video_core/shader_notify.h"
+#include "video_core/surface/surface.h"
 #include "video_core/texture_cache/texture_cache.h"
 
 #if defined(_MSC_VER) && defined(NDEBUG)
@@ -38,6 +40,38 @@ using VideoCommon::ImageId;
 
 constexpr u32 MAX_TEXTURES = 64;
 constexpr u32 MAX_IMAGES = 8;
+
+std::optional<VideoCore::Surface::PixelFormatNumeric>
+NumericFromComponentType(Shader::SamplerComponentType component_type) {
+    using VideoCore::Surface::PixelFormatNumeric;
+    switch (component_type) {
+    case Shader::SamplerComponentType::Float:
+        return PixelFormatNumeric::Float;
+    case Shader::SamplerComponentType::Sint:
+        return PixelFormatNumeric::Sint;
+    case Shader::SamplerComponentType::Uint:
+        return PixelFormatNumeric::Uint;
+    default:
+        return std::nullopt;
+    }
+}
+
+VideoCore::Surface::PixelFormat ResolveTexelBufferFormat(
+    VideoCore::Surface::PixelFormat format, Shader::SamplerComponentType component_type) {
+    const auto desired_numeric = NumericFromComponentType(component_type);
+    if (!desired_numeric) {
+        return format;
+    }
+    const auto current_numeric = VideoCore::Surface::GetPixelFormatNumericType(format);
+    if (*desired_numeric == current_numeric) {
+        return format;
+    }
+    if (const auto variant =
+            VideoCore::Surface::FindPixelFormatVariant(format, *desired_numeric)) {
+        return *variant;
+    }
+    return format;
+}
 
 GLenum Stage(size_t stage_index) {
     switch (stage_index) {
@@ -397,8 +431,12 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                     is_written = desc.is_written;
                 }
                 ImageView& image_view{texture_cache.GetImageView(texture_buffer_it->id)};
+                auto buffer_format = image_view.format;
+                if constexpr (!is_image) {
+                    buffer_format = ResolveTexelBufferFormat(buffer_format, desc.component_type);
+                }
                 buffer_cache.BindGraphicsTextureBuffer(stage, index, image_view.GpuAddr(),
-                                                       image_view.BufferSize(), image_view.format,
+                                                       image_view.BufferSize(), buffer_format,
                                                        is_written, is_image);
                 ++index;
                 ++texture_buffer_it;
