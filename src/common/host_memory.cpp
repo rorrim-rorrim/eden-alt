@@ -625,7 +625,14 @@ public:
             prot_flags |= PROT_EXEC;
 #endif
         int flags = (fd > 0 ? MAP_SHARED : MAP_PRIVATE) | MAP_FIXED;
-        void* ret = mmap(virtual_base + virtual_offset, length, prot_flags, flags, fd, host_offset);
+
+        u8* addr = virtual_base + virtual_offset;
+#ifdef __APPLE__
+        // The way Steve Jobs intended
+        addr = (void*)trunc_page(u64(addr));
+        length = round_page(length);
+#endif
+        void* ret = mmap(addr, length, prot_flags, flags, fd, host_offset);
         ASSERT_MSG(ret != MAP_FAILED, "mmap: {}", strerror(errno));
     }
 
