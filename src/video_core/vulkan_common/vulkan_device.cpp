@@ -1070,14 +1070,15 @@ bool Device::GetSuitability(bool requires_swapchain) {
     // Set next pointer.
     void** next = &features2.pNext;
 
-    // Vulkan 1.2 and 1.3 features
+        // Vulkan 1.2 and 1.3 features
     if (instance_version >= VK_API_VERSION_1_2) {
         features_1_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
-        SetNext(next, features_1_2);
-
+        features_1_2.pNext = nullptr;
+        *next = &features_1_2;
         if (instance_version >= VK_API_VERSION_1_3) {
             features_1_3.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
-            SetNext(next, features_1_3);
+            features_1_3.pNext = nullptr;
+            features_1_2.pNext = &features_1_3;
         }
     }
 
