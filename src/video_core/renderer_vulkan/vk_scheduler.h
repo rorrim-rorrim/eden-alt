@@ -235,6 +235,7 @@ private:
     void AcquireNewChunk();
 
     const Device& device;
+    const bool supports_transform_feedback;
     StateTracker& state_tracker;
 
     std::unique_ptr<MasterSemaphore> master_semaphore;
