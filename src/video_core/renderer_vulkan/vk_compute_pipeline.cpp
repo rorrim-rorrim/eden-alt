@@ -19,6 +19,7 @@
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/shader_notify.h"
 #include "video_core/surface.h"
+#include "video_core/texture_cache/texture_cache.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 #include <optional>
@@ -31,7 +32,7 @@ using Tegra::Texture::TexturePair;
 using VideoCore::Surface::PixelFormat;
 using VideoCore::Surface::PixelFormatNumeric;
 
-std::optional<PixelFormatNumeric> NumericFromComponentType(
+static std::optional<PixelFormatNumeric> NumericFromComponentType(
     Shader::SamplerComponentType component_type) {
     switch (component_type) {
     case Shader::SamplerComponentType::Float:
@@ -45,7 +46,7 @@ std::optional<PixelFormatNumeric> NumericFromComponentType(
     }
 }
 
-PixelFormat ResolveTexelBufferFormat(PixelFormat format,
+static PixelFormat ResolveTexelBufferFormat(PixelFormat format,
                                      Shader::SamplerComponentType component_type) {
     const auto desired_numeric = NumericFromComponentType(component_type);
     if (!desired_numeric) {
