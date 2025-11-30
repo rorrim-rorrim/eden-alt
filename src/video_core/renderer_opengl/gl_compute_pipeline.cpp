@@ -13,7 +13,7 @@
 #include "video_core/renderer_opengl/gl_compute_pipeline.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_shader_util.h"
-#include "video_core/surface/surface.h"
+#include "video_core/surface.h"
 
 namespace OpenGL {
 namespace {
