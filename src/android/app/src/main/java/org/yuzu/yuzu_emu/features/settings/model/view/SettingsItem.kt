@@ -849,14 +849,7 @@ abstract class SettingsItem(
                     descriptionId = R.string.airplane_mode_description
                 )
             )
-
-            put(
-                SwitchSetting(
-                    BooleanSetting.ENABLE_OVERLAY,
-                    titleId = R.string.enable_overlay,
-                    descriptionId = R.string.enable_overlay_description
-                )
-            )
         }
     }
 }
+

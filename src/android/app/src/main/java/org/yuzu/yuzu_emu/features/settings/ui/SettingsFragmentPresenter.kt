@@ -491,7 +491,6 @@ class SettingsFragmentPresenter(
         sl.apply {
             add(IntSetting.SWKBD_APPLET.key)
             add(BooleanSetting.AIRPLANE_MODE.key)
-            add(BooleanSetting.ENABLE_OVERLAY.key)
         }
     }
     private fun addInputPlayer(sl: ArrayList<SettingsItem>, playerIndex: Int) {

@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -153,17 +150,16 @@ private:
 
 class INpnsUser final : public ServiceFramework<INpnsUser> {
 public:
-    explicit INpnsUser(Core::System& system_)
-        : ServiceFramework{system_, "npns:u"}, service_context{system, "npns:u"} {
+    explicit INpnsUser(Core::System& system_) : ServiceFramework{system_, "npns:u"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {1, nullptr, "ListenAll"},
             {2, nullptr, "ListenTo"},
             {3, nullptr, "Receive"},
             {4, nullptr, "ReceiveRaw"},
-            {5, C<&INpnsUser::GetReceiveEvent>, "GetReceiveEvent"},
+            {5, nullptr, "GetReceiveEvent"},
             {7, nullptr, "GetStateChangeEvent"},
-            {8, C<&INpnsUser::ListenToByName>, "ListenToByName"}, // 18.0.0+
+            {8, nullptr, "ListenToByName"}, // 18.0.0+
             {21, nullptr, "CreateToken"},
             {23, nullptr, "DestroyToken"},
             {25, nullptr, "QueryIsTokenValid"},
@@ -182,33 +178,7 @@ public:
         // clang-format on
 
         RegisterHandlers(functions);
-
-        get_receive_event = service_context.CreateEvent("npns:u:GetReceiveEvent");
     }
-
-    ~INpnsUser() override {
-        service_context.CloseEvent(get_receive_event);
-    }
-
-private:
-    Result ListenToByName(InBuffer<BufferAttr_HipcMapAlias> name_buffer) {
-        const std::string name(reinterpret_cast<const char*>(name_buffer.data()), name_buffer.size());
-        LOG_DEBUG(Service_NPNS, "called, name={}", name);
-
-        // Store the name for future use if needed
-        // For now, just acknowledge the registration
-        R_SUCCEED();
-    }
-
-    Result GetReceiveEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
-        LOG_DEBUG(Service_NPNS, "called");
-
-        *out_event = &get_receive_event->GetReadableEvent();
-        R_SUCCEED();
-    }
-
-    KernelHelpers::ServiceContext service_context;
-    Kernel::KEvent* get_receive_event;
 };
 
 void LoopProcess(Core::System& system) {

@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -45,8 +42,6 @@ public:
 
     void SetWindowVisibility(bool visible);
     bool GetWindowVisibility() const;
-
-    void SetOverlayZIndex(s32 z_index);
 
     Result WriteAppletCaptureBuffer(bool* out_was_written, s32* out_fbshare_layer_index);
 

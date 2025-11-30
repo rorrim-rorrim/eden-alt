@@ -72,8 +72,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     DEBUG_FLUSH_BY_LINE("flush_line"),
     USE_LRU_CACHE("use_lru_cache"),
 
-    DONT_SHOW_DRIVER_SHADER_WARNING("dont_show_driver_shader_warning"),
-    ENABLE_OVERLAY("enable_overlay");
+    DONT_SHOW_DRIVER_SHADER_WARNING("dont_show_driver_shader_warning");
 
 
 //  external fun isFrameSkippingEnabled(): Boolean

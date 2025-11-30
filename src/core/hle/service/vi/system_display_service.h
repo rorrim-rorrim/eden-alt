@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -21,8 +18,7 @@ public:
     ~ISystemDisplayService() override;
 
 private:
-    Result GetLayerZ(Out<u64> out_z_value, u64 layer_id);
-    Result SetLayerZ(u64 layer_id, u64 z_value);
+    Result SetLayerZ(u32 z_value, u64 layer_id);
     Result SetLayerVisibility(bool visible, u64 layer_id);
     Result ListDisplayModes(Out<u64> out_count, u64 display_id,
                             OutArray<DisplayMode, BufferAttr_HipcMapAlias> out_display_modes);
