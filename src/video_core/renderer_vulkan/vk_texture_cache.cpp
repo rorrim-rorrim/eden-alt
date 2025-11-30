@@ -51,6 +51,21 @@ using VideoCore::Surface::SurfaceType;
 using VideoCore::Surface::PixelFormatNumeric;
 
 namespace {
+
+[[nodiscard]] std::optional<PixelFormatNumeric>
+ComponentNumericType(Shader::SamplerComponentType component) {
+    switch (component) {
+    case Shader::SamplerComponentType::Float:
+        return PixelFormatNumeric::Float;
+    case Shader::SamplerComponentType::Sint:
+        return PixelFormatNumeric::Sint;
+    case Shader::SamplerComponentType::Uint:
+        return PixelFormatNumeric::Uint;
+    default:
+        return std::nullopt;
+    }
+}
+
 constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     if (color == std::array<float, 4>{0, 0, 0, 0}) {
         return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
@@ -2315,19 +2330,6 @@ std::optional<u32> ImageView::LayerCountOverride(Shader::TextureType texture_typ
         return 6u;
     default:
         return std::nullopt;
-    }
-
-    std::optional<PixelFormatNumeric> ComponentNumericType(Shader::SamplerComponentType component) {
-        switch (component) {
-        case Shader::SamplerComponentType::Float:
-            return PixelFormatNumeric::Float;
-        case Shader::SamplerComponentType::Sint:
-            return PixelFormatNumeric::Sint;
-        case Shader::SamplerComponentType::Uint:
-            return PixelFormatNumeric::Uint;
-        default:
-            return std::nullopt;
-        }
     }
 }
 
