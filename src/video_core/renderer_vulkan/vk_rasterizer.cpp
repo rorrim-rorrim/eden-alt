@@ -1299,8 +1299,8 @@ void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs)
             if (front_dirty || back_dirty) {
                 scheduler.Record([front_ref = regs.stencil_front_ref,
                                   back_ref = regs.stencil_back_ref,
-                                  two_sided](vk::CommandBuffer cmdbuf) {
-                    const bool set_back = two_sided && front_ref != back_ref;
+                                  is_two_sided = two_sided](vk::CommandBuffer cmdbuf) {
+                    const bool set_back = is_two_sided && front_ref != back_ref;
                     cmdbuf.SetStencilReference(set_back ? VK_STENCIL_FACE_FRONT_BIT
                                                         : VK_STENCIL_FACE_FRONT_AND_BACK,
                                                front_ref);
@@ -1324,9 +1324,9 @@ void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs)
                 scheduler.Record([
                                      front_write_mask = regs.stencil_front_mask,
                                      back_write_mask = regs.stencil_back_mask,
-                                     two_sided = regs.stencil_two_side_enable
+                                     is_two_sided = regs.stencil_two_side_enable
                                  ](vk::CommandBuffer cmdbuf) {
-                    const bool set_back = two_sided && front_write_mask != back_write_mask;
+                    const bool set_back = is_two_sided && front_write_mask != back_write_mask;
                     cmdbuf.SetStencilWriteMask(set_back ? VK_STENCIL_FACE_FRONT_BIT
                                                         : VK_STENCIL_FACE_FRONT_AND_BACK,
                                                front_write_mask);
@@ -1350,9 +1350,9 @@ void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs)
                 scheduler.Record([
                                      front_test_mask = regs.stencil_front_func_mask,
                                      back_test_mask = regs.stencil_back_func_mask,
-                                     two_sided = regs.stencil_two_side_enable
+                                     is_two_sided = regs.stencil_two_side_enable
                                  ](vk::CommandBuffer cmdbuf) {
-                    const bool set_back = two_sided && front_test_mask != back_test_mask;
+                    const bool set_back = is_two_sided && front_test_mask != back_test_mask;
                     cmdbuf.SetStencilCompareMask(set_back ? VK_STENCIL_FACE_FRONT_BIT
                                                           : VK_STENCIL_FACE_FRONT_AND_BACK,
                                                  front_test_mask);
