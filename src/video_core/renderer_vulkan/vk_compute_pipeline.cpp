@@ -18,6 +18,7 @@
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/shader_notify.h"
+#include "video_core/surface.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 #include <optional>
@@ -27,6 +28,38 @@ namespace Vulkan {
 using Shader::ImageBufferDescriptor;
 using Shader::Backend::SPIRV::RESCALING_LAYOUT_WORDS_OFFSET;
 using Tegra::Texture::TexturePair;
+using VideoCore::Surface::PixelFormat;
+using VideoCore::Surface::PixelFormatNumeric;
+
+std::optional<PixelFormatNumeric> NumericFromComponentType(
+    Shader::SamplerComponentType component_type) {
+    switch (component_type) {
+    case Shader::SamplerComponentType::Float:
+        return PixelFormatNumeric::Float;
+    case Shader::SamplerComponentType::Sint:
+        return PixelFormatNumeric::Sint;
+    case Shader::SamplerComponentType::Uint:
+        return PixelFormatNumeric::Uint;
+    default:
+        return std::nullopt;
+    }
+}
+
+PixelFormat ResolveTexelBufferFormat(PixelFormat format,
+                                     Shader::SamplerComponentType component_type) {
+    const auto desired_numeric = NumericFromComponentType(component_type);
+    if (!desired_numeric) {
+        return format;
+    }
+    const auto current_numeric = VideoCore::Surface::GetPixelFormatNumericType(format);
+    if (*desired_numeric == current_numeric) {
+        return format;
+    }
+    if (const auto variant = VideoCore::Surface::FindPixelFormatVariant(format, *desired_numeric)) {
+        return *variant;
+    }
+    return format;
+}
 
 ComputePipeline::ComputePipeline(const Device& device_, vk::PipelineCache& pipeline_cache_,
                                  DescriptorPool& descriptor_pool,
@@ -41,38 +74,6 @@ ComputePipeline::ComputePipeline(const Device& device_, vk::PipelineCache& pipel
     if (shader_notify) {
         shader_notify->MarkShaderBuilding();
     }
-    std::optional<VideoCore::Surface::PixelFormatNumeric>
-    NumericFromComponentType(Shader::SamplerComponentType component_type) {
-        using VideoCore::Surface::PixelFormatNumeric;
-        switch (component_type) {
-        case Shader::SamplerComponentType::Float:
-            return PixelFormatNumeric::Float;
-        case Shader::SamplerComponentType::Sint:
-            return PixelFormatNumeric::Sint;
-        case Shader::SamplerComponentType::Uint:
-            return PixelFormatNumeric::Uint;
-        default:
-            return std::nullopt;
-        }
-    }
-
-    VideoCore::Surface::PixelFormat ResolveTexelBufferFormat(
-        VideoCore::Surface::PixelFormat format, Shader::SamplerComponentType component_type) {
-        const auto desired_numeric = NumericFromComponentType(component_type);
-        if (!desired_numeric) {
-            return format;
-        }
-        const auto current_numeric = VideoCore::Surface::GetPixelFormatNumericType(format);
-        if (*desired_numeric == current_numeric) {
-            return format;
-        }
-        if (const auto variant =
-                VideoCore::Surface::FindPixelFormatVariant(format, *desired_numeric)) {
-            return *variant;
-        }
-        return format;
-    }
-
     std::copy_n(info.constant_buffer_used_sizes.begin(), uniform_buffer_sizes.size(),
                 uniform_buffer_sizes.begin());
 
