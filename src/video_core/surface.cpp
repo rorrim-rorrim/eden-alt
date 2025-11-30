@@ -4,6 +4,8 @@
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <optional>
+
 #include "common/common_types.h"
 #include "common/math_util.h"
 #include "common/settings.h"
@@ -406,6 +408,126 @@ bool IsPixelFormatSignedInteger(PixelFormat format) {
     default:
         return false;
     }
+}
+
+namespace {
+
+struct NumericVariantSet {
+    PixelFormat float_format = PixelFormat::Invalid;
+    PixelFormat uint_format = PixelFormat::Invalid;
+    PixelFormat sint_format = PixelFormat::Invalid;
+
+    [[nodiscard]] std::optional<PixelFormat> Select(PixelFormatNumeric numeric) const {
+        PixelFormat candidate = PixelFormat::Invalid;
+        switch (numeric) {
+        case PixelFormatNumeric::Float:
+            candidate = float_format;
+            break;
+        case PixelFormatNumeric::Uint:
+            candidate = uint_format;
+            break;
+        case PixelFormatNumeric::Sint:
+            candidate = sint_format;
+            break;
+        }
+        if (candidate == PixelFormat::Invalid) {
+            return std::nullopt;
+        }
+        return candidate;
+    }
+};
+
+constexpr NumericVariantSet MakeVariant(PixelFormat float_format, PixelFormat uint_format,
+                                        PixelFormat sint_format) {
+    return NumericVariantSet{
+        .float_format = float_format,
+        .uint_format = uint_format,
+        .sint_format = sint_format,
+    };
+}
+
+std::optional<NumericVariantSet> LookupNumericVariantSet(PixelFormat format) {
+    switch (format) {
+    case PixelFormat::R8_UNORM:
+    case PixelFormat::R8_SNORM:
+    case PixelFormat::R8_UINT:
+    case PixelFormat::R8_SINT:
+        return MakeVariant(PixelFormat::R8_UNORM, PixelFormat::R8_UINT, PixelFormat::R8_SINT);
+    case PixelFormat::R16_FLOAT:
+    case PixelFormat::R16_UNORM:
+    case PixelFormat::R16_SNORM:
+    case PixelFormat::R16_UINT:
+    case PixelFormat::R16_SINT:
+        return MakeVariant(PixelFormat::R16_FLOAT, PixelFormat::R16_UINT, PixelFormat::R16_SINT);
+    case PixelFormat::R32_FLOAT:
+    case PixelFormat::R32_UINT:
+    case PixelFormat::R32_SINT:
+        return MakeVariant(PixelFormat::R32_FLOAT, PixelFormat::R32_UINT, PixelFormat::R32_SINT);
+    case PixelFormat::R8G8_UNORM:
+    case PixelFormat::R8G8_SNORM:
+    case PixelFormat::R8G8_UINT:
+    case PixelFormat::R8G8_SINT:
+        return MakeVariant(PixelFormat::R8G8_UNORM, PixelFormat::R8G8_UINT, PixelFormat::R8G8_SINT);
+    case PixelFormat::R16G16_FLOAT:
+    case PixelFormat::R16G16_UNORM:
+    case PixelFormat::R16G16_SNORM:
+    case PixelFormat::R16G16_UINT:
+    case PixelFormat::R16G16_SINT:
+        return MakeVariant(PixelFormat::R16G16_FLOAT, PixelFormat::R16G16_UINT,
+                           PixelFormat::R16G16_SINT);
+    case PixelFormat::R32G32_FLOAT:
+    case PixelFormat::R32G32_UINT:
+    case PixelFormat::R32G32_SINT:
+        return MakeVariant(PixelFormat::R32G32_FLOAT, PixelFormat::R32G32_UINT,
+                           PixelFormat::R32G32_SINT);
+    case PixelFormat::R16G16B16A16_FLOAT:
+    case PixelFormat::R16G16B16A16_UNORM:
+    case PixelFormat::R16G16B16A16_SNORM:
+    case PixelFormat::R16G16B16A16_UINT:
+    case PixelFormat::R16G16B16A16_SINT:
+        return MakeVariant(PixelFormat::R16G16B16A16_FLOAT, PixelFormat::R16G16B16A16_UINT,
+                           PixelFormat::R16G16B16A16_SINT);
+    case PixelFormat::R32G32B32A32_FLOAT:
+    case PixelFormat::R32G32B32A32_UINT:
+    case PixelFormat::R32G32B32A32_SINT:
+        return MakeVariant(PixelFormat::R32G32B32A32_FLOAT, PixelFormat::R32G32B32A32_UINT,
+                           PixelFormat::R32G32B32A32_SINT);
+    case PixelFormat::A8B8G8R8_UNORM:
+    case PixelFormat::A8B8G8R8_SNORM:
+    case PixelFormat::A8B8G8R8_SRGB:
+    case PixelFormat::A8B8G8R8_UINT:
+    case PixelFormat::A8B8G8R8_SINT:
+        return MakeVariant(PixelFormat::A8B8G8R8_UNORM, PixelFormat::A8B8G8R8_UINT,
+                           PixelFormat::A8B8G8R8_SINT);
+    case PixelFormat::A2B10G10R10_UNORM:
+    case PixelFormat::A2B10G10R10_UINT:
+        return MakeVariant(PixelFormat::A2B10G10R10_UNORM, PixelFormat::A2B10G10R10_UINT,
+                           PixelFormat::Invalid);
+    default:
+        return std::nullopt;
+    }
+}
+
+} // Anonymous namespace
+
+PixelFormatNumeric GetPixelFormatNumericType(PixelFormat format) {
+    if (IsPixelFormatInteger(format)) {
+        return IsPixelFormatSignedInteger(format) ? PixelFormatNumeric::Sint
+                                                  : PixelFormatNumeric::Uint;
+    }
+    return PixelFormatNumeric::Float;
+}
+
+std::optional<PixelFormat> FindPixelFormatVariant(PixelFormat format,
+                                                  PixelFormatNumeric target_numeric) {
+    const auto variants = LookupNumericVariantSet(format);
+    if (!variants) {
+        return std::nullopt;
+    }
+    if (const auto candidate = variants->Select(target_numeric)) {
+        return candidate;
+    }
+    return std::nullopt;
 }
 
 size_t PixelComponentSizeBitsInteger(PixelFormat format) {
