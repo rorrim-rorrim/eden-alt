@@ -48,6 +48,7 @@ using VideoCore::Surface::HasAlpha;
 using VideoCore::Surface::IsPixelFormatASTC;
 using VideoCore::Surface::IsPixelFormatInteger;
 using VideoCore::Surface::SurfaceType;
+using VideoCore::Surface::PixelFormatNumeric;
 
 namespace {
 constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
@@ -2315,6 +2316,19 @@ std::optional<u32> ImageView::LayerCountOverride(Shader::TextureType texture_typ
     default:
         return std::nullopt;
     }
+
+    std::optional<PixelFormatNumeric> ComponentNumericType(Shader::SamplerComponentType component) {
+        switch (component) {
+        case Shader::SamplerComponentType::Float:
+            return PixelFormatNumeric::Float;
+        case Shader::SamplerComponentType::Sint:
+            return PixelFormatNumeric::Sint;
+        case Shader::SamplerComponentType::Uint:
+            return PixelFormatNumeric::Uint;
+        default:
+            return std::nullopt;
+        }
+    }
 }
 
 VkImageView ImageView::DepthView() {
@@ -2382,7 +2396,29 @@ VkImageView ImageView::SampledView(Shader::TextureType texture_type,
     default:
         break;
     }
-    return Handle(texture_type);
+    const auto desired_numeric = ComponentNumericType(component_type);
+    if (!desired_numeric) {
+        return Handle(texture_type);
+    }
+    const PixelFormatNumeric current_numeric =
+        VideoCore::Surface::GetPixelFormatNumericType(format);
+    if (*desired_numeric == current_numeric) {
+        return Handle(texture_type);
+    }
+    const auto remapped_format =
+        VideoCore::Surface::FindPixelFormatVariant(format, *desired_numeric);
+    if (!remapped_format) {
+        return Handle(texture_type);
+    }
+    auto& cached_view = sampled_component_views[static_cast<size_t>(*desired_numeric)]
+                                            [static_cast<size_t>(texture_type)];
+    if (cached_view) {
+        return *cached_view;
+    }
+    const auto& info =
+        MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, *remapped_format);
+    cached_view = MakeView(info.format, VK_IMAGE_ASPECT_COLOR_BIT, texture_type);
+    return *cached_view;
 }
 
 VkImageView ImageView::StorageView(Shader::TextureType texture_type,
