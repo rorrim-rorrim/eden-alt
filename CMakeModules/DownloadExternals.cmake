@@ -265,7 +265,7 @@ function(download_moltenvk version platform)
             message(FATAL_ERROR "Extracting MoltenVK failed: ${tar_err}")
         endif()
     endif()
-    list(APPEND CMAKE_PREFIX_PATH "${MOLTENVK_DIR}/MoltenVK/dylib/${platform}")
+    list(PREPEND CMAKE_PREFIX_PATH "${MOLTENVK_DIR}/MoltenVK/dylib/${platform}")
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} PARENT_SCOPE)
 endfunction()
 
