@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -107,7 +110,8 @@ s64 Conductor::GetNextTicks() const {
         speed_scale = 1.f;
     }
 
-    const f32 effective_fps = 60.f / static_cast<f32>(m_swap_interval);
+    const s32 vsync_interval = 1;
+    const f32 effective_fps = 60.f / static_cast<f32>(vsync_interval);
     return static_cast<s64>(speed_scale * (1000000000.f / effective_fps));
 }
 
