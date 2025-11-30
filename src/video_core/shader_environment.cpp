@@ -70,6 +70,46 @@ static Shader::TexturePixelFormat ConvertTexturePixelFormat(const Tegra::Texture
                                    entry.a_type, entry.srgb_conversion));
 }
 
+namespace {
+
+[[nodiscard]] bool UsesSwizzleSource(const Tegra::Texture::TICEntry& entry,
+                                     Tegra::Texture::SwizzleSource source) {
+    const std::array swizzles{entry.x_source.Value(), entry.y_source.Value(),
+                              entry.z_source.Value(), entry.w_source.Value()};
+    return std::ranges::any_of(swizzles, [source](Tegra::Texture::SwizzleSource current) {
+        return current == source;
+    });
+}
+
+[[nodiscard]] std::optional<Shader::SamplerComponentType> DepthStencilComponentFromSwizzle(
+    const Tegra::Texture::TICEntry& entry, VideoCore::Surface::PixelFormat pixel_format) {
+    using Tegra::Texture::SwizzleSource;
+    const bool uses_r = UsesSwizzleSource(entry, SwizzleSource::R);
+    const bool uses_g = UsesSwizzleSource(entry, SwizzleSource::G);
+
+    switch (pixel_format) {
+    case VideoCore::Surface::PixelFormat::D24_UNORM_S8_UINT:
+    case VideoCore::Surface::PixelFormat::D32_FLOAT_S8_UINT:
+        if (uses_r != uses_g) {
+            return uses_r ? Shader::SamplerComponentType::Depth
+                          : Shader::SamplerComponentType::Stencil;
+        }
+        break;
+    case VideoCore::Surface::PixelFormat::S8_UINT_D24_UNORM:
+        if (uses_r != uses_g) {
+            return uses_r ? Shader::SamplerComponentType::Stencil
+                          : Shader::SamplerComponentType::Depth;
+        }
+        break;
+    default:
+        break;
+    }
+
+    return std::nullopt;
+}
+
+} // Anonymous namespace
+
 static Shader::SamplerComponentType ConvertSamplerComponentType(
     const Tegra::Texture::TICEntry& entry) {
     const auto pixel_format = PixelFormatFromTextureInfo(entry.format, entry.r_type, entry.g_type,
@@ -83,6 +123,9 @@ static Shader::SamplerComponentType ConvertSamplerComponentType(
         return Shader::SamplerComponentType::Stencil;
     }
     if (surface_type == VideoCore::Surface::SurfaceType::DepthStencil) {
+        if (const auto inferred = DepthStencilComponentFromSwizzle(entry, pixel_format)) {
+            return *inferred;
+        }
         return entry.depth_texture != 0 ? Shader::SamplerComponentType::Depth
                                         : Shader::SamplerComponentType::Stencil;
     }

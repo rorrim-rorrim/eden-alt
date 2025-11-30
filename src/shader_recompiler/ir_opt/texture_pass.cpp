@@ -672,6 +672,7 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
                     .secondary_shift_left = cbuf.secondary_shift_left,
                     .count = cbuf.count,
                     .size_shift = DESCRIPTOR_SIZE_SHIFT,
+                    .component_type = ReadTextureComponentType(env, cbuf),
                 });
             } else {
                 index = descriptors.Add(TextureDescriptor{
