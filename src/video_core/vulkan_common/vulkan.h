@@ -11,7 +11,7 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #elif defined(__APPLE__)
 #define VK_USE_PLATFORM_METAL_EXT
-//#define VK_USE_PLATFORM_MACOS_MVK
+#define VK_USE_PLATFORM_MACOS_MVK
 #elif defined(__ANDROID__)
 #define VK_USE_PLATFORM_ANDROID_KHR
 #elif defined(__HAIKU__)
