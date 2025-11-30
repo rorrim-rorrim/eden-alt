@@ -323,30 +323,3 @@ fun getGitVersion(): String {
     }
     return versionName.ifEmpty { "0.0" }
 }
-
-// this sucks but it works
-afterEvaluate {
-    android.applicationVariants.all { variant ->
-        val variantName = variant.name.replaceFirstChar { it.uppercase() }
-
-        val packageTask = tasks.named("package${variantName}")
-
-        val copyTask = tasks.register<Copy>("copy${variantName}Output") {
-            val outDir = file("../../../artifacts")
-            into(outDir)
-            doFirst { outDir.mkdirs() }
-
-            from(packageTask.map { it.outputs.files }) {
-                include("*.apk")
-            }
-
-            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        }
-
-        tasks.named("assemble${variantName}").configure {
-            finalizedBy(copyTask)
-        }
-
-        true
-    }
-}

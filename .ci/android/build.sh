@@ -80,6 +80,7 @@ case "$TARGET" in
 	legacy) FLAVOR=Legacy ;;
 	optimized) FLAVOR=GenshinSpoof ;;
 	standard) FLAVOR=Mainline ;;
+    chromeos) FLAVOR=Mainline; CHROMEOS=true ;;
 	*) die "Invalid build flavor $TARGET."
 esac
 
@@ -96,7 +97,6 @@ if [ -n "${ANDROID_KEYSTORE_B64}" ]; then
     echo "${ANDROID_KEYSTORE_B64}" | base64 --decode > "${ANDROID_KEYSTORE_FILE}"
 	SHA1SUM=$(keytool -list -v -storepass "${ANDROID_KEYSTORE_PASS}" -keystore "${ANDROID_KEYSTORE_FILE}" | grep SHA1 | cut -d " " -f3)
 	echo "-- Keystore SHA1 is ${SHA1SUM}"
-
 fi
 
 cd src/android
@@ -107,8 +107,8 @@ set -- "$@" -DUSE_CCACHE="${CCACHE}"
 [ "$CHROMEOS" = "true" ] && ABI=x86_64
 : "${ABI:=arm64-v8a}"
 
-echo "-- packaging APK"
-./gradlew copy${FLAVOR}"${TYPE}Output" \
+echo "-- building APK"
+./gradlew "assemble${FLAVOR}${TYPE}" \
     -Dorg.gradle.caching="${CCACHE}" \
     -Dorg.gradle.parallel="${CCACHE}" \
     -Dorg.gradle.workers.max="${NUM_JOBS}" \
@@ -116,20 +116,25 @@ echo "-- packaging APK"
     -PYUZU_ANDROID_ARGS="$*"
 
 echo "-- building AAB"
-./gradlew bundle${FLAVOR}"${TYPE}" \
+./gradlew "bundle${FLAVOR}${TYPE}" \
     -Dorg.gradle.caching="${CCACHE}" \
     -Dorg.gradle.parallel="${CCACHE}" \
     -Dorg.gradle.workers.max="${NUM_JOBS}" \
 	-Pandroid.injected.build.abi="${ABI}" \
     -PYUZU_ANDROID_ARGS="$*"
 
+echo "-- packaging APK"
+cp "app/build/outputs/apk/${LOWER_FLAVOR}/${LOWER_TYPE}/app-${LOWER_FLAVOR}-${LOWER_TYPE}.apk" \
+	"$ARTIFACTS_DIR/app-${LOWER_FLAVOR}-${ABI}-${LOWER_TYPE}.apk" || echo "APK not found"
+
 echo "-- packaging AAB"
 cp app/build/outputs/bundle/"${LOWER_FLAVOR}${TYPE}/app-${LOWER_FLAVOR}-${LOWER_TYPE}.aab" \
-	"${ARTIFACTS_DIR}/app-${LOWER_FLAVOR}-${ABI}-${LOWER_TYPE}.aab" || echo "AAB not found"
+	"$ARTIFACTS_DIR/app-${LOWER_FLAVOR}-${ABI}-${LOWER_TYPE}.aab" || echo "AAB not found"
 
 if [ -n "${ANDROID_KEYSTORE_B64}" ]; then
     rm "${ANDROID_KEYSTORE_FILE}"
 fi
 
 echo "-- Done! APK and AAB artifacts are in ${ARTIFACTS_DIR}"
+
 ls -l "${ARTIFACTS_DIR}/"
