@@ -7,13 +7,50 @@
 #include <cstring>
 #include <bit>
 #include <numeric>
+#include <optional>
 #include "common/cityhash.h"
 #include "common/settings.h" // for enum class Settings::ShaderBackend
 #include "video_core/renderer_opengl/gl_compute_pipeline.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_shader_util.h"
+#include "video_core/surface/surface.h"
 
 namespace OpenGL {
+namespace {
+
+std::optional<VideoCore::Surface::PixelFormatNumeric>
+NumericFromComponentType(Shader::SamplerComponentType component_type) {
+    using VideoCore::Surface::PixelFormatNumeric;
+    switch (component_type) {
+    case Shader::SamplerComponentType::Float:
+        return PixelFormatNumeric::Float;
+    case Shader::SamplerComponentType::Sint:
+        return PixelFormatNumeric::Sint;
+    case Shader::SamplerComponentType::Uint:
+        return PixelFormatNumeric::Uint;
+    default:
+        return std::nullopt;
+    }
+}
+
+VideoCore::Surface::PixelFormat ResolveTexelBufferFormat(
+    VideoCore::Surface::PixelFormat format, Shader::SamplerComponentType component_type) {
+    const auto desired_numeric = NumericFromComponentType(component_type);
+    if (!desired_numeric) {
+        return format;
+    }
+    const auto current_numeric = VideoCore::Surface::GetPixelFormatNumericType(format);
+    if (*desired_numeric == current_numeric) {
+        return format;
+    }
+    if (const auto variant =
+            VideoCore::Surface::FindPixelFormatVariant(format, *desired_numeric)) {
+        return *variant;
+    }
+    return format;
+}
+
+} // Anonymous namespace
 
 using Shader::ImageBufferDescriptor;
 using Tegra::Texture::TexturePair;
@@ -174,8 +211,12 @@ void ComputePipeline::Configure() {
                 is_written = desc.is_written;
             }
             ImageView& image_view{texture_cache.GetImageView(views[texbuf_index].id)};
+            auto buffer_format = image_view.format;
+            if constexpr (!is_image) {
+                buffer_format = ResolveTexelBufferFormat(buffer_format, desc.component_type);
+            }
             buffer_cache.BindComputeTextureBuffer(texbuf_index, image_view.GpuAddr(),
-                                                  image_view.BufferSize(), image_view.format,
+                                                  image_view.BufferSize(), buffer_format,
                                                   is_written, is_image);
             ++texbuf_index;
         }

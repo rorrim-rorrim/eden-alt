@@ -275,6 +275,8 @@ private:
         std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> typeless;
     };
 
+    static constexpr size_t NUMERIC_VIEW_TYPES = 3;
+
     [[nodiscard]] Shader::TextureType BaseTextureType() const noexcept;
     [[nodiscard]] std::optional<u32> LayerCountOverride(Shader::TextureType texture_type) const noexcept;
     [[nodiscard]] VkImageView DepthView(Shader::TextureType texture_type);
@@ -291,6 +293,8 @@ private:
     std::unique_ptr<StorageViews> storage_views;
     std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> depth_views;
     std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> stencil_views;
+    std::array<std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES>, NUMERIC_VIEW_TYPES>
+        sampled_component_views;
     vk::ImageView color_view;
     vk::Image null_image;
     VkImage image_handle = VK_NULL_HANDLE;

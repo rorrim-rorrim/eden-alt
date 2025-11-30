@@ -20,6 +20,7 @@
 #include "video_core/shader_notify.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+#include <optional>
 
 namespace Vulkan {
 
@@ -40,6 +41,38 @@ ComputePipeline::ComputePipeline(const Device& device_, vk::PipelineCache& pipel
     if (shader_notify) {
         shader_notify->MarkShaderBuilding();
     }
+    std::optional<VideoCore::Surface::PixelFormatNumeric>
+    NumericFromComponentType(Shader::SamplerComponentType component_type) {
+        using VideoCore::Surface::PixelFormatNumeric;
+        switch (component_type) {
+        case Shader::SamplerComponentType::Float:
+            return PixelFormatNumeric::Float;
+        case Shader::SamplerComponentType::Sint:
+            return PixelFormatNumeric::Sint;
+        case Shader::SamplerComponentType::Uint:
+            return PixelFormatNumeric::Uint;
+        default:
+            return std::nullopt;
+        }
+    }
+
+    VideoCore::Surface::PixelFormat ResolveTexelBufferFormat(
+        VideoCore::Surface::PixelFormat format, Shader::SamplerComponentType component_type) {
+        const auto desired_numeric = NumericFromComponentType(component_type);
+        if (!desired_numeric) {
+            return format;
+        }
+        const auto current_numeric = VideoCore::Surface::GetPixelFormatNumericType(format);
+        if (*desired_numeric == current_numeric) {
+            return format;
+        }
+        if (const auto variant =
+                VideoCore::Surface::FindPixelFormatVariant(format, *desired_numeric)) {
+            return *variant;
+        }
+        return format;
+    }
+
     std::copy_n(info.constant_buffer_used_sizes.begin(), uniform_buffer_sizes.size(),
                 uniform_buffer_sizes.begin());
 
@@ -182,8 +215,12 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
                 is_written = desc.is_written;
             }
             ImageView& image_view = texture_cache.GetImageView(views[index].id);
+            VideoCore::Surface::PixelFormat buffer_format = image_view.format;
+            if constexpr (!is_image) {
+                buffer_format = ResolveTexelBufferFormat(buffer_format, desc.component_type);
+            }
             buffer_cache.BindComputeTextureBuffer(index, image_view.GpuAddr(),
-                                                  image_view.BufferSize(), image_view.format,
+                                                  image_view.BufferSize(), buffer_format,
                                                   is_written, is_image);
             ++index;
         }

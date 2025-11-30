@@ -6,6 +6,7 @@
 #pragma once
 
 #include <climits>
+#include <optional>
 #include <utility>
 #include "common/assert.h"
 #include "common/common_types.h"
@@ -202,6 +203,17 @@ bool IsPixelFormatSRGB(PixelFormat format);
 bool IsPixelFormatInteger(PixelFormat format);
 bool IsPixelFormatSignedInteger(PixelFormat format);
 size_t PixelComponentSizeBitsInteger(PixelFormat format);
+
+enum class PixelFormatNumeric {
+    Float,
+    Uint,
+    Sint,
+};
+
+PixelFormatNumeric GetPixelFormatNumericType(PixelFormat format);
+std::optional<PixelFormat> FindPixelFormatVariant(PixelFormat format,
+                                                  PixelFormatNumeric target_numeric);
+
 std::pair<u32, u32> GetASTCBlockSize(PixelFormat format);
 u64 TranscodedAstcSize(u64 base_size, PixelFormat format);
 
