@@ -611,7 +611,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     const bool needs_mobile_alignment_clamp = is_qualcomm || is_arm;
-    use_mobile_megabuffer = needs_mobile_alignment_clamp;
 
     if (is_qualcomm) {
         const u32 version = (properties.properties.driverVersion << 3) >> 3;

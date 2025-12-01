@@ -371,11 +371,6 @@ public:
         return features.host_query_reset.hostQueryReset;
     }
 
-    /// Returns true when the driver should use the mobile mega buffer allocator.
-    bool ShouldUseMobileMegaBuffer() const {
-        return use_mobile_megabuffer;
-    }
-
     /// Returns true if the device supports float64 natively.
     bool IsFloat64Supported() const {
         return features.features.shaderFloat64;
@@ -1107,7 +1102,6 @@ private:
     bool must_emulate_scaled_formats{};        ///< Requires scaled vertex format emulation
     bool must_emulate_bgr565{};                ///< Emulates BGR565 by swizzling RGB565 format.
     bool disable_shader_float_controls_usage{}; ///< True when VK_KHR_shader_float_controls cannot be safely used.
-    bool use_mobile_megabuffer{};              ///< Use the Android mega buffer path.
     bool dynamic_state3_blending{};            ///< Has blending features of dynamic_state3.
     bool dynamic_state3_enables{};             ///< Has at least one enable feature of dynamic_state3.
     bool dynamic_state3_depth_clamp_enable{};

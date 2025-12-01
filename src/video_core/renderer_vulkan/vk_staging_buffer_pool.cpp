@@ -5,7 +5,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
-#include <deque>
 #include <optional>
 #include <utility>
 #include <vector>
@@ -31,8 +30,6 @@ using namespace Common::Literals;
 constexpr VkDeviceSize MAX_ALIGNMENT = 256;
 // Stream buffer size in bytes
 constexpr VkDeviceSize MAX_STREAM_BUFFER_SIZE = 128_MiB;
-// Mobile mega buffer size (per chunk)
-constexpr VkDeviceSize MOBILE_MEGABUFFER_SIZE = 32_MiB;
 
 size_t GetStreamBufferSize(const Device& device) {
     VkDeviceSize size{0};
@@ -53,117 +50,6 @@ size_t GetStreamBufferSize(const Device& device) {
 }
 } // Anonymous namespace
 
-class MobileMegaBuffer {
-public:
-    MobileMegaBuffer(const Device& device, MemoryAllocator& allocator, Scheduler& scheduler_)
-        : scheduler{scheduler_} {
-        VkBufferCreateInfo buffer_ci = {
-            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .size = MOBILE_MEGABUFFER_SIZE,
-            .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT |
-                     VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
-                     VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-            .queueFamilyIndexCount = 0,
-            .pQueueFamilyIndices = nullptr,
-        };
-        buffer = allocator.CreateBuffer(buffer_ci, MemoryUsage::Upload);
-        if (device.HasDebuggingToolAttached()) {
-            buffer.SetObjectNameEXT("Mobile MegaBuffer");
-        }
-        data = buffer.Mapped();
-        ASSERT_MSG(!data.empty(), "Mobile MegaBuffer must be host visible");
-        buffer_size = static_cast<VkDeviceSize>(data.size());
-    }
-
-    std::optional<StagingBufferRef> Allocate(size_t size) {
-        if (size == 0) {
-            return std::nullopt;
-        }
-        const VkDeviceSize requested = static_cast<VkDeviceSize>(size);
-        if (requested > buffer_size) {
-            return std::nullopt;
-        }
-        const VkDeviceSize aligned_size =
-            static_cast<VkDeviceSize>(Common::AlignUp(requested, MAX_ALIGNMENT));
-        if (aligned_size > buffer_size) {
-            return std::nullopt;
-        }
-        Reclaim();
-        const std::optional<VkDeviceSize> offset = Reserve(aligned_size);
-        if (!offset) {
-            return std::nullopt;
-        }
-        regions.push_back(Region{
-            .tick = scheduler.CurrentTick(),
-            .offset = *offset,
-            .size = aligned_size,
-        });
-        return StagingBufferRef{
-            .buffer = *buffer,
-            .offset = *offset,
-            .mapped_span = data.subspan(static_cast<size_t>(*offset),
-                                        static_cast<size_t>(aligned_size)),
-            .usage = MemoryUsage::Upload,
-            .log2_level = 0,
-            .index = ++unique_id,
-        };
-    }
-
-    void Tick() {
-        Reclaim();
-    }
-
-private:
-    struct Region {
-        u64 tick;
-        VkDeviceSize offset;
-        VkDeviceSize size;
-    };
-
-    void Reclaim() {
-        while (!regions.empty() && scheduler.IsFree(regions.front().tick)) {
-            regions.pop_front();
-            if (regions.empty()) {
-                write_offset = 0;
-            }
-        }
-    }
-
-    std::optional<VkDeviceSize> Reserve(VkDeviceSize size) {
-        const VkDeviceSize head = regions.empty() ? write_offset : regions.front().offset;
-        if (write_offset >= head) {
-            const VkDeviceSize space_at_end = buffer_size - write_offset;
-            if (space_at_end >= size) {
-                const VkDeviceSize offset = write_offset;
-                write_offset += size;
-                return offset;
-            }
-            if (head > 0 && head >= size) {
-                write_offset = size;
-                return 0;
-            }
-            return std::nullopt;
-        }
-        const VkDeviceSize available = head - write_offset;
-        if (available >= size) {
-            const VkDeviceSize offset = write_offset;
-            write_offset += size;
-            return offset;
-        }
-        return std::nullopt;
-    }
-
-    vk::Buffer buffer;
-    std::span<u8> data;
-    VkDeviceSize buffer_size{};
-    VkDeviceSize write_offset{};
-    std::deque<Region> regions;
-    Scheduler& scheduler;
-    u64 unique_id{};
-};
 
 StagingBufferPool::StagingBufferPool(const Device& device_, MemoryAllocator& memory_allocator_,
                                      Scheduler& scheduler_)
@@ -191,20 +77,12 @@ StagingBufferPool::StagingBufferPool(const Device& device_, MemoryAllocator& mem
     stream_pointer = stream_buffer.Mapped();
     ASSERT_MSG(!stream_pointer.empty(), "Stream buffer must be host visible!");
 
-    if (device.ShouldUseMobileMegaBuffer()) {
-        mobile_megabuffer = std::make_unique<MobileMegaBuffer>(device, memory_allocator, scheduler);
-    }
 }
 
 StagingBufferPool::~StagingBufferPool() = default;
 
 StagingBufferRef StagingBufferPool::Request(size_t size, MemoryUsage usage, bool deferred) {
     if (!deferred && usage == MemoryUsage::Upload) {
-        if (mobile_megabuffer) {
-            if (const std::optional<StagingBufferRef> ref = mobile_megabuffer->Allocate(size)) {
-                return *ref;
-            }
-        }
         if (size <= region_size) {
             return GetStreamBuffer(size);
         }
@@ -226,10 +104,6 @@ void StagingBufferPool::FreeDeferred(StagingBufferRef& ref) {
 
 void StagingBufferPool::TickFrame() {
     current_delete_level = (current_delete_level + 1) % NUM_LEVELS;
-
-    if (mobile_megabuffer) {
-        mobile_megabuffer->Tick();
-    }
 
     ReleaseCache(MemoryUsage::DeviceLocal);
     ReleaseCache(MemoryUsage::Upload);
