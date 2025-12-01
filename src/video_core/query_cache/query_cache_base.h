@@ -95,6 +95,8 @@ public:
 
     void CounterReset(QueryType counter_type);
 
+    [[nodiscard]] bool HasStreamer(QueryType counter_type) const;
+
     void CounterClose(QueryType counter_type);
 
     void CounterReport(GPUVAddr addr, QueryType counter_type, QueryPropertiesFlags flags,
