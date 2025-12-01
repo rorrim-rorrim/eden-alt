@@ -40,8 +40,7 @@ void Scheduler::CommandChunk::ExecuteAll(vk::CommandBuffer cmdbuf,
 }
 
 Scheduler::Scheduler(const Device& device_, StateTracker& state_tracker_)
-        : device{device_}, supports_transform_feedback{device_.IsExtTransformFeedbackSupported()},
-            state_tracker{state_tracker_},
+    : device{device_}, state_tracker{state_tracker_},
       master_semaphore{std::make_unique<MasterSemaphore>(device)},
       command_pool{std::make_unique<CommandPool>(*master_semaphore, device)} {
     AcquireNewChunk();
@@ -296,11 +295,13 @@ void Scheduler::EndRenderPass()
             return;
         }
 
-        query_cache->CounterEnable(VideoCommon::QueryType::ZPassPixelCount64, false);
-        if (supports_transform_feedback) {
-            query_cache->CounterEnable(VideoCommon::QueryType::StreamingByteCount, false);
+        if (query_cache) {
+            query_cache->CounterEnable(VideoCommon::QueryType::ZPassPixelCount64, false);
+            if (query_cache->HasStreamer(VideoCommon::QueryType::StreamingByteCount)) {
+                query_cache->CounterEnable(VideoCommon::QueryType::StreamingByteCount, false);
+            }
+            query_cache->NotifySegment(false);
         }
-        query_cache->NotifySegment(false);
 
         Record([num_images = num_renderpass_images,
                        images = renderpass_images,

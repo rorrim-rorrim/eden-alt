@@ -212,6 +212,12 @@ void QueryCacheBase<Traits>::CounterClose(QueryType counter_type) {
 }
 
 template <typename Traits>
+bool QueryCacheBase<Traits>::HasStreamer(QueryType counter_type) const {
+    const size_t index = static_cast<size_t>(counter_type);
+    return impl->streamers[index] != nullptr;
+}
+
+template <typename Traits>
 void QueryCacheBase<Traits>::CounterReset(QueryType counter_type) {
     size_t index = static_cast<size_t>(counter_type);
     StreamerInterface* streamer = impl->streamers[index];
