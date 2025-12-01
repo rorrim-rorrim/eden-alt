@@ -295,9 +295,11 @@ private:
     }
 
     void ForEachBackend(auto lambda) {
-        lambda(static_cast<Backend&>(debugger_backend));
         lambda(static_cast<Backend&>(color_console_backend));
         lambda(static_cast<Backend&>(file_backend));
+#ifdef _WIN32
+        lambda(static_cast<Backend&>(debugger_backend));
+#endif
 #ifdef ANDROID
         lambda(static_cast<Backend&>(lc_backend));
 #endif
