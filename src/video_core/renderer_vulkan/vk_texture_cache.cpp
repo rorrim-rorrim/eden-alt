@@ -50,6 +50,7 @@ using VideoCore::Surface::HasAlpha;
 using VideoCore::Surface::IsPixelFormatASTC;
 using VideoCore::Surface::IsPixelFormatInteger;
 using VideoCore::Surface::SurfaceType;
+using VideoCore::Surface::PixelFormat;
 using VideoCore::Surface::PixelFormatNumeric;
 
 namespace {
@@ -2445,7 +2446,10 @@ VkImageView ImageView::StencilView(Shader::TextureType texture_type) {
     if (view) {
         return *view;
     }
-    const auto& info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
+    const auto surface_type = VideoCore::Surface::GetFormatType(format);
+    const PixelFormat view_format =
+        surface_type == SurfaceType::DepthStencil ? PixelFormat::S8_UINT : format;
+    const auto& info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, view_format);
     view = MakeView(info.format, VK_IMAGE_ASPECT_STENCIL_BIT, texture_type);
     return *view;
 }
