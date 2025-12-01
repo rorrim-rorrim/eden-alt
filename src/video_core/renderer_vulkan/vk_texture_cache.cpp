@@ -148,12 +148,18 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     const auto format_info =
         MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, info.format);
     VkImageCreateFlags flags{};
+    const auto surface_type = VideoCore::Surface::GetFormatType(info.format);
     if (info.type == ImageType::e2D && info.resources.layers >= 6 &&
         info.size.width == info.size.height && !device.HasBrokenCubeImageCompatibility()) {
         flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
     }
     if (info.type == ImageType::e3D) {
         flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
+    }
+    const bool has_depth_component =
+        surface_type == SurfaceType::Depth || surface_type == SurfaceType::DepthStencil;
+    if (has_depth_component && device.IsExtSampleLocationsSupported()) {
+        flags |= VK_IMAGE_CREATE_SAMPLE_LOCATIONS_COMPATIBLE_DEPTH_BIT_EXT;
     }
     const auto [samples_x, samples_y] = VideoCommon::SamplesLog2(info.num_samples);
     return VkImageCreateInfo{
