@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -21,6 +24,26 @@ constexpr auto FLOAT = ComponentType::FLOAT;
 constexpr bool LINEAR = false;
 constexpr bool SRGB = true;
 
+constexpr TextureFormat SanitizeFormat(TextureFormat format) {
+    if (format == static_cast<TextureFormat>(0)) {
+        return TextureFormat::A8B8G8R8;
+    }
+    return format;
+}
+
+constexpr ComponentType SanitizeComponent(ComponentType component) {
+    switch (component) {
+    case static_cast<ComponentType>(0):
+        return ComponentType::UNORM;
+    case ComponentType::SNORM_FORCE_FP16:
+        return ComponentType::SNORM;
+    case ComponentType::UNORM_FORCE_FP16:
+        return ComponentType::UNORM;
+    default:
+        return component;
+    }
+}
+
 constexpr u32 Hash(TextureFormat format, ComponentType red_component, ComponentType green_component,
                    ComponentType blue_component, ComponentType alpha_component, bool is_srgb) {
     u32 hash = is_srgb ? 1 : 0;
@@ -41,6 +64,11 @@ constexpr u32 Hash(TextureFormat format, ComponentType component, bool is_srgb =
 PixelFormat PixelFormatFromTextureInfo(TextureFormat format, ComponentType red, ComponentType green,
                                        ComponentType blue, ComponentType alpha,
                                        bool is_srgb) noexcept {
+    format = SanitizeFormat(format);
+    red = SanitizeComponent(red);
+    green = SanitizeComponent(green);
+    blue = SanitizeComponent(blue);
+    alpha = SanitizeComponent(alpha);
     switch (Hash(format, red, green, blue, alpha, is_srgb)) {
     case Hash(TextureFormat::A8B8G8R8, UNORM):
         return PixelFormat::A8B8G8R8_UNORM;
