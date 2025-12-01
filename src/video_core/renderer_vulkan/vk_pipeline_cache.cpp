@@ -451,12 +451,17 @@ ComputePipeline* PipelineCache::CurrentComputePipeline() {
         .shared_memory_size = qmd.shared_alloc,
         .workgroup_size{qmd.block_dim_x, qmd.block_dim_y, qmd.block_dim_z},
     };
-    const auto [pair, is_new]{compute_cache.try_emplace(key)};
+    const auto [pair, inserted]{compute_cache.try_emplace(key)};
     auto& pipeline{pair->second};
-    if (!is_new) {
-        return pipeline.get();
+    if (!pipeline) {
+        auto [slot, should_build] = AcquireComputeBuildSlot(key);
+        if (!should_build) {
+            WaitForBuildCompletion(slot);
+        } else {
+            pipeline = CreateComputePipeline(key, shader);
+            ReleaseComputeBuildSlot(key, slot);
+        }
     }
-    pipeline = CreateComputePipeline(key, shader);
     return pipeline.get();
 }
 
@@ -572,13 +577,20 @@ void PipelineCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading
 }
 
 GraphicsPipeline* PipelineCache::CurrentGraphicsPipelineSlowPath() {
-    const auto [pair, is_new]{graphics_cache.try_emplace(graphics_key)};
+    const auto [pair, inserted]{graphics_cache.try_emplace(graphics_key)};
     auto& pipeline{pair->second};
-    if (is_new) {
-        pipeline = CreateGraphicsPipeline();
-    }
     if (!pipeline) {
-        return nullptr;
+        const auto key = pair->first;
+        auto [slot, should_build] = AcquireGraphicsBuildSlot(key);
+        if (!should_build) {
+            WaitForBuildCompletion(slot);
+        } else {
+            pipeline = CreateGraphicsPipeline();
+            ReleaseGraphicsBuildSlot(key, slot);
+        }
+        if (!pipeline) {
+            return nullptr;
+        }
     }
     if (current_pipeline) {
         current_pipeline->AddTransition(pipeline.get());
@@ -877,6 +889,70 @@ vk::PipelineCache PipelineCache::LoadVulkanPipelineCache(const std::filesystem::
 
         return create_pipeline_cache(0, nullptr);
     }
+}
+
+auto PipelineCache::AcquireGraphicsBuildSlot(const GraphicsPipelineCacheKey& key)
+    -> std::pair<InFlightPipelinePtr, bool> {
+    std::scoped_lock lock(graphics_inflight_mutex);
+    auto [it, inserted] = graphics_inflight_builds.try_emplace(key);
+    if (inserted || !it->second) {
+        it->second = std::make_shared<InFlightPipelineBuild>();
+        return {it->second, true};
+    }
+    return {it->second, false};
+}
+
+auto PipelineCache::AcquireComputeBuildSlot(const ComputePipelineCacheKey& key)
+    -> std::pair<InFlightPipelinePtr, bool> {
+    std::scoped_lock lock(compute_inflight_mutex);
+    auto [it, inserted] = compute_inflight_builds.try_emplace(key);
+    if (inserted || !it->second) {
+        it->second = std::make_shared<InFlightPipelineBuild>();
+        return {it->second, true};
+    }
+    return {it->second, false};
+}
+
+void PipelineCache::ReleaseGraphicsBuildSlot(const GraphicsPipelineCacheKey& key,
+                                             const InFlightPipelinePtr& slot) {
+    if (!slot) {
+        return;
+    }
+    {
+        std::scoped_lock slot_lock(slot->mutex);
+        slot->building = false;
+    }
+    slot->cv.notify_all();
+    std::scoped_lock map_lock(graphics_inflight_mutex);
+    auto it = graphics_inflight_builds.find(key);
+    if (it != graphics_inflight_builds.end() && it->second == slot) {
+        graphics_inflight_builds.erase(it);
+    }
+}
+
+void PipelineCache::ReleaseComputeBuildSlot(const ComputePipelineCacheKey& key,
+                                            const InFlightPipelinePtr& slot) {
+    if (!slot) {
+        return;
+    }
+    {
+        std::scoped_lock slot_lock(slot->mutex);
+        slot->building = false;
+    }
+    slot->cv.notify_all();
+    std::scoped_lock map_lock(compute_inflight_mutex);
+    auto it = compute_inflight_builds.find(key);
+    if (it != compute_inflight_builds.end() && it->second == slot) {
+        compute_inflight_builds.erase(it);
+    }
+}
+
+void PipelineCache::WaitForBuildCompletion(const InFlightPipelinePtr& slot) const {
+    if (!slot) {
+        return;
+    }
+    std::unique_lock lock(slot->mutex);
+    slot->cv.wait(lock, [&] { return !slot->building; });
 }
 
 } // namespace Vulkan
