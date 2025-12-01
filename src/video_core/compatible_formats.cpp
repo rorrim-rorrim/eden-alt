@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -235,6 +238,9 @@ constexpr Table MakeViewTable() {
     EnableRange(view, VIEW_CLASS_ASTC_10x10_RGBA);
     EnableRange(view, VIEW_CLASS_ASTC_12x10_RGBA);
     EnableRange(view, VIEW_CLASS_ASTC_12x12_RGBA);
+    Enable(view, PixelFormat::D24_UNORM_S8_UINT, PixelFormat::S8_UINT);
+    Enable(view, PixelFormat::S8_UINT_D24_UNORM, PixelFormat::S8_UINT);
+    Enable(view, PixelFormat::D32_FLOAT_S8_UINT, PixelFormat::S8_UINT);
     return view;
 }
 
