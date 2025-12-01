@@ -32,9 +32,10 @@ constexpr TextureFormat SanitizeFormat(TextureFormat format) {
 }
 
 constexpr ComponentType SanitizeComponent(ComponentType component) {
-    switch (component) {
-    case static_cast<ComponentType>(0):
+    if (component == static_cast<ComponentType>(0)) {
         return ComponentType::UNORM;
+    }
+    switch (component) {
     case ComponentType::SNORM_FORCE_FP16:
         return ComponentType::SNORM;
     case ComponentType::UNORM_FORCE_FP16:
