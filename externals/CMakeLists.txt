@@ -392,3 +392,11 @@ if (ANDROID)
 
     add_library(oboe::oboe ALIAS oboe)
 endif()
+
+# moltenvk
+if (YUZU_USE_BUNDLED_MOLTENVK)
+    AddJsonPackage(moltenvk)
+
+    list(APPEND CMAKE_PREFIX_PATH "${moltenvk_SOURCE_DIR}/MoltenVK/dylib/macOS")
+    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} PARENT_SCOPE)
+endif()
