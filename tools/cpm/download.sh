@@ -48,11 +48,11 @@ download_package() {
     if [ "$(echo "$DIRS" | wc -l)" -eq 2 ]; then
         SUBDIR=$(find . -maxdepth 1 -type d -not -name ".")
         mv "$SUBDIR"/* "$OUTDIR"
-		mv "$SUBDIR"/.* "$OUTDIR" 2>/dev/null || true
+        mv "$SUBDIR"/.* "$OUTDIR" 2>/dev/null || true
         rmdir "$SUBDIR"
 	else
-		mv ./* "$OUTDIR"
-		mv ./.* "$OUTDIR" 2>/dev/null || true
+        mv ./* "$OUTDIR"
+        mv ./.* "$OUTDIR" 2>/dev/null || true
     fi
 
 	cd "$OUTDIR"
