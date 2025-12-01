@@ -25,9 +25,9 @@
     "fmt": {
         "repo": "fmtlib/fmt",
         "tag": "%VERSION%",
-        "hash": "c4ab814c20fbad7e3f0ae169125a4988a2795631194703251481dc36b18da65c886c4faa9acd046b0a295005217b3689eb0126108a9ba5aac2ca909aae263c2f",
+        "hash": "f0da82c545b01692e9fd30fdfb613dbb8dd9716983dcd0ff19ac2a8d36f74beb5540ef38072fdecc1e34191b3682a8542ecbf3a61ef287dbba0a2679d4e023f2",
         "version": "8",
-        "git_version": "12.0.0"
+        "git_version": "12.1.0"
     },
     "lz4": {
         "name": "lz4",
@@ -96,8 +96,8 @@
         "package": "VVL",
         "repo": "KhronosGroup/Vulkan-ValidationLayers",
         "tag": "vulkan-sdk-%VERSION%",
-        "git_version": "1.4.328.0",
+        "git_version": "1.4.328.1",
         "artifact": "android-binaries-%VERSION%.zip",
-        "hash": "e45a7975f87b3d6105eae570e73660a693869a8f7ed512f158e056513e48784344f80a8e8da5d50393e532a05e2539a8c294e2632ff151e1861a2ac77254bd0a"
+        "hash": "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"
     }
 }

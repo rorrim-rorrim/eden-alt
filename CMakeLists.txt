@@ -16,6 +16,7 @@ include(DefaultConfig)
 include(DownloadExternals)
 include(CMakeDependentOption)
 include(CTest)
+include(CPMUtil)
 
 DetectArchitecture()
 
@@ -374,8 +375,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # System imported libraries
 # =======================================================================
 
-include(CPMUtil)
-
 # openssl funniness
 if (ENABLE_OPENSSL)
     if (YUZU_USE_BUNDLED_OPENSSL)
@@ -532,7 +531,8 @@ endfunction()
 
 if (APPLE)
     # Umbrella framework for everything GUI-related
-    find_library(COCOA_LIBRARY Cocoa)
+    find_library(COCOA_LIBRARY Cocoa REQUIRED)
+    find_library(IOKIT_LIBRARY IOKit REQUIRED)
     set(PLATFORM_LIBRARIES ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
 elseif (WIN32)
     # Target Windows 10
