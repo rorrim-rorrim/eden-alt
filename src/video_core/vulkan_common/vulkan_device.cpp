@@ -1070,7 +1070,7 @@ bool Device::GetSuitability(bool requires_swapchain) {
     // Set next pointer.
     void** next = &features2.pNext;
 
-        // Vulkan 1.2 and 1.3 features
+    // Vulkan 1.2 and 1.3 features
     if (instance_version >= VK_API_VERSION_1_2) {
         features_1_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
         features_1_2.pNext = nullptr;
@@ -1240,10 +1240,8 @@ bool Device::GetSuitability(bool requires_swapchain) {
     if (extensions.custom_border_color && (is_qualcomm || is_turnip)) {
         const char* driver_name = is_turnip ? "Turnip" : "Adreno";
         LOG_WARNING(Render_Vulkan,
-                    "{} driver has broken custom border color handling; disabling VK_EXT_custom_border_color",
+                    "{} driver previously required custom border color disablement; leaving VK_EXT_custom_border_color enabled for testing",
                     driver_name);
-        RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
-                               VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
     }
     
     // VK_EXT_extended_dynamic_state2 below this will appear drivers that need workarounds.
