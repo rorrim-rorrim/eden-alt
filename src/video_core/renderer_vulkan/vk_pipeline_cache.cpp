@@ -318,9 +318,9 @@ size_t GetTotalPipelineWorkers() {
     const size_t max_core_threads =
         std::max<size_t>(static_cast<size_t>(std::thread::hardware_concurrency()), 2ULL) - 1ULL;
 #ifdef ANDROID
-    // Leave at least a few cores free on Android; reserve two instead of three so
-    // pipeline compilation can consume one more worker thread for testing.
-    constexpr size_t free_cores = 2ULL;
+    // Leave at least one core free on Android. Previously we reserved two, but
+    // shipping builds benefit from one extra compilation worker.
+    constexpr size_t free_cores = 1ULL;
     if (max_core_threads <= free_cores) {
         return 1ULL;
     }
