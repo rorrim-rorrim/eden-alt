@@ -27,6 +27,7 @@ struct DynamicFeatures {
     bool has_extended_dynamic_state_2_patch_control_points;
     bool has_extended_dynamic_state_3_blend;
     bool has_extended_dynamic_state_3_enables;
+    bool has_dual_source_blend;
     bool has_dynamic_vertex_input;
 };
 

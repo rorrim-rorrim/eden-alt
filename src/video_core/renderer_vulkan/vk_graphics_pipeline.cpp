@@ -85,6 +85,48 @@ PixelFormat ResolveTexelBufferFormat(PixelFormat format,
     return format;
 }
 
+bool UsesDualSourceFactor(Maxwell::Blend::Factor factor) {
+    switch (factor) {
+    case Maxwell::Blend::Factor::Source1Color_D3D:
+    case Maxwell::Blend::Factor::Source1Color_GL:
+    case Maxwell::Blend::Factor::OneMinusSource1Color_D3D:
+    case Maxwell::Blend::Factor::OneMinusSource1Color_GL:
+    case Maxwell::Blend::Factor::Source1Alpha_D3D:
+    case Maxwell::Blend::Factor::Source1Alpha_GL:
+    case Maxwell::Blend::Factor::OneMinusSource1Alpha_D3D:
+    case Maxwell::Blend::Factor::OneMinusSource1Alpha_GL:
+        return true;
+    default:
+        return false;
+    }
+}
+
+Maxwell::Blend::Factor FallbackDualSourceFactor(Maxwell::Blend::Factor factor) {
+    switch (factor) {
+    case Maxwell::Blend::Factor::Source1Color_D3D:
+    case Maxwell::Blend::Factor::Source1Color_GL:
+        return Maxwell::Blend::Factor::SourceColor_D3D;
+    case Maxwell::Blend::Factor::OneMinusSource1Color_D3D:
+    case Maxwell::Blend::Factor::OneMinusSource1Color_GL:
+        return Maxwell::Blend::Factor::OneMinusSourceColor_D3D;
+    case Maxwell::Blend::Factor::Source1Alpha_D3D:
+    case Maxwell::Blend::Factor::Source1Alpha_GL:
+        return Maxwell::Blend::Factor::SourceAlpha_D3D;
+    case Maxwell::Blend::Factor::OneMinusSource1Alpha_D3D:
+    case Maxwell::Blend::Factor::OneMinusSource1Alpha_GL:
+        return Maxwell::Blend::Factor::OneMinusSourceAlpha_D3D;
+    default:
+        return factor;
+    }
+}
+
+bool AttachmentUsesDualSource(const FixedPipelineState::BlendingAttachment& blend) {
+    return UsesDualSourceFactor(blend.SourceRGBFactor()) ||
+           UsesDualSourceFactor(blend.DestRGBFactor()) ||
+           UsesDualSourceFactor(blend.SourceAlphaFactor()) ||
+           UsesDualSourceFactor(blend.DestAlphaFactor());
+}
+
 DescriptorLayoutBuilder MakeBuilder(const Device& device, std::span<const Shader::Info> infos) {
     DescriptorLayoutBuilder builder{device};
     for (size_t index = 0; index < infos.size(); ++index) {
@@ -855,6 +897,12 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     }
     static_vector<VkPipelineColorBlendAttachmentState, Maxwell::NumRenderTargets> cb_attachments;
     const size_t num_attachments{NumAttachments(key.state)};
+    const bool supports_dual_source_blend = device.SupportsDualSourceBlend();
+    const u32 max_dual_source_attachments = supports_dual_source_blend
+                                                ? device.MaxFragmentDualSrcAttachments()
+                                                : 0;
+    u32 granted_dual_source_attachments = 0;
+    bool logged_dual_source_warning = false;
     for (size_t index = 0; index < num_attachments; ++index) {
         static constexpr std::array mask_table{
             VK_COLOR_COMPONENT_R_BIT,
@@ -868,13 +916,30 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         for (size_t i = 0; i < mask_table.size(); ++i) {
             write_mask |= mask[i] ? mask_table[i] : 0;
         }
+        const bool attachment_uses_dual_source = AttachmentUsesDualSource(blend);
+        const bool allow_dual_source = attachment_uses_dual_source && supports_dual_source_blend &&
+                                       granted_dual_source_attachments < max_dual_source_attachments;
+        if (allow_dual_source) {
+            ++granted_dual_source_attachments;
+        } else if (attachment_uses_dual_source && !logged_dual_source_warning) {
+            LOG_WARNING(Render_Vulkan,
+                        "Dual-source blend factors exceed device limit (maxFragmentDualSrcAttachments={}), falling back to single-source factors",
+                        max_dual_source_attachments);
+            logged_dual_source_warning = true;
+        }
+        const auto sanitize_factor = [&](Maxwell::Blend::Factor factor) {
+            if (allow_dual_source || !UsesDualSourceFactor(factor)) {
+                return factor;
+            }
+            return FallbackDualSourceFactor(factor);
+        };
         cb_attachments.push_back({
             .blendEnable = blend.enable != 0,
-            .srcColorBlendFactor = MaxwellToVK::BlendFactor(blend.SourceRGBFactor()),
-            .dstColorBlendFactor = MaxwellToVK::BlendFactor(blend.DestRGBFactor()),
+            .srcColorBlendFactor = MaxwellToVK::BlendFactor(sanitize_factor(blend.SourceRGBFactor())),
+            .dstColorBlendFactor = MaxwellToVK::BlendFactor(sanitize_factor(blend.DestRGBFactor())),
             .colorBlendOp = MaxwellToVK::BlendEquation(blend.EquationRGB()),
-            .srcAlphaBlendFactor = MaxwellToVK::BlendFactor(blend.SourceAlphaFactor()),
-            .dstAlphaBlendFactor = MaxwellToVK::BlendFactor(blend.DestAlphaFactor()),
+            .srcAlphaBlendFactor = MaxwellToVK::BlendFactor(sanitize_factor(blend.SourceAlphaFactor())),
+            .dstAlphaBlendFactor = MaxwellToVK::BlendFactor(sanitize_factor(blend.DestAlphaFactor())),
             .alphaBlendOp = MaxwellToVK::BlendEquation(blend.EquationAlpha()),
             .colorWriteMask = write_mask,
         });
