@@ -5,8 +5,10 @@
 
 #include <array>
 #include <cstddef>
+#include <condition_variable>
 #include <filesystem>
 #include <memory>
+#include <mutex>
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
@@ -114,6 +116,14 @@ public:
                            const VideoCore::DiskResourceLoadCallback& callback);
 
 private:
+    struct InFlightPipelineBuild {
+        std::mutex mutex;
+        std::condition_variable cv;
+        bool building{true};
+    };
+
+    using InFlightPipelinePtr = std::shared_ptr<InFlightPipelineBuild>;
+
     [[nodiscard]] GraphicsPipeline* CurrentGraphicsPipelineSlowPath();
 
     [[nodiscard]] GraphicsPipeline* BuiltPipeline(GraphicsPipeline* pipeline) const noexcept;
@@ -140,6 +150,14 @@ private:
     vk::PipelineCache LoadVulkanPipelineCache(const std::filesystem::path& filename,
                                               u32 expected_cache_version);
 
+    std::pair<InFlightPipelinePtr, bool> AcquireGraphicsBuildSlot(
+        const GraphicsPipelineCacheKey& key);
+    std::pair<InFlightPipelinePtr, bool> AcquireComputeBuildSlot(
+        const ComputePipelineCacheKey& key);
+    void ReleaseGraphicsBuildSlot(const GraphicsPipelineCacheKey& key, const InFlightPipelinePtr& slot);
+    void ReleaseComputeBuildSlot(const ComputePipelineCacheKey& key, const InFlightPipelinePtr& slot);
+    void WaitForBuildCompletion(const InFlightPipelinePtr& slot) const;
+
     const Device& device;
     Scheduler& scheduler;
     DescriptorPool& descriptor_pool;
@@ -157,6 +175,11 @@ private:
 
     std::unordered_map<ComputePipelineCacheKey, std::unique_ptr<ComputePipeline>> compute_cache;
     std::unordered_map<GraphicsPipelineCacheKey, std::unique_ptr<GraphicsPipeline>> graphics_cache;
+
+    std::mutex graphics_inflight_mutex;
+    std::unordered_map<GraphicsPipelineCacheKey, InFlightPipelinePtr> graphics_inflight_builds;
+    std::mutex compute_inflight_mutex;
+    std::unordered_map<ComputePipelineCacheKey, InFlightPipelinePtr> compute_inflight_builds;
 
     ShaderPools main_pools;
 
