@@ -492,6 +492,11 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
     
     dynamic_features.has_extended_dynamic_state_3_blend = 
         device.IsExtExtendedDynamicState3BlendingSupported();
+    dynamic_features.has_dual_source_blend = device.SupportsDualSourceBlend();
+    if (!dynamic_features.has_dual_source_blend) {
+        LOG_WARNING(Render_Vulkan, "Dual-source blending unsupported, disabling dynamic blend");
+        dynamic_features.has_extended_dynamic_state_3_blend = false;
+    }
     dynamic_features.has_extended_dynamic_state_3_enables = 
         device.IsExtExtendedDynamicState3EnablesSupported();
     
