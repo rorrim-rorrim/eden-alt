@@ -313,7 +313,7 @@ private:
 
     Filter filter;
     ColorConsoleBackend color_console_backend{};
-    FileBackend file_backend{};
+    FileBackend file_backend;
 #ifdef _WIN32
     DebuggerBackend debugger_backend{};
 #endif
