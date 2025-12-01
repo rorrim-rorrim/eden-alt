@@ -710,6 +710,16 @@ public:
         return features.features.alphaToOne != VK_FALSE;
     }
 
+    bool SupportsDualSourceBlend(u32 required_dual_source_attachments = 1) const {
+        const u32 max_dual = properties.properties.limits.maxFragmentDualSrcAttachments;
+        return features.features.dualSrcBlend != VK_FALSE &&
+               max_dual >= required_dual_source_attachments;
+    }
+
+    u32 MaxFragmentDualSrcAttachments() const {
+        return properties.properties.limits.maxFragmentDualSrcAttachments;
+    }
+
     bool SupportsDynamicState3DepthClampEnable() const {
         return dynamic_state3_depth_clamp_enable;
     }
