@@ -7,7 +7,6 @@
 #pragma once
 
 #include <climits>
-#include <memory>
 #include <optional>
 #include <vector>
 
@@ -20,7 +19,6 @@ namespace Vulkan {
 
 class Device;
 class Scheduler;
-class MobileMegaBuffer;
 
 struct StagingBufferRef {
     VkBuffer buffer;
@@ -121,8 +119,6 @@ private:
     StagingBuffersCache device_local_cache;
     StagingBuffersCache upload_cache;
     StagingBuffersCache download_cache;
-
-    std::unique_ptr<MobileMegaBuffer> mobile_megabuffer;
 
     size_t current_delete_level = 0;
     u64 buffer_index = 0;
