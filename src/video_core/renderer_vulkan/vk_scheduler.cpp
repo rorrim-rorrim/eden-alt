@@ -4,6 +4,7 @@
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <chrono>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -76,6 +77,14 @@ void Scheduler::WaitWorker() {
 
     // Now wait for execution to finish.
     std::scoped_lock el{execution_mutex};
+}
+
+void Scheduler::KeepAliveTick() {
+    const auto now = Clock::now();
+    if (now - last_submission_time < KEEPALIVE_INTERVAL) {
+        return;
+    }
+    Flush();
 }
 
 void Scheduler::DispatchWork() {
@@ -271,6 +280,7 @@ u64 Scheduler::SubmitExecution(VkSemaphore signal_semaphore, VkSemaphore wait_se
     });
     chunk->MarkSubmit();
     DispatchWork();
+    last_submission_time = Clock::now();
     return signal_value;
 }
 

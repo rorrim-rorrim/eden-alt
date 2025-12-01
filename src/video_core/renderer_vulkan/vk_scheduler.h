@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <condition_variable>
 #include <cstddef>
 #include <functional>
@@ -51,6 +52,9 @@ public:
     /// Waits for the worker thread to finish executing everything. After this function returns it's
     /// safe to touch worker resources.
     void WaitWorker();
+
+    /// Submits a tiny chunk of work if recent GPU submissions are stale.
+    void KeepAliveTick();
 
     /// Sends currently recorded work to the worker thread.
     void DispatchWork();
@@ -128,6 +132,8 @@ public:
     std::mutex submit_mutex;
 
 private:
+    using Clock = std::chrono::steady_clock;
+
     class Command {
     public:
         virtual ~Command() = default;
@@ -249,6 +255,9 @@ private:
     std::function<void()> on_submit;
 
     State state;
+
+    Clock::time_point last_submission_time{Clock::time_point::min()};
+    static constexpr std::chrono::milliseconds KEEPALIVE_INTERVAL{4};
 
     u32 num_renderpass_images = 0;
     std::array<VkImage, 9> renderpass_images{};
