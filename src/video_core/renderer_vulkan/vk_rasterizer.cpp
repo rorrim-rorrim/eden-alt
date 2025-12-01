@@ -53,6 +53,15 @@ using VideoCommon::ImageViewType;
 namespace {
 constexpr float SAMPLE_LOCATION_SCALE = 1.0f / 16.0f;
 
+bool SampleLocationsEqual(const std::array<VkSampleLocationEXT, VideoCommon::MaxSampleLocationSlots>& lhs,
+                          const std::array<VkSampleLocationEXT, VideoCommon::MaxSampleLocationSlots>& rhs,
+                          u32 count) {
+    return std::equal(lhs.begin(), lhs.begin() + count, rhs.begin(), rhs.begin() + count,
+                      [](const VkSampleLocationEXT& a, const VkSampleLocationEXT& b) {
+                          return a.x == b.x && a.y == b.y;
+                      });
+}
+
 std::array<VkSampleLocationEXT, VideoCommon::MaxSampleLocationSlots>
 DecodeSampleLocationRegisters(const Maxwell& regs) {
     std::array<VkSampleLocationEXT, VideoCommon::MaxSampleLocationSlots> decoded{};
@@ -1721,13 +1730,13 @@ void RasterizerVulkan::UpdateSampleLocations(Maxwell& regs) {
         .height = grid_height,
     };
 
-    const bool pattern_changed = !sample_location_state.initialized ||
-                                 sample_location_state.msaa_mode != msaa_mode ||
-                                 sample_location_state.grid_size.width != grid_size.width ||
-                                 sample_location_state.grid_size.height != grid_size.height ||
-                                 sample_location_state.samples_per_pixel != vk_samples ||
-                                 sample_location_state.locations_count != sample_locations_count ||
-                                 sample_location_state.locations != resolved;
+    const bool pattern_changed =
+        !sample_location_state.initialized || sample_location_state.msaa_mode != msaa_mode ||
+        sample_location_state.grid_size.width != grid_size.width ||
+        sample_location_state.grid_size.height != grid_size.height ||
+        sample_location_state.samples_per_pixel != vk_samples ||
+        sample_location_state.locations_count != sample_locations_count ||
+        !SampleLocationsEqual(sample_location_state.locations, resolved, sample_locations_count);
 
     const bool dirty = state_tracker.TouchSampleLocations() || pattern_changed;
     if (!dirty) {
