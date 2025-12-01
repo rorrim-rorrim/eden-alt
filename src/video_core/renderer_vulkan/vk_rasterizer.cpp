@@ -1671,7 +1671,7 @@ void RasterizerVulkan::UpdateStencilOp(Tegra::Engines::Maxwell3D::Regs& regs) {
     }
 }
 
-void RasterizerVulkan::UpdateSampleLocations(Maxwell::Regs& regs) {
+void RasterizerVulkan::UpdateSampleLocations(Maxwell& regs) {
     if (!device.IsExtSampleLocationsSupported()) {
         return;
     }
