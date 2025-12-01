@@ -18,6 +18,7 @@ import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.Rect
 import android.graphics.drawable.Icon
+import android.hardware.input.InputManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -63,11 +64,12 @@ import kotlin.math.roundToInt
 import org.yuzu.yuzu_emu.utils.ForegroundService
 import androidx.core.os.BundleCompat
 
-class EmulationActivity : AppCompatActivity(), SensorEventListener {
+class EmulationActivity : AppCompatActivity(), SensorEventListener, InputManager.InputDeviceListener {
     private lateinit var binding: ActivityEmulationBinding
 
     var isActivityRecreated = false
     private lateinit var nfcReader: NfcReader
+    private lateinit var inputManager: InputManager
 
     private var touchDownTime: Long = 0
     private val maxTapDuration = 500L
@@ -140,6 +142,9 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         nfcReader = NfcReader(this)
         nfcReader.initialize()
 
+        inputManager = getSystemService(INPUT_SERVICE) as InputManager
+        inputManager.registerInputDeviceListener(this, null)
+
         foregroundService = Intent(this, ForegroundService::class.java)
         startForegroundService(foregroundService)
 
@@ -206,9 +211,9 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onDestroy() {
         super.onDestroy()
+        inputManager.unregisterInputDeviceListener(this)
         stopForegroundService(this)
         NativeLibrary.playTimeManagerStop()
-
     }
 
     override fun onUserLeaveHint() {
@@ -238,8 +243,10 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         val isPhysicalKeyboard = event.source and InputDevice.SOURCE_KEYBOARD == InputDevice.SOURCE_KEYBOARD &&
                                 event.device?.isVirtual == false
 
-        if (event.source and InputDevice.SOURCE_JOYSTICK != InputDevice.SOURCE_JOYSTICK &&
-            event.source and InputDevice.SOURCE_GAMEPAD != InputDevice.SOURCE_GAMEPAD &&
+        val isControllerInput = event.source and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK ||
+            event.source and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD
+
+        if (!isControllerInput &&
             event.source and InputDevice.SOURCE_MOUSE != InputDevice.SOURCE_MOUSE &&
             !isPhysicalKeyboard
         ) {
@@ -250,12 +257,18 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             return super.dispatchKeyEvent(event)
         }
 
+        if (isControllerInput && event.action == KeyEvent.ACTION_DOWN) {
+            notifyControllerInput()
+        }
+
         return InputHandler.dispatchKeyEvent(event)
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        if (event.source and InputDevice.SOURCE_JOYSTICK != InputDevice.SOURCE_JOYSTICK &&
-            event.source and InputDevice.SOURCE_GAMEPAD != InputDevice.SOURCE_GAMEPAD &&
+        val isControllerInput = event.source and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK ||
+            event.source and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD
+
+        if (!isControllerInput &&
             event.source and InputDevice.SOURCE_KEYBOARD != InputDevice.SOURCE_KEYBOARD &&
             event.source and InputDevice.SOURCE_MOUSE != InputDevice.SOURCE_MOUSE
         ) {
@@ -271,7 +284,52 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             return true
         }
 
+        if (isControllerInput) {
+            notifyControllerInput()
+        }
+
         return InputHandler.dispatchGenericMotionEvent(event)
+    }
+
+    private fun notifyControllerInput() {
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_container) as? NavHostFragment
+        val emulationFragment =
+            navHostFragment?.childFragmentManager?.fragments?.firstOrNull() as? org.yuzu.yuzu_emu.fragments.EmulationFragment
+        emulationFragment?.onControllerInputDetected()
+    }
+
+    private fun isGameController(deviceId: Int): Boolean {
+        val device = InputDevice.getDevice(deviceId) ?: return false
+        val sources = device.sources
+        return sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD ||
+            sources and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK
+    }
+
+    override fun onInputDeviceAdded(deviceId: Int) {
+        if (isGameController(deviceId)) {
+            InputHandler.updateControllerData()
+            val navHostFragment =
+                supportFragmentManager.findFragmentById(R.id.fragment_container) as? NavHostFragment
+            val emulationFragment =
+                navHostFragment?.childFragmentManager?.fragments?.firstOrNull() as? org.yuzu.yuzu_emu.fragments.EmulationFragment
+            emulationFragment?.onControllerConnected()
+        }
+    }
+
+    override fun onInputDeviceRemoved(deviceId: Int) {
+        InputHandler.updateControllerData()
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_container) as? NavHostFragment
+        val emulationFragment =
+            navHostFragment?.childFragmentManager?.fragments?.firstOrNull() as? org.yuzu.yuzu_emu.fragments.EmulationFragment
+        emulationFragment?.onControllerDisconnected()
+    }
+
+    override fun onInputDeviceChanged(deviceId: Int) {
+        if (isGameController(deviceId)) {
+            InputHandler.updateControllerData()
+        }
     }
 
     override fun onSensorChanged(event: SensorEvent) {
@@ -513,8 +571,10 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     touchDownTime = System.currentTimeMillis()
-                    // show overlay immediately on touch and cancel timer
-                    if (!emulationViewModel.drawerOpen.value) {
+                    // show overlay immediately on touch and cancel timer when only auto-hide is enabled
+                    if (!emulationViewModel.drawerOpen.value &&
+                        BooleanSetting.ENABLE_INPUT_OVERLAY_AUTO_HIDE.getBoolean() &&
+                        !BooleanSetting.HIDE_OVERLAY_ON_CONTROLLER_INPUT.getBoolean()) {
                         fragment.handler.removeCallbacksAndMessages(null)
                         fragment.showOverlay()
                     }
