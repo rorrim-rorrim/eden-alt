@@ -2476,6 +2476,10 @@ bool ImageView::IsRescaled() const noexcept {
     return src_image.IsRescaled();
 }
 
+bool ImageView::SupportsDepthCompareSampling() const noexcept {
+    return (aspect_mask & VK_IMAGE_ASPECT_DEPTH_BIT) != 0;
+}
+
 vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask) {
     return MakeView(vk_format, aspect_mask, BaseTextureType());
 }
@@ -2540,7 +2544,10 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
     // Some games have samplers with garbage. Sanitize them here.
     const f32 max_anisotropy = std::clamp(tsc.MaxAnisotropy(), 1.0f, 16.0f);
 
-    const auto create_sampler = [&](const f32 anisotropy, bool force_point_filter) {
+    depth_compare_enabled = tsc.depth_compare_enabled != 0;
+
+    const auto create_sampler = [&](const f32 anisotropy, bool force_point_filter,
+                                    bool enable_compare) {
         const VkFilter mag_filter = force_point_filter ? VK_FILTER_NEAREST
                                                        : MaxwellToVK::Sampler::Filter(tsc.mag_filter);
         const VkFilter min_filter = force_point_filter ? VK_FILTER_NEAREST
@@ -2563,7 +2570,7 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
             .mipLodBias = tsc.LodBias(),
             .anisotropyEnable = static_cast<VkBool32>(enable_anisotropy ? VK_TRUE : VK_FALSE),
             .maxAnisotropy = enable_anisotropy ? resolved_anisotropy : 1.0f,
-            .compareEnable = tsc.depth_compare_enabled,
+            .compareEnable = enable_compare ? VK_TRUE : VK_FALSE,
             .compareOp = MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func),
             .minLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.0f : tsc.MinLod(),
             .maxLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.25f : tsc.MaxLod(),
@@ -2573,31 +2580,54 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
         });
     };
 
-    sampler = create_sampler(max_anisotropy, false);
+    sampler = create_sampler(max_anisotropy, false, depth_compare_enabled);
+    if (depth_compare_enabled) {
+        sampler_compare_disabled = create_sampler(max_anisotropy, false, false);
+    }
 
     const f32 max_anisotropy_default = static_cast<f32>(1U << tsc.max_anisotropy);
     if (max_anisotropy > max_anisotropy_default) {
-        sampler_default_anisotropy = create_sampler(max_anisotropy_default, false);
+        sampler_default_anisotropy =
+            create_sampler(max_anisotropy_default, false, depth_compare_enabled);
+        if (depth_compare_enabled) {
+            sampler_default_anisotropy_compare_disabled =
+                create_sampler(max_anisotropy_default, false, false);
+        }
     }
 
     uses_linear_filter = (tsc.mag_filter == TextureFilter::Linear) ||
                          (tsc.min_filter == TextureFilter::Linear) || (max_anisotropy > 1.0f);
     if (uses_linear_filter) {
-        sampler_force_point = create_sampler(1.0f, true);
+        sampler_force_point = create_sampler(1.0f, true, depth_compare_enabled);
+        if (depth_compare_enabled) {
+            sampler_force_point_compare_disabled = create_sampler(1.0f, true, false);
+        }
     }
 }
 
-VkSampler Sampler::SelectHandle(bool supports_linear_filter,
-                                bool supports_anisotropy) const noexcept {
+VkSampler Sampler::SelectHandle(bool supports_linear_filter, bool supports_anisotropy,
+                                bool allow_depth_compare) const noexcept {
+    const auto select_compare_variant = [&](const vk::Sampler& compare_sampler,
+                                            const vk::Sampler& non_compare_sampler) {
+        if (!depth_compare_enabled || allow_depth_compare) {
+            return *compare_sampler;
+        }
+        if (non_compare_sampler) {
+            return *non_compare_sampler;
+        }
+        return *compare_sampler;
+    };
+
     const bool needs_linear_fallback = uses_linear_filter && !supports_linear_filter;
     if (needs_linear_fallback && sampler_force_point) {
-        return *sampler_force_point;
+        return select_compare_variant(sampler_force_point, sampler_force_point_compare_disabled);
     }
     const bool needs_aniso_fallback = HasAddedAnisotropy() && !supports_anisotropy;
     if (needs_aniso_fallback) {
-        return HandleWithDefaultAnisotropy();
+        return select_compare_variant(sampler_default_anisotropy,
+                                      sampler_default_anisotropy_compare_disabled);
     }
-    return Handle();
+    return select_compare_variant(sampler, sampler_compare_disabled);
 }
 
 Framebuffer::Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM_RT> color_buffers,
