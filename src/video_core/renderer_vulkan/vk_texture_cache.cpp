@@ -148,6 +148,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     const auto format_info =
         MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, info.format);
     VkImageCreateFlags flags{};
+    const VkSampleCountFlagBits sample_count = ConvertSampleCount(info.num_samples);
     const auto surface_type = VideoCore::Surface::GetFormatType(info.format);
     if (info.type == ImageType::e2D && info.resources.layers >= 6 &&
         info.size.width == info.size.height && !device.HasBrokenCubeImageCompatibility()) {
@@ -156,9 +157,13 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     if (info.type == ImageType::e3D) {
         flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
     }
-    const bool has_depth_component =
-        surface_type == SurfaceType::Depth || surface_type == SurfaceType::DepthStencil;
-    if (has_depth_component && device.IsExtSampleLocationsSupported()) {
+    const bool is_depth_stencil_attachment = format_info.attachable &&
+        (surface_type == VideoCore::Surface::SurfaceType::Depth ||
+         surface_type == VideoCore::Surface::SurfaceType::Stencil ||
+         surface_type == VideoCore::Surface::SurfaceType::DepthStencil);
+    const bool needs_sample_location_compat =
+        is_depth_stencil_attachment && device.SupportsSampleLocationsFor(sample_count);
+    if (needs_sample_location_compat) {
         flags |= VK_IMAGE_CREATE_SAMPLE_LOCATIONS_COMPATIBLE_DEPTH_BIT_EXT;
     }
     const auto [samples_x, samples_y] = VideoCommon::SamplesLog2(info.num_samples);
@@ -175,7 +180,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         },
         .mipLevels = static_cast<u32>(info.resources.levels),
         .arrayLayers = static_cast<u32>(info.resources.layers),
-        .samples = ConvertSampleCount(info.num_samples),
+        .samples = sample_count,
         .tiling = VK_IMAGE_TILING_OPTIMAL,
         .usage = ImageUsageFlags(format_info, info.format),
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
