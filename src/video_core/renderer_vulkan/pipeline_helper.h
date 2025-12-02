@@ -194,8 +194,11 @@ inline void PushImageDescriptors(TextureCache& texture_cache,
             const Sampler& sampler{texture_cache.GetSampler(sampler_id)};
             const bool supports_linear_filter{
                 texture_cache.SupportsLinearFilter(image_view.format)};
+            const bool supports_depth_compare_sampling{
+                image_view.SupportsDepthCompareSampling()};
             const VkSampler vk_sampler{
-                sampler.SelectHandle(supports_linear_filter, image_view.SupportsAnisotropy())};
+                sampler.SelectHandle(supports_linear_filter, image_view.SupportsAnisotropy(),
+                                     supports_depth_compare_sampling)};
             guest_descriptor_queue.AddSampledImage(vk_image_view, vk_sampler);
             rescaling.PushTexture(texture_cache.IsRescaling(image_view));
         }
