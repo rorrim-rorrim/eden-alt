@@ -2466,7 +2466,9 @@ bool ImageView::IsRescaled() const noexcept {
 }
 
 bool ImageView::SupportsDepthCompareSampling() const noexcept {
-    return (aspect_mask & VK_IMAGE_ASPECT_DEPTH_BIT) != 0;
+    const auto surface_type = VideoCore::Surface::GetFormatType(format);
+    return surface_type == VideoCore::Surface::SurfaceType::Depth ||
+           surface_type == VideoCore::Surface::SurfaceType::DepthStencil;
 }
 
 vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask) {
