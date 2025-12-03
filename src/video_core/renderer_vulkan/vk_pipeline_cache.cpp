@@ -818,6 +818,10 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
     }
     LOG_ERROR(Render_Vulkan, "{}", exception.what());
     return nullptr;
+} catch (const vk::Exception& exception) {
+    LOG_ERROR(Render_Vulkan, "Failed to create graphics pipeline 0x{:016x}: {}", key.Hash(),
+              exception.what());
+    return nullptr;
 }
 
 std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline() {
@@ -908,6 +912,10 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
 
 } catch (const Shader::Exception& exception) {
     LOG_ERROR(Render_Vulkan, "{}", exception.what());
+    return nullptr;
+} catch (const vk::Exception& exception) {
+    LOG_ERROR(Render_Vulkan, "Failed to create compute pipeline 0x{:016x}: {}", key.Hash(),
+              exception.what());
     return nullptr;
 }
 
