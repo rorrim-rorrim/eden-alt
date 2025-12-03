@@ -25,6 +25,10 @@ public:
 
     void Wait();
 
+    [[nodiscard]] u64 WaitTick() const noexcept {
+        return 0;
+    }
+
 private:
     OGLSync sync_object;
 };
