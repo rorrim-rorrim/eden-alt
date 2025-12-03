@@ -939,7 +939,7 @@ bool Device::HasTimelineSemaphore() const {
         return false;
     }
 
-    if (driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) {
+    if (GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) {
         // Drop the variant bits before comparing to the minimum supported timeline build.
         const u32 driver_version = (GetDriverVersion() << 3) >> 3;
         constexpr u32 min_timeline_driver = VK_MAKE_API_VERSION(0, 500, 800, 51);
