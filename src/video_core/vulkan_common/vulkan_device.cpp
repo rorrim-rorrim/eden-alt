@@ -93,8 +93,6 @@ constexpr std::array VK_FORMAT_A4B4G4R4_UNORM_PACK16{
 };
 
 constexpr std::array B10G11R11_UFLOAT_PACK32{
-    VK_FORMAT_A8B8G8R8_UNORM_PACK32,
-    VK_FORMAT_B8G8R8A8_UNORM,
     VK_FORMAT_R16G16B16A16_SFLOAT,
     VK_FORMAT_R16G16B16A16_UNORM,
     VK_FORMAT_UNDEFINED,
@@ -831,7 +829,7 @@ VkFormat Device::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags
     if (IsFormatSupported(wanted_format, wanted_usage, format_type)) {
         return wanted_format;
     }
-    // The wanted format is not supported by hardware, search for alternatives
+
     const VkFormat* alternatives = GetFormatAlternatives(wanted_format);
     if (alternatives == nullptr) {
         LOG_ERROR(Render_Vulkan,
@@ -841,18 +839,45 @@ VkFormat Device::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags
         return wanted_format;
     }
 
-    std::size_t i = 0;
-    for (VkFormat alternative = *alternatives; alternative; alternative = alternatives[++i]) {
+#if defined(ANDROID)
+    const auto downgrade_r16_to_ldr = [&](VkFormat candidate) -> VkFormat {
+        if (wanted_format != VK_FORMAT_B10G11R11_UFLOAT_PACK32) {
+            return candidate;
+        }
+        if (candidate != VK_FORMAT_R16G16B16A16_SFLOAT &&
+            candidate != VK_FORMAT_R16G16B16A16_UNORM) {
+            return candidate;
+        }
+        static constexpr std::array ldr_candidates{
+            VK_FORMAT_A8B8G8R8_UNORM_PACK32,
+            VK_FORMAT_A8B8G8R8_SRGB_PACK32,
+            VK_FORMAT_B8G8R8A8_UNORM,
+            VK_FORMAT_B8G8R8A8_SRGB,
+        };
+        for (const VkFormat format : ldr_candidates) {
+            if (IsFormatSupported(format, wanted_usage, format_type)) {
+                return format;
+            }
+        }
+        return candidate;
+    };
+#endif
+
+    for (std::size_t i = 0; VkFormat alternative = alternatives[i]; ++i) {
         if (!IsFormatSupported(alternative, wanted_usage, format_type)) {
             continue;
         }
+#if defined(ANDROID)
+        const VkFormat selected = downgrade_r16_to_ldr(alternative);
+#else
+        const VkFormat selected = alternative;
+#endif
         LOG_DEBUG(Render_Vulkan,
                   "Emulating format={} with alternative format={} with usage={} and type={}",
-                  wanted_format, alternative, wanted_usage, format_type);
-        return alternative;
+                  wanted_format, selected, wanted_usage, format_type);
+        return selected;
     }
 
-    // No alternatives found, panic
     LOG_ERROR(Render_Vulkan,
               "Format={} with usage={} and type={} is not supported by the host hardware and "
               "doesn't support any of the alternatives",
