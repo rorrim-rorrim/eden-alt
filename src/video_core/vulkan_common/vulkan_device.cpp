@@ -1003,12 +1003,19 @@ bool Device::ShouldBoostClocks() const {
 }
 
 bool Device::HasTimelineSemaphore() const {
-    if (GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
-        GetDriverID() == VK_DRIVER_ID_MESA_TURNIP) {
-        // Timeline semaphores do not work properly on all Qualcomm drivers.
-        // They generally work properly with Turnip drivers, but are problematic on some devices
-        // (e.g. ZTE handsets with Snapdragon 870).
+    const VkDriverIdKHR driver_id = GetDriverID();
+    if (driver_id == VK_DRIVER_ID_MESA_TURNIP) {
         return false;
+    }
+
+    if (driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) {
+        // Drop the variant bits before comparing to the minimum supported timeline build.
+        const u32 driver_version = (GetDriverVersion() << 3) >> 3;
+        constexpr u32 min_timeline_driver = VK_MAKE_API_VERSION(0, 500, 800, 51);
+        if (driver_version < min_timeline_driver) {
+            // Older Qualcomm stacks still need binary fences for stability.
+            return false;
+        }
     }
     return features.timeline_semaphore.timelineSemaphore;
 }
