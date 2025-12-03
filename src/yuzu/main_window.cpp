@@ -2536,11 +2536,11 @@ void MainWindow::OnGameListRemoveFile(u64 program_id, QtCommon::Game::GameListRe
     const QString question = [target] {
         switch (target) {
         case QtCommon::Game::GameListRemoveTarget::GlShaderCache:
-            return tr("Delete OpenGL Transferable Shader Cache?");
+            return tr("Delete OpenGL Shader Cache?");
         case QtCommon::Game::GameListRemoveTarget::VkShaderCache:
-            return tr("Delete Vulkan Transferable Shader Cache?");
+            return tr("Delete Vulkan Shader Cache?");
         case QtCommon::Game::GameListRemoveTarget::AllShaderCache:
-            return tr("Delete All Transferable Shader Caches?");
+            return tr("Delete All Shader Caches?");
         case QtCommon::Game::GameListRemoveTarget::CustomConfiguration:
             return tr("Remove Custom Game Configuration?");
         case QtCommon::Game::GameListRemoveTarget::CacheStorage:

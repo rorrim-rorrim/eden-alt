@@ -545,44 +545,40 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     // TODO(crueter): Refactor this and make it less bad
     QAction* favorite = context_menu.addAction(tr("Favorite"));
     context_menu.addSeparator();
-    QAction* start_game = context_menu.addAction(tr("Start Game"));
-    QAction* start_game_global =
-        context_menu.addAction(tr("Start Game without Custom Configuration"));
+    QAction* start_game = context_menu.addAction(tr("Start"));
+    QAction* start_game_global = context_menu.addAction(tr("Start with Global Settings"));
     context_menu.addSeparator();
     QAction* open_save_location = context_menu.addAction(tr("Open Save Data Location"));
     QAction* open_mod_location = context_menu.addAction(tr("Open Mod Data Location"));
-    QAction* open_transferable_shader_cache =
-        context_menu.addAction(tr("Open Transferable Pipeline Cache"));
-    QAction* ryujinx = context_menu.addAction(tr("Link to Ryujinx"));
+    QAction* properties = context_menu.addAction(tr("Configure Game"));
     context_menu.addSeparator();
-    QMenu* remove_menu = context_menu.addMenu(tr("Remove"));
-    QAction* remove_update = remove_menu->addAction(tr("Remove Installed Update"));
-    QAction* remove_dlc = remove_menu->addAction(tr("Remove All Installed DLC"));
-    QAction* remove_custom_config = remove_menu->addAction(tr("Remove Custom Configuration"));
-    QAction* remove_cache_storage = remove_menu->addAction(tr("Remove Cache Storage"));
-    QAction* remove_gl_shader_cache = remove_menu->addAction(tr("Remove OpenGL Pipeline Cache"));
-    QAction* remove_vk_shader_cache = remove_menu->addAction(tr("Remove Vulkan Pipeline Cache"));
-    remove_menu->addSeparator();
-    QAction* remove_shader_cache = remove_menu->addAction(tr("Remove All Pipeline Caches"));
-    QAction* remove_all_content = remove_menu->addAction(tr("Remove All Installed Contents"));
-    QMenu* play_time_menu = context_menu.addMenu(tr("Manage Play Time"));
-    QAction* set_play_time = play_time_menu->addAction(tr("Edit Play Time Data"));
-    QAction* remove_play_time_data = play_time_menu->addAction(tr("Remove Play Time Data"));
-    QMenu* dump_romfs_menu = context_menu.addMenu(tr("Dump RomFS"));
-    QAction* dump_romfs = dump_romfs_menu->addAction(tr("Dump RomFS"));
-    QAction* dump_romfs_sdmc = dump_romfs_menu->addAction(tr("Dump RomFS to SDMC"));
-    QAction* verify_integrity = context_menu.addAction(tr("Verify Integrity"));
-    QAction* copy_tid = context_menu.addAction(tr("Copy Title ID to Clipboard"));
-    QAction* navigate_to_gamedb_entry = context_menu.addAction(tr("Navigate to GameDB entry"));
+    QMenu* shader_cache_menu = context_menu.addMenu(tr("Shader Cache"));
+    QAction* open_transferable_shader_cache = shader_cache_menu->addAction(tr("Open Pipeline Cache"));
+    QAction* remove_shader_cache = shader_cache_menu->addAction(tr("Remove All Pipeline Caches"));
+    QAction* remove_gl_shader_cache = shader_cache_menu->addAction(tr("Remove OpenGL Pipeline Cache"));
+    QAction* remove_vk_shader_cache = shader_cache_menu->addAction(tr("Remove Vulkan Pipeline Cache"));
+    QMenu* storage_menu = context_menu.addMenu(tr("Storage"));
+    QAction* remove_all_content = storage_menu->addAction(tr("Remove All Installed Contents"));
+    QAction* remove_cache_storage = storage_menu->addAction(tr("Remove Cache Storage"));
+    QAction* remove_update = storage_menu->addAction(tr("Remove Installed Update"));
+    QAction* remove_dlc = storage_menu->addAction(tr("Remove All Installed DLC"));
+    QAction* remove_custom_config = storage_menu->addAction(tr("Remove Custom Settings"));
+    QAction* dump_romfs = storage_menu->addAction(tr("Dump RomFS"));
+    QAction* dump_romfs_sdmc = storage_menu->addAction(tr("Dump RomFS to SDMC"));
+    QAction* ryujinx = context_menu.addAction(tr("Link to Ryujinx"));
+    QMenu* play_time_menu = context_menu.addMenu(tr("Play Time"));
+    QAction* set_play_time = play_time_menu->addAction(tr("Edit"));
+    QAction* remove_play_time_data = play_time_menu->addAction(tr("Clear"));
 // TODO: Implement shortcut creation for macOS
 #if !defined(__APPLE__)
     QMenu* shortcut_menu = context_menu.addMenu(tr("Create Shortcut"));
     QAction* create_desktop_shortcut = shortcut_menu->addAction(tr("Add to Desktop"));
-    QAction* create_applications_menu_shortcut =
-        shortcut_menu->addAction(tr("Add to Applications Menu"));
+    QAction* create_applications_menu_shortcut = shortcut_menu->addAction(tr("Add to Applications Menu"));
 #endif
     context_menu.addSeparator();
-    QAction* properties = context_menu.addAction(tr("Configure Game"));
+    QAction* verify_integrity = context_menu.addAction(tr("Verify Integrity"));
+    QAction* copy_tid = context_menu.addAction(tr("Copy Title ID"));
+    QAction* navigate_to_gamedb_entry = context_menu.addAction(tr("View on GameDB"));
 
     favorite->setVisible(program_id != 0);
     favorite->setCheckable(true);
@@ -603,10 +599,12 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     connect(open_save_location, &QAction::triggered, [this, program_id, path]() {
         emit OpenFolderRequested(program_id, GameListOpenTarget::SaveData, path);
     });
-    connect(start_game, &QAction::triggered,
-            [this, path]() { emit BootGame(QString::fromStdString(path), StartGameType::Normal); });
-    connect(start_game_global, &QAction::triggered,
-            [this, path]() { emit BootGame(QString::fromStdString(path), StartGameType::Global); });
+    connect(start_game, &QAction::triggered, [this, path]() {
+        emit BootGame(QString::fromStdString(path), StartGameType::Normal);
+    });
+    connect(start_game_global, &QAction::triggered, [this, path]() {
+        emit BootGame(QString::fromStdString(path), StartGameType::Global);
+    });
     connect(open_mod_location, &QAction::triggered, [this, program_id, path]() {
         emit OpenFolderRequested(program_id, GameListOpenTarget::ModData, path);
     });
@@ -633,10 +631,12 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     connect(remove_custom_config, &QAction::triggered, [this, program_id, path]() {
         emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::CustomConfiguration, path);
     });
-    connect(set_play_time, &QAction::triggered,
-            [this, program_id]() { emit SetPlayTimeRequested(program_id); });
-    connect(remove_play_time_data, &QAction::triggered,
-            [this, program_id]() { emit RemovePlayTimeRequested(program_id); });
+    connect(set_play_time, &QAction::triggered, [this, program_id]() {
+        emit SetPlayTimeRequested(program_id);
+    });
+    connect(remove_play_time_data, &QAction::triggered, [this, program_id]() {
+        emit RemovePlayTimeRequested(program_id);
+    });
     connect(remove_cache_storage, &QAction::triggered, [this, program_id, path] {
         emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::CacheStorage, path);
     });
