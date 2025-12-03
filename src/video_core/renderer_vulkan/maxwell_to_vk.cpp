@@ -168,7 +168,7 @@ struct FormatTuple {
     {VK_FORMAT_R16G16_SINT, Attachable | Storage},             // R16G16_SINT
     {VK_FORMAT_R16G16_SNORM, Attachable | Storage},            // R16G16_SNORM
     {VK_FORMAT_R32G32B32_SFLOAT},                              // R32G32B32_FLOAT
-    {VK_FORMAT_A8B8G8R8_SRGB_PACK32, Attachable},              // A8B8G8R8_SRGB
+    {VK_FORMAT_A8B8G8R8_SRGB_PACK32, Attachable | Storage},    // A8B8G8R8_SRGB
     {VK_FORMAT_R8G8_UNORM, Attachable | Storage},              // R8G8_UNORM
     {VK_FORMAT_R8G8_SNORM, Attachable | Storage},              // R8G8_SNORM
     {VK_FORMAT_R8G8_SINT, Attachable | Storage},               // R8G8_SINT
@@ -180,7 +180,7 @@ struct FormatTuple {
     {VK_FORMAT_ASTC_8x8_UNORM_BLOCK},                          // ASTC_2D_8X8_UNORM
     {VK_FORMAT_ASTC_8x5_UNORM_BLOCK},                          // ASTC_2D_8X5_UNORM
     {VK_FORMAT_ASTC_5x4_UNORM_BLOCK},                          // ASTC_2D_5X4_UNORM
-    {VK_FORMAT_B8G8R8A8_SRGB, Attachable},                     // B8G8R8A8_SRGB
+    {VK_FORMAT_B8G8R8A8_SRGB, Attachable | Storage},           // B8G8R8A8_SRGB
     {VK_FORMAT_BC1_RGBA_SRGB_BLOCK},                           // BC1_RGBA_SRGB
     {VK_FORMAT_BC2_SRGB_BLOCK},                                // BC2_SRGB
     {VK_FORMAT_BC3_SRGB_BLOCK},                                // BC3_SRGB

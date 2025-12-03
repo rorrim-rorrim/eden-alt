@@ -1273,6 +1273,9 @@ void RasterizerVulkan::UpdateBlendConstants(Tegra::Engines::Maxwell3D::Regs& reg
     if (!state_tracker.TouchBlendConstants()) {
         return;
     }
+    if (!device.UsesAdvancedCoreDynamicState()) {
+        return;
+    }
     const std::array<float, 4> blend_constants{
         regs.blend_color.r,
         regs.blend_color.g,
@@ -1289,6 +1292,9 @@ void RasterizerVulkan::UpdateDepthBounds(Tegra::Engines::Maxwell3D::Regs& regs) 
         return;
     }
     if (!device.IsDepthBoundsSupported()) {
+        return;
+    }
+    if (!device.UsesAdvancedCoreDynamicState()) {
         return;
     }
     const bool unrestricted = device.IsExtDepthRangeUnrestrictedSupported();
@@ -1314,6 +1320,11 @@ void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs)
     const bool update_compare_masks = update_properties || update_side || compare_dirty;
 
     if (!update_references && !update_write_masks && !update_compare_masks) {
+        state_tracker.ClearStencilReset();
+        return;
+    }
+
+    if (!device.UsesAdvancedCoreDynamicState()) {
         state_tracker.ClearStencilReset();
         return;
     }
