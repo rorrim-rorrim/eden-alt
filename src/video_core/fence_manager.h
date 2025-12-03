@@ -67,11 +67,8 @@ public:
         SignalFence(std::move(do_nothing));
     }
 
-    void SyncOperation(std::function<void()>&& func) {
-        uncommitted_operations.emplace_back(std::move(func));
-    }
-
     void SignalFence(std::function<void()>&& func) {
+        bool delay_fence = Settings::IsGPULevelHigh();
         if constexpr (!can_async_check) {
             TryReleasePendingFences<false>();
         }
@@ -81,8 +78,15 @@ public:
         if constexpr (can_async_check) {
             guard.lock();
         }
-        uncommitted_operations.emplace_back(std::move(func));
-        pending_operations.emplace_back(std::move(uncommitted_operations));
+        if (!delay_fence && !should_flush) {
+            func();
+        } else {
+            uncommitted_operations.emplace_back(std::move(func));
+        }
+        if (!uncommitted_operations.empty()) {
+            pending_operations.emplace_back(std::move(uncommitted_operations));
+            uncommitted_operations.clear();
+        }
         QueueFence(new_fence);
         fences.push(std::move(new_fence));
         if (should_flush) {
