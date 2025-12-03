@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstring>
 #include <sstream>
 
 #include <boost/range/algorithm_ext/erase.hpp>
@@ -187,7 +188,7 @@ void HLERequestContext::ParseCommandBuffer(u32_le* src_cmdbuf, bool incoming) {
         buffer_w_descriptors.push_back(rp.PopRaw<IPC::BufferDescriptorABW>());
     }
 
-    const auto buffer_c_offset = rp.GetCurrentOffset() + command_header->data_size;
+    buffer_c_offset = rp.GetCurrentOffset() + command_header->data_size;
 
     if (!command_header->IsTipc()) {
         // Padding to align to 16 bytes
@@ -294,7 +295,15 @@ Result HLERequestContext::WriteToOutgoingCommandBuffer() {
     }
 
     // Write the domain objects to the command buffer, these go after the raw untranslated data.
-    // TODO(Subv): This completely ignores C buffers.
+
+    if (buffer_c_offset != 0 && !buffer_c_descriptors.empty()) {
+        constexpr u32 WORDS_PER_DESCRIPTOR = sizeof(IPC::BufferDescriptorC) / sizeof(u32);
+        u32 descriptor_offset = buffer_c_offset;
+        for (const auto& descriptor : buffer_c_descriptors) {
+            std::memcpy(&cmd_buf[descriptor_offset], &descriptor, sizeof(descriptor));
+            descriptor_offset += WORDS_PER_DESCRIPTOR;
+        }
+    }
 
     if (GetManager()->IsDomain()) {
         current_offset = domain_offset - static_cast<u32>(outgoing_domain_objects.size());
@@ -393,10 +402,14 @@ std::size_t HLERequestContext::WriteBuffer(const void* buffer, std::size_t size,
     const bool is_buffer_b{BufferDescriptorB().size() > buffer_index &&
                            BufferDescriptorB()[buffer_index].Size()};
     const std::size_t buffer_size{GetWriteBufferSize(buffer_index)};
+    if (buffer_size == 0) {
+        LOG_WARNING(Core, "WriteBuffer target index {} has zero capacity", buffer_index);
+        return 0;
+    }
     if (size > buffer_size) {
-        LOG_CRITICAL(Core, "size ({:016X}) is greater than buffer_size ({:016X})", size,
-                     buffer_size);
-        size = buffer_size; // TODO(bunnei): This needs to be HW tested
+        LOG_WARNING(Core, "size ({:016X}) is greater than buffer_size ({:016X}); clamping",
+                    size, buffer_size);
+        size = buffer_size;
     }
 
     if (is_buffer_b) {
@@ -418,15 +431,25 @@ std::size_t HLERequestContext::WriteBuffer(const void* buffer, std::size_t size,
 
 std::size_t HLERequestContext::WriteBufferB(const void* buffer, std::size_t size,
                                             std::size_t buffer_index) const {
-    if (buffer_index >= BufferDescriptorB().size() || size == 0) {
+    if (buffer_index >= BufferDescriptorB().size()) {
+        LOG_WARNING(Core, "WriteBufferB invalid buffer index {}", buffer_index);
+        return 0;
+    }
+
+    if (size == 0) {
+        LOG_WARNING(Core, "skip empty buffer write (B)");
         return 0;
     }
 
     const auto buffer_size{BufferDescriptorB()[buffer_index].Size()};
+    if (buffer_size == 0) {
+        LOG_WARNING(Core, "WriteBufferB target index {} has zero capacity", buffer_index);
+        return 0;
+    }
     if (size > buffer_size) {
-        LOG_CRITICAL(Core, "size ({:016X}) is greater than buffer_size ({:016X})", size,
-                     buffer_size);
-        size = buffer_size; // TODO(bunnei): This needs to be HW tested
+        LOG_WARNING(Core, "size ({:016X}) is greater than buffer_size ({:016X}); clamping",
+                    size, buffer_size);
+        size = buffer_size;
     }
 
     memory.WriteBlock(BufferDescriptorB()[buffer_index].Address(), buffer, size);
@@ -435,15 +458,25 @@ std::size_t HLERequestContext::WriteBufferB(const void* buffer, std::size_t size
 
 std::size_t HLERequestContext::WriteBufferC(const void* buffer, std::size_t size,
                                             std::size_t buffer_index) const {
-    if (buffer_index >= BufferDescriptorC().size() || size == 0) {
+    if (buffer_index >= BufferDescriptorC().size()) {
+        LOG_WARNING(Core, "WriteBufferC invalid buffer index {}", buffer_index);
+        return 0;
+    }
+
+    if (size == 0) {
+        LOG_WARNING(Core, "skip empty buffer write (C)");
         return 0;
     }
 
     const auto buffer_size{BufferDescriptorC()[buffer_index].Size()};
+    if (buffer_size == 0) {
+        LOG_WARNING(Core, "WriteBufferC target index {} has zero capacity", buffer_index);
+        return 0;
+    }
     if (size > buffer_size) {
-        LOG_CRITICAL(Core, "size ({:016X}) is greater than buffer_size ({:016X})", size,
-                     buffer_size);
-        size = buffer_size; // TODO(bunnei): This needs to be HW tested
+        LOG_WARNING(Core, "size ({:016X}) is greater than buffer_size ({:016X}); clamping",
+                    size, buffer_size);
+        size = buffer_size;
     }
 
     memory.WriteBlock(BufferDescriptorC()[buffer_index].Address(), buffer, size);
@@ -473,12 +506,20 @@ std::size_t HLERequestContext::GetWriteBufferSize(std::size_t buffer_index) cons
         ASSERT_OR_EXECUTE_MSG(
             BufferDescriptorB().size() > buffer_index, { return 0; },
             "BufferDescriptorB invalid buffer_index {}", buffer_index);
-        return BufferDescriptorB()[buffer_index].Size();
+        const auto size = BufferDescriptorB()[buffer_index].Size();
+        if (size == 0) {
+            LOG_WARNING(Core, "BufferDescriptorB index {} has zero size", buffer_index);
+        }
+        return size;
     } else {
         ASSERT_OR_EXECUTE_MSG(
             BufferDescriptorC().size() > buffer_index, { return 0; },
             "BufferDescriptorC invalid buffer_index {}", buffer_index);
-        return BufferDescriptorC()[buffer_index].Size();
+        const auto size = BufferDescriptorC()[buffer_index].Size();
+        if (size == 0) {
+            LOG_WARNING(Core, "BufferDescriptorC index {} has zero size", buffer_index);
+        }
+        return size;
     }
     return 0;
 }
