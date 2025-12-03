@@ -422,6 +422,7 @@ private:
     u32 data_payload_offset{};
     u32 handles_offset{};
     u32 domain_offset{};
+    u32 buffer_c_offset{};
 
     std::weak_ptr<SessionRequestManager> manager{};
     bool is_deferred{false};
