@@ -540,6 +540,7 @@ void TextureCache<P>::WriteMemory(DAddr cpu_addr, size_t size) {
         if (True(image.flags & ImageFlagBits::CpuModified)) {
             return;
         }
+        EnsureImageReady(image, ImageAccessType::Write);
         image.flags |= ImageFlagBits::CpuModified;
         if (True(image.flags & ImageFlagBits::Tracked)) {
             UntrackImage(image, image_id);
@@ -550,11 +551,12 @@ void TextureCache<P>::WriteMemory(DAddr cpu_addr, size_t size) {
 template <class P>
 void TextureCache<P>::DownloadMemory(DAddr cpu_addr, size_t size) {
     boost::container::small_vector<ImageId, 16> images;
-    ForEachImageInRegion(cpu_addr, size, [&images](ImageId image_id, ImageBase& image) {
+    ForEachImageInRegion(cpu_addr, size, [this, &images](ImageId image_id, ImageBase& image) {
         if (!image.IsSafeDownload()) {
             return;
         }
         image.flags &= ~ImageFlagBits::GpuModified;
+        EnsureImageReady(this->slot_images[image_id], ImageAccessType::Read);
         images.push_back(image_id);
     });
     if (images.empty()) {
@@ -606,6 +608,7 @@ void TextureCache<P>::UnmapMemory(DAddr cpu_addr, size_t size) {
     ForEachImageInRegion(cpu_addr, size, [&](ImageId id, Image&) { deleted_images.push_back(id); });
     for (const ImageId id : deleted_images) {
         Image& image = slot_images[id];
+        EnsureImageReady(image, ImageAccessType::Write);
         if (True(image.flags & ImageFlagBits::Tracked)) {
             UntrackImage(image, id);
         }
@@ -621,6 +624,7 @@ void TextureCache<P>::UnmapGPUMemory(size_t as_id, GPUVAddr gpu_addr, size_t siz
                             [&](ImageId id, Image&) { deleted_images.push_back(id); });
     for (const ImageId id : deleted_images) {
         Image& image = slot_images[id];
+        EnsureImageReady(image, ImageAccessType::Write);
         if (False(image.flags & ImageFlagBits::CpuModified)) {
             image.flags |= ImageFlagBits::CpuModified;
             if (True(image.flags & ImageFlagBits::Tracked)) {
@@ -2423,6 +2427,8 @@ void TextureCache<P>::SynchronizeAliases(ImageId image_id) {
 template <class P>
 void TextureCache<P>::PrepareImage(ImageId image_id, bool is_modification, bool invalidate) {
     Image& image = slot_images[image_id];
+    EnsureImageReady(image, is_modification ? ImageAccessType::Write : ImageAccessType::Read);
+    TrackGpuImageAccess(image_id, is_modification ? ImageAccessType::Write : ImageAccessType::Read);
     runtime.TransitionImageLayout(image);
     if (invalidate) {
         image.flags &= ~(ImageFlagBits::CpuModified | ImageFlagBits::GpuModified);
@@ -2437,6 +2443,85 @@ void TextureCache<P>::PrepareImage(ImageId image_id, bool is_modification, bool 
         MarkModification(image);
     }
     lru_cache.Touch(image.lru_index, frame_tick);
+}
+
+template <class P>
+void TextureCache<P>::TrackGpuImageAccess(ImageId image_id, ImageAccessType access) {
+    staged_gpu_accesses.push_back({image_id, access});
+}
+
+template <class P>
+void TextureCache<P>::CommitPendingGpuAccesses(u64 fence_value) {
+    if (staged_gpu_accesses.empty()) {
+        return;
+    }
+    if (fence_value == 0) {
+        return;
+    }
+    auto& batch = committed_gpu_accesses.emplace_back(std::move(staged_gpu_accesses));
+    staged_gpu_accesses.clear();
+    committed_gpu_ticks.push_back(fence_value);
+    for (const PendingImageAccess& access : batch) {
+        ImageBase& image = slot_images[access.image_id];
+        if (access.access == ImageAccessType::Read) {
+            image.TrackPendingReadTick(fence_value);
+        } else {
+            image.TrackPendingWriteTick(fence_value);
+        }
+    }
+}
+
+template <class P>
+void TextureCache<P>::CompleteGpuAccesses(u64 completed_fence) {
+    if (completed_fence == 0) {
+        return;
+    }
+    while (!committed_gpu_ticks.empty() && committed_gpu_ticks.front() <= completed_fence) {
+        auto accesses = std::move(committed_gpu_accesses.front());
+        committed_gpu_accesses.pop_front();
+        committed_gpu_ticks.pop_front();
+        for (const PendingImageAccess& access : accesses) {
+            if (!slot_images.Contains(access.image_id)) {
+                continue;
+            }
+            ImageBase& image = slot_images[access.image_id];
+            if (access.access == ImageAccessType::Read) {
+                image.ClearPendingReadTick(completed_fence);
+            } else {
+                image.ClearPendingWriteTick(completed_fence);
+            }
+        }
+    }
+}
+
+template <class P>
+void TextureCache<P>::EnsureImageReady(ImageBase& image, ImageAccessType access) {
+    auto wait_tick = [this](std::optional<u64> tick) -> std::optional<u64> {
+        if (!tick) {
+            return std::nullopt;
+        }
+        runtime.WaitForGpuTick(*tick);
+        return tick;
+    };
+
+    if (access == ImageAccessType::Write) {
+        if (const auto tick = image.PendingReadTick()) {
+            if (const auto waited = wait_tick(tick)) {
+                image.ClearPendingReadTick(*waited);
+            }
+        }
+        if (const auto tick = image.PendingWriteTick()) {
+            if (const auto waited = wait_tick(tick)) {
+                image.ClearPendingWriteTick(*waited);
+            }
+        }
+    } else {
+        if (const auto tick = image.PendingWriteTick()) {
+            if (const auto waited = wait_tick(tick)) {
+                image.ClearPendingWriteTick(*waited);
+            }
+        }
+    }
 }
 
 template <class P>
@@ -2456,6 +2541,8 @@ template <class P>
 void TextureCache<P>::CopyImage(ImageId dst_id, ImageId src_id, std::vector<ImageCopy> copies) {
     Image& dst = slot_images[dst_id];
     Image& src = slot_images[src_id];
+    EnsureImageReady(dst, ImageAccessType::Write);
+    EnsureImageReady(src, ImageAccessType::Read);
     const bool is_rescaled = True(src.flags & ImageFlagBits::Rescaled);
     if (is_rescaled) {
         ASSERT(True(dst.flags & ImageFlagBits::Rescaled));
@@ -2472,20 +2559,30 @@ void TextureCache<P>::CopyImage(ImageId dst_id, ImageId src_id, std::vector<Imag
             }
         }
     }
+    const auto TrackCopyAccesses = [this, dst_id, src_id]() {
+        TrackGpuImageAccess(dst_id, ImageAccessType::Write);
+        TrackGpuImageAccess(src_id, ImageAccessType::Read);
+    };
     const auto dst_format_type = GetFormatType(dst.info.format);
     const auto src_format_type = GetFormatType(src.info.format);
     if (src_format_type == dst_format_type) {
         if constexpr (HAS_EMULATED_COPIES) {
             if (!runtime.CanImageBeCopied(dst, src)) {
-                return runtime.EmulateCopyImage(dst, src, copies);
+                runtime.EmulateCopyImage(dst, src, copies);
+                TrackCopyAccesses();
+                return;
             }
         }
-        return runtime.CopyImage(dst, src, copies);
+        runtime.CopyImage(dst, src, copies);
+        TrackCopyAccesses();
+        return;
     }
     UNIMPLEMENTED_IF(dst.info.type != ImageType::e2D);
     UNIMPLEMENTED_IF(src.info.type != ImageType::e2D);
     if (runtime.ShouldReinterpret(dst, src)) {
-        return runtime.ReinterpretImage(dst, src, copies);
+        runtime.ReinterpretImage(dst, src, copies);
+        TrackCopyAccesses();
+        return;
     }
     for (const ImageCopy& copy : copies) {
         UNIMPLEMENTED_IF(copy.dst_subresource.num_layers != 1);
@@ -2538,6 +2635,7 @@ void TextureCache<P>::CopyImage(ImageId dst_id, ImageId src_id, std::vector<Imag
 
         runtime.ConvertImage(dst_framebuffer, dst_view, src_view);
     }
+    TrackCopyAccesses();
 }
 
 template <class P>

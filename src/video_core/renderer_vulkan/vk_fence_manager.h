@@ -34,6 +34,10 @@ public:
 
     void Wait();
 
+    [[nodiscard]] u64 WaitTick() const noexcept {
+        return wait_tick;
+    }
+
 private:
     Scheduler& scheduler;
     u64 wait_tick = 0;

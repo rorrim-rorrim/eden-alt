@@ -143,6 +143,8 @@ public:
 
     void TickFrame() {}
 
+    void WaitForGpuTick(u64) {}
+
     StateTracker& GetStateTracker() {
         return state_tracker;
     }

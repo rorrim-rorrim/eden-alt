@@ -910,6 +910,13 @@ void TextureCacheRuntime::FreeDeferredStagingBuffer(StagingBufferRef& ref) {
     staging_buffer_pool.FreeDeferred(ref);
 }
 
+void TextureCacheRuntime::WaitForGpuTick(u64 tick) {
+    if (tick == 0) {
+        return;
+    }
+    scheduler.Wait(tick);
+}
+
 bool TextureCacheRuntime::ShouldReinterpret(Image& dst, Image& src) {
     if (VideoCore::Surface::GetFormatType(dst.info.format) ==
             VideoCore::Surface::SurfaceType::DepthStencil &&

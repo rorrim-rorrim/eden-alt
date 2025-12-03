@@ -263,6 +263,15 @@ public:
     /// Prepare an image to be used
     void PrepareImage(ImageId image_id, bool is_modification, bool invalidate);
 
+    /// Track that an image participates in upcoming GPU work with the given access type
+    void TrackGpuImageAccess(ImageId image_id, ImageAccessType access);
+
+    /// Notify the cache that tracked GPU work has been submitted with the specified fence value
+    void CommitPendingGpuAccesses(u64 fence_value);
+
+    /// Notify the cache that a fence value has completed so tracked accesses can be released
+    void CompleteGpuAccesses(u64 completed_fence);
+
     std::recursive_mutex mutex;
 
 private:
@@ -413,6 +422,8 @@ private:
     /// Execute copies from one image to the other, even if they are incompatible
     void CopyImage(ImageId dst_id, ImageId src_id, std::vector<ImageCopy> copies);
 
+    void EnsureImageReady(ImageBase& image, ImageAccessType access);
+
     /// Bind an image view as render target, downloading resources preemtively if needed
     void BindRenderTarget(ImageViewId* old_id, ImageViewId new_id);
 
@@ -470,6 +481,11 @@ private:
         Common::SlotId object_id;
     };
 
+    struct PendingImageAccess {
+        ImageId image_id;
+        ImageAccessType access;
+    };
+
     Common::SlotVector<Image> slot_images;
     Common::SlotVector<ImageMapView> slot_map_views;
     Common::SlotVector<ImageView> slot_image_views;
@@ -485,6 +501,9 @@ private:
     std::vector<AsyncBuffer> uncommitted_async_buffers;
     std::deque<std::vector<AsyncBuffer>> async_buffers;
     std::deque<AsyncBuffer> async_buffers_death_ring;
+    std::vector<PendingImageAccess> staged_gpu_accesses;
+    std::deque<std::vector<PendingImageAccess>> committed_gpu_accesses;
+    std::deque<u64> committed_gpu_ticks;
 
     struct LRUItemParams {
         using ObjectType = ImageId;
