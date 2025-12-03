@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <optional>
 #include <span>
 
 #include "video_core/texture_cache/texture_cache_base.h"
@@ -58,6 +59,8 @@ public:
     void FreeDeferredStagingBuffer(StagingBufferRef& ref);
 
     void TickFrame();
+
+    void WaitForGpuTick(u64 tick);
 
     u64 GetDeviceLocalMemory() const;
 

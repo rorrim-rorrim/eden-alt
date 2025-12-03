@@ -155,4 +155,9 @@ struct SwizzleParameters {
     s32 level;
 };
 
+enum class ImageAccessType : u8 {
+    Read,
+    Write,
+};
+
 } // namespace VideoCommon

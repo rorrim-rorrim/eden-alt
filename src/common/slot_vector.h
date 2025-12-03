@@ -130,6 +130,17 @@ public:
         ResetStorageBit(id.index);
     }
 
+    [[nodiscard]] bool Contains(SlotId id) const noexcept {
+        if (!id) {
+            return false;
+        }
+        const size_t word = id.index / 64;
+        if (word >= stored_bitset.size()) {
+            return false;
+        }
+        return ((stored_bitset[word] >> (id.index % 64)) & 1) != 0;
+    }
+
     [[nodiscard]] Iterator begin() noexcept {
         const auto it = std::ranges::find_if(stored_bitset, [](u64 value) { return value != 0; });
         if (it == stored_bitset.end()) {

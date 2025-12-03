@@ -87,6 +87,10 @@ public:
         }
         pending_operations.emplace_back(std::move(uncommitted_operations));
         QueueFence(new_fence);
+        if (!new_fence->IsStubbed()) {
+            std::scoped_lock lock{texture_cache.mutex};
+            texture_cache.CommitPendingGpuAccesses(new_fence->WaitTick());
+        }
         if (!delay_fence) {
             func();
         }
@@ -178,7 +182,7 @@ private:
                     return;
                 }
             }
-            PopAsyncFlushes();
+            PopAsyncFlushes(current_fence->WaitTick());
             auto operations = std::move(pending_operations.front());
             pending_operations.pop_front();
             for (auto& operation : operations) {
@@ -213,7 +217,7 @@ private:
             if (!current_fence->IsStubbed()) {
                 WaitFence(current_fence);
             }
-            PopAsyncFlushes();
+            PopAsyncFlushes(current_fence->WaitTick());
             for (auto& operation : current_operations) {
                 operation();
             }
@@ -236,10 +240,11 @@ private:
                query_cache.HasUncommittedFlushes();
     }
 
-    void PopAsyncFlushes() {
+    void PopAsyncFlushes(u64 completed_tick) {
         {
             std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
             texture_cache.PopAsyncFlushes();
+            texture_cache.CompleteGpuAccesses(completed_tick);
             buffer_cache.PopAsyncFlushes();
         }
         query_cache.PopAsyncFlushes();
