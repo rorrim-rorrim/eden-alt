@@ -1,8 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <optional>
 #include <vector>
@@ -57,6 +61,50 @@ struct NullImageParams {};
 struct ImageBase {
     explicit ImageBase(const ImageInfo& info, GPUVAddr gpu_addr, VAddr cpu_addr);
     explicit ImageBase(const NullImageParams&);
+
+    void TrackPendingReadTick(u64 tick) noexcept {
+        if (pending_read_tick) {
+            *pending_read_tick = std::max(*pending_read_tick, tick);
+        } else {
+            pending_read_tick = tick;
+        }
+    }
+
+    void TrackPendingWriteTick(u64 tick) noexcept {
+        if (pending_write_tick) {
+            *pending_write_tick = std::max(*pending_write_tick, tick);
+        } else {
+            pending_write_tick = tick;
+        }
+    }
+
+    void ClearPendingReadTick(u64 completed_tick) noexcept {
+        if (pending_read_tick && completed_tick >= *pending_read_tick) {
+            pending_read_tick.reset();
+        }
+    }
+
+    void ClearPendingWriteTick(u64 completed_tick) noexcept {
+        if (pending_write_tick && completed_tick >= *pending_write_tick) {
+            pending_write_tick.reset();
+        }
+    }
+
+    [[nodiscard]] bool HasPendingReadTick() const noexcept {
+        return pending_read_tick.has_value();
+    }
+
+    [[nodiscard]] bool HasPendingWriteTick() const noexcept {
+        return pending_write_tick.has_value();
+    }
+
+    [[nodiscard]] std::optional<u64> PendingReadTick() const noexcept {
+        return pending_read_tick;
+    }
+
+    [[nodiscard]] std::optional<u64> PendingWriteTick() const noexcept {
+        return pending_write_tick;
+    }
 
     [[nodiscard]] std::optional<SubresourceBase> TryFindBase(GPUVAddr other_addr) const noexcept;
 
@@ -115,6 +163,9 @@ struct ImageBase {
     std::vector<AliasedImage> aliased_images;
     std::vector<ImageId> overlapping_images;
     ImageMapId map_view_id{};
+
+    std::optional<u64> pending_read_tick;
+    std::optional<u64> pending_write_tick;
 };
 
 struct ImageMapView {
