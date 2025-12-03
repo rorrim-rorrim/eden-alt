@@ -67,6 +67,10 @@ public:
         SignalFence(std::move(do_nothing));
     }
 
+    void SyncOperation(std::function<void()>&& func) {
+        uncommitted_operations.emplace_back(std::move(func));
+    }
+
     void SignalFence(std::function<void()>&& func) {
         bool delay_fence = Settings::IsGPULevelHigh();
         if constexpr (!can_async_check) {
