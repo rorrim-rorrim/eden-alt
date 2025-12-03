@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <optional>
 #include <span>
 
 #include "video_core/texture_cache/texture_cache_base.h"
@@ -55,6 +56,8 @@ public:
     void FreeDeferredStagingBuffer(StagingBufferRef& ref);
 
     void TickFrame();
+
+    void WaitForGpuTick(u64 tick);
 
     u64 GetDeviceLocalMemory() const;
 
@@ -172,6 +175,30 @@ public:
 
     [[nodiscard]] VkImageUsageFlags UsageFlags() const noexcept {
         return (this->*current_image).UsageFlags();
+    }
+
+    void TrackGpuReadTick(u64 tick) noexcept {
+        TrackPendingReadTick(tick);
+    }
+
+    void TrackGpuWriteTick(u64 tick) noexcept {
+        TrackPendingWriteTick(tick);
+    }
+
+    void CompleteGpuReadTick(u64 completed_tick) noexcept {
+        ClearPendingReadTick(completed_tick);
+    }
+
+    void CompleteGpuWriteTick(u64 completed_tick) noexcept {
+        ClearPendingWriteTick(completed_tick);
+    }
+
+    [[nodiscard]] std::optional<u64> PendingGpuReadTick() const noexcept {
+        return PendingReadTick();
+    }
+
+    [[nodiscard]] std::optional<u64> PendingGpuWriteTick() const noexcept {
+        return PendingWriteTick();
     }
 
     /// Returns true when the image is already initialized and mark it as initialized
