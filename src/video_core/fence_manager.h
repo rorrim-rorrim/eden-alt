@@ -72,7 +72,6 @@ public:
     }
 
     void SignalFence(std::function<void()>&& func) {
-        bool delay_fence = Settings::IsGPULevelHigh();
         if constexpr (!can_async_check) {
             TryReleasePendingFences<false>();
         }
@@ -82,7 +81,7 @@ public:
         if constexpr (can_async_check) {
             guard.lock();
         }
-        if (!delay_fence && !should_flush) {
+        if (Settings::IsGPULevelLow() || (Settings::IsGPULevelMedium() && !should_flush)) {
             func();
         } else {
             uncommitted_operations.emplace_back(std::move(func));

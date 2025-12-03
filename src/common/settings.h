@@ -414,9 +414,9 @@ struct Values {
 
     SwitchableSetting<GpuAccuracy, true> gpu_accuracy{linkage,
 #ifdef ANDROID
-                                                      GpuAccuracy::Normal,
+                                                      GpuAccuracy::Low,
 #else
-                                                      GpuAccuracy::High,
+                                                      GpuAccuracy::Medium,
 #endif
                                                       "gpu_accuracy",
                                                       Category::RendererAdvanced,
@@ -424,7 +424,7 @@ struct Values {
                                                       true,
                                                       true};
 
-    GpuAccuracy current_gpu_accuracy{GpuAccuracy::High};
+    GpuAccuracy current_gpu_accuracy{GpuAccuracy::Medium};
 
     SwitchableSetting<DmaAccuracy, true> dma_accuracy{linkage,
                                                       DmaAccuracy::Default,
@@ -762,7 +762,8 @@ extern Values values;
 bool getDebugKnobAt(u8 i);
 
 void UpdateGPUAccuracy();
-bool IsGPULevelExtreme();
+bool IsGPULevelLow();
+bool IsGPULevelMedium();
 bool IsGPULevelHigh();
 
 bool IsDMALevelDefault();

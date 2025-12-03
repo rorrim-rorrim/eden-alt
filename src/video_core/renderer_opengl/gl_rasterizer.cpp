@@ -500,7 +500,7 @@ bool RasterizerOpenGL::MustFlushRegion(DAddr addr, u64 size, VideoCommon::CacheT
             return true;
         }
     }
-    if (!Settings::IsGPULevelHigh()) {
+    if (!Settings::IsGPULevelMedium() && !Settings::IsGPULevelHigh()) {
         return false;
     }
     if (True(which & VideoCommon::CacheType::TextureCache)) {
@@ -629,9 +629,6 @@ void RasterizerOpenGL::ReleaseFences(bool force) {
 
 void RasterizerOpenGL::FlushAndInvalidateRegion(DAddr addr, u64 size,
                                                 VideoCommon::CacheType which) {
-    if (Settings::IsGPULevelExtreme()) {
-        FlushRegion(addr, size, which);
-    }
     InvalidateRegion(addr, size, which);
 }
 
@@ -682,7 +679,7 @@ void RasterizerOpenGL::TickFrame() {
 
 bool RasterizerOpenGL::AccelerateConditionalRendering() {
     gpu_memory->FlushCaching();
-    if (Settings::IsGPULevelHigh()) {
+    if (Settings::IsGPULevelMedium() || Settings::IsGPULevelHigh()) {
         // Reimplement Host conditional rendering.
         return false;
     }
