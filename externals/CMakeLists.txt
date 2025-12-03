@@ -394,9 +394,15 @@ if (ANDROID)
 endif()
 
 # moltenvk
-if (YUZU_USE_BUNDLED_MOLTENVK)
+if (NOT YUZU_USE_BUNDLED_MOLTENVK)
+    find_library(MOLTENVK_LIBRARY MoltenVK)
+else()
+    unset(MOLTENVK_LIBRARY)
+endif()
+
+# TODO: kosmickrisp?
+if (NOT MOLTENVK_LIBRARY)
     AddJsonPackage(moltenvk)
 
-    list(APPEND CMAKE_PREFIX_PATH "${moltenvk_SOURCE_DIR}/MoltenVK/dylib/macOS")
-    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} PARENT_SCOPE)
+    set(MOLTENVK_LIBRARY "${moltenvk_SOURCE_DIR}/MoltenVK/dylib/macOS/libMoltenVK.dylib" CACHE STRING "" FORCE)
 endif()

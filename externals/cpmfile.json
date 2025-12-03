@@ -216,6 +216,7 @@
         "tag": "v%VERSION%",
         "git_version": "1.4.1",
         "artifact": "MoltenVK-macOS.tar",
-        "hash": "a394329f390a11d1052d2efeef5f7f33860465eea4d7e9e1faf808e616d533a283b9c55074fb833ef95ef40067fc319470eab07dc72ac63e6464dc26cbe34905"
+        "hash": "a394329f390a11d1052d2efeef5f7f33860465eea4d7e9e1faf808e616d533a283b9c55074fb833ef95ef40067fc319470eab07dc72ac63e6464dc26cbe34905",
+        "bundled": true
     }
 }
