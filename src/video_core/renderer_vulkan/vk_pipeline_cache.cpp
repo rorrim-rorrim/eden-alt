@@ -309,9 +309,8 @@ size_t GetTotalPipelineWorkers() {
     const size_t max_core_threads =
         std::max<size_t>(static_cast<size_t>(std::thread::hardware_concurrency()), 2ULL) - 1ULL;
 #ifdef ANDROID
-    // Leave at least one core free on Android. Previously we reserved two, but
-    // shipping builds benefit from one extra compilation worker.
-    constexpr size_t free_cores = 1ULL;
+    // Leave at least two cores free on Android to reduce thermal pressure.
+    constexpr size_t free_cores = 2ULL;
     if (max_core_threads <= free_cores) {
         return 1ULL;
     }
