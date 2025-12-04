@@ -244,6 +244,10 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     FlushWork();
     gpu_memory->FlushCaching();
 
+    if (device.HasBrokenParallelShaderCompiling()) {
+        pipeline_cache.DrainPendingBuilds();
+    }
+
     GraphicsPipeline* const pipeline{pipeline_cache.CurrentGraphicsPipeline()};
     if (!pipeline) {
         return;
