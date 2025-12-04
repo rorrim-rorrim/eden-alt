@@ -1556,12 +1556,22 @@ void Device::RemoveUnsuitableExtensions() {
     }
 
     // VK_KHR_workgroup_memory_explicit_layout
-    extensions.workgroup_memory_explicit_layout =
-        features.features.shaderInt16 &&
+    workgroup_memory_explicit_layout_caps.supports_8bit =
+        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout8BitAccess;
+    workgroup_memory_explicit_layout_caps.supports_16bit =
+        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout16BitAccess;
+    const bool has_workgroup_base =
         features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout &&
-        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout8BitAccess &&
-        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout16BitAccess &&
         features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayoutScalarBlockLayout;
+    if (is_qualcomm) {
+        extensions.workgroup_memory_explicit_layout =
+            features.features.shaderInt16 && has_workgroup_base;
+    } else {
+        extensions.workgroup_memory_explicit_layout =
+            features.features.shaderInt16 && has_workgroup_base &&
+            workgroup_memory_explicit_layout_caps.supports_8bit &&
+            workgroup_memory_explicit_layout_caps.supports_16bit;
+    }
     RemoveExtensionFeatureIfUnsuitable(extensions.workgroup_memory_explicit_layout,
                                        features.workgroup_memory_explicit_layout,
                                        VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME);
@@ -1632,9 +1642,6 @@ void Device::RemoveUnsuitableExtensions() {
     extensions.maintenance8 = loaded_extensions.contains(VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance8, VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
 
-    // VK_KHR_maintenance9 (proposed for Vulkan 1.4, no features)
-    extensions.maintenance9 = loaded_extensions.contains(VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
-    RemoveExtensionIfUnsuitable(extensions.maintenance9, VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
 }
 
 bool Device::SupportsSubgroupStage(VkShaderStageFlags stage_mask) const {
