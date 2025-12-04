@@ -72,66 +72,32 @@ public:
     }
 
     void SignalFence(std::function<void()>&& func) {
-        const bool delay_fence = Settings::IsGPULevelHigh();
-
-        #ifdef __ANDROID__
-        const bool use_optimized = Settings::values.early_release_fences.GetValue();
-        #else
-        constexpr bool use_optimized = false;
-        #endif
-
+        bool delay_fence = Settings::IsGPULevelHigh();
+        if constexpr (!can_async_check) {
+            TryReleasePendingFences<false>();
+        }
         const bool should_flush = ShouldFlush();
         CommitAsyncFlushes();
         TFence new_fence = CreateFence(!should_flush);
-
-        if (use_optimized) {
-            if (!delay_fence) {
-                TryReleasePendingFences<false>();
-            }
-
-            if (delay_fence) {
-                guard.lock();
-                uncommitted_operations.emplace_back(std::move(func));
-            }
-        } else {
-            if constexpr (!can_async_check) {
-                TryReleasePendingFences<false>();
-            }
-
-            if constexpr (can_async_check) {
-                guard.lock();
-            }
-
-            if (delay_fence) {
-                uncommitted_operations.emplace_back(std::move(func));
-            }
+        if constexpr (can_async_check) {
+            guard.lock();
         }
-
+        if (delay_fence) {
+            uncommitted_operations.emplace_back(std::move(func));
+        }
         pending_operations.emplace_back(std::move(uncommitted_operations));
         QueueFence(new_fence);
-
         if (!delay_fence) {
             func();
         }
-
         fences.push(std::move(new_fence));
-
         if (should_flush) {
             rasterizer.FlushCommands();
         }
-
-        if (use_optimized) {
-            if (delay_fence) {
-                guard.unlock();
-                cv.notify_all();
-            }
-        } else {
-            if constexpr (can_async_check) {
-                guard.unlock();
-                cv.notify_all();
-            }
+        if constexpr (can_async_check) {
+            guard.unlock();
+            cv.notify_all();
         }
-
         rasterizer.InvalidateGPUCache();
     }
 
