@@ -529,10 +529,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm drivers require scaled vertex format emulation; forcing fallback");
 
-        LOG_WARNING(Render_Vulkan,
-                    "Qualcomm proprietary drivers report VK_KHR_shader_float_controls but remain unreliable;"
-                    " disabling usage while keeping the extension enabled");
-        disable_shader_float_controls_usage = true;
+        LOG_INFO(Render_Vulkan,
+             "Qualcomm drivers: enabling VK_KHR_shader_float_controls usage for testing");
         RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64,
                                VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
         features.shader_atomic_int64.shaderBufferInt64Atomics = false;
