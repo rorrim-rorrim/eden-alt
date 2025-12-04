@@ -224,7 +224,7 @@ void Maxwell3D::ProcessMacro(u32 method, const u32* base_start, u32 amount, bool
 }
 
 void Maxwell3D::RefreshParametersImpl() {
-    if (!Settings::IsGPULevelMedium() && !Settings::IsGPULevelHigh()) {
+    if (!Settings::IsGPULevelHigh()) {
         return;
     }
     size_t current_index = 0;
