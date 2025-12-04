@@ -1604,9 +1604,6 @@ void Device::RemoveUnsuitableExtensions() {
     extensions.maintenance8 = loaded_extensions.contains(VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance8, VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
 
-    // VK_KHR_maintenance9 (proposed for Vulkan 1.4, no features)
-    extensions.maintenance9 = loaded_extensions.contains(VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
-    RemoveExtensionIfUnsuitable(extensions.maintenance9, VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
 }
 
 bool Device::SupportsSubgroupStage(VkShaderStageFlags stage_mask) const {
