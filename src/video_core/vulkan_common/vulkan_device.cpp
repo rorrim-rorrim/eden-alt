@@ -112,6 +112,24 @@ constexpr std::array R16G16B16A16_UNORM{
 
 } // namespace Alternatives
 
+constexpr std::array<VkSampleCountFlagBits, Device::sample_location_table_size>
+    sample_location_query_counts{
+        VK_SAMPLE_COUNT_1_BIT,  VK_SAMPLE_COUNT_2_BIT,  VK_SAMPLE_COUNT_4_BIT,
+        VK_SAMPLE_COUNT_8_BIT,  VK_SAMPLE_COUNT_16_BIT, VK_SAMPLE_COUNT_32_BIT,
+        VK_SAMPLE_COUNT_64_BIT,
+    };
+
+static_assert(sample_location_query_counts.size() == Device::sample_location_table_size);
+
+constexpr size_t SampleCountIndex(VkSampleCountFlagBits samples) {
+    for (size_t index = 0; index < sample_location_query_counts.size(); ++index) {
+        if (sample_location_query_counts[index] == samples) {
+            return index;
+        }
+    }
+    return sample_location_query_counts.size();
+}
+
 [[maybe_unused]] constexpr VkShaderStageFlags GraphicsStageMask =
     VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT |
     VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT | VK_SHADER_STAGE_GEOMETRY_BIT |
@@ -1332,6 +1350,8 @@ bool Device::GetSuitability(bool requires_swapchain) {
         features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable = false;
     }
 
+    PopulateSampleLocationGrids();
+
     // Return whether we were suitable.
     return suitable;
 }
@@ -1598,6 +1618,66 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.maintenance4, features.maintenance4,
                                        VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
 
+
+VkExtent2D Device::SampleLocationGridSizeFor(VkSampleCountFlagBits samples) const {
+    const auto sanitize = [](VkExtent2D grid) {
+        if (grid.width == 0 || grid.height == 0) {
+            return VkExtent2D{1, 1};
+        }
+        return grid;
+    };
+    const VkExtent2D fallback = sanitize(properties.sample_locations.maxSampleLocationGridSize);
+    if (!extensions.sample_locations) {
+        return fallback;
+    }
+    const size_t index = SampleCountIndex(samples);
+    if (index >= sample_location_grids.size()) {
+        return fallback;
+    }
+    const VkExtent2D grid = sample_location_grids[index];
+    return grid.width == 0 || grid.height == 0 ? fallback : grid;
+}
+
+void Device::PopulateSampleLocationGrids() {
+    for (auto& grid : sample_location_grids) {
+        grid = VkExtent2D{1, 1};
+    }
+    if (!extensions.sample_locations) {
+        return;
+    }
+    const auto sanitize = [](VkExtent2D grid) {
+        if (grid.width == 0 || grid.height == 0) {
+            return VkExtent2D{1, 1};
+        }
+        return grid;
+    };
+    const VkExtent2D fallback = sanitize(properties.sample_locations.maxSampleLocationGridSize);
+    const VkSampleCountFlags supported_counts =
+        properties.sample_locations.sampleLocationSampleCounts;
+    if (supported_counts == 0) {
+        return;
+    }
+    const bool can_query = dld.vkGetPhysicalDeviceMultisamplePropertiesEXT != nullptr;
+    for (size_t index = 0; index < sample_location_grids.size(); ++index) {
+        const VkSampleCountFlagBits bit = sample_location_query_counts[index];
+        if ((supported_counts & bit) == 0) {
+            continue;
+        }
+        VkExtent2D grid = fallback;
+        if (can_query) {
+            VkMultisamplePropertiesEXT props{
+                .sType = VK_STRUCTURE_TYPE_MULTISAMPLE_PROPERTIES_EXT,
+                .pNext = nullptr,
+            };
+            dld.vkGetPhysicalDeviceMultisamplePropertiesEXT(physical, bit, &props);
+            if (props.maxSampleLocationGridSize.width != 0 &&
+                props.maxSampleLocationGridSize.height != 0) {
+                grid = props.maxSampleLocationGridSize;
+            }
+        }
+        sample_location_grids[index] = grid;
+    }
+}
     // VK_KHR_maintenance5
     extensions.maintenance5 = features.maintenance5.maintenance5;
     
