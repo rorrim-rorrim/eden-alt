@@ -7,6 +7,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <optional>
 #include <set>
 #include <span>
@@ -349,6 +350,9 @@ public:
     const VkPhysicalDeviceSampleLocationsPropertiesEXT& SampleLocationProperties() const {
         return properties.sample_locations;
     }
+
+    /// Returns the host-supported sample location grid for the requested sample count.
+    VkExtent2D SampleLocationGridSizeFor(VkSampleCountFlagBits samples) const;
 
     /// Returns true if ASTC is natively supported.
     bool IsOptimalAstcSupported() const {
@@ -976,12 +980,16 @@ public:
     }
 
 private:
+    static constexpr size_t sample_location_table_size = 7;
+
     /// Checks if the physical device is suitable and configures the object state
     /// with all necessary info about its properties.
     bool GetSuitability(bool requires_swapchain);
 
     // Remove extensions which have incomplete feature support.
     void RemoveUnsuitableExtensions();
+
+    void PopulateSampleLocationGrids();
 
     void RemoveExtension(bool& extension, const std::string& extension_name);
     void RemoveExtensionIfUnsuitable(bool& extension, const std::string& extension_name);
@@ -1076,6 +1084,8 @@ private:
 
     VkPhysicalDeviceFeatures2 features2{};
     VkPhysicalDeviceProperties2 properties2{};
+
+    std::array<VkExtent2D, sample_location_table_size> sample_location_grids{};
 
     // Misc features
     bool is_optimal_astc_supported{};          ///< Support for all guest ASTC formats.
