@@ -578,6 +578,13 @@ PipelineCache::~PipelineCache() {
     }
 }
 
+void PipelineCache::DrainPendingBuilds() {
+    if (!device.HasBrokenParallelShaderCompiling()) {
+        return;
+    }
+    workers.WaitForRequests();
+}
+
 GraphicsPipeline* PipelineCache::CurrentGraphicsPipeline() {
 
     if (!RefreshStages(graphics_key.unique_hashes)) {
