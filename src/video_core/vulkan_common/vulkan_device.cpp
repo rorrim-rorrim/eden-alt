@@ -1322,6 +1322,9 @@ bool Device::GetSuitability(bool requires_swapchain) {
 }
 
 void Device::RemoveUnsuitableExtensions() {
+    const VkDriverId driver_id = properties.driver.driverID;
+    const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
+
     // VK_EXT_custom_border_color
     // Enable extension if driver supports it, then check individual features
     // - customBorderColors: Required to use VK_BORDER_COLOR_FLOAT_CUSTOM_EXT
