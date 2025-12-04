@@ -500,7 +500,7 @@ bool RasterizerOpenGL::MustFlushRegion(DAddr addr, u64 size, VideoCommon::CacheT
             return true;
         }
     }
-    if (!Settings::IsGPULevelMedium() && !Settings::IsGPULevelHigh()) {
+    if (!Settings::IsGPULevelHigh()) {
         return false;
     }
     if (True(which & VideoCommon::CacheType::TextureCache)) {
@@ -679,7 +679,7 @@ void RasterizerOpenGL::TickFrame() {
 
 bool RasterizerOpenGL::AccelerateConditionalRendering() {
     gpu_memory->FlushCaching();
-    if (Settings::IsGPULevelMedium() || Settings::IsGPULevelHigh()) {
+    if (Settings::IsGPULevelHigh()) {
         // Reimplement Host conditional rendering.
         return false;
     }
