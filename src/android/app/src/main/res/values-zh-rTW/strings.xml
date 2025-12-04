@@ -857,11 +857,6 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">無</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">標準</string>
-    <string name="renderer_accuracy_high">高</string>
-    <string name="renderer_accuracy_extreme">極高</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">預設</string>
     <string name="dma_accuracy_unsafe">不安全</string>

@@ -780,9 +780,6 @@
     <string name="renderer_vulkan">Вулкан</string>
     <string name="renderer_none">Ниједан</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Нормалан</string>
-    <string name="renderer_accuracy_high">Високо</string>
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Подразумевано</string>
     <!-- ASTC Decoding Method -->

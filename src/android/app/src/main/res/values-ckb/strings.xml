@@ -634,9 +634,6 @@
     <string name="renderer_vulkan">ڤوڵکان</string>
     <string name="renderer_none">هیچ</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">ئاسایی</string>
-    <string name="renderer_accuracy_high">بەرز</string>
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">بنەڕەتی</string>
     <!-- ASTC Decoding Method -->

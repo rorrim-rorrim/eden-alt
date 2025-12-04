@@ -769,11 +769,6 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">هیچ</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">معمولی</string>
-    <string name="renderer_accuracy_high">زیاد</string>
-    <string name="renderer_accuracy_extreme">افراطی (کند)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">پیش فرض</string>
     <string name="dma_accuracy_unsafe">ناایمن (سریع)</string>

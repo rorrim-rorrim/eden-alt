@@ -770,9 +770,6 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Nincs</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Normál</string>
-    <string name="renderer_accuracy_high">Magas</string>
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Alapértelmezett</string>
     <!-- ASTC Decoding Method -->

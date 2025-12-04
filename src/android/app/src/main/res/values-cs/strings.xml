@@ -621,9 +621,6 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Žádné</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Normální</string>
-    <string name="renderer_accuracy_high">Vysoká</string>
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Výchozí</string>
     <!-- ASTC Decoding Method -->
