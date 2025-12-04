@@ -32,8 +32,6 @@ struct Profile {
     bool support_fp32_signed_zero_nan_preserve{};
     bool support_fp64_signed_zero_nan_preserve{};
     bool support_explicit_workgroup_layout{};
-    bool support_explicit_workgroup_layout_u8{};
-    bool support_explicit_workgroup_layout_u16{};
     bool support_vote{};
     bool support_viewport_index_layer_non_geometry{};
     bool support_viewport_mask{};

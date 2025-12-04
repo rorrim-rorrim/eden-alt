@@ -387,10 +387,6 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .support_fp64_signed_zero_nan_preserve = float_controls_supported &&
             float_control.shaderSignedZeroInfNanPreserveFloat64 != VK_FALSE,
         .support_explicit_workgroup_layout = device.IsKhrWorkgroupMemoryExplicitLayoutSupported(),
-        .support_explicit_workgroup_layout_u8 =
-            device.SupportsWorkgroupExplicitLayout8Bit(),
-        .support_explicit_workgroup_layout_u16 =
-            device.SupportsWorkgroupExplicitLayout16Bit(),
         .support_vote = device.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_VOTE_BIT),
         .support_viewport_index_layer_non_geometry =
             device.IsExtShaderViewportIndexLayerSupported(),
