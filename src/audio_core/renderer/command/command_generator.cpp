@@ -361,6 +361,26 @@ void CommandGenerator::GenerateAuxCommand(const s16 buffer_offset, EffectInfoBas
 void CommandGenerator::GenerateBiquadFilterEffectCommand(const s16 buffer_offset,
                                                          EffectInfoBase& effect_info,
                                                          const s32 node_id) {
+    if (render_context.behavior->IsEffectInfoVersion2Supported()) {
+        const auto& parameter_v2{
+            *reinterpret_cast<BiquadFilterInfo::ParameterVersion2*>(effect_info.GetParameter())};
+        const bool needs_init = false;
+        const bool use_float_processing = render_context.behavior->UseBiquadFilterFloatProcessing();
+        const s8 channels = parameter_v2.channel_count > 0 ? parameter_v2.channel_count : 2;
+        if (effect_info.IsEnabled()) {
+            for (s8 channel = 0; channel < channels; channel++) {
+                command_buffer.GenerateBiquadFilterCommand(
+                    node_id, effect_info, buffer_offset, channel, needs_init, use_float_processing);
+            }
+        } else {
+            for (s8 channel = 0; channel < channels; channel++) {
+                command_buffer.GenerateCopyMixBufferCommand(node_id, effect_info, buffer_offset,
+                                                            channel);
+            }
+        }
+        return;
+    }
+
     const auto& parameter{
         *reinterpret_cast<BiquadFilterInfo::ParameterVersion1*>(effect_info.GetParameter())};
     if (effect_info.IsEnabled()) {
