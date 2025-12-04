@@ -617,11 +617,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool needs_mobile_alignment_clamp = is_qualcomm || is_arm;
 
     if (is_qualcomm) {
-        const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version < VK_MAKE_API_VERSION(0, 255, 615, 512)) {
-            has_broken_parallel_compiling = true;
-        }
-
+        has_broken_parallel_compiling = true;
+        LOG_WARNING(Render_Vulkan,
+                    "Adreno drivers exhibit instability with parallel shader compilation; "
+                    "forcing single-threaded pipeline builds");
         if (extensions.push_descriptor) {
             LOG_WARNING(Render_Vulkan,
                         "Qualcomm driver mishandles push descriptors; disabling "
