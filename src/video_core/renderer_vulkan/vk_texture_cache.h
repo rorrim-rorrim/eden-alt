@@ -113,6 +113,10 @@ public:
         return view_formats[static_cast<std::size_t>(format)];
     }
 
+    bool RequiresBlockCompatibleViewFormats(PixelFormat format) const noexcept {
+        return requires_block_view_formats[static_cast<std::size_t>(format)];
+    }
+
     void BarrierFeedbackLoop();
 
     bool IsFormatDitherable(VideoCore::Surface::PixelFormat format);
@@ -131,6 +135,7 @@ public:
     std::unique_ptr<MSAACopyPass> msaa_copy_pass;
     const Settings::ResolutionScalingInfo& resolution;
     std::array<std::vector<VkFormat>, VideoCore::Surface::MaxPixelFormat> view_formats;
+    std::array<bool, VideoCore::Surface::MaxPixelFormat> requires_block_view_formats{};
 
     static constexpr size_t indexing_slots = 8 * sizeof(size_t);
     std::array<vk::Buffer, indexing_slots> buffers{};
