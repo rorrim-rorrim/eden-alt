@@ -415,6 +415,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     // Get suitability and device properties.
     const bool is_suitable = GetSuitability(surface != nullptr);
 
+    const bool patch_old_qcom_drivers = Settings::values.patch_old_qcom_drivers.GetValue();
+
     const VkDriverId driver_id = properties.driver.driverID;
     const auto device_id = properties.properties.deviceID;
     const bool is_radv = driver_id == VK_DRIVER_ID_MESA_RADV;
@@ -508,7 +510,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         const auto vendor = properties.properties.vendorID;
         const auto patch_status = adrenotools_get_bcn_type(major, minor, vendor);
 
-        if (patch_status == ADRENOTOOLS_BCN_PATCH) {
+        if (patch_status == ADRENOTOOLS_BCN_PATCH && patch_old_qcom_drivers) {
             LOG_INFO(Render_Vulkan, "Patching Adreno driver to support BCn texture formats");
             if (adrenotools_patch_bcn(
                     reinterpret_cast<void*>(dld.vkGetPhysicalDeviceFormatProperties))) {
@@ -519,7 +521,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         } else if (patch_status == ADRENOTOOLS_BCN_BLOB) {
             LOG_INFO(Render_Vulkan, "Adreno driver supports BCn textures without patches");
         } else {
-            LOG_WARNING(Render_Vulkan, "Adreno driver can't be patched to enable BCn textures");
+            LOG_WARNING(Render_Vulkan, "Adreno driver not patched to enable BCn textures");
         }
 #endif
     }

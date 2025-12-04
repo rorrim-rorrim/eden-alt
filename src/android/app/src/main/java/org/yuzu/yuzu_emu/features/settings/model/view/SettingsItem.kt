@@ -768,6 +768,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.RENDERER_PATCH_OLD_QCOM_DRIVERS,
+                    titleId = R.string.patch_old_qcom_drivers,
+                    descriptionId = R.string.patch_old_qcom_drivers_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.USE_AUTO_STUB,
                     titleId = R.string.use_auto_stub,
                     descriptionId = R.string.use_auto_stub_description

@@ -546,6 +546,9 @@ struct Values {
                                                          true,
                                                          false,
                                                          &sample_shading};
+#ifdef ANDROID
+    SwitchableSetting<bool> patch_old_qcom_drivers{linkage, true, "patch_old_qcom_drivers", Category::RendererDebug};
+#endif
 
     Setting<bool> renderer_debug{linkage, false, "debug", Category::RendererDebug};
     Setting<bool> renderer_shader_feedback{linkage, false, "shader_feedback",
