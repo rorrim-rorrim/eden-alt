@@ -862,14 +862,17 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     const bool alpha_to_one_supported = device.SupportsAlphaToOne();
     const auto msaa_mode = key.state.msaa_mode.Value();
     const VkSampleCountFlagBits vk_samples = MaxwellToVK::MsaaMode(msaa_mode);
-    const auto [grid_width, grid_height] = VideoCommon::SampleLocationGridSize(msaa_mode);
+    const auto [guest_grid_width, guest_grid_height] = VideoCommon::SampleLocationGridSize(msaa_mode);
     const auto& sample_location_props = device.SampleLocationProperties();
-    const bool grid_within_limits = grid_width <= sample_location_props.maxSampleLocationGridSize.width &&
-                                    grid_height <= sample_location_props.maxSampleLocationGridSize.height;
+    const VkExtent2D host_grid_limit = device.SampleLocationGridSizeFor(vk_samples);
+    const VkExtent2D grid_size{
+        .width = (std::max)(1u, (std::min)(guest_grid_width, host_grid_limit.width)),
+        .height = (std::max)(1u, (std::min)(guest_grid_height, host_grid_limit.height)),
+    };
     const bool supports_sample_locations = device.IsExtSampleLocationsSupported() &&
                                            device.SupportsSampleLocationsFor(vk_samples) &&
                                            sample_location_props.variableSampleLocations == VK_TRUE &&
-                                           grid_within_limits;
+                                           grid_size.width > 0 && grid_size.height > 0;
 
     VkPipelineMultisampleStateCreateInfo multisample_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
@@ -895,13 +898,13 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         sample_locations_chain.emplace();
         auto& chain = *sample_locations_chain;
         const u32 samples_per_pixel = static_cast<u32>(VideoCommon::NumSamples(msaa_mode));
-        const u32 sample_locations_count = grid_width * grid_height * samples_per_pixel;
+        const u32 sample_locations_count = grid_size.width * grid_size.height * samples_per_pixel;
         chain.locations.fill(VkSampleLocationEXT{0.5f, 0.5f});
         chain.info = VkSampleLocationsInfoEXT{
             .sType = VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT,
             .pNext = nullptr,
             .sampleLocationsPerPixel = vk_samples,
-            .sampleLocationGridSize = VkExtent2D{grid_width, grid_height},
+            .sampleLocationGridSize = grid_size,
             .sampleLocationsCount = sample_locations_count,
             .pSampleLocations = chain.locations.data(),
         };
