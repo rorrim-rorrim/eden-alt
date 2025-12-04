@@ -257,6 +257,35 @@ void CommandBuffer::GenerateBiquadFilterCommand(const s32 node_id, EffectInfoBas
                                                 const s16 buffer_offset, const s8 channel,
                                                 const bool needs_init,
                                                 const bool use_float_processing) {
+    if (behavior->IsEffectInfoVersion2Supported()) {
+        auto& cmd{GenerateStart<BiquadFilterCommand, CommandId::BiquadFilter>(node_id)};
+        const auto& parameter_v2{
+            *reinterpret_cast<BiquadFilterInfo::ParameterVersion2*>(effect_info.GetParameter())};
+        if (!IsChannelCountValid(parameter_v2.channel_count) || channel < 0 ||
+            channel >= parameter_v2.channel_count) {
+            return;
+        }
+        if (!parameter_v2.enable) {
+            // Effect disabled at parameter level: copy input -> output for this channel
+            GenerateCopyMixBufferCommand(node_id, effect_info, buffer_offset, channel);
+            return;
+        }
+        const auto state{reinterpret_cast<VoiceState::BiquadFilterState*>(
+            effect_info.GetStateBuffer() + channel * sizeof(VoiceState::BiquadFilterState))};
+
+        cmd.input = buffer_offset + parameter_v2.inputs[channel];
+        cmd.output = buffer_offset + parameter_v2.outputs[channel];
+        cmd.biquad_float.numerator = parameter_v2.b;
+        cmd.biquad_float.denominator = parameter_v2.a;
+        cmd.use_float_coefficients = true;
+        cmd.state = memory_pool->Translate(CpuAddr(state), sizeof(VoiceState::BiquadFilterState));
+        cmd.needs_init = needs_init;
+        cmd.use_float_processing = use_float_processing;
+
+        GenerateEnd<BiquadFilterCommand>(cmd);
+        return;
+    }
+
     auto& cmd{GenerateStart<BiquadFilterCommand, CommandId::BiquadFilter>(node_id)};
 
     const auto& parameter{
@@ -594,6 +623,15 @@ void CommandBuffer::GenerateClearMixCommand(const s32 node_id) {
 void CommandBuffer::GenerateCopyMixBufferCommand(const s32 node_id, EffectInfoBase& effect_info,
                                                  const s16 buffer_offset, const s8 channel) {
     auto& cmd{GenerateStart<CopyMixBufferCommand, CommandId::CopyMixBuffer>(node_id)};
+
+    if (behavior->IsEffectInfoVersion2Supported()) {
+        const auto& parameter_v2{
+            *reinterpret_cast<BiquadFilterInfo::ParameterVersion2*>(effect_info.GetParameter())};
+        cmd.input_index = buffer_offset + parameter_v2.inputs[channel];
+        cmd.output_index = buffer_offset + parameter_v2.outputs[channel];
+        GenerateEnd<CopyMixBufferCommand>(cmd);
+        return;
+    }
 
     const auto& parameter{
         *reinterpret_cast<BiquadFilterInfo::ParameterVersion1*>(effect_info.GetParameter())};
