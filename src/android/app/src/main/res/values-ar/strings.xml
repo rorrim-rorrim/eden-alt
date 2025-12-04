@@ -878,11 +878,6 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">لاشيء</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">عادي</string>
-    <string name="renderer_accuracy_high">عالي</string>
-    <string name="renderer_accuracy_extreme">أقصى</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">افتراضي</string>
     <string name="dma_accuracy_unsafe">غير آمن</string>

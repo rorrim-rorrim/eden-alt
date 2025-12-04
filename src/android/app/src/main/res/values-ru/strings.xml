@@ -872,11 +872,6 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Никакой</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Нормальная</string>
-    <string name="renderer_accuracy_high">Высокая</string>
-    <string name="renderer_accuracy_extreme">Экстрим</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">По умолчанию</string>
     <string name="dma_accuracy_unsafe">Небезопасно</string>

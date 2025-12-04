@@ -636,9 +636,6 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Ingen</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Normal</string>
-    <string name="renderer_accuracy_high">Høy</string>
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Standard</string>
     <!-- ASTC Decoding Method -->

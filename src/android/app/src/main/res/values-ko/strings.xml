@@ -718,9 +718,6 @@
     <string name="renderer_vulkan">Vulcan</string>
     <string name="renderer_none">없음</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">보통</string>
-    <string name="renderer_accuracy_high">높음</string>
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">기본값</string>
     <!-- ASTC Decoding Method -->

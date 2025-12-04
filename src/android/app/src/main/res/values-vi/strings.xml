@@ -636,9 +636,6 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Trống</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Trung bình</string>
-    <string name="renderer_accuracy_high">Khỏe</string>
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Mặc định</string>
     <!-- ASTC Decoding Method -->

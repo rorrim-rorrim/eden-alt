@@ -850,11 +850,6 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Nessuna</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Normale</string>
-    <string name="renderer_accuracy_high">Alta</string>
-    <string name="renderer_accuracy_extreme">Estrema</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Predefinito</string>
     <string name="dma_accuracy_unsafe">Non sicura</string>

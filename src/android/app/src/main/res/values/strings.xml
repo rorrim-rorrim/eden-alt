@@ -922,9 +922,9 @@
     <string name="renderer_none">None</string>
 
     <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Normal</string>
+    <string name="renderer_accuracy_low">Low</string>
+    <string name="renderer_accuracy_medium">Medium</string>
     <string name="renderer_accuracy_high">High</string>
-    <string name="renderer_accuracy_extreme">Extreme</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Default</string>
