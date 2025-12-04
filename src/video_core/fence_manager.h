@@ -77,11 +77,7 @@ public:
         }
         const bool should_flush = ShouldFlush();
         CommitAsyncFlushes();
-#ifdef __ANDROID__
-        TFence new_fence = CreateFence(true);
-#else
         TFence new_fence = CreateFence(!should_flush);
-#endif
         if constexpr (can_async_check) {
             guard.lock();
         }
@@ -203,20 +199,12 @@ private:
 
         TFence current_fence;
         std::deque<std::function<void()>> current_operations;
-
         while (!stop_token.stop_requested()) {
             {
                 std::unique_lock lock(guard);
-#ifdef __ANDROID__
-                cv.wait_for(lock, std::chrono::milliseconds(5), [&] { return stop_token.stop_requested() || !fences.empty(); });
-#else
                 cv.wait(lock, [&] { return stop_token.stop_requested() || !fences.empty(); });
-#endif
                 if (stop_token.stop_requested()) [[unlikely]] {
                     return;
-                }
-                if (fences.empty()) {
-                    continue;
                 }
                 current_fence = std::move(fences.front());
                 current_operations = std::move(pending_operations.front());
