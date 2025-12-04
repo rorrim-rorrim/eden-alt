@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,17 +12,10 @@ Id Pointer(EmitContext& ctx, Id pointer_type, Id array, Id offset, u32 shift) {
     return ctx.OpAccessChain(pointer_type, array, ctx.u32_zero_value, index);
 }
 
-Id WorkgroupWordPointer(EmitContext& ctx, Id index) {
-    if (ctx.profile.support_explicit_workgroup_layout) {
-        return ctx.OpAccessChain(ctx.shared_u32, ctx.shared_memory_u32, ctx.u32_zero_value, index);
-    }
-    return ctx.OpAccessChain(ctx.shared_u32, ctx.shared_memory_u32, index);
-}
-
 Id Word(EmitContext& ctx, Id offset) {
     const Id shift_id{ctx.Const(2U)};
     const Id index{ctx.OpShiftRightArithmetic(ctx.U32[1], offset, shift_id)};
-    const Id pointer{WorkgroupWordPointer(ctx, index)};
+    const Id pointer{ctx.OpAccessChain(ctx.shared_u32, ctx.shared_memory_u32, index)};
     return ctx.OpLoad(ctx.U32[1], pointer);
 }
 
@@ -38,9 +28,7 @@ std::pair<Id, Id> ExtractArgs(EmitContext& ctx, Id offset, u32 mask, u32 count) 
 } // Anonymous namespace
 
 Id EmitLoadSharedU8(EmitContext& ctx, Id offset) {
-    const bool use_explicit = ctx.profile.support_explicit_workgroup_layout &&
-                              ctx.profile.support_explicit_workgroup_layout_u8;
-    if (use_explicit) {
+    if (ctx.profile.support_explicit_workgroup_layout) {
         const Id pointer{
             ctx.OpAccessChain(ctx.shared_u8, ctx.shared_memory_u8, ctx.u32_zero_value, offset)};
         return ctx.OpUConvert(ctx.U32[1], ctx.OpLoad(ctx.U8, pointer));
@@ -51,9 +39,7 @@ Id EmitLoadSharedU8(EmitContext& ctx, Id offset) {
 }
 
 Id EmitLoadSharedS8(EmitContext& ctx, Id offset) {
-    const bool use_explicit = ctx.profile.support_explicit_workgroup_layout &&
-                              ctx.profile.support_explicit_workgroup_layout_u8;
-    if (use_explicit) {
+    if (ctx.profile.support_explicit_workgroup_layout) {
         const Id pointer{
             ctx.OpAccessChain(ctx.shared_u8, ctx.shared_memory_u8, ctx.u32_zero_value, offset)};
         return ctx.OpSConvert(ctx.U32[1], ctx.OpLoad(ctx.U8, pointer));
@@ -64,9 +50,7 @@ Id EmitLoadSharedS8(EmitContext& ctx, Id offset) {
 }
 
 Id EmitLoadSharedU16(EmitContext& ctx, Id offset) {
-    const bool use_explicit = ctx.profile.support_explicit_workgroup_layout &&
-                              ctx.profile.support_explicit_workgroup_layout_u16;
-    if (use_explicit) {
+    if (ctx.profile.support_explicit_workgroup_layout) {
         const Id pointer{Pointer(ctx, ctx.shared_u16, ctx.shared_memory_u16, offset, 1)};
         return ctx.OpUConvert(ctx.U32[1], ctx.OpLoad(ctx.U16, pointer));
     } else {
@@ -76,9 +60,7 @@ Id EmitLoadSharedU16(EmitContext& ctx, Id offset) {
 }
 
 Id EmitLoadSharedS16(EmitContext& ctx, Id offset) {
-    const bool use_explicit = ctx.profile.support_explicit_workgroup_layout &&
-                              ctx.profile.support_explicit_workgroup_layout_u16;
-    if (use_explicit) {
+    if (ctx.profile.support_explicit_workgroup_layout) {
         const Id pointer{Pointer(ctx, ctx.shared_u16, ctx.shared_memory_u16, offset, 1)};
         return ctx.OpSConvert(ctx.U32[1], ctx.OpLoad(ctx.U16, pointer));
     } else {
@@ -104,8 +86,8 @@ Id EmitLoadSharedU64(EmitContext& ctx, Id offset) {
         const Id shift_id{ctx.Const(2U)};
         const Id base_index{ctx.OpShiftRightArithmetic(ctx.U32[1], offset, shift_id)};
         const Id next_index{ctx.OpIAdd(ctx.U32[1], base_index, ctx.Const(1U))};
-        const Id lhs_pointer{WorkgroupWordPointer(ctx, base_index)};
-        const Id rhs_pointer{WorkgroupWordPointer(ctx, next_index)};
+        const Id lhs_pointer{ctx.OpAccessChain(ctx.shared_u32, ctx.shared_memory_u32, base_index)};
+        const Id rhs_pointer{ctx.OpAccessChain(ctx.shared_u32, ctx.shared_memory_u32, next_index)};
         return ctx.OpCompositeConstruct(ctx.U32[2], ctx.OpLoad(ctx.U32[1], lhs_pointer),
                                         ctx.OpLoad(ctx.U32[1], rhs_pointer));
     }
@@ -121,16 +103,14 @@ Id EmitLoadSharedU128(EmitContext& ctx, Id offset) {
     std::array<Id, 4> values{};
     for (u32 i = 0; i < 4; ++i) {
         const Id index{i == 0 ? base_index : ctx.OpIAdd(ctx.U32[1], base_index, ctx.Const(i))};
-        const Id pointer{WorkgroupWordPointer(ctx, index)};
+        const Id pointer{ctx.OpAccessChain(ctx.shared_u32, ctx.shared_memory_u32, index)};
         values[i] = ctx.OpLoad(ctx.U32[1], pointer);
     }
     return ctx.OpCompositeConstruct(ctx.U32[4], values);
 }
 
 void EmitWriteSharedU8(EmitContext& ctx, Id offset, Id value) {
-    const bool use_explicit = ctx.profile.support_explicit_workgroup_layout &&
-                              ctx.profile.support_explicit_workgroup_layout_u8;
-    if (use_explicit) {
+    if (ctx.profile.support_explicit_workgroup_layout) {
         const Id pointer{
             ctx.OpAccessChain(ctx.shared_u8, ctx.shared_memory_u8, ctx.u32_zero_value, offset)};
         ctx.OpStore(pointer, ctx.OpUConvert(ctx.U8, value));
@@ -140,9 +120,7 @@ void EmitWriteSharedU8(EmitContext& ctx, Id offset, Id value) {
 }
 
 void EmitWriteSharedU16(EmitContext& ctx, Id offset, Id value) {
-    const bool use_explicit = ctx.profile.support_explicit_workgroup_layout &&
-                              ctx.profile.support_explicit_workgroup_layout_u16;
-    if (use_explicit) {
+    if (ctx.profile.support_explicit_workgroup_layout) {
         const Id pointer{Pointer(ctx, ctx.shared_u16, ctx.shared_memory_u16, offset, 1)};
         ctx.OpStore(pointer, ctx.OpUConvert(ctx.U16, value));
     } else {
@@ -157,7 +135,7 @@ void EmitWriteSharedU32(EmitContext& ctx, Id offset, Id value) {
     } else {
         const Id shift{ctx.Const(2U)};
         const Id word_offset{ctx.OpShiftRightArithmetic(ctx.U32[1], offset, shift)};
-        pointer = WorkgroupWordPointer(ctx, word_offset);
+        pointer = ctx.OpAccessChain(ctx.shared_u32, ctx.shared_memory_u32, word_offset);
     }
     ctx.OpStore(pointer, value);
 }
@@ -171,8 +149,8 @@ void EmitWriteSharedU64(EmitContext& ctx, Id offset, Id value) {
     const Id shift{ctx.Const(2U)};
     const Id word_offset{ctx.OpShiftRightArithmetic(ctx.U32[1], offset, shift)};
     const Id next_offset{ctx.OpIAdd(ctx.U32[1], word_offset, ctx.Const(1U))};
-    const Id lhs_pointer{WorkgroupWordPointer(ctx, word_offset)};
-    const Id rhs_pointer{WorkgroupWordPointer(ctx, next_offset)};
+    const Id lhs_pointer{ctx.OpAccessChain(ctx.shared_u32, ctx.shared_memory_u32, word_offset)};
+    const Id rhs_pointer{ctx.OpAccessChain(ctx.shared_u32, ctx.shared_memory_u32, next_offset)};
     ctx.OpStore(lhs_pointer, ctx.OpCompositeExtract(ctx.U32[1], value, 0U));
     ctx.OpStore(rhs_pointer, ctx.OpCompositeExtract(ctx.U32[1], value, 1U));
 }
@@ -187,7 +165,7 @@ void EmitWriteSharedU128(EmitContext& ctx, Id offset, Id value) {
     const Id base_index{ctx.OpShiftRightArithmetic(ctx.U32[1], offset, shift)};
     for (u32 i = 0; i < 4; ++i) {
         const Id index{i == 0 ? base_index : ctx.OpIAdd(ctx.U32[1], base_index, ctx.Const(i))};
-        const Id pointer{WorkgroupWordPointer(ctx, index)};
+        const Id pointer{ctx.OpAccessChain(ctx.shared_u32, ctx.shared_memory_u32, index)};
         ctx.OpStore(pointer, ctx.OpCompositeExtract(ctx.U32[1], value, i));
     }
 }
