@@ -635,14 +635,66 @@ void EmitContext::DefineSharedMemory(const IR::Program& program) {
 
         return std::make_tuple(variable, element_pointer, pointer);
     }};
+    const auto define_bitfield_stores{[&](bool define_u8, bool define_u16) {
+        if (!define_u8 && !define_u16) {
+            return;
+        }
+        const Id func_type{TypeFunction(void_id, U32[1], U32[1])};
+        const auto make_function{[&](u32 mask, u32 size) {
+            const Id loop_header{OpLabel()};
+            const Id continue_block{OpLabel()};
+            const Id merge_block{OpLabel()};
+
+            const Id func{OpFunction(void_id, spv::FunctionControlMask::MaskNone, func_type)};
+            const Id offset{OpFunctionParameter(U32[1])};
+            const Id insert_value{OpFunctionParameter(U32[1])};
+            AddLabel();
+            OpBranch(loop_header);
+
+            AddLabel(loop_header);
+            const Id word_offset{OpShiftRightArithmetic(U32[1], offset, Const(2U))};
+            const Id shift_offset{OpShiftLeftLogical(U32[1], offset, Const(3U))};
+            const Id bit_offset{OpBitwiseAnd(U32[1], shift_offset, Const(mask))};
+            const Id count{Const(size)};
+            OpLoopMerge(merge_block, continue_block, spv::LoopControlMask::MaskNone);
+            OpBranch(continue_block);
+
+            AddLabel(continue_block);
+            const Id word_pointer{profile.support_explicit_workgroup_layout
+                                      ? OpAccessChain(shared_u32, shared_memory_u32,
+                                                      u32_zero_value, word_offset)
+                                      : OpAccessChain(shared_u32, shared_memory_u32, word_offset)};
+            const Id old_value{OpLoad(U32[1], word_pointer)};
+            const Id new_value{OpBitFieldInsert(U32[1], old_value, insert_value, bit_offset,
+                                                count)};
+            const Id atomic_res{OpAtomicCompareExchange(U32[1], word_pointer, Const(1U),
+                                                        u32_zero_value, u32_zero_value, new_value,
+                                                        old_value)};
+            const Id success{OpIEqual(U1, atomic_res, old_value)};
+            OpBranchConditional(success, merge_block, loop_header);
+
+            AddLabel(merge_block);
+            OpReturn();
+            OpFunctionEnd();
+            return func;
+        }};
+        if (define_u8) {
+            shared_store_u8_func = make_function(24, 8);
+        }
+        if (define_u16) {
+            shared_store_u16_func = make_function(16, 16);
+        }
+    }};
+    const bool uses_int8 = program.info.uses_int8;
+    const bool uses_int16 = program.info.uses_int16;
     if (profile.support_explicit_workgroup_layout) {
         AddExtension("SPV_KHR_workgroup_memory_explicit_layout");
         AddCapability(spv::Capability::WorkgroupMemoryExplicitLayoutKHR);
-        if (program.info.uses_int8) {
+        if (uses_int8 && profile.support_explicit_workgroup_layout_u8) {
             AddCapability(spv::Capability::WorkgroupMemoryExplicitLayout8BitAccessKHR);
             std::tie(shared_memory_u8, shared_u8, std::ignore) = make(U8, 1);
         }
-        if (program.info.uses_int16) {
+        if (uses_int16 && profile.support_explicit_workgroup_layout_u16) {
             AddCapability(spv::Capability::WorkgroupMemoryExplicitLayout16BitAccessKHR);
             std::tie(shared_memory_u16, shared_u16, std::ignore) = make(U16, 2);
         }
@@ -652,6 +704,9 @@ void EmitContext::DefineSharedMemory(const IR::Program& program) {
         std::tie(shared_memory_u32, shared_u32, shared_memory_u32_type) = make(U32[1], 4);
         std::tie(shared_memory_u32x2, shared_u32x2, std::ignore) = make(U32[2], 8);
         std::tie(shared_memory_u32x4, shared_u32x4, std::ignore) = make(U32[4], 16);
+        const bool need_u8_fallback = uses_int8 && !profile.support_explicit_workgroup_layout_u8;
+        const bool need_u16_fallback = uses_int16 && !profile.support_explicit_workgroup_layout_u16;
+        define_bitfield_stores(need_u8_fallback, need_u16_fallback);
         return;
     }
     const u32 num_elements{Common::DivCeil(program.shared_memory_size, 4U)};
@@ -661,47 +716,7 @@ void EmitContext::DefineSharedMemory(const IR::Program& program) {
     shared_u32 = TypePointer(spv::StorageClass::Workgroup, U32[1]);
     shared_memory_u32 = AddGlobalVariable(shared_memory_u32_type, spv::StorageClass::Workgroup);
     interfaces.push_back(shared_memory_u32);
-
-    const Id func_type{TypeFunction(void_id, U32[1], U32[1])};
-    const auto make_function{[&](u32 mask, u32 size) {
-        const Id loop_header{OpLabel()};
-        const Id continue_block{OpLabel()};
-        const Id merge_block{OpLabel()};
-
-        const Id func{OpFunction(void_id, spv::FunctionControlMask::MaskNone, func_type)};
-        const Id offset{OpFunctionParameter(U32[1])};
-        const Id insert_value{OpFunctionParameter(U32[1])};
-        AddLabel();
-        OpBranch(loop_header);
-
-        AddLabel(loop_header);
-        const Id word_offset{OpShiftRightArithmetic(U32[1], offset, Const(2U))};
-        const Id shift_offset{OpShiftLeftLogical(U32[1], offset, Const(3U))};
-        const Id bit_offset{OpBitwiseAnd(U32[1], shift_offset, Const(mask))};
-        const Id count{Const(size)};
-        OpLoopMerge(merge_block, continue_block, spv::LoopControlMask::MaskNone);
-        OpBranch(continue_block);
-
-        AddLabel(continue_block);
-        const Id word_pointer{OpAccessChain(shared_u32, shared_memory_u32, word_offset)};
-        const Id old_value{OpLoad(U32[1], word_pointer)};
-        const Id new_value{OpBitFieldInsert(U32[1], old_value, insert_value, bit_offset, count)};
-        const Id atomic_res{OpAtomicCompareExchange(U32[1], word_pointer, Const(1U), u32_zero_value,
-                                                    u32_zero_value, new_value, old_value)};
-        const Id success{OpIEqual(U1, atomic_res, old_value)};
-        OpBranchConditional(success, merge_block, loop_header);
-
-        AddLabel(merge_block);
-        OpReturn();
-        OpFunctionEnd();
-        return func;
-    }};
-    if (program.info.uses_int8) {
-        shared_store_u8_func = make_function(24, 8);
-    }
-    if (program.info.uses_int16) {
-        shared_store_u16_func = make_function(16, 16);
-    }
+    define_bitfield_stores(uses_int8, uses_int16);
 }
 
 void EmitContext::DefineSharedMemoryFunctions(const IR::Program& program) {
