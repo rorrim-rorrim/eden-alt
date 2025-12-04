@@ -499,6 +499,16 @@ public:
         return extensions.workgroup_memory_explicit_layout;
     }
 
+    /// Returns true if explicit workgroup layout supports 8-bit access.
+    bool SupportsWorkgroupExplicitLayout8Bit() const {
+        return workgroup_memory_explicit_layout_caps.supports_8bit;
+    }
+
+    /// Returns true if explicit workgroup layout supports 16-bit access.
+    bool SupportsWorkgroupExplicitLayout16Bit() const {
+        return workgroup_memory_explicit_layout_caps.supports_16bit;
+    }
+
     /// Returns true if the device supports VK_KHR_image_format_list.
     bool IsKhrImageFormatListSupported() const {
         return extensions.image_format_list || instance_version >= VK_API_VERSION_1_2;
@@ -1061,6 +1071,13 @@ private:
     Extensions extensions{};
     Features features{};
     Properties properties{};
+
+    struct WorkgroupExplicitLayoutCaps {
+        bool supports_8bit{};
+        bool supports_16bit{};
+    };
+
+    WorkgroupExplicitLayoutCaps workgroup_memory_explicit_layout_caps{};
 
     VkPhysicalDeviceFeatures2 features2{};
     VkPhysicalDeviceProperties2 properties2{};
