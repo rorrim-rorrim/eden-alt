@@ -100,6 +100,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(KHR, MAINTENANCE_3, maintenance3)                                                    \
     EXTENSION(KHR, MAINTENANCE_7, maintenance7)                                                    \
     EXTENSION(KHR, MAINTENANCE_8, maintenance8)                                                    \
+    EXTENSION(KHR, MAINTENANCE_9, maintenance9)                                                    \
     EXTENSION(NV, DEVICE_DIAGNOSTICS_CONFIG, device_diagnostics_config)                            \
     EXTENSION(NV, GEOMETRY_SHADER_PASSTHROUGH, geometry_shader_passthrough)                        \
     EXTENSION(NV, VIEWPORT_ARRAY2, viewport_array2)                                                \
@@ -508,16 +509,6 @@ public:
     /// Returns true if the device supports VK_KHR_workgroup_memory_explicit_layout.
     bool IsKhrWorkgroupMemoryExplicitLayoutSupported() const {
         return extensions.workgroup_memory_explicit_layout;
-    }
-
-    /// Returns true if explicit workgroup layout supports 8-bit access.
-    bool SupportsWorkgroupExplicitLayout8Bit() const {
-        return workgroup_memory_explicit_layout_caps.supports_8bit;
-    }
-
-    /// Returns true if explicit workgroup layout supports 16-bit access.
-    bool SupportsWorkgroupExplicitLayout16Bit() const {
-        return workgroup_memory_explicit_layout_caps.supports_16bit;
     }
 
     /// Returns true if the device supports VK_KHR_image_format_list.
@@ -957,6 +948,11 @@ public:
         return extensions.maintenance8;
     }
 
+    /// Returns true if the device supports VK_KHR_maintenance9.
+    bool IsKhrMaintenance9Supported() const {
+        return extensions.maintenance9;
+    }
+
     [[nodiscard]] static constexpr bool CheckBrokenCompute(VkDriverId driver_id,
                                                            u32 driver_version) {
         if (driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) {
@@ -1083,13 +1079,6 @@ private:
     Extensions extensions{};
     Features features{};
     Properties properties{};
-
-    struct WorkgroupExplicitLayoutCaps {
-        bool supports_8bit{};
-        bool supports_16bit{};
-    };
-
-    WorkgroupExplicitLayoutCaps workgroup_memory_explicit_layout_caps{};
 
     VkPhysicalDeviceFeatures2 features2{};
     VkPhysicalDeviceProperties2 properties2{};
