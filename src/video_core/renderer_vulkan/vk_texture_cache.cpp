@@ -44,6 +44,8 @@ using VideoCommon::ImageInfo;
 using VideoCommon::ImageType;
 using VideoCommon::SubresourceRange;
 using VideoCore::Surface::BytesPerBlock;
+using VideoCore::Surface::DefaultBlockHeight;
+using VideoCore::Surface::DefaultBlockWidth;
 using VideoCore::Surface::HasAlpha;
 using VideoCore::Surface::IsPixelFormatASTC;
 using VideoCore::Surface::IsPixelFormatInteger;
@@ -191,7 +193,8 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
 }
 
 [[nodiscard]] vk::Image MakeImage(const Device& device, const MemoryAllocator& allocator,
-                                  const ImageInfo& info, std::span<const VkFormat> view_formats) {
+                                  const ImageInfo& info, std::span<const VkFormat> view_formats,
+                                  bool needs_block_compatible_views) {
     if (info.type == ImageType::Buffer) {
         return vk::Image{};
     }
@@ -204,6 +207,9 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     };
     if (view_formats.size() > 1) {
         image_ci.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+        if (needs_block_compatible_views) {
+            image_ci.flags |= VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT;
+        }
         if (device.IsKhrImageFormatListSupported()) {
             image_ci.pNext = &image_format_list;
         }
@@ -880,17 +886,30 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
     }
     for (size_t index_a = 0; index_a < VideoCore::Surface::MaxPixelFormat; index_a++) {
         const auto image_format = static_cast<PixelFormat>(index_a);
+        const auto image_block_width = DefaultBlockWidth(image_format);
+        const auto image_block_height = DefaultBlockHeight(image_format);
+        const auto image_bytes_per_block = BytesPerBlock(image_format);
+        bool needs_block_view = false;
         if (IsPixelFormatASTC(image_format) && !device.IsOptimalAstcSupported()) {
             view_formats[index_a].push_back(VK_FORMAT_A8B8G8R8_UNORM_PACK32);
+            needs_block_view = true;
         }
         for (size_t index_b = 0; index_b < VideoCore::Surface::MaxPixelFormat; index_b++) {
             const auto view_format = static_cast<PixelFormat>(index_b);
-            if (VideoCore::Surface::IsViewCompatible(image_format, view_format, false, true)) {
-                const auto view_info =
-                    MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, true, view_format);
-                view_formats[index_a].push_back(view_info.format);
+            if (!VideoCore::Surface::IsViewCompatible(image_format, view_format, false, true)) {
+                continue;
+            }
+            const auto view_info =
+                MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, true, view_format);
+            view_formats[index_a].push_back(view_info.format);
+            if (!needs_block_view) {
+                const bool different_block = image_bytes_per_block != BytesPerBlock(view_format) ||
+                                            image_block_width != DefaultBlockWidth(view_format) ||
+                                            image_block_height != DefaultBlockHeight(view_format);
+                needs_block_view = different_block;
             }
         }
+        requires_block_view_formats[index_a] = needs_block_view;
     }
 }
 
@@ -1675,9 +1694,11 @@ void TextureCacheRuntime::TickFrame() {}
 
 Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu_addr_,
              VAddr cpu_addr_)
-    : VideoCommon::ImageBase(info_, gpu_addr_, cpu_addr_), scheduler{&runtime_.scheduler},
-      runtime{&runtime_}, original_image(MakeImage(runtime_.device, runtime_.memory_allocator, info,
-                                                   runtime->ViewFormats(info.format))),
+        : VideoCommon::ImageBase(info_, gpu_addr_, cpu_addr_), scheduler{&runtime_.scheduler},
+            runtime{&runtime_},
+            original_image(MakeImage(runtime_.device, runtime_.memory_allocator, info,
+                                                             runtime_.ViewFormats(info.format),
+                                                             runtime_.RequiresBlockCompatibleViewFormats(info.format))),
       aspect_mask(ImageAspectMask(info.format)) {
     if (IsPixelFormatASTC(info.format) && !runtime->device.IsOptimalAstcSupported()) {
         switch (Settings::values.accelerate_astc.GetValue()) {
@@ -2054,7 +2075,8 @@ bool Image::ScaleUp(bool ignore) {
         scaled_info.size.width = scaled_width;
         scaled_info.size.height = scaled_height;
         scaled_image = MakeImage(runtime->device, runtime->memory_allocator, scaled_info,
-                                 runtime->ViewFormats(info.format));
+                     runtime->ViewFormats(info.format),
+                     runtime->RequiresBlockCompatibleViewFormats(info.format));
         ignore = false;
     }
     current_image = &Image::scaled_image;
@@ -2305,7 +2327,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::NullImageV
     ImageInfo info{};
     info.format = PixelFormat::A8B8G8R8_UNORM;
 
-    null_image = MakeImage(*device, runtime.memory_allocator, info, {});
+    null_image = MakeImage(*device, runtime.memory_allocator, info, {}, false);
     image_handle = *null_image;
     for (u32 i = 0; i < Shader::NUM_TEXTURE_TYPES; i++) {
         image_views[i] = MakeView(VK_FORMAT_A8B8G8R8_UNORM_PACK32, VK_IMAGE_ASPECT_COLOR_BIT);
