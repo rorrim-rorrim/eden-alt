@@ -169,8 +169,6 @@ private:
     void UpdateDepthBounds(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateLineWidth(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateSampleLocations(Tegra::Engines::Maxwell3D::Regs& regs);
-
     void UpdateCullMode(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateDepthBoundsTestEnable(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateDepthTestEnable(Tegra::Engines::Maxwell3D::Regs& regs);
@@ -194,17 +192,6 @@ private:
     void UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs);
 
     void UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs);
-
-    struct SampleLocationState {
-        Tegra::Texture::MsaaMode msaa_mode{Tegra::Texture::MsaaMode::Msaa1x1};
-        VkExtent2D grid_size{1u, 1u};
-        VkSampleCountFlagBits samples_per_pixel{VK_SAMPLE_COUNT_1_BIT};
-        u32 locations_count{VideoCommon::MaxSampleLocationSlots};
-        std::array<VkSampleLocationEXT, VideoCommon::MaxSampleLocationSlots> locations{};
-        bool initialized = false;
-    };
-
-    SampleLocationState sample_location_state{};
 
     Tegra::GPU& gpu;
     Tegra::MaxwellDeviceMemoryManager& device_memory;
