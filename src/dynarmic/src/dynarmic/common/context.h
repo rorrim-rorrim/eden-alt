@@ -70,7 +70,7 @@
 #        define CTX_Q(i) (fpctx->vregs[i])
 #        define CTX_FPSR (fpctx->fpsr)
 #        define CTX_FPCR (fpctx->fpcr)
-#    elif defined(__FreeBSD__)
+#    elif defined(__FreeBSD__) || defined(__DragonFly__)
 #        define CTX_PC (mctx.mc_gpregs.gp_elr)
 #        define CTX_SP (mctx.mc_gpregs.gp_sp)
 #        define CTX_LR (mctx.mc_gpregs.gp_lr)
@@ -121,6 +121,9 @@
 #    elif defined(__DragonFly__)
 #        define CTX_RIP (mctx.mc_rip)
 #        define CTX_RSP (mctx.mc_rsp)
+#    elif defined(__OPENORBIS__)
+#        define CTX_RIP (mctx.gregs[REG_RIP])
+#        define CTX_RSP (mctx.gregs[REG_RSP])
 #    else
 #        error "unknown platform"
 #    endif
