@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cmath>
 #include <memory>
 #include <mutex>
 
@@ -1707,22 +1706,9 @@ void RasterizerVulkan::UpdateSampleLocations(Maxwell& regs) {
         return;
     }
 
-    const auto& sample_props = device.SampleLocationProperties();
-    if (sample_props.variableSampleLocations == VK_FALSE) {
-        return;
-    }
-
     const auto [grid_width_u32, grid_height_u32] = VideoCommon::SampleLocationGridSize(msaa_mode);
     const u32 grid_width = grid_width_u32;
     const u32 grid_height = grid_height_u32;
-    if (grid_width > sample_props.maxSampleLocationGridSize.width ||
-        grid_height > sample_props.maxSampleLocationGridSize.height) {
-        LOG_WARNING(Render_Vulkan,
-                    "Sample location grid {}x{} exceeds device limit {}x{}, falling back to fixed pattern",
-                    grid_width, grid_height, sample_props.maxSampleLocationGridSize.width,
-                    sample_props.maxSampleLocationGridSize.height);
-        return;
-    }
     const u32 samples_per_pixel = static_cast<u32>(VideoCommon::NumSamples(msaa_mode));
     const u32 grid_cells = grid_width * grid_height;
     const u32 sample_locations_count = grid_cells * samples_per_pixel;
@@ -1730,30 +1716,15 @@ void RasterizerVulkan::UpdateSampleLocations(Maxwell& regs) {
 
     const auto raw_locations = DecodeSampleLocationRegisters(regs);
     std::array<VkSampleLocationEXT, VideoCommon::MaxSampleLocationSlots> resolved{};
-    const float coord_min = sample_props.sampleLocationCoordinateRange[0];
-    const float coord_max = sample_props.sampleLocationCoordinateRange[1];
-    const float host_unit = sample_props.sampleLocationSubPixelBits > 0
-                                ? 1.0f / static_cast<float>(1u << sample_props.sampleLocationSubPixelBits)
-                                : 0.0f;
-    const auto sanitize_coord = [&](float value) {
-        float clamped = std::clamp(value, coord_min, coord_max);
-        if (host_unit > 0.0f) {
-            clamped = coord_min + std::round((clamped - coord_min) / host_unit) * host_unit;
-            clamped = std::clamp(clamped, coord_min, coord_max);
-        }
-        return clamped;
-    };
     for (u32 cell = 0; cell < grid_cells; ++cell) {
         const u32 slot_base = cell * samples_per_pixel;
         const u32 cell_x = cell % grid_width;
         const u32 cell_y = cell / grid_width;
         for (u32 sample = 0; sample < samples_per_pixel; ++sample) {
             const VkSampleLocationEXT raw = raw_locations[slot_base + sample];
-            const float sample_x = static_cast<float>(cell_x) + raw.x;
-            const float sample_y = static_cast<float>(cell_y) + raw.y;
             resolved[slot_base + sample] = VkSampleLocationEXT{
-                .x = sanitize_coord(sample_x),
-                .y = sanitize_coord(sample_y),
+                .x = static_cast<float>(cell_x) + raw.x,
+                .y = static_cast<float>(cell_y) + raw.y,
             };
         }
     }
