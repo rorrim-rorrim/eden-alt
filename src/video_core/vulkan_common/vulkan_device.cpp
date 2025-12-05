@@ -1204,11 +1204,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_PROPERTIES_EXT;
         SetNext(next, properties.transform_feedback);
     }
-    if (extensions.sample_locations) {
-        properties.sample_locations.sType =
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLE_LOCATIONS_PROPERTIES_EXT;
-        SetNext(next, properties.sample_locations);
-    }
     if (extensions.maintenance5) {
         properties.maintenance5.sType =
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_PROPERTIES_KHR;
@@ -1485,12 +1480,6 @@ void Device::RemoveUnsuitableExtensions() {
     }
     RemoveExtensionFeatureIfUnsuitable(extensions.transform_feedback, features.transform_feedback,
                                        VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
-
-    // VK_EXT_sample_locations
-    extensions.sample_locations =
-        loaded_extensions.contains(VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME);
-    RemoveExtensionIfUnsuitable(extensions.sample_locations,
-                                VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME);
 
     // VK_EXT_vertex_input_dynamic_state
     extensions.vertex_input_dynamic_state =
