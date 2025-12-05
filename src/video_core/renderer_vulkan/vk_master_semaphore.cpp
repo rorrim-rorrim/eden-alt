@@ -215,16 +215,27 @@ void MasterSemaphore::WaitThread(std::stop_token token) {
             std::tie(host_tick, fence) = std::move(wait_queue.front());
             wait_queue.pop();
         }
+        VkResult status;
+        do {
+            status = fence.GetStatus();
+            if (status == VK_NOT_READY) {
+                std::this_thread::sleep_for(std::chrono::microseconds(100));
+            }
+        } while (status == VK_NOT_READY);
 
-        fence.Wait();
-        fence.Reset();
+        if (status == VK_SUCCESS) {
+            fence.Reset();
+        } else {
+            vk::Check(status);
+            continue;
+        }
 
         {
             std::scoped_lock lock{free_mutex};
             free_queue.push_front(std::move(fence));
-            gpu_tick.store(host_tick);
+            gpu_tick.store(host_tick, std::memory_order_release);
         }
-        free_cv.notify_one();
+        free_cv.notify_all();
     }
 }
 
