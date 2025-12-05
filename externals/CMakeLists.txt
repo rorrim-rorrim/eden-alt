@@ -271,7 +271,7 @@ AddJsonPackage(gamemode)
 
 if (gamemode_ADDED)
     add_library(gamemode INTERFACE)
-    target_include_directories(gamemode INTERFACE ${gamemode_SOURCE_DIR})
+    target_include_directories(gamemode INTERFACE ${gamemode_SOURCE_DIR}/lib)
     add_library(gamemode::headers ALIAS gamemode)
 endif()
 

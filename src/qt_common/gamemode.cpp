@@ -7,7 +7,7 @@
 // While technically available on al *NIX platforms, Linux is only available
 // as the primary target of libgamemode.so - so warnings are suppressed
 #ifdef __unix__
-#include <lib/gamemode_client.h>
+#include <gamemode_client.h>
 #endif
 #include "qt_common/gamemode.h"
 #include "common/logging/log.h"
