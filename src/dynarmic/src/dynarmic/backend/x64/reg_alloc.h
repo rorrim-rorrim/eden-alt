@@ -129,16 +129,15 @@ public:
     IR::AccType GetImmediateAccType() const noexcept;
 
     /// Is this value currently in a GPR?
-    bool IsInGpr() const noexcept;
-    bool IsInXmm() const noexcept;
-    bool IsInMemory() const noexcept;
+    bool IsInGpr(RegAlloc& reg_alloc) const noexcept;
+    bool IsInXmm(RegAlloc& reg_alloc) const noexcept;
+    bool IsInMemory(RegAlloc& reg_alloc) const noexcept;
 private:
     friend class RegAlloc;
-    explicit Argument(RegAlloc& reg_alloc) : reg_alloc(reg_alloc) {}
+    explicit Argument() {}
 
 //data
     IR::Value value; //8
-    RegAlloc& reg_alloc; //8
     bool allocated = false; //1
 };
 

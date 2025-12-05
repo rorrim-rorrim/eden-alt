@@ -1523,7 +1523,7 @@ void EmitX64::EmitZeroExtendWordToLong(EmitContext& ctx, IR::Inst* inst) {
 
 void EmitX64::EmitZeroExtendLongToQuad(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    if (args[0].IsInGpr()) {
+    if (args[0].IsInGpr(ctx.reg_alloc)) {
         const Xbyak::Reg64 source = ctx.reg_alloc.UseGpr(args[0]);
         const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm();
         code.movq(result, source);

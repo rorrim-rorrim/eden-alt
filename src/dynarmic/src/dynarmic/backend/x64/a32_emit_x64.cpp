@@ -332,7 +332,7 @@ void A32EmitX64::EmitA32SetRegister(A32EmitContext& ctx, IR::Inst* inst) {
 
     if (args[1].IsImmediate()) {
         code.mov(MJitStateReg(reg), args[1].GetImmediateU32());
-    } else if (args[1].IsInXmm()) {
+    } else if (args[1].IsInXmm(ctx.reg_alloc)) {
         const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[1]);
         code.movd(MJitStateReg(reg), to_store);
     } else {
@@ -346,7 +346,7 @@ void A32EmitX64::EmitA32SetExtendedRegister32(A32EmitContext& ctx, IR::Inst* ins
     const A32::ExtReg reg = inst->GetArg(0).GetA32ExtRegRef();
     ASSERT(A32::IsSingleExtReg(reg));
 
-    if (args[1].IsInXmm()) {
+    if (args[1].IsInXmm(ctx.reg_alloc)) {
         Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[1]);
         code.movss(MJitStateExtReg(reg), to_store);
     } else {
@@ -360,7 +360,7 @@ void A32EmitX64::EmitA32SetExtendedRegister64(A32EmitContext& ctx, IR::Inst* ins
     const A32::ExtReg reg = inst->GetArg(0).GetA32ExtRegRef();
     ASSERT(A32::IsDoubleExtReg(reg));
 
-    if (args[1].IsInXmm()) {
+    if (args[1].IsInXmm(ctx.reg_alloc)) {
         const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[1]);
         code.movsd(MJitStateExtReg(reg), to_store);
     } else {
@@ -635,7 +635,7 @@ void A32EmitX64::EmitA32SetGEFlags(A32EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ASSERT(!args[0].IsImmediate());
 
-    if (args[0].IsInXmm()) {
+    if (args[0].IsInXmm(ctx.reg_alloc)) {
         const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[0]);
         code.movd(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)], to_store);
     } else {

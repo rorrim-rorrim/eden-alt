@@ -405,7 +405,7 @@ void A64EmitX64::EmitA64SetX(A64EmitContext& ctx, IR::Inst* inst) {
     const auto addr = qword[code.ABI_JIT_PTR + offsetof(A64JitState, reg) + sizeof(u64) * static_cast<size_t>(reg)];
     if (args[1].FitsInImmediateS32()) {
         code.mov(addr, args[1].GetImmediateS32());
-    } else if (args[1].IsInXmm()) {
+    } else if (args[1].IsInXmm(ctx.reg_alloc)) {
         const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[1]);
         code.movq(addr, to_store);
     } else {
@@ -451,7 +451,7 @@ void A64EmitX64::EmitA64SetSP(A64EmitContext& ctx, IR::Inst* inst) {
     const auto addr = qword[code.ABI_JIT_PTR + offsetof(A64JitState, sp)];
     if (args[0].FitsInImmediateS32()) {
         code.mov(addr, args[0].GetImmediateS32());
-    } else if (args[0].IsInXmm()) {
+    } else if (args[0].IsInXmm(ctx.reg_alloc)) {
         const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[0]);
         code.movq(addr, to_store);
     } else {
@@ -489,7 +489,7 @@ void A64EmitX64::EmitA64SetPC(A64EmitContext& ctx, IR::Inst* inst) {
     const auto addr = qword[code.ABI_JIT_PTR + offsetof(A64JitState, pc)];
     if (args[0].FitsInImmediateS32()) {
         code.mov(addr, args[0].GetImmediateS32());
-    } else if (args[0].IsInXmm()) {
+    } else if (args[0].IsInXmm(ctx.reg_alloc)) {
         const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[0]);
         code.movq(addr, to_store);
     } else {
