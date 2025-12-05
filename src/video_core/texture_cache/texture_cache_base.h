@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -22,7 +19,6 @@
 #include "common/hash.h"
 #include "common/literals.h"
 #include "common/lru_cache.h"
-#include <ranges>
 #include "common/scratch_buffer.h"
 #include "common/slot_vector.h"
 #include "common/thread_worker.h"
@@ -108,14 +104,9 @@ class TextureCache : public VideoCommon::ChannelSetupCaches<TextureCacheChannelI
     /// True when the API can do asynchronous texture downloads.
     static constexpr bool IMPLEMENTS_ASYNC_DOWNLOADS = P::IMPLEMENTS_ASYNC_DOWNLOADS;
 
-    static constexpr size_t UNSET_CHANNEL{(std::numeric_limits<size_t>::max)()};
+    static constexpr size_t UNSET_CHANNEL{std::numeric_limits<size_t>::max()};
 
-#ifdef YUZU_LEGACY
-    static constexpr s64 TARGET_THRESHOLD = 3_GiB;
-#else
     static constexpr s64 TARGET_THRESHOLD = 4_GiB;
-#endif
-
     static constexpr s64 DEFAULT_EXPECTED_MEMORY = 1_GiB + 125_MiB;
     static constexpr s64 DEFAULT_CRITICAL_MEMORY = 1_GiB + 625_MiB;
     static constexpr size_t GC_EMERGENCY_COUNTS = 2;
@@ -484,11 +475,7 @@ private:
     };
     Common::LeastRecentlyUsedCache<LRUItemParams> lru_cache;
 
- #ifdef YUZU_LEGACY
-    static constexpr size_t TICKS_TO_DESTROY = 6;
- #else
     static constexpr size_t TICKS_TO_DESTROY = 8;
-#endif
     DelayedDestructionRing<Image, TICKS_TO_DESTROY> sentenced_images;
     DelayedDestructionRing<ImageView, TICKS_TO_DESTROY> sentenced_image_view;
     DelayedDestructionRing<Framebuffer, TICKS_TO_DESTROY> sentenced_framebuffers;

@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -23,7 +20,9 @@ namespace VideoCommon::GPUThread {
 static void RunThread(std::stop_token stop_token, Core::System& system,
                       VideoCore::RendererBase& renderer, Core::Frontend::GraphicsContext& context,
                       Tegra::Control::Scheduler& scheduler, SynchState& state) {
-    Common::SetCurrentThreadName("GPU");
+    std::string name = "GPU";
+
+    Common::SetCurrentThreadName(name.c_str());
     Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
     system.RegisterHostThread();
 
@@ -79,15 +78,8 @@ void ThreadManager::FlushRegion(DAddr addr, u64 size) {
     if (!is_async) {
         // Always flush with synchronous GPU mode
         PushCommand(FlushRegionCommand(addr, size));
-        return;
     }
-    if (!Settings::IsGPULevelExtreme()) {
-        return;
-    }
-    auto& gpu = system.GPU();
-    u64 fence = gpu.RequestFlush(addr, size);
-    TickGPU();
-    gpu.WaitForSyncOperation(fence);
+    return;
 }
 
 void ThreadManager::TickGPU() {
@@ -121,5 +113,6 @@ u64 ThreadManager::PushCommand(CommandData&& command_data, bool block) {
 
     return fence;
 }
+
 
 } // namespace VideoCommon::GPUThread

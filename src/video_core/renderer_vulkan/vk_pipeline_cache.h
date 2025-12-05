@@ -150,7 +150,6 @@ private:
     VideoCore::ShaderNotify& shader_notify;
     bool use_asynchronous_shaders{};
     bool use_vulkan_pipeline_cache{};
-    bool optimize_spirv_output{};
 
     GraphicsPipelineCacheKey graphics_key{};
     GraphicsPipeline* current_pipeline{};
@@ -170,6 +169,7 @@ private:
 
     Common::ThreadWorker workers;
     Common::ThreadWorker serialization_thread;
+
     DynamicFeatures dynamic_features;
 };
 

@@ -3,7 +3,7 @@
 
 #include <string_view>
 
-#include <fmt/ranges.h>
+#include <fmt/format.h>
 
 #include "common/common_types.h"
 #include "common/logging/log.h"

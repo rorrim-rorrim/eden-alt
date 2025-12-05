@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,11 +8,13 @@
 #include <cstring>
 #include <deque>
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <thread>
 #include <queue>
 
 #include "common/common_types.h"
+#include "common/scope_exit.h"
 #include "common/settings.h"
 #include "common/thread.h"
 #include "video_core/delayed_destruction_ring.h"
@@ -72,66 +71,33 @@ public:
     }
 
     void SignalFence(std::function<void()>&& func) {
-        const bool delay_fence = Settings::IsGPULevelHigh();
-
-        #ifdef __ANDROID__
-        const bool use_optimized = Settings::values.early_release_fences.GetValue();
-        #else
-        constexpr bool use_optimized = false;
-        #endif
-
+        if constexpr (!can_async_check) {
+            TryReleasePendingFences<false>();
+        }
         const bool should_flush = ShouldFlush();
         CommitAsyncFlushes();
         TFence new_fence = CreateFence(!should_flush);
-
-        if (use_optimized) {
-            if (!delay_fence) {
-                TryReleasePendingFences<false>();
-            }
-
-            if (delay_fence) {
-                guard.lock();
-                uncommitted_operations.emplace_back(std::move(func));
-            }
-        } else {
-            if constexpr (!can_async_check) {
-                TryReleasePendingFences<false>();
-            }
-
-            if constexpr (can_async_check) {
-                guard.lock();
-            }
-
-            if (delay_fence) {
-                uncommitted_operations.emplace_back(std::move(func));
-            }
+        if constexpr (can_async_check) {
+            guard.lock();
         }
-
-        pending_operations.emplace_back(std::move(uncommitted_operations));
-        QueueFence(new_fence);
-
-        if (!delay_fence) {
+        if (Settings::IsGPULevelHigh() && !should_flush) {
             func();
+        } else {
+            uncommitted_operations.emplace_back(std::move(func));
         }
-
+        if (!uncommitted_operations.empty()) {
+            pending_operations.emplace_back(std::move(uncommitted_operations));
+            uncommitted_operations.clear();
+        }
+        QueueFence(new_fence);
         fences.push(std::move(new_fence));
-
         if (should_flush) {
             rasterizer.FlushCommands();
         }
-
-        if (use_optimized) {
-            if (delay_fence) {
-                guard.unlock();
-                cv.notify_all();
-            }
-        } else {
-            if constexpr (can_async_check) {
-                guard.unlock();
-                cv.notify_all();
-            }
+        if constexpr (can_async_check) {
+            guard.unlock();
+            cv.notify_all();
         }
-
         rasterizer.InvalidateGPUCache();
     }
 
@@ -227,7 +193,9 @@ private:
     }
 
     void ReleaseThreadFunc(std::stop_token stop_token) {
-        Common::SetCurrentThreadName("GPUFencingThread");
+        std::string name = "GPUFencingThread";
+
+        Common::SetCurrentThreadName(name.c_str());
         Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
 
         TFence current_fence;

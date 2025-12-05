@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -13,7 +10,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include "video_core/renderer_vulkan/vk_texture_cache.h"
+
 #include "common/bit_util.h"
 #include "common/common_types.h"
 #include "video_core/engines/draw_manager.h"
@@ -116,11 +113,11 @@ struct HostSyncValues {
 class SamplesStreamer : public BaseStreamer {
 public:
     explicit SamplesStreamer(size_t id_, QueryCacheRuntime& runtime_,
-                             VideoCore::RasterizerInterface* rasterizer_, TextureCache& texture_cache_, const Device& device_,
+                             VideoCore::RasterizerInterface* rasterizer_, const Device& device_,
                              Scheduler& scheduler_, const MemoryAllocator& memory_allocator_,
                              ComputePassDescriptorQueue& compute_pass_descriptor_queue,
                              DescriptorPool& descriptor_pool)
-        : BaseStreamer(id_), texture_cache{texture_cache_}, runtime{runtime_}, rasterizer{rasterizer_}, device{device_},
+        : BaseStreamer(id_), runtime{runtime_}, rasterizer{rasterizer_}, device{device_},
           scheduler{scheduler_}, memory_allocator{memory_allocator_} {
         current_bank = nullptr;
         current_query = nullptr;
@@ -153,32 +150,15 @@ public:
         if (has_started) {
             return;
         }
-
         ReserveHostQuery();
-
-        // Ensure outside render pass
-        scheduler.RequestOutsideRenderPassOperationContext();
-
-        // Reset query pool outside render pass
         scheduler.Record([query_pool = current_query_pool,
-                                 query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
-            cmdbuf.ResetQueryPool(query_pool, static_cast<u32>(query_index), 1);
-        });
-
-        // Manually restart the render pass (required for vkCmdClearAttachments, etc.)
-        scheduler.RequestRenderpass(texture_cache.GetFramebuffer());
-
-        // Begin query inside the newly started render pass
-        scheduler.Record([query_pool = current_query_pool,
-                                 query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
+                          query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
             const bool use_precise = Settings::IsGPULevelHigh();
             cmdbuf.BeginQuery(query_pool, static_cast<u32>(query_index),
                               use_precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
         });
-
         has_started = true;
     }
-
 
     void PauseCounter() override {
         if (!has_started) {
@@ -196,14 +176,14 @@ public:
             PauseCounter();
         }
         AbandonCurrentQuery();
-        std::function<void()> func([this] {
+        std::function<void()> func([this, counts = pending_flush_queries.size()] {
             amend_value = 0;
             accumulation_value = 0;
         });
         rasterizer->SyncOperation(std::move(func));
         accumulation_since_last_sync = false;
-        first_accumulation_checkpoint = (std::min)(first_accumulation_checkpoint, num_slots_used);
-        last_accumulation_checkpoint = (std::max)(last_accumulation_checkpoint, num_slots_used);
+        first_accumulation_checkpoint = std::min(first_accumulation_checkpoint, num_slots_used);
+        last_accumulation_checkpoint = std::max(last_accumulation_checkpoint, num_slots_used);
     }
 
     void CloseCounter() override {
@@ -311,9 +291,9 @@ public:
 
         if (has_multi_queries) {
             const size_t min_accumulation_limit =
-                (std::min)(first_accumulation_checkpoint, num_slots_used);
+                std::min(first_accumulation_checkpoint, num_slots_used);
             const size_t max_accumulation_limit =
-                (std::max)(last_accumulation_checkpoint, num_slots_used);
+                std::max(last_accumulation_checkpoint, num_slots_used);
             const size_t intermediary_buffer_index = ObtainBuffer<false>(num_slots_used);
             resolve_buffers.push_back(intermediary_buffer_index);
             queries_prefix_scan_pass->Run(*accumulation_buffer, *buffers[intermediary_buffer_index],
@@ -332,7 +312,7 @@ public:
         rasterizer->SyncOperation(std::move(func));
         AbandonCurrentQuery();
         num_slots_used = 0;
-        first_accumulation_checkpoint = (std::numeric_limits<size_t>::max)();
+        first_accumulation_checkpoint = std::numeric_limits<size_t>::max();
         last_accumulation_checkpoint = 0;
         accumulation_since_last_sync = has_multi_queries;
         pending_sync.clear();
@@ -414,14 +394,14 @@ private:
         size_t start_slot = query->start_slot;
         for (size_t i = 0; i < banks_set; i++) {
             auto& the_bank = bank_pool.GetBank(bank_id);
-            size_t amount = (std::min)(the_bank.Size() - start_slot, size_slots);
+            size_t amount = std::min(the_bank.Size() - start_slot, size_slots);
             func(&the_bank, start_slot, amount);
             bank_id = the_bank.next_bank - 1;
             start_slot = 0;
             size_slots -= amount;
         }
     }
-    TextureCache& texture_cache;
+
     template <bool is_ordered, typename Func>
     void ApplyBanksWideOp(std::vector<size_t>& queries, Func&& func) {
         std::conditional_t<is_ordered, std::map<size_t, std::pair<size_t, size_t>>,
@@ -431,11 +411,11 @@ private:
             auto* query = GetQuery(q);
             ApplyBankOp(query, [&indexer](SamplesQueryBank* bank, size_t start, size_t amount) {
                 auto id_ = bank->GetIndex();
-                auto pair = indexer.try_emplace(id_, (std::numeric_limits<size_t>::max)(),
-                                                (std::numeric_limits<size_t>::min)());
+                auto pair = indexer.try_emplace(id_, std::numeric_limits<size_t>::max(),
+                                                std::numeric_limits<size_t>::min());
                 auto& current_pair = pair.first->second;
-                current_pair.first = (std::min)(current_pair.first, start);
-                current_pair.second = (std::max)(current_pair.second, amount + start);
+                current_pair.first = std::min(current_pair.first, start);
+                current_pair.second = std::max(current_pair.second, amount + start);
             });
         }
         for (auto& cont : indexer) {
@@ -1180,13 +1160,14 @@ struct QueryCacheRuntimeImpl {
                           const MemoryAllocator& memory_allocator_, Scheduler& scheduler_,
                           StagingBufferPool& staging_pool_,
                           ComputePassDescriptorQueue& compute_pass_descriptor_queue,
-                          DescriptorPool& descriptor_pool, TextureCache& texture_cache_)
-        : rasterizer{rasterizer_}, device_memory{device_memory_}, buffer_cache{buffer_cache_},
-          device{device_}, memory_allocator{memory_allocator_}, scheduler{scheduler_},
-          staging_pool{staging_pool_}, guest_streamer(0, runtime),
+                          DescriptorPool& descriptor_pool)
+        : rasterizer{rasterizer_}, device_memory{device_memory_},
+          buffer_cache{buffer_cache_}, device{device_},
+          memory_allocator{memory_allocator_}, scheduler{scheduler_}, staging_pool{staging_pool_},
+          guest_streamer(0, runtime),
           sample_streamer(static_cast<size_t>(QueryType::ZPassPixelCount64), runtime, rasterizer,
-                          texture_cache_, device, scheduler, memory_allocator,
-                          compute_pass_descriptor_queue, descriptor_pool),
+                          device, scheduler, memory_allocator, compute_pass_descriptor_queue,
+                          descriptor_pool),
           tfb_streamer(static_cast<size_t>(QueryType::StreamingByteCount), runtime, device,
                        scheduler, memory_allocator, staging_pool),
           primitives_succeeded_streamer(
@@ -1257,10 +1238,10 @@ QueryCacheRuntime::QueryCacheRuntime(VideoCore::RasterizerInterface* rasterizer,
                                      const MemoryAllocator& memory_allocator_,
                                      Scheduler& scheduler_, StagingBufferPool& staging_pool_,
                                      ComputePassDescriptorQueue& compute_pass_descriptor_queue,
-                                     DescriptorPool& descriptor_pool, TextureCache& texture_cache_) {
+                                     DescriptorPool& descriptor_pool) {
     impl = std::make_unique<QueryCacheRuntimeImpl>(
         *this, rasterizer, device_memory_, buffer_cache_, device_, memory_allocator_, scheduler_,
-        staging_pool_, compute_pass_descriptor_queue, descriptor_pool, texture_cache_);
+        staging_pool_, compute_pass_descriptor_queue, descriptor_pool);
 }
 
 void QueryCacheRuntime::Bind3DEngine(Maxwell3D* maxwell3d) {
@@ -1319,11 +1300,9 @@ void QueryCacheRuntime::HostConditionalRenderingCompareValueImpl(VideoCommon::Lo
     if (impl->hcr_is_set) {
         if (impl->hcr_setup.buffer == impl->hcr_buffer &&
             impl->hcr_setup.offset == impl->hcr_offset) {
+            ResumeHostConditionalRendering();
             return;
         }
-    }
-    bool was_running = impl->is_hcr_running;
-    if (was_running) {
         PauseHostConditionalRendering();
     }
     impl->hcr_setup.buffer = impl->hcr_buffer;
@@ -1331,9 +1310,7 @@ void QueryCacheRuntime::HostConditionalRenderingCompareValueImpl(VideoCommon::Lo
     impl->hcr_setup.flags = is_equal ? VK_CONDITIONAL_RENDERING_INVERTED_BIT_EXT : 0;
     impl->hcr_is_set = true;
     impl->is_hcr_running = false;
-    if (was_running) {
-        ResumeHostConditionalRendering();
-    }
+    ResumeHostConditionalRendering();
 }
 
 void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(DAddr address, bool is_equal) {
@@ -1348,8 +1325,7 @@ void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(DAddr address, boo
         to_resolve = buffer->Handle();
         to_resolve_offset = static_cast<u32>(offset);
     }
-    bool was_running = impl->is_hcr_running;
-    if (was_running) {
+    if (impl->is_hcr_running) {
         PauseHostConditionalRendering();
     }
     impl->conditional_resolve_pass->Resolve(*impl->hcr_resolve_buffer, to_resolve,
@@ -1359,9 +1335,7 @@ void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(DAddr address, boo
     impl->hcr_setup.flags = is_equal ? 0 : VK_CONDITIONAL_RENDERING_INVERTED_BIT_EXT;
     impl->hcr_is_set = true;
     impl->is_hcr_running = false;
-    if (was_running) {
-        ResumeHostConditionalRendering();
-    }
+    ResumeHostConditionalRendering();
 }
 
 bool QueryCacheRuntime::HostConditionalRenderingCompareValue(VideoCommon::LookupData object_1,
@@ -1373,9 +1347,7 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValue(VideoCommon::Lookup
     return true;
 }
 
-bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::LookupData object_1,
-                                                              VideoCommon::LookupData object_2,
-                                                              bool qc_dirty, bool equal_check) {
+bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::LookupData object_1, VideoCommon::LookupData object_2, bool qc_dirty, bool equal_check) {
     if (!impl->device.IsExtConditionalRendering()) {
         return false;
     }
@@ -1415,14 +1387,10 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
         return false;
     }
 
-    const bool is_gpu_high = Settings::IsGPULevelHigh();
-    if (!is_gpu_high && impl->device.GetDriverID() == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) {
-        return true;
-    }
-
     auto driver_id = impl->device.GetDriverID();
-    if (driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
-        driver_id == VK_DRIVER_ID_ARM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP) {
+    const bool is_gpu_high = Settings::IsGPULevelHigh();
+
+    if ((!is_gpu_high && driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) || driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY || driver_id == VK_DRIVER_ID_ARM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP) {
         return true;
     }
 
@@ -1443,7 +1411,6 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
     }
 
     if (!is_in_bc[0] && !is_in_bc[1]) {
-        // Both queries are in query cache, it's best to just flush.
         return true;
     }
     HostConditionalRenderingCompareBCImpl(object_1.address, equal_check);

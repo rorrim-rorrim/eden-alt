@@ -1,5 +1,5 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2018 yuzu Emulator Project
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 set(FIDELITYFX_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/externals/FidelityFX-FSR/ffx-fsr)
 
@@ -18,7 +18,6 @@ set(SHADER_FILES
     blit_color_float.frag
     block_linear_unswizzle_2d.comp
     block_linear_unswizzle_3d.comp
-    convert_abgr8_srgb_to_d24s8.frag
     convert_abgr8_to_d24s8.frag
     convert_abgr8_to_d32f.frag
     convert_d32f_to_abgr8.frag
@@ -42,15 +41,8 @@ set(SHADER_FILES
     opengl_present_scaleforce.frag
     opengl_smaa.glsl
     pitch_unswizzle.comp
-    present_area.frag
     present_bicubic.frag
-    present_zero_tangent.frag
-    present_bspline.frag
-    present_mitchell.frag
     present_gaussian.frag
-    present_lanczos.frag
-    present_spline1.frag
-    present_mmpx.frag
     queries_prefix_scan_sum.comp
     queries_prefix_scan_sum_nosubgroups.comp
     resolve_conditional_render.comp
@@ -76,25 +68,9 @@ set(SHADER_FILES
     vulkan_quad_indexed.comp
     vulkan_turbo_mode.comp
     vulkan_uint8.comp
-    convert_rgba8_to_bgra8.frag
-    convert_yuv420_to_rgb.comp
-    convert_rgb_to_yuv420.comp
-    convert_bc7_to_rgba8.comp
-    convert_astc_hdr_to_rgba16f.comp
-    convert_rgba16f_to_rgba8.frag
-    dither_temporal.frag
-    dynamic_resolution_scale.comp
 )
 
-if (PLATFORM_HAIKU)
-    # glslangValidator WILL crash, glslang will not - why? Who the fuck knows
-    #/boot/home/glslang/build/StandAlone/glslangValidator
-    set(GLSLANGVALIDATOR "glslang")
-else()
-    # Normal sane platform who doesn't have a CRASHING glslangValidator
-    find_program(GLSLANGVALIDATOR "glslangValidator")
-endif()
-
+find_program(GLSLANGVALIDATOR "glslangValidator")
 if ("${GLSLANGVALIDATOR}" STREQUAL "GLSLANGVALIDATOR-NOTFOUND")
     message(FATAL_ERROR "Required program `glslangValidator` not found.")
 endif()

@@ -8,8 +8,6 @@
 #include "common/common_types.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
-struct VkSurfaceKHR_T;
-
 namespace Layout {
 struct FramebufferLayout;
 }
@@ -21,27 +19,12 @@ class Scheduler;
 
 class Swapchain {
 public:
-    explicit Swapchain(
-#ifdef ANDROID
-        VkSurfaceKHR surface,
-#else
-        VkSurfaceKHR_T* surface_handle,
-#endif
-        const Device& device,
-        Scheduler& scheduler,
-        u32 width,
-        u32 height);
+    explicit Swapchain(VkSurfaceKHR surface, const Device& device, Scheduler& scheduler, u32 width,
+                       u32 height);
     ~Swapchain();
 
     /// Creates (or recreates) the swapchain with a given size.
-    void Create(
-#ifdef ANDROID
-        VkSurfaceKHR surface,
-#else
-        VkSurfaceKHR_T* surface_handle,
-#endif
-        u32 width,
-        u32 height);
+    void Create(VkSurfaceKHR surface, u32 width, u32 height);
 
     /// Acquires the next image in the swapchain, waits as needed.
     bool AcquireNextImage();
@@ -125,12 +108,7 @@ private:
 
     bool NeedsPresentModeUpdate() const;
 
-#ifdef ANDROID
     VkSurfaceKHR surface;
-#else
-    VkSurfaceKHR_T* surface_handle;
-#endif
-
     const Device& device;
     Scheduler& scheduler;
 

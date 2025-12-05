@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,7 +9,6 @@
 #include "common/common_types.h"
 #include "common/dynamic_library.h"
 #include "common/logging/log.h"
-#include <ranges>
 #include "core/frontend/emu_window.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
@@ -58,10 +54,6 @@ namespace {
 #elif defined(__ANDROID__)
     case Core::Frontend::WindowSystemType::Android:
         extensions.push_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
-        break;
-#elif defined(__HAIKU__)
-    case Core::Frontend::WindowSystemType::Xcb:
-        extensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
         break;
 #else
     case Core::Frontend::WindowSystemType::X11:

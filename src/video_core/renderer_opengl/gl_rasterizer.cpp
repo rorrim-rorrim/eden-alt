@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: 2015 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -153,6 +150,7 @@ void RasterizerOpenGL::LoadDiskResources(u64 title_id, std::stop_token stop_load
 }
 
 void RasterizerOpenGL::Clear(u32 layer_count) {
+
     gpu_memory->FlushCaching();
     const auto& regs = maxwell3d->regs;
     bool use_color{};
@@ -223,6 +221,7 @@ void RasterizerOpenGL::Clear(u32 layer_count) {
 
 template <typename Func>
 void RasterizerOpenGL::PrepareDraw(bool is_indexed, Func&& draw_func) {
+
     SCOPE_EXIT {
         gpu.TickWork();
     };
@@ -240,8 +239,7 @@ void RasterizerOpenGL::PrepareDraw(bool is_indexed, Func&& draw_func) {
         program_manager.LocalMemoryWarmup();
     }
     pipeline->SetEngine(maxwell3d, gpu_memory);
-    if (!pipeline->Configure(is_indexed))
-        return;
+    pipeline->Configure(is_indexed);
 
     SyncState();
 
@@ -349,6 +347,7 @@ void RasterizerOpenGL::DrawIndirect() {
 }
 
 void RasterizerOpenGL::DrawTexture() {
+
     SCOPE_EXIT {
         gpu.TickWork();
     };
@@ -554,22 +553,28 @@ void RasterizerOpenGL::InvalidateRegion(DAddr addr, u64 size, VideoCommon::Cache
 }
 
 bool RasterizerOpenGL::OnCPUWrite(DAddr addr, u64 size) {
-    DEBUG_ASSERT(addr != 0 || size != 0);
+    if (addr == 0 || size == 0) {
+        return false;
+    }
+
     {
         std::scoped_lock lock{buffer_cache.mutex};
         if (buffer_cache.OnCPUWrite(addr, size)) {
             return true;
         }
     }
+
     {
         std::scoped_lock lock{texture_cache.mutex};
         texture_cache.WriteMemory(addr, size);
     }
+
     shader_cache.InvalidateRegion(addr, size);
     return false;
 }
 
 void RasterizerOpenGL::OnCacheInvalidation(DAddr addr, u64 size) {
+
     if (addr == 0 || size == 0) {
         return;
     }
@@ -629,9 +634,6 @@ void RasterizerOpenGL::ReleaseFences(bool force) {
 
 void RasterizerOpenGL::FlushAndInvalidateRegion(DAddr addr, u64 size,
                                                 VideoCommon::CacheType which) {
-    if (Settings::IsGPULevelExtreme()) {
-        FlushRegion(addr, size, which);
-    }
     InvalidateRegion(addr, size, which);
 }
 
@@ -1142,14 +1144,6 @@ void RasterizerOpenGL::SyncBlendState() {
             glDisable(GL_BLEND);
             return;
         }
-        // Temporary workaround for games that use iterated blending
-        if (regs.iterated_blend.enable && Settings::values.use_squashed_iterated_blend) {
-            glEnable(GL_BLEND);
-            glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE_MINUS_SRC_COLOR, GL_ZERO);
-            glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
-            return;
-        }
-
         glEnable(GL_BLEND);
         glBlendFuncSeparate(MaxwellToGL::BlendFunc(regs.blend.color_source),
                             MaxwellToGL::BlendFunc(regs.blend.color_dest),
@@ -1272,7 +1266,7 @@ void RasterizerOpenGL::SyncPointState() {
     oglEnable(GL_PROGRAM_POINT_SIZE, maxwell3d->regs.point_size_attribute.enabled);
     const bool is_rescaling{texture_cache.IsRescaling()};
     const float scale = is_rescaling ? Settings::values.resolution_info.up_factor : 1.0f;
-    glPointSize((std::max)(1.0f, maxwell3d->regs.point_size * scale));
+    glPointSize(std::max(1.0f, maxwell3d->regs.point_size * scale));
 }
 
 void RasterizerOpenGL::SyncLineState() {

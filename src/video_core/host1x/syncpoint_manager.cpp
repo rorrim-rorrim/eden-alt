@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -9,6 +6,7 @@
 namespace Tegra {
 
 namespace Host1x {
+
 
 SyncpointManager::ActionHandle SyncpointManager::RegisterAction(
     std::atomic<u32>& syncpoint, std::list<RegisteredAction>& action_storage, u32 expected_value,

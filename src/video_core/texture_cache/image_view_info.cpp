@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -19,7 +16,7 @@ namespace {
 
 using Tegra::Texture::TextureType;
 
-constexpr u8 RENDER_TARGET_SWIZZLE = (std::numeric_limits<u8>::max)();
+constexpr u8 RENDER_TARGET_SWIZZLE = std::numeric_limits<u8>::max();
 
 [[nodiscard]] u8 CastSwizzle(SwizzleSource source) {
     const u8 casted = static_cast<u8>(source);
@@ -30,10 +27,8 @@ constexpr u8 RENDER_TARGET_SWIZZLE = (std::numeric_limits<u8>::max)();
 } // Anonymous namespace
 
 ImageViewInfo::ImageViewInfo(const TICEntry& config, s32 base_layer) noexcept
-    : format{PixelFormatFromTIC(config)},
-      x_source{CastSwizzle(config.x_source)},
-      y_source{CastSwizzle(config.y_source)},
-      z_source{CastSwizzle(config.z_source)},
+    : format{PixelFormatFromTIC(config)}, x_source{CastSwizzle(config.x_source)},
+      y_source{CastSwizzle(config.y_source)}, z_source{CastSwizzle(config.z_source)},
       w_source{CastSwizzle(config.w_source)} {
     range.base = SubresourceBase{
         .level = static_cast<s32>(config.res_min_mip_level),

@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -76,7 +73,7 @@ public:
     }
 
 protected:
-    static constexpr size_t UNSET_CHANNEL{(std::numeric_limits<size_t>::max)()};
+    static constexpr size_t UNSET_CHANNEL{std::numeric_limits<size_t>::max()};
 
     P* channel_state;
     size_t current_channel_id{UNSET_CHANNEL};

@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,7 +7,6 @@
 #include <vector>
 
 #include "common/logging/log.h"
-#include <ranges>
 #include "common/settings.h"
 #include "core/core.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
@@ -82,15 +78,15 @@ static VkPresentModeKHR ChooseSwapPresentMode(bool has_imm, bool has_mailbox,
 }
 
 VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, u32 width, u32 height) {
-    constexpr auto undefined_size{(std::numeric_limits<u32>::max)()};
+    constexpr auto undefined_size{std::numeric_limits<u32>::max()};
     if (capabilities.currentExtent.width != undefined_size) {
         return capabilities.currentExtent;
     }
     VkExtent2D extent;
-    extent.width = (std::max)(capabilities.minImageExtent.width,
-                            (std::min)(capabilities.maxImageExtent.width, width));
-    extent.height = (std::max)(capabilities.minImageExtent.height,
-                             (std::min)(capabilities.maxImageExtent.height, height));
+    extent.width = std::max(capabilities.minImageExtent.width,
+                            std::min(capabilities.maxImageExtent.width, width));
+    extent.height = std::max(capabilities.minImageExtent.height,
+                             std::min(capabilities.maxImageExtent.height, height));
     return extent;
 }
 
@@ -108,58 +104,23 @@ VkCompositeAlphaFlagBitsKHR ChooseAlphaFlags(const VkSurfaceCapabilitiesKHR& cap
 
 } // Anonymous namespace
 
-Swapchain::Swapchain(
-#ifdef ANDROID
-    VkSurfaceKHR surface_,
-#else
-    VkSurfaceKHR_T* surface_handle_,
-#endif
-    const Device& device_,
-    Scheduler& scheduler_,
-    u32 width_,
-    u32 height_)
-#ifdef ANDROID
-    : surface(surface_)
-#else
-    : surface_handle{surface_handle_}
-#endif
-    , device{device_}
-    , scheduler{scheduler_}
-{
-#ifdef ANDROID
-    Create(surface, width_, height_);
-#else
-    Create(surface_handle, width_, height_);
-#endif
+Swapchain::Swapchain(VkSurfaceKHR surface_, const Device& device_, Scheduler& scheduler_,
+                     u32 width_, u32 height_)
+    : surface{surface_}, device{device_}, scheduler{scheduler_} {
+    Create(surface_, width_, height_);
 }
 
 Swapchain::~Swapchain() = default;
 
-void Swapchain::Create(
-#ifdef ANDROID
-    VkSurfaceKHR surface_,
-#else
-    VkSurfaceKHR_T* surface_handle_,
-#endif
-    u32 width_,
-    u32 height_)
-{
+void Swapchain::Create(VkSurfaceKHR surface_, u32 width_, u32 height_) {
     is_outdated = false;
     is_suboptimal = false;
     width = width_;
     height = height_;
-#ifdef ANDROID
     surface = surface_;
-#else
-    surface_handle = surface_handle_;
-#endif
 
     const auto physical_device = device.GetPhysical();
-#ifdef ANDROID
     const auto capabilities{physical_device.GetSurfaceCapabilitiesKHR(surface)};
-#else
-    const auto capabilities{physical_device.GetSurfaceCapabilitiesKHR(surface_handle)};
-#endif
     if (capabilities.maxImageExtent.width == 0 || capabilities.maxImageExtent.height == 0) {
         return;
     }
@@ -175,7 +136,7 @@ void Swapchain::Create(
 
 bool Swapchain::AcquireNextImage() {
     const VkResult result = device.GetLogical().AcquireNextImageKHR(
-        *swapchain, (std::numeric_limits<u64>::max)(), *present_semaphores[frame_index],
+        *swapchain, std::numeric_limits<u64>::max(), *present_semaphores[frame_index],
         VK_NULL_HANDLE, &image_index);
     switch (result) {
     case VK_SUCCESS:
@@ -237,17 +198,10 @@ void Swapchain::Present(VkSemaphore render_semaphore) {
 
 void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
     const auto physical_device{device.GetPhysical()};
-
-#ifdef ANDROID
     const auto formats{physical_device.GetSurfaceFormatsKHR(surface)};
     const auto present_modes = physical_device.GetSurfacePresentModesKHR(surface);
-#else
-    const auto formats{physical_device.GetSurfaceFormatsKHR(surface_handle)};
-    const auto present_modes = physical_device.GetSurfacePresentModesKHR(surface_handle);
-#endif
-
-    has_mailbox = std::find(present_modes.begin(), present_modes.end(), VK_PRESENT_MODE_MAILBOX_KHR)
-                  != present_modes.end();
+    has_mailbox = std::find(present_modes.begin(), present_modes.end(),
+                            VK_PRESENT_MODE_MAILBOX_KHR) != present_modes.end();
     has_imm = std::find(present_modes.begin(), present_modes.end(),
                         VK_PRESENT_MODE_IMMEDIATE_KHR) != present_modes.end();
     has_fifo_relaxed = std::find(present_modes.begin(), present_modes.end(),
@@ -264,20 +218,16 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
             requested_image_count = capabilities.maxImageCount;
         } else {
             requested_image_count =
-                (std::max)(requested_image_count, (std::min)(3U, capabilities.maxImageCount));
+                std::max(requested_image_count, std::min(3U, capabilities.maxImageCount));
         }
     } else {
-        requested_image_count = (std::max)(requested_image_count, 3U);
+        requested_image_count = std::max(requested_image_count, 3U);
     }
     VkSwapchainCreateInfoKHR swapchain_ci{
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .pNext = nullptr,
         .flags = 0,
-#ifdef ANDROID
         .surface = surface,
-#else
-        .surface = surface_handle,
-#endif
         .minImageCount = requested_image_count,
         .imageFormat = surface_format.format,
         .imageColorSpace = surface_format.colorSpace,
@@ -318,11 +268,7 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
         swapchain_ci.flags |= VK_SWAPCHAIN_CREATE_MUTABLE_FORMAT_BIT_KHR;
     }
     // Request the size again to reduce the possibility of a TOCTOU race condition.
-#ifdef ANDROID
     const auto updated_capabilities = physical_device.GetSurfaceCapabilitiesKHR(surface);
-#else
-    const auto updated_capabilities = physical_device.GetSurfaceCapabilitiesKHR(surface_handle);
-#endif
     swapchain_ci.imageExtent = ChooseSwapExtent(updated_capabilities, width, height);
     // Don't add code within this and the swapchain creation.
     swapchain = device.GetLogical().CreateSwapchainKHR(swapchain_ci);
@@ -351,7 +297,6 @@ void Swapchain::CreateSemaphores() {
 void Swapchain::Destroy() {
     frame_index = 0;
     present_semaphores.clear();
-    render_semaphores.clear();
     swapchain.reset();
 }
 

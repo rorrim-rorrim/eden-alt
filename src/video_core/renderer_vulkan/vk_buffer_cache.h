@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -172,7 +169,7 @@ private:
         u32 align = 256;
         size_t current_frame = 0;
 
-        void Init(MemoryAllocator& alloc, u64 bytes, u32 alignment);
+        void Init(const Device& device, MemoryAllocator& alloc, u64 bytes, u32 alignment);
         void BeginFrame() {
             current_frame = (current_frame + 1) % NUM_FRAMES;
             head = 0;

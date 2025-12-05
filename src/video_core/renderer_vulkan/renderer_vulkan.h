@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -56,14 +53,7 @@ public:
         return device.GetDriverName();
     }
 
-    // Enhanced platform-specific initialization
-    void InitializePlatformSpecific();
-
 private:
-    void InterpolateFrames(Frame* prev_frame, Frame* curr_frame);
-    Frame* previous_frame = nullptr;  // Store the previous frame for interpolation
-    VkCommandBuffer BeginSingleTimeCommands();
-    void EndSingleTimeCommands(VkCommandBuffer command_buffer);
     void Report() const;
 
     vk::Buffer RenderToBuffer(std::span<const Tegra::FramebufferConfig> framebuffers,
@@ -78,11 +68,8 @@ private:
     std::shared_ptr<Common::DynamicLibrary> library;
     vk::InstanceDispatch dld;
 
-    // Keep original handles for compatibility with existing code
     vk::Instance instance;
-
     vk::DebugUtilsMessenger debug_messenger;
-
     vk::SurfaceKHR surface;
 
     Device device;

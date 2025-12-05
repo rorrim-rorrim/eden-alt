@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -15,7 +12,6 @@
 #include "video_core/buffer_cache/buffer_cache_base.h"
 #include "video_core/guest_memory.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
-#include "video_core/texture_cache/util.h"
 #include "video_core/polygon_mode_utils.h"
 #include "video_core/renderer_vulkan/line_loop_utils.h"
 
@@ -30,9 +26,7 @@ BufferCache<P>::BufferCache(Tegra::MaxwellDeviceMemoryManager& device_memory_, R
     void(slot_buffers.insert(runtime, NullBufferParams{}));
     gpu_modified_ranges.Clear();
     inline_buffer_id = NULL_BUFFER_ID;
-#ifdef YUZU_LEGACY
-    immediately_free = (Settings::values.vram_usage_mode.GetValue() == Settings::VramUsageMode::Aggressive);
-#endif
+
     if (!runtime.CanReportMemoryUsage()) {
         minimum_memory = DEFAULT_EXPECTED_MEMORY;
         critical_memory = DEFAULT_CRITICAL_MEMORY;
@@ -42,14 +36,14 @@ BufferCache<P>::BufferCache(Tegra::MaxwellDeviceMemoryManager& device_memory_, R
     const s64 device_local_memory = static_cast<s64>(runtime.GetDeviceLocalMemory());
     const s64 min_spacing_expected = device_local_memory - 1_GiB;
     const s64 min_spacing_critical = device_local_memory - 512_MiB;
-    const s64 mem_threshold = (std::min)(device_local_memory, TARGET_THRESHOLD);
+    const s64 mem_threshold = std::min(device_local_memory, TARGET_THRESHOLD);
     const s64 min_vacancy_expected = (6 * mem_threshold) / 10;
     const s64 min_vacancy_critical = (2 * mem_threshold) / 10;
     minimum_memory = static_cast<u64>(
-        (std::max)((std::min)(device_local_memory - min_vacancy_expected, min_spacing_expected),
+        std::max(std::min(device_local_memory - min_vacancy_expected, min_spacing_expected),
                  DEFAULT_EXPECTED_MEMORY));
     critical_memory = static_cast<u64>(
-        (std::max)((std::min)(device_local_memory - min_vacancy_critical, min_spacing_critical),
+        std::max(std::min(device_local_memory - min_vacancy_critical, min_spacing_critical),
                  DEFAULT_CRITICAL_MEMORY));
 }
 
@@ -438,7 +432,7 @@ void BufferCache<P>::UnbindGraphicsStorageBuffers(size_t stage) {
 }
 
 template <class P>
-bool BufferCache<P>::BindGraphicsStorageBuffer(size_t stage, size_t ssbo_index, u32 cbuf_index,
+void BufferCache<P>::BindGraphicsStorageBuffer(size_t stage, size_t ssbo_index, u32 cbuf_index,
                                                u32 cbuf_offset, bool is_written) {
     channel_state->enabled_storage_buffers[stage] |= 1U << ssbo_index;
     channel_state->written_storage_buffers[stage] |= (is_written ? 1U : 0U) << ssbo_index;
@@ -447,7 +441,6 @@ bool BufferCache<P>::BindGraphicsStorageBuffer(size_t stage, size_t ssbo_index, 
     const GPUVAddr ssbo_addr = cbufs.const_buffers[cbuf_index].address + cbuf_offset;
     channel_state->storage_buffers[stage][ssbo_index] =
         StorageBufferBinding(ssbo_addr, cbuf_index, is_written);
-    return (channel_state->storage_buffers[stage][ssbo_index].buffer_id != NULL_BUFFER_ID);
 }
 
 template <class P>
@@ -580,8 +573,8 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
             ForEachBufferInRange(device_addr, size, [&](BufferId buffer_id, Buffer& buffer) {
                 const DAddr buffer_start = buffer.CpuAddr();
                 const DAddr buffer_end = buffer_start + buffer.SizeBytes();
-                const DAddr new_start = (std::max)(buffer_start, device_addr);
-                const DAddr new_end = (std::min)(buffer_end, device_addr + size);
+                const DAddr new_start = std::max(buffer_start, device_addr);
+                const DAddr new_end = std::min(buffer_end, device_addr + size);
                 memory_tracker.ForEachDownloadRange(
                     new_start, new_end - new_start, false,
                     [&](u64 device_addr_out, u64 range_size) {
@@ -601,7 +594,7 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
                             constexpr u64 align = 64ULL;
                             constexpr u64 mask = ~(align - 1ULL);
                             total_size_bytes += (new_size + align - 1) & mask;
-                            largest_copy = (std::max)(largest_copy, new_size);
+                            largest_copy = std::max(largest_copy, new_size);
                         };
 
                         gpu_modified_ranges.ForEachInRange(device_addr_out, range_size,
@@ -794,8 +787,8 @@ void BufferCache<P>::BindHostVertexBuffers() {
         }
         flags[Dirty::VertexBuffer0 + index] = false;
 
-        host_bindings.min_index = (std::min)(host_bindings.min_index, index);
-        host_bindings.max_index = (std::max)(host_bindings.max_index, index);
+        host_bindings.min_index = std::min(host_bindings.min_index, index);
+        host_bindings.max_index = std::max(host_bindings.max_index, index);
         any_valid = true;
     }
 
@@ -854,19 +847,15 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     ++channel_state->uniform_cache_shots[0];
     const Binding& binding = channel_state->uniform_buffers[stage][index];
     const DAddr device_addr = binding.device_addr;
-    const u32 size = (std::min)(binding.size, (*channel_state->uniform_buffer_sizes)[stage][index]);
+    const u32 size = std::min(binding.size, (*channel_state->uniform_buffer_sizes)[stage][index]);
     Buffer& buffer = slot_buffers[binding.buffer_id];
     TouchBuffer(buffer, binding.buffer_id);
-    const bool use_fast_buffer = binding.buffer_id != NULL_BUFFER_ID &&
-                                 size <= channel_state->uniform_buffer_skip_cache_size &&
-                                 !memory_tracker.IsRegionGpuModified(device_addr, size);
+    const bool use_fast_buffer = binding.buffer_id != NULL_BUFFER_ID && size <= channel_state->uniform_buffer_skip_cache_size && !memory_tracker.IsRegionGpuModified(device_addr, size);
     if (use_fast_buffer) {
         if constexpr (IS_OPENGL) {
             if (runtime.HasFastBufferSubData()) {
                 // Fast path for Nvidia
-                const bool should_fast_bind =
-                    !HasFastUniformBufferBound(stage, binding_index) ||
-                    channel_state->uniform_buffer_binding_sizes[stage][binding_index] != size;
+                const bool should_fast_bind = !HasFastUniformBufferBound(stage, binding_index) || channel_state->uniform_buffer_binding_sizes[stage][binding_index] != size;
                 if (should_fast_bind) {
                     // We only have to bind when the currently bound buffer is not the fast version
                     channel_state->fast_bound_uniform_buffers[stage] |= 1u << binding_index;
@@ -1014,7 +1003,7 @@ void BufferCache<P>::BindHostComputeUniformBuffers() {
         Buffer& buffer = slot_buffers[binding.buffer_id];
         TouchBuffer(buffer, binding.buffer_id);
         const u32 size =
-            (std::min)(binding.size, (*channel_state->compute_uniform_buffer_sizes)[index]);
+            std::min(binding.size, (*channel_state->compute_uniform_buffer_sizes)[index]);
         SynchronizeBuffer(buffer, binding.device_addr, size);
 
         const u32 offset = buffer.Offset(binding.device_addr);
@@ -1148,7 +1137,7 @@ void BufferCache<P>::UpdateIndexBuffer() {
     const u32 address_size = static_cast<u32>(gpu_addr_end - gpu_addr_begin);
     const u32 draw_size =
         (index_buffer_ref.count + index_buffer_ref.first) * index_buffer_ref.FormatSizeInBytes();
-    const u32 size = (std::min)(address_size, draw_size);
+    const u32 size = std::min(address_size, draw_size);
     if (size == 0 || !device_addr) {
         channel_state->index_buffer = NULL_BINDING;
         return;
@@ -1438,11 +1427,7 @@ void BufferCache<P>::JoinOverlap(BufferId new_buffer_id, BufferId overlap_id,
         .size = overlap.SizeBytes(),
     });
     new_buffer.MarkUsage(copies[0].dst_offset, copies[0].size);
-    runtime.CopyBuffer(new_buffer, overlap, FixSmallVectorADL(copies), true);
-#ifdef YUZU_LEGACY
-    if (immediately_free)
-        runtime.Finish();
-#endif
+    runtime.CopyBuffer(new_buffer, overlap, copies, true);
     DeleteBuffer(overlap_id, true);
 }
 
@@ -1521,7 +1506,7 @@ bool BufferCache<P>::SynchronizeBuffer(Buffer& buffer, DAddr device_addr, u32 si
             .size = range_size,
         });
         total_size_bytes += range_size;
-        largest_copy = (std::max)(largest_copy, range_size);
+        largest_copy = std::max(largest_copy, range_size);
     });
     if (total_size_bytes == 0) {
         return true;
@@ -1656,7 +1641,7 @@ void BufferCache<P>::DownloadBufferMemory(Buffer& buffer, DAddr device_addr, u64
                 constexpr u64 align = 64ULL;
                 constexpr u64 mask = ~(align - 1ULL);
                 total_size_bytes += (new_size + align - 1) & mask;
-                largest_copy = (std::max)(largest_copy, new_size);
+                largest_copy = std::max(largest_copy, new_size);
             };
 
             gpu_modified_ranges.ForEachInRange(device_addr_out, range_size, add_download);
@@ -1733,12 +1718,7 @@ void BufferCache<P>::DeleteBuffer(BufferId buffer_id, bool do_not_mark) {
     }
 
     Unregister(buffer_id);
-
-#ifdef YUZU_LEGACY
-    if (!do_not_mark || !immediately_free)
-#endif
-        delayed_destruction_ring.Push(std::move(slot_buffers[buffer_id]));
-
+    delayed_destruction_ring.Push(std::move(slot_buffers[buffer_id]));
     slot_buffers.erase(buffer_id);
 
     if constexpr (HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS) {
@@ -1764,11 +1744,9 @@ template <class P>
 Binding BufferCache<P>::StorageBufferBinding(GPUVAddr ssbo_addr, u32 cbuf_index,
                                              bool is_written) const {
     const GPUVAddr gpu_addr = gpu_memory->Read<u64>(ssbo_addr);
-
     if (gpu_addr == 0) {
         return NULL_BINDING;
     }
-
     const auto size = [&]() {
         const bool is_nvn_cbuf = cbuf_index == 0;
         // The NVN driver buffer (index 0) is known to pack the SSBO address followed by its size.
@@ -1782,7 +1760,7 @@ Binding BufferCache<P>::StorageBufferBinding(GPUVAddr ssbo_addr, u32 cbuf_index,
         // cbufs, which do not store the sizes adjacent to the addresses, so use the fully
         // mapped buffer size for now.
         const u32 memory_layout_size = static_cast<u32>(gpu_memory->GetMemoryLayoutSize(gpu_addr));
-        return (std::min)(memory_layout_size, static_cast<u32>(8_MiB));
+        return std::min(memory_layout_size, static_cast<u32>(8_MiB));
     }();
     // Alignment only applies to the offset of the buffer
     const u32 alignment = runtime.GetStorageBufferAlignment();

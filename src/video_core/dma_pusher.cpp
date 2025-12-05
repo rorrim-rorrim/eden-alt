@@ -1,7 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/settings.h"
@@ -12,7 +9,6 @@
 #include "video_core/guest_memory.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
-#include "video_core/texture_cache/util.h"
 
 namespace Tegra {
 
@@ -25,6 +21,7 @@ DmaPusher::DmaPusher(Core::System& system_, GPU& gpu_, MemoryManager& memory_man
                                                                           *this, channel_state_}, signal_sync{false}, synced{false} {}
 
 DmaPusher::~DmaPusher() = default;
+
 
 void DmaPusher::DispatchCalls() {
 
@@ -60,7 +57,7 @@ bool DmaPusher::Step() {
 
     if (command_list.prefetch_command_list.size()) {
         // Prefetched command list from nvdrv, used for things like synchronization
-        ProcessCommands(VideoCommon::FixSmallVectorADL(command_list.prefetch_command_list));
+        ProcessCommands(command_list.prefetch_command_list);
         dma_pushbuffer.pop();
     } else {
         const CommandListHeader command_list_header{

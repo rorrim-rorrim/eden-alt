@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -102,7 +99,6 @@ RendererOpenGL::RendererOpenGL(Core::Frontend::EmuWindow& emu_window_,
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(DebugHandler, nullptr);
     }
-    AddTelemetryFields();
 
     // Initialize default attributes to match hardware's disabled attributes
     GLint max_attribs{};
@@ -152,16 +148,6 @@ void RendererOpenGL::Composite(std::span<const Tegra::FramebufferConfig> framebu
 
     context->SwapBuffers();
     render_window.OnFrameDisplayed();
-}
-
-void RendererOpenGL::AddTelemetryFields() {
-    const char* const gl_version{reinterpret_cast<char const*>(glGetString(GL_VERSION))};
-    const char* const gpu_vendor{reinterpret_cast<char const*>(glGetString(GL_VENDOR))};
-    const char* const gpu_model{reinterpret_cast<char const*>(glGetString(GL_RENDERER))};
-
-    LOG_INFO(Render_OpenGL, "GL_VERSION: {}", gl_version);
-    LOG_INFO(Render_OpenGL, "GL_VENDOR: {}", gpu_vendor);
-    LOG_INFO(Render_OpenGL, "GL_RENDERER: {}", gpu_model);
 }
 
 void RendererOpenGL::RenderToBuffer(std::span<const Tegra::FramebufferConfig> framebuffers,

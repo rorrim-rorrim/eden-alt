@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -47,7 +44,6 @@ using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 using MaxwellDrawState = Tegra::Engines::DrawManager::State;
 using VideoCommon::ImageViewId;
 using VideoCommon::ImageViewType;
-
 
 namespace {
 struct DrawParams {
@@ -132,8 +128,8 @@ VkRect2D GetScissorState(const Maxwell& regs, size_t index, u32 up_scale = 1, u3
     s32 max_y = lower_left ? (clip_height - src.min_y) : src.max_y.Value();
 
     // Bound to render area
-    min_y = (std::max)(min_y, 0);
-    max_y = (std::max)(max_y, 0);
+    min_y = std::max(min_y, 0);
+    max_y = std::max(max_y, 0);
 
     if (src.enable) {
         scissor.offset.x = scale_up(src.min_x);
@@ -143,8 +139,8 @@ VkRect2D GetScissorState(const Maxwell& regs, size_t index, u32 up_scale = 1, u3
     } else {
         scissor.offset.x = 0;
         scissor.offset.y = 0;
-        scissor.extent.width = (std::numeric_limits<s32>::max)();
-        scissor.extent.height = (std::numeric_limits<s32>::max)();
+        scissor.extent.width = std::numeric_limits<s32>::max();
+        scissor.extent.height = std::numeric_limits<s32>::max();
     }
     return scissor;
 }
@@ -206,7 +202,7 @@ RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra
                            guest_descriptor_queue, compute_pass_descriptor_queue, descriptor_pool),
       buffer_cache(device_memory, buffer_cache_runtime),
       query_cache_runtime(this, device_memory, buffer_cache, device, memory_allocator, scheduler,
-                          staging_pool, compute_pass_descriptor_queue, descriptor_pool, texture_cache),
+                          staging_pool, compute_pass_descriptor_queue, descriptor_pool),
       query_cache(gpu, *this, device_memory, query_cache_runtime),
       pipeline_cache(device_memory, device, scheduler, descriptor_pool, guest_descriptor_queue,
                      render_pass_cache, buffer_cache, texture_cache, gpu.ShaderNotify()),
@@ -227,6 +223,8 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     FlushWork();
     gpu_memory->FlushCaching();
 
+    query_cache.NotifySegment(true);
+
     GraphicsPipeline* const pipeline{pipeline_cache.CurrentGraphicsPipeline()};
     if (!pipeline) {
         return;
@@ -234,19 +232,14 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
     // update engine as channel may be different.
     pipeline->SetEngine(maxwell3d, gpu_memory);
-    if (!pipeline->Configure(is_indexed))
-        return;
+    pipeline->Configure(is_indexed);
 
     UpdateDynamicStates();
 
     HandleTransformFeedback();
-    query_cache.NotifySegment(true);
     query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
                               maxwell3d->regs.zpass_pixel_count_enable);
-
     draw_func();
-
-    query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount, false);
 }
 
 void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
@@ -323,6 +316,8 @@ void RasterizerVulkan::DrawTexture() {
     };
     FlushWork();
 
+    query_cache.NotifySegment(true);
+
     std::scoped_lock l{texture_cache.mutex};
     texture_cache.SynchronizeGraphicsDescriptors();
     texture_cache.UpdateRenderTargets(false);
@@ -368,6 +363,10 @@ void RasterizerVulkan::Clear(u32 layer_count) {
     FlushWork();
     gpu_memory->FlushCaching();
 
+    query_cache.NotifySegment(true);
+    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
+                              maxwell3d->regs.zpass_pixel_count_enable);
+
     auto& regs = maxwell3d->regs;
     const bool use_color = regs.clear_surface.R || regs.clear_surface.G || regs.clear_surface.B ||
                            regs.clear_surface.A;
@@ -383,10 +382,6 @@ void RasterizerVulkan::Clear(u32 layer_count) {
     const VkExtent2D render_area = framebuffer->RenderArea();
     scheduler.RequestRenderpass(framebuffer);
 
-    query_cache.NotifySegment(true);
-    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
-                              maxwell3d->regs.zpass_pixel_count_enable);
-
     u32 up_scale = 1;
     u32 down_shift = 0;
     if (texture_cache.IsRescaling()) {
@@ -398,8 +393,8 @@ void RasterizerVulkan::Clear(u32 layer_count) {
     VkRect2D default_scissor;
     default_scissor.offset.x = 0;
     default_scissor.offset.y = 0;
-    default_scissor.extent.width = (std::numeric_limits<s32>::max)();
-    default_scissor.extent.height = (std::numeric_limits<s32>::max)();
+    default_scissor.extent.width = std::numeric_limits<s32>::max();
+    default_scissor.extent.height = std::numeric_limits<s32>::max();
 
     VkClearRect clear_rect{
         .rect = regs.clear_control.use_scissor ? GetScissorState(regs, 0, up_scale, down_shift)
@@ -411,8 +406,8 @@ void RasterizerVulkan::Clear(u32 layer_count) {
         return;
     }
     clear_rect.rect.extent = VkExtent2D{
-        .width = (std::min)(clear_rect.rect.extent.width, render_area.width),
-        .height = (std::min)(clear_rect.rect.extent.height, render_area.height),
+        .width = std::min(clear_rect.rect.extent.width, render_area.width),
+        .height = std::min(clear_rect.rect.extent.height, render_area.height),
     };
 
     const u32 color_attachment = regs.clear_surface.RT;
@@ -527,14 +522,6 @@ void RasterizerVulkan::DispatchCompute() {
     }
     const std::array<u32, 3> dim{qmd.grid_dim_x, qmd.grid_dim_y, qmd.grid_dim_z};
     scheduler.RequestOutsideRenderPassOperationContext();
-    static constexpr VkMemoryBarrier READ_BARRIER{
-        .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
-        .pNext = nullptr,
-        .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
-        .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT,
-    };
-    scheduler.Record([](vk::CommandBuffer cmdbuf) { cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                               0, READ_BARRIER); });
     scheduler.Record([dim](vk::CommandBuffer cmdbuf) { cmdbuf.Dispatch(dim[0], dim[1], dim[2]); });
 }
 
@@ -654,17 +641,22 @@ void RasterizerVulkan::InnerInvalidation(std::span<const std::pair<DAddr, std::s
 }
 
 bool RasterizerVulkan::OnCPUWrite(DAddr addr, u64 size) {
-    DEBUG_ASSERT(addr != 0 || size != 0);
+    if (addr == 0 || size == 0) {
+        return false;
+    }
+
     {
         std::scoped_lock lock{buffer_cache.mutex};
         if (buffer_cache.OnCPUWrite(addr, size)) {
             return true;
         }
     }
+
     {
         std::scoped_lock lock{texture_cache.mutex};
         texture_cache.WriteMemory(addr, size);
     }
+
     pipeline_cache.InvalidateRegion(addr, size);
     return false;
 }
@@ -730,9 +722,6 @@ void RasterizerVulkan::ReleaseFences(bool force) {
 
 void RasterizerVulkan::FlushAndInvalidateRegion(DAddr addr, u64 size,
                                                 VideoCommon::CacheType which) {
-    if (Settings::IsGPULevelExtreme()) {
-        FlushRegion(addr, size, which);
-    }
     InvalidateRegion(addr, size, which);
 }
 
@@ -841,7 +830,6 @@ std::optional<FramebufferTextureInfo> RasterizerVulkan::AccelerateDisplay(
     if (!image_view) {
         return {};
     }
-
     query_cache.NotifySegment(false);
 
     const auto& resolution = Settings::values.resolution_info;
@@ -991,10 +979,6 @@ void RasterizerVulkan::UpdateDynamicStates() {
         if (device.IsExtExtendedDynamicState3BlendingSupported()) {
             UpdateBlending(regs);
         }
-        if (device.IsExtExtendedDynamicState3EnablesSupported()) {
-            UpdateLineStippleEnable(regs);
-            UpdateConservativeRasterizationMode(regs);
-        }
     }
     if (device.IsExtVertexInputDynamicStateSupported()) {
         if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput()) {
@@ -1028,8 +1012,8 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
     if (!regs.viewport_scale_offset_enabled) {
         float x = static_cast<float>(regs.surface_clip.x);
         float y = static_cast<float>(regs.surface_clip.y);
-        float width = (std::max)(1.0f, static_cast<float>(regs.surface_clip.width));
-        float height = (std::max)(1.0f, static_cast<float>(regs.surface_clip.height));
+        float width = std::max(1.0f, static_cast<float>(regs.surface_clip.width));
+        float height = std::max(1.0f, static_cast<float>(regs.surface_clip.height));
         if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
             y += height;
             height = -height;
@@ -1073,8 +1057,8 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
     if (!regs.viewport_scale_offset_enabled) {
         u32 x = regs.surface_clip.x;
         u32 y = regs.surface_clip.y;
-        u32 width = (std::max)(1u, static_cast<u32>(regs.surface_clip.width));
-        u32 height = (std::max)(1u, static_cast<u32>(regs.surface_clip.height));
+        u32 width = std::max(1u, static_cast<u32>(regs.surface_clip.width));
+        u32 height = std::max(1u, static_cast<u32>(regs.surface_clip.height));
         if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
             y = regs.surface_clip.height - (y + height);
         }
@@ -1128,39 +1112,17 @@ void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
                         regs.zeta.format == Tegra::DepthFormat::X8Z24_UNORM ||
                         regs.zeta.format == Tegra::DepthFormat::S8Z24_UNORM ||
                         regs.zeta.format == Tegra::DepthFormat::V8Z24_UNORM;
-
-    if (is_d24 && !device.SupportsD24DepthBuffer()) {
-        static constexpr const size_t length = sizeof(NEEDS_D24) / sizeof(NEEDS_D24[0]);
-
-        static constexpr const u64* start = NEEDS_D24;
-        static constexpr const u64* end = NEEDS_D24 + length;
-
-        const u64* it = std::find(start, end, program_id);
-
-        if (it != end) {
-            // the base formulas can be obtained from here:
-            //   https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage-depth-bias
-            const double rescale_factor =
-                static_cast<double>(1ULL << (32 - 24)) / (static_cast<double>(0x1.ep+127));
-            units = static_cast<float>(static_cast<double>(units) * rescale_factor);
-        }
+    if (is_d24 && !device.SupportsD24DepthBuffer() && program_id == 0x1006A800016E000ULL) {
+        // Only activate this in Super Smash Brothers Ultimate
+        // the base formulas can be obtained from here:
+        //   https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage-depth-bias
+        const double rescale_factor =
+            static_cast<double>(1ULL << (32 - 24)) / (static_cast<double>(0x1.ep+127));
+        units = static_cast<float>(static_cast<double>(units) * rescale_factor);
     }
-
     scheduler.Record([constant = units, clamp = regs.depth_bias_clamp,
-                      factor = regs.slope_scale_depth_bias, this](vk::CommandBuffer cmdbuf) {
-        if (device.IsExtDepthBiasControlSupported()) {
-            static VkDepthBiasRepresentationInfoEXT bias_info{
-                .sType = VK_STRUCTURE_TYPE_DEPTH_BIAS_REPRESENTATION_INFO_EXT,
-                .pNext = nullptr,
-                .depthBiasRepresentation =
-                    VK_DEPTH_BIAS_REPRESENTATION_LEAST_REPRESENTABLE_VALUE_FORCE_UNORM_EXT,
-                .depthBiasExact = VK_FALSE,
-            };
-
-            cmdbuf.SetDepthBias(constant, clamp, factor, &bias_info);
-        } else {
-            cmdbuf.SetDepthBias(constant, clamp, factor);
-        }
+                      factor = regs.slope_scale_depth_bias](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetDepthBias(constant, clamp, factor);
     });
 }
 
@@ -1343,42 +1305,6 @@ void RasterizerVulkan::UpdateRasterizerDiscardEnable(Tegra::Engines::Maxwell3D::
     });
 }
 
-void RasterizerVulkan::UpdateConservativeRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs) {
-    if (!state_tracker.TouchConservativeRasterizationMode()) {
-        return;
-    }
-
-    scheduler.Record([enable = regs.conservative_raster_enable](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetConservativeRasterizationModeEXT(
-            enable ? VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT
-                   : VK_CONSERVATIVE_RASTERIZATION_MODE_DISABLED_EXT);
-    });
-}
-
-void RasterizerVulkan::UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
-    if (!state_tracker.TouchLineStippleEnable()) {
-        return;
-    }
-
-    scheduler.Record([enable = regs.line_stipple_enable](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetLineStippleEnableEXT(enable);
-    });
-}
-
-void RasterizerVulkan::UpdateLineRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs) {
-    // if (!state_tracker.TouchLi()) {
-    //     return;
-    // }
-
-    // TODO: The maxwell emulator does not capture line rasters
-
-    // scheduler.Record([enable = regs.line](vk::CommandBuffer cmdbuf) {
-    //     cmdbuf.SetConservativeRasterizationModeEXT(
-    //         enable ? VK_CONSERVATIVE_RASTERIZATION_MODE_UNDERESTIMATE_EXT
-    //                : VK_CONSERVATIVE_RASTERIZATION_MODE_DISABLED_EXT);
-    // });
-}
-
 void RasterizerVulkan::UpdateDepthBiasEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchDepthBiasEnable()) {
         return;
@@ -1544,41 +1470,22 @@ void RasterizerVulkan::UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs) {
 
     if (state_tracker.TouchBlendEquations()) {
         std::array<VkColorBlendEquationEXT, Maxwell::NumRenderTargets> setup_blends{};
-
-        const auto blend_setup = [&](auto& host_blend, const auto& guest_blend) {
-            host_blend.srcColorBlendFactor = MaxwellToVK::BlendFactor(guest_blend.color_source);
-            host_blend.dstColorBlendFactor = MaxwellToVK::BlendFactor(guest_blend.color_dest);
-            host_blend.colorBlendOp = MaxwellToVK::BlendEquation(guest_blend.color_op);
-            host_blend.srcAlphaBlendFactor = MaxwellToVK::BlendFactor(guest_blend.alpha_source);
-            host_blend.dstAlphaBlendFactor = MaxwellToVK::BlendFactor(guest_blend.alpha_dest);
-            host_blend.alphaBlendOp = MaxwellToVK::BlendEquation(guest_blend.alpha_op);
-        };
-
-        // Single blend equation for all targets
-        if (!regs.blend_per_target_enabled) {
-            // Temporary workaround for games that use iterated blending
-            if (regs.iterated_blend.enable && Settings::values.use_squashed_iterated_blend) {
-                setup_blends[0].srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
-                setup_blends[0].dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
-                setup_blends[0].colorBlendOp = VK_BLEND_OP_ADD;
-                setup_blends[0].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
-                setup_blends[0].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-                setup_blends[0].alphaBlendOp = VK_BLEND_OP_ADD;
-            } else {
-                blend_setup(setup_blends[0], regs.blend);
+        for (size_t index = 0; index < Maxwell::NumRenderTargets; index++) {
+            const auto blend_setup = [&]<typename T>(const T& guest_blend) {
+                auto& host_blend = setup_blends[index];
+                host_blend.srcColorBlendFactor = MaxwellToVK::BlendFactor(guest_blend.color_source);
+                host_blend.dstColorBlendFactor = MaxwellToVK::BlendFactor(guest_blend.color_dest);
+                host_blend.colorBlendOp = MaxwellToVK::BlendEquation(guest_blend.color_op);
+                host_blend.srcAlphaBlendFactor = MaxwellToVK::BlendFactor(guest_blend.alpha_source);
+                host_blend.dstAlphaBlendFactor = MaxwellToVK::BlendFactor(guest_blend.alpha_dest);
+                host_blend.alphaBlendOp = MaxwellToVK::BlendEquation(guest_blend.alpha_op);
+            };
+            if (!regs.blend_per_target_enabled) {
+                blend_setup(regs.blend);
+                continue;
             }
-
-            // Copy first blend state to all other targets
-            for (size_t index = 1; index < Maxwell::NumRenderTargets; index++) {
-                setup_blends[index] = setup_blends[0];
-            }
-        } else {
-            // Per-target blending
-            for (size_t index = 0; index < Maxwell::NumRenderTargets; index++) {
-                blend_setup(setup_blends[index], regs.blend_per_target[index]);
-            }
+            blend_setup(regs.blend_per_target[index]);
         }
-
         scheduler.Record([setup_blends](vk::CommandBuffer cmdbuf) {
             cmdbuf.SetColorBlendEquationEXT(0, setup_blends);
         });

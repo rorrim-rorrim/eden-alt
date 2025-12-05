@@ -1,13 +1,9 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/algorithm.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
-#include <ranges>
 #include "common/settings.h"
 #include "core/core.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -156,8 +152,6 @@ void MaxwellDMA::Launch() {
 }
 
 void MaxwellDMA::CopyBlockLinearToPitch() {
-   
-
     u32 bytes_per_pixel = 1;
     DMA::ImageOperand src_operand;
     src_operand.bytes_per_pixel = bytes_per_pixel;
@@ -197,7 +191,7 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
     u32 bpp_shift = 0U;
     if (!is_remapping) {
         bpp_shift = Common::FoldRight(
-            4U, [](u32 x, u32 y) { return (std::min)(x, static_cast<u32>(std::countr_zero(y))); },
+            4U, [](u32 x, u32 y) { return std::min(x, static_cast<u32>(std::countr_zero(y))); },
             width, x_elements, x_offset, static_cast<u32>(regs.offset_in));
         width >>= bpp_shift;
         x_elements >>= bpp_shift;
@@ -260,7 +254,7 @@ void MaxwellDMA::CopyPitchToBlockLinear() {
     u32 bpp_shift = 0U;
     if (!is_remapping) {
         bpp_shift = Common::FoldRight(
-            4U, [](u32 x, u32 y) { return (std::min)(x, static_cast<u32>(std::countr_zero(y))); },
+            4U, [](u32 x, u32 y) { return std::min(x, static_cast<u32>(std::countr_zero(y))); },
             width, x_elements, x_offset, static_cast<u32>(regs.offset_out));
         width >>= bpp_shift;
         x_elements >>= bpp_shift;
@@ -311,7 +305,7 @@ void MaxwellDMA::CopyBlockLinearToBlockLinear() {
     u32 bpp_shift = 0U;
     if (!is_remapping) {
         bpp_shift = Common::FoldRight(
-            4U, [](u32 x, u32 y) { return (std::min)(x, static_cast<u32>(std::countr_zero(y))); },
+            4U, [](u32 x, u32 y) { return std::min(x, static_cast<u32>(std::countr_zero(y))); },
             src_width, dst_width, x_elements, src_x_offset, dst_x_offset,
             static_cast<u32>(regs.offset_in), static_cast<u32>(regs.offset_out));
         src_width >>= bpp_shift;

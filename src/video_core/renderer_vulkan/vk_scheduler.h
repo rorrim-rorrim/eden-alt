@@ -153,7 +153,6 @@ private:
         TypedCommand& operator=(TypedCommand&&) = delete;
 
         void Execute(vk::CommandBuffer cmdbuf, vk::CommandBuffer upload_cmdbuf) const override {
-
             command(cmdbuf, upload_cmdbuf);
         }
 

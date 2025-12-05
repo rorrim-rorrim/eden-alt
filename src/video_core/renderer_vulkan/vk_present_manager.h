@@ -12,8 +12,6 @@
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
-struct VkSurfaceKHR_T;
-
 namespace Core::Frontend {
 class EmuWindow;
 } // namespace Core::Frontend
@@ -37,17 +35,9 @@ struct Frame {
 
 class PresentManager {
 public:
-    PresentManager(const vk::Instance& instance,
-                   Core::Frontend::EmuWindow& render_window,
-                   const Device& device,
-                   MemoryAllocator& memory_allocator,
-                   Scheduler& scheduler,
-                   Swapchain& swapchain,
-#ifdef ANDROID
-                   vk::SurfaceKHR& surface);
-#else
-                   VkSurfaceKHR_T* surface_handle);
-#endif
+    PresentManager(const vk::Instance& instance, Core::Frontend::EmuWindow& render_window,
+                   const Device& device, MemoryAllocator& memory_allocator, Scheduler& scheduler,
+                   Swapchain& swapchain, vk::SurfaceKHR& surface);
     ~PresentManager();
 
     /// Returns the last used presentation frame
@@ -81,11 +71,7 @@ private:
     MemoryAllocator& memory_allocator;
     Scheduler& scheduler;
     Swapchain& swapchain;
-#ifdef ANDROID
     vk::SurfaceKHR& surface;
-#else
-    VkSurfaceKHR_T* surface_handle;
-#endif
     vk::CommandPool cmdpool;
     std::vector<Frame> frames;
     std::queue<Frame*> present_queue;

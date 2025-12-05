@@ -1,21 +1,17 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 #include <cstddef>
 #include <fstream>
-#include <iostream>
 #include <memory>
 #include <thread>
 #include <vector>
-#include <bit>
-#include <numeric>
+
 #include "common/cityhash.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
+#include "common/settings.h"
 #include "common/thread_worker.h"
 #include "core/core.h"
 #include "shader_recompiler/backend/spirv/emit_spirv.h"
@@ -55,7 +51,7 @@ using VideoCommon::FileEnvironment;
 using VideoCommon::GenericEnvironment;
 using VideoCommon::GraphicsEnvironment;
 
-constexpr u32 CACHE_VERSION = 14;
+constexpr u32 CACHE_VERSION = 11;
 constexpr std::array<char, 8> VULKAN_CACHE_MAGIC_NUMBER{'y', 'u', 'z', 'u', 'v', 'k', 'c', 'h'};
 
 template <typename Container>
@@ -312,7 +308,6 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
       texture_cache{texture_cache_}, shader_notify{shader_notify_},
       use_asynchronous_shaders{Settings::values.use_asynchronous_shaders.GetValue()},
       use_vulkan_pipeline_cache{Settings::values.use_vulkan_driver_pipeline_cache.GetValue()},
-      optimize_spirv_output{Settings::values.optimize_spirv_output.GetValue() != Settings::SpirvOptimizeMode::Never},
       workers(device.HasBrokenParallelShaderCompiling() ? 1ULL : GetTotalPipelineWorkers(),
               "VkPipelineBuilder"),
       serialization_thread(1, "VkPipelineSerialization") {
@@ -565,10 +560,6 @@ void PipelineCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading
     if (state.statistics) {
         state.statistics->Report();
     }
-
-    if (Settings::values.optimize_spirv_output.GetValue() != Settings::SpirvOptimizeMode::Always) {
-        this->optimize_spirv_output = false;
-    }
 }
 
 GraphicsPipeline* PipelineCache::CurrentGraphicsPipelineSlowPath() {
@@ -673,7 +664,7 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
 
         const auto runtime_info{MakeRuntimeInfo(programs, key, program, previous_stage)};
         ConvertLegacyToGeneric(program, runtime_info);
-        const std::vector<u32> code{EmitSPIRV(profile, runtime_info, program, binding, this->optimize_spirv_output)};
+        const std::vector<u32> code{EmitSPIRV(profile, runtime_info, program, binding, false)};
         device.SaveShader(code);
         modules[stage_index] = BuildShader(device, code);
         if (device.HasDebuggingToolAttached()) {
@@ -767,7 +758,7 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
     }
 
     auto program{TranslateProgram(pools.inst, pools.block, env, cfg, host_info)};
-    const std::vector<u32> code{EmitSPIRV(profile, program, this->optimize_spirv_output)};
+    const std::vector<u32> code{EmitSPIRV(profile, program, false)};
     device.SaveShader(code);
     vk::ShaderModule spv_module{BuildShader(device, code)};
     if (device.HasDebuggingToolAttached()) {

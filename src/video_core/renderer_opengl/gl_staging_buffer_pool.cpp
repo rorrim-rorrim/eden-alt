@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -60,7 +57,6 @@ size_t StagingBuffers::RequestBuffer(size_t requested_size) {
                          storage_flags | GL_MAP_PERSISTENT_BIT);
     alloc.map = static_cast<u8*>(glMapNamedBufferRange(alloc.buffer.handle, 0, next_pow2_size,
                                                        map_flags | GL_MAP_PERSISTENT_BIT));
-    DEBUG_ASSERT(alloc.map != nullptr);
     alloc.size = next_pow2_size;
     allocs.emplace_back(std::move(alloc));
     return allocs.size() - 1;
@@ -68,7 +64,7 @@ size_t StagingBuffers::RequestBuffer(size_t requested_size) {
 
 std::optional<size_t> StagingBuffers::FindBuffer(size_t requested_size) {
     size_t known_unsignaled_index = current_sync_index + 1;
-    size_t smallest_buffer = (std::numeric_limits<size_t>::max)();
+    size_t smallest_buffer = std::numeric_limits<size_t>::max();
     std::optional<size_t> found;
     const size_t num_buffers = allocs.size();
     for (size_t index = 0; index < num_buffers; ++index) {
@@ -88,7 +84,7 @@ std::optional<size_t> StagingBuffers::FindBuffer(size_t requested_size) {
             if (!alloc.sync.IsSignaled()) {
                 // Since this fence hasn't been signaled, it's safe to assume all later
                 // fences haven't been signaled either
-                known_unsignaled_index = (std::min)(known_unsignaled_index, alloc.sync_index);
+                known_unsignaled_index = std::min(known_unsignaled_index, alloc.sync_index);
                 continue;
             }
             alloc.sync.Release();
@@ -120,7 +116,7 @@ std::pair<std::span<u8>, size_t> StreamBuffer::Request(size_t size) noexcept {
     used_iterator = iterator;
 
     for (size_t region = Region(free_iterator) + 1,
-                region_end = (std::min)(Region(iterator + size) + 1, NUM_SYNCS);
+                region_end = std::min(Region(iterator + size) + 1, NUM_SYNCS);
          region < region_end; ++region) {
         glClientWaitSync(fences[region].handle, 0, GL_TIMEOUT_IGNORED);
         fences[region].Release();

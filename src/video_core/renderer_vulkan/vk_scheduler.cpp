@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -145,6 +142,7 @@ bool Scheduler::UpdateRescaling(bool is_rescaling) {
     return true;
 }
 
+
 void Scheduler::WorkerThread(std::stop_token stop_token) {
     Common::SetCurrentThreadName("VulkanWorker");
 
@@ -197,6 +195,7 @@ void Scheduler::WorkerThread(std::stop_token stop_token) {
         }
     }
 }
+
 
 void Scheduler::AllocateWorkerCommandBuffer() {
     current_cmdbuf = vk::CommandBuffer(command_pool->Commit(), device.GetDispatchLoader());
@@ -257,6 +256,16 @@ u64 Scheduler::SubmitExecution(VkSemaphore signal_semaphore, VkSemaphore wait_se
 
 void Scheduler::AllocateNewContext() {
     // Enable counters once again. These are disabled when a command buffer is finished.
+    if (query_cache) {
+#if ANDROID
+        if (Settings::IsGPULevelHigh()) {
+            // This is problematic on Android, disable on GPU Normal.
+            query_cache->NotifySegment(true);
+        }
+#else
+        query_cache->NotifySegment(true);
+#endif
+    }
 }
 
 void Scheduler::InvalidateState() {
@@ -266,86 +275,54 @@ void Scheduler::InvalidateState() {
 }
 
 void Scheduler::EndPendingOperations() {
-    query_cache->CounterReset(VideoCommon::QueryType::ZPassPixelCount64);
+#if ANDROID
+    if (Settings::IsGPULevelHigh()) {
+        // This is problematic on Android, disable on GPU Normal.
+        // query_cache->DisableStreams();
+    }
+#else
+    // query_cache->DisableStreams();
+#endif
+    query_cache->NotifySegment(false);
     EndRenderPass();
 }
 
-void Scheduler::EndRenderPass()
-    {
-        if (!state.renderpass) {
-            return;
-        }
-
-        query_cache->CounterEnable(VideoCommon::QueryType::ZPassPixelCount64, false);
-        query_cache->NotifySegment(false);
-
-        Record([num_images = num_renderpass_images,
-                       images = renderpass_images,
-                       ranges = renderpass_image_ranges](vk::CommandBuffer cmdbuf) {
-            std::array<VkImageMemoryBarrier, 9> barriers;
-            VkPipelineStageFlags src_stages = 0;
-
-            for (size_t i = 0; i < num_images; ++i) {
-                const VkImageSubresourceRange& range = ranges[i];
-                const bool is_color = (range.aspectMask & VK_IMAGE_ASPECT_COLOR_BIT) != 0;
-                const bool is_depth_stencil = (range.aspectMask
-                                              & (VK_IMAGE_ASPECT_DEPTH_BIT
-                                                 | VK_IMAGE_ASPECT_STENCIL_BIT)) !=0;
-
-                VkAccessFlags src_access = 0;
-                VkPipelineStageFlags this_stage = 0;
-
-                if (is_color) {
-                    src_access |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-                    this_stage |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-                }
-
-                if (is_depth_stencil) {
-                    src_access |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-                    this_stage |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
-                                  | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-                }
-
-                src_stages |= this_stage;
-
-                barriers[i] = VkImageMemoryBarrier{
-                        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                        .pNext = nullptr,
-                        .srcAccessMask = src_access,
-                        .dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT
-                                         | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT
-                                         | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
-                                         | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT
-                                         | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-                        .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
-                        .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-                        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                        .image = images[i],
-                        .subresourceRange = range,
-                };
-            }
-
-            // Graft: ensure explicit fragment tests + color output stages are always synchronized (AMD/Windows fix)
-            src_stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
-                    VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
-                    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-            cmdbuf.EndRenderPass();
-
-            cmdbuf.PipelineBarrier(src_stages,
-                                   VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                                   0,
-                                   nullptr,
-                                   nullptr,
-                                   vk::Span(barriers.data(), num_images)  // Batched image barriers
-            );
-        });
-
-        state.renderpass = nullptr;
-        num_renderpass_images = 0;
+void Scheduler::EndRenderPass() {
+    if (!state.renderpass) {
+        return;
     }
-
+    Record([num_images = num_renderpass_images, images = renderpass_images,
+            ranges = renderpass_image_ranges](vk::CommandBuffer cmdbuf) {
+        std::array<VkImageMemoryBarrier, 9> barriers;
+        for (size_t i = 0; i < num_images; ++i) {
+            barriers[i] = VkImageMemoryBarrier{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                                 VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
+                                 VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+                                 VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                                 VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+                                 VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+                .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = images[i],
+                .subresourceRange = ranges[i],
+            };
+        }
+        cmdbuf.EndRenderPass();
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+                                   VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
+                                   VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                               VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, nullptr, nullptr,
+                               vk::Span(barriers.data(), num_images));
+    });
+    state.renderpass = nullptr;
+    num_renderpass_images = 0;
+}
 
 void Scheduler::AcquireNewChunk() {
     std::scoped_lock rl{reserve_mutex};

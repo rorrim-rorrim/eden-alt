@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,10 +9,8 @@
 #include "video_core/renderer_vulkan/vk_swapchain.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_surface.h"
-#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
-
 
 namespace {
 
@@ -86,8 +81,8 @@ bool CanBlitToSwapchain(const vk::PhysicalDevice& physical_device, VkFormat form
             },
         .extent =
             {
-                .width = (std::min)(frame_width, swapchain_width),
-                .height = (std::min)(frame_height, swapchain_height),
+                .width = std::min(frame_width, swapchain_width),
+                .height = std::min(frame_height, swapchain_height),
                 .depth = 1,
             },
     };
@@ -96,30 +91,14 @@ bool CanBlitToSwapchain(const vk::PhysicalDevice& physical_device, VkFormat form
 } // Anonymous namespace
 
 PresentManager::PresentManager(const vk::Instance& instance_,
-                               Core::Frontend::EmuWindow& render_window_,
-                               const Device& device_,
-                               MemoryAllocator& memory_allocator_,
-                               Scheduler& scheduler_,
-                               Swapchain& swapchain_,
-#ifdef ANDROID
-                               vk::SurfaceKHR& surface_)
-#else
-                               VkSurfaceKHR_T* surface_handle_)
-#endif
-    : instance{instance_}
-    , render_window{render_window_}
-    , device{device_}
-    , memory_allocator{memory_allocator_}
-    , scheduler{scheduler_}
-    , swapchain{swapchain_}
-#ifdef ANDROID
-    , surface{surface_}
-#else
-    , surface_handle{surface_handle_}
-#endif
-    , blit_supported{CanBlitToSwapchain(device.GetPhysical(), swapchain.GetImageViewFormat())}
-    , use_present_thread{Settings::values.async_presentation.GetValue()}
-{
+                               Core::Frontend::EmuWindow& render_window_, const Device& device_,
+                               MemoryAllocator& memory_allocator_, Scheduler& scheduler_,
+                               Swapchain& swapchain_, vk::SurfaceKHR& surface_)
+    : instance{instance_}, render_window{render_window_}, device{device_},
+      memory_allocator{memory_allocator_}, scheduler{scheduler_}, swapchain{swapchain_},
+      surface{surface_}, blit_supported{CanBlitToSwapchain(device.GetPhysical(),
+                                                           swapchain.GetImageViewFormat())},
+      use_present_thread{Settings::values.async_presentation.GetValue()} {
     SetImageCount();
 
     auto& dld = device.GetLogical();
@@ -273,7 +252,7 @@ void PresentManager::WaitPresent() {
     std::scoped_lock swapchain_lock{swapchain_mutex};
 }
 
-void PresentManager::PresentThread(std::stop_token token) {
+    void PresentManager::PresentThread(std::stop_token token) {
     Common::SetCurrentThreadName("VulkanPresent");
     while (!token.stop_requested()) {
         std::unique_lock lock{queue_mutex};
@@ -304,11 +283,7 @@ void PresentManager::PresentThread(std::stop_token token) {
 }
 
 void PresentManager::RecreateSwapchain(Frame* frame) {
-#ifndef ANDROID
-    swapchain.Create(surface_handle, frame->width, frame->height); // Pass raw pointer
-#else
-    swapchain.Create(*surface, frame->width, frame->height); // Pass raw pointer
-#endif
+    swapchain.Create(*surface, frame->width, frame->height);
     SetImageCount();
 }
 
@@ -326,9 +301,7 @@ void PresentManager::CopyToSwapchain(Frame* frame) {
         try {
             // Recreate surface and swapchain if needed.
             if (requires_recreation) {
-#ifdef ANDROID
                 surface = CreateSurface(instance, render_window.GetWindowInfo());
-#endif
                 RecreateSwapchain(frame);
             }
 
@@ -470,8 +443,8 @@ void PresentManager::CopyToSwapchainImpl(Frame* frame) {
     const std::array wait_semaphores = {present_semaphore, *frame->render_ready};
 
     static constexpr std::array<VkPipelineStageFlags, 2> wait_stage_masks{
-        VK_PIPELINE_STAGE_TRANSFER_BIT,
-        VK_PIPELINE_STAGE_TRANSFER_BIT,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
     };
 
     const VkSubmitInfo submit_info{

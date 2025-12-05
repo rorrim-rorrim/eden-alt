@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -8,8 +5,7 @@
 #include <cmath>
 #include <span>
 #include <unordered_map>
-#include <bit>
-#include <numeric>
+
 #include "common/assert.h"
 #include "video_core/engines/sw_blitter/converter.h"
 #include "video_core/surface.h"
@@ -774,7 +770,7 @@ private:
         };
         const auto to_fp_n = [](f32 base_value, size_t bits, size_t mantissa) {
             constexpr size_t fp32_mantissa_bits = 23;
-            u32 tmp_value = std::bit_cast<u32>((std::max)(base_value, 0.0f));
+            u32 tmp_value = std::bit_cast<u32>(std::max(base_value, 0.0f));
             size_t shift_towards = fp32_mantissa_bits - mantissa;
             return tmp_value >> shift_towards;
         };

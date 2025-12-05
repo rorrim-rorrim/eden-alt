@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -24,7 +21,7 @@ void Control::ProcessMethod(Method method, u32 argument) {
         Execute(argument);
         break;
     default:
-        UNIMPLEMENTED_MSG("Control method {:#X}", static_cast<u32>(method));
+        UNIMPLEMENTED_MSG("Control method 0x{:X}", static_cast<u32>(method));
         break;
     }
 }

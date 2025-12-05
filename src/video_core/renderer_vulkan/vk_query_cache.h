@@ -7,7 +7,7 @@
 
 #include "video_core/query_cache/query_cache_base.h"
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
-#include "video_core/renderer_vulkan/vk_texture_cache.h"
+
 namespace VideoCore {
 class RasterizerInterface;
 }
@@ -17,6 +17,7 @@ class StreamerInterface;
 }
 
 namespace Vulkan {
+
 class Device;
 class Scheduler;
 class StagingBufferPool;
@@ -31,7 +32,7 @@ public:
                                const MemoryAllocator& memory_allocator_, Scheduler& scheduler_,
                                StagingBufferPool& staging_pool_,
                                ComputePassDescriptorQueue& compute_pass_descriptor_queue,
-                               DescriptorPool& descriptor_pool, TextureCache& texture_cache_);
+                               DescriptorPool& descriptor_pool);
     ~QueryCacheRuntime();
 
     template <typename SyncValuesType>

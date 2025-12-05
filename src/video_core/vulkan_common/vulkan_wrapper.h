@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -219,7 +216,6 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdEndConditionalRenderingEXT vkCmdEndConditionalRenderingEXT{};
     PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT{};
     PFN_vkCmdEndQuery vkCmdEndQuery{};
-    PFN_vkCmdResetQueryPool vkCmdResetQueryPool{};
     PFN_vkCmdEndRenderPass vkCmdEndRenderPass{};
     PFN_vkCmdEndTransformFeedbackEXT vkCmdEndTransformFeedbackEXT{};
     PFN_vkCmdFillBuffer vkCmdFillBuffer{};
@@ -238,10 +234,6 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdSetDepthWriteEnableEXT vkCmdSetDepthWriteEnableEXT{};
     PFN_vkCmdSetPrimitiveRestartEnableEXT vkCmdSetPrimitiveRestartEnableEXT{};
     PFN_vkCmdSetRasterizerDiscardEnableEXT vkCmdSetRasterizerDiscardEnableEXT{};
-    PFN_vkCmdSetConservativeRasterizationModeEXT vkCmdSetConservativeRasterizationModeEXT{};
-    PFN_vkCmdSetLineRasterizationModeEXT vkCmdSetLineRasterizationModeEXT{};
-    PFN_vkCmdSetLineStippleEnableEXT vkCmdSetLineStippleEnableEXT{};
-    PFN_vkCmdSetLineStippleEXT vkCmdSetLineStippleEXT{};
     PFN_vkCmdSetDepthBiasEnableEXT vkCmdSetDepthBiasEnableEXT{};
     PFN_vkCmdSetLogicOpEnableEXT vkCmdSetLogicOpEnableEXT{};
     PFN_vkCmdSetDepthClampEnableEXT vkCmdSetDepthClampEnableEXT{};
@@ -438,17 +430,6 @@ public:
         return handle != nullptr;
     }
 
-#ifndef ANDROID
-    /**
-     * Releases ownership of the managed handle.
-     * The caller is responsible for managing the lifetime of the returned handle.
-     * The Handle object becomes invalid after this call.
-     */
-    Type release() noexcept {
-        return std::exchange(handle, nullptr);
-    }
-#endif
-
 protected:
     Type handle = nullptr;
     OwnerType owner = nullptr;
@@ -516,20 +497,9 @@ public:
     }
 
     /// Returns true when there's a held object.
-    explicit operator bool() const noexcept {
+    operator bool() const noexcept {
         return handle != nullptr;
     }
-
-#ifndef ANDROID
-    /**
-     * Releases ownership of the managed handle.
-     * The caller is responsible for managing the lifetime of the returned handle.
-     * The Handle object becomes invalid after this call.
-     */
-    Type release() noexcept {
-        return std::exchange(handle, nullptr);
-    }
-#endif
 
 protected:
     Type handle = nullptr;
@@ -627,7 +597,7 @@ class Instance : public Handle<VkInstance, NoOwner, InstanceDispatch> {
 public:
     /// Creates a Vulkan instance.
     /// @throw Exception on initialization error.
-    [[nodiscard]] static Instance Create(u32 version, Span<const char*> layers, Span<const char*> extensions,
+    static Instance Create(u32 version, Span<const char*> layers, Span<const char*> extensions,
                            InstanceDispatch& dispatch);
 
     /// Enumerates physical devices.
@@ -637,12 +607,12 @@ public:
 
     /// Creates a debug callback messenger.
     /// @throw Exception on creation failure.
-    [[nodiscard]] DebugUtilsMessenger CreateDebugUtilsMessenger(
+    DebugUtilsMessenger CreateDebugUtilsMessenger(
         const VkDebugUtilsMessengerCreateInfoEXT& create_info) const;
 
     /// Creates a debug report callback.
     /// @throw Exception on creation failure.
-    [[nodiscard]] DebugReportCallback CreateDebugReportCallback(
+    DebugReportCallback CreateDebugReportCallback(
         const VkDebugReportCallbackCreateInfoEXT& create_info) const;
 
     /// Returns dispatch table.
@@ -653,10 +623,9 @@ public:
 
 class Image {
 public:
-    explicit Image(VkImage handle_, VkImageUsageFlags usage_, VkDevice owner_,
-                   VmaAllocator allocator_, VmaAllocation allocation_,
-                   const DeviceDispatch& dld_) noexcept
-        : handle{handle_}, usage{usage_}, owner{owner_}, allocator{allocator_},
+    explicit Image(VkImage handle_, VkDevice owner_, VmaAllocator allocator_,
+                   VmaAllocation allocation_, const DeviceDispatch& dld_) noexcept
+        : handle{handle_}, owner{owner_}, allocator{allocator_},
           allocation{allocation_}, dld{&dld_} {}
     Image() = default;
 
@@ -664,13 +633,12 @@ public:
     Image& operator=(const Image&) = delete;
 
     Image(Image&& rhs) noexcept
-        : handle{std::exchange(rhs.handle, nullptr)}, usage{rhs.usage}, owner{rhs.owner},
-          allocator{rhs.allocator}, allocation{rhs.allocation}, dld{rhs.dld} {}
+        : handle{std::exchange(rhs.handle, nullptr)}, owner{rhs.owner}, allocator{rhs.allocator},
+          allocation{rhs.allocation}, dld{rhs.dld} {}
 
     Image& operator=(Image&& rhs) noexcept {
         Release();
         handle = std::exchange(rhs.handle, nullptr);
-        usage = rhs.usage;
         owner = rhs.owner;
         allocator = rhs.allocator;
         allocation = rhs.allocation;
@@ -697,15 +665,10 @@ public:
 
     void SetObjectNameEXT(const char* name) const;
 
-    [[nodiscard]] VkImageUsageFlags UsageFlags() const noexcept {
-        return usage;
-    }
-
 private:
     void Release() const noexcept;
 
     VkImage handle = nullptr;
-    VkImageUsageFlags usage{};
     VkDevice owner = nullptr;
     VmaAllocator allocator = nullptr;
     VmaAllocation allocation = nullptr;
@@ -860,7 +823,7 @@ public:
     /// Set object name.
     void SetObjectNameEXT(const char* name) const;
 
-    VkResult Wait(u64 timeout = (std::numeric_limits<u64>::max)()) const noexcept {
+    VkResult Wait(u64 timeout = std::numeric_limits<u64>::max()) const noexcept {
         return dld->vkWaitForFences(owner, 1, &handle, true, timeout);
     }
 
@@ -961,7 +924,7 @@ public:
      * @param timeout Time in nanoseconds to timeout
      * @return        True on successful wait, false on timeout
      */
-    bool Wait(u64 value, u64 timeout = (std::numeric_limits<u64>::max)()) const {
+    bool Wait(u64 value, u64 timeout = std::numeric_limits<u64>::max()) const {
         const VkSemaphoreWaitInfo wait_info{
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO,
             .pNext = nullptr,
@@ -986,60 +949,58 @@ class Device : public Handle<VkDevice, NoOwner, DeviceDispatch> {
     using Handle<VkDevice, NoOwner, DeviceDispatch>::Handle;
 
 public:
-    [[nodiscard]] static Device Create(VkPhysicalDevice physical_device,
-                                       Span<VkDeviceQueueCreateInfo> queues_ci,
-                                       Span<const char*> enabled_extensions, const void* next,
-                                       DeviceDispatch& dispatch);
+    static Device Create(VkPhysicalDevice physical_device, Span<VkDeviceQueueCreateInfo> queues_ci,
+                         Span<const char*> enabled_extensions, const void* next,
+                         DeviceDispatch& dispatch);
 
-    [[nodiscard]] Queue GetQueue(u32 family_index) const noexcept;
+    Queue GetQueue(u32 family_index) const noexcept;
 
-    [[nodiscard]] BufferView CreateBufferView(const VkBufferViewCreateInfo& ci) const;
+    BufferView CreateBufferView(const VkBufferViewCreateInfo& ci) const;
 
-    [[nodiscard]] ImageView CreateImageView(const VkImageViewCreateInfo& ci) const;
+    ImageView CreateImageView(const VkImageViewCreateInfo& ci) const;
 
-    [[nodiscard]] Semaphore CreateSemaphore() const;
+    Semaphore CreateSemaphore() const;
 
-    [[nodiscard]] Semaphore CreateSemaphore(const VkSemaphoreCreateInfo& ci) const;
+    Semaphore CreateSemaphore(const VkSemaphoreCreateInfo& ci) const;
 
-    [[nodiscard]] Fence CreateFence(const VkFenceCreateInfo& ci) const;
+    Fence CreateFence(const VkFenceCreateInfo& ci) const;
 
-    [[nodiscard]] DescriptorPool CreateDescriptorPool(const VkDescriptorPoolCreateInfo& ci) const;
+    DescriptorPool CreateDescriptorPool(const VkDescriptorPoolCreateInfo& ci) const;
 
-    [[nodiscard]] RenderPass CreateRenderPass(const VkRenderPassCreateInfo& ci) const;
+    RenderPass CreateRenderPass(const VkRenderPassCreateInfo& ci) const;
 
-    [[nodiscard]] DescriptorSetLayout CreateDescriptorSetLayout(
-        const VkDescriptorSetLayoutCreateInfo& ci) const;
+    DescriptorSetLayout CreateDescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo& ci) const;
 
-    [[nodiscard]] PipelineCache CreatePipelineCache(const VkPipelineCacheCreateInfo& ci) const;
+    PipelineCache CreatePipelineCache(const VkPipelineCacheCreateInfo& ci) const;
 
-    [[nodiscard]] PipelineLayout CreatePipelineLayout(const VkPipelineLayoutCreateInfo& ci) const;
+    PipelineLayout CreatePipelineLayout(const VkPipelineLayoutCreateInfo& ci) const;
 
-    [[nodiscard]] Pipeline CreateGraphicsPipeline(const VkGraphicsPipelineCreateInfo& ci,
-                                                  VkPipelineCache cache = nullptr) const;
+    Pipeline CreateGraphicsPipeline(const VkGraphicsPipelineCreateInfo& ci,
+                                    VkPipelineCache cache = nullptr) const;
 
-    [[nodiscard]] Pipeline CreateComputePipeline(const VkComputePipelineCreateInfo& ci,
-                                                 VkPipelineCache cache = nullptr) const;
+    Pipeline CreateComputePipeline(const VkComputePipelineCreateInfo& ci,
+                                   VkPipelineCache cache = nullptr) const;
 
-    [[nodiscard]] Sampler CreateSampler(const VkSamplerCreateInfo& ci) const;
+    Sampler CreateSampler(const VkSamplerCreateInfo& ci) const;
 
-    [[nodiscard]] Framebuffer CreateFramebuffer(const VkFramebufferCreateInfo& ci) const;
+    Framebuffer CreateFramebuffer(const VkFramebufferCreateInfo& ci) const;
 
-    [[nodiscard]] CommandPool CreateCommandPool(const VkCommandPoolCreateInfo& ci) const;
+    CommandPool CreateCommandPool(const VkCommandPoolCreateInfo& ci) const;
 
-    [[nodiscard]] DescriptorUpdateTemplate CreateDescriptorUpdateTemplate(
+    DescriptorUpdateTemplate CreateDescriptorUpdateTemplate(
         const VkDescriptorUpdateTemplateCreateInfo& ci) const;
 
-    [[nodiscard]] QueryPool CreateQueryPool(const VkQueryPoolCreateInfo& ci) const;
+    QueryPool CreateQueryPool(const VkQueryPoolCreateInfo& ci) const;
 
-    [[nodiscard]] ShaderModule CreateShaderModule(const VkShaderModuleCreateInfo& ci) const;
+    ShaderModule CreateShaderModule(const VkShaderModuleCreateInfo& ci) const;
 
-    [[nodiscard]] Event CreateEvent() const;
+    Event CreateEvent() const;
 
-    [[nodiscard]] SwapchainKHR CreateSwapchainKHR(const VkSwapchainCreateInfoKHR& ci) const;
+    SwapchainKHR CreateSwapchainKHR(const VkSwapchainCreateInfoKHR& ci) const;
 
-    [[nodiscard]] DeviceMemory TryAllocateMemory(const VkMemoryAllocateInfo& ai) const noexcept;
+    DeviceMemory TryAllocateMemory(const VkMemoryAllocateInfo& ai) const noexcept;
 
-    [[nodiscard]] DeviceMemory AllocateMemory(const VkMemoryAllocateInfo& ai) const;
+    DeviceMemory AllocateMemory(const VkMemoryAllocateInfo& ai) const;
 
     VkMemoryRequirements GetBufferMemoryRequirements(VkBuffer buffer,
                                                      void* pnext = nullptr) const noexcept;
@@ -1140,9 +1101,7 @@ public:
     VkCommandBuffer operator*() const noexcept {
         return handle;
     }
-    void ResetQueryPool(VkQueryPool query_pool, uint32_t first, uint32_t count) const noexcept {
-        dld->vkCmdResetQueryPool(handle, query_pool, first, count);
-    }
+
     void Begin(const VkCommandBufferBeginInfo& begin_info) const {
         Check(dld->vkBeginCommandBuffer(handle, &begin_info));
     }
@@ -1441,26 +1400,6 @@ public:
 
     void SetRasterizerDiscardEnableEXT(bool enable) const noexcept {
         dld->vkCmdSetRasterizerDiscardEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
-    }
-
-    void SetConservativeRasterizationModeEXT(VkConservativeRasterizationModeEXT mode) const noexcept
-    {
-        dld->vkCmdSetConservativeRasterizationModeEXT(handle, mode);
-    }
-
-    void SetLineRasterizationModeEXT(VkLineRasterizationModeEXT mode) const noexcept
-    {
-        dld->vkCmdSetLineRasterizationModeEXT(handle, mode);
-    }
-
-    void SetLineStippleEnableEXT(bool enable) const noexcept
-    {
-        dld->vkCmdSetLineStippleEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
-    }
-
-    void SetLineStippleEXT(u32 factor, u16 pattern) const noexcept
-    {
-        dld->vkCmdSetLineStippleEXT(handle, factor, pattern);
     }
 
     void SetDepthBiasEnableEXT(bool enable) const noexcept {

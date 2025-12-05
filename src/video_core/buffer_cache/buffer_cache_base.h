@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -156,11 +153,7 @@ template <class P>
 class BufferCache : public VideoCommon::ChannelSetupCaches<BufferCacheChannelInfo> {
     // Page size for caching purposes.
     // This is unrelated to the CPU page size and it can be changed as it seems optimal.
-#ifdef YUZU_LEGACY
-    static constexpr u32 CACHING_PAGEBITS = 12;
-#else
     static constexpr u32 CACHING_PAGEBITS = 16;
-#endif
     static constexpr u64 CACHING_PAGESIZE = u64{1} << CACHING_PAGEBITS;
 
     static constexpr bool IS_OPENGL = P::IS_OPENGL;
@@ -174,14 +167,9 @@ class BufferCache : public VideoCommon::ChannelSetupCaches<BufferCacheChannelInf
     static constexpr bool SEPARATE_IMAGE_BUFFERS_BINDINGS = P::SEPARATE_IMAGE_BUFFER_BINDINGS;
     static constexpr bool USE_MEMORY_MAPS_FOR_UPLOADS = P::USE_MEMORY_MAPS_FOR_UPLOADS;
 
-#ifdef YUZU_LEGACY
-    static constexpr s64 TARGET_THRESHOLD = 3_GiB;
-#else
-    static constexpr s64 TARGET_THRESHOLD = 4_GiB;
-#endif
-
     static constexpr s64 DEFAULT_EXPECTED_MEMORY = 512_MiB;
     static constexpr s64 DEFAULT_CRITICAL_MEMORY = 1_GiB;
+    static constexpr s64 TARGET_THRESHOLD = 4_GiB;
 
     // Debug Flags.
 
@@ -241,7 +229,7 @@ public:
 
     void UnbindGraphicsStorageBuffers(size_t stage);
 
-    bool BindGraphicsStorageBuffer(size_t stage, size_t ssbo_index, u32 cbuf_index, u32 cbuf_offset,
+    void BindGraphicsStorageBuffer(size_t stage, size_t ssbo_index, u32 cbuf_index, u32 cbuf_offset,
                                    bool is_written);
 
     void UnbindGraphicsTextureBuffers(size_t stage);
@@ -457,12 +445,7 @@ private:
     Tegra::MaxwellDeviceMemoryManager& device_memory;
 
     Common::SlotVector<Buffer> slot_buffers;
-#ifdef YUZU_LEGACY
-    static constexpr size_t TICKS_TO_DESTROY = 6;
-#else
-    static constexpr size_t TICKS_TO_DESTROY = 8;
-#endif
-    DelayedDestructionRing<Buffer, TICKS_TO_DESTROY> delayed_destruction_ring;
+    DelayedDestructionRing<Buffer, 8> delayed_destruction_ring;
 
     const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect{};
 
@@ -494,9 +477,6 @@ private:
     u64 minimum_memory = 0;
     u64 critical_memory = 0;
     BufferId inline_buffer_id;
-#ifdef YUZU_LEGACY
-    bool immediately_free = false;
-#endif
 
     std::array<BufferId, ((1ULL << 34) >> CACHING_PAGEBITS)> page_table;
     Common::ScratchBuffer<u8> tmp_buffer;

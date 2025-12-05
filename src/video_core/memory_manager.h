@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -155,7 +152,7 @@ public:
     PTEKind GetPageKind(GPUVAddr gpu_addr) const;
 
     size_t GetMemoryLayoutSize(GPUVAddr gpu_addr,
-                               size_t max_size = (std::numeric_limits<size_t>::max)()) const;
+                               size_t max_size = std::numeric_limits<size_t>::max()) const;
 
     void FlushCaching();
 

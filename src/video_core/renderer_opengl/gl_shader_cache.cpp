@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -54,7 +51,7 @@ using VideoCommon::LoadPipelines;
 using VideoCommon::SerializePipeline;
 using Context = ShaderContext::Context;
 
-constexpr u32 CACHE_VERSION = 13;
+constexpr u32 CACHE_VERSION = 10;
 
 template <typename Container>
 auto MakeSpan(Container& container) {
@@ -181,7 +178,6 @@ ShaderCache::ShaderCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
       state_tracker{state_tracker_}, shader_notify{shader_notify_},
       use_asynchronous_shaders{device.UseAsynchronousShaders()},
       strict_context_required{device.StrictContextRequired()},
-      optimize_spirv_output{Settings::values.optimize_spirv_output.GetValue() != Settings::SpirvOptimizeMode::Never},
       profile{
           .supported_spirv = 0x00010000,
 
@@ -347,10 +343,6 @@ void ShaderCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading,
     workers->WaitForRequests(stop_loading);
     if (!use_asynchronous_shaders) {
         workers.reset();
-    }
-
-    if (Settings::values.optimize_spirv_output.GetValue() != Settings::SpirvOptimizeMode::Always) {
-        this->optimize_spirv_output = false;
     }
 }
 
@@ -540,8 +532,7 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
             break;
         case Settings::ShaderBackend::SpirV:
             ConvertLegacyToGeneric(program, runtime_info);
-            sources_spirv[stage_index] =
-                EmitSPIRV(profile, runtime_info, program, binding, this->optimize_spirv_output);
+            sources_spirv[stage_index] = EmitSPIRV(profile, runtime_info, program, binding, false);
             break;
         }
         previous_program = &program;
@@ -600,7 +591,7 @@ std::unique_ptr<ComputePipeline> ShaderCache::CreateComputePipeline(
         code = EmitGLASM(profile, info, program);
         break;
     case Settings::ShaderBackend::SpirV:
-        code_spirv = EmitSPIRV(profile, program, this->optimize_spirv_output);
+        code_spirv = EmitSPIRV(profile, program, false);
         break;
     }
 
@@ -612,7 +603,7 @@ std::unique_ptr<ComputePipeline> ShaderCache::CreateComputePipeline(
 }
 
 std::unique_ptr<ShaderWorker> ShaderCache::CreateWorkers() const {
-    return std::make_unique<ShaderWorker>((std::max)(std::thread::hardware_concurrency(), 2U) - 1,
+    return std::make_unique<ShaderWorker>(std::max(std::thread::hardware_concurrency(), 2U) - 1,
                                           "GlShaderBuilder",
                                           [this] { return Context{emu_window}; });
 }

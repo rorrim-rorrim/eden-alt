@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -24,6 +21,7 @@
 #ifdef ARCHITECTURE_x86_64
 #include "video_core/macro/macro_jit_x64.h"
 #endif
+
 
 namespace Tegra {
 

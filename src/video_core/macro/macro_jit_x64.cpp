@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -44,20 +41,10 @@ std::bitset<32> PersistentCallerSavedRegs() {
     return PERSISTENT_REGISTERS & Common::X64::ABI_ALL_CALLER_SAVED;
 }
 
-/// @brief Must enforce W^X constraints, as we yet don't havea  global "NO_EXECUTE" support flag
-/// the speed loss is minimal, and in fact may be negligible, however for your peace of mind
-/// I simply included known OSes whom had W^X issues
-#if defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
-static const auto default_cg_mode = Xbyak::DontSetProtectRWE;
-#else
-static const auto default_cg_mode = nullptr; //Allow RWE
-#endif
-
 class MacroJITx64Impl final : public Xbyak::CodeGenerator, public CachedMacro {
 public:
     explicit MacroJITx64Impl(Engines::Maxwell3D& maxwell3d_, const std::vector<u32>& code_)
-        : Xbyak::CodeGenerator(MAX_CODE_SIZE, default_cg_mode)
-        , code{code_}, maxwell3d{maxwell3d_} {
+        : CodeGenerator{MAX_CODE_SIZE}, code{code_}, maxwell3d{maxwell3d_} {
         Compile();
     }
 
@@ -360,8 +347,8 @@ void Send(Engines::Maxwell3D* maxwell3d, Macro::MethodAddress method_address, u3
 void MacroJITx64Impl::Compile_Send(Xbyak::Reg32 value) {
     Common::X64::ABI_PushRegistersAndAdjustStack(*this, PersistentCallerSavedRegs(), 0);
     mov(Common::X64::ABI_PARAM1, qword[STATE]);
-    mov(Common::X64::ABI_PARAM2.cvt32(), METHOD_ADDRESS);
-    mov(Common::X64::ABI_PARAM3.cvt32(), value);
+    mov(Common::X64::ABI_PARAM2, METHOD_ADDRESS);
+    mov(Common::X64::ABI_PARAM3, value);
     Common::X64::CallFarFunction(*this, &Send);
     Common::X64::ABI_PopRegistersAndAdjustStack(*this, PersistentCallerSavedRegs(), 0);
 

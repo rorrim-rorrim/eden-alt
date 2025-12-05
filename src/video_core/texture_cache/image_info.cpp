@@ -1,10 +1,7 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <fmt/ranges.h>
+#include <fmt/format.h>
 
 #include "common/assert.h"
 #include "common/settings.h"
@@ -127,7 +124,7 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         break;
     }
     if (num_samples > 1) {
-        size.width  *= NumSamplesX(config.msaa_mode);
+        size.width *= NumSamplesX(config.msaa_mode);
         size.height *= NumSamplesY(config.msaa_mode);
     }
     if (type != ImageType::Linear) {
@@ -136,7 +133,7 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         maybe_unaligned_layer_stride = CalculateLayerSize(*this);
         rescaleable &= (block.depth == 0) && resources.levels == 1;
         rescaleable &= size.height > RescaleHeightThreshold ||
-                           GetFormatType(format) != SurfaceType::ColorTexture;
+                       GetFormatType(format) != SurfaceType::ColorTexture;
         downscaleable = size.height > DownscaleHeightThreshold;
     }
 }

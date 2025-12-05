@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -19,7 +16,6 @@
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
-#include "video_core/texture_cache/util.h"
 
 namespace Vulkan {
 namespace {
@@ -342,7 +338,7 @@ BufferCacheRuntime::BufferCacheRuntime(const Device& device_, MemoryAllocator& m
             device.GetUniformBufferAlignment() //check if the device has it
     );
     // add the ability to change the size in settings in future
-    uniform_ring.Init(memory_allocator, 8 * 1024 * 1024 /* 8 MiB */, ubo_align ? ubo_align : 256);
+    uniform_ring.Init(device, memory_allocator, 8 * 1024 * 1024 /* 8 MiB */, ubo_align ? ubo_align : 256);
     quad_array_index_buffer = std::make_shared<QuadArrayIndexBuffer>(device_, memory_allocator_,
                                                                      scheduler_, staging_pool_);
     quad_strip_index_buffer = std::make_shared<QuadStripIndexBuffer>(device_, memory_allocator_,
@@ -361,8 +357,9 @@ void BufferCacheRuntime::FreeDeferredStagingBuffer(StagingBufferRef& ref) {
     staging_pool.FreeDeferred(ref);
 }
 
-void BufferCacheRuntime::UniformRing::Init(MemoryAllocator& alloc, u64 bytes, u32 alignment)
-{
+void BufferCacheRuntime::UniformRing::Init(const Device& device,
+                                           MemoryAllocator& alloc,
+                                           u64 bytes, u32 alignment) {
     for (size_t i = 0; i < NUM_FRAMES; ++i) {
         VkBufferCreateInfo ci{
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -460,7 +457,7 @@ void BufferCacheRuntime::CopyBuffer(VkBuffer dst_buffer, VkBuffer src_buffer,
     if (src_buffer == staging_pool.StreamBuf() && can_reorder_upload) {
         scheduler.RecordWithUploadBuffer([src_buffer, dst_buffer, vk_copies](
                                              vk::CommandBuffer, vk::CommandBuffer upload_cmdbuf) {
-            upload_cmdbuf.CopyBuffer(src_buffer, dst_buffer, VideoCommon::FixSmallVectorADL(vk_copies));
+            upload_cmdbuf.CopyBuffer(src_buffer, dst_buffer, vk_copies);
         });
         return;
     }
@@ -471,7 +468,7 @@ void BufferCacheRuntime::CopyBuffer(VkBuffer dst_buffer, VkBuffer src_buffer,
             cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                                    VK_PIPELINE_STAGE_TRANSFER_BIT, 0, READ_BARRIER);
         }
-        cmdbuf.CopyBuffer(src_buffer, dst_buffer, VideoCommon::FixSmallVectorADL(vk_copies));
+        cmdbuf.CopyBuffer(src_buffer, dst_buffer, vk_copies);
         if (barrier) {
             cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT,
                                    VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, WRITE_BARRIER);
@@ -579,7 +576,8 @@ void BufferCacheRuntime::BindQuadIndexBuffer(PrimitiveTopology topology, u32 fir
     }
 }
 
-void BufferCacheRuntime::BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size, u32 stride) {
+void BufferCacheRuntime::BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size,
+                                          u32 stride) {
     if (index >= device.GetMaxVertexInputBindings()) {
         return;
     }
@@ -617,8 +615,8 @@ void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bi
         buffer_handles.push_back(handle);
     }
     const u32 device_max = device.GetMaxVertexInputBindings();
-    const u32 min_binding = (std::min)(bindings.min_index, device_max);
-    const u32 max_binding = (std::min)(bindings.max_index, device_max);
+    const u32 min_binding = std::min(bindings.min_index, device_max);
+    const u32 max_binding = std::min(bindings.max_index, device_max);
     const u32 binding_count = max_binding - min_binding;
     if (binding_count == 0) {
         return;
