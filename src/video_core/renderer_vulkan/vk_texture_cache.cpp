@@ -163,11 +163,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         (surface_type == VideoCore::Surface::SurfaceType::Depth ||
          surface_type == VideoCore::Surface::SurfaceType::Stencil ||
          surface_type == VideoCore::Surface::SurfaceType::DepthStencil);
-    const bool needs_sample_location_compat =
-        is_depth_stencil_attachment && device.SupportsSampleLocationsFor(sample_count);
-    if (needs_sample_location_compat) {
-        flags |= VK_IMAGE_CREATE_SAMPLE_LOCATIONS_COMPATIBLE_DEPTH_BIT_EXT;
-    }
+
     const auto [samples_x, samples_y] = VideoCommon::SamplesLog2(info.num_samples);
     return VkImageCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
