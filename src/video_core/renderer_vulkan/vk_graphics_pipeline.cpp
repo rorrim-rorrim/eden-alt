@@ -830,14 +830,8 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     const bool alpha_to_one_supported = device.SupportsAlphaToOne();
     const auto msaa_mode = key.state.msaa_mode.Value();
     const VkSampleCountFlagBits vk_samples = MaxwellToVK::MsaaMode(msaa_mode);
-    const auto [grid_width, grid_height] = VideoCommon::SampleLocationGridSize(msaa_mode);
-    const auto& sample_location_props = device.SampleLocationProperties();
-    const bool grid_within_limits = grid_width <= sample_location_props.maxSampleLocationGridSize.width &&
-                                    grid_height <= sample_location_props.maxSampleLocationGridSize.height;
-    const bool supports_sample_locations = device.IsExtSampleLocationsSupported() &&
-                                           device.SupportsSampleLocationsFor(vk_samples) &&
-                                           sample_location_props.variableSampleLocations == VK_TRUE &&
-                                           grid_within_limits;
+    const bool supports_sample_locations =
+        device.IsExtSampleLocationsSupported() && device.SupportsSampleLocationsFor(vk_samples);
 
     VkPipelineMultisampleStateCreateInfo multisample_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
@@ -862,6 +856,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     if (supports_sample_locations) {
         sample_locations_chain.emplace();
         auto& chain = *sample_locations_chain;
+        const auto [grid_width, grid_height] = VideoCommon::SampleLocationGridSize(msaa_mode);
         const u32 samples_per_pixel = static_cast<u32>(VideoCommon::NumSamples(msaa_mode));
         const u32 sample_locations_count = grid_width * grid_height * samples_per_pixel;
         chain.locations.fill(VkSampleLocationEXT{0.5f, 0.5f});
