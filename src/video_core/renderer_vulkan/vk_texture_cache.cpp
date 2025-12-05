@@ -2128,7 +2128,6 @@ bool Image::BlitScaleHelper(bool scale_up) {
                   /*supports_linear_filter=*/false, scale_up);
         return true;
     }
-
     const bool supports_linear_filter = runtime->SupportsLinearFilter(info.format);
     const bool is_bilinear = is_color && supports_linear_filter;
     const auto filter_mode = is_bilinear ? Tegra::Engines::Fermi2D::Filter::Bilinear
