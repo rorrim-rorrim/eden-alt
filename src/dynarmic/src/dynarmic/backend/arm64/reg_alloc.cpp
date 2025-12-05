@@ -84,7 +84,7 @@ IR::AccType Argument::GetImmediateAccType() const {
     return value.GetAccType();
 }
 
-HostLoc::Kind Argument::CurrentLocationKind() const {
+HostLoc::Kind Argument::CurrentLocationKind(RegAlloc& reg_alloc) const {
     return reg_alloc.ValueLocation(value.GetInst())->kind;
 }
 

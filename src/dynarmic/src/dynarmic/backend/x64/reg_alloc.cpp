@@ -174,21 +174,21 @@ IR::AccType Argument::GetImmediateAccType() const noexcept {
 }
 
 /// Is this value currently in a GPR?
-bool Argument::IsInGpr() const noexcept {
+bool Argument::IsInGpr(RegAlloc& reg_alloc) const noexcept {
     if (IsImmediate())
         return false;
     return HostLocIsGPR(*reg_alloc.ValueLocation(value.GetInst()));
 }
 
 /// Is this value currently in a XMM?
-bool Argument::IsInXmm() const noexcept {
+bool Argument::IsInXmm(RegAlloc& reg_alloc) const noexcept {
     if (IsImmediate())
         return false;
     return HostLocIsXMM(*reg_alloc.ValueLocation(value.GetInst()));
 }
 
 /// Is this value currently in memory?
-bool Argument::IsInMemory() const noexcept {
+bool Argument::IsInMemory(RegAlloc& reg_alloc) const noexcept {
     if (IsImmediate())
         return false;
     return HostLocIsSpill(*reg_alloc.ValueLocation(value.GetInst()));
@@ -200,10 +200,13 @@ RegAlloc::RegAlloc(BlockOfCode* code, boost::container::static_vector<HostLoc, 2
     code(code)
 {}
 
-//static std::uint64_t Zfncwjkrt_blockOfCodeShim = 0;
-
 RegAlloc::ArgumentInfo RegAlloc::GetArgumentInfo(const IR::Inst* inst) noexcept {
-    ArgumentInfo ret{Argument{*this}, Argument{*this}, Argument{*this}, Argument{*this}};
+    ArgumentInfo ret{
+        Argument{},
+        Argument{},
+        Argument{},
+        Argument{}
+    };
     for (size_t i = 0; i < inst->NumArgs(); i++) {
         const auto arg = inst->GetArg(i);
         ret[i].value = arg;

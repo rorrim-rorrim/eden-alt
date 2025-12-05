@@ -248,7 +248,7 @@ void EmitX64::EmitPackedSubS16(EmitContext& ctx, IR::Inst* inst) {
 void EmitX64::EmitPackedHalvingAddU8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    if (args[0].IsInXmm() || args[1].IsInXmm()) {
+    if (args[0].IsInXmm(ctx.reg_alloc) || args[1].IsInXmm(ctx.reg_alloc)) {
         const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(args[0]);
         const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseScratchXmm(args[1]);
         const Xbyak::Xmm ones = ctx.reg_alloc.ScratchXmm();
@@ -291,7 +291,7 @@ void EmitX64::EmitPackedHalvingAddU8(EmitContext& ctx, IR::Inst* inst) {
 void EmitX64::EmitPackedHalvingAddU16(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    if (args[0].IsInXmm() || args[1].IsInXmm()) {
+    if (args[0].IsInXmm(ctx.reg_alloc) || args[1].IsInXmm(ctx.reg_alloc)) {
         const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(args[0]);
         const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(args[1]);
         const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
@@ -654,7 +654,7 @@ void EmitX64::EmitPackedAbsDiffSumU8(EmitContext& ctx, IR::Inst* inst) {
 void EmitX64::EmitPackedSelect(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    const size_t num_args_in_xmm = args[0].IsInXmm() + args[1].IsInXmm() + args[2].IsInXmm();
+    const size_t num_args_in_xmm = args[0].IsInXmm(ctx.reg_alloc) + args[1].IsInXmm(ctx.reg_alloc) + args[2].IsInXmm(ctx.reg_alloc);
 
     if (num_args_in_xmm >= 2) {
         const Xbyak::Xmm ge = ctx.reg_alloc.UseScratchXmm(args[0]);
