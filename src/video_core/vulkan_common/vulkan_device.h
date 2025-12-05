@@ -979,12 +979,7 @@ public:
         return nvidia_arch;
     }
 
-    static constexpr size_t SampleLocationTableSize() {
-        return sample_location_table_size;
-    }
-
 private:
-
     static constexpr size_t sample_location_table_size = 7;
 
     /// Checks if the physical device is suitable and configures the object state
