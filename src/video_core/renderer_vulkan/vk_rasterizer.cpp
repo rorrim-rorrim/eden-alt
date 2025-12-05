@@ -1723,20 +1723,16 @@ void RasterizerVulkan::UpdateSampleLocations(Maxwell& regs) {
         return;
     }
 
-    const auto [guest_grid_width, guest_grid_height] = VideoCommon::SampleLocationGridSize(msaa_mode);
-    const VkExtent2D host_grid_limit = device.SampleLocationGridSizeFor(vk_samples);
-    const u32 grid_width = (std::max)(1u, (std::min)(guest_grid_width, host_grid_limit.width));
-    const u32 grid_height = (std::max)(1u, (std::min)(guest_grid_height, host_grid_limit.height));
-    const bool grid_clamped = grid_width != guest_grid_width || grid_height != guest_grid_height;
-    if (grid_clamped) {
-        static bool logged_clamp = false;
-        if (!logged_clamp) {
-            LOG_WARNING(Render_Vulkan,
-                        "Host supports sample grid up to {}x{} (requested {}x{}); clamping",
-                        host_grid_limit.width, host_grid_limit.height, guest_grid_width,
-                        guest_grid_height);
-            logged_clamp = true;
-        }
+    const auto [grid_width_u32, grid_height_u32] = VideoCommon::SampleLocationGridSize(msaa_mode);
+    const u32 grid_width = grid_width_u32;
+    const u32 grid_height = grid_height_u32;
+    if (grid_width > sample_props.maxSampleLocationGridSize.width ||
+        grid_height > sample_props.maxSampleLocationGridSize.height) {
+        LOG_WARNING(Render_Vulkan,
+                    "Sample location grid {}x{} exceeds device limit {}x{}, falling back to fixed pattern",
+                    grid_width, grid_height, sample_props.maxSampleLocationGridSize.width,
+                    sample_props.maxSampleLocationGridSize.height);
+        return;
     }
     const u32 samples_per_pixel = static_cast<u32>(VideoCommon::NumSamples(msaa_mode));
     const u32 grid_cells = grid_width * grid_height;
@@ -1762,16 +1758,8 @@ void RasterizerVulkan::UpdateSampleLocations(Maxwell& regs) {
         const u32 slot_base = cell * samples_per_pixel;
         const u32 cell_x = cell % grid_width;
         const u32 cell_y = cell / grid_width;
-        const u32 guest_cell_x = guest_grid_width == grid_width
-                                     ? cell_x
-                                     : (cell_x * guest_grid_width) / grid_width;
-        const u32 guest_cell_y = guest_grid_height == grid_height
-                                     ? cell_y
-                                     : (cell_y * guest_grid_height) / grid_height;
-        const u32 guest_cell = guest_cell_y * guest_grid_width + guest_cell_x;
-        const u32 guest_slot_base = guest_cell * samples_per_pixel;
         for (u32 sample = 0; sample < samples_per_pixel; ++sample) {
-            const VkSampleLocationEXT raw = raw_locations[guest_slot_base + sample];
+            const VkSampleLocationEXT raw = raw_locations[slot_base + sample];
             const float sample_x = static_cast<float>(cell_x) + raw.x;
             const float sample_y = static_cast<float>(cell_y) + raw.y;
             resolved[slot_base + sample] = VkSampleLocationEXT{
