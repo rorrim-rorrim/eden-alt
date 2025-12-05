@@ -112,14 +112,14 @@ constexpr std::array R16G16B16A16_UNORM{
 
 } // namespace Alternatives
 
-constexpr std::array<VkSampleCountFlagBits, Device::sample_location_table_size>
+constexpr std::array<VkSampleCountFlagBits, Device::SampleLocationTableSize()>
     sample_location_query_counts{
         VK_SAMPLE_COUNT_1_BIT,  VK_SAMPLE_COUNT_2_BIT,  VK_SAMPLE_COUNT_4_BIT,
         VK_SAMPLE_COUNT_8_BIT,  VK_SAMPLE_COUNT_16_BIT, VK_SAMPLE_COUNT_32_BIT,
         VK_SAMPLE_COUNT_64_BIT,
     };
 
-static_assert(sample_location_query_counts.size() == Device::sample_location_table_size);
+static_assert(sample_location_query_counts.size() == Device::SampleLocationTableSize());
 
 constexpr size_t SampleCountIndex(VkSampleCountFlagBits samples) {
     for (size_t index = 0; index < sample_location_query_counts.size(); ++index) {
@@ -1618,6 +1618,36 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.maintenance4, features.maintenance4,
                                        VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
 
+    // VK_KHR_maintenance5
+    extensions.maintenance5 = features.maintenance5.maintenance5;
+
+    if (extensions.maintenance5) {
+        LOG_INFO(Render_Vulkan, "VK_KHR_maintenance5 properties: polygonModePointSize={} "
+                                "depthStencilSwizzleOne={} earlyFragmentTests={} nonStrictWideLines={}",
+                 properties.maintenance5.polygonModePointSize,
+                 properties.maintenance5.depthStencilSwizzleOneSupport,
+                 properties.maintenance5.earlyFragmentMultisampleCoverageAfterSampleCounting &&
+                 properties.maintenance5.earlyFragmentSampleMaskTestBeforeSampleCounting,
+                 properties.maintenance5.nonStrictWideLinesUseParallelogram);
+    }
+
+    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance5, features.maintenance5,
+                                       VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
+
+    // VK_KHR_maintenance6
+    extensions.maintenance6 = features.maintenance6.maintenance6;
+    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance6, features.maintenance6,
+                                       VK_KHR_MAINTENANCE_6_EXTENSION_NAME);
+
+    // VK_KHR_maintenance7 (proposed for Vulkan 1.4, no features)
+    extensions.maintenance7 = loaded_extensions.contains(VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance7, VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
+
+    // VK_KHR_maintenance8 (proposed for Vulkan 1.4, no features)
+    extensions.maintenance8 = loaded_extensions.contains(VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance8, VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
+
+}
 
 VkExtent2D Device::SampleLocationGridSizeFor(VkSampleCountFlagBits samples) const {
     const auto sanitize = [](VkExtent2D grid) {
@@ -1677,36 +1707,6 @@ void Device::PopulateSampleLocationGrids() {
         }
         sample_location_grids[index] = grid;
     }
-}
-    // VK_KHR_maintenance5
-    extensions.maintenance5 = features.maintenance5.maintenance5;
-    
-    if (extensions.maintenance5) {
-        LOG_INFO(Render_Vulkan, "VK_KHR_maintenance5 properties: polygonModePointSize={} "
-                                "depthStencilSwizzleOne={} earlyFragmentTests={} nonStrictWideLines={}",
-                 properties.maintenance5.polygonModePointSize,
-                 properties.maintenance5.depthStencilSwizzleOneSupport,
-                 properties.maintenance5.earlyFragmentMultisampleCoverageAfterSampleCounting &&
-                 properties.maintenance5.earlyFragmentSampleMaskTestBeforeSampleCounting,
-                 properties.maintenance5.nonStrictWideLinesUseParallelogram);
-    }
-    
-    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance5, features.maintenance5,
-                                       VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
-
-    // VK_KHR_maintenance6
-    extensions.maintenance6 = features.maintenance6.maintenance6;
-    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance6, features.maintenance6,
-                                       VK_KHR_MAINTENANCE_6_EXTENSION_NAME);
-
-    // VK_KHR_maintenance7 (proposed for Vulkan 1.4, no features)
-    extensions.maintenance7 = loaded_extensions.contains(VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
-    RemoveExtensionIfUnsuitable(extensions.maintenance7, VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
-
-    // VK_KHR_maintenance8 (proposed for Vulkan 1.4, no features)
-    extensions.maintenance8 = loaded_extensions.contains(VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
-    RemoveExtensionIfUnsuitable(extensions.maintenance8, VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
-
 }
 
 bool Device::SupportsSubgroupStage(VkShaderStageFlags stage_mask) const {
