@@ -390,4 +390,9 @@ if (ANDROID AND ARCHITECTURE_arm64)
     target_link_libraries(video_core PRIVATE adrenotools)
 endif()
 
+# weird quirk of system installs
+if (TARGET unordered_dense::unordered_dense)
+    target_link_libraries(video_core PRIVATE unordered_dense::unordered_dense)
+endif()
+
 create_target_directory_groups(video_core)
