@@ -357,7 +357,7 @@ void BufferCacheRuntime::FreeDeferredStagingBuffer(StagingBufferRef& ref) {
     staging_pool.FreeDeferred(ref);
 }
 
-void BufferCacheRuntime::UniformRing::Init(const Device& device,
+void BufferCacheRuntime::UniformRing::Init(const Device& dev,
                                            MemoryAllocator& alloc,
                                            u64 bytes, u32 alignment) {
     for (size_t i = 0; i < NUM_FRAMES; ++i) {
