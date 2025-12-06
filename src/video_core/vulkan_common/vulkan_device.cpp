@@ -318,33 +318,6 @@ std::unordered_map<VkFormat, VkFormatProperties> GetFormatProperties(vk::Physica
     return format_properties;
 }
 
-#if defined(ANDROID) && defined(ARCHITECTURE_arm64)
-void OverrideBcnFormats(std::unordered_map<VkFormat, VkFormatProperties>& format_properties) {
-    // These properties are extracted from Adreno driver 512.687.0
-    constexpr VkFormatFeatureFlags tiling_features{VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT |
-                                                   VK_FORMAT_FEATURE_BLIT_SRC_BIT |
-                                                   VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT |
-                                                   VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
-                                                   VK_FORMAT_FEATURE_TRANSFER_DST_BIT};
-
-    constexpr VkFormatFeatureFlags buffer_features{VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT};
-
-    static constexpr std::array bcn_formats{
-        VK_FORMAT_BC1_RGBA_SRGB_BLOCK, VK_FORMAT_BC1_RGBA_UNORM_BLOCK, VK_FORMAT_BC2_SRGB_BLOCK,
-        VK_FORMAT_BC2_UNORM_BLOCK,     VK_FORMAT_BC3_SRGB_BLOCK,       VK_FORMAT_BC3_UNORM_BLOCK,
-        VK_FORMAT_BC4_SNORM_BLOCK,     VK_FORMAT_BC4_UNORM_BLOCK,      VK_FORMAT_BC5_SNORM_BLOCK,
-        VK_FORMAT_BC5_UNORM_BLOCK,     VK_FORMAT_BC6H_SFLOAT_BLOCK,    VK_FORMAT_BC6H_UFLOAT_BLOCK,
-        VK_FORMAT_BC7_SRGB_BLOCK,      VK_FORMAT_BC7_UNORM_BLOCK,
-    };
-
-    for (const auto format : bcn_formats) {
-        format_properties[format].linearTilingFeatures = tiling_features;
-        format_properties[format].optimalTilingFeatures = tiling_features;
-        format_properties[format].bufferFeatures = buffer_features;
-    }
-}
-#endif
-
 NvidiaArchitecture GetNvidiaArchitecture(vk::PhysicalDevice physical,
                                         const std::set<std::string, std::less<>>& exts) {
     VkPhysicalDeviceProperties2 physical_properties{};
@@ -545,27 +518,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         features.shader_atomic_int64.shaderSharedInt64Atomics = false;
         features.features.shaderInt64 = false;
 
-#if defined(ANDROID) && defined(ARCHITECTURE_arm64)
-        // Patch the driver to enable BCn textures.
-        const auto major = (properties.properties.driverVersion >> 24) << 2;
-        const auto minor = (properties.properties.driverVersion >> 12) & 0xFFFU;
-        const auto vendor = properties.properties.vendorID;
-        const auto patch_status = adrenotools_get_bcn_type(major, minor, vendor);
-
-        if (patch_status == ADRENOTOOLS_BCN_PATCH) {
-            LOG_INFO(Render_Vulkan, "Patching Adreno driver to support BCn texture formats");
-            if (adrenotools_patch_bcn(
-                    reinterpret_cast<void*>(dld.vkGetPhysicalDeviceFormatProperties))) {
-                OverrideBcnFormats(format_properties);
-            } else {
-                LOG_ERROR(Render_Vulkan, "Patch failed! Driver code may now crash");
-            }
-        } else if (patch_status == ADRENOTOOLS_BCN_BLOB) {
-            LOG_INFO(Render_Vulkan, "Adreno driver supports BCn textures without patches");
-        } else {
-            LOG_WARNING(Render_Vulkan, "Adreno driver can't be patched to enable BCn textures");
-        }
-#endif
     }
 
     if (is_nvidia) {
@@ -699,11 +651,11 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         must_emulate_bgr565 = true;
     } else if (is_qualcomm) {
         LOG_WARNING(Render_Vulkan,
-                    "Qualcomm driver mishandles BGR5 formats even with VK_KHR_maintenance5, forcing emulation");
+                    "Qualcomm driver mishandles BGR5 formats, forcing emulation");
         must_emulate_bgr565 = true;
     } else if (is_arm) {
         LOG_WARNING(Render_Vulkan,
-                    "ARM Mali driver mishandles BGR5 formats even with VK_KHR_maintenance5, forcing emulation");
+                    "ARM Mali driver mishandles BGR5 formats, forcing emulation");
         must_emulate_bgr565 = true;
     }
 
