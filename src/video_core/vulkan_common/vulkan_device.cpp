@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <bitset>
 #include <chrono>
+#include <mutex>
 #include <optional>
 #include <thread>
 #include <unordered_set>
@@ -109,6 +110,32 @@ constexpr std::array R16G16B16A16_UNORM{
 };
 
 } // namespace Alternatives
+
+struct UnsupportedFormatKey {
+    VkFormat format;
+    VkFormatFeatureFlags usage;
+    FormatType type;
+
+    bool operator==(const UnsupportedFormatKey&) const noexcept = default;
+};
+
+struct UnsupportedFormatKeyHash {
+    size_t operator()(const UnsupportedFormatKey& key) const noexcept {
+        size_t seed = std::hash<int>{}(static_cast<int>(key.format));
+        seed ^= static_cast<size_t>(key.usage) + 0x9e3779b97f4a7c15ULL + (seed << 6) + (seed >> 2);
+        seed ^= static_cast<size_t>(key.type) + 0x9e3779b97f4a7c15ULL + (seed << 6) + (seed >> 2);
+        return seed;
+    }
+};
+
+bool ShouldLogUnsupportedFormat(VkFormat format, VkFormatFeatureFlags usage, FormatType type) {
+    static std::mutex mutex;
+    static std::unordered_set<UnsupportedFormatKey, UnsupportedFormatKeyHash> logged_keys;
+    const UnsupportedFormatKey key{format, usage, type};
+    std::scoped_lock lock{mutex};
+    const auto [it, inserted] = logged_keys.insert(key);
+    return inserted;
+}
 
 [[maybe_unused]] constexpr VkShaderStageFlags GraphicsStageMask =
     VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT |
@@ -764,10 +791,12 @@ VkFormat Device::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags
 
     const VkFormat* alternatives = GetFormatAlternatives(wanted_format);
     if (alternatives == nullptr) {
-        LOG_ERROR(Render_Vulkan,
-                  "Format={} with usage={} and type={} has no defined alternatives and host "
-                  "hardware does not support it",
-                  wanted_format, wanted_usage, format_type);
+        if (ShouldLogUnsupportedFormat(wanted_format, wanted_usage, format_type)) {
+            LOG_ERROR(Render_Vulkan,
+                      "Format={} with usage={} and type={} has no defined alternatives and host "
+                      "hardware does not support it",
+                      wanted_format, wanted_usage, format_type);
+        }
         return wanted_format;
     }
 
@@ -810,10 +839,12 @@ VkFormat Device::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags
         return selected;
     }
 
-    LOG_ERROR(Render_Vulkan,
-              "Format={} with usage={} and type={} is not supported by the host hardware and "
-              "doesn't support any of the alternatives",
-              wanted_format, wanted_usage, format_type);
+    if (ShouldLogUnsupportedFormat(wanted_format, wanted_usage, format_type)) {
+        LOG_ERROR(Render_Vulkan,
+                  "Format={} with usage={} and type={} is not supported by the host hardware and "
+                  "doesn't support any of the alternatives",
+                  wanted_format, wanted_usage, format_type);
+    }
     return wanted_format;
 }
 
