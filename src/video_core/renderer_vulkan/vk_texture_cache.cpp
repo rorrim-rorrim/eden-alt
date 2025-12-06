@@ -876,12 +876,14 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
     }
     for (size_t index_a = 0; index_a < VideoCore::Surface::MaxPixelFormat; index_a++) {
         const auto image_format = static_cast<PixelFormat>(index_a);
+        const auto image_surface_type = VideoCore::Surface::GetFormatType(image_format);
+        auto& image_view_formats = view_formats[index_a];
         const auto image_block_width = DefaultBlockWidth(image_format);
         const auto image_block_height = DefaultBlockHeight(image_format);
         const auto image_bytes_per_block = BytesPerBlock(image_format);
         bool needs_block_view = false;
         if (IsPixelFormatASTC(image_format) && !device.IsOptimalAstcSupported()) {
-            view_formats[index_a].push_back(VK_FORMAT_A8B8G8R8_UNORM_PACK32);
+            image_view_formats.push_back(VK_FORMAT_A8B8G8R8_UNORM_PACK32);
             needs_block_view = true;
         }
         for (size_t index_b = 0; index_b < VideoCore::Surface::MaxPixelFormat; index_b++) {
@@ -889,9 +891,17 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
             if (!VideoCore::Surface::IsViewCompatible(image_format, view_format, false, true)) {
                 continue;
             }
+            if (image_surface_type == SurfaceType::DepthStencil &&
+                VideoCore::Surface::GetFormatType(view_format) == SurfaceType::Stencil &&
+                view_format != image_format) {
+                continue;
+            }
             const auto view_info =
                 MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, true, view_format);
-            view_formats[index_a].push_back(view_info.format);
+            if (std::find(image_view_formats.begin(), image_view_formats.end(), view_info.format) ==
+                image_view_formats.end()) {
+                image_view_formats.push_back(view_info.format);
+            }
             if (!needs_block_view) {
                 const bool different_block = image_bytes_per_block != BytesPerBlock(view_format) ||
                                             image_block_width != DefaultBlockWidth(view_format) ||
@@ -2393,8 +2403,10 @@ VkImageView ImageView::StencilView(Shader::TextureType texture_type) {
         return *view;
     }
     const auto surface_type = VideoCore::Surface::GetFormatType(format);
-    const PixelFormat view_format =
-        surface_type == SurfaceType::DepthStencil ? PixelFormat::S8_UINT : format;
+    PixelFormat view_format = format;
+    if (surface_type == SurfaceType::Stencil) {
+        view_format = PixelFormat::S8_UINT;
+    }
     const auto& info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, view_format);
     view = MakeView(info.format, VK_IMAGE_ASPECT_STENCIL_BIT, texture_type);
     return *view;
