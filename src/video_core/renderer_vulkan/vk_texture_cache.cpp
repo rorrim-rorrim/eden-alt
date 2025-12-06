@@ -49,6 +49,7 @@ using VideoCore::Surface::DefaultBlockWidth;
 using VideoCore::Surface::HasAlpha;
 using VideoCore::Surface::IsPixelFormatASTC;
 using VideoCore::Surface::IsPixelFormatInteger;
+using VideoCore::Surface::IsPixelFormatSRGB;
 using VideoCore::Surface::SurfaceType;
 using VideoCore::Surface::PixelFormat;
 using VideoCore::Surface::PixelFormatNumeric;
@@ -121,6 +122,19 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     }
 }
 
+[[nodiscard]] VkFormat LinearizeSrgbFormat(VkFormat format) {
+    switch (format) {
+    case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
+        return VK_FORMAT_A8B8G8R8_UNORM_PACK32;
+    case VK_FORMAT_R8G8B8A8_SRGB:
+        return VK_FORMAT_R8G8B8A8_UNORM;
+    case VK_FORMAT_B8G8R8A8_SRGB:
+        return VK_FORMAT_B8G8R8A8_UNORM;
+    default:
+        return format;
+    }
+}
+
 [[nodiscard]] VkImageUsageFlags ImageUsageFlags(const MaxwellToVK::FormatInfo& info,
                                                 PixelFormat format) {
     VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
@@ -158,13 +172,18 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
     }
 
+    VkFormat base_format = format_info.format;
+    if (IsPixelFormatSRGB(info.format)) {
+        base_format = LinearizeSrgbFormat(base_format);
+    }
+
     const auto [samples_x, samples_y] = VideoCommon::SamplesLog2(info.num_samples);
     return VkImageCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = nullptr,
         .flags = flags,
         .imageType = ConvertImageType(info.type),
-        .format = format_info.format,
+        .format = base_format,
         .extent{
             .width = info.size.width >> samples_x,
             .height = info.size.height >> samples_y,
