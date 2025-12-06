@@ -281,6 +281,10 @@ public:
 
     [[nodiscard]] bool SupportsDepthCompareSampling() const noexcept;
 
+    [[nodiscard]] bool Is3DImage() const noexcept {
+        return is_3d_image;
+    }
+
     [[nodiscard]] VkImageView Handle(Shader::TextureType texture_type) const noexcept {
         return *image_views[static_cast<size_t>(texture_type)];
     }
@@ -337,6 +341,7 @@ private:
     VkImageView render_target = VK_NULL_HANDLE;
     VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
     u32 buffer_size = 0;
+    bool is_3d_image = false;
 };
 
 class ImageAlloc : public VideoCommon::ImageAllocBase {};
