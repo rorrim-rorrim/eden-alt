@@ -410,8 +410,8 @@ void EmitX64::EmitFPDiv64(EmitContext& ctx, IR::Inst* inst) {
     FPThreeOp<64>(code, ctx, inst, &Xbyak::CodeGenerator::divsd);
 }
 
-template<size_t fsize, bool is_max>
-static void EmitFPMinMax(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
+template<size_t fsize>
+static void EmitFPMinMax(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, bool is_max) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(code, args[0]);
@@ -425,7 +425,7 @@ static void EmitFPMinMax(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
 
     FCODE(ucomis)(result, operand);
     code.jz(*equal, code.T_NEAR);
-    if constexpr (is_max) {
+    if (is_max) {
         FCODE(maxs)(result, operand);
     } else {
         FCODE(mins)(result, operand);
@@ -437,7 +437,7 @@ static void EmitFPMinMax(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
 
         code.L(*equal);
         code.jp(nan);
-        if constexpr (is_max) {
+        if (is_max) {
             code.andps(result, operand);
         } else {
             code.orps(result, operand);
@@ -458,8 +458,8 @@ static void EmitFPMinMax(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
     ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
-template<size_t fsize, bool is_max>
-static inline void EmitFPMinMaxNumeric(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) noexcept {
+template<size_t fsize>
+static inline void EmitFPMinMaxNumeric(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, bool is_max) noexcept {
     using FPT = mcl::unsigned_integer_of_size<fsize>;
     constexpr FPT default_nan = FP::FPInfo<FPT>::DefaultNaN();
 
@@ -473,7 +473,7 @@ static inline void EmitFPMinMaxNumeric(BlockOfCode& code, EmitContext& ctx, IR::
     if (code.HasHostFeature(HostFeature::AVX512_OrthoFloat)) {
         // vrangep{s,d} will already correctly handle comparing
         // signed zeros and propagating NaNs similar to ARM
-        constexpr FpRangeSelect range_select = is_max ? FpRangeSelect::Max : FpRangeSelect::Min;
+        FpRangeSelect const range_select = is_max ? FpRangeSelect::Max : FpRangeSelect::Min;
         FCODE(vranges)(op2, op1, op2, FpRangeLUT(range_select, FpRangeSign::Preserve));
 
         if (ctx.FPCR().DN()) {
@@ -496,7 +496,7 @@ static inline void EmitFPMinMaxNumeric(BlockOfCode& code, EmitContext& ctx, IR::
 
         FCODE(ucomis)(op1, op2);
         code.jz(*z, code.T_NEAR);
-        if constexpr (is_max) {
+        if (is_max) {
             FCODE(maxs)(op2, op1);
         } else {
             FCODE(mins)(op2, op1);
@@ -510,7 +510,7 @@ static inline void EmitFPMinMaxNumeric(BlockOfCode& code, EmitContext& ctx, IR::
 
             code.L(*z);
             code.jp(nan);
-            if constexpr (is_max) {
+            if (is_max) {
                 code.andps(op2, op1);
             } else {
                 code.orps(op2, op1);
@@ -571,35 +571,35 @@ static inline void EmitFPMinMaxNumeric(BlockOfCode& code, EmitContext& ctx, IR::
 }
 
 void EmitX64::EmitFPMax32(EmitContext& ctx, IR::Inst* inst) {
-    EmitFPMinMax<32, true>(code, ctx, inst);
+    EmitFPMinMax<32>(code, ctx, inst, true);
 }
 
 void EmitX64::EmitFPMax64(EmitContext& ctx, IR::Inst* inst) {
-    EmitFPMinMax<64, true>(code, ctx, inst);
+    EmitFPMinMax<64>(code, ctx, inst, true);
 }
 
 void EmitX64::EmitFPMaxNumeric32(EmitContext& ctx, IR::Inst* inst) {
-    EmitFPMinMaxNumeric<32, true>(code, ctx, inst);
+    EmitFPMinMaxNumeric<32>(code, ctx, inst, true);
 }
 
 void EmitX64::EmitFPMaxNumeric64(EmitContext& ctx, IR::Inst* inst) {
-    EmitFPMinMaxNumeric<64, true>(code, ctx, inst);
+    EmitFPMinMaxNumeric<64>(code, ctx, inst, true);
 }
 
 void EmitX64::EmitFPMin32(EmitContext& ctx, IR::Inst* inst) {
-    EmitFPMinMax<32, false>(code, ctx, inst);
+    EmitFPMinMax<32>(code, ctx, inst, false);
 }
 
 void EmitX64::EmitFPMin64(EmitContext& ctx, IR::Inst* inst) {
-    EmitFPMinMax<64, false>(code, ctx, inst);
+    EmitFPMinMax<64>(code, ctx, inst, false);
 }
 
 void EmitX64::EmitFPMinNumeric32(EmitContext& ctx, IR::Inst* inst) {
-    EmitFPMinMaxNumeric<32, false>(code, ctx, inst);
+    EmitFPMinMaxNumeric<32>(code, ctx, inst, false);
 }
 
 void EmitX64::EmitFPMinNumeric64(EmitContext& ctx, IR::Inst* inst) {
-    EmitFPMinMaxNumeric<64, false>(code, ctx, inst);
+    EmitFPMinMaxNumeric<64>(code, ctx, inst, false);
 }
 
 void EmitX64::EmitFPMul32(EmitContext& ctx, IR::Inst* inst) {
@@ -610,8 +610,8 @@ void EmitX64::EmitFPMul64(EmitContext& ctx, IR::Inst* inst) {
     FPThreeOp<64>(code, ctx, inst, &Xbyak::CodeGenerator::mulsd);
 }
 
-template<size_t fsize, bool negate_product>
-static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
+template<size_t fsize>
+static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, bool negate_product) {
     using FPT = mcl::unsigned_integer_of_size<fsize>;
     const auto fallback_fn = negate_product ? &FP::FPMulSub<FPT> : &FP::FPMulAdd<FPT>;
 
@@ -626,7 +626,7 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
             const Xbyak::Xmm operand2 = ctx.reg_alloc.UseXmm(code, args[1]);
             const Xbyak::Xmm operand3 = ctx.reg_alloc.UseXmm(code, args[2]);
 
-            if constexpr (negate_product) {
+            if (negate_product) {
                 FCODE(vfnmadd231s)(result, operand2, operand3);
             } else {
                 FCODE(vfmadd231s)(result, operand2, operand3);
@@ -648,7 +648,7 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
             const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
 
             code.movaps(result, operand1);
-            if constexpr (negate_product) {
+            if (negate_product) {
                 FCODE(vfnmadd231s)(result, operand2, operand3);
             } else {
                 FCODE(vfmadd231s)(result, operand2, operand3);
@@ -752,7 +752,7 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
                     code.ptest(operand2, xmm0);
                     code.jnz(op2_done);
                     code.vorps(result, operand2, xmm0);
-                    if constexpr (negate_product) {
+                    if (negate_product) {
                         code.xorps(result, code.Const(xword, FP::FPInfo<FPT>::sign_mask));
                     }
                     code.jmp(*end);
@@ -768,7 +768,7 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
 
                     // at this point, all SNaNs have been handled
                     // if op1 was not a QNaN and op2 is, negate the result
-                    if constexpr (negate_product) {
+                    if (negate_product) {
                         FCODE(ucomis)(operand1, operand1);
                         code.jp(*end);
                         FCODE(ucomis)(operand2, operand2);
@@ -789,7 +789,7 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
             const Xbyak::Xmm operand2 = ctx.reg_alloc.UseScratchXmm(code, args[1]);
             const Xbyak::Xmm operand3 = ctx.reg_alloc.UseXmm(code, args[2]);
 
-            if constexpr (negate_product) {
+            if (negate_product) {
                 code.xorps(operand2, code.Const(xword, FP::FPInfo<FPT>::sign_mask));
             }
             FCODE(muls)(operand2, operand3);
@@ -815,27 +815,27 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitFPMulAdd16(EmitContext& ctx, IR::Inst* inst) {
-    EmitFPMulAdd<16, false>(code, ctx, inst);
+    EmitFPMulAdd<16>(code, ctx, inst, false);
 }
 
 void EmitX64::EmitFPMulAdd32(EmitContext& ctx, IR::Inst* inst) {
-    EmitFPMulAdd<32, false>(code, ctx, inst);
+    EmitFPMulAdd<32>(code, ctx, inst, false);
 }
 
 void EmitX64::EmitFPMulAdd64(EmitContext& ctx, IR::Inst* inst) {
-    EmitFPMulAdd<64, false>(code, ctx, inst);
+    EmitFPMulAdd<64>(code, ctx, inst, false);
 }
 
 void EmitX64::EmitFPMulSub16(EmitContext& ctx, IR::Inst* inst) {
-    EmitFPMulAdd<16, true>(code, ctx, inst);
+    EmitFPMulAdd<16>(code, ctx, inst, true);
 }
 
 void EmitX64::EmitFPMulSub32(EmitContext& ctx, IR::Inst* inst) {
-    EmitFPMulAdd<32, true>(code, ctx, inst);
+    EmitFPMulAdd<32>(code, ctx, inst, true);
 }
 
 void EmitX64::EmitFPMulSub64(EmitContext& ctx, IR::Inst* inst) {
-    EmitFPMulAdd<64, true>(code, ctx, inst);
+    EmitFPMulAdd<64>(code, ctx, inst, true);
 }
 
 template<size_t fsize>
