@@ -20,7 +20,7 @@
 namespace Vulkan {
 
 // Prefer small grow rates to avoid saturating the descriptor pool with barely used pipelines
-constexpr size_t SETS_GROW_RATE = 32; //test difference between 16 and 32
+//constexpr size_t SETS_GROW_RATE = 32; //test difference between 16 and 32
 constexpr s32 SCORE_THRESHOLD = 3;
 
 struct DescriptorBank {
@@ -103,14 +103,35 @@ static void AllocatePool(const Device& device, DescriptorBank& bank) {
     }));
 }
 
+static size_t GetGrowRate() {
+    if (Settings::getDebugKnobAt(0))
+        return 8;
+    else if (Settings::getDebugKnobAt(1))
+        return 16;
+    else if (Settings::getDebugKnobAt(2))
+        return 24;
+    else if (Settings::getDebugKnobAt(3))
+        return 32;
+    else if (Settings::getDebugKnobAt(4))
+        return 40;
+    else if (Settings::getDebugKnobAt(5))
+        return 48;
+    else if (Settings::getDebugKnobAt(6))
+        return 56;
+    else if (Settings::getDebugKnobAt(7))
+        return 64;
+    else
+        return 16;
+}
+
 DescriptorAllocator::DescriptorAllocator(const Device& device_, MasterSemaphore& master_semaphore_,
                                          DescriptorBank& bank_, VkDescriptorSetLayout layout_)
-    : ResourcePool(master_semaphore_, SETS_GROW_RATE), device{&device_}, bank{&bank_},
-      layout{layout_} {}
+    : ResourcePool(master_semaphore_, /*SETS_GROW_RATE*/ GetGrowRate()), device{&device_}, bank{&bank_},
+      layout{layout_}, grow_rate{GetGrowRate()} {}
 
 VkDescriptorSet DescriptorAllocator::Commit() {
     const size_t index = CommitResource();
-    return sets[index / SETS_GROW_RATE][index % SETS_GROW_RATE];
+    return sets[index / grow_rate][index % grow_rate];
 }
 
 void DescriptorAllocator::Allocate(size_t begin, size_t end) {
