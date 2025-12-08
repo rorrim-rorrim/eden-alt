@@ -380,7 +380,17 @@ std::optional<u64> GenericEnvironment::TryFindSize() {
 Tegra::Texture::TICEntry GenericEnvironment::ReadTextureInfo(GPUVAddr tic_addr, u32 tic_limit,
                                                              bool via_header_index, u32 raw) {
     const auto handle{Tegra::Texture::TexturePair(raw, via_header_index)};
-    ASSERT(handle.first <= tic_limit);
+     if (handle.first > tic_limit) {
+        static std::atomic<size_t> oob_count{0};
+        const size_t n = ++oob_count;
+        if (n <= 4 || (n & 63) == 0) {
+            LOG_WARNING(Shader,
+                        "TIC handle {} exceeds limit {} (via_header_index={}) — returning empty",
+                        handle.first, tic_limit, via_header_index);
+        }
+        return {};
+    }
+
     const GPUVAddr descriptor_addr{tic_addr + handle.first * sizeof(Tegra::Texture::TICEntry)};
     Tegra::Texture::TICEntry entry;
     gpu_memory->ReadBlock(descriptor_addr, &entry, sizeof(entry));
