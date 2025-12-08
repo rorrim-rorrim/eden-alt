@@ -62,6 +62,7 @@ private:
     VkDescriptorSetLayout layout{};
 
     std::vector<vk::DescriptorSets> sets;
+    size_t grow_rate = 32;
 };
 
 class DescriptorPool {
