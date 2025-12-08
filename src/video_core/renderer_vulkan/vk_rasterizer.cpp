@@ -1066,13 +1066,38 @@ void RasterizerVulkan::UpdateDynamicStates() {
 }
 
 void RasterizerVulkan::HandleTransformFeedback() {
-    // Temporary kill-switch: disable transform feedback counters to stop the leak/crash path.
-    // TODO: Re-enable behind a safe guard once the underlying leak is resolved.
-    static std::once_flag warn_disabled;
-    std::call_once(warn_disabled, [] {
-        LOG_WARNING(Render_Vulkan, "Transform feedback counters temporarily disabled");
-    });
-    query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount, false);
+    static std::once_flag warn_unsupported;
+
+    const auto& regs = maxwell3d->regs;
+    if (!device.IsExtTransformFeedbackSupported()) {
+        std::call_once(warn_unsupported, [&] {
+            LOG_ERROR(Render_Vulkan, "Transform feedbacks used but not supported");
+        });
+        query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount, false);
+        return;
+    }
+    // Only enable the streamer when TFB is actually active and a buffer is bound; otherwise keep it off
+    const bool tfb_enabled = regs.transform_feedback_enabled != 0;
+    const bool has_active_tfb_buffer = [&regs] {
+        for (size_t i = 0; i < Maxwell::Regs::NumTransformFeedbackBuffers; i++) {
+            if (regs.transform_feedback.buffers[i].enable != 0) {
+                return true;
+            }
+        }
+        return false;
+    }();
+
+    if (!tfb_enabled || !has_active_tfb_buffer) {
+        query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount, false);
+        return;
+    }
+
+    if (tfb_enabled) {
+        UNIMPLEMENTED_IF(regs.IsShaderConfigEnabled(Maxwell::ShaderType::TessellationInit) ||
+                         regs.IsShaderConfigEnabled(Maxwell::ShaderType::Tessellation));
+    }
+
+    query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount, true);
 }
 
 void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& regs) {
