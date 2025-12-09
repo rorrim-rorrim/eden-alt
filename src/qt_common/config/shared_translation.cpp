@@ -277,9 +277,9 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
     INSERT(Settings,
            gpu_accuracy,
            tr("GPU Accuracy:"),
-           tr("Controls the GPU emulation accuracy.\nMost games render fine with Normal, but High is still "
+           tr("Controls the GPU emulation accuracy.\nMost games render fine with Performance or Balanced modes, but Accurate is still "
               "required for some.\nParticles tend to only render correctly with High "
-              "accuracy.\nExtreme should only be used as a last resort."));
+              "accuracy."));
     INSERT(Settings,
            dma_accuracy,
            tr("DMA Accuracy:"),
