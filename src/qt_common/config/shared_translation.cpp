@@ -507,9 +507,9 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
          }});
     translations->insert({Settings::EnumMetadata<Settings::GpuAccuracy>::Index(),
                           {
-                              PAIR(GpuAccuracy, Low, tr("Low")),
-                              PAIR(GpuAccuracy, Medium, tr("Medium")),
-                              PAIR(GpuAccuracy, High, tr("High")),
+                              PAIR(GpuAccuracy, Low, tr("Performance")),
+                              PAIR(GpuAccuracy, Medium, tr("Balanced")),
+                              PAIR(GpuAccuracy, High, tr("Accurate")),
                           }});
     translations->insert({Settings::EnumMetadata<Settings::DmaAccuracy>::Index(),
                           {
