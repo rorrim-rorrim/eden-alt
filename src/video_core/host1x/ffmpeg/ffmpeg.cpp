@@ -45,9 +45,6 @@ constexpr std::array PreferredGpuDecoders = {
     AV_HWDEVICE_TYPE_VDPAU,
 #endif
     AV_HWDEVICE_TYPE_VULKAN,
-#if defined(__linux__) || defined(__MINGW64__)
-    AV_HWDEVICE_TYPE_AMF,
-#endif
 };
 
 AVPixelFormat GetGpuFormat(AVCodecContext* codec_context, const AVPixelFormat* pix_fmts) {
