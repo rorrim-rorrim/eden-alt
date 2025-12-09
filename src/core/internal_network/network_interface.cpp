@@ -9,20 +9,36 @@
 #include <ranges>
 #include <bit>
 
+#ifdef _WIN32
+#include <iphlpapi.h>
+#elif defined(__linux__) || defined(__ANDROID__)
+#include <cerrno>
+#include <ifaddrs.h>
+#include <net/if.h>
+#elif defined(__FreeBSD__)
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/socket.h>
+#include <net/if.h>
+#include <net/route.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/sysctl.h>
+#include <net/if.h>
+#include <net/route.h>
+#include <net/if_dl.h>
+#include <netinet/in.h>
+#include <netinet/if_ether.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#endif
+
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "common/string_util.h"
 #include "core/internal_network/emu_net_state.h"
 #include "core/internal_network/network_interface.h"
-
-#ifdef _WIN32
-#include <iphlpapi.h>
-#else
-#include <cerrno>
-#include <ifaddrs.h>
-#include <net/if.h>
-#endif
 
 namespace Network {
 
@@ -86,8 +102,8 @@ std::vector<Network::NetworkInterface> GetAvailableNetworkInterfaces() {
 #else
 
 std::vector<Network::NetworkInterface> GetAvailableNetworkInterfaces() {
+#if defined(__ANDROID__) || defined(__linux__)
     struct ifaddrs* ifaddr = nullptr;
-
     if (getifaddrs(&ifaddr) != 0) {
         LOG_ERROR(Network, "getifaddrs: {}", std::strerror(errno));
         return {};
@@ -101,7 +117,7 @@ std::vector<Network::NetworkInterface> GetAvailableNetworkInterfaces() {
         u32 flags;
     };
     std::vector<RoutingEntry> routes{};
-#ifdef ANDROID
+#ifdef __ANDROID__
     // Even through Linux based, we can't reliably obtain routing information from there :(
 #else
     if (std::ifstream file("/proc/net/route"); file.is_open()) {
@@ -140,6 +156,62 @@ std::vector<Network::NetworkInterface> GetAvailableNetworkInterfaces() {
     }
     freeifaddrs(ifaddr);
     return ifaces;
+#elif defined(__FreeBSD__)
+    std::vector<Network::NetworkInterface> ifaces;
+    int fd = ::socket(PF_ROUTE, SOCK_RAW, AF_UNSPEC);
+    if (fd < 0) {
+        LOG_ERROR(Network, "socket: {}", std::strerror(errno));
+        return {};
+    }
+
+    size_t bufsz = 0;
+    int mib[6] = {
+        CTL_NET, PF_ROUTE, 0,
+        AF_UNSPEC, NET_RT_IFLIST, 0
+    };
+    if (::sysctl(mib, sizeof(mib) / sizeof(mib[0]), nullptr, &bufsz, nullptr, 0) < 0) {
+        LOG_ERROR(Network, "sysctl.1: {}", std::strerror(errno));
+        return {};
+    }
+    std::vector<char> buf(bufsz);
+    if (::sysctl(mib, sizeof(mib) / sizeof(mib[0]), buf.data(), &bufsz, nullptr, 0) < 0) {
+        LOG_ERROR(Network, "sysctl.2: {}", std::strerror(errno));
+        return {};
+    }
+
+    struct rt_msghdr const *rtm = NULL;
+    for (char *next = buf.data(); next < buf.data() + bufsz; next += rtm->rtm_msglen) {
+        rtm = (struct rt_msghdr const *)next;
+        if (rtm->rtm_type == RTM_IFINFO) {
+            struct if_msghdr const* ifm = (struct if_msghdr const *)rtm;
+            size_t msglen = rtm->rtm_msglen - sizeof(*ifm);
+            char const* p = (char const*)(ifm + 1);
+
+            Network::NetworkInterface iface{};
+            for (size_t i = 0; i < RTAX_MAX; i++)
+                if ((ifm->ifm_addrs & (1 << i)) != 0) {
+                    struct sockaddr const* sa = reinterpret_cast<struct sockaddr const*>(p);
+                    if (msglen == 0 || msglen < SA_SIZE(sa))
+                        break;
+                    if (i == RTA_NETMASK && sa->sa_family == AF_LINK) {
+                        size_t namelen = 0;
+                        struct sockaddr_dl const* sdl = reinterpret_cast<struct sockaddr_dl const*>(sa);
+                        ::link_ntoa_r(sdl, nullptr, &namelen);
+                        iface.name = std::string(namelen, ' ');
+                        ::link_ntoa_r(sdl, iface.name.data(), &namelen);
+                        std::memcpy(&iface.ip_address, sa, sizeof(struct sockaddr_in));
+                    }
+                    msglen -= SA_SIZE(sa);
+                    p += SA_SIZE(sa);
+                }
+            ifaces.push_back(iface);
+        }
+    }
+    ::close(fd);
+    return ifaces;
+#else
+    return {};
+#endif
 }
 
 #endif // _WIN32

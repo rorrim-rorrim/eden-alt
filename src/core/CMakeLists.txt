@@ -1171,8 +1171,12 @@ add_library(core STATIC
 
 if (ENABLE_WIFI_SCAN)
     # find_package(libiw REQUIRED)
-    target_compile_definitions(core PRIVATE ENABLE_WIFI_SCAN)
-    target_link_libraries(core PRIVATE iw)
+    target_sources(core PRIVATE internal_network/wifi_scanner.cpp)
+    if (PLATFORM_LINUX)
+        target_link_libraries(core PRIVATE iw)
+    endif()
+else()
+    target_sources(core PRIVATE internal_network/wifi_scanner_dummy.cpp)
 endif()
 
 if (WIN32)
