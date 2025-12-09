@@ -171,11 +171,13 @@ std::vector<Network::NetworkInterface> GetAvailableNetworkInterfaces() {
     };
     if (::sysctl(mib, sizeof(mib) / sizeof(mib[0]), nullptr, &bufsz, nullptr, 0) < 0) {
         LOG_ERROR(Network, "sysctl.1: {}", std::strerror(errno));
+        ::close(fd);
         return {};
     }
     std::vector<char> buf(bufsz);
     if (::sysctl(mib, sizeof(mib) / sizeof(mib[0]), buf.data(), &bufsz, nullptr, 0) < 0) {
         LOG_ERROR(Network, "sysctl.2: {}", std::strerror(errno));
+        ::close(fd);
         return {};
     }
 
