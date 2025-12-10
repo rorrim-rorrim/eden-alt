@@ -77,6 +77,8 @@ For this reason this patch is NOT applied to default on all platforms (for obvio
 
 Still will not run flawlessly until `mesa-24` is available. Modify CMakeCache.txt with the `.so` of libGL and libGLESv2 by doing the incredibly difficult task of copy pasting them (`cp /boot/system/lib/libGL.so .`)
 
+If you have `quazip1_qt6_devel`, uninstall it. It may call `Core5Compat` on CMake which is wrongly packaged.
+
 ## OpenBSD
 
 After configuration, you may need to modify `externals/ffmpeg/CMakeFiles/ffmpeg-build/build.make` to use `-j$(nproc)` instead of just `-j`.
