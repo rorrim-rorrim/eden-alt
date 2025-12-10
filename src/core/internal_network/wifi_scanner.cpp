@@ -20,10 +20,12 @@
 #include <sys/time.h>
 #include <sys/socket.h>
 #include <net/if.h>
-#include <net/route.h>
+#include <net/ethernet.h>
+#include <net80211/ieee80211_ioctl.h>
 #endif
 
 #include "common/logging/log.h"
+#include "core/internal_network/network_interface.h"
 #include "core/internal_network/wifi_scanner.h"
 
 using namespace std::chrono_literals;
@@ -167,6 +169,10 @@ std::vector<Network::ScanData> ScanWifiNetworks(std::chrono::milliseconds deadli
 
     iw_sockets_close(sock);
     return out;
+}
+#elif defined(__FreeBSD__)
+std::vector<Network::ScanData> ScanWifiNetworks(std::chrono::milliseconds deadline) {
+    return {}; // disabled, pretend no results
 }
 #else
 std::vector<Network::ScanData> ScanWifiNetworks(std::chrono::milliseconds deadline) {
