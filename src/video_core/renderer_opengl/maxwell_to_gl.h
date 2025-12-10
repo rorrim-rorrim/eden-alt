@@ -304,7 +304,7 @@ inline GLenum WrapMode(Tegra::Texture::WrapMode wrap_mode) {
     case Tegra::Texture::WrapMode::Border:
         return GL_CLAMP_TO_BORDER;
     case Tegra::Texture::WrapMode::Clamp:
-        return GL_CLAMP;
+        return GL_CLAMP_TO_EDGE;
     case Tegra::Texture::WrapMode::MirrorOnceClampToEdge:
         return GL_MIRROR_CLAMP_TO_EDGE;
     case Tegra::Texture::WrapMode::MirrorOnceBorder:
@@ -319,9 +319,10 @@ inline GLenum WrapMode(Tegra::Texture::WrapMode wrap_mode) {
         } else {
             return GL_MIRROR_CLAMP_TO_EDGE;
         }
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented texture wrap mode={}", wrap_mode);
+        return GL_REPEAT;
     }
-    UNIMPLEMENTED_MSG("Unimplemented texture wrap mode={}", wrap_mode);
-    return GL_REPEAT;
 }
 
 inline GLenum DepthCompareFunc(Tegra::Texture::DepthCompareFunc func) {
