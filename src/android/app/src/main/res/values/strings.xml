@@ -922,7 +922,7 @@
     <string name="renderer_none">None</string>
 
     <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_low">Performance</string>
+    <string name="renderer_accuracy_low">Fast</string>
     <string name="renderer_accuracy_medium">Balanced</string>
     <string name="renderer_accuracy_high">Accurate</string>
 
