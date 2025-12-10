@@ -92,10 +92,11 @@ The OpenGL backend would invoke behaviour that would result in swarst/LLVMpipe w
 HaikuOS bundles a Mesa library that doesn't support full core OpenGL 4.6 (required by the emulator). This leads to HaikuOS being one of the few computer platforms where Vulkan is the only available option for users. If OpenGL is desired, Mesa has to be built manually from source. For debugging purpouses `lavapipe` is recommended over the GPU driver; there is in-kernel support for NVIDIA cards through.
 
 ### Fixes for Windows 10 and above having "Device loss"
+
+Run the following batch script *inside* the Eden folder:
 ```cmd
 @echo off
 pushd "%~dp0"
-cd ..
 if exist "%temp%\FixFullScreen.reg" (
   del %temp%\FixFullScreen.reg
 )
