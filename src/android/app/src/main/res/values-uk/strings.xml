@@ -27,7 +27,6 @@
 
 
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Покращений)</string>
     <string name="process_ram">RAM процесу: %1$d МБ</string>
     <string name="shaders_prefix">Компіляція</string>
     <string name="shaders_suffix">Шейдер(и)</string>
@@ -99,10 +98,6 @@
     <string name="sample_shading_fraction_description">Інтенсивність проходу затінення зразка. Вищі значення покращують якість, але й сильніше знижують продуктивність.</string>
 
     <string name="veil_renderer">Візуалізатор</string>
-    <string name="frame_interpolation">Покращена синхронізація кадрів</string>
-    <string name="frame_interpolation_description">Забезпечує плавну та стабільну подачу кадрів шляхом синхронізації їх часу, зменшуючи підвисання та нерівномірну анімацію. Ідеально для ігор з нестабільним часом кадрів або мікро-підвисаннями під час гри.</string>
-    <string name="renderer_early_release_fences">Release fences early</string>
-    <string name="renderer_early_release_fences_description">Це налаштування може бути необхідним для виправлення помилок 0FPS у деяких іграх (зокрема DKCR:HD, Subnautica та Ori 2). Водночас інші ігри, особливо створені на рушії Unreal Engine, можуть працювати некоректно або взагалі не запускатися.</string>
     <string name="sync_memory_operations">Синхронізація операцій з пам\'яттю</string>
     <string name="sync_memory_operations_description">Забезпечує узгодженість даних між обчислювальними операціями та операціями з пам\'яттю. Ця опція має виправляти проблеми в деяких іграх, але може знижувати продуктивність у деяких випадках. Ігри на Unreal Engine 4, здається, найбільш постраждалі.</string>
     <string name="buffer_reorder_disable">Вимкнути переупорядкування буфера</string>
@@ -239,15 +234,12 @@
     <string name="get_started">Розпочати</string>
     <string name="keys">Ключі</string>
     <string name="keys_description">Виберіть ваш файл &lt;b>prod.keys&lt;/b> за допомогою кнопки нижче.</string>
-    <string name="select_keys">Вибрати ключі</string>
     <string name="firmware">Прошивка</string>
     <string name="firmware_description">Виберіть файл <b>firmware.zip</b> за допомогою кнопки нижче.</string>
-    <string name="select_firmware">Вибрати прошивку</string>
     <string name="games">Ігри</string>
     <string name="games_description">Виберіть вашу теку з &lt;b>іграми&lt;/b> за допомогою кнопки нижче.</string>
     <string name="done">Готово</string>
     <string name="done_description">Усе готово.\nНасолоджуйтеся грою!</string>
-    <string name="text_continue">Продовжити</string>
     <string name="next">Далі</string>
     <string name="back">Назад</string>
     <string name="add_games">Додати ігри</string>
@@ -287,9 +279,6 @@
     <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Сповіщення</string>
     <string name="notifications_description">Надайте дозвіл сповіщень за допомогою кнопки нижче.</string>
-    <string name="give_permission">Надати дозвіл</string>
-    <string name="notification_warning">Пропустити надання дозволу сповіщень?</string>
-    <string name="notification_warning_description">Eden не зможе повідомляти вас про важливу інформацію.</string>
     <string name="permission_denied">У дозволі відмовлено</string>
     <string name="permission_denied_description">Ви занадто часто відхиляли цей дозвіл, тож тепер вам потрібно буде вручну надати його в системних налаштуваннях.</string>
     <string name="about">Про нас</string>
@@ -475,8 +464,6 @@
     <string name="display">Дисплей</string>
     <string name="processing">Постобробка</string>
 
-    <string name="frame_skipping">В розробці: Пропуск кадрів</string>
-    <string name="frame_skipping_description">Увімкніть або вимкніть пропуск кадрів для покращення продуктивності за рахунок зменшення кількості візуалізованих кадрів. Ця функція ще розробляється та буде доступна у майбутніх версіях.</string>
     <string name="renderer_accuracy">Рівень точності</string>
     <string name="renderer_resolution">Роздільна здатність (Портативний/Док)</string>
     <string name="renderer_vsync">Режим верт. синхронізації</string>
@@ -886,11 +873,6 @@
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Вимкнено</string>
-
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Нормальна</string>
-    <string name="renderer_accuracy_high">Висока</string>
-    <string name="renderer_accuracy_extreme">Екстремально</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Типово</string>

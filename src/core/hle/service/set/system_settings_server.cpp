@@ -29,45 +29,13 @@
 namespace Service::Set {
 
 namespace {
-    constexpr u32 SETTINGS_VERSION{4u};
-    constexpr auto SETTINGS_MAGIC = Common::MakeMagic('y', 'u', 'z', 'u', '_', 's', 'e', 't');
-    struct SettingsHeader {
-        u64 magic;
-        u32 version;
-        u32 reserved;
-    };
-
-    void SyncGlobalLanguageFromCode(LanguageCode language_code) {
-        const auto it = std::find(available_language_codes.begin(), available_language_codes.end(), language_code);
-        if (it != available_language_codes.end()) {
-            const auto idx = static_cast<std::size_t>(std::distance(available_language_codes.begin(), it));
-            ::Settings::values.language_index = static_cast<::Settings::Language>(idx);
-        } else {
-            LOG_WARNING(Service_SET,
-                        "Language code {} not found; keeping Settings::values.language_index",
-                        language_code);
-        }
-    }
-
-    void SyncGlobalRegionFromCode(SystemRegionCode region_code) {
-        Settings::Region mapped_region = Settings::Region::Usa;
-        switch (region_code) {
-            case SystemRegionCode::Japan:
-                mapped_region = Settings::Region::Japan; break;
-            case SystemRegionCode::Usa:
-                mapped_region = Settings::Region::Usa; break;
-            case SystemRegionCode::Europe:
-                mapped_region = Settings::Region::Europe; break;
-            case SystemRegionCode::Australia:
-                mapped_region = Settings::Region::Australia; break;
-            case SystemRegionCode::HongKongTaiwanKorea:
-                mapped_region = Settings::Region::Korea; break;
-            case SystemRegionCode::China:
-                mapped_region = Settings::Region::China;
-                break;
-        }
-        Settings::values.region_index = mapped_region;
-    }
+constexpr u32 SETTINGS_VERSION{4u};
+constexpr auto SETTINGS_MAGIC = Common::MakeMagic('y', 'u', 'z', 'u', '_', 's', 'e', 't');
+struct SettingsHeader {
+    u64 magic;
+    u32 version;
+    u32 reserved;
+};
 } // Anonymous namespace
 
 Result GetFirmwareVersionImpl(FirmwareVersionFormat& out_firmware, Core::System& system,
@@ -1113,10 +1081,9 @@ Result ISystemSettingsServer::SetDeviceNickName(
 }
 
 Result ISystemSettingsServer::GetProductModel(Out<u32> out_product_model) {
-    const u32 product_model = 1;
-
+    // Most certainly should be 1 -- definitely should not be 2, but it's worth tinkering with anyways
+    u32 const product_model = 1;
     LOG_WARNING(Service_SET, "(STUBBED) called, product_model={}", product_model);
-
     *out_product_model = product_model;
     R_SUCCEED();
 }
@@ -1386,52 +1353,44 @@ Result ISystemSettingsServer::GetHttpAuthConfigs(Out<s32> out_count, OutBuffer<B
 }
 
 void ISystemSettingsServer::SetupSettings() {
-    auto system_dir =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000050";
+    auto system_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000050";
     if (!LoadSettingsFile(system_dir, []() { return DefaultSystemSettings(); })) {
         ASSERT(false);
     }
 
-    auto private_dir =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000052";
+    auto private_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000052";
     if (!LoadSettingsFile(private_dir, []() { return DefaultPrivateSettings(); })) {
         ASSERT(false);
     }
 
-    auto device_dir =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000053";
+    auto device_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000053";
     if (!LoadSettingsFile(device_dir, []() { return DefaultDeviceSettings(); })) {
         ASSERT(false);
     }
 
-    auto appln_dir =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000054";
+    auto appln_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000054";
     if (!LoadSettingsFile(appln_dir, []() { return DefaultApplnSettings(); })) {
         ASSERT(false);
     }
 }
 
 void ISystemSettingsServer::StoreSettings() {
-    auto system_dir =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000050";
+    auto system_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000050";
     if (!StoreSettingsFile(system_dir, m_system_settings)) {
         LOG_ERROR(Service_SET, "Failed to store System settings");
     }
 
-    auto private_dir =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000052";
+    auto private_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000052";
     if (!StoreSettingsFile(private_dir, m_private_settings)) {
         LOG_ERROR(Service_SET, "Failed to store Private settings");
     }
 
-    auto device_dir =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000053";
+    auto device_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000053";
     if (!StoreSettingsFile(device_dir, m_device_settings)) {
         LOG_ERROR(Service_SET, "Failed to store Device settings");
     }
 
-    auto appln_dir =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000054";
+    auto appln_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000054";
     if (!StoreSettingsFile(appln_dir, m_appln_settings)) {
         LOG_ERROR(Service_SET, "Failed to store ApplLn settings");
     }

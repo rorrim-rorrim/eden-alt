@@ -25,7 +25,6 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     RENDERER_ASYNCHRONOUS_SHADERS("use_asynchronous_shaders"),
     RENDERER_FAST_GPU("use_fast_gpu_time"),
     RENDERER_REACTIVE_FLUSHING("use_reactive_flushing"),
-    RENDERER_EARLY_RELEASE_FENCES("early_release_fences"),
     SYNC_MEMORY_OPERATIONS("sync_memory_operations"),
     BUFFER_REORDER_DISABLE("disable_buffer_reorder"),
     RENDERER_DEBUG("debug"),
@@ -52,10 +51,6 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     SHOW_FW_VERSION("show_firmware_version"),
 
     SOC_OVERLAY_BACKGROUND("soc_overlay_background"),
-
-    FRAME_INTERPOLATION("frame_interpolation"),
-//    FRAME_SKIPPING("frame_skipping"),
-
     ENABLE_INPUT_OVERLAY_AUTO_HIDE("enable_input_overlay_auto_hide"),
 
     PERF_OVERLAY_BACKGROUND("perf_overlay_background"),

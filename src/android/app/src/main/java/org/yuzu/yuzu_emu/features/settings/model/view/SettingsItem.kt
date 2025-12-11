@@ -236,21 +236,6 @@ abstract class SettingsItem(
 
                 override fun reset() = BooleanSetting.USE_DOCKED_MODE.reset()
             }
-            put(
-                SwitchSetting(
-                    BooleanSetting.FRAME_INTERPOLATION,
-                    titleId = R.string.frame_interpolation,
-                    descriptionId = R.string.frame_interpolation_description
-                )
-            )
-
-//            put(
-//                SwitchSetting(
-//                    BooleanSetting.FRAME_SKIPPING,
-//                    titleId = R.string.frame_skipping,
-//                    descriptionId = R.string.frame_skipping_description
-//                )
-//            )
 
             put(
                 SwitchSetting(
@@ -702,13 +687,6 @@ abstract class SettingsItem(
                     BooleanSetting.RENDERER_REACTIVE_FLUSHING,
                     titleId = R.string.renderer_reactive_flushing,
                     descriptionId = R.string.renderer_reactive_flushing_description
-                )
-            )
-            put(
-                SwitchSetting(
-                    BooleanSetting.RENDERER_EARLY_RELEASE_FENCES,
-                    titleId = R.string.renderer_early_release_fences,
-                    descriptionId = R.string.renderer_early_release_fences_description
                 )
             )
             put(

@@ -460,10 +460,8 @@ class SettingsFragmentPresenter(
             add(IntSetting.RENDERER_SAMPLE_SHADING_FRACTION.key)
 
             add(HeaderSetting(R.string.veil_renderer))
-            add(BooleanSetting.RENDERER_EARLY_RELEASE_FENCES.key)
             add(IntSetting.DMA_ACCURACY.key)
             add(BooleanSetting.BUFFER_REORDER_DISABLE.key)
-            add(BooleanSetting.FRAME_INTERPOLATION.key)
             add(BooleanSetting.RENDERER_FAST_GPU.key)
             add(IntSetting.FAST_GPU_TIME.key)
             add(IntSetting.RENDERER_SHADER_BACKEND.key)

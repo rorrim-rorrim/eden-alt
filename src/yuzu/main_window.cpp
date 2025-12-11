@@ -164,9 +164,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 
 #endif
 
-#ifdef __linux__
-#include "common/linux/gamemode.h"
-#endif
+#include "qt_common/gamemode.h"
 
 #ifdef _WIN32
 #include "core/core_timing.h"
@@ -423,9 +421,7 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     SetupSigInterrupts();
 #endif
 
-#ifdef __linux__
-    SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
-#endif
+    SetGamemodeEnabled(UISettings::values.enable_gamemode.GetValue());
 
     UISettings::RestoreWindowState(config);
 
@@ -571,8 +567,6 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     connect(&update_input_timer, &QTimer::timeout, this, &MainWindow::UpdateInputDrivers);
     update_input_timer.start();
 
-    MigrateConfigFiles();
-
     if (has_broken_vulkan) {
         UISettings::values.has_broken_vulkan = true;
 
@@ -627,75 +621,43 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     bool has_gamepath = false;
     bool is_fullscreen = false;
 
-    for (int i = 1; i < args.size(); ++i) {
-        // Preserves drag/drop functionality
-        if (args.size() == 2 && !args[1].startsWith(QChar::fromLatin1('-'))) {
-            game_path = args[1];
-            has_gamepath = true;
-            break;
-        }
-
-        // Launch game in fullscreen mode
+    // Preserves drag/drop functionality
+    if (args.size() == 2 && !args[1].startsWith(QChar::fromLatin1('-'))) {
+        game_path = args[1];
+        has_gamepath = true;
+    } else for (int i = 1; i < args.size(); ++i) {
         if (args[i] == QStringLiteral("-f")) {
+            // Launch game in fullscreen mode
             is_fullscreen = true;
-            continue;
-        }
-
-        // Launch game with a specific user
-        if (args[i] == QStringLiteral("-u")) {
-            if (i >= args.size() - 1) {
-                continue;
-            }
-
-            if (args[i + 1].startsWith(QChar::fromLatin1('-'))) {
-                continue;
-            }
-
+        } else if (args[i] == QStringLiteral("-u") && i < args.size() - 1) {
+            // Launch game with a specific user
             int user_arg_idx = ++i;
             bool argument_ok;
             std::size_t selected_user = args[user_arg_idx].toUInt(&argument_ok);
-
             if (!argument_ok) {
                 // try to look it up by username, only finds the first username that matches.
-                const std::string user_arg_str = args[user_arg_idx].toStdString();
-                const auto user_idx = QtCommon::system->GetProfileManager().GetUserIndex(user_arg_str);
-
-                if (user_idx == std::nullopt) {
-                    LOG_ERROR(Frontend, "Invalid user argument");
+                std::string const user_arg_str = args[user_arg_idx].toStdString();
+                auto const user_idx = QtCommon::system->GetProfileManager().GetUserIndex(user_arg_str);
+                if (user_idx != std::nullopt) {
+                    selected_user = user_idx.value();
+                } else {
+                    LOG_ERROR(Frontend, "Invalid user argument '{}'", user_arg_str);
                     continue;
                 }
-
-                selected_user = user_idx.value();
             }
-
-            if (!QtCommon::system->GetProfileManager().UserExistsIndex(selected_user)) {
-                LOG_ERROR(Frontend, "Selected user doesn't exist");
-                continue;
+            if (QtCommon::system->GetProfileManager().UserExistsIndex(selected_user)) {
+                Settings::values.current_user = s32(selected_user);
+                user_flag_cmd_line = true;
+            } else {
+                LOG_ERROR(Frontend, "Selected user {} doesn't exist", selected_user);
             }
-
-            Settings::values.current_user = static_cast<s32>(selected_user);
-
-            user_flag_cmd_line = true;
-            continue;
-        }
-
-        // Launch game at path
-        if (args[i] == QStringLiteral("-g")) {
-            if (i >= args.size() - 1) {
-                continue;
-            }
-
-            if (args[i + 1].startsWith(QChar::fromLatin1('-'))) {
-                continue;
-            }
-
+        } else if (args[i] == QStringLiteral("-g") && i < args.size() - 1) {
+            // Launch game at path
             game_path = args[++i];
             has_gamepath = true;
-        }
-
-        if (args[i] == QStringLiteral("-qlaunch"))
+        } else if (args[i] == QStringLiteral("-qlaunch"))
             should_launch_qlaunch = true;
-        if (args[i] == QStringLiteral("-setup"))
+        else if (args[i] == QStringLiteral("-setup"))
             should_launch_setup = true;
     }
 
@@ -1305,9 +1267,6 @@ void MainWindow::InitializeWidgets() {
                 QMenu context_menu;
 
                 for (auto const& gpu_accuracy_pair : ConfigurationShared::gpu_accuracy_texts_map) {
-                    if (gpu_accuracy_pair.first == Settings::GpuAccuracy::Extreme) {
-                        continue;
-                    }
                     context_menu.addAction(gpu_accuracy_pair.second, [this, gpu_accuracy_pair] {
                         Settings::values.gpu_accuracy.SetValue(gpu_accuracy_pair.first);
                         UpdateGPUAccuracyButton();
@@ -2232,10 +2191,7 @@ void MainWindow::OnEmulationStopped() {
     emulation_running = false;
 
     discord_rpc->Update();
-
-#ifdef __linux__
-    Common::Linux::StopGamemode();
-#endif
+    Common::FeralGamemode::Stop();
 
     // The emulation is stopped, so closing the window or not does not matter anymore
     disconnect(render_window, &GRenderWindow::Closed, this, &MainWindow::OnStopGame);
@@ -3106,10 +3062,7 @@ void MainWindow::OnStartGame() {
     play_time_manager->Start();
 
     discord_rpc->Update();
-
-#ifdef __linux__
-    Common::Linux::StartGamemode();
-#endif
+    Common::FeralGamemode::Start();
 }
 
 void MainWindow::OnRestartGame() {
@@ -3130,10 +3083,7 @@ void MainWindow::OnPauseGame() {
     play_time_manager->Stop();
     UpdateMenuState();
     AllowOSSleep();
-
-#ifdef __linux__
-    Common::Linux::StopGamemode();
-#endif
+    Common::FeralGamemode::Stop();
 }
 
 void MainWindow::OnPauseContinueGame() {
@@ -3418,11 +3368,9 @@ void MainWindow::OnConfigure() {
     const auto old_theme = UISettings::values.theme;
     const bool old_discord_presence = UISettings::values.enable_discord_presence.GetValue();
     const auto old_language_index = Settings::values.language_index.GetValue();
-#ifdef __linux__
-    const bool old_gamemode = Settings::values.enable_gamemode.GetValue();
-#endif
+    const bool old_gamemode = UISettings::values.enable_gamemode.GetValue();
 #ifdef __unix__
-    const bool old_force_x11 = Settings::values.gui_force_x11.GetValue();
+    const bool old_force_x11 = UISettings::values.gui_force_x11.GetValue();
 #endif
 
     Settings::SetConfiguringGlobal(true);
@@ -3483,14 +3431,12 @@ void MainWindow::OnConfigure() {
     if (UISettings::values.enable_discord_presence.GetValue() != old_discord_presence) {
         SetDiscordEnabled(UISettings::values.enable_discord_presence.GetValue());
     }
-#ifdef __linux__
-    if (Settings::values.enable_gamemode.GetValue() != old_gamemode) {
-        SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
+    if (UISettings::values.enable_gamemode.GetValue() != old_gamemode) {
+        SetGamemodeEnabled(UISettings::values.enable_gamemode.GetValue());
     }
-#endif
 #ifdef __unix__
-    if (Settings::values.gui_force_x11.GetValue() != old_force_x11) {
-        GraphicsBackend::SetForceX11(Settings::values.gui_force_x11.GetValue());
+    if (UISettings::values.gui_force_x11.GetValue() != old_force_x11) {
+        GraphicsBackend::SetForceX11(UISettings::values.gui_force_x11.GetValue());
     }
 #endif
 
@@ -3614,16 +3560,15 @@ void MainWindow::OnToggleDockedMode() {
 
 void MainWindow::OnToggleGpuAccuracy() {
     switch (Settings::values.gpu_accuracy.GetValue()) {
-    case Settings::GpuAccuracy::High: {
-        Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::Normal);
+    case Settings::GpuAccuracy::Low:
+        Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::Medium);
         break;
-    }
-    case Settings::GpuAccuracy::Normal:
-    case Settings::GpuAccuracy::Extreme:
-    default: {
+    case Settings::GpuAccuracy::Medium:
         Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::High);
         break;
-    }
+    case Settings::GpuAccuracy::High:
+        Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::Low);
+        break;
     }
 
     QtCommon::system->ApplySettings();
@@ -4154,33 +4099,6 @@ void MainWindow::OnCaptureScreenshot() {
     render_window->CaptureScreenshot(filename);
 }
 
-// TODO: Written 2020-10-01: Remove per-game config migration code when it is irrelevant
-void MainWindow::MigrateConfigFiles() {
-    const auto config_dir_fs_path = Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir);
-    const QDir config_dir =
-        QDir(QString::fromStdString(Common::FS::PathToUTF8String(config_dir_fs_path)));
-    const QStringList config_dir_list = config_dir.entryList(QStringList(QStringLiteral("*.ini")));
-
-    if (!Common::FS::CreateDirs(config_dir_fs_path / "custom")) {
-        LOG_ERROR(Frontend, "Failed to create new config file directory");
-    }
-
-    for (auto it = config_dir_list.constBegin(); it != config_dir_list.constEnd(); ++it) {
-        const auto filename = it->toStdString();
-        if (filename.find_first_not_of("0123456789abcdefACBDEF", 0) < 16) {
-            continue;
-        }
-        const auto origin = config_dir_fs_path / filename;
-        const auto destination = config_dir_fs_path / "custom" / filename;
-        LOG_INFO(Frontend, "Migrating config file from {} to {}", origin.string(),
-                 destination.string());
-        if (!Common::FS::RenameFile(origin, destination)) {
-            // Delete the old config file if one already exists in the new location.
-            Common::FS::RemoveFile(origin);
-        }
-    }
-}
-
 #ifdef ENABLE_UPDATE_CHECKER
 void MainWindow::OnEmulatorUpdateAvailable() {
     QString version_string = update_future.result();
@@ -4338,7 +4256,7 @@ void MainWindow::UpdateGPUAccuracyButton() {
     const auto gpu_accuracy_text =
         ConfigurationShared::gpu_accuracy_texts_map.find(gpu_accuracy)->second;
     gpu_accuracy_button->setText(gpu_accuracy_text.toUpper());
-    gpu_accuracy_button->setChecked(gpu_accuracy != Settings::GpuAccuracy::Normal);
+    gpu_accuracy_button->setChecked(gpu_accuracy != Settings::GpuAccuracy::Low);
 }
 
 void MainWindow::UpdateDockedButton() {
@@ -4464,7 +4382,7 @@ void MainWindow::OnCheckGraphicsBackend() {
     if (!isWayland)
         return;
 
-    const bool currently_hidden = Settings::values.gui_hide_backend_warning.GetValue();
+    const bool currently_hidden = UISettings::values.gui_hide_backend_warning.GetValue();
     if (currently_hidden)
         return;
 
@@ -4487,11 +4405,11 @@ void MainWindow::OnCheckGraphicsBackend() {
 
     const bool hide = cb->isChecked();
     if (hide != currently_hidden) {
-        Settings::values.gui_hide_backend_warning.SetValue(hide);
+        UISettings::values.gui_hide_backend_warning.SetValue(hide);
     }
 
     if (msgbox.clickedButton() == okButton) {
-        Settings::values.gui_force_x11.SetValue(true);
+        UISettings::values.gui_force_x11.SetValue(true);
         GraphicsBackend::SetForceX11(true);
         QMessageBox::information(this,
                                  tr("Restart Required"),
@@ -4821,13 +4739,14 @@ void MainWindow::SetDiscordEnabled([[maybe_unused]] bool state) {
     discord_rpc->Update();
 }
 
-#ifdef __linux__
 void MainWindow::SetGamemodeEnabled(bool state) {
     if (emulation_running) {
-        Common::Linux::SetGamemodeState(state);
+        if (state)
+            Common::FeralGamemode::Start();
+        else
+            Common::FeralGamemode::Stop();
     }
 }
-#endif
 
 void MainWindow::changeEvent(QEvent* event) {
 #ifdef __unix__

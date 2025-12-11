@@ -428,13 +428,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
     const bool is_s8gen2 = device_id == 0x43050a01;
-    const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
+    //const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
 
-    if ((is_mvk || is_qualcomm || is_turnip || is_arm) && !is_suitable) {
-        LOG_WARNING(Render_Vulkan, "Unsuitable driver, continuing anyway");
-    } else if (!is_suitable) {
-        throw vk::Exception(VK_ERROR_INCOMPATIBLE_DRIVER);
-    }
+    if (!is_suitable)
+        LOG_WARNING(Render_Vulkan, "Unsuitable driver - continuing anyways");
 
     if (is_nvidia) {
         nvidia_arch = GetNvidiaArchitecture(physical, supported_extensions);
@@ -666,11 +663,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         break;
     }
 
-    if (!extensions.extended_dynamic_state) {
-        Settings::values.vertex_input_dynamic_state.SetValue(false);
-    }
-
-    if (!Settings::values.vertex_input_dynamic_state.GetValue()) {
+    if (!Settings::values.vertex_input_dynamic_state.GetValue() || !extensions.extended_dynamic_state) {
         RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
     }
 

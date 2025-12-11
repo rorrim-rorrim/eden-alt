@@ -267,9 +267,11 @@ if (ANDROID AND ARCHITECTURE_arm64)
     AddJsonPackage(libadrenotools)
 endif()
 
-if (UNIX AND NOT APPLE AND NOT TARGET gamemode::headers)
+AddJsonPackage(gamemode)
+
+if (gamemode_ADDED)
     add_library(gamemode INTERFACE)
-    target_include_directories(gamemode INTERFACE gamemode)
+    target_include_directories(gamemode INTERFACE ${gamemode_SOURCE_DIR}/lib)
     add_library(gamemode::headers ALIAS gamemode)
 endif()
 
@@ -391,4 +393,20 @@ if (ANDROID)
     AddJsonPackage(oboe)
 
     add_library(oboe::oboe ALIAS oboe)
+endif()
+
+if (APPLE)
+    # moltenvk
+    if (NOT YUZU_USE_BUNDLED_MOLTENVK)
+        find_library(MOLTENVK_LIBRARY MoltenVK)
+    else()
+        unset(MOLTENVK_LIBRARY)
+    endif()
+
+    # TODO: kosmickrisp?
+    if (NOT MOLTENVK_LIBRARY)
+        AddJsonPackage(moltenvk)
+
+        set(MOLTENVK_LIBRARY "${moltenvk_SOURCE_DIR}/MoltenVK/dylib/macOS/libMoltenVK.dylib" CACHE STRING "" FORCE)
+    endif()
 endif()

@@ -149,13 +149,16 @@ void UpdateGPUAccuracy() {
     values.current_gpu_accuracy = values.gpu_accuracy.GetValue();
 }
 
-bool IsGPULevelExtreme() {
-    return values.current_gpu_accuracy == GpuAccuracy::Extreme;
+bool IsGPULevelLow() {
+    return values.current_gpu_accuracy == GpuAccuracy::Low;
+}
+
+bool IsGPULevelMedium() {
+    return values.current_gpu_accuracy == GpuAccuracy::Medium;
 }
 
 bool IsGPULevelHigh() {
-    return values.current_gpu_accuracy == GpuAccuracy::Extreme ||
-           values.current_gpu_accuracy == GpuAccuracy::High;
+    return values.current_gpu_accuracy == GpuAccuracy::High;
 }
 
 bool IsDMALevelDefault() {
@@ -271,8 +274,6 @@ const char* TranslateCategory(Category category) {
         return "Services";
     case Category::Paths:
         return "Paths";
-    case Category::Linux:
-        return "Linux";
     case Category::MaxEnum:
         break;
     }

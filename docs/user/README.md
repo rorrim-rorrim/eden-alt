@@ -6,9 +6,12 @@ This handbook is primarily aimed at the end-user - baking useful knowledge for e
 
 - **[The Basics](Basics.md)**
 - **[Audio](Audio.md)**
+- **[Server hosting](ServerHosting.md)**
 - **[Graphics](Graphics.md)**
 - **[Platforms and Architectures](Architectures.md)**
 - **[Testing](Testing.md)**
 - **[Data, savefiles and storage](Storage.md)**
 - **[Orphaned Profiles](Orphaned.md)**
+- **[Command Line](CommandLine.md)**
 - **[Native Application Development](Native.md)**
+- **[Adding Boolean Settings Toggles](AddingBooleanToggles.md)**

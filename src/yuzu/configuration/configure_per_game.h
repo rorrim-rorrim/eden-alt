@@ -36,8 +36,8 @@ class ConfigureGraphics;
 class ConfigureGraphicsAdvanced;
 class ConfigureGraphicsExtensions;
 class ConfigureInputPerGame;
-class ConfigureLinuxTab;
 class ConfigureSystem;
+class ConfigureNetwork;
 
 class QGraphicsScene;
 class QStandardItem;
@@ -91,6 +91,6 @@ private:
     std::unique_ptr<ConfigureGraphicsExtensions> graphics_extensions_tab;
     std::unique_ptr<ConfigureGraphics> graphics_tab;
     std::unique_ptr<ConfigureInputPerGame> input_tab;
-    std::unique_ptr<ConfigureLinuxTab> linux_tab;
     std::unique_ptr<ConfigureSystem> system_tab;
+    std::unique_ptr<ConfigureNetwork> network_tab;
 };

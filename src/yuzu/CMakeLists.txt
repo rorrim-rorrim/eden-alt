@@ -104,9 +104,6 @@ add_executable(yuzu
     configuration/configure_input_profile_dialog.cpp
     configuration/configure_input_profile_dialog.h
     configuration/configure_input_profile_dialog.ui
-    configuration/configure_linux_tab.cpp
-    configuration/configure_linux_tab.h
-    configuration/configure_linux_tab.ui
     configuration/configure_mouse_panning.cpp
     configuration/configure_mouse_panning.h
     configuration/configure_mouse_panning.ui
@@ -374,12 +371,6 @@ if (APPLE)
 
     set_target_properties(yuzu PROPERTIES MACOSX_BUNDLE TRUE)
     set_target_properties(yuzu PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
-
-    if (YUZU_USE_BUNDLED_MOLTENVK)
-        set(MOLTENVK_PLATFORM "macOS")
-        set(MOLTENVK_VERSION "v1.4.0")
-        download_moltenvk(${MOLTENVK_PLATFORM} ${MOLTENVK_VERSION})
-    endif()
 
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".dylib")
     find_library(MOLTENVK_LIBRARY MoltenVK REQUIRED)
