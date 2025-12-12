@@ -79,7 +79,9 @@ public:
         GuestDescriptorQueue& guest_descriptor_queue, Common::ThreadWorker* worker_thread,
         PipelineStatistics* pipeline_statistics, RenderPassCache& render_pass_cache,
         const GraphicsPipelineCacheKey& key, std::array<vk::ShaderModule, NUM_STAGES> stages,
-        const std::array<const Shader::Info*, NUM_STAGES>& infos);
+        const std::array<const Shader::Info*, NUM_STAGES>& infos,
+        GraphicsPipeline* base_pipeline = nullptr);
+
 
     bool HasDynamicVertexInput() const noexcept { return key.state.dynamic_vertex_input; }
     bool SupportsAlphaToCoverage() const noexcept {
@@ -93,6 +95,11 @@ public:
     bool UsesExtendedDynamicState() const noexcept {
         return key.state.extended_dynamic_state != 0;
     }
+
+    [[nodiscard]] const GraphicsPipelineCacheKey& Key() const noexcept {
+        return key;
+    }
+
     GraphicsPipeline& operator=(GraphicsPipeline&&) noexcept = delete;
     GraphicsPipeline(GraphicsPipeline&&) noexcept = delete;
 
@@ -140,6 +147,8 @@ private:
     void Validate();
 
     const GraphicsPipelineCacheKey key;
+    GraphicsPipeline* base_pipeline = nullptr; // non-owning
+    bool allow_derivatives = false;
     Tegra::Engines::Maxwell3D* maxwell3d;
     Tegra::MemoryManager* gpu_memory;
     const Device& device;

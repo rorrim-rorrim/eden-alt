@@ -249,10 +249,12 @@ GraphicsPipeline::GraphicsPipeline(
     GuestDescriptorQueue& guest_descriptor_queue_, Common::ThreadWorker* worker_thread,
     PipelineStatistics* pipeline_statistics, RenderPassCache& render_pass_cache,
     const GraphicsPipelineCacheKey& key_, std::array<vk::ShaderModule, NUM_STAGES> stages,
-    const std::array<const Shader::Info*, NUM_STAGES>& infos)
-    : key{key_}, device{device_}, texture_cache{texture_cache_}, buffer_cache{buffer_cache_},
-      pipeline_cache(pipeline_cache_), scheduler{scheduler_},
-      guest_descriptor_queue{guest_descriptor_queue_}, spv_modules{std::move(stages)} {
+    const std::array<const Shader::Info*, NUM_STAGES>& infos,
+    GraphicsPipeline* base_pipeline_)
+    : key{key_}, base_pipeline{base_pipeline_}, allow_derivatives{base_pipeline_ == nullptr},
+    device{device_}, texture_cache{texture_cache_}, buffer_cache{buffer_cache_},
+    pipeline_cache(pipeline_cache_), scheduler{scheduler_},
+    guest_descriptor_queue{guest_descriptor_queue_}, spv_modules{std::move(stages)} {
     if (shader_notify) {
         shader_notify->MarkShaderBuilding();
     }
@@ -941,6 +943,18 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     if (device.IsKhrPipelineExecutablePropertiesEnabled() && Settings::values.renderer_debug.GetValue()) {
         flags |= VK_PIPELINE_CREATE_CAPTURE_STATISTICS_BIT_KHR;
     }
+    VkPipeline base_handle = VK_NULL_HANDLE;
+
+    // First pipeline in a "cluster" allows derivatives
+    if (allow_derivatives) {
+        flags |= VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
+    }
+
+    // Children mark themselves as derivatives when base is already built
+    if (base_pipeline != nullptr && base_pipeline->IsBuilt()) {
+        flags |= VK_PIPELINE_CREATE_DERIVATIVE_BIT;
+        base_handle = *base_pipeline->pipeline;
+    }
 
     pipeline = device.GetLogical().CreateGraphicsPipeline(
         {
@@ -961,8 +975,8 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             .layout = *pipeline_layout,
             .renderPass = render_pass,
             .subpass = 0,
-            .basePipelineHandle = nullptr,
-            .basePipelineIndex = 0,
+            .basePipelineHandle = base_handle,
+            .basePipelineIndex = -1,
         },
         *pipeline_cache);
 
