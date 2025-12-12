@@ -30,9 +30,9 @@ constexpr AVPixelFormat PreferredCpuFormat = AV_PIX_FMT_YUV420P;
 constexpr std::array PreferredGpuDecoders = {
 #if defined (_WIN32)
     AV_HWDEVICE_TYPE_CUDA,
-    AV_HWDEVICE_TYPE_D3D12VA,
     AV_HWDEVICE_TYPE_D3D11VA,
     AV_HWDEVICE_TYPE_DXVA2,
+    AV_HWDEVICE_TYPE_D3D12VA,
 #elif defined(__FreeBSD__)
     AV_HWDEVICE_TYPE_VDPAU,
 #elif defined(__APPLE__)
