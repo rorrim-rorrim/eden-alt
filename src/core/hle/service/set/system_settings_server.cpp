@@ -36,6 +36,29 @@ struct SettingsHeader {
     u32 version;
     u32 reserved;
 };
+
+void SyncGlobalLanguageFromCode(LanguageCode language_code) {
+    const auto it = std::find_if(available_language_codes.begin(), available_language_codes.end(),
+                                 [language_code](LanguageCode code) { return code == language_code; });
+    if (it == available_language_codes.end()) {
+        return;
+    }
+
+    const std::size_t index = static_cast<std::size_t>(std::distance(available_language_codes.begin(), it));
+    if (index >= static_cast<std::size_t>(Settings::values.language_index.GetValue())) {
+        Settings::values.language_index.SetValue(static_cast<Settings::Language>(index));
+    }
+}
+
+void SyncGlobalRegionFromCode(SystemRegionCode region_code) {
+    const auto region_index = static_cast<std::size_t>(region_code);
+    if (region_index > static_cast<std::size_t>(Settings::Region::Taiwan)) {
+        return;
+    }
+
+    Settings::values.region_index.SetValue(static_cast<Settings::Region>(region_index));
+}
+
 } // Anonymous namespace
 
 Result GetFirmwareVersionImpl(FirmwareVersionFormat& out_firmware, Core::System& system,
