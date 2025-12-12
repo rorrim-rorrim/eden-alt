@@ -575,8 +575,18 @@ GraphicsPipeline* PipelineCache::CurrentGraphicsPipelineSlowPath() {
     const auto [pair, is_new]{graphics_cache.try_emplace(graphics_key)};
     auto& pipeline{pair->second};
     if (is_new) {
-        pipeline = CreateGraphicsPipeline();
+       GraphicsPipeline* base = nullptr;
+
+            // Use the current pipeline as a base if shaders match
+            if (current_pipeline) {
+                const auto& base_key = current_pipeline->Key();
+                if (base_key.unique_hashes == graphics_key.unique_hashes) {
+                    base = current_pipeline;
+                }
     }
+    pipeline = CreateGraphicsPipeline(base);
+    }
+
     if (!pipeline) {
         return nullptr;
     }
@@ -607,7 +617,7 @@ GraphicsPipeline* PipelineCache::BuiltPipeline(GraphicsPipeline* pipeline) const
 std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
     ShaderPools& pools, const GraphicsPipelineCacheKey& key,
     std::span<Shader::Environment* const> envs, PipelineStatistics* statistics,
-    bool build_in_parallel) try {
+    bool build_in_parallel, GraphicsPipeline* base_pipeline) try {
     auto hash = key.Hash();
     LOG_INFO(Render_Vulkan, "0x{:016x}", hash);
     size_t env_index{0};
@@ -686,7 +696,7 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
     return std::make_unique<GraphicsPipeline>(
         scheduler, buffer_cache, texture_cache, vulkan_pipeline_cache, &shader_notify, device,
         descriptor_pool, guest_descriptor_queue, thread_worker, statistics, render_pass_cache, key,
-        std::move(modules), infos);
+        std::move(modules), infos, base_pipeline);
 
 } catch (const Shader::Exception& exception) {
     auto hash = key.Hash();
@@ -707,16 +717,23 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
 }
 
 std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline() {
+    // Preserve old behaviour, no base pipeline
+    return CreateGraphicsPipeline(nullptr);
+}
+
+std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
+       GraphicsPipeline* base_pipeline) {
     GraphicsEnvironments environments;
     GetGraphicsEnvironments(environments, graphics_key.unique_hashes);
 
     main_pools.ReleaseContents();
-    auto pipeline{
-        CreateGraphicsPipeline(main_pools, graphics_key, environments.Span(), nullptr, true)};
+    auto pipeline{CreateGraphicsPipeline(main_pools, graphics_key, environments.Span(),
+                                         nullptr, true, base_pipeline)};
     if (!pipeline || pipeline_cache_filename.empty()) {
         return pipeline;
     }
-    serialization_thread.QueueWork([this, key = graphics_key, envs = std::move(environments.envs)] {
+    serialization_thread.QueueWork(
+            [this, key = graphics_key, envs = std::move(environments.envs)] {
         boost::container::static_vector<const GenericEnvironment*, Maxwell::MaxShaderProgram>
             env_ptrs;
         for (size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
