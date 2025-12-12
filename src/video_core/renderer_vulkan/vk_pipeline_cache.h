@@ -122,11 +122,12 @@ private:
     [[nodiscard]] GraphicsPipeline* BuiltPipeline(GraphicsPipeline* pipeline) const noexcept;
 
     std::unique_ptr<GraphicsPipeline> CreateGraphicsPipeline();
+    std::unique_ptr<GraphicsPipeline> CreateGraphicsPipeline(GraphicsPipeline* base_pipeline);
 
     std::unique_ptr<GraphicsPipeline> CreateGraphicsPipeline(
         ShaderPools& pools, const GraphicsPipelineCacheKey& key,
         std::span<Shader::Environment* const> envs, PipelineStatistics* statistics,
-        bool build_in_parallel);
+        bool build_in_parallel, GraphicsPipeline* base_pipeline = nullptr);
 
     std::unique_ptr<ComputePipeline> CreateComputePipeline(const ComputePipelineCacheKey& key,
                                                            const ShaderInfo* shader);
