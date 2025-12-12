@@ -479,6 +479,14 @@ void RasterizerVulkan::Clear(u32 layer_count) {
 }
 
 void RasterizerVulkan::DispatchCompute() {
+#ifdef ANDROID
+    static u32 dispatch_count = 0;
+    if (dispatch_count < 2) {
+        dispatch_count++;
+        return;
+    }
+#endif
+
     FlushWork();
     gpu_memory->FlushCaching();
 
