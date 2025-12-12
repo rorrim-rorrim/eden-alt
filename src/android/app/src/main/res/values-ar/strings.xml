@@ -27,7 +27,6 @@
 
 
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Enhanced)</string>
     <string name="process_ram">Process RAM: %1$d MB</string>
     <string name="shaders_prefix">بناء</string>
     <string name="shaders_suffix">تظليل(ات)</string>
@@ -99,10 +98,6 @@
     <string name="sample_shading_fraction_description">كثافة تمرير تظليل العينة. تؤدي القيم الأعلى إلى تحسين الجودة بشكل أكبر، ولكنها تقلل أيضًا من الأداء إلى حد كبير.</string>
 
     <string name="veil_renderer">العارض</string>
-    <string name="frame_interpolation">تحسين سرعة الإطارات</string>
-    <string name="frame_interpolation_description">يضمن تسليمًا سلسًا ومتناسقًا للإطارات من خلال مزامنة التوقيت بينها، مما يقلل من التقطيع وعدم انتظام الحركة. مثالي للألعاب التي تعاني من عدم استقرار في توقيت الإطارات أو تقطع دقيق أثناء اللعب.</string>
-    <string name="renderer_early_release_fences">إطلاق الأسوار مبكرًا</string>
-    <string name="renderer_early_release_fences_description">يساعد في إصلاح مشكلة 0 إطار في الثانية في ألعاب مثل DKCR:HD وSubnautica Below Zero وOri 2، ولكن قد يتسبب في تعطيل التحميل أو الأداء في ألعاب Unreal Engine.</string>
     <string name="sync_memory_operations">مزامنة عمليات الذاكرة</string>
     <string name="sync_memory_operations_description">يضمن اتساق البيانات بين عمليات الحوسبة والذاكرة. هذا الخيار قد يحل المشكلات في بعض الألعاب، ولكن قد يقلل الأداء في بعض الحالات. يبدو أن الألعاب التي تستخدم Unreal Engine 4 هي الأكثر تأثرًا.</string>
     <string name="buffer_reorder_disable">تعطيل إعادة ترتيب المخزن المؤقت</string>
@@ -239,15 +234,12 @@
     <string name="get_started">ابدأ الآن</string>
     <string name="keys">المفاتيح</string>
     <string name="keys_description">حدد ملف <b>prod.keys</b> الخاص بك باستخدام الزر أدناه.</string>
-    <string name="select_keys">حدد المفاتيح</string>
     <string name="firmware">الفيرموير</string>
     <string name="firmware_description">حدد ملف <b>firmware.zip</b> الخاص بك باستخدام الزر أدناه.</string>
-    <string name="select_firmware">حدد الفيرموير</string>
     <string name="games">الألعاب</string>
     <string name="games_description">حدد مجلد <b>الألعاب</b> الخاص بك باستخدام الزر أدناه.</string>
     <string name="done">إنهاء</string>
     <string name="done_description">أنت جاهز تمامًا.\nاستمتع بألعابك!</string>
-    <string name="text_continue">متابعة</string>
     <string name="next">التالي</string>
     <string name="back">عودة</string>
     <string name="add_games">إضافة الألعاب</string>
@@ -287,9 +279,6 @@
     <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">الإشعارات</string>
     <string name="notifications_description">امنح الإذن بالإشعار باستخدام الزر أدناه.</string>
-    <string name="give_permission">منح الإذن</string>
-    <string name="notification_warning">تخطي منح إذن الإشعارات؟</string>
-    <string name="notification_warning_description">لن تتمكن Eden من إشعارك بالمعلومات المهمة.</string>
     <string name="permission_denied">تم رفض الإذن</string>
     <string name="permission_denied_description">لقد رفضت هذا الإذن عدة مرات ويتعين عليك الآن منحه يدويًا في إعدادات النظام</string>
     <string name="about">حول</string>
@@ -479,8 +468,6 @@
     <string name="display">الشاشة</string>
     <string name="processing">تأثيرات بعد المعالجة</string>
 
-    <string name="frame_skipping">قيد التطوير: تخطي الإطارات</string>
-    <string name="frame_skipping_description">تبديل تخطي الإطارات لتحسين الأداء عن طريق تقليل عدد الإطارات المعروضة. هذه الميزة قيد التطوير وسيتم تمكينها في الإصدارات المستقبلية.</string>
     <string name="renderer_accuracy">مستوى الدقة</string>
     <string name="renderer_resolution">الدقة (الإرساء/محمول)</string>
     <string name="renderer_vsync">VSync وضع</string>
@@ -890,11 +877,6 @@
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">لاشيء</string>
-
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">عادي</string>
-    <string name="renderer_accuracy_high">عالي</string>
-    <string name="renderer_accuracy_extreme">أقصى</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">افتراضي</string>

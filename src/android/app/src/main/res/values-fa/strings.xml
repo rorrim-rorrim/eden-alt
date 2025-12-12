@@ -7,7 +7,6 @@
     <string name="notification_permission_not_granted">مجوز اعلان داده نشده!</string>
 
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(بهبودیافته)</string>
     <string name="process_ram">حافظه فرآیند: %1$d مگابایت</string>
     <string name="shaders_prefix">در حال ساخت</string>
     <string name="shaders_suffix">شیدر(ها)</string>
@@ -66,12 +65,6 @@
     <string name="veil_misc">پردازنده و حافظه</string>
     <string name="eden_veil">پرده عدن</string>
     <string name="eden_veil_description">تنظیمات آزمایشی برای بهبود عملکرد و قابلیت. این تنظیمات ممکن است باعث نمایش صفحه سیاه یا سایر مشکلات بازی شود.</string>
-    <string name="frame_skipping">در حال توسعه: رد کردن فریم‌ها</string>
-    <string name="frame_skipping_description">با فعال کردن رد کردن فریم‌ها، عملکرد را با کاهش تعداد فریم‌های رندر شده بهبود دهید. این قابلیت در حال توسعه است و در نسخه‌های آینده فعال خواهد شد.</string>
-    <string name="frame_interpolation">زمان‌بندی پیشرفته فریم‌ها</string>
-    <string name="frame_interpolation_description">ارسال یکنواخت و پایدار فریم‌ها را با همگام‌سازی زمان بین آن‌ها تضمین می‌کند، که منجر به کاهش لرزش و انیمیشن‌های ناهموار می‌شود. برای بازی‌هایی که ناپایداری در زمان‌بندی فریم‌ها یا میکرو لرزش در حین بازی دارند ایده‌آل است</string>
-    <string name="renderer_early_release_fences">رهاسازی حصارها زودتر</string>
-    <string name="renderer_early_release_fences_description">به رفع مشکل 0 فریم بر ثانیه در بازی‌هایی مانند DKCR:HD، Subnautica Below Zero و Ori 2 کمک می‌کند، اما ممکن است بارگذاری یا عملکرد بازی‌های Unreal Engine را مختل کند.</string>
     <string name="sync_memory_operations">همگام‌سازی عملیات حافظه</string>
     <string name="sync_memory_operations_description">اطمینان از سازگاری داده‌ها بین عملیات محاسباتی و حافظه. این گزینه ممکن است مشکلات برخی بازی‌ها را رفع کند، اما در برخی موارد ممکن است عملکرد را کاهش دهد. به نظر می‌رسد بازی‌های با Unreal Engine 4 بیشترین تأثیر را داشته باشند.</string>
     <string name="buffer_reorder_disable">غیرفعال کردن مرتب‌سازی مجدد بافر</string>
@@ -275,15 +268,12 @@
     <string name="get_started">شروع کنید</string>
     <string name="keys">کلیدها</string>
     <string name="keys_description">فایل &lt;b>prod.keys&lt;/b> خود را با دکمه زیر انتخاب کنید.</string>
-    <string name="select_keys">انتخاب کلیدها</string>
     <string name="firmware">فریمور</string>
     <string name="firmware_description">فایل <b>firmware.zip</b> خود را با دکمه زیر انتخاب کنید.\nاکنون ایدن به نسخه <b>19.0.1</b> یا پایین‌تر نیاز دارد.</string>
-    <string name="select_firmware">انتخاب فریمور</string>
     <string name="games">بازی‌ها</string>
     <string name="games_description">پوشه &lt;b>بازی‌ها&lt;/b> خود را با دکمه زیر انتخاب کنید.</string>
     <string name="done">انجام شد</string>
     <string name="done_description">همه چیز آماده است.\nاز بازی‌های خود لذت ببرید!</string>
-    <string name="text_continue">ادامه</string>
     <string name="next">بعدی</string>
     <string name="back">قبلی</string>
     <string name="add_games">افزودن بازی‌ها</string>
@@ -314,9 +304,6 @@
     <string name="install_firmware_warning_description">بسیاری از بازی‌ها برای اجرای صحیح به دسترسی به فریمور نیاز دارند.</string>
     <string name="notifications">اعلان‌ها</string>
     <string name="notifications_description">مجوز اعلان را با دکمه زیر اعطا کنید.</string>
-    <string name="give_permission">اجازه بدهید</string>
-    <string name="notification_warning">دادن مجوز اعلان را رد می‌کنید؟</string>
-    <string name="notification_warning_description">Eden نمی‌تواند شما را از اطلاعات مهم مطلع کند.</string>
     <string name="permission_denied">دسترسی داده نشد</string>
     <string name="permission_denied_description">شما بارها این دسترسی را رد کردید و اکنون باید آن را به صورت دستی در تنظیمات سیستم اعطا کنید.</string>
     <string name="about">درباره</string>
@@ -770,11 +757,6 @@
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">هیچ</string>
-
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">معمولی</string>
-    <string name="renderer_accuracy_high">زیاد</string>
-    <string name="renderer_accuracy_extreme">افراطی (کند)</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">پیش فرض</string>

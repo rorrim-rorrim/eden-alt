@@ -333,12 +333,7 @@ struct Values {
                                                           "shader_backend", Category::Renderer,  Specialization::RuntimeList};
     SwitchableSetting<int> vulkan_device{linkage, 0, "vulkan_device", Category::Renderer,
                                          Specialization::RuntimeList};
-#ifdef __ANDROID__
-    SwitchableSetting<bool> frame_interpolation{linkage, true, "frame_interpolation", Category::Renderer,
-                                                Specialization::RuntimeList};
-    SwitchableSetting<bool> frame_skipping{linkage, false, "frame_skipping", Category::Renderer,
-                                           Specialization::RuntimeList};
-#endif
+
     SwitchableSetting<bool> use_disk_shader_cache{linkage, true, "use_disk_shader_cache",
                                                   Category::Renderer};
     SwitchableSetting<SpirvOptimizeMode, true> optimize_spirv_output{linkage,
@@ -419,9 +414,9 @@ struct Values {
 
     SwitchableSetting<GpuAccuracy, true> gpu_accuracy{linkage,
 #ifdef ANDROID
-                                                      GpuAccuracy::Normal,
+                                                      GpuAccuracy::Low,
 #else
-                                                      GpuAccuracy::High,
+                                                      GpuAccuracy::Medium,
 #endif
                                                       "gpu_accuracy",
                                                       Category::RendererAdvanced,
@@ -429,7 +424,7 @@ struct Values {
                                                       true,
                                                       true};
 
-    GpuAccuracy current_gpu_accuracy{GpuAccuracy::High};
+    GpuAccuracy current_gpu_accuracy{GpuAccuracy::Medium};
 
     SwitchableSetting<DmaAccuracy, true> dma_accuracy{linkage,
                                                       DmaAccuracy::Default,
@@ -462,15 +457,6 @@ struct Values {
                                                         Specialization::Default,
                                                         true,
                                                         true};
-#ifdef ANDROID
-    SwitchableSetting<bool> early_release_fences{linkage,
-                                                 false,
-                                                 "early_release_fences",
-                                                 Category::RendererAdvanced,
-                                                 Specialization::Default,
-                                                 true,
-                                                 true};
-#endif
     SwitchableSetting<bool> sync_memory_operations{linkage,
                                                    false,
                                                    "sync_memory_operations",
@@ -620,13 +606,6 @@ struct Values {
                                                    Specialization::Radio,
                                                    true,
                                                    true};
-
-    // Linux
-    SwitchableSetting<bool> enable_gamemode{linkage, true, "enable_gamemode", Category::Linux};
-#ifdef __unix__
-    SwitchableSetting<bool> gui_force_x11{linkage, false, "gui_force_x11", Category::Linux};
-    Setting<bool> gui_hide_backend_warning{linkage, false, "gui_hide_backend_warning", Category::Linux};
-#endif
 
     // Controls
     InputSetting<std::array<PlayerInput, 10>> players;
@@ -783,7 +762,8 @@ extern Values values;
 bool getDebugKnobAt(u8 i);
 
 void UpdateGPUAccuracy();
-bool IsGPULevelExtreme();
+bool IsGPULevelLow();
+bool IsGPULevelMedium();
 bool IsGPULevelHigh();
 
 bool IsDMALevelDefault();

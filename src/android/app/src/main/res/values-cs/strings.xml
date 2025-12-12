@@ -5,7 +5,6 @@
     <string name="notice_notification_channel_description">Ukáže oznámení v případě chyby.</string>
     <string name="notification_permission_not_granted">Oznámení nejsou oprávněna!</string>
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Vylepšený)</string>
     <string name="process_ram">RAM procesu: %1$d MB</string>
     <string name="shaders_prefix">Sestavování</string>
     <string name="shaders_suffix">shaderů</string>
@@ -77,10 +76,6 @@
     <string name="sample_shading_fraction_description">Intenzita průchodu stínování vzorku. Vyšší hodnoty zlepšují kvalitu, ale také výrazněji snižují výkon.</string>
 
     <string name="veil_renderer">Renderer</string>
-    <string name="frame_interpolation">Vylepšené časování snímků</string>
-    <string name="frame_interpolation_description">Zajišťuje plynulé a konzistentní zobrazování snímků synchronizací jejich časování, čímž snižuje trhání a nerovnoměrné animace. Ideální pro hry, které trpí nestabilitou časování snímků nebo mikrotrháním během hraní.</string>
-    <string name="renderer_early_release_fences">Uvolnit ploty brzy</string>
-    <string name="renderer_early_release_fences_description">Pomáhá opravit 0 FPS v hrách jako DKCR:HD, Subnautica Below Zero a Ori 2, ale může narušit načítání nebo výkon v hrách na Unreal Engine.</string>
     <string name="sync_memory_operations">Synchronizace paměťových operací</string>
     <string name="sync_memory_operations_description">Zajišťuje konzistenci dat mezi výpočetními a paměťovými operacemi. Tato volba by měla opravit problémy v některých hrách, ale může v některých případech snížit výkon. Nejvíce postižené se zdají být hry s Unreal Engine 4.</string>
     <string name="buffer_reorder_disable">Zakázat přeřazování vyrovnávací paměti</string>
@@ -214,12 +209,9 @@
     <string name="welcome">Vítejte!</string>
     <string name="get_started">Začít</string>
     <string name="keys">Klíče</string>
-    <string name="select_keys">Vybrat klíče</string>
     <string name="firmware">Firmware</string>
-    <string name="select_firmware">Vybrat firmware</string>
     <string name="games">Hry</string>
     <string name="done">Hotovo</string>
-    <string name="text_continue">Pokračovat</string>
     <string name="next">Další</string>
     <string name="back">Zpět</string>
     <string name="add_games">Přidat hry</string>
@@ -240,9 +232,6 @@
     <string name="install_firmware_warning">Přeskočit přidání firmwaru?</string>
     <string name="install_firmware_warning_description">Mnoho her vyžaduje přístup k firmwaru pro správnou funkci.</string>
     <string name="notifications">Oznámení</string>
-    <string name="give_permission">Udělit oprávnění</string>
-    <string name="notification_warning">Přeskočit udělení oprávnění k oznámení?</string>
-    <string name="notification_warning_description">Eden vám nebude schopno oznámit důležité informace.</string>
     <string name="permission_denied">Oprávnění zamítnuto</string>
     <string name="permission_denied_description">Zamítnul jste toto oprávnění příliš mnohokrát, musíte manuálně udělit oprávnění v nastavení systému.</string>
     <string name="about">O aplikaci</string>
@@ -377,8 +366,6 @@
     <string name="display">Zobrazení</string>
     <string name="processing">Postprocesing</string>
 
-    <string name="frame_skipping">WIP: Přeskočení snímků</string>
-    <string name="frame_skipping_description">Přepínání přeskočení snímků pro zlepšení výkonu snížením počtu vykreslených snímků. Tato funkce je stále ve vývoji a bude povolena v budoucích verzích.</string>
     <string name="renderer_accuracy">Úroveň přesnosti</string>
     <string name="renderer_resolution">Rozlišení (Handheld/Docked)</string>
     <string name="renderer_vsync">VSync režim</string>
@@ -623,9 +610,6 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Žádné</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Normální</string>
-    <string name="renderer_accuracy_high">Vysoká</string>
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Výchozí</string>
     <!-- ASTC Decoding Method -->

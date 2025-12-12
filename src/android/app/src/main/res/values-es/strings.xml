@@ -27,7 +27,6 @@
 
 
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Mejorado)</string>
     <string name="process_ram">Proceso de RAM: %1$d MB</string>
     <string name="shaders_prefix">Compilando</string>
     <string name="shaders_suffix">Sombreador(es)</string>
@@ -99,10 +98,6 @@
     <string name="sample_shading_fraction_description">La intensidad del paso de sombreado de la muestra. Los valores más altos mejoran más la calidad, pero también reducen el rendimiento en mayor medida.</string>
 
     <string name="veil_renderer">Renderizador</string>
-    <string name="frame_interpolation">Ritmo de fotogramas mejorado</string>
-    <string name="frame_interpolation_description">Garantiza una entrega de fotogramas fluida y consistente al sincronizar el tiempo entre fotogramas, reduciendo la tartamudez y la animación desigual. Ideal para juegos que experimentan inestabilidad en el tiempo de fotogramas o microtartamudeos durante el juego.</string>
-    <string name="renderer_early_release_fences">Liberar las vallas antes</string>
-    <string name="renderer_early_release_fences_description">Ayuda a arreglar 0 FPS en juegos como DKCR:HD, Subnautica Below Zero y Ori 2, pero puede romper la carga o el rendimiento en juegos de Unreal Engine.</string>
     <string name="sync_memory_operations">Sincronizar operaciones de memoria</string>
     <string name="sync_memory_operations_description">Garantiza la consistencia de los datos entre las operaciones de computación y memoria. Esta opción debería solucionar problemas en algunos juegos, pero también puede reducir el rendimiento en algunos casos. Los juegos de Unreal Engine 4 a menudo ven los cambios más significativos de los mismos.</string>
     <string name="buffer_reorder_disable">Desactivar reordenamiento de búfer</string>
@@ -238,15 +233,12 @@
     <string name="get_started">Empezar</string>
     <string name="keys">Claves</string>
     <string name="keys_description">Selecciona tu archivo <b>prod.keys</b> utilizando el botón de abajo.</string>
-    <string name="select_keys">Seleccionar las claves</string>
     <string name="firmware">Firmware</string>
     <string name="firmware_description">Seleccione su archivo <b> firmware.zip </b> con el botón de abajo.</string>
-    <string name="select_firmware">Seleccionar firmware</string>
     <string name="games">Juegos</string>
     <string name="games_description">Selecciona la carpeta <b>Juegos</b> utilizando el botón de abajo</string>
     <string name="done">Hecho</string>
     <string name="done_description">Ya está todo listo.\n¡Disfrute de tus juegos!</string>
-    <string name="text_continue">Continuar</string>
     <string name="next">Siguiente</string>
     <string name="back">Atrás</string>
     <string name="add_games">Añadir Juegos</string>
@@ -286,9 +278,6 @@
     <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Notificaciones</string>
     <string name="notifications_description">Otorga el permiso de notificación con el botón de abajo.</string>
-    <string name="give_permission">Conceder permiso</string>
-    <string name="notification_warning">¿Omitir conceder el permiso de notificación?</string>
-    <string name="notification_warning_description">Eden no podrá notificarte información importante.</string>
     <string name="permission_denied">Permiso denegado</string>
     <string name="permission_denied_description">Se ha denegado este permiso demasiadas veces y ahora debes otorgarlo de forma manual en la configuración del sistema.</string>
     <string name="about">Acerca de</string>
@@ -453,8 +442,6 @@
     <string name="display">Pantalla</string>
     <string name="processing">Postprocesado</string>
 
-    <string name="frame_skipping">WIP: Salto de fotogramas</string>
-    <string name="frame_skipping_description">Activa o desactiva el salto de fotogramas para mejorar el rendimiento reduciendo el número de fotogramas renderizados. Esta función está en desarrollo y se habilitará en futuras versiones.</string>
     <string name="renderer_accuracy">Nivel de precisión</string>
     <string name="renderer_resolution">Resolución (Portátil/Sobremesa)</string>
     <string name="renderer_vsync">Modo VSync</string>
@@ -849,11 +836,6 @@
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Ninguno</string>
-
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Normal</string>
-    <string name="renderer_accuracy_high">Alto</string>
-    <string name="renderer_accuracy_extreme">Extremo</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Predeterminado</string>

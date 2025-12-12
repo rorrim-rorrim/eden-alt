@@ -164,9 +164,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 
 #endif
 
-#ifdef __linux__
-#include "common/linux/gamemode.h"
-#endif
+#include "qt_common/gamemode.h"
 
 #ifdef _WIN32
 #include "core/core_timing.h"
@@ -423,9 +421,7 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     SetupSigInterrupts();
 #endif
 
-#ifdef __linux__
-    SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
-#endif
+    SetGamemodeEnabled(UISettings::values.enable_gamemode.GetValue());
 
     UISettings::RestoreWindowState(config);
 
@@ -1271,9 +1267,6 @@ void MainWindow::InitializeWidgets() {
                 QMenu context_menu;
 
                 for (auto const& gpu_accuracy_pair : ConfigurationShared::gpu_accuracy_texts_map) {
-                    if (gpu_accuracy_pair.first == Settings::GpuAccuracy::Extreme) {
-                        continue;
-                    }
                     context_menu.addAction(gpu_accuracy_pair.second, [this, gpu_accuracy_pair] {
                         Settings::values.gpu_accuracy.SetValue(gpu_accuracy_pair.first);
                         UpdateGPUAccuracyButton();
@@ -2198,10 +2191,7 @@ void MainWindow::OnEmulationStopped() {
     emulation_running = false;
 
     discord_rpc->Update();
-
-#ifdef __linux__
-    Common::Linux::StopGamemode();
-#endif
+    Common::FeralGamemode::Stop();
 
     // The emulation is stopped, so closing the window or not does not matter anymore
     disconnect(render_window, &GRenderWindow::Closed, this, &MainWindow::OnStopGame);
@@ -3072,10 +3062,7 @@ void MainWindow::OnStartGame() {
     play_time_manager->Start();
 
     discord_rpc->Update();
-
-#ifdef __linux__
-    Common::Linux::StartGamemode();
-#endif
+    Common::FeralGamemode::Start();
 }
 
 void MainWindow::OnRestartGame() {
@@ -3096,10 +3083,7 @@ void MainWindow::OnPauseGame() {
     play_time_manager->Stop();
     UpdateMenuState();
     AllowOSSleep();
-
-#ifdef __linux__
-    Common::Linux::StopGamemode();
-#endif
+    Common::FeralGamemode::Stop();
 }
 
 void MainWindow::OnPauseContinueGame() {
@@ -3384,11 +3368,9 @@ void MainWindow::OnConfigure() {
     const auto old_theme = UISettings::values.theme;
     const bool old_discord_presence = UISettings::values.enable_discord_presence.GetValue();
     const auto old_language_index = Settings::values.language_index.GetValue();
-#ifdef __linux__
-    const bool old_gamemode = Settings::values.enable_gamemode.GetValue();
-#endif
+    const bool old_gamemode = UISettings::values.enable_gamemode.GetValue();
 #ifdef __unix__
-    const bool old_force_x11 = Settings::values.gui_force_x11.GetValue();
+    const bool old_force_x11 = UISettings::values.gui_force_x11.GetValue();
 #endif
 
     Settings::SetConfiguringGlobal(true);
@@ -3449,14 +3431,12 @@ void MainWindow::OnConfigure() {
     if (UISettings::values.enable_discord_presence.GetValue() != old_discord_presence) {
         SetDiscordEnabled(UISettings::values.enable_discord_presence.GetValue());
     }
-#ifdef __linux__
-    if (Settings::values.enable_gamemode.GetValue() != old_gamemode) {
-        SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
+    if (UISettings::values.enable_gamemode.GetValue() != old_gamemode) {
+        SetGamemodeEnabled(UISettings::values.enable_gamemode.GetValue());
     }
-#endif
 #ifdef __unix__
-    if (Settings::values.gui_force_x11.GetValue() != old_force_x11) {
-        GraphicsBackend::SetForceX11(Settings::values.gui_force_x11.GetValue());
+    if (UISettings::values.gui_force_x11.GetValue() != old_force_x11) {
+        GraphicsBackend::SetForceX11(UISettings::values.gui_force_x11.GetValue());
     }
 #endif
 
@@ -3580,16 +3560,15 @@ void MainWindow::OnToggleDockedMode() {
 
 void MainWindow::OnToggleGpuAccuracy() {
     switch (Settings::values.gpu_accuracy.GetValue()) {
-    case Settings::GpuAccuracy::High: {
-        Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::Normal);
+    case Settings::GpuAccuracy::Low:
+        Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::Medium);
         break;
-    }
-    case Settings::GpuAccuracy::Normal:
-    case Settings::GpuAccuracy::Extreme:
-    default: {
+    case Settings::GpuAccuracy::Medium:
         Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::High);
         break;
-    }
+    case Settings::GpuAccuracy::High:
+        Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::Low);
+        break;
     }
 
     QtCommon::system->ApplySettings();
@@ -4277,7 +4256,7 @@ void MainWindow::UpdateGPUAccuracyButton() {
     const auto gpu_accuracy_text =
         ConfigurationShared::gpu_accuracy_texts_map.find(gpu_accuracy)->second;
     gpu_accuracy_button->setText(gpu_accuracy_text.toUpper());
-    gpu_accuracy_button->setChecked(gpu_accuracy != Settings::GpuAccuracy::Normal);
+    gpu_accuracy_button->setChecked(gpu_accuracy != Settings::GpuAccuracy::Low);
 }
 
 void MainWindow::UpdateDockedButton() {
@@ -4403,7 +4382,7 @@ void MainWindow::OnCheckGraphicsBackend() {
     if (!isWayland)
         return;
 
-    const bool currently_hidden = Settings::values.gui_hide_backend_warning.GetValue();
+    const bool currently_hidden = UISettings::values.gui_hide_backend_warning.GetValue();
     if (currently_hidden)
         return;
 
@@ -4426,11 +4405,11 @@ void MainWindow::OnCheckGraphicsBackend() {
 
     const bool hide = cb->isChecked();
     if (hide != currently_hidden) {
-        Settings::values.gui_hide_backend_warning.SetValue(hide);
+        UISettings::values.gui_hide_backend_warning.SetValue(hide);
     }
 
     if (msgbox.clickedButton() == okButton) {
-        Settings::values.gui_force_x11.SetValue(true);
+        UISettings::values.gui_force_x11.SetValue(true);
         GraphicsBackend::SetForceX11(true);
         QMessageBox::information(this,
                                  tr("Restart Required"),
@@ -4760,13 +4739,14 @@ void MainWindow::SetDiscordEnabled([[maybe_unused]] bool state) {
     discord_rpc->Update();
 }
 
-#ifdef __linux__
 void MainWindow::SetGamemodeEnabled(bool state) {
     if (emulation_running) {
-        Common::Linux::SetGamemodeState(state);
+        if (state)
+            Common::FeralGamemode::Start();
+        else
+            Common::FeralGamemode::Stop();
     }
 }
-#endif
 
 void MainWindow::changeEvent(QEvent* event) {
 #ifdef __unix__

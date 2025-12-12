@@ -26,8 +26,9 @@ endif()
 
 # Needed for FFmpeg w/ VAAPI and DRM
 if (PLATFORM_OPENBSD)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R6/include")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R6/include")
+    # OpenBSD 7.8 broke libcxx when upgrading, so we must define the PSTL backend manually
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R6/include -D_LIBCPP_PSTL_BACKEND_SERIAL=1")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R6/include -D_LIBCPP_PSTL_BACKEND_SERIAL=1")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${CMAKE_SYSROOT}/usr/X11R6/lib")
 elseif (PLATFORM_NETBSD)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R7/include")
@@ -487,10 +488,6 @@ else()
     # wow
     find_package(Boost 1.57.0 CONFIG REQUIRED OPTIONAL_COMPONENTS headers context system fiber filesystem)
 
-    if (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID)
-        find_package(gamemode 1.7 MODULE)
-    endif()
-
     if (ENABLE_OPENSSL)
         find_package(OpenSSL 1.1.1 REQUIRED)
     endif()
@@ -566,6 +563,7 @@ find_package(VulkanUtilityLibraries)
 find_package(SimpleIni)
 find_package(SPIRV-Tools)
 find_package(sirit)
+find_package(gamemode) 
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     find_package(xbyak)
