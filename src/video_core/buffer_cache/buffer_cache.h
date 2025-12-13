@@ -1508,11 +1508,11 @@ void BufferCache<P>::MappedUploadMemory([[maybe_unused]] Buffer& buffer,
                                         [[maybe_unused]] u64 total_size_bytes,
                                         [[maybe_unused]] std::span<BufferCopy> copies) {
     if constexpr (USE_MEMORY_MAPS) {
-        auto upload_staging = runtime.UploadStagingBuffer(total_size_bytes);
+        constexpr u64 MAX_STAGING_SIZE = 2_GiB;
+        auto upload_staging = runtime.UploadStagingBuffer((std::min)(total_size_bytes, MAX_STAGING_SIZE));
+        if (upload_staging.mapped_span.size() < total_size_bytes) return;
+        //auto upload_staging = runtime.UploadStagingBuffer(total_size_bytes);
         const std::span<u8> staging_pointer = upload_staging.mapped_span;
-        if (staging_pointer.size() < total_size_bytes) {
-            return;
-        }
         for (BufferCopy& copy : copies) {
             u8* const src_pointer = staging_pointer.data() + copy.src_offset;
             const DAddr device_addr = buffer.CpuAddr() + copy.dst_offset;

@@ -479,7 +479,7 @@ void RasterizerVulkan::Clear(u32 layer_count) {
 }
 
 void RasterizerVulkan::DispatchCompute() {
-#ifdef ANDROID
+#if defined(ANDROID) || defined(__linux__)
     static u32 dispatch_count = 0;
     if (dispatch_count < 2) {
         dispatch_count++;
