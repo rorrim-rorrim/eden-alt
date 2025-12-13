@@ -21,6 +21,15 @@
 
 namespace AudioCore::Renderer {
 
+namespace {
+constexpr f32 BiquadParameterFixedScaleQ14 = 16384.0f; // 1 << 14
+
+[[nodiscard]] inline s16 ToQ14Clamped(f32 v) {
+    const f32 scaled = std::clamp(v * BiquadParameterFixedScaleQ14, -32768.0f, 32767.0f);
+    return static_cast<s16>(scaled);
+}
+} // namespace
+
 template <typename T, CommandId Id>
 T& CommandBuffer::GenerateStart(const s32 node_id) {
     if (size + sizeof(T) >= command_list.size_bytes()) {
@@ -257,49 +266,44 @@ void CommandBuffer::GenerateBiquadFilterCommand(const s32 node_id, EffectInfoBas
                                                 const s16 buffer_offset, const s8 channel,
                                                 const bool needs_init,
                                                 const bool use_float_processing) {
-    if (behavior->IsEffectInfoVersion2Supported()) {
-        auto& cmd{GenerateStart<BiquadFilterCommand, CommandId::BiquadFilter>(node_id)};
-        const auto& parameter_v2{
-            *reinterpret_cast<BiquadFilterInfo::ParameterVersion2*>(effect_info.GetParameter())};
-        if (!IsChannelCountValid(parameter_v2.channel_count) || channel < 0 ||
-            channel >= parameter_v2.channel_count) {
-            return;
-        }
-        if (!parameter_v2.enable) {
-            // Effect disabled at parameter level: copy input -> output for this channel
-            GenerateCopyMixBufferCommand(node_id, effect_info, buffer_offset, channel);
-            return;
-        }
-        const auto state{reinterpret_cast<VoiceState::BiquadFilterState*>(
-            effect_info.GetStateBuffer() + channel * sizeof(VoiceState::BiquadFilterState))};
-
-        cmd.input = buffer_offset + parameter_v2.inputs[channel];
-        cmd.output = buffer_offset + parameter_v2.outputs[channel];
-        cmd.biquad_float.numerator = parameter_v2.b;
-        cmd.biquad_float.denominator = parameter_v2.a;
-        cmd.use_float_coefficients = true;
-        cmd.state = memory_pool->Translate(CpuAddr(state), sizeof(VoiceState::BiquadFilterState));
-        cmd.needs_init = needs_init;
-        cmd.use_float_processing = use_float_processing;
-
-        GenerateEnd<BiquadFilterCommand>(cmd);
-        return;
-    }
-
     auto& cmd{GenerateStart<BiquadFilterCommand, CommandId::BiquadFilter>(node_id)};
 
-    const auto& parameter{
-        *reinterpret_cast<BiquadFilterInfo::ParameterVersion1*>(effect_info.GetParameter())};
     const auto state{reinterpret_cast<VoiceState::BiquadFilterState*>(
         effect_info.GetStateBuffer() + channel * sizeof(VoiceState::BiquadFilterState))};
 
-    cmd.input = buffer_offset + parameter.inputs[channel];
-    cmd.output = buffer_offset + parameter.outputs[channel];
+    if (behavior->IsEffectInfoVersion2Supported()) {
+        const auto& p{
+            *reinterpret_cast<BiquadFilterInfo::ParameterVersion2*>(effect_info.GetParameter())};
 
-    cmd.biquad.b = parameter.b;
-    cmd.biquad.a = parameter.a;
+        if (!IsChannelCountValid(p.channel_count) || channel < 0 || channel >= p.channel_count) {
+            return;
+        }
 
-    // Effects use legacy fixed-point format
+        cmd.input = buffer_offset + p.inputs[channel];
+        cmd.output = buffer_offset + p.outputs[channel];
+
+        // Convert float coefficients to Q2.14 fixed-point as expected by the legacy DSP path.
+        cmd.biquad.b[0] = ToQ14Clamped(p.b[0]);
+        cmd.biquad.b[1] = ToQ14Clamped(p.b[1]);
+        cmd.biquad.b[2] = ToQ14Clamped(p.b[2]);
+        cmd.biquad.a[0] = ToQ14Clamped(p.a[0]);
+        cmd.biquad.a[1] = ToQ14Clamped(p.a[1]);
+    } else {
+        const auto& p{
+            *reinterpret_cast<BiquadFilterInfo::ParameterVersion1*>(effect_info.GetParameter())};
+
+        if (!IsChannelCountValid(p.channel_count) || channel < 0 || channel >= p.channel_count) {
+            return;
+        }
+
+        cmd.input = buffer_offset + p.inputs[channel];
+        cmd.output = buffer_offset + p.outputs[channel];
+
+        cmd.biquad.b = p.b;
+        cmd.biquad.a = p.a;
+    }
+
+    // Effects always use the fixed-point coefficient path on the DSP.
     cmd.use_float_coefficients = false;
 
     cmd.state = memory_pool->Translate(CpuAddr(state),

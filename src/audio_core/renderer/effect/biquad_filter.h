@@ -28,12 +28,14 @@ public:
                   "BiquadFilterInfo::ParameterVersion1 has the wrong size!");
 
     struct ParameterVersion2 {
-        bool enable;
-        s8 channel_count;
-        s8 inputs[MaxChannels];
-        s8 outputs[MaxChannels];
-        std::array<f32, 3> b;
-        std::array<f32, 2> a;
+        /* 0x00 */ std::array<s8, MaxChannels> inputs;
+        /* 0x06 */ std::array<s8, MaxChannels> outputs;
+        /* 0x0C */ u32 padding;
+        /* 0x10 */ std::array<f32, 3> b;
+        /* 0x1C */ std::array<f32, 2> a;
+        /* 0x24 */ s8 channel_count;
+        /* 0x25 */ ParameterState state;
+        /* 0x26 */ u16 reserved;
     };
     static_assert(sizeof(ParameterVersion2) <= sizeof(EffectInfoBase::InParameterVersion2),
                   "BiquadFilterInfo::ParameterVersion2 has the wrong size!");
