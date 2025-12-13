@@ -4,6 +4,12 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
+#include <vector>
+#include <stb_image.h>
+#include <stb_image_resize.h>
+#include <stb_image_write.h>
+
 #include "common/settings.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
@@ -16,6 +22,49 @@
 #include "core/hle/service/set/settings_server.h"
 
 namespace Service::NS {
+
+namespace {
+
+void JPGToMemory(void* context, void* data, int size) {
+    auto* buffer = static_cast<std::vector<u8>*>(context);
+    const auto* char_data = static_cast<const u8*>(data);
+    buffer->insert(buffer->end(), char_data, char_data + size);
+}
+
+void SanitizeJPEGImageSize(std::vector<u8>& image) {
+    constexpr std::size_t max_jpeg_image_size = 0x20000;
+    constexpr int profile_dimensions = 174; // for grid view thingy
+    int original_width, original_height, color_channels;
+
+    auto* plain_image =
+        stbi_load_from_memory(image.data(), static_cast<int>(image.size()), &original_width,
+                              &original_height, &color_channels, STBI_rgb);
+
+    if (plain_image == nullptr) {
+        LOG_ERROR(Service_NS, "Failed to load JPEG for sanitization.");
+        return;
+    }
+
+    if (original_width != profile_dimensions || original_height != profile_dimensions) {
+        std::vector<u8> out_image(profile_dimensions * profile_dimensions * STBI_rgb);
+        stbir_resize_uint8_srgb(plain_image, original_width, original_height, 0, out_image.data(),
+                                profile_dimensions, profile_dimensions, 0, STBI_rgb, 0,
+                                STBIR_FILTER_BOX);
+        image.clear();
+        if (!stbi_write_jpg_to_func(JPGToMemory, &image, profile_dimensions, profile_dimensions,
+                                    STBI_rgb, out_image.data(), 90)) {
+            LOG_ERROR(Service_NS, "Failed to resize the user provided image.");
+        }
+    }
+
+    stbi_image_free(plain_image);
+
+    if (image.size() > max_jpeg_image_size) {
+        image.resize(max_jpeg_image_size);
+    }
+}
+
+} // namespace
 
 IReadOnlyApplicationControlDataInterface::IReadOnlyApplicationControlDataInterface(
     Core::System& system_)
@@ -157,34 +206,47 @@ Result IReadOnlyApplicationControlDataInterface::GetApplicationControlData2(
     }
 
     const auto icon_area_size = size - nacp_size;
-    size_t available_icon_bytes = 0;
+    std::vector<u8> final_icon_data;
+
     if (control.second != nullptr) {
-        available_icon_bytes = control.second->GetSize();
+        size_t full_size = control.second->GetSize();
+        if (full_size > 0) {
+            final_icon_data.resize(full_size);
+            control.second->Read(final_icon_data.data(), full_size);
+
+            if (flag1 == 1) {
+                SanitizeJPEGImageSize(final_icon_data);
+            }
+        }
     }
+
+    size_t available_icon_bytes = final_icon_data.size();
+
     if (icon_area_size > 0) {
-        if (control.second != nullptr) {
-            const size_t to_copy = std::min(available_icon_bytes, icon_area_size);
-            if (to_copy > 0) {
-                std::vector<u8> tmp(to_copy);
-                control.second->Read(tmp.data(), to_copy);
-                std::memcpy(out_buffer.data() + nacp_size, tmp.data(), to_copy);
-            }
-            if (to_copy < icon_area_size) {
-                std::memset(out_buffer.data() + nacp_size + to_copy, 0, icon_area_size - to_copy);
-            }
-        } else {
-            std::memset(out_buffer.data() + nacp_size, 0, icon_area_size);
+        const size_t to_copy = (std::min)(available_icon_bytes, icon_area_size);
+
+        if (to_copy > 0) {
+            std::memcpy(out_buffer.data() + nacp_size, final_icon_data.data(), to_copy);
+        }
+
+        if (to_copy < icon_area_size) {
+            std::memset(out_buffer.data() + nacp_size + to_copy, 0, icon_area_size - to_copy);
         }
     }
 
     const u32 total_available = static_cast<u32>(nacp_size + available_icon_bytes);
-    *out_total_size = (static_cast<u64>(total_available) << 32);
+
+    if (application_id == 0x0100152000022000) {
+        LOG_INFO(Service_NS, "Debug: AppID={:016X}, IconSize={}, TotalSize={}, Flag1={}", application_id, available_icon_bytes, total_available, flag1);
+    }
+
+    *out_total_size = (static_cast<u64>(total_available) << 32) | static_cast<u64>(flag1);
     R_SUCCEED();
 }
 
 Result IReadOnlyApplicationControlDataInterface::GetApplicationControlData3(
-   OutBuffer<BufferAttr_HipcMapAlias> out_buffer, Out<u64> out_total_size,
-    ApplicationControlSource application_control_source, u8 flag1, u8 flag2, u64 application_id) {
+   OutBuffer<BufferAttr_HipcMapAlias> out_buffer, Out<u32> out_flags_a, Out<u32> out_flags_b,
+   Out<u32> out_actual_size, ApplicationControlSource application_control_source, u8 flag1, u8 flag2, u64 application_id) {
     LOG_INFO(Service_NS, "called with control_source={}, flags=({:02X},{:02X}), application_id={:016X}",
              application_control_source, flag1, flag2, application_id);
 
@@ -215,26 +277,43 @@ Result IReadOnlyApplicationControlDataInterface::GetApplicationControlData3(
     }
 
     const auto icon_area_size = size - nacp_size;
-    size_t available_icon_bytes = 0;
+    std::vector<u8> final_icon_data;
+
     if (control.second != nullptr) {
-        available_icon_bytes = control.second->GetSize();
-    }
-    if (icon_area_size > 0) {
-        if (control.second != nullptr) {
-            const auto to_copy = static_cast<size_t>((std::min)(available_icon_bytes, icon_area_size));
-            control.second->Read(out_buffer.data() + nacp_size, to_copy);
-            if (to_copy < icon_area_size) {
-                std::memset(out_buffer.data() + nacp_size + to_copy, 0, icon_area_size - to_copy);
+        size_t full_size = control.second->GetSize();
+        if (full_size > 0) {
+            final_icon_data.resize(full_size);
+            control.second->Read(final_icon_data.data(), full_size);
+
+            if (flag1 == 1) {
+                SanitizeJPEGImageSize(final_icon_data);
             }
-        } else {
-            std::memset(out_buffer.data() + nacp_size, 0, icon_area_size);
-            LOG_WARNING(Service_NS, "missing icon data for application_id={:016X}, zero-filling icon area",
-                        application_id);
         }
     }
 
+    size_t available_icon_bytes = final_icon_data.size();
+
+    if (icon_area_size > 0) {
+        const size_t to_copy = (std::min)(available_icon_bytes, icon_area_size);
+        if (to_copy > 0) {
+            std::memcpy(out_buffer.data() + nacp_size, final_icon_data.data(), to_copy);
+        }
+        if (to_copy < icon_area_size) {
+            std::memset(out_buffer.data() + nacp_size + to_copy, 0, icon_area_size - to_copy);
+        }
+    } else {
+        std::memset(out_buffer.data() + nacp_size, 0, icon_area_size);
+    }
+
     const u32 actual_total_size = static_cast<u32>(nacp_size + available_icon_bytes);
-    *out_total_size = static_cast<u64>(actual_total_size) << 32;
+
+    // Out 1: always 0x10001 (likely presents flags: Bit0=Icon, Bit16=NACP)
+    // Out 2: reflects flag1 application (0 if flag1=0, 0x10001 if flag1=1)
+    // Out 3: The actual size of data
+    *out_flags_a = 0x10001;
+    *out_flags_b = (flag1 == 1) ? 0x10001 : 0;
+    *out_actual_size = actual_total_size;
+
     R_SUCCEED();
 }
 
