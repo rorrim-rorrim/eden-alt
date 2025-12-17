@@ -165,7 +165,6 @@ public:
 private:
     bool LoadSettingsFile(std::filesystem::path& path, auto&& default_func);
     bool StoreSettingsFile(std::filesystem::path& path, auto& settings);
-    void StoreSettingsThreadFunc(std::stop_token stop_token);
     void SetupSettings();
     void StoreSettings();
     void SetSaveNeeded();
@@ -175,7 +174,6 @@ private:
     PrivateSettings m_private_settings{};
     DeviceSettings m_device_settings{};
     ApplnSettings m_appln_settings{};
-    std::jthread m_save_thread;
     std::mutex m_save_needed_mutex;
     bool m_save_needed{false};
 };

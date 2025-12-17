@@ -391,7 +391,7 @@ void WindowSystem::UpdateAppletStateLocked(Applet* applet, bool is_foreground, b
     s32 z_index = 0;
     const bool now_foreground = inherited_foreground;
     if (applet->applet_id == AppletId::OverlayDisplay) {
-        z_index = 100000;
+        z_index = applet->overlay_in_foreground ? 100000 : -1;
     } else if (now_foreground && !is_obscured) {
         z_index = 2;
     } else if (now_foreground) {

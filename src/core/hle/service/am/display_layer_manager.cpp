@@ -80,7 +80,7 @@ Result DisplayLayerManager::CreateManagedDisplayLayer(u64* out_layer_id) {
     if (m_applet_id != AppletId::Application) {
         (void)m_manager_display_service->SetLayerBlending(m_blending_enabled, *out_layer_id);
         if (m_applet_id == AppletId::OverlayDisplay) {
-            (void)m_manager_display_service->SetLayerZIndex(100000, *out_layer_id);
+            (void)m_manager_display_service->SetLayerZIndex(-1, *out_layer_id);
             (void)m_display_service->GetContainer()->SetLayerIsOverlay(*out_layer_id, true);
         } else {
             (void)m_manager_display_service->SetLayerZIndex(1, *out_layer_id);
@@ -129,7 +129,7 @@ Result DisplayLayerManager::IsSystemBufferSharingEnabled() {
     m_manager_display_service->SetLayerBlending(m_blending_enabled, m_system_shared_layer_id);
     s32 initial_z = 1;
     if (m_applet_id == AppletId::OverlayDisplay) {
-        initial_z = 100000;
+        initial_z = -1;
         (void)m_display_service->GetContainer()->SetLayerIsOverlay(m_system_shared_layer_id, true);
     }
     m_manager_display_service->SetLayerZIndex(initial_z, m_system_shared_layer_id);

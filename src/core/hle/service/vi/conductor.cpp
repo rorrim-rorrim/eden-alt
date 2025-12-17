@@ -110,8 +110,7 @@ s64 Conductor::GetNextTicks() const {
         speed_scale = 1.f;
     }
 
-    const s32 vsync_interval = 1;
-    const f32 effective_fps = 60.f / static_cast<f32>(vsync_interval);
+    const f32 effective_fps = 60.f / static_cast<f32>(m_swap_interval);
     return static_cast<s64>(speed_scale * (1000000000.f / effective_fps));
 }
 
