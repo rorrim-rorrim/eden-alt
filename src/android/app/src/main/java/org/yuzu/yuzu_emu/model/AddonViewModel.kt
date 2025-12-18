@@ -47,8 +47,7 @@ class AddonViewModel : ViewModel() {
                     NativeLibrary.getPatchesForFile(game!!.path, game!!.programId)
                         ?: emptyArray()
                     ).toMutableList()
-                patchList.sortBy { it.name }
-                _patchList.value = patchList
+                _patchList.value = sortPatchesWithCheatsGrouped(patchList)
                 isRefreshing.set(false)
             }
         }
@@ -63,6 +62,7 @@ class AddonViewModel : ViewModel() {
             PatchType.Update -> NativeLibrary.removeUpdate(patch.programId)
             PatchType.DLC -> NativeLibrary.removeDLC(patch.programId)
             PatchType.Mod -> NativeLibrary.removeMod(patch.programId, patch.name)
+            PatchType.Cheat -> {}
         }
         refreshAddons()
     }
@@ -78,7 +78,7 @@ class AddonViewModel : ViewModel() {
                 if (it.enabled) {
                     null
                 } else {
-                    it.name
+                    it.getStorageKey()  // Use storage key for proper cheat identification
                 }
             }.toTypedArray()
         )
@@ -93,5 +93,29 @@ class AddonViewModel : ViewModel() {
 
     fun showModNoticeDialog(show: Boolean) {
         _showModNoticeDialog.value = show
+    }
+
+    private fun sortPatchesWithCheatsGrouped(patches: MutableList<Patch>): MutableList<Patch> {
+        val individualCheats = patches.filter { it.isCheat() }
+        val nonCheats = patches.filter { !it.isCheat() }.sortedBy { it.name }
+
+        val cheatsByParent = individualCheats.groupBy { it.parentName }
+
+        val result = mutableListOf<Patch>()
+        for (patch in nonCheats) {
+            result.add(patch)
+            cheatsByParent[patch.name]?.sortedBy { it.name }?.let { childCheats ->
+                result.addAll(childCheats)
+            }
+        }
+
+        val knownParents = nonCheats.map { it.name }.toSet()
+        for ((parentName, orphanCheats) in cheatsByParent) {
+            if (parentName !in knownParents) {
+                result.addAll(orphanCheats.sortedBy { it.name })
+            }
+        }
+
+        return result
     }
 }
