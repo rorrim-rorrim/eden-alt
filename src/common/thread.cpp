@@ -6,8 +6,6 @@
 
 #include <string>
 #include <thread>
-#include <sys/_cpuset.h>
-#include <sys/cpuset.h>
 
 #include "common/error.h"
 #include "common/logging/log.h"
@@ -22,6 +20,8 @@
 #include "common/string_util.h"
 #else
 #if defined(__Bitrig__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+#include <sys/cpuset.h>
+#include <sys/_cpuset.h>
 #include <pthread_np.h>
 #endif
 #include <pthread.h>
@@ -118,7 +118,7 @@ void SetCurrentThreadName(const char* name) {
 }
 
 void PinCurrentThreadToPerformanceCore(size_t core_id) {
-    ASSERT(core_id >= 0 && core_id < 4);
+    ASSERT(core_id < 4);
     // If we set a flag for a CPU that doesn't exist, the thread may not be allowed to
     // run in ANY processor!
     auto const total_cores = std::thread::hardware_concurrency();
