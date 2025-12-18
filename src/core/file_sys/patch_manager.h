@@ -10,7 +10,6 @@
 #include "common/common_types.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/vfs/vfs_types.h"
-#include "core/memory/dmnt_cheat_types.h"
 
 namespace Core {
 class System;
@@ -20,13 +19,17 @@ namespace Service::FileSystem {
 class FileSystemController;
 }
 
+namespace Service::DMNT {
+struct CheatEntry;
+}
+
 namespace FileSys {
 
 class ContentProvider;
 class NCA;
 class NACP;
 
-enum class PatchType { Update, DLC, Mod };
+enum class PatchType { Update, DLC, Mod, Cheat };
 
 struct Patch {
     bool enabled;
@@ -35,6 +38,7 @@ struct Patch {
     PatchType type;
     u64 program_id;
     u64 title_id;
+    std::string parent_name;
 };
 
 // A centralized class to manage patches to games.
@@ -65,7 +69,7 @@ public:
     [[nodiscard]] bool HasNSOPatch(const BuildID& build_id, std::string_view name) const;
 
     // Creates a CheatList object with all
-    [[nodiscard]] std::vector<Core::Memory::CheatEntry> CreateCheatList(
+    [[nodiscard]] std::vector<Service::DMNT::CheatEntry> CreateCheatList(
         const BuildID& build_id) const;
 
     // Currently tracked RomFS patches:
@@ -76,8 +80,11 @@ public:
                                          VirtualFile packed_update_raw = nullptr,
                                          bool apply_layeredfs = true) const;
 
-    // Returns a vector of patches
-    [[nodiscard]] std::vector<Patch> GetPatches(VirtualFile update_raw = nullptr) const;
+    // Returns a vector of patches including individual cheats
+    [[nodiscard]] std::vector<Patch> GetPatches(VirtualFile update_raw = nullptr,
+                                                const BuildID& build_id = {}) const;
+
+    [[nodiscard]] BuildID GetBuildID(VirtualFile update_raw = nullptr) const;
 
     // If the game update exists, returns the u32 version field in its Meta-type NCA. If that fails,
     // it will fallback to the Meta-type NCA of the base game. If that fails, the result will be
