@@ -5,6 +5,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <functional>
+#include <map>
 #include <memory>
 #include <utility>
 
@@ -73,10 +75,32 @@ ConfigurePerGameAddons::~ConfigurePerGameAddons() = default;
 void ConfigurePerGameAddons::ApplyConfiguration() {
     std::vector<std::string> disabled_addons;
 
-    for (const auto& item : list_items) {
-        const auto disabled = item.front()->checkState() == Qt::Unchecked;
-        if (disabled)
-            disabled_addons.push_back(item.front()->text().toStdString());
+    // Helper function to recursively collect disabled items
+    std::function<void(QStandardItem*)> collect_disabled = [&](QStandardItem* item) {
+        if (item == nullptr) {
+            return;
+        }
+
+        // Check if this item is disabled
+        if (item->isCheckable() && item->checkState() == Qt::Unchecked) {
+            // Use the stored key from UserRole, falling back to text
+            const auto key = item->data(Qt::UserRole).toString();
+            if (!key.isEmpty()) {
+                disabled_addons.push_back(key.toStdString());
+            } else {
+                disabled_addons.push_back(item->text().toStdString());
+            }
+        }
+
+        // Process children (for cheats under mods)
+        for (int row = 0; row < item->rowCount(); ++row) {
+            collect_disabled(item->child(row, 0));
+        }
+    };
+
+    // Process all root items
+    for (int row = 0; row < item_model->rowCount(); ++row) {
+        collect_disabled(item_model->item(row, 0));
     }
 
     auto current = Settings::values.disabled_addons[title_id];
@@ -123,24 +147,61 @@ void ConfigurePerGameAddons::LoadConfiguration() {
     FileSys::VirtualFile update_raw;
     loader->ReadUpdateRaw(update_raw);
 
+    // Get the build ID from the main executable for cheat enumeration
+    const auto build_id = pm.GetBuildID(update_raw);
+
     const auto& disabled = Settings::values.disabled_addons[title_id];
 
-    for (const auto& patch : pm.GetPatches(update_raw)) {
+    // Map to store parent items for mods (for adding cheat children)
+    std::map<std::string, QStandardItem*> mod_items;
+
+    for (const auto& patch : pm.GetPatches(update_raw, build_id)) {
         const auto name = QString::fromStdString(patch.name);
+
+        // For cheats, we need to use the full key (parent::name) for storage
+        std::string storage_key;
+        if (patch.type == FileSys::PatchType::Cheat && !patch.parent_name.empty()) {
+            storage_key = patch.parent_name + "::" + patch.name;
+        } else {
+            storage_key = patch.name;
+        }
 
         auto* const first_item = new QStandardItem;
         first_item->setText(name);
         first_item->setCheckable(true);
 
+        // Store the storage key as user data for later retrieval
+        first_item->setData(QString::fromStdString(storage_key), Qt::UserRole);
+
         const auto patch_disabled =
-            std::find(disabled.begin(), disabled.end(), name.toStdString()) != disabled.end();
+            std::find(disabled.begin(), disabled.end(), storage_key) != disabled.end();
 
         first_item->setCheckState(patch_disabled ? Qt::Unchecked : Qt::Checked);
 
-        list_items.push_back(QList<QStandardItem*>{
-            first_item, new QStandardItem{QString::fromStdString(patch.version)}});
-        item_model->appendRow(list_items.back());
+        auto* const version_item = new QStandardItem{QString::fromStdString(patch.version)};
+
+        if (patch.type == FileSys::PatchType::Cheat && !patch.parent_name.empty()) {
+            // This is a cheat - add as child of its parent mod
+            auto parent_it = mod_items.find(patch.parent_name);
+            if (parent_it != mod_items.end()) {
+                parent_it->second->appendRow(QList<QStandardItem*>{first_item, version_item});
+            } else {
+                // Parent not found (shouldn't happen), add to root
+                list_items.push_back(QList<QStandardItem*>{first_item, version_item});
+                item_model->appendRow(list_items.back());
+            }
+        } else {
+            // This is a top-level item (Update, Mod, DLC)
+            list_items.push_back(QList<QStandardItem*>{first_item, version_item});
+            item_model->appendRow(list_items.back());
+
+            // Store mod items for later cheat attachment
+            if (patch.type == FileSys::PatchType::Mod) {
+                mod_items[patch.name] = first_item;
+            }
+        }
     }
 
+    tree_view->expandAll();
     tree_view->resizeColumnToContents(1);
 }
