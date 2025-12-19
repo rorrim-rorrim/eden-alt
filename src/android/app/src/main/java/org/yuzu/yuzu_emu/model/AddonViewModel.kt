@@ -31,10 +31,14 @@ class AddonViewModel : ViewModel() {
     val addonToDelete = _addonToDelete.asStateFlow()
 
     var game: Game? = null
+        private set
 
     private val isRefreshing = AtomicBoolean(false)
 
     fun onOpenAddons(game: Game) {
+        if (this.game?.programId == game.programId && _patchList.value.isNotEmpty()) {
+            return
+        }
         this.game = game
         refreshAddons()
     }
@@ -67,6 +71,7 @@ class AddonViewModel : ViewModel() {
             PatchType.Mod -> NativeLibrary.removeMod(patch.programId, patch.name)
             PatchType.Cheat -> {}
         }
+        _patchList.value.clear()
         refreshAddons()
     }
 
@@ -81,7 +86,7 @@ class AddonViewModel : ViewModel() {
                 if (it.enabled) {
                     null
                 } else {
-                    it.getStorageKey()  // Use storage key for proper cheat identification
+                    it.getStorageKey()
                 }
             }.toTypedArray()
         )

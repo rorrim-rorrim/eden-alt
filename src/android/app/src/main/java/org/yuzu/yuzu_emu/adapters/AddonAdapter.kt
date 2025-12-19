@@ -32,8 +32,9 @@ class AddonAdapter(val addonViewModel: AddonViewModel) :
                 binding.addonSwitch.performClick()
             }
             binding.title.text = model.name
-            binding.addonSwitch.isChecked = model.enabled
 
+            binding.addonSwitch.setOnCheckedChangeListener(null)
+            binding.addonSwitch.isChecked = model.enabled
             binding.addonSwitch.setOnCheckedChangeListener { _, checked ->
                 model.enabled = checked
             }
