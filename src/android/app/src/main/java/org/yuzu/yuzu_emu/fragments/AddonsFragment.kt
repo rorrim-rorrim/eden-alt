@@ -73,7 +73,7 @@ class AddonsFragment : Fragment() {
         }
 
         addonViewModel.addonList.collect(viewLifecycleOwner) {
-            (binding.listAddons.adapter as AddonAdapter).submitList(it)
+            (binding.listAddons.adapter as AddonAdapter).submitList(it.toList())
         }
         addonViewModel.showModInstallPicker.collect(
             viewLifecycleOwner,
@@ -127,7 +127,9 @@ class AddonsFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        addonViewModel.onCloseAddons()
+        if (!requireActivity().isChangingConfigurations) {
+            addonViewModel.onCloseAddons()
+        }
     }
 
     val installAddon =
