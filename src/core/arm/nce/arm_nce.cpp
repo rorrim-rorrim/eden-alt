@@ -400,19 +400,7 @@ void ArmNce::ClearInstructionCache() {
 }
 
 void ArmNce::InvalidateCacheRange(u64 addr, std::size_t size) {
-#ifdef ARCHITECTURE_arm64
-    // Invalidate instruction cache for specific range instead of full flush
-    constexpr u64 cache_line_size = 64;
-    const u64 aligned_addr = addr & ~(cache_line_size - 1);
-    const u64 end_addr = (addr + size + cache_line_size - 1) & ~(cache_line_size - 1);
-
-    asm volatile("dsb ish" ::: "memory");
-    for (u64 i = aligned_addr; i < end_addr; i += cache_line_size) {
-        asm volatile("ic ivau, %0" :: "r"(i) : "memory");
-    }
-    asm volatile("dsb ish\n"
-                 "isb" ::: "memory");
-#endif
+    this->ClearInstructionCache();
 }
 
 } // namespace Core
