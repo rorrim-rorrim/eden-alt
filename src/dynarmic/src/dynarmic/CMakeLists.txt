@@ -351,10 +351,6 @@ target_include_directories(dynarmic PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-set_target_properties(dynarmic PROPERTIES
-    VERSION ${dynarmic_VERSION}
-    SOVERSION ${dynarmic_VERSION_MAJOR}.${dynarmic_VERSION_MINOR}
-)
 
 if (TARGET unordered_dense::unordered_dense)
     # weird quirk of system installs

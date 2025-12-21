@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 cmake_minimum_required(VERSION 3.12)
-project(dynarmic LANGUAGES C CXX ASM VERSION 6.7.0)
 
 # Determine if we're built as a subproject (using add_subdirectory)
 # or if this is the master project.
@@ -46,7 +45,7 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 endif()
 
 # Add the module directory to the list of paths
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 
 # Compiler flags
 if (MSVC)
