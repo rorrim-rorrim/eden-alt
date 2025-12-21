@@ -8,7 +8,7 @@
 
 # provided for workflow compat
 
-find tools/cpm -type f -exec chmod +x {} \;
+find tools/ -name '*.sh' -type f -exec chmod +x {} \;
 
 # shellcheck disable=SC2086
 tools/cpmutil.sh package fetch -a
