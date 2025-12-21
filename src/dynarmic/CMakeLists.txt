@@ -3,6 +3,12 @@
 
 cmake_minimum_required(VERSION 3.12)
 
+set(dynarmic_VERSION_MAJOR 7)
+set(dynarmic_VERSION_MINOR 0)
+set(dynarmic_VERSION_PATCH 0)
+
+set(dynarmic_VERSION ${dynarmic_VERSION_MAJOR}.${dynarmic_VERSION_MINOR}.${dynarmic_VERSION_PATCH})
+
 # Determine if we're built as a subproject (using add_subdirectory)
 # or if this is the master project.
 set(MASTER_PROJECT OFF)
