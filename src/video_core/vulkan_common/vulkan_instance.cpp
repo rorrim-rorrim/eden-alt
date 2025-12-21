@@ -83,11 +83,6 @@ namespace {
         if (window_type != Core::Frontend::WindowSystemType::Headless && AreExtensionsSupported(dld, *properties, std::array{VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME}))
             extensions.push_back(VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME);
     }
-    // VK_EXT_surface_maintenance1 is required for VK_EXT_swapchain_maintenance1
-    if (window_type != Core::Frontend::WindowSystemType::Headless &&
-        AreExtensionsSupported(dld, std::array{VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME})) {
-        extensions.push_back(VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME);
-    }
     return extensions;
 }
 
