@@ -91,10 +91,10 @@ public:
             uncommitted_operations.clear();
         }
         QueueFence(new_fence);
-        if (!new_fence->IsStubbed()) {
-            std::scoped_lock lock{texture_cache.mutex};
-            texture_cache.CommitPendingGpuAccesses(new_fence->WaitTick());
-        }
+        //if (!new_fence->IsStubbed()) {
+        //    std::scoped_lock lock{texture_cache.mutex};
+        //    texture_cache.CommitPendingGpuAccesses(new_fence->WaitTick());
+        //}
         fences.push(std::move(new_fence));
         if (should_flush) {
             rasterizer.FlushCommands();
