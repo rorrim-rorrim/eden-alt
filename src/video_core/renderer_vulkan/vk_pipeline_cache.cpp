@@ -229,7 +229,7 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
                 info.xfb_varyings = varyings;
                 info.xfb_count = count;
             } else {
-                LOG_WARN(Render_Vulkan, "XFB requested in pipeline key but device lacks VK_EXT_transform_feedback; ignoring XFB decorations");
+                LOG_WARNING(Render_Vulkan, "XFB requested in pipeline key but device lacks VK_EXT_transform_feedback; ignoring XFB decorations");
             }
         }
         info.convert_depth_mode = gl_ndc;
