@@ -1365,15 +1365,21 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME);
 
     // VK_EXT_transform_feedback
+    // We only require the basic transformFeedback feature and at least
+    // one transform feedback buffer. We keep transformFeedbackQueries as it's used by
+    // the streaming byte count implementation. GeometryStreams and multiple streams
+    // are not strictly required since we currently support only stream 0.
     extensions.transform_feedback =
         features.transform_feedback.transformFeedback &&
-        features.transform_feedback.geometryStreams &&
-        properties.transform_feedback.maxTransformFeedbackStreams >= 4 &&
         properties.transform_feedback.maxTransformFeedbackBuffers > 0 &&
-        properties.transform_feedback.transformFeedbackQueries &&
-        properties.transform_feedback.transformFeedbackDraw;
+        properties.transform_feedback.transformFeedbackQueries;
     RemoveExtensionFeatureIfUnsuitable(extensions.transform_feedback, features.transform_feedback,
                                        VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
+    if (extensions.transform_feedback) {
+        LOG_INFO(Render_Vulkan, "VK_EXT_transform_feedback enabled (buffers={}, queries={})",
+                 properties.transform_feedback.maxTransformFeedbackBuffers,
+                 properties.transform_feedback.transformFeedbackQueries);
+    }
 
     // VK_EXT_vertex_input_dynamic_state
     extensions.vertex_input_dynamic_state =
