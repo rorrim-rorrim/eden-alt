@@ -1066,9 +1066,16 @@ void RasterizerVulkan::HandleTransformFeedback() {
 
     const auto& regs = maxwell3d->regs;
     if (!device.IsExtTransformFeedbackSupported()) {
-        std::call_once(warn_unsupported, [&] {
-            LOG_ERROR(Render_Vulkan, "Transform feedbacks used but not supported");
-        });
+        // If the guest enabled transform feedback, warn once that the device lacks support.
+        if (regs.transform_feedback_enabled != 0) {
+            std::call_once(warn_unsupported, [&] {
+                LOG_WARN(Render_Vulkan, "Transform feedback requested by guest but VK_EXT_transform_feedback is unavailable; queries disabled");
+            });
+        } else {
+            std::call_once(warn_unsupported, [&] {
+                LOG_INFO(Render_Vulkan, "VK_EXT_transform_feedback not available on device");
+            });
+        }
         return;
     }
     query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount,
@@ -1077,7 +1084,7 @@ void RasterizerVulkan::HandleTransformFeedback() {
         UNIMPLEMENTED_IF(regs.IsShaderConfigEnabled(Maxwell::ShaderType::TessellationInit) ||
                          regs.IsShaderConfigEnabled(Maxwell::ShaderType::Tessellation));
     }
-}
+} 
 
 void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchViewports()) {

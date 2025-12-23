@@ -146,7 +146,8 @@ Shader::AttributeType AttributeType(const FixedPipelineState& state, size_t inde
 Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> programs,
                                     const GraphicsPipelineCacheKey& key,
                                     const Shader::IR::Program& program,
-                                    const Shader::IR::Program* previous_program) {
+                                    const Shader::IR::Program* previous_program,
+                                    const Vulkan::Device& device) {
     Shader::RuntimeInfo info;
     if (previous_program) {
         info.previous_stage_stores = previous_program->info.stores;
@@ -168,10 +169,14 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
                 info.fixed_state_point_size = point_size;
             }
             if (key.state.xfb_enabled) {
-                auto [varyings, count] =
-                    VideoCommon::MakeTransformFeedbackVaryings(key.state.xfb_state);
-                info.xfb_varyings = varyings;
-                info.xfb_count = count;
+                if (device.IsExtTransformFeedbackSupported()) {
+                    auto [varyings, count] =
+                        VideoCommon::MakeTransformFeedbackVaryings(key.state.xfb_state);
+                    info.xfb_varyings = varyings;
+                    info.xfb_count = count;
+                } else {
+                    LOG_WARN(Render_Vulkan, "XFB requested in pipeline key but device lacks VK_EXT_transform_feedback; ignoring XFB decorations");
+                }
             }
             info.convert_depth_mode = gl_ndc;
         }
@@ -218,10 +223,14 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
             info.fixed_state_point_size = point_size;
         }
         if (key.state.xfb_enabled != 0) {
-            auto [varyings, count] =
-                VideoCommon::MakeTransformFeedbackVaryings(key.state.xfb_state);
-            info.xfb_varyings = varyings;
-            info.xfb_count = count;
+            if (device.IsExtTransformFeedbackSupported()) {
+                auto [varyings, count] =
+                    VideoCommon::MakeTransformFeedbackVaryings(key.state.xfb_state);
+                info.xfb_varyings = varyings;
+                info.xfb_count = count;
+            } else {
+                LOG_WARN(Render_Vulkan, "XFB requested in pipeline key but device lacks VK_EXT_transform_feedback; ignoring XFB decorations");
+            }
         }
         info.convert_depth_mode = gl_ndc;
         break;
@@ -692,7 +701,7 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
         const size_t stage_index{index - 1};
         infos[stage_index] = &program.info;
 
-        const auto runtime_info{MakeRuntimeInfo(programs, key, program, previous_stage)};
+        const auto runtime_info{MakeRuntimeInfo(programs, key, program, previous_stage, device)};
         ConvertLegacyToGeneric(program, runtime_info);
         const std::vector<u32> code{EmitSPIRV(profile, runtime_info, program, binding, this->optimize_spirv_output)};
         device.SaveShader(code);
