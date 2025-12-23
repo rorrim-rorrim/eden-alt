@@ -1069,7 +1069,7 @@ void RasterizerVulkan::HandleTransformFeedback() {
         // If the guest enabled transform feedback, warn once that the device lacks support.
         if (regs.transform_feedback_enabled != 0) {
             std::call_once(warn_unsupported, [&] {
-                LOG_WARN(Render_Vulkan, "Transform feedback requested by guest but VK_EXT_transform_feedback is unavailable; queries disabled");
+                LOG_WARNING(Render_Vulkan, "Transform feedback requested by guest but VK_EXT_transform_feedback is unavailable; queries disabled");
             });
         } else {
             std::call_once(warn_unsupported, [&] {

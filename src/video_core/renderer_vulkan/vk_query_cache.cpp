@@ -923,7 +923,7 @@ private:
                 }
                 const size_t stream = tf.controls[i].stream;
                 if (stream >= last_queries_stride.size()) {
-                    LOG_WARN(Render_Vulkan, "TransformFeedback stream {} out of range", stream);
+                    LOG_WARNING(Render_Vulkan, "TransformFeedback stream {} out of range", stream);
                     continue;
                 }
                 last_queries_stride[stream] = tf.controls[i].stride;
@@ -1129,7 +1129,7 @@ public:
             // Protect against stride == 0 (avoid divide-by-zero). Use fallback stride=1 and warn.
             u64 safe_stride = query->stride == 0 ? 1 : query->stride;
             if (query->stride == 0) {
-                LOG_WARN(Render_Vulkan, "TransformFeedback query has stride 0; using 1 to avoid div-by-zero (addr=0x{:x})", query->dependant_address);
+                LOG_WARNING(Render_Vulkan, "TransformFeedback query has stride 0; using 1 to avoid div-by-zero (addr=0x{:x})", query->dependant_address);
             }
             if (query->dependant_manage) {
                 auto* dependant_query = tfb_streamer.GetQuery(query->dependant_index);
