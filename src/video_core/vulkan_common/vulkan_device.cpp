@@ -415,8 +415,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     // Get suitability and device properties.
     const bool is_suitable = GetSuitability(surface != nullptr);
 
-    const bool patch_old_qcom_drivers = Settings::values.patch_old_qcom_drivers.GetValue();
-
     const VkDriverId driver_id = properties.driver.driverID;
     const auto device_id = properties.properties.deviceID;
     const bool is_radv = driver_id == VK_DRIVER_ID_MESA_RADV;
@@ -505,6 +503,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
 #if defined(ANDROID) && defined(ARCHITECTURE_arm64)
         // Patch the driver to enable BCn textures.
+        const bool patch_old_qcom_drivers = Settings::values.patch_old_qcom_drivers.GetValue();
         const auto major = (properties.properties.driverVersion >> 24) << 2;
         const auto minor = (properties.properties.driverVersion >> 12) & 0xFFFU;
         const auto vendor = properties.properties.vendorID;
