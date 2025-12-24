@@ -8,13 +8,14 @@
 which magick || exit
 which optipng || exit
 
-VARIATION=${VARIATION:-original}
+VARIATION=${VARIATION:-base}
 
 EDEN_BASE_SVG="dist/icon_variations/${VARIATION}.svg"
 EDEN_NAMED_SVG="dist/icon_variations/${VARIATION}_named.svg"
+EDEN_BG_COLOR="dist/icon_variations/${VARIATION}_bgcolor"
 # TODO: EDEN_MONOCHROME_SVG Variation
 
-[ -f "$EDEN_BASE_SVG" ] && [ -f "$EDEN_NAMED_SVG" ] || { echo "Error: missing SVG" >&2; exit; }
+[ -f "$EDEN_BASE_SVG" ] && [ -f "$EDEN_NAMED_SVG" ] && [ -f "$EDEN_BG_COLOR" ] || { echo "Error: missing ${VARIATION}.svg/${VARIATION}_named.svg/${VARIATION}_bgcolor" >&2; exit; }
 
 # Desktop / Windows / Qt icons
 
@@ -35,7 +36,7 @@ optipng -o7 dist/qt_themes/default/icons/256x256/eden_named.png
 
 EDEN_ANDROID_RES="src/android/app/src/main/res"
 EDEN_ANDROID_FG="$EDEN_ANDROID_RES/drawable/ic_launcher_foreground.png"
-EDEN_ANDROID_BG_COLOR=$(cat "dist/icon_variations/${VARIATION}_bgcolor")
+EDEN_ANDROID_BG_COLOR=$(cat $EDEN_BG_COLOR)
 
 # Update Icon Background Color
 echo "<?xml version='1.0' encoding='utf-8'?><resources><color name='ic_launcher_background'>${EDEN_ANDROID_BG_COLOR}</color></resources>" > "$EDEN_ANDROID_RES/values/colors.xml"
