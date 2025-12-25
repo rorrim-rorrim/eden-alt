@@ -530,15 +530,30 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                     "Qualcomm drivers require scaled vertex format emulation; forcing fallback");
 
         if (extensions.shader_float_controls) {
-            LOG_WARNING(Render_Vulkan,
-                        "Qualcomm drivers: VK_KHR_shader_float_controls is unstable; disabling usage");
-            RemoveExtension(extensions.shader_float_controls,
-                            VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
+            // Allowlist: enable float controls when VK_KHR_shader_float_controls2 is present
+            // (more precise properties), or when driver >= 512.849.0 where the driver fix
+            // was introduced.
+            const bool adreno_safe = extensions.shader_float_controls2 ||
+                                     (properties.properties.driverVersion >= VK_MAKE_VERSION(512, 849, 0));
+            if (!adreno_safe) {
+                LOG_WARNING(Render_Vulkan,
+                            "Qualcomm drivers: VK_KHR_shader_float_controls is unstable; disabling usage");
+                RemoveExtension(extensions.shader_float_controls,
+                                VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
+                disable_shader_float_controls_usage = true;
+            } else {
+                LOG_INFO(Render_Vulkan,
+                         "Qualcomm drivers: enabling VK_KHR_shader_float_controls (driver version {}.{}.{} or shader_float_controls2 present)",
+                         VK_VERSION_MAJOR(properties.properties.driverVersion),
+                         VK_VERSION_MINOR(properties.properties.driverVersion),
+                         VK_VERSION_PATCH(properties.properties.driverVersion));
+            }
         } else {
             LOG_INFO(Render_Vulkan,
                      "Qualcomm drivers: VK_KHR_shader_float_controls already unavailable");
         }
-        disable_shader_float_controls_usage = true;
+
+        // Other Qualcomm workarounds continue to apply.
         RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64,
                                VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
         features.shader_atomic_int64.shaderBufferInt64Atomics = false;
@@ -1172,6 +1187,11 @@ bool Device::GetSuitability(bool requires_swapchain) {
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT_CONTROLS_PROPERTIES;
         SetNext(next, properties.float_controls);
     }
+    if (extensions.shader_float_controls2) {
+        properties.float_controls2.sType =
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT_CONTROLS_PROPERTIES_2_KHR;
+        SetNext(next, properties.float_controls2);
+    }
     if (extensions.push_descriptor) {
         properties.push_descriptor.sType =
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PUSH_DESCRIPTOR_PROPERTIES_KHR;
@@ -1200,6 +1220,16 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
     // Perform the property fetch.
     physical.GetProperties2(properties2);
+
+    // If VK_KHR_shader_float_controls2 is available, copy its inner properties for
+    // backwards compatibility with code that expects VkPhysicalDeviceFloatControlsProperties.
+    if (extensions.shader_float_controls2) {
+        properties.float_controls = properties.float_controls2.floatControls;
+        LOG_INFO(Render_Vulkan,
+                 "VK_KHR_shader_float_controls2 supported: denormBehaviorIndependence={}, roundingModeIndependence={}",
+                 properties.float_controls.denormBehaviorIndependence,
+                 properties.float_controls.roundingModeIndependence);
+    }
 
     // Store base properties
     properties.properties = properties2.properties;

@@ -377,10 +377,24 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .support_int64 = device.IsShaderInt64Supported(),
         .support_vertex_instance_id = false,
         .support_float_controls = float_controls_supported,
+        .support_float_controls2 = device.IsKhrShaderFloatControls2Supported(),
         .support_separate_denorm_behavior = float_controls_supported &&
             float_control.denormBehaviorIndependence == VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL,
         .support_separate_rounding_mode = float_controls_supported &&
             float_control.roundingModeIndependence == VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL,
+        /* Rounding mode support (RTE/RTZ) per precision */
+        .support_shader_rounding_rte_f16 = float_controls_supported &&
+            float_control.shaderRoundingModeRTEFloat16 != VK_FALSE,
+        .support_shader_rounding_rte_f32 = float_controls_supported &&
+            float_control.shaderRoundingModeRTEFloat32 != VK_FALSE,
+        .support_shader_rounding_rte_f64 = float_controls_supported &&
+            float_control.shaderRoundingModeRTEFloat64 != VK_FALSE,
+        .support_shader_rounding_rtz_f16 = float_controls_supported &&
+            float_control.shaderRoundingModeRTZFloat16 != VK_FALSE,
+        .support_shader_rounding_rtz_f32 = float_controls_supported &&
+            float_control.shaderRoundingModeRTZFloat32 != VK_FALSE,
+        .support_shader_rounding_rtz_f64 = float_controls_supported &&
+            float_control.shaderRoundingModeRTZFloat64 != VK_FALSE,
         .support_fp16_denorm_preserve = float_controls_supported &&
             float_control.shaderDenormPreserveFloat16 != VK_FALSE,
         .support_fp32_denorm_preserve = float_controls_supported &&
