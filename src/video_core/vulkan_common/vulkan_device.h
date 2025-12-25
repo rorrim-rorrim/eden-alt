@@ -90,6 +90,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(KHR, PUSH_DESCRIPTOR, push_descriptor)                                               \
     EXTENSION(KHR, SAMPLER_MIRROR_CLAMP_TO_EDGE, sampler_mirror_clamp_to_edge)                     \
     EXTENSION(KHR, SHADER_FLOAT_CONTROLS, shader_float_controls)                                   \
+    EXTENSION(KHR, SHADER_FLOAT_CONTROLS_2, shader_float_controls2)                                \
     EXTENSION(KHR, SPIRV_1_4, spirv_1_4)                                                           \
     EXTENSION(KHR, SWAPCHAIN, swapchain)                                                           \
     EXTENSION(KHR, SWAPCHAIN_MUTABLE_FORMAT, swapchain_mutable_format)                             \
@@ -344,6 +345,11 @@ public:
         return properties.float_controls;
     }
 
+    /// Returns float control properties (KHR v2) of the device.
+    const VkPhysicalDeviceFloatControlsProperties2KHR& FloatControlProperties2() const {
+        return properties.float_controls2;
+    }
+
 
     /// Returns true if ASTC is natively supported.
     bool IsOptimalAstcSupported() const {
@@ -498,6 +504,11 @@ public:
     /// Returns true if VK_KHR_shader_float_controls is enabled.
     bool IsKhrShaderFloatControlsSupported() const {
         return extensions.shader_float_controls && !disable_shader_float_controls_usage;
+    }
+
+    /// Returns true if VK_KHR_shader_float_controls2 is enabled.
+    bool IsKhrShaderFloatControls2Supported() const {
+        return extensions.shader_float_controls2 && !disable_shader_float_controls_usage;
     }
 
     /// Returns true if the device supports VK_KHR_workgroup_memory_explicit_layout.
@@ -1044,6 +1055,7 @@ private:
         VkPhysicalDeviceDriverProperties driver{};
         VkPhysicalDeviceSubgroupProperties subgroup_properties{};
         VkPhysicalDeviceFloatControlsProperties float_controls{};
+        VkPhysicalDeviceFloatControlsProperties2KHR float_controls2{};
         VkPhysicalDevicePushDescriptorPropertiesKHR push_descriptor{};
         VkPhysicalDeviceSubgroupSizeControlProperties subgroup_size_control{};
         VkPhysicalDeviceTransformFeedbackPropertiesEXT transform_feedback{};
