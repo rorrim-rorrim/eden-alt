@@ -525,7 +525,7 @@
     <string name="renderer_debug">Graphics debugging</string>
     <string name="renderer_debug_description">Sets the graphics API to a slow debugging mode.</string>
     <string name="patch_old_qcom_drivers">Enable BCn Textures</string>
-    <string name="patch_old_qcom_drivers_description">Enable patch support for BCn texture formats on Adreno Drivers when it's not support natively. (Disable to fix fetching drivers on old Android versions)</string>
+    <string name="patch_old_qcom_drivers_description">Enable patch support for BCn texture formats on Adreno Drivers when not support natively. (Disable to fix fetching drivers and random crashes on old Android versions)</string>
     <string name="fastmem">Fastmem</string>
 
     <string name="log">Logging</string>
