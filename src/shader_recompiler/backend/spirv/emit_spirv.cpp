@@ -412,8 +412,6 @@ void SetupRoundingMode(const Profile& profile, const IR::Program& program, EmitC
         return;
     }
 
-    // Capability is required whenever any rounding mode is emitted.
-    ctx.AddCapability(spv::Capability::FPRoundingMode);
 
     // FP16
     if (info.uses_fp16_rounding_rte) {
