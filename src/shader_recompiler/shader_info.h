@@ -290,6 +290,14 @@ struct Info {
     bool uses_fp16_denorms_preserve{};
     bool uses_fp32_denorms_flush{};
     bool uses_fp32_denorms_preserve{};
+
+    /* Rounding mode usage detected in shader IR (set during analysis). */
+    bool uses_fp16_rounding_rte{};
+    bool uses_fp16_rounding_rtz{};
+    bool uses_fp32_rounding_rte{};
+    bool uses_fp32_rounding_rtz{};
+    bool uses_fp64_rounding_rte{};
+    bool uses_fp64_rounding_rtz{};
     bool uses_int8{};
     bool uses_int16{};
     bool uses_int64{};
