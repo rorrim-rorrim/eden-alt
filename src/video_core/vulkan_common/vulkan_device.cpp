@@ -1188,9 +1188,13 @@ bool Device::GetSuitability(bool requires_swapchain) {
         SetNext(next, properties.float_controls);
     }
     if (extensions.shader_float_controls2) {
+#ifdef VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT_CONTROLS_PROPERTIES_2_KHR
         properties.float_controls2.sType =
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT_CONTROLS_PROPERTIES_2_KHR;
         SetNext(next, properties.float_controls2);
+#else
+        LOG_INFO(Render_Vulkan, "VK_KHR_shader_float_controls2 available but Vulkan headers lack VkPhysicalDeviceFloatControlsProperties2KHR; skipping properties2 chaining");
+#endif
     }
     if (extensions.push_descriptor) {
         properties.push_descriptor.sType =
@@ -1224,11 +1228,15 @@ bool Device::GetSuitability(bool requires_swapchain) {
     // If VK_KHR_shader_float_controls2 is available, copy its inner properties for
     // backwards compatibility with code that expects VkPhysicalDeviceFloatControlsProperties.
     if (extensions.shader_float_controls2) {
+#ifdef VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT_CONTROLS_PROPERTIES_2_KHR
         properties.float_controls = properties.float_controls2.floatControls;
         LOG_INFO(Render_Vulkan,
                  "VK_KHR_shader_float_controls2 supported: denormBehaviorIndependence={}, roundingModeIndependence={}",
                  properties.float_controls.denormBehaviorIndependence,
                  properties.float_controls.roundingModeIndependence);
+#else
+        LOG_INFO(Render_Vulkan, "VK_KHR_shader_float_controls2 present but float_controls2 struct not available in headers; cannot copy floatControls");
+#endif
     }
 
     // Store base properties
