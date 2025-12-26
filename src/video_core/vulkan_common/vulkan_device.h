@@ -345,12 +345,10 @@ public:
         return properties.float_controls;
     }
 
-#ifdef VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT_CONTROLS_PROPERTIES_2_KHR
     /// Returns float control properties (KHR v2) of the device.
     const VkPhysicalDeviceFloatControlsProperties2KHR& FloatControlProperties2() const {
         return properties.float_controls2;
     }
-#endif
 
 
     /// Returns true if ASTC is natively supported.
@@ -1057,9 +1055,7 @@ private:
         VkPhysicalDeviceDriverProperties driver{};
         VkPhysicalDeviceSubgroupProperties subgroup_properties{};
         VkPhysicalDeviceFloatControlsProperties float_controls{};
-#ifdef VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT_CONTROLS_PROPERTIES_2_KHR
         VkPhysicalDeviceFloatControlsProperties2KHR float_controls2{};
-#endif
         VkPhysicalDevicePushDescriptorPropertiesKHR push_descriptor{};
         VkPhysicalDeviceSubgroupSizeControlProperties subgroup_size_control{};
         VkPhysicalDeviceTransformFeedbackPropertiesEXT transform_feedback{};
