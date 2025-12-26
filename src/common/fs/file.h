@@ -445,10 +445,10 @@ private:
 #ifdef _WIN32
     void *mapping_handle = nullptr;
     void *file_handle = nullptr;
-    bool IsMappedFile() { return file_handle != nullptr; }
+    inline bool IsMappedFile() const noexcept { return file_handle != nullptr; }
 #else // POSIX
     int mmap_fd = -1;
-    bool IsMappedFile() { return mmap_fd != -1; }
+    inline bool IsMappedFile() const noexcept { return mmap_fd != -1; }
 #endif
     u8* mmap_base = nullptr;
     size_t mmap_size = 0;
