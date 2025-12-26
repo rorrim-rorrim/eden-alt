@@ -96,30 +96,31 @@ void MaxwellDMA::Launch() {
         auto& accelerate = rasterizer->AccessAccelerateDMA();
         const bool is_const_a_dst = regs.remap_const.dst_x == RemapConst::Swizzle::CONST_A;
         if (regs.launch_dma.remap_enable != 0 && is_const_a_dst) {
-            accelerate.BufferClear(regs.offset_out, regs.line_length_in, regs.remap_const.remap_consta_value);
             const u32 component_size = regs.remap_const.component_size_minus_one + 1;
-            read_buffer.resize_destructive(regs.line_length_in * component_size);
-            switch (component_size) {
-            case 1: {
-                std::span<u8> span(read_buffer.data(), regs.line_length_in);
-                std::ranges::fill(span, static_cast<u8>(regs.remap_const.remap_consta_value & 0xFF));
-                break;
+            if (component_size == 1 || component_size == 2 || component_size == 4) {
+                accelerate.BufferClear(regs.offset_out, regs.line_length_in, regs.remap_const.remap_consta_value);
+                read_buffer.resize_destructive(regs.line_length_in * component_size);
+                alignas(4) auto* data_ptr = read_buffer.data();
+                switch (component_size) {
+                case 1: {
+                    std::ranges::fill(data_ptr, data_ptr + regs.line_length_in, static_cast<u8>(regs.remap_const.remap_consta_value & 0xFF));
+                    break;
+                }
+                case 2: {
+                    std::span<u16> span(reinterpret_cast<u16*>(data_ptr), regs.line_length_in);
+                    std::ranges::fill(span, static_cast<u16>(regs.remap_const.remap_consta_value & 0xFFFF));
+                    break;
+                }
+                case 4: {
+                    std::span<u32> span(reinterpret_cast<u32*>(data_ptr), regs.line_length_in);
+                    std::ranges::fill(span, regs.remap_const.remap_consta_value);
+                    break;
+                }
+                }
+                memory_manager.WriteBlockUnsafe(regs.offset_out, data_ptr, regs.line_length_in * component_size);
+            } else {
+                LOG_ERROR(Render_OpenGL, "Remap CONST_A with unsupported component size {} bytes", component_size);
             }
-            case 2: {
-                std::span<u16> span(reinterpret_cast<u16*>(read_buffer.data()), regs.line_length_in);
-                std::ranges::fill(span, static_cast<u16>(regs.remap_const.remap_consta_value & 0xFFFF));
-                break;
-            }
-            case 4: {
-                std::span<u32> span(reinterpret_cast<u32*>(read_buffer.data()), regs.line_length_in);
-                std::ranges::fill(span, regs.remap_const.remap_consta_value);
-                break;
-            }
-            default:
-                LOG_WARNING(Render_OpenGL, "Remap CONST_A with unsupported component size {} bytes", component_size);
-                break;
-            }
-            memory_manager.WriteBlockUnsafe(regs.offset_out, read_buffer.data(), regs.line_length_in * component_size);
         } else {
             memory_manager.FlushCaching();
             const auto convert_linear_2_blocklinear_addr = [](u64 address) {
