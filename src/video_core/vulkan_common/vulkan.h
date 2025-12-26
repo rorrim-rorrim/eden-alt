@@ -30,11 +30,6 @@
 #define VK_KHR_MAINTENANCE_8_EXTENSION_NAME "VK_KHR_maintenance8"
 #endif
 
-// Define SHADER_FLOAT_CONTROLS_2 extension name if missing in older headers
-#ifndef VK_KHR_SHADER_FLOAT_CONTROLS_2_EXTENSION_NAME
-#define VK_KHR_SHADER_FLOAT_CONTROLS_2_EXTENSION_NAME "VK_KHR_shader_float_controls2"
-#endif
-
 // Sanitize macros
 #undef CreateEvent
 #undef CreateSemaphore
