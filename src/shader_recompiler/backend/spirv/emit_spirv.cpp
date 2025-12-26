@@ -401,69 +401,6 @@ void SetupSignedNanCapabilities(const Profile& profile, const IR::Program& progr
     }
 }
 
-void SetupRoundingMode(const Profile& profile, const IR::Program& program, EmitContext& ctx,
-                       Id main_func) {
-    const auto& info = program.info;
-
-    // If no rounding modes used, nothing to do.
-    if (!info.uses_fp16_rounding_rte && !info.uses_fp16_rounding_rtz &&
-        !info.uses_fp32_rounding_rte && !info.uses_fp32_rounding_rtz &&
-        !info.uses_fp64_rounding_rte && !info.uses_fp64_rounding_rtz) {
-        return;
-    }
-
-    // Capability is required whenever any rounding mode is emitted.
-    ctx.AddCapability(spv::Capability::FPRoundingMode);
-
-    // FP16
-    if (info.uses_fp16_rounding_rte) {
-        if (profile.support_shader_rounding_rte_f16) {
-            ctx.AddExecutionMode(main_func, spv::ExecutionMode::RoundingModeRTE, 16U);
-        } else {
-            LOG_DEBUG(Shader_SPIRV, "Fp16 RTE rounding used in shader without host support");
-        }
-    }
-    if (info.uses_fp16_rounding_rtz) {
-        if (profile.support_shader_rounding_rtz_f16) {
-            ctx.AddExecutionMode(main_func, spv::ExecutionMode::RoundingModeRTZ, 16U);
-        } else {
-            LOG_DEBUG(Shader_SPIRV, "Fp16 RTZ rounding used in shader without host support");
-        }
-    }
-
-    // FP32
-    if (info.uses_fp32_rounding_rte) {
-        if (profile.support_shader_rounding_rte_f32) {
-            ctx.AddExecutionMode(main_func, spv::ExecutionMode::RoundingModeRTE, 32U);
-        } else {
-            LOG_DEBUG(Shader_SPIRV, "Fp32 RTE rounding used in shader without host support");
-        }
-    }
-    if (info.uses_fp32_rounding_rtz) {
-        if (profile.support_shader_rounding_rtz_f32) {
-            ctx.AddExecutionMode(main_func, spv::ExecutionMode::RoundingModeRTZ, 32U);
-        } else {
-            LOG_DEBUG(Shader_SPIRV, "Fp32 RTZ rounding used in shader without host support");
-        }
-    }
-
-    // FP64
-    if (info.uses_fp64_rounding_rte) {
-        if (profile.support_shader_rounding_rte_f64) {
-            ctx.AddExecutionMode(main_func, spv::ExecutionMode::RoundingModeRTE, 64U);
-        } else {
-            LOG_DEBUG(Shader_SPIRV, "Fp64 RTE rounding used in shader without host support");
-        }
-    }
-    if (info.uses_fp64_rounding_rtz) {
-        if (profile.support_shader_rounding_rtz_f64) {
-            ctx.AddExecutionMode(main_func, spv::ExecutionMode::RoundingModeRTZ, 64U);
-        } else {
-            LOG_DEBUG(Shader_SPIRV, "Fp64 RTZ rounding used in shader without host support");
-        }
-    }
-}
-
 void SetupTransformFeedbackCapabilities(EmitContext& ctx, Id main_func) {
     if (ctx.runtime_info.xfb_count == 0) {
         return;
@@ -582,7 +519,6 @@ std::vector<u32> EmitSPIRV(const Profile& profile, const RuntimeInfo& runtime_in
         ctx.AddExtension("SPV_KHR_float_controls");
         SetupDenormControl(profile, program, ctx, main);
         SetupSignedNanCapabilities(profile, program, ctx, main);
-        SetupRoundingMode(profile, program, ctx, main);
     }
     SetupCapabilities(profile, program.info, ctx);
     SetupTransformFeedbackCapabilities(ctx, main);
