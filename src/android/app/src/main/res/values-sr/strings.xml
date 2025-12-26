@@ -68,8 +68,6 @@
     <string name="provoking_vertex_description">Побољшава осветљење и вертификат руковања у одређеним играма. Подржан само на Вулкану 1.0+ ГПУ-у.</string>
     <string name="descriptor_indexing">Индексирање дескриптора</string>
     <string name="descriptor_indexing_description">Побољшава текстуру и руковање међуспремника, као и преводилачки слој Маквелл. Подржани од стране неких Вулкана 1.1 ГПУ-а и сви Вулкан 1.2+ ГПУ.</string>
-    <string name="sample_shading">Семпловање сенчења</string>
-    <string name="sample_shading_description">Омогућава фрагмент шејдеру да се извршава по узорку у вишеузорачном фрагменту уместо једном по фрагменту. Побољшава квалитет графике на рачун перформанси. Само Vulkan 1.1+ уређаји подржавају ову екстензију.</string>
     <string name="sample_shading_fraction">Удео сенчења узорка</string>
     <string name="sample_shading_fraction_description">Интензитет проласка сенчења узорка. Веће вредности побољшавају квалитет више, али такође више смањују перформансе.</string>
 

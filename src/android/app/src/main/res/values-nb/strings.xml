@@ -70,8 +70,6 @@
     <string name="provoking_vertex_description">Forbedrer belysning og vertexhåndtering i enkelte spill. Støttes kun på Vulkan 1.0+ GPU-er.</string>
     <string name="descriptor_indexing">Beskrivelsesindeksering</string>
     <string name="descriptor_indexing_description">Forbedrer tekstur- og bufferhåndtering, samt Maxwell-oversettelseslaget. Støttes av noen Vulkan 1.1 GPU-er og alle Vulkan 1.2+ GPU-er.</string>
-    <string name="sample_shading">Prøvegjengivelse</string>
-    <string name="sample_shading_description">Lar fragment-shaderen kjøres per prøve i et flerprøvefragment i stedet for en gang per fragment. Forbedrer grafikkvaliteten på bekostning av ytelse. Bare Vulkan 1.1+-enheter støtter denne utvidelsen.</string>
     <string name="sample_shading_fraction">Prøveskyggebrøk</string>
     <string name="sample_shading_fraction_description">Intensiteten til prøveskyggepasseringen. Høyere verdier forbedrer kvaliteten mer, men reduserer også ytelsen i større grad.</string>
 

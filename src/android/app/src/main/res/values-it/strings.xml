@@ -91,8 +91,6 @@
     <string name="provoking_vertex_description">Migliora illuminazione e gestione dei vertici in alcuni giochi. Supportato solo su GPU Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Indicizzazione descrittori</string>
     <string name="descriptor_indexing_description">Migliora la gestione di texture e buffer, nonché il livello di traduzione Maxwell. Supportato da alcune GPU Vulkan 1.1 e tutte le GPU Vulkan 1.2+.</string>
-    <string name="sample_shading">Shading campione</string>
-    <string name="sample_shading_description">Permette al fragment shader di eseguire per campione in un frammento multi-campione invece che una volta per frammento. Migliora la qualità grafica a scapito delle prestazioni. Solo i dispositivi Vulkan 1.1+ supportano questa estensione.</string>
     <string name="sample_shading_fraction">Frazione di ombreggiatura campione</string>
     <string name="sample_shading_fraction_description">L\'intensità della passata di ombreggiatura campione. Valori più alti migliorano la qualità ma riducono maggiormente le prestazioni.</string>
 

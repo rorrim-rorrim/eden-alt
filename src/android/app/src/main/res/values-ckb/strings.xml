@@ -70,8 +70,6 @@
     <string name="provoking_vertex_description">يحسن الإضاءة ومعالجة الرؤوس في بعض الألعاب. مدعوم فقط على وحدات معالجة الرسومات التي تدعم فولكان 1.0+.</string>
     <string name="descriptor_indexing">فهرسة الواصفات</string>
     <string name="descriptor_indexing_description">يحسن معالجة القوام والمخازن المؤقتة، بالإضافة إلى طبقة ترجمة ماكسويل. مدعوم من قبل بعض وحدات معالجة الرسومات التي تدعم فولكان 1.1 وجميع وحدات معالجة الرسومات التي تدعم فولكان 1.2+.</string>
-    <string name="sample_shading">سێبەندی نمونە</string>
-    <string name="sample_shading_description">ڕێگە بە شێدەری پارچە دەدات کە بۆ هەر نمونەیەک لە پارچەی فرە نمونەیدا جێبەجێ بکات لە جیاتی جێبەجێکردنی بۆ هەر پارچەیەک. جۆرایی گرافیک باشتر دەکات بە بەهای هەندێک لە کارایی. تەنها ئامێرەکانی Vulkan 1.1+ پشتگیری ئەم درێژکراوە دەکەن.</string>
     <string name="sample_shading_fraction">پێکهاتەی سێبەرکردنی نموونە</string>
     <string name="sample_shading_fraction_description">چڕی تێپەڕاندنی سێبەرکردنی نموونە. بەهای زیاتر کوالێتی باشتر دەکات بەڵام کارایی زیاتر کەم دەکاتەوە.</string>
 

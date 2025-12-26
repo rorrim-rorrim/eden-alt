@@ -70,8 +70,6 @@
     <string name="provoking_vertex_description">Zlepšuje osvětlení a zpracování vertexů v některých hrách. Podporováno pouze na GPU s Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Indexování deskriptorů</string>
     <string name="descriptor_indexing_description">Zlepšuje zpracování textur a bufferů, stejně jako Maxwell překladovou vrstvu. Podporováno některými GPU s Vulkan 1.1 a všemi GPU s Vulkan 1.2+.</string>
-    <string name="sample_shading">Vzorkovací stínování</string>
-    <string name="sample_shading_description">Umožňuje fragment shaderu provádět výpočty pro každý vzorek ve fragmentu s více vzorky namísto jednou pro fragment. Zlepšuje kvalitu grafiky na úkor výkonu. Tuto funkci podporují pouze zařízení s Vulkan 1.1+.</string>
     <string name="sample_shading_fraction">Podíl stínování vzorku</string>
     <string name="sample_shading_fraction_description">Intenzita průchodu stínování vzorku. Vyšší hodnoty zlepšují kvalitu, ale také výrazněji snižují výkon.</string>
 

@@ -70,8 +70,6 @@
     <string name="provoking_vertex_description">特定のゲームで照明と頂点処理を改善します。Vulkan 1.0+ GPUでのみサポートされています。</string>
     <string name="descriptor_indexing">ディスクリプタインデキシング</string>
     <string name="descriptor_indexing_description">テクスチャとバッファの処理、およびMaxwell翻訳レイヤーを改善します。一部のVulkan 1.1 GPUとすべてのVulkan 1.2+ GPUでサポートされています。</string>
-    <string name="sample_shading">サンプルシェーディング</string>
-    <string name="sample_shading_description">マルチサンプルフラグメントでフラグメントシェーダーをフラグメントごとではなくサンプルごとに実行できるようにします。パフォーマンスを犠牲にしてグラフィック品質を向上させます。Vulkan 1.1+デバイスのみがこの拡張機能をサポートしています。</string>
     <string name="sample_shading_fraction">サンプルシェーディング率</string>
     <string name="sample_shading_fraction_description">サンプルシェーディング処理の強度。高い値ほど品質は向上しますが、パフォーマンスも大きく低下します。</string>
 

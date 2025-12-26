@@ -93,8 +93,6 @@
     <string name="provoking_vertex_description">Améliore l`éclairage et la gestion des vertex dans certains jeux. Pris en charge uniquement par les GPU Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Indexation des descripteurs</string>
     <string name="descriptor_indexing_description">Améliore la gestion des textures et des tampons, ainsi que la couche de traduction Maxwell. Pris en charge par certains GPU Vulkan 1.1 et tous les GPU Vulkan 1.2+.</string>
-    <string name="sample_shading">Échantillonnage de shading</string>
-    <string name="sample_shading_description">Permet au fragment shader de s\'exécuter par échantillon dans un fragment multi-échantillonné au lieu d\'une fois par fragment. Améliore la qualité graphique au détriment des performances. Seuls les appareils Vulkan 1.1+ prennent en charge cette extension.</string>
     <string name="sample_shading_fraction">Fraction d\'ombrage d\'échantillon</string>
     <string name="sample_shading_fraction_description">L\'intensité de la passe d\'ombrage d\'échantillon. Des valeurs plus élevées améliorent davantage la qualité mais réduisent aussi plus fortement les performances.</string>
 

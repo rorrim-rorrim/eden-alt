@@ -325,6 +325,13 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
 
     // Renderer (Extensions)
     INSERT(Settings,
+           sample_shading_fraction,
+           tr("Sample Shading"),
+           tr("Allows the fragment shader to execute per sample in a multi-sampled fragment "
+           "instead of once per fragment. Improves graphics quality at the cost of performance.\n"
+           "Higher values improve quality but degrade performance."));
+
+    INSERT(Settings,
            dyna_state,
            tr("Extended Dynamic State"),
            tr("Controls the number of features that can be used in Extended Dynamic State.\nHigher numbers allow for more features and can increase performance, but may cause issues.\nThe default value is per-system."));
@@ -345,13 +352,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Descriptor Indexing"),
            tr("Improves texture & buffer handling and the Maxwell translation layer.\n"
               "Some Vulkan 1.1+ and all 1.2+ devices support this extension."));
-
-    INSERT(Settings,
-           sample_shading_fraction,
-           tr("Sample Shading"),
-           tr("Allows the fragment shader to execute per sample in a multi-sampled fragment "
-              "instead of once per fragment. Improves graphics quality at the cost of performance.\n"
-              "Higher values improve quality but degrade performance."));
 
     // Renderer (Debug)
 

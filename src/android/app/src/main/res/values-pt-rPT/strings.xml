@@ -70,8 +70,6 @@
     <string name="provoking_vertex_description">Melhora a iluminação e o tratamento de vértices em certos jogos. Suportado apenas em GPUs Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Indexação de descritores</string>
     <string name="descriptor_indexing_description">Melhora o tratamento de texturas e buffers, assim como a camada de tradução Maxwell. Suportado por algumas GPUs Vulkan 1.1 e todas Vulkan 1.2+.</string>
-    <string name="sample_shading">Amostragem de sombreamento</string>
-    <string name="sample_shading_description">Permite que o fragment shader seja executado por amostra num fragmento multi-amostrado em vez de uma vez por fragmento. Melhora a qualidade gráfica à custa de desempenho. Apenas dispositivos Vulkan 1.1+ suportam esta extensão.</string>
     <string name="sample_shading_fraction">Fração de Sombreamento de Amostra</string>
     <string name="sample_shading_fraction_description">A intensidade da passagem de sombreamento de amostra. Valores mais elevados melhoram a qualidade, mas também reduzem o desempenho numa maior medida.</string>
 

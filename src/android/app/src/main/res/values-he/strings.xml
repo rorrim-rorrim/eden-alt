@@ -70,8 +70,6 @@
     <string name="provoking_vertex_description">משפר תאורה וטיפול בקודקודים במשחקים מסוימים. נתמך רק בכרטיסי מסך עם Vulkan 1.0+.</string>
     <string name="descriptor_indexing">אינדוקס תיאורים</string>
     <string name="descriptor_indexing_description">משפר טיפול במרקמים ומאגרים, כמו גם בשכבת התרגום של Maxwell. נתמך בחלק מכרטיסי ה-Vulkan 1.1 ובכל כרטיסי ה-Vulkan 1.2+.</string>
-    <string name="sample_shading">דגימת צל</string>
-    <string name="sample_shading_description">מאפשר לשברי הצללה לרוץ לכל דגימה בקטע רב-דגימות במקום פעם אחת לקטע. משפר את איכות הגרפיקה במחיר של ביצועים. רק מכשירי Vulkan 1.1+ תומכים בהרחבה זו.</string>
     <string name="sample_shading_fraction">שבר הצללה לדוגמה</string>
     <string name="sample_shading_fraction_description">עוצמת מעבר ההצללה לדוגמה. ערכים גבוהים יותר משפרים את האיכות יותר אך גם מפחיתים את הביצועים במידה רבה יותר.</string>
 

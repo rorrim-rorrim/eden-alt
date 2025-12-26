@@ -96,8 +96,6 @@
     <string name="provoking_vertex_description">Улучшает освещение и обработку вершин в некоторых играх. Поддерживается только ГПУ с Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Индексирование дескрипторов</string>
     <string name="descriptor_indexing_description">Улучшает обработку текстур и буферов, а также слой перевода Maxwell. Поддерживается некоторыми ГПУ Vulkan 1.1 и всеми ГПУ Vulkan 1.2+.</string>
-    <string name="sample_shading">Сэмпловый шейдинг</string>
-    <string name="sample_shading_description">Позволяет шейдеру фрагментов выполняться на каждый сэмпл в мультисэмпловом фрагменте вместо одного раза на фрагмент. Улучшает качество графики ценой производительности. Только устройства с Vulkan 1.1+ поддерживают это расширение.</string>
     <string name="sample_shading_fraction">Доля сэмплового затенения</string>
     <string name="sample_shading_fraction_description">Интенсивность прохода сэмплового затенения. Более высокие значения улучшают качество, но и сильнее снижают производительность.</string>
 

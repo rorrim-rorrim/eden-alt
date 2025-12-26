@@ -96,8 +96,6 @@
     <string name="provoking_vertex_description">改善某些遊戲中的光照和頂點處理。僅支援Vulkan 1.0+ GPU。</string>
     <string name="descriptor_indexing">描述符索引</string>
     <string name="descriptor_indexing_description">改進紋理和緩衝區處理以及Maxwell轉換層。部分Vulkan 1.1 GPU和所有Vulkan 1.2+ GPU支援。</string>
-    <string name="sample_shading">取樣著色</string>
-    <string name="sample_shading_description">允許片段著色器在多取樣片段中每個樣本執行一次，而不是每個片段執行一次。以提高效能為代價改善圖形品質。僅Vulkan 1.1+裝置支援此擴充功能。</string>
     <string name="sample_shading_fraction">採樣著色比例</string>
     <string name="sample_shading_fraction_description">採樣著色處理的強度。數值越高，品質改善越多，但效能降低也越明顯。</string>
 

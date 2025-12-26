@@ -514,6 +514,7 @@ struct Values {
     SwitchableSetting<bool> barrier_feedback_loops{linkage, true, "barrier_feedback_loops",
                                                    Category::RendererAdvanced};
 
+    SwitchableSetting<u32, true> sample_shading_fraction{linkage, 0, 0, 100, "sample_shading_fraction", Category::RendererExtensions, Specialization::Scalar, true};
     SwitchableSetting<u8, true> dyna_state{linkage,
 #if defined (_WIN32)
                                            3,
@@ -535,7 +536,6 @@ struct Values {
     SwitchableSetting<bool> vertex_input_dynamic_state{linkage, true, "vertex_input_dynamic_state", Category::RendererExtensions};
     SwitchableSetting<bool> provoking_vertex{linkage, false, "provoking_vertex", Category::RendererExtensions};
     SwitchableSetting<bool> descriptor_indexing{linkage, false, "descriptor_indexing", Category::RendererExtensions};
-    SwitchableSetting<u32, true> sample_shading_fraction{linkage, 0, 0, 100, "sample_shading_fraction", Category::RendererExtensions, Specialization::Scalar, true};
 
     Setting<bool> renderer_debug{linkage, false, "debug", Category::RendererDebug};
     Setting<bool> renderer_shader_feedback{linkage, false, "shader_feedback",

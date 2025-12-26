@@ -91,8 +91,6 @@
     <string name="provoking_vertex_description">Meningkatkan pencahayaan dan penanganan vertex di beberapa game. Hanya didukung di GPU Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Pengindeks Deskriptor</string>
     <string name="descriptor_indexing_description">Meningkatkan penanganan tekstur dan buffer, serta lapisan terjemahan Maxwell. Didukung oleh beberapa GPU Vulkan 1.1 dan semua GPU Vulkan 1.2+.</string>
-    <string name="sample_shading">Pencahayaan Sampel</string>
-    <string name="sample_shading_description">Memungkinkan fragment shader dieksekusi per sampel dalam fragmen multisampel alih-alih sekali per fragmen. Meningkatkan kualitas grafis dengan mengorbankan kinerja. Hanya perangkat Vulkan 1.1+ yang mendukung ekstensi ini.</string>
     <string name="sample_shading_fraction">Fraksi Pencahayaan Sampel</string>
     <string name="sample_shading_fraction_description">Intensitas proses pencahayaan sampel. Nilai lebih tinggi meningkatkan kualitas lebih baik tetapi juga mengurangi performa lebih besar.</string>
 

@@ -70,8 +70,6 @@
     <string name="provoking_vertex_description">Javítja a világítást és a csúcskezelést bizonyos játékokban. Csak Vulkan 1.0+ GPU-kon támogatott.</string>
     <string name="descriptor_indexing">Deskriptor Indexelés</string>
     <string name="descriptor_indexing_description">Javítja a textúrák és pufferek kezelését, valamint a Maxwell fordítási réteget. Néhány Vulkan 1.1 GPU és minden Vulkan 1.2+ GPU támogatja.</string>
-    <string name="sample_shading">Mintavételezés árnyékolás</string>
-    <string name="sample_shading_description">Lehetővé teszi, hogy a fragment shader mintánként fusson egy többmintás fragmentben a fragmentenkénti futtatás helyett. Javítja a grafikai minőséget a teljesítmény rovására. Csak Vulkan 1.1+ eszközök támogatják ezt a kiterjesztést.</string>
     <string name="sample_shading_fraction">Mintavételezés árnyékolási hányad</string>
     <string name="sample_shading_fraction_description">A mintavételezés árnyékolási lépés intenzitása. A magasabb értékek jobb minőséget eredményeznek, de nagyobb mértékben csökkentik a teljesítményt.</string>
 

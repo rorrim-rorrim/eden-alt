@@ -104,8 +104,6 @@
     <string name="fast_cpu_time_description">از Boost (1700MHz) برای کار با بالاترین سرعت کلاک بومی سوئیچ یا Fast (2000MHz) برای کار با دو برابر سرعت استفاده کنید.</string>
     <string name="memory_layout">چیدمان حافظه</string>
     <string name="memory_layout_description">(آزمایشی) چیدمان حافظه شبیه‌سازی شده را تغییر می‌دهد. این تنظیم عملکرد را افزایش نمی‌دهد، اما ممکن است به بازی‌هایی که از رزولوشن بالا با استفاده از مادها استفاده می‌کنند کمک کند. در تلفن‌های با 8 گیگابایت رم یا کمتر استفاده نشود.</string>
-    <string name="sample_shading">سایه‌زنی نمونه</string>
-    <string name="sample_shading_description">اجازه می‌دهد شیدر قطعه در هر نمونه از یک قطعه چندنمونه‌ای اجرا شود به جای یک بار برای هر قطعه. کیفیت گرافیک را به بهای کاهش عملکرد بهبود می‌بخشد. فقط دستگاه‌های Vulkan 1.1+ از این افزونه پشتیبانی می‌کنند.</string>
     <string name="sample_shading_fraction">کسر سایه‌زنی نمونه</string>
     <string name="sample_shading_fraction_description">شدت مرحله سایه‌زنی نمونه. مقادیر بالاتر کیفیت را بیشتر بهبود می‌بخشد اما عملکرد را نیز به میزان بیشتری کاهش می‌دهد.</string>
     <string name="custom_cpu_ticks">تیک‌های CPU سفارشی</string>

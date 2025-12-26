@@ -96,8 +96,6 @@
     <string name="provoking_vertex_description">Покращує освітлення та взаємодію з вершинами у деяких іграх. Лише для ГП з підтримкою Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Індексація дескрипторів</string>
     <string name="descriptor_indexing_description">Покращує обробку текстур та буферів, а також шар перекладу Maxwell. Підтримується деякими GPU Vulkan 1.1 та всіма GPU Vulkan 1.2+.</string>
-    <string name="sample_shading">Шейдинг зразків</string>
-    <string name="sample_shading_description">Дозволяє шейдеру фрагментів виконуватися на кожен семпл у багатосемпловому фрагменті замість одного разу на фрагмент. Покращує якість графіки за рахунок продуктивності. Лише пристрої з Vulkan 1.1+ підтримують це розширення.</string>
     <string name="sample_shading_fraction">Частка затінення зразка</string>
     <string name="sample_shading_fraction_description">Інтенсивність проходу затінення зразка. Вищі значення покращують якість, але й сильніше знижують продуктивність.</string>
 

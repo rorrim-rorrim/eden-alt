@@ -70,8 +70,6 @@
     <string name="provoking_vertex_description">일부 게임에서 조명과 버텍스 처리를 개선합니다. Vulkan 1.0+ GPU에서만 지원됩니다.</string>
     <string name="descriptor_indexing">디스크립터 인덱싱</string>
     <string name="descriptor_indexing_description">텍스처 및 버퍼 처리와 Maxwell 변환 레이어를 개선합니다. 일부 Vulkan 1.1 GPU 및 모든 Vulkan 1.2+ GPU에서 지원됩니다.</string>
-    <string name="sample_shading">샘플 쉐이딩</string>
-    <string name="sample_shading_description">멀티샘플 프래그먼트에서 프래그먼트 쉐이더가 프래그먼트당 한 번이 아니라 샘플당 실행되도록 합니다. 성능을 희생하여 그래픽 품질을 향상시킵니다. Vulkan 1.1+ 장치만 이 확장을 지원합니다.</string>
     <string name="sample_shading_fraction">샘플 쉐이딩 비율</string>
     <string name="sample_shading_fraction_description">샘플 쉐이딩 패스의 강도. 값이 높을수록 품질이 더 향상되지만 성능도 더 크게 저하됩니다.</string>
 

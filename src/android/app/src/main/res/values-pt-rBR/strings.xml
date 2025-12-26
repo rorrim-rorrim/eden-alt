@@ -91,8 +91,6 @@
     <string name="provoking_vertex_description">Vértice Provocante: Melhora a iluminação e o processamento de vértices em certos jogos. Suportado apenas em GPUs com Vulkan 1.0 ou superior.</string>
     <string name="descriptor_indexing">Descriptor Indexing</string>
     <string name="descriptor_indexing_description">Indexação de Descritores: Melhora o processamento de texturas e buffers, assim como a camada de tradução Maxwell. Suportado por algumas GPUs Vulkan 1.1 e todas as GPUs Vulkan 1.2 ou superiores.</string>
-    <string name="sample_shading">Sample Shading</string>
-    <string name="sample_shading_description">Amostragem de Sombreamento: Permite que o shader de fragmento seja processado por cada amostra em fragmentos multiamostrados, em vez de executar uma vez por fragmento, melhorando a qualidade gráfica, porém impactando levemente o desempenho. Funciona apenas em dispositivos Vulkan 1.1 ou superiores.</string>
     <string name="sample_shading_fraction">Sample Shading Fraction</string>
     <string name="sample_shading_fraction_description">Fração de Sombreamento de Amostra: Define a intensidade do sample shading. Quanto maior, melhor a qualidade, mas maior o impacto no desempenho.</string>
 
