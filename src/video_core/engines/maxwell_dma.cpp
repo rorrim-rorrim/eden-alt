@@ -100,7 +100,7 @@ void MaxwellDMA::Launch() {
             if (component_size == 1 || component_size == 2 || component_size == 4) {
                 accelerate.BufferClear(regs.offset_out, regs.line_length_in, regs.remap_const.remap_consta_value);
                 read_buffer.resize_destructive(regs.line_length_in * component_size);
-                alignas(4) auto* data_ptr = read_buffer.data();
+                auto* data_ptr = read_buffer.data();
                 switch (component_size) {
                 case 1: {
                     std::ranges::fill(data_ptr, data_ptr + regs.line_length_in, static_cast<u8>(regs.remap_const.remap_consta_value & 0xFF));
