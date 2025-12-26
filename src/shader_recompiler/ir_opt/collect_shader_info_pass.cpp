@@ -805,6 +805,8 @@ void VisitFpModifiers(Info& info, IR::Inst& inst) {
         break;
     }
 
+...
+
     case IR::Opcode::FPAdd32:
     case IR::Opcode::FPFma32:
     case IR::Opcode::FPMul32:
@@ -852,6 +854,8 @@ void VisitFpModifiers(Info& info, IR::Inst& inst) {
         }
         break;
     }
+
+...
 
     case IR::Opcode::FPAdd64:
     case IR::Opcode::FPCeil64:
