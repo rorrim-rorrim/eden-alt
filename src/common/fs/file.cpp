@@ -250,8 +250,8 @@ FileType IOFile::GetType() const {
 }
 
 #ifdef __unix__
-int PlatformMapReadOnly(IOFile& io, const char* path) {
-    io.mmap_fd = open(path., O_RDONLY);
+static int PlatformMapReadOnly(IOFile& io, const char* path) {
+    io.mmap_fd = open(path, O_RDONLY);
     if (io.mmap_fd > 0) {
         struct stat st;
         fstat(io.mmap_fd, &st);
@@ -294,12 +294,12 @@ int PlatformMapReadOnly(IOFile& io, const char* path) {
             close(io.mmap_fd);
             io.mmap_fd = -1;
         } else {
-            posix_madvise(mmap_base, io.mmap_size, POSIX_MADV_WILLNEED);
+            posix_madvise(io.mmap_base, io.mmap_size, POSIX_MADV_WILLNEED);
         }
     }
     return io.mmap_fd;
 }
-void PlatformUnmap(IOFile& io) {
+static void PlatformUnmap(IOFile& io) {
     if (io.mmap_fd != -1) {
         munmap(io.mmap_base, io.mmap_size);
         close(io.mmap_fd);
@@ -307,7 +307,7 @@ void PlatformUnmap(IOFile& io) {
     }
 }
 #else
-int PlatformMapReadOnly(IOFile& io, const char* path) {
+static int PlatformMapReadOnly(IOFile& io, const char* path) {
     io.file_handle = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
     if (HANDLE(io.file_handle) != INVALID_HANDLE_VALUE) {
         io.mapping_handle = CreateFileMappingW(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
@@ -329,7 +329,7 @@ int PlatformMapReadOnly(IOFile& io, const char* path) {
     }
     return 0;
 }
-void PlatformUnmap(IOFile& io) {
+static void PlatformUnmap(IOFile& io) {
     if(io.mapping_handle) {
         if(io.mmap_base)
             UnmapViewOfFile(HANDLE(io.mmap_base));
