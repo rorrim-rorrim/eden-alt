@@ -93,6 +93,11 @@ Eden is not currently available as a port on FreeBSD, though it is in the works.
 
 The available OpenSSL port (3.0.17) is out-of-date, and using a bundled static library instead is recommended; to do so, add `-DYUZU_USE_BUNDLED_OPENSSL=ON` to your CMake configure command.
 
+Gamepad/controllers may not work on 15.0, this is due to an outdated SDL not responding well to the new `usbhid(2)` driver. To workaround this simply disable `usbhid(2)` (add the following to `/boot/loader.conf`):
+```sh
+hw.usb.usbhid.enable="0"
+```
+
 ## NetBSD
 
 Install `pkgin` if not already `pkg_add pkgin`, see also the general [pkgsrc guide](https://www.netbsd.org/docs/pkgsrc/using.html). For NetBSD 10.1 provide `echo 'PKG_PATH="https://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.0_2025Q3/All/"' >/etc/pkg_install.conf`. If `pkgin` is taking too much time consider adding the following to `/etc/rc.conf`:
@@ -196,14 +201,24 @@ windeployqt6 --no-compiler-runtime --no-opengl-sw --no-system-dxc-compiler \
 find ./*/ -name "*.dll" | while read -r dll; do deps "$dll"; done
 ```
 
-## Windows 8.1 and below
-
-DirectX 12 is not available - simply copy and paste a random DLL and name it `d3d12.dll`.
-
-Install [Qt6 compatibility libraries](github.com/ANightly/qt6windows7) specifically Qt 6.9.5.
-
 ## RedoxOS
 
 The package install may randomly hang at times, in which case it has to be restarted. ALWAYS do a `sudo pkg update` or the chances of it hanging will be close to 90%. If "multiple" installs fail at once, try installing 1 by 1 the packages.
 
 When CMake invokes certain file syscalls - it may sometimes cause crashes or corruptions on the (kernel?) address space - so reboot the system if there is a "hang" in CMake.
+
+## Windows
+
+### Windows 7, Windows 8 and Windows 8.1
+
+DirectX 12 is not available - simply copy and paste a random DLL and name it `d3d12.dll`.
+
+Install [Qt6 compatibility libraries](github.com/ANightly/qt6windows7) specifically Qt 6.9.5.
+
+### Windows Vista and below
+
+No support for Windows Vista (or below) is present at the moment. Check back later.
+
+### Windows on ARM
+
+If you're using Snapdragon X or 8CX, use the [the Vulkan translation layer](https://apps.microsoft.com/detail/9nqpsl29bfff?hl=en-us&gl=USE) only if the stock drivers do not work. And of course always keep your system up-to-date.
