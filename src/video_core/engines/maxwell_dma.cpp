@@ -100,24 +100,23 @@ void MaxwellDMA::Launch() {
             if (component_size == 1 || component_size == 2 || component_size == 4) {
                 accelerate.BufferClear(regs.offset_out, regs.line_length_in, regs.remap_const.remap_consta_value);
                 read_buffer.resize_destructive(regs.line_length_in * component_size);
-                auto* data_ptr = read_buffer.data();
                 switch (component_size) {
                 case 1: {
-                    std::ranges::fill(data_ptr, data_ptr + regs.line_length_in, static_cast<u8>(regs.remap_const.remap_consta_value & 0xFF));
+                    std::ranges::fill(read_buffer.data(), read_buffer.data() + regs.line_length_in, static_cast<u8>(regs.remap_const.remap_consta_value & 0xFF));
                     break;
                 }
                 case 2: {
-                    std::span<u16> span(reinterpret_cast<u16*>(data_ptr), regs.line_length_in);
+                    std::span<u16> span(reinterpret_cast<u16*>(read_buffer.data()), regs.line_length_in);
                     std::ranges::fill(span, static_cast<u16>(regs.remap_const.remap_consta_value & 0xFFFF));
                     break;
                 }
                 case 4: {
-                    std::span<u32> span(reinterpret_cast<u32*>(data_ptr), regs.line_length_in);
+                    std::span<u32> span(reinterpret_cast<u32*>(read_buffer.data()), regs.line_length_in);
                     std::ranges::fill(span, regs.remap_const.remap_consta_value);
                     break;
                 }
                 }
-                memory_manager.WriteBlockUnsafe(regs.offset_out, data_ptr, regs.line_length_in * component_size);
+                memory_manager.WriteBlockUnsafe(regs.offset_out, read_buffer.data(), regs.line_length_in * component_size);
             } else {
                 LOG_ERROR(Render_OpenGL, "Remap CONST_A with unsupported component size {} bytes", component_size);
             }
