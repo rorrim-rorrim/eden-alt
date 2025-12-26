@@ -22,19 +22,8 @@ struct Profile {
     bool support_int64{};
     bool support_vertex_instance_id{};
     bool support_float_controls{};
-    bool support_float_controls2{};
     bool support_separate_denorm_behavior{};
     bool support_separate_rounding_mode{};
-
-    /* Shader rounding mode support (SPV_KHR_float_controls floating rounding modes).
-     * These are set from VkPhysicalDeviceFloatControlsProperties/KHR/2KHR fields. */
-    bool support_shader_rounding_rte_f16{};
-    bool support_shader_rounding_rte_f32{};
-    bool support_shader_rounding_rte_f64{};
-    bool support_shader_rounding_rtz_f16{};
-    bool support_shader_rounding_rtz_f32{};
-    bool support_shader_rounding_rtz_f64{};
-
     bool support_fp16_denorm_preserve{};
     bool support_fp32_denorm_preserve{};
     bool support_fp16_denorm_flush{};
