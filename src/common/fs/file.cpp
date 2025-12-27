@@ -310,9 +310,9 @@ static void PlatformUnmap(IOFile& io) {
 static int PlatformMapReadOnly(IOFile& io, const char* path) {
     io.file_handle = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
     if (HANDLE(io.file_handle) != INVALID_HANDLE_VALUE) {
-        io.mapping_handle = CreateFileMappingW(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
+        io.mapping_handle = CreateFileMappingW(HANDLE(io.file_handle), nullptr, PAGE_READONLY, 0, 0, nullptr);
         if (io.mapping_handle) {
-            io.mmap_base = (char const*)MapViewOfFile(HANDLE(io.mapping_handle), FILE_MAP_READ, 0, 0, 0);
+            io.mmap_base = (u8*)MapViewOfFile(HANDLE(io.mapping_handle), FILE_MAP_READ, 0, 0, 0);
             if (io.mmap_base) {
                 _LARGE_INTEGER pvalue;
                 GetFileSizeEx(file_handle, &pvalue);
@@ -347,10 +347,19 @@ void IOFile::Open(const fs::path& path, FileAccessMode mode, FileType type, File
     file_type = type;
     errno = 0;
 #ifdef _WIN32
-    if (flag != FileShareFlag::ShareNone) {
-        file = _wfsopen(path.c_str(), AccessModeToWStr(mode, type), ToWindowsFileShareFlag(flag));
-    } else {
-        _wfopen_s(&file, path.c_str(), AccessModeToWStr(mode, type));
+    // TODO: this probably can use better logic but oh well I'm not a windowser
+    io.file_handle = nullptr;
+    if (type == FileType::BinaryFile && mode == FileAccessMode::Read) {
+        if (PlatformMapReadOnly(*this, path.c_str()) == -1) {
+            LOG_ERROR(Common_Filesystem, "Error mmap'ing file: {}", path.c_str());
+        }
+    }
+    if (io.file_handle == nullptr) {
+        if (flag != FileShareFlag::ShareNone) {
+            file = _wfsopen(path.c_str(), AccessModeToWStr(mode, type), ToWindowsFileShareFlag(flag));
+        } else {
+            _wfopen_s(&file, path.c_str(), AccessModeToWStr(mode, type));
+        }
     }
 #elif ANDROID
     if (Android::IsContentUri(path)) {
