@@ -27,7 +27,6 @@
     <string name="show_system_ram_usage_description">システムが使用しているRAMの量を表示</string>
     <string name="show_bat_temperature">バッテリー温度</string>
     <string name="show_bat_temperature_description">現在のバッテリー温度を表示</string>
-    <string name="bat_temperature_unit">バッテリー温度単位</string>
     <string name="show_power_info">バッテリー情報を表示</string>
     <string name="show_power_info_description">現在の電力消費量とバッテリー残量を表示</string>
     <string name="show_shaders_building">シェーダー構築を表示</string>
@@ -647,8 +646,6 @@
     <string name="gpu_high">高 (512)</string>
 
     <!-- Temperature Units -->
-    <string name="temperature_celsius">摂氏</string>
-    <string name="temperature_fahrenheit">華氏</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">B</string>

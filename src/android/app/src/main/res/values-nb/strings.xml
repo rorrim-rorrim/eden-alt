@@ -27,7 +27,6 @@
     <string name="show_system_ram_usage_description">Vis hvor mye RAM systemet bruker</string>
     <string name="show_bat_temperature">Vis batteritemperatur</string>
     <string name="show_bat_temperature_description">Vis gjeldende batteritemperatur</string>
-    <string name="bat_temperature_unit">Batteritemperatursenheter</string>
     <string name="show_power_info">Vis batteriinfo</string>
     <string name="show_power_info_description">Vis gjeldende strømforbruk og gjenværende batterikapasitet</string>
     <string name="show_shaders_building">Vis bygging av shadere</string>
@@ -625,8 +624,6 @@
     <string name="gpu_high">Høy (512)</string>
 
     <!-- Temperature Units -->
-    <string name="temperature_celsius">Celsius</string>
-    <string name="temperature_fahrenheit">Fahrenheit</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">B</string>

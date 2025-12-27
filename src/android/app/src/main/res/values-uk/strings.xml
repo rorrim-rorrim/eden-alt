@@ -51,7 +51,6 @@
     <string name="show_system_ram_usage_description">Показати обсяг оперативної пам\'яті, яку використовує система</string>
     <string name="show_bat_temperature">Показати температуру батареї</string>
     <string name="show_bat_temperature_description">Показати поточну температуру акумулятора</string>
-    <string name="bat_temperature_unit">Одиниці виміру температури акумулятора</string>
     <string name="show_power_info">Показати інформацію про акумулятор</string>
     <string name="show_power_info_description">Показати поточне споживання енергії та залишкову ємність акумулятора</string>
     <string name="show_shaders_building">Показати побудову шейдерів</string>
@@ -879,8 +878,6 @@
     <string name="gpu_high">Високий (512)</string>
 
     <!-- Temperature Units -->
-    <string name="temperature_celsius">Цельсій</string>
-    <string name="temperature_fahrenheit">Фаренгейт</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">Б</string>

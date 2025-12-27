@@ -127,13 +127,6 @@ namespace AndroidSettings {
                                                      Settings::Category::Overlay,
                                                      Settings::Specialization::Default, true, true,
                                                      &show_performance_overlay};
-        Settings::Setting<Settings::TemperatureUnits> bat_temperature_unit{linkage,
-                                                                           Settings::TemperatureUnits::Celsius,
-                                                                           "bat_temperature_unit",
-                                                                           Settings::Category::Overlay,
-                                                                           Settings::Specialization::Default,
-                                                                           true, true,
-                                                                           &show_bat_temperature};
         Settings::Setting<bool> show_power_info{linkage, false, "show_power_info",
                                                 Settings::Category::Overlay,
                                                 Settings::Specialization::Default, true, true,

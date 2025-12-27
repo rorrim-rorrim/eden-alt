@@ -48,7 +48,6 @@
     <string name="show_system_ram_usage_description">Tampilkan jumlah RAM yang digunakan oleh sistem</string>
     <string name="show_bat_temperature">Tampilkan Suhu Baterai</string>
     <string name="show_bat_temperature_description">Tampilkan suhu baterai saat ini</string>
-    <string name="bat_temperature_unit">Satuan Suhu Baterai</string>
     <string name="show_power_info">Tampilkan Info Baterai</string>
     <string name="show_power_info_description">Tampilkan pengeluaran daya saat ini dan kapasitas baterai yang tersisa</string>
     <string name="show_shaders_building">Tampilkan Pembuatan Shader</string>
@@ -791,8 +790,6 @@
     <string name="gpu_high">Tinggi (512)</string>
 
     <!-- Temperature Units -->
-    <string name="temperature_celsius">Celsius</string>
-    <string name="temperature_fahrenheit">Fahrenheit</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">B</string>

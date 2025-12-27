@@ -1168,17 +1168,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                     if (BooleanSetting.SHOW_BAT_TEMPERATURE.getBoolean(needsGlobal)) {
                         if (sb.isNotEmpty()) sb.append(" | ")
-
                         val batteryTemp = getBatteryTemperature()
-                        when (IntSetting.BAT_TEMPERATURE_UNIT.getInt(needsGlobal)) {
-                            0 -> sb.append(String.format("%.1f°C", batteryTemp))
-                            1 -> sb.append(
-                                String.format(
-                                    "%.1f°F",
-                                    celsiusToFahrenheit(batteryTemp)
-                                )
-                            )
-                        }
+                        sb.append(String.format("%.1f°C", batteryTemp))
                     }
 
                     if (BooleanSetting.SHOW_POWER_INFO.getBoolean(needsGlobal)) {
@@ -1286,10 +1277,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         } catch (e: Exception) {
             return 0.0f
         }
-    }
-
-    private fun celsiusToFahrenheit(celsius: Float): Float {
-        return (celsius * 9 / 5) + 32
     }
 
     private fun updateSocOverlay() {

@@ -150,7 +150,6 @@ ENUM(ConsoleMode, Handheld, Docked);
 ENUM(AppletMode, HLE, LLE);
 ENUM(SpirvOptimizeMode, Never, OnLoad, Always);
 ENUM(GpuOverclock, Low, Medium, High)
-ENUM(TemperatureUnits, Celsius, Fahrenheit)
 
 template <typename Type>
 inline std::string_view CanonicalizeEnum(Type id) {

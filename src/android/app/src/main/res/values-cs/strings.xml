@@ -27,7 +27,6 @@
     <string name="show_system_ram_usage_description">Zobrazit množství RAM využívané systémem</string>
     <string name="show_bat_temperature">Zobrazit teplotu baterie</string>
     <string name="show_bat_temperature_description">Zobrazit aktuální teplotu baterie</string>
-    <string name="bat_temperature_unit">Jednotky teploty baterie</string>
     <string name="show_power_info">Zobrazit informace o baterii</string>
     <string name="show_power_info_description">Zobrazit aktuální odběr energie a zbývající kapacitu baterie</string>
     <string name="show_shaders_building">Zobrazit vytváření shaderů</string>
@@ -602,8 +601,6 @@
     <string name="gpu_high">Vysoké (512)</string>
 
     <!-- Temperature Units -->
-    <string name="temperature_celsius">Celsia</string>
-    <string name="temperature_fahrenheit">Fahrenheita</string>
 
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>

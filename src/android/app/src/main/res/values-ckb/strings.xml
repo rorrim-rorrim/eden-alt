@@ -27,7 +27,6 @@
     <string name="show_system_ram_usage_description">نیشاندانی بڕی RAM کە سیستم بەکاردەهێنێت</string>
     <string name="show_bat_temperature">نیشاندانی پلەی گەرمی بەتری</string>
     <string name="show_bat_temperature_description">پیشاندانی پلەی گەرمی بەترییەکەی ئێستا</string>
-    <string name="bat_temperature_unit">یەکەکانی پلەی گەرمی بەتری</string>
     <string name="show_power_info">پیشاندانی زانیاری بەتری</string>
     <string name="show_power_info_description">پیشاندانی بەکارهێنانی وزە و توانای ماوە لەسەر بەتری</string>
     <string name="show_shaders_building">پیشاندانی دروستکردنی شادەرەکان</string>
@@ -612,8 +611,6 @@
     <string name="gpu_high">بەرز (512)</string>
 
     <!-- Temperature Units -->
-    <string name="temperature_celsius">سیلیزی</string>
-    <string name="temperature_fahrenheit">فارینهایت</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">B</string>

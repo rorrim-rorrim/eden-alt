@@ -56,7 +56,6 @@
     <string name="show_system_ram_usage_description">Display the amount of RAM used by the system</string>
     <string name="show_bat_temperature">Show Battery Temperature</string>
     <string name="show_bat_temperature_description">Display current battery temperature</string>
-    <string name="bat_temperature_unit">Battery Temperature Units</string>
     <string name="show_power_info">Show Battery Info</string>
     <string name="show_power_info_description">Display current power draw and remaining capacity on battery</string>
     <string name="show_shaders_building">Show Shaders Building</string>
@@ -886,8 +885,6 @@
     <string name="gpu_high">High (512)</string>
 
     <!-- Temperature Units -->
-    <string name="temperature_celsius">Celsius</string>
-    <string name="temperature_fahrenheit">Fahrenheit</string>
 
     <!-- Language Names -->
     <string name="language_japanese" translatable="false">日本語</string>

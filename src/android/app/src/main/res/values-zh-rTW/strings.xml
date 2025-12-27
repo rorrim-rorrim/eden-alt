@@ -51,7 +51,6 @@
     <string name="show_system_ram_usage_description">顯示系統使用的記憶體量</string>
     <string name="show_bat_temperature">顯示電池溫度</string>
     <string name="show_bat_temperature_description">顯示電池溫度</string>
-    <string name="bat_temperature_unit">電池溫度單位</string>
     <string name="show_power_info">顯示電池資訊</string>
     <string name="show_power_info_description">顯示當前功耗和電池可續航時間</string>
     <string name="show_shaders_building">當著色器在編譯時顯示</string>
@@ -873,8 +872,6 @@
     <string name="gpu_high">高 (512)</string>
 
     <!-- Temperature Units -->
-    <string name="temperature_celsius">攝氏度</string>
-    <string name="temperature_fahrenheit">華氏度</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">B</string>

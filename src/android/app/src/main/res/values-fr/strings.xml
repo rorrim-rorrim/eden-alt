@@ -48,7 +48,6 @@
     <string name="show_system_ram_usage_description">Afficher la quantité de RAM utilisée par le système</string>
     <string name="show_bat_temperature">Temp. batterie</string>
     <string name="show_bat_temperature_description">Afficher la température actuelle de la batterie</string>
-    <string name="bat_temperature_unit">Unités de température de batterie</string>
     <string name="show_power_info">Afficher les infos batterie</string>
     <string name="show_power_info_description">Afficher la consommation actuelle et la capacité restante de la batterie</string>
     <string name="show_shaders_building">Afficher la construction des shaders</string>
@@ -845,8 +844,6 @@
     <string name="gpu_high">Élevé (512)</string>
 
     <!-- Temperature Units -->
-    <string name="temperature_celsius">Celsius</string>
-    <string name="temperature_fahrenheit">Fahrenheit</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">B</string>

@@ -27,7 +27,6 @@
     <string name="show_system_ram_usage_description">Hiển thị lượng RAM được hệ thống sử dụng</string>
     <string name="show_bat_temperature">Hiển thị nhiệt độ pin</string>
     <string name="show_bat_temperature_description">Hiển thị nhiệt độ pin hiện tại</string>
-    <string name="bat_temperature_unit">Đơn vị nhiệt độ pin</string>
     <string name="show_power_info">Hiển thị thông tin pin</string>
     <string name="show_power_info_description">Hiển thị mức tiêu thụ điện hiện tại và dung lượng pin còn lại</string>
     <string name="show_shaders_building">Hiển thị xây dựng shader</string>
@@ -625,8 +624,6 @@
     <string name="gpu_high">Cao (512)</string>
 
     <!-- Temperature Units -->
-    <string name="temperature_celsius">Celsius</string>
-    <string name="temperature_fahrenheit">Fahrenheit</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">B</string>

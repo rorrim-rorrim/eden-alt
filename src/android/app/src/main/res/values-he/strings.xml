@@ -27,7 +27,6 @@
     <string name="show_system_ram_usage_description">הצג את כמות ה-RAM שבה המערכת משתמשת</string>
     <string name="show_bat_temperature">הצג טמפרטורת סוללה</string>
     <string name="show_bat_temperature_description">הצג טמפרטורת סוללה נוכחית</string>
-    <string name="bat_temperature_unit">יחידות טמפרטורת סוללה</string>
     <string name="show_power_info">הצג מידע סוללה</string>
     <string name="show_power_info_description">הצג צריכת חשמל נוכחית וקיבולת סוללה remaining</string>
     <string name="show_shaders_building">הצג בניית שיידרים</string>
@@ -647,8 +646,6 @@
     <string name="gpu_high">גבוה (512)</string>
 
     <!-- Temperature Units -->
-    <string name="temperature_celsius">צלזיוס</string>
-    <string name="temperature_fahrenheit">פרנהייט</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">B</string>

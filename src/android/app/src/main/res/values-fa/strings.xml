@@ -28,7 +28,6 @@
     <string name="show_system_ram_usage_description">نمایش میزان رم استفاده شده توسط سیستم</string>
     <string name="show_bat_temperature">نمایش دمای باتری</string>
     <string name="show_bat_temperature_description">نمایش دمای فعلی باتری</string>
-    <string name="bat_temperature_unit">واحدهای دمای باتری</string>
     <string name="show_power_info">نمایش اطلاعات باتری</string>
     <string name="show_power_info_description">نمایش مصرف فعلی برق و ظرفیت باقی‌مانده باتری</string>
     <string name="overlay_position">موقعیت اورلی</string>
@@ -95,8 +94,6 @@
     <string name="gpu_high">بالا (512)</string>
 
     <!-- Temperature Units -->
-    <string name="temperature_celsius">سلسیوس</string>
-    <string name="temperature_fahrenheit">فارنهایت</string>
 
     <string name="use_fast_cpu_time">زمان CPU سریع</string>
     <string name="use_fast_cpu_time_description">CPU شبیه‌سازی شده را مجبور می‌کند با سرعت کلاک بالاتر کار کند، که برخی محدودکننده‌های FPS را کاهش می‌دهد. این گزینه ناپایدار است و ممکن است باعث مشکلات شود و CPUهای ضعیف‌تر ممکن است کاهش عملکرد را تجربه کنند.</string>

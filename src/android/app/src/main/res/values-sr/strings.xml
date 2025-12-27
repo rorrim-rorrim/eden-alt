@@ -25,7 +25,6 @@
     <string name="show_system_ram_usage_description">Прикажите износ РАМ-а који користи систем</string>
     <string name="show_bat_temperature">Прикажи температуру батерије</string>
     <string name="show_bat_temperature_description">Прикажи тренутну температуру батерије</string>
-    <string name="bat_temperature_unit">Јединице за температуру батерије</string>
     <string name="show_power_info">Прикажи информације о батерији</string>
     <string name="show_power_info_description">Приказ тренутне потрошње енергије и преостали капацитет батерије</string>
     <string name="show_shaders_building">Прикажи Схадерс Буилдинг</string>
@@ -751,8 +750,6 @@
     <string name="gpu_high">Висок (512)</string>
 
     <!-- Temperature Units -->
-    <string name="temperature_celsius">Целзијус</string>
-    <string name="temperature_fahrenheit">Фаренхајт</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">Б</string>

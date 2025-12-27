@@ -455,14 +455,6 @@ abstract class SettingsItem(
                 )
             )
             put(
-                SingleChoiceSetting(
-                    IntSetting.BAT_TEMPERATURE_UNIT,
-                    R.string.bat_temperature_unit,
-                    choicesId = R.array.temperatureUnitEntries,
-                    valuesId = R.array.temperatureUnitValues
-                )
-            )
-            put(
                 SwitchSetting(
                     BooleanSetting.SHOW_POWER_INFO,
                     R.string.show_power_info,

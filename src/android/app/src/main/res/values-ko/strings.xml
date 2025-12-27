@@ -27,7 +27,6 @@
     <string name="show_system_ram_usage_description">시스템이 사용 중인 RAM 양 표시</string>
     <string name="show_bat_temperature">배터리 온도 표시</string>
     <string name="show_bat_temperature_description">현재 배터리 온도 표시</string>
-    <string name="bat_temperature_unit">배터리 온도 단위</string>
     <string name="show_power_info">배터리 정보 표시</string>
     <string name="show_power_info_description">현재 전력 소모량 및 배터리 잔량 표시</string>
     <string name="show_shaders_building">셰이더 빌드 표시</string>
@@ -701,8 +700,6 @@
     <string name="gpu_high">높음 (512)</string>
 
     <!-- Temperature Units -->
-    <string name="temperature_celsius">섭씨</string>
-    <string name="temperature_fahrenheit">화씨</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">B</string>

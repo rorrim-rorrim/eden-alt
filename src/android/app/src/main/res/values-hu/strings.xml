@@ -27,7 +27,6 @@
     <string name="show_system_ram_usage_description">A rendszer által használt RAM mennyiségének megjelenítése</string>
     <string name="show_bat_temperature">Akkumulátor hőmérséklet</string>
     <string name="show_bat_temperature_description">Az akkumulátor jelenlegi hőmérsékletének megjelenítése</string>
-    <string name="bat_temperature_unit">Akkumulátor hőmérséklet egységek</string>
     <string name="show_power_info">Akkumulátor információk</string>
     <string name="show_power_info_description">Jelenlegi energiafelhasználás és remaining kapacitás megjelenítése</string>
     <string name="show_shaders_building">Shader-építés megjelenítése</string>
@@ -742,8 +741,6 @@
     <string name="gpu_high">Magas (512)</string>
 
     <!-- Temperature Units -->
-    <string name="temperature_celsius">Celsius</string>
-    <string name="temperature_fahrenheit">Fahrenheit</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">B</string>

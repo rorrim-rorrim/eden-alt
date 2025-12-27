@@ -51,7 +51,6 @@
     <string name="show_system_ram_usage_description">عرض كمية ذاكرة الوصول العشوائي المستخدمة من قبل النظام</string>
     <string name="show_bat_temperature">عرض درجة حرارة البطارية</string>
     <string name="show_bat_temperature_description">عرض درجة حرارة البطارية الحالية</string>
-    <string name="bat_temperature_unit">وحدات قياس درجة حرارة البطارية</string>
     <string name="show_power_info">عرض معلومات البطارية</string>
     <string name="show_power_info_description">عرض استهلاك الطاقة الحالي والسعة المتبقية في البطارية</string>
     <string name="show_shaders_building">عرض بناء التظليل</string>
@@ -883,8 +882,6 @@
     <string name="gpu_high">مرتفع (512)</string>
 
     <!-- Temperature Units -->
-    <string name="temperature_celsius">مئوية</string>
-    <string name="temperature_fahrenheit">فهرنهايت</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">بت</string>

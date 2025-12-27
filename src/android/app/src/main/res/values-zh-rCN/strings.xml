@@ -48,7 +48,6 @@
     <string name="show_system_ram_usage_description">显示系统使用的内存量</string>
     <string name="show_bat_temperature">显示电池温度</string>
     <string name="show_bat_temperature_description">显示当前电池温度</string>
-    <string name="bat_temperature_unit">电池温度单位</string>
     <string name="show_power_info">显示电池信息</string>
     <string name="show_power_info_description">显示当前功耗和电池剩余容量</string>
     <string name="show_shaders_building">显示着色器构建</string>
@@ -870,8 +869,6 @@
     <string name="gpu_high">高 (512)</string>
 
     <!-- Temperature Units -->
-    <string name="temperature_celsius">摄氏度</string>
-    <string name="temperature_fahrenheit">华氏度</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">B</string>
