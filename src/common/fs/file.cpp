@@ -249,7 +249,7 @@ FileType IOFile::GetType() const {
     return file_type;
 }
 
-#ifdef __unix__
+#if defined(__unix__)
 static int PlatformMapReadOnly(IOFile& io, const char* path) {
     io.mmap_fd = open(path, O_RDONLY);
     if (io.mmap_fd > 0) {
@@ -306,8 +306,10 @@ static void PlatformUnmap(IOFile& io) {
         io.mmap_fd = -1;
     }
 }
+#elif defined(__APPLE__)
+// NO IMPLEMENTATION YET
 #else
-static int PlatformMapReadOnly(IOFile& io, const char* path) {
+static int PlatformMapReadOnly(IOFile& io, const wchar_t* path) {
     io.file_handle = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
     if (HANDLE(io.file_handle) != INVALID_HANDLE_VALUE) {
         io.mapping_handle = CreateFileMappingW(HANDLE(io.file_handle), nullptr, PAGE_READONLY, 0, 0, nullptr);
@@ -315,7 +317,7 @@ static int PlatformMapReadOnly(IOFile& io, const char* path) {
             io.mmap_base = (u8*)MapViewOfFile(HANDLE(io.mapping_handle), FILE_MAP_READ, 0, 0, 0);
             if (io.mmap_base) {
                 _LARGE_INTEGER pvalue;
-                GetFileSizeEx(file_handle, &pvalue);
+                GetFileSizeEx(io.file_handle, &pvalue);
                 io.mmap_size = uint32_t(pvalue.QuadPart);
             } else {
                 CloseHandle(io.mapping_handle);
