@@ -36,8 +36,9 @@ enum class Type {
 
 template <class DeviceTracker, size_t stack_words, size_t size_bytes>
 struct WordManager {
+    static constexpr size_t num_words = Common::DivCeil(size_bytes, BYTES_PER_WORD);
+
     explicit WordManager(VAddr cpu_addr_, DeviceTracker& tracker_) : tracker{&tracker_}, cpu_addr{cpu_addr_} {
-        auto const num_words = Common::DivCeil(size_bytes, BYTES_PER_WORD);
         std::fill_n(heap.data() + size_t(Type::CPU) * num_words, num_words, ~u64{0});
         std::fill_n(heap.data() + size_t(Type::Untracked) * num_words, num_words, ~u64{0});
         // Clean up tailing bits
@@ -73,7 +74,6 @@ struct WordManager {
         if (!(start >= size_bytes || end <= start)) {
             auto [start_word, start_page] = GetWordPage(start);
             auto [end_word, end_page] = GetWordPage(end + BYTES_PER_PAGE - 1ULL);
-            const size_t num_words = NumWords();
             start_word = (std::min)(start_word, num_words);
             end_word = (std::min)(end_word, num_words);
             const size_t diff = end_word - start_word;
@@ -313,20 +313,15 @@ private:
         });
     }
 
-    /// Returns the number of words of the buffer
-    [[nodiscard]] size_t NumWords() const noexcept {
-        return heap.size() / size_t(Type::Max);
-    }
-
     std::span<u64> Span(Type type) noexcept {
-        return std::span<u64>(heap.data() + NumWords() * size_t(type), NumWords());
+        return std::span<u64>(heap.data() + num_words * size_t(type), num_words);
     }
 
     std::span<const u64> Span(Type type) const noexcept {
-        return std::span<const u64>(heap.data() + NumWords() * size_t(type), NumWords());
+        return std::span<const u64>(heap.data() + num_words * size_t(type), num_words);
     }
 
-    std::array<u64, Common::DivCeil(size_bytes, BYTES_PER_WORD)> heap = {};
+    std::array<u64, size_t(Type::Max) * num_words> heap = {};
     DeviceTracker* tracker = nullptr;
     VAddr cpu_addr = 0;
 };
