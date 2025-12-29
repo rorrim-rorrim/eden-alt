@@ -148,14 +148,17 @@
     },
     "cubeb": {
         "repo": "mozilla/cubeb",
-        "sha": "fa02160712",
-        "hash": "8a4bcb2f83ba590f52c66626e895304a73eb61928dbc57777e1822e55378e3568366f17f9da4b80036cc2ef4ea9723c32abf6e7d9bbe00fb03654f0991596ab0",
+        "sha": "bed368eb0d",
+        "hash": "b18f92788bab40f620771e1fe74adbe434d39362a33fd472bbafa3eb838599d1190a0e03b9f2623054168787fd42f1000668a30430f8ad8d234918efbdb3eba2",
         "find_args": "CONFIG",
         "options": [
             "USE_SANITIZERS OFF",
             "BUILD_TESTS OFF",
             "BUILD_TOOLS OFF",
             "BUNDLE_SPEEX ON"
+        ],
+        "patches": [
+            "0001-fix-freebsd-include.patch"
         ]
     },
     "sdl2": {
