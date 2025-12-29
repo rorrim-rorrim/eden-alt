@@ -240,22 +240,18 @@ private:
     }
 
     Manager* GetNewManager(VAddr base_cpu_address) {
-        const auto on_return = [&] {
-            auto* new_manager = free_managers.front();
-            new_manager->cpu_addr = base_cpu_address;
-            free_managers.pop_front();
-            return new_manager;
-        };
-        if (!free_managers.empty()) {
-            return on_return();
+        if (free_managers.empty()) {
+            manager_pool.emplace_back();
+            auto& last_pool = manager_pool.back();
+            for (size_t i = 0; i < MANAGER_POOL_SIZE; i++) {
+                new (&last_pool[i]) Manager(0, *device_tracker);
+                free_managers.push_back(&last_pool[i]);
+            }
         }
-        manager_pool.emplace_back();
-        auto& last_pool = manager_pool.back();
-        for (size_t i = 0; i < MANAGER_POOL_SIZE; i++) {
-            new (&last_pool[i]) Manager(0, *device_tracker);
-            free_managers.push_back(&last_pool[i]);
-        }
-        return on_return();
+        Manager* new_manager = free_managers.front();
+        new_manager->cpu_addr = base_cpu_address;
+        free_managers.pop_front();
+        return new_manager;
     }
 
     std::array<Manager*, NUM_HIGH_PAGES> top_tier{};
