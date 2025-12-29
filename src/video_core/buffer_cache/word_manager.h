@@ -34,10 +34,10 @@ enum class Type {
     Max
 };
 
-struct Words {
-    explicit Words(u64 size_bytes_) : size_bytes{size_bytes_} {
+template <class DeviceTracker, size_t stack_words, size_t size_bytes>
+struct WordManager {
+    explicit WordManager(VAddr cpu_addr_, DeviceTracker& tracker_) : tracker{&tracker_}, cpu_addr{cpu_addr_} {
         auto const num_words = Common::DivCeil(size_bytes, BYTES_PER_WORD);
-        heap.resize(num_words * size_t(Type::Max), 0);
         std::fill_n(heap.data() + size_t(Type::CPU) * num_words, num_words, ~u64{0});
         std::fill_n(heap.data() + size_t(Type::Untracked) * num_words, num_words, ~u64{0});
         // Clean up tailing bits
@@ -48,38 +48,7 @@ struct Words {
         heap[num_words * size_t(Type::CPU) + num_words - 1] = last_word;
         heap[num_words * size_t(Type::Untracked) + num_words - 1] = last_word;
     }
-    explicit Words() = default;
-
-    /// Returns the number of words of the buffer
-    [[nodiscard]] size_t NumWords() const noexcept {
-        return heap.size() / size_t(Type::Max);
-    }
-
-    std::span<u64> Span(Type type) noexcept {
-        return std::span<u64>(heap.data() + NumWords() * size_t(type), NumWords());
-    }
-
-    std::span<const u64> Span(Type type) const noexcept {
-        return std::span<const u64>(heap.data() + NumWords() * size_t(type), NumWords());
-    }
-
-    u64 size_bytes = 0;
-    std::vector<u64> heap;
-};
-
-template <class DeviceTracker, size_t stack_words = 1>
-class WordManager {
-public:
-    explicit WordManager(VAddr cpu_addr_, DeviceTracker& tracker_, u64 size_bytes) : cpu_addr{cpu_addr_}, tracker{&tracker_}, words{size_bytes} {}
     explicit WordManager() = default;
-
-    void SetCpuAddress(VAddr new_cpu_addr) {
-        cpu_addr = new_cpu_addr;
-    }
-
-    VAddr GetCpuAddr() const {
-        return cpu_addr;
-    }
 
     static u64 ExtractBits(u64 word, size_t page_start, size_t page_end) {
         constexpr size_t number_bits = sizeof(u64) * 8;
@@ -101,10 +70,10 @@ public:
         using FuncReturn = std::invoke_result_t<Func, std::size_t, u64>;
         const size_t start = size_t(std::max<s64>(s64(offset), 0LL));
         const size_t end = size_t(std::max<s64>(s64(offset + size), 0LL));
-        if (!(start >= words.size_bytes || end <= start)) {
+        if (!(start >= size_bytes || end <= start)) {
             auto [start_word, start_page] = GetWordPage(start);
             auto [end_word, end_page] = GetWordPage(end + BYTES_PER_PAGE - 1ULL);
-            const size_t num_words = words.NumWords();
+            const size_t num_words = NumWords();
             start_word = (std::min)(start_word, num_words);
             end_word = (std::min)(end_word, num_words);
             const size_t diff = end_word - start_word;
@@ -184,9 +153,9 @@ public:
     template <typename Func>
     void ForEachModifiedRange(Type type, bool clear, VAddr query_cpu_range, s64 size, Func&& func) {
         //static_assert(type != Type::Untracked);
-        std::span<u64> state_words = words.Span(type);
-        std::span<u64> untracked_words = words.Span(Type::Untracked);
-        std::span<u64> cached_words = words.Span(Type::CachedCPU);
+        std::span<u64> state_words = Span(type);
+        std::span<u64> untracked_words = Span(Type::Untracked);
+        std::span<u64> cached_words = Span(Type::CachedCPU);
         size_t const offset = query_cpu_range - cpu_addr;
         bool pending = false;
         size_t pending_offset{};
@@ -239,8 +208,8 @@ public:
     /// @param size   Size in bytes of the region to query for modifications
     [[nodiscard]] bool IsRegionModified(Type type, u64 offset, u64 size) const noexcept {
         //static_assert(type != Type::Untracked);
-        const std::span<const u64> state_words = words.Span(type);
-        const std::span<const u64> untracked_words = words.Span(Type::Untracked);
+        const std::span<const u64> state_words = Span(type);
+        const std::span<const u64> untracked_words = Span(Type::Untracked);
         bool result = false;
         IterateWords(offset, size, [&](size_t index, u64 mask) {
             if (type == Type::GPU)
@@ -255,8 +224,8 @@ public:
     /// @param size   Size in bytes of the region to query for modifications
     [[nodiscard]] std::pair<u64, u64> ModifiedRegion(Type type, u64 offset, u64 size) const noexcept {
         //static_assert(type != Type::Untracked);
-        const std::span<const u64> state_words = words.Span(type);
-        const std::span<const u64> untracked_words = words.Span(Type::Untracked);
+        const std::span<const u64> state_words = Span(type);
+        const std::span<const u64> untracked_words = Span(Type::Untracked);
         u64 begin = (std::numeric_limits<u64>::max)(), end = 0;
         IterateWords(offset, size, [&](size_t index, u64 mask) {
             if (type == Type::GPU)
@@ -344,9 +313,22 @@ private:
         });
     }
 
-    VAddr cpu_addr = 0;
+    /// Returns the number of words of the buffer
+    [[nodiscard]] size_t NumWords() const noexcept {
+        return heap.size() / size_t(Type::Max);
+    }
+
+    std::span<u64> Span(Type type) noexcept {
+        return std::span<u64>(heap.data() + NumWords() * size_t(type), NumWords());
+    }
+
+    std::span<const u64> Span(Type type) const noexcept {
+        return std::span<const u64>(heap.data() + NumWords() * size_t(type), NumWords());
+    }
+
+    std::array<u64, Common::DivCeil(size_bytes, BYTES_PER_WORD)> heap = {};
     DeviceTracker* tracker = nullptr;
-    Words words;
+    VAddr cpu_addr = 0;
 };
 
 } // namespace VideoCommon
