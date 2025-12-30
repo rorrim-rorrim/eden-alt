@@ -266,18 +266,17 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
 }
 
 size_t GetTotalPipelineWorkers() {
-    const size_t max_core_threads =
-        std::max<size_t>(static_cast<size_t>(std::thread::hardware_concurrency()), 2ULL) - 1ULL;
+    size_t max_core_threads = std::max<size_t>(size_t(std::thread::hardware_concurrency()), 2ULL);
 #ifdef ANDROID
     // Leave at least a few cores free in android
     constexpr size_t free_cores = 3ULL;
-    if (max_core_threads <= free_cores) {
+    max_core_threads -= 1ULL;
+    if (max_core_threads <= free_cores)
         return 1ULL;
-    }
-    return max_core_threads - free_cores;
 #else
-    return max_core_threads;
+    constexpr size_t free_cores = 0ULL;
 #endif
+    return max_core_threads - free_cores;
 }
 
 } // Anonymous namespace
