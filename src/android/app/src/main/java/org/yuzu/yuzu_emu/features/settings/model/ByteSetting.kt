@@ -6,8 +6,7 @@ package org.yuzu.yuzu_emu.features.settings.model
 import org.yuzu.yuzu_emu.utils.NativeConfig
 
 enum class ByteSetting(override val key: String) : AbstractByteSetting {
-    AUDIO_VOLUME("volume"),
-    RENDERER_DYNA_STATE("dyna_state");
+    AUDIO_VOLUME("volume"),;
 
     override fun getByte(needsGlobal: Boolean): Byte = NativeConfig.getByte(key, needsGlobal)
 
