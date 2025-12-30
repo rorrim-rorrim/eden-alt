@@ -667,13 +667,13 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     }
 
     if (should_launch_setup) {
-        LaunchFirmwareApplet(Service::AM::AppletProgramId::Starter, std::nullopt);
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Starter), std::nullopt);
     } else {
         if (!game_path.isEmpty()) {
             BootGame(game_path, ApplicationAppletParameters());
         } else {
             if (should_launch_qlaunch) {
-                LaunchFirmwareApplet(Service::AM::AppletProgramId::QLaunch, std::nullopt);
+                LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::QLaunch), std::nullopt);
             }
         }
     }
@@ -1621,32 +1621,32 @@ void MainWindow::ConnectMenuEvents() {
 
     // Tools
     connect_menu(ui->action_Launch_PhotoViewer, [this]{
-        LaunchFirmwareApplet(Service::AM::AppletProgramId::PhotoViewer, std::nullopt);
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::PhotoViewer), std::nullopt);
     });
     connect_menu(ui->action_Launch_MiiEdit, [this]{
-        LaunchFirmwareApplet(Service::AM::AppletProgramId::MiiEdit, std::nullopt);
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::MiiEdit), std::nullopt);
     });
     connect_menu(ui->action_Launch_Controller, [this]{
-        LaunchFirmwareApplet(Service::AM::AppletProgramId::Controller, std::nullopt);
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Controller), std::nullopt);
     });
     connect_menu(ui->action_Launch_QLaunch, [this]{
-        LaunchFirmwareApplet(Service::AM::AppletProgramId::QLaunch, std::nullopt);
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::QLaunch), std::nullopt);
     });
     connect_menu(ui->action_Launch_Setup, [this]{
-        LaunchFirmwareApplet(Service::AM::AppletProgramId::Starter, std::nullopt);
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Starter), std::nullopt);
     });
     // Tools (cabinet)
     connect_menu(ui->action_Launch_Cabinet_Nickname_Owner, [this]{
-        LaunchFirmwareApplet(Service::AM::AppletProgramId::Cabinet, {Service::NFP::CabinetMode::StartNicknameAndOwnerSettings});
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Cabinet), {Service::NFP::CabinetMode::StartNicknameAndOwnerSettings});
     });
     connect_menu(ui->action_Launch_Cabinet_Eraser, [this]{
-        LaunchFirmwareApplet(Service::AM::AppletProgramId::Cabinet, {Service::NFP::CabinetMode::StartGameDataEraser});
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Cabinet), {Service::NFP::CabinetMode::StartGameDataEraser});
     });
     connect_menu(ui->action_Launch_Cabinet_Restorer, [this]{
-        LaunchFirmwareApplet(Service::AM::AppletProgramId::Cabinet, {Service::NFP::CabinetMode::StartRestorer});
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Cabinet), {Service::NFP::CabinetMode::StartRestorer});
     });
     connect_menu(ui->action_Launch_Cabinet_Formatter, [this]{
-        LaunchFirmwareApplet(Service::AM::AppletProgramId::Cabinet, {Service::NFP::CabinetMode::StartFormatter});
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Cabinet), {Service::NFP::CabinetMode::StartFormatter});
     });
 
     connect_menu(ui->action_Desktop, &MainWindow::OnCreateHomeMenuDesktopShortcut);
@@ -3924,7 +3924,8 @@ void MainWindow::OnGameListRefresh()
 }
 
 
-void MainWindow::LaunchFirmwareApplet(Service::AM::AppletProgramId program_id, std::optional<Service::NFP::CabinetMode> cabinet_mode) {
+void MainWindow::LaunchFirmwareApplet(u64 raw_program_id, std::optional<Service::NFP::CabinetMode> cabinet_mode) {
+    auto const program_id = Service::AM::AppletProgramId(raw_program_id);
     auto result = FirmwareManager::VerifyFirmware(*QtCommon::system.get());
     using namespace QtCommon::StringLookup;
     switch (result) {
@@ -3963,14 +3964,14 @@ void MainWindow::LaunchFirmwareApplet(Service::AM::AppletProgramId program_id, s
             case AppletProgramId::WebAuth: return AppletId::WebAuth;
             case AppletProgramId::MyPage: return AppletId::MyPage;
             default: return AppletId::None;
-    }
+        }
         }(); applet_id != Service::AM::AppletId::None) {
             QtCommon::system->GetFrontendAppletHolder().SetCurrentAppletId(applet_id);
             if (cabinet_mode)
                 QtCommon::system->GetFrontendAppletHolder().SetCabinetMode(*cabinet_mode);
             // ?
             auto const filename = QString::fromStdString((applet_nca->GetFullPath()));
-    UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
+            UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
             BootGame(filename, LibraryAppletParameters(u64(program_id), applet_id));
         } else {
             QMessageBox::warning(this, tr("Unknown applet"), tr("Applet doesn't map to a known value."));
