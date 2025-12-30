@@ -101,7 +101,7 @@ class InputSubsystem;
 namespace Service::AM {
 struct FrontendAppletParameters;
 enum class AppletId : u32;
-enum class AppletProgramId : u64;
+// this causes errors on debian -> enum class AppletProgramId : u64;
 } // namespace Service::AM
 
 namespace Service::AM::Frontend {
@@ -400,7 +400,7 @@ private slots:
     void ResetWindowSize720();
     void ResetWindowSize900();
     void ResetWindowSize1080();
-    void LaunchFirmwareApplet(Service::AM::AppletProgramId program_id, std::optional<Service::NFP::CabinetMode> mode);
+    void LaunchFirmwareApplet(u64 program_id, std::optional<Service::NFP::CabinetMode> mode);
     void OnCreateHomeMenuDesktopShortcut();
     void OnCreateHomeMenuApplicationMenuShortcut();
     void OnCaptureScreenshot();
