@@ -17,210 +17,113 @@ struct fmt::formatter<VideoCore::Surface::PixelFormat> : fmt::formatter<fmt::str
         using VideoCore::Surface::PixelFormat;
         const string_view name = [format] {
             switch (format) {
-            case PixelFormat::A8B8G8R8_UNORM:
-                return "A8B8G8R8_UNORM";
-            case PixelFormat::A8B8G8R8_SNORM:
-                return "A8B8G8R8_SNORM";
-            case PixelFormat::A8B8G8R8_SINT:
-                return "A8B8G8R8_SINT";
-            case PixelFormat::A8B8G8R8_UINT:
-                return "A8B8G8R8_UINT";
-            case PixelFormat::R5G6B5_UNORM:
-                return "R5G6B5_UNORM";
-            case PixelFormat::B5G6R5_UNORM:
-                return "B5G6R5_UNORM";
-            case PixelFormat::A1R5G5B5_UNORM:
-                return "A1R5G5B5_UNORM";
-            case PixelFormat::A2B10G10R10_UNORM:
-                return "A2B10G10R10_UNORM";
-            case PixelFormat::A2B10G10R10_UINT:
-                return "A2B10G10R10_UINT";
-            case PixelFormat::A2R10G10B10_UNORM:
-                return "A2R10G10B10_UNORM";
-            case PixelFormat::A1B5G5R5_UNORM:
-                return "A1B5G5R5_UNORM";
-            case PixelFormat::A5B5G5R1_UNORM:
-                return "A5B5G5R1_UNORM";
-            case PixelFormat::R8_UNORM:
-                return "R8_UNORM";
-            case PixelFormat::R8_SNORM:
-                return "R8_SNORM";
-            case PixelFormat::R8_SINT:
-                return "R8_SINT";
-            case PixelFormat::R8_UINT:
-                return "R8_UINT";
-            case PixelFormat::R16G16B16A16_FLOAT:
-                return "R16G16B16A16_FLOAT";
-            case PixelFormat::R16G16B16A16_UNORM:
-                return "R16G16B16A16_UNORM";
-            case PixelFormat::R16G16B16A16_SNORM:
-                return "R16G16B16A16_SNORM";
-            case PixelFormat::R16G16B16A16_SINT:
-                return "R16G16B16A16_SINT";
-            case PixelFormat::R16G16B16A16_UINT:
-                return "R16G16B16A16_UINT";
-            case PixelFormat::B10G11R11_FLOAT:
-                return "B10G11R11_FLOAT";
-            case PixelFormat::R32G32B32A32_UINT:
-                return "R32G32B32A32_UINT";
-            case PixelFormat::BC1_RGBA_UNORM:
-                return "BC1_RGBA_UNORM";
-            case PixelFormat::BC2_UNORM:
-                return "BC2_UNORM";
-            case PixelFormat::BC3_UNORM:
-                return "BC3_UNORM";
-            case PixelFormat::BC4_UNORM:
-                return "BC4_UNORM";
-            case PixelFormat::BC4_SNORM:
-                return "BC4_SNORM";
-            case PixelFormat::BC5_UNORM:
-                return "BC5_UNORM";
-            case PixelFormat::BC5_SNORM:
-                return "BC5_SNORM";
-            case PixelFormat::BC7_UNORM:
-                return "BC7_UNORM";
-            case PixelFormat::BC6H_UFLOAT:
-                return "BC6H_UFLOAT";
-            case PixelFormat::BC6H_SFLOAT:
-                return "BC6H_SFLOAT";
-            case PixelFormat::ASTC_2D_4X4_UNORM:
-                return "ASTC_2D_4X4_UNORM";
-            case PixelFormat::B8G8R8A8_UNORM:
-                return "B8G8R8A8_UNORM";
-            case PixelFormat::R32G32B32A32_FLOAT:
-                return "R32G32B32A32_FLOAT";
-            case PixelFormat::R32G32B32A32_SINT:
-                return "R32G32B32A32_SINT";
-            case PixelFormat::R32G32_FLOAT:
-                return "R32G32_FLOAT";
-            case PixelFormat::R32G32_SINT:
-                return "R32G32_SINT";
-            case PixelFormat::R32_FLOAT:
-                return "R32_FLOAT";
-            case PixelFormat::R16_FLOAT:
-                return "R16_FLOAT";
-            case PixelFormat::R16_UNORM:
-                return "R16_UNORM";
-            case PixelFormat::R16_SNORM:
-                return "R16_SNORM";
-            case PixelFormat::R16_UINT:
-                return "R16_UINT";
-            case PixelFormat::R16_SINT:
-                return "R16_SINT";
-            case PixelFormat::R16G16_UNORM:
-                return "R16G16_UNORM";
-            case PixelFormat::R16G16_FLOAT:
-                return "R16G16_FLOAT";
-            case PixelFormat::R16G16_UINT:
-                return "R16G16_UINT";
-            case PixelFormat::R16G16_SINT:
-                return "R16G16_SINT";
-            case PixelFormat::R16G16_SNORM:
-                return "R16G16_SNORM";
-            case PixelFormat::R32G32B32_FLOAT:
-                return "R32G32B32_FLOAT";
-            case PixelFormat::A8B8G8R8_SRGB:
-                return "A8B8G8R8_SRGB";
-            case PixelFormat::R8G8_UNORM:
-                return "R8G8_UNORM";
-            case PixelFormat::R8G8_SNORM:
-                return "R8G8_SNORM";
-            case PixelFormat::R8G8_SINT:
-                return "R8G8_SINT";
-            case PixelFormat::R8G8_UINT:
-                return "R8G8_UINT";
-            case PixelFormat::R32G32_UINT:
-                return "R32G32_UINT";
-            case PixelFormat::R16G16B16X16_FLOAT:
-                return "R16G16B16X16_FLOAT";
-            case PixelFormat::R32_UINT:
-                return "R32_UINT";
-            case PixelFormat::R32_SINT:
-                return "R32_SINT";
-            case PixelFormat::ASTC_2D_8X8_UNORM:
-                return "ASTC_2D_8X8_UNORM";
-            case PixelFormat::ASTC_2D_8X5_UNORM:
-                return "ASTC_2D_8X5_UNORM";
-            case PixelFormat::ASTC_2D_5X4_UNORM:
-                return "ASTC_2D_5X4_UNORM";
-            case PixelFormat::B8G8R8A8_SRGB:
-                return "B8G8R8A8_SRGB";
-            case PixelFormat::BC1_RGBA_SRGB:
-                return "BC1_RGBA_SRGB";
-            case PixelFormat::BC2_SRGB:
-                return "BC2_SRGB";
-            case PixelFormat::BC3_SRGB:
-                return "BC3_SRGB";
-            case PixelFormat::BC7_SRGB:
-                return "BC7_SRGB";
-            case PixelFormat::A4B4G4R4_UNORM:
-                return "A4B4G4R4_UNORM";
-            case PixelFormat::G4R4_UNORM:
-                return "G4R4_UNORM";
-            case PixelFormat::ASTC_2D_4X4_SRGB:
-                return "ASTC_2D_4X4_SRGB";
-            case PixelFormat::ASTC_2D_8X8_SRGB:
-                return "ASTC_2D_8X8_SRGB";
-            case PixelFormat::ASTC_2D_8X5_SRGB:
-                return "ASTC_2D_8X5_SRGB";
-            case PixelFormat::ASTC_2D_5X4_SRGB:
-                return "ASTC_2D_5X4_SRGB";
-            case PixelFormat::ASTC_2D_5X5_UNORM:
-                return "ASTC_2D_5X5_UNORM";
-            case PixelFormat::ASTC_2D_5X5_SRGB:
-                return "ASTC_2D_5X5_SRGB";
-            case PixelFormat::ASTC_2D_10X8_UNORM:
-                return "ASTC_2D_10X8_UNORM";
-            case PixelFormat::ASTC_2D_10X8_SRGB:
-                return "ASTC_2D_10X8_SRGB";
-            case PixelFormat::ASTC_2D_6X6_UNORM:
-                return "ASTC_2D_6X6_UNORM";
-            case PixelFormat::ASTC_2D_6X6_SRGB:
-                return "ASTC_2D_6X6_SRGB";
-            case PixelFormat::ASTC_2D_10X6_UNORM:
-                return "ASTC_2D_10X6_UNORM";
-            case PixelFormat::ASTC_2D_10X6_SRGB:
-                return "ASTC_2D_10X6_SRGB";
-            case PixelFormat::ASTC_2D_10X5_UNORM:
-                return "ASTC_2D_10X5_UNORM";
-            case PixelFormat::ASTC_2D_10X5_SRGB:
-                return "ASTC_2D_10X5_SRGB";
-            case PixelFormat::ASTC_2D_10X10_UNORM:
-                return "ASTC_2D_10X10_UNORM";
-            case PixelFormat::ASTC_2D_10X10_SRGB:
-                return "ASTC_2D_10X10_SRGB";
-            case PixelFormat::ASTC_2D_12X10_UNORM:
-                return "ASTC_2D_12X10_UNORM";
-            case PixelFormat::ASTC_2D_12X10_SRGB:
-                return "ASTC_2D_12X10_SRGB";
-            case PixelFormat::ASTC_2D_12X12_UNORM:
-                return "ASTC_2D_12X12_UNORM";
-            case PixelFormat::ASTC_2D_12X12_SRGB:
-                return "ASTC_2D_12X12_SRGB";
-            case PixelFormat::ASTC_2D_8X6_UNORM:
-                return "ASTC_2D_8X6_UNORM";
-            case PixelFormat::ASTC_2D_8X6_SRGB:
-                return "ASTC_2D_8X6_SRGB";
-            case PixelFormat::ASTC_2D_6X5_UNORM:
-                return "ASTC_2D_6X5_UNORM";
-            case PixelFormat::ASTC_2D_6X5_SRGB:
-                return "ASTC_2D_6X5_SRGB";
-            case PixelFormat::E5B9G9R9_FLOAT:
-                return "E5B9G9R9_FLOAT";
-            case PixelFormat::D32_FLOAT:
-                return "D32_FLOAT";
-            case PixelFormat::D16_UNORM:
-                return "D16_UNORM";
-            case PixelFormat::X8_D24_UNORM:
-                return "X8_D24_UNORM";
-            case PixelFormat::S8_UINT:
-                return "S8_UINT";
-            case PixelFormat::D24_UNORM_S8_UINT:
-                return "D24_UNORM_S8_UINT";
-            case PixelFormat::S8_UINT_D24_UNORM:
-                return "S8_UINT_D24_UNORM";
-            case PixelFormat::D32_FLOAT_S8_UINT:
-                return "D32_FLOAT_S8_UINT";
+#define FMT_PIXEL_FORMAT_LIST
+    FMT_PIXEL_FORMAT_ELEM(A8B8G8R8_UNORM) /*A8B8G8R8_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(A8B8G8R8_SNORM) /*A8B8G8R8_SNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(A8B8G8R8_SINT) /*A8B8G8R8_SINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(A8B8G8R8_UINT) /*A8B8G8R8_UINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R5G6B5_UNORM) /*R5G6B5_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(B5G6R5_UNORM) /*B5G6R5_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(A1R5G5B5_UNORM) /*A1R5G5B5_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(A2B10G10R10_UNORM) /*A2B10G10R10_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(A2B10G10R10_UINT) /*A2B10G10R10_UINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(A2R10G10B10_UNORM) /*A2R10G10B10_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(A1B5G5R5_UNORM) /*A1B5G5R5_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(A5B5G5R1_UNORM) /*A5B5G5R1_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(R8_UNORM) /*R8_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(R8_SNORM) /*R8_SNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(R8_SINT) /*R8_SINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R8_UINT) /*R8_UINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R16G16B16A16_FLOAT) /*R16G16B16A16_FLOAT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R16G16B16A16_UNORM) /*R16G16B16A16_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(R16G16B16A16_SNORM) /*R16G16B16A16_SNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(R16G16B16A16_SINT) /*R16G16B16A16_SINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R16G16B16A16_UINT) /*R16G16B16A16_UINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(B10G11R11_FLOAT) /*B10G11R11_FLOAT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R32G32B32A32_UINT) /*R32G32B32A32_UINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(BC1_RGBA_UNORM) /*BC1_RGBA_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(BC2_UNORM) /*BC2_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(BC3_UNORM) /*BC3_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(BC4_UNORM) /*BC4_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(BC4_SNORM) /*BC4_SNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(BC5_UNORM) /*BC5_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(BC5_SNORM) /*BC5_SNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(BC7_UNORM) /*BC7_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(BC6H_UFLOAT) /*BC6H_UFLOAT*/ \
+    FMT_PIXEL_FORMAT_ELEM(BC6H_SFLOAT) /*BC6H_SFLOAT*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_4X4_UNORM) /*ASTC_2D_4X4_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(B8G8R8A8_UNORM) /*B8G8R8A8_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(R32G32B32A32_FLOAT) /*R32G32B32A32_FLOAT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R32G32B32A32_SINT) /*R32G32B32A32_SINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R32G32_FLOAT) /*R32G32_FLOAT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R32G32_SINT) /*R32G32_SINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R32_FLOAT) /*R32_FLOAT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R16_FLOAT) /*R16_FLOAT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R16_UNORM) /*R16_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(R16_SNORM) /*R16_SNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(R16_UINT) /*R16_UINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R16_SINT) /*R16_SINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R16G16_UNORM) /*R16G16_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(R16G16_FLOAT) /*R16G16_FLOAT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R16G16_UINT) /*R16G16_UINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R16G16_SINT) /*R16G16_SINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R16G16_SNORM) /*R16G16_SNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(R32G32B32_FLOAT) /*R32G32B32_FLOAT*/ \
+    FMT_PIXEL_FORMAT_ELEM(A8B8G8R8_SRGB) /*A8B8G8R8_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(R8G8_UNORM) /*R8G8_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(R8G8_SNORM) /*R8G8_SNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(R8G8_SINT) /*R8G8_SINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R8G8_UINT) /*R8G8_UINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R32G32_UINT) /*R32G32_UINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R16G16B16X16_FLOAT) /*R16G16B16X16_FLOAT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R32_UINT) /*R32_UINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(R32_SINT) /*R32_SINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_8X8_UNORM) /*ASTC_2D_8X8_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_8X5_UNORM) /*ASTC_2D_8X5_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_5X4_UNORM) /*ASTC_2D_5X4_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(B8G8R8A8_SRGB) /*B8G8R8A8_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(BC1_RGBA_SRGB) /*BC1_RGBA_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(BC2_SRGB) /*BC2_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(BC3_SRGB) /*BC3_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(BC7_SRGB) /*BC7_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(A4B4G4R4_UNORM) /*A4B4G4R4_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(G4R4_UNORM) /*G4R4_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_4X4_SRGB) /*ASTC_2D_4X4_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_8X8_SRGB) /*ASTC_2D_8X8_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_8X5_SRGB) /*ASTC_2D_8X5_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_5X4_SRGB) /*ASTC_2D_5X4_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_5X5_UNORM) /*ASTC_2D_5X5_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_5X5_SRGB) /*ASTC_2D_5X5_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_10X8_UNORM) /*ASTC_2D_10X8_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_10X8_SRGB) /*ASTC_2D_10X8_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_6X6_UNORM) /*ASTC_2D_6X6_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_6X6_SRGB) /*ASTC_2D_6X6_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_10X6_UNORM) /*ASTC_2D_10X6_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_10X6_SRGB) /*ASTC_2D_10X6_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_10X5_UNORM) /*ASTC_2D_10X5_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_10X5_SRGB) /*ASTC_2D_10X5_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_10X10_UNORM) /*ASTC_2D_10X10_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_10X10_SRGB) /*ASTC_2D_10X10_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_12X10_UNORM) /*ASTC_2D_12X10_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_12X10_SRGB) /*ASTC_2D_12X10_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_12X12_UNORM) /*ASTC_2D_12X12_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_12X12_SRGB) /*ASTC_2D_12X12_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_8X6_UNORM) /*ASTC_2D_8X6_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_8X6_SRGB) /*ASTC_2D_8X6_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_6X5_UNORM) /*ASTC_2D_6X5_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(ASTC_2D_6X5_SRGB) /*ASTC_2D_6X5_SRGB*/ \
+    FMT_PIXEL_FORMAT_ELEM(E5B9G9R9_FLOAT) /*E5B9G9R9_FLOAT*/ \
+    FMT_PIXEL_FORMAT_ELEM(D32_FLOAT) /*D32_FLOAT*/ \
+    FMT_PIXEL_FORMAT_ELEM(D16_UNORM) /*D16_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(X8_D24_UNORM) /*X8_D24_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(S8_UINT) /*S8_UINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(D24_UNORM_S8_UINT) /*D24_UNORM_S8_UINT*/ \
+    FMT_PIXEL_FORMAT_ELEM(S8_UINT_D24_UNORM) /*S8_UINT_D24_UNORM*/ \
+    FMT_PIXEL_FORMAT_ELEM(D32_FLOAT_S8_UINT) /*D32_FLOAT_S8_UINT*/ \
+#define FMT_PIXEL_FORMAT_ELEM(NAME) case PixelFormat::NAME: return #NAME;
+    FMT_PIXEL_FORMAT_LIST
+#undef FMT_PIXEL_FORMAT_ELEM
+#undef FMT_PIXEL_FORMAT_LIST
             case PixelFormat::MaxDepthStencilFormat:
             case PixelFormat::Invalid:
                 return "Invalid";
