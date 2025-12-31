@@ -1521,25 +1521,21 @@ void TextureCache<P>::TickAsyncUnswizzle() {
         
         const auto& info = image.info;
         const u32 bytes_per_block = BytesPerBlock(info.format);
+
         const u32 width_blocks = Common::DivCeil(info.size.width, 4u);
         const u32 height_blocks = Common::DivCeil(info.size.height, 4u);
         
         const u32 stride = Common::AlignUp(width_blocks * bytes_per_block, 64u);
         const u32 aligned_height = Common::AlignUp(height_blocks, 8u << task.info.block.height);
-        
+
         task.bytes_per_slice = static_cast<size_t>(stride) * aligned_height;
         task.last_submitted_offset = 0;
         task.initialized = true;
     }
-    
+
     // ToDo: Make these configurable
-    const size_t CHUNK_SIZE = 64_MiB;
-    const u32 SLICES_PER_BATCH = 512;
-    
-    static std::vector<u8> temp_buffer;
-    if (temp_buffer.size() < CHUNK_SIZE) {
-        temp_buffer.resize(CHUNK_SIZE);
-    }
+    static constexpr size_t CHUNK_SIZE = 64_MiB;
+    static constexpr u32 SLICES_PER_BATCH = 512u;
     
     // Read data
     if (task.current_offset < task.total_size) {
@@ -1554,20 +1550,16 @@ void TextureCache<P>::TickAsyncUnswizzle() {
     }
 
     const size_t batch_threshold = task.bytes_per_slice * SLICES_PER_BATCH;
-    size_t ready_to_submit = task.current_offset - task.last_submitted_offset;
-    
+    const size_t ready_to_submit = task.current_offset - task.last_submitted_offset;
     const bool is_final_batch = task.current_offset >= task.total_size;
-    const bool should_submit = ready_to_submit >= batch_threshold || 
-                               (is_final_batch && task.last_submitted_offset < task.total_size);
-    
-    if (should_submit) {
+
+    if (ready_to_submit >= batch_threshold || (is_final_batch && task.last_submitted_offset < task.total_size)) {
         const u32 z_start = static_cast<u32>(task.last_submitted_offset / task.bytes_per_slice);
         const u32 total_depth = image.info.size.depth;
         
         u32 z_count = static_cast<u32>(ready_to_submit / task.bytes_per_slice);
-        if (z_start + z_count > total_depth) {
-            z_count = total_depth - z_start;
-        }
+
+        z_count = std::min(z_count, total_depth - z_start);
         
         if (z_count > 0) {
             const auto uploads = FullUploadSwizzles(task.info);
@@ -1577,8 +1569,7 @@ void TextureCache<P>::TickAsyncUnswizzle() {
     }
     
     // Check if complete
-    if (task.current_offset >= task.total_size && 
-        task.last_submitted_offset >= (task.total_size - (task.total_size % task.bytes_per_slice))) {
+    if (task.current_offset >= task.total_size && task.total_size - task.last_submitted_offset < task.bytes_per_slice) {
         runtime.FreeDeferredStagingBuffer(task.staging_buffer);
         image.flags &= ~ImageFlagBits::IsDecoding;
         unswizzle_queue.pop_front();
