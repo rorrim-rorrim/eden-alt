@@ -353,7 +353,7 @@ void IOFile::Open(const fs::path& path, FileAccessMode mode, FileType type, File
     file_handle = nullptr;
     if (type == FileType::BinaryFile && mode == FileAccessMode::Read) {
         if (PlatformMapReadOnly(*this, path.c_str()) == -1) {
-            LOG_ERROR(Common_Filesystem, "Error mmap'ing file: {}", path.c_str());
+            LOG_ERROR(Common_Filesystem, "Error mmap'ing file");: //{}", path.c_str());
         }
     }
     if (file_handle == nullptr) {
