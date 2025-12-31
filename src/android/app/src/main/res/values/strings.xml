@@ -474,6 +474,7 @@
     <string name="advanced">Advanced</string>
 
     <string name="renderer_accuracy">GPU Mode</string>
+    <string name="renderer_accuracy_description">Controls the GPU emulation mode. Most games render fine with Fast or Balanced modes, but Accurate is still required for some. Particles tend to only render correctly with Accurate mode.</string>
     <string name="dma_accuracy">DMA Accuracy</string>
     <string name="dma_accuracy_description">Controls the DMA precision accuracy. Safe precision can fix issues in some games, but it can also impact performance in some cases. If unsure, leave this on Default.</string>
     <string name="anisotropic_filtering">Anisotropic filtering</string>
