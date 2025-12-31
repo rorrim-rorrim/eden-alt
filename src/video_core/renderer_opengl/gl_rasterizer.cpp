@@ -600,10 +600,10 @@ void RasterizerOpenGL::UnmapMemory(DAddr addr, u64 size) {
     shader_cache.OnCacheInvalidation(addr, size);
 }
 
-void RasterizerOpenGL::ModifyGPUMemory(size_t as_id, GPUVAddr addr, u64 size) {
+void RasterizerOpenGL::ModifyGPUMemory(size_t as_id, GPUVAddr addr, u64 size, DAddr d_addr) {
     {
         std::scoped_lock lock{texture_cache.mutex};
-        texture_cache.UnmapGPUMemory(as_id, addr, size);
+        texture_cache.UnmapGPUMemory(as_id, addr, size, d_addr);
     }
 }
 

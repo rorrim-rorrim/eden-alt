@@ -123,7 +123,12 @@ GPUVAddr MemoryManager::PageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] DAddr de
         [[maybe_unused]] const auto current_entry_type = GetEntry<false>(current_gpu_addr);
         SetEntry<false>(current_gpu_addr, entry_type);
         if (current_entry_type != entry_type) {
-            rasterizer->ModifyGPUMemory(unique_identifier, current_gpu_addr, page_size);
+            if constexpr (entry_type == EntryType::Mapped) {
+                const DAddr current_dev_addr = dev_addr + offset;
+                rasterizer->ModifyGPUMemory(unique_identifier, current_gpu_addr, page_size, current_dev_addr);
+            } else {
+                rasterizer->ModifyGPUMemory(unique_identifier, current_gpu_addr, page_size, 0u);
+            }
         }
         if constexpr (entry_type == EntryType::Mapped) {
             const DAddr current_dev_addr = dev_addr + offset;
@@ -146,7 +151,12 @@ GPUVAddr MemoryManager::BigPageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] DAddr
         [[maybe_unused]] const auto current_entry_type = GetEntry<true>(current_gpu_addr);
         SetEntry<true>(current_gpu_addr, entry_type);
         if (current_entry_type != entry_type) {
-            rasterizer->ModifyGPUMemory(unique_identifier, current_gpu_addr, big_page_size);
+            if constexpr (entry_type == EntryType::Mapped) {
+                const DAddr current_dev_addr = dev_addr + offset;
+                rasterizer->ModifyGPUMemory(unique_identifier, current_gpu_addr, page_size, current_dev_addr);
+            } else {
+                rasterizer->ModifyGPUMemory(unique_identifier, current_gpu_addr, big_page_size, 0u);
+            }
         }
         if constexpr (entry_type == EntryType::Mapped) {
             const DAddr current_dev_addr = dev_addr + offset;

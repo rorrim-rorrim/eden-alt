@@ -30,6 +30,11 @@ struct OverlapResult {
     SubresourceExtent resources;
 };
 
+struct SparseTileUnswizzleResult {
+    u32 buffer_row_length;
+    u32 buffer_image_height;
+};
+
 [[nodiscard]] u32 CalculateGuestSizeInBytes(const ImageInfo& info) noexcept;
 
 [[nodiscard]] u32 CalculateUnswizzledSizeBytes(const ImageInfo& info) noexcept;
@@ -68,7 +73,14 @@ struct OverlapResult {
 [[nodiscard]] boost::container::small_vector<BufferImageCopy, 16> UnswizzleImage(
     Tegra::MemoryManager& gpu_memory, GPUVAddr gpu_addr, const ImageInfo& info,
     std::span<const u8> input, std::span<u8> output);
-
+    
+[[nodiscard]] SparseTileUnswizzleResult UnswizzleSparseTextureTile(std::span<u8> output, 
+                                                      std::span<const u8> input,
+                                                      const ImageInfo& info,
+                                                      u32 tile_width,
+                                                      u32 tile_height,
+                                                      u32 tile_depth);
+    
 void ConvertImage(std::span<const u8> input, const ImageInfo& info, std::span<u8> output,
                   std::span<BufferImageCopy> copies);
 

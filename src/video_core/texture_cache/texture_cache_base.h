@@ -129,6 +129,17 @@ class TextureCache : public VideoCommon::ChannelSetupCaches<TextureCacheChannelI
     using AsyncBuffer = typename P::AsyncBuffer;
     using BufferType = typename P::BufferType;
 
+    struct PendingUnswizzle {
+        ImageId image_id;
+        VideoCommon::ImageInfo info;
+        size_t current_offset = 0;
+        size_t total_size = 0;
+        AsyncBuffer staging_buffer;
+        size_t last_submitted_offset = 0;
+        u32 bytes_per_slice = 0;
+        bool initialized = false;
+    };
+
     struct BlitImages {
         ImageId dst_id;
         ImageId src_id;
@@ -217,7 +228,11 @@ public:
     void UnmapMemory(DAddr cpu_addr, size_t size);
 
     /// Remove images in a region
-    void UnmapGPUMemory(size_t as_id, GPUVAddr gpu_addr, size_t size);
+    void UnmapGPUMemory(size_t as_id, GPUVAddr gpu_addr, size_t size, DAddr dev_addr);
+    
+    /// Basic sparse binding
+    std::optional<SparseBinding> CalculateSparseBinding(
+        const Image& image, GPUVAddr gpu_addr, DAddr dev_addr);
 
     /// Blit an image with the given parameters
     bool BlitImage(const Tegra::Engines::Fermi2D::Surface& dst,
@@ -326,6 +341,10 @@ private:
 
     /// Refresh the contents (pixel data) of an image
     void RefreshContents(Image& image, ImageId image_id);
+    
+    /// Sparse texture partial upload
+    template <typename StagingBuffer>
+    void UploadSparseDirtyTiles(Image& image, StagingBuffer& staging);
 
     /// Upload data from guest to an image
     template <typename StagingBuffer>
@@ -449,6 +468,9 @@ private:
     void TrimInactiveSamplers(size_t budget);
     std::optional<size_t> QuerySamplerBudget() const;
 
+    void QueueAsyncUnswizzle(Image& image, ImageId image_id);
+    void TickAsyncUnswizzle();
+
     Runtime& runtime;
 
     Tegra::MaxwellDeviceMemoryManager& device_memory;
@@ -531,6 +553,9 @@ private:
 
     Common::ThreadWorker texture_decode_worker{1, "TextureDecoder"};
     std::vector<std::unique_ptr<AsyncDecodeContext>> async_decodes;
+
+    std::deque<PendingUnswizzle> unswizzle_queue;
+    u8 current_unswizzle_frame;
 
     // Join caching
     boost::container::small_vector<ImageId, 4> join_overlap_ids;

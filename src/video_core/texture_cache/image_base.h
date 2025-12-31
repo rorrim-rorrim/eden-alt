@@ -56,6 +56,13 @@ struct AliasedImage {
     ImageId id;
 };
 
+struct SparseBinding {
+    GPUVAddr gpu_addr;      // Virtual GPU address of this tile
+    DAddr device_addr;      // Physical device memory address
+    u64 tile_index;         // Linear tile index in the texture
+    Extent3D tile_coord;    // 3D coordinate of this tile
+};
+
 struct NullImageParams {};
 
 struct ImageBase {
@@ -166,6 +173,10 @@ struct ImageBase {
 
     std::optional<u64> pending_read_tick;
     std::optional<u64> pending_write_tick;
+    
+    boost::container::small_vector<u64, 16> dirty_offsets;
+    std::unordered_map<GPUVAddr, SparseBinding> sparse_bindings;
+    u32 sparse_tile_size = 65536;
 };
 
 struct ImageMapView {

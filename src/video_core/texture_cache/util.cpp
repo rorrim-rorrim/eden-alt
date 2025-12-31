@@ -55,6 +55,7 @@ using Tegra::Texture::TextureFormat;
 using Tegra::Texture::TextureType;
 using Tegra::Texture::TICEntry;
 using Tegra::Texture::UnswizzleTexture;
+using Tegra::Texture::UnswizzleSubrect;
 using VideoCore::Surface::BytesPerBlock;
 using VideoCore::Surface::DefaultBlockHeight;
 using VideoCore::Surface::DefaultBlockWidth;
@@ -920,6 +921,46 @@ boost::container::small_vector<BufferImageCopy, 16> UnswizzleImage(Tegra::Memory
         guest_offset += level_sizes[level];
     }
     return copies;
+}
+
+SparseTileUnswizzleResult UnswizzleSparseTextureTile(std::span<u8> output, 
+                                                      std::span<const u8> input,
+                                                      const ImageInfo& info,
+                                                      u32 tile_width,
+                                                      u32 tile_height,
+                                                      u32 tile_depth) {
+    const Extent2D block_size = DefaultBlockSize(info.format);
+    const u32 bpp = BytesPerBlock(info.format);
+    const u32 width_blocks = (tile_width + block_size.width - 1) / block_size.width;
+    const u32 height_blocks = (tile_height + block_size.height - 1) / block_size.height;
+    
+    // Calculate GOBs per row
+    const u32 bytes_per_row = width_blocks * bpp;
+    const u32 gobs_per_row = (bytes_per_row + 63) / 64;
+    
+    // Calculate block_height for 64KB tiles
+    // 64KB / (gobs_per_row × 512 bytes) = GOBs tall
+    constexpr u32 TILE_SIZE = 65536;
+    const u32 gobs_tall = TILE_SIZE / (gobs_per_row * 512);
+    
+    // block_height = log2(gobs_tall)
+    const u32 tile_block_height = std::countr_zero(gobs_tall);
+    
+    const u32 pitch_linear = width_blocks * bpp;
+    
+    UnswizzleSubrect(
+        output, input, bpp,
+        width_blocks, height_blocks, tile_depth,
+        0, 0,
+        width_blocks, height_blocks,
+        tile_block_height, 0,
+        pitch_linear
+    );
+
+    return {
+        .buffer_row_length = Common::AlignUp(tile_width, block_size.width),
+        .buffer_image_height = Common::AlignUp(tile_height, block_size.height)
+    };
 }
 
 void ConvertImage(std::span<const u8> input, const ImageInfo& info, std::span<u8> output,

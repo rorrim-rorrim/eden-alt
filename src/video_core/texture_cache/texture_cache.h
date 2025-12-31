@@ -8,6 +8,7 @@
 
 #include <limits>
 #include <optional>
+#include <bit>
 #include <unordered_set>
 #include <boost/container/small_vector.hpp>
 
@@ -22,6 +23,7 @@
 #include "video_core/texture_cache/samples_helper.h"
 #include "video_core/texture_cache/texture_cache_base.h"
 #include "video_core/texture_cache/util.h"
+#include "video_core/textures/decoders.h"
 
 namespace VideoCommon {
 
@@ -160,6 +162,7 @@ void TextureCache<P>::TickFrame() {
     sentenced_framebuffers.Tick();
     sentenced_image_view.Tick();
     TickAsyncDecode();
+    TickAsyncUnswizzle();
 
     runtime.TickFrame();
     ++frame_tick;
@@ -618,7 +621,36 @@ void TextureCache<P>::UnmapMemory(DAddr cpu_addr, size_t size) {
 }
 
 template <class P>
-void TextureCache<P>::UnmapGPUMemory(size_t as_id, GPUVAddr gpu_addr, size_t size) {
+std::optional<SparseBinding> TextureCache<P>::CalculateSparseBinding(
+    const Image& image, GPUVAddr gpu_addr, DAddr dev_addr) {
+    
+    if (!image.info.is_sparse) {
+        return std::nullopt;
+    }
+    
+    const u64 offset = gpu_addr - image.gpu_addr;
+    const u64 tile_index = offset / image.sparse_tile_size;
+
+    const u32 tile_width_blocks = 128;
+    const u32 tile_height_blocks = 32;
+    
+    const u32 width_in_tiles = (image.info.size.width / 4 + tile_width_blocks - 1) / tile_width_blocks;
+    const u32 height_in_tiles = (image.info.size.height / 4 + tile_height_blocks - 1) / tile_height_blocks;
+    
+    const u32 tile_x = static_cast<u32>((tile_index % width_in_tiles) * tile_width_blocks * 4);
+    const u32 tile_y = static_cast<u32>(((tile_index / width_in_tiles) % height_in_tiles) * tile_height_blocks * 4);
+    const u32 tile_z = static_cast<u32>(tile_index / (width_in_tiles * height_in_tiles));
+    
+    return SparseBinding{
+        .gpu_addr = gpu_addr,
+        .device_addr = dev_addr,
+        .tile_index = tile_index,
+        .tile_coord = {tile_x, tile_y, tile_z}
+    };
+}
+
+template <class P>
+void TextureCache<P>::UnmapGPUMemory(size_t as_id, GPUVAddr gpu_addr, size_t size, DAddr dev_addr) {
     boost::container::small_vector<ImageId, 16> deleted_images;
     ForEachImageInRegionGPU(as_id, gpu_addr, size,
                             [&](ImageId id, Image&) { deleted_images.push_back(id); });
@@ -631,11 +663,19 @@ void TextureCache<P>::UnmapGPUMemory(size_t as_id, GPUVAddr gpu_addr, size_t siz
                 UntrackImage(image, id);
             }
         }
-
         if (True(image.flags & ImageFlagBits::Remapped)) {
             continue;
         }
         image.flags |= ImageFlagBits::Remapped;
+
+        if (image.info.is_sparse && dev_addr != 0) {
+            // Calculate and store the binding
+            auto binding = CalculateSparseBinding(image, gpu_addr, dev_addr);
+            if (binding) {
+                image.sparse_bindings[gpu_addr] = *binding;
+                image.dirty_offsets.push_back(binding->tile_index);
+            }
+        }
     }
 }
 
@@ -1059,9 +1099,29 @@ void TextureCache<P>::RefreshContents(Image& image, ImageId image_id) {
         // Only upload modified images
         return;
     }
+    
     image.flags &= ~ImageFlagBits::CpuModified;
     TrackImage(image, image_id);
 
+    // If it's sparse and remapped, we treat it as a partial update trigger
+    if (image.info.is_sparse && True(image.flags & ImageFlagBits::Remapped)) {
+        image.flags &= ~ImageFlagBits::Remapped;
+        
+        if (!image.dirty_offsets.empty() && !image.sparse_bindings.empty()) {
+            /*constexpr u64 page_size = 64_KiB;
+            size_t dirty_size = image.dirty_offsets.size() * page_size;
+            
+            auto staging = runtime.UploadStagingBuffer(dirty_size);
+            UploadSparseDirtyTiles(image, staging);
+            runtime.InsertUploadMemoryBarrier();
+            
+            return;*/
+            image.dirty_offsets.clear();
+            image.sparse_bindings.clear();
+            return;
+        }
+    }
+    
     if (image.info.num_samples > 1 && !runtime.CanUploadMSAA()) {
         LOG_WARNING(HW_GPU, "MSAA image uploads are not implemented");
         runtime.TransitionImageLayout(image);
@@ -1071,9 +1131,100 @@ void TextureCache<P>::RefreshContents(Image& image, ImageId image_id) {
         QueueAsyncDecode(image, image_id);
         return;
     }
+    if (IsPixelFormatBCn(image.info.format) &&
+        image.info.type == ImageType::e3D &&
+        image.info.resources.levels == 1 &&
+        image.info.resources.layers == 1 &&
+        MapSizeBytes(image) >= 32_MiB &&
+        False(image.flags & ImageFlagBits::GpuModified)) {
+            
+        QueueAsyncUnswizzle(image, image_id);
+        return;
+    }
     auto staging = runtime.UploadStagingBuffer(MapSizeBytes(image));
     UploadImageContents(image, staging);
     runtime.InsertUploadMemoryBarrier();
+}
+
+template <class P>
+template <typename StagingBuffer>
+void TextureCache<P>::UploadSparseDirtyTiles(Image& image, StagingBuffer& staging) {
+    using namespace VideoCommon;
+    using namespace Tegra::Texture;
+
+    std::vector<BufferImageCopy> all_copies;
+    size_t total_upload_size = 0;
+    
+    for (u64 dirty_tile_index : image.dirty_offsets) {
+        SparseBinding* binding = nullptr;
+        for (auto& [addr, bind] : image.sparse_bindings) {
+            if (bind.tile_index == dirty_tile_index) {
+                binding = &bind;
+                break;
+            }
+        }
+        
+        if (!binding) {
+            continue;
+        }
+        
+        const auto& coord = binding->tile_coord;
+        
+        // Calculate tile dimensions
+        const u32 tile_width_blocks = 128;
+        const u32 tile_height_blocks = 32;
+        const u32 tile_width = std::min(tile_width_blocks * 4, image.info.size.width - coord.width);
+        const u32 tile_height = std::min(tile_height_blocks * 4, image.info.size.height - coord.height);
+        const u32 tile_depth = std::min(1u, image.info.size.depth - coord.depth);
+        
+        const u32 bytes_per_block = BytesPerBlock(image.info.format);
+        const u32 blocks_wide = (tile_width + 3) / 4;
+        const u32 blocks_high = (tile_height + 3) / 4;
+        const size_t tile_unswizzled_size = blocks_wide * blocks_high * tile_depth * bytes_per_block;
+        
+        if (total_upload_size + tile_unswizzled_size > staging.mapped_span.size()) {
+            LOG_ERROR(HW_GPU, "Staging buffer too small");
+            break;
+        }
+        
+        std::array<u8, 65536> tile_swizzled_data;
+        gpu_memory->ReadBlockUnsafe(binding->gpu_addr, tile_swizzled_data.data(), image.sparse_tile_size);
+
+        // Get output span
+        auto tile_output = staging.mapped_span.subspan(total_upload_size, tile_unswizzled_size);
+
+        // Unswizzle the tile
+        auto result = UnswizzleSparseTextureTile(tile_output, tile_swizzled_data, 
+                                                 image.info, tile_width, tile_height, tile_depth);
+
+        // Create the copy descriptor
+        BufferImageCopy copy{
+            .buffer_offset = total_upload_size,
+            .buffer_size = tile_unswizzled_size,
+            .buffer_row_length = result.buffer_row_length,
+            .buffer_image_height = result.buffer_image_height,
+            .image_subresource = {
+                .base_level = 0,
+                .base_layer = 0,
+                .num_layers = 1,
+            },
+            .image_offset = {
+                static_cast<s32>(coord.width),
+                static_cast<s32>(coord.height),
+                static_cast<s32>(coord.depth)
+            },
+            .image_extent = {tile_width, tile_height, tile_depth}
+        };
+        
+        all_copies.push_back(copy);
+        total_upload_size += tile_unswizzled_size;
+    }
+    
+    if (!all_copies.empty()) {
+        image.UploadMemory(staging, all_copies);
+    }
+    
+    image.dirty_offsets.clear();
 }
 
 template <class P>
@@ -1086,7 +1237,7 @@ void TextureCache<P>::UploadImageContents(Image& image, StagingBuffer& staging) 
         gpu_memory->ReadBlock(gpu_addr, mapped_span.data(), mapped_span.size_bytes(),
                               VideoCommon::CacheType::NoTextureCache);
         const auto uploads = FullUploadSwizzles(image.info);
-        runtime.AccelerateImageUpload(image, staging, FixSmallVectorADL(uploads));
+        runtime.AccelerateImageUpload(image, staging, FixSmallVectorADL(uploads), 0, 0);
         return;
     }
 
@@ -1316,6 +1467,20 @@ void TextureCache<P>::QueueAsyncDecode(Image& image, ImageId image_id) {
 }
 
 template <class P>
+void TextureCache<P>::QueueAsyncUnswizzle(Image& image, ImageId image_id) {
+    if (True(image.flags & ImageFlagBits::IsDecoding)) {
+        return;
+    }
+
+    image.flags |= ImageFlagBits::IsDecoding;
+    
+    unswizzle_queue.push_back({
+        .image_id = image_id,
+        .info = image.info
+    });
+}
+
+template <class P>
 void TextureCache<P>::TickAsyncDecode() {
     bool has_uploads{};
     auto i = async_decodes.begin();
@@ -1337,6 +1502,90 @@ void TextureCache<P>::TickAsyncDecode() {
     }
     if (has_uploads) {
         runtime.InsertUploadMemoryBarrier();
+    }
+}
+
+template <class P>
+void TextureCache<P>::TickAsyncUnswizzle() {
+    if (unswizzle_queue.empty()) {
+        current_unswizzle_frame = 0;
+        return;
+    }
+    
+    // Don't process every frame - allow more data to accumulate
+    if (current_unswizzle_frame++ < 2) return;
+    
+    PendingUnswizzle& task = unswizzle_queue.front();
+    Image& image = slot_images[task.image_id];
+    
+    if (!task.initialized) {
+        task.total_size = MapSizeBytes(image);
+        task.staging_buffer = runtime.UploadStagingBuffer(task.total_size, true);
+        
+        const auto& info = image.info;
+        const u32 bytes_per_block = BytesPerBlock(info.format);
+        const u32 width_blocks = Common::DivCeil(info.size.width, 4u);
+        const u32 height_blocks = Common::DivCeil(info.size.height, 4u);
+        
+        const u32 stride = Common::AlignUp(width_blocks * bytes_per_block, 64u);
+        const u32 aligned_height = Common::AlignUp(height_blocks, 8u << task.info.block.height);
+        
+        task.bytes_per_slice = static_cast<size_t>(stride) * aligned_height;
+        task.last_submitted_offset = 0;
+        task.initialized = true;
+    }
+    
+    // ToDo: Make these configurable
+    const size_t CHUNK_SIZE = 64_MiB;
+    const u32 SLICES_PER_BATCH = 512;
+    
+    static std::vector<u8> temp_buffer;
+    if (temp_buffer.size() < CHUNK_SIZE) {
+        temp_buffer.resize(CHUNK_SIZE);
+    }
+    
+    // Read data
+    if (task.current_offset < task.total_size) {
+        const size_t remaining = task.total_size - task.current_offset;
+        const size_t copy_amount = std::min(CHUNK_SIZE, remaining);
+        
+        gpu_memory->ReadBlock(image.gpu_addr + task.current_offset, 
+                              task.staging_buffer.mapped_span.data() + task.current_offset, 
+                              copy_amount,
+                              VideoCommon::CacheType::NoTextureCache);
+        task.current_offset += copy_amount;
+    }
+
+    const size_t batch_threshold = task.bytes_per_slice * SLICES_PER_BATCH;
+    size_t ready_to_submit = task.current_offset - task.last_submitted_offset;
+    
+    const bool is_final_batch = task.current_offset >= task.total_size;
+    const bool should_submit = ready_to_submit >= batch_threshold || 
+                               (is_final_batch && task.last_submitted_offset < task.total_size);
+    
+    if (should_submit) {
+        const u32 z_start = static_cast<u32>(task.last_submitted_offset / task.bytes_per_slice);
+        const u32 total_depth = image.info.size.depth;
+        
+        u32 z_count = static_cast<u32>(ready_to_submit / task.bytes_per_slice);
+        if (z_start + z_count > total_depth) {
+            z_count = total_depth - z_start;
+        }
+        
+        if (z_count > 0) {
+            const auto uploads = FullUploadSwizzles(task.info);
+            runtime.AccelerateImageUpload(image, task.staging_buffer, FixSmallVectorADL(uploads), z_start, z_count);
+            task.last_submitted_offset += (static_cast<size_t>(z_count) * task.bytes_per_slice);
+        }
+    }
+    
+    // Check if complete
+    if (task.current_offset >= task.total_size && 
+        task.last_submitted_offset >= (task.total_size - (task.total_size % task.bytes_per_slice))) {
+        runtime.FreeDeferredStagingBuffer(task.staging_buffer);
+        image.flags &= ~ImageFlagBits::IsDecoding;
+        unswizzle_queue.pop_front();
+        current_unswizzle_frame = 0;
     }
 }
 
