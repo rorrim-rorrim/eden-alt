@@ -1103,24 +1103,21 @@ void TextureCache<P>::RefreshContents(Image& image, ImageId image_id) {
     image.flags &= ~ImageFlagBits::CpuModified;
     TrackImage(image, image_id);
 
-    // If it's sparse and remapped, we treat it as a partial update trigger
+    /*// If it's sparse and remapped, we treat it as a partial update trigger
     if (image.info.is_sparse && True(image.flags & ImageFlagBits::Remapped)) {
         image.flags &= ~ImageFlagBits::Remapped;
         
         if (!image.dirty_offsets.empty() && !image.sparse_bindings.empty()) {
-            /*constexpr u64 page_size = 64_KiB;
+            constexpr u64 page_size = 64_KiB;
             size_t dirty_size = image.dirty_offsets.size() * page_size;
             
             auto staging = runtime.UploadStagingBuffer(dirty_size);
             UploadSparseDirtyTiles(image, staging);
             runtime.InsertUploadMemoryBarrier();
             
-            return;*/
-            image.dirty_offsets.clear();
-            image.sparse_bindings.clear();
             return;
         }
-    }
+    }*/
     
     if (image.info.num_samples > 1 && !runtime.CanUploadMSAA()) {
         LOG_WARNING(HW_GPU, "MSAA image uploads are not implemented");
@@ -1135,7 +1132,7 @@ void TextureCache<P>::RefreshContents(Image& image, ImageId image_id) {
         image.info.type == ImageType::e3D &&
         image.info.resources.levels == 1 &&
         image.info.resources.layers == 1 &&
-        MapSizeBytes(image) >= 32_MiB &&
+        MapSizeBytes(image) >= 128_MiB &&
         False(image.flags & ImageFlagBits::GpuModified)) {
             
         QueueAsyncUnswizzle(image, image_id);
