@@ -1935,7 +1935,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         handler.removeCallbacksAndMessages(null)
 
         handler.postDelayed({
-            if (isOverlayVisible) {
+            if (isOverlayVisible && isAdded && _binding != null) {
                 hideOverlay()
             }
         }, seconds * 1000L)
