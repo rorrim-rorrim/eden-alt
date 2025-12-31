@@ -321,7 +321,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
     // Renderer (Extensions)
     INSERT(Settings, dyna_state, tr("Extended Dynamic State"),
            tr("Controls the number of features that can be used in Extended Dynamic State.\n"
-              "Higher numbers allow for more features and can increase performance, but may cause "
+              "Higher states allow for more features and can increase performance, but may cause "
               "additional graphical issues."));
 
     INSERT(Settings,
