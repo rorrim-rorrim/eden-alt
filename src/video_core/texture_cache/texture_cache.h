@@ -1505,12 +1505,11 @@ void TextureCache<P>::TickAsyncDecode() {
 template <class P>
 void TextureCache<P>::TickAsyncUnswizzle() {
     if (unswizzle_queue.empty()) {
-        current_unswizzle_frame = 0;
         return;
     }
     
     // Don't process every frame - allow more data to accumulate
-    if (current_unswizzle_frame++ < 2) return;
+    if (++current_unswizzle_frame < 2) return;
     
     PendingUnswizzle& task = unswizzle_queue.front();
     Image& image = slot_images[task.image_id];
@@ -1542,10 +1541,9 @@ void TextureCache<P>::TickAsyncUnswizzle() {
         const size_t remaining = task.total_size - task.current_offset;
         const size_t copy_amount = std::min(CHUNK_SIZE, remaining);
         
-        gpu_memory->ReadBlock(image.gpu_addr + task.current_offset, 
+        gpu_memory->ReadBlockUnsafe(image.gpu_addr + task.current_offset, 
                               task.staging_buffer.mapped_span.data() + task.current_offset, 
-                              copy_amount,
-                              VideoCommon::CacheType::NoTextureCache);
+                              copy_amount);
         task.current_offset += copy_amount;
     }
 
@@ -1573,8 +1571,9 @@ void TextureCache<P>::TickAsyncUnswizzle() {
         runtime.FreeDeferredStagingBuffer(task.staging_buffer);
         image.flags &= ~ImageFlagBits::IsDecoding;
         unswizzle_queue.pop_front();
-        current_unswizzle_frame = 0;
     }
+    
+    current_unswizzle_frame = 0;
 }
 
 template <class P>

@@ -817,9 +817,8 @@ void BlockLinearUnswizzle3DPass::Unswizzle(
         cmdbuf.PushConstants(*layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pc), &pc);
         cmdbuf.Dispatch(gx, gy, gz);
 
-        // OPTIMIZATION: Combined barrier - merge buffer and image barriers when possible
         const bool is_first = (z_start == 0);
-        
+
         // Single barrier for compute -> transfer (buffer ready, image transition)
         const VkBufferMemoryBarrier buffer_barrier{
             .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
@@ -827,7 +826,7 @@ void BlockLinearUnswizzle3DPass::Unswizzle(
             .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
             .buffer = out_buffer,
             .offset = 0,
-            .size = (VkDeviceSize)z_count * pc.slice_size,
+            .size = VK_WHOLE_SIZE,
         };
         
         const VkImageMemoryBarrier pre_barrier{
