@@ -874,7 +874,7 @@ private:
         has_flushed_end_pending = true;
         // Refresh buffers state before beginning transform feedback so counters are up-to-date
         UpdateBuffers();
-        if (buffers_count == 0) {
+        if (!has_started || buffers_count == 0) {
             // No counter buffers available: begin without counters
             scheduler.Record([](vk::CommandBuffer cmdbuf) {
                 cmdbuf.BeginTransformFeedbackEXT(0, 0, nullptr, nullptr);
