@@ -1308,6 +1308,7 @@ bool Device::GetSuitability(bool requires_swapchain) {
     const VkDriverId driver_id = properties.driver.driverID;
     const bool is_intel_windows = driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS;
     const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
+    const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
 
     // VK_EXT_CUSTOM_BORDER_COLOR
     
