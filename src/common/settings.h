@@ -600,13 +600,7 @@ struct Values {
                                                 Category::RendererExtensions,
                                                 Specialization::Scalar};
 
-    SwitchableSetting<bool> vertex_input_dynamic_state{linkage,
-#if defined (ANDROID)
-                                                       false,
-#else
-                                                       true,
-#endif
-                                                       "vertex_input_dynamic_state", Category::RendererExtensions};
+    SwitchableSetting<bool> vertex_input_dynamic_state{linkage, false, "vertex_input_dynamic_state", Category::RendererExtensions};
 
     Setting<bool> renderer_debug{linkage, false, "debug", Category::RendererDebug};
     Setting<bool> renderer_shader_feedback{linkage, false, "shader_feedback",
