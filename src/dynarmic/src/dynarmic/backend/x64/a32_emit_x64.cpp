@@ -727,11 +727,9 @@ void A32EmitX64::EmitA32BXWritePC(A32EmitContext& ctx, IR::Inst* inst) {
 }
 
 void A32EmitX64::EmitA32UpdateUpperLocationDescriptor(A32EmitContext& ctx, IR::Inst*) {
-    for (auto& inst : ctx.block) {
-        if (inst.GetOpcode() == IR::Opcode::A32BXWritePC) {
+    for (auto& inst : ctx.block.instructions)
+        if (inst.GetOpcode() == IR::Opcode::A32BXWritePC)
             return;
-        }
-    }
     EmitSetUpperLocationDescriptor(ctx.EndLocation(), ctx.Location());
 }
 
