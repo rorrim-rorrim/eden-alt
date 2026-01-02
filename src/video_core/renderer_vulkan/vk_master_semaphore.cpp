@@ -217,27 +217,8 @@ void MasterSemaphore::WaitThread(std::stop_token token) {
             std::tie(host_tick, fence) = std::move(wait_queue.front());
             wait_queue.pop();
         }
-
-#ifdef ANDROID
-        VkResult status;
-        do {
-            status = fence.GetStatus();
-            if (status == VK_NOT_READY) {
-                std::this_thread::sleep_for(std::chrono::microseconds(100));
-            }
-        } while (status == VK_NOT_READY);
-
-        if (status == VK_SUCCESS) {
-            fence.Reset();
-        } else {
-            vk::Check(status);
-            continue;
-        }
-#else
         fence.Wait();
         fence.Reset();
-#endif
-
         {
             std::scoped_lock lock{free_mutex};
             free_queue.push_front(std::move(fence));
