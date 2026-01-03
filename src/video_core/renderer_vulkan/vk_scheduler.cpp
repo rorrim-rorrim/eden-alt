@@ -287,10 +287,10 @@ void Scheduler::EndRenderPass()
 
             for (size_t i = 0; i < num_images; ++i) {
                 const VkImageSubresourceRange& range = ranges[i];
-                const bool is_color = (range.aspectMask & VK_IMAGE_ASPECT_COLOR_BIT) != 0;
-                const bool is_depth_stencil = (range.aspectMask
+                const bool is_color = range.aspectMask & VK_IMAGE_ASPECT_COLOR_BIT;
+                const bool is_depth_stencil = range.aspectMask
                                               & (VK_IMAGE_ASPECT_DEPTH_BIT
-                                                 | VK_IMAGE_ASPECT_STENCIL_BIT)) !=0;
+                                                 | VK_IMAGE_ASPECT_STENCIL_BIT);
 
                 VkAccessFlags src_access = 0;
                 VkPipelineStageFlags this_stage = 0;
@@ -326,19 +326,14 @@ void Scheduler::EndRenderPass()
                 };
             }
 
-            // Graft: ensure explicit fragment tests + color output stages are always synchronized (AMD/Windows fix)
-            src_stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
-                    VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
-                    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
             cmdbuf.EndRenderPass();
 
             cmdbuf.PipelineBarrier(src_stages,
                                    VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                                    0,
-                                   nullptr,
-                                   nullptr,
-                                   vk::Span(barriers.data(), num_images)  // Batched image barriers
+                                   {},
+                                   {},
+                                   {barriers.data(), num_images} // Batched image barriers
             );
         });
 
