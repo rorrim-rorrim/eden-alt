@@ -23,6 +23,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     RENDERER_FORCE_MAX_CLOCK("force_max_clock"),
     RENDERER_ASYNCHRONOUS_SHADERS("use_asynchronous_shaders"),
     RENDERER_REACTIVE_FLUSHING("use_reactive_flushing"),
+    RENDERER_ENABLE_RAII("enable_raii"),
     SYNC_MEMORY_OPERATIONS("sync_memory_operations"),
     BUFFER_REORDER_DISABLE("disable_buffer_reorder"),
     RENDERER_DEBUG("debug"),
@@ -71,9 +72,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     DONT_SHOW_DRIVER_SHADER_WARNING("dont_show_driver_shader_warning"),
     ENABLE_OVERLAY("enable_overlay");
 
-
-//  external fun isFrameSkippingEnabled(): Boolean
-    external fun isFrameInterpolationEnabled(): Boolean
+    external fun isRaiiEnabled(): Boolean
 
     override fun getBoolean(needsGlobal: Boolean): Boolean =
         NativeConfig.getBoolean(key, needsGlobal)

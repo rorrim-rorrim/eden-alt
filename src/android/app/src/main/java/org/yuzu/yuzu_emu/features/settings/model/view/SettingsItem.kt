@@ -231,7 +231,6 @@ abstract class SettingsItem(
 
                 override fun reset() = BooleanSetting.USE_DOCKED_MODE.reset()
             }
-
             put(
                 SwitchSetting(
                     dockedModeSetting,
@@ -630,6 +629,14 @@ abstract class SettingsItem(
                     valuesId = R.array.optimizeSpirvOutputValues
                 )
             )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_ENABLE_RAII,
+                    titleId = R.string.enable_raii,
+                    descriptionId = R.string.enable_raii_description
+                )
+            )
+
             put(
                 SingleChoiceSetting(
                     IntSetting.DMA_ACCURACY,
