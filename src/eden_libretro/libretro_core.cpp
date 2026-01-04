@@ -107,6 +107,202 @@ void LibretroLog(retro_log_level level, const char* fmt, ...) {
     log_cb(level, "%s", buffer);
 }
 
+// Helper to get core option value
+static const char* GetCoreOptionValue(const char* key) {
+    if (!environ_cb) return nullptr;
+    
+    struct retro_variable var = { key, nullptr };
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        return var.value;
+    }
+    return nullptr;
+}
+
+// Read and apply core options to Settings
+void ApplyCoreOptions() {
+    LOG_INFO(Frontend, "Libretro: Reading core options");
+    
+    // Resolution Scale
+    if (const char* value = GetCoreOptionValue("eden_resolution_scale")) {
+        int scale = 1;
+        if (sscanf(value, "%dx", &scale) == 1) {
+            Settings::ResolutionSetup setup = Settings::ResolutionSetup::Res1X;
+            switch (scale) {
+                case 1: setup = Settings::ResolutionSetup::Res1X; break;
+                case 2: setup = Settings::ResolutionSetup::Res2X; break;
+                case 3: setup = Settings::ResolutionSetup::Res3X; break;
+                case 4: setup = Settings::ResolutionSetup::Res4X; break;
+                case 5: setup = Settings::ResolutionSetup::Res5X; break;
+                case 6: setup = Settings::ResolutionSetup::Res6X; break;
+            }
+            Settings::values.resolution_setup.SetValue(setup);
+            LOG_INFO(Frontend, "Resolution Scale: {}x", scale);
+        }
+    }
+    
+    // GPU Accuracy
+    if (const char* value = GetCoreOptionValue("eden_gpu_accuracy")) {
+        Settings::GpuAccuracy accuracy = Settings::GpuAccuracy::Medium;
+        if (strcmp(value, "Low") == 0) accuracy = Settings::GpuAccuracy::Low;
+        else if (strcmp(value, "Medium") == 0) accuracy = Settings::GpuAccuracy::Medium;
+        else if (strcmp(value, "High") == 0) accuracy = Settings::GpuAccuracy::High;
+        Settings::values.gpu_accuracy.SetValue(accuracy);
+        LOG_INFO(Frontend, "GPU Accuracy: {}", value);
+    }
+    
+    // Scaling Filter
+    if (const char* value = GetCoreOptionValue("eden_scaling_filter")) {
+        Settings::ScalingFilter filter = Settings::ScalingFilter::Bilinear;
+        if (strcmp(value, "NearestNeighbor") == 0) filter = Settings::ScalingFilter::NearestNeighbor;
+        else if (strcmp(value, "Bilinear") == 0) filter = Settings::ScalingFilter::Bilinear;
+        else if (strcmp(value, "Bicubic") == 0) filter = Settings::ScalingFilter::Bicubic;
+        else if (strcmp(value, "Gaussian") == 0) filter = Settings::ScalingFilter::Gaussian;
+        else if (strcmp(value, "ScaleForce") == 0) filter = Settings::ScalingFilter::ScaleForce;
+        else if (strcmp(value, "Fsr") == 0) filter = Settings::ScalingFilter::Fsr;
+        Settings::values.scaling_filter.SetValue(filter);
+        LOG_INFO(Frontend, "Scaling Filter: {}", value);
+    }
+    
+    // Anti-Aliasing
+    if (const char* value = GetCoreOptionValue("eden_anti_aliasing")) {
+        Settings::AntiAliasing aa = Settings::AntiAliasing::None;
+        if (strcmp(value, "None") == 0) aa = Settings::AntiAliasing::None;
+        else if (strcmp(value, "Fxaa") == 0) aa = Settings::AntiAliasing::Fxaa;
+        else if (strcmp(value, "Smaa") == 0) aa = Settings::AntiAliasing::Smaa;
+        Settings::values.anti_aliasing.SetValue(aa);
+        LOG_INFO(Frontend, "Anti-Aliasing: {}", value);
+    }
+    
+    // Anisotropic Filtering
+    if (const char* value = GetCoreOptionValue("eden_anisotropic_filtering")) {
+        Settings::AnisotropyMode aniso = Settings::AnisotropyMode::Automatic;
+        if (strcmp(value, "Automatic") == 0) aniso = Settings::AnisotropyMode::Automatic;
+        else if (strcmp(value, "Default") == 0) aniso = Settings::AnisotropyMode::Default;
+        else if (strcmp(value, "X2") == 0) aniso = Settings::AnisotropyMode::X2;
+        else if (strcmp(value, "X4") == 0) aniso = Settings::AnisotropyMode::X4;
+        else if (strcmp(value, "X8") == 0) aniso = Settings::AnisotropyMode::X8;
+        else if (strcmp(value, "X16") == 0) aniso = Settings::AnisotropyMode::X16;
+        Settings::values.max_anisotropy.SetValue(aniso);
+        LOG_INFO(Frontend, "Anisotropic Filtering: {}", value);
+    }
+    
+    // ASTC Decode
+    if (const char* value = GetCoreOptionValue("eden_astc_decode")) {
+        Settings::AstcDecodeMode decode = Settings::AstcDecodeMode::Gpu;
+        if (strcmp(value, "Cpu") == 0) decode = Settings::AstcDecodeMode::Cpu;
+        else if (strcmp(value, "Gpu") == 0) decode = Settings::AstcDecodeMode::Gpu;
+        else if (strcmp(value, "CpuAsynchronous") == 0) decode = Settings::AstcDecodeMode::CpuAsynchronous;
+        Settings::values.accelerate_astc.SetValue(decode);
+        LOG_INFO(Frontend, "ASTC Decode: {}", value);
+    }
+    
+    // Shader Backend
+    if (const char* value = GetCoreOptionValue("eden_shader_backend")) {
+        Settings::ShaderBackend backend = Settings::ShaderBackend::SpirV;
+        if (strcmp(value, "Glsl") == 0) backend = Settings::ShaderBackend::Glsl;
+        else if (strcmp(value, "Glasm") == 0) backend = Settings::ShaderBackend::Glasm;
+        else if (strcmp(value, "SpirV") == 0) backend = Settings::ShaderBackend::SpirV;
+        Settings::values.shader_backend.SetValue(backend);
+        LOG_INFO(Frontend, "Shader Backend: {}", value);
+    }
+    
+    // Docked Mode
+    if (const char* value = GetCoreOptionValue("eden_docked_mode")) {
+        Settings::ConsoleMode mode = Settings::ConsoleMode::Docked;
+        if (strcmp(value, "Docked") == 0) mode = Settings::ConsoleMode::Docked;
+        else if (strcmp(value, "Handheld") == 0) mode = Settings::ConsoleMode::Handheld;
+        Settings::values.use_docked_mode.SetValue(mode);
+        LOG_INFO(Frontend, "Console Mode: {}", value);
+    }
+    
+    // Language
+    if (const char* value = GetCoreOptionValue("eden_language")) {
+        Settings::Language lang = Settings::Language::EnglishAmerican;
+        if (strcmp(value, "Japanese") == 0) lang = Settings::Language::Japanese;
+        else if (strcmp(value, "EnglishAmerican") == 0) lang = Settings::Language::EnglishAmerican;
+        else if (strcmp(value, "French") == 0) lang = Settings::Language::French;
+        else if (strcmp(value, "German") == 0) lang = Settings::Language::German;
+        else if (strcmp(value, "Italian") == 0) lang = Settings::Language::Italian;
+        else if (strcmp(value, "Spanish") == 0) lang = Settings::Language::Spanish;
+        else if (strcmp(value, "Chinese") == 0) lang = Settings::Language::Chinese;
+        else if (strcmp(value, "Korean") == 0) lang = Settings::Language::Korean;
+        else if (strcmp(value, "Dutch") == 0) lang = Settings::Language::Dutch;
+        else if (strcmp(value, "Portuguese") == 0) lang = Settings::Language::Portuguese;
+        else if (strcmp(value, "Russian") == 0) lang = Settings::Language::Russian;
+        else if (strcmp(value, "EnglishBritish") == 0) lang = Settings::Language::EnglishBritish;
+        Settings::values.language_index.SetValue(lang);
+        LOG_INFO(Frontend, "Language: {}", value);
+    }
+    
+    // Region
+    if (const char* value = GetCoreOptionValue("eden_region")) {
+        Settings::Region region = Settings::Region::Usa;
+        if (strcmp(value, "Japan") == 0) region = Settings::Region::Japan;
+        else if (strcmp(value, "Usa") == 0) region = Settings::Region::Usa;
+        else if (strcmp(value, "Europe") == 0) region = Settings::Region::Europe;
+        else if (strcmp(value, "Australia") == 0) region = Settings::Region::Australia;
+        else if (strcmp(value, "China") == 0) region = Settings::Region::China;
+        else if (strcmp(value, "Korea") == 0) region = Settings::Region::Korea;
+        else if (strcmp(value, "Taiwan") == 0) region = Settings::Region::Taiwan;
+        Settings::values.region_index.SetValue(region);
+        LOG_INFO(Frontend, "Region: {}", value);
+    }
+    
+    // Multicore CPU
+    if (const char* value = GetCoreOptionValue("eden_use_multicore")) {
+        bool multicore = (strcmp(value, "enabled") == 0);
+        Settings::values.use_multi_core.SetValue(multicore);
+        LOG_INFO(Frontend, "Multicore CPU: {}", multicore);
+    }
+    
+    // CPU Accuracy
+    if (const char* value = GetCoreOptionValue("eden_cpu_accuracy")) {
+        Settings::CpuAccuracy accuracy = Settings::CpuAccuracy::Auto;
+        if (strcmp(value, "Auto") == 0) accuracy = Settings::CpuAccuracy::Auto;
+        else if (strcmp(value, "Accurate") == 0) accuracy = Settings::CpuAccuracy::Accurate;
+        else if (strcmp(value, "Unsafe") == 0) accuracy = Settings::CpuAccuracy::Unsafe;
+        else if (strcmp(value, "Paranoid") == 0) accuracy = Settings::CpuAccuracy::Paranoid;
+        Settings::values.cpu_accuracy.SetValue(accuracy);
+        LOG_INFO(Frontend, "CPU Accuracy: {}", value);
+    }
+    
+    // Async GPU (force off for libretro, but read in case user changes)
+    if (const char* value = GetCoreOptionValue("eden_use_async_gpu")) {
+        bool async_gpu = (strcmp(value, "enabled") == 0);
+        // Always force to false for libretro
+        Settings::values.use_asynchronous_gpu_emulation.SetValue(false);
+        if (async_gpu) {
+            LOG_WARNING(Frontend, "Async GPU requested but FORCED OFF for libretro compatibility");
+        }
+    }
+    
+    // Disk Shader Cache
+    if (const char* value = GetCoreOptionValue("eden_disk_shader_cache")) {
+        bool cache = (strcmp(value, "enabled") == 0);
+        Settings::values.use_disk_shader_cache.SetValue(cache);
+        LOG_INFO(Frontend, "Disk Shader Cache: {}", cache);
+    }
+    
+    // Reactive Flushing
+    if (const char* value = GetCoreOptionValue("eden_reactive_flushing")) {
+        bool flushing = (strcmp(value, "enabled") == 0);
+        Settings::values.use_reactive_flushing.SetValue(flushing);
+        LOG_INFO(Frontend, "Reactive Flushing: {}", flushing);
+    }
+    
+    // ASTC Recompression
+    if (const char* value = GetCoreOptionValue("eden_astc_recompression")) {
+        Settings::AstcRecompression recomp = Settings::AstcRecompression::Uncompressed;
+        if (strcmp(value, "Uncompressed") == 0) recomp = Settings::AstcRecompression::Uncompressed;
+        else if (strcmp(value, "Bc1") == 0) recomp = Settings::AstcRecompression::Bc1;
+        else if (strcmp(value, "Bc3") == 0) recomp = Settings::AstcRecompression::Bc3;
+        Settings::values.astc_recompression.SetValue(recomp);
+        LOG_INFO(Frontend, "ASTC Recompression: {}", value);
+    }
+    
+    LOG_INFO(Frontend, "Libretro: Core options applied");
+}
+
 // Context reset callback - called when OpenGL context is ready
 void ContextReset() {
     try {
@@ -351,16 +547,315 @@ void retro_set_environment(retro_environment_t cb) {
     bool need_fullpath = true;
     environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &need_fullpath);
     
-    // Set core options
-    static const struct retro_variable variables[] = {
-        { "eden_resolution_scale", "Resolution Scale; 1x|2x|3x|4x" },
-        { "eden_use_vsync", "VSync; On|Off" },
-        { "eden_use_async_gpu", "Async GPU; On|Off" },
-        { "eden_use_multicore", "Multicore CPU; On|Off" },
-        { "eden_shader_backend", "Shader Backend; GLSL|SPIRV" },
-        { nullptr, nullptr }
+    // Try v2 core options with categories first
+    static struct retro_core_option_v2_category option_cats[] = {
+        { "graphics", "Graphics", "Configure graphics rendering settings." },
+        { "system", "System", "Configure system and emulation settings." },
+        { "cpu", "CPU", "Configure CPU emulation settings." },
+        { "advanced", "Advanced", "Advanced performance and optimization settings." },
+        { nullptr, nullptr, nullptr }
     };
-    environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)variables);
+    
+    static struct retro_core_option_v2_definition option_defs[] = {
+        // Graphics Category
+        {
+            "eden_resolution_scale",
+            "Internal Resolution",
+            "Internal Resolution",
+            "Rendering resolution multiplier. Higher values improve visual quality but reduce performance.",
+            "Rendering resolution multiplier.",
+            "graphics",
+            {
+                { "1x", "1x (1280x720)" },
+                { "2x", "2x (2560x1440)" },
+                { "3x", "3x (3840x2160)" },
+                { "4x", "4x (5120x2880)" },
+                { "5x", "5x (6400x3600)" },
+                { "6x", "6x (7680x4320)" },
+                { nullptr, nullptr }
+            },
+            "1x"
+        },
+        {
+            "eden_gpu_accuracy",
+            "GPU Accuracy",
+            "GPU Accuracy",
+            "Graphics emulation accuracy. Higher accuracy improves compatibility but reduces performance.",
+            "Graphics emulation accuracy.",
+            "graphics",
+            {
+                { "Low", "Low" },
+                { "Medium", "Medium" },
+                { "High", "High" },
+                { nullptr, nullptr }
+            },
+            "Medium"
+        },
+        {
+            "eden_scaling_filter",
+            "Scaling Filter",
+            "Scaling Filter",
+            "Upscaling filter applied when internal resolution is higher than native. FSR provides good quality.",
+            "Upscaling filter method.",
+            "graphics",
+            {
+                { "Bilinear", "Bilinear" },
+                { "Bicubic", "Bicubic" },
+                { "Gaussian", "Gaussian" },
+                { "ScaleForce", "ScaleForce" },
+                { "Fsr", "FSR (AMD FidelityFX)" },
+                { "NearestNeighbor", "Nearest Neighbor" },
+                { nullptr, nullptr }
+            },
+            "Bilinear"
+        },
+        {
+            "eden_anti_aliasing",
+            "Anti-Aliasing",
+            "Anti-Aliasing",
+            "Post-process anti-aliasing. FXAA is faster, SMAA has better quality.",
+            "Post-process anti-aliasing.",
+            "graphics",
+            {
+                { "None", "None" },
+                { "Fxaa", "FXAA" },
+                { "Smaa", "SMAA" },
+                { nullptr, nullptr }
+            },
+            "None"
+        },
+        {
+            "eden_anisotropic_filtering",
+            "Anisotropic Filtering",
+            "Anisotropic Filtering",
+            "Texture filtering quality. Higher values improve texture sharpness at angles.",
+            "Texture filtering quality.",
+            "graphics",
+            {
+                { "Automatic", "Automatic" },
+                { "Default", "Default" },
+                { "X2", "2x" },
+                { "X4", "4x" },
+                { "X8", "8x" },
+                { "X16", "16x" },
+                { nullptr, nullptr }
+            },
+            "Automatic"
+        },
+        {
+            "eden_astc_decode",
+            "ASTC Texture Decode",
+            "ASTC Texture Decode",
+            "Method for decoding ASTC textures. GPU is fastest. CPU Async balances quality and performance.",
+            "ASTC texture decoding method.",
+            "graphics",
+            {
+                { "Gpu", "GPU" },
+                { "Cpu", "CPU" },
+                { "CpuAsynchronous", "CPU Asynchronous" },
+                { nullptr, nullptr }
+            },
+            "Gpu"
+        },
+        {
+            "eden_shader_backend",
+            "Shader Backend",
+            "Shader Backend",
+            "Shader compilation backend. SPIRV is recommended for better compatibility.",
+            "Shader compilation backend.",
+            "graphics",
+            {
+                { "SpirV", "SPIRV" },
+                { "Glsl", "GLSL" },
+                { "Glasm", "GLASM" },
+                { nullptr, nullptr }
+            },
+            "SpirV"
+        },
+        // System Category
+        {
+            "eden_docked_mode",
+            "Console Mode",
+            "Console Mode",
+            "Docked mode runs at higher resolution/performance. Handheld mode saves power.",
+            "Switch console operating mode.",
+            "system",
+            {
+                { "Docked", "Docked" },
+                { "Handheld", "Handheld" },
+                { nullptr, nullptr }
+            },
+            "Docked"
+        },
+        {
+            "eden_language",
+            "System Language",
+            "System Language",
+            "In-game language. Some games may not support all languages.",
+            "System language setting.",
+            "system",
+            {
+                { "EnglishAmerican", "English (US)" },
+                { "EnglishBritish", "English (UK)" },
+                { "Japanese", "Japanese" },
+                { "French", "French" },
+                { "German", "German" },
+                { "Italian", "Italian" },
+                { "Spanish", "Spanish" },
+                { "Chinese", "Chinese" },
+                { "Korean", "Korean" },
+                { "Dutch", "Dutch" },
+                { "Portuguese", "Portuguese" },
+                { "Russian", "Russian" },
+                { nullptr, nullptr }
+            },
+            "EnglishAmerican"
+        },
+        {
+            "eden_region",
+            "System Region",
+            "System Region",
+            "System region setting. Affects regional game content.",
+            "System region.",
+            "system",
+            {
+                { "Usa", "USA" },
+                { "Europe", "Europe" },
+                { "Japan", "Japan" },
+                { "Australia", "Australia" },
+                { "China", "China" },
+                { "Korea", "Korea" },
+                { "Taiwan", "Taiwan" },
+                { nullptr, nullptr }
+            },
+            "Usa"
+        },
+        // CPU Category
+        {
+            "eden_use_multicore",
+            "Multicore CPU Emulation",
+            "Multicore CPU Emulation",
+            "Enable multi-threaded CPU emulation. Improves performance on multi-core systems.",
+            "Multi-threaded CPU emulation.",
+            "cpu",
+            {
+                { "enabled", "Enabled" },
+                { "disabled", "Disabled" },
+                { nullptr, nullptr }
+            },
+            "enabled"
+        },
+        {
+            "eden_cpu_accuracy",
+            "CPU Accuracy",
+            "CPU Accuracy",
+            "CPU emulation accuracy. Auto is recommended. Unsafe improves performance but may cause issues.",
+            "CPU emulation accuracy level.",
+            "cpu",
+            {
+                { "Auto", "Auto" },
+                { "Accurate", "Accurate" },
+                { "Unsafe", "Unsafe" },
+                { "Paranoid", "Paranoid" },
+                { nullptr, nullptr }
+            },
+            "Auto"
+        },
+        // Advanced Category
+        {
+            "eden_use_async_gpu",
+            "Async GPU Emulation",
+            "Async GPU Emulation",
+            "MUST be disabled for libretro. Separate GPU thread incompatible with RetroArch.",
+            "Async GPU (libretro incompatible).",
+            "advanced",
+            {
+                { "disabled", "Disabled (Required)" },
+                { "enabled", "Enabled (Broken)" },
+                { nullptr, nullptr }
+            },
+            "disabled"
+        },
+        {
+            "eden_disk_shader_cache",
+            "Disk Shader Cache",
+            "Disk Shader Cache",
+            "Cache compiled shaders to disk. Reduces stuttering on subsequent runs.",
+            "Disk shader caching.",
+            "advanced",
+            {
+                { "enabled", "Enabled" },
+                { "disabled", "Disabled" },
+                { nullptr, nullptr }
+            },
+            "enabled"
+        },
+        {
+            "eden_reactive_flushing",
+            "Reactive Memory Flushing",
+            "Reactive Memory Flushing",
+            "Memory synchronization optimization. Improves performance.",
+            "Reactive memory flushing.",
+            "advanced",
+            {
+                { "enabled", "Enabled" },
+                { "disabled", "Disabled" },
+                { nullptr, nullptr }
+            },
+            "enabled"
+        },
+        {
+            "eden_astc_recompression",
+            "ASTC Recompression",
+            "ASTC Recompression",
+            "Recompress ASTC textures to save VRAM. BC1 for opaque, BC3 for transparent.",
+            "ASTC texture recompression.",
+            "advanced",
+            {
+                { "Uncompressed", "Uncompressed" },
+                { "Bc1", "BC1" },
+                { "Bc3", "BC3" },
+                { nullptr, nullptr }
+            },
+            "Uncompressed"
+        },
+        { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, {{ nullptr, nullptr }}, nullptr }
+    };
+    
+    struct retro_core_options_v2 options_v2 = {
+        option_cats,
+        option_defs
+    };
+    
+    // Try v2 first, fall back to v1 if not supported
+    unsigned version = 0;
+    if (environ_cb(RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION, &version) && version >= 2) {
+        environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2, &options_v2);
+        LibretroLog(RETRO_LOG_INFO, "Eden: Using v2 core options\n");
+    } else {
+        // v1 fallback for older RetroArch
+        static const struct retro_variable variables[] = {
+            { "eden_resolution_scale", "Internal Resolution; 1x|2x|3x|4x|5x|6x" },
+            { "eden_gpu_accuracy", "GPU Accuracy; Medium|Low|High" },
+            { "eden_scaling_filter", "Scaling Filter; Bilinear|Bicubic|Gaussian|ScaleForce|Fsr|NearestNeighbor" },
+            { "eden_anti_aliasing", "Anti-Aliasing; None|Fxaa|Smaa" },
+            { "eden_anisotropic_filtering", "Anisotropic Filtering; Automatic|Default|X2|X4|X8|X16" },
+            { "eden_astc_decode", "ASTC Texture Decode; Gpu|Cpu|CpuAsynchronous" },
+            { "eden_shader_backend", "Shader Backend; SpirV|Glsl|Glasm" },
+            { "eden_docked_mode", "Console Mode; Docked|Handheld" },
+            { "eden_language", "System Language; EnglishAmerican|EnglishBritish|Japanese|French|German|Italian|Spanish|Chinese|Korean|Dutch|Portuguese|Russian" },
+            { "eden_region", "System Region; Usa|Europe|Japan|Australia|China|Korea|Taiwan" },
+            { "eden_use_multicore", "Multicore CPU Emulation; enabled|disabled" },
+            { "eden_cpu_accuracy", "CPU Accuracy; Auto|Accurate|Unsafe|Paranoid" },
+            { "eden_use_async_gpu", "Async GPU Emulation; disabled|enabled" },
+            { "eden_disk_shader_cache", "Disk Shader Cache; enabled|disabled" },
+            { "eden_reactive_flushing", "Reactive Memory Flushing; enabled|disabled" },
+            { "eden_astc_recompression", "ASTC Recompression; Uncompressed|Bc1|Bc3" },
+            { nullptr, nullptr }
+        };
+        environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)variables);
+        LibretroLog(RETRO_LOG_INFO, "Eden: Using v1 core options\n");
+    }
     
     // Set input descriptors
     static const struct retro_input_descriptor input_desc[] = {
@@ -461,44 +956,48 @@ void retro_init(void) {
 }
 
 void retro_deinit(void) {
-    try {
     LOG_INFO(Frontend, "Libretro: retro_deinit called");
     LibretroLog(RETRO_LOG_INFO, "Eden: Deinitializing (frame_count: %llu)\n", frame_count.load());
     
-    is_initialized = false;
+    // Mark as not running first to stop any processing
     is_running = false;
+    is_initialized = false;
+    hw_context_ready = false;
     
+    // Shutdown system if still active (may have been shut down by retro_unload_game)
     if (emu_system) {
-        LOG_INFO(Frontend, "Shutting down emulation system");
-        emu_system->ShutdownMainProcess();
+        try {
+            // Notify GPU of shutdown first
+            if (emu_system->IsPoweredOn()) {
+                emu_system->GPU().NotifyShutdown();
+            }
+            emu_system->ShutdownMainProcess();
+        } catch (...) {
+            // Ignore errors during shutdown
+        }
         emu_system.reset();
-        LOG_INFO(Frontend, "System shutdown complete");
     }
     
+    // Reset window after system
     emu_window.reset();
     
+    // Shutdown input
     if (input_subsystem) {
-        input_subsystem->Shutdown();
+        try {
+            input_subsystem->Shutdown();
+        } catch (...) {}
         input_subsystem.reset();
     }
     
+    // Wait for detached tasks
     if (detached_tasks) {
-        detached_tasks->WaitForAllTasks();
+        try {
+            detached_tasks->WaitForAllTasks();
+        } catch (...) {}
         detached_tasks.reset();
     }
     
     LibretroLog(RETRO_LOG_INFO, "Eden: Deinitialized\n");
-    } catch (const std::exception& e) {
-        LOG_CRITICAL(Frontend, "EXCEPTION in retro_deinit: {}", e.what());
-        if (log_cb) {
-            log_cb(RETRO_LOG_ERROR, "Eden: Exception in deinit: %s\n", e.what());
-        }
-    } catch (...) {
-        LOG_CRITICAL(Frontend, "UNKNOWN EXCEPTION in retro_deinit");
-        if (log_cb) {
-            log_cb(RETRO_LOG_ERROR, "Eden: Unknown exception in deinit\n");
-        }
-    }
 }
 
 unsigned retro_api_version(void) {
@@ -666,8 +1165,8 @@ bool retro_load_game(const struct retro_game_info* game) {
     // CRITICAL: Use sync GPU mode for libretro - OpenGL context is only valid on main thread
     Settings::values.use_asynchronous_gpu_emulation.SetValue(false);
     
-    // Apply settings
-    emu_system->ApplySettings();
+    // Read core options from RetroArch
+    ApplyCoreOptions();
     
     // Set up filesystem
     emu_system->SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
@@ -694,16 +1193,33 @@ bool retro_load_game_special(unsigned game_type, const struct retro_game_info* i
 void retro_unload_game(void) {
     LOG_INFO(Frontend, "Libretro: Unloading game");
     
+    // Stop running first
     is_running = false;
     game_loaded = false;
+    hw_context_ready = false;
     
     if (emu_system) {
-        emu_system->Pause();
-        emu_system->ShutdownMainProcess();
+        try {
+            // Pause first
+            emu_system->Pause();
+            
+            // Notify GPU shutdown before main shutdown
+            if (emu_system->IsPoweredOn()) {
+                emu_system->GPU().NotifyShutdown();
+                // Give GPU time to process shutdown
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            }
+            
+            emu_system->ShutdownMainProcess();
+        } catch (...) {
+            // Ignore errors during shutdown
+        }
         emu_system.reset();
     }
     
-    emu_window.reset();
+    // Don't reset emu_window here - let retro_deinit handle it
+    // This avoids double-free issues
+    
     game_path.clear();
     
     LibretroLog(RETRO_LOG_INFO, "Eden: Game unloaded\n");

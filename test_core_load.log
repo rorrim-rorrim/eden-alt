@@ -1,0 +1,30 @@
+[INFO] RetroArch 1.22.2 (Git bfeac2e82c)
+[INFO] === Build =======================================
+[INFO] CPU Model Name: 12th Gen Intel(R) Core(TM) i5-12500H
+[INFO] Capabilities: MMX MMXEXT SSE SSE2 SSE3 SSSE3 SSE4 SSE42 AES AVX AVX2 
+[INFO] Version: 1.22.2
+[INFO] Git: bfeac2e82c
+[INFO] Built: Dec 30 2025
+[INFO] =================================================
+[INFO] [Input] Found input driver: "dinput".
+[INFO] [Core] Loading dynamic libretro core from: "C:\Users\owner\Documents\GitHub\RetroArch\cores\eden_libretro.dll".
+[INFO] [Override] Redirecting save file to "C:\Users\owner\Documents\GitHub\RetroArch\saves\Eden\Eden.srm".
+[INFO] [Override] Redirecting save state to "C:\Users\owner\Documents\GitHub\RetroArch\states\Eden\Eden.state".
+[INFO] [Environ] GET_LOG_INTERFACE.
+[INFO] [Environ] SET_SUPPORT_NO_GAME: yes.
+[INFO] [Environ] GET_CORE_OPTIONS_VERSION.
+[INFO] [Environ] SET_CORE_OPTIONS_V2.
+[libretro INFO] Eden: Using v2 core options
+[INFO] [Environ] SET_INPUT_DESCRIPTORS.
+[libretro INFO] Eden: Environment set
+[INFO] [Environ] GET_SYSTEM_DIRECTORY: "C:\Users\owner\Documents\GitHub\RetroArch\system".
+[INFO] [Environ] GET_SAVE_DIRECTORY: "C:\Users\owner\Documents\GitHub\RetroArch\saves\Eden".
+[INFO] [Environ] SET_PIXEL_FORMAT: XRGB8888.
+[INFO] [Environ] SET_HW_SHARED_CONTEXT.
+[libretro INFO] Eden: Initialized - System dir: C:\Users\owner\Documents\GitHub\RetroArch\system, Save dir: C:\Users\owner\Documents\GitHub\RetroArch\saves\Eden
+[ERROR] [Content] Failed to load content.
+[INFO] [Core] Unloading core...
+[libretro INFO] Eden: Deinitializing (frame_count: 0)
+[libretro INFO] Eden: Deinitialized
+[INFO] [Core] Unloading core symbols...
+[INFO] [Core] Saved core options file to "C:\Users\owner\Documents\GitHub\RetroArch\config\Eden\Eden.opt".

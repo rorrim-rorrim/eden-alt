@@ -1,0 +1,57 @@
+[INFO] RetroArch 1.22.2 (Git bfeac2e82c)
+[INFO] === Build =======================================
+[INFO] CPU Model Name: 12th Gen Intel(R) Core(TM) i5-12500H
+[INFO] Capabilities: MMX MMXEXT SSE SSE2 SSE3 SSSE3 SSE4 SSE42 AES AVX AVX2 
+[INFO] Version: 1.22.2
+[INFO] Git: bfeac2e82c
+[INFO] Built: Dec 30 2025
+[INFO] =================================================
+[INFO] [Input] Found input driver: "dinput".
+[INFO] [Core] Loading dynamic libretro core from: "C:\Users\owner\Documents\GitHub\RetroArch\cores\eden_libretro.dll".
+[INFO] [Override] Redirecting save file to "C:\Users\owner\Documents\GitHub\RetroArch\saves\Eden\SimpleHomebrew.srm".
+[INFO] [Override] Redirecting save state to "C:\Users\owner\Documents\GitHub\RetroArch\states\Eden\SimpleHomebrew.state".
+[INFO] [Environ] GET_LOG_INTERFACE.
+[INFO] [Environ] SET_SUPPORT_NO_GAME: yes.
+[INFO] [Environ] GET_CORE_OPTIONS_VERSION.
+[INFO] [Environ] SET_CORE_OPTIONS_V2.
+[libretro INFO] Eden: Using v2 core options
+[INFO] [Environ] SET_INPUT_DESCRIPTORS.
+[libretro INFO] Eden: Environment set
+[INFO] [Environ] GET_SYSTEM_DIRECTORY: "C:\Users\owner\Documents\GitHub\RetroArch\system".
+[INFO] [Environ] GET_SAVE_DIRECTORY: "C:\Users\owner\Documents\GitHub\RetroArch\saves\Eden".
+[INFO] [Environ] SET_PIXEL_FORMAT: XRGB8888.
+[INFO] [Environ] SET_HW_SHARED_CONTEXT.
+[libretro INFO] Eden: Initialized - System dir: C:\Users\owner\Documents\GitHub\RetroArch\system, Save dir: C:\Users\owner\Documents\GitHub\RetroArch\saves\Eden
+[INFO] [Content] Content loading skipped. Implementation will load it on its own.
+[libretro INFO] Eden: Loading game: G:\Eden-Libretro\test_roms\SimpleHomebrew.nro
+[INFO] [Environ] SET_HW_RENDER, context type: gl.
+[INFO] [HW] Requesting core OpenGL context (4.6).
+[libretro INFO] Eden: Ready to load game
+[INFO] [SRAM] Skipping SRAM load.
+[INFO] [Core] Version of libretro API: 1, Compiled against API: 1
+[INFO] [Core] Geometry: 1280x720, Aspect: 1.778, FPS: 60.00, Sample rate: 48000.00 Hz.
+[INFO] [Video] Set video size to: 1920x1080.
+[INFO] [Video] Using HW render, OpenGL driver forced.
+[INFO] [Video] Using configured "gl" driver for GL HW render.
+[INFO] [GL] Found GL context: "wgl".
+[INFO] [GL] Detecting screen resolution: 1920x1080.
+[INFO] [WGL] Extensions: WGL_ARB_buffer_region WGL_ARB_create_context WGL_ARB_create_context_no_error WGL_ARB_create_context_profile WGL_ARB_create_context_robustness WGL_ARB_context_flush_control WGL_ARB_extensions_string WGL_ARB_make_current_read WGL_ARB_multisample WGL_ARB_pbuffer WGL_ARB_pixel_format WGL_ARB_pixel_format_float WGL_ARB_render_texture WGL_ATI_pixel_format_float WGL_EXT_colorspace WGL_EXT_create_context_es_profile WGL_EXT_create_context_es2_profile WGL_EXT_extensions_string WGL_EXT_framebuffer_sRGB WGL_EXT_pixel_format_packed_float WGL_EXT_swap_control WGL_EXT_swap_control_tear WGL_NVX_DX_interop WGL_NV_DX_interop WGL_NV_DX_interop2 WGL_NV_copy_image WGL_NV_delay_before_swap WGL_NV_float_buffer WGL_NV_multisample_coverage WGL_NV_multigpu_context WGL_NV_render_depth_texture WGL_NV_render_texture_rectangle 
+[INFO] [WGL] Adaptive VSync supported.
+[INFO] [GL] Vendor: NVIDIA Corporation, Renderer: NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2.
+[INFO] [GL] Version: 4.6.0 NVIDIA 566.36.
+[INFO] [GL] Using Core GL context, setting up VAO...
+[INFO] [GL] Using resolution 1920x1080.
+[INFO] [GL] Default shader backend found: cg.
+[ERROR] [GL] Couldn't find any supported shader backend! Continuing without shaders.
+[INFO] [GL] Using 1 textures.
+[INFO] [GL] Loaded 0 program(s).
+[INFO] [GL] Initializing HW render (8192x8192).
+[INFO] [GL] Max texture size: 32768 px, renderbuffer size: 32768 px.
+[INFO] [GL] Supports FBO (render-to-texture).
+[INFO] [XInput] Found XInput v1.4.
+[INFO] [Input] Found joypad driver: "dinput".
+[ERROR] [GL] GL: Invalid value.
+[ERROR] [Video] Cannot open video driver. Exiting...
+[ERROR] Fatal error received in: "video_driver_init_internal()"
+[libretro INFO] Eden: OpenGL context destroyed
+[INFO] [Core] Unloading game...
