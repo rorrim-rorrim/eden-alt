@@ -951,7 +951,6 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         const s32 request = parcel_in.Read<s32>();
         if (request <= 0) {
             status = Status::BadValue;
-            parcel_out.Write(0);
             break;
         }
 
@@ -972,7 +971,6 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
                 // Because a buffer without frame_number is not considered complete
                 if (current_history_buffer.frame_number == 0) {
                     status = Status::BadValue;
-                    parcel_out.Write(0);
                     break;
                 }
 
@@ -982,13 +980,17 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         }
 
         const s32 limit = std::min(request, valid_index);
-        status = Status::NoError;
+        parcel_out.Write(Status::NoError);
         parcel_out.Write<s32>(limit);
         for (s32 i = 0; i < limit; ++i) {
             parcel_out.Write(buffer_history_snapshot[i]);
         }
 
-        break;
+        const auto serialized = parcel_out.Serialize();
+        std::memcpy(parcel_reply.data(), serialized.data(),
+                    (std::min)(parcel_reply.size(), serialized.size()));
+
+        return;
     }
     default:
         ASSERT_MSG(false, "Unimplemented TransactionId {}", code);
