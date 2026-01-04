@@ -950,8 +950,8 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
 
         const s32 request = parcel_in.Read<s32>();
         if (request <= 0) {
-            parcel_out.Write(Status::BadValue);
-            parcel_out.Write<s32>(0);
+            status = Status::BadValue;
+            parcel_out.Write(0);
             break;
         }
 
@@ -971,6 +971,8 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
                 // Here we use the frame number as a terminator.
                 // Because a buffer without frame_number is not considered complete
                 if (current_history_buffer.frame_number == 0) {
+                    status = Status::BadValue;
+                    parcel_out.Write(0);
                     break;
                 }
 
@@ -980,7 +982,7 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         }
 
         const s32 limit = std::min(request, valid_index);
-        parcel_out.Write(Status::NoError);
+        status = Status::NoError;
         parcel_out.Write<s32>(limit);
         for (s32 i = 0; i < limit; ++i) {
             parcel_out.Write(buffer_history_snapshot[i]);
@@ -998,10 +1000,6 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
     const auto serialized = parcel_out.Serialize();
     std::memcpy(parcel_reply.data(), serialized.data(),
                 (std::min)(parcel_reply.size(), serialized.size()));
-}
-
-Kernel::KReadableEvent* BufferQueueProducer::GetNativeHandle(u32 type_id) {
-    return &buffer_wait_event->GetReadableEvent();
 }
 
 } // namespace Service::android
