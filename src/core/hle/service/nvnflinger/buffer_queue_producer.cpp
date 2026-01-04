@@ -984,9 +984,7 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
 
         parcel_out.Write(status);
         parcel_out.Write<s32>(static_cast<s32>(history.size()));
-        for (const auto& rec : history) {
-            parcel_out.Write(rec);
-        }
+        parcel_out.WriteUnmanagedSpan<BufferHistoryInfo>(history);
         break;
     }
     default:
