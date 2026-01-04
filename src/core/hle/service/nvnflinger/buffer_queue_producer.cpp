@@ -830,7 +830,7 @@ Status BufferQueueProducer::GetBufferHistory(s32 buffer_history_count,
     std::scoped_lock lk(core->mutex);
 
     constexpr u32 history_max = BufferQueueCore::BUFFER_HISTORY_SIZE;
-    buffer_history_count = std::min<s32>(buffer_history_count, static_cast<s32>(history_max));
+    buffer_history_count = std::min<s32>(buffer_history_count, history_max);
 
     out_buffer_history.resize(buffer_history_count);
 

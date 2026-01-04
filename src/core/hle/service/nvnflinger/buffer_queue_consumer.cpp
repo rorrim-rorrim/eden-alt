@@ -102,7 +102,7 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer,
 
         // Mark tracked buffer history records as acquired
         for (auto& buffer_history_record : core->buffer_history) {
-            if (buffer_history_record.frame_number == core->frame_counter) {
+            if (buffer_history_record.frame_number == out_buffer->frame_number) {
                 buffer_history_record.state = BufferState::Acquired;
                 break;
             }
@@ -162,6 +162,14 @@ Status BufferQueueConsumer::ReleaseBuffer(s32 slot, u64 frame_number, const Fenc
             // by properly waiting for the fence in the BufferItemConsumer.
             // slots[slot].fence = release_fence;
             slots[slot].buffer_state = BufferState::Free;
+
+            // Update history: acquired -> free
+            for (auto& buffer_history_record : core->buffer_history) {
+                if (buffer_history_record.frame_number == frame_number) {
+                    buffer_history_record.state = BufferState::Free;
+                    break;
+                }
+            }
 
             listener = core->connected_producer_listener;
 
