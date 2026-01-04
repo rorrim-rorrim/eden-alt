@@ -7,8 +7,10 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/logging/log.h"
 #include "common/settings.h"
 #include "common/settings_enums.h"
+#include "core/frontend/framebuffer_layout.h"
 #include "video_core/present.h"
 #include "video_core/renderer_opengl/gl_blit_screen.h"
 #include "video_core/renderer_opengl/gl_state_tracker.h"
@@ -55,7 +57,6 @@ void BlitScreen::DrawScreen(std::span<const Tegra::FramebufferConfig> framebuffe
     glDisable(GL_STENCIL_TEST);
     glDisable(GL_POLYGON_OFFSET_FILL);
     glDisable(GL_RASTERIZER_DISCARD);
-    glDisable(GL_ALPHA_TEST);
     glDisablei(GL_BLEND, 0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glCullFace(GL_BACK);

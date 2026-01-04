@@ -224,6 +224,15 @@ public:
     /// This can be used to launch any necessary threads and register any necessary
     /// core timing events.
     void Start();
+    
+    /// Enable deferred GPU mode for libretro - commands processed on main thread
+    void SetDeferredMode(bool enabled);
+    
+    /// Process pending GPU commands (for deferred mode)
+    void ProcessPendingCommands();
+    
+    /// Process pending composites (for deferred mode - called from main thread)
+    void ProcessPendingComposites();
 
     /// Performs any additional necessary steps to shutdown GPU emulation.
     void NotifyShutdown();

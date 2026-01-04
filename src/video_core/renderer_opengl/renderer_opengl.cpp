@@ -142,14 +142,28 @@ void RendererOpenGL::Composite(std::span<const Tegra::FramebufferConfig> framebu
     RenderAppletCaptureLayer(framebuffers);
     RenderScreenshot(framebuffers);
 
-    state_tracker.BindFramebuffer(0);
-    blit_screen->DrawScreen(framebuffers, emu_window.GetFramebufferLayout(), false);
+    u32 present_fbo = render_window.GetPresentationFramebuffer();
+    const auto& layout = emu_window.GetFramebufferLayout();
+
+    glViewport(0, 0, layout.width, layout.height);
+    glDisable(GL_SCISSOR_TEST);
+
+    state_tracker.BindFramebuffer(present_fbo);
+    blit_screen->DrawScreen(framebuffers, layout, false);
 
     ++m_current_frame;
 
     gpu.RendererFrameEndNotify();
     rasterizer.TickFrame();
 
+    // Clean up GL state for libretro compatibility
+    // Libretro docs: "Don't leave buffers and global objects bound when calling video_cb"
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glUseProgram(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    
     context->SwapBuffers();
     render_window.OnFrameDisplayed();
 }

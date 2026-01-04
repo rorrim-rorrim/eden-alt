@@ -80,7 +80,10 @@ RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window_, Tegra
                    program_manager, state_tracker, gpu.ShaderNotify()),
       query_cache(*this, device_memory_), accelerate_dma(buffer_cache, texture_cache),
       fence_manager(*this, gpu, texture_cache, buffer_cache, query_cache),
-      blit_image(program_manager_) {}
+      blit_image(program_manager_) {
+    // Create VAO for GPU rendering - required for draw calls in libretro
+    glGenVertexArrays(1, &gpu_vao);
+}
 
 RasterizerOpenGL::~RasterizerOpenGL() = default;
 
@@ -227,6 +230,9 @@ void RasterizerOpenGL::PrepareDraw(bool is_indexed, Func&& draw_func) {
         gpu.TickWork();
     };
     gpu_memory->FlushCaching();
+    
+    // Ensure GPU VAO is bound - libretro unbinds it after presentation
+    glBindVertexArray(gpu_vao);
 
     GraphicsPipeline* const pipeline{shader_cache.CurrentGraphicsPipeline()};
     if (!pipeline) {
@@ -263,11 +269,13 @@ void RasterizerOpenGL::Draw(bool is_indexed, u32 instance_count) {
         const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
         const GLuint base_instance = static_cast<GLuint>(draw_state.base_instance);
         const GLsizei num_instances = static_cast<GLsizei>(instance_count);
+
         if (is_indexed) {
             const GLint base_vertex = static_cast<GLint>(draw_state.base_index);
             const GLsizei num_vertices = static_cast<GLsizei>(draw_state.index_buffer.count);
             const GLvoid* const offset = buffer_cache_runtime.IndexOffset();
             const GLenum format = MaxwellToGL::IndexFormat(draw_state.index_buffer.format);
+
             if (num_instances == 1 && base_instance == 0 && base_vertex == 0) {
                 glDrawElements(primitive_mode, num_vertices, format, offset);
             } else if (num_instances == 1 && base_instance == 0) {
@@ -289,6 +297,7 @@ void RasterizerOpenGL::Draw(bool is_indexed, u32 instance_count) {
         } else {
             const GLint base_vertex = static_cast<GLint>(draw_state.vertex_buffer.first);
             const GLsizei num_vertices = static_cast<GLsizei>(draw_state.vertex_buffer.count);
+
             if (num_instances == 1 && base_instance == 0) {
                 glDrawArrays(primitive_mode, base_vertex, num_vertices);
             } else if (base_instance == 0) {
@@ -747,6 +756,7 @@ std::optional<FramebufferTextureInfo> RasterizerOpenGL::AccelerateDisplay(
     info.height = image_view->size.height;
     info.scaled_width = scaled ? resolution.ScaleUp(info.width) : info.width;
     info.scaled_height = scaled ? resolution.ScaleUp(info.height) : info.height;
+
     return info;
 }
 

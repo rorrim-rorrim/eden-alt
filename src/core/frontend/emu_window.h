@@ -75,6 +75,9 @@ public:
 
     /// Called from GPU thread when a frame is displayed.
     virtual void OnFrameDisplayed() {}
+    
+    /// Returns the framebuffer ID to use for final presentation (0 for normal, custom for libretro)
+    virtual u32 GetPresentationFramebuffer() const { return 0; }
 
     /**
      * Returns a GraphicsContext that the frontend provides to be used for rendering.

@@ -67,6 +67,14 @@ void ThreadManager::StartThread(VideoCore::RendererBase& renderer,
                                 Core::Frontend::GraphicsContext& context,
                                 Tegra::Control::Scheduler& scheduler) {
     rasterizer = renderer.ReadRasterizer();
+    scheduler_ptr = &scheduler;
+    
+    // In deferred mode, don't start the GPU thread - commands will be processed on main thread
+    if (deferred_mode) {
+        LOG_INFO(HW_GPU, "GPU deferred mode enabled - thread not started");
+        return;
+    }
+    
     thread = std::jthread(RunThread, std::ref(system), std::ref(renderer), std::ref(context),
                           std::ref(scheduler), std::ref(state));
 }
@@ -97,6 +105,17 @@ void ThreadManager::FlushAndInvalidateRegion(DAddr addr, u64 size) {
 }
 
 u64 ThreadManager::PushCommand(CommandData&& command_data, bool block) {
+    // In deferred mode, queue commands for later processing on main thread
+    // Signal fence immediately so game threads don't block waiting
+    if (deferred_mode) {
+        std::lock_guard lk(deferred_mutex);
+        const u64 fence{++state.last_fence};
+        deferred_commands.emplace_back(std::move(command_data), fence, false); // Never block in deferred mode
+        // Signal fence immediately so blocking callers don't wait forever
+        state.signaled_fence.store(fence, std::memory_order_release);
+        return fence;
+    }
+    
     if (!is_async) {
         // In synchronous GPU mode, block the caller until the command has executed
         block = true;
@@ -113,6 +132,40 @@ u64 ThreadManager::PushCommand(CommandData&& command_data, bool block) {
     }
 
     return fence;
+}
+
+void ThreadManager::ProcessPendingCommands() {
+    if (!deferred_mode || !scheduler_ptr) {
+        return;
+    }
+    
+    std::vector<CommandDataContainer> commands_to_process;
+    {
+        std::lock_guard lk(deferred_mutex);
+        commands_to_process = std::move(deferred_commands);
+        deferred_commands.clear();
+    }
+    
+    if (!commands_to_process.empty()) {
+        LOG_DEBUG(HW_GPU, "ProcessPendingCommands: processing {} commands", commands_to_process.size());
+    }
+    
+    for (auto& cmd : commands_to_process) {
+        if (auto* submit_list = std::get_if<SubmitListCommand>(&cmd.data)) {
+            scheduler_ptr->Push(submit_list->channel, std::move(submit_list->entries));
+        } else if (std::holds_alternative<GPUTickCommand>(cmd.data)) {
+            system.GPU().TickWork();
+        } else if (const auto* flush = std::get_if<FlushRegionCommand>(&cmd.data)) {
+            if (rasterizer) {
+                rasterizer->FlushRegion(flush->addr, flush->size);
+            }
+        } else if (const auto* invalidate = std::get_if<InvalidateRegionCommand>(&cmd.data)) {
+            if (rasterizer) {
+                rasterizer->OnCacheInvalidation(invalidate->addr, invalidate->size);
+            }
+        }
+        state.signaled_fence.store(cmd.fence);
+    }
 }
 
 } // namespace VideoCommon::GPUThread

@@ -39,6 +39,7 @@ private:
     OGLProgram vert;
     OGLProgram frag;
     OGLBuffer vertex_buffer;
+    GLuint vao_handle = 0;
 
     // GPU address of the vertex buffer
     GLuint64EXT vertex_buffer_address = 0;

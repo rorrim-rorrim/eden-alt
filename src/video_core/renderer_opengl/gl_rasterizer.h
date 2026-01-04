@@ -255,6 +255,9 @@ private:
 
     BlitImageHelper blit_image;
 
+    /// VAO for GPU rendering - must be bound for draw calls
+    GLuint gpu_vao = 0;
+
     boost::container::static_vector<u32, MAX_IMAGE_VIEWS> image_view_indices;
     std::array<ImageViewId, MAX_IMAGE_VIEWS> image_view_ids;
     boost::container::static_vector<GLuint, MAX_TEXTURES> sampler_handles;

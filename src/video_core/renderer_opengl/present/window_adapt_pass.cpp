@@ -25,10 +25,11 @@ WindowAdaptPass::WindowAdaptPass(const Device& device_, OGLSampler&& sampler_,
     vert = CreateProgram(HostShaders::OPENGL_PRESENT_VERT, GL_VERTEX_SHADER);
     frag = CreateProgram(frag_source, GL_FRAGMENT_SHADER);
 
-    // Generate VBO handle for drawing
+    // Generate VAO and VBO for drawing
+    glCreateVertexArrays(1, &vao_handle);
     vertex_buffer.Create();
 
-    // Attach vertex data to VAO
+    // Attach vertex data to buffer
     glNamedBufferData(vertex_buffer.handle, sizeof(ScreenRectVertex) * 4, nullptr, GL_STREAM_DRAW);
 
     // Query vertex buffer address when the driver supports unified vertex attributes
@@ -70,6 +71,11 @@ void WindowAdaptPass::DrawToFramebuffer(ProgramManager& program_manager, std::li
     glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(layout.width),
                        static_cast<GLfloat>(layout.height));
 
+    // Save RetroArch's VAO state before binding ours
+    GLint saved_vao = 0;
+    glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &saved_vao);
+
+    glBindVertexArray(vao_handle);
     glEnableVertexAttribArray(PositionLocation);
     glEnableVertexAttribArray(TexCoordLocation);
     glVertexAttribDivisor(PositionLocation, 0);
@@ -80,17 +86,13 @@ void WindowAdaptPass::DrawToFramebuffer(ProgramManager& program_manager, std::li
                          offsetof(ScreenRectVertex, tex_coord));
     glVertexAttribBinding(PositionLocation, 0);
     glVertexAttribBinding(TexCoordLocation, 0);
-    if (device.HasVertexBufferUnifiedMemory()) {
-        glBindVertexBuffer(0, 0, 0, sizeof(ScreenRectVertex));
-        glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, 0, vertex_buffer_address,
-                               sizeof(decltype(vertices)::value_type));
-    } else {
-        glBindVertexBuffer(0, vertex_buffer.handle, 0, sizeof(ScreenRectVertex));
-    }
+
+    // Always use standard VBO binding for libretro compatibility
+    // NV_vertex_buffer_unified_memory extension causes crashes in libretro's OpenGL context
+    glBindVertexBuffer(0, vertex_buffer.handle, 0, sizeof(ScreenRectVertex));
 
     glBindSampler(0, sampler.handle);
 
-    // Update background color before drawing
     glClearColor(Settings::values.bg_red.GetValue() / 255.0f,
                  Settings::values.bg_green.GetValue() / 255.0f,
                  Settings::values.bg_blue.GetValue() / 255.0f, 1.0f);
@@ -122,6 +124,9 @@ void WindowAdaptPass::DrawToFramebuffer(ProgramManager& program_manager, std::li
         glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices[i]), std::data(vertices[i]));
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
+
+    // Restore RetroArch's VAO
+    glBindVertexArray(saved_vao);
 }
 
 } // namespace OpenGL

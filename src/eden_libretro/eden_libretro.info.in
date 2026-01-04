@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+# Software Information
+display_name = "Nintendo - Switch (Eden)"
+authors = "Eden Emulator Project"
+supported_extensions = "nsp|xci|nca|nso|nro"
+corename = "Eden"
+manufacturer = "Nintendo"
+categories = "Emulator"
+systemname = "Nintendo Switch"
+systemid = "nintendo_switch"
+database = "Nintendo - Switch"
+license = "GPLv3"
+permissions = ""
+display_version = "@CMAKE_PROJECT_VERSION@"
+
+# Hardware Information
+needs_fullpath = "true"
+supports_no_game = "false"
+single_purpose = "true"
+
+# Libretro Features
+hw_render = "true"
+requires_content = "true"
+is_experimental = "true"
+
+# Firmware / BIOS
+firmware_count = 0
+
+# Notes
+notes = "(!) Requires Nintendo Switch firmware and keys to be placed in the system directory.|Place prod.keys and title.keys in the system directory.|Some games may require additional system files."
+
+# Description
+description = "Eden is an experimental Nintendo Switch emulator for the libretro API. It requires original Nintendo Switch firmware and decryption keys to function. This core uses OpenGL hardware rendering for optimal performance."

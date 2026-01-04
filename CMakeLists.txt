@@ -187,6 +187,9 @@ cmake_dependent_option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF 
 
 option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
+# Libretro core
+option(ENABLE_LIBRETRO "Build the libretro core" OFF)
+
 option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
 if(YUZU_ENABLE_LTO)
     include(UseLTO)

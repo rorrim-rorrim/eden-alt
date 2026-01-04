@@ -106,6 +106,13 @@ public:
     /// Creates and starts the GPU thread.
     void StartThread(VideoCore::RendererBase& renderer, Core::Frontend::GraphicsContext& context,
                      Tegra::Control::Scheduler& scheduler);
+    
+    /// Enable deferred mode - commands are queued for main thread processing (for libretro)
+    void SetDeferredMode(bool enabled) { deferred_mode = enabled; }
+    bool IsDeferredMode() const { return deferred_mode; }
+    
+    /// Process pending commands on the current thread (for deferred mode)
+    void ProcessPendingCommands();
 
     /// Push GPU command entries to be processed
     void SubmitList(s32 channel, Tegra::CommandList&& entries);
@@ -127,10 +134,16 @@ private:
 
     Core::System& system;
     const bool is_async;
+    bool deferred_mode = false;
     VideoCore::RasterizerInterface* rasterizer = nullptr;
+    Tegra::Control::Scheduler* scheduler_ptr = nullptr;
 
     SynchState state;
     std::jthread thread;
+    
+    // Deferred command queue for libretro mode
+    std::vector<CommandDataContainer> deferred_commands;
+    std::mutex deferred_mutex;
 };
 
 } // namespace VideoCommon::GPUThread

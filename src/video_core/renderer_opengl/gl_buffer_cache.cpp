@@ -114,7 +114,9 @@ BufferCacheRuntime::BufferCacheRuntime(const Device& device_,
     : device{device_}, staging_buffer_pool{staging_buffer_pool_},
       has_fast_buffer_sub_data{device.HasFastBufferSubData()},
       use_assembly_shaders{device.UseAssemblyShaders()},
-      has_unified_vertex_buffers{device.HasVertexBufferUnifiedMemory()},
+      // NOTE: Disable NV_vertex_buffer_unified_memory for libretro compatibility
+      // This extension causes GL_INVALID_OPERATION errors in libretro's OpenGL context
+      has_unified_vertex_buffers{false}, // was: device.HasVertexBufferUnifiedMemory()
       stream_buffer{has_fast_buffer_sub_data ? std::nullopt : std::make_optional<StreamBuffer>()} {
     GLint gl_max_attributes;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &gl_max_attributes);

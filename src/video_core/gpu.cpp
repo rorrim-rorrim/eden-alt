@@ -125,6 +125,12 @@ struct GPU::Impl {
     }
 
     void WaitForSyncOperation(const u64 fence) {
+        // In deferred mode, process sync operations immediately since we're on main thread
+        if (gpu_thread.IsDeferredMode()) {
+            LOG_DEBUG(HW_GPU, "WaitForSyncOperation: deferred mode, calling TickWork");
+            TickWork();
+            return;
+        }
         std::unique_lock lck{sync_request_mutex};
         sync_request_cv.wait(lck, [this, fence] { return CurrentSyncRequestFence() >= fence; });
     }
@@ -132,6 +138,10 @@ struct GPU::Impl {
     /// Tick pending requests within the GPU.
     void TickWork() {
         std::unique_lock lck{sync_request_mutex};
+        size_t request_count = sync_requests.size();
+        if (request_count > 0) {
+            LOG_DEBUG(HW_GPU, "TickWork: processing {} sync requests", request_count);
+        }
         while (!sync_requests.empty()) {
             auto request = std::move(sync_requests.front());
             sync_requests.pop_front();
@@ -290,6 +300,17 @@ struct GPU::Impl {
 
     void RequestComposite(std::vector<Tegra::FramebufferConfig>&& layers,
                           std::vector<Service::Nvidia::NvFence>&& fences) {
+        LOG_INFO(HW_GPU, "RequestComposite called with {} layers, {} fences, deferred_mode={}",
+                 layers.size(), fences.size(), gpu_thread.IsDeferredMode());
+        
+        // In deferred mode, queue composite for main thread execution
+        if (gpu_thread.IsDeferredMode()) {
+            std::lock_guard lk(pending_composites_mutex);
+            pending_composites.push_back(std::move(layers));
+            LOG_INFO(HW_GPU, "Deferred mode: queued composite, {} pending", pending_composites.size());
+            return;
+        }
+        
         size_t num_fences{fences.size()};
         size_t current_request_counter{};
         {
@@ -366,6 +387,10 @@ struct GPU::Impl {
     u64 last_sync_fence{};
     std::mutex sync_request_mutex;
     std::condition_variable sync_request_cv;
+    
+    // Pending composites for deferred mode (executed on main thread)
+    std::vector<std::vector<Tegra::FramebufferConfig>> pending_composites;
+    std::mutex pending_composites_mutex;
 
     const bool is_async;
 
@@ -525,6 +550,28 @@ void GPU::NotifyShutdown() {
 
 void GPU::ObtainContext() {
     impl->ObtainContext();
+}
+
+void GPU::SetDeferredMode(bool enabled) {
+    impl->gpu_thread.SetDeferredMode(enabled);
+}
+
+void GPU::ProcessPendingCommands() {
+    impl->gpu_thread.ProcessPendingCommands();
+}
+
+void GPU::ProcessPendingComposites() {
+    std::vector<std::vector<Tegra::FramebufferConfig>> composites_to_process;
+    {
+        std::lock_guard lk(impl->pending_composites_mutex);
+        composites_to_process = std::move(impl->pending_composites);
+        impl->pending_composites.clear();
+    }
+    
+    for (auto& layers : composites_to_process) {
+        LOG_INFO(HW_GPU, "Processing queued composite with {} layers", layers.size());
+        impl->renderer->Composite(layers);
+    }
 }
 
 void GPU::ReleaseContext() {

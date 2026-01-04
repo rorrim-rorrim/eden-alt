@@ -3,6 +3,7 @@
 
 #include <glad/glad.h>
 
+#include "common/logging/log.h"
 #include "video_core/host_shaders/opengl_lmem_warmup_comp.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_shader_util.h"
@@ -112,6 +113,13 @@ void ProgramManager::LocalMemoryWarmup() {
 }
 
 void ProgramManager::BindPipeline() {
+    // For libretro compatibility: Always verify actual GL state matches our tracked state
+    // RetroArch may unbind our pipeline between frames
+    GLint actual_pipeline = 0;
+    glGetIntegerv(GL_PROGRAM_PIPELINE_BINDING, &actual_pipeline);
+    if (is_pipeline_bound && actual_pipeline != static_cast<GLint>(pipeline.handle)) {
+        is_pipeline_bound = false; // Reset to force rebind
+    }
     if (!is_pipeline_bound) {
         is_pipeline_bound = true;
         glBindProgramPipeline(pipeline.handle);

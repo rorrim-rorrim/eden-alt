@@ -247,4 +247,8 @@ if (ANDROID)
     target_include_directories(yuzu-android PRIVATE android/app/src/main)
 endif()
 
+if (ENABLE_LIBRETRO)
+    add_subdirectory(eden_libretro)
+endif()
+
 include(GenerateDepHashes)
