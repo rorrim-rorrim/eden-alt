@@ -37,6 +37,7 @@
 
 #include "video_core/renderer_base.h"
 #include "video_core/gpu.h"
+#include "video_core/rasterizer_interface.h"
 
 #include "hid_core/hid_core.h"
 
@@ -300,7 +301,28 @@ void ApplyCoreOptions() {
         LOG_INFO(Frontend, "ASTC Recompression: {}", value);
     }
     
-    LOG_INFO(Frontend, "Libretro: Core options applied");
+    // Performance optimizations - always enabled for libretro
+    // Disable speed limit - let RetroArch handle frame pacing
+    Settings::values.use_speed_limit.SetValue(false);
+    
+    // CRITICAL: Disable async shaders - worker threads crash without GL context
+    Settings::values.use_asynchronous_shaders.SetValue(false);
+    
+    // Enable fastmem for better CPU performance
+    Settings::values.cpuopt_fastmem.SetValue(true);
+    Settings::values.cpuopt_fastmem_exclusives.SetValue(true);
+    
+    // Enable unsafe CPU optimizations for performance (can be toggled by CPU Accuracy setting)
+    Settings::values.cpuopt_unsafe_unfuse_fma.SetValue(true);
+    Settings::values.cpuopt_unsafe_reduce_fp_error.SetValue(true);
+    Settings::values.cpuopt_unsafe_inaccurate_nan.SetValue(true);
+    Settings::values.cpuopt_unsafe_fastmem_check.SetValue(true);
+    Settings::values.cpuopt_unsafe_ignore_global_monitor.SetValue(true);
+    
+    // VSync off - RetroArch handles sync
+    Settings::values.vsync_mode.SetValue(Settings::VSyncMode::Immediate);
+    
+    LOG_INFO(Frontend, "Libretro: Core options applied with performance optimizations");
 }
 
 // Context reset callback - called when OpenGL context is ready
@@ -351,6 +373,11 @@ void ContextReset() {
         LOG_INFO(Frontend, "Libretro: Starting GPU after successful load");
         emu_system->GPU().Start();
         emu_system->GetCpuManager().OnGpuReady();
+        
+        // Note: Shader cache preloading disabled for libretro - it spawns worker threads
+        // that call MakeCurrent which crashes since only main thread has GL context.
+        // Shaders will still be cached to disk and loaded on-demand.
+        
         emu_system->Run();
         is_running = true;
         LibretroLog(RETRO_LOG_INFO, "Eden: Emulation started\n");
@@ -1062,17 +1089,14 @@ void retro_run(void) {
         }
         
         // Process pending GPU commands and composites on main thread (deferred mode)
-        // Poll multiple times to allow game threads to make progress
         if (emu_system && hw_context_ready) {
             try {
                 auto& gpu = emu_system->GPU();
                 
-                // Process commands multiple times with short sleeps to allow game threads to queue more
-                for (int i = 0; i < 10; i++) {
-                    gpu.ProcessPendingCommands();
-                    gpu.ProcessPendingComposites();
-                    std::this_thread::sleep_for(std::chrono::milliseconds(2));
-                }
+                // Process all pending commands without blocking
+                // Game threads run asynchronously and queue commands
+                gpu.ProcessPendingCommands();
+                gpu.ProcessPendingComposites();
                 
                 has_new_frame = false;
             } catch (...) {
@@ -1092,9 +1116,6 @@ void retro_run(void) {
             RenderAudio();
         }
         
-        if (frame_count % 600 == 0) {
-            LOG_INFO(Frontend, "retro_run: frame {} rendered", frame_count.load());
-        }
     } catch (const std::exception& e) {
         LOG_ERROR(Frontend, "Exception in retro_run: {}", e.what());
         is_running = false;
