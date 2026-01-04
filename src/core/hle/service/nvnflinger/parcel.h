@@ -130,6 +130,23 @@ public:
     }
 
     template <typename T>
+    void WriteUnmanagedSpan(std::span<const T> values) {
+        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable.");
+        if (values.empty()) {
+            return;
+        }
+
+        const size_t bytes = values.size_bytes();
+        const size_t old_size = m_data_buffer.size();
+        m_data_buffer.resize(old_size + bytes);
+        std::memcpy(m_data_buffer.data() + old_size, values.data(), bytes);
+
+        // Align the parcel stream once after the whole span.
+        const size_t aligned = Common::AlignUp(m_data_buffer.size(), 4);
+        m_data_buffer.resize(aligned);
+    }
+
+    template <typename T>
     void WriteFlattenedObject(const T* ptr) {
         if (!ptr) {
             this->Write<u32>(0);
