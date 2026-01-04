@@ -188,6 +188,9 @@ cmake_dependent_option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF 
 
 option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
+# Libretro core
+option(YUZU_LIBRETRO "Build the LibRetro Core" OFF)
+
 option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
 
 option(YUZU_LEGACY "Apply patches that improve compatibility with older GPUs (e.g. Snapdragon 865) at the cost of performance" OFF)
