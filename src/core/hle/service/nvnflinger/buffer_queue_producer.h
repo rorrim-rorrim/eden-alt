@@ -17,6 +17,7 @@
 #include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/nvnflinger/binder.h"
 #include "core/hle/service/nvnflinger/buffer_queue_defs.h"
+#include "core/hle/service/nvnflinger/buffer_queue_core.h"
 #include "core/hle/service/nvnflinger/buffer_slot.h"
 #include "core/hle/service/nvnflinger/graphic_buffer_producer.h"
 #include "core/hle/service/nvnflinger/pixel_format.h"
@@ -71,6 +72,9 @@ public:
 
     Status Disconnect(NativeWindowApi api);
     Status SetPreallocatedBuffer(s32 slot, const std::shared_ptr<NvGraphicBuffer>& buffer);
+
+    Status GetBufferHistory(s32 buffer_history_count,
+                            std::vector<BufferHistoryInfo>& out_buffer_history) const;
 
 private:
     BufferQueueProducer(const BufferQueueProducer&) = delete;

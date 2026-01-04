@@ -13,7 +13,6 @@
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/service/kernel_helpers.h"
-#include "core/hle/service/nvnflinger/buffer_queue_core.h"
 #include "core/hle/service/nvnflinger/buffer_queue_producer.h"
 #include "core/hle/service/nvnflinger/consumer_listener.h"
 #include "core/hle/service/nvnflinger/parcel.h"
@@ -26,7 +25,7 @@ BufferQueueProducer::BufferQueueProducer(Service::KernelHelpers::ServiceContext&
                                          std::shared_ptr<BufferQueueCore> buffer_queue_core_,
                                          Service::Nvidia::NvCore::NvMap& nvmap_)
     : service_context{service_context_}, core{std::move(buffer_queue_core_)}, slots(core->slots),
-      nvmap(nvmap_) {
+      position{}, nvmap(nvmap_) {
     buffer_wait_event = service_context.CreateEvent("BufferQueue:WaitEvent");
 }
 
@@ -583,11 +582,6 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
 
     // Don't send the GraphicBuffer through the callback, and don't send the slot number, since the
     // consumer shouldn't need it
-    item.graphic_buffer.reset();
-    item.slot = BufferItem::INVALID_BUFFER_SLOT;
-
-    // Call back without the main BufferQueue lock held, but with the callback lock held so we can
-    // ensure that callbacks occur in order
     {
         std::scoped_lock lock{callback_mutex};
         while (callback_ticket != current_callback_ticket) {
@@ -826,6 +820,29 @@ Kernel::KReadableEvent* BufferQueueProducer::GetNativeHandle(u32 type_id) {
     return &buffer_wait_event->GetReadableEvent();
 }
 
+Status BufferQueueProducer::GetBufferHistory(s32 buffer_history_count,
+                                            std::vector<BufferHistoryInfo>& out_buffer_history) const {
+    if (buffer_history_count <= 0) {
+        out_buffer_history.clear();
+        return Status::BadValue;
+    }
+
+    std::scoped_lock lk(core->mutex);
+
+    constexpr u32 history_max = BufferQueueCore::BUFFER_HISTORY_SIZE;
+    buffer_history_count = std::min<s32>(buffer_history_count, static_cast<s32>(history_max));
+
+    out_buffer_history.resize(buffer_history_count);
+
+    u32 pos = core->buffer_history_pos;
+    for (s32 i = 0; i < buffer_history_count; i++) {
+        out_buffer_history[i] = core->buffer_history[pos];
+        pos = (pos + history_max - 1) % history_max;
+    }
+
+    return Status::NoError;
+}
+
 void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
                                    std::span<u8> parcel_reply, u32 flags) {
     // Values used by BnGraphicBufferProducer onTransact
@@ -864,6 +881,7 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         status = Connect(listener, api, producer_controlled_by_app, &output);
 
         parcel_out.Write(output);
+        parcel_out.Write(status);
         break;
     }
     case TransactionId::SetPreallocatedBuffer: {
@@ -871,6 +889,7 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         const auto buffer = parcel_in.ReadObject<NvGraphicBuffer>();
 
         status = SetPreallocatedBuffer(slot, buffer);
+        parcel_out.Write(status);
         break;
     }
     case TransactionId::DequeueBuffer: {
@@ -887,6 +906,7 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
 
         parcel_out.Write(slot);
         parcel_out.WriteFlattenedObject(&fence);
+        parcel_out.Write(status);
         break;
     }
     case TransactionId::RequestBuffer: {
@@ -897,6 +917,7 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         status = RequestBuffer(slot, &buf);
 
         parcel_out.WriteFlattenedObject<NvGraphicBuffer>(buf.get());
+        parcel_out.Write(status);
         break;
     }
     case TransactionId::QueueBuffer: {
@@ -908,6 +929,7 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         status = QueueBuffer(slot, input, &output);
 
         parcel_out.Write(output);
+        parcel_out.Write(status);
         break;
     }
     case TransactionId::Query: {
@@ -918,6 +940,7 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         status = Query(what, &value);
 
         parcel_out.Write(value);
+        parcel_out.Write(status);
         break;
     }
     case TransactionId::CancelBuffer: {
@@ -925,79 +948,55 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         const auto fence = parcel_in.ReadFlattened<Fence>();
 
         CancelBuffer(slot, fence);
+
+        parcel_out.Write(status);
         break;
     }
     case TransactionId::Disconnect: {
         const auto api = parcel_in.Read<NativeWindowApi>();
 
         status = Disconnect(api);
+
+        parcel_out.Write(status);
         break;
     }
     case TransactionId::DetachBuffer: {
         const auto slot = parcel_in.Read<s32>();
 
         status = DetachBuffer(slot);
+
+        parcel_out.Write(status);
         break;
     }
     case TransactionId::SetBufferCount: {
         const auto buffer_count = parcel_in.Read<s32>();
 
         status = SetBufferCount(buffer_count);
+
+        parcel_out.Write(status);
         break;
     }
     case TransactionId::GetBufferHistory: {
-        LOG_DEBUG(Service_Nvnflinger, "called, transaction=GetBufferHistory");
+        s32 request = parcel_in.Read<s32>();
 
-        const s32 request = parcel_in.Read<s32>();
-        if (request <= 0) {
-            status = Status::BadValue;
-            break;
+        std::vector<BufferHistoryInfo> history;
+        status = GetBufferHistory(request, history);
+
+        parcel_out.Write(status);
+        parcel_out.Write<s32>(static_cast<s32>(history.size()));
+        for (const auto& rec : history) {
+            parcel_out.Write(rec);
         }
-
-        constexpr u32 history_max = BufferQueueCore::BUFFER_HISTORY_SIZE;
-        std::array<BufferHistoryInfo, history_max> buffer_history_snapshot{};
-        s32 valid_index{};
-        {
-            std::scoped_lock lk(core->mutex);
-
-            const u32 current_history_pos = core->buffer_history_pos;
-            u32 index_reversed{};
-            for (u32 i = 0; i < history_max; ++i) {
-                // Wrap values backwards e.g. 7, 6, 5, etc. in the range of 0-7
-                index_reversed = (current_history_pos + history_max - i) % history_max;
-                const auto& current_history_buffer = core->buffer_history[index_reversed];
-
-                // Here we use the frame number as a terminator.
-                // Because a buffer without frame_number is not considered complete
-                if (current_history_buffer.frame_number == 0) {
-                    status = Status::BadValue;
-                    break;
-                }
-
-                buffer_history_snapshot[valid_index] = current_history_buffer;
-                ++valid_index;
-            }
-        }
-
-        const s32 limit = std::min(request, valid_index);
-        parcel_out.Write(Status::NoError);
-        parcel_out.Write<s32>(limit);
-        for (s32 i = 0; i < limit; ++i) {
-            parcel_out.Write(buffer_history_snapshot[i]);
-        }
-
-        const auto serialized = parcel_out.Serialize();
-        std::memcpy(parcel_reply.data(), serialized.data(),
-                    (std::min)(parcel_reply.size(), serialized.size()));
-
-        return;
+        break;
     }
     default:
         ASSERT_MSG(false, "Unimplemented TransactionId {}", code);
         break;
     }
 
-    parcel_out.Write(status);
+    if (status != Status::NoError) {
+        LOG_ERROR(Service_Nvnflinger, "Transaction {} failed with status {}", code, status);
+    }
 
     const auto serialized = parcel_out.Serialize();
     std::memcpy(parcel_reply.data(), serialized.data(),
