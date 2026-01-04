@@ -71,7 +71,6 @@ void ThreadManager::StartThread(VideoCore::RendererBase& renderer,
     
     // In deferred mode, don't start the GPU thread - commands will be processed on main thread
     if (deferred_mode) {
-        LOG_INFO(HW_GPU, "GPU deferred mode enabled - thread not started");
         return;
     }
     
@@ -144,10 +143,6 @@ void ThreadManager::ProcessPendingCommands() {
         std::lock_guard lk(deferred_mutex);
         commands_to_process = std::move(deferred_commands);
         deferred_commands.clear();
-    }
-    
-    if (!commands_to_process.empty()) {
-        LOG_DEBUG(HW_GPU, "ProcessPendingCommands: processing {} commands", commands_to_process.size());
     }
     
     for (auto& cmd : commands_to_process) {
