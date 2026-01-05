@@ -15,7 +15,7 @@
   <br>
 </h1>
 
-<h4 align="center"><b>Eden</b> is a free and opensource (FOSS) Switch 1 emulator, derived from Yuzu & Sudachi - started by developer Camille LaVey.
+<h4 align="center"><b>Eden</b> is a free and opensource (FOSS) Switch 1 emulator, derived from Yuzu and Sudachi - started by developer Camille LaVey.
 It's written in C++ with portability in mind, with builds for Windows, Linux, macOS, Android, FreeBSD and more.
 </h4>
 
