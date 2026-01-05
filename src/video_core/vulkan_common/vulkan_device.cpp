@@ -410,33 +410,22 @@ void Device::RemoveExtensionFeatureIfUnsuitable(bool is_suitable, Feature& featu
     }
 }
 
-Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR surface,
-               const vk::InstanceDispatch& dld_)
-    : instance{instance_}, dld{dld_}, physical{physical_},
-    format_properties(GetFormatProperties(physical)) {
-    // Get suitability and device properties.
-    const bool is_suitable = GetSuitability(surface != nullptr);
-
+Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR surface, const vk::InstanceDispatch& dld_)
+    : instance{instance_}, dld{dld_}, physical{physical_}, format_properties(GetFormatProperties(physical)) {
     const VkDriverId driver_id = properties.driver.driverID;
-    const auto device_id = properties.properties.deviceID;
-
-    const bool is_radv = driver_id == VK_DRIVER_ID_MESA_RADV;
-    const bool is_amd_driver =
-        driver_id == VK_DRIVER_ID_AMD_PROPRIETARY || driver_id == VK_DRIVER_ID_AMD_OPEN_SOURCE;
-    const bool is_amd = is_amd_driver || is_radv;
-
+    const bool is_suitable = GetSuitability(surface != nullptr);
+    const bool is_amd_driver = driver_id == VK_DRIVER_ID_AMD_PROPRIETARY || driver_id == VK_DRIVER_ID_AMD_OPEN_SOURCE;
     const bool is_intel_windows = driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS;
     const bool is_intel_anv = driver_id == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA;
-
     const bool is_nvidia = driver_id == VK_DRIVER_ID_NVIDIA_PROPRIETARY;
     const bool is_mvk = driver_id == VK_DRIVER_ID_MOLTENVK;
     const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
-    const bool is_s8gen2 = device_id == 0x43050a01;
-    //const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
+    const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
 
-    if (!is_suitable)
+    if (!is_suitable) {
         LOG_WARNING(Render_Vulkan, "Unsuitable driver - continuing anyways");
+    }
 
     if (is_nvidia) {
         nvidia_arch = GetNvidiaArchitecture(physical, supported_extensions);
@@ -479,19 +468,15 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     is_blit_depth24_stencil8_supported = TestDepthStencilBlits(VK_FORMAT_D24_UNORM_S8_UINT);
     is_blit_depth32_stencil8_supported = TestDepthStencilBlits(VK_FORMAT_D32_SFLOAT_S8_UINT);
     is_optimal_astc_supported = ComputeIsOptimalAstcSupported();
-    is_warp_potentially_bigger = !extensions.subgroup_size_control ||
-                                 properties.subgroup_size_control.maxSubgroupSize > GuestWarpSize;
+    is_warp_potentially_bigger = !extensions.subgroup_size_control || properties.subgroup_size_control.maxSubgroupSize > GuestWarpSize;
 
     is_integrated = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
     is_virtual = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
-    is_non_gpu = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_OTHER ||
-                 properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU;
+    is_non_gpu = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_OTHER || properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU;
 
     const bool is_intel_igpu = is_integrated && (is_intel_anv || is_intel_windows);
 
-    supports_d24_depth =
-        IsFormatSupported(VK_FORMAT_D24_UNORM_S8_UINT,
-                          VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT, FormatType::Optimal);
+    supports_d24_depth = IsFormatSupported(VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT, FormatType::Optimal);
 
     supports_conditional_barriers = !(is_intel_anv || is_intel_windows);
 
@@ -499,11 +484,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectToolingInfo();
 
     if (is_qualcomm) {
-        LOG_WARNING(Render_Vulkan,
-                    "Disabling shader float controls and 64-bit integer features on Qualcomm proprietary drivers");
+        LOG_WARNING(Render_Vulkan, "Disabling shader float controls and 64-bit integer features on Qualcomm proprietary drivers");
         RemoveExtension(extensions.shader_float_controls, VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64,
-                               VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64, VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
         features.shader_atomic_int64.shaderBufferInt64Atomics = false;
         features.shader_atomic_int64.shaderSharedInt64Atomics = false;
         features.features.shaderInt64 = false;
@@ -519,132 +502,32 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         bool should_patch_bcn = api_level >= 28;
         const bool bcn_debug_override = Settings::values.patch_old_qcom_drivers.GetValue();
         if (bcn_debug_override != should_patch_bcn) {
-            LOG_WARNING(Render_Vulkan,
-                "BCn patch debug override active: {} (auto-detected: {})",
-                bcn_debug_override, should_patch_bcn);
+            LOG_WARNING(Render_Vulkan, "BCn patch debug override active: {} (auto-detected: {})", bcn_debug_override, should_patch_bcn);
             should_patch_bcn = bcn_debug_override;
         }
 
         if (patch_status == ADRENOTOOLS_BCN_PATCH) {
             if (should_patch_bcn) {
-                LOG_INFO(Render_Vulkan,
-                    "Patching Adreno driver to support BCn texture formats "
-                    "(Android API {}, Driver {}.{})", api_level, major, minor);
-                if (adrenotools_patch_bcn(
-                        reinterpret_cast<void*>(dld.vkGetPhysicalDeviceFormatProperties))) {
+                LOG_INFO(Render_Vulkan, "Patching Adreno driver to support BCn texture formats (Android API {}, Driver {}.{})", api_level, major, minor);
+                if (adrenotools_patch_bcn(reinterpret_cast<void*>(dld.vkGetPhysicalDeviceFormatProperties))) {
                     OverrideBcnFormats(format_properties);
                 } else {
                     LOG_ERROR(Render_Vulkan, "BCn patch failed! Driver code may now crash");
                 }
             } else {
-                LOG_WARNING(Render_Vulkan,
-                    "BCn texture patching skipped for stability (Android API {} < 28). "
-                    "Driver version {}.{} would support patching, but may crash on older Android.",
-                    api_level, major, minor);
+                LOG_WARNING(Render_Vulkan, "BCn texture patching skipped for stability (Android API {} < 28). Driver version {}.{} would support patching, but may crash on older Android.", api_level, major, minor);
             }
         } else if (patch_status == ADRENOTOOLS_BCN_BLOB) {
             LOG_INFO(Render_Vulkan, "Adreno driver supports BCn textures natively (no patch needed)");
         } else {
-            LOG_INFO(Render_Vulkan,
-                "Adreno driver does not support BCn texture patching (Android API {}, Driver {}.{})",
-                api_level, major, minor);
+            LOG_INFO(Render_Vulkan, "Adreno driver does not support BCn texture patching (Android API {}, Driver {}.{})", api_level, major, minor);
         }
 #endif
-    }
 
-    if (is_nvidia) {
-        const u32 nv_major_version = (properties.properties.driverVersion >> 22) & 0x3ff;
-        const auto arch = GetNvidiaArch();
-        if (arch >= NvidiaArchitecture::Arch_AmpereOrNewer) {
-            LOG_WARNING(Render_Vulkan, "Ampere and newer have broken float16 math");
-            features.shader_float16_int8.shaderFloat16 = false;
-        }
-
-        if (nv_major_version >= 510) {
-            LOG_WARNING(Render_Vulkan, "NVIDIA Drivers >= 510 do not support MSAA image blits");
-            cant_blit_msaa = true;
-        }
-    }
-
-    if (extensions.extended_dynamic_state3 && is_radv) {
-        LOG_WARNING(Render_Vulkan, "RADV has broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
-        dynamic_state3_blending = false;
-
-        const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version < VK_MAKE_API_VERSION(0, 23, 1, 0)) {
-            LOG_WARNING(Render_Vulkan,
-                        "RADV versions older than 23.1.0 have broken depth clamp dynamic state");
-            features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable = false;
-            dynamic_state3_enables = false;
-        }
-    }
-
-    if (extensions.extended_dynamic_state3 && (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
-        // AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation
-        LOG_WARNING(Render_Vulkan,
-                    "AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
-        dynamic_state3_blending = false;
-    }
-
-    sets_per_pool = 64;
-    if (is_amd_driver) {
-        // AMD drivers need a higher amount of Sets per Pool in certain circumstances like in XC2.
-        sets_per_pool = 96;
-        // Disable VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT on AMD GCN4 and lower as it is broken.
-        if (!features.shader_float16_int8.shaderFloat16) {
-            LOG_WARNING(Render_Vulkan,
-                        "AMD GCN4 and earlier have broken VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT");
-            has_broken_cube_compatibility = true;
-        }
-    }
-
-    if (is_qualcomm) {
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
         if (version < VK_MAKE_API_VERSION(0, 255, 615, 512)) {
             has_broken_parallel_compiling = true;
         }
-    }
-
-    if (extensions.sampler_filter_minmax && is_amd) {
-        // Disable ext_sampler_filter_minmax on AMD GCN4 and lower as it is broken.
-        if (!features.shader_float16_int8.shaderFloat16) {
-            LOG_WARNING(Render_Vulkan,
-                        "AMD GCN4 and earlier have broken VK_EXT_sampler_filter_minmax");
-            RemoveExtension(extensions.sampler_filter_minmax,
-                            VK_EXT_SAMPLER_FILTER_MINMAX_EXTENSION_NAME);
-        }
-    }
-
-    if (features.shader_float16_int8.shaderFloat16 && is_intel_windows) {
-        // Intel's compiler crashes when using fp16 on Astral Chain, disable it for the time being.
-        LOG_WARNING(Render_Vulkan, "Intel has broken float16 math");
-        features.shader_float16_int8.shaderFloat16 = false;
-    }
-
-    if (is_intel_windows) {
-        LOG_WARNING(Render_Vulkan, "Intel proprietary drivers do not support MSAA image blits");
-        cant_blit_msaa = true;
-    }
-
-    has_broken_compute =
-        CheckBrokenCompute(properties.driver.driverID, properties.properties.driverVersion) &&
-        !Settings::values.enable_compute_pipelines.GetValue();
-    if (is_intel_anv || (is_qualcomm && !is_s8gen2)) {
-        LOG_WARNING(Render_Vulkan, "Driver does not support native BGR format");
-        must_emulate_bgr565 = true;
-    }
-
-    if (is_mvk) {
-        LOG_WARNING(Render_Vulkan,
-                    "MVK driver breaks when using more than 16 vertex attributes/bindings");
-        properties.properties.limits.maxVertexInputAttributes =
-            (std::min)(properties.properties.limits.maxVertexInputAttributes, 16U);
-        properties.properties.limits.maxVertexInputBindings =
-            (std::min)(properties.properties.limits.maxVertexInputBindings, 16U);
     }
 
     if (is_turnip) {
@@ -652,48 +535,52 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         properties.properties.limits.maxVertexInputBindings = 32;
     }
 
-    if (!extensions.extended_dynamic_state && extensions.extended_dynamic_state2) {
-        LOG_INFO(Render_Vulkan,
-                 "Removing extendedDynamicState2 due to missing extendedDynamicState");
-        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
-                               VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+    if (is_mvk) {
+        LOG_WARNING(Render_Vulkan, "MVK driver breaks when using more than 16 vertex attributes/bindings");
+        properties.properties.limits.maxVertexInputAttributes = std::min(properties.properties.limits.maxVertexInputAttributes, 16U);
+        properties.properties.limits.maxVertexInputBindings = std::min(properties.properties.limits.maxVertexInputBindings, 16U);
     }
 
-    if (!extensions.extended_dynamic_state2 && extensions.extended_dynamic_state3) {
-        LOG_INFO(Render_Vulkan,
-                 "Removing extendedDynamicState3 due to missing extendedDynamicState2");
-        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
-                               VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-        dynamic_state3_blending = false;
-        dynamic_state3_enables = false;
-    }
+    sets_per_pool = is_amd_driver ? 96 : 64;
 
-    const auto dyna_state = u32(Settings::values.dyna_state.GetValue());
+    has_broken_compute = CheckBrokenCompute(properties.driver.driverID, properties.properties.driverVersion) && !Settings::values.enable_compute_pipelines.GetValue();
+
+    auto dyna_state = Settings::values.dyna_state.GetValue();
 
     // Mesa Intel drivers on UHD 620 have broken EDS causing extreme flickering - unknown if it affects other iGPUs
     // ALSO affects ALL versions of UHD drivers on Windows 10+, seems to cause even worse issues like straight up crashing
     // So... Yeah, UHD drivers fucking suck -- maybe one day we can work past this, maybe; some driver hacking?
     // And then we can rest in peace by doing `< VK_MAKE_API_VERSION(26, 0, 0)` for our beloved mesa drivers... one day
-    if ((is_mvk || is_intel_igpu) && dyna_state != 0) {
-        LOG_WARNING(Render_Vulkan, "Driver has broken dynamic state, forcing to 0 to prevent graphical issues");
-        Settings::values.dyna_state.SetValue(Settings::ExtendedDynamicState::Disabled);
+    if ((is_mvk || is_intel_igpu) && dyna_state != Settings::ExtendedDynamicState::Disabled) {
+        LOG_WARNING(Render_Vulkan, "Driver has broken EDS1+, forcing to Disabled to prevent graphical issues");
+        dyna_state = Settings::ExtendedDynamicState::Disabled;
     }
 
     switch (dyna_state) {
-    case 0:
+    case Settings::ExtendedDynamicState::Disabled:
         RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color, VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+        RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
         [[fallthrough]];
-    case 1:
+    case Settings::ExtendedDynamicState::EDS1:
         RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2, VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+        has_broken_cube_compatibility = true;
+        must_emulate_scaled_formats = true;
+        cant_blit_msaa = true;
         [[fallthrough]];
-    case 2:
+    case Settings::ExtendedDynamicState::EDS2:
         RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3, VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+        RemoveExtension(extensions.sampler_filter_minmax, VK_EXT_SAMPLER_FILTER_MINMAX_EXTENSION_NAME);
+        features.shader_float16_int8.shaderFloat16 = false;
+        features.shader_float16_int8.shaderInt8 = false;
         dynamic_state3_blending = false;
         dynamic_state3_enables = false;
+        [[fallthrough]];
+    case Settings::ExtendedDynamicState::EDS3:
         break;
     }
 
-    if (!Settings::values.vertex_input_dynamic_state.GetValue() || !extensions.extended_dynamic_state) {
+    if (!Settings::values.vertex_input_dynamic_state.GetValue() || !extensions.extended_dynamic_state2) {
         RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
     }
 
