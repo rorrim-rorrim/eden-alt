@@ -163,6 +163,9 @@ Result IFileSystem::GetFileTimeStampRaw(
 Result IFileSystem::GetFileSystemAttribute(Out<FileSys::FileSystemAttribute> out_attribute) {
     LOG_WARNING(Service_FS, "(STUBBED) called");
 
+    constexpr s32 kEntryNameLengthMax = 0x40;
+    constexpr s32 kPathLengthMax = 0x300;
+
     FileSys::FileSystemAttribute savedata_attribute{};
 
     savedata_attribute.dir_entry_name_length_max_defined = true;
