@@ -519,7 +519,7 @@ struct Values {
 #elif defined (__FreeBSD__)
                                            ExtendedDynamicState::EDS3,
 #elif defined (ANDROID)
-                                           ExtendedDynamicState::Disabled,
+                                           ExtendedDynamicState::EDS1,
 #elif defined (__APPLE__)
                                            ExtendedDynamicState::Disabled,
 #else
@@ -536,7 +536,13 @@ struct Values {
                                                 Category::RendererExtensions,
                                                 Specialization::Scalar};
 
-    SwitchableSetting<bool> vertex_input_dynamic_state{linkage, true, "vertex_input_dynamic_state", Category::RendererExtensions};
+    SwitchableSetting<bool> vertex_input_dynamic_state{linkage,
+#if defined (ANDROID)
+                                                       false,
+#else
+                                                       true,
+#endif
+                                                       "vertex_input_dynamic_state", Category::RendererExtensions};
     SwitchableSetting<bool> provoking_vertex{linkage, false, "provoking_vertex", Category::RendererExtensions};
     SwitchableSetting<bool> descriptor_indexing{linkage, false, "descriptor_indexing", Category::RendererExtensions};
 
