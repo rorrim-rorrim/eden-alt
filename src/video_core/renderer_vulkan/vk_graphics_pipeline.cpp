@@ -845,20 +845,20 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             VK_DYNAMIC_STATE_STENCIL_OP_EXT,
         };
         dynamic_states.insert(dynamic_states.end(), extended.begin(), extended.end());
-
+        
         // VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT is part of EDS1
         // Only use it if VIDS is not active (VIDS replaces it with full vertex input control)
         if (!key.state.dynamic_vertex_input) {
             dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT);
         }
     }
-
+    
     // VK_DYNAMIC_STATE_VERTEX_INPUT_EXT (VIDS) - Independent from EDS
     // Provides full dynamic vertex input control, replaces VERTEX_INPUT_BINDING_STRIDE
     if (key.state.dynamic_vertex_input) {
         dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_EXT);
     }
-
+    
     // EDS2 - Core (3 states)
     if (key.state.extended_dynamic_state_2) {
         static constexpr std::array extended2{
@@ -868,12 +868,12 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         };
         dynamic_states.insert(dynamic_states.end(), extended2.begin(), extended2.end());
     }
-
+    
     // EDS2 - LogicOp (granular)
     if (key.state.extended_dynamic_state_2_logic_op) {
         dynamic_states.push_back(VK_DYNAMIC_STATE_LOGIC_OP_EXT);
     }
-
+    
     // EDS3 - Blending (composite: 3 states)
     if (key.state.extended_dynamic_state_3_blend) {
         static constexpr std::array extended3{
@@ -883,7 +883,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         };
         dynamic_states.insert(dynamic_states.end(), extended3.begin(), extended3.end());
     }
-
+    
     // EDS3 - Enables (composite: per-feature)
     if (key.state.extended_dynamic_state_3_enables) {
         if (device.SupportsDynamicState3DepthClampEnable()) {

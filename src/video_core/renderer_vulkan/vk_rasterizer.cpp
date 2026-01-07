@@ -197,7 +197,7 @@ RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra
       fence_manager(*this, gpu, texture_cache, buffer_cache, query_cache, device, scheduler),
       wfi_event(device.GetLogical().CreateEvent()) {
     scheduler.SetQueryCache(query_cache);
-
+    
     // Log multi-draw support
     if (device.IsExtMultiDrawSupported()) {
         LOG_INFO(Render_Vulkan, "VK_EXT_multi_draw is enabled for optimized draw calls");
@@ -239,7 +239,7 @@ void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
         const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
         const u32 num_instances{instance_count};
         const DrawParams draw_params{MakeDrawParams(draw_state, num_instances, is_indexed)};
-
+        
         // Use VK_EXT_multi_draw if available (single draw becomes multi-draw with count=1)
         if (device.IsExtMultiDrawSupported()) {
             scheduler.Record([draw_params](vk::CommandBuffer cmdbuf) {
@@ -987,7 +987,7 @@ bool AccelerateDMA::BufferToImage(const Tegra::DMA::ImageCopy& copy_info,
 
 void RasterizerVulkan::UpdateDynamicStates() {
     auto& regs = maxwell3d->regs;
-
+    
     // Core Dynamic States (Vulkan 1.0) - Always active regardless of dyna_state setting
     UpdateViewportsState(regs);
     UpdateScissorsState(regs);
@@ -996,7 +996,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateDepthBounds(regs);
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
-
+    
     // EDS1: CullMode, DepthCompare, FrontFace, StencilOp, DepthBoundsTest, DepthTest, DepthWrite, StencilTest
     if (device.IsExtExtendedDynamicStateSupported()) {
         UpdateCullMode(regs);
@@ -1010,19 +1010,19 @@ void RasterizerVulkan::UpdateDynamicStates() {
             UpdateStencilTestEnable(regs);
         }
     }
-
+    
     // EDS2: PrimitiveRestart, RasterizerDiscard, DepthBias enable/disable
     if (device.IsExtExtendedDynamicState2Supported()) {
         UpdatePrimitiveRestartEnable(regs);
         UpdateRasterizerDiscardEnable(regs);
         UpdateDepthBiasEnable(regs);
     }
-
+    
     // EDS2 Extras: LogicOp operation selection
     if (device.IsExtExtendedDynamicState2ExtrasSupported()) {
         UpdateLogicOp(regs);
     }
-
+    
     // EDS3 Enables: LogicOpEnable, DepthClamp, LineStipple, ConservativeRaster
     if (device.IsExtExtendedDynamicState3EnablesSupported()) {
         using namespace Tegra::Engines;
@@ -1047,12 +1047,12 @@ void RasterizerVulkan::UpdateDynamicStates() {
         UpdateAlphaToCoverageEnable(regs);
         UpdateAlphaToOneEnable(regs);
     }
-
+    
     // EDS3 Blending: ColorBlendEnable, ColorBlendEquation, ColorWriteMask
     if (device.IsExtExtendedDynamicState3BlendingSupported()) {
         UpdateBlending(regs);
     }
-
+    
     // Vertex Input Dynamic State: Independent from EDS levels
     if (device.IsExtVertexInputDynamicStateSupported()) {
         if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput()) {
@@ -1084,7 +1084,7 @@ void RasterizerVulkan::HandleTransformFeedback() {
         UNIMPLEMENTED_IF(regs.IsShaderConfigEnabled(Maxwell::ShaderType::TessellationInit) ||
                          regs.IsShaderConfigEnabled(Maxwell::ShaderType::Tessellation));
     }
-}
+} 
 
 void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchViewports()) {

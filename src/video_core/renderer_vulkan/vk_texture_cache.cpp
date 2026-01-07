@@ -1121,7 +1121,7 @@ void TextureCacheRuntime::BlitImage(Framebuffer* dst_framebuffer, ImageView& dst
     const VkImageSubresourceLayers dst_layers = MakeSubresourceLayers(&dst);
     const VkImageSubresourceLayers src_layers = MakeSubresourceLayers(&src);
     const bool is_msaa_to_msaa = is_src_msaa && is_dst_msaa;
-
+    
     // NVIDIA 510+ and Intel crash on MSAA->MSAA blits (scaling operations)
     // Fall back to 3D helpers for MSAA scaling
     if (is_msaa_to_msaa && device.CantBlitMSAA()) {
