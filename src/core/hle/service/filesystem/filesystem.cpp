@@ -725,7 +725,6 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
                                        external_provider.get());
     }
 
-    RebuildExternalContentIndex();
 }
 
 void FileSystemController::RebuildExternalContentIndex() {
@@ -735,16 +734,20 @@ void FileSystemController::RebuildExternalContentIndex() {
     }
 
     if (!Settings::values.external_dirs.empty()) {
-        FileSys::ExternalContentPaths paths{};
-        for (const auto& dir : Settings::values.external_dirs) {
-            if (dir.empty())
-                continue;
-            paths.update_dirs.push_back(dir);
-            paths.dlc_dirs.push_back(dir);
+        try {
+            FileSys::ExternalContentPaths paths{};
+            for (const auto& dir : Settings::values.external_dirs) {
+                if (dir.empty())
+                    continue;
+                paths.update_dirs.push_back(dir);
+                paths.dlc_dirs.push_back(dir);
+            }
+            FileSys::ExternalContentIndexer indexer{system.GetFilesystem(),
+                                                    *this->external_provider, std::move(paths)};
+            indexer.Rebuild();
+        } catch (const std::exception& e) {
+            LOG_ERROR(Service_FS, "Failed to rebuild external content index: {}", e.what());
         }
-        FileSys::ExternalContentIndexer indexer{system.GetFilesystem(), *this->external_provider,
-                                                std::move(paths)};
-        indexer.Rebuild();
     } else {
         external_provider->ClearAllEntries();
     }

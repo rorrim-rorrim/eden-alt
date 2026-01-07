@@ -343,6 +343,8 @@ struct System::Impl {
             return init_result;
         }
 
+        fs_controller.RebuildExternalContentIndex();
+
         // Initialize cheat engine
         if (cheat_engine) {
             cheat_engine->Initialize();

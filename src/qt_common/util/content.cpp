@@ -160,6 +160,7 @@ void InstallFirmware(const QString& location, bool recursive)
 
     // Re-scan VFS for the newly placed firmware files.
     system->GetFileSystemController().CreateFactories(*vfs);
+    system->GetFileSystemController().RebuildExternalContentIndex();
 
     auto VerifyFirmwareCallback = [&](size_t total_size, size_t processed_size) {
         progress.setValue(90 + static_cast<int>((processed_size * 10) / total_size));
@@ -275,6 +276,7 @@ void InstallKeys()
         = FirmwareManager::InstallKeys(key_source_location.toStdString(), "keys");
 
     system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
+    system->GetFileSystemController().RebuildExternalContentIndex();
 
     const QString resMsg = GetKeyInstallResultString(result);
     switch (result) {
