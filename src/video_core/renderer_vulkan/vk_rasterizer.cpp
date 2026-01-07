@@ -1028,7 +1028,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateDepthBounds(regs);
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
-
+    
     // EDS1: CullMode, DepthCompare, FrontFace, StencilOp, DepthBoundsTest, DepthTest, DepthWrite, StencilTest
     if (device.IsExtExtendedDynamicStateSupported()) {
         UpdateCullMode(regs);
@@ -1042,19 +1042,19 @@ void RasterizerVulkan::UpdateDynamicStates() {
             UpdateStencilTestEnable(regs);
         }
     }
-
+    
     // EDS2: PrimitiveRestart, RasterizerDiscard, DepthBias enable/disable
     if (device.IsExtExtendedDynamicState2Supported()) {
         UpdatePrimitiveRestartEnable(regs);
         UpdateRasterizerDiscardEnable(regs);
         UpdateDepthBiasEnable(regs);
     }
-
+    
     // EDS2 Extras: LogicOp operation selection
     if (device.IsExtExtendedDynamicState2ExtrasSupported()) {
         UpdateLogicOp(regs);
     }
-
+    
     // EDS3 Enables: LogicOpEnable, DepthClamp, LineStipple, ConservativeRaster
     if (device.IsExtExtendedDynamicState3EnablesSupported()) {
         using namespace Tegra::Engines;
@@ -1079,12 +1079,12 @@ void RasterizerVulkan::UpdateDynamicStates() {
         UpdateAlphaToCoverageEnable(regs);
         UpdateAlphaToOneEnable(regs);
     }
-
+    
     // EDS3 Blending: ColorBlendEnable, ColorBlendEquation, ColorWriteMask
     if (device.IsExtExtendedDynamicState3BlendingSupported()) {
         UpdateBlending(regs);
     }
-
+    
     // Vertex Input Dynamic State: Independent from EDS levels
     if (device.IsExtVertexInputDynamicStateSupported()) {
         if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput()) {
@@ -1121,7 +1121,7 @@ void RasterizerVulkan::HandleTransformFeedback() {
         UNIMPLEMENTED_IF(regs.IsShaderConfigEnabled(Maxwell::ShaderType::TessellationInit) ||
                          regs.IsShaderConfigEnabled(Maxwell::ShaderType::Tessellation));
     }
-}
+} 
 
 void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchViewports()) {
