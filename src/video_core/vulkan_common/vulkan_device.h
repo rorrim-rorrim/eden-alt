@@ -858,7 +858,7 @@ public:
 
     /// Returns true if early fragment tests optimizations are available.
     bool SupportsEarlyFragmentTests() const {
-        return extensions.maintenance5 && 
+        return extensions.maintenance5 &&
                properties.maintenance5.earlyFragmentMultisampleCoverageAfterSampleCounting &&
                properties.maintenance5.earlyFragmentSampleMaskTestBeforeSampleCounting;
     }

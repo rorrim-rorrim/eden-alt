@@ -563,7 +563,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         }
 
         if (nv_major_version >= 510) {
-            LOG_WARNING(Render_Vulkan, 
+            LOG_WARNING(Render_Vulkan,
                         "NVIDIA Drivers >= 510 do not support MSAA->MSAA image blits. "
                         "MSAA scaling will use 3D helpers. MSAA resolves work normally.");
             cant_blit_msaa = true;
@@ -579,7 +579,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                      is_blit_depth24_stencil8_supported);
             LOG_INFO(Render_Vulkan, "  D32S8 hardware blit support: {}",
                      is_blit_depth32_stencil8_supported);
-            
+
             if (!is_blit_depth24_stencil8_supported && !is_blit_depth32_stencil8_supported) {
                 LOG_WARNING(Render_Vulkan,
                             "NVIDIA: Neither shader export nor hardware blits available for "
@@ -624,7 +624,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     if (is_intel_windows) {
-        LOG_WARNING(Render_Vulkan, 
+        LOG_WARNING(Render_Vulkan,
                     "Intel proprietary drivers do not support MSAA->MSAA image blits. "
                     "MSAA scaling will use 3D helpers. MSAA resolves work normally.");
         cant_blit_msaa = true;
@@ -662,7 +662,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         properties.properties.limits.maxVertexInputBindings = 32;
     }
 
-    const auto dyna_state = u32(Settings::values.dyna_state.GetValue());
+    const auto dyna_state = Settings::values.dyna_state.GetValue();
 
     // Base dynamic states (VIEWPORT, SCISSOR, DEPTH_BIAS, etc.) are ALWAYS active in vk_graphics_pipeline.cpp
     // This slider controls EXTENDED dynamic states with accumulative levels per Vulkan specs:
@@ -670,36 +670,36 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     //   Level 1 = Core + VK_EXT_extended_dynamic_state
     //   Level 2 = Core + VK_EXT_extended_dynamic_state + VK_EXT_extended_dynamic_state2
     //   Level 3 = Core + VK_EXT_extended_dynamic_state + VK_EXT_extended_dynamic_state2 + VK_EXT_extended_dynamic_state3
-    
+
     switch (dyna_state) {
-    case 0:
+    case Settings::ExtendedDynamicState::Disabled:
         // Level 0: Disable all extended dynamic state extensions
-        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state, 
+        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
                               VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2, 
+        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
                               VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3, 
+        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
                               VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
         dynamic_state3_blending = false;
         dynamic_state3_enables = false;
         break;
-    case 1:
+    case Settings::ExtendedDynamicState::EDS1:
         // Level 1: Enable EDS1, disable EDS2 and EDS3
-        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2, 
+        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
                               VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3, 
+        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
                               VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
         dynamic_state3_blending = false;
         dynamic_state3_enables = false;
         break;
-    case 2:
+    case Settings::ExtendedDynamicState::EDS2:
         // Level 2: Enable EDS1 + EDS2, disable EDS3
-        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3, 
+        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
                               VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
         dynamic_state3_blending = false;
         dynamic_state3_enables = false;
         break;
-    case 3:
+    case Settings::ExtendedDynamicState::EDS3:
     default:
         // Level 3: Enable all (EDS1 + EDS2 + EDS3)
         break;
@@ -1164,25 +1164,25 @@ bool Device::GetSuitability(bool requires_swapchain) {
     }
 
     // VK_DYNAMIC_STATE
-    
+
     // Driver detection variables for workarounds in GetSuitability
     const VkDriverId driver_id = properties.driver.driverID;
     const bool is_intel_windows = driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS;
-    
+
     // VK_EXT_extended_dynamic_state2 below this will appear drivers that need workarounds.
-    
+
     // VK_EXT_extended_dynamic_state3 below this will appear drivers that need workarounds.
-    
+
     // Samsung: Broken extendedDynamicState3ColorBlendEquation
     // Disable blend equation dynamic state, force static pipeline state
-    if (extensions.extended_dynamic_state3 && 
+    if (extensions.extended_dynamic_state3 &&
         (driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
         LOG_WARNING(Render_Vulkan,
                     "Samsung: Disabling broken extendedDynamicState3ColorBlendEquation");
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
     }
-    
+
     // Intel Windows < 27.20.100.0: Broken VertexInputDynamicState
     // Disable VertexInputDynamicState on old Intel Windows drivers
     if (extensions.vertex_input_dynamic_state && is_intel_windows) {
@@ -1195,7 +1195,7 @@ bool Device::GetSuitability(bool requires_swapchain) {
                                    VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
         }
     }
-    
+
     if (u32(Settings::values.dyna_state.GetValue()) == 0) {
         LOG_INFO(Render_Vulkan, "Extended Dynamic State disabled by user setting, clearing all EDS features");
         features.custom_border_color.customBorderColors = false;
@@ -1318,7 +1318,7 @@ void Device::RemoveUnsuitableExtensions() {
     extensions.robustness_2 = features.robustness2.robustBufferAccess2 ||
                               features.robustness2.robustImageAccess2 ||
                               features.robustness2.nullDescriptor;
-    
+
     RemoveExtensionFeatureIfUnsuitable(extensions.robustness_2, features.robustness2,
                                        VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
 
@@ -1390,12 +1390,12 @@ void Device::RemoveUnsuitableExtensions() {
 
     // VK_EXT_multi_draw
     extensions.multi_draw = features.multi_draw.multiDraw;
-    
+
     if (extensions.multi_draw) {
         LOG_INFO(Render_Vulkan, "VK_EXT_multi_draw: maxMultiDrawCount={}",
                  properties.multi_draw.maxMultiDrawCount);
     }
-    
+
     RemoveExtensionFeatureIfUnsuitable(extensions.multi_draw, features.multi_draw,
                                        VK_EXT_MULTI_DRAW_EXTENSION_NAME);
 
@@ -1462,7 +1462,7 @@ void Device::RemoveUnsuitableExtensions() {
 
     // VK_KHR_maintenance5
     extensions.maintenance5 = features.maintenance5.maintenance5;
-    
+
     if (extensions.maintenance5) {
         LOG_INFO(Render_Vulkan, "VK_KHR_maintenance5 properties: polygonModePointSize={} "
                                 "depthStencilSwizzleOne={} earlyFragmentTests={} nonStrictWideLines={}",
@@ -1472,7 +1472,7 @@ void Device::RemoveUnsuitableExtensions() {
                  properties.maintenance5.earlyFragmentSampleMaskTestBeforeSampleCounting,
                  properties.maintenance5.nonStrictWideLinesUseParallelogram);
     }
-    
+
     RemoveExtensionFeatureIfUnsuitable(extensions.maintenance5, features.maintenance5,
                                        VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
 
