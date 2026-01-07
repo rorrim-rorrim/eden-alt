@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -208,6 +211,7 @@ enum class ContentProviderUnionSlot {
     UserNAND,       ///< User NAND
     SDMC,           ///< SD Card
     FrontendManual, ///< Frontend-defined game list or similar
+    External        ///< External Updates/DLCs (not installed to NAND)
 };
 
 // Combines multiple ContentProvider(s) (i.e. SysNAND, UserNAND, SDMC) into one interface.

@@ -211,7 +211,8 @@ std::unique_lock<std::mutex> RealVfsFilesystem::RefreshReference(const std::stri
         this->EvictSingleReferenceLocked();
 
         reference.file =
-            FS::FileOpen(path, ModeFlagsToFileAccessMode(perms), FS::FileType::BinaryFile);
+            FS::FileOpen(path, ModeFlagsToFileAccessMode(perms), FS::FileType::BinaryFile,
+                         FS::FileShareFlag::ShareReadWrite);
         if (reference.file) {
             num_open_files++;
         }
@@ -236,6 +237,19 @@ void RealVfsFilesystem::DropReference(std::unique_ptr<FileReference>&& reference
     }
 }
 
+void RealVfsFilesystem::CloseReference(FileReference& reference) {
+    std::scoped_lock lk{list_lock};
+    if (!reference.file) {
+        return;
+    }
+    this->RemoveReferenceFromListLocked(reference);
+    reference.file.reset();
+    if (num_open_files > 0) {
+        num_open_files--;
+    }
+    this->InsertReferenceIntoListLocked(reference);
+}
+
 void RealVfsFilesystem::EvictSingleReferenceLocked() {
     if (num_open_files < MaxOpenFiles || open_references.empty()) {
         return;
@@ -256,6 +270,17 @@ void RealVfsFilesystem::EvictSingleReferenceLocked() {
 }
 
 void RealVfsFilesystem::InsertReferenceIntoListLocked(FileReference& reference) {
+    // Ensure the node is not already linked to any list before inserting.
+    if (reference.IsLinked()) {
+        // Unlink from the list it currently belongs to.
+        if (reference.file) {
+            open_references.erase(open_references.iterator_to(reference));
+        }
+
+        if (reference.IsLinked()) {
+            closed_references.erase(closed_references.iterator_to(reference));
+        }
+    }
     if (reference.file) {
         open_references.push_front(reference);
     } else {
@@ -264,9 +289,17 @@ void RealVfsFilesystem::InsertReferenceIntoListLocked(FileReference& reference) 
 }
 
 void RealVfsFilesystem::RemoveReferenceFromListLocked(FileReference& reference) {
+    // Unlink from whichever list the node currently belongs to, if any.
+    if (!reference.IsLinked()) {
+        return;
+    }
+
+    // Erase from the correct list to avoid cross-list corruption.
     if (reference.file) {
         open_references.erase(open_references.iterator_to(reference));
-    } else {
+    }
+
+    if(reference.IsLinked()) {
         closed_references.erase(closed_references.iterator_to(reference));
     }
 }
@@ -296,7 +329,8 @@ std::size_t RealVfsFile::GetSize() const {
         return *size;
     }
     auto lk = base.RefreshReference(path, perms, *reference);
-    return reference->file ? reference->file->GetSize() : 0;
+    const auto result = reference->file ? reference->file->GetSize() : 0;
+    return result;
 }
 
 bool RealVfsFile::Resize(std::size_t new_size) {
@@ -318,12 +352,20 @@ bool RealVfsFile::IsReadable() const {
 }
 
 std::size_t RealVfsFile::Read(u8* data, std::size_t length, std::size_t offset) const {
+    if (length != 0 && data == nullptr) {
+        LOG_ERROR(Common_Filesystem,
+                  "RealVfsFile::Read called with null buffer (len={}, off={}, path={})",
+                  length, offset, path);
+        return 0;
+    }
+
     auto lk = base.RefreshReference(path, perms, *reference);
     if (!reference->file || !reference->file->Seek(static_cast<s64>(offset))) {
         return 0;
     }
     return reference->file->ReadSpan(std::span{data, length});
 }
+
 
 std::size_t RealVfsFile::Write(const u8* data, std::size_t length, std::size_t offset) {
     size.reset();
@@ -333,6 +375,7 @@ std::size_t RealVfsFile::Write(const u8* data, std::size_t length, std::size_t o
     }
     return reference->file->WriteSpan(std::span{data, length});
 }
+
 
 bool RealVfsFile::Rename(std::string_view name) {
     return base.MoveFile(path, parent_path + '/' + std::string(name)) != nullptr;

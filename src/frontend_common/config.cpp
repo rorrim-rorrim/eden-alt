@@ -299,6 +299,19 @@ void Config::ReadDataStorageValues() {
 
     ReadCategory(Settings::Category::DataStorage);
 
+    Settings::values.external_dirs.clear();
+    const int num_dirs = BeginArray(std::string("external_dirs"));
+    Settings::values.external_dirs.reserve(num_dirs);
+    for (int i = 0; i < num_dirs; ++i) {
+        SetArrayIndex(i);
+        std::string dir = ReadStringSetting(std::string("path"), std::string(""));
+        if (!dir.empty()) {
+            Settings::values.external_dirs.emplace_back(std::move(dir));
+        }
+    }
+
+    EndArray();
+
     EndGroup();
 }
 
@@ -602,6 +615,14 @@ void Config::SaveDataStorageValues() {
     }
 
     WriteCategory(Settings::Category::DataStorage);
+
+    BeginArray(std::string("external_dirs"));
+    for (std::size_t i = 0; i < Settings::values.external_dirs.size(); ++i) {
+        SetArrayIndex(static_cast<int>(i));
+        WriteStringSetting(std::string("path"), Settings::values.external_dirs[i],
+                           std::make_optional(std::string("")));
+    }
+    EndArray();
 
     EndGroup();
 }

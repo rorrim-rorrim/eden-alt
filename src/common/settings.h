@@ -750,6 +750,9 @@ struct Values {
     // Add-Ons
     std::map<u64, std::vector<std::string>> disabled_addons;
 
+    // External Dirs
+    std::vector<std::string> external_dirs;
+
     // Per-game overrides
     bool use_squashed_iterated_blend;
 

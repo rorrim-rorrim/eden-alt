@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,6 +11,7 @@
 #include "common/common_types.h"
 #include "core/file_sys/fs_directory.h"
 #include "core/file_sys/fs_filesystem.h"
+#include <core/file_sys/registered_cache.h>
 #include "core/file_sys/vfs/vfs.h"
 #include "core/hle/result.h"
 
@@ -120,6 +124,7 @@ public:
     // Creates the SaveData, SDMC, and BIS Factories. Should be called once and before any function
     // above is called.
     void CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite = true);
+    void RebuildExternalContentIndex();
 
     void Reset();
 
@@ -141,6 +146,7 @@ private:
     std::unique_ptr<FileSys::XCI> gamecard;
     std::unique_ptr<FileSys::RegisteredCache> gamecard_registered;
     std::unique_ptr<FileSys::PlaceholderCache> gamecard_placeholder;
+    std::unique_ptr<FileSys::ManualContentProvider> external_provider;
 
     Core::System& system;
 };

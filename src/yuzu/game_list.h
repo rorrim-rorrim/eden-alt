@@ -80,6 +80,7 @@ public:
 
     void LoadCompatibilityList();
     void PopulateAsync(QVector<UISettings::GameDir>& game_dirs);
+    void OnWatchedDirectoryChanged(const QString& path);
 
     void SaveInterfaceLayout();
     void LoadInterfaceLayout();

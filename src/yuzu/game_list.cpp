@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "yuzu/game_list.h"
+#include <fmt/ranges.h>
 #include <QApplication>
 #include <QDir>
 #include <QFileInfo>
@@ -13,6 +14,7 @@
 #include <QMenu>
 #include <QThreadPool>
 #include <QToolButton>
+#include <regex>
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/core.h"
@@ -25,8 +27,6 @@
 #include "yuzu/game_list_worker.h"
 #include "yuzu/main_window.h"
 #include "yuzu/util/controller_navigation.h"
-#include <fmt/ranges.h>
-#include <regex>
 
 GameListSearchField::KeyReleaseEater::KeyReleaseEater(GameList* gamelist_, QObject* parent)
     : QObject(parent), gamelist{gamelist_} {}
@@ -318,7 +318,8 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
     : QWidget{parent}, vfs{std::move(vfs_)}, provider{provider_},
       play_time_manager{play_time_manager_}, system{system_} {
     watcher = new QFileSystemWatcher(this);
-    connect(watcher, &QFileSystemWatcher::directoryChanged, this, &GameList::RefreshGameDirectory);
+    connect(watcher, &QFileSystemWatcher::directoryChanged, this,
+            &GameList::OnWatchedDirectoryChanged);
 
     this->main_window = parent;
     layout = new QVBoxLayout;
@@ -486,14 +487,21 @@ void GameList::DonePopulating(const QStringList& watch_list) {
     if (!watch_dirs.isEmpty()) {
         watcher->removePaths(watch_dirs);
     }
+
+    QStringList all_watch_paths = watch_list;
+    for (const auto& dir : Settings::values.external_dirs) {
+        all_watch_paths.append(QString::fromStdString(dir));
+    }
+    all_watch_paths.removeDuplicates();
+
     // Workaround: Add the watch paths in chunks to allow the gui to refresh
     // This prevents the UI from stalling when a large number of watch paths are added
     // Also artificially caps the watcher to a certain number of directories
     constexpr int LIMIT_WATCH_DIRECTORIES = 5000;
     constexpr int SLICE_SIZE = 25;
-    int len = (std::min)(static_cast<int>(watch_list.size()), LIMIT_WATCH_DIRECTORIES);
+    int len = (std::min)(static_cast<int>(all_watch_paths.size()), LIMIT_WATCH_DIRECTORIES);
     for (int i = 0; i < len; i += SLICE_SIZE) {
-        watcher->addPaths(watch_list.mid(i, i + SLICE_SIZE));
+        watcher->addPaths(all_watch_paths.mid(i, i + SLICE_SIZE));
         QCoreApplication::processEvents();
     }
     tree_view->setEnabled(true);
@@ -966,6 +974,17 @@ GameListPlaceholder::GameListPlaceholder(MainWindow* parent) : QWidget{parent} {
 }
 
 GameListPlaceholder::~GameListPlaceholder() = default;
+
+void GameList::OnWatchedDirectoryChanged(const QString& path) {
+    LOG_INFO(Frontend, "Change detected in watched directory {}. Reloading content.",
+             path.toStdString());
+
+    system.GetFileSystemController().RebuildExternalContentIndex();
+
+    QtCommon::Game::ResetMetadata(false);
+
+    RefreshGameDirectory();
+}
 
 void GameListPlaceholder::onUpdateThemedIcons() {
     image->setPixmap(QIcon::fromTheme(QStringLiteral("plus_folder")).pixmap(200));
