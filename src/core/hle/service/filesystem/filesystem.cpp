@@ -725,6 +725,8 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
                                        external_provider.get());
     }
 
+    if (overwrite)
+        RebuildExternalContentIndex();
 }
 
 void FileSystemController::RebuildExternalContentIndex() {
