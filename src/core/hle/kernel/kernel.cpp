@@ -50,13 +50,26 @@
 
 namespace Kernel {
 
+// Can only be used by a single implementation PER THREAD
+static thread_local struct ThreadLocalData {
+    std::optional<KThread> raw_thread;
+    KThread* current_thread = nullptr;
+    KThread* thread = nullptr;
+    u8 host_thread_id = UINT8_MAX;
+    bool is_phantom_mode_for_singlecore = false;
+    bool lock = false;
+} static_tls_data = {};
+
 struct KernelCore::Impl {
     static constexpr size_t ApplicationMemoryBlockSlabHeapSize = 20000;
     static constexpr size_t SystemMemoryBlockSlabHeapSize = 10000;
     static constexpr size_t BlockInfoSlabHeapSize = 4000;
     static constexpr size_t ReservedDynamicPageCount = 64;
 
-    explicit Impl(Core::System& system_, KernelCore& kernel_) : system{system_} {}
+    explicit Impl(Core::System& system_, KernelCore& kernel_) : system{system_}, tls_data{static_tls_data} {
+        ASSERT(tls_data.lock == false);
+        tls_data.lock = true;
+    }
 
     void SetMulticore(bool is_multi) {
         is_multicore = is_multi;
@@ -68,8 +81,6 @@ struct KernelCore::Impl {
 
         global_object_list_container = std::make_unique<KAutoObjectWithListContainer>(kernel);
         global_scheduler_context = std::make_unique<Kernel::GlobalSchedulerContext>(kernel);
-
-        is_phantom_mode_for_singlecore = false;
 
         // Derive the initial memory layout from the emulated board
         Init::InitializeSlabResourceCounts(kernel);
@@ -356,33 +367,34 @@ struct KernelCore::Impl {
         application_process->Open();
     }
 
-    static inline thread_local u8 host_thread_id = UINT8_MAX;
-
     /// Sets the host thread ID for the caller.
     u32 SetHostThreadId(std::size_t core_id) {
         // This should only be called during core init.
-        ASSERT(host_thread_id == UINT8_MAX);
+        ASSERT(tls_data.host_thread_id == UINT8_MAX);
 
         // The first four slots are reserved for CPU core threads
         ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
-        host_thread_id = static_cast<u8>(core_id);
-        return host_thread_id;
+        tls_data.host_thread_id = u8(core_id);
+        return tls_data.host_thread_id;
     }
 
     /// Gets the host thread ID for the caller
     u32 GetHostThreadId() const {
-        return host_thread_id;
+        return tls_data.host_thread_id;
     }
 
     // Gets the dummy KThread for the caller, allocating a new one if this is the first time
     KThread* GetHostDummyThread(KThread* existing_thread) {
-        const auto initialize{[](KThread* thread) {
-            ASSERT(KThread::InitializeDummyThread(thread, nullptr).IsSuccess());
-            return thread;
-        }};
-        thread_local KThread raw_thread{system.Kernel()};
-        thread_local KThread* thread = existing_thread ? existing_thread : initialize(&raw_thread);
-        return thread;
+        if (tls_data.thread == nullptr) {
+            auto const initialize{[](KThread* thread) {
+                ASSERT(KThread::InitializeDummyThread(thread, nullptr).IsSuccess());
+                return thread;
+            }};
+            tls_data.raw_thread.emplace(system.Kernel());
+            tls_data.thread = existing_thread ? existing_thread : initialize(&*tls_data.raw_thread);
+            ASSERT(tls_data.thread != nullptr);
+        }
+        return tls_data.thread;
     }
 
     /// Registers a CPU core thread by allocating a host thread ID for it
@@ -407,32 +419,26 @@ struct KernelCore::Impl {
         return this_id;
     }
 
-    static inline thread_local bool is_phantom_mode_for_singlecore{false};
-
+    // Forces singlecore
     bool IsPhantomModeForSingleCore() const {
-        return is_phantom_mode_for_singlecore;
+        return tls_data.is_phantom_mode_for_singlecore;
     }
-
     void SetIsPhantomModeForSingleCore(bool value) {
         ASSERT(!is_multicore);
-        is_phantom_mode_for_singlecore = value;
+        tls_data.is_phantom_mode_for_singlecore = value;
     }
 
     bool IsShuttingDown() const {
         return is_shutting_down.load(std::memory_order_relaxed);
     }
 
-    static inline thread_local KThread* current_thread{nullptr};
-
     KThread* GetCurrentEmuThread() {
-        if (!current_thread) {
-            current_thread = GetHostDummyThread(nullptr);
-        }
-        return current_thread;
+        auto *ct = tls_data.current_thread; // Must read to avoid uneeded %fs: reloads
+        return ct ? ct : (tls_data.current_thread = GetHostDummyThread(nullptr));
     }
 
     void SetCurrentEmuThread(KThread* thread) {
-        current_thread = thread;
+        tls_data.current_thread = thread;
     }
 
     void DeriveInitialMemoryLayout() {
@@ -845,6 +851,8 @@ struct KernelCore::Impl {
 
     // System context
     Core::System& system;
+    // You must use references otherwise atexit() will be spammed everywhere :)
+    ThreadLocalData& tls_data;
 };
 
 KernelCore::KernelCore(Core::System& system) : impl{std::make_unique<Impl>(system, *this)} {}
