@@ -334,7 +334,7 @@ void Vic::Blend(const ConfigStruct& config, const SlotStruct& slot, VideoPixelFo
         s32 mr[4][4];
         for (u32 j = 0; j < 3; ++j)
             for (u32 i = 0; i < 4; ++i)
-                mr[j][i] = s64(((amt->m[i] >> shifts[j]) & mat_mask) << (64 - 20)) >> (64 - 20);
+                mr[j][i] = s32(s64(((amt->m[i] >> shifts[j]) & mat_mask) << (64 - 20)) >> (64 - 20));
 
         auto const clamp_min = s32(slot.config.soft_clamp_low.Value());
         auto const clamp_max = s32(slot.config.soft_clamp_high.Value());
