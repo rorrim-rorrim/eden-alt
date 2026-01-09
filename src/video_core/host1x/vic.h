@@ -618,7 +618,7 @@ private:
     void ReadInterlacedY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets, std::shared_ptr<const FFmpeg::Frame> frame, bool planar, bool top_field) noexcept;
     void ReadY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets, std::shared_ptr<const FFmpeg::Frame> frame, bool planar) noexcept;
     void WriteY8__V8U8_N420(const OutputSurfaceConfig& output_surface_config) noexcept;
-    void WriteABGR(const OutputSurfaceConfig& output_surface_config) noexcept;
+    void WriteABGR(const OutputSurfaceConfig& output_surface_config, VideoPixelFormat format) noexcept;
 
     s32 id;
     s32 nvdec_id{-1};
