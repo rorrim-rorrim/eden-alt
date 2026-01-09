@@ -146,15 +146,15 @@ void Vic::ReadProgressiveY8__V8U8_N420(const SlotStruct& slot, std::span<const P
     auto const out_luma_height = (slot.surface_config.slot_surface_height + 1) * (interlaced ? 2 : 1);
     auto const out_luma_stride = out_luma_width;
 
-    const auto in_luma_width = (std::min)(frame->GetWidth(), s32(out_luma_width));
-    const auto in_luma_height = (std::min)(frame->GetHeight(), s32(out_luma_height));
-    const auto in_luma_stride = frame->GetStride(0);
+    auto const in_luma_width = (std::min)(frame->GetWidth(), s32(out_luma_width));
+    auto const in_luma_height = (std::min)(frame->GetHeight(), s32(out_luma_height));
+    auto const in_luma_stride = frame->GetStride(0);
 
-    const auto in_chroma_stride{frame->GetStride(1)};
+    auto const in_chroma_stride{frame->GetStride(1)};
 
-    const auto* luma_buffer{frame->GetPlane(0)};
-    const auto* chroma_u_buffer{frame->GetPlane(1)};
-    const auto* chroma_v_buffer{frame->GetPlane(2)};
+    auto const* luma_buffer{frame->GetPlane(0)};
+    auto const* chroma_u_buffer{frame->GetPlane(1)};
+    auto const* chroma_v_buffer{frame->GetPlane(2)};
 
     LOG_TRACE(HW_GPU,
         "Reading frame"
@@ -186,74 +186,74 @@ void Vic::ReadProgressiveY8__V8U8_N420(const SlotStruct& slot, std::span<const P
 }
 
 void Vic::ReadInterlacedY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets, std::shared_ptr<const FFmpeg::Frame> frame, bool planar, bool top_field) noexcept {
-    if(!planar) {
-        ReadProgressiveY8__V8U8_N420(slot, offsets, std::move(frame), planar, true);
-        return;
-    }
-    const auto out_luma_width{slot.surface_config.slot_surface_width + 1};
-    const auto out_luma_height{(slot.surface_config.slot_surface_height + 1) * 2};
-    const auto out_luma_stride{out_luma_width};
+    if(planar) {
+        auto const out_luma_width{slot.surface_config.slot_surface_width + 1};
+        auto const out_luma_height{(slot.surface_config.slot_surface_height + 1) * 2};
+        auto const out_luma_stride{out_luma_width};
 
-    slot_surface.resize(out_luma_width * out_luma_height);
+        slot_surface.resize(out_luma_width * out_luma_height);
 
-    const auto in_luma_width{(std::min)(frame->GetWidth(), s32(out_luma_width))};
-    const auto in_luma_height{(std::min)(frame->GetHeight(), s32(out_luma_height))};
-    const auto in_luma_stride{frame->GetStride(0)};
+        auto const in_luma_width = (std::min)(frame->GetWidth(), s32(out_luma_width));
+        [[maybe_unused]] auto const in_luma_height = (std::min)(frame->GetHeight(), s32(out_luma_height));
+        auto const in_luma_stride{frame->GetStride(0)};
 
-    const auto in_chroma_width{(frame->GetWidth() + 1) / 2};
-    const auto in_chroma_height{(frame->GetHeight() + 1) / 2};
-    const auto in_chroma_stride{frame->GetStride(1)};
+        [[maybe_unused]] auto const in_chroma_width = (frame->GetWidth() + 1) / 2;
+        auto const in_chroma_height = (frame->GetHeight() + 1) / 2;
+        auto const in_chroma_stride{frame->GetStride(1)};
 
-    const auto* luma_buffer{frame->GetPlane(0)};
-    const auto* chroma_u_buffer{frame->GetPlane(1)};
-    const auto* chroma_v_buffer{frame->GetPlane(2)};
+        auto const* luma_buffer{frame->GetPlane(0)};
+        auto const* chroma_u_buffer{frame->GetPlane(1)};
+        auto const* chroma_v_buffer{frame->GetPlane(2)};
 
-    LOG_TRACE(HW_GPU, "Reading frame"
-        "\ninput luma {}x{} stride {} chroma {}x{} stride {}\n"
-        "output luma {}x{} stride {} chroma {}x{} stride {}",
-        in_luma_width, in_luma_height, in_luma_stride, in_chroma_width, in_chroma_height,
-        in_chroma_stride, out_luma_width, out_luma_height, out_luma_stride,
-        out_luma_width / 2, out_luma_height / 2, out_luma_stride);
+        LOG_TRACE(HW_GPU, "Reading frame"
+            "\ninput luma {}x{} stride {} chroma {}x{} stride {}\n"
+            "output luma {}x{} stride {} chroma {}x{} stride {}",
+            in_luma_width, in_luma_height, in_luma_stride, in_chroma_width, in_chroma_height,
+            in_chroma_stride, out_luma_width, out_luma_height, out_luma_stride,
+            out_luma_width / 2, out_luma_height / 2, out_luma_stride);
 
-    auto DecodeBobField = [&]() {
-        const auto alpha = u16(slot.config.planar_alpha.Value());
-        for (s32 y = s32(top_field == false); y < in_chroma_height * 2; y += 2) {
-            const auto src_luma{y * in_luma_stride};
-            const auto src_chroma{(y / 2) * in_chroma_stride};
-            const auto dst{y * out_luma_stride};
-            for (s32 x = 0; x < in_luma_width; x++) {
-                slot_surface[dst + x].r = u16(luma_buffer[src_luma + x] << 2);
-                if(planar) {
-                    slot_surface[dst + x].g = u16(chroma_u_buffer[src_chroma + x / 2] << 2);
-                    slot_surface[dst + x].b = u16(chroma_v_buffer[src_chroma + x / 2] << 2);
-                } else {
-                    slot_surface[dst + x].g = u16(chroma_u_buffer[src_chroma + (x & ~1) + 0] << 2);
-                    slot_surface[dst + x].b = u16(chroma_u_buffer[src_chroma + (x & ~1) + 1] << 2);
+        auto DecodeBobField = [&]() {
+            auto const alpha = u16(slot.config.planar_alpha.Value());
+            for (s32 y = s32(top_field == false); y < in_chroma_height * 2; y += 2) {
+                auto const src_luma{y * in_luma_stride};
+                auto const src_chroma{(y / 2) * in_chroma_stride};
+                auto const dst{y * out_luma_stride};
+                for (s32 x = 0; x < in_luma_width; x++) {
+                    slot_surface[dst + x].r = u16(luma_buffer[src_luma + x] << 2);
+                    if(planar) {
+                        slot_surface[dst + x].g = u16(chroma_u_buffer[src_chroma + x / 2] << 2);
+                        slot_surface[dst + x].b = u16(chroma_v_buffer[src_chroma + x / 2] << 2);
+                    } else {
+                        slot_surface[dst + x].g = u16(chroma_u_buffer[src_chroma + (x & ~1) + 0] << 2);
+                        slot_surface[dst + x].b = u16(chroma_u_buffer[src_chroma + (x & ~1) + 1] << 2);
+                    }
+                    slot_surface[dst + x].a = alpha;
                 }
-                slot_surface[dst + x].a = alpha;
+                s32 other_line = (top_field ? y + 1 : y - 1) * out_luma_stride;
+                std::memcpy(&slot_surface[other_line], &slot_surface[dst], out_luma_width * sizeof(Pixel));
             }
-            s32 other_line = (top_field ? y + 1 : y - 1) * out_luma_stride;
-            std::memcpy(&slot_surface[other_line], &slot_surface[dst], out_luma_width * sizeof(Pixel));
-        }
-    };
+        };
 
-    switch (slot.config.deinterlace_mode) {
-    case DXVAHD_DEINTERLACE_MODE_PRIVATE::WEAVE:
-        // Due to the fact that we do not write to memory in nvdec, we cannot use Weave as it
-        // relies on the previous frame.
-        DecodeBobField();
-        break;
-    case DXVAHD_DEINTERLACE_MODE_PRIVATE::BOB_FIELD:
-        DecodeBobField();
-        break;
-    case DXVAHD_DEINTERLACE_MODE_PRIVATE::DISI1:
-        // Due to the fact that we do not write to memory in nvdec, we cannot use DISI1 as it
-        // relies on previous/next frames.
-        DecodeBobField();
-        break;
-    default:
-        LOG_ERROR(HW_GPU, "Deinterlace mode {} not implemented!", s32(slot.config.deinterlace_mode.Value()));
-        break;
+        switch (slot.config.deinterlace_mode) {
+        case DXVAHD_DEINTERLACE_MODE_PRIVATE::WEAVE:
+            // Due to the fact that we do not write to memory in nvdec, we cannot use Weave as it
+            // relies on the previous frame.
+            DecodeBobField();
+            break;
+        case DXVAHD_DEINTERLACE_MODE_PRIVATE::BOB_FIELD:
+            DecodeBobField();
+            break;
+        case DXVAHD_DEINTERLACE_MODE_PRIVATE::DISI1:
+            // Due to the fact that we do not write to memory in nvdec, we cannot use DISI1 as it
+            // relies on previous/next frames.
+            DecodeBobField();
+            break;
+        default:
+            LOG_ERROR(HW_GPU, "Deinterlace mode {} not implemented!", s32(slot.config.deinterlace_mode.Value()));
+            break;
+        }
+    } else {
+        ReadProgressiveY8__V8U8_N420(slot, offsets, std::move(frame), planar, true);
     }
 }
 
@@ -376,17 +376,17 @@ void Vic::WriteY8__V8U8_N420(const OutputSurfaceConfig& output_surface_config) n
 
     auto surface_width{output_surface_config.out_surface_width + 1};
     auto surface_height{output_surface_config.out_surface_height + 1};
-    const auto surface_stride{surface_width};
+    auto const surface_stride{surface_width};
 
-    const auto out_luma_width = output_surface_config.out_luma_width + 1;
-    const auto out_luma_height = output_surface_config.out_luma_height + 1;
-    const auto out_luma_stride = Common::AlignUp(out_luma_width * BytesPerPixel, 0x10);
-    const auto out_luma_size = out_luma_height * out_luma_stride;
+    auto const out_luma_width = output_surface_config.out_luma_width + 1;
+    auto const out_luma_height = output_surface_config.out_luma_height + 1;
+    auto const out_luma_stride = Common::AlignUp(out_luma_width * BytesPerPixel, 0x10);
+    auto const out_luma_size = out_luma_height * out_luma_stride;
 
-    const auto out_chroma_width = output_surface_config.out_chroma_width + 1;
-    const auto out_chroma_height = output_surface_config.out_chroma_height + 1;
-    const auto out_chroma_stride = Common::AlignUp(out_chroma_width * BytesPerPixel * 2, 0x10);
-    const auto out_chroma_size = out_chroma_height * out_chroma_stride;
+    auto const out_chroma_width = output_surface_config.out_chroma_width + 1;
+    auto const out_chroma_height = output_surface_config.out_chroma_height + 1;
+    auto const out_chroma_stride = Common::AlignUp(out_chroma_width * BytesPerPixel * 2, 0x10);
+    auto const out_chroma_size = out_chroma_height * out_chroma_stride;
 
     surface_width = (std::min)(surface_width, out_luma_width);
     surface_height = (std::min)(surface_height, out_luma_height);
@@ -471,10 +471,10 @@ void Vic::WriteABGR(const OutputSurfaceConfig& output_surface_config) noexcept {
     auto surface_height = output_surface_config.out_surface_height + 1;
     auto const surface_stride = surface_width;
 
-    const auto out_luma_width = output_surface_config.out_luma_width + 1;
-    const auto out_luma_height = output_surface_config.out_luma_height + 1;
-    const auto out_luma_stride = Common ::AlignUp(out_luma_width * BytesPerPixel, 0x10);
-    const auto out_luma_size = out_luma_height * out_luma_stride;
+    auto const out_luma_width = output_surface_config.out_luma_width + 1;
+    auto const out_luma_height = output_surface_config.out_luma_height + 1;
+    auto const out_luma_stride = Common ::AlignUp(out_luma_width * BytesPerPixel, 0x10);
+    auto const out_luma_size = out_luma_height * out_luma_stride;
 
     surface_width = (std::min)(surface_width, out_luma_width);
     surface_height = (std::min)(surface_height, out_luma_height);
@@ -494,7 +494,7 @@ void Vic::WriteABGR(const OutputSurfaceConfig& output_surface_config) noexcept {
     switch (output_surface_config.out_block_kind) {
     case BLK_KIND::GENERIC_16Bx2: {
         const u32 block_height = u32(output_surface_config.out_block_height);
-        const auto out_swizzle_size = Texture::CalculateSize(true, BytesPerPixel, out_luma_width, out_luma_height, 1, block_height, 0);
+        auto const out_swizzle_size = Texture::CalculateSize(true, BytesPerPixel, out_luma_width, out_luma_height, 1, block_height, 0);
         LOG_TRACE(HW_GPU, "Writing ABGR swizzled frame\n"
             "\tinput surface {}x{} stride {} size {:#X}\n"
             "\toutput surface {}x{} stride {} size {:#X} block height {} swizzled size 0x{:X}",
