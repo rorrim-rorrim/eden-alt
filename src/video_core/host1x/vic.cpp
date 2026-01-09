@@ -34,6 +34,14 @@ extern "C" {
 #endif
 }
 
+// GO FUCK YOURSELF
+#if defined(__GNUC__)
+#pragma GCC target("avx2")
+#endif
+#if defined(__clang__)
+#pragma clang target("avx2")
+#endif
+
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/bit_field.h"
