@@ -51,6 +51,7 @@ enum class ContentStorageId : u32 {
     System,
     User,
     SdCard,
+    System0,
 };
 
 enum class ImageDirectoryId : u32 {
@@ -104,6 +105,7 @@ public:
     FileSys::VirtualDir GetSystemNANDContentDirectory() const;
     FileSys::VirtualDir GetUserNANDContentDirectory() const;
     FileSys::VirtualDir GetSDMCContentDirectory() const;
+    FileSys::VirtualDir GetSystem0NANDContentDirectory() const;
 
     FileSys::VirtualDir GetNANDImageDirectory() const;
     FileSys::VirtualDir GetSDMCImageDirectory() const;

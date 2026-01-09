@@ -964,7 +964,7 @@ Result NcaFileSystemDriver::CreateIndirectStorageMetaStorage(VirtualFile* out,
 
     // Check that we're within range.
     R_UNLESS(patch_info.indirect_offset + patch_info.indirect_size <= base_size,
-             ResultNcaBaseStorageOutOfRangeE);
+             ResultInvalidNcaPatchInfoIndirectOffset);
 
     // Create the meta storage.
     auto meta_storage = std::make_shared<OffsetVfsFile>(base_storage, patch_info.indirect_size,
@@ -1001,7 +1001,7 @@ Result NcaFileSystemDriver::CreateIndirectStorage(
     const auto node_size = IndirectStorage::QueryNodeStorageSize(header.entry_count);
     const auto entry_size = IndirectStorage::QueryEntryStorageSize(header.entry_count);
     R_UNLESS(node_size + entry_size <= patch_info.indirect_size,
-             ResultInvalidNcaIndirectStorageOutOfRange);
+             ResultNcaIndirectStorageOutOfRange);
 
     // Get the indirect data size.
     const s64 indirect_data_size = patch_info.indirect_offset;
@@ -1065,7 +1065,7 @@ Result NcaFileSystemDriver::CreatePatchMetaStorage(
 
     // Check that extents remain within range.
     R_UNLESS(patch_info.indirect_offset + patch_info.indirect_size <= base_size,
-             ResultNcaBaseStorageOutOfRangeE);
+             ResultInvalidNcaPatchInfoIndirectOffset);
     R_UNLESS(patch_info.aes_ctr_ex_offset + patch_info.aes_ctr_ex_size <= base_size,
              ResultNcaBaseStorageOutOfRangeB);
 
@@ -1303,9 +1303,9 @@ Result NcaFileSystemDriver::CreateIntegrityVerificationStorageImpl(
                 sizeof(level_hash_info));
 
     R_UNLESS(IntegrityMinLayerCount <= level_hash_info.max_layers,
-             ResultInvalidNcaHierarchicalIntegrityVerificationLayerCount);
+             ResultInvalidHierarchicalIntegrityVerificationLayerCount);
     R_UNLESS(level_hash_info.max_layers <= IntegrityMaxLayerCount,
-             ResultInvalidNcaHierarchicalIntegrityVerificationLayerCount);
+             ResultInvalidHierarchicalIntegrityVerificationLayerCount);
 
     // Get the base storage size.
     s64 base_storage_size = base_storage->GetSize();
@@ -1315,7 +1315,7 @@ Result NcaFileSystemDriver::CreateIntegrityVerificationStorageImpl(
     for (s32 i = 0; i < static_cast<s32>(level_hash_info.max_layers - 2); ++i) {
         const auto& layer_info = level_hash_info.info[i];
         R_UNLESS(layer_info_offset + layer_info.offset + layer_info.size <= base_storage_size,
-                 ResultNcaBaseStorageOutOfRangeD);
+                 ResultNcaFileSystemCorrupted);
 
         storage_info[i + 1] = std::make_shared<OffsetVfsFile>(base_storage,
                                                               layer_info.size,
@@ -1326,7 +1326,7 @@ Result NcaFileSystemDriver::CreateIntegrityVerificationStorageImpl(
     const auto& layer_info = level_hash_info.info[level_hash_info.max_layers - 2];
     const s64 last_layer_info_offset = layer_info_offset > 0 ? 0LL : layer_info.offset.Get();
     R_UNLESS(last_layer_info_offset + layer_info.size <= base_storage_size,
-             ResultNcaBaseStorageOutOfRangeD);
+             ResultNcaFileSystemCorrupted);
     if (layer_info_offset > 0) {
         R_UNLESS(last_layer_info_offset + layer_info.size <= layer_info_offset,
                  ResultRomNcaInvalidIntegrityLayerInfoOffset);
@@ -1422,7 +1422,7 @@ Result NcaFileSystemDriver::CreateCompressedStorage(VirtualFile* out,
     const auto table_size = compression_info.bucket.size;
     const auto node_size = CompressedStorage::QueryNodeStorageSize(header.entry_count);
     const auto entry_size = CompressedStorage::QueryEntryStorageSize(header.entry_count);
-    R_UNLESS(node_size + entry_size <= table_size, ResultInvalidCompressedStorageSize);
+    R_UNLESS(node_size + entry_size <= table_size, ResultNcaInvalidCompressionInfo);
 
     // If we should, set the output meta storage.
     if (out_meta != nullptr) {

@@ -601,6 +601,15 @@ FileSys::VirtualDir FileSystemController::GetSDMCContentDirectory() const {
     return sdmc_factory->GetSDMCContentDirectory();
 }
 
+FileSys::VirtualDir FileSystemController::GetSystem0NANDContentDirectory() const {
+    LOG_TRACE(Service_FS, "Opening system0 NAND content directory");
+
+    if (bis_factory == nullptr)
+        return nullptr;
+
+    return bis_factory->GetSystem0NANDContentDirectory();
+}
+
 FileSys::VirtualDir FileSystemController::GetNANDImageDirectory() const {
     LOG_TRACE(Service_FS, "Opening NAND image directory");
 
@@ -627,6 +636,8 @@ FileSys::VirtualDir FileSystemController::GetContentDirectory(ContentStorageId i
         return GetUserNANDContentDirectory();
     case ContentStorageId::SdCard:
         return GetSDMCContentDirectory();
+    case ContentStorageId::System0:
+            return GetSystem0NANDContentDirectory();
     }
 
     return nullptr;
