@@ -51,20 +51,21 @@
 namespace Kernel {
 
 // Can only be used by a single implementation PER THREAD
-static thread_local struct ThreadLocalData {
+struct ThreadLocalData {
     std::optional<KThread> raw_thread;
     KThread* current_thread = nullptr;
     KThread* thread = nullptr;
     u8 host_thread_id = UINT8_MAX;
     bool is_phantom_mode_for_singlecore = false;
     bool lock = false;
-} static_tls_data = {};
+};
 
 struct KernelCore::Impl {
     static constexpr size_t ApplicationMemoryBlockSlabHeapSize = 20000;
     static constexpr size_t SystemMemoryBlockSlabHeapSize = 10000;
     static constexpr size_t BlockInfoSlabHeapSize = 4000;
     static constexpr size_t ReservedDynamicPageCount = 64;
+    static inline thread_local ThreadLocalData static_tls_data = {};
 
     explicit Impl(Core::System& system_, KernelCore& kernel_) : system{system_}, tls_data{static_tls_data} {
         ASSERT(tls_data.lock == false);
