@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -613,12 +610,24 @@ public:
 
 private:
     void Execute();
+
     void Blend(const ConfigStruct& config, const SlotStruct& slot);
-    void ReadProgressiveY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets, std::shared_ptr<const FFmpeg::Frame> frame, bool planar, bool interlaced);
-    void ReadInterlacedY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets, std::shared_ptr<const FFmpeg::Frame> frame, bool planar, bool top_field);
-    void ReadY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets, std::shared_ptr<const FFmpeg::Frame> frame, bool planar);
+
+    template <bool Planar, bool Interlaced = false>
+    void ReadProgressiveY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets,
+                                      std::shared_ptr<const FFmpeg::Frame> frame);
+    template <bool Planar, bool TopField>
+    void ReadInterlacedY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets,
+                                     std::shared_ptr<const FFmpeg::Frame> frame);
+
+    template <bool Planar>
+    void ReadY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets,
+                           std::shared_ptr<const FFmpeg::Frame> frame);
+
     void WriteY8__V8U8_N420(const OutputSurfaceConfig& output_surface_config);
-    void WriteABGR(const OutputSurfaceConfig& output_surface_config, VideoPixelFormat format);
+
+    template <VideoPixelFormat Format>
+    void WriteABGR(const OutputSurfaceConfig& output_surface_config);
 
     s32 id;
     s32 nvdec_id{-1};
@@ -626,6 +635,8 @@ private:
 
     VicRegisters regs{};
     FrameQueue& frame_queue;
+
+    const bool has_sse41{false};
 
     Common::ScratchBuffer<Pixel> output_surface;
     Common::ScratchBuffer<Pixel> slot_surface;
