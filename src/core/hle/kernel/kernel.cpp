@@ -65,10 +65,19 @@ struct KernelCore::Impl {
     static constexpr size_t SystemMemoryBlockSlabHeapSize = 10000;
     static constexpr size_t BlockInfoSlabHeapSize = 4000;
     static constexpr size_t ReservedDynamicPageCount = 64;
-    static inline thread_local ThreadLocalData static_tls_data = {};
+    // Be very careful when handling TLS data
+    // We do not want to concern ourselves with the appropriate way to manage them
+    // across **all** threads, we just need these for a few spare threads (+host/guest threads)
+    //
+    // Do not just read straight from here, use a reference beforehand, the cost of reading
+    // from TLS is greater than the cost of reading normal variables
+    //
+    // And we have the guarantee that the data won't move out of the way so we can safely
+    // take a reference to it. This isn't always universally true but this is "global" data
+    // so it will be statically given a TLS slot anyways.
+    static inline thread_local ThreadLocalData tls_data = {};
 
-    explicit Impl(Core::System& system_, KernelCore& kernel_) : system{system_}, tls_data{static_tls_data} {
-        ASSERT(tls_data.lock == false);
+    explicit Impl(Core::System& system_, KernelCore& kernel_) : system{system_} {
         tls_data.lock = true;
     }
 
@@ -100,9 +109,7 @@ struct KernelCore::Impl {
         {
             const auto& pt_heap_region = memory_layout->GetPageTableHeapRegion();
             ASSERT(pt_heap_region.GetEndAddress() != 0);
-
-            InitializeResourceManagers(kernel, pt_heap_region.GetAddress(),
-                                       pt_heap_region.GetSize());
+            InitializeResourceManagers(kernel, pt_heap_region.GetAddress(), pt_heap_region.GetSize());
         }
 
         InitializeHackSharedMemory(kernel);
@@ -234,17 +241,11 @@ struct KernelCore::Impl {
         const auto kernel_size{sizes.second};
 
         // If setting the default system values fails, then something seriously wrong has occurred.
-        ASSERT(
-            system_resource_limit->SetLimitValue(LimitableResource::PhysicalMemoryMax, total_size)
-                .IsSuccess());
-        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::ThreadCountMax, 800)
-                   .IsSuccess());
-        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::EventCountMax, 900)
-                   .IsSuccess());
-        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::TransferMemoryCountMax, 200)
-                   .IsSuccess());
-        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::SessionCountMax, 1133)
-                   .IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::PhysicalMemoryMax, total_size).IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::ThreadCountMax, 800).IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::EventCountMax, 900).IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::TransferMemoryCountMax, 200).IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::SessionCountMax, 1133).IsSuccess());
         system_resource_limit->Reserve(LimitableResource::PhysicalMemoryMax, kernel_size);
 
         // Reserve secure applet memory, introduced in firmware 5.0.0
@@ -254,16 +255,13 @@ struct KernelCore::Impl {
     }
 
     void InitializePreemption(KernelCore& kernel) {
-        preemption_event = Core::Timing::CreateEvent(
-            "PreemptionCallback",
-            [this, &kernel](s64 time,
-                            std::chrono::nanoseconds) -> std::optional<std::chrono::nanoseconds> {
-                {
-                    KScopedSchedulerLock lock(kernel);
-                    global_scheduler_context->PreemptThreads();
-                }
-                return std::nullopt;
-            });
+        preemption_event = Core::Timing::CreateEvent("PreemptionCallback", [this, &kernel](s64 time, std::chrono::nanoseconds) -> std::optional<std::chrono::nanoseconds> {
+            {
+                KScopedSchedulerLock lock(kernel);
+                global_scheduler_context->PreemptThreads();
+            }
+            return std::nullopt;
+        });
 
         const auto time_interval = std::chrono::nanoseconds{std::chrono::milliseconds(10)};
         system.CoreTiming().ScheduleLoopingEvent(time_interval, time_interval, preemption_event);
@@ -275,15 +273,13 @@ struct KernelCore::Impl {
         ASSERT(Common::IsAligned(size, PageSize));
 
         // Ensure that we have space for our reference counts.
-        const size_t rc_size =
-            Common::AlignUp(KPageTableSlabHeap::CalculateReferenceCountSize(size), PageSize);
+        const size_t rc_size = Common::AlignUp(KPageTableSlabHeap::CalculateReferenceCountSize(size), PageSize);
         ASSERT(rc_size < size);
         size -= rc_size;
 
         // Initialize the resource managers' shared page manager.
         resource_manager_page_manager = std::make_unique<KDynamicPageManager>();
-        resource_manager_page_manager->Initialize(
-            address, size, std::max<size_t>(PageSize, KPageBufferSlabHeap::BufferSize));
+        resource_manager_page_manager->Initialize(address, size, std::max<size_t>(PageSize, KPageBufferSlabHeap::BufferSize));
 
         // Initialize the KPageBuffer slab heap.
         page_buffer_slab_heap.Initialize(system);
@@ -292,16 +288,12 @@ struct KernelCore::Impl {
         app_memory_block_heap = std::make_unique<KMemoryBlockSlabHeap>();
         sys_memory_block_heap = std::make_unique<KMemoryBlockSlabHeap>();
         block_info_heap = std::make_unique<KBlockInfoSlabHeap>();
-        app_memory_block_heap->Initialize(resource_manager_page_manager.get(),
-                                          ApplicationMemoryBlockSlabHeapSize);
-        sys_memory_block_heap->Initialize(resource_manager_page_manager.get(),
-                                          SystemMemoryBlockSlabHeapSize);
+        app_memory_block_heap->Initialize(resource_manager_page_manager.get(), ApplicationMemoryBlockSlabHeapSize);
+        sys_memory_block_heap->Initialize(resource_manager_page_manager.get(), SystemMemoryBlockSlabHeapSize);
         block_info_heap->Initialize(resource_manager_page_manager.get(), BlockInfoSlabHeapSize);
 
         // Reserve all but a fixed number of remaining pages for the page table heap.
-        const size_t num_pt_pages = resource_manager_page_manager->GetCount() -
-                                    resource_manager_page_manager->GetUsed() -
-                                    ReservedDynamicPageCount;
+        const size_t num_pt_pages = resource_manager_page_manager->GetCount() - resource_manager_page_manager->GetUsed() - ReservedDynamicPageCount;
         page_table_heap = std::make_unique<KPageTableSlabHeap>();
 
         // TODO(bunnei): Pass in address once we support kernel virtual memory allocations.
@@ -313,8 +305,8 @@ struct KernelCore::Impl {
         KDynamicPageManager* const app_dynamic_page_manager = nullptr;
         KDynamicPageManager* const sys_dynamic_page_manager =
             /*KTargetSystem::IsDynamicResourceLimitsEnabled()*/ true
-                ? resource_manager_page_manager.get()
-                : nullptr;
+            ? resource_manager_page_manager.get()
+            : nullptr;
         app_memory_block_manager = std::make_unique<KMemoryBlockSlabManager>();
         sys_memory_block_manager = std::make_unique<KMemoryBlockSlabManager>();
         app_block_info_manager = std::make_unique<KBlockInfoManager>();
@@ -332,9 +324,7 @@ struct KernelCore::Impl {
         sys_page_table_manager->Initialize(sys_dynamic_page_manager, page_table_heap.get());
 
         // Check that we have the correct number of dynamic pages available.
-        ASSERT(resource_manager_page_manager->GetCount() -
-                   resource_manager_page_manager->GetUsed() ==
-               ReservedDynamicPageCount);
+        ASSERT(resource_manager_page_manager->GetCount() - resource_manager_page_manager->GetUsed() == ReservedDynamicPageCount);
 
         // Create the system page table managers.
         app_system_resource = std::make_unique<KSystemResource>(kernel);
@@ -343,18 +333,15 @@ struct KernelCore::Impl {
         KAutoObject::Create(std::addressof(*sys_system_resource));
 
         // Set the managers for the system resources.
-        app_system_resource->SetManagers(*app_memory_block_manager, *app_block_info_manager,
-                                         *app_page_table_manager);
-        sys_system_resource->SetManagers(*sys_memory_block_manager, *sys_block_info_manager,
-                                         *sys_page_table_manager);
+        app_system_resource->SetManagers(*app_memory_block_manager, *app_block_info_manager, *app_page_table_manager);
+        sys_system_resource->SetManagers(*sys_memory_block_manager, *sys_block_info_manager, *sys_page_table_manager);
     }
 
     void InitializeShutdownThreads() {
         for (u32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
             shutdown_threads[core_id] = KThread::Create(system.Kernel());
-            ASSERT(KThread::InitializeHighPriorityThread(system, shutdown_threads[core_id], {}, {},
-                                                         core_id)
-                       .IsSuccess());
+            ASSERT(KThread::InitializeHighPriorityThread(system, shutdown_threads[core_id], {}, {}, core_id)
+                .IsSuccess());
             KThread::Register(system.Kernel(), shutdown_threads[core_id]);
         }
     }
@@ -402,21 +389,19 @@ struct KernelCore::Impl {
     void RegisterCoreThread(std::size_t core_id) {
         ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
         const auto this_id = SetHostThreadId(core_id);
-        if (!is_multicore) {
+        if (!is_multicore)
             single_core_thread_id = this_id;
-        }
     }
 
     /// Registers a new host thread by allocating a host thread ID for it
     void RegisterHostThread(KThread* existing_thread) {
-        [[maybe_unused]] const auto dummy_thread = GetHostDummyThread(existing_thread);
+        (void)GetHostDummyThread(existing_thread);
     }
 
     [[nodiscard]] u32 GetCurrentHostThreadID() {
-        const auto this_id = GetHostThreadId();
-        if (!is_multicore && single_core_thread_id == this_id) {
-            return static_cast<u32>(system.GetCpuManager().CurrentCore());
-        }
+        auto const this_id = GetHostThreadId();
+        if (!is_multicore && single_core_thread_id == this_id)
+            return u32(system.GetCpuManager().CurrentCore());
         return this_id;
     }
 
@@ -434,8 +419,9 @@ struct KernelCore::Impl {
     }
 
     KThread* GetCurrentEmuThread() {
-        auto *ct = tls_data.current_thread; // Must read to avoid uneeded %fs: reloads
-        return ct ? ct : (tls_data.current_thread = GetHostDummyThread(nullptr));
+        if (!tls_data.current_thread)
+            tls_data.current_thread = GetHostDummyThread(nullptr);
+        return tls_data.current_thread;
     }
 
     void SetCurrentEmuThread(KThread* thread) {
@@ -852,8 +838,6 @@ struct KernelCore::Impl {
 
     // System context
     Core::System& system;
-    // You must use references otherwise atexit() will be spammed everywhere :)
-    ThreadLocalData& tls_data;
 };
 
 KernelCore::KernelCore(Core::System& system) : impl{std::make_unique<Impl>(system, *this)} {}
