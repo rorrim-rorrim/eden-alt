@@ -70,7 +70,9 @@ struct KernelCore::Impl {
     // across **all** threads, we just need these for a few spare threads (+host/guest threads)
     //
     // Do not just read straight from here, use a reference beforehand, the cost of reading
-    // from TLS is greater than the cost of reading normal variables
+    // from TLS is greater than the cost of reading normal variables.
+    // But account that this Impl() is instanced once per program, and shared across threads
+    // so we can't use a reference for now.
     //
     // And we have the guarantee that the data won't move out of the way so we can safely
     // take a reference to it. This isn't always universally true but this is "global" data
