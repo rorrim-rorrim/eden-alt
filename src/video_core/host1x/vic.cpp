@@ -43,7 +43,7 @@ extern "C" {
 #endif
 
 #if defined(ARCHITECTURE_x86_64) \
-    && ((defined(_MSC_VER) && defined(__AVX__)) \
+    && (defined(_MSC_VER) \
     || (defined(__GNUC__) && defined(__SSE4_1__)) \
     || (defined(__clang__) && defined(__SSE4_1__)))
 #define COMPILED_HAS_SSE41 1
