@@ -192,6 +192,34 @@ cmake_dependent_option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF 
 
 option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
+option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
+if(YUZU_ENABLE_LTO)
+    include(UseLTO)
+endif()
+
+option(USE_CCACHE "Use ccache for compilation" OFF)
+set(CCACHE_PATH "ccache" CACHE STRING "Path to ccache binary")
+if(USE_CCACHE)
+    find_program(CCACHE_BINARY ${CCACHE_PATH})
+    if(CCACHE_BINARY)
+        message(STATUS "Found ccache at: ${CCACHE_BINARY}")
+        set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_BINARY})
+        set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_BINARY})
+    else()
+        message(FATAL_ERROR "USE_CCACHE enabled, but no executable found at: ${CCACHE_PATH}")
+    endif()
+    # Follow SCCache recommendations:
+    # <https://github.com/mozilla/sccache/blob/main/README.md?plain=1#L144>
+    if(WIN32)
+        if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+            message(FATAL_ERROR "USE_CCACHE enabled is not compatible on win32 debug builds")
+        elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+            string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+            string(REPLACE "/Zi" "/Z7" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+        endif()
+    endif()
+endif()
+
 option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
 
 option(YUZU_LEGACY "Apply patches that improve compatibility with older GPUs (e.g. Snapdragon 865) at the cost of performance" OFF)
