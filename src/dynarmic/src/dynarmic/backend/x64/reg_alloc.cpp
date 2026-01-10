@@ -24,6 +24,21 @@
 
 namespace Dynarmic::Backend::X64 {
 
+static thread_local const IR::Inst* tls_argref_inst{};
+static thread_local u64 tls_argref_seen_mask{};
+
+static bool ShouldAddArgRef(const IR::Inst* inst, size_t arg_index) {
+    if (tls_argref_inst != inst)
+        tls_argref_inst = inst, tls_argref_seen_mask = 0;
+    if (arg_index < 64) {
+        const u64 bit = u64{1} << arg_index;
+        if (tls_argref_seen_mask & bit)
+            return false;
+        tls_argref_seen_mask |= bit;
+    }
+    return true;
+}
+
 static inline bool CanExchange(const HostLoc a, const HostLoc b) noexcept {
     return HostLocIsGPR(a) && HostLocIsGPR(b);
 }
@@ -188,7 +203,7 @@ bool Argument::IsInMemory(RegAlloc& reg_alloc) const noexcept {
 RegAlloc::RegAlloc(boost::container::static_vector<HostLoc, 28> gpr_order, boost::container::static_vector<HostLoc, 28> xmm_order) noexcept
     : gpr_order(gpr_order),
     xmm_order(xmm_order)
-{}
+{ tls_argref_inst = nullptr; }
 
 RegAlloc::ArgumentInfo RegAlloc::GetArgumentInfo(const IR::Inst* inst) noexcept {
     ArgumentInfo ret{
@@ -202,7 +217,8 @@ RegAlloc::ArgumentInfo RegAlloc::GetArgumentInfo(const IR::Inst* inst) noexcept 
         ret[i].value = arg;
         if (!arg.IsImmediate() && !IsValuelessType(arg.GetType())) {
             ASSERT(ValueLocation(arg.GetInst()) && "argument must already been defined");
-            LocInfo(*ValueLocation(arg.GetInst())).AddArgReference();
+            if (ShouldAddArgRef(inst, i))
+                LocInfo(*ValueLocation(arg.GetInst())).AddArgReference();
         }
     }
     return ret;
@@ -215,7 +231,8 @@ void RegAlloc::RegisterPseudoOperation(const IR::Inst* inst) noexcept {
         if (!arg.IsImmediate() && !IsValuelessType(arg.GetType())) {
             if (const auto loc = ValueLocation(arg.GetInst())) {
                 // May not necessarily have a value (e.g. CMP variant of Sub32).
-                LocInfo(*loc).AddArgReference();
+                if (ShouldAddArgRef(inst, i))
+                    LocInfo(*loc).AddArgReference();
             }
         }
     }
