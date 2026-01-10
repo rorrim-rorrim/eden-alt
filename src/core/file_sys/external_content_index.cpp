@@ -158,12 +158,10 @@ void ExternalContentIndexer::ParseContainerNSP(VirtualFile file, bool is_update)
             continue;
         const auto& cnmt = *cnmt_opt;
 
-        const auto base_id = BaseTitleId(title_id);
-
         if (is_update && cnmt.GetType() == TitleType::Update) {
             ParsedUpdate candidate{};
             // Register updates under their Update TID so PatchManager can find/apply them
-            candidate.title_id = FileSys::GetUpdateTitleID(base_id);
+            candidate.title_id = cnmt.GetTitleID();
             candidate.version = cnmt.GetTitleVersion();
             for (const auto& rec : cnmt.GetContentRecords()) {
                 const auto it = nca_map.find({cnmt.GetType(), rec.type});
@@ -171,7 +169,7 @@ void ExternalContentIndexer::ParseContainerNSP(VirtualFile file, bool is_update)
                     candidate.ncas[rec.type] = it->second->GetBaseFile();
                 }
             }
-            auto& vec = m_updates_by_title[base_id];
+            auto& vec = m_updates_by_title[candidate.title_id];
             vec.emplace_back(std::move(candidate));
         } else if (cnmt.GetType() == TitleType::AOC) {
             const auto dlc_title_id = cnmt.GetTitleID();
@@ -201,12 +199,10 @@ void ExternalContentIndexer::ParseLooseCnmtNca(VirtualFile meta_nca_file, const 
         return;
     const auto& cnmt = *cnmt_opt;
 
-    const auto base_id = BaseTitleId(cnmt.GetTitleID());
-
     if (is_update && cnmt.GetType() == TitleType::Update) {
         ParsedUpdate candidate{};
         // Register updates under their Update TID so PatchManager can find/apply them
-        candidate.title_id = FileSys::GetUpdateTitleID(base_id);
+        candidate.title_id = cnmt.GetTitleID();
         candidate.version = cnmt.GetTitleVersion();
 
         for (const auto& rec : cnmt.GetContentRecords()) {
@@ -218,7 +214,7 @@ void ExternalContentIndexer::ParseLooseCnmtNca(VirtualFile meta_nca_file, const 
             }
         }
 
-        auto& vec = m_updates_by_title[base_id];
+        auto& vec = m_updates_by_title[candidate.title_id];
         vec.emplace_back(std::move(candidate));
     } else if (cnmt.GetType() == TitleType::AOC) {
         const auto dlc_title_id = cnmt.GetTitleID();
@@ -259,11 +255,11 @@ bool ExternalContentIndexer::IsMeta(const NCA& nca) {
 }
 
 void ExternalContentIndexer::Commit() {
-    // Updates: register all discovered versions per base title under unique variant TIDs,
+    // Updates: register all discovered versions per update title under unique variant TIDs,
     // and additionally register the highest version under the canonical update TID for default
     // usage.
     size_t update_variants_count = 0;
-    for (auto& [base_title, vec] : m_updates_by_title) {
+    for (auto& [update_tid, vec] : m_updates_by_title) {
         if (vec.empty())
             continue;
         // sort ascending by version, dedupe identical versions (for NAND overlap, for example)
@@ -281,14 +277,14 @@ void ExternalContentIndexer::Commit() {
         for (const auto& [rtype, file] : latest.ncas) {
             if (!file)
                 continue;
-            const auto canonical_tid = FileSys::GetUpdateTitleID(base_title);
+            const auto canonical_tid = update_tid;
             m_provider.AddEntry(TitleType::Update, rtype, canonical_tid, file);
         }
 
-        // variants under update_tid + i (i starts at1 to avoid colliding with canonical)
+        // variants under update_tid | (i << 48)
         for (size_t i = 0; i < vec.size(); ++i) {
             const auto& upd = vec[i];
-            const u64 variant_tid = FileSys::GetUpdateTitleID(base_title) + static_cast<u64>(i + 1);
+            const u64 variant_tid = update_tid | (static_cast<u64>(i + 1) << 48);
             for (const auto& [rtype, file] : upd.ncas) {
                 if (!file)
                     continue;

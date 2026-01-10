@@ -150,7 +150,7 @@ std::vector<u64> EnumerateUpdateVariants(const ContentProvider& provider, u64 ba
     std::vector<u64> tids;
     const auto entries = provider.ListEntriesFilter(TitleType::Update, type);
     for (const auto& e : entries) {
-        if (GetBaseTitleID(e.title_id) == base_title_id) {
+        if ((e.title_id & 0xFF00FFFFFFFFFFFFULL) == GetUpdateTitleID(base_title_id)) {
             tids.push_back(e.title_id);
         }
     }
@@ -245,7 +245,7 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
 
     // Game Updates
     std::optional<u64> selected_update_tid;
-    if (!update_disabled) {
+    if (!update_disabled && (title_id & 0x00FF000000000800ULL) == 0) {
         selected_update_tid = ChooseUpdateVariant(content_provider, title_id,
                                                   ContentRecordType::Program, fs_controller);
         if (!selected_update_tid.has_value()) {
@@ -557,54 +557,73 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
     auto romfs = base_romfs;
 
     // Game Updates
-    std::optional<u64> selected_update_tid = ChooseUpdateVariant(content_provider, title_id, type, fs_controller);
-    if (!selected_update_tid.has_value()) {
-        selected_update_tid = GetUpdateTitleID(title_id);
+    std::optional<u64> selected_update_tid;
+    const bool is_update = (title_id & 0x00FF000000000800ULL) != 0;
+    if (!is_update) {
+        selected_update_tid = ChooseUpdateVariant(content_provider, title_id, type, fs_controller);
+        if (!selected_update_tid.has_value()) {
+            selected_update_tid = GetUpdateTitleID(title_id);
+        }
     }
-    const auto update_raw = content_provider.GetEntryRaw(*selected_update_tid, type);
+
+    const auto update_raw = selected_update_tid.has_value()
+                                ? content_provider.GetEntryRaw(*selected_update_tid, type)
+                                : nullptr;
 
     const auto& disabled = Settings::values.disabled_addons[title_id];
     const auto update_disabled =
         std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend();
 
-    if (!update_disabled && update_raw != nullptr && base_nca != nullptr) {
-        const auto new_nca = std::make_shared<NCA>(update_raw, base_nca);
-        if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
-            new_nca->GetRomFS() != nullptr) {
-            const auto version = content_provider.GetEntryVersion(*selected_update_tid).value_or(0);
-            LOG_DEBUG(Loader, " RomFS: Update ({}) applied successfully", FormatTitleVersion(version));
-            romfs = new_nca->GetRomFS();
-            }
-    } else if (!update_disabled && base_nca != nullptr) {
-        ContentRecordType alt_type = type;
+    bool applied_update = false;
 
-        if (type == ContentRecordType::Program) {
-            alt_type = ContentRecordType::Data;
-        } else if (type == ContentRecordType::Data) {
-            alt_type = ContentRecordType::Program;
+    if (!update_disabled && base_nca != nullptr && selected_update_tid.has_value()) {
+        if (update_raw != nullptr) {
+            const auto new_nca = std::make_shared<NCA>(update_raw, base_nca);
+            if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
+                new_nca->GetRomFS() != nullptr) {
+                const auto version =
+                    content_provider.GetEntryVersion(*selected_update_tid).value_or(0);
+                LOG_DEBUG(Loader, " RomFS: Update ({}) applied successfully",
+                          FormatTitleVersion(version));
+                romfs = new_nca->GetRomFS();
+                applied_update = true;
+            }
         }
 
-        if (alt_type != type) {
-            const auto alt_update_raw =
-                content_provider.GetEntryRaw(*selected_update_tid, alt_type);
-            if (alt_update_raw != nullptr) {
-                const auto new_nca = std::make_shared<NCA>(alt_update_raw, base_nca);
-                if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
-                    new_nca->GetRomFS() != nullptr) {
-                    LOG_DEBUG(Loader, "    RomFS: Update (fallback {}) applied successfully",
-                             alt_type == ContentRecordType::Data ? "DATA" : "PROGRAM");
-                    romfs = new_nca->GetRomFS();
+        if (!applied_update) {
+            ContentRecordType alt_type = type;
+            if (type == ContentRecordType::Program) {
+                alt_type = ContentRecordType::Data;
+            } else if (type == ContentRecordType::Data) {
+                alt_type = ContentRecordType::Program;
+            }
+
+            if (alt_type != type) {
+                const auto alt_update_raw =
+                    content_provider.GetEntryRaw(*selected_update_tid, alt_type);
+                if (alt_update_raw != nullptr) {
+                    const auto new_nca = std::make_shared<NCA>(alt_update_raw, base_nca);
+                    if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
+                        new_nca->GetRomFS() != nullptr) {
+                        LOG_DEBUG(Loader, "    RomFS: Update (fallback {}) applied successfully",
+                                  alt_type == ContentRecordType::Data ? "DATA" : "PROGRAM");
+                        romfs = new_nca->GetRomFS();
+                        applied_update = true;
                     } else {
                         LOG_WARNING(Loader, "    RomFS: Update (fallback) NCA is not valid");
                     }
+                }
             }
         }
-    } else if (!update_disabled && packed_update_raw != nullptr && base_nca != nullptr) {
+    }
+
+    if (!applied_update && !update_disabled && packed_update_raw != nullptr && base_nca != nullptr) {
         const auto new_nca = std::make_shared<NCA>(packed_update_raw, base_nca);
         if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
             new_nca->GetRomFS() != nullptr) {
             LOG_INFO(Loader, "    RomFS: Update (PACKED) applied successfully");
             romfs = new_nca->GetRomFS();
+            applied_update = true;
         }
     }
 
@@ -617,7 +636,7 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
 }
 
 std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
-    if (title_id == 0) {
+    if (title_id == 0 || (title_id & 0x00FF000000000800ULL) != 0) {
         return {};
     }
 
@@ -788,7 +807,7 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
     dlc_match.reserve(dlc_entries.size());
     std::copy_if(dlc_entries.begin(), dlc_entries.end(), std::back_inserter(dlc_match),
                  [this](const ContentProviderEntry& entry) {
-                     return GetBaseTitleID(entry.title_id) == title_id &&
+                     return GetBaseTitleID(entry.title_id) == GetBaseTitleID(title_id) &&
                             content_provider.GetEntry(entry)->GetStatus() ==
                                 Loader::ResultStatus::Success;
                  });
