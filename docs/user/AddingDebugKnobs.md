@@ -48,13 +48,13 @@ bool feature_enabled = Settings::getDebugKnobAt(0);
 bool another_feature = Settings::getDebugKnobAt(15);
 ```
 
-```kotlin
+```kts
 //kotlin side
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 
 // Check if bit x is set
 bool feature_enabled = Settings.getDebugKnobAt(x); //x as integer from 0 to 15
-``
+```
 
 The function returns `true` if the specified bit (0-15) is set in the `debug_knobs` value, `false` otherwise.
 
