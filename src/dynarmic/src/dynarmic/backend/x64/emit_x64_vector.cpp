@@ -598,29 +598,21 @@ void EmitX64::EmitVectorArithmeticVShift8(EmitContext& ctx, IR::Inst* inst) {
 void EmitX64::EmitVectorArithmeticVShift16(EmitContext& ctx, IR::Inst* inst) {
     if (code.HasHostFeature(HostFeature::AVX512_Ortho | HostFeature::AVX512BW)) {
         auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-
-        const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(code, args[0]);
-        const Xbyak::Xmm left_shift = ctx.reg_alloc.UseScratchXmm(code, args[1]);
-        const Xbyak::Xmm right_shift = ctx.reg_alloc.ScratchXmm(code);
-        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm(code);
-
+        auto const result = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        auto const left_shift = ctx.reg_alloc.UseScratchXmm(code, args[1]);
+        auto const right_shift = ctx.reg_alloc.ScratchXmm(code);
+        auto const tmp = ctx.reg_alloc.ScratchXmm(code);
         code.vmovdqa32(tmp, code.Const(xword, 0x00FF00FF00FF00FF, 0x00FF00FF00FF00FF));
         code.vpxord(right_shift, right_shift, right_shift);
         code.vpsubw(right_shift, right_shift, left_shift);
-
         code.vpsllw(xmm0, left_shift, 8);
         code.vpsraw(xmm0, xmm0, 15);
-
-        const Xbyak::Opmask mask = k1;
-        code.vpmovb2m(mask, xmm0);
-
+        code.vpmovb2m(k1, xmm0);
         code.vpandd(right_shift, right_shift, tmp);
         code.vpandd(left_shift, left_shift, tmp);
-
         code.vpsravw(tmp, result, right_shift);
         code.vpsllvw(result, result, left_shift);
-        code.vpblendmb(result | mask, result, tmp);
-
+        code.vpblendmb(result | k1, result, tmp);
         ctx.reg_alloc.DefineValue(code, inst, result);
     } else {
         EmitTwoArgumentFallback(code, ctx, inst, [](VectorArray<s16>& result, const VectorArray<s16>& a, const VectorArray<s16>& b) {
@@ -632,49 +624,18 @@ void EmitX64::EmitVectorArithmeticVShift16(EmitContext& ctx, IR::Inst* inst) {
 void EmitX64::EmitVectorArithmeticVShift32(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     if (code.HasHostFeature(HostFeature::AVX2)) {
-        // auto const tmp0 = ctx.reg_alloc.UseScratchXmm(code, args[0]);
-        // auto const tmp1 = ctx.reg_alloc.UseScratchXmm(code, args[1]);
-        // auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
-        // auto const tmp3 = ctx.reg_alloc.ScratchXmm(code);
-        // auto const result = ctx.reg_alloc.ScratchXmm(code);
-        // code.vpabsd(tmp3, tmp1);
-        // code.vpsllvd(tmp2, tmp0, tmp1);
-        // code.vpsravd(tmp0, tmp0, tmp3);
-        // code.blendvps(result, tmp0, tmp2, tmp1);
-        // ctx.reg_alloc.DefineValue(code, inst, result);
-        auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-        auto const a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
-        auto const b = ctx.reg_alloc.UseScratchXmm(code, args[1]);
-        auto const result = ctx.reg_alloc.ScratchXmm(code);
-        // store sign bit of lowest byte of each element of b to select left/right shift later
-        code.vpslld(xmm0, b, 24);
-        // sse/avx shifts are only positive, with dedicated left/right forms - shift by lowest byte of abs(b)
-        code.vpabsb(b, b);
-        code.vpand(b, b, code.BConst<32>(xword, 0xFF));
-        // calculate shifts
-        code.vpsllvd(result, a, b);
-        code.vpsravd(a, a, b);
-        code.blendvps(result, a);  // implicit argument: xmm0 (sign of lowest byte of b)
-        ctx.reg_alloc.DefineValue(code, inst, result);
+        auto const tmp0 = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        auto const tmp1 = ctx.reg_alloc.UseScratchXmm(code, args[1]);
+        auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
+        auto const tmp3 = ctx.reg_alloc.ScratchXmm(code);
+        code.vpabsb(tmp2, tmp1);
+        code.vpslld(tmp1, tmp1, 24);
+        code.vpand(tmp2, tmp2, code.Const(xword, 0x000000FF000000FF, 0x000000FF000000FF));
+        code.vpsravd(tmp3, tmp0, tmp2);
+        code.vpsllvd(tmp0, tmp0, tmp2);
+        code.vblendvps(tmp0, tmp0, tmp3, tmp1);
+        ctx.reg_alloc.DefineValue(code, inst, tmp0);
     } else {
-        /*
-        template<typename T = s32>
-        ve::vector vshift(ve::vector x, ve::vector y) {
-            auto const bit_size_scalar = sizeof(T) * 8;
-            auto const shift_amount = (y << (bit_size_scalar - 8)) >> (bit_size_scalar - 8);
-            auto const bit_size = ve::vector::broadcast(bit_size_scalar);
-
-            using unsigned_type = std::make_unsigned_t<T>;
-            auto const m0 = shift_amount <= -bit_size;
-            auto const m1 = shift_amount > -bit_size
-                && shift_amount < bit_size && shift_amount < ve::vector::zeros();
-            auto const m2 = shift_amount > -bit_size
-                && shift_amount < bit_size && shift_amount >= ve::vector::zeros();
-            return ve::select(m0, x >> (bit_size_scalar - 1),
-                ve::select(m1, x >> -shift_amount,
-                ve::select(m2, x << shift_amount, ve::vector::zeros())));
-        }
-        */
         auto const tmp0 = ctx.reg_alloc.UseScratchXmm(code, args[0]);
         auto const tmp1 = ctx.reg_alloc.UseScratchXmm(code, args[1]);
         auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
@@ -682,126 +643,115 @@ void EmitX64::EmitVectorArithmeticVShift32(EmitContext& ctx, IR::Inst* inst) {
         auto const tmp4 = ctx.reg_alloc.ScratchXmm(code);
         auto const tmp5 = ctx.reg_alloc.ScratchXmm(code);
         auto const tmp6 = ctx.reg_alloc.ScratchXmm(code);
-        code.pxor(tmp2, tmp2);
-        code.movdqa(tmp4, tmp1);
-        code.movdqa(tmp3, tmp1);
-        code.movdqa(tmp5, tmp0);
-        code.pshufd(tmp6, tmp0, 245);
-        code.pcmpgtd(tmp2, tmp1);
-        code.pslld(tmp1, 23);
-        code.psrad(tmp4, 31);
-        code.paddd(tmp1, code.Const(xword, 0x3F8000003F800000, 0x3F8000003F800000));
-        code.pxor(tmp3, tmp4);
-        code.psubd(tmp3, tmp4);
-        code.movdqa(tmp4, tmp0);
-        code.cvttps2dq(tmp1, tmp1);
-        code.pmuludq(tmp5, tmp1);
-        code.pshufd(tmp1, tmp1, 245);
-        code.pmuludq(tmp1, tmp6);
-        code.pshufd(tmp5, tmp5, 232);
-        code.movdqa(tmp6, tmp0);
-        code.pshufd(tmp1, tmp1, 232);
-        code.punpckldq(tmp5, tmp1);
-        code.pshuflw(tmp1, tmp3, 254);
-        code.psrad(tmp4, tmp1);
-        code.pshuflw(tmp1, tmp3, 84);
-        code.pand(tmp5, tmp2);
-        code.psrad(tmp6, tmp1);
-        code.pshufd(tmp1, tmp3, 238);
-        code.punpcklqdq(tmp6, tmp4);
-        code.pshuflw(tmp3, tmp1, 254);
-        code.movdqa(tmp4, tmp0);
-        code.pshuflw(tmp1, tmp1, 84);
-        code.psrad(tmp4, tmp3);
-        code.psrad(tmp0, tmp1);
-        code.punpckhqdq(tmp0, tmp4);
-        code.shufps(tmp6, tmp0, 204);
-        code.pandn(tmp2, tmp6);
-        code.por(tmp2, tmp5);
-        ctx.reg_alloc.DefineValue(code, inst, tmp2);
+        code.pxor(tmp3, tmp3);
+        code.movdqa(tmp2, tmp0);
+        code.psubb(tmp3, tmp1);
+        code.movdqa(tmp4, tmp2);
+        code.movdqa(tmp6, tmp2);
+        code.pminub(tmp3, tmp1);
+        code.pslld(tmp1, 24);
+        code.pand(tmp3, code.Const(xword, 0x000000FF000000FF, 0x000000FF000000FF));
+        code.psrad(tmp1, 31);
+        code.pshuflw(tmp0, tmp3, 254);
+        code.pshuflw(tmp5, tmp3, 84);
+        code.psrad(tmp4, tmp0);
+        code.movdqa(tmp0, tmp2);
+        code.psrad(tmp0, tmp5);
+        code.punpcklqdq(tmp0, tmp4);
+        code.pshufd(tmp4, tmp3, 238);
+        code.pslld(tmp3, 23);
+        code.paddd(tmp3, code.Const(xword, 0x3F800000'3F800000, 0x3F800000'3F800000));
+        code.pshuflw(tmp5, tmp4, 254);
+        code.pshuflw(tmp4, tmp4, 84);
+        code.psrad(tmp6, tmp5);
+        code.movdqa(tmp5, tmp2);
+        code.psrad(tmp5, tmp4);
+        code.pshufd(tmp4, tmp2, 245);
+        code.punpckhqdq(tmp5, tmp6);
+        code.cvttps2dq(tmp3, tmp3);
+        code.shufps(tmp0, tmp5, 204);
+        code.pmuludq(tmp2, tmp3);
+        code.pshufd(tmp3, tmp3, 245);
+        code.andps(tmp0, tmp1);
+        code.pmuludq(tmp3, tmp4);
+        code.pshufd(tmp2, tmp2, 232);
+        code.pshufd(tmp3, tmp3, 232);
+        code.punpckldq(tmp2, tmp3);
+        code.pandn(tmp1, tmp2);
+        code.orps(tmp0, tmp1);
+        ctx.reg_alloc.DefineValue(code, inst, tmp0);
     }
 }
 
 void EmitX64::EmitVectorArithmeticVShift64(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     if (code.HasHostFeature(HostFeature::AVX512_Ortho)) {
-        const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(code, args[0]);
-        const Xbyak::Xmm left_shift = ctx.reg_alloc.UseScratchXmm(code, args[1]);
-        const Xbyak::Xmm right_shift = ctx.reg_alloc.ScratchXmm(code);
-        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm(code);
-
+        auto const result = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        auto const left_shift = ctx.reg_alloc.UseScratchXmm(code, args[1]);
+        auto const right_shift = ctx.reg_alloc.ScratchXmm(code);
+        auto const tmp = ctx.reg_alloc.ScratchXmm(code);
         code.vmovdqa32(tmp, code.Const(xword, 0x00000000000000FF, 0x00000000000000FF));
         code.vpxorq(right_shift, right_shift, right_shift);
         code.vpsubq(right_shift, right_shift, left_shift);
-
         code.vpsllq(xmm0, left_shift, 56);
         code.vpmovq2m(k1, xmm0);
-
         code.vpandq(right_shift, right_shift, tmp);
         code.vpandq(left_shift, left_shift, tmp);
-
         code.vpsravq(tmp, result, right_shift);
         code.vpsllvq(result, result, left_shift);
         code.vpblendmq(result | k1, result, tmp);
-
         ctx.reg_alloc.DefineValue(code, inst, result);
     } else if (code.HasHostFeature(HostFeature::AVX2)) {
-        const Xbyak::Xmm a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
-        const Xbyak::Xmm b = ctx.reg_alloc.UseScratchXmm(code, args[1]);
-        const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
-        const Xbyak::Xmm negative_mask = ctx.reg_alloc.ScratchXmm(code);
-
-        // negative_mask = a < 0 ? 1s : 0s
-        code.vpxor(xmm0, xmm0, xmm0);
-        code.vpcmpgtq(negative_mask, xmm0, a);
-
-        // store sign bit of lowest byte of each element of b to select left/right shift later
-        code.vpsllq(xmm0, b, 56);
-
-        // sse/avx shifts are only positive, with dedicated left/right forms - shift by lowest byte of abs(b)
-        code.vpabsb(b, b);
-        code.vpand(b, b, code.BConst<64>(xword, 0xFF));
-
-        // calculate shifts
-        code.vpsllvq(result, a, b);
-
-        // implement variable arithmetic shift in terms of logical shift
-        // if a is negative, invert it, shift in leading 0s, then invert it again - noop if positive
-        code.vpxor(a, a, negative_mask);
-        code.vpsrlvq(a, a, b);
-        code.vpxor(a, a, negative_mask);
-
-        code.blendvpd(result, a);  // implicit argument: xmm0 (sign of lowest byte of b)
-
-        ctx.reg_alloc.DefineValue(code, inst, result);
+        auto const tmp0 = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        auto const tmp1 = ctx.reg_alloc.UseScratchXmm(code, args[1]);
+        auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
+        auto const tmp3 = ctx.reg_alloc.ScratchXmm(code);
+        auto const tmp4 = ctx.reg_alloc.ScratchXmm(code);
+        code.vpabsb(tmp2, tmp1);
+        code.vpxor(tmp3, tmp3, tmp3);
+        code.vpsllq(tmp1, tmp1, 56);
+        code.vpand(tmp2, tmp2, code.Const(xword, 255, 255));
+        code.vpcmpgtq(tmp3, tmp3, tmp0);
+        code.vpsllvq(tmp4, tmp0, tmp2);
+        code.vpxor(tmp0, tmp3, tmp0);
+        code.vpsrlvq(tmp0, tmp0, tmp2);
+        code.vpxor(tmp0, tmp0, tmp3);
+        code.vblendvpd(tmp0, tmp4, tmp0, tmp1);
+        ctx.reg_alloc.DefineValue(code, inst, tmp0);
     } else {
         auto const tmp0 = ctx.reg_alloc.UseScratchXmm(code, args[0]);
         auto const tmp1 = ctx.reg_alloc.UseScratchXmm(code, args[1]);
         auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
-        auto const tmp_ax = ctx.reg_alloc.ScratchGpr(code);
-        auto const tmp_cx = ctx.reg_alloc.ScratchGpr(code);
-        auto const tmp_dx = ctx.reg_alloc.ScratchGpr(code);
-        auto const tmp_si = ctx.reg_alloc.ScratchGpr(code);
-        auto const tmp_di = ctx.reg_alloc.ScratchGpr(code);
-        code.movq(tmp_ax, tmp0);
-        code.movq(tmp_cx, tmp1);
-        code.pshufd(tmp0, tmp1, 238);
-        code.mov(tmp_si, tmp_ax);
-        code.sar(tmp_ax, tmp_cx.cvt8());
-        code.movq(tmp_dx, tmp0);
-        code.shl(tmp_si, tmp_cx.cvt8());
-        code.test(tmp_cx, tmp_cx);
-        code.mov(tmp_di, tmp_ax);
-        code.cmovg(tmp_di, tmp_si);
-        code.test(tmp_dx, tmp_dx);
-        code.cmovg(tmp_ax, tmp_si);
-        code.movq(tmp0, tmp_di);
-        code.mov(tmp_dx.cvt32(), tmp_ax.cvt32());
-        code.shr(tmp_ax, 32);
-        code.movd(tmp1, tmp_dx.cvt32());
-        code.movd(tmp2, tmp_ax.cvt32());
-        code.punpcklqdq(tmp2, tmp1);
-        code.shufps(tmp0, tmp2, 36);
+        auto const tmp3 = ctx.reg_alloc.ScratchXmm(code);
+        auto const tmp4 = ctx.reg_alloc.ScratchXmm(code);
+        auto const tmp5 = ctx.reg_alloc.ScratchXmm(code);
+        auto const tmp6 = ctx.reg_alloc.ScratchXmm(code);
+        auto const tmp7 = ctx.reg_alloc.ScratchXmm(code);
+        code.pxor(tmp3, tmp3);
+        code.pshufd(tmp4, tmp0, 245);
+        code.movdqa(tmp5, tmp0);
+        code.psubb(tmp3, tmp1);
+        code.psrad(tmp4, 31);
+        code.pminub(tmp3, tmp1);
+        code.movdqa(tmp2, tmp4);
+        code.psllq(tmp1, 56);
+        code.pand(tmp3, code.Const(xword, 255, 255));
+        code.pxor(tmp2, tmp0);
+        code.pshufd(tmp1, tmp1, 245);
+        code.movdqa(tmp7, tmp2);
+        code.psrad(tmp1, 31);
+        code.pshufd(tmp6, tmp3, 238);
+        code.psrlq(tmp7, tmp3);
+        code.psllq(tmp5, tmp3);
+        code.psrlq(tmp2, tmp6);
+        code.psllq(tmp0, tmp6);
+        code.movsd(tmp2, tmp7);
+        code.movsd(tmp0, tmp5);
+        code.xorpd(tmp2, tmp4);
+        code.andpd(tmp2, tmp1);
+        code.andnpd(tmp1, tmp0);
+        code.orpd(tmp2, tmp1);
+        code.movapd(tmp0, tmp2);
         ctx.reg_alloc.DefineValue(code, inst, tmp0);
     }
 }
@@ -1039,13 +989,10 @@ static void EmitVectorCountLeadingZeros(VectorArray<T>& result, const VectorArra
 void EmitX64::EmitVectorCountLeadingZeros8(EmitContext& ctx, IR::Inst* inst) {
     if (code.HasHostFeature(HostFeature::GFNI)) {
         auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-
-        const Xbyak::Xmm data = ctx.reg_alloc.UseScratchXmm(code, args[0]);
-        const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
-
+        auto const data = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        auto const result = ctx.reg_alloc.ScratchXmm(code);
         // Reverse bits:
         code.gf2p8affineqb(data, code.BConst<64>(xword, 0x8040201008040201), 0);
-
         // Perform a tzcnt:
         // Isolate lowest set bit
         code.pcmpeqb(result, result);
@@ -1053,29 +1000,22 @@ void EmitX64::EmitVectorCountLeadingZeros8(EmitContext& ctx, IR::Inst* inst) {
         code.pandn(result, data);
         // Convert lowest set bit into an index
         code.gf2p8affineqb(result, code.BConst<64>(xword, 0xaaccf0ff'00000000), 8);
-
         ctx.reg_alloc.DefineValue(code, inst, result);
     } else if (code.HasHostFeature(HostFeature::SSSE3)) {
         auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-
-        const Xbyak::Xmm data = ctx.reg_alloc.UseScratchXmm(code, args[0]);
-        const Xbyak::Xmm tmp1 = ctx.reg_alloc.ScratchXmm(code);
-        const Xbyak::Xmm tmp2 = ctx.reg_alloc.ScratchXmm(code);
-
+        auto const data = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        auto const tmp1 = ctx.reg_alloc.ScratchXmm(code);
+        auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
         code.movdqa(tmp1, code.Const(xword, 0x0101010102020304, 0x0000000000000000));
         code.movdqa(tmp2, tmp1);
-
         code.pshufb(tmp2, data);
         code.psrlw(data, 4);
         code.pand(data, code.Const(xword, 0x0F0F0F0F0F0F0F0F, 0x0F0F0F0F0F0F0F0F));
         code.pshufb(tmp1, data);
-
         code.movdqa(data, code.Const(xword, 0x0404040404040404, 0x0404040404040404));
-
         code.pcmpeqb(data, tmp1);
         code.pand(data, tmp2);
         code.paddb(data, tmp1);
-
         ctx.reg_alloc.DefineValue(code, inst, data);
     } else {
         EmitOneArgumentFallback(code, ctx, inst, EmitVectorCountLeadingZeros<u8>);
@@ -1085,12 +1025,10 @@ void EmitX64::EmitVectorCountLeadingZeros8(EmitContext& ctx, IR::Inst* inst) {
 void EmitX64::EmitVectorCountLeadingZeros16(EmitContext& ctx, IR::Inst* inst) {
     if (code.HasHostFeature(HostFeature::AVX)) {
         auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-
-        const Xbyak::Xmm data = ctx.reg_alloc.UseScratchXmm(code, args[0]);
-        const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
-        const Xbyak::Xmm zeros = ctx.reg_alloc.ScratchXmm(code);
-        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm(code);
-
+        auto const data = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        auto const result = ctx.reg_alloc.ScratchXmm(code);
+        auto const zeros = ctx.reg_alloc.ScratchXmm(code);
+        auto const tmp = ctx.reg_alloc.ScratchXmm(code);
         code.vpsrlw(tmp, data, 1);
         code.vpor(data, data, tmp);
         code.vpsrlw(tmp, data, 2);
@@ -1110,16 +1048,13 @@ void EmitX64::EmitVectorCountLeadingZeros16(EmitContext& ctx, IR::Inst* inst) {
         code.vpor(tmp, tmp, zeros);
         code.vpor(data, data, tmp);
         code.vpshufb(result, result, data);
-
         ctx.reg_alloc.DefineValue(code, inst, result);
     } else if (code.HasHostFeature(HostFeature::SSSE3)) {
         auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-
-        const Xbyak::Xmm data = ctx.reg_alloc.UseScratchXmm(code, args[0]);
-        const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
-        const Xbyak::Xmm zeros = ctx.reg_alloc.ScratchXmm(code);
-        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm(code);
-
+        auto const data = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        auto const result = ctx.reg_alloc.ScratchXmm(code);
+        auto const zeros = ctx.reg_alloc.ScratchXmm(code);
+        auto const tmp = ctx.reg_alloc.ScratchXmm(code);
         code.movdqa(tmp, data);
         code.psrlw(tmp, 1);
         code.por(data, tmp);
@@ -5320,10 +5255,7 @@ void EmitX64::EmitVectorTableLookup128(EmitContext& ctx, IR::Inst* inst) {
             code.vmovdqu8(defaults | k2, indicies);
             ctx.reg_alloc.DefineValue(code, inst, defaults);
         }
-        return;
-    }
-
-    if (code.HasHostFeature(HostFeature::AVX512_Ortho | HostFeature::AVX512BW | HostFeature::AVX512VBMI) && table_size == 3) {
+    } else if (code.HasHostFeature(HostFeature::AVX512_Ortho | HostFeature::AVX512BW | HostFeature::AVX512VBMI) && table_size == 3) {
         const Xbyak::Xmm indicies = ctx.reg_alloc.UseScratchXmm(code, args[2]);
 
         code.vpcmpub(k1, indicies, code.BConst<8>(xword, 2 * 16), CmpInt::LessThan);
@@ -5352,10 +5284,7 @@ void EmitX64::EmitVectorTableLookup128(EmitContext& ctx, IR::Inst* inst) {
             code.vmovdqu8(defaults | k2, indicies);
             ctx.reg_alloc.DefineValue(code, inst, defaults);
         }
-        return;
-    }
-
-    if (code.HasHostFeature(HostFeature::AVX512_Ortho | HostFeature::AVX512BW | HostFeature::AVX512VBMI) && table_size == 2) {
+    } else if (code.HasHostFeature(HostFeature::AVX512_Ortho | HostFeature::AVX512BW | HostFeature::AVX512VBMI) && table_size == 2) {
         const Xbyak::Xmm indicies = ctx.reg_alloc.UseScratchXmm(code, args[2]);
         const Xbyak::Xmm xmm_table0 = ctx.reg_alloc.UseXmm(code, table[0]);
         const Xbyak::Xmm xmm_table1 = ctx.reg_alloc.UseXmm(code, table[1]);
@@ -5371,15 +5300,10 @@ void EmitX64::EmitVectorTableLookup128(EmitContext& ctx, IR::Inst* inst) {
             code.vmovdqu8(result | k1, indicies);
             ctx.reg_alloc.DefineValue(code, inst, result);
         }
-        return;
-    }
-
-    if (code.HasHostFeature(HostFeature::AVX512_Ortho | HostFeature::AVX512BW | HostFeature::AVX512VBMI) && table_size == 1) {
+    } else if (code.HasHostFeature(HostFeature::AVX512_Ortho | HostFeature::AVX512BW | HostFeature::AVX512VBMI) && table_size == 1) {
         const Xbyak::Xmm indicies = ctx.reg_alloc.UseXmm(code, args[2]);
         const Xbyak::Xmm xmm_table0 = ctx.reg_alloc.UseXmm(code, table[0]);
-
         code.vpcmpub(k1, indicies, code.BConst<8>(xword, 1 * 16), CmpInt::LessThan);
-
         if (is_defaults_zero) {
             const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
             code.vpermb(result | k1 | T_z, indicies, xmm_table0);
@@ -5389,10 +5313,7 @@ void EmitX64::EmitVectorTableLookup128(EmitContext& ctx, IR::Inst* inst) {
             code.vpermb(result | k1, indicies, xmm_table0);
             ctx.reg_alloc.DefineValue(code, inst, result);
         }
-        return;
-    }
-
-    if (code.HasHostFeature(HostFeature::SSSE3) && is_defaults_zero && table_size == 1) {
+    } else if (code.HasHostFeature(HostFeature::SSSE3) && is_defaults_zero && table_size == 1) {
         const Xbyak::Xmm indicies = ctx.reg_alloc.UseScratchXmm(code, args[2]);
         const Xbyak::Xmm xmm_table0 = ctx.reg_alloc.UseScratchXmm(code, table[0]);
 
@@ -5400,10 +5321,7 @@ void EmitX64::EmitVectorTableLookup128(EmitContext& ctx, IR::Inst* inst) {
         code.pshufb(xmm_table0, indicies);
 
         ctx.reg_alloc.DefineValue(code, inst, xmm_table0);
-        return;
-    }
-
-    if (code.HasHostFeature(HostFeature::SSE41) && table_size == 1) {
+    } else if (code.HasHostFeature(HostFeature::SSE41) && table_size == 1) {
         const Xbyak::Xmm indicies = ctx.reg_alloc.UseXmm(code, args[2]);
         const Xbyak::Xmm defaults = ctx.reg_alloc.UseXmm(code, args[0]);
         const Xbyak::Xmm xmm_table0 = ctx.reg_alloc.UseScratchXmm(code, table[0]);
@@ -5418,10 +5336,7 @@ void EmitX64::EmitVectorTableLookup128(EmitContext& ctx, IR::Inst* inst) {
         code.pblendvb(xmm_table0, defaults);
 
         ctx.reg_alloc.DefineValue(code, inst, xmm_table0);
-        return;
-    }
-
-    if (code.HasHostFeature(HostFeature::SSE41) && is_defaults_zero && table_size == 2) {
+    } else if (code.HasHostFeature(HostFeature::SSE41) && is_defaults_zero && table_size == 2) {
         const Xbyak::Xmm indicies = ctx.reg_alloc.UseScratchXmm(code, args[2]);
         const Xbyak::Xmm xmm_table0 = ctx.reg_alloc.UseScratchXmm(code, table[0]);
         const Xbyak::Xmm xmm_table1 = ctx.reg_alloc.UseScratchXmm(code, table[1]);
@@ -5439,9 +5354,7 @@ void EmitX64::EmitVectorTableLookup128(EmitContext& ctx, IR::Inst* inst) {
 
         ctx.reg_alloc.DefineValue(code, inst, xmm_table0);
         return;
-    }
-
-    if (code.HasHostFeature(HostFeature::AVX512_Ortho | HostFeature::AVX512BW)) {
+    } else if (code.HasHostFeature(HostFeature::AVX512_Ortho | HostFeature::AVX512BW)) {
         const Xbyak::Xmm indicies = ctx.reg_alloc.UseXmm(code, args[2]);
         const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(code, args[0]);
         const Xbyak::Xmm masked = ctx.reg_alloc.ScratchXmm(code);
@@ -5465,10 +5378,7 @@ void EmitX64::EmitVectorTableLookup128(EmitContext& ctx, IR::Inst* inst) {
         }
 
         ctx.reg_alloc.DefineValue(code, inst, result);
-        return;
-    }
-
-    if (code.HasHostFeature(HostFeature::SSE41)) {
+    } else if (code.HasHostFeature(HostFeature::SSE41)) {
         const Xbyak::Xmm indicies = ctx.reg_alloc.UseXmm(code, args[2]);
         const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(code, args[0]);
         const Xbyak::Xmm masked = ctx.reg_alloc.ScratchXmm(code);
@@ -5497,31 +5407,26 @@ void EmitX64::EmitVectorTableLookup128(EmitContext& ctx, IR::Inst* inst) {
         }
 
         ctx.reg_alloc.DefineValue(code, inst, result);
-        return;
-    }
-
-    const u32 stack_space = static_cast<u32>((table_size + 2) * 16);
-    ctx.reg_alloc.AllocStackSpace(code, stack_space + ABI_SHADOW_SPACE);
-    for (size_t i = 0; i < table_size; ++i) {
-        const Xbyak::Xmm table_value = ctx.reg_alloc.UseXmm(code, table[i]);
-        code.movaps(xword[rsp + ABI_SHADOW_SPACE + i * 16], table_value);
-        ctx.reg_alloc.Release(table_value);
-    }
-    const Xbyak::Xmm defaults = ctx.reg_alloc.UseXmm(code, args[0]);
-    const Xbyak::Xmm indicies = ctx.reg_alloc.UseXmm(code, args[2]);
-    const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
-    ctx.reg_alloc.EndOfAllocScope();
-    ctx.reg_alloc.HostCall(code, nullptr);
-
-    code.lea(code.ABI_PARAM1, ptr[rsp + ABI_SHADOW_SPACE]);
-    code.lea(code.ABI_PARAM2, ptr[rsp + ABI_SHADOW_SPACE + (table_size + 0) * 16]);
-    code.lea(code.ABI_PARAM3, ptr[rsp + ABI_SHADOW_SPACE + (table_size + 1) * 16]);
-    code.mov(code.ABI_PARAM4.cvt32(), table_size);
-    code.movaps(xword[code.ABI_PARAM2], defaults);
-    code.movaps(xword[code.ABI_PARAM3], indicies);
-
-    code.CallLambda(
-        [](const VectorArray<u8>* table, VectorArray<u8>& result, const VectorArray<u8>& indicies, size_t table_size) {
+    } else {
+        const u32 stack_space = static_cast<u32>((table_size + 2) * 16);
+        ctx.reg_alloc.AllocStackSpace(code, stack_space + ABI_SHADOW_SPACE);
+        for (size_t i = 0; i < table_size; ++i) {
+            const Xbyak::Xmm table_value = ctx.reg_alloc.UseXmm(code, table[i]);
+            code.movaps(xword[rsp + ABI_SHADOW_SPACE + i * 16], table_value);
+            ctx.reg_alloc.Release(table_value);
+        }
+        const Xbyak::Xmm defaults = ctx.reg_alloc.UseXmm(code, args[0]);
+        const Xbyak::Xmm indicies = ctx.reg_alloc.UseXmm(code, args[2]);
+        const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
+        ctx.reg_alloc.EndOfAllocScope();
+        ctx.reg_alloc.HostCall(code, nullptr);
+        code.lea(code.ABI_PARAM1, ptr[rsp + ABI_SHADOW_SPACE]);
+        code.lea(code.ABI_PARAM2, ptr[rsp + ABI_SHADOW_SPACE + (table_size + 0) * 16]);
+        code.lea(code.ABI_PARAM3, ptr[rsp + ABI_SHADOW_SPACE + (table_size + 1) * 16]);
+        code.mov(code.ABI_PARAM4.cvt32(), table_size);
+        code.movaps(xword[code.ABI_PARAM2], defaults);
+        code.movaps(xword[code.ABI_PARAM3], indicies);
+        code.CallLambda([](const VectorArray<u8>* table, VectorArray<u8>& result, const VectorArray<u8>& indicies, size_t table_size) {
             for (size_t i = 0; i < result.size(); ++i) {
                 const size_t index = indicies[i] / table[0].size();
                 const size_t elem = indicies[i] % table[0].size();
@@ -5530,11 +5435,10 @@ void EmitX64::EmitVectorTableLookup128(EmitContext& ctx, IR::Inst* inst) {
                 }
             }
         });
-
-    code.movaps(result, xword[rsp + ABI_SHADOW_SPACE + (table_size + 0) * 16]);
-    ctx.reg_alloc.ReleaseStackSpace(code, stack_space + ABI_SHADOW_SPACE);
-
-    ctx.reg_alloc.DefineValue(code, inst, result);
+        code.movaps(result, xword[rsp + ABI_SHADOW_SPACE + (table_size + 0) * 16]);
+        ctx.reg_alloc.ReleaseStackSpace(code, stack_space + ABI_SHADOW_SPACE);
+        ctx.reg_alloc.DefineValue(code, inst, result);
+    }
 }
 
 void EmitX64::EmitVectorTranspose8(EmitContext& ctx, IR::Inst* inst) {
