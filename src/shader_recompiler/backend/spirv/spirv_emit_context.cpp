@@ -906,6 +906,9 @@ void EmitContext::DefineWriteStorageCasLoopFunction(const Info& info) {
     const Id continue_label{OpLabel()};
     const Id endloop_label{OpLabel()};
     const Id beginloop_label{OpLabel()};
+    const Id max_iterations{Const(16u)};
+    const Id iteration_counter{OpVariable(TypePointer(spv::StorageClass::Function, U32[1]),
+                                          spv::StorageClass::Function, u32_zero_value)};
     OpBranch(beginloop_label);
 
     AddLabel(beginloop_label);
@@ -913,11 +916,20 @@ void EmitContext::DefineWriteStorageCasLoopFunction(const Info& info) {
     OpBranch(body_label);
 
     AddLabel(body_label);
+        const Id current_iteration{OpLoad(U32[1], iteration_counter)};
+        const Id iteration_exceeded{OpUGreaterThanEqual(U1, current_iteration, max_iterations)};
+        const Id bailout_label{OpLabel()};
+        OpSelectionMerge(bailout_label, spv::SelectionControlMask::MaskNone);
+        OpBranchConditional(iteration_exceeded, bailout_label, bailout_label);
+        AddLabel(bailout_label);
+
     const Id expected_value{OpLoad(U32[1], pointer)};
     const Id desired_value{OpBitFieldInsert(U32[1], expected_value, value, bit_offset, bit_count)};
     const Id actual_value{OpAtomicCompareExchange(U32[1], pointer, scope_device, ordering_relaxed,
                                                   ordering_relaxed, desired_value, expected_value)};
     const Id store_successful{OpIEqual(U1, expected_value, actual_value)};
+    const Id next_iteration{OpIAdd(U32[1], current_iteration, Const(1u))};
+    OpStore(iteration_counter, next_iteration);
     OpBranchConditional(store_successful, endloop_label, continue_label);
 
     AddLabel(endloop_label);
