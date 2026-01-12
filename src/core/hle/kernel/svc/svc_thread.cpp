@@ -33,13 +33,21 @@ Result CreateThread(Core::System& system, Handle* out_handle, u64 entry_point, u
     // Adjust core id, if it's the default magic.
     auto& kernel = system.Kernel();
     auto& process = GetCurrentProcess(kernel);
+    const u64 process_core_mask = process.GetCoreMask();
+
     if (core_id == IdealCoreUseProcessValue) {
         core_id = process.GetIdealCoreId();
+        // Avoid creating a unscheduled thread, if the process ideal core is invalid/disallowed. (on test it was -2)
+        if (!IsValidVirtualCoreId(core_id) || (((1ULL << static_cast<u32>(core_id)) & process_core_mask) == 0)) {
+            if (process_core_mask != 0) {
+                core_id = static_cast<s32>(std::countr_zero(process_core_mask));
+            }
+        }
     }
 
     // Validate arguments.
     R_UNLESS(IsValidVirtualCoreId(core_id), ResultInvalidCoreId);
-    R_UNLESS(((1ull << core_id) & process.GetCoreMask()) != 0, ResultInvalidCoreId);
+    R_UNLESS(((1ull << core_id) & process_core_mask) != 0, ResultInvalidCoreId);
 
     R_UNLESS(HighestThreadPriority <= priority && priority <= LowestThreadPriority,
              ResultInvalidPriority);
