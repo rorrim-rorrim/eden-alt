@@ -372,7 +372,7 @@ int RegAlloc::RealizeReadImpl(const IR::Value& value) {
 
 template<HostLoc::Kind kind>
 int RegAlloc::RealizeWriteImpl(const IR::Inst* value) {
-    defined_insts.insert(inst);
+    defined_insts.insert(value);
     ASSERT(!ValueLocation(value));
 
     if constexpr (kind == HostLoc::Kind::Gpr) {
@@ -396,7 +396,7 @@ int RegAlloc::RealizeWriteImpl(const IR::Inst* value) {
 
 template<HostLoc::Kind kind>
 int RegAlloc::RealizeReadWriteImpl(const IR::Value& read_value, const IR::Inst* write_value) {
-    defined_insts.insert(inst);
+    defined_insts.insert(write_value);
     // TODO: Move elimination
 
     const int write_loc = RealizeWriteImpl<kind>(write_value);
@@ -459,7 +459,7 @@ void RegAlloc::SpillFpr(int index) {
 }
 
 void RegAlloc::ReadWriteFlags(Argument& read, IR::Inst* write) {
-    defined_insts.insert(inst);
+    defined_insts.insert(write);
     const auto current_location = ValueLocation(read.value.GetInst());
     ASSERT(current_location);
 
