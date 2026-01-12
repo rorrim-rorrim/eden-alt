@@ -332,8 +332,7 @@ private:
     std::array<HostLocInfo, SpillCount> spills;
 
     mutable std::mt19937 rand_gen;
-
-    size_t defined_insts_count = 0;
+    ankerl::unordered_dense::set<const IR::Inst*> defined_insts;
 };
 
 template<typename T>
