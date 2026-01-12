@@ -421,23 +421,31 @@ TEST_CASE("A64: SQSHLU", "[a64]") {
     A64::Jit jit{jit_user_config};
 
     oaknut::VectorCodeGenerator code{env.code_mem, nullptr};
-    code.SQSHLU(V0.B16(), V1.B16(), 1);
-    code.SQSHLU(V3.H8(), V4.H8(), 2);
-    code.SQSHLU(V6.S4(), V7.S4(), 28);
-    code.SQSHLU(V9.D2(), V10.D2(), 4);
+    code.SQSHLU(V8.B16(), V0.B16(), 1);
+    code.SQSHLU(V9.H8(), V1.H8(), 2);
+    code.SQSHLU(V10.S4(), V2.S4(), 28);
+    code.SQSHLU(V11.D2(), V3.D2(), 4);
+    code.SQSHLU(V12.S4(), V0.S4(), 1);
+    code.SQSHLU(V13.S4(), V1.S4(), 3);
+    code.SQSHLU(V14.S4(), V2.S4(), 0);
+    code.SQSHLU(V15.S4(), V3.S4(), 0);
 
-    jit.SetVector(1, Vector{0xffffffff'18ba6a6a, 0x7fffffff'943b954f});
-    jit.SetVector(4, Vector{0x0000000b'0000000f, 0xffffffff'ffffffff});
-    jit.SetVector(7, Vector{0x00000001'000000ff, 0x00000010'0000007f});
-    jit.SetVector(10, Vector{0xffffffffffffffff, 0x96dc5c140705cd04});
+    jit.SetVector(0, Vector{0xffffffff'18ba6a6a, 0x7fffffff'943b954f});
+    jit.SetVector(1, Vector{0x0000000b'0000000f, 0xffffffff'ffffffff});
+    jit.SetVector(2, Vector{0x00000001'000000ff, 0x00000010'0000007f});
+    jit.SetVector(3, Vector{0xffffffffffffffff, 0x96dc5c140705cd04});
 
     env.ticks_left = env.code_mem.size();
     CheckedRun([&]() { jit.Run(); });
 
-    CHECK(jit.GetVector(0) == Vector{0x3000d4d4, 0xfe0000000076009e});
-    CHECK(jit.GetVector(3) == Vector{0x2c0000003c, 0});
-    CHECK(jit.GetVector(6) == Vector{0x10000000'ffffffff, 0xffffffff'ffffffff});
-    CHECK(jit.GetVector(9) == Vector{0, 0});
+    CHECK(jit.GetVector(8) == Vector{0x3000d4d4, 0xfe0000000076009e});
+    CHECK(jit.GetVector(9) == Vector{0x2c0000003c, 0});
+    CHECK(jit.GetVector(10) == Vector{0x10000000'ffffffff, 0xffffffff'ffffffff});
+    CHECK(jit.GetVector(11) == Vector{0, 0});
+    CHECK(jit.GetVector(12) == Vector{0x3174d4d4, 0xfffffffe00000000});
+    CHECK(jit.GetVector(13) == Vector{0x5800000078, 0});
+    CHECK(jit.GetVector(14) == Vector{0x1000000ff, 0x100000007f});
+    CHECK(jit.GetVector(15) == Vector{0, 0x705cd04});
 }
 
 TEST_CASE("A64: XTN", "[a64]") {
