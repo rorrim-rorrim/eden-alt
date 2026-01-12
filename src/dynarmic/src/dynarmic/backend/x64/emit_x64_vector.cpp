@@ -622,8 +622,8 @@ void EmitX64::EmitVectorArithmeticVShift16(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitVectorArithmeticVShift32(EmitContext& ctx, IR::Inst* inst) {
-    auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     if (code.HasHostFeature(HostFeature::AVX2)) {
+        auto args = ctx.reg_alloc.GetArgumentInfo(inst);
         auto const tmp0 = ctx.reg_alloc.UseScratchXmm(code, args[0]);
         auto const tmp1 = ctx.reg_alloc.UseScratchXmm(code, args[1]);
         auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
@@ -636,56 +636,15 @@ void EmitX64::EmitVectorArithmeticVShift32(EmitContext& ctx, IR::Inst* inst) {
         code.vblendvps(tmp0, tmp0, tmp3, tmp1);
         ctx.reg_alloc.DefineValue(code, inst, tmp0);
     } else {
-        auto const tmp0 = ctx.reg_alloc.UseScratchXmm(code, args[0]);
-        auto const tmp1 = ctx.reg_alloc.UseScratchXmm(code, args[1]);
-        auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
-        auto const tmp3 = ctx.reg_alloc.ScratchXmm(code);
-        auto const tmp4 = ctx.reg_alloc.ScratchXmm(code);
-        auto const tmp5 = ctx.reg_alloc.ScratchXmm(code);
-        auto const tmp6 = ctx.reg_alloc.ScratchXmm(code);
-        code.pxor(tmp3, tmp3);
-        code.movdqa(tmp2, tmp0);
-        code.psubb(tmp3, tmp1);
-        code.movdqa(tmp4, tmp2);
-        code.movdqa(tmp6, tmp2);
-        code.pminub(tmp3, tmp1);
-        code.pslld(tmp1, 24);
-        code.pand(tmp3, code.Const(xword, 0x000000FF000000FF, 0x000000FF000000FF));
-        code.psrad(tmp1, 31);
-        code.pshuflw(tmp0, tmp3, 254);
-        code.pshuflw(tmp5, tmp3, 84);
-        code.psrad(tmp4, tmp0);
-        code.movdqa(tmp0, tmp2);
-        code.psrad(tmp0, tmp5);
-        code.punpcklqdq(tmp0, tmp4);
-        code.pshufd(tmp4, tmp3, 238);
-        code.pslld(tmp3, 23);
-        code.paddd(tmp3, code.Const(xword, 0x3F800000'3F800000, 0x3F800000'3F800000));
-        code.pshuflw(tmp5, tmp4, 254);
-        code.pshuflw(tmp4, tmp4, 84);
-        code.psrad(tmp6, tmp5);
-        code.movdqa(tmp5, tmp2);
-        code.psrad(tmp5, tmp4);
-        code.pshufd(tmp4, tmp2, 245);
-        code.punpckhqdq(tmp5, tmp6);
-        code.cvttps2dq(tmp3, tmp3);
-        code.shufps(tmp0, tmp5, 204);
-        code.pmuludq(tmp2, tmp3);
-        code.pshufd(tmp3, tmp3, 245);
-        code.andps(tmp0, tmp1);
-        code.pmuludq(tmp3, tmp4);
-        code.pshufd(tmp2, tmp2, 232);
-        code.pshufd(tmp3, tmp3, 232);
-        code.punpckldq(tmp2, tmp3);
-        code.pandn(tmp1, tmp2);
-        code.orps(tmp0, tmp1);
-        ctx.reg_alloc.DefineValue(code, inst, tmp0);
+        EmitTwoArgumentFallback(code, ctx, inst, [](VectorArray<s32>& result, const VectorArray<s32>& a, const VectorArray<s32>& b) {
+            std::transform(a.begin(), a.end(), b.begin(), result.begin(), VShift<s32>);
+        });
     }
 }
 
 void EmitX64::EmitVectorArithmeticVShift64(EmitContext& ctx, IR::Inst* inst) {
-    auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     if (code.HasHostFeature(HostFeature::AVX512_Ortho)) {
+        auto args = ctx.reg_alloc.GetArgumentInfo(inst);
         auto const result = ctx.reg_alloc.UseScratchXmm(code, args[0]);
         auto const left_shift = ctx.reg_alloc.UseScratchXmm(code, args[1]);
         auto const right_shift = ctx.reg_alloc.ScratchXmm(code);
@@ -701,58 +660,10 @@ void EmitX64::EmitVectorArithmeticVShift64(EmitContext& ctx, IR::Inst* inst) {
         code.vpsllvq(result, result, left_shift);
         code.vpblendmq(result | k1, result, tmp);
         ctx.reg_alloc.DefineValue(code, inst, result);
-    } else if (code.HasHostFeature(HostFeature::AVX2)) {
-        auto const tmp0 = ctx.reg_alloc.UseScratchXmm(code, args[0]);
-        auto const tmp1 = ctx.reg_alloc.UseScratchXmm(code, args[1]);
-        auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
-        auto const tmp3 = ctx.reg_alloc.ScratchXmm(code);
-        auto const tmp4 = ctx.reg_alloc.ScratchXmm(code);
-        code.vpabsb(tmp2, tmp1);
-        code.vpxor(tmp3, tmp3, tmp3);
-        code.vpsllq(tmp1, tmp1, 56);
-        code.vpand(tmp2, tmp2, code.Const(xword, 255, 255));
-        code.vpcmpgtq(tmp3, tmp3, tmp0);
-        code.vpsllvq(tmp4, tmp0, tmp2);
-        code.vpxor(tmp0, tmp3, tmp0);
-        code.vpsrlvq(tmp0, tmp0, tmp2);
-        code.vpxor(tmp0, tmp0, tmp3);
-        code.vblendvpd(tmp0, tmp4, tmp0, tmp1);
-        ctx.reg_alloc.DefineValue(code, inst, tmp0);
     } else {
-        auto const tmp0 = ctx.reg_alloc.UseScratchXmm(code, args[0]);
-        auto const tmp1 = ctx.reg_alloc.UseScratchXmm(code, args[1]);
-        auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
-        auto const tmp3 = ctx.reg_alloc.ScratchXmm(code);
-        auto const tmp4 = ctx.reg_alloc.ScratchXmm(code);
-        auto const tmp5 = ctx.reg_alloc.ScratchXmm(code);
-        auto const tmp6 = ctx.reg_alloc.ScratchXmm(code);
-        auto const tmp7 = ctx.reg_alloc.ScratchXmm(code);
-        code.pxor(tmp3, tmp3);
-        code.pshufd(tmp4, tmp0, 245);
-        code.movdqa(tmp5, tmp0);
-        code.psubb(tmp3, tmp1);
-        code.psrad(tmp4, 31);
-        code.pminub(tmp3, tmp1);
-        code.movdqa(tmp2, tmp4);
-        code.psllq(tmp1, 56);
-        code.pand(tmp3, code.Const(xword, 255, 255));
-        code.pxor(tmp2, tmp0);
-        code.pshufd(tmp1, tmp1, 245);
-        code.movdqa(tmp7, tmp2);
-        code.psrad(tmp1, 31);
-        code.pshufd(tmp6, tmp3, 238);
-        code.psrlq(tmp7, tmp3);
-        code.psllq(tmp5, tmp3);
-        code.psrlq(tmp2, tmp6);
-        code.psllq(tmp0, tmp6);
-        code.movsd(tmp2, tmp7);
-        code.movsd(tmp0, tmp5);
-        code.xorpd(tmp2, tmp4);
-        code.andpd(tmp2, tmp1);
-        code.andnpd(tmp1, tmp0);
-        code.orpd(tmp2, tmp1);
-        code.movapd(tmp0, tmp2);
-        ctx.reg_alloc.DefineValue(code, inst, tmp0);
+        EmitTwoArgumentFallback(code, ctx, inst, [](VectorArray<s64>& result, const VectorArray<s64>& a, const VectorArray<s64>& b) {
+            std::transform(a.begin(), a.end(), b.begin(), result.begin(), VShift<s64>);
+        });
     }
 }
 
