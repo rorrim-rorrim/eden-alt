@@ -2892,25 +2892,19 @@ static void EmitVectorPairedMinMax16(BlockOfCode& code, EmitContext& ctx, IR::In
 template<typename Function>
 static void EmitVectorPairedMinMaxLower16(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Function fn) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-
     auto const x = ctx.reg_alloc.UseScratchXmm(code, args[0]);
     auto const y = ctx.reg_alloc.UseScratchXmm(code, args[1]);
     auto const tmp = ctx.reg_alloc.ScratchXmm(code);
-
     // swap idxs 1 and 2 so that both registers contain even then odd-indexed pairs of elements
     code.pshuflw(x, x, 0b11'01'10'00);
     code.pshuflw(y, y, 0b11'01'10'00);
-
     // move pairs of even/odd-indexed elements into one register each
-
     // tmp = x[0, 2], y[0, 2], 0s...
     code.movaps(tmp, y);
     code.insertps(tmp, x, 0b01001100);
     // x   = x[1, 3], y[1, 3], 0s...
     code.insertps(x, y, 0b00011100);
-
     (code.*fn)(x, tmp);
-
     ctx.reg_alloc.DefineValue(code, inst, x);
 }
 
@@ -3119,12 +3113,11 @@ void EmitX64::EmitVectorPairedMaxLowerS8(EmitContext& ctx, IR::Inst* inst) {
 void EmitX64::EmitVectorPairedMaxLowerS16(EmitContext& ctx, IR::Inst* inst) {
     if (code.HasHostFeature(HostFeature::SSE41)) {
         EmitVectorPairedMinMaxLower16(code, ctx, inst, &Xbyak::CodeGenerator::pmaxsw);
-        return;
+    } else {
+        EmitTwoArgumentFallback(code, ctx, inst, [](VectorArray<s16>& result, const VectorArray<s16>& a, const VectorArray<s16>& b) {
+            LowerPairedMax(result, a, b);
+        });
     }
-
-    EmitTwoArgumentFallback(code, ctx, inst, [](VectorArray<s16>& result, const VectorArray<s16>& a, const VectorArray<s16>& b) {
-        LowerPairedMax(result, a, b);
-    });
 }
 
 void EmitX64::EmitVectorPairedMaxLowerS32(EmitContext& ctx, IR::Inst* inst) {
@@ -4966,13 +4959,13 @@ static bool VectorSignedSaturatedShiftLeftUnsigned(VectorArray<T>& dst, const Ve
         auto const element = data[i];
         auto const shifted = U(element) << U(T(shift_amount));
         auto const shifted_test = shifted >> U(T(shift_amount));
-        if (element <= 0)
-            dst[i] = 0;
+        auto result = 0;
         if (element > 0 && shifted_test != U(element))
-            dst[i] = T((std::numeric_limits<U>::max)());
+            result = T((std::numeric_limits<U>::max)());
         if (element > 0 && shifted_test == U(element))
-            dst[i] = shifted;
-        qc_flag = element < 0 || (element > 0 && shifted_test != U(element));
+            result = shifted;
+        qc_flag |= element < 0 || (element > 0 && shifted_test != U(element));
+        dst[i] = result;
     }
     return qc_flag;
 }
@@ -4986,34 +4979,96 @@ void EmitX64::EmitVectorSignedSaturatedShiftLeftUnsigned16(EmitContext& ctx, IR:
 }
 
 void EmitX64::EmitVectorSignedSaturatedShiftLeftUnsigned32(EmitContext& ctx, IR::Inst* inst) {
+    auto args = ctx.reg_alloc.GetArgumentInfo(inst);
+    auto const imm8 = args[1].GetImmediateU8();
     if (code.HasHostFeature(HostFeature::AVX2)) {
-        auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-        auto const imm8 = args[1].GetImmediateU8();
-        auto const tmp0 = ctx.reg_alloc.UseScratchXmm(code, args[0]);
-        auto const tmp1 = ctx.reg_alloc.ScratchXmm(code);
-        auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
-        auto const tmp3 = ctx.reg_alloc.ScratchXmm(code);
-        auto const tmp4 = ctx.reg_alloc.ScratchXmm(code);
         auto const tmp_flag = ctx.reg_alloc.ScratchGpr(code);
-        code.vpslld(tmp2, tmp0, imm8);
-        code.vpxor(tmp3, tmp3, tmp3);
-        code.vpsrld(tmp1, tmp2, imm8);
-        code.vpcmpeqd(tmp3, tmp0, tmp3);
-        code.vpcmpeqd(tmp1, tmp1, tmp0);
-        code.vpor(tmp3, tmp3, tmp1);
-        code.vpcmpeqd(tmp4, tmp4, tmp4);
-        code.vpxor(tmp3, tmp3, tmp4);
-        code.vpor(tmp3, tmp3, tmp0);
-        code.vtestps(tmp3, tmp3);
-        code.vpbroadcastd(tmp3, code.Const(dword, 1));
-        code.vpcmpgtd(tmp0, tmp3, tmp0);
-        code.vpor(tmp0, tmp0, tmp1);
-        code.vblendvps(tmp0, tmp4, tmp2, tmp0);
-        code.setne(tmp_flag.cvt8());
+        auto const tmp0 = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        if (imm8 == 0) {
+            auto const tmp1 = ctx.reg_alloc.ScratchXmm(code);
+            auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
+            code.vpshufd(tmp1, tmp0, 85);
+            code.vpshufd(tmp2, tmp0, 238);
+            code.vpor(tmp1, tmp1, tmp2);
+            code.vpshufd(tmp2, tmp0, 255);
+            code.vpor(tmp2, tmp2, tmp0);
+            code.vpor(tmp1, tmp1, tmp2);
+            code.vmovd(tmp_flag.cvt32(), tmp1);
+            code.shr(tmp_flag.cvt32(), 31);
+            code.vpxor(tmp1, tmp1, tmp1);
+            code.vpmaxsd(tmp0, tmp0, tmp1);
+        } else {
+            auto const tmp1 = ctx.reg_alloc.ScratchXmm(code);
+            auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
+            auto const tmp3 = ctx.reg_alloc.ScratchXmm(code);
+            auto const tmp4 = ctx.reg_alloc.ScratchXmm(code);
+            auto const cmp_value = u32(1ULL << 31) >> (imm8 - 1);
+            code.vpshufd(tmp1, tmp0, 238);
+            code.vpor(tmp1, tmp1, tmp0);
+            code.vpshufd(tmp2, tmp1, 85);
+            code.vpor(tmp1, tmp1, tmp2);
+            code.vmovd(tmp_flag.cvt32(), tmp1);
+            code.cmp(tmp_flag.cvt32(), cmp_value);
+            code.vpslld(tmp1, tmp0, imm8);
+            code.vpbroadcastd(tmp2, code.Const(dword, cmp_value - 2));
+            code.vpbroadcastd(tmp3, code.Const(dword, cmp_value - 1));
+            code.vpcmpgtd(tmp3, tmp0, tmp3);
+            code.vpcmpeqd(tmp4, tmp4, tmp4);
+            code.vpaddd(tmp0, tmp0, tmp4);
+            code.vpminud(tmp2, tmp0, tmp2);
+            code.vpcmpeqd(tmp0, tmp0, tmp2);
+            code.vblendvps(tmp0, tmp3, tmp1, tmp0);
+            code.setae(tmp_flag.cvt8());
+        }
         code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], tmp_flag.cvt8());
         ctx.reg_alloc.DefineValue(code, inst, tmp0);
     } else {
-        EmitTwoArgumentFallbackWithSaturationAndImmediate(code, ctx, inst, VectorSignedSaturatedShiftLeftUnsigned<s32>);
+        auto const tmp_flag = ctx.reg_alloc.ScratchGpr(code);
+        auto const tmp0 = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        if (imm8 == 0) {
+            auto const tmp1 = ctx.reg_alloc.ScratchXmm(code);
+            auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
+            code.pshufd(tmp1, tmp0, 85);
+            code.pshufd(tmp2, tmp0, 238);
+            code.por(tmp2, tmp1);
+            code.pshufd(tmp1, tmp0, 255);
+            code.por(tmp1, tmp0);
+            code.por(tmp1, tmp2);
+            code.movd(tmp_flag.cvt32(), tmp1);
+            code.shr(tmp_flag.cvt32(), 31);
+            code.pxor(tmp1, tmp1);
+            code.movdqa(tmp2, tmp0);
+            code.pcmpgtd(tmp2, tmp1);
+            code.pand(tmp0, tmp2);
+        } else {
+            auto const tmp1 = ctx.reg_alloc.ScratchXmm(code);
+            auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
+            auto const tmp3 = ctx.reg_alloc.ScratchXmm(code);
+            u64 const cmp_value = u64(1ULL << 31) >> (imm8 - 1);
+            u64 const cmp_one = cmp_value - 1;
+            u64 const cmp_add = (cmp_value - 2) + 0x80000000;
+            code.pshufd(tmp1, tmp0, 238);
+            code.por(tmp1, tmp0);
+            code.pshufd(tmp2, tmp1, 85);
+            code.por(tmp2, tmp1);
+            code.movd(tmp_flag.cvt32(), tmp2);
+            code.cmp(tmp_flag.cvt32(), cmp_value);
+            code.movdqa(tmp1, tmp0);
+            code.pslld(tmp1, imm8);
+            code.movdqa(tmp2, tmp0);
+            code.pcmpgtd(tmp2, code.Const(xword, cmp_one | (cmp_one << 32), cmp_one | (cmp_one << 32)));
+            code.pcmpeqd(tmp3, tmp3);
+            code.paddd(tmp0, tmp3);
+            code.pxor(tmp0, code.Const(xword, 0x80000000'80000000, 0x80000000'80000000));
+            code.pcmpgtd(tmp0, code.Const(xword, cmp_add | (cmp_add << 32), cmp_add | (cmp_add << 32)));
+            code.pand(tmp2, tmp0);
+            code.pandn(tmp0, tmp1);
+            code.por(tmp0, tmp2);
+            code.setae(tmp_flag.cvt8());
+        }
+        code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], tmp_flag.cvt8());
+        ctx.reg_alloc.DefineValue(code, inst, tmp0);
+//        EmitTwoArgumentFallbackWithSaturationAndImmediate(code, ctx, inst, VectorSignedSaturatedShiftLeftUnsigned<s32>);
     }
 }
 
