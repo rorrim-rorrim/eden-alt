@@ -327,7 +327,9 @@ void Maxwell3D::ProcessDirtyRegisters(u32 method, u32 argument) {
     const u8 flag0 = table0[method];
     const u8 flag1 = table1[method];
     dirty.flags[flag0] = true;
-    dirty.flags[flag1] = true;
+    if (flag1 != flag0) {
+        dirty.flags[flag1] = true;
+    }
 }
 
 void Maxwell3D::ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argument, bool is_last_call) {
