@@ -414,6 +414,32 @@ TEST_CASE("A64: URSHL", "[a64]") {
     CHECK(jit.GetVector(9) == Vector{0x0000000000000002, 0x12db8b8280e0ba});
 }
 
+TEST_CASE("A64: SQSHLU", "[a64]") {
+    A64TestEnv env;
+    A64::UserConfig jit_user_config{};
+    jit_user_config.callbacks = &env;
+    A64::Jit jit{jit_user_config};
+
+    oaknut::VectorCodeGenerator code{env.code_mem, nullptr};
+    code.SQSHLU(V0.B16(), V1.B16(), 1);
+    code.SQSHLU(V3.H8(), V4.H8(), 2);
+    code.SQSHLU(V6.S4(), V7.S4(), 28);
+    code.SQSHLU(V9.D2(), V10.D2(), 4);
+
+    jit.SetVector(1, Vector{0xffffffff'18ba6a6a, 0x7fffffff'943b954f});
+    jit.SetVector(4, Vector{0x0000000b'0000000f, 0xffffffff'ffffffff});
+    jit.SetVector(7, Vector{0x00000001'000000ff, 0x00000010'0000007f});
+    jit.SetVector(10, Vector{0xffffffffffffffff, 0x96dc5c140705cd04});
+
+    env.ticks_left = env.code_mem.size();
+    CheckedRun([&]() { jit.Run(); });
+
+    CHECK(jit.GetVector(0) == Vector{0x3000d4d4, 0xfe0000000076009e});
+    CHECK(jit.GetVector(3) == Vector{0x2c0000003c, 0});
+    CHECK(jit.GetVector(6) == Vector{0x10000000'ffffffff, 0xffffffff'ffffffff});
+    CHECK(jit.GetVector(9) == Vector{0, 0});
+}
+
 TEST_CASE("A64: XTN", "[a64]") {
     A64TestEnv env;
     A64::UserConfig jit_user_config{};
