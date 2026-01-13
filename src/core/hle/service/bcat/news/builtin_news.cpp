@@ -35,15 +35,17 @@ namespace {
 constexpr const char* GitHubAPI_EdenReleases = "/repos/eden-emulator/Releases/releases";
 
 // Cached logo data
-std::vector<u8> g_logo_cache;
-bool g_logo_loaded = false;
+std::vector<u8> logo_small;
+std::vector<u8> logo_large;
+bool logos_loaded = false;
 
 std::filesystem::path GetCachePath() {
     return Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "news" / "github_releases.json";
 }
 
-std::filesystem::path GetLogoPath() {
-    return Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "news" / "eden_logo.jpg";
+std::filesystem::path GetLogoPath(bool large) {
+    return Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "news" /
+           (large ? "eden_logo_large.jpg" : "eden_logo_small.jpg");
 }
 
 u32 HashToNewsId(std::string_view key) {
@@ -68,30 +70,26 @@ u64 ParseIsoTimestamp(const std::string& iso) {
 #endif
 }
 
-std::vector<u8> LoadLogo() {
-    if (g_logo_loaded) {
-        return g_logo_cache;
-    }
-    g_logo_loaded = true;
-
-    const auto logo_path = GetLogoPath();
+std::vector<u8> LoadLogoFromDiskOrDownload(bool large) {
+    const auto path = GetLogoPath(large);
+    const char* imgur_id = large ? "/LJGishu.jpeg" : "/1OuqHlk.jpeg";
 
     // Try loading from cached disk
-    if (std::filesystem::exists(logo_path)) {
-        std::ifstream f(logo_path, std::ios::binary | std::ios::ate);
+    if (std::filesystem::exists(path)) {
+        std::ifstream f(path, std::ios::binary | std::ios::ate);
         if (f) {
             const auto file_size = static_cast<std::streamsize>(f.tellg());
             if (file_size > 0 && file_size < 10 * 1024 * 1024) {
                 f.seekg(0);
-                g_logo_cache.resize(static_cast<size_t>(file_size));
-                if (f.read(reinterpret_cast<char*>(g_logo_cache.data()), file_size)) {
-                    return g_logo_cache;
+                std::vector<u8> data(static_cast<size_t>(file_size));
+                if (f.read(reinterpret_cast<char*>(data.data()), file_size)) {
+                    return data;
                 }
             }
         }
     }
 
-    // yes...i uploaded it to imgur
+    // Download from imgur
     try {
         httplib::Client cli("https://i.imgur.com");
         cli.set_follow_location(true);
@@ -102,21 +100,29 @@ std::vector<u8> LoadLogo() {
         cli.load_ca_cert_store(kCert, sizeof(kCert));
 #endif
 
-        if (auto res = cli.Get("/1OuqHlk.jpeg"); res && res->status == 200 && !res->body.empty()) {
-            g_logo_cache.assign(res->body.begin(), res->body.end());
+        if (auto res = cli.Get(imgur_id); res && res->status == 200 && !res->body.empty()) {
+            std::vector<u8> data(res->body.begin(), res->body.end());
 
             std::error_code ec;
-            std::filesystem::create_directories(logo_path.parent_path(), ec);
-            if (std::ofstream out(logo_path, std::ios::binary); out) {
+            std::filesystem::create_directories(path.parent_path(), ec);
+            if (std::ofstream out(path, std::ios::binary); out) {
                 out.write(res->body.data(), static_cast<std::streamsize>(res->body.size()));
             }
-            return g_logo_cache;
+            return data;
         }
     } catch (...) {
-        LOG_WARNING(Service_BCAT, "failed to download eden logo");
+        LOG_WARNING(Service_BCAT, "failed to download logo (large={})", large);
     }
 
     return {};
+}
+
+void LoadLogos() {
+    if (logos_loaded) return;
+    logos_loaded = true;
+
+    logo_small = LoadLogoFromDiskOrDownload(false);
+    logo_large = LoadLogoFromDiskOrDownload(true);
 }
 
 std::optional<std::string> ReadCachedJson() {
@@ -315,7 +321,6 @@ std::vector<u8> BuildMsgpack(std::string_view title, std::string_view body,
     MsgPack::Writer w;
 
     const u32 news_id = override_id.value_or(HashToNewsId(title.empty() ? "eden" : title));
-    const auto logo = LoadLogo();
 
     w.WriteFixMap(23);
 
@@ -374,7 +379,7 @@ std::vector<u8> BuildMsgpack(std::string_view title, std::string_view body,
     w.WriteString("Eden");
 
     w.WriteKey("list_image");
-    w.WriteBinary(logo);
+    w.WriteBinary(logo_small);
 
     // Footer
     w.WriteKey("footer");
@@ -405,7 +410,7 @@ std::vector<u8> BuildMsgpack(std::string_view title, std::string_view body,
     w.WriteKey("movie_url");
     w.WriteString("");
     w.WriteKey("main_image");
-    w.WriteBinary(logo);
+    w.WriteBinary(logo_large);
 
     // no clue
     w.WriteKey("contents_descriptors");
@@ -419,7 +424,7 @@ std::vector<u8> BuildMsgpack(std::string_view title, std::string_view body,
 void EnsureBuiltinNewsLoaded() {
     static std::once_flag once;
     std::call_once(once, [] {
-        LoadLogo();
+        LoadLogos();
 
         if (const auto fresh = DownloadReleasesJson()) {
             WriteCachedJson(*fresh);
