@@ -142,8 +142,8 @@ private:
     std::unique_ptr<HLEMacro> hle_macros;
     Engines::Maxwell3D& maxwell3d;
     
-    u32 last_macro_method{0xFFFFFFFF};
     CacheInfo* last_macro_cache{nullptr};
+    u32 last_macro_method{0xFFFFFFFF};
 };
 
 std::unique_ptr<MacroEngine> GetMacroEngine(Engines::Maxwell3D& maxwell3d);
