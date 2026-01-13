@@ -141,7 +141,7 @@ std::optional<std::string> DownloadReleasesJson() {
         cli.set_read_timeout(10);
 
         httplib::Headers headers{
-            {"User-Agent", "eden"},
+            {"User-Agent", "Eden"},
             {"Accept", "application/vnd.github+json"},
         };
 
@@ -192,6 +192,10 @@ std::string SanitizeMarkdown(std::string_view markdown) {
     static const boost::regex list2(R"(^  \* )");
     text = boost::regex_replace(text, list2, "  • ");
 
+    // what
+    static const boost::regex list2_dash(R"(^ - )");
+    text = boost::regex_replace(text, list2_dash, "  • ");
+
     // Convert bold/italic text into normal text
     static const boost::regex bold(R"(\*\*(.*?)\*\*)");
     text = boost::regex_replace(text, bold, "$1");
@@ -200,7 +204,7 @@ std::string SanitizeMarkdown(std::string_view markdown) {
     text = boost::regex_replace(text, italic, "$1");
 
     // Remove links and convert to normal text
-    static const boost::regex link(R"([(.*?)]\(.*\))");
+    static const boost::regex link(R"(\[([^\]]+)\]\([^)]*\))");
     text = boost::regex_replace(text, link, "$1");
 
     // Trim trailing whitespace/newlines
