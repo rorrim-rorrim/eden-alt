@@ -27,9 +27,7 @@ constexpr u32 MacroRegistersStart = 0xE00;
 
 Maxwell3D::Maxwell3D(Core::System& system_, MemoryManager& memory_manager_)
     : draw_manager{std::make_unique<DrawManager>(this)}, system{system_},
-      memory_manager{memory_manager_}, macro_engine{GetMacroEngine(*this)}, upload_state{
-                                                                                memory_manager,
-                                                                                regs.upload} {
+      memory_manager{memory_manager_}, macro_engine{GetMacroEngine(*this)}, upload_state{memory_manager, regs.upload} {
     dirty.flags.flip();
     InitializeRegisterDefaults();
     execution_mask.reset();
@@ -329,8 +327,7 @@ void Maxwell3D::ProcessDirtyRegisters(u32 method, u32 argument) {
     }
 }
 
-void Maxwell3D::ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argument,
-                                  bool is_last_call) {
+void Maxwell3D::ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argument, bool is_last_call) {
     switch (method) {
     case MAXWELL3D_REG_INDEX(wait_for_idle):
         return rasterizer->WaitForIdle();
