@@ -100,7 +100,7 @@ void DiscordImpl::Update() {
             "https://raw.githubusercontent.com/eden-emulator/boxart/refs/heads/master/img/{}.png",
             icon_name);
 
-        httplib::SSLClient client(game_url);
+        httplib::Client client(game_url);
         client.set_connection_timeout(3);
         client.set_read_timeout(3);
         client.set_follow_location(true);

@@ -1212,7 +1212,6 @@ else()
 endif()
 
 target_link_libraries(core PRIVATE fmt::fmt nlohmann_json::nlohmann_json RenderDoc::API MbedTLS::mbedcrypto${MBEDTLS_LIB_SUFFIX} MbedTLS::mbedtls${MBEDTLS_LIB_SUFFIX})
-
 target_link_libraries(core PRIVATE httplib::httplib)
 
 if (ENABLE_WEB_SERVICE)

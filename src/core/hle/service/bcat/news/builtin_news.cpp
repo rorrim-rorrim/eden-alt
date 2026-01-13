@@ -6,7 +6,6 @@
 #include "core/hle/service/bcat/news/news_storage.h"
 
 #include "common/fs/file.h"
-#include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
 
@@ -14,7 +13,6 @@
 #include <httplib.h>
 #include <nlohmann/json.hpp>
 
-#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -22,6 +20,10 @@
 #include <mutex>
 #include <optional>
 #include <sstream>
+
+#ifdef YUZU_BUNDLED_OPENSSL
+#include <openssl/cert.h>
+#endif
 
 namespace Service::News {
 namespace {
@@ -92,6 +94,10 @@ std::vector<u8> LoadLogo() {
         cli.set_connection_timeout(std::chrono::seconds(10));
         cli.set_read_timeout(std::chrono::seconds(30));
 
+#ifdef YUZU_BUNDLED_OPENSSL
+        cli.load_ca_cert_store(kCert, sizeof(kCert));
+#endif
+
         if (auto res = cli.Get("/1OuqHlk.jpeg"); res && res->status == 200 && !res->body.empty()) {
             g_logo_cache.assign(res->body.begin(), res->body.end());
 
@@ -135,12 +141,19 @@ std::optional<std::string> DownloadReleasesJson() {
             {"Accept", "application/vnd.github+json"},
         };
 
+        // TODO(crueter): automate this in some way...
+#ifdef YUZU_BUNDLED_OPENSSL
+        cli.load_ca_cert_store(kCert, sizeof(kCert));
+#endif
+
         if (auto res = cli.Get(GitHubAPI_EdenReleases, headers); res && res->status < 400) {
             return res->body;
         }
     } catch (...) {
         LOG_WARNING(Service_BCAT, " failed to download releases");
     }
+
+    return std::nullopt;
 }
 
 // idk but News App does not render Markdown or HTML, so remove some formatting.
