@@ -563,8 +563,14 @@ add_library(core STATIC
     hle/service/bcat/delivery_cache_storage_service.h
     hle/service/bcat/news/newly_arrived_event_holder.cpp
     hle/service/bcat/news/newly_arrived_event_holder.h
+    hle/service/bcat/news/msgpack.cpp
+    hle/service/bcat/news/msgpack.h
     hle/service/bcat/news/news_data_service.cpp
     hle/service/bcat/news/news_data_service.h
+    hle/service/bcat/news/builtin_news.cpp
+    hle/service/bcat/news/builtin_news.h
+    hle/service/bcat/news/news_storage.cpp
+    hle/service/bcat/news/news_storage.h
     hle/service/bcat/news/news_database_service.cpp
     hle/service/bcat/news/news_database_service.h
     hle/service/bcat/news/news_service.cpp
@@ -1206,9 +1212,8 @@ else()
 endif()
 
 target_link_libraries(core PRIVATE fmt::fmt nlohmann_json::nlohmann_json RenderDoc::API MbedTLS::mbedcrypto${MBEDTLS_LIB_SUFFIX} MbedTLS::mbedtls${MBEDTLS_LIB_SUFFIX})
-# if (MINGW)
-#     target_link_libraries(core PRIVATE ws2_32 mswsock wlanapi)
-# endif()
+
+target_link_libraries(core PRIVATE httplib::httplib)
 
 if (ENABLE_WEB_SERVICE)
     target_compile_definitions(core PUBLIC ENABLE_WEB_SERVICE)
