@@ -15,13 +15,15 @@
 
 namespace Common {
 
-constexpr std::size_t default_stack_size = 512 * 1024;
+constexpr size_t DEFAULT_STACK_SIZE = 512 * 1024;
+constexpr u32 CANARY_VALUE = 0xDEADBEEF;
 
 struct Fiber::FiberImpl {
-    FiberImpl() : stack(default_stack_size), rewind_stack(default_stack_size) {}
+    FiberImpl() {}
 
-    std::vector<u8> stack;
-    std::vector<u8> rewind_stack;
+    std::array<u8, DEFAULT_STACK_SIZE> stack{};
+    std::array<u8, DEFAULT_STACK_SIZE> rewind_stack{};
+    u32 canary = CANARY_VALUE;
 
     boost::context::detail::fcontext_t context{};
     boost::context::detail::fcontext_t rewind_context{};
@@ -49,6 +51,7 @@ Fiber::Fiber(std::function<void()>&& entry_point_func) : impl{std::make_unique<F
     impl->context = boost::context::detail::make_fcontext(stack_base, impl->stack.size(), [](boost::context::detail::transfer_t transfer) -> void {
         auto* fiber = static_cast<Fiber*>(transfer.data);
         ASSERT(fiber && fiber->impl && fiber->impl->previous_fiber && fiber->impl->previous_fiber->impl);
+        ASSERT(fiber->canary == CANARY_VALUE);
         fiber->impl->previous_fiber->impl->context = transfer.fctx;
         fiber->impl->previous_fiber->impl->guard.unlock();
         fiber->impl->previous_fiber.reset();
