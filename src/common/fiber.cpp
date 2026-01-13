@@ -15,7 +15,7 @@
 
 namespace Common {
 
-constexpr size_t DEFAULT_STACK_SIZE = 512 * 1024;
+constexpr size_t DEFAULT_STACK_SIZE = 128 * 4096;
 constexpr u32 CANARY_VALUE = 0xDEADBEEF;
 
 struct Fiber::FiberImpl {
