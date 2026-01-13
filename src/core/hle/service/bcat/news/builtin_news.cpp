@@ -72,7 +72,7 @@ u64 ParseIsoTimestamp(const std::string& iso) {
 
 std::vector<u8> LoadLogoFromDiskOrDownload(bool large) {
     const auto path = GetLogoPath(large);
-    const char* imgur_id = large ? "/LJGishu.jpeg" : "/1OuqHlk.jpeg";
+    const char* imgur_id = large ? "/eden_logo_large.jpg" : "/eden_logo_small.jpg";
 
     // Try loading from cached disk
     if (std::filesystem::exists(path)) {
@@ -91,7 +91,7 @@ std::vector<u8> LoadLogoFromDiskOrDownload(bool large) {
 
     // Download from imgur
     try {
-        httplib::Client cli("https://i.imgur.com");
+        httplib::Client cli("https://eden-emu.dev");
         cli.set_follow_location(true);
         cli.set_connection_timeout(std::chrono::seconds(10));
         cli.set_read_timeout(std::chrono::seconds(30));
@@ -396,9 +396,9 @@ std::vector<u8> BuildMsgpack(std::string_view title, std::string_view body,
     w.WriteKey("browser");
     w.WriteFixMap(2);
     w.WriteKey("url");
-    w.WriteString(html_url);
+    w.WriteString("");
     w.WriteKey("text");
-    w.WriteString("Open GitHub");
+    w.WriteString("");
 
     // Body
     w.WriteKey("body");
