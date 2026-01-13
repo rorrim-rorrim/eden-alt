@@ -103,7 +103,7 @@ public:
     CachedMacro(Engines::Maxwell3D& maxwell3d)
         : maxwell3d{maxwell3d}
     {}
-    virtual ~CachedMacro() = 0;
+    virtual ~CachedMacro() = default;
     /// Executes the macro code with the specified input parameters.
     /// @param parameters The parameters of the macro
     /// @param method     The method to execute

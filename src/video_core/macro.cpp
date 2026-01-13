@@ -526,37 +526,23 @@ HLEMacro::HLEMacro(Maxwell3D& maxwell3d_) : maxwell3d{maxwell3d_} {}
 HLEMacro::~HLEMacro() = default;
 
 std::unique_ptr<CachedMacro> HLEMacro::GetHLEProgram(u64 hash) const {
+    // Compiler will make you a GREAT job at making an ad-hoc hash table :)
     switch (hash) {
-    case 0x0D61FC9FAAC9FCADULL:
-        return std::make_unique<HLE_DrawArraysIndirect<false>>(maxwell3d);
-    case 0x8A4D173EB99A8603ULL:
-        return std::make_unique<HLE_DrawArraysIndirect<true>>(maxwell3d);
-    case 0x771BB18C62444DA0ULL:
-        return std::make_unique<HLE_DrawIndexedIndirect<false>>(maxwell3d);
-    case 0x0217920100488FF7ULL:
-        return std::make_unique<HLE_DrawIndexedIndirect<true>>(maxwell3d);
-    case 0x3F5E74B9C9A50164ULL:
-        return std::make_unique<HLE_MultiDrawIndexedIndirectCount>(maxwell3d);
-    case 0xEAD26C3E2109B06BULL:
-        return std::make_unique<HLE_MultiLayerClear>(maxwell3d);
-    case 0xC713C83D8F63CCF3ULL:
-        return std::make_unique<HLE_C713C83D8F63CCF3>(maxwell3d);
-    case 0xD7333D26E0A93EDEULL:
-        return std::make_unique<HLE_D7333D26E0A93EDE>(maxwell3d);
-    case 0xEB29B2A09AA06D38ULL:
-        return std::make_unique<HLE_BindShader>(maxwell3d);
-    case 0xDB1341DBEB4C8AF7ULL:
-        return std::make_unique<HLE_SetRasterBoundingBox>(maxwell3d);
-    case 0x6C97861D891EDf7EULL:
-        return std::make_unique<HLE_ClearConstBuffer<0x5F00>>(maxwell3d);
-    case 0xD246FDDF3A6173D7ULL:
-        return std::make_unique<HLE_ClearConstBuffer<0x7000>>(maxwell3d);
-    case 0xEE4D0004BEC8ECF4ULL:
-        return std::make_unique<HLE_ClearMemory>(maxwell3d);
-    case 0xFC0CF27F5FFAA661ULL:
-        return std::make_unique<HLE_TransformFeedbackSetup>(maxwell3d);
-    case 0xB5F74EDB717278ECULL:
-        return std::make_unique<HLE_DrawIndirectByteCount>(maxwell3d);
+    case 0x0D61FC9FAAC9FCADULL: return std::make_unique<HLE_DrawArraysIndirect<false>>(maxwell3d);
+    case 0x8A4D173EB99A8603ULL: return std::make_unique<HLE_DrawArraysIndirect<true>>(maxwell3d);
+    case 0x771BB18C62444DA0ULL: return std::make_unique<HLE_DrawIndexedIndirect<false>>(maxwell3d);
+    case 0x0217920100488FF7ULL: return std::make_unique<HLE_DrawIndexedIndirect<true>>(maxwell3d);
+    case 0x3F5E74B9C9A50164ULL: return std::make_unique<HLE_MultiDrawIndexedIndirectCount>(maxwell3d);
+    case 0xEAD26C3E2109B06BULL: return std::make_unique<HLE_MultiLayerClear>(maxwell3d);
+    case 0xC713C83D8F63CCF3ULL: return std::make_unique<HLE_C713C83D8F63CCF3>(maxwell3d);
+    case 0xD7333D26E0A93EDEULL: return std::make_unique<HLE_D7333D26E0A93EDE>(maxwell3d);
+    case 0xEB29B2A09AA06D38ULL: return std::make_unique<HLE_BindShader>(maxwell3d);
+    case 0xDB1341DBEB4C8AF7ULL: return std::make_unique<HLE_SetRasterBoundingBox>(maxwell3d);
+    case 0x6C97861D891EDf7EULL: return std::make_unique<HLE_ClearConstBuffer<0x5F00>>(maxwell3d);
+    case 0xD246FDDF3A6173D7ULL: return std::make_unique<HLE_ClearConstBuffer<0x7000>>(maxwell3d);
+    case 0xEE4D0004BEC8ECF4ULL: return std::make_unique<HLE_ClearMemory>(maxwell3d);
+    case 0xFC0CF27F5FFAA661ULL: return std::make_unique<HLE_TransformFeedbackSetup>(maxwell3d);
+    case 0xB5F74EDB717278ECULL: return std::make_unique<HLE_DrawIndirectByteCount>(maxwell3d);
     default:
         return nullptr;
     }
