@@ -9,11 +9,15 @@
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
 
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/regex.hpp>
+#include <boost/regex/v5/regex_replace.hpp>
 #include <fmt/format.h>
 #include <httplib.h>
 #include <nlohmann/json.hpp>
 
 #include <chrono>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -167,80 +171,44 @@ std::string SanitizeMarkdown(std::string_view markdown) {
         text = text.substr(0, pos);
     }
 
-    std::istringstream stream(text);
-    std::string line;
-    bool first_line = true;
+    // Fix line endings
+    boost::replace_all(text, "\r", "");
 
-    while (std::getline(stream, line)) {
-        if (!line.empty() && line.back() == '\r') {
-            line.pop_back();
-        }
+    // Remove backticks
+    boost::replace_all(text, "`", "");
 
-        if (first_line && line.empty()) continue;
+    // Remove excessive newlines
+    static const boost::regex newlines(R"(\n\n\n+)");
+    text = boost::regex_replace(text, newlines, "\n\n");
 
-        // Remove markdown headers
-        size_t start = 0;
-        while (start < line.size() && line[start] == '#') start++;
-        if (start > 0 && start < line.size() && line[start] == ' ') {
-            line = line.substr(start + 1);
-        }
+    // Remove markdown headers
+    static const boost::regex headers(R"(^#+ )");
+    text = boost::regex_replace(text, headers, "");
 
-        // Remove bold/italic marker
-        std::string cleaned;
-        size_t i = 0;
-        while (i < line.size()) {
-            if (i + 1 < line.size() && line[i] == '*' && line[i + 1] == '*') {
-                i += 2;
-            } else if (line[i] == '*' || line[i] == '_') {
-                i++;
-            } else {
-                cleaned += line[i++];
-            }
-        }
-        line = cleaned;
+    // Convert bullet points to something nicer
+    static const boost::regex list1(R"(^- )");
+    text = boost::regex_replace(text, list1, "• ");
 
-        // Remove links and convert it to text
-        std::string no_links;
-        i = 0;
-        while (i < line.size()) {
-            if (line[i] == '[') {
-                auto close = line.find(']', i);
-                if (close != std::string::npos && close + 1 < line.size() && line[close + 1] == '(') {
-                    no_links += line.substr(i + 1, close - i - 1);
-                    auto paren_close = line.find(')', close + 2);
-                    i = (paren_close != std::string::npos) ? paren_close + 1 : close + 1;
-                } else {
-                    no_links += line[i++];
-                }
-            } else {
-                no_links += line[i++];
-            }
-        }
-        line = no_links;
+    static const boost::regex list2(R"(^  \* )");
+    text = boost::regex_replace(text, list2, "  • ");
 
-        // Convert bullet points to something nicer
-        if (line.size() >= 2 && line[0] == '-' && line[1] == ' ') {
-            line = "• " + line.substr(2);
-        }
+    // Convert bold/italic text into normal text
+    static const boost::regex bold(R"(\*\*(.*?)\*\*)");
+    text = boost::regex_replace(text, bold, "$1");
 
-        if (!first_line) {
-            result += '\n';
-        }
-        result += line;
-        first_line = false;
-    }
+    static const boost::regex italic(R"(\*(.*?)\*)");
+    text = boost::regex_replace(text, italic, "$1");
 
-    // Remove excessive newlines, we are heavy char limited...
-    while (result.find("\n\n\n") != std::string::npos) {
-        result.replace(result.find("\n\n\n"), 3, "\n\n");
-    }
+    // Remove links and convert to normal text
+    static const boost::regex link(R"([(.*?)]\(.*\))");
+    text = boost::regex_replace(text, link, "$1");
 
     // Trim trailing whitespace/newlines
-    while (!result.empty() && (result.back() == '\n' || result.back() == ' ')) {
-        result.pop_back();
+    while (!text.empty() && (text.back() == '\n' || text.back() == ' ')) {
+        text.pop_back();
     }
 
-    return result;
+    return text;
 }
 
 std::string FormatBody(const nlohmann::json& release, std::string_view title) {
