@@ -1267,6 +1267,7 @@ if(ENABLE_OPENSSL)
     find_package(OpenSSL REQUIRED)
 
     target_link_libraries(core PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+    target_compile_definitions(core PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
 elseif (APPLE)
     target_sources(core PRIVATE
         hle/service/ssl/ssl_backend_securetransport.cpp)
