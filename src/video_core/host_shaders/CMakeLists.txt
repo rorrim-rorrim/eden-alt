@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 set(FIDELITYFX_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/externals/FidelityFX-FSR/ffx-fsr)
+set(SNAPDRAGON_GSR_INCLUDE_DIR ${snapdragon_gsr_SOURCE_DIR}/sgsr/v1/include/glsl/)
 
 set(FIDELITYFX_FILES
     ${FIDELITYFX_INCLUDE_DIR}/ffx_a.h
@@ -14,77 +15,78 @@ set(GLSL_INCLUDES
 )
 
 set(SHADER_FILES
-    astc_decoder.comp
-    blit_color_float.frag
-    block_linear_unswizzle_2d.comp
-    block_linear_unswizzle_3d.comp
-    block_linear_unswizzle_3d_bcn.comp
-    convert_abgr8_srgb_to_d24s8.frag
-    convert_abgr8_to_d24s8.frag
-    convert_abgr8_to_d32f.frag
-    convert_d32f_to_abgr8.frag
-    convert_d24s8_to_abgr8.frag
-    convert_depth_to_float.frag
-    convert_float_to_depth.frag
-    convert_msaa_to_non_msaa.comp
-    convert_non_msaa_to_msaa.comp
-    convert_s8d24_to_abgr8.frag
-    full_screen_triangle.vert
-    fxaa.frag
-    fxaa.vert
-    opengl_convert_s8d24.comp
-    opengl_copy_bc4.comp
-    opengl_fidelityfx_fsr.frag
-    opengl_fidelityfx_fsr_easu.frag
-    opengl_fidelityfx_fsr_rcas.frag
-    opengl_lmem_warmup.comp
-    opengl_present.frag
-    opengl_present.vert
-    opengl_present_scaleforce.frag
-    opengl_smaa.glsl
-    pitch_unswizzle.comp
-    present_area.frag
-    present_bicubic.frag
-    present_zero_tangent.frag
-    present_bspline.frag
-    present_mitchell.frag
-    present_gaussian.frag
-    present_lanczos.frag
-    present_spline1.frag
-    present_mmpx.frag
-    queries_prefix_scan_sum.comp
-    queries_prefix_scan_sum_nosubgroups.comp
-    resolve_conditional_render.comp
-    smaa_edge_detection.vert
-    smaa_edge_detection.frag
-    smaa_blending_weight_calculation.vert
-    smaa_blending_weight_calculation.frag
-    smaa_neighborhood_blending.vert
-    smaa_neighborhood_blending.frag
-    vulkan_blit_depth_stencil.frag
-    vulkan_color_clear.frag
-    vulkan_color_clear.vert
-    vulkan_depthstencil_clear.frag
-    vulkan_fidelityfx_fsr.vert
-    vulkan_fidelityfx_fsr_easu_fp16.frag
-    vulkan_fidelityfx_fsr_easu_fp32.frag
-    vulkan_fidelityfx_fsr_rcas_fp16.frag
-    vulkan_fidelityfx_fsr_rcas_fp32.frag
-    vulkan_present.frag
-    vulkan_present.vert
-    vulkan_present_scaleforce_fp16.frag
-    vulkan_present_scaleforce_fp32.frag
-    vulkan_quad_indexed.comp
-    vulkan_turbo_mode.comp
-    vulkan_uint8.comp
-    convert_rgba8_to_bgra8.frag
-    convert_yuv420_to_rgb.comp
-    convert_rgb_to_yuv420.comp
-    convert_bc7_to_rgba8.comp
-    convert_astc_hdr_to_rgba16f.comp
-    convert_rgba16f_to_rgba8.frag
-    dither_temporal.frag
-    dynamic_resolution_scale.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/astc_decoder.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/blit_color_float.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/block_linear_unswizzle_2d.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/block_linear_unswizzle_3d.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_abgr8_srgb_to_d24s8.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_abgr8_to_d24s8.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_abgr8_to_d32f.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_d32f_to_abgr8.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_d24s8_to_abgr8.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_depth_to_float.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_float_to_depth.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_msaa_to_non_msaa.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_non_msaa_to_msaa.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_s8d24_to_abgr8.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/full_screen_triangle.vert
+    ${CMAKE_CURRENT_SOURCE_DIR}/fxaa.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/fxaa.vert
+    ${CMAKE_CURRENT_SOURCE_DIR}/opengl_convert_s8d24.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/opengl_copy_bc4.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/opengl_fidelityfx_fsr.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/opengl_fidelityfx_fsr_easu.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/opengl_fidelityfx_fsr_rcas.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/opengl_lmem_warmup.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/opengl_present.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/opengl_present.vert
+    ${CMAKE_CURRENT_SOURCE_DIR}/opengl_present_scaleforce.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/opengl_smaa.glsl
+    ${CMAKE_CURRENT_SOURCE_DIR}/pitch_unswizzle.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/present_area.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/present_bicubic.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/present_zero_tangent.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/present_bspline.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/present_mitchell.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/present_gaussian.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/present_lanczos.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/present_spline1.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/present_mmpx.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/queries_prefix_scan_sum.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/queries_prefix_scan_sum_nosubgroups.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/resolve_conditional_render.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/smaa_edge_detection.vert
+    ${CMAKE_CURRENT_SOURCE_DIR}/smaa_edge_detection.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/smaa_blending_weight_calculation.vert
+    ${CMAKE_CURRENT_SOURCE_DIR}/smaa_blending_weight_calculation.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/smaa_neighborhood_blending.vert
+    ${CMAKE_CURRENT_SOURCE_DIR}/smaa_neighborhood_blending.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_blit_depth_stencil.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_color_clear.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_color_clear.vert
+    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_depthstencil_clear.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_fidelityfx_fsr.vert
+    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_fidelityfx_fsr_easu_fp16.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_fidelityfx_fsr_easu_fp32.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_fidelityfx_fsr_rcas_fp16.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_fidelityfx_fsr_rcas_fp32.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_present.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_present.vert
+    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_present_scaleforce_fp16.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_present_scaleforce_fp32.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_quad_indexed.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_turbo_mode.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_uint8.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_rgba8_to_bgra8.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_yuv420_to_rgb.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_rgb_to_yuv420.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_bc7_to_rgba8.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_astc_hdr_to_rgba16f.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_rgba16f_to_rgba8.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/dither_temporal.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/dynamic_resolution_scale.comp
+    ${snapdragon_gsr_SOURCE_DIR}/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
+    ${snapdragon_gsr_SOURCE_DIR}/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
 )
 
 if (PLATFORM_HAIKU)
@@ -127,38 +129,52 @@ if (NOT GLSLANG_ERROR STREQUAL "")
     set(QUIET_FLAG "")
 endif()
 
-foreach(FILENAME IN ITEMS ${SHADER_FILES})
+foreach(SOURCE_FILE IN ITEMS ${SHADER_FILES})
+    get_filename_component(FILENAME ${SOURCE_FILE} NAME)
     string(REPLACE "." "_" SHADER_NAME ${FILENAME})
-    set(SOURCE_FILE ${CMAKE_CURRENT_SOURCE_DIR}/${FILENAME})
-    # Skip generating source headers on Vulkan exclusive files
-    if (NOT ${FILENAME} MATCHES "vulkan.*")
-        set(SOURCE_HEADER_FILE ${SHADER_DIR}/${SHADER_NAME}.h)
-        add_custom_command(
-            OUTPUT
-                ${SOURCE_HEADER_FILE}
-            COMMAND
-                ${CMAKE_COMMAND} -P ${HEADER_GENERATOR} ${SOURCE_FILE} ${SOURCE_HEADER_FILE} ${INPUT_FILE}
-            MAIN_DEPENDENCY
-                ${SOURCE_FILE}
-            DEPENDS
-                ${INPUT_FILE}
-                # HEADER_GENERATOR should be included here but msbuild seems to assume it's always modified
-        )
-        set(SHADER_HEADERS ${SHADER_HEADERS} ${SOURCE_HEADER_FILE})
-    endif()
-    # Skip compiling to SPIR-V OpenGL exclusive files
-    if (NOT ${FILENAME} MATCHES "opengl.*")
+    if (${FILENAME} MATCHES "sgsr1.*")
         string(TOUPPER ${SHADER_NAME}_SPV SPIRV_VARIABLE_NAME)
         set(SPIRV_HEADER_FILE ${SHADER_DIR}/${SHADER_NAME}_spv.h)
         add_custom_command(
             OUTPUT
                 ${SPIRV_HEADER_FILE}
             COMMAND
-                ${GLSLANGVALIDATOR} -V ${QUIET_FLAG} -I"${FIDELITYFX_INCLUDE_DIR}" ${GLSL_FLAGS} --variable-name ${SPIRV_VARIABLE_NAME} -o ${SPIRV_HEADER_FILE} ${SOURCE_FILE} --target-env ${SPIR_V_VERSION}
+                ${GLSLANGVALIDATOR} -V ${QUIET_FLAG} -DUseUniformBlock=1 ${GLSL_FLAGS} --variable-name ${SPIRV_VARIABLE_NAME} -o ${SPIRV_HEADER_FILE} ${SOURCE_FILE} --target-env ${SPIR_V_VERSION}
             MAIN_DEPENDENCY
                 ${SOURCE_FILE}
         )
         set(SHADER_HEADERS ${SHADER_HEADERS} ${SPIRV_HEADER_FILE})
+    else()
+        # Skip generating source headers on Vulkan exclusive files
+        if (NOT ${FILENAME} MATCHES "vulkan.*" AND NOT ${FILENAME} MATCHES "sgsr1.*")
+            set(SOURCE_HEADER_FILE ${SHADER_DIR}/${SHADER_NAME}.h)
+            add_custom_command(
+                OUTPUT
+                    ${SOURCE_HEADER_FILE}
+                COMMAND
+                    ${CMAKE_COMMAND} -P ${HEADER_GENERATOR} ${SOURCE_FILE} ${SOURCE_HEADER_FILE} ${INPUT_FILE}
+                MAIN_DEPENDENCY
+                    ${SOURCE_FILE}
+                DEPENDS
+                    ${INPUT_FILE}
+                    # HEADER_GENERATOR should be included here but msbuild seems to assume it's always modified
+            )
+            set(SHADER_HEADERS ${SHADER_HEADERS} ${SOURCE_HEADER_FILE})
+        endif()
+        # Skip compiling to SPIR-V OpenGL exclusive files
+        if (NOT ${FILENAME} MATCHES "opengl.*")
+            string(TOUPPER ${SHADER_NAME}_SPV SPIRV_VARIABLE_NAME)
+            set(SPIRV_HEADER_FILE ${SHADER_DIR}/${SHADER_NAME}_spv.h)
+            add_custom_command(
+                OUTPUT
+                    ${SPIRV_HEADER_FILE}
+                COMMAND
+                    ${GLSLANGVALIDATOR} -V ${QUIET_FLAG} -I"${FIDELITYFX_INCLUDE_DIR}" ${GLSL_FLAGS} --variable-name ${SPIRV_VARIABLE_NAME} -o ${SPIRV_HEADER_FILE} ${SOURCE_FILE} --target-env ${SPIR_V_VERSION}
+                MAIN_DEPENDENCY
+                    ${SOURCE_FILE}
+            )
+            set(SHADER_HEADERS ${SHADER_HEADERS} ${SPIRV_HEADER_FILE})
+        endif()
     endif()
 endforeach()
 
