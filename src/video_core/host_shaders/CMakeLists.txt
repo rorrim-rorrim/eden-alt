@@ -84,6 +84,10 @@ set(SHADER_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/convert_rgba16f_to_rgba8.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/dither_temporal.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/dynamic_resolution_scale.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/block_linear_unswizzle_3d_bcn.comp
+
+    # Snapdragon Game Super Resolution
+    ${CMAKE_CURRENT_SOURCE_DIR}/sgsr1_shader.vert
     ${snapdragon_gsr_SOURCE_DIR}/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
     ${snapdragon_gsr_SOURCE_DIR}/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
 )
