@@ -141,27 +141,6 @@ public:
     std::array<vk::Buffer, indexing_slots> buffers{};
 };
 
-class Sampler {
-public:
-    explicit Sampler(TextureCacheRuntime&, const Tegra::Texture::TSCEntry&);
-
-    [[nodiscard]] VkSampler Handle() const noexcept {
-        return *sampler;
-    }
-
-    [[nodiscard]] VkSampler HandleWithDefaultAnisotropy() const noexcept {
-        return *sampler_default_anisotropy;
-    }
-
-    [[nodiscard]] bool HasAddedAnisotropy() const noexcept {
-        return static_cast<bool>(sampler_default_anisotropy);
-    }
-
-private:
-    vk::Sampler sampler;
-    vk::Sampler sampler_default_anisotropy;
-};
-
 class Framebuffer {
 public:
     explicit Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM_RT> color_buffers,
@@ -330,10 +309,9 @@ private:
     VkImageAspectFlags aspect_mask = 0;
     bool initialized = false;
 
-    std::unique_ptr<Framebuffer> scale_framebuffer;
+    std::optional<Framebuffer> scale_framebuffer;
+    std::optional<Framebuffer> normal_framebuffer;
     std::unique_ptr<ImageView> scale_view;
-
-    std::unique_ptr<Framebuffer> normal_framebuffer;
     std::unique_ptr<ImageView> normal_view;
 };
 
