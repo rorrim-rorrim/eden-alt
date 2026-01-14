@@ -661,7 +661,7 @@ function(AddQt version)
     AddCIPackage(
         NAME Qt
         PACKAGE Qt6
-        VERSION 6.9.3
+        VERSION ${version}
         MIN_VERSION 6
         REPO crueter-ci/Qt
         DISABLED_PLATFORMS
