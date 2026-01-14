@@ -112,25 +112,26 @@ bool DmaPusher::Step() {
 
 void DmaPusher::ProcessCommands(std::span<const CommandHeader> commands) {
     for (size_t index = 0; index < commands.size();) {
-        auto const command_header = commands[index];
+        // Data word of methods command
         if (dma_state.method_count && dma_state.non_incrementing) {
-            // Data word of methods command
+            auto const& command_header = commands[index]; //must ref (MUltiMethod re)
             dma_state.dma_word_offset = u32(index * sizeof(u32));
-            const u32 max_write = u32(std::min<size_t>(index + dma_state.method_count, commands.size()) - index);
+            const u32 max_write = u32(std::min<std::size_t>(index + dma_state.method_count, commands.size()) - index);
             CallMultiMethod(&command_header.argument, max_write);
             dma_state.method_count -= max_write;
             dma_state.is_last_call = true;
             index += max_write;
         } else if (dma_state.method_count) {
-            // Data word of methods command
+            auto const command_header = commands[index]; //can copy
             dma_state.dma_word_offset = u32(index * sizeof(u32));
             dma_state.is_last_call = dma_state.method_count <= 1;
             CallMethod(command_header.argument);
-            dma_state.method += size_t(!dma_state.non_incrementing);
-            dma_state.non_incrementing = dma_increment_once;
-            --dma_state.method_count;
-            ++index;
+            dma_state.method += !dma_state.non_incrementing ? 1 : 0;
+            dma_state.non_incrementing |= dma_increment_once;
+            dma_state.method_count--;
+            index++;
         } else {
+            auto const command_header = commands[index]; //can copy
             // No command active - this is the first word of a new one
             switch (command_header.mode) {
             case SubmissionMode::Increasing:
@@ -159,7 +160,7 @@ void DmaPusher::ProcessCommands(std::span<const CommandHeader> commands) {
             default:
                 break;
             }
-            ++index;
+            index++;
         }
     }
 }
