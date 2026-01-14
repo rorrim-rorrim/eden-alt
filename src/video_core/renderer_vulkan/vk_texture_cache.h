@@ -379,7 +379,7 @@ private:
     const SlotVector<Image>* slot_images = nullptr;
 
     std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> image_views;
-    std::unique_ptr<StorageViews> storage_views;
+    std::optional<StorageViews> storage_views;
     vk::ImageView depth_view;
     vk::ImageView stencil_view;
     vk::ImageView color_view;
