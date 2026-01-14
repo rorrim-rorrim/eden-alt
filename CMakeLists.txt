@@ -122,15 +122,13 @@ if (CXX_CLANG_CL)
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-reserved-identifier>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-deprecated-declarations>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-cast-function-type-mismatch>
-        $<$<COMPILE_LANGUAGE:C,CXX>:/EHsc> # thanks microsoft
-    )
+        $<$<COMPILE_LANGUAGE:C,CXX>:/EHsc>)
 
     # REQUIRED CPU features IN Windows-amd64
     if (ARCHITECTURE_x86_64)
         add_compile_options(
             $<$<COMPILE_LANGUAGE:C,CXX>:-msse4.1>
-            $<$<COMPILE_LANGUAGE:C,CXX>:-mcx16>
-        )
+            $<$<COMPILE_LANGUAGE:C,CXX>:-mcx16>)
     endif()
 endif()
 
@@ -170,9 +168,10 @@ cmake_dependent_option(YUZU_USE_EXTERNAL_FFMPEG "Build FFmpeg from external sour
 
 # sirit
 set(BUNDLED_SIRIT_DEFAULT OFF)
-if ((MSVC AND NOT (CMAKE_BUILD_TYPE MATCHES "Debug|RelWithDebInfo") OR ANDROID))
+if (MSVC AND NOT (CMAKE_BUILD_TYPE MATCHES "Deb") OR ANDROID)
     set(BUNDLED_SIRIT_DEFAULT ON)
 endif()
+
 option(YUZU_USE_BUNDLED_SIRIT "Download bundled sirit" ${BUNDLED_SIRIT_DEFAULT})
 
 # FreeBSD 15+ has libusb, versions below should disable it
@@ -222,13 +221,15 @@ if (ENABLE_WEB_SERVICE OR USE_DISCORD_PRESENCE)
 endif()
 
 option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
+
 if (ENABLE_OPENSSL)
     set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL OFF)
     if (EXT_DEFAULT OR PLATFORM_SUN)
         set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL ON)
     endif()
-    option(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" ${DEFAULT_YUZU_USE_BUNDLED_OPENSSL})
 endif()
+
+cmake_dependent_option(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" ${DEFAULT_YUZU_USE_BUNDLED_OPENSSL} "ENABLE_OPENSSL" OFF)
 
 if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)
     AddJsonPackage(vulkan-validation-layers)
@@ -294,40 +295,42 @@ endif()
 
 # Build/optimization presets
 if (PLATFORM_LINUX OR CXX_CLANG)
-    if (ARCHITECTURE_x86_64)
+    if (${YUZU_BUILD_PRESET} STREQUAL "native")
+        set(march native)
+        set(march native)
+    elseif (ARCHITECTURE_x86_64)
         # See https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html
         # Generic supports Pentium Pro instruction set and above
+        # TODO: if a value is unknown, pass that as march and mtune
         set(YUZU_BUILD_PRESET "custom" CACHE STRING "Build preset to use. One of: custom, generic, v3, zen2, zen4, native")
+
         if (${YUZU_BUILD_PRESET} STREQUAL "generic")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -mtune=generic")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=x86-64 -mtune=generic")
+            set(march x86-64)
+            set(mtune generic)
         elseif (${YUZU_BUILD_PRESET} STREQUAL "v3")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64-v3 -mtune=generic")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=x86-64-v3 -mtune=generic")
+            set(march x86-64-v3)
+            set(mtune generic)
         elseif (${YUZU_BUILD_PRESET} STREQUAL "zen2")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=znver2 -mtune=znver2")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=znver2 -mtune=znver2")
+            set(march znver2)
+            set(march znver2)
         elseif (${YUZU_BUILD_PRESET} STREQUAL "zen4")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=znver4 -mtune=znver4")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=znver4 -mtune=znver4")
-        elseif (${YUZU_BUILD_PRESET} STREQUAL "native")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -mtune=native")
+            set(march znver4)
+            set(march znver4)
         endif()
     elseif(ARCHITECTURE_arm64)
         # See https://gcc.gnu.org/onlinedocs/gcc/AArch64-Options.html
         set(YUZU_BUILD_PRESET "custom" CACHE STRING "Build preset to use. One of: custom, generic, armv9, native")
+        set(mtune generic)
+
         if (${YUZU_BUILD_PRESET} STREQUAL "generic")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv8-a -mtune=generic")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv8-a -mtune=generic")
+            set(march armv8-a)
         elseif (${YUZU_BUILD_PRESET} STREQUAL "armv9")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv9-a -mtune=generic")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv9-a -mtune=generic")
-        elseif (${YUZU_BUILD_PRESET} STREQUAL "native")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -mtune=native")
+            set(march armv9-a)
         endif()
     endif()
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${march} -mtune=${mtune}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=${march} -mtune=${mtune}")
 endif()
 
 # Other presets, e.g. steamdeck
@@ -529,7 +532,7 @@ find_package(VulkanUtilityLibraries)
 find_package(SimpleIni)
 find_package(SPIRV-Tools)
 find_package(sirit)
-find_package(gamemode) 
+find_package(gamemode)
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     find_package(xbyak)
@@ -559,6 +562,7 @@ if (YUZU_TESTS OR DYNARMIC_TESTS)
     find_package(Catch2)
 endif()
 
+# Qt stuff
 if (ENABLE_QT)
     if (YUZU_USE_BUNDLED_QT)
         AddQt(6.9.3)
@@ -607,9 +611,9 @@ if (ENABLE_QT)
 
     message(STATUS "Using target Qt at ${QT_TARGET_PATH}")
     message(STATUS "Using host Qt at ${QT_HOST_PATH}")
-endif()
 
-function(set_yuzu_qt_components)
+    ## Components ##
+
     # Best practice is to ask for all components at once, so they are from the same version
     set(YUZU_QT_COMPONENTS2 Core Widgets Concurrent)
     if (PLATFORM_LINUX)
@@ -625,10 +629,7 @@ function(set_yuzu_qt_components)
         list(APPEND YUZU_QT_COMPONENTS2 LinguistTools)
     endif()
     set(YUZU_QT_COMPONENTS ${YUZU_QT_COMPONENTS2} PARENT_SCOPE)
-endfunction(set_yuzu_qt_components)
 
-if(ENABLE_QT)
-    set_yuzu_qt_components()
     find_package(Qt6 REQUIRED COMPONENTS ${YUZU_QT_COMPONENTS})
     set(QT_MAJOR_VERSION 6)
     # Qt6 sets cxx_std_17 and we need to undo that
