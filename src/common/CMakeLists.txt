@@ -220,8 +220,7 @@ else()
     stb.cpp
     PROPERTIES
       COMPILE_OPTIONS
-      "-Wno-implicit-fallthrough;-Wno-missing-declarations;-Wno-missing-field-initializers"
-  )
+      "-Wno-implicit-fallthrough;-Wno-missing-declarations;-Wno-missing-field-initializers")
 
   # Get around GCC failing with intrinsics in Debug
   if(CXX_GCC AND CMAKE_BUILD_TYPE MATCHES "Debug")
@@ -240,8 +239,7 @@ if(CXX_CLANG)
     PRIVATE
       # Clang 14 and earlier have errors when explicitly instantiating
       # Settings::Setting
-      $<$<VERSION_LESS:$<CXX_COMPILER_VERSION>,15>:CANNOT_EXPLICITLY_INSTANTIATE>
-  )
+      $<$<VERSION_LESS:$<CXX_COMPILER_VERSION>,15>:CANNOT_EXPLICITLY_INSTANTIATE>)
 endif()
 
 if (BOOST_NO_HEADERS)
