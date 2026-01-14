@@ -22,10 +22,10 @@
 
 namespace Dynarmic::IR {
 
-Block::Block(const LocationDescriptor& location)
-    : location{location},
-    end_location{location},
-    cond{Cond::AL}
+Block::Block(const LocationDescriptor& location) noexcept :
+    location{location}
+    , end_location{location}
+    , cond{Cond::AL}
 {
 
 }

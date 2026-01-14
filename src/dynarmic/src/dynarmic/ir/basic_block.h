@@ -44,8 +44,8 @@ public:
     using reverse_iterator = instruction_list_type::reverse_iterator;
     using const_reverse_iterator = instruction_list_type::const_reverse_iterator;
 
-    explicit Block(const LocationDescriptor& location);
-    ~Block() = default;
+    explicit Block(const LocationDescriptor& location) noexcept;
+    ~Block() noexcept = default;
     Block(const Block&) = delete;
     Block& operator=(const Block&) = delete;
     Block(Block&&) = default;
