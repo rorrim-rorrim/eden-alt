@@ -23,8 +23,17 @@ set(CPMUTIL_JSON_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json")
 
 if(EXISTS ${CPMUTIL_JSON_FILE})
     file(READ ${CPMUTIL_JSON_FILE} CPMFILE_CONTENT)
+    if (NOT TARGET cpmfiles)
+        add_custom_target(cpmfiles)
+    endif()
+
+    target_sources(cpmfiles PRIVATE ${CPMUTIL_JSON_FILE})
+    set_property(DIRECTORY APPEND PROPERTY
+        CMAKE_CONFIGURE_DEPENDS
+        "${CPMUTIL_JSON_FILE}")
 else()
-    message(WARNING "[CPMUtil] cpmfile ${CPMUTIL_JSON_FILE} does not exist, AddJsonPackage will be a no-op")
+    message(DEBUG "[CPMUtil] cpmfile ${CPMUTIL_JSON_FILE}"
+        "does not exist, AddJsonPackage will be a no-op")
 endif()
 
 # Utility stuff
@@ -68,10 +77,10 @@ function(AddJsonPackage)
     set(oneValueArgs
         NAME
 
-        # these are overrides that can be generated at runtime, so can be defined separately from the json
+        # these are overrides that can be generated at runtime,
+        # so can be defined separately from the json
         DOWNLOAD_ONLY
-        BUNDLED_PACKAGE
-    )
+        BUNDLED_PACKAGE)
 
     set(multiValueArgs OPTIONS)
 
@@ -86,7 +95,8 @@ function(AddJsonPackage)
     endif()
 
     if(NOT DEFINED CPMFILE_CONTENT)
-        cpm_utils_message(WARNING ${name} "No cpmfile, AddJsonPackage is a no-op")
+        cpm_utils_message(WARNING ${name}
+            "No cpmfile, AddJsonPackage is a no-op")
         return()
     endif()
 
@@ -94,7 +104,8 @@ function(AddJsonPackage)
         cpm_utils_message(FATAL_ERROR "json package" "No name specified")
     endif()
 
-    string(JSON object ERROR_VARIABLE err GET "${CPMFILE_CONTENT}" "${JSON_NAME}")
+    string(JSON object ERROR_VARIABLE
+        err GET "${CPMFILE_CONTENT}" "${JSON_NAME}")
 
     if(err)
         cpm_utils_message(FATAL_ERROR ${JSON_NAME} "Not found in cpmfile")
@@ -112,7 +123,8 @@ function(AddJsonPackage)
         get_json_element("${object}" raw_disabled disabled_platforms "")
 
         if(raw_disabled)
-            array_to_list("${raw_disabled}" ${raw_disabled_LENGTH} disabled_platforms)
+            array_to_list("${raw_disabled}"
+                ${raw_disabled_LENGTH} disabled_platforms)
         else()
             set(disabled_platforms "")
         endif()
@@ -152,8 +164,10 @@ function(AddJsonPackage)
     get_json_element("${object}" raw_patches patches "")
 
     # okay here comes the fun part: REPLACEMENTS!
-    # first: tag gets %VERSION% replaced if applicable, with either git_version (preferred) or version
-    # second: artifact gets %VERSION% and %TAG% replaced accordingly (same rules for VERSION)
+    # first: tag gets %VERSION% replaced if applicable,
+    #   with either git_version (preferred) or version
+    # second: artifact gets %VERSION% and %TAG% replaced
+    #   accordingly (same rules for VERSION)
 
     if(git_version)
         set(version_replace ${git_version})
@@ -178,9 +192,11 @@ function(AddJsonPackage)
         foreach(IDX RANGE ${range})
             string(JSON _patch GET "${raw_patches}" "${IDX}")
 
-            set(full_patch "${CMAKE_SOURCE_DIR}/.patch/${JSON_NAME}/${_patch}")
+            set(full_patch
+                "${PROJECT_SOURCE_DIR}/.patch/${JSON_NAME}/${_patch}")
             if(NOT EXISTS ${full_patch})
-                cpm_utils_message(FATAL_ERROR ${JSON_NAME} "specifies patch ${full_patch} which does not exist")
+                cpm_utils_message(FATAL_ERROR ${JSON_NAME}
+                    "specifies patch ${full_patch} which does not exist")
             endif()
 
             list(APPEND patches "${full_patch}")
@@ -289,8 +305,17 @@ function(AddPackage)
         cpm_utils_message(FATAL_ERROR "package" "No package name defined")
     endif()
 
-    option(${PKG_ARGS_NAME}_FORCE_SYSTEM "Force the system package for ${PKG_ARGS_NAME}")
-    option(${PKG_ARGS_NAME}_FORCE_BUNDLED "Force the bundled package for ${PKG_ARGS_NAME}")
+    set(${PKG_ARGS_NAME}_CUSTOM_DIR "" CACHE STRING
+        "Path to a separately-downloaded copy of ${PKG_ARGS_NAME}")
+    option(${PKG_ARGS_NAME}_FORCE_SYSTEM
+        "Force the system package for ${PKG_ARGS_NAME}")
+    option(${PKG_ARGS_NAME}_FORCE_BUNDLED
+        "Force the bundled package for ${PKG_ARGS_NAME}")
+
+    if (DEFINED ${PKG_ARGS_NAME}_CUSTOM_DIR AND
+        NOT ${PKG_ARGS_NAME}_CUSTOM_DIR STREQUAL "")
+        set(CPM_${PKG_ARGS_NAME}_SOURCE ${${PKG_ARGS_NAME}_CUSTOM_DIR})
+    endif()
 
     if(NOT DEFINED PKG_ARGS_GIT_HOST)
         set(git_host github.com)
@@ -330,14 +355,16 @@ function(AddPackage)
                 set(PKG_BRANCH ${PKG_ARGS_BRANCH})
             else()
                 cpm_utils_message(WARNING ${PKG_ARGS_NAME}
-                    "REPO defined but no TAG, SHA, BRANCH, or URL specified, defaulting to master")
+                    "REPO defined but no TAG, SHA, BRANCH, or URL"
+                    "specified, defaulting to master")
                 set(PKG_BRANCH master)
             endif()
 
             set(pkg_url ${pkg_git_url}/archive/refs/heads/${PKG_BRANCH}.tar.gz)
         endif()
     else()
-        cpm_utils_message(FATAL_ERROR ${PKG_ARGS_NAME} "No URL or repository defined")
+        cpm_utils_message(FATAL_ERROR ${PKG_ARGS_NAME}
+            "No URL or repository defined")
     endif()
 
     cpm_utils_message(DEBUG ${PKG_ARGS_NAME} "Download URL is ${pkg_url}")
@@ -399,7 +426,8 @@ function(AddPackage)
         # because "technically" the hash is invalidated each week
         # but it works for now kjsdnfkjdnfjksdn
         string(TOLOWER ${PKG_ARGS_NAME} lowername)
-        if(NOT EXISTS ${outfile} AND NOT EXISTS ${CPM_SOURCE_CACHE}/${lowername}/${pkg_key})
+        if(NOT EXISTS ${outfile} AND NOT EXISTS
+            ${CPM_SOURCE_CACHE}/${lowername}/${pkg_key})
             file(DOWNLOAD ${hash_url} ${outfile})
         endif()
 
@@ -425,7 +453,7 @@ function(AddPackage)
         - CPMUTIL_FORCE_BUNDLED
         - BUNDLED_PACKAGE
         - default to allow local
-    ]]    #
+    ]]
     if(PKG_ARGS_FORCE_BUNDLED_PACKAGE)
         set_precedence(OFF OFF)
     elseif(${PKG_ARGS_NAME}_FORCE_SYSTEM)
@@ -436,7 +464,8 @@ function(AddPackage)
         set_precedence(ON ON)
     elseif(CPMUTIL_FORCE_BUNDLED)
         set_precedence(OFF OFF)
-    elseif(DEFINED PKG_ARGS_BUNDLED_PACKAGE AND NOT PKG_ARGS_BUNDLED_PACKAGE STREQUAL "unset")
+    elseif(DEFINED PKG_ARGS_BUNDLED_PACKAGE AND
+        NOT PKG_ARGS_BUNDLED_PACKAGE STREQUAL "unset")
         if(PKG_ARGS_BUNDLED_PACKAGE)
             set(local OFF)
         else()
@@ -526,7 +555,11 @@ function(AddCIPackage)
 
     set(optionArgs MODULE)
 
-    cmake_parse_arguments(PKG_ARGS "${optionArgs}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(PKG_ARGS
+        "${optionArgs}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN})
 
     if(NOT DEFINED PKG_ARGS_VERSION)
         message(FATAL_ERROR "[CPMUtil] VERSION is required")
@@ -607,10 +640,11 @@ function(AddCIPackage)
             DOWNLOAD_ONLY ${PKG_ARGS_MODULE})
 
         set(${ARTIFACT_PACKAGE}_ADDED TRUE PARENT_SCOPE)
-        set(${ARTIFACT_PACKAGE}_SOURCE_DIR "${${ARTIFACT_PACKAGE}_SOURCE_DIR}" PARENT_SCOPE)
+        set(${ARTIFACT_PACKAGE}_SOURCE_DIR
+            "${${ARTIFACT_PACKAGE}_SOURCE_DIR}" PARENT_SCOPE)
 
         if (PKG_ARGS_MODULE)
-            list(PREPEND CMAKE_PREFIX_PATH "${${ARTIFACT_PACKAGE}_SOURCE_DIR}")
+            list(APPEND CMAKE_PREFIX_PATH "${${ARTIFACT_PACKAGE}_SOURCE_DIR}")
             set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} PARENT_SCOPE)
         endif()
     else()

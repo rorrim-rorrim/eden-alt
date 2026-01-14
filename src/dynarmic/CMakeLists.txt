@@ -115,10 +115,6 @@ endif()
 
 find_package(Boost 1.57 REQUIRED)
 find_package(fmt 8 CONFIG)
-
-# Pull in externals CMakeLists for libs where available
-add_subdirectory(externals)
-
 find_package(mcl 0.1.12 REQUIRED)
 
 if ("arm64" IN_LIST ARCHITECTURE OR DYNARMIC_TESTS)

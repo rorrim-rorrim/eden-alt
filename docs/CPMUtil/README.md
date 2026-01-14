@@ -5,7 +5,7 @@ CPMUtil is a wrapper around CPM that aims to reduce boilerplate and add useful u
 Global Options:
 
 - `CPMUTIL_FORCE_SYSTEM` (default `OFF`): Require all CPM dependencies to use system packages. NOT RECOMMENDED!
-  * You may optionally override this (section)
+  - You may optionally override this (section)
 - `CPMUTIL_FORCE_BUNDLED` (default `ON` on MSVC and Android, `OFF` elsewhere): Require all CPM dependencies to use bundled packages.
 
 You are highly encouraged to read AddPackage first, even if you plan to only interact with CPMUtil via `AddJsonPackage`.
@@ -42,8 +42,8 @@ CPMUtil will create three lists of dependencies where `AddPackage` or similar wa
 - `CPM_PACKAGE_NAMES`: The names of packages included by CPMUtil
 - `CPM_PACKAGE_URLS`: The URLs to project/repo pages of packages
 - `CPM_PACKAGE_SHAS`: Short version identifiers for each package
-    * If the package was included as a system package, ` (system)` is appended thereafter
-    * Packages whose versions can't be deduced will be left as `unknown`.
+  - If the package was included as a system package, `(system)` is appended thereafter
+  - Packages whose versions can't be deduced will be left as `unknown`.
 
 For an example of how this might be implemented in an application, see Eden's implementation:
 
@@ -58,6 +58,8 @@ If you are packaging a project that uses CPMUtil, read this!
 ### Network Sandbox
 
 For sandboxed environments (e.g. Gentoo, nixOS) you must install all dependencies to the system beforehand and set `-DCPMUTIL_FORCE_SYSTEM=ON`. If a dependency is missing, get creating!
+
+Alternatively, if CPMUtil pulls in a package that has no suitable way to install or use a system version, download it separately and pass `-DPackageName_DIR=/path/to/downloaded/dir` (e.g. shaders)
 
 ### Unsandboxed
 
