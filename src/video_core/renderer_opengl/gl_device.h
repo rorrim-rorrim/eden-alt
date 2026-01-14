@@ -10,10 +10,6 @@
 #include "core/frontend/emu_window.h"
 #include "shader_recompiler/stage.h"
 
-namespace Settings {
-enum class ShaderBackend : u32;
-};
-
 namespace OpenGL {
 
 class Device {
@@ -168,10 +164,6 @@ public:
         return has_bool_ref_bug;
     }
 
-    Settings::ShaderBackend GetShaderBackend() const {
-        return shader_backend;
-    }
-
     bool IsAmd() const {
         return vendor_name == "ATI Technologies Inc.";
     }
@@ -207,8 +199,6 @@ private:
     u32 max_varyings{};
     u32 max_compute_shared_memory_size{};
     u32 max_glasm_storage_buffer_blocks{};
-
-    Settings::ShaderBackend shader_backend{};
 
     bool has_warp_intrinsics{};
     bool has_shader_ballot{};
