@@ -11,7 +11,7 @@ set(FFmpeg_HWACCEL_FLAGS)
 set(FFmpeg_HWACCEL_INCLUDE_DIRS)
 set(FFmpeg_HWACCEL_LDFLAGS)
 
-if (UNIX AND NOT ANDROID)
+if (PLATFORM_LINUX AND NOT ANDROID)
     find_package(PkgConfig REQUIRED)
     if (NOT ANDROID)
         pkg_check_modules(LIBVA libva)
