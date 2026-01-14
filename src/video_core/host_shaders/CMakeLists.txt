@@ -217,3 +217,4 @@ add_custom_target(host_shaders
     SOURCES
         ${SHADER_SOURCES}
 )
+#add_dependencies(host_shaders snapdragon_gsr::snapdragon_gsr)
