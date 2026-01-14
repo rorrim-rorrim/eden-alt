@@ -57,8 +57,10 @@ Layer::Layer(const Device& device_, MemoryAllocator& memory_allocator_, Schedule
       device_memory(device_memory_), filters(filters_), image_count(image_count_) {
     CreateDescriptorPool();
     CreateDescriptorSets(layout);
-    if (filters.get_scaling_filter() == Settings::ScalingFilter::Fsr) {
-        CreateFSR(output_size);
+    if (filters.get_scaling_filter() == Settings::ScalingFilter::Sgsr) {
+        sgsr = std::make_unique<SGSR>(device, memory_allocator, image_count, output_size);
+    } else if (filters.get_scaling_filter() == Settings::ScalingFilter::Fsr) {
+        fsr = std::make_unique<FSR>(device, memory_allocator, image_count, output_size);
     }
 }
 
@@ -154,10 +156,6 @@ void Layer::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) {
             CreateWrappedImage(memory_allocator, {framebuffer.width, framebuffer.height}, format);
         raw_image_views[i] = CreateWrappedImageView(device, raw_images[i], format);
     }
-}
-
-void Layer::CreateFSR(VkExtent2D output_size) {
-    fsr = std::make_unique<FSR>(device, memory_allocator, image_count, output_size);
 }
 
 void Layer::RefreshResources(const Tegra::FramebufferConfig& framebuffer) {

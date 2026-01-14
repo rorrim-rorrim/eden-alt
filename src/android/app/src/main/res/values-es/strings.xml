@@ -856,6 +856,7 @@
     <string name="scaling_filter_bspline">Ranura-B</string>
     <string name="scaling_filter_mitchell">Mitchell</string>
     <string name="scaling_filter_mmpx">MMPX</string>
+    <string name="scaling_filter_sgsr">Snapdragon Game Super Resolution</string>
 
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Ninguno</string>

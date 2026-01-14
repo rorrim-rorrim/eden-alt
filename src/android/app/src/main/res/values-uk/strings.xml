@@ -944,6 +944,7 @@
     <string name="scaling_filter_bspline">B-Spline</string>
     <string name="scaling_filter_mitchell">Мітчелла</string>
     <string name="scaling_filter_mmpx">MMPX</string>
+    <string name="scaling_filter_sgsr">Snapdragon Game Super Resolution</string>
 
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Вимкнено</string>
