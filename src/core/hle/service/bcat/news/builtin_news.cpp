@@ -20,10 +20,12 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <future>
 #include <iomanip>
 #include <mutex>
 #include <optional>
 #include <sstream>
+#include <thread>
 
 #ifdef YUZU_BUNDLED_OPENSSL
 #include <openssl/cert.h>
@@ -41,6 +43,8 @@ bool default_logos_loaded = false;
 
 std::unordered_map<std::string, std::vector<u8>> news_images_small;
 std::unordered_map<std::string, std::vector<u8>> news_images_large;
+std::mutex images_mutex;
+
 
 std::filesystem::path GetCachePath() {
     return Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "news" / "github_releases.json";
@@ -147,16 +151,19 @@ void LoadDefaultLogos() {
 std::vector<u8> GetNewsImage(std::string_view news_id, bool large) {
     const std::string id_str{news_id};
 
-    auto& cache = large ? news_images_large : news_images_small;
-    if (auto it = cache.find(id_str); it != cache.end()) {
-        return it->second;
+    {
+        std::lock_guard lock{images_mutex};
+        auto& cache = large ? news_images_large : news_images_small;
+        if (auto it = cache.find(id_str); it != cache.end()) {
+            return it->second;
+        }
     }
 
     const auto cache_path = GetNewsImagePath(news_id, large);
     auto data = TryLoadFromDisk(cache_path);
 
     if (data.empty()) {
-        const std::string url = fmt::format("/news/{}_{}.jpg", news_id, large ? "large" : "small");
+        const std::string url = fmt::format("/news/{}_{}.jpg", id_str, large ? "large" : "small");
         data = DownloadImage(url, cache_path);
     }
 
@@ -164,7 +171,46 @@ std::vector<u8> GetNewsImage(std::string_view news_id, bool large) {
         data = large ? default_logo_large : default_logo_small;
     }
 
+    {
+        std::lock_guard lock{images_mutex};
+        auto& cache = large ? news_images_large : news_images_small;
+        cache[id_str] = data;
+    }
+
     return data;
+}
+
+void PreloadNewsImages(const std::vector<u32>& news_ids) {
+    std::vector<std::future<void>> futures;
+    futures.reserve(news_ids.size() * 2);
+
+    for (const u32 id : news_ids) {
+        const std::string id_str = fmt::format("{}", id);
+
+        {
+            std::lock_guard lock{images_mutex};
+            if (news_images_small.contains(id_str) && news_images_large.contains(id_str)) {
+                continue;
+            }
+        }
+
+        const auto path_small = GetNewsImagePath(id_str, false);
+        const auto path_large = GetNewsImagePath(id_str, true);
+        if (std::filesystem::exists(path_small) && std::filesystem::exists(path_large)) {
+            continue;
+        }
+
+        futures.push_back(std::async(std::launch::async, [id_str]() {
+            GetNewsImage(id_str, false);
+        }));
+        futures.push_back(std::async(std::launch::async, [id_str]() {
+            GetNewsImage(id_str, true);
+        }));
+    }
+
+    for (auto& f : futures) {
+        f.wait();
+    }
 }
 
 std::optional<std::string> ReadCachedJson() {
@@ -306,6 +352,19 @@ void ImportReleases(std::string_view json_text) {
     }
 
     if (!root.is_array()) return;
+
+    std::vector<u32> news_ids;
+    for (const auto& rel : root) {
+        if (!rel.is_object()) continue;
+        std::string title = rel.value("name", rel.value("tag_name", std::string{}));
+        if (title.empty()) continue;
+
+        const u64 release_id = rel.value("id", 0);
+        const u32 news_id = release_id ? static_cast<u32>(release_id & 0x7FFFFFFF) : HashToNewsId(title);
+        news_ids.push_back(news_id);
+    }
+
+    PreloadNewsImages(news_ids);
 
     for (const auto& rel : root) {
         if (!rel.is_object()) continue;
@@ -472,19 +531,18 @@ void EnsureBuiltinNewsLoaded() {
     std::call_once(once, [] {
         LoadDefaultLogos();
 
-        if (const auto fresh = DownloadReleasesJson()) {
-            WriteCachedJson(*fresh);
-            ImportReleases(*fresh);
-            LOG_DEBUG(Service_BCAT, ", {} entries, downloaded", NewsStorage::Instance().ListAll().size());
-            return;
-        }
-
-        // Fallback to cached JSON if download failed
         if (const auto cached = ReadCachedJson()) {
             ImportReleases(*cached);
-            LOG_DEBUG(Service_BCAT, ", {} entries, cached", NewsStorage::Instance().ListAll().size());
-            return;
+            LOG_DEBUG(Service_BCAT, "news: {} entries loaded from cache", NewsStorage::Instance().ListAll().size());
         }
+
+        std::thread([] {
+            if (const auto fresh = DownloadReleasesJson()) {
+                WriteCachedJson(*fresh);
+                ImportReleases(*fresh);
+                LOG_DEBUG(Service_BCAT, "news: {} entries updated from GitHub", NewsStorage::Instance().ListAll().size());
+            }
+        }).detach();
     });
 }
 
