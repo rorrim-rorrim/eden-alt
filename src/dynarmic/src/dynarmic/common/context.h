@@ -51,6 +51,16 @@
         [[maybe_unused]] auto& mctx = ucontext->uc_mcontext; \
         [[maybe_unused]] const auto fpctx = GetFloatingPointState(mctx);
 #   endif
+#elif defined(ARCHITECTURE_ppc64)
+#   ifdef __OpenBSD__
+#       define CTX_DECLARE(raw_context) ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(raw_context);
+#   else
+#       define CTX_DECLARE(raw_context) \
+        ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(raw_context);  \
+        [[maybe_unused]] auto& mctx = ucontext->uc_mcontext;
+#   endif
+#else
+#   error "Invalid architecture"
 #endif
 
 #if defined(ARCHITECTURE_x86_64)
@@ -118,8 +128,6 @@
 #    else
 #        error "Unknown platform"
 #    endif
-#else
-#    error "unimplemented"
 #endif
 
 #ifdef ARCHITECTURE_arm64
