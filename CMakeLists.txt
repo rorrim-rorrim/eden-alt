@@ -295,11 +295,8 @@ if ((ANDROID OR APPLE OR UNIX) AND (NOT PLATFORM_LINUX OR ANDROID) AND NOT WIN32
 endif()
 
 # Build/optimization presets
-if (PLATFORM_LINUX OR CXX_CLANG)
-    if (${YUZU_BUILD_PRESET} STREQUAL "native")
-        set(march native)
-        set(march native)
-    elseif (ARCHITECTURE_x86_64)
+if (CXX_GCC OR CXX_CLANG)
+    if (ARCHITECTURE_x86_64)
         # See https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html
         # Generic supports Pentium Pro instruction set and above
         # TODO: if a value is unknown, pass that as march and mtune
@@ -313,10 +310,10 @@ if (PLATFORM_LINUX OR CXX_CLANG)
             set(mtune generic)
         elseif (${YUZU_BUILD_PRESET} STREQUAL "zen2")
             set(march znver2)
-            set(march znver2)
+            set(mtune znver2)
         elseif (${YUZU_BUILD_PRESET} STREQUAL "zen4")
             set(march znver4)
-            set(march znver4)
+            set(mtune znver4)
         endif()
     elseif(ARCHITECTURE_arm64)
         # See https://gcc.gnu.org/onlinedocs/gcc/AArch64-Options.html
@@ -330,8 +327,15 @@ if (PLATFORM_LINUX OR CXX_CLANG)
         endif()
     endif()
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${march} -mtune=${mtune}")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=${march} -mtune=${mtune}")
+    if ("${YUZU_BUILD_PRESET}" STREQUAL "native")
+        set(march native)
+        set(mtune native)
+    endif()
+
+    if (DEFINED march AND DEFINED mtune)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${march} -mtune=${mtune}")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=${march} -mtune=${mtune}")
+    endif()
 endif()
 
 # Other presets, e.g. steamdeck
@@ -350,9 +354,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # System imported libraries
 # =======================================================================
 
+# Prefer the -pthread flag on Linux.
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
 # openssl funniness
 if (ENABLE_OPENSSL)
     if (YUZU_USE_BUNDLED_OPENSSL)
+        set(BUILD_SHARED_LIBS OFF)
         AddJsonPackage(openssl)
         if (OpenSSL_ADDED)
             add_compile_definitions(YUZU_BUNDLED_OPENSSL)
@@ -572,7 +581,6 @@ endif()
 if (ENABLE_QT)
     if (YUZU_USE_BUNDLED_QT)
         AddQt(6.9.3)
-
         set(YUZU_STATIC_BUILD ON)
     else()
         message(STATUS "Using system Qt")
@@ -621,19 +629,20 @@ if (ENABLE_QT)
     ## Components ##
 
     # Best practice is to ask for all components at once, so they are from the same version
-    set(YUZU_QT_COMPONENTS Core Widgets Concurrent)
+    set(YUZU_QT_COMPONENTS2 Core Widgets Concurrent)
     if (PLATFORM_LINUX)
-        list(APPEND YUZU_QT_COMPONENTS DBus)
+        list(APPEND YUZU_QT_COMPONENTS2 DBus)
     endif()
     if (YUZU_USE_QT_MULTIMEDIA)
-        list(APPEND YUZU_QT_COMPONENTS Multimedia)
+        list(APPEND YUZU_QT_COMPONENTS2 Multimedia)
     endif()
     if (YUZU_USE_QT_WEB_ENGINE)
-        list(APPEND YUZU_QT_COMPONENTS WebEngineCore WebEngineWidgets)
+        list(APPEND YUZU_QT_COMPONENTS2 WebEngineCore WebEngineWidgets)
     endif()
     if (ENABLE_QT_TRANSLATION)
-        list(APPEND YUZU_QT_COMPONENTS LinguistTools)
+        list(APPEND YUZU_QT_COMPONENTS2 LinguistTools)
     endif()
+    set(YUZU_QT_COMPONENTS ${YUZU_QT_COMPONENTS2} PARENT_SCOPE)
 
     find_package(Qt6 REQUIRED COMPONENTS ${YUZU_QT_COMPONENTS})
     set(QT_MAJOR_VERSION 6)
@@ -663,10 +672,6 @@ if (WIN32 AND YUZU_CRASH_DUMPS)
     # target_link_libraries(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_LIBRARY}")
     # target_include_directories(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_INCLUDE_DIR}")
 endif()
-
-# Prefer the -pthread flag on Linux.
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
 
 # Include source code
 # ===================
