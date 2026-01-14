@@ -1212,7 +1212,6 @@ else()
 endif()
 
 target_link_libraries(core PRIVATE fmt::fmt nlohmann_json::nlohmann_json RenderDoc::API MbedTLS::mbedcrypto${MBEDTLS_LIB_SUFFIX} MbedTLS::mbedtls${MBEDTLS_LIB_SUFFIX})
-target_link_libraries(core PRIVATE httplib::httplib)
 
 if (ENABLE_WEB_SERVICE)
     target_compile_definitions(core PUBLIC ENABLE_WEB_SERVICE)
@@ -1266,19 +1265,20 @@ if(ENABLE_OPENSSL)
 
     find_package(OpenSSL REQUIRED)
 
-    target_link_libraries(core PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+    target_link_libraries(core PRIVATE OpenSSL::SSL OpenSSL::Crypto httplib::httplib)
     target_compile_definitions(core PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
 elseif (APPLE)
     target_sources(core PRIVATE
         hle/service/ssl/ssl_backend_securetransport.cpp)
-    target_link_libraries(core PRIVATE "-framework Security")
+    target_link_libraries(core PRIVATE "-framework Security" httplib::httplib)
 elseif (WIN32)
     target_sources(core PRIVATE
         hle/service/ssl/ssl_backend_schannel.cpp)
-    target_link_libraries(core PRIVATE crypt32 secur32)
+    target_link_libraries(core PRIVATE crypt32 secur32 httplib::httplib)
 else()
     target_sources(core PRIVATE
         hle/service/ssl/ssl_backend_none.cpp)
+    target_link_libraries(core PRIVATE httplib::httplib)
 endif()
 
 create_target_directory_groups(core)
