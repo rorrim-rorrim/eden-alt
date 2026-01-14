@@ -2266,7 +2266,7 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
         const bool is_signed = image_format == Shader::ImageFormat::R8_SINT
             || image_format == Shader::ImageFormat::R16_SINT;
         if (!storage_views)
-            storage_views = std::make_optional<StorageViews>();
+            storage_views.emplace();
         auto& views{is_signed ? storage_views->signeds : storage_views->unsigneds};
         auto& view{views[size_t(texture_type)]};
         if (!view)
