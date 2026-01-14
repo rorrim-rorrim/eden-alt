@@ -54,23 +54,6 @@ class DrawManager;
 
 #define MAXWELL3D_REG_INDEX(field_name) (offsetof(Maxwell3D::Regs, field_name) / sizeof(u32))
 
-constexpr bool IsMethodExecutableConstexpr(u32 method) {
-    if (method >= 0xE00) {
-        return true;
-    }
-    return method == 0x0585 || method == 0x0586 || method == 0x035D || method == 0x035E ||
-           method == 0x0364 || method == 0x0365 || method == 0x1296 || method == 0x163B ||
-           method == 0x163C || method == 0x163D || method == 0x1640 || method == 0x1641 ||
-           method == 0x1642 || method == 0x1646 || method == 0x1647 || method == 0x035F ||
-           method == 0x0586 || method == 0x0D61 || method == 0x031E || method == 0x0B07 ||
-           method == 0x0545 || method == 0x0546 || method == 0x0547 || method == 0x0830 ||
-           (method >= 0x02CB && method <= 0x02DA) || 
-           (method >= 0x0D00 && method <= 0x0D04) || 
-           method == 0x0D1C || method == 0x19D0 || method == 0x06C0 || method == 0x06C3 ||
-           method == 0x0A04 || method == 0x0DF0 || method == 0x1574 || method == 0x1608 ||
-           method == 0x1609 || method == 0x160A;
-}
-
 class Maxwell3D final : public EngineInterface {
 public:
     explicit Maxwell3D(Core::System& system, MemoryManager& memory_manager);

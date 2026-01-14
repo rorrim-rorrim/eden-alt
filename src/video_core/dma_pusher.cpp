@@ -202,7 +202,7 @@ void DmaPusher::CallMethod(u32 argument) const {
         });
     } else {
         auto subchannel = subchannels[dma_state.subchannel];
-        if (!Engines::IsMethodExecutableConstexpr(dma_state.method)) [[likely]] {
+        if (!subchannel->execution_mask[dma_state.method]) [[likely]] {
             subchannel->method_sink.emplace_back(dma_state.method, argument);
             return;
         }
