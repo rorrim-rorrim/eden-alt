@@ -111,46 +111,25 @@ bool DmaPusher::Step() {
 }
 
 void DmaPusher::ProcessCommands(std::span<const CommandHeader> commands) {
-    constexpr std::size_t BATCH_SIZE = 16;
-    const std::size_t total_commands = commands.size();
-    
-    for (std::size_t index = 0; index < total_commands;) {
-        const std::size_t prefetch_index = index + BATCH_SIZE;
-        if (prefetch_index < total_commands) {
-#ifdef _MSC_VER
-            _mm_prefetch(reinterpret_cast<const char*>(&commands[prefetch_index]), _MM_HINT_T0);
-#else
-            __builtin_prefetch(&commands[prefetch_index], 0, 1);
-#endif
-        }
-
-        const CommandHeader& command_header = commands[index];
-
-        if (dma_state.method_count) {
+    for (size_t index = 0; index < commands.size();) {
+        auto const command_header = commands[index];
+        if (dma_state.method_count && dma_state.non_incrementing) {
             // Data word of methods command
-            dma_state.dma_word_offset = static_cast<u32>(index * sizeof(u32));
-            if (dma_state.non_incrementing) {
-                const u32 max_write = static_cast<u32>(
-                    std::min<std::size_t>(index + dma_state.method_count, total_commands) - index);
-                CallMultiMethod(&command_header.argument, max_write);
-                dma_state.method_count -= max_write;
-                dma_state.is_last_call = true;
-                index += max_write;
-                continue;
-            } else {
-                dma_state.is_last_call = dma_state.method_count <= 1;
-                CallMethod(command_header.argument);
-            }
-
-            if (!dma_state.non_incrementing) {
-                dma_state.method++;
-            }
-
-            if (dma_increment_once) {
-                dma_state.non_incrementing = true;
-            }
-
-            dma_state.method_count--;
+            dma_state.dma_word_offset = u32(index * sizeof(u32));
+            const u32 max_write = u32(std::min<size_t>(index + dma_state.method_count, commands.size()) - index);
+            CallMultiMethod(&command_header.argument, max_write);
+            dma_state.method_count -= max_write;
+            dma_state.is_last_call = true;
+            index += max_write;
+        } else if (dma_state.method_count) {
+            // Data word of methods command
+            dma_state.dma_word_offset = u32(index * sizeof(u32));
+            dma_state.is_last_call = dma_state.method_count <= 1;
+            CallMethod(command_header.argument);
+            dma_state.method += size_t(!dma_state.non_incrementing);
+            dma_state.non_incrementing = dma_increment_once;
+            --dma_state.method_count;
+            ++index;
         } else {
             // No command active - this is the first word of a new one
             switch (command_header.mode) {
@@ -167,8 +146,7 @@ void DmaPusher::ProcessCommands(std::span<const CommandHeader> commands) {
             case SubmissionMode::Inline:
                 dma_state.method = command_header.method;
                 dma_state.subchannel = command_header.subchannel;
-                dma_state.dma_word_offset = static_cast<u64>(
-                    -static_cast<s64>(dma_state.dma_get)); // negate to set address as 0
+                dma_state.dma_word_offset = u64(-s64(dma_state.dma_get)); // negate to set address as 0
                 CallMethod(command_header.arg_count);
                 dma_state.non_incrementing = true;
                 dma_increment_once = false;
@@ -181,8 +159,8 @@ void DmaPusher::ProcessCommands(std::span<const CommandHeader> commands) {
             default:
                 break;
             }
+            ++index;
         }
-        index++;
     }
 }
 
@@ -202,26 +180,24 @@ void DmaPusher::CallMethod(u32 argument) const {
         });
     } else {
         auto subchannel = subchannels[dma_state.subchannel];
-        if (!subchannel->execution_mask[dma_state.method]) [[likely]] {
+        if (!subchannel->execution_mask[dma_state.method]) {
             subchannel->method_sink.emplace_back(dma_state.method, argument);
-            return;
+        } else {
+            subchannel->ConsumeSink();
+            subchannel->current_dma_segment = dma_state.dma_get + dma_state.dma_word_offset;
+            subchannel->CallMethod(dma_state.method, argument, dma_state.is_last_call);
         }
-        subchannel->ConsumeSink();
-        subchannel->current_dma_segment = dma_state.dma_get + dma_state.dma_word_offset;
-        subchannel->CallMethod(dma_state.method, argument, dma_state.is_last_call);
     }
 }
 
 void DmaPusher::CallMultiMethod(const u32* base_start, u32 num_methods) const {
     if (dma_state.method < non_puller_methods) {
-        puller.CallMultiMethod(dma_state.method, dma_state.subchannel, base_start, num_methods,
-                               dma_state.method_count);
+        puller.CallMultiMethod(dma_state.method, dma_state.subchannel, base_start, num_methods, dma_state.method_count);
     } else {
         auto subchannel = subchannels[dma_state.subchannel];
         subchannel->ConsumeSink();
         subchannel->current_dma_segment = dma_state.dma_get + dma_state.dma_word_offset;
-        subchannel->CallMultiMethod(dma_state.method, base_start, num_methods,
-                                    dma_state.method_count);
+        subchannel->CallMultiMethod(dma_state.method, base_start, num_methods, dma_state.method_count);
     }
 }
 
