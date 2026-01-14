@@ -16,6 +16,10 @@
 #include <httplib.h>
 #include <nlohmann/json.hpp>
 
+#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
+#include <httplib.h>
+#endif
+
 #include <chrono>
 #include <cstring>
 #include <filesystem>
@@ -229,6 +233,8 @@ void WriteCachedJson(std::string_view json) {
 }
 
 std::optional<std::string> DownloadReleasesJson() {
+
+#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
     try {
         httplib::SSLClient cli{"api.github.com", 443};
         cli.set_connection_timeout(10);
@@ -250,7 +256,7 @@ std::optional<std::string> DownloadReleasesJson() {
     } catch (...) {
         LOG_WARNING(Service_BCAT, " failed to download releases");
     }
-
+#endif
     return std::nullopt;
 }
 
