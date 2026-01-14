@@ -507,9 +507,9 @@ std::vector<u8> BuildMsgpack(std::string_view title, std::string_view body,
     w.WriteKey("browser");
     w.WriteFixMap(2);
     w.WriteKey("url");
-    w.WriteString("");
+    w.WriteString(html_url);
     w.WriteKey("text");
-    w.WriteString("");
+    w.WriteString("Open GitHub");
 
     // Body
     w.WriteKey("body");
