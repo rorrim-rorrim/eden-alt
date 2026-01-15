@@ -176,7 +176,9 @@ if(ANDROID)
         android/multiplayer/multiplayer.cpp
         android/multiplayer/multiplayer.h
         android/applets/software_keyboard.cpp
-        android/applets/software_keyboard.h)
+        android/applets/software_keyboard.h
+        android/applets/web_browser.cpp
+        android/applets/web_browser.h)
 endif()
 
 if(ARCHITECTURE_x86_64)
