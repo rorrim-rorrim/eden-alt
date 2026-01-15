@@ -85,8 +85,8 @@ constexpr std::pair<u8, u8> GetDirtyFlagsForMethod(u32 method) {
         return {Descriptors, NullEntry};
     }
 
-    if (method >= OFF_RT && method < OFF_RT + 64) {
-        const u32 rt_idx = (method - OFF_RT) / 8;
+    if (method >= OFF_RT && method < OFF_RT + 32) {
+        const u32 rt_idx = (method - OFF_RT) / 4;
         return {static_cast<u8>(ColorBuffer0 + rt_idx), RenderTargets};
     }
 
