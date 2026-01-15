@@ -84,8 +84,6 @@ protected:
     using CPUTickToGPUTickRatio = std::ratio<GPUTickFreq, CPUTickFreq>;
 };
 
-std::unique_ptr<WallClock> CreateOptimalClock();
-
-std::unique_ptr<WallClock> CreateStandardWallClock();
+[[nodiscard]] std::unique_ptr<WallClock> CreateOptimalClock();
 
 } // namespace Common
