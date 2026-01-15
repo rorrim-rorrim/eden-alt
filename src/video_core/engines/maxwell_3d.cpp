@@ -256,7 +256,10 @@ void Maxwell3D::ProcessDirtyRegisters(u32 method, u32 argument) {
     }
     regs.reg_array[method] = argument;
 
-    const auto [flag0, flag1] = VideoCommon::Dirty::GetDirtyFlagsForMethod(method);
+    const auto& table0 = dirty.tables[0];
+    const auto& table1 = dirty.tables[1];
+    const u8 flag0 = table0[method];
+    const u8 flag1 = table1[method];
     dirty.flags[flag0] = true;
     if (flag1 != flag0) {
         dirty.flags[flag1] = true;
