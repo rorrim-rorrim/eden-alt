@@ -1640,9 +1640,11 @@ void MacroEngine::Execute(u32 method, const std::vector<u32>& parameters) {
 }
 
 std::unique_ptr<CachedMacro> MacroEngine::Compile(const std::vector<u32>& code) {
-    if (is_interpreted)
-        return std::make_unique<MacroInterpreterImpl>(maxwell3d, code);
-    return std::make_unique<MacroJITx64Impl>(maxwell3d, code);
+#ifdef ARCHITECTURE_x86_64
+    if (!is_interpreted)
+        return std::make_unique<MacroJITx64Impl>(maxwell3d, code);
+#endif
+    return std::make_unique<MacroInterpreterImpl>(maxwell3d, code);
 }
 
 std::optional<MacroEngine> GetMacroEngine(Engines::Maxwell3D& maxwell3d) {
