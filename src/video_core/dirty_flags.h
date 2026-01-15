@@ -74,15 +74,15 @@ constexpr std::pair<u8, u8> GetDirtyFlagsForMethod(u32 method) {
     }
 
     if (method == OFF_INDEX_BUFFER || (method > OFF_INDEX_BUFFER && method < OFF_INDEX_BUFFER + 3)) {
-        return {IndexBuffer, IndexBuffer};
+        return {IndexBuffer, NullEntry};
     }
 
     if (method >= OFF_TEX_HEADER && method < OFF_TEX_HEADER + 256) {
-        return {Descriptors, Descriptors};
+        return {Descriptors, NullEntry};
     }
 
     if (method >= OFF_TEX_SAMPLER && method < OFF_TEX_SAMPLER + 256) {
-        return {Descriptors, Descriptors};
+        return {Descriptors, NullEntry};
     }
 
     if (method >= OFF_RT && method < OFF_RT + 32) {
@@ -91,7 +91,7 @@ constexpr std::pair<u8, u8> GetDirtyFlagsForMethod(u32 method) {
     }
 
     if (method == OFF_SURFACE_CLIP || (method > OFF_SURFACE_CLIP && method < OFF_SURFACE_CLIP + 4)) {
-        return {RenderTargets, RenderTargets};
+        return {RenderTargets, NullEntry};
     }
 
     if (method == OFF_RT_CONTROL) {
@@ -107,7 +107,7 @@ constexpr std::pair<u8, u8> GetDirtyFlagsForMethod(u32 method) {
     }
 
     if (method >= OFF_PIPELINES && method < OFF_PIPELINES + 1024) {
-        return {Shaders, Shaders};
+        return {Shaders, NullEntry};
     }
 
     return {NullEntry, NullEntry};
