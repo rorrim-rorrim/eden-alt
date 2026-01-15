@@ -15,6 +15,8 @@
 #include "common/string_util.h"
 #include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
+
+#include "launch_timestamp_cache.h"
 #include "core/core_timing.h"
 #include "core/cpu_manager.h"
 #include "core/debugger/debugger.h"
@@ -330,6 +332,9 @@ struct System::Impl {
         }
 
         LOG_INFO(Core, "Loading {} ({:016X}) ...", name, params.program_id);
+
+        // Track launch time for frontend launches
+        LaunchTimestampCache::SaveLaunchTimestamp(params.program_id);
 
         // Make the process created be the application
         kernel.MakeApplicationProcess(process->GetHandle());

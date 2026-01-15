@@ -1131,6 +1131,8 @@ add_library(core STATIC
     internal_network/sockets.h
     internal_network/wifi_scanner.cpp
     internal_network/wifi_scanner.h
+    launch_timestamp_cache.cpp
+    launch_timestamp_cache.h
     loader/deconstructed_rom_directory.cpp
     loader/deconstructed_rom_directory.h
     loader/kip.cpp
