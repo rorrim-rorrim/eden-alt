@@ -23,13 +23,13 @@ INewsService::INewsService(Core::System& system_) : ServiceFramework{system_, "I
         {30200, D<&INewsService::IsSystemUpdateRequired>, "IsSystemUpdateRequired"},
         {30201, D<&INewsService::IsSystemUpdateRequired>, "Unknown30201"}, //8.0.0+ (stub)
         {30210, D<&INewsService::IsSystemUpdateRequired>, "Unknown30210"}, //10.0.0+ (stub)
-        {30300, D<&INewsService::GetNewsDatabaseDump>, "RequestImmediateReception"},
-        {30400, D<&INewsService::GetNewsDatabaseDump>, "DecodeArchiveFile"}, //3.0.0-18.1.0 (stub)
-        {30500, D<&INewsService::GetNewsDatabaseDump>, "Unknown30500"}, //8.0.0+ (stub)
-        {30900, D<&INewsService::GetNewsDatabaseDump>, "Unknown30900"}, //1.0.0 (stub)
-        {30901, D<&INewsService::GetNewsDatabaseDump>, "Unknown30901"}, //1.0.0 (stub)
-        {30902, D<&INewsService::GetNewsDatabaseDump>, "Unknown30902"}, //1.0.0 (stub)
-        {40100, D<&INewsService::GetNewsDatabaseDump>, "SetSubscriptionStatus"},
+        {30300, nullptr, "RequestImmediateReception"},
+        {30400, nullptr, "DecodeArchiveFile"}, //3.0.0-18.1.0 (stub)
+        {30500, nullptr, "Unknown30500"}, //8.0.0+ (stub)
+        {30900, nullptr, "Unknown30900"}, //1.0.0 (stub)
+        {30901, nullptr, "Unknown30901"}, //1.0.0 (stub)
+        {30902, nullptr, "Unknown30902"}, //1.0.0 (stub)
+        {40100, nullptr, "SetSubscriptionStatus"},
         {40101, D<&INewsService::RequestAutoSubscription>, "RequestAutoSubscription"}, //3.0.0+
         {40200, D<&INewsService::ClearStorage>, "ClearStorage"},
         {40201, D<&INewsService::ClearSubscriptionStatusAll>, "ClearSubscriptionStatusAll"},
