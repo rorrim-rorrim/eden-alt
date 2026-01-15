@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "audio_core/adsp/apps/audio_renderer/audio_renderer.h"
 #include "audio_core/adsp/apps/opus/opus_decoder.h"
 #include "common/common_types.h"
