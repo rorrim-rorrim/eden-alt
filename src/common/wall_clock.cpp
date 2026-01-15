@@ -9,7 +9,6 @@
 #include "common/x64/native_clock.h"
 #include "common/x64/rdtsc.h"
 #endif
-
 #ifdef HAS_NCE
 #include "common/arm64/native_clock.h"
 #endif
@@ -71,10 +70,6 @@ std::unique_ptr<WallClock> CreateOptimalClock() {
 #else
     return std::make_unique<StandardWallClock>();
 #endif
-}
-
-std::unique_ptr<WallClock> CreateStandardWallClock() {
-    return std::make_unique<StandardWallClock>();
 }
 
 } // namespace Common

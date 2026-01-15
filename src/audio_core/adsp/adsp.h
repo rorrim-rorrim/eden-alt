@@ -45,8 +45,8 @@ public:
 
 private:
     /// AudioRenderer app
-    std::unique_ptr<AudioRenderer::AudioRenderer> audio_renderer{};
-    std::unique_ptr<OpusDecoder::OpusDecoder> opus_decoder{};
+    std::optional<AudioRenderer::AudioRenderer> audio_renderer{};
+    std::optional<OpusDecoder::OpusDecoder> opus_decoder{};
 };
 
 } // namespace ADSP
