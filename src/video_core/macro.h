@@ -100,8 +100,8 @@ union MethodAddress {
 
 class CachedMacro {
 public:
-    CachedMacro(Engines::Maxwell3D& maxwell3d)
-        : maxwell3d{maxwell3d}
+    CachedMacro(Engines::Maxwell3D& maxwell3d_)
+        : maxwell3d{maxwell3d_}
     {}
     virtual ~CachedMacro() = default;
     /// Executes the macro code with the specified input parameters.
