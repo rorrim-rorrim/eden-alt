@@ -14,6 +14,51 @@
 #include "video_core/rasterizer_interface.h"
 #include "video_core/texture_cache/util.h"
 
+namespace {
+
+/// Constexpr check if method should execute immediately (replaces 8KB execution_mask bitset).
+constexpr bool IsMethodExecutable(u32 method, Tegra::Engines::EngineTypes engine_type) {
+    constexpr u32 MacroRegistersStart = 0xE00;
+    if (method >= MacroRegistersStart) {
+        return true;
+    }
+
+    using Tegra::Engines::EngineTypes;
+    switch (engine_type) {
+    case EngineTypes::Maxwell3D:
+        switch (method) {
+        case 0x0044: case 0x0045: case 0x0046: case 0x0047: case 0x0049:
+        case 0x006C: case 0x006D: case 0x00B2:
+        case 0x035D: case 0x035E: case 0x0378: case 0x03DD: case 0x03DF:
+        case 0x0485: case 0x0486: case 0x04C0: case 0x054C: case 0x0556:
+        case 0x0585: case 0x0586: case 0x057A: case 0x057B:
+        case 0x05F7: case 0x05F8: case 0x05F9: case 0x05FA: case 0x05FB:
+        case 0x05FC: case 0x05FD: case 0x05FE:
+        case 0x065C: case 0x0674: case 0x06C0: case 0x08C4:
+        case 0x08E0: case 0x08E1: case 0x08E2: case 0x08E3: case 0x08E4:
+        case 0x08E5: case 0x08E6: case 0x08E7: case 0x08E8: case 0x08E9:
+        case 0x08EA: case 0x08EB: case 0x08EC: case 0x08ED: case 0x08EE: case 0x08EF:
+        case 0x0900: case 0x0908: case 0x0910: case 0x0918: case 0x0920:
+        case 0x042B:
+            return true;
+        default:
+            return false;
+        }
+    case EngineTypes::Fermi2D:
+        return method == 0x22F;
+    case EngineTypes::KeplerCompute:
+        return method == 0x1B || method == 0x2B;
+    case EngineTypes::KeplerMemory:
+        return method == 0x1B;
+    case EngineTypes::MaxwellDMA:
+        return method == 0xC0;
+    default:
+        return false;
+    }
+}
+
+} // anonymous namespace
+
 #ifdef _MSC_VER
 #include <intrin.h>
 #endif
@@ -202,7 +247,7 @@ void DmaPusher::CallMethod(u32 argument) const {
         });
     } else {
         auto subchannel = subchannels[dma_state.subchannel];
-        if (!subchannel->execution_mask[dma_state.method]) [[likely]] {
+        if (!IsMethodExecutable(dma_state.method, subchannel_type[dma_state.subchannel])) [[likely]] {
             subchannel->method_sink.emplace_back(dma_state.method, argument);
             return;
         }
