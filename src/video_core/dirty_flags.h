@@ -49,64 +49,76 @@ enum : u8 {
 };
 
 constexpr std::pair<u8, u8> GetDirtyFlagsForMethod(u32 method) {
-    const u32 OFF_VERTEX_STREAMS = 0x2C0;
-    const u32 OFF_VERTEX_STREAM_LIMITS = 0x2F8;
-    const u32 OFF_INDEX_BUFFER = 0x460;
-    const u32 OFF_TEX_HEADER = 0x800;
-    const u32 OFF_TEX_SAMPLER = 0xA00;
-    const u32 OFF_RT = 0xE00;
-    const u32 OFF_SURFACE_CLIP = 0xE38;
-    const u32 OFF_RT_CONTROL = 0xE40;
-    const u32 OFF_ZETA_ENABLE = 0xE4C;
-    const u32 OFF_ZETA_SIZE_WIDTH = 0xE50;
-    const u32 OFF_ZETA_SIZE_HEIGHT = 0xE54;
-    const u32 OFF_ZETA = 0xE60;
-    const u32 OFF_PIPELINES = 0x1D00;
+    // All offsets are register indices (byte_offset / 4)
+    constexpr u32 OFF_RT = 0x0200;                    // rt: 0x0800 / 4
+    constexpr u32 OFF_ZETA = 0x03F8;                  // zeta: 0x0FE0 / 4
+    constexpr u32 OFF_SURFACE_CLIP = 0x03FD;          // surface_clip: 0x0FF4 / 4
+    constexpr u32 OFF_RT_CONTROL = 0x0487;            // rt_control: 0x121C / 4
+    constexpr u32 OFF_ZETA_SIZE_WIDTH = 0x048A;       // zeta_size.width: 0x1228 / 4
+    constexpr u32 OFF_ZETA_SIZE_HEIGHT = 0x048B;      // zeta_size.height: 0x122C / 4
+    constexpr u32 OFF_ZETA_ENABLE = 0x054E;           // zeta_enable: 0x1538 / 4
+    constexpr u32 OFF_TEX_SAMPLER = 0x0557;           // tex_sampler: 0x155C / 4
+    constexpr u32 OFF_TEX_HEADER = 0x055D;            // tex_header: 0x1574 / 4
+    constexpr u32 OFF_INDEX_BUFFER = 0x05F2;          // index_buffer: 0x17C8 / 4
+    constexpr u32 OFF_VERTEX_STREAMS = 0x0700;        // vertex_streams: 0x1C00 / 4
+    constexpr u32 OFF_VERTEX_STREAM_LIMITS = 0x07C0;  // vertex_stream_limits: 0x1F00 / 4
+    constexpr u32 OFF_PIPELINES = 0x0800;             // pipelines: 0x2000 / 4
 
-    if (method >= OFF_VERTEX_STREAMS && method < OFF_VERTEX_STREAMS + 96) {
-        const u32 buffer_idx = (method - OFF_VERTEX_STREAMS) / 3;
-        return {static_cast<u8>(VertexBuffer0 + buffer_idx), VertexBuffers};
-    }
-
-    if (method >= OFF_VERTEX_STREAM_LIMITS && method < OFF_VERTEX_STREAM_LIMITS + 32) {
-        const u32 buffer_idx = method - OFF_VERTEX_STREAM_LIMITS;
-        return {static_cast<u8>(VertexBuffer0 + buffer_idx), VertexBuffers};
-    }
-
-    if (method == OFF_INDEX_BUFFER || (method > OFF_INDEX_BUFFER && method < OFF_INDEX_BUFFER + 3)) {
-        return {IndexBuffer, NullEntry};
-    }
-
-    if (method >= OFF_TEX_HEADER && method < OFF_TEX_HEADER + 256) {
-        return {Descriptors, NullEntry};
-    }
-
-    if (method >= OFF_TEX_SAMPLER && method < OFF_TEX_SAMPLER + 256) {
-        return {Descriptors, NullEntry};
-    }
-
+    // Render targets: 8 RTs × 8 dwords each = 64 entries
     if (method >= OFF_RT && method < OFF_RT + 64) {
         const u32 rt_idx = (method - OFF_RT) / 8;
         return {static_cast<u8>(ColorBuffer0 + rt_idx), RenderTargets};
     }
 
-    if (method == OFF_SURFACE_CLIP || (method > OFF_SURFACE_CLIP && method < OFF_SURFACE_CLIP + 4)) {
-        return {RenderTargets, NullEntry};
-    }
-
-    if (method == OFF_RT_CONTROL) {
-        return {RenderTargets, RenderTargetControl};
-    }
-
-    if (method == OFF_ZETA_ENABLE || method == OFF_ZETA_SIZE_WIDTH || method == OFF_ZETA_SIZE_HEIGHT) {
-        return {ZetaBuffer, RenderTargets};
-    }
-
+    // Zeta buffer: 8 dwords
     if (method >= OFF_ZETA && method < OFF_ZETA + 8) {
         return {ZetaBuffer, RenderTargets};
     }
 
-    if (method >= OFF_PIPELINES && method < OFF_PIPELINES + 1024) {
+    // Surface clip: 4 dwords
+    if (method >= OFF_SURFACE_CLIP && method < OFF_SURFACE_CLIP + 4) {
+        return {RenderTargets, NullEntry};
+    }
+
+    // RT control: single register
+    if (method == OFF_RT_CONTROL) {
+        return {RenderTargets, RenderTargetControl};
+    }
+
+    // Zeta size and enable
+    if (method == OFF_ZETA_ENABLE || method == OFF_ZETA_SIZE_WIDTH || method == OFF_ZETA_SIZE_HEIGHT) {
+        return {ZetaBuffer, RenderTargets};
+    }
+
+    // Texture sampler: 64 entries (0x40)
+    if (method >= OFF_TEX_SAMPLER && method < OFF_TEX_SAMPLER + 0x40) {
+        return {Descriptors, NullEntry};
+    }
+
+    // Texture header: 64 entries (0x40)
+    if (method >= OFF_TEX_HEADER && method < OFF_TEX_HEADER + 0x40) {
+        return {Descriptors, NullEntry};
+    }
+
+    // Index buffer: 7 dwords
+    if (method >= OFF_INDEX_BUFFER && method < OFF_INDEX_BUFFER + 7) {
+        return {IndexBuffer, NullEntry};
+    }
+
+    // Vertex streams: 32 buffers × 4 dwords = 128 entries
+    if (method >= OFF_VERTEX_STREAMS && method < OFF_VERTEX_STREAMS + 128) {
+        const u32 buffer_idx = (method - OFF_VERTEX_STREAMS) / 4;
+        return {static_cast<u8>(VertexBuffer0 + buffer_idx), VertexBuffers};
+    }
+
+    // Vertex stream limits: 32 buffers × 2 dwords = 64 entries
+    if (method >= OFF_VERTEX_STREAM_LIMITS && method < OFF_VERTEX_STREAM_LIMITS + 64) {
+        const u32 buffer_idx = (method - OFF_VERTEX_STREAM_LIMITS) / 2;
+        return {static_cast<u8>(VertexBuffer0 + buffer_idx), VertexBuffers};
+    }
+
+    // Pipelines/Shaders: 6 programs × 0x40 dwords = 384 entries
+    if (method >= OFF_PIPELINES && method < OFF_PIPELINES + 384) {
         return {Shaders, NullEntry};
     }
 
