@@ -1,6 +1,3 @@
-// SDPX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -85,8 +82,8 @@ constexpr std::pair<u8, u8> GetDirtyFlagsForMethod(u32 method) {
         return {Descriptors, NullEntry};
     }
 
-    if (method >= OFF_RT && method < OFF_RT + 32) {
-        const u32 rt_idx = (method - OFF_RT) / 4;
+    if (method >= OFF_RT && method < OFF_RT + 64) {
+        const u32 rt_idx = (method - OFF_RT) / 8;
         return {static_cast<u8>(ColorBuffer0 + rt_idx), RenderTargets};
     }
 
