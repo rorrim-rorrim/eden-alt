@@ -4,15 +4,15 @@
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#ifdef ARCHITECTURE_x86_64
+#include <xbyak/xbyak.h>
+#endif
+
 #include <cstring>
 #include <fstream>
 #include <optional>
 #include <span>
-
 #include <fstream>
-#ifdef ARCHITECTURE_x86_64
-#include <xbyak/xbyak.h>
-#endif
 
 #include "common/assert.h"
 #include "common/scope_exit.h"
