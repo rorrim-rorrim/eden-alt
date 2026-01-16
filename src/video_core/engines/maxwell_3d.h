@@ -3187,6 +3187,8 @@ private:
 
     void RefreshParametersImpl();
 
+    bool IsMethodExecutable(u32 method);
+
     Core::System& system;
     MemoryManager& memory_manager;
 
