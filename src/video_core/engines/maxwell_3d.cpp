@@ -30,6 +30,9 @@ Maxwell3D::Maxwell3D(Core::System& system_, MemoryManager& memory_manager_)
       memory_manager{memory_manager_}, macro_engine{GetMacroEngine(*this)}, upload_state{memory_manager, regs.upload} {
     dirty.flags.flip();
     InitializeRegisterDefaults();
+    execution_mask.reset();
+    for (size_t i = 0; i < execution_mask.size(); i++)
+        execution_mask[i] = IsMethodExecutable(u32(i));
 }
 
 Maxwell3D::~Maxwell3D() = default;
