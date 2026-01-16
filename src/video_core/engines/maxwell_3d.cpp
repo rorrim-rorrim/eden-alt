@@ -123,6 +123,73 @@ void Maxwell3D::InitializeRegisterDefaults() {
     shadow_state = regs;
 }
 
+bool Maxwell3D::IsMethodExecutable(u32 method) {
+    if (method >= MacroRegistersStart) {
+        return true;
+    }
+    switch (method) {
+    case MAXWELL3D_REG_INDEX(draw.end):
+    case MAXWELL3D_REG_INDEX(draw.begin):
+    case MAXWELL3D_REG_INDEX(vertex_buffer.first):
+    case MAXWELL3D_REG_INDEX(vertex_buffer.count):
+    case MAXWELL3D_REG_INDEX(index_buffer.first):
+    case MAXWELL3D_REG_INDEX(index_buffer.count):
+    case MAXWELL3D_REG_INDEX(draw_inline_index):
+    case MAXWELL3D_REG_INDEX(index_buffer32_subsequent):
+    case MAXWELL3D_REG_INDEX(index_buffer16_subsequent):
+    case MAXWELL3D_REG_INDEX(index_buffer8_subsequent):
+    case MAXWELL3D_REG_INDEX(index_buffer32_first):
+    case MAXWELL3D_REG_INDEX(index_buffer16_first):
+    case MAXWELL3D_REG_INDEX(index_buffer8_first):
+    case MAXWELL3D_REG_INDEX(inline_index_2x16.even):
+    case MAXWELL3D_REG_INDEX(inline_index_4x8.index0):
+    case MAXWELL3D_REG_INDEX(vertex_array_instance_first):
+    case MAXWELL3D_REG_INDEX(vertex_array_instance_subsequent):
+    case MAXWELL3D_REG_INDEX(draw_texture.src_y0):
+    case MAXWELL3D_REG_INDEX(wait_for_idle):
+    case MAXWELL3D_REG_INDEX(shadow_ram_control):
+    case MAXWELL3D_REG_INDEX(load_mme.instruction_ptr):
+    case MAXWELL3D_REG_INDEX(load_mme.instruction):
+    case MAXWELL3D_REG_INDEX(load_mme.start_address):
+    case MAXWELL3D_REG_INDEX(falcon[4]):
+    case MAXWELL3D_REG_INDEX(const_buffer.buffer):
+    case MAXWELL3D_REG_INDEX(const_buffer.buffer) + 1:
+    case MAXWELL3D_REG_INDEX(const_buffer.buffer) + 2:
+    case MAXWELL3D_REG_INDEX(const_buffer.buffer) + 3:
+    case MAXWELL3D_REG_INDEX(const_buffer.buffer) + 4:
+    case MAXWELL3D_REG_INDEX(const_buffer.buffer) + 5:
+    case MAXWELL3D_REG_INDEX(const_buffer.buffer) + 6:
+    case MAXWELL3D_REG_INDEX(const_buffer.buffer) + 7:
+    case MAXWELL3D_REG_INDEX(const_buffer.buffer) + 8:
+    case MAXWELL3D_REG_INDEX(const_buffer.buffer) + 9:
+    case MAXWELL3D_REG_INDEX(const_buffer.buffer) + 10:
+    case MAXWELL3D_REG_INDEX(const_buffer.buffer) + 11:
+    case MAXWELL3D_REG_INDEX(const_buffer.buffer) + 12:
+    case MAXWELL3D_REG_INDEX(const_buffer.buffer) + 13:
+    case MAXWELL3D_REG_INDEX(const_buffer.buffer) + 14:
+    case MAXWELL3D_REG_INDEX(const_buffer.buffer) + 15:
+    case MAXWELL3D_REG_INDEX(bind_groups[0].raw_config):
+    case MAXWELL3D_REG_INDEX(bind_groups[1].raw_config):
+    case MAXWELL3D_REG_INDEX(bind_groups[2].raw_config):
+    case MAXWELL3D_REG_INDEX(bind_groups[3].raw_config):
+    case MAXWELL3D_REG_INDEX(bind_groups[4].raw_config):
+    case MAXWELL3D_REG_INDEX(topology_override):
+    case MAXWELL3D_REG_INDEX(clear_surface):
+    case MAXWELL3D_REG_INDEX(report_semaphore.query):
+    case MAXWELL3D_REG_INDEX(render_enable.mode):
+    case MAXWELL3D_REG_INDEX(clear_report_value):
+    case MAXWELL3D_REG_INDEX(sync_info):
+    case MAXWELL3D_REG_INDEX(launch_dma):
+    case MAXWELL3D_REG_INDEX(inline_data):
+    case MAXWELL3D_REG_INDEX(fragment_barrier):
+    case MAXWELL3D_REG_INDEX(invalidate_texture_data_cache):
+    case MAXWELL3D_REG_INDEX(tiled_cache_barrier):
+        return true;
+    default:
+        return false;
+    }
+}
+
 void Maxwell3D::ProcessMacro(u32 method, const u32* base_start, u32 amount, bool is_last_call) {
     if (executing_macro == 0) {
         // A macro call must begin by writing the macro method's register, not its argument.
