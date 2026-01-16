@@ -15,7 +15,6 @@
 namespace Tegra::Engines {
 
 enum class EngineTypes : u32 {
-    Invalid = 0,
     KeplerCompute,
     Maxwell3D,
     Fermi2D,
