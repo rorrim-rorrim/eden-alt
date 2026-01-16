@@ -11,7 +11,25 @@
 
 #include <fstream>
 #ifdef ARCHITECTURE_x86_64
+
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wno-conversion"
+#endif
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wno-conversion"
+#endif
+
 #include <xbyak/xbyak.h>
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+
 #endif
 
 #include "common/assert.h"
