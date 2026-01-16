@@ -107,9 +107,8 @@ void MacroInterpreterImpl::Execute(const std::vector<u32>& params, u32 method) {
         keep_executing = Step(false);
     }
 
-    // Verify the macro used all the input parameters (debug only)
-    // Some games/macros may not consume all parameters, which is valid behavior
-    DEBUG_ASSERT(next_parameter_index == num_parameters);
+    // Assert the the macro used all the input parameters
+    ASSERT(next_parameter_index == num_parameters);
 }
 
 void MacroInterpreterImpl::Reset() {

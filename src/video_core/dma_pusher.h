@@ -178,7 +178,7 @@ private:
     const bool ib_enable{true}; ///< IB mode enabled
 
     std::array<Engines::EngineInterface*, max_subchannels> subchannels{};
-    std::array<Engines::EngineTypes, max_subchannels> subchannel_type{};
+    std::array<Engines::EngineTypes, max_subchannels> subchannel_type;
 
     GPU& gpu;
     Core::System& system;
