@@ -33,12 +33,6 @@ void State::ProcessExec(const bool is_linear_) {
 }
 
 void State::ProcessData(const u32 data, const bool is_last_call) {
-    if (copy_size == 0) [[unlikely]] {
-        return;
-    }
-    if (write_offset >= copy_size) [[unlikely]] {
-        return;
-    }
     const u32 sub_copy_size = (std::min)(4U, copy_size - write_offset);
     std::memcpy(&inner_buffer[write_offset], &data, sub_copy_size);
     write_offset += sub_copy_size;
@@ -55,9 +49,6 @@ void State::ProcessData(const u32* data, size_t num_data) {
 
 void State::ProcessData(std::span<const u8> read_buffer) {
     const GPUVAddr address{regs.dest.Address()};
-    if (address == 0 || regs.line_count == 0 || regs.line_length_in == 0) [[unlikely]] {
-        return;
-    }
     if (is_linear) {
         for (size_t line = 0; line < regs.line_count; ++line) {
             const GPUVAddr dest_line = address + line * regs.dest.pitch;
