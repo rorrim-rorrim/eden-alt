@@ -661,20 +661,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     has_broken_compute =
         CheckBrokenCompute(properties.driver.driverID, properties.properties.driverVersion) &&
         !Settings::values.enable_compute_pipelines.GetValue();
-    must_emulate_bgr565 = false; // Default: assume emulation isn't required
-
-    if (is_intel_anv) {
-        LOG_WARNING(Render_Vulkan, "Intel ANV driver does not support native BGR format");
-        must_emulate_bgr565 = true;
-    } else if (is_qualcomm) {
-        LOG_WARNING(Render_Vulkan,
-                    "Qualcomm driver mishandles BGR5 formats even with VK_KHR_maintenance5, forcing emulation");
-        must_emulate_bgr565 = true;
-    } else if (is_arm) {
-        LOG_WARNING(Render_Vulkan,
-                    "ARM Mali driver mishandles BGR5 formats even with VK_KHR_maintenance5, forcing emulation");
-        must_emulate_bgr565 = true;
-    }
 
     if (is_mvk) {
         LOG_WARNING(Render_Vulkan,
