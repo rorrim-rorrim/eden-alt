@@ -6,9 +6,11 @@
 
 #include <algorithm>
 #include <vector>
+#include <optional>
 #include <stb_image.h>
 #include <stb_image_resize.h>
 #include <stb_image_write.h>
+#include <string>
 
 #include "common/settings.h"
 #include "core/file_sys/control_metadata.h"
@@ -20,6 +22,7 @@
 #include "core/hle/service/ns/ns_results.h"
 #include "core/hle/service/ns/read_only_application_control_data_interface.h"
 #include "core/hle/service/set/settings_server.h"
+#include "core/hle/service/kernel_helpers.h"
 
 namespace Service::NS {
 
@@ -66,6 +69,37 @@ void SanitizeJPEGImageSize(std::vector<u8>& image) {
 
 } // namespace
 
+class AsyncValue final : public ServiceFramework<AsyncValue> {
+public:
+    explicit AsyncValue(Core::System& system_)
+        : ServiceFramework{system_, "IAsyncValue"}, service_context{system_, "IAsyncValue"} {
+        static const FunctionInfo functions[] = {
+            {0, &AsyncValue::Get, "Get"},
+        };
+        RegisterHandlers(functions);
+
+        completion_event = service_context.CreateEvent("IAsyncValue:Completion");
+        completion_event->GetReadableEvent().Signal();
+    }
+
+    ~AsyncValue() override {
+        service_context.CloseEvent(completion_event);
+    }
+
+    Kernel::KReadableEvent& ReadableEvent() const {
+        return completion_event->GetReadableEvent();
+    }
+
+private:
+    void Get(HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    KernelHelpers::ServiceContext service_context;
+    Kernel::KEvent* completion_event{};
+};
+
 IReadOnlyApplicationControlDataInterface::IReadOnlyApplicationControlDataInterface(
     Core::System& system_)
     : ServiceFramework{system_, "IReadOnlyApplicationControlDataInterface"} {
@@ -76,8 +110,9 @@ IReadOnlyApplicationControlDataInterface::IReadOnlyApplicationControlDataInterfa
         {2, D<&IReadOnlyApplicationControlDataInterface::ConvertApplicationLanguageToLanguageCode>, "ConvertApplicationLanguageToLanguageCode"},
         {3, nullptr, "ConvertLanguageCodeToApplicationLanguage"},
         {4, nullptr, "SelectApplicationDesiredLanguage"},
-        {5, D<&IReadOnlyApplicationControlDataInterface::GetApplicationControlData2>, "GetApplicationControlDataWithoutIcon"},
-        {19, D<&IReadOnlyApplicationControlDataInterface::GetApplicationControlData3>, "GetApplicationControlDataWithoutIcon3"},
+        {5, D<&IReadOnlyApplicationControlDataInterface::GetApplicationControlData2>, "GetApplicationControlData"},
+        {13, &IReadOnlyApplicationControlDataInterface::GetApplicationTitle, "GetApplicationTitle"},
+        {19, D<&IReadOnlyApplicationControlDataInterface::GetApplicationControlData3>, "GetApplicationControlData"},
     };
     // clang-format on
 
@@ -238,6 +273,31 @@ Result IReadOnlyApplicationControlDataInterface::GetApplicationControlData2(
 
     *out_total_size = (static_cast<u64>(total_available) << 32) | static_cast<u64>(flag1);
     R_SUCCEED();
+}
+
+// Testing for Unknown command, reverify with real switch. This is for testing!
+void IReadOnlyApplicationControlDataInterface::GetApplicationTitle(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const u64 language_mask = rp.Pop<u64>();
+
+    u64 application_id = 0;
+    const auto app_buf = ctx.ReadBuffer();
+    if (app_buf.size() >= sizeof(u64)) {
+        std::memcpy(&application_id, app_buf.data(), sizeof(u64));
+    }
+
+    const auto input_handle = ctx.GetCopyHandle(0);
+
+    auto async_value = std::make_shared<AsyncValue>(system);
+
+    LOG_INFO(Service_NS,
+             "called with application_id={:016X}, language_mask={:016X}, input_handle=0x{:X}",
+             application_id, language_mask, input_handle);
+
+    IPC::ResponseBuilder rb{ctx, 2, 1, 1};
+    rb.Push(ResultSuccess);
+    rb.PushCopyObjects(async_value->ReadableEvent());
+    rb.PushIpcInterface(std::move(async_value));
 }
 
 Result IReadOnlyApplicationControlDataInterface::GetApplicationControlData3(

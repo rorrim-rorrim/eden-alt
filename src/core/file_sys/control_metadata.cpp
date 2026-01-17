@@ -85,6 +85,14 @@ const LanguageEntry& NACP::GetLanguageEntry() const {
     return raw.language_entries.at(static_cast<u8>(Language::AmericanEnglish));
 }
 
+std::array<std::string, 16> NACP::GetApplicationNames() const {
+    std::array<std::string, 16> names{};
+    for (size_t i = 0; i < raw.language_entries.size(); ++i) {
+        names[i] = raw.language_entries[i].GetApplicationName();
+    }
+    return names;
+}
+
 std::string NACP::GetApplicationName() const {
     return GetLanguageEntry().GetApplicationName();
 }

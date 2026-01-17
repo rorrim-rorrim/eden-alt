@@ -7,6 +7,7 @@
 #pragma once
 
 #include "common/uuid.h"
+#include "core/hle/service/am/am_types.h"
 #include "core/hle/service/cmif_types.h"
 #include "core/hle/service/ns/ns_types.h"
 #include "core/hle/service/service.h"
@@ -28,6 +29,13 @@ static_assert(sizeof(PlayStatistics) == 0x28, "PlayStatistics is an invalid size
 
 struct LastPlayTime {};
 
+struct ApplicationPlayStatistics {
+    u64 application_id{};
+    u64 play_time_ns{};
+    u64 launch_count{};
+};
+static_assert(sizeof(ApplicationPlayStatistics) == 0x18, "ApplicationPlayStatistics is an invalid size");
+
 class IQueryService final : public ServiceFramework<IQueryService> {
 public:
     explicit IQueryService(Core::System& system_);
@@ -39,6 +47,14 @@ private:
     Result QueryLastPlayTime(Out<s32> out_entries, u8 unknown,
                              OutArray<LastPlayTime, BufferAttr_HipcMapAlias> out_last_play_times,
                              InArray<s32, BufferAttr_HipcMapAlias> application_ids);
+    Result QueryApplicationPlayStatisticsForSystem(
+        Out<s32> out_entries, u8 flag,
+        OutArray<ApplicationPlayStatistics, BufferAttr_HipcMapAlias> out_stats,
+        InArray<u64, BufferAttr_HipcMapAlias> application_ids);
+    Result QueryApplicationPlayStatisticsByUserAccountIdForSystem(
+        Out<s32> out_entries, u8 flag, Common::UUID user_id,
+        OutArray<ApplicationPlayStatistics, BufferAttr_HipcMapAlias> out_stats,
+        InArray<u64, BufferAttr_HipcMapAlias> application_ids);
 };
 
 } // namespace Service::NS
