@@ -70,7 +70,8 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(KHR, PipelineExecutableProperties, PIPELINE_EXECUTABLE_PROPERTIES,                     \
             pipeline_executable_properties)                                                        \
     FEATURE(KHR, WorkgroupMemoryExplicitLayout, WORKGROUP_MEMORY_EXPLICIT_LAYOUT,                  \
-            workgroup_memory_explicit_layout)
+            workgroup_memory_explicit_layout)                                                      \
+    FEATURE(QCOM, TilePropertiesFeatures, TILE_PROPERTIES_FEATURES, tile_properties)
 
 // Define miscellaneous extensions which may be used by the implementation here.
 #define FOR_EACH_VK_EXTENSION(EXTENSION)                                                           \
@@ -105,7 +106,10 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(NV, VIEWPORT_SWIZZLE, viewport_swizzle)                                              \
     EXTENSION(EXT, DESCRIPTOR_INDEXING, descriptor_indexing)                                       \
     EXTENSION(EXT, FILTER_CUBIC, filter_cubic)                                                     \
-    EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)
+    EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)                                    \
+    EXTENSION(QCOM, TILE_PROPERTIES, tile_properties)                                              \
+    EXTENSION(QCOM, RENDER_PASS_TRANSFORM, render_pass_transform)                                  \
+    EXTENSION(QCOM, RENDER_PASS_STORE_OPS, render_pass_store_ops)
 
 // Define extensions which must be supported.
 #define FOR_EACH_VK_MANDATORY_EXTENSION(EXTENSION_NAME)                                            \
@@ -644,6 +648,31 @@ public:
         return extensions.filter_cubic_weights;
     }
 
+    /// Returns true if the device supports VK_QCOM_tile_properties
+    bool IsQcomTilePropertiesSupported() const {
+        return extensions.tile_properties;
+    }
+
+    /// Returns true if the device supports VK_QCOM_render_pass_transform
+    bool IsQcomRenderPassTransformSupported() const {
+        return extensions.render_pass_transform;
+    }
+
+    /// Returns true if the device supports VK_QCOM_render_pass_store_ops
+    bool IsQcomRenderPassStoreOpsSupported() const {
+        return extensions.render_pass_store_ops;
+    }
+
+    /// Returns true if the device is a tile-based renderer
+    bool UsesTileBasedRendering() const {
+        return is_tile_based_renderer;
+    }
+
+    /// Returns true if the device supports tileProperties feature
+    bool SupportsTileProperties() const {
+        return features.tile_properties.tileProperties != VK_FALSE;
+    }
+
     /// Returns true if the device supports VK_EXT_line_rasterization.
     bool IsExtLineRasterizationSupported() const {
         return extensions.line_rasterization;
@@ -1033,6 +1062,7 @@ private:
     bool is_integrated{};                      ///< Is GPU an iGPU.
     bool is_virtual{};                         ///< Is GPU a virtual GPU.
     bool is_non_gpu{};                         ///< Is SoftwareRasterizer, FPGA, non-GPU device.
+    bool is_tile_based_renderer{};             ///< Is TBR GPU (Adreno, Mali, PowerVR, etc.
     bool has_broken_compute{};                 ///< Compute shaders can cause crashes
     bool has_broken_cube_compatibility{};      ///< Has broken cube compatibility bit
     bool has_broken_parallel_compiling{};      ///< Has broken parallel shader compiling.

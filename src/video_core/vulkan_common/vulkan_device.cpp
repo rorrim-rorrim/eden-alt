@@ -433,6 +433,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
     const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
+    const bool is_samsung = driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY;
 
     if (!is_suitable)
         LOG_WARNING(Render_Vulkan, "Unsuitable driver - continuing anyways");
@@ -485,6 +486,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     is_virtual = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
     is_non_gpu = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_OTHER ||
                  properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU;
+
+    is_tile_based_renderer = is_qualcomm || is_arm || is_samsung;
 
     supports_d24_depth =
         IsFormatSupported(VK_FORMAT_D24_UNORM_S8_UINT,
@@ -616,6 +619,19 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                         "Qualcomm driver reports max {} samplers; reserving {} (25%) and "
                         "allowing Eden to use {} (75%) to avoid heap exhaustion",
                         sampler_limit, reserved, sampler_heap_budget);
+        }
+
+        // Log QCOM tile-based rendering capabilities
+        LOG_INFO(Render_Vulkan, "Qualcomm Adreno GPU detected");
+        if (extensions.tile_properties) {
+            LOG_INFO(Render_Vulkan, "  VK_QCOM_tile_properties: supported (tileProperties={})",
+                     features.tile_properties.tileProperties ? "true" : "false");
+        }
+        if (extensions.render_pass_transform) {
+            LOG_INFO(Render_Vulkan, "  VK_QCOM_render_pass_transform: supported");
+        }
+        if (extensions.render_pass_store_ops) {
+            LOG_INFO(Render_Vulkan, "  VK_QCOM_render_pass_store_ops: supported (enables VK_ATTACHMENT_STORE_OP_NONE)");
         }
     }
 
