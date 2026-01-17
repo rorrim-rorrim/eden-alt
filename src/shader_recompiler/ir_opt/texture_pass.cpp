@@ -43,6 +43,24 @@ using TextureInstVector = boost::container::small_vector<TextureInst, 24>;
 constexpr u32 DESCRIPTOR_SIZE = 8;
 constexpr u32 DESCRIPTOR_SIZE_SHIFT = static_cast<u32>(std::countr_zero(DESCRIPTOR_SIZE));
 
+// Helper to reduce repeated construction of ConstBufferAddr
+static ConstBufferAddr MakeConstBufferAddr(u32 index_val, u32 base_offset, IR::U32 dynamic_offset,
+                                           u32 count = 8, bool has_secondary = false,
+                                           u32 shift_left = 0, u32 secondary_index = 0,
+                                           u32 secondary_offset = 0, u32 secondary_shift_left = 0) {
+    return ConstBufferAddr{
+        .index = index_val,
+        .offset = base_offset,
+        .shift_left = shift_left,
+        .secondary_index = secondary_index,
+        .secondary_offset = secondary_offset,
+        .secondary_shift_left = secondary_shift_left,
+        .dynamic_offset = dynamic_offset,
+        .count = count,
+        .has_secondary = has_secondary,
+    };
+}
+
 IR::Opcode IndexedInstruction(const IR::Inst& inst) {
     switch (inst.GetOpcode()) {
     case IR::Opcode::BindlessImageSampleImplicitLod:
@@ -178,11 +196,11 @@ bool IsTextureInstruction(const IR::Inst& inst) {
     return IndexedInstruction(inst) != IR::Opcode::Void;
 }
 
-std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environment& env);
+std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environment& env, const IR::Program* program);
 
-std::optional<ConstBufferAddr> Track(const IR::Value& value, Environment& env) {
+std::optional<ConstBufferAddr> Track(const IR::Value& value, Environment& env, const IR::Program* program) {
     return IR::BreadthFirstSearch(
-        value, [&env](const IR::Inst* inst) { return TryGetConstBuffer(inst, env); });
+        value, [&env, program](const IR::Inst* inst) { return TryGetConstBuffer(inst, env, program); });
 }
 
 std::optional<u32> TryGetConstant(IR::Value& value, Environment& env) {
@@ -205,14 +223,67 @@ std::optional<u32> TryGetConstant(IR::Value& value, Environment& env) {
     const auto offset_number = offset.U32();
     return env.ReadCbufValue(index_number, offset_number);
 }
+// Helper: find the source value written into a local (WriteLocal) for a given
+// local index. Returns the writer's source value or nullopt.
+static std::optional<IR::Value> FindLocalWriterSource(const IR::Value& local_idx, const IR::Program* program) {
+    if (!local_idx.IsImmediate() || !program) {
+        return std::nullopt;
+    }
+    const u32 local_word = local_idx.U32();
+    for (IR::Block* const block : program->post_order_blocks) {
+        for (IR::Inst& writer : block->Instructions()) {
+            if (writer.GetOpcode() != IR::Opcode::WriteLocal) {
+                continue;
+            }
+            const IR::Value writer_idx{writer.Arg(0)};
+            if (!writer_idx.IsImmediate() || writer_idx.U32() != local_word) {
+                continue;
+            }
+            return IR::Value{writer.Arg(1)};
+        }
+    }
+    return std::nullopt;
+}
 
-std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environment& env) {
+// Helper: if the supplied IAdd32 inst composes a ConstBufferAddr (one side
+// tracks to a ConstBufferAddr), return that combined address with the other
+// side as the dynamic offset.
+static std::optional<ConstBufferAddr> TryGetConstBufferFromIAdd(const IR::Inst* inst, Environment& env,
+                                                                 const IR::Program* program) {
+    IR::Value a{inst->Arg(0)};
+    IR::Value b{inst->Arg(1)};
+    std::optional<ConstBufferAddr> lhs{Track(a, env, program)};
+    std::optional<ConstBufferAddr> rhs{Track(b, env, program)};
+    if (lhs && !rhs) {
+        lhs->dynamic_offset = IR::U32{b};
+        return lhs;
+    }
+    if (rhs && !lhs) {
+        rhs->dynamic_offset = IR::U32{a};
+        return rhs;
+    }
+    return std::nullopt;
+}
+
+std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environment& env, const IR::Program* program) {
+    // Handle LoadLocal uniformly by finding the writer and tracking its source.
+    if (inst->GetOpcode() == IR::Opcode::LoadLocal) {
+        const IR::Value local_idx{inst->Arg(0)};
+        if (const auto src = FindLocalWriterSource(local_idx, program)) {
+            return Track(*src, env, program);
+        }
+        return std::nullopt;
+    }
+
     switch (inst->GetOpcode()) {
     default:
         return std::nullopt;
+    case IR::Opcode::IAdd32: {
+        return TryGetConstBufferFromIAdd(inst, env, program);
+    }
     case IR::Opcode::BitwiseOr32: {
-        std::optional lhs{Track(inst->Arg(0), env)};
-        std::optional rhs{Track(inst->Arg(1), env)};
+        std::optional lhs{Track(inst->Arg(0), env, program)};
+        std::optional rhs{Track(inst->Arg(1), env, program)};
         if (!lhs || !rhs) {
             return std::nullopt;
         }
@@ -225,29 +296,19 @@ std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environme
         if (lhs->shift_left > 0 || lhs->index > rhs->index || lhs->offset > rhs->offset) {
             std::swap(lhs, rhs);
         }
-        return ConstBufferAddr{
-            .index = lhs->index,
-            .offset = lhs->offset,
-            .shift_left = lhs->shift_left,
-            .secondary_index = rhs->index,
-            .secondary_offset = rhs->offset,
-            .secondary_shift_left = rhs->shift_left,
-            .dynamic_offset = {},
-            .count = 1,
-            .has_secondary = true,
-        };
+        return MakeConstBufferAddr(lhs->index, lhs->offset, IR::U32{}, 1, true, lhs->shift_left,
+                                   rhs->index, rhs->offset, rhs->shift_left);
     }
     case IR::Opcode::ShiftLeftLogical32: {
         const IR::Value shift{inst->Arg(1)};
         if (!shift.IsImmediate()) {
             return std::nullopt;
         }
-        std::optional lhs{Track(inst->Arg(0), env)};
+        std::optional lhs{Track(inst->Arg(0), env, program)};
         if (lhs) {
             lhs->shift_left = shift.U32();
         }
         return lhs;
-        break;
     }
     case IR::Opcode::BitwiseAnd32: {
         IR::Value op1{inst->Arg(0)};
@@ -256,32 +317,31 @@ std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environme
             std::swap(op1, op2);
         }
         if (!op2.IsImmediate() && !op1.IsImmediate()) {
-            do {
-                auto try_index = TryGetConstant(op1, env);
-                if (try_index) {
-                    op1 = op2;
-                    op2 = IR::Value{*try_index};
-                    break;
-                }
+            auto try_index = TryGetConstant(op1, env);
+            if (try_index) {
+                op1 = op2;
+                op2 = IR::Value{*try_index};
+            } else {
                 auto try_index_2 = TryGetConstant(op2, env);
                 if (try_index_2) {
                     op2 = IR::Value{*try_index_2};
-                    break;
+                } else {
+                    return std::nullopt;
                 }
-                return std::nullopt;
-            } while (false);
+            }
         }
-        std::optional lhs{Track(op1, env)};
+        std::optional lhs{Track(op1, env, program)};
         if (lhs) {
             lhs->shift_left = static_cast<u32>(std::countr_zero(op2.U32()));
         }
         return lhs;
-        break;
     }
     case IR::Opcode::GetCbufU32x2:
     case IR::Opcode::GetCbufU32:
         break;
     }
+
+    // Handle GetCbufU32 / GetCbufU32x2 indexed accesses.
     const IR::Value index{inst->Arg(0)};
     const IR::Value offset{inst->Arg(1)};
     if (!index.IsImmediate()) {
@@ -290,68 +350,82 @@ std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environme
         return std::nullopt;
     }
     if (offset.IsImmediate()) {
-        return ConstBufferAddr{
-            .index = index.U32(),
-            .offset = offset.U32(),
-            .shift_left = 0,
-            .secondary_index = 0,
-            .secondary_offset = 0,
-            .secondary_shift_left = 0,
-            .dynamic_offset = {},
-            .count = 1,
-            .has_secondary = false,
-        };
+        return MakeConstBufferAddr(index.U32(), offset.U32(), IR::U32{}, 1, false);
     }
+
     IR::Inst* const offset_inst{offset.InstRecursive()};
+    // If the offset is loaded from a local, try to find the writer and analyze it.
+    if (offset_inst->GetOpcode() == IR::Opcode::LoadLocal) {
+        const IR::Value local_idx{offset_inst->Arg(0)};
+        if (const auto writer_src = FindLocalWriterSource(local_idx, program)) {
+            const IR::Value src{*writer_src};
+            if (src.IsImmediate()) {
+                return MakeConstBufferAddr(index.U32(), src.U32(), IR::U32{});
+            }
+            IR::Inst* const src_inst{src.InstRecursive()};
+            if (src_inst->GetOpcode() == IR::Opcode::IAdd32) {
+                // Extract immediate base + dynamic offset from the IAdd32 writer.
+                if (src_inst->Arg(0).IsImmediate()) {
+                    return MakeConstBufferAddr(index.U32(), src_inst->Arg(0).U32(), IR::U32{src_inst->Arg(1)});
+                } else if (src_inst->Arg(1).IsImmediate()) {
+                    return MakeConstBufferAddr(index.U32(), src_inst->Arg(1).U32(), IR::U32{src_inst->Arg(0)});
+                }
+            }
+        }
+        return std::nullopt;
+    }
+
+    // Otherwise the offset must be an IAdd32 (base + dynamic) to be supported.
     if (offset_inst->GetOpcode() != IR::Opcode::IAdd32) {
         return std::nullopt;
     }
-    u32 base_offset{};
-    IR::U32 dynamic_offset;
     if (offset_inst->Arg(0).IsImmediate()) {
-        base_offset = offset_inst->Arg(0).U32();
-        dynamic_offset = IR::U32{offset_inst->Arg(1)};
-    } else if (offset_inst->Arg(1).IsImmediate()) {
-        base_offset = offset_inst->Arg(1).U32();
-        dynamic_offset = IR::U32{offset_inst->Arg(0)};
-    } else {
-        return std::nullopt;
+        return MakeConstBufferAddr(index.U32(), offset_inst->Arg(0).U32(), IR::U32{offset_inst->Arg(1)});
     }
-    return ConstBufferAddr{
-        .index = index.U32(),
-        .offset = base_offset,
-        .shift_left = 0,
-        .secondary_index = 0,
-        .secondary_offset = 0,
-        .secondary_shift_left = 0,
-        .dynamic_offset = dynamic_offset,
-        .count = 8,
-        .has_secondary = false,
-    };
+    if (offset_inst->Arg(1).IsImmediate()) {
+        return MakeConstBufferAddr(index.U32(), offset_inst->Arg(1).U32(), IR::U32{offset_inst->Arg(0)});
+    }
+    return std::nullopt;
 }
 
-TextureInst MakeInst(Environment& env, IR::Block* block, IR::Inst& inst) {
+TextureInst MakeInst(Environment& env, IR::Program& program, IR::Block* block, IR::Inst& inst) {
     ConstBufferAddr addr;
     if (IsBindless(inst)) {
-        const std::optional<ConstBufferAddr> track_addr{Track(inst.Arg(0), env)};
+        const std::optional<ConstBufferAddr> track_addr{Track(inst.Arg(0), env, &program)};
 
         if (!track_addr) {
-            throw NotImplementedException("Failed to track bindless texture constant buffer");
+            std::string arg0_str;
+            const IR::Inst* arg0_producer = nullptr;
+            if (inst.Arg(0).IsImmediate()) {
+                arg0_str = std::to_string(inst.Arg(0).U32());
+            } else {
+                arg0_producer = inst.Arg(0).InstRecursive();
+                arg0_str = "ptr=" + std::to_string(reinterpret_cast<uintptr_t>(arg0_producer)) + ", op=" + std::to_string(static_cast<int>(arg0_producer->GetOpcode()));
+            }
+            std::string arg1_str;
+            const IR::Inst* arg1_producer = nullptr;
+            if (inst.NumArgs() > 1) {
+                if (inst.Arg(1).IsImmediate()) {
+                    arg1_str = std::to_string(inst.Arg(1).U32());
+                } else {
+                    arg1_producer = inst.Arg(1).InstRecursive();
+                    arg1_str = "ptr=" + std::to_string(reinterpret_cast<uintptr_t>(arg1_producer)) + ", op=" + std::to_string(static_cast<int>(arg1_producer->GetOpcode()));
+                }
+            }
+            LOG_ERROR(HW_GPU, "MakeInst: Failed to track bindless texture constant buffer: opcode={}, Arg(0)={}, Arg(1)={}",
+                inst.GetOpcode(), arg0_str.c_str(), arg1_str.c_str());
+           if (arg0_producer) {
+                LOG_ERROR(HW_GPU, "MakeInst: Arg(0) producer opcode={} @ {}", arg0_producer->GetOpcode(), reinterpret_cast<uintptr_t>(arg0_producer));
+            }
+            if (arg1_producer) {
+                LOG_ERROR(HW_GPU, "MakeInst: Arg(1) producer opcode={} @ {}", arg1_producer->GetOpcode(), reinterpret_cast<uintptr_t>(arg1_producer));
+            }
+            throw NotImplementedException("MakeInst: Failed to track bindless texture constant buffer");
         } else {
             addr = *track_addr;
         }
     } else {
-        addr = ConstBufferAddr{
-            .index = env.TextureBoundBuffer(),
-            .offset = inst.Arg(0).U32(),
-            .shift_left = 0,
-            .secondary_index = 0,
-            .secondary_offset = 0,
-            .secondary_shift_left = 0,
-            .dynamic_offset = {},
-            .count = 1,
-            .has_secondary = false,
-        };
+        addr = MakeConstBufferAddr(env.TextureBoundBuffer(), inst.Arg(0).U32(), IR::U32{}, 1, false);
     }
     return TextureInst{
         .cbuf = addr,
@@ -534,7 +608,7 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
             if (!IsTextureInstruction(inst)) {
                 continue;
             }
-            to_replace.push_back(MakeInst(env, block, inst));
+            to_replace.push_back(MakeInst(env, program, block, inst));
         }
     }
     // Sort instructions to visit textures by constant buffer index, then by offset

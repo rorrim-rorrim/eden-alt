@@ -1696,4 +1696,30 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
     }
 }
 
+Id EmitContext::OpImageSampleGrad(Id result_type, Id sampled_image, Id coordinate, Id dPdx, Id dPdy, std::optional<spv::ImageOperandsMask> mask, std::span<const Id> operands) {
+    // Sirit does not provide OpImageSampleGrad directly, use OpImageSampleExplicitLod with Grad mask
+    std::vector<Id> args = {dPdx, dPdy};
+    if (operands.size() > 0) {
+        args.insert(args.end(), operands.begin(), operands.end());
+    }
+    if (mask.has_value()) {
+        return this->OpImageSampleExplicitLod(result_type, sampled_image, coordinate, static_cast<spv::ImageOperandsMask>(spv::ImageOperandsMask::Grad | *mask), args);
+    } else {
+        return this->OpImageSampleExplicitLod(result_type, sampled_image, coordinate, spv::ImageOperandsMask::Grad, args);
+    }
+}
+
+Id EmitContext::OpImageSparseSampleGrad(Id result_type, Id sampled_image, Id coordinate, Id dPdx, Id dPdy, std::optional<spv::ImageOperandsMask> mask, std::span<const Id> operands) {
+    // Sirit does not provide OpImageSparseSampleGrad directly, use OpImageSparseSampleExplicitLod with Grad mask
+    std::vector<Id> args = {dPdx, dPdy};
+    if (operands.size() > 0) {
+        args.insert(args.end(), operands.begin(), operands.end());
+    }
+    if (mask.has_value()) {
+        return this->OpImageSparseSampleExplicitLod(result_type, sampled_image, coordinate, static_cast<spv::ImageOperandsMask>(spv::ImageOperandsMask::Grad | *mask), args);
+    } else {
+        return this->OpImageSparseSampleExplicitLod(result_type, sampled_image, coordinate, spv::ImageOperandsMask::Grad, args);
+    }
+}
+
 } // namespace Shader::Backend::SPIRV
