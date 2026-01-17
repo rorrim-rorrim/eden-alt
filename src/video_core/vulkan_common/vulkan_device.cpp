@@ -619,9 +619,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
         // Log QCOM tile-based rendering capabilities
         LOG_INFO(Render_Vulkan, "Qualcomm Adreno GPU detected");
-        if (features.tile_properties_feature.tileProperties) {
+        if (extensions.tile_properties) {
             LOG_INFO(Render_Vulkan, "  VK_QCOM_tile_properties: supported (tileProperties={})",
-                     features.tile_properties_feature.tileProperties ? "true" : "false");
+                     features.tile_properties.tileProperties ? "true" : "false");
         }
         if (extensions.render_pass_transform) {
             LOG_INFO(Render_Vulkan, "  VK_QCOM_render_pass_transform: supported");
