@@ -71,7 +71,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
             pipeline_executable_properties)                                                        \
     FEATURE(KHR, WorkgroupMemoryExplicitLayout, WORKGROUP_MEMORY_EXPLICIT_LAYOUT,                  \
             workgroup_memory_explicit_layout)                                                      \
-    FEATURE(QCOM, TilePropertiesFeatures, TILE_PROPERTIES_FEATURES, tile_properties)
+    FEATURE(QCOM, TileProperties, TILE_PROPERTIES, tile_properties_feature)
 
 // Define miscellaneous extensions which may be used by the implementation here.
 #define FOR_EACH_VK_EXTENSION(EXTENSION)                                                           \
@@ -107,7 +107,6 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(EXT, DESCRIPTOR_INDEXING, descriptor_indexing)                                       \
     EXTENSION(EXT, FILTER_CUBIC, filter_cubic)                                                     \
     EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)                                    \
-    EXTENSION(QCOM, TILE_PROPERTIES, tile_properties)                                              \
     EXTENSION(QCOM, RENDER_PASS_TRANSFORM, render_pass_transform)                                  \
     EXTENSION(QCOM, RENDER_PASS_STORE_OPS, render_pass_store_ops)
 
@@ -650,7 +649,7 @@ public:
 
     /// Returns true if the device supports VK_QCOM_tile_properties
     bool IsQcomTilePropertiesSupported() const {
-        return extensions.tile_properties;
+        return features.tile_properties_feature.tileProperties != VK_FALSE;
     }
 
     /// Returns true if the device supports VK_QCOM_render_pass_transform
@@ -670,7 +669,7 @@ public:
 
     /// Returns true if the device supports tileProperties feature
     bool SupportsTileProperties() const {
-        return features.tile_properties.tileProperties != VK_FALSE;
+        return features.tile_properties_feature.tileProperties != VK_FALSE;
     }
 
     /// Returns true if the device supports VK_EXT_line_rasterization.
