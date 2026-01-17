@@ -604,10 +604,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     if (is_qualcomm) {
-        const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version < VK_MAKE_API_VERSION(0, 255, 615, 512)) {
-            has_broken_parallel_compiling = true;
-        }
         const size_t sampler_limit = properties.properties.limits.maxSamplerAllocationCount;
         if (sampler_limit > 0) {
             constexpr size_t MIN_SAMPLER_BUDGET = 1024U;
