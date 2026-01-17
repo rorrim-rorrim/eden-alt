@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -360,6 +363,9 @@ public:
     Id load_const_func_f32{};
     Id load_const_func_u32x2{};
     Id load_const_func_u32x4{};
+
+    Id OpImageSampleGrad(Id result_type, Id sampled_image, Id coordinate, Id dPdx, Id dPdy, std::optional<spv::ImageOperandsMask> mask, std::span<const Id> operands);
+    Id OpImageSparseSampleGrad(Id result_type, Id sampled_image, Id coordinate, Id dPdx, Id dPdy, std::optional<spv::ImageOperandsMask> mask, std::span<const Id> operands);
 
 private:
     void DefineCommonTypes(const Info& info);

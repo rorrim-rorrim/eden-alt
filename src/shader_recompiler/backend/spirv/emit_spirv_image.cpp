@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -350,52 +353,175 @@ void AddOffsetToCoordinates(EmitContext& ctx, const IR::TextureInstInfo& info, I
 }
 } // Anonymous namespace
 
-Id EmitBindlessImageSampleImplicitLod(EmitContext&) {
-    throw LogicError("Unreachable instruction");
+// Implements bindless image sample with implicit LOD using the macro-compatible signature
+Id EmitBindlessImageSampleImplicitLod(EmitContext& ctx, IR::Inst* inst, Id coords, const IR::Value& handle, const IR::Value& bias_lc, const IR::Value& offset) {
+    const IR::Value& bindless_handle = handle;
+    const auto info = inst->Flags<IR::TextureInstInfo>();
+    const TextureDefinition& def = ctx.textures.at(info.descriptor_index);
+    const Id pointer = ctx.OpAccessChain(def.pointer_type, def.id, ctx.Def(bindless_handle));
+    const Id sampler = ctx.OpLoad(def.sampled_type, pointer);
+    if (ctx.stage == Stage::Fragment) {
+        // ImageOperands(EmitContext&, bool has_bias, bool has_lod, bool has_lod_clamp, Id lod, const IR::Value& offset)
+        const Id bias = ctx.Def(bias_lc);
+        const ImageOperands operands(ctx, info.has_bias != 0, false, info.has_lod_clamp != 0, bias, offset);
+        return Emit(&EmitContext::OpImageSparseSampleImplicitLod,
+                    &EmitContext::OpImageSampleImplicitLod, ctx, inst, ctx.F32[4],
+                    sampler, coords, operands.MaskOptional(), operands.Span());
+    } else {
+        const Id lod = ctx.Const(0.0f);
+        const ImageOperands operands(ctx, false, true, info.has_lod_clamp != 0, lod, offset);
+        return Emit(&EmitContext::OpImageSparseSampleExplicitLod,
+                    &EmitContext::OpImageSampleExplicitLod, ctx, inst, ctx.F32[4],
+                    sampler, coords, operands.Mask(), operands.Span());
+    }
 }
 
-Id EmitBindlessImageSampleExplicitLod(EmitContext&) {
-    throw LogicError("Unreachable instruction");
+// Implements bindless image sample with explicit LOD using the macro-compatible signature
+Id EmitBindlessImageSampleExplicitLod(EmitContext& ctx, IR::Inst* inst, Id coords, const IR::Value& handle, const IR::Value& lod, const IR::Value& offset) {
+    const IR::Value& bindless_handle = handle;
+    const auto info = inst->Flags<IR::TextureInstInfo>();
+    const TextureDefinition& def = ctx.textures.at(info.descriptor_index);
+    const Id pointer = ctx.OpAccessChain(def.pointer_type, def.id, ctx.Def(bindless_handle));
+    const Id sampler = ctx.OpLoad(def.sampled_type, pointer);
+    // ImageOperands(EmitContext&, bool has_bias, bool has_lod, bool has_lod_clamp, Id lod, const IR::Value& offset)
+    const Id lod_id = ctx.Def(lod);
+    const ImageOperands operands(ctx, false, true, false, lod_id, offset);
+    return Emit(&EmitContext::OpImageSparseSampleExplicitLod,
+                &EmitContext::OpImageSampleExplicitLod, ctx, inst, ctx.F32[4],
+                sampler, coords, operands.Mask(), operands.Span());
 }
 
-Id EmitBindlessImageSampleDrefImplicitLod(EmitContext&) {
-    throw LogicError("Unreachable instruction");
+// Multi-argument version for bindless image sample dref implicit lod
+Id EmitBindlessImageSampleDrefImplicitLod(EmitContext& ctx, IR::Inst* inst, Id coords, const IR::Value& handle, Id dref, const IR::Value& bias_lc, const IR::Value& offset) {
+    const auto info = inst->Flags<IR::TextureInstInfo>();
+    const TextureDefinition& def = ctx.textures.at(info.descriptor_index);
+    const Id pointer = ctx.OpAccessChain(def.pointer_type, def.id, ctx.Def(handle));
+    const Id sampler = ctx.OpLoad(def.sampled_type, pointer);
+    if (ctx.stage == Stage::Fragment) {
+        const Id bias = ctx.Def(bias_lc);
+        const ImageOperands operands(ctx, info.has_bias != 0, false, info.has_lod_clamp != 0, bias, offset);
+        return Emit(&EmitContext::OpImageSparseSampleDrefImplicitLod,
+                    &EmitContext::OpImageSampleDrefImplicitLod, ctx, inst, ctx.F32[1],
+                    sampler, coords, dref, operands.MaskOptional(), operands.Span());
+    } else {
+        const Id lod = ctx.Const(0.0f);
+        const ImageOperands operands(ctx, false, true, false, lod, offset);
+        return Emit(&EmitContext::OpImageSparseSampleDrefExplicitLod,
+                    &EmitContext::OpImageSampleDrefExplicitLod, ctx, inst, ctx.F32[1],
+                    sampler, coords, dref, operands.Mask(), operands.Span());
+    }
 }
 
-Id EmitBindlessImageSampleDrefExplicitLod(EmitContext&) {
-    throw LogicError("Unreachable instruction");
+// Implements bindless image shadow sample with explicit LOD using the bindless handle as index
+Id EmitBindlessImageSampleDrefExplicitLod(EmitContext& ctx, IR::Inst* inst, Id coords, const IR::Value& handle, Id dref, const IR::Value& lod, const IR::Value& offset) {
+    const auto info = inst->Flags<IR::TextureInstInfo>();
+    const TextureDefinition& def = ctx.textures.at(info.descriptor_index);
+    const Id pointer = ctx.OpAccessChain(def.pointer_type, def.id, ctx.Def(handle));
+    const Id sampler = ctx.OpLoad(def.sampled_type, pointer);
+    const Id lod_id = ctx.Def(lod);
+    const ImageOperands operands(ctx, false, true, false, lod_id, offset);
+    return Emit(&EmitContext::OpImageSparseSampleDrefExplicitLod,
+                &EmitContext::OpImageSampleDrefExplicitLod, ctx, inst, ctx.F32[1],
+                sampler, coords, dref, operands.Mask(), operands.Span());
 }
 
-Id EmitBindlessImageGather(EmitContext&) {
-    throw LogicError("Unreachable instruction");
+// Multi-argument version for bindless image gather
+Id EmitBindlessImageGather(EmitContext& ctx, IR::Inst* inst, Id coords, const IR::Value& handle, const IR::Value& offset, const IR::Value& offset2) {
+    const auto info = inst->Flags<IR::TextureInstInfo>();
+    const TextureDefinition& def = ctx.textures.at(info.descriptor_index);
+    const Id pointer = ctx.OpAccessChain(def.pointer_type, def.id, ctx.Def(handle));
+    const Id sampler = ctx.OpLoad(def.sampled_type, pointer);
+    const ImageOperands operands(ctx, offset, offset2);
+    Id gather_coords = coords;
+    if (ctx.profile.need_gather_subpixel_offset) {
+        gather_coords = ImageGatherSubpixelOffset(ctx, info, sampler, coords);
+    }
+    return Emit(&EmitContext::OpImageSparseGather, &EmitContext::OpImageGather, ctx, inst,
+                ctx.F32[4], sampler, gather_coords, ctx.Const(info.gather_component),
+                operands.MaskOptional(), operands.Span());
 }
 
-Id EmitBindlessImageGatherDref(EmitContext&) {
-    throw LogicError("Unreachable instruction");
+// Multi-argument version for bindless image gather dref
+Id EmitBindlessImageGatherDref(EmitContext& ctx, IR::Inst* inst, Id coords, const IR::Value& handle, const IR::Value& offset, const IR::Value& offset2, Id dref) {
+    const auto info = inst->Flags<IR::TextureInstInfo>();
+    const TextureDefinition& def = ctx.textures.at(info.descriptor_index);
+    const Id pointer = ctx.OpAccessChain(def.pointer_type, def.id, ctx.Def(handle));
+    const Id sampler = ctx.OpLoad(def.sampled_type, pointer);
+    const ImageOperands operands(ctx, offset, offset2);
+    Id gather_coords = coords;
+    if (ctx.profile.need_gather_subpixel_offset) {
+        gather_coords = ImageGatherSubpixelOffset(ctx, info, sampler, coords);
+    }
+    return Emit(&EmitContext::OpImageSparseDrefGather, &EmitContext::OpImageDrefGather, ctx, inst,
+                ctx.F32[4], sampler, gather_coords, dref, operands.MaskOptional(),
+                operands.Span());
 }
 
-Id EmitBindlessImageFetch(EmitContext&) {
-    throw LogicError("Unreachable instruction");
+// Macro-compatible: (EmitContext&, IR::Inst*, Id coords, const IR::Value& handle, const IR::Value& offset, const IR::Value& ms, const IR::Value& lod)
+Id EmitBindlessImageFetch(EmitContext& ctx, IR::Inst* inst, Id coords, const IR::Value& handle, const IR::Value& offset, Id lod, const IR::Value& ms) {
+    const auto info = inst->Flags<IR::TextureInstInfo>();
+    const TextureDefinition& def = ctx.textures.at(info.descriptor_index);
+    const Id pointer = ctx.OpAccessChain(def.pointer_type, def.id, ctx.Def(handle));
+    const Id sampler = ctx.OpLoad(def.sampled_type, pointer);
+    const Id ms_id = ctx.Def(ms);
+    const ImageOperands operands(lod, ms_id);
+    const Id result_type = ctx.F32[4];
+    Id color = Emit(&EmitContext::OpImageSparseFetch, &EmitContext::OpImageFetch, ctx, inst, result_type, sampler, coords, operands.MaskOptional(), operands.Span());
+    return color;
 }
 
-Id EmitBindlessImageQueryDimensions(EmitContext&) {
-    throw LogicError("Unreachable instruction");
+// Macro-compatible: (EmitContext&, IR::Inst*, Id coords, const IR::Value& handle, const IR::Value& lod)
+Id EmitBindlessImageQueryDimensions(EmitContext& ctx, IR::Inst* inst, Id handle, Id lod, Id skip_mips) {
+    const auto info = inst->Flags<IR::TextureInstInfo>();
+    const TextureDefinition& def = ctx.textures.at(info.descriptor_index);
+    const Id pointer = ctx.OpAccessChain(def.pointer_type, def.id, handle);
+    const Id sampler = ctx.OpLoad(def.sampled_type, pointer);
+    // skip_mips is not used in this implementation
+    return ctx.OpImageQuerySizeLod(ctx.U32[2], sampler, lod);
 }
 
-Id EmitBindlessImageQueryLod(EmitContext&) {
-    throw LogicError("Unreachable instruction");
+// Macro-compatible: (EmitContext&, IR::Inst*, Id coords, const IR::Value& handle)
+Id EmitBindlessImageQueryLod(EmitContext& ctx, IR::Inst* inst, Id coords, const IR::Value& handle) {
+    const auto info = inst->Flags<IR::TextureInstInfo>();
+    const TextureDefinition& def = ctx.textures.at(info.descriptor_index);
+    const Id pointer = ctx.OpAccessChain(def.pointer_type, def.id, ctx.Def(handle));
+    const Id sampler = ctx.OpLoad(def.sampled_type, pointer);
+    return ctx.OpImageQueryLod(ctx.U32[2], sampler, coords);
 }
 
-Id EmitBindlessImageGradient(EmitContext&) {
-    throw LogicError("Unreachable instruction");
+// Macro-compatible: (EmitContext&, IR::Inst*, Id coords, const IR::Value& handle, const IR::Value& derivatives, const IR::Value& offset, const IR::Value& lod_clamp)
+Id EmitBindlessImageGradient(EmitContext& ctx, IR::Inst* inst, Id coords, const IR::Value& handle, const IR::Value& derivatives, const IR::Value& offset, const IR::Value& lod_clamp) {
+    const auto info = inst->Flags<IR::TextureInstInfo>();
+    const TextureDefinition& def = ctx.textures.at(info.descriptor_index);
+    const Id pointer = ctx.OpAccessChain(def.pointer_type, def.id, ctx.Def(handle));
+    const Id sampler = ctx.OpLoad(def.sampled_type, pointer);
+    const Id deriv_id = ctx.Def(derivatives);
+    const Id lod_clamp_id = ctx.Def(lod_clamp);
+    const ImageOperands operands(ctx, false, deriv_id, 2, offset, lod_clamp_id);
+    // Directly call the robust wrappers with macro-compatible signature
+    if (inst->GetAssociatedPseudoOperation(IR::Opcode::GetSparseFromOp)) {
+        return ctx.OpImageSparseSampleGrad(ctx.F32[4], sampler, coords, deriv_id, deriv_id, operands.MaskOptional(), operands.Span());
+    } else {
+        return ctx.OpImageSampleGrad(ctx.F32[4], sampler, coords, deriv_id, deriv_id, operands.MaskOptional(), operands.Span());
+    }
 }
 
-Id EmitBindlessImageRead(EmitContext&) {
-    throw LogicError("Unreachable instruction");
+// Macro-compatible: (EmitContext&, IR::Inst*, Id coords, const IR::Value& handle)
+Id EmitBindlessImageRead(EmitContext& ctx, IR::Inst* inst, Id coords, const IR::Value& handle) {
+    const auto info = inst->Flags<IR::TextureInstInfo>();
+    const TextureDefinition& def = ctx.textures.at(info.descriptor_index);
+    const Id pointer = ctx.OpAccessChain(def.pointer_type, def.id, ctx.Def(handle));
+    const Id sampler = ctx.OpLoad(def.sampled_type, pointer);
+    return ctx.OpImageRead(ctx.U32[4], sampler, coords);
 }
 
-Id EmitBindlessImageWrite(EmitContext&) {
-    throw LogicError("Unreachable instruction");
+// Macro-compatible: (EmitContext&, IR::Inst*, Id coords, const IR::Value& handle, Id color)
+void EmitBindlessImageWrite(EmitContext& ctx, IR::Inst* inst, Id coords, const IR::Value& handle, Id color) {
+    const auto info = inst->Flags<IR::TextureInstInfo>();
+    const TextureDefinition& def = ctx.textures.at(info.descriptor_index);
+    const Id pointer = ctx.OpAccessChain(def.pointer_type, def.id, ctx.Def(handle));
+    const Id sampler = ctx.OpLoad(def.sampled_type, pointer);
+    ctx.OpImageWrite(sampler, coords, color);
 }
 
 Id EmitBoundImageSampleImplicitLod(EmitContext&) {

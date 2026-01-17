@@ -513,18 +513,102 @@ Id EmitConvertU8U32(EmitContext& ctx, Id value);
 Id EmitConvertU32U8(EmitContext& ctx, Id value);
 Id EmitConvertS32S8(EmitContext& ctx, Id value);
 Id EmitConvertS32S16(EmitContext& ctx, Id value);
-Id EmitBindlessImageSampleImplicitLod(EmitContext&);
-Id EmitBindlessImageSampleExplicitLod(EmitContext&);
-Id EmitBindlessImageSampleDrefImplicitLod(EmitContext&);
-Id EmitBindlessImageSampleDrefExplicitLod(EmitContext&);
-Id EmitBindlessImageGather(EmitContext&);
-Id EmitBindlessImageGatherDref(EmitContext&);
-Id EmitBindlessImageFetch(EmitContext&);
-Id EmitBindlessImageQueryDimensions(EmitContext&);
-Id EmitBindlessImageQueryLod(EmitContext&);
-Id EmitBindlessImageGradient(EmitContext&);
-Id EmitBindlessImageRead(EmitContext&);
-Id EmitBindlessImageWrite(EmitContext&);
+// Bindless image single-argument stubs (for macro compatibility)
+Id EmitBindlessImageSampleImplicitLod(
+    EmitContext& ctx, IR::Inst* inst,
+    Id coords,                      // U32
+    const IR::Value& handle,        // Opaque
+    const IR::Value& bias_lc,       // Opaque
+    const IR::Value& offset         // Opaque
+);
+// Real implementation for BindlessImageSampleExplicitLod
+Id EmitBindlessImageSampleExplicitLod(
+    EmitContext& ctx, IR::Inst* inst,
+    Id coords,                      // U32
+    const IR::Value& handle,        // Opaque
+    const IR::Value& lod,           // Opaque
+    const IR::Value& offset         // Opaque
+);
+// Real implementation for BindlessImageSampleDrefImplicitLod
+Id EmitBindlessImageSampleDrefImplicitLod(
+    EmitContext& ctx, IR::Inst* inst,
+    Id coords,                      // U32
+    const IR::Value& handle,        // Opaque
+    Id dref,                        // F32
+    const IR::Value& bias_lc,       // Opaque
+    const IR::Value& offset         // Opaque
+);
+// Real implementation for BindlessImageSampleDrefExplicitLod
+Id EmitBindlessImageSampleDrefExplicitLod(
+    EmitContext& ctx, IR::Inst* inst,
+    Id coords,                      // U32
+    const IR::Value& handle,        // Opaque
+    Id dref,                        // F32
+    const IR::Value& lod,           // Opaque
+    const IR::Value& offset         // Opaque
+);
+// Real implementation for BindlessImageGather
+Id EmitBindlessImageGather(
+    EmitContext& ctx, IR::Inst* inst,
+    Id coords,                      // U32
+    const IR::Value& handle,        // Opaque
+    const IR::Value& offset,        // Opaque
+    const IR::Value& offset2        // Opaque
+);
+// Real implementation for BindlessImageGatherDref
+Id EmitBindlessImageGatherDref(
+    EmitContext& ctx, IR::Inst* inst,
+    Id coords,                      // U32
+    const IR::Value& handle,        // Opaque
+    const IR::Value& offset,        // Opaque
+    const IR::Value& offset2,       // Opaque
+    Id dref                         // F32
+);
+// Real implementation for BindlessImageFetch
+Id EmitBindlessImageFetch(
+    EmitContext& ctx, IR::Inst* inst,
+    Id coords,                      // U32
+    const IR::Value& handle,        // Opaque
+    const IR::Value& offset,        // Opaque
+    Id lod,                         // U32
+    const IR::Value& ms             // Opaque
+);
+// Real implementation for BindlessImageQueryDimensions
+Id EmitBindlessImageQueryDimensions(
+    EmitContext& ctx, IR::Inst* inst,
+    Id handle,                      // U32
+    Id lod,                         // U32
+    Id skip_mips                    // U1
+);
+// Real implementation for BindlessImageQueryLod
+Id EmitBindlessImageQueryLod(
+    EmitContext& ctx, IR::Inst* inst,
+    Id coords,                      // U32
+    const IR::Value& handle         // Opaque
+);
+// Real implementation for BindlessImageGradient
+Id EmitBindlessImageGradient(
+    EmitContext& ctx, IR::Inst* inst,
+    Id coords,                      // U32
+    const IR::Value& handle,        // Opaque
+    const IR::Value& derivatives,   // Opaque
+    const IR::Value& offset,        // Opaque
+    const IR::Value& lod_clamp      // Opaque
+);
+// Real implementation for BindlessImageRead
+Id EmitBindlessImageRead(
+    EmitContext& ctx, IR::Inst* inst,
+    Id coords,                      // U32
+    const IR::Value& handle         // Opaque
+);
+// Real implementation for BindlessImageWrite
+void EmitBindlessImageWrite(
+    EmitContext& ctx, IR::Inst* inst,
+    Id coords,                      // U32
+    const IR::Value& handle,        // Opaque
+    Id color                        // U32x4
+);
+
 Id EmitBoundImageSampleImplicitLod(EmitContext&);
 Id EmitBoundImageSampleExplicitLod(EmitContext&);
 Id EmitBoundImageSampleDrefImplicitLod(EmitContext&);
