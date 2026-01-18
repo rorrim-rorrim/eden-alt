@@ -66,7 +66,7 @@ AddJsonPackage(vulkan-utility-headers)
 
 # small hack
 if (NOT VulkanUtilityLibraries_ADDED)
-    find_package(VulkanHeaders 1.3.317 REQUIRED)
+    find_package(VulkanHeaders 1.4.317 REQUIRED)
 endif()
 
 # DiscordRPC
