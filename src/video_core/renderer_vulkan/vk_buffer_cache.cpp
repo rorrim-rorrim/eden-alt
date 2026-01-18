@@ -338,12 +338,8 @@ BufferCacheRuntime::BufferCacheRuntime(const Device& device_, MemoryAllocator& m
                                     driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
     if (limit_dynamic_storage_buffers) {
         max_dynamic_storage_buffers = device.GetMaxDescriptorSetStorageBuffersDynamic();
-    }
-    const bool has_8bit_16bit_storage = 
-        device.GetFeatures().bit8_storage.uniformAndStorageBuffer8BitAccess &&
-        device.GetFeatures().bit16_storage.uniformAndStorageBuffer16BitAccess;
-    
-    if (has_8bit_16bit_storage) {
+    }    
+    if (device.SupportsUint8Indices()) {
         uint8_pass = std::make_unique<Uint8Pass>(device, scheduler, descriptor_pool, staging_pool,
                                                  compute_pass_descriptor_queue);
     }

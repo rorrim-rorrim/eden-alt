@@ -1070,9 +1070,14 @@ bool Device::GetSuitability(bool requires_swapchain) {
             LOG_INFO(Render_Vulkan, "Device doesn't support feature {}", #name);                       \
     }
 
+// Optional features are enabled silently without any logging
+#define OPTIONAL_FEATURE(feature, name) (void)features.feature.name;
+
+    FOR_EACH_VK_OPTIONAL_FEATURE(OPTIONAL_FEATURE);
     FOR_EACH_VK_RECOMMENDED_FEATURE(LOG_FEATURE);
     FOR_EACH_VK_MANDATORY_FEATURE(CHECK_FEATURE);
 
+#undef OPTIONAL_FEATURE
 #undef LOG_FEATURE
 #undef CHECK_FEATURE
 
