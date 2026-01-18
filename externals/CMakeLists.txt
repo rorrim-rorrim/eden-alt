@@ -61,6 +61,8 @@ endif()
 # mbedtls
 AddJsonPackage(mbedtls)
 
+set(VulkanUtilityLibraries_FORCE_BUNDLED ON)
+
 # VulkanUtilityHeaders - pulls in headers and utility libs
 AddJsonPackage(vulkan-utility-headers)
 
