@@ -683,12 +683,13 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     if (device.IsExtDepthClipControlSupported()) {
         ndc_info.pNext = std::exchange(viewport_ci.pNext, &ndc_info);
     }
+    const bool depth_clamp_enabled = device.IsDepthClampSupported() && 
+                                     (dynamic.depth_clamp_disabled == 0);
     VkPipelineRasterizationStateCreateInfo rasterization_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .depthClampEnable =
-        static_cast<VkBool32>(dynamic.depth_clamp_disabled == 0 ? VK_TRUE : VK_FALSE),
+        .depthClampEnable = depth_clamp_enabled ? VK_TRUE : VK_FALSE,
         .rasterizerDiscardEnable =
         static_cast<VkBool32>(dynamic.rasterize_enable == 0 ? VK_TRUE : VK_FALSE),
         .polygonMode =

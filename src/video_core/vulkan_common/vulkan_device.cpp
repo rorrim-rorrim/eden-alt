@@ -509,6 +509,16 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         features.shader_atomic_int64.shaderSharedInt64Atomics = false;
         features.features.shaderInt64 = false;
 
+        // Disable depthClamp and depthBiasClamp on Qualcomm drivers
+        if (features.features.depthClamp) {
+            LOG_WARNING(Render_Vulkan, "Disabling depthClamp on Qualcomm drivers");
+            features.features.depthClamp = false;
+        }
+        if (features.features.depthBiasClamp) {
+            LOG_WARNING(Render_Vulkan, "Disabling depthBiasClamp on Qualcomm drivers");
+            features.features.depthBiasClamp = false;
+        }
+
 #if defined(ANDROID) && defined(ARCHITECTURE_arm64)
         // BCn patching only safe on Android 9+ (API 28+). Older versions crash on driver load.
         const auto major = (properties.properties.driverVersion >> 24) << 2;
@@ -1258,8 +1268,10 @@ void Device::RemoveUnsuitableExtensions() {
     dynamic_state3_blending = supports_color_blend_enable && supports_color_blend_equation &&
                               supports_color_write_mask;
 
+    // EDS3 DepthClampEnable requires both the EDS3 feature and the core depthClamp feature
     const bool supports_depth_clamp_enable =
-        features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable;
+        features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable &&
+        features.features.depthClamp;
     const bool supports_logic_op_enable =
         features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable;
     const bool supports_line_raster_mode =

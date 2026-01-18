@@ -135,8 +135,6 @@ VK_DEFINE_HANDLE(VmaAllocator)
 
 // Define features which must be supported.
 #define FOR_EACH_VK_MANDATORY_FEATURE(FEATURE_NAME)                                                \
-    FEATURE_NAME(features, depthBiasClamp)                                                         \
-    FEATURE_NAME(features, depthClamp)                                                             \
     FEATURE_NAME(features, drawIndirectFirstInstance)                                              \
     FEATURE_NAME(features, dualSrcBlend)                                                           \
     FEATURE_NAME(features, fillModeNonSolid)                                                       \
@@ -191,6 +189,8 @@ VK_DEFINE_HANDLE(VmaAllocator)
 
 // These features are not required but can be helpful for drivers that can use it.
 #define FOR_EACH_VK_OPTIONAL_FEATURE(FEATURE_NAME)                                                 \
+    FEATURE_NAME(features, depthBiasClamp)                                                         \
+    FEATURE_NAME(features, depthClamp)                                                             \
     FEATURE_NAME(bit16_storage, uniformAndStorageBuffer16BitAccess)                                \
     FEATURE_NAME(bit8_storage, uniformAndStorageBuffer8BitAccess)
 
@@ -418,6 +418,16 @@ public:
     // Returns true if depth bounds is supported.
     bool IsDepthBoundsSupported() const {
         return features.features.depthBounds;
+    }
+
+    /// Returns true if depthClamp feature is supported.
+    bool IsDepthClampSupported() const {
+        return features.features.depthClamp;
+    }
+
+    /// Returns true if depthBiasClamp feature is supported.
+    bool IsDepthBiasClampSupported() const {
+        return features.features.depthBiasClamp;
     }
 
     /// Returns true when blitting from and to D24S8 images is supported.
