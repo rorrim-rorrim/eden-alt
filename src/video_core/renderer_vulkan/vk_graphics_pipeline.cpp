@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <iostream>
 #include <span>
-#include <string>
 
 #include <boost/container/small_vector.hpp>
 #include <boost/container/static_vector.hpp>
@@ -23,11 +22,9 @@
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
-#include "common/logging/log.h"
 #include "video_core/shader_notify.h"
 #include "video_core/texture_cache/texture_cache.h"
 #include "video_core/vulkan_common/vulkan_device.h"
-#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 #if defined(_MSC_VER) && defined(NDEBUG)
 #define LAMBDA_FORCEINLINE [[msvc::forceinline]]
@@ -283,34 +280,7 @@ GraphicsPipeline::GraphicsPipeline(
 
         const VkRenderPass render_pass{render_pass_cache.Get(MakeRenderPassKey(key.state))};
         Validate();
-        try {
-            MakePipeline(render_pass);
-        } catch (const vk::Exception& exception) {
-            // Determine which shader stages are active for better diagnostics
-            std::string active_stages;
-            static constexpr std::array<const char*, NUM_STAGES> stage_names = {
-                "Vertex", "TessControl", "TessEval", "Geometry", "Fragment"
-            };
-            for (size_t i = 0; i < NUM_STAGES; ++i) {
-                if (spv_modules[i]) {
-                    if (!active_stages.empty()) active_stages += ", ";
-                    active_stages += stage_names[i];
-                }
-            }
-            LOG_ERROR(Render_Vulkan, 
-                "Graphics pipeline creation failed with {}: stages=[{}], shader hashes [{:016x}, {:016x}, {:016x}, {:016x}, {:016x}, {:016x}]",
-                exception.what(), active_stages,
-                key.unique_hashes[0], key.unique_hashes[1], key.unique_hashes[2],
-                key.unique_hashes[3], key.unique_hashes[4], key.unique_hashes[5]);
-            // Mark as built but with null pipeline - will be skipped during rendering
-            std::scoped_lock lock{build_mutex};
-            is_built = true;
-            build_condvar.notify_one();
-            if (shader_notify) {
-                shader_notify->MarkShaderComplete();
-            }
-            return;
-        }
+        MakePipeline(render_pass);
         if (pipeline_statistics) {
             pipeline_statistics->Collect(*pipeline);
         }
@@ -525,10 +495,12 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     }
     texture_cache.UpdateRenderTargets(false);
     texture_cache.CheckFeedbackLoop(views);
-    return ConfigureDraw(rescaling, render_area);
+    ConfigureDraw(rescaling, render_area);
+
+    return true;
 }
 
-bool GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
+void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
                                      const RenderAreaPushConstant& render_area) {
     scheduler.RequestRenderpass(texture_cache.GetFramebuffer());
     if (!is_built.load(std::memory_order::relaxed)) {
@@ -537,13 +509,6 @@ bool GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
             std::unique_lock lock{build_mutex};
             build_condvar.wait(lock, [this] { return is_built.load(std::memory_order::relaxed); });
         });
-    }
-    // Check if pipeline creation failed (null pipeline)
-    if (!pipeline) {
-        LOG_WARNING(Render_Vulkan, "Skipping draw call: pipeline creation failed for hashes [{:016x}, {:016x}, {:016x}, {:016x}, {:016x}, {:016x}]",
-            key.unique_hashes[0], key.unique_hashes[1], key.unique_hashes[2],
-            key.unique_hashes[3], key.unique_hashes[4], key.unique_hashes[5]);
-        return false;
     }
     const bool is_rescaling{texture_cache.IsRescaling()};
     const bool update_rescaling{scheduler.UpdateRescaling(is_rescaling)};
@@ -585,7 +550,6 @@ bool GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
                                       descriptor_set, nullptr);
         }
     });
-    return true;
 }
 
 void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
