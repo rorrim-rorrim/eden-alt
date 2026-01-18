@@ -123,7 +123,7 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
 
     EmitCondPrelude(ctx);
 
-    for (auto iter = block.begin(); iter != block.end(); ++iter) [[likely]] {
+    for (auto iter = block.instructions.begin(); iter != block.instructions.end(); ++iter) [[likely]] {
         auto* inst = &*iter;
         // Call the relevant Emit* member function.
         switch (inst->GetOpcode()) {
