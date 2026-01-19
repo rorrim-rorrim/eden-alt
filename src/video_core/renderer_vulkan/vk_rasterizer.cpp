@@ -1196,9 +1196,7 @@ void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
         }
     }
 
-    const float bias_clamp = device.IsDepthBiasClampSupported() ? regs.depth_bias_clamp : 0.0f;
-
-    scheduler.Record([constant = units, clamp = bias_clamp,
+    scheduler.Record([constant = units, clamp = regs.depth_bias_clamp,
                       factor = regs.slope_scale_depth_bias, this](vk::CommandBuffer cmdbuf) {
         if (device.IsExtDepthBiasControlSupported()) {
             static VkDepthBiasRepresentationInfoEXT bias_info{
