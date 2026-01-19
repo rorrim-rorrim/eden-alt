@@ -485,8 +485,8 @@ void Vic::Blend(const ConfigStruct& config, const SlotStruct& slot, VideoPixelFo
     source_bottom = (std::min)(source_bottom, out_surface_height);
     source_right = (std::min)(source_right, out_surface_width);
 
-    auto const work_width = u32((std::max)(0, s32(source_right) - s32(source_left)));
-    auto const work_height = u32((std::max)(0, s32(source_bottom) - s32(source_top)));
+    [[maybe_unused]] auto const work_width = u32((std::max)(0, s32(source_right) - s32(source_left)));
+    [[maybe_unused]] auto const work_height = u32((std::max)(0, s32(source_bottom) - s32(source_top)));
 
     // TODO Alpha blending. No games I've seen use more than a single surface or supply an alpha
     // below max, so it's ignored for now.
