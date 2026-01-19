@@ -311,10 +311,12 @@ Result IReadOnlyApplicationControlDataInterface::GetApplicationControlData2(
 
 
 void IReadOnlyApplicationControlDataInterface::ListApplicationTitle(HLERequestContext& ctx) {
+    /*
     IPC::RequestParser rp{ctx};
     auto control_source = rp.PopRaw<u8>();
     rp.Skip(7, false);
     auto transfer_memory_size = rp.Pop<u64>();
+    */
 
     const auto app_ids_buffer = ctx.ReadBuffer();
     const size_t app_count = app_ids_buffer.size() / sizeof(u64);
