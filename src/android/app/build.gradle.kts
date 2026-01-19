@@ -175,6 +175,7 @@ android {
             isDefault = true
 
             manifestPlaceholders += mapOf("appNameBase" to "Eden")
+            resValue("string", "app_name_suffixed", "Eden")
 
             ndk {
                 abiFilters += listOf("arm64-v8a")
@@ -184,6 +185,7 @@ android {
         create("genshinSpoof") {
             dimension = "version"
             manifestPlaceholders += mapOf("appNameBase" to "Eden Optimized")
+            resValue("string", "app_name_suffixed", "Eden Optimized")
             applicationId = "com.miHoYo.Yuanshen"
 
             ndk {
@@ -194,6 +196,7 @@ android {
         create("legacy") {
             dimension = "version"
             manifestPlaceholders += mapOf("appNameBase" to "Eden Legacy")
+            resValue("string", "app_name_suffixed", "Eden Legacy")
             applicationId = "dev.legacy.eden_emulator"
 
             externalNativeBuild {
@@ -216,6 +219,7 @@ android {
         create("chromeOS") {
             dimension = "version"
             manifestPlaceholders += mapOf("appNameBase" to "Eden ChromeOS")
+            resValue("string", "app_name_suffixed", "Eden ChromeOS")
 
             ndk {
                 abiFilters += listOf("x86_64")
