@@ -208,17 +208,20 @@ void ConfigureProfileManager::SelectUser(const QModelIndex& index) {
 }
 
 void ConfigureProfileManager::AddUser() {
-    const auto username =
-        GetProfileUsernameFromUser(this, tr("Enter a username for the new user:"));
-    if (username.isEmpty()) {
-        return;
+    auto const username = GetProfileUsernameFromUser(this, tr("Enter an username:"));
+    if (!username.isEmpty()) {
+        auto const uuid_str = GetProfileUsernameFromUser(this, tr("Enter an UUID (leave empty to autogenerate):"));
+        auto uuid = Common::UUID::MakeRandom();
+        if (!uuid_str.isEmpty()) {
+            for (size_t i = 0; i < uuid_str.length() && i < uuid.uuid.size(); ++i)
+                uuid.uuid[i] = uuid_str[i];
+        }
+
+        profile_manager.CreateNewUser(uuid, username.toStdString());
+        profile_manager.WriteUserSaveFile();
+
+        item_model->appendRow(new QStandardItem{GetIcon(uuid), FormatUserEntryText(username, uuid)});
     }
-
-    const auto uuid = Common::UUID::MakeRandom();
-    profile_manager.CreateNewUser(uuid, username.toStdString());
-    profile_manager.WriteUserSaveFile();
-
-    item_model->appendRow(new QStandardItem{GetIcon(uuid), FormatUserEntryText(username, uuid)});
 }
 
 void ConfigureProfileManager::RenameUser() {
