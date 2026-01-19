@@ -96,8 +96,7 @@ std::optional<std::filesystem::path> GetCurrentUserPlayTimePath() {
 
 } // namespace
 
-PlayTimeManager::PlayTimeManager()
-    : running_program_id() {
+PlayTimeManager::PlayTimeManager() : running_program_id() {
     if (!ReadPlayTimeFile(database)) {
         LOG_ERROR(Frontend, "Failed to read play time database! Resetting to default.");
     }
