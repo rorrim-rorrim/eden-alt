@@ -122,7 +122,7 @@ struct WordManager {
         std::vector<std::pair<VAddr, u64>> ranges;
         IterateWords(dirty_addr - cpu_addr, size, [&](size_t index, u64 mask) {
             if constexpr (type == Type::CPU || type == Type::CachedCPU) {
-                CollectChangedRanges<(!enable)>(index, untracked_words[index], mask, ranges);
+                CollectChangedRanges(!enable, index, untracked_words[index], mask, ranges);
             }
             if (enable) {
                 state_words[index] |= mask;
@@ -171,7 +171,7 @@ struct WordManager {
             const u64 word = state_words[index] & mask;
             if (clear) {
                 if (type == Type::CPU || type == Type::CachedCPU) {
-                    CollectChangedRanges<true>(index, untracked_words[index], mask, ranges);
+                    CollectChangedRanges(true, index, untracked_words[index], mask, ranges);
                 }
                 state_words[index] &= ~mask;
                 if (type == Type::CPU || type == Type::CachedCPU)
@@ -251,7 +251,7 @@ struct WordManager {
         std::vector<std::pair<VAddr, u64>> ranges;
         for (u64 word_index = 0; word_index < num_words; ++word_index) {
             const u64 cached_bits = cached_words[word_index];
-            CollectChangedRanges<false>(word_index, untracked_words[word_index], cached_bits, ranges);
+            CollectChangedRanges(false, word_index, untracked_words[word_index], cached_bits, ranges);
             untracked_words[word_index] |= cached_bits;
             cpu_words[word_index] |= cached_bits;
             cached_words[word_index] = 0;
@@ -263,12 +263,12 @@ struct WordManager {
 
 private:
     /// @brief Notify tracker about changes in the CPU tracking state of a word in the buffer
-    /// @param word_index   Index to the word to notify to the tracker
-    /// @param current_bits Current state of the word
-    /// @param new_bits     New state of the word
+    /// @param add_to_tracker If add to tracker (selects changed bits)
+    /// @param word_index     Index to the word to notify to the tracker
+    /// @param current_bits   Current state of the word
+    /// @param new_bits       New state of the word
     /// @tparam add_to_tracker True when the tracker should start tracking the new pages
-    template <bool add_to_tracker>
-    void CollectChangedRanges(u64 word_index, u64 current_bits, u64 new_bits, std::vector<std::pair<VAddr, u64>>& out_ranges) const {
+    void CollectChangedRanges(bool add_to_tracker, u64 word_index, u64 current_bits, u64 new_bits, std::vector<std::pair<VAddr, u64>>& out_ranges) const {
         u64 changed_bits = (add_to_tracker ? current_bits : ~current_bits) & new_bits;
         VAddr addr = cpu_addr + word_index * BYTES_PER_WORD;
         IteratePages(changed_bits, [&](size_t offset, size_t size) {
