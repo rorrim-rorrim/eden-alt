@@ -3,11 +3,12 @@
 
 # Eden Libretro Core
 
+AddJsonPackage(libretro-common)
+
 add_library(yuzu_libretro SHARED
     libretro_core.cpp
     emu_window_libretro.cpp
     emu_window_libretro.h
-    libretro.h
     libretro_vfs.h
 )
 
@@ -39,6 +40,7 @@ endif()
 target_include_directories(yuzu_libretro PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${libretro-common_SOURCE_DIR}/include
 )
 
 # Link against core libraries
@@ -52,6 +54,7 @@ target_link_libraries(yuzu_libretro PRIVATE
     frontend_common
     network
     Boost::headers
+    glad
 )
 
 # Platform-specific settings
@@ -81,10 +84,6 @@ endif()
 find_package(OpenGL REQUIRED)
 target_link_libraries(yuzu_libretro PRIVATE OpenGL::GL)
 
-# GLAD for OpenGL loading
-if(TARGET glad)
-    target_link_libraries(yuzu_libretro PRIVATE glad)
-endif()
 
 # Enable position-independent code for shared library
 set_target_properties(yuzu_libretro PROPERTIES

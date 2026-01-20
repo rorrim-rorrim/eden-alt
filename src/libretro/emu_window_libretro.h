@@ -11,7 +11,7 @@
 #include "core/frontend/emu_window.h"
 #include "core/frontend/graphics_context.h"
 
-#include "eden_libretro/libretro.h"
+#include "libretro.h"
 
 namespace Core {
 class System;

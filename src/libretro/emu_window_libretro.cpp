@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "eden_libretro/emu_window_libretro.h"
+#include "emu_window_libretro.h"
 #include "common/logging/log.h"
 #include <thread>
 

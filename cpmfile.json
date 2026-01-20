@@ -99,5 +99,13 @@
         "git_version": "1.4.335.0",
         "artifact": "android-binaries-%VERSION%.zip",
         "hash": "48167c4a17736301bd08f9290f41830443e1f18cce8ad867fc6f289b49e18b40e93c9850b377951af82f51b5b6d7313aa6a884fc5df79f5ce3df82696c1c1244"
+    },
+    "libretro-common": {
+        "repo": "libretro/libretro-common",
+        "hash": "8b6661180e34aae156d3477ba726ac3f8a700d38218ca1b1feb47aa1d0434a16e7a8dc520957c9afaf93451ddf137afe0e715a1ef3a1bb18e83248c49291b5d4",
+        "options": [
+            "YUZU_LIBRETRO"
+        ],
+        "sha": "76a3d54feb0ee0ce9d59b90aa24694f3782063d3"
     }
 }

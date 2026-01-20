@@ -15,7 +15,7 @@
 #include <unistd.h>
 #endif
 
-#include "eden_libretro/libretro.h"
+#include "libretro.h"
 
 namespace LibretroVFS {
 

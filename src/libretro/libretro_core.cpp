@@ -14,9 +14,9 @@
 
 #include <glad/glad.h>
 
-#include "eden_libretro/libretro.h"
-#include "eden_libretro/libretro_vfs.h"
-#include "eden_libretro/emu_window_libretro.h"
+#include "libretro.h"
+#include "libretro_vfs.h"
+#include "emu_window_libretro.h"
 
 #include "common/common_types.h"
 #include "common/detached_tasks.h"
