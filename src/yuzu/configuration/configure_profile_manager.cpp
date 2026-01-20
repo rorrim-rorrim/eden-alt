@@ -214,12 +214,11 @@ void ConfigureProfileManager::AddUser() {
 
     auto const uuid_str = GetProfileUsernameFromUser(this, tr("Enter a UUID (leave empty to autogenerate):"));
     auto uuid = Common::UUID::MakeRandom();
-    if (!uuid_str.isEmpty()) {
-        if (uuid_str.length() != uuid.uuid.size())
+    if (uuid_str.length() > 0) {
+        if (size_t(uuid_str.length()) != uuid.uuid.size())
             return;
-
-        for (size_t i = 0; i < uuid_str.length(); ++i)
-            uuid.uuid[i] = uuid_str[i];
+        for (size_t i = 0; i < size_t(uuid_str.length()); ++i)
+            uuid.uuid[i] = uint8_t(uuid_str[i]);
     }
 
     profile_manager.CreateNewUser(uuid, username.toStdString());
