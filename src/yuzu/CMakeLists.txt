@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 set(CMAKE_AUTOMOC ON)
@@ -446,6 +446,11 @@ if (NOT MSVC AND (APPLE OR NOT YUZU_STATIC_BUILD))
         -Wno-unused-variable
         -Wno-unused-parameter
         -Wno-missing-field-initializers)
+endif()
+
+# Remember that the linker is incredibly stupid.
+if (YUZU_STATIC_BUILD AND MINGW AND ARCHITECTURE_x86_64 AND ENABLE_OPENSSL)
+    target_link_libraries(yuzu PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 endif()
 
 create_target_directory_groups(yuzu)
