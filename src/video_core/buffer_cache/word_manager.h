@@ -116,12 +116,12 @@ struct WordManager {
     /// @param dirty_addr    Base address to mark or unmark as modified
     /// @param size          Size in bytes to mark or unmark as modified
     void ChangeRegionState(Type type, bool enable, u64 dirty_addr, u64 size) noexcept {
-        std::span<u64> state_words = words.template Span<type>();
-        [[maybe_unused]] std::span<u64> untracked_words = words.template Span<Type::Untracked>();
-        [[maybe_unused]] std::span<u64> cached_words = words.template Span<Type::CachedCPU>();
+        std::span<u64> state_words = Span(type);
+        [[maybe_unused]] std::span<u64> untracked_words = Span(Type::Untracked);
+        [[maybe_unused]] std::span<u64> cached_words = Span(Type::CachedCPU);
         std::vector<std::pair<VAddr, u64>> ranges;
         IterateWords(dirty_addr - cpu_addr, size, [&](size_t index, u64 mask) {
-            if constexpr (type == Type::CPU || type == Type::CachedCPU) {
+            if (type == Type::CPU || type == Type::CachedCPU) {
                 CollectChangedRanges(!enable, index, untracked_words[index], mask, ranges);
             }
             if (enable) {
@@ -244,10 +244,9 @@ struct WordManager {
     }
 
     void FlushCachedWrites() noexcept {
-        const u64 num_words = NumWords();
-        auto const cached_words = words.Span(Type::CachedCPU);
-        auto const untracked_words = words.Span(Type::Untracked);
-        auto const cpu_words = words.Span(Type::CPU);
+        auto const cached_words = Span(Type::CachedCPU);
+        auto const untracked_words = Span(Type::Untracked);
+        auto const cpu_words = Span(Type::CPU);
         std::vector<std::pair<VAddr, u64>> ranges;
         for (u64 word_index = 0; word_index < num_words; ++word_index) {
             const u64 cached_bits = cached_words[word_index];
@@ -261,7 +260,6 @@ struct WordManager {
         }
     }
 
-private:
     /// @brief Notify tracker about changes in the CPU tracking state of a word in the buffer
     /// @param add_to_tracker If add to tracker (selects changed bits)
     /// @param word_index     Index to the word to notify to the tracker
