@@ -175,11 +175,10 @@ else()
 
     if (YUZU_STATIC_BUILD AND NOT APPLE)
         add_compile_options(-static)
-        if (YUZU_STATIC_BUILD)
-            # yuzu-cmd requires us to explicitly link libpthread, libgcc, and libstdc++ as static
-            add_link_options(-static -lpthread)
-            add_link_options(-static-libgcc -static-libstdc++)
-        endif()
+
+        # yuzu-cmd requires us to explicitly link libpthread, libgcc, and libstdc++ as static
+        add_link_options(-Wl,-Bstatic -static -lpthread)
+        add_link_options(-static-libgcc -static-libstdc++)
     endif()
 
     if (MINGW)
