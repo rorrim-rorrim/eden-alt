@@ -52,7 +52,6 @@ public:
     std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override;
     bool IsShown() const override { return true; }
     void OnFrameDisplayed() override;
-    u32 GetPresentationFramebuffer() const override;
 
     // Libretro-specific methods
     void SetHWRenderCallback(retro_hw_render_callback* hw_render);

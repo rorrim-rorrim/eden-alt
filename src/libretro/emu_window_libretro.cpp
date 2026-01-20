@@ -131,11 +131,6 @@ uintptr_t EmuWindowLibretro::GetCurrentFramebuffer() const {
     return fbo;
 }
 
-u32 EmuWindowLibretro::GetPresentationFramebuffer() const {
-    // Return RetroArch's FBO for final presentation
-    return static_cast<u32>(GetCurrentFramebuffer());
-}
-
 retro_hw_get_proc_address_t EmuWindowLibretro::GetProcAddress() const {
     if (!hw_render_callback) {
         LOG_TRACE(Frontend, "EmuWindowLibretro: GetProcAddress - no callback");

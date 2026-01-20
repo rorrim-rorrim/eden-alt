@@ -76,7 +76,6 @@ std::atomic<bool> is_running{false};
 std::atomic<bool> game_loaded{false};
 std::atomic<bool> is_initialized{false};
 std::atomic<uint64_t> frame_count{0};
-std::atomic<bool> has_new_frame{false};
 std::mutex emu_mutex;
 
 // Audio buffer
@@ -195,16 +194,6 @@ void ApplyCoreOptions() {
         else if (strcmp(value, "CpuAsynchronous") == 0) decode = Settings::AstcDecodeMode::CpuAsynchronous;
         Settings::values.accelerate_astc.SetValue(decode);
         LOG_INFO(Frontend, "ASTC Decode: {}", value);
-    }
-
-    // Shader Backend
-    if (const char* value = GetCoreOptionValue("eden_shader_backend")) {
-        Settings::ShaderBackend backend = Settings::ShaderBackend::SpirV;
-        if (strcmp(value, "Glsl") == 0) backend = Settings::ShaderBackend::Glsl;
-        else if (strcmp(value, "Glasm") == 0) backend = Settings::ShaderBackend::Glasm;
-        else if (strcmp(value, "SpirV") == 0) backend = Settings::ShaderBackend::SpirV;
-        Settings::values.shader_backend.SetValue(backend);
-        LOG_INFO(Frontend, "Shader Backend: {}", value);
     }
 
     // Docked Mode
@@ -364,10 +353,6 @@ void ContextReset() {
             LibretroLog(RETRO_LOG_ERROR, "Eden: Failed to load game, error: %u\n", static_cast<u32>(load_result));
             return;
         }
-
-        // Enable deferred GPU mode - commands processed on main thread during retro_run
-        LOG_INFO(Frontend, "Libretro: Enabling deferred GPU mode");
-        emu_system->GPU().SetDeferredMode(true);
 
         // Start GPU and emulation
         LOG_INFO(Frontend, "Libretro: Starting GPU after successful load");
@@ -1088,22 +1073,6 @@ void retro_run(void) {
             UpdateInput();
         }
 
-        // Process pending GPU commands and composites on main thread (deferred mode)
-        if (emu_system && hw_context_ready) {
-            try {
-                auto& gpu = emu_system->GPU();
-
-                // Process all pending commands without blocking
-                // Game threads run asynchronously and queue commands
-                gpu.ProcessPendingCommands();
-                gpu.ProcessPendingComposites();
-
-                has_new_frame = false;
-            } catch (...) {
-                // GPU might not be ready yet
-            }
-        }
-
         // Present the frame via HW rendering
         if (hw_context_ready && video_cb) {
             uintptr_t ra_fbo = hw_render.get_current_framebuffer ? hw_render.get_current_framebuffer() : 0;
@@ -1179,7 +1148,7 @@ bool retro_load_game(const struct retro_game_info* game) {
     emu_system->Initialize();
 
     // Configure settings for libretro
-    Settings::values.renderer_backend = Settings::RendererBackend::OpenGL;
+    Settings::values.renderer_backend = Settings::RendererBackend::OpenGL_GLSL;
     Settings::values.use_speed_limit.SetValue(false);
     Settings::values.use_multi_core.SetValue(true);
     Settings::values.use_disk_shader_cache.SetValue(true);
