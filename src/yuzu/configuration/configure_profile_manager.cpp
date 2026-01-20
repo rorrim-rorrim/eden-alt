@@ -76,7 +76,7 @@ QPixmap GetIcon(const Common::UUID& uuid) {
 }
 
 QString GetProfileUsernameFromUser(QWidget* parent, const QString& description_text) {
-    return LimitableInputDialog::GetText(parent, ConfigureProfileManager::tr("Enter Username"),
+    return LimitableInputDialog::GetText(parent, ConfigureProfileManager::tr("Add new user"),
                                          description_text, 1,
                                          static_cast<int>(Service::Account::profile_username_size));
 }
@@ -208,20 +208,23 @@ void ConfigureProfileManager::SelectUser(const QModelIndex& index) {
 }
 
 void ConfigureProfileManager::AddUser() {
-    auto const username = GetProfileUsernameFromUser(this, tr("Enter an username:"));
-    if (!username.isEmpty()) {
-        auto const uuid_str = GetProfileUsernameFromUser(this, tr("Enter an UUID (leave empty to autogenerate):"));
-        auto uuid = Common::UUID::MakeRandom();
-        if (!uuid_str.isEmpty()) {
-            for (size_t i = 0; i < uuid_str.length() && i < uuid.uuid.size(); ++i)
-                uuid.uuid[i] = uuid_str[i];
-        }
+    auto const username = GetProfileUsernameFromUser(this, tr("Enter a username:"));
+    if (username.isEmpty())
+        return;
 
-        profile_manager.CreateNewUser(uuid, username.toStdString());
-        profile_manager.WriteUserSaveFile();
+    auto const uuid_str = GetProfileUsernameFromUser(this, tr("Enter a UUID (leave empty to autogenerate):"));
+    auto uuid = Common::UUID::MakeRandom();
+    if (!uuid_str.isEmpty()) {
+        if (uuid_str.length() != uuid.uuid.size())
+            return;
 
-        item_model->appendRow(new QStandardItem{GetIcon(uuid), FormatUserEntryText(username, uuid)});
+        for (size_t i = 0; i < uuid_str.length(); ++i)
+            uuid.uuid[i] = uuid_str[i];
     }
+
+    profile_manager.CreateNewUser(uuid, username.toStdString());
+    profile_manager.WriteUserSaveFile();
+    item_model->appendRow(new QStandardItem{GetIcon(uuid), FormatUserEntryText(username, uuid)});
 }
 
 void ConfigureProfileManager::RenameUser() {
