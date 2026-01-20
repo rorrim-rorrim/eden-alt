@@ -418,6 +418,10 @@ u32 GetTextureHandle(Environment& env, const ConstBufferAddr& cbuf) {
     return env.IsTexturePixelFormatInteger(GetTextureHandle(env, cbuf));
 }
 
+SamplerComponentType ReadTextureComponentType(Environment& env, const ConstBufferAddr& cbuf) {
+    return env.ReadTextureComponentType(GetTextureHandle(env, cbuf));
+}
+
 class Descriptors {
 public:
     explicit Descriptors(TextureBufferDescriptors& texture_buffer_descriptors_,
@@ -694,6 +698,7 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
             } else {
                 index = descriptors.Add(TextureDescriptor{
                     .type = flags.type,
+                    .component_type = ReadTextureComponentType(env, cbuf),
                     .is_depth = flags.is_depth != 0,
                     .is_multisample = is_multisample,
                     .has_secondary = cbuf.has_secondary,

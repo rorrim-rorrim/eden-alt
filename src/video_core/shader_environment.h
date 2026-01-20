@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -80,6 +80,7 @@ protected:
 
     std::vector<u64> code;
     std::unordered_map<u32, Shader::TextureType> texture_types;
+    std::unordered_map<u32, Shader::SamplerComponentType> texture_component_types;
     std::unordered_map<u32, Shader::TexturePixelFormat> texture_pixel_formats;
     std::unordered_map<u64, u32> cbuf_values;
     std::unordered_map<u64, Shader::ReplaceConstant> cbuf_replacements;
@@ -116,6 +117,8 @@ public:
 
     Shader::TextureType ReadTextureType(u32 handle) override;
 
+    Shader::SamplerComponentType ReadTextureComponentType(u32 handle) override;
+
     Shader::TexturePixelFormat ReadTexturePixelFormat(u32 handle) override;
 
     bool IsTexturePixelFormatInteger(u32 handle) override;
@@ -141,6 +144,8 @@ public:
     u32 ReadCbufValue(u32 cbuf_index, u32 cbuf_offset) override;
 
     Shader::TextureType ReadTextureType(u32 handle) override;
+
+    Shader::SamplerComponentType ReadTextureComponentType(u32 handle) override;
 
     Shader::TexturePixelFormat ReadTexturePixelFormat(u32 handle) override;
 
@@ -176,6 +181,8 @@ public:
 
     [[nodiscard]] Shader::TextureType ReadTextureType(u32 handle) override;
 
+    [[nodiscard]] Shader::SamplerComponentType ReadTextureComponentType(u32 handle) override;
+
     [[nodiscard]] Shader::TexturePixelFormat ReadTexturePixelFormat(u32 handle) override;
 
     [[nodiscard]] bool IsTexturePixelFormatInteger(u32 handle) override;
@@ -202,6 +209,7 @@ public:
 private:
     std::vector<u64> code;
     std::unordered_map<u32, Shader::TextureType> texture_types;
+    std::unordered_map<u32, Shader::SamplerComponentType> texture_component_types;
     std::unordered_map<u32, Shader::TexturePixelFormat> texture_pixel_formats;
     std::unordered_map<u64, u32> cbuf_values;
     std::unordered_map<u64, Shader::ReplaceConstant> cbuf_replacements;

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -28,7 +28,21 @@ enum class Operation {
     FPMax,
 };
 
-Id ImageType(EmitContext& ctx, const TextureDescriptor& desc) {
+Id ComponentScalarType(EmitContext& ctx, SamplerComponentType component_type) {
+    switch (component_type) {
+    case SamplerComponentType::Float:
+    case SamplerComponentType::Depth:
+        return ctx.F32[1];
+    case SamplerComponentType::Sint:
+    case SamplerComponentType::Stencil:
+        return ctx.S32[1];
+    case SamplerComponentType::Uint:
+        return ctx.U32[1];
+    }
+    throw InvalidArgument("Invalid sampler component type {}", component_type);
+}
+
+Id ImageType(EmitContext& ctx, const TextureDescriptor& desc, Id sampled_type) {
     const spv::ImageFormat format{spv::ImageFormat::Unknown};
     const Id type{ctx.F32[1]};
     const bool depth{desc.is_depth};
@@ -1359,7 +1373,8 @@ void EmitContext::DefineImageBuffers(const Info& info, u32& binding) {
 void EmitContext::DefineTextures(const Info& info, u32& binding, u32& scaling_index) {
     textures.reserve(info.texture_descriptors.size());
     for (const TextureDescriptor& desc : info.texture_descriptors) {
-        const Id image_type{ImageType(*this, desc)};
+        const Id result_type{ComponentScalarType(*this, desc.component_type)};
+        const Id image_type{ImageType(*this, desc, result_type)};
         const Id sampled_type{TypeSampledImage(image_type)};
         const Id pointer_type{TypePointer(spv::StorageClass::UniformConstant, sampled_type)};
         const Id desc_type{DescType(*this, sampled_type, pointer_type, desc.count)};
@@ -1372,8 +1387,10 @@ void EmitContext::DefineTextures(const Info& info, u32& binding, u32& scaling_in
             .sampled_type = sampled_type,
             .pointer_type = pointer_type,
             .image_type = image_type,
+            .result_type = result_type,
             .count = desc.count,
             .is_multisample = desc.is_multisample,
+            .component_type = desc.component_type,
         });
         if (profile.supported_spirv >= 0x00010400) {
             interfaces.push_back(id);
@@ -1454,7 +1471,7 @@ void EmitContext::DefineInputs(const IR::Program& program) {
         }
     }
     if (info.uses_fswzadd || info.uses_subgroup_invocation_id || info.uses_subgroup_shuffles ||
-        (profile.warp_size_potentially_larger_than_guest &&
+         (profile.warp_size_potentially_larger_than_guest &&
          (info.uses_subgroup_vote || info.uses_subgroup_mask))) {
         AddCapability(spv::Capability::GroupNonUniform);
         subgroup_local_invocation_id =

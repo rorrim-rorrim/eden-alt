@@ -77,6 +77,8 @@ public:
 
     [[nodiscard]] virtual TextureType ReadTextureType(u32 raw_handle) = 0;
 
+    [[nodiscard]] virtual SamplerComponentType ReadTextureComponentType(u32 raw_handle) = 0;
+
     [[nodiscard]] virtual TexturePixelFormat ReadTexturePixelFormat(u32 raw_handle) = 0;
 
     [[nodiscard]] virtual bool IsTexturePixelFormatInteger(u32 raw_handle) = 0;
