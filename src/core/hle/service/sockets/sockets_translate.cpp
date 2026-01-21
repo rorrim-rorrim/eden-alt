@@ -259,9 +259,10 @@ PollEvents Translate(Network::PollEvents flags) {
 }
 
 Network::SockAddrIn Translate(SockAddrIn value) {
-    // Note: 6 is incorrect, but can be passed by homebrew (because libnx sets
-    // sin_len to 6 when deserializing getaddrinfo results).
-    ASSERT(value.len == 0 || value.len == sizeof(value) || value.len == 6);
+
+    if (value.len != 0 && value.len != sizeof(value) && value.len != 6) {
+        LOG_WARNING(Service, "Unexpected SockAddrIn length: {}", value.len);
+    }
 
     return {
         .family = Translate(static_cast<Domain>(value.family)),
