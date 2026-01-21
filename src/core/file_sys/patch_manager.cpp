@@ -660,42 +660,42 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw, const BuildI
                            .title_id = title_id,
                            .parent_name = ""});
 
-            // Add individual cheats as sub-entries if we have a build_id
-            // Always show cheats even if mod folder is disabled, so users can enable individual cheats
-            if (has_cheats && has_build_id) {
-                // Try to read cheat file (uppercase first, then lowercase)
-                std::optional<std::vector<Service::DMNT::CheatEntry>> cheat_entries;
-                if (auto res = ReadCheatFileFromFolder(title_id, build_id, cheats_dir, true)) {
-                    cheat_entries = std::move(res);
-                } else if (auto res_lower = ReadCheatFileFromFolder(title_id, build_id, cheats_dir, false)) {
-                    cheat_entries = std::move(res_lower);
+            // Add individual cheats as sub-entries
+            if (has_cheats) {
+                // Try to read cheat file with build_id first, fallback to all files
+                std::vector<Service::DMNT::CheatEntry> cheat_entries;
+
+                if (has_build_id) {
+                    if (auto res = ReadCheatFileFromFolder(title_id, build_id, cheats_dir, true)) {
+                        cheat_entries = std::move(*res);
+                    } else if (auto res_lower = ReadCheatFileFromFolder(title_id, build_id, cheats_dir, false)) {
+                        cheat_entries = std::move(*res_lower);
+                    }
                 }
 
-                if (cheat_entries) {
-                    for (const auto& cheat : *cheat_entries) {
-                        // Skip master cheat (id 0) with no readable name
-                        if (cheat.cheat_id == 0 && cheat.definition.readable_name[0] == '\0') {
-                            continue;
-                        }
-
-                        const std::string cheat_name = cheat.definition.readable_name.data();
-                        if (cheat_name.empty()) {
-                            continue;
-                        }
-
-                        // Create unique key for this cheat: "ModName::CheatName"
-                        const std::string cheat_key = mod->GetName() + "::" + cheat_name;
-                        const auto cheat_disabled =
-                            std::find(disabled.begin(), disabled.end(), cheat_key) != disabled.end();
-
-                        out.push_back({.enabled = !cheat_disabled,
-                                       .name = cheat_name,
-                                       .version = types,
-                                       .type = PatchType::Cheat,
-                                       .program_id = title_id,
-                                       .title_id = title_id,
-                                       .parent_name = mod->GetName()});
+                for (const auto& cheat : cheat_entries) {
+                    // Skip master cheat (id 0) with no readable name
+                    if (cheat.cheat_id == 0 && cheat.definition.readable_name[0] == '\0') {
+                        continue;
                     }
+
+                    const std::string cheat_name = cheat.definition.readable_name.data();
+                    if (cheat_name.empty()) {
+                        continue;
+                    }
+
+                    // Create unique key for this cheat: "ModName::CheatName"
+                    const std::string cheat_key = mod->GetName() + "::" + cheat_name;
+                    const auto cheat_disabled =
+                        std::find(disabled.begin(), disabled.end(), cheat_key) != disabled.end();
+
+                    out.push_back({.enabled = !cheat_disabled,
+                                   .name = cheat_name,
+                                   .version = types,
+                                   .type = PatchType::Cheat,
+                                   .program_id = title_id,
+                                   .title_id = title_id,
+                                   .parent_name = mod->GetName()});
                 }
             }
         }
