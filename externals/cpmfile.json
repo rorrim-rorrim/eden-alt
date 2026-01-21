@@ -277,5 +277,14 @@
         "tag": "%VERSION%",
         "hash": "dc37a189a44ce8b5c988ca550582431a6c7eadfd3c6e709bee6277116ee803e714333e85c9e6cbb5c69346a14d6f2cc7ed96e8aa09cc5fb8a89f945059651db6",
         "version": "121125"
+    },
+    "sse2neon": {
+        "repo": "DLTcollab/sse2neon",
+        "sha": "66267b52fd",
+        "hash": "3aed8676e1b8c428acb076464663e3968a721457b08710a7c5f8df2fbdaa5601053c1606169a55e987e7a58dd17e3cc3b7fbf953aa891c5ac5f8ce2941862e4b",
+        "download_only": "true",
+        "patches": [
+            "0001-clang.patch"
+        ]
     }
 }

@@ -9,7 +9,18 @@
 #include <stdint.h>
 
 #if defined(ARCHITECTURE_x86_64)
+#if defined(_MSC_VER)
+#include <intrin.h>
+#else
 #include <immintrin.h>
+#endif
+#elif defined(ARCHITECTURE_arm64)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-int-conversion"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wshadow"
+#include <sse2neon.h>
+#pragma GCC diagnostic pop
 #endif
 
 extern "C" {
@@ -22,6 +33,7 @@ extern "C" {
 #pragma GCC diagnostic pop
 #endif
 }
+
 
 #include "common/alignment.h"
 #include "common/assert.h"
@@ -42,10 +54,11 @@ extern "C" {
 #include "common/x64/cpu_detect.h"
 #endif
 
-#if defined(ARCHITECTURE_x86_64) \
+#if defined(ARCHITECTURE_arm64) \
+    || (defined(ARCHITECTURE_x86_64) \
     && (defined(_MSC_VER) \
     || (defined(__GNUC__) && defined(__SSE4_1__)) \
-    || (defined(__clang__) && defined(__SSE4_1__)))
+    || (defined(__clang__) && defined(__SSE4_1__))))
 #define COMPILED_HAS_SSE41 1
 #else
 #define COMPILED_HAS_SSE41 0

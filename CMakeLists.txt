@@ -548,6 +548,10 @@ find_package(sirit)
 find_package(gamemode)
 find_package(mcl)
 
+if (ARCHITECTURE_arm64)
+    find_package(sse2neon)
+endif()
+
 if (ARCHITECTURE_riscv64)
     find_package(biscuit)
 endif()
