@@ -722,6 +722,14 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.USE_ASYNCHRONOUS_GPU_EMULATION,
+                    titleId = R.string.use_asynchronous_gpu_emulation,
+                    descriptionId = R.string.use_asynchronous_gpu_emulation_description
+
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.SYNC_MEMORY_OPERATIONS,
                     titleId = R.string.sync_memory_operations,
                     descriptionId = R.string.sync_memory_operations_description

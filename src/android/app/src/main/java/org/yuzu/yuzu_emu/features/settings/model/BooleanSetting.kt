@@ -23,6 +23,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     RENDERER_FORCE_MAX_CLOCK("force_max_clock"),
     RENDERER_ASYNCHRONOUS_SHADERS("use_asynchronous_shaders"),
     RENDERER_REACTIVE_FLUSHING("use_reactive_flushing"),
+    USE_ASYNCHRONOUS_GPU_EMULATION("use_asynchronous_gpu_emulation"),
     SYNC_MEMORY_OPERATIONS("sync_memory_operations"),
     BUFFER_REORDER_DISABLE("disable_buffer_reorder"),
     RENDERER_DEBUG("debug"),

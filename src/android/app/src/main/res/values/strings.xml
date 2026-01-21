@@ -118,6 +118,10 @@
     <string name="on_load">On Load</string>
     <string name="always">Always</string>
 
+    <!-- Asynchronous GPU Emulation -->
+    <string name="use_asynchronous_gpu_emulation" translatable="false">Async GPU</string>
+    <string name="use_asynchronous_gpu_emulation_description">Controls process mode for dispatched GPU commands.</string>
+
     <!-- Multiplayer -->
     <string name="multiplayer">Multiplayer</string>
     <string name="multiplayer_description">Host your own game room or join an existing one to play with people</string>
