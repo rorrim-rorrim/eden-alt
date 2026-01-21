@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2013 Dolphin Emulator Project
@@ -16,8 +16,15 @@
 void AssertFailSoftImpl();
 [[noreturn]] void AssertFatalImpl();
 
+// Prevents errors on old GCC... smh...
+#ifdef _MSC_VER
+#define YUZU_NO_INLINE __declspec(noinline)
+#else
+#define YUZU_NO_INLINE __attribute__((noinline))
+#endif
+
 #define ASSERT_MSG(_a_, ...)                                                                       \
-    ([&]() {                                                                                      \
+    ([&]() YUZU_NO_INLINE {                                                                         \
         if (!(_a_)) [[unlikely]] {                                                                 \
             LOG_CRITICAL(Debug, __FILE__ ": assert " __VA_ARGS__);                                \
             AssertFailSoftImpl();                                                                  \
