@@ -378,6 +378,10 @@ if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
     target_link_libraries(video_core PRIVATE dynarmic::dynarmic)
 endif()
 
+if (ARCHITECTURE_arm64)
+    target_link_libraries(video_core PRIVATE sse2neon)
+endif()
+
 if (ANDROID AND ARCHITECTURE_arm64)
     target_link_libraries(video_core PRIVATE adrenotools)
 endif()
