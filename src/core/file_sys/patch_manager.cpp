@@ -90,15 +90,15 @@ std::optional<std::vector<Service::DMNT::CheatEntry>> ReadCheatFileFromFolder(
     const auto file = base_path->GetFile(fmt::format("{}.txt", build_id));
 
     if (file == nullptr) {
-        LOG_INFO(Common_Filesystem, "No cheats file found for title_id={:016X}, build_id={}",
+        LOG_DEBUG(Common_Filesystem, "No cheats file found for title_id={:016X}, build_id={}",
                  title_id, build_id);
         return std::nullopt;
     }
 
     std::vector<u8> data(file->GetSize());
     if (file->Read(data.data(), data.size()) != data.size()) {
-        LOG_INFO(Common_Filesystem, "Failed to read cheats file for title_id={:016X}, build_id={}",
-                 title_id, build_id);
+        LOG_WARNING(Common_Filesystem, "Failed to read cheats file for title_id={:016X}, build_id={}",
+                    title_id, build_id);
         return std::nullopt;
     }
 
@@ -661,7 +661,8 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw, const BuildI
                            .parent_name = ""});
 
             // Add individual cheats as sub-entries if we have a build_id
-            if (has_cheats && has_build_id && !mod_disabled) {
+            // Always show cheats even if mod folder is disabled, so users can enable individual cheats
+            if (has_cheats && has_build_id) {
                 // Try to read cheat file (uppercase first, then lowercase)
                 std::optional<std::vector<Service::DMNT::CheatEntry>> cheat_entries;
                 if (auto res = ReadCheatFileFromFolder(title_id, build_id, cheats_dir, true)) {
