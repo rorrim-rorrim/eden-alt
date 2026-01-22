@@ -302,7 +302,7 @@ private:
         return found != std::end(contents) ? &*found : nullptr;
     }
 
-    void AsyncFlushQuery(CachedQuery* query, std::optional<u64> timestamp, std::unique_lock&& lock) {
+    void AsyncFlushQuery(CachedQuery* query, std::optional<u64> timestamp, std::unique_lock<std::mutex>&& lock) {
         const AsyncJobId new_async_job_id = slot_async_jobs.insert();
         {
             AsyncJob& async_job = slot_async_jobs[new_async_job_id];
