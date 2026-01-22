@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -105,7 +105,6 @@ private:
     const u64& m_pc;
 };
 
-std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, mcontext_t* context,
-                                                 fpsimd_context* fpsimd_context);
+std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, void* raw_context);
 
 } // namespace Core
