@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -155,7 +158,7 @@ public:
             async_job.value = *result;
             query->SetAsyncJob(NULL_ASYNC_JOB_ID);
         }
-        AsyncFlushQuery(query, timestamp, lock);
+        AsyncFlushQuery(query, timestamp, std::move(lock));
     }
 
     /// Enables all available GPU counters
@@ -299,8 +302,7 @@ private:
         return found != std::end(contents) ? &*found : nullptr;
     }
 
-    void AsyncFlushQuery(CachedQuery* query, std::optional<u64> timestamp,
-                         std::unique_lock<std::recursive_mutex>& lock) {
+    void AsyncFlushQuery(CachedQuery* query, std::optional<u64> timestamp, std::unique_lock&& lock) {
         const AsyncJobId new_async_job_id = slot_async_jobs.insert();
         {
             AsyncJob& async_job = slot_async_jobs[new_async_job_id];
@@ -346,7 +348,7 @@ private:
     VideoCore::RasterizerInterface& rasterizer;
     Tegra::MaxwellDeviceMemoryManager& device_memory;
 
-    mutable std::recursive_mutex mutex;
+    mutable std::mutex mutex;
 
     std::unordered_map<u64, std::vector<CachedQuery>> cached_queries;
 
