@@ -121,6 +121,7 @@ protected:
     Stage stage{};
     u32 start_address{};
     bool is_proprietary_driver{};
+public:
     std::unordered_map<CbufWordKey, u32, CbufWordKeyHash> cbuf_word_cache;
     std::unordered_map<HandleKey,  u32, HandleKeyHash> handle_cache;
     std::unordered_map<const IR::Inst*, ConstBufferAddr> track_cache;
