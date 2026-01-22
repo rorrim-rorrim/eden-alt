@@ -190,6 +190,8 @@ cmake_dependent_option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MS
 
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
+# See https://github.com/llvm/llvm-project/issues/123946
+# OpenBSD va_list doesn't play nice with precompiled headers
 set(EXT_DEFAULT OFF)
 if (MSVC OR ANDROID)
     set(EXT_DEFAULT ON)
