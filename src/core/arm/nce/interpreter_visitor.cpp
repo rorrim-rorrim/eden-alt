@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -7,6 +7,8 @@
 
 #include <numeric>
 #include "core/arm/nce/interpreter_visitor.h"
+#include "core/memory.h"
+#include "dynarmic/common/context.h"
 
 namespace Core {
 
@@ -59,7 +61,7 @@ static u64 SignExtend(u64 value, u64 bitsize, u64 regsize) {
     if (regsize == 64) {
         return SignExtendToLong(value, bitsize);
     } else {
-        return SignExtendToWord(static_cast<u32>(value), bitsize);
+        return SignExtendToWord(u32(value), bitsize);
     }
 }
 
@@ -147,11 +149,11 @@ u64 InterpreterVisitor::ExtendReg(size_t bitsize, Reg reg, Imm<3> option, u8 shi
 }
 
 u128 InterpreterVisitor::GetVec(Vec v) {
-    return m_fpsimd_regs[static_cast<u32>(v)];
+    return m_fpsimd_regs[u32(v)];
 }
 
 u64 InterpreterVisitor::GetReg(Reg r) {
-    return m_regs[static_cast<u32>(r)];
+    return m_regs[u32(r)];
 }
 
 u64 InterpreterVisitor::GetSp() {
@@ -163,11 +165,11 @@ u64 InterpreterVisitor::GetPc() {
 }
 
 void InterpreterVisitor::SetVec(Vec v, u128 value) {
-    m_fpsimd_regs[static_cast<u32>(v)] = value;
+    m_fpsimd_regs[u32(v)] = value;
 }
 
 void InterpreterVisitor::SetReg(Reg r, u64 value) {
-    m_regs[static_cast<u32>(r)] = value;
+    m_regs[u32(r)] = value;
 }
 
 void InterpreterVisitor::SetSp(u64 value) {
@@ -674,7 +676,7 @@ bool InterpreterVisitor::STRx_reg(Imm<2> size, Imm<1> opc_1, Reg Rm, Imm<3> opti
                                   Reg Rt) {
     const Imm<1> opc_0{0};
     const size_t scale = size.ZeroExtend<size_t>();
-    const u8 shift = S ? static_cast<u8>(scale) : 0;
+    const u8 shift = S ? u8(scale) : 0;
     if (!option.Bit<1>()) {
         // Unallocated encoding
         return false;
@@ -686,7 +688,7 @@ bool InterpreterVisitor::LDRx_reg(Imm<2> size, Imm<1> opc_1, Reg Rm, Imm<3> opti
                                   Reg Rt) {
     const Imm<1> opc_0{1};
     const size_t scale = size.ZeroExtend<size_t>();
-    const u8 shift = S ? static_cast<u8>(scale) : 0;
+    const u8 shift = S ? u8(scale) : 0;
     if (!option.Bit<1>()) {
         // Unallocated encoding
         return false;
@@ -737,7 +739,7 @@ bool InterpreterVisitor::STR_reg_fpsimd(Imm<2> size, Imm<1> opc_1, Reg Rm, Imm<3
         // Unallocated encoding
         return false;
     }
-    const u8 shift = S ? static_cast<u8>(scale) : 0;
+    const u8 shift = S ? u8(scale) : 0;
     if (!option.Bit<1>()) {
         // Unallocated encoding
         return false;
@@ -753,7 +755,7 @@ bool InterpreterVisitor::LDR_reg_fpsimd(Imm<2> size, Imm<1> opc_1, Reg Rm, Imm<3
         // Unallocated encoding
         return false;
     }
-    const u8 shift = S ? static_cast<u8>(scale) : 0;
+    const u8 shift = S ? u8(scale) : 0;
     if (!option.Bit<1>()) {
         // Unallocated encoding
         return false;
@@ -761,24 +763,25 @@ bool InterpreterVisitor::LDR_reg_fpsimd(Imm<2> size, Imm<1> opc_1, Reg Rm, Imm<3
     return this->SIMDOffset(scale, shift, opc_0, Rm, option, Rn, Vt);
 }
 
-std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, mcontext_t* context,
-                                                 fpsimd_context* fpsimd_context) {
-    std::span<u64, 31> regs(reinterpret_cast<u64*>(context->regs), 31);
-    std::span<u128, 32> vregs(reinterpret_cast<u128*>(fpsimd_context->vregs), 32);
-    u64& sp = *reinterpret_cast<u64*>(&context->sp);
-    const u64& pc = *reinterpret_cast<u64*>(&context->pc);
+std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, void* raw_context) {
+    CTX_DECLARE(raw_context);
+    std::span<u64, 31> regs(reinterpret_cast<u64*>(&CTX_X(0)), 31);
+    std::span<u128, 32> vregs(reinterpret_cast<u128*>(&CTX_Q(0)), 32);
 
-    InterpreterVisitor visitor(memory, regs, vregs, sp, pc);
-    u32 instruction = memory.Read32(pc);
+    // Store temporal to not break aliasing rules :)
+    u64 tmp_sp = CTX_SP;
+    u64 tmp_pc = CTX_PC;
+    u32 instruction = memory.Read32(tmp_pc);
     bool was_executed = false;
-
+    InterpreterVisitor visitor(memory, regs, vregs, tmp_sp, tmp_pc);
     if (auto decoder = Dynarmic::A64::Decode<VisitorBase>(instruction)) {
         was_executed = decoder->get().call(visitor, instruction);
     } else {
         LOG_ERROR(Core_ARM, "Unallocated encoding: {:#x}", instruction);
     }
-
-    return was_executed ? std::optional<u64>(pc + 4) : std::nullopt;
+    CTX_SP = tmp_sp;
+    CTX_PC = tmp_pc;
+    return was_executed ? std::optional<u64>(tmp_pc + 4) : std::nullopt;
 }
 
 } // namespace Core

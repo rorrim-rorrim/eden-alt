@@ -13,12 +13,14 @@
 #include "core/arm/nce/patcher.h"
 #include "core/core.h"
 #include "core/memory.h"
-
 #include "core/hle/kernel/k_process.h"
+
+#include "dynarmic/common/context.h"
 
 #include <signal.h>
 #include <sys/syscall.h>
 #include <unistd.h>
+#include <pthread.h>
 
 namespace Core {
 
@@ -33,100 +35,72 @@ static_assert(offsetof(NativeExecutionParameters, native_context) == TpidrEl0Nat
 static_assert(offsetof(NativeExecutionParameters, lock) == TpidrEl0Lock);
 static_assert(offsetof(NativeExecutionParameters, magic) == TpidrEl0TlsMagic);
 
-fpsimd_context* GetFloatingPointState(mcontext_t& host_ctx) {
-    _aarch64_ctx* header = reinterpret_cast<_aarch64_ctx*>(&host_ctx.__reserved);
-    while (header->magic != FPSIMD_MAGIC) {
-        header = reinterpret_cast<_aarch64_ctx*>(reinterpret_cast<char*>(header) + header->size);
-    }
-    return reinterpret_cast<fpsimd_context*>(header);
-}
-
 using namespace Common::Literals;
 constexpr u32 StackSize = 128_KiB;
 
 } // namespace
 
 void* ArmNce::RestoreGuestContext(void* raw_context) {
-    // Retrieve the host context.
-    auto& host_ctx = static_cast<ucontext_t*>(raw_context)->uc_mcontext;
-
-    // Thread-local parameters will be located in x9.
-    auto* tpidr = reinterpret_cast<NativeExecutionParameters*>(host_ctx.regs[9]);
-    auto* guest_ctx = static_cast<GuestContext*>(tpidr->native_context);
-
-    // Retrieve the host floating point state.
-    auto* fpctx = GetFloatingPointState(host_ctx);
-
-    // Save host callee-saved registers.
-    std::memcpy(guest_ctx->host_ctx.host_saved_vregs.data(), &fpctx->vregs[8],
-                sizeof(guest_ctx->host_ctx.host_saved_vregs));
-    std::memcpy(guest_ctx->host_ctx.host_saved_regs.data(), &host_ctx.regs[19],
-                sizeof(guest_ctx->host_ctx.host_saved_regs));
-
-    // Save stack pointer.
-    guest_ctx->host_ctx.host_sp = host_ctx.sp;
-
+    CTX_DECLARE(raw_context);
     // Restore all guest state except tpidr_el0.
-    host_ctx.sp = guest_ctx->sp;
-    host_ctx.pc = guest_ctx->pc;
-    host_ctx.pstate = guest_ctx->pstate;
-    fpctx->fpcr = guest_ctx->fpcr;
-    fpctx->fpsr = guest_ctx->fpsr;
-    std::memcpy(host_ctx.regs, guest_ctx->cpu_registers.data(), sizeof(host_ctx.regs));
-    std::memcpy(fpctx->vregs, guest_ctx->vector_registers.data(), sizeof(fpctx->vregs));
-
+    // Thread-local parameters will be located in x9.
+    auto* tpidr = reinterpret_cast<NativeExecutionParameters*>(CTX_X(9));
+    auto* guest_ctx = static_cast<GuestContext*>(tpidr->native_context);
+    // Save host callee-saved registers.
+    std::memcpy(guest_ctx->host_ctx.host_saved_vregs.data(), &CTX_Q(8),
+                sizeof(guest_ctx->host_ctx.host_saved_vregs));
+    // Save stack pointer.
+    guest_ctx->host_ctx.host_sp = CTX_SP;
+    CTX_PC = guest_ctx->sp;
+    CTX_SP = guest_ctx->pc;
+    CTX_PSTATE = guest_ctx->pstate;
+    CTX_FPCR = guest_ctx->fpcr;
+    CTX_FPSR = guest_ctx->fpsr;
+    std::memcpy(&CTX_X(0), guest_ctx->cpu_registers.data(), sizeof(guest_ctx->cpu_registers));
+    std::memcpy(&CTX_Q(0), guest_ctx->vector_registers.data(), sizeof(guest_ctx->vector_registers));
     // Return the new thread-local storage pointer.
     return tpidr;
 }
 
 void ArmNce::SaveGuestContext(GuestContext* guest_ctx, void* raw_context) {
-    // Retrieve the host context.
-    auto& host_ctx = static_cast<ucontext_t*>(raw_context)->uc_mcontext;
-
-    // Retrieve the host floating point state.
-    auto* fpctx = GetFloatingPointState(host_ctx);
-
+    CTX_DECLARE(raw_context);
     // Save all guest registers except tpidr_el0.
-    std::memcpy(guest_ctx->cpu_registers.data(), host_ctx.regs, sizeof(host_ctx.regs));
-    std::memcpy(guest_ctx->vector_registers.data(), fpctx->vregs, sizeof(fpctx->vregs));
-    guest_ctx->fpsr = fpctx->fpsr;
-    guest_ctx->fpcr = fpctx->fpcr;
-    guest_ctx->pstate = static_cast<u32>(host_ctx.pstate);
-    guest_ctx->pc = host_ctx.pc;
-    guest_ctx->sp = host_ctx.sp;
-
+    std::memcpy(guest_ctx->cpu_registers.data(), &CTX_X(0), sizeof(guest_ctx->cpu_registers));
+    std::memcpy(guest_ctx->vector_registers.data(), &CTX_Q(0), sizeof(guest_ctx->vector_registers));
+    guest_ctx->fpsr = CTX_FPSR;
+    guest_ctx->fpcr = CTX_FPCR;
+    guest_ctx->pc = CTX_PC;
+    guest_ctx->sp = CTX_SP;
+    guest_ctx->pstate = u32(CTX_PSTATE);
     // Restore stack pointer.
-    host_ctx.sp = guest_ctx->host_ctx.host_sp;
+    CTX_SP = guest_ctx->host_ctx.host_sp;
 
     // Restore host callee-saved registers.
-    std::memcpy(&host_ctx.regs[19], guest_ctx->host_ctx.host_saved_regs.data(),
+    std::memcpy(&CTX_X(19), guest_ctx->host_ctx.host_saved_regs.data(),
                 sizeof(guest_ctx->host_ctx.host_saved_regs));
-    std::memcpy(&fpctx->vregs[8], guest_ctx->host_ctx.host_saved_vregs.data(),
+    std::memcpy(&CTX_Q(8), guest_ctx->host_ctx.host_saved_vregs.data(),
                 sizeof(guest_ctx->host_ctx.host_saved_vregs));
-
     // Return from the call on exit by setting pc to x30.
-    host_ctx.pc = guest_ctx->host_ctx.host_saved_regs[11];
-
+    CTX_PC = guest_ctx->host_ctx.host_saved_regs[11];
     // Clear esr_el1 and return it.
-    host_ctx.regs[0] = guest_ctx->esr_el1.exchange(0);
+    CTX_X(0) = guest_ctx->esr_el1.exchange(0);
 }
 
 bool ArmNce::HandleFailedGuestFault(GuestContext* guest_ctx, void* raw_info, void* raw_context) {
-    auto& host_ctx = static_cast<ucontext_t*>(raw_context)->uc_mcontext;
+    CTX_DECLARE(raw_context);
     auto* info = static_cast<siginfo_t*>(raw_info);
 
     // We can't handle the access, so determine why we crashed.
-    const bool is_prefetch_abort = host_ctx.pc == reinterpret_cast<u64>(info->si_addr);
-
+    auto const is_prefetch_abort = CTX_PC == reinterpret_cast<u64>(info->si_addr);
     // For data aborts, skip the instruction and return to guest code.
     // This will allow games to continue in many scenarios where they would otherwise crash.
     if (!is_prefetch_abort) {
-        host_ctx.pc += 4;
+        CTX_PC += 4;
         return true;
     }
 
     // This is a prefetch abort.
-    guest_ctx->esr_el1.fetch_or(static_cast<u64>(HaltReason::PrefetchAbort));
+    guest_ctx->esr_el1.fetch_or(u64(HaltReason::PrefetchAbort));
 
     // Forcibly mark the context as locked. We are still running.
     // We may race with SignalInterrupt here:
@@ -142,17 +116,13 @@ bool ArmNce::HandleFailedGuestFault(GuestContext* guest_ctx, void* raw_info, voi
 }
 
 bool ArmNce::HandleGuestAlignmentFault(GuestContext* guest_ctx, void* raw_info, void* raw_context) {
-    auto& host_ctx = static_cast<ucontext_t*>(raw_context)->uc_mcontext;
-    auto* fpctx = GetFloatingPointState(host_ctx);
+    CTX_DECLARE(raw_context);
     auto& memory = guest_ctx->parent->m_running_thread->GetOwnerProcess()->GetMemory();
-
     // Match and execute an instruction.
-    auto next_pc = MatchAndExecuteOneInstruction(memory, &host_ctx, fpctx);
-    if (next_pc) {
-        host_ctx.pc = *next_pc;
+    if (auto next_pc = MatchAndExecuteOneInstruction(memory, raw_context); next_pc) {
+        CTX_PC = *next_pc;
         return true;
     }
-
     // We couldn't handle the access.
     return HandleFailedGuestFault(guest_ctx, raw_info, raw_context);
 }
@@ -198,7 +168,7 @@ void ArmNce::UnlockThread(Kernel::KThread* thread) {
 HaltReason ArmNce::RunThread(Kernel::KThread* thread) {
     // Check if we're already interrupted.
     // If we are, we can just return immediately.
-    HaltReason hr = static_cast<HaltReason>(m_guest_ctx.esr_el1.exchange(0));
+    auto hr = HaltReason(m_guest_ctx.esr_el1.exchange(0));
     if (True(hr)) {
         return hr;
     }
@@ -276,9 +246,51 @@ ArmNce::ArmNce(System& system, bool uses_wall_clock, std::size_t core_index)
 
 ArmNce::~ArmNce() = default;
 
+// Borrowed from libusb
+static unsigned int posix_gettid(void) {
+    static thread_local unsigned int tl_tid;
+    int tid;
+    if (tl_tid)
+        return tl_tid;
+#if defined(__ANDROID__)
+    tid = gettid();
+#elif defined(__APPLE__)
+#ifdef HAVE_PTHREAD_THREADID_NP
+    uint64_t thread_id;
+    if (pthread_threadid_np(NULL, &thread_id) == 0)
+        tid = (int)thread_id;
+    else
+        tid = -1;
+#else
+    tid = (int)pthread_mach_thread_np(pthread_self());
+#endif
+#elif defined(__HAIKU__)
+    tid = get_pthread_thread_id(pthread_self());
+#elif defined(__linux__)
+    tid = (int)syscall(SYS_gettid);
+#elif defined(__NetBSD__)
+    tid = _lwp_self();
+#elif defined(__OpenBSD__)
+    /* The following only works with OpenBSD > 5.1 as it requires
+    * real thread support. For 5.1 and earlier, -1 is returned. */
+    tid = syscall(SYS_getthrid);
+#elif defined(__sun__)
+    tid = _lwp_self();
+#else
+    tid = -1;
+#endif
+    if (tid == -1) {
+        /* If we don't have a thread ID, at least return a unique
+        * value that can be used to distinguish individual
+        * threads. */
+        tid = (int)(intptr_t)pthread_self();
+    }
+    return tl_tid = (unsigned int)tid;
+}
+
 void ArmNce::Initialize() {
     if (m_thread_id == -1) {
-        m_thread_id = gettid();
+        m_thread_id = posix_gettid();
     }
 
     // Configure signal stack.
@@ -309,7 +321,7 @@ void ArmNce::Initialize() {
             &ArmNce::ReturnToRunCodeByExceptionLevelChangeSignalHandler);
         return_to_run_code_action.sa_mask = signal_mask;
         Common::SigAction(ReturnToRunCodeByExceptionLevelChangeSignal, &return_to_run_code_action,
-                          nullptr);
+                        nullptr);
 
         struct sigaction break_from_run_code_action {};
         break_from_run_code_action.sa_flags = SA_SIGINFO | SA_ONSTACK;
@@ -370,7 +382,7 @@ void ArmNce::SetContext(const Kernel::Svc::ThreadContext& ctx) {
 
 void ArmNce::SignalInterrupt(Kernel::KThread* thread) {
     // Add break loop condition.
-    m_guest_ctx.esr_el1.fetch_or(static_cast<u64>(HaltReason::BreakLoop));
+    m_guest_ctx.esr_el1.fetch_or(u64(HaltReason::BreakLoop));
 
     auto* params = &thread->GetNativeExecutionParameters();
     LockThreadParameters(params);
@@ -381,7 +393,11 @@ void ArmNce::SignalInterrupt(Kernel::KThread* thread) {
     if (params->is_running) {
         // We should signal to the running thread.
         // The running thread will unlock the thread context.
+#ifdef __linux__
         syscall(SYS_tkill, m_thread_id, BreakFromRunCodeSignal);
+#else
+        pthread_kill(pthread_t(m_thread_id), int(BreakFromRunCodeSignal));
+#endif
     } else {
         // If the thread is no longer running, we have nothing to do.
         UnlockThreadParameters(params);
@@ -391,12 +407,11 @@ void ArmNce::SignalInterrupt(Kernel::KThread* thread) {
 const std::size_t CACHE_PAGE_SIZE = 4096;
 
 void ArmNce::ClearInstructionCache() {
-#ifdef __aarch64__
     // Ensure all previous memory operations complete
-    asm volatile("dsb ish\n"
-                 "dsb ish\n"
-                 "isb" ::: "memory");
-#endif
+    asm volatile(
+        "dsb ish\r\n"
+        "dsb ish\r\n"
+        "isb\r\n" ::: "memory");
 }
 
 void ArmNce::InvalidateCacheRange(u64 addr, std::size_t size) {
