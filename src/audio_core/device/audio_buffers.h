@@ -33,7 +33,7 @@ constexpr s32 BufferAppendLimit = 4;
 template <size_t N>
 class AudioBuffers {
 public:
-    explicit AudioBuffers(size_t limit) : append_limit{static_cast<u32>(limit)} {}
+    explicit AudioBuffers(size_t limit) : append_limit{u32(limit)} {}
 
     /**
      * Append a new audio buffer to the ring.
@@ -308,7 +308,7 @@ public:
 
 private:
     /// Buffer lock
-    mutable std::recursive_mutex lock{};
+    mutable std::mutex lock{};
     /// The audio buffers
     std::array<AudioBuffer, N> buffers{};
     /// Current released index

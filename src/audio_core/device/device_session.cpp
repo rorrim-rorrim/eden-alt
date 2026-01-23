@@ -123,10 +123,6 @@ void DeviceSession::SetVolume(f32 volume) const {
     }
 }
 
-u64 DeviceSession::GetPlayedSampleCount() const {
-    return played_sample_count;
-}
-
 std::optional<std::chrono::nanoseconds> DeviceSession::ThreadFunc() {
     played_sample_count = stream->GetExpectedPlayedSampleCount();
     if (type == Sink::StreamType::Out) {

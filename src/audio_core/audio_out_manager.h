@@ -82,7 +82,7 @@ public:
     /// Whether the sessions have been started
     bool sessions_started{};
     /// Protect state due to audio manager callback
-    std::recursive_mutex mutex{};
+    std::mutex mutex{};
 };
 
 } // namespace AudioCore::AudioOut

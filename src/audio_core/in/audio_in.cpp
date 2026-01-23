@@ -8,15 +8,18 @@
 namespace AudioCore::AudioIn {
 
 In::In(Core::System& system_, Manager& manager_, Kernel::KEvent* event_, size_t session_id_)
-    : manager{manager_}, parent_mutex{manager.mutex}, event{event_}, system{system_, event,
-                                                                            session_id_} {}
+    : manager{manager_}
+    , parent_mutex{manager.mutex}
+    , event{event_}
+    , system{system_, event, session_id_}
+{}
 
 void In::Free() {
     std::scoped_lock l{parent_mutex};
     manager.ReleaseSessionId(system.GetSessionId());
 }
 
-System& In::GetSystem() {
+System& In::GetSystem() noexcept {
     return system;
 }
 
@@ -42,10 +45,8 @@ Result In::StopSystem() {
 
 Result In::AppendBuffer(const AudioInBuffer& buffer, u64 tag) {
     std::scoped_lock l{parent_mutex};
-
-    if (system.AppendBuffer(buffer, tag)) {
+    if (system.AppendBuffer(buffer, tag))
         return ResultSuccess;
-    }
     return Service::Audio::ResultBufferCountReached;
 }
 

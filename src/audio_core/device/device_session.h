@@ -112,7 +112,9 @@ public:
      *
      * @return Samples played by this session.
      */
-    u64 GetPlayedSampleCount() const;
+    u64 GetPlayedSampleCount() const noexcept {
+        return played_sample_count;
+    }
 
     /*
      * CoreTiming callback to increment played_sample_count over time.
