@@ -15,7 +15,6 @@
 #include "common/cityhash.h"
 #include "common/common_types.h"
 #include "common/div_ceil.h"
-#include "common/settings.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
@@ -69,59 +68,6 @@ static Shader::TexturePixelFormat ConvertTexturePixelFormat(const Tegra::Texture
     return static_cast<Shader::TexturePixelFormat>(
         PixelFormatFromTextureInfo(entry.format, entry.r_type, entry.g_type, entry.b_type,
                                    entry.a_type, entry.srgb_conversion));
-}
-
-static Shader::SamplerComponentType ConvertSamplerComponentType(
-    const Tegra::Texture::TICEntry& entry) {
-    const auto pixel_format = PixelFormatFromTextureInfo(entry.format, entry.r_type, entry.g_type,
-                                                        entry.b_type, entry.a_type,
-                                                        entry.srgb_conversion);
-    const auto surface_type = VideoCore::Surface::GetFormatType(pixel_format);
-    if (entry.depth_texture != 0 || surface_type == VideoCore::Surface::SurfaceType::Depth) {
-        return Shader::SamplerComponentType::Depth;
-    }
-    if (surface_type == VideoCore::Surface::SurfaceType::Stencil) {
-        return Shader::SamplerComponentType::Stencil;
-    }
-    if (surface_type == VideoCore::Surface::SurfaceType::DepthStencil) {
-        return entry.depth_texture != 0 ? Shader::SamplerComponentType::Depth
-                                        : Shader::SamplerComponentType::Stencil;
-    }
-
-    const auto accumulate = [](const Tegra::Texture::ComponentType component,
-                               bool& has_signed, bool& has_unsigned) {
-        switch (component) {
-        case Tegra::Texture::ComponentType::SINT:
-            has_signed = true;
-            break;
-        case Tegra::Texture::ComponentType::UINT:
-            has_unsigned = true;
-            break;
-        default:
-            break;
-        }
-    };
-
-    bool has_signed{};
-    bool has_unsigned{};
-    accumulate(entry.r_type, has_signed, has_unsigned);
-    accumulate(entry.g_type, has_signed, has_unsigned);
-    accumulate(entry.b_type, has_signed, has_unsigned);
-    accumulate(entry.a_type, has_signed, has_unsigned);
-
-    if (has_signed && !has_unsigned) {
-        return Shader::SamplerComponentType::Sint;
-    }
-    if (has_unsigned && !has_signed) {
-        return Shader::SamplerComponentType::Uint;
-    }
-    if (has_signed) {
-        return Shader::SamplerComponentType::Sint;
-    }
-    if (has_unsigned) {
-        return Shader::SamplerComponentType::Uint;
-    }
-    return Shader::SamplerComponentType::Float;
 }
 
 static std::string_view StageToPrefix(Shader::Stage stage) {
@@ -431,24 +377,6 @@ Shader::TextureType GraphicsEnvironment::ReadTextureType(u32 handle) {
     return result;
 }
 
-Shader::SamplerComponentType GraphicsEnvironment::ReadTextureComponentType(u32 handle) {
-    if (!Settings::values.fix_bloom_effects.GetValue()) {
-        return Shader::SamplerComponentType::Float;
-    }
-
-    const auto it{texture_component_types.find(handle)};
-    if (it != texture_component_types.end()) {
-        return it->second;
-    }
-    const auto& regs{maxwell3d->regs};
-    const bool via_header_index{regs.sampler_binding == Maxwell::SamplerBinding::ViaHeaderBinding};
-    auto entry =
-        ReadTextureInfo(regs.tex_header.Address(), regs.tex_header.limit, via_header_index, handle);
-    const Shader::SamplerComponentType result{ConvertSamplerComponentType(entry)};
-    texture_component_types.emplace(handle, result);
-    return result;
-}
-
 Shader::TexturePixelFormat GraphicsEnvironment::ReadTexturePixelFormat(u32 handle) {
     const auto& regs{maxwell3d->regs};
     const bool via_header_index{regs.sampler_binding == Maxwell::SamplerBinding::ViaHeaderBinding};
@@ -502,23 +430,6 @@ Shader::TextureType ComputeEnvironment::ReadTextureType(u32 handle) {
     auto entry = ReadTextureInfo(regs.tic.Address(), regs.tic.limit, qmd.linked_tsc != 0, handle);
     const Shader::TextureType result{ConvertTextureType(entry)};
     texture_types.emplace(handle, result);
-    return result;
-}
-
-Shader::SamplerComponentType ComputeEnvironment::ReadTextureComponentType(u32 handle) {
-    if (!Settings::values.fix_bloom_effects.GetValue()) {
-        return Shader::SamplerComponentType::Float;
-    }
-
-    const auto it{texture_component_types.find(handle)};
-    if (it != texture_component_types.end()) {
-        return it->second;
-    }
-    const auto& regs{kepler_compute->regs};
-    const auto& qmd{kepler_compute->launch_description};
-    auto entry = ReadTextureInfo(regs.tic.Address(), regs.tic.limit, qmd.linked_tsc != 0, handle);
-    const Shader::SamplerComponentType result{ConvertSamplerComponentType(entry)};
-    texture_component_types.emplace(handle, result);
     return result;
 }
 
@@ -619,19 +530,6 @@ u32 FileEnvironment::ReadCbufValue(u32 cbuf_index, u32 cbuf_offset) {
     const auto it{cbuf_values.find(MakeCbufKey(cbuf_index, cbuf_offset))};
     if (it == cbuf_values.end()) {
         throw Shader::LogicError("Uncached read texture type");
-    }
-    return it->second;
-}
-
-Shader::SamplerComponentType FileEnvironment::ReadTextureComponentType(u32 handle) {
-    if (!Settings::values.fix_bloom_effects.GetValue()) {
-        return Shader::SamplerComponentType::Float;
-    }
-
-    const auto it{texture_component_types.find(handle)};
-    if (it == texture_component_types.end()) {
-        LOG_WARNING(Render_Vulkan, "Texture component descriptor {:08x} not found", handle);
-        return Shader::SamplerComponentType::Float;
     }
     return it->second;
 }

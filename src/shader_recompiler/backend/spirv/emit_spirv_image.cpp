@@ -199,34 +199,6 @@ Id Texture(EmitContext& ctx, IR::TextureInstInfo info, [[maybe_unused]] const IR
     }
 }
 
-Id TextureColorResultType(EmitContext& ctx, const TextureDefinition& def) {
-    switch (def.component_type) {
-    case SamplerComponentType::Float:
-    case SamplerComponentType::Depth:
-        return ctx.F32[4];
-    case SamplerComponentType::Sint:
-    case SamplerComponentType::Stencil:
-        return ctx.S32[4];
-    case SamplerComponentType::Uint:
-        return ctx.U32[4];
-    }
-    throw InvalidArgument("Invalid sampler component type {}", def.component_type);
-}
-
-Id TextureSampleResultToFloat(EmitContext& ctx, const TextureDefinition& def, Id color) {
-    switch (def.component_type) {
-    case SamplerComponentType::Float:
-    case SamplerComponentType::Depth:
-        return color;
-    case SamplerComponentType::Sint:
-    case SamplerComponentType::Stencil:
-        return ctx.OpConvertSToF(ctx.F32[4], color);
-    case SamplerComponentType::Uint:
-        return ctx.OpConvertUToF(ctx.F32[4], color);
-    }
-    throw InvalidArgument("Invalid sampler component type {}", def.component_type);
-}
-
 Id TextureImage(EmitContext& ctx, IR::TextureInstInfo info, const IR::Value& index) {
     if (!index.IsImmediate() || index.U32() != 0) {
         throw NotImplementedException("Indirect image indexing");
@@ -504,18 +476,15 @@ Id EmitImageSampleExplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Value&
     const auto info{inst->Flags<IR::TextureInstInfo>()};
     const ImageOperands operands(ctx, false, true, false, lod, offset);
 
-    if (!Settings::values.fix_bloom_effects.GetValue()) {
-        return Emit(&EmitContext::OpImageSparseSampleExplicitLod,
-                    &EmitContext::OpImageSampleExplicitLod, ctx, inst, ctx.F32[4],
-                    Texture(ctx, info, index), coords, operands.Mask(), operands.Span());
+    Id result = Emit(&EmitContext::OpImageSparseSampleExplicitLod,
+                     &EmitContext::OpImageSampleExplicitLod, ctx, inst, ctx.F32[4],
+                     Texture(ctx, info, index), coords, operands.Mask(), operands.Span());
+
+    if (Settings::values.fix_bloom_effects.GetValue()) {
+        result = ctx.OpVectorTimesScalar(ctx.F32[4], result, ctx.Const(0.98f));
     }
 
-    const TextureDefinition& def{ctx.textures.at(info.descriptor_index)};
-    const Id color_type{TextureColorResultType(ctx, def)};
-    const Id color{Emit(&EmitContext::OpImageSparseSampleExplicitLod,
-                        &EmitContext::OpImageSampleExplicitLod, ctx, inst, color_type,
-                        Texture(ctx, info, index), coords, operands.Mask(), operands.Span())};
-    return TextureSampleResultToFloat(ctx, def, color);
+    return result;
 }
 
 Id EmitImageSampleDrefImplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Value& index,
