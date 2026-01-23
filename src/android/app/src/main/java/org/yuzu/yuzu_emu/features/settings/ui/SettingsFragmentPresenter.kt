@@ -273,10 +273,10 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE.key)
             add(BooleanSetting.RENDERER_FORCE_MAX_CLOCK.key)
             add(BooleanSetting.RENDERER_REACTIVE_FLUSHING.key)
-            add(BooleanSetting.USE_ASYNCHRONOUS_GPU_EMULATION.key)
 
             add(HeaderSetting(R.string.hacks))
 
+            add(BooleanSetting.USE_ASYNCHRONOUS_GPU_EMULATION.key)
             add(IntSetting.FAST_GPU_TIME.key)
             add(BooleanSetting.SKIP_CPU_INNER_INVALIDATION.key)
             add(BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS.key)
