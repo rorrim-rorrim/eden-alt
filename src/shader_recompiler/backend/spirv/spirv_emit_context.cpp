@@ -1471,7 +1471,7 @@ void EmitContext::DefineInputs(const IR::Program& program) {
         }
     }
     if (info.uses_fswzadd || info.uses_subgroup_invocation_id || info.uses_subgroup_shuffles ||
-         (profile.warp_size_potentially_larger_than_guest &&
+        (profile.warp_size_potentially_larger_than_guest &&
          (info.uses_subgroup_vote || info.uses_subgroup_mask))) {
         AddCapability(spv::Capability::GroupNonUniform);
         subgroup_local_invocation_id =
