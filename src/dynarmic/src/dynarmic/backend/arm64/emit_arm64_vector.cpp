@@ -890,10 +890,10 @@ void EmitIR<IR::Opcode::VectorMaxU32>(oaknut::CodeGenerator& code, EmitContext& 
 
 template<>
 void EmitIR<IR::Opcode::VectorMaxU64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    (void)code;
-    (void)ctx;
-    (void)inst;
-    UNREACHABLE();
+    EmitThreeOp(code, ctx, inst, [&](auto& Qresult, auto& Qa, auto& Qb) {
+        code.CMHI(Qresult->D2(), Qa->D2(), Qb->D2());
+        code.BIF(Qresult->B16(), Qb->B16(), Qresult->B16());
+    });
 }
 
 template<>
