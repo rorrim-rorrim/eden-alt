@@ -936,10 +936,10 @@ void EmitIR<IR::Opcode::VectorMinU32>(oaknut::CodeGenerator& code, EmitContext& 
 
 template<>
 void EmitIR<IR::Opcode::VectorMinU64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    (void)code;
-    (void)ctx;
-    (void)inst;
-    UNREACHABLE();
+    EmitThreeOp(code, ctx, inst, [&](auto& Qresult, auto& Qa, auto& Qb) {
+        code.CMHI(Qresult->D2(), Qa->D2(), Qb->D2());
+        code.BIT(Qresult->B16(), Qb->B16(), Qresult->B16());
+    });
 }
 
 template<>
