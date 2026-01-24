@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
@@ -1168,7 +1168,6 @@ add_library(core STATIC
     tools/renderdoc.h)
 
 if (ENABLE_WIFI_SCAN)
-    # find_package(libiw REQUIRED)
     target_sources(core PRIVATE internal_network/wifi_scanner.cpp)
     if (PLATFORM_LINUX)
         target_link_libraries(core PRIVATE iw)
