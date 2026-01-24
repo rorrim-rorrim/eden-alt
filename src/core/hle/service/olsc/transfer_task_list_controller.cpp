@@ -31,7 +31,7 @@ ITransferTaskListController::ITransferTaskListController(Core::System& system_)
         {13, nullptr, "CancelCurrentRepairTransferTask"},
         {14, nullptr, "GetRepairTransferTaskProgress"},
         {15, nullptr, "EnsureExecutableForRepairTransferTask"},
-        {16, nullptr, "GetTransferTaskCount"},
+        {16, D<&ITransferTaskListController::GetTransferTaskCount>, "GetTransferTaskCount"},
         {17, nullptr, "GetTransferTaskInfo"},
         {18, nullptr, "ListTransferTaskInfo"},
         {19, nullptr, "DeleteTransferTask"},
@@ -86,6 +86,12 @@ Result ITransferTaskListController::FindTransferTaskInfo(Out<std::array<u8, 0x30
                                                         InBuffer<BufferAttr_HipcAutoSelect> in) {
     LOG_WARNING(Service_OLSC, "(STUBBED) called, in_size={}", in.size());
     out_info->fill(0);
+    R_SUCCEED();
+}
+
+Result ITransferTaskListController::GetTransferTaskCount(Out<u32> out_count, u8 unknown) {
+    LOG_WARNING(Service_OLSC, "(STUBBED) called, unknown={:#x}", unknown);
+    *out_count = 0;
     R_SUCCEED();
 }
 
