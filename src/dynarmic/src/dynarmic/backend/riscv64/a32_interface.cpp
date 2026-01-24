@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -60,13 +60,11 @@ struct Jit::Impl final {
     }
 
     void ClearCache() {
-        std::unique_lock lock{invalidation_mutex};
         invalidate_entire_cache = true;
         HaltExecution(HaltReason::CacheInvalidation);
     }
 
     void InvalidateCacheRange(u32 start_address, size_t length) {
-        std::unique_lock lock{invalidation_mutex};
         invalid_cache_ranges.add(boost::icl::discrete_interval<u32>::closed(start_address, static_cast<u32>(start_address + length - 1)));
         HaltExecution(HaltReason::CacheInvalidation);
     }
@@ -134,79 +132,86 @@ private:
     A32Core core;
 
     volatile u32 halt_reason = 0;
-
-    std::mutex invalidation_mutex;
     boost::icl::interval_set<u32> invalid_cache_ranges;
     bool invalidate_entire_cache = false;
 };
+static_assert(sizeof(Jit::Impl) <= sizeof(Jit::impl_storage));
 
-Jit::Jit(UserConfig conf)
-        : impl(std::make_unique<Impl>(this, conf)) {}
-
-Jit::~Jit() = default;
+Jit::Jit(UserConfig conf) {
+    new (&impl_storage[0]) Jit::Impl(this, conf);
+}
+Jit::~Jit() {
+    reinterpret_cast<Jit::Impl*>(&impl_storage[0])->~Impl();
+}
+inline Jit::Impl* GetImpl(Jit& jit) noexcept {
+    return reinterpret_cast<Jit::Impl*>(&jit.impl_storage[0]);
+}
+inline Jit::Impl const* GetImpl(Jit const& jit) noexcept {
+    return reinterpret_cast<Jit::Impl const*>(&jit.impl_storage[0]);
+}
 
 HaltReason Jit::Run() {
-    return impl->Run();
+    return GetImpl(*this)->Run();
 }
 
 HaltReason Jit::Step() {
-    return impl->Step();
+    return GetImpl(*this)->Step();
 }
 
 void Jit::ClearCache() {
-    impl->ClearCache();
+    GetImpl(*this)->ClearCache();
 }
 
 void Jit::InvalidateCacheRange(u32 start_address, std::size_t length) {
-    impl->InvalidateCacheRange(start_address, length);
+    GetImpl(*this)->InvalidateCacheRange(start_address, length);
 }
 
 void Jit::Reset() {
-    impl->Reset();
+    GetImpl(*this)->Reset();
 }
 
 void Jit::HaltExecution(HaltReason hr) {
-    impl->HaltExecution(hr);
+    GetImpl(*this)->HaltExecution(hr);
 }
 
 void Jit::ClearHalt(HaltReason hr) {
-    impl->ClearHalt(hr);
+    GetImpl(*this)->ClearHalt(hr);
 }
 
 std::array<u32, 16>& Jit::Regs() {
-    return impl->Regs();
+    return GetImpl(*this)->Regs();
 }
 
 const std::array<u32, 16>& Jit::Regs() const {
-    return impl->Regs();
+    return GetImpl(*this)->Regs();
 }
 
 std::array<u32, 64>& Jit::ExtRegs() {
-    return impl->ExtRegs();
+    return GetImpl(*this)->ExtRegs();
 }
 
 const std::array<u32, 64>& Jit::ExtRegs() const {
-    return impl->ExtRegs();
+    return GetImpl(*this)->ExtRegs();
 }
 
 u32 Jit::Cpsr() const {
-    return impl->Cpsr();
+    return GetImpl(*this)->Cpsr();
 }
 
 void Jit::SetCpsr(u32 value) {
-    impl->SetCpsr(value);
+    GetImpl(*this)->SetCpsr(value);
 }
 
 u32 Jit::Fpscr() const {
-    return impl->Fpscr();
+    return GetImpl(*this)->Fpscr();
 }
 
 void Jit::SetFpscr(u32 value) {
-    impl->SetFpscr(value);
+    GetImpl(*this)->SetFpscr(value);
 }
 
 void Jit::ClearExclusiveState() {
-    impl->ClearExclusiveState();
+    GetImpl(*this)->ClearExclusiveState();
 }
 
 }  // namespace Dynarmic::A32

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -126,9 +126,8 @@ public:
     /// the resulting instructions as a vector of their string representations.
     std::string Disassemble() const;
 
-private:
     struct Impl;
-    std::unique_ptr<Impl> impl;
+    char impl_storage[16788736];
 };
 
 }  // namespace A64

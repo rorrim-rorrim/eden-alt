@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -27,13 +27,13 @@ using namespace Backend::Arm64;
 
 struct Jit::Impl final {
     Impl(Jit*, A64::UserConfig conf)
-            : conf(conf)
-            , current_address_space(conf)
-            , core(conf) {}
+        : conf(conf)
+        , current_address_space(conf)
+        , core(conf) {}
 
     HaltReason Run() {
         ASSERT(!is_executing);
-        PerformRequestedCacheInvalidation(static_cast<HaltReason>(Atomic::Load(&halt_reason)));
+        PerformRequestedCacheInvalidation(HaltReason(Atomic::Load(&halt_reason)));
 
         is_executing = true;
         SCOPE_EXIT {
@@ -49,7 +49,7 @@ struct Jit::Impl final {
 
     HaltReason Step() {
         ASSERT(!is_executing);
-        PerformRequestedCacheInvalidation(static_cast<HaltReason>(Atomic::Load(&halt_reason)));
+        PerformRequestedCacheInvalidation(HaltReason(Atomic::Load(&halt_reason)));
 
         is_executing = true;
         SCOPE_EXIT {
@@ -64,13 +64,11 @@ struct Jit::Impl final {
     }
 
     void ClearCache() {
-        std::unique_lock lock{invalidation_mutex};
         invalidate_entire_cache = true;
         HaltExecution(HaltReason::CacheInvalidation);
     }
 
     void InvalidateCacheRange(std::uint64_t start_address, std::size_t length) {
-        std::unique_lock lock{invalidation_mutex};
         invalid_cache_ranges.add(boost::icl::discrete_interval<u64>::closed(start_address, start_address + length - 1));
         HaltExecution(HaltReason::CacheInvalidation);
     }
@@ -158,8 +156,6 @@ struct Jit::Impl final {
 private:
     void PerformRequestedCacheInvalidation(HaltReason hr) {
         if (Has(hr, HaltReason::CacheInvalidation)) {
-            std::unique_lock lock{invalidation_mutex};
-
             ClearHalt(HaltReason::CacheInvalidation);
 
             if (invalidate_entire_cache) {
@@ -185,134 +181,140 @@ private:
     A64Core core;
 
     volatile u32 halt_reason = 0;
-
-    std::mutex invalidation_mutex;
     boost::icl::interval_set<u64> invalid_cache_ranges;
     bool invalidate_entire_cache = false;
     bool is_executing = false;
 };
+static_assert(sizeof(Jit::Impl) <= sizeof(Jit::impl_storage));
 
-Jit::Jit(UserConfig conf)
-        : impl{std::make_unique<Jit::Impl>(this, conf)} {
+Jit::Jit(UserConfig conf) {
+    new (&impl_storage[0]) Jit::Impl(this, conf);
+}
+Jit::~Jit() {
+    reinterpret_cast<Jit::Impl*>(&impl_storage[0])->~Impl();
+}
+inline Jit::Impl* GetImpl(Jit& jit) noexcept {
+    return reinterpret_cast<Jit::Impl*>(&jit.impl_storage[0]);
+}
+inline Jit::Impl const* GetImpl(Jit const& jit) noexcept {
+    return reinterpret_cast<Jit::Impl const*>(&jit.impl_storage[0]);
 }
 
-Jit::~Jit() = default;
-
 HaltReason Jit::Run() {
-    return impl->Run();
+    return GetImpl(*this)->Run();
 }
 
 HaltReason Jit::Step() {
-    return impl->Step();
+    return GetImpl(*this)->Step();
 }
 
 void Jit::ClearCache() {
-    impl->ClearCache();
+    GetImpl(*this)->ClearCache();
 }
 
 void Jit::InvalidateCacheRange(std::uint64_t start_address, std::size_t length) {
-    impl->InvalidateCacheRange(start_address, length);
+    GetImpl(*this)->InvalidateCacheRange(start_address, length);
 }
 
 void Jit::Reset() {
-    impl->Reset();
+    GetImpl(*this)->Reset();
 }
 
 void Jit::HaltExecution(HaltReason hr) {
-    impl->HaltExecution(hr);
+    GetImpl(*this)->HaltExecution(hr);
 }
 
 void Jit::ClearHalt(HaltReason hr) {
-    impl->ClearHalt(hr);
+    GetImpl(*this)->ClearHalt(hr);
 }
 
 std::uint64_t Jit::GetSP() const {
-    return impl->SP();
+    return GetImpl(*this)->SP();
 }
 
 void Jit::SetSP(std::uint64_t value) {
-    impl->SetSP(value);
+    GetImpl(*this)->SetSP(value);
 }
 
 std::uint64_t Jit::GetPC() const {
-    return impl->PC();
+    return GetImpl(*this)->PC();
 }
 
 void Jit::SetPC(std::uint64_t value) {
-    impl->SetPC(value);
+    GetImpl(*this)->SetPC(value);
 }
 
 std::uint64_t Jit::GetRegister(std::size_t index) const {
-    return impl->Regs()[index];
+    return GetImpl(*this)->Regs()[index];
 }
 
 void Jit::SetRegister(size_t index, std::uint64_t value) {
-    impl->Regs()[index] = value;
+    GetImpl(*this)->Regs()[index] = value;
 }
 
 std::array<std::uint64_t, 31> Jit::GetRegisters() const {
-    return impl->Regs();
+    return GetImpl(*this)->Regs();
 }
 
 void Jit::SetRegisters(const std::array<std::uint64_t, 31>& value) {
-    impl->Regs() = value;
+    GetImpl(*this)->Regs() = value;
 }
 
 Vector Jit::GetVector(std::size_t index) const {
-    auto& vec = impl->VecRegs();
+    auto& vec = GetImpl(*this)->VecRegs();
     return {vec[index * 2], vec[index * 2 + 1]};
 }
 
 void Jit::SetVector(std::size_t index, Vector value) {
-    auto& vec = impl->VecRegs();
+    auto& vec = GetImpl(*this)->VecRegs();
     vec[index * 2] = value[0];
     vec[index * 2 + 1] = value[1];
 }
 
 std::array<Vector, 32> Jit::GetVectors() const {
     std::array<Vector, 32> ret;
-    std::memcpy(ret.data(), impl->VecRegs().data(), sizeof(ret));
+    std::memcpy(ret.data(), GetImpl(*this)->VecRegs().data(), sizeof(ret));
     return ret;
 }
 
 void Jit::SetVectors(const std::array<Vector, 32>& value) {
-    std::memcpy(impl->VecRegs().data(), value.data(), sizeof(value));
+    std::memcpy(GetImpl(*this)->VecRegs().data(), value.data(), sizeof(value));
 }
 
 std::uint32_t Jit::GetFpcr() const {
-    return impl->Fpcr();
+    return GetImpl(*this)->Fpcr();
 }
 
 void Jit::SetFpcr(std::uint32_t value) {
-    impl->SetFpcr(value);
+    GetImpl(*this)->SetFpcr(value);
 }
 
 std::uint32_t Jit::GetFpsr() const {
-    return impl->Fpsr();
+    return GetImpl(*this)->Fpsr();
 }
 
 void Jit::SetFpsr(std::uint32_t value) {
-    impl->SetFpsr(value);
+    GetImpl(*this)->SetFpsr(value);
 }
 
 std::uint32_t Jit::GetPstate() const {
-    return impl->Pstate();
+    return GetImpl(*this)->Pstate();
 }
 
 void Jit::SetPstate(std::uint32_t value) {
-    impl->SetPstate(value);
+    GetImpl(*this)->SetPstate(value);
 }
 
 void Jit::ClearExclusiveState() {
-    impl->ClearExclusiveState();
+    GetImpl(*this)->ClearExclusiveState();
 }
 
 bool Jit::IsExecuting() const {
-    return impl->IsExecuting();
+    return GetImpl(*this)->IsExecuting();
 }
 
 std::string Jit::Disassemble() const {
-    return impl->Disassemble();
+    return GetImpl(*this)->Disassemble();
 }
 
 }  // namespace Dynarmic::A64

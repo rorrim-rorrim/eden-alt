@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -197,8 +197,8 @@ private:
     RunCodeFuncType run_code = nullptr;
     RunCodeFuncType step_code = nullptr;
     std::array<const void*, 4> return_from_run_code;
-    bool prelude_complete = false;
     const HostFeature host_features;
+    bool prelude_complete = false;
 
     void GenRunCode(std::function<void(BlockOfCode&)> rcp);
 };
