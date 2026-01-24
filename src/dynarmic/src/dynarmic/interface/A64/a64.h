@@ -127,7 +127,7 @@ public:
     std::string Disassemble() const;
 
     struct Impl;
-    char impl_storage[16788736];
+    char impl_storage[16788800];
 };
 
 }  // namespace A64

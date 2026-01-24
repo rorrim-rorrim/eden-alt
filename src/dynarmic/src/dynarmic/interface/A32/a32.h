@@ -98,7 +98,7 @@ public:
 
     struct Impl;
     bool is_executing = false;
-    char impl_storage[16788736];
+    char impl_storage[16788800];
 };
 
 }  // namespace A32
