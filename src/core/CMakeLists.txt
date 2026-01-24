@@ -1170,7 +1170,6 @@ add_library(core STATIC
     tools/renderdoc.h)
 
 if (ENABLE_WIFI_SCAN)
-    # find_package(libiw REQUIRED)
     target_sources(core PRIVATE internal_network/wifi_scanner.cpp)
     if (PLATFORM_LINUX)
         target_link_libraries(core PRIVATE iw)
