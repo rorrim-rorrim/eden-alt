@@ -5,7 +5,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <version>
-#include "common/settings_enums.h"
 #if __cpp_lib_chrono >= 201907L
 #include <chrono>
 #include <exception>
@@ -17,8 +16,10 @@
 #include <functional>
 #include <string_view>
 #include <type_traits>
+#include <deque>
 #include <fmt/core.h>
 
+#include "common/settings_enums.h"
 #include "common/assert.h"
 #include "common/fs/fs_util.h"
 #include "common/fs/path_util.h"
