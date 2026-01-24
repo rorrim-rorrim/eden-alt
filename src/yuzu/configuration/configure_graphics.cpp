@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
@@ -266,7 +266,7 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
                 // FSR needs a reversed slider and a 0.5 multiplier
                 return builder.BuildWidget(
                     setting, apply_funcs, ConfigurationShared::RequestType::ReverseSlider, true,
-                    0.5f, nullptr, tr("%", "FSR sharpening percentage (e.g. 50%)"));
+                    0.5f, nullptr, tr("%", "FSR/SGSR sharpening percentage (e.g. 50%)"));
             } else {
                 return builder.BuildWidget(setting, apply_funcs);
             }
