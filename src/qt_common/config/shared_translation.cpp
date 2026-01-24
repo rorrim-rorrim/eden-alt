@@ -172,8 +172,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
     INSERT(Settings, scaling_filter, tr("Window Adapting Filter:"), QString());
     INSERT(Settings,
            fsr_sharpening_slider,
-           tr("FSR Sharpness:"),
-           tr("Determines how sharpened the image will look using FSR's dynamic contrast."));
+           tr("FSR/SGSR Sharpness:"),
+           tr("Determines how sharpened the image will look using FSR or SGSR filters."));
     INSERT(Settings,
            anti_aliasing,
            tr("Anti-Aliasing Method:"),
