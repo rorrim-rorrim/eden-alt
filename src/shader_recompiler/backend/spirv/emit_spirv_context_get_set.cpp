@@ -327,9 +327,9 @@ Id EmitGetAttribute(EmitContext& ctx, IR::Attribute attr, Id vertex) {
                 return ctx.OpConvertSToF(ctx.F32[1], value);
             case InputGenericLoadOp::UToF:
                 return ctx.OpConvertUToF(ctx.F32[1], value);
-            default:
+            case InputGenericLoadOp::None:
                 return value;
-            };
+            }
         }();
     }
     switch (attr) {

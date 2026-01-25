@@ -15,8 +15,6 @@ namespace Shader {
 
 enum class AttributeType : u8 {
     Disabled,
-    SignedNorm,
-    UnsignedNorm,
     SignedInt,
     UnsignedInt,
     SignedScaled,

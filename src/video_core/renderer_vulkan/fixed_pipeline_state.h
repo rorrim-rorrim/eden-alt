@@ -278,8 +278,8 @@ struct FixedPipelineState {
         return offsetof(FixedPipelineState, xfb_state);
     }
 
-    u32 DynamicAttributeType(size_t i) const noexcept {
-        return u32((((attribute_types[0] >> i) & 1) << 0)
+    [[nodiscard]] inline Maxwell::VertexAttribute::Type DynamicAttributeType(size_t i) const noexcept {
+        return Maxwell::VertexAttribute::Type((((attribute_types[0] >> i) & 1) << 0)
             | (((attribute_types[1] >> i) & 1) << 1)
             | (((attribute_types[2] >> i) & 1) << 2));
     }

@@ -140,8 +140,6 @@ enum class InputGenericLoadOp {
     Bitcast,
     SToF,
     UToF,
-    SNorm,
-    UNorm,
 };
 
 struct InputGenericInfo {
