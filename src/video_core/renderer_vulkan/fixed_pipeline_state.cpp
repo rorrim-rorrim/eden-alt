@@ -117,6 +117,7 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
             // with the fixed pipeline taking in invalid vertices! :)
             const auto& attrs = regs.vertex_attrib_format;
             attribute_types[0] = attribute_types[1] = attribute_types[2] = attribute_types[3] = 0;
+            static_assert(Maxwell::NumVertexAttributes == 32);
             for (size_t i = 0; i < Maxwell::NumVertexAttributes; ++i) {
                 u32 const mask = attrs[i].constant != 0 ? 0 : 0x07; // non-constant equates invalid
                 u32 const type = size_t(attrs[i].type.Value());
