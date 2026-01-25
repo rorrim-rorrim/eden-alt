@@ -48,6 +48,7 @@ enum class Errno {
     TIMEDOUT,
     MSGSIZE,
     INPROGRESS,
+    ISCONN,
     OTHER,
 };
 

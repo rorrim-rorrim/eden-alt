@@ -643,7 +643,14 @@ Errno BSD::ConnectImpl(s32 fd, std::span<const u8> addr) {
     UNIMPLEMENTED_IF(addr.size() != sizeof(SockAddrIn));
     auto addr_in = GetValue<SockAddrIn>(addr);
 
-    return Translate(file_descriptors[fd]->socket->Connect(Translate(addr_in)));
+    const Errno result = Translate(file_descriptors[fd]->socket->Connect(Translate(addr_in)));
+
+    if (result == Errno::ISCONN) {
+        LOG_DEBUG(Service, "returned ISCONN - socket already connected");
+        return Errno::SUCCESS;
+    }
+
+    return result;
 }
 
 Errno BSD::GetPeerNameImpl(s32 fd, std::vector<u8>& write_buffer) {
@@ -750,7 +757,7 @@ Errno BSD::SetSockOptImpl(s32 fd, u32 level, OptName optname, std::span<const u8
     }
 
     if (level != static_cast<u32>(SocketLevel::SOCKET)) {
-        UNIMPLEMENTED_MSG("Unknown setsockopt level");
+        LOG_WARNING(Service, "(STUBBED) setsockopt with level={}, optname={}", level, optname);
         return Errno::SUCCESS;
     }
 
