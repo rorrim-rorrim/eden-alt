@@ -104,23 +104,45 @@ Shader::CompareFunction MaxwellToCompareFunction(Maxwell::ComparisonOp compariso
     case Maxwell::ComparisonOp::Always_GL:
         return Shader::CompareFunction::Always;
     }
-    UNIMPLEMENTED_MSG("op={}", comparison);
+    UNIMPLEMENTED_MSG("Unimplemented comparison op={}", comparison);
     return {};
 }
 
-Shader::AttributeType MaxwellToAttributeType(Maxwell::VertexAttribute::Type type) noexcept {
-    switch (type) {
-    case Maxwell::VertexAttribute::Type::UnusedEnumDoNotUseBecauseItWillGoAway: return Shader::AttributeType::Disabled;
-    case Maxwell::VertexAttribute::Type::UInt: return Shader::AttributeType::UnsignedInt;
-    case Maxwell::VertexAttribute::Type::SInt: return Shader::AttributeType::SignedInt;
-    case Maxwell::VertexAttribute::Type::UScaled: return Shader::AttributeType::UnsignedScaled;
-    case Maxwell::VertexAttribute::Type::SScaled: return Shader::AttributeType::SignedScaled;
-    case Maxwell::VertexAttribute::Type::Float: return Shader::AttributeType::Float;
-    case Maxwell::VertexAttribute::Type::UNorm: return Shader::AttributeType::Float;
-    case Maxwell::VertexAttribute::Type::SNorm: return Shader::AttributeType::Float;
+Shader::AttributeType CastAttributeType(const FixedPipelineState::VertexAttribute& attr) {
+    if (attr.enabled == 0) {
+        return Shader::AttributeType::Disabled;
+    }
+    switch (attr.Type()) {
+    case Maxwell::VertexAttribute::Type::UnusedEnumDoNotUseBecauseItWillGoAway:
+        ASSERT_MSG(false, "Invalid vertex attribute type!");
+        return Shader::AttributeType::Disabled;
+    case Maxwell::VertexAttribute::Type::SNorm:
+    case Maxwell::VertexAttribute::Type::UNorm:
+    case Maxwell::VertexAttribute::Type::Float:
+        return Shader::AttributeType::Float;
+    case Maxwell::VertexAttribute::Type::SInt:
+        return Shader::AttributeType::SignedInt;
+    case Maxwell::VertexAttribute::Type::UInt:
+        return Shader::AttributeType::UnsignedInt;
+    case Maxwell::VertexAttribute::Type::UScaled:
+        return Shader::AttributeType::UnsignedScaled;
+    case Maxwell::VertexAttribute::Type::SScaled:
+        return Shader::AttributeType::SignedScaled;
+    }
+    return Shader::AttributeType::Float;
 }
-    UNIMPLEMENTED_MSG("op={}", index);
-    return Shader::AttributeType::Disabled;
+
+Shader::AttributeType AttributeType(const FixedPipelineState& state, size_t index) {
+    switch (state.DynamicAttributeType(index)) {
+    case Maxwell::VertexAttribute::Type::Float:
+        return Shader::AttributeType::Float;
+    case Maxwell::VertexAttribute::Type::SInt:
+        return Shader::AttributeType::SignedInt;
+    case Maxwell::VertexAttribute::Type::UInt:
+        return Shader::AttributeType::UnsignedInt;
+    default:
+        return Shader::AttributeType::Disabled;
+    }
 }
 
 Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> programs,
@@ -161,12 +183,12 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
             info.convert_depth_mode = gl_ndc;
         }
         if (key.state.dynamic_vertex_input) {
-            for (size_t i = 0; i < Maxwell::NumVertexAttributes; ++i)
-                info.generic_input_types[i] = MaxwellToAttributeType(key.state.DynamicAttributeType(i));
+            for (size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
+                info.generic_input_types[index] = AttributeType(key.state, index);
+            }
         } else {
-            std::ranges::transform(key.state.attributes, info.generic_input_types.begin(), [](auto const attr) {
-                return attr.enabled ? MaxwellToAttributeType(attr.Type()) : Shader::AttributeType::Disabled;
-            });
+            std::ranges::transform(key.state.attributes, info.generic_input_types.begin(),
+                                   &CastAttributeType);
         }
         break;
     case Shader::Stage::TessellationEval:
