@@ -204,7 +204,8 @@ Id GetAttributeType(EmitContext& ctx, AttributeType type) {
     case AttributeType::UnsignedInt:
         return ctx.U32[4];
     case AttributeType::SignedScaled:
-        return ctx.profile.support_scaled_attributes ? ctx.F32[4] : ctx.TypeVector(ctx.TypeInt(32, true), 4);
+        return ctx.profile.support_scaled_attributes ? ctx.F32[4]
+                                                     : ctx.TypeVector(ctx.TypeInt(32, true), 4);
     case AttributeType::UnsignedScaled:
         return ctx.profile.support_scaled_attributes ? ctx.F32[4] : ctx.U32[4];
     case AttributeType::Disabled:
@@ -220,15 +221,17 @@ InputGenericInfo GetAttributeInfo(EmitContext& ctx, AttributeType type, Id id) {
     case AttributeType::UnsignedInt:
         return InputGenericInfo{id, ctx.input_u32, ctx.U32[1], InputGenericLoadOp::Bitcast};
     case AttributeType::SignedInt:
-        return InputGenericInfo{id, ctx.input_s32, ctx.TypeInt(32, true), InputGenericLoadOp::Bitcast};
+        return InputGenericInfo{id, ctx.input_s32, ctx.TypeInt(32, true),
+                                InputGenericLoadOp::Bitcast};
     case AttributeType::SignedScaled:
         return ctx.profile.support_scaled_attributes
-            ? InputGenericInfo{id, ctx.input_f32, ctx.F32[1], InputGenericLoadOp::None}
-            : InputGenericInfo{id, ctx.input_s32, ctx.TypeInt(32, true), InputGenericLoadOp::SToF};
+                   ? InputGenericInfo{id, ctx.input_f32, ctx.F32[1], InputGenericLoadOp::None}
+                   : InputGenericInfo{id, ctx.input_s32, ctx.TypeInt(32, true),
+                                      InputGenericLoadOp::SToF};
     case AttributeType::UnsignedScaled:
         return ctx.profile.support_scaled_attributes
-            ? InputGenericInfo{id, ctx.input_f32, ctx.F32[1], InputGenericLoadOp::None}
-            : InputGenericInfo{id, ctx.input_u32, ctx.U32[1], InputGenericLoadOp::UToF};
+                   ? InputGenericInfo{id, ctx.input_f32, ctx.F32[1], InputGenericLoadOp::None}
+                   : InputGenericInfo{id, ctx.input_u32, ctx.U32[1], InputGenericLoadOp::UToF};
     case AttributeType::Disabled:
         return InputGenericInfo{};
     }
@@ -774,9 +777,9 @@ void EmitContext::DefineAttributeMemAccess(const Info& info) {
                     return OpConvertSToF(F32[1], value);
                 case InputGenericLoadOp::UToF:
                     return OpConvertUToF(F32[1], value);
-                case InputGenericLoadOp::None:
+                default:
                     return value;
-                }
+                };
             }()};
             OpReturnValue(result);
             ++label_index;
@@ -1564,7 +1567,9 @@ void EmitContext::DefineInputs(const IR::Program& program) {
         if (stage != Stage::Fragment) {
             continue;
         }
-        if (input_type == AttributeType::SignedInt || input_type == AttributeType::UnsignedInt) {
+        const bool is_integer = input_type == AttributeType::SignedInt ||
+                                input_type == AttributeType::UnsignedInt;
+        if (is_integer) {
             Decorate(id, spv::Decoration::Flat);
         } else {
             switch (info.interpolation[index]) {

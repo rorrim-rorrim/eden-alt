@@ -111,16 +111,14 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
             attribute_types = {0, 0, 0};
             static_assert(Maxwell::NumVertexAttributes == 32);
             for (size_t i = 0; i < Maxwell::NumVertexAttributes; ++i) {
-                u32 const mask = attrs[i].constant != 0 ? 0 : 1; // non-constant equates invalid
-                u32 const type = u32(attrs[i].type.Value());
-                attribute_types[0] |= u32((type >> 0) & mask) << i;
-                attribute_types[1] |= u32((type >> 1) & mask) << i;
-                attribute_types[2] |= u32((type >> 2) & mask) << i;
+                u32 const type = attrs[i].constant != 0 ? 0 : u32(attrs[i].type.Value()); // non-constant equates invalid
+                attribute_types[0] |= u32((type >> 0) & 1) << i;
+                attribute_types[1] |= u32((type >> 1) & 1) << i;
+                attribute_types[2] |= u32((type >> 2) & 1) << i;
             }
         } else {
             maxwell3d.dirty.flags[Dirty::VertexInput] = false;
-            enabled_divisors[0] = 0;
-            enabled_divisors[1] = 0;
+            enabled_divisors = {0, 0};
             for (size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
                 const bool is_enabled = regs.vertex_stream_instances.IsInstancingEnabled(index);
                 binding_divisors[index] = is_enabled ? regs.vertex_streams[index].frequency : 0;

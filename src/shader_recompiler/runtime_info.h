@@ -14,12 +14,12 @@
 namespace Shader {
 
 enum class AttributeType : u8 {
-    Disabled,
+    Float,
     SignedInt,
     UnsignedInt,
     SignedScaled,
     UnsignedScaled,
-    Float,
+    Disabled,
 };
 
 enum class InputTopology {
