@@ -39,7 +39,7 @@ See also: [Dolphin emulator](hhttps://github.com/dolphin-emu/dolphin/blob/cdbea8
 | Qualcomm | All | Propietary | ? | On Pixel and Pixel2XL's with Adreno 530 and 540s, setting width and height to 10s reliably triggers what appears to be a driver race condition. |
 | Qualcomm | All | Propietary | ? | Non-descriptive broken OpPhi SPIRV lowering, originally using OpPhi to choose the result is crashing on Adreno 4xx. Switched to storing the result in a temp variable as glslang does. |
 | Qualcomm | All | Propietary | ? | See crbug.com/1241134. The bug appears on Adreno 5xx devices with OS PQ3A. It does not repro on the earlier PPR1 version since the extend blend func extension was not present on the older driver. |
-| Mali | All | Propietary | ? | Non-descriptive green screen on various locations. |
+| Mali | Android | Propietary | ? | Non-descriptive green screen on various locations. |
 | Mali | Android | Propietary | ? | Cached memory is significantly slower for readbacks than coherent memory in the Mali Vulkan driver, causing high CPU usage in the `__pi___inval_cache_range` kernel function. |
 | Mali | Android | Propietary | ? | On some old ARM driver versions, dynamic state for stencil write mask doesn't work correctly in the presence of discard or alpha to coverage, if the static state provided when creating the pipeline has a value of 0 (`alphaToCoverageEnable` and `rasterizerDiscardEnable`). |
 | Mali | Android | Propietary | ? | Failing to submit because of a device loss still needs to wait for the fence to signal before deleting. However, there is an ARM bug (b/359822580) where the driver early outs on the fence wait if in a device lost state and thus we can't wait on it. Instead,  we just wait on the queue to finish. |
@@ -47,10 +47,12 @@ See also: [Dolphin emulator](hhttps://github.com/dolphin-emu/dolphin/blob/cdbea8
 | Mali | Android | Propietary | ? | With Galaxy S7 and S9 we see lots of rendering issues with image filters dropping out when using only primary command buffers. We also see issues on the P30 running Android 28. |
 | Mali | Android | Propietary | ? | `RGBA_F32` mipmaps appear to be broken on some Mali devices. |
 | Mali | Android | Propietary | ? | Matrix IR lowering for matrix swizzle, scalar multiplication and unary `(+m)`/`(-m)` present extraneous unexplained bugs with more than 32 matrix temporals. |
-| MoltenVK | All | Propietary | ? | Driver breaks when using more than 16 vertex attributes/bindings. |
+| Apple | All | MoltenVK | ? | Driver breaks when using more than 16 vertex attributes/bindings. |
 | Apple | macOS | Propietary | >4 | Some driver and Apple Silicon GPU combinations have problems with fragment discard when early depth test is enabled. Discarded fragments may appear corrupted. |
-| Intel<br>Qualcomm<br>AMD<br>MoltenVK | All | All | ? | Reversed viewport depth range does not work as intended on some Vulkan drivers. The Vulkan spec allows the `minDepth`/`maxDepth` fields in the viewport to be reversed, however the implementation is broken on some drivers. |
+| Apple | iOS | MoltenVK | ? | Null descriptors cause non-descriptive issues. |
+| Apple | iOS | MoltenVK | ? | Push descriptors cause non-descriptive issues. |
 | Imagination | Android | Propietary | ? | Some vulkan implementations don't like the 'clear' loadop renderpass if you try to use a framebuffer with a different load/store op than that which it was created with, despite the spec saying they should be compatible. |
+| Intel<br>Qualcomm<br>AMD<br>Apple | All | All<br>MoltenVK (Apple) | ? | Reversed viewport depth range does not work as intended on some Vulkan drivers. The Vulkan spec allows the `minDepth`/`maxDepth` fields in the viewport to be reversed, however the implementation is broken on some drivers. |
 
 AMD: List of driver IDs:
 - Propietary: `VK_DRIVER_ID_AMD_PROPRIETARY`
