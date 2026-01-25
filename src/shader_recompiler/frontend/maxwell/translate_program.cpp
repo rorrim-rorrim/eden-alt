@@ -304,14 +304,14 @@ IR::Program TranslateProgram(ObjectPool<IR::Inst>& inst_pool, ObjectPool<IR::Blo
     Optimization::GlobalMemoryToStorageBufferPass(program, host_info);
     Optimization::TexturePass(env, program, host_info);
 
-    bool shouldRescale =
+    bool should_rescale =
 #ifdef __ANDROID__
         Settings::values.resolution_info.active;
 #else
         true;
 #endif
 
-    if (shouldRescale) {
+    if (should_rescale) {
         Optimization::RescalingPass(program);
     }
 
