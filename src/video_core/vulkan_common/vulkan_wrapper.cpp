@@ -727,10 +727,14 @@ PipelineLayout Device::CreatePipelineLayout(const VkPipelineLayoutCreateInfo& ci
     return PipelineLayout(object, handle, *dld);
 }
 
-Pipeline Device::CreateGraphicsPipeline(const VkGraphicsPipelineCreateInfo& ci,
-                                        VkPipelineCache cache) const {
-    VkPipeline object;
-    Check(dld->vkCreateGraphicsPipelines(handle, cache, 1, &ci, nullptr, &object));
+Pipeline Device::CreateGraphicsPipeline(const VkGraphicsPipelineCreateInfo& ci, VkPipelineCache cache) const {
+    VkPipeline object = VK_NULL_HANDLE;
+    auto const result = dld->vkCreateGraphicsPipelines(handle, cache, 1, &ci, nullptr, &object);
+    // Adreno 5xx drivers do not properly return error when a graphics pipeline fails to be created
+    // Some (unkown) Mali drivers also do not properly return
+    if (result == VK_INCOMPLETE)
+        return Pipeline(object, handle, *dld);
+    Check(result);
     return Pipeline(object, handle, *dld);
 }
 
