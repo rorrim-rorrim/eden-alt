@@ -225,10 +225,10 @@ struct FixedPipelineState {
     u32 point_size;
 
     std::array<u16, Maxwell::NumViewports> viewport_swizzles;
-    union {
-        std::array<u32, 3> attribute_types; // Used with VK_EXT_vertex_input_dynamic_state
-        u64 enabled_divisors;
-    };
+
+    // TODO: this has to be trivially constructuible and both are mutually exclusive
+    std::array<u64, 3> attribute_types; // Used with VK_EXT_vertex_input_dynamic_state
+    u64 enabled_divisors;
 
     DynamicState dynamic_state;
     std::array<BlendingAttachment, Maxwell::NumRenderTargets> attachments;
@@ -277,9 +277,9 @@ struct FixedPipelineState {
     }
 
     u32 DynamicAttributeType(size_t i) const noexcept {
-        return (((attribute_types[0] >> i) & 1) << 0)
+        return u32((((attribute_types[0] >> i) & 1) << 0)
             | (((attribute_types[1] >> i) & 1) << 1)
-            | (((attribute_types[2] >> i) & 1) << 2);
+            | (((attribute_types[2] >> i) & 1) << 2));
     }
 };
 static_assert(std::has_unique_object_representations_v<FixedPipelineState>);
