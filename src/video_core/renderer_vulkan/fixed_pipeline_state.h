@@ -276,8 +276,10 @@ struct FixedPipelineState {
         return offsetof(FixedPipelineState, xfb_state);
     }
 
-    u32 DynamicAttributeType(size_t index) const noexcept {
-        return (attribute_types >> (index * 2)) & 0b11;
+    u32 DynamicAttributeType(size_t i) const noexcept {
+        return (((attribute_types[0] >> i) & 1) << 0)
+            | (((attribute_types[1] >> i) & 1) << 1)
+            | (((attribute_types[2] >> i) & 1) << 2);
     }
 };
 static_assert(std::has_unique_object_representations_v<FixedPipelineState>);
