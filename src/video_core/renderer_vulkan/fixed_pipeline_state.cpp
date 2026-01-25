@@ -129,11 +129,12 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
             }
         } else {
             maxwell3d.dirty.flags[Dirty::VertexInput] = false;
-            enabled_divisors = 0;
+            enabled_divisors[0] = 0;
+            enabled_divisors[1] = 0;
             for (size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
                 const bool is_enabled = regs.vertex_stream_instances.IsInstancingEnabled(index);
                 binding_divisors[index] = is_enabled ? regs.vertex_streams[index].frequency : 0;
-                enabled_divisors |= (is_enabled ? u64{1} : 0) << index;
+                enabled_divisors[0] |= (is_enabled ? u64{1} : 0) << index;
             }
             for (size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
                 const auto& input = regs.vertex_attrib_format[index];

@@ -218,20 +218,24 @@ InputGenericInfo GetAttributeInfo(EmitContext& ctx, AttributeType type, Id id) {
     switch (type) {
     case AttributeType::Float:
         return InputGenericInfo{id, ctx.input_f32, ctx.F32[1], InputGenericLoadOp::None};
+    // TODO: properly impl this?
+    case AttributeType::UnsignedNorm:
+        return InputGenericInfo{id, ctx.input_u32, ctx.U32[1], InputGenericLoadOp::Bitcast};
+    case AttributeType::SignedNorm:
+        return InputGenericInfo{id, ctx.input_s32, ctx.TypeInt(32, true), InputGenericLoadOp::Bitcast};
+    //
     case AttributeType::UnsignedInt:
         return InputGenericInfo{id, ctx.input_u32, ctx.U32[1], InputGenericLoadOp::Bitcast};
     case AttributeType::SignedInt:
-        return InputGenericInfo{id, ctx.input_s32, ctx.TypeInt(32, true),
-                                InputGenericLoadOp::Bitcast};
+        return InputGenericInfo{id, ctx.input_s32, ctx.TypeInt(32, true), InputGenericLoadOp::Bitcast};
     case AttributeType::SignedScaled:
         return ctx.profile.support_scaled_attributes
-                   ? InputGenericInfo{id, ctx.input_f32, ctx.F32[1], InputGenericLoadOp::None}
-                   : InputGenericInfo{id, ctx.input_s32, ctx.TypeInt(32, true),
-                                      InputGenericLoadOp::SToF};
+            ? InputGenericInfo{id, ctx.input_f32, ctx.F32[1], InputGenericLoadOp::None}
+            : InputGenericInfo{id, ctx.input_s32, ctx.TypeInt(32, true), InputGenericLoadOp::SToF};
     case AttributeType::UnsignedScaled:
         return ctx.profile.support_scaled_attributes
-                   ? InputGenericInfo{id, ctx.input_f32, ctx.F32[1], InputGenericLoadOp::None}
-                   : InputGenericInfo{id, ctx.input_u32, ctx.U32[1], InputGenericLoadOp::UToF};
+            ? InputGenericInfo{id, ctx.input_f32, ctx.F32[1], InputGenericLoadOp::None}
+            : InputGenericInfo{id, ctx.input_u32, ctx.U32[1], InputGenericLoadOp::UToF};
     case AttributeType::Disabled:
         return InputGenericInfo{};
     }
@@ -1567,9 +1571,7 @@ void EmitContext::DefineInputs(const IR::Program& program) {
         if (stage != Stage::Fragment) {
             continue;
         }
-        const bool is_integer = input_type == AttributeType::SignedInt ||
-                                input_type == AttributeType::UnsignedInt;
-        if (is_integer) {
+        if (input_type == AttributeType::SignedInt || input_type == AttributeType::UnsignedInt) {
             Decorate(id, spv::Decoration::Flat);
         } else {
             switch (info.interpolation[index]) {

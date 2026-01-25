@@ -114,34 +114,29 @@ Shader::AttributeType CastAttributeType(const FixedPipelineState::VertexAttribut
     }
     switch (attr.Type()) {
     case Maxwell::VertexAttribute::Type::UnusedEnumDoNotUseBecauseItWillGoAway:
-        ASSERT_MSG(false, "Invalid vertex attribute type!");
+        ASSERT(false && "Invalid vertex attribute type!");
         return Shader::AttributeType::Disabled;
-    case Maxwell::VertexAttribute::Type::SNorm:
-    case Maxwell::VertexAttribute::Type::UNorm:
-    case Maxwell::VertexAttribute::Type::Float:
-        return Shader::AttributeType::Float;
-    case Maxwell::VertexAttribute::Type::SInt:
-        return Shader::AttributeType::SignedInt;
-    case Maxwell::VertexAttribute::Type::UInt:
-        return Shader::AttributeType::UnsignedInt;
-    case Maxwell::VertexAttribute::Type::UScaled:
-        return Shader::AttributeType::UnsignedScaled;
-    case Maxwell::VertexAttribute::Type::SScaled:
-        return Shader::AttributeType::SignedScaled;
+    case Maxwell::VertexAttribute::Type::SNorm: return Shader::AttributeType::SignedNorm;
+    case Maxwell::VertexAttribute::Type::UNorm: return Shader::AttributeType::UnsignedNorm;
+    case Maxwell::VertexAttribute::Type::Float: return Shader::AttributeType::Float;
+    case Maxwell::VertexAttribute::Type::SInt: return Shader::AttributeType::SignedInt;
+    case Maxwell::VertexAttribute::Type::UInt: return Shader::AttributeType::UnsignedInt;
+    case Maxwell::VertexAttribute::Type::UScaled: return Shader::AttributeType::UnsignedScaled;
+    case Maxwell::VertexAttribute::Type::SScaled: return Shader::AttributeType::SignedScaled;
     }
     return Shader::AttributeType::Float;
 }
 
 Shader::AttributeType AttributeType(const FixedPipelineState& state, size_t index) {
     switch (state.DynamicAttributeType(index)) {
-    case 0:
-        return Shader::AttributeType::Disabled;
-    case 1:
-        return Shader::AttributeType::Float;
-    case 2:
-        return Shader::AttributeType::SignedInt;
-    case 3:
-        return Shader::AttributeType::UnsignedInt;
+    case 0: return Shader::AttributeType::Disabled;
+    case 1: return Shader::AttributeType::SignedNorm;
+    case 2: return Shader::AttributeType::UnsignedNorm;
+    case 3: return Shader::AttributeType::SignedInt;
+    case 4: return Shader::AttributeType::UnsignedInt;
+    case 5: return Shader::AttributeType::UnsignedScaled;
+    case 6: return Shader::AttributeType::SignedScaled;
+    case 7: return Shader::AttributeType::Float;
     }
     return Shader::AttributeType::Disabled;
 }
