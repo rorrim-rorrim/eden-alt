@@ -423,12 +423,12 @@ void Config::ReadValues() {
         ReadDataStorageValues();
         ReadDebuggingValues();
         ReadDisabledAddOnValues();
-        ReadNetworkValues();
         ReadServiceValues();
         ReadWebServiceValues();
         ReadMiscellaneousValues();
         ReadLibraryAppletValues();
     }
+    ReadNetworkValues();
     ReadControlValues();
     ReadCoreValues();
     ReadCpuValues();
@@ -522,13 +522,13 @@ void Config::SaveValues() {
         SaveDataStorageValues();
         SaveDebuggingValues();
         SaveDisabledAddOnValues();
-        SaveNetworkValues();
         SaveWebServiceValues();
         SaveMiscellaneousValues();
         SaveLibraryAppletValues();
     } else {
         LOG_DEBUG(Config, "Saving only generic configuration values");
     }
+    SaveNetworkValues();
     SaveControlValues();
     SaveCoreValues();
     SaveCpuValues();
