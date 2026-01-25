@@ -135,12 +135,16 @@ Shader::AttributeType CastAttributeType(const FixedPipelineState::VertexAttribut
 Shader::AttributeType AttributeType(const FixedPipelineState& state, size_t index) {
     switch (state.DynamicAttributeType(index)) {
     case Maxwell::VertexAttribute::Type::Float:
+    case Maxwell::VertexAttribute::Type::SScaled:
+    case Maxwell::VertexAttribute::Type::UScaled:
+    case Maxwell::VertexAttribute::Type::SNorm:
+    case Maxwell::VertexAttribute::Type::UNorm:
         return Shader::AttributeType::Float;
     case Maxwell::VertexAttribute::Type::SInt:
         return Shader::AttributeType::SignedInt;
     case Maxwell::VertexAttribute::Type::UInt:
         return Shader::AttributeType::UnsignedInt;
-    default:
+    case Maxwell::VertexAttribute::Type::UnusedEnumDoNotUseBecauseItWillGoAway:
         return Shader::AttributeType::Disabled;
     }
 }
