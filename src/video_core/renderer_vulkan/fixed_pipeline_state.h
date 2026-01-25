@@ -226,7 +226,7 @@ struct FixedPipelineState {
 
     std::array<u16, Maxwell::NumViewports> viewport_swizzles;
     union {
-        u32 attribute_types[3]; // Used with VK_EXT_vertex_input_dynamic_state
+        std::array<u32, 3> attribute_types; // Used with VK_EXT_vertex_input_dynamic_state
         u64 enabled_divisors;
     };
 
