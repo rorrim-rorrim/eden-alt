@@ -200,10 +200,8 @@ Id GetAttributeType(EmitContext& ctx, AttributeType type) {
     case AttributeType::Float:
         return ctx.F32[4];
     case AttributeType::SignedInt:
-    case AttributeType::SignedNorm:
         return ctx.TypeVector(ctx.TypeInt(32, true), 4);
     case AttributeType::UnsignedInt:
-    case AttributeType::UnsignedNorm:
         return ctx.U32[4];
     case AttributeType::SignedScaled:
         return ctx.profile.support_scaled_attributes ? ctx.F32[4] : ctx.TypeVector(ctx.TypeInt(32, true), 4);
@@ -219,10 +217,6 @@ InputGenericInfo GetAttributeInfo(EmitContext& ctx, AttributeType type, Id id) {
     switch (type) {
     case AttributeType::Float:
         return InputGenericInfo{id, ctx.input_f32, ctx.F32[1], InputGenericLoadOp::None};
-    case AttributeType::UnsignedNorm:
-        return InputGenericInfo{id, ctx.input_u32, ctx.U32[1], InputGenericLoadOp::UNorm};
-    case AttributeType::SignedNorm:
-        return InputGenericInfo{id, ctx.input_s32, ctx.TypeInt(32, true), InputGenericLoadOp::SNorm};
     case AttributeType::UnsignedInt:
         return InputGenericInfo{id, ctx.input_u32, ctx.U32[1], InputGenericLoadOp::Bitcast};
     case AttributeType::SignedInt:
@@ -780,19 +774,9 @@ void EmitContext::DefineAttributeMemAccess(const Info& info) {
                     return OpConvertSToF(F32[1], value);
                 case InputGenericLoadOp::UToF:
                     return OpConvertUToF(F32[1], value);
-                case InputGenericLoadOp::SNorm: {
-                    Id const fp16_value = OpShiftRightArithmetic(U32[1], value, Const(16U));
-                    Id const max_value = Const(unsigned(std::numeric_limits<s16>::max()));
-                    return OpFDiv(F32[1], OpConvertSToF(F32[1], fp16_value), max_value);
-                }
-                case InputGenericLoadOp::UNorm: {
-                    Id const fp16_value = OpShiftRightLogical(U32[1], value, Const(16U));
-                    Id const max_value = Const(unsigned(std::numeric_limits<u16>::max()));
-                    return OpFDiv(F32[1], OpConvertSToF(F32[1], fp16_value), max_value);
-                }
-                default:
+                case InputGenericLoadOp::None:
                     return value;
-                };
+                }
             }()};
             OpReturnValue(result);
             ++label_index;
