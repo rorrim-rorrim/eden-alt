@@ -589,10 +589,13 @@ static TexelWeightParams DecodeBlockInfo(InputBitStream& strm) {
 
 // Replicates low num_bits such that [(to_bit - 1):(to_bit - 1 - from_bit)]
 // is the same as [(num_bits - 1):0] and repeats all the way down.
+// to_bit range is expected from 0 to 8
+// num_bits range is from 0 to 7
 [[nodiscard]] constexpr u32 Replicate(u32 v, u32 num_bits, u32 to_bit) {
-    auto val = v;
-    for (; num_bits < to_bit; num_bits <<= 1)
-        val |= val << u32(num_bits);
+    auto val = v & ((1 << num_bits) - 1);
+    val |= val << (num_bits << 0);
+    val |= val << (num_bits << 1);
+    val |= val << (num_bits << 2);
     auto const val_mask = u32(1 << to_bit) - 1;
     return (v & ~val_mask) | (val & val_mask);
 }
