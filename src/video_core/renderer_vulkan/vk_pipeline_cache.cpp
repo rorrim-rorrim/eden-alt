@@ -147,6 +147,7 @@ Shader::AttributeType AttributeType(const FixedPipelineState& state, size_t inde
     case Maxwell::VertexAttribute::Type::UnusedEnumDoNotUseBecauseItWillGoAway:
         return Shader::AttributeType::Disabled;
     }
+    return Shader::AttributeType::Disabled;
 }
 
 Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> programs,
