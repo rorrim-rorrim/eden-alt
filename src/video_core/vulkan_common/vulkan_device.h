@@ -54,6 +54,8 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, ExtendedDynamicState, EXTENDED_DYNAMIC_STATE, extended_dynamic_state)             \
     FEATURE(EXT, ExtendedDynamicState2, EXTENDED_DYNAMIC_STATE_2, extended_dynamic_state2)         \
     FEATURE(EXT, ExtendedDynamicState3, EXTENDED_DYNAMIC_STATE_3, extended_dynamic_state3)         \
+    FEATURE(EXT, InlineUniformBlock, INLINE_UNIFORM_BLOCK, inline_uniform_block)                    \
+    FEATURE(EXT, DescriptorBuffer, DESCRIPTOR_BUFFER, descriptor_buffer)                             \
     FEATURE(EXT, 4444Formats, 4444_FORMATS, format_a4b4g4r4)                                       \
     FEATURE(EXT, IndexTypeUint8, INDEX_TYPE_UINT8, index_type_uint8)                               \
     FEATURE(EXT, LineRasterization, LINE_RASTERIZATION, line_rasterization)                        \
