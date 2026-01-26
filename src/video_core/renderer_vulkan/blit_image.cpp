@@ -768,21 +768,18 @@ void BlitImageHelper::ClearDepthStencil(const Framebuffer* dst_framebuffer, bool
 
     scheduler.Record([pipeline, layout, clear_depth, dst_region, stencil_mask, stencil_ref,
                       stencil_compare_mask, dyn_stencil_compare, dyn_stencil_write,
-                      dyn_stencil_ref, this](vk::CommandBuffer cmdbuf) {
+                      dyn_stencil_ref](vk::CommandBuffer cmdbuf) {
         constexpr std::array blend_constants{0.0f, 0.0f, 0.0f, 0.0f};
         cmdbuf.SetBlendConstants(blend_constants.data());
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
         if (dyn_stencil_compare) {
-            cmdbuf.SetStencilCompareMask(VK_STENCIL_FACE_FRONT_BIT | VK_STENCIL_FACE_BACK_BIT,
-                                         stencil_compare_mask);
+            cmdbuf.SetStencilCompareMask(VK_STENCIL_FACE_FRONT_BIT | VK_STENCIL_FACE_BACK_BIT, stencil_compare_mask);
         }
         if (dyn_stencil_write) {
-            cmdbuf.SetStencilWriteMask(VK_STENCIL_FACE_FRONT_BIT | VK_STENCIL_FACE_BACK_BIT,
-                                       stencil_mask);
+            cmdbuf.SetStencilWriteMask(VK_STENCIL_FACE_FRONT_BIT | VK_STENCIL_FACE_BACK_BIT, stencil_mask);
         }
         if (dyn_stencil_ref) {
-            cmdbuf.SetStencilReference(VK_STENCIL_FACE_FRONT_BIT | VK_STENCIL_FACE_BACK_BIT,
-                                       stencil_ref);
+            cmdbuf.SetStencilReference(VK_STENCIL_FACE_FRONT_BIT | VK_STENCIL_FACE_BACK_BIT, stencil_ref);
         }
         BindBlitState(cmdbuf, dst_region);
         cmdbuf.PushConstants(layout, VK_SHADER_STAGE_FRAGMENT_BIT, clear_depth);

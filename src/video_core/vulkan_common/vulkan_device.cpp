@@ -484,7 +484,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         .descriptorBufferPushDescriptors = VK_FALSE,
     };
 
-    if (extensions.descriptor_buffer && features.descriptor_buffer.descriptorBuffer) {
+    if (extensions.descriptor_buffer) {
         first_next = &descriptor_buffer_features;
     }
 
@@ -1245,17 +1245,6 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.custom_border_color, features.custom_border_color,
                                        VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
 
-    // VK_EXT_descriptor_buffer
-    if (extensions.descriptor_buffer) {
-        if (!features.descriptor_buffer.descriptorBuffer) {
-            LOG_WARNING(Render_Vulkan,
-                        "VK_EXT_descriptor_buffer reported but descriptorBuffer feature not available");
-            extensions.descriptor_buffer = false;
-        }
-    }
-    RemoveExtensionFeatureIfUnsuitable(extensions.descriptor_buffer, features.descriptor_buffer,
-                                       VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
-
     // VK_EXT_depth_bias_control
     extensions.depth_bias_control =
         features.depth_bias_control.depthBiasControl &&
@@ -1409,12 +1398,6 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.vertex_input_dynamic_state,
                                        features.vertex_input_dynamic_state,
                                        VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
-
-    // VK_EXT_inline_uniform_block
-    extensions.inline_uniform_block = features.inline_uniform_block.inlineUniformBlock;
-    RemoveExtensionFeatureIfUnsuitable(extensions.inline_uniform_block,
-                                       features.inline_uniform_block,
-                                       VK_EXT_INLINE_UNIFORM_BLOCK_EXTENSION_NAME);
 
     // VK_EXT_multi_draw
     extensions.multi_draw = features.multi_draw.multiDraw;
