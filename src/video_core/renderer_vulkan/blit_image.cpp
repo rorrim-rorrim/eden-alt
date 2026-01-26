@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -762,6 +762,10 @@ void BlitImageHelper::ClearDepthStencil(const Framebuffer* dst_framebuffer, bool
     const VkPipeline pipeline = FindOrEmplaceClearStencilPipeline(key);
     const VkPipelineLayout layout = *clear_color_pipeline_layout;
     scheduler.RequestRenderpass(dst_framebuffer);
+    const bool dyn_stencil_compare = device.SupportsDynamicStateStencilCompareMask();
+    const bool dyn_stencil_write = device.SupportsDynamicStateStencilWriteMask();
+    const bool dyn_stencil_ref = device.SupportsDynamicStateStencilReference();
+
     scheduler.Record([pipeline, layout, clear_depth, dst_region, stencil_mask, stencil_ref,
                       stencil_compare_mask, dyn_stencil_compare, dyn_stencil_write,
                       dyn_stencil_ref, this](vk::CommandBuffer cmdbuf) {
