@@ -815,13 +815,35 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pAttachments = cb_attachments.data(),
         .blendConstants = {}
     };
-    static_vector<VkDynamicState, 34> dynamic_states{
-        VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
-        VK_DYNAMIC_STATE_DEPTH_BIAS,         VK_DYNAMIC_STATE_BLEND_CONSTANTS,
-        VK_DYNAMIC_STATE_DEPTH_BOUNDS,       VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
-        VK_DYNAMIC_STATE_STENCIL_WRITE_MASK, VK_DYNAMIC_STATE_STENCIL_REFERENCE,
-        VK_DYNAMIC_STATE_LINE_WIDTH,
-    };
+    static_vector<VkDynamicState, 34> dynamic_states;
+
+    if (device.SupportsDynamicStateViewport()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_VIEWPORT);
+    }
+    if (device.SupportsDynamicStateScissor()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_SCISSOR);
+    }
+    if (device.SupportsDynamicStateDepthBias()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS);
+    }
+    if (device.SupportsDynamicStateBlendConstants()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_BLEND_CONSTANTS);
+    }
+    if (device.SupportsDynamicStateDepthBounds()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_DEPTH_BOUNDS);
+    }
+    if (device.SupportsDynamicStateStencilCompareMask()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK);
+    }
+    if (device.SupportsDynamicStateStencilWriteMask()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_STENCIL_WRITE_MASK);
+    }
+    if (device.SupportsDynamicStateStencilReference()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_STENCIL_REFERENCE);
+    }
+    if (device.SupportsDynamicStateLineWidth()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
+    }
     if (key.state.extended_dynamic_state) {
         static constexpr std::array extended{
             VK_DYNAMIC_STATE_CULL_MODE_EXT,

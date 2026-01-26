@@ -21,6 +21,15 @@ namespace Vulkan {
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
 struct DynamicFeatures {
+    bool has_viewport;
+    bool has_scissor;
+    bool has_depth_bias;
+    bool has_blend_constants;
+    bool has_depth_bounds;
+    bool has_stencil_compare_mask;
+    bool has_stencil_write_mask;
+    bool has_stencil_reference;
+    bool has_line_width;
     bool has_extended_dynamic_state;
     bool has_extended_dynamic_state_2;
     bool has_extended_dynamic_state_2_logic_op;

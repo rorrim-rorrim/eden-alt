@@ -418,12 +418,24 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
 
     dynamic_features = {};
 
-    // User granularity enforced in vulkan_device.cpp switch statement:
-    //   Level 0: Core Dynamic States only
-    //   Level 1: Core + EDS1
-    //   Level 2: Core + EDS1 + EDS2 (accumulative)
-    //   Level 3: Core + EDS1 + EDS2 + EDS3 (accumulative)
-    // Here we only verify if extensions were successfully loaded by the device
+    dynamic_features.has_viewport =
+       device.SupportsDynamicStateViewport();
+    dynamic_features.has_scissor =
+       device.SupportsDynamicStateScissor();
+    dynamic_features.has_depth_bias =
+       device.SupportsDynamicStateDepthBias();
+    dynamic_features.has_blend_constants =
+       device.SupportsDynamicStateBlendConstants();
+    dynamic_features.has_depth_bounds =
+       device.SupportsDynamicStateDepthBounds();
+    dynamic_features.has_stencil_compare_mask =
+       device.SupportsDynamicStateStencilCompareMask();
+    dynamic_features.has_stencil_write_mask =
+       device.SupportsDynamicStateStencilWriteMask();
+    dynamic_features.has_stencil_reference =
+       device.SupportsDynamicStateStencilReference();
+    dynamic_features.has_line_width =
+       device.SupportsDynamicStateLineWidth();
 
     dynamic_features.has_extended_dynamic_state =
         device.IsExtExtendedDynamicStateSupported();
@@ -439,7 +451,6 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
     dynamic_features.has_extended_dynamic_state_3_enables =
         device.IsExtExtendedDynamicState3EnablesSupported();
 
-    // VIDS: Independent toggle (not affected by dyna_state levels)
     dynamic_features.has_dynamic_vertex_input =
         device.IsExtVertexInputDynamicStateSupported() &&
         Settings::values.vertex_input_dynamic_state.GetValue();

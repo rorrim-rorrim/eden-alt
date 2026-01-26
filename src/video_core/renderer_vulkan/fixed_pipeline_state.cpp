@@ -171,6 +171,15 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     if (!extended_dynamic_state_3_enables) {
         dynamic_state.Refresh3(regs);
     }
+    if (features.has_depth_bounds) {
+        depth_bounds_min = 0;
+        depth_bounds_max = 0;
+        dynamic_state.depth_bounds_enable.Assign(0);
+    }
+
+    if (features.has_depth_bias) {
+        dynamic_state.depth_bias_enable.Assign(0);
+    }
     if (xfb_enabled) {
         RefreshXfbState(xfb_state, regs);
     }

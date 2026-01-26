@@ -704,6 +704,43 @@ public:
         return dynamic_state3_alpha_to_one;
     }
 
+    // Core dynamic state support checks
+    bool SupportsDynamicStateViewport() const {
+        return dld.vkCmdSetViewport != nullptr;
+    }
+
+    bool SupportsDynamicStateScissor() const {
+        return dld.vkCmdSetScissor != nullptr;
+    }
+
+    bool SupportsDynamicStateDepthBias() const {
+        return dld.vkCmdSetDepthBias != nullptr || dld.vkCmdSetDepthBias2EXT != nullptr;
+    }
+
+    bool SupportsDynamicStateBlendConstants() const {
+        return dld.vkCmdSetBlendConstants != nullptr;
+    }
+
+    bool SupportsDynamicStateDepthBounds() const {
+        return dld.vkCmdSetDepthBounds != nullptr && IsDepthBoundsSupported();
+    }
+
+    bool SupportsDynamicStateStencilCompareMask() const {
+        return dld.vkCmdSetStencilCompareMask != nullptr;
+    }
+
+    bool SupportsDynamicStateStencilWriteMask() const {
+        return dld.vkCmdSetStencilWriteMask != nullptr;
+    }
+
+    bool SupportsDynamicStateStencilReference() const {
+        return dld.vkCmdSetStencilReference != nullptr;
+    }
+
+    bool SupportsDynamicStateLineWidth() const {
+        return dld.vkCmdSetLineWidth != nullptr;
+    }
+
     /// Returns true if the device supports VK_EXT_vertex_input_dynamic_state.
     bool IsExtVertexInputDynamicStateSupported() const {
         return extensions.vertex_input_dynamic_state;

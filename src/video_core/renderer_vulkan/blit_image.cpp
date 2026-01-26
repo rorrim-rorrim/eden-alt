@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <vector>
 
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 
@@ -761,10 +762,24 @@ void BlitImageHelper::ClearDepthStencil(const Framebuffer* dst_framebuffer, bool
     const VkPipeline pipeline = FindOrEmplaceClearStencilPipeline(key);
     const VkPipelineLayout layout = *clear_color_pipeline_layout;
     scheduler.RequestRenderpass(dst_framebuffer);
-    scheduler.Record([pipeline, layout, clear_depth, dst_region](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([pipeline, layout, clear_depth, dst_region, stencil_mask, stencil_ref,
+                      stencil_compare_mask, dyn_stencil_compare, dyn_stencil_write,
+                      dyn_stencil_ref, this](vk::CommandBuffer cmdbuf) {
         constexpr std::array blend_constants{0.0f, 0.0f, 0.0f, 0.0f};
         cmdbuf.SetBlendConstants(blend_constants.data());
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        if (dyn_stencil_compare) {
+            cmdbuf.SetStencilCompareMask(VK_STENCIL_FACE_FRONT_BIT | VK_STENCIL_FACE_BACK_BIT,
+                                         stencil_compare_mask);
+        }
+        if (dyn_stencil_write) {
+            cmdbuf.SetStencilWriteMask(VK_STENCIL_FACE_FRONT_BIT | VK_STENCIL_FACE_BACK_BIT,
+                                       stencil_mask);
+        }
+        if (dyn_stencil_ref) {
+            cmdbuf.SetStencilReference(VK_STENCIL_FACE_FRONT_BIT | VK_STENCIL_FACE_BACK_BIT,
+                                       stencil_ref);
+        }
         BindBlitState(cmdbuf, dst_region);
         cmdbuf.PushConstants(layout, VK_SHADER_STAGE_FRAGMENT_BIT, clear_depth);
         cmdbuf.Draw(3, 1, 0, 0);
@@ -1010,14 +1025,19 @@ VkPipeline BlitImageHelper::FindOrEmplaceClearStencilPipeline(
     }
     clear_stencil_keys.push_back(key);
     const std::array stages = MakeStages(*clear_color_vert, *clear_stencil_frag);
+    // Allow using dynamic stencil masks if the device supports them.
+    const bool dyn_stencil_compare = device.SupportsDynamicStateStencilCompareMask();
+    const bool dyn_stencil_write = device.SupportsDynamicStateStencilWriteMask();
+    const bool dyn_stencil_ref = device.SupportsDynamicStateStencilReference();
+
     const auto stencil = VkStencilOpState{
         .failOp = VK_STENCIL_OP_KEEP,
         .passOp = VK_STENCIL_OP_REPLACE,
         .depthFailOp = VK_STENCIL_OP_KEEP,
         .compareOp = VK_COMPARE_OP_ALWAYS,
-        .compareMask = key.stencil_compare_mask,
-        .writeMask = key.stencil_mask,
-        .reference = key.stencil_ref,
+        .compareMask = dyn_stencil_compare ? 0u : key.stencil_compare_mask,
+        .writeMask = dyn_stencil_write ? 0u : key.stencil_mask,
+        .reference = dyn_stencil_ref ? 0u : key.stencil_ref,
     };
     const VkPipelineDepthStencilStateCreateInfo depth_stencil_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
@@ -1034,6 +1054,29 @@ VkPipeline BlitImageHelper::FindOrEmplaceClearStencilPipeline(
         .maxDepthBounds = 0.0f,
     };
     const VkPipelineInputAssemblyStateCreateInfo input_assembly_ci = GetPipelineInputAssemblyStateCreateInfo(device);
+
+    // Build dynamic state list for this pipeline (base + optional stencil/linewidth)
+    std::vector<VkDynamicState> dyn_states(DYNAMIC_STATES.begin(), DYNAMIC_STATES.end());
+    if (device.SupportsDynamicStateLineWidth()) {
+        dyn_states.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
+    }
+    if (dyn_stencil_compare) {
+        dyn_states.push_back(VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK);
+    }
+    if (dyn_stencil_write) {
+        dyn_states.push_back(VK_DYNAMIC_STATE_STENCIL_WRITE_MASK);
+    }
+    if (dyn_stencil_ref) {
+        dyn_states.push_back(VK_DYNAMIC_STATE_STENCIL_REFERENCE);
+    }
+    const VkPipelineDynamicStateCreateInfo dynamic_state_ci{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .dynamicStateCount = static_cast<u32>(dyn_states.size()),
+        .pDynamicStates = dyn_states.data(),
+    };
+
     clear_stencil_pipelines.push_back(device.GetLogical().CreateGraphicsPipeline({
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
         .pNext = nullptr,
@@ -1048,7 +1091,7 @@ VkPipeline BlitImageHelper::FindOrEmplaceClearStencilPipeline(
         .pMultisampleState = &PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
         .pDepthStencilState = &depth_stencil_ci,
         .pColorBlendState = &PIPELINE_COLOR_BLEND_STATE_GENERIC_CREATE_INFO,
-        .pDynamicState = &PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        .pDynamicState = &dynamic_state_ci,
         .layout = *clear_color_pipeline_layout,
         .renderPass = key.renderpass,
         .subpass = 0,
