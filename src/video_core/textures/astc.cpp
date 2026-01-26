@@ -589,109 +589,13 @@ static TexelWeightParams DecodeBlockInfo(InputBitStream& strm) {
 
 // Replicates low num_bits such that [(to_bit - 1):(to_bit - 1 - from_bit)]
 // is the same as [(num_bits - 1):0] and repeats all the way down.
-template <typename IntType>
-static constexpr IntType Replicate(IntType val, u32 num_bits, u32 to_bit) {
-    if (num_bits == 0 || to_bit == 0) {
-        return 0;
-    }
-    const IntType v = val & static_cast<IntType>((1 << num_bits) - 1);
-    IntType res = v;
-    u32 reslen = num_bits;
-    while (reslen < to_bit) {
-        u32 comp = 0;
-        if (num_bits > to_bit - reslen) {
-            u32 newshift = to_bit - reslen;
-            comp = num_bits - newshift;
-            num_bits = newshift;
-        }
-        res = static_cast<IntType>(res << num_bits);
-        res = static_cast<IntType>(res | (v >> comp));
-        reslen += num_bits;
-    }
-    return res;
-}
-
-static constexpr std::size_t NumReplicateEntries(u32 num_bits) {
-    return std::size_t(1) << num_bits;
-}
-
-template <typename IntType, u32 num_bits, u32 to_bit>
-static constexpr auto MakeReplicateTable() {
-    std::array<IntType, NumReplicateEntries(num_bits)> table{};
-    for (IntType value = 0; value < static_cast<IntType>(std::size(table)); ++value) {
-        table[value] = Replicate(value, num_bits, to_bit);
-    }
-    return table;
-}
-
-static constexpr auto REPLICATE_BYTE_TO_16_TABLE = MakeReplicateTable<u32, 8, 16>();
-static constexpr u32 ReplicateByteTo16(std::size_t value) {
-    return REPLICATE_BYTE_TO_16_TABLE[value];
-}
-
-static constexpr auto REPLICATE_BIT_TO_7_TABLE = MakeReplicateTable<u32, 1, 7>();
-static constexpr u32 ReplicateBitTo7(std::size_t value) {
-    return REPLICATE_BIT_TO_7_TABLE[value];
-}
-
-static constexpr auto REPLICATE_BIT_TO_9_TABLE = MakeReplicateTable<u32, 1, 9>();
-static constexpr u32 ReplicateBitTo9(std::size_t value) {
-    return REPLICATE_BIT_TO_9_TABLE[value];
-}
-
-static constexpr auto REPLICATE_1_BIT_TO_8_TABLE = MakeReplicateTable<u32, 1, 8>();
-static constexpr auto REPLICATE_2_BIT_TO_8_TABLE = MakeReplicateTable<u32, 2, 8>();
-static constexpr auto REPLICATE_3_BIT_TO_8_TABLE = MakeReplicateTable<u32, 3, 8>();
-static constexpr auto REPLICATE_4_BIT_TO_8_TABLE = MakeReplicateTable<u32, 4, 8>();
-static constexpr auto REPLICATE_5_BIT_TO_8_TABLE = MakeReplicateTable<u32, 5, 8>();
-static constexpr auto REPLICATE_6_BIT_TO_8_TABLE = MakeReplicateTable<u32, 6, 8>();
-static constexpr auto REPLICATE_7_BIT_TO_8_TABLE = MakeReplicateTable<u32, 7, 8>();
-static constexpr auto REPLICATE_8_BIT_TO_8_TABLE = MakeReplicateTable<u32, 8, 8>();
-/// Use a precompiled table with the most common usages, if it's not in the expected range, fallback
-/// to the runtime implementation
-static constexpr u32 FastReplicateTo8(u32 value, u32 num_bits) {
-    switch (num_bits) {
-    case 1:
-        return REPLICATE_1_BIT_TO_8_TABLE[value];
-    case 2:
-        return REPLICATE_2_BIT_TO_8_TABLE[value];
-    case 3:
-        return REPLICATE_3_BIT_TO_8_TABLE[value];
-    case 4:
-        return REPLICATE_4_BIT_TO_8_TABLE[value];
-    case 5:
-        return REPLICATE_5_BIT_TO_8_TABLE[value];
-    case 6:
-        return REPLICATE_6_BIT_TO_8_TABLE[value];
-    case 7:
-        return REPLICATE_7_BIT_TO_8_TABLE[value];
-    case 8:
-        return REPLICATE_8_BIT_TO_8_TABLE[value];
-    default:
-        return Replicate(value, num_bits, 8);
-    }
-}
-
-static constexpr auto REPLICATE_1_BIT_TO_6_TABLE = MakeReplicateTable<u32, 1, 6>();
-static constexpr auto REPLICATE_2_BIT_TO_6_TABLE = MakeReplicateTable<u32, 2, 6>();
-static constexpr auto REPLICATE_3_BIT_TO_6_TABLE = MakeReplicateTable<u32, 3, 6>();
-static constexpr auto REPLICATE_4_BIT_TO_6_TABLE = MakeReplicateTable<u32, 4, 6>();
-static constexpr auto REPLICATE_5_BIT_TO_6_TABLE = MakeReplicateTable<u32, 5, 6>();
-static constexpr u32 FastReplicateTo6(u32 value, u32 num_bits) {
-    switch (num_bits) {
-    case 1:
-        return REPLICATE_1_BIT_TO_6_TABLE[value];
-    case 2:
-        return REPLICATE_2_BIT_TO_6_TABLE[value];
-    case 3:
-        return REPLICATE_3_BIT_TO_6_TABLE[value];
-    case 4:
-        return REPLICATE_4_BIT_TO_6_TABLE[value];
-    case 5:
-        return REPLICATE_5_BIT_TO_6_TABLE[value];
-    default:
-        return Replicate(value, num_bits, 6);
-    }
+[[nodiscard]] constexpr u32 Replicate(u32 v, u32 num_bits, u32 to_bit) {
+    auto const mask = u32(1 << num_bits) - 1;
+    auto val = v;
+    for (; num_bits < to_bit; num_bits <<= 1)
+        val |= val << u32(num_bits);
+    auto const val_mask = u32(1 << to_bit) - 1;
+    return (v & ~val_mask) | (val & val_mask);
 }
 
 class Pixel {
@@ -734,9 +638,9 @@ public:
             // Do nothing
             return val;
         } else if (oldDepth == 0) {
-            return static_cast<ChannelType>((1 << 8) - 1);
+            return ChannelType((1 << 8) - 1);
         } else if (8 > oldDepth) {
-            return static_cast<ChannelType>(FastReplicateTo8(static_cast<u32>(val), oldDepth));
+            return ChannelType(Replicate(u32(val), oldDepth, 8));
         } else {
             // oldDepth > newDepth
             const u8 bitsWasted = static_cast<u8>(oldDepth - 8);
@@ -868,14 +772,14 @@ static void DecodeColorValues(u32* out, std::span<u8> data, const u32* modes, co
 
         assert(bitlen >= 1);
 
-        u32 A = 0, B = 0, C = 0, D = 0;
         // A is just the lsb replicated 9 times.
-        A = ReplicateBitTo9(bitval & 1);
+        u32 A = (bitval & 1) ? ((1 << 9) - 1) : 0;
+        u32 B = 0, C = 0, D = 0;
 
         switch (val.encoding) {
         // Replicate bits
         case IntegerEncoding::JustBits:
-            out[outIdx++] = FastReplicateTo8(bitval, bitlen);
+            out[outIdx++] = Replicate(bitval, bitlen, 8);
             break;
 
         // Use algorithm in C.2.13
@@ -993,13 +897,14 @@ static u32 UnquantizeTexelWeight(const IntegerEncodedValue& val) {
     u32 bitval = val.bit_value;
     u32 bitlen = val.num_bits;
 
-    u32 A = ReplicateBitTo7(bitval & 1);
+    // A is just LSB repeated 7 times
+    u32 A = (bitval & 1) ? ((1 << 7) - 1) : 0;
     u32 B = 0, C = 0, D = 0;
 
     u32 result = 0;
     switch (val.encoding) {
     case IntegerEncoding::JustBits:
-        result = FastReplicateTo6(bitval, bitlen);
+        result = Replicate(bitval, bitlen, 6);
         break;
 
     case IntegerEncoding::Trit: {
@@ -1631,9 +1536,9 @@ static void DecompressBlock(std::span<const u8, 16> inBuf, const u32 blockWidth,
             Pixel p;
             for (u32 c = 0; c < 4; c++) {
                 u32 C0 = endpoints[partition][0].Component(c);
-                C0 = ReplicateByteTo16(C0);
                 u32 C1 = endpoints[partition][1].Component(c);
-                C1 = ReplicateByteTo16(C1);
+                C0 = (C0 & 0xff) | ((C0 & 0xff) << 8);
+                C1 = (C1 & 0xff) | ((C0 & 0xff) << 8);
 
                 u32 plane = 0;
                 if (weightParams.m_bDualPlane && (((planeIdx + 1) & 3) == c)) {
