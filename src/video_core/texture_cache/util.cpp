@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -33,7 +33,6 @@
 #include "video_core/texture_cache/formatter.h"
 #include "video_core/texture_cache/samples_helper.h"
 #include "video_core/texture_cache/util.h"
-#include "video_core/textures/astc.h"
 #include "video_core/textures/bcn.h"
 #include "video_core/textures/decoders.h"
 
@@ -608,23 +607,18 @@ u32 CalculateConvertedSizeBytes(const ImageInfo& info) noexcept {
         return info.size.width * BytesPerBlock(info.format);
     }
     static constexpr Extent2D TILE_SIZE{1, 1};
-    if (IsPixelFormatASTC(info.format) && Settings::values.astc_recompression.GetValue() !=
-                                              Settings::AstcRecompression::Uncompressed) {
-        const u32 bpp_div =
-            Settings::values.astc_recompression.GetValue() == Settings::AstcRecompression::Bc1 ? 2
-                                                                                               : 1;
+    if (IsPixelFormatASTC(info.format) && Settings::values.astc_recompression.GetValue() != Settings::AstcRecompression::Uncompressed) {
+        const u32 bpp_div = Settings::values.astc_recompression.GetValue() == Settings::AstcRecompression::Bc1 ? 2 : 1;
         // NumBlocksPerLayer doesn't account for this correctly, so we have to do it manually.
         u32 output_size = 0;
         for (s32 i = 0; i < info.resources.levels; i++) {
             const auto mip_size = AdjustMipSize(info.size, i);
-            const u32 plane_dim =
-                Common::AlignUp(mip_size.width, 4U) * Common::AlignUp(mip_size.height, 4U);
+            const u32 plane_dim = Common::AlignUp(mip_size.width, 4U) * Common::AlignUp(mip_size.height, 4U);
             output_size += (plane_dim * info.size.depth * info.resources.layers) / bpp_div;
         }
         return output_size;
     }
-    return NumBlocksPerLayer(info, TILE_SIZE) * info.resources.layers *
-           ConvertedBytesPerBlock(info.format);
+    return NumBlocksPerLayer(info, TILE_SIZE) * info.resources.layers * ConvertedBytesPerBlock(info.format);
 }
 
 u32 CalculateLayerStride(const ImageInfo& info) noexcept {
@@ -922,8 +916,7 @@ boost::container::small_vector<BufferImageCopy, 16> UnswizzleImage(Tegra::Memory
     return copies;
 }
 
-void ConvertImage(std::span<const u8> input, const ImageInfo& info, std::span<u8> output,
-                  std::span<BufferImageCopy> copies) {
+void ConvertImage(std::span<const u8> input, const ImageInfo& info, std::span<u8> output, std::span<BufferImageCopy> copies) {
     u32 output_offset = 0;
     Common::ScratchBuffer<u8> decode_scratch;
 
@@ -939,56 +932,9 @@ void ConvertImage(std::span<const u8> input, const ImageInfo& info, std::span<u8
 
         const auto input_offset = input.subspan(copy.buffer_offset);
         copy.buffer_offset = output_offset;
-
-        const auto recompression_setting = Settings::values.astc_recompression.GetValue();
-        const bool astc = IsPixelFormatASTC(info.format);
-
-        if (astc && recompression_setting == Settings::AstcRecompression::Uncompressed) {
-            Tegra::Texture::ASTC::Decompress(
-                input_offset, copy.image_extent.width, copy.image_extent.height,
-                copy.image_subresource.num_layers * copy.image_extent.depth, tile_size.width,
-                tile_size.height, output.subspan(output_offset));
-
-            output_offset += copy.image_extent.width * copy.image_extent.height *
-                             copy.image_subresource.num_layers *
-                             BytesPerBlock(PixelFormat::A8B8G8R8_UNORM);
-        } else if (astc) {
-            // BC1 uses 0.5 bytes per texel
-            // BC3 uses 1 byte per texel
-            const auto compress = recompression_setting == Settings::AstcRecompression::Bc1
-                                      ? Tegra::Texture::BCN::CompressBC1
-                                      : Tegra::Texture::BCN::CompressBC3;
-            const auto bpp_div = recompression_setting == Settings::AstcRecompression::Bc1 ? 2 : 1;
-
-            const u32 plane_dim = copy.image_extent.width * copy.image_extent.height;
-            const u32 level_size = plane_dim * copy.image_extent.depth *
-                                   copy.image_subresource.num_layers *
-                                   BytesPerBlock(PixelFormat::A8B8G8R8_UNORM);
-            decode_scratch.resize_destructive(level_size);
-
-            Tegra::Texture::ASTC::Decompress(
-                input_offset, copy.image_extent.width, copy.image_extent.height,
-                copy.image_subresource.num_layers * copy.image_extent.depth, tile_size.width,
-                tile_size.height, decode_scratch);
-
-            compress(decode_scratch, copy.image_extent.width, copy.image_extent.height,
-                     copy.image_subresource.num_layers * copy.image_extent.depth,
-                     output.subspan(output_offset));
-
-            const u32 aligned_plane_dim = Common::AlignUp(copy.image_extent.width, 4) *
-                                          Common::AlignUp(copy.image_extent.height, 4);
-
-            copy.buffer_size =
-                (aligned_plane_dim * copy.image_extent.depth * copy.image_subresource.num_layers) /
-                bpp_div;
-            output_offset += static_cast<u32>(copy.buffer_size);
-        } else {
-            DecompressBCn(input_offset, output.subspan(output_offset), copy, info.format);
-            output_offset += copy.image_extent.width * copy.image_extent.height *
-                             copy.image_subresource.num_layers *
-                             ConvertedBytesPerBlock(info.format);
-        }
-
+        ASSERT(!IsPixelFormatASTC(info.format) && "CPU ASTC decoder is phased out");
+        DecompressBCn(input_offset, output.subspan(output_offset), copy, info.format);
+        output_offset += copy.image_extent.width * copy.image_extent.height * copy.image_subresource.num_layers * ConvertedBytesPerBlock(info.format);
         copy.buffer_row_length = mip_size.width;
         copy.buffer_image_height = mip_size.height;
     }

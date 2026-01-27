@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
@@ -278,8 +278,6 @@ add_library(video_core STATIC
     texture_cache/types.h
     texture_cache/util.cpp
     texture_cache/util.h
-    textures/astc.h
-    textures/astc.cpp
     textures/bcn.cpp
     textures/bcn.h
     textures/decoders.cpp

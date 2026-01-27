@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -25,14 +28,11 @@
 #include "video_core/texture_cache/accelerated_swizzle.h"
 #include "video_core/texture_cache/types.h"
 #include "video_core/texture_cache/util.h"
-#include "video_core/textures/astc.h"
 #include "video_core/textures/decoders.h"
 
 namespace OpenGL {
 
 using namespace HostShaders;
-using namespace Tegra::Texture::ASTC;
-
 using VideoCommon::Extent2D;
 using VideoCommon::Extent3D;
 using VideoCommon::ImageCopy;
@@ -141,10 +141,8 @@ void UtilShaders::BlockLinearUpload2D(Image& image, const StagingBufferMap& map,
         glUniform1ui(5, params.x_shift);
         glUniform1ui(6, params.block_height);
         glUniform1ui(7, params.block_height_mask);
-        glBindBufferRange(GL_SHADER_STORAGE_BUFFER, BINDING_INPUT_BUFFER, map.buffer, input_offset,
-                          image.guest_size_bytes - swizzle.buffer_offset);
-        glBindImageTexture(BINDING_OUTPUT_IMAGE, image.StorageHandle(), swizzle.level, GL_TRUE, 0,
-                           GL_WRITE_ONLY, store_format);
+        glBindBufferRange(GL_SHADER_STORAGE_BUFFER, BINDING_INPUT_BUFFER, map.buffer, input_offset, image.guest_size_bytes - swizzle.buffer_offset);
+        glBindImageTexture(BINDING_OUTPUT_IMAGE, image.StorageHandle(), swizzle.level, GL_TRUE, 0, GL_WRITE_ONLY, store_format);
         glDispatchCompute(num_dispatches_x, num_dispatches_y, image.info.resources.layers);
     }
     program_manager.RestoreGuestCompute();
