@@ -200,7 +200,7 @@ RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra
 
     // Log multi-draw support
     if (device.IsExtMultiDrawSupported()) {
-        LOG_INFO(Render_Vulkan, "VK_EXT_multi_draw is enabled for optimized draw calls");
+        LOG_INFO(Render_Vulkan, "VK_EXT_multi_draw is enabled for draw calls");
     }
 }
 
@@ -222,10 +222,11 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
     // update engine as channel may be different.
     pipeline->SetEngine(maxwell3d, gpu_memory);
-    if (!pipeline->Configure(is_indexed))
-        return;
 
     UpdateDynamicStates();
+
+    if (!pipeline->Configure(is_indexed))
+        return;
 
     HandleTransformFeedback();
     query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
