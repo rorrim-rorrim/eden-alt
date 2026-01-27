@@ -100,6 +100,14 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer,
         slots[slot].needs_cleanup_on_release = false;
         slots[slot].buffer_state = BufferState::Acquired;
 
+        {
+            std::lock_guard lk(core->buffer_history_mutex);
+            auto it = core->buffer_history_map.find(core->frame_counter);
+            if (it != core->buffer_history_map.end()) {
+                it->second.state = BufferState::Acquired;
+            }
+        }
+
         // TODO: for now, avoid resetting the fence, so that when we next return this
         // slot to the producer, it will wait for the fence to pass. We should fix this
         // by properly waiting for the fence in the BufferItemConsumer.
