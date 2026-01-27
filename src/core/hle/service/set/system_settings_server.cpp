@@ -381,7 +381,7 @@ bool ISystemSettingsServer::LoadSettingsFile(std::filesystem::path& path, auto&&
     auto exists = std::filesystem::exists(settings_file);
     auto file_size_ok = exists && std::filesystem::file_size(settings_file) == sizeof(SettingsHeader) + sizeof(settings_type);
     auto ResetToDefault = [&]() {
-        auto default_settings;
+        settings_type default_settings;
         default_func(default_settings);
         SettingsHeader hdr{
             .magic = SETTINGS_MAGIC,
