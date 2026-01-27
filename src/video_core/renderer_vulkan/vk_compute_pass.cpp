@@ -538,16 +538,16 @@ ASTCDecoderPass::ASTCDecoderPass(const Device& device_, Scheduler& scheduler_,
                                  ComputePassDescriptorQueue& compute_pass_descriptor_queue_,
                                  MemoryAllocator& memory_allocator_)
     : ComputePass(device_, descriptor_pool_, ASTC_DESCRIPTOR_SET_BINDINGS,
-                  ASTC_PASS_DESCRIPTOR_UPDATE_TEMPLATE_ENTRY, ASTC_BANK_INFO,
-                  COMPUTE_PUSH_CONSTANT_RANGE<sizeof(AstcPushConstants)>, ASTC_DECODER_COMP_SPV),
-      scheduler{scheduler_}, staging_buffer_pool{staging_buffer_pool_},
-      compute_pass_descriptor_queue{compute_pass_descriptor_queue_}, memory_allocator{
-                                                                         memory_allocator_} {}
+        ASTC_PASS_DESCRIPTOR_UPDATE_TEMPLATE_ENTRY, ASTC_BANK_INFO,
+        COMPUTE_PUSH_CONSTANT_RANGE<sizeof(AstcPushConstants)>, ASTC_DECODER_COMP_SPV)
+    , scheduler{scheduler_}, staging_buffer_pool{staging_buffer_pool_}
+    , compute_pass_descriptor_queue{compute_pass_descriptor_queue_}, memory_allocator{memory_allocator_}
+{}
 
 ASTCDecoderPass::~ASTCDecoderPass() = default;
 
-void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
-                               std::span<const VideoCommon::SwizzleParameters> swizzles) {
+void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map, std::span<const VideoCommon::SwizzleParameters> swizzles) {
+    ASSERT(image.info.size.depth == 1);
     using namespace VideoCommon::Accelerated;
     const std::array<u32, 2> block_dims{
         VideoCore::Surface::DefaultBlockWidth(image.info.format),
