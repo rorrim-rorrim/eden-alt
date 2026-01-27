@@ -267,9 +267,8 @@ void InstallKeys()
                                               {},
                                               QtCommon::Frontend::Option::ReadOnly);
 
-    if (key_source_location.isEmpty()) {
+    if (key_source_location.isEmpty())
         return;
-    }
 
     FirmwareManager::KeyInstallResult result
         = FirmwareManager::InstallKeys(key_source_location.toStdString(), "keys");
