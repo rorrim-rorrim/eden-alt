@@ -6,6 +6,8 @@
 
 #include <fstream>
 
+#include <boost/type_traits.hpp>
+
 #include "common/assert.h"
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
@@ -369,7 +371,7 @@ ISystemSettingsServer::~ISystemSettingsServer() {
 }
 
 bool ISystemSettingsServer::LoadSettingsFile(std::filesystem::path& path, auto&& default_func) {
-    using settings_type = decltype(default_func());
+    using settings_type = boost::function_traits<decltype(default_func)>::arg1_type;
 
     if (!Common::FS::CreateDirs(path)) {
         return false;
