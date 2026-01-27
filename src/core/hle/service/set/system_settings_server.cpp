@@ -381,7 +381,7 @@ bool ISystemSettingsServer::LoadSettingsFile(std::filesystem::path& path, auto&&
     auto exists = std::filesystem::exists(settings_file);
     auto file_size_ok = exists && std::filesystem::file_size(settings_file) == sizeof(SettingsHeader) + sizeof(settings_type);
     auto ResetToDefault = [&]() {
-        settings_type default_settings;
+        settings_type default_settings = {};
         default_func(default_settings);
         SettingsHeader hdr{
             .magic = SETTINGS_MAGIC,
@@ -1369,8 +1369,6 @@ Result ISystemSettingsServer::GetHttpAuthConfigs(Out<s32> out_count, OutBuffer<B
 }
 
 static void DefaultSystemSettings(SystemSettings& settings) {
-    settings = {};
-
     settings.version = 0x140000;
     settings.flags = 7;
 
@@ -1429,15 +1427,12 @@ static void DefaultSystemSettings(SystemSettings& settings) {
 }
 
 static void DefaultPrivateSettings(PrivateSettings& settings) {
-    settings = {};
 }
 
 static void DefaultDeviceSettings(DeviceSettings& settings) {
-    settings = {};
 }
 
 static void DefaultApplnSettings(ApplnSettings& settings) {
-    settings = {};
     settings.mii_author_id = Common::UUID::MakeDefault();
 }
 
