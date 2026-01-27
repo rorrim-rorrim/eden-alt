@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
@@ -128,7 +128,7 @@ ENUM(TimeZone, Auto, Default, Cet, Cst6Cdt, Cuba, Eet, Egypt, Eire, Est, Est5Edt
     Roc, Rok, Singapore, Turkey, Uct, Universal, Utc, WSu, Wet, Zulu);
 ENUM(AnisotropyMode, Automatic, Default, X2, X4, X8, X16, X32, X64, None);
 ENUM(AstcDecodeMode, Cpu, Gpu, CpuAsynchronous);
-ENUM(AstcRecompression, Uncompressed, Bc1, Bc3);
+ENUM(AstcRecompression, Uncompressed, Bc1, Bc3, Bc7, Etc2);
 ENUM(VSyncMode, Immediate, Mailbox, Fifo, FifoRelaxed);
 ENUM(VramUsageMode, Conservative, Aggressive);
 ENUM(RendererBackend, OpenGL_GLSL, Vulkan, Null, OpenGL_GLASM, OpenGL_SPIRV);

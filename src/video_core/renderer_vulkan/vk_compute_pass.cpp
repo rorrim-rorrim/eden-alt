@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -558,13 +558,11 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
     const VkImageAspectFlags aspect_mask = image.AspectMask();
     const VkImage vk_image = image.Handle();
     const bool is_initialized = image.ExchangeInitialization();
-    scheduler.Record([vk_pipeline, vk_image, aspect_mask,
-                      is_initialized](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([vk_pipeline, vk_image, aspect_mask, is_initialized](vk::CommandBuffer cmdbuf) {
         const VkImageMemoryBarrier image_barrier{
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
-            .srcAccessMask = static_cast<VkAccessFlags>(is_initialized ? VK_ACCESS_SHADER_WRITE_BIT
-                                                                       : VK_ACCESS_NONE),
+            .srcAccessMask = VkAccessFlags(is_initialized ? VK_ACCESS_SHADER_WRITE_BIT : VK_ACCESS_NONE),
             .dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
             .oldLayout = is_initialized ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_UNDEFINED,
             .newLayout = VK_IMAGE_LAYOUT_GENERAL,
@@ -579,9 +577,7 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
                 .layerCount = VK_REMAINING_ARRAY_LAYERS,
             },
         };
-        cmdbuf.PipelineBarrier(is_initialized ? VK_PIPELINE_STAGE_ALL_COMMANDS_BIT
-                                              : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                               VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, image_barrier);
+        cmdbuf.PipelineBarrier(is_initialized ? VK_PIPELINE_STAGE_ALL_COMMANDS_BIT : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, image_barrier);
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, vk_pipeline);
     });
     for (const VideoCommon::SwizzleParameters& swizzle : swizzles) {
@@ -591,8 +587,7 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
         const u32 num_dispatches_z = image.info.resources.layers;
 
         compute_pass_descriptor_queue.Acquire();
-        compute_pass_descriptor_queue.AddBuffer(map.buffer, input_offset,
-                                                image.guest_size_bytes - swizzle.buffer_offset);
+        compute_pass_descriptor_queue.AddBuffer(map.buffer, input_offset, image.guest_size_bytes - swizzle.buffer_offset);
         compute_pass_descriptor_queue.AddImage(image.StorageImageView(swizzle.level));
         const void* const descriptor_data{compute_pass_descriptor_queue.UpdateData()};
 
@@ -601,8 +596,7 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
         ASSERT(params.origin == (std::array<u32, 3>{0, 0, 0}));
         ASSERT(params.destination == (std::array<s32, 3>{0, 0, 0}));
         ASSERT(params.bytes_per_block_log2 == 4);
-        scheduler.Record([this, num_dispatches_x, num_dispatches_y, num_dispatches_z, block_dims,
-                          params, descriptor_data](vk::CommandBuffer cmdbuf) {
+        scheduler.Record([this, num_dispatches_x, num_dispatches_y, num_dispatches_z, block_dims, params, descriptor_data](vk::CommandBuffer cmdbuf) {
             const AstcPushConstants uniforms{
                 .blocks_dims = block_dims,
                 .layer_stride = params.layer_stride,
@@ -637,8 +631,7 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
                 .layerCount = VK_REMAINING_ARRAY_LAYERS,
             },
         };
-        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                               VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, image_barrier);
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, image_barrier);
     });
 }
 

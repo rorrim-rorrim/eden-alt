@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -235,9 +235,7 @@ void ApplySwizzle(GLuint handle, PixelFormat format, std::array<SwizzleSource, 4
 [[nodiscard]] bool CanBeAccelerated(const TextureCacheRuntime& runtime,
                                     const VideoCommon::ImageInfo& info) {
     if (IsPixelFormatASTC(info.format) && info.size.depth == 1 && !runtime.HasNativeASTC()) {
-        return Settings::values.accelerate_astc.GetValue() == Settings::AstcDecodeMode::Gpu &&
-               Settings::values.astc_recompression.GetValue() ==
-                   Settings::AstcRecompression::Uncompressed;
+        return true;
     }
     // Disable other accelerated uploads for now as they don't implement swizzled uploads
     return false;
@@ -264,15 +262,6 @@ void ApplySwizzle(GLuint handle, PixelFormat format, std::array<SwizzleSource, 4
     const GLenum store_format = StoreFormat(BytesPerBlock(info.format));
     const GLenum store_class = runtime.FormatInfo(info.type, store_format).compatibility_class;
     return format_info.compatibility_class == store_class;
-}
-
-[[nodiscard]] bool CanBeDecodedAsync(const TextureCacheRuntime& runtime,
-                                     const VideoCommon::ImageInfo& info) {
-    if (IsPixelFormatASTC(info.format) && !runtime.HasNativeASTC()) {
-        return Settings::values.accelerate_astc.GetValue() ==
-               Settings::AstcDecodeMode::CpuAsynchronous;
-    }
-    return false;
 }
 
 [[nodiscard]] CopyOrigin MakeCopyOrigin(VideoCommon::Offset3D offset,
@@ -443,18 +432,15 @@ OGLTexture MakeImage(const VideoCommon::ImageInfo& info, GLenum gl_internal_form
 }
 
 [[nodiscard]] bool IsAstcRecompressionEnabled() {
-    return Settings::values.astc_recompression.GetValue() !=
-           Settings::AstcRecompression::Uncompressed;
+    return Settings::values.astc_recompression.GetValue() != Settings::AstcRecompression::Uncompressed;
 }
 
 [[nodiscard]] GLenum SelectAstcFormat(PixelFormat format, bool is_srgb) {
     switch (Settings::values.astc_recompression.GetValue()) {
     case Settings::AstcRecompression::Bc1:
         return is_srgb ? GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT : GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-        break;
     case Settings::AstcRecompression::Bc3:
         return is_srgb ? GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT : GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-        break;
     default:
         return is_srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
     }
@@ -693,12 +679,9 @@ bool TextureCacheRuntime::HasNativeASTC() const noexcept {
     return device.HasASTC();
 }
 
-Image::Image(TextureCacheRuntime& runtime_, const VideoCommon::ImageInfo& info_, GPUVAddr gpu_addr_,
-             VAddr cpu_addr_)
+Image::Image(TextureCacheRuntime& runtime_, const VideoCommon::ImageInfo& info_, GPUVAddr gpu_addr_, VAddr cpu_addr_)
     : VideoCommon::ImageBase(info_, gpu_addr_, cpu_addr_), runtime{&runtime_} {
-    if (CanBeDecodedAsync(*runtime, info)) {
-        flags |= ImageFlagBits::AsynchronousDecode;
-    } else if (CanBeAccelerated(*runtime, info)) {
+    if (CanBeAccelerated(*runtime, info)) {
         flags |= ImageFlagBits::AcceleratedUpload;
     }
     if (IsConverted(runtime->device, info.format, info.type)) {

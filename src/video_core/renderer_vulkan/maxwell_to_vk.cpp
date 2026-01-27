@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -250,6 +250,12 @@ FormatInfo SurfaceFormat(const Device& device, FormatType format_type, bool with
             break;
         case Settings::AstcRecompression::Bc3:
             tuple.format = is_srgb ? VK_FORMAT_BC3_SRGB_BLOCK : VK_FORMAT_BC3_UNORM_BLOCK;
+            break;
+        case Settings::AstcRecompression::Bc7:
+            tuple.format = is_srgb ? VK_FORMAT_BC7_SRGB_BLOCK : VK_FORMAT_BC7_UNORM_BLOCK;
+            break;
+        case Settings::AstcRecompression::Etc2:
+            tuple.format = is_srgb ? VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK : VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK;
             break;
         }
     }
