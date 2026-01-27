@@ -437,8 +437,7 @@ void DecodeIntegerSequence(uint max_range, uint num_values) {
     EncodingData val = EncodingData(encoding_values[max_range]);
     const uint encoding = Encoding(val);
     const uint num_bits = NumBits(val);
-    uint vals_decoded = 0;
-    while (vals_decoded < num_values && !result_limit_reached) {
+    for (uint vals_decoded = 0; vals_decoded < num_values && !result_limit_reached; ) {
         switch (encoding) {
         case QUINT:
             DecodeQuintBlock(num_bits);
@@ -571,10 +570,8 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits, o
 
 ivec2 BitTransferSigned(int a, int b) {
     ivec2 transferred;
-    transferred.y = b >> 1;
-    transferred.y |= a & 0x80;
-    transferred.x = a >> 1;
-    transferred.x &= 0x3F;
+    transferred.x = (a >> 1) & 0x3F;
+    transferred.y = (b >> 1) | (a & 0x80);
     if ((transferred.x & 0x20) > 0) {
         transferred.x -= 0x40;
     }
@@ -831,38 +828,6 @@ uvec4 GetUnquantizedWeightVector(uint t, uint s, uvec2 size, uint plane_index, b
     return weight_vec;
 }
 
-int FindLayout(uint mode) {
-    if ((mode & 3) != 0) {
-        if ((mode & 8) != 0) {
-            if ((mode & 4) != 0) {
-                if ((mode & 0x100) != 0) {
-                    return 4;
-                }
-                return 3;
-            }
-            return 2;
-        }
-        if ((mode & 4) != 0) {
-            return 1;
-        }
-        return 0;
-    }
-    if ((mode & 0x100) != 0) {
-        if ((mode & 0x80) != 0) {
-            if ((mode & 0x20) != 0) {
-                return 8;
-            }
-            return 7;
-        }
-        return 9;
-    }
-    if ((mode & 0x80) != 0) {
-        return 6;
-    }
-    return 5;
-}
-
-
 void FillError(ivec3 coord) {
     for (uint j = 0; j < block_dims.y; j++) {
         for (uint i = 0; i < block_dims.x; i++) {
@@ -908,9 +873,40 @@ bool IsError(uint mode) {
     return false;
 }
 
-uvec2 DecodeBlockSize(uint mode) {
+int FindLayout(uint mode) {
+    if ((mode & 3) != 0) {
+        if ((mode & 8) != 0) {
+            if ((mode & 4) != 0) {
+                if ((mode & 0x100) != 0) {
+                    return 4;
+                }
+                return 3;
+            }
+            return 2;
+        }
+        if ((mode & 4) != 0) {
+            return 1;
+        }
+        return 0;
+    }
+    if ((mode & 0x100) != 0) {
+        if ((mode & 0x80) != 0) {
+            if ((mode & 0x20) != 0) {
+                return 8;
+            }
+            return 7;
+        }
+        return 9;
+    }
+    if ((mode & 0x80) != 0) {
+        return 6;
+    }
+    return 5;
+}
+
+uvec2 DecodeBlockSize(uint layout, uint mode) {
     uint A, B;
-    switch (FindLayout(mode)) {
+    switch (layout) {
     case 0:
         A = (mode >> 5) & 0x3;
         B = (mode >> 7) & 0x3;
@@ -967,6 +963,11 @@ uint DecodeMaxWeight(uint mode) {
 
 void DecompressBlock(ivec3 coord) {
     uint mode = StreamBits(11);
+    const uint num_partitions = StreamBits(2) + 1;
+    const uint mode_layout = FindLayout(mode);
+    const bool dual_plane = (mode_layout != 9) && ((mode & 0x400) != 0);
+    const uvec2 size_params = DecodeBlockSize(mode_layout, mode);
+
     if (IsError(mode)) {
         FillError(coord);
         return;
@@ -976,15 +977,8 @@ void DecompressBlock(ivec3 coord) {
         FillVoidExtentLDR(coord);
         return;
     }
-    const uvec2 size_params = DecodeBlockSize(mode);
-    if ((size_params.x > block_dims.x) || (size_params.y > block_dims.y)) {
-        FillError(coord);
-        return;
-    }
-    const uint num_partitions = StreamBits(2) + 1;
-    const uint mode_layout = FindLayout(mode);
-    const bool dual_plane = (mode_layout != 9) && ((mode & 0x400) != 0);
-    if (num_partitions > 4 || (num_partitions == 4 && dual_plane)) {
+    if (((size_params.x > block_dims.x) || (size_params.y > block_dims.y))
+    || (num_partitions > 4 || (num_partitions == 4 && dual_plane))) {
         FillError(coord);
         return;
     }
@@ -1002,25 +996,10 @@ void DecompressBlock(ivec3 coord) {
     const uint base_mode = base_cem & 3;
     const uint max_weight = DecodeMaxWeight(mode);
     const uint weight_bits = GetPackedBitSize(size_params, dual_plane, max_weight);
-    uint remaining_bits = 128 - weight_bits - total_bitsread;
-    uint extra_cem_bits = 0;
-    if (base_mode > 0) {
-        switch (num_partitions) {
-        case 2:
-            extra_cem_bits += 2;
-            break;
-        case 3:
-            extra_cem_bits += 5;
-            break;
-        case 4:
-            extra_cem_bits += 8;
-            break;
-        default:
-            return;
-        }
-    }
-    remaining_bits -= extra_cem_bits;
+    const uint extra_cem_bits = base_mode > 0 ? ((0x85200 >> (num_partitions * 4)) & 0x0f) : 0;
     const uint plane_selector_bits = dual_plane ? 2 : 0;
+    const uint remaining_bits = 128 - weight_bits - total_bitsread;
+    remaining_bits -= extra_cem_bits;
     remaining_bits -= plane_selector_bits;
     if (remaining_bits > 128) {
         // Bad data, more remaining bits than 4 bytes

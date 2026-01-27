@@ -2437,16 +2437,13 @@ void TextureCacheRuntime::AccelerateImageUpload(
     if (IsPixelFormatASTC(image.info.format)) {
         return astc_decoder_pass->Assemble(image, map, swizzles);
     }
-
     if (bl3d_unswizzle_pass &&
         IsPixelFormatBCn(image.info.format) &&
         image.info.type == ImageType::e3D &&
         image.info.resources.levels == 1 &&
         image.info.resources.layers == 1) {
-
         return bl3d_unswizzle_pass->Unswizzle(image, map, swizzles, z_start, z_count);
     }
-
     ASSERT(false);
 }
 
