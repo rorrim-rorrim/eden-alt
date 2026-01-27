@@ -515,6 +515,8 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         slots[slot].buffer_state = BufferState::Queued;
         ++core->frame_counter;
         slots[slot].frame_number = core->frame_counter;
+        slots[slot].queue_time = timestamp;
+        slots[slot].presentation_time = 0;
 
         item.acquire_called = slots[slot].acquire_called;
         item.graphic_buffer = slots[slot].graphic_buffer;
@@ -534,24 +536,23 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         sticky_transform = sticky_transform_;
 
         if (core->queue.empty()) {
-            // When the queue is empty, we can simply queue this buffer
             core->queue.push_back(item);
             frame_available_listener = core->consumer_listener;
         } else {
-            // When the queue is not empty, we need to look at the front buffer
-            // state to see if we need to replace it
             auto front(core->queue.begin());
 
             if (front->is_droppable) {
-                // If the front queued buffer is still being tracked, we first
-                // mark it as freed
                 if (core->StillTracking(*front)) {
                     slots[front->slot].buffer_state = BufferState::Free;
-                    // Reset the frame number of the freed buffer so that it is the first in line to
-                    // be dequeued again
+                    {
+                        std::lock_guard history_lock(core->buffer_history_mutex);
+                        auto it = core->buffer_history_map.find(front->frame_number);
+                        if (it != core->buffer_history_map.end()) {
+                            it->second.state = BufferState::Free;
+                        }
+                    }
                     slots[front->slot].frame_number = 0;
                 }
-                // Overwrite the droppable buffer with the incoming one
                 *front = item;
                 frame_replaced_listener = core->consumer_listener;
             } else {
@@ -560,12 +561,12 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
             }
         }
 
+        core->PushHistory(core->frame_counter, slots[slot].queue_time, slots[slot].presentation_time, BufferState::Queued);
         core->buffer_has_been_queued = true;
         core->SignalDequeueCondition();
         output->Inflate(core->default_width, core->default_height, core->transform_hint,
                         static_cast<u32>(core->queue.size()));
 
-        // Take a ticket for the callback functions
         callback_ticket = next_callback_ticket++;
     }
 
@@ -810,6 +811,10 @@ Status BufferQueueProducer::SetPreallocatedBuffer(s32 slot,
     return Status::NoError;
 }
 
+Kernel::KReadableEvent* BufferQueueProducer::GetNativeHandle(u32 type_id) {
+    return &buffer_wait_event->GetReadableEvent();
+}
+
 void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
                                    std::span<u8> parcel_reply, u32 flags) {
     // Values used by BnGraphicBufferProducer onTransact
@@ -891,6 +896,8 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
 
         status = QueueBuffer(slot, input, &output);
 
+        core->PushHistory(core->frame_counter, slots[slot].queue_time, slots[slot].presentation_time, slots[slot].buffer_state);
+
         parcel_out.Write(output);
         break;
     }
@@ -929,9 +936,37 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         status = SetBufferCount(buffer_count);
         break;
     }
-    case TransactionId::GetBufferHistory:
-        LOG_DEBUG(Service_Nvnflinger, "(STUBBED) called, transaction=GetBufferHistory");
+    case TransactionId::GetBufferHistory: {
+        LOG_DEBUG(Service_Nvnflinger, "called, transaction=GetBufferHistory");
+
+        const s32 request = parcel_in.Read<s32>();
+        if (request <= 0) {
+            parcel_out.Write(Status::BadValue);
+            parcel_out.Write<s32>(0);
+            break;
+        }
+
+        std::vector<BufferHistoryInfo> snapshot;
+
+        {
+            std::scoped_lock lk(core->buffer_history_mutex);
+            for (auto& [frame, info] : core->buffer_history_map) {
+                snapshot.push_back(info);
+            }
+        }
+
+        std::sort(snapshot.begin(), snapshot.end(), [](auto& a, auto& b){
+            return a.frame_number > b.frame_number;
+        });
+
+        const s32 limit = std::min(request, (s32)snapshot.size());
+        parcel_out.Write(Status::NoError);
+        parcel_out.Write<s32>(limit);
+        for (s32 i = 0; i < limit; ++i) {
+            parcel_out.Write(snapshot[i]);
+        }
         break;
+    }
     default:
         ASSERT_MSG(false, "Unimplemented TransactionId {}", code);
         break;
@@ -942,10 +977,6 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
     const auto serialized = parcel_out.Serialize();
     std::memcpy(parcel_reply.data(), serialized.data(),
                 (std::min)(parcel_reply.size(), serialized.size()));
-}
-
-Kernel::KReadableEvent* BufferQueueProducer::GetNativeHandle(u32 type_id) {
-    return &buffer_wait_event->GetReadableEvent();
 }
 
 } // namespace Service::android
