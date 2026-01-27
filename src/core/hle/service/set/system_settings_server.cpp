@@ -371,7 +371,7 @@ ISystemSettingsServer::~ISystemSettingsServer() {
 }
 
 bool ISystemSettingsServer::LoadSettingsFile(std::filesystem::path& path, auto&& default_func) {
-    using settings_type = boost::function_traits<decltype(default_func)>::arg1_type;
+    using settings_type = std::decay_t<decltype(default_func())>;
 
     if (!Common::FS::CreateDirs(path)) {
         return false;
@@ -381,8 +381,7 @@ bool ISystemSettingsServer::LoadSettingsFile(std::filesystem::path& path, auto&&
     auto exists = std::filesystem::exists(settings_file);
     auto file_size_ok = exists && std::filesystem::file_size(settings_file) == sizeof(SettingsHeader) + sizeof(settings_type);
     auto ResetToDefault = [&]() {
-        settings_type default_settings = {};
-        default_func(default_settings);
+        auto default_settings = default_func();
         SettingsHeader hdr{
             .magic = SETTINGS_MAGIC,
             .version = SETTINGS_VERSION,
@@ -1368,7 +1367,8 @@ Result ISystemSettingsServer::GetHttpAuthConfigs(Out<s32> out_count, OutBuffer<B
     R_SUCCEED();
 }
 
-static void DefaultSystemSettings(SystemSettings& settings) {
+static SystemSettings DefaultSystemSettings() {
+    SystemSettings settings = {};
     settings.version = 0x140000;
     settings.flags = 7;
 
@@ -1424,16 +1424,21 @@ static void DefaultSystemSettings(SystemSettings& settings) {
     if (key_code != language_to_layout.end()) {
         settings.keyboard_layout = key_code->second;
     }
+    return settings;
 }
 
-static void DefaultPrivateSettings(PrivateSettings& settings) {
+static PrivateSettings DefaultPrivateSettings() {
+    return {};
 }
 
-static void DefaultDeviceSettings(DeviceSettings& settings) {
+static DeviceSettings DefaultDeviceSettings() {
+    return {};
 }
 
-static void DefaultApplnSettings(ApplnSettings& settings) {
+static ApplnSettings DefaultApplnSettings() {
+    ApplnSettings settings = {};
     settings.mii_author_id = Common::UUID::MakeDefault();
+    return settings;
 }
 
 // URVO fails on MSVC, causing stack __chkstk to fail due to the sheer bigness of SystemSettings :)
