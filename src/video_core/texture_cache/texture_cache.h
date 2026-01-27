@@ -2317,13 +2317,10 @@ ImageViewId TextureCache<P>::FindOrEmplaceImageView(ImageId image_id, const Imag
 template <class P>
 void TextureCache<P>::RegisterImage(ImageId image_id) {
     ImageBase& image = slot_images[image_id];
-    ASSERT_MSG(False(image.flags & ImageFlagBits::Registered),
-               "Trying to register an already registered image");
+    ASSERT(False(image.flags & ImageFlagBits::Registered) && "Trying to register an already registered image");
     image.flags |= ImageFlagBits::Registered;
     u64 tentative_size = (std::max)(image.guest_size_bytes, image.unswizzled_size_bytes);
-    if ((IsPixelFormatASTC(image.info.format) &&
-         True(image.flags & ImageFlagBits::AcceleratedUpload)) ||
-        True(image.flags & ImageFlagBits::Converted)) {
+    if ((IsPixelFormatASTC(image.info.format) && True(image.flags & ImageFlagBits::AcceleratedUpload)) || True(image.flags & ImageFlagBits::Converted)) {
         tentative_size = TranscodedAstcSize(tentative_size, image.info.format);
     }
     total_used_memory += Common::AlignUp(tentative_size, 1024);
@@ -2495,9 +2492,7 @@ void TextureCache<P>::DeleteImage(ImageId image_id, bool immediate_delete) {
         total_used_memory -= GetScaledImageSizeBytes(image);
     }
     u64 tentative_size = (std::max)(image.guest_size_bytes, image.unswizzled_size_bytes);
-    if ((IsPixelFormatASTC(image.info.format) &&
-         True(image.flags & ImageFlagBits::AcceleratedUpload)) ||
-        True(image.flags & ImageFlagBits::Converted)) {
+    if ((IsPixelFormatASTC(image.info.format) && True(image.flags & ImageFlagBits::AcceleratedUpload)) || True(image.flags & ImageFlagBits::Converted)) {
         tentative_size = TranscodedAstcSize(tentative_size, image.info.format);
     }
     total_used_memory -= Common::AlignUp(tentative_size, 1024);

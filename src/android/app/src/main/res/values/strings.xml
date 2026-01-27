@@ -1033,6 +1033,8 @@
     <string name="astc_recompression_uncompressed">Uncompressed</string>
     <string name="astc_recompression_bc1" translatable="false">BC1</string>
     <string name="astc_recompression_bc3" translatable="false">BC3</string>
+    <string name="astc_recompression_bc7" translatable="false">BC7</string>
+    <string name="astc_recompression_etc2" translatable="false">ETC2</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Conservative</string>

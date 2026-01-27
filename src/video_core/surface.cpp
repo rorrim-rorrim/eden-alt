@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
@@ -444,15 +444,17 @@ std::pair<u32, u32> GetASTCBlockSize(PixelFormat format) {
 
 u64 TranscodedAstcSize(u64 base_size, PixelFormat format) {
     constexpr u64 RGBA8_PIXEL_SIZE = 4;
-    const u64 base_block_size = static_cast<u64>(DefaultBlockWidth(format)) *
-                                static_cast<u64>(DefaultBlockHeight(format)) * RGBA8_PIXEL_SIZE;
+    const u64 base_block_size = u64(DefaultBlockWidth(format)) * u64(DefaultBlockHeight(format)) * RGBA8_PIXEL_SIZE;
     const u64 uncompressed_size = (base_size * base_block_size) / BytesPerBlock(format);
-
     switch (Settings::values.astc_recompression.GetValue()) {
     case Settings::AstcRecompression::Bc1:
         return uncompressed_size / 8;
     case Settings::AstcRecompression::Bc3:
         return uncompressed_size / 4;
+    case Settings::AstcRecompression::Bc7:
+        return uncompressed_size / 4;
+    case Settings::AstcRecompression::Etc2:
+        return uncompressed_size / 4; //6=RGB, 4=RGBA
     default:
         return uncompressed_size;
     }

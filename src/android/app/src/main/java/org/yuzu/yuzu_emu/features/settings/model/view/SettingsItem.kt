@@ -327,15 +327,6 @@ abstract class SettingsItem(
             )
             put(
                 SingleChoiceSetting(
-                    IntSetting.RENDERER_ASTC_DECODE_METHOD,
-                    titleId = R.string.accelerate_astc,
-                    descriptionId = R.string.accelerate_astc_description,
-                    choicesId = R.array.astcDecodingMethodNames,
-                    valuesId = R.array.astcDecodingMethodValues
-                )
-            )
-            put(
-                SingleChoiceSetting(
                     IntSetting.RENDERER_ASTC_RECOMPRESSION,
                     titleId = R.string.astc_recompression,
                     descriptionId = R.string.astc_recompression_description,

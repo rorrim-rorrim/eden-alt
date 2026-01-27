@@ -1075,16 +1075,14 @@ void DecompressBlock(ivec3 coord) {
         uint colvals_index = 0;
         DecodeColorValues(color_endpoint_mode, num_partitions, color_data_bits, color_values);
         for (uint i = 0; i < num_partitions; i++) {
-            ComputeEndpoints(endpoints0[i], endpoints1[i], color_endpoint_mode[i], color_values,
-                             colvals_index);
+            ComputeEndpoints(endpoints0[i], endpoints1[i], color_endpoint_mode[i], color_values, colvals_index);
         }
     }
     color_endpoint_data = local_buff;
     color_endpoint_data = bitfieldReverse(color_endpoint_data).wzyx;
     const uint clear_byte_start = (weight_bits >> 3) + 1;
 
-    const uint byte_insert = ExtractBits(color_endpoint_data, int(clear_byte_start - 1) * 8, 8) &
-                             uint(((1 << (weight_bits % 8)) - 1));
+    const uint byte_insert = ExtractBits(color_endpoint_data, int(clear_byte_start - 1) * 8, 8) & uint(((1 << (weight_bits % 8)) - 1));
     const uint vec_index = (clear_byte_start - 1) >> 2;
     color_endpoint_data[vec_index] = bitfieldInsert(color_endpoint_data[vec_index], byte_insert,
                                                     int((clear_byte_start - 1) % 4) * 8, 8);
@@ -1115,8 +1113,7 @@ void DecompressBlock(ivec3 coord) {
             const uvec4 C0 = ReplicateByteTo16(endpoints0[local_partition]);
             const uvec4 C1 = ReplicateByteTo16(endpoints1[local_partition]);
             const uvec4 weight_vec = GetUnquantizedWeightVector(j, i, size_params, plane_index, dual_plane);
-            const vec4 Cf =
-                vec4((C0 * (uvec4(64) - weight_vec) + C1 * weight_vec + uvec4(32)) / 64);
+            const vec4 Cf = vec4((C0 * (uvec4(64) - weight_vec) + C1 * weight_vec + uvec4(32)) / 64);
             const vec4 p = (Cf / 65535.0f);
             imageStore(dest_image, coord + ivec3(i, j, 0), p.gbar);
         }
@@ -1124,11 +1121,11 @@ void DecompressBlock(ivec3 coord) {
 }
 
 uint SwizzleOffset(uvec2 pos) {
-    return ((pos.x & 32u) << 3u) |
-           ((pos.y & 6u)  << 5u) |
-           ((pos.x & 16u) << 1u) |
-           ((pos.y & 1u)  << 4u) |
-           (pos.x & 15u);
+    return ((pos.x & 32u) << 3u)
+        | ((pos.y & 6u)  << 5u)
+        | ((pos.x & 16u) << 1u)
+        | ((pos.y & 1u)  << 4u)
+        | (pos.x & 15u);
 }
 
 void main() {
