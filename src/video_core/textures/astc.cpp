@@ -99,11 +99,11 @@ private:
         const u32 mask = 1 << next_bit++;
 
         // clear the bit
-        *cur_byte &= static_cast<u8>(~mask);
+        *cur_byte &= u8(~mask);
 
         // Write the bit, if necessary
         if (b)
-            *cur_byte |= static_cast<u8>(mask);
+            *cur_byte |= u8(mask);
 
         // Next byte?
         if (next_bit >= 8) {
@@ -127,7 +127,7 @@ public:
     Bits& operator=(const Bits&) = delete;
 
     u8 operator[](u32 bitPos) const {
-        return static_cast<u8>((m_Bits >> bitPos) & 1);
+        return u8((m_Bits >> bitPos) & 1);
     }
 
     IntType operator()(u32 start, u32 end) const {
@@ -162,9 +162,9 @@ struct IntegerEncodedValue {
     // Returns the number of bits required to encode num_vals values.
     u32 GetBitLength(u32 num_vals) const {
         u32 total_bits = num_bits * num_vals;
-        if (encoding == IntegerEncoding::Trit) {
+        if (encoding == IntegerEncoding::Quint) {
             total_bits += (num_vals * 8 + 4) / 5;
-        } else if (encoding == IntegerEncoding::Quint) {
+        } else if (encoding == IntegerEncoding::Trit) {
             total_bits += (num_vals * 7 + 2) / 3;
         }
         return total_bits;
@@ -184,45 +184,31 @@ struct IntegerEncodedValue {
 static constexpr IntegerEncodedValue CreateEncoding(u32 mav_value) {
     while (mav_value > 0) {
         u32 check = mav_value + 1;
-
         // Is mav_value a power of two?
-        if (!(check & (check - 1))) {
+        if (!(check & (check - 1)))
             return IntegerEncodedValue(IntegerEncoding::JustBits, std::popcount(mav_value));
-        }
-
         // Is mav_value of the type 3*2^n - 1?
-        if ((check % 3 == 0) && !((check / 3) & ((check / 3) - 1))) {
+        if ((check % 3 == 0) && !((check / 3) & ((check / 3) - 1)))
             return IntegerEncodedValue(IntegerEncoding::Trit, std::popcount(check / 3 - 1));
-        }
-
         // Is mav_value of the type 5*2^n - 1?
-        if ((check % 5 == 0) && !((check / 5) & ((check / 5) - 1))) {
+        if ((check % 5 == 0) && !((check / 5) & ((check / 5) - 1)))
             return IntegerEncodedValue(IntegerEncoding::Quint, std::popcount(check / 5 - 1));
-        }
-
         // Apparently it can't be represented with a bounded integer sequence...
         // just iterate.
         mav_value--;
     }
     return IntegerEncodedValue(IntegerEncoding::JustBits, 0);
 }
-
 static constexpr std::array<IntegerEncodedValue, 256> MakeEncodedValues() {
     std::array<IntegerEncodedValue, 256> encodings{};
-    for (std::size_t i = 0; i < encodings.size(); ++i) {
-        encodings[i] = CreateEncoding(static_cast<u32>(i));
-    }
+    for (std::size_t i = 0; i < encodings.size(); ++i)
+        encodings[i] = CreateEncoding(u32(i));
     return encodings;
 }
-
 static constexpr std::array<IntegerEncodedValue, 256> ASTC_ENCODINGS_VALUES = MakeEncodedValues();
 
 namespace Tegra::Texture::ASTC {
-using IntegerEncodedVector = boost::container::static_vector<
-    IntegerEncodedValue, 256,
-    boost::container::static_vector_options<
-        boost::container::inplace_alignment<alignof(IntegerEncodedValue)>,
-        boost::container::throw_on_overflow<false>>::type>;
+using IntegerEncodedVector = boost::container::static_vector<IntegerEncodedValue, 256>;
 
 static void DecodeTritBlock(InputBitStream& bits, IntegerEncodedVector& result, u32 nBitsPerValue) {
     // Implement the algorithm in section C.2.12
@@ -332,35 +318,30 @@ static void DecodeQuintBlock(InputBitStream& bits, IntegerEncodedVector& result,
 // Fills result with the values that are encoded in the given
 // bitstream. We must know beforehand what the maximum possible
 // value is, and how many values we're decoding.
-static void DecodeIntegerSequence(IntegerEncodedVector& result, InputBitStream& bits, u32 maxRange,
-                                  u32 nValues) {
+static void DecodeIntegerSequence(IntegerEncodedVector& result, InputBitStream& bits, u32 maxRange, u32 nValues) {
     // Determine encoding parameters
     IntegerEncodedValue val = ASTC_ENCODINGS_VALUES[maxRange];
-
     // Start decoding
-    u32 nValsDecoded = 0;
-    while (nValsDecoded < nValues) {
+    for (u32 i = 0; i < nValues; ) {
         switch (val.encoding) {
         case IntegerEncoding::Quint:
             DecodeQuintBlock(bits, result, val.num_bits);
-            nValsDecoded += 3;
+            i += 3;
             break;
-
         case IntegerEncoding::Trit:
             DecodeTritBlock(bits, result, val.num_bits);
-            nValsDecoded += 5;
+            i += 5;
             break;
-
         case IntegerEncoding::JustBits:
             val.bit_value = bits.ReadBits(val.num_bits);
             result.push_back(val);
-            nValsDecoded++;
+            i++;
             break;
         }
     }
 }
 
-struct TexelWeightParams {
+struct Texelw_params {
     u32 m_Width = 0;
     u32 m_Height = 0;
     bool m_bDualPlane = false;
@@ -369,30 +350,22 @@ struct TexelWeightParams {
     bool m_bVoidExtentLDR = false;
     bool m_bVoidExtentHDR = false;
 
-    u32 GetPackedBitSize() const {
+    constexpr u32 GetPackedBitSize() const noexcept {
         // How many indices do we have?
-        u32 nIdxs = m_Height * m_Width;
-        if (m_bDualPlane) {
-            nIdxs *= 2;
-        }
-
-        return ASTC_ENCODINGS_VALUES[m_MaxWeight].GetBitLength(nIdxs);
+        u32 indices = (m_Height * m_Width) * (m_bDualPlane ? 2 : 1);
+        return ASTC_ENCODINGS_VALUES[m_MaxWeight].GetBitLength(indices);
     }
 
-    u32 GetNumWeightValues() const {
-        u32 ret = m_Width * m_Height;
-        if (m_bDualPlane) {
-            ret *= 2;
-        }
-        return ret;
+    constexpr u32 GetNumWeightValues() const noexcept {
+        return (m_Height * m_Width) << (m_bDualPlane ? 2 : 0);
     }
 };
 
-static TexelWeightParams DecodeBlockInfo(InputBitStream& strm) {
-    TexelWeightParams params;
+static Texelw_params DecodeBlockInfo(InputBitStream& strm) {
+    Texelw_params params;
 
     // Read the entire block mode all at once
-    u16 modeBits = static_cast<u16>(strm.ReadBits<11>());
+    u16 modeBits = u16(strm.ReadBits<11>());
 
     // Does this match the void extent block mode?
     if ((modeBits & 0x01FF) == 0x1FC) {
@@ -591,7 +564,7 @@ static TexelWeightParams DecodeBlockInfo(InputBitStream& strm) {
 // is the same as [(num_bits - 1):0] and repeats all the way down.
 // to_bit range is expected from 0 to 8
 // num_bits range is from 0 to 7
-[[nodiscard]] constexpr u32 Replicate(u32 v, u32 num_bits, u32 to_bit) {
+[[nodiscard]] constexpr u32 Replicate32(u32 v, u32 num_bits, u32 to_bit) {
     auto val = v & ((1 << num_bits) - 1);
     val |= val << (num_bits << 0);
     val |= val << (num_bits << 1);
@@ -600,60 +573,19 @@ static TexelWeightParams DecodeBlockInfo(InputBitStream& strm) {
     return (v & ~val_mask) | (val & val_mask);
 }
 
-class Pixel {
-protected:
+struct Pixel {
     using ChannelType = s16;
-    u8 m_BitDepth[4] = {8, 8, 8, 8};
-    s16 color[4] = {};
+    ChannelType color[4] = {};
 
-public:
     Pixel() = default;
     Pixel(u32 a, u32 r, u32 g, u32 b, u32 bitDepth = 8)
-        : m_BitDepth{u8(bitDepth), u8(bitDepth), u8(bitDepth), u8(bitDepth)},
-          color{static_cast<ChannelType>(a), static_cast<ChannelType>(r),
-                static_cast<ChannelType>(g), static_cast<ChannelType>(b)} {}
+        : color{ChannelType(a), ChannelType(r), ChannelType(g), ChannelType(b)}
+    {}
 
-    // Changes the depth of each pixel. This scales the values to
-    // the appropriate bit depth by either truncating the least
-    // significant bits when going from larger to smaller bit depth
-    // or by repeating the most significant bits when going from
-    // smaller to larger bit depths.
-    void ChangeBitDepth() {
-        for (u32 i = 0; i < 4; i++) {
-            Component(i) = ChangeBitDepth(Component(i), m_BitDepth[i]);
-            m_BitDepth[i] = 8;
-        }
-    }
-
-    template <typename IntType>
-    static float ConvertChannelToFloat(IntType channel, u8 bitDepth) {
-        float denominator = static_cast<float>((1 << bitDepth) - 1);
-        return static_cast<float>(channel) / denominator;
-    }
-
-    // Changes the bit depth of a single component. See the comment
-    // above for how we do this.
-    static ChannelType ChangeBitDepth(Pixel::ChannelType val, u8 oldDepth) {
-        assert(oldDepth <= 8);
-
-        if (oldDepth == 8) {
-            // Do nothing
-            return val;
-        } else if (oldDepth == 0) {
-            return ChannelType((1 << 8) - 1);
-        } else if (8 > oldDepth) {
-            return ChannelType(Replicate(u32(val), oldDepth, 8));
-        } else {
-            // oldDepth > newDepth
-            const u8 bitsWasted = static_cast<u8>(oldDepth - 8);
-            u16 v = static_cast<u16>(val);
-            v = static_cast<u16>((v + (1 << (bitsWasted - 1))) >> bitsWasted);
-            v = ::std::min<u16>(::std::max<u16>(0, v), static_cast<u16>((1 << 8) - 1));
-            return static_cast<u8>(v);
-        }
-
-        assert(false && "We shouldn't get here.");
-        return 0;
+    template <typename T>
+    static float ConvertChannelToFloat(T channel, u8 bit_depth) {
+        auto const denominator = f32((1 << bit_depth) - 1);
+        return f32(channel) / denominator;
     }
 
     const ChannelType& A() const {
@@ -687,48 +619,28 @@ public:
         return color[idx];
     }
 
-    void GetBitDepth(u8 (&outDepth)[4]) const {
-        for (s32 i = 0; i < 4; i++) {
-            outDepth[i] = m_BitDepth[i];
-        }
-    }
-
     // Take all of the components, transform them to their 8-bit variants,
     // and then pack each channel into an R8G8B8A8 32-bit integer. We assume
     // that the architecture is little-endian, so the alpha channel will end
     // up in the most-significant byte.
-    u32 Pack() const {
-        Pixel eightBit(*this);
-        eightBit.ChangeBitDepth();
-
-        u32 r = 0;
-        r |= eightBit.A();
-        r <<= 8;
-        r |= eightBit.B();
-        r <<= 8;
-        r |= eightBit.G();
-        r <<= 8;
-        r |= eightBit.R();
-        return r;
+    [[nodiscard]] inline u32 Pack() const noexcept {
+        return (u32(color[0]) << 24)
+            | (u32(color[3]) << 16)
+            | (u32(color[2]) << 8)
+            | (u32(color[1]) << 0);
     }
 
     // Clamps the pixel to the range [0,255]
     void ClampByte() {
-        for (u32 i = 0; i < 4; i++) {
+        for (u32 i = 0; i < 4; i++)
             color[i] = (color[i] < 0) ? 0 : ((color[i] > 255) ? 255 : color[i]);
-        }
-    }
-
-    void MakeOpaque() {
-        A() = 255;
     }
 };
 
-static void DecodeColorValues(u32* out, std::span<u8> data, const u32* modes, const u32 nPartitions,
-                              const u32 nBitsForColorData) {
+static void DecodeColorValues(u32* out, std::span<u8> data, const u32* modes, const u32 n_partitions, const u32 nBitsForColorData) {
     // First figure out how many color values we have
     u32 nValues = 0;
-    for (u32 i = 0; i < nPartitions; i++) {
+    for (u32 i = 0; i < n_partitions; i++) {
         nValues += ((modes[i] >> 2) + 1) << 1;
     }
 
@@ -736,15 +648,13 @@ static void DecodeColorValues(u32* out, std::span<u8> data, const u32* modes, co
     // figure out the max value for each of them...
     u32 range = 256;
     while (--range > 0) {
-        IntegerEncodedValue val = ASTC_ENCODINGS_VALUES[range];
+        auto const val = ASTC_ENCODINGS_VALUES[range];
         u32 bitLength = val.GetBitLength(nValues);
         if (bitLength <= nBitsForColorData) {
             // Find the smallest possible range that matches the given encoding
             while (--range > 0) {
-                IntegerEncodedValue newval = ASTC_ENCODINGS_VALUES[range];
-                if (!newval.MatchesEncoding(val)) {
+                if (!ASTC_ENCODINGS_VALUES[range].MatchesEncoding(val))
                     break;
-                }
             }
 
             // Return to last matching range.
@@ -781,7 +691,7 @@ static void DecodeColorValues(u32* out, std::span<u8> data, const u32* modes, co
         switch (val.encoding) {
         // Replicate bits
         case IntegerEncoding::JustBits:
-            out[outIdx++] = Replicate(bitval, bitlen, 8);
+            out[outIdx++] = Replicate32(bitval, bitlen, 8);
             break;
 
         // Use algorithm in C.2.13
@@ -906,7 +816,7 @@ static u32 UnquantizeTexelWeight(const IntegerEncodedValue& val) {
     u32 result = 0;
     switch (val.encoding) {
     case IntegerEncoding::JustBits:
-        result = Replicate(bitval, bitlen, 6);
+        result = Replicate32(bitval, bitlen, 6);
         break;
 
     case IntegerEncoding::Trit: {
@@ -986,8 +896,8 @@ static u32 UnquantizeTexelWeight(const IntegerEncodedValue& val) {
 }
 
 static void UnquantizeTexelWeights(u32 out[2][144], const IntegerEncodedVector& weights,
-                                   const TexelWeightParams& params, const u32 blockWidth,
-                                   const u32 blockHeight) {
+                                   const Texelw_params& params, const u32 blk_width,
+                                   const u32 blk_height) {
     u32 weightIdx = 0;
     u32 unquantized[2][144];
 
@@ -1007,13 +917,13 @@ static void UnquantizeTexelWeights(u32 out[2][144], const IntegerEncodedVector& 
     }
 
     // Do infill if necessary (Section C.2.18) ...
-    u32 Ds = (1024 + (blockWidth / 2)) / (blockWidth - 1);
-    u32 Dt = (1024 + (blockHeight / 2)) / (blockHeight - 1);
+    u32 Ds = (1024 + (blk_width / 2)) / (blk_width - 1);
+    u32 Dt = (1024 + (blk_height / 2)) / (blk_height - 1);
 
     const u32 kPlaneScale = params.m_bDualPlane ? 2U : 1U;
     for (u32 plane = 0; plane < kPlaneScale; plane++)
-        for (u32 t = 0; t < blockHeight; t++)
-            for (u32 s = 0; s < blockWidth; s++) {
+        for (u32 t = 0; t < blk_height; t++)
+            for (u32 s = 0; s < blk_width; s++) {
                 u32 cs = Ds * s;
                 u32 ct = Dt * t;
 
@@ -1048,7 +958,7 @@ static void UnquantizeTexelWeights(u32 out[2][144], const IntegerEncodedVector& 
 
 #undef FIND_TEXEL
 
-                out[plane][t * blockWidth + s] =
+                out[plane][t * blk_width + s] =
                     (p00 * w00 + p01 * w01 + p10 * w10 + p11 * w11 + 8) >> 4;
             }
 }
@@ -1066,8 +976,7 @@ static inline void BitTransferSigned(int& a, int& b) {
 // Adds more precision to the blue channel as described
 // in C.2.14
 static inline Pixel BlueContract(s32 a, s32 r, s32 g, s32 b) {
-    return Pixel(static_cast<s16>(a), static_cast<s16>((r + b) >> 1),
-                 static_cast<s16>((g + b) >> 1), static_cast<s16>(b));
+    return Pixel(s16(a), s16((r + b) >> 1), s16((g + b) >> 1), s16(b), 8);
 }
 
 // Partition selection functions as specified in
@@ -1098,32 +1007,32 @@ static u32 SelectPartition(s32 seed, s32 x, s32 y, s32 z, s32 partitionCount, s3
 
     seed += (partitionCount - 1) * 1024;
 
-    u32 rnum = hash52(static_cast<u32>(seed));
-    u8 seed1 = static_cast<u8>(rnum & 0xF);
-    u8 seed2 = static_cast<u8>((rnum >> 4) & 0xF);
-    u8 seed3 = static_cast<u8>((rnum >> 8) & 0xF);
-    u8 seed4 = static_cast<u8>((rnum >> 12) & 0xF);
-    u8 seed5 = static_cast<u8>((rnum >> 16) & 0xF);
-    u8 seed6 = static_cast<u8>((rnum >> 20) & 0xF);
-    u8 seed7 = static_cast<u8>((rnum >> 24) & 0xF);
-    u8 seed8 = static_cast<u8>((rnum >> 28) & 0xF);
-    u8 seed9 = static_cast<u8>((rnum >> 18) & 0xF);
-    u8 seed10 = static_cast<u8>((rnum >> 22) & 0xF);
-    u8 seed11 = static_cast<u8>((rnum >> 26) & 0xF);
-    u8 seed12 = static_cast<u8>(((rnum >> 30) | (rnum << 2)) & 0xF);
+    u32 rnum = hash52(u32(seed));
+    u8 seed1 = u8(rnum & 0xF);
+    u8 seed2 = u8((rnum >> 4) & 0xF);
+    u8 seed3 = u8((rnum >> 8) & 0xF);
+    u8 seed4 = u8((rnum >> 12) & 0xF);
+    u8 seed5 = u8((rnum >> 16) & 0xF);
+    u8 seed6 = u8((rnum >> 20) & 0xF);
+    u8 seed7 = u8((rnum >> 24) & 0xF);
+    u8 seed8 = u8((rnum >> 28) & 0xF);
+    u8 seed9 = u8((rnum >> 18) & 0xF);
+    u8 seed10 = u8((rnum >> 22) & 0xF);
+    u8 seed11 = u8((rnum >> 26) & 0xF);
+    u8 seed12 = u8(((rnum >> 30) | (rnum << 2)) & 0xF);
 
-    seed1 = static_cast<u8>(seed1 * seed1);
-    seed2 = static_cast<u8>(seed2 * seed2);
-    seed3 = static_cast<u8>(seed3 * seed3);
-    seed4 = static_cast<u8>(seed4 * seed4);
-    seed5 = static_cast<u8>(seed5 * seed5);
-    seed6 = static_cast<u8>(seed6 * seed6);
-    seed7 = static_cast<u8>(seed7 * seed7);
-    seed8 = static_cast<u8>(seed8 * seed8);
-    seed9 = static_cast<u8>(seed9 * seed9);
-    seed10 = static_cast<u8>(seed10 * seed10);
-    seed11 = static_cast<u8>(seed11 * seed11);
-    seed12 = static_cast<u8>(seed12 * seed12);
+    seed1 = u8(seed1 * seed1);
+    seed2 = u8(seed2 * seed2);
+    seed3 = u8(seed3 * seed3);
+    seed4 = u8(seed4 * seed4);
+    seed5 = u8(seed5 * seed5);
+    seed6 = u8(seed6 * seed6);
+    seed7 = u8(seed7 * seed7);
+    seed8 = u8(seed8 * seed8);
+    seed9 = u8(seed9 * seed9);
+    seed10 = u8(seed10 * seed10);
+    seed11 = u8(seed11 * seed11);
+    seed12 = u8(seed12 * seed12);
 
     s32 sh1, sh2, sh3;
     if (seed & 1) {
@@ -1135,18 +1044,18 @@ static u32 SelectPartition(s32 seed, s32 x, s32 y, s32 z, s32 partitionCount, s3
     }
     sh3 = (seed & 0x10) ? sh1 : sh2;
 
-    seed1 = static_cast<u8>(seed1 >> sh1);
-    seed2 = static_cast<u8>(seed2 >> sh2);
-    seed3 = static_cast<u8>(seed3 >> sh1);
-    seed4 = static_cast<u8>(seed4 >> sh2);
-    seed5 = static_cast<u8>(seed5 >> sh1);
-    seed6 = static_cast<u8>(seed6 >> sh2);
-    seed7 = static_cast<u8>(seed7 >> sh1);
-    seed8 = static_cast<u8>(seed8 >> sh2);
-    seed9 = static_cast<u8>(seed9 >> sh3);
-    seed10 = static_cast<u8>(seed10 >> sh3);
-    seed11 = static_cast<u8>(seed11 >> sh3);
-    seed12 = static_cast<u8>(seed12 >> sh3);
+    seed1 = u8(seed1 >> sh1);
+    seed2 = u8(seed2 >> sh2);
+    seed3 = u8(seed3 >> sh1);
+    seed4 = u8(seed4 >> sh2);
+    seed5 = u8(seed5 >> sh1);
+    seed6 = u8(seed6 >> sh2);
+    seed7 = u8(seed7 >> sh1);
+    seed8 = u8(seed8 >> sh2);
+    seed9 = u8(seed9 >> sh3);
+    seed10 = u8(seed10 >> sh3);
+    seed11 = u8(seed11 >> sh3);
+    seed12 = u8(seed12 >> sh3);
 
     s32 a = seed1 * x + seed2 * y + seed11 * z + (rnum >> 14);
     s32 b = seed3 * x + seed4 * y + seed12 * z + (rnum >> 10);
@@ -1177,8 +1086,7 @@ static inline u32 Select2DPartition(s32 seed, s32 x, s32 y, s32 partitionCount, 
 }
 
 // Section C.2.14
-static void ComputeEndpoints(Pixel& ep1, Pixel& ep2, const u32*& colorValues,
-                             u32 colorEndpointMode) {
+static void ComputeEndpoints(Pixel& ep1, Pixel& ep2, const u32*& colorValues, u32 colorEndpointMode) {
 #define READ_UINT_VALUES(N)                                                                        \
     u32 v[N];                                                                                      \
     for (u32 i = 0; i < N; i++) {                                                                  \
@@ -1298,266 +1206,186 @@ static void ComputeEndpoints(Pixel& ep1, Pixel& ep2, const u32*& colorValues,
 #undef READ_INT_VALUES
 }
 
-static void FillVoidExtentLDR(InputBitStream& strm, std::span<u32> outBuf, u32 blockWidth,
-                              u32 blockHeight) {
-    // Don't actually care about the void extent, just read the bits...
-    for (s32 i = 0; i < 4; ++i) {
-        strm.ReadBits<13>();
-    }
-
-    // Decode the RGBA components and renormalize them to the range [0, 255]
-    u16 r = static_cast<u16>(strm.ReadBits<16>());
-    u16 g = static_cast<u16>(strm.ReadBits<16>());
-    u16 b = static_cast<u16>(strm.ReadBits<16>());
-    u16 a = static_cast<u16>(strm.ReadBits<16>());
-
-    u32 rgba = (r >> 8) | (g & 0xFF00) | (static_cast<u32>(b) & 0xFF00) << 8 |
-               (static_cast<u32>(a) & 0xFF00) << 16;
-
-    for (u32 j = 0; j < blockHeight; j++) {
-        for (u32 i = 0; i < blockWidth; i++) {
-            outBuf[j * blockWidth + i] = rgba;
-        }
-    }
-}
-
-static void FillError(std::span<u32> outBuf, u32 blockWidth, u32 blockHeight) {
-    for (u32 j = 0; j < blockHeight; j++) {
-        for (u32 i = 0; i < blockWidth; i++) {
-            outBuf[j * blockWidth + i] = 0x00000000;
-        }
-    }
-}
-
-static void DecompressBlock(std::span<const u8, 16> inBuf, const u32 blockWidth,
-                            const u32 blockHeight, std::span<u32, 12 * 12> outBuf) {
-    InputBitStream strm(inBuf);
-    TexelWeightParams weightParams = DecodeBlockInfo(strm);
-
-    // Was there an error?
-    if (weightParams.m_bError) {
-        assert(false && "Invalid block mode");
-        FillError(outBuf, blockWidth, blockHeight);
-        return;
-    }
-
-    if (weightParams.m_bVoidExtentLDR) {
-        FillVoidExtentLDR(strm, outBuf, blockWidth, blockHeight);
-        return;
-    }
-
-    if (weightParams.m_bVoidExtentHDR) {
-        assert(false && "HDR void extent blocks are unsupported!");
-        FillError(outBuf, blockWidth, blockHeight);
-        return;
-    }
-
-    if (weightParams.m_Width > blockWidth) {
-        assert(false && "Texel weight grid width should be smaller than block width");
-        FillError(outBuf, blockWidth, blockHeight);
-        return;
-    }
-
-    if (weightParams.m_Height > blockHeight) {
-        assert(false && "Texel weight grid height should be smaller than block height");
-        FillError(outBuf, blockWidth, blockHeight);
-        return;
-    }
+static void DecompressBlock(std::span<const u8, 16> in_buf, const u32 blk_width, const u32 blk_height, std::span<u32, 12 * 12> out_buf) {
+    InputBitStream strm(in_buf);
+    Texelw_params w_params = DecodeBlockInfo(strm);
 
     // Read num partitions
-    u32 nPartitions = strm.ReadBits<2>() + 1;
-    assert(nPartitions <= 4);
-
-    if (nPartitions == 4 && weightParams.m_bDualPlane) {
-        assert(false && "Dual plane mode is incompatible with four partition blocks");
-        FillError(outBuf, blockWidth, blockHeight);
-        return;
-    }
+    u32 n_partitions = strm.ReadBits<2>() + 1;
+    assert(n_partitions <= 4);
+    // Was there an error?
+    assert(!w_params.m_bError
+        && !w_params.m_bVoidExtentLDR
+        && !w_params.m_bVoidExtentHDR
+        && !(w_params.m_Width > blk_width)
+        && !(w_params.m_Height > blk_height)
+        && !(n_partitions == 4 && w_params.m_bDualPlane)
+    );
 
     // Based on the number of partitions, read the color endpoint mode for
     // each partition.
 
     // Determine partitions, partition index, and color endpoint modes
-    u32 planeIdx{UINT32_MAX};
-    u32 partitionIndex{};
+    u32 plane_index = UINT32_MAX;
+    u32 partition_index{};
     u32 colorEndpointMode[4] = {0, 0, 0, 0};
 
     // Define color data.
-    u8 colorEndpointData[16];
-    memset(colorEndpointData, 0, sizeof(colorEndpointData));
-    OutputBitStream colorEndpointStream(colorEndpointData, 16 * 8, 0);
+    u8 color_endpoint_data[16] = {};
+    OutputBitStream color_endpoint_stream(color_endpoint_data, 16 * 8, 0);
 
     // Read extra config data...
-    u32 baseCEM = 0;
-    if (nPartitions == 1) {
+    u32 base_cem = 0;
+    if (n_partitions == 1) {
         colorEndpointMode[0] = strm.ReadBits<4>();
-        partitionIndex = 0;
+        partition_index = 0;
     } else {
-        partitionIndex = strm.ReadBits<10>();
-        baseCEM = strm.ReadBits<6>();
+        partition_index = strm.ReadBits<10>();
+        base_cem = strm.ReadBits<6>();
     }
-    u32 baseMode = (baseCEM & 3);
+    u32 baseMode = (base_cem & 3);
 
     // Remaining bits are color endpoint data...
-    u32 nWeightBits = weightParams.GetPackedBitSize();
-    s32 remainingBits = 128 - nWeightBits - static_cast<int>(strm.GetBitsRead());
+    u32 nWeightBits = w_params.GetPackedBitSize();
+    s32 rem_bits = 128 - nWeightBits - s32(strm.GetBitsRead());
 
     // Consider extra bits prior to texel data...
-    u32 extraCEMbits = 0;
+    u32 extra_cem_bits = 0;
     if (baseMode) {
-        switch (nPartitions) {
-        case 2:
-            extraCEMbits += 2;
-            break;
-        case 3:
-            extraCEMbits += 5;
-            break;
-        case 4:
-            extraCEMbits += 8;
-            break;
-        default:
-            assert(false);
-            break;
-        }
+        assert(n_partitions == 2 || n_partitions == 3 || n_partitions == 4);
+        extra_cem_bits += (0x85200 >> (n_partitions * 4)) & 0x0f;
     }
-    remainingBits -= extraCEMbits;
+    rem_bits -= extra_cem_bits;
 
     // Do we have a dual plane situation?
     u32 planeSelectorBits = 0;
-    if (weightParams.m_bDualPlane) {
+    if (w_params.m_bDualPlane) {
         planeSelectorBits = 2;
     }
-    remainingBits -= planeSelectorBits;
+    rem_bits -= planeSelectorBits;
 
     // Read color data...
-    u32 colorDataBits = remainingBits;
-    while (remainingBits > 0) {
-        u32 nb = (std::min)(remainingBits, 8);
+    u32 colorDataBits = rem_bits;
+    while (rem_bits > 0) {
+        u32 nb = (std::min)(rem_bits, 8);
         u32 b = strm.ReadBits(nb);
-        colorEndpointStream.WriteBits(b, nb);
-        remainingBits -= 8;
+        color_endpoint_stream.WriteBits(b, nb);
+        rem_bits -= 8;
     }
 
     // Read the plane selection bits
-    planeIdx = strm.ReadBits(planeSelectorBits);
+    plane_index = strm.ReadBits(planeSelectorBits);
 
     // Read the rest of the CEM
     if (baseMode) {
-        u32 extraCEM = strm.ReadBits(extraCEMbits);
-        u32 CEM = (extraCEM << 6) | baseCEM;
+        u32 extraCEM = strm.ReadBits(extra_cem_bits);
+        u32 CEM = (extraCEM << 6) | base_cem;
         CEM >>= 2;
 
         bool C[4] = {0};
-        for (u32 i = 0; i < nPartitions; i++) {
+        for (u32 i = 0; i < n_partitions; i++) {
             C[i] = CEM & 1;
             CEM >>= 1;
         }
 
         u8 M[4] = {0};
-        for (u32 i = 0; i < nPartitions; i++) {
+        for (u32 i = 0; i < n_partitions; i++) {
             M[i] = CEM & 3;
             CEM >>= 2;
             assert(M[i] <= 3);
         }
 
-        for (u32 i = 0; i < nPartitions; i++) {
+        for (u32 i = 0; i < n_partitions; i++) {
             colorEndpointMode[i] = baseMode;
             if (!(C[i]))
                 colorEndpointMode[i] -= 1;
             colorEndpointMode[i] <<= 2;
             colorEndpointMode[i] |= M[i];
         }
-    } else if (nPartitions > 1) {
-        u32 CEM = baseCEM >> 2;
-        for (u32 i = 0; i < nPartitions; i++) {
+    } else if (n_partitions > 1) {
+        u32 CEM = base_cem >> 2;
+        for (u32 i = 0; i < n_partitions; i++) {
             colorEndpointMode[i] = CEM;
         }
     }
 
     // Make sure everything up till here is sane.
-    for (u32 i = 0; i < nPartitions; i++) {
+    for (u32 i = 0; i < n_partitions; i++) {
         assert(colorEndpointMode[i] < 16);
     }
-    assert(strm.GetBitsRead() + weightParams.GetPackedBitSize() == 128);
+    assert(strm.GetBitsRead() + w_params.GetPackedBitSize() == 128);
 
     // Decode both color data and texel weight data
     u32 colorValues[32]; // Four values, two endpoints, four maximum partitions
-    DecodeColorValues(colorValues, colorEndpointData, colorEndpointMode, nPartitions,
+    DecodeColorValues(colorValues, color_endpoint_data, colorEndpointMode, n_partitions,
                       colorDataBits);
 
     Pixel endpoints[4][2];
     const u32* colorValuesPtr = colorValues;
-    for (u32 i = 0; i < nPartitions; i++) {
+    for (u32 i = 0; i < n_partitions; i++) {
         ComputeEndpoints(endpoints[i][0], endpoints[i][1], colorValuesPtr, colorEndpointMode[i]);
     }
 
     // Read the texel weight data..
-    std::array<u8, 16> texelWeightData;
-    std::ranges::copy(inBuf, texelWeightData.begin());
+    std::array<u8, 16> texel_weights;
+    std::ranges::copy(in_buf, texel_weights.begin());
 
     // Reverse everything
     for (u32 i = 0; i < 8; i++) {
 // Taken from http://graphics.stanford.edu/~seander/bithacks.html#ReverseByteWith64Bits
 #define REVERSE_BYTE(b) (((b)*0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >> 32
-        u8 a = static_cast<u8>(REVERSE_BYTE(texelWeightData[i]));
-        u8 b = static_cast<u8>(REVERSE_BYTE(texelWeightData[15 - i]));
+        u8 a = u8(REVERSE_BYTE(texel_weights[i]));
+        u8 b = u8(REVERSE_BYTE(texel_weights[15 - i]));
 #undef REVERSE_BYTE
 
-        texelWeightData[i] = b;
-        texelWeightData[15 - i] = a;
+        texel_weights[i] = b;
+        texel_weights[15 - i] = a;
     }
 
     // Make sure that higher non-texel bits are set to zero
-    const u32 clearByteStart = (weightParams.GetPackedBitSize() >> 3) + 1;
-    if (clearByteStart > 0 && clearByteStart <= texelWeightData.size()) {
-        texelWeightData[clearByteStart - 1] &=
-            static_cast<u8>((1 << (weightParams.GetPackedBitSize() % 8)) - 1);
-        std::memset(texelWeightData.data() + clearByteStart, 0,
-                    (std::min)(16U - clearByteStart, 16U));
+    const u32 clearByteStart = (w_params.GetPackedBitSize() >> 3) + 1;
+    if (clearByteStart > 0 && clearByteStart <= texel_weights.size()) {
+        texel_weights[clearByteStart - 1] &= u8((1 << (w_params.GetPackedBitSize() % 8)) - 1);
+        std::memset(texel_weights.data() + clearByteStart, 0, (std::min)(16U - clearByteStart, 16U));
     }
 
     IntegerEncodedVector texelWeightValues;
 
-    InputBitStream weightStream(texelWeightData);
+    InputBitStream weightStream(texel_weights);
 
-    DecodeIntegerSequence(texelWeightValues, weightStream, weightParams.m_MaxWeight,
-                          weightParams.GetNumWeightValues());
+    DecodeIntegerSequence(texelWeightValues, weightStream, w_params.m_MaxWeight,
+                          w_params.GetNumWeightValues());
 
     // Blocks can be at most 12x12, so we can have as many as 144 weights
     u32 weights[2][144];
-    UnquantizeTexelWeights(weights, texelWeightValues, weightParams, blockWidth, blockHeight);
+    UnquantizeTexelWeights(weights, texelWeightValues, w_params, blk_width, blk_height);
 
     // Now that we have endpoints and weights, we can interpolate and generate
     // the proper decoding...
-    for (u32 j = 0; j < blockHeight; j++)
-        for (u32 i = 0; i < blockWidth; i++) {
-            u32 partition = Select2DPartition(partitionIndex, i, j, nPartitions,
-                                              (blockHeight * blockWidth) < 32);
-            assert(partition < nPartitions);
-
+    for (u32 j = 0; j < blk_height; j++)
+        for (u32 i = 0; i < blk_width; i++) {
+            u32 partition = Select2DPartition(partition_index, i, j, n_partitions, (blk_height * blk_width) < 32);
+            assert(partition < n_partitions);
             Pixel p;
             for (u32 c = 0; c < 4; c++) {
                 u32 C0 = endpoints[partition][0].Component(c);
                 u32 C1 = endpoints[partition][1].Component(c);
                 C0 = (C0 & 0xff) | ((C0 & 0xff) << 8);
                 C1 = (C1 & 0xff) | ((C0 & 0xff) << 8);
-
                 u32 plane = 0;
-                if (weightParams.m_bDualPlane && (((planeIdx + 1) & 3) == c)) {
+                if (w_params.m_bDualPlane && (((plane_index + 1) & 3) == c)) {
                     plane = 1;
                 }
-
-                u32 weight = weights[plane][j * blockWidth + i];
+                u32 weight = weights[plane][j * blk_width + i];
                 u32 C = (C0 * (64 - weight) + C1 * weight + 32) / 64;
                 if (C == 65535) {
                     p.Component(c) = 255;
                 } else {
-                    double Cf = static_cast<double>(C);
-                    p.Component(c) = static_cast<u16>(255.0 * (Cf / 65536.0) + 0.5);
+                    f64 Cf = f64(C);
+                    p.Component(c) = u16(255.0 * (Cf / 65536.0) + 0.5);
                 }
             }
-
-            outBuf[j * blockWidth + i] = p.Pack();
+            out_buf[j * blk_width + i] = p.Pack();
         }
 }
 
@@ -1566,8 +1394,7 @@ void Decompress(std::span<const uint8_t> data, uint32_t width, uint32_t height, 
     const u32 rows = Common::DivideUp(height, block_height);
     const u32 cols = Common::DivideUp(width, block_width);
 
-    Common::ThreadWorker& workers{GetThreadWorkers()};
-
+    Common::ThreadWorker& workers = GetThreadWorkers();
     for (u32 z = 0; z < depth; ++z) {
         const u32 depth_offset = z * height * width * 4;
         for (u32 y_index = 0; y_index < rows; ++y_index) {
@@ -1589,8 +1416,7 @@ void Decompress(std::span<const uint8_t> data, uint32_t width, uint32_t height, 
 
                     const std::span<u8> outRow = output.subspan(depth_offset + (y * width + x) * 4);
                     for (u32 h = 0; h < decompHeight; ++h) {
-                        std::memcpy(outRow.data() + h * width * 4,
-                                    uncompData.data() + h * block_width, decompWidth * 4);
+                        std::memcpy(outRow.data() + h * width * 4, uncompData.data() + h * block_width, decompWidth * 4);
                     }
                 }
             };
