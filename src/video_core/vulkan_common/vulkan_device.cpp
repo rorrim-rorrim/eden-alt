@@ -663,6 +663,11 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                         "allowing Eden to use {} (75%) to avoid heap exhaustion",
                         sampler_limit, reserved, sampler_heap_budget);
         }
+        // Qualcomm proprietary drivers have issues with MSAA->MSAA image blits.
+        LOG_WARNING(Render_Vulkan,
+                    "Qualcomm drivers do not support MSAA->MSAA image blits. "
+                    "MSAA scaling will use 3D helpers. MSAA resolves work normally.");
+        cant_blit_msaa = true;
     }
 
     if (extensions.sampler_filter_minmax && is_amd) {
