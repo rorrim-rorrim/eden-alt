@@ -462,26 +462,36 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         first_next = &diagnostics_nv;
     }
 
-    VkPhysicalDeviceDescriptorIndexingFeaturesEXT descriptor_indexing{
+    // Query descriptor indexing features from the physical device first so we only
+    // request sub-features that are actually supported by the driver.
+    VkPhysicalDeviceDescriptorIndexingFeaturesEXT descriptor_indexing_temp{};
+    descriptor_indexing_temp.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT;
+    descriptor_indexing_temp.pNext = nullptr;
+    VkPhysicalDeviceFeatures2 desc_idx_features2{};
+    desc_idx_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    desc_idx_features2.pNext = &descriptor_indexing_temp;
+    physical.GetFeatures2(desc_idx_features2);
+
+    VkPhysicalDeviceDescriptorIndexingFeaturesEXT descriptor_indexing_req{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT,
         .pNext = use_diagnostics_nv ? static_cast<void*>(&diagnostics_nv) : static_cast<void*>(&features2),
-        .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
-        .descriptorBindingPartiallyBound = VK_TRUE,
-        .descriptorBindingVariableDescriptorCount = VK_TRUE,
+        .shaderSampledImageArrayNonUniformIndexing = descriptor_indexing_temp.shaderSampledImageArrayNonUniformIndexing,
+        .descriptorBindingPartiallyBound = descriptor_indexing_temp.descriptorBindingPartiallyBound,
+        .descriptorBindingVariableDescriptorCount = descriptor_indexing_temp.descriptorBindingVariableDescriptorCount,
     };
 
     if (extensions.descriptor_indexing && Settings::values.descriptor_indexing.GetValue()) {
-        first_next = &descriptor_indexing;
+        first_next = &descriptor_indexing_req;
     }
 
     // VK_EXT_descriptor_buffer
     VkPhysicalDeviceDescriptorBufferFeaturesEXT descriptor_buffer_features{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT,
         .pNext = first_next,
-        .descriptorBuffer = VK_TRUE,
-        .descriptorBufferCaptureReplay = VK_TRUE,
-        .descriptorBufferImageLayoutIgnored = VK_TRUE,
-        .descriptorBufferPushDescriptors = VK_FALSE,
+        .descriptorBuffer = features.descriptor_buffer.descriptorBuffer ? VK_TRUE : VK_FALSE,
+        .descriptorBufferCaptureReplay = features.descriptor_buffer.descriptorBufferCaptureReplay ? VK_TRUE : VK_FALSE,
+        .descriptorBufferImageLayoutIgnored = features.descriptor_buffer.descriptorBufferImageLayoutIgnored ? VK_TRUE : VK_FALSE,
+        .descriptorBufferPushDescriptors = features.descriptor_buffer.descriptorBufferPushDescriptors ? VK_TRUE : VK_FALSE,
     };
 
     if (extensions.descriptor_buffer) {
@@ -492,10 +502,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     VkPhysicalDeviceInlineUniformBlockFeaturesEXT inline_uniform_block_features{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES_EXT,
         .pNext = first_next,
-        .inlineUniformBlock = VK_TRUE,
+        .inlineUniformBlock = features.inline_uniform_block.inlineUniformBlock ? VK_TRUE : VK_FALSE,
     };
 
-    if (extensions.inline_uniform_block) {
+    if (extensions.inline_uniform_block && features.inline_uniform_block.inlineUniformBlock) {
         first_next = &inline_uniform_block_features;
     }
 

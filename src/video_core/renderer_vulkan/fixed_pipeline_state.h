@@ -269,6 +269,9 @@ struct FixedPipelineState {
             // When transform feedback is enabled, use the whole struct
             return sizeof(*this);
         }
+        if (extended_dynamic_state_3_blend) {
+            return offsetof(FixedPipelineState, attachments);
+        }
         if (dynamic_vertex_input && extended_dynamic_state_3_blend) {
             // Exclude dynamic state and attributes
             return offsetof(FixedPipelineState, dynamic_state);
@@ -276,6 +279,9 @@ struct FixedPipelineState {
         if (dynamic_vertex_input) {
             // Exclude dynamic state
             return offsetof(FixedPipelineState, attributes);
+        }
+        if (extended_dynamic_state_3_enables) {
+            return offsetof(FixedPipelineState, dynamic_state);
         }
         if (extended_dynamic_state) {
             // Exclude dynamic state
