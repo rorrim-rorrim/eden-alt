@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -32,7 +35,5 @@ static_assert(offsetof(PrivateSettings, shutdown_rtc_value) == 0x60);
 static_assert(offsetof(PrivateSettings, external_steady_clock_internal_offset) == 0x68);
 static_assert(offsetof(PrivateSettings, platform_region) == 0xD0);
 static_assert(sizeof(PrivateSettings) == 0xD8, "PrivateSettings has the wrong size!");
-
-PrivateSettings DefaultPrivateSettings();
 
 } // namespace Service::Set

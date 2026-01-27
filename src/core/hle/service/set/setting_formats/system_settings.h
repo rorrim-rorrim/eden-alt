@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -388,7 +388,5 @@ static_assert(offsetof(SystemSettings, bluetooth_device_settings_last_14) == 0x2
 static_assert(offsetof(SystemSettings, nx_controller_settings_data_from_offset_30) == 0x2E6A0);
 
 static_assert(sizeof(SystemSettings) == 0x336A0, "SystemSettings has the wrong size!");
-
-SystemSettings DefaultSystemSettings();
 
 } // namespace Service::Set

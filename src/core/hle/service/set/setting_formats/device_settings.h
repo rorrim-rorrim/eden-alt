@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -48,7 +51,5 @@ static_assert(offsetof(DeviceSettings, analog_user_stick_calibration_l) == 0x90)
 static_assert(offsetof(DeviceSettings, console_six_axis_sensor_acceleration_bias) == 0xD0);
 static_assert(offsetof(DeviceSettings, console_six_axis_sensor_angular_acceleration) == 0x13C);
 static_assert(sizeof(DeviceSettings) == 0x160, "DeviceSettings has the wrong size!");
-
-DeviceSettings DefaultDeviceSettings();
 
 } // namespace Service::Set

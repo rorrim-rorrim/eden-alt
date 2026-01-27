@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -29,7 +32,5 @@ static_assert(offsetof(ApplnSettings, mii_author_id) == 0x10);
 static_assert(offsetof(ApplnSettings, service_discovery_control_settings) == 0x50);
 static_assert(offsetof(ApplnSettings, in_repair_process_enable_flag) == 0x74);
 static_assert(sizeof(ApplnSettings) == 0x78, "ApplnSettings has the wrong size!");
-
-ApplnSettings DefaultApplnSettings();
 
 } // namespace Service::Set

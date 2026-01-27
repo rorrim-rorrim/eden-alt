@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -377,22 +377,18 @@ bool ISystemSettingsServer::LoadSettingsFile(std::filesystem::path& path, auto&&
 
     auto settings_file = path / "settings.dat";
     auto exists = std::filesystem::exists(settings_file);
-    auto file_size_ok = exists && std::filesystem::file_size(settings_file) ==
-                                      sizeof(SettingsHeader) + sizeof(settings_type);
-
+    auto file_size_ok = exists && std::filesystem::file_size(settings_file) == sizeof(SettingsHeader) + sizeof(settings_type);
     auto ResetToDefault = [&]() {
-        auto default_settings{default_func()};
-
+        auto default_settings;
+        default_func(default_settings);
         SettingsHeader hdr{
             .magic = SETTINGS_MAGIC,
             .version = SETTINGS_VERSION,
             .reserved = 0u,
         };
-
         std::ofstream out_settings_file(settings_file, std::ios::out | std::ios::binary);
         out_settings_file.write(reinterpret_cast<const char*>(&hdr), sizeof(hdr));
-        out_settings_file.write(reinterpret_cast<const char*>(&default_settings),
-                                sizeof(settings_type));
+        out_settings_file.write(reinterpret_cast<const char*>(&default_settings), sizeof(settings_type));
         out_settings_file.flush();
         out_settings_file.close();
     };
@@ -432,7 +428,6 @@ bool ISystemSettingsServer::LoadSettingsFile(std::filesystem::path& path, auto&&
         UNREACHABLE();
     }
     file.close();
-
     return true;
 }
 
@@ -1371,24 +1366,98 @@ Result ISystemSettingsServer::GetHttpAuthConfigs(Out<s32> out_count, OutBuffer<B
     R_SUCCEED();
 }
 
+static void DefaultSystemSettings(SystemSettings& settings) {
+    settings = {};
+
+    settings.version = 0x140000;
+    settings.flags = 7;
+
+    settings.mii_author_id = Common::UUID::MakeDefault();
+
+    settings.color_set_id = ColorSet::BasicWhite;
+
+    settings.notification_settings = {
+        .flags{0x300},
+        .volume = NotificationVolume::High,
+        .start_time = {.hour = 9, .minute = 0},
+        .stop_time = {.hour = 21, .minute = 0},
+    };
+
+    settings.tv_settings = {
+        .flags = {0xC},
+        .tv_resolution = TvResolution::Auto,
+        .hdmi_content_type = HdmiContentType::Game,
+        .rgb_range = RgbRange::Auto,
+        .cmu_mode = CmuMode::None,
+        .tv_underscan = {},
+        .tv_gama = 1.0f,
+        .contrast_ratio = 0.5f,
+    };
+
+    settings.initial_launch_settings_packed = {
+        .flags = {0x10001},
+        .timestamp = {},
+    };
+
+    settings.sleep_settings = {
+        .flags = {0x3},
+        .handheld_sleep_plan = HandheldSleepPlan::Sleep10Min,
+        .console_sleep_plan = ConsoleSleepPlan::Sleep1Hour,
+    };
+
+    settings.device_time_zone_location_name = Service::PSC::Time::LocationName{"UTC"};
+    settings.user_system_clock_automatic_correction_enabled = true;
+
+    settings.primary_album_storage = PrimaryAlbumStorage::SdCard;
+    settings.battery_percentage_flag = true;
+    settings.chinese_traditional_input_method = ChineseTraditionalInputMethod::Unknown0;
+    settings.vibration_master_volume = 1.0f;
+    settings.touch_screen_mode = TouchScreenMode::Standard;
+    settings.nfc_enable_flag = true;
+    settings.bluetooth_enable_flag = true;
+    settings.wireless_lan_enable_flag = true;
+
+    const auto language_code = available_language_codes[s32(::Settings::values.language_index.GetValue())];
+    const auto key_code = std::find_if(language_to_layout.cbegin(), language_to_layout.cend(), [=](const auto& element) { return element.first == language_code; });
+
+    settings.keyboard_layout = KeyboardLayout::EnglishUs;
+    if (key_code != language_to_layout.end()) {
+        settings.keyboard_layout = key_code->second;
+    }
+}
+
+static void DefaultPrivateSettings(PrivateSettings& settings) {
+    settings = {};
+}
+
+static void DefaultDeviceSettings(DeviceSettings& settings) {
+    settings = {};
+}
+
+static void DefaultApplnSettings(ApplnSettings& settings) {
+    settings = {};
+    settings.mii_author_id = Common::UUID::MakeDefault();
+}
+
+// URVO fails on MSVC, causing stack __chkstk to fail due to the sheer bigness of SystemSettings :)
 void ISystemSettingsServer::SetupSettings() {
     auto system_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000050";
-    if (!LoadSettingsFile(system_dir, []() { return DefaultSystemSettings(); })) {
+    if (!LoadSettingsFile(system_dir, DefaultSystemSettings)) {
         ASSERT(false);
     }
 
     auto private_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000052";
-    if (!LoadSettingsFile(private_dir, []() { return DefaultPrivateSettings(); })) {
+    if (!LoadSettingsFile(private_dir, DefaultPrivateSettings)) {
         ASSERT(false);
     }
 
     auto device_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000053";
-    if (!LoadSettingsFile(device_dir, []() { return DefaultDeviceSettings(); })) {
+    if (!LoadSettingsFile(device_dir, DefaultDeviceSettings)) {
         ASSERT(false);
     }
 
     auto appln_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000054";
-    if (!LoadSettingsFile(appln_dir, []() { return DefaultApplnSettings(); })) {
+    if (!LoadSettingsFile(appln_dir, DefaultApplnSettings)) {
         ASSERT(false);
     }
 }
