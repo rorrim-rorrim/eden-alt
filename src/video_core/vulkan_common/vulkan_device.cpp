@@ -1493,6 +1493,15 @@ void Device::RemoveUnsuitableExtensions() {
     // VK_KHR_maintenance9 (proposed for Vulkan 1.4, no features)
     extensions.maintenance9 = loaded_extensions.contains(VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance9, VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
+
+    // VK_EXT_graphics_pipeline_library
+    extensions.graphics_pipeline_library = loaded_extensions.contains(VK_EXT_GRAPHICS_PIPELINE_LIBRARY_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.graphics_pipeline_library, VK_EXT_GRAPHICS_PIPELINE_LIBRARY_EXTENSION_NAME);
+    if (extensions.graphics_pipeline_library) {
+        LOG_INFO(Render_Vulkan, "Driver supports VK_EXT_graphics_pipeline_library; enabling use");
+    } else {
+        LOG_INFO(Render_Vulkan, "VK_EXT_graphics_pipeline_library not available");
+    }
 }
 
 void Device::SetupFamilies(VkSurfaceKHR surface) {
