@@ -43,21 +43,26 @@ endif()
 
 cmake_dependent_option(YUZU_STATIC_ROOM "Build a static room executable only (CI only)" OFF "PLATFORM_LINUX" OFF)
 if (YUZU_STATIC_ROOM)
+    set(YUZU_ROOM ON)
+    set(YUZU_ROOM_STANDALONE ON)
+
+    # disable e v e r y t h i n g
     set(ENABLE_QT OFF)
     set(ENABLE_SDL2 OFF)
     set(YUZU_CMD OFF)
     set(ENABLE_CUBEB OFF)
     set(ENABLE_UPDATE_CHECKER OFF)
     set(USE_DISCORD_PRESENCE OFF)
-    set(YUZU_ROOM ON)
-    set(YUZU_ROOM_STANDALONE ON)
     set(BUILD_TESTING OFF)
     set(ENABLE_OPENSSL OFF)
     set(ENABLE_WEB_SERVICE OFF)
     set(ENABLE_LIBUSB OFF)
+
+    # allow static libs for boost and mbedtls though
     set(Boost_USE_STATIC_LIBS ON)
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
     set(MBEDTLS_LIB_SUFFIX "_static")
+    set(YUZU_USE_CPM ON)
 endif()
 
 # common network mbedtls
