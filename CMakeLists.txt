@@ -559,47 +559,50 @@ message(STATUS "Platform Libraries: ${PLATFORM_LIBRARIES}")
 add_subdirectory(externals)
 
 # pass targets from externals
-find_package(libusb)
-find_package(VulkanMemoryAllocator)
 find_package(enet)
 find_package(MbedTLS)
-find_package(VulkanUtilityLibraries)
-find_package(SimpleIni)
-find_package(SPIRV-Tools)
-find_package(sirit)
-find_package(gamemode)
-find_package(mcl)
-
-if (ARCHITECTURE_riscv64)
-    find_package(biscuit)
-endif()
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     find_package(xbyak)
 endif()
 
-if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)
-    find_package(cpp-jwt)
-endif()
+if (NOT YUZU_STATIC_ROOM)
+    find_package(libusb)
+    find_package(VulkanMemoryAllocator)
+    find_package(VulkanUtilityLibraries)
+    find_package(SimpleIni)
+    find_package(SPIRV-Tools)
+    find_package(sirit)
+    find_package(gamemode)
+    find_package(mcl)
 
-if (ARCHITECTURE_arm64 OR DYNARMIC_TESTS)
-    find_package(oaknut)
-endif()
+    if (ARCHITECTURE_riscv64)
+        find_package(biscuit)
+    endif()
 
-if (ENABLE_SDL2)
-    find_package(SDL2)
-endif()
+    if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)
+        find_package(cpp-jwt)
+    endif()
 
-if (USE_DISCORD_PRESENCE)
-    find_package(DiscordRPC)
-endif()
+    if (ARCHITECTURE_arm64 OR DYNARMIC_TESTS)
+        find_package(oaknut)
+    endif()
 
-if (ENABLE_CUBEB)
-    find_package(cubeb)
-endif()
+    if (ENABLE_SDL2)
+        find_package(SDL2)
+    endif()
 
-if (YUZU_TESTS OR DYNARMIC_TESTS)
-    find_package(Catch2)
+    if (USE_DISCORD_PRESENCE)
+        find_package(DiscordRPC)
+    endif()
+
+    if (ENABLE_CUBEB)
+        find_package(cubeb)
+    endif()
+
+    if (YUZU_TESTS OR DYNARMIC_TESTS)
+        find_package(Catch2)
+    endif()
 endif()
 
 # Qt stuff
@@ -680,7 +683,7 @@ if (ENABLE_QT)
     set_target_properties(Qt6::Platform PROPERTIES INTERFACE_COMPILE_FEATURES "")
 endif()
 
-if (NOT (YUZU_USE_BUNDLED_FFMPEG OR YUZU_USE_EXTERNAL_FFMPEG))
+if (NOT YUZU_STATIC_ROOM AND NOT (YUZU_USE_BUNDLED_FFMPEG OR YUZU_USE_EXTERNAL_FFMPEG))
     # Use system installed FFmpeg
     find_package(FFmpeg REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
 
