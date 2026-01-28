@@ -106,7 +106,8 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(EXT, DESCRIPTOR_INDEXING, descriptor_indexing)                                       \
     EXTENSION(EXT, FILTER_CUBIC, filter_cubic)                                                     \
     EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)
-
+    EXTENSION(EXT, GRAPHICS_PIPELINE_LIBRARY, graphics_pipeline_library)
+    
 // Define extensions which must be supported.
 #define FOR_EACH_VK_MANDATORY_EXTENSION(EXTENSION_NAME)                                            \
     EXTENSION_NAME(VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME)                                 \
@@ -291,6 +292,11 @@ public:
     /// Returns the current driver version provided in Vulkan-formatted version numbers.
     u32 GetDriverVersion() const {
         return properties.properties.driverVersion;
+    }
+
+    /// Returns true if the device and driver have VK_EXT_graphics_pipeline_library enabled.
+    bool HasGraphicsPipelineLibrary() const {
+        return extensions.graphics_pipeline_library;
     }
 
     /// Returns the device name.
