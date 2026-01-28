@@ -80,7 +80,7 @@ QString GetProfileUsernameFromUser(QWidget* parent, const QString& title, const 
 }
 
 QString GetProfileUuidFromUser(QWidget* parent, const QString& title, const QString& text) {
-    return LimitableInputDialog::GetText(parent, title, text, 0, int(Common::UUID));
+    return LimitableInputDialog::GetText(parent, title, text, 0, int(sizeof(Common::UUID::uuid)));
 }
 
 } // Anonymous namespace
@@ -217,9 +217,7 @@ void ConfigureProfileManager::AddUser() {
 
     auto const uuid_str = GetProfileUuidFromUser(this, tr("New User UUID"), tr("Enter a UUID (optional):"));
     auto uuid = Common::UUID::MakeRandom();
-    if (uuid_str.length() > 0) {
-        if (size_t(uuid_str.length()) != uuid.uuid.size())
-            return;
+    if (size_t(uuid_str.length()) == uuid.uuid.size()) {
         for (size_t i = 0; i < size_t(uuid_str.length()); ++i)
             uuid.uuid[i] = u8(uuid_str[i].toLatin1());
     }
@@ -230,34 +228,32 @@ void ConfigureProfileManager::AddUser() {
 }
 
 void ConfigureProfileManager::RenameUser() {
-    const auto user = tree_view->currentIndex().row();
+    const auto row_index = tree_view->currentIndex().row();
+    auto user = profile_manager.GetUser(row_index);
+    ASSERT(user);
 
     Service::Account::ProfileBase profile{};
-    if (!profile_manager.GetProfileBase(*uuid, profile))
+    if (!profile_manager.GetProfileBase(*user, profile))
         return;
 
     const auto new_username = GetProfileUsernameFromUser(this, tr("New Username"), tr("Enter a new username:"));
-    if (new_username.isEmpty()) {
+    if (new_username.isEmpty())
         return;
-    }
 
     auto const uuid_str = GetProfileUuidFromUser(this, tr("New User UUID"), tr("Enter a UUID (optional):"));
-    auto uuid = profile_manager.GetUser(user);
-    if (uuid_str.length() > 0) {
-        if (size_t(uuid_str.length()) != uuid.uuid.size())
-            return;
+    if (size_t(uuid_str.length()) != user->uuid.size()) {
         for (size_t i = 0; i < size_t(uuid_str.length()); ++i)
-            uuid.uuid[i] = u8(uuid_str[i].toLatin1());
+            user->uuid[i] = u8(uuid_str[i].toLatin1());
     }
 
     const auto username_std = new_username.toStdString();
     std::fill(profile.username.begin(), profile.username.end(), '\0');
     std::copy(username_std.begin(), username_std.end(), profile.username.begin());
 
-    profile_manager.SetProfileBase(*uuid, profile);
+    profile_manager.SetProfileBase(*user, profile);
     profile_manager.WriteUserSaveFile();
 
-    item_model->setItem(user, 0, new QStandardItem{GetIcon(*uuid), FormatUserEntryText(QString::fromStdString(username_std), *uuid)});
+    item_model->setItem(row_index, 0, new QStandardItem{GetIcon(*user), FormatUserEntryText(QString::fromStdString(username_std), *user)});
     UpdateCurrentUser();
 }
 

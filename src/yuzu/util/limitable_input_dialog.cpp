@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -66,7 +66,7 @@ QString LimitableInputDialog::GetText(QWidget* parent, const QString& title, con
         if (!dialog.invalid_characters.isEmpty()) {
             dialog.RemoveInvalidCharacters();
         }
-        ok_button->setEnabled(dialog.text_entry->text().length() >= min_character_limit);
+        ok_button->setEnabled(dialog.text_entry->text().length() > min_character_limit);
     });
 
     if (dialog.exec() != QDialog::Accepted) {
