@@ -448,7 +448,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
     // GetSuitability has already configured the linked list of features for us.
     // Reuse it here.
-    const void* first_next = &features2;
+    void* first_next = &features2;
 
     VkDeviceDiagnosticsConfigCreateInfoNV diagnostics_nv{};
     const bool use_diagnostics_nv = Settings::values.enable_nsight_aftermath && extensions.device_diagnostics_config;
@@ -487,7 +487,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         .descriptorBufferPushDescriptors = VK_FALSE,
     };
 
-    if (extensions.descriptor_buffer && features.descriptor_buffer.descriptorBuffer) {
+    if (loaded_extensions.contains(VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME)) {
         first_next = &descriptor_buffer_features;
     }
 
@@ -498,7 +498,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         .inlineUniformBlock = VK_TRUE,
     };
 
-    if (extensions.inline_uniform_block) {
+    if (loaded_extensions.contains(VK_EXT_INLINE_UNIFORM_BLOCK_EXTENSION_NAME)) {
         first_next = &inline_uniform_block_features;
     }
 
@@ -948,23 +948,29 @@ bool Device::ShouldBoostClocks() const {
     return validated_driver && !is_steam_deck && !is_debugging;
 }
 
-bool Device::HasTimelineSemaphore() noexcept const {
-    switch (GetDriverID()) {
-    case VK_DRIVER_ID_MESA_TURNIP:
+bool Device::HasTimelineSemaphore() const {
+    if (GetDriverID() == VK_DRIVER_ID_MESA_TURNIP) {
         return false;
-    case VK_DRIVER_ID_QUALCOMM_PROPRIETARY: {
+    }
+
+    if (GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) {
         const std::string model_name = properties.properties.deviceName;
-        for (auto const banned : std::array<std::string_view, 4>{
-            "SM8150", "SM8150-AC", "SM8250", "SM8250-AC",
-        }) {
+        static constexpr std::array<const char*, 4> banned_models{
+            "SM8150",
+            "SM8150-AC",
+            "SM8250",
+            "SM8250-AC",
+        };
+        for (const char* banned : banned_models) {
             if (model_name.find(banned) != std::string::npos) {
-                LOG_WARNING(Render_Vulkan, "Disabling timeline semaphores on Qualcomm model {}", properties.properties.deviceName);
+                LOG_WARNING(Render_Vulkan,
+                            "Disabling timeline semaphores on Qualcomm model {}",
+                            properties.properties.deviceName);
                 return false;
             }
         }
-        break;
     }
-    }
+
     return features.timeline_semaphore.timelineSemaphore;
 }
 
@@ -1173,7 +1179,7 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
     // VK_EXT_descriptor_buffer properties
     VkPhysicalDeviceDescriptorBufferPropertiesEXT descriptor_buffer_properties{};
-    if (extensions.descriptor_buffer) {
+    if (loaded_extensions.contains(VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME)) {
         descriptor_buffer_properties.sType =
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT;
         SetNext(next, descriptor_buffer_properties);
@@ -1274,15 +1280,8 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
 
     // VK_EXT_descriptor_buffer
-    if (extensions.descriptor_buffer) {
-        if (!features.descriptor_buffer.descriptorBuffer) {
-            LOG_WARNING(Render_Vulkan,
-                        "VK_EXT_descriptor_buffer reported but descriptorBuffer feature not available");
-            extensions.descriptor_buffer = false;
-        }
-    }
-    RemoveExtensionFeatureIfUnsuitable(extensions.descriptor_buffer, features.descriptor_buffer,
-                                       VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
+    extensions.descriptor_buffer = loaded_extensions.contains(VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.descriptor_buffer, VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
 
     // VK_EXT_depth_bias_control
     extensions.depth_bias_control =
@@ -1296,7 +1295,7 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.depth_clip_control, features.depth_clip_control,
                                        VK_EXT_DEPTH_CLIP_CONTROL_EXTENSION_NAME);
 
-    /* */ // VK_EXT_extended_dynamic_state
+    // VK_EXT_extended_dynamic_state
     extensions.extended_dynamic_state = features.extended_dynamic_state.extendedDynamicState;
     RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state,
                                        features.extended_dynamic_state,
@@ -1439,10 +1438,8 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
 
     // VK_EXT_inline_uniform_block
-    extensions.inline_uniform_block = features.inline_uniform_block.inlineUniformBlock;
-    RemoveExtensionFeatureIfUnsuitable(extensions.inline_uniform_block,
-                                       features.inline_uniform_block,
-                                       VK_EXT_INLINE_UNIFORM_BLOCK_EXTENSION_NAME);
+    extensions.inline_uniform_block = loaded_extensions.contains(VK_EXT_INLINE_UNIFORM_BLOCK_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.inline_uniform_block, VK_EXT_INLINE_UNIFORM_BLOCK_EXTENSION_NAME);
 
     // VK_EXT_multi_draw
     extensions.multi_draw = features.multi_draw.multiDraw;
