@@ -225,7 +225,10 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
 
     UpdateDynamicStates();
 
-    pipeline->SetPreBindCallback([this](vk::CommandBuffer cmdbuf) { RecordDynamicStates(cmdbuf); });
+    pipeline->SetPreBindCallback([this, is_indexed, pipeline](vk::CommandBuffer cmdbuf) {
+        RecordDynamicStates(cmdbuf);
+        buffer_cache.BindHostGeometryBuffers(is_indexed, pipeline->HasDynamicVertexInput(), &cmdbuf);
+    });
     SCOPE_EXIT { pipeline->ClearPreBindCallback(); };
 
     if (!pipeline->Configure(is_indexed))

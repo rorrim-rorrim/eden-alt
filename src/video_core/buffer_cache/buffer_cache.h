@@ -352,7 +352,8 @@ void BufferCache<P>::UpdateComputeBuffers() {
 }
 
 template <class P>
-void BufferCache<P>::BindHostGeometryBuffers(bool is_indexed, bool use_dynamic_vertex_input) {
+void BufferCache<P>::BindHostGeometryBuffers(bool is_indexed, bool use_dynamic_vertex_input,
+                                            vk::CommandBuffer* cmd) {
     if (is_indexed) {
         BindHostIndexBuffer();
     } else if constexpr (!HAS_FULL_INDEX_AND_PRIMITIVE_SUPPORT) {
@@ -363,7 +364,7 @@ void BufferCache<P>::BindHostGeometryBuffers(bool is_indexed, bool use_dynamic_v
                                         draw_state.vertex_buffer.count);
         }
     }
-    BindHostVertexBuffers(use_dynamic_vertex_input);
+    BindHostVertexBuffers(use_dynamic_vertex_input, cmd);
     BindHostTransformFeedbackBuffers();
     if (current_draw_indirect) {
         BindHostDrawIndirectBuffers();
@@ -764,7 +765,7 @@ void BufferCache<P>::BindHostIndexBuffer() {
 }
 
 template <class P>
-void BufferCache<P>::BindHostVertexBuffers(bool use_dynamic_vertex_input) {
+void BufferCache<P>::BindHostVertexBuffers(bool use_dynamic_vertex_input, vk::CommandBuffer* cmd) {
     HostBindings<typename P::Buffer> host_bindings;
     bool any_valid{false};
     auto& flags = maxwell3d->dirty.flags;
@@ -800,7 +801,7 @@ void BufferCache<P>::BindHostVertexBuffers(bool use_dynamic_vertex_input) {
             host_bindings.sizes.push_back(binding.size);
             host_bindings.strides.push_back(stride);
         }
-        runtime.BindVertexBuffers(host_bindings, use_dynamic_vertex_input);
+        runtime.BindVertexBuffers(host_bindings, use_dynamic_vertex_input, cmd);
     }
 }
 

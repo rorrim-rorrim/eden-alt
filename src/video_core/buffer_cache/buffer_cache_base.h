@@ -38,6 +38,10 @@
 
 namespace VideoCommon {
 
+namespace vk {
+    class CommandBuffer;
+}
+
 using BufferId = Common::SlotId;
 
 using VideoCore::Surface::PixelFormat;
@@ -232,7 +236,8 @@ public:
 
     void UpdateComputeBuffers();
 
-    void BindHostGeometryBuffers(bool is_indexed, bool use_dynamic_vertex_input = false);
+    void BindHostGeometryBuffers(bool is_indexed, bool use_dynamic_vertex_input = false,
+                                vk::CommandBuffer* cmd = nullptr);
 
     void BindHostStageBuffers(size_t stage);
 
@@ -358,7 +363,7 @@ private:
 
     void BindHostIndexBuffer();
 
-    void BindHostVertexBuffers(bool use_dynamic_vertex_input = false);
+    void BindHostVertexBuffers(bool use_dynamic_vertex_input = false, vk::CommandBuffer* cmd = nullptr);
 
     void BindHostDrawIndirectBuffers();
 

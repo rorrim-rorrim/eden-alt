@@ -124,10 +124,10 @@ public:
     void BindQuadIndexBuffer(PrimitiveTopology topology, u32 first, u32 count);
 
     void BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size, u32 stride,
-                          bool use_dynamic_vertex_input);
+                          bool use_dynamic_vertex_input, vk::CommandBuffer* cmd = nullptr);
 
     void BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings,
-                           bool use_dynamic_vertex_input);
+                           bool use_dynamic_vertex_input, vk::CommandBuffer* cmd = nullptr);
 
     void BindTransformFeedbackBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size);
 
