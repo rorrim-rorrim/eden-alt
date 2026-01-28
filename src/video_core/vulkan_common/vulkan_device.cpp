@@ -948,9 +948,22 @@ bool Device::ShouldBoostClocks() const {
     return validated_driver && !is_steam_deck && !is_debugging;
 }
 
-bool Device::HasTimelineSemaphore() const {
-    if (GetDriverID() == VK_DRIVER_ID_MESA_TURNIP) {
+bool Device::HasTimelineSemaphore() noexcept const {
+    switch (GetDriverID()) {
+    case VK_DRIVER_ID_MESA_TURNIP:
         return false;
+    case VK_DRIVER_ID_QUALCOMM_PROPRIETARY: {
+        const std::string model_name = properties.properties.deviceName;
+        for (auto const banned : std::array<std::string_view, 4>{
+            "SM8150", "SM8150-AC", "SM8250", "SM8250-AC",
+        }) {
+            if (model_name.find(banned) != std::string::npos) {
+                LOG_WARNING(Render_Vulkan, "Disabling timeline semaphores on Qualcomm model {}", properties.properties.deviceName);
+                return false;
+            }
+        }
+        break;
+    }
     }
     return features.timeline_semaphore.timelineSemaphore;
 }
