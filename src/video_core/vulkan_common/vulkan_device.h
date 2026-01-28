@@ -105,10 +105,10 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(NV, VIEWPORT_ARRAY2, viewport_array2)                                                \
     EXTENSION(NV, VIEWPORT_SWIZZLE, viewport_swizzle)                                              \
     EXTENSION(EXT, DESCRIPTOR_INDEXING, descriptor_indexing)                                       \
-    EXTENSION(EXT, DESCRIPTOR_BUFFER, descriptor_buffer)                                          \
+    EXTENSION(EXT, DESCRIPTOR_BUFFER, descriptor_buffer)                                           \
     EXTENSION(EXT, FILTER_CUBIC, filter_cubic)                                                     \
     EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)                                    \
-    EXTENSION(EXT, GRAPHICS_PIPELINE_LIBRARY, graphics_pipeline_library)                            \
+    EXTENSION(EXT, GRAPHICS_PIPELINE_LIBRARY, graphics_pipeline_library)                           \
     
 // Define extensions which must be supported.
 #define FOR_EACH_VK_MANDATORY_EXTENSION(EXTENSION_NAME)                                            \
@@ -561,7 +561,7 @@ public:
         return extensions.transform_feedback;
     }
 
-    /// Returns true if the device supports VK_EXT_transform_feedback properly.
+    /// Returns true if the device supports VK_EXT_transform_feedback.
     bool AreTransformFeedbackGeometryStreamsSupported() const {
         return features.transform_feedback.geometryStreams;
     }
@@ -665,7 +665,7 @@ public:
     }
 
     bool SupportsSmoothLines() const {
-        return features.line_rasterization.smoothLines != VK_FALSE;
+        return features.line_rasterization.smoothLines != VK_TRUE;
     }
 
     bool SupportsStippledRectangularLines() const {
