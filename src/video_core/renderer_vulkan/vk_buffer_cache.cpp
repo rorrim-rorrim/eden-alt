@@ -552,16 +552,17 @@ void BufferCacheRuntime::BindQuadIndexBuffer(PrimitiveTopology topology, u32 fir
 }
 
 void BufferCacheRuntime::BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size, u32 stride,
-                                         bool use_dynamic_vertex_input, vk::CommandBuffer* cmd) {
+                                         bool use_dynamic_vertex_input, VideoCommon::vk::CommandBufferPtr cmd) {
     if (index >= device.GetMaxVertexInputBindings()) {
         return;
     }
     if (use_dynamic_vertex_input && device.IsExtExtendedDynamicStateSupported()) {
         if (cmd) {
+            auto cmdbuf = static_cast<vk::CommandBuffer*>(cmd);
             const VkDeviceSize vk_offset = buffer != VK_NULL_HANDLE ? offset : 0;
             const VkDeviceSize vk_size = buffer != VK_NULL_HANDLE ? size : VK_WHOLE_SIZE;
             const VkDeviceSize vk_stride = stride;
-            cmd->BindVertexBuffers2EXT(index, 1, &buffer, &vk_offset, &vk_size, &vk_stride);
+            cmdbuf->BindVertexBuffers2EXT(index, 1, &buffer, &vk_offset, &vk_size, &vk_stride);
         } else {
             scheduler.Record([index, buffer, offset, size, stride](vk::CommandBuffer cmdbuf) {
                 const VkDeviceSize vk_offset = buffer != VK_NULL_HANDLE ? offset : 0;
@@ -577,7 +578,8 @@ void BufferCacheRuntime::BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset
             offset = 0;
         }
         if (cmd) {
-            cmd->BindVertexBuffer(index, buffer, offset);
+            auto cmdbuf = static_cast<vk::CommandBuffer*>(cmd);
+            cmdbuf->BindVertexBuffer(index, buffer, offset);
         } else {
             scheduler.Record([index, buffer, offset](vk::CommandBuffer cmdbuf) {
                 cmdbuf.BindVertexBuffer(index, buffer, offset);
@@ -587,7 +589,8 @@ void BufferCacheRuntime::BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset
 }
 
 void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings,
-                                          bool use_dynamic_vertex_input, vk::CommandBuffer* cmd) {
+                                          bool use_dynamic_vertex_input,
+                                          VideoCommon::vk::CommandBufferPtr cmd) {
     boost::container::small_vector<VkBuffer, 32> buffer_handles;
     for (u32 index = 0; index < bindings.buffers.size(); ++index) {
         auto handle = bindings.buffers[index]->Handle();
@@ -610,7 +613,8 @@ void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bi
     }
     if (use_dynamic_vertex_input && device.IsExtExtendedDynamicStateSupported()) {
         if (cmd) {
-            cmd->BindVertexBuffers2EXT(bindings.min_index, binding_count, buffer_handles.data(),
+            auto cmdbuf = static_cast<vk::CommandBuffer*>(cmd);
+            cmdbuf->BindVertexBuffers2EXT(bindings.min_index, binding_count, buffer_handles.data(),
                                        bindings.offsets.data(), bindings.sizes.data(),
                                        bindings.strides.data());
         } else {
@@ -624,7 +628,8 @@ void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bi
         }
     } else {
         if (cmd) {
-            cmd->BindVertexBuffers(bindings.min_index, binding_count, buffer_handles.data(),
+            auto cmdbuf = static_cast<vk::CommandBuffer*>(cmd);
+            cmdbuf->BindVertexBuffers(bindings.min_index, binding_count, buffer_handles.data(),
                                     bindings.offsets.data());
         } else {
             scheduler.Record([

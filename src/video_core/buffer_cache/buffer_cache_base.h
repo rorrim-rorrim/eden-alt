@@ -39,7 +39,7 @@
 namespace VideoCommon {
 
 namespace vk {
-    class CommandBuffer;
+        using CommandBufferPtr = void*;
 }
 
 using BufferId = Common::SlotId;

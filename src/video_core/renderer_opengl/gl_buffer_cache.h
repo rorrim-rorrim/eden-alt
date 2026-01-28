@@ -107,7 +107,7 @@ public:
     // Compatibility overload to allow code that provides an optional Vulkan command buffer
     // pointer to compile for OpenGL. The pointer is ignored for OpenGL runtime.
     void BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings,
-                           bool use_dynamic_vertex_input, VideoCommon::vk::CommandBuffer* cmd);
+                           bool use_dynamic_vertex_input, VideoCommon::vk::CommandBufferPtr cmd);
 
     void BindUniformBuffer(size_t stage, u32 binding_index, Buffer& buffer, u32 offset, u32 size);
 

@@ -274,7 +274,7 @@ void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bi
 
 void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings,
                                           bool use_dynamic_vertex_input,
-                                          VideoCommon::vk::CommandBuffer* /*cmd*/) {
+                                          VideoCommon::vk::CommandBufferPtr /*cmd*/) {
     // Forward to the existing implementation; OpenGL doesn't use Vulkan command buffers.
     BindVertexBuffers(bindings, use_dynamic_vertex_input);
 }

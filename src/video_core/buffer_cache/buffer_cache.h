@@ -353,7 +353,7 @@ void BufferCache<P>::UpdateComputeBuffers() {
 
 template <class P>
 void BufferCache<P>::BindHostGeometryBuffers(bool is_indexed, bool use_dynamic_vertex_input,
-                                            vk::CommandBuffer* cmd) {
+                                vk::CommandBufferPtr cmd) {
     if (is_indexed) {
         BindHostIndexBuffer();
     } else if constexpr (!HAS_FULL_INDEX_AND_PRIMITIVE_SUPPORT) {
@@ -765,7 +765,7 @@ void BufferCache<P>::BindHostIndexBuffer() {
 }
 
 template <class P>
-void BufferCache<P>::BindHostVertexBuffers(bool use_dynamic_vertex_input, vk::CommandBuffer* cmd) {
+void BufferCache<P>::BindHostVertexBuffers(bool use_dynamic_vertex_input, vk::CommandBufferPtr cmd) {
     HostBindings<typename P::Buffer> host_bindings;
     bool any_valid{false};
     auto& flags = maxwell3d->dirty.flags;
