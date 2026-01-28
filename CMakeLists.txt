@@ -41,6 +41,28 @@ if (PLATFORM_NETBSD)
     set(ENV{PKG_CONFIG_PATH} "${PKG_CONFIG_PATH}:${CMAKE_SYSROOT}/usr/pkg/lib/ffmpeg7/pkgconfig")
 endif()
 
+cmake_dependent_option(YUZU_STATIC_ROOM "Build a static room executable ONLY" OFF "PLATFORM_LINUX" OFF)
+if (YUZU_STATIC_ROOM)
+    set(ENABLE_QT OFF)
+    set(ENABLE_SDL2 OFF)
+    set(YUZU_CMD OFF)
+    set(ENABLE_CUBEB OFF)
+    set(ENABLE_UPDATE_CHECKER OFF)
+    set(USE_DISCORD_PRESENCE OFF)
+    set(YUZU_ROOM ON)
+    set(YUZU_ROOM_STANDALONE ON)
+    set(BUILD_TESTING OFF)
+    set(ENABLE_OPENSSL OFF)
+    set(ENABLE_WEB_SERVICE OFF)
+    set(ENABLE_LIBUSB OFF)
+    set(CPMUTIL_FORCE_BUNDLED ON)
+    set(YUZU_USE_CPM ON)
+endif()
+
+# common network mbedtls
+# common: xbyak? booost fmt lz4 zstd
+# network: enet boost
+
 # qt stuff
 option(ENABLE_QT "Enable the Qt frontend" ON)
 option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
@@ -226,11 +248,9 @@ endif()
 
 option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
 
-if (ENABLE_OPENSSL)
-    set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL OFF)
-    if (EXT_DEFAULT OR PLATFORM_SUN)
-        set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL ON)
-    endif()
+set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL OFF)
+if (EXT_DEFAULT OR PLATFORM_SUN)
+    set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL ON)
 endif()
 
 cmake_dependent_option(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" ${DEFAULT_YUZU_USE_BUNDLED_OPENSSL} "ENABLE_OPENSSL" OFF)
@@ -420,16 +440,6 @@ if (YUZU_USE_CPM)
         add_library(lz4::lz4 ALIAS lz4_static)
     endif()
 
-    # nlohmann
-    AddJsonPackage(nlohmann)
-
-    # zlib
-    AddJsonPackage(zlib)
-
-    if (ZLIB_ADDED)
-        add_library(ZLIB::ZLIB ALIAS zlibstatic)
-    endif()
-
     # zstd
     AddJsonPackage(zstd)
 
@@ -438,19 +448,31 @@ if (YUZU_USE_CPM)
         add_library(zstd::libzstd ALIAS libzstd_static)
     endif()
 
-    # Opus
-    AddJsonPackage(opus)
+    if (NOT YUZU_STATIC_ROOM)
+        # nlohmann
+        AddJsonPackage(nlohmann)
 
-    if (Opus_ADDED)
-        if (MSVC AND CXX_CLANG)
-            target_compile_options(opus PRIVATE
-                -Wno-implicit-function-declaration
-            )
+        # zlib
+        AddJsonPackage(zlib)
+
+        if (ZLIB_ADDED)
+            add_library(ZLIB::ZLIB ALIAS zlibstatic)
         endif()
-    endif()
 
-    if (NOT TARGET Opus::opus)
-        add_library(Opus::opus ALIAS opus)
+        # Opus
+        AddJsonPackage(opus)
+
+        if (Opus_ADDED)
+            if (MSVC AND CXX_CLANG)
+                target_compile_options(opus PRIVATE
+                    -Wno-implicit-function-declaration
+                )
+            endif()
+        endif()
+
+        if (NOT TARGET Opus::opus)
+            add_library(Opus::opus ALIAS opus)
+        endif()
     endif()
 else()
     # TODO: we can probably just use CPM for this... right?
