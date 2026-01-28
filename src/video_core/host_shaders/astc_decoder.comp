@@ -270,10 +270,7 @@ uint Select2DPartition(uint seed, uint x, uint y, uint partition_count) {
 }
 
 uint ExtractBits(uvec4 payload, int offset, int bits) {
-    if (bits <= 0) {
-        return 0;
-    }
-    if (bits > 32) {
+    if (bits <= 0 || bits > 32) {
         return 0;
     }
     const int last_offset = offset + bits - 1;
@@ -282,9 +279,9 @@ uint ExtractBits(uvec4 payload, int offset, int bits) {
         return bitfieldExtract(payload[shifted_offset], offset & 31, bits);
     }
     const int first_bits = 32 - (offset & 31);
-    const int result_first = int(bitfieldExtract(payload[shifted_offset], offset & 31, first_bits));
-    const int result_second = int(bitfieldExtract(payload[shifted_offset + 1], 0, bits - first_bits));
-    return result_first | (result_second << first_bits);
+    const uvec4 next = uvec4(payload.yzw, 0);
+    return bitfieldExtract(payload[shifted_offset], offset & 31, first_bits)
+        | (bitfieldExtract(next[shifted_offset], 0, bits - first_bits) << first_bits);
 }
 
 uint StreamBits(uint num_bits) {
@@ -837,15 +834,14 @@ void FillError(ivec3 coord) {
 }
 
 void FillVoidExtentLDR(ivec3 coord) {
-    SkipBits(52);
-    const uint r_u = StreamBits(16);
-    const uint g_u = StreamBits(16);
-    const uint b_u = StreamBits(16);
-    const uint a_u = StreamBits(16);
-    const float a = float(a_u) / 65535.0f;
+    const uint r_u = ExtractBits(local_buff, 11 + 52 + 16 * 0, 16);
+    const uint g_u = ExtractBits(local_buff, 11 + 52 + 16 * 1, 16);
+    const uint b_u = ExtractBits(local_buff, 11 + 52 + 16 * 2, 16);
+    const uint a_u = ExtractBits(local_buff, 11 + 52 + 16 * 3, 16);
     const float r = float(r_u) / 65535.0f;
     const float g = float(g_u) / 65535.0f;
     const float b = float(b_u) / 65535.0f;
+    const float a = float(a_u) / 65535.0f;
     for (uint j = 0; j < block_dims.y; j++) {
         for (uint i = 0; i < block_dims.x; i++) {
             imageStore(dest_image, coord + ivec3(i, j, 0), vec4(r, g, b, a));
@@ -904,9 +900,9 @@ int FindLayout(uint mode) {
     return 5;
 }
 
-uvec2 DecodeBlockSize(uint layout, uint mode) {
+uvec2 DecodeBlockSize(uint mode_layout, uint mode) {
     uint A, B;
-    switch (layout) {
+    switch (mode_layout) {
     case 0:
         A = (mode >> 5) & 0x3;
         B = (mode >> 7) & 0x3;
@@ -963,11 +959,6 @@ uint DecodeMaxWeight(uint mode) {
 
 void DecompressBlock(ivec3 coord) {
     uint mode = StreamBits(11);
-    const uint num_partitions = StreamBits(2) + 1;
-    const uint mode_layout = FindLayout(mode);
-    const bool dual_plane = (mode_layout != 9) && ((mode & 0x400) != 0);
-    const uvec2 size_params = DecodeBlockSize(mode_layout, mode);
-
     if (IsError(mode)) {
         FillError(coord);
         return;
@@ -977,8 +968,12 @@ void DecompressBlock(ivec3 coord) {
         FillVoidExtentLDR(coord);
         return;
     }
-    if (((size_params.x > block_dims.x) || (size_params.y > block_dims.y))
-    || (num_partitions > 4 || (num_partitions == 4 && dual_plane))) {
+    const uint num_partitions = StreamBits(2) + 1;
+    const uint mode_layout = FindLayout(mode);
+    const bool dual_plane = (mode_layout != 9) && ((mode & 0x400) != 0);
+    const uvec2 size_params = DecodeBlockSize(mode_layout, mode);
+    if (size_params.x > block_dims.x || size_params.y > block_dims.y
+    || num_partitions > 4 || (num_partitions == 4 && dual_plane)) {
         FillError(coord);
         return;
     }
@@ -998,7 +993,7 @@ void DecompressBlock(ivec3 coord) {
     const uint weight_bits = GetPackedBitSize(size_params, dual_plane, max_weight);
     const uint extra_cem_bits = base_mode > 0 ? ((0x85200 >> (num_partitions * 4)) & 0x0f) : 0;
     const uint plane_selector_bits = dual_plane ? 2 : 0;
-    const uint remaining_bits = 128 - weight_bits - total_bitsread;
+    uint remaining_bits = 128 - weight_bits - total_bitsread;
     remaining_bits -= extra_cem_bits;
     remaining_bits -= plane_selector_bits;
     if (remaining_bits > 128) {
