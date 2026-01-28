@@ -477,6 +477,17 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         first_next = &descriptor_indexing;
     }
 
+    // VK_EXT_inline_uniform_block
+    VkPhysicalDeviceInlineUniformBlockFeaturesEXT inline_uniform_block_features{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES_EXT,
+        .pNext = first_next,
+        .inlineUniformBlock = VK_TRUE,
+    };
+
+    if (extensions.inline_uniform_block) {
+        first_next = &inline_uniform_block_features;
+    }
+
     is_blit_depth24_stencil8_supported = TestDepthStencilBlits(VK_FORMAT_D24_UNORM_S8_UINT);
     is_blit_depth32_stencil8_supported = TestDepthStencilBlits(VK_FORMAT_D32_SFLOAT_S8_UINT);
     is_optimal_astc_supported = ComputeIsOptimalAstcSupported();
@@ -1366,10 +1377,6 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME);
 
     // VK_EXT_transform_feedback
-    // We only require the basic transformFeedback feature and at least
-    // one transform feedback buffer. We keep transformFeedbackQueries as it's used by
-    // the streaming byte count implementation. GeometryStreams and multiple streams
-    // are not strictly required since we currently support only stream 0.
     extensions.transform_feedback =
         features.transform_feedback.transformFeedback &&
         properties.transform_feedback.maxTransformFeedbackBuffers > 0 &&
@@ -1388,6 +1395,12 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.vertex_input_dynamic_state,
                                        features.vertex_input_dynamic_state,
                                        VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+
+    // VK_EXT_inline_uniform_block
+    extensions.inline_uniform_block = features.inline_uniform_block.inlineUniformBlock;
+    RemoveExtensionFeatureIfUnsuitable(extensions.inline_uniform_block,
+                                       features.inline_uniform_block,
+                                       VK_EXT_INLINE_UNIFORM_BLOCK_EXTENSION_NAME);
 
     // VK_EXT_multi_draw
     extensions.multi_draw = features.multi_draw.multiDraw;
