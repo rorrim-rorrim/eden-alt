@@ -117,7 +117,7 @@ void Vic::Execute() noexcept {
 
     auto output_width = config.output_surface_config.out_surface_width + 1;
     auto output_height = config.output_surface_config.out_surface_height + 1;
-    output_surface.resize(output_width * output_height);
+    output_surface.resize_destructive(output_width * output_height);
 
     if (Settings::values.nvdec_emulation.GetValue() != Settings::NvdecEmulation::Off) {
         for (size_t i = 0; i < config.slot_structs.size(); i++) {
@@ -365,7 +365,7 @@ void Vic::ReadInterlacedY8__V8U8_N420(const SlotStruct& slot, std::span<const Pl
         auto const out_luma_height{(slot.surface_config.slot_surface_height + 1) * 2};
         auto const out_luma_stride{out_luma_width};
 
-        slot_surface.resize(out_luma_width * out_luma_height);
+        slot_surface.resize_destructive(out_luma_width * out_luma_height);
 
         auto const in_luma_width = (std::min)(frame->GetWidth(), s32(out_luma_width));
         [[maybe_unused]] auto const in_luma_height = (std::min)(frame->GetHeight(), s32(out_luma_height));
