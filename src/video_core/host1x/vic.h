@@ -627,11 +627,11 @@ private:
     VicRegisters regs{};
     FrameQueue& frame_queue;
 
-    Common::ScratchBuffer<u8> swizzle_scratch;
     Common::ScratchBuffer<Pixel> output_surface;
     Common::ScratchBuffer<Pixel> slot_surface;
     Common::ScratchBuffer<u8> luma_scratch;
     Common::ScratchBuffer<u8> chroma_scratch;
+    Common::ScratchBuffer<u8> swizzle_scratch;
 };
 
 } // namespace Tegra::Host1x
