@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -436,7 +436,7 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         bind_stage_info(4);
     }
     buffer_cache.UpdateGraphicsBuffers(is_indexed);
-    buffer_cache.BindHostGeometryBuffers(is_indexed);
+    buffer_cache.BindHostGeometryBuffers(is_indexed, false);
 
     if (!IsBuilt()) {
         WaitForBuild();

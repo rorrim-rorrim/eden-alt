@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -123,9 +123,11 @@ public:
 
     void BindQuadIndexBuffer(PrimitiveTopology topology, u32 first, u32 count);
 
-    void BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size, u32 stride);
+    void BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size, u32 stride,
+                          bool use_dynamic_vertex_input);
 
-    void BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings);
+    void BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings,
+                           bool use_dynamic_vertex_input);
 
     void BindTransformFeedbackBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size);
 

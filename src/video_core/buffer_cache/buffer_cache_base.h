@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
@@ -232,7 +232,7 @@ public:
 
     void UpdateComputeBuffers();
 
-    void BindHostGeometryBuffers(bool is_indexed);
+    void BindHostGeometryBuffers(bool is_indexed, bool use_dynamic_vertex_input = false);
 
     void BindHostStageBuffers(size_t stage);
 
@@ -358,7 +358,7 @@ private:
 
     void BindHostIndexBuffer();
 
-    void BindHostVertexBuffers();
+    void BindHostVertexBuffers(bool use_dynamic_vertex_input = false);
 
     void BindHostDrawIndirectBuffers();
 

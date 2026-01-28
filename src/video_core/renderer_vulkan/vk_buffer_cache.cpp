@@ -551,11 +551,12 @@ void BufferCacheRuntime::BindQuadIndexBuffer(PrimitiveTopology topology, u32 fir
     }
 }
 
-void BufferCacheRuntime::BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size, u32 stride) {
+void BufferCacheRuntime::BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size, u32 stride,
+                                         bool use_dynamic_vertex_input) {
     if (index >= device.GetMaxVertexInputBindings()) {
         return;
     }
-    if (device.IsExtExtendedDynamicStateSupported()) {
+    if (use_dynamic_vertex_input && device.IsExtExtendedDynamicStateSupported()) {
         scheduler.Record([index, buffer, offset, size, stride](vk::CommandBuffer cmdbuf) {
             const VkDeviceSize vk_offset = buffer != VK_NULL_HANDLE ? offset : 0;
             const VkDeviceSize vk_size = buffer != VK_NULL_HANDLE ? size : VK_WHOLE_SIZE;
@@ -574,7 +575,8 @@ void BufferCacheRuntime::BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset
     }
 }
 
-void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings) {
+void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings,
+                                          bool use_dynamic_vertex_input) {
     boost::container::small_vector<VkBuffer, 32> buffer_handles;
     for (u32 index = 0; index < bindings.buffers.size(); ++index) {
         auto handle = bindings.buffers[index]->Handle();
@@ -595,7 +597,7 @@ void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bi
     if (binding_count == 0) {
         return;
     }
-    if (device.IsExtExtendedDynamicStateSupported()) {
+    if (use_dynamic_vertex_input && device.IsExtExtendedDynamicStateSupported()) {
         scheduler.Record([bindings_ = std::move(bindings),
                           buffer_handles_ = std::move(buffer_handles),
                           binding_count](vk::CommandBuffer cmdbuf) {

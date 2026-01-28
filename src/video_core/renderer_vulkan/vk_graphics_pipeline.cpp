@@ -459,7 +459,7 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     }
 
     buffer_cache.UpdateGraphicsBuffers(is_indexed);
-    buffer_cache.BindHostGeometryBuffers(is_indexed);
+    buffer_cache.BindHostGeometryBuffers(is_indexed, HasDynamicVertexInput());
 
     guest_descriptor_queue.Acquire();
 
@@ -519,6 +519,7 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
                       uses_render_area = render_area.uses_render_area,
                       render_area_data = render_area.words](vk::CommandBuffer cmdbuf) {
         if (bind_pipeline) {
+            if (pre_bind_callback) pre_bind_callback(cmdbuf);
             cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline);
         }
         cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_ALL_GRAPHICS,

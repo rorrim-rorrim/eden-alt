@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -101,7 +101,8 @@ public:
 
     void BindVertexBuffer(u32 index, Buffer& buffer, u32 offset, u32 size, u32 stride);
 
-    void BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings);
+    void BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings,
+                           bool use_dynamic_vertex_input = false);
 
     void BindUniformBuffer(size_t stage, u32 binding_index, Buffer& buffer, u32 offset, u32 size);
 

@@ -663,11 +663,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                         "allowing Eden to use {} (75%) to avoid heap exhaustion",
                         sampler_limit, reserved, sampler_heap_budget);
         }
-        // Qualcomm proprietary drivers have issues with MSAA->MSAA image blits.
-        LOG_WARNING(Render_Vulkan,
-                    "Qualcomm drivers do not support MSAA->MSAA image blits. "
-                    "MSAA scaling will use 3D helpers. MSAA resolves work normally.");
-        cant_blit_msaa = true;
     }
 
     if (extensions.sampler_filter_minmax && is_amd) {
@@ -1259,7 +1254,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
         features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable = false;
     }
 
-    // Return whether we were suitable.
     return suitable;
 }
 
@@ -1360,7 +1354,6 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
 
     // VK_EXT_robustness2
-    // Enable if at least one robustness2 feature is available
     extensions.robustness_2 = features.robustness2.robustBufferAccess2 ||
                               features.robustness2.robustImageAccess2 ||
                               features.robustness2.nullDescriptor;
@@ -1369,7 +1362,6 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
 
     // VK_EXT_image_robustness
-    // Enable if robustImageAccess is available
     extensions.image_robustness = features.image_robustness.robustImageAccess;
     RemoveExtensionFeatureIfUnsuitable(extensions.image_robustness, features.image_robustness,
                                        VK_EXT_IMAGE_ROBUSTNESS_EXTENSION_NAME);
@@ -1523,15 +1515,15 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.maintenance6, features.maintenance6,
                                        VK_KHR_MAINTENANCE_6_EXTENSION_NAME);
 
-    // VK_KHR_maintenance7 (proposed for Vulkan 1.4, no features)
+    // VK_KHR_maintenance7
     extensions.maintenance7 = loaded_extensions.contains(VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance7, VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
 
-    // VK_KHR_maintenance8 (proposed for Vulkan 1.4, no features)
+    // VK_KHR_maintenance8
     extensions.maintenance8 = loaded_extensions.contains(VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance8, VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
 
-    // VK_KHR_maintenance9 (proposed for Vulkan 1.4, no features)
+    // VK_KHR_maintenance9
     extensions.maintenance9 = loaded_extensions.contains(VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance9, VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -161,37 +161,38 @@ private:
 
     void HandleTransformFeedback();
 
-    void UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateBlendConstants(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateDepthBounds(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateLineWidth(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateBlendConstants(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateDepthBounds(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateLineWidth(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
 
-    void UpdateCullMode(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateDepthBoundsTestEnable(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateDepthTestEnable(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateDepthWriteEnable(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateDepthCompareOp(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdatePrimitiveRestartEnable(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateRasterizerDiscardEnable(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateConservativeRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateLineStipple(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateLineRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateDepthBiasEnable(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateLogicOpEnable(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateDepthClampEnable(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateAlphaToCoverageEnable(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateAlphaToOneEnable(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateFrontFace(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateStencilOp(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateStencilTestEnable(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateLogicOp(Tegra::Engines::Maxwell3D::Regs& regs);
-    void UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdateCullMode(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateDepthBoundsTestEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateDepthTestEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateDepthWriteEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateDepthCompareOp(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdatePrimitiveRestartEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateRasterizerDiscardEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateConservativeRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateLineStipple(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateLineRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateDepthBiasEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateLogicOpEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateDepthClampEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateAlphaToCoverageEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateAlphaToOneEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateFrontFace(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateStencilOp(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateStencilTestEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateLogicOp(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
 
-    void UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf = nullptr);
+    void RecordDynamicStates(vk::CommandBuffer cmdbuf);
 
     Tegra::GPU& gpu;
     Tegra::MaxwellDeviceMemoryManager& device_memory;

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -224,6 +224,9 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     pipeline->SetEngine(maxwell3d, gpu_memory);
 
     UpdateDynamicStates();
+
+    pipeline->SetPreBindCallback([this](vk::CommandBuffer cmdbuf) { RecordDynamicStates(cmdbuf); });
+    SCOPE_EXIT { pipeline->ClearPreBindCallback(); };
 
     if (!pipeline->Configure(is_indexed))
         return;
@@ -1047,6 +1050,219 @@ void RasterizerVulkan::UpdateDynamicStates() {
     }
 }
 
+void RasterizerVulkan::RecordDynamicStates(vk::CommandBuffer cmdbuf) {
+    auto& regs = maxwell3d->regs;
+
+    // Viewports
+    if (state_tracker.TouchViewports()) {
+        if (!regs.viewport_scale_offset_enabled) {
+            float x = static_cast<float>(regs.surface_clip.x);
+            float y = static_cast<float>(regs.surface_clip.y);
+            float width = (std::max)(1.0f, static_cast<float>(regs.surface_clip.width));
+            float height = (std::max)(1.0f, static_cast<float>(regs.surface_clip.height));
+            if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
+                y += height;
+                height = -height;
+            }
+            VkViewport viewport{
+                .x = x,
+                .y = y,
+                .width = width,
+                .height = height,
+                .minDepth = 0.0f,
+                .maxDepth = 1.0f,
+            };
+            if (!device.IsExtDepthRangeUnrestrictedSupported()) {
+                viewport.minDepth = std::clamp(viewport.minDepth, 0.0f, 1.0f);
+                viewport.maxDepth = std::clamp(viewport.maxDepth, 0.0f, 1.0f);
+            }
+            cmdbuf.SetViewport(0, viewport);
+        } else {
+            const bool is_rescaling{texture_cache.IsRescaling()};
+            const float scale = is_rescaling ? Settings::values.resolution_info.up_factor : 1.0f;
+            const std::array viewport_list{
+                GetViewportState(device, regs, 0, scale),  GetViewportState(device, regs, 1, scale),
+                GetViewportState(device, regs, 2, scale),  GetViewportState(device, regs, 3, scale),
+                GetViewportState(device, regs, 4, scale),  GetViewportState(device, regs, 5, scale),
+                GetViewportState(device, regs, 6, scale),  GetViewportState(device, regs, 7, scale),
+                GetViewportState(device, regs, 8, scale),  GetViewportState(device, regs, 9, scale),
+                GetViewportState(device, regs, 10, scale), GetViewportState(device, regs, 11, scale),
+                GetViewportState(device, regs, 12, scale), GetViewportState(device, regs, 13, scale),
+                GetViewportState(device, regs, 14, scale), GetViewportState(device, regs, 15, scale),
+            };
+            const u32 num_viewports = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
+            const vk::Span<VkViewport> viewports(viewport_list.data(), num_viewports);
+            cmdbuf.SetViewport(0, viewports);
+        }
+    }
+
+    // Scissors
+    if (state_tracker.TouchScissors()) {
+        if (!regs.viewport_scale_offset_enabled) {
+            u32 x = regs.surface_clip.x;
+            u32 y = regs.surface_clip.y;
+            u32 width = (std::max)(1u, static_cast<u32>(regs.surface_clip.width));
+            u32 height = (std::max)(1u, static_cast<u32>(regs.surface_clip.height));
+            if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
+                y = regs.surface_clip.height - (y + height);
+            }
+            VkRect2D scissor{};
+            scissor.offset.x = static_cast<int32_t>(x);
+            scissor.offset.y = static_cast<int32_t>(y);
+            scissor.extent.width  = width;
+            scissor.extent.height = height;
+            cmdbuf.SetScissor(0, scissor);
+        } else {
+            u32 up_scale = 1;
+            u32 down_shift = 0;
+            if (texture_cache.IsRescaling()) {
+                up_scale = Settings::values.resolution_info.up_scale;
+                down_shift = Settings::values.resolution_info.down_shift;
+            }
+            const std::array scissor_list{
+                GetScissorState(regs, 0, up_scale, down_shift),
+                GetScissorState(regs, 1, up_scale, down_shift),
+                GetScissorState(regs, 2, up_scale, down_shift),
+                GetScissorState(regs, 3, up_scale, down_shift),
+                GetScissorState(regs, 4, up_scale, down_shift),
+                GetScissorState(regs, 5, up_scale, down_shift),
+                GetScissorState(regs, 6, up_scale, down_shift),
+                GetScissorState(regs, 7, up_scale, down_shift),
+                GetScissorState(regs, 8, up_scale, down_shift),
+                GetScissorState(regs, 9, up_scale, down_shift),
+                GetScissorState(regs, 10, up_scale, down_shift),
+                GetScissorState(regs, 11, up_scale, down_shift),
+                GetScissorState(regs, 12, up_scale, down_shift),
+                GetScissorState(regs, 13, up_scale, down_shift),
+                GetScissorState(regs, 14, up_scale, down_shift),
+                GetScissorState(regs, 15, up_scale, down_shift),
+            };
+            const u32 num_scissors = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
+            const vk::Span<VkRect2D> scissors(scissor_list.data(), num_scissors);
+            cmdbuf.SetScissor(0, scissors);
+        }
+    }
+
+    // Depth bias
+    if (state_tracker.TouchDepthBias()) {
+        float units = regs.depth_bias / 2.0f;
+        const bool is_d24 = regs.zeta.format == Tegra::DepthFormat::Z24_UNORM_S8_UINT ||
+                            regs.zeta.format == Tegra::DepthFormat::X8Z24_UNORM ||
+                            regs.zeta.format == Tegra::DepthFormat::S8Z24_UNORM ||
+                            regs.zeta.format == Tegra::DepthFormat::V8Z24_UNORM;
+        if (is_d24 && !device.SupportsD24DepthBuffer()) {
+            static constexpr const size_t length = sizeof(NEEDS_D24) / sizeof(NEEDS_D24[0]);
+            static constexpr const u64* start = NEEDS_D24;
+            static constexpr const u64* end = NEEDS_D24 + length;
+            const u64* it = std::find(start, end, program_id);
+            if (it != end) {
+                const double rescale_factor =
+                    static_cast<double>(1ULL << (32 - 24)) / (static_cast<double>(0x1.ep+127));
+                units = static_cast<float>(static_cast<double>(units) * rescale_factor);
+            }
+        }
+        if (device.IsExtDepthBiasControlSupported()) {
+            static VkDepthBiasRepresentationInfoEXT bias_info{
+                .sType = VK_STRUCTURE_TYPE_DEPTH_BIAS_REPRESENTATION_INFO_EXT,
+                .pNext = nullptr,
+                .depthBiasRepresentation =
+                    VK_DEPTH_BIAS_REPRESENTATION_LEAST_REPRESENTABLE_VALUE_FORCE_UNORM_EXT,
+                .depthBiasExact = VK_FALSE,
+            };
+            cmdbuf.SetDepthBias(units, regs.depth_bias_clamp, regs.slope_scale_depth_bias, &bias_info);
+        } else {
+            cmdbuf.SetDepthBias(units, regs.depth_bias_clamp, regs.slope_scale_depth_bias);
+        }
+    }
+
+    // Blend constants
+    if (state_tracker.TouchBlendConstants()) {
+        const std::array blend_color = {regs.blend_color.r, regs.blend_color.g, regs.blend_color.b,
+                                        regs.blend_color.a};
+        cmdbuf.SetBlendConstants(blend_color.data());
+    }
+
+    // Depth bounds
+    if (state_tracker.TouchDepthBounds()) {
+        cmdbuf.SetDepthBounds(regs.depth_bounds[0], regs.depth_bounds[1]);
+    }
+
+    // Stencil faces
+    if (state_tracker.TouchStencilProperties()) {
+        const VkStencilOpState front_state{
+            .failOp = static_cast<VkStencilOp>(regs.stencil_front_fail),
+            .passOp = static_cast<VkStencilOp>(regs.stencil_front_pass),
+            .depthFailOp = static_cast<VkStencilOp>(regs.stencil_front_depth_fail),
+            .compareOp = static_cast<VkCompareOp>(regs.stencil_front_compare),
+            .compareMask = regs.stencil_front_mask,
+            .writeMask = regs.stencil_front_write_mask,
+            .reference = regs.stencil_front_reference,
+        };
+        const VkStencilOpState back_state{
+            .failOp = static_cast<VkStencilOp>(regs.stencil_back_fail),
+            .passOp = static_cast<VkStencilOp>(regs.stencil_back_pass),
+            .depthFailOp = static_cast<VkStencilOp>(regs.stencil_back_depth_fail),
+            .compareOp = static_cast<VkCompareOp>(regs.stencil_back_compare),
+            .compareMask = regs.stencil_back_mask,
+            .writeMask = regs.stencil_back_write_mask,
+            .reference = regs.stencil_back_reference,
+        };
+        cmdbuf.SetStencilOpEXT(front_state, back_state);
+        if (state_tracker.TouchStencilReference()) {
+            cmdbuf.SetStencilReference(front_state.reference, back_state.reference);
+        }
+    }
+
+    // Line width
+    if (state_tracker.TouchLineWidth()) {
+        cmdbuf.SetLineWidth(regs.line_width);
+    }
+
+    // Extended Dynamic State (a subset) - call existing helpers but target cmdbuf where appropriate
+    if (device.IsExtExtendedDynamicStateSupported()) {
+        UpdateCullMode(regs, &cmdbuf);
+        UpdateDepthCompareOp(regs, &cmdbuf);
+        UpdateFrontFace(regs, &cmdbuf);
+        UpdateStencilOp(regs, &cmdbuf);
+        if (state_tracker.TouchStateEnable()) {
+            UpdateDepthBoundsTestEnable(regs, &cmdbuf);
+            UpdateDepthTestEnable(regs, &cmdbuf);
+            UpdateDepthWriteEnable(regs, &cmdbuf);
+            UpdateStencilTestEnable(regs, &cmdbuf);
+        }
+    }
+
+    if (device.IsExtExtendedDynamicState2Supported()) {
+        UpdatePrimitiveRestartEnable(regs, &cmdbuf);
+        UpdateRasterizerDiscardEnable(regs, &cmdbuf);
+        UpdateDepthBiasEnable(regs, &cmdbuf);
+    }
+
+    if (device.IsExtExtendedDynamicState2ExtrasSupported()) {
+        UpdateLogicOp(regs, &cmdbuf);
+    }
+
+    if (device.IsExtExtendedDynamicState3EnablesSupported()) {
+        UpdateLogicOpEnable(regs, &cmdbuf);
+        UpdateDepthClampEnable(regs, &cmdbuf);
+        UpdateLineRasterizationMode(regs, &cmdbuf);
+        UpdateLineStippleEnable(regs, &cmdbuf);
+        UpdateConservativeRasterizationMode(regs, &cmdbuf);
+        UpdateAlphaToCoverageEnable(regs, &cmdbuf);
+        UpdateAlphaToOneEnable(regs, &cmdbuf);
+    }
+
+    if (device.IsExtExtendedDynamicState3BlendingSupported()) {
+        UpdateBlending(regs, &cmdbuf);
+    }
+
+    if (device.IsExtVertexInputDynamicStateSupported()) {
+        if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput()) {
+            UpdateVertexInput(regs, &cmdbuf);
+        }
+    }
+}
+
 void RasterizerVulkan::HandleTransformFeedback() {
     static std::once_flag warn_unsupported;
 
@@ -1072,7 +1288,7 @@ void RasterizerVulkan::HandleTransformFeedback() {
     }
 }
 
-void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchViewports()) {
         return;
     }
@@ -1093,9 +1309,11 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
             .minDepth = 0.0f,
             .maxDepth = 1.0f,
         };
-        scheduler.Record([viewport](vk::CommandBuffer cmdbuf) {
-            cmdbuf.SetViewport(0, viewport);
-        });
+        if (cmdbuf) {
+            cmdbuf->SetViewport(0, viewport);
+        } else {
+            scheduler.Record([viewport](vk::CommandBuffer cmdbuf) { cmdbuf.SetViewport(0, viewport); });
+        }
         return;
     }
     const bool is_rescaling{texture_cache.IsRescaling()};
@@ -1110,14 +1328,20 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
         GetViewportState(device, regs, 12, scale), GetViewportState(device, regs, 13, scale),
         GetViewportState(device, regs, 14, scale), GetViewportState(device, regs, 15, scale),
     };
-    scheduler.Record([this, viewport_list](vk::CommandBuffer cmdbuf) {
+    if (cmdbuf) {
         const u32 num_viewports = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
         const vk::Span<VkViewport> viewports(viewport_list.data(), num_viewports);
-        cmdbuf.SetViewport(0, viewports);
-    });
+        cmdbuf->SetViewport(0, viewports);
+    } else {
+        scheduler.Record([this, viewport_list](vk::CommandBuffer cmdbuf) {
+            const u32 num_viewports = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
+            const vk::Span<VkViewport> viewports(viewport_list.data(), num_viewports);
+            cmdbuf.SetViewport(0, viewports);
+        });
+    }
 }
 
-void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchScissors()) {
         return;
     }
@@ -1134,9 +1358,11 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
         scissor.offset.y = static_cast<int32_t>(y);
         scissor.extent.width  = width;
         scissor.extent.height = height;
-        scheduler.Record([scissor](vk::CommandBuffer cmdbuf) {
-            cmdbuf.SetScissor(0, scissor);
-        });
+        if (cmdbuf) {
+            cmdbuf->SetScissor(0, scissor);
+        } else {
+            scheduler.Record([scissor](vk::CommandBuffer cmdbuf) { cmdbuf.SetScissor(0, scissor); });
+        }
         return;
     }
     u32 up_scale = 1;
@@ -1163,14 +1389,20 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
         GetScissorState(regs, 14, up_scale, down_shift),
         GetScissorState(regs, 15, up_scale, down_shift),
     };
-    scheduler.Record([this, scissor_list](vk::CommandBuffer cmdbuf) {
+    if (cmdbuf) {
         const u32 num_scissors = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
         const vk::Span<VkRect2D> scissors(scissor_list.data(), num_scissors);
-        cmdbuf.SetScissor(0, scissors);
-    });
+        cmdbuf->SetScissor(0, scissors);
+    } else {
+        scheduler.Record([this, scissor_list](vk::CommandBuffer cmdbuf) {
+            const u32 num_scissors = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
+            const vk::Span<VkRect2D> scissors(scissor_list.data(), num_scissors);
+            cmdbuf.SetScissor(0, scissors);
+        });
+    }
 }
 
-void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchDepthBias()) {
         return;
     }
@@ -1197,8 +1429,7 @@ void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
         }
     }
 
-    scheduler.Record([constant = units, clamp = regs.depth_bias_clamp,
-                      factor = regs.slope_scale_depth_bias, this](vk::CommandBuffer cmdbuf) {
+    if (cmdbuf) {
         if (device.IsExtDepthBiasControlSupported()) {
             static VkDepthBiasRepresentationInfoEXT bias_info{
                 .sType = VK_STRUCTURE_TYPE_DEPTH_BIAS_REPRESENTATION_INFO_EXT,
@@ -1208,32 +1439,57 @@ void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
                 .depthBiasExact = VK_FALSE,
             };
 
-            cmdbuf.SetDepthBias(constant, clamp, factor, &bias_info);
+            cmdbuf->SetDepthBias(units, regs.depth_bias_clamp, regs.slope_scale_depth_bias, &bias_info);
         } else {
-            cmdbuf.SetDepthBias(constant, clamp, factor);
+            cmdbuf->SetDepthBias(units, regs.depth_bias_clamp, regs.slope_scale_depth_bias);
         }
-    });
+    } else {
+        scheduler.Record([constant = units, clamp = regs.depth_bias_clamp,
+                          factor = regs.slope_scale_depth_bias, this](vk::CommandBuffer cmdbuf) {
+            if (device.IsExtDepthBiasControlSupported()) {
+                static VkDepthBiasRepresentationInfoEXT bias_info{
+                    .sType = VK_STRUCTURE_TYPE_DEPTH_BIAS_REPRESENTATION_INFO_EXT,
+                    .pNext = nullptr,
+                    .depthBiasRepresentation =
+                        VK_DEPTH_BIAS_REPRESENTATION_LEAST_REPRESENTABLE_VALUE_FORCE_UNORM_EXT,
+                    .depthBiasExact = VK_FALSE,
+                };
+
+                cmdbuf.SetDepthBias(constant, clamp, factor, &bias_info);
+            } else {
+                cmdbuf.SetDepthBias(constant, clamp, factor);
+            }
+        });
+    }
 }
 
-void RasterizerVulkan::UpdateBlendConstants(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateBlendConstants(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchBlendConstants()) {
         return;
     }
     const std::array blend_color = {regs.blend_color.r, regs.blend_color.g, regs.blend_color.b,
                                     regs.blend_color.a};
-    scheduler.Record(
-        [blend_color](vk::CommandBuffer cmdbuf) { cmdbuf.SetBlendConstants(blend_color.data()); });
+    if (cmdbuf) {
+        cmdbuf->SetBlendConstants(blend_color.data());
+    } else {
+        scheduler.Record([blend_color](vk::CommandBuffer cmdbuf) { cmdbuf.SetBlendConstants(blend_color.data()); });
+    }
 }
 
-void RasterizerVulkan::UpdateDepthBounds(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateDepthBounds(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchDepthBounds()) {
         return;
     }
-    scheduler.Record([min = regs.depth_bounds[0], max = regs.depth_bounds[1]](
-                         vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthBounds(min, max); });
+    if (cmdbuf) {
+        cmdbuf->SetDepthBounds(regs.depth_bounds[0], regs.depth_bounds[1]);
+    } else {
+        scheduler.Record([min = regs.depth_bounds[0], max = regs.depth_bounds[1]](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetDepthBounds(min, max);
+        });
+    }
 }
 
-void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchStencilProperties()) {
         return;
     }
@@ -1257,17 +1513,25 @@ void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs)
                     return;
                 }
             }
-            scheduler.Record([front_ref = regs.stencil_front_ref, back_ref = regs.stencil_back_ref,
-                              two_sided = regs.stencil_two_side_enable](vk::CommandBuffer cmdbuf) {
-                const bool set_back = two_sided && front_ref != back_ref;
-                // Front face
-                cmdbuf.SetStencilReference(set_back ? VK_STENCIL_FACE_FRONT_BIT
-                                                    : VK_STENCIL_FACE_FRONT_AND_BACK,
-                                           front_ref);
+            if (cmdbuf) {
+                const bool set_back = regs.stencil_two_side_enable && regs.stencil_front_ref != regs.stencil_back_ref;
+                cmdbuf->SetStencilReference(set_back ? VK_STENCIL_FACE_FRONT_BIT : VK_STENCIL_FACE_FRONT_AND_BACK,
+                                            regs.stencil_front_ref);
                 if (set_back) {
-                    cmdbuf.SetStencilReference(VK_STENCIL_FACE_BACK_BIT, back_ref);
+                    cmdbuf->SetStencilReference(VK_STENCIL_FACE_BACK_BIT, regs.stencil_back_ref);
                 }
-            });
+            } else {
+                scheduler.Record([front_ref = regs.stencil_front_ref, back_ref = regs.stencil_back_ref,
+                                  two_sided = regs.stencil_two_side_enable](vk::CommandBuffer cmdbuf) {
+                    const bool set_back = two_sided && front_ref != back_ref;
+                    cmdbuf.SetStencilReference(set_back ? VK_STENCIL_FACE_FRONT_BIT
+                                                        : VK_STENCIL_FACE_FRONT_AND_BACK,
+                                               front_ref);
+                    if (set_back) {
+                        cmdbuf.SetStencilReference(VK_STENCIL_FACE_BACK_BIT, back_ref);
+                    }
+                });
+            }
         }();
     }
     if (update_write_mask) {
@@ -1282,18 +1546,26 @@ void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs)
                     return;
                 }
             }
-            scheduler.Record([front_write_mask = regs.stencil_front_mask,
-                              back_write_mask = regs.stencil_back_mask,
-                              two_sided = regs.stencil_two_side_enable](vk::CommandBuffer cmdbuf) {
-                const bool set_back = two_sided && front_write_mask != back_write_mask;
-                // Front face
-                cmdbuf.SetStencilWriteMask(set_back ? VK_STENCIL_FACE_FRONT_BIT
-                                                    : VK_STENCIL_FACE_FRONT_AND_BACK,
-                                           front_write_mask);
+            if (cmdbuf) {
+                const bool set_back = regs.stencil_two_side_enable && regs.stencil_front_mask != regs.stencil_back_mask;
+                cmdbuf->SetStencilWriteMask(set_back ? VK_STENCIL_FACE_FRONT_BIT : VK_STENCIL_FACE_FRONT_AND_BACK,
+                                            regs.stencil_front_mask);
                 if (set_back) {
-                    cmdbuf.SetStencilWriteMask(VK_STENCIL_FACE_BACK_BIT, back_write_mask);
+                    cmdbuf->SetStencilWriteMask(VK_STENCIL_FACE_BACK_BIT, regs.stencil_back_mask);
                 }
-            });
+            } else {
+                scheduler.Record([front_write_mask = regs.stencil_front_mask,
+                                  back_write_mask = regs.stencil_back_mask,
+                                  two_sided = regs.stencil_two_side_enable](vk::CommandBuffer cmdbuf) {
+                    const bool set_back = two_sided && front_write_mask != back_write_mask;
+                    cmdbuf.SetStencilWriteMask(set_back ? VK_STENCIL_FACE_FRONT_BIT
+                                                        : VK_STENCIL_FACE_FRONT_AND_BACK,
+                                               front_write_mask);
+                    if (set_back) {
+                        cmdbuf.SetStencilWriteMask(VK_STENCIL_FACE_BACK_BIT, back_write_mask);
+                    }
+                });
+            }
         }();
     }
     if (update_compare_masks) {
@@ -1308,40 +1580,56 @@ void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs)
                     return;
                 }
             }
-            scheduler.Record([front_test_mask = regs.stencil_front_func_mask,
-                              back_test_mask = regs.stencil_back_func_mask,
-                              two_sided = regs.stencil_two_side_enable](vk::CommandBuffer cmdbuf) {
-                const bool set_back = two_sided && front_test_mask != back_test_mask;
-                // Front face
-                cmdbuf.SetStencilCompareMask(set_back ? VK_STENCIL_FACE_FRONT_BIT
-                                                      : VK_STENCIL_FACE_FRONT_AND_BACK,
-                                             front_test_mask);
+            if (cmdbuf) {
+                const bool set_back = regs.stencil_two_side_enable && regs.stencil_front_func_mask != regs.stencil_back_func_mask;
+                cmdbuf->SetStencilCompareMask(set_back ? VK_STENCIL_FACE_FRONT_BIT : VK_STENCIL_FACE_FRONT_AND_BACK,
+                                              regs.stencil_front_func_mask);
                 if (set_back) {
-                    cmdbuf.SetStencilCompareMask(VK_STENCIL_FACE_BACK_BIT, back_test_mask);
+                    cmdbuf->SetStencilCompareMask(VK_STENCIL_FACE_BACK_BIT, regs.stencil_back_func_mask);
                 }
-            });
+            } else {
+                scheduler.Record([front_test_mask = regs.stencil_front_func_mask,
+                                  back_test_mask = regs.stencil_back_func_mask,
+                                  two_sided = regs.stencil_two_side_enable](vk::CommandBuffer cmdbuf) {
+                    const bool set_back = two_sided && front_test_mask != back_test_mask;
+                    cmdbuf.SetStencilCompareMask(set_back ? VK_STENCIL_FACE_FRONT_BIT
+                                                         : VK_STENCIL_FACE_FRONT_AND_BACK,
+                                                front_test_mask);
+                    if (set_back) {
+                        cmdbuf.SetStencilCompareMask(VK_STENCIL_FACE_BACK_BIT, back_test_mask);
+                    }
+                });
+            }
         }();
     }
     state_tracker.ClearStencilReset();
 }
 
-void RasterizerVulkan::UpdateLineWidth(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateLineWidth(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchLineWidth()) {
         return;
     }
-    const float width =
-        regs.line_anti_alias_enable ? regs.line_width_smooth : regs.line_width_aliased;
-    scheduler.Record([width](vk::CommandBuffer cmdbuf) { cmdbuf.SetLineWidth(width); });
+    const float width = regs.line_anti_alias_enable ? regs.line_width_smooth : regs.line_width_aliased;
+    if (cmdbuf) {
+        cmdbuf->SetLineWidth(width);
+    } else {
+        scheduler.Record([width](vk::CommandBuffer cmdbuf) { cmdbuf.SetLineWidth(width); });
+    }
 }
 
-void RasterizerVulkan::UpdateCullMode(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateCullMode(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchCullMode()) {
         return;
     }
-    scheduler.Record([enabled = regs.gl_cull_test_enabled,
-                      cull_face = regs.gl_cull_face](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetCullModeEXT(enabled ? MaxwellToVK::CullFace(cull_face) : VK_CULL_MODE_NONE);
-    });
+    if (cmdbuf) {
+        cmdbuf->SetCullModeEXT(regs.gl_cull_test_enabled ? MaxwellToVK::CullFace(regs.gl_cull_face)
+                                                         : VK_CULL_MODE_NONE);
+    } else {
+        scheduler.Record([enabled = regs.gl_cull_test_enabled,
+                          cull_face = regs.gl_cull_face](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetCullModeEXT(enabled ? MaxwellToVK::CullFace(cull_face) : VK_CULL_MODE_NONE);
+        });
+    }
 }
 
 void RasterizerVulkan::UpdateDepthBoundsTestEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
@@ -1358,43 +1646,51 @@ void RasterizerVulkan::UpdateDepthBoundsTestEnable(Tegra::Engines::Maxwell3D::Re
     });
 }
 
-void RasterizerVulkan::UpdateDepthTestEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateDepthTestEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchDepthTestEnable()) {
         return;
     }
-    scheduler.Record([enable = regs.depth_test_enable](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetDepthTestEnableEXT(enable);
-    });
+    if (cmdbuf) {
+        cmdbuf->SetDepthTestEnableEXT(regs.depth_test_enable);
+    } else {
+        scheduler.Record([enable = regs.depth_test_enable](vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthTestEnableEXT(enable); });
+    }
 }
 
-void RasterizerVulkan::UpdateDepthWriteEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateDepthWriteEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchDepthWriteEnable()) {
         return;
     }
-    scheduler.Record([enable = regs.depth_write_enabled](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetDepthWriteEnableEXT(enable);
-    });
+    if (cmdbuf) {
+        cmdbuf->SetDepthWriteEnableEXT(regs.depth_write_enabled);
+    } else {
+        scheduler.Record([enable = regs.depth_write_enabled](vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthWriteEnableEXT(enable); });
+    }
 }
 
-void RasterizerVulkan::UpdatePrimitiveRestartEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdatePrimitiveRestartEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchPrimitiveRestartEnable()) {
         return;
     }
-    scheduler.Record([enable = regs.primitive_restart.enabled](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetPrimitiveRestartEnableEXT(enable);
-    });
+    if (cmdbuf) {
+        cmdbuf->SetPrimitiveRestartEnableEXT(regs.primitive_restart.enabled);
+    } else {
+        scheduler.Record([enable = regs.primitive_restart.enabled](vk::CommandBuffer cmdbuf) { cmdbuf.SetPrimitiveRestartEnableEXT(enable); });
+    }
 }
 
-void RasterizerVulkan::UpdateRasterizerDiscardEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateRasterizerDiscardEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchRasterizerDiscardEnable()) {
         return;
     }
-    scheduler.Record([disable = regs.rasterize_enable](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetRasterizerDiscardEnableEXT(disable == 0);
-    });
+    if (cmdbuf) {
+        cmdbuf->SetRasterizerDiscardEnableEXT(regs.rasterize_enable == 0);
+    } else {
+        scheduler.Record([disable = regs.rasterize_enable](vk::CommandBuffer cmdbuf) { cmdbuf.SetRasterizerDiscardEnableEXT(disable == 0); });
+    }
 }
 
-void RasterizerVulkan::UpdateConservativeRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateConservativeRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchConservativeRasterizationMode()) {
         return;
     }
@@ -1402,15 +1698,20 @@ void RasterizerVulkan::UpdateConservativeRasterizationMode(Tegra::Engines::Maxwe
     if (!device.SupportsDynamicState3ConservativeRasterizationMode()) {
         return;
     }
-
-    scheduler.Record([enable = regs.conservative_raster_enable](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetConservativeRasterizationModeEXT(
-            enable ? VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT
-                   : VK_CONSERVATIVE_RASTERIZATION_MODE_DISABLED_EXT);
-    });
+    if (cmdbuf) {
+        cmdbuf->SetConservativeRasterizationModeEXT(
+            regs.conservative_raster_enable ? VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT
+                                            : VK_CONSERVATIVE_RASTERIZATION_MODE_DISABLED_EXT);
+    } else {
+        scheduler.Record([enable = regs.conservative_raster_enable](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetConservativeRasterizationModeEXT(
+                enable ? VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT
+                       : VK_CONSERVATIVE_RASTERIZATION_MODE_DISABLED_EXT);
+        });
+    }
 }
 
-void RasterizerVulkan::UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchLineStippleEnable()) {
         return;
     }
@@ -1418,13 +1719,16 @@ void RasterizerVulkan::UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& 
     if (!device.SupportsDynamicState3LineStippleEnable()) {
         return;
     }
-
-    scheduler.Record([enable = regs.line_stipple_enable](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetLineStippleEnableEXT(enable);
-    });
+    if (cmdbuf) {
+        cmdbuf->SetLineStippleEnableEXT(regs.line_stipple_enable);
+    } else {
+        scheduler.Record([enable = regs.line_stipple_enable](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetLineStippleEnableEXT(enable);
+        });
+    }
 }
 
-void RasterizerVulkan::UpdateLineRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateLineRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!device.IsExtLineRasterizationSupported()) {
         return;
     }
@@ -1456,12 +1760,16 @@ void RasterizerVulkan::UpdateLineRasterizationMode(Tegra::Engines::Maxwell3D::Re
             });
         }
     }
-    scheduler.Record([mode](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetLineRasterizationModeEXT(mode);
-    });
+    if (cmdbuf) {
+        cmdbuf->SetLineRasterizationModeEXT(mode);
+    } else {
+        scheduler.Record([mode](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetLineRasterizationModeEXT(mode);
+        });
+    }
 }
 
-void RasterizerVulkan::UpdateDepthBiasEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateDepthBiasEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchDepthBiasEnable()) {
         return;
     }
@@ -1492,23 +1800,30 @@ void RasterizerVulkan::UpdateDepthBiasEnable(Tegra::Engines::Maxwell3D::Regs& re
     };
     const u32 topology_index = static_cast<u32>(maxwell3d->draw_manager->GetDrawState().topology);
     const u32 enable = enabled_lut[POLYGON_OFFSET_ENABLE_LUT[topology_index]];
-    scheduler.Record(
-        [enable](vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthBiasEnableEXT(enable != 0); });
+    if (cmdbuf) {
+        cmdbuf->SetDepthBiasEnableEXT(enable != 0);
+    } else {
+        scheduler.Record([enable](vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthBiasEnableEXT(enable != 0); });
+    }
 }
 
-void RasterizerVulkan::UpdateLogicOpEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateLogicOpEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchLogicOpEnable()) {
         return;
     }
     if (!device.SupportsDynamicState3LogicOpEnable()) {
         return;
     }
-    scheduler.Record([enable = regs.logic_op.enable](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetLogicOpEnableEXT(enable != 0);
-    });
+    if (cmdbuf) {
+        cmdbuf->SetLogicOpEnableEXT(regs.logic_op.enable != 0);
+    } else {
+        scheduler.Record([enable = regs.logic_op.enable](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetLogicOpEnableEXT(enable != 0);
+        });
+    }
 }
 
-void RasterizerVulkan::UpdateDepthClampEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateDepthClampEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchDepthClampEnable()) {
         return;
     }
@@ -1521,11 +1836,14 @@ void RasterizerVulkan::UpdateDepthClampEnable(Tegra::Engines::Maxwell3D::Regs& r
                             Maxwell::ViewportClipControl::GeometryClip::FrustumXYZ ||
                         regs.viewport_clip_control.geometry_clip ==
                             Maxwell::ViewportClipControl::GeometryClip::FrustumZ);
-    scheduler.Record(
-        [is_enabled](vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthClampEnableEXT(is_enabled); });
+    if (cmdbuf) {
+        cmdbuf->SetDepthClampEnableEXT(is_enabled);
+    } else {
+        scheduler.Record([is_enabled](vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthClampEnableEXT(is_enabled); });
+    }
 }
 
-void RasterizerVulkan::UpdateAlphaToCoverageEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateAlphaToCoverageEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchAlphaToCoverageEnable()) {
         return;
     }
@@ -1535,12 +1853,16 @@ void RasterizerVulkan::UpdateAlphaToCoverageEnable(Tegra::Engines::Maxwell3D::Re
     GraphicsPipeline* const pipeline = pipeline_cache.CurrentGraphicsPipeline();
     const bool enable = pipeline != nullptr && pipeline->SupportsAlphaToCoverage() &&
                         regs.anti_alias_alpha_control.alpha_to_coverage != 0;
-    scheduler.Record([enable](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetAlphaToCoverageEnableEXT(enable ? VK_TRUE : VK_FALSE);
-    });
+    if (cmdbuf) {
+        cmdbuf->SetAlphaToCoverageEnableEXT(enable ? VK_TRUE : VK_FALSE);
+    } else {
+        scheduler.Record([enable](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetAlphaToCoverageEnableEXT(enable ? VK_TRUE : VK_FALSE);
+        });
+    }
 }
 
-void RasterizerVulkan::UpdateAlphaToOneEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateAlphaToOneEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchAlphaToOneEnable()) {
         return;
     }
@@ -1555,21 +1877,29 @@ void RasterizerVulkan::UpdateAlphaToOneEnable(Tegra::Engines::Maxwell3D::Regs& r
     GraphicsPipeline* const pipeline = pipeline_cache.CurrentGraphicsPipeline();
     const bool enable = pipeline != nullptr && pipeline->SupportsAlphaToOne() &&
                         regs.anti_alias_alpha_control.alpha_to_one != 0;
-    scheduler.Record([enable](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetAlphaToOneEnableEXT(enable ? VK_TRUE : VK_FALSE);
-    });
+    if (cmdbuf) {
+        cmdbuf->SetAlphaToOneEnableEXT(enable ? VK_TRUE : VK_FALSE);
+    } else {
+        scheduler.Record([enable](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetAlphaToOneEnableEXT(enable ? VK_TRUE : VK_FALSE);
+        });
+    }
 }
 
-void RasterizerVulkan::UpdateDepthCompareOp(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateDepthCompareOp(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchDepthCompareOp()) {
         return;
     }
-    scheduler.Record([func = regs.depth_test_func](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetDepthCompareOpEXT(MaxwellToVK::ComparisonOp(func));
-    });
+    if (cmdbuf) {
+        cmdbuf->SetDepthCompareOpEXT(MaxwellToVK::ComparisonOp(regs.depth_test_func));
+    } else {
+        scheduler.Record([func = regs.depth_test_func](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetDepthCompareOpEXT(MaxwellToVK::ComparisonOp(func));
+        });
+    }
 }
 
-void RasterizerVulkan::UpdateFrontFace(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateFrontFace(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchFrontFace()) {
         return;
     }
@@ -1579,11 +1909,14 @@ void RasterizerVulkan::UpdateFrontFace(Tegra::Engines::Maxwell3D::Regs& regs) {
         front_face = front_face == VK_FRONT_FACE_CLOCKWISE ? VK_FRONT_FACE_COUNTER_CLOCKWISE
                                                            : VK_FRONT_FACE_CLOCKWISE;
     }
-    scheduler.Record(
-        [front_face](vk::CommandBuffer cmdbuf) { cmdbuf.SetFrontFaceEXT(front_face); });
+    if (cmdbuf) {
+        cmdbuf->SetFrontFaceEXT(front_face);
+    } else {
+        scheduler.Record([front_face](vk::CommandBuffer cmdbuf) { cmdbuf.SetFrontFaceEXT(front_face); });
+    }
 }
 
-void RasterizerVulkan::UpdateStencilOp(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateStencilOp(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchStencilOp()) {
         return;
     }
@@ -1597,37 +1930,57 @@ void RasterizerVulkan::UpdateStencilOp(Tegra::Engines::Maxwell3D::Regs& regs) {
         const Maxwell::StencilOp::Op back_zfail = regs.stencil_back_op.zfail;
         const Maxwell::StencilOp::Op back_zpass = regs.stencil_back_op.zpass;
         const Maxwell::ComparisonOp back_compare = regs.stencil_back_op.func;
-        scheduler.Record([fail, zfail, zpass, compare, back_fail, back_zfail, back_zpass,
-                          back_compare](vk::CommandBuffer cmdbuf) {
-            cmdbuf.SetStencilOpEXT(VK_STENCIL_FACE_FRONT_BIT, MaxwellToVK::StencilOp(fail),
+        if (cmdbuf) {
+            cmdbuf->SetStencilOpEXT(VK_STENCIL_FACE_FRONT_BIT, MaxwellToVK::StencilOp(fail),
                                    MaxwellToVK::StencilOp(zpass), MaxwellToVK::StencilOp(zfail),
                                    MaxwellToVK::ComparisonOp(compare));
-            cmdbuf.SetStencilOpEXT(VK_STENCIL_FACE_BACK_BIT, MaxwellToVK::StencilOp(back_fail),
+            cmdbuf->SetStencilOpEXT(VK_STENCIL_FACE_BACK_BIT, MaxwellToVK::StencilOp(back_fail),
                                    MaxwellToVK::StencilOp(back_zpass),
                                    MaxwellToVK::StencilOp(back_zfail),
                                    MaxwellToVK::ComparisonOp(back_compare));
-        });
+        } else {
+            scheduler.Record([fail, zfail, zpass, compare, back_fail, back_zfail, back_zpass,
+                              back_compare](vk::CommandBuffer cmdbuf) {
+                cmdbuf.SetStencilOpEXT(VK_STENCIL_FACE_FRONT_BIT, MaxwellToVK::StencilOp(fail),
+                                       MaxwellToVK::StencilOp(zpass), MaxwellToVK::StencilOp(zfail),
+                                       MaxwellToVK::ComparisonOp(compare));
+                cmdbuf.SetStencilOpEXT(VK_STENCIL_FACE_BACK_BIT, MaxwellToVK::StencilOp(back_fail),
+                                       MaxwellToVK::StencilOp(back_zpass),
+                                       MaxwellToVK::StencilOp(back_zfail),
+                                       MaxwellToVK::ComparisonOp(back_compare));
+            });
+        }
     } else {
         // Front face defines the stencil op of both faces
-        scheduler.Record([fail, zfail, zpass, compare](vk::CommandBuffer cmdbuf) {
-            cmdbuf.SetStencilOpEXT(VK_STENCIL_FACE_FRONT_AND_BACK, MaxwellToVK::StencilOp(fail),
+        if (cmdbuf) {
+            cmdbuf->SetStencilOpEXT(VK_STENCIL_FACE_FRONT_AND_BACK, MaxwellToVK::StencilOp(fail),
                                    MaxwellToVK::StencilOp(zpass), MaxwellToVK::StencilOp(zfail),
                                    MaxwellToVK::ComparisonOp(compare));
-        });
+        } else {
+            scheduler.Record([fail, zfail, zpass, compare](vk::CommandBuffer cmdbuf) {
+                cmdbuf.SetStencilOpEXT(VK_STENCIL_FACE_FRONT_AND_BACK, MaxwellToVK::StencilOp(fail),
+                                       MaxwellToVK::StencilOp(zpass), MaxwellToVK::StencilOp(zfail),
+                                       MaxwellToVK::ComparisonOp(compare));
+            });
+        }
     }
 }
 
-void RasterizerVulkan::UpdateLogicOp(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateLogicOp(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchLogicOp()) {
         return;
     }
     const auto op_value = static_cast<u32>(regs.logic_op.op);
     auto op = op_value >= 0x1500 && op_value < 0x1510 ? static_cast<VkLogicOp>(op_value - 0x1500)
                                                       : VK_LOGIC_OP_NO_OP;
-    scheduler.Record([op](vk::CommandBuffer cmdbuf) { cmdbuf.SetLogicOpEXT(op); });
+    if (cmdbuf) {
+        cmdbuf->SetLogicOpEXT(op);
+    } else {
+        scheduler.Record([op](vk::CommandBuffer cmdbuf) { cmdbuf.SetLogicOpEXT(op); });
+    }
 }
 
-void RasterizerVulkan::UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     if (!state_tracker.TouchBlending()) {
         return;
     }
@@ -1650,9 +2003,13 @@ void RasterizerVulkan::UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs) {
                 current |= VK_COLOR_COMPONENT_A_BIT;
             }
         }
-        scheduler.Record([setup_masks](vk::CommandBuffer cmdbuf) {
-            cmdbuf.SetColorWriteMaskEXT(0, setup_masks);
-        });
+        if (cmdbuf) {
+            cmdbuf->SetColorWriteMaskEXT(0, setup_masks);
+        } else {
+            scheduler.Record([setup_masks](vk::CommandBuffer cmdbuf) {
+                cmdbuf.SetColorWriteMaskEXT(0, setup_masks);
+            });
+        }
     }
 
     if (state_tracker.TouchBlendEnable()) {
@@ -1660,9 +2017,13 @@ void RasterizerVulkan::UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs) {
         std::ranges::transform(
             regs.blend.enable, setup_enables.begin(),
             [&](const auto& is_enabled) { return is_enabled != 0 ? VK_TRUE : VK_FALSE; });
-        scheduler.Record([setup_enables](vk::CommandBuffer cmdbuf) {
-            cmdbuf.SetColorBlendEnableEXT(0, setup_enables);
-        });
+        if (cmdbuf) {
+            cmdbuf->SetColorBlendEnableEXT(0, setup_enables);
+        } else {
+            scheduler.Record([setup_enables](vk::CommandBuffer cmdbuf) {
+                cmdbuf.SetColorBlendEnableEXT(0, setup_enables);
+            });
+        }
     }
 
     if (state_tracker.TouchBlendEquations()) {
@@ -1702,22 +2063,30 @@ void RasterizerVulkan::UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs) {
             }
         }
 
-        scheduler.Record([setup_blends](vk::CommandBuffer cmdbuf) {
-            cmdbuf.SetColorBlendEquationEXT(0, setup_blends);
+        if (cmdbuf) {
+            cmdbuf->SetColorBlendEquationEXT(0, setup_blends);
+        } else {
+            scheduler.Record([setup_blends](vk::CommandBuffer cmdbuf) {
+                cmdbuf.SetColorBlendEquationEXT(0, setup_blends);
+            });
+        }
+    }
+}
+
+void RasterizerVulkan::UpdateStencilTestEnable(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
+    if (!state_tracker.TouchStencilTestEnable()) {
+        return;
+    }
+    if (cmdbuf) {
+        cmdbuf->SetStencilTestEnableEXT(regs.stencil_enable);
+    } else {
+        scheduler.Record([enable = regs.stencil_enable](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetStencilTestEnableEXT(enable);
         });
     }
 }
 
-void RasterizerVulkan::UpdateStencilTestEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
-    if (!state_tracker.TouchStencilTestEnable()) {
-        return;
-    }
-    scheduler.Record([enable = regs.stencil_enable](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetStencilTestEnableEXT(enable);
-    });
-}
-
-void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs) {
+void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs, vk::CommandBuffer* cmdbuf) {
     auto& dirty{maxwell3d->dirty.flags};
     if (!dirty[Dirty::VertexInput]) {
         return;
@@ -1770,9 +2139,13 @@ void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs) 
             .divisor = is_instanced ? input_binding.frequency : 1,
         });
     }
-    scheduler.Record([bindings, attributes](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetVertexInputEXT(bindings, attributes);
-    });
+    if (cmdbuf) {
+        cmdbuf->SetVertexInputEXT(bindings, attributes);
+    } else {
+        scheduler.Record([bindings, attributes](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetVertexInputEXT(bindings, attributes);
+        });
+    }
 }
 
 void RasterizerVulkan::InitializeChannel(Tegra::Control::ChannelState& channel) {

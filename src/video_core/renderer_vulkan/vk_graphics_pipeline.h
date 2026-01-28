@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -21,6 +21,7 @@
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+#include <functional>
 
 namespace VideoCore {
 class ShaderNotify;
@@ -128,12 +129,17 @@ public:
         gpu_memory = gpu_memory_;
     }
 
+    void SetPreBindCallback(std::function<void(vk::CommandBuffer)> cb) { pre_bind_callback = std::move(cb); }
+    void ClearPreBindCallback() { pre_bind_callback = {};} 
+
 private:
     template <typename Spec>
     bool ConfigureImpl(bool is_indexed);
 
     void ConfigureDraw(const RescalingPushConstant& rescaling,
                        const RenderAreaPushConstant& render_are);
+
+    std::function<void(vk::CommandBuffer)> pre_bind_callback;
 
     void MakePipeline(VkRenderPass render_pass);
 
