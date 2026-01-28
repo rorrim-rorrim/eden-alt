@@ -477,6 +477,20 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         first_next = &descriptor_indexing;
     }
 
+    // VK_EXT_descriptor_buffer
+    VkPhysicalDeviceDescriptorBufferFeaturesEXT descriptor_buffer_features{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT,
+        .pNext = first_next,
+        .descriptorBuffer = VK_TRUE,
+        .descriptorBufferCaptureReplay = VK_TRUE,
+        .descriptorBufferImageLayoutIgnored = VK_TRUE,
+        .descriptorBufferPushDescriptors = VK_FALSE,
+    };
+
+    if (extensions.descriptor_buffer && features.descriptor_buffer.descriptorBuffer) {
+        first_next = &descriptor_buffer_features;
+    }
+
     // VK_EXT_inline_uniform_block
     VkPhysicalDeviceInlineUniformBlockFeaturesEXT inline_uniform_block_features{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES_EXT,
@@ -1144,6 +1158,14 @@ bool Device::GetSuitability(bool requires_swapchain) {
         SetNext(next, properties.multi_draw);
     }
 
+    // VK_EXT_descriptor_buffer properties
+    VkPhysicalDeviceDescriptorBufferPropertiesEXT descriptor_buffer_properties{};
+    if (extensions.descriptor_buffer) {
+        descriptor_buffer_properties.sType =
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT;
+        SetNext(next, descriptor_buffer_properties);
+    }
+
     // Perform the property fetch.
     physical.GetProperties2(properties2);
 
@@ -1227,10 +1249,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
 void Device::RemoveUnsuitableExtensions() {
     // VK_EXT_custom_border_color
-    // Enable extension if driver supports it, then check individual features
-    // - customBorderColors: Required to use VK_BORDER_COLOR_FLOAT_CUSTOM_EXT
-    // - customBorderColorWithoutFormat: Optional, allows VK_FORMAT_UNDEFINED
-    // If only customBorderColors is available, we must provide a specific format
     if (extensions.custom_border_color) {
         // Verify that at least customBorderColors is available
         if (!features.custom_border_color.customBorderColors) {
@@ -1241,6 +1259,17 @@ void Device::RemoveUnsuitableExtensions() {
     }
     RemoveExtensionFeatureIfUnsuitable(extensions.custom_border_color, features.custom_border_color,
                                        VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+
+    // VK_EXT_descriptor_buffer
+    if (extensions.descriptor_buffer) {
+        if (!features.descriptor_buffer.descriptorBuffer) {
+            LOG_WARNING(Render_Vulkan,
+                        "VK_EXT_descriptor_buffer reported but descriptorBuffer feature not available");
+            extensions.descriptor_buffer = false;
+        }
+    }
+    RemoveExtensionFeatureIfUnsuitable(extensions.descriptor_buffer, features.descriptor_buffer,
+                                       VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
 
     // VK_EXT_depth_bias_control
     extensions.depth_bias_control =

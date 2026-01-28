@@ -60,7 +60,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, MultiDraw, MULTI_DRAW, multi_draw)                                                \
     FEATURE(EXT, PrimitiveTopologyListRestart, PRIMITIVE_TOPOLOGY_LIST_RESTART,                    \
             primitive_topology_list_restart)                                                       \
-    FEATURE(EXT, ProvokingVertex, PROVOKING_VERTEX, provoking_vertex)                              \                    \
+    FEATURE(EXT, ProvokingVertex, PROVOKING_VERTEX, provoking_vertex)                              \
     FEATURE(EXT, Robustness2, ROBUSTNESS_2, robustness2)                                           \
     FEATURE(EXT, TransformFeedback, TRANSFORM_FEEDBACK, transform_feedback)                        \
     FEATURE(EXT, VertexInputDynamicState, VERTEX_INPUT_DYNAMIC_STATE, vertex_input_dynamic_state)  \
@@ -105,9 +105,10 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(NV, VIEWPORT_ARRAY2, viewport_array2)                                                \
     EXTENSION(NV, VIEWPORT_SWIZZLE, viewport_swizzle)                                              \
     EXTENSION(EXT, DESCRIPTOR_INDEXING, descriptor_indexing)                                       \
+    EXTENSION(EXT, DESCRIPTOR_BUFFER, descriptor_buffer)                                          \
     EXTENSION(EXT, FILTER_CUBIC, filter_cubic)                                                     \
-    EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)
-    EXTENSION(EXT, GRAPHICS_PIPELINE_LIBRARY, graphics_pipeline_library)
+    EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)                                    \
+    EXTENSION(EXT, GRAPHICS_PIPELINE_LIBRARY, graphics_pipeline_library)                            \
     
 // Define extensions which must be supported.
 #define FOR_EACH_VK_MANDATORY_EXTENSION(EXTENSION_NAME)                                            \
