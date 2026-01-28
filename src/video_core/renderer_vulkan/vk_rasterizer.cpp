@@ -1493,12 +1493,12 @@ void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs,
                     return;
                 }
             }
-            if (cmdbuf) {
+            if (cmd) {
                 const bool set_back = regs.stencil_two_side_enable && regs.stencil_front_ref != regs.stencil_back_ref;
-                cmdbuf->SetStencilReference(set_back ? VK_STENCIL_FACE_FRONT_BIT : VK_STENCIL_FACE_FRONT_AND_BACK,
+                cmd->SetStencilReference(set_back ? VK_STENCIL_FACE_FRONT_BIT : VK_STENCIL_FACE_FRONT_AND_BACK,
                                             regs.stencil_front_ref);
                 if (set_back) {
-                    cmdbuf->SetStencilReference(VK_STENCIL_FACE_BACK_BIT, regs.stencil_back_ref);
+                    cmd->SetStencilReference(VK_STENCIL_FACE_BACK_BIT, regs.stencil_back_ref);
                 }
             } else {
                 scheduler.Record([front_ref = regs.stencil_front_ref, back_ref = regs.stencil_back_ref,
@@ -1526,12 +1526,12 @@ void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs,
                     return;
                 }
             }
-            if (cmdbuf) {
+            if (cmd) {
                 const bool set_back = regs.stencil_two_side_enable && regs.stencil_front_mask != regs.stencil_back_mask;
-                cmdbuf->SetStencilWriteMask(set_back ? VK_STENCIL_FACE_FRONT_BIT : VK_STENCIL_FACE_FRONT_AND_BACK,
+                cmd->SetStencilWriteMask(set_back ? VK_STENCIL_FACE_FRONT_BIT : VK_STENCIL_FACE_FRONT_AND_BACK,
                                             regs.stencil_front_mask);
                 if (set_back) {
-                    cmdbuf->SetStencilWriteMask(VK_STENCIL_FACE_BACK_BIT, regs.stencil_back_mask);
+                    cmd->SetStencilWriteMask(VK_STENCIL_FACE_BACK_BIT, regs.stencil_back_mask);
                 }
             } else {
                 scheduler.Record([front_write_mask = regs.stencil_front_mask,
@@ -1560,12 +1560,12 @@ void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs,
                     return;
                 }
             }
-            if (cmdbuf) {
+            if (cmd) {
                 const bool set_back = regs.stencil_two_side_enable && regs.stencil_front_func_mask != regs.stencil_back_func_mask;
-                cmdbuf->SetStencilCompareMask(set_back ? VK_STENCIL_FACE_FRONT_BIT : VK_STENCIL_FACE_FRONT_AND_BACK,
+                cmd->SetStencilCompareMask(set_back ? VK_STENCIL_FACE_FRONT_BIT : VK_STENCIL_FACE_FRONT_AND_BACK,
                                               regs.stencil_front_func_mask);
                 if (set_back) {
-                    cmdbuf->SetStencilCompareMask(VK_STENCIL_FACE_BACK_BIT, regs.stencil_back_func_mask);
+                    cmd->SetStencilCompareMask(VK_STENCIL_FACE_BACK_BIT, regs.stencil_back_func_mask);
                 }
             } else {
                 scheduler.Record([front_test_mask = regs.stencil_front_func_mask,
