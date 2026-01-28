@@ -63,6 +63,9 @@ if (YUZU_STATIC_ROOM)
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
     set(MBEDTLS_LIB_SUFFIX "_static")
     set(YUZU_USE_CPM ON)
+
+    set(zstd_FORCE_BUNDLED ON)
+    set(fmt_FORCE_BUNDLED ON)
 endif()
 
 # common network mbedtls
