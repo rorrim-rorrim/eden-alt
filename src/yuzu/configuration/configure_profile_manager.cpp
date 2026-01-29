@@ -193,6 +193,39 @@ void ConfigureProfileManager::ApplyConfiguration() {
     }
 }
 
+void ConfigureProfileManager::saveImage(QPixmap pixmap, Common::UUID uuid) {
+    const auto image_path = GetImagePath(uuid);
+    if (QFile::exists(image_path) && !QFile::remove(image_path)) {
+        QMessageBox::warning(
+            this, tr("Error deleting image"),
+            tr("Error occurred attempting to overwrite previous image at: %1.").arg(image_path));
+        return;
+    }
+
+    const auto raw_path = QString::fromStdString(Common::FS::PathToUTF8String(
+        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000010"));
+    const QFileInfo raw_info{raw_path};
+    if (raw_info.exists() && !raw_info.isDir() && !QFile::remove(raw_path)) {
+        QMessageBox::warning(this, tr("Error deleting file"),
+                             tr("Unable to delete existing file: %1.").arg(raw_path));
+        return;
+    }
+
+    const QString absolute_dst_path = QFileInfo{image_path}.absolutePath();
+    if (!QDir{raw_path}.mkpath(absolute_dst_path)) {
+        QMessageBox::warning(
+            this, tr("Error creating user image directory"),
+            tr("Unable to create directory %1 for storing user images.").arg(absolute_dst_path));
+        return;
+    }
+
+    if (!pixmap.save(image_path, "JPEG", 100)) {
+        QMessageBox::warning(this, tr("Error saving user image"),
+                             tr("Unable to save image to file"));
+        return;
+    }
+}
+
 void ConfigureProfileManager::SelectUser(const QModelIndex& index) {
     Settings::values.current_user =
         std::clamp<s32>(index.row(), 0, static_cast<s32>(profile_manager.GetUserCount() - 1));
@@ -218,39 +251,7 @@ void ConfigureProfileManager::AddUser() {
         profile_manager.WriteUserSaveFile();
         item_model->appendRow(new QStandardItem{pixmap, FormatUserEntryText(username, uuid)});
 
-        const auto index = item_model->rowCount();
-
-        const auto image_path = GetImagePath(uuid);
-        if (QFile::exists(image_path) && !QFile::remove(image_path)) {
-            QMessageBox::warning(
-                this, tr("Error deleting image"),
-                tr("Error occurred attempting to overwrite previous image at: %1.").arg(image_path));
-            return;
-        }
-
-        const auto raw_path = QString::fromStdString(Common::FS::PathToUTF8String(
-            Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000010"));
-        const QFileInfo raw_info{raw_path};
-        if (raw_info.exists() && !raw_info.isDir() && !QFile::remove(raw_path)) {
-            QMessageBox::warning(this, tr("Error deleting file"),
-                                 tr("Unable to delete existing file: %1.").arg(raw_path));
-            return;
-        }
-
-        const QString absolute_dst_path = QFileInfo{image_path}.absolutePath();
-        if (!QDir{raw_path}.mkpath(absolute_dst_path)) {
-            QMessageBox::warning(
-                this, tr("Error creating user image directory"),
-                tr("Unable to create directory %1 for storing user images.").arg(absolute_dst_path));
-            return;
-        }
-
-        if (!pixmap.save(image_path, "JPEG", 100)) {
-            QMessageBox::warning(this, tr("Error saving user image"),
-                                 tr("Unable to save image to file"));
-            return;
-        }
-
+        saveImage(pixmap, uuid);
         UpdateCurrentUser();
 
         dialog->deleteLater();

@@ -22,21 +22,27 @@ class NewUserDialog : public QDialog
 
 public:
     explicit NewUserDialog(QWidget *parent = nullptr);
+    explicit NewUserDialog(Common::UUID uuid, QWidget *parent = nullptr);
     ~NewUserDialog();
 
     bool isDefaultAvatar() const;
     void setIsDefaultAvatar(bool newIsDefaultAvatar);
+
+    static QString GetImagePath(const Common::UUID& uuid);
+    static QPixmap GetIcon(const Common::UUID& uuid);
+    static QPixmap DefaultAvatar();
 
 private:
     Ui::NewUserDialog *ui;
     QGraphicsScene *m_scene;
     QPixmap m_pixmap;
 
-    QPixmap defaultAvatar();
-
     bool m_isDefaultAvatar = true;
+    bool m_editing = false;
 
+    void setup(Common::UUID uuid = Common::UUID::MakeRandom());
 public slots:
+    void setImage(const QPixmap &pixmap);
     void selectImage();
     void revertImage();
     void updateRevertButton();

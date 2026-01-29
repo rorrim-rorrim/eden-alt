@@ -63,6 +63,9 @@ public:
 
     void ApplyConfiguration();
 
+private slots:
+    void saveImage(QPixmap pixmap, Common::UUID uuid);
+
 private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
