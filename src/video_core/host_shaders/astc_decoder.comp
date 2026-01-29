@@ -48,6 +48,7 @@ const uint GOB_SIZE_SHIFT = GOB_SIZE_X_SHIFT + GOB_SIZE_Y_SHIFT;
 
 const uint BYTES_PER_BLOCK_LOG2 = 4;
 
+// DO NOT CHANGE - code depends on the value of these!
 const uint JUST_BITS = 0u;
 const uint QUINT = 1u;
 const uint TRIT = 2u;
@@ -55,12 +56,29 @@ const uint TRIT = 2u;
 // ASTC Encodings data, sorted in ascending order based on their BitLength value
 // (see GetBitLength() function)
 const uint encoding_values[22] = uint[](
-    (JUST_BITS), (JUST_BITS | (1u << 8u)), (TRIT), (JUST_BITS | (2u << 8u)),
-    (QUINT), (TRIT | (1u << 8u)), (JUST_BITS | (3u << 8u)), (QUINT | (1u << 8u)),
-    (TRIT | (2u << 8u)), (JUST_BITS | (4u << 8u)), (QUINT | (2u << 8u)), (TRIT | (3u << 8u)),
-    (JUST_BITS | (5u << 8u)), (QUINT | (3u << 8u)), (TRIT | (4u << 8u)), (JUST_BITS | (6u << 8u)),
-    (QUINT | (4u << 8u)), (TRIT | (5u << 8u)), (JUST_BITS | (7u << 8u)), (QUINT | (5u << 8u)),
-    (TRIT | (6u << 8u)), (JUST_BITS | (8u << 8u)));
+    (JUST_BITS),
+    (JUST_BITS | (1u << 8u)),
+    (TRIT),
+    (JUST_BITS | (2u << 8u)),
+    (QUINT),
+    (TRIT | (1u << 8u)),
+    (JUST_BITS | (3u << 8u)),
+    (QUINT | (1u << 8u)),
+    (TRIT | (2u << 8u)),
+    (JUST_BITS | (4u << 8u)),
+    (QUINT | (2u << 8u)),
+    (TRIT | (3u << 8u)),
+    (JUST_BITS | (5u << 8u)),
+    (QUINT | (3u << 8u)),
+    (TRIT | (4u << 8u)),
+    (JUST_BITS | (6u << 8u)),
+    (QUINT | (4u << 8u)),
+    (TRIT | (5u << 8u)),
+    (JUST_BITS | (7u << 8u)),
+    (QUINT | (5u << 8u)),
+    (TRIT | (6u << 8u)),
+    (JUST_BITS | (8u << 8u))
+);
 
 // Input ASTC texture globals
 int total_bitsread = 0;
@@ -157,22 +175,6 @@ uint FastReplicateTo6(uint value, uint num_bits) {
     return ReplicateBits(value, num_bits, 6);
 }
 
-uint Div3Floor(uint v) {
-    return (v * 0x5556) >> 16;
-}
-
-uint Div3Ceil(uint v) {
-    return Div3Floor(v + 2);
-}
-
-uint Div5Floor(uint v) {
-    return (v * 0x3334) >> 16;
-}
-
-uint Div5Ceil(uint v) {
-    return Div5Floor(v + 4);
-}
-
 uint Hash52(uint p) {
     p ^= p >> 15;
     p -= p << 17;
@@ -260,15 +262,16 @@ EncodingData GetEncodingFromVector(uint index) {
 
 // Returns the number of bits required to encode n_vals values.
 uint GetBitLength(uint n_vals, uint encoding_index) {
+    // uint Div3Floor(uint v) { return (v * 0x5556) >> 16; }
+    // uint Div3Ceil(uint v) { return Div3Floor(v + 2); }
+    // uint Div5Floor(uint v) { return (v * 0x3334) >> 16; }
+    // uint Div5Ceil(uint v) { return Div5Floor(v + 4); }
     const EncodingData encoding_value = EncodingData(encoding_values[encoding_index]);
     const uint encoding = Encoding(encoding_value);
-    uint total_bits = NumBits(encoding_value) * n_vals;
-    if (encoding == TRIT) {
-        total_bits += Div5Ceil(n_vals * 8);
-    } else if (encoding == QUINT) {
-        total_bits += Div3Ceil(n_vals * 7);
-    }
-    return total_bits;
+    const uvec3 div_constant = uvec3(0, 0x5556, 0x3334);
+    return NumBits(encoding_value) * n_vals
+        + ((((n_vals * ((0x870 >> (encoding * 4)) & 0xf)) + ((0x420 >> (encoding * 4)) & 0xf))
+        * div_constant[encoding]) >> 16);
 }
 
 uint GetNumWeightValues(uvec2 size, bool dual_plane) {
@@ -423,11 +426,10 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits, o
         const uint encoding = Encoding(val);
         const uint bitlen = NumBits(val);
         const uint bitval = BitValue(val);
-        uint A = 0, B = 0, C = 0, D = 0;
-        A = ReplicateBitTo9((bitval & 1));
+        uint B = 0, C = 0, D = 0;
+        uint A = ReplicateBitTo9((bitval & 1));
         switch (encoding) {
         case JUST_BITS:
-            color_values[++out_index] = FastReplicateTo8(bitval, bitlen);
             break;
         case TRIT: {
             D = QuintTritValue(val);
@@ -502,12 +504,12 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits, o
             break;
         }
         }
-        if (encoding != JUST_BITS) {
-            uint T = (D * C) + B;
-            T ^= A;
-            T = (A & 0x80) | (T >> 2);
-            color_values[++out_index] = T;
-        }
+        uint unq = D * C + B;
+        unq = unq ^ A;
+        unq = (A & 0x80) | (unq >> 2);
+        color_values[++out_index] = encoding == JUST_BITS
+            ? FastReplicateTo8(bitval, bitlen)
+            : unq;
     }
 }
 
@@ -566,12 +568,8 @@ void ComputeEndpoints(out uvec4 ep1, out uvec4 ep2, uint color_endpoint_mode, ui
     }
     case 5: {
         READ_INT_VALUES(4)
-        ivec2 transferred = BitTransferSigned(V[0].y, V[0].x);
-        V[0].y = transferred.x;
-        V[0].x = transferred.y;
-        transferred = BitTransferSigned(V[0].w, V[0].z);
-        V[0].w = transferred.x;
-        V[0].z = transferred.y;
+        V[0].yx = BitTransferSigned(V[0].y, V[0].x);
+        V[0].wz = BitTransferSigned(V[0].w, V[0].z);
         ep1 = ClampByte(ivec4(V[0].z, V[0].x, V[0].x, V[0].x));
         ep2 = ClampByte(ivec4(V[0].z + V[0].w, V[0].x + V[0].y, V[0].x + V[0].y, V[0].x + V[0].y));
         break;
@@ -595,15 +593,9 @@ void ComputeEndpoints(out uvec4 ep1, out uvec4 ep2, uint color_endpoint_mode, ui
     }
     case 9: {
         READ_INT_VALUES(6)
-        ivec2 transferred = BitTransferSigned(V[0].y, V[0].x);
-        V[0].y = transferred.x;
-        V[0].x = transferred.y;
-        transferred = BitTransferSigned(V[0].w, V[0].z);
-        V[0].w = transferred.x;
-        V[0].z = transferred.y;
-        transferred = BitTransferSigned(V[1].y, V[1].x);
-        V[1].y = transferred.x;
-        V[1].x = transferred.y;
+        V[0].yx = BitTransferSigned(V[0].y, V[0].x);
+        V[0].wz = BitTransferSigned(V[0].w, V[0].z);
+        V[1].yx = BitTransferSigned(V[1].y, V[1].x);
         if ((V[0].y + V[0].w + V[1].y) >= 0) {
             ep1 = ClampByte(ivec4(0xFF, V[0].x, V[0].z, V[1].x));
             ep2 = ClampByte(ivec4(0xFF, V[0].x + V[0].y, V[0].z + V[0].w, V[1].x + V[1].y));
@@ -632,21 +624,10 @@ void ComputeEndpoints(out uvec4 ep1, out uvec4 ep2, uint color_endpoint_mode, ui
     }
     case 13: {
         READ_INT_VALUES(8)
-        ivec2 transferred = BitTransferSigned(V[0].y, V[0].x);
-        V[0].y = transferred.x;
-        V[0].x = transferred.y;
-        transferred = BitTransferSigned(V[0].w, V[0].z);
-        V[0].w = transferred.x;
-        V[0].z = transferred.y;
-
-        transferred = BitTransferSigned(V[1].y, V[1].x);
-        V[1].y = transferred.x;
-        V[1].x = transferred.y;
-
-        transferred = BitTransferSigned(V[1].w, V[1].z);
-        V[1].w = transferred.x;
-        V[1].z = transferred.y;
-
+        V[0].yx = BitTransferSigned(V[0].y, V[0].x);
+        V[0].wz = BitTransferSigned(V[0].w, V[0].z);
+        V[1].yx = BitTransferSigned(V[1].y, V[1].x);
+        V[1].wz = BitTransferSigned(V[1].w, V[1].z);
         if ((V[0].y + V[0].w + V[1].y) >= 0) {
             ep1 = ClampByte(ivec4(V[1].z, V[0].x, V[0].z, V[1].x));
             ep2 = ClampByte(ivec4(V[1].w + V[1].z, V[0].x + V[0].y, V[0].z + V[0].w, V[1].x + V[1].y));
