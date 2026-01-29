@@ -26,7 +26,7 @@ BufferQueueProducer::BufferQueueProducer(Service::KernelHelpers::ServiceContext&
                                          std::shared_ptr<BufferQueueCore> buffer_queue_core_,
                                          Service::Nvidia::NvCore::NvMap& nvmap_)
     : service_context{service_context_}, core{std::move(buffer_queue_core_)}, slots(core->slots),
-      nvmap(nvmap_) {
+      clock{Common::CreateOptimalClock()}, nvmap(nvmap_) {
     buffer_wait_event = service_context.CreateEvent("BufferQueue:WaitEvent");
 }
 
@@ -516,7 +516,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         ++core->frame_counter;
         slots[slot].frame_number = core->frame_counter;
         slots[slot].queue_time = timestamp;
-        slots[slot].presentation_time = 0;
+        slots[slot].presentation_time = clock->GetTimeNS().count();
 
         item.acquire_called = slots[slot].acquire_called;
         item.graphic_buffer = slots[slot].graphic_buffer;
