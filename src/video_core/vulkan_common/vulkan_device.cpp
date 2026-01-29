@@ -563,8 +563,12 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         features.shader_atomic_int64.shaderSharedInt64Atomics = false;
         features.features.shaderInt64 = false;
 
-        sets_per_pool = 512;
+        sets_per_pool = 1024;
         LOG_INFO(Render_Vulkan, "Qualcomm: forcing {} sets per pool", sets_per_pool);
+
+        has_broken_cube_compatibility = true;
+        LOG_WARNING(Render_Vulkan,
+                "Qualcomm: disabling VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT due to driver bugs");
 
 #if defined(ANDROID) && defined(ARCHITECTURE_arm64)
         // BCn patching only safe on Android 9+ (API 28+). Older versions crash on driver load.
