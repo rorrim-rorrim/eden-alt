@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <functional>
-#include <iostream>
 #include <QColorDialog>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -23,18 +22,19 @@
 #include "common/settings.h"
 #include "common/string_util.h"
 #include "common/swap.h"
+#include "configuration/system/new_user_dialog.h"
 #include "core/constants.h"
 #include "core/core.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs.h"
-#include "core/file_sys/vfs/vfs.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/filesystem/filesystem.h"
+#include "profile_avatar_dialog.h"
 #include "ui_configure_profile_manager.h"
-#include "yuzu/util/limitable_input_dialog.h"
 #include "yuzu/configuration/configure_profile_manager.h"
+#include "yuzu/util/limitable_input_dialog.h"
 
 namespace {
 
@@ -122,7 +122,7 @@ ConfigureProfileManager::ConfigureProfileManager(Core::System& system_, QWidget*
     connect(ui->pm_select_avatar, &QPushButton::clicked, this,
             &ConfigureProfileManager::SelectFirmwareAvatar);
 
-    avatar_dialog = new ConfigureProfileManagerAvatarDialog(this);
+    avatar_dialog = new ProfileAvatarDialog(this);
     confirm_dialog = new ConfigureProfileManagerDeleteDialog(this);
 
     scene = new QGraphicsScene;
@@ -206,22 +206,59 @@ void ConfigureProfileManager::SelectUser(const QModelIndex& index) {
 }
 
 void ConfigureProfileManager::AddUser() {
-    auto const username = GetProfileUsernameFromUser(this, tr("New Username"), tr("Enter a username:"));
-    if (username.isEmpty())
-        return;
+    NewUserDialog *dialog = new NewUserDialog(this);
 
-    auto const uuid_str = GetProfileUsernameFromUser(this, tr("New User UUID"), tr("Enter a UUID (leave empty to autogenerate):"));
-    auto uuid = Common::UUID::MakeRandom();
-    if (uuid_str.length() > 0) {
-        if (size_t(uuid_str.length()) != uuid.uuid.size())
+    // TODO: EditUser
+    connect(dialog, &NewUserDialog::userAdded, this, [dialog, this](User user) {
+        auto uuid = user.uuid;
+        auto username = user.username;
+        auto pixmap = user.pixmap;
+
+        profile_manager.CreateNewUser(uuid, username.toStdString());
+        profile_manager.WriteUserSaveFile();
+        item_model->appendRow(new QStandardItem{pixmap, FormatUserEntryText(username, uuid)});
+
+        const auto index = item_model->rowCount();
+
+        const auto image_path = GetImagePath(uuid);
+        if (QFile::exists(image_path) && !QFile::remove(image_path)) {
+            QMessageBox::warning(
+                this, tr("Error deleting image"),
+                tr("Error occurred attempting to overwrite previous image at: %1.").arg(image_path));
             return;
-        for (size_t i = 0; i < size_t(uuid_str.length()); ++i)
-            uuid.uuid[i] = u8(uuid_str[i].toLatin1());
-    }
+        }
 
-    profile_manager.CreateNewUser(uuid, username.toStdString());
-    profile_manager.WriteUserSaveFile();
-    item_model->appendRow(new QStandardItem{GetIcon(uuid), FormatUserEntryText(username, uuid)});
+        const auto raw_path = QString::fromStdString(Common::FS::PathToUTF8String(
+            Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000010"));
+        const QFileInfo raw_info{raw_path};
+        if (raw_info.exists() && !raw_info.isDir() && !QFile::remove(raw_path)) {
+            QMessageBox::warning(this, tr("Error deleting file"),
+                                 tr("Unable to delete existing file: %1.").arg(raw_path));
+            return;
+        }
+
+        const QString absolute_dst_path = QFileInfo{image_path}.absolutePath();
+        if (!QDir{raw_path}.mkpath(absolute_dst_path)) {
+            QMessageBox::warning(
+                this, tr("Error creating user image directory"),
+                tr("Unable to create directory %1 for storing user images.").arg(absolute_dst_path));
+            return;
+        }
+
+        if (!pixmap.save(image_path, "JPEG", 100)) {
+            QMessageBox::warning(this, tr("Error saving user image"),
+                                 tr("Unable to save image to file"));
+            return;
+        }
+
+        UpdateCurrentUser();
+
+        dialog->deleteLater();
+    });
+
+    connect(dialog, &QDialog::rejected, dialog, &QObject::deleteLater);
+
+    dialog->show();
 }
 
 void ConfigureProfileManager::RenameUser() {
@@ -410,130 +447,6 @@ bool ConfigureProfileManager::LoadAvatarData() {
     return true;
 }
 
-ConfigureProfileManagerAvatarDialog::ConfigureProfileManagerAvatarDialog(QWidget* parent)
-    : QDialog{parent}, avatar_list{new QListWidget(this)}, bg_color_button{new QPushButton(this)} {
-    auto* main_layout = new QVBoxLayout(this);
-    auto* button_layout = new QHBoxLayout();
-    auto* select_button = new QPushButton(tr("Select"), this);
-    auto* cancel_button = new QPushButton(tr("Cancel"), this);
-    auto* bg_color_label = new QLabel(tr("Background Color"), this);
-
-    SetBackgroundColor(Qt::white);
-
-    avatar_list->setViewMode(QListView::IconMode);
-    avatar_list->setIconSize(QSize(64, 64));
-    avatar_list->setSpacing(4);
-    avatar_list->setResizeMode(QListView::Adjust);
-    avatar_list->setSelectionMode(QAbstractItemView::SingleSelection);
-    avatar_list->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    avatar_list->setDragDropMode(QAbstractItemView::NoDragDrop);
-    avatar_list->setDragEnabled(false);
-    avatar_list->setDropIndicatorShown(false);
-    avatar_list->setAcceptDrops(false);
-
-    button_layout->addWidget(bg_color_button);
-    button_layout->addWidget(bg_color_label);
-    button_layout->addStretch();
-    button_layout->addWidget(select_button);
-    button_layout->addWidget(cancel_button);
-
-    this->setWindowTitle(tr("Select Firmware Avatar"));
-    main_layout->addWidget(avatar_list);
-    main_layout->addLayout(button_layout);
-
-    connect(bg_color_button, &QPushButton::clicked, this, [this]() {
-        const auto new_color = QColorDialog::getColor(avatar_bg_color);
-        if (new_color.isValid()) {
-            SetBackgroundColor(new_color);
-            RefreshAvatars();
-        }
-    });
-    connect(select_button, &QPushButton::clicked, this, [this]() { accept(); });
-    connect(cancel_button, &QPushButton::clicked, this, [this]() { reject(); });
-}
-
-ConfigureProfileManagerAvatarDialog::~ConfigureProfileManagerAvatarDialog() = default;
-
-void ConfigureProfileManagerAvatarDialog::SetBackgroundColor(const QColor& color) {
-    avatar_bg_color = color;
-
-    bg_color_button->setStyleSheet(
-        QStringLiteral("background-color: %1; min-width: 60px;").arg(avatar_bg_color.name()));
-}
-
-QPixmap ConfigureProfileManagerAvatarDialog::CreateAvatar(const QPixmap& avatar) {
-    QPixmap output(avatar.size());
-    output.fill(avatar_bg_color);
-
-    // Scale the image and fill it black to become our shadow
-    QPixmap shadow_pixmap = avatar.transformed(QTransform::fromScale(1.04, 1.04));
-    QPainter shadow_painter(&shadow_pixmap);
-    shadow_painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-    shadow_painter.fillRect(shadow_pixmap.rect(), Qt::black);
-    shadow_painter.end();
-
-    QPainter painter(&output);
-    painter.setOpacity(0.10);
-    painter.drawPixmap(0, 0, shadow_pixmap);
-    painter.setOpacity(1.0);
-    painter.drawPixmap(0, 0, avatar);
-    painter.end();
-
-    return output;
-}
-
-void ConfigureProfileManagerAvatarDialog::RefreshAvatars() {
-    if (avatar_list->count() != avatar_image_store.size()) {
-        return;
-    }
-    for (int i = 0; i < avatar_image_store.size(); ++i) {
-        const auto icon =
-            QIcon(CreateAvatar(avatar_image_store[i])
-                      .scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-        avatar_list->item(i)->setIcon(icon);
-    }
-}
-
-void ConfigureProfileManagerAvatarDialog::LoadImages(const QVector<QPixmap>& avatar_images) {
-    avatar_image_store = avatar_images;
-    avatar_list->clear();
-
-    for (int i = 0; i < avatar_image_store.size(); ++i) {
-        avatar_list->addItem(new QListWidgetItem);
-    }
-    RefreshAvatars();
-
-    // Determine window size now that avatars are loaded into the grid
-    // There is probably a better way to handle this that I'm unaware of
-    const auto* style = avatar_list->style();
-
-    const int icon_size = avatar_list->iconSize().width();
-    const int icon_spacing = avatar_list->spacing() * 2;
-    const int icon_margin = style->pixelMetric(QStyle::PM_FocusFrameHMargin);
-    const int icon_full_size = icon_size + icon_spacing + icon_margin;
-
-    const int horizontal_margin = style->pixelMetric(QStyle::PM_LayoutLeftMargin) +
-                                  style->pixelMetric(QStyle::PM_LayoutRightMargin) +
-                                  style->pixelMetric(QStyle::PM_ScrollBarExtent);
-    const int vertical_margin = style->pixelMetric(QStyle::PM_LayoutTopMargin) +
-                                style->pixelMetric(QStyle::PM_LayoutBottomMargin);
-
-    // Set default list size so that it is 6 icons wide and 4.5 tall
-    const int columns = 6;
-    const double rows = 4.5;
-    const int total_width = icon_full_size * columns + horizontal_margin;
-    const int total_height = icon_full_size * rows + vertical_margin;
-    avatar_list->setMinimumSize(total_width, total_height);
-}
-
-bool ConfigureProfileManagerAvatarDialog::AreImagesLoaded() const {
-    return !avatar_image_store.isEmpty();
-}
-
-QPixmap ConfigureProfileManagerAvatarDialog::GetSelectedAvatar() {
-    return CreateAvatar(avatar_image_store[avatar_list->currentRow()]);
-}
-
 ConfigureProfileManagerDeleteDialog::ConfigureProfileManagerDeleteDialog(QWidget* parent)
     : QDialog{parent} {
     auto dialog_vbox_layout = new QVBoxLayout(this);
@@ -548,17 +461,23 @@ ConfigureProfileManagerDeleteDialog::ConfigureProfileManagerDeleteDialog(QWidget
     auto icon_view = new QGraphicsView(icon_scene, this);
 
     dialog_hbox_layout_widget->setLayout(dialog_hbox_layout);
+    icon_view->setMinimumSize(64, 64);
     icon_view->setMaximumSize(64, 64);
     icon_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     icon_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    icon_view->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
     this->setLayout(dialog_vbox_layout);
     this->setWindowTitle(tr("Confirm Delete"));
     this->setSizeGripEnabled(false);
+
     dialog_vbox_layout->addWidget(label_message);
     dialog_vbox_layout->addWidget(dialog_hbox_layout_widget);
     dialog_vbox_layout->addWidget(dialog_button_box);
     dialog_hbox_layout->addWidget(icon_view);
     dialog_hbox_layout->addWidget(label_info);
+
+    setMinimumSize(380, 160);
 
     connect(dialog_button_box, &QDialogButtonBox::rejected, this, [this]() { close(); });
 }

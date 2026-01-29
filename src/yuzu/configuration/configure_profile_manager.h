@@ -14,6 +14,7 @@
 #include <QWidget>
 #include "core/file_sys/vfs/vfs_types.h"
 
+class ProfileAvatarDialog;
 namespace Common {
 struct UUID;
 }
@@ -38,26 +39,6 @@ class ProfileManager;
 namespace Ui {
 class ConfigureProfileManager;
 }
-
-class ConfigureProfileManagerAvatarDialog : public QDialog {
-public:
-    explicit ConfigureProfileManagerAvatarDialog(QWidget* parent);
-    ~ConfigureProfileManagerAvatarDialog();
-
-    void LoadImages(const QVector<QPixmap>& avatar_images);
-    bool AreImagesLoaded() const;
-    QPixmap GetSelectedAvatar();
-
-private:
-    void SetBackgroundColor(const QColor& color);
-    QPixmap CreateAvatar(const QPixmap& avatar);
-    void RefreshAvatars();
-
-    QVector<QPixmap> avatar_image_store;
-    QListWidget* avatar_list;
-    QColor avatar_bg_color;
-    QPushButton* bg_color_button;
-};
 
 class ConfigureProfileManagerDeleteDialog : public QDialog {
 public:
@@ -106,8 +87,7 @@ private:
     QTreeView* tree_view;
     QStandardItemModel* item_model;
     QGraphicsScene* scene;
-
-    ConfigureProfileManagerAvatarDialog* avatar_dialog;
+    ProfileAvatarDialog* avatar_dialog;
     ConfigureProfileManagerDeleteDialog* confirm_dialog;
 
     std::vector<QList<QStandardItem*>> list_items;
