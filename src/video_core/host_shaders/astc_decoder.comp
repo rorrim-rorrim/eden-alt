@@ -402,15 +402,103 @@ void DecodeIntegerSequence(uint max_range, uint num_values) {
     }
 }
 
+uint DecodeSingleColorValue(EncodingData val) {
+    const uint encoding = Encoding(val);
+    const uint bitlen = NumBits(val);
+    const uint bitval = BitValue(val);
+    uint B = 0, C = 0, D = 0;
+    uint A = ReplicateBitTo9((bitval & 1));
+    switch (encoding) {
+    case JUST_BITS:
+        break;
+    case TRIT: {
+        D = QuintTritValue(val);
+        switch (bitlen) {
+        case 1:
+            C = 204;
+            break;
+        case 2: {
+            C = 93;
+            const uint b = (bitval >> 1) & 1;
+            B = (b << 8) | (b << 4) | (b << 2) | (b << 1);
+            break;
+        }
+        case 3: {
+            C = 44;
+            const uint cb = (bitval >> 1) & 3;
+            B = (cb << 7) | (cb << 2) | cb;
+            break;
+        }
+        case 4: {
+            C = 22;
+            const uint dcb = (bitval >> 1) & 7;
+            B = (dcb << 6) | dcb;
+            break;
+        }
+        case 5: {
+            C = 11;
+            const uint edcb = (bitval >> 1) & 0xF;
+            B = (edcb << 5) | (edcb >> 2);
+            break;
+        }
+        case 6: {
+            C = 5;
+            const uint fedcb = (bitval >> 1) & 0x1F;
+            B = (fedcb << 4) | (fedcb >> 4);
+            break;
+        }
+        }
+        break;
+    }
+    case QUINT: {
+        D = QuintTritValue(val);
+        switch (bitlen) {
+        case 1:
+            C = 113;
+            break;
+        case 2: {
+            C = 54;
+            const uint b = (bitval >> 1) & 1;
+            B = (b << 8) | (b << 3) | (b << 2);
+            break;
+        }
+        case 3: {
+            C = 26;
+            const uint cb = (bitval >> 1) & 3;
+            B = (cb << 7) | (cb << 1) | (cb >> 1);
+            break;
+        }
+        case 4: {
+            C = 13;
+            const uint dcb = (bitval >> 1) & 7;
+            B = (dcb << 6) | (dcb >> 1);
+            break;
+        }
+        case 5: {
+            C = 6;
+            const uint edcb = (bitval >> 1) & 0xF;
+            B = (edcb << 5) | (edcb >> 3);
+            break;
+        }
+        }
+        break;
+    }
+    }
+    uint unq = D * C + B;
+    unq = unq ^ A;
+    unq = (A & 0x80) | (unq >> 2);
+    return encoding == JUST_BITS ? FastReplicateTo8(bitval, bitlen) : unq;
+}
+
 void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits, out uint color_values[32]) {
     // TODO: modes[] zero on invalid, so less ops
     const uvec4 num_values_tmp = (((modes >> 2) + 1) << 1) & ((uvec4(0, 1, 2, 3) - num_partitions) >> 8);
     uint num_values = num_values_tmp.x + num_values_tmp.y + num_values_tmp.z + num_values_tmp.w;
     // Find the largest encoding that's within color_data_bits
     // TODO(ameerj): profile with binary search
-    int range = 0;
+    uint range = 0;
     while (++range < encoding_values.length()) {
-        const uint bit_length = GetBitLength(num_values, range);
+        const uint bit_length = GetBitLength(num_values, int(range));
         if (bit_length > color_data_bits) {
             break;
         }
@@ -418,94 +506,7 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits, o
     const uint upper_bound = num_values;
     DecodeIntegerSequence(range - 1, num_values);
     for (int i = 0; i < upper_bound; ++i) {
-        const EncodingData val = GetEncodingFromVector(i);
-        const uint encoding = Encoding(val);
-        const uint bitlen = NumBits(val);
-        const uint bitval = BitValue(val);
-        uint B = 0, C = 0, D = 0;
-        uint A = ReplicateBitTo9((bitval & 1));
-        switch (encoding) {
-        case JUST_BITS:
-            break;
-        case TRIT: {
-            D = QuintTritValue(val);
-            switch (bitlen) {
-            case 1:
-                C = 204;
-                break;
-            case 2: {
-                C = 93;
-                const uint b = (bitval >> 1) & 1;
-                B = (b << 8) | (b << 4) | (b << 2) | (b << 1);
-                break;
-            }
-            case 3: {
-                C = 44;
-                const uint cb = (bitval >> 1) & 3;
-                B = (cb << 7) | (cb << 2) | cb;
-                break;
-            }
-            case 4: {
-                C = 22;
-                const uint dcb = (bitval >> 1) & 7;
-                B = (dcb << 6) | dcb;
-                break;
-            }
-            case 5: {
-                C = 11;
-                const uint edcb = (bitval >> 1) & 0xF;
-                B = (edcb << 5) | (edcb >> 2);
-                break;
-            }
-            case 6: {
-                C = 5;
-                const uint fedcb = (bitval >> 1) & 0x1F;
-                B = (fedcb << 4) | (fedcb >> 4);
-                break;
-            }
-            }
-            break;
-        }
-        case QUINT: {
-            D = QuintTritValue(val);
-            switch (bitlen) {
-            case 1:
-                C = 113;
-                break;
-            case 2: {
-                C = 54;
-                const uint b = (bitval >> 1) & 1;
-                B = (b << 8) | (b << 3) | (b << 2);
-                break;
-            }
-            case 3: {
-                C = 26;
-                const uint cb = (bitval >> 1) & 3;
-                B = (cb << 7) | (cb << 1) | (cb >> 1);
-                break;
-            }
-            case 4: {
-                C = 13;
-                const uint dcb = (bitval >> 1) & 7;
-                B = (dcb << 6) | (dcb >> 1);
-                break;
-            }
-            case 5: {
-                C = 6;
-                const uint edcb = (bitval >> 1) & 0xF;
-                B = (edcb << 5) | (edcb >> 3);
-                break;
-            }
-            }
-            break;
-        }
-        }
-        uint unq = D * C + B;
-        unq = unq ^ A;
-        unq = (A & 0x80) | (unq >> 2);
-        color_values[i + 1] = encoding == JUST_BITS
-            ? FastReplicateTo8(bitval, bitlen)
-            : unq;
+        color_values[i + 1] = DecodeSingleColorValue(GetEncodingFromVector(i));
     }
 }
 
