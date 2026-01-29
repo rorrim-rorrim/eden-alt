@@ -9,6 +9,7 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/kernel.h"
@@ -510,7 +511,9 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
             auto front = core->queue.begin();
             if (front->is_droppable && core->StillTracking(*front)) {
                 slots[front->slot].buffer_state = BufferState::Free;
-                core->UpdateHistory(front->frame_number, BufferState::Free);
+                if (Settings::values.enable_buffer_history.GetValue()) {
+                    core->UpdateHistory(front->frame_number, BufferState::Free);
+                }
                 slots[front->slot].frame_number = 0;
             }
 
@@ -523,7 +526,10 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
             }
         }
 
-        core->PushHistory(core->frame_counter, slots[slot].queue_time, slots[slot].presentation_time, BufferState::Queued);
+        if (Settings::values.enable_buffer_history.GetValue()) {
+            core->PushHistory(core->frame_counter, slots[slot].queue_time, slots[slot].presentation_time, BufferState::Queued);
+        }
+
         core->buffer_has_been_queued = true;
         core->SignalDequeueCondition();
 
@@ -881,6 +887,11 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         break;
     }
     case TransactionId::GetBufferHistory: {
+        if (!Settings::values.enable_buffer_history.GetValue()) {
+            LOG_DEBUG(Service_Nvnflinger, "(STUBBED) called");
+            break;
+        }
+
         LOG_DEBUG(Service_Nvnflinger, "called, transaction=GetBufferHistory");
 
         const s32 request = parcel_in.Read<s32>();
