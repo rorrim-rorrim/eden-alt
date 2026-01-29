@@ -47,6 +47,14 @@ void BufferQueueCore::PushHistory(u64 frame_number, s64 queue_time,
     }
 }
 
+void BufferQueueCore::UpdateHistory(u64 frame_number, BufferState state) {
+    std::lock_guard lk(buffer_history_mutex);
+    auto it = buffer_history_map.find(frame_number);
+    if (it != buffer_history_map.end()) {
+        it->second.state = state;
+    }
+}
+
 void BufferQueueCore::SignalDequeueCondition() {
     dequeue_possible.store(true);
     dequeue_condition.notify_all();
