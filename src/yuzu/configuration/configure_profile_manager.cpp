@@ -14,9 +14,12 @@
 #include <QGraphicsItem>
 #include <QHeaderView>
 #include <QListWidget>
+#include <QMenu>
 #include <QMessageBox>
 #include <QStandardItemModel>
 #include <QTreeView>
+#include <qnamespace.h>
+#include <qtreeview.h>
 
 #include "common/assert.h"
 #include "common/fs/path_util.h"
@@ -90,7 +93,7 @@ ConfigureProfileManager::ConfigureProfileManager(Core::System& system_, QWidget*
     tree_view->setEditTriggers(QHeaderView::NoEditTriggers);
     tree_view->setUniformRowHeights(true);
     tree_view->setIconSize({64, 64});
-    tree_view->setContextMenuPolicy(Qt::NoContextMenu);
+    tree_view->setContextMenuPolicy(Qt::CustomContextMenu);
 
     // We must register all custom types with the Qt Automoc system so that we are able to use it
     // with signals/slots. In this case, QList falls under the umbrells of custom types.
@@ -103,12 +106,11 @@ ConfigureProfileManager::ConfigureProfileManager(Core::System& system_, QWidget*
 
     ui->scrollArea->setLayout(layout);
 
+    connect(tree_view, &QTreeView::customContextMenuRequested, this, &ConfigureProfileManager::showContextMenu);
+
     connect(tree_view, &QTreeView::clicked, this, &ConfigureProfileManager::SelectUser);
 
     connect(ui->pm_add, &QPushButton::clicked, this, &ConfigureProfileManager::AddUser);
-    connect(ui->pm_rename, &QPushButton::clicked, this, &ConfigureProfileManager::EditUser);
-    connect(ui->pm_remove, &QPushButton::clicked, this,
-            &ConfigureProfileManager::ConfirmDeleteUser);
 
     confirm_dialog = new ConfigureProfileManagerDeleteDialog(this);
 
@@ -214,14 +216,34 @@ void ConfigureProfileManager::saveImage(QPixmap pixmap, Common::UUID uuid) {
     }
 }
 
+void ConfigureProfileManager::showContextMenu(const QPoint& pos) {
+    const QModelIndex index = tree_view->indexAt(pos);
+    if (!index.isValid())
+        return;
+
+    QMenu menu(this);
+
+    QAction* edit = menu.addAction(tr("&Edit"));
+    QAction* remove = menu.addAction(tr("&Delete"));
+
+    QAction* chosen =
+        menu.exec(tree_view->viewport()->mapToGlobal(pos));
+
+    if (!chosen)
+        return;
+
+    if (chosen == edit) {
+        EditUser();
+    } else if (chosen == remove) {
+        ConfirmDeleteUser();
+    }
+}
+
 void ConfigureProfileManager::SelectUser(const QModelIndex& index) {
     Settings::values.current_user =
         std::clamp<s32>(index.row(), 0, static_cast<s32>(profile_manager.GetUserCount() - 1));
 
     UpdateCurrentUser();
-
-    ui->pm_remove->setEnabled(profile_manager.GetUserCount() >= 2);
-    ui->pm_rename->setEnabled(true);
 }
 
 void ConfigureProfileManager::AddUser() {
@@ -321,9 +343,6 @@ void ConfigureProfileManager::DeleteUser(const Common::UUID& uuid) {
 
     item_model->removeRows(tree_view->currentIndex().row(), 1);
     tree_view->clearSelection();
-
-    ui->pm_remove->setEnabled(false);
-    ui->pm_rename->setEnabled(false);
 }
 
 ConfigureProfileManagerDeleteDialog::ConfigureProfileManagerDeleteDialog(QWidget* parent)

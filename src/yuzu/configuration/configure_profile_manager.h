@@ -65,6 +65,7 @@ public:
 
 private slots:
     void saveImage(QPixmap pixmap, Common::UUID uuid);
+    void showContextMenu(const QPoint &pos);
 
 private:
     void changeEvent(QEvent* event) override;

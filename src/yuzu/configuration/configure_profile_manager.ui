@@ -127,26 +127,6 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QPushButton" name="pm_rename">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Edit</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pm_remove">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Remove</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </item>
        </layout>
