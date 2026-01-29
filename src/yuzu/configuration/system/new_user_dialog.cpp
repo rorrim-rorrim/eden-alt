@@ -40,15 +40,16 @@ QPixmap NewUserDialog::GetIcon(const Common::UUID& uuid) {
     return icon.scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 }
 
-NewUserDialog::NewUserDialog(Common::UUID uuid, QWidget* parent) : QDialog(parent) {
-    setup(uuid);
+NewUserDialog::NewUserDialog(Common::UUID uuid, const std::string& username, QWidget* parent)
+    : QDialog(parent) {
+    setup(uuid, username);
 }
 
 NewUserDialog::NewUserDialog(QWidget* parent) : QDialog(parent) {
-    setup(Common::UUID::MakeRandom());
+    setup(Common::UUID::MakeRandom(), "Eden");
 }
 
-void NewUserDialog::setup(Common::UUID uuid) {
+void NewUserDialog::setup(Common::UUID uuid, const std::string &username) {
     ui = new Ui::NewUserDialog;
     ui->setupUi(this);
 
@@ -57,6 +58,7 @@ void NewUserDialog::setup(Common::UUID uuid) {
 
     // setup
     ui->uuid->setText(QString::fromStdString(uuid.RawString()).toUpper());
+    ui->username->setText(QString::fromStdString(username));
     verifyUser();
 
     setImage(GetIcon(uuid));
@@ -176,7 +178,6 @@ void NewUserDialog::dispatchUser() {
     // convert to 16 u8's
     std::array<u8, 16> uuid_arr;
     std::copy_n(reinterpret_cast<const u8*>(bytes.constData()), 16, uuid_arr.begin());
-    std::ranges::reverse(uuid_arr);
 
     Common::UUID uuid(uuid_arr);
 

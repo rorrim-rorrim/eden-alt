@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <iterator>
 #include <QColorDialog>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -114,7 +115,7 @@ ConfigureProfileManager::ConfigureProfileManager(Core::System& system_, QWidget*
     connect(tree_view, &QTreeView::clicked, this, &ConfigureProfileManager::SelectUser);
 
     connect(ui->pm_add, &QPushButton::clicked, this, &ConfigureProfileManager::AddUser);
-    connect(ui->pm_rename, &QPushButton::clicked, this, &ConfigureProfileManager::RenameUser);
+    connect(ui->pm_rename, &QPushButton::clicked, this, &ConfigureProfileManager::EditUser);
     connect(ui->pm_remove, &QPushButton::clicked, this,
             &ConfigureProfileManager::ConfirmDeleteUser);
     connect(ui->pm_set_image, &QPushButton::clicked, this,
@@ -241,7 +242,6 @@ void ConfigureProfileManager::SelectUser(const QModelIndex& index) {
 void ConfigureProfileManager::AddUser() {
     NewUserDialog *dialog = new NewUserDialog(this);
 
-    // TODO: EditUser
     connect(dialog, &NewUserDialog::userAdded, this, [dialog, this](User user) {
         auto uuid = user.uuid;
         auto username = user.username;
@@ -252,6 +252,54 @@ void ConfigureProfileManager::AddUser() {
         item_model->appendRow(new QStandardItem{pixmap, FormatUserEntryText(username, uuid)});
 
         saveImage(pixmap, uuid);
+        UpdateCurrentUser();
+
+        dialog->deleteLater();
+    });
+
+    connect(dialog, &QDialog::rejected, dialog, &QObject::deleteLater);
+
+    dialog->show();
+}
+
+void ConfigureProfileManager::EditUser() {
+    const auto user_data = tree_view->currentIndex();
+    const auto user_idx = user_data.row();
+    const auto uuid = profile_manager.GetUser(user_idx);
+    ASSERT(uuid);
+
+    Service::Account::ProfileBase profile{};
+    if (!profile_manager.GetProfileBase(*uuid, profile))
+        return;
+
+    std::string username;
+    username.reserve(32);
+
+    std::ranges::copy_if(profile.username, std::back_inserter(username), [](u8 byte) { return byte != 0; });
+
+    NewUserDialog *dialog = new NewUserDialog(uuid.value(), username, this);
+
+    connect(dialog, &NewUserDialog::userAdded, this, [dialog, profile, user_idx, uuid, this](User user) mutable {
+        // TODO: MOVE UUID
+        // auto new_uuid = user.uuid;
+        auto new_username = user.username;
+        auto pixmap = user.pixmap;
+
+        auto const uuid_val = uuid.value();
+
+        const auto username_std = new_username.toStdString();
+        std::fill(profile.username.begin(), profile.username.end(), '\0');
+        std::copy(username_std.begin(), username_std.end(), profile.username.begin());
+
+        profile_manager.SetProfileBase(uuid_val, profile);
+        profile_manager.WriteUserSaveFile();
+
+        item_model->setItem(
+            user_idx, 0,
+            new QStandardItem{pixmap,
+                              FormatUserEntryText(QString::fromStdString(username_std), uuid_val)});
+
+        saveImage(pixmap, uuid_val);
         UpdateCurrentUser();
 
         dialog->deleteLater();

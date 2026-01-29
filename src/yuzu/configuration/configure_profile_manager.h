@@ -77,6 +77,7 @@ private:
 
     void SelectUser(const QModelIndex& index);
     void AddUser();
+    void EditUser();
     void RenameUser();
     void ConfirmDeleteUser();
     void DeleteUser(const Common::UUID& uuid);

@@ -22,7 +22,7 @@ class NewUserDialog : public QDialog
 
 public:
     explicit NewUserDialog(QWidget *parent = nullptr);
-    explicit NewUserDialog(Common::UUID uuid, QWidget *parent = nullptr);
+    explicit NewUserDialog(Common::UUID uuid, const std::string &username, QWidget *parent = nullptr);
     ~NewUserDialog();
 
     bool isDefaultAvatar() const;
@@ -40,7 +40,7 @@ private:
     bool m_isDefaultAvatar = true;
     bool m_editing = false;
 
-    void setup(Common::UUID uuid = Common::UUID::MakeRandom());
+    void setup(Common::UUID uuid, const std::string &username);
 public slots:
     void setImage(const QPixmap &pixmap);
     void selectImage();
