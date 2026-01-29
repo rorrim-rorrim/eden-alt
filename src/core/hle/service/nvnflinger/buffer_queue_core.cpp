@@ -17,7 +17,8 @@ BufferQueueCore::BufferQueueCore() = default;
 
 BufferQueueCore::~BufferQueueCore() = default;
 
-void BufferQueueCore::PushHistory(u64 frame_number, s64 queue_time, s64 presentation_time, BufferState state) {
+void BufferQueueCore::PushHistory(u64 frame_number, s64 queue_time,
+                                 s64 presentation_time, BufferState state) {
     std::lock_guard lk(buffer_history_mutex);
 
     auto it = buffer_history_map.find(frame_number);
@@ -26,18 +27,22 @@ void BufferQueueCore::PushHistory(u64 frame_number, s64 queue_time, s64 presenta
         return;
     }
 
-    buffer_history_map[frame_number] = BufferHistoryInfo{
+    buffer_history_map.emplace(frame_number, BufferHistoryInfo{
         frame_number,
         queue_time,
         presentation_time,
         state
-    };
+    });
 
     if (buffer_history_map.size() > BUFFER_HISTORY_SIZE) {
         auto oldest = std::min_element(
-            buffer_history_map.begin(), buffer_history_map.end(),
-            [](const auto& a, const auto& b) { return a.first < b.first; }
+            buffer_history_map.begin(),
+            buffer_history_map.end(),
+            [](const auto& lhs, const auto& rhs) {
+                return lhs.second.frame_number < rhs.second.frame_number;
+            }
         );
+
         buffer_history_map.erase(oldest);
     }
 }
