@@ -650,7 +650,7 @@ MainWindow::MainWindow(bool has_broken_vulkan)
             // Launch game at path
             game_path = args[++i];
             has_gamepath = true;
-        } else if (args[i] == QStringLiteral("-qlaunch"))
+        } else if (args[i] == QStringLiteral("-qlaunch")) {
             should_launch_qlaunch = true;
         } else if (args[i] == QStringLiteral("-setup")) {
             should_launch_setup = true;
