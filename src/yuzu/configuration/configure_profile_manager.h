@@ -78,12 +78,8 @@ private:
     void SelectUser(const QModelIndex& index);
     void AddUser();
     void EditUser();
-    void RenameUser();
     void ConfirmDeleteUser();
     void DeleteUser(const Common::UUID& uuid);
-    void SetUserImage(const QImage& image);
-    void SelectImageFile();
-    void SelectFirmwareAvatar();
     bool LoadAvatarData();
     std::vector<uint8_t> DecompressYaz0(const FileSys::VirtualFile& file);
 
@@ -91,7 +87,6 @@ private:
     QTreeView* tree_view;
     QStandardItemModel* item_model;
     QGraphicsScene* scene;
-    ProfileAvatarDialog* avatar_dialog;
     ConfigureProfileManagerDeleteDialog* confirm_dialog;
 
     std::vector<QList<QStandardItem*>> list_items;

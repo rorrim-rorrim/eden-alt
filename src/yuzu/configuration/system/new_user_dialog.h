@@ -2,8 +2,11 @@
 
 #include <QDialog>
 #include "common/uuid.h"
+#include "core/file_sys/vfs/vfs_types.h"
 
 class QGraphicsScene;
+class ProfileAvatarDialog;
+
 namespace Ui {
 class NewUserDialog;
 }
@@ -22,7 +25,7 @@ class NewUserDialog : public QDialog
 
 public:
     explicit NewUserDialog(QWidget *parent = nullptr);
-    explicit NewUserDialog(Common::UUID uuid, const std::string &username, QWidget *parent = nullptr);
+    explicit NewUserDialog(Common::UUID uuid, const std::string &username, const QString &title, QWidget *parent = nullptr);
     ~NewUserDialog();
 
     bool isDefaultAvatar() const;
@@ -37,13 +40,20 @@ private:
     QGraphicsScene *m_scene;
     QPixmap m_pixmap;
 
+    ProfileAvatarDialog* avatar_dialog;
+
     bool m_isDefaultAvatar = true;
     bool m_editing = false;
 
-    void setup(Common::UUID uuid, const std::string &username);
+    void setup(Common::UUID uuid, const std::string &username, const QString &title);
+    bool LoadAvatarData();
+    std::vector<uint8_t> DecompressYaz0(const FileSys::VirtualFile& file);
+
 public slots:
     void setImage(const QPixmap &pixmap);
     void selectImage();
+    void setAvatar();
+
     void revertImage();
     void updateRevertButton();
 
