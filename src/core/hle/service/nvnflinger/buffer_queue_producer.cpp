@@ -544,6 +544,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
             if (front->is_droppable) {
                 if (core->StillTracking(*front)) {
                     slots[front->slot].buffer_state = BufferState::Free;
+                    core->UpdateHistory(front->frame_number, BufferState::Free);
                     slots[front->slot].frame_number = 0;
                 }
                 *front = item;

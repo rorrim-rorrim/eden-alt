@@ -49,6 +49,7 @@ public:
     ~BufferQueueCore();
 
     void PushHistory(u64 frame_number, s64 queue_time, s64 presentation_time, BufferState state);
+    void UpdateHistory(u64 frame_number, BufferState state);
 
 private:
     void SignalDequeueCondition();
