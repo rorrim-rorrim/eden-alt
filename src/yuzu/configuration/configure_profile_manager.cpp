@@ -171,7 +171,7 @@ void ConfigureProfileManager::UpdateCurrentUser() {
 
     scene->clear();
     scene->addPixmap(
-        GetIcon(*current_user).scaled(48, 48, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+        GetIcon(*current_user).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     ui->current_user_username->setText(username);
 }
 
@@ -222,8 +222,6 @@ void ConfigureProfileManager::SelectUser(const QModelIndex& index) {
 
     ui->pm_remove->setEnabled(profile_manager.GetUserCount() >= 2);
     ui->pm_rename->setEnabled(true);
-    ui->pm_set_image->setEnabled(true);
-    ui->pm_select_avatar->setEnabled(true);
 }
 
 void ConfigureProfileManager::AddUser() {
@@ -240,8 +238,6 @@ void ConfigureProfileManager::AddUser() {
 
         saveImage(pixmap, uuid);
         UpdateCurrentUser();
-
-        profile_manager.ResetUserSaveFile();
 
         dialog->deleteLater();
     });
@@ -313,13 +309,15 @@ void ConfigureProfileManager::DeleteUser(const Common::UUID& uuid) {
     if (Settings::values.current_user.GetValue() == tree_view->currentIndex().row()) {
         Settings::values.current_user = 0;
     }
-    UpdateCurrentUser();
 
     if (!profile_manager.RemoveUser(uuid)) {
         return;
     }
 
     profile_manager.WriteUserSaveFile();
+    profile_manager.ResetUserSaveFile();
+
+    UpdateCurrentUser();
 
     item_model->removeRows(tree_view->currentIndex().row(), 1);
     tree_view->clearSelection();

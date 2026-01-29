@@ -98,6 +98,7 @@ bool ProfileManager::RemoveProfileAtIndex(std::size_t index) {
 
 void ProfileManager::RemoveAllProfiles()
 {
+    user_count = 0;
     profiles = {};
 }
 
