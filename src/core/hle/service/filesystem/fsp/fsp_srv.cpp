@@ -286,6 +286,7 @@ Result FSP_SRV::OpenSaveDataFileSystem(OutInterface<IFileSystem> out_interface,
     case FileSys::SaveDataSpaceId::Temporary:
     case FileSys::SaveDataSpaceId::ProperSystem:
     case FileSys::SaveDataSpaceId::SafeMode:
+    default:
         ASSERT(false);
     }
 
