@@ -488,13 +488,21 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     // VK_EXT_descriptor_buffer
+    VkPhysicalDeviceDescriptorBufferFeaturesEXT descriptor_buffer_temp{};
+    descriptor_buffer_temp.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT;
+    descriptor_buffer_temp.pNext = nullptr;
+    VkPhysicalDeviceFeatures2 desc_buf_features2{};
+    desc_buf_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    desc_buf_features2.pNext = &descriptor_buffer_temp;
+    physical.GetFeatures2(desc_buf_features2);
+
     VkPhysicalDeviceDescriptorBufferFeaturesEXT descriptor_buffer_features{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT,      
         .pNext = first_next,
-        .descriptorBuffer = features.descriptor_buffer.descriptorBuffer ? VK_TRUE : VK_FALSE,
-        .descriptorBufferCaptureReplay = features.descriptor_buffer.descriptorBufferCaptureReplay ? VK_TRUE : VK_FALSE,
-        .descriptorBufferImageLayoutIgnored = features.descriptor_buffer.descriptorBufferImageLayoutIgnored ? VK_TRUE : VK_FALSE,
-        .descriptorBufferPushDescriptors = features.descriptor_buffer.descriptorBufferPushDescriptors ? VK_TRUE : VK_FALSE,
+        .descriptorBuffer = descriptor_buffer_temp.descriptorBuffer ? VK_TRUE : VK_FALSE,
+        .descriptorBufferCaptureReplay = descriptor_buffer_temp.descriptorBufferCaptureReplay ? VK_TRUE : VK_FALSE,
+        .descriptorBufferImageLayoutIgnored = descriptor_buffer_temp.descriptorBufferImageLayoutIgnored ? VK_TRUE : VK_FALSE,
+        .descriptorBufferPushDescriptors = descriptor_buffer_temp.descriptorBufferPushDescriptors ? VK_TRUE : VK_FALSE,
     };
 
     if (extensions.descriptor_buffer) {
@@ -502,13 +510,21 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     // VK_EXT_inline_uniform_block
+    VkPhysicalDeviceInlineUniformBlockFeaturesEXT inline_uniform_block_temp{};
+    inline_uniform_block_temp.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES_EXT;
+    inline_uniform_block_temp.pNext = nullptr;
+    VkPhysicalDeviceFeatures2 inline_uniform_features2{};
+    inline_uniform_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    inline_uniform_features2.pNext = &inline_uniform_block_temp;
+    physical.GetFeatures2(inline_uniform_features2);
+
     VkPhysicalDeviceInlineUniformBlockFeaturesEXT inline_uniform_block_features{        
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES_EXT,   
         .pNext = first_next,
-        .inlineUniformBlock = features.inline_uniform_block.inlineUniformBlock ? VK_TRUE : VK_FALSE,
+        .inlineUniformBlock = inline_uniform_block_temp.inlineUniformBlock ? VK_TRUE : VK_FALSE,
     };
 
-    if (extensions.inline_uniform_block && features.inline_uniform_block.inlineUniformBlock) {
+    if (extensions.inline_uniform_block && inline_uniform_block_temp.inlineUniformBlock) {
         first_next = &inline_uniform_block_features;
     }
 
