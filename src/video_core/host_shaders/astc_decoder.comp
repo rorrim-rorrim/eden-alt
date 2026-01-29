@@ -403,10 +403,9 @@ void DecodeIntegerSequence(uint max_range, uint num_values) {
 }
 
 void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits, out uint color_values[32]) {
-    uint num_values = 0;
-    for (uint i = 0; i < num_partitions; i++) {
-        num_values += ((modes[i] >> 2) + 1) << 1;
-    }
+    // TODO: modes[] zero on invalid, so less ops
+    const uvec4 num_values_tmp = (((modes >> 2) + 1) << 1) & ((uvec4(0, 1, 2, 3) - num_partitions) >> 8);
+    uint num_values = num_values_tmp.x + num_values_tmp.y + num_values_tmp.z + num_values_tmp.w;
     // Find the largest encoding that's within color_data_bits
     // TODO(ameerj): profile with binary search
     int range = 0;
@@ -416,12 +415,9 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits, o
             break;
         }
     }
+    const uint upper_bound = num_values;
     DecodeIntegerSequence(range - 1, num_values);
-    uint out_index = 0;
-    for (int i = 0; i < result_index; ++i) {
-        if (out_index >= num_values) {
-            break;
-        }
+    for (int i = 0; i < upper_bound; ++i) {
         const EncodingData val = GetEncodingFromVector(i);
         const uint encoding = Encoding(val);
         const uint bitlen = NumBits(val);
@@ -507,7 +503,7 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits, o
         uint unq = D * C + B;
         unq = unq ^ A;
         unq = (A & 0x80) | (unq >> 2);
-        color_values[++out_index] = encoding == JUST_BITS
+        color_values[i + 1] = encoding == JUST_BITS
             ? FastReplicateTo8(bitval, bitlen)
             : unq;
     }
