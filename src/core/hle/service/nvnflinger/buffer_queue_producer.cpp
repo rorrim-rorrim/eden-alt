@@ -544,13 +544,6 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
             if (front->is_droppable) {
                 if (core->StillTracking(*front)) {
                     slots[front->slot].buffer_state = BufferState::Free;
-                    {
-                        std::lock_guard history_lock(core->buffer_history_mutex);
-                        auto it = core->buffer_history_map.find(front->frame_number);
-                        if (it != core->buffer_history_map.end()) {
-                            it->second.state = BufferState::Free;
-                        }
-                    }
                     slots[front->slot].frame_number = 0;
                 }
                 *front = item;
@@ -895,8 +888,6 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         QueueBufferOutput output;
 
         status = QueueBuffer(slot, input, &output);
-
-        core->PushHistory(core->frame_counter, slots[slot].queue_time, slots[slot].presentation_time, slots[slot].buffer_state);
 
         parcel_out.Write(output);
         break;
