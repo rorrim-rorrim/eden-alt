@@ -139,12 +139,6 @@ uint ReplicateBitTo9(uint value) {
 }
 
 uint ReplicateBits(uint value, uint num_bits, uint to_bit) {
-    if (value == 0 || num_bits == 0) {
-        return 0;
-    }
-    if (num_bits >= to_bit) {
-        return value;
-    }
     const uint v = value & uint((1 << num_bits) - 1);
     uint res = v;
     uint reslen = num_bits;
@@ -322,11 +316,7 @@ uint GetBitLength(uint n_vals, uint encoding_index) {
 }
 
 uint GetNumWeightValues(uvec2 size, bool dual_plane) {
-    uint n_vals = size.x * size.y;
-    if (dual_plane) {
-        n_vals *= 2;
-    }
-    return n_vals;
+    return (size.x * size.y) << uint(dual_plane);
 }
 
 uint GetPackedBitSize(uvec2 size, bool dual_plane, uint max_weight) {
@@ -1005,39 +995,24 @@ void DecompressBlock(ivec3 coord) {
     const uint color_data_bits = remaining_bits;
     while (remaining_bits > 0) {
         const int nb = int(min(remaining_bits, 32U));
-        const uint b = StreamBits(nb);
-        color_endpoint_data[ced_pointer] = uint(bitfieldExtract(b, 0, nb));
+        color_endpoint_data[ced_pointer] = StreamBits(nb);
         ++ced_pointer;
         remaining_bits -= nb;
     }
+
+    // color_endpoint_mode assumed to be 0 on invalids/out of "range"
     const uint plane_index = uint(StreamBits(plane_selector_bits));
+    const uvec4 cem_mask = (uvec4(0, 1, 2, 3) - num_partitions) >> 8;
     if (base_mode > 0) {
         const uint extra_cem = StreamBits(extra_cem_bits);
-        uint cem = (extra_cem << 6) | base_cem;
-        cem >>= 2;
-        uvec4 C = uvec4(0);
-        for (uint i = 0; i < num_partitions; i++) {
-            C[i] = (cem & 1);
-            cem >>= 1;
-        }
-        uvec4 M = uvec4(0);
-        for (uint i = 0; i < num_partitions; i++) {
-            M[i] = cem & 3;
-            cem >>= 2;
-        }
-        for (uint i = 0; i < num_partitions; i++) {
-            color_endpoint_mode[i] = base_mode;
-            if (C[i] == 0) {
-                --color_endpoint_mode[i];
-            }
-            color_endpoint_mode[i] <<= 2;
-            color_endpoint_mode[i] |= M[i];
-        }
+        const uint cem = ((extra_cem << 6) | base_cem) >> 2;
+        const uint c0 = cem & ((1 << num_partitions) - 1);
+        const uint c1 = (cem >> num_partitions) & ((1 << (num_partitions * 2)) - 1);
+        const uvec4 c = (uvec4(c0) >> uvec4(0, 1, 2, 3)) & 1;
+        const uvec4 m = (uvec4(c1) >> uvec4(0, 2, 4, 6)) & 3;
+        color_endpoint_mode = (((uvec4(base_mode) - (1 - c)) << 2) | m) & cem_mask;
     } else if (num_partitions > 1) {
-        const uint cem = base_cem >> 2;
-        for (uint i = 0; i < num_partitions; i++) {
-            color_endpoint_mode[i] = cem;
-        }
+        color_endpoint_mode = uvec4(base_cem >> 2) & cem_mask;
     }
 
     uvec4 endpoints0[4];
@@ -1048,9 +1023,8 @@ void DecompressBlock(ivec3 coord) {
         uint color_values[32];
         uint colvals_index = 0;
         DecodeColorValues(color_endpoint_mode, num_partitions, color_data_bits, color_values);
-        for (uint i = 0; i < num_partitions; i++) {
+        for (uint i = 0; i < num_partitions; i++)
             ComputeEndpoints(endpoints0[i], endpoints1[i], color_endpoint_mode[i], color_values, colvals_index);
-        }
     }
     color_endpoint_data = local_buff;
     color_endpoint_data = bitfieldReverse(color_endpoint_data).wzyx;
@@ -1058,8 +1032,7 @@ void DecompressBlock(ivec3 coord) {
 
     const uint byte_insert = ExtractBits(color_endpoint_data, int(clear_byte_start - 1) * 8, 8) & uint(((1 << (weight_bits % 8)) - 1));
     const uint vec_index = (clear_byte_start - 1) >> 2;
-    color_endpoint_data[vec_index] = bitfieldInsert(color_endpoint_data[vec_index], byte_insert,
-                                                    int((clear_byte_start - 1) % 4) * 8, 8);
+    color_endpoint_data[vec_index] = bitfieldInsert(color_endpoint_data[vec_index], byte_insert, int((clear_byte_start - 1) % 4) * 8, 8);
     for (uint i = clear_byte_start; i < 16; ++i) {
         const uint idx = i >> 2;
         color_endpoint_data[idx] = bitfieldInsert(color_endpoint_data[idx], 0, int(i % 4) * 8, 8);
