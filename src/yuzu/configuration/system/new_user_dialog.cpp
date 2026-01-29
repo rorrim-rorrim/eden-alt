@@ -16,11 +16,6 @@
 NewUserDialog::NewUserDialog(QWidget* parent) : QDialog(parent), ui(new Ui::NewUserDialog) {
     ui->setupUi(this);
 
-    // TODO: Only show revert when not default image
-    QStyle* style = parent->style();
-    QIcon icon(style->standardIcon(QStyle::SP_LineEditClearButton));
-    ui->revert->setIcon(icon);
-
     m_scene = new QGraphicsScene;
     ui->image->setScene(m_scene);
 
@@ -106,7 +101,13 @@ void NewUserDialog::revertImage() {
 }
 
 void NewUserDialog::updateRevertButton() {
-    ui->revert->setVisible(!isDefaultAvatar());
+    if (isDefaultAvatar()) {
+        ui->revert->setIcon(QIcon{});
+    } else {
+        QStyle* style = parentWidget()->style();
+        QIcon icon(style->standardIcon(QStyle::SP_LineEditClearButton));
+        ui->revert->setIcon(icon);
+    }
 }
 
 void NewUserDialog::generateUUID() {
