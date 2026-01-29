@@ -89,6 +89,7 @@ private:
 
     std::unordered_map<u64, BufferHistoryInfo> buffer_history_map{};
     mutable std::mutex buffer_history_mutex{};
+    std::deque<u64> buffer_history_order;
 
     u32 transform_hint{};
     bool is_allocating{};
