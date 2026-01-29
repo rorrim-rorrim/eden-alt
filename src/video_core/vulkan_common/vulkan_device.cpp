@@ -549,7 +549,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectToolingInfo();
 
     if (is_qualcomm) {
-        // Qualcomm Adreno GPUs doesn't handle scaled vertex attributes; keep emulation enabled
         must_emulate_scaled_formats = true;
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm drivers require scaled vertex format emulation; forcing fallback");
@@ -566,9 +565,22 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         sets_per_pool = 1024;
         LOG_INFO(Render_Vulkan, "Qualcomm: forcing {} sets per pool", sets_per_pool);
 
-        has_broken_cube_compatibility = true;
-        LOG_WARNING(Render_Vulkan,
-                "Qualcomm: disabling VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT due to driver bugs");
+        const char* kShaderFloat16Int8 = VK_KHR_SHADER_FLOAT16_INT8_EXTENSION_NAME;
+        const bool has_float16_int8_ext = supported_extensions.find(kShaderFloat16Int8) !=
+                                         supported_extensions.end();
+        if (has_float16_int8_ext) {
+            loaded_extensions.insert(std::string(kShaderFloat16Int8));
+            extensions.shader_float16_int8 = true;
+            LOG_INFO(Render_Vulkan, "Qualcomm: VK_KHR_shader_float16_int8 available");
+        } else {
+            extensions.shader_float16_int8 = false;
+            LOG_INFO(Render_Vulkan, "Qualcomm: VK_KHR_shader_float16_int8 not available");
+        }
+
+        const int drv_sf16 = features.shader_float16_int8.shaderFloat16 ? 1 : 0;
+        const int drv_si8 = features.shader_float16_int8.shaderInt8 ? 1 : 0;
+        const int drv_si16 = features.features.shaderInt16 ? 1 : 0;
+        LOG_INFO(Render_Vulkan, "Qualcomm: shaderFloat16={} shaderInt8={} shaderInt16={}", drv_sf16, drv_si8, drv_si16);
 
 #if defined(ANDROID) && defined(ARCHITECTURE_arm64)
         // BCn patching only safe on Android 9+ (API 28+). Older versions crash on driver load.
@@ -1499,15 +1511,44 @@ void Device::RemoveUnsuitableExtensions() {
     }
 
     // VK_KHR_workgroup_memory_explicit_layout
-    extensions.workgroup_memory_explicit_layout =
-        features.features.shaderInt16 &&
-        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout &&
-        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout8BitAccess &&
-        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout16BitAccess &&
-        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayoutScalarBlockLayout;
-    RemoveExtensionFeatureIfUnsuitable(extensions.workgroup_memory_explicit_layout,
-                                       features.workgroup_memory_explicit_layout,
-                                       VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME);
+        const bool base = features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout;
+        const bool has8 = features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout8BitAccess;
+        const bool has16 = features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout16BitAccess;
+        const bool hasScalar = features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayoutScalarBlockLayout;
+
+        const bool is_qualcomm = properties.driver.driverID == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
+
+        if (is_qualcomm) {
+            extensions.workgroup_memory_explicit_layout =
+                features.features.shaderInt16 && base && (has16 || hasScalar || has8);
+            if (extensions.workgroup_memory_explicit_layout && !(has8 && has16 && hasScalar)) {
+                LOG_INFO(Render_Vulkan,
+                         "Qualcomm: enabling partial VK_KHR_workgroup_memory_explicit_layout (8bit={},16bit={},scalar={})",
+                         has8, has16, hasScalar);
+            }
+            // If the extension is supported by the driver, ensure it's requested when we enable it.
+            if (extensions.workgroup_memory_explicit_layout) {
+                const char* kWgMemExt = VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME;
+                if (supported_extensions.find(kWgMemExt) != supported_extensions.end()) {
+                    if (loaded_extensions.find(std::string(kWgMemExt)) == loaded_extensions.end()) {
+                        loaded_extensions.insert(std::string(kWgMemExt));
+                        LOG_INFO(Render_Vulkan, "Qualcomm: added {} to loaded_extensions", kWgMemExt);
+                    }
+                } else {
+                    LOG_INFO(Render_Vulkan,
+                             "Qualcomm: driver reports explicit-layout subfeatures but does not advertise {}",
+                             VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME);
+                }
+            }
+        } else {
+            extensions.workgroup_memory_explicit_layout =
+                features.features.shaderInt16 && base && has8 && has16 && hasScalar;
+        }
+
+        RemoveExtensionFeatureIfUnsuitable(extensions.workgroup_memory_explicit_layout,
+                                           features.workgroup_memory_explicit_layout,
+                                           VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME);
+    }
 
     // VK_EXT_swapchain_maintenance1 (extension only, has features)
     // Requires VK_EXT_surface_maintenance1 instance extension
