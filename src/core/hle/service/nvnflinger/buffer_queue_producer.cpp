@@ -428,8 +428,7 @@ Status BufferQueueProducer::AttachBuffer(s32* out_slot,
     return return_flags;
 }
 
-Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
-                                        QueueBufferOutput* output) {
+Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input, QueueBufferOutput* output) {
     s64 timestamp{};
     bool is_auto_timestamp{};
     Common::Rectangle<s32> crop;
@@ -440,8 +439,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
     s32 swap_interval{};
     Fence fence{};
 
-    input.Deflate(&timestamp, &is_auto_timestamp, &crop, &scaling_mode, &transform,
-                  &sticky_transform_, &async, &swap_interval, &fence);
+    input.Deflate(&timestamp, &is_auto_timestamp, &crop, &scaling_mode, &transform, &sticky_transform_, &async, &swap_interval, &fence);
 
     switch (scaling_mode) {
     case NativeWindowScalingMode::Freeze:
@@ -455,10 +453,9 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         return Status::BadValue;
     }
 
-    std::shared_ptr<IConsumerListener> frame_available_listener;
-    std::shared_ptr<IConsumerListener> frame_replaced_listener;
-    s32 callback_ticket{};
     BufferItem item;
+    std::shared_ptr<IConsumerListener> listener_available;
+    std::shared_ptr<IConsumerListener> listener_replaced;
 
     {
         std::scoped_lock lock{core->mutex};
@@ -469,122 +466,77 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         }
 
         const s32 max_buffer_count = core->GetMaxBufferCountLocked(async);
-        if (async && core->override_max_buffer_count) {
-            if (core->override_max_buffer_count < max_buffer_count) {
-                LOG_ERROR(Service_Nvnflinger, "async mode is invalid with "
-                                              "buffer count override");
-                return Status::BadValue;
-            }
-        }
 
         if (slot < 0 || slot >= max_buffer_count) {
-            LOG_ERROR(Service_Nvnflinger, "slot index {} out of range [0, {})", slot,
-                      max_buffer_count);
+            LOG_ERROR(Service_Nvnflinger, "slot {} out of range [0, {})", slot, max_buffer_count);
             return Status::BadValue;
-        } else if (slots[slot].buffer_state != BufferState::Dequeued) {
-            LOG_ERROR(Service_Nvnflinger,
-                      "slot {} is not owned by the producer "
-                      "(state = {})",
-                      slot, slots[slot].buffer_state);
+        }
+        if (slots[slot].buffer_state != BufferState::Dequeued) {
+            LOG_ERROR(Service_Nvnflinger, "slot {} is not owned by producer", slot);
             return Status::BadValue;
-        } else if (!slots[slot].request_buffer_called) {
-            LOG_ERROR(Service_Nvnflinger,
-                      "slot {} was queued without requesting "
-                      "a buffer",
-                      slot);
+        }
+        if (!slots[slot].request_buffer_called) {
+            LOG_ERROR(Service_Nvnflinger, "slot {} was queued without request", slot);
             return Status::BadValue;
         }
 
-        LOG_DEBUG(Service_Nvnflinger,
-                  "slot={} frame={} time={} crop=[{},{},{},{}] transform={} scale={}", slot,
-                  core->frame_counter + 1, timestamp, crop.Left(), crop.Top(), crop.Right(),
-                  crop.Bottom(), transform, scaling_mode);
-
-        const std::shared_ptr<GraphicBuffer>& graphic_buffer(slots[slot].graphic_buffer);
-        Common::Rectangle<s32> buffer_rect(graphic_buffer->Width(), graphic_buffer->Height());
-        Common::Rectangle<s32> cropped_rect;
-        [[maybe_unused]] const bool unused = crop.Intersect(buffer_rect, &cropped_rect);
-
-        if (cropped_rect != crop) {
-            LOG_ERROR(Service_Nvnflinger, "crop rect is not contained within the buffer in slot {}",
-                      slot);
-            return Status::BadValue;
-        }
-
-        slots[slot].fence = fence;
-        slots[slot].buffer_state = BufferState::Queued;
         ++core->frame_counter;
+        slots[slot].buffer_state = BufferState::Queued;
         slots[slot].frame_number = core->frame_counter;
         slots[slot].queue_time = timestamp;
         slots[slot].presentation_time = clock->GetTimeNS().count();
+        slots[slot].fence = fence;
 
-        item.acquire_called = slots[slot].acquire_called;
+        item.slot = slot;
         item.graphic_buffer = slots[slot].graphic_buffer;
-        item.crop = crop;
-        item.transform = transform & ~NativeWindowTransform::InverseDisplay;
-        item.transform_to_display_inverse =
-            (transform & NativeWindowTransform::InverseDisplay) != NativeWindowTransform::None;
-        item.scaling_mode = static_cast<u32>(scaling_mode);
+        item.frame_number = core->frame_counter;
         item.timestamp = timestamp;
         item.is_auto_timestamp = is_auto_timestamp;
-        item.frame_number = core->frame_counter;
-        item.slot = slot;
+        item.crop = crop;
+        item.transform = transform & ~NativeWindowTransform::InverseDisplay;
+        item.transform_to_display_inverse = (transform & NativeWindowTransform::InverseDisplay) != NativeWindowTransform::None;
+        item.scaling_mode = static_cast<u32>(scaling_mode);
         item.fence = fence;
         item.is_droppable = core->dequeue_buffer_cannot_block || async;
         item.swap_interval = swap_interval;
+        item.acquire_called = slots[slot].acquire_called;
 
         sticky_transform = sticky_transform_;
 
         if (core->queue.empty()) {
             core->queue.push_back(item);
-            frame_available_listener = core->consumer_listener;
+            listener_available = core->consumer_listener;
         } else {
-            auto front(core->queue.begin());
+            auto front = core->queue.begin();
+            if (front->is_droppable && core->StillTracking(*front)) {
+                slots[front->slot].buffer_state = BufferState::Free;
+                core->UpdateHistory(front->frame_number, BufferState::Free);
+                slots[front->slot].frame_number = 0;
+            }
 
             if (front->is_droppable) {
-                if (core->StillTracking(*front)) {
-                    slots[front->slot].buffer_state = BufferState::Free;
-                    core->UpdateHistory(front->frame_number, BufferState::Free);
-                    slots[front->slot].frame_number = 0;
-                }
                 *front = item;
-                frame_replaced_listener = core->consumer_listener;
+                listener_replaced = core->consumer_listener;
             } else {
                 core->queue.push_back(item);
-                frame_available_listener = core->consumer_listener;
+                listener_available = core->consumer_listener;
             }
         }
 
         core->PushHistory(core->frame_counter, slots[slot].queue_time, slots[slot].presentation_time, BufferState::Queued);
         core->buffer_has_been_queued = true;
         core->SignalDequeueCondition();
-        output->Inflate(core->default_width, core->default_height, core->transform_hint,
-                        static_cast<u32>(core->queue.size()));
 
-        callback_ticket = next_callback_ticket++;
+        output->Inflate(core->default_width, core->default_height, core->transform_hint, static_cast<u32>(core->queue.size()));
     }
 
-    // Don't send the GraphicBuffer through the callback, and don't send the slot number, since the
-    // consumer shouldn't need it
     item.graphic_buffer.reset();
     item.slot = BufferItem::INVALID_BUFFER_SLOT;
 
-    // Call back without the main BufferQueue lock held, but with the callback lock held so we can
-    // ensure that callbacks occur in order
-    {
-        std::scoped_lock lock{callback_mutex};
-        while (callback_ticket != current_callback_ticket) {
-            callback_condition.wait(callback_mutex);
-        }
-
-        if (frame_available_listener != nullptr) {
-            frame_available_listener->OnFrameAvailable(item);
-        } else if (frame_replaced_listener != nullptr) {
-            frame_replaced_listener->OnFrameReplaced(item);
-        }
-
-        ++current_callback_ticket;
-        callback_condition.notify_all();
+    if (listener_available) {
+        listener_available->OnFrameAvailable(item);
+    } else if (listener_replaced) {
+        listener_replaced->OnFrameReplaced(item);
     }
 
     return Status::NoError;
