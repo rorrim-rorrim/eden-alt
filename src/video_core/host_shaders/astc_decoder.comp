@@ -81,7 +81,6 @@ uint result_vector[ARRAY_NUM_ELEMENTS * 2];
 
 int result_index = 0;
 uint result_vector_max_index;
-bool result_limit_reached = false;
 
 // EncodingData helpers
 uint Encoding(EncodingData val) {
@@ -117,12 +116,10 @@ EncodingData CreateEncodingData(uint encoding, uint num_bits, uint bit_val, uint
 
 
 void ResultEmplaceBack(EncodingData val) {
-    if (result_index >= result_vector_max_index) {
-    // Alert callers to avoid decoding more than needed by this phase
-        result_limit_reached = true;
-        return;
-    }
-    result_vector[result_index] = val.data;
+    // A = result_index, B = result_vector_max_index
+    // A >= B -> A - B >= 0
+    // A <  B -> A - B <  0
+    result_vector[min(32U, result_index)] = val.data; // 0 if not set
     ++result_index;
 }
 
@@ -383,7 +380,7 @@ void DecodeIntegerSequence(uint max_range, uint num_values) {
     EncodingData val = EncodingData(encoding_values[max_range]);
     const uint encoding = Encoding(val);
     const uint num_bits = NumBits(val);
-    for (uint vals_decoded = 0; vals_decoded < num_values && !result_limit_reached; ) {
+    for (uint vals_decoded = 0; vals_decoded < num_values && result_index < result_vector_max_index; ) {
         switch (encoding) {
         case QUINT:
             DecodeQuintBlock(num_bits);
@@ -515,9 +512,10 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits, o
 }
 
 ivec2 BitTransferSigned(int a, int b) {
-    ivec2 transferred;
-    transferred.x = (a >> 1) & 0x3F;
-    transferred.y = (b >> 1) | (a & 0x80);
+    ivec2 transferred = ivec2(
+        (a >> 1) & 0x3F,
+        (b >> 1) | (a & 0x80)
+    );
     if ((transferred.x & 0x20) > 0) {
         transferred.x -= 0x40;
     }
@@ -999,7 +997,6 @@ void DecompressBlock(ivec3 coord) {
     // Re-init vector variables for next decode phase
     result_index = 0;
     color_bitsread = 0;
-    result_limit_reached = false;
 
     // The limit for the Unquantize phase, avoids decoding more data than needed.
     result_vector_max_index = size_params.x * size_params.y;
