@@ -620,10 +620,7 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     bool is_fullscreen = false;
 
     // Preserves drag/drop functionality
-    if (args.size() == 2 && !args[1].startsWith(QChar::fromLatin1('-'))) {
-        game_path = args[1];
-        has_gamepath = true;
-    } else for (int i = 1; i < args.size(); ++i) {
+    for (int i = 1; i < args.size(); ++i) {
         if (args[i] == QStringLiteral("-f")) {
             // Launch game in fullscreen mode
             is_fullscreen = true;
@@ -655,8 +652,12 @@ MainWindow::MainWindow(bool has_broken_vulkan)
             has_gamepath = true;
         } else if (args[i] == QStringLiteral("-qlaunch"))
             should_launch_qlaunch = true;
-        else if (args[i] == QStringLiteral("-setup"))
+        } else if (args[i] == QStringLiteral("-setup")) {
             should_launch_setup = true;
+        } else {
+            game_path = args[i];
+            has_gamepath = true;
+        }
     }
 
     // Override fullscreen setting if gamepath or argument is provided
