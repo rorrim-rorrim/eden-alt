@@ -148,6 +148,7 @@ void ConfigureProfileManager::SetConfiguration() {
 }
 
 void ConfigureProfileManager::PopulateUserList() {
+    profile_manager.ResetUserSaveFile();
     const auto& profiles = profile_manager.GetAllUsers();
     for (const auto& user : profiles) {
         Service::Account::ProfileBase profile{};
