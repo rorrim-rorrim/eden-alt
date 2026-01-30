@@ -508,28 +508,6 @@ struct Values {
                                                   "use_reactive_flushing",
                                                   Category::RendererAdvanced};
 
-    SwitchableSetting<GpuOverclock> fast_gpu_time{linkage,
-                                                  GpuOverclock::Low,
-                                                  "fast_gpu_time",
-                                                  Category::RendererAdvanced,
-                                                  Specialization::Default,
-                                                  true,
-                                                  true,
-                                                  &use_fast_gpu_time};
-
-    SwitchableSetting<bool> use_vulkan_driver_pipeline_cache{linkage,
-                                                             true,
-                                                             "use_vulkan_driver_pipeline_cache",
-                                                             Category::RendererAdvanced,
-                                                             Specialization::Default,
-                                                             true,
-                                                             true};
-    SwitchableSetting<bool> enable_compute_pipelines{linkage, false, "enable_compute_pipelines",
-                                                     Category::RendererAdvanced};
-    SwitchableSetting<bool> use_video_framerate{linkage, false, "use_video_framerate",
-                                                Category::RendererAdvanced};
-    SwitchableSetting<bool> force_smaller_buffers{linkage, false, "force_smaller_buffers",
-                                                Category::RendererAdvanced};
     SwitchableSetting<bool> barrier_feedback_loops{linkage, true, "barrier_feedback_loops",
                                                    Category::RendererAdvanced};
 
@@ -567,7 +545,8 @@ struct Values {
 
     SwitchableSetting<bool> fix_bloom_effects{linkage, false, "fix_bloom_effects",
                                                      Category::RendererHacks};
-
+    SwitchableSetting<bool> force_smaller_buffers{linkage, false, "force_smaller_buffers",
+                                                     Category::RendererHacks};
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::RendererHacks};
 
