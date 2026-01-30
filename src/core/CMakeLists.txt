@@ -1131,7 +1131,6 @@ add_library(core STATIC
     internal_network/socket_proxy.cpp
     internal_network/socket_proxy.h
     internal_network/sockets.h
-    internal_network/wifi_scanner.cpp
     internal_network/wifi_scanner.h
     launch_timestamp_cache.cpp
     launch_timestamp_cache.h
