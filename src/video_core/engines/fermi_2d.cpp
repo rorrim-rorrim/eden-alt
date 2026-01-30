@@ -70,8 +70,7 @@ void Fermi2D::Blit() {
     UNIMPLEMENTED_IF_MSG(regs.dst.layer != 0, "Destination layer is not zero");
     UNIMPLEMENTED_IF_MSG(regs.src.depth != 1, "Source depth is not one");
     UNIMPLEMENTED_IF_MSG(regs.clip_enable != 0, "Clipped blit enabled");
-    UNIMPLEMENTED_IF_MSG(args.du_dx == null_derivative, "du/dx null derivative");
-    UNIMPLEMENTED_IF_MSG(args.dv_dy == null_derivative, "dv/dy null derivative");
+    // UNIMPLEMENTED_IF_MSG(args.du_dx == null_derivative && args.dv_dy == null_derivative, "du/dx & dv/dy null derivative");
 
     auto srcX = args.src_x0;
     auto srcY = args.src_y0;
