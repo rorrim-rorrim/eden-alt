@@ -1546,10 +1546,12 @@ void Device::RemoveUnsuitableExtensions() {
         }
 
         RemoveExtensionFeatureIfUnsuitable(extensions.workgroup_memory_explicit_layout,
-                           features.workgroup_memory_explicit_layout,
-                           VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME);
+                                           features.workgroup_memory_explicit_layout,
+                                           VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME);
+    }
 
-    // VK_EXT_swapchain_maintenance1
+    // VK_EXT_swapchain_maintenance1 (extension only, has features)
+    // Requires VK_EXT_surface_maintenance1 instance extension
     extensions.swapchain_maintenance1 = features.swapchain_maintenance1.swapchainMaintenance1;
     if (extensions.swapchain_maintenance1) {
         // Check if VK_EXT_surface_maintenance1 instance extension is available
