@@ -549,7 +549,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectToolingInfo();
 
     if (is_qualcomm) {
-        // Qualcomm Adreno GPUs doesn't handle scaled vertex attributes; keep emulation enabled
         must_emulate_scaled_formats = true;
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm drivers require scaled vertex format emulation; forcing fallback");
@@ -565,10 +564,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
         sets_per_pool = 1024;
         LOG_INFO(Render_Vulkan, "Qualcomm: forcing {} sets per pool", sets_per_pool);
-
-        has_broken_cube_compatibility = true;
-        LOG_WARNING(Render_Vulkan,
-                "Qualcomm: disabling VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT due to driver bugs");
 
 #if defined(ANDROID) && defined(ARCHITECTURE_arm64)
         // BCn patching only safe on Android 9+ (API 28+). Older versions crash on driver load.
