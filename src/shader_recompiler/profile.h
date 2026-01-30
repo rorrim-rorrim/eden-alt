@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -29,9 +26,6 @@ struct Profile {
     bool support_fp32_signed_zero_nan_preserve{};
     bool support_fp64_signed_zero_nan_preserve{};
     bool support_explicit_workgroup_layout{};
-    bool support_explicit_workgroup_layout8{};
-    bool support_explicit_workgroup_layout16{};
-    bool support_explicit_workgroup_layout_scalar{};
     bool support_vote{};
     bool support_viewport_index_layer_non_geometry{};
     bool support_viewport_mask{};

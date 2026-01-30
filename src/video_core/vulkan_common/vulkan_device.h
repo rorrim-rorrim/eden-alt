@@ -493,18 +493,6 @@ public:
         return extensions.workgroup_memory_explicit_layout;
     }
 
-    bool IsKhrWorkgroupMemoryExplicitLayout8BitAccessSupported() const {
-        return features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout8BitAccess;
-    }
-
-    bool IsKhrWorkgroupMemoryExplicitLayout16BitAccessSupported() const {
-        return features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout16BitAccess;
-    }
-
-    bool IsKhrWorkgroupMemoryExplicitLayoutScalarBlockLayoutSupported() const {
-        return features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayoutScalarBlockLayout;
-    }
-
     /// Returns true if the device supports VK_KHR_image_format_list.
     bool IsKhrImageFormatListSupported() const {
         return extensions.image_format_list || instance_version >= VK_API_VERSION_1_2;

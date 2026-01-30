@@ -621,21 +621,12 @@ void EmitContext::DefineSharedMemory(const IR::Program& program) {
         AddExtension("SPV_KHR_workgroup_memory_explicit_layout");
         AddCapability(spv::Capability::WorkgroupMemoryExplicitLayoutKHR);
         if (program.info.uses_int8) {
-            if (profile.support_explicit_workgroup_layout8) {
-                AddCapability(spv::Capability::WorkgroupMemoryExplicitLayout8BitAccessKHR);
-                std::tie(shared_memory_u8, shared_u8, std::ignore) = make(U8, 1);
-            } else {
-                // Driver doesn't report 8-bit access; do not emit 8-bit capability.
-                LOG_WARNING(Render_Vulkan, "SPIR-V: shader uses int8 but device lacks workgroupMemoryExplicitLayout8BitAccess; emitting fallback layout");
-            }
+            AddCapability(spv::Capability::WorkgroupMemoryExplicitLayout8BitAccessKHR);
+            std::tie(shared_memory_u8, shared_u8, std::ignore) = make(U8, 1);
         }
         if (program.info.uses_int16) {
-            if (profile.support_explicit_workgroup_layout16) {
-                AddCapability(spv::Capability::WorkgroupMemoryExplicitLayout16BitAccessKHR);
-                std::tie(shared_memory_u16, shared_u16, std::ignore) = make(U16, 2);
-            } else {
-                LOG_WARNING(Render_Vulkan, "SPIR-V: shader uses int16 but device lacks workgroupMemoryExplicitLayout16BitAccess; emitting fallback layout");
-            }
+            AddCapability(spv::Capability::WorkgroupMemoryExplicitLayout16BitAccessKHR);
+            std::tie(shared_memory_u16, shared_u16, std::ignore) = make(U16, 2);
         }
         if (program.info.uses_int64) {
             std::tie(shared_memory_u64, shared_u64, std::ignore) = make(U64, 8);
