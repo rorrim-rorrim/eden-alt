@@ -332,7 +332,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
     INSERT(Settings,
            enable_buffer_history,
            tr("Enable buffer history"),
-           tr("Enables access to previous buffer states.\nThis option may improve rendering in some games, but can have a slight performance impact."));
+           tr("Enables access to previous buffer states.\nThis option may improve rendering quality and performance consistency in some games."));
     INSERT(Settings,
            fix_bloom_effects,
            tr("Fix bloom effects"),
