@@ -135,7 +135,7 @@ void ResultEmplaceBack(EncodingData val) {
     // A = result_index, B = result_vector_max_index
     // A >= B -> A - B >= 0
     // A <  B -> A - B <  0
-    result_vector[min(32U, result_index)] = val.data; // 0 if not set
+    result_vector[min(result_vector.length(), result_index)] = val.data; // 0 if not set
     ++result_index;
 }
 
