@@ -912,7 +912,7 @@ static Xbyak::Reg8 DoCarry(BlockOfCode& code, RegAlloc& reg_alloc, Argument& car
 // AL contains flags (after LAHF + SETO sequence)
 static Xbyak::Reg64 DoNZCV(BlockOfCode& code, RegAlloc& reg_alloc, IR::Inst* nzcv_out) {
     if (nzcv_out) {
-        const Xbyak::Reg64 nzcv = reg_alloc.ScratchGpr(HostLoc::RAX);
+        const Xbyak::Reg64 nzcv = reg_alloc.ScratchGpr(code, HostLoc::RAX);
         code.xor_(nzcv.cvt32(), nzcv.cvt32());
         return nzcv;
     }
@@ -930,12 +930,12 @@ static void EmitAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, size_t 
     // Consider using LEA.
     if (!carry_inst && !overflow_inst && !nzcv_inst && carry_in.IsImmediate() && !carry_in.GetImmediateU1()) {
         if (args[1].IsImmediate() && args[1].FitsInImmediateS32()) {
-            Xbyak::Reg const result = ctx.reg_alloc.UseScratchGpr(args[0]).changeBit(bitsize);
+            Xbyak::Reg const result = ctx.reg_alloc.UseScratchGpr(code, args[0]).changeBit(bitsize);
             code.lea(result, code.ptr[result + args[1].GetImmediateS32()]);
             ctx.reg_alloc.DefineValue(inst, result);
         } else {
-            Xbyak::Reg const result = ctx.reg_alloc.UseScratchGpr(args[0]).changeBit(bitsize);
-            Xbyak::Reg const op2 = ctx.reg_alloc.UseGpr(args[1]).changeBit(bitsize);
+            Xbyak::Reg const result = ctx.reg_alloc.UseScratchGpr(code, args[0]).changeBit(bitsize);
+            Xbyak::Reg const op2 = ctx.reg_alloc.UseGpr(code, args[1]).changeBit(bitsize);
             code.lea(result, code.ptr[result + op2]);
             ctx.reg_alloc.DefineValue(inst, result);
         }
