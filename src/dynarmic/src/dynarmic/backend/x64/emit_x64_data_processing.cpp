@@ -932,12 +932,12 @@ static void EmitAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, size_t 
         if (args[1].IsImmediate() && args[1].FitsInImmediateS32()) {
             Xbyak::Reg const result = ctx.reg_alloc.UseScratchGpr(code, args[0]).changeBit(bitsize);
             code.lea(result, code.ptr[result + args[1].GetImmediateS32()]);
-            ctx.reg_alloc.DefineValue(inst, result);
+            ctx.reg_alloc.DefineValue(code, inst, result);
         } else {
             Xbyak::Reg const result = ctx.reg_alloc.UseScratchGpr(code, args[0]).changeBit(bitsize);
             Xbyak::Reg const op2 = ctx.reg_alloc.UseGpr(code, args[1]).changeBit(bitsize);
             code.lea(result, code.ptr[result + op2]);
-            ctx.reg_alloc.DefineValue(inst, result);
+            ctx.reg_alloc.DefineValue(code, inst, result);
         }
         return;
     }
