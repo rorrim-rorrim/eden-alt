@@ -834,7 +834,8 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
     const VkDriverIdKHR driver_id = device.GetDriverID();
     const bool needs_shared_mem_clamp =
         driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
-        driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
+        driver_id == VK_DRIVER_ID_ARM_PROPRIETARY ||
+        driver_id == VK_DRIVER_ID_MESA_TURNIP;
     const u32 max_shared_memory = device.GetMaxComputeSharedMemorySize();
     if (needs_shared_mem_clamp && program.shared_memory_size > max_shared_memory) {
         LOG_WARNING(Render_Vulkan,
