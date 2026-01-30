@@ -116,9 +116,6 @@ public:
 
     void BarrierFeedbackLoop();
 
-    bool IsFormatDitherable(VideoCore::Surface::PixelFormat format);
-    bool IsFormatScalable(VideoCore::Surface::PixelFormat format);
-
     const Device& device;
     Scheduler& scheduler;
     MemoryAllocator& memory_allocator;
