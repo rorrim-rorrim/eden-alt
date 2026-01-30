@@ -58,19 +58,20 @@ void Fermi2D::ConsumeSinkImpl() {
 }
 
 void Fermi2D::Blit() {
-    LOG_DEBUG(HW_GPU, "called. source address=0x{:x}, destination address=0x{:x}",
-              regs.src.Address(), regs.dst.Address());
+    LOG_DEBUG(HW_GPU, "called. source address=0x{:x}, destination address=0x{:x}", regs.src.Address(), regs.dst.Address());
+
+    const auto& args = regs.pixels_from_memory;
+    constexpr s64 null_derivative = 1ULL << 32;
+    Surface src = regs.src;
+    const auto bytes_per_pixel = BytesPerBlock(PixelFormatFromRenderTargetFormat(src.format));
 
     UNIMPLEMENTED_IF_MSG(regs.operation != Operation::SrcCopy, "Operation is not copy");
     UNIMPLEMENTED_IF_MSG(regs.src.layer != 0, "Source layer is not zero");
     UNIMPLEMENTED_IF_MSG(regs.dst.layer != 0, "Destination layer is not zero");
     UNIMPLEMENTED_IF_MSG(regs.src.depth != 1, "Source depth is not one");
     UNIMPLEMENTED_IF_MSG(regs.clip_enable != 0, "Clipped blit enabled");
-
-    const auto& args = regs.pixels_from_memory;
-    constexpr s64 null_derivative = 1ULL << 32;
-    Surface src = regs.src;
-    const auto bytes_per_pixel = BytesPerBlock(PixelFormatFromRenderTargetFormat(src.format));
+    UNIMPLEMENTED_IF_MSG(args.du_dx == null_derivative, "du/dx null derivative");
+    UNIMPLEMENTED_IF_MSG(args.dv_dy == null_derivative, "dv/dy null derivative");
 
     auto srcX = args.src_x0;
     auto srcY = args.src_y0;
@@ -82,7 +83,7 @@ void Fermi2D::Blit() {
     Config config{
         .operation = regs.operation,
         .filter = args.sample_mode.filter,
-        .must_accelerate = true, //args.du_dx != null_derivative || args.dv_dy != null_derivative,
+        .must_accelerate = true,
         .dst_x0 = args.dst_x0,
         .dst_y0 = args.dst_y0,
         .dst_x1 = args.dst_x0 + args.dst_width,
