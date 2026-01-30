@@ -112,7 +112,10 @@ else()
     endif()
 endif()
 
-find_package(Boost 1.57 REQUIRED)
+if (NOT Boost_FOUND)
+    find_package(Boost 1.57 REQUIRED)
+endif()
+
 find_package(fmt 8 CONFIG)
 find_package(mcl 0.1.12 REQUIRED)
 
