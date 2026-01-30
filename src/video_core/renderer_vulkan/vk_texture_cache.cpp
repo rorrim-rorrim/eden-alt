@@ -1560,7 +1560,7 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
                                                    runtime->ViewFormats(info.format))),
       aspect_mask(ImageAspectMask(info.format)) {
     if (IsPixelFormatASTC(info.format) && !runtime->device.IsOptimalAstcSupported()) {
-        ASSERT(info.size.depth == 1 && "image is deeply absurd");
+        ASSERT(info.size.depth == 1 && "ASTC Image depth >1 isn't supported");
         flags |= VideoCommon::ImageFlagBits::AcceleratedUpload;
         flags |= VideoCommon::ImageFlagBits::Converted;
         flags |= VideoCommon::ImageFlagBits::CostlyLoad;
@@ -2435,14 +2435,14 @@ void TextureCacheRuntime::AccelerateImageUpload(
     std::span<const VideoCommon::SwizzleParameters> swizzles,
     u32 z_start, u32 z_count) {
 
-    if (IsPixelFormatASTC(image.info.format)) {
+    if (IsPixelFormatASTC(image.info.format)
+    && image.info.type == ImageType::e2D) {
         return astc_decoder_pass->Assemble(image, map, swizzles);
     }
-    if (bl3d_unswizzle_pass &&
-        IsPixelFormatBCn(image.info.format) &&
-        image.info.type == ImageType::e3D &&
-        image.info.resources.levels == 1 &&
-        image.info.resources.layers == 1) {
+    if (IsPixelFormatBCn(image.info.format)
+    && image.info.type == ImageType::e3D
+    && image.info.resources.levels == 1
+    && image.info.resources.layers == 1) {
         return bl3d_unswizzle_pass->Unswizzle(image, map, swizzles, z_start, z_count);
     }
     ASSERT(false);

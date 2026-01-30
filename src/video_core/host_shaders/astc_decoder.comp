@@ -245,6 +245,10 @@ uint StreamBits(uint num_bits) {
     return ret;
 }
 
+void SkipBits(uint num_bits) {
+    total_bitsread += num_bits;
+}
+
 uint StreamColorBits(uint num_bits) {
     const uint ret = ExtractBits(color_endpoint_data, color_bitsread, num_bits);
     color_bitsread += num_bits;
@@ -748,14 +752,16 @@ void FillError(ivec3 coord) {
 }
 
 void FillVoidExtentLDR(ivec3 coord) {
-    const uint r_u = ExtractBits(local_buff, 11 + 52 + 16 * 0, 16);
-    const uint g_u = ExtractBits(local_buff, 11 + 52 + 16 * 1, 16);
-    const uint b_u = ExtractBits(local_buff, 11 + 52 + 16 * 2, 16);
-    const uint a_u = ExtractBits(local_buff, 11 + 52 + 16 * 3, 16);
+    // TODO: If you do extract bits, remember that it may be 11, or OTHER
+    SkipBits(52);
+    const uint r_u = StreamBits(16);
+    const uint g_u = StreamBits(16);
+    const uint b_u = StreamBits(16);
+    const uint a_u = StreamBits(16);
+    const float a = float(a_u) / 65535.0f;
     const float r = float(r_u) / 65535.0f;
     const float g = float(g_u) / 65535.0f;
     const float b = float(b_u) / 65535.0f;
-    const float a = float(a_u) / 65535.0f;
     for (uint j = 0; j < block_dims.y; j++) {
         for (uint i = 0; i < block_dims.x; i++) {
             imageStore(dest_image, coord + ivec3(i, j, 0), vec4(r, g, b, a));
