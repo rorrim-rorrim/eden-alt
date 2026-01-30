@@ -123,7 +123,12 @@ void PinCurrentThreadToPerformanceCore(size_t core_id) {
     // run in ANY processor!
     auto const total_cores = std::thread::hardware_concurrency();
     if (core_id < total_cores) {
-#if defined(__linux__) || defined(__FreeBSD__)
+#if defined(__ANDROID__)
+        cpu_set_t set;
+        CPU_ZERO(&set);
+        CPU_SET(core_id, &set);
+        sched_setaffinity(pthread_self(), sizeof(set), &set);
+#elif defined(__linux__) || defined(__FreeBSD__)
         cpu_set_t set;
         CPU_ZERO(&set);
         CPU_SET(core_id, &set);
