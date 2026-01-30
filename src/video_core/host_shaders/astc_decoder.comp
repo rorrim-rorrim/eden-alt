@@ -82,8 +82,6 @@ const uint encoding_values[22] = uint[](
 
 // Input ASTC texture globals
 uint total_bitsread = 0;
-uvec4 local_buff;
-
 // Color data globals
 uvec4 color_endpoint_data;
 uint color_bitsread = 0;
@@ -239,7 +237,7 @@ uint ExtractBits(uvec4 payload, uint offset, uint bits) {
         | (bitfieldExtract(next[shifted_offset], 0, int(bits - first_bits)) << first_bits);
 }
 
-uint StreamBits(uint num_bits) {
+uint StreamBits(uvec4 local_buff, uint num_bits) {
     const uint ret = ExtractBits(local_buff, total_bitsread, num_bits);
     total_bitsread += num_bits;
     return ret;
@@ -751,13 +749,13 @@ void FillError(ivec3 coord) {
     }
 }
 
-void FillVoidExtentLDR(ivec3 coord) {
+void FillVoidExtentLDR(uvec4 local_buff, ivec3 coord) {
     // TODO: If you do extract bits, remember that it may be 11, or OTHER
     SkipBits(52);
-    const uint r_u = StreamBits(16);
-    const uint g_u = StreamBits(16);
-    const uint b_u = StreamBits(16);
-    const uint a_u = StreamBits(16);
+    const uint r_u = StreamBits(local_buff, 16);
+    const uint g_u = StreamBits(local_buff, 16);
+    const uint b_u = StreamBits(local_buff, 16);
+    const uint a_u = StreamBits(local_buff, 16);
     const float a = float(a_u) / 65535.0f;
     const float r = float(r_u) / 65535.0f;
     const float g = float(g_u) / 65535.0f;
@@ -769,13 +767,13 @@ void FillVoidExtentLDR(ivec3 coord) {
     }
 }
 
-bool IsError(uint mode) {
+bool IsError(uvec4 local_buff, uint mode) {
     if ((mode & 0x1ff) == 0x1fc) {
         if ((mode & 0x200) != 0) {
             // params.void_extent_hdr = true;
             return true;
         }
-        if ((mode & 0x400) == 0 || StreamBits(1) == 0) {
+        if ((mode & 0x400) == 0 || StreamBits(local_buff, 1) == 0) {
             return true;
         }
         return false;
@@ -868,18 +866,18 @@ uint DecodeMaxWeight(uint mode_layout, uint mode) {
         + (6 & cmp_add6) - 1;
 }
 
-void DecompressBlock(ivec3 coord) {
-    uint mode = StreamBits(11);
-    if (IsError(mode)) {
+void DecompressBlock(uvec4 local_buff, ivec3 coord) {
+    uint mode = StreamBits(local_buff, 11);
+    if (IsError(local_buff, mode)) {
         FillError(coord);
         return;
     }
     if ((mode & 0x1ff) == 0x1fc) {
         // params.void_extent_ldr = true;
-        FillVoidExtentLDR(coord);
+        FillVoidExtentLDR(local_buff, coord);
         return;
     }
-    const uint num_partitions = StreamBits(2) + 1;
+    const uint num_partitions = StreamBits(local_buff, 2) + 1;
     const uint mode_layout = FindLayout(mode);
     const bool dual_plane = (mode_layout != 9) && ((mode & 0x400) != 0);
     const uvec2 size_params = DecodeBlockSize(mode_layout, mode);
@@ -893,11 +891,11 @@ void DecompressBlock(ivec3 coord) {
     uint ced_pointer = 0;
     uint base_cem = 0;
     if (num_partitions == 1) {
-        color_endpoint_mode.x = StreamBits(4);
+        color_endpoint_mode.x = StreamBits(local_buff, 4);
         partition_index = 0;
     } else {
-        partition_index = StreamBits(10);
-        base_cem = StreamBits(6);
+        partition_index = StreamBits(local_buff, 10);
+        base_cem = StreamBits(local_buff, 6);
     }
     const uint base_mode = base_cem & 3;
     const uint max_weight = DecodeMaxWeight(mode_layout, mode);
@@ -916,16 +914,16 @@ void DecompressBlock(ivec3 coord) {
     const uint color_data_bits = remaining_bits;
     while (remaining_bits > 0) {
         const int nb = int(min(remaining_bits, 32U));
-        color_endpoint_data[ced_pointer] = StreamBits(nb);
+        color_endpoint_data[ced_pointer] = StreamBits(local_buff, nb);
         ++ced_pointer;
         remaining_bits -= nb;
     }
 
     // color_endpoint_mode assumed to be 0 on invalids/out of "range"
-    const uint plane_index = uint(StreamBits(plane_selector_bits));
+    const uint plane_index = uint(StreamBits(local_buff, plane_selector_bits));
     const uvec4 cem_mask = (uvec4(0, 1, 2, 3) - num_partitions) >> 8;
     if (base_mode > 0) {
-        const uint extra_cem = StreamBits(extra_cem_bits);
+        const uint extra_cem = StreamBits(local_buff, extra_cem_bits);
         const uint cem = ((extra_cem << 6) | base_cem) >> 2;
         const uint c0 = cem & ((1 << num_partitions) - 1);
         const uint c1 = (cem >> num_partitions) & ((1 << (num_partitions << 1)) - 1);
@@ -1003,6 +1001,5 @@ void main() {
     if (any(greaterThanEqual(coord, imageSize(dest_image)))) {
         return;
     }
-    local_buff = astc_data[offset >> 4];
-    DecompressBlock(coord);
+    DecompressBlock(astc_data[offset >> 4], coord);
 }
