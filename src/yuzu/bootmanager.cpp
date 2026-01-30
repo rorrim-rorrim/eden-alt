@@ -193,6 +193,13 @@ public:
     }
 
     void SwapBuffers() override {
+        if (auto window = dynamic_cast<QWindow*>(surface)) {
+            if (!window->isExposed()) {
+                LOG_DEBUG(Frontend, "SwapBuffers ignored: window not exposed");
+                return;
+            }
+        }
+
         context->swapBuffers(surface);
     }
 
