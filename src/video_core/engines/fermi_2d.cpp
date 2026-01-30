@@ -61,7 +61,7 @@ void Fermi2D::Blit() {
     LOG_DEBUG(HW_GPU, "called. source address=0x{:x}, destination address=0x{:x}", regs.src.Address(), regs.dst.Address());
 
     const auto& args = regs.pixels_from_memory;
-    constexpr s64 null_derivative = 1ULL << 32;
+    //constexpr s64 null_derivative = 1ULL << 32;
     Surface src = regs.src;
     const auto bytes_per_pixel = BytesPerBlock(PixelFormatFromRenderTargetFormat(src.format));
 
