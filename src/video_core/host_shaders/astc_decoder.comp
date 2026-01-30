@@ -856,19 +856,14 @@ uvec2 DecodeBlockSize(uint mode_layout, uint mode) {
     }
 }
 
-uint DecodeMaxWeight(uint mode) {
-    const uint mode_layout = FindLayout(mode);
-    uint weight_index = (mode & 0x10) != 0 ? 1 : 0;
-    if (mode_layout < 5) {
-        weight_index |= (mode & 0x3) << 1;
-    } else {
-        weight_index |= (mode & 0xc) >> 1;
-    }
-    weight_index -= 2;
-    if ((mode_layout != 9) && ((mode & 0x200) != 0)) {
-        weight_index += 6;
-    }
-    return weight_index + 1;
+uint DecodeMaxWeight(uint mode_layout, uint mode) {
+    const uint mode0_or = (mode & 0x3) << 1;
+    const uint mode5_or = (mode & 0xc) >> 1;
+    const uint cmp_moden = 0 - uint(mode_layout < 5);
+    const uint cmp_add6 = 0 - (uint(mode_layout != 9) & (mode >> 9) & 1);
+    return (((mode >> 4) & 1)
+        | (mode0_or & cmp_moden) | (mode5_or & ~cmp_moden))
+        + (6 & cmp_add6) - 1;
 }
 
 void DecompressBlock(ivec3 coord) {
@@ -903,7 +898,7 @@ void DecompressBlock(ivec3 coord) {
         base_cem = StreamBits(6);
     }
     const uint base_mode = base_cem & 3;
-    const uint max_weight = DecodeMaxWeight(mode);
+    const uint max_weight = DecodeMaxWeight(mode_layout, mode);
     const uint weight_bits = GetPackedBitSize(size_params, dual_plane, max_weight);
     const uint extra_cem_bits = base_mode > 0 ? ((0x85200 >> (num_partitions * 4)) & 0x0f) : 0;
     const uint plane_selector_bits = dual_plane ? 2 : 0;
