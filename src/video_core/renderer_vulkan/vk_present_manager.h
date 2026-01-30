@@ -44,7 +44,7 @@ public:
                    MemoryAllocator& memory_allocator,
                    Scheduler& scheduler,
                    Swapchain& swapchain,
-                   VkSurfaceKHR_T* surface);
+                   vk::SurfaceKHR surface);
     ~PresentManager();
 
     /// Returns the last used presentation frame
