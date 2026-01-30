@@ -375,20 +375,20 @@ void DecodeIntegerSequence(uint max_range, uint num_values) {
     EncodingData val = EncodingData(encoding_values[max_range]);
     const uint encoding = Encoding(val);
     const uint num_bits = NumBits(val);
-    for (uint vals_decoded = 0; vals_decoded < num_values && result_index < result_vector_max_index; ) {
+    for (uint i = 0; i < num_values && result_index < result_vector_max_index; ) {
         switch (encoding) {
         case QUINT:
             DecodeQuintBlock(num_bits);
-            vals_decoded += 3;
+            i += 3;
             break;
         case TRIT:
             DecodeTritBlock(num_bits);
-            vals_decoded += 5;
+            i += 5;
             break;
         case JUST_BITS:
             BitValue(val, StreamColorBits(num_bits));
             ResultEmplaceBack(val);
-            vals_decoded++;
+            i++;
             break;
         }
     }
@@ -863,7 +863,6 @@ void DecompressBlock(uvec4 local_buff, ivec3 coord) {
     }
     uint partition_index = 1;
     uvec4 color_endpoint_mode = uvec4(0);
-    uint ced_pointer = 0;
     uint base_cem = 0;
     if (num_partitions == 1) {
         color_endpoint_mode.x = StreamBits(local_buff, 4);
@@ -887,10 +886,9 @@ void DecompressBlock(uvec4 local_buff, ivec3 coord) {
     }
     // Read color data...
     const uint color_data_bits = remaining_bits;
-    while (remaining_bits > 0) {
+    for (uint i = 0; remaining_bits > 0 && i < 4; ++i) {
         const int nb = int(min(remaining_bits, 32U));
-        color_endpoint_data[ced_pointer] = StreamBits(local_buff, nb);
-        ++ced_pointer;
+        color_endpoint_data[i] = StreamBits(local_buff, nb);
         remaining_bits -= nb;
     }
 
