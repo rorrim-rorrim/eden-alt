@@ -683,62 +683,37 @@ uint GetUnquantizedTexelWeight(uint offset_base, uint plane, bool is_dual_plane)
     return result_vector[offset];
 }
 
-uvec4 GetUnquantizedWeightVector(uint t, uint s, uvec2 size, uint plane_index, bool is_dual_plane) {
-    const uint Ds = uint((block_dims.x * 0.5f + 1024) / (block_dims.x - 1));
-    const uint Dt = uint((block_dims.y * 0.5f + 1024) / (block_dims.y - 1));
+uvec4 GetUnquantizedWeightVector(uvec2 pos, uvec2 size, uint plane_index, bool is_dual_plane) {
     const uint area = size.x * size.y;
-
-    const uint cs = Ds * s;
-    const uint ct = Dt * t;
-    const uint gs = (cs * (size.x - 1) + 32) >> 6;
-    const uint gt = (ct * (size.y - 1) + 32) >> 6;
-    const uint js = gs >> 4;
-    const uint fs = gs & 0xF;
-    const uint jt = gt >> 4;
-    const uint ft = gt & 0x0F;
-    const uint w11 = (fs * ft + 8) >> 4;
-    const uint w10 = ft - w11;
-    const uint w01 = fs - w11;
-    const uint w00 = 16 - fs - ft + w11;
+    const uvec2 D = uvec2((block_dims * 0.5f + 1024.0f) / (block_dims - 1.0f));
+    const uvec2 c = D * pos;
+    const uvec2 g = (c * (size - 1) + 32) >> 6;
+    const uvec2 j = g >> 4;
+    const uvec2 f = g & 0xF;
+    const uint w11 = (f.x * f.y + 8) >> 4;
+    const uint w10 = f.y - w11;
+    const uint w01 = f.x - w11;
+    const uint w00 = 16 - f.x - f.y + w11;
     const uvec4 w = uvec4(w00, w01, w10, w11);
-    const uint v0 = jt * size.x + js;
-
-    uvec4 p0 = uvec4(0);
-    uvec4 p1 = uvec4(0);
-
-    if (v0 < area) {
-        const uint offset_base = v0;
-        p0.x = GetUnquantizedTexelWeight(offset_base, 0, is_dual_plane);
-        p1.x = GetUnquantizedTexelWeight(offset_base, 1, is_dual_plane);
-    }
-    if ((v0 + 1) < (area)) {
-        const uint offset_base = v0 + 1;
-        p0.y = GetUnquantizedTexelWeight(offset_base, 0, is_dual_plane);
-        p1.y = GetUnquantizedTexelWeight(offset_base, 1, is_dual_plane);
-    }
-    if ((v0 + size.x) < (area)) {
-        const uint offset_base = v0 + size.x;
-        p0.z = GetUnquantizedTexelWeight(offset_base, 0, is_dual_plane);
-        p1.z = GetUnquantizedTexelWeight(offset_base, 1, is_dual_plane);
-    }
-    if ((v0 + size.x + 1) < (area)) {
-        const uint offset_base = v0 + size.x + 1;
-        p0.w = GetUnquantizedTexelWeight(offset_base, 0, is_dual_plane);
-        p1.w = GetUnquantizedTexelWeight(offset_base, 1, is_dual_plane);
-    }
-
-    const uint primary_weight = (uint(dot(p0, w)) + 8) >> 4;
-
-    uvec4 weight_vec = uvec4(primary_weight);
-
-    if (is_dual_plane) {
-        const uint secondary_weight = (uint(dot(p1, w)) + 8) >> 4;
-        for (uint c = 0; c < 4; c++) {
-            const bool is_secondary = ((plane_index + 1u) & 3u) == c;
-            weight_vec[c] = is_secondary ? secondary_weight : primary_weight;
-        }
-    }
-    return weight_vec;
+    const uint v0 = j.y * size.x + j.x;
+    //
+    const uvec4 offset_base = uvec4(v0, v0 + 1, v0 + size.x, v0 + size.x + 1);
+    const uvec4 cmp_mask = uvec4(0) - uvec4(lessThan(offset_base, uvec4(area)));
+    uvec4 p0 = uvec4(
+        GetUnquantizedTexelWeight(offset_base.x, 0, is_dual_plane) & cmp_mask.x,
+        GetUnquantizedTexelWeight(offset_base.y, 0, is_dual_plane) & cmp_mask.y,
+        GetUnquantizedTexelWeight(offset_base.z, 0, is_dual_plane) & cmp_mask.z,
+        GetUnquantizedTexelWeight(offset_base.w, 0, is_dual_plane) & cmp_mask.w
+    );
+    uvec4 p1 = uvec4(
+        GetUnquantizedTexelWeight(offset_base.x, 1, is_dual_plane) & cmp_mask.x,
+        GetUnquantizedTexelWeight(offset_base.y, 1, is_dual_plane) & cmp_mask.y,
+        GetUnquantizedTexelWeight(offset_base.z, 1, is_dual_plane) & cmp_mask.z,
+        GetUnquantizedTexelWeight(offset_base.w, 1, is_dual_plane) & cmp_mask.w
+    );
+    const uvec2 final_weight = (uvec2(uint(dot(p0, w)), uint(dot(p1, w))) + 8) >> 4;
+    const uvec4 plane_mask = uvec4(0) - (uvec4(equal(uvec4(((plane_index + 1u) & 3u)), uvec4(0, 1, 2, 3))) & uvec4(0 - uint(is_dual_plane)));
+    return (final_weight.yyyy & plane_mask) | (final_weight.xxxx & ~plane_mask);
 }
 
 void FillError(ivec3 coord) {
@@ -968,7 +943,7 @@ void DecompressBlock(uvec4 local_buff, ivec3 coord) {
             const uint local_partition = Select2DPartition(partition_index, uvec2(i, j), num_partitions) & (0 - uint(num_partitions > 1));
             const uvec4 C0 = ReplicateByteTo16(endpoints0[local_partition]);
             const uvec4 C1 = ReplicateByteTo16(endpoints1[local_partition]);
-            const uvec4 weight_vec = GetUnquantizedWeightVector(j, i, size_params, plane_index, dual_plane);
+            const uvec4 weight_vec = GetUnquantizedWeightVector(uvec2(i, j), size_params, plane_index, dual_plane);
             const vec4 Cf = vec4((C0 * (uvec4(64) - weight_vec) + C1 * weight_vec + 32) >> 6);
             const vec4 p = (Cf / 65535.0f);
             imageStore(dest_image, coord + ivec3(i, j, 0), p.gbar);
