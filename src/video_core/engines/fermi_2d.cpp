@@ -7,7 +7,6 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "video_core/engines/fermi_2d.h"
-#include "video_core/engines/sw_blitter/blitter.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/surface.h"
@@ -21,7 +20,6 @@ namespace Tegra::Engines {
 using namespace Texture;
 
 Fermi2D::Fermi2D(MemoryManager& memory_manager_) : memory_manager{memory_manager_} {
-    sw_blitter = std::make_unique<Blitter::SoftwareBlitEngine>(memory_manager);
     // Nvidia's OpenGL driver seems to assume these values
     regs.src.depth = 1;
     regs.dst.depth = 1;
@@ -112,9 +110,9 @@ void Fermi2D::Blit() {
     }
 
     memory_manager.FlushCaching();
-    if (!rasterizer->AccelerateSurfaceCopy(src, regs.dst, config)) {
-        sw_blitter->Blit(src, regs.dst, config);
-    }
+
+    bool was_accelerated = rasterizer->AccelerateSurfaceCopy(src, regs.dst, config);
+    ASSERT(was_accelerated && "Backend must always accelerate copies/blits");
 }
 
 } // namespace Tegra::Engines

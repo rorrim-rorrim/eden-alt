@@ -37,10 +37,6 @@ add_library(video_core STATIC
     dirty_flags.h
     dma_pusher.cpp
     dma_pusher.h
-    engines/sw_blitter/blitter.cpp
-    engines/sw_blitter/blitter.h
-    engines/sw_blitter/converter.cpp
-    engines/sw_blitter/converter.h
     engines/const_buffer_info.h
     engines/draw_manager.cpp
     engines/draw_manager.h
