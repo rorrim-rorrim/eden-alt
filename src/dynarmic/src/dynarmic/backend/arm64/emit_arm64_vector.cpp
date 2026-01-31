@@ -866,10 +866,17 @@ void EmitIR<IR::Opcode::VectorMaxS32>(oaknut::CodeGenerator& code, EmitContext& 
 
 template<>
 void EmitIR<IR::Opcode::VectorMaxS64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+#ifdef __APPLE__
     EmitThreeOp(code, ctx, inst, [&](auto& Qresult, auto& Qa, auto& Qb) {
         code.CMGT(Qresult->D2(), Qa->D2(), Qb->D2());
         code.BSL(Qresult->B16(), Qa->B16(), Qb->B16());
     });
+#else
+    (void)code;
+    (void)ctx;
+    (void)inst;
+    UNREACHABLE();
+#endif
 }
 
 template<>
@@ -889,10 +896,17 @@ void EmitIR<IR::Opcode::VectorMaxU32>(oaknut::CodeGenerator& code, EmitContext& 
 
 template<>
 void EmitIR<IR::Opcode::VectorMaxU64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+#ifdef __APPLE__
     EmitThreeOp(code, ctx, inst, [&](auto& Qresult, auto& Qa, auto& Qb) {
         code.CMHI(Qresult->D2(), Qa->D2(), Qb->D2());
         code.BSL(Qresult->B16(), Qa->B16(), Qb->B16());
     });
+#else
+    (void)code;
+    (void)ctx;
+    (void)inst;
+    UNREACHABLE();
+#endif
 }
 
 template<>
@@ -912,10 +926,17 @@ void EmitIR<IR::Opcode::VectorMinS32>(oaknut::CodeGenerator& code, EmitContext& 
 
 template<>
 void EmitIR<IR::Opcode::VectorMinS64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+#ifdef __APPLE__
     EmitThreeOp(code, ctx, inst, [&](auto& Qresult, auto& Qa, auto& Qb) {
         code.CMGT(Qresult->D2(), Qb->D2(), Qa->D2());
         code.BSL(Qresult->B16(), Qa->B16(), Qb->B16());
     });
+#else
+    (void)code;
+    (void)ctx;
+    (void)inst;
+    UNREACHABLE();
+#endif
 }
 
 template<>
@@ -935,10 +956,17 @@ void EmitIR<IR::Opcode::VectorMinU32>(oaknut::CodeGenerator& code, EmitContext& 
 
 template<>
 void EmitIR<IR::Opcode::VectorMinU64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+#ifdef __APPLE__
     EmitThreeOp(code, ctx, inst, [&](auto& Qresult, auto& Qa, auto& Qb) {
         code.CMHI(Qresult->D2(), Qb->D2(), Qa->D2());
         code.BSL(Qresult->B16(), Qa->B16(), Qb->B16());
     });
+#else
+    (void)code;
+    (void)ctx;
+    (void)inst;
+    UNREACHABLE();
+#endif
 }
 
 template<>
