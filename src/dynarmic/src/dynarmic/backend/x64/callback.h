@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "dynarmic/common/common_types.h"
-#include <xbyak/xbyak.h>
+#include "dynarmic/backend/x64/xbyak.h"
 
 namespace Dynarmic::Backend::X64 {
 
