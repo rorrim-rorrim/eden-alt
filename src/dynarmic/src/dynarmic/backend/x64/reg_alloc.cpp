@@ -16,7 +16,7 @@
 #include <fmt/ostream.h>
 #include "dynarmic/common/assert.h"
 #include <bit>
-#include <xbyak/xbyak.h>
+#include "dynarmic/backend/x64/xbyak.h"
 
 #include "dynarmic/backend/x64/abi.h"
 #include "dynarmic/backend/x64/stack_layout.h"
