@@ -1628,7 +1628,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_checkForUpd
     const std::optional<UpdateChecker::Update> release =
         UpdateChecker::GetLatestRelease(is_prerelease);
 
-    if (!release || release->tag == Common::g_build_version) {
+    if (!release || release->tag.substr(release->tag.find('.') + 1, 10) == std::string(Common::g_build_version).substr(0, 10)) {
         return nullptr;
     }
 
