@@ -76,9 +76,6 @@ set(SHADER_FILES
     vulkan_quad_indexed.comp
     vulkan_turbo_mode.comp
     vulkan_uint8.comp
-    convert_rgba8_to_bgra8.frag
-    dither_temporal.frag
-    dynamic_resolution_scale.comp
 )
 
 if (PLATFORM_HAIKU)

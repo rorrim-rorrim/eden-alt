@@ -84,11 +84,6 @@ public:
     void ClearDepthStencil(const Framebuffer* dst_framebuffer, bool depth_clear, f32 clear_depth,
                            u8 stencil_mask, u32 stencil_ref, u32 stencil_compare_mask,
                            const Region2D& dst_region);
-
-    void ConvertRGBAtoGBRA(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
-    void ApplyDitherTemporal(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
-    void ApplyDynamicResolutionScale(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
-
 private:
     void Convert(VkPipeline pipeline, const Framebuffer* dst_framebuffer,
                  const ImageView& src_image_view);
@@ -143,9 +138,6 @@ private:
     vk::ShaderModule convert_d32f_to_abgr8_frag;
     vk::ShaderModule convert_d24s8_to_abgr8_frag;
     vk::ShaderModule convert_s8d24_to_abgr8_frag;
-    vk::ShaderModule convert_rgba_to_bgra_frag;
-    vk::ShaderModule dither_temporal_frag;
-    vk::ShaderModule dynamic_resolution_scale_comp;
     vk::Sampler linear_sampler;
     vk::Sampler nearest_sampler;
 
@@ -166,9 +158,6 @@ private:
     vk::Pipeline convert_d32f_to_abgr8_pipeline;
     vk::Pipeline convert_d24s8_to_abgr8_pipeline;
     vk::Pipeline convert_s8d24_to_abgr8_pipeline;
-    vk::Pipeline convert_rgba_to_bgra_pipeline;
-    vk::Pipeline dither_temporal_pipeline;
-    vk::Pipeline dynamic_resolution_scale_pipeline;
 };
 
 } // namespace Vulkan
