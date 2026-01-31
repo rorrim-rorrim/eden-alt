@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -192,6 +192,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT{};
     PFN_vkCmdBeginQuery vkCmdBeginQuery{};
     PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass{};
+    PFN_vkCmdBeginRendering vkCmdBeginRendering{};
     PFN_vkCmdBeginTransformFeedbackEXT vkCmdBeginTransformFeedbackEXT{};
     PFN_vkCmdBindDescriptorSets vkCmdBindDescriptorSets{};
     PFN_vkCmdBindIndexBuffer vkCmdBindIndexBuffer{};
@@ -222,6 +223,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT{};
     PFN_vkCmdEndQuery vkCmdEndQuery{};
     PFN_vkCmdEndRenderPass vkCmdEndRenderPass{};
+    PFN_vkCmdEndRendering vkCmdEndRendering{};
     PFN_vkCmdEndTransformFeedbackEXT vkCmdEndTransformFeedbackEXT{};
     PFN_vkCmdFillBuffer vkCmdFillBuffer{};
     PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier{};
@@ -1142,6 +1144,17 @@ public:
 
     VkCommandBuffer operator*() const noexcept {
         return handle;
+    }
+
+    void BeginRendering(const VkRenderingInfo* rendering_info) const noexcept {
+        if (dld->vkCmdBeginRendering) {
+            dld->vkCmdBeginRendering(handle, rendering_info);
+        }
+    }
+    void EndRendering() const noexcept {
+        if (dld->vkCmdEndRendering) {
+            dld->vkCmdEndRendering(handle);
+        }
     }
     void Begin(const VkCommandBufferBeginInfo& begin_info) const {
         Check(dld->vkBeginCommandBuffer(handle, &begin_info));

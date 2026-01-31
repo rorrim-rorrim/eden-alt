@@ -109,6 +109,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(EXT, FILTER_CUBIC, filter_cubic)                                                     \
     EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)                                    \
     EXTENSION(EXT, GRAPHICS_PIPELINE_LIBRARY, graphics_pipeline_library)                           \
+    EXTENSION(KHR, DYNAMIC_RENDERING, dynamic_rendering)                                          \
     
 // Define extensions which must be supported.
 #define FOR_EACH_VK_MANDATORY_EXTENSION(EXTENSION_NAME)                                            \
@@ -351,6 +352,11 @@ public:
     /// Returns float control properties of the device.
     const VkPhysicalDeviceFloatControlsPropertiesKHR& FloatControlProperties() const {
         return properties.float_controls;
+    }
+
+    /// Returns true if the device supports VK_KHR_dynamic_rendering.
+    bool IsDynamicRenderingSupported() const {
+        return extensions.dynamic_rendering;
     }
 
     /// Returns true if ASTC is natively supported.

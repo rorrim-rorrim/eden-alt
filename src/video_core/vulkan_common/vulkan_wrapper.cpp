@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -92,6 +92,11 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdBeginConditionalRenderingEXT);
     X(vkCmdBeginQuery);
     X(vkCmdBeginRenderPass);
+    Proc(dld.vkCmdBeginRendering, dld, "vkCmdBeginRendering", device);
+    if (!dld.vkCmdBeginRendering) {
+        Proc(dld.vkCmdBeginRendering, dld, "vkCmdBeginRenderingKHR", device);
+        if (!dld.vkCmdBeginRendering) Proc(dld.vkCmdBeginRendering, dld, "vkCmdBeginRenderingEXT", device);
+    }
     X(vkCmdBeginTransformFeedbackEXT);
     X(vkCmdBeginDebugUtilsLabelEXT);
     X(vkCmdBindDescriptorSets);
@@ -121,6 +126,11 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdEndConditionalRenderingEXT);
     X(vkCmdEndQuery);
     X(vkCmdEndRenderPass);
+    Proc(dld.vkCmdEndRendering, dld, "vkCmdEndRendering", device);
+    if (!dld.vkCmdEndRendering) {
+        Proc(dld.vkCmdEndRendering, dld, "vkCmdEndRenderingKHR", device);
+        if (!dld.vkCmdEndRendering) Proc(dld.vkCmdEndRendering, dld, "vkCmdEndRenderingEXT", device);
+    }
     X(vkCmdEndTransformFeedbackEXT);
     X(vkCmdEndDebugUtilsLabelEXT);
     X(vkCmdFillBuffer);
