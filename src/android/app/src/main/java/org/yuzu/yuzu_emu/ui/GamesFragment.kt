@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.PopupMenu
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -31,9 +32,12 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.GameAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentGamesBinding
+import org.yuzu.yuzu_emu.HomeNavigationDirections
+import org.yuzu.yuzu_emu.model.AppletInfo
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.utils.collect
@@ -74,6 +78,36 @@ class GamesFragment : Fragment() {
                 mainActivity.processGamesDir(result, true)
             }
         }
+
+    private fun launchQLaunch() {
+        try {
+            val appletPath = NativeLibrary.getAppletLaunchPath(AppletInfo.QLaunch.entryId)
+            if (appletPath.isEmpty()) {
+                Toast.makeText(
+                    requireContext(),
+                    R.string.applets_error_applet,
+                    Toast.LENGTH_SHORT
+                ).show()
+                return
+            }
+
+            NativeLibrary.setCurrentAppletId(AppletInfo.QLaunch.appletId)
+
+            val qlaunchGame = Game(
+                title = getString(R.string.qlaunch_applet),
+                path = appletPath
+            )
+
+            val action = HomeNavigationDirections.actionGlobalEmulationActivity(qlaunchGame)
+            findNavController().navigate(action)
+        } catch (e: Exception) {
+            Toast.makeText(
+                requireContext(),
+                "Failed to launch QLaunch: ${e.message}",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
 
     private fun getCurrentViewType(): Int {
         val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -175,6 +209,10 @@ class GamesFragment : Fragment() {
 
         binding.addDirectory.setOnClickListener {
             getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data)
+        }
+
+        binding.launchQlaunch?.setOnClickListener {
+            launchQLaunch()
         }
 
         setInsets()
@@ -497,6 +535,13 @@ class GamesFragment : Fragment() {
             mlpFab.bottomMargin = barInsets.bottom + fabPadding
             mlpFab.rightMargin = rightInset + fabPadding
             binding.addDirectory.layoutParams = mlpFab
+
+            binding.launchQlaunch?.let { qlaunchButton ->
+                val mlpQLaunch = qlaunchButton.layoutParams as ViewGroup.MarginLayoutParams
+                mlpQLaunch.leftMargin = leftInset + fabPadding
+                mlpQLaunch.bottomMargin = barInsets.bottom + fabPadding
+                qlaunchButton.layoutParams = mlpQLaunch
+            }
 
             val navInsets = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars())
             val gestureInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemGestures())
