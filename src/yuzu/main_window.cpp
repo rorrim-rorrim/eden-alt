@@ -523,9 +523,15 @@ MainWindow::MainWindow(bool has_broken_vulkan)
                                         (strstr(Common::g_build_version, "rc") != NULL));
             const std::optional<UpdateChecker::Update> latest_release_tag =
                 UpdateChecker::GetLatestRelease(is_prerelease);
+#ifdef NIGHTLY_BUILD
+            if (latest_release_tag->tag.substr(latest_release_tag->tag.find('.') + 1, 10) != std::string(Common::g_build_version).substr(0, 10)) {
+                return latest_release_tag.value();
+            }
+#else
             if (latest_release_tag && latest_release_tag->tag != Common::g_build_version) {
                 return latest_release_tag.value();
             }
+#endif
             return UpdateChecker::Update{};
         });
         update_watcher.connect(&update_watcher, &QFutureWatcher<QString>::finished, this,
