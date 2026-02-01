@@ -1,0 +1,13 @@
+diff --git a/include/ankerl/unordered_dense.h b/include/ankerl/unordered_dense.h
+index 0835342..5fcc763 100644
+--- a/include/ankerl/unordered_dense.h
++++ b/include/ankerl/unordered_dense.h
+@@ -334,7 +334,7 @@ struct hash<Enum, typename std::enable_if_t<std::is_enum_v<Enum>>> {
+     using is_avalanching = void;
+     auto operator()(Enum e) const noexcept -> std::uint64_t {
+         using underlying = std::underlying_type_t<Enum>;
+-        return detail::wyhash::hash(static_cast<underlying>(e));
++        return detail::wyhash::hash(uint64_t(underlying(e)));
+     }
+ };
+ 
