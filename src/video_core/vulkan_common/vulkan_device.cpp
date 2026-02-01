@@ -650,16 +650,21 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
     const auto dyna_state = Settings::values.dyna_state.GetValue();
 
-    // Base dynamic states (VIEWPORT, SCISSOR, DEPTH_BIAS, etc.) are ALWAYS active in vk_graphics_pipeline.cpp
-    // This slider controls EXTENDED dynamic states with accumulative levels per Vulkan specs:
-    //   Level 0 = Core Dynamic States only (Vulkan 1.0)
-    //   Level 1 = Core + VK_EXT_extended_dynamic_state
-    //   Level 2 = Core + VK_EXT_extended_dynamic_state + VK_EXT_extended_dynamic_state2
-    //   Level 3 = Core + VK_EXT_extended_dynamic_state + VK_EXT_extended_dynamic_state2 + VK_EXT_extended_dynamic_state3
-
     switch (dyna_state) {
-    case Settings::ExtendedDynamicState::Disabled:
-        // Level 0: Disable all extended dynamic state extensions
+    case Settings::ExtendedDynamicState::Static:
+        LOG_INFO(Render_Vulkan, "STATIC Mode (fully static pipelines)");
+        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
+                              VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
+                              VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
+                              VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+        dynamic_state3_blending = false;
+        dynamic_state3_enables = false;
+        supports_dynamic_state = false;
+        break;
+    case Settings::ExtendedDynamicState::Core:
+        LOG_INFO(Render_Vulkan, "DynamicState - Enabled");
         RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
                               VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
@@ -670,7 +675,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         dynamic_state3_enables = false;
         break;
     case Settings::ExtendedDynamicState::EDS1:
-        // Level 1: Enable EDS1, disable EDS2 and EDS3
+        LOG_INFO(Render_Vulkan, "ExtededDynamicState1 - Enabled");
         RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
                               VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
@@ -679,7 +684,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         dynamic_state3_enables = false;
         break;
     case Settings::ExtendedDynamicState::EDS2:
-        // Level 2: Enable EDS1 + EDS2, disable EDS3
+        LOG_INFO(Render_Vulkan, "ExtededDynamicState2 - Enabled");
         RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
                               VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
         dynamic_state3_blending = false;
@@ -687,12 +692,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         break;
     case Settings::ExtendedDynamicState::EDS3:
     default:
-        // Level 3: Enable all (EDS1 + EDS2 + EDS3)
+        LOG_INFO(Render_Vulkan, "ExtededDynamicState3 - Enabled");
         break;
     }
 
-    // VK_EXT_vertex_input_dynamic_state is independent from EDS
-    // It can be enabled even without extended_dynamic_state
     if (!Settings::values.vertex_input_dynamic_state.GetValue()) {
         RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
     }
@@ -1206,8 +1209,10 @@ bool Device::GetSuitability(bool requires_swapchain) {
         }
     }
 
-    if (u32(Settings::values.dyna_state.GetValue()) == 0) {
-        LOG_INFO(Render_Vulkan, "Extended Dynamic State disabled by user setting, clearing all EDS features");
+    const auto dyna_state_setting = Settings::values.dyna_state.GetValue();
+    if (dyna_state_setting == Settings::ExtendedDynamicState::Static) {
+        LOG_INFO(Render_Vulkan, "Static pipeline mode: All dynamic states disabled");
+        supports_dynamic_state = false;
         features.custom_border_color.customBorderColors = false;
         features.custom_border_color.customBorderColorWithoutFormat = false;
         features.extended_dynamic_state.extendedDynamicState = false;
@@ -1219,7 +1224,7 @@ bool Device::GetSuitability(bool requires_swapchain) {
         features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable = false;
     }
 
-    // Return whether we were suitable.
+    return suitable;
     return suitable;
 }
 

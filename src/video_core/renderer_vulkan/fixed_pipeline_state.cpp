@@ -57,6 +57,7 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     const auto topology_ = maxwell3d.draw_manager->GetDrawState().topology;
 
     raw1 = 0;
+    dynamic_state_enabled.Assign(features.has_dynamic_state ? 1 : 0);
     extended_dynamic_state.Assign(features.has_extended_dynamic_state ? 1 : 0);
     extended_dynamic_state_2.Assign(features.has_extended_dynamic_state_2 ? 1 : 0);
     extended_dynamic_state_2_logic_op.Assign(features.has_extended_dynamic_state_2_logic_op ? 1 : 0);

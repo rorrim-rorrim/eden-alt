@@ -609,6 +609,11 @@ public:
         return features.custom_border_color.customBorderColorWithoutFormat;
     }
 
+    /// Returns true if the device supports core Vulkan 1.0 dynamic states.
+    bool IsCoreDynamicStateSupported() const {
+        return supports_dynamic_state;
+    }
+
     /// Returns true if the device supports VK_EXT_extended_dynamic_state.
     bool IsExtExtendedDynamicStateSupported() const {
         return extensions.extended_dynamic_state;
@@ -1067,6 +1072,7 @@ private:
     bool dynamic_state3_alpha_to_coverage{};
     bool dynamic_state3_alpha_to_one{};
     bool supports_conditional_barriers{};      ///< Allows barriers in conditional control flow.
+    bool supports_dynamic_state{true};         ///< Core Vulkan 1.0 dynamic states
     size_t sampler_heap_budget{};              ///< Sampler budget for buggy drivers (0 = unlimited).
     u64 device_access_memory{};                ///< Total size of device local memory in bytes.
     u32 sets_per_pool{};                       ///< Sets per Description Pool

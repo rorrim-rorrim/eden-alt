@@ -826,13 +826,22 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pAttachments = cb_attachments.data(),
         .blendConstants = {}
     };
-    static_vector<VkDynamicState, 34> dynamic_states{
-        VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
-        VK_DYNAMIC_STATE_DEPTH_BIAS,         VK_DYNAMIC_STATE_BLEND_CONSTANTS,
-        VK_DYNAMIC_STATE_DEPTH_BOUNDS,       VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
-        VK_DYNAMIC_STATE_STENCIL_WRITE_MASK, VK_DYNAMIC_STATE_STENCIL_REFERENCE,
-        VK_DYNAMIC_STATE_LINE_WIDTH,
-    };
+    
+    // Dynamic states configuration based on feature support
+    static_vector<VkDynamicState, 34> dynamic_states;
+    
+    // Core dynamic states (Vulkan 1.0) - Only if not in Static mode
+    if (key.state.dynamic_state_enabled) {
+        static constexpr std::array core_states{
+            VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
+            VK_DYNAMIC_STATE_DEPTH_BIAS,         VK_DYNAMIC_STATE_BLEND_CONSTANTS,
+            VK_DYNAMIC_STATE_DEPTH_BOUNDS,       VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
+            VK_DYNAMIC_STATE_STENCIL_WRITE_MASK, VK_DYNAMIC_STATE_STENCIL_REFERENCE,
+            VK_DYNAMIC_STATE_LINE_WIDTH,
+        };
+        dynamic_states.insert(dynamic_states.end(), core_states.begin(), core_states.end());
+    }
+    
     if (key.state.extended_dynamic_state) {
         static constexpr std::array extended{
             VK_DYNAMIC_STATE_CULL_MODE_EXT,

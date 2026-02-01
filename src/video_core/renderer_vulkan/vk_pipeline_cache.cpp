@@ -437,13 +437,7 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
 
     dynamic_features = {};
 
-    // User granularity enforced in vulkan_device.cpp switch statement:
-    //   Level 0: Core Dynamic States only
-    //   Level 1: Core + EDS1
-    //   Level 2: Core + EDS1 + EDS2 (accumulative)
-    //   Level 3: Core + EDS1 + EDS2 + EDS3 (accumulative)
-    // Here we only verify if extensions were successfully loaded by the device
-
+    dynamic_features.has_dynamic_state = device.IsCoreDynamicStateSupported();
     dynamic_features.has_extended_dynamic_state =
         device.IsExtExtendedDynamicStateSupported();
 

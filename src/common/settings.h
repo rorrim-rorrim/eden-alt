@@ -535,9 +535,9 @@ struct Values {
 #elif defined (__FreeBSD__)
                                            ExtendedDynamicState::EDS3,
 #elif defined (ANDROID)
-                                           ExtendedDynamicState::Disabled,
+                                           ExtendedDynamicState::Static,
 #elif defined (__APPLE__)
-                                           ExtendedDynamicState::Disabled,
+                                           ExtendedDynamicState::Static,
 #else
                                            ExtendedDynamicState::EDS2,
 #endif
