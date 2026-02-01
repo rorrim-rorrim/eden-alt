@@ -14,6 +14,7 @@
 #include <type_traits>
 // TODO: find out which don't require stable iters
 #include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <vector>
 #include <boost/container/small_vector.hpp>
 #include <queue>
@@ -66,7 +67,7 @@ struct AsyncDecodeContext {
     std::atomic_bool complete;
 };
 
-using TextureCacheGPUMap = std::unordered_map<u64, std::vector<ImageId>, Common::IdentityHash<u64>>;
+using TextureCacheGPUMap = ankerl::unordered_dense::map<u64, std::vector<ImageId>, Common::IdentityHash<u64>>;
 
 class TextureCacheChannelInfo : public ChannelInfo {
 public:
@@ -85,6 +86,7 @@ public:
     std::vector<SamplerId> compute_sampler_ids;
     std::vector<ImageViewId> compute_image_view_ids;
 
+    // TODO: still relies on bad iterators :(
     std::unordered_map<TICEntry, ImageViewId> image_views;
     std::unordered_map<TSCEntry, SamplerId> samplers;
 
@@ -454,10 +456,9 @@ private:
 
     RenderTargets render_targets;
 
-    std::unordered_map<RenderTargets, FramebufferId> framebuffers;
-
-    std::unordered_map<u64, std::vector<ImageMapId>, Common::IdentityHash<u64>> page_table;
-    std::unordered_map<ImageId, boost::container::small_vector<ImageViewId, 16>> sparse_views;
+    ankerl::unordered_dense::map<RenderTargets, FramebufferId> framebuffers;
+    ankerl::unordered_dense::map<u64, std::vector<ImageMapId>, Common::IdentityHash<u64>> page_table;
+    ankerl::unordered_dense::map<ImageId, boost::container::small_vector<ImageViewId, 16>> sparse_views;
 
     DAddr virtual_invalid_space{};
 
@@ -514,7 +515,7 @@ private:
     DelayedDestructionRing<ImageView, TICKS_TO_DESTROY> sentenced_image_view;
     DelayedDestructionRing<Framebuffer, TICKS_TO_DESTROY> sentenced_framebuffers;
 
-    std::unordered_map<GPUVAddr, ImageAllocId> image_allocs_table;
+    ankerl::unordered_dense::map<GPUVAddr, ImageAllocId> image_allocs_table;
 
     Common::ScratchBuffer<u8> swizzle_data_buffer;
     Common::ScratchBuffer<u8> unswizzle_data_buffer;
@@ -541,7 +542,7 @@ private:
         ImageId id;
     };
     boost::container::small_vector<JoinCopy, 4> join_copies_to_do;
-    std::unordered_map<ImageId, size_t> join_alias_indices;
+    ankerl::unordered_dense::map<ImageId, size_t> join_alias_indices;
 };
 
 } // namespace VideoCommon
