@@ -1321,30 +1321,6 @@ void Device::RemoveUnsuitableExtensions() {
                                        features.extended_dynamic_state3,
                                        VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
 
-    // VK_EXT_color_write_enable
-    if (extensions.extended_dynamic_state3 && dynamic_state3_blending) {
-        LOG_INFO(Render_Vulkan, "VK_EXT_color_write_enable disabled: VK_EXT_extended_dynamic_state3 provides ColorWriteMask functionality");
-        RemoveExtensionFeature(extensions.color_write_enable, features.color_write_enable,
-                               VK_EXT_COLOR_WRITE_ENABLE_EXTENSION_NAME);
-    } else {
-        extensions.color_write_enable = features.color_write_enable.colorWriteEnable;
-        RemoveExtensionFeatureIfUnsuitable(extensions.color_write_enable,
-                                           features.color_write_enable,
-                                           VK_EXT_COLOR_WRITE_ENABLE_EXTENSION_NAME);
-    }
-
-    // VK_EXT_astc_decode_mode
-    if (is_optimal_astc_supported && loaded_extensions.contains(VK_EXT_ASTC_DECODE_MODE_EXTENSION_NAME)) {
-        extensions.astc_decode_mode = true;
-        LOG_INFO(Render_Vulkan, "VK_EXT_astc_decode_mode enabled");
-    } else {
-        extensions.astc_decode_mode = false;
-        if (loaded_extensions.contains(VK_EXT_ASTC_DECODE_MODE_EXTENSION_NAME) && !is_optimal_astc_supported) {
-            LOG_INFO(Render_Vulkan, "VK_EXT_astc_decode_mode disabled: Requires native ASTC support");
-            loaded_extensions.erase(VK_EXT_ASTC_DECODE_MODE_EXTENSION_NAME);
-        }
-    }
-
     // VK_EXT_robustness2
     extensions.robustness_2 = features.robustness2.robustBufferAccess2 ||
                               features.robustness2.robustImageAccess2 ||

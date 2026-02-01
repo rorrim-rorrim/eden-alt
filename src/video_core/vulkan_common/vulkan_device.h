@@ -48,7 +48,6 @@ VK_DEFINE_HANDLE(VmaAllocator)
 
 // Define all features which may be used by the implementation and require an extension here.
 #define FOR_EACH_VK_FEATURE_EXT(FEATURE)                                                           \
-    FEATURE(EXT, ColorWriteEnable, COLOR_WRITE_ENABLE, color_write_enable)                         \
     FEATURE(EXT, CustomBorderColor, CUSTOM_BORDER_COLOR, custom_border_color)                      \
     FEATURE(EXT, DepthBiasControl, DEPTH_BIAS_CONTROL, depth_bias_control)                         \
     FEATURE(EXT, DepthClipControl, DEPTH_CLIP_CONTROL, depth_clip_control)                         \
@@ -75,7 +74,6 @@ VK_DEFINE_HANDLE(VmaAllocator)
 
 // Define miscellaneous extensions which may be used by the implementation here.
 #define FOR_EACH_VK_EXTENSION(EXTENSION)                                                           \
-    EXTENSION(EXT, ASTC_DECODE_MODE, astc_decode_mode)                                             \
     EXTENSION(EXT, CONDITIONAL_RENDERING, conditional_rendering)                                   \
     EXTENSION(EXT, CONSERVATIVE_RASTERIZATION, conservative_rasterization)                         \
     EXTENSION(EXT, DEPTH_RANGE_UNRESTRICTED, depth_range_unrestricted)                             \
@@ -557,16 +555,6 @@ public:
     /// Returns true if the device supports VK_EXT_custom_border_color.
     bool IsExtCustomBorderColorSupported() const {
         return extensions.custom_border_color;
-    }
-
-    /// Returns true if the device supports VK_EXT_color_write_enable.
-    bool IsExtColorWriteEnableSupported() const {
-        return extensions.color_write_enable;
-    }
-
-    /// Returns true if the device supports VK_EXT_astc_decode_mode.
-    bool IsExtASTCDecodeModeSupported() const {
-        return extensions.astc_decode_mode;
     }
 
     /// Returns true if the device supports VK_EXT_image_robustness.

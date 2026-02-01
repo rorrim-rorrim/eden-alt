@@ -1667,20 +1667,7 @@ void RasterizerVulkan::UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs) {
     }
 
     if (state_tracker.TouchColorMask()) {
-        // Use VK_EXT_color_write_enable if available and EDS3 is not active
-        if (device.IsExtColorWriteEnableSupported()) {
-            // With color_write_enable, we set enable/disable per attachment
-            std::array<VkBool32, Maxwell::NumRenderTargets> setup_enables{};
-            for (size_t index = 0; index < Maxwell::NumRenderTargets; index++) {
-                const auto& mask = regs.color_mask[regs.color_mask_common ? 0 : index];
-                // Enable writing only if at least one component is enabled
-                setup_enables[index] = (mask.R || mask.G || mask.B || mask.A) ? VK_TRUE : VK_FALSE;
-            }
-            scheduler.Record([setup_enables](vk::CommandBuffer cmdbuf) {
-                cmdbuf.SetColorWriteEnableEXT(setup_enables);
-            });
-        } else {
-            // Fallback: Use ColorWriteMask from EDS3
+        if (device.IsExtExtendedDynamicState3BlendingSupported()) {
             std::array<VkColorComponentFlags, Maxwell::NumRenderTargets> setup_masks{};
             for (size_t index = 0; index < Maxwell::NumRenderTargets; index++) {
                 const auto& mask = regs.color_mask[regs.color_mask_common ? 0 : index];
