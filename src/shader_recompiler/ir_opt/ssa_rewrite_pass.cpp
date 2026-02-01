@@ -53,9 +53,9 @@ struct IndirectBranchVariable {
     auto operator<=>(const IndirectBranchVariable&) const noexcept = default;
 };
 
-using Variant = std::variant<IR::Reg, IR::Pred, ZeroFlagTag, SignFlagTag, CarryFlagTag,
-                             OverflowFlagTag, GotoVariable, IndirectBranchVariable>;
-using ValueMap = ankerl::unordered_dense::map<IR::Block*, IR::Value>;
+using Variant = std::variant<IR::Reg, IR::Pred, ZeroFlagTag, SignFlagTag, CarryFlagTag, OverflowFlagTag, GotoVariable, IndirectBranchVariable>;
+// TODO: majority of these require stable iterators, test with XC beforehand
+using ValueMap = std::unordered_map<IR::Block*, IR::Value>;
 
 struct DefTable {
     const IR::Value& Def(IR::Block* block, IR::Reg variable) {
@@ -115,7 +115,8 @@ struct DefTable {
     }
 
     std::array<ValueMap, IR::NUM_USER_PREDS> preds;
-    ankerl::unordered_dense::map<u32, ValueMap> goto_vars;
+    // TODO: Requires stable iterators
+    std::unordered_map<u32, ValueMap> goto_vars;
     ValueMap indirect_branch_var;
     ValueMap zero_flag;
     ValueMap sign_flag;
