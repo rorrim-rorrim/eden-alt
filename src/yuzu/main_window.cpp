@@ -524,7 +524,7 @@ MainWindow::MainWindow(bool has_broken_vulkan)
             const std::optional<UpdateChecker::Update> latest_release_tag =
                 UpdateChecker::GetLatestRelease(is_prerelease);
 #ifdef NIGHTLY_BUILD
-            if (latest_release_tag->tag.substr(latest_release_tag->tag.find('.') + 1, 10) != std::string(Common::g_build_version).substr(0, 10)) {
+            if (latest_release_tag && ::strnstr(latest_release_tag->tag.c_str(), Common::g_build_version, 10) != nullptr) {
                 return latest_release_tag.value();
             }
 #else

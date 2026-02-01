@@ -1629,7 +1629,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_checkForUpd
         UpdateChecker::GetLatestRelease(is_prerelease);
 
 #ifdef NIGHTLY_BUILD
-    if (release->tag.substr(release->tag.find('.') + 1, 10) == std::string(Common::g_build_version).substr(0, 10)) {
+    if (!release || ::strnstr(release->tag.c_str(), Common::g_build_version, 10) != nullptr) {
         return nullptr;
     }
 #else
