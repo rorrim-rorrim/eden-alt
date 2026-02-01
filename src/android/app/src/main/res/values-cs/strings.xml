@@ -493,8 +493,6 @@
     <string name="disabled">Vypnuto</string>
     <string name="vertex_input_dynamic_state">Dynamický stav vstupu vrcholů (Vertex Input)</string>
     <string name="vertex_input_dynamic_state_description">Aktivuje funkci dynamického stavu vstupu vrcholů (Vertex Input Dynamic State) pro lepší kvalitu a výkon.</string>
-    <string name="provoking_vertex">Určující vrchol</string>
-    <string name="provoking_vertex_description">Zlepšuje osvětlení a zpracování vrcholů v některých hrách. Podporováno pouze na GPU s API Vulkan 1.0+.</string>
 
     <string name="display">Zobrazení</string>
 

@@ -1357,18 +1357,12 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_IMAGE_ROBUSTNESS_EXTENSION_NAME);
 
     // VK_EXT_provoking_vertex
-    if (Settings::values.provoking_vertex.GetValue()) {
-        extensions.provoking_vertex = features.provoking_vertex.provokingVertexLast
-                                      && features.provoking_vertex
-                                             .transformFeedbackPreservesProvokingVertex;
-        RemoveExtensionFeatureIfUnsuitable(extensions.provoking_vertex,
-                                           features.provoking_vertex,
-                                           VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
-    } else {
-        RemoveExtensionFeature(extensions.provoking_vertex,
-                               features.provoking_vertex,
-                               VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
-    }
+    extensions.provoking_vertex = features.provoking_vertex.provokingVertexLast
+                                  && features.provoking_vertex
+                                         .transformFeedbackPreservesProvokingVertex;
+    RemoveExtensionFeatureIfUnsuitable(extensions.provoking_vertex,
+                                       features.provoking_vertex,
+                                       VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
 
     // VK_KHR_shader_atomic_int64
     extensions.shader_atomic_int64 = features.shader_atomic_int64.shaderBufferInt64Atomics &&

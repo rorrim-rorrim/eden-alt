@@ -346,12 +346,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Enables vertex input dynamic state feature for better quality and performance."));
 
     INSERT(Settings,
-           provoking_vertex,
-           tr("Provoking Vertex"),
-           tr("Improves lighting and vertex handling in some games.\n"
-              "Only Vulkan 1.0+ devices support this extension."));
-
-    INSERT(Settings,
            sample_shading,
            tr("Sample Shading"),
            tr("Allows the fragment shader to execute per sample in a multi-sampled fragment "

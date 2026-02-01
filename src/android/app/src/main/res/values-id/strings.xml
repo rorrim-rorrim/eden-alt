@@ -419,8 +419,6 @@
     <string name="renderer_asynchronous_shaders_description">Kompilasi shader secara asinkron. Ini dapat mengurangi lag tetapi juga dapat menyebabkan glitch.</string>
     <string name="dyna_state">Status Dinamis Ekstensi</string>
     <string name="disabled">Dinonaktifkan</string>
-    <string name="provoking_vertex">Vertex Provokasi</string>
-    <string name="provoking_vertex_description">Meningkatkan pencahayaan dan penanganan vertex di beberapa game. Hanya didukung di GPU Vulkan 1.0+.</string>
 
     <string name="display">Tampilan</string>
 

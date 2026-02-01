@@ -426,8 +426,6 @@
     <string name="renderer_asynchronous_shaders_description">Compila gli shader in modo asincrono. Può ridurre gli scatti, ma può anche causare glitch grafici.</string>
     <string name="dyna_state">Stato dinamico esteso</string>
     <string name="disabled">Disabilitato</string>
-    <string name="provoking_vertex">Vertice provocante</string>
-    <string name="provoking_vertex_description">Migliora illuminazione e gestione dei vertici in alcuni giochi. Supportato solo su GPU Vulkan 1.0+.</string>
 
     <string name="display">Schermo</string>
 

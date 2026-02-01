@@ -366,8 +366,6 @@
     <string name="renderer_asynchronous_shaders_description">Biên dịch shader không đồng bộ. Điều này có thể giảm giật lag nhưng cũng có thể gây ra lỗi đồ họa.</string>
     <string name="dyna_state">Trạng thái động mở rộng</string>
     <string name="disabled">Đã tắt</string>
-    <string name="provoking_vertex">Đỉnh kích hoạt</string>
-    <string name="provoking_vertex_description">Cải thiện ánh sáng và xử lý đỉnh trong một số trò chơi. Chỉ được hỗ trợ trên GPU Vulkan 1.0+.</string>
 
     <string name="display">Hiển thị</string>
 
