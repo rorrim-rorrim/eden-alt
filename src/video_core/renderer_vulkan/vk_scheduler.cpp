@@ -6,8 +6,10 @@
 
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <thread>
 #include <utility>
+#include <vector>
 
 #include <fmt/format.h>
 
@@ -129,8 +131,32 @@ void Scheduler::RequestRenderpass(const Framebuffer* framebuffer) {
     }
 
     if (use_dynamic_rendering) {
-        const VkRenderingInfo rendering_info = framebuffer->RenderingInfo();
-        Record([rendering_info](vk::CommandBuffer cmdbuf) { cmdbuf.BeginRendering(&rendering_info); });
+        const VkRenderingInfo fb_rendering_info = framebuffer->RenderingInfo();
+
+        std::vector<VkRenderingAttachmentInfo> color_infos;
+        color_infos.reserve(fb_rendering_info.colorAttachmentCount);
+        for (u32 i = 0; i < fb_rendering_info.colorAttachmentCount; ++i) {
+            color_infos.push_back(fb_rendering_info.pColorAttachments[i]);
+        }
+
+        std::optional<VkRenderingAttachmentInfo> depth_info;
+        std::optional<VkRenderingAttachmentInfo> stencil_info;
+        if (fb_rendering_info.pDepthAttachment) {
+            depth_info = *fb_rendering_info.pDepthAttachment;
+        }
+        if (fb_rendering_info.pStencilAttachment) {
+            stencil_info = *fb_rendering_info.pStencilAttachment;
+        }
+
+        Record([rendering_info = fb_rendering_info, color_infos = std::move(color_infos),
+                depth_info = std::move(depth_info), stencil_info = std::move(stencil_info)](
+                   vk::CommandBuffer cmdbuf) {
+            VkRenderingInfo info = rendering_info;
+            info.pColorAttachments = color_infos.empty() ? nullptr : color_infos.data();
+            info.pDepthAttachment = depth_info ? &*depth_info : nullptr;
+            info.pStencilAttachment = stencil_info ? &*stencil_info : nullptr;
+            cmdbuf.BeginRendering(&info);
+        });
     } else {
         Record([renderpass, framebuffer_handle, render_area](vk::CommandBuffer cmdbuf) {
             const VkRenderPassBeginInfo renderpass_bi{
