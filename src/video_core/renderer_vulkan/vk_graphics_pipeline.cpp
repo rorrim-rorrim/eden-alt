@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -25,7 +25,6 @@
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/shader_notify.h"
 #include "video_core/texture_cache/texture_cache.h"
-#include "video_core/surface.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/gpu_logging/gpu_logging.h"
 #include "common/settings.h"
@@ -137,10 +136,6 @@ RenderPassKey MakeRenderPassKey(const FixedPipelineState& state) {
     }
     key.samples = MaxwellToVK::MsaaMode(state.msaa_mode);
     return key;
-}
-
-VkFormat DecodeVkFormat(const Device& device, PixelFormat format) {
-    return MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, true, format).format;
 }
 
 size_t NumAttachments(const FixedPipelineState& state) {
@@ -947,49 +942,10 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         flags |= VK_PIPELINE_CREATE_CAPTURE_STATISTICS_BIT_KHR;
     }
 
-    const bool use_dynamic_rendering = device.IsDynamicRenderingSupported();
-    static_vector<VkFormat, Maxwell::NumRenderTargets> color_formats;
-    if (use_dynamic_rendering) {
-        const size_t num_colors = NumAttachments(key.state);
-        for (size_t index = 0; index < num_colors; ++index) {
-            const auto rt_format = DecodeFormat(key.state.color_formats[index]);
-            if (rt_format == PixelFormat::Invalid) {
-                continue;
-            }
-            color_formats.push_back(DecodeVkFormat(device, rt_format));
-        }
-    }
-    VkFormat depth_attachment_format = VK_FORMAT_UNDEFINED;
-    VkFormat stencil_attachment_format = VK_FORMAT_UNDEFINED;
-    if (use_dynamic_rendering && key.state.depth_enabled != 0) {
-        const auto depth_format = static_cast<Tegra::DepthFormat>(key.state.depth_format.Value());
-        const PixelFormat depth_pixel_format = PixelFormatFromDepthFormat(depth_format);
-        const auto surface_type = VideoCore::Surface::GetFormatType(depth_pixel_format);
-        const VkFormat vk_depth_format = DecodeVkFormat(device, depth_pixel_format);
-        if (surface_type == VideoCore::Surface::SurfaceType::Depth ||
-            surface_type == VideoCore::Surface::SurfaceType::DepthStencil) {
-            depth_attachment_format = vk_depth_format;
-        }
-        if (surface_type == VideoCore::Surface::SurfaceType::Stencil ||
-            surface_type == VideoCore::Surface::SurfaceType::DepthStencil) {
-            stencil_attachment_format = vk_depth_format;
-        }
-    }
-
-    VkPipelineRenderingCreateInfo pipeline_rendering_ci{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
-        .pNext = nullptr,
-        .viewMask = 0,
-        .colorAttachmentCount = static_cast<u32>(color_formats.size()),
-        .pColorAttachmentFormats = color_formats.data(),
-        .depthAttachmentFormat = depth_attachment_format,
-        .stencilAttachmentFormat = stencil_attachment_format,
-    };
-
     pipeline = device.GetLogical().CreateGraphicsPipeline(
         {
             .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-            .pNext = use_dynamic_rendering ? &pipeline_rendering_ci : nullptr,
+            .pNext = nullptr,
             .flags = flags,
             .stageCount = static_cast<u32>(shader_stages.size()),
             .pStages = shader_stages.data(),
@@ -1003,7 +959,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             .pColorBlendState = &color_blend_ci,
             .pDynamicState = &dynamic_state_ci,
             .layout = *pipeline_layout,
-            .renderPass = use_dynamic_rendering ? VK_NULL_HANDLE : render_pass,
+            .renderPass = render_pass,
             .subpass = 0,
             .basePipelineHandle = nullptr,
             .basePipelineIndex = 0,

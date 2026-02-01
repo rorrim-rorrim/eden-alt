@@ -1307,14 +1307,6 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.custom_border_color, features.custom_border_color,
                                        VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
 
-    // VK_KHR_dynamic_rendering
-    if (!features.dynamic_rendering.dynamicRendering && extensions.dynamic_rendering) {
-        LOG_WARNING(Render_Vulkan,
-                    "VK_KHR_dynamic_rendering reported but dynamicRendering feature not available, disabling");
-        RemoveExtensionFeature(extensions.dynamic_rendering, features.dynamic_rendering,
-                               VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
-    }
-
     // VK_EXT_descriptor_buffer
     extensions.descriptor_buffer = loaded_extensions.contains(VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.descriptor_buffer, VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
