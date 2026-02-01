@@ -127,11 +127,7 @@ void Scheduler::RequestRenderpass(const Framebuffer* framebuffer) {
         GPU::Logging::GPULogger::GetInstance().LogRenderPassBegin(render_pass_info);
     }
 
-    if (use_dynamic_rendering) {
-        const VkRenderingInfo rendering_info = framebuffer->RenderingInfo();
-        Record([rendering_info](vk::CommandBuffer cmdbuf) { cmdbuf.BeginRendering(&rendering_info); });
-    } else {
-        Record([renderpass, framebuffer_handle, render_area](vk::CommandBuffer cmdbuf) {
+    Record([renderpass, framebuffer_handle, render_area](vk::CommandBuffer cmdbuf) {
             const VkRenderPassBeginInfo renderpass_bi{
                 .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
                 .pNext = nullptr,
