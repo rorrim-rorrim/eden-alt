@@ -1070,6 +1070,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
     }
 
     // EDS3 Blending: ColorBlendEnable, ColorBlendEquation, ColorWriteMask
+    // or VK_EXT_color_write_enable if EDS3 is not available
     if (device.IsExtExtendedDynamicState3BlendingSupported()) {
         UpdateBlending(regs);
     }
@@ -1673,26 +1674,41 @@ void RasterizerVulkan::UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs) {
     }
 
     if (state_tracker.TouchColorMask()) {
-        std::array<VkColorComponentFlags, Maxwell::NumRenderTargets> setup_masks{};
-        for (size_t index = 0; index < Maxwell::NumRenderTargets; index++) {
-            const auto& mask = regs.color_mask[regs.color_mask_common ? 0 : index];
-            auto& current = setup_masks[index];
-            if (mask.R) {
-                current |= VK_COLOR_COMPONENT_R_BIT;
+        // Use VK_EXT_color_write_enable if available and EDS3 is not active
+        if (device.IsExtColorWriteEnableSupported()) {
+            // With color_write_enable, we set enable/disable per attachment
+            std::array<VkBool32, Maxwell::NumRenderTargets> setup_enables{};
+            for (size_t index = 0; index < Maxwell::NumRenderTargets; index++) {
+                const auto& mask = regs.color_mask[regs.color_mask_common ? 0 : index];
+                // Enable writing only if at least one component is enabled
+                setup_enables[index] = (mask.R || mask.G || mask.B || mask.A) ? VK_TRUE : VK_FALSE;
             }
-            if (mask.G) {
-                current |= VK_COLOR_COMPONENT_G_BIT;
+            scheduler.Record([setup_enables](vk::CommandBuffer cmdbuf) {
+                cmdbuf.SetColorWriteEnableEXT(0, setup_enables);
+            });
+        } else {
+            // Fallback: Use ColorWriteMask from EDS3
+            std::array<VkColorComponentFlags, Maxwell::NumRenderTargets> setup_masks{};
+            for (size_t index = 0; index < Maxwell::NumRenderTargets; index++) {
+                const auto& mask = regs.color_mask[regs.color_mask_common ? 0 : index];
+                auto& current = setup_masks[index];
+                if (mask.R) {
+                    current |= VK_COLOR_COMPONENT_R_BIT;
+                }
+                if (mask.G) {
+                    current |= VK_COLOR_COMPONENT_G_BIT;
+                }
+                if (mask.B) {
+                    current |= VK_COLOR_COMPONENT_B_BIT;
+                }
+                if (mask.A) {
+                    current |= VK_COLOR_COMPONENT_A_BIT;
+                }
             }
-            if (mask.B) {
-                current |= VK_COLOR_COMPONENT_B_BIT;
-            }
-            if (mask.A) {
-                current |= VK_COLOR_COMPONENT_A_BIT;
-            }
+            scheduler.Record([setup_masks](vk::CommandBuffer cmdbuf) {
+                cmdbuf.SetColorWriteMaskEXT(0, setup_masks);
+            });
         }
-        scheduler.Record([setup_masks](vk::CommandBuffer cmdbuf) {
-            cmdbuf.SetColorWriteMaskEXT(0, setup_masks);
-        });
     }
 
     if (state_tracker.TouchBlendEnable()) {

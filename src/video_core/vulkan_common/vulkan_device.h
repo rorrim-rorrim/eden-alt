@@ -48,6 +48,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
 
 // Define all features which may be used by the implementation and require an extension here.
 #define FOR_EACH_VK_FEATURE_EXT(FEATURE)                                                           \
+    FEATURE(EXT, ColorWriteEnable, COLOR_WRITE_ENABLE, color_write_enable)                         \
     FEATURE(EXT, CustomBorderColor, CUSTOM_BORDER_COLOR, custom_border_color)                      \
     FEATURE(EXT, DepthBiasControl, DEPTH_BIAS_CONTROL, depth_bias_control)                         \
     FEATURE(EXT, DepthClipControl, DEPTH_CLIP_CONTROL, depth_clip_control)                         \
@@ -569,6 +570,11 @@ public:
     /// Returns true if the device supports VK_EXT_custom_border_color.
     bool IsExtCustomBorderColorSupported() const {
         return extensions.custom_border_color;
+    }
+
+    /// Returns true if the device supports VK_EXT_color_write_enable.
+    bool IsExtColorWriteEnableSupported() const {
+        return extensions.color_write_enable;
     }
 
     /// Returns true if the device supports VK_EXT_image_robustness.

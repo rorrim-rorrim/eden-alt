@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -265,6 +265,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdSetColorWriteMaskEXT vkCmdSetColorWriteMaskEXT{};
     PFN_vkCmdSetColorBlendEnableEXT vkCmdSetColorBlendEnableEXT{};
     PFN_vkCmdSetColorBlendEquationEXT vkCmdSetColorBlendEquationEXT{};
+    PFN_vkCmdSetColorWriteEnableEXT vkCmdSetColorWriteEnableEXT{};
     PFN_vkCmdWaitEvents vkCmdWaitEvents{};
     PFN_vkCreateBuffer vkCreateBuffer{};
     PFN_vkCreateBufferView vkCreateBufferView{};
@@ -1519,6 +1520,10 @@ public:
     void SetColorBlendEquationEXT(u32 first,
                                   Span<VkColorBlendEquationEXT> equations) const noexcept {
         dld->vkCmdSetColorBlendEquationEXT(handle, first, equations.size(), equations.data());
+    }
+
+    void SetColorWriteEnableEXT(u32 first, Span<VkBool32> enables) const noexcept {
+        dld->vkCmdSetColorWriteEnableEXT(handle, first, enables.size(), enables.data());
     }
 
     void SetLineWidth(float line_width) const noexcept {
