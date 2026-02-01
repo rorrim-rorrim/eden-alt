@@ -169,7 +169,8 @@ public:
 
     template <typename Type>
     IR::Value ReadVariable(Type variable, IR::Block* root_block) {
-        boost::container::small_vector<ReadState<Type>, 64> stack{
+        // TODO: Windows commits sodoku if you use small_vector
+        std::vector<ReadState<Type>> stack{
             ReadState<Type>(nullptr),
             ReadState<Type>(root_block),
         };
@@ -299,7 +300,8 @@ private:
         return same;
     }
 
-    ankerl::unordered_dense::map<IR::Block*, std::map<Variant, IR::Inst*>> incomplete_phis;
+    // TODO: Windows dies with stack exhaustion?
+    std::unordered_map<IR::Block*, std::map<Variant, IR::Inst*>> incomplete_phis;
     DefTable current_def;
 };
 
