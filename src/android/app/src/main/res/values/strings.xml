@@ -1141,9 +1141,9 @@
     <string name="use_black_backgrounds_description">When using the dark theme, apply black backgrounds.</string>
 
     <!-- Buttons -->
-    <string name="enable_folder_button">Folder Button</string>
+    <string name="enable_folder_button">Folder</string>
     <string name="enable_folder_button_description">Show the button to add game folders</string>
-    <string name="enable_qlaunch_button">QLaunch Button</string>
+    <string name="enable_qlaunch_button">QLaunch</string>
     <string name="enable_qlaunch_button_description">Show the button to launch QLaunch</string>
 
     <!-- App Language -->
