@@ -1213,8 +1213,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
     if (dyna_state_setting == Settings::ExtendedDynamicState::Static) {
         LOG_INFO(Render_Vulkan, "Static pipeline mode: All dynamic states disabled");
         supports_dynamic_state = false;
-        features.custom_border_color.customBorderColors = false;
-        features.custom_border_color.customBorderColorWithoutFormat = false;
         features.extended_dynamic_state.extendedDynamicState = false;
         features.extended_dynamic_state2.extendedDynamicState2 = false;
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
@@ -1224,7 +1222,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
         features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable = false;
     }
 
-    return suitable;
     return suitable;
 }
 
