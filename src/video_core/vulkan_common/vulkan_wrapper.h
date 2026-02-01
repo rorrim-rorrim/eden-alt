@@ -1522,8 +1522,8 @@ public:
         dld->vkCmdSetColorBlendEquationEXT(handle, first, equations.size(), equations.data());
     }
 
-    void SetColorWriteEnableEXT(u32 first, Span<VkBool32> enables) const noexcept {
-        dld->vkCmdSetColorWriteEnableEXT(handle, first, enables.size(), enables.data());
+    void SetColorWriteEnableEXT(Span<VkBool32> enables) const noexcept {
+        dld->vkCmdSetColorWriteEnableEXT(handle, enables.size(), enables.data());
     }
 
     void SetLineWidth(float line_width) const noexcept {
