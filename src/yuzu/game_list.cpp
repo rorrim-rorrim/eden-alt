@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "yuzu/game_list.h"
 #include <QApplication>
 #include <QDir>
 #include <QFileInfo>
@@ -11,22 +10,25 @@
 #include <QJsonObject>
 #include <QList>
 #include <QMenu>
+#include <QScroller>
+#include <QScrollBar>
 #include <QThreadPool>
 #include <QToolButton>
+#include <QVariantAnimation>
+#include <fmt/ranges.h>
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
-#include "qt_common/util/game.h"
 #include "qt_common/config/uisettings.h"
+#include "qt_common/util/game.h"
 #include "yuzu/compatibility_list.h"
+#include "yuzu/game_list.h"
 #include "yuzu/game_list_p.h"
 #include "yuzu/game_list_worker.h"
 #include "yuzu/main_window.h"
 #include "yuzu/util/controller_navigation.h"
-#include <fmt/ranges.h>
-#include <regex>
 
 GameListSearchField::KeyReleaseEater::KeyReleaseEater(GameList* gamelist_, QObject* parent)
     : QObject(parent), gamelist{gamelist_} {}
@@ -327,6 +329,9 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
     search_field = new GameListSearchField(this);
     item_model = new QStandardItemModel(tree_view);
     tree_view->setModel(item_model);
+
+    SetupScrollAnimation();
+    tree_view->viewport()->installEventFilter(this);
 
     tree_view->setAlternatingRowColors(true);
     tree_view->setSelectionMode(QHeaderView::SingleSelection);
@@ -988,6 +993,69 @@ void GameListPlaceholder::onUpdateThemedIcons() {
 void GameListPlaceholder::mouseDoubleClickEvent(QMouseEvent* event) {
     emit GameListPlaceholder::AddDirectory();
 }
+
+void GameList::SetupScrollAnimation() {
+    auto setup = [this](QVariantAnimation* anim, QScrollBar* bar) {
+        // animation handles moving the bar instead of Qt's built in crap
+        anim->setEasingCurve(QEasingCurve::OutCubic);
+        anim->setDuration(200);
+        connect(anim, &QVariantAnimation::valueChanged, this, [bar](const QVariant& value) {
+            bar->setValue(value.toInt());
+        });
+    };
+
+    vertical_scroll = new QVariantAnimation(this);
+    horizontal_scroll = new QVariantAnimation(this);
+
+    setup(vertical_scroll, tree_view->verticalScrollBar());
+    setup(horizontal_scroll, tree_view->horizontalScrollBar());
+}
+
+bool GameList::eventFilter(QObject* obj, QEvent* event) {
+    if (obj == tree_view->viewport() && event->type() == QEvent::Wheel) {
+        QWheelEvent* wheelEvent = static_cast<QWheelEvent*>(event);
+
+        bool horizontal = wheelEvent->modifiers() & Qt::ShiftModifier;
+
+        int deltaX = wheelEvent->angleDelta().x();
+        int deltaY = wheelEvent->angleDelta().y();
+
+        // if shift is held do a horizontal scroll
+        if (horizontal && deltaY != 0 && deltaX == 0) {
+            deltaX = deltaY;
+            deltaY = 0;
+        }
+
+        // TODO(crueter): dedup this
+        if (deltaY != 0) {
+            if (vertical_scroll->state() == QAbstractAnimation::Stopped)
+                vertical_scroll_target = tree_view->verticalScrollBar()->value();
+
+            vertical_scroll_target -= deltaY;
+            vertical_scroll_target = qBound(0, vertical_scroll_target, tree_view->verticalScrollBar()->maximum());
+
+            vertical_scroll->stop();
+            vertical_scroll->setStartValue(tree_view->verticalScrollBar()->value());
+            vertical_scroll->setEndValue(vertical_scroll_target);
+            vertical_scroll->start();
+        }
+
+        if (deltaX != 0) {
+            if (horizontal_scroll->state() == QAbstractAnimation::Stopped)
+                horizontal_scroll_target = tree_view->horizontalScrollBar()->value();
+
+            horizontal_scroll_target -= deltaX;
+            horizontal_scroll_target = qBound(0, horizontal_scroll_target, tree_view->horizontalScrollBar()->maximum());
+
+            horizontal_scroll->stop();
+            horizontal_scroll->setStartValue(tree_view->horizontalScrollBar()->value());
+            horizontal_scroll->setEndValue(horizontal_scroll_target);
+            horizontal_scroll->start();
+        }
+
+        return true;
+    }
+    return QWidget::eventFilter(obj, event);}
 
 void GameListPlaceholder::changeEvent(QEvent* event) {
     if (event->type() == QEvent::LanguageChange) {
