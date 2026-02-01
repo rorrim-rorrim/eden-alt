@@ -4,7 +4,6 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#define ENABLE_UPDATE_CHECKER 1
 #define VMA_IMPLEMENTATION
 #include "video_core/vulkan_common/vma.h"
 
@@ -1618,48 +1617,11 @@ JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_isNightlyBuild(
 
 #ifdef ENABLE_UPDATE_CHECKER
 
-std::optional<UpdateChecker::Update> checkForUpdate() {
-    const bool is_prerelease = ((strstr(Common::g_build_version, "pre-alpha") != NULL) ||
-                                (strstr(Common::g_build_version, "alpha") != NULL) ||
-                                (strstr(Common::g_build_version, "beta") != NULL) ||
-                                (strstr(Common::g_build_version, "rc") != NULL));
-    const std::optional<UpdateChecker::Update> latest_release_tag =
-        UpdateChecker::GetLatestRelease(is_prerelease);
-
-    if (!latest_release_tag)
-        goto empty;
-
-    {
-        std::string tag, build;
-        if (Common::g_is_nightly_build) {
-            std::vector<std::string> result;
-
-            boost::split(result, latest_release_tag->tag, boost::is_any_of("."));
-            if (result.size() != 2)
-                goto empty;
-            tag = result[1];
-
-            boost::split(result, std::string{Common::g_build_version}, boost::is_any_of("-"));
-            if (result.empty())
-                goto empty;
-            build = result[0];
-        } else {
-            tag = latest_release_tag->tag;
-            build = Common::g_build_version;
-        }
-
-        if (tag != build)
-            return latest_release_tag.value();
-    }
-
-    empty:
-    return std::nullopt;
-}
 
 JNIEXPORT jobjectArray JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_checkForUpdate(
         JNIEnv* env,
         jobject obj) {
-    std::optional<UpdateChecker::Update> release = checkForUpdate();
+    std::optional<UpdateChecker::Update> release = UpdateChecker::GetUpdate();
     if (!release) return nullptr;
 
     const std::string tag = release->tag;
