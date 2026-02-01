@@ -487,25 +487,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         first_next = &descriptor_indexing_req;
     }
 
-    // VK_EXT_inline_uniform_block
-    VkPhysicalDeviceInlineUniformBlockFeaturesEXT inline_uniform_block_temp{};
-    inline_uniform_block_temp.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES_EXT;
-    inline_uniform_block_temp.pNext = nullptr;
-    VkPhysicalDeviceFeatures2 inline_uniform_features2{};
-    inline_uniform_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    inline_uniform_features2.pNext = &inline_uniform_block_temp;
-    physical.GetFeatures2(inline_uniform_features2);
-
-    VkPhysicalDeviceInlineUniformBlockFeaturesEXT inline_uniform_block_features{        
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES_EXT,   
-        .pNext = first_next,
-        .inlineUniformBlock = inline_uniform_block_temp.inlineUniformBlock ? VK_TRUE : VK_FALSE,
-    };
-
-    if (extensions.inline_uniform_block && inline_uniform_block_temp.inlineUniformBlock) {
-        first_next = &inline_uniform_block_features;
-    }
-
     is_blit_depth24_stencil8_supported = TestDepthStencilBlits(VK_FORMAT_D24_UNORM_S8_UINT);
     is_blit_depth32_stencil8_supported = TestDepthStencilBlits(VK_FORMAT_D32_SFLOAT_S8_UINT);
     is_optimal_astc_supported = ComputeIsOptimalAstcSupported();
@@ -1452,10 +1433,6 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.vertex_input_dynamic_state,
                                        features.vertex_input_dynamic_state,
                                        VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
-
-    // VK_EXT_inline_uniform_block
-    extensions.inline_uniform_block = loaded_extensions.contains(VK_EXT_INLINE_UNIFORM_BLOCK_EXTENSION_NAME);
-    RemoveExtensionIfUnsuitable(extensions.inline_uniform_block, VK_EXT_INLINE_UNIFORM_BLOCK_EXTENSION_NAME);
 
     // VK_EXT_multi_draw
     extensions.multi_draw = features.multi_draw.multiDraw;
