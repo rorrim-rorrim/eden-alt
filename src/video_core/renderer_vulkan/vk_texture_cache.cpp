@@ -8,7 +8,6 @@
 #include <array>
 #include <span>
 #include <memory>
-#include <utility>
 #include <vector>
 #include <boost/container/small_vector.hpp>
 #include <bit>
@@ -2378,65 +2377,6 @@ Framebuffer::Framebuffer(TextureCacheRuntime& runtime, ImageView* color_buffer,
 
 Framebuffer::~Framebuffer() = default;
 
-Framebuffer::Framebuffer(Framebuffer&& other) noexcept
-    : framebuffer{std::move(other.framebuffer)},
-      renderpass{std::exchange(other.renderpass, VkRenderPass{})},
-      render_area{other.render_area},
-      samples{other.samples},
-      num_color_buffers{other.num_color_buffers},
-      num_images{other.num_images},
-      images{other.images},
-      image_ranges{other.image_ranges},
-      rt_map{other.rt_map},
-      has_depth{other.has_depth},
-      has_stencil{other.has_stencil},
-      is_rescaled{other.is_rescaled},
-      color_attachment_infos{other.color_attachment_infos},
-      depth_attachment_info{other.depth_attachment_info},
-      rendering_info{other.rendering_info} {
-    other.num_color_buffers = 0;
-    other.num_images = 0;
-    other.has_depth = false;
-    other.has_stencil = false;
-    other.rendering_info.pColorAttachments = nullptr;
-    other.rendering_info.pDepthAttachment = nullptr;
-    other.rendering_info.pStencilAttachment = nullptr;
-    FixupRenderingInfoPointers();
-}
-
-Framebuffer& Framebuffer::operator=(Framebuffer&& other) noexcept {
-    if (this == &other) {
-        return *this;
-    }
-
-    framebuffer = std::move(other.framebuffer);
-    renderpass = std::exchange(other.renderpass, VkRenderPass{});
-    render_area = other.render_area;
-    samples = other.samples;
-    num_color_buffers = other.num_color_buffers;
-    num_images = other.num_images;
-    images = other.images;
-    image_ranges = other.image_ranges;
-    rt_map = other.rt_map;
-    has_depth = other.has_depth;
-    has_stencil = other.has_stencil;
-    is_rescaled = other.is_rescaled;
-    color_attachment_infos = other.color_attachment_infos;
-    depth_attachment_info = other.depth_attachment_info;
-    rendering_info = other.rendering_info;
-
-    other.num_color_buffers = 0;
-    other.num_images = 0;
-    other.has_depth = false;
-    other.has_stencil = false;
-    other.rendering_info.pColorAttachments = nullptr;
-    other.rendering_info.pDepthAttachment = nullptr;
-    other.rendering_info.pStencilAttachment = nullptr;
-
-    FixupRenderingInfoPointers();
-    return *this;
-}
-
 void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
                                     std::span<ImageView*, NUM_RT> color_buffers,
                                     ImageView* depth_buffer, bool is_rescaled_) {
@@ -2550,16 +2490,6 @@ void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
         .height = render_area.height,
         .layers = static_cast<u32>((std::max)(num_layers, 1)),
     });
-
-    FixupRenderingInfoPointers();
-}
-
-void Framebuffer::FixupRenderingInfoPointers() noexcept {
-    rendering_info.pColorAttachments = rendering_info.colorAttachmentCount > 0
-                                            ? color_attachment_infos.data()
-                                            : nullptr;
-    rendering_info.pDepthAttachment = has_depth ? &depth_attachment_info : nullptr;
-    rendering_info.pStencilAttachment = has_stencil ? &depth_attachment_info : nullptr;
 }
 
 void TextureCacheRuntime::AccelerateImageUpload(

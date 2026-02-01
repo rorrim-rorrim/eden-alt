@@ -154,8 +154,8 @@ public:
     Framebuffer(const Framebuffer&) = delete;
     Framebuffer& operator=(const Framebuffer&) = delete;
 
-    Framebuffer(Framebuffer&&) noexcept;
-    Framebuffer& operator=(Framebuffer&&) noexcept;
+    Framebuffer(Framebuffer&&) = default;
+    Framebuffer& operator=(Framebuffer&&) = default;
 
     void CreateFramebuffer(TextureCacheRuntime& runtime,
                            std::span<ImageView*, NUM_RT> color_buffers, ImageView* depth_buffer,
@@ -231,8 +231,6 @@ private:
     std::array<VkRenderingAttachmentInfo, NUM_RT> color_attachment_infos{};
     VkRenderingAttachmentInfo depth_attachment_info{};
     VkRenderingInfo rendering_info{};
-
-    void FixupRenderingInfoPointers() noexcept;
 };
 
 class Image : public VideoCommon::ImageBase {
