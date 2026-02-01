@@ -514,7 +514,7 @@ else()
         find_package(OpenSSL 1.1.1 REQUIRED)
     endif()
 
-    AddJsonPackage(unordered_dense REQUIRED)
+    find_package(unordered_dense REQUIRED)
 endif()
 
 if(NOT TARGET Boost::headers)
