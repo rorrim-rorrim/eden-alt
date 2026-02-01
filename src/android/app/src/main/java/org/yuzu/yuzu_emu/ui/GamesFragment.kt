@@ -493,11 +493,6 @@ class GamesFragment : Fragment() {
 
         val shouldShowQLaunch = showQLaunch && isFirmwareAvailable
         binding.launchQlaunch.visibility = if (shouldShowQLaunch) View.VISIBLE else View.GONE
-        binding.launchQlaunch.isEnabled = shouldShowQLaunch
-
-        if (showQLaunch && !isFirmwareAvailable) {
-            binding.launchQlaunch.contentDescription = getString(R.string.applets_error_firmware)
-        }
 
         binding.addDirectory.visibility = if (showFolder) View.VISIBLE else View.GONE
     }
