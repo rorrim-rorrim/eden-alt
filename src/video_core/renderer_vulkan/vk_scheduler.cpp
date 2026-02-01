@@ -108,6 +108,7 @@ void Scheduler::RequestRenderpass(const Framebuffer* framebuffer) {
     const VkRenderPass renderpass = framebuffer->RenderPass();
     const VkFramebuffer framebuffer_handle = framebuffer->Handle();
     const VkExtent2D render_area = framebuffer->RenderArea();
+    const bool use_dynamic_rendering = device.IsDynamicRenderingSupported();
     if (renderpass == state.renderpass && framebuffer_handle == state.framebuffer &&
         render_area.width == state.render_area.width &&
         render_area.height == state.render_area.height) {
@@ -127,25 +128,31 @@ void Scheduler::RequestRenderpass(const Framebuffer* framebuffer) {
         GPU::Logging::GPULogger::GetInstance().LogRenderPassBegin(render_pass_info);
     }
 
-    Record([renderpass, framebuffer_handle, render_area](vk::CommandBuffer cmdbuf) {
-        const VkRenderPassBeginInfo renderpass_bi{
-            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-            .pNext = nullptr,
-            .renderPass = renderpass,
-            .framebuffer = framebuffer_handle,
-            .renderArea =
-                {
-                    .offset = {.x = 0, .y = 0},
-                    .extent = render_area,
-                },
-            .clearValueCount = 0,
-            .pClearValues = nullptr,
-        };
-        cmdbuf.BeginRenderPass(renderpass_bi, VK_SUBPASS_CONTENTS_INLINE);
-    });
+    if (use_dynamic_rendering) {
+        const VkRenderingInfo rendering_info = framebuffer->RenderingInfo();
+        Record([rendering_info](vk::CommandBuffer cmdbuf) { cmdbuf.BeginRendering(&rendering_info); });
+    } else {
+        Record([renderpass, framebuffer_handle, render_area](vk::CommandBuffer cmdbuf) {
+            const VkRenderPassBeginInfo renderpass_bi{
+                .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+                .pNext = nullptr,
+                .renderPass = renderpass,
+                .framebuffer = framebuffer_handle,
+                .renderArea =
+                    {
+                        .offset = {.x = 0, .y = 0},
+                        .extent = render_area,
+                    },
+                .clearValueCount = 0,
+                .pClearValues = nullptr,
+            };
+            cmdbuf.BeginRenderPass(renderpass_bi, VK_SUBPASS_CONTENTS_INLINE);
+        });
+    }
     num_renderpass_images = framebuffer->NumImages();
     renderpass_images = framebuffer->Images();
     renderpass_image_ranges = framebuffer->ImageRanges();
+    state.using_dynamic_rendering = use_dynamic_rendering;
 }
 
 void Scheduler::RequestOutsideRenderPassOperationContext() {
@@ -334,8 +341,9 @@ void Scheduler::EndRenderPass()
         query_cache->NotifySegment(false);
 
         Record([num_images = num_renderpass_images,
-                       images = renderpass_images,
-                       ranges = renderpass_image_ranges](vk::CommandBuffer cmdbuf) {
+                   images = renderpass_images,
+                   ranges = renderpass_image_ranges,
+                   using_dynamic = state.using_dynamic_rendering](vk::CommandBuffer cmdbuf) {
             std::array<VkImageMemoryBarrier, 9> barriers;
             for (size_t i = 0; i < num_images; ++i) {
                 const VkImageSubresourceRange& range = ranges[i];
@@ -371,7 +379,11 @@ void Scheduler::EndRenderPass()
                         .subresourceRange = range,
                 };
             }
-            cmdbuf.EndRenderPass();
+            if (using_dynamic) {
+                cmdbuf.EndRendering();
+            } else {
+                cmdbuf.EndRenderPass();
+            }
             cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
                                    VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
                                    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
@@ -384,6 +396,7 @@ void Scheduler::EndRenderPass()
         });
 
         state.renderpass = nullptr;
+        state.using_dynamic_rendering = false;
         num_renderpass_images = 0;
     }
 

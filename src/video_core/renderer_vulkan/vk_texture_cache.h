@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -169,6 +169,11 @@ public:
         return renderpass;
     }
 
+    /// Returns the cached rendering info used for dynamic rendering.
+    [[nodiscard]] const VkRenderingInfo& RenderingInfo() const noexcept {
+        return rendering_info;
+    }
+
     [[nodiscard]] VkExtent2D RenderArea() const noexcept {
         return render_area;
     }
@@ -222,6 +227,10 @@ private:
     bool has_depth{};
     bool has_stencil{};
     bool is_rescaled{};
+
+    std::array<VkRenderingAttachmentInfo, NUM_RT> color_attachment_infos{};
+    VkRenderingAttachmentInfo depth_attachment_info{};
+    VkRenderingInfo rendering_info{};
 };
 
 class Image : public VideoCommon::ImageBase {

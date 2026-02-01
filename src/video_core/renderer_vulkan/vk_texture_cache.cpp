@@ -2384,11 +2384,24 @@ void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
     RenderPassKey renderpass_key{};
     s32 num_layers = 1;
 
+    rendering_info = {
+        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .renderArea = {
+            .offset = {0, 0},
+            .extent = render_area,
+        },
+        .layerCount = 1,
+        .viewMask = 0,
+    };
+
     is_rescaled = is_rescaled_;
     const auto& resolution = runtime.resolution;
 
     u32 width = (std::numeric_limits<u32>::max)();
     u32 height = (std::numeric_limits<u32>::max)();
+    u32 color_attachment_count = 0;
     for (size_t index = 0; index < NUM_RT; ++index) {
         const ImageView* const color_buffer = color_buffers[index];
         if (!color_buffer) {
@@ -2406,7 +2419,20 @@ void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
         image_ranges[num_images] = MakeSubresourceRange(color_buffer);
         rt_map[index] = num_images;
         samples = color_buffer->Samples();
+        color_attachment_infos[color_attachment_count] = VkRenderingAttachmentInfo{
+            .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+            .pNext = nullptr,
+            .imageView = color_buffer->RenderTarget(),
+            .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+            .resolveMode = VK_RESOLVE_MODE_NONE,
+            .resolveImageView = VK_NULL_HANDLE,
+            .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+            .clearValue = {},
+        };
         ++num_images;
+        ++color_attachment_count;
     }
     const size_t num_colors = attachments.size();
     if (depth_buffer) {
@@ -2424,6 +2450,18 @@ void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
         ++num_images;
         has_depth = (subresource_range.aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT) != 0;
         has_stencil = (subresource_range.aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT) != 0;
+        depth_attachment_info = VkRenderingAttachmentInfo{
+            .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+            .pNext = nullptr,
+            .imageView = depth_buffer->RenderTarget(),
+            .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+            .resolveMode = VK_RESOLVE_MODE_NONE,
+            .resolveImageView = VK_NULL_HANDLE,
+            .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+            .clearValue = {},
+        };
     } else {
         renderpass_key.depth_format = PixelFormat::Invalid;
     }
@@ -2432,6 +2470,13 @@ void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
     renderpass = runtime.render_pass_cache.Get(renderpass_key);
     render_area.width = (std::min)(render_area.width, width);
     render_area.height = (std::min)(render_area.height, height);
+
+    rendering_info.layerCount = static_cast<u32>((std::max)(num_layers, 1));
+    rendering_info.renderArea.extent = render_area;
+    rendering_info.colorAttachmentCount = color_attachment_count;
+    rendering_info.pColorAttachments = color_attachment_count > 0 ? color_attachment_infos.data() : nullptr;
+    rendering_info.pDepthAttachment = has_depth ? &depth_attachment_info : nullptr;
+    rendering_info.pStencilAttachment = has_stencil ? &depth_attachment_info : nullptr;
 
     num_color_buffers = static_cast<u32>(num_colors);
     framebuffer = runtime.device.GetLogical().CreateFramebuffer({

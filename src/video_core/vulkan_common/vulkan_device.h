@@ -38,6 +38,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(KHR, TimelineSemaphore, TIMELINE_SEMAPHORE, timeline_semaphore)
 
 #define FOR_EACH_VK_FEATURE_1_3(FEATURE)                                                           \
+    FEATURE(KHR, DynamicRendering, DYNAMIC_RENDERING, dynamic_rendering)                           \
     FEATURE(EXT, ImageRobustness, IMAGE_ROBUSTNESS, image_robustness)                              \
     FEATURE(EXT, ShaderDemoteToHelperInvocation, SHADER_DEMOTE_TO_HELPER_INVOCATION,               \
             shader_demote_to_helper_invocation)                                                    \
@@ -356,7 +357,8 @@ public:
 
     /// Returns true if the device supports VK_KHR_dynamic_rendering.
     bool IsDynamicRenderingSupported() const {
-        return extensions.dynamic_rendering;
+        return features.dynamic_rendering.dynamicRendering &&
+               (instance_version >= VK_API_VERSION_1_3 || extensions.dynamic_rendering);
     }
 
     /// Returns true if ASTC is natively supported.
