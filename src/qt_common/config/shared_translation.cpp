@@ -352,12 +352,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
               "Only Vulkan 1.0+ devices support this extension."));
 
     INSERT(Settings,
-           descriptor_indexing,
-           tr("Descriptor Indexing"),
-           tr("Improves texture & buffer handling and the Maxwell translation layer.\n"
-              "Some Vulkan 1.1+ and all 1.2+ devices support this extension."));
-
-    INSERT(Settings,
            sample_shading,
            tr("Sample Shading"),
            tr("Allows the fragment shader to execute per sample in a multi-sampled fragment "

@@ -465,28 +465,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         first_next = &diagnostics_nv;
     }
 
-    // Query descriptor indexing features from the physical device first so we only     
-    // request sub-features that are actually supported by the driver.
-    VkPhysicalDeviceDescriptorIndexingFeaturesEXT descriptor_indexing_temp{};
-    descriptor_indexing_temp.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT;
-    descriptor_indexing_temp.pNext = nullptr;
-    VkPhysicalDeviceFeatures2 desc_idx_features2{};
-    desc_idx_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    desc_idx_features2.pNext = &descriptor_indexing_temp;
-    physical.GetFeatures2(desc_idx_features2);
-
-    VkPhysicalDeviceDescriptorIndexingFeaturesEXT descriptor_indexing_req{
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT,    
-        .pNext = use_diagnostics_nv ? static_cast<void*>(&diagnostics_nv) : static_cast<void*>(&features2),
-        .shaderSampledImageArrayNonUniformIndexing = descriptor_indexing_temp.shaderSampledImageArrayNonUniformIndexing,
-        .descriptorBindingPartiallyBound = descriptor_indexing_temp.descriptorBindingPartiallyBound,
-        .descriptorBindingVariableDescriptorCount = descriptor_indexing_temp.descriptorBindingVariableDescriptorCount,
-    };
-
-    if (extensions.descriptor_indexing && Settings::values.descriptor_indexing.GetValue()) {
-        first_next = &descriptor_indexing_req;
-    }
-
     is_blit_depth24_stencil8_supported = TestDepthStencilBlits(VK_FORMAT_D24_UNORM_S8_UINT);
     is_blit_depth32_stencil8_supported = TestDepthStencilBlits(VK_FORMAT_D32_SFLOAT_S8_UINT);
     is_optimal_astc_supported = ComputeIsOptimalAstcSupported();

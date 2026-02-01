@@ -427,8 +427,7 @@
     <string name="disabled">Desactivado</string>
     <string name="provoking_vertex">Vértice provocante</string>
     <string name="provoking_vertex_description">Mejora la iluminación y el manejo de vértices en ciertos juegos. Solo es compatible con las GPU Vulkan 1.0+.</string>
-    <string name="descriptor_indexing">Indexación del descriptor</string>
-    <string name="descriptor_indexing_description">Mejora la textura y el manejo del búfer, así como la capa de traducción Maxwell. Compatible con algunas GPU Vulkan 1.1 y todas las GPU Vulkan 1.2+.</string>
+
     <string name="display">Pantalla</string>
 
     <string name="renderer_screen_layout">Orientación</string>
