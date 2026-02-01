@@ -795,6 +795,20 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SwitchSetting(
+                    BooleanSetting.ENABLE_FOLDER_BUTTON,
+                    titleId = R.string.enable_folder_button,
+                    descriptionId = R.string.enable_folder_button_description,
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.ENABLE_QLAUNCH_BUTTON,
+                    titleId = R.string.enable_qlaunch_button,
+                    descriptionId = R.string.enable_qlaunch_button_description,
+                )
+            )
+            put(
                 SingleChoiceSetting(
                     IntSetting.APP_LANGUAGE,
                     titleId = R.string.app_language,

@@ -28,12 +28,13 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.GameAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentGamesBinding
-import org.yuzu.yuzu_emu.HomeNavigationDirections
+import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.model.AppletInfo
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GamesViewModel
@@ -78,36 +79,6 @@ class GamesFragment : Fragment() {
                 mainActivity.processGamesDir(result, true)
             }
         }
-
-    private fun launchQLaunch() {
-        try {
-            val appletPath = NativeLibrary.getAppletLaunchPath(AppletInfo.QLaunch.entryId)
-            if (appletPath.isEmpty()) {
-                Toast.makeText(
-                    requireContext(),
-                    R.string.applets_error_applet,
-                    Toast.LENGTH_SHORT
-                ).show()
-                return
-            }
-
-            NativeLibrary.setCurrentAppletId(AppletInfo.QLaunch.appletId)
-
-            val qlaunchGame = Game(
-                title = getString(R.string.qlaunch_applet),
-                path = appletPath
-            )
-
-            val action = HomeNavigationDirections.actionGlobalEmulationActivity(qlaunchGame)
-            findNavController().navigate(action)
-        } catch (e: Exception) {
-            Toast.makeText(
-                requireContext(),
-                "Failed to launch QLaunch: ${e.message}",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-    }
 
     private fun getCurrentViewType(): Int {
         val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -206,6 +177,8 @@ class GamesFragment : Fragment() {
         }
 
         setupTopView()
+
+        updateButtonsVisibility()
 
         binding.addDirectory.setOnClickListener {
             getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data)
@@ -481,6 +454,44 @@ class GamesFragment : Fragment() {
         if (_binding != null) {
             (binding.gridGames as? CarouselRecyclerView)?.smoothScrollToPosition(0)
         }
+    }
+
+    private fun launchQLaunch() {
+        try {
+            val appletPath = NativeLibrary.getAppletLaunchPath(AppletInfo.QLaunch.entryId)
+            if (appletPath.isEmpty()) {
+                Toast.makeText(
+                    requireContext(),
+                    R.string.applets_error_applet,
+                    Toast.LENGTH_SHORT
+                ).show()
+                return
+            }
+
+            NativeLibrary.setCurrentAppletId(AppletInfo.QLaunch.appletId)
+
+            val qlaunchGame = Game(
+                title = getString(R.string.qlaunch_applet),
+                path = appletPath
+            )
+
+            val action = HomeNavigationDirections.actionGlobalEmulationActivity(qlaunchGame)
+            findNavController().navigate(action)
+        } catch (e: Exception) {
+            Toast.makeText(
+                requireContext(),
+                "Failed to launch QLaunch: ${e.message}",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    private fun updateButtonsVisibility() {
+        val showQLaunch = BooleanSetting.ENABLE_QLAUNCH_BUTTON.getBoolean()
+        val showFolder = BooleanSetting.ENABLE_FOLDER_BUTTON.getBoolean()
+
+        binding.launchQlaunch.visibility = if (showQLaunch) View.VISIBLE else View.GONE
+        binding.addDirectory.visibility = if (showFolder) View.VISIBLE else View.GONE
     }
 
     private fun setInsets() =
