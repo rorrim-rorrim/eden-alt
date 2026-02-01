@@ -2115,6 +2115,26 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
                     "Image view format {} has different usage flags than image format {}", format,
                     image.info.format);
     }
+
+    VkImageViewASTCDecodeModeEXT astc_decode_mode{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_ASTC_DECODE_MODE_EXT,
+        .pNext = nullptr,
+        .decodeMode = VK_FORMAT_UNDEFINED,
+    };
+    
+    const void* view_pNext = &image_view_usage;
+    
+    if (device->IsExtASTCDecodeModeSupported() && 
+        VideoCommon::Surface::IsPixelFormatASTC(image.info.format) &&
+        VideoCommon::Surface::IsPixelFormatASTC(format)) {
+        
+        const bool view_is_srgb = VideoCommon::Surface::IsPixelFormatSRGB(format);
+        astc_decode_mode.decodeMode = view_is_srgb ? VK_FORMAT_R8G8B8A8_SRGB_PACK32 
+                                                    : VK_FORMAT_R8G8B8A8_UNORM_PACK32;
+        astc_decode_mode.pNext = view_pNext;
+        view_pNext = &astc_decode_mode;
+    }
+
     const VkImageViewUsageCreateInfo image_view_usage{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO,
         .pNext = nullptr,
@@ -2122,7 +2142,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     };
     const VkImageViewCreateInfo create_info{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .pNext = &image_view_usage,
+        .pNext = view_pNext,
         .flags = 0,
         .image = image.Handle(),
         .viewType = VkImageViewType{},

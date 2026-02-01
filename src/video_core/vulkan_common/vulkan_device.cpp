@@ -1406,6 +1406,18 @@ void Device::RemoveUnsuitableExtensions() {
                                            VK_EXT_COLOR_WRITE_ENABLE_EXTENSION_NAME);
     }
 
+    // VK_EXT_astc_decode_mode
+    if (is_optimal_astc_supported && loaded_extensions.contains(VK_EXT_ASTC_DECODE_MODE_EXTENSION_NAME)) {
+        extensions.astc_decode_mode = true;
+        LOG_INFO(Render_Vulkan, "VK_EXT_astc_decode_mode enabled");
+    } else {
+        extensions.astc_decode_mode = false;
+        if (loaded_extensions.contains(VK_EXT_ASTC_DECODE_MODE_EXTENSION_NAME) && !is_optimal_astc_supported) {
+            LOG_INFO(Render_Vulkan, "VK_EXT_astc_decode_mode disabled: Requires native ASTC support");
+            loaded_extensions.erase(VK_EXT_ASTC_DECODE_MODE_EXTENSION_NAME);
+        }
+    }
+
     // VK_EXT_robustness2
     extensions.robustness_2 = features.robustness2.robustBufferAccess2 ||
                               features.robustness2.robustImageAccess2 ||

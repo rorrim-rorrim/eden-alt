@@ -75,6 +75,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
 
 // Define miscellaneous extensions which may be used by the implementation here.
 #define FOR_EACH_VK_EXTENSION(EXTENSION)                                                           \
+    EXTENSION(EXT, ASTC_DECODE_MODE, astc_decode_mode)                                             \
     EXTENSION(EXT, CONDITIONAL_RENDERING, conditional_rendering)                                   \
     EXTENSION(EXT, CONSERVATIVE_RASTERIZATION, conservative_rasterization)                         \
     EXTENSION(EXT, DEPTH_RANGE_UNRESTRICTED, depth_range_unrestricted)                             \
@@ -575,6 +576,11 @@ public:
     /// Returns true if the device supports VK_EXT_color_write_enable.
     bool IsExtColorWriteEnableSupported() const {
         return extensions.color_write_enable;
+    }
+
+    /// Returns true if the device supports VK_EXT_astc_decode_mode.
+    bool IsExtASTCDecodeModeSupported() const {
+        return extensions.astc_decode_mode;
     }
 
     /// Returns true if the device supports VK_EXT_image_robustness.
