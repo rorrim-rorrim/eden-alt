@@ -7,6 +7,7 @@
 #pragma once
 
 #include <ankerl/unordered_dense.h>
+#include <unordered_map>
 #include <queue>
 
 #include "common/common_types.h"
@@ -133,7 +134,7 @@ private:
         if (it == map->second.end()) {
             return {};
         }
-
+        // TODO: this "mapped" prevents us from fully embracing ankerl
         return std::move(map->second.extract(it).mapped());
     }
 
@@ -141,7 +142,7 @@ private:
 
     std::mutex m_mutex{};
     ankerl::unordered_dense::map<s32, std::deque<std::pair<u64, FramePtr>>> m_presentation_order;
-    ankerl::unordered_dense::map<s32, ankerl::unordered_dense::map<u64, FramePtr>> m_decode_order;
+    ankerl::unordered_dense::map<s32, std::unordered_map<u64, FramePtr>> m_decode_order;
 
     static constexpr size_t MAX_PRESENT_QUEUE = 100;
     static constexpr size_t MAX_DECODE_MAP = 200;
