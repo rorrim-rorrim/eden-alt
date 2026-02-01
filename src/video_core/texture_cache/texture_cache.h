@@ -9,7 +9,7 @@
 #include <limits>
 #include <optional>
 #include <bit>
-#include <unordered_set>
+#include <ankerl/unordered_dense.h>
 #include <boost/container/small_vector.hpp>
 
 #include "common/alignment.h"
@@ -2035,7 +2035,7 @@ void TextureCache<P>::TrimInactiveSamplers(size_t budget) {
         }
         set.insert(id);
     };
-    std::unordered_set<SamplerId> active;
+    ankerl::unordered_dense::set<SamplerId> active;
     active.reserve(channel_state->graphics_sampler_ids.size() +
                    channel_state->compute_sampler_ids.size());
     for (const SamplerId id : channel_state->graphics_sampler_ids) {
@@ -2364,7 +2364,7 @@ void TextureCache<P>::UnregisterImage(ImageId image_id) {
     lru_cache.Free(image.lru_index);
     const auto& clear_page_table =
         [image_id](u64 page,
-                   std::unordered_map<u64, std::vector<ImageId>, Common::IdentityHash<u64>>&
+                   ankerl::unordered_dense::map<u64, std::vector<ImageId>, Common::IdentityHash<u64>>&
                        selected_page_table) {
             const auto page_it = selected_page_table.find(page);
             if (page_it == selected_page_table.end()) {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -16,7 +19,7 @@
 #include <deque>
 #include <map>
 #include <span>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <variant>
 #include <vector>
 
@@ -52,7 +55,7 @@ struct IndirectBranchVariable {
 
 using Variant = std::variant<IR::Reg, IR::Pred, ZeroFlagTag, SignFlagTag, CarryFlagTag,
                              OverflowFlagTag, GotoVariable, IndirectBranchVariable>;
-using ValueMap = std::unordered_map<IR::Block*, IR::Value>;
+using ValueMap = ankerl::unordered_dense::map<IR::Block*, IR::Value>;
 
 struct DefTable {
     const IR::Value& Def(IR::Block* block, IR::Reg variable) {
@@ -112,7 +115,7 @@ struct DefTable {
     }
 
     std::array<ValueMap, IR::NUM_USER_PREDS> preds;
-    std::unordered_map<u32, ValueMap> goto_vars;
+    ankerl::unordered_dense::map<u32, ValueMap> goto_vars;
     ValueMap indirect_branch_var;
     ValueMap zero_flag;
     ValueMap sign_flag;
@@ -295,7 +298,7 @@ private:
         return same;
     }
 
-    std::unordered_map<IR::Block*, std::map<Variant, IR::Inst*>> incomplete_phis;
+    ankerl::unordered_dense::map<IR::Block*, std::map<Variant, IR::Inst*>> incomplete_phis;
     DefTable current_def;
 };
 
