@@ -460,6 +460,8 @@ if (YUZU_USE_CPM)
         add_library(zstd::libzstd ALIAS libzstd_static)
     endif()
 
+    AddJsonPackage(unordered-dense)
+
     if (NOT YUZU_STATIC_ROOM)
         # nlohmann
         AddJsonPackage(nlohmann)
@@ -511,6 +513,8 @@ else()
     if (ENABLE_OPENSSL)
         find_package(OpenSSL 1.1.1 REQUIRED)
     endif()
+
+    AddJsonPackage(unordered_dense REQUIRED)
 endif()
 
 if(NOT TARGET Boost::headers)
@@ -573,7 +577,6 @@ add_subdirectory(externals)
 # pass targets from externals
 find_package(enet)
 find_package(MbedTLS)
-find_package(unordered-dense REQUIRED)
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     find_package(xbyak)
