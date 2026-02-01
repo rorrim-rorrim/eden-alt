@@ -227,6 +227,7 @@
         android:textColor="?attr/colorOnPrimary"
         app:backgroundTint="?attr/colorPrimary"
         app:iconTint="?attr/colorOnPrimary"
+        app:rippleColor="#99FFFFFF"
         />
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
@@ -242,6 +243,7 @@
         android:textColor="?attr/colorOnPrimary"
         app:backgroundTint="?attr/colorPrimary"
         app:iconTint="?attr/colorOnPrimary"
+        app:rippleColor="#99FFFFFF"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
