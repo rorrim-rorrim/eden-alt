@@ -744,7 +744,8 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
 
     translations->insert({Settings::EnumMetadata<Settings::ExtendedDynamicState>::Index(),
                           {
-                              PAIR(ExtendedDynamicState, Disabled, tr("Disabled")),
+                              PAIR(ExtendedDynamicState, Static, tr("Static")),
+                              PAIR(ExtendedDynamicState, Core, tr("Core")),
                               PAIR(ExtendedDynamicState, EDS1, tr("ExtendedDynamicState 1")),
                               PAIR(ExtendedDynamicState, EDS2, tr("ExtendedDynamicState 2")),
                               PAIR(ExtendedDynamicState, EDS3, tr("ExtendedDynamicState 3")),
