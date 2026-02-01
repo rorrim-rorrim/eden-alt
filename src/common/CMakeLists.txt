@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project SPDX-License-Identifier:
@@ -255,6 +255,10 @@ if (lz4_ADDED)
     target_include_directories(common PRIVATE ${lz4_SOURCE_DIR}/lib)
 endif()
 
+if (TARGET unordered_dense::unordered_dense)
+    # weird quirk of system installs
+    target_link_libraries(common PUBLIC unordered_dense::unordered_dense)
+endif()
 target_link_libraries(common PUBLIC fmt::fmt stb::headers Threads::Threads)
 target_link_libraries(common PRIVATE lz4::lz4 LLVM::Demangle zstd::zstd)
 

@@ -1,10 +1,10 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 
 #include <span>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <vector>
 #include <oaknut/code_block.hpp>
 #include <oaknut/oaknut.hpp>
@@ -45,7 +45,7 @@ enum class PatchMode : u32 {
 
 using ModuleTextAddress = u64;
 using PatchTextAddress = u64;
-using EntryTrampolines = std::unordered_map<ModuleTextAddress, PatchTextAddress>;
+using EntryTrampolines = ankerl::unordered_dense::map<ModuleTextAddress, PatchTextAddress>;
 
 class Patcher {
 public:
