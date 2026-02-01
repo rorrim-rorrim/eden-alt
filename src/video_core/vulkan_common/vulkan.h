@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -31,11 +31,6 @@
 #endif
 #ifndef VK_KHR_MAINTENANCE_9_EXTENSION_NAME
 #define VK_KHR_MAINTENANCE_9_EXTENSION_NAME "VK_KHR_maintenance9"
-#endif
-
-// Define dynamic rendering extension name if not present
-#ifndef VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME
-#define VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME "VK_KHR_dynamic_rendering"
 #endif
 
 // Sanitize macros
