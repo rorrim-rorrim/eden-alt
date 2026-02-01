@@ -1195,6 +1195,9 @@ class SettingsFragmentPresenter(
             add(HeaderSetting(R.string.buttons))
             add(BooleanSetting.ENABLE_FOLDER_BUTTON.key)
             add(BooleanSetting.ENABLE_QLAUNCH_BUTTON.key)
+            if (!NativeLibrary.isFirmwareAvailable()) {
+                BooleanSetting.ENABLE_QLAUNCH_BUTTON.setBoolean(false)
+            }
         }
     }
 

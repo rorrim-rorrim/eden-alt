@@ -60,6 +60,11 @@ abstract class SettingsItem(
                 return NativeInput.getStyleIndex(0) != NpadStyleIndex.Handheld
             }
 
+            // Can't edit enable_qlaunch_button if firmware is not available
+            if (setting.key == BooleanSetting.ENABLE_QLAUNCH_BUTTON.key) {
+                return NativeLibrary.isFirmwareAvailable()
+            }
+
             // Can't edit settings that aren't saveable in per-game config even if they are switchable
             if (NativeConfig.isPerGameConfigLoaded() && !setting.isSaveable) {
                 return false
