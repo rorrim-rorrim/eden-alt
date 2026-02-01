@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // Qt on macOS doesn't define VMA shit
+#include <boost/algorithm/string/split.hpp>
 #include "qt_common/qt_string_lookup.h"
 #if defined(QT_STATICPLUGIN) && !defined(__APPLE__)
 #undef VMA_IMPLEMENTATION
@@ -523,9 +524,34 @@ MainWindow::MainWindow(bool has_broken_vulkan)
                                         (strstr(Common::g_build_version, "rc") != NULL));
             const std::optional<UpdateChecker::Update> latest_release_tag =
                 UpdateChecker::GetLatestRelease(is_prerelease);
-            if (latest_release_tag && latest_release_tag->tag != Common::g_build_version) {
-                return latest_release_tag.value();
+
+            if (!latest_release_tag)
+                goto empty;
+
+            {
+                std::string tag, build;
+                if (Common::g_is_nightly_build) {
+                    std::vector<std::string> result;
+
+                    boost::split(result, latest_release_tag->tag, boost::is_any_of("."));
+                    if (result.size() != 2)
+                        goto empty;
+                    tag = result[1];
+
+                    boost::split(result, std::string{Common::g_build_version}, boost::is_any_of("-"));
+                    if (result.empty())
+                        goto empty;
+                    build = result[0];
+                } else {
+                    tag = latest_release_tag->tag;
+                    build = Common::g_build_version;
+                }
+
+                if (tag != build)
+                    return latest_release_tag.value();
             }
+
+        empty:
             return UpdateChecker::Update{};
         });
         update_watcher.connect(&update_watcher, &QFutureWatcher<QString>::finished, this,
