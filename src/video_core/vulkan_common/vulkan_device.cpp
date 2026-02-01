@@ -487,28 +487,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         first_next = &descriptor_indexing_req;
     }
 
-    // VK_EXT_descriptor_buffer
-    VkPhysicalDeviceDescriptorBufferFeaturesEXT descriptor_buffer_temp{};
-    descriptor_buffer_temp.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT;
-    descriptor_buffer_temp.pNext = nullptr;
-    VkPhysicalDeviceFeatures2 desc_buf_features2{};
-    desc_buf_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    desc_buf_features2.pNext = &descriptor_buffer_temp;
-    physical.GetFeatures2(desc_buf_features2);
-
-    VkPhysicalDeviceDescriptorBufferFeaturesEXT descriptor_buffer_features{
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT,      
-        .pNext = first_next,
-        .descriptorBuffer = descriptor_buffer_temp.descriptorBuffer ? VK_TRUE : VK_FALSE,
-        .descriptorBufferCaptureReplay = descriptor_buffer_temp.descriptorBufferCaptureReplay ? VK_TRUE : VK_FALSE,
-        .descriptorBufferImageLayoutIgnored = descriptor_buffer_temp.descriptorBufferImageLayoutIgnored ? VK_TRUE : VK_FALSE,
-        .descriptorBufferPushDescriptors = descriptor_buffer_temp.descriptorBufferPushDescriptors ? VK_TRUE : VK_FALSE,
-    };
-
-    if (extensions.descriptor_buffer) {
-        first_next = &descriptor_buffer_features;
-    }
-
     // VK_EXT_inline_uniform_block
     VkPhysicalDeviceInlineUniformBlockFeaturesEXT inline_uniform_block_temp{};
     inline_uniform_block_temp.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES_EXT;
@@ -1205,14 +1183,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
         SetNext(next, properties.multi_draw);
     }
 
-    // VK_EXT_descriptor_buffer properties
-    VkPhysicalDeviceDescriptorBufferPropertiesEXT descriptor_buffer_properties{};
-    if (loaded_extensions.contains(VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME)) {
-        descriptor_buffer_properties.sType =
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT;
-        SetNext(next, descriptor_buffer_properties);
-    }
-
     // Perform the property fetch.
     physical.GetProperties2(properties2);
 
@@ -1306,10 +1276,6 @@ void Device::RemoveUnsuitableExtensions() {
     }
     RemoveExtensionFeatureIfUnsuitable(extensions.custom_border_color, features.custom_border_color,
                                        VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
-
-    // VK_EXT_descriptor_buffer
-    extensions.descriptor_buffer = loaded_extensions.contains(VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
-    RemoveExtensionIfUnsuitable(extensions.descriptor_buffer, VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
 
     // VK_EXT_depth_bias_control
     extensions.depth_bias_control =
