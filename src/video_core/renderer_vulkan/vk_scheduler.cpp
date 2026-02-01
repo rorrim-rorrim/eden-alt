@@ -128,22 +128,22 @@ void Scheduler::RequestRenderpass(const Framebuffer* framebuffer) {
     }
 
     Record([renderpass, framebuffer_handle, render_area](vk::CommandBuffer cmdbuf) {
-            const VkRenderPassBeginInfo renderpass_bi{
-                .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-                .pNext = nullptr,
-                .renderPass = renderpass,
-                .framebuffer = framebuffer_handle,
-                .renderArea =
-                    {
-                        .offset = {.x = 0, .y = 0},
-                        .extent = render_area,
-                    },
-                .clearValueCount = 0,
-                .pClearValues = nullptr,
-            };
-            cmdbuf.BeginRenderPass(renderpass_bi, VK_SUBPASS_CONTENTS_INLINE);
-        });
-    }
+        const VkRenderPassBeginInfo renderpass_bi{
+            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+            .pNext = nullptr,
+            .renderPass = renderpass,
+            .framebuffer = framebuffer_handle,
+            .renderArea =
+                {
+                    .offset = {.x = 0, .y = 0},
+                    .extent = render_area,
+                },
+            .clearValueCount = 0,
+            .pClearValues = nullptr,
+        };
+        cmdbuf.BeginRenderPass(renderpass_bi, VK_SUBPASS_CONTENTS_INLINE);
+    });
+
     num_renderpass_images = framebuffer->NumImages();
     renderpass_images = framebuffer->Images();
     renderpass_image_ranges = framebuffer->ImageRanges();
