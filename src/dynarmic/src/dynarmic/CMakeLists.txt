@@ -358,10 +358,7 @@ set_target_properties(dynarmic PROPERTIES
 
 if (TARGET unordered_dense::unordered_dense)
     # weird quirk of system installs
-    target_link_libraries(dynarmic
-    PRIVATE
-        unordered_dense::unordered_dense
-    )
+    target_link_libraries(dynarmic PRIVATE unordered_dense::unordered_dense)
 endif()
 
 target_compile_options(dynarmic PRIVATE ${DYNARMIC_CXX_FLAGS})
