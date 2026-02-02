@@ -214,9 +214,8 @@ struct FixedPipelineState {
         BitField<5, 1, u32> depth_enabled;
         BitField<6, 5, u32> depth_format;
         BitField<11, 1, u32> y_negate;
-        BitField<12, 1, u32> provoking_vertex_last;
-        BitField<13, 1, u32> conservative_raster_enable;
-        BitField<14, 1, u32> smooth_lines;
+        BitField<12, 1, u32> conservative_raster_enable;
+        BitField<13, 1, u32> smooth_lines;
         BitField<15, 1, u32> alpha_to_coverage_enabled;
         BitField<16, 1, u32> alpha_to_one_enabled;
         BitField<17, 3, Tegra::Engines::Maxwell3D::EngineHint> app_stage;

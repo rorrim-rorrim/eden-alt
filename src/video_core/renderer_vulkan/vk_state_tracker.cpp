@@ -166,6 +166,10 @@ void SetupDirtyFrontFace(Tables& tables) {
     table[OFF(window_origin)] = FrontFace;
 }
 
+void SetupDirtyProvokingVertex(Tables& tables) {
+    tables[0][OFF(provoking_vertex)] = ProvokingVertex;
+}
+
 void SetupDirtyStencilOp(Tables& tables) {
     auto& table = tables[0];
     table[OFF(stencil_front_op.fail)] = StencilOp;
@@ -250,6 +254,7 @@ void StateTracker::SetupTables(Tegra::Control::ChannelState& channel_state) {
     SetupDirtyStateEnable(tables);
     SetupDirtyDepthCompareOp(tables);
     SetupDirtyFrontFace(tables);
+    SetupDirtyProvokingVertex(tables);
     SetupDirtyStencilOp(tables);
     SetupDirtyBlending(tables);
     SetupDirtyViewportSwizzles(tables);

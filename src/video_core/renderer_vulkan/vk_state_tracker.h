@@ -248,6 +248,10 @@ public:
         return Exchange(Dirty::FrontFace, false);
     }
 
+    bool TouchProvokingVertex() {
+        return Exchange(Dirty::ProvokingVertex, false);
+    }
+
     bool TouchStencilOp() {
         return Exchange(Dirty::StencilOp, false);
     }

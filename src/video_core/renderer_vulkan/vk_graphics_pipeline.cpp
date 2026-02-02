@@ -741,9 +741,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     VkPipelineRasterizationProvokingVertexStateCreateInfoEXT provoking_vertex{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT,
         .pNext = nullptr,
-        .provokingVertexMode = key.state.provoking_vertex_last != 0
-                                   ? VK_PROVOKING_VERTEX_MODE_LAST_VERTEX_EXT
-                                   : VK_PROVOKING_VERTEX_MODE_FIRST_VERTEX_EXT,
+        .provokingVertexMode = VK_PROVOKING_VERTEX_MODE_FIRST_VERTEX_EXT,
     };
 
     if (IsLine(input_assembly_topology) && device.IsExtLineRasterizationSupported()) {
@@ -916,6 +914,10 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         if (device.SupportsDynamicState3AlphaToOneEnable()) {
             dynamic_states.push_back(VK_DYNAMIC_STATE_ALPHA_TO_ONE_ENABLE_EXT);
         }
+    }
+
+    if (device.IsExtProvokingVertexSupported()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_PROVOKING_VERTEX_EXT);
     }
 
     const VkPipelineDynamicStateCreateInfo dynamic_state_ci{

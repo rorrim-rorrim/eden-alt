@@ -1042,6 +1042,10 @@ void RasterizerVulkan::UpdateDynamicStates() {
         UpdateLogicOp(regs);
     }
 
+    if (device.IsExtProvokingVertexSupported()) {
+        UpdateProvokingVertex(regs);
+    }
+
     if (device.IsExtExtendedDynamicState3EnablesSupported()) {
         using namespace Tegra::Engines;
         if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE ||
@@ -1615,6 +1619,20 @@ void RasterizerVulkan::UpdateFrontFace(Tegra::Engines::Maxwell3D::Regs& regs) {
     }
     scheduler.Record(
         [front_face](vk::CommandBuffer cmdbuf) { cmdbuf.SetFrontFaceEXT(front_face); });
+}
+
+void RasterizerVulkan::UpdateProvokingVertex(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!device.IsExtProvokingVertexSupported()) {
+        return;
+    }
+    if (!state_tracker.TouchProvokingVertex()) {
+        return;
+    }
+
+    const auto mode = regs.provoking_vertex == Maxwell::ProvokingVertex::Last
+                          ? VK_PROVOKING_VERTEX_MODE_LAST_VERTEX_EXT
+                          : VK_PROVOKING_VERTEX_MODE_FIRST_VERTEX_EXT;
+    scheduler.Record([mode](vk::CommandBuffer cmdbuf) { cmdbuf.SetProvokingVertexEXT(mode); });
 }
 
 void RasterizerVulkan::UpdateStencilOp(Tegra::Engines::Maxwell3D::Regs& regs) {
