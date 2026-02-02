@@ -917,7 +917,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     }
 
     if (device.IsExtProvokingVertexSupported()) {
-        dynamic_states.push_back(VK_DYNAMIC_STATE_PROVOKING_VERTEX_EXT);
+        dynamic_states.push_back(VK_DYNAMIC_STATE_PROVOKING_VERTEX_MODE_EXT);
     }
 
     const VkPipelineDynamicStateCreateInfo dynamic_state_ci{
