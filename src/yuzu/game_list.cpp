@@ -17,6 +17,8 @@
 #include <QVariantAnimation>
 #include <fmt/ranges.h>
 #include <qnamespace.h>
+#include <qscroller.h>
+#include <qscrollerproperties.h>
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/core.h"
@@ -337,6 +339,15 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
     // touch gestures
     tree_view->viewport()->grabGesture(Qt::SwipeGesture);
     tree_view->viewport()->grabGesture(Qt::PanGesture);
+
+    // TODO: touch?
+    QScroller::grabGesture(tree_view->viewport(), QScroller::LeftMouseButtonGesture);
+
+    auto scroller = QScroller::scroller(tree_view->viewport());
+    QScrollerProperties props;
+    props.setScrollMetric(QScrollerProperties::HorizontalOvershootPolicy, QScrollerProperties::OvershootAlwaysOff);
+    props.setScrollMetric(QScrollerProperties::VerticalOvershootPolicy, QScrollerProperties::OvershootAlwaysOff);
+    scroller->setScrollerProperties(props);
 
     tree_view->setAlternatingRowColors(true);
     tree_view->setSelectionMode(QHeaderView::SingleSelection);
