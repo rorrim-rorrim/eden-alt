@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -828,7 +828,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     // Dynamic states configuration based on feature support
     static_vector<VkDynamicState, 34> dynamic_states;
     
-    // Core dynamic states (Vulkan 1.0) - Only if not in Static mode
+    // Core dynamic states (Vulkan 1.0)
     if (key.state.dynamic_state_enabled) {
         static constexpr std::array core_states{
             VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
@@ -853,15 +853,13 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         };
         dynamic_states.insert(dynamic_states.end(), extended.begin(), extended.end());
 
-        // VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT is part of EDS1
-        // Only use it if VIDS is not active (VIDS replaces it with full vertex input control)
+        // VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT
         if (!key.state.dynamic_vertex_input) {
             dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT);
         }
     }
 
-    // VK_DYNAMIC_STATE_VERTEX_INPUT_EXT (VIDS) - Independent from EDS
-    // Provides full dynamic vertex input control, replaces VERTEX_INPUT_BINDING_STRIDE
+    // VK_DYNAMIC_STATE_VERTEX_INPUT_EXT
     if (key.state.dynamic_vertex_input) {
         dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_EXT);
     }
