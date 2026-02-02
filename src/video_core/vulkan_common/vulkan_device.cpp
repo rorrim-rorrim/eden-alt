@@ -1287,7 +1287,8 @@ void Device::RemoveUnsuitableExtensions() {
                              dynamic_state3_line_raster_mode ||
                              dynamic_state3_conservative_raster_mode ||
                              dynamic_state3_line_stipple_enable ||
-                             dynamic_state3_alpha_to_coverage || dynamic_state3_alpha_to_one;
+                             dynamic_state3_alpha_to_coverage || dynamic_state3_alpha_to_one ||
+                             dynamic_state3_provoking_vertex_mode;
 
     extensions.extended_dynamic_state3 = dynamic_state3_blending || dynamic_state3_enables;
     if (!extensions.extended_dynamic_state3) {
