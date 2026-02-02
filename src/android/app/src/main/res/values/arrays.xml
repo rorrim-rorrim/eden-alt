@@ -611,7 +611,6 @@
     </integer-array>
 
     <string-array name="dynaStateEntries">
-        <item>Static</item>
         <item>Core</item>
         <item>ExtendedDynamicState 1</item>
         <item>ExtendedDynamicState 2</item>
@@ -623,7 +622,6 @@
         <item>1</item>
         <item>2</item>
         <item>3</item>
-        <item>4</item>
     </integer-array>
 
     <string-array name="installKeysResults">
