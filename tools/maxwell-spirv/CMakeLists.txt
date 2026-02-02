@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 add_executable(maxwell-spirv
     main.cpp
-    recompiler_impl.cpp
-    reference_impl.cpp
+    spirv_recompiler_impl.cpp
+    spirv_reference_impl.cpp
 )
 target_link_libraries(maxwell-spirv PRIVATE common shader_recompiler Threads::Threads)
 target_include_directories(maxwell-spirv PRIVATE ${CMAKE_SOURCE_DIR}/src)

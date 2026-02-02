@@ -9,7 +9,8 @@ Tools for Eden and other subprojects.
 ## Binaries
 
 - `maxwell-spirv`: Converts Maxwell shaders (dumped from `.ash` files) into SPIR-V code (emitted into STDOUT).
-- `maxwell-disas`: Dumb maxwell dissasembler.
+- `maxwell-disas`: Dumb raw Maxwell dissasembler.
+- `maxwell-ir`: Dump generated IR of Maxwell shaders.
 
 ## Scripts
 

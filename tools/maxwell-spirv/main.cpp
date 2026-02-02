@@ -5,8 +5,8 @@
 #include <cstdlib>
 #include <cstring>
 
-int ReferenceImpl(int argc, char *argv[]);
-int ShaderRecompilerImpl(int argc, char *argv[]);
+int SpirvReferenceImpl(int argc, char *argv[]);
+int SpirvShaderRecompilerImpl(int argc, char *argv[]);
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -19,8 +19,8 @@ int main(int argc, char *argv[]) {
     if (argc >= 3) {
         if (::strcmp(argv[2], "-n") == 0
         || ::strcmp(argv[2], "--new") == 0) {
-            return ReferenceImpl(argc, argv);
+            return SpirvReferenceImpl(argc, argv);
         }
     }
-    return ShaderRecompilerImpl(argc, argv);
+    return SpirvShaderRecompilerImpl(argc, argv);
 }
