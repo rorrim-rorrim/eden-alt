@@ -254,7 +254,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdSetLogicOpEXT vkCmdSetLogicOpEXT{};
     PFN_vkCmdSetLineWidth vkCmdSetLineWidth{};
     PFN_vkCmdSetPrimitiveTopologyEXT vkCmdSetPrimitiveTopologyEXT{};
-    PFN_vkCmdSetProvokingVertexEXT vkCmdSetProvokingVertexEXT{};
+    PFN_vkCmdSetProvokingVertexModeEXT vkCmdSetProvokingVertexModeEXT{};
     PFN_vkCmdSetScissor vkCmdSetScissor{};
     PFN_vkCmdSetStencilCompareMask vkCmdSetStencilCompareMask{};
     PFN_vkCmdSetStencilOpEXT vkCmdSetStencilOpEXT{};
@@ -1531,7 +1531,7 @@ public:
     }
 
     void SetProvokingVertexEXT(VkProvokingVertexModeEXT provoking_vertex_mode) const noexcept {
-        dld->vkCmdSetProvokingVertexEXT(handle, provoking_vertex_mode);
+        dld->vkCmdSetProvokingVertexModeEXT(handle, provoking_vertex_mode);
     }
 
     void SetStencilOpEXT(VkStencilFaceFlags face_mask, VkStencilOp fail_op, VkStencilOp pass_op,
