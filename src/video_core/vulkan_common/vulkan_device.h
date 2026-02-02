@@ -715,6 +715,11 @@ public:
         return extensions.provoking_vertex;
     }
 
+    /// Returns true if provoking vertex can be used as a dynamic state.
+    bool IsExtProvokingVertexDynamicStateSupported() const {
+        return dynamic_state3_provoking_vertex_mode;
+    }
+
     /// Returns true if the device supports VK_KHR_shader_atomic_int64.
     bool IsExtShaderAtomicInt64Supported() const {
         return extensions.shader_atomic_int64;
@@ -1059,6 +1064,7 @@ private:
     bool dynamic_state3_line_stipple_enable{};
     bool dynamic_state3_alpha_to_coverage{};
     bool dynamic_state3_alpha_to_one{};
+    bool dynamic_state3_provoking_vertex_mode{};
     bool supports_conditional_barriers{};      ///< Allows barriers in conditional control flow.
     bool supports_dynamic_state{true};         ///< Core Vulkan 1.0 dynamic states
     size_t sampler_heap_budget{};              ///< Sampler budget for buggy drivers (0 = unlimited).

@@ -1042,7 +1042,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
         UpdateLogicOp(regs);
     }
 
-    if (device.IsExtProvokingVertexSupported()) {
+    if (device.IsExtProvokingVertexDynamicStateSupported()) {
         UpdateProvokingVertex(regs);
     }
 

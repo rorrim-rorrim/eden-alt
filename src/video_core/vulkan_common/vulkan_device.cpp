@@ -1270,6 +1270,9 @@ void Device::RemoveUnsuitableExtensions() {
     const bool supports_alpha_to_one =
         features.extended_dynamic_state3.extendedDynamicState3AlphaToOneEnable &&
         features.features.alphaToOne;
+    const bool supports_provoking_vertex_mode =
+        features.extended_dynamic_state3.extendedDynamicState3ProvokingVertexMode &&
+        extensions.provoking_vertex;
 
     dynamic_state3_depth_clamp_enable = supports_depth_clamp_enable;
     dynamic_state3_logic_op_enable = supports_logic_op_enable;
@@ -1278,6 +1281,7 @@ void Device::RemoveUnsuitableExtensions() {
     dynamic_state3_line_stipple_enable = supports_line_stipple_enable;
     dynamic_state3_alpha_to_coverage = supports_alpha_to_coverage;
     dynamic_state3_alpha_to_one = supports_alpha_to_one;
+    dynamic_state3_provoking_vertex_mode = supports_provoking_vertex_mode;
 
     dynamic_state3_enables = dynamic_state3_depth_clamp_enable || dynamic_state3_logic_op_enable ||
                              dynamic_state3_line_raster_mode ||
