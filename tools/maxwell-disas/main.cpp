@@ -162,7 +162,7 @@ std::string_view SpecialRegGetName(size_t i) {
 }
 #include "generated.cpp"
 
-int ReferenceImpl(int argc, char *argv[]) {
+int DisasReferenceImpl(int argc, char *argv[]) {
     std::vector<uint64_t> code;
     FILE *fp = fopen(argv[1], "rb");
     if (fp != NULL) {
@@ -181,7 +181,7 @@ int ReferenceImpl(int argc, char *argv[]) {
     return EXIT_SUCCESS;
 }
 
-int ShaderRecompilerDisas(int argc, char *argv[]) {
+int DisasShaderRecompilerImpl(int argc, char *argv[]) {
     std::vector<u64> code;
     FILE *fp = fopen(argv[1], "rb");
     if (fp != NULL) {
@@ -203,17 +203,19 @@ int ShaderRecompilerDisas(int argc, char *argv[]) {
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         printf(
-            "usage: %s [input file] [-n]\n"
+            "usage: %s [input file] [-n/i]\n"
             "Specify -n to use a disassembler that is NOT tied to the shader recompiler\n"
             "aka. a reference disassembler\n"
             , argv[0]);
         return EXIT_FAILURE;
     }
+
+    //DumpProgram
+
     if (argc >= 3) {
-        if (::strcmp(argv[2], "-n") == 0
-        || ::strcmp(argv[2], "--new") == 0) {
-            return ReferenceImpl(argc, argv);
+        if (::strcmp(argv[2], "-n") == 0 || ::strcmp(argv[2], "--new") == 0) {
+            return DisasReferenceImpl(argc, argv);
         }
     }
-    return ShaderRecompilerDisas(argc, argv);
+    return DisasShaderRecompilerImpl(argc, argv);
 }
