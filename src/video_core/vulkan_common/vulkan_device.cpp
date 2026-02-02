@@ -435,7 +435,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_mvk = driver_id == VK_DRIVER_ID_MOLTENVK;
     const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
-    const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
 
     if (!is_suitable)
         LOG_WARNING(Render_Vulkan, "Unsuitable driver - continuing anyways");
@@ -486,18 +485,13 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectPhysicalMemoryInfo();
     CollectToolingInfo();
 
-    if (is_qualcomm || is_arm) {
-        const char* driver_name = is_qualcomm ? "Qualcomm" : "ARM Mali";
-        
+    if (is_qualcomm) {
         must_emulate_scaled_formats = true;
         LOG_WARNING(Render_Vulkan,
-                    "{} drivers require scaled vertex format emulation; forcing fallback", driver_name);
-        
-        sets_per_pool = 1024;
-        LOG_INFO(Render_Vulkan, "{}: forcing {} sets per pool", driver_name, sets_per_pool);
+                    "Qualcomm drivers require scaled vertex format emulation; forcing fallback");
 
         LOG_WARNING(Render_Vulkan,
-                    "Disabling shader float controls and 64-bit integer features on {} proprietary drivers", driver_name);
+                    "Disabling shader float controls and 64-bit integer features on Qualcomm proprietary drivers");
         RemoveExtension(extensions.shader_float_controls, VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64,
                                VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
@@ -505,48 +499,49 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         features.shader_atomic_int64.shaderSharedInt64Atomics = false;
         features.features.shaderInt64 = false;
 
+        sets_per_pool = 1024;
+        LOG_INFO(Render_Vulkan, "Qualcomm: forcing {} sets per pool", sets_per_pool);
+
 #if defined(ANDROID) && defined(ARCHITECTURE_arm64)
-        if (is_qualcomm) {
-            // BCn patching only safe on Android 9+ (API 28+). Older versions crash on driver load.
-            const auto major = (properties.properties.driverVersion >> 22) << 2;
-            const auto minor = (properties.properties.driverVersion >> 12) & 0xFFFU;
-            const auto vendor = properties.properties.vendorID;
-            const auto patch_status = adrenotools_get_bcn_type(major, minor, vendor);
-            const int api_level = android_get_device_api_level();
+        // BCn patching only safe on Android 9+ (API 28+). Older versions crash on driver load.
+        const auto major = (properties.properties.driverVersion >> 24) << 2;
+        const auto minor = (properties.properties.driverVersion >> 12) & 0xFFFU;
+        const auto vendor = properties.properties.vendorID;
+        const auto patch_status = adrenotools_get_bcn_type(major, minor, vendor);
+        const int api_level = android_get_device_api_level();
 
-            bool should_patch_bcn = api_level >= 28;
-            const bool bcn_debug_override = Settings::values.patch_old_qcom_drivers.GetValue();
-            if (bcn_debug_override != should_patch_bcn) {
-                LOG_WARNING(Render_Vulkan,
-                    "BCn patch debug override active: {} (auto-detected: {})",
-                    bcn_debug_override, should_patch_bcn);
-                should_patch_bcn = bcn_debug_override;
-            }
+        bool should_patch_bcn = api_level >= 28;
+        const bool bcn_debug_override = Settings::values.patch_old_qcom_drivers.GetValue();
+        if (bcn_debug_override != should_patch_bcn) {
+            LOG_WARNING(Render_Vulkan,
+                "BCn patch debug override active: {} (auto-detected: {})",
+                bcn_debug_override, should_patch_bcn);
+            should_patch_bcn = bcn_debug_override;
+        }
 
-            if (patch_status == ADRENOTOOLS_BCN_PATCH) {
-                if (should_patch_bcn) {
-                    LOG_INFO(Render_Vulkan,
-                        "Patching Adreno driver to support BCn texture formats "
-                        "(Android API {}, Driver {}.{})", api_level, major, minor);
-                    if (adrenotools_patch_bcn(
-                            reinterpret_cast<void*>(dld.vkGetPhysicalDeviceFormatProperties))) {
-                        OverrideBcnFormats(format_properties);
-                    } else {
-                        LOG_ERROR(Render_Vulkan, "BCn patch failed! Driver code may now crash");
-                    }
-                } else {
-                    LOG_WARNING(Render_Vulkan,
-                        "BCn texture patching skipped for stability (Android API {} < 28). "
-                        "Driver version {}.{} would support patching, but may crash on older Android.",
-                        api_level, major, minor);
-                }
-            } else if (patch_status == ADRENOTOOLS_BCN_BLOB) {
-                LOG_INFO(Render_Vulkan, "Adreno driver supports BCn textures natively (no patch needed)");
-            } else {
+        if (patch_status == ADRENOTOOLS_BCN_PATCH) {
+            if (should_patch_bcn) {
                 LOG_INFO(Render_Vulkan,
-                    "Adreno driver does not support BCn texture patching (Android API {}, Driver {}.{})",
+                    "Patching Adreno driver to support BCn texture formats "
+                    "(Android API {}, Driver {}.{})", api_level, major, minor);
+                if (adrenotools_patch_bcn(
+                        reinterpret_cast<void*>(dld.vkGetPhysicalDeviceFormatProperties))) {
+                    OverrideBcnFormats(format_properties);
+                } else {
+                    LOG_ERROR(Render_Vulkan, "BCn patch failed! Driver code may now crash");
+                }
+            } else {
+                LOG_WARNING(Render_Vulkan,
+                    "BCn texture patching skipped for stability (Android API {} < 28). "
+                    "Driver version {}.{} would support patching, but may crash on older Android.",
                     api_level, major, minor);
             }
+        } else if (patch_status == ADRENOTOOLS_BCN_BLOB) {
+            LOG_INFO(Render_Vulkan, "Adreno driver supports BCn textures natively (no patch needed)");
+        } else {
+            LOG_INFO(Render_Vulkan,
+                "Adreno driver does not support BCn texture patching (Android API {}, Driver {}.{})",
+                api_level, major, minor);
         }
 #endif
     }
@@ -1301,6 +1296,7 @@ void Device::RemoveUnsuitableExtensions() {
         dynamic_state3_line_stipple_enable = false;
         dynamic_state3_alpha_to_coverage = false;
         dynamic_state3_alpha_to_one = false;
+        dynamic_state3_provoking_vertex_mode = false;
     }
     RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state3,
                                        features.extended_dynamic_state3,
