@@ -651,18 +651,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const auto dyna_state = Settings::values.dyna_state.GetValue();
 
     switch (dyna_state) {
-    case Settings::ExtendedDynamicState::Static:
-        LOG_INFO(Render_Vulkan, "STATIC Mode (fully static pipelines)");
-        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
-                              VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
-                              VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
-                              VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-        dynamic_state3_blending = false;
-        dynamic_state3_enables = false;
-        supports_dynamic_state = false;
-        break;
     case Settings::ExtendedDynamicState::Core:
         LOG_INFO(Render_Vulkan, "DynamicState - Enabled");
         RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
@@ -1207,19 +1195,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
                                    features.vertex_input_dynamic_state,
                                    VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
         }
-    }
-
-    const auto dyna_state_setting = Settings::values.dyna_state.GetValue();
-    if (dyna_state_setting == Settings::ExtendedDynamicState::Static) {
-        LOG_INFO(Render_Vulkan, "Static pipeline mode: All dynamic states disabled");
-        supports_dynamic_state = false;
-        features.extended_dynamic_state.extendedDynamicState = false;
-        features.extended_dynamic_state2.extendedDynamicState2 = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorWriteMask = false;
-        features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable = false;
     }
 
     return suitable;
