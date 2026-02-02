@@ -75,9 +75,7 @@ std::string ParamPackage::Serialize() const {
 std::string ParamPackage::Get(const std::string& key, const std::string& default_value) const {
     auto pair = data.find(key);
     if (pair == data.end()) {
-#ifndef __OPENORBIS__
         LOG_TRACE(Common, "key '{}' not found", key);
-#endif
         return default_value;
     }
 
@@ -87,9 +85,7 @@ std::string ParamPackage::Get(const std::string& key, const std::string& default
 int ParamPackage::Get(const std::string& key, int default_value) const {
     auto pair = data.find(key);
     if (pair == data.end()) {
-#ifndef __OPENORBIS__
         LOG_TRACE(Common, "key '{}' not found", key);
-#endif
         return default_value;
     }
 
@@ -104,9 +100,7 @@ int ParamPackage::Get(const std::string& key, int default_value) const {
 float ParamPackage::Get(const std::string& key, float default_value) const {
     auto pair = data.find(key);
     if (pair == data.end()) {
-#ifndef __OPENORBIS__
         LOG_TRACE(Common, "key {} not found", key);
-#endif
         return default_value;
     }
 
