@@ -502,6 +502,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         sets_per_pool = 1024;
         LOG_INFO(Render_Vulkan, "Qualcomm: forcing {} sets per pool", sets_per_pool);
 
+        LOG_WARNING(Render_Vulkan,
+                    "Qualcomm: Disabling broken VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT");
+        supports_depth_test_enable = false;
+
 #if defined(ANDROID) && defined(ARCHITECTURE_arm64)
         // BCn patching only safe on Android 9+ (API 28+). Older versions crash on driver load.
         const auto major = (properties.properties.driverVersion >> 24) << 2;

@@ -1026,7 +1026,9 @@ void RasterizerVulkan::UpdateDynamicStates() {
         UpdateStencilOp(regs);
         if (state_tracker.TouchStateEnable()) {
             UpdateDepthBoundsTestEnable(regs);
-            UpdateDepthTestEnable(regs);
+            if (device.SupportsDepthTestEnable()) {
+                UpdateDepthTestEnable(regs);
+            }
             UpdateDepthWriteEnable(regs);
             UpdateStencilTestEnable(regs);
         }
