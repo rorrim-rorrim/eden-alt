@@ -661,6 +661,14 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                               VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
         dynamic_state3_blending = false;
         dynamic_state3_enables = false;
+        dynamic_state3_depth_clamp_enable = false;
+        dynamic_state3_logic_op_enable = false;
+        dynamic_state3_line_raster_mode = false;
+        dynamic_state3_conservative_raster_mode = false;
+        dynamic_state3_line_stipple_enable = false;
+        dynamic_state3_alpha_to_coverage = false;
+        dynamic_state3_alpha_to_one = false;
+        dynamic_state3_provoking_vertex_mode = false;
         break;
     case Settings::ExtendedDynamicState::EDS1:
         LOG_INFO(Render_Vulkan, "ExtededDynamicState1 - Enabled");
@@ -670,6 +678,14 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                               VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
         dynamic_state3_blending = false;
         dynamic_state3_enables = false;
+        dynamic_state3_depth_clamp_enable = false;
+        dynamic_state3_logic_op_enable = false;
+        dynamic_state3_line_raster_mode = false;
+        dynamic_state3_conservative_raster_mode = false;
+        dynamic_state3_line_stipple_enable = false;
+        dynamic_state3_alpha_to_coverage = false;
+        dynamic_state3_alpha_to_one = false;
+        dynamic_state3_provoking_vertex_mode = false;
         break;
     case Settings::ExtendedDynamicState::EDS2:
         LOG_INFO(Render_Vulkan, "ExtededDynamicState2 - Enabled");
@@ -677,6 +693,14 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                               VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
         dynamic_state3_blending = false;
         dynamic_state3_enables = false;
+        dynamic_state3_depth_clamp_enable = false;
+        dynamic_state3_logic_op_enable = false;
+        dynamic_state3_line_raster_mode = false;
+        dynamic_state3_conservative_raster_mode = false;
+        dynamic_state3_line_stipple_enable = false;
+        dynamic_state3_alpha_to_coverage = false;
+        dynamic_state3_alpha_to_one = false;
+        dynamic_state3_provoking_vertex_mode = false;
         break;
     case Settings::ExtendedDynamicState::EDS3:
     default:
