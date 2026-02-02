@@ -106,7 +106,11 @@ void DynarmicCallbacks64::InterpreterFallback(u64 pc, std::size_t num_instructio
     m_parent.LogBacktrace(m_process);
     LOG_ERROR(Core_ARM, "Unimplemented instruction @ {:#X} for {} instructions (instr = {:08X})", pc,
         num_instructions, m_memory.Read32(pc));
+#ifdef __OPENORBIS__
+    std::abort();
+#else
     ReturnException(pc, PrefetchAbort);
+#endif
 }
 
 void DynarmicCallbacks64::InstructionCacheOperationRaised(Dynarmic::A64::InstructionCacheOperation op, u64 value) {
@@ -364,10 +368,6 @@ void ArmDynarmic64::MakeJit(Common::PageTable* page_table, std::size_t address_s
     default:
         break;
     }
-#ifdef __OPENORBIS__
-    config.unsafe_optimizations = false;
-    config.optimizations = Dynarmic::no_optimizations;
-#endif
     m_jit.emplace(config);
 }
 

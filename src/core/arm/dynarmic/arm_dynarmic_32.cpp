@@ -93,6 +93,9 @@ void DynarmicCallbacks32::InterpreterFallback(u32 pc, std::size_t num_instructio
     LOG_ERROR(Core_ARM,
                 "Unimplemented instruction @ {:#X} for {} instructions (instr = {:08X})", pc,
                 num_instructions, m_memory.Read32(pc));
+#ifdef __OPENORBIS__
+    std::abort();
+#endif
 }
 
 void DynarmicCallbacks32::ExceptionRaised(u32 pc, Dynarmic::A32::Exception exception) {
@@ -313,10 +316,6 @@ void ArmDynarmic32::MakeJit(Common::PageTable* page_table) {
     default:
         break;
     }
-#ifdef __OPENORBIS__
-    config.unsafe_optimizations = false;
-    config.optimizations = Dynarmic::no_optimizations;
-#endif
     m_jit.emplace(config);
 }
 
