@@ -49,6 +49,7 @@ enum : u8 {
     DepthWriteEnable,
     DepthCompareOp,
     FrontFace,
+    ProvokingVertex,
     StencilOp,
     StencilTestEnable,
     PrimitiveRestartEnable,
