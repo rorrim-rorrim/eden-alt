@@ -300,7 +300,7 @@ private:
     }
 
     void AsyncFlushQuery(CachedQuery* query, std::optional<u64> timestamp,
-                         std::unique_lock<std::mutex>& lock) {
+                         std::unique_lock<std::recursive_mutex>& lock) {
         const AsyncJobId new_async_job_id = slot_async_jobs.insert();
         {
             AsyncJob& async_job = slot_async_jobs[new_async_job_id];
@@ -346,7 +346,7 @@ private:
     VideoCore::RasterizerInterface& rasterizer;
     Tegra::MaxwellDeviceMemoryManager& device_memory;
 
-    mutable std::mutex mutex;
+    mutable std::recursive_mutex mutex;
 
     std::unordered_map<u64, std::vector<CachedQuery>> cached_queries;
 

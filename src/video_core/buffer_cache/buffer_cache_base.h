@@ -318,7 +318,7 @@ public:
         } while (channel_state->has_deleted_buffers);
     }
 
-    std::mutex mutex;
+    std::recursive_mutex mutex;
     Runtime& runtime;
 
 private:
