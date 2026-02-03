@@ -498,8 +498,11 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         features.shader_atomic_int64.shaderBufferInt64Atomics = false;
         features.shader_atomic_int64.shaderSharedInt64Atomics = false;
         features.features.shaderInt64 = false;
+        LOG_WARNING(Render_Vulkan,
+                    "Disabling shaderFloat16 on Qualcomm proprietary drivers");
+        features.shader_float16_int8.shaderFloat16 = false;
 
-        sets_per_pool = 1024;
+        sets_per_pool = 128;
         LOG_INFO(Render_Vulkan, "Qualcomm: forcing {} sets per pool", sets_per_pool);
 
 #if defined(ANDROID) && defined(ARCHITECTURE_arm64)
