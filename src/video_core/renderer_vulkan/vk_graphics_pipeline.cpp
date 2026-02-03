@@ -462,7 +462,6 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     }
 
     buffer_cache.UpdateGraphicsBuffers(is_indexed);
-    buffer_cache.BindHostGeometryBuffers(is_indexed);
 
     guest_descriptor_queue.Acquire();
 
@@ -499,6 +498,8 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     texture_cache.UpdateRenderTargets(false);
     texture_cache.CheckFeedbackLoop(views);
     ConfigureDraw(rescaling, render_area);
+
+    buffer_cache.BindHostGeometryBuffers(is_indexed);
 
     return true;
 }
