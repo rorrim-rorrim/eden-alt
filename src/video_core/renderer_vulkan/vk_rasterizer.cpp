@@ -223,6 +223,8 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
         return;
     }
     std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
+    buffer_cache_runtime.SetUseDynamicVertexBindingStride(
+        pipeline->UsesExtendedDynamicState() && !pipeline->HasDynamicVertexInput());
     // update engine as channel may be different.
     pipeline->SetEngine(maxwell3d, gpu_memory);
     if (!pipeline->Configure(is_indexed))

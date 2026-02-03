@@ -555,9 +555,7 @@ void BufferCacheRuntime::BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset
     if (index >= device.GetMaxVertexInputBindings()) {
         return;
     }
-    const bool use_stride_dynamic = device.IsExtExtendedDynamicStateSupported() &&
-                                    !(device.IsExtVertexInputDynamicStateSupported() &&
-                                      Settings::values.vertex_input_dynamic_state.GetValue());
+    const bool use_stride_dynamic = use_dynamic_vertex_binding_stride;
     if (use_stride_dynamic) {
         scheduler.Record([index, buffer, offset, size, stride](vk::CommandBuffer cmdbuf) {
             const VkDeviceSize vk_offset = buffer != VK_NULL_HANDLE ? offset : 0;
@@ -598,14 +596,8 @@ void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bi
     if (binding_count == 0) {
         return;
     }
-    // Use BindVertexBuffers2EXT (with stride) only if:
-    // 1. VK_EXT_extended_dynamic_state is supported (provides VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT)
-    // 2. AND VK_EXT_vertex_input_dynamic_state is NOT active (supported + enabled by toggle)
-    //    Because VIDS and BINDING_STRIDE are mutually exclusive in the pipeline
-    const bool use_stride_dynamic = device.IsExtExtendedDynamicStateSupported() &&
-                                    !(device.IsExtVertexInputDynamicStateSupported() &&
-                                      Settings::values.vertex_input_dynamic_state.GetValue());
-    if (use_stride_dynamic) {
+        const bool use_stride_dynamic = use_dynamic_vertex_binding_stride;
+        if (use_stride_dynamic) {
         scheduler.Record([bindings_ = std::move(bindings),
                           buffer_handles_ = std::move(buffer_handles),
                           binding_count](vk::CommandBuffer cmdbuf) {
