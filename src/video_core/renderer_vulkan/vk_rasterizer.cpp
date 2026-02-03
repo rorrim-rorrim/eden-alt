@@ -61,6 +61,26 @@ struct DrawParams {
     bool is_indexed;
 };
 
+VkViewport ClampViewport(const Device& device, VkViewport viewport) {
+    const auto max_dims = device.GetMaxViewportDimensions();
+    const auto bounds = device.GetViewportBoundsRange();
+    const auto clamp_abs = [](float value, float max_abs) {
+        const float clamped = std::min(std::abs(value), max_abs);
+        return std::copysign(clamped, value);
+    };
+
+    viewport.width = viewport.width == 0.0f ? 1.0f : viewport.width;
+    viewport.height = viewport.height == 0.0f ? 1.0f : viewport.height;
+
+    viewport.width = clamp_abs(viewport.width, static_cast<float>(max_dims[0]));
+    viewport.height = clamp_abs(viewport.height, static_cast<float>(max_dims[1]));
+
+    viewport.x = std::clamp(viewport.x, bounds[0], bounds[1]);
+    viewport.y = std::clamp(viewport.y, bounds[0], bounds[1]);
+
+    return viewport;
+}
+
 VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t index, float scale) {
     const auto& src = regs.viewport_transform[index];
     const auto conv = [scale](float value) {
@@ -106,7 +126,7 @@ VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t in
         viewport.minDepth = std::clamp(viewport.minDepth, 0.0f, 1.0f);
         viewport.maxDepth = std::clamp(viewport.maxDepth, 0.0f, 1.0f);
     }
-    return viewport;
+    return ClampViewport(device, viewport);
 }
 
 VkRect2D GetScissorState(const Maxwell& regs, size_t index, u32 up_scale = 1, u32 down_shift = 0) {
@@ -225,6 +245,9 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
     buffer_cache_runtime.SetUseDynamicVertexBindingStride(
         pipeline->UsesExtendedDynamicState() && !pipeline->HasDynamicVertexInput());
+    if (device.IsExtProvokingVertexDynamicStateSupported()) {
+        state_tracker.InvalidateProvokingVertex();
+    }
     // update engine as channel may be different.
     pipeline->SetEngine(maxwell3d, gpu_memory);
     if (!pipeline->Configure(is_indexed))
@@ -1133,8 +1156,9 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
             .minDepth = 0.0f,
             .maxDepth = 1.0f,
         };
-        scheduler.Record([viewport](vk::CommandBuffer cmdbuf) {
-            cmdbuf.SetViewport(0, viewport);
+        const VkViewport clamped = ClampViewport(device, viewport);
+        scheduler.Record([clamped](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetViewport(0, clamped);
         });
         return;
     }

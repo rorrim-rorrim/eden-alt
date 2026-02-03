@@ -102,6 +102,10 @@ public:
         (*flags)[Dirty::StateEnable] = true;
     }
 
+    void InvalidateProvokingVertex() {
+        (*flags)[Dirty::ProvokingVertex] = true;
+    }
+
     bool TouchViewports() {
         const bool dirty_viewports = Exchange(Dirty::Viewports, false);
         const bool rescale_viewports = Exchange(VideoCommon::Dirty::RescaleViewports, false);

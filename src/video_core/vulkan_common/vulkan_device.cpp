@@ -488,10 +488,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     if (is_qualcomm) {
         must_emulate_scaled_formats = true;
         LOG_WARNING(Render_Vulkan,
-                    "Qualcomm drivers require scaled vertex format emulation; forcing fallback");
+                    "Qualcomm drivers require scaled vertex format emulation");
 
         LOG_WARNING(Render_Vulkan,
-                    "Disabling shader float controls and 64-bit integer features on Qualcomm proprietary drivers");
+                    "Disabling shaderFloatControls and 64-bit integer features on Qualcomm proprietary drivers");
         RemoveExtension(extensions.shader_float_controls, VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64,
                                VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);

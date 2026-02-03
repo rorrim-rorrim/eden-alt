@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <array>
 #include <optional>
 #include <set>
 #include <span>
@@ -818,6 +819,16 @@ public:
 
     u32 GetMaxViewports() const {
         return properties.properties.limits.maxViewports;
+    }
+
+    std::array<u32, 2> GetMaxViewportDimensions() const {
+        return {properties.properties.limits.maxViewportDimensions[0],
+                properties.properties.limits.maxViewportDimensions[1]};
+    }
+
+    std::array<float, 2> GetViewportBoundsRange() const {
+        return {properties.properties.limits.viewportBoundsRange[0],
+                properties.properties.limits.viewportBoundsRange[1]};
     }
 
     u32 GetMaxUserClipDistances() const {
