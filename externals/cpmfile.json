@@ -284,7 +284,6 @@
     "vulkan-utility-libraries": {
         "repo": "KhronosGroup/Vulkan-Utility-Libraries",
         "package": "VulkanUtilityLibraries",
-        "version": "1.4.317",
         "hash": "8147370f964fd82c315d6bb89adeda30186098427bf3efaa641d36282d42a263f31e96e4586bfd7ae0410ff015379c19aa4512ba160630444d3d8553afd1ec14",
         "git_version": "1.4.342",
         "tag": "v%VERSION%"

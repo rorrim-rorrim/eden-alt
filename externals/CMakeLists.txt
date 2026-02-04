@@ -84,13 +84,7 @@ endif()
 AddJsonPackage(mcl)
 
 # Vulkan stuff
-AddJsonPackage(vulkan-headers)
-AddJsonPackage(vulkan-utility-libraries)
-
-# small hack
-if (NOT VulkanUtilityLibraries_ADDED)
-    find_package(VulkanHeaders 1.4.317 REQUIRED)
-endif()
+AddDependentPackages(vulkan-headers vulkan-utility-libraries)
 
 # DiscordRPC
 if (USE_DISCORD_PRESENCE)
