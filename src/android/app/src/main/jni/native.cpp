@@ -210,6 +210,40 @@ void EmulationSession::ConfigureFilesystemProvider(const std::string& filepath) 
         return;
     }
 
+    const auto extension = Common::ToLower(filepath.substr(filepath.find_last_of('.') + 1));
+
+    if (extension == "nsp") {
+        auto nsp = std::make_shared<FileSys::NSP>(file);
+        if (nsp->GetStatus() == Loader::ResultStatus::Success) {
+            for (const auto& title : nsp->GetNCAs()) {
+                for (const auto& entry : title.second) {
+                    m_manual_provider->AddEntry(entry.first.first, entry.first.second, title.first,
+                                                entry.second->GetBaseFile());
+                    LOG_DEBUG(Frontend, "Added NSP entry - TitleID: {:016X}, TitleType: {}, ContentType: {}",
+                              title.first, static_cast<int>(entry.first.first), static_cast<int>(entry.first.second));
+                }
+            }
+            return;
+        }
+    }
+
+    // Handle XCI files
+    if (extension == "xci") {
+        FileSys::XCI xci{file};
+        if (xci.GetStatus() == Loader::ResultStatus::Success) {
+            const auto nsp = xci.GetSecurePartitionNSP();
+            if (nsp) {
+                for (const auto& title : nsp->GetNCAs()) {
+                    for (const auto& entry : title.second) {
+                        m_manual_provider->AddEntry(entry.first.first, entry.first.second, title.first,
+                                                    entry.second->GetBaseFile());
+                    }
+                }
+            }
+            return;
+        }
+    }
+
     auto loader = Loader::GetLoader(m_system, file);
     if (!loader) {
         return;
@@ -226,17 +260,6 @@ void EmulationSession::ConfigureFilesystemProvider(const std::string& filepath) 
         m_manual_provider->AddEntry(FileSys::TitleType::Application,
                                     FileSys::GetCRTypeFromNCAType(FileSys::NCA{file}.GetType()),
                                     program_id, file);
-    } else if (res2 == Loader::ResultStatus::Success &&
-               (file_type == Loader::FileType::XCI || file_type == Loader::FileType::NSP)) {
-        const auto nsp = file_type == Loader::FileType::NSP
-                             ? std::make_shared<FileSys::NSP>(file)
-                             : FileSys::XCI{file}.GetSecurePartitionNSP();
-        for (const auto& title : nsp->GetNCAs()) {
-            for (const auto& entry : title.second) {
-                m_manual_provider->AddEntry(entry.first.first, entry.first.second, title.first,
-                                            entry.second->GetBaseFile());
-            }
-        }
     }
 }
 

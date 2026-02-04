@@ -20,6 +20,8 @@ import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.FolderAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentFoldersBinding
+import org.yuzu.yuzu_emu.model.DirectoryType
+import org.yuzu.yuzu_emu.model.GameDir
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.ui.main.MainActivity
@@ -73,7 +75,25 @@ class GameFoldersFragment : Fragment() {
 
         val mainActivity = requireActivity() as MainActivity
         binding.buttonAdd.setOnClickListener {
-            mainActivity.getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data)
+            // Show a model to choose between Game and External Content
+            val options = arrayOf(
+                getString(R.string.games),
+                getString(R.string.external_content)
+            )
+
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.add_folders)
+                .setItems(options) { _, which ->
+                    when (which) {
+                        0 -> { // Game Folder
+                            mainActivity.getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data)
+                        }
+                        1 -> { // External Content Folder
+                            mainActivity.getExternalContentDirectory.launch(null)
+                        }
+                    }
+                }
+                .show()
         }
 
         setInsets()

@@ -425,14 +425,18 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         )
 
         val uriString = result.toString()
-        val externalContentViewModel by viewModels<org.yuzu.yuzu_emu.model.ExternalContentViewModel>()
-        externalContentViewModel.addDirectory(DocumentFile.fromTreeUri(this, result)!!)
+        val folder = gamesViewModel.folders.value.firstOrNull { it.uriString == uriString }
+        if (folder != null) {
+            Toast.makeText(
+                applicationContext,
+                R.string.folder_already_added,
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
 
-        Toast.makeText(
-            applicationContext,
-            R.string.add_directory_success,
-            Toast.LENGTH_SHORT
-        ).show()
+        val externalContentDir = org.yuzu.yuzu_emu.model.GameDir(uriString, false, org.yuzu.yuzu_emu.model.DirectoryType.EXTERNAL_CONTENT)
+        gamesViewModel.addFolder(externalContentDir, savedFromGameFragment = false)
     }
 
     val getProdKey = registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
