@@ -77,6 +77,7 @@
 #ifdef ENABLE_UPDATE_CHECKER
 #include "frontend_common/update_checker.h"
 #endif
+#include "frontend_common/settings_generator.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
 #include "hid_core/hid_types.h"
@@ -94,7 +95,7 @@
 
 static EmulationSession s_instance;
 
-//Abdroid Multiplayer which can be initialized with parameters
+// Android Multiplayer which can be initialized with parameters
 std::unique_ptr<AndroidMultiplayer> multiplayer{nullptr};
 std::shared_ptr<Core::AnnounceMultiplayerSession> announce_multiplayer_session;
 
