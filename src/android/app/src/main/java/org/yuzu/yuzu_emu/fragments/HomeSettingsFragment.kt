@@ -183,7 +183,7 @@ class HomeSettingsFragment : Fragment() {
                 HomeSetting(
                     R.string.manage_external_content,
                     R.string.manage_external_content_description,
-                    R.drawable.ic_folder,
+                    R.drawable.ic_add,
                     {
                         binding.root.findNavController()
                             .navigate(R.id.action_homeSettingsFragment_to_externalContentFragment)

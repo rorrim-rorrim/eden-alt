@@ -24,7 +24,7 @@ class ExternalContentViewModel : ViewModel() {
     private fun loadDirectories() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                _directories.value = NativeConfig.getExternalContentDirs()
+                _directories.value = NativeConfig.getExternalContentDirs().toList()
             }
         }
     }
