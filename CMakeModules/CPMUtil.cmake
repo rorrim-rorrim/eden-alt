@@ -409,8 +409,7 @@ function(AddPackage)
 
             if(DEFINED PKG_ARGS_ARTIFACT)
                 set(pkg_url
-                    "${pkg_git_url}/releases/download/"
-                    "${PKG_ARGS_TAG}/${PKG_ARGS_ARTIFACT}")
+                    "${pkg_git_url}/releases/download/${PKG_ARGS_TAG}/${PKG_ARGS_ARTIFACT}")
             else()
                 set(pkg_url
                     ${pkg_git_url}/archive/refs/tags/${PKG_ARGS_TAG}.tar.gz)
