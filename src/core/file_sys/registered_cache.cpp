@@ -1110,8 +1110,12 @@ void ExternalContentProvider::ScanDirectory(const VirtualDir& dir) {
 void ExternalContentProvider::ProcessNSP(const VirtualFile& file) {
     auto nsp = NSP(file);
     if (nsp.GetStatus() != Loader::ResultStatus::Success) {
+        LOG_WARNING(Service_FS, "Failed to parse NSP file: {}, status: {}",
+                    file->GetName(), static_cast<int>(nsp.GetStatus()));
         return;
     }
+
+    LOG_WARNING(Service_FS, "Processing NSP file: {}", file->GetName());
 
     const auto ncas = nsp.GetNCAs();
 
@@ -1169,6 +1173,8 @@ void ExternalContentProvider::ProcessNSP(const VirtualFile& file) {
             const auto& [title_type, content_type] = type_pair;
 
             if (title_type != TitleType::AOC && title_type != TitleType::Update) {
+                LOG_WARNING(Service_FS, "Skipping entry - Title ID: {:016X}, TitleType: {}, ContentType: {} (not AOC or Update)",
+                          title_id, static_cast<int>(title_type), static_cast<int>(content_type));
                 continue;
             }
 
@@ -1186,7 +1192,7 @@ void ExternalContentProvider::ProcessNSP(const VirtualFile& file) {
                     version_files[{title_id, version}][content_type] = nca_file;
                 }
 
-                LOG_DEBUG(Service_FS, "Added entry - Title ID: {:016X}, Type: {}, Content: {}",
+                LOG_INFO(Service_FS, "Added external entry - Title ID: {:016X}, TitleType: {}, ContentType: {}",
                           title_id, static_cast<int>(title_type), static_cast<int>(content_type));
             }
         }

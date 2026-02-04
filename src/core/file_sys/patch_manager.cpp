@@ -840,13 +840,36 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
     // DLC
     const auto dlc_entries =
         content_provider.ListEntriesFilter(TitleType::AOC, ContentRecordType::Data);
+
+    LOG_WARNING(Loader, "Found {} potential DLC entries for base title {:016X}", dlc_entries.size(), title_id);
+
     std::vector<ContentProviderEntry> dlc_match;
     dlc_match.reserve(dlc_entries.size());
     std::copy_if(dlc_entries.begin(), dlc_entries.end(), std::back_inserter(dlc_match),
                  [this](const ContentProviderEntry& entry) {
-                     return GetBaseTitleID(entry.title_id) == title_id &&
-                            content_provider.GetEntry(entry)->GetStatus() ==
-                                Loader::ResultStatus::Success;
+                     const auto base_tid = GetBaseTitleID(entry.title_id);
+                     const bool matches_base = base_tid == title_id;
+
+                     if (!matches_base) {
+                         LOG_WARNING(Loader, "DLC {:016X} base {:016X} doesn't match title {:016X}",
+                                   entry.title_id, base_tid, title_id);
+                         return false;
+                     }
+
+                     auto nca = content_provider.GetEntry(entry);
+                     if (!nca) {
+                         LOG_WARNING(Loader, "Failed to get NCA for DLC {:016X}", entry.title_id);
+                         return false;
+                     }
+
+                     const auto status = nca->GetStatus();
+                     if (status != Loader::ResultStatus::Success) {
+                         LOG_WARNING(Loader, "DLC {:016X} NCA has status {}",
+                                     entry.title_id, static_cast<int>(status));
+                         return false;
+                     }
+
+                     return true;
                  });
     if (!dlc_match.empty()) {
         // Ensure sorted so DLC IDs show in order.
