@@ -782,7 +782,7 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
                     } else if (std::find(EXEFS_FILE_NAMES.begin(), EXEFS_FILE_NAMES.end(),
                                          file->GetName()) != EXEFS_FILE_NAMES.end()) {
                         layeredfs = true;
-                    }
+                                         }
                 }
 
                 if (ips)
@@ -822,7 +822,7 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
         if (IsDirValidAndNonEmpty(FindSubdirectoryCaseless(sdmc_mod_dir, "romfs")) ||
             IsDirValidAndNonEmpty(FindSubdirectoryCaseless(sdmc_mod_dir, "romfslite"))) {
             AppendCommaIfNotEmpty(types, "LayeredFS");
-        }
+            }
 
         if (!types.empty()) {
             const auto mod_disabled =
@@ -841,8 +841,6 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
     const auto dlc_entries =
         content_provider.ListEntriesFilter(TitleType::AOC, ContentRecordType::Data);
 
-    LOG_WARNING(Loader, "Found {} potential DLC entries for base title {:016X}", dlc_entries.size(), title_id);
-
     std::vector<ContentProviderEntry> dlc_match;
     dlc_match.reserve(dlc_entries.size());
     std::copy_if(dlc_entries.begin(), dlc_entries.end(), std::back_inserter(dlc_match),
@@ -851,26 +849,27 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
                      const bool matches_base = base_tid == title_id;
 
                      if (!matches_base) {
-                         LOG_WARNING(Loader, "DLC {:016X} base {:016X} doesn't match title {:016X}",
+                         LOG_DEBUG(Loader, "DLC {:016X} base {:016X} doesn't match title {:016X}",
                                    entry.title_id, base_tid, title_id);
                          return false;
                      }
 
                      auto nca = content_provider.GetEntry(entry);
                      if (!nca) {
-                         LOG_WARNING(Loader, "Failed to get NCA for DLC {:016X}", entry.title_id);
+                         LOG_DEBUG(Loader, "Failed to get NCA for DLC {:016X}", entry.title_id);
                          return false;
                      }
 
                      const auto status = nca->GetStatus();
                      if (status != Loader::ResultStatus::Success) {
-                         LOG_WARNING(Loader, "DLC {:016X} NCA has status {}",
+                         LOG_DEBUG(Loader, "DLC {:016X} NCA has status {}",
                                      entry.title_id, static_cast<int>(status));
                          return false;
                      }
 
                      return true;
                  });
+
     if (!dlc_match.empty()) {
         // Ensure sorted so DLC IDs show in order.
         std::sort(dlc_match.begin(), dlc_match.end());
