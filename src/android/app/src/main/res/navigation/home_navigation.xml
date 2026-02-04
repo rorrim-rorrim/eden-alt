@@ -186,5 +186,15 @@
             app:nullable="true"
             android:defaultValue="@null" />
     </fragment>
+    <fragment
+        android:id="@+id/externalContentFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.ExternalContentFragment"
+        android:label="ExternalContentFragment" />
+    <action
+        android:id="@+id/action_global_externalContentFragment"
+        app:destination="@id/externalContentFragment" />
 
+    <action
+        android:id="@+id/action_homeSettingsFragment_to_externalContentFragment"
+        app:destination="@id/externalContentFragment" />
 </navigation>
