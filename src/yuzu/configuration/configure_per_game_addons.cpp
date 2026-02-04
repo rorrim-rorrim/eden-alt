@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
@@ -8,6 +8,8 @@
 #include <memory>
 #include <utility>
 
+#include <fmt/format.h>
+
 #include <QHeaderView>
 #include <QMenu>
 #include <QStandardItemModel>
@@ -15,6 +17,7 @@
 #include <QTimer>
 #include <QTreeView>
 
+#include "common/common_types.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "core/core.h"
@@ -64,19 +67,45 @@ ConfigurePerGameAddons::ConfigurePerGameAddons(Core::System& system_, QWidget* p
 
     ui->scrollArea->setEnabled(!system.IsPoweredOn());
 
+    connect(item_model, &QStandardItemModel::itemChanged, this,
+            &ConfigurePerGameAddons::OnItemChanged);
     connect(item_model, &QStandardItemModel::itemChanged,
             [] { UISettings::values.is_game_list_reload_pending.exchange(true); });
 }
 
 ConfigurePerGameAddons::~ConfigurePerGameAddons() = default;
 
+void ConfigurePerGameAddons::OnItemChanged(QStandardItem* item) {
+    if (update_items.size() > 1 && item->checkState() == Qt::Checked) {
+        auto it = std::find(update_items.begin(), update_items.end(), item);
+        if (it != update_items.end()) {
+            for (auto* update_item : update_items) {
+                if (update_item != item && update_item->checkState() == Qt::Checked) {
+                    disconnect(item_model, &QStandardItemModel::itemChanged, this,
+                              &ConfigurePerGameAddons::OnItemChanged);
+                    update_item->setCheckState(Qt::Unchecked);
+                    connect(item_model, &QStandardItemModel::itemChanged, this,
+                           &ConfigurePerGameAddons::OnItemChanged);
+                }
+            }
+        }
+    }
+}
+
 void ConfigurePerGameAddons::ApplyConfiguration() {
     std::vector<std::string> disabled_addons;
 
     for (const auto& item : list_items) {
         const auto disabled = item.front()->checkState() == Qt::Unchecked;
-        if (disabled)
-            disabled_addons.push_back(item.front()->text().toStdString());
+        if (disabled) {
+            QVariant userData = item.front()->data(Qt::UserRole);
+            if (userData.isValid() && userData.canConvert<quint32>() && item.front()->text() == QStringLiteral("Update")) {
+                quint32 numeric_version = userData.toUInt();
+                disabled_addons.push_back(fmt::format("Update@{}", numeric_version));
+            } else {
+                disabled_addons.push_back(item.front()->text().toStdString());
+            }
+        }
     }
 
     auto current = Settings::values.disabled_addons[title_id];
@@ -125,17 +154,73 @@ void ConfigurePerGameAddons::LoadConfiguration() {
 
     const auto& disabled = Settings::values.disabled_addons[title_id];
 
-    for (const auto& patch : pm.GetPatches(update_raw)) {
+    update_items.clear();
+    list_items.clear();
+    item_model->removeRows(0, item_model->rowCount());
+
+    std::vector<FileSys::Patch> patches = pm.GetPatches(update_raw);
+
+    size_t multi_version_update_count = 0;
+    for (const auto& patch : patches) {
+        if (patch.type == FileSys::PatchType::Update && patch.numeric_version != 0) {
+            multi_version_update_count++;
+        }
+    }
+
+    bool has_saved_multi_version_settings = false;
+    if (multi_version_update_count > 1) {
+        for (const auto& patch : patches) {
+            if (patch.type == FileSys::PatchType::Update && patch.numeric_version != 0) {
+                std::string disabled_key = fmt::format("Update@{}", patch.numeric_version);
+                if (std::find(disabled.begin(), disabled.end(), disabled_key) != disabled.end()) {
+                    has_saved_multi_version_settings = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    bool has_enabled_update = false;
+    bool is_first_multi_version_update = true;
+
+    for (const auto& patch : patches) {
         const auto name = QString::fromStdString(patch.name);
 
         auto* const first_item = new QStandardItem;
         first_item->setText(name);
         first_item->setCheckable(true);
 
-        const auto patch_disabled =
-            std::find(disabled.begin(), disabled.end(), name.toStdString()) != disabled.end();
+        if (patch.type == FileSys::PatchType::Update && patch.numeric_version != 0) {
+            first_item->setData(static_cast<quint32>(patch.numeric_version), Qt::UserRole);
+        }
 
-        first_item->setCheckState(patch_disabled ? Qt::Unchecked : Qt::Checked);
+        bool patch_disabled = false;
+        if (patch.type == FileSys::PatchType::Update && patch.numeric_version != 0 && multi_version_update_count > 1) {
+            if (has_saved_multi_version_settings) {
+                std::string disabled_key = fmt::format("Update@{}", patch.numeric_version);
+                patch_disabled = std::find(disabled.begin(), disabled.end(), disabled_key) != disabled.end();
+            } else {
+                patch_disabled = !is_first_multi_version_update;
+            }
+            is_first_multi_version_update = false;
+        } else {
+            patch_disabled = std::find(disabled.begin(), disabled.end(), name.toStdString()) != disabled.end();
+        }
+
+        bool should_enable = !patch_disabled;
+
+        if (patch.type == FileSys::PatchType::Update) {
+            if (should_enable) {
+                if (has_enabled_update) {
+                    should_enable = false;
+                } else {
+                    has_enabled_update = true;
+                }
+            }
+            update_items.push_back(first_item);
+        }
+
+        first_item->setCheckState(should_enable ? Qt::Checked : Qt::Unchecked);
 
         list_items.push_back(QList<QStandardItem*>{
             first_item, new QStandardItem{QString::fromStdString(patch.version)}});

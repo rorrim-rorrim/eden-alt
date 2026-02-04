@@ -204,4 +204,12 @@ object NativeConfig {
     external fun getSdmcDir(): String
     @Synchronized
     external fun setSdmcDir(path: String)
+
+    /**
+     * External Content Provider
+     */
+    @Synchronized
+    external fun getExternalContentDirs(): Array<String>
+    @Synchronized
+    external fun setExternalContentDirs(dirs: Array<String>)
 }

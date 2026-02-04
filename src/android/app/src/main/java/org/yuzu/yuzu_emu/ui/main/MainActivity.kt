@@ -389,6 +389,13 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             }
         }
 
+    val getExternalContentDirectory =
+        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { result ->
+            if (result != null) {
+                processExternalContentDir(result)
+            }
+        }
+
     fun processGamesDir(result: Uri, calledFromGameFragment: Boolean = false) {
         contentResolver.takePersistableUriPermission(
             result,
@@ -408,6 +415,23 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
         AddGameFolderDialogFragment.newInstance(uriString, calledFromGameFragment)
             .show(supportFragmentManager, AddGameFolderDialogFragment.TAG)
+    }
+
+    fun processExternalContentDir(result: Uri) {
+        contentResolver.takePersistableUriPermission(
+            result,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+        )
+
+        val uriString = result.toString()
+        val externalContentViewModel by viewModels<org.yuzu.yuzu_emu.model.ExternalContentViewModel>()
+        externalContentViewModel.addDirectory(DocumentFile.fromTreeUri(this, result)!!)
+
+        Toast.makeText(
+            applicationContext,
+            R.string.add_directory_success,
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     val getProdKey = registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->

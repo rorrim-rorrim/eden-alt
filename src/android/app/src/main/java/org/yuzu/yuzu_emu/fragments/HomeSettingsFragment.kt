@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package org.yuzu.yuzu_emu.fragments
 
 import android.Manifest
@@ -173,6 +176,17 @@ class HomeSettingsFragment : Fragment() {
                     {
                         binding.root.findNavController()
                             .navigate(R.id.action_homeSettingsFragment_to_gameFoldersFragment)
+                    }
+                )
+            )
+            add(
+                HomeSetting(
+                    R.string.manage_external_content,
+                    R.string.manage_external_content_description,
+                    R.drawable.ic_folder,
+                    {
+                        binding.root.findNavController()
+                            .navigate(R.id.action_homeSettingsFragment_to_externalContentFragment)
                     }
                 )
             )

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <string>
@@ -579,6 +579,28 @@ jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getSdmcDir(JNIEnv* env, jobje
 void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setSdmcDir(JNIEnv* env, jobject obj, jstring jpath) {
     auto path = Common::Android::GetJString(env, jpath);
     Common::FS::SetEdenPath(Common::FS::EdenPath::SDMCDir, path);
+}
+
+jobjectArray Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getExternalContentDirs(JNIEnv* env,
+                                                                               jobject obj) {
+    const auto& dirs = Settings::values.external_content_dirs;
+    jobjectArray jdirsArray =
+        env->NewObjectArray(dirs.size(), Common::Android::GetStringClass(),
+                            Common::Android::ToJString(env, ""));
+    for (size_t i = 0; i < dirs.size(); ++i) {
+        env->SetObjectArrayElement(jdirsArray, i, Common::Android::ToJString(env, dirs[i]));
+    }
+    return jdirsArray;
+}
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setExternalContentDirs(JNIEnv* env, jobject obj,
+                                                                       jobjectArray jdirs) {
+    Settings::values.external_content_dirs.clear();
+    const int size = env->GetArrayLength(jdirs);
+    for (int i = 0; i < size; ++i) {
+        auto jdir = static_cast<jstring>(env->GetObjectArrayElement(jdirs, i));
+        Settings::values.external_content_dirs.push_back(Common::Android::GetJString(env, jdir));
+    }
 }
 
 } // extern "C"

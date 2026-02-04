@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -38,10 +38,19 @@ ConfigureFilesystem::ConfigureFilesystem(QWidget* parent)
     connect(ui->reset_game_list_cache, &QPushButton::pressed, this,
             &ConfigureFilesystem::ResetMetadata);
 
-    connect(ui->gamecard_inserted, &QCheckBox::STATE_CHANGED, this,
+    connect(ui->gamecard_inserted, &QCheckBox::stateChanged, this,
             &ConfigureFilesystem::UpdateEnabledControls);
-    connect(ui->gamecard_current_game, &QCheckBox::STATE_CHANGED, this,
+    connect(ui->gamecard_current_game, &QCheckBox::stateChanged, this,
             &ConfigureFilesystem::UpdateEnabledControls);
+
+    connect(ui->add_external_dir_button, &QPushButton::pressed, this,
+            &ConfigureFilesystem::AddExternalContentDirectory);
+    connect(ui->remove_external_dir_button, &QPushButton::pressed, this,
+            &ConfigureFilesystem::RemoveSelectedExternalContentDirectory);
+    connect(ui->external_content_list, &QListWidget::itemSelectionChanged, this, [this] {
+        ui->remove_external_dir_button->setEnabled(
+            !ui->external_content_list->selectedItems().isEmpty());
+    });
 }
 
 ConfigureFilesystem::~ConfigureFilesystem() = default;
@@ -75,6 +84,7 @@ void ConfigureFilesystem::SetConfiguration() {
 
     ui->cache_game_list->setChecked(UISettings::values.cache_game_list.GetValue());
 
+    UpdateExternalContentList();
     UpdateEnabledControls();
 }
 
@@ -96,6 +106,12 @@ void ConfigureFilesystem::ApplyConfiguration() {
     Settings::values.dump_nso = ui->dump_nso->isChecked();
 
     UISettings::values.cache_game_list = ui->cache_game_list->isChecked();
+
+    Settings::values.external_content_dirs.clear();
+    for (int i = 0; i < ui->external_content_list->count(); ++i) {
+        Settings::values.external_content_dirs.push_back(
+            ui->external_content_list->item(i)->text().toStdString());
+    }
 }
 
 void ConfigureFilesystem::SetDirectory(DirectoryTarget target, QLineEdit* edit) {
@@ -119,6 +135,9 @@ void ConfigureFilesystem::SetDirectory(DirectoryTarget target, QLineEdit* edit) 
         break;
     case DirectoryTarget::Load:
         caption = tr("Select Mod Load Directory...");
+        break;
+    case DirectoryTarget::ExternalContent:
+        caption = tr("Select External Content Directory...");
         break;
     }
 
@@ -276,6 +295,44 @@ void ConfigureFilesystem::UpdateEnabledControls() {
                                        !ui->gamecard_current_game->isChecked());
     ui->gamecard_path_button->setEnabled(ui->gamecard_inserted->isChecked() &&
                                          !ui->gamecard_current_game->isChecked());
+}
+
+void ConfigureFilesystem::UpdateExternalContentList() {
+    ui->external_content_list->clear();
+    for (const auto& dir : Settings::values.external_content_dirs) {
+        ui->external_content_list->addItem(QString::fromStdString(dir));
+    }
+}
+
+void ConfigureFilesystem::AddExternalContentDirectory() {
+    const QString dir_path = QFileDialog::getExistingDirectory(
+        this, tr("Select External Content Directory..."), QString());
+
+    if (dir_path.isEmpty()) {
+        return;
+    }
+
+    QString normalized_path = QDir::toNativeSeparators(dir_path);
+    if (normalized_path.back() != QDir::separator()) {
+        normalized_path.append(QDir::separator());
+    }
+
+    for (int i = 0; i < ui->external_content_list->count(); ++i) {
+        if (ui->external_content_list->item(i)->text() == normalized_path) {
+            QMessageBox::information(this, tr("Directory Already Added"),
+                                     tr("This directory is already in the list."));
+            return;
+        }
+    }
+
+    ui->external_content_list->addItem(normalized_path);
+}
+
+void ConfigureFilesystem::RemoveSelectedExternalContentDirectory() {
+    auto selected = ui->external_content_list->selectedItems();
+    if (!selected.isEmpty()) {
+        qDeleteAll(ui->external_content_list->selectedItems());
+    }
 }
 
 void ConfigureFilesystem::RetranslateUI() {

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -37,6 +37,7 @@ private:
         Gamecard,
         Dump,
         Load,
+        ExternalContent,
     };
 
     void SetDirectory(DirectoryTarget target, QLineEdit* edit);
@@ -44,6 +45,9 @@ private:
     void PromptSaveMigration(const QString& from_path, const QString& to_path);
     void ResetMetadata();
     void UpdateEnabledControls();
+    void UpdateExternalContentList();
+    void AddExternalContentDirectory();
+    void RemoveSelectedExternalContentDirectory();
 
     std::unique_ptr<Ui::ConfigureFilesystem> ui;
 };
