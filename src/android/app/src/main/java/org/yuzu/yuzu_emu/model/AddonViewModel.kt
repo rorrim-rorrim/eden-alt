@@ -48,14 +48,72 @@ class AddonViewModel : ViewModel() {
                         ?: emptyArray()
                     ).toMutableList()
                 patchList.sortBy { it.name }
+
+                // Ensure only one update is enabled
+                ensureSingleUpdateEnabled(patchList)
+
+                removeDuplicates(patchList)
+
                 _patchList.value = patchList
                 isRefreshing.set(false)
             }
         }
     }
 
+    private fun ensureSingleUpdateEnabled(patchList: MutableList<Patch>) {
+        val updates = patchList.filter { PatchType.from(it.type) == PatchType.Update }
+        if (updates.size <= 1) {
+            return
+        }
+
+        val enabledUpdates = updates.filter { it.enabled }
+
+        if (enabledUpdates.size > 1) {
+            var foundFirst = false
+            for (patch in patchList) {
+                if (PatchType.from(patch.type) == PatchType.Update) {
+                    if (!foundFirst && patch.enabled) {
+                        foundFirst = true
+                    } else if (foundFirst && patch.enabled) {
+                        patch.enabled = false
+                    }
+                }
+            }
+        } else if (enabledUpdates.isEmpty()) {
+            for (patch in patchList) {
+                if (PatchType.from(patch.type) == PatchType.Update) {
+                    patch.enabled = true
+                    break
+                }
+            }
+        }
+    }
+
+    private fun removeDuplicates(patchList: MutableList<Patch>) {
+        val seen = mutableSetOf<String>()
+        val iterator = patchList.iterator()
+        while (iterator.hasNext()) {
+            val patch = iterator.next()
+            val key = "${patch.name}|${patch.version}|${patch.type}"
+            if (seen.contains(key)) {
+                iterator.remove()
+            } else {
+                seen.add(key)
+            }
+        }
+    }
+
     fun setAddonToDelete(patch: Patch?) {
         _addonToDelete.value = patch
+    }
+
+    fun enableOnlyThisUpdate(selectedPatch: Patch) {
+        val currentList = _patchList.value
+        for (patch in currentList) {
+            if (PatchType.from(patch.type) == PatchType.Update) {
+                patch.enabled = (patch === selectedPatch)
+            }
+        }
     }
 
     fun onDeleteAddon(patch: Patch) {
@@ -72,13 +130,22 @@ class AddonViewModel : ViewModel() {
             return
         }
 
+        // Check if there are multiple update versions
+        val updates = _patchList.value.filter { PatchType.from(it.type) == PatchType.Update }
+        val hasMultipleUpdates = updates.size > 1
+
         NativeConfig.setDisabledAddons(
             game!!.programId,
             _patchList.value.mapNotNull {
                 if (it.enabled) {
                     null
                 } else {
-                    it.name
+                    // For multiple updates, use "Update@{numericVersion}" as the key (like desktop)
+                    if (hasMultipleUpdates && PatchType.from(it.type) == PatchType.Update) {
+                        "Update@${it.numericVersion}"
+                    } else {
+                        it.name
+                    }
                 }
             }.toTypedArray()
         )

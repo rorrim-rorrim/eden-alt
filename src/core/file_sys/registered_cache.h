@@ -241,6 +241,7 @@ public:
         std::optional<u64> title_id) const override;
 
     const ExternalContentProvider* GetExternalProvider() const;
+    const ContentProvider* GetSlotProvider(ContentProviderUnionSlot slot) const;
 
     std::vector<std::pair<ContentProviderUnionSlot, ContentProviderEntry>> ListEntriesFilterOrigin(
         std::optional<ContentProviderUnionSlot> origin = {},
@@ -260,6 +261,8 @@ public:
 
     void AddEntry(TitleType title_type, ContentRecordType content_type, u64 title_id,
                   VirtualFile file);
+    void AddEntryWithVersion(TitleType title_type, ContentRecordType content_type, u64 title_id,
+                             u32 version, const std::string& version_string, VirtualFile file);
     void ClearAllEntries();
 
     void Refresh() override;
@@ -272,8 +275,13 @@ public:
         std::optional<TitleType> title_type, std::optional<ContentRecordType> record_type,
         std::optional<u64> title_id) const override;
 
+    std::vector<ExternalUpdateEntry> ListUpdateVersions(u64 title_id) const;
+    VirtualFile GetEntryForVersion(u64 title_id, ContentRecordType type, u32 version) const;
+    bool HasMultipleVersions(u64 title_id, ContentRecordType type) const;
+
 private:
     std::map<std::tuple<TitleType, ContentRecordType, u64>, VirtualFile> entries;
+    std::vector<ExternalUpdateEntry> multi_version_entries;
 };
 
 class ExternalContentProvider : public ContentProvider {

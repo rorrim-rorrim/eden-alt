@@ -985,6 +985,14 @@ const ExternalContentProvider* ContentProviderUnion::GetExternalProvider() const
     return nullptr;
 }
 
+const ContentProvider* ContentProviderUnion::GetSlotProvider(ContentProviderUnionSlot slot) const {
+    auto it = providers.find(slot);
+    if (it != providers.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+
 ManualContentProvider::~ManualContentProvider() = default;
 
 void ManualContentProvider::AddEntry(TitleType title_type, ContentRecordType content_type,
@@ -992,8 +1000,51 @@ void ManualContentProvider::AddEntry(TitleType title_type, ContentRecordType con
     entries.insert_or_assign({title_type, content_type, title_id}, file);
 }
 
+void ManualContentProvider::AddEntryWithVersion(TitleType title_type, ContentRecordType content_type,
+                                                u64 title_id, u32 version,
+                                                const std::string& version_string, VirtualFile file) {
+    if (title_type == TitleType::Update) {
+        auto it = std::find_if(multi_version_entries.begin(), multi_version_entries.end(),
+                               [title_id, version](const ExternalUpdateEntry& entry) {
+                                   return entry.title_id == title_id && entry.version == version;
+                               });
+
+        if (it != multi_version_entries.end()) {
+            // Update existing entry
+            it->files[content_type] = file;
+            if (!version_string.empty()) {
+                it->version_string = version_string;
+            }
+        } else {
+            // Add new entry
+            ExternalUpdateEntry new_entry;
+            new_entry.title_id = title_id;
+            new_entry.version = version;
+            new_entry.version_string = version_string;
+            new_entry.files[content_type] = file;
+            multi_version_entries.push_back(new_entry);
+        }
+
+        auto existing = entries.find({title_type, content_type, title_id});
+        if (existing == entries.end()) {
+            entries.insert_or_assign({title_type, content_type, title_id}, file);
+        } else {
+            // Check if this version is higher
+            for (const auto& entry : multi_version_entries) {
+                if (entry.title_id == title_id && entry.version > version) {
+                    return; // Don't replace with lower version
+                }
+            }
+            entries.insert_or_assign({title_type, content_type, title_id}, file);
+        }
+    } else {
+        entries.insert_or_assign({title_type, content_type, title_id}, file);
+    }
+}
+
 void ManualContentProvider::ClearAllEntries() {
     entries.clear();
+    multi_version_entries.clear();
 }
 
 void ManualContentProvider::Refresh() {}
@@ -1046,6 +1097,47 @@ std::vector<ContentProviderEntry> ManualContentProvider::ListEntriesFilter(
     std::sort(out.begin(), out.end());
     out.erase(std::unique(out.begin(), out.end()), out.end());
     return out;
+}
+
+std::vector<ExternalUpdateEntry> ManualContentProvider::ListUpdateVersions(u64 title_id) const {
+    std::vector<ExternalUpdateEntry> out;
+
+    for (const auto& entry : multi_version_entries) {
+        if (entry.title_id == title_id) {
+            out.push_back(entry);
+        }
+    }
+
+    std::sort(out.begin(), out.end(), [](const ExternalUpdateEntry& a, const ExternalUpdateEntry& b) {
+        return a.version > b.version;
+    });
+
+    return out;
+}
+
+VirtualFile ManualContentProvider::GetEntryForVersion(u64 title_id, ContentRecordType type, u32 version) const {
+    for (const auto& entry : multi_version_entries) {
+        if (entry.title_id == title_id && entry.version == version) {
+            auto it = entry.files.find(type);
+            if (it != entry.files.end()) {
+                return it->second;
+            }
+        }
+    }
+    return nullptr;
+}
+
+bool ManualContentProvider::HasMultipleVersions(u64 title_id, ContentRecordType type) const {
+    int count = 0;
+    for (const auto& entry : multi_version_entries) {
+        if (entry.title_id == title_id && entry.files.count(type) > 0) {
+            count++;
+            if (count > 1) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 ExternalContentProvider::ExternalContentProvider(std::vector<VirtualDir> load_directories)

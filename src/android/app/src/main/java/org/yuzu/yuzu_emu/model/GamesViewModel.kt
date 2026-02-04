@@ -153,6 +153,7 @@ class GamesViewModel : ViewModel() {
                     }
                     DirectoryType.EXTERNAL_CONTENT -> {
                         addExternalContentDir(gameDir.uriString)
+                        NativeConfig.saveGlobalConfig()
                         getGameDirsAndExternalContent()
                     }
                 }
@@ -230,6 +231,7 @@ class GamesViewModel : ViewModel() {
         if (!currentDirs.contains(path)) {
             currentDirs.add(path)
             NativeConfig.setExternalContentDirs(currentDirs.toTypedArray())
+            NativeConfig.saveGlobalConfig()
         }
     }
 
@@ -237,5 +239,6 @@ class GamesViewModel : ViewModel() {
         val currentDirs = NativeConfig.getExternalContentDirs().toMutableList()
         currentDirs.remove(path)
         NativeConfig.setExternalContentDirs(currentDirs.toTypedArray())
+        NativeConfig.saveGlobalConfig()
     }
 }
