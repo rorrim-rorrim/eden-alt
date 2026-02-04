@@ -689,6 +689,7 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
     if (overwrite) {
         bis_factory = nullptr;
         sdmc_factory = nullptr;
+        external_provider = nullptr;
     }
 
     using EdenPath = Common::FS::EdenPath;

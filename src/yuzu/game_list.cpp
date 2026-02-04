@@ -32,6 +32,7 @@
 #include "yuzu/game_list_worker.h"
 #include "yuzu/main_window.h"
 #include "yuzu/util/controller_navigation.h"
+#include "qt_common/qt_common.h"
 
 GameListSearchField::KeyReleaseEater::KeyReleaseEater(GameList* gamelist_, QObject* parent)
     : QObject(parent), gamelist{gamelist_} {}
@@ -921,6 +922,12 @@ void GameList::RefreshGameDirectory()
 {
     if (!UISettings::values.game_dirs.empty() && current_worker != nullptr) {
         LOG_INFO(Frontend, "Change detected in the games directory. Reloading game list.");
+        QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
+        // TODO: If you force reset metadata here, live updates to the external directories DO get tracked.
+        // This is not correct however. Game list metadata in general is kind of a mess, but ideally this isn't the
+        // behavior as-is
+
+        // QtCommon::Game::ResetMetadata(false);
         PopulateAsync(UISettings::values.game_dirs);
     }
 }
