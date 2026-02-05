@@ -87,6 +87,9 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
 
     addons_tab->SetTitleId(title_id);
 
+    connect(addons_tab.get(), &ConfigurePerGameAddons::RefreshGameList, this,
+            &ConfigurePerGame::RefreshGameList);
+
     scene = new QGraphicsScene;
     ui->icon_view->setScene(scene);
 

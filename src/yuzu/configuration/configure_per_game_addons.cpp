@@ -119,6 +119,7 @@ void ConfigurePerGameAddons::InstallModFolder() {
         QtCommon::Frontend::Information(tr("Mod Installed"), tr("Mod was successfully installed."));
         item_model->removeRows(0, item_model->rowCount());
         list_items.clear();
+        emit RefreshGameList();
         LoadConfiguration();
         break;
     case FrontendCommon::Failed:
@@ -148,6 +149,7 @@ void ConfigurePerGameAddons::InstallModZip() {
         QtCommon::Frontend::Information(tr("Mod Installed"), tr("Mod was successfully installed."));
         item_model->removeRows(0, item_model->rowCount());
         list_items.clear();
+        emit RefreshGameList();
         LoadConfiguration();
         break;
     case FrontendCommon::Failed:

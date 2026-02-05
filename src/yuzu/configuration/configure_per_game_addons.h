@@ -42,6 +42,10 @@ public:
 public slots:
     void InstallModFolder();
     void InstallModZip();
+
+signals:
+    void RefreshGameList();
+
 private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
