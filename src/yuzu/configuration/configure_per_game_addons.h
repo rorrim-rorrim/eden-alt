@@ -43,6 +43,9 @@ public:
     void SetTitleId(u64 id);
 
 public slots:
+    void InstallMods(const QStringList &mods);
+    void InstallModPath(const QString& path);
+
     void InstallModFolder();
     void InstallModZip();
 

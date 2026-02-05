@@ -3668,7 +3668,7 @@ void MainWindow::OpenPerGameConfiguration(u64 title_id, const std::string& file_
 
     const auto reload = UISettings::values.is_game_list_reload_pending.exchange(false);
     if (reload) {
-        game_list->PopulateAsync(UISettings::values.game_dirs);
+        OnGameListRefresh();
     }
 
     // Do not cause the global config to write local settings into the config file

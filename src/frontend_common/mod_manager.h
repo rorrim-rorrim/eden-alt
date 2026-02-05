@@ -15,7 +15,7 @@ enum ModInstallResult {
     Success,
 };
 
-std::optional<std::filesystem::path> GetModFolder(const std::string& root);
+std::vector<std::filesystem::path> GetModFolder(const std::string& root);
 
 ModInstallResult InstallMod(const std::filesystem::path &path, const u64 program_id, const bool copy = true);
 }

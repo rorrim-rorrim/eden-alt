@@ -18,6 +18,7 @@
 
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
+#include "configuration/addon/mod_select_dialog.h"
 #include "core/core.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/loader/loader.h"
@@ -105,6 +106,44 @@ void ConfigurePerGameAddons::SetTitleId(u64 id) {
     this->title_id = id;
 }
 
+void ConfigurePerGameAddons::InstallMods(const QStringList& mods) {
+    QStringList failed;
+    for (const auto& mod : mods) {
+        if (FrontendCommon::InstallMod(mod.toStdString(), title_id, true) ==
+            FrontendCommon::Failed) {
+            failed << QFileInfo(mod).baseName();
+        }
+    }
+
+    if (failed.empty()) {
+        QtCommon::Frontend::Information(tr("Mod Install Succeeded"),
+                                        tr("Successfully installed all mods."));
+
+        item_model->removeRows(0, item_model->rowCount());
+        list_items.clear();
+        LoadConfiguration();
+
+        UISettings::values.is_game_list_reload_pending.exchange(true);
+    } else {
+        QtCommon::Frontend::Critical(
+            tr("Mod Install Failed"),
+            tr("Failed to install the following mods:\n\t%1\nCheck the log for details.")
+                .arg(failed.join(QStringLiteral("\n\t"))));
+    }
+}
+
+void ConfigurePerGameAddons::InstallModPath(const QString& path) {
+    const auto mods = QtCommon::Mod::GetModFolders(path, {});
+
+    if (mods.size() > 1) {
+        ModSelectDialog* dialog = new ModSelectDialog(mods, this);
+        connect(dialog, &ModSelectDialog::modsSelected, this, &ConfigurePerGameAddons::InstallMods);
+        dialog->show();
+    } else {
+        InstallMods(mods);
+    }
+}
+
 void ConfigurePerGameAddons::InstallModFolder() {
     const auto path = QtCommon::Frontend::GetExistingDirectory(
         tr("Mod Folder"), QStandardPaths::writableLocation(QStandardPaths::DownloadLocation));
@@ -112,25 +151,7 @@ void ConfigurePerGameAddons::InstallModFolder() {
         return;
     }
 
-    // TODO: Pending refresh game list
-    auto ret = QtCommon::Mod::InstallMod(path, {}, title_id);
-    switch (ret) {
-    case FrontendCommon::Success:
-        QtCommon::Frontend::Information(tr("Mod Installed"), tr("Mod was successfully installed."));
-        item_model->removeRows(0, item_model->rowCount());
-        list_items.clear();
-        emit RefreshGameList();
-        LoadConfiguration();
-        break;
-    case FrontendCommon::Failed:
-        QtCommon::Frontend::Critical(
-            tr("Mod Install Failed"),
-            tr("Mod install was unsuccessful. Check the log for details."));
-        break;
-    case FrontendCommon::Cancelled:
-    default:
-        break;
-    }
+    InstallModPath(path);
 }
 
 void ConfigurePerGameAddons::InstallModZip() {
@@ -142,25 +163,9 @@ void ConfigurePerGameAddons::InstallModZip() {
         return;
     }
 
-    auto ret = QtCommon::Mod::InstallModFromZip(path, title_id);
-
-    switch (ret) {
-    case FrontendCommon::Success:
-        QtCommon::Frontend::Information(tr("Mod Installed"), tr("Mod was successfully installed."));
-        item_model->removeRows(0, item_model->rowCount());
-        list_items.clear();
-        emit RefreshGameList();
-        LoadConfiguration();
-        break;
-    case FrontendCommon::Failed:
-        QtCommon::Frontend::Critical(
-            tr("Mod Install Failed"),
-            tr("Mod install was unsuccessful. Check the log for details."));
-        break;
-    case FrontendCommon::Cancelled:
-    default:
-        break;
-    }
+    const QString extracted = QtCommon::Mod::ExtractMod(path);
+    if (!extracted.isEmpty())
+        InstallModPath(extracted);
 }
 
 void ConfigurePerGameAddons::changeEvent(QEvent* event) {

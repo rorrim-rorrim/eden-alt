@@ -13,11 +13,10 @@
 namespace FrontendCommon {
 
 // TODO: Handle cases where the folder appears to contain multiple mods.
-std::optional<std::filesystem::path> GetModFolder(const std::string& root) {
-    std::filesystem::path path;
-    bool found;
+std::vector<std::filesystem::path> GetModFolder(const std::string& root) {
+    std::vector<std::filesystem::path> paths;
 
-    auto callback = [&path, &found](const std::filesystem::directory_entry& entry) -> bool {
+    auto callback = [&paths](const std::filesystem::directory_entry& entry) -> bool {
         const auto name = entry.path().filename().string();
         static constexpr const std::array<std::string, 5> valid_names = {"exefs",
                                                                          "romfs"
@@ -25,8 +24,7 @@ std::optional<std::filesystem::path> GetModFolder(const std::string& root) {
                                                                          "cheats", "romfslite"};
 
         if (std::ranges::find(valid_names, name) != valid_names.end()) {
-            path = entry.path().parent_path();
-            found = true;
+            paths.emplace_back(entry.path().parent_path());
         }
 
         return true;
@@ -34,10 +32,7 @@ std::optional<std::filesystem::path> GetModFolder(const std::string& root) {
 
     Common::FS::IterateDirEntriesRecursively(root, callback, Common::FS::DirEntryFilter::Directory);
 
-    if (found)
-        return path;
-
-    return std::nullopt;
+    return paths;
 }
 
 ModInstallResult InstallMod(const std::filesystem::path& path, const u64 program_id, const bool copy) {
