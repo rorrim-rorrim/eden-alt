@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <filesystem>
-#include <iostream>
 #include <fmt/format.h>
 #include "common/fs/fs.h"
 #include "common/fs/fs_types.h"

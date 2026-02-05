@@ -3,7 +3,6 @@
 
 // Qt on macOS doesn't define VMA shit
 #include <boost/algorithm/string/split.hpp>
-#include "frontend_common/mod_manager.h"
 #include "frontend_common/settings_generator.h"
 #include "qt_common/qt_string_lookup.h"
 #if defined(QT_STATICPLUGIN) && !defined(__APPLE__)
