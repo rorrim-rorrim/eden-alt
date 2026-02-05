@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>300</height>
+    <height>430</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>The specified folder or archive contain the following mods. Select which ones to install.</string>
+      <string>The specified folder or archive contains the following mods. Select which ones to install.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

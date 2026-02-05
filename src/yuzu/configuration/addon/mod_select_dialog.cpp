@@ -25,8 +25,24 @@ ModSelectDialog::ModSelectDialog(const QStringList& mods, QWidget* parent)
         first_item->setCheckState(Qt::Checked);
 
         item_model->appendRow(first_item);
-        item_model->layoutChanged();
     }
+
+    ui->treeView->expandAll();
+    ui->treeView->resizeColumnToContents(0);
+
+    int rows = item_model->rowCount();
+    int height = ui->treeView->contentsMargins().top() + ui->treeView->contentsMargins().bottom();
+    int width = 0;
+
+    for (int i = 0; i < rows; ++i) {
+        height += ui->treeView->sizeHintForRow(i);
+        width = qMax(width, item_model->item(i)->sizeHint().width());
+    }
+
+    width += ui->treeView->contentsMargins().left() + ui->treeView->contentsMargins().right();
+    ui->treeView->setMinimumHeight(qMin(height, 600));
+    ui->treeView->setMinimumWidth(qMin(width, 700));
+    adjustSize();
 
     connect(this, &QDialog::accepted, this, [this]() {
         QStringList selected_mods;
