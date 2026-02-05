@@ -139,5 +139,11 @@ const QString GetExistingDirectory(const QString &caption = QString(),
                                     const QString &dir = QString(),
                                     Options options = Option::ShowDirsOnly);
 
+int Choice(const QString& title = QString(), const QString& caption = QString(),
+           const QStringList& options = {});
+
+const QString GetTextInput(const QString& title = QString(), const QString& caption = QString(),
+                           const QString& defaultText = QString());
+
 } // namespace QtCommon::Frontend
 #endif // FRONTEND_H
