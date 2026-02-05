@@ -52,7 +52,8 @@ void EmitX64::EmitSM4AccessSubstitutionBox(EmitContext& ctx, IR::Inst* inst) {
     const Xbyak::Reg64 tmp0 = ctx.reg_alloc.UseScratchGpr(code, args[0]);
     const Xbyak::Reg tmp1 = ctx.reg_alloc.ScratchGpr(code);
     // return subtitution_box[index * 1];
-    code.mov(tmp1, u64(std::addressof(substitution_box)));
+    code.movzx(tmp0.cvt32(), tmp0.cvt8());
+    code.lea(tmp1, code.ptr[std::addressof(substitution_box)]);
     code.movzx(tmp1, code.byte[tmp1 + tmp0 * 1]);
     ctx.reg_alloc.DefineValue(code, inst, tmp1);
 }
