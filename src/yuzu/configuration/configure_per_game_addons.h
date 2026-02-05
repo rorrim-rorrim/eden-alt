@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <QList>
+#include <QWidget>
 
 #include "core/file_sys/vfs/vfs_types.h"
 
@@ -38,6 +39,9 @@ public:
 
     void SetTitleId(u64 id);
 
+public slots:
+    void InstallModFolder();
+    void InstallModZip();
 private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();

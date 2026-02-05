@@ -49,10 +49,9 @@ bool InstallMod(const std::filesystem::path& path, const u64 program_id, const b
 
     // now copy
     try {
-        if (copy)
-            std::filesystem::copy(path, mod_dir, std::filesystem::copy_options::recursive);
-        else
-            std::filesystem::rename(path, mod_dir);
+        std::filesystem::copy(path, mod_dir, std::filesystem::copy_options::recursive);
+        if (!copy)
+            std::filesystem::remove_all(path);
     } catch (std::exception& e) {
         LOG_ERROR(Frontend, "Mod install failed with message {}", e.what());
         return false;

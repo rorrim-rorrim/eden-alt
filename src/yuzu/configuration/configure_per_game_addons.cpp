@@ -19,8 +19,9 @@
 #include "common/fs/path_util.h"
 #include "core/core.h"
 #include "core/file_sys/patch_manager.h"
-#include "core/file_sys/xts_archive.h"
 #include "core/loader/loader.h"
+#include "qt_common/abstract/frontend.h"
+#include "qt_common/util/mod.h"
 #include "ui_configure_per_game_addons.h"
 #include "yuzu/configuration/configure_input.h"
 #include "yuzu/configuration/configure_per_game_addons.h"
@@ -66,6 +67,9 @@ ConfigurePerGameAddons::ConfigurePerGameAddons(Core::System& system_, QWidget* p
 
     connect(item_model, &QStandardItemModel::itemChanged,
             [] { UISettings::values.is_game_list_reload_pending.exchange(true); });
+
+    connect(ui->folder, &QAbstractButton::clicked, this, &ConfigurePerGameAddons::InstallModFolder);
+    connect(ui->zip, &QAbstractButton::clicked, this, &ConfigurePerGameAddons::InstallModZip);
 }
 
 ConfigurePerGameAddons::~ConfigurePerGameAddons() = default;
@@ -97,6 +101,35 @@ void ConfigurePerGameAddons::LoadFromFile(FileSys::VirtualFile file_) {
 
 void ConfigurePerGameAddons::SetTitleId(u64 id) {
     this->title_id = id;
+}
+
+void ConfigurePerGameAddons::InstallModFolder() {
+    const auto path = QtCommon::Frontend::GetExistingDirectory(tr("Mod Folder"));
+    if (path.isEmpty()) {
+        return;
+    }
+
+    // TODO: Pending refresh game list
+    if (QtCommon::Mod::InstallMod(path, {}, title_id)) {
+        QtCommon::Frontend::Information(tr("Mod Installed"), tr("Mod was successfully installed."));
+        LoadConfiguration();
+    } else {
+        QtCommon::Frontend::Critical(tr("Mod Install Failed"), tr("Mod install was unsuccessful. Check the log for details."));
+    }
+}
+
+void ConfigurePerGameAddons::InstallModZip() {
+    const auto path = QtCommon::Frontend::GetOpenFileName(tr("Zipped Mod Location"), {}, tr("Zipped Archives (*.zip)"));
+    if (path.isEmpty()) {
+        return;
+    }
+
+    if (QtCommon::Mod::InstallModFromZip(path, title_id)) {
+        QtCommon::Frontend::Information(tr("Mod Installed"), tr("Mod was successfully installed."));
+        LoadConfiguration();
+    } else {
+        QtCommon::Frontend::Critical(tr("Mod Install Failed"), tr("Mod install was unsuccessful. Check the log for details."));
+    }
 }
 
 void ConfigurePerGameAddons::changeEvent(QEvent* event) {
