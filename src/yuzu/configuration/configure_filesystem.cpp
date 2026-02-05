@@ -107,10 +107,15 @@ void ConfigureFilesystem::ApplyConfiguration() {
 
     UISettings::values.cache_game_list = ui->cache_game_list->isChecked();
 
-    Settings::values.external_content_dirs.clear();
+    std::vector<std::string> new_dirs;
+    new_dirs.reserve(ui->external_content_list->count());
     for (int i = 0; i < ui->external_content_list->count(); ++i) {
-        Settings::values.external_content_dirs.push_back(
-            ui->external_content_list->item(i)->text().toStdString());
+        new_dirs.push_back(ui->external_content_list->item(i)->text().toStdString());
+    }
+
+    if (new_dirs != Settings::values.external_content_dirs) {
+        Settings::values.external_content_dirs = std::move(new_dirs);
+        emit ExternalContentDirsChanged();
     }
 }
 

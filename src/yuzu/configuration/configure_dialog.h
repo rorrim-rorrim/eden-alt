@@ -62,6 +62,7 @@ private slots:
 
 signals:
     void LanguageChanged(const QString& locale);
+    void ExternalContentDirsChanged();
 
 private:
     void changeEvent(QEvent* event) override;

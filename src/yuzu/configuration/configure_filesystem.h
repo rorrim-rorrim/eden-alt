@@ -24,6 +24,9 @@ public:
 
     void ApplyConfiguration();
 
+signals:
+    void ExternalContentDirsChanged();
+
 private:
     void changeEvent(QEvent* event) override;
 
