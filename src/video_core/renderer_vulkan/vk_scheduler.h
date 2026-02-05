@@ -120,6 +120,22 @@ public:
         master_semaphore->Wait(tick);
     }
 
+    /// Tries to wait for a GPU tick, with a maximum wait time.
+    void TryWait(u64 tick, std::chrono::microseconds max_wait = std::chrono::milliseconds(1)) {
+        if (CurrentTick() >= tick) {
+            return;
+        }
+
+        auto start = std::chrono::high_resolution_clock::now();
+        while (CurrentTick() < tick) {
+            auto elapsed = std::chrono::high_resolution_clock::now() - start;
+            if (elapsed > max_wait) {
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::microseconds(50));
+        }
+    }
+
     /// Returns the master timeline semaphore.
     [[nodiscard]] MasterSemaphore& GetMasterSemaphore() const noexcept {
         return *master_semaphore;

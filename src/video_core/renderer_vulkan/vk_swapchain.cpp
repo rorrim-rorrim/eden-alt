@@ -194,7 +194,12 @@ bool Swapchain::AcquireNextImage() {
         break;
     }
 
-    scheduler.Wait(resource_ticks[image_index]);
+    if (present_mode == VK_PRESENT_MODE_FIFO_KHR || present_mode == VK_PRESENT_MODE_FIFO_RELAXED_KHR) {
+        scheduler.Wait(resource_ticks[image_index]);
+    } else {
+        scheduler.TryWait(resource_ticks[image_index]);
+    }
+
     resource_ticks[image_index] = scheduler.CurrentTick();
 
     return is_suboptimal || is_outdated;
