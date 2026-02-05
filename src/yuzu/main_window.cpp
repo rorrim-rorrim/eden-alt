@@ -3656,7 +3656,6 @@ void MainWindow::OpenPerGameConfiguration(u64 title_id, const std::string& file_
     ConfigurePerGame dialog(this, title_id, file_name, vk_device_records, *QtCommon::system);
     dialog.LoadFromFile(v_file);
 
-    connect(&dialog, &ConfigurePerGame::RefreshGameList, this, &MainWindow::OnGameListRefresh);
     const auto result = dialog.exec();
 
     if (result != QDialog::Accepted && !UISettings::values.configuration_applied) {
