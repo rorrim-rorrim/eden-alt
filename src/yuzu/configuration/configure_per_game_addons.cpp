@@ -160,28 +160,7 @@ void ConfigurePerGameAddons::LoadConfiguration() {
 
     std::vector<FileSys::Patch> patches = pm.GetPatches(update_raw);
 
-    size_t multi_version_update_count = 0;
-    for (const auto& patch : patches) {
-        if (patch.type == FileSys::PatchType::Update && patch.numeric_version != 0) {
-            multi_version_update_count++;
-        }
-    }
-
-    bool has_saved_multi_version_settings = false;
-    if (multi_version_update_count > 1) {
-        for (const auto& patch : patches) {
-            if (patch.type == FileSys::PatchType::Update && patch.numeric_version != 0) {
-                std::string disabled_key = fmt::format("Update@{}", patch.numeric_version);
-                if (std::find(disabled.begin(), disabled.end(), disabled_key) != disabled.end()) {
-                    has_saved_multi_version_settings = true;
-                    break;
-                }
-            }
-        }
-    }
-
     bool has_enabled_update = false;
-    bool is_first_multi_version_update = true;
 
     for (const auto& patch : patches) {
         const auto name = QString::fromStdString(patch.name);
@@ -195,14 +174,9 @@ void ConfigurePerGameAddons::LoadConfiguration() {
         }
 
         bool patch_disabled = false;
-        if (patch.type == FileSys::PatchType::Update && patch.numeric_version != 0 && multi_version_update_count > 1) {
-            if (has_saved_multi_version_settings) {
-                std::string disabled_key = fmt::format("Update@{}", patch.numeric_version);
-                patch_disabled = std::find(disabled.begin(), disabled.end(), disabled_key) != disabled.end();
-            } else {
-                patch_disabled = !is_first_multi_version_update;
-            }
-            is_first_multi_version_update = false;
+        if (patch.type == FileSys::PatchType::Update && patch.numeric_version != 0) {
+            std::string disabled_key = fmt::format("Update@{}", patch.numeric_version);
+            patch_disabled = std::find(disabled.begin(), disabled.end(), disabled_key) != disabled.end();
         } else {
             patch_disabled = std::find(disabled.begin(), disabled.end(), name.toStdString()) != disabled.end();
         }

@@ -152,7 +152,7 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
         if (external_provider) {
             const auto update_versions = external_provider->ListUpdateVersions(update_tid);
 
-            if (update_versions.size() > 1) {
+            if (!update_versions.empty()) {
                 checked_external = true;
                 for (const auto& update_entry : update_versions) {
                     std::string disabled_key = fmt::format("Update@{}", update_entry.version);
@@ -161,12 +161,6 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
                         enabled_version = update_entry.version;
                         break;
                     }
-                }
-            } else if (update_versions.size() == 1) {
-                checked_external = true;
-                if (std::find(disabled.cbegin(), disabled.cend(), "Update") == disabled.cend()) {
-                    update_disabled = false;
-                    enabled_version = update_versions[0].version;
                 }
             }
         }
@@ -178,7 +172,7 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
             if (manual_provider) {
                 const auto manual_update_versions = manual_provider->ListUpdateVersions(update_tid);
 
-                if (manual_update_versions.size() > 1) {
+                if (!manual_update_versions.empty()) {
                     checked_manual = true;
                     for (const auto& update_entry : manual_update_versions) {
                         std::string disabled_key = fmt::format("Update@{}", update_entry.version);
@@ -187,12 +181,6 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
                             enabled_version = update_entry.version;
                             break;
                         }
-                    }
-                } else if (manual_update_versions.size() == 1) {
-                    checked_manual = true;
-                    if (std::find(disabled.cbegin(), disabled.cend(), "Update") == disabled.cend()) {
-                        update_disabled = false;
-                        enabled_version = manual_update_versions[0].version;
                     }
                 }
             }
@@ -562,7 +550,7 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
         if (external_provider) {
             const auto update_versions = external_provider->ListUpdateVersions(update_tid);
 
-            if (update_versions.size() > 1) {
+            if (!update_versions.empty()) {
                 checked_external = true;
                 for (const auto& update_entry : update_versions) {
                     std::string disabled_key = fmt::format("Update@{}", update_entry.version);
@@ -573,13 +561,6 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
                         break;
                     }
                 }
-            } else if (update_versions.size() == 1) {
-                checked_external = true;
-                if (std::find(disabled.cbegin(), disabled.cend(), "Update") == disabled.cend()) {
-                    update_disabled = false;
-                    enabled_version = update_versions[0].version;
-                    update_raw = external_provider->GetEntryForVersion(update_tid, type, update_versions[0].version);
-                }
             }
         }
 
@@ -589,7 +570,7 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
             if (manual_provider) {
                 const auto manual_update_versions = manual_provider->ListUpdateVersions(update_tid);
 
-                if (manual_update_versions.size() > 1) {
+                if (!manual_update_versions.empty()) {
                     checked_manual = true;
                     for (const auto& update_entry : manual_update_versions) {
                         std::string disabled_key = fmt::format("Update@{}", update_entry.version);
@@ -599,13 +580,6 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
                             update_raw = manual_provider->GetEntryForVersion(update_tid, type, update_entry.version);
                             break;
                         }
-                    }
-                } else if (manual_update_versions.size() == 1) {
-                    checked_manual = true;
-                    if (std::find(disabled.cbegin(), disabled.cend(), "Update") == disabled.cend()) {
-                        update_disabled = false;
-                        enabled_version = manual_update_versions[0].version;
-                        update_raw = manual_provider->GetEntryForVersion(update_tid, type, manual_update_versions[0].version);
                     }
                 }
             }
@@ -660,6 +634,8 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
     // Game Updates
     const auto update_tid = GetUpdateTitleID(title_id);
 
+    std::vector<Patch> external_update_patches;
+
     const auto* content_union = dynamic_cast<const ContentProviderUnion*>(&content_provider);
 
     if (content_union) {
@@ -668,48 +644,15 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
         if (external_provider) {
             const auto update_versions = external_provider->ListUpdateVersions(update_tid);
 
-            if (update_versions.size() > 1) {
-                for (const auto& update_entry : update_versions) {
-                    std::string version_str = update_entry.version_string;
-                    if (version_str.empty()) {
-                        version_str = FormatTitleVersion(update_entry.version);
-                    }
-
-                    std::string patch_name = "Update";
-
-                    std::string disabled_key = fmt::format("Update@{}", update_entry.version);
-                    const auto update_disabled =
-                        std::find(disabled.cbegin(), disabled.cend(), disabled_key) != disabled.cend();
-
-                    Patch update_patch = {.enabled = !update_disabled,
-                                          .name = patch_name,
-                                          .version = version_str,
-                                          .type = PatchType::Update,
-                                          .program_id = title_id,
-                                          .title_id = update_tid,
-                                          .source = PatchSource::External,
-                                          .numeric_version = update_entry.version};
-
-                    out.push_back(update_patch);
-                }
-            } else if (update_versions.size() == 1) {
-                const auto& update_entry = update_versions[0];
-
+            for (const auto& update_entry : update_versions) {
                 std::string version_str = update_entry.version_string;
-
-                if (version_str.empty()) {
-                    const auto metadata = GetControlMetadata();
-                    if (metadata.first) {
-                        version_str = metadata.first->GetVersionString();
-                    }
-                }
-
                 if (version_str.empty()) {
                     version_str = FormatTitleVersion(update_entry.version);
                 }
 
+                std::string disabled_key = fmt::format("Update@{}", update_entry.version);
                 const auto update_disabled =
-                    std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend();
+                    std::find(disabled.cbegin(), disabled.cend(), disabled_key) != disabled.cend();
 
                 Patch update_patch = {.enabled = !update_disabled,
                                       .name = "Update",
@@ -720,57 +663,25 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
                                       .source = PatchSource::External,
                                       .numeric_version = update_entry.version};
 
-                out.push_back(update_patch);
+                external_update_patches.push_back(update_patch);
             }
         }
 
         const auto* manual_provider = dynamic_cast<const ManualContentProvider*>(
             content_union->GetSlotProvider(ContentProviderUnionSlot::FrontendManual));
-        if (manual_provider && out.empty()) {
+        if (manual_provider && external_update_patches.empty()) {
             const auto manual_update_versions = manual_provider->ListUpdateVersions(update_tid);
 
-            if (manual_update_versions.size() > 1) {
-                for (const auto& update_entry : manual_update_versions) {
-                    std::string version_str = update_entry.version_string;
-                    if (version_str.empty()) {
-                        version_str = FormatTitleVersion(update_entry.version);
-                    }
-
-                    std::string patch_name = "Update";
-
-                    std::string disabled_key = fmt::format("Update@{}", update_entry.version);
-                    const auto update_disabled =
-                        std::find(disabled.cbegin(), disabled.cend(), disabled_key) != disabled.cend();
-
-                    Patch update_patch = {.enabled = !update_disabled,
-                                          .name = patch_name,
-                                          .version = version_str,
-                                          .type = PatchType::Update,
-                                          .program_id = title_id,
-                                          .title_id = update_tid,
-                                          .source = PatchSource::External,
-                                          .numeric_version = update_entry.version};
-
-                    out.push_back(update_patch);
-                }
-            } else if (manual_update_versions.size() == 1) {
-                const auto& update_entry = manual_update_versions[0];
-
+            for (const auto& update_entry : manual_update_versions) {
                 std::string version_str = update_entry.version_string;
-
-                if (version_str.empty()) {
-                    const auto metadata = GetControlMetadata();
-                    if (metadata.first) {
-                        version_str = metadata.first->GetVersionString();
-                    }
-                }
-
                 if (version_str.empty()) {
                     version_str = FormatTitleVersion(update_entry.version);
                 }
 
+                std::string disabled_key = fmt::format("Update@{}", update_entry.version);
                 const auto update_disabled =
-                    std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend();
+                    std::find(disabled.cbegin(), disabled.cend(), disabled_key) != disabled.cend();
+
 
                 Patch update_patch = {.enabled = !update_disabled,
                                       .name = "Update",
@@ -781,8 +692,25 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
                                       .source = PatchSource::External,
                                       .numeric_version = update_entry.version};
 
-                out.push_back(update_patch);
+                external_update_patches.push_back(update_patch);
             }
+        }
+
+        if (external_update_patches.size() > 1) {
+            bool found_enabled = false;
+            for (auto& patch : external_update_patches) {
+                if (patch.enabled) {
+                    if (found_enabled) {
+                        patch.enabled = false;
+                    } else {
+                        found_enabled = true;
+                    }
+                }
+            }
+        }
+
+        for (auto& patch : external_update_patches) {
+            out.push_back(std::move(patch));
         }
 
         const auto all_updates = content_union->ListEntriesFilterOrigin(
