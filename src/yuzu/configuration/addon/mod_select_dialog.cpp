@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include <filesystem>
 #include <qnamespace.h>
 #include "mod_select_dialog.h"
