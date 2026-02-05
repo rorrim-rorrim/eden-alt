@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 include(TargetArchitectureSpecificSources)
 
@@ -15,8 +15,6 @@ add_library(dynarmic STATIC
     common/crypto/aes.h
     common/crypto/crc32.cpp
     common/crypto/crc32.h
-    common/crypto/sm4.cpp
-    common/crypto/sm4.h
     common/fp/fpcr.h
     common/fp/fpsr.h
     common/fp/fused.cpp
