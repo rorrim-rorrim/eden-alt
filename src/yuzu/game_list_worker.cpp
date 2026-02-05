@@ -510,10 +510,6 @@ void GameListWorker::run() {
         }
     }
 
-    for (const std::string &dir : Settings::values.external_content_dirs) {
-        watch_list << QString::fromStdString(dir);
-    }
-
     RecordEvent([this](GameList* game_list) { game_list->DonePopulating(watch_list); });
     processing_completed.Set();
 }
