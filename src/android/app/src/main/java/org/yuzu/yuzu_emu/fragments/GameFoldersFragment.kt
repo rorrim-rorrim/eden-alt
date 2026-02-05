@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.transition.MaterialSharedAxis
 import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
@@ -81,7 +82,7 @@ class GameFoldersFragment : Fragment() {
                 getString(R.string.external_content)
             )
 
-            android.app.AlertDialog.Builder(requireContext())
+            MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.add_folders)
                 .setItems(options) { _, which ->
                     when (which) {
