@@ -36,7 +36,7 @@ QStringList GetModFolders(const QString& root, const QString& fallbackName) {
         if (!fallbackName.isEmpty())
             default_name = fallbackName;
         else if (!paths.empty())
-            default_name = QString::fromStdString(std_path.filename());
+            default_name = QString::fromStdString(std_path.filename().string());
         else
             default_name = root.split(QLatin1Char('/')).last();
 
