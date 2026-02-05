@@ -785,7 +785,7 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
 
             std::string patch_name = "Update" + source_suffix;
 
-            const auto update_disabled =
+            bool update_disabled =
                 std::find(disabled.cbegin(), disabled.cend(), patch_name) != disabled.cend();
 
             Patch update_patch = {.enabled = !update_disabled,
@@ -804,7 +804,7 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
         const auto metadata = update.GetControlMetadata();
         const auto& nacp = metadata.first;
 
-        const auto update_disabled =
+        bool update_disabled =
             std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend();
         Patch update_patch = {.enabled = !update_disabled,
                               .name = "Update",

@@ -72,21 +72,15 @@ class AddonViewModel : ViewModel() {
         val enabledUpdates = updates.filter { it.enabled }
 
         if (enabledUpdates.size > 1) {
-            var foundFirst = false
-            for (patch in patchList) {
-                if (PatchType.from(patch.type) == PatchType.Update) {
-                    if (!foundFirst && patch.enabled) {
-                        foundFirst = true
-                    } else if (foundFirst && patch.enabled) {
-                        patch.enabled = false
-                    }
-                }
+            val nandOrSdmcEnabled = enabledUpdates.find {
+                it.name.contains("(NAND)") || it.name.contains("(SDMC)")
             }
-        } else if (enabledUpdates.isEmpty()) {
+
+            val updateToKeep = nandOrSdmcEnabled ?: enabledUpdates.first()
+
             for (patch in patchList) {
                 if (PatchType.from(patch.type) == PatchType.Update) {
-                    patch.enabled = true
-                    break
+                    patch.enabled = (patch === updateToKeep)
                 }
             }
         }
@@ -143,9 +137,14 @@ class AddonViewModel : ViewModel() {
                 if (it.enabled) {
                     null
                 } else {
-                    // For multiple updates, use "Update@{numericVersion}" as the key (like desktop)
-                    if (hasMultipleUpdates && PatchType.from(it.type) == PatchType.Update) {
-                        "Update@${it.numericVersion}"
+                    if (PatchType.from(it.type) == PatchType.Update) {
+                        if (it.name.contains("(NAND)") || it.name.contains("(SDMC)")) {
+                            it.name
+                        } else if (hasMultipleUpdates) {
+                            "Update@${it.numericVersion}"
+                        } else {
+                            it.name
+                        }
                     } else {
                         it.name
                     }
