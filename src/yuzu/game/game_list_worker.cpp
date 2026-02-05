@@ -27,9 +27,9 @@
 #include "core/file_sys/submission_package.h"
 #include "core/loader/loader.h"
 #include "yuzu/compatibility_list.h"
-#include "yuzu/game_list.h"
-#include "yuzu/game_list_p.h"
-#include "yuzu/game_list_worker.h"
+#include "yuzu/game/game_list.h"
+#include "yuzu/game/game_list_p.h"
+#include "yuzu/game/game_list_worker.h"
 #include "qt_common/config/uisettings.h"
 
 namespace {

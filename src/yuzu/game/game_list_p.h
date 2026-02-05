@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2015 Citra Emulator Project
@@ -111,24 +111,35 @@ public:
             }};
 
             const auto& row1 = row_data.at(UISettings::values.row_1_text_id.GetValue());
-            const int row2_id = UISettings::values.row_2_text_id.GetValue();
+            // don't show row 2 on grid view
+            switch (UISettings::values.game_list_mode.GetValue()) {
 
-            if (role == SortRole) {
-                return row1.toLower();
+            case Settings::GameListMode::TreeView: {
+                const int row2_id = UISettings::values.row_2_text_id.GetValue();
+
+                if (role == SortRole) {
+                    return row1.toLower();
+                }
+
+                       // None
+                if (row2_id == 4) {
+                    return row1;
+                }
+
+                const auto& row2 = row_data.at(row2_id);
+
+                if (row1 == row2) {
+                    return row1;
+                }
+
+                return QStringLiteral("%1\n    %2").arg(row1, row2);
             }
-
-            // None
-            if (row2_id == 4) {
+            case Settings::GameListMode::GridView:
                 return row1;
+            default:
+                break;
             }
 
-            const auto& row2 = row_data.at(row2_id);
-
-            if (row1 == row2) {
-                return row1;
-            }
-
-            return QStringLiteral("%1\n    %2").arg(row1, row2);
         }
 
         return GameListItem::data(role);
