@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-: "${VULKAN_SDK_VER:=1.4.335.0}"
+: "${VULKAN_SDK_VER:=1.4.341.1}"
 : "${VULKAN_ROOT:=C:/VulkanSDK/$VULKAN_SDK_VER}"
 VULKAN_SDK_ARCH=X64
 VULKAN_SDK_OS=windows

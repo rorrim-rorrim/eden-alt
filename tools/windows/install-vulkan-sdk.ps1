@@ -14,7 +14,7 @@ try {
     Exit 1
 }
 
-$VulkanSDKVer = "1.4.335.0"
+$VulkanSDKVer = "1.4.341.1"
 if ((Get-WmiObject -Class Win32_ComputerSystem).SystemType -match '(x64)' -eq "True") {
     $VulkanSDKArch = "X64"
     $VulkanSDKOs = "windows"
