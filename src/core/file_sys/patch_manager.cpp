@@ -188,16 +188,23 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
     }
 
     // check for original NAND style
-    // BUT only if we didn't check external provider (to avoid loading wrong update)
-    if (!checked_external && !checked_manual && update_disabled) {
-        if (std::find(disabled.cbegin(), disabled.cend(), "Update") == disabled.cend()) {
+    // Check NAND if: no external updates exist, OR all external updates are disabled
+    if (!checked_external && !checked_manual) {
+        // Check if any NAND-style update is enabled
+        const bool nand_disabled = std::find(disabled.cbegin(), disabled.cend(), "Update (NAND)") != disabled.cend();
+        const bool sdmc_disabled = std::find(disabled.cbegin(), disabled.cend(), "Update (SDMC)") != disabled.cend();
+        const bool generic_disabled = std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend();
+
+        if (!nand_disabled || !sdmc_disabled || !generic_disabled) {
             update_disabled = false;
         }
-        if (std::find(disabled.cbegin(), disabled.cend(), "Update (NAND)") == disabled.cend()) {
+    } else if (update_disabled) {
+        const bool nand_disabled = std::find(disabled.cbegin(), disabled.cend(), "Update (NAND)") != disabled.cend();
+        const bool sdmc_disabled = std::find(disabled.cbegin(), disabled.cend(), "Update (SDMC)") != disabled.cend();
+
+        if (!nand_disabled || !sdmc_disabled) {
             update_disabled = false;
-        }
-        if (std::find(disabled.cbegin(), disabled.cend(), "Update (SDMC)") == disabled.cend()) {
-            update_disabled = false;
+            enabled_version = std::nullopt;
         }
     }
 
@@ -228,7 +235,7 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
     }
 
     // Fallback to regular content provider - but only if we didn't check external
-    if (update == nullptr && !checked_external && !checked_manual) {
+    if (update == nullptr && !update_disabled) {
         update = content_provider.GetEntry(update_tid, ContentRecordType::Program);
     }
 
@@ -586,13 +593,24 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
         }
     }
 
-    if (!checked_external && !checked_manual && update_disabled) {
-        if (std::find(disabled.cbegin(), disabled.cend(), "Update") == disabled.cend() ||
-            std::find(disabled.cbegin(), disabled.cend(), "Update (NAND)") == disabled.cend() ||
-            std::find(disabled.cbegin(), disabled.cend(), "Update (SDMC)") == disabled.cend()) {
+    if (!checked_external && !checked_manual) {
+        const bool nand_disabled = std::find(disabled.cbegin(), disabled.cend(), "Update (NAND)") != disabled.cend();
+        const bool sdmc_disabled = std::find(disabled.cbegin(), disabled.cend(), "Update (SDMC)") != disabled.cend();
+        const bool generic_disabled = std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend();
+
+        if (!nand_disabled || !sdmc_disabled || !generic_disabled) {
             update_disabled = false;
         }
         if (!update_disabled && update_raw == nullptr) {
+            update_raw = content_provider.GetEntryRaw(update_tid, type);
+        }
+    } else if (update_disabled) {
+        const bool nand_disabled = std::find(disabled.cbegin(), disabled.cend(), "Update (NAND)") != disabled.cend();
+        const bool sdmc_disabled = std::find(disabled.cbegin(), disabled.cend(), "Update (SDMC)") != disabled.cend();
+
+        if (!nand_disabled || !sdmc_disabled) {
+            update_disabled = false;
+            enabled_version = std::nullopt;
             update_raw = content_provider.GetEntryRaw(update_tid, type);
         }
     }

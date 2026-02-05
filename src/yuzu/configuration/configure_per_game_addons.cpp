@@ -169,12 +169,16 @@ void ConfigurePerGameAddons::LoadConfiguration() {
         first_item->setText(name);
         first_item->setCheckable(true);
 
-        if (patch.type == FileSys::PatchType::Update && patch.numeric_version != 0) {
+        const bool is_external_update = patch.type == FileSys::PatchType::Update &&
+                                        patch.source == FileSys::PatchSource::External &&
+                                        patch.numeric_version != 0;
+
+        if (is_external_update) {
             first_item->setData(static_cast<quint32>(patch.numeric_version), Qt::UserRole);
         }
 
         bool patch_disabled = false;
-        if (patch.type == FileSys::PatchType::Update && patch.numeric_version != 0) {
+        if (is_external_update) {
             std::string disabled_key = fmt::format("Update@{}", patch.numeric_version);
             patch_disabled = std::find(disabled.begin(), disabled.end(), disabled_key) != disabled.end();
         } else {
