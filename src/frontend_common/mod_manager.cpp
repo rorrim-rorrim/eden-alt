@@ -38,7 +38,7 @@ std::optional<std::filesystem::path> GetModFolder(const std::string& root) {
     return std::nullopt;
 }
 
-bool InstallMod(const std::filesystem::path& path, const u64 program_id, const bool copy) {
+ModInstallResult InstallMod(const std::filesystem::path& path, const u64 program_id, const bool copy) {
     const auto program_id_string = fmt::format("{:016X}", program_id);
     const auto mod_name = path.filename();
     const auto mod_dir =
@@ -54,12 +54,12 @@ bool InstallMod(const std::filesystem::path& path, const u64 program_id, const b
             std::filesystem::remove_all(path);
     } catch (std::exception& e) {
         LOG_ERROR(Frontend, "Mod install failed with message {}", e.what());
-        return false;
+        return Failed;
     }
 
     LOG_INFO(Frontend, "Copied mod from {} to {}", path.string(), mod_dir.string());
 
-    return true;
+    return Success;
 }
 
 } // namespace FrontendCommon

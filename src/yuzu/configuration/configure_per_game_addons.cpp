@@ -14,18 +14,20 @@
 #include <QString>
 #include <QTimer>
 #include <QTreeView>
+#include <qstandardpaths.h>
 
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "core/core.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/loader/loader.h"
+#include "frontend_common/mod_manager.h"
 #include "qt_common/abstract/frontend.h"
+#include "qt_common/config/uisettings.h"
 #include "qt_common/util/mod.h"
 #include "ui_configure_per_game_addons.h"
 #include "yuzu/configuration/configure_input.h"
 #include "yuzu/configuration/configure_per_game_addons.h"
-#include "qt_common/config/uisettings.h"
 
 ConfigurePerGameAddons::ConfigurePerGameAddons(Core::System& system_, QWidget* parent)
     : QWidget(parent), ui{std::make_unique<Ui::ConfigurePerGameAddons>()}, system{system_} {
@@ -104,31 +106,58 @@ void ConfigurePerGameAddons::SetTitleId(u64 id) {
 }
 
 void ConfigurePerGameAddons::InstallModFolder() {
-    const auto path = QtCommon::Frontend::GetExistingDirectory(tr("Mod Folder"));
+    const auto path = QtCommon::Frontend::GetExistingDirectory(
+        tr("Mod Folder"), QStandardPaths::writableLocation(QStandardPaths::DownloadLocation));
     if (path.isEmpty()) {
         return;
     }
 
     // TODO: Pending refresh game list
-    if (QtCommon::Mod::InstallMod(path, {}, title_id)) {
+    auto ret = QtCommon::Mod::InstallMod(path, {}, title_id);
+    switch (ret) {
+    case FrontendCommon::Success:
         QtCommon::Frontend::Information(tr("Mod Installed"), tr("Mod was successfully installed."));
+        item_model->removeRows(0, item_model->rowCount());
+        list_items.clear();
         LoadConfiguration();
-    } else {
-        QtCommon::Frontend::Critical(tr("Mod Install Failed"), tr("Mod install was unsuccessful. Check the log for details."));
+        break;
+    case FrontendCommon::Failed:
+        QtCommon::Frontend::Critical(
+            tr("Mod Install Failed"),
+            tr("Mod install was unsuccessful. Check the log for details."));
+        break;
+    case FrontendCommon::Cancelled:
+    default:
+        break;
     }
 }
 
 void ConfigurePerGameAddons::InstallModZip() {
-    const auto path = QtCommon::Frontend::GetOpenFileName(tr("Zipped Mod Location"), {}, tr("Zipped Archives (*.zip)"));
+    const auto path = QtCommon::Frontend::GetOpenFileName(
+        tr("Zipped Mod Location"),
+        QStandardPaths::writableLocation(QStandardPaths::DownloadLocation),
+        tr("Zipped Archives (*.zip)"));
     if (path.isEmpty()) {
         return;
     }
 
-    if (QtCommon::Mod::InstallModFromZip(path, title_id)) {
+    auto ret = QtCommon::Mod::InstallModFromZip(path, title_id);
+
+    switch (ret) {
+    case FrontendCommon::Success:
         QtCommon::Frontend::Information(tr("Mod Installed"), tr("Mod was successfully installed."));
+        item_model->removeRows(0, item_model->rowCount());
+        list_items.clear();
         LoadConfiguration();
-    } else {
-        QtCommon::Frontend::Critical(tr("Mod Install Failed"), tr("Mod install was unsuccessful. Check the log for details."));
+        break;
+    case FrontendCommon::Failed:
+        QtCommon::Frontend::Critical(
+            tr("Mod Install Failed"),
+            tr("Mod install was unsuccessful. Check the log for details."));
+        break;
+    case FrontendCommon::Cancelled:
+    default:
+        break;
     }
 }
 

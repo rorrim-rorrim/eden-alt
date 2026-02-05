@@ -1,6 +1,5 @@
 #include <filesystem>
 #include <JlCompress.h>
-#include "frontend_common/mod_manager.h"
 #include "mod.h"
 #include "qt_common/abstract/frontend.h"
 
@@ -21,8 +20,6 @@ QString GetModFolder(const QString& root, const QString& fallbackName) {
 
     QString name = QtCommon::Frontend::GetTextInput(
         tr("Mod Name"), tr("What should this mod be called?"), default_name);
-
-    qDebug() << "Naming mod:" << name;
 
     // if std_path is empty, frontend_common could not determine mod type and/or name.
     // so we have to prompt the user and set up the structure ourselves
@@ -61,8 +58,10 @@ QString GetModFolder(const QString& root, const QString& fallbackName) {
         const auto mod_dir = fs::temp_directory_path() / "eden" / "mod" / name.toStdString();
         const auto tmp = mod_dir / to_make;
         fs::remove_all(mod_dir);
-        if (!fs::create_directories(tmp))
+        if (!fs::create_directories(tmp)) {
+            LOG_ERROR(Frontend, "Failed to create temporary directory {}", tmp.string());
             return QString();
+        }
 
         std_path = mod_dir;
 
@@ -81,24 +80,28 @@ QString GetModFolder(const QString& root, const QString& fallbackName) {
         std_path = new_path;
     }
 
-    qDebug() << "Mod path" << std_path->string();
-
     return QString::fromStdString(std_path->string());
 }
 
-bool InstallMod(const QString& path, const QString& fallbackName, const u64 program_id,
+FrontendCommon::ModInstallResult InstallMod(const QString& path, const QString& fallbackName, const u64 program_id,
                 const bool copy) {
     const auto target = GetModFolder(path, fallbackName);
+    if (target.isEmpty()) {
+        return FrontendCommon::Cancelled;
+    }
+
     return FrontendCommon::InstallMod(target.toStdString(), program_id, copy);
 }
 
-bool InstallModFromZip(const QString& path, const u64 program_id) {
+FrontendCommon::ModInstallResult InstallModFromZip(const QString& path, const u64 program_id) {
     namespace fs = std::filesystem;
     fs::path tmp{fs::temp_directory_path() / "eden" / "unzip_mod"};
 
     fs::remove_all(tmp);
-    if (!fs::create_directories(tmp))
-        return false;
+    if (!fs::create_directories(tmp)) {
+        LOG_ERROR(Frontend, "Failed to create temporary directory {}", tmp.string());
+        return FrontendCommon::Failed;
+    }
 
     QString qCacheDir = QString::fromStdString(tmp.string());
 
@@ -106,8 +109,10 @@ bool InstallModFromZip(const QString& path, const u64 program_id) {
 
     // TODO(crueter): use QtCompress
     QStringList result = JlCompress::extractDir(&zip, qCacheDir);
-    if (result.isEmpty())
-        return false;
+    if (result.isEmpty()) {
+        LOG_ERROR(Frontend, "Zip file {} is empty", path.toStdString());
+        return FrontendCommon::Failed;
+    }
 
     const auto fallback = fs::path{path.toStdString()}.stem();
 
