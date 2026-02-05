@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <filesystem>
+#include <QFileInfo>
 #include <qnamespace.h>
 #include "mod_select_dialog.h"
 #include "ui_mod_select_dialog.h"
@@ -18,7 +19,7 @@ ModSelectDialog::ModSelectDialog(const QStringList& mods, QWidget* parent)
     qRegisterMetaType<QList<QStandardItem*>>("QList<QStandardItem*>");
 
     for (const auto& mod : mods) {
-        const auto basename = QString::fromStdString(std::filesystem::path(mod.toStdString()).filename());
+        const auto basename = QFileInfo(mod).baseName();
 
         auto* const first_item = new QStandardItem;
         first_item->setText(basename);
