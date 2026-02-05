@@ -203,16 +203,27 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
                 update_disabled = false;
             }
         }
-    } else if (update_disabled) {
-        const bool has_nand_update = content_provider.HasEntry(update_tid, ContentRecordType::Program);
+    } else if (update_disabled && content_union) {
+        const bool nand_disabled = std::find(disabled.cbegin(), disabled.cend(), "Update (NAND)") != disabled.cend();
+        const bool sdmc_disabled = std::find(disabled.cbegin(), disabled.cend(), "Update (SDMC)") != disabled.cend();
 
-        if (has_nand_update) {
-            const bool nand_disabled = std::find(disabled.cbegin(), disabled.cend(), "Update (NAND)") != disabled.cend();
-            const bool sdmc_disabled = std::find(disabled.cbegin(), disabled.cend(), "Update (SDMC)") != disabled.cend();
+        if (!nand_disabled || !sdmc_disabled) {
+            const auto nand_sdmc_entries = content_union->ListEntriesFilterOrigin(
+                std::nullopt, TitleType::Update, ContentRecordType::Program, update_tid);
 
-            if (!nand_disabled && !sdmc_disabled) {
-                update_disabled = false;
-                enabled_version = std::nullopt;
+            for (const auto& [slot, entry] : nand_sdmc_entries) {
+                if (slot == ContentProviderUnionSlot::UserNAND ||
+                    slot == ContentProviderUnionSlot::SysNAND) {
+                    if (!nand_disabled) {
+                        update_disabled = false;
+                        break;
+                    }
+                } else if (slot == ContentProviderUnionSlot::SDMC) {
+                    if (!sdmc_disabled) {
+                        update_disabled = false;
+                        break;
+                    }
+                }
             }
         }
     }
@@ -243,7 +254,7 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
         }
     }
 
-    // Fallback to regular content provider - but only if we didn't check external
+    // Fallback to regular content provider if no external update was loaded
     if (update == nullptr && !update_disabled) {
         update = content_provider.GetEntry(update_tid, ContentRecordType::Program);
     }
@@ -610,17 +621,33 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
         if (!nand_disabled && !sdmc_disabled && !generic_disabled) {
             update_disabled = false;
         }
-        if (!update_disabled && update_raw == nullptr) {
+        if (!update_disabled) {
             update_raw = content_provider.GetEntryRaw(update_tid, type);
         }
-    } else if (update_disabled) {
+    } else if (update_disabled && content_union) {
         const bool nand_disabled = std::find(disabled.cbegin(), disabled.cend(), "Update (NAND)") != disabled.cend();
         const bool sdmc_disabled = std::find(disabled.cbegin(), disabled.cend(), "Update (SDMC)") != disabled.cend();
 
-        if (!nand_disabled && !sdmc_disabled) {
-            update_disabled = false;
-            enabled_version = std::nullopt;
-            update_raw = content_provider.GetEntryRaw(update_tid, type);
+        if (!nand_disabled || !sdmc_disabled) {
+            const auto nand_sdmc_entries = content_union->ListEntriesFilterOrigin(
+                std::nullopt, TitleType::Update, type, update_tid);
+
+            for (const auto& [slot, entry] : nand_sdmc_entries) {
+                if (slot == ContentProviderUnionSlot::UserNAND ||
+                    slot == ContentProviderUnionSlot::SysNAND) {
+                    if (!nand_disabled) {
+                        update_disabled = false;
+                        update_raw = content_provider.GetEntryRaw(update_tid, type);
+                        break;
+                    }
+                } else if (slot == ContentProviderUnionSlot::SDMC) {
+                    if (!sdmc_disabled) {
+                        update_disabled = false;
+                        update_raw = content_provider.GetEntryRaw(update_tid, type);
+                        break;
+                    }
+                }
+            }
         }
     }
 
