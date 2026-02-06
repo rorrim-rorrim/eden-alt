@@ -42,15 +42,6 @@ ConfigureFilesystem::ConfigureFilesystem(QWidget* parent)
             &ConfigureFilesystem::UpdateEnabledControls);
     connect(ui->gamecard_current_game, &QCheckBox::stateChanged, this,
             &ConfigureFilesystem::UpdateEnabledControls);
-
-    connect(ui->add_external_dir_button, &QPushButton::pressed, this,
-            &ConfigureFilesystem::AddExternalContentDirectory);
-    connect(ui->remove_external_dir_button, &QPushButton::pressed, this,
-            &ConfigureFilesystem::RemoveSelectedExternalContentDirectory);
-    connect(ui->external_content_list, &QListWidget::itemSelectionChanged, this, [this] {
-        ui->remove_external_dir_button->setEnabled(
-            !ui->external_content_list->selectedItems().isEmpty());
-    });
 }
 
 ConfigureFilesystem::~ConfigureFilesystem() = default;
@@ -84,7 +75,6 @@ void ConfigureFilesystem::SetConfiguration() {
 
     ui->cache_game_list->setChecked(UISettings::values.cache_game_list.GetValue());
 
-    UpdateExternalContentList();
     UpdateEnabledControls();
 }
 
@@ -106,17 +96,6 @@ void ConfigureFilesystem::ApplyConfiguration() {
     Settings::values.dump_nso = ui->dump_nso->isChecked();
 
     UISettings::values.cache_game_list = ui->cache_game_list->isChecked();
-
-    std::vector<std::string> new_dirs;
-    new_dirs.reserve(ui->external_content_list->count());
-    for (int i = 0; i < ui->external_content_list->count(); ++i) {
-        new_dirs.push_back(ui->external_content_list->item(i)->text().toStdString());
-    }
-
-    if (new_dirs != Settings::values.external_content_dirs) {
-        Settings::values.external_content_dirs = std::move(new_dirs);
-        emit ExternalContentDirsChanged();
-    }
 }
 
 void ConfigureFilesystem::SetDirectory(DirectoryTarget target, QLineEdit* edit) {
@@ -140,9 +119,6 @@ void ConfigureFilesystem::SetDirectory(DirectoryTarget target, QLineEdit* edit) 
         break;
     case DirectoryTarget::Load:
         caption = tr("Select Mod Load Directory...");
-        break;
-    case DirectoryTarget::ExternalContent:
-        caption = tr("Select External Content Directory...");
         break;
     }
 
@@ -302,43 +278,6 @@ void ConfigureFilesystem::UpdateEnabledControls() {
                                          !ui->gamecard_current_game->isChecked());
 }
 
-void ConfigureFilesystem::UpdateExternalContentList() {
-    ui->external_content_list->clear();
-    for (const auto& dir : Settings::values.external_content_dirs) {
-        ui->external_content_list->addItem(QString::fromStdString(dir));
-    }
-}
-
-void ConfigureFilesystem::AddExternalContentDirectory() {
-    const QString dir_path = QFileDialog::getExistingDirectory(
-        this, tr("Select External Content Directory..."), QString());
-
-    if (dir_path.isEmpty()) {
-        return;
-    }
-
-    QString normalized_path = QDir::toNativeSeparators(dir_path);
-    if (normalized_path.back() != QDir::separator()) {
-        normalized_path.append(QDir::separator());
-    }
-
-    for (int i = 0; i < ui->external_content_list->count(); ++i) {
-        if (ui->external_content_list->item(i)->text() == normalized_path) {
-            QMessageBox::information(this, tr("Directory Already Added"),
-                                     tr("This directory is already in the list."));
-            return;
-        }
-    }
-
-    ui->external_content_list->addItem(normalized_path);
-}
-
-void ConfigureFilesystem::RemoveSelectedExternalContentDirectory() {
-    auto selected = ui->external_content_list->selectedItems();
-    if (!selected.isEmpty()) {
-        qDeleteAll(ui->external_content_list->selectedItems());
-    }
-}
 
 void ConfigureFilesystem::RetranslateUI() {
     ui->retranslateUi(this);

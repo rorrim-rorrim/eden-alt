@@ -24,9 +24,6 @@ public:
 
     void ApplyConfiguration();
 
-signals:
-    void ExternalContentDirsChanged();
-
 private:
     void changeEvent(QEvent* event) override;
 
@@ -40,7 +37,6 @@ private:
         Gamecard,
         Dump,
         Load,
-        ExternalContent,
     };
 
     void SetDirectory(DirectoryTarget target, QLineEdit* edit);
@@ -48,9 +44,6 @@ private:
     void PromptSaveMigration(const QString& from_path, const QString& to_path);
     void ResetMetadata();
     void UpdateEnabledControls();
-    void UpdateExternalContentList();
-    void AddExternalContentDirectory();
-    void RemoveSelectedExternalContentDirectory();
 
     std::unique_ptr<Ui::ConfigureFilesystem> ui;
 };
