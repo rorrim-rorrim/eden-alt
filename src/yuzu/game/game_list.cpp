@@ -20,6 +20,7 @@
 #include <QAbstractItemView>
 #include <QScroller>
 #include <QScrollerProperties>
+#include <qnamespace.h>
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
@@ -399,6 +400,11 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
     list_view->setSelectionMode(QAbstractItemView::SingleSelection);
     list_view->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     list_view->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+
+    // Forcefully disable scroll bar, prevents thing where game list items
+    // will start clamping prematurely.
+    list_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
     list_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
     list_view->setContextMenuPolicy(Qt::CustomContextMenu);
     list_view->setGridSize(QSize(140, 160));
@@ -1007,25 +1013,31 @@ void GameList::UpdateIconSize() {
     // Update sizes and stuff for the list view
     const u32 icon_size = UISettings::values.game_icon_size.GetValue();
 
-    // the scaling on the card is kinda abysmal.
-    // TODO(crueter): refactor
     int heightMargin = 0;
     int widthMargin = 80;
-    switch (icon_size) {
-    case 128:
-        heightMargin = 70;
-        break;
-    case 0:
-        widthMargin = 120;
-        heightMargin = 120;
-        break;
-    case 64:
-        heightMargin = 80;
-        break;
-    case 32:
-    case 256:
-        heightMargin = 81;
-        break;
+
+    if (UISettings::values.show_game_name) {
+        // the scaling on the card is kinda abysmal.
+        // TODO(crueter): refactor
+        switch (icon_size) {
+        case 128:
+            heightMargin = 70;
+            break;
+        case 0:
+            widthMargin = 120;
+            heightMargin = 120;
+            break;
+        case 64:
+            heightMargin = 80;
+            break;
+        case 32:
+        case 256:
+            heightMargin = 81;
+            break;
+        }
+    } else {
+        widthMargin = 24;
+        heightMargin = 24;
     }
 
     // TODO(crueter): Auto size

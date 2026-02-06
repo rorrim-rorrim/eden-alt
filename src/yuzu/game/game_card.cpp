@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <QPainter>
+#include <QPainterPath>
 #include "game_card.h"
 #include "qt_common/config/uisettings.h"
 
@@ -32,7 +33,7 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
         borderColor = palette.highlight().color().lighter(150);
         textColor = palette.highlightedText().color();
     } else if (option.state & QStyle::State_MouseOver) {
-        backgroundColor = backgroundColor.lighter(110);
+        backgroundColor = backgroundColor.lighter(120);
     }
 
     // bg
@@ -40,7 +41,7 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
     painter->setPen(QPen(borderColor, 1));
     painter->drawRoundedRect(cardRect, 10, 10);
 
-    static constexpr const int padding = 10;
+    static constexpr const int padding = 8;
 
     // icon
     int _iconsize = UISettings::values.game_icon_size.GetValue();
@@ -57,7 +58,14 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
 
         iconRect = QRect(x, y, scaledSize.width(), scaledSize.height());
 
+        painter->setRenderHint(QPainter::Antialiasing, true);
         painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
+
+        // round image edges
+        QPainterPath path;
+        path.addRoundedRect(iconRect, 10, 10);
+        painter->setClipPath(path);
+
         painter->drawPixmap(iconRect, iconPixmap);
     } else {
         // if there is no icon just draw a blank rect
@@ -66,31 +74,33 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
                          _iconsize, _iconsize);
     }
 
-    // if "none" is selected, pretend there's a
-    _iconsize = _iconsize ? _iconsize : 96;
+    if (UISettings::values.show_game_name) {
+        // if "none" is selected, pretend there's a
+        _iconsize = _iconsize ? _iconsize : 96;
 
-    // padding + text
-    QRect textRect = cardRect;
-    textRect.setTop(iconRect.bottom() + 8);
-    textRect.adjust(padding, 0, -padding, -padding);
+        // padding + text
+        QRect textRect = cardRect;
+        textRect.setTop(iconRect.bottom() + 8);
+        textRect.adjust(padding, 0, -padding, -padding);
 
-    // We are already crammed on space, ignore the row 2
-    QString title = index.data(Qt::DisplayRole).toString();
-    title = title.split(QLatin1Char('\n')).first();
+        // We are already crammed on space, ignore the row 2
+        QString title = index.data(Qt::DisplayRole).toString();
+        title = title.split(QLatin1Char('\n')).first();
 
-    // now draw text
-    painter->setPen(textColor);
-    QFont font = option.font;
-    font.setBold(true);
+        // now draw text
+        painter->setPen(textColor);
+        QFont font = option.font;
+        font.setBold(true);
 
-    // TODO(crueter): fix this abysmal scaling
-    // If "none" is selected, then default to 8.5 point font.
-    font.setPointSize(1 + std::max(7.0, _iconsize ? std::sqrt(_iconsize * 0.6) : 7.5));
+        // TODO(crueter): fix this abysmal scaling
+        // If "none" is selected, then default to 8.5 point font.
+        font.setPointSize(1 + std::max(7.0, _iconsize ? std::sqrt(_iconsize * 0.6) : 7.5));
 
-    // TODO(crueter): elide mode
-    painter->setFont(font);
+        // TODO(crueter): elide mode
+        painter->setFont(font);
 
-    painter->drawText(textRect, Qt::AlignHCenter | Qt::AlignTop | Qt::TextWordWrap, title);
+        painter->drawText(textRect, Qt::AlignHCenter | Qt::AlignTop | Qt::TextWordWrap, title);
+    }
 
     painter->restore();
 }
