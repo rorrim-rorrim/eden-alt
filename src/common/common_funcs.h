@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -34,6 +31,12 @@
 
 #ifdef _MSC_VER
 #   define locale_t _locale_t // Locale Cross-Compatibility
+#define LTO_NOINLINE __attribute__((noinline))
+
+#else // _MSC_VER
+
+#define LTO_NOINLINE
+
 #endif // _MSC_VER
 
 #define DECLARE_ENUM_FLAG_OPERATORS(type)                                                          \
