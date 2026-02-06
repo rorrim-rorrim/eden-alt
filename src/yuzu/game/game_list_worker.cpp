@@ -214,11 +214,14 @@ QList<QStandardItem*> MakeGameListEntry(const std::string& path,
     QString patch_versions = GetGameListCachedObject(fmt::format("{:016X}", patch.GetTitleID()), "pv.txt", [&patch, &loader] {
         return FormatPatchNameVersions(patch, loader, loader.IsRomFSUpdatable());
     });
+
+    u64 play_time = play_time_manager.GetPlayTime(program_id);
     return QList<QStandardItem*>{
-        new GameListItemPath(FormatGameName(path), icon, QString::fromStdString(name), file_type_string, program_id),
+        new GameListItemPath(FormatGameName(path), icon, QString::fromStdString(name),
+                             file_type_string, program_id, play_time),
         new GameListItem(file_type_string),
         new GameListItemSize(size),
-        new GameListItemPlayTime(play_time_manager.GetPlayTime(program_id)),
+        new GameListItemPlayTime(play_time),
         new GameListItem(patch_versions),
         new GameListItemCompat(compatibility),
     };

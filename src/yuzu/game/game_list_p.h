@@ -75,12 +75,16 @@ public:
 
     GameListItemPath() = default;
     GameListItemPath(const QString& game_path, const std::vector<u8>& picture_data,
-                     const QString& game_name, const QString& game_type, u64 program_id) {
+                     const QString& game_name, const QString& game_type, u64 program_id,
+                     u64 play_time) {
         setData(type(), TypeRole);
         setData(game_path, FullPathRole);
         setData(game_name, TitleRole);
         setData(qulonglong(program_id), ProgramIdRole);
         setData(game_type, FileTypeRole);
+
+        setData(QString::fromStdString(PlayTime::PlayTimeManager::GetReadablePlayTime(play_time)),
+                Qt::ToolTipRole);
 
         const u32 size = UISettings::values.game_icon_size.GetValue();
 
@@ -252,7 +256,9 @@ public:
 
     void setData(const QVariant& value, int role) override {
         qulonglong time_seconds = value.toULongLong();
-        GameListItem::setData(QString::fromStdString(PlayTime::PlayTimeManager::GetReadablePlayTime(time_seconds)), Qt::DisplayRole);
+        GameListItem::setData(
+            QString::fromStdString(PlayTime::PlayTimeManager::GetReadablePlayTime(time_seconds)),
+            Qt::DisplayRole);
         GameListItem::setData(value, PlayTimeRole);
     }
 
