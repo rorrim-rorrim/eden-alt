@@ -467,18 +467,19 @@ bool GameList::IsTreeMode() {
 
 void GameList::ResetViewMode() {
     auto &setting = UISettings::values.game_list_mode;
+    bool newTreeMode = false;
 
     switch (setting.GetValue()) {
     case Settings::GameListMode::TreeView:
         m_currentView = tree_view;
-        m_isTreeMode = true;
+        newTreeMode = true;
 
         tree_view->setVisible(true);
         list_view->setVisible(false);
         break;
     case Settings::GameListMode::GridView:
         m_currentView = list_view;
-        m_isTreeMode = false;
+        newTreeMode = false;
 
         list_view->setVisible(true);
         tree_view->setVisible(false);
@@ -487,26 +488,30 @@ void GameList::ResetViewMode() {
         break;
     }
 
-    auto view = m_currentView->viewport();
+    if (m_isTreeMode != newTreeMode) {
+        m_isTreeMode = newTreeMode;
 
-    view->installEventFilter(this);
+        auto view = m_currentView->viewport();
 
-    // touch gestures
-    view->grabGesture(Qt::SwipeGesture);
-    view->grabGesture(Qt::PanGesture);
+        view->installEventFilter(this);
 
-    // TODO: touch?
-    QScroller::grabGesture(view, QScroller::LeftMouseButtonGesture);
+        // touch gestures
+        view->grabGesture(Qt::SwipeGesture);
+        view->grabGesture(Qt::PanGesture);
 
-    auto scroller = QScroller::scroller(view);
-    QScrollerProperties props;
-    props.setScrollMetric(QScrollerProperties::HorizontalOvershootPolicy,
-                          QScrollerProperties::OvershootAlwaysOff);
-    props.setScrollMetric(QScrollerProperties::VerticalOvershootPolicy,
-                          QScrollerProperties::OvershootAlwaysOff);
-    scroller->setScrollerProperties(props);
+        // TODO: touch?
+        QScroller::grabGesture(view, QScroller::LeftMouseButtonGesture);
 
-    RefreshGameDirectory();
+        auto scroller = QScroller::scroller(view);
+        QScrollerProperties props;
+        props.setScrollMetric(QScrollerProperties::HorizontalOvershootPolicy,
+                              QScrollerProperties::OvershootAlwaysOff);
+        props.setScrollMetric(QScrollerProperties::VerticalOvershootPolicy,
+                              QScrollerProperties::OvershootAlwaysOff);
+        scroller->setScrollerProperties(props);
+
+        RefreshGameDirectory();
+    }
 }
 
 GameList::~GameList() {

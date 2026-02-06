@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <QPainter>
-#include <qnamespace.h>
 #include "game_card.h"
 #include "qt_common/config/uisettings.h"
 
