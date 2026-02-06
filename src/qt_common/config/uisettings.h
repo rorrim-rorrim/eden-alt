@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
@@ -156,7 +156,7 @@ struct Values {
 #endif
 
     // Discord RPC
-    Setting<bool> enable_discord_presence{linkage, false, "enable_discord_presence", Category::Ui};
+    Setting<bool> enable_discord_presence{linkage, true, "enable_discord_presence", Category::Ui};
 
     // logging
     Setting<bool> show_console{linkage, false, "showConsole", Category::Ui};
