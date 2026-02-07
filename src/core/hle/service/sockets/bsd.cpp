@@ -643,6 +643,11 @@ Errno BSD::ConnectImpl(s32 fd, std::span<const u8> addr) {
     UNIMPLEMENTED_IF(addr.size() < sizeof(SockAddrIn));
     auto addr_in = GetValue<SockAddrIn>(addr);
 
+    LOG_DEBUG(Service, "Connect fd={} addr_size={} len={} family={} port={} ip={}.{}.{}.{}",
+              fd, addr.size(), addr_in.len, addr_in.family,
+              static_cast<u16>(addr_in.portno >> 8 | addr_in.portno << 8),
+              addr_in.ip[0], addr_in.ip[1], addr_in.ip[2], addr_in.ip[3]);
+
     const Errno result = Translate(file_descriptors[fd]->socket->Connect(Translate(addr_in)));
 
     if (result == Errno::ISCONN) {
