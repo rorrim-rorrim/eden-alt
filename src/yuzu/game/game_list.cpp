@@ -444,8 +444,8 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
                     return;
                 }
                 QKeyEvent* event = new QKeyEvent(QEvent::KeyPress, key, Qt::NoModifier);
-                QCoreApplication::postEvent(tree_view, event);
-                QCoreApplication::postEvent(list_view, event);
+
+                QCoreApplication::postEvent(m_currentView, event);
             });
 
     // We must register all custom types with the Qt Automoc system so that we are able to use

@@ -61,12 +61,17 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
         painter->setRenderHint(QPainter::Antialiasing, true);
         painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
 
+        // Put this in a separate thing on the painter stack to prevent clipping the text.
+        painter->save();
+
         // round image edges
         QPainterPath path;
         path.addRoundedRect(iconRect, 10, 10);
         painter->setClipPath(path);
 
         painter->drawPixmap(iconRect, iconPixmap);
+
+        painter->restore();
     } else {
         // if there is no icon just draw a blank rect
         iconRect = QRect(cardRect.left() + padding,
@@ -74,7 +79,7 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
                          _iconsize, _iconsize);
     }
 
-    if (UISettings::values.show_game_name) {
+    if (UISettings::values.show_game_name.GetValue()) {
         // if "none" is selected, pretend there's a
         _iconsize = _iconsize ? _iconsize : 96;
 
