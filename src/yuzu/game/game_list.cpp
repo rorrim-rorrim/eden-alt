@@ -1277,6 +1277,17 @@ bool GameList::eventFilter(QObject* obj, QEvent* event) {
 
         return true;
     }
+
+    if (obj == m_currentView->viewport() && event->type() == QEvent::MouseButtonPress) {
+        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+
+        // if the user clicks outside of the list, deselect the current item.
+        QModelIndex index = m_currentView->indexAt(mouseEvent->pos());
+        if (!index.isValid()) {
+            m_currentView->selectionModel()->clearSelection();
+            m_currentView->setCurrentIndex(QModelIndex());
+        }
+    }
     return QWidget::eventFilter(obj, event);
 }
 
