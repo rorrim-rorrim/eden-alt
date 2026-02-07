@@ -19,7 +19,7 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
     painter->setRenderHint(QPainter::Antialiasing);
 
     // padding
-    QRect cardRect = option.rect.adjusted(4, 4, -4, -4);
+    QRect cardRect = option.rect.adjusted(4 + m_padding / 2, 4, -4 - m_padding / 2, -4);
 
     // colors
     QPalette palette = option.palette;
@@ -58,7 +58,6 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
 
         iconRect = QRect(x, y, scaledSize.width(), scaledSize.height());
 
-        painter->setRenderHint(QPainter::Antialiasing, true);
         painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
 
         // Put this in a separate thing on the painter stack to prevent clipping the text.
@@ -114,6 +113,7 @@ QSize GameCard::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& 
     return m_size;
 }
 
-void GameCard::setSize(const QSize& newSize) {
+void GameCard::setSize(const QSize& newSize, const int padding) {
     m_size = newSize;
+    m_padding = padding;
 }

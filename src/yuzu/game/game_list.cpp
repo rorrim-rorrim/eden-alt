@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <QAbstractItemView>
 #include <QApplication>
 #include <QDir>
 #include <QFileInfo>
@@ -13,13 +14,11 @@
 #include <QMenu>
 #include <QScrollBar>
 #include <QScroller>
+#include <QScrollerProperties>
 #include <QThreadPool>
 #include <QToolButton>
 #include <QVariantAnimation>
 #include <fmt/ranges.h>
-#include <QAbstractItemView>
-#include <QScroller>
-#include <QScrollerProperties>
 #include <qnamespace.h>
 #include "common/common_types.h"
 #include "common/logging/log.h"
@@ -29,6 +28,7 @@
 #include "core/file_sys/registered_cache.h"
 #include "game/game_card.h"
 #include "qt_common/config/uisettings.h"
+#include "qt_common/qt_common.h"
 #include "qt_common/util/game.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/game/game_list.h"
@@ -36,7 +36,6 @@
 #include "yuzu/game/game_list_worker.h"
 #include "yuzu/main_window.h"
 #include "yuzu/util/controller_navigation.h"
-#include "qt_common/qt_common.h"
 
 GameListSearchField::KeyReleaseEater::KeyReleaseEater(GameList* gamelist_, QObject* parent)
     : QObject(parent), gamelist{gamelist_} {}
@@ -394,9 +393,9 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
     tree_view->setStyleSheet(QStringLiteral("QTreeView{ border: none; }"));
 
     // list view setup
-    list_view->setViewMode(QListView::IconMode);
-    list_view->setResizeMode(QListView::Adjust);
-    list_view->setUniformItemSizes(false);
+    list_view->setViewMode(QListView::ListMode);
+    list_view->setResizeMode(QListView::Fixed);
+    list_view->setUniformItemSizes(true);
     list_view->setSelectionMode(QAbstractItemView::SingleSelection);
     list_view->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     list_view->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -408,7 +407,7 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
     list_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
     list_view->setContextMenuPolicy(Qt::CustomContextMenu);
     list_view->setGridSize(QSize(140, 160));
-    m_gameCard->setSize(list_view->gridSize());
+    m_gameCard->setSize(list_view->gridSize(), 0);
 
     list_view->setSpacing(10);
     list_view->setWordWrap(true);
@@ -1039,9 +1038,28 @@ void GameList::UpdateIconSize() {
         heightMargin = 24;
     }
 
-    // TODO(crueter): Auto size
-    list_view->setGridSize(QSize(icon_size + widthMargin, icon_size + heightMargin));
-    m_gameCard->setSize(list_view->gridSize());
+    // "auto" resize //
+    const int view_width = list_view->viewport()->width();
+
+    // Tiny space padding to prevent the list view from forcing its own resize operation.
+    const double spacing = 0.01;
+    const int min_item_width = icon_size + widthMargin;
+
+    // And now stretch it a bit to fill out remaining space.
+    // Not perfect but works well enough for now
+    int columns = std::max(1, view_width / min_item_width);
+    int stretched_width = (view_width - (spacing * (columns - 1))) / columns;
+
+    // only updates things if grid size is changed
+    QSize grid_size(stretched_width, icon_size + heightMargin);
+    if (list_view->gridSize() != grid_size) {
+        list_view->setUpdatesEnabled(false);
+
+        list_view->setGridSize(grid_size);
+        m_gameCard->setSize(grid_size, stretched_width - min_item_width);
+
+        list_view->setUpdatesEnabled(true);
+    }
 }
 
 void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
@@ -1054,7 +1072,8 @@ void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
     tree_view->setColumnHidden(COLUMN_SIZE, !UISettings::values.show_size);
     tree_view->setColumnHidden(COLUMN_PLAY_TIME, !UISettings::values.show_play_time);
 
-    UpdateIconSize();
+    if (!m_isTreeMode)
+        UpdateIconSize();
 
     // Cancel any existing worker.
     current_worker.reset();
@@ -1288,6 +1307,12 @@ bool GameList::eventFilter(QObject* obj, QEvent* event) {
             m_currentView->setCurrentIndex(QModelIndex());
         }
     }
+
+    if (obj == list_view->viewport() && event->type() == QEvent::Resize) {
+        UpdateIconSize();
+        return true;
+    }
+
     return QWidget::eventFilter(obj, event);
 }
 
