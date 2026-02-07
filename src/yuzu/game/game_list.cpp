@@ -494,27 +494,26 @@ void GameList::ResetViewMode() {
         break;
     }
 
+    auto view = m_currentView->viewport();
+    view->installEventFilter(this);
+
+    // touch gestures
+    view->grabGesture(Qt::SwipeGesture);
+    view->grabGesture(Qt::PanGesture);
+
+    // TODO: touch?
+    QScroller::grabGesture(view, QScroller::LeftMouseButtonGesture);
+
+    auto scroller = QScroller::scroller(view);
+    QScrollerProperties props;
+    props.setScrollMetric(QScrollerProperties::HorizontalOvershootPolicy,
+                          QScrollerProperties::OvershootAlwaysOff);
+    props.setScrollMetric(QScrollerProperties::VerticalOvershootPolicy,
+                          QScrollerProperties::OvershootAlwaysOff);
+    scroller->setScrollerProperties(props);
+
     if (m_isTreeMode != newTreeMode) {
         m_isTreeMode = newTreeMode;
-
-        auto view = m_currentView->viewport();
-
-        view->installEventFilter(this);
-
-        // touch gestures
-        view->grabGesture(Qt::SwipeGesture);
-        view->grabGesture(Qt::PanGesture);
-
-        // TODO: touch?
-        QScroller::grabGesture(view, QScroller::LeftMouseButtonGesture);
-
-        auto scroller = QScroller::scroller(view);
-        QScrollerProperties props;
-        props.setScrollMetric(QScrollerProperties::HorizontalOvershootPolicy,
-                              QScrollerProperties::OvershootAlwaysOff);
-        props.setScrollMetric(QScrollerProperties::VerticalOvershootPolicy,
-                              QScrollerProperties::OvershootAlwaysOff);
-        scroller->setScrollerProperties(props);
 
         RefreshGameDirectory();
     }
