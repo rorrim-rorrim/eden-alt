@@ -680,6 +680,7 @@ void BufferCache<P>::PopAsyncBuffers() {
     auto& async_buffer = async_buffers.front();
     u8* base = async_buffer->mapped_span.data();
     const size_t base_offset = async_buffer->offset;
+    Common::RangeSet<DAddr> ranges_to_remove;
     for (const auto& copy : downloads) {
         const DAddr device_addr = static_cast<DAddr>(copy.src_offset);
         const u64 dst_offset = copy.dst_offset - base_offset;
@@ -689,9 +690,11 @@ void BufferCache<P>::PopAsyncBuffers() {
                                            end - start);
         });
         async_downloads.Subtract(device_addr, copy.size, [&](DAddr start, DAddr end) {
-            gpu_modified_ranges.Subtract(start, end - start);
+            ranges_to_remove.Add(start, end - start);
         });
     }
+    ranges_to_remove.ForEach(
+        [&](DAddr start, DAddr end) { gpu_modified_ranges.Subtract(start, end - start); });
     async_buffers_death_ring.emplace_back(*async_buffer);
     async_buffers.pop_front();
     pending_downloads.pop_front();
