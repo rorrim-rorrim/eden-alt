@@ -96,7 +96,8 @@
         "find_args": "CONFIG",
         "git_version": "4.8.1",
         "patches": [
-            "0001-fix-macos.patch"
+            "0001-fix-macos.patch",
+            "0002-avoid-memset-when-clearing-an-empty-table.patch"
         ]
     },
     "mbedtls": {
