@@ -120,6 +120,22 @@ public:
         master_semaphore->Wait(tick);
     }
 
+    /// Waits until the next game frame based on the current game FPS.
+    void WaitFPS(u64 tick, double target_fps) {
+        if (master_semaphore->CurrentTick() >= tick) {
+            return;
+        }
+        static auto next_frame_time = std::chrono::steady_clock::now();
+        auto frame_duration = std::chrono::duration<double>(1.0 / target_fps);
+        next_frame_time += std::chrono::duration_cast<std::chrono::steady_clock::duration>(frame_duration);
+        auto now = std::chrono::steady_clock::now();
+        if (next_frame_time > now) {
+            std::this_thread::sleep_until(next_frame_time);
+        } else {
+            next_frame_time = now;
+        }
+    }
+
     /// Returns the master timeline semaphore.
     [[nodiscard]] MasterSemaphore& GetMasterSemaphore() const noexcept {
         return *master_semaphore;

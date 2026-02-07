@@ -194,7 +194,25 @@ bool Swapchain::AcquireNextImage() {
         break;
     }
 
-    scheduler.Wait(resource_ticks[image_index]);
+    if (!Settings::values.use_speed_limit.GetValue()) {
+        scheduler.Wait(resource_ticks[image_index]);
+    } else {
+        switch (Settings::values.frame_pacing_mode.GetValue()) {
+        case Settings::FramePacingMode::Default:
+            scheduler.Wait(resource_ticks[image_index]);
+            break;
+        case Settings::FramePacingMode::Target_30:
+            scheduler.WaitFPS(resource_ticks[image_index], 30.0);
+            break;
+        case Settings::FramePacingMode::Target_60:
+            scheduler.WaitFPS(resource_ticks[image_index], 60.0);
+            break;
+        case Settings::FramePacingMode::Target_120:
+            scheduler.WaitFPS(resource_ticks[image_index], 120.0);
+            break;
+        }
+    }
+
     resource_ticks[image_index] = scheduler.CurrentTick();
 
     return is_suboptimal || is_outdated;
