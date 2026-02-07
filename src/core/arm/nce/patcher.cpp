@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <numeric>
@@ -20,9 +20,13 @@ namespace Core::NCE {
 Patcher::Patcher(Patcher&& other) noexcept
     : patch_cache(std::move(other.patch_cache)),
       m_patch_instructions(std::move(other.m_patch_instructions)),
+      m_patch_instructions_pre(std::move(other.m_patch_instructions_pre)),
       c(m_patch_instructions),
+      c_pre(m_patch_instructions_pre),
       m_save_context(other.m_save_context),
       m_load_context(other.m_load_context),
+      m_save_context_pre(other.m_save_context_pre),
+      m_load_context_pre(other.m_load_context_pre),
       mode(other.mode),
       total_program_size(other.total_program_size),
       m_relocate_module_index(other.m_relocate_module_index),
@@ -42,20 +46,25 @@ using NativeExecutionParameters = Kernel::KThread::NativeExecutionParameters;
 constexpr size_t MaxRelativeBranch = 128_MiB;
 constexpr u32 ModuleCodeIndex = 0x24 / sizeof(u32);
 
-Patcher::Patcher() : c(m_patch_instructions) {
+Patcher::Patcher() : c(m_patch_instructions), c_pre(m_patch_instructions_pre) {
     LOG_WARNING(Core_ARM, "Patcher initialized with LRU cache {}",
         patch_cache.isEnabled() ? "enabled" : "disabled");
     // The first word of the patch section is always a branch to the first instruction of the
     // module.
     c.dw(0);
+    c_pre.dw(0);
 
     // Write save context helper function.
     c.l(m_save_context);
     WriteSaveContext();
+    c_pre.l(m_save_context_pre);
+    WriteSaveContext(c_pre);
 
     // Write load context helper function.
     c.l(m_load_context);
     WriteLoadContext();
+    c_pre.l(m_load_context_pre);
+    WriteLoadContext(c_pre);
 }
 
 Patcher::~Patcher() = default;
@@ -64,7 +73,16 @@ bool Patcher::PatchText(const Kernel::PhysicalMemory& program_image,
                         const Kernel::CodeSet::Segment& code) {
     // If we have patched modules but cannot reach the new module, then it needs its own patcher.
     const size_t image_size = program_image.size();
-    if (total_program_size + image_size > MaxRelativeBranch && total_program_size > 0) {
+
+    // Check if we need split mode for large modules. A64 max takes 128MB
+    // tests showed that, with update, some are larger. (In this case 208MB)
+    bool use_split = false;
+    if (image_size > MaxRelativeBranch) {
+        if (total_program_size > 0) {
+            return false;
+        }
+        use_split = true;
+    } else if (total_program_size + image_size > MaxRelativeBranch && total_program_size > 0) {
         return false;
     }
 
@@ -74,7 +92,12 @@ bool Patcher::PatchText(const Kernel::PhysicalMemory& program_image,
 
     // The first word of the patch section is always a branch to the first instruction of the
     // module.
-    curr_patch->m_branch_to_module_relocations.push_back({0, 0});
+    if (use_split) {
+        // curr_patch->m_branch_to_module_relocations.push_back({0, 0});
+        curr_patch->m_branch_to_module_relocations_pre.push_back({0, 0});
+    } else {
+        curr_patch->m_branch_to_module_relocations.push_back({0, 0});
+    }
 
     // Retrieve text segment data.
     const auto text = std::span{program_image}.subspan(code.offset, code.size);
@@ -85,12 +108,18 @@ bool Patcher::PatchText(const Kernel::PhysicalMemory& program_image,
     for (u32 i = ModuleCodeIndex; i < static_cast<u32>(text_words.size()); i++) {
         const u32 inst = text_words[i];
 
-        const auto AddRelocations = [&] {
+        const auto AddRelocations = [&](bool& pre_buffer) {
             const uintptr_t this_offset = i * sizeof(u32);
             const uintptr_t next_offset = this_offset + sizeof(u32);
 
-            // Relocate from here to patch.
-            this->BranchToPatch(this_offset);
+            pre_buffer = use_split && (this_offset < MaxRelativeBranch);
+
+            // Relocate to pre- or post-patch
+            if (pre_buffer) {
+                this->BranchToPatchPre(this_offset);
+            } else {
+                this->BranchToPatch(this_offset);
+            }
 
             // Relocate from patch to next instruction.
             return next_offset;
@@ -98,7 +127,13 @@ bool Patcher::PatchText(const Kernel::PhysicalMemory& program_image,
 
         // SVC
         if (auto svc = SVC{inst}; svc.Verify()) {
-            WriteSvcTrampoline(AddRelocations(), svc.GetValue());
+            bool pre_buffer = false;
+            auto ret = AddRelocations(pre_buffer);
+            if (pre_buffer) {
+                WriteSvcTrampoline(ret, svc.GetValue(), c_pre, m_save_context_pre, m_load_context_pre);
+            } else {
+                WriteSvcTrampoline(ret, svc.GetValue(), c, m_save_context, m_load_context);
+            }
             continue;
         }
 
@@ -109,13 +144,25 @@ bool Patcher::PatchText(const Kernel::PhysicalMemory& program_image,
             const auto src_reg = mrs.GetSystemReg() == TpidrroEl0 ? oaknut::SystemReg::TPIDRRO_EL0
                                                                   : oaknut::SystemReg::TPIDR_EL0;
             const auto dest_reg = oaknut::XReg{static_cast<int>(mrs.GetRt())};
-            WriteMrsHandler(AddRelocations(), dest_reg, src_reg);
+            bool pre_buffer = false;
+            auto ret = AddRelocations(pre_buffer);
+            if (pre_buffer) {
+                WriteMrsHandler(ret, dest_reg, src_reg, c_pre);
+            } else {
+                WriteMrsHandler(ret, dest_reg, src_reg, c);
+            }
             continue;
         }
 
         // MRS Xn, CNTPCT_EL0
         if (auto mrs = MRS{inst}; mrs.Verify() && mrs.GetSystemReg() == CntpctEl0) {
-            WriteCntpctHandler(AddRelocations(), oaknut::XReg{static_cast<int>(mrs.GetRt())});
+            bool pre_buffer = false;
+            auto ret = AddRelocations(pre_buffer);
+            if (pre_buffer) {
+                WriteCntpctHandler(ret, oaknut::XReg{static_cast<int>(mrs.GetRt())}, c_pre);
+            } else {
+                WriteCntpctHandler(ret, oaknut::XReg{static_cast<int>(mrs.GetRt())}, c);
+            }
             continue;
         }
 
@@ -126,7 +173,13 @@ bool Patcher::PatchText(const Kernel::PhysicalMemory& program_image,
 
         // MSR TPIDR_EL0, Xn
         if (auto msr = MSR{inst}; msr.Verify() && msr.GetSystemReg() == TpidrEl0) {
-            WriteMsrHandler(AddRelocations(), oaknut::XReg{static_cast<int>(msr.GetRt())});
+            bool pre_buffer = false;
+            auto ret = AddRelocations(pre_buffer);
+             if (pre_buffer) {
+                WriteMsrHandler(ret, oaknut::XReg{static_cast<int>(msr.GetRt())}, c_pre);
+            } else {
+                WriteMsrHandler(ret, oaknut::XReg{static_cast<int>(msr.GetRt())}, c);
+            }
             continue;
         }
 
@@ -137,7 +190,11 @@ bool Patcher::PatchText(const Kernel::PhysicalMemory& program_image,
 
     // Determine patching mode for the final relocation step
     total_program_size += image_size;
-    this->mode = image_size > MaxRelativeBranch ? PatchMode::PreText : PatchMode::PostData;
+    if (use_split) {
+        this->mode = PatchMode::Split;
+    } else {
+        this->mode = image_size > MaxRelativeBranch ? PatchMode::PreText : PatchMode::PostData;
+    }
     return true;
 }
 
@@ -146,7 +203,9 @@ bool Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
                               Kernel::PhysicalMemory& program_image,
                               EntryTrampolines* out_trampolines) {
     const size_t patch_size = GetSectionSize();
-    const size_t image_size = program_image.size();
+    const size_t pre_patch_size = GetPreSectionSize();
+
+    const size_t image_size = (mode == PatchMode::Split) ? program_image.size() - pre_patch_size : program_image.size();
 
     // Retrieve text segment data.
     const auto text = std::span{program_image}.subspan(code.offset, code.size);
@@ -162,6 +221,16 @@ bool Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
         }
     };
 
+    const auto ApplyBranchToPatchRelocationPre = [&](u32* target, const Relocation& rel) {
+        oaknut::CodeGenerator rc{target};
+        rc.B(static_cast<ptrdiff_t>(rel.patch_offset) - static_cast<ptrdiff_t>(pre_patch_size) - static_cast<ptrdiff_t>(rel.module_offset));
+    };
+
+    const auto ApplyBranchToPatchRelocationPostSplit = [&](u32* target, const Relocation& rel) {
+        oaknut::CodeGenerator rc{target};
+        rc.B(static_cast<ptrdiff_t>(image_size) + static_cast<ptrdiff_t>(rel.patch_offset) - static_cast<ptrdiff_t>(rel.module_offset));
+    };
+
     const auto ApplyBranchToModuleRelocation = [&](u32* target, const Relocation& rel) {
         oaknut::CodeGenerator rc{target};
         if (mode == PatchMode::PreText) {
@@ -169,6 +238,16 @@ bool Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
         } else {
             rc.B(rel.module_offset - total_program_size - rel.patch_offset);
         }
+    };
+
+    const auto ApplyBranchToModuleRelocationPre = [&](u32* target, const Relocation& rel) {
+        oaknut::CodeGenerator rc{target};
+        rc.B(static_cast<ptrdiff_t>(pre_patch_size) + static_cast<ptrdiff_t>(rel.module_offset) - static_cast<ptrdiff_t>(rel.patch_offset));
+    };
+
+     const auto ApplyBranchToModuleRelocationPostSplit = [&](u32* target, const Relocation& rel) {
+        oaknut::CodeGenerator rc{target};
+        rc.B(static_cast<ptrdiff_t>(rel.module_offset) - static_cast<ptrdiff_t>(image_size) - static_cast<ptrdiff_t>(rel.patch_offset));
     };
 
     const auto RebasePatch = [&](ptrdiff_t patch_offset) {
@@ -182,28 +261,91 @@ bool Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
     const auto RebasePc = [&](uintptr_t module_offset) {
         if (mode == PatchMode::PreText) {
             return GetInteger(load_base) + patch_size + module_offset;
-        } else {
-            return GetInteger(load_base) + module_offset;
         }
+        if (mode == PatchMode::Split) {
+            return GetInteger(load_base) + pre_patch_size + module_offset;
+        }
+
+        return GetInteger(load_base) + module_offset;
     };
 
     // We are now ready to relocate!
     auto& patch = modules[m_relocate_module_index++];
-    for (const Relocation& rel : patch.m_branch_to_patch_relocations) {
-        ApplyBranchToPatchRelocation(text_words.data() + rel.module_offset / sizeof(u32), rel);
-    }
-    for (const Relocation& rel : patch.m_branch_to_module_relocations) {
-        ApplyBranchToModuleRelocation(m_patch_instructions.data() + rel.patch_offset / sizeof(u32),
-                                      rel);
+
+    if (mode == PatchMode::Split) {
+        const u32* raw_at_0 = reinterpret_cast<const u32*>(program_image.data());
+        const u32* raw_at_offset = reinterpret_cast<const u32*>(program_image.data() + code.offset);
+
+        for (const Relocation& rel : patch.m_branch_to_pre_patch_relocations) {
+            ApplyBranchToPatchRelocationPre(text_words.data() + rel.module_offset / sizeof(u32), rel);
+        }
+        LOG_DEBUG(Core_ARM, "applied Pre: {}", patch.m_branch_to_pre_patch_relocations.size());
+
+        for (const Relocation& rel : patch.m_branch_to_patch_relocations) {
+            ApplyBranchToPatchRelocationPostSplit(text_words.data() + rel.module_offset / sizeof(u32), rel);
+        }
+        LOG_DEBUG(Core_ARM, "applied Post: {}", patch.m_branch_to_patch_relocations.size());
+
+        for (const Relocation& rel : patch.m_branch_to_module_relocations_pre) {
+            ApplyBranchToModuleRelocationPre(m_patch_instructions_pre.data() + rel.patch_offset / sizeof(u32), rel);
+        }
+        LOG_DEBUG(Core_ARM, "aplied Pre-module {}", patch.m_branch_to_module_relocations_pre.size());
+
+        for (const Relocation& rel : patch.m_branch_to_module_relocations) {
+            ApplyBranchToModuleRelocationPostSplit(m_patch_instructions.data() + rel.patch_offset / sizeof(u32), rel);
+        }
+        LOG_DEBUG(Core_ARM, "applied Post-module {}", patch.m_branch_to_module_relocations.size());
+
+        // Pre
+        for (const Relocation& rel : patch.m_write_module_pc_relocations_pre) {
+            oaknut::CodeGenerator rc{m_patch_instructions_pre.data() + rel.patch_offset / sizeof(u32)};
+            rc.dx(RebasePc(rel.module_offset));
+        }
+        // Post
+        for (const Relocation& rel : patch.m_write_module_pc_relocations) {
+            oaknut::CodeGenerator rc{m_patch_instructions.data() + rel.patch_offset / sizeof(u32)};
+            rc.dx(RebasePc(rel.module_offset));
+        }
+
+        // Trampolines (split pre + post)
+        for (const Trampoline& rel : patch.m_trampolines_pre) {
+            out_trampolines->insert({RebasePc(rel.module_offset),
+                                     GetInteger(load_base) + rel.patch_offset});
+        }
+        for (const Trampoline& rel : patch.m_trampolines) {
+            out_trampolines->insert({RebasePc(rel.module_offset),
+                                     GetInteger(load_base) + pre_patch_size + image_size + rel.patch_offset});
+        }
+
+        if (!m_patch_instructions_pre.empty()) {
+            u32 insn = m_patch_instructions_pre[0];
+            if ((insn & 0xFC000000) == 0x14000000) {
+                s32 imm26 = insn & 0x3FFFFFF;
+                // Sign extend
+                if (imm26 & 0x2000000) imm26 |= 0xFC000000;
+                s64 offset = static_cast<s64>(imm26) * 4;
+            }
+        }
+    } else {
+        for (const Relocation& rel : patch.m_branch_to_patch_relocations) {
+            ApplyBranchToPatchRelocation(text_words.data() + rel.module_offset / sizeof(u32), rel);
+        }
+        for (const Relocation& rel : patch.m_branch_to_module_relocations) {
+            ApplyBranchToModuleRelocation(m_patch_instructions.data() + rel.patch_offset / sizeof(u32),
+                                          rel);
+        }
+
+        // Rewrite PC constants
+        for (const Relocation& rel : patch.m_write_module_pc_relocations) {
+            oaknut::CodeGenerator rc{m_patch_instructions.data() + rel.patch_offset / sizeof(u32)};
+            rc.dx(RebasePc(rel.module_offset));
+        }
     }
 
-    // Rewrite PC constants and record post trampolines
-    for (const Relocation& rel : patch.m_write_module_pc_relocations) {
-        oaknut::CodeGenerator rc{m_patch_instructions.data() + rel.patch_offset / sizeof(u32)};
-        rc.dx(RebasePc(rel.module_offset));
-    }
-    for (const Trampoline& rel : patch.m_trampolines) {
-        out_trampolines->insert({RebasePc(rel.module_offset), RebasePatch(rel.patch_offset)});
+    if (mode != PatchMode::Split) {
+        for (const Trampoline& rel : patch.m_trampolines) {
+            out_trampolines->insert({RebasePc(rel.module_offset), RebasePatch(rel.patch_offset)});
+        }
     }
 
     // Cortex-A57 seems to treat all exclusives as ordered, but newer processors do not.
@@ -223,6 +365,15 @@ bool Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
             ASSERT(image_size == total_program_size);
             std::memcpy(program_image.data(), m_patch_instructions.data(),
                         m_patch_instructions.size() * sizeof(u32));
+        } else if (this->mode == PatchMode::Split) {
+            const size_t current_size = program_image.size();
+            program_image.resize(current_size + patch_size);
+            // Copy pre-patch buffer to the beginning
+            std::memcpy(program_image.data(), m_patch_instructions_pre.data(),
+                        m_patch_instructions_pre.size() * sizeof(u32));
+            // Same for post-patch buffer to the end
+            std::memcpy(program_image.data() + current_size, m_patch_instructions.data(),
+                        m_patch_instructions.size() * sizeof(u32));
         } else {
             program_image.resize(image_size + patch_size);
             std::memcpy(program_image.data() + image_size, m_patch_instructions.data(),
@@ -238,7 +389,11 @@ size_t Patcher::GetSectionSize() const noexcept {
     return Common::AlignUp(m_patch_instructions.size() * sizeof(u32), Core::Memory::YUZU_PAGESIZE);
 }
 
-void Patcher::WriteLoadContext() {
+size_t Patcher::GetPreSectionSize() const noexcept {
+    return Common::AlignUp(m_patch_instructions_pre.size() * sizeof(u32), Core::Memory::YUZU_PAGESIZE);
+}
+
+void Patcher::WriteLoadContext(oaknut::VectorCodeGenerator& c) {
     // This function was called, which modifies X30, so use that as a scratch register.
     // SP contains the guest X30, so save our return X30 to SP + 8, since we have allocated 16 bytes
     // of stack.
@@ -271,7 +426,7 @@ void Patcher::WriteLoadContext() {
     c.RET();
 }
 
-void Patcher::WriteSaveContext() {
+void Patcher::WriteSaveContext(oaknut::VectorCodeGenerator& c) {
     // This function was called, which modifies X30, so use that as a scratch register.
     // SP contains the guest X30, so save our X30 to SP + 8, since we have allocated 16 bytes of
     // stack.
@@ -309,14 +464,17 @@ void Patcher::WriteSaveContext() {
     c.RET();
 }
 
-void Patcher::WriteSvcTrampoline(ModuleDestLabel module_dest, u32 svc_id) {
+void Patcher::WriteSvcTrampoline(ModuleDestLabel module_dest, u32 svc_id, oaknut::VectorCodeGenerator& c, oaknut::Label& save_ctx, oaknut::Label& load_ctx) {
+    // Determine if we're writing to the pre-patch buffer
+    const bool is_pre = (&c == &c_pre);
+
     // We are about to start saving state, so we need to lock the context.
-    this->LockContext();
+    this->LockContext(c);
 
     // Store guest X30 to the stack. Then, save the context and restore the stack.
     // This will save all registers except PC, but we know PC at patch time.
     c.STR(X30, SP, PRE_INDEXED, -16);
-    c.BL(m_save_context);
+    c.BL(save_ctx);
     c.LDR(X30, SP, POST_INDEXED, 16);
 
     // Now that we've saved all registers, we can use any registers as scratch.
@@ -371,7 +529,11 @@ void Patcher::WriteSvcTrampoline(ModuleDestLabel module_dest, u32 svc_id) {
 
     // Write the post-SVC trampoline address, which will jump back to the guest after restoring its
     // state.
-    curr_patch->m_trampolines.push_back({c.offset(), module_dest});
+    if (is_pre) {
+        curr_patch->m_trampolines_pre.push_back({c.offset(), module_dest});
+    } else {
+        curr_patch->m_trampolines.push_back({c.offset(), module_dest});
+    }
 
     // Host called this location. Save the return address so we can
     // unwind the stack properly when jumping back.
@@ -383,7 +545,7 @@ void Patcher::WriteSvcTrampoline(ModuleDestLabel module_dest, u32 svc_id) {
     // Reload all guest registers except X30 and PC.
     // The function also expects 16 bytes of stack already allocated.
     c.STR(X30, SP, PRE_INDEXED, -16);
-    c.BL(m_load_context);
+    c.BL(load_ctx);
     c.LDR(X30, SP, POST_INDEXED, 16);
 
     // Use X1 as a scratch register to restore X30.
@@ -394,18 +556,24 @@ void Patcher::WriteSvcTrampoline(ModuleDestLabel module_dest, u32 svc_id) {
     c.LDR(X1, SP, POST_INDEXED, 16);
 
     // Unlock the context.
-    this->UnlockContext();
+    this->UnlockContext(c);
 
     // Jump back to the instruction after the emulated SVC.
-    this->BranchToModule(module_dest);
+    if (&c == &c_pre)
+        this->BranchToModulePre(module_dest);
+    else
+        this->BranchToModule(module_dest);
 
     // Store PC after call.
     c.l(pc_after_svc);
-    this->WriteModulePc(module_dest);
+    if (&c == &c_pre)
+        this->WriteModulePcPre(module_dest);
+    else
+        this->WriteModulePc(module_dest);
 }
 
 void Patcher::WriteMrsHandler(ModuleDestLabel module_dest, oaknut::XReg dest_reg,
-                              oaknut::SystemReg src_reg) {
+                              oaknut::SystemReg src_reg, oaknut::VectorCodeGenerator& c) {
     // Retrieve emulated TLS register from GuestContext.
     c.MRS(dest_reg, oaknut::SystemReg::TPIDR_EL0);
     if (src_reg == oaknut::SystemReg::TPIDRRO_EL0) {
@@ -415,10 +583,13 @@ void Patcher::WriteMrsHandler(ModuleDestLabel module_dest, oaknut::XReg dest_reg
     }
 
     // Jump back to the instruction after the emulated MRS.
-    this->BranchToModule(module_dest);
+    if (&c == &c_pre)
+        this->BranchToModulePre(module_dest);
+    else
+        this->BranchToModule(module_dest);
 }
 
-void Patcher::WriteMsrHandler(ModuleDestLabel module_dest, oaknut::XReg src_reg) {
+void Patcher::WriteMsrHandler(ModuleDestLabel module_dest, oaknut::XReg src_reg, oaknut::VectorCodeGenerator& c) {
     const auto scratch_reg = src_reg.index() == 0 ? X1 : X0;
     c.STR(scratch_reg, SP, PRE_INDEXED, -16);
 
@@ -430,10 +601,13 @@ void Patcher::WriteMsrHandler(ModuleDestLabel module_dest, oaknut::XReg src_reg)
     c.LDR(scratch_reg, SP, POST_INDEXED, 16);
 
     // Jump back to the instruction after the emulated MSR.
-    this->BranchToModule(module_dest);
+    if (&c == &c_pre)
+        this->BranchToModulePre(module_dest);
+    else
+        this->BranchToModule(module_dest);
 }
 
-void Patcher::WriteCntpctHandler(ModuleDestLabel module_dest, oaknut::XReg dest_reg) {
+void Patcher::WriteCntpctHandler(ModuleDestLabel module_dest, oaknut::XReg dest_reg, oaknut::VectorCodeGenerator& c) {
     static Common::Arm64::NativeClock clock{};
     const auto factor = clock.GetGuestCNTFRQFactor();
     const auto raw_factor = std::bit_cast<std::array<u64, 2>>(factor);
@@ -465,7 +639,10 @@ void Patcher::WriteCntpctHandler(ModuleDestLabel module_dest, oaknut::XReg dest_
     c.LDP(scratch0, scratch1, SP, POST_INDEXED, 16);
 
     // Jump back to the instruction after the emulated MRS.
-    this->BranchToModule(module_dest);
+    if (&c == &c_pre)
+        this->BranchToModulePre(module_dest);
+    else
+        this->BranchToModule(module_dest);
 
     // Scaling factor constant values.
     c.l(factorlo);
@@ -474,7 +651,7 @@ void Patcher::WriteCntpctHandler(ModuleDestLabel module_dest, oaknut::XReg dest_
     c.dx(raw_factor[1]);
 }
 
-void Patcher::LockContext() {
+void Patcher::LockContext(oaknut::VectorCodeGenerator& c) {
     oaknut::Label retry;
 
     // Save scratches.
@@ -504,7 +681,7 @@ void Patcher::LockContext() {
     c.LDP(X0, X1, SP, POST_INDEXED, 16);
 }
 
-void Patcher::UnlockContext() {
+void Patcher::UnlockContext(oaknut::VectorCodeGenerator& c) {
     // Save scratches.
     c.STP(X0, X1, SP, PRE_INDEXED, -16);
 
