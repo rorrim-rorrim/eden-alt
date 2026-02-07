@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -36,6 +36,8 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
 
     if (system_channels > device_channels) {
         static constexpr std::array<f32, 4> tcoeff{1.0f, 0.596f, 0.354f, 0.707f};
+        static constexpr f32 downmix_norm = 1.0f / (1.0f + 0.596f + 0.354f + 0.707f);
+
         for (u32 r_offs = 0, w_offs = 0; r_offs < samples.size(); r_offs += system_channels, w_offs += device_channels) {
             std::array<f32, 6> ccoeff{0.f};
             for (u32 i = 0; i < system_channels; ++i)
@@ -50,8 +52,17 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
                 ccoeff[u32(Channels::FrontRight)],
             };
 
-            const f32 left  = rcoeff[0] * tcoeff[0] + rcoeff[2] * tcoeff[1] + rcoeff[3] * tcoeff[2] + rcoeff[1] * tcoeff[3];
-            const f32 right = rcoeff[5] * tcoeff[0] + rcoeff[2] * tcoeff[1] + rcoeff[3] * tcoeff[2] + rcoeff[4] * tcoeff[3];
+            const f32 left =
+                (rcoeff[0] * tcoeff[0] +
+                 rcoeff[2] * tcoeff[1] +
+                 rcoeff[3] * tcoeff[2] +
+                 rcoeff[1] * tcoeff[3]) * downmix_norm;
+
+            const f32 right =
+                (rcoeff[5] * tcoeff[0] +
+                 rcoeff[2] * tcoeff[1] +
+                 rcoeff[3] * tcoeff[2] +
+                 rcoeff[4] * tcoeff[3]) * downmix_norm;
 
             samples[w_offs + 0] = s16(std::clamp(s32(left * volume),  min, max));
             samples[w_offs + 1] = s16(std::clamp(s32(right * volume), min, max));
