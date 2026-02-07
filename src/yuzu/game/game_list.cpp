@@ -1019,14 +1019,14 @@ void GameList::UpdateIconSize() {
         // TODO(crueter): refactor
         switch (icon_size) {
         case 128:
-            heightMargin = 70;
+            heightMargin = 65;
             break;
         case 0:
             widthMargin = 120;
             heightMargin = 120;
             break;
         case 64:
-            heightMargin = 80;
+            heightMargin = 77;
             break;
         case 32:
         case 256:
