@@ -273,9 +273,6 @@ bool Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
     auto& patch = modules[m_relocate_module_index++];
 
     if (mode == PatchMode::Split) {
-        const u32* raw_at_0 = reinterpret_cast<const u32*>(program_image.data());
-        const u32* raw_at_offset = reinterpret_cast<const u32*>(program_image.data() + code.offset);
-
         for (const Relocation& rel : patch.m_branch_to_pre_patch_relocations) {
             ApplyBranchToPatchRelocationPre(text_words.data() + rel.module_offset / sizeof(u32), rel);
         }
@@ -323,7 +320,6 @@ bool Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
                 s32 imm26 = insn & 0x3FFFFFF;
                 // Sign extend
                 if (imm26 & 0x2000000) imm26 |= 0xFC000000;
-                s64 offset = static_cast<s64>(imm26) * 4;
             }
         }
     } else {
@@ -393,221 +389,221 @@ size_t Patcher::GetPreSectionSize() const noexcept {
     return Common::AlignUp(m_patch_instructions_pre.size() * sizeof(u32), Core::Memory::YUZU_PAGESIZE);
 }
 
-void Patcher::WriteLoadContext(oaknut::VectorCodeGenerator& c) {
+void Patcher::WriteLoadContext(oaknut::VectorCodeGenerator& cg) {
     // This function was called, which modifies X30, so use that as a scratch register.
     // SP contains the guest X30, so save our return X30 to SP + 8, since we have allocated 16 bytes
     // of stack.
-    c.STR(X30, SP, 8);
-    c.MRS(X30, oaknut::SystemReg::TPIDR_EL0);
-    c.LDR(X30, X30, offsetof(NativeExecutionParameters, native_context));
+    cg.STR(X30, SP, 8);
+    cg.MRS(X30, oaknut::SystemReg::TPIDR_EL0);
+    cg.LDR(X30, X30, offsetof(NativeExecutionParameters, native_context));
 
     // Load system registers.
-    c.LDR(W0, X30, offsetof(GuestContext, fpsr));
-    c.MSR(oaknut::SystemReg::FPSR, X0);
-    c.LDR(W0, X30, offsetof(GuestContext, fpcr));
-    c.MSR(oaknut::SystemReg::FPCR, X0);
-    c.LDR(W0, X30, offsetof(GuestContext, nzcv));
-    c.MSR(oaknut::SystemReg::NZCV, X0);
+    cg.LDR(W0, X30, offsetof(GuestContext, fpsr));
+    cg.MSR(oaknut::SystemReg::FPSR, X0);
+    cg.LDR(W0, X30, offsetof(GuestContext, fpcr));
+    cg.MSR(oaknut::SystemReg::FPCR, X0);
+    cg.LDR(W0, X30, offsetof(GuestContext, nzcv));
+    cg.MSR(oaknut::SystemReg::NZCV, X0);
 
     // Load all vector registers.
     static constexpr size_t VEC_OFF = offsetof(GuestContext, vector_registers);
     for (int i = 0; i <= 30; i += 2) {
-        c.LDP(oaknut::QReg{i}, oaknut::QReg{i + 1}, X30, VEC_OFF + 16 * i);
+        cg.LDP(oaknut::QReg{i}, oaknut::QReg{i + 1}, X30, VEC_OFF + 16 * i);
     }
 
     // Load all general-purpose registers except X30.
     for (int i = 0; i <= 28; i += 2) {
-        c.LDP(oaknut::XReg{i}, oaknut::XReg{i + 1}, X30, 8 * i);
+        cg.LDP(oaknut::XReg{i}, oaknut::XReg{i + 1}, X30, 8 * i);
     }
 
     // Reload our return X30 from the stack and return.
     // The patch code will reload the guest X30 for us.
-    c.LDR(X30, SP, 8);
-    c.RET();
+    cg.LDR(X30, SP, 8);
+    cg.RET();
 }
 
-void Patcher::WriteSaveContext(oaknut::VectorCodeGenerator& c) {
+void Patcher::WriteSaveContext(oaknut::VectorCodeGenerator& cg) {
     // This function was called, which modifies X30, so use that as a scratch register.
     // SP contains the guest X30, so save our X30 to SP + 8, since we have allocated 16 bytes of
     // stack.
-    c.STR(X30, SP, 8);
-    c.MRS(X30, oaknut::SystemReg::TPIDR_EL0);
-    c.LDR(X30, X30, offsetof(NativeExecutionParameters, native_context));
+    cg.STR(X30, SP, 8);
+    cg.MRS(X30, oaknut::SystemReg::TPIDR_EL0);
+    cg.LDR(X30, X30, offsetof(NativeExecutionParameters, native_context));
 
     // Store all general-purpose registers except X30.
     for (int i = 0; i <= 28; i += 2) {
-        c.STP(oaknut::XReg{i}, oaknut::XReg{i + 1}, X30, 8 * i);
+        cg.STP(oaknut::XReg{i}, oaknut::XReg{i + 1}, X30, 8 * i);
     }
 
     // Store all vector registers.
     static constexpr size_t VEC_OFF = offsetof(GuestContext, vector_registers);
     for (int i = 0; i <= 30; i += 2) {
-        c.STP(oaknut::QReg{i}, oaknut::QReg{i + 1}, X30, VEC_OFF + 16 * i);
+        cg.STP(oaknut::QReg{i}, oaknut::QReg{i + 1}, X30, VEC_OFF + 16 * i);
     }
 
     // Store guest system registers, X30 and SP, using X0 as a scratch register.
-    c.STR(X0, SP, PRE_INDEXED, -16);
-    c.LDR(X0, SP, 16);
-    c.STR(X0, X30, 8 * 30);
-    c.ADD(X0, SP, 32);
-    c.STR(X0, X30, offsetof(GuestContext, sp));
-    c.MRS(X0, oaknut::SystemReg::FPSR);
-    c.STR(W0, X30, offsetof(GuestContext, fpsr));
-    c.MRS(X0, oaknut::SystemReg::FPCR);
-    c.STR(W0, X30, offsetof(GuestContext, fpcr));
-    c.MRS(X0, oaknut::SystemReg::NZCV);
-    c.STR(W0, X30, offsetof(GuestContext, nzcv));
-    c.LDR(X0, SP, POST_INDEXED, 16);
+    cg.STR(X0, SP, PRE_INDEXED, -16);
+    cg.LDR(X0, SP, 16);
+    cg.STR(X0, X30, 8 * 30);
+    cg.ADD(X0, SP, 32);
+    cg.STR(X0, X30, offsetof(GuestContext, sp));
+    cg.MRS(X0, oaknut::SystemReg::FPSR);
+    cg.STR(W0, X30, offsetof(GuestContext, fpsr));
+    cg.MRS(X0, oaknut::SystemReg::FPCR);
+    cg.STR(W0, X30, offsetof(GuestContext, fpcr));
+    cg.MRS(X0, oaknut::SystemReg::NZCV);
+    cg.STR(W0, X30, offsetof(GuestContext, nzcv));
+    cg.LDR(X0, SP, POST_INDEXED, 16);
 
     // Reload our return X30 from the stack, and return.
-    c.LDR(X30, SP, 8);
-    c.RET();
+    cg.LDR(X30, SP, 8);
+    cg.RET();
 }
 
-void Patcher::WriteSvcTrampoline(ModuleDestLabel module_dest, u32 svc_id, oaknut::VectorCodeGenerator& c, oaknut::Label& save_ctx, oaknut::Label& load_ctx) {
+void Patcher::WriteSvcTrampoline(ModuleDestLabel module_dest, u32 svc_id, oaknut::VectorCodeGenerator& cg, oaknut::Label& save_ctx, oaknut::Label& load_ctx) {
     // Determine if we're writing to the pre-patch buffer
-    const bool is_pre = (&c == &c_pre);
+    const bool is_pre = (&cg == &c_pre);
 
     // We are about to start saving state, so we need to lock the context.
-    this->LockContext(c);
+    this->LockContext(cg);
 
     // Store guest X30 to the stack. Then, save the context and restore the stack.
     // This will save all registers except PC, but we know PC at patch time.
-    c.STR(X30, SP, PRE_INDEXED, -16);
-    c.BL(save_ctx);
-    c.LDR(X30, SP, POST_INDEXED, 16);
+    cg.STR(X30, SP, PRE_INDEXED, -16);
+    cg.BL(save_ctx);
+    cg.LDR(X30, SP, POST_INDEXED, 16);
 
     // Now that we've saved all registers, we can use any registers as scratch.
     // Store PC + 4 to arm interface, since we know the instruction offset from the entry point.
     oaknut::Label pc_after_svc;
-    c.MRS(X1, oaknut::SystemReg::TPIDR_EL0);
-    c.LDR(X1, X1, offsetof(NativeExecutionParameters, native_context));
-    c.LDR(X2, pc_after_svc);
-    c.STR(X2, X1, offsetof(GuestContext, pc));
+    cg.MRS(X1, oaknut::SystemReg::TPIDR_EL0);
+    cg.LDR(X1, X1, offsetof(NativeExecutionParameters, native_context));
+    cg.LDR(X2, pc_after_svc);
+    cg.STR(X2, X1, offsetof(GuestContext, pc));
 
     // Store SVC number to execute when we return
-    c.MOV(X2, svc_id);
-    c.STR(W2, X1, offsetof(GuestContext, svc));
+    cg.MOV(X2, svc_id);
+    cg.STR(W2, X1, offsetof(GuestContext, svc));
 
     // We are calling a SVC. Clear esr_el1 and return it.
     static_assert(std::is_same_v<std::underlying_type_t<HaltReason>, u64>);
     oaknut::Label retry;
-    c.ADD(X2, X1, offsetof(GuestContext, esr_el1));
-    c.l(retry);
-    c.LDAXR(X0, X2);
-    c.STLXR(W3, XZR, X2);
-    c.CBNZ(W3, retry);
+    cg.ADD(X2, X1, offsetof(GuestContext, esr_el1));
+    cg.l(retry);
+    cg.LDAXR(X0, X2);
+    cg.STLXR(W3, XZR, X2);
+    cg.CBNZ(W3, retry);
 
     // Add "calling SVC" flag. Since this is X0, this is now our return value.
-    c.ORR(X0, X0, static_cast<u64>(HaltReason::SupervisorCall));
+    cg.ORR(X0, X0, static_cast<u64>(HaltReason::SupervisorCall));
 
     // Offset the GuestContext pointer to the HostContext member.
     // STP has limited range of [-512, 504] which we can't reach otherwise
     // NB: Due to this all offsets below are from the start of HostContext.
-    c.ADD(X1, X1, offsetof(GuestContext, host_ctx));
+    cg.ADD(X1, X1, offsetof(GuestContext, host_ctx));
 
     // Reload host TPIDR_EL0 and SP.
     static_assert(offsetof(HostContext, host_sp) + 8 == offsetof(HostContext, host_tpidr_el0));
-    c.LDP(X2, X3, X1, offsetof(HostContext, host_sp));
-    c.MOV(SP, X2);
-    c.MSR(oaknut::SystemReg::TPIDR_EL0, X3);
+    cg.LDP(X2, X3, X1, offsetof(HostContext, host_sp));
+    cg.MOV(SP, X2);
+    cg.MSR(oaknut::SystemReg::TPIDR_EL0, X3);
 
     // Load callee-saved host registers and return to host.
     static constexpr size_t HOST_REGS_OFF = offsetof(HostContext, host_saved_regs);
     static constexpr size_t HOST_VREGS_OFF = offsetof(HostContext, host_saved_vregs);
-    c.LDP(X19, X20, X1, HOST_REGS_OFF);
-    c.LDP(X21, X22, X1, HOST_REGS_OFF + 2 * sizeof(u64));
-    c.LDP(X23, X24, X1, HOST_REGS_OFF + 4 * sizeof(u64));
-    c.LDP(X25, X26, X1, HOST_REGS_OFF + 6 * sizeof(u64));
-    c.LDP(X27, X28, X1, HOST_REGS_OFF + 8 * sizeof(u64));
-    c.LDP(X29, X30, X1, HOST_REGS_OFF + 10 * sizeof(u64));
-    c.LDP(Q8, Q9, X1, HOST_VREGS_OFF);
-    c.LDP(Q10, Q11, X1, HOST_VREGS_OFF + 2 * sizeof(u128));
-    c.LDP(Q12, Q13, X1, HOST_VREGS_OFF + 4 * sizeof(u128));
-    c.LDP(Q14, Q15, X1, HOST_VREGS_OFF + 6 * sizeof(u128));
-    c.RET();
+    cg.LDP(X19, X20, X1, HOST_REGS_OFF);
+    cg.LDP(X21, X22, X1, HOST_REGS_OFF + 2 * sizeof(u64));
+    cg.LDP(X23, X24, X1, HOST_REGS_OFF + 4 * sizeof(u64));
+    cg.LDP(X25, X26, X1, HOST_REGS_OFF + 6 * sizeof(u64));
+    cg.LDP(X27, X28, X1, HOST_REGS_OFF + 8 * sizeof(u64));
+    cg.LDP(X29, X30, X1, HOST_REGS_OFF + 10 * sizeof(u64));
+    cg.LDP(Q8, Q9, X1, HOST_VREGS_OFF);
+    cg.LDP(Q10, Q11, X1, HOST_VREGS_OFF + 2 * sizeof(u128));
+    cg.LDP(Q12, Q13, X1, HOST_VREGS_OFF + 4 * sizeof(u128));
+    cg.LDP(Q14, Q15, X1, HOST_VREGS_OFF + 6 * sizeof(u128));
+    cg.RET();
 
     // Write the post-SVC trampoline address, which will jump back to the guest after restoring its
     // state.
     if (is_pre) {
-        curr_patch->m_trampolines_pre.push_back({c.offset(), module_dest});
+        curr_patch->m_trampolines_pre.push_back({cg.offset(), module_dest});
     } else {
-        curr_patch->m_trampolines.push_back({c.offset(), module_dest});
+        curr_patch->m_trampolines.push_back({cg.offset(), module_dest});
     }
 
     // Host called this location. Save the return address so we can
     // unwind the stack properly when jumping back.
-    c.MRS(X2, oaknut::SystemReg::TPIDR_EL0);
-    c.LDR(X2, X2, offsetof(NativeExecutionParameters, native_context));
-    c.ADD(X0, X2, offsetof(GuestContext, host_ctx));
-    c.STR(X30, X0, offsetof(HostContext, host_saved_regs) + 11 * sizeof(u64));
+    cg.MRS(X2, oaknut::SystemReg::TPIDR_EL0);
+    cg.LDR(X2, X2, offsetof(NativeExecutionParameters, native_context));
+    cg.ADD(X0, X2, offsetof(GuestContext, host_ctx));
+    cg.STR(X30, X0, offsetof(HostContext, host_saved_regs) + 11 * sizeof(u64));
 
     // Reload all guest registers except X30 and PC.
     // The function also expects 16 bytes of stack already allocated.
-    c.STR(X30, SP, PRE_INDEXED, -16);
-    c.BL(load_ctx);
-    c.LDR(X30, SP, POST_INDEXED, 16);
+    cg.STR(X30, SP, PRE_INDEXED, -16);
+    cg.BL(load_ctx);
+    cg.LDR(X30, SP, POST_INDEXED, 16);
 
     // Use X1 as a scratch register to restore X30.
-    c.STR(X1, SP, PRE_INDEXED, -16);
-    c.MRS(X1, oaknut::SystemReg::TPIDR_EL0);
-    c.LDR(X1, X1, offsetof(NativeExecutionParameters, native_context));
-    c.LDR(X30, X1, offsetof(GuestContext, cpu_registers) + sizeof(u64) * 30);
-    c.LDR(X1, SP, POST_INDEXED, 16);
+    cg.STR(X1, SP, PRE_INDEXED, -16);
+    cg.MRS(X1, oaknut::SystemReg::TPIDR_EL0);
+    cg.LDR(X1, X1, offsetof(NativeExecutionParameters, native_context));
+    cg.LDR(X30, X1, offsetof(GuestContext, cpu_registers) + sizeof(u64) * 30);
+    cg.LDR(X1, SP, POST_INDEXED, 16);
 
     // Unlock the context.
-    this->UnlockContext(c);
+    this->UnlockContext(cg);
 
     // Jump back to the instruction after the emulated SVC.
-    if (&c == &c_pre)
+    if (&cg == &c_pre)
         this->BranchToModulePre(module_dest);
     else
         this->BranchToModule(module_dest);
 
     // Store PC after call.
-    c.l(pc_after_svc);
-    if (&c == &c_pre)
+    cg.l(pc_after_svc);
+    if (&cg == &c_pre)
         this->WriteModulePcPre(module_dest);
     else
         this->WriteModulePc(module_dest);
 }
 
 void Patcher::WriteMrsHandler(ModuleDestLabel module_dest, oaknut::XReg dest_reg,
-                              oaknut::SystemReg src_reg, oaknut::VectorCodeGenerator& c) {
+                              oaknut::SystemReg src_reg, oaknut::VectorCodeGenerator& cg) {
     // Retrieve emulated TLS register from GuestContext.
-    c.MRS(dest_reg, oaknut::SystemReg::TPIDR_EL0);
+    cg.MRS(dest_reg, oaknut::SystemReg::TPIDR_EL0);
     if (src_reg == oaknut::SystemReg::TPIDRRO_EL0) {
-        c.LDR(dest_reg, dest_reg, offsetof(NativeExecutionParameters, tpidrro_el0));
+        cg.LDR(dest_reg, dest_reg, offsetof(NativeExecutionParameters, tpidrro_el0));
     } else {
-        c.LDR(dest_reg, dest_reg, offsetof(NativeExecutionParameters, tpidr_el0));
+        cg.LDR(dest_reg, dest_reg, offsetof(NativeExecutionParameters, tpidr_el0));
     }
 
     // Jump back to the instruction after the emulated MRS.
-    if (&c == &c_pre)
+    if (&cg == &c_pre)
         this->BranchToModulePre(module_dest);
     else
         this->BranchToModule(module_dest);
 }
 
-void Patcher::WriteMsrHandler(ModuleDestLabel module_dest, oaknut::XReg src_reg, oaknut::VectorCodeGenerator& c) {
+void Patcher::WriteMsrHandler(ModuleDestLabel module_dest, oaknut::XReg src_reg, oaknut::VectorCodeGenerator& cg) {
     const auto scratch_reg = src_reg.index() == 0 ? X1 : X0;
-    c.STR(scratch_reg, SP, PRE_INDEXED, -16);
+    cg.STR(scratch_reg, SP, PRE_INDEXED, -16);
 
     // Save guest value to NativeExecutionParameters::tpidr_el0.
-    c.MRS(scratch_reg, oaknut::SystemReg::TPIDR_EL0);
-    c.STR(src_reg, scratch_reg, offsetof(NativeExecutionParameters, tpidr_el0));
+    cg.MRS(scratch_reg, oaknut::SystemReg::TPIDR_EL0);
+    cg.STR(src_reg, scratch_reg, offsetof(NativeExecutionParameters, tpidr_el0));
 
     // Restore scratch register.
-    c.LDR(scratch_reg, SP, POST_INDEXED, 16);
+    cg.LDR(scratch_reg, SP, POST_INDEXED, 16);
 
     // Jump back to the instruction after the emulated MSR.
-    if (&c == &c_pre)
+    if (&cg == &c_pre)
         this->BranchToModulePre(module_dest);
     else
         this->BranchToModule(module_dest);
 }
 
-void Patcher::WriteCntpctHandler(ModuleDestLabel module_dest, oaknut::XReg dest_reg, oaknut::VectorCodeGenerator& c) {
+void Patcher::WriteCntpctHandler(ModuleDestLabel module_dest, oaknut::XReg dest_reg, oaknut::VectorCodeGenerator& cg) {
     static Common::Arm64::NativeClock clock{};
     const auto factor = clock.GetGuestCNTFRQFactor();
     const auto raw_factor = std::bit_cast<std::array<u64, 2>>(factor);
@@ -620,83 +616,83 @@ void Patcher::WriteCntpctHandler(ModuleDestLabel module_dest, oaknut::XReg dest_
     oaknut::Label factorhi;
 
     // Save scratches.
-    c.STP(scratch0, scratch1, SP, PRE_INDEXED, -16);
+    cg.STP(scratch0, scratch1, SP, PRE_INDEXED, -16);
 
     // Load counter value.
-    c.MRS(dest_reg, oaknut::SystemReg::CNTVCT_EL0);
+    cg.MRS(dest_reg, oaknut::SystemReg::CNTVCT_EL0);
 
     // Load scaling factor.
-    c.LDR(scratch0, factorlo);
-    c.LDR(scratch1, factorhi);
+    cg.LDR(scratch0, factorlo);
+    cg.LDR(scratch1, factorhi);
 
     // Multiply low bits and get result.
-    c.UMULH(scratch0, dest_reg, scratch0);
+    cg.UMULH(scratch0, dest_reg, scratch0);
 
     // Multiply high bits and add low bit result.
-    c.MADD(dest_reg, dest_reg, scratch1, scratch0);
+    cg.MADD(dest_reg, dest_reg, scratch1, scratch0);
 
     // Reload scratches.
-    c.LDP(scratch0, scratch1, SP, POST_INDEXED, 16);
+    cg.LDP(scratch0, scratch1, SP, POST_INDEXED, 16);
 
     // Jump back to the instruction after the emulated MRS.
-    if (&c == &c_pre)
+    if (&cg == &c_pre)
         this->BranchToModulePre(module_dest);
     else
         this->BranchToModule(module_dest);
 
     // Scaling factor constant values.
-    c.l(factorlo);
-    c.dx(raw_factor[0]);
-    c.l(factorhi);
-    c.dx(raw_factor[1]);
+    cg.l(factorlo);
+    cg.dx(raw_factor[0]);
+    cg.l(factorhi);
+    cg.dx(raw_factor[1]);
 }
 
-void Patcher::LockContext(oaknut::VectorCodeGenerator& c) {
+void Patcher::LockContext(oaknut::VectorCodeGenerator& cg) {
     oaknut::Label retry;
 
     // Save scratches.
-    c.STP(X0, X1, SP, PRE_INDEXED, -16);
+    cg.STP(X0, X1, SP, PRE_INDEXED, -16);
 
     // Reload lock pointer.
-    c.l(retry);
-    c.CLREX();
-    c.MRS(X0, oaknut::SystemReg::TPIDR_EL0);
-    c.ADD(X0, X0, offsetof(NativeExecutionParameters, lock));
+    cg.l(retry);
+    cg.CLREX();
+    cg.MRS(X0, oaknut::SystemReg::TPIDR_EL0);
+    cg.ADD(X0, X0, offsetof(NativeExecutionParameters, lock));
 
     static_assert(SpinLockLocked == 0);
 
     // Load-linked with acquire ordering.
-    c.LDAXR(W1, X0);
+    cg.LDAXR(W1, X0);
 
     // If the value was SpinLockLocked, clear monitor and retry.
-    c.CBZ(W1, retry);
+    cg.CBZ(W1, retry);
 
     // Store-conditional SpinLockLocked with relaxed ordering.
-    c.STXR(W1, WZR, X0);
+    cg.STXR(W1, WZR, X0);
 
     // If we failed to store, retry.
-    c.CBNZ(W1, retry);
+    cg.CBNZ(W1, retry);
 
     // We succeeded! Reload scratches.
-    c.LDP(X0, X1, SP, POST_INDEXED, 16);
+    cg.LDP(X0, X1, SP, POST_INDEXED, 16);
 }
 
-void Patcher::UnlockContext(oaknut::VectorCodeGenerator& c) {
+void Patcher::UnlockContext(oaknut::VectorCodeGenerator& cg) {
     // Save scratches.
-    c.STP(X0, X1, SP, PRE_INDEXED, -16);
+    cg.STP(X0, X1, SP, PRE_INDEXED, -16);
 
     // Load lock pointer.
-    c.MRS(X0, oaknut::SystemReg::TPIDR_EL0);
-    c.ADD(X0, X0, offsetof(NativeExecutionParameters, lock));
+    cg.MRS(X0, oaknut::SystemReg::TPIDR_EL0);
+    cg.ADD(X0, X0, offsetof(NativeExecutionParameters, lock));
 
     // Load SpinLockUnlocked.
-    c.MOV(W1, SpinLockUnlocked);
+    cg.MOV(W1, SpinLockUnlocked);
 
     // Store value with release ordering.
-    c.STLR(W1, X0);
+    cg.STLR(W1, X0);
 
     // Load scratches.
-    c.LDP(X0, X1, SP, POST_INDEXED, 16);
+    cg.LDP(X0, X1, SP, POST_INDEXED, 16);
 }
 
 } // namespace Core::NCE
