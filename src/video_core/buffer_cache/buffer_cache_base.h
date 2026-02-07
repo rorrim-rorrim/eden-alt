@@ -21,6 +21,7 @@
 #include "common/div_ceil.h"
 #include "common/literals.h"
 #include "common/lru_cache.h"
+#include "common/page_bitset_range_set.h"
 #include "common/range_sets.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
@@ -474,7 +475,7 @@ private:
 
     MemoryTracker memory_tracker;
     Common::RangeSet<DAddr> uncommitted_gpu_modified_ranges;
-    Common::RangeSet<DAddr> gpu_modified_ranges;
+    Common::PageBitsetRangeSet<DAddr, CACHING_PAGEBITS, (1ULL << 34)> gpu_modified_ranges;
     std::deque<Common::RangeSet<DAddr>> committed_gpu_modified_ranges;
 
     // Async Buffers
