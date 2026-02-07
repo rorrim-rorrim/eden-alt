@@ -265,8 +265,9 @@ PollEvents Translate(Network::PollEvents flags) {
 }
 
 Network::SockAddrIn Translate(SockAddrIn value) {
-    if (value.len != 0 && value.len != sizeof(value) && value.len != 6) {
-        LOG_WARNING(Service, "Unexpected SockAddrIn len={}, expected 0, {}, or 6",
+    if (value.len != 0 && value.len != sizeof(value) && value.len != 6 &&
+        value.len < sizeof(value)) {
+        LOG_WARNING(Service, "Unexpected SockAddrIn len={}, expected 0, {}, 6, or larger",
                     value.len, sizeof(value));
     }
 
