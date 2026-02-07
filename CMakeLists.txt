@@ -577,7 +577,7 @@ add_subdirectory(externals)
 find_package(enet)
 find_package(MbedTLS)
 find_package(unordered_dense REQUIRED)
-set(ordered_dense_FORCE_BUNDLED true)
+set(unordered_dense_FORCE_BUNDLED true)
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     find_package(xbyak)
