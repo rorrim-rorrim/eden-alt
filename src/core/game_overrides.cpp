@@ -516,7 +516,25 @@ s.setting.SetValue(new_value); \
     }
 
     std::optional<std::uint32_t> GetOverridesFileVersion() {
-        // later used for/if download check override version
+        const auto path = GetOverridesPath();
+        std::ifstream file(path);
+        if (!file.is_open()) {
+            return std::nullopt;
+        }
+
+        std::string line;
+        if (std::getline(file, line)) {
+            line = Trim(line);
+            if (line.starts_with(kVersionPrefix)) {
+                const auto version_str = line.substr(std::strlen(kVersionPrefix));
+                std::uint32_t version = 0;
+                auto [ptr, ec] = std::from_chars(version_str.data(),
+                                                  version_str.data() + version_str.size(), version);
+                if (ec == std::errc{}) {
+                    return version;
+                }
+            }
+        }
         return std::nullopt;
     }
 

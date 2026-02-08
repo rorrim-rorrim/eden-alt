@@ -447,6 +447,11 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            enable_global_overrides,
            tr("Enable global game overrides"),
            tr("When enabled, per-game settings from the global overrides.ini file will be applied."));
+    INSERT(UISettings,
+           auto_update_overrides,
+           tr("Auto-update game overrides"),
+           tr("Automatically download the latest game overrides list from GitHub on startup."));
+    INSERT(UISettings, overrides_consent_given, QString(), QString());
 
     // Linux
     INSERT(UISettings, enable_gamemode, tr("Enable Gamemode"), QString());

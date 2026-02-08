@@ -45,6 +45,8 @@
 #include "configuration/configure_per_game.h"
 #include "configuration/configure_tas.h"
 
+#include "overrides_updater.h"
+
 #include "util/clickable_label.h"
 #include "util/overlay_dialog.h"
 #include "util/controller_navigation.h"
@@ -547,6 +549,13 @@ MainWindow::MainWindow(bool has_broken_vulkan)
         update_watcher.setFuture(update_future);
     }
 #endif
+
+    // Check for game overrides updates
+    auto* overrides_updater = new OverridesUpdater(this);
+    connect(overrides_updater, &OverridesUpdater::ConfigChanged, this, [this]() {
+        config->SaveAllValues();
+    });
+    overrides_updater->CheckAndUpdate();
 
     QtCommon::system->SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
     QtCommon::system->RegisterContentProvider(FileSys::ContentProviderUnionSlot::FrontendManual,
