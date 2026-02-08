@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <cstring>
 #include <iostream>
 #include <span>
 
@@ -308,6 +309,37 @@ void GraphicsPipeline::AddTransition(GraphicsPipeline* transition) {
     transitions.push_back(transition);
 }
 
+bool GraphicsPipeline::UpdateDescriptorDirtyMask(const DescriptorUpdateEntry* data, size_t count) {
+    if (count == 0) {
+        descriptor_dirty_mask.clear();
+        last_descriptor_data.clear();
+        last_descriptor_count = 0;
+        return false;
+    }
+    const size_t word_count = (count + 63) / 64;
+    descriptor_dirty_mask.assign(word_count, 0);
+
+    if (last_descriptor_count != count || last_descriptor_data.size() != count) {
+        last_descriptor_data.assign(data, data + count);
+        last_descriptor_count = count;
+        std::fill(descriptor_dirty_mask.begin(), descriptor_dirty_mask.end(), ~0ULL);
+        if ((count % 64) != 0) {
+            descriptor_dirty_mask.back() = (1ULL << (count % 64)) - 1;
+        }
+        return true;
+    }
+
+    bool any_dirty = false;
+    for (size_t i = 0; i < count; ++i) {
+        if (std::memcmp(&last_descriptor_data[i], &data[i], sizeof(DescriptorUpdateEntry)) != 0) {
+            last_descriptor_data[i] = data[i];
+            descriptor_dirty_mask[i / 64] |= (1ULL << (i % 64));
+            any_dirty = true;
+        }
+    }
+    return any_dirty;
+}
+
 template <typename Spec>
 bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     std::array<VideoCommon::ImageViewInOut, MAX_IMAGE_ELEMENTS> views;
@@ -524,9 +556,22 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
         GPU::Logging::GPULogger::GetInstance().LogPipelineBind(false, pipeline_info);
     }
 
-    const void* const descriptor_data{guest_descriptor_queue.UpdateData()};
+    const DescriptorUpdateEntry* const descriptor_data{guest_descriptor_queue.UpdateData()};
+    const size_t descriptor_count = guest_descriptor_queue.UpdateCount();
+    const bool has_descriptor_layout = descriptor_set_layout != nullptr;
+    const bool descriptors_dirty = has_descriptor_layout &&
+                                   UpdateDescriptorDirtyMask(descriptor_data, descriptor_count);
+    VkDescriptorSet descriptor_set = last_descriptor_set;
+    if (has_descriptor_layout && !uses_push_descriptor) {
+        if (descriptors_dirty || descriptor_set == VK_NULL_HANDLE) {
+            descriptor_set = descriptor_allocator.Commit();
+            const vk::Device& dev{device.GetLogical()};
+            dev.UpdateDescriptorSet(descriptor_set, *descriptor_update_template, descriptor_data);
+            last_descriptor_set = descriptor_set;
+        }
+    }
     scheduler.Record([this, descriptor_data, bind_pipeline, rescaling_data = rescaling.Data(),
-                      is_rescaling, update_rescaling,
+                      is_rescaling, update_rescaling, descriptors_dirty, descriptor_set,
                       uses_render_area = render_area.uses_render_area,
                       render_area_data = render_area.words](vk::CommandBuffer cmdbuf) {
         if (bind_pipeline) {
@@ -551,12 +596,12 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
             return;
         }
         if (uses_push_descriptor) {
+            if (!descriptors_dirty) {
+                return;
+            }
             cmdbuf.PushDescriptorSetWithTemplateKHR(*descriptor_update_template, *pipeline_layout,
                                                     0, descriptor_data);
         } else {
-            const VkDescriptorSet descriptor_set{descriptor_allocator.Commit()};
-            const vk::Device& dev{device.GetLogical()};
-            dev.UpdateDescriptorSet(descriptor_set, *descriptor_update_template, descriptor_data);
             cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline_layout, 0,
                                       descriptor_set, nullptr);
         }

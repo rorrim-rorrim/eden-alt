@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -12,6 +12,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <type_traits>
+#include <vector>
 
 #include "common/thread_worker.h"
 #include "shader_recompiler/shader_info.h"
@@ -20,6 +21,7 @@
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
+#include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace VideoCore {
@@ -167,6 +169,13 @@ private:
     vk::PipelineLayout pipeline_layout;
     vk::DescriptorUpdateTemplate descriptor_update_template;
     vk::Pipeline pipeline;
+
+    bool UpdateDescriptorDirtyMask(const DescriptorUpdateEntry* data, size_t count);
+
+    std::vector<DescriptorUpdateEntry> last_descriptor_data;
+    std::vector<u64> descriptor_dirty_mask;
+    size_t last_descriptor_count{};
+    VkDescriptorSet last_descriptor_set{VK_NULL_HANDLE};
 
     std::condition_variable build_condvar;
     std::mutex build_mutex;
