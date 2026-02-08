@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -47,32 +50,44 @@ public:
         return upload_start;
     }
 
+    size_t UpdateCount() const noexcept {
+        return static_cast<size_t>(payload_cursor - upload_start);
+    }
+
     void AddSampledImage(VkImageView image_view, VkSampler sampler) {
-        *(payload_cursor++) = VkDescriptorImageInfo{
+        DescriptorUpdateEntry entry{};
+        entry.image = VkDescriptorImageInfo{
             .sampler = sampler,
             .imageView = image_view,
             .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
         };
+        *(payload_cursor++) = entry;
     }
 
     void AddImage(VkImageView image_view) {
-        *(payload_cursor++) = VkDescriptorImageInfo{
+        DescriptorUpdateEntry entry{};
+        entry.image = VkDescriptorImageInfo{
             .sampler = VK_NULL_HANDLE,
             .imageView = image_view,
             .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
         };
+        *(payload_cursor++) = entry;
     }
 
     void AddBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize size) {
-        *(payload_cursor++) = VkDescriptorBufferInfo{
+        DescriptorUpdateEntry entry{};
+        entry.buffer = VkDescriptorBufferInfo{
             .buffer = buffer,
             .offset = offset,
             .range = size,
         };
+        *(payload_cursor++) = entry;
     }
 
     void AddTexelBuffer(VkBufferView texel_buffer) {
-        *(payload_cursor++) = texel_buffer;
+        DescriptorUpdateEntry entry{};
+        entry.texel_buffer = texel_buffer;
+        *(payload_cursor++) = entry;
     }
 
 private:
