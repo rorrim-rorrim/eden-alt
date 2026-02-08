@@ -558,7 +558,7 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
 
     const DescriptorUpdateEntry* const descriptor_data{guest_descriptor_queue.UpdateData()};
     const size_t descriptor_count = guest_descriptor_queue.UpdateCount();
-    const bool has_descriptor_layout = descriptor_set_layout != nullptr;
+    const bool has_descriptor_layout = static_cast<bool>(descriptor_set_layout);
     const bool descriptors_dirty = has_descriptor_layout &&
                                    UpdateDescriptorDirtyMask(descriptor_data, descriptor_count);
     VkDescriptorSet descriptor_set = last_descriptor_set;
