@@ -87,7 +87,10 @@ if (NOT APPLE AND ENABLE_OPENGL)
 endif()
 
 if (UNIX AND NOT APPLE)
-    if (DEFINED Qt6Gui_PRIVATE_INCLUDE_DIRS)
+    if (PLATFORM_NETBSD)
+        # QtGui6 has improper pkg-config configuration under NetBSD
+        target_include_directories(qt_common PRIVATE "${CMAKE_SYSROOT}/usr/pkg/qt6/include/QtGui/6.10.1/QtGui")
+    elseif (DEFINED Qt6Gui_PRIVATE_INCLUDE_DIRS)
         target_include_directories(qt_common PRIVATE ${Qt6Gui_PRIVATE_INCLUDE_DIRS})
     else()
         target_link_libraries(qt_common PRIVATE Qt6::GuiPrivate)
