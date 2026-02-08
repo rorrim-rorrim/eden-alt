@@ -150,8 +150,11 @@ enum class ImageFormat : u32 {
     R16_UINT,
     R16_SINT,
     R32_UINT,
+    R32_SINT,
     R32G32_UINT,
+    R32G32_SINT,
     R32G32B32A32_UINT,
+    R32G32B32A32_SINT,
 };
 
 enum class Interpolation {
@@ -178,6 +181,8 @@ struct StorageBufferDescriptor {
 
 struct TextureBufferDescriptor {
     bool has_secondary;
+    bool is_integer;  // True if data is SINT/UINT (from R_type in TIC), false if FLOAT
+    bool is_signed;   // True if integer data is signed
     u32 cbuf_index;
     u32 cbuf_offset;
     u32 shift_left;
@@ -196,6 +201,7 @@ struct ImageBufferDescriptor {
     bool is_written;
     bool is_read;
     bool is_integer;
+    bool is_signed;
     u32 cbuf_index;
     u32 cbuf_offset;
     u32 count;
@@ -229,6 +235,7 @@ struct ImageDescriptor {
     bool is_written;
     bool is_read;
     bool is_integer;
+    bool is_signed;
     u32 cbuf_index;
     u32 cbuf_offset;
     u32 count;

@@ -397,7 +397,8 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                 ImageView& image_view{texture_cache.GetImageView(texture_buffer_it->id)};
                 buffer_cache.BindGraphicsTextureBuffer(stage, index, image_view.GpuAddr(),
                                                        image_view.BufferSize(), image_view.format,
-                                                       is_written, is_image);
+                                                       is_written, is_image, desc.is_integer,
+                                                       desc.is_signed);
                 ++index;
                 ++texture_buffer_it;
             }

@@ -177,7 +177,8 @@ void ComputePipeline::Configure() {
             ImageView& image_view{texture_cache.GetImageView(views[texbuf_index].id)};
             buffer_cache.BindComputeTextureBuffer(texbuf_index, image_view.GpuAddr(),
                                                   image_view.BufferSize(), image_view.format,
-                                                  is_written, is_image);
+                                                  is_written, is_image, desc.is_integer,
+                                                  desc.is_signed);
             ++texbuf_index;
         }
     }};

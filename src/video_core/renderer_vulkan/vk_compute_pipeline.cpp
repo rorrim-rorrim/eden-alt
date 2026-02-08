@@ -194,7 +194,8 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
             ImageView& image_view = texture_cache.GetImageView(views[index].id);
             buffer_cache.BindComputeTextureBuffer(index, image_view.GpuAddr(),
                                                   image_view.BufferSize(), image_view.format,
-                                                  is_written, is_image);
+                                                  is_written, is_image, desc.is_integer,
+                                                  desc.is_signed);
             ++index;
         }
     }};

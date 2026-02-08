@@ -206,10 +206,16 @@ std::string_view FormatStorage(ImageFormat format) {
         return "S16";
     case ImageFormat::R32_UINT:
         return "U32";
+    case ImageFormat::R32_SINT:
+        return "S32";
     case ImageFormat::R32G32_UINT:
         return "U32X2";
+    case ImageFormat::R32G32_SINT:
+        return "S32X2";
     case ImageFormat::R32G32B32A32_UINT:
         return "U32X4";
+    case ImageFormat::R32G32B32A32_SINT:
+        return "S32X4";
     }
     throw InvalidArgument("Invalid image format {}", format);
 }

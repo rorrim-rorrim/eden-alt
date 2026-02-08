@@ -458,14 +458,14 @@ void BufferCache<P>::UnbindGraphicsTextureBuffers(size_t stage) {
 template <class P>
 void BufferCache<P>::BindGraphicsTextureBuffer(size_t stage, size_t tbo_index, GPUVAddr gpu_addr,
                                                u32 size, PixelFormat format, bool is_written,
-                                               bool is_image) {
+                                               bool is_image, bool is_integer, bool is_signed) {
     channel_state->enabled_texture_buffers[stage] |= 1U << tbo_index;
     channel_state->written_texture_buffers[stage] |= (is_written ? 1U : 0U) << tbo_index;
     if constexpr (SEPARATE_IMAGE_BUFFERS_BINDINGS) {
         channel_state->image_texture_buffers[stage] |= (is_image ? 1U : 0U) << tbo_index;
     }
     channel_state->texture_buffers[stage][tbo_index] =
-        GetTextureBufferBinding(gpu_addr, size, format);
+        GetTextureBufferBinding(gpu_addr, size, format, is_integer, is_signed);
 }
 
 template <class P>
@@ -532,7 +532,8 @@ void BufferCache<P>::UnbindComputeTextureBuffers() {
 
 template <class P>
 void BufferCache<P>::BindComputeTextureBuffer(size_t tbo_index, GPUVAddr gpu_addr, u32 size,
-                                              PixelFormat format, bool is_written, bool is_image) {
+                                              PixelFormat format, bool is_written, bool is_image,
+                                              bool is_integer, bool is_signed) {
     if (tbo_index >= channel_state->compute_texture_buffers.size()) [[unlikely]] {
         LOG_ERROR(HW_GPU, "Texture buffer index {} exceeds maximum texture buffer count",
                   tbo_index);
@@ -544,7 +545,7 @@ void BufferCache<P>::BindComputeTextureBuffer(size_t tbo_index, GPUVAddr gpu_add
         channel_state->image_compute_texture_buffers |= (is_image ? 1U : 0U) << tbo_index;
     }
     channel_state->compute_texture_buffers[tbo_index] =
-        GetTextureBufferBinding(gpu_addr, size, format);
+        GetTextureBufferBinding(gpu_addr, size, format, is_integer, is_signed);
 }
 
 template <class P>
@@ -955,15 +956,17 @@ void BufferCache<P>::BindHostGraphicsTextureBuffers(size_t stage) {
 
         const u32 offset = buffer.Offset(binding.device_addr);
         const PixelFormat format = binding.format;
+        const bool is_integer = binding.is_integer;
+        const bool is_signed = binding.is_signed;
         buffer.MarkUsage(offset, size);
         if constexpr (SEPARATE_IMAGE_BUFFERS_BINDINGS) {
             if (((channel_state->image_texture_buffers[stage] >> index) & 1) != 0) {
                 runtime.BindImageBuffer(buffer, offset, size, format);
             } else {
-                runtime.BindTextureBuffer(buffer, offset, size, format);
+                runtime.BindTextureBuffer(buffer, offset, size, format, is_integer, is_signed);
             }
         } else {
-            runtime.BindTextureBuffer(buffer, offset, size, format);
+            runtime.BindTextureBuffer(buffer, offset, size, format, is_integer, is_signed);
         }
     });
 }
@@ -1090,15 +1093,17 @@ void BufferCache<P>::BindHostComputeTextureBuffers() {
 
         const u32 offset = buffer.Offset(binding.device_addr);
         const PixelFormat format = binding.format;
+        const bool is_integer = binding.is_integer;
+        const bool is_signed = binding.is_signed;
         buffer.MarkUsage(offset, size);
         if constexpr (SEPARATE_IMAGE_BUFFERS_BINDINGS) {
             if (((channel_state->image_compute_texture_buffers >> index) & 1) != 0) {
                 runtime.BindImageBuffer(buffer, offset, size, format);
             } else {
-                runtime.BindTextureBuffer(buffer, offset, size, format);
+                runtime.BindTextureBuffer(buffer, offset, size, format, is_integer, is_signed);
             }
         } else {
-            runtime.BindTextureBuffer(buffer, offset, size, format);
+            runtime.BindTextureBuffer(buffer, offset, size, format, is_integer, is_signed);
         }
     });
 }
@@ -1833,7 +1838,8 @@ Binding BufferCache<P>::StorageBufferBinding(GPUVAddr ssbo_addr, u32 cbuf_index,
 
 template <class P>
 TextureBufferBinding BufferCache<P>::GetTextureBufferBinding(GPUVAddr gpu_addr, u32 size,
-                                                             PixelFormat format) {
+                                                             PixelFormat format, bool is_integer,
+                                                             bool is_signed) {
     const std::optional<DAddr> device_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
     TextureBufferBinding binding;
     if (!device_addr || size == 0) {
@@ -1841,11 +1847,15 @@ TextureBufferBinding BufferCache<P>::GetTextureBufferBinding(GPUVAddr gpu_addr, 
         binding.size = 0;
         binding.buffer_id = NULL_BUFFER_ID;
         binding.format = PixelFormat::Invalid;
+        binding.is_integer = false;
+        binding.is_signed = false;
     } else {
         binding.device_addr = *device_addr;
         binding.size = size;
         binding.buffer_id = BufferId{};
         binding.format = format;
+        binding.is_integer = is_integer;
+        binding.is_signed = is_signed;
     }
     return binding;
 }

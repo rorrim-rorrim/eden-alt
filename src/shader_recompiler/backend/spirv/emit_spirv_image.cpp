@@ -205,7 +205,7 @@ Id TextureImage(EmitContext& ctx, IR::TextureInstInfo info, const IR::Value& ind
         if (def.count > 1) {
             throw NotImplementedException("Indirect texture sample");
         }
-        return ctx.OpLoad(ctx.image_buffer_type, def.id);
+        return ctx.OpLoad(def.image_type, def.id);
     } else {
         const TextureDefinition& def{ctx.textures.at(info.descriptor_index)};
         if (def.count > 1) {
@@ -215,16 +215,22 @@ Id TextureImage(EmitContext& ctx, IR::TextureInstInfo info, const IR::Value& ind
     }
 }
 
-std::pair<Id, bool> Image(EmitContext& ctx, const IR::Value& index, IR::TextureInstInfo info) {
+struct ImageInfo {
+    Id image;
+    bool is_integer;
+    bool is_signed;
+};
+
+ImageInfo Image(EmitContext& ctx, const IR::Value& index, IR::TextureInstInfo info) {
     if (!index.IsImmediate() || index.U32() != 0) {
         throw NotImplementedException("Indirect image indexing");
     }
     if (info.type == TextureType::Buffer) {
         const ImageBufferDefinition def{ctx.image_buffers.at(info.descriptor_index)};
-        return {ctx.OpLoad(def.image_type, def.id), def.is_integer};
+        return {ctx.OpLoad(def.image_type, def.id), def.is_integer, def.is_signed};
     } else {
         const ImageDefinition def{ctx.images.at(info.descriptor_index)};
-        return {ctx.OpLoad(def.image_type, def.id), def.is_integer};
+        return {ctx.OpLoad(def.image_type, def.id), def.is_integer, def.is_signed};
     }
 }
 
@@ -550,8 +556,25 @@ Id EmitImageFetch(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id c
         lod = Id{};
     }
     const ImageOperands operands(lod, ms);
-    return Emit(&EmitContext::OpImageSparseFetch, &EmitContext::OpImageFetch, ctx, inst, ctx.F32[4],
-                TextureImage(ctx, info, index), coords, operands.MaskOptional(), operands.Span());
+    bool is_integer = false;
+    bool is_signed = false;
+    Id result_type{ctx.F32[4]};
+    if (info.type == TextureType::Buffer) {
+        const TextureBufferDefinition& def{ctx.texture_buffers.at(info.descriptor_index)};
+        is_integer = def.is_integer;
+        is_signed = def.is_signed;
+        if (is_integer) {
+            result_type = is_signed ? ctx.S32[4] : ctx.U32[4];
+        }
+    }
+    Id fetched = Emit(&EmitContext::OpImageSparseFetch, &EmitContext::OpImageFetch, ctx, inst,
+                      result_type, TextureImage(ctx, info, index), coords,
+                      operands.MaskOptional(), operands.Span());
+    if (is_integer) {
+        // IR expects F32x4 from ImageFetch; bitcast integer results to float vector.
+        fetched = ctx.OpBitcast(ctx.F32[4], fetched);
+    }
+    return fetched;
 }
 
 Id EmitImageQueryDimensions(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id lod,
@@ -612,11 +635,13 @@ Id EmitImageRead(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id co
         LOG_WARNING(Shader_SPIRV, "Typeless image read not supported by host");
         return ctx.ConstantNull(ctx.U32[4]);
     }
-    const auto [image, is_integer] = Image(ctx, index, info);
-    const Id result_type{is_integer ? ctx.U32[4] : ctx.F32[4]};
+    const auto [image, is_integer, is_signed] = Image(ctx, index, info);
+    const Id result_type{is_integer ? (is_signed ? ctx.S32[4] : ctx.U32[4]) : ctx.F32[4]};
     Id color{Emit(&EmitContext::OpImageSparseRead, &EmitContext::OpImageRead, ctx, inst,
                   result_type, image, coords, std::nullopt, std::span<const Id>{})};
     if (!is_integer) {
+        color = ctx.OpBitcast(ctx.U32[4], color);
+    } else if (is_signed) {
         color = ctx.OpBitcast(ctx.U32[4], color);
     }
     return color;
@@ -624,9 +649,11 @@ Id EmitImageRead(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id co
 
 void EmitImageWrite(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords, Id color) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
-    const auto [image, is_integer] = Image(ctx, index, info);
+    const auto [image, is_integer, is_signed] = Image(ctx, index, info);
     if (!is_integer) {
         color = ctx.OpBitcast(ctx.F32[4], color);
+    } else if (is_signed) {
+        color = ctx.OpBitcast(ctx.S32[4], color);
     }
     ctx.OpImageWrite(image, coords, color);
 }

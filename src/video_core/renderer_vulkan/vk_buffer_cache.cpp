@@ -84,6 +84,7 @@ vk::Buffer CreateBuffer(const Device& device, const MemoryAllocator& memory_allo
 
 Buffer::Buffer(BufferCacheRuntime& runtime, VideoCommon::NullBufferParams null_params)
     : VideoCommon::BufferBase(null_params), tracker{4096} {
+    : VideoCommon::BufferBase(null_params), tracker{4096} {
     if (runtime.device.HasNullDescriptor()) {
         return;
     }
@@ -94,13 +95,53 @@ Buffer::Buffer(BufferCacheRuntime& runtime, VideoCommon::NullBufferParams null_p
 
 Buffer::Buffer(BufferCacheRuntime& runtime, DAddr cpu_addr_, u64 size_bytes_)
     : VideoCommon::BufferBase(cpu_addr_, size_bytes_), device{&runtime.device},
+    : VideoCommon::BufferBase(cpu_addr_, size_bytes_), device{&runtime.device},
       buffer{CreateBuffer(*device, runtime.memory_allocator, SizeBytes())}, tracker{SizeBytes()} {
     if (runtime.device.HasDebuggingToolAttached()) {
         buffer.SetObjectNameEXT(fmt::format("Buffer 0x{:x}", CpuAddr()).c_str());
     }
 }
 
-VkBufferView Buffer::View(u32 offset, u32 size, VideoCore::Surface::PixelFormat format) {
+VkFormat SelectTexelBufferFormat(VkFormat float_format, bool is_integer, bool is_signed) {
+    // If the buffer stores integer data but Vulkan reports float format,
+    // we need to map to appropriate integer formats for type compatibility
+    if (!is_integer) {
+        // Non-integer buffer, use the original float format
+        return float_format;
+    }
+
+    // Integer buffer: map float formats to signed/unsigned equivalents
+    if (is_signed) {
+        // Signed integer
+        switch (float_format) {
+        case VK_FORMAT_R32_SFLOAT:
+            return VK_FORMAT_R32_SINT;
+        case VK_FORMAT_R32G32_SFLOAT:
+            return VK_FORMAT_R32G32_SINT;
+        case VK_FORMAT_R32G32B32A32_SFLOAT:
+            return VK_FORMAT_R32G32B32A32_SINT;
+        default:
+            // For non-float formats, use as-is
+            return float_format;
+        }
+    } else {
+        // Unsigned integer
+        switch (float_format) {
+        case VK_FORMAT_R32_SFLOAT:
+            return VK_FORMAT_R32_UINT;
+        case VK_FORMAT_R32G32_SFLOAT:
+            return VK_FORMAT_R32G32_UINT;
+        case VK_FORMAT_R32G32B32A32_SFLOAT:
+            return VK_FORMAT_R32G32B32A32_UINT;
+        default:
+            // For non-float formats, use as-is
+            return float_format;
+        }
+    }
+}
+
+VkBufferView Buffer::View(u32 offset, u32 size, VideoCore::Surface::PixelFormat format,
+                          bool is_integer, bool is_signed) {
     if (!device) {
         // Null buffer supported, return a null descriptor
         return VK_NULL_HANDLE;
@@ -119,6 +160,8 @@ VkBufferView Buffer::View(u32 offset, u32 size, VideoCore::Surface::PixelFormat 
         .offset = offset,
         .size = size,
         .format = format,
+        .is_integer = is_integer,
+        .is_signed = is_signed,
         .handle = device->GetLogical().CreateBufferView({
             .sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO,
             .pNext = nullptr,

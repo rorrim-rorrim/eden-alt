@@ -84,6 +84,8 @@ struct Binding {
 
 struct TextureBufferBinding : Binding {
     PixelFormat format;
+    bool is_integer{};  // True if data is SINT/UINT, false if FLOAT
+    bool is_signed{};   // True if integer data is signed
 };
 
 static constexpr Binding NULL_BINDING{
@@ -251,7 +253,8 @@ public:
     void UnbindGraphicsTextureBuffers(size_t stage);
 
     void BindGraphicsTextureBuffer(size_t stage, size_t tbo_index, GPUVAddr gpu_addr, u32 size,
-                                   PixelFormat format, bool is_written, bool is_image);
+                                   PixelFormat format, bool is_written, bool is_image,
+                                   bool is_integer, bool is_signed);
 
     void UnbindComputeStorageBuffers();
 
@@ -261,7 +264,7 @@ public:
     void UnbindComputeTextureBuffers();
 
     void BindComputeTextureBuffer(size_t tbo_index, GPUVAddr gpu_addr, u32 size, PixelFormat format,
-                                  bool is_written, bool is_image);
+                                  bool is_written, bool is_image, bool is_integer, bool is_signed);
 
     [[nodiscard]] std::pair<Buffer*, u32> ObtainBuffer(GPUVAddr gpu_addr, u32 size,
                                                        ObtainBufferSynchronize sync_info,
@@ -445,7 +448,8 @@ private:
                                                bool is_written) const;
 
     [[nodiscard]] TextureBufferBinding GetTextureBufferBinding(GPUVAddr gpu_addr, u32 size,
-                                                               PixelFormat format);
+                                                               PixelFormat format, bool is_integer,
+                                                               bool is_signed);
 
     [[nodiscard]] std::span<const u8> ImmediateBufferWithData(DAddr device_addr, size_t size);
 

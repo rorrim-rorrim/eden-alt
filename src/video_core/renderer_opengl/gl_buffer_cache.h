@@ -34,7 +34,8 @@ public:
 
     void MarkUsage(u64 offset, u64 size) {}
 
-    [[nodiscard]] GLuint View(u32 offset, u32 size, VideoCore::Surface::PixelFormat format);
+    [[nodiscard]] GLuint View(u32 offset, u32 size, VideoCore::Surface::PixelFormat format,
+                              bool is_integer = false, bool is_signed = false);
 
     [[nodiscard]] GLuint64EXT HostGpuAddr() const noexcept {
         return address;
@@ -118,7 +119,7 @@ public:
     void BindTransformFeedbackBuffers(VideoCommon::HostBindings<Buffer>& bindings);
 
     void BindTextureBuffer(Buffer& buffer, u32 offset, u32 size,
-                           VideoCore::Surface::PixelFormat format);
+                           VideoCore::Surface::PixelFormat format, bool is_integer, bool is_signed);
 
     void BindImageBuffer(Buffer& buffer, u32 offset, u32 size,
                          VideoCore::Surface::PixelFormat format);

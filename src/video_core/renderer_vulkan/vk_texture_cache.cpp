@@ -184,6 +184,29 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     return allocator.CreateImage(image_ci);
 }
 
+[[nodiscard]] VkFormat ConvertUintToUnormFormat(VkFormat format) {
+    // Convert UINT formats to UNORM equivalents for sampling compatibility
+    // Shaders expect FLOAT component types for samplers, not UINT
+    switch (format) {
+    case VK_FORMAT_A8B8G8R8_UINT_PACK32:
+        return VK_FORMAT_A8B8G8R8_UNORM_PACK32;
+    case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+        return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
+    case VK_FORMAT_R8_UINT:
+        return VK_FORMAT_R8_UNORM;
+    case VK_FORMAT_R16_UINT:
+        return VK_FORMAT_R16_UNORM;
+    case VK_FORMAT_R8G8_UINT:
+        return VK_FORMAT_R8G8_UNORM;
+    case VK_FORMAT_R16G16_UINT:
+        return VK_FORMAT_R16G16_UNORM;
+    case VK_FORMAT_R16G16B16A16_UINT:
+        return VK_FORMAT_R16G16B16A16_UNORM;
+    default:
+        return format;
+    }
+}
+
 [[nodiscard]] vk::ImageView MakeStorageView(const vk::Device& device, u32 level, VkImage image,
                                             VkFormat format) {
     static constexpr VkImageViewUsageCreateInfo storage_image_view_usage_create_info{
@@ -692,10 +715,16 @@ void TryTransformSwizzleIfNeeded(PixelFormat format, std::array<SwizzleSource, 4
         return VK_FORMAT_R16_SINT;
     case Shader::ImageFormat::R32_UINT:
         return VK_FORMAT_R32_UINT;
+    case Shader::ImageFormat::R32_SINT:
+        return VK_FORMAT_R32_SINT;
     case Shader::ImageFormat::R32G32_UINT:
         return VK_FORMAT_R32G32_UINT;
+    case Shader::ImageFormat::R32G32_SINT:
+        return VK_FORMAT_R32G32_SINT;
     case Shader::ImageFormat::R32G32B32A32_UINT:
         return VK_FORMAT_R32G32B32A32_UINT;
+    case Shader::ImageFormat::R32G32B32A32_SINT:
+        return VK_FORMAT_R32G32B32A32_SINT;
     }
     ASSERT_MSG(false, "Invalid image format={}", format);
     return VK_FORMAT_R32_UINT;
@@ -2193,7 +2222,13 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
             std::ranges::transform(swizzle, swizzle.begin(), ConvertGreenRed);
         }
     }
-    const auto format_info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
+    auto format_info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
+
+    // Convert UINT formats to UNORM for sampling compatibility when not a render target
+    if (!info.IsRenderTarget()) {
+        format_info.format = ConvertUintToUnormFormat(format_info.format);
+    }
+
     if (ImageUsageFlags(format_info, format) != image.UsageFlags()) {
         LOG_WARNING(Render_Vulkan,
                     "Image view format {} has different usage flags than image format {}", format,

@@ -88,7 +88,7 @@ void Buffer::MakeResident(GLenum access) noexcept {
     glMakeNamedBufferResidentNV(buffer.handle, access);
 }
 
-GLuint Buffer::View(u32 offset, u32 size, PixelFormat format) {
+GLuint Buffer::View(u32 offset, u32 size, PixelFormat format, bool is_integer, bool is_signed) {
     const auto it{std::ranges::find_if(views, [offset, size, format](const BufferView& view) {
         return offset == view.offset && size == view.size && format == view.format;
     })};
@@ -370,8 +370,8 @@ void BufferCacheRuntime::BindTransformFeedbackBuffers(VideoCommon::HostBindings<
 }
 
 void BufferCacheRuntime::BindTextureBuffer(Buffer& buffer, u32 offset, u32 size,
-                                           PixelFormat format) {
-    *texture_handles++ = buffer.View(offset, size, format);
+                                           PixelFormat format, bool is_integer, bool is_signed) {
+    *texture_handles++ = buffer.View(offset, size, format, is_integer, is_signed);
 }
 
 void BufferCacheRuntime::BindImageBuffer(Buffer& buffer, u32 offset, u32 size, PixelFormat format) {

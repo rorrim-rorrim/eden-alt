@@ -33,7 +33,8 @@ public:
     explicit Buffer(BufferCacheRuntime&, VideoCommon::NullBufferParams null_params);
     explicit Buffer(BufferCacheRuntime& runtime, VAddr cpu_addr_, u64 size_bytes_);
 
-    [[nodiscard]] VkBufferView View(u32 offset, u32 size, VideoCore::Surface::PixelFormat format);
+    [[nodiscard]] VkBufferView View(u32 offset, u32 size, VideoCore::Surface::PixelFormat format,
+                                     bool is_integer = false, bool is_signed = false);
 
     [[nodiscard]] VkBuffer Handle() const noexcept {
         return *buffer;
@@ -60,6 +61,8 @@ private:
         u32 offset;
         u32 size;
         VideoCore::Surface::PixelFormat format;
+        bool is_integer;
+        bool is_signed;
         vk::BufferView handle;
     };
 
@@ -149,8 +152,8 @@ public:
     }
 
     void BindTextureBuffer(Buffer& buffer, u32 offset, u32 size,
-                           VideoCore::Surface::PixelFormat format) {
-        guest_descriptor_queue.AddTexelBuffer(buffer.View(offset, size, format));
+                           VideoCore::Surface::PixelFormat format, bool is_integer, bool is_signed) {
+        guest_descriptor_queue.AddTexelBuffer(buffer.View(offset, size, format, is_integer, is_signed));
     }
 
     bool ShouldLimitDynamicStorageBuffers() const {

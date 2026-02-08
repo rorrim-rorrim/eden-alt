@@ -204,6 +204,65 @@ static inline bool IsTexturePixelFormatIntegerCached(Environment& env,
     return env.IsTexturePixelFormatInteger(GetTextureHandleCached(env, cbuf));
 }
 
+static inline bool IsTexturePixelFormatSignedCached(Environment& env,
+                                                     const ConstBufferAddr& cbuf) {
+    switch (ReadTexturePixelFormatCached(env, cbuf)) {
+    case TexturePixelFormat::A8B8G8R8_SINT:
+    case TexturePixelFormat::R8_SINT:
+    case TexturePixelFormat::R8G8_SINT:
+    case TexturePixelFormat::R16_SINT:
+    case TexturePixelFormat::R16G16_SINT:
+    case TexturePixelFormat::R16G16B16A16_SINT:
+    case TexturePixelFormat::R32_SINT:
+    case TexturePixelFormat::R32G32_SINT:
+    case TexturePixelFormat::R32G32B32A32_SINT:
+        return true;
+    default:
+        return false;
+    }
+}
+
+static inline bool IsImageFormatSigned(ImageFormat format) {
+    switch (format) {
+    case ImageFormat::R8_SINT:
+    case ImageFormat::R16_SINT:
+    case ImageFormat::R32_SINT:
+    case ImageFormat::R32G32_SINT:
+    case ImageFormat::R32G32B32A32_SINT:
+        return true;
+    default:
+        return false;
+    }
+}
+
+static inline std::optional<ImageFormat> BufferImageFormatFromPixelFormat(
+    TexturePixelFormat pixel_format) {
+    switch (pixel_format) {
+    case TexturePixelFormat::R8_UINT:
+        return ImageFormat::R8_UINT;
+    case TexturePixelFormat::R8_SINT:
+        return ImageFormat::R8_SINT;
+    case TexturePixelFormat::R16_UINT:
+        return ImageFormat::R16_UINT;
+    case TexturePixelFormat::R16_SINT:
+        return ImageFormat::R16_SINT;
+    case TexturePixelFormat::R32_UINT:
+        return ImageFormat::R32_UINT;
+    case TexturePixelFormat::R32_SINT:
+        return ImageFormat::R32_SINT;
+    case TexturePixelFormat::R32G32_UINT:
+        return ImageFormat::R32G32_UINT;
+    case TexturePixelFormat::R32G32_SINT:
+        return ImageFormat::R32G32_SINT;
+    case TexturePixelFormat::R32G32B32A32_UINT:
+        return ImageFormat::R32G32B32A32_UINT;
+    case TexturePixelFormat::R32G32B32A32_SINT:
+        return ImageFormat::R32G32B32A32_SINT;
+    default:
+        return std::nullopt;
+    }
+}
+
 
 std::optional<ConstBufferAddr> Track(const IR::Value& value, Environment& env);
 static inline std::optional<ConstBufferAddr> TrackCached(const IR::Value& v, Environment& env) {
@@ -652,12 +711,21 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
             const bool is_written{inst->GetOpcode() != IR::Opcode::ImageRead};
             const bool is_read{inst->GetOpcode() != IR::Opcode::ImageWrite};
             const bool is_integer{IsTexturePixelFormatIntegerCached(env, cbuf)};
+            ImageFormat image_format = flags.image_format;
+            if (flags.type == TextureType::Buffer) {
+                const auto pixel_format = ReadTexturePixelFormatCached(env, cbuf);
+                if (const auto mapped = BufferImageFormatFromPixelFormat(pixel_format)) {
+                    image_format = *mapped;
+                }
+            }
+            const bool is_signed{IsImageFormatSigned(image_format)};
             if (flags.type == TextureType::Buffer) {
                 index = descriptors.Add(ImageBufferDescriptor{
-                    .format = flags.image_format,
+                    .format = image_format,
                     .is_written = is_written,
                     .is_read = is_read,
                     .is_integer = is_integer,
+                    .is_signed = is_signed,
                     .cbuf_index = cbuf.index,
                     .cbuf_offset = cbuf.offset,
                     .count = cbuf.count,
@@ -666,22 +734,26 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
             } else {
                 index = descriptors.Add(ImageDescriptor{
                     .type = flags.type,
-                    .format = flags.image_format,
+                    .format = image_format,
                     .is_written = is_written,
                     .is_read = is_read,
                     .is_integer = is_integer,
+                    .is_signed = is_signed,
                     .cbuf_index = cbuf.index,
                     .cbuf_offset = cbuf.offset,
                     .count = cbuf.count,
                     .size_shift = DESCRIPTOR_SIZE_SHIFT,
                 });
             }
+            flags.image_format.Assign(image_format);
             break;
         }
         default:
             if (flags.type == TextureType::Buffer) {
                 index = descriptors.Add(TextureBufferDescriptor{
                     .has_secondary = cbuf.has_secondary,
+                    .is_integer = IsTexturePixelFormatIntegerCached(env, cbuf),
+                    .is_signed = IsTexturePixelFormatSignedCached(env, cbuf),
                     .cbuf_index = cbuf.index,
                     .cbuf_offset = cbuf.offset,
                     .shift_left = cbuf.shift_left,

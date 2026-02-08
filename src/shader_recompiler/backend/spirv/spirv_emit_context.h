@@ -45,6 +45,9 @@ struct TextureDefinition {
 
 struct TextureBufferDefinition {
     Id id;
+    Id image_type;  // Stores the correct buffer image type (F32 or U32 based on descriptor)
+    bool is_integer;
+    bool is_signed;
     u32 count;
 };
 
@@ -53,6 +56,7 @@ struct ImageBufferDefinition {
     Id image_type;
     u32 count;
     bool is_integer;
+    bool is_signed;
 };
 
 struct ImageDefinition {
@@ -60,6 +64,7 @@ struct ImageDefinition {
     Id image_type;
     u32 count;
     bool is_integer;
+    bool is_signed;
 };
 
 struct UniformDefinitions {
@@ -250,6 +255,7 @@ public:
 
     Id image_buffer_type{};
     Id image_u32{};
+    Id image_s32{};
 
     std::array<UniformDefinitions, Info::MAX_CBUFS> cbufs{};
     std::array<StorageDefinitions, Info::MAX_SSBOS> ssbos{};
