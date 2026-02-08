@@ -142,15 +142,22 @@ Id GetCbuf(EmitContext& ctx, Id result_type, Id UniformDefinitions::*member_ptr,
 
     const auto is_float = UniformDefinitions::IsFloat(member_ptr);
     const auto num_elements = UniformDefinitions::NumElements(member_ptr);
-    const std::array zero_vec{
-        is_float ? ctx.Const(0.0f) : ctx.Const(0u),
-        is_float ? ctx.Const(0.0f) : ctx.Const(0u),
-        is_float ? ctx.Const(0.0f) : ctx.Const(0u),
-        is_float ? ctx.Const(0.0f) : ctx.Const(0u),
-    };
+    const Id zero_element = is_float ? ctx.Const(0.0f) : ctx.Const(0u);
+
     const Id cond = ctx.OpULessThanEqual(ctx.TypeBool(), buffer_offset, ctx.Const(0xFFFFu));
-    const Id zero = ctx.OpCompositeConstruct(result_type, std::span(zero_vec.data(), num_elements));
-    return ctx.OpSelect(result_type, cond, val, zero);
+
+    // OpSelect with vector result requires vector condition, scalar uses scalar directly
+    if (num_elements > 1) {
+        const std::array zero_vec{zero_element, zero_element, zero_element, zero_element};
+        const Id zero = ctx.OpCompositeConstruct(result_type, std::span(zero_vec.data(), num_elements));
+
+        const Id bool_vector_type = ctx.TypeVector(ctx.U1, num_elements);
+        const std::array cond_vec{cond, cond, cond, cond};
+        const Id vector_cond = ctx.OpCompositeConstruct(bool_vector_type, std::span(cond_vec.data(), num_elements));
+        return ctx.OpSelect(result_type, vector_cond, val, zero);
+    } else {
+        return ctx.OpSelect(result_type, cond, val, zero_element);
+    }
 }
 
 Id GetCbufU32(EmitContext& ctx, const IR::Value& binding, const IR::Value& offset) {
