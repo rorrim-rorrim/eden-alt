@@ -30,6 +30,9 @@ BlitScreen::~BlitScreen() = default;
 void BlitScreen::WaitIdle() {
     present_manager.WaitPresent();
     scheduler.Finish();
+    std::scoped_lock lock{scheduler.submit_mutex};
+    // vkDeviceWaitIdle MUST be protected by submit_mutex to prevent racing with queue submissions
+    // from the worker thread. This ensures no simultaneous access to VkQueue.
     device.GetLogical().WaitIdle();
 }
 

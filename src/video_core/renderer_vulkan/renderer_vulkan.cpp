@@ -177,6 +177,10 @@ try
 
 RendererVulkan::~RendererVulkan() {
     scheduler.RegisterOnSubmit([] {});
+    scheduler.WaitWorker();
+    // vkDeviceWaitIdle MUST be called only after all queue submissions are complete
+    // to avoid threading errors on VkQueue simultaneous access
+    std::scoped_lock lock{scheduler.submit_mutex};
     void(device.GetLogical().WaitIdle());
 }
 
