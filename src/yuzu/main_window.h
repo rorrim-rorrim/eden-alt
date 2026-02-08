@@ -64,6 +64,7 @@ class QtControllerSelectorDialog;
 class QtProfileSelectionDialog;
 class QtSoftwareKeyboardDialog;
 class QtNXWebEngineView;
+class OverridesUpdater;
 
 enum class StartGameType {
     Normal, // Can use custom configuration
@@ -563,6 +564,9 @@ private:
     QDialog* error_applet = nullptr;
     QtSoftwareKeyboardDialog* software_keyboard = nullptr;
     QtNXWebEngineView* web_applet = nullptr;
+
+    // Overrides updater
+    OverridesUpdater* overrides_updater = nullptr;
 
     // True if amiibo file select is visible
     bool is_amiibo_file_select_active{};

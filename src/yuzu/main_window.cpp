@@ -551,9 +551,13 @@ MainWindow::MainWindow(bool has_broken_vulkan)
 #endif
 
     // Check for game overrides updates
-    auto* overrides_updater = new OverridesUpdater(this);
+    overrides_updater = new OverridesUpdater(this);
     connect(overrides_updater, &OverridesUpdater::ConfigChanged, this, [this]() {
         config->SaveAllValues();
+    });
+    connect(overrides_updater, &OverridesUpdater::UpdateCompleted, this,
+            [this](bool success, const QString& message) {
+        QMessageBox::information(this, tr("Game Overrides"), message);
     });
     overrides_updater->CheckAndUpdate();
 
@@ -1726,6 +1730,11 @@ void MainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_About, &MainWindow::OnAbout);
     connect_menu(ui->action_Eden_Dependencies, &MainWindow::OnEdenDependencies);
     connect_menu(ui->action_Data_Manager, &MainWindow::OnDataDialog);
+    connect(ui->action_Download_Override_Settings, &QAction::triggered, this, [this] {
+        if (overrides_updater) {
+            overrides_updater->DownloadOverrides();
+        }
+    });
 }
 
 void MainWindow::UpdateMenuState() {
