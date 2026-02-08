@@ -443,6 +443,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            check_for_updates,
            tr("Check for updates"),
            tr("Whether or not to check for updates upon startup."));
+    INSERT(UISettings,
+           enable_global_overrides,
+           tr("Enable global game overrides"),
+           tr("When enabled, per-game settings from the global overrides.ini file will be applied."));
 
     // Linux
     INSERT(UISettings, enable_gamemode, tr("Enable Gamemode"), QString());

@@ -371,7 +371,8 @@ struct System::Impl {
             LOG_ERROR(Core, "Failed to find program id for ROM");
         }
 
-        GameSettings::LoadOverrides(program_id, gpu_core->Renderer());
+        GameSettings::LoadOverrides(program_id, gpu_core->Renderer(),
+                                    Settings::values.enable_global_overrides);
         if (auto room_member = Network::GetRoomMember().lock()) {
             Network::GameInfo game_info;
             game_info.name = name;
@@ -384,9 +385,6 @@ struct System::Impl {
 
     void ShutdownMainProcess() {
         SetShuttingDown(true);
-
-        // Reset per-game flags
-        Settings::values.use_squashed_iterated_blend = false;
 
         is_powered_on = false;
         exit_locked = false;

@@ -123,6 +123,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "core/frontend/applets/software_keyboard.h"
 #include "core/frontend/applets/mii_edit.h"
 #include "core/frontend/applets/general.h"
+#include "core/game_settings.h"
 
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/applet_manager.h"
@@ -1879,6 +1880,18 @@ bool MainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPar
     if (emu_thread != nullptr) {
         ShutdownGame();
     }
+
+    const bool overrides_enabled = UISettings::values.enable_global_overrides.GetValue();
+    Settings::values.enable_global_overrides = overrides_enabled;
+
+    std::string gpu_vendor;
+    if (!vk_device_records.empty()) {
+        const int device_index = Settings::values.vulkan_device.GetValue();
+        const int safe_index = std::clamp(device_index, 0,
+                                          static_cast<int>(vk_device_records.size()) - 1);
+        gpu_vendor = vk_device_records[safe_index].name;
+    }
+    Core::GameSettings::LoadEarlyOverrides(params.program_id, gpu_vendor, overrides_enabled);
 
     if (!render_window->InitRenderTarget()) {
         return false;

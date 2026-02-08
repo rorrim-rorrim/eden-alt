@@ -142,6 +142,8 @@ struct Values {
 
     Setting<bool> check_for_updates{linkage, true, "check_for_updates", Category::UiGeneral};
 
+    Setting<bool> enable_global_overrides{linkage, true, "enable_global_overrides", Category::UiGeneral};
+
     // Linux/MinGW may support (requires libdl support)
     SwitchableSetting<bool> enable_gamemode{linkage,
 #ifndef _MSC_VER
