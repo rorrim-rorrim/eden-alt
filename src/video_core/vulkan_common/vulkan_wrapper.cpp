@@ -127,6 +127,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdPipelineBarrier);
     X(vkCmdPushConstants);
     X(vkCmdPushDescriptorSetWithTemplateKHR);
+    X(vkCmdResetQueryPool);
     X(vkCmdSetBlendConstants);
     X(vkCmdSetDepthBias);
     X(vkCmdSetDepthBias2EXT);

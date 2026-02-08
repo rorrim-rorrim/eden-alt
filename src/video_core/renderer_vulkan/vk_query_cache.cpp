@@ -157,10 +157,10 @@ public:
         ReserveHostQuery();
 
         scheduler.Record([query_pool = current_query_pool,
-                                 query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
+                     query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
             const bool use_precise = Settings::IsGPULevelHigh();
             cmdbuf.BeginQuery(query_pool, static_cast<u32>(query_index),
-                              use_precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
+                      use_precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
         });
 
         has_started = true;
@@ -454,6 +454,11 @@ private:
 
     void ReserveHostQuery() {
         size_t new_slot = ReserveBankSlot();
+        scheduler.RecordWithUploadBuffer([query_pool = current_query_pool,
+                                          query_index = current_bank_slot](vk::CommandBuffer,
+                                                                           vk::CommandBuffer upload_cmdbuf) {
+            upload_cmdbuf.ResetQueryPool(query_pool, static_cast<u32>(query_index), 1);
+        });
         current_bank->AddReference(1);
         num_slots_used++;
         if (current_query) {
