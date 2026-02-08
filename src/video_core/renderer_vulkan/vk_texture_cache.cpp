@@ -47,7 +47,9 @@ using VideoCommon::SubresourceRange;
 using VideoCore::Surface::BytesPerBlock;
 using VideoCore::Surface::HasAlpha;
 using VideoCore::Surface::IsPixelFormatASTC;
+using VideoCore::Surface::IsPixelFormatBCn;
 using VideoCore::Surface::IsPixelFormatInteger;
+using VideoCore::Surface::IsPixelFormatSRGB;
 using VideoCore::Surface::SurfaceType;
 
 namespace {
@@ -107,10 +109,19 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
                                                 PixelFormat format) {
     VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                               VK_IMAGE_USAGE_SAMPLED_BIT;
+    const auto can_have_storage_bit = [&]() {
+        if (IsPixelFormatASTC(format) || IsPixelFormatBCn(format) || IsPixelFormatSRGB(format)) {
+            return false;
+        }
+        return VideoCore::Surface::GetFormatType(format) == SurfaceType::ColorTexture;
+    };
     if (info.attachable) {
         switch (VideoCore::Surface::GetFormatType(format)) {
         case VideoCore::Surface::SurfaceType::ColorTexture:
             usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+            if (can_have_storage_bit()) {
+                usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+            }
             break;
         case VideoCore::Surface::SurfaceType::Depth:
         case VideoCore::Surface::SurfaceType::Stencil:
@@ -2387,13 +2398,20 @@ VkImageView ImageView::ColorView() {
 VkImageView ImageView::StorageView(Shader::TextureType texture_type,
                                    Shader::ImageFormat image_format) {
     if (image_handle) {
+        if (!storage_views) {
+            storage_views.emplace();
+        }
         if (image_format == Shader::ImageFormat::Typeless) {
-            return Handle(texture_type);
+            auto& view{storage_views->typeless[size_t(texture_type)]};
+            if (!view) {
+                const auto& format_info =
+                    MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, false, format);
+                view = MakeView(format_info.format, VK_IMAGE_ASPECT_COLOR_BIT);
+            }
+            return *view;
         }
         const bool is_signed = image_format == Shader::ImageFormat::R8_SINT
             || image_format == Shader::ImageFormat::R16_SINT;
-        if (!storage_views)
-            storage_views.emplace();
         auto& views{is_signed ? storage_views->signeds : storage_views->unsigneds};
         auto& view{views[size_t(texture_type)]};
         if (!view)
