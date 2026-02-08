@@ -128,6 +128,17 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     return usage;
 }
 
+[[nodiscard]] VkImageUsageFlags ImageUsageFlags(const Device& device,
+                                                const MaxwellToVK::FormatInfo& info,
+                                                PixelFormat format) {
+    VkImageUsageFlags usage = ImageUsageFlags(info, format);
+    // ASTC recompression requires STORAGE_BIT for the GPU decoder pass
+    if (IsPixelFormatASTC(format) && !device.IsOptimalAstcSupported()) {
+        usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+    }
+    return usage;
+}
+
 [[nodiscard]] VkImageCreateInfo MakeImageCreateInfo(const Device& device, const ImageInfo& info) {
     const auto format_info =
         MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, info.format);
@@ -155,7 +166,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .arrayLayers = static_cast<u32>(info.resources.layers),
         .samples = ConvertSampleCount(info.num_samples),
         .tiling = VK_IMAGE_TILING_OPTIMAL,
-        .usage = ImageUsageFlags(format_info, info.format),
+        .usage = ImageUsageFlags(device, format_info, info.format),
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
@@ -1670,14 +1681,13 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
     }
     current_image = &Image::original_image;
     storage_image_views.resize(info.resources.levels);
-    if (IsPixelFormatASTC(info.format) && !runtime->device.IsOptimalAstcSupported() &&
-        Settings::values.astc_recompression.GetValue() ==
-            Settings::AstcRecompression::Uncompressed) {
-        const auto& device = runtime->device.GetLogical();
-        for (s32 level = 0; level < info.resources.levels; ++level) {
-            storage_image_views[level] =
-                MakeStorageView(device, level, *original_image, VK_FORMAT_A8B8G8R8_UNORM_PACK32);
-        }
+
+    // Transition render targets to GENERAL layout
+    const auto format_info =
+        MaxwellToVK::SurfaceFormat(runtime->device, FormatType::Optimal, false, info.format);
+    const VkImageUsageFlags usage = ImageUsageFlags(runtime->device, format_info, info.format);
+    if ((usage & (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)) != 0) {
+        runtime->TransitionImageLayout(*this);
     }
 }
 
@@ -2054,8 +2064,15 @@ void Image::DownloadMemory(const StagingBufferRef& map, std::span<const BufferIm
 }
 
 VkImageView Image::StorageImageView(s32 level) noexcept {
+    // Storage views require the image to have been created with VK_IMAGE_USAGE_STORAGE_BIT
+    if (!(original_image.UsageFlags() & VK_IMAGE_USAGE_STORAGE_BIT)) {
+        // Image doesn't support storage usage, return null
+        return nullptr;
+    }
     auto& view = storage_image_views[level];
     if (!view) {
+        // Ensure image is in VK_IMAGE_LAYOUT_GENERAL before using as storage image
+        runtime->TransitionImageLayout(*this);
         const auto format_info =
             MaxwellToVK::SurfaceFormat(runtime->device, FormatType::Optimal, true, info.format);
         view = MakeStorageView(runtime->device.GetLogical(), level, *(this->*current_image),
@@ -2088,6 +2105,9 @@ bool Image::ScaleUp(bool ignore) {
         scaled_info.size.height = scaled_height;
         scaled_image = MakeImage(runtime->device, runtime->memory_allocator, scaled_info,
                                  runtime->ViewFormats(info.format));
+        const VkImageAspectFlags init_aspect =
+            aspect_mask != 0 ? aspect_mask : ImageAspectMask(info.format);
+        runtime->TransitionImageLayout(*scaled_image, init_aspect);
         ignore = false;
     }
     current_image = &Image::scaled_image;
@@ -2207,6 +2227,9 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
       samples(ConvertSampleCount(image.info.num_samples)) {
     using Shader::TextureType;
 
+    // Ensure image is transitioned to GENERAL layout before creating views
+    runtime.TransitionImageLayout(image);
+
     const VkImageAspectFlags aspect_mask = ImageViewAspectMask(info);
     std::array<SwizzleSource, 4> swizzle{
         SwizzleSource::R,
@@ -2318,6 +2341,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::NullImageV
 
     null_image = MakeImage(*device, runtime.memory_allocator, info, {});
     image_handle = *null_image;
+    runtime.TransitionImageLayout(*null_image, VK_IMAGE_ASPECT_COLOR_BIT);
     for (u32 i = 0; i < Shader::NUM_TEXTURE_TYPES; i++) {
         image_views[i] = MakeView(VK_FORMAT_A8B8G8R8_UNORM_PACK32, VK_IMAGE_ASPECT_COLOR_BIT);
     }
@@ -2596,41 +2620,36 @@ void TextureCacheRuntime::AccelerateImageUpload(
 }
 
 void TextureCacheRuntime::TransitionImageLayout(Image& image) {
-    if (!image.ExchangeInitialization()) {
-        VkImageMemoryBarrier barrier{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .pNext = nullptr,
-            .srcAccessMask = VK_ACCESS_NONE,
-            .dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
-                             VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-                             VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = image.Handle(),
-            .subresourceRange{
-                .aspectMask = image.AspectMask(),
-                .baseMipLevel = 0,
-                .levelCount = VK_REMAINING_MIP_LEVELS,
-                .baseArrayLayer = 0,
-                .layerCount = VK_REMAINING_ARRAY_LAYERS,
-            },
-        };
-        scheduler.RequestOutsideRenderPassOperationContext();
-        scheduler.Record([barrier](vk::CommandBuffer cmdbuf) {
-            // After layout transition, image may be used in shaders or as attachment
-            const VkPipelineStageFlags dst_stages_layout =
-                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
-                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
-                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-                VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
-                VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
-                VK_PIPELINE_STAGE_TRANSFER_BIT;
-            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                                   dst_stages_layout, 0, barrier);
-        });
+    if (image.ExchangeInitialization()) {
+        return;
     }
+    TransitionImageLayout(image.Handle(), image.AspectMask());
+}
+
+void TextureCacheRuntime::TransitionImageLayout(VkImage image, VkImageAspectFlags aspect_mask) {
+    VkImageMemoryBarrier barrier{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .pNext = nullptr,
+        .srcAccessMask = VK_ACCESS_NONE,
+        .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+        .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .image = image,
+        .subresourceRange{
+            .aspectMask = aspect_mask,
+            .baseMipLevel = 0,
+            .levelCount = VK_REMAINING_MIP_LEVELS,
+            .baseArrayLayer = 0,
+            .layerCount = VK_REMAINING_ARRAY_LAYERS,
+        },
+    };
+    scheduler.RequestOutsideRenderPassOperationContext();
+    scheduler.Record([barrier](vk::CommandBuffer cmdbuf) {
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                               VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, barrier);
+    });
 }
 
 } // namespace Vulkan

@@ -97,6 +97,7 @@ public:
     void InsertUploadMemoryBarrier() {}
 
     void TransitionImageLayout(Image& image);
+    void TransitionImageLayout(VkImage image, VkImageAspectFlags aspect_mask);
 
     bool HasBrokenTextureViewFormats() const noexcept {
         // No known Vulkan driver has broken image views
