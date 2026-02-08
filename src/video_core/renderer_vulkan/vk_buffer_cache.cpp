@@ -83,8 +83,7 @@ vk::Buffer CreateBuffer(const Device& device, const MemoryAllocator& memory_allo
 } // Anonymous namespace
 
 Buffer::Buffer(BufferCacheRuntime& runtime, VideoCommon::NullBufferParams null_params)
-    : VideoCommon::BufferBase(null_params), tracker{4096} {
-    : VideoCommon::BufferBase(null_params), tracker{4096} {
+    : VideoCommon::BufferBase(null_params), runtime{&runtime}, tracker{4096} {
     if (runtime.device.HasNullDescriptor()) {
         return;
     }
@@ -94,8 +93,7 @@ Buffer::Buffer(BufferCacheRuntime& runtime, VideoCommon::NullBufferParams null_p
 }
 
 Buffer::Buffer(BufferCacheRuntime& runtime, DAddr cpu_addr_, u64 size_bytes_)
-    : VideoCommon::BufferBase(cpu_addr_, size_bytes_), device{&runtime.device},
-    : VideoCommon::BufferBase(cpu_addr_, size_bytes_), device{&runtime.device},
+    : VideoCommon::BufferBase(cpu_addr_, size_bytes_), runtime{&runtime}, device{&runtime.device},
       buffer{CreateBuffer(*device, runtime.memory_allocator, SizeBytes())}, tracker{SizeBytes()} {
     if (runtime.device.HasDebuggingToolAttached()) {
         buffer.SetObjectNameEXT(fmt::format("Buffer 0x{:x}", CpuAddr()).c_str());
@@ -150,11 +148,27 @@ VkBufferView Buffer::View(u32 offset, u32 size, VideoCore::Surface::PixelFormat 
         offset = 0;
         size = 0;
     }
+    const VkDeviceSize alignment = device->GetTexelBufferOffsetAlignment();
+    const bool needs_alignment = alignment != 0 && (offset % alignment) != 0;
     const auto it{std::ranges::find_if(views, [offset, size, format](const BufferView& view) {
         return offset == view.offset && size == view.size && format == view.format;
     })};
     if (it != views.end()) {
         return *it->handle;
+    }
+    vk::Buffer backing_buffer{};
+    VkBuffer view_buffer = *buffer;
+    u32 view_offset = offset;
+    if (needs_alignment && runtime && size != 0) {
+        backing_buffer = CreateBuffer(*device, runtime->memory_allocator, size);
+        VideoCommon::BufferCopy copy{
+            .src_offset = offset,
+            .dst_offset = 0,
+            .size = size,
+        };
+        runtime->CopyBuffer(*backing_buffer, *buffer, std::span{&copy, 1}, true);
+        view_buffer = *backing_buffer;
+        view_offset = 0;
     }
     views.push_back({
         .offset = offset,
@@ -166,11 +180,12 @@ VkBufferView Buffer::View(u32 offset, u32 size, VideoCore::Surface::PixelFormat 
             .sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
-            .buffer = *buffer,
+            .buffer = view_buffer,
             .format = MaxwellToVK::SurfaceFormat(*device, FormatType::Buffer, false, format).format,
-            .offset = offset,
+            .offset = view_offset,
             .range = size,
         }),
+        .backing_buffer = std::move(backing_buffer),
     });
     return *views.back().handle;
 }

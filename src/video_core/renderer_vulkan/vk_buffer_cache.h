@@ -64,8 +64,10 @@ private:
         bool is_integer;
         bool is_signed;
         vk::BufferView handle;
+        vk::Buffer backing_buffer;
     };
 
+    BufferCacheRuntime* runtime{};
     const Device* device{};
     vk::Buffer buffer;
     std::vector<BufferView> views;
