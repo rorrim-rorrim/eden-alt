@@ -48,11 +48,31 @@ using VideoCore::Surface::BytesPerBlock;
 using VideoCore::Surface::HasAlpha;
 using VideoCore::Surface::IsPixelFormatASTC;
 using VideoCore::Surface::IsPixelFormatBCn;
-using VideoCore::Surface::IsPixelFormatInteger;
 using VideoCore::Surface::IsPixelFormatSRGB;
+using VideoCore::Surface::IsPixelFormatInteger;
 using VideoCore::Surface::SurfaceType;
 
 namespace {
+PixelFormat StorageCompatibleBaseFormat(const Device& device, PixelFormat format) {
+    if (!IsPixelFormatSRGB(format)) {
+        return format;
+    }
+    PixelFormat candidate = format;
+    switch (format) {
+    case PixelFormat::A8B8G8R8_SRGB:
+        candidate = PixelFormat::A8B8G8R8_UNORM;
+        break;
+    case PixelFormat::B8G8R8A8_SRGB:
+        candidate = PixelFormat::B8G8R8A8_UNORM;
+        break;
+    default:
+        return format;
+    }
+    const auto base_info =
+        MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, candidate);
+    return base_info.storage ? candidate : format;
+}
+
 constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     if (color == std::array<float, 4>{0, 0, 0, 0}) {
         return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
@@ -113,7 +133,8 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         if (IsPixelFormatASTC(format) || IsPixelFormatBCn(format) || IsPixelFormatSRGB(format)) {
             return false;
         }
-        return VideoCore::Surface::GetFormatType(format) == SurfaceType::ColorTexture;
+        return info.storage &&
+               VideoCore::Surface::GetFormatType(format) == SurfaceType::ColorTexture;
     };
     if (info.attachable) {
         switch (VideoCore::Surface::GetFormatType(format)) {
@@ -151,8 +172,9 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
 }
 
 [[nodiscard]] VkImageCreateInfo MakeImageCreateInfo(const Device& device, const ImageInfo& info) {
+    const PixelFormat base_format = StorageCompatibleBaseFormat(device, info.format);
     const auto format_info =
-        MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, info.format);
+        MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, base_format);
     VkImageCreateFlags flags{};
     if (info.type == ImageType::e2D && info.resources.layers >= 6 &&
         info.size.width == info.size.height && !device.HasBrokenCubeImageCompatibility()) {
@@ -177,7 +199,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .arrayLayers = static_cast<u32>(info.resources.layers),
         .samples = ConvertSampleCount(info.num_samples),
         .tiling = VK_IMAGE_TILING_OPTIMAL,
-        .usage = ImageUsageFlags(device, format_info, info.format),
+        .usage = ImageUsageFlags(device, format_info, base_format),
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
@@ -1662,8 +1684,10 @@ void TextureCacheRuntime::TickFrame() {}
 Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu_addr_,
              VAddr cpu_addr_)
     : VideoCommon::ImageBase(info_, gpu_addr_, cpu_addr_), scheduler{&runtime_.scheduler},
-      runtime{&runtime_}, original_image(MakeImage(runtime_.device, runtime_.memory_allocator, info,
-                                                   runtime->ViewFormats(info.format))),
+            runtime{&runtime_},
+            original_image(MakeImage(runtime_.device, runtime_.memory_allocator, info,
+                                     runtime->ViewFormats(StorageCompatibleBaseFormat(
+                                         runtime_.device, info.format)))),
       aspect_mask(ImageAspectMask(info.format)) {
     if (IsPixelFormatASTC(info.format) && !runtime->device.IsOptimalAstcSupported()) {
         switch (Settings::values.accelerate_astc.GetValue()) {
