@@ -613,7 +613,10 @@ void EmitContext::DefineSharedMemory(const IR::Program& program) {
         const Id element_pointer{TypePointer(spv::StorageClass::Workgroup, element_type)};
         const Id variable{AddGlobalVariable(pointer, spv::StorageClass::Workgroup)};
         Decorate(variable, spv::Decoration::Aliased);
-        interfaces.push_back(variable);
+        // Workgroup variables in EntryPoint interfaces are only supported in SPIR-V 1.4+
+        if (profile.supported_spirv >= 0x00010400) {
+            interfaces.push_back(variable);
+        }
 
         return std::make_tuple(variable, element_pointer, pointer);
     }};
@@ -642,7 +645,10 @@ void EmitContext::DefineSharedMemory(const IR::Program& program) {
 
     shared_u32 = TypePointer(spv::StorageClass::Workgroup, U32[1]);
     shared_memory_u32 = AddGlobalVariable(shared_memory_u32_type, spv::StorageClass::Workgroup);
-    interfaces.push_back(shared_memory_u32);
+    // Workgroup variables in EntryPoint interfaces are only supported in SPIR-V 1.4+
+    if (profile.supported_spirv >= 0x00010400) {
+        interfaces.push_back(shared_memory_u32);
+    }
 
     const Id func_type{TypeFunction(void_id, U32[1], U32[1])};
     const auto make_function{[&](u32 mask, u32 size) {
