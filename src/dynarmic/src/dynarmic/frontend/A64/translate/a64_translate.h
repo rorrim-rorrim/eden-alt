@@ -47,7 +47,7 @@ struct TranslationOptions {
  * @param options Configures how certain instructions are translated.
  * @return A translated basic block in the intermediate representation.
  */
-IR::Block Translate(LocationDescriptor descriptor, MemoryReadCodeFuncType memory_read_code, TranslationOptions options);
+void Translate(IR::Block& block, LocationDescriptor descriptor, MemoryReadCodeFuncType memory_read_code, TranslationOptions options);
 
 /**
  * This function translates a single provided instruction into our intermediate representation.
