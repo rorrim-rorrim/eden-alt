@@ -1342,6 +1342,9 @@ void EmitContext::DefineImageBuffers(const Info& info, u32& binding) {
         const Id id{AddGlobalVariable(pointer_type, spv::StorageClass::UniformConstant)};
         Decorate(id, spv::Decoration::Binding, binding);
         Decorate(id, spv::Decoration::DescriptorSet, 0U);
+        if (format == spv::ImageFormat::Unknown) {
+            Decorate(id, spv::Decoration::NonReadable);
+        }
         Name(id, NameOf(stage, desc, "imgbuf"));
         image_buffers.push_back({
             .id = id,
@@ -1398,6 +1401,10 @@ void EmitContext::DefineImages(const Info& info, u32& binding, u32& scaling_inde
         const Id id{AddGlobalVariable(pointer_type, spv::StorageClass::UniformConstant)};
         Decorate(id, spv::Decoration::Binding, binding);
         Decorate(id, spv::Decoration::DescriptorSet, 0U);
+        const spv::ImageFormat format{GetImageFormat(desc.format)};
+        if (format == spv::ImageFormat::Unknown) {
+            Decorate(id, spv::Decoration::NonReadable);
+        }
         Name(id, NameOf(stage, desc, "img"));
         images.push_back({
             .id = id,
