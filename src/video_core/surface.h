@@ -122,7 +122,7 @@ namespace VideoCore::Surface {
     PIXEL_FORMAT_ELEM(S8_UINT_D24_UNORM, 1, 1, 32) \
     PIXEL_FORMAT_ELEM(D32_FLOAT_S8_UINT, 1, 1, 64)
 
-enum class PixelFormat {
+enum class PixelFormat : u32 {
 #define PIXEL_FORMAT_ELEM(name, ...) name,
     PIXEL_FORMAT_LIST
 #undef PIXEL_FORMAT_ELEM
