@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -32,15 +32,30 @@ vk::SurfaceKHR CreateSurface(
     }
 #elif defined(__APPLE__)
     if (window_info.type == Core::Frontend::WindowSystemType::Cocoa) {
-        const VkMetalSurfaceCreateInfoEXT macos_ci = {
+        const VkMetalSurfaceCreateInfoEXT metal_ci = {
+            .sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT,
+            .pNext = nullptr,
+            .flags = 0,
             .pLayer = static_cast<const CAMetalLayer*>(window_info.render_surface),
         };
-        const auto vkCreateMetalSurfaceEXT = reinterpret_cast<PFN_vkCreateMetalSurfaceEXT>(
-            dld.vkGetInstanceProcAddr(*instance, "vkCreateMetalSurfaceEXT"));
-        if (!vkCreateMetalSurfaceEXT ||
-            vkCreateMetalSurfaceEXT(*instance, &macos_ci, nullptr, &unsafe_surface) != VK_SUCCESS) {
-            LOG_ERROR(Render_Vulkan, "Failed to initialize Metal surface");
-            throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
+        const auto vkCreateMetalSurfaceEXT = PFN_vkCreateMetalSurfaceEXT(dld.vkGetInstanceProcAddr(*instance, "vkCreateMetalSurfaceEXT"));
+        if (!vkCreateMetalSurfaceEXT || vkCreateMetalSurfaceEXT(*instance, &metal_ci, nullptr, &unsafe_surface) != VK_SUCCESS) {
+            // TODO: Way to fallback? - where's my vulkan headers
+            // Attempt to make a macOS surface instead then...
+            // This is the deprecated VkMacOSSurfaceCreateInfoMVK(3) version; but should work if the above failed
+            // https://registry.khronos.org/vulkan/specs/latest/man/html/VkMacOSSurfaceCreateInfoMVK.html
+            const VkMacOSSurfaceCreateInfoMVK macos_legacy_ci = {
+                .sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK,
+                .pNext = nullptr,
+                .flags = 0,
+                .pView = static_cast<const void*>(window_info.render_surface),
+            };
+            const auto vkCreateMacOSSurfaceMVK = PFN_vkCreateMacOSSurfaceMVK(dld.vkGetInstanceProcAddr(*instance, "vkCreateMacOSSurfaceMVK"));
+            if (!vkCreateMacOSSurfaceMVK || vkCreateMacOSSurfaceMVK(*instance, &macos_legacy_ci, nullptr, &unsafe_surface) != VK_SUCCESS) {
+                LOG_ERROR(Render_Vulkan, "Failed to initialize Metal/macOS surface");
+                throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
+            }
+            LOG_ERROR(Render_Vulkan, "Failed to initialize Metal/macOS surface");
         }
     }
 #elif defined(__ANDROID__)

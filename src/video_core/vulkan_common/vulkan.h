@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -11,6 +11,7 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #elif defined(__APPLE__)
 #define VK_USE_PLATFORM_METAL_EXT
+#define VK_USE_PLATFORM_MACOS_MVK
 #elif defined(__ANDROID__)
 #define VK_USE_PLATFORM_ANDROID_KHR
 #elif defined(__HAIKU__)
@@ -31,6 +32,12 @@
 #endif
 #ifndef VK_KHR_MAINTENANCE_9_EXTENSION_NAME
 #define VK_KHR_MAINTENANCE_9_EXTENSION_NAME "VK_KHR_maintenance9"
+#endif
+#ifndef VK_EXT_METAL_SURFACE_EXTENSION_NAME
+#define VK_EXT_METAL_SURFACE_EXTENSION_NAME "VK_EXT_metal_surface"
+#endif
+#ifndef VK_MVK_MACOS_SURFACE_EXTENSION_NAME
+#define VK_MVK_MACOS_SURFACE_EXTENSION_NAME "VK_MVK_macos_surface"
 #endif
 
 // Sanitize macros
