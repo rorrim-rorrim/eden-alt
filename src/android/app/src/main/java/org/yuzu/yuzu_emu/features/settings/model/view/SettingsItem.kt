@@ -104,6 +104,7 @@ abstract class SettingsItem(
         const val TYPE_SPINBOX = 12
         const val TYPE_LAUNCHABLE = 13
         const val TYPE_PATH = 14
+        const val TYPE_GPU_UNSWIZZLE = 15
 
         const val FASTMEM_COMBINED = "fastmem_combined"
 
@@ -682,6 +683,18 @@ abstract class SettingsItem(
                     descriptionId = R.string.gpu_unswizzle_chunk_size_description,
                     choicesId = R.array.gpuSwizzleChunkEntries,
                     valuesId = R.array.gpuSwizzleChunkValues
+                )
+            )
+            put(
+                GpuUnswizzleSetting(
+                    titleId = R.string.gpu_unswizzle_settings,
+                    descriptionId = R.string.gpu_unswizzle_settings_description,
+                    textureSizeChoicesId = R.array.gpuTextureSizeSwizzleEntries,
+                    textureSizeValuesId = R.array.gpuTextureSizeSwizzleValues,
+                    streamSizeChoicesId = R.array.gpuSwizzleEntries,
+                    streamSizeValuesId = R.array.gpuSwizzleValues,
+                    chunkSizeChoicesId = R.array.gpuSwizzleChunkEntries,
+                    chunkSizeValuesId = R.array.gpuSwizzleChunkValues
                 )
             )
             put(
