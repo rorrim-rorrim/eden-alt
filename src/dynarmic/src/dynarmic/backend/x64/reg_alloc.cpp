@@ -336,11 +336,11 @@ void RegAlloc::HostCall(
     constexpr std::array<HostLoc, args_count> args_hostloc = {ABI_PARAM1, ABI_PARAM2, ABI_PARAM3, ABI_PARAM4};
     const std::array<std::optional<Argument::copyable_reference>, args_count> args = {arg0, arg1, arg2, arg3};
 
-    static const boost::container::static_vector<HostLoc, 28> other_caller_save = [args_hostloc]() noexcept {
-        boost::container::static_vector<HostLoc, 28> ret(ABI_ALL_CALLER_SAVE.begin(), ABI_ALL_CALLER_SAVE.end());
-        ret.erase(std::find(ret.begin(), ret.end(), ABI_RETURN));
+    static const std::bitset<32> other_caller_save = [args_hostloc]() noexcept {
+        std::bitset<32> ret = ABI_ALL_CALLER_SAVE;
+        ret.reset(size_t(ABI_RETURN));
         for (auto const hostloc : args_hostloc)
-            ret.erase(std::find(ret.begin(), ret.end(), hostloc));
+            ret.reset(size_t(hostloc));
         return ret;
     }();
 
@@ -356,9 +356,11 @@ void RegAlloc::HostCall(
         }
     }
     // Must match with with ScratchImpl
-    for (auto const gpr : other_caller_save) {
-        MoveOutOfTheWay(code, gpr);
-        LocInfo(gpr).WriteLock();
+    for (size_t i = 0; i < other_caller_save.size(); ++i) {
+        if (other_caller_save[i]) {
+            MoveOutOfTheWay(code, HostLoc(i));
+            LocInfo(HostLoc(i)).WriteLock();
+        }
     }
     for (size_t i = 0; i < args.size(); i++) {
         if (args[i] && !args[i]->get().IsVoid()) {
