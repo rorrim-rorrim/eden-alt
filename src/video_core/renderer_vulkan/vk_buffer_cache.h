@@ -43,6 +43,14 @@ public:
         return tracker.IsUsed(offset, size);
     }
 
+    [[nodiscard]] bool IsHostVisible() const noexcept {
+        return buffer.IsHostVisible();
+    }
+
+    [[nodiscard]] std::span<u8> Mapped() noexcept {
+        return buffer.Mapped();
+    }
+
     void MarkUsage(u64 offset, u64 size) noexcept {
         tracker.Track(offset, size);
     }

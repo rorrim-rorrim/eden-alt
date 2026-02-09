@@ -34,6 +34,14 @@ public:
 
     void MarkUsage(u64 offset, u64 size) {}
 
+    [[nodiscard]] bool IsHostVisible() const noexcept {
+        return false;
+    }
+
+    [[nodiscard]] std::span<u8> Mapped() noexcept {
+        return {};
+    }
+
     [[nodiscard]] GLuint View(u32 offset, u32 size, VideoCore::Surface::PixelFormat format);
 
     [[nodiscard]] GLuint64EXT HostGpuAddr() const noexcept {

@@ -739,12 +739,18 @@ void BufferCache<P>::BindHostIndexBuffer() {
     const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
     if (!draw_state.inline_index_draw_indexes.empty()) [[unlikely]] {
         if constexpr (USE_MEMORY_MAPS_FOR_UPLOADS) {
-            auto upload_staging = runtime.UploadStagingBuffer(size);
-            std::array<BufferCopy, 1> copies{
-                {BufferCopy{.src_offset = upload_staging.offset, .dst_offset = 0, .size = size}}};
-            std::memcpy(upload_staging.mapped_span.data(),
-                        draw_state.inline_index_draw_indexes.data(), size);
-            runtime.CopyBuffer(buffer, upload_staging.buffer, copies, true);
+            if (buffer.IsHostVisible()) {
+                // write directly to mapped buffer
+                std::memcpy(buffer.Mapped().data(),
+                            draw_state.inline_index_draw_indexes.data(), size);
+            } else {
+                auto upload_staging = runtime.UploadStagingBuffer(size);
+                std::array<BufferCopy, 1> copies{
+                    {BufferCopy{.src_offset = upload_staging.offset, .dst_offset = 0, .size = size}}};
+                std::memcpy(upload_staging.mapped_span.data(),
+                            draw_state.inline_index_draw_indexes.data(), size);
+                runtime.CopyBuffer(buffer, upload_staging.buffer, copies, true);
+            }
         } else {
             buffer.ImmediateUpload(0, draw_state.inline_index_draw_indexes);
         }
@@ -1590,6 +1596,15 @@ void BufferCache<P>::MappedUploadMemory([[maybe_unused]] Buffer& buffer,
                                         [[maybe_unused]] u64 total_size_bytes,
                                         [[maybe_unused]] std::span<BufferCopy> copies) {
     if constexpr (USE_MEMORY_MAPS) {
+        if (buffer.IsHostVisible() && runtime.CanReorderUpload(buffer, copies)) {
+            const std::span<u8> mapped_span = buffer.Mapped();
+            for (const BufferCopy& copy : copies) {
+                u8* const dst_pointer = mapped_span.data() + copy.dst_offset;
+                const DAddr device_addr = buffer.CpuAddr() + copy.dst_offset;
+                device_memory.ReadBlockUnsafe(device_addr, dst_pointer, copy.size);
+            }
+            return;
+        }
         auto upload_staging = runtime.UploadStagingBuffer(total_size_bytes);
         const std::span<u8> staging_pointer = upload_staging.mapped_span;
         for (BufferCopy& copy : copies) {
@@ -1634,16 +1649,22 @@ void BufferCache<P>::InlineMemoryImplementation(DAddr dest_address, size_t copy_
     SynchronizeBuffer(buffer, dest_address, static_cast<u32>(copy_size));
 
     if constexpr (USE_MEMORY_MAPS_FOR_UPLOADS) {
-        auto upload_staging = runtime.UploadStagingBuffer(copy_size);
-        std::array copies{BufferCopy{
-            .src_offset = upload_staging.offset,
-            .dst_offset = buffer.Offset(dest_address),
-            .size = copy_size,
-        }};
-        u8* const src_pointer = upload_staging.mapped_span.data();
-        std::memcpy(src_pointer, inlined_buffer.data(), copy_size);
-        const bool can_reorder = runtime.CanReorderUpload(buffer, copies);
-        runtime.CopyBuffer(buffer, upload_staging.buffer, copies, true, can_reorder);
+        const u32 buffer_offset = buffer.Offset(dest_address);
+        if (buffer.IsHostVisible()) {
+            // write directly to mapped buffer
+            std::memcpy(buffer.Mapped().data() + buffer_offset, inlined_buffer.data(), copy_size);
+        } else {
+            auto upload_staging = runtime.UploadStagingBuffer(copy_size);
+            std::array copies{BufferCopy{
+                .src_offset = upload_staging.offset,
+                .dst_offset = buffer_offset,
+                .size = copy_size,
+            }};
+            u8* const src_pointer = upload_staging.mapped_span.data();
+            std::memcpy(src_pointer, inlined_buffer.data(), copy_size);
+            const bool can_reorder = runtime.CanReorderUpload(buffer, copies);
+            runtime.CopyBuffer(buffer, upload_staging.buffer, copies, true, can_reorder);
+        }
     } else {
         buffer.ImmediateUpload(buffer.Offset(dest_address), inlined_buffer.first(copy_size));
     }

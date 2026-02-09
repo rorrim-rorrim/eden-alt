@@ -798,6 +798,10 @@ public:
         return must_emulate_scaled_formats;
     }
 
+    bool HasUnifiedMemory() const {
+        return is_integrated;
+    }
+
     bool HasNullDescriptor() const {
         return features.robustness2.nullDescriptor;
     }

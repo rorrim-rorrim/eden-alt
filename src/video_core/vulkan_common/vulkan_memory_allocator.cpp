@@ -259,7 +259,7 @@ namespace Vulkan {
     vk::Buffer
     MemoryAllocator::CreateBuffer(const VkBufferCreateInfo &ci, MemoryUsage usage) const
     {
-        const VmaAllocationCreateInfo alloc_ci = {
+        VmaAllocationCreateInfo alloc_ci = {
                 .flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT | MemoryUsageVmaFlags(usage),
                 .usage = MemoryUsageVma(usage),
                 .requiredFlags = 0,
@@ -269,6 +269,11 @@ namespace Vulkan {
                 .pUserData = nullptr,
                 .priority = 0.f,
         };
+
+        if (device.HasUnifiedMemory() && usage == MemoryUsage::DeviceLocal) {
+            alloc_ci.flags |= VMA_ALLOCATION_CREATE_MAPPED_BIT;
+            alloc_ci.preferredFlags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        }
 
         VkBuffer handle{};
         VmaAllocationInfo alloc_info{};
