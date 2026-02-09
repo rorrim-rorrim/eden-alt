@@ -10,6 +10,7 @@
 #include <bit>
 
 #ifdef _WIN32
+#include <windows.h>
 #include <iphlpapi.h>
 #elif defined(__linux__) || defined(__ANDROID__)
 #include <cerrno>
