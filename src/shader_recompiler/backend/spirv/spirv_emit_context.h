@@ -41,11 +41,13 @@ struct TextureDefinition {
     Id image_type;
     u32 count;
     bool is_multisample;
+    bool is_integer;
 };
 
 struct TextureBufferDefinition {
     Id id;
     u32 count;
+    bool is_integer;
 };
 
 struct ImageBufferDefinition {
@@ -248,7 +250,8 @@ public:
     Id output_f32{};
     Id output_u32{};
 
-    Id image_buffer_type{};
+    // Max TextureBuffers?
+    std::array<Id, Info::MAX_CBUFS> image_buffer_types{};
     Id image_u32{};
 
     std::array<UniformDefinitions, Info::MAX_CBUFS> cbufs{};

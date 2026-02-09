@@ -11,6 +11,7 @@
 #include "shader_recompiler/backend/spirv/emit_spirv_instructions.h"
 #include "shader_recompiler/backend/spirv/spirv_emit_context.h"
 #include "shader_recompiler/frontend/ir/modifiers.h"
+#include "shader_recompiler/shader_info.h"
 
 namespace Shader::Backend::SPIRV {
 namespace {
@@ -70,8 +71,7 @@ public:
         }
     }
 
-    explicit ImageOperands(EmitContext& ctx, bool has_lod_clamp, Id derivatives,
-                           u32 num_derivatives, const IR::Value& offset, Id lod_clamp) {
+    explicit ImageOperands(EmitContext& ctx, bool has_lod_clamp, Id derivatives, u32 num_derivatives, const IR::Value& offset, Id lod_clamp) {
         if (!Sirit::ValidId(derivatives)) {
             throw LogicError("Derivatives must be present");
         }
@@ -81,10 +81,8 @@ public:
             deriv_x_accum.push_back(ctx.OpCompositeExtract(ctx.F32[1], derivatives, i * 2));
             deriv_y_accum.push_back(ctx.OpCompositeExtract(ctx.F32[1], derivatives, i * 2 + 1));
         }
-        const Id derivatives_X{ctx.OpCompositeConstruct(
-            ctx.F32[num_derivatives], std::span{deriv_x_accum.data(), deriv_x_accum.size()})};
-        const Id derivatives_Y{ctx.OpCompositeConstruct(
-            ctx.F32[num_derivatives], std::span{deriv_y_accum.data(), deriv_y_accum.size()})};
+        const Id derivatives_X{ctx.OpCompositeConstruct(ctx.F32[num_derivatives], std::span{deriv_x_accum.data(), deriv_x_accum.size()})};
+        const Id derivatives_Y{ctx.OpCompositeConstruct(ctx.F32[num_derivatives], std::span{deriv_y_accum.data(), deriv_y_accum.size()})};
         Add(spv::ImageOperandsMask::Grad, derivatives_X, derivatives_Y);
         AddOffset(ctx, offset, ImageGradientOffsetAllowed);
         if (has_lod_clamp) {
@@ -197,20 +195,14 @@ Id Texture(EmitContext& ctx, IR::TextureInstInfo info, [[maybe_unused]] const IR
 }
 
 Id TextureImage(EmitContext& ctx, IR::TextureInstInfo info, const IR::Value& index) {
-    if (!index.IsImmediate() || index.U32() != 0) {
-        throw NotImplementedException("Indirect image indexing");
-    }
+    UNIMPLEMENTED_IF_MSG(!index.IsImmediate() || index.U32() != 0, "Indirect image indexing");
     if (info.type == TextureType::Buffer) {
         const TextureBufferDefinition& def{ctx.texture_buffers.at(info.descriptor_index)};
-        if (def.count > 1) {
-            throw NotImplementedException("Indirect texture sample");
-        }
-        return ctx.OpLoad(ctx.image_buffer_type, def.id);
+        UNIMPLEMENTED_IF(def.count > 1);
+        return ctx.OpLoad(ctx.image_buffer_types[info.descriptor_index], def.id);
     } else {
         const TextureDefinition& def{ctx.textures.at(info.descriptor_index)};
-        if (def.count > 1) {
-            throw NotImplementedException("Indirect texture sample");
-        }
+        UNIMPLEMENTED_IF(def.count > 1);
         return ctx.OpImage(def.image_type, ctx.OpLoad(def.sampled_type, def.id));
     }
 }
@@ -533,13 +525,10 @@ Id EmitImageGatherDref(EmitContext& ctx, IR::Inst* inst, const IR::Value& index,
     if (ctx.profile.need_gather_subpixel_offset) {
         coords = ImageGatherSubpixelOffset(ctx, info, TextureImage(ctx, info, index), coords);
     }
-    return Emit(&EmitContext::OpImageSparseDrefGather, &EmitContext::OpImageDrefGather, ctx, inst,
-                ctx.F32[4], Texture(ctx, info, index), coords, dref, operands.MaskOptional(),
-                operands.Span());
+    return Emit(&EmitContext::OpImageSparseDrefGather, &EmitContext::OpImageDrefGather, ctx, inst, ctx.F32[4], Texture(ctx, info, index), coords, dref, operands.MaskOptional(), operands.Span());
 }
 
-Id EmitImageFetch(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords, Id offset,
-                  Id lod, Id ms) {
+Id EmitImageFetch(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords, Id offset, Id lod, Id ms) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
     AddOffsetToCoordinates(ctx, info, coords, offset);
     if (info.type == TextureType::Buffer) {
@@ -549,9 +538,14 @@ Id EmitImageFetch(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id c
         // This image is multisampled, lod must be implicit
         lod = Id{};
     }
+    const auto is_integer = info.type == TextureType::Buffer
+        ? ctx.texture_buffers.at(info.descriptor_index).is_integer
+        : ctx.textures.at(info.descriptor_index).is_integer;
     const ImageOperands operands(lod, ms);
-    return Emit(&EmitContext::OpImageSparseFetch, &EmitContext::OpImageFetch, ctx, inst, ctx.F32[4],
-                TextureImage(ctx, info, index), coords, operands.MaskOptional(), operands.Span());
+    auto const result = Emit(&EmitContext::OpImageSparseFetch, &EmitContext::OpImageFetch, ctx, inst,
+        is_integer ? ctx.U32[4] : ctx.F32[4], TextureImage(ctx, info, index), coords, operands.MaskOptional(), operands.Span());
+    // TODO: Is this even correct?????
+    return is_integer ? ctx.OpConvertUToF(ctx.F32[4], result) : result;
 }
 
 Id EmitImageQueryDimensions(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id lod,
@@ -593,14 +587,11 @@ Id EmitImageQueryLod(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, I
                                     zero, zero);
 }
 
-Id EmitImageGradient(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords,
-                     Id derivatives, const IR::Value& offset, Id lod_clamp) {
+Id EmitImageGradient(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords, Id derivatives, const IR::Value& offset, Id lod_clamp) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
     const auto operands = info.num_derivatives == 3
-                              ? ImageOperands(ctx, info.has_lod_clamp != 0, derivatives,
-                                              ctx.Def(offset), {}, lod_clamp)
-                              : ImageOperands(ctx, info.has_lod_clamp != 0, derivatives,
-                                              info.num_derivatives, offset, lod_clamp);
+        ? ImageOperands(ctx, info.has_lod_clamp != 0, derivatives, ctx.Def(offset), {}, lod_clamp)
+        : ImageOperands(ctx, info.has_lod_clamp != 0, derivatives, info.num_derivatives, offset, lod_clamp);
     return Emit(&EmitContext::OpImageSparseSampleExplicitLod,
                 &EmitContext::OpImageSampleExplicitLod, ctx, inst, ctx.F32[4],
                 Texture(ctx, info, index), coords, operands.Mask(), operands.Span());

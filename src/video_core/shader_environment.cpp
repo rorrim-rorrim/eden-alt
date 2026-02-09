@@ -65,9 +65,7 @@ static Shader::TextureType ConvertTextureType(const Tegra::Texture::TICEntry& en
 }
 
 static Shader::TexturePixelFormat ConvertTexturePixelFormat(const Tegra::Texture::TICEntry& entry) {
-    return static_cast<Shader::TexturePixelFormat>(
-        PixelFormatFromTextureInfo(entry.format, entry.r_type, entry.g_type, entry.b_type,
-                                   entry.a_type, entry.srgb_conversion));
+    return Shader::TexturePixelFormat(PixelFormatFromTextureInfo(entry.format, entry.r_type, entry.g_type, entry.b_type, entry.a_type, entry.srgb_conversion));
 }
 
 static std::string_view StageToPrefix(Shader::Stage stage) {
@@ -388,8 +386,7 @@ Shader::TexturePixelFormat GraphicsEnvironment::ReadTexturePixelFormat(u32 handl
 }
 
 bool GraphicsEnvironment::IsTexturePixelFormatInteger(u32 handle) {
-    return VideoCore::Surface::IsPixelFormatInteger(
-        static_cast<VideoCore::Surface::PixelFormat>(ReadTexturePixelFormat(handle)));
+    return VideoCore::Surface::IsPixelFormatInteger(VideoCore::Surface::PixelFormat(ReadTexturePixelFormat(handle)));
 }
 
 u32 GraphicsEnvironment::ReadViewportTransformState() {
@@ -443,8 +440,7 @@ Shader::TexturePixelFormat ComputeEnvironment::ReadTexturePixelFormat(u32 handle
 }
 
 bool ComputeEnvironment::IsTexturePixelFormatInteger(u32 handle) {
-    return VideoCore::Surface::IsPixelFormatInteger(
-        static_cast<VideoCore::Surface::PixelFormat>(ReadTexturePixelFormat(handle)));
+    return VideoCore::Surface::IsPixelFormatInteger(VideoCore::Surface::PixelFormat(ReadTexturePixelFormat(handle)));
 }
 
 u32 ComputeEnvironment::ReadViewportTransformState() {
@@ -551,8 +547,7 @@ Shader::TexturePixelFormat FileEnvironment::ReadTexturePixelFormat(u32 handle) {
 }
 
 bool FileEnvironment::IsTexturePixelFormatInteger(u32 handle) {
-    return VideoCore::Surface::IsPixelFormatInteger(
-        static_cast<VideoCore::Surface::PixelFormat>(ReadTexturePixelFormat(handle)));
+    return VideoCore::Surface::IsPixelFormatInteger(VideoCore::Surface::PixelFormat(ReadTexturePixelFormat(handle)));
 }
 
 u32 FileEnvironment::ReadViewportTransformState() {

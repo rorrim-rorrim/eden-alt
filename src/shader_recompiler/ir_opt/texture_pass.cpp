@@ -429,7 +429,7 @@ public:
           texture_descriptors{texture_descriptors_}, image_descriptors{image_descriptors_} {}
 
     u32 Add(const TextureBufferDescriptor& desc) {
-        return Add(texture_buffer_descriptors, desc, [&desc](const auto& existing) {
+        const u32 index = Add(texture_buffer_descriptors, desc, [&desc](const auto& existing) {
             return desc.cbuf_index == existing.cbuf_index &&
                    desc.cbuf_offset == existing.cbuf_offset &&
                    desc.shift_left == existing.shift_left &&
@@ -439,6 +439,8 @@ public:
                    desc.count == existing.count && desc.size_shift == existing.size_shift &&
                    desc.has_secondary == existing.has_secondary;
         });
+        texture_buffer_descriptors[index].is_integer |= desc.is_integer;
+        return index;
     }
 
     u32 Add(const ImageBufferDescriptor& desc) {
@@ -465,7 +467,8 @@ public:
                    desc.secondary_shift_left == existing.secondary_shift_left &&
                    desc.count == existing.count && desc.size_shift == existing.size_shift;
         })};
-        // TODO: Read this from TIC
+        texture_descriptors[index].is_integer |= desc.is_integer;
+        // TODO: Read this from TIC (the MSAA whatever)
         texture_descriptors[index].is_multisample |= desc.is_multisample;
         return index;
     }
@@ -632,6 +635,7 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
             break;
         }
         u32 index;
+        const bool is_integer = IsTexturePixelFormatIntegerCached(env, cbuf);
         switch (inst->GetOpcode()) {
         case IR::Opcode::ImageRead:
         case IR::Opcode::ImageAtomicIAdd32:
@@ -649,9 +653,8 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
             if (cbuf.has_secondary) {
                 throw NotImplementedException("Unexpected separate sampler");
             }
-            const bool is_written{inst->GetOpcode() != IR::Opcode::ImageRead};
-            const bool is_read{inst->GetOpcode() != IR::Opcode::ImageWrite};
-            const bool is_integer{IsTexturePixelFormatIntegerCached(env, cbuf)};
+            const bool is_written = inst->GetOpcode() != IR::Opcode::ImageRead;
+            const bool is_read = inst->GetOpcode() != IR::Opcode::ImageWrite;
             if (flags.type == TextureType::Buffer) {
                 index = descriptors.Add(ImageBufferDescriptor{
                     .format = flags.image_format,
@@ -682,6 +685,7 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
             if (flags.type == TextureType::Buffer) {
                 index = descriptors.Add(TextureBufferDescriptor{
                     .has_secondary = cbuf.has_secondary,
+                    .is_integer = is_integer,
                     .cbuf_index = cbuf.index,
                     .cbuf_offset = cbuf.offset,
                     .shift_left = cbuf.shift_left,
@@ -696,6 +700,7 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
                     .type = flags.type,
                     .is_depth = flags.is_depth != 0,
                     .is_multisample = is_multisample,
+                    .is_integer = is_integer,
                     .has_secondary = cbuf.has_secondary,
                     .cbuf_index = cbuf.index,
                     .cbuf_offset = cbuf.offset,

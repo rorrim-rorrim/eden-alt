@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,243 +14,124 @@ using Tegra::Texture::ComponentType;
 using Tegra::Texture::TextureFormat;
 using VideoCore::Surface::PixelFormat;
 
-namespace {
-
-constexpr auto SNORM = ComponentType::SNORM;
-constexpr auto UNORM = ComponentType::UNORM;
-constexpr auto SINT = ComponentType::SINT;
-constexpr auto UINT = ComponentType::UINT;
-constexpr auto FLOAT = ComponentType::FLOAT;
 constexpr bool LINEAR = false;
 constexpr bool SRGB = true;
 
-constexpr u32 Hash(TextureFormat format, ComponentType red_component, ComponentType green_component,
-                   ComponentType blue_component, ComponentType alpha_component, bool is_srgb) {
-    u32 hash = is_srgb ? 1 : 0;
-    hash |= static_cast<u32>(red_component) << 1;
-    hash |= static_cast<u32>(green_component) << 4;
-    hash |= static_cast<u32>(blue_component) << 7;
-    hash |= static_cast<u32>(alpha_component) << 10;
-    hash |= static_cast<u32>(format) << 13;
-    return hash;
-}
+// (TF2PF_ELEM[A-Z_0-9(]+, )([A-Z]+)(, LINEAR|. SRGB)
+// $1$2, $2, $2, $2$3
+#define TF2PF_LIST \
+    TF2PF_ELEM(A8B8G8R8, UNORM, UNORM, UNORM, UNORM, LINEAR, A8B8G8R8_UNORM) \
+    TF2PF_ELEM(A8B8G8R8, UNORM, UNORM, UNORM, UNORM, SRGB, A8B8G8R8_SRGB) \
+    TF2PF_ELEM(A8B8G8R8, SNORM, SNORM, SNORM, SNORM, LINEAR, A8B8G8R8_SNORM) \
+    TF2PF_ELEM(A8B8G8R8, UINT, UINT, UINT, UINT, LINEAR, A8B8G8R8_UINT) \
+    TF2PF_ELEM(A8B8G8R8, SINT, SINT, SINT, SINT, LINEAR, A8B8G8R8_SINT) \
+    TF2PF_ELEM(B5G6R5, UNORM, UNORM, UNORM, UNORM, LINEAR, B5G6R5_UNORM) \
+    TF2PF_ELEM(A2B10G10R10, UNORM, UNORM, UNORM, UNORM, LINEAR, A2B10G10R10_UNORM) \
+    TF2PF_ELEM(A2B10G10R10, UINT, UINT, UINT, UINT, LINEAR, A2B10G10R10_UINT) \
+    TF2PF_ELEM(A1B5G5R5, UNORM, UNORM, UNORM, UNORM, LINEAR, A1B5G5R5_UNORM) \
+    TF2PF_ELEM(A4B4G4R4, UNORM, UNORM, UNORM, UNORM, LINEAR, A4B4G4R4_UNORM) \
+    TF2PF_ELEM(G4R4, UNORM, UNORM, UNORM, UNORM, LINEAR, G4R4_UNORM) \
+    TF2PF_ELEM(A5B5G5R1, UNORM, UNORM, UNORM, UNORM, LINEAR, A5B5G5R1_UNORM) \
+    TF2PF_ELEM(R8, UNORM, UNORM, UNORM, UNORM, LINEAR, R8_UNORM) \
+    TF2PF_ELEM(R8, SNORM, SNORM, SNORM, SNORM, LINEAR, R8_SNORM) \
+    TF2PF_ELEM(R8, UINT, UINT, UINT, UINT, LINEAR, R8_UINT) \
+    TF2PF_ELEM(R8, SINT, SINT, SINT, SINT, LINEAR, R8_SINT) \
+    TF2PF_ELEM(G8R8, UNORM, UNORM, UNORM, UNORM, LINEAR, R8G8_UNORM) \
+    TF2PF_ELEM(G8R8, SNORM, SNORM, SNORM, SNORM, LINEAR, R8G8_SNORM) \
+    TF2PF_ELEM(G8R8, UINT, UINT, UINT, UINT, LINEAR, R8G8_UINT) \
+    TF2PF_ELEM(G8R8, SINT, SINT, SINT, SINT, LINEAR, R8G8_SINT) \
+    TF2PF_ELEM(R16G16B16A16, FLOAT, FLOAT, FLOAT, FLOAT, LINEAR, R16G16B16A16_FLOAT) \
+    TF2PF_ELEM(R16G16B16A16, UNORM, UNORM, UNORM, UNORM, LINEAR, R16G16B16A16_UNORM) \
+    TF2PF_ELEM(R16G16B16A16, SNORM, SNORM, SNORM, SNORM, LINEAR, R16G16B16A16_SNORM) \
+    TF2PF_ELEM(R16G16B16A16, UINT, UINT, UINT, UINT, LINEAR, R16G16B16A16_UINT) \
+    TF2PF_ELEM(R16G16B16A16, SINT, SINT, SINT, SINT, LINEAR, R16G16B16A16_SINT) \
+    TF2PF_ELEM(R16G16, FLOAT, FLOAT, FLOAT, FLOAT, LINEAR, R16G16_FLOAT) \
+    TF2PF_ELEM(R16G16, UNORM, UNORM, UNORM, UNORM, LINEAR, R16G16_UNORM) \
+    TF2PF_ELEM(R16G16, SNORM, SNORM, SNORM, SNORM, LINEAR, R16G16_SNORM) \
+    TF2PF_ELEM(R16G16, UINT, UINT, UINT, UINT, LINEAR, R16G16_UINT) \
+    TF2PF_ELEM(R16G16, SINT, SINT, SINT, SINT, LINEAR, R16G16_SINT) \
+    TF2PF_ELEM(R16, FLOAT, FLOAT, FLOAT, FLOAT, LINEAR, R16_FLOAT) \
+    TF2PF_ELEM(R16, UNORM, UNORM, UNORM, UNORM, LINEAR, R16_UNORM) \
+    TF2PF_ELEM(R16, SNORM, SNORM, SNORM, SNORM, LINEAR, R16_SNORM) \
+    TF2PF_ELEM(R16, UINT, UINT, UINT, UINT, LINEAR, R16_UINT) \
+    TF2PF_ELEM(R16, SINT, SINT, SINT, SINT, LINEAR, R16_SINT) \
+    TF2PF_ELEM(B10G11R11, FLOAT, FLOAT, FLOAT, FLOAT, LINEAR, B10G11R11_FLOAT) \
+    TF2PF_ELEM(R32G32B32A32, FLOAT, FLOAT, FLOAT, FLOAT, LINEAR, R32G32B32A32_FLOAT) \
+    TF2PF_ELEM(R32G32B32A32, UINT, UINT, UINT, UINT, LINEAR, R32G32B32A32_UINT) \
+    TF2PF_ELEM(R32G32B32A32, SINT, SINT, SINT, SINT, LINEAR, R32G32B32A32_SINT) \
+    TF2PF_ELEM(R32G32B32, FLOAT, FLOAT, FLOAT, FLOAT, LINEAR, R32G32B32_FLOAT) \
+    TF2PF_ELEM(R32G32, FLOAT, FLOAT, FLOAT, FLOAT, LINEAR, R32G32_FLOAT) \
+    TF2PF_ELEM(R32G32, UINT, UINT, UINT, UINT, LINEAR, R32G32_UINT) \
+    TF2PF_ELEM(R32G32, SINT, SINT, SINT, SINT, LINEAR, R32G32_SINT) \
+    TF2PF_ELEM(R32, FLOAT, FLOAT, FLOAT, FLOAT, LINEAR, R32_FLOAT) \
+    TF2PF_ELEM(R32, UINT, UINT, UINT, UINT, LINEAR, R32_UINT) \
+    TF2PF_ELEM(R32, SINT, SINT, SINT, SINT, LINEAR, R32_SINT) \
+    TF2PF_ELEM(E5B9G9R9, FLOAT, FLOAT, FLOAT, FLOAT, LINEAR, E5B9G9R9_FLOAT) \
+    TF2PF_ELEM(Z32, FLOAT, FLOAT, FLOAT, FLOAT, LINEAR, D32_FLOAT) \
+    TF2PF_ELEM(Z32, FLOAT, UINT, UINT, UINT, LINEAR, D32_FLOAT) \
+    TF2PF_ELEM(Z16, UNORM, UNORM, UNORM, UNORM, LINEAR, D16_UNORM) \
+    TF2PF_ELEM(Z16, UNORM, UINT, UINT, UINT, LINEAR, D16_UNORM) \
+    TF2PF_ELEM(X8Z24, UNORM, UNORM, UNORM, UNORM, LINEAR, X8_D24_UNORM) \
+    TF2PF_ELEM(X8Z24, UNORM, UINT, UINT, UINT, LINEAR, X8_D24_UNORM) \
+    TF2PF_ELEM(Z24S8, UINT, UNORM, UNORM, UNORM, LINEAR, S8_UINT_D24_UNORM) \
+    TF2PF_ELEM(Z24S8, UINT, UNORM, UINT, UINT, LINEAR, S8_UINT_D24_UNORM) \
+    TF2PF_ELEM(G24R8, UINT, UNORM, UNORM, UNORM, LINEAR, S8_UINT_D24_UNORM) \
+    TF2PF_ELEM(S8Z24, UNORM, UINT, UINT, UINT, LINEAR, D24_UNORM_S8_UINT) \
+    TF2PF_ELEM(Z32_X24S8, FLOAT, UINT, UNORM, UNORM, LINEAR, D32_FLOAT_S8_UINT) \
+    TF2PF_ELEM(R32B24G8, FLOAT, UINT, UNORM, UNORM, LINEAR, D32_FLOAT_S8_UINT) \
+    TF2PF_ELEM(DXT1, UNORM, UNORM, UNORM, UNORM, LINEAR, BC1_RGBA_UNORM) \
+    TF2PF_ELEM(DXT1, UNORM, UNORM, UNORM, UNORM, SRGB, BC1_RGBA_SRGB) \
+    TF2PF_ELEM(DXT23, UNORM, UNORM, UNORM, UNORM, LINEAR, BC2_UNORM) \
+    TF2PF_ELEM(DXT23, UNORM, UNORM, UNORM, UNORM, SRGB, BC2_SRGB) \
+    TF2PF_ELEM(DXT45, UNORM, UNORM, UNORM, UNORM, LINEAR, BC3_UNORM) \
+    TF2PF_ELEM(DXT45, UNORM, UNORM, UNORM, UNORM, SRGB, BC3_SRGB) \
+    TF2PF_ELEM(DXN1, UNORM, UNORM, UNORM, UNORM, LINEAR, BC4_UNORM) \
+    TF2PF_ELEM(DXN1, SNORM, SNORM, SNORM, SNORM, LINEAR, BC4_SNORM) \
+    TF2PF_ELEM(DXN2, UNORM, UNORM, UNORM, UNORM, LINEAR, BC5_UNORM) \
+    TF2PF_ELEM(DXN2, SNORM, SNORM, SNORM, SNORM, LINEAR, BC5_SNORM) \
+    TF2PF_ELEM(BC7U, UNORM, UNORM, UNORM, UNORM, LINEAR, BC7_UNORM) \
+    TF2PF_ELEM(BC7U, UNORM, UNORM, UNORM, UNORM, SRGB, BC7_SRGB) \
+    TF2PF_ELEM(BC6H_S16, FLOAT, FLOAT, FLOAT, FLOAT, LINEAR, BC6H_SFLOAT) \
+    TF2PF_ELEM(BC6H_U16, FLOAT, FLOAT, FLOAT, FLOAT, LINEAR, BC6H_UFLOAT) \
+    TF2PF_ELEM(ASTC_2D_4X4, UNORM, UNORM, UNORM, UNORM, LINEAR, ASTC_2D_4X4_UNORM) \
+    TF2PF_ELEM(ASTC_2D_4X4, UNORM, UNORM, UNORM, UNORM, SRGB, ASTC_2D_4X4_SRGB) \
+    TF2PF_ELEM(ASTC_2D_5X4, UNORM, UNORM, UNORM, UNORM, LINEAR, ASTC_2D_5X4_UNORM) \
+    TF2PF_ELEM(ASTC_2D_5X4, UNORM, UNORM, UNORM, UNORM, SRGB, ASTC_2D_5X4_SRGB) \
+    TF2PF_ELEM(ASTC_2D_5X5, UNORM, UNORM, UNORM, UNORM, LINEAR, ASTC_2D_5X5_UNORM) \
+    TF2PF_ELEM(ASTC_2D_5X5, UNORM, UNORM, UNORM, UNORM, SRGB, ASTC_2D_5X5_SRGB) \
+    TF2PF_ELEM(ASTC_2D_8X8, UNORM, UNORM, UNORM, UNORM, LINEAR, ASTC_2D_8X8_UNORM) \
+    TF2PF_ELEM(ASTC_2D_8X8, UNORM, UNORM, UNORM, UNORM, SRGB, ASTC_2D_8X8_SRGB) \
+    TF2PF_ELEM(ASTC_2D_8X5, UNORM, UNORM, UNORM, UNORM, LINEAR, ASTC_2D_8X5_UNORM) \
+    TF2PF_ELEM(ASTC_2D_8X5, UNORM, UNORM, UNORM, UNORM, SRGB, ASTC_2D_8X5_SRGB) \
+    TF2PF_ELEM(ASTC_2D_10X8, UNORM, UNORM, UNORM, UNORM, LINEAR, ASTC_2D_10X8_UNORM) \
+    TF2PF_ELEM(ASTC_2D_10X8, UNORM, UNORM, UNORM, UNORM, SRGB, ASTC_2D_10X8_SRGB) \
+    TF2PF_ELEM(ASTC_2D_6X6, UNORM, UNORM, UNORM, UNORM, LINEAR, ASTC_2D_6X6_UNORM) \
+    TF2PF_ELEM(ASTC_2D_6X6, UNORM, UNORM, UNORM, UNORM, SRGB, ASTC_2D_6X6_SRGB) \
+    TF2PF_ELEM(ASTC_2D_10X6, UNORM, UNORM, UNORM, UNORM, LINEAR, ASTC_2D_10X6_UNORM) \
+    TF2PF_ELEM(ASTC_2D_10X6, UNORM, UNORM, UNORM, UNORM, SRGB, ASTC_2D_10X6_SRGB) \
+    TF2PF_ELEM(ASTC_2D_10X5, UNORM, UNORM, UNORM, UNORM, LINEAR, ASTC_2D_10X5_UNORM) \
+    TF2PF_ELEM(ASTC_2D_10X5, UNORM, UNORM, UNORM, UNORM, SRGB, ASTC_2D_10X5_SRGB) \
+    TF2PF_ELEM(ASTC_2D_10X10, UNORM, UNORM, UNORM, UNORM, LINEAR, ASTC_2D_10X10_UNORM) \
+    TF2PF_ELEM(ASTC_2D_10X10, UNORM, UNORM, UNORM, UNORM, SRGB, ASTC_2D_10X10_SRGB) \
+    TF2PF_ELEM(ASTC_2D_12X10, UNORM, UNORM, UNORM, UNORM, LINEAR, ASTC_2D_12X10_UNORM) \
+    TF2PF_ELEM(ASTC_2D_12X10, UNORM, UNORM, UNORM, UNORM, SRGB, ASTC_2D_12X10_SRGB) \
+    TF2PF_ELEM(ASTC_2D_12X12, UNORM, UNORM, UNORM, UNORM, LINEAR, ASTC_2D_12X12_UNORM) \
+    TF2PF_ELEM(ASTC_2D_12X12, UNORM, UNORM, UNORM, UNORM, SRGB, ASTC_2D_12X12_SRGB) \
+    TF2PF_ELEM(ASTC_2D_8X6, UNORM, UNORM, UNORM, UNORM, LINEAR, ASTC_2D_8X6_UNORM) \
+    TF2PF_ELEM(ASTC_2D_8X6, UNORM, UNORM, UNORM, UNORM, SRGB, ASTC_2D_8X6_SRGB) \
+    TF2PF_ELEM(ASTC_2D_6X5, UNORM, UNORM, UNORM, UNORM, LINEAR, ASTC_2D_6X5_UNORM) \
+    TF2PF_ELEM(ASTC_2D_6X5, UNORM, UNORM, UNORM, UNORM, SRGB, ASTC_2D_6X5_SRGB) \
 
-constexpr u32 Hash(TextureFormat format, ComponentType component, bool is_srgb = LINEAR) {
-    return Hash(format, component, component, component, component, is_srgb);
-}
-
-} // Anonymous namespace
-
-PixelFormat PixelFormatFromTextureInfo(TextureFormat format, ComponentType red, ComponentType green,
-                                       ComponentType blue, ComponentType alpha,
-                                       bool is_srgb) noexcept {
-    switch (Hash(format, red, green, blue, alpha, is_srgb)) {
-    case Hash(TextureFormat::A8B8G8R8, UNORM):
-        return PixelFormat::A8B8G8R8_UNORM;
-    case Hash(TextureFormat::A8B8G8R8, SNORM):
-        return PixelFormat::A8B8G8R8_SNORM;
-    case Hash(TextureFormat::A8B8G8R8, UINT):
-        return PixelFormat::A8B8G8R8_UINT;
-    case Hash(TextureFormat::A8B8G8R8, SINT):
-        return PixelFormat::A8B8G8R8_SINT;
-    case Hash(TextureFormat::A8B8G8R8, UNORM, SRGB):
-        return PixelFormat::A8B8G8R8_SRGB;
-    case Hash(TextureFormat::B5G6R5, UNORM):
-        return PixelFormat::B5G6R5_UNORM;
-    case Hash(TextureFormat::A2B10G10R10, UNORM):
-        return PixelFormat::A2B10G10R10_UNORM;
-    case Hash(TextureFormat::A2B10G10R10, UINT):
-        return PixelFormat::A2B10G10R10_UINT;
-    case Hash(TextureFormat::A1B5G5R5, UNORM):
-        return PixelFormat::A1B5G5R5_UNORM;
-    case Hash(TextureFormat::A4B4G4R4, UNORM):
-        return PixelFormat::A4B4G4R4_UNORM;
-    case Hash(TextureFormat::G4R4, UNORM):
-        return PixelFormat::G4R4_UNORM;
-    case Hash(TextureFormat::A5B5G5R1, UNORM):
-        return PixelFormat::A5B5G5R1_UNORM;
-    case Hash(TextureFormat::R8, UNORM):
-        return PixelFormat::R8_UNORM;
-    case Hash(TextureFormat::R8, SNORM):
-        return PixelFormat::R8_SNORM;
-    case Hash(TextureFormat::R8, UINT):
-        return PixelFormat::R8_UINT;
-    case Hash(TextureFormat::R8, SINT):
-        return PixelFormat::R8_SINT;
-    case Hash(TextureFormat::G8R8, UNORM):
-        return PixelFormat::R8G8_UNORM;
-    case Hash(TextureFormat::G8R8, SNORM):
-        return PixelFormat::R8G8_SNORM;
-    case Hash(TextureFormat::G8R8, UINT):
-        return PixelFormat::R8G8_UINT;
-    case Hash(TextureFormat::G8R8, SINT):
-        return PixelFormat::R8G8_SINT;
-    case Hash(TextureFormat::R16G16B16A16, FLOAT):
-        return PixelFormat::R16G16B16A16_FLOAT;
-    case Hash(TextureFormat::R16G16B16A16, UNORM):
-        return PixelFormat::R16G16B16A16_UNORM;
-    case Hash(TextureFormat::R16G16B16A16, SNORM):
-        return PixelFormat::R16G16B16A16_SNORM;
-    case Hash(TextureFormat::R16G16B16A16, UINT):
-        return PixelFormat::R16G16B16A16_UINT;
-    case Hash(TextureFormat::R16G16B16A16, SINT):
-        return PixelFormat::R16G16B16A16_SINT;
-    case Hash(TextureFormat::R16G16, FLOAT):
-        return PixelFormat::R16G16_FLOAT;
-    case Hash(TextureFormat::R16G16, UNORM):
-        return PixelFormat::R16G16_UNORM;
-    case Hash(TextureFormat::R16G16, SNORM):
-        return PixelFormat::R16G16_SNORM;
-    case Hash(TextureFormat::R16G16, UINT):
-        return PixelFormat::R16G16_UINT;
-    case Hash(TextureFormat::R16G16, SINT):
-        return PixelFormat::R16G16_SINT;
-    case Hash(TextureFormat::R16, FLOAT):
-        return PixelFormat::R16_FLOAT;
-    case Hash(TextureFormat::R16, UNORM):
-        return PixelFormat::R16_UNORM;
-    case Hash(TextureFormat::R16, SNORM):
-        return PixelFormat::R16_SNORM;
-    case Hash(TextureFormat::R16, UINT):
-        return PixelFormat::R16_UINT;
-    case Hash(TextureFormat::R16, SINT):
-        return PixelFormat::R16_SINT;
-    case Hash(TextureFormat::B10G11R11, FLOAT):
-        return PixelFormat::B10G11R11_FLOAT;
-    case Hash(TextureFormat::R32G32B32A32, FLOAT):
-        return PixelFormat::R32G32B32A32_FLOAT;
-    case Hash(TextureFormat::R32G32B32A32, UINT):
-        return PixelFormat::R32G32B32A32_UINT;
-    case Hash(TextureFormat::R32G32B32A32, SINT):
-        return PixelFormat::R32G32B32A32_SINT;
-    case Hash(TextureFormat::R32G32B32, FLOAT):
-        return PixelFormat::R32G32B32_FLOAT;
-    case Hash(TextureFormat::R32G32, FLOAT):
-        return PixelFormat::R32G32_FLOAT;
-    case Hash(TextureFormat::R32G32, UINT):
-        return PixelFormat::R32G32_UINT;
-    case Hash(TextureFormat::R32G32, SINT):
-        return PixelFormat::R32G32_SINT;
-    case Hash(TextureFormat::R32, FLOAT):
-        return PixelFormat::R32_FLOAT;
-    case Hash(TextureFormat::R32, UINT):
-        return PixelFormat::R32_UINT;
-    case Hash(TextureFormat::R32, SINT):
-        return PixelFormat::R32_SINT;
-    case Hash(TextureFormat::E5B9G9R9, FLOAT):
-        return PixelFormat::E5B9G9R9_FLOAT;
-    case Hash(TextureFormat::Z32, FLOAT):
-        return PixelFormat::D32_FLOAT;
-    case Hash(TextureFormat::Z32, FLOAT, UINT, UINT, UINT, LINEAR):
-        return PixelFormat::D32_FLOAT;
-    case Hash(TextureFormat::Z16, UNORM):
-        return PixelFormat::D16_UNORM;
-    case Hash(TextureFormat::Z16, UNORM, UINT, UINT, UINT, LINEAR):
-        return PixelFormat::D16_UNORM;
-    case Hash(TextureFormat::X8Z24, UNORM):
-        return PixelFormat::X8_D24_UNORM;
-    case Hash(TextureFormat::X8Z24, UNORM, UINT, UINT, UINT, LINEAR):
-        return PixelFormat::X8_D24_UNORM;
-    case Hash(TextureFormat::Z24S8, UINT, UNORM, UNORM, UNORM, LINEAR):
-        return PixelFormat::S8_UINT_D24_UNORM;
-    case Hash(TextureFormat::Z24S8, UINT, UNORM, UINT, UINT, LINEAR):
-        return PixelFormat::S8_UINT_D24_UNORM;
-    case Hash(TextureFormat::G24R8, UINT, UNORM, UNORM, UNORM, LINEAR):
-        return PixelFormat::S8_UINT_D24_UNORM;
-    case Hash(TextureFormat::S8Z24, UNORM, UINT, UINT, UINT, LINEAR):
-        return PixelFormat::D24_UNORM_S8_UINT;
-    case Hash(TextureFormat::Z32_X24S8, FLOAT, UINT, UNORM, UNORM, LINEAR):
-        return PixelFormat::D32_FLOAT_S8_UINT;
-    case Hash(TextureFormat::R32B24G8, FLOAT, UINT, UNORM, UNORM, LINEAR):
-        return PixelFormat::D32_FLOAT_S8_UINT;
-    case Hash(TextureFormat::DXT1, UNORM, LINEAR):
-        return PixelFormat::BC1_RGBA_UNORM;
-    case Hash(TextureFormat::DXT1, UNORM, SRGB):
-        return PixelFormat::BC1_RGBA_SRGB;
-    case Hash(TextureFormat::DXT23, UNORM, LINEAR):
-        return PixelFormat::BC2_UNORM;
-    case Hash(TextureFormat::DXT23, UNORM, SRGB):
-        return PixelFormat::BC2_SRGB;
-    case Hash(TextureFormat::DXT45, UNORM, LINEAR):
-        return PixelFormat::BC3_UNORM;
-    case Hash(TextureFormat::DXT45, UNORM, SRGB):
-        return PixelFormat::BC3_SRGB;
-    case Hash(TextureFormat::DXN1, UNORM):
-        return PixelFormat::BC4_UNORM;
-    case Hash(TextureFormat::DXN1, SNORM):
-        return PixelFormat::BC4_SNORM;
-    case Hash(TextureFormat::DXN2, UNORM):
-        return PixelFormat::BC5_UNORM;
-    case Hash(TextureFormat::DXN2, SNORM):
-        return PixelFormat::BC5_SNORM;
-    case Hash(TextureFormat::BC7U, UNORM, LINEAR):
-        return PixelFormat::BC7_UNORM;
-    case Hash(TextureFormat::BC7U, UNORM, SRGB):
-        return PixelFormat::BC7_SRGB;
-    case Hash(TextureFormat::BC6H_S16, FLOAT):
-        return PixelFormat::BC6H_SFLOAT;
-    case Hash(TextureFormat::BC6H_U16, FLOAT):
-        return PixelFormat::BC6H_UFLOAT;
-    case Hash(TextureFormat::ASTC_2D_4X4, UNORM, LINEAR):
-        return PixelFormat::ASTC_2D_4X4_UNORM;
-    case Hash(TextureFormat::ASTC_2D_4X4, UNORM, SRGB):
-        return PixelFormat::ASTC_2D_4X4_SRGB;
-    case Hash(TextureFormat::ASTC_2D_5X4, UNORM, LINEAR):
-        return PixelFormat::ASTC_2D_5X4_UNORM;
-    case Hash(TextureFormat::ASTC_2D_5X4, UNORM, SRGB):
-        return PixelFormat::ASTC_2D_5X4_SRGB;
-    case Hash(TextureFormat::ASTC_2D_5X5, UNORM, LINEAR):
-        return PixelFormat::ASTC_2D_5X5_UNORM;
-    case Hash(TextureFormat::ASTC_2D_5X5, UNORM, SRGB):
-        return PixelFormat::ASTC_2D_5X5_SRGB;
-    case Hash(TextureFormat::ASTC_2D_8X8, UNORM, LINEAR):
-        return PixelFormat::ASTC_2D_8X8_UNORM;
-    case Hash(TextureFormat::ASTC_2D_8X8, UNORM, SRGB):
-        return PixelFormat::ASTC_2D_8X8_SRGB;
-    case Hash(TextureFormat::ASTC_2D_8X5, UNORM, LINEAR):
-        return PixelFormat::ASTC_2D_8X5_UNORM;
-    case Hash(TextureFormat::ASTC_2D_8X5, UNORM, SRGB):
-        return PixelFormat::ASTC_2D_8X5_SRGB;
-    case Hash(TextureFormat::ASTC_2D_10X8, UNORM, LINEAR):
-        return PixelFormat::ASTC_2D_10X8_UNORM;
-    case Hash(TextureFormat::ASTC_2D_10X8, UNORM, SRGB):
-        return PixelFormat::ASTC_2D_10X8_SRGB;
-    case Hash(TextureFormat::ASTC_2D_6X6, UNORM, LINEAR):
-        return PixelFormat::ASTC_2D_6X6_UNORM;
-    case Hash(TextureFormat::ASTC_2D_6X6, UNORM, SRGB):
-        return PixelFormat::ASTC_2D_6X6_SRGB;
-    case Hash(TextureFormat::ASTC_2D_10X6, UNORM, LINEAR):
-        return PixelFormat::ASTC_2D_10X6_UNORM;
-    case Hash(TextureFormat::ASTC_2D_10X6, UNORM, SRGB):
-        return PixelFormat::ASTC_2D_10X6_SRGB;
-    case Hash(TextureFormat::ASTC_2D_10X5, UNORM, LINEAR):
-        return PixelFormat::ASTC_2D_10X5_UNORM;
-    case Hash(TextureFormat::ASTC_2D_10X5, UNORM, SRGB):
-        return PixelFormat::ASTC_2D_10X5_SRGB;
-    case Hash(TextureFormat::ASTC_2D_10X10, UNORM, LINEAR):
-        return PixelFormat::ASTC_2D_10X10_UNORM;
-    case Hash(TextureFormat::ASTC_2D_10X10, UNORM, SRGB):
-        return PixelFormat::ASTC_2D_10X10_SRGB;
-    case Hash(TextureFormat::ASTC_2D_12X10, UNORM, LINEAR):
-        return PixelFormat::ASTC_2D_12X10_UNORM;
-    case Hash(TextureFormat::ASTC_2D_12X10, UNORM, SRGB):
-        return PixelFormat::ASTC_2D_12X10_SRGB;
-    case Hash(TextureFormat::ASTC_2D_12X12, UNORM, LINEAR):
-        return PixelFormat::ASTC_2D_12X12_UNORM;
-    case Hash(TextureFormat::ASTC_2D_12X12, UNORM, SRGB):
-        return PixelFormat::ASTC_2D_12X12_SRGB;
-    case Hash(TextureFormat::ASTC_2D_8X6, UNORM, LINEAR):
-        return PixelFormat::ASTC_2D_8X6_UNORM;
-    case Hash(TextureFormat::ASTC_2D_8X6, UNORM, SRGB):
-        return PixelFormat::ASTC_2D_8X6_SRGB;
-    case Hash(TextureFormat::ASTC_2D_6X5, UNORM, LINEAR):
-        return PixelFormat::ASTC_2D_6X5_UNORM;
-    case Hash(TextureFormat::ASTC_2D_6X5, UNORM, SRGB):
-        return PixelFormat::ASTC_2D_6X5_SRGB;
-    }
-    UNIMPLEMENTED_MSG("texture format={} srgb={} components={{{} {} {} {}}}",
-                      static_cast<int>(format), is_srgb, static_cast<int>(red),
-                      static_cast<int>(green), static_cast<int>(blue), static_cast<int>(alpha));
+PixelFormat PixelFormatFromTextureInfo(TextureFormat format, ComponentType red, ComponentType green, ComponentType blue, ComponentType alpha, bool is_srgb) noexcept {
+    if (false) { /* no op */ }
+#define TF2PF_ELEM(FMT, CR, CG, CB, CA, SRGB, RES) \
+    else if (format == TextureFormat::FMT \
+        && red == ComponentType::CR && green == ComponentType::CG \
+        && blue == ComponentType::CB && alpha == ComponentType::CA \
+        && is_srgb == SRGB) return PixelFormat::RES;
+    TF2PF_LIST
+#undef TF2PF_ELEM
+    UNIMPLEMENTED_MSG("texture format={} srgb={} components={{{} {} {} {}}}", int(format), is_srgb, int(red), int(green), int(blue), int(alpha));
     return PixelFormat::A8B8G8R8_UNORM;
 }
 

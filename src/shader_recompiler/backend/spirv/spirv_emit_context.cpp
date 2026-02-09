@@ -30,9 +30,9 @@ enum class Operation {
 
 Id ImageType(EmitContext& ctx, const TextureDescriptor& desc) {
     const spv::ImageFormat format{spv::ImageFormat::Unknown};
-    const Id type{ctx.F32[1]};
-    const bool depth{desc.is_depth};
-    const bool ms{desc.is_multisample};
+    const Id type = desc.is_integer ? ctx.U32[1] : ctx.F32[1];
+    const bool depth = desc.is_depth;
+    const bool ms = desc.is_multisample;
     switch (desc.type) {
     case TextureType::Color1D:
         return ctx.TypeImage(type, spv::Dim::Dim1D, depth, false, false, 1, format);
@@ -1304,22 +1304,23 @@ void EmitContext::DefineTextureBuffers(const Info& info, u32& binding) {
     if (info.texture_buffer_descriptors.empty()) {
         return;
     }
-    const spv::ImageFormat format{spv::ImageFormat::Unknown};
-    image_buffer_type = TypeImage(F32[1], spv::Dim::Buffer, 0U, false, false, 1, format);
-
-    const Id type{TypePointer(spv::StorageClass::UniformConstant, image_buffer_type)};
+    const spv::ImageFormat format = spv::ImageFormat::Unknown;
     texture_buffers.reserve(info.texture_buffer_descriptors.size());
-    for (const TextureBufferDescriptor& desc : info.texture_buffer_descriptors) {
-        if (desc.count != 1) {
-            throw NotImplementedException("Array of texture buffers");
-        }
-        const Id id{AddGlobalVariable(type, spv::StorageClass::UniformConstant)};
+    for (size_t i = 0; i < info.texture_buffer_descriptors.size(); ++i) {
+        auto const& desc = info.texture_buffer_descriptors[i];
+        UNIMPLEMENTED_IF(desc.count != 1);
+
+        image_buffer_types[i] = TypeImage(desc.is_integer ? U32[1] : F32[1], spv::Dim::Buffer, 0U, false, false, 1, format);
+        const Id type = TypePointer(spv::StorageClass::UniformConstant, image_buffer_types[i]);
+
+        const Id id = AddGlobalVariable(type, spv::StorageClass::UniformConstant);
         Decorate(id, spv::Decoration::Binding, binding);
         Decorate(id, spv::Decoration::DescriptorSet, 0U);
         Name(id, NameOf(stage, desc, "texbuf"));
         texture_buffers.push_back({
             .id = id,
             .count = desc.count,
+            .is_integer = desc.is_integer
         });
         if (profile.supported_spirv >= 0x00010400) {
             interfaces.push_back(id);
@@ -1374,6 +1375,7 @@ void EmitContext::DefineTextures(const Info& info, u32& binding, u32& scaling_in
             .image_type = image_type,
             .count = desc.count,
             .is_multisample = desc.is_multisample,
+            .is_integer = desc.is_integer
         });
         if (profile.supported_spirv >= 0x00010400) {
             interfaces.push_back(id);

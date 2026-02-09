@@ -142,15 +142,20 @@ Id GetCbuf(EmitContext& ctx, Id result_type, Id UniformDefinitions::*member_ptr,
 
     const auto is_float = UniformDefinitions::IsFloat(member_ptr);
     const auto num_elements = UniformDefinitions::NumElements(member_ptr);
-    const std::array zero_vec{
-        is_float ? ctx.Const(0.0f) : ctx.Const(0u),
-        is_float ? ctx.Const(0.0f) : ctx.Const(0u),
-        is_float ? ctx.Const(0.0f) : ctx.Const(0u),
-        is_float ? ctx.Const(0.0f) : ctx.Const(0u),
-    };
     const Id cond = ctx.OpULessThanEqual(ctx.TypeBool(), buffer_offset, ctx.Const(0xFFFFu));
-    const Id zero = ctx.OpCompositeConstruct(result_type, std::span(zero_vec.data(), num_elements));
-    return ctx.OpSelect(result_type, cond, val, zero);
+    if (num_elements > 1) {
+        const std::array zero_vec{
+            is_float ? ctx.Const(0.0f) : ctx.Const(0u),
+            is_float ? ctx.Const(0.0f) : ctx.Const(0u),
+            is_float ? ctx.Const(0.0f) : ctx.Const(0u),
+            is_float ? ctx.Const(0.0f) : ctx.Const(0u),
+        };
+        const Id zero = ctx.OpCompositeConstruct(result_type, std::span(zero_vec.data(), num_elements));
+        return ctx.OpSelect(result_type, cond, val, zero);
+    } else {
+        const Id zero = is_float ? ctx.Const(0.0f) : ctx.Const(0u);
+        return ctx.OpSelect(result_type, cond, val, zero);
+    }
 }
 
 Id GetCbufU32(EmitContext& ctx, const IR::Value& binding, const IR::Value& offset) {
