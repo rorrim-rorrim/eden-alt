@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -7,7 +7,6 @@
 #include <shared_mutex>
 #include <unordered_map>
 #include <utility>
-#include <mutex>
 
 #include "common/logging/log.h"
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -122,7 +122,6 @@
 #    error "unimplemented"
 #endif
 
-// TODO: FreeBSD/OpenBSD
 #ifdef ARCHITECTURE_arm64
 #ifdef __APPLE__
 inline _STRUCT_ARM_NEON_STATE64* GetFloatingPointState(mcontext_t& host_ctx) {

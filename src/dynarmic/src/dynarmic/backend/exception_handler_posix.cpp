@@ -1,12 +1,10 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
  * Copyright (c) 2019 MerryMage
  * SPDX-License-Identifier: 0BSD
  */
-
-#include "dynarmic/backend/exception_handler.h"
 
 #include <cstring>
 #include <functional>
@@ -121,9 +119,8 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
     CTX_DECLARE(raw_context);
 #if defined(ARCHITECTURE_x86_64)
     {
-        std::shared_lock<std::shared_mutex> guard(sig_handler->code_block_infos_mutex);
-        const auto iter = sig_handler->FindCodeBlockInfo(CTX_RIP);
-        if (iter != sig_handler->code_block_infos.end()) {
+        std::shared_lock guard(sig_handler->code_block_infos_mutex);
+        if (auto const iter = sig_handler->FindCodeBlockInfo(CTX_RIP); iter != sig_handler->code_block_infos.end()) {
             FakeCall fc = iter->second.cb(CTX_RIP);
             CTX_RSP -= sizeof(u64);
             *std::bit_cast<u64*>(CTX_RSP) = fc.ret_rip;
@@ -134,9 +131,8 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
     fmt::print(stderr, "Unhandled {} at rip {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_RIP);
 #elif defined(ARCHITECTURE_arm64)
     {
-        std::shared_lock<std::shared_mutex> guard(sig_handler->code_block_infos_mutex);
-        const auto iter = sig_handler->FindCodeBlockInfo(CTX_PC);
-        if (iter != sig_handler->code_block_infos.end()) {
+        std::shared_lock guard(sig_handler->code_block_infos_mutex);
+        if (const auto iter = sig_handler->FindCodeBlockInfo(CTX_PC); iter != sig_handler->code_block_infos.end()) {
             FakeCall fc = iter->second.cb(CTX_PC);
             CTX_PC = fc.call_pc;
             return;

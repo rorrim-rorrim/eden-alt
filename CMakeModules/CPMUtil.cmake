@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-cmake_minimum_required(VERSION 3.22)
+set(CPM_SOURCE_CACHE "${PROJECT_SOURCE_DIR}/.cache/cpm" CACHE STRING "" FORCE)
 
-if (MSVC OR ANDROID)
+if(MSVC OR ANDROID)
     set(BUNDLED_DEFAULT ON)
 else()
     set(BUNDLED_DEFAULT OFF)
@@ -15,6 +15,7 @@ option(CPMUTIL_FORCE_BUNDLED
 option(CPMUTIL_FORCE_SYSTEM
     "Force system packages for all CPM dependencies (NOT RECOMMENDED)" OFF)
 
+cmake_minimum_required(VERSION 3.22)
 include(CPM)
 
 # cpmfile parsing
