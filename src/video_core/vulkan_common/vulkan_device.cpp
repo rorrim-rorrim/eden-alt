@@ -935,6 +935,13 @@ bool Device::GetSuitability(bool requires_swapchain) {
     bool suitable = true;
 
     // Configure properties.
+    if (!Settings::values.renderer_debug) {
+        features.features.robustBufferAccess = VK_FALSE;
+        if (extensions.robustness_2) {
+            features.robustness2.robustBufferAccess2 = VK_FALSE;
+        }
+    }
+
     VkPhysicalDeviceVulkan12Features features_1_2{};
     VkPhysicalDeviceVulkan13Features features_1_3{};
 
