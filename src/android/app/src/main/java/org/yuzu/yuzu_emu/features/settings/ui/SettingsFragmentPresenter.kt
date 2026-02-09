@@ -283,6 +283,7 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.SKIP_CPU_INNER_INVALIDATION.key)
             add(BooleanSetting.FIX_BLOOM_EFFECTS.key)
             add(BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS.key)
+            add(BooleanSetting.ENABLE_GPU_UNSWIZZLE.key)
             add(IntSetting.GPU_UNSWIZZLE_TEXTURE_SIZE.key)
             add(IntSetting.GPU_UNSWIZZLE_STREAM_SIZE.key)
             add(IntSetting.GPU_UNSWIZZLE_CHUNK_SIZE.key)

@@ -656,6 +656,13 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SwitchSetting(
+                    BooleanSetting.ENABLE_GPU_UNSWIZZLE,
+                    titleId = R.string.enable_gpu_unswizzle,
+                    descriptionId = R.string.enable_gpu_unswizzle_description
+                )
+            )
+            put(
                 SingleChoiceSetting(
                     IntSetting.FAST_GPU_TIME,
                     titleId = R.string.fast_gpu_time,

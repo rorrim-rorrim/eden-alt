@@ -506,6 +506,8 @@
     <string name="fix_bloom_effects">Fix Bloom Effects</string>
     <string name="fix_bloom_effects_description">Reduces bloom blur in LA/EOW (Adreno 700), removes bloom in Burnout</string>
     <string name="renderer_asynchronous_shaders">Use asynchronous shaders</string>
+    <string name="enable_gpu_unswizzle">Enable GPU texture unswizzling</string>
+    <string name="enable_gpu_unswizzle_description">Accelerates BCn 3D texture decoding using GPU compute. Disable if experiencing crashes or graphical glitches.</string>
     <string name="renderer_asynchronous_shaders_description">Compiles shaders asynchronously. This may reduce stutters but may also introduce glitches.</string>
     <string name="gpu_unswizzle_texture_size">GPU Unswizzle Max Texture Size</string>
     <string name="gpu_unswizzle_texture_size_description">Sets the maximum size (MB) for GPU-based texture unswizzling. While the GPU is faster for medium and large textures, the CPU may be more efficient for very small ones. Adjust this to find the balance between GPU acceleration and CPU overhead.</string>

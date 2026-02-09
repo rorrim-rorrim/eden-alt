@@ -519,6 +519,9 @@ struct Values {
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::RendererHacks};
 
+    SwitchableSetting<bool> enable_gpu_unswizzle{linkage, false, "enable_gpu_unswizzle",
+                                                 Category::RendererHacks};
+
     SwitchableSetting<GpuUnswizzleSize> gpu_unswizzle_texture_size{linkage,
                                                   GpuUnswizzleSize::Large,
                                                   "gpu_unswizzle_texture_size",
