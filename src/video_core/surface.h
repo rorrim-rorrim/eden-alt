@@ -1,17 +1,17 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
+#undef PIXEL_FORMAT_LIST
+
 #include <climits>
 #include <utility>
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
-#include "video_core/gpu.h"
-#include "video_core/textures/texture.h"
 
 namespace VideoCore::Surface {
 
@@ -181,12 +181,17 @@ constexpr u32 BitsPerBlock(PixelFormat format) noexcept {
     }
 }
 
-#undef PIXEL_FORMAT_LIST
-
 /// Returns the sizer in bytes of the specified pixel format
 constexpr u32 BytesPerBlock(PixelFormat pixel_format) {
     return BitsPerBlock(pixel_format) / CHAR_BIT;
 }
+
+}
+
+#include "video_core/gpu.h"
+#include "video_core/textures/texture.h"
+
+namespace VideoCore::Surface {
 
 SurfaceTarget SurfaceTargetFromTextureType(Tegra::Texture::TextureType texture_type);
 bool SurfaceTargetIsLayered(SurfaceTarget target);
