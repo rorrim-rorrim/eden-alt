@@ -22,10 +22,11 @@ class GpuUnswizzleSetting(
     @ArrayRes val chunkSizeValuesId: Int
 ) : SettingsItem(
     object : AbstractSetting {
-        override val key: String = "gpu_unswizzle_combined"
+        override val key: String = SettingsItem.GPU_UNSWIZZLE_COMBINED
         override val defaultValue: Any = false
         override val isSaveable = true
-        override val isRuntimeModifiable = false
+        override val isRuntimeModifiable = true
+        override val isSwitchable = true
         override fun getValueAsString(needsGlobal: Boolean): String = "combined"
         override fun reset() {
             BooleanSetting.GPU_UNSWIZZLE_ENABLED.reset()

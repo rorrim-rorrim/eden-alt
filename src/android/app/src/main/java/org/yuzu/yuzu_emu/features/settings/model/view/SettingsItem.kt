@@ -107,6 +107,7 @@ abstract class SettingsItem(
         const val TYPE_GPU_UNSWIZZLE = 15
 
         const val FASTMEM_COMBINED = "fastmem_combined"
+        const val GPU_UNSWIZZLE_COMBINED = "gpu_unswizzle_combined"
 
         val emptySetting = object : AbstractSetting {
             override val key: String = ""
