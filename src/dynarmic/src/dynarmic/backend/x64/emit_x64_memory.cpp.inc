@@ -473,19 +473,19 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
             break;
         case 16:
             code.lock();
-            code.cmpxchg(word[dest_ptr], value.cvt16());
+            code.cmpxchg(code.word[dest_ptr], value.cvt16());
             break;
         case 32:
             code.lock();
-            code.cmpxchg(dword[dest_ptr], value.cvt32());
+            code.cmpxchg(code.dword[dest_ptr], value.cvt32());
             break;
         case 64:
             code.lock();
-            code.cmpxchg(qword[dest_ptr], value.cvt64());
+            code.cmpxchg(code.qword[dest_ptr], value.cvt64());
             break;
         case 128:
             code.lock();
-            code.cmpxchg16b(ptr[dest_ptr]);
+            code.cmpxchg16b(code.ptr[dest_ptr]); //#226 bug with xbyak
             break;
         default:
             UNREACHABLE();
