@@ -1473,11 +1473,11 @@ static void VerificationPass(const IR::Block& block) {
 void Optimize(IR::Block& block, const A32::UserConfig& conf, const Optimization::PolyfillOptions& polyfill_options) {
     Optimization::PolyfillPass(block, polyfill_options);
     Optimization::NamingPass(block);
-    if (conf.HasOptimization(OptimizationFlag::GetSetElimination)) [[likely]] {
+    if (conf.HasOptimization(OptimizationFlag::GetSetElimination)) {
         Optimization::A32GetSetElimination(block, {.convert_nzc_to_nz = true});
         Optimization::DeadCodeElimination(block);
     }
-    if (conf.HasOptimization(OptimizationFlag::ConstProp)) [[likely]] {
+    if (conf.HasOptimization(OptimizationFlag::ConstProp)) {
         Optimization::ConstantMemoryReads(block, conf.callbacks);
         Optimization::ConstantPropagation(block);
         Optimization::DeadCodeElimination(block);
@@ -1492,17 +1492,19 @@ void Optimize(IR::Block& block, const A64::UserConfig& conf, const Optimization:
     Optimization::PolyfillPass(block, polyfill_options);
     Optimization::A64CallbackConfigPass(block, conf);
     Optimization::NamingPass(block);
-    if (conf.HasOptimization(OptimizationFlag::GetSetElimination) && !conf.check_halt_on_memory_access) [[likely]] {
+    if (conf.HasOptimization(OptimizationFlag::GetSetElimination) && !conf.check_halt_on_memory_access) {
         Optimization::A64GetSetElimination(block);
         Optimization::DeadCodeElimination(block);
     }
-    if (conf.HasOptimization(OptimizationFlag::ConstProp)) [[likely]] {
+    printf("ir=%s\n", IR::DumpBlock(block).c_str());
+    if (conf.HasOptimization(OptimizationFlag::ConstProp)) {
         Optimization::ConstantPropagation(block);
         Optimization::DeadCodeElimination(block);
     }
-    if (conf.HasOptimization(OptimizationFlag::MiscIROpt)) [[likely]] {
+    if (conf.HasOptimization(OptimizationFlag::MiscIROpt)) {
         Optimization::A64MergeInterpretBlocksPass(block, conf.callbacks);
     }
+    Optimization::IdentityRemovalPass(block);
     if (!conf.HasOptimization(OptimizationFlag::DisableVerification)) {
         Optimization::VerificationPass(block);
     }
