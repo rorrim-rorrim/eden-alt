@@ -222,19 +222,19 @@ const void* EmitReadMemoryMov(BlockOfCode& code, int value_idx, const Xbyak::Reg
             break;
         case 16:
             code.lock();
-            code.xadd(code.word[addr], Xbyak::Reg64(value_idx).cvt16());
+            code.xadd(word[addr], Xbyak::Reg64(value_idx).cvt16());
             break;
         case 32:
             code.lock();
-            code.xadd(code.dword[addr], Xbyak::Reg64(value_idx).cvt32());
+            code.xadd(dword[addr], Xbyak::Reg64(value_idx).cvt32());
             break;
         case 64:
             code.lock();
-            code.xadd(code.qword[addr], Xbyak::Reg64(value_idx));
+            code.xadd(qword[addr], Xbyak::Reg64(value_idx));
             break;
         case 128:
             code.lock();
-            code.cmpxchg16b(code.ptr[addr]); //#226 bug with xbyak
+            code.cmpxchg16b(xword[addr]);
             if (code.HasHostFeature(HostFeature::SSE41)) {
                 code.movq(Xbyak::Xmm(value_idx), rax);
                 code.pinsrq(Xbyak::Xmm(value_idx), rdx, 1);
@@ -296,19 +296,19 @@ const void* EmitWriteMemoryMov(BlockOfCode& code, const Xbyak::RegExp& addr, int
             code.xchg(code.byte[addr], Xbyak::Reg64(value_idx).cvt8());
             break;
         case 16:
-            code.xchg(code.word[addr], Xbyak::Reg64(value_idx).cvt16());
+            code.xchg(word[addr], Xbyak::Reg64(value_idx).cvt16());
             break;
         case 32:
-            code.xchg(code.dword[addr], Xbyak::Reg64(value_idx).cvt32());
+            code.xchg(dword[addr], Xbyak::Reg64(value_idx).cvt32());
             break;
         case 64:
-            code.xchg(code.qword[addr], Xbyak::Reg64(value_idx));
+            code.xchg(qword[addr], Xbyak::Reg64(value_idx));
             break;
         case 128: {
             Xbyak::Label loop;
             code.L(loop);
             code.lock();
-            code.cmpxchg16b(code.ptr[addr]); //#226 bug with xbyak
+            code.cmpxchg16b(xword[addr]);
             code.jnz(loop, code.T_NEAR);
             break;
         }
