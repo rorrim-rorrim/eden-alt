@@ -291,55 +291,93 @@ void TextureCache<P>::CheckFeedbackLoop(std::span<const ImageViewInOut> views) {
         return;
     }
 
+    if (render_targets_serial == last_feedback_loop_serial &&
+        texture_bindings_serial == last_feedback_texture_serial) {
+        if (last_feedback_loop_result) {
+            runtime.BarrierFeedbackLoop();
+        }
+        return;
+    }
+
+    if (rt_active_mask == 0) {
+        last_feedback_loop_serial = render_targets_serial;
+        last_feedback_texture_serial = texture_bindings_serial;
+        last_feedback_loop_result = false;
+        return;
+    }
+    const u32 depth_bit = 1u << NUM_RT;
+    const bool depth_active = (rt_active_mask & depth_bit) != 0;
+
     const bool requires_barrier = [&] {
         for (const auto& view : views) {
             if (!view.id) {
                 continue;
             }
 
-            bool is_render_target = false;
-
-            for (const auto& ct_view_id : render_targets.color_buffer_ids) {
-                if (ct_view_id && ct_view_id == view.id) {
-                    is_render_target = true;
-                    break;
-                }
+            if ((rt_active_mask & (1u << 0)) && view.id == render_targets.color_buffer_ids[0]) {
+                continue;
             }
-
-            if (!is_render_target && render_targets.depth_buffer_id == view.id) {
-                is_render_target = true;
+            if ((rt_active_mask & (1u << 1)) && view.id == render_targets.color_buffer_ids[1]) {
+                continue;
             }
-
-            if (is_render_target) {
+            if ((rt_active_mask & (1u << 2)) && view.id == render_targets.color_buffer_ids[2]) {
+                continue;
+            }
+            if ((rt_active_mask & (1u << 3)) && view.id == render_targets.color_buffer_ids[3]) {
+                continue;
+            }
+            if ((rt_active_mask & (1u << 4)) && view.id == render_targets.color_buffer_ids[4]) {
+                continue;
+            }
+            if ((rt_active_mask & (1u << 5)) && view.id == render_targets.color_buffer_ids[5]) {
+                continue;
+            }
+            if ((rt_active_mask & (1u << 6)) && view.id == render_targets.color_buffer_ids[6]) {
+                continue;
+            }
+            if ((rt_active_mask & (1u << 7)) && view.id == render_targets.color_buffer_ids[7]) {
+                continue;
+            }
+            if (depth_active && view.id == render_targets.depth_buffer_id) {
                 continue;
             }
 
-            auto& image_view = slot_image_views[view.id];
-
-            for (const auto& ct_view_id : render_targets.color_buffer_ids) {
-                if (!ct_view_id) {
-                    continue;
-                }
-
-                auto& ct_view = slot_image_views[ct_view_id];
-
-                if (image_view.image_id == ct_view.image_id) {
-                    return true;
-                }
+            const ImageId view_image_id = slot_image_views[view.id].image_id;
+            if ((rt_active_mask & (1u << 0)) && view_image_id == rt0_image_id) {
+                return true;
             }
-
-            if (render_targets.depth_buffer_id) {
-                auto& zt_view = slot_image_views[render_targets.depth_buffer_id];
-
-                if (image_view.image_id == zt_view.image_id) {
-                    return true;
-                }
+            if ((rt_active_mask & (1u << 1)) && view_image_id == rt1_image_id) {
+                return true;
+            }
+            if ((rt_active_mask & (1u << 2)) && view_image_id == rt2_image_id) {
+                return true;
+            }
+            if ((rt_active_mask & (1u << 3)) && view_image_id == rt3_image_id) {
+                return true;
+            }
+            if ((rt_active_mask & (1u << 4)) && view_image_id == rt4_image_id) {
+                return true;
+            }
+            if ((rt_active_mask & (1u << 5)) && view_image_id == rt5_image_id) {
+                return true;
+            }
+            if ((rt_active_mask & (1u << 6)) && view_image_id == rt6_image_id) {
+                return true;
+            }
+            if ((rt_active_mask & (1u << 7)) && view_image_id == rt7_image_id) {
+                return true;
+            }
+            if (depth_active && view_image_id == rt_depth_image_id) {
+                return true;
             }
         }
 
         return false;
     }();
 
+    last_feedback_loop_serial = render_targets_serial;
+    last_feedback_texture_serial = texture_bindings_serial;
+    last_feedback_loop_result = requires_barrier;
     if (requires_barrier) {
         runtime.BarrierFeedbackLoop();
     }
@@ -399,13 +437,19 @@ void TextureCache<P>::SynchronizeGraphicsDescriptors() {
     const bool linked_tsc = maxwell3d->regs.sampler_binding == SamplerBinding::ViaHeaderBinding;
     const u32 tic_limit = maxwell3d->regs.tex_header.limit;
     const u32 tsc_limit = linked_tsc ? tic_limit : maxwell3d->regs.tex_sampler.limit;
+    bool bindings_changed = false;
     if (channel_state->graphics_sampler_table.Synchronize(maxwell3d->regs.tex_sampler.Address(),
                                                           tsc_limit)) {
         channel_state->graphics_sampler_ids.resize(tsc_limit + 1, CORRUPT_ID);
+        bindings_changed = true;
     }
     if (channel_state->graphics_image_table.Synchronize(maxwell3d->regs.tex_header.Address(),
                                                         tic_limit)) {
         channel_state->graphics_image_view_ids.resize(tic_limit + 1, CORRUPT_ID);
+        bindings_changed = true;
+    }
+    if (bindings_changed) {
+        ++texture_bindings_serial;
     }
 }
 
@@ -415,12 +459,18 @@ void TextureCache<P>::SynchronizeComputeDescriptors() {
     const u32 tic_limit = kepler_compute->regs.tic.limit;
     const u32 tsc_limit = linked_tsc ? tic_limit : kepler_compute->regs.tsc.limit;
     const GPUVAddr tsc_gpu_addr = kepler_compute->regs.tsc.Address();
+    bool bindings_changed = false;
     if (channel_state->compute_sampler_table.Synchronize(tsc_gpu_addr, tsc_limit)) {
         channel_state->compute_sampler_ids.resize(tsc_limit + 1, CORRUPT_ID);
+        bindings_changed = true;
     }
     if (channel_state->compute_image_table.Synchronize(kepler_compute->regs.tic.Address(),
                                                        tic_limit)) {
         channel_state->compute_image_view_ids.resize(tic_limit + 1, CORRUPT_ID);
+        bindings_changed = true;
+    }
+    if (bindings_changed) {
+        ++texture_bindings_serial;
     }
 }
 
@@ -534,6 +584,7 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
         return;
     }
 
+    const RenderTargets previous_render_targets = render_targets;
     const bool rescaled = RescaleRenderTargets();
     if (is_rescaling != rescaled) {
         flags[Dirty::RescaleViewports] = true;
@@ -548,6 +599,70 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
     const ImageViewId depth_buffer_id = render_targets.depth_buffer_id;
 
     PrepareImageView(depth_buffer_id, true, is_clear && IsFullClear(depth_buffer_id));
+
+    rt_active_mask = 0;
+    const ImageViewId rt0_view = render_targets.color_buffer_ids[0];
+    if (rt0_view) {
+        rt_active_mask |= (1u << 0);
+        rt0_image_id = slot_image_views[rt0_view].image_id;
+    } else {
+        rt0_image_id = ImageId{};
+    }
+    const ImageViewId rt1_view = render_targets.color_buffer_ids[1];
+    if (rt1_view) {
+        rt_active_mask |= (1u << 1);
+        rt1_image_id = slot_image_views[rt1_view].image_id;
+    } else {
+        rt1_image_id = ImageId{};
+    }
+    const ImageViewId rt2_view = render_targets.color_buffer_ids[2];
+    if (rt2_view) {
+        rt_active_mask |= (1u << 2);
+        rt2_image_id = slot_image_views[rt2_view].image_id;
+    } else {
+        rt2_image_id = ImageId{};
+    }
+    const ImageViewId rt3_view = render_targets.color_buffer_ids[3];
+    if (rt3_view) {
+        rt_active_mask |= (1u << 3);
+        rt3_image_id = slot_image_views[rt3_view].image_id;
+    } else {
+        rt3_image_id = ImageId{};
+    }
+    const ImageViewId rt4_view = render_targets.color_buffer_ids[4];
+    if (rt4_view) {
+        rt_active_mask |= (1u << 4);
+        rt4_image_id = slot_image_views[rt4_view].image_id;
+    } else {
+        rt4_image_id = ImageId{};
+    }
+    const ImageViewId rt5_view = render_targets.color_buffer_ids[5];
+    if (rt5_view) {
+        rt_active_mask |= (1u << 5);
+        rt5_image_id = slot_image_views[rt5_view].image_id;
+    } else {
+        rt5_image_id = ImageId{};
+    }
+    const ImageViewId rt6_view = render_targets.color_buffer_ids[6];
+    if (rt6_view) {
+        rt_active_mask |= (1u << 6);
+        rt6_image_id = slot_image_views[rt6_view].image_id;
+    } else {
+        rt6_image_id = ImageId{};
+    }
+    const ImageViewId rt7_view = render_targets.color_buffer_ids[7];
+    if (rt7_view) {
+        rt_active_mask |= (1u << 7);
+        rt7_image_id = slot_image_views[rt7_view].image_id;
+    } else {
+        rt7_image_id = ImageId{};
+    }
+    if (depth_buffer_id) {
+        rt_active_mask |= (1u << NUM_RT);
+        rt_depth_image_id = slot_image_views[depth_buffer_id].image_id;
+    } else {
+        rt_depth_image_id = ImageId{};
+    }
 
     for (size_t index = 0; index < NUM_RT; ++index) {
         render_targets.draw_buffers[index] = static_cast<u8>(maxwell3d->regs.rt_control.Map(index));
@@ -564,12 +679,22 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
     };
     render_targets.is_rescaled = is_rescaling;
 
+    if (render_targets != previous_render_targets) {
+        ++render_targets_serial;
+    }
+
     flags[Dirty::DepthBiasGlobal] = true;
 }
 
 template <class P>
 typename P::Framebuffer* TextureCache<P>::GetFramebuffer() {
-    return &slot_framebuffers[GetFramebufferId(render_targets)];
+    if (last_framebuffer_id && last_framebuffer_serial == render_targets_serial) {
+        return &slot_framebuffers[last_framebuffer_id];
+    }
+    const FramebufferId framebuffer_id = GetFramebufferId(render_targets);
+    last_framebuffer_id = framebuffer_id;
+    last_framebuffer_serial = render_targets_serial;
+    return &slot_framebuffers[framebuffer_id];
 }
 
 template <class P>
@@ -2614,6 +2739,10 @@ void TextureCache<P>::RemoveFramebuffers(std::span<const ImageViewId> removed_vi
         if (it->first.Contains(removed_views)) {
             auto framebuffer_id = it->second;
             ASSERT(framebuffer_id);
+            if (framebuffer_id == last_framebuffer_id) {
+                last_framebuffer_id = {};
+                last_framebuffer_serial = 0;
+            }
             sentenced_framebuffers.Push(std::move(slot_framebuffers[framebuffer_id]));
             it = framebuffers.erase(it);
         } else {

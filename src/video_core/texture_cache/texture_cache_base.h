@@ -455,6 +455,23 @@ private:
     std::deque<TextureCacheGPUMap> gpu_page_table_storage;
 
     RenderTargets render_targets;
+    u64 render_targets_serial = 0;
+    u32 rt_active_mask = 0;
+    ImageId rt0_image_id{};
+    ImageId rt1_image_id{};
+    ImageId rt2_image_id{};
+    ImageId rt3_image_id{};
+    ImageId rt4_image_id{};
+    ImageId rt5_image_id{};
+    ImageId rt6_image_id{};
+    ImageId rt7_image_id{};
+    ImageId rt_depth_image_id{};
+    u64 texture_bindings_serial = 0;
+    u64 last_feedback_loop_serial = 0;
+    u64 last_feedback_texture_serial = 0;
+    bool last_feedback_loop_result = false;
+    FramebufferId last_framebuffer_id{};
+    u64 last_framebuffer_serial = 0;
 
     ankerl::unordered_dense::map<RenderTargets, FramebufferId> framebuffers;
     ankerl::unordered_dense::map<u64, std::vector<ImageMapId>, Common::IdentityHash<u64>> page_table;
