@@ -584,7 +584,7 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
         return;
     }
 
-    const RenderTargets previous_render_targets = render_targets;
+    const VideoCommon::RenderTargets previous_render_targets = render_targets;
     const bool rescaled = RescaleRenderTargets();
     if (is_rescaling != rescaled) {
         flags[Dirty::RescaleViewports] = true;
