@@ -916,7 +916,7 @@ void BlockLinearUnswizzle3DPass::UnswizzleChunk(
             .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .image = dst_image,
-            .subresourceRange = {aspect, 0, 1, 0, 1},
+            .subresourceRange{aspect, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS},
         };
 
         // Single barrier handles both buffer and image
@@ -950,7 +950,7 @@ void BlockLinearUnswizzle3DPass::UnswizzleChunk(
             .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .image = dst_image,
-            .subresourceRange = {aspect, 0, 1, 0, 1},
+            .subresourceRange{aspect, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS},
         };
 
         cmdbuf.PipelineBarrier(
