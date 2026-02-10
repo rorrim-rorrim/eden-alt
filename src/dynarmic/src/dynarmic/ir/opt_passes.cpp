@@ -485,6 +485,16 @@ static void A64CallbackConfigPass(IR::Block& block, const A64::UserConfig& conf)
     }
 }
 
+// Tiny helper to avoid the need to store based off the opcode
+// bit size all over the place within folding functions.
+static void ReplaceUsesWith(IR::Inst& inst, bool is_32_bit, u64 value) {
+    if (is_32_bit) {
+        inst.ReplaceUsesWith(IR::Value{u32(value)});
+    } else {
+        inst.ReplaceUsesWith(IR::Value{value});
+    }
+}
+
 static void A64GetSetElimination(IR::Block& block) {
     using Iterator = IR::Block::iterator;
 
@@ -525,8 +535,16 @@ static void A64GetSetElimination(IR::Block& block) {
         // SetX r1 -> GetW r1, is just reading off the lowest 32-bits of the register
         auto const is_lower_32 = tracking_type == TrackingType::W
             && info.tracking_type == TrackingType::X;
-        if (!info.register_value.IsEmpty() && (is_lower_32 || info.tracking_type == tracking_type)) {
+        if (!info.register_value.IsEmpty() && info.tracking_type == tracking_type) {
             get_inst->ReplaceUsesWith(info.register_value);
+        } else if (!info.register_value.IsEmpty() && is_lower_32) {
+            if (info.register_value.IsImmediate()) {
+                ReplaceUsesWith(*get_inst, true, u32(info.register_value.GetImmediateAsU64() & 0xffff'ffff));
+            } else {
+                info = {};
+                info.register_value = IR::Value(&*get_inst);
+                info.tracking_type = tracking_type;
+            }
         } else {
             info = {};
             info.register_value = IR::Value(&*get_inst);
@@ -659,16 +677,6 @@ static void A64MergeInterpretBlocksPass(IR::Block& block, A64::UserCallbacks* cb
 }
 
 using Op = Dynarmic::IR::Opcode;
-
-// Tiny helper to avoid the need to store based off the opcode
-// bit size all over the place within folding functions.
-static void ReplaceUsesWith(IR::Inst& inst, bool is_32_bit, u64 value) {
-    if (is_32_bit) {
-        inst.ReplaceUsesWith(IR::Value{u32(value)});
-    } else {
-        inst.ReplaceUsesWith(IR::Value{value});
-    }
-}
 
 static IR::Value Value(bool is_32_bit, u64 value) {
     return is_32_bit ? IR::Value{u32(value)} : IR::Value{value};
