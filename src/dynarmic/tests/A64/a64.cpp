@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -1538,12 +1538,7 @@ TEST_CASE("A64: SDIV maximally (Immediate)", "[a64]") {
 
     env.ticks_left = env.code_mem.size();
     CheckedRun([&]() { jit.Run(); });
-
-    // REQUIRE(jit.GetRegister(0) == 0xffffffffffffffff);
-    // REQUIRE(jit.GetRegister(1) == 0x8000000000000000);
-    // REQUIRE(jit.GetRegister(2) == 0x8000000000000000);
     REQUIRE(jit.GetRegister(5) == 0x80000000);
-    printf("%s", jit.Disassemble().c_str());
 }
 
 // Restricted register set required to trigger:
