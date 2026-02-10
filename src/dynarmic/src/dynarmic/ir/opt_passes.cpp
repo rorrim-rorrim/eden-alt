@@ -520,27 +520,19 @@ static void A64GetSetElimination(IR::Block& block) {
         info.set_instruction_present = true;
         info.last_set_instruction = set_inst;
     };
-
     const auto do_get = [](RegisterInfo& info, Iterator get_inst, TrackingType tracking_type) {
-        const auto do_nothing = [&] {
+        // A sequence like
+        // SetX r1 -> GetW r1, is just reading off the lowest 32-bits of the register
+        auto const is_lower_32 = tracking_type == TrackingType::W
+            && info.tracking_type == TrackingType::X;
+        if (!info.register_value.IsEmpty() && (is_lower_32 || info.tracking_type == tracking_type)) {
+            get_inst->ReplaceUsesWith(info.register_value);
+        } else {
             info = {};
             info.register_value = IR::Value(&*get_inst);
             info.tracking_type = tracking_type;
-        };
-
-        if (info.register_value.IsEmpty()) {
-            do_nothing();
-            return;
         }
-
-        if (info.tracking_type == tracking_type) {
-            get_inst->ReplaceUsesWith(info.register_value);
-            return;
-        }
-
-        do_nothing();
     };
-
     for (auto inst = block.instructions.begin(); inst != block.instructions.end(); ++inst) {
         auto const opcode = inst->GetOpcode();
         switch (opcode) {
