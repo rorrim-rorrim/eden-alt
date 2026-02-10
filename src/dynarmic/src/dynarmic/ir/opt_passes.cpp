@@ -514,7 +514,6 @@ static void A64GetSetElimination(IR::Block& block) {
             info.last_set_instruction->Invalidate();
             block.Instructions().erase(info.last_set_instruction);
         }
-
         info.register_value = value;
         info.tracking_type = tracking_type;
         info.set_instruction_present = true;
@@ -1496,7 +1495,6 @@ void Optimize(IR::Block& block, const A64::UserConfig& conf, const Optimization:
         Optimization::A64GetSetElimination(block);
         Optimization::DeadCodeElimination(block);
     }
-    printf("ir=%s\n", IR::DumpBlock(block).c_str());
     if (conf.HasOptimization(OptimizationFlag::ConstProp)) {
         Optimization::ConstantPropagation(block);
         Optimization::DeadCodeElimination(block);
