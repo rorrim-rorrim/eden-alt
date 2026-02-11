@@ -617,13 +617,6 @@ abstract class SettingsItem(
                 )
             )
             put(
-                SwitchSetting(
-                    BooleanSetting.RENDERER_FORCE_MAX_CLOCK,
-                    titleId = R.string.renderer_force_max_clock,
-                    descriptionId = R.string.renderer_force_max_clock_description
-                )
-            )
-            put(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT,
                     titleId = R.string.renderer_optimize_spirv_output,

@@ -164,7 +164,7 @@ try
                   PresentFiltersForAppletCapture)
     , rasterizer(render_window, gpu, device_memory, device, memory_allocator, state_tracker, scheduler) {
 
-    if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {
+    if (device.ShouldBoostClocks()) {
         turbo_mode.emplace(instance, dld);
         scheduler.RegisterOnSubmit([this] { turbo_mode->QueueSubmitted(); });
     }

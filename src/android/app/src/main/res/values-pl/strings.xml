@@ -469,8 +469,6 @@
     <string name="sync_memory_operations_description">Zapewnia spójność danych między operacjami obliczeniowymi i pamięciowymi. Ta opcja powinna naprawiać problemy w niektórych grach, ale może zmniejszyć wydajność w niektórych przypadkach. Gry z Unreal Engine 4 wydają się być najbardziej dotknięte.</string>
     <string name="use_disk_shader_cache">Pamięć podręczna shaderów</string>
     <string name="use_disk_shader_cache_description">Zmniejsza przycięcia przez przechowywanie gotowych wygenerowanych plików oświetlenia w pamięci urządzenia.</string>
-    <string name="renderer_force_max_clock">Maksymalne taktowanie GPU (układy Adreno)</string>
-    <string name="renderer_force_max_clock_description">Wymusza uruchomienie maksymalnego taktowania układu graficznego (zabezpieczenia termiczne będą dalej aktywne).</string>
     <string name="renderer_reactive_flushing">Użyj spłukiwania reaktywnego - reactive flushing</string>
     <string name="renderer_reactive_flushing_description">Poprawia jakość renderowania w kilku grach, kosztem wydajności.</string>
 

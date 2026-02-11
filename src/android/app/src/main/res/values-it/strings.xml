@@ -411,8 +411,6 @@
     <string name="sync_memory_operations_description">Garantisce la coerenza dei dati tra le operazioni di calcolo e memoria. Questa opzione dovrebbe risolvere problemi in alcuni giochi, ma potrebbe ridurre le prestazioni in alcuni casi. I giochi con Unreal Engine 4 sembrano essere i più colpiti.</string>
     <string name="use_disk_shader_cache">Usa la cache delle shader</string>
     <string name="use_disk_shader_cache_description">Riduce lo stuttering caricando le shader già compilate all\'avvio.</string>
-    <string name="renderer_force_max_clock">Forza clock massimi (solo Adreno)</string>
-    <string name="renderer_force_max_clock_description">Forza la GPU a girare col massimo clock possibile (i vincoli alla temperatura saranno comunque applicati)</string>
     <string name="renderer_reactive_flushing">Abilita il Reactive Flushing</string>
     <string name="renderer_reactive_flushing_description">Migliora l\'accuratezza della grafica in alcuni giochi, al costo delle performance.</string>
 

@@ -256,12 +256,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            async_presentation,
            tr("Enable asynchronous presentation (Vulkan only)"),
            tr("Slightly improves performance by moving presentation to a separate CPU thread."));
-    INSERT(
-        Settings,
-        renderer_force_max_clock,
-        tr("Force maximum clocks (Vulkan only)"),
-        tr("Runs work in the background while waiting for graphics commands to keep the GPU from "
-           "lowering its clock speed."));
     INSERT(Settings,
            max_anisotropy,
            tr("Anisotropic Filtering:"),

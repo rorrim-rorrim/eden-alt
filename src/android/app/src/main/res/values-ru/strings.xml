@@ -471,8 +471,6 @@
     <string name="sync_memory_operations_description">Обеспечивает согласованность данных между вычислительными операциями и операциями с памятью. Эта опция должна исправлять проблемы в некоторых играх, но может снижать производительность в некоторых случаях. Наиболее сильно это затрагивает игры на Unreal Engine 4.</string>
     <string name="use_disk_shader_cache">Кэш шейдеров на диске</string>
     <string name="use_disk_shader_cache_description">Уменьшение зависаний за счет хранения и загрузки сгенерированных шейдеров.</string>
-    <string name="renderer_force_max_clock">Принудительно заставить максимальную тактовую частоту (только для Adreno)</string>
-    <string name="renderer_force_max_clock_description">Заставляет ГП работать на максимально возможных тактовых частотах (тепловые ограничения все равно будут применяться).</string>
     <string name="renderer_reactive_flushing">Реактивная очистка</string>
     <string name="renderer_reactive_flushing_description">Повышение точности рендеринга в некоторых играх за счет снижения производительности.</string>
 

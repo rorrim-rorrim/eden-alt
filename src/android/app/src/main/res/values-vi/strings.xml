@@ -351,8 +351,6 @@
     <string name="sync_memory_operations_description">Đảm bảo tính nhất quán dữ liệu giữa các thao tác tính toán và bộ nhớ. Tùy chọn này nên khắc phục sự cố trong một số trò chơi, nhưng có thể làm giảm hiệu suất trong một số trường hợp. Các trò chơi với Unreal Engine 4 có vẻ bị ảnh hưởng nhiều nhất.</string>
     <string name="use_disk_shader_cache">Lưu bộ nhớ đệm shader trên ổ cứng</string>
     <string name="use_disk_shader_cache_description">Giảm tình trạng giật lag bằng cách lưu trữ và tải các shader được tạo ra nội bộ.</string>
-    <string name="renderer_force_max_clock">Buộc chạy ở xung nhịp tối đa (chỉ Adreno)</string>
-    <string name="renderer_force_max_clock_description">Buộc GPU hoạt động ở xung nhịp tối đa có thể (ràng buộc nhiệt độ vẫn sẽ được áp dụng).</string>
     <string name="renderer_reactive_flushing">Bật xả tương ứng</string>
     <string name="renderer_reactive_flushing_description">Cải thiện độ chính xác hiển thị trong một số trò chơi nhưng đồng thời giảm hiệu suất chơi.</string>
 

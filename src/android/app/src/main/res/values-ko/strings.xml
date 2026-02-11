@@ -370,8 +370,6 @@
     <string name="sync_memory_operations_description">컴퓨팅 및 메모리 작업 간 데이터 일관성을 보장합니다. 이 옵션은 일부 게임의 문제를 해결할 수 있지만 경우에 따라 성능이 저하될 수 있습니다. Unreal Engine 4 게임이 가장 큰 영향을 받는 것으로 보입니다.</string>
     <string name="use_disk_shader_cache">디스크 셰이더 캐시</string>
     <string name="use_disk_shader_cache_description">생성된 셰이더를 로컬에 저장하고 로드하여 끊김 현상을 줄입니다.</string>
-    <string name="renderer_force_max_clock">최대 클럭 강제 설정 (아드레노 전용)</string>
-    <string name="renderer_force_max_clock_description">GPU가 가능한 최대 클럭으로 실행되도록 강제합니다 (열 제약 조건은 여전히 적용됩니다).</string>
     <string name="renderer_reactive_flushing">반응형 플러싱 사용</string>
     <string name="renderer_reactive_flushing_description">일부 게임에서 성능 저하를 감수하고 렌더링 정확도를 향상합니다.</string>
 

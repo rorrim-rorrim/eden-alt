@@ -455,8 +455,6 @@
     <string name="sync_memory_operations_description">確保計算和記憶體操作之間的資料一致性。 此選項應能修復某些遊戲中的問題，但在某些情況下可能會降低效能。 使用Unreal Engine 4的遊戲似乎受影響最大。</string>
     <string name="use_disk_shader_cache">磁碟著色器快取</string>
     <string name="use_disk_shader_cache_description">將產生的著色器快取儲存至硬碟以減少中斷。</string>
-    <string name="renderer_force_max_clock">強制使用最大時脈 (僅限Adreno)</string>
-    <string name="renderer_force_max_clock_description">強制 GPU 以可能的最大時脈執行 (熱溫限制仍會被套用)。</string>
     <string name="renderer_reactive_flushing">使用重新啟用排清</string>
     <string name="renderer_reactive_flushing_description">犧牲效能，以改善部分遊戲的轉譯準確度。</string>
 

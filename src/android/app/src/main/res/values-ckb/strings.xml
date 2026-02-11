@@ -353,8 +353,6 @@
     <string name="sync_memory_operations_description">دڵنیایی داتا لە نێوان کردارەکانی کۆمپیوتەر و بیرگە. ئەم هەڵبژاردە کێشەکان لە هەندێک یاری چارەسەر دەکات، بەڵام لە هەندێک حاڵەت کارایی کەم دەکاتەوە. وا دیارە یارییەکانی Unreal Engine 4 زۆرترین کاریگەریان هەیە.</string>
     <string name="use_disk_shader_cache">بیرگەخێرای سێبەری دیسک</string>
     <string name="use_disk_shader_cache_description">پچڕپچڕی کەمدەکاتەوە بە هەڵگرتن و بارکردنی سێبەری دروستکراو لە ناوخۆدا.</string>
-    <string name="renderer_force_max_clock">ناچاریکردن بۆ زۆرترین کاتژمێر (تەنها ئەدرینۆ)</string>
-    <string name="renderer_force_max_clock_description">GPU ناچار دەکات بە زۆرترین کاتژمێر کاربکات (هێشتا سنووردارکردنی گەرمی جێبەجێ دەکرێت).</string>
     <string name="renderer_reactive_flushing">بەکارهێنانی بەرپێچدەرەوە</string>
     <string name="renderer_reactive_flushing_description">وردی ڕێندەرکردن لە هەندێک یاریدا باشتر دەکات لەسەر تێچووی کارایی.</string>
 

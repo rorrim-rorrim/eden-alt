@@ -477,8 +477,6 @@
     <string name="sync_memory_operations_description">يضمن اتساق البيانات بين عمليات الحوسبة والذاكرة. هذا الخيار قد يحل المشكلات في بعض الألعاب، ولكن قد يقلل الأداء في بعض الحالات. يبدو أن الألعاب التي تستخدم Unreal Engine 4 هي الأكثر تأثرًا.</string>
     <string name="use_disk_shader_cache">ذاكرة التخزين المؤقتة لتظلل القرص</string>
     <string name="use_disk_shader_cache_description">يقلل من التأتأة عن طريق تخزين وتحميل التظليلات التي تم إنشاؤها محليًا.</string>
-    <string name="renderer_force_max_clock">إجبار السرعة القصوى (لأجهزة Adreno فقط)</string>
-    <string name="renderer_force_max_clock_description">يجبر وحدة معالجة الرسومات على العمل بأقصى سرعة ممكنة (سيظل يتم تطبيق القيود الحرارية).</string>
     <string name="renderer_reactive_flushing">استخدم التنظيف التفاعلي</string>
     <string name="renderer_reactive_flushing_description">يحسن دقة العرض في بعض الألعاب على حساب الأداء.</string>
 

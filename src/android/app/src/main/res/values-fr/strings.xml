@@ -424,8 +424,6 @@
     <string name="sync_memory_operations_description">Garantit la cohérence des données entre les opérations de calcul et de mémoire. Cette option devrait résoudre les problèmes dans certains jeux, mais peut réduire les performances dans certains cas. Les jeux utilisant Unreal Engine 4 semblent être les plus affectés.</string>
     <string name="use_disk_shader_cache">Utiliser les shader cache</string>
     <string name="use_disk_shader_cache_description">Réduire les saccades en stockant et en chargeant localement les shaders générés</string>
-    <string name="renderer_force_max_clock">Forcer les fréquences maximales (Adreno uniquement)</string>
-    <string name="renderer_force_max_clock_description">Forcer le GPU à fonctionner à ses fréquences maximales possibles (les contraintes thermiques seront toujours appliquées).</string>
     <string name="renderer_reactive_flushing">Utiliser le vidage réactif</string>
     <string name="renderer_reactive_flushing_description">Améliore la précision du rendu dans certains jeux au détriment des performances.</string>
 

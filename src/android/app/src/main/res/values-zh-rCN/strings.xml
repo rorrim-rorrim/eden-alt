@@ -467,8 +467,6 @@
     <string name="sync_memory_operations_description">确保计算和内存操作之间的数据一致性。 此选项应能修复某些游戏中的问题，但在某些情况下可能会降低性能。 使用Unreal Engine 4的游戏似乎受影响最大。</string>
     <string name="use_disk_shader_cache">磁盘着色器缓存</string>
     <string name="use_disk_shader_cache_description">将生成的着色器缓存于磁盘中并进行读取，以减少卡顿。</string>
-    <string name="renderer_force_max_clock">强制最大时钟 (仅限 Adreno)</string>
-    <string name="renderer_force_max_clock_description">强制 GPU 以最大时钟运行 (仍被温控限制)。</string>
     <string name="renderer_reactive_flushing">启用反应性刷新</string>
     <string name="renderer_reactive_flushing_description">牺牲性能，提高某些游戏的渲染精度。</string>
 

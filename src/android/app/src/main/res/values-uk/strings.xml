@@ -473,8 +473,6 @@
     <string name="sync_memory_operations_description">Забезпечує узгодженість даних між обчислювальними операціями та операціями з пам\'яттю. Ця опція має виправляти проблеми в деяких іграх, але може знижувати продуктивність у деяких випадках. Ігри на Unreal Engine 4, здається, найбільш постраждалі.</string>
     <string name="use_disk_shader_cache">Кеш шейдерів</string>
     <string name="use_disk_shader_cache_description">Зменшує затримки шляхом збереження шейдерів.</string>
-    <string name="renderer_force_max_clock">Максимальна тактова частота (тільки Adreno)</string>
-    <string name="renderer_force_max_clock_description">Змушує GPU працювати на максимальній тактовій частоті.</string>
     <string name="renderer_reactive_flushing">Реактивне очищення</string>
     <string name="renderer_reactive_flushing_description">Покращує точність рендерингу в деяких іграх.</string>
 

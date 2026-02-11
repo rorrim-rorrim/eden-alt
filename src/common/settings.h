@@ -448,9 +448,6 @@ struct Values {
                                                    true,
                                                    true};
 
-    SwitchableSetting<bool> renderer_force_max_clock{linkage, false, "force_max_clock",
-                                                     Category::RendererAdvanced};
-
     SwitchableSetting<bool> use_disk_shader_cache{linkage, true, "use_disk_shader_cache",
                                                   Category::RendererAdvanced};
 

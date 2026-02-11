@@ -469,8 +469,6 @@
     <string name="sync_memory_operations_description">Zajišťuje konzistenci dat mezi výpočetními a paměťovými operacemi. Tato volba by měla opravit problémy v některých hrách, ale může v některých případech snížit výkon. Největší změny se týkají her založených na Unreal Engine 4.</string>
     <string name="use_disk_shader_cache">Disková mezipaměť shaderů</string>
     <string name="use_disk_shader_cache_description">Zlepšuje plynulost ukládáním a načítáním vygenerovaných shaderů na disk.</string>
-    <string name="renderer_force_max_clock">Vynutit maximální takty (pouze Adreno)</string>
-    <string name="renderer_force_max_clock_description">Vynutí běh GPU na maximální možné frekvenci (teplotní limity stále platí).</string>
     <string name="renderer_reactive_flushing">Reaktivní flushing</string>
     <string name="renderer_reactive_flushing_description">Zlepšuje přesnost vykreslování v některých hrách na úkor výkonu.</string>
 

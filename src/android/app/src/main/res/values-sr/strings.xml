@@ -375,8 +375,6 @@
     <string name="sync_memory_operations_description">Осигурава конзистентност података између рачунских и меморијских операција. Ова опција би требало да поправи проблеме у неким играма, али може смањити перформансе у неким случајевима. Чини се да су игре са Unreal Engine 4 највише погођене.</string>
     <string name="use_disk_shader_cache">Предмеморија сјена диска</string>
     <string name="use_disk_shader_cache_description">Смањује муцање локалном чувањем и учитавањем генерисаних схадера.</string>
-    <string name="renderer_force_max_clock">Формирајте максималне сатове (само адрено)</string>
-    <string name="renderer_force_max_clock_description">Снагује ГПУ да се покреће максималним могућим сатовима (топлотна ограничења ће се и даље примењивати).</string>
     <string name="renderer_reactive_flushing">Користите реактивно испирање</string>
     <string name="renderer_reactive_flushing_description">Побољшава тачност приказивања у неким играма по цени перформанси.</string>
 

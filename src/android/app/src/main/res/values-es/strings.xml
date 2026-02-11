@@ -410,8 +410,6 @@
     <string name="sync_memory_operations_description">Garantiza la consistencia de los datos entre las operaciones de computación y memoria. Esta opción debería solucionar problemas en algunos juegos, pero también puede reducir el rendimiento en algunos casos. Los juegos de Unreal Engine 4 a menudo ven los cambios más significativos de los mismos.</string>
     <string name="use_disk_shader_cache">Caché de shaders en disco</string>
     <string name="use_disk_shader_cache_description">Reduce los parones almacenando y cargando shaders generados.</string>
-    <string name="renderer_force_max_clock">Forzar velocidad al máximo (solo Adreno)</string>
-    <string name="renderer_force_max_clock_description">Fuerza a la GPU a ejecutarse a la velocidad máxima de reloj posible (se seguirán aplicando restricciones térmicas).</string>
     <string name="renderer_reactive_flushing">Usar limpieza reactiva</string>
     <string name="renderer_reactive_flushing_description">Mejora la precisión de renderizado en algunos juegos, pero reduce el rendimiento.</string>
 

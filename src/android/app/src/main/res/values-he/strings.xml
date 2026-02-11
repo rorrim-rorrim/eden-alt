@@ -384,8 +384,6 @@
     <string name="sync_memory_operations_description">מבטיח עקביות נתונים בין פעולות חישוב וזיכרון. אפשרות זו אמורה לתקן בעיות במשחקים מסוימים, אך עלולה להפחית ביצועים במקרים מסוימים. נראה שהמשחקים עם Unreal Engine 4 הם המושפעים ביותר.</string>
     <string name="use_disk_shader_cache">מטמון השיידר של הדיסק</string>
     <string name="use_disk_shader_cache_description">מפחית בתקיעות על ידי אחסון מקומי וטעינה של שיידרים הנוצרים. </string>
-    <string name="renderer_force_max_clock">החזק מהירות שעון מקסימלית (רק ל Adreno)</string>
-    <string name="renderer_force_max_clock_description">מכריח לדחוף את מהירויות המעבד הגרפי למקסימום (הגבלות חום ימשיכו לתפקד).</string>
     <string name="renderer_reactive_flushing">השתמש בהבהוב תגובתי</string>
     <string name="renderer_reactive_flushing_description">משפר את הדיוק של האמולציה במשחקים מסויימים במחיר של ביצועים.</string>
 

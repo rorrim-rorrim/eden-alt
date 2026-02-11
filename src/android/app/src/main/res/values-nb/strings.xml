@@ -353,8 +353,6 @@
     <string name="sync_memory_operations_description">Sikrer datakonsistens mellom beregnings- og minneoperasjoner. Dette alternativet bør fikse problemer i noen spill, men kan redusere ytelsen i noen tilfeller. Spill med Unreal Engine 4 ser ut til å være de mest berørte.</string>
     <string name="use_disk_shader_cache">Disk shader-hurtigbuffer</string>
     <string name="use_disk_shader_cache_description">Reduserer hakking ved å lagre og laste inn genererte shaders lokalt.</string>
-    <string name="renderer_force_max_clock">Tving fram maksimal klokkefrekvens (kun Adreno)</string>
-    <string name="renderer_force_max_clock_description">Tvinger GPU-en til å kjøre med maksimal klokkefrekvens (termiske begrensninger vil fortsatt gjelde).</string>
     <string name="renderer_reactive_flushing">Bruk reaktiv spyling</string>
     <string name="renderer_reactive_flushing_description">Forbedrer gjengivelsesnøyaktigheten i enkelte spill på bekostning av ytelsen.</string>
 

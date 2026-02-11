@@ -372,8 +372,6 @@
     <string name="sync_memory_operations_description">Biztosítja az adatok konzisztenciáját a számítási és memória-műveletek között. Ez az opciónak javítania kell néhány játékban előforduló problémát, de bizonyos esetekben csökkentheti a teljesítményt. Az Unreal Engine 4-et használó játékok látszanak a legérintettebbek.</string>
     <string name="use_disk_shader_cache">Lemez árnyékoló gyorsítótár</string>
     <string name="use_disk_shader_cache_description">Csökkenti az akadásokat azáltal, hogy helyileg tárolja és tölti be a generált árnyékolókat.</string>
-    <string name="renderer_force_max_clock">Maximum órajel kényszerítése (csak Adreno)</string>
-    <string name="renderer_force_max_clock_description">Kényszeríti a GPU-t a lehető legnagyobb órajelen működésre (a hőmérséklet korlátozások továbbra is érvényben maradnak).</string>
     <string name="renderer_reactive_flushing">Reaktív ürítés használata</string>
     <string name="renderer_reactive_flushing_description">Javítja a renderelési pontosságot néhány játékban a teljesítmény rovására.</string>
 
