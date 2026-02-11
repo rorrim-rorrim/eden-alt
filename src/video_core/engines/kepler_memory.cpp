@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -19,9 +22,9 @@ KeplerMemory::~KeplerMemory() = default;
 void KeplerMemory::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) {
     upload_state.BindRasterizer(rasterizer_);
 
-    execution_mask.reset();
-    execution_mask[KEPLERMEMORY_REG_INDEX(exec)] = true;
-    execution_mask[KEPLERMEMORY_REG_INDEX(data)] = true;
+    ClearExecutionMask();
+    SetExecutionMaskBit(KEPLERMEMORY_REG_INDEX(exec));
+    SetExecutionMaskBit(KEPLERMEMORY_REG_INDEX(data));
 }
 
 void KeplerMemory::ConsumeSinkImpl() {

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -23,8 +23,8 @@ using namespace Texture;
 
 MaxwellDMA::MaxwellDMA(Core::System& system_, MemoryManager& memory_manager_)
     : system{system_}, memory_manager{memory_manager_} {
-    execution_mask.reset();
-    execution_mask[offsetof(Regs, launch_dma) / sizeof(u32)] = true;
+    ClearExecutionMask();
+    SetExecutionMaskBit(offsetof(Regs, launch_dma) / sizeof(u32));
 }
 
 MaxwellDMA::~MaxwellDMA() = default;
