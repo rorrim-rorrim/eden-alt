@@ -205,7 +205,7 @@ void DmaPusher::ProcessCommands(std::span<const CommandHeader> commands, u64 bas
             case SubmissionMode::Inline:
                 method = command_header.method;
                 subchannel = command_header.subchannel;
-                dma_word_offset = u64(-s64(dma_get)); // negate to set address as 0
+                dma_word_offset = base_word_offset + u32((index + 1) * sizeof(u32));
                 sync_state();
                 CallMethod(command_header.arg_count);
                 non_incrementing = true;
