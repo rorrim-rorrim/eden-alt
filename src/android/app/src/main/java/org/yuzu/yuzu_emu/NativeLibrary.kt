@@ -209,9 +209,14 @@ object NativeLibrary {
     external fun setTurboSpeedLimit(enabled: Boolean)
 
     /**
-     * Set the current speed limit to the configured turbo speed.
+     * Set the current speed limit to the configured slow speed.
      */
     external fun setSlowSpeedLimit(enabled: Boolean)
+
+    /**
+     * Set the current speed limit to the configured standard speed.
+     */
+    external fun setStandardSpeedLimit(enabled: Boolean)
 
     /**
      * Returns Vulkan driver version / API version / GPU model

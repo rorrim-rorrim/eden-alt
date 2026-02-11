@@ -1262,6 +1262,11 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_setSlowSpeedLimit(JNIEnv *env, jobjec
         cur.SetValue(fallback);
 }
 
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_setStandardSpeedLimit(JNIEnv *env, jobject jobj, jboolean enabled) {
+    Settings::values.use_speed_limit.SetValue(enabled);
+    Settings::values.current_speed_limit.SetValue(Settings::values.speed_limit.GetValue());
+}
+
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_run(JNIEnv* env, jobject jobj, jstring j_path,
                                                jint j_program_index,
                                                jboolean j_frontend_initiated) {

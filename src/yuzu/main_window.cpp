@@ -1440,6 +1440,7 @@ void MainWindow::InitializeHotkeys() {
     connect_shortcut(QStringLiteral("Audio Mute/Unmute"), &MainWindow::OnMute);
     connect_shortcut(QStringLiteral("Audio Volume Down"), &MainWindow::OnDecreaseVolume);
     connect_shortcut(QStringLiteral("Audio Volume Up"), &MainWindow::OnIncreaseVolume);
+
     connect_shortcut(QStringLiteral("Toggle Framerate Limit"), [] {
         Settings::values.use_speed_limit.SetValue(!Settings::values.use_speed_limit.GetValue());
         Settings::values.current_speed_limit.SetValue(Settings::values.speed_limit.GetValue());

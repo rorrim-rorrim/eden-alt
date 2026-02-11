@@ -1056,11 +1056,24 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 quickSettings.addPerGameConfigStatusIndicator(container)
             }
 
-            quickSettings.addBooleanSetting(
+            lateinit var slowSpeed: MaterialSwitch
+            lateinit var turboSpeed: MaterialSwitch
+
+            quickSettings.addCustomToggle(
                 R.string.frame_limit_enable,
-                container,
-                BooleanSetting.RENDERER_USE_SPEED_LIMIT,
-            )
+                BooleanSetting.RENDERER_USE_SPEED_LIMIT.getBoolean(false),
+                container
+            ) { enabled ->
+                if (!enabled) {
+                    turboSpeed.isChecked = false
+                    slowSpeed.isChecked = false
+                }
+
+                turboSpeed.isEnabled = enabled
+                slowSpeed.isEnabled = enabled
+
+                NativeLibrary.setStandardSpeedLimit(enabled)
+            }!!
 
             quickSettings.addSliderSetting(
                 R.string.frame_limit_slider,
@@ -1071,11 +1084,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 units = "%",
             )
 
-            lateinit var slowSpeed: MaterialSwitch
-            lateinit var turboSpeed: MaterialSwitch
-
             turboSpeed = quickSettings.addCustomToggle(
                 R.string.turbo_speed_limit,
+                false,
                 container
             ) { enabled ->
                 if (enabled)
@@ -1085,6 +1096,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
             slowSpeed = quickSettings.addCustomToggle(
                 R.string.slow_speed_limit,
+                false,
                 container
             ) { enabled ->
                 if (enabled)
