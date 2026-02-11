@@ -321,6 +321,7 @@ public:
 
     std::recursive_mutex mutex;
     Runtime& runtime;
+    bool any_buffer_uploaded = false;
 
 private:
     template <typename Func>
@@ -372,6 +373,8 @@ private:
     void BindHostGraphicsTextureBuffers(size_t stage);
 
     void BindHostTransformFeedbackBuffers();
+
+    void BindHostVertexBuffer(u32 index, Buffer& buffer, u32 offset, u32 size, u32 stride);
 
     void BindHostComputeUniformBuffers();
 
@@ -454,6 +457,12 @@ private:
 
     [[nodiscard]] bool HasFastUniformBufferBound(size_t stage, u32 binding_index) const noexcept;
 
+    [[nodiscard]] Binding& VertexBufferSlot(u32 index);
+
+    [[nodiscard]] const Binding& VertexBufferSlot(u32 index) const;
+
+    void UpdateVertexBufferSlot(u32 index, const Binding& binding);
+
     void ClearDownload(DAddr base_addr, u64 size);
 
     void InlineMemoryImplementation(DAddr dest_address, size_t copy_size,
@@ -472,6 +481,45 @@ private:
     const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect{};
 
     u32 last_index_count = 0;
+
+    u32 enabled_vertex_buffers_mask = 0;
+    u64 vertex_buffers_serial = 0;
+    Binding v_buffer0{};
+    Binding v_buffer1{};
+    Binding v_buffer2{};
+    Binding v_buffer3{};
+    Binding v_buffer4{};
+    Binding v_buffer5{};
+    Binding v_buffer6{};
+    Binding v_buffer7{};
+    Binding v_buffer8{};
+    Binding v_buffer9{};
+    Binding v_buffer10{};
+    Binding v_buffer11{};
+    Binding v_buffer12{};
+    Binding v_buffer13{};
+    Binding v_buffer14{};
+    Binding v_buffer15{};
+#ifndef __APPLE__
+    Binding v_buffer16{};
+    Binding v_buffer17{};
+    Binding v_buffer18{};
+    Binding v_buffer19{};
+    Binding v_buffer20{};
+    Binding v_buffer21{};
+    Binding v_buffer22{};
+    Binding v_buffer23{};
+    Binding v_buffer24{};
+    Binding v_buffer25{};
+    Binding v_buffer26{};
+    Binding v_buffer27{};
+    Binding v_buffer28{};
+    Binding v_buffer29{};
+    Binding v_buffer30{};
+    Binding v_buffer31{};
+#endif
+
+    boost::container::small_vector<BufferCopy, 4> upload_copies;
 
     MemoryTracker memory_tracker;
     Common::RangeSet<DAddr> uncommitted_gpu_modified_ranges;
