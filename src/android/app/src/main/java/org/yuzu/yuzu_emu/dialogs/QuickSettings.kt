@@ -139,6 +139,7 @@ class QuickSettings(val emulationFragment: EmulationFragment) {
     fun addCustomToggle(
         name: Int,
         isChecked: Boolean,
+        isEnabled: Boolean,
 
         container: ViewGroup,
         callback: (Boolean) -> Unit
@@ -153,12 +154,12 @@ class QuickSettings(val emulationFragment: EmulationFragment) {
         titleView.text = YuzuApplication.appContext.getString(name)
         switchContainer.visibility = View.VISIBLE
 
+        switchView.isChecked = isChecked
+
         switchView.setOnCheckedChangeListener { _, checked ->
             callback(checked)
             saveSettings()
         }
-
-        switchView.isChecked = isChecked
 
         switchContainer.setOnClickListener {
             switchView.toggle()

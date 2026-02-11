@@ -371,9 +371,6 @@ Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string
     // Create the render window.
     m_window = std::make_unique<EmuWindow_Android>(m_native_window, m_vulkan_library);
 
-    // Set up speed limiter
-    Settings::values.current_speed_limit.SetValue(Settings::values.speed_limit.GetValue());
-
     // Initialize system.
     jauto android_keyboard = std::make_unique<Common::Android::SoftwareKeyboard::AndroidKeyboard>();
     jauto android_webapplet = std::make_unique<Common::Android::WebBrowser::AndroidWebBrowser>();
@@ -1237,34 +1234,36 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_getDebugKnobAt(JNIEnv* env, jobje
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_setTurboSpeedLimit(JNIEnv *env, jobject jobj, jboolean enabled) {
-    Settings::values.use_speed_limit.SetValue(true);
-
-    auto &cur = Settings::values.current_speed_limit;
-    auto &nxt = Settings::values.turbo_speed_limit.GetValue();
-    auto &fallback = Settings::values.speed_limit.GetValue();
-
-    if (enabled && cur.GetValue() != nxt)
-        cur.SetValue(nxt);
-    else
-        cur.SetValue(fallback);
+    if (enabled) {
+        Settings::values.use_speed_limit.SetValue(true);
+        Settings::SetSpeedMode(Settings::SpeedMode::Turbo);
+    } else {
+        Settings::SetSpeedMode(Settings::SpeedMode::Standard);
+    }
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_setSlowSpeedLimit(JNIEnv *env, jobject jobj, jboolean enabled) {
-    Settings::values.use_speed_limit.SetValue(true);
-
-    auto &cur = Settings::values.current_speed_limit;
-    auto &nxt = Settings::values.slow_speed_limit.GetValue();
-    auto &fallback = Settings::values.speed_limit.GetValue();
-
-    if (enabled && cur.GetValue() != nxt)
-        cur.SetValue(nxt);
-    else
-        cur.SetValue(fallback);
+    if (enabled) {
+        Settings::values.use_speed_limit.SetValue(true);
+        Settings::SetSpeedMode(Settings::SpeedMode::Slow);
+    } else {
+        Settings::SetSpeedMode(Settings::SpeedMode::Standard);
+    }
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_setStandardSpeedLimit(JNIEnv *env, jobject jobj, jboolean enabled) {
     Settings::values.use_speed_limit.SetValue(enabled);
-    Settings::values.current_speed_limit.SetValue(Settings::values.speed_limit.GetValue());
+    if (enabled) {
+        Settings::SetSpeedMode(Settings::SpeedMode::Standard);
+    }
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isTurboMode(JNIEnv *env, jobject jobj) {
+    return Settings::values.current_speed_mode.GetValue() == Settings::SpeedMode::Turbo;
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isSlowMode(JNIEnv *env, jobject jobj) {
+    return Settings::values.current_speed_mode.GetValue() == Settings::SpeedMode::Slow;
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_run(JNIEnv* env, jobject jobj, jstring j_path,

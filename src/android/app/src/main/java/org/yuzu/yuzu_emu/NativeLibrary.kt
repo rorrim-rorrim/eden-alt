@@ -218,6 +218,9 @@ object NativeLibrary {
      */
     external fun setStandardSpeedLimit(enabled: Boolean)
 
+    external fun isTurboMode(): Boolean
+    external fun isSlowMode(): Boolean
+
     /**
      * Returns Vulkan driver version / API version / GPU model
      */

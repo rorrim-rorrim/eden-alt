@@ -204,6 +204,7 @@ struct Values {
                                                              true};
     SwitchableSetting<bool> use_speed_limit{
                                             linkage, true, "use_speed_limit", Category::Core, Specialization::Paired, true, true};
+
     SwitchableSetting<u16, true> speed_limit{linkage,
                                              100,
                                              0,
@@ -225,10 +226,6 @@ struct Values {
                                              true,
                                              true};
 
-    // The currently used speed limit.
-    // TODO: should this be an enum?
-    SwitchableSetting<u16> current_speed_limit{linkage, 100, "current_speed_limit", Category::Core, Specialization::Default, false, true};
-
     SwitchableSetting<u16, true> turbo_speed_limit{linkage,
                                              200,
                                              0,
@@ -238,6 +235,9 @@ struct Values {
                                              Specialization::Countable | Specialization::Percentage,
                                              true,
                                              true};
+
+    // The currently used speed mode.
+    Setting<SpeedMode> current_speed_mode{linkage, SpeedMode::Standard, "current_speed_mode", Category::Core, Specialization::Default, false, true};
 
     SwitchableSetting<bool> sync_core_speed{linkage, false, "sync_core_speed", Category::Core,
                                             Specialization::Default};
@@ -838,6 +838,13 @@ bool IsNceEnabled();
 bool IsDockedMode();
 
 float Volume();
+
+// speed limit ops
+u16 SpeedLimit();
+void SetSpeedMode(const SpeedMode &mode);
+void ToggleStandardMode();
+void ToggleTurboMode();
+void ToggleSlowMode();
 
 std::string GetTimeZoneString(TimeZone time_zone);
 

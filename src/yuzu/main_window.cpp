@@ -3,6 +3,7 @@
 
 // Qt on macOS doesn't define VMA shit
 #include <boost/algorithm/string/split.hpp>
+#include "common/settings.h"
 #include "common/settings_enums.h"
 #include "frontend_common/settings_generator.h"
 #include "qt_common/qt_string_lookup.h"
@@ -1442,42 +1443,21 @@ void MainWindow::InitializeHotkeys() {
     connect_shortcut(QStringLiteral("Audio Volume Up"), &MainWindow::OnIncreaseVolume);
 
     connect_shortcut(QStringLiteral("Toggle Framerate Limit"), [this] {
-        const bool limited = !Settings::values.use_speed_limit.GetValue();
-        Settings::values.use_speed_limit.SetValue(limited);
-        Settings::values.current_speed_limit.SetValue(Settings::values.speed_limit.GetValue());
+        Settings::ToggleStandardMode();
+        const bool limited = Settings::values.use_speed_limit.GetValue();
         m_fpsSuffix = limited ? QString{} : tr("Unlocked");
     });
 
     connect_shortcut(QStringLiteral("Toggle Turbo Speed"), [this] {
-        Settings::values.use_speed_limit.SetValue(true);
-
-        auto &cur = Settings::values.current_speed_limit;
-        auto &nxt = Settings::values.turbo_speed_limit.GetValue();
-        auto &fallback = Settings::values.speed_limit.GetValue();
-
-        if (cur.GetValue() == nxt) {
-            cur.SetValue(fallback);
-            m_fpsSuffix = QString{};
-        } else {
-            cur.SetValue(nxt);
-            m_fpsSuffix = tr("Turbo");
-        }
+        Settings::ToggleTurboMode();
+        const bool turbo = Settings::values.current_speed_mode.GetValue() == Settings::SpeedMode::Turbo;
+        m_fpsSuffix = turbo ? tr("Turbo") : QString{};
     });
 
     connect_shortcut(QStringLiteral("Toggle Slow Speed"), [this] {
-        Settings::values.use_speed_limit.SetValue(true);
-
-        auto &cur = Settings::values.current_speed_limit;
-        auto &nxt = Settings::values.slow_speed_limit.GetValue();
-        auto &fallback = Settings::values.speed_limit.GetValue();
-
-        if (cur.GetValue() == nxt) {
-            cur.SetValue(fallback);
-            m_fpsSuffix = QString{};
-        } else {
-            cur.SetValue(nxt);
-            m_fpsSuffix = tr("Slow");
-        }
+        Settings::ToggleSlowMode();
+        const bool slow = Settings::values.current_speed_mode.GetValue() == Settings::SpeedMode::Slow;
+        m_fpsSuffix = slow ? tr("Slow") : QString{};
     });
 
     connect_shortcut(QStringLiteral("Toggle Renderdoc Capture"), [] {
@@ -2082,9 +2062,6 @@ void MainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletPa
     UpdateUISettings();
     game_list->SaveInterfaceLayout();
     config->SaveAllValues();
-
-    // Set up speed limiter
-    Settings::values.current_speed_limit.SetValue(Settings::values.speed_limit.GetValue());
 
     u64 title_id{0};
 
@@ -4294,7 +4271,7 @@ void MainWindow::UpdateStatusBar() {
     if (Settings::values.use_speed_limit.GetValue()) {
         emu_speed_label->setText(tr("Speed: %1% / %2%")
                                      .arg(results.emulation_speed * 100.0, 0, 'f', 0)
-                                     .arg(Settings::values.current_speed_limit.GetValue()));
+                                     .arg(Settings::SpeedLimit()));
     } else {
         emu_speed_label->setText(tr("Speed: %1%").arg(results.emulation_speed * 100.0, 0, 'f', 0));
     }

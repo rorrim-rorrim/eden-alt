@@ -1059,9 +1059,32 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             lateinit var slowSpeed: MaterialSwitch
             lateinit var turboSpeed: MaterialSwitch
 
+            turboSpeed = quickSettings.addCustomToggle(
+                R.string.turbo_speed_limit,
+                NativeLibrary.isTurboMode(),
+                BooleanSetting.RENDERER_USE_SPEED_LIMIT.getBoolean(false),
+                container
+            ) { enabled ->
+                if (enabled)
+                    slowSpeed.isChecked = false
+                NativeLibrary.setTurboSpeedLimit(enabled)
+            }!!
+
+            slowSpeed = quickSettings.addCustomToggle(
+                R.string.slow_speed_limit,
+                NativeLibrary.isSlowMode(),
+                BooleanSetting.RENDERER_USE_SPEED_LIMIT.getBoolean(false),
+                container
+            ) { enabled ->
+                if (enabled)
+                    turboSpeed.isChecked = false
+                NativeLibrary.setSlowSpeedLimit(enabled)
+            }!!
+
             quickSettings.addCustomToggle(
                 R.string.frame_limit_enable,
                 BooleanSetting.RENDERER_USE_SPEED_LIMIT.getBoolean(false),
+                true,
                 container
             ) { enabled ->
                 if (!enabled) {
@@ -1083,26 +1106,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 maxValue = 400,
                 units = "%",
             )
-
-            turboSpeed = quickSettings.addCustomToggle(
-                R.string.turbo_speed_limit,
-                false,
-                container
-            ) { enabled ->
-                if (enabled)
-                    slowSpeed.isChecked = false
-                NativeLibrary.setTurboSpeedLimit(enabled)
-            }!!
-
-            slowSpeed = quickSettings.addCustomToggle(
-                R.string.slow_speed_limit,
-                false,
-                container
-            ) { enabled ->
-                if (enabled)
-                    turboSpeed.isChecked = false
-                NativeLibrary.setSlowSpeedLimit(enabled)
-            }!!
 
             quickSettings.addBooleanSetting(
                 R.string.use_docked_mode,

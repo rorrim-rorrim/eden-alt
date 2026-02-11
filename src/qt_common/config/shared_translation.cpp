@@ -72,7 +72,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
         tr("Increases the amount of emulated RAM.\nDoesn't affect performance/stability but may allow HD texture "
            "mods to load."));
     INSERT(Settings, use_speed_limit, QString(), QString());
-    INSERT(Settings, current_speed_limit, QString(), QString());
+    INSERT(Settings, current_speed_mode, QString(), QString());
     INSERT(Settings,
            speed_limit,
            tr("Limit Speed Percent"),
