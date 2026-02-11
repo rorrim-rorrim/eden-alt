@@ -91,7 +91,8 @@ bool DmaPusher::Step() {
                                        ? (Settings::IsGPULevelMedium() || Settings::IsGPULevelHigh())
                                        : Settings::IsDMALevelSafe();
         constexpr u32 bulk_count = 32;
-        const size_t total_size = static_cast<size_t>(header.size);
+        const u32 header_size = static_cast<u32>(header.size);
+        const size_t total_size = static_cast<size_t>(header_size);
         const size_t total_bytes = total_size * sizeof(CommandHeader);
         if (use_safe_read) {
             memory_manager.FlushRegion(dma_state.dma_get, total_bytes);
@@ -100,14 +101,14 @@ bool DmaPusher::Step() {
         const u8* direct_span = memory_manager.GetSpan(dma_state.dma_get, total_bytes);
         if (direct_span) {
             const auto* headers = reinterpret_cast<const CommandHeader*>(direct_span);
-            for (u32 offset = 0; offset < header.size; offset += bulk_count) {
-                const u32 count = (std::min)(bulk_count, header.size - offset);
+            for (u32 offset = 0; offset < header_size; offset += bulk_count) {
+                const u32 count = (std::min)(bulk_count, header_size - offset);
                 ProcessCommands(std::span<const CommandHeader>(headers + offset, count),
                                 static_cast<u64>(offset) * sizeof(CommandHeader));
             }
         } else {
-            for (u32 offset = 0; offset < header.size; offset += bulk_count) {
-                const u32 count = (std::min)(bulk_count, header.size - offset);
+            for (u32 offset = 0; offset < header_size; offset += bulk_count) {
+                const u32 count = (std::min)(bulk_count, header_size - offset);
                 command_headers.resize_destructive(count);
                 const GPUVAddr gpu_addr =
                     dma_state.dma_get + static_cast<GPUVAddr>(offset) * sizeof(CommandHeader);
