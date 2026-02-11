@@ -214,6 +214,31 @@ struct Values {
                                              true,
                                              true,
                                              &use_speed_limit};
+
+    SwitchableSetting<u16, true> slow_speed_limit{linkage,
+                                             50,
+                                             0,
+                                             9999,
+                                             "slow_speed_limit",
+                                             Category::Core,
+                                             Specialization::Countable | Specialization::Percentage,
+                                             true,
+                                             true};
+
+    // The currently used speed limit.
+    // TODO: should this be an enum?
+    SwitchableSetting<u16> current_speed_limit{linkage, 100, "current_speed_limit", Category::Core, Specialization::Default, false, true};
+
+    SwitchableSetting<u16, true> turbo_speed_limit{linkage,
+                                             200,
+                                             0,
+                                             9999,
+                                             "turbo_speed_limit",
+                                             Category::Core,
+                                             Specialization::Countable | Specialization::Percentage,
+                                             true,
+                                             true};
+
     SwitchableSetting<bool> sync_core_speed{linkage, false, "sync_core_speed", Category::Core,
                                             Specialization::Default};
 

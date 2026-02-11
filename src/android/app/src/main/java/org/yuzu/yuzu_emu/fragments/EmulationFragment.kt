@@ -55,6 +55,7 @@ import androidx.window.layout.WindowInfoTracker
 import androidx.window.layout.WindowLayoutInfo
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.textview.MaterialTextView
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -1069,6 +1070,27 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 maxValue = 400,
                 units = "%",
             )
+
+            lateinit var slowSpeed: MaterialSwitch
+            lateinit var turboSpeed: MaterialSwitch
+
+            turboSpeed = quickSettings.addCustomToggle(
+                R.string.turbo_speed_limit,
+                container
+            ) { enabled ->
+                if (enabled)
+                    slowSpeed.isChecked = false
+                NativeLibrary.setTurboSpeedLimit(enabled)
+            }!!
+
+            slowSpeed = quickSettings.addCustomToggle(
+                R.string.slow_speed_limit,
+                container
+            ) { enabled ->
+                if (enabled)
+                    turboSpeed.isChecked = false
+                NativeLibrary.setSlowSpeedLimit(enabled)
+            }!!
 
             quickSettings.addBooleanSetting(
                 R.string.use_docked_mode,

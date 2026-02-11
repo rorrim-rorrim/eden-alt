@@ -95,7 +95,7 @@ s64 Conductor::GetNextTicks() const {
         if (settings.use_speed_limit.GetValue()) {
             // Scales the speed based on speed_limit setting on MC. SC is handled by
             // SpeedLimiter::DoSpeedLimiting.
-            speed_scale = 100.f / settings.speed_limit.GetValue();
+            speed_scale = 100.f / settings.current_speed_limit.GetValue();
         } else {
             // Run at unlocked framerate.
             speed_scale = 0.01f;

@@ -1406,12 +1406,12 @@ void MainWindow::InitializeHotkeys() {
     LinkActionShortcut(ui->action_TAS_Record, QStringLiteral("TAS Record"), true);
     LinkActionShortcut(ui->action_TAS_Reset, QStringLiteral("TAS Reset"), true);
     LinkActionShortcut(ui->action_View_Lobby,
-                       QStringLiteral("Multiplayer Browse Public Game Lobby"));
-    LinkActionShortcut(ui->action_Start_Room, QStringLiteral("Multiplayer Create Room"));
+                       QStringLiteral("Browse Public Game Lobby"));
+    LinkActionShortcut(ui->action_Start_Room, QStringLiteral("Create Room"));
     LinkActionShortcut(ui->action_Connect_To_Room,
-                       QStringLiteral("Multiplayer Direct Connect to Room"));
-    LinkActionShortcut(ui->action_Show_Room, QStringLiteral("Multiplayer Show Current Room"));
-    LinkActionShortcut(ui->action_Leave_Room, QStringLiteral("Multiplayer Leave Room"));
+                       QStringLiteral("Direct Connect to Room"));
+    LinkActionShortcut(ui->action_Show_Room, QStringLiteral("Show Current Room"));
+    LinkActionShortcut(ui->action_Leave_Room, QStringLiteral("Leave Room"));
     LinkActionShortcut(ui->action_Configure, QStringLiteral("Configure"));
     LinkActionShortcut(ui->action_Configure_Current_Game, QStringLiteral("Configure Current Game"));
 
@@ -1442,7 +1442,35 @@ void MainWindow::InitializeHotkeys() {
     connect_shortcut(QStringLiteral("Audio Volume Up"), &MainWindow::OnIncreaseVolume);
     connect_shortcut(QStringLiteral("Toggle Framerate Limit"), [] {
         Settings::values.use_speed_limit.SetValue(!Settings::values.use_speed_limit.GetValue());
+        Settings::values.current_speed_limit.SetValue(Settings::values.speed_limit.GetValue());
     });
+
+    connect_shortcut(QStringLiteral("Toggle Turbo Speed"), [] {
+        Settings::values.use_speed_limit.SetValue(true);
+
+        auto &cur = Settings::values.current_speed_limit;
+        auto &nxt = Settings::values.turbo_speed_limit.GetValue();
+        auto &fallback = Settings::values.speed_limit.GetValue();
+
+        if (cur.GetValue() == nxt)
+            cur.SetValue(fallback);
+        else
+            cur.SetValue(nxt);
+    });
+
+    connect_shortcut(QStringLiteral("Toggle Slow Speed"), [] {
+        Settings::values.use_speed_limit.SetValue(true);
+
+        auto &cur = Settings::values.current_speed_limit;
+        auto &nxt = Settings::values.slow_speed_limit.GetValue();
+        auto &fallback = Settings::values.speed_limit.GetValue();
+
+        if (cur.GetValue() == nxt)
+            cur.SetValue(fallback);
+        else
+            cur.SetValue(nxt);
+    });
+
     connect_shortcut(QStringLiteral("Toggle Renderdoc Capture"), [] {
         if (Settings::values.enable_renderdoc_hotkey) {
             QtCommon::system->GetRenderdocAPI().ToggleCapture();
@@ -2045,6 +2073,9 @@ void MainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletPa
     UpdateUISettings();
     game_list->SaveInterfaceLayout();
     config->SaveAllValues();
+
+    // Set up speed limiter
+    Settings::values.current_speed_limit.SetValue(Settings::values.speed_limit.GetValue());
 
     u64 title_id{0};
 
@@ -4254,7 +4285,7 @@ void MainWindow::UpdateStatusBar() {
     if (Settings::values.use_speed_limit.GetValue()) {
         emu_speed_label->setText(tr("Speed: %1% / %2%")
                                      .arg(results.emulation_speed * 100.0, 0, 'f', 0)
-                                     .arg(Settings::values.speed_limit.GetValue()));
+                                     .arg(Settings::values.current_speed_limit.GetValue()));
     } else {
         emu_speed_label->setText(tr("Speed: %1%").arg(results.emulation_speed * 100.0, 0, 'f', 0));
     }
