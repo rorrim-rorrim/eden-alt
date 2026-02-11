@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -148,7 +148,7 @@ private:
     static constexpr u32 non_puller_methods = 0x40;
     static constexpr u32 max_subchannels = 8;
     bool Step();
-    void ProcessCommands(std::span<const CommandHeader> commands);
+    void ProcessCommands(std::span<const CommandHeader> commands, u64 base_word_offset = 0);
 
     void SetState(const CommandHeader& command_header);
 
