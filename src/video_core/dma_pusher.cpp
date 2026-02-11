@@ -151,6 +151,7 @@ void DmaPusher::ProcessCommands(std::span<const CommandHeader> commands, u64 bas
     u64 dma_word_offset = dma_state.dma_word_offset;
     bool non_incrementing = dma_state.non_incrementing;
     bool is_last_call = dma_state.is_last_call;
+    const u64 dma_get = dma_state.dma_get;
 
     const auto sync_state = [&]() {
         dma_state.method = method;
