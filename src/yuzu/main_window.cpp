@@ -1441,35 +1441,43 @@ void MainWindow::InitializeHotkeys() {
     connect_shortcut(QStringLiteral("Audio Volume Down"), &MainWindow::OnDecreaseVolume);
     connect_shortcut(QStringLiteral("Audio Volume Up"), &MainWindow::OnIncreaseVolume);
 
-    connect_shortcut(QStringLiteral("Toggle Framerate Limit"), [] {
-        Settings::values.use_speed_limit.SetValue(!Settings::values.use_speed_limit.GetValue());
+    connect_shortcut(QStringLiteral("Toggle Framerate Limit"), [this] {
+        const bool limited = !Settings::values.use_speed_limit.GetValue();
+        Settings::values.use_speed_limit.SetValue(limited);
         Settings::values.current_speed_limit.SetValue(Settings::values.speed_limit.GetValue());
+        m_fpsSuffix = limited ? QString{} : tr("Unlocked");
     });
 
-    connect_shortcut(QStringLiteral("Toggle Turbo Speed"), [] {
+    connect_shortcut(QStringLiteral("Toggle Turbo Speed"), [this] {
         Settings::values.use_speed_limit.SetValue(true);
 
         auto &cur = Settings::values.current_speed_limit;
         auto &nxt = Settings::values.turbo_speed_limit.GetValue();
         auto &fallback = Settings::values.speed_limit.GetValue();
 
-        if (cur.GetValue() == nxt)
+        if (cur.GetValue() == nxt) {
             cur.SetValue(fallback);
-        else
+            m_fpsSuffix = QString{};
+        } else {
             cur.SetValue(nxt);
+            m_fpsSuffix = tr("Turbo");
+        }
     });
 
-    connect_shortcut(QStringLiteral("Toggle Slow Speed"), [] {
+    connect_shortcut(QStringLiteral("Toggle Slow Speed"), [this] {
         Settings::values.use_speed_limit.SetValue(true);
 
         auto &cur = Settings::values.current_speed_limit;
         auto &nxt = Settings::values.slow_speed_limit.GetValue();
         auto &fallback = Settings::values.speed_limit.GetValue();
 
-        if (cur.GetValue() == nxt)
+        if (cur.GetValue() == nxt) {
             cur.SetValue(fallback);
-        else
+            m_fpsSuffix = QString{};
+        } else {
             cur.SetValue(nxt);
+            m_fpsSuffix = tr("Slow");
+        }
     });
 
     connect_shortcut(QStringLiteral("Toggle Renderdoc Capture"), [] {
@@ -4291,9 +4299,10 @@ void MainWindow::UpdateStatusBar() {
         emu_speed_label->setText(tr("Speed: %1%").arg(results.emulation_speed * 100.0, 0, 'f', 0));
     }
 
-    game_fps_label->setText(
-        tr("Game: %1 FPS").arg(std::round(results.average_game_fps), 0, 'f', 0) +
-        tr(Settings::values.use_speed_limit ? "" : " (Unlocked)"));
+    QString fpsText = tr("Game: %1 FPS").arg(std::round(results.average_game_fps), 0, 'f', 0);
+    if (!m_fpsSuffix.isEmpty()) fpsText = fpsText % QStringLiteral(" (%1)").arg(m_fpsSuffix);
+
+    game_fps_label->setText(fpsText);
 
     emu_frametime_label->setText(tr("Frame: %1 ms").arg(results.frametime * 1000.0, 0, 'f', 2));
 
