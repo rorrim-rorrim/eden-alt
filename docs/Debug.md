@@ -29,20 +29,18 @@ Ignoring SIGSEGV when debugging in host:
 
 ### gdb
 
-You need to have a `aarch64-gdb`, either install or cross-compile:
+You must have GDB installed for aarch64 to debug the target. Install it through your package manager, e.g.:
 * On Arch:
   * `yay aarch64-gdb` or `sudo pkg in arch64-gdb`
 * On Gentoo:
   * `sudo emerge --ask crossdev`
   * `crossdev -t aarch64-unknown-linux-gnu --ex-gdb`
 
-`Enable GDB Stub` at General > Debug, then hook up an aarch64-gdb:
+Run `./build/bin/eden-cli -c <path to your config file (see logs where you run eden normally to see where it is)> -d -g <path to game>`
+Or `Enable GDB Stub` at General > Debug, then hook up an aarch64-gdb:
 * `target remote localhost:6543`
 
-Type:
-* for continue: `c`
-* then if it crashes: `bt` (backtrace)
-* and `layout asm`
+Type `c` (for continue) and then if it crashes just do a `bt` (backtrace) and `layout asm`
 
 ### gdb cheatsheet
 
