@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -7,11 +7,7 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "video_core/dma_pusher.h"
-#include "video_core/engines/fermi_2d.h"
-#include "video_core/engines/kepler_compute.h"
-#include "video_core/engines/kepler_memory.h"
 #include "video_core/engines/maxwell_3d.h"
-#include "video_core/engines/maxwell_dma.h"
 #include "video_core/gpu.h"
 #include "video_core/guest_memory.h"
 #include "video_core/memory_manager.h"
@@ -87,41 +83,12 @@ bool DmaPusher::Step() {
     }
 
     if (header.size > 0) {
-        const bool use_safe_read = Settings::IsDMALevelDefault()
-                                       ? (Settings::IsGPULevelMedium() || Settings::IsGPULevelHigh())
-                                       : Settings::IsDMALevelSafe();
-        constexpr u32 bulk_count = 32;
-        const size_t total_size = static_cast<size_t>(header.size);
-        const size_t total_bytes = total_size * sizeof(CommandHeader);
-        if (use_safe_read) {
-            memory_manager.FlushRegion(dma_state.dma_get, total_bytes);
-        }
-
-        const u8* direct_span = memory_manager.GetSpan(dma_state.dma_get, total_bytes);
-        if (direct_span) {
-            const auto* headers = reinterpret_cast<const CommandHeader*>(direct_span);
-            for (u32 offset = 0; offset < header.size; offset += bulk_count) {
-                const u32 count = (std::min)(bulk_count, header.size - offset);
-                ProcessCommands(std::span<const CommandHeader>(headers + offset, count),
-                                static_cast<u64>(offset) * sizeof(CommandHeader));
-            }
+        if (Settings::IsDMALevelDefault() ? (Settings::IsGPULevelMedium() || Settings::IsGPULevelHigh()) : Settings::IsDMALevelSafe()) {
+            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::SafeRead>headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
+            ProcessCommands(headers);
         } else {
-            for (u32 offset = 0; offset < header.size; offset += bulk_count) {
-                const u32 count = (std::min)(bulk_count, header.size - offset);
-                command_headers.resize_destructive(count);
-                const GPUVAddr gpu_addr =
-                    dma_state.dma_get + static_cast<GPUVAddr>(offset) * sizeof(CommandHeader);
-                if (use_safe_read) {
-                    memory_manager.ReadBlock(gpu_addr, command_headers.data(),
-                                             count * sizeof(CommandHeader));
-                } else {
-                    memory_manager.ReadBlockUnsafe(gpu_addr, command_headers.data(),
-                                                   count * sizeof(CommandHeader));
-                }
-                ProcessCommands(
-                    std::span<const CommandHeader>(command_headers.data(), count),
-                    static_cast<u64>(offset) * sizeof(CommandHeader));
-            }
+            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::UnsafeRead>headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
+            ProcessCommands(headers);
         }
     }
 
@@ -143,78 +110,51 @@ bool DmaPusher::Step() {
     return true;
 }
 
-void DmaPusher::ProcessCommands(std::span<const CommandHeader> commands, u64 base_word_offset) {
-    u32 method = dma_state.method;
-    u32 method_count = dma_state.method_count;
-    u32 subchannel = dma_state.subchannel;
-    u64 dma_word_offset = dma_state.dma_word_offset;
-    bool non_incrementing = dma_state.non_incrementing;
-    bool is_last_call = dma_state.is_last_call;
-    const u64 dma_get = dma_state.dma_get;
-
-    const auto sync_state = [&]() {
-        dma_state.method = method;
-        dma_state.method_count = method_count;
-        dma_state.subchannel = subchannel;
-        dma_state.dma_word_offset = dma_word_offset;
-        dma_state.non_incrementing = non_incrementing;
-        dma_state.is_last_call = is_last_call;
-    };
-
+void DmaPusher::ProcessCommands(std::span<const CommandHeader> commands) {
     for (size_t index = 0; index < commands.size();) {
         // Data word of methods command
-        if (method_count && non_incrementing) {
+        if (dma_state.method_count && dma_state.non_incrementing) {
             auto const& command_header = commands[index]; //must ref (MUltiMethod re)
-            dma_word_offset = base_word_offset + u32(index * sizeof(u32));
-            const u32 max_write =
-                u32(std::min<std::size_t>(index + method_count, commands.size()) - index);
-            sync_state();
+            dma_state.dma_word_offset = u32(index * sizeof(u32));
+            const u32 max_write = u32(std::min<std::size_t>(index + dma_state.method_count, commands.size()) - index);
             CallMultiMethod(&command_header.argument, max_write);
-            method_count -= max_write;
-            is_last_call = true;
+            dma_state.method_count -= max_write;
+            dma_state.is_last_call = true;
             index += max_write;
-        } else if (method_count) {
+        } else if (dma_state.method_count) {
             auto const command_header = commands[index]; //can copy
-            dma_word_offset = base_word_offset + u32(index * sizeof(u32));
-            is_last_call = method_count <= 1;
-            sync_state();
+            dma_state.dma_word_offset = u32(index * sizeof(u32));
+            dma_state.is_last_call = dma_state.method_count <= 1;
             CallMethod(command_header.argument);
-            method += !non_incrementing ? 1 : 0;
-            non_incrementing |= dma_increment_once;
-            method_count--;
+            dma_state.method += !dma_state.non_incrementing ? 1 : 0;
+            dma_state.non_incrementing |= dma_increment_once;
+            dma_state.method_count--;
             index++;
         } else {
             auto const command_header = commands[index]; //can copy
             // No command active - this is the first word of a new one
             switch (command_header.mode) {
             case SubmissionMode::Increasing:
-                method = command_header.method;
-                subchannel = command_header.subchannel;
-                method_count = command_header.method_count;
-                non_incrementing = false;
+                SetState(command_header);
+                dma_state.non_incrementing = false;
                 dma_increment_once = false;
                 break;
             case SubmissionMode::NonIncreasing:
-                method = command_header.method;
-                subchannel = command_header.subchannel;
-                method_count = command_header.method_count;
-                non_incrementing = true;
+                SetState(command_header);
+                dma_state.non_incrementing = true;
                 dma_increment_once = false;
                 break;
             case SubmissionMode::Inline:
-                method = command_header.method;
-                subchannel = command_header.subchannel;
-                dma_word_offset = u64(-s64(dma_get)); // negate to set address as 0
-                sync_state();
+                dma_state.method = command_header.method;
+                dma_state.subchannel = command_header.subchannel;
+                dma_state.dma_word_offset = u64(-s64(dma_state.dma_get)); // negate to set address as 0
                 CallMethod(command_header.arg_count);
-                non_incrementing = true;
+                dma_state.non_incrementing = true;
                 dma_increment_once = false;
                 break;
             case SubmissionMode::IncreaseOnce:
-                method = command_header.method;
-                subchannel = command_header.subchannel;
-                method_count = command_header.method_count;
-                non_incrementing = false;
+                SetState(command_header);
+                dma_state.non_incrementing = false;
                 dma_increment_once = true;
                 break;
             default:
@@ -223,8 +163,6 @@ void DmaPusher::ProcessCommands(std::span<const CommandHeader> commands, u64 bas
             index++;
         }
     }
-
-    sync_state();
 }
 
 void DmaPusher::SetState(const CommandHeader& command_header) {
@@ -243,45 +181,12 @@ void DmaPusher::CallMethod(u32 argument) const {
         });
     } else {
         auto subchannel = subchannels[dma_state.subchannel];
-        if (!subchannel) {
-            return;
-        }
-        const u32 method = dma_state.method;
-        const u32 word_index = method >> 6;
-        const u64 bit_mask = 1ULL << (method & 63);
-        const bool is_executable =
-            word_index < subchannel->execution_mask_words.size() &&
-            (subchannel->execution_mask_words[word_index] & bit_mask) != 0;
-        if (!is_executable) {
-            subchannel->method_sink.emplace_back(method, argument);
+        if (!subchannel->execution_mask[dma_state.method]) {
+            subchannel->method_sink.emplace_back(dma_state.method, argument);
         } else {
             subchannel->ConsumeSink();
             subchannel->current_dma_segment = dma_state.dma_get + dma_state.dma_word_offset;
-            switch (subchannel_type[dma_state.subchannel]) {
-            case Engines::EngineTypes::Maxwell3D:
-                static_cast<Engines::Maxwell3D*>(subchannel)->CallMethod(method, argument,
-                                                                         dma_state.is_last_call);
-                break;
-            case Engines::EngineTypes::KeplerCompute:
-                static_cast<Engines::KeplerCompute*>(subchannel)->CallMethod(
-                    method, argument, dma_state.is_last_call);
-                break;
-            case Engines::EngineTypes::Fermi2D:
-                static_cast<Engines::Fermi2D*>(subchannel)->CallMethod(method, argument,
-                                                                       dma_state.is_last_call);
-                break;
-            case Engines::EngineTypes::MaxwellDMA:
-                static_cast<Engines::MaxwellDMA*>(subchannel)->CallMethod(method, argument,
-                                                                          dma_state.is_last_call);
-                break;
-            case Engines::EngineTypes::KeplerMemory:
-                static_cast<Engines::KeplerMemory*>(subchannel)->CallMethod(
-                    method, argument, dma_state.is_last_call);
-                break;
-            default:
-                subchannel->CallMethod(method, argument, dma_state.is_last_call);
-                break;
-            }
+            subchannel->CallMethod(dma_state.method, argument, dma_state.is_last_call);
         }
     }
 }
@@ -291,37 +196,9 @@ void DmaPusher::CallMultiMethod(const u32* base_start, u32 num_methods) const {
         puller.CallMultiMethod(dma_state.method, dma_state.subchannel, base_start, num_methods, dma_state.method_count);
     } else {
         auto subchannel = subchannels[dma_state.subchannel];
-        if (!subchannel) {
-            return;
-        }
         subchannel->ConsumeSink();
         subchannel->current_dma_segment = dma_state.dma_get + dma_state.dma_word_offset;
-        switch (subchannel_type[dma_state.subchannel]) {
-        case Engines::EngineTypes::Maxwell3D:
-            static_cast<Engines::Maxwell3D*>(subchannel)->CallMultiMethod(
-                dma_state.method, base_start, num_methods, dma_state.method_count);
-            break;
-        case Engines::EngineTypes::KeplerCompute:
-            static_cast<Engines::KeplerCompute*>(subchannel)->CallMultiMethod(
-                dma_state.method, base_start, num_methods, dma_state.method_count);
-            break;
-        case Engines::EngineTypes::Fermi2D:
-            static_cast<Engines::Fermi2D*>(subchannel)->CallMultiMethod(
-                dma_state.method, base_start, num_methods, dma_state.method_count);
-            break;
-        case Engines::EngineTypes::MaxwellDMA:
-            static_cast<Engines::MaxwellDMA*>(subchannel)->CallMultiMethod(
-                dma_state.method, base_start, num_methods, dma_state.method_count);
-            break;
-        case Engines::EngineTypes::KeplerMemory:
-            static_cast<Engines::KeplerMemory*>(subchannel)->CallMultiMethod(
-                dma_state.method, base_start, num_methods, dma_state.method_count);
-            break;
-        default:
-            subchannel->CallMultiMethod(dma_state.method, base_start, num_methods,
-                                        dma_state.method_count);
-            break;
-        }
+        subchannel->CallMultiMethod(dma_state.method, base_start, num_methods, dma_state.method_count);
     }
 }
 

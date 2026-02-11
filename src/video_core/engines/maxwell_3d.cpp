@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -18,7 +18,6 @@
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
-#include "video_core/renderer_vulkan/vk_rasterizer.h"
 #include "video_core/textures/texture.h"
 
 namespace Tegra::Engines {
@@ -31,23 +30,15 @@ Maxwell3D::Maxwell3D(Core::System& system_, MemoryManager& memory_manager_)
       memory_manager{memory_manager_}, macro_engine{GetMacroEngine(*this)}, upload_state{memory_manager, regs.upload} {
     dirty.flags.flip();
     InitializeRegisterDefaults();
-    ClearExecutionMask();
-    for (size_t i = 0; i < ExecutionMaskBits; ++i) {
-        if (IsMethodExecutable(u32(i))) {
-            SetExecutionMaskBit(u32(i));
-        }
-    }
+    execution_mask.reset();
+    for (size_t i = 0; i < execution_mask.size(); i++)
+        execution_mask[i] = IsMethodExecutable(u32(i));
 }
 
 Maxwell3D::~Maxwell3D() = default;
 
 void Maxwell3D::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) {
     rasterizer = rasterizer_;
-    if (Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::Vulkan) {
-        rasterizer_vulkan = static_cast<Vulkan::RasterizerVulkan*>(rasterizer_);
-    } else {
-        rasterizer_vulkan = nullptr;
-    }
     upload_state.BindRasterizer(rasterizer_);
 }
 
@@ -301,37 +292,31 @@ u32 Maxwell3D::ProcessShadowRam(u32 method, u32 argument) {
 
 void Maxwell3D::ConsumeSinkImpl() {
     const auto control = shadow_state.shadow_ram_control;
-    DirtyState::Flags pending_flags{};
     if (control == Regs::ShadowRamControl::Track || control == Regs::ShadowRamControl::TrackWithFilter) {
         for (auto [method, value] : method_sink) {
             shadow_state.reg_array[method] = value;
-            ProcessDirtyRegisters(method, value, &pending_flags);
+            ProcessDirtyRegisters(method, value);
         }
     } else if (control == Regs::ShadowRamControl::Replay) {
-        for (auto [method, value] : method_sink) {
-            ProcessDirtyRegisters(method, shadow_state.reg_array[method], &pending_flags);
-        }
+        for (auto [method, value] : method_sink)
+            ProcessDirtyRegisters(method, shadow_state.reg_array[method]);
     } else {
-        for (auto [method, value] : method_sink) {
-            ProcessDirtyRegisters(method, value, &pending_flags);
-        }
+        for (auto [method, value] : method_sink)
+            ProcessDirtyRegisters(method, value);
     }
-    dirty.flags |= pending_flags;
     method_sink.clear();
 }
 
-void Maxwell3D::ProcessDirtyRegisters(u32 method, u32 argument, DirtyState::Flags* pending_flags) {
+void Maxwell3D::ProcessDirtyRegisters(u32 method, u32 argument) {
     if (regs.reg_array[method] != argument) {
         regs.reg_array[method] = argument;
         auto const& table0 = dirty.tables[0];
         auto const& table1 = dirty.tables[1];
         u8 const flag0 = table0[method];
         u8 const flag1 = table1[method];
-        auto& target_flags = pending_flags ? *pending_flags : dirty.flags;
-        target_flags.set(flag0);
-        if (flag1 != flag0) {
-            target_flags.set(flag1);
-        }
+        dirty.flags[flag0] = true;
+        if (flag1 != flag0)
+            dirty.flags[flag1] = true;
     }
 }
 

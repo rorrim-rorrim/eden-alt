@@ -1,9 +1,7 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <bitset>
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
@@ -17,10 +15,10 @@ namespace Tegra::Engines {
 
 KeplerCompute::KeplerCompute(Core::System& system_, MemoryManager& memory_manager_)
     : system{system_}, memory_manager{memory_manager_}, upload_state{memory_manager, regs.upload} {
-    ClearExecutionMask();
-    SetExecutionMaskBit(KEPLER_COMPUTE_REG_INDEX(exec_upload));
-    SetExecutionMaskBit(KEPLER_COMPUTE_REG_INDEX(data_upload));
-    SetExecutionMaskBit(KEPLER_COMPUTE_REG_INDEX(launch));
+    execution_mask.reset();
+    execution_mask[KEPLER_COMPUTE_REG_INDEX(exec_upload)] = true;
+    execution_mask[KEPLER_COMPUTE_REG_INDEX(data_upload)] = true;
+    execution_mask[KEPLER_COMPUTE_REG_INDEX(launch)] = true;
 }
 
 KeplerCompute::~KeplerCompute() = default;

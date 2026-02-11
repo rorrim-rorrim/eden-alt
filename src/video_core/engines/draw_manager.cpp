@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,16 +5,8 @@
 #include "video_core/dirty_flags.h"
 #include "video_core/engines/draw_manager.h"
 #include "video_core/rasterizer_interface.h"
-#include "video_core/renderer_vulkan/vk_rasterizer.h"
 
 namespace Tegra::Engines {
-namespace {
-template <typename RasterizerT>
-inline void DrawFast(RasterizerT* rasterizer, bool draw_indexed, u32 instance_count) {
-    rasterizer->Draw(draw_indexed, instance_count);
-}
-} // namespace
-
 DrawManager::DrawManager(Maxwell3D* maxwell3d_) : maxwell3d(maxwell3d_) {}
 
 void DrawManager::ProcessMethodCall(u32 method, u32 argument) {
@@ -278,11 +267,7 @@ void DrawManager::ProcessDraw(bool draw_indexed, u32 instance_count) {
     UpdateTopology();
 
     if (maxwell3d->ShouldExecute()) {
-        if (auto* rasterizer_vulkan = maxwell3d->RasterizerVulkan()) {
-            DrawFast(rasterizer_vulkan, draw_indexed, instance_count);
-        } else {
-            maxwell3d->rasterizer->Draw(draw_indexed, instance_count);
-        }
+        maxwell3d->rasterizer->Draw(draw_indexed, instance_count);
     }
 }
 
