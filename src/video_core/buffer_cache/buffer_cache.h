@@ -382,6 +382,10 @@ void BufferCache<P>::BindHostComputeBuffers() {
     BindHostComputeUniformBuffers();
     BindHostComputeStorageBuffers();
     BindHostComputeTextureBuffers();
+    if (any_buffer_uploaded) {
+        runtime.PostCopyBarrier();
+        any_buffer_uploaded = false;
+    }
 }
 
 template <class P>
@@ -764,44 +768,230 @@ void BufferCache<P>::BindHostIndexBuffer() {
 }
 
 template <class P>
+void BufferCache<P>::BindHostVertexBuffer(u32 index, Buffer& buffer, u32 offset, u32 size,
+                                          u32 stride) {
+    if constexpr (IS_OPENGL) {
+        runtime.BindVertexBuffer(index, buffer, offset, size, stride);
+    } else {
+        runtime.BindVertexBuffer(index, buffer.Handle(), offset, size, stride);
+    }
+}
+
+template <class P>
+Binding& BufferCache<P>::VertexBufferSlot(u32 index) {
+    ASSERT(index < NUM_VERTEX_BUFFERS);
+    switch (index) {
+    case 0:
+        return v_buffer0;
+    case 1:
+        return v_buffer1;
+    case 2:
+        return v_buffer2;
+    case 3:
+        return v_buffer3;
+    case 4:
+        return v_buffer4;
+    case 5:
+        return v_buffer5;
+    case 6:
+        return v_buffer6;
+    case 7:
+        return v_buffer7;
+    case 8:
+        return v_buffer8;
+    case 9:
+        return v_buffer9;
+    case 10:
+        return v_buffer10;
+    case 11:
+        return v_buffer11;
+    case 12:
+        return v_buffer12;
+    case 13:
+        return v_buffer13;
+    case 14:
+        return v_buffer14;
+    case 15:
+        return v_buffer15;
+#ifndef __APPLE__
+    case 16:
+        return v_buffer16;
+    case 17:
+        return v_buffer17;
+    case 18:
+        return v_buffer18;
+    case 19:
+        return v_buffer19;
+    case 20:
+        return v_buffer20;
+    case 21:
+        return v_buffer21;
+    case 22:
+        return v_buffer22;
+    case 23:
+        return v_buffer23;
+    case 24:
+        return v_buffer24;
+    case 25:
+        return v_buffer25;
+    case 26:
+        return v_buffer26;
+    case 27:
+        return v_buffer27;
+    case 28:
+        return v_buffer28;
+    case 29:
+        return v_buffer29;
+    case 30:
+        return v_buffer30;
+    case 31:
+        return v_buffer31;
+#endif
+    default:
+#ifdef __APPLE__
+        return v_buffer15;
+#else
+        return v_buffer31;
+#endif
+    }
+}
+
+template <class P>
+const Binding& BufferCache<P>::VertexBufferSlot(u32 index) const {
+    ASSERT(index < NUM_VERTEX_BUFFERS);
+    switch (index) {
+    case 0:
+        return v_buffer0;
+    case 1:
+        return v_buffer1;
+    case 2:
+        return v_buffer2;
+    case 3:
+        return v_buffer3;
+    case 4:
+        return v_buffer4;
+    case 5:
+        return v_buffer5;
+    case 6:
+        return v_buffer6;
+    case 7:
+        return v_buffer7;
+    case 8:
+        return v_buffer8;
+    case 9:
+        return v_buffer9;
+    case 10:
+        return v_buffer10;
+    case 11:
+        return v_buffer11;
+    case 12:
+        return v_buffer12;
+    case 13:
+        return v_buffer13;
+    case 14:
+        return v_buffer14;
+    case 15:
+        return v_buffer15;
+#ifndef __APPLE__
+    case 16:
+        return v_buffer16;
+    case 17:
+        return v_buffer17;
+    case 18:
+        return v_buffer18;
+    case 19:
+        return v_buffer19;
+    case 20:
+        return v_buffer20;
+    case 21:
+        return v_buffer21;
+    case 22:
+        return v_buffer22;
+    case 23:
+        return v_buffer23;
+    case 24:
+        return v_buffer24;
+    case 25:
+        return v_buffer25;
+    case 26:
+        return v_buffer26;
+    case 27:
+        return v_buffer27;
+    case 28:
+        return v_buffer28;
+    case 29:
+        return v_buffer29;
+    case 30:
+        return v_buffer30;
+    case 31:
+        return v_buffer31;
+#endif
+    default:
+#ifdef __APPLE__
+        return v_buffer15;
+#else
+        return v_buffer31;
+#endif
+    }
+}
+
+template <class P>
+void BufferCache<P>::UpdateVertexBufferSlot(u32 index, const Binding& binding) {
+    Binding& slot = VertexBufferSlot(index);
+    if (slot.device_addr != binding.device_addr || slot.size != binding.size) {
+        ++vertex_buffers_serial;
+    }
+    slot = binding;
+    if (binding.buffer_id != NULL_BUFFER_ID && binding.size != 0) {
+        enabled_vertex_buffers_mask |= (1u << index);
+    } else {
+        enabled_vertex_buffers_mask &= ~(1u << index);
+    }
+}
+
+template <class P>
 void BufferCache<P>::BindHostVertexBuffers() {
-    HostBindings<typename P::Buffer> host_bindings;
-    bool any_valid{false};
     auto& flags = maxwell3d->dirty.flags;
-    for (u32 index = 0; index < NUM_VERTEX_BUFFERS; ++index) {
-        const Binding& binding = channel_state->vertex_buffers[index];
+    u32 enabled_mask = enabled_vertex_buffers_mask;
+    HostBindings<Buffer> bindings{};
+    u32 last_index = std::numeric_limits<u32>::max();
+    const auto flush_bindings = [&]() {
+        if (bindings.buffers.empty()) {
+            return;
+        }
+        bindings.max_index = bindings.min_index + static_cast<u32>(bindings.buffers.size());
+        runtime.BindVertexBuffers(bindings);
+        bindings = HostBindings<Buffer>{};
+        last_index = std::numeric_limits<u32>::max();
+    };
+    while (enabled_mask != 0) {
+        const u32 index = std::countr_zero(enabled_mask);
+        enabled_mask &= (enabled_mask - 1);
+        const Binding& binding = VertexBufferSlot(index);
         Buffer& buffer = slot_buffers[binding.buffer_id];
         TouchBuffer(buffer, binding.buffer_id);
         SynchronizeBuffer(buffer, binding.device_addr, binding.size);
         if (!flags[Dirty::VertexBuffer0 + index]) {
+            flush_bindings();
             continue;
         }
         flags[Dirty::VertexBuffer0 + index] = false;
-
-        host_bindings.min_index = (std::min)(host_bindings.min_index, index);
-        host_bindings.max_index = (std::max)(host_bindings.max_index, index);
-        any_valid = true;
-    }
-
-    if (any_valid) {
-        host_bindings.max_index++;
-        for (u32 index = host_bindings.min_index; index < host_bindings.max_index; index++) {
-            flags[Dirty::VertexBuffer0 + index] = false;
-
-            const Binding& binding = channel_state->vertex_buffers[index];
-            Buffer& buffer = slot_buffers[binding.buffer_id];
-
-            const u32 stride = maxwell3d->regs.vertex_streams[index].stride;
-            const u32 offset = buffer.Offset(binding.device_addr);
-            buffer.MarkUsage(offset, binding.size);
-
-            host_bindings.buffers.push_back(&buffer);
-            host_bindings.offsets.push_back(offset);
-            host_bindings.sizes.push_back(binding.size);
-            host_bindings.strides.push_back(stride);
+        const u32 stride = maxwell3d->regs.vertex_streams[index].stride;
+        const u32 offset = buffer.Offset(binding.device_addr);
+        buffer.MarkUsage(offset, binding.size);
+        if (!bindings.buffers.empty() && index != last_index + 1) {
+            flush_bindings();
         }
-        runtime.BindVertexBuffers(host_bindings);
+        if (bindings.buffers.empty()) {
+            bindings.min_index = index;
+        }
+        bindings.buffers.push_back(&buffer);
+        bindings.offsets.push_back(offset);
+        bindings.sizes.push_back(binding.size);
+        bindings.strides.push_back(stride);
+        last_index = index;
     }
+    flush_bindings();
 }
 
 template <class P>
@@ -1205,17 +1395,20 @@ void BufferCache<P>::UpdateVertexBuffer(u32 index) {
     u32 size = address_size; // TODO: Analyze stride and number of vertices
     if (array.enable == 0 || size == 0 || !device_addr) {
         channel_state->vertex_buffers[index] = NULL_BINDING;
+        UpdateVertexBufferSlot(index, NULL_BINDING);
         return;
     }
     if (!gpu_memory->IsWithinGPUAddressRange(gpu_addr_end) || size >= 64_MiB) {
         size = static_cast<u32>(gpu_memory->MaxContinuousRange(gpu_addr_begin, size));
     }
     const BufferId buffer_id = FindBuffer(*device_addr, size);
-    channel_state->vertex_buffers[index] = Binding{
+    const Binding binding{
         .device_addr = *device_addr,
         .size = size,
         .buffer_id = buffer_id,
     };
+    channel_state->vertex_buffers[index] = binding;
+    UpdateVertexBufferSlot(index, binding);
 }
 
 template <class P>
@@ -1528,12 +1721,12 @@ void BufferCache<P>::TouchBuffer(Buffer& buffer, BufferId buffer_id) noexcept {
 
 template <class P>
 bool BufferCache<P>::SynchronizeBuffer(Buffer& buffer, DAddr device_addr, u32 size) {
-    boost::container::small_vector<BufferCopy, 4> copies;
+    upload_copies.clear();
     u64 total_size_bytes = 0;
     u64 largest_copy = 0;
-    DAddr buffer_start = buffer.CpuAddr();
+    const DAddr buffer_start = buffer.cpu_addr_cached;
     memory_tracker.ForEachUploadRange(device_addr, size, [&](u64 device_addr_out, u64 range_size) {
-        copies.push_back(BufferCopy{
+        upload_copies.push_back(BufferCopy{
             .src_offset = total_size_bytes,
             .dst_offset = device_addr_out - buffer_start,
             .size = range_size,
@@ -1544,8 +1737,9 @@ bool BufferCache<P>::SynchronizeBuffer(Buffer& buffer, DAddr device_addr, u32 si
     if (total_size_bytes == 0) {
         return true;
     }
-    const std::span<BufferCopy> copies_span(copies.data(), copies.size());
+    const std::span<BufferCopy> copies_span(upload_copies.data(), upload_copies.size());
     UploadMemory(buffer, total_size_bytes, largest_copy, copies_span);
+    any_buffer_uploaded = true;
     return false;
 }
 
@@ -1735,6 +1929,7 @@ void BufferCache<P>::DeleteBuffer(BufferId buffer_id, bool do_not_mark) {
         auto& binding = channel_state->vertex_buffers[index];
         if (binding.buffer_id == buffer_id) {
             binding.buffer_id = BufferId{};
+            UpdateVertexBufferSlot(index, binding);
             dirty_vertex_buffers.push_back(index);
         }
     }
