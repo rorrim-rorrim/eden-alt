@@ -31,7 +31,7 @@ Ignoring SIGSEGV when debugging in host:
 
 You must have GDB installed for aarch64 to debug the target. Install it through your package manager, e.g.:
 * On Arch:
-  * `yay aarch64-gdb` or `sudo pkg in arch64-gdb`
+  * `yay aarch64-linux-gnu-gdb` or `sudo pacman -Syu aarch64-linux-gdnu-gdb`
 * On Gentoo:
   * `sudo emerge --ask crossdev`
   * `crossdev -t aarch64-unknown-linux-gnu --ex-gdb`
