@@ -38,10 +38,6 @@ namespace VideoCore {
 class RasterizerInterface;
 }
 
-namespace Vulkan {
-class RasterizerVulkan;
-}
-
 namespace Tegra::Engines {
 
 class DrawManager;
@@ -3097,10 +3093,6 @@ public:
         return *rasterizer;
     }
 
-    Vulkan::RasterizerVulkan* RasterizerVulkan() const {
-        return rasterizer_vulkan;
-    }
-
     struct DirtyState {
         using Flags = std::bitset<(std::numeric_limits<u8>::max)()>;
         using Table = std::array<u8, Regs::NUM_REGS>;
@@ -3149,7 +3141,7 @@ private:
 
     u32 ProcessShadowRam(u32 method, u32 argument);
 
-    void ProcessDirtyRegisters(u32 method, u32 argument, DirtyState::Flags* pending_flags = nullptr);
+    void ProcessDirtyRegisters(u32 method, u32 argument);
 
     void ConsumeSinkImpl() override;
 
@@ -3201,7 +3193,6 @@ private:
     MemoryManager& memory_manager;
 
     VideoCore::RasterizerInterface* rasterizer = nullptr;
-    Vulkan::RasterizerVulkan* rasterizer_vulkan = nullptr;
 
     /// Start offsets of each macro in macro_memory
     std::array<u32, 0x80> macro_positions{};
