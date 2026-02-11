@@ -42,7 +42,7 @@ public:
     static constexpr u64 BASE_PAGE_SIZE = 1ULL << BASE_PAGE_BITS;
 
     explicit BufferBase(VAddr cpu_addr_, u64 size_bytes_)
-        : cpu_addr{cpu_addr_}, cpu_addr_cached{static_cast<DAddr>(cpu_addr_)},
+        : cpu_addr_cached{static_cast<DAddr>(cpu_addr_)}, cpu_addr{cpu_addr_},
           size_bytes{size_bytes_} {}
 
     explicit BufferBase(NullBufferParams) {}
