@@ -194,7 +194,10 @@ bool Swapchain::AcquireNextImage() {
         break;
     }
 
-    scheduler.Wait(resource_ticks[image_index]);
+    if (resource_ticks[image_index] != 0 && !scheduler.IsFree(resource_ticks[image_index])) {
+        scheduler.Wait(resource_ticks[image_index]);
+    }
+
     resource_ticks[image_index] = scheduler.CurrentTick();
 
     return is_suboptimal || is_outdated;

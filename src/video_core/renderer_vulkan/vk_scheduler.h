@@ -113,7 +113,7 @@ public:
 
     /// Waits for the given tick to trigger on the GPU.
     void Wait(u64 tick) {
-        if (tick >= master_semaphore->CurrentTick()) {
+        if (tick > master_semaphore->CurrentTick() && !chunk->Empty()) {
             // Make sure we are not waiting for the current tick without signalling
             Flush();
         }
