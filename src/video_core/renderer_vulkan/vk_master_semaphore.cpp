@@ -224,7 +224,11 @@ void MasterSemaphore::WaitThread(std::stop_token token) {
             free_queue.push_front(std::move(fence));
             gpu_tick.store(host_tick);
         }
+#ifdef ANDROID
         free_cv.notify_all();
+#else
+        free_cv.notify_one();
+#endif
     }
 }
 
