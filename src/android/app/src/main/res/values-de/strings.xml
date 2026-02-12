@@ -229,6 +229,10 @@
     <string name="update_install_failed">Installieren des Updates fehlgeschlagen: %1$s</string>
     <string name="home_search">Suche</string>
     <string name="home_settings">Einstellungen</string>
+    <string name="home_sort">Sortieren</string>
+    <string name="home_layout">Layout</string>
+    <string name="home_start">Start</string>
+    <string name="home_clear">Löschen</string>
     <string name="empty_gamelist">Es wurden keine Dateien gefunden oder es wurde noch kein Spielverzeichnis ausgewählt.</string>
     <string name="manage_game_folders">Spiele-Ordner verwalten</string>
     <string name="select_games_folder_description">Erlaubt Eden die Spieleliste zu füllen</string>
@@ -704,6 +708,11 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="custom_sdmc_directory_description">Benutzerdefinierten Pfad für den virtuellen SD-Kartenspeicher festlegen</string>
     <string name="path_set">Pfad erfolgreich gesetzt</string>
     <string name="skip_migration">Überspringen</string>
+
+    <!-- Footer actions -->
+    <string name="footer_open">Öffnen</string>
+    <string name="footer_game_info">Spielinfo</string>
+    <string name="footer_back">Zurück</string>
 
     <!-- Game properties -->
     <string name="info">Info</string>

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -649,7 +649,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener, InputManager
 
         fun launch(activity: AppCompatActivity, game: Game) {
             val launcher = Intent(activity, EmulationActivity::class.java)
-            launcher.putExtra(EXTRA_SELECTED_GAME, game)
+            launcher.putExtra("game", game) // Use "game" to match navigation argus
             activity.startActivity(launcher)
         }
 

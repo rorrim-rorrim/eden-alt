@@ -151,6 +151,8 @@ private:
     std::unique_ptr<FileSys::PlaceholderCache> gamecard_placeholder;
 
     Core::System& system;
+
+    std::shared_ptr<SaveDataController> system_save_data_controller;
 };
 
 void LoopProcess(Core::System& system);

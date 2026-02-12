@@ -1310,7 +1310,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             setTextColor(
                 MaterialColors.getColor(
                     this,
-                    com.google.android.material.R.attr.colorPrimary
+                    androidx.appcompat.R.attr.colorPrimary
                 )
             )
         }
@@ -1497,7 +1497,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             setTextColor(
                 MaterialColors.getColor(
                     this,
-                    com.google.android.material.R.attr.colorPrimary
+                    androidx.appcompat.R.attr.colorPrimary
                 )
             )
         }

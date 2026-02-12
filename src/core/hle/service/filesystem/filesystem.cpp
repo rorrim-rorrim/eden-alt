@@ -345,7 +345,11 @@ void FileSystemController::SetPackedUpdate(ProcessId process_id, FileSys::Virtua
 }
 
 std::shared_ptr<SaveDataController> FileSystemController::OpenSaveDataController() {
-    return std::make_shared<SaveDataController>(system, CreateSaveDataFactory(ProgramId{}));
+    if (!system_save_data_controller) {
+        system_save_data_controller =
+            std::make_shared<SaveDataController>(system, CreateSaveDataFactory(ProgramId{}));
+    }
+    return system_save_data_controller;
 }
 
 std::shared_ptr<FileSys::SaveDataFactory> FileSystemController::CreateSaveDataFactory(

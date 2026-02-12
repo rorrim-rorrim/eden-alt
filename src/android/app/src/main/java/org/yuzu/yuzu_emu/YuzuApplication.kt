@@ -18,6 +18,8 @@ import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 import android.content.res.Configuration
 import android.os.LocaleList
+import coil.ImageLoader
+import coil.ImageLoaderFactory
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.DocumentsTree
@@ -28,7 +30,7 @@ import java.util.Locale
 
 fun Context.getPublicFilesDir(): File = getExternalFilesDir(null) ?: filesDir
 
-class YuzuApplication : Application() {
+class YuzuApplication : Application(), ImageLoaderFactory {
     private fun createNotificationChannels() {
         val name: CharSequence = getString(R.string.app_notification_channel_name)
         val description = getString(R.string.app_notification_channel_description)
@@ -74,6 +76,12 @@ class YuzuApplication : Application() {
         Log.logDeviceInfo()
 
         createNotificationChannels()
+    }
+
+    override fun newImageLoader(): ImageLoader {
+        return ImageLoader.Builder(this)
+            .crossfade(true)
+            .build()
     }
 
     companion object {
