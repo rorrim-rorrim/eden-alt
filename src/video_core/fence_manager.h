@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -72,31 +72,48 @@ public:
     }
 
     void SignalFence(std::function<void()>&& func) {
-        if constexpr (!can_async_check) {
-            TryReleasePendingFences<false>();
-        }
+        const bool delay_fence = Settings::IsGPULevelHigh();
         const bool should_flush = ShouldFlush();
-        const bool delay_fence = Settings::IsGPULevelHigh() || (Settings::IsGPULevelMedium() && should_flush);
+        #ifdef __ANDROID__
+        const bool early_release_fences = Settings::values.early_release_fences.GetValue();
+        #else
+        constexpr bool early_release_fences = false;
+        #endif
+        constexpr bool async_supported = can_async_check;
         CommitAsyncFlushes();
         TFence new_fence = CreateFence(!should_flush);
-        if constexpr (can_async_check) {
-            guard.lock();
+        std::unique_lock lock(guard, std::defer_lock);
+
+        const bool needs_lock = (early_release_fences && delay_fence) ||
+                            (!early_release_fences && async_supported);
+        if (needs_lock) {
+            lock.lock();
+        }
+        if (!delay_fence) {
+            if (early_release_fences) {
+                TryReleasePendingFences<false>();
+            } else if constexpr (!async_supported) {
+                TryReleasePendingFences<false>();
+            }
         }
         if (delay_fence) {
             uncommitted_operations.emplace_back(std::move(func));
         }
-        pending_operations.emplace_back(std::move(uncommitted_operations));
+        if (!uncommitted_operations.empty()) {
+            pending_operations.emplace_back(std::move(uncommitted_operations));
+            uncommitted_operations.clear();
+        }
         QueueFence(new_fence);
         if (!delay_fence) {
             func();
         }
         fences.push(std::move(new_fence));
+        if (needs_lock) {
+            lock.unlock();
+            cv.notify_all();
+        }
         if (should_flush) {
             rasterizer.FlushCommands();
-        }
-        if constexpr (can_async_check) {
-            guard.unlock();
-            cv.notify_all();
         }
         rasterizer.InvalidateGPUCache();
     }
