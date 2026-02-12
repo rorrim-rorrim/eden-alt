@@ -457,14 +457,7 @@ private:
     RenderTargets render_targets;
     u64 render_targets_serial = 0;
     u32 rt_active_mask = 0;
-    ImageId rt0_image_id{};
-    ImageId rt1_image_id{};
-    ImageId rt2_image_id{};
-    ImageId rt3_image_id{};
-    ImageId rt4_image_id{};
-    ImageId rt5_image_id{};
-    ImageId rt6_image_id{};
-    ImageId rt7_image_id{};
+    std::array<ImageId, 8> rt_image_id{};
     ImageId rt_depth_image_id{};
     u64 texture_bindings_serial = 0;
     u64 last_feedback_loop_serial = 0;
