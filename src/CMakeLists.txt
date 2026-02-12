@@ -97,7 +97,6 @@ if (MSVC AND NOT CXX_CLANG)
 
         $<$<CONFIG:Release>:/GS->   # No stack buffer overflow checks
         /Gy                         # Enable function level linking
-        /GR-                        # Disable run time type information
     )
 
     if (NOT CXX_CLANG)
@@ -118,7 +117,6 @@ else()
     if (NOT MSVC)
         add_compile_options(
             -fwrapv
-            -fno-rtti # Disable RTTI
             -pipe
         )
     endif()
