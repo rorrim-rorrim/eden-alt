@@ -72,8 +72,8 @@ public:
     }
 
     void SignalFence(std::function<void()>&& func) {
-        const bool delay_fence = Settings::IsGPULevelHigh() || (Settings::IsGPULevelMedium() && should_flush);
         const bool should_flush = ShouldFlush();
+        const bool delay_fence = Settings::IsGPULevelHigh() || (Settings::IsGPULevelMedium() && should_flush);
         #ifdef __ANDROID__
         const bool early_release_fences = Settings::values.early_release_fences.GetValue();
         #else
