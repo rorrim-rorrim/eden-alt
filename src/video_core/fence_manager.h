@@ -71,58 +71,58 @@ public:
         uncommitted_operations.emplace_back(std::move(func));
     }
 
-void SignalFence(std::function<void()>&& func) {
-    #ifdef __ANDROID__
-    const bool early_release_fences = Settings::values.early_release_fences.GetValue();
-    #else
-    constexpr bool early_release_fences = false;
-    #endif
-    const bool should_flush = ShouldFlush();
-    const bool delay_fence = Settings::IsGPULevelHigh() ||
-                            (Settings::IsGPULevelMedium() && should_flush);
-    CommitAsyncFlushes();
-    TFence new_fence = CreateFence(!should_flush);
-    if (early_release_fences) {
+    void SignalFence(std::function<void()>&& func) {
+        #ifdef __ANDROID__
+        const bool early_release_fences = Settings::values.early_release_fences.GetValue();
+        #else
+        constexpr bool early_release_fences = false;
+        #endif
+        const bool should_flush = ShouldFlush();
+        const bool delay_fence = Settings::IsGPULevelHigh() ||
+                                (Settings::IsGPULevelMedium() && should_flush);
+        CommitAsyncFlushes();
+        TFence new_fence = CreateFence(!should_flush);
+        if (early_release_fences) {
+            if (!delay_fence) {
+                TryReleasePendingFences<false>();
+            }
+            if (delay_fence) {
+                guard.lock();
+                uncommitted_operations.emplace_back(std::move(func));
+            }
+        } else {
+            if constexpr (!can_async_check) {
+                TryReleasePendingFences<false>();
+            }
+            if constexpr (can_async_check) {
+                guard.lock();
+            }
+            if (delay_fence) {
+                uncommitted_operations.emplace_back(std::move(func));
+            }
+        }
+        pending_operations.emplace_back(std::move(uncommitted_operations));
+        QueueFence(new_fence);
         if (!delay_fence) {
-            TryReleasePendingFences<false>();
+            func();
         }
-        if (delay_fence) {
-            guard.lock();
-            uncommitted_operations.emplace_back(std::move(func));
+        fences.push(std::move(new_fence));
+        if (should_flush) {
+            rasterizer.FlushCommands();
         }
-    } else {
-        if constexpr (!can_async_check) {
-            TryReleasePendingFences<false>();
+        if (early_release_fences) {
+            if (delay_fence) {
+                guard.unlock();
+                cv.notify_all();
+            }
+        } else {
+            if constexpr (can_async_check) {
+                guard.unlock();
+                cv.notify_all();
+            }
         }
-        if constexpr (can_async_check) {
-            guard.lock();
-        }
-        if (delay_fence) {
-            uncommitted_operations.emplace_back(std::move(func));
-        }
+        rasterizer.InvalidateGPUCache();
     }
-    pending_operations.emplace_back(std::move(uncommitted_operations));
-    QueueFence(new_fence);
-    if (!delay_fence) {
-        func();
-    }
-    fences.push(std::move(new_fence));
-    if (should_flush) {
-        rasterizer.FlushCommands();
-    }
-    if (early_release_fences) {
-        if (delay_fence) {
-            guard.unlock();
-            cv.notify_all();
-        }
-    } else {
-        if constexpr (can_async_check) {
-            guard.unlock();
-            cv.notify_all();
-        }
-    }
-    rasterizer.InvalidateGPUCache();
-}
 
     void SignalSyncPoint(u32 value) {
         syncpoint_manager.IncrementGuest(value);
