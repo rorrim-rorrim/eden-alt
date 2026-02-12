@@ -314,58 +314,24 @@ void TextureCache<P>::CheckFeedbackLoop(std::span<const ImageViewInOut> views) {
                 continue;
             }
 
-            if ((rt_active_mask & (1u << 0)) && view.id == render_targets.color_buffer_ids[0]) {
-                continue;
-            }
-            if ((rt_active_mask & (1u << 1)) && view.id == render_targets.color_buffer_ids[1]) {
-                continue;
-            }
-            if ((rt_active_mask & (1u << 2)) && view.id == render_targets.color_buffer_ids[2]) {
-                continue;
-            }
-            if ((rt_active_mask & (1u << 3)) && view.id == render_targets.color_buffer_ids[3]) {
-                continue;
-            }
-            if ((rt_active_mask & (1u << 4)) && view.id == render_targets.color_buffer_ids[4]) {
-                continue;
-            }
-            if ((rt_active_mask & (1u << 5)) && view.id == render_targets.color_buffer_ids[5]) {
-                continue;
-            }
-            if ((rt_active_mask & (1u << 6)) && view.id == render_targets.color_buffer_ids[6]) {
-                continue;
-            }
-            if ((rt_active_mask & (1u << 7)) && view.id == render_targets.color_buffer_ids[7]) {
-                continue;
-            }
-            if (depth_active && view.id == render_targets.depth_buffer_id) {
-                continue;
+            {
+                bool is_continue = false;
+                for (size_t i = 0; i < 8; ++i)
+                    is_continue |= (rt_active_mask & (1u << i)) && view.id == render_targets.color_buffer_ids[i];
+                if (is_continue)
+                    continue;
             }
 
+            if (depth_active && view.id == render_targets.depth_buffer_id)
+                continue;
+
             const ImageId view_image_id = slot_image_views[view.id].image_id;
-            if ((rt_active_mask & (1u << 0)) && view_image_id == rt0_image_id) {
-                return true;
-            }
-            if ((rt_active_mask & (1u << 1)) && view_image_id == rt1_image_id) {
-                return true;
-            }
-            if ((rt_active_mask & (1u << 2)) && view_image_id == rt2_image_id) {
-                return true;
-            }
-            if ((rt_active_mask & (1u << 3)) && view_image_id == rt3_image_id) {
-                return true;
-            }
-            if ((rt_active_mask & (1u << 4)) && view_image_id == rt4_image_id) {
-                return true;
-            }
-            if ((rt_active_mask & (1u << 5)) && view_image_id == rt5_image_id) {
-                return true;
-            }
-            if ((rt_active_mask & (1u << 6)) && view_image_id == rt6_image_id) {
-                return true;
-            }
-            if ((rt_active_mask & (1u << 7)) && view_image_id == rt7_image_id) {
-                return true;
+            {
+                bool is_continue = false;
+                for (size_t i = 0; i < 8; ++i)
+                    is_continue |= (rt_active_mask & (1u << i)) && view_image_id == rt_image_id[i];
+                if (is_continue)
+                    continue;
             }
             if (depth_active && view_image_id == rt_depth_image_id) {
                 return true;
@@ -601,61 +567,12 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
     PrepareImageView(depth_buffer_id, true, is_clear && IsFullClear(depth_buffer_id));
 
     rt_active_mask = 0;
-    const ImageViewId rt0_view = render_targets.color_buffer_ids[0];
-    if (rt0_view) {
-        rt_active_mask |= (1u << 0);
-        rt0_image_id = slot_image_views[rt0_view].image_id;
-    } else {
-        rt0_image_id = ImageId{};
-    }
-    const ImageViewId rt1_view = render_targets.color_buffer_ids[1];
-    if (rt1_view) {
-        rt_active_mask |= (1u << 1);
-        rt1_image_id = slot_image_views[rt1_view].image_id;
-    } else {
-        rt1_image_id = ImageId{};
-    }
-    const ImageViewId rt2_view = render_targets.color_buffer_ids[2];
-    if (rt2_view) {
-        rt_active_mask |= (1u << 2);
-        rt2_image_id = slot_image_views[rt2_view].image_id;
-    } else {
-        rt2_image_id = ImageId{};
-    }
-    const ImageViewId rt3_view = render_targets.color_buffer_ids[3];
-    if (rt3_view) {
-        rt_active_mask |= (1u << 3);
-        rt3_image_id = slot_image_views[rt3_view].image_id;
-    } else {
-        rt3_image_id = ImageId{};
-    }
-    const ImageViewId rt4_view = render_targets.color_buffer_ids[4];
-    if (rt4_view) {
-        rt_active_mask |= (1u << 4);
-        rt4_image_id = slot_image_views[rt4_view].image_id;
-    } else {
-        rt4_image_id = ImageId{};
-    }
-    const ImageViewId rt5_view = render_targets.color_buffer_ids[5];
-    if (rt5_view) {
-        rt_active_mask |= (1u << 5);
-        rt5_image_id = slot_image_views[rt5_view].image_id;
-    } else {
-        rt5_image_id = ImageId{};
-    }
-    const ImageViewId rt6_view = render_targets.color_buffer_ids[6];
-    if (rt6_view) {
-        rt_active_mask |= (1u << 6);
-        rt6_image_id = slot_image_views[rt6_view].image_id;
-    } else {
-        rt6_image_id = ImageId{};
-    }
-    const ImageViewId rt7_view = render_targets.color_buffer_ids[7];
-    if (rt7_view) {
-        rt_active_mask |= (1u << 7);
-        rt7_image_id = slot_image_views[rt7_view].image_id;
-    } else {
-        rt7_image_id = ImageId{};
+    rt_image_id = {};
+    for (size_t i = 0; i < rt_image_id.size(); ++i) {
+        if (ImageViewId const view = render_targets.color_buffer_ids[i]; view) {
+            rt_active_mask |= 1u << i;
+            rt_image_id[i] = slot_image_views[view].image_id;
+        }
     }
     if (depth_buffer_id) {
         rt_active_mask |= (1u << NUM_RT);
