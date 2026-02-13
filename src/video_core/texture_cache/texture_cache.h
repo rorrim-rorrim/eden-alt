@@ -711,12 +711,16 @@ void TextureCache<P>::DownloadMemory(DAddr cpu_addr, size_t size) {
         runtime.Finish();
         SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, map.mapped_span,
                      swizzle_data_buffer);
+        RebuildGpuModifiedPagesInRange(image.cpu_addr, image.cpu_addr_end - image.cpu_addr);
     }
 }
 
 template <class P>
 std::optional<VideoCore::RasterizerDownloadArea> TextureCache<P>::GetFlushArea(DAddr cpu_addr,
                                                                                u64 size) {
+    if (!HasGpuModifiedPagesInRange(cpu_addr, size)) {
+        return std::nullopt;
+    }
     std::optional<VideoCore::RasterizerDownloadArea> area{};
     ForEachImageInRegion(cpu_addr, size, [&](ImageId, ImageBase& image) {
         if (False(image.flags & ImageFlagBits::GpuModified)) {
@@ -1107,6 +1111,9 @@ bool TextureCache<P>::IsRescaling(const ImageViewBase& image_view) const noexcep
 
 template <class P>
 bool TextureCache<P>::IsRegionGpuModified(DAddr addr, size_t size) {
+    if (!HasGpuModifiedPagesInRange(addr, size)) {
+        return false;
+    }
     bool is_modified = false;
     ForEachImageInRegion(addr, size, [&is_modified](ImageId, ImageBase& image) {
         if (False(image.flags & ImageFlagBits::GpuModified)) {
@@ -1116,6 +1123,24 @@ bool TextureCache<P>::IsRegionGpuModified(DAddr addr, size_t size) {
         return true;
     });
     return is_modified;
+}
+
+template <class P>
+bool TextureCache<P>::HasGpuModifiedPagesInRange(DAddr addr, size_t size) const {
+    bool has_dirty_page = false;
+    gpu_modified_pages.ForEachInRange(addr, size, [&](DAddr, DAddr) { has_dirty_page = true; });
+    return has_dirty_page;
+}
+
+template <class P>
+void TextureCache<P>::RebuildGpuModifiedPagesInRange(DAddr addr, size_t size) {
+    gpu_modified_pages.Subtract(addr, size);
+    ForEachImageInRegion(addr, size, [this](ImageId, ImageBase& image) {
+        if (False(image.flags & ImageFlagBits::GpuModified)) {
+            return;
+        }
+        gpu_modified_pages.Add(image.cpu_addr, image.cpu_addr_end - image.cpu_addr);
+    });
 }
 
 template <class P>
@@ -1872,6 +1897,7 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DA
         }
         if (True(overlap.flags & ImageFlagBits::GpuModified)) {
             new_image.flags |= ImageFlagBits::GpuModified;
+            gpu_modified_pages.Add(new_image.cpu_addr, new_image.cpu_addr_end - new_image.cpu_addr);
             const auto& resolution = Settings::values.resolution_info;
             const SubresourceBase base = new_image.TryFindBase(overlap.gpu_addr).value();
             const u32 up_scale = can_rescale ? resolution.up_scale : 1;
@@ -2543,6 +2569,9 @@ void TextureCache<P>::UntrackImage(ImageBase& image, ImageId image_id) {
 template <class P>
 void TextureCache<P>::DeleteImage(ImageId image_id, bool immediate_delete) {
     ImageBase& image = slot_images[image_id];
+    const bool was_gpu_modified = True(image.flags & ImageFlagBits::GpuModified);
+    const DAddr image_cpu_addr = image.cpu_addr;
+    const size_t image_cpu_size = image.cpu_addr_end - image.cpu_addr;
     if (image.HasScaled()) {
         total_used_memory -= GetScaledImageSizeBytes(image);
     }
@@ -2631,6 +2660,9 @@ void TextureCache<P>::DeleteImage(ImageId image_id, bool immediate_delete) {
         channel_info.compute_image_table.Invalidate();
     }
     has_deleted_images = true;
+    if (was_gpu_modified) {
+        RebuildGpuModifiedPagesInRange(image_cpu_addr, image_cpu_size);
+    }
 }
 
 template <class P>
@@ -2671,6 +2703,7 @@ void TextureCache<P>::RemoveFramebuffers(std::span<const ImageViewId> removed_vi
 template <class P>
 void TextureCache<P>::MarkModification(ImageBase& image) noexcept {
     image.flags |= ImageFlagBits::GpuModified;
+    gpu_modified_pages.Add(image.cpu_addr, image.cpu_addr_end - image.cpu_addr);
     image.modification_tick = ++modification_tick;
 }
 
@@ -2704,6 +2737,7 @@ void TextureCache<P>::SynchronizeAliases(ImageId image_id) {
     image.modification_tick = most_recent_tick;
     if (any_modified) {
         image.flags |= ImageFlagBits::GpuModified;
+        gpu_modified_pages.Add(image.cpu_addr, image.cpu_addr_end - image.cpu_addr);
     }
     std::ranges::sort(aliased_images, [this](const AliasedImage* lhs, const AliasedImage* rhs) {
         const ImageBase& lhs_image = slot_images[lhs->id];
@@ -2731,7 +2765,11 @@ template <class P>
 void TextureCache<P>::PrepareImage(ImageId image_id, bool is_modification, bool invalidate) {
     Image& image = slot_images[image_id];
     if (invalidate) {
+        const bool was_gpu_modified = True(image.flags & ImageFlagBits::GpuModified);
         image.flags &= ~(ImageFlagBits::CpuModified | ImageFlagBits::GpuModified);
+        if (was_gpu_modified) {
+            RebuildGpuModifiedPagesInRange(image.cpu_addr, image.cpu_addr_end - image.cpu_addr);
+        }
         if (False(image.flags & ImageFlagBits::Tracked)) {
             TrackImage(image, image_id);
         }

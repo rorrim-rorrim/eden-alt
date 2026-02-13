@@ -23,6 +23,7 @@
 #include "common/hash.h"
 #include "common/literals.h"
 #include "common/lru_cache.h"
+#include "common/page_bitset_range_set.h"
 #include <ranges>
 #include "common/scratch_buffer.h"
 #include "common/slot_vector.h"
@@ -385,6 +386,9 @@ private:
     template <typename Func>
     void ForEachSparseSegment(ImageBase& image, Func&& func);
 
+    [[nodiscard]] bool HasGpuModifiedPagesInRange(DAddr addr, size_t size) const;
+    void RebuildGpuModifiedPagesInRange(DAddr addr, size_t size);
+
     /// Find or create an image view in the given image with the passed parameters
     [[nodiscard]] ImageViewId FindOrEmplaceImageView(ImageId image_id, const ImageViewInfo& info);
 
@@ -468,6 +472,7 @@ private:
 
     ankerl::unordered_dense::map<RenderTargets, FramebufferId> framebuffers;
     ankerl::unordered_dense::map<u64, std::vector<ImageMapId>, Common::IdentityHash<u64>> page_table;
+    Common::PageBitsetRangeSet<DAddr, YUZU_PAGEBITS, (1ULL << 34)> gpu_modified_pages;
     ankerl::unordered_dense::map<ImageId, boost::container::small_vector<ImageViewId, 16>> sparse_views;
 
     DAddr virtual_invalid_space{};
