@@ -11,19 +11,11 @@
 #include <bitset>
 
 #include "dynarmic/common/common_types.h"
-
 #include "dynarmic/backend/x64/hostloc.h"
 
 namespace Dynarmic::Backend::X64 {
 
 class BlockOfCode;
-
-constexpr std::bitset<32> BuildRegSet(std::initializer_list<HostLoc> regs) {
-    size_t bits = 0;
-    for (auto const& reg : regs)
-        bits |= size_t{1} << size_t(reg);
-    return {bits};
-}
 
 constexpr std::bitset<32> ABI_ALL_GPRS = BuildRegSet({
     HostLoc::RAX,
