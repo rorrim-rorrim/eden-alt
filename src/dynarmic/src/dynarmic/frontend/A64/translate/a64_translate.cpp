@@ -23,16 +23,8 @@ void Translate(IR::Block& block, LocationDescriptor descriptor, MemoryReadCodeFu
     bool should_continue = true;
     do {
         const u64 pc = visitor.ir.current_location->PC();
-
-        if (const auto instruction = memory_read_code(pc)) {
-            if (auto decoder = Decode<TranslatorVisitor>(*instruction)) {
-                should_continue = decoder->get().call(visitor, *instruction);
-            } else {
-                should_continue = visitor.InterpretThisInstruction();
-            }
-        } else {
-            should_continue = visitor.RaiseException(Exception::NoExecuteFault);
-        }
+        auto decoder = Decode<TranslatorVisitor>(*instruction);
+        should_continue = decoder.get().call(visitor, *instruction);
 
         visitor.ir.current_location = visitor.ir.current_location->AdvancePC(4);
         block.CycleCount()++;
@@ -49,11 +41,8 @@ bool TranslateSingleInstruction(IR::Block& block, LocationDescriptor descriptor,
     TranslatorVisitor visitor{block, descriptor, {}};
 
     bool should_continue = true;
-    if (auto decoder = Decode<TranslatorVisitor>(instruction)) {
-        should_continue = decoder->get().call(visitor, instruction);
-    } else {
-        should_continue = visitor.InterpretThisInstruction();
-    }
+    auto const decoder = Decode<TranslatorVisitor>(instruction);
+    should_continue = decoder.get().call(visitor, instruction);
 
     visitor.ir.current_location = visitor.ir.current_location->AdvancePC(4);
     block.CycleCount()++;
