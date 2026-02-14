@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -45,6 +45,14 @@ void SortPhysicalDevicesPerVendor(std::vector<VkPhysicalDevice>& devices,
 
 bool IsMicrosoftDozen(const char* device_name) {
     return std::strstr(device_name, "Microsoft") != nullptr;
+}
+
+constexpr u32 MaxInstanceApiVersion() {
+#ifdef VK_API_VERSION_1_4
+    return VK_API_VERSION_1_4;
+#else
+    return VK_API_VERSION_1_3;
+#endif
 }
 
 void SortPhysicalDevices(std::vector<VkPhysicalDevice>& devices, const InstanceDispatch& dld) {
@@ -437,8 +445,8 @@ Instance Instance::Create(u32 version, Span<const char*> layers, Span<const char
 #else
     constexpr VkFlags ci_flags{};
 #endif
-    // DO NOT TOUCH, breaks RNDA3!!
-    // Don't know why, but gloom + yellow line glitch appears
+    // Keep application and engine tags stable for driver behavior compatibility.
+    const u32 api_version = std::min(version, MaxInstanceApiVersion());
     const VkApplicationInfo application_info{
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
         .pNext = nullptr,
@@ -446,7 +454,7 @@ Instance Instance::Create(u32 version, Span<const char*> layers, Span<const char
         .applicationVersion = VK_MAKE_VERSION(1, 3, 0),
         .pEngineName = "yuzu Emulator",
         .engineVersion = VK_MAKE_VERSION(1, 3, 0),
-        .apiVersion = VK_API_VERSION_1_3,
+        .apiVersion = api_version,
     };
     const VkInstanceCreateInfo ci{
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,

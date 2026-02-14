@@ -112,12 +112,15 @@ void UploadImage(const Device& device, MemoryAllocator& allocator, Scheduler& sc
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([&](vk::CommandBuffer cmdbuf) {
-        TransitionImageLayout(cmdbuf, *image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        const VkImageLayout transfer_dst_layout = device.IsKhrUnifiedImageLayoutsSupported()
+                                                      ? VK_IMAGE_LAYOUT_GENERAL
+                                                      : VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        TransitionImageLayout(cmdbuf, *image, transfer_dst_layout,
                               VK_IMAGE_LAYOUT_UNDEFINED);
-        cmdbuf.CopyBufferToImage(*upload_buffer, *image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        cmdbuf.CopyBufferToImage(*upload_buffer, *image, transfer_dst_layout,
                                  regions);
         TransitionImageLayout(cmdbuf, *image, VK_IMAGE_LAYOUT_GENERAL,
-                              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+                              transfer_dst_layout);
     });
     scheduler.Finish();
 }

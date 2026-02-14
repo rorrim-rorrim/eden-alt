@@ -941,6 +941,9 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
     VkPhysicalDeviceVulkan12Features features_1_2{};
     VkPhysicalDeviceVulkan13Features features_1_3{};
+#ifdef VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES
+    VkPhysicalDeviceVulkan14Features features_1_4{};
+#endif
 
     // Configure properties.
     properties.properties = physical.GetProperties();
@@ -980,6 +983,11 @@ bool Device::GetSuitability(bool requires_swapchain) {
     if (instance_version < VK_API_VERSION_1_3) {
         FOR_EACH_VK_FEATURE_1_3(FEATURE_EXTENSION);
     }
+#ifdef VK_API_VERSION_1_4
+    if (instance_version < VK_API_VERSION_1_4) {
+        FOR_EACH_VK_FEATURE_1_4(FEATURE_EXTENSION);
+    }
+#endif
 
     FOR_EACH_VK_FEATURE_EXT(FEATURE_EXTENSION);
     FOR_EACH_VK_EXTENSION(EXTENSION);
@@ -1015,10 +1023,15 @@ bool Device::GetSuitability(bool requires_swapchain) {
     // Set next pointer.
     void** next = &features2.pNext;
 
-    // Vulkan 1.2 and 1.3 features
+    // Vulkan 1.2, 1.3 and 1.4 features
     if (instance_version >= VK_API_VERSION_1_2) {
         features_1_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
         features_1_3.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+
+#ifdef VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES
+        features_1_4.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES;
+        features_1_3.pNext = &features_1_4;
+#endif
 
         features_1_2.pNext = &features_1_3;
 
@@ -1051,6 +1064,13 @@ bool Device::GetSuitability(bool requires_swapchain) {
     } else {
         FOR_EACH_VK_FEATURE_1_3(EXT_FEATURE);
     }
+#ifdef VK_API_VERSION_1_4
+    if (instance_version >= VK_API_VERSION_1_4) {
+        FOR_EACH_VK_FEATURE_1_4(FEATURE);
+    } else {
+        FOR_EACH_VK_FEATURE_1_4(EXT_FEATURE);
+    }
+#endif
 
 #undef EXT_FEATURE
 #undef FEATURE
@@ -1488,16 +1508,31 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.maintenance6, features.maintenance6,
                                        VK_KHR_MAINTENANCE_6_EXTENSION_NAME);
 
-    // VK_KHR_maintenance7 (proposed for Vulkan 1.4, no features)
+    // VK_KHR_maintenance7
+#ifdef VK_API_VERSION_1_4
+    extensions.maintenance7 = instance_version >= VK_API_VERSION_1_4 ||
+                              loaded_extensions.contains(VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
+#else
     extensions.maintenance7 = loaded_extensions.contains(VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
+#endif
     RemoveExtensionIfUnsuitable(extensions.maintenance7, VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
 
-    // VK_KHR_maintenance8 (proposed for Vulkan 1.4, no features)
+    // VK_KHR_maintenance8
+#ifdef VK_API_VERSION_1_4
+    extensions.maintenance8 = instance_version >= VK_API_VERSION_1_4 ||
+                              loaded_extensions.contains(VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
+#else
     extensions.maintenance8 = loaded_extensions.contains(VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
+#endif
     RemoveExtensionIfUnsuitable(extensions.maintenance8, VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
 
-    // VK_KHR_maintenance9 (proposed for Vulkan 1.4, no features)
+    // VK_KHR_maintenance9
+#ifdef VK_API_VERSION_1_4
+    extensions.maintenance9 = instance_version >= VK_API_VERSION_1_4 ||
+                              loaded_extensions.contains(VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
+#else
     extensions.maintenance9 = loaded_extensions.contains(VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
+#endif
     RemoveExtensionIfUnsuitable(extensions.maintenance9, VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
 }
 

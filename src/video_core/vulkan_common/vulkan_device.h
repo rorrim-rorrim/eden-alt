@@ -487,6 +487,11 @@ public:
         return extensions.workgroup_memory_explicit_layout;
     }
 
+    /// Returns true if the device supports VK_KHR_unified_image_layouts.
+    bool IsKhrUnifiedImageLayoutsSupported() const {
+        return extensions.unified_image_layouts;
+    }
+
     /// Returns true if the device supports VK_KHR_image_format_list.
     bool IsKhrImageFormatListSupported() const {
         return extensions.image_format_list || instance_version >= VK_API_VERSION_1_2;
