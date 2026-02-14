@@ -1134,7 +1134,6 @@ bool TextureCache<P>::HasGpuModifiedPagesInRange(DAddr addr, size_t size) const 
 
 template <class P>
 void TextureCache<P>::RebuildGpuModifiedPagesInRange(DAddr addr, size_t size) {
-    gpu_modified_pages.Subtract(addr, size);
     ForEachImageInRegion(addr, size, [this](ImageId, ImageBase& image) {
         if (False(image.flags & ImageFlagBits::GpuModified)) {
             return;
