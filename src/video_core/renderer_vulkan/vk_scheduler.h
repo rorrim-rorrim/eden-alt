@@ -116,14 +116,14 @@ public:
     void Wait(u64 tick, double target_fps = 0.0) {
         if (Settings::values.use_speed_limit.GetValue() && target_fps > 0.0) {
             const auto now = std::chrono::steady_clock::now();
-            if (start_time == std::chrono::steady_clock::time_point{} || target_fps != last_target_fps) {
+            if (start_time == std::chrono::steady_clock::time_point{} || current_target_fps != target_fps) {
                 start_time = now;
                 frame_counter = 0;
-                last_target_fps = target_fps;
+                current_target_fps = target_fps;
             }
             frame_counter++;
-            const auto frame_interval = std::chrono::nanoseconds(static_cast<long long>(1'000'000'000.0 / target_fps));
-            const auto target_time = start_time + frame_interval * frame_counter;
+            std::chrono::duration<double> frame_interval(1.0 / current_target_fps);
+            auto target_time = start_time + frame_interval * frame_counter;
             if (target_time > now) {
                 std::this_thread::sleep_until(target_time);
             } else {
@@ -283,7 +283,7 @@ private:
 
     std::chrono::steady_clock::time_point start_time{};
     u64 frame_counter{};
-    double last_target_fps{};
+    double current_target_fps{};
 };
 
 } // namespace Vulkan
