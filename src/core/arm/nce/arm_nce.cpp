@@ -47,8 +47,8 @@ void* ArmNce::RestoreGuestContext(void* raw_context) {
     auto* tpidr = reinterpret_cast<NativeExecutionParameters*>(CTX_X(9));
     auto* guest_ctx = static_cast<GuestContext*>(tpidr->native_context);
     // Save host callee-saved registers.
-    std::memcpy(guest_ctx->host_ctx.host_saved_vregs.data(), &CTX_Q(8),
-                sizeof(guest_ctx->host_ctx.host_saved_vregs));
+    std::memcpy(guest_ctx->host_ctx.host_saved_regs.data(), &CTX_X(19), sizeof(guest_ctx->host_ctx.host_saved_regs));
+    std::memcpy(guest_ctx->host_ctx.host_saved_vregs.data(), &CTX_Q(8), sizeof(guest_ctx->host_ctx.host_saved_vregs));
     // Save stack pointer.
     guest_ctx->host_ctx.host_sp = CTX_SP;
     CTX_PC = guest_ctx->sp;
@@ -76,10 +76,8 @@ void ArmNce::SaveGuestContext(GuestContext* guest_ctx, void* raw_context) {
     CTX_SP = guest_ctx->host_ctx.host_sp;
 
     // Restore host callee-saved registers.
-    std::memcpy(&CTX_X(19), guest_ctx->host_ctx.host_saved_regs.data(),
-                sizeof(guest_ctx->host_ctx.host_saved_regs));
-    std::memcpy(&CTX_Q(8), guest_ctx->host_ctx.host_saved_vregs.data(),
-                sizeof(guest_ctx->host_ctx.host_saved_vregs));
+    std::memcpy(&CTX_X(19), guest_ctx->host_ctx.host_saved_regs.data(), sizeof(guest_ctx->host_ctx.host_saved_regs));
+    std::memcpy(&CTX_Q(8), guest_ctx->host_ctx.host_saved_vregs.data(), sizeof(guest_ctx->host_ctx.host_saved_vregs));
     // Return from the call on exit by setting pc to x30.
     CTX_PC = guest_ctx->host_ctx.host_saved_regs[11];
     // Clear esr_el1 and return it.
