@@ -115,17 +115,21 @@ public:
     /// Waits for the given GPU tick, optionally pacing frames.
     void Wait(u64 tick, double target_fps = 0.0) {
         if (Settings::values.use_speed_limit.GetValue() && target_fps > 0.0) {
-            if (last_frame_time == std::chrono::steady_clock::time_point{}) {
-                last_frame_time = std::chrono::steady_clock::now();
+            const auto now = std::chrono::steady_clock::now();
+            if (start_time == std::chrono::steady_clock::time_point{} || target_fps != last_target_fps) {
+                start_time = now;
+                frame_counter = 0;
+                last_target_fps = target_fps;
             }
-            auto frame_duration = std::chrono::duration<double>(1.0 / target_fps);
-            auto elapsed = std::chrono::steady_clock::now() - last_frame_time;
-            auto sleep_time = frame_duration - elapsed;
-            auto sleep_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(sleep_time).count();
-            if (sleep_time_ms > 0) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time_ms));
+            frame_counter++;
+            const auto frame_interval = std::chrono::nanoseconds(static_cast<long long>(1'000'000'000.0 / target_fps));
+            const auto target_time = start_time + frame_interval * frame_counter;
+            if (target_time > now) {
+                std::this_thread::sleep_until(target_time);
+            } else {
+                start_time = now;
+                frame_counter = 0;
             }
-            last_frame_time = std::chrono::steady_clock::now();
         }
         if (tick > 0) {
             if (tick >= master_semaphore->CurrentTick()) {
@@ -277,7 +281,9 @@ private:
     std::condition_variable_any event_cv;
     std::jthread worker_thread;
 
-    std::chrono::steady_clock::time_point last_frame_time{};
+    std::chrono::steady_clock::time_point start_time{};
+    u64 frame_counter{};
+    double last_target_fps{};
 };
 
 } // namespace Vulkan
