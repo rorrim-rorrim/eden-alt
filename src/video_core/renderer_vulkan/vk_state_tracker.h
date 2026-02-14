@@ -102,8 +102,9 @@ public:
     }
 
     void InvalidateVertexBufferState() {
-        (*flags)[Dirty::VertexBuffers] = true;
-        for (int index = Dirty::VertexBuffer0; index <= Dirty::VertexBuffer31; ++index) {
+        (*flags)[VideoCommon::Dirty::VertexBuffers] = true;
+        for (int index = VideoCommon::Dirty::VertexBuffer0;
+             index <= VideoCommon::Dirty::VertexBuffer31; ++index) {
             (*flags)[index] = true;
         }
     }
