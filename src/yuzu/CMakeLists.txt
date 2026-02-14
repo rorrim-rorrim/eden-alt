@@ -428,10 +428,28 @@ if(UNIX AND NOT APPLE)
     install(TARGETS yuzu)
 endif()
 
-if (WIN32 AND QT_VERSION VERSION_GREATER_EQUAL 6)
-    set(YUZU_EXE_DIR "$<TARGET_FILE_DIR:yuzu>")
-    add_custom_command(TARGET yuzu POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} "${YUZU_EXE_DIR}/eden.exe" --dir "${YUZU_EXE_DIR}" --libdir "${YUZU_EXE_DIR}" --plugindir "${YUZU_EXE_DIR}/plugins" --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler --no-translations --verbose 0)
+if(APPLE)
+    set(executable_path "\${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<TARGET_FILE_NAME:yuzu>.app")
+elseif(WIN32)
+    set(executable_path "\${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<TARGET_FILE_NAME:yuzu>")
 endif()
+qt_generate_deploy_script(
+    TARGET yuzu
+    OUTPUT_SCRIPT deploy_script
+    CONTENT "
+qt_deploy_runtime_dependencies(
+    EXECUTABLE \"${executable_path}\"
+    BIN_DIR \"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}\"
+    LIB_DIR \"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}\"
+    PLUGINS_DIR \"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}\"
+    DEPLOY_TOOL_OPTIONS \"${deploy_tool_options_arg}\"
+    NO_COMPILER_RUNTIME
+    GENERATE_QT_CONF
+    NO_TRANSLATIONS
+    VERBOSE
+)")
+install(TARGETS yuzu RUNTIME DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+install(SCRIPT ${deploy_script})
 
 if (ENABLE_SDL2)
     target_link_libraries(yuzu PRIVATE SDL2::SDL2)
