@@ -115,13 +115,6 @@ void PerformanceOverlay::updateStats(const Core::PerfStatsResults& results,
             m_fpsPoints.pop_front();
         }
 
-        auto [min_it, max_it] = std::minmax_element(m_fpsSamples.begin(), m_fpsSamples.end());
-        double min_fps = *min_it;
-        double max_fps = *max_it;
-
-        ui->fps_min->setText(tr("Min: %1").arg(min_fps, 0, 'f', 0));
-        ui->fps_max->setText(tr("Max: %1").arg(max_fps, 0, 'f', 0));
-
         // For the average only go back 10 samples max
         if (m_fpsSamples.size() >= 2) {
             const int back_search = std::min(size_t(10), m_fpsSamples.size() - 1);
@@ -133,6 +126,13 @@ void PerformanceOverlay::updateStats(const Core::PerfStatsResults& results,
 
         // chart it :)
         if (!m_fpsPoints.empty()) {
+            auto [min_it, max_it] = std::minmax_element(m_fpsSamples.begin(), m_fpsSamples.end());
+            double min_fps = *min_it;
+            double max_fps = *max_it;
+
+            ui->a->setText(tr("Min: %1").arg(min_fps, 0, 'f', 0));
+            ui->fps_max->setText(tr("Max: %1").arg(max_fps, 0, 'f', 0));
+
             m_fpsSeries->replace(QList<QPointF>(m_fpsPoints.begin(), m_fpsPoints.end()));
 
             qreal x_min = std::max(0.0, m_xPos - NUM_FPS_SAMPLES);
