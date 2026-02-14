@@ -39,7 +39,6 @@
         <font>
          <family>Sans Serif</family>
          <pointsize>12</pointsize>
-         <fontweight>DemiBold</fontweight>
         </font>
        </property>
        <property name="text">
@@ -120,7 +119,6 @@
         <font>
          <family>Sans Serif</family>
          <pointsize>12</pointsize>
-         <fontweight>DemiBold</fontweight>
         </font>
        </property>
        <property name="text">

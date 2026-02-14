@@ -68,6 +68,13 @@ PerformanceOverlay::PerformanceOverlay(MainWindow* parent)
 
     ui->verticalLayout->addWidget(m_fpsChartView, 1);
 
+    // thanks Debian.
+    QFont font = ui->fps->font();
+    font.setWeight(QFont::DemiBold);
+
+    ui->fps->setFont(font);
+    ui->frametime->setFont(font);
+
     // pos/stats
     resetPosition(m_mainWindow->pos());
     connect(parent, &MainWindow::positionChanged, this, &PerformanceOverlay::resetPosition);
