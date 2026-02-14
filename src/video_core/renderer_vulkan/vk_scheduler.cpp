@@ -168,6 +168,10 @@ bool Scheduler::UpdateGraphicsPipeline(GraphicsPipeline* pipeline) {
         return true;
     }
 
+    if (pipeline->UsesExtendedDynamicState() && !pipeline->HasDynamicVertexInput()) {
+        state_tracker.InvalidateVertexBufferState();
+    }
+
     if (!pipeline->UsesExtendedDynamicState()) {
         state.needs_state_enable_refresh = true;
     } else if (state.needs_state_enable_refresh) {

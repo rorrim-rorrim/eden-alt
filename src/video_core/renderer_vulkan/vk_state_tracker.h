@@ -101,6 +101,13 @@ public:
         (*flags)[Dirty::StateEnable] = true;
     }
 
+    void InvalidateVertexBufferState() {
+        (*flags)[Dirty::VertexBuffers] = true;
+        for (int index = Dirty::VertexBuffer0; index <= Dirty::VertexBuffer31; ++index) {
+            (*flags)[index] = true;
+        }
+    }
+
     bool TouchViewports() {
         const bool dirty_viewports = Exchange(Dirty::Viewports, false);
         const bool rescale_viewports = Exchange(VideoCommon::Dirty::RescaleViewports, false);
