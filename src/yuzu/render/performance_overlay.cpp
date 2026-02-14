@@ -130,7 +130,7 @@ void PerformanceOverlay::updateStats(const Core::PerfStatsResults& results,
             double min_fps = *min_it;
             double max_fps = *max_it;
 
-            ui->a->setText(tr("Min: %1").arg(min_fps, 0, 'f', 0));
+            ui->fps_min->setText(tr("Min: %1").arg(min_fps, 0, 'f', 0));
             ui->fps_max->setText(tr("Max: %1").arg(max_fps, 0, 'f', 0));
 
             m_fpsSeries->replace(QList<QPointF>(m_fpsPoints.begin(), m_fpsPoints.end()));
