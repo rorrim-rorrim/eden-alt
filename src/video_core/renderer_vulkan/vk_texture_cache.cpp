@@ -720,7 +720,7 @@ void BlitScale(Scheduler& scheduler, VkImage src_image, VkImage dst_image, const
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([dst_image, src_image, extent, resources, aspect_mask, resolution, is_2d,
-                      vk_filter, up_scaling](vk::CommandBuffer cmdbuf) {
+                      vk_filter, up_scaling, use_unified_layouts](vk::CommandBuffer cmdbuf) {
         const VkOffset2D src_size{
             .x = static_cast<s32>(up_scaling ? extent.width : resolution.ScaleUp(extent.width)),
             .y = static_cast<s32>(is_2d && up_scaling ? extent.height
