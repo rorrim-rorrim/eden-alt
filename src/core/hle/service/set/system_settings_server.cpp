@@ -999,16 +999,16 @@ void Fill3DS_CRC(u32 d, char* data) {
     digits[1] = 0;
     //
     for (size_t i = 0; i < sizeof(digits); ++i)
-        data[i] = digits[i] + '0';
+        data[i] = char(digits[i] + '0');
     u8 sum_odd = 0, sum_even = 0;
     for (size_t i = 0; i < sizeof(digits); i += 2) {
         sum_odd += digits[i + 0];
         sum_even += digits[i + 1];
     }
-    u8 sum_digit = ((sum_even * 3) + sum_odd) % 10;
+    u8 sum_digit = u8(((sum_even * 3) + sum_odd) % 10);
     if (sum_digit != 0)
         sum_digit = 10 - sum_digit;
-    data[sizeof(digits)] = sum_digit + '0';
+    data[sizeof(digits)] = char(sum_digit + '0');
 }
 
 Result ISystemSettingsServer::GetBatteryLot(Out<BatteryLot> out_battery_lot) {
@@ -1026,7 +1026,7 @@ Result ISystemSettingsServer::GetBatteryLot(Out<BatteryLot> out_battery_lot) {
         c.lot_number[6] = 'Z';
         c.lot_number[7] = 'A';
         c.lot_number[8] = 'D';
-        c.lot_number[9] = u8((d / 100000) % 26) + 'A';
+        c.lot_number[9] = char(((d / 100000) % 26) + 'A');
         Fill3DS_CRC(d, c.lot_number.data() + 10);
         return c;
     }();
