@@ -89,7 +89,7 @@ public:
         : HLEMacroImpl(maxwell3d_)
     {}
 
-    void Execute(const std::vector<u32>& parameters, [[maybe_unused]] u32 method) override {
+    void Execute(std::span<const u32> parameters, [[maybe_unused]] u32 method) override {
         auto topology = static_cast<Maxwell3D::Regs::PrimitiveTopology>(parameters[0]);
         if (!maxwell3d.AnyParametersDirty() || !IsTopologySafe(topology)) {
             Fallback(parameters);
@@ -120,7 +120,7 @@ public:
     }
 
 private:
-    void Fallback(const std::vector<u32>& parameters) {
+    void Fallback(std::span<const u32> parameters) {
         SCOPE_EXIT {
             if (extended) {
                 maxwell3d.engine_state = Maxwell3D::EngineHint::None;
@@ -167,7 +167,7 @@ class HLE_DrawIndexedIndirect final : public HLEMacroImpl {
 public:
     explicit HLE_DrawIndexedIndirect(Maxwell3D& maxwell3d_) : HLEMacroImpl(maxwell3d_) {}
 
-    void Execute(const std::vector<u32>& parameters, [[maybe_unused]] u32 method) override {
+    void Execute(std::span<const u32> parameters, [[maybe_unused]] u32 method) override {
         auto topology = static_cast<Maxwell3D::Regs::PrimitiveTopology>(parameters[0]);
         if (!maxwell3d.AnyParametersDirty() || !IsTopologySafe(topology)) {
             Fallback(parameters);
@@ -207,7 +207,7 @@ public:
     }
 
 private:
-    void Fallback(const std::vector<u32>& parameters) {
+    void Fallback(std::span<const u32> parameters) {
         maxwell3d.RefreshParameters();
         const u32 instance_count = (maxwell3d.GetRegisterValue(0xD1B) & parameters[2]);
         const u32 element_base = parameters[4];
@@ -238,7 +238,7 @@ class HLE_MultiLayerClear final : public HLEMacroImpl {
 public:
     explicit HLE_MultiLayerClear(Maxwell3D& maxwell3d_) : HLEMacroImpl(maxwell3d_) {}
 
-    void Execute(const std::vector<u32>& parameters, [[maybe_unused]] u32 method) override {
+    void Execute(std::span<const u32> parameters, [[maybe_unused]] u32 method) override {
         maxwell3d.RefreshParameters();
         ASSERT(parameters.size() == 1);
 
@@ -256,7 +256,7 @@ class HLE_MultiDrawIndexedIndirectCount final : public HLEMacroImpl {
 public:
     explicit HLE_MultiDrawIndexedIndirectCount(Maxwell3D& maxwell3d_) : HLEMacroImpl(maxwell3d_) {}
 
-    void Execute(const std::vector<u32>& parameters, [[maybe_unused]] u32 method) override {
+    void Execute(std::span<const u32> parameters, [[maybe_unused]] u32 method) override {
         const auto topology = Maxwell3D::Regs::PrimitiveTopology(parameters[2]);
         if (!IsTopologySafe(topology)) {
             Fallback(parameters);
@@ -301,7 +301,7 @@ public:
     }
 
 private:
-    void Fallback(const std::vector<u32>& parameters) {
+    void Fallback(std::span<const u32> parameters) {
         SCOPE_EXIT {
             // Clean everything.
             maxwell3d.regs.vertex_id_base = 0x0;
@@ -347,7 +347,7 @@ class HLE_DrawIndirectByteCount final : public HLEMacroImpl {
 public:
     explicit HLE_DrawIndirectByteCount(Maxwell3D& maxwell3d_) : HLEMacroImpl(maxwell3d_) {}
 
-    void Execute(const std::vector<u32>& parameters, [[maybe_unused]] u32 method) override {
+    void Execute(std::span<const u32> parameters, [[maybe_unused]] u32 method) override {
         const bool force = maxwell3d.Rasterizer().HasDrawTransformFeedback();
 
         auto topology = static_cast<Maxwell3D::Regs::PrimitiveTopology>(parameters[0] & 0xFFFFU);
@@ -372,7 +372,7 @@ public:
     }
 
 private:
-    void Fallback(const std::vector<u32>& parameters) {
+    void Fallback(std::span<const u32> parameters) {
         maxwell3d.RefreshParameters();
 
         maxwell3d.regs.draw.begin = parameters[0];
@@ -381,7 +381,8 @@ private:
 
         maxwell3d.draw_manager->DrawArray(
             maxwell3d.regs.draw.topology, 0,
-            maxwell3d.regs.draw_auto_byte_count / maxwell3d.regs.draw_auto_stride, 0, 1);
+            maxwell3d.regs.draw_auto_stride > 0 ? maxwell3d.regs.draw_auto_byte_count / maxwell3d.regs.draw_auto_stride : 0,
+            0, 1);
     }
 };
 
@@ -389,7 +390,7 @@ class HLE_C713C83D8F63CCF3 final : public HLEMacroImpl {
 public:
     explicit HLE_C713C83D8F63CCF3(Maxwell3D& maxwell3d_) : HLEMacroImpl(maxwell3d_) {}
 
-    void Execute(const std::vector<u32>& parameters, [[maybe_unused]] u32 method) override {
+    void Execute(std::span<const u32> parameters, [[maybe_unused]] u32 method) override {
         maxwell3d.RefreshParameters();
         const u32 offset = (parameters[0] & 0x3FFFFFFF) << 2;
         const u32 address = maxwell3d.regs.shadow_scratch[24];
@@ -405,7 +406,7 @@ class HLE_D7333D26E0A93EDE final : public HLEMacroImpl {
 public:
     explicit HLE_D7333D26E0A93EDE(Maxwell3D& maxwell3d_) : HLEMacroImpl(maxwell3d_) {}
 
-    void Execute(const std::vector<u32>& parameters, [[maybe_unused]] u32 method) override {
+    void Execute(std::span<const u32> parameters, [[maybe_unused]] u32 method) override {
         maxwell3d.RefreshParameters();
         const size_t index = parameters[0];
         const u32 address = maxwell3d.regs.shadow_scratch[42 + index];
@@ -421,7 +422,7 @@ class HLE_BindShader final : public HLEMacroImpl {
 public:
     explicit HLE_BindShader(Maxwell3D& maxwell3d_) : HLEMacroImpl(maxwell3d_) {}
 
-    void Execute(const std::vector<u32>& parameters, [[maybe_unused]] u32 method) override {
+    void Execute(std::span<const u32> parameters, [[maybe_unused]] u32 method) override {
         maxwell3d.RefreshParameters();
         auto& regs = maxwell3d.regs;
         const u32 index = parameters[0];
@@ -451,7 +452,7 @@ class HLE_SetRasterBoundingBox final : public HLEMacroImpl {
 public:
     explicit HLE_SetRasterBoundingBox(Maxwell3D& maxwell3d_) : HLEMacroImpl(maxwell3d_) {}
 
-    void Execute(const std::vector<u32>& parameters, [[maybe_unused]] u32 method) override {
+    void Execute(std::span<const u32> parameters, [[maybe_unused]] u32 method) override {
         maxwell3d.RefreshParameters();
         const u32 raster_mode = parameters[0];
         auto& regs = maxwell3d.regs;
@@ -467,7 +468,7 @@ class HLE_ClearConstBuffer final : public HLEMacroImpl {
 public:
     explicit HLE_ClearConstBuffer(Maxwell3D& maxwell3d_) : HLEMacroImpl(maxwell3d_) {}
 
-    void Execute(const std::vector<u32>& parameters, [[maybe_unused]] u32 method) override {
+    void Execute(std::span<const u32> parameters, [[maybe_unused]] u32 method) override {
         maxwell3d.RefreshParameters();
         static constexpr std::array<u32, base_size> zeroes{};
         auto& regs = maxwell3d.regs;
@@ -483,7 +484,7 @@ class HLE_ClearMemory final : public HLEMacroImpl {
 public:
     explicit HLE_ClearMemory(Maxwell3D& maxwell3d_) : HLEMacroImpl(maxwell3d_) {}
 
-    void Execute(const std::vector<u32>& parameters, [[maybe_unused]] u32 method) override {
+    void Execute(std::span<const u32> parameters, [[maybe_unused]] u32 method) override {
         maxwell3d.RefreshParameters();
 
         const u32 needed_memory = parameters[2] / sizeof(u32);
@@ -507,7 +508,7 @@ class HLE_TransformFeedbackSetup final : public HLEMacroImpl {
 public:
     explicit HLE_TransformFeedbackSetup(Maxwell3D& maxwell3d_) : HLEMacroImpl(maxwell3d_) {}
 
-    void Execute(const std::vector<u32>& parameters, [[maybe_unused]] u32 method) override {
+    void Execute(std::span<const u32> parameters, [[maybe_unused]] u32 method) override {
         maxwell3d.RefreshParameters();
 
         auto& regs = maxwell3d.regs;
@@ -560,12 +561,12 @@ std::unique_ptr<CachedMacro> HLEMacro::GetHLEProgram(u64 hash) const {
 namespace {
 class MacroInterpreterImpl final : public CachedMacro {
 public:
-    explicit MacroInterpreterImpl(Engines::Maxwell3D& maxwell3d_, const std::vector<u32>& code_)
+    explicit MacroInterpreterImpl(Engines::Maxwell3D& maxwell3d_, std::span<const u32> code_)
         : CachedMacro(maxwell3d_)
         , code{code_}
     {}
 
-    void Execute(const std::vector<u32>& params, u32 method) override;
+    void Execute(std::span<const u32> params, u32 method) override;
 
 private:
     /// Resets the execution engine state, zeroing registers, etc.
@@ -630,10 +631,10 @@ private:
     u32 next_parameter_index = 0;
 
     bool carry_flag = false;
-    const std::vector<u32>& code;
+    std::span<const u32> code;
 };
 
-void MacroInterpreterImpl::Execute(const std::vector<u32>& params, u32 method) {
+void MacroInterpreterImpl::Execute(std::span<const u32> params, u32 method) {
     Reset();
 
     registers[1] = params[0];
@@ -932,7 +933,7 @@ static const auto default_cg_mode = nullptr; //Allow RWE
 
 class MacroJITx64Impl final : public Xbyak::CodeGenerator, public CachedMacro {
 public:
-    explicit MacroJITx64Impl(Engines::Maxwell3D& maxwell3d_, const std::vector<u32>& code_)
+    explicit MacroJITx64Impl(Engines::Maxwell3D& maxwell3d_, std::span<const u32> code_)
         : Xbyak::CodeGenerator(MAX_CODE_SIZE, default_cg_mode)
         , CachedMacro(maxwell3d_)
         , code{code_}
@@ -940,7 +941,7 @@ public:
         Compile();
     }
 
-    void Execute(const std::vector<u32>& parameters, u32 method) override;
+    void Execute(std::span<const u32> parameters, u32 method) override;
 
     void Compile_ALU(Macro::Opcode opcode);
     void Compile_AddImmediate(Macro::Opcode opcode);
@@ -992,10 +993,10 @@ private:
     bool is_delay_slot{};
     u32 pc{};
 
-    const std::vector<u32>& code;
+    std::span<const u32> code;
 };
 
-void MacroJITx64Impl::Execute(const std::vector<u32>& parameters, u32 method) {
+void MacroJITx64Impl::Execute(std::span<const u32> parameters, u32 method) {
     ASSERT_OR_EXECUTE(program != nullptr, { return; });
     JITState state{};
     state.maxwell3d = &maxwell3d;
@@ -1591,7 +1592,7 @@ void MacroEngine::ClearCode(u32 method) {
     uploaded_macro_code.erase(method);
 }
 
-void MacroEngine::Execute(u32 method, const std::vector<u32>& parameters) {
+void MacroEngine::Execute(u32 method, std::span<const u32> parameters) {
     auto compiled_macro = macro_cache.find(method);
     if (compiled_macro != macro_cache.end()) {
         const auto& cache_info = compiled_macro->second;
@@ -1648,7 +1649,7 @@ void MacroEngine::Execute(u32 method, const std::vector<u32>& parameters) {
     }
 }
 
-std::unique_ptr<CachedMacro> MacroEngine::Compile(const std::vector<u32>& code) {
+std::unique_ptr<CachedMacro> MacroEngine::Compile(std::span<const u32> code) {
 #ifdef ARCHITECTURE_x86_64
     if (!is_interpreted)
         return std::make_unique<MacroJITx64Impl>(maxwell3d, code);

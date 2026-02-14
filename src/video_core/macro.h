@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <ankerl/unordered_dense.h>
+#include <span>
 #include <vector>
 #include "common/bit_field.h"
 #include "common/common_types.h"
@@ -107,7 +108,7 @@ public:
     /// Executes the macro code with the specified input parameters.
     /// @param parameters The parameters of the macro
     /// @param method     The method to execute
-    virtual void Execute(const std::vector<u32>& parameters, u32 method) = 0;
+    virtual void Execute(std::span<const u32> parameters, u32 method) = 0;
     Engines::Maxwell3D& maxwell3d;
 };
 
@@ -134,10 +135,10 @@ public:
     void ClearCode(u32 method);
 
     // Compiles the macro if its not in the cache, and executes the compiled macro
-    void Execute(u32 method, const std::vector<u32>& parameters);
+    void Execute(u32 method, std::span<const u32> parameters);
 
 protected:
-    std::unique_ptr<CachedMacro> Compile(const std::vector<u32>& code);
+    std::unique_ptr<CachedMacro> Compile(std::span<const u32> code);
 
 private:
     struct CacheInfo {
