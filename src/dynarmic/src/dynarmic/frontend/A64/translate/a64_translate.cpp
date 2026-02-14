@@ -35,7 +35,7 @@ void Translate(IR::Block& block, LocationDescriptor descriptor, MemoryReadCodeFu
         }
 
         visitor.ir.current_location = visitor.ir.current_location->AdvancePC(4);
-        block.CycleCount()++;
+        block.cycle_count++;
     } while (should_continue && !single_step);
 
     if (single_step && should_continue) {
@@ -56,7 +56,7 @@ bool TranslateSingleInstruction(IR::Block& block, LocationDescriptor descriptor,
     }
 
     visitor.ir.current_location = visitor.ir.current_location->AdvancePC(4);
-    block.CycleCount()++;
+    block.cycle_count++;
 
     block.SetEndLocation(*visitor.ir.current_location);
 
