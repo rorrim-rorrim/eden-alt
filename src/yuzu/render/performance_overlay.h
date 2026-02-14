@@ -7,7 +7,7 @@ namespace VideoCore {
 class ShaderNotify;
 }
 namespace Core {
-class PerfStatsResults;
+struct PerfStatsResults;
 }
 namespace Ui {
 class PerformanceOverlay;
