@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -243,7 +243,11 @@ void MasterSemaphore::WaitThread(std::stop_token token) {
             free_queue.push_front(std::move(fence));
             gpu_tick.store(host_tick, std::memory_order_release);
         }
+#ifdef ANDROID
         free_cv.notify_all();
+#else
+        free_cv.notify_one();
+#endif
     }
 }
 

@@ -680,6 +680,13 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_EARLY_RELEASE_FENCES,
+                    titleId = R.string.renderer_early_release_fences,
+                    descriptionId = R.string.renderer_early_release_fences_description
+                )
+            )
+            put(
                 SingleChoiceSetting(
                     IntSetting.FAST_GPU_TIME,
                     titleId = R.string.fast_gpu_time,

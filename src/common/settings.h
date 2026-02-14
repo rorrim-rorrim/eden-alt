@@ -546,6 +546,16 @@ struct Values {
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::RendererHacks};
 
+#ifdef ANDROID
+    SwitchableSetting<bool> early_release_fences{linkage,
+                                                     false,
+                                                     "early_release_fences",
+                                                     Category::RendererAdvanced,
+                                                     Specialization::Default,
+                                                     true,
+                                                     true};
+#endif
+
     SwitchableSetting<GpuUnswizzleSize> gpu_unswizzle_texture_size{linkage,
                                                   GpuUnswizzleSize::Large,
                                                   "gpu_unswizzle_texture_size",
