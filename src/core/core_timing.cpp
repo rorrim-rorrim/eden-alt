@@ -313,8 +313,8 @@ void CoreTiming::ThreadLoop() {
                     }
 #else
                     event.WaitFor(std::chrono::nanoseconds(wait_time));
-                }
 #endif
+                }
             } else {
                 // Queue is empty, wait until another event is scheduled and signals us to
                 // continue.
