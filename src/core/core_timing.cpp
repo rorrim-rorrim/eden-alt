@@ -13,6 +13,11 @@
 #include "common/windows/timer_resolution.h"
 #endif
 
+#if defined(_WIN32) && defined(ARCHITECTURE_x86_64) && defined(__MINGW64__)
+#include "common/x64/cpu_detect.h"
+#include "common/x64/rdtsc.h"
+#endif
+
 #include "common/settings.h"
 #include "core/core_timing.h"
 #include "core/hardware_properties.h"
