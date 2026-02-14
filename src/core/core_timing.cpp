@@ -282,8 +282,39 @@ void CoreTiming::ThreadLoop() {
             const auto next_time = Advance();
             if (next_time) {
                 // There are more events left in the queue, wait until the next event.
-                auto wait_time = *next_time - GetGlobalTimeNs().count();
-                event.WaitFor(std::chrono::nanoseconds(wait_time));
+                if (auto wait_time = *next_time - GetGlobalTimeNs().count(); wait_time > 0) {
+#if defined(_WIN32) && defined(ARCHITECTURE_x86_64) && defined(__MINGW64__)
+                    while (!paused && !event.IsSet() && wait_time > 0) {
+                        wait_time = *next_time - GetGlobalTimeNs().count();
+                        if (wait_time >= timer_resolution_ns) {
+                            Common::Windows::SleepForOneTick();
+                        } else {
+                            auto const& caps = GetCPUCaps();
+                            if (caps.waitpkg) {
+                                static constexpr auto RequestC02State = 0U;
+                                const auto tsc = FencedRDTSC() + PauseCycles;
+                                const auto eax = static_cast<u32>(tsc & 0xFFFFFFFF);
+                                const auto edx = static_cast<u32>(tsc >> 32);
+                                asm volatile("tpause %0" : : "r"(RequestC02State), "d"(edx), "a"(eax));
+                            } else if (caps.monitorx) {
+                                static constexpr auto EnableWaitTimeFlag = 1U << 1;
+                                static constexpr auto RequestC1State = 0U;
+                                // monitor_var should be aligned to a cache line.
+                                alignas(64) u64 monitor_var{};
+                                asm volatile("monitorx" : : "a"(&monitor_var), "c"(0), "d"(0));
+                                asm volatile("mwaitx" : : "a"(RequestC1State), "b"(PauseCycles), "c"(EnableWaitTimeFlag));
+                            } else {
+                                std::this_thread::yield();
+                            }
+                        }
+                    }
+                    if (event.IsSet()) {
+                        event.Reset();
+                    }
+#else
+                    event.WaitFor(std::chrono::nanoseconds(wait_time));
+                }
+#endif
             } else {
                 // Queue is empty, wait until another event is scheduled and signals us to
                 // continue.
