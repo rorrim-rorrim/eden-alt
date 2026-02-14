@@ -19,9 +19,9 @@ if(USE_CCACHE)
         message(FATAL_ERROR "[UseCcache] USE_CCACHE enabled, but no "
             "executable found at: ${CCACHE_PATH}")
     endif()
-    # Follow SCCache recommendations:
+    # Follow SCCache recommendations only for MINGW:
     # <https://github.com/mozilla/sccache/blob/main/README.md?plain=1#L144>
-    if(WIN32)
+    if(MINGW)
         string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_DEBUG
             "${CMAKE_CXX_FLAGS_DEBUG}")
         string(REPLACE "/Zi" "/Z7" CMAKE_C_FLAGS_DEBUG

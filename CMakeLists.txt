@@ -80,10 +80,10 @@ option(ENABLE_UPDATE_CHECKER "Enable update checker (for Qt and Android)" OFF)
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 cmake_dependent_option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF "NOT YUZU_USE_BUNDLED_QT" OFF)
 set(YUZU_QT_MIRROR "" CACHE STRING "What mirror to use for downloading the bundled Qt libraries")
-cmake_dependent_option(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
+cmake_dependent_option(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT AND NOT (CMAKE_BUILD_TYPE MATCHES "Debug|RelWithDebInfo")" OFF)
 
 # non-linux bundled qt are static
-if (YUZU_USE_BUNDLED_QT AND (APPLE OR NOT UNIX))
+if (YUZU_USE_BUNDLED_QT AND (APPLE OR NOT UNIX) AND NOT (CMAKE_BUILD_TYPE MATCHES "Debug|RelWithDebInfo"))
     set(YUZU_STATIC_BUILD ON)
 endif()
 
@@ -636,6 +636,7 @@ if (ENABLE_QT)
     else()
         message(STATUS "Using system Qt")
         if (NOT Qt6_DIR)
+            # You can use this as reference: <https://ddalcino.github.io/aqt-list-server/>
             set(Qt6_DIR "" CACHE PATH "Additional path to search for Qt6 libraries like C:/Qt/6.8.3/msvc2022_64/lib/cmake/Qt6")
         endif()
         list(APPEND CMAKE_PREFIX_PATH "${Qt6_DIR}")
@@ -738,6 +739,9 @@ if (MSVC AND CMAKE_GENERATOR STREQUAL "Ninja")
         /wd4711 # function 'function' selected for automatic inline expansion
         /wd4820 # 'bytes' bytes padding added after construct 'member_name'
     )
+    # For CMake 3.25+ apply ProgramDatabase as default debug information format
+    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>")
+    cmake_policy(SET CMP0141 NEW)
 endif()
 
 # Adjustments for clang-cl
