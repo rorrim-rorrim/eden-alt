@@ -34,8 +34,7 @@ if (NOT YUZU_USE_BUNDLED_FFMPEG)
     # User attempts to do a FFmpeg cross compilation because...
     # Here we just quickly test against host/system processors not matching
     # TODO: Test for versions not matching as well?
-    elseif (NOT (CMAKE_HOST_SYSTEM_PROCESSOR MATCHES CMAKE_SYSTEM_PROCESSOR
-    AND CMAKE_HOST_SYSTEM_NAME MATCHES CMAKE_SYSTEM_NAME))
+    elseif (NOT CMAKE_HOST_SYSTEM_PROCESSOR MATCHES CMAKE_SYSTEM_PROCESSOR OR NOT CMAKE_HOST_SYSTEM_NAME MATCHES CMAKE_SYSTEM_NAME)
         string(TOLOWER "${CMAKE_SYSTEM_NAME}" FFmpeg_SYSTEM_NAME)
         # TODO: Can we really do better? Auto-detection? Something clever?
         if (NOT DEFINED FFmpeg_CROSS_PREFIX)
@@ -52,21 +51,31 @@ if (NOT YUZU_USE_BUNDLED_FFMPEG)
     endif()
 endif()
 
-if (UNIX AND NOT DEFINED FFmpeg_IS_CROSS_COMPILING)
+if (UNIX AND NOT ANDROID AND NOT DEFINED FFmpeg_IS_CROSS_COMPILING)
     find_package(PkgConfig REQUIRED)
+    if (NOT ANDROID)
     pkg_check_modules(LIBVA libva)
     pkg_check_modules(CUDA cuda)
     pkg_check_modules(FFNVCODEC ffnvcodec)
     pkg_check_modules(VDPAU vdpau)
+    endif()
 
     find_package(X11)
     if(X11_FOUND)
         if (NOT APPLE)
             # In Solaris needs explicit linking for ffmpeg which links to /lib/amd64/libX11.so
             if(PLATFORM_SUN)
+            find_library(LIBDRM_LIB libdrm PATHS /usr/lib/64 /usr/lib/amd64 /usr/lib)
+            if(LIBDRM_LIB)
                 list(APPEND FFmpeg_HWACCEL_LIBRARIES
                     X11
-                    "${CMAKE_SYSROOT}/usr/lib/xorg/amd64/libdrm.so")
+                    "${LIBDRM_LIB}")
+                message(STATUS "Found libdrm at: ${LIBDRM_LIB}")
+            else()
+                message(WARNING "libdrm not found, disabling libdrm support")
+                list(APPEND FFmpeg_HWACCEL_FLAGS
+                    --disable-libdrm)
+            endif()
             else()
                 pkg_check_modules(LIBDRM libdrm REQUIRED)
                 list(APPEND FFmpeg_HWACCEL_LIBRARIES
