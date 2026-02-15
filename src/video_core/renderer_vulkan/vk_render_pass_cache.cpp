@@ -90,7 +90,7 @@ VkRenderPass RenderPassCache::Get(const RenderPassKey& key) {
         const bool is_valid{format != PixelFormat::Invalid};
         references[index] = VkAttachmentReference{
             .attachment = is_valid ? num_colors : VK_ATTACHMENT_UNUSED,
-            .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .layout = VK_IMAGE_LAYOUT_GENERAL,
         };
         if (is_valid) {
             descriptions.push_back(AttachmentDescription(*device, format, key.samples, false));
@@ -103,7 +103,7 @@ VkRenderPass RenderPassCache::Get(const RenderPassKey& key) {
     if (key.depth_format != PixelFormat::Invalid) {
         depth_reference = VkAttachmentReference{
             .attachment = num_colors,
-            .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+            .layout = VK_IMAGE_LAYOUT_GENERAL,
         };
         descriptions.push_back(AttachmentDescription(*device, key.depth_format, key.samples, true));
     }

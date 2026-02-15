@@ -365,20 +365,22 @@ void Scheduler::EndRenderPass()
                 VkImageLayout new_layout;
 
                 if (is_color) {
-                    // Color attachments can be read as textures or used as attachments again
+                    // Keep GENERAL to match descriptor image layouts used across the renderer.
                     src_access = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
                     this_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-                    new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                    new_layout = VK_IMAGE_LAYOUT_GENERAL;
                     dst_access = VK_ACCESS_SHADER_READ_BIT
+                                 | VK_ACCESS_SHADER_WRITE_BIT
                                  | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT
                                  | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
                 } else if (is_depth_stencil) {
-                    // Depth attachments can be read as textures or used as attachments again
+                    // Keep GENERAL to match descriptor image layouts used across the renderer.
                     src_access = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
                     this_stage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
                                  | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-                    new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                    new_layout = VK_IMAGE_LAYOUT_GENERAL;
                     dst_access = VK_ACCESS_SHADER_READ_BIT
+                                 | VK_ACCESS_SHADER_WRITE_BIT
                                  | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT
                                  | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
                 } else {
