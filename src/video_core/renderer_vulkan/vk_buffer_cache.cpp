@@ -598,7 +598,10 @@ void BufferCacheRuntime::BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset
     if (index >= device.GetMaxVertexInputBindings()) {
         return;
     }
-    if (device.IsExtExtendedDynamicStateSupported()) {
+    const bool use_dynamic_vertex_input_binding_stride =
+        device.IsExtExtendedDynamicStateSupported() &&
+        use_vertex_input_binding_stride_dynamic_state;
+    if (use_dynamic_vertex_input_binding_stride) {
         scheduler.Record([index, buffer, offset, size, stride](vk::CommandBuffer cmdbuf) {
             const VkDeviceSize vk_offset = buffer != VK_NULL_HANDLE ? offset : 0;
             const VkDeviceSize vk_size = buffer != VK_NULL_HANDLE ? size : VK_WHOLE_SIZE;
@@ -638,7 +641,10 @@ void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bi
     if (binding_count == 0) {
         return;
     }
-    if (device.IsExtExtendedDynamicStateSupported()) {
+    const bool use_dynamic_vertex_input_binding_stride =
+        device.IsExtExtendedDynamicStateSupported() &&
+        use_vertex_input_binding_stride_dynamic_state;
+    if (use_dynamic_vertex_input_binding_stride) {
         scheduler.Record([bindings_ = std::move(bindings),
                           buffer_handles_ = std::move(buffer_handles),
                           binding_count](vk::CommandBuffer cmdbuf) {
