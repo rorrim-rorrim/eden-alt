@@ -665,46 +665,24 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     //   Level 0 = Core Dynamic States only (Vulkan 1.0)
     //   Level 1 = Core + VK_EXT_extended_dynamic_state
     //   Level 2 = Core + VK_EXT_extended_dynamic_state + VK_EXT_extended_dynamic_state2
-    //   Level 3 = Core + VK_EXT_extended_dynamic_state + VK_EXT_extended_dynamic_state2 + VK_EXT_extended_dynamic_state3
 
     switch (dyna_state) {
     case Settings::ExtendedDynamicState::Disabled:
-        // Level 0: Disable all extended dynamic state extensions
+        // Level 0: Disable all configured extended dynamic state extensions
         RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
                               VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
                               VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
-                              VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-        dynamic_state3_blending = false;
-        dynamic_state3_enables = false;
         break;
     case Settings::ExtendedDynamicState::EDS1:
-        // Level 1: Enable EDS1, disable EDS2 and EDS3
+        // Level 1: Enable EDS1, disable EDS2
         RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
                               VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
-                              VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-        dynamic_state3_blending = false;
-        dynamic_state3_enables = false;
         break;
     case Settings::ExtendedDynamicState::EDS2:
-        // Level 2: Enable EDS1 + EDS2, disable EDS3
-        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
-                              VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-        dynamic_state3_blending = false;
-        dynamic_state3_enables = false;
-        break;
-    case Settings::ExtendedDynamicState::EDS3:
     default:
-        // Level 3: Enable all (EDS1 + EDS2 + EDS3)
+        // Level 2: Enable EDS1 + EDS2
         break;
-    }
-
-    // VK_EXT_vertex_input_dynamic_state is independent from EDS
-    // It can be enabled even without extended_dynamic_state
-    if (!Settings::values.vertex_input_dynamic_state.GetValue()) {
-        RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
     }
 
     logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions), first_next, dld);
@@ -1171,41 +1149,12 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
     // VK_EXT_extended_dynamic_state2 below this will appear drivers that need workarounds.
 
-    // VK_EXT_extended_dynamic_state3 below this will appear drivers that need workarounds.
-
-    // Samsung: Broken extendedDynamicState3ColorBlendEquation
-    // Disable blend equation dynamic state, force static pipeline state
-    if (extensions.extended_dynamic_state3 &&
-        (driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
-        LOG_WARNING(Render_Vulkan,
-                    "Samsung: Disabling broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
-    }
-
-    // Intel Windows < 27.20.100.0: Broken VertexInputDynamicState
-    // Same for NVIDIA Proprietary < 580.119.02, unknown when VIDS was first NOT broken
-    // Disable VertexInputDynamicState on old Intel Windows drivers
-    if (extensions.vertex_input_dynamic_state) {
-        const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if ((driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS && version < VK_MAKE_API_VERSION(27, 20, 100, 0))
-        || (driver_id == VK_DRIVER_ID_NVIDIA_PROPRIETARY && version < VK_MAKE_API_VERSION(580, 119, 02, 0))) {
-            LOG_WARNING(Render_Vulkan, "Disabling broken VK_EXT_vertex_input_dynamic_state");
-            RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
-        }
-    }
-
     if (u32(Settings::values.dyna_state.GetValue()) == 0) {
         LOG_INFO(Render_Vulkan, "Extended Dynamic State disabled by user setting, clearing all EDS features");
         features.custom_border_color.customBorderColors = false;
         features.custom_border_color.customBorderColorWithoutFormat = false;
         features.extended_dynamic_state.extendedDynamicState = false;
         features.extended_dynamic_state2.extendedDynamicState2 = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorWriteMask = false;
-        features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable = false;
     }
 
     // Return whether we were suitable.
@@ -1256,65 +1205,6 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state2,
                                        features.extended_dynamic_state2,
                                        VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-
-    // VK_EXT_extended_dynamic_state3
-    const bool supports_color_blend_enable =
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable;
-    const bool supports_color_blend_equation =
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation;
-    const bool supports_color_write_mask =
-        features.extended_dynamic_state3.extendedDynamicState3ColorWriteMask;
-    dynamic_state3_blending = supports_color_blend_enable && supports_color_blend_equation &&
-                              supports_color_write_mask;
-
-    const bool supports_depth_clamp_enable =
-        features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable;
-    const bool supports_logic_op_enable =
-        features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable;
-    const bool supports_line_raster_mode =
-        features.extended_dynamic_state3.extendedDynamicState3LineRasterizationMode &&
-        extensions.line_rasterization && features.line_rasterization.rectangularLines;
-    const bool supports_conservative_raster_mode =
-        features.extended_dynamic_state3.extendedDynamicState3ConservativeRasterizationMode &&
-        extensions.conservative_rasterization;
-    const bool supports_line_stipple_enable =
-        features.extended_dynamic_state3.extendedDynamicState3LineStippleEnable &&
-        extensions.line_rasterization && features.line_rasterization.stippledRectangularLines;
-    const bool supports_alpha_to_coverage =
-        features.extended_dynamic_state3.extendedDynamicState3AlphaToCoverageEnable;
-    const bool supports_alpha_to_one =
-        features.extended_dynamic_state3.extendedDynamicState3AlphaToOneEnable &&
-        features.features.alphaToOne;
-
-    dynamic_state3_depth_clamp_enable = supports_depth_clamp_enable;
-    dynamic_state3_logic_op_enable = supports_logic_op_enable;
-    dynamic_state3_line_raster_mode = supports_line_raster_mode;
-    dynamic_state3_conservative_raster_mode = supports_conservative_raster_mode;
-    dynamic_state3_line_stipple_enable = supports_line_stipple_enable;
-    dynamic_state3_alpha_to_coverage = supports_alpha_to_coverage;
-    dynamic_state3_alpha_to_one = supports_alpha_to_one;
-
-    dynamic_state3_enables = dynamic_state3_depth_clamp_enable || dynamic_state3_logic_op_enable ||
-                             dynamic_state3_line_raster_mode ||
-                             dynamic_state3_conservative_raster_mode ||
-                             dynamic_state3_line_stipple_enable ||
-                             dynamic_state3_alpha_to_coverage || dynamic_state3_alpha_to_one;
-
-    extensions.extended_dynamic_state3 = dynamic_state3_blending || dynamic_state3_enables;
-    if (!extensions.extended_dynamic_state3) {
-        dynamic_state3_blending = false;
-        dynamic_state3_enables = false;
-        dynamic_state3_depth_clamp_enable = false;
-        dynamic_state3_logic_op_enable = false;
-        dynamic_state3_line_raster_mode = false;
-        dynamic_state3_conservative_raster_mode = false;
-        dynamic_state3_line_stipple_enable = false;
-        dynamic_state3_alpha_to_coverage = false;
-        dynamic_state3_alpha_to_one = false;
-    }
-    RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state3,
-                                       features.extended_dynamic_state3,
-                                       VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
 
     // VK_EXT_robustness2
     // Enable if at least one robustness2 feature is available
@@ -1383,13 +1273,6 @@ void Device::RemoveUnsuitableExtensions() {
                  properties.transform_feedback.maxTransformFeedbackBuffers,
                  properties.transform_feedback.transformFeedbackQueries);
     }
-
-    // VK_EXT_vertex_input_dynamic_state
-    extensions.vertex_input_dynamic_state =
-        features.vertex_input_dynamic_state.vertexInputDynamicState;
-    RemoveExtensionFeatureIfUnsuitable(extensions.vertex_input_dynamic_state,
-                                       features.vertex_input_dynamic_state,
-                                       VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
 
     // VK_EXT_multi_draw
     extensions.multi_draw = features.multi_draw.multiDraw;

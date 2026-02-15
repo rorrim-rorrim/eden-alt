@@ -154,7 +154,7 @@ ENUM(GpuUnswizzleSize, VerySmall, Small, Normal, Large, VeryLarge)
 ENUM(GpuUnswizzle, VeryLow, Low, Normal, Medium, High)
 ENUM(GpuUnswizzleChunk, VeryLow, Low, Normal, Medium, High)
 ENUM(TemperatureUnits, Celsius, Fahrenheit)
-ENUM(ExtendedDynamicState, Disabled, EDS1, EDS2, EDS3);
+ENUM(ExtendedDynamicState, Disabled, EDS1, EDS2);
 ENUM(GpuLogLevel, Off, Errors, Standard, Verbose, All)
 ENUM(GameListMode, TreeView, GridView);
 ENUM(SpeedMode, Standard, Turbo, Slow);

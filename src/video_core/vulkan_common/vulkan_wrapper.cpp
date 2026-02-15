@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -146,14 +146,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdSetDepthWriteEnableEXT);
     X(vkCmdSetPrimitiveRestartEnableEXT);
     X(vkCmdSetRasterizerDiscardEnableEXT);
-    X(vkCmdSetAlphaToCoverageEnableEXT);
-    X(vkCmdSetAlphaToOneEnableEXT);
-    X(vkCmdSetConservativeRasterizationModeEXT);
-    X(vkCmdSetLineRasterizationModeEXT);
-    X(vkCmdSetLineStippleEnableEXT);
     X(vkCmdSetDepthBiasEnableEXT);
-    X(vkCmdSetLogicOpEnableEXT);
-    X(vkCmdSetDepthClampEnableEXT);
     X(vkCmdSetFrontFaceEXT);
     X(vkCmdSetLogicOpEXT);
     X(vkCmdSetPatchControlPointsEXT);
@@ -161,10 +154,6 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdSetPrimitiveTopologyEXT);
     X(vkCmdSetStencilOpEXT);
     X(vkCmdSetStencilTestEnableEXT);
-    X(vkCmdSetVertexInputEXT);
-    X(vkCmdSetColorWriteMaskEXT);
-    X(vkCmdSetColorBlendEnableEXT);
-    X(vkCmdSetColorBlendEquationEXT);
     X(vkCmdResolveImage);
     X(vkCreateBuffer);
     X(vkCreateBufferView);

@@ -436,8 +436,6 @@
     <string name="renderer_asynchronous_shaders_description">Compile les shaders de manière asynchrone. Cela peut réduire les saccades mais peut aussi provoquer des problèmes graphiques.</string>
     <string name="dyna_state">État dynamique étendu</string>
     <string name="disabled">Désactivé</string>
-    <string name="vertex_input_dynamic_state">État dynamique d\'entrée de sommet</string>
-    <string name="vertex_input_dynamic_state_description">Active la fonctionnalité d\'état dynamique des entrées de sommets pour une meilleure qualité et de meilleures performances.</string>
     <string name="provoking_vertex">Provoque des Vertex</string>
     <string name="provoking_vertex_description">Améliore l`éclairage et la gestion des vertex dans certains jeux. Pris en charge uniquement par les GPU Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Indexation des descripteurs</string>

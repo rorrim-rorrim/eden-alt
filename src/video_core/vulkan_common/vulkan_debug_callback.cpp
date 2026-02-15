@@ -43,14 +43,6 @@ VkBool32 DebugUtilCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
     case 0xdff2e5c1u: // VUID-vkCmdSetRasterizerDiscardEnable-None-04871
     case 0x0cc85f41u: // VUID-vkCmdSetPrimitiveRestartEnable-None-04866
     case 0x01257b492: // VUID-vkCmdSetLogicOpEXT-None-0486
-    // The below are due to incorrect reporting of vertexInputDynamicState
-    case 0x398e0dabu: // VUID-vkCmdSetVertexInputEXT-None-04790
-    // The below are due to incorrect reporting of extendedDynamicState3
-    case 0x970c11a5u: // VUID-vkCmdSetColorWriteMaskEXT-extendedDynamicState3ColorWriteMask-07364
-    case 0x6b453f78u: // VUID-vkCmdSetColorBlendEnableEXT-extendedDynamicState3ColorBlendEnable-07355
-    case 0xf66469d0u: // VUID-vkCmdSetColorBlendEquationEXT-extendedDynamicState3ColorBlendEquation-07356
-    case 0x1d43405eu: // VUID-vkCmdSetLogicOpEnableEXT-extendedDynamicState3LogicOpEnable-07365
-    case 0x638462e8u: // VUID-vkCmdSetDepthClampEnableEXT-extendedDynamicState3DepthClampEnable-07448
     // Misc
     case 0xe0a2da61u: // VUID-vkCmdDrawIndexed-format-07753
 #else

@@ -573,37 +573,34 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     static_vector<VkVertexInputBindingDescription, 32> vertex_bindings;
     static_vector<VkVertexInputBindingDivisorDescriptionEXT, 32> vertex_binding_divisors;
     static_vector<VkVertexInputAttributeDescription, 32> vertex_attributes;
-    if (!key.state.dynamic_vertex_input) {
-        const size_t num_vertex_arrays = (std::min)(
-            Maxwell::NumVertexArrays, static_cast<size_t>(device.GetMaxVertexInputBindings()));
-        for (size_t index = 0; index < num_vertex_arrays; ++index) {
-            const bool instanced = key.state.binding_divisors[index] != 0;
-            const auto rate =
-                instanced ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;
-            vertex_bindings.push_back({
+    const size_t num_vertex_arrays =
+        (std::min)(Maxwell::NumVertexArrays, static_cast<size_t>(device.GetMaxVertexInputBindings()));
+    for (size_t index = 0; index < num_vertex_arrays; ++index) {
+        const bool instanced = key.state.binding_divisors[index] != 0;
+        const auto rate = instanced ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;
+        vertex_bindings.push_back({
+            .binding = static_cast<u32>(index),
+            .stride = key.state.vertex_strides[index],
+            .inputRate = rate,
+        });
+        if (instanced) {
+            vertex_binding_divisors.push_back({
                 .binding = static_cast<u32>(index),
-                .stride = key.state.vertex_strides[index],
-                .inputRate = rate,
-            });
-            if (instanced) {
-                vertex_binding_divisors.push_back({
-                    .binding = static_cast<u32>(index),
-                    .divisor = key.state.binding_divisors[index],
-                });
-            }
-        }
-        for (size_t index = 0; index < key.state.attributes.size(); ++index) {
-            const auto& attribute = key.state.attributes[index];
-            if (!attribute.enabled || !stage_infos[0].loads.Generic(index)) {
-                continue;
-            }
-            vertex_attributes.push_back({
-                .location = static_cast<u32>(index),
-                .binding = attribute.buffer,
-                .format = MaxwellToVK::VertexFormat(device, attribute.Type(), attribute.Size()),
-                .offset = attribute.offset,
+                .divisor = key.state.binding_divisors[index],
             });
         }
+    }
+    for (size_t index = 0; index < key.state.attributes.size(); ++index) {
+        const auto& attribute = key.state.attributes[index];
+        if (!attribute.enabled || !stage_infos[0].loads.Generic(index)) {
+            continue;
+        }
+        vertex_attributes.push_back({
+            .location = static_cast<u32>(index),
+            .binding = attribute.buffer,
+            .format = MaxwellToVK::VertexFormat(device, attribute.Type(), attribute.Size()),
+            .offset = attribute.offset,
+        });
     }
     ASSERT(vertex_attributes.size() <= device.GetMaxVertexInputAttributes());
 
@@ -846,17 +843,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         };
         dynamic_states.insert(dynamic_states.end(), extended.begin(), extended.end());
 
-        // VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT is part of EDS1
-        // Only use it if VIDS is not active (VIDS replaces it with full vertex input control)
-        if (!key.state.dynamic_vertex_input) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT);
-        }
-    }
-
-    // VK_DYNAMIC_STATE_VERTEX_INPUT_EXT (VIDS) - Independent from EDS
-    // Provides full dynamic vertex input control, replaces VERTEX_INPUT_BINDING_STRIDE
-    if (key.state.dynamic_vertex_input) {
-        dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_EXT);
+        dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT);
     }
 
     // EDS2 - Core (3 states)
@@ -872,41 +859,6 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     // EDS2 - LogicOp (granular)
     if (key.state.extended_dynamic_state_2_logic_op) {
         dynamic_states.push_back(VK_DYNAMIC_STATE_LOGIC_OP_EXT);
-    }
-
-    // EDS3 - Blending (composite: 3 states)
-    if (key.state.extended_dynamic_state_3_blend) {
-        static constexpr std::array extended3{
-            VK_DYNAMIC_STATE_COLOR_BLEND_ENABLE_EXT,
-            VK_DYNAMIC_STATE_COLOR_BLEND_EQUATION_EXT,
-            VK_DYNAMIC_STATE_COLOR_WRITE_MASK_EXT,
-        };
-        dynamic_states.insert(dynamic_states.end(), extended3.begin(), extended3.end());
-    }
-
-    // EDS3 - Enables (composite: per-feature)
-    if (key.state.extended_dynamic_state_3_enables) {
-        if (device.SupportsDynamicState3DepthClampEnable()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_DEPTH_CLAMP_ENABLE_EXT);
-        }
-        if (device.SupportsDynamicState3LogicOpEnable()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_LOGIC_OP_ENABLE_EXT);
-        }
-        if (device.SupportsDynamicState3LineRasterizationMode()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_LINE_RASTERIZATION_MODE_EXT);
-        }
-        if (device.SupportsDynamicState3ConservativeRasterizationMode()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_CONSERVATIVE_RASTERIZATION_MODE_EXT);
-        }
-        if (device.SupportsDynamicState3LineStippleEnable()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_LINE_STIPPLE_ENABLE_EXT);
-        }
-        if (device.SupportsDynamicState3AlphaToCoverageEnable()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_ALPHA_TO_COVERAGE_ENABLE_EXT);
-        }
-        if (device.SupportsDynamicState3AlphaToOneEnable()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_ALPHA_TO_ONE_ENABLE_EXT);
-        }
     }
 
     const VkPipelineDynamicStateCreateInfo dynamic_state_ci{
