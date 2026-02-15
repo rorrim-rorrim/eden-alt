@@ -552,6 +552,7 @@ void BufferCacheRuntime::PostCopyBarrier() {
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([](vk::CommandBuffer cmdbuf) {
         const VkPipelineStageFlags dst_stages =
+            VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT |
             VK_PIPELINE_STAGE_VERTEX_INPUT_BIT |
             VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
