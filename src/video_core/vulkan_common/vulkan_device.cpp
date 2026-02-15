@@ -1150,8 +1150,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
     if (u32(Settings::values.dyna_state.GetValue()) == 0) {
         LOG_INFO(Render_Vulkan, "Extended Dynamic State disabled by user setting, clearing all EDS features");
-        features.custom_border_color.customBorderColors = false;
-        features.custom_border_color.customBorderColorWithoutFormat = false;
         features.extended_dynamic_state.extendedDynamicState = false;
         features.extended_dynamic_state2.extendedDynamicState2 = false;
     }
@@ -1187,7 +1185,7 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.depth_clip_control, features.depth_clip_control,
                                        VK_EXT_DEPTH_CLIP_CONTROL_EXTENSION_NAME);
 
-    /* */ // VK_EXT_extended_dynamic_state
+    // VK_EXT_extended_dynamic_state
     extensions.extended_dynamic_state = features.extended_dynamic_state.extendedDynamicState;
     RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state,
                                        features.extended_dynamic_state,
@@ -1200,7 +1198,6 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
 
     // VK_EXT_robustness2
-    // Enable if at least one robustness2 feature is available
     extensions.robustness_2 = features.robustness2.robustBufferAccess2 ||
                               features.robustness2.robustImageAccess2 ||
                               features.robustness2.nullDescriptor;
@@ -1209,7 +1206,6 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
 
     // VK_EXT_image_robustness
-    // Enable if robustImageAccess is available
     extensions.image_robustness = features.image_robustness.robustImageAccess;
     RemoveExtensionFeatureIfUnsuitable(extensions.image_robustness, features.image_robustness,
                                        VK_EXT_IMAGE_ROBUSTNESS_EXTENSION_NAME);
@@ -1305,15 +1301,15 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.swapchain_maintenance1, features.swapchain_maintenance1,
                                        VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
 
-    // VK_KHR_maintenance1 (core in Vulkan 1.1, no features)
+    // VK_KHR_maintenance1
     extensions.maintenance1 = loaded_extensions.contains(VK_KHR_MAINTENANCE_1_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance1, VK_KHR_MAINTENANCE_1_EXTENSION_NAME);
 
-    // VK_KHR_maintenance2 (core in Vulkan 1.1, no features)
+    // VK_KHR_maintenance2
     extensions.maintenance2 = loaded_extensions.contains(VK_KHR_MAINTENANCE_2_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance2, VK_KHR_MAINTENANCE_2_EXTENSION_NAME);
 
-    // VK_KHR_maintenance3 (core in Vulkan 1.1, no features)
+    // VK_KHR_maintenance3
     extensions.maintenance3 = loaded_extensions.contains(VK_KHR_MAINTENANCE_3_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance3, VK_KHR_MAINTENANCE_3_EXTENSION_NAME);
 
@@ -1343,15 +1339,15 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.maintenance6, features.maintenance6,
                                        VK_KHR_MAINTENANCE_6_EXTENSION_NAME);
 
-    // VK_KHR_maintenance7 (proposed for Vulkan 1.4, no features)
+    // VK_KHR_maintenance7
     extensions.maintenance7 = loaded_extensions.contains(VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance7, VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
 
-    // VK_KHR_maintenance8 (proposed for Vulkan 1.4, no features)
+    // VK_KHR_maintenance8
     extensions.maintenance8 = loaded_extensions.contains(VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance8, VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
 
-    // VK_KHR_maintenance9 (proposed for Vulkan 1.4, no features)
+    // VK_KHR_maintenance9
     extensions.maintenance9 = loaded_extensions.contains(VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance9, VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
 }

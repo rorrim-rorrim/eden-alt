@@ -248,12 +248,14 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdSetLineWidth vkCmdSetLineWidth{};
     PFN_vkCmdSetPrimitiveTopologyEXT vkCmdSetPrimitiveTopologyEXT{};
     PFN_vkCmdSetScissor vkCmdSetScissor{};
+    PFN_vkCmdSetScissorWithCountEXT vkCmdSetScissorWithCountEXT{};
     PFN_vkCmdSetStencilCompareMask vkCmdSetStencilCompareMask{};
     PFN_vkCmdSetStencilOpEXT vkCmdSetStencilOpEXT{};
     PFN_vkCmdSetStencilReference vkCmdSetStencilReference{};
     PFN_vkCmdSetStencilTestEnableEXT vkCmdSetStencilTestEnableEXT{};
     PFN_vkCmdSetStencilWriteMask vkCmdSetStencilWriteMask{};
     PFN_vkCmdSetViewport vkCmdSetViewport{};
+    PFN_vkCmdSetViewportWithCountEXT vkCmdSetViewportWithCountEXT{};
     PFN_vkCmdWaitEvents vkCmdWaitEvents{};
     PFN_vkCreateBuffer vkCreateBuffer{};
     PFN_vkCreateBufferView vkCreateBufferView{};
@@ -1359,6 +1361,14 @@ public:
 
     void SetScissor(u32 first, Span<VkRect2D> scissors) const noexcept {
         dld->vkCmdSetScissor(handle, first, scissors.size(), scissors.data());
+    }
+
+    void SetViewportWithCountEXT(Span<VkViewport> viewports) const noexcept {
+        dld->vkCmdSetViewportWithCountEXT(handle, viewports.size(), viewports.data());
+    }
+
+    void SetScissorWithCountEXT(Span<VkRect2D> scissors) const noexcept {
+        dld->vkCmdSetScissorWithCountEXT(handle, scissors.size(), scissors.data());
     }
 
     void SetBlendConstants(const float blend_constants[4]) const noexcept {

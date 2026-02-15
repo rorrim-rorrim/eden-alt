@@ -831,7 +831,6 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .blendConstants = {}
     };
     static_vector<VkDynamicState, 34> dynamic_states{
-        VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
         VK_DYNAMIC_STATE_DEPTH_BIAS,         VK_DYNAMIC_STATE_BLEND_CONSTANTS,
         VK_DYNAMIC_STATE_DEPTH_BOUNDS,       VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
         VK_DYNAMIC_STATE_STENCIL_WRITE_MASK, VK_DYNAMIC_STATE_STENCIL_REFERENCE,
@@ -839,8 +838,11 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     };
     if (key.state.extended_dynamic_state) {
         static constexpr std::array extended{
+            VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT_EXT,
+            VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT_EXT,
             VK_DYNAMIC_STATE_CULL_MODE_EXT,
             VK_DYNAMIC_STATE_FRONT_FACE_EXT,
+            VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY_EXT,
             VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT,
             VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE_EXT,
             VK_DYNAMIC_STATE_DEPTH_COMPARE_OP_EXT,
@@ -851,6 +853,9 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         dynamic_states.insert(dynamic_states.end(), extended.begin(), extended.end());
 
         dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT);
+    } else {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_VIEWPORT);
+        dynamic_states.push_back(VK_DYNAMIC_STATE_SCISSOR);
     }
 
     // EDS2 - Core (3 states)
