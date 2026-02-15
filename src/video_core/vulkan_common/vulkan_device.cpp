@@ -501,13 +501,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectToolingInfo();
 
     if (is_qualcomm) {
-        // Qualcomm Adreno GPUs doesn't handle scaled vertex attributes; keep emulation enabled
         must_emulate_scaled_formats = true;
-        LOG_WARNING(Render_Vulkan,
-                    "Qualcomm drivers require scaled vertex format emulation; forcing fallback");
-
-        LOG_WARNING(Render_Vulkan,
-                    "Disabling shader float controls and 64-bit integer features on Qualcomm proprietary drivers");
         RemoveExtension(extensions.shader_float_controls, VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64,
                                VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
@@ -526,9 +520,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         bool should_patch_bcn = api_level >= 28;
         const bool bcn_debug_override = Settings::values.patch_old_qcom_drivers.GetValue();
         if (bcn_debug_override != should_patch_bcn) {
-            LOG_WARNING(Render_Vulkan,
-                "BCn patch debug override active: {} (auto-detected: {})",
-                bcn_debug_override, should_patch_bcn);
             should_patch_bcn = bcn_debug_override;
         }
 
@@ -543,11 +534,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                 } else {
                     LOG_ERROR(Render_Vulkan, "BCn patch failed! Driver code may now crash");
                 }
-            } else {
-                LOG_WARNING(Render_Vulkan,
-                    "BCn texture patching skipped for stability (Android API {} < 28). "
-                    "Driver version {}.{} would support patching, but may crash on older Android.",
-                    api_level, major, minor);
             }
         } else if (patch_status == ADRENOTOOLS_BCN_BLOB) {
             LOG_INFO(Render_Vulkan, "Adreno driver supports BCn textures natively (no patch needed)");
@@ -574,7 +560,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             cant_blit_msaa = true;
         }
 
-        // Mali/ NVIDIA proprietary drivers: Shader stencil export not supported
         // Use hardware depth/stencil blits instead when available
         if (!extensions.shader_stencil_export) {
             LOG_INFO(Render_Vulkan,
@@ -613,10 +598,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             const size_t derived_budget =
                 (std::max)(MIN_SAMPLER_BUDGET, sampler_limit - reserved);
             sampler_heap_budget = derived_budget;
-            LOG_WARNING(Render_Vulkan,
-                        "Qualcomm driver reports max {} samplers; reserving {} (25%) and "
-                        "allowing Eden to use {} (75%) to avoid heap exhaustion",
-                        sampler_limit, reserved, sampler_heap_budget);
         }
     }
 
@@ -1281,26 +1262,6 @@ void Device::RemoveUnsuitableExtensions() {
                                        features.workgroup_memory_explicit_layout,
                                        VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME);
 
-    // VK_EXT_swapchain_maintenance1 (extension only, has features)
-    // Requires VK_EXT_surface_maintenance1 instance extension
-    extensions.swapchain_maintenance1 = features.swapchain_maintenance1.swapchainMaintenance1;
-    if (extensions.swapchain_maintenance1) {
-        // Check if VK_EXT_surface_maintenance1 instance extension is available
-        const auto instance_extensions = vk::EnumerateInstanceExtensionProperties(dld);
-        const bool has_surface_maintenance1 = instance_extensions && std::ranges::any_of(*instance_extensions,
-            [](const VkExtensionProperties& prop) {
-                return std::strcmp(prop.extensionName, VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME) == 0;
-            });
-        if (!has_surface_maintenance1) {
-            LOG_WARNING(Render_Vulkan,
-                        "VK_EXT_swapchain_maintenance1 requires VK_EXT_surface_maintenance1, disabling");
-            extensions.swapchain_maintenance1 = false;
-            features.swapchain_maintenance1.swapchainMaintenance1 = false;
-        }
-    }
-    RemoveExtensionFeatureIfUnsuitable(extensions.swapchain_maintenance1, features.swapchain_maintenance1,
-                                       VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
-
     // VK_KHR_maintenance1
     extensions.maintenance1 = loaded_extensions.contains(VK_KHR_MAINTENANCE_1_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance1, VK_KHR_MAINTENANCE_1_EXTENSION_NAME);
@@ -1320,17 +1281,6 @@ void Device::RemoveUnsuitableExtensions() {
 
     // VK_KHR_maintenance5
     extensions.maintenance5 = features.maintenance5.maintenance5;
-
-    if (extensions.maintenance5) {
-        LOG_INFO(Render_Vulkan, "VK_KHR_maintenance5 properties: polygonModePointSize={} "
-                                "depthStencilSwizzleOne={} earlyFragmentTests={} nonStrictWideLines={}",
-                 properties.maintenance5.polygonModePointSize,
-                 properties.maintenance5.depthStencilSwizzleOneSupport,
-                 properties.maintenance5.earlyFragmentMultisampleCoverageAfterSampleCounting &&
-                 properties.maintenance5.earlyFragmentSampleMaskTestBeforeSampleCounting,
-                 properties.maintenance5.nonStrictWideLinesUseParallelogram);
-    }
-
     RemoveExtensionFeatureIfUnsuitable(extensions.maintenance5, features.maintenance5,
                                        VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
 
