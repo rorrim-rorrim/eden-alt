@@ -461,6 +461,7 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         bind_stage_info(4);
     }
 
+    buffer_cache.runtime.SetUseVertexInputBindingStrideDynamicState(UsesExtendedDynamicState());
     buffer_cache.UpdateGraphicsBuffers(is_indexed);
     buffer_cache.BindHostGeometryBuffers(is_indexed);
 
