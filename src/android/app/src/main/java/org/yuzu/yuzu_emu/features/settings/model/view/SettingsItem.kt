@@ -337,15 +337,6 @@ abstract class SettingsItem(
             )
             put(
                 SingleChoiceSetting(
-                    IntSetting.RENDERER_ASTC_RECOMPRESSION,
-                    titleId = R.string.astc_recompression,
-                    descriptionId = R.string.astc_recompression_description,
-                    choicesId = R.array.astcRecompressionMethodNames,
-                    valuesId = R.array.astcRecompressionMethodValues
-                )
-            )
-            put(
-                SingleChoiceSetting(
                     IntSetting.RENDERER_VRAM_USAGE_MODE,
                     titleId = R.string.vram_usage_mode,
                     descriptionId = R.string.vram_usage_mode_description,

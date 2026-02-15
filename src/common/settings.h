@@ -452,7 +452,7 @@ struct Values {
                                                            Category::RendererAdvanced};
     SwitchableSetting<AstcDecodeMode, true> accelerate_astc{linkage,
 #ifdef ANDROID
-                                                            AstcDecodeMode::Cpu,
+                                                            AstcDecodeMode::Gpu,
 #else
                                                             AstcDecodeMode::Gpu,
 #endif
