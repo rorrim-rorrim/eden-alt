@@ -157,10 +157,12 @@ void PerformanceOverlay::updateStats(const Core::PerfStatsResults& results,
         if (m_frametimeSamples.size() > NUM_FRAMETIME_SAMPLES)
             m_frametimeSamples.pop_front();
 
-        auto [min_it, max_it] =
-            std::minmax_element(m_frametimeSamples.begin(), m_frametimeSamples.end());
-        ui->ft_min->setText(tr("Min: %1").arg(*min_it, 0, 'f', 1));
-        ui->ft_max->setText(tr("Max: %1").arg(*max_it, 0, 'f', 1));
+        if (!m_frametimeSamples.empty()) {
+            auto [min_it, max_it] =
+                std::minmax_element(m_frametimeSamples.begin(), m_frametimeSamples.end());
+            ui->ft_min->setText(tr("Min: %1").arg(*min_it, 0, 'f', 1));
+            ui->ft_max->setText(tr("Max: %1").arg(*max_it, 0, 'f', 1));
+        }
 
         // For the average only go back 10 samples max
         if (m_frametimeSamples.size() >= 2) {
