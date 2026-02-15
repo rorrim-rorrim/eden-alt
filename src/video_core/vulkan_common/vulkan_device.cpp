@@ -1224,6 +1224,12 @@ void Device::RemoveUnsuitableExtensions() {
                                        features.provoking_vertex,
                                        VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
 
+    // VK_EXT_conditional_rendering
+    extensions.conditional_rendering = features.conditional_rendering.conditionalRendering;
+    RemoveExtensionFeatureIfUnsuitable(extensions.conditional_rendering,
+                                       features.conditional_rendering,
+                                       VK_EXT_CONDITIONAL_RENDERING_EXTENSION_NAME);
+
     // VK_EXT_multi_draw
     extensions.multi_draw = features.multi_draw.multiDraw;
 
