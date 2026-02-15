@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -27,21 +30,56 @@ public:
         return device->IsKhrPushDescriptorSupported() &&
                num_descriptors <= device->MaxPushDescriptors();
     }
-
-    // TODO(crueter): utilize layout binding flags
+    
     vk::DescriptorSetLayout CreateDescriptorSetLayout(bool use_push_descriptor) const {
         if (bindings.empty()) {
             return nullptr;
         }
+
+        variable_descriptor_count = 0;
+        binding_flags.clear();
+
+        VkDescriptorSetLayoutBindingFlagsCreateInfo binding_flags_ci{
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO,
+            .pNext = nullptr,
+            .bindingCount = 0,
+            .pBindingFlags = nullptr,
+        };
+
+        const bool use_descriptor_indexing =
+            !use_push_descriptor && device->isExtDescriptorIndexingSupported();
+        const void* layout_next = nullptr;
+        if (use_descriptor_indexing) {
+            binding_flags.assign(bindings.size(), 0);
+            for (size_t i = 0; i < bindings.size(); ++i) {
+                if (bindings[i].descriptorCount > 1) {
+                    binding_flags[i] |= VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT;
+                }
+            }
+
+            if (bindings.back().descriptorCount > 1) {
+                binding_flags.back() |= VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
+                variable_descriptor_count = bindings.back().descriptorCount;
+            }
+
+            binding_flags_ci.bindingCount = static_cast<u32>(binding_flags.size());
+            binding_flags_ci.pBindingFlags = binding_flags.data();
+            layout_next = &binding_flags_ci;
+        }
+
         const VkDescriptorSetLayoutCreateFlags flags =
             use_push_descriptor ? VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR : 0;
         return device->GetLogical().CreateDescriptorSetLayout({
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            .pNext = nullptr,
+            .pNext = layout_next,
             .flags = flags,
             .bindingCount = static_cast<u32>(bindings.size()),
             .pBindings = bindings.data(),
         });
+    }
+
+    u32 VariableDescriptorCount() const noexcept {
+        return variable_descriptor_count;
     }
 
     vk::DescriptorUpdateTemplate CreateTemplate(VkDescriptorSetLayout descriptor_set_layout,
@@ -130,8 +168,10 @@ private:
     bool is_compute{};
     boost::container::small_vector<VkDescriptorSetLayoutBinding, 32> bindings;
     boost::container::small_vector<VkDescriptorUpdateTemplateEntry, 32> entries;
+    mutable boost::container::small_vector<VkDescriptorBindingFlags, 32> binding_flags;
     u32 binding{};
     u32 num_descriptors{};
+    mutable u32 variable_descriptor_count{};
     size_t offset{};
 };
 

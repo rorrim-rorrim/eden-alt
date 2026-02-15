@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -88,9 +88,10 @@ static void AllocatePool(const Device& device, DescriptorBank& bank) {
 }
 
 DescriptorAllocator::DescriptorAllocator(const Device& device_, MasterSemaphore& master_semaphore_,
-                                         DescriptorBank& bank_, VkDescriptorSetLayout layout_)
+                                                                                 DescriptorBank& bank_, VkDescriptorSetLayout layout_,
+                                                                                 u32 variable_descriptor_count_)
     : ResourcePool(master_semaphore_, SETS_GROW_RATE), device{&device_}, bank{&bank_},
-      layout{layout_} {}
+            layout{layout_}, variable_descriptor_count{variable_descriptor_count_} {}
 
 VkDescriptorSet DescriptorAllocator::Commit() {
     const size_t index = CommitResource();
@@ -103,9 +104,25 @@ void DescriptorAllocator::Allocate(size_t begin, size_t end) {
 
 vk::DescriptorSets DescriptorAllocator::AllocateDescriptors(size_t count) {
     const std::vector<VkDescriptorSetLayout> layouts(count, layout);
+
+    std::vector<u32> variable_descriptor_counts;
+    VkDescriptorSetVariableDescriptorCountAllocateInfo variable_descriptor_count_info{
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .descriptorSetCount = 0,
+        .pDescriptorCounts = nullptr,
+    };
+    const void* allocate_next = nullptr;
+    if (variable_descriptor_count != 0) {
+        variable_descriptor_counts.assign(count, variable_descriptor_count);
+        variable_descriptor_count_info.descriptorSetCount = static_cast<u32>(count);
+        variable_descriptor_count_info.pDescriptorCounts = variable_descriptor_counts.data();
+        allocate_next = &variable_descriptor_count_info;
+    }
+
     VkDescriptorSetAllocateInfo allocate_info{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-        .pNext = nullptr,
+        .pNext = allocate_next,
         .descriptorPool = *bank->pools.back(),
         .descriptorSetCount = static_cast<u32>(count),
         .pSetLayouts = layouts.data(),
@@ -131,18 +148,22 @@ DescriptorPool::DescriptorPool(const Device& device_, Scheduler& scheduler)
 DescriptorPool::~DescriptorPool() = default;
 
 DescriptorAllocator DescriptorPool::Allocator(VkDescriptorSetLayout layout,
-                                              std::span<const Shader::Info> infos) {
-    return Allocator(layout, MakeBankInfo(infos));
+                                              std::span<const Shader::Info> infos,
+                                              u32 variable_descriptor_count) {
+    return Allocator(layout, MakeBankInfo(infos), variable_descriptor_count);
 }
 
 DescriptorAllocator DescriptorPool::Allocator(VkDescriptorSetLayout layout,
-                                              const Shader::Info& info) {
-    return Allocator(layout, MakeBankInfo(std::array{info}));
+                                              const Shader::Info& info,
+                                              u32 variable_descriptor_count) {
+    return Allocator(layout, MakeBankInfo(std::array{info}), variable_descriptor_count);
 }
 
 DescriptorAllocator DescriptorPool::Allocator(VkDescriptorSetLayout layout,
-                                              const DescriptorBankInfo& info) {
-    return DescriptorAllocator(device, master_semaphore, Bank(info), layout);
+                                              const DescriptorBankInfo& info,
+                                              u32 variable_descriptor_count) {
+    return DescriptorAllocator(device, master_semaphore, Bank(info), layout,
+                               variable_descriptor_count);
 }
 
 DescriptorBank& DescriptorPool::Bank(const DescriptorBankInfo& reqs) {
