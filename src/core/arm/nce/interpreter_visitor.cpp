@@ -772,12 +772,8 @@ std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, m
     u32 instruction = memory.Read32(pc);
     bool was_executed = false;
 
-    if (auto decoder = Dynarmic::A64::Decode<VisitorBase>(instruction)) {
-        was_executed = decoder->get().call(visitor, instruction);
-    } else {
-        LOG_ERROR(Core_ARM, "Unallocated encoding: {:#x}", instruction);
-    }
-
+    auto decoder = Dynarmic::A64::Decode<VisitorBase>(instruction);
+    was_executed = decoder.get().call(visitor, instruction);
     return was_executed ? std::optional<u64>(pc + 4) : std::nullopt;
 }
 
