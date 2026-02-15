@@ -80,7 +80,7 @@ option(ENABLE_UPDATE_CHECKER "Enable update checker (for Qt and Android)" OFF)
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 cmake_dependent_option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF "NOT YUZU_USE_BUNDLED_QT" OFF)
 set(YUZU_QT_MIRROR "" CACHE STRING "What mirror to use for downloading the bundled Qt libraries")
-cmake_dependent_option(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT AND NOT (CMAKE_BUILD_TYPE MATCHES "Debug|RelWithDebInfo")" OFF)
+cmake_dependent_option(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT AND NOT (CMAKE_BUILD_TYPE MATCHES \"Debug|RelWithDebInfo\")" OFF)
 
 # non-linux bundled qt are static
 if (YUZU_USE_BUNDLED_QT AND (APPLE OR NOT UNIX) AND NOT (CMAKE_BUILD_TYPE MATCHES "Debug|RelWithDebInfo"))
