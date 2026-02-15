@@ -50,6 +50,38 @@ void RefreshXfbState(VideoCommon::TransformFeedbackState& state, const Maxwell& 
                            });
     state.varyings = regs.stream_out_layout;
 }
+
+Maxwell::PrimitiveTopology NormalizeDynamicTopologyClass(Maxwell::PrimitiveTopology topology) {
+    switch (topology) {
+    case Maxwell::PrimitiveTopology::Points:
+        return Maxwell::PrimitiveTopology::Points;
+
+    case Maxwell::PrimitiveTopology::Lines:
+    case Maxwell::PrimitiveTopology::LineStrip:
+        return Maxwell::PrimitiveTopology::Lines;
+
+    case Maxwell::PrimitiveTopology::Triangles:
+    case Maxwell::PrimitiveTopology::TriangleStrip:
+    case Maxwell::PrimitiveTopology::TriangleFan:
+    case Maxwell::PrimitiveTopology::Quads:
+    case Maxwell::PrimitiveTopology::QuadStrip:
+    case Maxwell::PrimitiveTopology::Polygon:
+    case Maxwell::PrimitiveTopology::LineLoop:
+        return Maxwell::PrimitiveTopology::Triangles;
+
+    case Maxwell::PrimitiveTopology::LinesAdjacency:
+    case Maxwell::PrimitiveTopology::LineStripAdjacency:
+        return Maxwell::PrimitiveTopology::LinesAdjacency;
+
+    case Maxwell::PrimitiveTopology::TrianglesAdjacency:
+    case Maxwell::PrimitiveTopology::TriangleStripAdjacency:
+        return Maxwell::PrimitiveTopology::TrianglesAdjacency;
+
+    case Maxwell::PrimitiveTopology::Patches:
+        return Maxwell::PrimitiveTopology::Patches;
+    }
+    return topology;
+}
 } // Anonymous namespace
 
 void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFeatures& features) {
@@ -71,7 +103,9 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     tessellation_clockwise.Assign(regs.tessellation.params.output_primitives.Value() ==
                                   Maxwell::Tessellation::OutputPrimitives::Triangles_CW);
     patch_control_points_minus_one.Assign(regs.patch_vertices - 1);
-    topology.Assign(topology_);
+    const bool can_normalize_topology =
+        features.has_extended_dynamic_state && features.has_extended_dynamic_state_2;
+    topology.Assign(can_normalize_topology ? NormalizeDynamicTopologyClass(topology_) : topology_);
     msaa_mode.Assign(regs.anti_alias_samples_mode);
 
     raw2 = 0;

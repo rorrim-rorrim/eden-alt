@@ -1032,6 +1032,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
         UpdateCullMode(regs);
         UpdateDepthCompareOp(regs);
         UpdateFrontFace(regs);
+        UpdatePrimitiveTopology(regs);
         UpdateStencilOp(regs);
         if (state_tracker.TouchStateEnable()) {
             UpdateDepthBoundsTestEnable(regs);
@@ -1106,8 +1107,14 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
             .minDepth = 0.0f,
             .maxDepth = 1.0f,
         };
-        scheduler.Record([viewport](vk::CommandBuffer cmdbuf) {
-            cmdbuf.SetViewport(0, viewport);
+        const bool use_viewport_with_count = device.IsExtExtendedDynamicStateSupported();
+        scheduler.Record([viewport, use_viewport_with_count](vk::CommandBuffer cmdbuf) {
+            if (use_viewport_with_count) {
+                std::array viewports{viewport};
+                cmdbuf.SetViewportWithCountEXT(viewports);
+            } else {
+                cmdbuf.SetViewport(0, viewport);
+            }
         });
         return;
     }
@@ -1123,10 +1130,15 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
         GetViewportState(device, regs, 12, scale), GetViewportState(device, regs, 13, scale),
         GetViewportState(device, regs, 14, scale), GetViewportState(device, regs, 15, scale),
     };
-    scheduler.Record([this, viewport_list](vk::CommandBuffer cmdbuf) {
+    const bool use_viewport_with_count = device.IsExtExtendedDynamicStateSupported();
+    scheduler.Record([this, viewport_list, use_viewport_with_count](vk::CommandBuffer cmdbuf) {
         const u32 num_viewports = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
         const vk::Span<VkViewport> viewports(viewport_list.data(), num_viewports);
-        cmdbuf.SetViewport(0, viewports);
+        if (use_viewport_with_count) {
+            cmdbuf.SetViewportWithCountEXT(viewports);
+        } else {
+            cmdbuf.SetViewport(0, viewports);
+        }
     });
 }
 
@@ -1147,8 +1159,14 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
         scissor.offset.y = static_cast<int32_t>(y);
         scissor.extent.width  = width;
         scissor.extent.height = height;
-        scheduler.Record([scissor](vk::CommandBuffer cmdbuf) {
-            cmdbuf.SetScissor(0, scissor);
+        const bool use_scissor_with_count = device.IsExtExtendedDynamicStateSupported();
+        scheduler.Record([scissor, use_scissor_with_count](vk::CommandBuffer cmdbuf) {
+            if (use_scissor_with_count) {
+                std::array scissors{scissor};
+                cmdbuf.SetScissorWithCountEXT(scissors);
+            } else {
+                cmdbuf.SetScissor(0, scissor);
+            }
         });
         return;
     }
@@ -1176,10 +1194,15 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
         GetScissorState(regs, 14, up_scale, down_shift),
         GetScissorState(regs, 15, up_scale, down_shift),
     };
-    scheduler.Record([this, scissor_list](vk::CommandBuffer cmdbuf) {
+    const bool use_scissor_with_count = device.IsExtExtendedDynamicStateSupported();
+    scheduler.Record([this, scissor_list, use_scissor_with_count](vk::CommandBuffer cmdbuf) {
         const u32 num_scissors = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
         const vk::Span<VkRect2D> scissors(scissor_list.data(), num_scissors);
-        cmdbuf.SetScissor(0, scissors);
+        if (use_scissor_with_count) {
+            cmdbuf.SetScissorWithCountEXT(scissors);
+        } else {
+            cmdbuf.SetScissor(0, scissors);
+        }
     });
 }
 
@@ -1448,6 +1471,17 @@ void RasterizerVulkan::UpdateDepthCompareOp(Tegra::Engines::Maxwell3D::Regs& reg
     }
     scheduler.Record([func = regs.depth_test_func](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetDepthCompareOpEXT(MaxwellToVK::ComparisonOp(func));
+    });
+}
+
+void RasterizerVulkan::UpdatePrimitiveTopology([[maybe_unused]] Tegra::Engines::Maxwell3D::Regs& regs) {
+    const auto topology = maxwell3d->draw_manager->GetDrawState().topology;
+    if (!state_tracker.ChangePrimitiveTopology(topology)) {
+        return;
+    }
+    const auto vk_topology = MaxwellToVK::PrimitiveTopology(device, topology);
+    scheduler.Record([vk_topology](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetPrimitiveTopologyEXT(vk_topology);
     });
 }
 
