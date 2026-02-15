@@ -732,11 +732,21 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_CONSERVATIVE_STATE_CREATE_INFO_EXT,
         .pNext = nullptr,
         .flags = 0,
-        .conservativeRasterizationMode = key.state.conservative_raster_enable != 0
-                                             ? VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT
-                                             : VK_CONSERVATIVE_RASTERIZATION_MODE_DISABLED_EXT,
+        .conservativeRasterizationMode = VK_CONSERVATIVE_RASTERIZATION_MODE_DISABLED_EXT,
         .extraPrimitiveOverestimationSize = 0.0f,
     };
+    const bool conservative_requested = key.state.conservative_raster_enable != 0;
+    if (conservative_requested) {
+        const bool is_point_topology = input_assembly_topology == VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+        const bool is_line_topology = IsLine(input_assembly_topology);
+        const bool needs_point_or_line_support = is_point_topology || is_line_topology;
+        const bool supports_requested_topology =
+            !needs_point_or_line_support || device.SupportsConservativePointAndLineRasterization();
+
+        conservative_raster.conservativeRasterizationMode =
+            supports_requested_topology ? VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT
+                                        : VK_CONSERVATIVE_RASTERIZATION_MODE_DISABLED_EXT;
+    }
     const bool preserve_provoking_vertex_for_xfb =
         !key.state.xfb_enabled || device.IsTransformFeedbackProvokingVertexPreserved();
     const bool use_last_provoking_vertex =
