@@ -133,10 +133,12 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdSetDepthBounds);
     X(vkCmdSetEvent);
     X(vkCmdSetScissor);
+    X(vkCmdSetScissorWithCountEXT);
     X(vkCmdSetStencilCompareMask);
     X(vkCmdSetStencilReference);
     X(vkCmdSetStencilWriteMask);
     X(vkCmdSetViewport);
+    X(vkCmdSetViewportWithCountEXT);
     X(vkCmdWaitEvents);
     X(vkCmdBindVertexBuffers2EXT);
     X(vkCmdSetCullModeEXT);
@@ -242,6 +244,15 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     if (!dld.vkCmdDrawIndirectCount) {
         Proc(dld.vkCmdDrawIndirectCount, dld, "vkCmdDrawIndirectCountKHR", device);
         Proc(dld.vkCmdDrawIndexedIndirectCount, dld, "vkCmdDrawIndexedIndirectCountKHR", device);
+    }
+    if (!dld.vkCmdSetPrimitiveTopologyEXT) {
+        Proc(dld.vkCmdSetPrimitiveTopologyEXT, dld, "vkCmdSetPrimitiveTopology", device);
+    }
+    if (!dld.vkCmdSetViewportWithCountEXT) {
+        Proc(dld.vkCmdSetViewportWithCountEXT, dld, "vkCmdSetViewportWithCount", device);
+    }
+    if (!dld.vkCmdSetScissorWithCountEXT) {
+        Proc(dld.vkCmdSetScissorWithCountEXT, dld, "vkCmdSetScissorWithCount", device);
     }
 #undef X
 }
