@@ -290,7 +290,6 @@ class SettingsFragmentPresenter(
             add(HeaderSetting(R.string.extensions))
 
             add(IntSetting.RENDERER_DYNA_STATE.key)
-            add(BooleanSetting.RENDERER_PROVOKING_VERTEX.key)
             add(BooleanSetting.RENDERER_DESCRIPTOR_INDEXING.key)
             add(IntSetting.RENDERER_SAMPLE_SHADING.key)
 

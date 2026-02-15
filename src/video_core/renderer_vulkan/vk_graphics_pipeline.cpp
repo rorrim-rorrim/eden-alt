@@ -736,10 +736,15 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
                                              : VK_CONSERVATIVE_RASTERIZATION_MODE_DISABLED_EXT,
         .extraPrimitiveOverestimationSize = 0.0f,
     };
+    const bool preserve_provoking_vertex_for_xfb =
+        !key.state.xfb_enabled || device.IsTransformFeedbackProvokingVertexPreserved();
+    const bool use_last_provoking_vertex =
+        key.state.provoking_vertex_last != 0 && preserve_provoking_vertex_for_xfb;
+
     VkPipelineRasterizationProvokingVertexStateCreateInfoEXT provoking_vertex{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT,
         .pNext = nullptr,
-        .provokingVertexMode = key.state.provoking_vertex_last != 0
+        .provokingVertexMode = use_last_provoking_vertex
                                    ? VK_PROVOKING_VERTEX_MODE_LAST_VERTEX_EXT
                                    : VK_PROVOKING_VERTEX_MODE_FIRST_VERTEX_EXT,
     };
@@ -750,7 +755,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     if (device.IsExtConservativeRasterizationSupported()) {
         conservative_raster.pNext = std::exchange(rasterization_ci.pNext, &conservative_raster);
     }
-    if (device.IsExtProvokingVertexSupported() && Settings::values.provoking_vertex.GetValue()) {
+    if (device.IsExtProvokingVertexSupported()) {
         provoking_vertex.pNext = std::exchange(rasterization_ci.pNext, &provoking_vertex);
     }
 

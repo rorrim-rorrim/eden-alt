@@ -143,13 +143,6 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
-                    BooleanSetting.RENDERER_PROVOKING_VERTEX,
-                    titleId = R.string.provoking_vertex,
-                    descriptionId = R.string.provoking_vertex_description
-                )
-            )
-            put(
-                SwitchSetting(
                     BooleanSetting.RENDERER_DESCRIPTOR_INDEXING,
                     titleId = R.string.descriptor_indexing,
                     descriptionId = R.string.descriptor_indexing_description

@@ -660,12 +660,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
     const auto dyna_state = Settings::values.dyna_state.GetValue();
 
-    // Base dynamic states (VIEWPORT, SCISSOR, DEPTH_BIAS, etc.) are ALWAYS active in vk_graphics_pipeline.cpp
-    // This slider controls EXTENDED dynamic states with accumulative levels per Vulkan specs:
-    //   Level 0 = Core Dynamic States only (Vulkan 1.0)
-    //   Level 1 = Core + VK_EXT_extended_dynamic_state
-    //   Level 2 = Core + VK_EXT_extended_dynamic_state + VK_EXT_extended_dynamic_state2
-
     switch (dyna_state) {
     case Settings::ExtendedDynamicState::Disabled:
         // Level 0: Disable all configured extended dynamic state extensions
@@ -1147,6 +1141,8 @@ bool Device::GetSuitability(bool requires_swapchain) {
     // Driver detection variables for workarounds in GetSuitability
     const VkDriverId driver_id = properties.driver.driverID;
 
+    // VK_EXT_extended_dynamic_state below this will appear drivers that need workarounds.
+
     // VK_EXT_extended_dynamic_state2 below this will appear drivers that need workarounds.
 
     if (u32(Settings::values.dyna_state.GetValue()) == 0) {
@@ -1163,15 +1159,9 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
 void Device::RemoveUnsuitableExtensions() {
     // VK_EXT_custom_border_color
-    // Enable extension if driver supports it, then check individual features
-    // - customBorderColors: Required to use VK_BORDER_COLOR_FLOAT_CUSTOM_EXT
-    // - customBorderColorWithoutFormat: Optional, allows VK_FORMAT_UNDEFINED
-    // If only customBorderColors is available, we must provide a specific format
     if (extensions.custom_border_color) {
         // Verify that at least customBorderColors is available
         if (!features.custom_border_color.customBorderColors) {
-            LOG_WARNING(Render_Vulkan,
-                        "VK_EXT_custom_border_color reported but customBorderColors feature not available, disabling");
             extensions.custom_border_color = false;
         }
     }
@@ -1221,20 +1211,6 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.image_robustness, features.image_robustness,
                                        VK_EXT_IMAGE_ROBUSTNESS_EXTENSION_NAME);
 
-    // VK_EXT_provoking_vertex
-    if (Settings::values.provoking_vertex.GetValue()) {
-        extensions.provoking_vertex = features.provoking_vertex.provokingVertexLast
-                                      && features.provoking_vertex
-                                             .transformFeedbackPreservesProvokingVertex;
-        RemoveExtensionFeatureIfUnsuitable(extensions.provoking_vertex,
-                                           features.provoking_vertex,
-                                           VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
-    } else {
-        RemoveExtensionFeature(extensions.provoking_vertex,
-                               features.provoking_vertex,
-                               VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
-    }
-
     // VK_KHR_shader_atomic_int64
     extensions.shader_atomic_int64 = features.shader_atomic_int64.shaderBufferInt64Atomics &&
                                      features.shader_atomic_int64.shaderSharedInt64Atomics;
@@ -1258,21 +1234,18 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME);
 
     // VK_EXT_transform_feedback
-    // We only require the basic transformFeedback feature and at least
-    // one transform feedback buffer. We keep transformFeedbackQueries as it's used by
-    // the streaming byte count implementation. GeometryStreams and multiple streams
-    // are not strictly required since we currently support only stream 0.
     extensions.transform_feedback =
         features.transform_feedback.transformFeedback &&
         properties.transform_feedback.maxTransformFeedbackBuffers > 0 &&
         properties.transform_feedback.transformFeedbackQueries;
     RemoveExtensionFeatureIfUnsuitable(extensions.transform_feedback, features.transform_feedback,
                                        VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
-    if (extensions.transform_feedback) {
-        LOG_INFO(Render_Vulkan, "VK_EXT_transform_feedback enabled (buffers={}, queries={})",
-                 properties.transform_feedback.maxTransformFeedbackBuffers,
-                 properties.transform_feedback.transformFeedbackQueries);
-    }
+
+    // VK_EXT_provoking_vertex
+    extensions.provoking_vertex = features.provoking_vertex.provokingVertexLast;
+    RemoveExtensionFeatureIfUnsuitable(extensions.provoking_vertex,
+                                       features.provoking_vertex,
+                                       VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
 
     // VK_EXT_multi_draw
     extensions.multi_draw = features.multi_draw.multiDraw;
