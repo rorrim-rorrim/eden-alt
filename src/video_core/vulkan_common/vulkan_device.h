@@ -435,7 +435,7 @@ public:
         return extensions.viewport_array2;
     }
 
-    /// Returns true if the device supporst VK_EXT_DESCRIPTOR_INDEXING
+    /// Returns true if the device supporst VK_EXT_DESCRIPTOR_INDEXING.
     bool isExtDescriptorIndexingSupported() const {
         return extensions.descriptor_indexing;
     }
@@ -615,12 +615,12 @@ public:
         return features.format_a4b4g4r4.formatA4B4G4R4;
     }
 
-    /// Returns true if the device supports VK_EXT_filter_cubic
+    /// Returns true if the device supports VK_EXT_filter_cubic.
     bool IsExtFilterCubicSupported() const {
         return extensions.filter_cubic;
     }
 
-    /// Returns true if the device supports VK_QCOM_filter_cubic_weights
+    /// Returns true if the device supports VK_QCOM_filter_cubic_weights.
     bool IsQcomFilterCubicWeightsSupported() const {
         return extensions.filter_cubic_weights;
     }
@@ -647,7 +647,7 @@ public:
     }
 
 
-    /// Returns true if the device supports VK_EXT_shader_demote_to_helper_invocation
+    /// Returns true if the device supports VK_EXT_shader_demote_to_helper_invocation.
     bool IsExtShaderDemoteToHelperInvocationSupported() const {
         return extensions.shader_demote_to_helper_invocation;
     }
@@ -655,6 +655,12 @@ public:
     /// Returns true if the device supports VK_EXT_conservative_rasterization.
     bool IsExtConservativeRasterizationSupported() const {
         return extensions.conservative_rasterization;
+    }
+    
+    /// Returns true if the device supports conservative rasterization for points and lines. 
+    bool SupportsConservativePointAndLineRasterization() const {
+        return extensions.conservative_rasterization &&
+               properties.conservative_rasterization.conservativePointAndLineRasterization;
     }
 
     /// Returns true if the device supports VK_EXT_provoking_vertex.
@@ -667,7 +673,8 @@ public:
         return extensions.shader_atomic_int64;
     }
 
-    bool IsExtConditionalRendering() const {
+    /// Returns true if the device supports VK_EXT_conditional_rendering.
+    bool IsExtConditionalRenderingSupported() const {
         return extensions.conditional_rendering;
     }
 
@@ -965,6 +972,7 @@ private:
         VkPhysicalDeviceSubgroupProperties subgroup_properties{};
         VkPhysicalDeviceFloatControlsProperties float_controls{};
         VkPhysicalDevicePushDescriptorPropertiesKHR push_descriptor{};
+        VkPhysicalDeviceConservativeRasterizationPropertiesEXT conservative_rasterization{};
         VkPhysicalDeviceSubgroupSizeControlProperties subgroup_size_control{};
         VkPhysicalDeviceTransformFeedbackPropertiesEXT transform_feedback{};
         VkPhysicalDeviceMaintenance5PropertiesKHR maintenance5{};
