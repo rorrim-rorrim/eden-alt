@@ -83,13 +83,21 @@ bool DmaPusher::Step() {
     }
 
     if (header.size > 0) {
-        if (Settings::IsDMALevelDefault() ? (Settings::IsGPULevelMedium() || Settings::IsGPULevelHigh()) : Settings::IsDMALevelSafe()) {
-            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::SafeRead>headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
-            ProcessCommands(headers);
-        } else {
-            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::UnsafeRead>headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
-            ProcessCommands(headers);
+        const size_t command_bytes = static_cast<size_t>(header.size) * sizeof(CommandHeader);
+
+        if (memory_manager.IsMemoryDirty(dma_state.dma_get, command_bytes)) {
+            memory_manager.FlushRegion(dma_state.dma_get, command_bytes);
         }
+
+        command_headers.resize_destructive(header.size);
+        if (Settings::IsDMALevelDefault()
+                ? (Settings::IsGPULevelMedium() || Settings::IsGPULevelHigh())
+                : Settings::IsDMALevelSafe()) {
+            memory_manager.ReadBlock(dma_state.dma_get, command_headers.data(), command_bytes);
+        } else {
+            memory_manager.ReadBlockUnsafe(dma_state.dma_get, command_headers.data(), command_bytes);
+        }
+        ProcessCommands(command_headers);
     }
 
     if (++dma_pushbuffer_subindex >= command_list_size) {
