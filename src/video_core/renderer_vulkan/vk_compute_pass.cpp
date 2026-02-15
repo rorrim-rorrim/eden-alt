@@ -255,9 +255,10 @@ ComputePass::ComputePass(const Device& device_, DescriptorPool& descriptor_pool,
                 binding_flags[i] |= VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT;
             }
         }
-        if (bindings.back().descriptorCount > 1) {
-            binding_flags.back() |= VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
-            variable_descriptor_count = bindings.back().descriptorCount;
+        const size_t last_binding = bindings.size() - 1;
+        if (bindings[last_binding].descriptorCount > 1) {
+            binding_flags[last_binding] |= VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
+            variable_descriptor_count = bindings[last_binding].descriptorCount;
         }
 
         binding_flags_ci.bindingCount = static_cast<u32>(binding_flags.size());
