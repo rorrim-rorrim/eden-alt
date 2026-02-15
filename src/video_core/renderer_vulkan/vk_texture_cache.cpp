@@ -253,6 +253,20 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
 
 [[nodiscard]] vk::ImageView MakeStorageView(const vk::Device& device, u32 level, VkImage image,
                                             VkFormat format) {
+    // GLSL storage images in host shaders commonly use rgba8, which maps to VK_FORMAT_R8G8B8A8_UNORM.
+    // Some guest formats are represented as A8B8G8R8 in Vulkan; using that directly here triggers
+    // format mismatch warnings and undefined writes on vkCmdDispatch.
+    const VkFormat storage_view_format = [&] {
+        switch (format) {
+        case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+            return VK_FORMAT_R8G8B8A8_UNORM;
+        case VK_FORMAT_A8B8G8R8_UINT_PACK32:
+            return VK_FORMAT_R8G8B8A8_UNORM;
+        default:
+            return format;
+        }
+    }();
+
     static constexpr VkImageViewUsageCreateInfo storage_image_view_usage_create_info{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO,
         .pNext = nullptr,
@@ -264,7 +278,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .flags = 0,
         .image = image,
         .viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY,
-        .format = format,
+        .format = storage_view_format,
         .components{
             .r = VK_COMPONENT_SWIZZLE_IDENTITY,
             .g = VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -957,16 +971,29 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
         return;
     }
     for (size_t index_a = 0; index_a < VideoCore::Surface::MaxPixelFormat; index_a++) {
+        auto add_view_format = [&](VkFormat format) {
+            auto& formats = view_formats[index_a];
+            if (std::ranges::find(formats, format) == formats.end()) {
+                formats.push_back(format);
+            }
+        };
+
         const auto image_format = static_cast<PixelFormat>(index_a);
         if (IsPixelFormatASTC(image_format) && !device.IsOptimalAstcSupported()) {
-            view_formats[index_a].push_back(VK_FORMAT_A8B8G8R8_UNORM_PACK32);
+            add_view_format(VK_FORMAT_A8B8G8R8_UNORM_PACK32);
+            add_view_format(VK_FORMAT_R8G8B8A8_UNORM);
         }
         for (size_t index_b = 0; index_b < VideoCore::Surface::MaxPixelFormat; index_b++) {
             const auto view_format = static_cast<PixelFormat>(index_b);
             if (VideoCore::Surface::IsViewCompatible(image_format, view_format, false, true)) {
                 const auto view_info =
                     MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, true, view_format);
-                view_formats[index_a].push_back(view_info.format);
+                add_view_format(view_info.format);
+
+                if (view_info.format == VK_FORMAT_A8B8G8R8_UNORM_PACK32 ||
+                    view_info.format == VK_FORMAT_A8B8G8R8_UINT_PACK32) {
+                    add_view_format(VK_FORMAT_R8G8B8A8_UNORM);
+                }
             }
         }
     }
@@ -1192,8 +1219,15 @@ void TextureCacheRuntime::ReinterpretImage(Image& dst, Image& src,
                 .subresourceRange = dst_range.SubresourceRange(dst_aspect_mask, dst_is_3d),
             },
         };
-        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                               0, {}, {}, post_barriers);
+        const VkPipelineStageFlags src_stages_transfer =
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+            VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+            VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
+            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
+            VK_PIPELINE_STAGE_TRANSFER_BIT;
+        cmdbuf.PipelineBarrier(src_stages_transfer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                               0, {}, {}, pre_barriers);
 
         cmdbuf.CopyImageToBuffer(src_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, copy_buffer,
                                  vk_in_copies);
