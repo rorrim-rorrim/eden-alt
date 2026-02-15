@@ -475,6 +475,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
     if (extensions.descriptor_indexing && Settings::values.descriptor_indexing.GetValue()) {
         first_next = &descriptor_indexing;
+    } else {
+        RemoveExtension(extensions.descriptor_indexing,
+                        VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
     }
 
     is_blit_depth24_stencil8_supported = TestDepthStencilBlits(VK_FORMAT_D24_UNORM_S8_UINT);
