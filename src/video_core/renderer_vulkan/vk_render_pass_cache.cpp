@@ -52,7 +52,8 @@ using VideoCore::Surface::SurfaceType;
             const bool has_stencil = surface_type == SurfaceType::DepthStencil ||
                                      surface_type == SurfaceType::Stencil;
 
-            // Use optimal layouts for attachments - this allows drivers to optimize tiling and access patterns
+            // Attachments are tracked as GENERAL outside render passes; render-pass begin performs
+            // the transition into attachment-optimal layout for the subpass.
             const VkImageLayout attachment_layout = is_depth_stencil
                 ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
                 : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -67,7 +68,7 @@ using VideoCore::Surface::SurfaceType;
                                                  : VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                 .stencilStoreOp = has_stencil ? VK_ATTACHMENT_STORE_OP_STORE
                                                   : VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                .initialLayout = attachment_layout,
+                .initialLayout = VK_IMAGE_LAYOUT_GENERAL,
                 .finalLayout = attachment_layout,
             };
         }
