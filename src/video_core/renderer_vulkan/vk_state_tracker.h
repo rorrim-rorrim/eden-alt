@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -53,17 +53,9 @@ enum : u8 {
     StencilTestEnable,
     PrimitiveRestartEnable,
     RasterizerDiscardEnable,
-    ConservativeRasterizationMode,
-    LineRasterizationMode,
-    LineStippleEnable,
-    LineStippleParams,
     DepthBiasEnable,
     StateEnable,
     LogicOp,
-    LogicOpEnable,
-    DepthClampEnable,
-    AlphaToCoverageEnable,
-    AlphaToOneEnable,
 
     Blending,
     BlendEnable,
@@ -213,32 +205,7 @@ public:
         return Exchange(Dirty::RasterizerDiscardEnable, false);
     }
 
-    bool TouchConservativeRasterizationMode()
-    {
-        return Exchange(Dirty::ConservativeRasterizationMode, false);
-    }
-
-    bool TouchLineStippleEnable() { return Exchange(Dirty::LineStippleEnable, false); }
-
-    bool TouchLineStipple() { return Exchange(Dirty::LineStippleParams, false); }
-
     bool TouchDepthBiasEnable() { return Exchange(Dirty::DepthBiasEnable, false); }
-
-    bool TouchLogicOpEnable() {
-        return Exchange(Dirty::LogicOpEnable, false);
-    }
-
-    bool TouchDepthClampEnable() {
-        return Exchange(Dirty::DepthClampEnable, false);
-    }
-
-    bool TouchAlphaToCoverageEnable() {
-        return Exchange(Dirty::AlphaToCoverageEnable, false);
-    }
-
-    bool TouchAlphaToOneEnable() {
-        return Exchange(Dirty::AlphaToOneEnable, false);
-    }
 
     bool TouchDepthCompareOp() {
         return Exchange(Dirty::DepthCompareOp, false);
@@ -274,10 +241,6 @@ public:
 
     bool TouchLogicOp() {
         return Exchange(Dirty::LogicOp, false);
-    }
-
-    bool TouchLineRasterizationMode() {
-        return Exchange(Dirty::LineRasterizationMode, false);
     }
 
     bool ChangePrimitiveTopology(Maxwell::PrimitiveTopology new_topology) {

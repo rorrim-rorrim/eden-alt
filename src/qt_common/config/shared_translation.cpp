@@ -360,11 +360,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
               "additional graphical issues."));
 
     INSERT(Settings,
-           vertex_input_dynamic_state,
-           tr("Vertex Input Dynamic State"),
-           tr("Enables vertex input dynamic state feature for better quality and performance."));
-
-    INSERT(Settings,
            provoking_vertex,
            tr("Provoking Vertex"),
            tr("Improves lighting and vertex handling in some games.\n"
@@ -786,7 +781,6 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
                               PAIR(ExtendedDynamicState, Disabled, tr("Disabled")),
                               PAIR(ExtendedDynamicState, EDS1, tr("ExtendedDynamicState 1")),
                               PAIR(ExtendedDynamicState, EDS2, tr("ExtendedDynamicState 2")),
-                              PAIR(ExtendedDynamicState, EDS3, tr("ExtendedDynamicState 3")),
                           }});
 
     translations->insert({Settings::EnumMetadata<Settings::GameListMode>::Index(),

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -60,9 +60,9 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     extended_dynamic_state.Assign(features.has_extended_dynamic_state ? 1 : 0);
     extended_dynamic_state_2.Assign(features.has_extended_dynamic_state_2 ? 1 : 0);
     extended_dynamic_state_2_logic_op.Assign(features.has_extended_dynamic_state_2_logic_op ? 1 : 0);
-    extended_dynamic_state_3_blend.Assign(features.has_extended_dynamic_state_3_blend ? 1 : 0);
-    extended_dynamic_state_3_enables.Assign(features.has_extended_dynamic_state_3_enables ? 1 : 0);
-    dynamic_vertex_input.Assign(features.has_dynamic_vertex_input ? 1 : 0);
+    reserved_dynamic_state_3_blend.Assign(0);
+    reserved_dynamic_state_3_enables.Assign(0);
+    reserved_bit_5.Assign(0);
     xfb_enabled.Assign(regs.transform_feedback_enabled != 0);
     ndc_minus_one_to_one.Assign(regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1 : 0);
     polygon_mode.Assign(PackPolygonMode(regs.polygon_mode_front));
@@ -103,43 +103,22 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     point_size = std::bit_cast<u32>(regs.point_size);
 
     if (maxwell3d.dirty.flags[Dirty::VertexInput]) {
-        if (features.has_dynamic_vertex_input) {
-            // Dirty flag will be reset by the command buffer update
-            static constexpr std::array LUT{
-                0u, // Invalid
-                1u, // SignedNorm
-                1u, // UnsignedNorm
-                2u, // SignedInt
-                3u, // UnsignedInt
-                1u, // UnsignedScaled
-                1u, // SignedScaled
-                1u, // Float
-            };
-            const auto& attrs = regs.vertex_attrib_format;
-            attribute_types = 0;
-            for (size_t i = 0; i < Maxwell::NumVertexAttributes; ++i) {
-                const u32 mask = attrs[i].constant != 0 ? 0 : 3;
-                const u32 type = LUT[static_cast<size_t>(attrs[i].type.Value())];
-                attribute_types |= static_cast<u64>(type & mask) << (i * 2);
-            }
-        } else {
-            maxwell3d.dirty.flags[Dirty::VertexInput] = false;
-            enabled_divisors = 0;
-            for (size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
-                const bool is_enabled = regs.vertex_stream_instances.IsInstancingEnabled(index);
-                binding_divisors[index] = is_enabled ? regs.vertex_streams[index].frequency : 0;
-                enabled_divisors |= (is_enabled ? u64{1} : 0) << index;
-            }
-            for (size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
-                const auto& input = regs.vertex_attrib_format[index];
-                auto& attribute = attributes[index];
-                attribute.raw = 0;
-                attribute.enabled.Assign(input.constant ? 0 : 1);
-                attribute.buffer.Assign(input.buffer);
-                attribute.offset.Assign(input.offset);
-                attribute.type.Assign(static_cast<u32>(input.type.Value()));
-                attribute.size.Assign(static_cast<u32>(input.size.Value()));
-            }
+        maxwell3d.dirty.flags[Dirty::VertexInput] = false;
+        enabled_divisors = 0;
+        for (size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
+            const bool is_enabled = regs.vertex_stream_instances.IsInstancingEnabled(index);
+            binding_divisors[index] = is_enabled ? regs.vertex_streams[index].frequency : 0;
+            enabled_divisors |= (is_enabled ? u64{1} : 0) << index;
+        }
+        for (size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
+            const auto& input = regs.vertex_attrib_format[index];
+            auto& attribute = attributes[index];
+            attribute.raw = 0;
+            attribute.enabled.Assign(input.constant ? 0 : 1);
+            attribute.buffer.Assign(input.buffer);
+            attribute.offset.Assign(input.offset);
+            attribute.type.Assign(static_cast<u32>(input.type.Value()));
+            attribute.size.Assign(static_cast<u32>(input.size.Value()));
         }
     }
     if (maxwell3d.dirty.flags[Dirty::ViewportSwizzles]) {
@@ -160,17 +139,13 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     if (!extended_dynamic_state_2_logic_op) {
         dynamic_state.Refresh2(regs, topology_, extended_dynamic_state_2);
     }
-    if (!extended_dynamic_state_3_blend) {
-        if (maxwell3d.dirty.flags[Dirty::Blending]) {
-            maxwell3d.dirty.flags[Dirty::Blending] = false;
-            for (size_t index = 0; index < attachments.size(); ++index) {
-                attachments[index].Refresh(regs, index);
-            }
+    if (maxwell3d.dirty.flags[Dirty::Blending]) {
+        maxwell3d.dirty.flags[Dirty::Blending] = false;
+        for (size_t index = 0; index < attachments.size(); ++index) {
+            attachments[index].Refresh(regs, index);
         }
     }
-    if (!extended_dynamic_state_3_enables) {
-        dynamic_state.Refresh3(regs);
-    }
+    dynamic_state.Refresh3(regs);
     if (xfb_enabled) {
         RefreshXfbState(xfb_state, regs);
     }

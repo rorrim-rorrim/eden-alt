@@ -58,7 +58,7 @@ using VideoCommon::FileEnvironment;
 using VideoCommon::GenericEnvironment;
 using VideoCommon::GraphicsEnvironment;
 
-constexpr u32 CACHE_VERSION = 16;
+constexpr u32 CACHE_VERSION = 17;
 constexpr std::array<char, 8> VULKAN_CACHE_MAGIC_NUMBER{'y', 'u', 'z', 'u', 'v', 'k', 'c', 'h'};
 
 template <typename Container>
@@ -132,20 +132,6 @@ Shader::AttributeType CastAttributeType(const FixedPipelineState::VertexAttribut
     return Shader::AttributeType::Float;
 }
 
-Shader::AttributeType AttributeType(const FixedPipelineState& state, size_t index) {
-    switch (state.DynamicAttributeType(index)) {
-    case 0:
-        return Shader::AttributeType::Disabled;
-    case 1:
-        return Shader::AttributeType::Float;
-    case 2:
-        return Shader::AttributeType::SignedInt;
-    case 3:
-        return Shader::AttributeType::UnsignedInt;
-    }
-    return Shader::AttributeType::Disabled;
-}
-
 Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> programs,
                                     const GraphicsPipelineCacheKey& key,
                                     const Shader::IR::Program& program,
@@ -183,14 +169,8 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
             }
             info.convert_depth_mode = gl_ndc;
         }
-        if (key.state.dynamic_vertex_input) {
-            for (size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
-                info.generic_input_types[index] = AttributeType(key.state, index);
-            }
-        } else {
-            std::ranges::transform(key.state.attributes, info.generic_input_types.begin(),
-                                   &CastAttributeType);
-        }
+        std::ranges::transform(key.state.attributes, info.generic_input_types.begin(),
+                               &CastAttributeType);
         break;
     case Shader::Stage::TessellationEval:
         info.tess_clockwise = key.state.tessellation_clockwise != 0;
@@ -441,7 +421,7 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
     //   Level 0: Core Dynamic States only
     //   Level 1: Core + EDS1
     //   Level 2: Core + EDS1 + EDS2 (accumulative)
-    //   Level 3: Core + EDS1 + EDS2 + EDS3 (accumulative)
+    //   Level 2: Core + EDS1 + EDS2 (accumulative)
     // Here we only verify if extensions were successfully loaded by the device
 
     dynamic_features.has_extended_dynamic_state =
@@ -452,16 +432,6 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
     dynamic_features.has_extended_dynamic_state_2_logic_op =
         device.IsExtExtendedDynamicState2ExtrasSupported();
     dynamic_features.has_extended_dynamic_state_2_patch_control_points = false;
-
-    dynamic_features.has_extended_dynamic_state_3_blend =
-        device.IsExtExtendedDynamicState3BlendingSupported();
-    dynamic_features.has_extended_dynamic_state_3_enables =
-        device.IsExtExtendedDynamicState3EnablesSupported();
-
-    // VIDS: Independent toggle (not affected by dyna_state levels)
-    dynamic_features.has_dynamic_vertex_input =
-        device.IsExtVertexInputDynamicStateSupported() &&
-        Settings::values.vertex_input_dynamic_state.GetValue();
 }
 
 PipelineCache::~PipelineCache() {
@@ -567,12 +537,7 @@ void PipelineCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading
             (key.state.extended_dynamic_state_2 != 0) !=
                 dynamic_features.has_extended_dynamic_state_2 ||
             (key.state.extended_dynamic_state_2_logic_op != 0) !=
-                dynamic_features.has_extended_dynamic_state_2_logic_op ||
-            (key.state.extended_dynamic_state_3_blend != 0) !=
-                dynamic_features.has_extended_dynamic_state_3_blend ||
-            (key.state.extended_dynamic_state_3_enables != 0) !=
-                dynamic_features.has_extended_dynamic_state_3_enables ||
-            (key.state.dynamic_vertex_input != 0) != dynamic_features.has_dynamic_vertex_input) {
+                dynamic_features.has_extended_dynamic_state_2_logic_op) {
             return;
         }
         workers.QueueWork([this, key, envs_ = std::move(envs), &state, &callback]() mutable {

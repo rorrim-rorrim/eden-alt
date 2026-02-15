@@ -53,7 +53,6 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, DepthClipControl, DEPTH_CLIP_CONTROL, depth_clip_control)                         \
     FEATURE(EXT, ExtendedDynamicState, EXTENDED_DYNAMIC_STATE, extended_dynamic_state)             \
     FEATURE(EXT, ExtendedDynamicState2, EXTENDED_DYNAMIC_STATE_2, extended_dynamic_state2)         \
-    FEATURE(EXT, ExtendedDynamicState3, EXTENDED_DYNAMIC_STATE_3, extended_dynamic_state3)         \
     FEATURE(EXT, 4444Formats, 4444_FORMATS, format_a4b4g4r4)                                       \
     FEATURE(EXT, IndexTypeUint8, INDEX_TYPE_UINT8, index_type_uint8)                               \
     FEATURE(EXT, LineRasterization, LINE_RASTERIZATION, line_rasterization)                        \
@@ -63,7 +62,6 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, ProvokingVertex, PROVOKING_VERTEX, provoking_vertex)                              \
     FEATURE(EXT, Robustness2, ROBUSTNESS_2, robustness2)                                           \
     FEATURE(EXT, TransformFeedback, TRANSFORM_FEEDBACK, transform_feedback)                        \
-    FEATURE(EXT, VertexInputDynamicState, VERTEX_INPUT_DYNAMIC_STATE, vertex_input_dynamic_state)  \
     FEATURE(EXT, SwapchainMaintenance1, SWAPCHAIN_MAINTENANCE_1, swapchain_maintenance1)           \
     FEATURE(KHR, Maintenance5, MAINTENANCE_5, maintenance5)                                        \
     FEATURE(KHR, Maintenance6, MAINTENANCE_6, maintenance6)                                        \
@@ -124,13 +122,11 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION_NAME(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME)                                 \
     EXTENSION_NAME(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME)                                   \
     EXTENSION_NAME(VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME)                                 \
-    EXTENSION_NAME(VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME)                                 \
     EXTENSION_NAME(VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME)                                     \
     EXTENSION_NAME(VK_EXT_4444_FORMATS_EXTENSION_NAME)                                             \
     EXTENSION_NAME(VK_EXT_IMAGE_ROBUSTNESS_EXTENSION_NAME)                                         \
     EXTENSION_NAME(VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME)                                       \
     EXTENSION_NAME(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME)                                             \
-    EXTENSION_NAME(VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME)                               \
     EXTENSION_NAME(VK_NV_GEOMETRY_SHADER_PASSTHROUGH_EXTENSION_NAME)                               \
     EXTENSION_NAME(VK_NV_VIEWPORT_ARRAY2_EXTENSION_NAME)                                           \
     EXTENSION_NAME(VK_NV_VIEWPORT_SWIZZLE_EXTENSION_NAME)
@@ -188,8 +184,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE_NAME(shader_float16_int8, shaderInt8)                                                  \
     FEATURE_NAME(timeline_semaphore, timelineSemaphore)                                            \
     FEATURE_NAME(transform_feedback, transformFeedback)                                            \
-    FEATURE_NAME(uniform_buffer_standard_layout, uniformBufferStandardLayout)                      \
-    FEATURE_NAME(vertex_input_dynamic_state, vertexInputDynamicState)
+    FEATURE_NAME(uniform_buffer_standard_layout, uniformBufferStandardLayout)
 
 // These features are not required but can be helpful for drivers that can use it.
 #define FOR_EACH_VK_OPTIONAL_FEATURE(FEATURE_NAME)                                                 \
@@ -619,24 +614,9 @@ public:
         return features.extended_dynamic_state2.extendedDynamicState2LogicOp;
     }
 
-    /// Returns true if the device supports VK_EXT_extended_dynamic_state3.
-    bool IsExtExtendedDynamicState3Supported() const {
-        return extensions.extended_dynamic_state3;
-    }
-
     /// Returns true if the device supports VK_EXT_4444_formats.
     bool IsExt4444FormatsSupported() const {
         return features.format_a4b4g4r4.formatA4B4G4R4;
-    }
-
-    /// Returns true if the device supports VK_EXT_extended_dynamic_state3.
-    bool IsExtExtendedDynamicState3BlendingSupported() const {
-        return dynamic_state3_blending;
-    }
-
-    /// Returns true if the device supports VK_EXT_extended_dynamic_state3.
-    bool IsExtExtendedDynamicState3EnablesSupported() const {
-        return dynamic_state3_enables;
     }
 
     /// Returns true if the device supports VK_EXT_filter_cubic
@@ -670,38 +650,6 @@ public:
         return features.features.alphaToOne != VK_FALSE;
     }
 
-    bool SupportsDynamicState3DepthClampEnable() const {
-        return dynamic_state3_depth_clamp_enable;
-    }
-
-    bool SupportsDynamicState3LogicOpEnable() const {
-        return dynamic_state3_logic_op_enable;
-    }
-
-    bool SupportsDynamicState3LineRasterizationMode() const {
-        return dynamic_state3_line_raster_mode;
-    }
-
-    bool SupportsDynamicState3ConservativeRasterizationMode() const {
-        return dynamic_state3_conservative_raster_mode;
-    }
-
-    bool SupportsDynamicState3LineStippleEnable() const {
-        return dynamic_state3_line_stipple_enable;
-    }
-
-    bool SupportsDynamicState3AlphaToCoverageEnable() const {
-        return dynamic_state3_alpha_to_coverage;
-    }
-
-    bool SupportsDynamicState3AlphaToOneEnable() const {
-        return dynamic_state3_alpha_to_one;
-    }
-
-    /// Returns true if the device supports VK_EXT_vertex_input_dynamic_state.
-    bool IsExtVertexInputDynamicStateSupported() const {
-        return extensions.vertex_input_dynamic_state;
-    }
 
     /// Returns true if the device supports VK_EXT_shader_demote_to_helper_invocation
     bool IsExtShaderDemoteToHelperInvocationSupported() const {
@@ -1053,15 +1001,6 @@ private:
     bool supports_d24_depth{};                 ///< Supports D24 depth buffers.
     bool cant_blit_msaa{};                     ///< Does not support MSAA<->MSAA blitting.
     bool must_emulate_scaled_formats{};        ///< Requires scaled vertex format emulation
-    bool dynamic_state3_blending{};            ///< Has blending features of dynamic_state3.
-    bool dynamic_state3_enables{};             ///< Has at least one enable feature of dynamic_state3.
-    bool dynamic_state3_depth_clamp_enable{};
-    bool dynamic_state3_logic_op_enable{};
-    bool dynamic_state3_line_raster_mode{};
-    bool dynamic_state3_conservative_raster_mode{};
-    bool dynamic_state3_line_stipple_enable{};
-    bool dynamic_state3_alpha_to_coverage{};
-    bool dynamic_state3_alpha_to_one{};
     bool supports_conditional_barriers{};      ///< Allows barriers in conditional control flow.
     size_t sampler_heap_budget{};              ///< Sampler budget for buggy drivers (0 = unlimited).
     u64 device_access_memory{};                ///< Total size of device local memory in bytes.

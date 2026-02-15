@@ -467,8 +467,6 @@
     <string name="renderer_asynchronous_shaders_description">非同步編譯著色器。這可能會減少卡頓，但也可能導致圖形錯誤。</string>
     <string name="dyna_state">擴展動態狀態</string>
     <string name="disabled">已停用</string>
-    <string name="vertex_input_dynamic_state">頂點輸入動態狀態</string>
-    <string name="vertex_input_dynamic_state_description">啟用頂點輸入動態狀態以取得更佳的品質及性能</string>
     <string name="provoking_vertex">引發頂點</string>
     <string name="provoking_vertex_description">改善某些遊戲中的光照和頂點處理。僅支援Vulkan 1.0+ GPU。</string>
     <string name="descriptor_indexing">描述符索引</string>

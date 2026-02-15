@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -54,19 +54,11 @@ Flags MakeInvalidationFlags() {
         StateEnable,
         PrimitiveRestartEnable,
         DepthBiasEnable,
-        LogicOpEnable,
-        DepthClampEnable,
-        AlphaToCoverageEnable,
-        AlphaToOneEnable,
-        LineRasterizationMode,
         LogicOp,
         Blending,
         ColorMask,
         BlendEquations,
         BlendEnable,
-        ConservativeRasterizationMode,
-        LineStippleEnable,
-        LineStippleParams,
     };
     Flags flags{};
     for (const int flag : INVALIDATION_FLAGS) {
@@ -149,11 +141,6 @@ void SetupDirtyStateEnable(Tables& tables) {
     setup(OFF(polygon_offset_point_enable), DepthBiasEnable);
     setup(OFF(polygon_offset_line_enable), DepthBiasEnable);
     setup(OFF(polygon_offset_fill_enable), DepthBiasEnable);
-    setup(OFF(logic_op.enable), LogicOpEnable);
-    setup(OFF(viewport_clip_control.geometry_clip), DepthClampEnable);
-    setup(OFF(line_stipple_enable), LineStippleEnable);
-    setup(OFF(anti_alias_alpha_control.alpha_to_coverage), AlphaToCoverageEnable);
-    setup(OFF(anti_alias_alpha_control.alpha_to_one), AlphaToOneEnable);
 }
 
 void SetupDirtyDepthCompareOp(Tables& tables) {
@@ -227,13 +214,6 @@ void SetupDirtyVertexBindings(Tables& tables) {
     }
 }
 
-void SetupRasterModes(Tables &tables) {
-    auto& table = tables[0];
-
-    table[OFF(line_stipple_params)] = LineStippleParams;
-    table[OFF(conservative_raster_enable)] = ConservativeRasterizationMode;
-    table[OFF(line_anti_alias_enable)] = LineRasterizationMode;
-}
 } // Anonymous namespace
 
 void StateTracker::SetupTables(Tegra::Control::ChannelState& channel_state) {
@@ -256,7 +236,6 @@ void StateTracker::SetupTables(Tegra::Control::ChannelState& channel_state) {
     SetupDirtyVertexAttributes(tables);
     SetupDirtyVertexBindings(tables);
     SetupDirtySpecialOps(tables);
-    SetupRasterModes(tables);
 }
 
 void StateTracker::ChangeChannel(Tegra::Control::ChannelState& channel_state) {

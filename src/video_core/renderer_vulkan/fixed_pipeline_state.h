@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -25,9 +25,6 @@ struct DynamicFeatures {
     bool has_extended_dynamic_state_2;
     bool has_extended_dynamic_state_2_logic_op;
     bool has_extended_dynamic_state_2_patch_control_points;
-    bool has_extended_dynamic_state_3_blend;
-    bool has_extended_dynamic_state_3_enables;
-    bool has_dynamic_vertex_input;
 };
 
 struct FixedPipelineState {
@@ -191,9 +188,9 @@ struct FixedPipelineState {
         BitField<0, 1, u32> extended_dynamic_state;
         BitField<1, 1, u32> extended_dynamic_state_2;
         BitField<2, 1, u32> extended_dynamic_state_2_logic_op;
-        BitField<3, 1, u32> extended_dynamic_state_3_blend;
-        BitField<4, 1, u32> extended_dynamic_state_3_enables;
-        BitField<5, 1, u32> dynamic_vertex_input;
+        BitField<3, 1, u32> reserved_dynamic_state_3_blend;
+        BitField<4, 1, u32> reserved_dynamic_state_3_enables;
+        BitField<5, 1, u32> reserved_bit_5;
         BitField<6, 1, u32> xfb_enabled;
         BitField<7, 1, u32> ndc_minus_one_to_one;
         BitField<8, 2, u32> polygon_mode;
@@ -225,10 +222,7 @@ struct FixedPipelineState {
     u32 point_size;
 
     std::array<u16, Maxwell::NumViewports> viewport_swizzles;
-    union {
-        u64 attribute_types; // Used with VK_EXT_vertex_input_dynamic_state
-        u64 enabled_divisors;
-    };
+    u64 enabled_divisors;
 
     DynamicState dynamic_state;
     std::array<BlendingAttachment, Maxwell::NumRenderTargets> attachments;
@@ -260,24 +254,12 @@ struct FixedPipelineState {
             // When transform feedback is enabled, use the whole struct
             return sizeof(*this);
         }
-        if (dynamic_vertex_input && extended_dynamic_state_3_blend) {
-            // Exclude dynamic state and attributes
-            return offsetof(FixedPipelineState, dynamic_state);
-        }
-        if (dynamic_vertex_input) {
-            // Exclude dynamic state
-            return offsetof(FixedPipelineState, attributes);
-        }
         if (extended_dynamic_state) {
             // Exclude dynamic state
             return offsetof(FixedPipelineState, vertex_strides);
         }
         // Default
         return offsetof(FixedPipelineState, xfb_state);
-    }
-
-    u32 DynamicAttributeType(size_t index) const noexcept {
-        return (attribute_types >> (index * 2)) & 0b11;
     }
 };
 static_assert(std::has_unique_object_representations_v<FixedPipelineState>);

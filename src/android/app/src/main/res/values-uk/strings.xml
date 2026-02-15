@@ -502,8 +502,6 @@
     <string name="dyna_state">Розширений динамічний стан</string>
     <string name="dyna_state_description">Керує кількістю функцій, які можна використовувати в «Розширеному динамічному стані». Вище число дозволяє більше функцій і може покращити продуктивність, але може спричинити проблеми з деякими драйверами й виробниками.</string>
     <string name="disabled">Вимкнено</string>
-    <string name="vertex_input_dynamic_state">Динамічний стан введення вершин</string>
-    <string name="vertex_input_dynamic_state_description">Вмикає можливість динамічного стану введення вершин для кращих якості й продуктивності.</string>
     <string name="provoking_vertex">Провокативна вершина</string>
     <string name="provoking_vertex_description">Покращує освітлення та взаємодію з вершинами у деяких іграх. Лише для ГП з підтримкою Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Індексація дескрипторів</string>
