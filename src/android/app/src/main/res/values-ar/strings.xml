@@ -506,8 +506,6 @@
     <string name="dyna_state">الحالة الديناميكية الموسعة</string>
     <string name="dyna_state_description">يتحكم هذا الخيار في عدد الميزات التي يمكن استخدامها في حالة الديناميكية الموسعة. تسمح الأرقام الأعلى بمزيد من الميزات ويمكن أن تزيد من الأداء، ولكنها قد تسبب مشاكل مع بعض برامج التشغيل والأجهزة.</string>
     <string name="disabled">معطل</string>
-    <string name="vertex_input_dynamic_state">حالة ديناميكية لإدخال الرأس</string>
-    <string name="vertex_input_dynamic_state_description">يتيح ميزة الحالة الديناميكية لإدخال الرأس لتحسين الجودة والأداء.</string>
     <string name="provoking_vertex">الرأس المثير</string>
     <string name="provoking_vertex_description">يحسن الإضاءة ومعالجة الرؤوس في بعض الألعاب. مدعوم فقط على وحدات معالجة الرسومات Vulkan 1.0+.</string>
     <string name="descriptor_indexing">فهرسة الوصف</string>

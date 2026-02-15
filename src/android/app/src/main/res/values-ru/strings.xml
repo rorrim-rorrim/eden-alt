@@ -498,8 +498,6 @@
     <string name="dyna_state">Расширенное динамическое состояние</string>
     <string name="dyna_state_description">Управляет количеством функций, доступных в режиме «Расширенное динамическое состояние». Большее число позволяет задействовать больше функций и может повысить производительность, но способно вызывать проблемы с некоторыми драйверами и графикой.</string>
     <string name="disabled">Отключено</string>
-    <string name="vertex_input_dynamic_state">Динамическое состояние ввода вершин</string>
-    <string name="vertex_input_dynamic_state_description">Включает функцию динамического состояния ввода вершин для повышения качества и производительности</string>
     <string name="provoking_vertex">Определяющая вершина</string>
     <string name="provoking_vertex_description">Улучшает освещение и обработку вершин в некоторых играх. Поддерживается только ГПУ с Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Индексирование дескрипторов</string>

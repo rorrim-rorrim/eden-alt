@@ -488,8 +488,6 @@
     <string name="dyna_state">Rozszerzony stan dynamiczny</string>
     <string name="dyna_state_description">Kontroluje liczbę funkcji, które mogą być używane w Extended Dynamic State. Wyższe wartości pozwalają na użycie większej liczby funkcji i mogą zwiększyć wydajność, ale mogą powodować problemy z niektórymi sterownikami i u niektórych producentów.</string>
     <string name="disabled">Wyłączone</string>
-    <string name="vertex_input_dynamic_state">Dynamiczny stan wejścia wierzchołków</string>
-    <string name="vertex_input_dynamic_state_description">Włącza funkcję dynamicznego stanu wejścia wierzchołków, poprawiając jakość i wydajność.</string>
     <string name="provoking_vertex">Wierzchołek prowokujący</string>
     <string name="provoking_vertex_description">Poprawia oświetlenie i obsługę wierzchołków w niektórych grach. Obsługiwane tylko przez GPU Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Indeksowanie deskryptorów</string>
