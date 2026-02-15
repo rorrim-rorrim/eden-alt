@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -47,7 +50,8 @@ public:
 
 private:
     explicit DescriptorAllocator(const Device& device_, MasterSemaphore& master_semaphore_,
-                                 DescriptorBank& bank_, VkDescriptorSetLayout layout_);
+                                 DescriptorBank& bank_, VkDescriptorSetLayout layout_,
+                                 u32 variable_descriptor_count_);
 
     void Allocate(size_t begin, size_t end) override;
 
@@ -56,6 +60,7 @@ private:
     const Device* device{};
     DescriptorBank* bank{};
     VkDescriptorSetLayout layout{};
+    u32 variable_descriptor_count{};
 
     std::vector<vk::DescriptorSets> sets;
 };
@@ -69,9 +74,12 @@ public:
     DescriptorPool(const DescriptorPool&) = delete;
 
     DescriptorAllocator Allocator(VkDescriptorSetLayout layout,
-                                  std::span<const Shader::Info> infos);
-    DescriptorAllocator Allocator(VkDescriptorSetLayout layout, const Shader::Info& info);
-    DescriptorAllocator Allocator(VkDescriptorSetLayout layout, const DescriptorBankInfo& info);
+                                  std::span<const Shader::Info> infos,
+                                  u32 variable_descriptor_count = 0);
+    DescriptorAllocator Allocator(VkDescriptorSetLayout layout, const Shader::Info& info,
+                                  u32 variable_descriptor_count = 0);
+    DescriptorAllocator Allocator(VkDescriptorSetLayout layout, const DescriptorBankInfo& info,
+                                  u32 variable_descriptor_count = 0);
 
 private:
     DescriptorBank& Bank(const DescriptorBankInfo& reqs);
