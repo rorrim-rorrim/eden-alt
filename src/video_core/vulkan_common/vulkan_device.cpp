@@ -1122,9 +1122,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
     // VK_DYNAMIC_STATE
 
-    // Driver detection variables for workarounds in GetSuitability
-    const VkDriverId driver_id = properties.driver.driverID;
-
     // VK_EXT_extended_dynamic_state below this will appear drivers that need workarounds.
 
     // VK_EXT_extended_dynamic_state2 below this will appear drivers that need workarounds.
