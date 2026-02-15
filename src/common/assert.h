@@ -25,7 +25,8 @@ void AssertFailSoftImpl();
 
 #define ASSERT_MSG(_a_, ...)                                                                       \
     ([&]() YUZU_NO_INLINE {                                                                         \
-        if (!(_a_)) [[unlikely]] {                                                                 \
+        auto&& _a_eval_ = (_a_);                                                                      \
+        if (!(_a_eval_)) [[unlikely]] {                                                                 \
             LOG_CRITICAL(Debug, __FILE__ ": assert " __VA_ARGS__);                                \
             AssertFailSoftImpl();                                                                  \
         }                                                                                          \
