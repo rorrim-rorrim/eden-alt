@@ -1212,13 +1212,18 @@ struct QueryCacheRuntimeImpl {
         conditional_resolve_pass = std::make_unique<ConditionalRenderingResolvePass>(
             device, scheduler, descriptor_pool, compute_pass_descriptor_queue);
 
+        VkBufferUsageFlags conditional_usage =
+            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+        if (device.IsExtConditionalRendering()) {
+            conditional_usage |= VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT;
+        }
+
         const VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
             .size = sizeof(u32),
-            .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                     VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT,
+            .usage = conditional_usage,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .queueFamilyIndexCount = 0,
             .pQueueFamilyIndices = nullptr,
