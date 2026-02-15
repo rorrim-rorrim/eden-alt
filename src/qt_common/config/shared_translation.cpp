@@ -360,12 +360,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
               "additional graphical issues."));
 
     INSERT(Settings,
-           provoking_vertex,
-           tr("Provoking Vertex"),
-           tr("Improves lighting and vertex handling in some games.\n"
-              "Only Vulkan 1.0+ devices support this extension."));
-
-    INSERT(Settings,
            descriptor_indexing,
            tr("Descriptor Indexing"),
            tr("Improves texture & buffer handling and the Maxwell translation layer.\n"

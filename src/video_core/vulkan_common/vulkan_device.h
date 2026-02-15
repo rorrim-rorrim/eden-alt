@@ -508,13 +508,11 @@ public:
     }
 
     /// Returns true if the device supports VK_EXT_shader_stencil_export.
-    /// Note: Most Mali/NVIDIA drivers don't support this. Use hardware blits as fallback.
     bool IsExtShaderStencilExportSupported() const {
         return extensions.shader_stencil_export;
     }
 
-    /// Returns true if depth/stencil operations can be performed efficiently.
-    /// Either through shader export or hardware blits.
+    /// Returns true if depth/stencil operations through shader export or hardware blits.
     bool CanPerformDepthStencilOperations() const {
         return extensions.shader_stencil_export || is_blit_depth24_stencil8_supported ||
                is_blit_depth32_stencil8_supported;
@@ -550,9 +548,14 @@ public:
         return extensions.transform_feedback;
     }
 
-    /// Returns true if the device supports VK_EXT_transform_feedback properly.
+    /// Returns true if the device supports VK_EXT_transform_feedback.
     bool AreTransformFeedbackGeometryStreamsSupported() const {
         return features.transform_feedback.geometryStreams;
+    }
+
+    /// Returns true if transform feedback preserves provoking vertex.
+    bool IsTransformFeedbackProvokingVertexPreserved() const {
+        return features.provoking_vertex.transformFeedbackPreservesProvokingVertex;
     }
 
     /// Returns true if the device supports VK_EXT_custom_border_color.

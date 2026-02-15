@@ -572,7 +572,7 @@ struct Values {
 
     SwitchableSetting<ExtendedDynamicState> dyna_state{linkage,
 #if defined (ANDROID) || defined (__APPLE__)
-                                           ExtendedDynamicState::Disabled,
+                                           ExtendedDynamicState::EDS1,
 #else
                                            ExtendedDynamicState::EDS2,
 #endif
@@ -587,7 +587,6 @@ struct Values {
                                                 Category::RendererExtensions,
                                                 Specialization::Scalar};
 
-    SwitchableSetting<bool> provoking_vertex{linkage, false, "provoking_vertex", Category::RendererExtensions};
     SwitchableSetting<bool> descriptor_indexing{linkage, false, "descriptor_indexing", Category::RendererExtensions};
 
     Setting<bool> renderer_debug{linkage, false, "debug", Category::RendererDebug};
