@@ -127,6 +127,10 @@ public:
 
     void BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings);
 
+    void SetUseVertexInputBindingStrideDynamicState(bool enabled) {
+        use_vertex_input_binding_stride_dynamic_state = enabled;
+    }
+
     void BindTransformFeedbackBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size);
 
     void BindTransformFeedbackBuffers(VideoCommon::HostBindings<Buffer>& bindings);
@@ -182,6 +186,8 @@ private:
 
     std::unique_ptr<Uint8Pass> uint8_pass;
     QuadIndexedPass quad_index_pass;
+
+    bool use_vertex_input_binding_stride_dynamic_state = true;
 
     bool limit_dynamic_storage_buffers = false;
     u32 max_dynamic_storage_buffers = (std::numeric_limits<u32>::max)();
