@@ -354,11 +354,18 @@ void RasterizerVulkan::DrawIndirect() {
         const auto& buffer = indirect_buffer.first;
         const auto& offset = indirect_buffer.second;
         if (params.is_byte_count) {
-            scheduler.Record([buffer_obj = buffer->Handle(), offset,
-                              stride = params.stride](vk::CommandBuffer cmdbuf) {
-                cmdbuf.DrawIndirectByteCountEXT(1, 0, buffer_obj, offset, 0,
-                                                static_cast<u32>(stride));
-            });
+            if (!device.IsExtTransformFeedbackSupported()) {
+                scheduler.Record([buffer_obj = buffer->Handle(), offset,
+                                  stride = params.stride](vk::CommandBuffer cmdbuf) {
+                    cmdbuf.DrawIndirect(buffer_obj, offset, 1, static_cast<u32>(stride));
+                });
+            } else {
+                scheduler.Record([buffer_obj = buffer->Handle(), offset,
+                                  stride = params.stride](vk::CommandBuffer cmdbuf) {
+                    cmdbuf.DrawIndirectByteCountEXT(1, 0, buffer_obj, offset, 0,
+                                                    static_cast<u32>(stride));
+                });
+            }
             return;
         }
         if (params.include_count) {
