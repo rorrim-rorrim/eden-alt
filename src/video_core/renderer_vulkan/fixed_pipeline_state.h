@@ -236,13 +236,6 @@ struct FixedPipelineState {
     u32 depth_bounds_min;
     u32 depth_bounds_max;
 
-    u32 depth_bias;
-    u32 depth_bias_clamp;
-    u32 slope_scale_depth_bias;
-
-    u32 line_width_smooth;
-    u32 line_width_aliased;
-
     u32 line_stipple_factor;
     u32 line_stipple_pattern;
 

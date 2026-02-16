@@ -5,7 +5,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
-#include <bit>
 #include <iostream>
 #include <span>
 
@@ -708,12 +707,10 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             dynamic.cull_enable ? MaxwellToVK::CullFace(dynamic.CullFace()) : VK_CULL_MODE_NONE),
         .frontFace = MaxwellToVK::FrontFace(dynamic.FrontFace()),
         .depthBiasEnable = (dynamic.depth_bias_enable != 0 ? VK_TRUE : VK_FALSE),
-        .depthBiasConstantFactor = std::bit_cast<float>(key.state.depth_bias) / 2.0f,
-        .depthBiasClamp = std::bit_cast<float>(key.state.depth_bias_clamp),
-        .depthBiasSlopeFactor = std::bit_cast<float>(key.state.slope_scale_depth_bias),
-        .lineWidth = key.state.smooth_lines != 0
-                         ? std::bit_cast<float>(key.state.line_width_smooth)
-                         : std::bit_cast<float>(key.state.line_width_aliased),
+        .depthBiasConstantFactor = 0.0f,
+        .depthBiasClamp = 0.0f,
+        .depthBiasSlopeFactor = 0.0f,
+        .lineWidth = 1.0f,
     };
     const bool line_rasterization_supported = device.IsExtLineRasterizationSupported();
     const bool any_stippled_lines_supported =
