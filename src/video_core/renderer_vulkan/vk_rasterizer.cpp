@@ -173,6 +173,55 @@ DrawParams MakeDrawParams(const MaxwellDrawState& draw_state, u32 num_instances,
     }
     return params;
 }
+
+bool IsLineRasterizationTopology(const Device& device, Maxwell::PrimitiveTopology topology) {
+    const VkPrimitiveTopology vk_topology = MaxwellToVK::PrimitiveTopology(device, topology);
+    return vk_topology == VK_PRIMITIVE_TOPOLOGY_LINE_LIST ||
+           vk_topology == VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+}
+
+VkLineRasterizationModeEXT SelectLineRasterizationMode(const Device& device, bool smooth_lines) {
+    const bool supports_rectangular_lines = device.SupportsRectangularLines();
+    const bool supports_bresenham_lines = device.SupportsBresenhamLines();
+    const bool supports_smooth_lines = device.SupportsSmoothLines();
+
+    if (smooth_lines) {
+        if (supports_smooth_lines) {
+            return VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT;
+        }
+        if (supports_rectangular_lines) {
+            return VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT;
+        }
+        if (supports_bresenham_lines) {
+            return VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT;
+        }
+    } else {
+        if (supports_rectangular_lines) {
+            return VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT;
+        }
+        if (supports_bresenham_lines) {
+            return VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT;
+        }
+        if (supports_smooth_lines) {
+            return VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT;
+        }
+    }
+
+    return VK_LINE_RASTERIZATION_MODE_DEFAULT_EXT;
+}
+
+bool SupportsStippleForMode(const Device& device, VkLineRasterizationModeEXT mode) {
+    switch (mode) {
+    case VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT:
+        return device.SupportsStippledRectangularLines();
+    case VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT:
+        return device.SupportsStippledBresenhamLines();
+    case VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT:
+        return device.SupportsStippledSmoothLines();
+    default:
+        return false;
+    }
+}
 } // Anonymous namespace
 
 RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
@@ -1026,6 +1075,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateDepthBounds(regs);
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
+    UpdateLineStipple(regs);
 
     // EDS1: CullMode, DepthCompare, FrontFace, StencilOp, DepthBoundsTest, DepthTest, DepthWrite, StencilTest
     if (device.IsExtExtendedDynamicStateSupported()) {
@@ -1368,6 +1418,33 @@ void RasterizerVulkan::UpdateLineWidth(Tegra::Engines::Maxwell3D::Regs& regs) {
     const float width =
         regs.line_anti_alias_enable ? regs.line_width_smooth : regs.line_width_aliased;
     scheduler.Record([width](vk::CommandBuffer cmdbuf) { cmdbuf.SetLineWidth(width); });
+}
+
+void RasterizerVulkan::UpdateLineStipple(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchLineStipple()) {
+        return;
+    }
+    if (!device.IsExtLineRasterizationSupported()) {
+        return;
+    }
+
+    const auto topology = maxwell3d->draw_manager->GetDrawState().topology;
+    if (!IsLineRasterizationTopology(device, topology)) {
+        return;
+    }
+
+    const VkLineRasterizationModeEXT mode =
+        SelectLineRasterizationMode(device, regs.line_anti_alias_enable != 0);
+
+    if (regs.line_stipple_enable == 0 || !SupportsStippleForMode(device, mode)) {
+        return;
+    }
+
+    scheduler.Record(
+        [factor = regs.line_stipple_params.factor,
+         pattern = static_cast<u16>(regs.line_stipple_params.pattern)](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetLineStippleEXT(factor, pattern);
+        });
 }
 
 void RasterizerVulkan::UpdateCullMode(Tegra::Engines::Maxwell3D::Regs& regs) {
