@@ -42,6 +42,7 @@ enum : u8 {
     StencilWriteMask,
     StencilCompare,
     LineWidth,
+    LineStipple,
 
     CullMode,
     DepthBoundsEnable,
@@ -175,6 +176,10 @@ public:
 
     bool TouchLineWidth() const {
         return Exchange(Dirty::LineWidth, false);
+    }
+
+    bool TouchLineStipple() const {
+        return Exchange(Dirty::LineStipple, false);
     }
 
     bool TouchCullMode() {
