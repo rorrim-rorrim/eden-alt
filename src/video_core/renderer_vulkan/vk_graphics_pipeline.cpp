@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <bit>
 #include <iostream>
 #include <span>
 
@@ -707,24 +708,68 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             dynamic.cull_enable ? MaxwellToVK::CullFace(dynamic.CullFace()) : VK_CULL_MODE_NONE),
         .frontFace = MaxwellToVK::FrontFace(dynamic.FrontFace()),
         .depthBiasEnable = (dynamic.depth_bias_enable != 0 ? VK_TRUE : VK_FALSE),
-        .depthBiasConstantFactor = 0.0f,
-        .depthBiasClamp = 0.0f,
-        .depthBiasSlopeFactor = 0.0f,
-        .lineWidth = 1.0f,
-        // TODO(alekpop): Transfer from regs
+        .depthBiasConstantFactor = std::bit_cast<float>(key.state.depth_bias) / 2.0f,
+        .depthBiasClamp = std::bit_cast<float>(key.state.depth_bias_clamp),
+        .depthBiasSlopeFactor = std::bit_cast<float>(key.state.slope_scale_depth_bias),
+        .lineWidth = key.state.smooth_lines != 0
+                         ? std::bit_cast<float>(key.state.line_width_smooth)
+                         : std::bit_cast<float>(key.state.line_width_aliased),
     };
-    const bool smooth_lines_supported =
-        device.IsExtLineRasterizationSupported() && device.SupportsSmoothLines();
-    const bool stippled_lines_supported =
-        device.IsExtLineRasterizationSupported() && device.SupportsStippledRectangularLines();
+    const bool line_rasterization_supported = device.IsExtLineRasterizationSupported();
+    const bool any_stippled_lines_supported =
+        line_rasterization_supported &&
+        (device.SupportsStippledRectangularLines() || device.SupportsStippledBresenhamLines() ||
+         device.SupportsStippledSmoothLines());
+    const bool line_stipple_dynamic_state_supported =
+        IsLine(input_assembly_topology) && any_stippled_lines_supported;
+    const bool supports_rectangular_lines =
+        line_rasterization_supported && device.SupportsRectangularLines();
+    const bool supports_bresenham_lines =
+        line_rasterization_supported && device.SupportsBresenhamLines();
+    const bool supports_smooth_lines = line_rasterization_supported && device.SupportsSmoothLines();
+
+    VkLineRasterizationModeEXT line_rasterization_mode = VK_LINE_RASTERIZATION_MODE_DEFAULT_EXT;
+    if (line_rasterization_supported) {
+        if (key.state.smooth_lines != 0) {
+            if (supports_smooth_lines) {
+                line_rasterization_mode = VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT;
+            } else if (supports_rectangular_lines) {
+                line_rasterization_mode = VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT;
+            } else if (supports_bresenham_lines) {
+                line_rasterization_mode = VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT;
+            }
+        } else {
+            if (supports_rectangular_lines) {
+                line_rasterization_mode = VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT;
+            } else if (supports_bresenham_lines) {
+                line_rasterization_mode = VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT;
+            } else if (supports_smooth_lines) {
+                line_rasterization_mode = VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT;
+            }
+        }
+    }
+
+    const bool stippled_lines_supported = [&]() {
+        if (!line_rasterization_supported || !dynamic.line_stipple_enable) {
+            return false;
+        }
+        switch (line_rasterization_mode) {
+        case VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT:
+            return device.SupportsStippledRectangularLines();
+        case VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT:
+            return device.SupportsStippledBresenhamLines();
+        case VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT:
+            return device.SupportsStippledSmoothLines();
+        default:
+            return false;
+        }
+    }();
+
     VkPipelineRasterizationLineStateCreateInfoEXT line_state{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT,
         .pNext = nullptr,
-        .lineRasterizationMode = key.state.smooth_lines != 0 && smooth_lines_supported
-                                     ? VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT
-                                     : VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT,
-        .stippledLineEnable =
-            (dynamic.line_stipple_enable && stippled_lines_supported) ? VK_TRUE : VK_FALSE,
+        .lineRasterizationMode = line_rasterization_mode,
+        .stippledLineEnable = stippled_lines_supported ? VK_TRUE : VK_FALSE,
         .lineStippleFactor = key.state.line_stipple_factor,
         .lineStipplePattern = static_cast<uint16_t>(key.state.line_stipple_pattern),
     };
@@ -840,12 +885,15 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pAttachments = cb_attachments.data(),
         .blendConstants = {}
     };
-    static_vector<VkDynamicState, 34> dynamic_states{
+    static_vector<VkDynamicState, 35> dynamic_states{
         VK_DYNAMIC_STATE_DEPTH_BIAS,         VK_DYNAMIC_STATE_BLEND_CONSTANTS,
         VK_DYNAMIC_STATE_DEPTH_BOUNDS,       VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
         VK_DYNAMIC_STATE_STENCIL_WRITE_MASK, VK_DYNAMIC_STATE_STENCIL_REFERENCE,
         VK_DYNAMIC_STATE_LINE_WIDTH,
     };
+    if (line_stipple_dynamic_state_supported) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_LINE_STIPPLE_EXT);
+    }
     if (key.state.extended_dynamic_state) {
         static constexpr std::array extended{
             VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT_EXT,

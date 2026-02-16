@@ -152,6 +152,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdSetFrontFaceEXT);
     X(vkCmdSetLogicOpEXT);
     X(vkCmdSetPatchControlPointsEXT);
+    X(vkCmdSetLineStippleEXT);
     X(vkCmdSetLineWidth);
     X(vkCmdSetPrimitiveTopologyEXT);
     X(vkCmdSetStencilOpEXT);

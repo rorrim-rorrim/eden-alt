@@ -40,6 +40,7 @@ Flags MakeInvalidationFlags() {
         StencilWriteMask,
         StencilCompare,
         LineWidth,
+        LineStipple,
         CullMode,
         DepthBoundsEnable,
         DepthTestEnable,
@@ -119,6 +120,13 @@ void SetupDirtyStencilProperties(Tables& tables) {
 void SetupDirtyLineWidth(Tables& tables) {
     tables[0][OFF(line_width_smooth)] = LineWidth;
     tables[0][OFF(line_width_aliased)] = LineWidth;
+    tables[0][OFF(line_anti_alias_enable)] = LineWidth;
+}
+
+void SetupDirtyLineStipple(Tables& tables) {
+    tables[0][OFF(line_stipple_enable)] = LineStipple;
+    FillBlock(tables[0], OFF(line_stipple_params), NUM(line_stipple_params), LineStipple);
+    tables[1][OFF(line_anti_alias_enable)] = LineStipple;
 }
 
 void SetupDirtyCullMode(Tables& tables) {
@@ -226,6 +234,7 @@ void StateTracker::SetupTables(Tegra::Control::ChannelState& channel_state) {
     SetupDirtyDepthBounds(tables);
     SetupDirtyStencilProperties(tables);
     SetupDirtyLineWidth(tables);
+    SetupDirtyLineStipple(tables);
     SetupDirtyCullMode(tables);
     SetupDirtyStateEnable(tables);
     SetupDirtyDepthCompareOp(tables);

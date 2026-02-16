@@ -1229,6 +1229,14 @@ void Device::RemoveUnsuitableExtensions() {
                                        features.provoking_vertex,
                                        VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
 
+    // VK_EXT_line_rasterization
+    extensions.line_rasterization = features.line_rasterization.rectangularLines ||
+                                    features.line_rasterization.bresenhamLines ||
+                                    features.line_rasterization.smoothLines;
+    RemoveExtensionFeatureIfUnsuitable(extensions.line_rasterization,
+                                       features.line_rasterization,
+                                       VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME);
+
     // VK_EXT_conditional_rendering
     extensions.conditional_rendering = features.conditional_rendering.conditionalRendering;
     RemoveExtensionFeatureIfUnsuitable(extensions.conditional_rendering,

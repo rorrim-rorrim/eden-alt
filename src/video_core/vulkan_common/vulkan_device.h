@@ -435,7 +435,7 @@ public:
         return extensions.viewport_array2;
     }
 
-    /// Returns true if the device supporst VK_EXT_DESCRIPTOR_INDEXING.
+    /// Returns true if the device supporst VK_EXT_descriptor_indexing.
     bool isExtDescriptorIndexingSupported() const {
         return extensions.descriptor_indexing;
     }
@@ -631,19 +631,32 @@ public:
     }
 
     bool SupportsRectangularLines() const {
-        return features.line_rasterization.rectangularLines != VK_FALSE;
+        return features.line_rasterization.rectangularLines;
+    }
+
+    bool SupportsBresenhamLines() const {
+        return features.line_rasterization.bresenhamLines;
     }
 
     bool SupportsSmoothLines() const {
-        return features.line_rasterization.smoothLines != VK_FALSE;
+        return features.line_rasterization.smoothLines;
     }
 
     bool SupportsStippledRectangularLines() const {
-        return features.line_rasterization.stippledRectangularLines != VK_FALSE;
+        return features.line_rasterization.stippledRectangularLines;
     }
 
+    bool SupportsStippledBresenhamLines() const {
+        return features.line_rasterization.stippledBresenhamLines;
+    }
+
+    bool SupportsStippledSmoothLines() const {
+        return features.line_rasterization.stippledSmoothLines;
+    }
+
+    /// Returns true if the device supports AlphaToOne.
     bool SupportsAlphaToOne() const {
-        return features.features.alphaToOne != VK_FALSE;
+        return features.features.alphaToOne;
     }
 
 
