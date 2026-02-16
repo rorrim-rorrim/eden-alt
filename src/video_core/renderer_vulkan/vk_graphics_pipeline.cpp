@@ -682,9 +682,9 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .viewportCount = num_viewports,
+        .viewportCount = key.state.extended_dynamic_state ? 0u : num_viewports,
         .pViewports = nullptr,
-        .scissorCount = num_viewports,
+        .scissorCount = key.state.extended_dynamic_state ? 0u : num_viewports,
         .pScissors = nullptr,
     };
     if (device.IsNvViewportSwizzleSupported()) {

@@ -277,6 +277,10 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     if (!pipeline->Configure(is_indexed))
         return;
 
+    if (pipeline->UsesExtendedDynamicState()) {
+        state_tracker.InvalidateStateEnableFlag();
+    }
+
     UpdateDynamicStates();
 
     HandleTransformFeedback();
@@ -1073,6 +1077,7 @@ bool AccelerateDMA::BufferToImage(const Tegra::DMA::ImageCopy& copy_info,
 
 void RasterizerVulkan::UpdateDynamicStates() {
     auto& regs = maxwell3d->regs;
+    GraphicsPipeline* pipeline = pipeline_cache.CurrentGraphicsPipeline();
 
     // Core Dynamic States (Vulkan 1.0) - Always active regardless of dyna_state setting
     UpdateViewportsState(regs);
@@ -1085,7 +1090,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateLineStipple(regs);
 
     // EDS1: CullMode, DepthCompare, FrontFace, StencilOp, DepthBoundsTest, DepthTest, DepthWrite, StencilTest
-    if (device.IsExtExtendedDynamicStateSupported()) {
+    if (device.IsExtExtendedDynamicStateSupported() && pipeline && pipeline->UsesExtendedDynamicState()) {
         UpdateCullMode(regs);
         UpdateDepthCompareOp(regs);
         UpdateFrontFace(regs);
@@ -1100,14 +1105,14 @@ void RasterizerVulkan::UpdateDynamicStates() {
     }
 
     // EDS2: PrimitiveRestart, RasterizerDiscard, DepthBias enable/disable
-    if (device.IsExtExtendedDynamicState2Supported()) {
+    if (device.IsExtExtendedDynamicState2Supported() && pipeline && pipeline->UsesExtendedDynamicState2()) {
         UpdatePrimitiveRestartEnable(regs);
         UpdateRasterizerDiscardEnable(regs);
         UpdateDepthBiasEnable(regs);
     }
 
     // EDS2 Extras: LogicOp operation selection
-    if (device.IsExtExtendedDynamicState2ExtrasSupported()) {
+    if (device.IsExtExtendedDynamicState2ExtrasSupported() && pipeline && pipeline->UsesExtendedDynamicState2LogicOp()) {
         UpdateLogicOp(regs);
     }
 

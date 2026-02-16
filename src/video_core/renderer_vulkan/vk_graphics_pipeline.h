@@ -92,6 +92,12 @@ public:
     bool UsesExtendedDynamicState() const noexcept {
         return key.state.extended_dynamic_state != 0;
     }
+    bool UsesExtendedDynamicState2() const noexcept {
+        return key.state.extended_dynamic_state_2 != 0;
+    }
+    bool UsesExtendedDynamicState2LogicOp() const noexcept {
+        return key.state.extended_dynamic_state_2_logic_op != 0;
+    }
     GraphicsPipeline& operator=(GraphicsPipeline&&) noexcept = delete;
     GraphicsPipeline(GraphicsPipeline&&) noexcept = delete;
 
