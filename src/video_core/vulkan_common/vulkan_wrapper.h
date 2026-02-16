@@ -198,7 +198,6 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdBindPipeline vkCmdBindPipeline{};
     PFN_vkCmdBindTransformFeedbackBuffersEXT vkCmdBindTransformFeedbackBuffersEXT{};
     PFN_vkCmdBindVertexBuffers vkCmdBindVertexBuffers{};
-    PFN_vkCmdBindVertexBuffers2EXT vkCmdBindVertexBuffers2EXT{};
     PFN_vkCmdBlitImage vkCmdBlitImage{};
     PFN_vkCmdClearAttachments vkCmdClearAttachments{};
     PFN_vkCmdClearColorImage vkCmdClearColorImage{};
@@ -1364,11 +1363,15 @@ public:
     }
 
     void SetViewportWithCountEXT(Span<VkViewport> viewports) const noexcept {
-        dld->vkCmdSetViewportWithCountEXT(handle, viewports.size(), viewports.data());
+        if (dld && dld->vkCmdSetViewportWithCountEXT) {
+            dld->vkCmdSetViewportWithCountEXT(handle, viewports.size(), viewports.data());
+        }
     }
 
     void SetScissorWithCountEXT(Span<VkRect2D> scissors) const noexcept {
-        dld->vkCmdSetScissorWithCountEXT(handle, scissors.size(), scissors.data());
+        if (dld && dld->vkCmdSetScissorWithCountEXT) {
+            dld->vkCmdSetScissorWithCountEXT(handle, scissors.size(), scissors.data());
+        }
     }
 
     void SetBlendConstants(const float blend_constants[4]) const noexcept {
@@ -1400,7 +1403,9 @@ public:
             .depthBiasClamp = clamp,
             .depthBiasSlopeFactor = slope_factor,
         };
-        dld->vkCmdSetDepthBias2EXT(handle, &info);
+        if (dld && dld->vkCmdSetDepthBias2EXT) {
+            dld->vkCmdSetDepthBias2EXT(handle, &info);
+        }
     }
 
     void SetDepthBounds(float min_depth_bounds, float max_depth_bounds) const noexcept {
@@ -1420,60 +1425,76 @@ public:
                              buffer_barriers.data(), image_barriers.size(), image_barriers.data());
     }
 
-    void BindVertexBuffers2EXT(u32 first_binding, u32 binding_count, const VkBuffer* buffers,
-                               const VkDeviceSize* offsets, const VkDeviceSize* sizes,
-                               const VkDeviceSize* strides) const noexcept {
-        dld->vkCmdBindVertexBuffers2EXT(handle, first_binding, binding_count, buffers, offsets,
-                                        sizes, strides);
-    }
-
     void SetCullModeEXT(VkCullModeFlags cull_mode) const noexcept {
-        dld->vkCmdSetCullModeEXT(handle, cull_mode);
+        if (dld && dld->vkCmdSetCullModeEXT) {
+            dld->vkCmdSetCullModeEXT(handle, cull_mode);
+        }
     }
 
     void SetDepthBoundsTestEnableEXT(bool enable) const noexcept {
-        dld->vkCmdSetDepthBoundsTestEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+        if (dld && dld->vkCmdSetDepthBoundsTestEnableEXT) {
+            dld->vkCmdSetDepthBoundsTestEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+        }
     }
 
     void SetDepthCompareOpEXT(VkCompareOp compare_op) const noexcept {
-        dld->vkCmdSetDepthCompareOpEXT(handle, compare_op);
+        if (dld && dld->vkCmdSetDepthCompareOpEXT) {
+            dld->vkCmdSetDepthCompareOpEXT(handle, compare_op);
+        }
     }
 
     void SetDepthTestEnableEXT(bool enable) const noexcept {
-        dld->vkCmdSetDepthTestEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+        if (dld && dld->vkCmdSetDepthTestEnableEXT) {
+            dld->vkCmdSetDepthTestEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+        }
     }
 
     void SetDepthWriteEnableEXT(bool enable) const noexcept {
-        dld->vkCmdSetDepthWriteEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+        if (dld && dld->vkCmdSetDepthWriteEnableEXT) {
+            dld->vkCmdSetDepthWriteEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+        }
     }
 
     void SetPrimitiveRestartEnableEXT(bool enable) const noexcept {
-        dld->vkCmdSetPrimitiveRestartEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+        if (dld && dld->vkCmdSetPrimitiveRestartEnableEXT) {
+            dld->vkCmdSetPrimitiveRestartEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+        }
     }
 
     void SetRasterizerDiscardEnableEXT(bool enable) const noexcept {
-        dld->vkCmdSetRasterizerDiscardEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+        if (dld && dld->vkCmdSetRasterizerDiscardEnableEXT) {
+            dld->vkCmdSetRasterizerDiscardEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+        }
     }
 
-    void SetLineStippleEXT(u32 factor, u16 pattern) const noexcept
-    {
-        dld->vkCmdSetLineStippleEXT(handle, factor, pattern);
+    void SetLineStippleEXT(u32 factor, u16 pattern) const noexcept {
+        if (dld && dld->vkCmdSetLineStippleEXT) {
+            dld->vkCmdSetLineStippleEXT(handle, factor, pattern);
+        }
     }
 
     void SetDepthBiasEnableEXT(bool enable) const noexcept {
-        dld->vkCmdSetDepthBiasEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+        if (dld && dld->vkCmdSetDepthBiasEnableEXT) {
+            dld->vkCmdSetDepthBiasEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+        }
     }
 
     void SetFrontFaceEXT(VkFrontFace front_face) const noexcept {
-        dld->vkCmdSetFrontFaceEXT(handle, front_face);
+        if (dld && dld->vkCmdSetFrontFaceEXT) {
+            dld->vkCmdSetFrontFaceEXT(handle, front_face);
+        }
     }
 
     void SetLogicOpEXT(VkLogicOp logic_op) const noexcept {
-        dld->vkCmdSetLogicOpEXT(handle, logic_op);
+        if (dld && dld->vkCmdSetLogicOpEXT) {
+            dld->vkCmdSetLogicOpEXT(handle, logic_op);
+        }
     }
 
     void SetPatchControlPointsEXT(uint32_t patch_control_points) const noexcept {
-        dld->vkCmdSetPatchControlPointsEXT(handle, patch_control_points);
+        if (dld && dld->vkCmdSetPatchControlPointsEXT) {
+            dld->vkCmdSetPatchControlPointsEXT(handle, patch_control_points);
+        }
     }
 
     void SetLineWidth(float line_width) const noexcept {
@@ -1481,45 +1502,61 @@ public:
     }
 
     void SetPrimitiveTopologyEXT(VkPrimitiveTopology primitive_topology) const noexcept {
-        dld->vkCmdSetPrimitiveTopologyEXT(handle, primitive_topology);
+        if (dld && dld->vkCmdSetPrimitiveTopologyEXT) {
+            dld->vkCmdSetPrimitiveTopologyEXT(handle, primitive_topology);
+        }
     }
 
     void SetStencilOpEXT(VkStencilFaceFlags face_mask, VkStencilOp fail_op, VkStencilOp pass_op,
                          VkStencilOp depth_fail_op, VkCompareOp compare_op) const noexcept {
-        dld->vkCmdSetStencilOpEXT(handle, face_mask, fail_op, pass_op, depth_fail_op, compare_op);
+        if (dld && dld->vkCmdSetStencilOpEXT) {
+            dld->vkCmdSetStencilOpEXT(handle, face_mask, fail_op, pass_op, depth_fail_op, compare_op);
+        }
     }
 
     void SetStencilTestEnableEXT(bool enable) const noexcept {
-        dld->vkCmdSetStencilTestEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+        if (dld && dld->vkCmdSetStencilTestEnableEXT) {
+            dld->vkCmdSetStencilTestEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+        }
     }
 
     void BindTransformFeedbackBuffersEXT(u32 first, u32 count, const VkBuffer* buffers,
                                          const VkDeviceSize* offsets,
                                          const VkDeviceSize* sizes) const noexcept {
-        dld->vkCmdBindTransformFeedbackBuffersEXT(handle, first, count, buffers, offsets, sizes);
+        if (dld && dld->vkCmdBindTransformFeedbackBuffersEXT) {
+            dld->vkCmdBindTransformFeedbackBuffersEXT(handle, first, count, buffers, offsets, sizes);
+        }
     }
 
     void BeginTransformFeedbackEXT(u32 first_counter_buffer, u32 counter_buffers_count,
                                    const VkBuffer* counter_buffers,
                                    const VkDeviceSize* counter_buffer_offsets) const noexcept {
-        dld->vkCmdBeginTransformFeedbackEXT(handle, first_counter_buffer, counter_buffers_count,
-                                            counter_buffers, counter_buffer_offsets);
+        if (dld && dld->vkCmdBeginTransformFeedbackEXT) {
+            dld->vkCmdBeginTransformFeedbackEXT(handle, first_counter_buffer, counter_buffers_count,
+                                                counter_buffers, counter_buffer_offsets);
+        }
     }
 
     void EndTransformFeedbackEXT(u32 first_counter_buffer, u32 counter_buffers_count,
                                  const VkBuffer* counter_buffers,
                                  const VkDeviceSize* counter_buffer_offsets) const noexcept {
-        dld->vkCmdEndTransformFeedbackEXT(handle, first_counter_buffer, counter_buffers_count,
-                                          counter_buffers, counter_buffer_offsets);
+        if (dld && dld->vkCmdEndTransformFeedbackEXT) {
+            dld->vkCmdEndTransformFeedbackEXT(handle, first_counter_buffer, counter_buffers_count,
+                                              counter_buffers, counter_buffer_offsets);
+        }
     }
 
     void BeginConditionalRenderingEXT(
         const VkConditionalRenderingBeginInfoEXT& info) const noexcept {
-        dld->vkCmdBeginConditionalRenderingEXT(handle, &info);
+        if (dld && dld->vkCmdBeginConditionalRenderingEXT) {
+            dld->vkCmdBeginConditionalRenderingEXT(handle, &info);
+        }
     }
 
     void EndConditionalRenderingEXT() const noexcept {
-        dld->vkCmdEndConditionalRenderingEXT(handle);
+        if (dld && dld->vkCmdEndConditionalRenderingEXT) {
+            dld->vkCmdEndConditionalRenderingEXT(handle);
+        }
     }
 
     void BeginDebugUtilsLabelEXT(const char* label, std::span<float, 4> color) const noexcept {
@@ -1529,11 +1566,15 @@ public:
             .pLabelName = label,
             .color{color[0], color[1], color[2], color[3]},
         };
-        dld->vkCmdBeginDebugUtilsLabelEXT(handle, &label_info);
+        if (dld && dld->vkCmdBeginDebugUtilsLabelEXT) {
+            dld->vkCmdBeginDebugUtilsLabelEXT(handle, &label_info);
+        }
     }
 
     void EndDebugUtilsLabelEXT() const noexcept {
-        dld->vkCmdEndDebugUtilsLabelEXT(handle);
+        if (dld && dld->vkCmdEndDebugUtilsLabelEXT) {
+            dld->vkCmdEndDebugUtilsLabelEXT(handle);
+        }
     }
 
 private:
