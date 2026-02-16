@@ -248,109 +248,196 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
         return;
     }
     DAddr cpu_addr = *cpu_addr_opt;
+    if (Settings::getDebugKnobAt(0)) {
+        // Commit 1 (new routine): payload fence path with forced non-stub fence lifecycle.
+        if (is_fence && counter_type == QueryType::Payload) {
+            u8* pointer = impl->device_memory.template GetPointer<u8>(cpu_addr);
+            u8* pointer_timestamp = impl->device_memory.template GetPointer<u8>(cpu_addr + 8);
+            std::function<void()> operation(
+                [this, has_timestamp, payload, pointer, pointer_timestamp] {
+                    if (has_timestamp) {
+                        const u64 timestamp = impl->gpu.GetTicks();
+                        const u64 value = static_cast<u64>(payload);
+                        std::memcpy(pointer_timestamp, &timestamp, sizeof(timestamp));
+                        std::memcpy(pointer, &value, sizeof(value));
+                    } else {
+                        std::memcpy(pointer, &payload, sizeof(payload));
+                    }
+                });
+            impl->rasterizer.SyncOperation(std::move(operation));
+            {
+                std::scoped_lock lk(impl->flush_guard);
+                impl->force_flush_uncommitted = true;
+            }
+            std::function<void()> noop([] {});
+            impl->rasterizer.SignalFence(std::move(noop));
+            return;
+        }
 
-    if (is_fence && counter_type == QueryType::Payload) {
+        const size_t new_query_id =
+            streamer->WriteCounter(cpu_addr, has_timestamp, payload, subreport);
+        auto* query = streamer->GetQuery(new_query_id);
+        if (is_fence) {
+            query->flags |= QueryFlagBits::IsFence;
+        }
+        QueryLocation query_location{};
+        query_location.stream_id.Assign(static_cast<u32>(streamer_id));
+        query_location.query_id.Assign(static_cast<u32>(new_query_id));
+        const auto gen_caching_indexing = [](VAddr cur_addr) {
+            return std::make_pair<u64, u32>(cur_addr >> Core::DEVICE_PAGEBITS,
+                                            static_cast<u32>(cur_addr & Core::DEVICE_PAGEMASK));
+        };
         u8* pointer = impl->device_memory.template GetPointer<u8>(cpu_addr);
         u8* pointer_timestamp = impl->device_memory.template GetPointer<u8>(cpu_addr + 8);
-        std::function<void()> operation([this, has_timestamp, payload, pointer, pointer_timestamp] {
-            if (has_timestamp) {
-                const u64 timestamp = impl->gpu.GetTicks();
-                const u64 value = static_cast<u64>(payload);
+        bool is_synced = !Settings::IsGPULevelHigh() && is_fence;
+        std::function<void()> operation([this, is_synced, streamer, query_base = query,
+                                         query_location, pointer, pointer_timestamp] {
+            if (True(query_base->flags & QueryFlagBits::IsInvalidated)) {
+                if (!is_synced) [[likely]] {
+                    impl->pending_unregister.push_back(query_location);
+                }
+                return;
+            }
+            if (False(query_base->flags & QueryFlagBits::IsFinalValueSynced)) [[unlikely]] {
+                LOG_ERROR(HW_GPU,
+                          "Query report value not synchronized. Consider increasing GPU accuracy.");
+                if (!is_synced) [[likely]] {
+                    impl->pending_unregister.push_back(query_location);
+                }
+                return;
+            }
+            query_base->value += streamer->GetAmendValue();
+            streamer->SetAccumulationValue(query_base->value);
+            if (True(query_base->flags & QueryFlagBits::HasTimestamp)) {
+                u64 timestamp = impl->gpu.GetTicks();
                 std::memcpy(pointer_timestamp, &timestamp, sizeof(timestamp));
-                std::memcpy(pointer, &value, sizeof(value));
+                std::memcpy(pointer, &query_base->value, sizeof(query_base->value));
             } else {
-                std::memcpy(pointer, &payload, sizeof(payload));
+                u32 value = static_cast<u32>(query_base->value);
+                std::memcpy(pointer, &value, sizeof(value));
+            }
+            if (!is_synced) [[likely]] {
+                impl->pending_unregister.push_back(query_location);
             }
         });
-        impl->rasterizer.SyncOperation(std::move(operation));
-        {
-            std::scoped_lock lk(impl->flush_guard);
-            impl->force_flush_uncommitted = true;
-        }
-        std::function<void()> noop([] {});
-        impl->rasterizer.SignalFence(std::move(noop));
-        return;
-    }
-
-    const size_t new_query_id = streamer->WriteCounter(cpu_addr, has_timestamp, payload, subreport);
-    auto* query = streamer->GetQuery(new_query_id);
-    if (is_fence) {
-        query->flags |= QueryFlagBits::IsFence;
-    }
-    QueryLocation query_location{};
-    query_location.stream_id.Assign(static_cast<u32>(streamer_id));
-    query_location.query_id.Assign(static_cast<u32>(new_query_id));
-    const auto gen_caching_indexing = [](VAddr cur_addr) {
-        return std::make_pair<u64, u32>(cur_addr >> Core::DEVICE_PAGEBITS,
-                                        static_cast<u32>(cur_addr & Core::DEVICE_PAGEMASK));
-    };
-    u8* pointer = impl->device_memory.template GetPointer<u8>(cpu_addr);
-    u8* pointer_timestamp = impl->device_memory.template GetPointer<u8>(cpu_addr + 8);
-    bool is_synced = !Settings::IsGPULevelHigh() && is_fence;
-    std::function<void()> operation([this, is_synced, streamer, query_base = query, query_location,
-                                     pointer, pointer_timestamp] {
-        if (True(query_base->flags & QueryFlagBits::IsInvalidated)) {
-            if (!is_synced) [[likely]] {
-                impl->pending_unregister.push_back(query_location);
-            }
-            return;
-        }
-        if (False(query_base->flags & QueryFlagBits::IsFinalValueSynced)) [[unlikely]] {
-            LOG_ERROR(HW_GPU,
-                      "Query report value not synchronized. Consider increasing GPU accuracy.");
-            if (!is_synced) [[likely]] {
-                impl->pending_unregister.push_back(query_location);
-            }
-            return;
-        }
-        query_base->value += streamer->GetAmendValue();
-        streamer->SetAccumulationValue(query_base->value);
-        if (True(query_base->flags & QueryFlagBits::HasTimestamp)) {
-            u64 timestamp = impl->gpu.GetTicks();
-            std::memcpy(pointer_timestamp, &timestamp, sizeof(timestamp));
-            std::memcpy(pointer, &query_base->value, sizeof(query_base->value));
+        if (is_fence) {
+            impl->rasterizer.SignalFence(std::move(operation));
         } else {
-            u32 value = static_cast<u32>(query_base->value);
-            std::memcpy(pointer, &value, sizeof(value));
-        }
-        if (!is_synced) [[likely]] {
-            impl->pending_unregister.push_back(query_location);
-        }
-    });
-    if (is_fence) {
-        impl->rasterizer.SignalFence(std::move(operation));
-    } else {
-        if (!Settings::IsGPULevelHigh() && counter_type == QueryType::Payload) {
-            if (has_timestamp) {
-                u64 timestamp = impl->gpu.GetTicks();
-                u64 value = static_cast<u64>(payload);
-                std::memcpy(pointer_timestamp, &timestamp, sizeof(timestamp));
-                std::memcpy(pointer, &value, sizeof(value));
-            } else {
-                std::memcpy(pointer, &payload, sizeof(payload));
+            if (!Settings::IsGPULevelHigh() && counter_type == QueryType::Payload) {
+                if (has_timestamp) {
+                    u64 timestamp = impl->gpu.GetTicks();
+                    u64 value = static_cast<u64>(payload);
+                    std::memcpy(pointer_timestamp, &timestamp, sizeof(timestamp));
+                    std::memcpy(pointer, &value, sizeof(value));
+                } else {
+                    std::memcpy(pointer, &payload, sizeof(payload));
+                }
+                streamer->Free(new_query_id);
+                return;
             }
+            impl->rasterizer.SyncOperation(std::move(operation));
+        }
+        if (is_synced) {
             streamer->Free(new_query_id);
             return;
         }
-        impl->rasterizer.SyncOperation(std::move(operation));
-    }
-    if (is_synced) {
-        streamer->Free(new_query_id);
-        return;
-    }
-    auto [cont_addr, base] = gen_caching_indexing(cpu_addr);
-    {
-        std::scoped_lock lock(cache_mutex);
-        auto it1 = cached_queries.try_emplace(cont_addr);
-        auto& sub_container = it1.first->second;
-        auto it_current = sub_container.find(base);
-        if (it_current == sub_container.end()) {
+        auto [cont_addr, base] = gen_caching_indexing(cpu_addr);
+        {
+            std::scoped_lock lock(cache_mutex);
+            auto it1 = cached_queries.try_emplace(cont_addr);
+            auto& sub_container = it1.first->second;
+            auto it_current = sub_container.find(base);
+            if (it_current == sub_container.end()) {
+                sub_container.insert_or_assign(base, query_location);
+                return;
+            }
+            auto* old_query = impl->ObtainQuery(it_current->second);
+            old_query->flags |= QueryFlagBits::IsRewritten;
             sub_container.insert_or_assign(base, query_location);
+        }
+    } else {
+        // Original routine (pre-commit 1).
+        const size_t new_query_id =
+            streamer->WriteCounter(cpu_addr, has_timestamp, payload, subreport);
+        auto* query = streamer->GetQuery(new_query_id);
+        if (is_fence) {
+            query->flags |= QueryFlagBits::IsFence;
+        }
+        QueryLocation query_location{};
+        query_location.stream_id.Assign(static_cast<u32>(streamer_id));
+        query_location.query_id.Assign(static_cast<u32>(new_query_id));
+        const auto gen_caching_indexing = [](VAddr cur_addr) {
+            return std::make_pair<u64, u32>(cur_addr >> Core::DEVICE_PAGEBITS,
+                                            static_cast<u32>(cur_addr & Core::DEVICE_PAGEMASK));
+        };
+        u8* pointer = impl->device_memory.template GetPointer<u8>(cpu_addr);
+        u8* pointer_timestamp = impl->device_memory.template GetPointer<u8>(cpu_addr + 8);
+        bool is_synced = !Settings::IsGPULevelHigh() && is_fence;
+        std::function<void()> operation([this, is_synced, streamer, query_base = query,
+                                         query_location, pointer, pointer_timestamp] {
+            if (True(query_base->flags & QueryFlagBits::IsInvalidated)) {
+                if (!is_synced) [[likely]] {
+                    impl->pending_unregister.push_back(query_location);
+                }
+                return;
+            }
+            if (False(query_base->flags & QueryFlagBits::IsFinalValueSynced)) [[unlikely]] {
+                LOG_ERROR(HW_GPU,
+                          "Query report value not synchronized. Consider increasing GPU accuracy.");
+                if (!is_synced) [[likely]] {
+                    impl->pending_unregister.push_back(query_location);
+                }
+                return;
+            }
+            query_base->value += streamer->GetAmendValue();
+            streamer->SetAccumulationValue(query_base->value);
+            if (True(query_base->flags & QueryFlagBits::HasTimestamp)) {
+                u64 timestamp = impl->gpu.GetTicks();
+                std::memcpy(pointer_timestamp, &timestamp, sizeof(timestamp));
+                std::memcpy(pointer, &query_base->value, sizeof(query_base->value));
+            } else {
+                u32 value = static_cast<u32>(query_base->value);
+                std::memcpy(pointer, &value, sizeof(value));
+            }
+            if (!is_synced) [[likely]] {
+                impl->pending_unregister.push_back(query_location);
+            }
+        });
+        if (is_fence) {
+            impl->rasterizer.SignalFence(std::move(operation));
+        } else {
+            if (!Settings::IsGPULevelHigh() && counter_type == QueryType::Payload) {
+                if (has_timestamp) {
+                    u64 timestamp = impl->gpu.GetTicks();
+                    u64 value = static_cast<u64>(payload);
+                    std::memcpy(pointer_timestamp, &timestamp, sizeof(timestamp));
+                    std::memcpy(pointer, &value, sizeof(value));
+                } else {
+                    std::memcpy(pointer, &payload, sizeof(payload));
+                }
+                streamer->Free(new_query_id);
+                return;
+            }
+            impl->rasterizer.SyncOperation(std::move(operation));
+        }
+        if (is_synced) {
+            streamer->Free(new_query_id);
             return;
         }
-        auto* old_query = impl->ObtainQuery(it_current->second);
-        old_query->flags |= QueryFlagBits::IsRewritten;
-        sub_container.insert_or_assign(base, query_location);
+        auto [cont_addr, base] = gen_caching_indexing(cpu_addr);
+        {
+            std::scoped_lock lock(cache_mutex);
+            auto it1 = cached_queries.try_emplace(cont_addr);
+            auto& sub_container = it1.first->second;
+            auto it_current = sub_container.find(base);
+            if (it_current == sub_container.end()) {
+                sub_container.insert_or_assign(base, query_location);
+                return;
+            }
+            auto* old_query = impl->ObtainQuery(it_current->second);
+            old_query->flags |= QueryFlagBits::IsRewritten;
+            sub_container.insert_or_assign(base, query_location);
+        }
     }
 }
 
@@ -486,91 +573,171 @@ bool QueryCacheBase<Traits>::AccelerateHostConditionalRendering() {
 // Async downloads
 template <typename Traits>
 void QueryCacheBase<Traits>::CommitAsyncFlushes() {
-    // Make sure to have the results synced in Host.
-    NotifyWFI();
+    if (Settings::getDebugKnobAt(0)) {
+        // Commit 1 (new routine).
+        NotifyWFI();
 
-    u64 mask{};
-    {
-        std::scoped_lock lk(impl->flush_guard);
-        impl->ForEachStreamer([&mask](StreamerInterface* streamer) {
-            bool local_result = streamer->HasUnsyncedQueries();
-            if (local_result) {
-                mask |= 1ULL << streamer->GetId();
-            }
-        });
-        impl->flushes_pending.push_back(mask);
-        impl->force_flushes_pending.push_back(impl->force_flush_uncommitted);
-        impl->force_flush_uncommitted = false;
-    }
-    std::function<void()> func([this] { UnregisterPending(); });
-    impl->rasterizer.SyncOperation(std::move(func));
-    if (mask == 0) {
-        return;
-    }
-    u64 ran_mask = ~mask;
-    while (mask) {
-        impl->ForEachStreamerIn(mask, [&mask, &ran_mask](StreamerInterface* streamer) {
-            u64 dep_mask = streamer->GetDependentMask();
-            if ((dep_mask & ~ran_mask) != 0) {
-                return;
-            }
-            u64 index = streamer->GetId();
-            ran_mask |= (1ULL << index);
-            mask &= ~(1ULL << index);
-            streamer->PushUnsyncedQueries();
-        });
+        u64 mask{};
+        {
+            std::scoped_lock lk(impl->flush_guard);
+            impl->ForEachStreamer([&mask](StreamerInterface* streamer) {
+                bool local_result = streamer->HasUnsyncedQueries();
+                if (local_result) {
+                    mask |= 1ULL << streamer->GetId();
+                }
+            });
+            impl->flushes_pending.push_back(mask);
+            impl->force_flushes_pending.push_back(impl->force_flush_uncommitted);
+            impl->force_flush_uncommitted = false;
+        }
+        std::function<void()> func([this] { UnregisterPending(); });
+        impl->rasterizer.SyncOperation(std::move(func));
+        if (mask == 0) {
+            return;
+        }
+        u64 ran_mask = ~mask;
+        while (mask) {
+            impl->ForEachStreamerIn(mask, [&mask, &ran_mask](StreamerInterface* streamer) {
+                u64 dep_mask = streamer->GetDependentMask();
+                if ((dep_mask & ~ran_mask) != 0) {
+                    return;
+                }
+                u64 index = streamer->GetId();
+                ran_mask |= (1ULL << index);
+                mask &= ~(1ULL << index);
+                streamer->PushUnsyncedQueries();
+            });
+        }
+    } else {
+        // Original routine (pre-commit 1).
+        NotifyWFI();
+
+        u64 mask{};
+        {
+            std::scoped_lock lk(impl->flush_guard);
+            impl->ForEachStreamer([&mask](StreamerInterface* streamer) {
+                bool local_result = streamer->HasUnsyncedQueries();
+                if (local_result) {
+                    mask |= 1ULL << streamer->GetId();
+                }
+            });
+            impl->flushes_pending.push_back(mask);
+        }
+        std::function<void()> func([this] { UnregisterPending(); });
+        impl->rasterizer.SyncOperation(std::move(func));
+        if (mask == 0) {
+            return;
+        }
+        u64 ran_mask = ~mask;
+        while (mask) {
+            impl->ForEachStreamerIn(mask, [&mask, &ran_mask](StreamerInterface* streamer) {
+                u64 dep_mask = streamer->GetDependentMask();
+                if ((dep_mask & ~ran_mask) != 0) {
+                    return;
+                }
+                u64 index = streamer->GetId();
+                ran_mask |= (1ULL << index);
+                mask &= ~(1ULL << index);
+                streamer->PushUnsyncedQueries();
+            });
+        }
     }
 }
 
 template <typename Traits>
 bool QueryCacheBase<Traits>::HasUncommittedFlushes() const {
-    {
-        std::scoped_lock lk(impl->flush_guard);
-        if (impl->force_flush_uncommitted) {
-            return true;
+    if (Settings::getDebugKnobAt(0)) {
+        // Commit 1 (new routine).
+        {
+            std::scoped_lock lk(impl->flush_guard);
+            if (impl->force_flush_uncommitted) {
+                return true;
+            }
         }
-    }
-    bool result = false;
-    impl->ForEachStreamer([&result](StreamerInterface* streamer) {
-        result |= streamer->HasUnsyncedQueries();
+        bool result = false;
+        impl->ForEachStreamer([&result](StreamerInterface* streamer) {
+            result |= streamer->HasUnsyncedQueries();
+            return result;
+        });
         return result;
-    });
-    return result;
+    } else {
+        // Original routine (pre-commit 1).
+        bool result = false;
+        impl->ForEachStreamer([&result](StreamerInterface* streamer) {
+            result |= streamer->HasUnsyncedQueries();
+            return result;
+        });
+        return result;
+    }
 }
 
 template <typename Traits>
 bool QueryCacheBase<Traits>::ShouldWaitAsyncFlushes() {
-    std::scoped_lock lk(impl->flush_guard);
-    if (impl->flushes_pending.empty()) {
-        return false;
+    if (Settings::getDebugKnobAt(0)) {
+        // Commit 1 (new routine).
+        std::scoped_lock lk(impl->flush_guard);
+        if (impl->flushes_pending.empty()) {
+            return false;
+        }
+        return impl->flushes_pending.front() != 0ULL || impl->force_flushes_pending.front();
+    } else {
+        // Original routine (pre-commit 1).
+        std::scoped_lock lk(impl->flush_guard);
+        return !impl->flushes_pending.empty() && impl->flushes_pending.front() != 0ULL;
     }
-    return impl->flushes_pending.front() != 0ULL || impl->force_flushes_pending.front();
 }
 
 template <typename Traits>
 void QueryCacheBase<Traits>::PopAsyncFlushes() {
-    u64 mask;
-    {
-        std::scoped_lock lk(impl->flush_guard);
-        mask = impl->flushes_pending.front();
-        impl->flushes_pending.pop_front();
-        impl->force_flushes_pending.pop_front();
-    }
-    if (mask == 0) {
-        return;
-    }
-    u64 ran_mask = ~mask;
-    while (mask) {
-        impl->ForEachStreamerIn(mask, [&mask, &ran_mask](StreamerInterface* streamer) {
-            u64 dep_mask = streamer->GetDependenceMask();
-            if ((dep_mask & ~ran_mask) != 0) {
-                return;
-            }
-            u64 index = streamer->GetId();
-            ran_mask |= (1ULL << index);
-            mask &= ~(1ULL << index);
-            streamer->PopUnsyncedQueries();
-        });
+    if (Settings::getDebugKnobAt(0)) {
+        // Commit 1 (new routine).
+        u64 mask;
+        {
+            std::scoped_lock lk(impl->flush_guard);
+            mask = impl->flushes_pending.front();
+            impl->flushes_pending.pop_front();
+            impl->force_flushes_pending.pop_front();
+        }
+        if (mask == 0) {
+            return;
+        }
+        u64 ran_mask = ~mask;
+        while (mask) {
+            impl->ForEachStreamerIn(mask, [&mask, &ran_mask](StreamerInterface* streamer) {
+                u64 dep_mask = streamer->GetDependenceMask();
+                if ((dep_mask & ~ran_mask) != 0) {
+                    return;
+                }
+                u64 index = streamer->GetId();
+                ran_mask |= (1ULL << index);
+                mask &= ~(1ULL << index);
+                streamer->PopUnsyncedQueries();
+            });
+        }
+    } else {
+        // Original routine (pre-commit 1).
+        u64 mask;
+        {
+            std::scoped_lock lk(impl->flush_guard);
+            mask = impl->flushes_pending.front();
+            impl->flushes_pending.pop_front();
+        }
+        if (mask == 0) {
+            return;
+        }
+        u64 ran_mask = ~mask;
+        while (mask) {
+            impl->ForEachStreamerIn(mask, [&mask, &ran_mask](StreamerInterface* streamer) {
+                u64 dep_mask = streamer->GetDependenceMask();
+                if ((dep_mask & ~ran_mask) != 0) {
+                    return;
+                }
+                u64 index = streamer->GetId();
+                ran_mask |= (1ULL << index);
+                mask &= ~(1ULL << index);
+                streamer->PopUnsyncedQueries();
+            });
+        }
     }
 }
 
