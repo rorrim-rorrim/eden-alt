@@ -462,7 +462,6 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         bind_stage_info(4);
     }
 
-    buffer_cache.runtime.SetUseVertexInputBindingStrideDynamicState(UsesExtendedDynamicState());
     buffer_cache.UpdateGraphicsBuffers(is_indexed);
     buffer_cache.BindHostGeometryBuffers(is_indexed);
 
@@ -906,8 +905,6 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             VK_DYNAMIC_STATE_STENCIL_OP_EXT,
         };
         dynamic_states.insert(dynamic_states.end(), extended.begin(), extended.end());
-
-        dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT);
     } else {
         dynamic_states.push_back(VK_DYNAMIC_STATE_VIEWPORT);
         dynamic_states.push_back(VK_DYNAMIC_STATE_SCISSOR);

@@ -598,26 +598,14 @@ void BufferCacheRuntime::BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset
     if (index >= device.GetMaxVertexInputBindings()) {
         return;
     }
-    const bool use_dynamic_vertex_input_binding_stride =
-        device.IsExtExtendedDynamicStateSupported() &&
-        use_vertex_input_binding_stride_dynamic_state;
-    if (use_dynamic_vertex_input_binding_stride) {
-        scheduler.Record([index, buffer, offset, size, stride](vk::CommandBuffer cmdbuf) {
-            const VkDeviceSize vk_offset = buffer != VK_NULL_HANDLE ? offset : 0;
-            const VkDeviceSize vk_size = buffer != VK_NULL_HANDLE ? size : VK_WHOLE_SIZE;
-            const VkDeviceSize vk_stride = stride;
-            cmdbuf.BindVertexBuffers2EXT(index, 1, &buffer, &vk_offset, &vk_size, &vk_stride);
-        });
-    } else {
-        if (!device.HasNullDescriptor() && buffer == VK_NULL_HANDLE) {
-            ReserveNullBuffer();
-            buffer = *null_buffer;
-            offset = 0;
-        }
-        scheduler.Record([index, buffer, offset](vk::CommandBuffer cmdbuf) {
-            cmdbuf.BindVertexBuffer(index, buffer, offset);
-        });
+    if (!device.HasNullDescriptor() && buffer == VK_NULL_HANDLE) {
+        ReserveNullBuffer();
+        buffer = *null_buffer;
+        offset = 0;
     }
+    scheduler.Record([index, buffer, offset](vk::CommandBuffer cmdbuf) {
+        cmdbuf.BindVertexBuffer(index, buffer, offset);
+    });
 }
 
 void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings) {
@@ -641,25 +629,12 @@ void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bi
     if (binding_count == 0) {
         return;
     }
-    const bool use_dynamic_vertex_input_binding_stride =
-        device.IsExtExtendedDynamicStateSupported() &&
-        use_vertex_input_binding_stride_dynamic_state;
-    if (use_dynamic_vertex_input_binding_stride) {
-        scheduler.Record([bindings_ = std::move(bindings),
-                          buffer_handles_ = std::move(buffer_handles),
-                          binding_count](vk::CommandBuffer cmdbuf) {
-            cmdbuf.BindVertexBuffers2EXT(bindings_.min_index, binding_count, buffer_handles_.data(),
-                                         bindings_.offsets.data(), bindings_.sizes.data(),
-                                         bindings_.strides.data());
-        });
-    } else {
-        scheduler.Record([bindings_ = std::move(bindings),
-                          buffer_handles_ = std::move(buffer_handles),
-                          binding_count](vk::CommandBuffer cmdbuf) {
-            cmdbuf.BindVertexBuffers(bindings_.min_index, binding_count, buffer_handles_.data(),
-                                     bindings_.offsets.data());
-        });
-    }
+    scheduler.Record([bindings_ = std::move(bindings),
+                      buffer_handles_ = std::move(buffer_handles),
+                      binding_count](vk::CommandBuffer cmdbuf) {
+        cmdbuf.BindVertexBuffers(bindings_.min_index, binding_count, buffer_handles_.data(),
+                                 bindings_.offsets.data());
+    });
 }
 
 void BufferCacheRuntime::BindTransformFeedbackBuffer(u32 index, VkBuffer buffer, u32 offset,
