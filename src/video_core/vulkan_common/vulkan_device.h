@@ -542,12 +542,10 @@ public:
         return extensions.transform_feedback;
     }
 
-    /// Returns true if the device supports VK_EXT_transform_feedback.
     bool AreTransformFeedbackGeometryStreamsSupported() const {
         return features.transform_feedback.geometryStreams;
     }
 
-    /// Returns true if transform feedback preserves provoking vertex.
     bool IsTransformFeedbackProvokingVertexPreserved() const {
         return features.provoking_vertex.transformFeedbackPreservesProvokingVertex;
     }
@@ -714,7 +712,7 @@ public:
         return has_renderdoc || has_nsight_graphics || has_radeon_gpu_profiler;
     }
 
-    /// @returns True if compute pipelines can cause crashing.
+    /// Returns true if compute pipelines can cause crashing.
     bool HasBrokenCompute() const {
         return has_broken_compute;
     }
