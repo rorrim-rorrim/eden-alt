@@ -168,7 +168,9 @@ struct QueryCacheBase<Traits>::QueryCacheBaseImpl {
     std::array<StreamerInterface*, static_cast<size_t>(QueryType::MaxQueryTypes)> streamers;
     u64 streamer_mask;
     std::mutex flush_guard;
+    bool force_flush_uncommitted{};
     std::deque<u64> flushes_pending;
+    std::deque<bool> force_flushes_pending;
     std::vector<QueryCacheBase<Traits>::QueryLocation> pending_unregister;
 };
 
@@ -246,6 +248,30 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
         return;
     }
     DAddr cpu_addr = *cpu_addr_opt;
+
+    if (is_fence && counter_type == QueryType::Payload) {
+        u8* pointer = impl->device_memory.template GetPointer<u8>(cpu_addr);
+        u8* pointer_timestamp = impl->device_memory.template GetPointer<u8>(cpu_addr + 8);
+        std::function<void()> operation([this, has_timestamp, payload, pointer, pointer_timestamp] {
+            if (has_timestamp) {
+                const u64 timestamp = impl->gpu.GetTicks();
+                const u64 value = static_cast<u64>(payload);
+                std::memcpy(pointer_timestamp, &timestamp, sizeof(timestamp));
+                std::memcpy(pointer, &value, sizeof(value));
+            } else {
+                std::memcpy(pointer, &payload, sizeof(payload));
+            }
+        });
+        impl->rasterizer.SyncOperation(std::move(operation));
+        {
+            std::scoped_lock lk(impl->flush_guard);
+            impl->force_flush_uncommitted = true;
+        }
+        std::function<void()> noop([] {});
+        impl->rasterizer.SignalFence(std::move(noop));
+        return;
+    }
+
     const size_t new_query_id = streamer->WriteCounter(cpu_addr, has_timestamp, payload, subreport);
     auto* query = streamer->GetQuery(new_query_id);
     if (is_fence) {
@@ -473,6 +499,8 @@ void QueryCacheBase<Traits>::CommitAsyncFlushes() {
             }
         });
         impl->flushes_pending.push_back(mask);
+        impl->force_flushes_pending.push_back(impl->force_flush_uncommitted);
+        impl->force_flush_uncommitted = false;
     }
     std::function<void()> func([this] { UnregisterPending(); });
     impl->rasterizer.SyncOperation(std::move(func));
@@ -496,6 +524,12 @@ void QueryCacheBase<Traits>::CommitAsyncFlushes() {
 
 template <typename Traits>
 bool QueryCacheBase<Traits>::HasUncommittedFlushes() const {
+    {
+        std::scoped_lock lk(impl->flush_guard);
+        if (impl->force_flush_uncommitted) {
+            return true;
+        }
+    }
     bool result = false;
     impl->ForEachStreamer([&result](StreamerInterface* streamer) {
         result |= streamer->HasUnsyncedQueries();
@@ -507,7 +541,10 @@ bool QueryCacheBase<Traits>::HasUncommittedFlushes() const {
 template <typename Traits>
 bool QueryCacheBase<Traits>::ShouldWaitAsyncFlushes() {
     std::scoped_lock lk(impl->flush_guard);
-    return !impl->flushes_pending.empty() && impl->flushes_pending.front() != 0ULL;
+    if (impl->flushes_pending.empty()) {
+        return false;
+    }
+    return impl->flushes_pending.front() != 0ULL || impl->force_flushes_pending.front();
 }
 
 template <typename Traits>
@@ -517,6 +554,7 @@ void QueryCacheBase<Traits>::PopAsyncFlushes() {
         std::scoped_lock lk(impl->flush_guard);
         mask = impl->flushes_pending.front();
         impl->flushes_pending.pop_front();
+        impl->force_flushes_pending.pop_front();
     }
     if (mask == 0) {
         return;
