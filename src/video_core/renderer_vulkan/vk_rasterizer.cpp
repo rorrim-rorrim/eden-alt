@@ -1169,7 +1169,9 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
             .minDepth = 0.0f,
             .maxDepth = 1.0f,
         };
-        const bool use_viewport_with_count = device.IsExtExtendedDynamicStateSupported();
+        GraphicsPipeline* pipeline = pipeline_cache.CurrentGraphicsPipeline();
+        const bool use_viewport_with_count = device.IsExtExtendedDynamicStateSupported() &&
+                                             (!pipeline || pipeline->UsesExtendedDynamicState());
         scheduler.Record([viewport, use_viewport_with_count](vk::CommandBuffer cmdbuf) {
             if (use_viewport_with_count) {
                 std::array viewports{viewport};
@@ -1192,7 +1194,9 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
         GetViewportState(device, regs, 12, scale), GetViewportState(device, regs, 13, scale),
         GetViewportState(device, regs, 14, scale), GetViewportState(device, regs, 15, scale),
     };
-    const bool use_viewport_with_count = device.IsExtExtendedDynamicStateSupported();
+    GraphicsPipeline* pipeline = pipeline_cache.CurrentGraphicsPipeline();
+    const bool use_viewport_with_count = device.IsExtExtendedDynamicStateSupported() &&
+                                         (!pipeline || pipeline->UsesExtendedDynamicState());
     scheduler.Record([this, viewport_list, use_viewport_with_count](vk::CommandBuffer cmdbuf) {
         const u32 num_viewports = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
         const vk::Span<VkViewport> viewports(viewport_list.data(), num_viewports);
@@ -1221,7 +1225,9 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
         scissor.offset.y = static_cast<int32_t>(y);
         scissor.extent.width  = width;
         scissor.extent.height = height;
-        const bool use_scissor_with_count = device.IsExtExtendedDynamicStateSupported();
+        GraphicsPipeline* pipeline = pipeline_cache.CurrentGraphicsPipeline();
+        const bool use_scissor_with_count = device.IsExtExtendedDynamicStateSupported() &&
+                                            (!pipeline || pipeline->UsesExtendedDynamicState());
         scheduler.Record([scissor, use_scissor_with_count](vk::CommandBuffer cmdbuf) {
             if (use_scissor_with_count) {
                 std::array scissors{scissor};
@@ -1256,7 +1262,9 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
         GetScissorState(regs, 14, up_scale, down_shift),
         GetScissorState(regs, 15, up_scale, down_shift),
     };
-    const bool use_scissor_with_count = device.IsExtExtendedDynamicStateSupported();
+    GraphicsPipeline* pipeline = pipeline_cache.CurrentGraphicsPipeline();
+    const bool use_scissor_with_count = device.IsExtExtendedDynamicStateSupported() &&
+                                        (!pipeline || pipeline->UsesExtendedDynamicState());
     scheduler.Record([this, scissor_list, use_scissor_with_count](vk::CommandBuffer cmdbuf) {
         const u32 num_scissors = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
         const vk::Span<VkRect2D> scissors(scissor_list.data(), num_scissors);
