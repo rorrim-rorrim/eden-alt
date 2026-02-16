@@ -595,6 +595,16 @@ public:
         return features.custom_border_color.customBorderColorWithoutFormat;
     }
 
+    /// Returns true if physical device custom border color properties were queried.
+    bool HasCustomBorderColorProperties() const {
+        return has_custom_border_color_properties;
+    }
+
+    /// Returns the queried VkPhysicalDeviceCustomBorderColorPropertiesEXT.
+    const VkPhysicalDeviceCustomBorderColorPropertiesEXT& GetCustomBorderColorProperties() const {
+        return custom_border_color_properties;
+    }
+
     /// Returns true if the device supports VK_EXT_extended_dynamic_state.
     bool IsExtExtendedDynamicStateSupported() const {
         return extensions.extended_dynamic_state;
@@ -618,6 +628,10 @@ public:
     bool IsExtFilterCubicSupported() const {
         return extensions.filter_cubic;
     }
+
+    /// Custom border color properties retrieved from the physical device (if available).
+    VkPhysicalDeviceCustomBorderColorPropertiesEXT custom_border_color_properties{};
+    bool has_custom_border_color_properties = false;
 
     /// Returns true if the device supports VK_QCOM_filter_cubic_weights.
     bool IsQcomFilterCubicWeightsSupported() const {

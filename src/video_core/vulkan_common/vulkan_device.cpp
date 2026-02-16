@@ -1103,6 +1103,20 @@ bool Device::GetSuitability(bool requires_swapchain) {
     // Unload extensions if feature support is insufficient.
     RemoveUnsuitableExtensions();
 
+    // Query VK_EXT_custom_border_color properties if the extension is enabled.
+    if (extensions.custom_border_color) {
+        const auto fp = reinterpret_cast<PFN_vkGetPhysicalDeviceCustomBorderColorPropertiesEXT>(
+            dld.vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceCustomBorderColorPropertiesEXT"));
+        if (fp != nullptr) {
+            custom_border_color_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_PROPERTIES_EXT;
+            custom_border_color_properties.pNext = nullptr;
+            fp(physical, &custom_border_color_properties);
+            has_custom_border_color_properties = true;
+        } else {
+            has_custom_border_color_properties = false;
+        }
+    }
+
     // Check limits.
     struct Limit {
         u32 minimum;
