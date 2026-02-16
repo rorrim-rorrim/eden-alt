@@ -140,7 +140,6 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdSetViewport);
     X(vkCmdSetViewportWithCountEXT);
     X(vkCmdWaitEvents);
-    X(vkCmdBindVertexBuffers2EXT);
     X(vkCmdSetCullModeEXT);
     X(vkCmdSetDepthBoundsTestEnableEXT);
     X(vkCmdSetDepthCompareOpEXT);
