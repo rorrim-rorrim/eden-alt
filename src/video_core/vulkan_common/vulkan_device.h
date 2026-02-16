@@ -692,6 +692,10 @@ public:
         return extensions.conditional_rendering;
     }
 
+    bool IsExtConditionalRendering() const {
+        return IsExtConditionalRenderingSupported();
+    }
+
     bool HasTimelineSemaphore() const;
 
     /// Returns the minimum supported version of SPIR-V.
