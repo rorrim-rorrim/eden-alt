@@ -127,13 +127,6 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     depth_bounds_min = static_cast<u32>(regs.depth_bounds[0]);
     depth_bounds_max = static_cast<u32>(regs.depth_bounds[1]);
 
-    depth_bias = std::bit_cast<u32>(regs.depth_bias);
-    depth_bias_clamp = std::bit_cast<u32>(regs.depth_bias_clamp);
-    slope_scale_depth_bias = std::bit_cast<u32>(regs.slope_scale_depth_bias);
-
-    line_width_smooth = std::bit_cast<u32>(regs.line_width_smooth);
-    line_width_aliased = std::bit_cast<u32>(regs.line_width_aliased);
-
     line_stipple_factor = regs.line_stipple_params.factor;
     line_stipple_pattern = regs.line_stipple_params.pattern;
 
