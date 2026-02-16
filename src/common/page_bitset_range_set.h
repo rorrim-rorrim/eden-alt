@@ -4,6 +4,7 @@
 #pragma once
 
 #include <algorithm>
+#include <bitset>
 #include <cstddef>
 #include <cstdint>
 #include <vector>
@@ -16,8 +17,8 @@ namespace Common {
 template <typename AddressType, u32 PageBits, u64 MaxAddress>
 class PageBitsetRangeSet {
 public:
-    PageBitsetRangeSet() : m_words(kWordCount) {
-        static_assert((MaxAddress % kPageSize) == 0, "MaxAddress must be page-aligned.");
+    PageBitsetRangeSet() {
+        static_assert((MaxAddress % PAGE_SIZE) == 0, "MaxAddress must be page-aligned.");
     }
 
     void Add(AddressType base_address, size_t size) {
@@ -41,11 +42,11 @@ public:
         if (size == 0 || m_words.empty()) {
             return;
         }
-        const AddressType end_address = base_address + static_cast<AddressType>(size);
-        const u64 start_page = static_cast<u64>(base_address) >> PageBits;
-        const u64 end_page = Common::DivCeil(static_cast<u64>(end_address), kPageSize);
-        const u64 clamped_start = (std::min)(start_page, kPageCount);
-        const u64 clamped_end = (std::min)(end_page, kPageCount);
+        const AddressType end_address = base_address + AddressType(size);
+        const u64 start_page = u64(base_address) >> PageBits;
+        const u64 end_page = Common::DivCeil(u64(end_address), PAGE_SIZE);
+        const u64 clamped_start = (std::min)(start_page, PAGE_COUNT);
+        const u64 clamped_end = (std::min)(end_page, PAGE_COUNT);
         if (clamped_start >= clamped_end) {
             return;
         }
@@ -71,9 +72,8 @@ public:
     }
 
 private:
-    static constexpr u64 kPageSize = u64{1} << PageBits;
-    static constexpr u64 kPageCount = MaxAddress / kPageSize;
-    static constexpr u64 kWordCount = (kPageCount + 63) / 64;
+    static constexpr u64 PAGE_SIZE = u64{1} << PageBits;
+    static constexpr u64 PAGE_COUNT = MaxAddress / PAGE_SIZE;
 
     void Modify(AddressType base_address, size_t size, bool set_bits) {
         if (size == 0 || m_words.empty()) {
@@ -81,9 +81,9 @@ private:
         }
         const AddressType end_address = base_address + static_cast<AddressType>(size);
         const u64 start_page = static_cast<u64>(base_address) >> PageBits;
-        const u64 end_page = Common::DivCeil(static_cast<u64>(end_address), kPageSize);
-        const u64 clamped_start = (std::min)(start_page, kPageCount);
-        const u64 clamped_end = (std::min)(end_page, kPageCount);
+        const u64 end_page = Common::DivCeil(static_cast<u64>(end_address), PAGE_SIZE);
+        const u64 clamped_start = (std::min)(start_page, PAGE_COUNT);
+        const u64 clamped_end = (std::min)(end_page, PAGE_COUNT);
         if (clamped_start >= clamped_end) {
             return;
         }
@@ -105,27 +105,22 @@ private:
         if (set_bits) {
             m_words[start_word] |= start_mask;
             m_words[end_word] |= end_mask;
-            std::fill(m_words.begin() + static_cast<std::ptrdiff_t>(start_word + 1),
-                      m_words.begin() + static_cast<std::ptrdiff_t>(end_word), ~0ULL);
+            std::fill(m_words.begin() + std::ptrdiff_t(start_word + 1), m_words.begin() + std::ptrdiff_t(end_word), ~0ULL);
         } else {
             m_words[start_word] &= ~start_mask;
             m_words[end_word] &= ~end_mask;
-            std::fill(m_words.begin() + static_cast<std::ptrdiff_t>(start_word + 1),
-                      m_words.begin() + static_cast<std::ptrdiff_t>(end_word), 0ULL);
+            std::fill(m_words.begin() + std::ptrdiff_t(start_word + 1), m_words.begin() + std::ptrdiff_t(end_word), 0ULL);
         }
     }
 
     bool Test(u64 page) const {
-        const u64 word = page / 64;
-        const u64 bit = page % 64;
-        return (m_words[word] & (1ULL << bit)) != 0;
+        return m_words[page / m_words.size()].test(page % m_words.size());
     }
 
     template <typename Func>
-    static void EmitRun(u64 run_start_page, u64 run_end_page, AddressType base_address,
-                        AddressType end_address, Func&& func) {
-        AddressType run_start = static_cast<AddressType>(run_start_page * kPageSize);
-        AddressType run_end = static_cast<AddressType>(run_end_page * kPageSize);
+    static void EmitRun(u64 run_start_page, u64 run_end_page, AddressType base_address, AddressType end_address, Func&& func) {
+        AddressType run_start = run_start_page * PAGE_SIZE;
+        AddressType run_end = run_end_page * PAGE_SIZE;
         if (run_start < base_address) {
             run_start = base_address;
         }
@@ -137,7 +132,7 @@ private:
         }
     }
 
-    std::vector<u64> m_words;
+    std::array<std::bitset<64>, (PAGE_COUNT + 63) / 64> m_words;
 };
 
 } // namespace Common
