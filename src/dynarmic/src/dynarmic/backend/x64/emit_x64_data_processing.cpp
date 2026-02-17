@@ -1199,52 +1199,45 @@ void EmitX64::EmitUnsignedDiv64(EmitContext& ctx, IR::Inst* inst) {
 
 void EmitX64::EmitSignedDiv32(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    auto const idiv_rax = ctx.reg_alloc.ScratchGpr(code, HostLoc::RAX).cvt32();
-    auto const idiv_rdx = ctx.reg_alloc.ScratchGpr(code, HostLoc::RDX).cvt32();
-    auto const dividend = ctx.reg_alloc.UseGpr(code, args[0]).cvt32();
+    ctx.reg_alloc.ScratchGpr(code, HostLoc::RDX);
+    ctx.reg_alloc.UseScratch(code, args[0], HostLoc::RAX);
     auto const divisor = ctx.reg_alloc.UseGpr(code, args[1]).cvt32();
     Xbyak::Label end, ok;
-    code.xor_(idiv_rax, idiv_rax);
     code.test(divisor, divisor);
     code.jz(end, code.T_NEAR);
-    code.mov(idiv_rdx, u32(-1));
-    code.cmp(divisor, idiv_rdx); // is sign extended
+    code.cmp(divisor, u32(-1)); // is sign extended
     code.jne(ok, code.T_NEAR);
-    code.mov(idiv_rax, u32(1ULL << 31));
-    code.cmp(dividend, idiv_rax);
+    code.cmp(eax, u32(1ULL << 31));
     code.je(end, code.T_NEAR);
     code.L(ok);
-    code.mov(idiv_rax, dividend);
-    code.cqo();
+    code.cdq();
     code.idiv(divisor);
     code.L(end);
-    ctx.reg_alloc.DefineValue(code, inst, idiv_rax);
-    (void)idiv_rdx;
+    ctx.reg_alloc.DefineValue(code, inst, eax);
 }
 
 void EmitX64::EmitSignedDiv64(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    auto const idiv_rax = ctx.reg_alloc.ScratchGpr(code, HostLoc::RAX);
-    auto const idiv_rdx = ctx.reg_alloc.ScratchGpr(code, HostLoc::RDX);
+    ctx.reg_alloc.ScratchGpr(code, HostLoc::RAX);
+    ctx.reg_alloc.ScratchGpr(code, HostLoc::RDX);
     auto const dividend = ctx.reg_alloc.UseGpr(code, args[0]);
     auto const divisor = ctx.reg_alloc.UseGpr(code, args[1]);
     Xbyak::Label end, ok;
-    code.xor_(idiv_rax.cvt32(), idiv_rax.cvt32());
+    code.xor_(eax, eax);
     code.test(divisor, divisor);
-    code.jz(end, code.T_NEAR);
-    code.mov(idiv_rdx, u64(-1));
-    code.cmp(divisor, idiv_rdx); // is sign extended
+    code.jz(end, code.T_NEAR); // rax = 0, if divisor == 0
+    code.mov(rdx, u64(-1));
+    code.cmp(divisor, rdx); // is sign extended
     code.jne(ok, code.T_NEAR);
-    code.mov(idiv_rax, u64(1ULL << 63));
-    code.cmp(dividend, idiv_rax);
-    code.je(end, code.T_NEAR);
+    code.mov(rax, u64(1ULL << 63));
+    code.cmp(dividend, rax);
+    code.je(end, code.T_NEAR); // rax = 0x8000_0000 if dividend is same
     code.L(ok);
-    code.mov(idiv_rax, dividend);
+    code.mov(rax, dividend);
     code.cqo();
     code.idiv(divisor);
     code.L(end);
-    ctx.reg_alloc.DefineValue(code, inst, idiv_rax);
-    (void)idiv_rdx;
+    ctx.reg_alloc.DefineValue(code, inst, rax);
 }
 
 void EmitX64::EmitAnd32(EmitContext& ctx, IR::Inst* inst) {

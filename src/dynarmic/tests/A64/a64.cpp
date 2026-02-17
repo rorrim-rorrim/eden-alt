@@ -1495,50 +1495,57 @@ TEST_CASE("A64: SDIV maximally (Immediate)", "[a64]") {
     A64TestEnv env;
     A64::UserConfig jit_user_config{};
     jit_user_config.callbacks = &env;
-    jit_user_config.optimizations = all_safe_optimizations;
-    A64::Jit jit{jit_user_config};
+    auto const do_sdiv_code = [&] {
+        A64::Jit jit{jit_user_config};
+        oaknut::VectorCodeGenerator code{env.code_mem, nullptr};
+        code.MOVZ(X12, 0xffff);
+        code.MOVZ(X11, 0x8000);
+        code.MOVZ(X10, 0x0000);
 
-    oaknut::VectorCodeGenerator code{env.code_mem, nullptr};
-    code.MOVZ(X12, 0xffff);
-    code.MOVZ(X11, 0x8000);
-    code.MOVZ(X10, 0x0000);
+        // 0xffff_ffff
+        code.MOV(X0, X12);
+        code.LSL(X0, X0, 16);
+        code.ORR(X0, X0, X12);
+        code.LSL(X0, X0, 16);
+        code.ORR(X0, X0, X12);
+        code.LSL(X0, X0, 16);
+        code.ORR(X0, X0, X12);
 
-    // 0xffff_ffff
-    code.MOV(X0, X12);
-    code.LSL(X0, X0, 16);
-    code.ORR(X0, X0, X12);
-    code.LSL(X0, X0, 16);
-    code.ORR(X0, X0, X12);
-    code.LSL(X0, X0, 16);
-    code.ORR(X0, X0, X12);
+        // 0x8000_0000
+        code.MOV(X1, X11);
+        code.LSL(X1, X1, 16);
+        code.ORR(X1, X1, X10);
+        code.LSL(X1, X1, 16);
+        code.ORR(X1, X1, X10);
+        code.LSL(X1, X1, 16);
+        code.ORR(X1, X1, X10);
 
-    // 0x8000_0000
-    code.MOV(X1, X11);
-    code.LSL(X1, X1, 16);
-    code.ORR(X1, X1, X10);
-    code.LSL(X1, X1, 16);
-    code.ORR(X1, X1, X10);
-    code.LSL(X1, X1, 16);
-    code.ORR(X1, X1, X10);
+        // 0xffff_ffff
+        code.MOV(X3, X12);
+        code.LSL(X3, X3, 16);
+        code.ORR(X3, X3, X12);
 
-    // 0xffff_ffff
-    code.MOV(X3, X12);
-    code.LSL(X3, X3, 16);
-    code.ORR(X3, X3, X12);
+        // 0x8000_0000
+        code.MOV(X4, X11);
+        code.LSL(X4, X4, 16);
+        code.ORR(X4, X4, X10);
 
-    // 0x8000_0000
-    code.MOV(X4, X11);
-    code.LSL(X4, X4, 16);
-    code.ORR(X4, X4, X10);
+        code.SDIV(X2, X1, X0);
+        code.SDIV(W5, W4, W3);
 
-    code.SDIV(X2, X1, X0);
-    code.SDIV(W5, W4, W3);
-
-    jit.SetPC(0);
-
-    env.ticks_left = env.code_mem.size();
-    CheckedRun([&]() { jit.Run(); });
-    REQUIRE(jit.GetRegister(5) == 0x80000000);
+        jit.SetPC(0);
+        env.ticks_left = env.code_mem.size();
+        CheckedRun([&]() { jit.Run(); });
+        REQUIRE(jit.GetRegister(5) == 0x80000000);
+    };
+    SECTION("With no opts") {
+        jit_user_config.optimizations = no_optimizations;
+        do_sdiv_code();
+    }
+    SECTION("With opts + constant folding") {
+        jit_user_config.optimizations = all_safe_optimizations;
+        do_sdiv_code();
+    }
 }
 
 // Restricted register set required to trigger:

@@ -832,12 +832,12 @@ static void FoldCountLeadingZeros(IR::Inst& inst, bool is_32_bit) {
 static void FoldDivide(IR::Inst& inst, bool is_32_bit, bool is_signed) {
     const auto rhs = inst.GetArg(1);
     const auto lhs = inst.GetArg(0);
-    if (rhs.IsZero()) {
+    if (lhs.IsZero() || rhs.IsZero()) {
         ReplaceUsesWith(inst, is_32_bit, u64(0));
+   } else if (!is_32_bit && lhs.IsUnsignedImmediate(u64(1ULL << 63)) && rhs.IsUnsignedImmediate(u64(-1))) {
+       ReplaceUsesWith(inst, is_32_bit, u64(1ULL << 63));
     } else if (is_32_bit && lhs.IsUnsignedImmediate(u32(1ULL << 31)) && rhs.IsUnsignedImmediate(u32(-1))) {
         ReplaceUsesWith(inst, is_32_bit, u64(1ULL << 31));
-    } else if (!is_32_bit && lhs.IsUnsignedImmediate(u64(1ULL << 63)) && rhs.IsUnsignedImmediate(u64(-1))) {
-        ReplaceUsesWith(inst, is_32_bit, u64(1ULL << 63));
     } else if (lhs.IsImmediate() && rhs.IsImmediate()) {
         if (is_signed) {
             auto const dl = lhs.GetImmediateAsS64();
