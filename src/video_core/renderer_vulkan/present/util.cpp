@@ -480,6 +480,9 @@ static vk::Pipeline CreateWrappedPipelineImpl(
     constexpr std::array dynamic_states{
         VK_DYNAMIC_STATE_VIEWPORT,
         VK_DYNAMIC_STATE_SCISSOR,
+        VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
+        VK_DYNAMIC_STATE_STENCIL_WRITE_MASK,
+        VK_DYNAMIC_STATE_STENCIL_REFERENCE,
     };
 
     const VkPipelineDynamicStateCreateInfo dynamic_state_ci{
