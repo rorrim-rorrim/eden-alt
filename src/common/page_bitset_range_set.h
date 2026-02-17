@@ -114,7 +114,7 @@ private:
     }
 
     bool Test(u64 page) const {
-        return m_words[page / m_words.size()].test(page % m_words.size());
+        return m_words[page / 64].test(page % 64);
     }
 
     template <typename Func>
