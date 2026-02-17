@@ -526,12 +526,46 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
     }
 
     const void* const descriptor_data{guest_descriptor_queue.UpdateData()};
+    const auto dynamic_state = dynamic;
     scheduler.Record([this, descriptor_data, bind_pipeline, rescaling_data = rescaling.Data(),
                       is_rescaling, update_rescaling,
                       uses_render_area = render_area.uses_render_area,
-                      render_area_data = render_area.words](vk::CommandBuffer cmdbuf) {
+                      render_area_data = render_area.words, dynamic_state](vk::CommandBuffer cmdbuf) {
         if (bind_pipeline) {
             cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline);
+
+            if (UsesExtendedDynamicState()) {
+                cmdbuf.SetDepthCompareOpEXT(MaxwellToVK::ComparisonOp(dynamic_state.DepthTestFunc()));
+                cmdbuf.SetFrontFaceEXT(MaxwellToVK::FrontFace(dynamic_state.FrontFace()));
+                VkCullModeFlags cull_mode = dynamic_state.cull_enable
+                    ? MaxwellToVK::CullFace(dynamic_state.CullFace())
+                    : VK_CULL_MODE_NONE;
+                cmdbuf.SetCullModeEXT(cull_mode);
+                cmdbuf.SetDepthTestEnableEXT(dynamic_state.depth_test_enable != 0);
+                cmdbuf.SetDepthWriteEnableEXT(dynamic_state.depth_write_enable != 0);
+                cmdbuf.SetDepthBoundsTestEnableEXT(dynamic_state.depth_bounds_enable != 0);
+                cmdbuf.SetStencilTestEnableEXT(dynamic_state.stencil_enable != 0);
+                if (dynamic_state.stencil_enable) {
+                    if (false) {
+                    } else {
+                        cmdbuf.SetStencilOpEXT(VK_STENCIL_FACE_FRONT_AND_BACK,
+                                               MaxwellToVK::StencilOp(dynamic_state.front.ActionStencilFail()),
+                                               MaxwellToVK::StencilOp(dynamic_state.front.ActionDepthPass()),
+                                               MaxwellToVK::StencilOp(dynamic_state.front.ActionDepthFail()),
+                                               MaxwellToVK::ComparisonOp(dynamic_state.front.TestFunc()));
+                    }
+                }
+            }
+
+            if (UsesExtendedDynamicState2()) {
+                cmdbuf.SetPrimitiveRestartEnableEXT(dynamic_state.primitive_restart_enable != 0);
+                cmdbuf.SetRasterizerDiscardEnableEXT(dynamic_state.rasterize_enable == 0);
+                cmdbuf.SetDepthBiasEnableEXT(dynamic_state.depth_bias_enable != 0);
+            }
+
+            if (UsesExtendedDynamicState2LogicOp()) {
+                cmdbuf.SetLogicOpEXT(static_cast<VkLogicOp>(dynamic_state.logic_op.Value()));
+            }
         }
         cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_ALL_GRAPHICS,
                              RESCALING_LAYOUT_WORDS_OFFSET, sizeof(rescaling_data),
