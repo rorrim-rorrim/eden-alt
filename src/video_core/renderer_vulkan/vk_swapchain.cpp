@@ -201,6 +201,9 @@ bool Swapchain::AcquireNextImage() {
     case Settings::FramePacingMode::Target_30:
         scheduler.Wait(resource_ticks[image_index], 30.0);
         break;
+    case Settings::FramePacingMode::Target_45:
+        scheduler.Wait(resource_ticks[image_index], 45.0);
+        break;
     case Settings::FramePacingMode::Target_60:
         scheduler.Wait(resource_ticks[image_index], 60.0);
         break;
