@@ -281,12 +281,11 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
         state_tracker.InvalidateStateEnableFlag();
     }
 
-    UpdateDynamicStates();
-
     HandleTransformFeedback();
     query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
                               maxwell3d->regs.zpass_pixel_count_enable);
 
+    UpdateDynamicStates();
     draw_func();
 }
 
