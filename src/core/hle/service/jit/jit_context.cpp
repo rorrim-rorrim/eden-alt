@@ -47,15 +47,15 @@ public:
         : memory{memory_}, local_memory{local_memory_},
           mapped_ranges{mapped_ranges_}, parent{parent_} {}
 
-    std::optional<std::uint32_t> MemoryReadCode(VAddr vaddr) override {
-        static_assert(Core::Memory::YUZU_PAGESIZE == Dynarmic::CODE_PAGE_SIZE);
-        auto const aligned_vaddr = vaddr & ~Core::Memory::YUZU_PAGEMASK;
-        if (last_code_addr != aligned_vaddr) {
-            cached_code_page = ReadMemory<Dynarmic::CodePage>(aligned_vaddr);
-            last_code_addr = aligned_vaddr;
-        }
-        return cached_code_page.inst[(vaddr & Core::Memory::YUZU_PAGEMASK) / sizeof(u32)];
-    }
+    // std::optional<std::uint32_t> MemoryReadCode(VAddr vaddr) override {
+    //     static_assert(Core::Memory::YUZU_PAGESIZE == Dynarmic::CODE_PAGE_SIZE);
+    //     auto const aligned_vaddr = vaddr & ~Core::Memory::YUZU_PAGEMASK;
+    //     if (last_code_addr != aligned_vaddr) {
+    //         cached_code_page = ReadMemory<Dynarmic::CodePage>(aligned_vaddr);
+    //         last_code_addr = aligned_vaddr;
+    //     }
+    //     return cached_code_page.inst[(vaddr & Core::Memory::YUZU_PAGEMASK) / sizeof(u32)];
+    // }
     u8 MemoryRead8(u64 vaddr) override {
         return ReadMemory<u8>(vaddr);
     }

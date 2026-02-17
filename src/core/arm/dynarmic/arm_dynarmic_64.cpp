@@ -45,13 +45,13 @@ Dynarmic::A64::Vector DynarmicCallbacks64::MemoryRead128(u64 vaddr) {
 std::optional<u32> DynarmicCallbacks64::MemoryReadCode(u64 vaddr) {
     if (!m_memory.IsValidVirtualAddressRange(vaddr, sizeof(u32)))
         return std::nullopt;
-//    return m_memory.Read32(vaddr);
-    auto const aligned_vaddr = vaddr & ~Core::Memory::YUZU_PAGEMASK;
-    if (last_code_addr != aligned_vaddr) {
-        m_memory.ReadBlock(aligned_vaddr, &cached_code_page, sizeof(cached_code_page));
-        last_code_addr = aligned_vaddr;
-    }
-    return cached_code_page.inst[(vaddr & Core::Memory::YUZU_PAGEMASK) / sizeof(u32)];
+    return m_memory.Read32(vaddr);
+    // auto const aligned_vaddr = vaddr & ~Core::Memory::YUZU_PAGEMASK;
+    // if (last_code_addr != aligned_vaddr) {
+    //     m_memory.ReadBlock(aligned_vaddr, &cached_code_page, sizeof(cached_code_page));
+    //     last_code_addr = aligned_vaddr;
+    // }
+    // return cached_code_page.inst[(vaddr & Core::Memory::YUZU_PAGEMASK) / sizeof(u32)];
 }
 
 void DynarmicCallbacks64::MemoryWrite8(u64 vaddr, u8 value) {
