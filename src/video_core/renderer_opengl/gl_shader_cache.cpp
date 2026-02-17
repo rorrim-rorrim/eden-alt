@@ -179,7 +179,6 @@ ShaderCache::ShaderCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
     : VideoCommon::ShaderCache{device_memory_}, emu_window{emu_window_}, device{device_},
       texture_cache{texture_cache_}, buffer_cache{buffer_cache_}, program_manager{program_manager_},
       state_tracker{state_tracker_}, shader_notify{shader_notify_},
-      use_asynchronous_shaders{device.UseAsynchronousShaders()},
       strict_context_required{device.StrictContextRequired()},
       optimize_spirv_output{Settings::values.optimize_spirv_output.GetValue() != Settings::SpirvOptimizeMode::Never},
       profile{
@@ -252,9 +251,6 @@ ShaderCache::ShaderCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
           .support_geometry_shader_passthrough = device.HasGeometryShaderPassthrough(),
           .support_conditional_barrier = device.SupportsConditionalBarriers(),
       } {
-    if (use_asynchronous_shaders) {
-        workers = CreateWorkers();
-    }
 }
 
 ShaderCache::~ShaderCache() = default;
@@ -345,9 +341,7 @@ void ShaderCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading,
         return;
     }
     workers->WaitForRequests(stop_loading);
-    if (!use_asynchronous_shaders) {
-        workers.reset();
-    }
+    workers.reset();
 
     if (Settings::values.optimize_spirv_output.GetValue() != Settings::SpirvOptimizeMode::Always) {
         this->optimize_spirv_output = false;
@@ -374,7 +368,7 @@ GraphicsPipeline* ShaderCache::CurrentGraphicsPipeline() {
         SetXfbState(graphics_key.xfb_state, regs);
     }
     if (current_pipeline && graphics_key == current_pipeline->Key()) {
-        return BuiltPipeline(current_pipeline);
+        return current_pipeline;
     }
     return CurrentGraphicsPipelineSlowPath();
 }
@@ -389,24 +383,7 @@ GraphicsPipeline* ShaderCache::CurrentGraphicsPipelineSlowPath() {
         return nullptr;
     }
     current_pipeline = pipeline.get();
-    return BuiltPipeline(current_pipeline);
-}
-
-GraphicsPipeline* ShaderCache::BuiltPipeline(GraphicsPipeline* pipeline) const noexcept {
-    if (pipeline->IsBuilt()) {
-        return pipeline;
-    }
-    if (!use_asynchronous_shaders) {
-        return pipeline;
-    }
-    // If games are using a small index count, we can assume these are full screen quads.
-    // Usually these shaders are only used once for building textures so we can assume they
-    // can't be built async
-    const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
-    if (draw_state.index_buffer.count <= 6 || draw_state.vertex_buffer.count <= 6) {
-        return pipeline;
-    }
-    return nullptr;
+    return current_pipeline;
 }
 
 ComputePipeline* ShaderCache::CurrentComputePipeline() {
@@ -434,8 +411,7 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline() {
     GetGraphicsEnvironments(environments, graphics_key.unique_hashes);
 
     main_pools.ReleaseContents();
-    auto pipeline{CreateGraphicsPipeline(main_pools, graphics_key, environments.Span(),
-                                         use_asynchronous_shaders)};
+    auto pipeline{CreateGraphicsPipeline(main_pools, graphics_key, environments.Span(), false)};
     if (!pipeline || shader_cache_filename.empty()) {
         return pipeline;
     }

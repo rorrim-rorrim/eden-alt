@@ -359,8 +359,6 @@
 
     <string name="skip_cpu_inner_invalidation">Bỏ qua vô hiệu hóa bên trong CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Bỏ qua một số lần vô hiệu hóa bộ nhớ đệm phía CPU trong khi cập nhật bộ nhớ, giảm mức sử dụng CPU và cải thiện hiệu suất. Có thể gây ra lỗi hoặc treo máy trong một số trò chơi.</string>
-    <string name="renderer_asynchronous_shaders">Dùng các shader bất đồng bộ</string>
-    <string name="renderer_asynchronous_shaders_description">Biên dịch shader không đồng bộ. Điều này có thể giảm giật lag nhưng cũng có thể gây ra lỗi đồ họa.</string>
     <string name="dyna_state">Trạng thái động mở rộng</string>
     <string name="disabled">Đã tắt</string>
     <string name="provoking_vertex">Đỉnh kích hoạt</string>

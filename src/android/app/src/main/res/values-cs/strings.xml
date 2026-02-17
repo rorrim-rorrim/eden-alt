@@ -481,8 +481,6 @@
     <string name="fast_gpu_time_description">Nutí většinu her běžet v nejvyšším nativním rozlišení. Použijte hodnotu 256 pro maximální výkon a 512 pro nejlepší kvalitu.</string>
     <string name="skip_cpu_inner_invalidation">Přeskočit vnitřní invalidaci CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Přeskočí určité invalidace mezipaměti procesoru při aktualizacích paměti, čímž snižuje vytížení CPU a zvyšuje jeho výkon. Může způsobit chyby nebo pády některých hrách.</string>
-    <string name="renderer_asynchronous_shaders">Asynchronní kompilace shaderů</string>
-    <string name="renderer_asynchronous_shaders_description">Kompiluje shadery asynchronně. To může zlepšit planulost, ale také způsobit grafické chyby.</string>
     <string name="extensions">Rozšíření</string>
 
     <string name="dyna_state">Úroveň EDS</string>

@@ -479,8 +479,6 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="fast_gpu_time_description">Erzwingt bei den meisten Spielen die höchste native Auflösung. Verwende 256 für maximale Leistung und 512 für maximale Grafikqualität</string>
     <string name="skip_cpu_inner_invalidation">CPU-interne Invalidierung überspringen</string>
     <string name="skip_cpu_inner_invalidation_description">Überspringt bestimmte Cache-Invalidierungen auf CPU-Seite während Speicherupdates, reduziert die CPU-Auslastung und verbessert die Leistung. Kann in einigen Spielen zu Fehlern oder Abstürzen führen.</string>
-    <string name="renderer_asynchronous_shaders">Asynchrone Shader</string>
-    <string name="renderer_asynchronous_shaders_description">Kompiliert Shader asynchron. Dies kann Ruckler reduzieren, aber auch Grafikfehler verursachen.</string>
     <string name="extensions">Erweiterungen</string>
 
     <string name="dyna_state">Erweiterter dynamischer Status</string>

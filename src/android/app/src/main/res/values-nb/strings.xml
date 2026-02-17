@@ -361,8 +361,6 @@
 
     <string name="skip_cpu_inner_invalidation">Hopp over CPU intern invalidering</string>
     <string name="skip_cpu_inner_invalidation_description">Hopper over enkelte CPU-side cache-invalideringer under minneoppdateringer, reduserer CPU-bruk og forbedrer ytelsen. Kan forårsake feil eller krasj i noen spill.</string>
-    <string name="renderer_asynchronous_shaders">Bruk asynkrone shaders</string>
-    <string name="renderer_asynchronous_shaders_description">Kompilerer shadere asynkront. Dette kan redusere rykk, men kan også forårsake grafiske feil.</string>
     <string name="dyna_state">Utvidet dynamisk tilstand</string>
     <string name="disabled">Deaktivert</string>
     <string name="provoking_vertex">Provoserende vertex</string>

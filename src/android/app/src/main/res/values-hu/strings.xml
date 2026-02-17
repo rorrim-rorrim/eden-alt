@@ -380,8 +380,6 @@
 
     <string name="skip_cpu_inner_invalidation">CPU belső érvénytelenítés kihagyása</string>
     <string name="skip_cpu_inner_invalidation_description">Kihagy néhány CPU-oldali gyorsítótár-érvénytelenítést memóriafrissítések közben, csökkentve a CPU használatát és javítva a teljesítményt. Néhány játékban hibákat vagy összeomlást okozhat.</string>
-    <string name="renderer_asynchronous_shaders">Aszinkron árnyékolók használata</string>
-    <string name="renderer_asynchronous_shaders_description">A shaderek aszinkron fordítása. Csökkentheti a belassulásokat, de hibákat is okozhat.</string>
     <string name="dyna_state">Kiterjesztett Dinamikus Állapot</string>
     <string name="disabled">Letiltva</string>
     <string name="provoking_vertex">Provokáló csúcs</string>

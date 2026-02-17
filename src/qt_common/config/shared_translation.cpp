@@ -286,10 +286,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("DMA Accuracy:"),
            tr("Controls the DMA precision accuracy. Safe precision fixes issues in some games but may degrade performance."));
     INSERT(Settings,
-           use_asynchronous_shaders,
-           tr("Enable asynchronous shader compilation"),
-           tr("May reduce shader stutter."));
-    INSERT(Settings,
            fast_gpu_time,
            tr("Fast GPU Time"),
            tr("Overclocks the emulated GPU to increase dynamic resolution and render "

@@ -48,8 +48,6 @@ public:
 private:
     GraphicsPipeline* CurrentGraphicsPipelineSlowPath();
 
-    [[nodiscard]] GraphicsPipeline* BuiltPipeline(GraphicsPipeline* pipeline) const noexcept;
-
     std::unique_ptr<GraphicsPipeline> CreateGraphicsPipeline();
 
     std::unique_ptr<GraphicsPipeline> CreateGraphicsPipeline(
@@ -74,7 +72,6 @@ private:
     ProgramManager& program_manager;
     StateTracker& state_tracker;
     VideoCore::ShaderNotify& shader_notify;
-    const bool use_asynchronous_shaders;
     const bool strict_context_required;
     bool optimize_spirv_output{};
 

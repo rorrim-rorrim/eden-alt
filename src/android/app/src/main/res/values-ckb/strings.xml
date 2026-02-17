@@ -361,8 +361,6 @@
 
     <string name="skip_cpu_inner_invalidation">بازنەکردنی ناوەکی CPU</string>
     <string name="skip_cpu_inner_invalidation_description">هەندێک لە بازنەکردنەکانی هەڵگر لە کاتی نوێکردنەوەی بیرگە دەنێرێت، کەمکردنەوەی بەکارهێنانی CPU و باشترکردنی کارایی. لەوانەیە لە هەندێک یاری کێشە درووست بکات.</string>
-    <string name="renderer_asynchronous_shaders">بەکارهێنانی سێبەری ناهاوسەنگ</string>
-    <string name="renderer_asynchronous_shaders_description">کۆمپایلکردنی شادەرەکان بەشێوەی ناڕێک. ئەمە ڕەنگە کەمکردنەوەی ستەتەر بکات بەڵام لەوانەیە هەڵەش دروست بکات.</string>
     <string name="dyna_state">الحالة الديناميكية الممتدة</string>
     <string name="disabled">ناچالاک</string>
     <string name="provoking_vertex">الرأس المثير</string>

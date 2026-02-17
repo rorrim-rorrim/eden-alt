@@ -115,10 +115,6 @@ public:
         return use_assembly_shaders;
     }
 
-    bool UseAsynchronousShaders() const {
-        return use_asynchronous_shaders;
-    }
-
     bool UseDriverCache() const {
         return use_driver_cache;
     }
@@ -219,7 +215,6 @@ private:
     bool has_derivative_control{};
     bool has_debugging_tool_attached{};
     bool use_assembly_shaders{};
-    bool use_asynchronous_shaders{};
     bool use_driver_cache{};
     bool has_depth_buffer_float{};
     bool has_geometry_shader_passthrough{};

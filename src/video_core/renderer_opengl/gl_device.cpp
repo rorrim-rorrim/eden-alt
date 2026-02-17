@@ -252,22 +252,6 @@ Device::Device(Core::Frontend::EmuWindow& emu_window) {
     has_lmem_perf_bug = is_nvidia;
 
     strict_context_required = emu_window.StrictContextRequired();
-    // Blocks Intel OpenGL drivers on Windows from using asynchronous shader compilation.
-    // Blocks EGL on Wayland from using asynchronous shader compilation.
-    const bool blacklist_async_shaders = (is_intel && !is_linux) || strict_context_required;
-    use_asynchronous_shaders =
-        Settings::values.use_asynchronous_shaders.GetValue() && !blacklist_async_shaders;
-    use_driver_cache = is_nvidia;
-    supports_conditional_barriers = !is_intel;
-
-    LOG_INFO(Render_OpenGL, "Renderer_VariableAOFFI: {}", has_variable_aoffi);
-    LOG_INFO(Render_OpenGL, "Renderer_ComponentIndexingBug: {}", has_component_indexing_bug);
-    LOG_INFO(Render_OpenGL, "Renderer_PreciseBug: {}", has_precise_bug);
-    LOG_INFO(Render_OpenGL, "Renderer_BrokenTextureViewFormats: {}",
-             has_broken_texture_view_formats);
-    if (Settings::values.use_asynchronous_shaders.GetValue() && !use_asynchronous_shaders) {
-        LOG_WARNING(Render_OpenGL, "Asynchronous shader compilation enabled but not supported");
-    }
 }
 
 std::string Device::GetVendorName() const {

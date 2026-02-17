@@ -418,8 +418,6 @@
 
     <string name="skip_cpu_inner_invalidation">Omitir invalidación interna de la CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Omite ciertas invalidaciones de caché de la CPU durante las actualizaciones de memoria, lo que reduce el uso de la CPU y mejora su rendimiento. Esto puede causar fallos o bloqueos en algunos juegos.</string>
-    <string name="renderer_asynchronous_shaders">Usar shaders asíncronos</string>
-    <string name="renderer_asynchronous_shaders_description">Compila los shaders de forma asíncrona. Esto puede reducir los tirones, pero también puede introducir errores gráficos.</string>
     <string name="dyna_state">Estado dinámico extendido</string>
     <string name="disabled">Desactivado</string>
     <string name="provoking_vertex">Vértice provocante</string>

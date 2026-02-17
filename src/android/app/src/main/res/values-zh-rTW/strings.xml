@@ -463,8 +463,6 @@
 
     <string name="skip_cpu_inner_invalidation">跳過CPU內部失效處理</string>
     <string name="skip_cpu_inner_invalidation_description">在記憶體更新期間跳過某些CPU端快取的失效處理，減少CPU使用率並提高其性能。可能會導致某些遊戲出現故障或崩潰。</string>
-    <string name="renderer_asynchronous_shaders">使用非同步著色器</string>
-    <string name="renderer_asynchronous_shaders_description">非同步編譯著色器。這可能會減少卡頓，但也可能導致圖形錯誤。</string>
     <string name="dyna_state">擴展動態狀態</string>
     <string name="disabled">已停用</string>
     <string name="vertex_input_dynamic_state">頂點輸入動態狀態</string>

@@ -383,8 +383,6 @@
 
     <string name="skip_cpu_inner_invalidation">Preskoči unutrašnje poništavanje CPU-a</string>
     <string name="skip_cpu_inner_invalidation_description">Preskače određena poništavanja keša na strani CPU-a tokom ažuriranja memorije, smanjujući opterećenje procesora i poboljšavajući performanse. Može izazvati greške u nekim igrama.</string>
-    <string name="renderer_asynchronous_shaders">Користите асинхроне схадера</string>
-    <string name="renderer_asynchronous_shaders_description">Саставља схадера асинхроно. Ово може умањити затезаче, али могу такође да уведе пропусте.</string>
     <string name="dyna_state">Проширена динамичка држава</string>
     <string name="disabled">Искључено</string>
     <string name="provoking_vertex">Провоцирајући врх</string>

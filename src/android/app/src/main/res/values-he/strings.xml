@@ -392,8 +392,6 @@
 
     <string name="skip_cpu_inner_invalidation">דלג על איפוס מטמון פנימי של המעבד</string>
     <string name="skip_cpu_inner_invalidation_description">מדלג על איפוסי מטמון מסוימים במהלך עדכוני זיכרון, מפחית שימוש במעבד ומשפר ביצועים. עלול לגרום לתקלות או קריסות בחלק מהמשחקים.</string>
-    <string name="renderer_asynchronous_shaders">השתמש בשיידרים אסינכרונים</string>
-    <string name="renderer_asynchronous_shaders_description">מקמפל שיידרים באופן אסינכרוני. זה עשוי להפחית קפיצות אך גם עלול לגרום לתקלות גרפיות.</string>
     <string name="dyna_state">מצב דינמי מורחב</string>
     <string name="disabled">מושבת</string>
     <string name="provoking_vertex">קודקוד מעורר</string>

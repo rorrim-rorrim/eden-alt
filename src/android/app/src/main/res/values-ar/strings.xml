@@ -491,8 +491,6 @@
     <string name="skip_cpu_inner_invalidation_description">يتخطى بعض عمليات إبطال ذاكرة التخزين المؤقتة من جانب وحدة المعالجة المركزية أثناء تحديثات الذاكرة، مما يقلل من استخدام وحدة المعالجة المركزية ويحسن أداءها. قد يتسبب ذلك في حدوث أعطال أو تعطل في بعض الألعاب.</string>
     <string name="fix_bloom_effects">إصلاح تأثيرات التوهج</string>
     <string name="fix_bloom_effects_description">يقلل من ضبابية التوهج في وضع LA/EOW (مخصص ل Adreno 700)، ويزيل التوهج في وضع الإحتراق</string>
-    <string name="renderer_asynchronous_shaders">استخدم تظليل غير متزامن</string>
-    <string name="renderer_asynchronous_shaders_description">يقوم بتجميع التظليل بشكل غير متزامن. قد يقلل ذلك من التقطعات ولكنه قد يؤدي أيضًا إلى حدوث أخطاء.</string>
     <string name="gpu_unswizzle_texture_size">الحد الأقصى لحجم النسيج في وحدة معالجة الرسومات بعد إعادة ترتيب البيانات</string>
     <string name="gpu_unswizzle_texture_size_description">يُحدد هذا الخيار الحد الأقصى لحجم (ميغابايت) معالجة الصور باستخدام وحدة معالجة الرسومات. مع أن وحدة معالجة الرسومات أسرع في معالجة الصور المتوسطة والكبيرة، إلا أن وحدة المعالجة المركزية قد تكون أكثر كفاءة في معالجة الصور الصغيرة جدًا. اضبط هذا الخيار لتحقيق التوازن الأمثل بين سرعة معالجة الرسومات واستهلاك وحدة المعالجة المركزية.</string>
     <string name="gpu_unswizzle_stream_size">حجم تدفق إلغاء ترتيب بيانات وحدة معالجة الرسومات</string>

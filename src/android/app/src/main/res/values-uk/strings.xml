@@ -487,8 +487,6 @@
     <string name="skip_cpu_inner_invalidation_description">Пропускає деякі інвалідації кешу на стороні CPU під час оновлення пам\'яті, зменшуючи навантаження на процесор і покращуючи продуктивність. Може спричинити збої в деяких іграх.</string>
     <string name="fix_bloom_effects">Виправити ефекти світіння</string>
     <string name="fix_bloom_effects_description">Зменшує розмиття світіння в LA/EOW (Adreno 700), прибирає світіння в Burnout</string>
-    <string name="renderer_asynchronous_shaders">Асинхронні шейдери</string>
-    <string name="renderer_asynchronous_shaders_description">Компілює шейдери асинхронно. Це може зменшити затримки, але також може спричинити графічні баги.</string>
     <string name="gpu_unswizzle_texture_size">Максимальний розмір текстур для відновлення перевпорядковування за допомогою ГП</string>
     <string name="gpu_unswizzle_texture_size_description">Встановлює максимальний розмір (МБ) для відновлення перевпорядкованих текстур за допомогою ГП. ГП швидше справляється з текстурами середніх і великих розмірів, а ЦП ефективніший для дуже маленьких. Налаштуйте, щоб збалансувати ГП-прискоренням і навантаженням на ЦП.</string>
     <string name="gpu_unswizzle_stream_size">Розмір потоку відновлення перевпорядковування за допомогою ГП</string>

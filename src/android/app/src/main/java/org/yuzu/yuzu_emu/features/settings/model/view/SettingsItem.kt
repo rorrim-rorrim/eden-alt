@@ -673,13 +673,6 @@ abstract class SettingsItem(
                 )
             )
             put(
-                SwitchSetting(
-                    BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS,
-                    titleId = R.string.renderer_asynchronous_shaders,
-                    descriptionId = R.string.renderer_asynchronous_shaders_description
-                )
-            )
-            put(
                 SingleChoiceSetting(
                     IntSetting.FAST_GPU_TIME,
                     titleId = R.string.fast_gpu_time,

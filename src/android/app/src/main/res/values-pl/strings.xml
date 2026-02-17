@@ -481,8 +481,6 @@
     <string name="fast_gpu_time_description">Wymusza działanie większości gier w ich najwyższej natywnej rozdzielczości. Ustaw 256 dla maksymalnej wydajności, a 512 dla maksymalnej jakości grafiki.</string>
     <string name="skip_cpu_inner_invalidation">Pomiń wewnętrzne unieważnienie CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Pomija niektóre unieważnienia pamięci podręcznej po stronie CPU podczas aktualizacji pamięci, zmniejszając użycie CPU i poprawiając jego wydajność. Może powodować błędy lub awarie w niektórych grach.</string>
-    <string name="renderer_asynchronous_shaders">Wyłącz synchronizację shaderów</string>
-    <string name="renderer_asynchronous_shaders_description">Kompiluje shadery asynchronicznie. Może to zmniejszyć zacinanie, ale może też powodować błędy graficzne.</string>
     <string name="extensions">Rozszerzenia</string>
 
     <string name="dyna_state">Rozszerzony stan dynamiczny</string>

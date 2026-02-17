@@ -419,8 +419,6 @@
 
     <string name="skip_cpu_inner_invalidation">Salta invalidamento interno CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Salta alcuni invalidamenti della cache lato CPU durante gli aggiornamenti di memoria, riducendo l\'uso della CPU e migliorandone le prestazioni. Potrebbe causare glitch o crash in alcuni giochi.</string>
-    <string name="renderer_asynchronous_shaders">Usa shaders asincrone</string>
-    <string name="renderer_asynchronous_shaders_description">Compila gli shader in modo asincrono. Può ridurre gli scatti, ma può anche causare glitch grafici.</string>
     <string name="dyna_state">Stato dinamico esteso</string>
     <string name="disabled">Disabilitato</string>
     <string name="provoking_vertex">Vertice provocante</string>

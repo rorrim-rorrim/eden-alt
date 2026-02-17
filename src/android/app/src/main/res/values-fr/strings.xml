@@ -432,8 +432,6 @@
 
     <string name="skip_cpu_inner_invalidation">Ignorer l\'invalidation interne du CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Ignore certaines invalidations de cache côté CPU lors des mises à jour mémoire, réduisant l\'utilisation du CPU et améliorant ses performances. Peut causer des bugs ou plantages sur certains jeux.</string>
-    <string name="renderer_asynchronous_shaders">Utiliser les shaders asynchrones</string>
-    <string name="renderer_asynchronous_shaders_description">Compile les shaders de manière asynchrone. Cela peut réduire les saccades mais peut aussi provoquer des problèmes graphiques.</string>
     <string name="dyna_state">État dynamique étendu</string>
     <string name="disabled">Désactivé</string>
     <string name="vertex_input_dynamic_state">État dynamique d\'entrée de sommet</string>

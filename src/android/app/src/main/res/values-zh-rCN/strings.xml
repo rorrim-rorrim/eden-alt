@@ -481,8 +481,6 @@
     <string name="skip_cpu_inner_invalidation_description">在内存更新期间跳过某些CPU端缓存无效化，减少CPU使用率并提高其性能。可能会导致某些游戏出现故障或崩溃。</string>
     <string name="fix_bloom_effects">修复泛光效果</string>
     <string name="fix_bloom_effects_description">降低了 LA/EOW（在 Adreno 700 系列 GPU 上）的泛光模糊；去除了《火爆狂飙》中的泛光特效。</string>
-    <string name="renderer_asynchronous_shaders">使用异步着色器</string>
-    <string name="renderer_asynchronous_shaders_description">异步编译着色器。这可能会减少卡顿，但也可能会导致图形错误。</string>
     <string name="gpu_unswizzle_texture_size">GPU 还原最大纹理尺寸</string>
     <string name="gpu_unswizzle_texture_size_description">设置基于 GPU 的纹理还原的最大尺寸（单位：MiB）。\n虽然 GPU 在处理中型和大型纹理时速度更快，但对于非常小的纹理，CPU 的效率可能更高。\n调整此设置，以便在 GPU 加速和 CPU 开销之间找到最佳平衡点。</string>
     <string name="gpu_unswizzle_stream_size">GPU 还原流大小</string>
