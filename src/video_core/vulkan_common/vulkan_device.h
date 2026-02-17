@@ -694,6 +694,11 @@ public:
         return extensions.provoking_vertex;
     }
 
+    /// Returns true if the device supports provoking-vertex LAST mode.
+    bool IsProvokingVertexLastSupported() const {
+        return features.provoking_vertex.provokingVertexLast;
+    }
+
     /// Returns true if the device supports VK_KHR_shader_atomic_int64.
     bool IsExtShaderAtomicInt64Supported() const {
         return extensions.shader_atomic_int64;

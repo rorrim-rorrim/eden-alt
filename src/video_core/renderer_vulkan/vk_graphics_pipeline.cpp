@@ -791,7 +791,8 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     const bool preserve_provoking_vertex_for_xfb =
         !key.state.xfb_enabled || device.IsTransformFeedbackProvokingVertexPreserved();
     const bool use_last_provoking_vertex =
-        key.state.provoking_vertex_last != 0 && preserve_provoking_vertex_for_xfb;
+        key.state.provoking_vertex_last != 0 && preserve_provoking_vertex_for_xfb &&
+        device.IsProvokingVertexLastSupported();
 
     VkPipelineRasterizationProvokingVertexStateCreateInfoEXT provoking_vertex{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT,
