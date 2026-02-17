@@ -115,19 +115,19 @@ public:
     /// Waits for the given GPU tick, optionally pacing frames.
     void Wait(u64 tick, double target_fps = 0.0) {
         if (Settings::values.use_speed_limit.GetValue() && target_fps > 0.0) {
-            auto now = std::chrono::steady_clock::now();
-            if (start_time == std::chrono::steady_clock::time_point{} || current_target_fps != target_fps) {
-                start_time = now;
+            const auto now = std::chrono::steady_clock::now();
+            if (next_frame_time == std::chrono::steady_clock::time_point{} || current_target_fps != target_fps) {
+                next_frame_time = now;
                 current_target_fps = target_fps;
+                frame_interval = std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double, std::micro>(1'000'000.0 / current_target_fps));
             }
-            std::chrono::duration<double> frame_interval(1.0 / current_target_fps);
-            auto elapsed = now - start_time;
-            auto expected_frame = static_cast<u64>(elapsed / frame_interval);
-            auto target_time = start_time + frame_interval * (expected_frame + 1);
-            if (target_time > now) {
-                std::this_thread::sleep_until(target_time);
+            next_frame_time += frame_interval;
+            if (next_frame_time > now) {
+                std::this_thread::sleep_until(next_frame_time);
             } else {
-                start_time = now;
+                while (next_frame_time <= now) {
+                    next_frame_time += frame_interval;
+                }
             }
         }
         if (tick > 0) {
@@ -280,7 +280,8 @@ private:
     std::condition_variable_any event_cv;
     std::jthread worker_thread;
 
-    std::chrono::steady_clock::time_point start_time{};
+    std::chrono::steady_clock::time_point next_frame_time{};
+    std::chrono::steady_clock::duration frame_interval{};
     double current_target_fps{};
 };
 
