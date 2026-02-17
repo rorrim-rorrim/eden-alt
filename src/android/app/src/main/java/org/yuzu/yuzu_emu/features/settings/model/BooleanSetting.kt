@@ -33,6 +33,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     RENDERER_PROVOKING_VERTEX("provoking_vertex"),
     RENDERER_DESCRIPTOR_INDEXING("descriptor_indexing"),
     RENDERER_SAMPLE_SHADING("sample_shading"),
+    GPU_UNSWIZZLE_ENABLED("gpu_unswizzle_enabled"),
     PICTURE_IN_PICTURE("picture_in_picture"),
     USE_CUSTOM_RTC("custom_rtc_enabled"),
     BLACK_BACKGROUNDS("black_backgrounds"),
@@ -73,8 +74,6 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     SHOW_SHADERS_BUILDING("show_shaders_building"),
 
     DEBUG_FLUSH_BY_LINE("flush_line"),
-    USE_LRU_CACHE("use_lru_cache"),
-
     DONT_SHOW_DRIVER_SHADER_WARNING("dont_show_driver_shader_warning"),
     ENABLE_OVERLAY("enable_overlay"),
 

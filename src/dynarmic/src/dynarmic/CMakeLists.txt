@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 include(TargetArchitectureSpecificSources)
 
@@ -15,8 +15,6 @@ add_library(dynarmic STATIC
     common/crypto/aes.h
     common/crypto/crc32.cpp
     common/crypto/crc32.h
-    common/crypto/sm4.cpp
-    common/crypto/sm4.h
     common/fp/fpcr.h
     common/fp/fpsr.h
     common/fp/fused.cpp
@@ -107,9 +105,6 @@ add_library(dynarmic STATIC
     frontend/A32/decoder/thumb32.inc
     frontend/A32/decoder/vfp.h
     frontend/A32/decoder/vfp.inc
-    frontend/A32/disassembler/disassembler.h
-    frontend/A32/disassembler/disassembler_arm.cpp
-    frontend/A32/disassembler/disassembler_thumb.cpp
     frontend/A32/FPSCR.h
     frontend/A32/ITState.h
     frontend/A32/PSR.h
@@ -124,7 +119,6 @@ add_library(dynarmic STATIC
     interface/A32/config.h
     interface/A32/coprocessor.h
     interface/A32/coprocessor_util.h
-    interface/A32/disassembler.h
     # A64
     frontend/A64/a64_ir_emitter.cpp
     frontend/A64/a64_ir_emitter.h
@@ -356,20 +350,10 @@ set_target_properties(dynarmic PROPERTIES
     SOVERSION ${dynarmic_VERSION_MAJOR}.${dynarmic_VERSION_MINOR}
 )
 
-if (TARGET unordered_dense::unordered_dense)
-    # weird quirk of system installs
-    target_link_libraries(dynarmic
-    PRIVATE
-        unordered_dense::unordered_dense
-    )
-endif()
-
 target_compile_options(dynarmic PRIVATE ${DYNARMIC_CXX_FLAGS})
-target_link_libraries(dynarmic
-    PUBLIC
-        fmt::fmt
-        merry::mcl
-)
+
+target_link_libraries(dynarmic PRIVATE unordered_dense::unordered_dense)
+target_link_libraries(dynarmic PUBLIC fmt::fmt merry::mcl)
 
 if (BOOST_NO_HEADERS)
     target_link_libraries(dynarmic PRIVATE Boost::variant Boost::icl Boost::pool)

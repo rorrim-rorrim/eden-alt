@@ -204,6 +204,7 @@ struct Values {
                                                              true};
     SwitchableSetting<bool> use_speed_limit{
                                             linkage, true, "use_speed_limit", Category::Core, Specialization::Paired, true, true};
+
     SwitchableSetting<u16, true> speed_limit{linkage,
                                              100,
                                              0,
@@ -214,13 +215,32 @@ struct Values {
                                              true,
                                              true,
                                              &use_speed_limit};
+
+    SwitchableSetting<u16, true> slow_speed_limit{linkage,
+                                             50,
+                                             0,
+                                             9999,
+                                             "slow_speed_limit",
+                                             Category::Core,
+                                             Specialization::Countable | Specialization::Percentage,
+                                             true,
+                                             true};
+
+    SwitchableSetting<u16, true> turbo_speed_limit{linkage,
+                                             200,
+                                             0,
+                                             9999,
+                                             "turbo_speed_limit",
+                                             Category::Core,
+                                             Specialization::Countable | Specialization::Percentage,
+                                             true,
+                                             true};
+
+    // The currently used speed mode.
+    Setting<SpeedMode> current_speed_mode{linkage, SpeedMode::Standard, "current_speed_mode", Category::Core, Specialization::Default, false, true};
+
     SwitchableSetting<bool> sync_core_speed{linkage, false, "sync_core_speed", Category::Core,
                                             Specialization::Default};
-
-    // Memory
-#ifdef HAS_NCE
-    SwitchableSetting<bool> lru_cache_enabled{linkage, false, "use_lru_cache", Category::System};
-#endif
 
     // Cpu
     SwitchableSetting<CpuBackend, true> cpu_backend{linkage,
@@ -439,6 +459,16 @@ struct Values {
                                                             "accelerate_astc",
                                                             Category::RendererAdvanced};
 
+    SwitchableSetting<FramePacingMode, true> frame_pacing_mode{linkage,
+                                                               FramePacingMode::Target_Auto,
+                                                               FramePacingMode::Target_Auto,
+                                                               FramePacingMode::Target_120,
+                                                               "frame_pacing_mode",
+                                                               Category::RendererAdvanced,
+                                                               Specialization::Default,
+                                                               true,
+                                                               true};
+
     SwitchableSetting<AstcRecompression, true> astc_recompression{linkage,
                                                                   AstcRecompression::Uncompressed,
                                                                   "astc_recompression",
@@ -537,14 +567,11 @@ struct Values {
                                                   Category::RendererHacks,
                                                   Specialization::Default};
 
+    SwitchableSetting<bool> gpu_unswizzle_enabled{linkage, false, "gpu_unswizzle_enabled",
+                                                  Category::RendererHacks};
+
     SwitchableSetting<ExtendedDynamicState> dyna_state{linkage,
-#if defined (_WIN32)
-                                           ExtendedDynamicState::EDS3,
-#elif defined (__FreeBSD__)
-                                           ExtendedDynamicState::EDS3,
-#elif defined (ANDROID)
-                                           ExtendedDynamicState::Disabled,
-#elif defined (__APPLE__)
+#if defined (ANDROID) || defined (__APPLE__)
                                            ExtendedDynamicState::Disabled,
 #else
                                            ExtendedDynamicState::EDS2,
@@ -596,11 +623,11 @@ struct Values {
                                                      "language_index",
                                                      Category::System};
     SwitchableSetting<Region, true> region_index{linkage, Region::Usa, "region_index", Category::System};
-    SwitchableSetting<TimeZone, true> time_zone_index{linkage, TimeZone::Auto,
-                                                      "time_zone_index", Category::System};
+    SwitchableSetting<TimeZone, true> time_zone_index{linkage, TimeZone::Auto, "time_zone_index", Category::System};
+    Setting<u32> serial_battery{linkage, 0, "serial_battery", Category::System};
+    Setting<u32> serial_unit{linkage, 0, "serial_unit", Category::System};
     // Measured in seconds since epoch
-    SwitchableSetting<bool> custom_rtc_enabled{
-                                               linkage, false, "custom_rtc_enabled", Category::System, Specialization::Paired, true, true};
+    SwitchableSetting<bool> custom_rtc_enabled{linkage, false, "custom_rtc_enabled", Category::System, Specialization::Paired, true, true};
     SwitchableSetting<s64> custom_rtc{
                                       linkage, 0,    "custom_rtc",       Category::System, Specialization::Time,
                                       false,   true, &custom_rtc_enabled};
@@ -770,8 +797,6 @@ struct Values {
                                            true};
 
     // Miscellaneous
-    Setting<std::string> serial_battery{linkage, std::string(), "serial_battery", Category::Miscellaneous};
-    Setting<std::string> serial_unit{linkage, std::string(), "serial_unit", Category::Miscellaneous};
     Setting<std::string> log_filter{linkage, "*:Info", "log_filter", Category::Miscellaneous};
     Setting<bool> log_flush_line{linkage, false, "flush_line", Category::Miscellaneous, Specialization::Default, true, true};
     Setting<bool> censor_username{linkage, true, "censor_username", Category::Miscellaneous};
@@ -818,6 +843,13 @@ bool IsNceEnabled();
 bool IsDockedMode();
 
 float Volume();
+
+// speed limit ops
+u16 SpeedLimit();
+void SetSpeedMode(const SpeedMode &mode);
+void ToggleStandardMode();
+void ToggleTurboMode();
+void ToggleSlowMode();
 
 std::string GetTimeZoneString(TimeZone time_zone);
 

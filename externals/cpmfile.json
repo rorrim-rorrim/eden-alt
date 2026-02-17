@@ -48,23 +48,12 @@
             "0001-fix-missing-decl.patch"
         ]
     },
-    "xbyak_sun": {
-        "package": "xbyak",
-        "repo": "herumi/xbyak",
-        "tag": "v%VERSION%",
-        "hash": "b40dade90fb0e46a2bd52934f7ce461e37be931b571e58cbe2203bc08ed5b54c7ff1a29026c74c7f9805e4e3f6c9636deca528e6b4a8093ce7eae145218599f1",
-        "git_version": "7.29",
-        "bundled": true,
-        "skip_updates": true
-    },
     "xbyak": {
         "package": "xbyak",
         "repo": "herumi/xbyak",
         "tag": "v%VERSION%",
-        "hash": "1042090405c426e339506c179d53e91d4d545ce9c9f53d8f797caa092d589f913a9bcb9c8f31c4c60870acb954c556e305fb6732c66bc3c8f1cd924f9172def9",
-        "git_version": "7.22",
-        "bundled": true,
-        "skip_updates": true
+        "hash": "ac333d7bea1d61865bebebb116201a58db431946aa2f11aa042ef5795c390ff30af4d6c90ed3b3d24443a1d430703b08f14fc13b2fa405c155a241456ed78a47",
+        "git_version": "7.33.2"
     },
     "oaknut": {
         "repo": "eden-emulator/oaknut",
@@ -91,10 +80,13 @@
     "unordered-dense": {
         "package": "unordered_dense",
         "repo": "martinus/unordered_dense",
-        "tag": "v%VERSION%",
-        "hash": "b98b5d4d96f8e0081b184d6c4c1181fae4e41723b54bed4296717d7f417348b48fad0bbcc664cac142b8c8a47e95aa57c1eb1cf6caa855fd782fad3e3ab99e5e",
+        "sha": "7b55cab841",
+        "hash": "d2106f6640f6bfb81755e4b8bfb64982e46ec4a507cacdb38f940123212ccf35a20b43c70c6f01d7bfb8c246d1a16f7845d8052971949cea9def1475e3fa02c8",
         "find_args": "CONFIG",
-        "git_version": "4.8.1"
+        "bundled": true,
+        "patches": [
+            "0001-avoid-memset-when-clearing-an-empty-table.patch"
+        ]
     },
     "mbedtls": {
         "package": "MbedTLS",
@@ -158,7 +150,7 @@
         "package": "SDL2",
         "name": "SDL2",
         "repo": "crueter-ci/SDL2",
-        "version": "2.32.10-a65111bd2d",
+        "version": "2.32.10-cf5dabd6ea",
         "min_version": "2.26.4"
     },
     "catch2": {
@@ -192,7 +184,6 @@
         "repo": "libsdl-org/SDL",
         "tag": "release-%VERSION%",
         "hash": "d5622d6bb7266f7942a7b8ad43e8a22524893bf0c2ea1af91204838d9b78d32768843f6faa248757427b8404b8c6443776d4afa6b672cd8571a4e0c03a829383",
-        "key": "generic",
         "bundled": true,
         "git_version": "2.32.10",
         "skip_updates": true
@@ -202,7 +193,6 @@
         "repo": "libsdl-org/SDL",
         "sha": "cc016b0046",
         "hash": "b8d9873446cdb922387471df9968e078714683046674ef0d0edddf8e25da65a539a3bae83d635496b970237f90b07b36a69f8d7855d450de59311d6d6e8c3dbc",
-        "key": "steamdeck",
         "bundled": true,
         "skip_updates": "true"
     },

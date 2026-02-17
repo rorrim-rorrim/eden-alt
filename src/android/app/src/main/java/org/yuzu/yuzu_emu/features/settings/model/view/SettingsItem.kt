@@ -104,8 +104,10 @@ abstract class SettingsItem(
         const val TYPE_SPINBOX = 12
         const val TYPE_LAUNCHABLE = 13
         const val TYPE_PATH = 14
+        const val TYPE_GPU_UNSWIZZLE = 15
 
         const val FASTMEM_COMBINED = "fastmem_combined"
+        const val GPU_UNSWIZZLE_COMBINED = "gpu_unswizzle_combined"
 
         val emptySetting = object : AbstractSetting {
             override val key: String = ""
@@ -123,13 +125,6 @@ abstract class SettingsItem(
         // List of all general
         val settingsItems = HashMap<String, SettingsItem>().apply {
             put(StringInputSetting(StringSetting.DEVICE_NAME, titleId = R.string.device_name))
-            put(
-                SwitchSetting(
-                    BooleanSetting.USE_LRU_CACHE,
-                    titleId = R.string.use_lru_cache,
-                    descriptionId = R.string.use_lru_cache_description
-                )
-            )
             put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_USE_SPEED_LIMIT,
@@ -180,6 +175,26 @@ abstract class SettingsItem(
                     ShortSetting.RENDERER_SPEED_LIMIT,
                     titleId = R.string.frame_limit_slider,
                     descriptionId = R.string.frame_limit_slider_description,
+                    min = 1,
+                    max = 400,
+                    units = "%"
+                )
+            )
+            put(
+                SliderSetting(
+                    ShortSetting.RENDERER_TURBO_SPEED_LIMIT,
+                    titleId = R.string.turbo_speed_limit,
+                    descriptionId = R.string.turbo_speed_limit_description,
+                    min = 1,
+                    max = 400,
+                    units = "%"
+                )
+            )
+            put(
+                SliderSetting(
+                    ShortSetting.RENDERER_SLOW_SPEED_LIMIT,
+                    titleId = R.string.slow_speed_limit,
+                    descriptionId = R.string.slow_speed_limit_description,
                     min = 1,
                     max = 400,
                     units = "%"
@@ -649,6 +664,15 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SingleChoiceSetting(
+                    IntSetting.FRAME_PACING_MODE,
+                    titleId = R.string.frame_pacing_mode,
+                    descriptionId = R.string.frame_pacing_mode_description,
+                    choicesId = R.array.framePacingModeNames,
+                    valuesId = R.array.framePacingModeValues
+                )
+            )
+            put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS,
                     titleId = R.string.renderer_asynchronous_shaders,
@@ -689,6 +713,18 @@ abstract class SettingsItem(
                     descriptionId = R.string.gpu_unswizzle_chunk_size_description,
                     choicesId = R.array.gpuSwizzleChunkEntries,
                     valuesId = R.array.gpuSwizzleChunkValues
+                )
+            )
+            put(
+                GpuUnswizzleSetting(
+                    titleId = R.string.gpu_unswizzle_settings,
+                    descriptionId = R.string.gpu_unswizzle_settings_description,
+                    textureSizeChoicesId = R.array.gpuTextureSizeSwizzleEntries,
+                    textureSizeValuesId = R.array.gpuTextureSizeSwizzleValues,
+                    streamSizeChoicesId = R.array.gpuSwizzleEntries,
+                    streamSizeValuesId = R.array.gpuSwizzleValues,
+                    chunkSizeChoicesId = R.array.gpuSwizzleChunkEntries,
+                    chunkSizeValuesId = R.array.gpuSwizzleChunkValues
                 )
             )
             put(

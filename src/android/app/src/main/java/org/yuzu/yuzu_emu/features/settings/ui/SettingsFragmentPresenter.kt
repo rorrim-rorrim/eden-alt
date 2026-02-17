@@ -227,6 +227,8 @@ class SettingsFragmentPresenter(
             add(StringSetting.DEVICE_NAME.key)
             add(BooleanSetting.RENDERER_USE_SPEED_LIMIT.key)
             add(ShortSetting.RENDERER_SPEED_LIMIT.key)
+            add(ShortSetting.RENDERER_TURBO_SPEED_LIMIT.key)
+            add(ShortSetting.RENDERER_SLOW_SPEED_LIMIT.key)
             add(BooleanSetting.USE_DOCKED_MODE.key)
             add(IntSetting.REGION_INDEX.key)
             add(IntSetting.LANGUAGE_INDEX.key)
@@ -235,7 +237,6 @@ class SettingsFragmentPresenter(
 
             add(HeaderSetting(R.string.cpu))
             add(IntSetting.FAST_CPU_TIME.key)
-            add(BooleanSetting.USE_LRU_CACHE.key)
             add(BooleanSetting.CORE_SYNC_CORE_SPEED.key)
 
             add(IntSetting.MEMORY_LAYOUT.key)
@@ -266,6 +267,7 @@ class SettingsFragmentPresenter(
 
             add(IntSetting.RENDERER_ACCURACY.key)
             add(IntSetting.DMA_ACCURACY.key)
+            add(IntSetting.FRAME_PACING_MODE.key)
             add(IntSetting.MAX_ANISOTROPY.key)
             add(IntSetting.RENDERER_VRAM_USAGE_MODE.key)
             add(IntSetting.RENDERER_ASTC_DECODE_METHOD.key)
@@ -283,9 +285,7 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.SKIP_CPU_INNER_INVALIDATION.key)
             add(BooleanSetting.FIX_BLOOM_EFFECTS.key)
             add(BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS.key)
-            add(IntSetting.GPU_UNSWIZZLE_TEXTURE_SIZE.key)
-            add(IntSetting.GPU_UNSWIZZLE_STREAM_SIZE.key)
-            add(IntSetting.GPU_UNSWIZZLE_CHUNK_SIZE.key)
+            add(SettingsItem.GPU_UNSWIZZLE_COMBINED)
 
             add(HeaderSetting(R.string.extensions))
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -57,10 +57,9 @@ void EmitX64::EmitLeastSignificantWord(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     // TODO: DefineValue directly on Argument
-    const Xbyak::Reg64 result = ctx.reg_alloc.ScratchGpr(code);
-    const Xbyak::Reg64 source = ctx.reg_alloc.UseGpr(code, args[0]);
-    code.mov(result.cvt32(), source.cvt32());
-    ctx.reg_alloc.DefineValue(code, inst, result);
+    const Xbyak::Reg64 res = ctx.reg_alloc.UseScratchGpr(code, args[0]);
+    code.mov(res.cvt32(), res.cvt32());
+    ctx.reg_alloc.DefineValue(code, inst, res);
 }
 
 void EmitX64::EmitMostSignificantWord(EmitContext& ctx, IR::Inst* inst) {
@@ -911,15 +910,15 @@ static Xbyak::Reg8 DoCarry(BlockOfCode& code, RegAlloc& reg_alloc, Argument& car
 
 // AL contains flags (after LAHF + SETO sequence)
 static Xbyak::Reg64 DoNZCV(BlockOfCode& code, RegAlloc& reg_alloc, IR::Inst* nzcv_out) {
-    if (!nzcv_out) {
-        return Xbyak::Reg64{-1};
+    if (nzcv_out) {
+        const Xbyak::Reg64 nzcv = reg_alloc.ScratchGpr(code, HostLoc::RAX);
+        code.xor_(nzcv.cvt32(), nzcv.cvt32());
+        return nzcv;
     }
-    const Xbyak::Reg64 nzcv = reg_alloc.ScratchGpr(code, HostLoc::RAX);
-    code.xor_(nzcv.cvt32(), nzcv.cvt32());
-    return nzcv;
+    return Xbyak::Reg64{-1};
 }
 
-static void EmitAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, int bitsize) {
+static void EmitAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, size_t bitsize) {
     const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
     const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
     const auto nzcv_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetNZCVFromOp);
@@ -930,19 +929,13 @@ static void EmitAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, int bit
     // Consider using LEA.
     if (!carry_inst && !overflow_inst && !nzcv_inst && carry_in.IsImmediate() && !carry_in.GetImmediateU1()) {
         if (args[1].IsImmediate() && args[1].FitsInImmediateS32()) {
-            const Xbyak::Reg op1 = ctx.reg_alloc.UseGpr(code, args[0]).changeBit(bitsize);
-            const Xbyak::Reg result = ctx.reg_alloc.ScratchGpr(code).changeBit(bitsize);
-
-            code.lea(result, code.ptr[op1 + args[1].GetImmediateS32()]);
-
+            Xbyak::Reg const result = ctx.reg_alloc.UseScratchGpr(code, args[0]).changeBit(bitsize);
+            code.lea(result, code.ptr[result + args[1].GetImmediateS32()]);
             ctx.reg_alloc.DefineValue(code, inst, result);
         } else {
-            const Xbyak::Reg op1 = ctx.reg_alloc.UseGpr(code, args[0]).changeBit(bitsize);
-            const Xbyak::Reg op2 = ctx.reg_alloc.UseGpr(code, args[1]).changeBit(bitsize);
-            const Xbyak::Reg result = ctx.reg_alloc.ScratchGpr(code).changeBit(bitsize);
-
-            code.lea(result, code.ptr[op1 + op2]);
-
+            Xbyak::Reg const result = ctx.reg_alloc.UseScratchGpr(code, args[0]).changeBit(bitsize);
+            Xbyak::Reg const op2 = ctx.reg_alloc.UseGpr(code, args[1]).changeBit(bitsize);
+            code.lea(result, code.ptr[result + op2]);
             ctx.reg_alloc.DefineValue(code, inst, result);
         }
         return;
@@ -957,8 +950,14 @@ static void EmitAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, int bit
         const u32 op_arg = args[1].GetImmediateU32();
         if (carry_in.IsImmediate()) {
             if (carry_in.GetImmediateU1()) {
-                code.stc();
-                code.adc(result, op_arg);
+                // In range for a valid LEA materialisation
+                auto const in_range = s32(op_arg) >= -0x7ffffffe && s32(op_arg) <= 0x7ffffffe;
+                if (in_range && (carry_inst || nzcv_inst || overflow_inst)) {
+                    code.stc();
+                    code.adc(result, op_arg);
+                } else {
+                    code.lea(result, code.ptr[result + op_arg + 1]);
+                }
             } else {
                 code.add(result, op_arg);
             }

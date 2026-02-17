@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -16,6 +16,7 @@
 
 #include "common/alignment.h"
 #include "common/common_types.h"
+#include "common/settings.h"
 #include "common/polyfill_thread.h"
 #include "video_core/renderer_vulkan/vk_master_semaphore.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
@@ -111,13 +112,31 @@ public:
         return master_semaphore->IsFree(tick);
     }
 
-    /// Waits for the given tick to trigger on the GPU.
-    void Wait(u64 tick) {
-        if (tick >= master_semaphore->CurrentTick()) {
-            // Make sure we are not waiting for the current tick without signalling
-            Flush();
+    /// Waits for the given GPU tick, optionally pacing frames.
+    void Wait(u64 tick, double target_fps = 0.0) {
+        if (Settings::values.use_speed_limit.GetValue() && target_fps > 0.0) {
+            const auto now = std::chrono::steady_clock::now();
+            if (start_time == std::chrono::steady_clock::time_point{} || current_target_fps != target_fps) {
+                start_time = now;
+                frame_counter = 0;
+                current_target_fps = target_fps;
+            }
+            frame_counter++;
+            std::chrono::duration<double> frame_interval(1.0 / current_target_fps);
+            auto target_time = start_time + frame_interval * frame_counter;
+            if (target_time > now) {
+                std::this_thread::sleep_until(target_time);
+            } else {
+                start_time = now;
+                frame_counter = 0;
+            }
         }
-        master_semaphore->Wait(tick);
+        if (tick > 0) {
+            if (tick >= master_semaphore->CurrentTick()) {
+                Flush();
+            }
+            master_semaphore->Wait(tick);
+        }
     }
 
     /// Returns the master timeline semaphore.
@@ -261,6 +280,10 @@ private:
     std::mutex queue_mutex;
     std::condition_variable_any event_cv;
     std::jthread worker_thread;
+
+    std::chrono::steady_clock::time_point start_time{};
+    u64 frame_counter{};
+    double current_target_fps{};
 };
 
 } // namespace Vulkan

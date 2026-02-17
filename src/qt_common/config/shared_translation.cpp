@@ -69,10 +69,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
         Settings,
         memory_layout_mode,
         tr("Memory Layout"),
-        tr("Increases the amount of emulated RAM from 4GB of the board to the "
-           "devkit 8/6GB.\nDoesn't affect performance/stability but may allow HD texture "
+        tr("Increases the amount of emulated RAM.\nDoesn't affect performance/stability but may allow HD texture "
            "mods to load."));
     INSERT(Settings, use_speed_limit, QString(), QString());
+    INSERT(Settings, current_speed_mode, QString(), QString());
     INSERT(Settings,
            speed_limit,
            tr("Limit Speed Percent"),
@@ -80,6 +80,14 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
               "faster or not.\n200% for a 30 FPS game is 60 FPS, and for a "
               "60 FPS game it will be 120 FPS.\nDisabling it means unlocking the framerate to the "
               "maximum your PC can reach."));
+
+    INSERT(Settings, turbo_speed_limit, tr("Turbo Speed"),
+           tr("When the Turbo Speed hotkey is pressed, the speed will be limited to this "
+              "percentage."));
+    INSERT(Settings, slow_speed_limit, tr("Slow Speed"),
+           tr("When the Slow Speed hotkey is pressed, the speed will be limited to this "
+              "percentage."));
+
     INSERT(Settings,
            sync_core_speed,
            tr("Synchronize Core Speed"),
@@ -225,6 +233,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
             "intermediate format: RGBA8.\n"
             "BC1/BC3: The intermediate format will be recompressed to BC1 or BC3 format,\n"
             " saving VRAM but degrading image quality."));
+    INSERT(Settings, frame_pacing_mode, tr("Frame Pacing Mode (Vulkan only)"),
+           tr("Controls how the emulator manages frame pacing to reduce stuttering and make the frame rate smoother and more consistent."));
     INSERT(Settings,
            vram_usage_mode,
            tr("VRAM Usage Mode:"),
@@ -284,6 +294,11 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Fast GPU Time"),
            tr("Overclocks the emulated GPU to increase dynamic resolution and render "
               "distance.\nUse 256 for maximal performance and 512 for maximal graphics fidelity."));
+    INSERT(Settings,
+           gpu_unswizzle_enabled,
+           tr("GPU Unswizzle"),
+           tr("Accelerates BCn 3D texture decoding using GPU compute.\n"
+              "Disable if experiencing crashes or graphical glitches."));
     INSERT(Settings,
            gpu_unswizzle_texture_size,
            tr("GPU Unswizzle Max Texture Size"),
@@ -497,6 +512,14 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
              PAIR(AstcRecompression, Bc1, tr("BC1 (Low quality)")),
              PAIR(AstcRecompression, Bc3, tr("BC3 (Medium quality)")),
          }});
+    translations->insert({Settings::EnumMetadata<Settings::FramePacingMode>::Index(),
+                          {
+                              PAIR(FramePacingMode, Target_Auto, tr("Auto")),
+                              PAIR(FramePacingMode, Target_30, tr("30 FPS")),
+                              PAIR(FramePacingMode, Target_60, tr("60 FPS")),
+                              PAIR(FramePacingMode, Target_90, tr("90 FPS")),
+                              PAIR(FramePacingMode, Target_120, tr("120 FPS")),
+                          }});
     translations->insert({Settings::EnumMetadata<Settings::VramUsageMode>::Index(),
                           {
                               PAIR(VramUsageMode, Conservative, tr("Conservative")),

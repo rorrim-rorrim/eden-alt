@@ -27,11 +27,7 @@ set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL ON)
 
 # Xbyak
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
-    if (PLATFORM_SUN OR PLATFORM_OPENBSD OR PLATFORM_NETBSD OR PLATFORM_DRAGONFLY)
-        AddJsonPackage(xbyak_sun)
-    else()
-        AddJsonPackage(xbyak)
-    endif()
+    AddJsonPackage(xbyak)
 endif()
 
 # enet
@@ -65,6 +61,9 @@ if (NOT TARGET LLVM::Demangle)
     endif()
     add_library(LLVM::Demangle ALIAS demangle)
 endif()
+
+# unordered_dense
+AddJsonPackage(unordered-dense)
 
 if (YUZU_STATIC_ROOM)
     return()
@@ -243,9 +242,6 @@ endif()
 if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)
     AddJsonPackage(cpp-jwt)
 endif()
-
-# unordered_dense
-AddJsonPackage(unordered-dense)
 
 # FFMpeg
 if (YUZU_USE_EXTERNAL_FFMPEG OR YUZU_USE_BUNDLED_FFMPEG)

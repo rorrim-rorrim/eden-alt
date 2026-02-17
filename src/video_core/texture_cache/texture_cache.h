@@ -9,7 +9,7 @@
 #include <limits>
 #include <optional>
 #include <bit>
-#include <unordered_set>
+#include <ankerl/unordered_dense.h>
 #include <boost/container/small_vector.hpp>
 
 #include "common/alignment.h"
@@ -45,8 +45,8 @@ TextureCache<P>::TextureCache(Runtime& runtime_, Tegra::MaxwellDeviceMemoryManag
     sampler_descriptor.cubemap_anisotropy.Assign(1);
 
     // These values were chosen based on typical peak swizzle data sizes seen in some titles
-    static constexpr size_t SWIZZLE_DATA_BUFFER_INITIAL_CAPACITY = 8_MiB;
-    static constexpr size_t UNSWIZZLE_DATA_BUFFER_INITIAL_CAPACITY = 1_MiB;
+    constexpr size_t SWIZZLE_DATA_BUFFER_INITIAL_CAPACITY = 8_MiB;
+    constexpr size_t UNSWIZZLE_DATA_BUFFER_INITIAL_CAPACITY = 1_MiB;
     swizzle_data_buffer.resize_destructive(SWIZZLE_DATA_BUFFER_INITIAL_CAPACITY);
     unswizzle_data_buffer.resize_destructive(UNSWIZZLE_DATA_BUFFER_INITIAL_CAPACITY);
 
@@ -80,31 +80,39 @@ TextureCache<P>::TextureCache(Runtime& runtime_, Tegra::MaxwellDeviceMemoryManag
         lowmemorydevice = true;
     }
 
-    switch (Settings::values.gpu_unswizzle_texture_size.GetValue()) {
-        case Settings::GpuUnswizzleSize::VerySmall:    gpu_unswizzle_maxsize = 16_MiB; break;
-        case Settings::GpuUnswizzleSize::Small:        gpu_unswizzle_maxsize = 32_MiB; break;
-        case Settings::GpuUnswizzleSize::Normal:       gpu_unswizzle_maxsize = 128_MiB; break;
-        case Settings::GpuUnswizzleSize::Large:        gpu_unswizzle_maxsize = 256_MiB; break;
-        case Settings::GpuUnswizzleSize::VeryLarge:    gpu_unswizzle_maxsize = 512_MiB; break;
-        default:                                       gpu_unswizzle_maxsize = 128_MiB; break;
-    }
+    const bool gpu_unswizzle_enabled = Settings::values.gpu_unswizzle_enabled.GetValue();
 
-    switch (Settings::values.gpu_unswizzle_stream_size.GetValue()) {
-        case Settings::GpuUnswizzle::VeryLow: swizzle_chunk_size = 4_MiB; break;
-        case Settings::GpuUnswizzle::Low:     swizzle_chunk_size = 8_MiB; break;
-        case Settings::GpuUnswizzle::Normal:  swizzle_chunk_size = 16_MiB; break;
-        case Settings::GpuUnswizzle::Medium:  swizzle_chunk_size = 32_MiB; break;
-        case Settings::GpuUnswizzle::High:    swizzle_chunk_size = 64_MiB; break;
-        default:                              swizzle_chunk_size = 16_MiB;
-    }
+    if (gpu_unswizzle_enabled) {
+        switch (Settings::values.gpu_unswizzle_texture_size.GetValue()) {
+            case Settings::GpuUnswizzleSize::VerySmall:    gpu_unswizzle_maxsize = 16_MiB; break;
+            case Settings::GpuUnswizzleSize::Small:        gpu_unswizzle_maxsize = 32_MiB; break;
+            case Settings::GpuUnswizzleSize::Normal:       gpu_unswizzle_maxsize = 128_MiB; break;
+            case Settings::GpuUnswizzleSize::Large:        gpu_unswizzle_maxsize = 256_MiB; break;
+            case Settings::GpuUnswizzleSize::VeryLarge:    gpu_unswizzle_maxsize = 512_MiB; break;
+            default:                                       gpu_unswizzle_maxsize = 128_MiB; break;
+        }
 
-    switch (Settings::values.gpu_unswizzle_chunk_size.GetValue()) {
-        case Settings::GpuUnswizzleChunk::VeryLow: swizzle_slices_per_batch = 32; break;
-        case Settings::GpuUnswizzleChunk::Low:     swizzle_slices_per_batch = 64; break;
-        case Settings::GpuUnswizzleChunk::Normal:  swizzle_slices_per_batch = 128; break;
-        case Settings::GpuUnswizzleChunk::Medium:  swizzle_slices_per_batch = 256; break;
-        case Settings::GpuUnswizzleChunk::High:    swizzle_slices_per_batch = 512; break;
-        default:                                   swizzle_slices_per_batch = 128;
+        switch (Settings::values.gpu_unswizzle_stream_size.GetValue()) {
+            case Settings::GpuUnswizzle::VeryLow: swizzle_chunk_size = 4_MiB; break;
+            case Settings::GpuUnswizzle::Low:     swizzle_chunk_size = 8_MiB; break;
+            case Settings::GpuUnswizzle::Normal:  swizzle_chunk_size = 16_MiB; break;
+            case Settings::GpuUnswizzle::Medium:  swizzle_chunk_size = 32_MiB; break;
+            case Settings::GpuUnswizzle::High:    swizzle_chunk_size = 64_MiB; break;
+            default:                              swizzle_chunk_size = 16_MiB;
+        }
+
+        switch (Settings::values.gpu_unswizzle_chunk_size.GetValue()) {
+            case Settings::GpuUnswizzleChunk::VeryLow: swizzle_slices_per_batch = 32; break;
+            case Settings::GpuUnswizzleChunk::Low:     swizzle_slices_per_batch = 64; break;
+            case Settings::GpuUnswizzleChunk::Normal:  swizzle_slices_per_batch = 128; break;
+            case Settings::GpuUnswizzleChunk::Medium:  swizzle_slices_per_batch = 256; break;
+            case Settings::GpuUnswizzleChunk::High:    swizzle_slices_per_batch = 512; break;
+            default:                                   swizzle_slices_per_batch = 128;
+        }
+    } else {
+        gpu_unswizzle_maxsize = 0;
+        swizzle_chunk_size = 0;
+        swizzle_slices_per_batch = 0;
     }
 }
 
@@ -1161,7 +1169,11 @@ void TextureCache<P>::RefreshContents(Image& image, ImageId image_id) {
         QueueAsyncDecode(image, image_id);
         return;
     }
-    if (IsPixelFormatBCn(image.info.format) &&
+
+    const bool gpu_unswizzle_enabled = Settings::values.gpu_unswizzle_enabled.GetValue();
+
+    if (gpu_unswizzle_enabled &&
+        IsPixelFormatBCn(image.info.format) &&
         image.info.type == ImageType::e3D &&
         image.info.resources.levels == 1 &&
         image.info.resources.layers == 1 &&
@@ -1391,13 +1403,9 @@ void TextureCache<P>::QueueAsyncDecode(Image& image, ImageId image_id) {
     decode->image_id = image_id;
     async_decodes.push_back(std::move(decode));
 
-    static Common::ScratchBuffer<u8> local_unswizzle_data_buffer;
-    local_unswizzle_data_buffer.resize_destructive(image.unswizzled_size_bytes);
-    Tegra::Memory::GpuGuestMemory<u8, Tegra::Memory::GuestMemoryFlags::UnsafeRead> swizzle_data(
-        *gpu_memory, image.gpu_addr, image.guest_size_bytes, &swizzle_data_buffer);
-
-    auto copies = UnswizzleImage(*gpu_memory, image.gpu_addr, image.info, swizzle_data,
-                                 local_unswizzle_data_buffer);
+    std::vector<u8> local_unswizzle_data_buffer(image.unswizzled_size_bytes, 0);
+    Tegra::Memory::GpuGuestMemory<u8, Tegra::Memory::GuestMemoryFlags::UnsafeRead> swizzle_data(*gpu_memory, image.gpu_addr, image.guest_size_bytes, &swizzle_data_buffer);
+    auto copies = UnswizzleImage(*gpu_memory, image.gpu_addr, image.info, swizzle_data, local_unswizzle_data_buffer);
     const size_t out_size = MapSizeBytes(image);
 
     auto func = [out_size, copies, info = image.info,
@@ -1666,7 +1674,7 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DA
             return;
         }
         join_overlaps_found.insert(overlap_id);
-        static constexpr bool strict_size = true;
+        constexpr bool strict_size = true;
         const std::optional<OverlapResult> solution = ResolveOverlap(
             new_info, gpu_addr, cpu_addr, overlap, strict_size, broken_views, native_bgr);
         if (solution) {
@@ -1677,7 +1685,7 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DA
             join_copies_to_do.emplace_back(JoinCopy{false, overlap_id});
             return;
         }
-        static constexpr auto options = RelaxedOptions::Size | RelaxedOptions::Format;
+        constexpr auto options = RelaxedOptions::Size | RelaxedOptions::Format;
         const ImageBase new_image_base(new_info, gpu_addr, cpu_addr);
         if (IsSubresource(new_info, overlap, gpu_addr, options, broken_views, native_bgr)) {
             join_left_aliased_ids.push_back(overlap_id);
@@ -1846,7 +1854,7 @@ std::optional<typename TextureCache<P>::BlitImages> TextureCache<P>::GetBlitImag
     const Tegra::Engines::Fermi2D::Surface& dst, const Tegra::Engines::Fermi2D::Surface& src,
     const Tegra::Engines::Fermi2D::Config& copy) {
 
-    static constexpr auto FIND_OPTIONS = RelaxedOptions::Samples;
+    constexpr auto FIND_OPTIONS = RelaxedOptions::Samples;
     const GPUVAddr dst_addr = dst.Address();
     const GPUVAddr src_addr = src.Address();
     ImageInfo dst_info(dst);
@@ -1989,8 +1997,8 @@ SamplerId TextureCache<P>::FindSampler(const TSCEntry& config) {
     }
     const auto [pair, is_new] = channel_state->samplers.try_emplace(config);
     if (is_new) {
-        EnforceSamplerBudget();
         pair->second = slot_samplers.insert(runtime, config);
+        EnforceSamplerBudget();
     }
     return pair->second;
 }
@@ -2028,14 +2036,14 @@ void TextureCache<P>::TrimInactiveSamplers(size_t budget) {
     if (channel_state->samplers.empty()) {
         return;
     }
-    static constexpr size_t SAMPLER_GC_SLACK = 1024;
+    constexpr size_t SAMPLER_GC_SLACK = 1024;
     auto mark_active = [](auto& set, SamplerId id) {
         if (!id || id == CORRUPT_ID || id == NULL_SAMPLER_ID) {
             return;
         }
         set.insert(id);
     };
-    std::unordered_set<SamplerId> active;
+    ankerl::unordered_dense::set<SamplerId> active;
     active.reserve(channel_state->graphics_sampler_ids.size() +
                    channel_state->compute_sampler_ids.size());
     for (const SamplerId id : channel_state->graphics_sampler_ids) {
@@ -2137,7 +2145,7 @@ template <class P>
 template <typename Func>
 void TextureCache<P>::ForEachImageInRegion(DAddr cpu_addr, size_t size, Func&& func) {
     using FuncReturn = typename std::invoke_result<Func, ImageId, Image&>::type;
-    static constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
+    constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
     boost::container::small_vector<ImageId, 32> images;
     boost::container::small_vector<ImageMapId, 32> maps;
     ForEachCPUPage(cpu_addr, size, [this, &images, &maps, cpu_addr, size, func](u64 page) {
@@ -2190,7 +2198,7 @@ template <typename Func>
 void TextureCache<P>::ForEachImageInRegionGPU(size_t as_id, GPUVAddr gpu_addr, size_t size,
                                               Func&& func) {
     using FuncReturn = typename std::invoke_result<Func, ImageId, Image&>::type;
-    static constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
+    constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
     boost::container::small_vector<ImageId, 8> images;
     auto storage_id = getStorageID(as_id);
     if (!storage_id) {
@@ -2239,7 +2247,7 @@ template <typename Func>
 void TextureCache<P>::ForEachSparseImageInRegion(size_t as_id, GPUVAddr gpu_addr, size_t size,
                                                  Func&& func) {
     using FuncReturn = typename std::invoke_result<Func, ImageId, Image&>::type;
-    static constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
+    constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
     boost::container::small_vector<ImageId, 8> images;
     auto storage_id = getStorageID(as_id);
     if (!storage_id) {
@@ -2287,7 +2295,7 @@ template <class P>
 template <typename Func>
 void TextureCache<P>::ForEachSparseSegment(ImageBase& image, Func&& func) {
     using FuncReturn = typename std::invoke_result<Func, GPUVAddr, DAddr, size_t>::type;
-    static constexpr bool RETURNS_BOOL = std::is_same_v<FuncReturn, bool>;
+    constexpr bool RETURNS_BOOL = std::is_same_v<FuncReturn, bool>;
     const auto segments = gpu_memory->GetSubmappedRange(image.gpu_addr, image.guest_size_bytes);
     for (const auto& [gpu_addr, size] : segments) {
         std::optional<DAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
@@ -2363,9 +2371,7 @@ void TextureCache<P>::UnregisterImage(ImageId image_id) {
     image.flags &= ~ImageFlagBits::BadOverlap;
     lru_cache.Free(image.lru_index);
     const auto& clear_page_table =
-        [image_id](u64 page,
-                   std::unordered_map<u64, std::vector<ImageId>, Common::IdentityHash<u64>>&
-                       selected_page_table) {
+        [image_id](u64 page, ankerl::unordered_dense::map<u64, std::vector<ImageId>, Common::IdentityHash<u64>>& selected_page_table) {
             const auto page_it = selected_page_table.find(page);
             if (page_it == selected_page_table.end()) {
                 ASSERT_MSG(false, "Unregistering unregistered page=0x{:x}", page << YUZU_PAGEBITS);

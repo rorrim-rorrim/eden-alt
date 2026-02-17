@@ -186,6 +186,8 @@ if(ARCHITECTURE_x86_64)
         common
         PRIVATE x64/cpu_detect.cpp
         x64/cpu_detect.h
+        x64/cpu_wait.cpp
+        x64/cpu_wait.h
         x64/native_clock.cpp
         x64/native_clock.h
         x64/rdtsc.cpp
@@ -253,7 +255,7 @@ if (lz4_ADDED)
     target_include_directories(common PRIVATE ${lz4_SOURCE_DIR}/lib)
 endif()
 
-target_link_libraries(common PUBLIC fmt::fmt stb::headers Threads::Threads)
+target_link_libraries(common PUBLIC fmt::fmt stb::headers Threads::Threads unordered_dense::unordered_dense)
 target_link_libraries(common PRIVATE lz4::lz4 LLVM::Demangle zstd::zstd)
 
 if(ANDROID)

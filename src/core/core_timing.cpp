@@ -13,6 +13,10 @@
 #include "common/windows/timer_resolution.h"
 #endif
 
+#ifdef ARCHITECTURE_x86_64
+#include "common/x64/cpu_wait.h"
+#endif
+
 #include "common/settings.h"
 #include "core/core_timing.h"
 #include "core/hardware_properties.h"
@@ -201,7 +205,7 @@ u64 CoreTiming::GetClockTicks() const {
 
      if (Settings::values.sync_core_speed.GetValue()) {
          const auto ticks = double(fres);
-         const auto speed_limit = double(Settings::values.speed_limit.GetValue())*0.01;
+         const auto speed_limit = double(Settings::SpeedLimit())*0.01;
          return u64(ticks/speed_limit);
      } else {
          return fres;
@@ -283,7 +287,28 @@ void CoreTiming::ThreadLoop() {
             if (next_time) {
                 // There are more events left in the queue, wait until the next event.
                 auto wait_time = *next_time - GetGlobalTimeNs().count();
-                event.WaitFor(std::chrono::nanoseconds(wait_time));
+                if (wait_time > 0) {
+#ifdef _WIN32
+                    while (!paused && !event.IsSet() && wait_time > 0) {
+                        wait_time = *next_time - GetGlobalTimeNs().count();
+                        if (wait_time >= timer_resolution_ns) {
+                            Common::Windows::SleepForOneTick();
+                        } else {
+#ifdef ARCHITECTURE_x86_64
+                            Common::X64::MicroSleep();
+#else
+                            std::this_thread::yield();
+#endif
+                        }
+                    }
+
+                    if (event.IsSet()) {
+                        event.Reset();
+                    }
+#else
+                    event.WaitFor(std::chrono::nanoseconds(wait_time));
+#endif
+                }
             } else {
                 // Queue is empty, wait until another event is scheduled and signals us to
                 // continue.

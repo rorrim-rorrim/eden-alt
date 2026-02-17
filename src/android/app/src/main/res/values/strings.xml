@@ -99,9 +99,6 @@
 
     <string name="use_sync_core">Synchronize Core Speed</string>
     <string name="use_sync_core_description">Synchronize the core tick speed to the maximum speed percentage to improve performance without altering the game\'s actual speed.</string>
-    <string name="use_lru_cache">Enable LRU Cache</string>
-    <string name="use_lru_cache_description">Enable or disable the Least Recently Used (LRU) cache, increasing performance by saving CPU process usage. Some games may see issues with this setting, so disable it if the game doesn\'t boot or crashes randomly.</string>
-
     <string name="cpuopt_unsafe_host_mmu">Enable Host MMU Emulation</string>
     <string name="cpuopt_unsafe_host_mmu_description">This optimization speeds up memory accesses by the guest program. Enabling it causes guest memory reads/writes to be done directly into memory and make use of Host\'s MMU. Disabling this forces all memory accesses to use Software MMU Emulation.</string>
     <string name="debug_knobs">Debug knobs</string>
@@ -425,6 +422,10 @@
     <string name="frame_limit_enable_description">Limits emulation speed to a specified percentage of normal speed.</string>
     <string name="frame_limit_slider">Limit speed percent</string>
     <string name="frame_limit_slider_description">Specifies the percentage to limit emulation speed. 100% is the normal speed. Values higher or lower will increase or decrease the speed limit.</string>
+    <string name="turbo_speed_limit">Turbo speed</string>
+    <string name="turbo_speed_limit_description">When Turbo Mode is enabled, emulation will run at this speed.</string>
+    <string name="slow_speed_limit">Slow speed</string>
+    <string name="slow_speed_limit_description">When Slow Mode is enabled, emulation will run at this speed.</string>
     <string name="cpu_backend">CPU backend</string>
     <string name="cpu_accuracy">CPU accuracy</string>
     <string name="value_with_units">%1$s%2$s</string>
@@ -476,6 +477,8 @@
     <string name="renderer_accuracy_description">Controls the GPU emulation mode. Most games render fine with Fast or Balanced modes, but Accurate is still required for some. Particles tend to only render correctly with Accurate mode.</string>
     <string name="dma_accuracy">DMA Accuracy</string>
     <string name="dma_accuracy_description">Controls the DMA precision accuracy. Safe precision can fix issues in some games, but it can also impact performance in some cases. If unsure, leave this on Default.</string>
+    <string name="frame_pacing_mode">Frame Pacing Mode</string>
+    <string name="frame_pacing_mode_description">Controls how the emulator manages frame pacing to reduce stuttering and make the frame rate smoother and more consistent.</string>
     <string name="anisotropic_filtering">Anisotropic filtering</string>
     <string name="anisotropic_filtering_description">Improves the quality of textures when viewed at oblique angles</string>
     <string name="vram_usage_mode">VRAM Usage Mode</string>
@@ -504,15 +507,20 @@
     <string name="skip_cpu_inner_invalidation">Skip CPU Inner Invalidation</string>
     <string name="skip_cpu_inner_invalidation_description">Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and improving it\'s performance. This may cause glitches or crashes on some games.</string>
     <string name="fix_bloom_effects">Fix Bloom Effects</string>
-    <string name="fix_bloom_effects_description">Reduces bloom blur in LA/EOW (Adreno 700), removes bloom in Burnout</string>
+    <string name="fix_bloom_effects_description">Reduces bloom blur in LA/EOW (Adreno 700), removes bloom in Burnout. Warning: may cause graphical artifacts in other games.</string>
     <string name="renderer_asynchronous_shaders">Use asynchronous shaders</string>
     <string name="renderer_asynchronous_shaders_description">Compiles shaders asynchronously. This may reduce stutters but may also introduce glitches.</string>
+    <string name="gpu_unswizzle_settings">GPU Unswizzle Settings</string>
+    <string name="gpu_unswizzle_settings_description">Configure GPU-based texture unswizzling parameters or disable it entirely. Adjust these settings to balance performance and texture loading quality.</string>
+    <string name="gpu_unswizzle_enable">Enable GPU Unswizzle</string>
+    <string name="gpu_unswizzle_disabled">Disabled</string>
     <string name="gpu_unswizzle_texture_size">GPU Unswizzle Max Texture Size</string>
     <string name="gpu_unswizzle_texture_size_description">Sets the maximum size (MB) for GPU-based texture unswizzling. While the GPU is faster for medium and large textures, the CPU may be more efficient for very small ones. Adjust this to find the balance between GPU acceleration and CPU overhead.</string>
     <string name="gpu_unswizzle_stream_size">GPU Unswizzle Stream Size</string>
     <string name="gpu_unswizzle_stream_size_description">Sets the data limit per frame for unswizzling large textures. Higher values speed up texture loading at the cost of higher frame latency; lower values reduce GPU overhead but may cause visible texture pop-in.</string>
     <string name="gpu_unswizzle_chunk_size">GPU Unswizzle Chunk Size</string>
     <string name="gpu_unswizzle_chunk_size_description">Defines the number of depth slices processed per batch for 3D textures. Increasing this improves throughput efficiency on powerful GPUs but may cause stuttering or driver timeouts on weaker hardware.</string>
+    <string name="gpu_unswizzle_default_button">Default</string>
 
 
     <string name="extensions">Extensions</string>
@@ -1025,6 +1033,13 @@
     <string name="dma_accuracy_default">Default</string>
     <string name="dma_accuracy_unsafe">Unsafe</string>
     <string name="dma_accuracy_safe">Safe</string>
+
+    <!-- Frame Pacing Mode -->
+    <string name="frame_pacing_mode_target_Auto">Auto</string>
+    <string name="frame_pacing_mode_target_30">30 FPS</string>
+    <string name="frame_pacing_mode_target_60">60 FPS</string>
+    <string name="frame_pacing_mode_target_90">90 FPS</string>
+    <string name="frame_pacing_mode_target_120">120 FPS</string>
 
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu" translatable="false">CPU</string>
