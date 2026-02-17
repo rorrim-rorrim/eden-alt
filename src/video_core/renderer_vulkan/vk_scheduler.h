@@ -115,20 +115,19 @@ public:
     /// Waits for the given GPU tick, optionally pacing frames.
     void Wait(u64 tick, double target_fps = 0.0) {
         if (Settings::values.use_speed_limit.GetValue() && target_fps > 0.0) {
-            const auto now = std::chrono::steady_clock::now();
+            auto now = std::chrono::steady_clock::now();
             if (start_time == std::chrono::steady_clock::time_point{} || current_target_fps != target_fps) {
                 start_time = now;
-                frame_counter = 0;
                 current_target_fps = target_fps;
             }
-            frame_counter++;
             std::chrono::duration<double> frame_interval(1.0 / current_target_fps);
-            auto target_time = start_time + frame_interval * frame_counter;
+            auto elapsed = now - start_time;
+            auto expected_frame = static_cast<u64>(elapsed / frame_interval);
+            auto target_time = start_time + frame_interval * (expected_frame + 1);
             if (target_time > now) {
                 std::this_thread::sleep_until(target_time);
             } else {
                 start_time = now;
-                frame_counter = 0;
             }
         }
         if (tick > 0) {
@@ -282,7 +281,6 @@ private:
     std::jthread worker_thread;
 
     std::chrono::steady_clock::time_point start_time{};
-    u64 frame_counter{};
     double current_target_fps{};
 };
 

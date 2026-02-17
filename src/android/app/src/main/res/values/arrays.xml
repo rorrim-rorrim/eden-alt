@@ -533,6 +533,7 @@
     <string-array name="framePacingModeNames">
         <item>@string/frame_pacing_mode_target_Auto</item>
         <item>@string/frame_pacing_mode_target_30</item>
+        <item>@string/frame_pacing_mode_target_45</item>
         <item>@string/frame_pacing_mode_target_60</item>
         <item>@string/frame_pacing_mode_target_90</item>
         <item>@string/frame_pacing_mode_target_120</item>
@@ -543,6 +544,7 @@
         <item>2</item>
         <item>3</item>
         <item>4</item>
+        <item>5</item>
     </integer-array>
 
     <string-array name="appletEntries">

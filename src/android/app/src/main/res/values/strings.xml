@@ -1037,6 +1037,7 @@
     <!-- Frame Pacing Mode -->
     <string name="frame_pacing_mode_target_Auto">Auto</string>
     <string name="frame_pacing_mode_target_30">30 FPS</string>
+    <string name="frame_pacing_mode_target_45">45 FPS</string>
     <string name="frame_pacing_mode_target_60">60 FPS</string>
     <string name="frame_pacing_mode_target_90">90 FPS</string>
     <string name="frame_pacing_mode_target_120">120 FPS</string>
