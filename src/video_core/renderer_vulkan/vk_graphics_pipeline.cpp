@@ -539,7 +539,7 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
         if (bind_pipeline) {
             cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline);
 
-            if (UsesExtendedDynamicState()) {
+            if (device.IsExtExtendedDynamicStateSupported() && UsesExtendedDynamicState()) {
                 cmdbuf.SetDepthCompareOpEXT(MaxwellToVK::ComparisonOp(dynamic_state.DepthTestFunc()));
                 cmdbuf.SetFrontFaceEXT(MaxwellToVK::FrontFace(dynamic_state.FrontFace()));
                 VkCullModeFlags cull_mode = dynamic_state.cull_enable
@@ -562,13 +562,13 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
                 }
             }
 
-            if (UsesExtendedDynamicState2()) {
+            if (device.IsExtExtendedDynamicState2Supported() && UsesExtendedDynamicState2()) {
                 cmdbuf.SetPrimitiveRestartEnableEXT(dynamic_state.primitive_restart_enable != 0);
                 cmdbuf.SetRasterizerDiscardEnableEXT(dynamic_state.rasterize_enable == 0);
                 cmdbuf.SetDepthBiasEnableEXT(dynamic_state.depth_bias_enable != 0);
             }
 
-            if (UsesExtendedDynamicState2LogicOp()) {
+            if (device.IsExtExtendedDynamicState2ExtrasSupported() && UsesExtendedDynamicState2LogicOp()) {
                 cmdbuf.SetLogicOpEXT(static_cast<VkLogicOp>(dynamic_state.logic_op.Value()));
             }
         }
