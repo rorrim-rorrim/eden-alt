@@ -2179,6 +2179,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     using Shader::TextureType;
 
     const VkImageAspectFlags aspect_mask = ImageViewAspectMask(info);
+    this->aspect_mask = aspect_mask;
     std::array<SwizzleSource, 4> swizzle{
         SwizzleSource::R,
         SwizzleSource::G,
@@ -2193,6 +2194,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
             std::ranges::transform(swizzle, swizzle.begin(), ConvertGreenRed);
         }
     }
+    this->swizzle = swizzle;
     const auto format_info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
     if (ImageUsageFlags(format_info, format) != image.UsageFlags()) {
         LOG_WARNING(Render_Vulkan,
@@ -2273,6 +2275,8 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageInfo&
 
 ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::NullImageViewParams& params)
     : VideoCommon::ImageViewBase{params}, device{&runtime.device} {
+    swizzle = {SwizzleSource::R, SwizzleSource::G, SwizzleSource::B, SwizzleSource::A};
+    aspect_mask = VK_IMAGE_ASPECT_COLOR_BIT;
     if (device->HasNullDescriptor()) {
         return;
     }
@@ -2329,7 +2333,13 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
                                    Shader::ImageFormat image_format) {
     if (image_handle) {
         if (image_format == Shader::ImageFormat::Typeless) {
-            return Handle(texture_type);
+            auto& view = identity_views[static_cast<size_t>(texture_type)];
+            if (!view) {
+                const auto format_info =
+                    MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
+                view = MakeView(format_info.format, aspect_mask);
+            }
+            return *view;
         }
         const bool is_signed = image_format == Shader::ImageFormat::R8_SINT
             || image_format == Shader::ImageFormat::R16_SINT;

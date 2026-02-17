@@ -17,6 +17,8 @@
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
+#include "video_core/textures/texture.h"
+
 namespace Settings {
 struct ResolutionScalingInfo;
 }
@@ -379,6 +381,9 @@ private:
     const SlotVector<Image>* slot_images = nullptr;
 
     std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> image_views;
+    std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> identity_views;
+    std::array<Tegra::Texture::SwizzleSource, 4> swizzle;
+    VkImageAspectFlags aspect_mask;
     std::optional<StorageViews> storage_views;
     vk::ImageView depth_view;
     vk::ImageView stencil_view;
