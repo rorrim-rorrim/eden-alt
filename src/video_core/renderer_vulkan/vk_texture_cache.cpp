@@ -2096,21 +2096,23 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
       samples(ConvertSampleCount(image.info.num_samples)) {
     using Shader::TextureType;
 
-    const VkImageAspectFlags aspect_mask = ImageViewAspectMask(info);
-    std::array<SwizzleSource, 4> swizzle{
+    const VkImageAspectFlags view_aspect_mask = ImageViewAspectMask(info);
+    this->aspect_mask = view_aspect_mask;
+    std::array<SwizzleSource, 4> view_swizzle{
         SwizzleSource::R,
         SwizzleSource::G,
         SwizzleSource::B,
         SwizzleSource::A,
     };
     if (!info.IsRenderTarget()) {
-        swizzle = info.Swizzle();
-        TryTransformSwizzleIfNeeded(format, swizzle,
+        view_swizzle = info.Swizzle();
+        TryTransformSwizzleIfNeeded(format, view_swizzle,
                                     !device->IsExt4444FormatsSupported());
-        if ((aspect_mask & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) != 0) {
-            std::ranges::transform(swizzle, swizzle.begin(), ConvertGreenRed);
+        if ((view_aspect_mask & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) != 0) {
+            std::ranges::transform(view_swizzle, view_swizzle.begin(), ConvertGreenRed);
         }
     }
+    this->swizzle = view_swizzle;
     const auto format_info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
     if (ImageUsageFlags(format_info, format) != image.UsageFlags()) {
         LOG_WARNING(Render_Vulkan,
@@ -2130,12 +2132,12 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
         .viewType = VkImageViewType{},
         .format = format_info.format,
         .components{
-            .r = ComponentSwizzle(swizzle[0]),
-            .g = ComponentSwizzle(swizzle[1]),
-            .b = ComponentSwizzle(swizzle[2]),
-            .a = ComponentSwizzle(swizzle[3]),
+            .r = ComponentSwizzle(view_swizzle[0]),
+            .g = ComponentSwizzle(view_swizzle[1]),
+            .b = ComponentSwizzle(view_swizzle[2]),
+            .a = ComponentSwizzle(view_swizzle[3]),
         },
-        .subresourceRange = MakeSubresourceRange(aspect_mask, info.range),
+        .subresourceRange = MakeSubresourceRange(view_aspect_mask, info.range),
     };
     const auto create = [&](TextureType tex_type, std::optional<u32> num_layers) {
         VkImageViewCreateInfo ci{create_info};
@@ -2191,6 +2193,8 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageInfo&
 
 ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::NullImageViewParams& params)
     : VideoCommon::ImageViewBase{params}, device{&runtime.device} {
+    swizzle = {SwizzleSource::R, SwizzleSource::G, SwizzleSource::B, SwizzleSource::A};
+    aspect_mask = VK_IMAGE_ASPECT_COLOR_BIT;
     if (device->HasNullDescriptor()) {
         return;
     }
@@ -2247,7 +2251,13 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
                                    Shader::ImageFormat image_format) {
     if (image_handle) {
         if (image_format == Shader::ImageFormat::Typeless) {
-            return Handle(texture_type);
+            auto& view = identity_views[static_cast<size_t>(texture_type)];
+            if (!view) {
+                const auto format_info =
+                    MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
+                view = MakeView(format_info.format, aspect_mask);
+            }
+            return *view;
         }
         const bool is_signed = image_format == Shader::ImageFormat::R8_SINT
             || image_format == Shader::ImageFormat::R16_SINT;
@@ -2266,7 +2276,7 @@ bool ImageView::IsRescaled() const noexcept {
     return (*slot_images)[image_id].IsRescaled();
 }
 
-vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask) {
+vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags view_aspect_mask) {
     return device->GetLogical().CreateImageView({
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext = nullptr,
@@ -2280,7 +2290,7 @@ vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_
             .b = VK_COMPONENT_SWIZZLE_IDENTITY,
             .a = VK_COMPONENT_SWIZZLE_IDENTITY,
         },
-        .subresourceRange = MakeSubresourceRange(aspect_mask, range),
+        .subresourceRange = MakeSubresourceRange(view_aspect_mask, range),
     });
 }
 
