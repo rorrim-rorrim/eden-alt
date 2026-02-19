@@ -38,7 +38,8 @@ enum class AppletInfo(val appletId: Int, val entryId: Long = 0) {
     OfflineWeb(0x17),
     LoginShare(0x18),
     WebAuth(0x19),
-    MyPage(0x1A)
+    MyPage(0x1A),
+    Splay(0x64)
 }
 
 // Matches enum in Service::NFP::CabinetMode with extra metadata

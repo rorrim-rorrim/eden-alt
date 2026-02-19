@@ -1700,6 +1700,9 @@ void MainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Launch_QLaunch, [this]{
         LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::QLaunch), std::nullopt);
     });
+    connect_menu(ui->action_Launch_Splay, [this]{
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Splay), std::nullopt);
+    });
     // Tools (cabinet)
     connect_menu(ui->action_Launch_Cabinet_Nickname_Owner, [this]{
         LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Cabinet), {Service::NFP::CabinetMode::StartNicknameAndOwnerSettings});
@@ -1762,7 +1765,8 @@ void MainWindow::UpdateMenuState() {
         ui->action_Launch_Cabinet_Formatter,
         ui->action_Launch_MiiEdit,
         ui->action_Launch_QLaunch,
-        ui->action_Launch_Controller
+        ui->action_Launch_Controller,
+        ui->action_Launch_Splay
     };
 
     for (QAction* action : running_actions) {
@@ -4101,6 +4105,7 @@ void MainWindow::LaunchFirmwareApplet(u64 raw_program_id, std::optional<Service:
             case AppletProgramId::LoginShare: return AppletId::LoginShare;
             case AppletProgramId::WebAuth: return AppletId::WebAuth;
             case AppletProgramId::MyPage: return AppletId::MyPage;
+            case AppletProgramId::Splay: return AppletId::Splay;
             default: return AppletId::None;
         }
         }(); applet_id != Service::AM::AppletId::None) {

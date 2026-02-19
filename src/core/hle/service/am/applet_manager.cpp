@@ -172,6 +172,19 @@ void PushInShowMiiEditData(Core::System& system, AppletStorageChannel& channel) 
     channel.Push(std::make_shared<IStorage>(system, std::move(argument_data)));
 }
 
+void PushInShowSplay(Core::System& system, AppletStorageChannel& channel) {
+    struct SplayV1 {
+        std::array<char, 0x100> i_dont_know_what_this_is_used_for;
+    };
+    static_assert(sizeof(SplayV1) == 0x100, "MiiEditV3 has incorrect size.");
+
+    SplayV1 splay_arguments{};
+    std::vector<u8> argument_data(sizeof(splay_arguments));
+    std::memcpy(argument_data.data(), &splay_arguments, sizeof(splay_arguments));
+
+    channel.Push(std::make_shared<IStorage>(system, std::move(argument_data)));
+}
+
 void PushInShowSoftwareKeyboard(Core::System& system, AppletStorageChannel& channel) {
     const CommonArguments arguments{
         .arguments_version = CommonArgumentVersion::Version3,
@@ -334,6 +347,9 @@ void AppletManager::SetWindowSystem(WindowSystem* window_system) {
         break;
     case AppletId::Controller:
         PushInShowController(m_system, InitializeFakeCallerApplet(m_system, applet));
+        break;
+    case AppletId::Splay:
+        PushInShowSplay(m_system, InitializeFakeCallerApplet(m_system, applet));
         break;
     default:
         break;

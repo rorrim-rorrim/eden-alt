@@ -66,6 +66,7 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     LOGIN_SHARE_APPLET("login_share_applet_mode"),
     WIFI_WEB_AUTH_APPLET("wifi_web_auth_applet_mode"),
     MY_PAGE_APPLET("my_page_applet_mode"),
+    SPLAY_APPLET("splay_applet_mode"),
     INPUT_OVERLAY_AUTO_HIDE("input_overlay_auto_hide"),
     OVERLAY_GRID_SIZE("overlay_grid_size"),
     DEBUG_KNOBS("debug_knobs"),

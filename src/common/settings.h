@@ -168,6 +168,7 @@ struct Values {
                                                   linkage, AppletMode::HLE, "wifi_web_auth_applet_mode", Category::LibraryApplet};
     Setting<AppletMode> my_page_applet_mode{linkage, AppletMode::LLE, "my_page_applet_mode",
                                             Category::LibraryApplet};
+    Setting<AppletMode> splay_applet_mode{linkage, AppletMode::LLE, "splay_applet_mode", Category::LibraryApplet};
 
     // Audio
     SwitchableSetting<AudioEngine> sink_id{linkage, AudioEngine::Auto, "output_engine",

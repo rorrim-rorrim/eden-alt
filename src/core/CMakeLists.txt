@@ -829,6 +829,8 @@ add_library(core STATIC
     hle/service/ns/ns_types.h
     hle/service/ns/platform_service_manager.cpp
     hle/service/ns/platform_service_manager.h
+    hle/service/ns/notify_service.cpp
+    hle/service/ns/notify_service.h
     hle/service/ns/query_service.cpp
     hle/service/ns/query_service.h
     hle/service/ns/read_only_application_control_data_interface.cpp

@@ -44,6 +44,7 @@ bool ShouldCreateGuestApplet(AppletId applet_id) {
     X(LoginShare, login_share)
     X(WebAuth, wifi_web_auth)
     X(MyPage, my_page)
+    X(Splay, splay)
 
 #undef X
 
@@ -52,48 +53,28 @@ bool ShouldCreateGuestApplet(AppletId applet_id) {
 
 AppletProgramId AppletIdToProgramId(AppletId applet_id) {
     switch (applet_id) {
-    case AppletId::OverlayDisplay:
-        return AppletProgramId::OverlayDisplay;
-    case AppletId::QLaunch:
-        return AppletProgramId::QLaunch;
-    case AppletId::Starter:
-        return AppletProgramId::Starter;
-    case AppletId::Auth:
-        return AppletProgramId::Auth;
-    case AppletId::Cabinet:
-        return AppletProgramId::Cabinet;
-    case AppletId::Controller:
-        return AppletProgramId::Controller;
-    case AppletId::DataErase:
-        return AppletProgramId::DataErase;
-    case AppletId::Error:
-        return AppletProgramId::Error;
-    case AppletId::NetConnect:
-        return AppletProgramId::NetConnect;
-    case AppletId::ProfileSelect:
-        return AppletProgramId::ProfileSelect;
-    case AppletId::SoftwareKeyboard:
-        return AppletProgramId::SoftwareKeyboard;
-    case AppletId::MiiEdit:
-        return AppletProgramId::MiiEdit;
-    case AppletId::Web:
-        return AppletProgramId::Web;
-    case AppletId::Shop:
-        return AppletProgramId::Shop;
-    case AppletId::PhotoViewer:
-        return AppletProgramId::PhotoViewer;
-    case AppletId::Settings:
-        return AppletProgramId::Settings;
-    case AppletId::OfflineWeb:
-        return AppletProgramId::OfflineWeb;
-    case AppletId::LoginShare:
-        return AppletProgramId::LoginShare;
-    case AppletId::WebAuth:
-        return AppletProgramId::WebAuth;
-    case AppletId::MyPage:
-        return AppletProgramId::MyPage;
-    default:
-        return static_cast<AppletProgramId>(0);
+    case AppletId::OverlayDisplay: return AppletProgramId::OverlayDisplay;
+    case AppletId::QLaunch: return AppletProgramId::QLaunch;
+    case AppletId::Starter: return AppletProgramId::Starter;
+    case AppletId::Auth: return AppletProgramId::Auth;
+    case AppletId::Cabinet: return AppletProgramId::Cabinet;
+    case AppletId::Controller: return AppletProgramId::Controller;
+    case AppletId::DataErase: return AppletProgramId::DataErase;
+    case AppletId::Error: return AppletProgramId::Error;
+    case AppletId::NetConnect: return AppletProgramId::NetConnect;
+    case AppletId::ProfileSelect: return AppletProgramId::ProfileSelect;
+    case AppletId::SoftwareKeyboard: return AppletProgramId::SoftwareKeyboard;
+    case AppletId::MiiEdit: return AppletProgramId::MiiEdit;
+    case AppletId::Web: return AppletProgramId::Web;
+    case AppletId::Shop: return AppletProgramId::Shop;
+    case AppletId::PhotoViewer: return AppletProgramId::PhotoViewer;
+    case AppletId::Settings: return AppletProgramId::Settings;
+    case AppletId::OfflineWeb: return AppletProgramId::OfflineWeb;
+    case AppletId::LoginShare: return AppletProgramId::LoginShare;
+    case AppletId::WebAuth: return AppletProgramId::WebAuth;
+    case AppletId::MyPage: return AppletProgramId::MyPage;
+    case AppletId::Splay: return AppletProgramId::Splay;
+    default: return AppletProgramId(0);
     }
 }
 

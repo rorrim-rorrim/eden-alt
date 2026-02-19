@@ -63,7 +63,8 @@ void ConfigureApplets::Setup(const ConfigurationShared::Builder& builder) {
             setting->Id() == Settings::values.shop_applet_mode.Id() ||
             setting->Id() == Settings::values.login_share_applet_mode.Id() ||
             setting->Id() == Settings::values.wifi_web_auth_applet_mode.Id() ||
-            setting->Id() == Settings::values.my_page_applet_mode.Id()) {
+            setting->Id() == Settings::values.my_page_applet_mode.Id() ||
+            setting->Id() == Settings::values.splay_applet_mode.Id()) {
             widget->setHidden(true);
         }
 

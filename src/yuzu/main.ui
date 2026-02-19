@@ -189,6 +189,7 @@
      <addaction name="action_Launch_MiiEdit"/>
      <addaction name="action_Launch_Controller"/>
      <addaction name="action_Launch_PhotoViewer"/>
+     <addaction name="action_Launch_Splay"/>
     </widget>
     <widget class="QMenu" name="menuTAS">
      <property name="title">
@@ -463,6 +464,11 @@
   <action name="action_Launch_MiiEdit">
    <property name="text">
     <string>&amp;Mii Editor</string>
+   </property>
+  </action>
+  <action name="action_Launch_Splay">
+   <property name="text">
+    <string>&amp;Splay</string>
    </property>
   </action>
   <action name="action_Configure_Tas">
