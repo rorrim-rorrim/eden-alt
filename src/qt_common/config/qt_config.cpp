@@ -241,6 +241,16 @@ void QtConfig::ReadPathValues() {
     }
     EndArray();
 
+    Settings::values.blocked_domains.clear();
+    const int blocked_domains_size = BeginArray(std::string("blocked_domains"));
+    for (int i = 0; i < blocked_domains_size; ++i) {
+        SetArrayIndex(i);
+        if (auto s = ReadStringSetting(std::string("domain")); !s.empty()) {
+            Settings::values.blocked_domains.push_back(s);
+        }
+    }
+    EndArray();
+
     ReadCategory(Settings::Category::Paths);
 
     EndGroup();
@@ -460,6 +470,13 @@ void QtConfig::SavePathValues() {
     for (int i = 0; i < static_cast<int>(Settings::values.external_content_dirs.size()); ++i) {
         SetArrayIndex(i);
         WriteStringSetting(std::string("path"), Settings::values.external_content_dirs[i]);
+    }
+    EndArray();
+
+    BeginArray(std::string("blocked_domains"));
+    for (int i = 0; i < static_cast<int>(Settings::values.blocked_domains.size()); ++i) {
+        SetArrayIndex(i);
+        WriteStringSetting(std::string("domain"), Settings::values.blocked_domains[i]);
     }
     EndArray();
 

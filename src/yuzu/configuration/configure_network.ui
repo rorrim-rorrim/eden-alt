@@ -45,6 +45,66 @@
        </layout>
       </widget>
      </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_blocked_domains">
+       <property name="title">
+        <string>Blocked Domains Content</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_blocked_domains">
+        <item>
+         <widget class="QLabel" name="label_blocked_domains_desc">
+          <property name="text">
+           <string>Add domains to filter out on DNS resolutions</string>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QListWidget" name="blocked_domains_list">
+          <property name="selectionMode">
+           <enum>QAbstractItemView::SingleSelection</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_blocked_domains_buttons">
+          <item>
+           <widget class="QPushButton" name="add_blocked_domains_button">
+            <property name="text">
+             <string>Add Domain</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="remove_blocked_domains_button">
+            <property name="text">
+             <string>Remove Selected</string>
+            </property>
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_blocked_domains">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>

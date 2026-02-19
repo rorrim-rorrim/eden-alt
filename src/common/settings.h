@@ -803,9 +803,16 @@ struct Values {
     Setting<bool> first_launch{linkage, true, "first_launch", Category::Miscellaneous};
 
     // Network
-    Setting<std::string> network_interface{linkage, std::string(), "network_interface",
-                                           Category::Network};
+    Setting<std::string> network_interface{linkage, std::string(), "network_interface", Category::Network};
     SwitchableSetting<bool> airplane_mode{linkage, false, "airplane_mode", Category::Network};
+    std::vector<std::string> blocked_domains = {
+        "srv.nintendo.net",
+        "battle.net",
+        "microsoft.com",
+        "mojang.com",
+        "xboxlive.com",
+        "minecraftservices.com"
+    };
 
     // WebService
     Setting<std::string> web_api_url{linkage, "api.ynet-fun.xyz", "web_api_url",

@@ -262,6 +262,13 @@ void AndroidConfig::SavePathValues() {
     }
     EndArray();
 
+    BeginArray(std::string("blocked_domains"));
+    for (size_t i = 0; i < Settings::values.blocked_domains.size(); ++i) {
+        SetArrayIndex(i);
+        WriteStringSetting(std::string("domain"), Settings::values.blocked_domains[i]);
+    }
+    EndArray();
+
     // Save custom NAND directory
     const auto nand_path = Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir);
     WriteStringSetting(std::string("nand_directory"), nand_path,

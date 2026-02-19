@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "common/settings.h"
 #include "common/string_util.h"
 #include "common/swap.h"
 #include "core/core.h"
@@ -53,17 +54,11 @@ enum class NetDbError : s32 {
     NoData = 4,
 };
 
-static const constexpr std::array blockedDomains = {"srv.nintendo.net",
-                                                    "battle.net",
-                                                    "microsoft.com",
-                                                    "mojang.com",
-                                                    "xboxlive.com",
-                                                    "minecraftservices.com"};
-
 static bool IsBlockedHost(const std::string& host) {
-    return std::any_of(
-        blockedDomains.begin(), blockedDomains.end(),
-        [&host](const std::string& domain) { return host.find(domain) != std::string::npos; });
+    auto const& v = Settings::values.blocked_domains;
+    return std::any_of(v.begin(), v.end(), [&host](const std::string& domain) {
+        return host.find(domain) != std::string::npos;
+    });
 }
 
 static NetDbError GetAddrInfoErrorToNetDbError(GetAddrInfoError result) {
@@ -163,7 +158,17 @@ static std::pair<u32, GetAddrInfoError> GetHostByNameRequestImpl(HLERequestConte
         parameters.use_nsd_resolve, parameters.cancel_handle, parameters.process_id);
 
     const auto host_buffer = ctx.ReadBuffer(0);
-    const std::string host = Common::StringFromBuffer(host_buffer);
+
+    std::string host = Common::StringFromBuffer(host_buffer);
+    if (parameters.use_nsd_resolve) {
+        // TODO: how its actually done?
+        if (auto const pos = host.find('%'); pos != std::string::npos) {
+            host[pos] = 'l';
+            host.insert(pos, "p1");
+        }
+        LOG_WARNING(Service, "nsd resolve={}", host);
+    }
+
     // For now, ignore options, which are in input buffer 1 for GetHostByNameRequestWithOptions.
 
     // Prevent resolution of Nintendo servers
