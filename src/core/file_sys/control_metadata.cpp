@@ -228,7 +228,7 @@ bool NACP::GetUserAccountSwitchLock() const {
 }
 
 u32 NACP::GetSupportedLanguages() const {
-    return raw.supported_languages;
+    return u32(raw.supported_languages);
 }
 
 u64 NACP::GetDeviceSaveDataSize() const {
