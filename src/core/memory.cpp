@@ -687,7 +687,7 @@ struct Memory::Impl {
         if (auto const ptr_c1 = GetPointerImpl(addr_c1, [addr_c1] {
             LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr_c1);
         }, [&] {
-            HandleRasterizerDownload(addr_c1, sizeof(T));
+            HandleRasterizerWrite(addr_c1, sizeof(T));
         }); ptr_c1) {
             if (!(sizeof(T) > 1 && (addr_c1 & 4095) + sizeof(T) > 4096)) {
                 std::memcpy(ptr_c1, &data, sizeof(T));
@@ -700,7 +700,7 @@ struct Memory::Impl {
                 auto const ptr_c2 = GetPointerImpl(addr_c2, [addr_c2] {
                     LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr_c2);
                 }, [&] {
-                    HandleRasterizerDownload(addr_c2, sizeof(T));
+                    HandleRasterizerWrite(addr_c2, sizeof(T));
                 });
                 std::array<char, sizeof(T)> tmp = std::bit_cast<std::array<char, sizeof(T)>>(data);
                 std::memcpy(ptr_c1, tmp.data() + 0, count_c1);
