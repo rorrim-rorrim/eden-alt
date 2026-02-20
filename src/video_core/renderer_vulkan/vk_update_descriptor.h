@@ -64,11 +64,19 @@ public:
     }
 
     void AddBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize size) {
-        *(payload_cursor++) = VkDescriptorBufferInfo{
-            .buffer = buffer,
-            .offset = offset,
-            .range = size,
-        };
+        if (buffer == VK_NULL_HANDLE) {
+            *(payload_cursor++) = VkDescriptorBufferInfo{
+                .buffer = VK_NULL_HANDLE,
+                .offset = 0,
+                .range = VK_WHOLE_SIZE,
+            };
+        } else {
+            *(payload_cursor++) = VkDescriptorBufferInfo{
+                .buffer = buffer,
+                .offset = offset,
+                .range = size,
+            };
+        }
     }
 
     void AddTexelBuffer(VkBufferView texel_buffer) {
