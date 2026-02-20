@@ -12,6 +12,7 @@
 #include <zlib.h>
 
 #include "common/settings.h"
+#include "common/settings_enums.h"
 #include "common/string_util.h"
 #include "common/swap.h"
 #include "core/file_sys/control_metadata.h"
@@ -19,7 +20,7 @@
 
 namespace FileSys {
 
-const std::array<const char*, 16> LANGUAGE_NAMES{{
+const std::array<const char*, size_t(Language::Count)> LANGUAGE_NAMES{{
     "AmericanEnglish",
     "BritishEnglish",
     "Japanese",
@@ -36,6 +37,8 @@ const std::array<const char*, 16> LANGUAGE_NAMES{{
     "TraditionalChinese",
     "SimplifiedChinese",
     "BrazilianPortuguese",
+    "Polish",
+    "Thai",
 }};
 
 namespace {
@@ -106,16 +109,14 @@ void DecodePackedLanguageEntries(RawNACP& raw) {
 } // namespace
 
 std::string LanguageEntry::GetApplicationName() const {
-    return Common::StringFromFixedZeroTerminatedBuffer(application_name.data(),
-                                                       application_name.size());
+    return Common::StringFromFixedZeroTerminatedBuffer(application_name.data(), application_name.size());
 }
 
 std::string LanguageEntry::GetDeveloperName() const {
-    return Common::StringFromFixedZeroTerminatedBuffer(developer_name.data(),
-                                                       developer_name.size());
+    return Common::StringFromFixedZeroTerminatedBuffer(developer_name.data(), developer_name.size());
 }
 
-constexpr std::array<Language, 18> language_to_codes = {{
+constexpr std::array<Language, 20> language_to_codes = {{
     Language::Japanese,
     Language::AmericanEnglish,
     Language::French,
@@ -134,6 +135,8 @@ constexpr std::array<Language, 18> language_to_codes = {{
     Language::SimplifiedChinese,
     Language::TraditionalChinese,
     Language::BrazilianPortuguese,
+    Language::Polish,
+    Language::Thai,
 }};
 
 NACP::NACP() = default;
@@ -146,20 +149,40 @@ NACP::NACP(VirtualFile file) {
 NACP::~NACP() = default;
 
 const LanguageEntry& NACP::GetLanguageEntry() const {
-    Language language =
-        language_to_codes[static_cast<s32>(Settings::values.language_index.GetValue())];
-
+    auto const language = []{
+        switch (Settings::values.language_index.GetValue()) {
+        case Settings::Language::Chinese: return Language::SimplifiedChinese;
+        case Settings::Language::ChineseSimplified: return Language::SimplifiedChinese;
+        case Settings::Language::ChineseTraditional: return Language::TraditionalChinese;
+        case Settings::Language::Dutch: return Language::Dutch;
+        case Settings::Language::EnglishAmerican: return Language::AmericanEnglish;
+        case Settings::Language::EnglishBritish: return Language::BritishEnglish;
+        case Settings::Language::French: return Language::French;
+        case Settings::Language::FrenchCanadian: return Language::CanadianFrench;
+        case Settings::Language::German: return Language::German;
+        case Settings::Language::Italian: return Language::Italian;
+        case Settings::Language::Korean: return Language::Korean;
+        case Settings::Language::Japanese: return Language::Japanese;
+        case Settings::Language::Portuguese: return Language::Portuguese;
+        case Settings::Language::PortugueseBrazilian: return Language::BrazilianPortuguese;
+        case Settings::Language::Russian: return Language::Russian;
+        case Settings::Language::Serbian: return Language::Russian;
+        case Settings::Language::Spanish: return Language::Spanish;
+        case Settings::Language::SpanishLatin: return Language::LatinAmericanSpanish;
+        case Settings::Language::Taiwanese: return Language::SimplifiedChinese;
+        case Settings::Language::Thai: return Language::Thai;
+        case Settings::Language::Polish: return Language::Polish;
+        }
+    }();
     {
         const auto& language_entry = raw.language_entries.at(static_cast<u8>(language));
         if (!language_entry.GetApplicationName().empty())
             return language_entry;
     }
-
     for (const auto& language_entry : raw.language_entries) {
         if (!language_entry.GetApplicationName().empty())
             return language_entry;
     }
-
     return raw.language_entries.at(static_cast<u8>(Language::AmericanEnglish));
 }
 

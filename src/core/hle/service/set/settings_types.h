@@ -169,6 +169,8 @@ enum class Language : u32 {
     SimplifiedCHhinese,
     TraditionalChinese,
     BrazilianPortuguese,
+    Polish,
+    Thai
 };
 
 /// This is "nn::settings::LanguageCode", which is a NUL-terminated string stored in a u64.
@@ -191,6 +193,8 @@ enum class LanguageCode : u64 {
     ZH_HANS = 0x00736E61482D687A,
     ZH_HANT = 0x00746E61482D687A,
     PT_BR = 0x00000052422D7470,
+    TH = 0x0000000000006874,
+    PL = 0x000000000000706C,
 };
 
 /// This is nn::settings::system::NotificationVolume
