@@ -128,18 +128,14 @@ struct Memory::Impl {
         }
     }
 
-    [[nodiscard]] u8* GetPointerFromRasterizerCachedMemory(u64 vaddr) const {
-        Common::PhysicalAddress const paddr = current_page_table->entries[vaddr >> YUZU_PAGEBITS].addr;
-        if (paddr)
-            return system.DeviceMemory().GetPointer<u8>(paddr + vaddr);
-        return {};
+    [[nodiscard]] inline u8* GetPointerFromRasterizerCachedMemory(u64 vaddr) const {
+        auto const paddr = current_page_table->entries[vaddr >> YUZU_PAGEBITS].addr;
+        return paddr ? system.DeviceMemory().GetPointer<u8>(paddr + vaddr) : nullptr;
     }
 
-    [[nodiscard]] u8* GetPointerFromDebugMemory(u64 vaddr) const {
-        const Common::PhysicalAddress paddr = current_page_table->entries[vaddr >> YUZU_PAGEBITS].addr;
-        if (paddr != 0)
-            return system.DeviceMemory().GetPointer<u8>(paddr + vaddr);
-        return {};
+    [[nodiscard]] inline u8* GetPointerFromDebugMemory(u64 vaddr) const {
+        auto const paddr = current_page_table->entries[vaddr >> YUZU_PAGEBITS].addr;
+        return paddr ? system.DeviceMemory().GetPointer<u8>(paddr + vaddr) : nullptr;
     }
 
     bool WriteExclusive8(const Common::ProcessAddress addr, const u8 data, const u8 expected) {
@@ -594,7 +590,7 @@ struct Memory::Impl {
     }
 
     template<typename F, typename G>
-    [[nodiscard]] u8* GetPointerImpl(u64 vaddr, F&& on_unmapped, G&& on_rasterizer) const {
+    [[nodiscard]] inline u8* GetPointerImpl(u64 vaddr, F&& on_unmapped, G&& on_rasterizer) const {
         // AARCH64 masks the upper 16 bit of all memory accesses
         vaddr &= 0xffffffffffffULL;
         if (AddressSpaceContains(*current_page_table, vaddr, 1)) [[likely]] {
@@ -649,41 +645,35 @@ struct Memory::Impl {
     /// @returns The instance of T read from the specified virtual address.
     template <typename T>
     inline T Read(Common::ProcessAddress vaddr) noexcept requires(std::is_trivially_copyable_v<T>) {
-        if (!(sizeof(T) > 1 && (vaddr & 4095) + sizeof(T) > 4096)) {
-            const u64 addr = GetInteger(vaddr);
-            if (auto const ptr = GetPointerImpl(addr, [addr] {
-                LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr);
-            }, [&] {
-                HandleRasterizerDownload(addr, sizeof(T));
-            }); ptr) [[likely]] {
+        auto const addr_c1 = GetInteger(vaddr);
+        if (auto const ptr_c1 = GetPointerImpl(addr_c1, [addr_c1] {
+            LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr_c1);
+        }, [&] {
+            HandleRasterizerDownload(addr_c1, sizeof(T));
+        }); ptr_c1) {
+            if (!(sizeof(T) > 1 && (addr_c1 & 4095) + sizeof(T) > 4096)) {
                 // It may be tempting to rewrite this particular section to use "reinterpret_cast";
                 // afterall, it's trivially copyable so surely it can be copied ov- Alignment.
                 // Remember, alignment. memcpy() will deal with all the alignment extremely fast.
                 T result{};
-                std::memcpy(&result, ptr, sizeof(T));
+                std::memcpy(&result, ptr_c1, sizeof(T));
                 return result;
+            } else {
+                auto const addr_c2 = (addr_c1 & (~0xfff)) + 0x1000;
+                // page crossing: say if sizeof(T) = 2, vaddr = 4095
+                // 4095 + 2 mod 4096 = 1 => 2 - 1 = 1, thus c1=1, c2=1
+                auto const count_c2 = (addr_c1 + sizeof(T)) & 4095;
+                auto const count_c1 = sizeof(T) - count_c2;
+                auto const ptr_c2 = GetPointerImpl(addr_c2, [addr_c2] {
+                    LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr_c2);
+                }, [&] {
+                    HandleRasterizerDownload(addr_c2, sizeof(T));
+                });
+                std::array<char, sizeof(T)> result{};
+                std::memcpy(result.data() + 0, ptr_c1, count_c1);
+                std::memcpy(result.data() + count_c1, ptr_c2, count_c2);
+                return std::bit_cast<T>(result);
             }
-        } else {
-            auto const addr_c1 = GetInteger(vaddr);
-            auto const addr_c2 = (addr_c1 & (~0xfff)) + 0x1000;
-            // page crossing: say if sizeof(T) = 2, vaddr = 4095
-            // 4095 + 2 mod 4096 = 1 => 2 - 1 = 1, thus c1=1, c2=1
-            auto const count_c2 = (addr_c1 + sizeof(T)) & 4095;
-            auto const count_c1 = sizeof(T) - count_c2;
-            auto const ptr_c1 = GetPointerImpl(addr_c1, [addr_c1] {
-                LOG_ERROR(HW_Memory, "Unmapped partial-Read{} @ 0x{:016X}", sizeof(T) * 8, addr_c1);
-            }, [&] {
-                HandleRasterizerDownload(addr_c1, sizeof(T));
-            });
-            auto const ptr_c2 = GetPointerImpl(addr_c2, [addr_c2] {
-                LOG_ERROR(HW_Memory, "Unmapped partial-Read{} @ 0x{:016X}", sizeof(T) * 8, addr_c2);
-            }, [&] {
-                HandleRasterizerDownload(addr_c2, sizeof(T));
-            });
-            std::array<char, sizeof(T)> result{};
-            std::memcpy(result.data() + 0, ptr_c1, count_c1);
-            std::memcpy(result.data() + count_c1, ptr_c2, count_c2);
-            return std::bit_cast<T>(result);
         }
         return T{};
     }
@@ -693,32 +683,29 @@ struct Memory::Impl {
     /// @tparam T The data type to write to memory.
     template <typename T>
     inline void Write(Common::ProcessAddress vaddr, const T data) noexcept requires(std::is_trivially_copyable_v<T>) {
-        if (!(sizeof(T) > 1 && (vaddr & 4095) + sizeof(T) > 4096)) {
-            const u64 addr = GetInteger(vaddr);
-            if (auto const ptr = GetPointerImpl(addr, [addr, data] {
-                LOG_ERROR(HW_Memory, "Unmapped Write{} @ 0x{:016X} = 0x{:016X}", sizeof(T) * 8, addr, u64(data));
-            }, [&]() { HandleRasterizerWrite(addr, sizeof(T)); }); ptr) [[likely]]
-                std::memcpy(ptr, &data, sizeof(T));
-        } else {
-            auto const addr_c1 = GetInteger(vaddr);
-            auto const addr_c2 = (addr_c1 & (~0xfff)) + 0x1000;
-            // page crossing: say if sizeof(T) = 2, vaddr = 4095
-            // 4095 + 2 mod 4096 = 1 => 2 - 1 = 1, thus c1=1, c2=1
-            auto const count_c2 = (addr_c1 + sizeof(T)) & 4095;
-            auto const count_c1 = sizeof(T) - count_c2;
-            auto const ptr_c1 = GetPointerImpl(addr_c1, [addr_c1] {
-                LOG_ERROR(HW_Memory, "Unmapped partial-Read{} @ 0x{:016X}", sizeof(T) * 8, addr_c1);
-            }, [&] {
-                HandleRasterizerDownload(addr_c1, sizeof(T));
-            });
-            auto const ptr_c2 = GetPointerImpl(addr_c2, [addr_c2] {
-                LOG_ERROR(HW_Memory, "Unmapped partial-Read{} @ 0x{:016X}", sizeof(T) * 8, addr_c2);
-            }, [&] {
-                HandleRasterizerDownload(addr_c2, sizeof(T));
-            });
-            std::array<char, sizeof(T)> tmp = std::bit_cast<std::array<char, sizeof(T)>>(data);
-            std::memcpy(ptr_c1, tmp.data() + 0, count_c1);
-            std::memcpy(ptr_c2, tmp.data() + count_c1, count_c2);
+        auto const addr_c1 = GetInteger(vaddr);
+        if (auto const ptr_c1 = GetPointerImpl(addr_c1, [addr_c1] {
+            LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr_c1);
+        }, [&] {
+            HandleRasterizerDownload(addr_c1, sizeof(T));
+        }); ptr_c1) {
+            if (!(sizeof(T) > 1 && (addr_c1 & 4095) + sizeof(T) > 4096)) {
+                std::memcpy(ptr_c1, &data, sizeof(T));
+            } else {
+                auto const addr_c2 = (addr_c1 & (~0xfff)) + 0x1000;
+                // page crossing: say if sizeof(T) = 2, vaddr = 4095
+                // 4095 + 2 mod 4096 = 1 => 2 - 1 = 1, thus c1=1, c2=1
+                auto const count_c2 = (addr_c1 + sizeof(T)) & 4095;
+                auto const count_c1 = sizeof(T) - count_c2;
+                auto const ptr_c2 = GetPointerImpl(addr_c2, [addr_c2] {
+                    LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr_c2);
+                }, [&] {
+                    HandleRasterizerDownload(addr_c2, sizeof(T));
+                });
+                std::array<char, sizeof(T)> tmp = std::bit_cast<std::array<char, sizeof(T)>>(data);
+                std::memcpy(ptr_c1, tmp.data() + 0, count_c1);
+                std::memcpy(ptr_c2, tmp.data() + count_c1, count_c2);
+            }
         }
     }
 
