@@ -12,12 +12,14 @@
 #include "shader_recompiler/shader_info.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
+#include "video_core/surface.h"
 #include "video_core/texture_cache/types.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 
 namespace Vulkan {
 
 using Shader::Backend::SPIRV::NUM_TEXTURE_AND_IMAGE_SCALING_WORDS;
+using VideoCore::Surface::IsPixelFormatInteger;
 
 class DescriptorLayoutBuilder {
 public:
@@ -191,10 +193,14 @@ inline void PushImageDescriptors(TextureCache& texture_cache,
             ImageView& image_view{texture_cache.GetImageView(image_view_id)};
             const VkImageView vk_image_view{image_view.Handle(desc.type)};
             const Sampler& sampler{texture_cache.GetSampler(sampler_id)};
+            // Integer formats don't support VK_FILTER_LINEAR in Vulkan.
+            const bool needs_nearest{sampler.HasLinearFilter() &&
+                                      IsPixelFormatInteger(image_view.format)};
             const bool use_fallback_sampler{sampler.HasAddedAnisotropy() &&
                                             !image_view.SupportsAnisotropy()};
-            const VkSampler vk_sampler{use_fallback_sampler ? sampler.HandleWithDefaultAnisotropy()
-                                                            : sampler.Handle()};
+            const VkSampler vk_sampler{needs_nearest      ? sampler.HandleWithNearestFilter()
+                                       : use_fallback_sampler ? sampler.HandleWithDefaultAnisotropy()
+                                                              : sampler.Handle()};
             guest_descriptor_queue.AddSampledImage(vk_image_view, vk_sampler);
             rescaling.PushTexture(texture_cache.IsRescaling(image_view));
         }

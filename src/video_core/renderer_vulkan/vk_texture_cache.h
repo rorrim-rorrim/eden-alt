@@ -408,9 +408,19 @@ public:
         return static_cast<bool>(sampler_default_anisotropy);
     }
 
+    [[nodiscard]] bool HasLinearFilter() const noexcept {
+        return has_linear_filter;
+    }
+
+    [[nodiscard]] VkSampler HandleWithNearestFilter() const noexcept {
+        return sampler_nearest ? *sampler_nearest : *sampler;
+    }
+
 private:
     vk::Sampler sampler;
     vk::Sampler sampler_default_anisotropy;
+    vk::Sampler sampler_nearest;
+    bool has_linear_filter = false;
 };
 
 struct TextureCacheParams {

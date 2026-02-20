@@ -38,6 +38,7 @@ namespace Vulkan {
 
 using Tegra::Engines::Fermi2D;
 using Tegra::Texture::SwizzleSource;
+using Tegra::Texture::TextureFilter;
 using Tegra::Texture::TextureMipmapFilter;
 using VideoCommon::BufferImageCopy;
 using VideoCommon::ImageFlagBits;
@@ -2355,6 +2356,35 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
     const f32 max_anisotropy_default = static_cast<f32>(1U << tsc.max_anisotropy);
     if (max_anisotropy > max_anisotropy_default) {
         sampler_default_anisotropy = create_sampler(max_anisotropy_default);
+    }
+
+    // Create a nearest-filter fallback for integer format image views.
+    // but Vulkan requires the format to support linear filtering.
+    const bool is_mag_linear = tsc.mag_filter == TextureFilter::Linear;
+    const bool is_min_linear = tsc.min_filter == TextureFilter::Linear;
+    has_linear_filter = is_mag_linear || is_min_linear;
+    if (has_linear_filter) {
+        sampler_nearest = device.GetLogical().CreateSampler(VkSamplerCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+            .pNext = pnext,
+            .flags = 0,
+            .magFilter = VK_FILTER_NEAREST,
+            .minFilter = VK_FILTER_NEAREST,
+            .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
+            .addressModeU = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_u, tsc.mag_filter),
+            .addressModeV = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_v, tsc.mag_filter),
+            .addressModeW = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_p, tsc.mag_filter),
+            .mipLodBias = tsc.LodBias(),
+            .anisotropyEnable = VK_FALSE,
+            .maxAnisotropy = 1.0f,
+            .compareEnable = tsc.depth_compare_enabled,
+            .compareOp = MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func),
+            .minLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.0f : tsc.MinLod(),
+            .maxLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.25f : tsc.MaxLod(),
+            .borderColor = has_custom_border_colors ? VK_BORDER_COLOR_FLOAT_CUSTOM_EXT
+                                                    : ConvertBorderColor(color),
+            .unnormalizedCoordinates = VK_FALSE,
+        });
     }
 }
 
