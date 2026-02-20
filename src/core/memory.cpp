@@ -649,7 +649,21 @@ struct Memory::Impl {
     /// @returns The instance of T read from the specified virtual address.
     template <typename T>
     inline T Read(Common::ProcessAddress vaddr) noexcept requires(std::is_trivially_copyable_v<T>) {
-        if (sizeof(T) > 1 && (vaddr & 4095) + sizeof(T) > 4096) {
+        if (!(sizeof(T) > 1 && (vaddr & 4095) + sizeof(T) > 4096)) {
+            const u64 addr = GetInteger(vaddr);
+            if (auto const ptr = GetPointerImpl(addr, [addr] {
+                LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr);
+            }, [&] {
+                HandleRasterizerDownload(addr, sizeof(T));
+            }); ptr) [[likely]] {
+                // It may be tempting to rewrite this particular section to use "reinterpret_cast";
+                // afterall, it's trivially copyable so surely it can be copied ov- Alignment.
+                // Remember, alignment. memcpy() will deal with all the alignment extremely fast.
+                T result{};
+                std::memcpy(&result, ptr, sizeof(T));
+                return result;
+            }
+        } else {
             auto const addr_c1 = GetInteger(vaddr);
             auto const addr_c2 = (addr_c1 & (~0xfff)) + 0x1000;
             // page crossing: say if sizeof(T) = 2, vaddr = 4095
@@ -670,20 +684,6 @@ struct Memory::Impl {
             std::memcpy(result.data() + 0, ptr_c1, count_c1);
             std::memcpy(result.data() + count_c1, ptr_c2, count_c2);
             return std::bit_cast<T>(result);
-        } else {
-            const u64 addr = GetInteger(vaddr);
-            if (auto const ptr = GetPointerImpl(addr, [addr] {
-                LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr);
-            }, [&] {
-                HandleRasterizerDownload(addr, sizeof(T));
-            }); ptr) [[likely]] {
-                // It may be tempting to rewrite this particular section to use "reinterpret_cast";
-                // afterall, it's trivially copyable so surely it can be copied ov- Alignment.
-                // Remember, alignment. memcpy() will deal with all the alignment extremely fast.
-                T result{};
-                std::memcpy(&result, ptr, sizeof(T));
-                return result;
-            }
         }
         return T{};
     }
@@ -693,7 +693,13 @@ struct Memory::Impl {
     /// @tparam T The data type to write to memory.
     template <typename T>
     inline void Write(Common::ProcessAddress vaddr, const T data) noexcept requires(std::is_trivially_copyable_v<T>) {
-        if (sizeof(T) > 1 && (vaddr & 4095) + sizeof(T) > 4096) {
+        if (!(sizeof(T) > 1 && (vaddr & 4095) + sizeof(T) > 4096)) {
+            const u64 addr = GetInteger(vaddr);
+            if (auto const ptr = GetPointerImpl(addr, [addr, data] {
+                LOG_ERROR(HW_Memory, "Unmapped Write{} @ 0x{:016X} = 0x{:016X}", sizeof(T) * 8, addr, u64(data));
+            }, [&]() { HandleRasterizerWrite(addr, sizeof(T)); }); ptr) [[likely]]
+                std::memcpy(ptr, &data, sizeof(T));
+        } else {
             auto const addr_c1 = GetInteger(vaddr);
             auto const addr_c2 = (addr_c1 & (~0xfff)) + 0x1000;
             // page crossing: say if sizeof(T) = 2, vaddr = 4095
@@ -713,12 +719,6 @@ struct Memory::Impl {
             std::array<char, sizeof(T)> tmp = std::bit_cast<std::array<char, sizeof(T)>>(data);
             std::memcpy(ptr_c1, tmp.data() + 0, count_c1);
             std::memcpy(ptr_c2, tmp.data() + count_c1, count_c2);
-        } else {
-            const u64 addr = GetInteger(vaddr);
-            if (auto const ptr = GetPointerImpl(addr, [addr, data] {
-                LOG_ERROR(HW_Memory, "Unmapped Write{} @ 0x{:016X} = 0x{:016X}", sizeof(T) * 8, addr, u64(data));
-            }, [&]() { HandleRasterizerWrite(addr, sizeof(T)); }); ptr) [[likely]]
-                std::memcpy(ptr, &data, sizeof(T));
         }
     }
 
