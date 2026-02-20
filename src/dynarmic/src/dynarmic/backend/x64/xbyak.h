@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <unordered_map>
-#include <unordered_set>
+#include <boost/unordered_map.hpp>
+#include <boost/unordered_set.hpp>
 
-// TODO: Defining this crashes e v e r y t h i n g
-// #define XBYAK_STD_UNORDERED_SET ankerl::unordered_dense::set
-// #define XBYAK_STD_UNORDERED_MAP ankerl::unordered_dense::map
-// #define XBYAK_STD_UNORDERED_MULTIMAP boost::unordered_multimap
+// TODO(lizzie): Defining this for Ankerl crashes e v e r y t h i n g, see issue #228 in xbyak
+#define XBYAK_STD_UNORDERED_SET boost::unordered_set
+#define XBYAK_STD_UNORDERED_MAP boost::unordered_map
+#define XBYAK_STD_UNORDERED_MULTIMAP boost::unordered_multimap
 
 #include <xbyak/xbyak.h>
 #include <xbyak/xbyak_util.h>
