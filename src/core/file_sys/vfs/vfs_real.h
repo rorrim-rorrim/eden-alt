@@ -52,6 +52,8 @@ private:
     ReferenceListType closed_references;
     std::mutex list_lock;
     size_t num_open_files{};
+    // TODO: Workaround for improper dtor() ordering on clang + FreeBSD
+    bool in_dtor = false;
 
 private:
     friend class RealVfsFile;
