@@ -604,6 +604,15 @@ object NativeLibrary {
     external fun addFileToFilesystemProvider(path: String)
 
     /**
+     * Adds update/DLC content from a container to the manual filesystem provider, filtered to a
+     * specific base program ID.
+     *
+     * @param path Path to the container file (NSP/XCI)
+     * @param programId Base game program ID to match against content title IDs
+     */
+    external fun addFileToFilesystemProviderForProgram(path: String, programId: Long)
+
+    /**
      * Clears all files added to the manual filesystem provider in our EmulationSession instance
      */
     external fun clearFilesystemProvider()

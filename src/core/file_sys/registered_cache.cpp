@@ -130,6 +130,24 @@ static std::shared_ptr<NSP> OpenContainerAsNsp(const VirtualFile& file, Loader::
         return secure_partition;
     }
 
+    // SAF-backed files can occasionally fail type-guessing despite being valid NSP/XCI.
+    // As a last resort, probe both container parsers directly.
+    {
+        auto nsp = std::make_shared<NSP>(file);
+        if (nsp->GetStatus() == Loader::ResultStatus::Success) {
+            return nsp;
+        }
+    }
+    {
+        XCI xci(file);
+        if (xci.GetStatus() == Loader::ResultStatus::Success) {
+            auto secure_partition = xci.GetSecurePartitionNSP();
+            if (secure_partition != nullptr) {
+                return secure_partition;
+            }
+        }
+    }
+
     return nullptr;
 }
 

@@ -238,6 +238,20 @@ void EmulationSession::ConfigureFilesystemProvider(const std::string& filepath) 
     }
 }
 
+void EmulationSession::ConfigureFilesystemProviderForProgram(const std::string& filepath,
+                                                             u64 program_id) {
+    if (program_id == 0) {
+        return;
+    }
+
+    const auto file = m_system.GetFilesystem()->OpenFile(filepath, FileSys::OpenMode::Read);
+    if (!file) {
+        return;
+    }
+
+    void(m_manual_provider->AddEntriesFromContainer(file, true, program_id));
+}
+
 void EmulationSession::InitializeSystem(bool reload) {
     if (!reload) {
         // Initialize logging system
@@ -1471,6 +1485,12 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_addFileToFilesystemProvider(JNIEnv* e
                                                                        jstring jpath) {
     EmulationSession::GetInstance().ConfigureFilesystemProvider(
         Common::Android::GetJString(env, jpath));
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_addFileToFilesystemProviderForProgram(
+    JNIEnv* env, jobject jobj, jstring jpath, jlong jprogram_id) {
+    EmulationSession::GetInstance().ConfigureFilesystemProviderForProgram(
+        Common::Android::GetJString(env, jpath), static_cast<u64>(jprogram_id));
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_clearFilesystemProvider(JNIEnv* env, jobject jobj) {
