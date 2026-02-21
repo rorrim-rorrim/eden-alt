@@ -9,11 +9,15 @@
 #include <ostream>
 #include <string>
 #include <concepts>
+#include <algorithm>
 #include "common/concepts.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
 #include "core/core.h"
+#include "core/file_sys/card_image.h"
+#include "core/file_sys/common_funcs.h"
+#include "core/file_sys/submission_package.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/loader/deconstructed_rom_directory.h"
 #include "core/loader/kip.h"
@@ -35,6 +39,71 @@ std::optional<FileType> IdentifyFileLoader(FileSys::VirtualFile file) {
         return file_type;
     }
     return std::nullopt;
+}
+
+std::shared_ptr<FileSys::NSP> OpenContainerAsNsp(FileSys::VirtualFile file, FileType type,
+                                                 u64 program_id = 0,
+                                                 std::size_t program_index = 0) {
+    if (!file) {
+        return nullptr;
+    }
+
+    if (type == FileType::NSP) {
+        auto nsp = std::make_shared<FileSys::NSP>(file, program_id, program_index);
+        return nsp->GetStatus() == ResultStatus::Success ? nsp : nullptr;
+    }
+
+    if (type == FileType::XCI) {
+        FileSys::XCI xci{file, program_id, program_index};
+        if (xci.GetStatus() != ResultStatus::Success) {
+            return nullptr;
+        }
+
+        auto secure_nsp = xci.GetSecurePartitionNSP();
+        if (secure_nsp == nullptr || secure_nsp->GetStatus() != ResultStatus::Success) {
+            return nullptr;
+        }
+
+        return secure_nsp;
+    }
+
+    return nullptr;
+}
+
+bool HasApplicationProgramContent(const std::shared_ptr<FileSys::NSP>& nsp) {
+    if (!nsp) {
+        return false;
+    }
+
+    const auto& ncas = nsp->GetNCAs();
+    return std::any_of(ncas.cbegin(), ncas.cend(), [](const auto& title_entry) {
+        const auto& nca_map = title_entry.second;
+        return nca_map.find(
+                   {FileSys::TitleType::Application, FileSys::ContentRecordType::Program}) !=
+               nca_map.end();
+    });
+}
+
+bool HasExternalContent(const std::shared_ptr<FileSys::NSP>& nsp,
+                        const std::optional<u64>& base_program_id) {
+    if (!nsp) {
+        return false;
+    }
+
+    const auto& ncas = nsp->GetNCAs();
+    return std::any_of(ncas.cbegin(), ncas.cend(), [&base_program_id](const auto& title_entry) {
+        if (base_program_id.has_value() &&
+            FileSys::GetBaseTitleID(title_entry.first) != *base_program_id) {
+            return false;
+        }
+
+        const auto& nca_map = title_entry.second;
+        return std::any_of(nca_map.cbegin(), nca_map.cend(), [](const auto& nca_entry) {
+            const auto title_type = nca_entry.first.first;
+            return title_type == FileSys::TitleType::Update ||
+                   title_type == FileSys::TitleType::AOC;
+        });
+    });
 }
 
 } // namespace
@@ -60,6 +129,60 @@ FileType IdentifyFile(FileSys::VirtualFile file) {
     } else {
         return FileType::Unknown;
     }
+}
+
+bool IsContainerType(FileType type) {
+    return type == FileType::NSP || type == FileType::XCI;
+}
+
+bool IsContainerFile(FileSys::VirtualFile file, FileType type) {
+    if (!file) {
+        return false;
+    }
+
+    if (type == FileType::Unknown) {
+        type = IdentifyFile(file);
+    }
+
+    if (!IsContainerType(type)) {
+        return false;
+    }
+
+    return OpenContainerAsNsp(file, type) != nullptr;
+}
+
+bool IsBootableGameContainer(FileSys::VirtualFile file, FileType type, u64 program_id,
+                             std::size_t program_index) {
+    if (!file) {
+        return false;
+    }
+
+    if (type == FileType::Unknown) {
+        type = IdentifyFile(file);
+    }
+
+    if (!IsContainerType(type)) {
+        return false;
+    }
+
+    return HasApplicationProgramContent(OpenContainerAsNsp(file, type, program_id, program_index));
+}
+
+bool IsContentContainer(FileSys::VirtualFile file, FileType type,
+                        std::optional<u64> base_program_id) {
+    if (!file) {
+        return false;
+    }
+
+    if (type == FileType::Unknown) {
+        type = IdentifyFile(file);
+    }
+
+    if (!IsContainerType(type)) {
+        return false;
+    }
+
+    return HasExternalContent(OpenContainerAsNsp(file, type), base_program_id);
 }
 
 FileType GuessFromFilename(const std::string& name) {

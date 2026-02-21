@@ -771,7 +771,8 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
             std::nullopt, std::nullopt, ContentRecordType::Program, update_tid);
 
         for (const auto& [slot, entry] : all_updates) {
-            if (slot == ContentProviderUnionSlot::External) {
+            if (slot == ContentProviderUnionSlot::External ||
+                slot == ContentProviderUnionSlot::FrontendManual) {
                 continue;
             }
 

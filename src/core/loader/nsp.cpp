@@ -55,19 +55,30 @@ AppLoader_NSP::~AppLoader_NSP() = default;
 FileType AppLoader_NSP::IdentifyType(const FileSys::VirtualFile& nsp_file) {
     const FileSys::NSP nsp(nsp_file);
 
-    if (nsp.GetStatus() == ResultStatus::Success) {
-        // Extracted Type case
-        if (nsp.IsExtractedType() && nsp.GetExeFS() != nullptr &&
-            FileSys::IsDirectoryExeFS(nsp.GetExeFS())) {
-            return FileType::NSP;
+    if (nsp.GetStatus() != ResultStatus::Success) {
+        return FileType::Error;
+    }
+
+    // Extracted Type case
+    if (nsp.IsExtractedType() && nsp.GetExeFS() != nullptr &&
+        FileSys::IsDirectoryExeFS(nsp.GetExeFS())) {
+        return FileType::NSP;
+    }
+
+    // Non-extracted NSPs can legitimately contain only update/DLC content.
+    // Identify the container format itself; bootability is validated by Load().
+    if (!nsp.GetNCAs().empty()) {
+        return FileType::NSP;
+    }
+
+    // Fallback when NCAs couldn't be parsed (e.g. missing keys) but the PFS still contains NCAs.
+    for (const auto& entry : nsp.GetFiles()) {
+        if (entry == nullptr) {
+            continue;
         }
 
-        // Non-Extracted Type case
-        const auto program_id = nsp.GetProgramTitleID();
-        if (!nsp.IsExtractedType() &&
-            nsp.GetNCA(program_id, FileSys::ContentRecordType::Program) != nullptr &&
-            AppLoader_NCA::IdentifyType(
-                nsp.GetNCAFile(program_id, FileSys::ContentRecordType::Program)) == FileType::NCA) {
+        const auto& name = entry->GetName();
+        if (name.size() >= 4 && name.substr(name.size() - 4) == ".nca") {
             return FileType::NSP;
         }
     }

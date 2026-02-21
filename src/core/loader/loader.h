@@ -46,11 +46,46 @@ enum class FileType {
 };
 
 /**
- * Identifies the type of a bootable file based on the magic value in its header.
+ * Identifies the type of a supported file/container based on its structure.
  * @param file open file
  * @return FileType of file
  */
 FileType IdentifyFile(FileSys::VirtualFile file);
+
+/**
+ * Returns whether the file type represents a container format that can bundle multiple titles
+ * (currently NSP/XCI).
+ */
+bool IsContainerType(FileType type);
+
+/**
+ * Returns whether a file is a valid container (NSP/XCI structure parses correctly).
+ *
+ * @param file open file
+ * @param type optional file type; if Unknown it is auto-detected.
+ */
+bool IsContainerFile(FileSys::VirtualFile file, FileType type = FileType::Unknown);
+
+/**
+ * Returns whether a container file is bootable as a game (has Application/Program content).
+ *
+ * @param file open file
+ * @param type optional file type; if Unknown it is auto-detected.
+ * @param program_id optional program id hint for multi-program containers.
+ * @param program_index optional program index hint for multi-program containers.
+ */
+bool IsBootableGameContainer(FileSys::VirtualFile file, FileType type = FileType::Unknown,
+                             u64 program_id = 0, std::size_t program_index = 0);
+
+/**
+ * Returns whether a container file contains update/DLC content.
+ *
+ * @param file open file
+ * @param type optional file type; if Unknown it is auto-detected.
+ * @param base_program_id optional base game id filter.
+ */
+bool IsContentContainer(FileSys::VirtualFile file, FileType type = FileType::Unknown,
+                        std::optional<u64> base_program_id = std::nullopt);
 
 /**
  * Guess the type of a bootable file from its name
