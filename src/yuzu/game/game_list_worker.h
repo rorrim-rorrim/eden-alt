@@ -36,10 +36,6 @@ class NCA;
 class VfsFilesystem;
 } // namespace FileSys
 
-namespace Loader {
-enum class FileType;
-}
-
 /**
  * Asynchronous worker object for populating the game list.
  * Communicates with other threads through Qt's signal/slot system.
@@ -78,8 +74,7 @@ private:
 
 private:
     void AddTitlesToGameList(GameListDir* parent_dir);
-    void AddContainerEntriesForProgram(FileSys::VirtualFile file, Loader::FileType file_type,
-                                       u64 program_id);
+    void AddContainerEntriesForProgram(FileSys::VirtualFile file, u64 program_id);
     void ScanLocalContentForProgram(u64 program_id, const std::filesystem::path& game_folder,
                                     const std::string& game_dir_root);
 

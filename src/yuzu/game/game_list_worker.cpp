@@ -7,7 +7,6 @@
 #include <memory>
 #include <algorithm>
 #include <map>
-#include <optional>
 #include <set>
 #include <string>
 #include <utility>
@@ -167,45 +166,6 @@ std::filesystem::path NormalizePath(const std::filesystem::path& path) {
 
 std::string NormalizePathString(const std::filesystem::path& path) {
     return Common::FS::PathToUTF8String(NormalizePath(path));
-}
-
-std::shared_ptr<FileSys::NSP> OpenContainerAsNsp(FileSys::VirtualFile file,
-                                                 Loader::FileType file_type) {
-    if (file_type != Loader::FileType::NSP && file_type != Loader::FileType::XCI) {
-        return nullptr;
-    }
-
-    if (file_type == Loader::FileType::NSP) {
-        auto nsp = std::make_shared<FileSys::NSP>(file);
-        return nsp->GetStatus() == Loader::ResultStatus::Success ? nsp : nullptr;
-    } else {
-        auto xci_nsp = FileSys::XCI{file}.GetSecurePartitionNSP();
-        return (xci_nsp != nullptr && xci_nsp->GetStatus() == Loader::ResultStatus::Success)
-                   ? xci_nsp
-                   : nullptr;
-    }
-}
-
-bool IsContentContainer(const std::shared_ptr<FileSys::NSP>& nsp,
-                        std::optional<u64> program_id = std::nullopt) {
-    if (!nsp) {
-        return false;
-    }
-
-    const auto& ncas = nsp->GetNCAs();
-    return std::any_of(ncas.cbegin(), ncas.cend(), [program_id](const auto& title_entry) {
-        if (program_id.has_value() &&
-            FileSys::GetBaseTitleID(title_entry.first) != *program_id) {
-            return false;
-        }
-
-        const auto& nca_map = title_entry.second;
-        return std::any_of(nca_map.cbegin(), nca_map.cend(), [](const auto& nca_entry) {
-            const auto title_type = nca_entry.first.first;
-            return title_type == FileSys::TitleType::Update ||
-                   title_type == FileSys::TitleType::AOC;
-        });
-    });
 }
 
 void InvalidatePatchVersionCache(u64 program_id) {
@@ -413,100 +373,10 @@ void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
     }
 }
 
-void GameListWorker::AddContainerEntriesForProgram(FileSys::VirtualFile file,
-                                                   Loader::FileType file_type,
-                                                   u64 program_id) {
-    const auto nsp = OpenContainerAsNsp(file, file_type);
-    if (!nsp || !IsContentContainer(nsp, program_id)) {
+void GameListWorker::AddContainerEntriesForProgram(FileSys::VirtualFile file, u64 program_id) {
+    if (!provider->AddEntriesFromContainer(file, true, program_id)) {
         return;
     }
-
-    std::map<u64, u32> update_versions;
-    std::map<u64, std::string> update_version_strings;
-
-    for (const auto& [title_id, nca_map] : nsp->GetNCAs()) {
-        for (const auto& [type_pair, nca] : nca_map) {
-            const auto& [title_type, content_type] = type_pair;
-            if (title_type != FileSys::TitleType::Update) {
-                continue;
-            }
-
-            if (content_type == FileSys::ContentRecordType::Meta) {
-                const auto subdirs = nca->GetSubdirectories();
-                if (!subdirs.empty()) {
-                    const auto section0 = subdirs[0];
-                    const auto files = section0->GetFiles();
-                    for (const auto& inner_file : files) {
-                        if (inner_file->GetExtension() == "cnmt") {
-                            const FileSys::CNMT cnmt(inner_file);
-                            update_versions[cnmt.GetTitleID()] = cnmt.GetTitleVersion();
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (content_type == FileSys::ContentRecordType::Control) {
-                auto romfs = nca->GetRomFS();
-                if (!romfs) {
-                    continue;
-                }
-
-                auto extracted = FileSys::ExtractRomFS(romfs);
-                if (!extracted) {
-                    continue;
-                }
-
-                auto nacp_file = extracted->GetFile("control.nacp");
-                if (!nacp_file) {
-                    nacp_file = extracted->GetFile("Control.nacp");
-                }
-                if (!nacp_file) {
-                    continue;
-                }
-
-                const FileSys::NACP nacp(nacp_file);
-                auto version_string = nacp.GetVersionString();
-                if (!version_string.empty()) {
-                    update_version_strings[title_id] = std::move(version_string);
-                }
-            }
-        }
-    }
-
-    std::size_t added_entries = 0;
-    for (const auto& [title_id, nca_map] : nsp->GetNCAs()) {
-        if (FileSys::GetBaseTitleID(title_id) != program_id) {
-            continue;
-        }
-
-        for (const auto& [type_pair, nca] : nca_map) {
-            const auto& [title_type, content_type] = type_pair;
-            if (title_type != FileSys::TitleType::Update && title_type != FileSys::TitleType::AOC) {
-                continue;
-            }
-
-            if (title_type == FileSys::TitleType::Update) {
-                const auto version_it = update_versions.find(title_id);
-                const auto version = version_it != update_versions.end() ? version_it->second : 0;
-
-                std::string version_string;
-                if (const auto version_str_it = update_version_strings.find(title_id);
-                    version_str_it != update_version_strings.end()) {
-                    version_string = version_str_it->second;
-                }
-
-                provider->AddEntryWithVersion(title_type, content_type, title_id, version,
-                                              version_string, nca->GetBaseFile());
-                ++added_entries;
-            } else {
-                provider->AddEntry(title_type, content_type, title_id, nca->GetBaseFile());
-                ++added_entries;
-            }
-        }
-    }
-
-    (void)added_entries;
 }
 
 void GameListWorker::ScanLocalContentForProgram(u64 program_id, const std::filesystem::path& game_folder,
@@ -542,8 +412,7 @@ void GameListWorker::ScanLocalContentForProgram(u64 program_id, const std::files
             return true;
         }
 
-        AddContainerEntriesForProgram(file, is_nsp ? Loader::FileType::NSP : Loader::FileType::XCI,
-                                      program_id);
+        AddContainerEntriesForProgram(file, program_id);
         return true;
     };
 

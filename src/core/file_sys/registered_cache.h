@@ -9,6 +9,7 @@
 #include <array>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 #include <boost/container/flat_map.hpp>
@@ -263,6 +264,8 @@ public:
                   VirtualFile file);
     void AddEntryWithVersion(TitleType title_type, ContentRecordType content_type, u64 title_id,
                              u32 version, const std::string& version_string, VirtualFile file);
+    bool AddEntriesFromContainer(VirtualFile file, bool only_content = false,
+                                 std::optional<u64> base_program_id = std::nullopt);
     void ClearAllEntries();
 
     void Refresh() override;
