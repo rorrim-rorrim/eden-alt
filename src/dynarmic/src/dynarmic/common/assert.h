@@ -9,7 +9,12 @@
 // TODO: Use source_info?
 [[noreturn]] void assert_terminate_impl(const char* s);
 #ifndef ASSERT
-#   define ASSERT(expr) do if(!(expr)) [[unlikely]] assert_terminate_impl(__FILE__ ": " #expr); while(0)
+#   define ASSERT(expr) \
+        do { \
+            const bool cond = static_cast<bool>(expr); \
+            if(!cond) \
+                [[unlikely]] assert_terminate_impl(__FILE__ ": " #expr); \
+        } while(0)
 #endif
 #ifndef UNREACHABLE
 #   ifdef _MSC_VER
