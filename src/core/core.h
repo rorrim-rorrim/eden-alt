@@ -358,10 +358,7 @@ public:
     [[nodiscard]] Service::FileSystem::FileSystemController& GetFileSystemController();
     [[nodiscard]] const Service::FileSystem::FileSystemController& GetFileSystemController() const;
 
-    void RegisterContentProvider(FileSys::ContentProviderUnionSlot slot,
-                                 FileSys::ContentProvider* provider);
-
-    void ClearContentProvider(FileSys::ContentProviderUnionSlot slot);
+    void RegisterContentProvider(FileSys::ContentProviderUnionSlot slot, FileSys::ContentProvider* provider);
 
     [[nodiscard]] const Reporter& GetReporter() const;
 
