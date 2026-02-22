@@ -14,10 +14,12 @@
 #include <sstream>
 #include <tuple>
 #include <vector>
-#include <mbedtls/bignum.h>
-#include <mbedtls/cipher.h>
-#include <mbedtls/cmac.h>
-#include <mbedtls/sha256.h>
+#include <openssl/bn.h>
+#include <openssl/crypto.h>
+#include <openssl/rand.h>
+#include <openssl/cmac.h>
+#include <openssl/evp.h>
+#include <openssl/sha.h>
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
@@ -33,10 +35,6 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
-
-#ifndef MBEDTLS_CMAC_C
-#error mbedtls was compiled without CMAC support. Check your USE flags (Gentoo) or contact your package maintainer.
-#endif
 
 namespace Core::Crypto {
 namespace {
@@ -531,8 +529,11 @@ static std::array<u8, target_size> MGF1(const std::array<u8, in_size>& seed) {
     size_t i = 0;
     while (out.size() < target_size) {
         out.resize(out.size() + 0x20);
-        seed_exp[in_size + 3] = static_cast<u8>(i);
-        mbedtls_sha256(seed_exp.data(), seed_exp.size(), out.data() + out.size() - 0x20, 0);
+        seed_exp[in_size + 3] = u8(i);
+        SHA256_CTX sha256;
+        SHA256_Init(&sha256);
+        SHA256_Update(&sha256, seed_exp.data(), seed_exp.size());
+        SHA256_Final(out.data() + out.size() - 0x20, &sha256);
         ++i;
     }
 
@@ -588,32 +589,28 @@ std::optional<Key128> KeyManager::ParseTicketTitleKey(const Ticket& ticket) {
         return std::nullopt;
     }
 
-    mbedtls_mpi D; // RSA Private Exponent
-    mbedtls_mpi N; // RSA Modulus
-    mbedtls_mpi S; // Input
-    mbedtls_mpi M; // Output
-
-    mbedtls_mpi_init(&D);
-    mbedtls_mpi_init(&N);
-    mbedtls_mpi_init(&S);
-    mbedtls_mpi_init(&M);
-
-    const auto& title_key_block = ticket.GetData().title_key_block;
-    mbedtls_mpi_read_binary(&D, eticket_rsa_keypair.decryption_key.data(),
-                            eticket_rsa_keypair.decryption_key.size());
-    mbedtls_mpi_read_binary(&N, eticket_rsa_keypair.modulus.data(),
-                            eticket_rsa_keypair.modulus.size());
-    mbedtls_mpi_read_binary(&S, title_key_block.data(), title_key_block.size());
-
-    mbedtls_mpi_exp_mod(&M, &S, &D, &N, nullptr);
-
     std::array<u8, 0x100> rsa_step;
-    mbedtls_mpi_write_binary(&M, rsa_step.data(), rsa_step.size());
+    {
+        // Private context for OpenSSL bignumbers
+        // Inside block because I dont wanna pollute the space...
+        const auto& title_key_block = ticket.GetData().title_key_block;
+        BIGNUM* D = BN_bin2bn(eticket_rsa_keypair.decryption_key.data(), int(eticket_rsa_keypair.decryption_key.size()), NULL);
+        BIGNUM* N = BN_bin2bn(eticket_rsa_keypair.modulus.data(), int(eticket_rsa_keypair.modulus.size()), NULL);
+        BIGNUM* S = BN_bin2bn(title_key_block.data(), int(title_key_block.size()), NULL);
+        BIGNUM* M = BN_new();
+        // M = S ^ D mod N
+        BN_mod_exp(M, S, D, N, NULL);
+        BN_bn2bin(M, rsa_step.data());
+        BN_free(D);
+        BN_free(N);
+        BN_free(S);
+        BN_free(M);
+    }
 
     u8 m_0 = rsa_step[0];
     std::array<u8, 0x20> m_1;
-    std::memcpy(m_1.data(), rsa_step.data() + 0x01, m_1.size());
     std::array<u8, 0xDF> m_2;
+    std::memcpy(m_1.data(), rsa_step.data() + 0x01, m_1.size());
     std::memcpy(m_2.data(), rsa_step.data() + 0x21, m_2.size());
 
     if (m_0 != 0) {
@@ -953,9 +950,11 @@ void KeyManager::DeriveSDSeedLazy() {
 
 static Key128 CalculateCMAC(const u8* source, size_t size, const Key128& key) {
     Key128 out{};
-
-    mbedtls_cipher_cmac(mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_128_ECB), key.data(),
-                        key.size() * 8, source, size, out.data());
+    EVP_MAC_CTX *ctx = EVP_MAC_CTX_new(EVP_MAC_fetch(NULL, "cmac", NULL));
+    EVP_MAC_init(ctx, key.data(), key.size() * CHAR_BIT, NULL);
+    EVP_MAC_update(ctx, source, size);
+    size_t len;
+    EVP_MAC_final(ctx, out.data(), &len, out.size());
     return out;
 }
 
