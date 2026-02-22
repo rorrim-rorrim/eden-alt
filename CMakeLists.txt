@@ -55,7 +55,6 @@ if (YUZU_STATIC_ROOM)
     set(ENABLE_UPDATE_CHECKER OFF)
     set(USE_DISCORD_PRESENCE OFF)
     set(BUILD_TESTING OFF)
-    set(ENABLE_OPENSSL OFF)
     set(ENABLE_WEB_SERVICE OFF)
     set(ENABLE_LIBUSB OFF)
 
@@ -245,30 +244,12 @@ cmake_dependent_option(YUZU_USE_BUNDLED_MOLTENVK "Download bundled MoltenVK lib"
 
 option(YUZU_DISABLE_LLVM "Disable LLVM (useful for CI)" OFF)
 
-set(DEFAULT_ENABLE_OPENSSL ON)
-if (ANDROID OR WIN32 OR APPLE OR PLATFORM_SUN OR PLATFORM_OPENBSD)
-    # - Windows defaults to the Schannel backend.
-    # - macOS defaults to the SecureTransport backend.
-    # - Android currently has no SSL backend as the NDK doesn't include any SSL
-    #   library; a proper 'native' backend would have to go through Java.
-    # - Solaris and OpenBSD have too old backends
-    # But you can force builds for those platforms to use OpenSSL if you have
-    # your own copy of it.
-    set(DEFAULT_ENABLE_OPENSSL OFF)
-endif()
-
-if (ENABLE_WEB_SERVICE OR USE_DISCORD_PRESENCE)
-    set(DEFAULT_ENABLE_OPENSSL ON)
-endif()
-
-option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
-
 set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL OFF)
 if (EXT_DEFAULT OR PLATFORM_SUN OR PLATFORM_OPENBSD)
     set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL ON)
 endif()
 
-cmake_dependent_option(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" ${DEFAULT_YUZU_USE_BUNDLED_OPENSSL} "ENABLE_OPENSSL" OFF)
+option(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" ${DEFAULT_YUZU_USE_BUNDLED_OPENSSL})
 
 if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)
     AddJsonPackage(vulkan-validation-layers)
@@ -397,17 +378,15 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 # openssl funniness
-if (ENABLE_OPENSSL)
-    if (YUZU_USE_BUNDLED_OPENSSL)
-        set(BUILD_SHARED_LIBS OFF)
-        AddJsonPackage(openssl)
-        if (OpenSSL_ADDED)
-            add_compile_definitions(YUZU_BUNDLED_OPENSSL)
-        endif()
+if (YUZU_USE_BUNDLED_OPENSSL)
+    set(BUILD_SHARED_LIBS OFF)
+    AddJsonPackage(openssl)
+    if (OpenSSL_ADDED)
+        add_compile_definitions(YUZU_BUNDLED_OPENSSL)
     endif()
-
-    find_package(OpenSSL 1.1.1 REQUIRED)
 endif()
+
+find_package(OpenSSL 1.1.1 REQUIRED)
 
 if (YUZU_USE_CPM)
     message(STATUS "Fetching needed dependencies with CPM")
@@ -510,10 +489,6 @@ else()
 
     # wow
     find_package(Boost 1.57.0 CONFIG REQUIRED OPTIONAL_COMPONENTS headers context system fiber filesystem)
-
-    if (ENABLE_OPENSSL)
-        find_package(OpenSSL 1.1.1 REQUIRED)
-    endif()
 endif()
 
 if(NOT TARGET Boost::headers)

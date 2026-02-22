@@ -234,9 +234,7 @@ if (VulkanMemoryAllocator_ADDED)
 endif()
 
 # httplib
-if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER OR USE_DISCORD_PRESENCE OR ENABLE_OPENSSL)
-    AddJsonPackage(httplib)
-endif()
+AddJsonPackage(httplib)
 
 # cpp-jwt
 if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)
