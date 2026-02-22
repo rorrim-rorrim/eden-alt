@@ -193,7 +193,7 @@ if [ "$UPDATE" = "true" ]; then
 				begin="#"
 				shell=true
 				;;
-			*.kt*|*.cpp|*.h)
+			*.kt*|*.cpp|*.h|*.swift|*.mm)
 				begin="//"
 				shell="false"
 				;;
