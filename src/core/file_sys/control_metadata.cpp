@@ -82,29 +82,6 @@ std::string LanguageEntry::GetDeveloperName() const {
     return Common::StringFromFixedZeroTerminatedBuffer(developer_name.data(), developer_name.size());
 }
 
-constexpr std::array<Language, 20> language_to_codes = {{
-    Language::Japanese,
-    Language::AmericanEnglish,
-    Language::French,
-    Language::German,
-    Language::Italian,
-    Language::Spanish,
-    Language::SimplifiedChinese,
-    Language::Korean,
-    Language::Dutch,
-    Language::Portuguese,
-    Language::Russian,
-    Language::TraditionalChinese,
-    Language::BritishEnglish,
-    Language::CanadianFrench,
-    Language::LatinAmericanSpanish,
-    Language::SimplifiedChinese,
-    Language::TraditionalChinese,
-    Language::BrazilianPortuguese,
-    Language::Polish,
-    Language::Thai,
-}};
-
 NACP::NACP() = default;
 
 NACP::NACP(VirtualFile file)
