@@ -83,11 +83,10 @@ void MasterSemaphore::Wait(u64 tick) {
             return;
         }
 
-        // Wait for fence completions using atomic wait
-        u64 last_notify = notify_counter.load(std::memory_order_relaxed);
+        u64 last_tick = gpu_tick.load(std::memory_order_relaxed);
         while (gpu_tick.load(std::memory_order_acquire) < tick) {
-            notify_counter.wait(last_notify, std::memory_order_acquire);
-            last_notify = notify_counter.load(std::memory_order_relaxed);
+            gpu_tick.wait(last_tick, std::memory_order_acquire);
+            last_tick = gpu_tick.load(std::memory_order_relaxed);
         }
         return;
     }
@@ -223,15 +222,16 @@ void MasterSemaphore::WaitThread(std::stop_token token) {
             std::tie(host_tick, fence) = std::move(wait_queue.front());
             wait_queue.pop();
         }
+
         fence.Wait();
         fence.Reset();
+
         {
             std::scoped_lock lock{free_mutex};
             free_queue.push_front(std::move(fence));
             gpu_tick.store(host_tick, std::memory_order_release);
-            notify_counter.fetch_add(1, std::memory_order_release);
         }
-        notify_counter.notify_one();
+        gpu_tick.notify_one();
     }
 }
 

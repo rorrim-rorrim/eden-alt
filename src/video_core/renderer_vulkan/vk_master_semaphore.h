@@ -75,7 +75,6 @@ private:
     vk::Semaphore semaphore;          ///< Timeline semaphore.
     std::atomic<u64> gpu_tick{0};     ///< Current known GPU tick.
     std::atomic<u64> current_tick{1}; ///< Current logical tick.
-    std::atomic<u64> notify_counter{0}; ///< Fence completion counter for atomic wait.
     std::mutex wait_mutex;
     std::mutex free_mutex;
     std::condition_variable_any wait_cv;
