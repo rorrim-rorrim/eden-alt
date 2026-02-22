@@ -27,6 +27,24 @@ struct LanguageEntry {
 };
 static_assert(sizeof(LanguageEntry) == 0x300);
 
+struct LanguageEntryData {
+    union {
+        // TitleDataFormat::Uncompressed (16 entries)
+        std::array<LanguageEntry, 16> language_entries;
+
+        // TitleDataFormat::Compressed (18+ entries)
+        struct {
+            u16 buffer_size;
+            u8 buffer[0x2FFE];
+        } compressed_data;
+    };
+};
+
+enum class TitleDataFormat : u8 {
+    Uncompressed = 0,
+    Compressed = 1,
+};
+
 struct ApplicationNeighborDetectionGroupConfiguration {
     u64 group_id; ///< GroupId
     std::array<u8, 0x10> key;
@@ -98,6 +116,17 @@ struct AccessibleLaunchRequiredVersion {
 };
 static_assert(sizeof(AccessibleLaunchRequiredVersion) == 0x40);
 
+enum class CrashReport : u8 {
+    Deny  = 0,
+    Allow = 1,
+};
+
+enum class PlayLogQueryCapability : u8 {
+    None = 0,
+    WhiteList = 1,
+    All = 2,
+};
+
 struct ApplicationControlDataConditionData {
     u8 priority;
     INSERT_PADDING_BYTES(7);
@@ -154,7 +183,7 @@ enum class SupportedLanguage : u32 {
 
 // The raw file format of a NACP file.
 struct RawNACP {
-    std::array<LanguageEntry, 16> language_entries;
+    LanguageEntryData language_entries;
     std::array<u8, 0x25> isbn;
     u8 startup_user_account;
     u8 user_account_switch_lock;
@@ -165,7 +194,7 @@ struct RawNACP {
     bool screenshot_enabled;
     u8 video_capture_mode;
     bool data_loss_confirmation;
-    INSERT_PADDING_BYTES(1);
+    u8 play_log_policy;
     u64_le presence_group_id;
     std::array<u8, 0x20> rating_age;
     std::array<char, 0x10> version_string;
@@ -181,10 +210,14 @@ struct RawNACP {
     u8 logo_type;
     u8 logo_handling;
     bool runtime_add_on_content_install;
-    INSERT_PADDING_BYTES(5);
+    u8 runtime_parameter_delivery;
+    u8 appropriate_age_for_china;
+    INSERT_PADDING_BYTES(1);
+    CrashReport crash_report;
     u64_le seed_for_pseudo_device_id;
     std::array<u8, 0x41> bcat_passphrase;
-    INSERT_PADDING_BYTES(7);
+    u8 startup_user_account_option;
+    INSERT_PADDING_BYTES(6); // ReservedForUserAccountSaveDataOperation
     u64_le user_account_save_data_max_size;
     u64_le user_account_save_data_max_journal_size;
     u64_le device_save_data_max_size;
@@ -194,9 +227,15 @@ struct RawNACP {
     u64_le cache_storage_journal_size;
     u64_le cache_storage_data_and_journal_max_size;
     u16_le cache_storage_max_index;
-    INSERT_PADDING_BYTES(0x8B);
+    u8 runtime_upgrade;
+    u32_le supporting_limited_application_licenses;
+    std::array<u8, 0x8*16> play_log_queryable_application_id;
+    PlayLogQueryCapability play_log_query_capability;
+    u8 repair_flag;
+    u8 program_index;
+    u8 required_network_service_license_on_launch_flag;
     u8 app_error_code_prefix;
-    u8 title_compression;
+    TitleDataFormat titles_data_format;
     u8 acd_index;
     ApparentPlatform apparent_platform;
     // NeighborDetectionClientConfiguration neighbor_detection_client_configuration;
@@ -219,7 +258,8 @@ struct RawNACP {
     u8 has_ingame_voice_chat;
     INSERT_PADDING_BYTES(3);
     u32_le supported_extra_addon_content_flag;
-    INSERT_PADDING_BYTES(0x698);
+    u8 has_karaoke_feature;
+    INSERT_PADDING_BYTES(0x697);
     std::array<u8, 0x400> platform_specific_region;
 };
 static_assert(sizeof(RawNACP) == 0x4000, "RawNACP has incorrect size.");
@@ -243,7 +283,7 @@ public:
     u64 GetDefaultNormalSaveSize() const;
     u64 GetDefaultJournalSaveSize() const;
     u32 GetSupportedLanguages() const;
-    std::array<std::string, 16> GetApplicationNames() const;
+    std::vector<std::string> GetApplicationNames() const;
     std::vector<u8> GetRawBytes() const;
     bool GetUserAccountSwitchLock() const;
     u64 GetDeviceSaveDataSize() const;
@@ -252,6 +292,7 @@ public:
 
 private:
     RawNACP raw{};
+    std::vector<LanguageEntry> language_entries;
 };
 
 } // namespace FileSys

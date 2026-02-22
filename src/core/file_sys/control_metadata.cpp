@@ -41,71 +41,37 @@ const std::array<const char*, size_t(Language::Count)> LANGUAGE_NAMES{{
     "Thai",
 }};
 
-namespace {
-constexpr std::size_t LEGACY_LANGUAGE_REGION_SIZE = sizeof(std::array<LanguageEntry, 16>);
-constexpr std::size_t PACKED_LANGUAGE_REGION_MAX_SIZE = sizeof(LanguageEntry) * 32;
+namespace
+{
+    constexpr std::size_t MAX_EXPANDED_LANG_SIZE = sizeof(LanguageEntry) * 32;
 
-bool InflateRawDeflate(std::span<const u8> compressed, std::vector<u8>& out) {
-    if (compressed.empty() || compressed.size() > std::numeric_limits<uInt>::max()) {
-        return false;
-    }
 
-    z_stream stream{};
-    stream.next_in = const_cast<Bytef*>(reinterpret_cast<const Bytef*>(compressed.data()));
-    stream.avail_in = static_cast<uInt>(compressed.size());
-    if (inflateInit2(&stream, -MAX_WBITS) != Z_OK) {
-        return false;
-    }
+    bool InflateRawDeflate(std::span<const u8> compressed, std::vector<u8>& out)
+    {
+        if (compressed.empty()) return false;
 
-    std::array<u8, 0x1000> chunk{};
-    int ret = Z_OK;
-    while (ret == Z_OK) {
-        stream.next_out = reinterpret_cast<Bytef*>(chunk.data());
-        stream.avail_out = static_cast<uInt>(chunk.size());
-        ret = inflate(&stream, Z_NO_FLUSH);
-        if (ret != Z_OK && ret != Z_STREAM_END) {
-            inflateEnd(&stream);
+        z_stream stream{};
+        stream.next_in = const_cast<Bytef*>(reinterpret_cast<const Bytef*>(compressed.data()));
+        stream.avail_in = static_cast<uInt>(compressed.size());
+        if (inflateInit2(&stream, -MAX_WBITS) != Z_OK) {
             return false;
         }
 
-        const auto produced = chunk.size() - static_cast<std::size_t>(stream.avail_out);
-        if (produced != 0) {
-            if (out.size() + produced > PACKED_LANGUAGE_REGION_MAX_SIZE) {
-                inflateEnd(&stream);
-                return false;
-            }
-            out.insert(out.end(), chunk.begin(),
-                       chunk.begin() + static_cast<std::ptrdiff_t>(produced));
+        out.resize(MAX_EXPANDED_LANG_SIZE);
+        stream.next_out = reinterpret_cast<Bytef*>(out.data());
+        stream.avail_out = static_cast<uInt>(out.size());
+
+        int ret = inflate(&stream, Z_FINISH);
+        inflateEnd(&stream);
+
+        if (ret != Z_STREAM_END && ret != Z_OK) {
+            return false;
         }
+
+        // Shrink to actual decompressed size
+        out.resize(stream.total_out);
+        return true;
     }
-
-    inflateEnd(&stream);
-    return ret == Z_STREAM_END;
-}
-
-void DecodePackedLanguageEntries(RawNACP& raw) {
-    auto* packed_region = reinterpret_cast<u8*>(raw.language_entries.data());
-    u16_le compressed_size_le{};
-    std::memcpy(&compressed_size_le, packed_region, sizeof(compressed_size_le));
-    const auto compressed_size = static_cast<std::size_t>(compressed_size_le);
-
-    if (compressed_size == 0 || compressed_size > LEGACY_LANGUAGE_REGION_SIZE - sizeof(u16_le)) {
-        return;
-    }
-
-    std::vector<u8> decompressed;
-    if (!InflateRawDeflate(
-            std::span<const u8>(packed_region + sizeof(u16_le), compressed_size), decompressed)) {
-        return;
-    }
-
-    if (decompressed.size() < LEGACY_LANGUAGE_REGION_SIZE ||
-        decompressed.size() % sizeof(LanguageEntry) != 0) {
-        return;
-    }
-
-    std::memcpy(raw.language_entries.data(), decompressed.data(), LEGACY_LANGUAGE_REGION_SIZE);
-}
 } // namespace
 
 std::string LanguageEntry::GetApplicationName() const {
@@ -141,55 +107,48 @@ constexpr std::array<Language, 20> language_to_codes = {{
 
 NACP::NACP() = default;
 
-NACP::NACP(VirtualFile file) {
+NACP::NACP(VirtualFile file)
+{
     file->ReadObject(&raw);
-    DecodePackedLanguageEntries(raw);
+    if (raw.titles_data_format == TitleDataFormat::Compressed) {
+        const u16 compressed_size = raw.language_entries.compressed_data.buffer_size;
+        std::span<const u8> compressed_payload{raw.language_entries.compressed_data.buffer,
+                                               compressed_size};
+
+        std::vector<u8> decompressed;
+        if (InflateRawDeflate(compressed_payload, decompressed)) {
+            const size_t entry_count = decompressed.size() / sizeof(LanguageEntry);
+            language_entries.resize(entry_count);
+            std::memcpy(language_entries.data(), decompressed.data(), decompressed.size());
+        }
+    } else {
+        language_entries.resize(16);
+        std::memcpy(language_entries.data(), raw.language_entries.language_entries.data(),
+                    sizeof(raw.language_entries.language_entries));
+    }
 }
 
 NACP::~NACP() = default;
 
 const LanguageEntry& NACP::GetLanguageEntry() const {
-    auto const language = []{
-        switch (Settings::values.language_index.GetValue()) {
-        case Settings::Language::Chinese: return Language::SimplifiedChinese;
-        case Settings::Language::ChineseSimplified: return Language::SimplifiedChinese;
-        case Settings::Language::ChineseTraditional: return Language::TraditionalChinese;
-        case Settings::Language::Dutch: return Language::Dutch;
-        case Settings::Language::EnglishAmerican: return Language::AmericanEnglish;
-        case Settings::Language::EnglishBritish: return Language::BritishEnglish;
-        case Settings::Language::French: return Language::French;
-        case Settings::Language::FrenchCanadian: return Language::CanadianFrench;
-        case Settings::Language::German: return Language::German;
-        case Settings::Language::Italian: return Language::Italian;
-        case Settings::Language::Korean: return Language::Korean;
-        case Settings::Language::Japanese: return Language::Japanese;
-        case Settings::Language::Portuguese: return Language::Portuguese;
-        case Settings::Language::PortugueseBrazilian: return Language::BrazilianPortuguese;
-        case Settings::Language::Russian: return Language::Russian;
-        case Settings::Language::Serbian: return Language::Russian;
-        case Settings::Language::Spanish: return Language::Spanish;
-        case Settings::Language::SpanishLatin: return Language::LatinAmericanSpanish;
-        case Settings::Language::Taiwanese: return Language::SimplifiedChinese;
-        case Settings::Language::Thai: return Language::Thai;
-        case Settings::Language::Polish: return Language::Polish;
-        }
-    }();
-    {
-        const auto& language_entry = raw.language_entries.at(static_cast<u8>(language));
-        if (!language_entry.GetApplicationName().empty())
-            return language_entry;
+    u32 index = static_cast<u32>(Settings::values.language_index.GetValue());
+
+    if (index < language_entries.size()) {
+        return language_entries[index];
     }
-    for (const auto& language_entry : raw.language_entries) {
-        if (!language_entry.GetApplicationName().empty())
-            return language_entry;
+
+    for (const auto& entry : language_entries) {
+        return entry;
     }
-    return raw.language_entries.at(static_cast<u8>(Language::AmericanEnglish));
+
+    return language_entries.at(static_cast<u8>(Language::AmericanEnglish));
 }
 
-std::array<std::string, 16> NACP::GetApplicationNames() const {
-    std::array<std::string, 16> names{};
-    for (size_t i = 0; i < raw.language_entries.size(); ++i) {
-        names[i] = raw.language_entries[i].GetApplicationName();
+std::vector<std::string> NACP::GetApplicationNames() const {
+    std::vector<std::string> names;
+    names.reserve(language_entries.size());
+    for (const auto& entry : language_entries) {
+        names.push_back(entry.GetApplicationName());
     }
     return names;
 }

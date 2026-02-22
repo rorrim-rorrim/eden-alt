@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -329,9 +332,6 @@ constexpr ApplicationLanguagePriorityList priority_list_brazilian_portuguese = {
 
 constexpr ApplicationLanguagePriorityList priority_list_thai = {{
     ApplicationLanguage::Thai,
-    ApplicationLanguage::BrazilianPortuguese,
-    ApplicationLanguage::Portuguese,
-    ApplicationLanguage::LatinAmericanSpanish,
     ApplicationLanguage::AmericanEnglish,
     ApplicationLanguage::BritishEnglish,
     ApplicationLanguage::Japanese,
@@ -350,10 +350,6 @@ constexpr ApplicationLanguagePriorityList priority_list_thai = {{
 
 constexpr ApplicationLanguagePriorityList priority_list_polish = {{
     ApplicationLanguage::Polish,
-    ApplicationLanguage::Thai,
-    ApplicationLanguage::BrazilianPortuguese,
-    ApplicationLanguage::Portuguese,
-    ApplicationLanguage::LatinAmericanSpanish,
     ApplicationLanguage::AmericanEnglish,
     ApplicationLanguage::BritishEnglish,
     ApplicationLanguage::Japanese,
