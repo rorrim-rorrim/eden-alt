@@ -9,7 +9,7 @@
 // TODO: Use source_info?
 [[noreturn]] void assert_terminate_impl(const char* s);
 #ifndef ASSERT
-#   define ASSERT(expr) do { auto const b = !(expr); if(b) [[unlikely]] assert_terminate_impl(__FILE__ ": " #expr); } while(0)
+#   define ASSERT(expr) do { auto&& condition = !(expr); if(condition) [[unlikely]] assert_terminate_impl(__FILE__ ": " #expr); } while(0)
 #endif
 #ifndef UNREACHABLE
 #   ifdef _MSC_VER
