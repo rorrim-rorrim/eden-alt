@@ -17,8 +17,6 @@ if (ENABLE_WEB_SERVICE)
 endif()
 
 target_link_libraries(yuzu-room PRIVATE
-    MbedTLS::mbedcrypto${MBEDTLS_LIB_SUFFIX}
-    MbedTLS::mbedtls${MBEDTLS_LIB_SUFFIX}
     OpenSSL::SSL
     OpenSSL::Crypto)
 

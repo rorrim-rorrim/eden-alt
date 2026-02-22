@@ -1219,9 +1219,7 @@ target_link_libraries(core PRIVATE
     fmt::fmt
     nlohmann_json::nlohmann_json
     RenderDoc::API
-    ZLIB::ZLIB
-    MbedTLS::mbedcrypto${MBEDTLS_LIB_SUFFIX}
-    MbedTLS::mbedtls${MBEDTLS_LIB_SUFFIX})
+    ZLIB::ZLIB)
 
 target_link_libraries(core PRIVATE httplib::httplib)
 

@@ -41,9 +41,6 @@ if (NOT TARGET enet::enet)
     add_library(enet::enet ALIAS enet)
 endif()
 
-# mbedtls
-AddJsonPackage(mbedtls)
-
 # stb
 add_library(stb stb/stb_dxt.cpp)
 target_include_directories(stb PUBLIC ./stb)

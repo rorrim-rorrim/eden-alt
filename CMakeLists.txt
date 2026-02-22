@@ -58,20 +58,15 @@ if (YUZU_STATIC_ROOM)
     set(ENABLE_WEB_SERVICE OFF)
     set(ENABLE_LIBUSB OFF)
 
-    # allow static libs for boost and mbedtls though
+    # allow static libs for boost though
     set(Boost_USE_STATIC_LIBS ON)
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-    set(MBEDTLS_LIB_SUFFIX "_static")
     set(OPENSSL_USE_STATIC_LIBS ON)
     set(YUZU_USE_CPM ON)
 
     set(zstd_FORCE_BUNDLED ON)
     set(fmt_FORCE_BUNDLED ON)
 endif()
-
-# common network mbedtls
-# common: xbyak? booost fmt lz4 zstd
-# network: enet boost
 
 # qt stuff
 option(ENABLE_QT "Enable the Qt frontend" ON)
@@ -130,9 +125,6 @@ if (YUZU_STATIC_BUILD)
         set(YUZU_USE_BUNDLED_OPENSSL ON)
 
         set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF)
-
-        ## some libraries define a Library::Name_static alternative ##
-        set(MBEDTLS_LIB_SUFFIX _static)
     elseif(APPLE)
         set(YUZU_USE_CPM ON)
 
@@ -145,7 +137,6 @@ if (YUZU_STATIC_BUILD)
         set(SPIRV-Tools_FORCE_BUNDLED ON)
         set(SPIRV-Headers_FORCE_BUNDLED ON)
         set(zstd_FORCE_BUNDLED ON)
-        set(MbedTLS_FORCE_BUNDLED ON)
     endif()
 endif()
 
@@ -550,8 +541,8 @@ message(STATUS "Platform Libraries: ${PLATFORM_LIBRARIES}")
 add_subdirectory(externals)
 
 # pass targets from externals
+# TODO(crueter): CPMUtil Propagate func?
 find_package(enet)
-find_package(MbedTLS)
 find_package(unordered_dense REQUIRED)
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
