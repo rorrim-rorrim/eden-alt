@@ -48,19 +48,8 @@ namespace Vulkan {
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 using MaxwellDrawState = Tegra::Engines::DrawManager::State;
 using VideoCommon::ImageViewId;
-using VideoCommon::ImageViewType;
-
 
 namespace {
-struct DrawParams {
-    u32 base_instance;
-    u32 num_instances;
-    u32 base_vertex;
-    u32 num_vertices;
-    u32 first_index;
-    bool is_indexed;
-};
-
 VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t index, float scale) {
     const auto& src = regs.viewport_transform[index];
     const auto conv = [scale](float value) {
@@ -151,8 +140,8 @@ VkRect2D GetScissorState(const Maxwell& regs, size_t index, u32 up_scale = 1, u3
     return scissor;
 }
 
-DrawParams MakeDrawParams(const MaxwellDrawState& draw_state, u32 num_instances, bool is_indexed) {
-    DrawParams params{
+RasterizerVulkan::DrawParams MakeDrawParams(const MaxwellDrawState& draw_state, u32 num_instances, bool is_indexed) {
+    RasterizerVulkan::DrawParams params{
         .base_instance = draw_state.base_instance,
         .num_instances = num_instances,
         .base_vertex = is_indexed ? draw_state.base_index : draw_state.vertex_buffer.first,
@@ -215,6 +204,8 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     SCOPE_EXIT {
         gpu.TickWork();
     };
+    if (state_tracker.flags->count() > 0)
+        FlushBatchedDraws(); // Dirty state changes the way Vulkan would behave
     FlushWork();
     gpu_memory->FlushCaching();
 
@@ -225,75 +216,94 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
     // update engine as channel may be different.
     pipeline->SetEngine(maxwell3d, gpu_memory);
-    if (!pipeline->Configure(is_indexed))
+    if (pipeline->Configure(is_indexed)) {
+        UpdateDynamicStates();
+        HandleTransformFeedback();
+        query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64, maxwell3d->regs.zpass_pixel_count_enable);
+        draw_func();
+    }
+}
+
+void RasterizerVulkan::FlushBatchedDraws() {
+    auto const log_draw = [](RasterizerVulkan::DrawParams draw_params) {
+        // Log draw call
+        if (Settings::values.gpu_logging_enabled.GetValue() && Settings::values.gpu_log_vulkan_calls.GetValue()) {
+            const std::string params = draw_params.is_indexed ?
+                fmt::format("vertices={}, instances={}, firstIndex={}, baseVertex={}, baseInstance={}", draw_params.num_vertices, draw_params.num_instances, draw_params.first_index, draw_params.base_vertex, draw_params.base_instance) :
+                fmt::format("vertices={}, instances={}, firstVertex={}, firstInstance={}", draw_params.num_vertices, draw_params.num_instances, draw_params.base_vertex, draw_params.base_instance);
+            GPU::Logging::GPULogger::GetInstance().LogVulkanCall(draw_params.is_indexed ? "vkCmdDrawIndexed" : "vkCmdDraw", params, VK_SUCCESS);
+        }
+    };
+    (void)log_draw;
+    auto const& list = batched_draw_params;
+    if (list.empty())
         return;
-
-    UpdateDynamicStates();
-
-    HandleTransformFeedback();
-    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
-                              maxwell3d->regs.zpass_pixel_count_enable);
-
-    draw_func();
+    // Use VK_EXT_multi_draw if available (single draw becomes multi-draw with count=1)
+    for (size_t i = 0; i < list.size(); ) {
+        auto const first_i = i;
+        bool last_is_indexed = list[i].is_indexed;
+        u32 last_num_instances = list[i].num_instances;
+        u32 last_base_instance = list[i].base_instance;
+        // now for the sad draw part...
+        u32 count = 0;
+        if (last_is_indexed) {
+            std::vector<VkMultiDrawIndexedInfoEXT> multi_draw_info;
+            std::vector<int32_t> vertex_offset;
+            for (; i < list.size()
+            && list[i].is_indexed == last_is_indexed
+            && list[i].num_instances == last_num_instances
+            && list[i].base_instance == last_base_instance; ++i) {
+                multi_draw_info.push_back({
+                    .firstIndex = list[i].first_index,
+                    .indexCount = list[i].num_vertices
+                });
+                vertex_offset.push_back(list[i].base_vertex);
+                ++count;
+            }
+            if (device.IsExtMultiDrawSupported() && multi_draw_info.size() > 1) {
+                scheduler.Record([last_num_instances, last_base_instance, count, multi_draw_info, vertex_offset](vk::CommandBuffer cmdbuf) {
+                    cmdbuf.DrawMultiIndexedEXT(count, multi_draw_info.data(), last_num_instances, last_base_instance, sizeof(VkMultiDrawIndexedInfoEXT), vertex_offset.data());
+                });
+            } else {
+                for (size_t j = first_i; j < i; ++j) {
+                    scheduler.Record([draw_params = list[j]](vk::CommandBuffer cmdbuf) {
+                        cmdbuf.DrawIndexed(draw_params.num_vertices, draw_params.num_instances, draw_params.first_index, draw_params.base_vertex, draw_params.base_instance);
+                    });
+                }
+            }
+        } else {
+            std::vector<VkMultiDrawInfoEXT> multi_draw_info;
+            for (; i < list.size()
+            && list[i].is_indexed == last_is_indexed
+            && list[i].num_instances == last_num_instances
+            && list[i].base_instance == last_base_instance; ++i) {
+                multi_draw_info.push_back({
+                    .firstVertex = list[i].base_vertex,
+                    .vertexCount = list[i].num_vertices
+                });
+                ++count;
+            }
+            if (device.IsExtMultiDrawSupported() && multi_draw_info.size() > 1) {
+                scheduler.Record([last_num_instances, last_base_instance, count, multi_draw_info](vk::CommandBuffer cmdbuf) {
+                    cmdbuf.DrawMultiEXT(count, multi_draw_info.data(), last_num_instances, last_base_instance, sizeof(VkMultiDrawInfoEXT));
+                });
+            } else {
+                for (size_t j = first_i; j < i; ++j) {
+                    scheduler.Record([draw_params = list[j]](vk::CommandBuffer cmdbuf) {
+                        cmdbuf.Draw(draw_params.num_vertices, draw_params.num_instances, draw_params.base_vertex, draw_params.base_instance);
+                    });
+                }
+            }
+        }
+    }
+    batched_draw_params.clear();
 }
 
 void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
     PrepareDraw(is_indexed, [this, is_indexed, instance_count] {
-        const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
-        const u32 num_instances{instance_count};
-        const DrawParams draw_params{MakeDrawParams(draw_state, num_instances, is_indexed)};
-
-        // Use VK_EXT_multi_draw if available (single draw becomes multi-draw with count=1)
-        if (device.IsExtMultiDrawSupported()) {
-            scheduler.Record([draw_params](vk::CommandBuffer cmdbuf) {
-                if (draw_params.is_indexed) {
-                    // Use multi-draw indexed with single draw
-                    const VkMultiDrawIndexedInfoEXT multi_draw_info{
-                        .firstIndex = draw_params.first_index,
-                        .indexCount = draw_params.num_vertices,
-                    };
-                    const int32_t vertex_offset = static_cast<int32_t>(draw_params.base_vertex);
-                    cmdbuf.DrawMultiIndexedEXT(1, &multi_draw_info, draw_params.num_instances,
-                                               draw_params.base_instance,
-                                               sizeof(VkMultiDrawIndexedInfoEXT), &vertex_offset);
-                } else {
-                    // Use multi-draw with single draw
-                    const VkMultiDrawInfoEXT multi_draw_info{
-                        .firstVertex = draw_params.base_vertex,
-                        .vertexCount = draw_params.num_vertices,
-                    };
-                    cmdbuf.DrawMultiEXT(1, &multi_draw_info, draw_params.num_instances,
-                                        draw_params.base_instance,
-                                        sizeof(VkMultiDrawInfoEXT));
-                }
-            });
-        } else {
-            // Fallback to standard draw calls
-            scheduler.Record([draw_params](vk::CommandBuffer cmdbuf) {
-                if (draw_params.is_indexed) {
-                    cmdbuf.DrawIndexed(draw_params.num_vertices, draw_params.num_instances,
-                                       draw_params.first_index, draw_params.base_vertex,
-                                       draw_params.base_instance);
-                } else {
-                    cmdbuf.Draw(draw_params.num_vertices, draw_params.num_instances,
-                                draw_params.base_vertex, draw_params.base_instance);
-                }
-            });
-        }
-
-        // Log draw call
-        if (Settings::values.gpu_logging_enabled.GetValue() &&
-            Settings::values.gpu_log_vulkan_calls.GetValue()) {
-            const std::string params = is_indexed ?
-                fmt::format("vertices={}, instances={}, firstIndex={}, baseVertex={}, baseInstance={}",
-                    draw_params.num_vertices, draw_params.num_instances,
-                    draw_params.first_index, draw_params.base_vertex, draw_params.base_instance) :
-                fmt::format("vertices={}, instances={}, firstVertex={}, firstInstance={}",
-                    draw_params.num_vertices, draw_params.num_instances,
-                    draw_params.base_vertex, draw_params.base_instance);
-            GPU::Logging::GPULogger::GetInstance().LogVulkanCall(
-                is_indexed ? "vkCmdDrawIndexed" : "vkCmdDraw", params, VK_SUCCESS);
-        }
+        auto const& draw_state = maxwell3d->draw_manager->GetDrawState();
+        auto const num_instances = instance_count;
+        batched_draw_params.push_back(MakeDrawParams(draw_state, num_instances, is_indexed));
     });
 }
 
@@ -356,16 +366,16 @@ void RasterizerVulkan::DrawIndirect() {
 }
 
 void RasterizerVulkan::DrawTexture() {
-
     SCOPE_EXIT {
         gpu.TickWork();
     };
+    if (state_tracker.flags->count() > 0)
+        FlushBatchedDraws(); // Dirty state changes the way Vulkan would behave
     FlushWork();
 
     std::scoped_lock l{texture_cache.mutex};
     texture_cache.SynchronizeGraphicsDescriptors();
     texture_cache.UpdateRenderTargets(false);
-
     UpdateDynamicStates();
 
     query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
@@ -403,6 +413,8 @@ void RasterizerVulkan::DrawTexture() {
 }
 
 void RasterizerVulkan::Clear(u32 layer_count) {
+    if (state_tracker.flags->count() > 0)
+        FlushBatchedDraws(); // Dirty state changes the way Vulkan would behave
     FlushWork();
     gpu_memory->FlushCaching();
 
@@ -559,6 +571,8 @@ void RasterizerVulkan::Clear(u32 layer_count) {
 }
 
 void RasterizerVulkan::DispatchCompute() {
+    if (state_tracker.flags->count() > 0)
+        FlushBatchedDraws(); // Dirty state changes the way Vulkan would behave
     FlushWork();
     gpu_memory->FlushCaching();
 
@@ -934,7 +948,6 @@ void RasterizerVulkan::FlushWork() {
     static constexpr u32 DRAWS_TO_DISPATCH = 4096;
     static constexpr u32 CHECK_MASK = 7;
 #endif // ANDROID
-
     static_assert(DRAWS_TO_DISPATCH % (CHECK_MASK + 1) == 0);
     if ((++draw_counter & CHECK_MASK) != CHECK_MASK) {
         return;

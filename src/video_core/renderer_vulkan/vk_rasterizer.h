@@ -52,57 +52,48 @@ class StateTracker;
 
 class AccelerateDMA : public Tegra::Engines::AccelerateDMAInterface {
 public:
-    explicit AccelerateDMA(BufferCache& buffer_cache, TextureCache& texture_cache,
-                           Scheduler& scheduler);
-
+    explicit AccelerateDMA(BufferCache& buffer_cache, TextureCache& texture_cache, Scheduler& scheduler);
     bool BufferCopy(GPUVAddr start_address, GPUVAddr end_address, u64 amount) override;
-
     bool BufferClear(GPUVAddr src_address, u64 amount, u32 value) override;
-
-    bool ImageToBuffer(const Tegra::DMA::ImageCopy& copy_info, const Tegra::DMA::ImageOperand& src,
-                       const Tegra::DMA::BufferOperand& dst) override;
-
-    bool BufferToImage(const Tegra::DMA::ImageCopy& copy_info, const Tegra::DMA::BufferOperand& src,
-                       const Tegra::DMA::ImageOperand& dst) override;
-
+    bool ImageToBuffer(const Tegra::DMA::ImageCopy& copy_info, const Tegra::DMA::ImageOperand& src, const Tegra::DMA::BufferOperand& dst) override;
+    bool BufferToImage(const Tegra::DMA::ImageCopy& copy_info, const Tegra::DMA::BufferOperand& src, const Tegra::DMA::ImageOperand& dst) override;
 private:
     template <bool IS_IMAGE_UPLOAD>
-    bool DmaBufferImageCopy(const Tegra::DMA::ImageCopy& copy_info,
-                            const Tegra::DMA::BufferOperand& src,
-                            const Tegra::DMA::ImageOperand& dst);
-
+    bool DmaBufferImageCopy(const Tegra::DMA::ImageCopy& copy_info, const Tegra::DMA::BufferOperand& src, const Tegra::DMA::ImageOperand& dst);
     BufferCache& buffer_cache;
     TextureCache& texture_cache;
     Scheduler& scheduler;
 };
 
-class RasterizerVulkan final : public VideoCore::RasterizerInterface,
-                               protected VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
+class RasterizerVulkan final : public VideoCore::RasterizerInterface, protected VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
 public:
-    explicit RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
-                              Tegra::MaxwellDeviceMemoryManager& device_memory_,
-                              const Device& device_, MemoryAllocator& memory_allocator_,
-                              StateTracker& state_tracker_, Scheduler& scheduler_);
+    struct DrawParams {
+        u32 base_instance;
+        u32 num_instances;
+        u32 base_vertex;
+        u32 num_vertices;
+        u32 first_index;
+        bool is_indexed;
+    };
+
+    explicit RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_, Tegra::MaxwellDeviceMemoryManager& device_memory_, const Device& device_, MemoryAllocator& memory_allocator_, StateTracker& state_tracker_, Scheduler& scheduler_);
     ~RasterizerVulkan() override;
 
+    void FlushBatchedDraws() override;
     void Draw(bool is_indexed, u32 instance_count) override;
     void DrawIndirect() override;
     void DrawTexture() override;
     void Clear(u32 layer_count) override;
     void DispatchCompute() override;
     void ResetCounter(VideoCommon::QueryType type) override;
-    void Query(GPUVAddr gpu_addr, VideoCommon::QueryType type,
-               VideoCommon::QueryPropertiesFlags flags, u32 payload, u32 subreport) override;
+    void Query(GPUVAddr gpu_addr, VideoCommon::QueryType type, VideoCommon::QueryPropertiesFlags flags, u32 payload, u32 subreport) override;
     void BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr, u32 size) override;
     void DisableGraphicsUniformBuffer(size_t stage, u32 index) override;
     void FlushAll() override;
-    void FlushRegion(DAddr addr, u64 size,
-                     VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
-    bool MustFlushRegion(DAddr addr, u64 size,
-                         VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
+    void FlushRegion(DAddr addr, u64 size, VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
+    bool MustFlushRegion(DAddr addr, u64 size, VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
     VideoCore::RasterizerDownloadArea GetFlushArea(DAddr addr, u64 size) override;
-    void InvalidateRegion(DAddr addr, u64 size,
-                          VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
+    void InvalidateRegion(DAddr addr, u64 size, VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
     void InnerInvalidation(std::span<const std::pair<DAddr, std::size_t>> sequences) override;
     void OnCacheInvalidation(DAddr addr, u64 size) override;
     bool OnCPUWrite(DAddr addr, u64 size) override;
@@ -114,8 +105,7 @@ public:
     void SignalSyncPoint(u32 value) override;
     void SignalReference() override;
     void ReleaseFences(bool force = true) override;
-    void FlushAndInvalidateRegion(
-        DAddr addr, u64 size, VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
+    void FlushAndInvalidateRegion(DAddr addr, u64 size, VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
     void WaitForIdle() override;
     void FragmentBarrier() override;
     void TiledCacheBarrier() override;
@@ -136,9 +126,7 @@ public:
     void BindChannel(Tegra::Control::ChannelState& channel) override;
 
     void ReleaseChannel(s32 channel_id) override;
-    std::optional<FramebufferTextureInfo> AccelerateDisplay(const Tegra::FramebufferConfig& config,
-                                                            VAddr framebuffer_addr,
-                                                            u32 pixel_stride);
+    std::optional<FramebufferTextureInfo> AccelerateDisplay(const Tegra::FramebufferConfig& config, VAddr framebuffer_addr, u32 pixel_stride);
 
 private:
     static constexpr const u64 NEEDS_D24[] = {
@@ -223,6 +211,7 @@ private:
     boost::container::static_vector<u32, MAX_IMAGE_VIEWS> image_view_indices;
     std::array<VideoCommon::ImageViewId, MAX_IMAGE_VIEWS> image_view_ids;
     boost::container::static_vector<VkSampler, MAX_TEXTURES> sampler_handles;
+    std::vector<DrawParams> batched_draw_params;
 
     u32 draw_counter = 0;
 };

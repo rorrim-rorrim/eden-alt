@@ -81,6 +81,7 @@ public:
                               StateTracker& state_tracker_);
     ~RasterizerOpenGL() override;
 
+    void FlushBatchedDraws() override;
     void Draw(bool is_indexed, u32 instance_count) override;
     void DrawIndirect() override;
     void DrawTexture() override;

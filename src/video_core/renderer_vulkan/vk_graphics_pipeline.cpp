@@ -310,6 +310,8 @@ void GraphicsPipeline::AddTransition(GraphicsPipeline* transition) {
 
 template <typename Spec>
 bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
+    maxwell3d->Rasterizer().FlushBatchedDraws(); //DRAW THINGS FROM PREVIOUS PIPELINE!!!!!!
+
     std::array<VideoCommon::ImageViewInOut, MAX_IMAGE_ELEMENTS> views;
     std::array<VideoCommon::SamplerId, MAX_IMAGE_ELEMENTS> samplers;
     size_t sampler_index{};
@@ -507,8 +509,7 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     return true;
 }
 
-void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
-                                     const RenderAreaPushConstant& render_area) {
+void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling, const RenderAreaPushConstant& render_area) {
     scheduler.RequestRenderpass(texture_cache.GetFramebuffer());
     if (!is_built.load(std::memory_order::relaxed)) {
         // Wait for the pipeline to be built

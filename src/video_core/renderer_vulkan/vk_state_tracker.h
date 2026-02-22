@@ -301,6 +301,7 @@ private:
         return is_dirty;
     }
 
+public:
     struct StencilProperties {
         u32 ref = 0;
         u32 write_mask = 0;

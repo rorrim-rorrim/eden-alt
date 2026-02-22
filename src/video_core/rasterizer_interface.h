@@ -39,6 +39,9 @@ class RasterizerInterface {
 public:
     virtual ~RasterizerInterface() = default;
 
+    /// Flushes draws batched by Draw()
+    virtual void FlushBatchedDraws() = 0;
+
     /// Dispatches a draw invocation
     virtual void Draw(bool is_indexed, u32 instance_count) = 0;
 

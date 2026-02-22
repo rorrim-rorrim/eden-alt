@@ -22,6 +22,7 @@ RasterizerNull::RasterizerNull(Tegra::GPU& gpu) : m_gpu{gpu} {}
 RasterizerNull::~RasterizerNull() = default;
 
 void RasterizerNull::Draw(bool is_indexed, u32 instance_count) {}
+void RasterizerNull::FlushBatchedDraws() {}
 void RasterizerNull::DrawTexture() {}
 void RasterizerNull::Clear(u32 layer_count) {}
 void RasterizerNull::DispatchCompute() {}

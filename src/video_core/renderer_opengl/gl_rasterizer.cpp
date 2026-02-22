@@ -258,6 +258,10 @@ void RasterizerOpenGL::PrepareDraw(bool is_indexed, Func&& draw_func) {
     has_written_global_memory |= pipeline->WritesGlobalMemory();
 }
 
+void RasterizerOpenGL::FlushBatchedDraws() {
+
+}
+
 void RasterizerOpenGL::Draw(bool is_indexed, u32 instance_count) {
     PrepareDraw(is_indexed, [this, is_indexed, instance_count](GLenum primitive_mode) {
         const auto& draw_state = maxwell3d->draw_manager->GetDrawState();

@@ -69,6 +69,7 @@ void DrawManager::ProcessMethodCall(u32 method, u32 argument) {
 
 void DrawManager::Clear(u32 layer_count) {
     if (maxwell3d->ShouldExecute()) {
+        maxwell3d->rasterizer->FlushBatchedDraws();
         maxwell3d->rasterizer->Clear(layer_count);
     }
 }
@@ -144,6 +145,8 @@ void DrawManager::SetInlineIndexBuffer(u32 index) {
 }
 
 void DrawManager::DrawBegin() {
+    maxwell3d->rasterizer->FlushBatchedDraws();
+
     const auto& regs{maxwell3d->regs};
     auto reset_instance_count = regs.draw.instance_id == Maxwell3D::Regs::Draw::InstanceId::First;
     auto increment_instance_count =
@@ -192,6 +195,7 @@ void DrawManager::DrawEnd(u32 instance_count, bool force_draw) {
         draw_state.inline_index_draw_indexes.clear();
         break;
     }
+    maxwell3d->rasterizer->FlushBatchedDraws();
 }
 
 void DrawManager::DrawIndexSmall(u32 argument) {
