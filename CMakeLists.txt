@@ -480,7 +480,11 @@ endfunction()
 # =============================================
 
 if (APPLE)
-    foreach(fw Carbon Metal Cocoa IOKit CoreVideo CoreMedia Security)
+    set(_libs Carbon Metal Cocoa IOKit CoreVideo CoreMedia Security)
+    if (IOS)
+        list(APPEND _libs objc)
+    endif()
+    foreach(fw ${_libs})
         find_library(${fw}_LIBRARY ${fw} REQUIRED)
         list(APPEND PLATFORM_LIBRARIES ${${fw}_LIBRARY})
     endforeach()
