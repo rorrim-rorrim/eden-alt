@@ -94,9 +94,8 @@ public:
             const QRegularExpression regex{QStringLiteral(R"(^Update \(([0-9\.]+)\))")};
             for (const QString &line : std::as_const(lines)) {
                 const auto match = regex.match(line);
-                if (match.hasMatch()) {
-                    return QObject::tr("Version: %1").arg(match.captured());
-                }
+                if (match.hasMatch() && match.hasCaptured(1))
+                    return QObject::tr("Version: %1").arg(match.captured(1));
             }
             return QObject::tr("Version: 1.0.0");
         }();
