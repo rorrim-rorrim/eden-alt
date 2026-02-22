@@ -51,12 +51,11 @@ All other dependencies will be downloaded and built by [CPM](https://github.com/
 * [fmt](https://fmt.dev/) 8.0.1+
 * [lz4](http://www.lz4.org)
 * [nlohmann\_json](https://github.com/nlohmann/json) 3.8+
-* [OpenSSL](https://www.openssl.org/source/) 1.1.1+
+* [OpenSSL](https://www.openssl.org/source/) 3+
 * [ZLIB](https://www.zlib.net/) 1.2+
 * [zstd](https://facebook.github.io/zstd/) 1.5+
 * [enet](http://enet.bespin.org/) 1.3+
 * [Opus](https://opus-codec.org/) 1.3+
-* [MbedTLS](https://github.com/Mbed-TLS/mbedtls) 3+
 
 Vulkan 1.3.274+ is also needed:
 
@@ -121,7 +120,7 @@ sudo emerge -a \
     dev-util/vulkan-utility-libraries dev-util/glslang \
     media-gfx/renderdoc media-libs/libva media-libs/opus media-video/ffmpeg \
     media-libs/VulkanMemoryAllocator media-libs/libsdl2 media-libs/cubeb \
-    net-libs/enet net-libs/mbedtls \
+    net-libs/enet \
     sys-libs/zlib \
     dev-cpp/nlohmann_json dev-cpp/simpleini dev-cpp/cpp-httplib dev-cpp/cpp-jwt \
     games-util/gamemode \
