@@ -62,6 +62,7 @@ if (YUZU_STATIC_ROOM)
     set(Boost_USE_STATIC_LIBS ON)
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
     set(MBEDTLS_LIB_SUFFIX "_static")
+    set(OPENSSL_USE_STATIC_LIBS ON)
     set(YUZU_USE_CPM ON)
 
     set(zstd_FORCE_BUNDLED ON)
