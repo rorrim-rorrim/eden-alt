@@ -295,6 +295,44 @@ constexpr ApplicationLanguagePriorityList priority_list_brazilian_portuguese = {
     ApplicationLanguage::TraditionalChinese,
 }};
 
+constexpr ApplicationLanguagePriorityList priority_list_polish = {{
+        ApplicationLanguage::Polish,
+        ApplicationLanguage::AmericanEnglish,
+        ApplicationLanguage::BritishEnglish,
+        ApplicationLanguage::LatinAmericanSpanish,
+        ApplicationLanguage::CanadianFrench,
+        ApplicationLanguage::French,
+        ApplicationLanguage::German,
+        ApplicationLanguage::Spanish,
+        ApplicationLanguage::Italian,
+        ApplicationLanguage::Dutch,
+        ApplicationLanguage::Portuguese,
+        ApplicationLanguage::Russian,
+        ApplicationLanguage::Japanese,
+        ApplicationLanguage::SimplifiedChinese,
+        ApplicationLanguage::TraditionalChinese,
+        ApplicationLanguage::Korean,
+    }};
+
+constexpr ApplicationLanguagePriorityList priority_list_thai = {{
+        ApplicationLanguage::Thai,
+        ApplicationLanguage::AmericanEnglish,
+        ApplicationLanguage::BritishEnglish,
+        ApplicationLanguage::LatinAmericanSpanish,
+        ApplicationLanguage::CanadianFrench,
+        ApplicationLanguage::French,
+        ApplicationLanguage::German,
+        ApplicationLanguage::Spanish,
+        ApplicationLanguage::Italian,
+        ApplicationLanguage::Dutch,
+        ApplicationLanguage::Portuguese,
+        ApplicationLanguage::Russian,
+        ApplicationLanguage::Japanese,
+        ApplicationLanguage::SimplifiedChinese,
+        ApplicationLanguage::TraditionalChinese,
+        ApplicationLanguage::Korean,
+    }};
+
 const ApplicationLanguagePriorityList* GetApplicationLanguagePriorityList(
     const ApplicationLanguage lang) {
     switch (lang) {
@@ -330,6 +368,10 @@ const ApplicationLanguagePriorityList* GetApplicationLanguagePriorityList(
         return &priority_list_simplified_chinese;
     case ApplicationLanguage::BrazilianPortuguese:
         return &priority_list_brazilian_portuguese;
+    case ApplicationLanguage::Polish:
+        return &priority_list_polish;
+    case ApplicationLanguage::Thai:
+        return &priority_list_thai;
     default:
         return nullptr;
     }
@@ -372,6 +414,10 @@ std::optional<ApplicationLanguage> ConvertToApplicationLanguage(
         return ApplicationLanguage::SimplifiedChinese;
     case Set::LanguageCode::PT_BR:
         return ApplicationLanguage::BrazilianPortuguese;
+    case Set::LanguageCode::PL:
+        return ApplicationLanguage::Polish;
+    case Set::LanguageCode::TH:
+        return ApplicationLanguage::Thai;
     default:
         return std::nullopt;
     }
@@ -411,6 +457,10 @@ std::optional<Set::LanguageCode> ConvertToLanguageCode(const ApplicationLanguage
         return Set::LanguageCode::ZH_HANS;
     case ApplicationLanguage::BrazilianPortuguese:
         return Set::LanguageCode::PT_BR;
+    case ApplicationLanguage::Polish:
+        return Set::LanguageCode::PL;
+    case ApplicationLanguage::Thai:
+        return Set::LanguageCode::TH;
     default:
         return std::nullopt;
     }
