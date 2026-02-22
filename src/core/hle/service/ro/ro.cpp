@@ -4,6 +4,8 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <openssl/err.h>
+#include <openssl/evp.h>
 #include <openssl/sha.h>
 
 #include "common/scope_exit.h"
@@ -180,10 +182,16 @@ struct ProcessContext {
 
             std::vector<u8> nro_data(size);
             m_process->GetMemory().ReadBlock(base_address, nro_data.data(), size);
-            SHA256_CTX sha256;
-            SHA256_Init(&sha256);
-            SHA256_Update(&sha256, nro_data.data(), nro_data.size());
-            SHA256_Final(hash.data(), &sha256);
+
+            EVP_MD_CTX *ctx = EVP_MD_CTX_new();
+            ASSERT(ctx);
+
+            EVP_DigestInit(ctx, EVP_sha256());
+            EVP_DigestUpdate(ctx, nro_data.data(), nro_data.size());
+            u32 length = 0;
+            EVP_DigestFinal_ex(ctx, hash.data(), &length);
+
+            EVP_MD_CTX_free(ctx);
         }
 
         for (size_t i = 0; i < MaxNrrInfos; i++) {

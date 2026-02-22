@@ -386,7 +386,7 @@ if (YUZU_USE_BUNDLED_OPENSSL)
     endif()
 endif()
 
-find_package(OpenSSL 1.1.1 REQUIRED)
+find_package(OpenSSL 3 REQUIRED)
 
 if (YUZU_USE_CPM)
     message(STATUS "Fetching needed dependencies with CPM")
