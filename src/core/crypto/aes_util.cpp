@@ -28,7 +28,7 @@ NintendoTweak CalculateNintendoTweak(std::size_t sector_id) {
 }
 } // Anonymous namespace
 
-// Structure to hide mbedtls types from header file
+// Structure to hide OpenSSL types from header file
 struct CipherContext {
     EVP_CIPHER_CTX* encryption_context = nullptr;
     EVP_CIPHER_CTX* decryption_context = nullptr;

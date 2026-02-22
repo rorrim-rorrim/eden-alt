@@ -4,14 +4,13 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <algorithm>
 #include <array>
 #include <cstring>
 #include <regex>
 #include <string>
 
-#include <mbedtls/md.h>
-#include <mbedtls/sha256.h>
+#include <openssl/err.h>
+#include <openssl/evp.h>
 
 #include "common/fs/path_util.h"
 #include "common/hex_util.h"
@@ -31,19 +30,35 @@ constexpr u64 NAX_HEADER_PADDING_SIZE = 0x4000;
 template <typename SourceData, typename SourceKey, typename Destination>
 static bool CalculateHMAC256(Destination* out, const SourceKey* key, std::size_t key_length,
                              const SourceData* data, std::size_t data_length) {
-    mbedtls_md_context_t context;
-    mbedtls_md_init(&context);
+    bool success = false;
+    EVP_MAC* mac = nullptr;
+    EVP_MAC_CTX* ctx = nullptr;
+    size_t out_len = 0;
 
-    if (mbedtls_md_setup(&context, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), 1) ||
-        mbedtls_md_hmac_starts(&context, reinterpret_cast<const u8*>(key), key_length) ||
-        mbedtls_md_hmac_update(&context, reinterpret_cast<const u8*>(data), data_length) ||
-        mbedtls_md_hmac_finish(&context, reinterpret_cast<u8*>(out))) {
-        mbedtls_md_free(&context);
-        return false;
+    mac = EVP_MAC_fetch(NULL, "HMAC", NULL);
+    if (!mac) return false;
+
+    ctx = EVP_MAC_CTX_new(mac);
+    if (!ctx) goto cleanup;
+
+    {
+        OSSL_PARAM params[2];
+        params[0] = OSSL_PARAM_construct_utf8_string("digest", (char*)"SHA256", 0);
+        params[1] = OSSL_PARAM_construct_end();
+
+        if (!EVP_MAC_init(ctx, reinterpret_cast<const unsigned char*>(key), key_length, params))
+            goto cleanup;
     }
 
-    mbedtls_md_free(&context);
-    return true;
+    if (EVP_MAC_update(ctx, reinterpret_cast<const unsigned char*>(data), data_length) &&
+        EVP_MAC_final(ctx, reinterpret_cast<unsigned char*>(out), &out_len, 32)) {
+        success = true;
+    }
+
+cleanup:
+    EVP_MAC_CTX_free(ctx);
+    EVP_MAC_free(mac);
+    return success;
 }
 
 NAX::NAX(VirtualFile file_)
@@ -68,7 +83,12 @@ NAX::NAX(VirtualFile file_, std::array<u8, 0x10> nca_id)
     : header(std::make_unique<NAXHeader>()),
       file(std::move(file_)), keys{Core::Crypto::KeyManager::Instance()} {
     Core::Crypto::SHA256Hash hash{};
-    mbedtls_sha256(nca_id.data(), nca_id.size(), hash.data(), 0);
+
+    u32 hash_len = 0;
+    EVP_Digest(nca_id.data(), nca_id.size(), hash.data(), &hash_len, EVP_sha256(), nullptr);
+
+    LOG_DEBUG(Loader, "Decoded {} bytes, nca id {}", hash_len, nca_id);
+
     status = Parse(fmt::format("/registered/000000{:02X}/{}.nca", hash[0],
                                Common::HexToString(nca_id, false)));
 }

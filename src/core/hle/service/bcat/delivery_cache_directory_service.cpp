@@ -4,6 +4,8 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <openssl/err.h>
+#include <openssl/evp.h>
 #include "common/string_util.h"
 #include "core/file_sys/vfs/vfs_types.h"
 #include "core/hle/service/bcat/bcat_result.h"
@@ -18,7 +20,17 @@ namespace Service::BCAT {
 static BcatDigest DigestFile(const FileSys::VirtualFile& file) {
     BcatDigest out{};
     const auto bytes = file->ReadAllBytes();
-    mbedtls_md5(bytes.data(), bytes.size(), out.data());
+
+    unsigned int length = 0;
+    EVP_MD_CTX* context = EVP_MD_CTX_new();
+
+    if (!context) return out;
+
+    EVP_DigestInit_ex(context, EVP_md5(), nullptr);
+    EVP_DigestUpdate(context, bytes.data(), bytes.size());
+    EVP_DigestFinal_ex(context, reinterpret_cast<unsigned char*>(out.data()), &length);
+
+    EVP_MD_CTX_free(context);
     return out;
 }
 
