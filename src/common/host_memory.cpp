@@ -27,9 +27,13 @@
 #include <sys/random.h>
 #elif defined(__APPLE__)
 #include <sys/types.h>
-#include <sys/random.h>
 #include <mach/vm_map.h>
 #include <mach/mach.h>
+#endif
+
+// Not available on iOS for some fucking stupid reason...
+#if defined(__APPLE__) && TARGET_OS_MAC
+#include <sys/random.h>
 #endif
 
 // FreeBSD
