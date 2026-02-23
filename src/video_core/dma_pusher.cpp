@@ -78,17 +78,19 @@ bool DmaPusher::Step() {
         synced = false;
     }
 
-    if (header.size > 0 && dma_state.method >= MacroRegistersStart && subchannels[dma_state.subchannel]) {
-        subchannels[dma_state.subchannel]->current_dirty = memory_manager.IsMemoryDirty(dma_state.dma_get, header.size * sizeof(u32));
-    }
-
     if (header.size > 0) {
-        if (Settings::IsDMALevelDefault() ? (Settings::IsGPULevelMedium() || Settings::IsGPULevelHigh()) : Settings::IsDMALevelSafe()) {
-            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::SafeRead>headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
+        if (dma_state.method >= MacroRegistersStart && subchannels[dma_state.subchannel]) {
+            subchannels[dma_state.subchannel]->current_dirty = memory_manager.IsMemoryDirty(dma_state.dma_get, header.size * sizeof(u32));
+        }
+        auto run = [&]<Tegra::Memory::GuestMemoryFlags Flags>() {
+            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Flags>
+              headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
             ProcessCommands(headers);
+        };
+        if (Settings::IsDMALevelSafe() || (Settings::IsDMALevelDefault() && !Settings::IsGPULevelLow())) {
+            run.template operator()<Tegra::Memory::GuestMemoryFlags::SafeRead>();
         } else {
-            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::UnsafeRead>headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
-            ProcessCommands(headers);
+            run.template operator()<Tegra::Memory::GuestMemoryFlags::UnsafeRead>();
         }
     }
 
