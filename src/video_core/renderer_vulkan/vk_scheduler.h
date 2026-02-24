@@ -292,7 +292,7 @@ private:
     std::condition_variable_any event_cv;
     std::jthread worker_thread;
 
-    std::chrono::steady_clock::time_point frame_interval{};
+    std::chrono::steady_clock::duration frame_interval{};
     std::chrono::steady_clock::time_point start_time{};
     double last_target_fps{};
     u64 max_frame_count{};
