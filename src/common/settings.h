@@ -140,7 +140,7 @@ struct Values {
     // Applet
     Setting<AppletMode> cabinet_applet_mode{linkage, AppletMode::LLE, "cabinet_applet_mode",
                                             Category::LibraryApplet};
-    Setting<AppletMode> controller_applet_mode{linkage, AppletMode::HLE, "controller_applet_mode",
+    SwitchableSetting<AppletMode> controller_applet_mode{linkage, AppletMode::HLE, "controller_applet_mode",
                                                Category::LibraryApplet};
     Setting<AppletMode> data_erase_applet_mode{linkage, AppletMode::HLE, "data_erase_applet_mode",
                                                Category::LibraryApplet};
@@ -150,7 +150,7 @@ struct Values {
                                                 Category::LibraryApplet};
     Setting<AppletMode> player_select_applet_mode{
                                                   linkage, AppletMode::LLE, "player_select_applet_mode", Category::LibraryApplet};
-    SwitchableSetting<AppletMode> swkbd_applet_mode{linkage, AppletMode::HLE, "swkbd_applet_mode",
+    Setting<AppletMode> swkbd_applet_mode{linkage, AppletMode::HLE, "swkbd_applet_mode",
                                           Category::LibraryApplet};
     Setting<AppletMode> mii_edit_applet_mode{linkage, AppletMode::LLE, "mii_edit_applet_mode",
                                              Category::LibraryApplet};
