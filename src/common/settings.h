@@ -150,7 +150,7 @@ struct Values {
                                                 Category::LibraryApplet};
     Setting<AppletMode> player_select_applet_mode{
                                                   linkage, AppletMode::LLE, "player_select_applet_mode", Category::LibraryApplet};
-    Setting<AppletMode> swkbd_applet_mode{linkage, AppletMode::HLE, "swkbd_applet_mode",
+    SwitchableSetting<AppletMode> swkbd_applet_mode{linkage, AppletMode::HLE, "swkbd_applet_mode",
                                           Category::LibraryApplet};
     Setting<AppletMode> mii_edit_applet_mode{linkage, AppletMode::LLE, "mii_edit_applet_mode",
                                              Category::LibraryApplet};
@@ -168,6 +168,7 @@ struct Values {
                                                   linkage, AppletMode::HLE, "wifi_web_auth_applet_mode", Category::LibraryApplet};
     Setting<AppletMode> my_page_applet_mode{linkage, AppletMode::LLE, "my_page_applet_mode",
                                             Category::LibraryApplet};
+    SwitchableSetting<bool> enable_overlay{linkage, false, "enable_overlay", Category::LibraryApplet};
 
     // Audio
     SwitchableSetting<AudioEngine> sink_id{linkage, AudioEngine::Auto, "output_engine",
@@ -820,8 +821,6 @@ struct Values {
 
     // Per-game overrides
     bool use_squashed_iterated_blend;
-
-    Setting<bool> enable_overlay{linkage, false, "enable_overlay", Category::Core};
 };
 
 extern Values values;
