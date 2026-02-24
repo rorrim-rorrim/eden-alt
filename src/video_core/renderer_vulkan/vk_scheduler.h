@@ -6,6 +6,10 @@
 
 #pragma once
 
+#ifdef _WIN32
+#include <immintrin.h>
+#endif
+
 #include <condition_variable>
 #include <cstddef>
 #include <functional>
