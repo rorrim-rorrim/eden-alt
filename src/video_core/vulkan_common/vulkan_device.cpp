@@ -557,7 +557,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     if (is_nvidia) {
-        const u32 nv_major_version = (properties.properties.driverVersion >> 22) & 0x3ff;
         const auto arch = GetNvidiaArch();
         if (arch >= NvidiaArchitecture::Arch_AmpereOrNewer) {
             LOG_WARNING(Render_Vulkan, "Ampere and newer have broken float16 math");
