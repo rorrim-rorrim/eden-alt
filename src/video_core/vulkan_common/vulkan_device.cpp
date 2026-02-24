@@ -564,13 +564,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             features.shader_float16_int8.shaderFloat16 = false;
         }
 
-        if (nv_major_version >= 510) {
-            LOG_WARNING(Render_Vulkan,
-                        "NVIDIA Drivers >= 510 do not support MSAA->MSAA image blits. "
-                        "MSAA scaling will use 3D helpers. MSAA resolves work normally.");
-            cant_blit_msaa = true;
-        }
-
         // Mali/ NVIDIA proprietary drivers: Shader stencil export not supported
         // Use hardware depth/stencil blits instead when available
         if (!extensions.shader_stencil_export) {
