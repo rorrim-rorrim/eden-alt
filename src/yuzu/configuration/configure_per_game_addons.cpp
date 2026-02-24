@@ -208,7 +208,9 @@ void ConfigurePerGameAddons::AddonDeleteRequested(QList<QModelIndex> selected) {
 
     if (filtered.empty()) {
         QtCommon::Frontend::Critical(tr("Invalid Selection"),
-                                     tr("Only mods, cheats, and patches can be deleted."));
+                                     tr("Only mods, cheats, and patches can be deleted.\nTo delete "
+                                        "NAND-installed updates, right-click the game in the game "
+                                        "list and click Remove -> Remove Installed Update."));
         return;
     }
 
@@ -228,10 +230,10 @@ void ConfigurePerGameAddons::AddonDeleteRequested(QList<QModelIndex> selected) {
                                               QtCommon::Frontend::StandardButton::Yes |
                                                   QtCommon::Frontend::StandardButton::No);
 
-    if (choice == QtCommon::Frontend::StandardButton::Yes) {
-        for (const QModelIndex &index : filtered) {
-            std::filesystem::remove_all(index.data(PATCH_LOCATION).toString().toStdString());
-        }
+    if (choice == QtCommon::Frontend::StandardButton::No) return;
+
+    for (const QModelIndex &index : filtered) {
+        std::filesystem::remove_all(index.data(PATCH_LOCATION).toString().toStdString());
     }
 
     QtCommon::Frontend::Information(tr("Successfully deleted"),
