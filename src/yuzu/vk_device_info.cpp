@@ -67,6 +67,7 @@ void PopulateRecords(std::vector<Record>& records, QWindow* window) try {
 
         std::string driver_string{};
 
+        // TODO: This can be moved to a utility function but I'm lazy.
         switch (driverID) {
         case VK_DRIVER_ID_MESA_DOZEN:
             driver_string = "Dozen";
@@ -75,40 +76,81 @@ void PopulateRecords(std::vector<Record>& records, QWindow* window) try {
             driver_string = "MoltenVK";
             break;
         case VK_DRIVER_ID_AMD_OPEN_SOURCE:
-            driver_string = "OSS";
+            driver_string = "AMDVLK";
             break;
         case VK_DRIVER_ID_GOOGLE_SWIFTSHADER:
+            driver_string = "SwiftShader";
+            break;
         case VK_DRIVER_ID_MESA_LLVMPIPE:
-        case VK_DRIVER_ID_VULKAN_SC_EMULATION_ON_VULKAN:
-        case VK_DRIVER_ID_MESA_VENUS:
-            driver_string = "Software";
+            driver_string = "llvmpipe";
             break;
         case VK_DRIVER_ID_SAMSUNG_PROPRIETARY:
+            driver_string = "Samsung";
+            break;
         case VK_DRIVER_ID_COREAVI_PROPRIETARY:
+            driver_string = "Coreavi";
+            break;
         case VK_DRIVER_ID_JUICE_PROPRIETARY:
+        case VK_DRIVER_ID_MESA_VENUS:
+            driver_string = "Virtualized";
+            break;
         case VK_DRIVER_ID_VERISILICON_PROPRIETARY:
+            driver_string = "Verisilicon";
+            break;
         case VK_DRIVER_ID_AMD_PROPRIETARY:
+            driver_string = "AMD";
+            break;
         case VK_DRIVER_ID_NVIDIA_PROPRIETARY:
+            driver_string = "Nvidia";
+            break;
         case VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS:
+            driver_string = "Intel";
+            break;
         case VK_DRIVER_ID_IMAGINATION_PROPRIETARY:
+            driver_string = "Imagination";
+            break;
         case VK_DRIVER_ID_QUALCOMM_PROPRIETARY:
+            driver_string = "Qualcomm";
+            break;
         case VK_DRIVER_ID_ARM_PROPRIETARY:
+            driver_string = "ARM";
+            break;
+        // ?
         case VK_DRIVER_ID_GGP_PROPRIETARY:
+            driver_string = "GGP";
+            break;
         case VK_DRIVER_ID_BROADCOM_PROPRIETARY:
-            driver_string = "Proprietary";
+            driver_string = "Broadcom";
             break;
         case VK_DRIVER_ID_MESA_NVK:
+            driver_string = "Nouveau";
+            break;
         case VK_DRIVER_ID_MESA_TURNIP:
+            driver_string = "Turnip";
+            break;
         case VK_DRIVER_ID_MESA_PANVK:
+            driver_string = "Panfrost";
+            break;
         case VK_DRIVER_ID_IMAGINATION_OPEN_SOURCE_MESA:
+            driver_string = "PowerVR MESA";
+            break;
         case VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA:
+            driver_string = "ANV";
+            break;
         case VK_DRIVER_ID_MESA_RADV:
+            driver_string = "RADV";
+            break;
         case VK_DRIVER_ID_MESA_V3DV:
+            driver_string = "V3DV";
+            break;
         case VK_DRIVER_ID_MESA_HONEYKRISP:
+            driver_string = "HoneyKrisp";
+            break;
         case VK_DRIVER_ID_MESA_KOSMICKRISP:
-            driver_string = "MESA";
+            driver_string = "KosmicKrisp";
             break;
         case VK_DRIVER_ID_MAX_ENUM:
+        case VK_DRIVER_ID_VULKAN_SC_EMULATION_ON_VULKAN:
         default:
             break;
         }
