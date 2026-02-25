@@ -1021,7 +1021,7 @@ std::string GetDriverName(VkPhysicalDeviceDriverProperties driver) {
     case VK_DRIVER_ID_MESA_RADV:
         return "RADV";
     case VK_DRIVER_ID_NVIDIA_PROPRIETARY:
-        return "NVIDIA";
+        return "Nvidia";
     case VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS:
         return "Intel";
     case VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA:
@@ -1039,7 +1039,7 @@ std::string GetDriverName(VkPhysicalDeviceDriverProperties driver) {
     case VK_DRIVER_ID_BROADCOM_PROPRIETARY:
         return "Broadcom";
     case VK_DRIVER_ID_MESA_LLVMPIPE:
-        return "Lavapipe";
+        return "llvmpipe";
     case VK_DRIVER_ID_MOLTENVK:
         return "MoltenVK";
     case VK_DRIVER_ID_VERISILICON_PROPRIETARY:
