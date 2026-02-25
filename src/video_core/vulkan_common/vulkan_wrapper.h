@@ -14,6 +14,7 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <vulkan/vulkan_core.h>
 
 #include "common/common_types.h"
 #include "video_core/vulkan_common/vulkan.h"
@@ -1600,5 +1601,7 @@ std::optional<std::vector<VkExtensionProperties>> EnumerateInstanceExtensionProp
 
 std::optional<std::vector<VkLayerProperties>> EnumerateInstanceLayerProperties(
     const InstanceDispatch& dld);
+
+std::string GetDriverName(VkPhysicalDeviceDriverProperties driver);
 
 } // namespace Vulkan::vk
