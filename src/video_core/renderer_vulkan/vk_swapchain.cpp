@@ -8,13 +8,13 @@
 #include <array>
 #include <limits>
 #include <vector>
-#include <vulkan/vk_enum_string_helper.h>
 
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
+#include "video_core/vulkan_common/vk_enum_string_helper.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 #include "vulkan/vulkan_core.h"
