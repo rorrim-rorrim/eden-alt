@@ -49,15 +49,22 @@ void PopulateRecords(std::vector<Record>& records, QWindow* window) try {
         const auto physical_device = vk::PhysicalDevice(device, dld);
         std::string name = physical_device.GetProperties().deviceName;
 
-        VkPhysicalDeviceProperties2 properties2{};
-        VkPhysicalDeviceVulkan12Properties vk12props{};
-        properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-        vk12props.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES;
-        properties2.pNext = &vk12props;
+        const std::vector<VkPresentModeKHR> present_modes =
+            physical_device.GetSurfacePresentModesKHR(*surface);
 
-        physical_device.GetProperties2(properties2);
+        VkPhysicalDeviceDriverProperties driver_properties{};
+        driver_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES;
+        driver_properties.pNext = nullptr;
+        VkPhysicalDeviceProperties2 properties{};
+        properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
+        properties.pNext = &driver_properties;
+        dld.vkGetPhysicalDeviceProperties2(physical_device, &properties);
 
-        const auto driverID = vk12props.driverID;
+        const auto driverID = driver_properties.driverID;
+
+        bool has_broken_compute{Vulkan::Device::CheckBrokenCompute(
+            driverID, properties.properties.driverVersion)};
+
         std::string driver_string{};
 
         switch (driverID) {
@@ -109,20 +116,6 @@ void PopulateRecords(std::vector<Record>& records, QWindow* window) try {
         if (!driver_string.empty()) {
             name = fmt::format("{} ({})", name, driver_string);
         }
-
-        const std::vector<VkPresentModeKHR> present_modes =
-            physical_device.GetSurfacePresentModesKHR(*surface);
-
-        VkPhysicalDeviceDriverProperties driver_properties{};
-        driver_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES;
-        driver_properties.pNext = nullptr;
-        VkPhysicalDeviceProperties2 properties{};
-        properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
-        properties.pNext = &driver_properties;
-        dld.vkGetPhysicalDeviceProperties2(physical_device, &properties);
-
-        bool has_broken_compute{Vulkan::Device::CheckBrokenCompute(
-            driver_properties.driverID, properties.properties.driverVersion)};
 
         records.push_back(VkDeviceInfo::Record(name, present_modes, has_broken_compute));
     }
