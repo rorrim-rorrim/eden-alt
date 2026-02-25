@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -47,7 +47,69 @@ void PopulateRecords(std::vector<Record>& records, QWindow* window) try {
     records.reserve(physical_devices.size());
     for (const VkPhysicalDevice device : physical_devices) {
         const auto physical_device = vk::PhysicalDevice(device, dld);
-        const std::string name = physical_device.GetProperties().deviceName;
+        std::string name = physical_device.GetProperties().deviceName;
+
+        VkPhysicalDeviceProperties2 properties2{};
+        VkPhysicalDeviceVulkan12Properties vk12props{};
+        properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+        vk12props.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES;
+        properties2.pNext = &vk12props;
+
+        physical_device.GetProperties2(properties2);
+
+        const auto driverID = vk12props.driverID;
+        std::string driver_string{};
+
+        switch (driverID) {
+        case VK_DRIVER_ID_MESA_DOZEN:
+            driver_string = "Dozen";
+            break;
+        case VK_DRIVER_ID_MOLTENVK:
+            driver_string = "MoltenVK";
+            break;
+        case VK_DRIVER_ID_AMD_OPEN_SOURCE:
+            driver_string = "OSS";
+            break;
+        case VK_DRIVER_ID_GOOGLE_SWIFTSHADER:
+        case VK_DRIVER_ID_MESA_LLVMPIPE:
+        case VK_DRIVER_ID_VULKAN_SC_EMULATION_ON_VULKAN:
+        case VK_DRIVER_ID_MESA_VENUS:
+            driver_string = "Software";
+            break;
+        case VK_DRIVER_ID_SAMSUNG_PROPRIETARY:
+        case VK_DRIVER_ID_COREAVI_PROPRIETARY:
+        case VK_DRIVER_ID_JUICE_PROPRIETARY:
+        case VK_DRIVER_ID_VERISILICON_PROPRIETARY:
+        case VK_DRIVER_ID_AMD_PROPRIETARY:
+        case VK_DRIVER_ID_NVIDIA_PROPRIETARY:
+        case VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS:
+        case VK_DRIVER_ID_IMAGINATION_PROPRIETARY:
+        case VK_DRIVER_ID_QUALCOMM_PROPRIETARY:
+        case VK_DRIVER_ID_ARM_PROPRIETARY:
+        case VK_DRIVER_ID_GGP_PROPRIETARY:
+        case VK_DRIVER_ID_BROADCOM_PROPRIETARY:
+            driver_string = "Proprietary";
+            break;
+        case VK_DRIVER_ID_MESA_NVK:
+        case VK_DRIVER_ID_MESA_TURNIP:
+        case VK_DRIVER_ID_MESA_PANVK:
+        case VK_DRIVER_ID_IMAGINATION_OPEN_SOURCE_MESA:
+        case VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA:
+        case VK_DRIVER_ID_MESA_RADV:
+        case VK_DRIVER_ID_MESA_V3DV:
+        case VK_DRIVER_ID_MESA_HONEYKRISP:
+        case VK_DRIVER_ID_MESA_KOSMICKRISP:
+            driver_string = "MESA";
+            break;
+        case VK_DRIVER_ID_MAX_ENUM:
+        default:
+            break;
+        }
+
+        if (!driver_string.empty()) {
+            name = fmt::format("{} ({})", name, driver_string);
+        }
+
         const std::vector<VkPresentModeKHR> present_modes =
             physical_device.GetSurfacePresentModesKHR(*surface);
 
