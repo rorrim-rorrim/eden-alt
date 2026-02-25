@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 #include <vulkan/vulkan_core.h>
+#include <string>
 
 #include "common/common_types.h"
 #include "video_core/vulkan_common/vulkan.h"
