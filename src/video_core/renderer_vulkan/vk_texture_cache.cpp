@@ -2503,7 +2503,6 @@ void TextureCacheRuntime::TransitionImageLayout(Image& image) {
             cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                                    VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, barrier);
         });
-        scheduler.Finish();
     }
 }
 
