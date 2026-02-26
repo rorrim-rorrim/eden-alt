@@ -185,16 +185,6 @@
         "bundled": true,
         "skip_updates": "true"
     },
-
-    "kosmickrisp": {
-        "package": "KosmicKrisp",
-        "repo": "crueter-ci/KosmicKrisp",
-        "hash": "2df127265580aca955d1ac226e159819802f680d4cdd5508c42784c1e2296ef55322ddaec44b2b71e9528f56a3a2c6db28ae9d4a18cbe75a77411251a3e8b07e",
-        "git_version": "26.0.0",
-        "tag": "v%VERSION%",
-        "artifact": "KosmicKrisp-%VERSION%.tar.zst",
-        "bundled": true
-    },
     "gamemode": {
         "repo": "FeralInteractive/gamemode",
         "sha": "ce6fe122f3",
