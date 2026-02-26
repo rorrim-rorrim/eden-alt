@@ -927,6 +927,10 @@ public:
         return properties.driver.driverID == VK_DRIVER_ID_MOLTENVK;
     }
 
+    bool IsKosmicKrisp() const noexcept {
+        return properties.driver.driverID == VK_DRIVER_ID_KOSMICKRISP;
+    }
+
     NvidiaArchitecture GetNvidiaArch() const noexcept {
         return nvidia_arch;
     }

@@ -432,7 +432,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_intel_anv = driver_id == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA;
 
     const bool is_nvidia = driver_id == VK_DRIVER_ID_NVIDIA_PROPRIETARY;
+
     const bool is_mvk = driver_id == VK_DRIVER_ID_MOLTENVK;
+    const bool is_kosmic_krisp = driver_id == VK_DRIVER_ID_KOSMICKRISP;
+
     const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
 
@@ -656,6 +659,11 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     if (is_turnip || is_qualcomm) {
         LOG_WARNING(Render_Vulkan, "Driver requires higher-than-reported binding limits");
         properties.properties.limits.maxVertexInputBindings = 32;
+    }
+
+    if (is_kosmic_krisp) {
+        LOG_WARNING(Render_Vulkan, "KosmicKrisp do not support MSAA->MSAA image blits. MSAA scaling will use 3D helpers. MSAA resolves work normally.");
+        cant_blit_msaa = true;
     }
 
     const auto dyna_state = Settings::values.dyna_state.GetValue();
