@@ -185,12 +185,14 @@
         "bundled": true,
         "skip_updates": "true"
     },
-    "moltenvk": {
-        "repo": "V380-Ori/Ryujinx.MoltenVK",
-        "tag": "v%VERSION%-ryujinx",
-        "git_version": "1.4.1",
-        "artifact": "MoltenVK-macOS.tar",
-        "hash": "5695b36ca5775819a71791557fcb40a4a5ee4495be6b8442e0b666d0c436bec02aae68cc6210183f7a5c986bdbec0e117aecfad5396e496e9c2fd5c89133a347",
+
+    "kosmickrisp": {
+        "package": "KosmicKrisp",
+        "repo": "crueter-ci/KosmicKrisp",
+        "hash": "2df127265580aca955d1ac226e159819802f680d4cdd5508c42784c1e2296ef55322ddaec44b2b71e9528f56a3a2c6db28ae9d4a18cbe75a77411251a3e8b07e",
+        "git_version": "26.0.0",
+        "tag": "v%VERSION%",
+        "artifact": "KosmicKrisp-%VERSION%.tar.zst",
         "bundled": true
     },
     "gamemode": {
