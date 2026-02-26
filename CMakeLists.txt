@@ -444,6 +444,11 @@ if (NOT YUZU_STATIC_ROOM)
     if (NOT TARGET Opus::opus)
         add_library(Opus::opus ALIAS opus)
     endif()
+
+    if (APPLE)
+        # KosmicKrisp
+        AddJsonPackage(kosmickrisp)
+    endif()
 endif()
 
 if(NOT TARGET Boost::headers)

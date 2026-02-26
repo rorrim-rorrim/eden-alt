@@ -389,17 +389,3 @@ if (ANDROID)
 
     add_library(oboe::oboe ALIAS oboe)
 endif()
-
-if (APPLE)
-    # moltenvk
-    if (NOT YUZU_USE_BUNDLED_MOLTENVK)
-        find_library(MOLTENVK_LIBRARY MoltenVK)
-    endif()
-
-    # TODO: kosmickrisp?
-    if (NOT MOLTENVK_LIBRARY OR YUZU_USE_BUNDLED_MOLTENVK)
-        AddJsonPackage(moltenvk)
-
-        set(MOLTENVK_LIBRARY "${moltenvk_SOURCE_DIR}/MoltenVK/dylib/macOS/libMoltenVK.dylib" CACHE STRING "" FORCE)
-    endif()
-endif()

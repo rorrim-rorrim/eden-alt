@@ -389,14 +389,22 @@ if (APPLE)
     set_target_properties(yuzu PROPERTIES MACOSX_BUNDLE TRUE)
     set_target_properties(yuzu PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
 
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".dylib")
-    find_library(MOLTENVK_LIBRARY MoltenVK REQUIRED)
-    message(STATUS "Using MoltenVK at ${MOLTENVK_LIBRARY}.")
+    set(KK_LIBS
+        "${KosmicKrisp_SOURCE_DIR}/lib/libMoltenVK.dylib"
+        "${KosmicKrisp_SOURCE_DIR}/lib/libvulkan.1.dylib"
+        "${KosmicKrisp_SOURCE_DIR}/lib/libvulkan_kosmickrisp.dylib")
 
-    set_source_files_properties(${MOLTENVK_LIBRARY} PROPERTIES
+    set_source_files_properties(${KK_LIBS} PROPERTIES
         MACOSX_PACKAGE_LOCATION Frameworks
         XCODE_FILE_ATTRIBUTES "CodeSignOnCopy")
-    target_sources(yuzu PRIVATE ${MOLTENVK_LIBRARY})
+
+    target_sources(yuzu PRIVATE ${KK_LIBS})
+
+    add_custom_command(TARGET yuzu POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${KosmicKrisp_SOURCE_DIR}/vulkan"
+            "$<TARGET_FILE_DIR:yuzu>/../Resources/vulkan"
+        COMMENT "Copying Vulkan ICDs")
 elseif(WIN32)
     # compile as a win32 gui application instead of a console application
     target_link_libraries(yuzu PRIVATE Qt6::EntryPointPrivate)
