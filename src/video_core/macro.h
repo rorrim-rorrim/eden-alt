@@ -104,7 +104,7 @@ struct HLEMacro {
 /// @note: these macros have two versions, a normal and extended version, with the extended version
 /// also assigning the base vertex/instance.
 struct HLE_DrawArraysIndirect final {
-    HLE_DrawArraysIndirect(bool extended) noexcept : extended{extended} {}
+    HLE_DrawArraysIndirect(bool extended_) noexcept : extended{extended_} {}
     void Execute(Engines::Maxwell3D& maxwell3d, std::span<const u32> parameters, [[maybe_unused]] u32 method);
     void Fallback(Engines::Maxwell3D& maxwell3d, std::span<const u32> parameters);
     bool extended;
@@ -112,7 +112,7 @@ struct HLE_DrawArraysIndirect final {
 /// @note: these macros have two versions, a normal and extended version, with the extended version
 /// also assigning the base vertex/instance.
 struct HLE_DrawIndexedIndirect final {
-    explicit HLE_DrawIndexedIndirect(bool extended) noexcept : extended{extended} {}
+    explicit HLE_DrawIndexedIndirect(bool extended_) noexcept : extended{extended_} {}
     void Execute(Engines::Maxwell3D& maxwell3d, std::span<const u32> parameters, [[maybe_unused]] u32 method);
     void Fallback(Engines::Maxwell3D& maxwell3d, std::span<const u32> parameters);
     bool extended;
@@ -141,7 +141,7 @@ struct HLE_SetRasterBoundingBox final {
     void Execute(Engines::Maxwell3D& maxwell3d, std::span<const u32> parameters, [[maybe_unused]] u32 method);
 };
 struct HLE_ClearConstBuffer final {
-    HLE_ClearConstBuffer(size_t base_size) noexcept : base_size{base_size} {}
+    HLE_ClearConstBuffer(size_t base_size_) noexcept : base_size{base_size_} {}
     void Execute(Engines::Maxwell3D& maxwell3d, std::span<const u32> parameters, [[maybe_unused]] u32 method);
     size_t base_size;
 };
@@ -215,7 +215,7 @@ using AnyCachedMacro = std::variant<
 >;
 
 struct MacroEngine {
-    MacroEngine(bool is_interpreted) noexcept : is_interpreted{is_interpreted} {}
+    MacroEngine(bool is_interpreted_) noexcept : is_interpreted{is_interpreted_} {}
     // Store the uploaded macro code to compile them when they're called.
     inline void AddCode(u32 method, u32 data) noexcept {
         uploaded_macro_code[method].push_back(data);
