@@ -459,7 +459,7 @@ void MacroInterpreterImpl::Execute(Engines::Maxwell3D& maxwell3d, std::span<cons
     }
 
     // Assert the the macro used all the input parameters
-    ASSERT(next_parameter_index == params.size());
+    ASSERT(next_parameter_index == parameters.size());
 }
 
 /// Resets the execution engine state, zeroing registers, etc.
@@ -468,7 +468,7 @@ void MacroInterpreterImpl::Reset() {
     pc = 0;
     delayed_pc = {};
     method_address.raw = 0;
-    parameters.clear();
+    // Vector must hold its last indices otherwise wonky shit will happen
     // The next parameter index starts at 1, because $r1 already has the value of the first
     // parameter.
     next_parameter_index = 1;
@@ -701,6 +701,7 @@ u32 MacroInterpreterImpl::Read(Engines::Maxwell3D& maxwell3d, u32 method) const 
 
 /// Returns the next parameter in the parameter queue.
 u32 MacroInterpreterImpl::FetchParameter() {
+    ASSERT(next_parameter_index < parameters.size());
     return parameters[next_parameter_index++];
 }
 
