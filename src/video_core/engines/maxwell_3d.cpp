@@ -31,7 +31,7 @@ Maxwell3D::Maxwell3D(Core::System& system_, MemoryManager& memory_manager_)
 #ifdef ARCHITECTURE_x86_64
     , macro_engine(bool(Settings::values.disable_macro_jit))
 #else
-    , macro_engine(maxwell3d, true);
+    , macro_engine(maxwell3d, true)
 #endif
     , upload_state{memory_manager, regs.upload}
 {
