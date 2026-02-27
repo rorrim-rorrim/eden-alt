@@ -7,9 +7,10 @@
 #pragma once
 
 #include <memory>
-#include <ankerl/unordered_dense.h>
 #include <span>
+#include <variant>
 #include <vector>
+#include <ankerl/unordered_dense.h>
 #include "common/bit_field.h"
 #include "common/common_types.h"
 
