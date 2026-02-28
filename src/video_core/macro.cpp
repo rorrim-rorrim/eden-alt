@@ -1371,7 +1371,7 @@ static void Dump(u64 hash, std::span<const u32> code, bool decompiled = false) {
 }
 
 void MacroEngine::Execute(Engines::Maxwell3D& maxwell3d, u32 method, std::span<const u32> parameters) {
-    auto const execute_variant = [&maxwell3d](AnyCachedMacro& acm, auto parameters, auto method) {
+    auto const execute_variant = [&maxwell3d, &parameters, method](AnyCachedMacro& acm) {
         if (auto a = std::get_if<HLE_DrawArraysIndirect>(&acm))
             a->Execute(maxwell3d, parameters, method);
         if (auto a = std::get_if<HLE_DrawIndexedIndirect>(&acm))
@@ -1405,7 +1405,7 @@ void MacroEngine::Execute(Engines::Maxwell3D& maxwell3d, u32 method, std::span<c
         auto& ci = it->second;
         if (!CanBeHLEProgram(ci.hash) || Settings::values.disable_macro_hle)
             maxwell3d.RefreshParameters(); //LLE must reload parameters
-        execute_variant(ci.program, parameters, method);
+        execute_variant(ci.program);
     } else {
         // Macro not compiled, check if it's uploaded and if so, compile it
         std::optional<u32> mid_method;
@@ -1440,7 +1440,7 @@ void MacroEngine::Execute(Engines::Maxwell3D& maxwell3d, u32 method, std::span<c
         } else {
             maxwell3d.RefreshParameters();
         }
-        execute_variant(ci.program, parameters, method);
+        execute_variant(ci.program);
         if (Settings::values.dump_macros) {
             Dump(ci.hash, macro_code->second, !std::holds_alternative<std::monostate>(ci.program));
         }
