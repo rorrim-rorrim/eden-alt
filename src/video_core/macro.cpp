@@ -1374,34 +1374,32 @@ void MacroEngine::Execute(Engines::Maxwell3D& maxwell3d, u32 method, std::span<c
     auto const execute_variant = [&maxwell3d](AnyCachedMacro& acm, auto parameters, auto method) {
         if (auto a = std::get_if<HLE_DrawArraysIndirect>(&acm))
             a->Execute(maxwell3d, parameters, method);
-        else if (auto a = std::get_if<HLE_DrawIndexedIndirect>(&acm))
+        if (auto a = std::get_if<HLE_DrawIndexedIndirect>(&acm))
             a->Execute(maxwell3d, parameters, method);
-        else if (auto a = std::get_if<HLE_MultiDrawIndexedIndirectCount>(&acm))
+        if (auto a = std::get_if<HLE_MultiDrawIndexedIndirectCount>(&acm))
             a->Execute(maxwell3d, parameters, method);
-        else if (auto a = std::get_if<HLE_MultiLayerClear>(&acm))
+        if (auto a = std::get_if<HLE_MultiLayerClear>(&acm))
             a->Execute(maxwell3d, parameters, method);
-        else if (auto a = std::get_if<HLE_C713C83D8F63CCF3>(&acm))
+        if (auto a = std::get_if<HLE_C713C83D8F63CCF3>(&acm))
             a->Execute(maxwell3d, parameters, method);
-        else if (auto a = std::get_if<HLE_D7333D26E0A93EDE>(&acm))
+        if (auto a = std::get_if<HLE_D7333D26E0A93EDE>(&acm))
             a->Execute(maxwell3d, parameters, method);
-        else if (auto a = std::get_if<HLE_BindShader>(&acm))
+        if (auto a = std::get_if<HLE_BindShader>(&acm))
             a->Execute(maxwell3d, parameters, method);
-        else if (auto a = std::get_if<HLE_SetRasterBoundingBox>(&acm))
+        if (auto a = std::get_if<HLE_SetRasterBoundingBox>(&acm))
             a->Execute(maxwell3d, parameters, method);
-        else if (auto a = std::get_if<HLE_ClearConstBuffer>(&acm))
+        if (auto a = std::get_if<HLE_ClearConstBuffer>(&acm))
             a->Execute(maxwell3d, parameters, method);
-        else if (auto a = std::get_if<HLE_ClearMemory>(&acm))
+        if (auto a = std::get_if<HLE_ClearMemory>(&acm))
             a->Execute(maxwell3d, parameters, method);
-        else if (auto a = std::get_if<HLE_TransformFeedbackSetup>(&acm))
+        if (auto a = std::get_if<HLE_TransformFeedbackSetup>(&acm))
             a->Execute(maxwell3d, parameters, method);
-        else if (auto a = std::get_if<HLE_DrawIndirectByteCount>(&acm))
+        if (auto a = std::get_if<HLE_DrawIndirectByteCount>(&acm))
             a->Execute(maxwell3d, parameters, method);
-        else if (auto a = std::get_if<MacroInterpreterImpl>(&acm))
+        if (auto a = std::get_if<MacroInterpreterImpl>(&acm))
             a->Execute(maxwell3d, parameters, method);
-        else if (auto a = std::get_if<std::unique_ptr<DynamicCachedMacro>>(&acm))
+        if (auto a = std::get_if<std::unique_ptr<DynamicCachedMacro>>(&acm))
             a->get()->Execute(maxwell3d, parameters, method);
-        else
-            UNREACHABLE();
     };
     if (auto const it = macro_cache.find(method); it != macro_cache.end()) {
         auto& ci = it->second;
