@@ -51,22 +51,22 @@ object ThemeHelper {
         }
     }
 
-private fun getSelectedStaticThemeColor(): Int {
-    val themeIndex = IntSetting.STATIC_THEME_COLOR.getInt(false)
-    val themes = arrayOf(
-        R.style.Theme_Eden_Main,
-        R.style.Theme_Yuzu_Main_Violet,
-        R.style.Theme_Yuzu_Main_Blue,
-        R.style.Theme_Yuzu_Main_Cyan,
-        R.style.Theme_Yuzu_Main_Red,
-        R.style.Theme_Yuzu_Main_Green,
-        R.style.Theme_Yuzu_Main_Yellow,
-        R.style.Theme_Yuzu_Main_Orange,
-        R.style.Theme_Yuzu_Main_Pink,
-        R.style.Theme_Yuzu_Main_Gray
-    )
-    return themes[themeIndex]
-}
+    private fun getSelectedStaticThemeColor(): Int {
+        val themeIndex = IntSetting.STATIC_THEME_COLOR.getInt(false)
+        val themes = arrayOf(
+            R.style.Theme_Eden_Main,
+            R.style.Theme_Yuzu_Main_Violet,
+            R.style.Theme_Yuzu_Main_Blue,
+            R.style.Theme_Yuzu_Main_Cyan,
+            R.style.Theme_Yuzu_Main_Red,
+            R.style.Theme_Yuzu_Main_Green,
+            R.style.Theme_Yuzu_Main_Yellow,
+            R.style.Theme_Yuzu_Main_Orange,
+            R.style.Theme_Yuzu_Main_Pink,
+            R.style.Theme_Yuzu_Main_Gray
+        )
+        return themes[themeIndex]
+    }
 
     @ColorInt
     fun getColorWithOpacity(@ColorInt color: Int, alphaFactor: Float): Int {
@@ -122,16 +122,16 @@ private fun getSelectedStaticThemeColor(): Int {
     }
 
     fun ThemeChangeListener(activity: AppCompatActivity) {
-    listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
             val relevantKeys = listOf(
                 Settings.PREF_STATIC_THEME_COLOR,
                 Settings.PREF_THEME_MODE,
                 Settings.PREF_BLACK_BACKGROUNDS
             )
             if (key in relevantKeys) {
-            activity.recreate()
+                activity.recreate()
+            }
         }
-    }
         preferences.registerOnSharedPreferenceChangeListener(listener)
     }
 }
