@@ -1,10 +1,11 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.features.fetcher
 
 import android.graphics.Rect
 import android.view.View
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 class SpacingItemDecoration(private val spacing: Int) : RecyclerView.ItemDecoration() {
@@ -14,8 +15,19 @@ class SpacingItemDecoration(private val spacing: Int) : RecyclerView.ItemDecorat
         parent: RecyclerView,
         state: RecyclerView.State
     ) {
+        val position = parent.getChildAdapterPosition(view)
+        if (position == RecyclerView.NO_POSITION) {
+            return
+        }
+
         outRect.bottom = spacing
-        if (parent.getChildAdapterPosition(view) == 0) {
+        val layoutManager = parent.layoutManager
+        val isFirstRow = if (layoutManager is GridLayoutManager) {
+            layoutManager.spanSizeLookup.getSpanGroupIndex(position, layoutManager.spanCount) == 0
+        } else {
+            position == 0
+        }
+        if (isFirstRow) {
             outRect.top = spacing
         }
     }
