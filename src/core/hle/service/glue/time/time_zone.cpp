@@ -104,7 +104,8 @@ Result TimeZoneService::LoadLocationNameList(
     OutArray<Service::PSC::Time::LocationName, BufferAttr_HipcMapAlias> out_names, u32 index) {
     SCOPE_EXIT {
         LOG_DEBUG(Service_Time, "called. index={} out_count={} out_names[0]={} out_names[1]={}",
-                  index, *out_count, out_names[0], out_names[1]);
+                  index, *out_count, out_names.size() > 0 ? out_names[0] : Service::PSC::Time::LocationName{},
+                  out_names.size() > 1 ? out_names[1] : Service::PSC::Time::LocationName{});
     };
 
     std::scoped_lock l{m_mutex};
@@ -208,7 +209,8 @@ Result TimeZoneService::ToPosixTime(Out<u32> out_count,
     SCOPE_EXIT {
         LOG_DEBUG(Service_Time,
                   "called. calendar_time={} out_count={} out_times[0]={} out_times[1]={}",
-                  calendar_time, *out_count, out_times[0], out_times[1]);
+                  calendar_time, *out_count, out_times.size() > 0 ? out_times[0] : s64{0},
+                  out_times.size() > 1 ? out_times[1] : s64{0});
     };
 
     R_RETURN(m_wrapped_service->ToPosixTime(out_count, out_times, calendar_time, rule));
@@ -220,7 +222,8 @@ Result TimeZoneService::ToPosixTimeWithMyRule(
     SCOPE_EXIT {
         LOG_DEBUG(Service_Time,
                   "called. calendar_time={} out_count={} out_times[0]={} out_times[1]={}",
-                  calendar_time, *out_count, out_times[0], out_times[1]);
+                  calendar_time, *out_count, out_times.size() > 0 ? out_times[0] : s64{0},
+                  out_times.size() > 1 ? out_times[1] : s64{0});
     };
 
     R_RETURN(m_wrapped_service->ToPosixTimeWithMyRule(out_count, out_times, calendar_time));
