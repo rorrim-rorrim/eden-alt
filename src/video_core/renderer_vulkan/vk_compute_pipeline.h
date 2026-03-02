@@ -55,6 +55,7 @@ private:
 
     vk::ShaderModule spv_module;
     vk::DescriptorSetLayout descriptor_set_layout;
+    bool uses_push_descriptor{false};
     DescriptorAllocator descriptor_allocator;
     vk::PipelineLayout pipeline_layout;
     vk::DescriptorUpdateTemplate descriptor_update_template;

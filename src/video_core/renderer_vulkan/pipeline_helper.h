@@ -61,7 +61,8 @@ public:
             .pDescriptorUpdateEntries = entries.data(),
             .templateType = type,
             .descriptorSetLayout = descriptor_set_layout,
-            .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+            .pipelineBindPoint =
+                is_compute ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS,
             .pipelineLayout = pipeline_layout,
             .set = 0,
         });
@@ -122,7 +123,7 @@ private:
             });
             ++binding;
             num_descriptors += descriptors[i].count;
-            offset += sizeof(DescriptorUpdateEntry);
+            offset += sizeof(DescriptorUpdateEntry) * descriptors[i].count;
         }
     }
 
