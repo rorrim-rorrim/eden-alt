@@ -232,6 +232,10 @@ endif()
 # httplib
 AddJsonPackage(httplib)
 
+if (httplib_ADDED)
+    target_link_libraries(httplib INTERFACE zstd::zstd)
+endif()
+
 # cpp-jwt
 if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)
     AddJsonPackage(cpp-jwt)
