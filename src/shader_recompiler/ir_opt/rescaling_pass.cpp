@@ -344,6 +344,11 @@ void Visit(const IR::Program& program, IR::Block& block, IR::Inst& inst) {
 } // Anonymous namespace
 
 bool FragmentShaderNeedsRescalingPass(const IR::Program& program) {
+#ifdef __ANDROID__
+    // Disable this workaround on Android to preserve performance
+    return false;
+#endif
+
     if (program.stage != Stage::Fragment) return false;
 
     for (const IR::Block* block : program.post_order_blocks) {
