@@ -22,8 +22,8 @@ namespace Service {
 
 class Process {
 public:
-    explicit Process(Core::System& system);
-    ~Process();
+    inline explicit Process(Core::System& system) noexcept : m_system(system) {}
+    inline ~Process() { this->Finalize(); }
 
     bool Initialize(Loader::AppLoader& loader, Loader::ResultStatus& out_load_result);
     void Finalize();
@@ -50,8 +50,8 @@ public:
 private:
     Core::System& m_system;
     Kernel::KProcess* m_process{};
-    s32 m_main_thread_priority{};
     u64 m_main_thread_stack_size{};
+    s32 m_main_thread_priority{};
     bool m_process_started{};
 };
 
