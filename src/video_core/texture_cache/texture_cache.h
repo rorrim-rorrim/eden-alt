@@ -129,7 +129,6 @@ void TextureCache<P>::RunGarbageCollector() {
         ticks_to_destroy = aggressive_mode ? 10ULL : high_priority_mode ? 25ULL : 50ULL;
         num_iterations = aggressive_mode ? 40 : (high_priority_mode ? 20 : 10);
     };
-
     const auto Cleanup = [this, &num_iterations, &high_priority_mode,
                           &aggressive_mode](ImageId image_id) {
         if (num_iterations == 0) {
@@ -137,19 +136,16 @@ void TextureCache<P>::RunGarbageCollector() {
         }
         --num_iterations;
         auto& image = slot_images[image_id];
-
         // Never delete recently allocated sparse textures (within 3 frames)
         const bool is_recently_allocated = image.allocation_tick >= frame_tick - 3;
         if (is_recently_allocated && image.info.is_sparse) {
             return false;
         }
-
         if (True(image.flags & ImageFlagBits::IsDecoding)) {
             // This image is still being decoded, deleting it will invalidate the slot
             // used by the async decoder thread.
             return false;
         }
-
         // Prioritize large sparse textures for cleanup
         const bool is_large_sparse = lowmemorydevice &&
                                      image.info.is_sparse &&
@@ -159,14 +155,15 @@ void TextureCache<P>::RunGarbageCollector() {
             True(image.flags & ImageFlagBits::CostlyLoad)) {
             return false;
         }
-
         const bool must_download =
             image.IsSafeDownload() && False(image.flags & ImageFlagBits::BadOverlap);
         if (!high_priority_mode && !is_large_sparse && must_download) {
             return false;
         }
 
-        if (must_download && !is_large_sparse) {
+        const bool will_delete_now = aggressive_mode || (high_priority_mode && is_large_sparse);
+
+        if (!will_delete_now && must_download) {
             auto map = runtime.DownloadStagingBuffer(image.unswizzled_size_bytes);
             const auto copies = FixSmallVectorADL(FullDownloadCopies(image.info));
             image.DownloadMemory(map, copies);
@@ -179,11 +176,10 @@ void TextureCache<P>::RunGarbageCollector() {
             UntrackImage(image, image_id);
         }
         UnregisterImage(image_id);
-        DeleteImage(image_id, image.scale_tick > frame_tick + 5);
+        DeleteImage(image_id, will_delete_now);
 
         if (total_used_memory < critical_memory) {
             if (aggressive_mode) {
-                // Sink the aggresiveness.
                 num_iterations >>= 2;
                 aggressive_mode = false;
                 return false;
