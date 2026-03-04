@@ -160,10 +160,7 @@ void TextureCache<P>::RunGarbageCollector() {
         if (!high_priority_mode && !is_large_sparse && must_download) {
             return false;
         }
-
-        const bool will_delete_now = aggressive_mode || (high_priority_mode && is_large_sparse);
-
-        if (!will_delete_now && must_download) {
+        if (must_download && !is_large_sparse) {
             auto map = runtime.DownloadStagingBuffer(image.unswizzled_size_bytes);
             const auto copies = FixSmallVectorADL(FullDownloadCopies(image.info));
             image.DownloadMemory(map, copies);
@@ -171,13 +168,11 @@ void TextureCache<P>::RunGarbageCollector() {
             SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, map.mapped_span,
                          swizzle_data_buffer);
         }
-
         if (True(image.flags & ImageFlagBits::Tracked)) {
             UntrackImage(image, image_id);
         }
         UnregisterImage(image_id);
-        DeleteImage(image_id, will_delete_now);
-
+        DeleteImage(image_id, aggressive_mode || (high_priority_mode && is_large_sparse));
         if (total_used_memory < critical_memory) {
             if (aggressive_mode) {
                 num_iterations >>= 2;
