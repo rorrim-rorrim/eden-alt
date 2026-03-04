@@ -8,10 +8,11 @@
 
 namespace AudioCore {
 
-AudioCore::AudioCore(Core::System& system) : audio_manager{std::make_unique<AudioManager>()} {
+AudioCore::AudioCore(Core::System& system) {
+    audio_manager.emplace();
     CreateSinks();
     // Must be created after the sinks
-    adsp = std::make_unique<ADSP::ADSP>(system, *output_sink);
+    adsp.emplace(system, *output_sink);
 }
 
 AudioCore ::~AudioCore() {
