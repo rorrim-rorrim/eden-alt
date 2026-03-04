@@ -310,7 +310,7 @@ void PresentManager::CopyToSwapchain(Frame* frame) {
             // Recreate surface and swapchain if needed.
             if (requires_recreation) {
 #ifdef ANDROID
-                surface = CreateSurface(instance, render_window.GetWindowInfo());
+                surface = *CreateSurface(instance, render_window.GetWindowInfo()).address();
 #endif
                 RecreateSwapchain(frame);
             }
