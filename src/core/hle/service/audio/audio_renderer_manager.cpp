@@ -15,7 +15,9 @@ namespace Service::Audio {
 using namespace AudioCore::Renderer;
 
 IAudioRendererManager::IAudioRendererManager(Core::System& system_)
-    : ServiceFramework{system_, "audren:u"}, impl{std::make_unique<Manager>(system_)} {
+    : ServiceFramework{system_, "audren:u"}
+    , impl(system_)
+{
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, D<&IAudioRendererManager::OpenAudioRenderer>, "OpenAudioRenderer"},
