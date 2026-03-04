@@ -101,7 +101,7 @@ PresentManager::PresentManager(const vk::Instance& instance_,
                                MemoryAllocator& memory_allocator_,
                                Scheduler& scheduler_,
                                Swapchain& swapchain_,
-                               vk::SurfaceKHR surface_)
+                               VkSurfaceKHR_T* surface_)
     : instance{instance_}
     , render_window{render_window_}
     , device{device_}
