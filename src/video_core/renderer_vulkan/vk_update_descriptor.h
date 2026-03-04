@@ -12,20 +12,15 @@ namespace Vulkan {
 class Device;
 class Scheduler;
 
-struct DescriptorUpdateEntry {
-    struct Empty {};
-
+union DescriptorUpdateEntry {
     DescriptorUpdateEntry() = default;
     DescriptorUpdateEntry(VkDescriptorImageInfo image_) : image{image_} {}
     DescriptorUpdateEntry(VkDescriptorBufferInfo buffer_) : buffer{buffer_} {}
     DescriptorUpdateEntry(VkBufferView texel_buffer_) : texel_buffer{texel_buffer_} {}
-
-    union {
-        Empty empty{};
-        VkDescriptorImageInfo image;
-        VkDescriptorBufferInfo buffer;
-        VkBufferView texel_buffer;
-    };
+    std::monostate empty{};
+    VkDescriptorImageInfo image;
+    VkDescriptorBufferInfo buffer;
+    VkBufferView texel_buffer;
 };
 
 class UpdateDescriptorQueue final {

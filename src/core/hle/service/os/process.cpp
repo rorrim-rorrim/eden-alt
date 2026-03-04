@@ -10,14 +10,6 @@
 
 namespace Service {
 
-Process::Process(Core::System& system)
-    : m_system(system), m_process(), m_main_thread_priority(), m_main_thread_stack_size(),
-      m_process_started() {}
-
-Process::~Process() {
-    this->Finalize();
-}
-
 bool Process::Initialize(Loader::AppLoader& loader, Loader::ResultStatus& out_load_result) {
     // First, ensure we are not holding another process.
     this->Finalize();
