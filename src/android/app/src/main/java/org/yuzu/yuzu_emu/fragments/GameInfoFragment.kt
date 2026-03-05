@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -26,6 +26,7 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.FragmentGameInfoBinding
 import org.yuzu.yuzu_emu.model.GameVerificationResult
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.utils.BackgroundHelper
 import org.yuzu.yuzu_emu.utils.GameMetadata
 import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
@@ -60,6 +61,7 @@ class GameInfoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         homeViewModel.setStatusBarShadeVisibility(false)
+        applyBackgroundPreference()
 
         binding.apply {
             toolbarInfo.title = args.game.title
@@ -143,6 +145,11 @@ class GameInfoFragment : Fragment() {
         setInsets()
     }
 
+    override fun onResume() {
+        super.onResume()
+        applyBackgroundPreference()
+    }
+
     private fun copyToClipboard(label: String, body: String) {
         val clipBoard =
             requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -175,4 +182,8 @@ class GameInfoFragment : Fragment() {
 
             windowInsets
         }
+
+    private fun applyBackgroundPreference() {
+        BackgroundHelper.applyBackground(binding.backgroundLogo, requireContext())
+    }
 }

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -48,6 +48,7 @@ import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.GameIconUtils
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.MemoryUtil
+import org.yuzu.yuzu_emu.utils.BackgroundHelper
 import org.yuzu.yuzu_emu.utils.ViewUtils.marquee
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 import org.yuzu.yuzu_emu.utils.collect
@@ -83,6 +84,7 @@ class GamePropertiesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         homeViewModel.setStatusBarShadeVisibility(true)
+        applyBackgroundPreference()
 
         binding.buttonBack.setOnClickListener {
             view.findNavController().popBackStack()
@@ -310,6 +312,21 @@ class GamePropertiesFragment : Fragment() {
                 )
             )
 
+            if (!args.game.isHomebrew) {
+                add(
+                    SubmenuProperty(
+                        R.string.add_ons,
+                        R.string.add_ons_description,
+                        R.drawable.ic_edit,
+                        action = {
+                            val action = GamePropertiesFragmentDirections
+                                .actionPerGamePropertiesFragmentToAddonsFragment(args.game)
+                            binding.root.findNavController().navigate(action)
+                        }
+                    )
+                )
+            }
+
             if (GpuDriverHelper.supportsCustomDriverLoading()) {
                 add(
                     SubmenuProperty(
@@ -341,18 +358,6 @@ class GamePropertiesFragment : Fragment() {
             }
 
             if (!args.game.isHomebrew) {
-                add(
-                    SubmenuProperty(
-                        R.string.add_ons,
-                        R.string.add_ons_description,
-                        R.drawable.ic_edit,
-                        action = {
-                            val action = GamePropertiesFragmentDirections
-                                .actionPerGamePropertiesFragmentToAddonsFragment(args.game)
-                            binding.root.findNavController().navigate(action)
-                        }
-                    )
-                )
                 add(
                     InstallableProperty(
                         R.string.save_data,
@@ -484,6 +489,7 @@ class GamePropertiesFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        applyBackgroundPreference()
         driverViewModel.updateDriverNameForGame(args.game)
         getPlayTime()
         reloadList()
@@ -707,5 +713,9 @@ class GamePropertiesFragment : Fragment() {
                 Toast.LENGTH_SHORT
             ).show()
         }
+    }
+
+    private fun applyBackgroundPreference() {
+        BackgroundHelper.applyBackground(binding.backgroundLogo, requireContext())
     }
 }

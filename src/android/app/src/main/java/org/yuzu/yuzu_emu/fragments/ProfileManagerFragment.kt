@@ -21,6 +21,7 @@ import org.yuzu.yuzu_emu.adapters.ProfileAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentProfileManagerBinding
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.model.UserProfile
+import org.yuzu.yuzu_emu.utils.BackgroundHelper
 import org.yuzu.yuzu_emu.utils.NativeConfig
 
 class ProfileManagerFragment : Fragment() {
@@ -49,6 +50,7 @@ class ProfileManagerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         homeViewModel.setStatusBarShadeVisibility(visible = false)
+        applyBackgroundPreference()
 
         binding.toolbarProfiles.setNavigationOnClickListener {
             findNavController().popBackStack()
@@ -75,6 +77,7 @@ class ProfileManagerFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         loadProfiles()
+        applyBackgroundPreference()
     }
 
     private fun setupRecyclerView() {
@@ -186,5 +189,9 @@ class ProfileManagerFragment : Fragment() {
         super.onDestroyView()
         NativeConfig.saveGlobalConfig()
         _binding = null
+    }
+
+    private fun applyBackgroundPreference() {
+        BackgroundHelper.applyBackground(binding.backgroundLogo, requireContext())
     }
 }

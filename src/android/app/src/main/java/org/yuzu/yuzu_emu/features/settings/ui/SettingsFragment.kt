@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -33,6 +33,7 @@ import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.view.PathSetting
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
+import org.yuzu.yuzu_emu.utils.BackgroundHelper
 import org.yuzu.yuzu_emu.utils.PathUtil
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 import org.yuzu.yuzu_emu.utils.*
@@ -98,23 +99,8 @@ class SettingsFragment : Fragment() {
             activity
         )
 
-        binding.toolbarSettingsLayout.title = if (args.menuTag == Settings.MenuTag.SECTION_ROOT &&
-            args.game != null
-        ) {
-            args.game!!.title
-        } else {
-            when (args.menuTag) {
-                Settings.MenuTag.SECTION_INPUT_PLAYER_ONE -> Settings.getPlayerString(1)
-                Settings.MenuTag.SECTION_INPUT_PLAYER_TWO -> Settings.getPlayerString(2)
-                Settings.MenuTag.SECTION_INPUT_PLAYER_THREE -> Settings.getPlayerString(3)
-                Settings.MenuTag.SECTION_INPUT_PLAYER_FOUR -> Settings.getPlayerString(4)
-                Settings.MenuTag.SECTION_INPUT_PLAYER_FIVE -> Settings.getPlayerString(5)
-                Settings.MenuTag.SECTION_INPUT_PLAYER_SIX -> Settings.getPlayerString(6)
-                Settings.MenuTag.SECTION_INPUT_PLAYER_SEVEN -> Settings.getPlayerString(7)
-                Settings.MenuTag.SECTION_INPUT_PLAYER_EIGHT -> Settings.getPlayerString(8)
-                else -> getString(args.menuTag.titleId)
-            }
-        }
+        val toolbarTitle = resolveToolbarTitle()
+        configureToolbar(toolbarTitle)
 
         binding.listSettings.apply {
             adapter = settingsAdapter
@@ -193,8 +179,14 @@ class SettingsFragment : Fragment() {
         }
 
         presenter.onViewCreated()
+        applyBackgroundPreference()
 
         setInsets()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        applyBackgroundPreference()
     }
 
     private fun getPlayerIndex(): Int =
@@ -209,6 +201,27 @@ class SettingsFragment : Fragment() {
             Settings.MenuTag.SECTION_INPUT_PLAYER_EIGHT -> 7
             else -> -1
         }
+
+    private fun resolveToolbarTitle(): String {
+        if (args.menuTag == Settings.MenuTag.SECTION_ROOT && args.game != null) {
+            return args.game!!.title
+        }
+        return when (args.menuTag) {
+            Settings.MenuTag.SECTION_INPUT_PLAYER_ONE -> Settings.getPlayerString(1)
+            Settings.MenuTag.SECTION_INPUT_PLAYER_TWO -> Settings.getPlayerString(2)
+            Settings.MenuTag.SECTION_INPUT_PLAYER_THREE -> Settings.getPlayerString(3)
+            Settings.MenuTag.SECTION_INPUT_PLAYER_FOUR -> Settings.getPlayerString(4)
+            Settings.MenuTag.SECTION_INPUT_PLAYER_FIVE -> Settings.getPlayerString(5)
+            Settings.MenuTag.SECTION_INPUT_PLAYER_SIX -> Settings.getPlayerString(6)
+            Settings.MenuTag.SECTION_INPUT_PLAYER_SEVEN -> Settings.getPlayerString(7)
+            Settings.MenuTag.SECTION_INPUT_PLAYER_EIGHT -> Settings.getPlayerString(8)
+            else -> getString(args.menuTag.titleId)
+        }
+    }
+
+    private fun configureToolbar(title: String) {
+        binding.toolbarSettings.title = title
+    }
 
     private fun setInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(
@@ -226,6 +239,10 @@ class SettingsFragment : Fragment() {
             binding.appbarSettings.updateMargins(left = leftInsets, right = rightInsets)
             windowInsets
         }
+    }
+
+    private fun applyBackgroundPreference() {
+        BackgroundHelper.applyBackground(binding.backgroundLogo, requireContext())
     }
 
     private fun hasAllFilesPermission(): Boolean {

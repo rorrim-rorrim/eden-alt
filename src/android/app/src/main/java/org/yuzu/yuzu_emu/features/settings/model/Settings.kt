@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.features.settings.model
@@ -27,7 +27,7 @@ object Settings {
         SECTION_APP_SETTINGS(R.string.app_settings),
         SECTION_CUSTOM_PATHS(R.string.preferences_custom_paths),
         SECTION_DEBUG(R.string.preferences_debug),
-        SECTION_FREEDRENO(R.string.gpu_driver_settings),
+        SECTION_FREEDRENO(R.string.freedreno_settings_title),
         SECTION_APPLETS(R.string.applets_menu);
     }
 
@@ -104,6 +104,14 @@ object Settings {
     const val PREF_THEME_MODE = "ThemeMode"
     const val PREF_BLACK_BACKGROUNDS = "BlackBackgrounds"
     const val PREF_STATIC_THEME_COLOR = "StaticThemeColor"
+
+    // App background preference keys
+    const val PREF_HOME_BACKGROUND_STYLE = "HomeBackgroundStyle"
+    const val HOME_BACKGROUND_STYLE_NONE = 0
+    const val HOME_BACKGROUND_STYLE_EDEN = 1
+    const val HOME_BACKGROUND_STYLE_DEFAULT = HOME_BACKGROUND_STYLE_NONE
+    const val PREF_HOME_BACKGROUND_ALPHA = "HomeBackgroundAlpha"
+    const val HOME_BACKGROUND_ALPHA_DEFAULT = 40
 
     enum class EmulationOrientation(val int: Int) {
         Unspecified(0),

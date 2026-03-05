@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -33,6 +33,7 @@ import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.NativeConfig
+import org.yuzu.yuzu_emu.utils.BackgroundHelper
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 import org.yuzu.yuzu_emu.utils.collect
 import java.io.File
@@ -66,6 +67,7 @@ class DriverManagerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         homeViewModel.setStatusBarShadeVisibility(visible = false)
+        applyBackgroundPreference()
 
         driverViewModel.onOpenDriverManager(args.game)
         if (NativeConfig.isPerGameConfigLoaded()) {
@@ -136,6 +138,11 @@ class DriverManagerFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         driverViewModel.onCloseDriverManager(args.game)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        applyBackgroundPreference()
     }
 
     private fun setInsets() =
@@ -255,5 +262,9 @@ class DriverManagerFragment : Fragment() {
             }
             .setCancelable(false)
             .show()
+    }
+
+    private fun applyBackgroundPreference() {
+        BackgroundHelper.applyBackground(binding.backgroundLogo, requireContext())
     }
 }

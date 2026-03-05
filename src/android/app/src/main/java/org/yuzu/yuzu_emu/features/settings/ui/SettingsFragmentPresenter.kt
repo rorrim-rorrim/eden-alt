@@ -6,7 +6,6 @@ package org.yuzu.yuzu_emu.features.settings.ui
 import android.annotation.SuppressLint
 import android.os.Build
 import android.widget.Toast
-import androidx.preference.PreferenceManager
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
@@ -27,11 +26,10 @@ import org.yuzu.yuzu_emu.features.settings.model.Settings.MenuTag
 import org.yuzu.yuzu_emu.features.settings.model.ShortSetting
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.*
-import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
-import androidx.core.content.edit
+import org.yuzu.yuzu_emu.utils.BackgroundHelper
 import androidx.fragment.app.FragmentActivity
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 
@@ -183,16 +181,6 @@ class SettingsFragmentPresenter(
                     menuKey = MenuTag.SECTION_DEBUG
                 )
             )
-            if (GpuDriverHelper.isAdrenoGpu() && !NativeConfig.isPerGameConfigLoaded()) {
-                add(
-                    SubmenuSetting(
-                        titleId = R.string.gpu_driver_settings,
-                        descriptionId = R.string.freedreno_settings_title,
-                        iconId = R.drawable.ic_graphics,
-                        menuKey = MenuTag.SECTION_FREEDRENO
-                    )
-                )
-            }
             add(
                 SubmenuSetting(
                     titleId = R.string.applets_menu,
@@ -1084,27 +1072,6 @@ class SettingsFragmentPresenter(
 
             add(HeaderSetting(R.string.theme_and_color))
 
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                add(
-                    SingleChoiceSetting(
-                        theme,
-                        titleId = R.string.change_app_theme,
-                        choicesId = R.array.themeEntriesA12,
-                        valuesId = R.array.themeValuesA12
-                    )
-                )
-            } else {
-                add(
-                    SingleChoiceSetting(
-                        theme,
-                        titleId = R.string.change_app_theme,
-                        choicesId = R.array.themeEntries,
-                        valuesId = R.array.themeValues
-                    )
-                )
-            }
-
             val themeMode: AbstractIntSetting = object : AbstractIntSetting {
                 override fun getInt(needsGlobal: Boolean): Int = IntSetting.THEME_MODE.getInt()
                 override fun setInt(value: Int) {
@@ -1124,6 +1091,35 @@ class SettingsFragmentPresenter(
                     IntSetting.THEME_MODE.setInt(defaultValue)
                     settingsViewModel.setShouldRecreate(true)
                 }
+            }
+
+            add(
+                SingleChoiceSetting(
+                    themeMode,
+                    titleId = R.string.change_theme_mode,
+                    choicesId = R.array.themeModeEntries,
+                    valuesId = R.array.themeModeValues
+                )
+            )
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                add(
+                    SingleChoiceSetting(
+                        theme,
+                        titleId = R.string.change_app_theme,
+                        choicesId = R.array.themeEntriesA12,
+                        valuesId = R.array.themeValuesA12
+                    )
+                )
+            } else {
+                add(
+                    SingleChoiceSetting(
+                        theme,
+                        titleId = R.string.change_app_theme,
+                        choicesId = R.array.themeEntries,
+                        valuesId = R.array.themeValues
+                    )
+                )
             }
 
             val staticThemeColor: AbstractIntSetting = object : AbstractIntSetting {
@@ -1148,15 +1144,6 @@ class SettingsFragmentPresenter(
                     settingsViewModel.setShouldRecreate(true)
                 }
             }
-
-            add(
-                SingleChoiceSetting(
-                    themeMode,
-                    titleId = R.string.change_theme_mode,
-                    choicesId = R.array.themeModeEntries,
-                    valuesId = R.array.themeModeValues
-                )
-            )
 
             if (IntSetting.THEME.getInt() != 1) {
                 add(
@@ -1200,6 +1187,79 @@ class SettingsFragmentPresenter(
                     descriptionId = R.string.use_black_backgrounds_description
                 )
             )
+
+            val backgroundStyleSetting: AbstractIntSetting = object : AbstractIntSetting {
+                override fun getInt(needsGlobal: Boolean): Int =
+                    BackgroundHelper.getBackgroundStyle(context)
+
+                override fun setInt(value: Int) {
+                    BackgroundHelper.setBackgroundStyle(context, value)
+                    settingsViewModel.setShouldRecreate(true)
+                }
+
+                override val key: String = Settings.PREF_HOME_BACKGROUND_STYLE
+                override val isRuntimeModifiable: Boolean = true
+                override val pairedSettingKey: String = ""
+                override val isSwitchable: Boolean = false
+                override var global: Boolean = true
+                override val isSaveable: Boolean = true
+                override val defaultValue: Int = Settings.HOME_BACKGROUND_STYLE_DEFAULT
+
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    getInt(needsGlobal).toString()
+
+                override fun reset() {
+                    setInt(defaultValue)
+                }
+            }
+
+            // add(
+            //     SingleChoiceSetting(
+            //         backgroundStyleSetting,
+            //         titleId = R.string.home_background,
+            //         descriptionId = R.string.home_background_description,
+            //         choicesId = R.array.homeBackgroundEntries,
+            //         valuesId = R.array.homeBackgroundValues
+            //     )
+            // )
+
+            val backgroundAlphaSetting: AbstractIntSetting = object : AbstractIntSetting {
+                override fun getInt(needsGlobal: Boolean): Int =
+                    (BackgroundHelper.getBackgroundAlpha(context) * 100).toInt()
+
+                override fun setInt(value: Int) {
+                    BackgroundHelper.setBackgroundAlpha(context, value)
+                    settingsViewModel.setShouldRecreate(true)
+                }
+
+                override val key: String = Settings.PREF_HOME_BACKGROUND_ALPHA
+                override val isRuntimeModifiable: Boolean = true
+                override val pairedSettingKey: String = ""
+                override val isSwitchable: Boolean = false
+                override var global: Boolean = true
+                override val isSaveable: Boolean = true
+                override val defaultValue: Int = Settings.HOME_BACKGROUND_ALPHA_DEFAULT
+
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    getInt(needsGlobal).toString()
+
+                override fun reset() {
+                    setInt(defaultValue)
+                }
+            }
+
+            if (BackgroundHelper.getBackgroundStyle(context) != Settings.HOME_BACKGROUND_STYLE_NONE) {
+                // add(
+                //     SliderSetting(
+                //         backgroundAlphaSetting,
+                //         titleId = R.string.home_background_opacity,
+                //         descriptionId = R.string.home_background_opacity_description,
+                //         min = 0,
+                //         max = 100,
+                //         units = "%"
+                //     )
+                // )
+            }
 
             add(HeaderSetting(R.string.buttons))
             add(BooleanSetting.ENABLE_FOLDER_BUTTON.key)

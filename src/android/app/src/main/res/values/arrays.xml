@@ -383,6 +383,15 @@
         <item>2</item>
     </integer-array>
 
+    <string-array name="homeBackgroundEntries">
+        <item>@string/background_none</item>
+        <item>@string/background_eden_default</item>
+    </string-array>
+    <integer-array name="homeBackgroundValues">
+        <item>0</item>
+        <item>1</item>
+    </integer-array>
+
     <string-array name="appLanguageNames">
         <item>@string/app_language_system</item>
         <item>@string/app_language_english</item>

@@ -6,20 +6,35 @@
     android:layout_height="match_parent"
     android:background="?attr/colorSurface">
 
+    <ImageView
+        android:id="@+id/background_logo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.1"
+        android:contentDescription="@null"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop"
+        android:src="@drawable/eden_background"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/appbar_folders"
+            style="@style/Widget.Eden.TransparentTopAppBarLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true"
-            android:touchscreenBlocksFocus="false"
-            app:liftOnScrollTargetViewId="@id/list_folders">
+            android:touchscreenBlocksFocus="false">
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar_folders"
+                style="@style/Widget.Eden.TransparentTopToolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:touchscreenBlocksFocus="false"
