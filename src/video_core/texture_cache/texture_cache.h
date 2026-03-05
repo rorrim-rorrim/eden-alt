@@ -133,8 +133,6 @@ void TextureCache<P>::RunGarbageCollector() {
         if (True(image.flags & ImageFlagBits::IsDecoding)) {
             return false;
         }
-        const u64 safe_tick = 10;
-        const bool is_recently_allocated = image.allocation_tick > frame_tick - safe_tick;
         const bool is_large_sparse = image.info.is_sparse && image.guest_size_bytes >= 256_MiB;
         const bool must_download = image.IsSafeDownload() && False(image.flags & ImageFlagBits::BadOverlap);
         if (must_download && !is_large_sparse) {
@@ -143,15 +141,14 @@ void TextureCache<P>::RunGarbageCollector() {
             image.DownloadMemory(map, copies);
             runtime.Finish();
             SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, map.mapped_span, swizzle_data_buffer);
-        }
-        if (is_recently_allocated) {
-            return false;
+        } else {
+            runtime.Finish();
         }
         if (True(image.flags & ImageFlagBits::Tracked)) {
             UntrackImage(image, image_id);
         }
         UnregisterImage(image_id);
-        DeleteImage(image_id, image.scale_tick > frame_tick + safe_tick);
+        DeleteImage(image_id, image.scale_tick > frame_tick + 10);
         if (aggressive_mode && total_used_memory < critical_memory) {
             num_iterations >>= 2;
             aggressive_mode = false;
