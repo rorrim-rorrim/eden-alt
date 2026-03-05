@@ -170,7 +170,7 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     std::ranges::transform(regs.vertex_streams, vertex_strides.begin(), [](const auto& array) {
         return static_cast<u16>(array.stride.Value());
     });
-    if (!extended_dynamic_state_2_logic_op) {
+    if (!extended_dynamic_state_2) {
         dynamic_state.Refresh2(regs, topology_, extended_dynamic_state_2);
     }
     if (maxwell3d.dirty.flags[Dirty::Blending]) {
