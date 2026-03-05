@@ -133,11 +133,10 @@ void TextureCache<P>::RunGarbageCollector() {
         if (True(image.flags & ImageFlagBits::IsDecoding)) {
             return false;
         }
-        const bool is_costly_load = True(image.flags & ImageFlagBits::CostlyLoad);
+        const u64 safe_tick = 10;
+        const bool is_recently_allocated = image.allocation_tick > frame_tick - safe_tick;
         const bool is_large_sparse = image.info.is_sparse && image.guest_size_bytes >= 256_MiB;
         const bool must_download = image.IsSafeDownload() && False(image.flags & ImageFlagBits::BadOverlap);
-        const u64 safe_tick = is_costly_load || is_large_sparse ? 10 : 5;
-        const bool is_recently_allocated = image.allocation_tick > frame_tick - safe_tick;
         if (must_download && !is_large_sparse) {
             auto map = runtime.DownloadStagingBuffer(image.unswizzled_size_bytes);
             const auto copies = FixSmallVectorADL(FullDownloadCopies(image.info));
