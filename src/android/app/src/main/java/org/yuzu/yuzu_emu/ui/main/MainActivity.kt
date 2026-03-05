@@ -177,6 +177,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
              checkForUpdates()
         }
         setInsets()
+        applyFullscreenPreference()
     }
 
     private fun checkForUpdates() {
@@ -353,6 +354,14 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     override fun onResume() {
         ThemeHelper.setCorrectTheme(this)
         super.onResume()
+        applyFullscreenPreference()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            applyFullscreenPreference()
+        }
     }
 
     private fun setInsets() = ViewCompat.setOnApplyWindowInsetsListener(
@@ -370,6 +379,10 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         binding.navigationBarShade.layoutParams = mlpNavShade
 
         windowInsets
+    }
+
+    private fun applyFullscreenPreference() {
+        FullscreenHelper.applyToActivity(this)
     }
 
     override fun setTheme(resId: Int) {
