@@ -1,6 +1,6 @@
 # User Handbook - Graphics
 
-In what ways can your graphics be improved? What programs can I use to enhance my graphical experience? Well here's your one-stop shop for all of that!
+Graphical enhancements and visual quality improvments. This doesn't cover texture mods.
 
 ## Visual Enhancements
 

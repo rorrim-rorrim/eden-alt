@@ -25,9 +25,7 @@ A copy of this handbook is [available online](https://git.eden-emu.dev/eden-emu/
 - **[Controller Profiles](./ControllerProfiles.md)**
 - **[Alter Date & Time](./AlterDateTime.md)**
 
-## Integration
-
-3rd party software and community backed solutions.
+## 3rd-party Integration
 
 - **[Configuring Steam ROM Manager](./SteamROM.md)**
 - **[Server hosting](ServerHosting.md)**
@@ -38,8 +36,6 @@ A copy of this handbook is [available online](https://git.eden-emu.dev/eden-emu/
     - **[Mirrors](./ThirdParty.md#mirrors)**
 
 ## Advanced
-
-Use this only if you know what `WinRaR` is.
 
 - **[Custom Firmware](./CFW.md)**
 - **[How To Access Logs](./HowToAccessLogs.md)**
