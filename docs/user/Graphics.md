@@ -1,5 +1,7 @@
 # User Handbook - Graphics
 
+In what ways can your graphics be improved? What programs can I use to enhance my graphical experience? Well here's your one-stop shop for all of that!
+
 ## Visual Enhancements
 
 ### Anti-aliasing
