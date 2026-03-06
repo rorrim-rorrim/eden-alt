@@ -143,6 +143,7 @@ public:
         scheduler.Record([buffer = *accumulation_buffer](vk::CommandBuffer cmdbuf) {
             cmdbuf.FillBuffer(buffer, 0, 8, 0);
         });
+        ReserveBank();
     }
 
     ~SamplesStreamer() = default;
