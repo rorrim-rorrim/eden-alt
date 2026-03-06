@@ -14,6 +14,25 @@
 
 namespace Shader::Backend::SPIRV {
 namespace {
+Id GetResultType(EmitContext& ctx, NumericType numeric_type) {
+    switch (numeric_type) {
+    case NumericType::Float:
+        return ctx.F32[4];
+    case NumericType::SignedInt:
+        return ctx.S32[4];
+    case NumericType::UnsignedInt:
+        return ctx.U32[4];
+    }
+    throw LogicError("Invalid numeric type {}", static_cast<u32>(numeric_type));
+}
+
+NumericType GetTextureNumericType(EmitContext& ctx, const IR::TextureInstInfo& info) {
+    if (info.type == TextureType::Buffer) {
+        return ctx.texture_buffers.at(info.descriptor_index).numeric_type;
+    }
+    return ctx.textures.at(info.descriptor_index).numeric_type;
+}
+
 class ImageOperands {
 public:
     [[maybe_unused]] static constexpr bool ImageSampleOffsetAllowed = false;
@@ -201,10 +220,10 @@ Id TextureImage(EmitContext& ctx, IR::TextureInstInfo info, const IR::Value& ind
         const TextureBufferDefinition& def{ctx.texture_buffers.at(info.descriptor_index)};
         if (def.count > 1) {
             const Id idx{index.IsImmediate() ? ctx.Const(index.U32()) : ctx.Def(index)};
-            const Id ptr{ctx.OpAccessChain(ctx.image_buffer_type, def.id, idx)};
-            return ctx.OpLoad(ctx.image_buffer_type, ptr);
+            const Id ptr{ctx.OpAccessChain(def.pointer_type, def.id, idx)};
+            return ctx.OpLoad(def.image_type, ptr);
         }
-        return ctx.OpLoad(ctx.image_buffer_type, def.id);
+        return ctx.OpLoad(def.image_type, def.id);
     } else {
         const TextureDefinition& def{ctx.textures.at(info.descriptor_index)};
         if (def.count > 1) {
@@ -216,23 +235,24 @@ Id TextureImage(EmitContext& ctx, IR::TextureInstInfo info, const IR::Value& ind
     }
 }
 
-std::pair<Id, bool> Image(EmitContext& ctx, const IR::Value& index, IR::TextureInstInfo info) {
+std::pair<Id, NumericType> Image(EmitContext& ctx, const IR::Value& index,
+                                 IR::TextureInstInfo info) {
     if (info.type == TextureType::Buffer) {
         const ImageBufferDefinition def{ctx.image_buffers.at(info.descriptor_index)};
         if (def.count > 1) {
             const Id idx{index.IsImmediate() ? ctx.Const(index.U32()) : ctx.Def(index)};
             const Id ptr{ctx.OpAccessChain(def.pointer_type, def.id, idx)};
-            return {ctx.OpLoad(def.image_type, ptr), def.is_integer};
+            return {ctx.OpLoad(def.image_type, ptr), def.numeric_type};
         }
-        return {ctx.OpLoad(def.image_type, def.id), def.is_integer};
+        return {ctx.OpLoad(def.image_type, def.id), def.numeric_type};
     } else {
         const ImageDefinition def{ctx.images.at(info.descriptor_index)};
         if (def.count > 1) {
             const Id idx{index.IsImmediate() ? ctx.Const(index.U32()) : ctx.Def(index)};
             const Id ptr{ctx.OpAccessChain(def.pointer_type, def.id, idx)};
-            return {ctx.OpLoad(def.image_type, ptr), def.is_integer};
+            return {ctx.OpLoad(def.image_type, ptr), def.numeric_type};
         }
-        return {ctx.OpLoad(def.image_type, def.id), def.is_integer};
+        return {ctx.OpLoad(def.image_type, def.id), def.numeric_type};
     }
 }
 
@@ -461,8 +481,9 @@ Id EmitImageSampleImplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Value&
     if (ctx.stage == Stage::Fragment) {
         const ImageOperands operands(ctx, info.has_bias != 0, false, info.has_lod_clamp != 0,
                                      bias_lc, offset);
+        const Id result_type{GetResultType(ctx, GetTextureNumericType(ctx, info))};
         return Emit(&EmitContext::OpImageSparseSampleImplicitLod,
-                    &EmitContext::OpImageSampleImplicitLod, ctx, inst, ctx.F32[4],
+                    &EmitContext::OpImageSampleImplicitLod, ctx, inst, result_type,
                     Texture(ctx, info, index), coords, operands.MaskOptional(), operands.Span());
     } else {
         // We can't use implicit lods on non-fragment stages on SPIR-V. Maxwell hardware behaves as
@@ -470,8 +491,9 @@ Id EmitImageSampleImplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Value&
         // derivatives
         const Id lod{ctx.Const(0.0f)};
         const ImageOperands operands(ctx, false, true, info.has_lod_clamp != 0, lod, offset);
+        const Id result_type{GetResultType(ctx, GetTextureNumericType(ctx, info))};
         return Emit(&EmitContext::OpImageSparseSampleExplicitLod,
-                    &EmitContext::OpImageSampleExplicitLod, ctx, inst, ctx.F32[4],
+                    &EmitContext::OpImageSampleExplicitLod, ctx, inst, result_type,
                     Texture(ctx, info, index), coords, operands.Mask(), operands.Span());
     }
 }
@@ -480,12 +502,14 @@ Id EmitImageSampleExplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Value&
                               Id lod, const IR::Value& offset) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
     const ImageOperands operands(ctx, false, true, false, lod, offset);
+    const NumericType numeric_type{GetTextureNumericType(ctx, info)};
+    const Id result_type{GetResultType(ctx, numeric_type)};
 
     Id result = Emit(&EmitContext::OpImageSparseSampleExplicitLod,
-                     &EmitContext::OpImageSampleExplicitLod, ctx, inst, ctx.F32[4],
+                     &EmitContext::OpImageSampleExplicitLod, ctx, inst, result_type,
                      Texture(ctx, info, index), coords, operands.Mask(), operands.Span());
 #ifdef ANDROID
-    if (Settings::values.fix_bloom_effects.GetValue()) {
+    if (numeric_type == NumericType::Float && Settings::values.fix_bloom_effects.GetValue()) {
         result = ctx.OpVectorTimesScalar(ctx.F32[4], result, ctx.Const(0.98f));
     }
 #endif
@@ -529,8 +553,9 @@ Id EmitImageGather(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id 
     if (ctx.profile.need_gather_subpixel_offset) {
         coords = ImageGatherSubpixelOffset(ctx, info, TextureImage(ctx, info, index), coords);
     }
+    const Id result_type{GetResultType(ctx, GetTextureNumericType(ctx, info))};
     return Emit(&EmitContext::OpImageSparseGather, &EmitContext::OpImageGather, ctx, inst,
-                ctx.F32[4], Texture(ctx, info, index), coords, ctx.Const(info.gather_component),
+                result_type, Texture(ctx, info, index), coords, ctx.Const(info.gather_component),
                 operands.MaskOptional(), operands.Span());
 }
 
@@ -558,8 +583,10 @@ Id EmitImageFetch(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id c
         lod = Id{};
     }
     const ImageOperands operands(lod, ms);
-    return Emit(&EmitContext::OpImageSparseFetch, &EmitContext::OpImageFetch, ctx, inst, ctx.F32[4],
-                TextureImage(ctx, info, index), coords, operands.MaskOptional(), operands.Span());
+    const Id result_type{GetResultType(ctx, GetTextureNumericType(ctx, info))};
+    return Emit(&EmitContext::OpImageSparseFetch, &EmitContext::OpImageFetch, ctx, inst,
+                result_type, TextureImage(ctx, info, index), coords, operands.MaskOptional(),
+                operands.Span());
 }
 
 Id EmitImageQueryDimensions(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id lod,
@@ -609,8 +636,9 @@ Id EmitImageGradient(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, I
                                               ctx.Def(offset), {}, lod_clamp)
                               : ImageOperands(ctx, info.has_lod_clamp != 0, derivatives,
                                               info.num_derivatives, offset, lod_clamp);
+    const Id result_type{GetResultType(ctx, GetTextureNumericType(ctx, info))};
     return Emit(&EmitContext::OpImageSparseSampleExplicitLod,
-                &EmitContext::OpImageSampleExplicitLod, ctx, inst, ctx.F32[4],
+                &EmitContext::OpImageSampleExplicitLod, ctx, inst, result_type,
                 Texture(ctx, info, index), coords, operands.Mask(), operands.Span());
 }
 
@@ -620,11 +648,11 @@ Id EmitImageRead(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id co
         LOG_WARNING(Shader_SPIRV, "Typeless image read not supported by host");
         return ctx.ConstantNull(ctx.U32[4]);
     }
-    const auto [image, is_integer] = Image(ctx, index, info);
-    const Id result_type{is_integer ? ctx.U32[4] : ctx.F32[4]};
+    const auto [image, numeric_type] = Image(ctx, index, info);
+    const Id result_type{GetResultType(ctx, numeric_type)};
     Id color{Emit(&EmitContext::OpImageSparseRead, &EmitContext::OpImageRead, ctx, inst,
                   result_type, image, coords, std::nullopt, std::span<const Id>{})};
-    if (!is_integer) {
+    if (numeric_type == NumericType::Float) {
         color = ctx.OpBitcast(ctx.U32[4], color);
     }
     return color;
@@ -632,8 +660,8 @@ Id EmitImageRead(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id co
 
 void EmitImageWrite(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords, Id color) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
-    const auto [image, is_integer] = Image(ctx, index, info);
-    if (!is_integer) {
+    const auto [image, numeric_type] = Image(ctx, index, info);
+    if (numeric_type == NumericType::Float) {
         color = ctx.OpBitcast(ctx.F32[4], color);
     }
     ctx.OpImageWrite(image, coords, color);

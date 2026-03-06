@@ -28,9 +28,21 @@ enum class Operation {
     FPMax,
 };
 
+Id GetNumericTypeId(EmitContext& ctx, NumericType numeric_type) {
+    switch (numeric_type) {
+    case NumericType::Float:
+        return ctx.F32[1];
+    case NumericType::SignedInt:
+        return ctx.S32[1];
+    case NumericType::UnsignedInt:
+        return ctx.U32[1];
+    }
+    throw InvalidArgument("Invalid numeric type {}", static_cast<u32>(numeric_type));
+}
+
 Id ImageType(EmitContext& ctx, const TextureDescriptor& desc) {
     const spv::ImageFormat format{spv::ImageFormat::Unknown};
-    const Id type{ctx.F32[1]};
+    const Id type{GetNumericTypeId(ctx, desc.numeric_type)};
     const bool depth{desc.is_depth};
     const bool ms{desc.is_multisample};
     switch (desc.type) {
@@ -1304,22 +1316,26 @@ void EmitContext::DefineTextureBuffers(const Info& info, u32& binding) {
     if (info.texture_buffer_descriptors.empty()) {
         return;
     }
-    const spv::ImageFormat format{spv::ImageFormat::Unknown};
-    image_buffer_type = TypeImage(F32[1], spv::Dim::Buffer, 0U, false, false, 1, format);
-
-    const Id type{TypePointer(spv::StorageClass::UniformConstant, image_buffer_type)};
     texture_buffers.reserve(info.texture_buffer_descriptors.size());
     for (const TextureBufferDescriptor& desc : info.texture_buffer_descriptors) {
         if (desc.count != 1) {
             throw NotImplementedException("Array of texture buffers");
         }
+        const spv::ImageFormat format{spv::ImageFormat::Unknown};
+        const Id image_type{
+            TypeImage(GetNumericTypeId(*this, desc.numeric_type), spv::Dim::Buffer, 0U, false,
+                      false, 1, format)};
+        const Id type{TypePointer(spv::StorageClass::UniformConstant, image_type)};
         const Id id{AddGlobalVariable(type, spv::StorageClass::UniformConstant)};
         Decorate(id, spv::Decoration::Binding, binding);
         Decorate(id, spv::Decoration::DescriptorSet, 0U);
         Name(id, NameOf(stage, desc, "texbuf"));
         texture_buffers.push_back({
             .id = id,
+            .image_type = image_type,
+            .pointer_type = type,
             .count = desc.count,
+            .numeric_type = desc.numeric_type,
         });
         if (profile.supported_spirv >= 0x00010400) {
             interfaces.push_back(id);
@@ -1332,7 +1348,7 @@ void EmitContext::DefineImageBuffers(const Info& info, u32& binding) {
     image_buffers.reserve(info.image_buffer_descriptors.size());
     for (const ImageBufferDescriptor& desc : info.image_buffer_descriptors) {
         const spv::ImageFormat format{GetImageFormat(desc.format)};
-        const Id sampled_type{desc.is_integer ? U32[1] : F32[1]};
+        const Id sampled_type{GetNumericTypeId(*this, desc.numeric_type)};
         const Id image_type{
             TypeImage(sampled_type, spv::Dim::Buffer, false, false, false, 2, format)};
         const Id pointer_type{TypePointer(spv::StorageClass::UniformConstant, image_type)};
@@ -1345,7 +1361,7 @@ void EmitContext::DefineImageBuffers(const Info& info, u32& binding) {
             .image_type = image_type,
             .pointer_type = pointer_type,
             .count = desc.count,
-            .is_integer = desc.is_integer,
+            .numeric_type = desc.numeric_type,
         });
         if (profile.supported_spirv >= 0x00010400) {
             interfaces.push_back(id);
@@ -1372,6 +1388,7 @@ void EmitContext::DefineTextures(const Info& info, u32& binding, u32& scaling_in
             .image_type = image_type,
             .count = desc.count,
             .is_multisample = desc.is_multisample,
+            .numeric_type = desc.numeric_type,
         });
         if (profile.supported_spirv >= 0x00010400) {
             interfaces.push_back(id);
@@ -1387,7 +1404,7 @@ void EmitContext::DefineTextures(const Info& info, u32& binding, u32& scaling_in
 void EmitContext::DefineImages(const Info& info, u32& binding, u32& scaling_index) {
     images.reserve(info.image_descriptors.size());
     for (const ImageDescriptor& desc : info.image_descriptors) {
-        const Id sampled_type{desc.is_integer ? U32[1] : F32[1]};
+        const Id sampled_type{GetNumericTypeId(*this, desc.numeric_type)};
         const Id image_type{ImageType(*this, desc, sampled_type)};
         const Id pointer_type{TypePointer(spv::StorageClass::UniformConstant, image_type)};
         const Id id{AddGlobalVariable(pointer_type, spv::StorageClass::UniformConstant)};
@@ -1399,7 +1416,7 @@ void EmitContext::DefineImages(const Info& info, u32& binding, u32& scaling_inde
             .image_type = image_type,
             .pointer_type = pointer_type,
             .count = desc.count,
-            .is_integer = desc.is_integer,
+            .numeric_type = desc.numeric_type,
         });
         if (profile.supported_spirv >= 0x00010400) {
             interfaces.push_back(id);

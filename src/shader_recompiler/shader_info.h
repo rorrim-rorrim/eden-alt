@@ -38,6 +38,12 @@ enum class TextureType : u32 {
 };
 constexpr u32 NUM_TEXTURE_TYPES = 9;
 
+enum class NumericType : u8 {
+    Float,
+    SignedInt,
+    UnsignedInt,
+};
+
 enum class TexturePixelFormat {
     A8B8G8R8_UNORM,
     A8B8G8R8_SNORM,
@@ -177,6 +183,7 @@ struct StorageBufferDescriptor {
 };
 
 struct TextureBufferDescriptor {
+    NumericType numeric_type;
     bool has_secondary;
     u32 cbuf_index;
     u32 cbuf_offset;
@@ -195,7 +202,7 @@ struct ImageBufferDescriptor {
     ImageFormat format;
     bool is_written;
     bool is_read;
-    bool is_integer;
+    NumericType numeric_type;
     u32 cbuf_index;
     u32 cbuf_offset;
     u32 count;
@@ -209,6 +216,7 @@ struct TextureDescriptor {
     TextureType type;
     bool is_depth;
     bool is_multisample;
+    NumericType numeric_type;
     bool has_secondary;
     u32 cbuf_index;
     u32 cbuf_offset;
@@ -228,7 +236,7 @@ struct ImageDescriptor {
     ImageFormat format;
     bool is_written;
     bool is_read;
-    bool is_integer;
+    NumericType numeric_type;
     u32 cbuf_index;
     u32 cbuf_offset;
     u32 count;

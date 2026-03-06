@@ -19,6 +19,7 @@
 #include "shader_recompiler/host_translate_info.h"
 #include "shader_recompiler/ir_opt/passes.h"
 #include "shader_recompiler/shader_info.h"
+#include "video_core/surface.h"
 
 namespace Shader::Optimization {
 namespace {
@@ -32,6 +33,16 @@ using TextureInstVector = boost::container::small_vector<TextureInst, 24>;
 
 constexpr u32 DESCRIPTOR_SIZE = 8;
 constexpr u32 DESCRIPTOR_SIZE_SHIFT = static_cast<u32>(std::countr_zero(DESCRIPTOR_SIZE));
+
+NumericType GetNumericType(TexturePixelFormat format) {
+    const auto pixel_format = static_cast<VideoCore::Surface::PixelFormat>(format);
+    if (!VideoCore::Surface::IsPixelFormatInteger(pixel_format)) {
+        return NumericType::Float;
+    }
+    return VideoCore::Surface::IsPixelFormatSignedInteger(pixel_format)
+               ? NumericType::SignedInt
+               : NumericType::UnsignedInt;
+}
 
 IR::Opcode IndexedInstruction(const IR::Inst& inst) {
     switch (inst.GetOpcode()) {
@@ -430,7 +441,8 @@ public:
 
     u32 Add(const TextureBufferDescriptor& desc) {
         return Add(texture_buffer_descriptors, desc, [&desc](const auto& existing) {
-            return desc.cbuf_index == existing.cbuf_index &&
+            return desc.numeric_type == existing.numeric_type &&
+                   desc.cbuf_index == existing.cbuf_index &&
                    desc.cbuf_offset == existing.cbuf_offset &&
                    desc.shift_left == existing.shift_left &&
                    desc.secondary_cbuf_index == existing.secondary_cbuf_index &&
@@ -449,13 +461,13 @@ public:
         })};
         image_buffer_descriptors[index].is_written |= desc.is_written;
         image_buffer_descriptors[index].is_read |= desc.is_read;
-        image_buffer_descriptors[index].is_integer |= desc.is_integer;
         return index;
     }
 
     u32 Add(const TextureDescriptor& desc) {
         const u32 index{Add(texture_descriptors, desc, [&desc](const auto& existing) {
             return desc.type == existing.type && desc.is_depth == existing.is_depth &&
+                   desc.numeric_type == existing.numeric_type &&
                    desc.has_secondary == existing.has_secondary &&
                    desc.cbuf_index == existing.cbuf_index &&
                    desc.cbuf_offset == existing.cbuf_offset &&
@@ -479,7 +491,6 @@ public:
         })};
         image_descriptors[index].is_written |= desc.is_written;
         image_descriptors[index].is_read |= desc.is_read;
-        image_descriptors[index].is_integer |= desc.is_integer;
         return index;
     }
 
@@ -651,13 +662,13 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
             }
             const bool is_written{inst->GetOpcode() != IR::Opcode::ImageRead};
             const bool is_read{inst->GetOpcode() != IR::Opcode::ImageWrite};
-            const bool is_integer{IsTexturePixelFormatIntegerCached(env, cbuf)};
+            const NumericType numeric_type{GetNumericType(ReadTexturePixelFormatCached(env, cbuf))};
             if (flags.type == TextureType::Buffer) {
                 index = descriptors.Add(ImageBufferDescriptor{
                     .format = flags.image_format,
                     .is_written = is_written,
                     .is_read = is_read,
-                    .is_integer = is_integer,
+                    .numeric_type = numeric_type,
                     .cbuf_index = cbuf.index,
                     .cbuf_offset = cbuf.offset,
                     .count = cbuf.count,
@@ -669,7 +680,7 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
                     .format = flags.image_format,
                     .is_written = is_written,
                     .is_read = is_read,
-                    .is_integer = is_integer,
+                    .numeric_type = numeric_type,
                     .cbuf_index = cbuf.index,
                     .cbuf_offset = cbuf.offset,
                     .count = cbuf.count,
@@ -681,6 +692,7 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
         default:
             if (flags.type == TextureType::Buffer) {
                 index = descriptors.Add(TextureBufferDescriptor{
+                    .numeric_type = GetNumericType(ReadTexturePixelFormatCached(env, cbuf)),
                     .has_secondary = cbuf.has_secondary,
                     .cbuf_index = cbuf.index,
                     .cbuf_offset = cbuf.offset,
@@ -696,6 +708,7 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
                     .type = flags.type,
                     .is_depth = flags.is_depth != 0,
                     .is_multisample = is_multisample,
+                    .numeric_type = GetNumericType(ReadTexturePixelFormatCached(env, cbuf)),
                     .has_secondary = cbuf.has_secondary,
                     .cbuf_index = cbuf.index,
                     .cbuf_offset = cbuf.offset,
