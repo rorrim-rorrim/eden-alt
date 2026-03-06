@@ -31,7 +31,7 @@ A copy of this handbook is [available online](https://git.eden-emu.dev/eden-emu/
 - **[Server hosting](ServerHosting.md)**
 - **[Syncthing Guide](./SyncthingGuide.md)**
 - **[Third Party](./ThirdParty.md)**
-    - **[Obtainium](./ThirdParty.md#configuring-Obtainium)**
+    - **[Obtainium](./ThirdParty.md#configuring-obtainium)**
     - **[ES-DE](./ThirdParty.md#configuring-es-de)**
     - **[Mirrors](./ThirdParty.md#mirrors)**
 
