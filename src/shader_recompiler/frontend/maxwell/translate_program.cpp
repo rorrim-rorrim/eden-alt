@@ -142,6 +142,55 @@ FpControlHistogram CollectFpControlHistogram(const IR::Program& program) {
     return histogram;
 }
 
+void LogRzFpControlTrace(Environment& env, const IR::Program& program) {
+    std::array<u32, 2> totals{};
+    for (const IR::Block* const block : program.post_order_blocks) {
+        for (const IR::Inst& inst : block->Instructions()) {
+            const std::optional<size_t> bucket{FpControlBucket(inst.GetOpcode())};
+            if (!bucket) {
+                continue;
+            }
+            const auto flags{inst.Flags<IR::FpControl>()};
+            if (flags.rounding != IR::FpRounding::RZ) {
+                continue;
+            }
+            ++totals[*bucket];
+        }
+    }
+
+    if (totals[0] == 0 && totals[1] == 0) {
+        return;
+    }
+
+    constexpr std::array<std::string_view, 2> precision_names{"fp16", "fp32"};
+    LOG_INFO(Shader,
+             "FP_RZ {} shader start={:#010x} blocks={} post_order_blocks={} fp16={} fp32={}",
+             StageName(program.stage), env.StartAddress(), program.blocks.size(),
+             program.post_order_blocks.size(), totals[0], totals[1]);
+
+    for (const IR::Block* const block : program.post_order_blocks) {
+        u32 inst_index{};
+        for (const IR::Inst& inst : block->Instructions()) {
+            const std::optional<size_t> bucket{FpControlBucket(inst.GetOpcode())};
+            if (!bucket) {
+                ++inst_index;
+                continue;
+            }
+            const auto flags{inst.Flags<IR::FpControl>()};
+            if (flags.rounding != IR::FpRounding::RZ) {
+                ++inst_index;
+                continue;
+            }
+            LOG_INFO(Shader,
+                     "FP_RZ {} start={:#010x} block_order={} inst_index={} precision={} opcode={} no_contraction={} fmz={}",
+                     StageName(program.stage), env.StartAddress(), block->GetOrder(), inst_index,
+                     precision_names[*bucket], inst.GetOpcode(), flags.no_contraction,
+                     FmzName(flags.fmz_mode));
+            ++inst_index;
+        }
+    }
+}
+
 void LogFpControlHistogram(const IR::Program& program) {
     const FpControlHistogram histogram{CollectFpControlHistogram(program)};
     if (histogram.total[0] == 0 && histogram.total[1] == 0) {
@@ -479,6 +528,7 @@ IR::Program TranslateProgram(ObjectPool<IR::Inst>& inst_pool, ObjectPool<IR::Blo
 
     if (Settings::values.renderer_debug) {
         LogFpControlHistogram(program);
+        LogRzFpControlTrace(env, program);
     }
 
     CollectInterpolationInfo(env, program);
@@ -518,6 +568,7 @@ IR::Program MergeDualVertexPrograms(IR::Program& vertex_a, IR::Program& vertex_b
     Optimization::CollectShaderInfoPass(env_vertex_b, result);
     if (Settings::values.renderer_debug) {
         LogFpControlHistogram(result);
+        LogRzFpControlTrace(env_vertex_b, result);
     }
     return result;
 }
