@@ -12,13 +12,15 @@ While most of the links mentioned in this guide are relatively "safe"; we urge u
 
 The main origin repository is always at https://git.eden-emu.dev/eden-emu/eden.
 
+- https://github.com/eden-emulator/mirror
+- https://git.crueter.xyz/mirror/eden
 - https://collective.taymaerz.de/eden/eden
 
 Other mirrors obviously exist on the internet, but we can't guarantee their reliability and/or availability.
 
 If you're someone wanting to make a mirror, simply setup forgejo and automatically mirror from the origin repository. Or you could mirror a mirror to save us bandwidth... your choice!
 
-## Configuring Obtanium
+## Configuring Obtainium
 
 Very nice handy app, here's a quick rundown how to configure:
 

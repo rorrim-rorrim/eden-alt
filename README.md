@@ -63,7 +63,7 @@ Alternatively, if you wish to add translations, go to the [Eden project on Trans
 
 ## Documentation
 
-We have a user manual! See our [User Handbookm](./docs/user/README.md).
+We have a user manual! See our [User Handbook](./docs/user/README.md).
 
 ## Building
 
