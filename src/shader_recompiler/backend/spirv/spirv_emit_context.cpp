@@ -1688,8 +1688,10 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
     case Stage::Fragment:
         for (u32 index = 0; index < 8; ++index) {
             const bool need_dual_source = runtime_info.dual_source_blend && index <= 1;
-            if (!need_dual_source && !info.stores_frag_color[index] &&
-                !profile.need_declared_frag_colors) {
+            const bool should_declare = runtime_info.active_color_outputs[index] &&
+                                        (info.stores_frag_color[index] ||
+                                         profile.need_declared_frag_colors);
+            if (!need_dual_source && !should_declare) {
                 continue;
             }
             const Id type{GetAttributeType(*this, runtime_info.color_output_types[index])};

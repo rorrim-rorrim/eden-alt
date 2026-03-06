@@ -249,6 +249,17 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
                 dst_a == F::Source1Alpha_GL || dst_a == F::OneMinusSource1Alpha_GL;
         }
 
+        for (size_t i = 0; i < info.active_color_outputs.size(); ++i) {
+            const auto format = static_cast<Tegra::RenderTargetFormat>(key.state.color_formats[i]);
+            info.active_color_outputs[i] = format != Tegra::RenderTargetFormat::NONE;
+        }
+        if (info.dual_source_blend && info.active_color_outputs[0]) {
+            info.active_color_outputs[1] = true;
+        }
+        if (info.alpha_test_func && *info.alpha_test_func != Shader::CompareFunction::Always) {
+            info.active_color_outputs[0] = true;
+        }
+
         if (device.IsMoltenVK()) {
             for (size_t i = 0; i < 8; ++i) {
                 const auto format = static_cast<Tegra::RenderTargetFormat>(key.state.color_formats[i]);

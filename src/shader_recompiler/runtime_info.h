@@ -111,6 +111,9 @@ struct RuntimeInfo {
     /// Output types for each color attachment
     std::array<AttributeType, 8> color_output_types{};
 
+    /// Fragment color outputs that are active for the current pipeline.
+    std::array<bool, 8> active_color_outputs{true, true, true, true, true, true, true, true};
+
     /// Dual source blending
     bool dual_source_blend{};
 };
