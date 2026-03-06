@@ -286,6 +286,7 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
                               maxwell3d->regs.zpass_pixel_count_enable);
 
     UpdateDynamicStates();
+    scheduler.RequestRenderpass(texture_cache.GetFramebuffer());
     draw_func();
 }
 
