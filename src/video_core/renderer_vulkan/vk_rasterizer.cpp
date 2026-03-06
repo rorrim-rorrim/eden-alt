@@ -481,7 +481,6 @@ void RasterizerVulkan::Clear(u32 layer_count) {
     scheduler.RequestRenderpass(framebuffer);
 
     query_cache.NotifySegment(true);
-    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64, maxwell3d->regs.zpass_pixel_count_enable);
     u32 up_scale = 1;
     u32 down_shift = 0;
     if (texture_cache.IsRescaling()) {

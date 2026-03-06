@@ -1191,7 +1191,7 @@ void TextureCache<P>::DownloadImageIntoBuffer(typename TextureCache<P>::Image* i
 template <class P>
 void TextureCache<P>::RefreshContents(Image& image, ImageId image_id) {
     if (False(image.flags & ImageFlagBits::CpuModified)) {
-        // Only upload modified images
+        runtime.TransitionImageLayout(image);
         return;
     }
 
