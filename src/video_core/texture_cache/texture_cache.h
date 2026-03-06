@@ -145,7 +145,7 @@ void TextureCache<P>::RunGarbageCollector() {
             UntrackImage(image, image_id);
         }
         UnregisterImage(image_id);
-        DeleteImage(image_id, image.scale_tick > frame_tick + 10 || aggressive_mode || (high_priority_mode && image.info.is_sparse));
+        DeleteImage(image_id, image.scale_tick > frame_tick + 10 || aggressive_mode;
         if (aggressive_mode && total_used_memory < critical_memory) {
             num_iterations >>= 2;
             aggressive_mode = false;
