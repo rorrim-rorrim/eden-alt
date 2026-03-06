@@ -25,10 +25,12 @@ If you're someone wanting to make a mirror, simply setup forgejo and automatical
 Very nice handy app, here's a quick rundown how to configure:
 
 1. Copy the URL: https://git.eden-emu.dev/eden-emu/eden/ (or one of your favourite mirrors)
-2. Open Obtainium and tap Add App.
-3. Paste the URL into the "App Source URL" field.
-4. Override Source: Look for the "Override Source" dropdown menu and select Forgejo (Codeberg). • Note: Even though the site isn't Codeberg, it uses the same Forgejo/Gitea backend, and this setting tells Obtainium how to read the release data.
-5. Click Add: Obtainium should now be able to parse the releases and find the APK files.
+2. Open Obtainium and tap `Add App`.
+3. Paste the URL into the `App Source URL` field.
+4. Override Source: Look for the `Override Source` dropdown menu and select `Forgejo (Codeberg)`.
+5. Click `Add:` Obtainium should now be able to parse the releases and find the APK files.
+
+Note: Even though the site isn't Codeberg, it uses the same Forgejo/Gitea backend, and this setting tells Obtainium how to read the release data.
 
 ## Configuring ES-DE
 
