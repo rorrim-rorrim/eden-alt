@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -48,6 +51,9 @@ void TranslatorVisitor::VOTE(u64 insn) {
 
 void TranslatorVisitor::VOTE_vtg(u64) {
     LOG_WARNING(Shader, "(STUBBED) called");
+    auto imm = ir.Imm1(false);
+    ir.SetFCSMFlag(imm);
+    ir.SetTRFlag(imm);
 }
 
 } // namespace Shader::Maxwell

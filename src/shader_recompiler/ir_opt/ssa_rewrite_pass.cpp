@@ -39,6 +39,10 @@ struct ZeroFlagTag : FlagTag {};
 struct SignFlagTag : FlagTag {};
 struct CarryFlagTag : FlagTag {};
 struct OverflowFlagTag : FlagTag {};
+struct FCSMFlagTag : FlagTag {};
+struct TAFlagTag : FlagTag {};
+struct TRFlagTag : FlagTag {};
+struct MXFlagTag : FlagTag {};
 
 struct GotoVariable : FlagTag {
     GotoVariable() = default;
@@ -53,7 +57,7 @@ struct IndirectBranchVariable {
     auto operator<=>(const IndirectBranchVariable&) const noexcept = default;
 };
 
-using Variant = std::variant<IR::Reg, IR::Pred, ZeroFlagTag, SignFlagTag, CarryFlagTag, OverflowFlagTag, GotoVariable, IndirectBranchVariable>;
+using Variant = std::variant<IR::Reg, IR::Pred, ZeroFlagTag, SignFlagTag, CarryFlagTag, OverflowFlagTag, FCSMFlagTag, TAFlagTag, TRFlagTag, MXFlagTag, GotoVariable, IndirectBranchVariable>;
 // TODO: majority of these require stable iterators, test with XC beforehand
 using ValueMap = std::unordered_map<IR::Block*, IR::Value>;
 
@@ -114,6 +118,34 @@ struct DefTable {
         overflow_flag.insert_or_assign(block, value);
     }
 
+    const IR::Value& Def(IR::Block* block, FCSMFlagTag) {
+        return fcsm_flag[block];
+    }
+    void SetDef(IR::Block* block, FCSMFlagTag, const IR::Value& value) {
+        fcsm_flag.insert_or_assign(block, value);
+    }
+
+    const IR::Value& Def(IR::Block* block, TAFlagTag) {
+        return ta_flag[block];
+    }
+    void SetDef(IR::Block* block, TAFlagTag, const IR::Value& value) {
+        ta_flag.insert_or_assign(block, value);
+    }
+
+    const IR::Value& Def(IR::Block* block, TRFlagTag) {
+        return tr_flag[block];
+    }
+    void SetDef(IR::Block* block, TRFlagTag, const IR::Value& value) {
+        tr_flag.insert_or_assign(block, value);
+    }
+
+    const IR::Value& Def(IR::Block* block, MXFlagTag) {
+        return mr_flag[block];
+    }
+    void SetDef(IR::Block* block, MXFlagTag, const IR::Value& value) {
+        mr_flag.insert_or_assign(block, value);
+    }
+
     std::array<ValueMap, IR::NUM_USER_PREDS> preds;
     // TODO: Requires stable iterators
     std::unordered_map<u32, ValueMap> goto_vars;
@@ -122,6 +154,10 @@ struct DefTable {
     ValueMap sign_flag;
     ValueMap carry_flag;
     ValueMap overflow_flag;
+    ValueMap fcsm_flag;
+    ValueMap ta_flag;
+    ValueMap tr_flag;
+    ValueMap mr_flag;
 };
 
 IR::Opcode UndefOpcode(IR::Reg) noexcept {
@@ -335,6 +371,18 @@ void VisitInst(Pass& pass, IR::Block* block, IR::Inst& inst) {
     case IR::Opcode::SetOFlag:
         pass.WriteVariable(OverflowFlagTag{}, block, inst.Arg(0));
         break;
+    case IR::Opcode::SetFCSMFlag:
+        pass.WriteVariable(FCSMFlagTag{}, block, inst.Arg(0));
+        break;
+    case IR::Opcode::SetTAFlag:
+        pass.WriteVariable(TAFlagTag{}, block, inst.Arg(0));
+        break;
+    case IR::Opcode::SetTRFlag:
+        pass.WriteVariable(TRFlagTag{}, block, inst.Arg(0));
+        break;
+    case IR::Opcode::SetMXFlag:
+        pass.WriteVariable(MXFlagTag{}, block, inst.Arg(0));
+        break;
     case IR::Opcode::GetRegister:
         if (const IR::Reg reg{inst.Arg(0).Reg()}; reg != IR::Reg::RZ) {
             inst.ReplaceUsesWith(pass.ReadVariable(reg, block));
@@ -362,6 +410,18 @@ void VisitInst(Pass& pass, IR::Block* block, IR::Inst& inst) {
         break;
     case IR::Opcode::GetOFlag:
         inst.ReplaceUsesWith(pass.ReadVariable(OverflowFlagTag{}, block));
+        break;
+    case IR::Opcode::GetFCSMFlag:
+        inst.ReplaceUsesWith(pass.ReadVariable(FCSMFlagTag{}, block));
+        break;
+    case IR::Opcode::GetTAFlag:
+        inst.ReplaceUsesWith(pass.ReadVariable(TAFlagTag{}, block));
+        break;
+    case IR::Opcode::GetTRFlag:
+        inst.ReplaceUsesWith(pass.ReadVariable(TRFlagTag{}, block));
+        break;
+    case IR::Opcode::GetMXFlag:
+        inst.ReplaceUsesWith(pass.ReadVariable(MXFlagTag{}, block));
         break;
     default:
         break;

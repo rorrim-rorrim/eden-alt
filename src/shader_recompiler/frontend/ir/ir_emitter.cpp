@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -205,6 +205,38 @@ void IREmitter::SetOFlag(const U1& value) {
     Inst(Opcode::SetOFlag, value);
 }
 
+U1 IREmitter::GetFCSMFlag() {
+    return Inst<U1>(Opcode::GetFCSMFlag);
+}
+
+U1 IREmitter::GetTAFlag() {
+    return Inst<U1>(Opcode::GetTAFlag);
+}
+
+U1 IREmitter::GetTRFlag() {
+    return Inst<U1>(Opcode::GetTRFlag);
+}
+
+U1 IREmitter::GetMXFlag() {
+    return Inst<U1>(Opcode::GetMXFlag);
+}
+
+void IREmitter::SetFCSMFlag(const U1& value) {
+    Inst(Opcode::SetFCSMFlag, value);
+}
+
+void IREmitter::SetTAFlag(const U1& value) {
+    Inst(Opcode::SetTAFlag, value);
+}
+
+void IREmitter::SetTRFlag(const U1& value) {
+    Inst(Opcode::SetTRFlag, value);
+}
+
+void IREmitter::SetMXFlag(const U1& value) {
+    Inst(Opcode::SetMXFlag, value);
+}
+
 static U1 GetFlowTest(IREmitter& ir, FlowTest flow_test) {
     switch (flow_test) {
     case FlowTest::F:
@@ -264,8 +296,7 @@ static U1 GetFlowTest(IREmitter& ir, FlowTest flow_test) {
     case FlowTest::RGT:
         return ir.LogicalAnd(ir.LogicalNot(ir.GetSFlag()), ir.LogicalNot(ir.GetZFlag()));
     case FlowTest::FCSM_TR:
-        LOG_WARNING(Shader, "(STUBBED) FCSM_TR");
-        return ir.Imm1(false);
+        return ir.LogicalAnd(ir.GetFCSMFlag(), ir.GetTRFlag());
     case FlowTest::CSM_TA:
     case FlowTest::CSM_TR:
     case FlowTest::CSM_MX:

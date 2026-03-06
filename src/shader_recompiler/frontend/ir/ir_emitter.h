@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -66,11 +66,19 @@ public:
     [[nodiscard]] U1 GetSFlag();
     [[nodiscard]] U1 GetCFlag();
     [[nodiscard]] U1 GetOFlag();
+    [[nodiscard]] U1 GetFCSMFlag();
+    [[nodiscard]] U1 GetTAFlag();
+    [[nodiscard]] U1 GetTRFlag();
+    [[nodiscard]] U1 GetMXFlag();
 
     void SetZFlag(const U1& value);
     void SetSFlag(const U1& value);
     void SetCFlag(const U1& value);
     void SetOFlag(const U1& value);
+    void SetFCSMFlag(const U1& value);
+    void SetTAFlag(const U1& value);
+    void SetTRFlag(const U1& value);
+    void SetMXFlag(const U1& value);
 
     [[nodiscard]] U1 Condition(IR::Condition cond);
     [[nodiscard]] U1 GetFlowTestResult(FlowTest test);
