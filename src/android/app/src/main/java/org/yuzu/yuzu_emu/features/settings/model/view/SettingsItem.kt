@@ -55,11 +55,6 @@ abstract class SettingsItem(
 
     val isEditable: Boolean
         get() {
-            // Can't change docked mode toggle when using handheld mode
-            if (setting.key == BooleanSetting.USE_DOCKED_MODE.key) {
-                return NativeInput.getStyleIndex(0) != NpadStyleIndex.Handheld
-            }
-
             // Can't edit enable_qlaunch_button if firmware is not available
             if (setting.key == BooleanSetting.ENABLE_QLAUNCH_BUTTON.key) {
                 return NativeLibrary.isFirmwareAvailable()
