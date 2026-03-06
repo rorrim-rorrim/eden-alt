@@ -337,6 +337,13 @@ void Scheduler::EndRenderPass()
                        images = renderpass_images,
                        ranges = renderpass_image_ranges](vk::CommandBuffer cmdbuf) {
             std::array<VkImageMemoryBarrier, 9> barriers;
+            constexpr VkPipelineStageFlags src_stages =
+                VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+                VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
+                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            constexpr VkPipelineStageFlags dst_stages =
+                VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT |
+                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             for (size_t i = 0; i < num_images; ++i) {
                 const VkImageSubresourceRange& range = ranges[i];
                 const bool is_color = (range.aspectMask & VK_IMAGE_ASPECT_COLOR_BIT) != 0;
@@ -372,9 +379,8 @@ void Scheduler::EndRenderPass()
                 };
             }
             cmdbuf.EndRenderPass();
-            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
-                                   VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
-                                   VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, nullptr, nullptr, vk::Span(barriers.data(), num_images));
+            cmdbuf.PipelineBarrier(src_stages, dst_stages, 0, nullptr, nullptr,
+                                   vk::Span(barriers.data(), num_images));
         });
 
         state.renderpass = VkRenderPass{};

@@ -23,6 +23,7 @@
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
+#include "video_core/surface.h"
 #include "video_core/shader_notify.h"
 #include "video_core/texture_cache/texture_cache.h"
 #include "video_core/vulkan_common/vulkan_device.h"
@@ -866,13 +867,14 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             VK_COLOR_COMPONENT_A_BIT,
         };
         const auto& blend{key.state.attachments[index]};
+        const bool supports_blending = !VideoCore::Surface::IsPixelFormatInteger(key.color_formats[index]);
         const std::array mask{blend.Mask()};
         VkColorComponentFlags write_mask{};
         for (size_t i = 0; i < mask_table.size(); ++i) {
             write_mask |= mask[i] ? mask_table[i] : 0;
         }
         cb_attachments.push_back({
-            .blendEnable = blend.enable != 0,
+            .blendEnable = supports_blending && blend.enable != 0,
             .srcColorBlendFactor = MaxwellToVK::BlendFactor(blend.SourceRGBFactor()),
             .dstColorBlendFactor = MaxwellToVK::BlendFactor(blend.DestRGBFactor()),
             .colorBlendOp = MaxwellToVK::BlendEquation(blend.EquationRGB()),
