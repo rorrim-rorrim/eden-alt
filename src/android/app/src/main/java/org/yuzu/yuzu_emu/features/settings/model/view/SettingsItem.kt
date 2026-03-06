@@ -226,30 +226,9 @@ abstract class SettingsItem(
                 )
             )
 
-            val dockedModeSetting = object : AbstractBooleanSetting {
-                override val key = BooleanSetting.USE_DOCKED_MODE.key
-
-                override fun getBoolean(needsGlobal: Boolean): Boolean {
-                    if (NativeInput.getStyleIndex(0) == NpadStyleIndex.Handheld) {
-                        return false
-                    }
-                    return BooleanSetting.USE_DOCKED_MODE.getBoolean(needsGlobal)
-                }
-
-                override fun setBoolean(value: Boolean) =
-                    BooleanSetting.USE_DOCKED_MODE.setBoolean(value)
-
-                override val defaultValue = BooleanSetting.USE_DOCKED_MODE.defaultValue
-
-                override fun getValueAsString(needsGlobal: Boolean): String =
-                    BooleanSetting.USE_DOCKED_MODE.getValueAsString(needsGlobal)
-
-                override fun reset() = BooleanSetting.USE_DOCKED_MODE.reset()
-            }
-
             put(
                 SwitchSetting(
-                    dockedModeSetting,
+                    BooleanSetting.USE_DOCKED_MODE,
                     titleId = R.string.use_docked_mode,
                     descriptionId = R.string.use_docked_mode_description
                 )
