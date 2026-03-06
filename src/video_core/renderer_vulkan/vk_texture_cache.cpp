@@ -446,15 +446,24 @@ TransformBufferCopies(std::span<const VideoCommon::BufferCopy> copies, size_t bu
     };
 }
 
+[[nodiscard]] VkImageSubresourceRange MakeBarrierSubresourceRange(
+    VkImageAspectFlags aspect_mask, const SubresourceRange& range, bool is_3d_image) {
+    VkImageSubresourceRange subresource_range = MakeSubresourceRange(aspect_mask, range);
+    if (is_3d_image && subresource_range.layerCount == 1) {
+        subresource_range.layerCount = VK_REMAINING_ARRAY_LAYERS;
+    }
+    return subresource_range;
+}
+
 [[nodiscard]] VkImageSubresourceRange MakeSubresourceRange(const ImageView* image_view) {
     SubresourceRange range = image_view->range;
+    const bool is_3d_image = image_view->type == VideoCommon::ImageViewType::e3D ||
+                             True(image_view->flags & VideoCommon::ImageViewFlagBits::Slice);
     if (True(image_view->flags & VideoCommon::ImageViewFlagBits::Slice)) {
-        // Slice image views always affect a single layer, but their subresource range corresponds
-        // to the slice. Override the value to affect a single layer.
         range.base.layer = 0;
         range.extent.layers = 1;
     }
-    return MakeSubresourceRange(ImageAspectMask(image_view->format), range);
+    return MakeBarrierSubresourceRange(ImageAspectMask(image_view->format), range, is_3d_image);
 }
 
 [[nodiscard]] VkImageSubresourceLayers MakeSubresourceLayers(const ImageView* image_view) {
@@ -524,18 +533,23 @@ struct RangedBarrierRange {
         max_layer = (std::max)(max_layer, layers.baseArrayLayer + layers.layerCount);
     }
 
-    VkImageSubresourceRange SubresourceRange(VkImageAspectFlags aspect_mask) const noexcept {
-        return VkImageSubresourceRange{
-            .aspectMask = aspect_mask,
-            .baseMipLevel = min_mip,
-            .levelCount = max_mip - min_mip,
-            .baseArrayLayer = min_layer,
-            .layerCount = max_layer - min_layer,
+    VkImageSubresourceRange SubresourceRange(VkImageAspectFlags aspect_mask,
+                                             bool is_3d_image) const noexcept {
+        const SubresourceRange range{
+            .base = {
+                .level = static_cast<s32>(min_mip),
+                .layer = static_cast<s32>(min_layer),
+            },
+            .extent = {
+                .levels = static_cast<s32>(max_mip - min_mip),
+                .layers = static_cast<s32>(max_layer - min_layer),
+            },
         };
+        return MakeBarrierSubresourceRange(aspect_mask, range, is_3d_image);
     }
 };
 void CopyBufferToImage(vk::CommandBuffer cmdbuf, VkBuffer src_buffer, VkImage image,
-                       VkImageAspectFlags aspect_mask, bool is_initialized,
+                       VkImageAspectFlags aspect_mask, bool is_initialized, bool is_3d_image,
                        std::span<const VkBufferImageCopy> copies) {
     static constexpr VkAccessFlags WRITE_ACCESS_FLAGS =
                                            VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
@@ -549,7 +563,8 @@ void CopyBufferToImage(vk::CommandBuffer cmdbuf, VkBuffer src_buffer, VkImage im
     for (const auto& region : copies) {
         range.AddLayers(region.imageSubresource);
     }
-    const VkImageSubresourceRange subresource_range = range.SubresourceRange(aspect_mask);
+    const VkImageSubresourceRange subresource_range =
+        range.SubresourceRange(aspect_mask, is_3d_image);
 
     const VkImageMemoryBarrier read_barrier{
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -1006,9 +1021,12 @@ void TextureCacheRuntime::ReinterpretImage(Image& dst, Image& src,
     const VkBuffer copy_buffer = GetTemporaryBuffer(total_size);
     const VkImage dst_image = dst.Handle();
     const VkImage src_image = src.Handle();
+    const bool dst_is_3d = dst.info.type == ImageType::e3D;
+    const bool src_is_3d = src.info.type == ImageType::e3D;
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([dst_image, src_image, copy_buffer, src_aspect_mask, dst_aspect_mask,
-                      vk_in_copies, vk_out_copies](vk::CommandBuffer cmdbuf) {
+                      dst_is_3d, src_is_3d, vk_in_copies,
+                      vk_out_copies](vk::CommandBuffer cmdbuf) {
         RangedBarrierRange dst_range;
         RangedBarrierRange src_range;
         for (const VkBufferImageCopy& copy : vk_in_copies) {
@@ -1042,7 +1060,7 @@ void TextureCacheRuntime::ReinterpretImage(Image& dst, Image& src,
                 .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .image = src_image,
-                .subresourceRange = src_range.SubresourceRange(src_aspect_mask),
+                .subresourceRange = src_range.SubresourceRange(src_aspect_mask, src_is_3d),
             },
         };
         const std::array middle_in_barrier{
@@ -1056,7 +1074,7 @@ void TextureCacheRuntime::ReinterpretImage(Image& dst, Image& src,
                 .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .image = src_image,
-                .subresourceRange = src_range.SubresourceRange(src_aspect_mask),
+                .subresourceRange = src_range.SubresourceRange(src_aspect_mask, src_is_3d),
             },
         };
         const std::array middle_out_barrier{
@@ -1072,7 +1090,7 @@ void TextureCacheRuntime::ReinterpretImage(Image& dst, Image& src,
                 .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .image = dst_image,
-                .subresourceRange = dst_range.SubresourceRange(dst_aspect_mask),
+                .subresourceRange = dst_range.SubresourceRange(dst_aspect_mask, dst_is_3d),
             },
         };
         const std::array post_barriers{
@@ -1091,7 +1109,7 @@ void TextureCacheRuntime::ReinterpretImage(Image& dst, Image& src,
                 .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .image = dst_image,
-                .subresourceRange = dst_range.SubresourceRange(dst_aspect_mask),
+                .subresourceRange = dst_range.SubresourceRange(dst_aspect_mask, dst_is_3d),
             },
         };
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
@@ -1440,6 +1458,8 @@ void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
     boost::container::small_vector<VkImageCopy, 16> vk_copies(copies.size());
     const VkImageAspectFlags aspect_mask = dst.AspectMask();
     ASSERT(aspect_mask == src.AspectMask());
+    const bool dst_is_3d = dst.info.type == ImageType::e3D;
+    const bool src_is_3d = src.info.type == ImageType::e3D;
 
     std::ranges::transform(copies, vk_copies.begin(), [aspect_mask](const auto& copy) {
         return MakeImageCopy(copy, aspect_mask);
@@ -1447,7 +1467,8 @@ void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
     const VkImage dst_image = dst.Handle();
     const VkImage src_image = src.Handle();
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([dst_image, src_image, aspect_mask, vk_copies](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([dst_image, src_image, aspect_mask, dst_is_3d, src_is_3d,
+                      vk_copies](vk::CommandBuffer cmdbuf) {
         RangedBarrierRange dst_range;
         RangedBarrierRange src_range;
         for (const VkImageCopy& copy : vk_copies) {
@@ -1467,7 +1488,7 @@ void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
                 .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .image = src_image,
-                .subresourceRange = src_range.SubresourceRange(aspect_mask),
+                .subresourceRange = src_range.SubresourceRange(aspect_mask, src_is_3d),
             },
             VkImageMemoryBarrier{
                 .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -1481,7 +1502,7 @@ void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
                 .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .image = dst_image,
-                .subresourceRange = dst_range.SubresourceRange(aspect_mask),
+                .subresourceRange = dst_range.SubresourceRange(aspect_mask, dst_is_3d),
             },
         };
         const std::array post_barriers{
@@ -1495,7 +1516,7 @@ void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
                 .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .image = src_image,
-                .subresourceRange = src_range.SubresourceRange(aspect_mask),
+                .subresourceRange = src_range.SubresourceRange(aspect_mask, src_is_3d),
             },
             VkImageMemoryBarrier{
                 .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -1512,7 +1533,7 @@ void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
                 .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .image = dst_image,
-                .subresourceRange = dst_range.SubresourceRange(aspect_mask),
+                .subresourceRange = dst_range.SubresourceRange(aspect_mask, dst_is_3d),
             },
         };
         cmdbuf.PipelineBarrier(
@@ -1691,10 +1712,12 @@ void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
         const VkBuffer src_buffer = buffer;
         const VkImage temp_vk_image = *temp_wrapper->original_image;
         const VkImageAspectFlags vk_aspect_mask = temp_wrapper->aspect_mask;
+        const bool temp_is_3d = temp_info.type == ImageType::e3D;
 
-        scheduler->Record([src_buffer, temp_vk_image, vk_aspect_mask, vk_copies,
+        scheduler->Record([src_buffer, temp_vk_image, vk_aspect_mask, temp_is_3d, vk_copies,
                            keep = temp_wrapper](vk::CommandBuffer cmdbuf) {
-            CopyBufferToImage(cmdbuf, src_buffer, temp_vk_image, vk_aspect_mask, false, VideoCommon::FixSmallVectorADL(vk_copies));
+            CopyBufferToImage(cmdbuf, src_buffer, temp_vk_image, vk_aspect_mask, false,
+                              temp_is_3d, VideoCommon::FixSmallVectorADL(vk_copies));
         });
 
         // Use MSAACopyPass to convert from non-MSAA to MSAA
@@ -1730,10 +1753,12 @@ void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
     const VkImage vk_image = *original_image;
     const VkImageAspectFlags vk_aspect_mask = aspect_mask;
     const bool was_initialized = std::exchange(initialized, true);
+    const bool is_3d_image = info.type == ImageType::e3D;
 
-    scheduler->Record([src_buffer, vk_image, vk_aspect_mask, was_initialized,
+    scheduler->Record([src_buffer, vk_image, vk_aspect_mask, was_initialized, is_3d_image,
                        vk_copies](vk::CommandBuffer cmdbuf) {
-        CopyBufferToImage(cmdbuf, src_buffer, vk_image, vk_aspect_mask, was_initialized, VideoCommon::FixSmallVectorADL(vk_copies));
+        CopyBufferToImage(cmdbuf, src_buffer, vk_image, vk_aspect_mask, was_initialized,
+                          is_3d_image, VideoCommon::FixSmallVectorADL(vk_copies));
     });
 
     if (is_rescaled) {

@@ -56,16 +56,23 @@ namespace {
 
 [[nodiscard]] VkImageSubresourceRange SubresourceRangeFromView(const ImageView& image_view) {
     auto range = image_view.range;
+    const bool is_3d_image = image_view.type == VideoCommon::ImageViewType::e3D ||
+                             (image_view.flags & VideoCommon::ImageViewFlagBits::Slice) !=
+                                 VideoCommon::ImageViewFlagBits{};
     if ((image_view.flags & VideoCommon::ImageViewFlagBits::Slice) != VideoCommon::ImageViewFlagBits{}) {
         range.base.layer = 0;
         range.extent.layers = 1;
+    }
+    u32 layer_count = static_cast<u32>(range.extent.layers);
+    if (is_3d_image && layer_count == 1) {
+        layer_count = VK_REMAINING_ARRAY_LAYERS;
     }
     return VkImageSubresourceRange{
         .aspectMask = AspectMaskFromFormat(image_view.format),
         .baseMipLevel = static_cast<u32>(range.base.level),
         .levelCount = static_cast<u32>(range.extent.levels),
         .baseArrayLayer = static_cast<u32>(range.base.layer),
-        .layerCount = static_cast<u32>(range.extent.layers),
+        .layerCount = layer_count,
     };
 }
 
