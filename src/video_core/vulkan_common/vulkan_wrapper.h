@@ -228,6 +228,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier{};
     PFN_vkCmdPushConstants vkCmdPushConstants{};
     PFN_vkCmdPushDescriptorSetWithTemplateKHR vkCmdPushDescriptorSetWithTemplateKHR{};
+    PFN_vkCmdResetQueryPool vkCmdResetQueryPool{};
     PFN_vkCmdResolveImage vkCmdResolveImage{};
     PFN_vkCmdSetBlendConstants vkCmdSetBlendConstants{};
     PFN_vkCmdSetCullModeEXT vkCmdSetCullModeEXT{};
@@ -1170,6 +1171,10 @@ public:
                                           VkPipelineLayout layout, u32 set,
                                           const void* data) const noexcept {
         dld->vkCmdPushDescriptorSetWithTemplateKHR(handle, update_template, layout, set, data);
+    }
+
+    void ResetQueryPool(VkQueryPool query_pool, u32 first, u32 count) const noexcept {
+        dld->vkCmdResetQueryPool(handle, query_pool, first, count);
     }
 
     void BindPipeline(VkPipelineBindPoint bind_point, VkPipeline pipeline) const noexcept {
