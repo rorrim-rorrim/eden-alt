@@ -11,6 +11,7 @@
 #include <vector>
 #include <queue>
 
+#include "common/logging/log.h"
 #include "common/settings.h"
 #include "shader_recompiler/exception.h"
 #include "shader_recompiler/frontend/ir/basic_block.h"
@@ -147,8 +148,8 @@ void LogFpControlHistogram(const IR::Program& program) {
         return;
     }
 
-    LOG_DEBUG(Shader, "FP control histogram for {} shader: blocks={} post_order_blocks={}",
-              StageName(program.stage), program.blocks.size(), program.post_order_blocks.size());
+    LOG_INFO(Shader, "FP_HIST {} shader blocks={} post_order_blocks={}",
+             StageName(program.stage), program.blocks.size(), program.post_order_blocks.size());
 
     constexpr std::array<std::string_view, 2> precision_names{"fp16", "fp32"};
     for (size_t bucket = 0; bucket < precision_names.size(); ++bucket) {
@@ -156,18 +157,18 @@ void LogFpControlHistogram(const IR::Program& program) {
             continue;
         }
 
-        LOG_DEBUG(Shader,
-                  "  {} total={} no_contraction={} rounding[DontCare={}, RN={}, RM={}, RP={}, RZ={}] fmz[DontCare={}, FTZ={}, FMZ={}, None={}]",
-                  precision_names[bucket], histogram.total[bucket], histogram.no_contraction[bucket],
-                  histogram.rounding[bucket][static_cast<size_t>(IR::FpRounding::DontCare)],
-                  histogram.rounding[bucket][static_cast<size_t>(IR::FpRounding::RN)],
-                  histogram.rounding[bucket][static_cast<size_t>(IR::FpRounding::RM)],
-                  histogram.rounding[bucket][static_cast<size_t>(IR::FpRounding::RP)],
-                  histogram.rounding[bucket][static_cast<size_t>(IR::FpRounding::RZ)],
-                  histogram.fmz[bucket][static_cast<size_t>(IR::FmzMode::DontCare)],
-                  histogram.fmz[bucket][static_cast<size_t>(IR::FmzMode::FTZ)],
-                  histogram.fmz[bucket][static_cast<size_t>(IR::FmzMode::FMZ)],
-                  histogram.fmz[bucket][static_cast<size_t>(IR::FmzMode::None)]);
+        LOG_INFO(Shader,
+             "FP_HIST {} total={} no_contraction={} rounding[DontCare={}, RN={}, RM={}, RP={}, RZ={}] fmz[DontCare={}, FTZ={}, FMZ={}, None={}]",
+             precision_names[bucket], histogram.total[bucket], histogram.no_contraction[bucket],
+             histogram.rounding[bucket][static_cast<size_t>(IR::FpRounding::DontCare)],
+             histogram.rounding[bucket][static_cast<size_t>(IR::FpRounding::RN)],
+             histogram.rounding[bucket][static_cast<size_t>(IR::FpRounding::RM)],
+             histogram.rounding[bucket][static_cast<size_t>(IR::FpRounding::RP)],
+             histogram.rounding[bucket][static_cast<size_t>(IR::FpRounding::RZ)],
+             histogram.fmz[bucket][static_cast<size_t>(IR::FmzMode::DontCare)],
+             histogram.fmz[bucket][static_cast<size_t>(IR::FmzMode::FTZ)],
+             histogram.fmz[bucket][static_cast<size_t>(IR::FmzMode::FMZ)],
+             histogram.fmz[bucket][static_cast<size_t>(IR::FmzMode::None)]);
 
         for (size_t rounding = 0; rounding < histogram.combos[bucket].size(); ++rounding) {
             for (size_t fmz = 0; fmz < histogram.combos[bucket][rounding].size(); ++fmz) {
@@ -175,9 +176,9 @@ void LogFpControlHistogram(const IR::Program& program) {
                 if (count == 0) {
                     continue;
                 }
-                LOG_DEBUG(Shader, "    {} combo {} / {} = {}", precision_names[bucket],
-                          RoundingName(static_cast<IR::FpRounding>(rounding)),
-                          FmzName(static_cast<IR::FmzMode>(fmz)), count);
+                LOG_INFO(Shader, "FP_HIST {} combo {} / {} = {}", precision_names[bucket],
+                         RoundingName(static_cast<IR::FpRounding>(rounding)),
+                         FmzName(static_cast<IR::FmzMode>(fmz)), count);
             }
         }
     }
