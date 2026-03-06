@@ -210,11 +210,6 @@ static inline TexturePixelFormat ReadTexturePixelFormatCached(Environment& env,
                                                                 const ConstBufferAddr& cbuf) {
     return env.ReadTexturePixelFormat(GetTextureHandleCached(env, cbuf));
 }
-static inline bool IsTexturePixelFormatIntegerCached(Environment& env,
-                                                        const ConstBufferAddr& cbuf) {
-    return env.IsTexturePixelFormatInteger(GetTextureHandleCached(env, cbuf));
-}
-
 
 std::optional<ConstBufferAddr> Track(const IR::Value& value, Environment& env);
 static inline std::optional<ConstBufferAddr> TrackCached(const IR::Value& v, Environment& env) {
