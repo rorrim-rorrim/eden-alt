@@ -242,7 +242,6 @@ struct ColorConsoleBackend final : public Backend {
     std::atomic_bool enabled = false;
 #endif
 };
-#undef CCB_PRINTF_FMT
 
 #ifndef __OPENORBIS__
 /// @brief Backend that writes to a file passed into the constructor
