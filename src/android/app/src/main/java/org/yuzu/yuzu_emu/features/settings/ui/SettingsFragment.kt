@@ -33,6 +33,7 @@ import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.view.PathSetting
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
+import org.yuzu.yuzu_emu.utils.BackgroundHelper
 import org.yuzu.yuzu_emu.utils.PathUtil
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 import org.yuzu.yuzu_emu.utils.*
@@ -178,9 +179,17 @@ class SettingsFragment : Fragment() {
         }
 
         presenter.onViewCreated()
+        applyBackgroundPreference()
+
         setInsets()
     }
-private fun getPlayerIndex(): Int =
+
+    override fun onResume() {
+        super.onResume()
+        applyBackgroundPreference()
+    }
+
+    private fun getPlayerIndex(): Int =
         when (args.menuTag) {
             Settings.MenuTag.SECTION_INPUT_PLAYER_ONE -> 0
             Settings.MenuTag.SECTION_INPUT_PLAYER_TWO -> 1
@@ -230,6 +239,10 @@ private fun getPlayerIndex(): Int =
             binding.appbarSettings.updateMargins(left = leftInsets, right = rightInsets)
             windowInsets
         }
+    }
+
+    private fun applyBackgroundPreference() {
+        BackgroundHelper.applyBackground(binding.backgroundLogo, requireContext())
     }
 
     private fun hasAllFilesPermission(): Boolean {

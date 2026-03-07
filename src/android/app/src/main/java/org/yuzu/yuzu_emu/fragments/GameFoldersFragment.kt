@@ -26,6 +26,7 @@ import org.yuzu.yuzu_emu.model.GameDir
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.ui.main.MainActivity
+import org.yuzu.yuzu_emu.utils.BackgroundHelper
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 import org.yuzu.yuzu_emu.utils.collect
 
@@ -57,6 +58,7 @@ class GameFoldersFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         homeViewModel.setStatusBarShadeVisibility(visible = false)
+        applyBackgroundPreference()
 
         binding.toolbarFolders.setNavigationOnClickListener {
             binding.root.findNavController().popBackStack()
@@ -100,6 +102,11 @@ class GameFoldersFragment : Fragment() {
         setInsets()
     }
 
+    override fun onResume() {
+        super.onResume()
+        applyBackgroundPreference()
+    }
+
     override fun onStop() {
         super.onStop()
         gamesViewModel.onCloseGameFoldersFragment()
@@ -133,4 +140,8 @@ class GameFoldersFragment : Fragment() {
 
             windowInsets
         }
+
+    private fun applyBackgroundPreference() {
+        BackgroundHelper.applyBackground(binding.backgroundLogo, requireContext())
+    }
 }

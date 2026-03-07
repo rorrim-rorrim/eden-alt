@@ -40,6 +40,7 @@ import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.ui.main.MainActivity
+import org.yuzu.yuzu_emu.utils.BackgroundHelper
 import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.utils.collect
 import info.debatty.java.stringsimilarity.Jaccard
@@ -106,6 +107,7 @@ class GamesFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         homeViewModel.setStatusBarShadeVisibility(true)
         mainActivity = requireActivity() as MainActivity
+        applyBackgroundPreference()
 
         if (savedInstanceState != null) {
             binding.searchText.setText(savedInstanceState.getString(SEARCH_TEXT))
@@ -252,6 +254,7 @@ class GamesFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        applyBackgroundPreference()
         if (getCurrentViewType() == GameAdapter.VIEW_TYPE_CAROUSEL) {
             (binding.gridGames as? CarouselRecyclerView)?.setupCarousel(true)
             (binding.gridGames as? CarouselRecyclerView)?.restoreScrollState(gamesViewModel.lastScrollPosition)
@@ -495,6 +498,10 @@ class GamesFragment : Fragment() {
         binding.launchQlaunch.visibility = if (shouldShowQLaunch) View.VISIBLE else View.GONE
 
         binding.addDirectory.visibility = if (showFolder) View.VISIBLE else View.GONE
+    }
+
+    private fun applyBackgroundPreference() {
+        BackgroundHelper.applyBackground(binding.backgroundLogo, requireContext())
     }
 
     private fun setInsets() =

@@ -30,6 +30,7 @@ import org.yuzu.yuzu_emu.databinding.FragmentDriverFetcherBinding
 import org.yuzu.yuzu_emu.features.fetcher.DriverGroupAdapter
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.utils.BackgroundHelper
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 import java.io.IOException
@@ -141,6 +142,8 @@ class DriverFetcherFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         homeViewModel.setStatusBarShadeVisibility(visible = false)
+        applyBackgroundPreference()
+
         binding.toolbarDrivers.setNavigationOnClickListener {
             binding.root.findNavController().popBackStack()
         }
@@ -152,6 +155,11 @@ class DriverFetcherFragment : Fragment() {
         setInsets()
 
         fetchDrivers()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        applyBackgroundPreference()
     }
 
     private fun fetchDrivers() {
@@ -240,6 +248,10 @@ class DriverFetcherFragment : Fragment() {
         )
 
         windowInsets
+    }
+
+    private fun applyBackgroundPreference() {
+        BackgroundHelper.applyBackground(binding.backgroundLogo, requireContext())
     }
 
     data class Artifact(val url: URL, val name: String)

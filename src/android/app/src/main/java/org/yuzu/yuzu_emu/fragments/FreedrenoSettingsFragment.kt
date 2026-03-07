@@ -20,6 +20,7 @@ import org.yuzu.yuzu_emu.adapters.FreedrenoPresetAdapter
 import org.yuzu.yuzu_emu.adapters.FreedrenoVariableAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentFreedrenoSettingsBinding
 import org.yuzu.yuzu_emu.model.Game
+import org.yuzu.yuzu_emu.utils.BackgroundHelper
 import org.yuzu.yuzu_emu.utils.NativeFreedrenoConfig
 import org.yuzu.yuzu_emu.utils.FreedrenoPresets
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
@@ -68,6 +69,7 @@ class FreedrenoSettingsFragment : Fragment() {
         setupAdapters()
         loadCurrentSettings()
         setupButtonListeners()
+        applyBackgroundPreference()
         setupWindowInsets()
     }
 
@@ -193,7 +195,17 @@ class FreedrenoSettingsFragment : Fragment() {
             insets
         }
     }
-private fun showSnackbar(message: String) {
+
+    override fun onResume() {
+        super.onResume()
+        applyBackgroundPreference()
+    }
+
+    private fun applyBackgroundPreference() {
+        BackgroundHelper.applyBackground(binding.backgroundLogo, requireContext())
+    }
+
+    private fun showSnackbar(message: String) {
         Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
     }
 

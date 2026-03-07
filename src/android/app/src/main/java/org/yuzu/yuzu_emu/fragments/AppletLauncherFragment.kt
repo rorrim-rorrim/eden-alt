@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -21,6 +21,7 @@ import org.yuzu.yuzu_emu.databinding.FragmentAppletLauncherBinding
 import org.yuzu.yuzu_emu.model.Applet
 import org.yuzu.yuzu_emu.model.AppletInfo
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.utils.BackgroundHelper
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class AppletLauncherFragment : Fragment() {
@@ -48,6 +49,7 @@ class AppletLauncherFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         homeViewModel.setStatusBarShadeVisibility(visible = false)
+        applyBackgroundPreference()
 
         binding.toolbarApplets.setNavigationOnClickListener {
             binding.root.findNavController().popBackStack()
@@ -91,6 +93,11 @@ class AppletLauncherFragment : Fragment() {
         setInsets()
     }
 
+    override fun onResume() {
+        super.onResume()
+        applyBackgroundPreference()
+    }
+
     private fun setInsets() =
         ViewCompat.setOnApplyWindowInsetsListener(
             binding.root
@@ -108,4 +115,8 @@ class AppletLauncherFragment : Fragment() {
 
             windowInsets
         }
+
+    private fun applyBackgroundPreference() {
+        BackgroundHelper.applyBackground(binding.backgroundLogo, requireContext())
+    }
 }

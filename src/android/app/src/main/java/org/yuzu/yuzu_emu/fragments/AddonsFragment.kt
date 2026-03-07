@@ -25,6 +25,7 @@ import org.yuzu.yuzu_emu.databinding.FragmentAddonsBinding
 import org.yuzu.yuzu_emu.model.AddonViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.AddonUtil
+import org.yuzu.yuzu_emu.utils.BackgroundHelper
 import org.yuzu.yuzu_emu.utils.FileUtil.copyFilesTo
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 import org.yuzu.yuzu_emu.utils.collect
@@ -59,6 +60,7 @@ class AddonsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         homeViewModel.setStatusBarShadeVisibility(false)
+        applyBackgroundPreference()
 
         binding.toolbarAddons.setNavigationOnClickListener {
             binding.root.findNavController().popBackStack()
@@ -122,6 +124,7 @@ class AddonsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         addonViewModel.onAddonsViewStarted(args.game)
+        applyBackgroundPreference()
     }
 
     override fun onDestroy() {
@@ -202,4 +205,8 @@ class AddonsFragment : Fragment() {
 
             windowInsets
         }
+
+    private fun applyBackgroundPreference() {
+        BackgroundHelper.applyBackground(binding.backgroundLogo, requireContext())
+    }
 }

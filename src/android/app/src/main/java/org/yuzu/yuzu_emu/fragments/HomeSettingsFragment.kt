@@ -40,6 +40,7 @@ import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.HomeSetting
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.ui.main.MainActivity
+import org.yuzu.yuzu_emu.utils.BackgroundHelper
 import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.Log
@@ -76,6 +77,7 @@ class HomeSettingsFragment : Fragment() {
             findNavController().popBackStack()
         }
         binding.toolbarHomeSettings.title = getString(R.string.preferences_settings)
+        applyBackgroundPreference()
 
         val optionsList: MutableList<HomeSetting> = mutableListOf<HomeSetting>().apply {
             add(
@@ -315,6 +317,7 @@ class HomeSettingsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         driverViewModel.updateDriverNameForGame(null)
+        applyBackgroundPreference()
     }
 
     override fun onDestroyView() {
@@ -500,4 +503,8 @@ class HomeSettingsFragment : Fragment() {
 
             windowInsets
         }
+
+    private fun applyBackgroundPreference() {
+        BackgroundHelper.applyBackground(binding.logoImage, requireContext())
+    }
 }

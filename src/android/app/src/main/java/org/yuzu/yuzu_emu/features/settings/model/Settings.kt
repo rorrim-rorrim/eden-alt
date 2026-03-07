@@ -105,6 +105,14 @@ object Settings {
     const val PREF_BLACK_BACKGROUNDS = "BlackBackgrounds"
     const val PREF_STATIC_THEME_COLOR = "StaticThemeColor"
 
+    // App background preference keys
+    const val PREF_HOME_BACKGROUND_STYLE = "HomeBackgroundStyle"
+    const val HOME_BACKGROUND_STYLE_NONE = 0
+    const val HOME_BACKGROUND_STYLE_EDEN = 1
+    const val HOME_BACKGROUND_STYLE_DEFAULT = HOME_BACKGROUND_STYLE_NONE
+    const val PREF_HOME_BACKGROUND_ALPHA = "HomeBackgroundAlpha"
+    const val HOME_BACKGROUND_ALPHA_DEFAULT = 40
+
     enum class EmulationOrientation(val int: Int) {
         Unspecified(0),
         SensorLandscape(5),
