@@ -11,6 +11,7 @@ A copy of this handbook is [available online](https://git.eden-emu.dev/eden-emu/
 - **[The Basics](Basics.md)**
 - **[Quickstart](./QuickStart.md)**
 - **[Settings](./Settings.md)**
+- **[Installing Mods](./Mods.md)**
 - **[Run On macOS](./RunOnMacOS.md)**
 - **[Audio](Audio.md)**
 - **[Graphics](Graphics.md)**
