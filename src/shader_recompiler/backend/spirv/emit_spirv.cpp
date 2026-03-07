@@ -55,57 +55,78 @@ namespace {
     return "None";
 }
 
-void LogRzBackendSummary(const Profile& profile, const IR::Program& program, bool optimize) {
-    if (!Settings::values.renderer_debug) {
-        return;
+[[nodiscard]] constexpr bool IsFp32RoundingRelevantOpcode(IR::Opcode opcode) noexcept {
+    switch (opcode) {
+    case IR::Opcode::FPAdd32:
+    case IR::Opcode::FPFma32:
+    case IR::Opcode::FPMul32:
+    case IR::Opcode::FPRoundEven32:
+    case IR::Opcode::FPFloor32:
+    case IR::Opcode::FPCeil32:
+    case IR::Opcode::FPTrunc32:
+    case IR::Opcode::FPOrdEqual32:
+    case IR::Opcode::FPUnordEqual32:
+    case IR::Opcode::FPOrdNotEqual32:
+    case IR::Opcode::FPUnordNotEqual32:
+    case IR::Opcode::FPOrdLessThan32:
+    case IR::Opcode::FPUnordLessThan32:
+    case IR::Opcode::FPOrdGreaterThan32:
+    case IR::Opcode::FPUnordGreaterThan32:
+    case IR::Opcode::FPOrdLessThanEqual32:
+    case IR::Opcode::FPUnordLessThanEqual32:
+    case IR::Opcode::FPOrdGreaterThanEqual32:
+    case IR::Opcode::FPUnordGreaterThanEqual32:
+    case IR::Opcode::ConvertF16F32:
+    case IR::Opcode::ConvertF64F32:
+        return true;
+    default:
+        return false;
     }
+}
+
+struct Fp32RoundingUsage {
     u32 rz_count{};
+    bool has_conflicting_rounding{};
+};
+
+Fp32RoundingUsage CollectFp32RoundingUsage(const IR::Program& program) {
+    Fp32RoundingUsage usage{};
     for (const IR::Block* const block : program.post_order_blocks) {
         for (const IR::Inst& inst : block->Instructions()) {
-            switch (inst.GetOpcode()) {
-            case IR::Opcode::FPAdd16:
-            case IR::Opcode::FPFma16:
-            case IR::Opcode::FPMul16:
-            case IR::Opcode::FPRoundEven16:
-            case IR::Opcode::FPFloor16:
-            case IR::Opcode::FPCeil16:
-            case IR::Opcode::FPTrunc16:
-            case IR::Opcode::FPAdd32:
-            case IR::Opcode::FPFma32:
-            case IR::Opcode::FPMul32:
-            case IR::Opcode::FPRoundEven32:
-            case IR::Opcode::FPFloor32:
-            case IR::Opcode::FPCeil32:
-            case IR::Opcode::FPTrunc32:
-            case IR::Opcode::FPOrdEqual32:
-            case IR::Opcode::FPUnordEqual32:
-            case IR::Opcode::FPOrdNotEqual32:
-            case IR::Opcode::FPUnordNotEqual32:
-            case IR::Opcode::FPOrdLessThan32:
-            case IR::Opcode::FPUnordLessThan32:
-            case IR::Opcode::FPOrdGreaterThan32:
-            case IR::Opcode::FPUnordGreaterThan32:
-            case IR::Opcode::FPOrdLessThanEqual32:
-            case IR::Opcode::FPUnordLessThanEqual32:
-            case IR::Opcode::FPOrdGreaterThanEqual32:
-            case IR::Opcode::FPUnordGreaterThanEqual32:
-            case IR::Opcode::ConvertF16F32:
-            case IR::Opcode::ConvertF64F32:
-                rz_count += inst.Flags<IR::FpControl>().rounding == IR::FpRounding::RZ ? 1U : 0U;
+            if (!IsFp32RoundingRelevantOpcode(inst.GetOpcode())) {
+                continue;
+            }
+            switch (inst.Flags<IR::FpControl>().rounding) {
+            case IR::FpRounding::RZ:
+                ++usage.rz_count;
                 break;
-            default:
+            case IR::FpRounding::RN:
+            case IR::FpRounding::RM:
+            case IR::FpRounding::RP:
+                usage.has_conflicting_rounding = true;
+                break;
+            case IR::FpRounding::DontCare:
                 break;
             }
         }
     }
-    if (rz_count == 0) {
+    return usage;
+}
+
+void LogRzBackendSummary(const Profile& profile, const IR::Program& program, bool optimize) {
+    if (!Settings::values.renderer_debug) {
+        return;
+    }
+    const Fp32RoundingUsage usage{CollectFp32RoundingUsage(program)};
+    if (usage.rz_count == 0) {
         return;
     }
 
     LOG_INFO(Shader_SPIRV,
-             "SPV_RZ {} start={:#010x} optimize={} support_float_controls={} separate_denorm_behavior={} broken_fp16_float_controls={} fp16_denorm={} fp32_denorm={} signed_nan16={} signed_nan32={} signed_nan64={} rz_inst_count={}",
+             "SPV_RZ {} start={:#010x} optimize={} support_float_controls={} separate_denorm_behavior={} separate_rounding_mode={} support_fp32_rounding_rtz={} broken_fp16_float_controls={} fp16_denorm={} fp32_denorm={} signed_nan16={} signed_nan32={} signed_nan64={} rz_inst_count={} mixed_fp32_rounding={}",
              StageName(program.stage), program.start_address, optimize,
              profile.support_float_controls, profile.support_separate_denorm_behavior,
+             profile.support_separate_rounding_mode, profile.support_fp32_rounding_rtz,
              profile.has_broken_fp16_float_controls,
              DenormModeName(program.info.uses_fp16_denorms_flush,
                             program.info.uses_fp16_denorms_preserve),
@@ -113,7 +134,34 @@ void LogRzBackendSummary(const Profile& profile, const IR::Program& program, boo
                             program.info.uses_fp32_denorms_preserve),
              profile.support_fp16_signed_zero_nan_preserve,
              profile.support_fp32_signed_zero_nan_preserve,
-             profile.support_fp64_signed_zero_nan_preserve, rz_count);
+             profile.support_fp64_signed_zero_nan_preserve, usage.rz_count,
+             usage.has_conflicting_rounding);
+}
+
+void SetupRoundingControl(const Profile& profile, const IR::Program& program, EmitContext& ctx,
+                         Id main_func) {
+    const Fp32RoundingUsage usage{CollectFp32RoundingUsage(program)};
+    if (usage.rz_count == 0) {
+        return;
+    }
+    if (usage.has_conflicting_rounding) {
+        if (Settings::values.renderer_debug) {
+            LOG_INFO(Shader_SPIRV,
+                     "SPV_RZ {} start={:#010x} skipping_fp32_rtz_execution_mode reason=mixed_rounding",
+                     StageName(program.stage), program.start_address);
+        }
+        return;
+    }
+    if (!profile.support_fp32_rounding_rtz) {
+        if (Settings::values.renderer_debug) {
+            LOG_INFO(Shader_SPIRV,
+                     "SPV_RZ {} start={:#010x} skipping_fp32_rtz_execution_mode reason=unsupported_fp32_rtz",
+                     StageName(program.stage), program.start_address);
+        }
+        return;
+    }
+    ctx.AddCapability(spv::Capability::RoundingModeRTZ);
+    ctx.AddExecutionMode(main_func, spv::ExecutionMode::RoundingModeRTZ, 32U);
 }
 
 template <class Func>
@@ -606,6 +654,7 @@ std::vector<u32> EmitSPIRV(const Profile& profile, const RuntimeInfo& runtime_in
     if (profile.support_float_controls) {
         ctx.AddExtension("SPV_KHR_float_controls");
         SetupDenormControl(profile, program, ctx, main);
+        SetupRoundingControl(profile, program, ctx, main);
         SetupSignedNanCapabilities(profile, program, ctx, main);
     }
     SetupCapabilities(profile, program.info, ctx);
