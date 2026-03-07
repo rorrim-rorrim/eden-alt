@@ -170,6 +170,10 @@ public:
         return ExchangeCheck(back.compare_mask, new_value) || stencil_reset;
     }
 
+    void ResetStencilState() {
+        stencil_reset = true;
+    }
+
     void ClearStencilReset() {
         stencil_reset = false;
     }

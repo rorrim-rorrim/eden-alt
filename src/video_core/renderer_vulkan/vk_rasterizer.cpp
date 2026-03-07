@@ -1075,7 +1075,6 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateDepthBias(regs);
     UpdateBlendConstants(regs);
     UpdateDepthBounds(regs);
-    UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
     UpdateLineStipple(regs);
 
@@ -1093,6 +1092,8 @@ void RasterizerVulkan::UpdateDynamicStates() {
             UpdateStencilTestEnable(regs);
         }
     }
+
+    UpdateStencilFaces(regs);
 
     // EDS2: PrimitiveRestart, RasterizerDiscard, DepthBias enable/disable
     if (device.IsExtExtendedDynamicState2Supported() && pipeline && pipeline->UsesExtendedDynamicState2()) {
@@ -1639,6 +1640,9 @@ void RasterizerVulkan::UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs) {
 void RasterizerVulkan::UpdateStencilTestEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchStencilTestEnable()) {
         return;
+    }
+    if (regs.stencil_enable != 0) {
+        state_tracker.ResetStencilState();
     }
     scheduler.Record([enable = regs.stencil_enable](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetStencilTestEnableEXT(enable);
