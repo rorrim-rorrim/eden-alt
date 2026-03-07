@@ -771,6 +771,7 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
             std::nullopt, std::nullopt, ContentRecordType::Program, update_tid);
 
         for (const auto& [slot, entry] : all_updates) {
+            (void)entry;
             if (slot == ContentProviderUnionSlot::External ||
                 slot == ContentProviderUnionSlot::FrontendManual) {
                 continue;
@@ -786,7 +787,7 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
                     source_suffix = " (NAND)";
                     break;
                 case ContentProviderUnionSlot::SDMC:
-                    source_type = PatchSource::NAND;
+                    source_type = PatchSource::SDMC;
                     source_suffix = " (SDMC)";
                     break;
                 default:
@@ -956,37 +957,60 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
     }
 
     // DLC
-    const auto dlc_entries =
-        content_provider.ListEntriesFilter(TitleType::AOC, ContentRecordType::Data);
-
     std::vector<ContentProviderEntry> dlc_match;
-    dlc_match.reserve(dlc_entries.size());
-    std::copy_if(dlc_entries.begin(), dlc_entries.end(), std::back_inserter(dlc_match),
-                 [this](const ContentProviderEntry& entry) {
-                     const auto base_tid = GetBaseTitleID(entry.title_id);
-                     const bool matches_base = base_tid == title_id;
+    bool has_external_dlc = false;
+    bool has_nand_dlc = false;
+    bool has_sdmc_dlc = false;
+    bool has_other_dlc = false;
+    const auto dlc_entries_with_origin =
+        content_union->ListEntriesFilterOrigin(std::nullopt, TitleType::AOC, ContentRecordType::Data);
 
-                     if (!matches_base) {
-                         LOG_DEBUG(Loader, "DLC {:016X} base {:016X} doesn't match title {:016X}",
-                                   entry.title_id, base_tid, title_id);
-                         return false;
-                     }
+    dlc_match.reserve(dlc_entries_with_origin.size());
+    for (const auto& [slot, entry] : dlc_entries_with_origin) {
+        const auto base_tid = GetBaseTitleID(entry.title_id);
+        const bool matches_base = base_tid == title_id;
+        if (!matches_base) {
+            LOG_DEBUG(Loader, "DLC {:016X} base {:016X} doesn't match title {:016X}",
+                      entry.title_id, base_tid, title_id);
+            continue;
+        }
 
-                     auto nca = content_provider.GetEntry(entry);
-                     if (!nca) {
-                         LOG_DEBUG(Loader, "Failed to get NCA for DLC {:016X}", entry.title_id);
-                         return false;
-                     }
+        const auto* slot_provider = content_union->GetSlotProvider(slot);
+        if (slot_provider == nullptr) {
+            continue;
+        }
 
-                     const auto status = nca->GetStatus();
-                     if (status != Loader::ResultStatus::Success) {
-                         LOG_DEBUG(Loader, "DLC {:016X} NCA has status {}",
-                                     entry.title_id, static_cast<int>(status));
-                         return false;
-                     }
+        auto nca = slot_provider->GetEntry(entry);
+        if (!nca) {
+            LOG_DEBUG(Loader, "Failed to get NCA for DLC {:016X}", entry.title_id);
+            continue;
+        }
 
-                     return true;
-                 });
+        const auto status = nca->GetStatus();
+        if (status != Loader::ResultStatus::Success) {
+            LOG_DEBUG(Loader, "DLC {:016X} NCA has status {}", entry.title_id,
+                      static_cast<int>(status));
+            continue;
+        }
+
+        switch (slot) {
+            case ContentProviderUnionSlot::External:
+            case ContentProviderUnionSlot::FrontendManual:
+                has_external_dlc = true;
+                break;
+            case ContentProviderUnionSlot::UserNAND:
+            case ContentProviderUnionSlot::SysNAND:
+                has_nand_dlc = true;
+                break;
+            case ContentProviderUnionSlot::SDMC:
+                has_sdmc_dlc = true;
+                break;
+            default:
+                has_other_dlc = true;
+                break;
+        }
+        dlc_match.push_back(entry);
+    }
 
     if (!dlc_match.empty()) {
         // Ensure sorted so DLC IDs show in order.
@@ -1000,13 +1024,22 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
 
         const auto dlc_disabled =
             std::find(disabled.begin(), disabled.end(), "DLC") != disabled.end();
+        PatchSource dlc_source = PatchSource::Unknown;
+        if (has_external_dlc && !has_nand_dlc && !has_sdmc_dlc && !has_other_dlc) {
+            dlc_source = PatchSource::External;
+        } else if (has_nand_dlc && !has_external_dlc && !has_sdmc_dlc && !has_other_dlc) {
+            dlc_source = PatchSource::NAND;
+        } else if (has_sdmc_dlc && !has_external_dlc && !has_nand_dlc && !has_other_dlc) {
+            dlc_source = PatchSource::SDMC;
+        }
+
         out.push_back({.enabled = !dlc_disabled,
                        .name = "DLC",
                        .version = std::move(list),
                        .type = PatchType::DLC,
                        .program_id = title_id,
                        .title_id = dlc_match.back().title_id,
-                       .source = PatchSource::Unknown});
+                       .source = dlc_source});
     }
 
     return out;
