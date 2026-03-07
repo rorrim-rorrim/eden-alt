@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "shader_recompiler/backend/spirv/emit_spirv_instructions.h"
 #include "shader_recompiler/backend/spirv/spirv_emit_context.h"
 #include "shader_recompiler/frontend/ir/modifiers.h"
@@ -51,7 +52,7 @@ Id Decorate(EmitContext& ctx, IR::Inst* inst, Id op) {
         flags.rounding == IR::FpRounding::RZ) {
         LOG_INFO(Shader_SPIRV,
                  "SPV_RZ_EMIT {} start={:#010x} ir_opcode={} spirv_op=OpFMul result_id={} no_contraction={} fmz={} float_controls_ext={}",
-                 StageName(ctx.stage), ctx.start_address, inst->GetOpcode(), op,
+                 StageName(ctx.stage), ctx.start_address, inst->GetOpcode(), static_cast<u32>(op),
                  flags.no_contraction, FmzName(flags.fmz_mode), ctx.profile.support_float_controls);
     }
     if (flags.no_contraction) {
