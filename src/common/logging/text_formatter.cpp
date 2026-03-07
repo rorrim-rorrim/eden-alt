@@ -41,6 +41,9 @@ static void PrintMessage(const Entry& entry) noexcept {
 #ifdef _WIN32
     auto const str = FormatLogMessage(entry).append(1, '\n');
     fwrite(str.c_str(), 1, str.size(), stderr);
+#elif defined(__OPENORBIS__)
+    auto const str = FormatLogMessage(entry).append(1, '\n');
+    fwrite(str.c_str(), 1, str.size(), stderr);
 #else
 #define ESC "\x1b"
     auto const color_str = [&entry]() -> const char* {
