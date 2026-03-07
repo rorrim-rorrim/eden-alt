@@ -538,7 +538,9 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
                               PAIR(VramUsageMode, Aggressive, tr("Aggressive")),
                           }});
     translations->insert({Settings::EnumMetadata<Settings::RendererBackend>::Index(), {
+#ifdef HAS_VULKAN
         PAIR(RendererBackend, Vulkan, tr("Vulkan")),
+#endif
 #ifdef HAS_OPENGL
         PAIR(RendererBackend, OpenGL_GLSL, tr("OpenGL GLSL")),
         PAIR(RendererBackend, OpenGL_GLASM, tr("OpenGL GLASM (Assembly Shaders, NVIDIA Only)")),

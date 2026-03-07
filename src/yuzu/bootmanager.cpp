@@ -269,11 +269,13 @@ private:
     std::unique_ptr<Core::Frontend::GraphicsContext> context;
 };
 
+#ifdef HAS_VULKAN
 struct VulkanRenderWidget : public RenderWidget {
     explicit VulkanRenderWidget(GRenderWindow* parent) : RenderWidget(parent) {
         windowHandle()->setSurfaceType(QWindow::VulkanSurface);
     }
 };
+#endif
 
 struct NullRenderWidget : public RenderWidget {
     explicit NullRenderWidget(GRenderWindow* parent) : RenderWidget(parent) {}
@@ -1019,19 +1021,22 @@ bool GRenderWindow::InitializeOpenGL() {
 
     return true;
 #else
-    QMessageBox::warning(this, tr("OpenGL not available!"),
-                         tr("Eden has not been compiled with OpenGL support."));
+    QMessageBox::warning(this, tr("OpenGL not available!"), tr("Eden has not been compiled with OpenGL support."));
     return false;
 #endif
 }
 
 bool GRenderWindow::InitializeVulkan() {
+#ifdef HAS_VULKAN
     auto child = new VulkanRenderWidget(this);
     child_widget = child;
     child_widget->windowHandle()->create();
     main_context = std::make_unique<DummyContext>();
-
     return true;
+#else
+    QMessageBox::warning(this, tr("Vulkan not available!"), tr("Eden has not been compiled with Vulkan support."));
+    return false;
+#endif
 }
 
 void GRenderWindow::InitializeNull() {

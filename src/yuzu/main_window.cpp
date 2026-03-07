@@ -3772,9 +3772,14 @@ void MainWindow::OnToggleAdaptingFilter() {
 
 void MainWindow::OnToggleGraphicsAPI() {
     auto api = Settings::values.renderer_backend.GetValue();
+    bool api_set = false;
+#ifdef HAS_VULKAN
     if (api != Settings::RendererBackend::Vulkan) {
         api = Settings::RendererBackend::Vulkan;
-    } else {
+        api_set = true;
+    }
+#endif
+    if (!api_set) {
 #ifdef HAS_OPENGL
         api = Settings::RendererBackend::OpenGL_GLSL;
 #else

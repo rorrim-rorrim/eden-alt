@@ -11,11 +11,13 @@
 
 #include "common/dynamic_library.h"
 #include "common/logging/log.h"
+#ifdef HAS_VULKAN
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_library.h"
 #include "video_core/vulkan_common/vulkan_surface.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+#endif
 #include "vulkan/vulkan_core.h"
 #include "yuzu/vk_device_info.h"
 
@@ -28,7 +30,9 @@ Record::Record(std::string_view name_, const std::vector<VkPresentModeKHR>& vsyn
 
 Record::~Record() = default;
 
-void PopulateRecords(std::vector<Record>& records, QWindow* window) try {
+void PopulateRecords(std::vector<Record>& records, QWindow* window)
+#ifdef HAS_VULKAN
+try {
     using namespace Vulkan;
 
     // Create a test window with a Vulkan surface type for checking present modes.
@@ -76,4 +80,8 @@ void PopulateRecords(std::vector<Record>& records, QWindow* window) try {
 } catch (const Vulkan::vk::Exception& exception) {
     LOG_ERROR(Frontend, "Failed to enumerate devices with error: {}", exception.what());
 }
+#else
+{}
+#endif
+
 } // namespace VkDeviceInfo
