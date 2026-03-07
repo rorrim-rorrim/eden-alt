@@ -185,16 +185,13 @@ struct ColorConsoleBackend final : public Backend {
 #ifdef _WIN32
     explicit ColorConsoleBackend() noexcept {
         console_handle = GetStdHandle(STD_ERROR_HANDLE);
+        GetConsoleScreenBufferInfo(console_handle, &original_info);
     }
     ~ColorConsoleBackend() noexcept override {
         SetConsoleTextAttribute(console_handle, original_info.wAttributes);
     }
     void Write(const Entry& entry) noexcept override {
-        if (enabled) {
-            if (console_handle == INVALID_HANDLE_VALUE)
-                return;
-            CONSOLE_SCREEN_BUFFER_INFO original_info = {};
-            GetConsoleScreenBufferInfo(console_handle, &original_info);
+        if (enabled && console_handle != INVALID_HANDLE_VALUE) {
             WORD color = WORD([&entry]() {
                 switch (entry.log_level) {
                 case Level::Debug: return FOREGROUND_GREEN | FOREGROUND_BLUE; // Cyan
@@ -212,7 +209,8 @@ struct ColorConsoleBackend final : public Backend {
         }
     }
     void Flush() noexcept override {}
-    HANDLE console_handle;
+    CONSOLE_SCREEN_BUFFER_INFO original_info = {};
+    HANDLE console_handle = INVALID_HANDLE_VALUE;
     std::atomic_bool enabled = false;
 #else // ^^^ Windows vvv POSIX
     explicit ColorConsoleBackend() noexcept {}
