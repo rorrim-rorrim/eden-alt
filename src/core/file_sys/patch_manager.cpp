@@ -123,6 +123,39 @@ bool IsVersionedExternalUpdateDisabled(const std::vector<std::string>& disabled,
     return std::find(disabled.cbegin(), disabled.cend(), disabled_key) != disabled.cend() ||
            std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend();
 }
+
+std::string GetUpdateVersionStringFromSlot(const ContentProvider* provider, u64 update_tid) {
+    if (provider == nullptr) {
+        return {};
+    }
+
+    auto control_nca = provider->GetEntry(update_tid, ContentRecordType::Control);
+    if (control_nca == nullptr ||
+        control_nca->GetStatus() != Loader::ResultStatus::Success) {
+        return {};
+    }
+
+    const auto romfs = control_nca->GetRomFS();
+    if (romfs == nullptr) {
+        return {};
+    }
+
+    const auto extracted = ExtractRomFS(romfs);
+    if (extracted == nullptr) {
+        return {};
+    }
+
+    auto nacp_file = extracted->GetFile("control.nacp");
+    if (nacp_file == nullptr) {
+        nacp_file = extracted->GetFile("Control.nacp");
+    }
+    if (nacp_file == nullptr) {
+        return {};
+    }
+
+    NACP nacp{nacp_file};
+    return nacp.GetVersionString();
+}
 } // Anonymous namespace
 
 PatchManager::PatchManager(u64 title_id_,
@@ -796,19 +829,16 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
 
             std::string version_str;
             u32 numeric_ver = 0;
-            PatchManager update{update_tid, fs_controller, content_provider};
-            const auto metadata = update.GetControlMetadata();
-            const auto& nacp = metadata.first;
+            const auto* slot_provider = content_union->GetSlotProvider(slot);
+            version_str = GetUpdateVersionStringFromSlot(slot_provider, update_tid);
 
-            if (nacp != nullptr) {
-                version_str = nacp->GetVersionString();
-            }
-
-            const auto meta_ver = content_provider.GetEntryVersion(update_tid);
-            if (meta_ver.has_value()) {
-                numeric_ver = *meta_ver;
-                if (version_str.empty() && numeric_ver != 0) {
-                    version_str = FormatTitleVersion(numeric_ver);
+            if (slot_provider != nullptr) {
+                const auto slot_ver = slot_provider->GetEntryVersion(update_tid);
+                if (slot_ver.has_value()) {
+                    numeric_ver = *slot_ver;
+                    if (version_str.empty() && numeric_ver != 0) {
+                        version_str = FormatTitleVersion(numeric_ver);
+                    }
                 }
             }
 
