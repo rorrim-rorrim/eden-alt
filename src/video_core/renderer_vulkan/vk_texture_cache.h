@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -396,11 +396,18 @@ class Sampler {
 public:
     explicit Sampler(TextureCacheRuntime&, const Tegra::Texture::TSCEntry&);
 
-    [[nodiscard]] VkSampler Handle() const noexcept {
+    [[nodiscard]] VkSampler Handle(bool enable_depth_compare = true) const noexcept {
+        if (!enable_depth_compare && sampler_no_compare) {
+            return *sampler_no_compare;
+        }
         return *sampler;
     }
 
-    [[nodiscard]] VkSampler HandleWithDefaultAnisotropy() const noexcept {
+    [[nodiscard]] VkSampler HandleWithDefaultAnisotropy(
+        bool enable_depth_compare = true) const noexcept {
+        if (!enable_depth_compare && sampler_default_anisotropy_no_compare) {
+            return *sampler_default_anisotropy_no_compare;
+        }
         return *sampler_default_anisotropy;
     }
 
@@ -408,9 +415,16 @@ public:
         return static_cast<bool>(sampler_default_anisotropy);
     }
 
+    [[nodiscard]] bool HasDepthCompareEnabled() const noexcept {
+        return has_depth_compare;
+    }
+
 private:
     vk::Sampler sampler;
+    vk::Sampler sampler_no_compare;
     vk::Sampler sampler_default_anisotropy;
+    vk::Sampler sampler_default_anisotropy_no_compare;
+    bool has_depth_compare = false;
 };
 
 struct TextureCacheParams {

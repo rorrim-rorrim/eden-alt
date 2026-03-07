@@ -15,6 +15,7 @@
 #include "shader_recompiler/shader_info.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
+#include "video_core/surface.h"
 #include "video_core/texture_cache/types.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 
@@ -232,10 +233,16 @@ inline void PushImageDescriptors(TextureCache& texture_cache,
             ImageView& image_view{texture_cache.GetImageView(image_view_id)};
             const VkImageView vk_image_view{image_view.Handle(desc.type)};
             const Sampler& sampler{texture_cache.GetSampler(sampler_id)};
+            const auto surface_type{VideoCore::Surface::GetFormatType(image_view.format)};
+            const bool allow_depth_compare =
+                desc.is_depth && (surface_type == VideoCore::Surface::SurfaceType::Depth ||
+                                  surface_type == VideoCore::Surface::SurfaceType::DepthStencil);
             const bool use_fallback_sampler{sampler.HasAddedAnisotropy() &&
                                             !image_view.SupportsAnisotropy()};
-            const VkSampler vk_sampler{use_fallback_sampler ? sampler.HandleWithDefaultAnisotropy()
-                                                            : sampler.Handle()};
+            const VkSampler vk_sampler{use_fallback_sampler
+                                           ? sampler.HandleWithDefaultAnisotropy(
+                                                 allow_depth_compare)
+                                           : sampler.Handle(allow_depth_compare)};
             guest_descriptor_queue.AddSampledImage(vk_image_view, vk_sampler);
             rescaling.PushTexture(texture_cache.IsRescaling(image_view));
         }
