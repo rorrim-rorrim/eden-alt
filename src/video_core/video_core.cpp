@@ -25,11 +25,8 @@
 
 namespace {
 
-std::unique_ptr<VideoCore::RendererBase> CreateRenderer(
-    Core::System& system, Core::Frontend::EmuWindow& emu_window, Tegra::GPU& gpu,
-    std::unique_ptr<Core::Frontend::GraphicsContext> context) {
-    auto& device_memory = system.Host1x().MemoryManager();
-
+std::unique_ptr<VideoCore::RendererBase> CreateRenderer(Core::System& system, Core::Frontend::EmuWindow& emu_window, Tegra::GPU& gpu, std::unique_ptr<Core::Frontend::GraphicsContext> context) {
+    [[maybe_unused]] auto& device_memory = system.Host1x().MemoryManager();
     switch (Settings::values.renderer_backend.GetValue()) {
 #ifdef HAS_OPENGL
     case Settings::RendererBackend::OpenGL_GLSL:

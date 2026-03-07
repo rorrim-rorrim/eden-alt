@@ -380,6 +380,13 @@ else()
     endif()
 endif()
 
+if (NOT APPLE AND ENABLE_OPENGL)
+    target_compile_definitions(qt_common PUBLIC HAS_OPENGL)
+endif()
+if (ENABLE_VULKAN)
+    target_compile_definitions(qt_common PUBLIC HAS_VULKAN)
+endif()
+
 if (ARCHITECTURE_x86_64)
     target_link_libraries(video_core PUBLIC xbyak::xbyak)
 endif()
