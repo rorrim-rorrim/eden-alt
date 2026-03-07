@@ -51,8 +51,8 @@ Id Decorate(EmitContext& ctx, IR::Inst* inst, Id op) {
     if (Settings::values.renderer_debug && ctx.log_rz_fp_controls &&
         flags.rounding == IR::FpRounding::RZ) {
         LOG_INFO(Shader_SPIRV,
-                 "SPV_RZ_EMIT {} start={:#010x} ir_opcode={} spirv_op=OpFMul result_id={} no_contraction={} fmz={} float_controls_ext={}",
-                 StageName(ctx.stage), ctx.start_address, inst->GetOpcode(), static_cast<u32>(op),
+                 "SPV_RZ_EMIT {} start={:#010x} ir_opcode={} spirv_op=OpFMul no_contraction={} fmz={} float_controls_ext={}",
+                 StageName(ctx.stage), ctx.start_address, inst->GetOpcode(),
                  flags.no_contraction, FmzName(flags.fmz_mode), ctx.profile.support_float_controls);
     }
     if (flags.no_contraction) {
