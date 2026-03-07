@@ -535,7 +535,7 @@ struct RangedBarrierRange {
 
     VkImageSubresourceRange SubresourceRange(VkImageAspectFlags aspect_mask,
                                              bool is_3d_image) const noexcept {
-        const SubresourceRange range{
+        const VideoCommon::SubresourceRange range{
             .base = {
                 .level = static_cast<s32>(min_mip),
                 .layer = static_cast<s32>(min_layer),
