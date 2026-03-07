@@ -7,7 +7,7 @@
 
 #include <QGuiApplication>
 #include <QStringLiteral>
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/frontend/emu_window.h"
 #include "qt_common/abstract/frontend.h"
 #include "qt_common/qt_string_lookup.h"

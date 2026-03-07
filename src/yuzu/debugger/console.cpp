@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -10,7 +10,7 @@
 #include <wincon.h>
 #endif
 
-#include "common/logging/backend.h"
+#include "common/logging.h"
 #include "yuzu/debugger/console.h"
 #include "qt_common/config/uisettings.h"
 
