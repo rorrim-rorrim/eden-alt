@@ -4,7 +4,7 @@
 
 **Note:** When installing a mod, always read the mod's installation instructions.
 
-This is especially important if a mod uses a framework such as **ARCropolis**, **Skyline**, or **Atmosphere plugins**. In those cases, follow the framework’s instructions instead of using Eden’s normal mod folder.
+This is especially important if a mod uses a framework such as **ARCropolis**, **Skyline**, or **Atmosphere plugins**. In those cases, follow the framework's instructions instead of using Eden's normal mod folder.
 
 For example, **Super Smash Bros. Ultimate** uses such a framework. See the related section below for details.
 
