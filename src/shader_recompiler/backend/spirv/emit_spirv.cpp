@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -11,6 +11,7 @@
 #include <vector>
 #include <spirv-tools/optimizer.hpp>
 
+#include "common/logging/log.h"
 #include "common/settings.h"
 #include "shader_recompiler/backend/spirv/emit_spirv.h"
 #include "shader_recompiler/backend/spirv/emit_spirv_instructions.h"
@@ -20,6 +21,100 @@
 
 namespace Shader::Backend::SPIRV {
 namespace {
+[[nodiscard]] constexpr std::string_view StageName(Stage stage) noexcept {
+    switch (stage) {
+    case Stage::VertexA:
+        return "VertexA";
+    case Stage::VertexB:
+        return "VertexB";
+    case Stage::TessellationControl:
+        return "TessellationControl";
+    case Stage::TessellationEval:
+        return "TessellationEval";
+    case Stage::Geometry:
+        return "Geometry";
+    case Stage::Fragment:
+        return "Fragment";
+    case Stage::Compute:
+        return "Compute";
+    }
+    return "Unknown";
+}
+
+[[nodiscard]] constexpr std::string_view DenormModeName(bool flush, bool preserve) noexcept {
+    if (flush && preserve) {
+        return "Flush+Preserve";
+    }
+    if (flush) {
+        return "Flush";
+    }
+    if (preserve) {
+        return "Preserve";
+    }
+    return "None";
+}
+
+void LogRzBackendSummary(const Profile& profile, const IR::Program& program, bool optimize) {
+    if (!Settings::values.renderer_debug) {
+        return;
+    }
+    u32 rz_count{};
+    for (const IR::Block* const block : program.post_order_blocks) {
+        for (const IR::Inst& inst : block->Instructions()) {
+            switch (inst.GetOpcode()) {
+            case IR::Opcode::FPAdd16:
+            case IR::Opcode::FPFma16:
+            case IR::Opcode::FPMul16:
+            case IR::Opcode::FPRoundEven16:
+            case IR::Opcode::FPFloor16:
+            case IR::Opcode::FPCeil16:
+            case IR::Opcode::FPTrunc16:
+            case IR::Opcode::FPAdd32:
+            case IR::Opcode::FPFma32:
+            case IR::Opcode::FPMul32:
+            case IR::Opcode::FPRoundEven32:
+            case IR::Opcode::FPFloor32:
+            case IR::Opcode::FPCeil32:
+            case IR::Opcode::FPTrunc32:
+            case IR::Opcode::FPOrdEqual32:
+            case IR::Opcode::FPUnordEqual32:
+            case IR::Opcode::FPOrdNotEqual32:
+            case IR::Opcode::FPUnordNotEqual32:
+            case IR::Opcode::FPOrdLessThan32:
+            case IR::Opcode::FPUnordLessThan32:
+            case IR::Opcode::FPOrdGreaterThan32:
+            case IR::Opcode::FPUnordGreaterThan32:
+            case IR::Opcode::FPOrdLessThanEqual32:
+            case IR::Opcode::FPUnordLessThanEqual32:
+            case IR::Opcode::FPOrdGreaterThanEqual32:
+            case IR::Opcode::FPUnordGreaterThanEqual32:
+            case IR::Opcode::ConvertF16F32:
+            case IR::Opcode::ConvertF64F32:
+                rz_count += inst.Flags<IR::FpControl>().rounding == IR::FpRounding::RZ ? 1U : 0U;
+                break;
+            default:
+                break;
+            }
+        }
+    }
+    if (rz_count == 0) {
+        return;
+    }
+
+    LOG_INFO(Shader_SPIRV,
+             "SPV_RZ {} start={:#010x} optimize={} support_float_controls={} separate_denorm_behavior={} broken_fp16_float_controls={} fp16_denorm={} fp32_denorm={} signed_nan16={} signed_nan32={} signed_nan64={} rz_inst_count={}",
+             StageName(program.stage), program.start_address, optimize,
+             profile.support_float_controls, profile.support_separate_denorm_behavior,
+             profile.has_broken_fp16_float_controls,
+             DenormModeName(program.info.uses_fp16_denorms_flush,
+                            program.info.uses_fp16_denorms_preserve),
+             DenormModeName(program.info.uses_fp32_denorms_flush,
+                            program.info.uses_fp32_denorms_preserve),
+             profile.support_fp16_signed_zero_nan_preserve,
+             profile.support_fp32_signed_zero_nan_preserve,
+             profile.support_fp64_signed_zero_nan_preserve, rz_count);
+}
+
 template <class Func>
 struct FuncTraits {};
     thread_local std::unique_ptr<spvtools::Optimizer> thread_optimizer;
@@ -503,6 +598,7 @@ void PatchPhiNodes(IR::Program& program, EmitContext& ctx) {
 
 std::vector<u32> EmitSPIRV(const Profile& profile, const RuntimeInfo& runtime_info,
                            IR::Program& program, Bindings& bindings, bool optimize) {
+    LogRzBackendSummary(profile, program, optimize);
     EmitContext ctx{profile, runtime_info, program, bindings};
     const Id main{DefineMain(ctx, program)};
     DefineEntryPoint(program, ctx, main);
@@ -516,6 +612,12 @@ std::vector<u32> EmitSPIRV(const Profile& profile, const RuntimeInfo& runtime_in
     PatchPhiNodes(program, ctx);
 
     if (!optimize) {
+        if (Settings::values.renderer_debug && ctx.log_rz_fp_controls) {
+            const std::vector<u32> spirv{ctx.Assemble()};
+            LOG_INFO(Shader_SPIRV, "SPV_RZ {} start={:#010x} assembled_words={} optimized_words={} validator_run=false",
+                     StageName(program.stage), program.start_address, spirv.size(), spirv.size());
+            return spirv;
+        }
         return ctx.Assemble();
     } else {
         std::vector<u32> spirv = ctx.Assemble();
@@ -534,6 +636,11 @@ std::vector<u32> EmitSPIRV(const Profile& profile, const RuntimeInfo& runtime_in
             LOG_ERROR(HW_GPU,
                       "Failed to optimize SPIRV shader output, continuing without optimization");
             result = std::move(spirv);
+        }
+        if (Settings::values.renderer_debug && ctx.log_rz_fp_controls) {
+            LOG_INFO(Shader_SPIRV,
+                     "SPV_RZ {} start={:#010x} assembled_words={} optimized_words={} validator_run=false",
+                     StageName(program.stage), program.start_address, spirv.size(), result.size());
         }
         return result;
     }

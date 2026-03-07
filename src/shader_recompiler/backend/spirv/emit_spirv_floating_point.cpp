@@ -1,16 +1,59 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/logging/log.h"
 #include "shader_recompiler/backend/spirv/emit_spirv_instructions.h"
 #include "shader_recompiler/backend/spirv/spirv_emit_context.h"
 #include "shader_recompiler/frontend/ir/modifiers.h"
 
 namespace Shader::Backend::SPIRV {
 namespace {
+[[nodiscard]] constexpr std::string_view StageName(Stage stage) noexcept {
+    switch (stage) {
+    case Stage::VertexA:
+        return "VertexA";
+    case Stage::VertexB:
+        return "VertexB";
+    case Stage::TessellationControl:
+        return "TessellationControl";
+    case Stage::TessellationEval:
+        return "TessellationEval";
+    case Stage::Geometry:
+        return "Geometry";
+    case Stage::Fragment:
+        return "Fragment";
+    case Stage::Compute:
+        return "Compute";
+    }
+    return "Unknown";
+}
+
+[[nodiscard]] constexpr std::string_view FmzName(IR::FmzMode fmz_mode) noexcept {
+    switch (fmz_mode) {
+    case IR::FmzMode::DontCare:
+        return "DontCare";
+    case IR::FmzMode::FTZ:
+        return "FTZ";
+    case IR::FmzMode::FMZ:
+        return "FMZ";
+    case IR::FmzMode::None:
+        return "None";
+    }
+    return "Unknown";
+}
+
 Id Decorate(EmitContext& ctx, IR::Inst* inst, Id op) {
     const auto flags{inst->Flags<IR::FpControl>()};
+    if (Settings::values.renderer_debug && ctx.log_rz_fp_controls &&
+        flags.rounding == IR::FpRounding::RZ) {
+        LOG_INFO(Shader_SPIRV,
+                 "SPV_RZ_EMIT {} start={:#010x} ir_opcode={} spirv_op=OpFMul result_id={} no_contraction={} fmz={} float_controls_ext={}",
+                 StageName(ctx.stage), ctx.start_address, inst->GetOpcode(), op,
+                 flags.no_contraction, FmzName(flags.fmz_mode), ctx.profile.support_float_controls);
+    }
     if (flags.no_contraction) {
         ctx.Decorate(op, spv::Decoration::NoContraction);
     }

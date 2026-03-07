@@ -216,6 +216,8 @@ public:
     const Profile& profile;
     const RuntimeInfo& runtime_info;
     Stage stage{};
+    u32 start_address{};
+    bool log_rz_fp_controls{};
 
     Id void_id{};
     Id U1{};

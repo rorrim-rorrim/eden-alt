@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -20,6 +23,7 @@ struct Program {
     BlockList post_order_blocks;
     Info info;
     Stage stage{};
+    u32 start_address{};
     std::array<u32, 3> workgroup_size{};
     OutputTopology output_topology{};
     u32 output_vertices{};
