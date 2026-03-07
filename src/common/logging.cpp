@@ -11,6 +11,9 @@
 #include <regex>
 #include <thread>
 
+#if defined(__ANDROID__)
+#include <android/log.h>
+#endif
 #ifdef _WIN32
 #include <windows.h> // For OutputDebugStringW
 #else
