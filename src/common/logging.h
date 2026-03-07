@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <chrono>
+#include <algorithm>
 #include <type_traits>
 #include <fmt/ranges.h>
 #include "common/swap.h"
