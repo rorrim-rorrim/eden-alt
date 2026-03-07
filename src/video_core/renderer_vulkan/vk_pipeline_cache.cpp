@@ -260,19 +260,17 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
             info.active_color_outputs[0] = true;
         }
 
-        if (device.IsMoltenVK()) {
-            for (size_t i = 0; i < 8; ++i) {
-                const auto format = static_cast<Tegra::RenderTargetFormat>(key.state.color_formats[i]);
-                const auto pixel_format = VideoCore::Surface::PixelFormatFromRenderTargetFormat(format);
-                if (VideoCore::Surface::IsPixelFormatInteger(pixel_format)) {
-                    if (VideoCore::Surface::IsPixelFormatSignedInteger(pixel_format)) {
-                        info.color_output_types[i] = Shader::AttributeType::SignedInt;
-                    } else {
-                        info.color_output_types[i] = Shader::AttributeType::UnsignedInt;
-                    }
+        for (size_t i = 0; i < 8; ++i) {
+            const auto format = static_cast<Tegra::RenderTargetFormat>(key.state.color_formats[i]);
+            const auto pixel_format = VideoCore::Surface::PixelFormatFromRenderTargetFormat(format);
+            if (VideoCore::Surface::IsPixelFormatInteger(pixel_format)) {
+                if (VideoCore::Surface::IsPixelFormatSignedInteger(pixel_format)) {
+                    info.color_output_types[i] = Shader::AttributeType::SignedInt;
                 } else {
-                    info.color_output_types[i] = Shader::AttributeType::Float;
+                    info.color_output_types[i] = Shader::AttributeType::UnsignedInt;
                 }
+            } else {
+                info.color_output_types[i] = Shader::AttributeType::Float;
             }
         }
         break;
