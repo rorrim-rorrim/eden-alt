@@ -170,6 +170,9 @@ bool Swapchain::AcquireNextImage() {
         break;
     }
 
+#ifdef __ANDROID__
+    scheduler.Wait(resource_ticks[image_index]);
+#else
     switch (Settings::values.frame_pacing_mode.GetValue()) {
     case Settings::FramePacingMode::Target_Auto:
         scheduler.Wait(resource_ticks[image_index]);
@@ -187,6 +190,7 @@ bool Swapchain::AcquireNextImage() {
         scheduler.Wait(resource_ticks[image_index], 120.0);
         break;
     }
+#endif
 
     resource_ticks[image_index] = scheduler.CurrentTick();
 
