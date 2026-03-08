@@ -1078,11 +1078,9 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateLineWidth(regs);
     UpdateLineStipple(regs);
 
-    // EDS1: CullMode, DepthCompare, FrontFace, StencilOp, DepthBoundsTest, DepthTest, DepthWrite, StencilTest
+    // EDS1: DepthCompare, StencilOp, DepthBoundsTest, DepthTest, DepthWrite, StencilTest
     if (device.IsExtExtendedDynamicStateSupported() && pipeline && pipeline->UsesExtendedDynamicState()) {
-        UpdateCullMode(regs);
         UpdateDepthCompareOp(regs);
-        UpdateFrontFace(regs);
         UpdateStencilOp(regs);
         if (state_tracker.TouchStateEnable()) {
             UpdateDepthBoundsTestEnable(regs);

@@ -576,12 +576,7 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
 }
 
 void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
-    FixedPipelineState::DynamicState dynamic{};
-    if (!key.state.extended_dynamic_state) {
-        dynamic = key.state.dynamic_state;
-    } else {
-        dynamic.raw1 = key.state.dynamic_state.raw1;
-    }
+    const FixedPipelineState::DynamicState dynamic{key.state.dynamic_state};
     static_vector<VkVertexInputBindingDescription, 32> vertex_bindings;
     static_vector<VkVertexInputBindingDivisorDescriptionEXT, 32> vertex_binding_divisors;
     static_vector<VkVertexInputAttributeDescription, 32> vertex_attributes;
@@ -906,8 +901,6 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     }
     if (key.state.extended_dynamic_state) {
         static constexpr std::array extended{
-            VK_DYNAMIC_STATE_CULL_MODE_EXT,
-            VK_DYNAMIC_STATE_FRONT_FACE_EXT,
             VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT,
             VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE_EXT,
             VK_DYNAMIC_STATE_DEPTH_COMPARE_OP_EXT,
