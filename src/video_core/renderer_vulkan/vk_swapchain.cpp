@@ -174,7 +174,7 @@ bool Swapchain::AcquireNextImage() {
         break;
     }
 
-    const auto wait_with_frame_pacing = [this, image_index] {
+    const auto wait_with_frame_pacing = [this] {
     switch (Settings::values.frame_pacing_mode.GetValue()) {
     case Settings::FramePacingMode::Target_Auto:
         scheduler.Wait(resource_ticks[image_index]);
