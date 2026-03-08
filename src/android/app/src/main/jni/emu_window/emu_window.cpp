@@ -116,13 +116,38 @@ float EmuWindow_Android::QuantizeFrameRateHint(float frame_rate) {
     return std::fabs(frame_rate - best_rate) <= tolerance ? best_rate : best_rate;
 }
 
+float EmuWindow_Android::GetFrameTimeVerifiedHint() const {
+    if (!EmulationSession::GetInstance().IsRunning()) {
+        return 0.0f;
+    }
+
+    const double frame_time_scale =
+        EmulationSession::GetInstance().System().GetPerfStats().GetLastFrameTimeScale();
+    if (!std::isfinite(frame_time_scale) || frame_time_scale <= 0.0) {
+        return 0.0f;
+    }
+
+    const float verified_rate =
+        std::clamp(60.0f / static_cast<float>(frame_time_scale), 0.0f, 240.0f);
+    const float verified_hint = QuantizeFrameRateHint(verified_rate);
+
+    // Frame-time verification is most useful to separate stable 30/60 FPS content.
+    return verified_hint <= 60.0f ? verified_hint : 0.0f;
+}
+
 float EmuWindow_Android::GetFrameRateHint() const {
     const float observed_rate = std::clamp(m_smoothed_present_rate, 0.0f, 240.0f);
+    const float frame_time_verified_hint = GetFrameTimeVerifiedHint();
+
     if (m_last_frame_rate_hint > 0.0f && observed_rate > 0.0f) {
         const float tolerance = std::max(m_last_frame_rate_hint * 0.12f, 4.0f);
         if (std::fabs(observed_rate - m_last_frame_rate_hint) <= tolerance) {
             return m_last_frame_rate_hint;
         }
+    }
+
+    if (frame_time_verified_hint > 0.0f) {
+        return frame_time_verified_hint;
     }
 
     const float observed_hint = QuantizeFrameRateHint(observed_rate);
