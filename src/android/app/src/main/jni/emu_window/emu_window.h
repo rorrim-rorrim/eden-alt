@@ -50,10 +50,14 @@ public:
     };
 
 private:
+    void UpdateFrameRateHint();
+    [[nodiscard]] float GetFrameRateHint() const;
+
     float m_window_width{};
     float m_window_height{};
 
     std::shared_ptr<Common::DynamicLibrary> m_driver_library;
 
     bool m_first_frame = false;
+    float m_last_frame_rate_hint = -1.0f;
 };

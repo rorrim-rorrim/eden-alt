@@ -6,8 +6,14 @@
 
 #include <android/native_window_jni.h>
 
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <dlfcn.h>
+
 #include "common/android/id_cache.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "input_common/drivers/android.h"
 #include "input_common/drivers/touch_screen.h"
 #include "input_common/drivers/virtual_amiibo.h"
@@ -22,6 +28,7 @@ void EmuWindow_Android::OnSurfaceChanged(ANativeWindow* surface) {
         m_window_width = 0;
         m_window_height = 0;
         window_info.render_surface = nullptr;
+        m_last_frame_rate_hint = -1.0f;
         return;
     }
 
@@ -32,6 +39,7 @@ void EmuWindow_Android::OnSurfaceChanged(ANativeWindow* surface) {
     UpdateCurrentFramebufferLayout(m_window_width, m_window_height);
 
     window_info.render_surface = reinterpret_cast<void*>(surface);
+    UpdateFrameRateHint();
 }
 
 void EmuWindow_Android::OnTouchPressed(int id, float x, float y) {
@@ -51,11 +59,70 @@ void EmuWindow_Android::OnTouchReleased(int id) {
 }
 
 void EmuWindow_Android::OnFrameDisplayed() {
+    UpdateFrameRateHint();
+
     if (!m_first_frame) {
         Common::Android::RunJNIOnFiber<void>(
             [&](JNIEnv* env) { EmulationSession::GetInstance().OnEmulationStarted(); });
         m_first_frame = true;
     }
+}
+
+float EmuWindow_Android::GetFrameRateHint() const {
+    if (!Settings::values.use_speed_limit.GetValue()) {
+        return 0.0f;
+    }
+
+    const u16 speed_limit = Settings::SpeedLimit();
+    if (speed_limit == 0) {
+        return 0.0f;
+    }
+
+    if (speed_limit > 100) {
+        return 0.0f;
+    }
+
+    constexpr float NominalFrameRate = 60.0f;
+    const float desired_rate = NominalFrameRate * (static_cast<float>(speed_limit) / 100.0f);
+
+    if (desired_rate < 20.0f) {
+        return 0.0f;
+    }
+
+    return desired_rate;
+}
+
+void EmuWindow_Android::UpdateFrameRateHint() {
+    auto* const surface = reinterpret_cast<ANativeWindow*>(window_info.render_surface);
+    if (!surface) {
+        return;
+    }
+
+    const float frame_rate_hint = GetFrameRateHint();
+    if (std::fabs(frame_rate_hint - m_last_frame_rate_hint) < 0.01f) {
+        return;
+    }
+
+    using SetFrameRateWithChangeStrategyFn =
+        int32_t (*)(ANativeWindow*, float, int8_t, int8_t);
+    static const auto set_frame_rate_with_change_strategy =
+        reinterpret_cast<SetFrameRateWithChangeStrategyFn>(
+            dlsym(RTLD_DEFAULT, "ANativeWindow_setFrameRateWithChangeStrategy"));
+
+    if (!set_frame_rate_with_change_strategy) {
+        return;
+    }
+
+    const auto result = set_frame_rate_with_change_strategy(
+        surface, frame_rate_hint,
+        static_cast<int8_t>(ANATIVEWINDOW_FRAME_RATE_COMPATIBILITY_DEFAULT),
+        static_cast<int8_t>(ANATIVEWINDOW_CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS));
+    if (result != 0) {
+        LOG_DEBUG(Frontend, "Failed to update Android surface frame rate hint: {}", result);
+        return;
+    }
+
+    m_last_frame_rate_hint = frame_rate_hint;
 }
 
 EmuWindow_Android::EmuWindow_Android(ANativeWindow* surface,
