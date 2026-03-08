@@ -45,6 +45,35 @@ using namespace Common::Literals;
 constexpr u32 StackSize = 128_KiB;
 constexpr u64 SplitPageAccessWindow = 64;
 
+[[nodiscard]] constexpr u64 AlignDownPage(u64 addr) {
+    return addr & ~u64{Memory::YUZU_PAGEMASK};
+}
+
+[[nodiscard]] bool IsNearPageBoundary(u64 addr) {
+    const u64 page_offset = addr & Memory::YUZU_PAGEMASK;
+    return page_offset < SplitPageAccessWindow ||
+           page_offset + SplitPageAccessWindow > Memory::YUZU_PAGESIZE;
+}
+
+[[nodiscard]] bool IsNearTlsWindow(u64 tls_base, u64 fault_addr) {
+    if (tls_base == 0) {
+        return false;
+    }
+
+    const u64 tls_first_page = AlignDownPage(tls_base);
+    const u64 tls_last_byte = tls_base + Kernel::Svc::ThreadLocalRegionSize - 1;
+    const u64 tls_last_page = AlignDownPage(tls_last_byte);
+    const u64 fault_page = AlignDownPage(fault_addr);
+
+    return fault_page + Memory::YUZU_PAGESIZE >= tls_first_page &&
+           fault_page <= tls_last_page + Memory::YUZU_PAGESIZE;
+}
+
+[[nodiscard]] bool ShouldUsePreciseAccessChannel(const GuestContext* guest_ctx, u64 fault_addr) {
+    return IsNearPageBoundary(fault_addr) || IsNearTlsWindow(guest_ctx->tpidrro_el0, fault_addr) ||
+           IsNearTlsWindow(guest_ctx->tpidr_el0, fault_addr);
+}
+
 } // namespace
 
 void* ArmNce::RestoreGuestContext(void* raw_context) {
@@ -167,6 +196,15 @@ bool ArmNce::HandleGuestAccessFault(GuestContext* guest_ctx, void* raw_info, voi
     const Common::ProcessAddress addr = fault_addr & ~Memory::YUZU_PAGEMASK;
     const u64 page_offset = fault_addr & Memory::YUZU_PAGEMASK;
     auto& memory = guest_ctx->parent->m_running_thread->GetOwnerProcess()->GetMemory();
+    const bool prefer_precise_channel = ShouldUsePreciseAccessChannel(guest_ctx, fault_addr);
+
+    if (prefer_precise_channel) {
+        if (auto next_pc = MatchAndExecuteOneInstruction(memory, &host_ctx, fpctx); next_pc) {
+            host_ctx.pc = *next_pc;
+            return true;
+        }
+    }
+
     bool handled = memory.InvalidateNCE(addr, Memory::YUZU_PAGESIZE);
 
     if (page_offset < SplitPageAccessWindow && addr >= Memory::YUZU_PAGESIZE) {
