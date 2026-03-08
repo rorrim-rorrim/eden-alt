@@ -168,6 +168,11 @@ bool Scheduler::UpdateGraphicsPipeline(GraphicsPipeline* pipeline) {
         return true;
     }
 
+    if (pipeline->UsesExtendedDynamicState() || pipeline->UsesExtendedDynamicState2() ||
+        pipeline->UsesExtendedDynamicState2LogicOp()) {
+        state_tracker.InvalidateExtendedDynamicStates();
+    }
+
     if (!pipeline->UsesExtendedDynamicState()) {
         state.needs_state_enable_refresh = true;
     } else if (state.needs_state_enable_refresh) {

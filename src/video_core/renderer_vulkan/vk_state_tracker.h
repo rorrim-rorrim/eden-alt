@@ -94,6 +94,21 @@ public:
         (*flags)[Dirty::StateEnable] = true;
     }
 
+    void InvalidateExtendedDynamicStates() {
+        (*flags)[Dirty::Viewports] = true;
+        (*flags)[Dirty::Scissors] = true;
+        (*flags)[Dirty::CullMode] = true;
+        (*flags)[Dirty::DepthCompareOp] = true;
+        (*flags)[Dirty::FrontFace] = true;
+        (*flags)[Dirty::StencilOp] = true;
+        (*flags)[Dirty::StateEnable] = true;
+        (*flags)[Dirty::PrimitiveRestartEnable] = true;
+        (*flags)[Dirty::RasterizerDiscardEnable] = true;
+        (*flags)[Dirty::DepthBiasEnable] = true;
+        (*flags)[Dirty::LogicOp] = true;
+        current_topology = INVALID_TOPOLOGY;
+    }
+
     bool TouchViewports() {
         const bool dirty_viewports = Exchange(Dirty::Viewports, false);
         const bool rescale_viewports = Exchange(VideoCommon::Dirty::RescaleViewports, false);
