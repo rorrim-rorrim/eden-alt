@@ -5,9 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
-#include <array>
 #include <memory>
-#include <string_view>
 #include <vector>
 #include <queue>
 
@@ -25,214 +23,6 @@
 
 namespace Shader::Maxwell {
 namespace {
-struct FpControlHistogram {
-    std::array<u32, 2> total{};
-    std::array<u32, 2> no_contraction{};
-    std::array<std::array<u32, 5>, 2> rounding{};
-    std::array<std::array<u32, 4>, 2> fmz{};
-    std::array<std::array<std::array<u32, 4>, 5>, 2> combos{};
-};
-
-[[nodiscard]] constexpr std::string_view StageName(Stage stage) noexcept {
-    switch (stage) {
-    case Stage::VertexA:
-        return "VertexA";
-    case Stage::VertexB:
-        return "VertexB";
-    case Stage::TessellationControl:
-        return "TessellationControl";
-    case Stage::TessellationEval:
-        return "TessellationEval";
-    case Stage::Geometry:
-        return "Geometry";
-    case Stage::Fragment:
-        return "Fragment";
-    case Stage::Compute:
-        return "Compute";
-    }
-    return "Unknown";
-}
-
-[[nodiscard]] constexpr std::string_view RoundingName(IR::FpRounding rounding) noexcept {
-    switch (rounding) {
-    case IR::FpRounding::DontCare:
-        return "DontCare";
-    case IR::FpRounding::RN:
-        return "RN";
-    case IR::FpRounding::RM:
-        return "RM";
-    case IR::FpRounding::RP:
-        return "RP";
-    case IR::FpRounding::RZ:
-        return "RZ";
-    }
-    return "Unknown";
-}
-
-[[nodiscard]] constexpr std::string_view FmzName(IR::FmzMode fmz_mode) noexcept {
-    switch (fmz_mode) {
-    case IR::FmzMode::DontCare:
-        return "DontCare";
-    case IR::FmzMode::FTZ:
-        return "FTZ";
-    case IR::FmzMode::FMZ:
-        return "FMZ";
-    case IR::FmzMode::None:
-        return "None";
-    }
-    return "Unknown";
-}
-
-[[nodiscard]] constexpr std::optional<size_t> FpControlBucket(const IR::Opcode opcode) noexcept {
-    switch (opcode) {
-    case IR::Opcode::FPAdd16:
-    case IR::Opcode::FPFma16:
-    case IR::Opcode::FPMul16:
-    case IR::Opcode::FPRoundEven16:
-    case IR::Opcode::FPFloor16:
-    case IR::Opcode::FPCeil16:
-    case IR::Opcode::FPTrunc16:
-        return 0;
-    case IR::Opcode::FPAdd32:
-    case IR::Opcode::FPFma32:
-    case IR::Opcode::FPMul32:
-    case IR::Opcode::FPRoundEven32:
-    case IR::Opcode::FPFloor32:
-    case IR::Opcode::FPCeil32:
-    case IR::Opcode::FPTrunc32:
-    case IR::Opcode::FPOrdEqual32:
-    case IR::Opcode::FPUnordEqual32:
-    case IR::Opcode::FPOrdNotEqual32:
-    case IR::Opcode::FPUnordNotEqual32:
-    case IR::Opcode::FPOrdLessThan32:
-    case IR::Opcode::FPUnordLessThan32:
-    case IR::Opcode::FPOrdGreaterThan32:
-    case IR::Opcode::FPUnordGreaterThan32:
-    case IR::Opcode::FPOrdLessThanEqual32:
-    case IR::Opcode::FPUnordLessThanEqual32:
-    case IR::Opcode::FPOrdGreaterThanEqual32:
-    case IR::Opcode::FPUnordGreaterThanEqual32:
-    case IR::Opcode::ConvertF16F32:
-    case IR::Opcode::ConvertF64F32:
-        return 1;
-    default:
-        return std::nullopt;
-    }
-}
-
-FpControlHistogram CollectFpControlHistogram(const IR::Program& program) {
-    FpControlHistogram histogram{};
-    for (const IR::Block* const block : program.post_order_blocks) {
-        for (const IR::Inst& inst : block->Instructions()) {
-            const std::optional<size_t> bucket{FpControlBucket(inst.GetOpcode())};
-            if (!bucket) {
-                continue;
-            }
-            const auto flags{inst.Flags<IR::FpControl>()};
-            ++histogram.total[*bucket];
-            if (flags.no_contraction) {
-                ++histogram.no_contraction[*bucket];
-            }
-            ++histogram.rounding[*bucket][static_cast<size_t>(flags.rounding)];
-            ++histogram.fmz[*bucket][static_cast<size_t>(flags.fmz_mode)];
-            ++histogram.combos[*bucket][static_cast<size_t>(flags.rounding)]
-                               [static_cast<size_t>(flags.fmz_mode)];
-        }
-    }
-    return histogram;
-}
-
-void LogRzFpControlTrace(Environment& env, const IR::Program& program) {
-    std::array<u32, 2> totals{};
-    for (const IR::Block* const block : program.post_order_blocks) {
-        for (const IR::Inst& inst : block->Instructions()) {
-            const std::optional<size_t> bucket{FpControlBucket(inst.GetOpcode())};
-            if (!bucket) {
-                continue;
-            }
-            const auto flags{inst.Flags<IR::FpControl>()};
-            if (flags.rounding != IR::FpRounding::RZ) {
-                continue;
-            }
-            ++totals[*bucket];
-        }
-    }
-
-    if (totals[0] == 0 && totals[1] == 0) {
-        return;
-    }
-
-    constexpr std::array<std::string_view, 2> precision_names{"fp16", "fp32"};
-    LOG_INFO(Shader,
-             "FP_RZ {} shader start={:#010x} blocks={} post_order_blocks={} fp16={} fp32={}",
-             StageName(program.stage), env.StartAddress(), program.blocks.size(),
-             program.post_order_blocks.size(), totals[0], totals[1]);
-
-    for (const IR::Block* const block : program.post_order_blocks) {
-        u32 inst_index{};
-        for (const IR::Inst& inst : block->Instructions()) {
-            const std::optional<size_t> bucket{FpControlBucket(inst.GetOpcode())};
-            if (!bucket) {
-                ++inst_index;
-                continue;
-            }
-            const auto flags{inst.Flags<IR::FpControl>()};
-            if (flags.rounding != IR::FpRounding::RZ) {
-                ++inst_index;
-                continue;
-            }
-            LOG_INFO(Shader,
-                     "FP_RZ {} start={:#010x} block_order={} inst_index={} precision={} opcode={} no_contraction={} fmz={}",
-                     StageName(program.stage), env.StartAddress(), block->GetOrder(), inst_index,
-                     precision_names[*bucket], inst.GetOpcode(), flags.no_contraction,
-                     FmzName(flags.fmz_mode));
-            ++inst_index;
-        }
-    }
-}
-
-void LogFpControlHistogram(const IR::Program& program) {
-    const FpControlHistogram histogram{CollectFpControlHistogram(program)};
-    if (histogram.total[0] == 0 && histogram.total[1] == 0) {
-        return;
-    }
-
-    LOG_INFO(Shader, "FP_HIST {} shader blocks={} post_order_blocks={}",
-             StageName(program.stage), program.blocks.size(), program.post_order_blocks.size());
-
-    constexpr std::array<std::string_view, 2> precision_names{"fp16", "fp32"};
-    for (size_t bucket = 0; bucket < precision_names.size(); ++bucket) {
-        if (histogram.total[bucket] == 0) {
-            continue;
-        }
-
-        LOG_INFO(Shader,
-             "FP_HIST {} total={} no_contraction={} rounding[DontCare={}, RN={}, RM={}, RP={}, RZ={}] fmz[DontCare={}, FTZ={}, FMZ={}, None={}]",
-             precision_names[bucket], histogram.total[bucket], histogram.no_contraction[bucket],
-             histogram.rounding[bucket][static_cast<size_t>(IR::FpRounding::DontCare)],
-             histogram.rounding[bucket][static_cast<size_t>(IR::FpRounding::RN)],
-             histogram.rounding[bucket][static_cast<size_t>(IR::FpRounding::RM)],
-             histogram.rounding[bucket][static_cast<size_t>(IR::FpRounding::RP)],
-             histogram.rounding[bucket][static_cast<size_t>(IR::FpRounding::RZ)],
-             histogram.fmz[bucket][static_cast<size_t>(IR::FmzMode::DontCare)],
-             histogram.fmz[bucket][static_cast<size_t>(IR::FmzMode::FTZ)],
-             histogram.fmz[bucket][static_cast<size_t>(IR::FmzMode::FMZ)],
-             histogram.fmz[bucket][static_cast<size_t>(IR::FmzMode::None)]);
-
-        for (size_t rounding = 0; rounding < histogram.combos[bucket].size(); ++rounding) {
-            for (size_t fmz = 0; fmz < histogram.combos[bucket][rounding].size(); ++fmz) {
-                const u32 count{histogram.combos[bucket][rounding][fmz]};
-                if (count == 0) {
-                    continue;
-                }
-                LOG_INFO(Shader, "FP_HIST {} combo {} / {} = {}", precision_names[bucket],
-                         RoundingName(static_cast<IR::FpRounding>(rounding)),
-                         FmzName(static_cast<IR::FmzMode>(fmz)), count);
-            }
-        }
-    }
-}
-
 IR::BlockList GenerateBlocks(const IR::AbstractSyntaxList& syntax_list) {
     size_t num_syntax_blocks{};
     for (const auto& node : syntax_list) {
@@ -527,11 +317,6 @@ IR::Program TranslateProgram(ObjectPool<IR::Inst>& inst_pool, ObjectPool<IR::Blo
     Optimization::LayerPass(program, host_info);
     Optimization::VendorWorkaroundPass(program);
 
-    if (Settings::values.renderer_debug) {
-        LogFpControlHistogram(program);
-        LogRzFpControlTrace(env, program);
-    }
-
     CollectInterpolationInfo(env, program);
     AddNVNStorageBuffers(program);
     return program;
@@ -568,10 +353,6 @@ IR::Program MergeDualVertexPrograms(IR::Program& vertex_a, IR::Program& vertex_b
         Optimization::VerificationPass(result);
     }
     Optimization::CollectShaderInfoPass(env_vertex_b, result);
-    if (Settings::values.renderer_debug) {
-        LogFpControlHistogram(result);
-        LogRzFpControlTrace(env_vertex_b, result);
-    }
     return result;
 }
 
