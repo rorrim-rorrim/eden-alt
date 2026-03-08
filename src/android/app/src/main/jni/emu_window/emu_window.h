@@ -60,6 +60,7 @@ private:
     void UpdateFrameRateHint();
     void UpdateObservedFrameRate();
     [[nodiscard]] float GetFrameRateHint() const;
+    [[nodiscard]] float GetFrameTimeVerifiedHint() const;
     [[nodiscard]] static float QuantizeFrameRateHint(float frame_rate);
 
     float m_window_width{};
