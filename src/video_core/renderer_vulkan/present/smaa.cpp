@@ -272,6 +272,7 @@ void SMAA::Draw(Scheduler& scheduler, size_t image_index, VkImage* inout_image,
         cmdbuf.EndRenderPass();
         TransitionImageLayout(cmdbuf, output_image, VK_IMAGE_LAYOUT_GENERAL);
     });
+    scheduler.InvalidateState();
 
     *inout_image = *images.images[Output];
     *inout_image_view = *images.image_views[Output];

@@ -101,6 +101,7 @@ void WindowAdaptPass::Draw(RasterizerVulkan& rasterizer, Scheduler& scheduler, s
 
         cmdbuf.EndRenderPass();
     });
+    scheduler.InvalidateState();
 }
 
 VkDescriptorSetLayout WindowAdaptPass::GetDescriptorSetLayout() {

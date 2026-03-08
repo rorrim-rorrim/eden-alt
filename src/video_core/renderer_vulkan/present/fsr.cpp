@@ -206,6 +206,7 @@ VkImageView FSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_i
 
         TransitionImageLayout(cmdbuf, rcas_image, VK_IMAGE_LAYOUT_GENERAL);
     });
+    scheduler.InvalidateState();
 
     return *images.image_views[Rcas];
 }

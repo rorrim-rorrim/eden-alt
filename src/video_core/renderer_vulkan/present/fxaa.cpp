@@ -140,6 +140,7 @@ void FXAA::Draw(Scheduler& scheduler, size_t image_index, VkImage* inout_image,
         cmdbuf.EndRenderPass();
         TransitionImageLayout(cmdbuf, output_image, VK_IMAGE_LAYOUT_GENERAL);
     });
+    scheduler.InvalidateState();
 
     *inout_image = *image.image;
     *inout_image_view = *image.image_view;
