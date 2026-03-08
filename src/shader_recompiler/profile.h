@@ -21,7 +21,6 @@ struct Profile {
     bool support_float_controls{};
     bool support_separate_denorm_behavior{};
     bool support_separate_rounding_mode{};
-    bool support_fp32_rounding_rtz{};
     bool support_fp16_denorm_preserve{};
     bool support_fp32_denorm_preserve{};
     bool support_fp16_denorm_flush{};

@@ -509,7 +509,6 @@ std::vector<u32> EmitSPIRV(const Profile& profile, const RuntimeInfo& runtime_in
     if (profile.support_float_controls) {
         ctx.AddExtension("SPV_KHR_float_controls");
         SetupDenormControl(profile, program, ctx, main);
-        SetupRoundingControl(profile, program, ctx, main);
         SetupSignedNanCapabilities(profile, program, ctx, main);
     }
     SetupCapabilities(profile, program.info, ctx);
