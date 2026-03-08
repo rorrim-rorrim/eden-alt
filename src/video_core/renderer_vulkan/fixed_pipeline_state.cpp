@@ -51,37 +51,6 @@ void RefreshXfbState(VideoCommon::TransformFeedbackState& state, const Maxwell& 
     state.varyings = regs.stream_out_layout;
 }
 
-Maxwell::PrimitiveTopology NormalizeDynamicTopologyClass(Maxwell::PrimitiveTopology topology) {
-    switch (topology) {
-    case Maxwell::PrimitiveTopology::Points:
-        return Maxwell::PrimitiveTopology::Points;
-
-    case Maxwell::PrimitiveTopology::Lines:
-    case Maxwell::PrimitiveTopology::LineStrip:
-        return Maxwell::PrimitiveTopology::Lines;
-
-    case Maxwell::PrimitiveTopology::Triangles:
-    case Maxwell::PrimitiveTopology::TriangleStrip:
-    case Maxwell::PrimitiveTopology::TriangleFan:
-    case Maxwell::PrimitiveTopology::Quads:
-    case Maxwell::PrimitiveTopology::QuadStrip:
-    case Maxwell::PrimitiveTopology::Polygon:
-    case Maxwell::PrimitiveTopology::LineLoop:
-        return Maxwell::PrimitiveTopology::Triangles;
-
-    case Maxwell::PrimitiveTopology::LinesAdjacency:
-    case Maxwell::PrimitiveTopology::LineStripAdjacency:
-        return Maxwell::PrimitiveTopology::LinesAdjacency;
-
-    case Maxwell::PrimitiveTopology::TrianglesAdjacency:
-    case Maxwell::PrimitiveTopology::TriangleStripAdjacency:
-        return Maxwell::PrimitiveTopology::TrianglesAdjacency;
-
-    case Maxwell::PrimitiveTopology::Patches:
-        return Maxwell::PrimitiveTopology::Patches;
-    }
-    return topology;
-}
 } // Anonymous namespace
 
 void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFeatures& features) {
