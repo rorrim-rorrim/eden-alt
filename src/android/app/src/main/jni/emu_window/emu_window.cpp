@@ -212,18 +212,27 @@ void EmuWindow_Android::UpdateFrameRateHint() {
 
     using SetFrameRateWithChangeStrategyFn =
         int32_t (*)(ANativeWindow*, float, int8_t, int8_t);
+    using SetFrameRateFn = int32_t (*)(ANativeWindow*, float, int8_t);
     static const auto set_frame_rate_with_change_strategy =
         reinterpret_cast<SetFrameRateWithChangeStrategyFn>(
             dlsym(RTLD_DEFAULT, "ANativeWindow_setFrameRateWithChangeStrategy"));
+    static const auto set_frame_rate = reinterpret_cast<SetFrameRateFn>(
+        dlsym(RTLD_DEFAULT, "ANativeWindow_setFrameRate"));
 
-    if (!set_frame_rate_with_change_strategy) {
+    constexpr int8_t FrameRateCompatibilityDefault = 0;
+    constexpr int8_t ChangeFrameRateOnlyIfSeamless = 0;
+
+    int32_t result = -1;
+    if (set_frame_rate_with_change_strategy) {
+        result = set_frame_rate_with_change_strategy(surface, frame_rate_hint,
+                                                     FrameRateCompatibilityDefault,
+                                                     ChangeFrameRateOnlyIfSeamless);
+    } else if (set_frame_rate) {
+        result = set_frame_rate(surface, frame_rate_hint, FrameRateCompatibilityDefault);
+    } else {
         return;
     }
 
-    const auto result = set_frame_rate_with_change_strategy(
-        surface, frame_rate_hint,
-        static_cast<int8_t>(ANATIVEWINDOW_FRAME_RATE_COMPATIBILITY_DEFAULT),
-        static_cast<int8_t>(ANATIVEWINDOW_CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS));
     if (result != 0) {
         LOG_DEBUG(Frontend, "Failed to update Android surface frame rate hint: {}", result);
         return;
