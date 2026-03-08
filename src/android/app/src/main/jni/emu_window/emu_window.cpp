@@ -7,6 +7,7 @@
 #include <android/native_window_jni.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <dlfcn.h>
@@ -29,6 +30,10 @@ void EmuWindow_Android::OnSurfaceChanged(ANativeWindow* surface) {
         m_window_height = 0;
         window_info.render_surface = nullptr;
         m_last_frame_rate_hint = -1.0f;
+        m_pending_frame_rate_hint = -1.0f;
+        m_pending_frame_rate_hint_votes = 0;
+        m_smoothed_present_rate = 0.0f;
+        m_last_frame_display_time = {};
         return;
     }
 
@@ -59,6 +64,7 @@ void EmuWindow_Android::OnTouchReleased(int id) {
 }
 
 void EmuWindow_Android::OnFrameDisplayed() {
+    UpdateObservedFrameRate();
     UpdateFrameRateHint();
 
     if (!m_first_frame) {
@@ -66,6 +72,44 @@ void EmuWindow_Android::OnFrameDisplayed() {
             [&](JNIEnv* env) { EmulationSession::GetInstance().OnEmulationStarted(); });
         m_first_frame = true;
     }
+}
+
+void EmuWindow_Android::UpdateObservedFrameRate() {
+    const auto now = Clock::now();
+    if (m_last_frame_display_time.time_since_epoch().count() != 0) {
+        const auto frame_time = std::chrono::duration<float>(now - m_last_frame_display_time);
+        const float seconds = frame_time.count();
+        if (seconds > 0.0f) {
+            const float instantaneous_rate = 1.0f / seconds;
+            if (std::isfinite(instantaneous_rate) && instantaneous_rate >= 10.0f &&
+                instantaneous_rate <= 240.0f) {
+                constexpr float SmoothingFactor = 0.15f;
+                if (m_smoothed_present_rate <= 0.0f) {
+                    m_smoothed_present_rate = instantaneous_rate;
+                } else {
+                    m_smoothed_present_rate +=
+                        (instantaneous_rate - m_smoothed_present_rate) * SmoothingFactor;
+                }
+            }
+        }
+    }
+    m_last_frame_display_time = now;
+}
+
+float EmuWindow_Android::QuantizeFrameRateHint(float frame_rate) {
+    if (!std::isfinite(frame_rate) || frame_rate < 20.0f) {
+        return 0.0f;
+    }
+
+    constexpr std::array CandidateRates{30.0f, 45.0f, 60.0f, 90.0f, 120.0f};
+    const auto best = std::min_element(CandidateRates.begin(), CandidateRates.end(),
+                                       [frame_rate](float lhs, float rhs) {
+                                           return std::fabs(frame_rate - lhs) <
+                                                  std::fabs(frame_rate - rhs);
+                                       });
+    const float best_rate = *best;
+    const float tolerance = std::max(best_rate * 0.18f, 5.0f);
+    return std::fabs(frame_rate - best_rate) <= tolerance ? best_rate : 0.0f;
 }
 
 float EmuWindow_Android::GetFrameRateHint() const {
@@ -89,7 +133,45 @@ float EmuWindow_Android::GetFrameRateHint() const {
         return 0.0f;
     }
 
-    return desired_rate;
+    if (m_last_frame_rate_hint > 0.0f && m_smoothed_present_rate > 0.0f) {
+        const float observed_rate = m_smoothed_present_rate;
+        switch (static_cast<int>(m_last_frame_rate_hint)) {
+        case 30:
+            if (observed_rate < 42.0f) {
+                return 30.0f;
+            }
+            break;
+        case 45:
+            if (observed_rate >= 35.0f && observed_rate < 54.0f) {
+                return 45.0f;
+            }
+            break;
+        case 60:
+            if (observed_rate >= 48.0f && observed_rate < 75.0f) {
+                return 60.0f;
+            }
+            break;
+        case 90:
+            if (observed_rate >= 74.0f && observed_rate < 105.0f) {
+                return 90.0f;
+            }
+            break;
+        case 120:
+            if (observed_rate >= 100.0f) {
+                return 120.0f;
+            }
+            break;
+        default:
+            break;
+        }
+    }
+
+    const float observed_hint = QuantizeFrameRateHint(m_smoothed_present_rate);
+    if (observed_hint > 0.0f) {
+        return observed_hint;
+    }
+
+    return QuantizeFrameRateHint(desired_rate);
 }
 
 void EmuWindow_Android::UpdateFrameRateHint() {
@@ -100,7 +182,26 @@ void EmuWindow_Android::UpdateFrameRateHint() {
 
     const float frame_rate_hint = GetFrameRateHint();
     if (std::fabs(frame_rate_hint - m_last_frame_rate_hint) < 0.01f) {
+        m_pending_frame_rate_hint = frame_rate_hint;
+        m_pending_frame_rate_hint_votes = 0;
         return;
+    }
+
+    if (frame_rate_hint == 0.0f) {
+        m_pending_frame_rate_hint = frame_rate_hint;
+        m_pending_frame_rate_hint_votes = 0;
+    } else if (m_last_frame_rate_hint >= 0.0f) {
+        if (std::fabs(frame_rate_hint - m_pending_frame_rate_hint) >= 0.01f) {
+            m_pending_frame_rate_hint = frame_rate_hint;
+            m_pending_frame_rate_hint_votes = 1;
+            return;
+        }
+
+        ++m_pending_frame_rate_hint_votes;
+        constexpr std::uint32_t StableVoteThreshold = 12;
+        if (m_pending_frame_rate_hint_votes < StableVoteThreshold) {
+            return;
+        }
     }
 
     using SetFrameRateWithChangeStrategyFn =
@@ -123,6 +224,8 @@ void EmuWindow_Android::UpdateFrameRateHint() {
     }
 
     m_last_frame_rate_hint = frame_rate_hint;
+    m_pending_frame_rate_hint = frame_rate_hint;
+    m_pending_frame_rate_hint_votes = 0;
 }
 
 EmuWindow_Android::EmuWindow_Android(ANativeWindow* surface,
