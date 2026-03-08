@@ -103,9 +103,7 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     tessellation_clockwise.Assign(regs.tessellation.params.output_primitives.Value() ==
                                   Maxwell::Tessellation::OutputPrimitives::Triangles_CW);
     patch_control_points_minus_one.Assign(regs.patch_vertices - 1);
-    const bool can_normalize_topology =
-        features.has_extended_dynamic_state && features.has_extended_dynamic_state_2;
-    topology.Assign(can_normalize_topology ? NormalizeDynamicTopologyClass(topology_) : topology_);
+    topology.Assign(topology_);
     msaa_mode.Assign(regs.anti_alias_samples_mode);
 
     raw2 = 0;

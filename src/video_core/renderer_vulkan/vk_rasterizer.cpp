@@ -1083,7 +1083,6 @@ void RasterizerVulkan::UpdateDynamicStates() {
         UpdateCullMode(regs);
         UpdateDepthCompareOp(regs);
         UpdateFrontFace(regs);
-        UpdatePrimitiveTopology(regs);
         UpdateStencilOp(regs);
         if (state_tracker.TouchStateEnable()) {
             UpdateDepthBoundsTestEnable(regs);
