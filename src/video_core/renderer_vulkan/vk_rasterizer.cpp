@@ -1159,16 +1159,8 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
             .minDepth = 0.0f,
             .maxDepth = 1.0f,
         };
-        GraphicsPipeline* pipeline = pipeline_cache.CurrentGraphicsPipeline();
-        const bool use_viewport_with_count = device.IsExtExtendedDynamicStateSupported() &&
-                                             (!pipeline || pipeline->UsesExtendedDynamicState());
-        scheduler.Record([viewport, use_viewport_with_count](vk::CommandBuffer cmdbuf) {
-            if (use_viewport_with_count) {
-                std::array viewports{viewport};
-                cmdbuf.SetViewportWithCountEXT(viewports);
-            } else {
-                cmdbuf.SetViewport(0, viewport);
-            }
+        scheduler.Record([viewport](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetViewport(0, viewport);
         });
         return;
     }
@@ -1184,17 +1176,10 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
         GetViewportState(device, regs, 12, scale), GetViewportState(device, regs, 13, scale),
         GetViewportState(device, regs, 14, scale), GetViewportState(device, regs, 15, scale),
     };
-    GraphicsPipeline* pipeline = pipeline_cache.CurrentGraphicsPipeline();
-    const bool use_viewport_with_count = device.IsExtExtendedDynamicStateSupported() &&
-                                         (!pipeline || pipeline->UsesExtendedDynamicState());
-    scheduler.Record([this, viewport_list, use_viewport_with_count](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([this, viewport_list](vk::CommandBuffer cmdbuf) {
         const u32 num_viewports = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
         const vk::Span<VkViewport> viewports(viewport_list.data(), num_viewports);
-        if (use_viewport_with_count) {
-            cmdbuf.SetViewportWithCountEXT(viewports);
-        } else {
-            cmdbuf.SetViewport(0, viewports);
-        }
+        cmdbuf.SetViewport(0, viewports);
     });
 }
 
@@ -1215,16 +1200,8 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
         scissor.offset.y = static_cast<int32_t>(y);
         scissor.extent.width  = width;
         scissor.extent.height = height;
-        GraphicsPipeline* pipeline = pipeline_cache.CurrentGraphicsPipeline();
-        const bool use_scissor_with_count = device.IsExtExtendedDynamicStateSupported() &&
-                                            (!pipeline || pipeline->UsesExtendedDynamicState());
-        scheduler.Record([scissor, use_scissor_with_count](vk::CommandBuffer cmdbuf) {
-            if (use_scissor_with_count) {
-                std::array scissors{scissor};
-                cmdbuf.SetScissorWithCountEXT(scissors);
-            } else {
-                cmdbuf.SetScissor(0, scissor);
-            }
+        scheduler.Record([scissor](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetScissor(0, scissor);
         });
         return;
     }
@@ -1252,17 +1229,10 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
         GetScissorState(regs, 14, up_scale, down_shift),
         GetScissorState(regs, 15, up_scale, down_shift),
     };
-    GraphicsPipeline* pipeline = pipeline_cache.CurrentGraphicsPipeline();
-    const bool use_scissor_with_count = device.IsExtExtendedDynamicStateSupported() &&
-                                        (!pipeline || pipeline->UsesExtendedDynamicState());
-    scheduler.Record([this, scissor_list, use_scissor_with_count](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([this, scissor_list](vk::CommandBuffer cmdbuf) {
         const u32 num_scissors = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
         const vk::Span<VkRect2D> scissors(scissor_list.data(), num_scissors);
-        if (use_scissor_with_count) {
-            cmdbuf.SetScissorWithCountEXT(scissors);
-        } else {
-            cmdbuf.SetScissor(0, scissors);
-        }
+        cmdbuf.SetScissor(0, scissors);
     });
 }
 

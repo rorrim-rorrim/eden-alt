@@ -692,9 +692,9 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .viewportCount = key.state.extended_dynamic_state ? 0u : num_viewports,
+        .viewportCount = num_viewports,
         .pViewports = nullptr,
-        .scissorCount = key.state.extended_dynamic_state ? 0u : num_viewports,
+        .scissorCount = num_viewports,
         .pScissors = nullptr,
     };
     if (device.IsNvViewportSwizzleSupported()) {
@@ -906,8 +906,6 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     }
     if (key.state.extended_dynamic_state) {
         static constexpr std::array extended{
-            VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT_EXT,
-            VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT_EXT,
             VK_DYNAMIC_STATE_CULL_MODE_EXT,
             VK_DYNAMIC_STATE_FRONT_FACE_EXT,
             VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT,
@@ -919,6 +917,11 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         };
         dynamic_states.insert(dynamic_states.end(), extended.begin(), extended.end());
     } else {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_VIEWPORT);
+        dynamic_states.push_back(VK_DYNAMIC_STATE_SCISSOR);
+    }
+
+    if (key.state.extended_dynamic_state) {
         dynamic_states.push_back(VK_DYNAMIC_STATE_VIEWPORT);
         dynamic_states.push_back(VK_DYNAMIC_STATE_SCISSOR);
     }
