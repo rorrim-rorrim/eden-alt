@@ -474,44 +474,7 @@ void VectorTypes::Define(Sirit::Module& sirit_ctx, Id base_type, std::string_vie
 EmitContext::EmitContext(const Profile& profile_, const RuntimeInfo& runtime_info_,
                          IR::Program& program, Bindings& bindings)
     : Sirit::Module(profile_.supported_spirv), profile{profile_}, runtime_info{runtime_info_},
-      stage{program.stage}, start_address{program.start_address},
-      log_rz_fp_controls{std::ranges::any_of(program.post_order_blocks, [](const IR::Block* block) {
-          return std::ranges::any_of(block->Instructions(), [](const IR::Inst& inst) {
-              switch (inst.GetOpcode()) {
-              case IR::Opcode::FPAdd16:
-              case IR::Opcode::FPFma16:
-              case IR::Opcode::FPMul16:
-              case IR::Opcode::FPRoundEven16:
-              case IR::Opcode::FPFloor16:
-              case IR::Opcode::FPCeil16:
-              case IR::Opcode::FPTrunc16:
-              case IR::Opcode::FPAdd32:
-              case IR::Opcode::FPFma32:
-              case IR::Opcode::FPMul32:
-              case IR::Opcode::FPRoundEven32:
-              case IR::Opcode::FPFloor32:
-              case IR::Opcode::FPCeil32:
-              case IR::Opcode::FPTrunc32:
-              case IR::Opcode::FPOrdEqual32:
-              case IR::Opcode::FPUnordEqual32:
-              case IR::Opcode::FPOrdNotEqual32:
-              case IR::Opcode::FPUnordNotEqual32:
-              case IR::Opcode::FPOrdLessThan32:
-              case IR::Opcode::FPUnordLessThan32:
-              case IR::Opcode::FPOrdGreaterThan32:
-              case IR::Opcode::FPUnordGreaterThan32:
-              case IR::Opcode::FPOrdLessThanEqual32:
-              case IR::Opcode::FPUnordLessThanEqual32:
-              case IR::Opcode::FPOrdGreaterThanEqual32:
-              case IR::Opcode::FPUnordGreaterThanEqual32:
-              case IR::Opcode::ConvertF16F32:
-              case IR::Opcode::ConvertF64F32:
-                  return inst.Flags<IR::FpControl>().rounding == IR::FpRounding::RZ;
-              default:
-                  return false;
-              }
-          });
-      })}, texture_rescaling_index{bindings.texture_scaling_index},
+      stage{program.stage}, texture_rescaling_index{bindings.texture_scaling_index},
       image_rescaling_index{bindings.image_scaling_index} {
     const bool is_unified{profile.unified_descriptor_binding};
     u32& uniform_binding{is_unified ? bindings.unified : bindings.uniform_buffer};

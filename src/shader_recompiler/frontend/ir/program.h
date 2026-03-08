@@ -23,7 +23,6 @@ struct Program {
     BlockList post_order_blocks;
     Info info;
     Stage stage{};
-    u32 start_address{};
     std::array<u32, 3> workgroup_size{};
     OutputTopology output_topology{};
     u32 output_vertices{};
