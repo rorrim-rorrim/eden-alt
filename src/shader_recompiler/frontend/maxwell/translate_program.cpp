@@ -9,7 +9,6 @@
 #include <vector>
 #include <queue>
 
-#include "common/logging/log.h"
 #include "common/settings.h"
 #include "shader_recompiler/exception.h"
 #include "shader_recompiler/frontend/ir/basic_block.h"
