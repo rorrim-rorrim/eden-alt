@@ -45,6 +45,7 @@ using namespace Common::Literals;
 constexpr u32 StackSize = 128_KiB;
 constexpr u64 SplitPageAccessWindow = 64;
 constexpr size_t MaxPreciseAccessPages = 256;
+constexpr u8 MaxPreciseAccessPageWeight = 4;
 
 [[nodiscard]] constexpr u64 AlignDownPage(u64 addr) {
     return addr & ~u64{Memory::YUZU_PAGEMASK};
@@ -203,7 +204,7 @@ bool ArmNce::HandleGuestAccessFault(GuestContext* guest_ctx, void* raw_info, voi
 
     if (prefer_precise_channel) {
         if (auto next_pc = MatchAndExecuteOneInstruction(memory, &host_ctx, fpctx); next_pc) {
-            parent->MarkPreciseAccessPage(fault_addr);
+            parent->MarkPreciseAccessFaultWindow(fault_addr);
             host_ctx.pc = *next_pc;
             return true;
         }
@@ -224,7 +225,7 @@ bool ArmNce::HandleGuestAccessFault(GuestContext* guest_ctx, void* raw_info, voi
     }
 
     if (auto next_pc = MatchAndExecuteOneInstruction(memory, &host_ctx, fpctx); next_pc) {
-        parent->MarkPreciseAccessPage(fault_addr);
+        parent->MarkPreciseAccessFaultWindow(fault_addr);
         host_ctx.pc = *next_pc;
         return true;
     }
@@ -248,10 +249,44 @@ bool ArmNce::IsPreciseAccessPage(u64 addr) const {
 
 void ArmNce::MarkPreciseAccessPage(u64 addr) {
     const std::scoped_lock lk{m_precise_pages_guard};
-    if (m_precise_pages.size() >= MaxPreciseAccessPages) {
-        m_precise_pages.clear();
+    const u64 page = AlignDownPage(addr);
+    if (auto it = m_precise_pages.find(page); it != m_precise_pages.end()) {
+        it->second = std::min<u8>(MaxPreciseAccessPageWeight, static_cast<u8>(it->second + 1));
+        return;
     }
-    m_precise_pages.insert(AlignDownPage(addr));
+
+    while (m_precise_pages.size() >= MaxPreciseAccessPages) {
+        DecayPreciseAccessPagesLocked();
+    }
+
+    m_precise_pages.emplace(page, 1);
+}
+
+void ArmNce::MarkPreciseAccessFaultWindow(u64 addr) {
+    MarkPreciseAccessPage(addr);
+
+    if (!IsNearPageBoundary(addr)) {
+        return;
+    }
+
+    const u64 page_offset = addr & Memory::YUZU_PAGEMASK;
+    if (page_offset < SplitPageAccessWindow && addr >= Memory::YUZU_PAGESIZE) {
+        MarkPreciseAccessPage(addr - Memory::YUZU_PAGESIZE);
+    }
+    if (page_offset + SplitPageAccessWindow > Memory::YUZU_PAGESIZE) {
+        MarkPreciseAccessPage(addr + Memory::YUZU_PAGESIZE);
+    }
+}
+
+void ArmNce::DecayPreciseAccessPagesLocked() {
+    for (auto it = m_precise_pages.begin(); it != m_precise_pages.end();) {
+        if (it->second > 1) {
+            --it->second;
+            ++it;
+        } else {
+            it = m_precise_pages.erase(it);
+        }
+    }
 }
 
 void ArmNce::LockThread(Kernel::KThread* thread) {
