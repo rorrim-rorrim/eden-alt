@@ -759,7 +759,7 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
         "eds2_logic_op={}, topology={}, provoking_last={}, xfb={}, conservative={})",
         hash, exception.what(), static_cast<int>(exception.GetResult()),
         key.state.extended_dynamic_state != 0, key.state.extended_dynamic_state_2 != 0,
-        key.state.extended_dynamic_state_2_logic_op != 0, static_cast<u32>(key.state.topology),
+        key.state.extended_dynamic_state_2_logic_op != 0, static_cast<u32>(key.state.topology.Value()),
         key.state.provoking_vertex_last != 0, key.state.xfb_enabled != 0,
         key.state.conservative_raster_enable != 0);
     return nullptr;
