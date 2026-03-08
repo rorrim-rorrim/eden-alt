@@ -230,6 +230,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdPushConstants vkCmdPushConstants{};
     PFN_vkCmdPushDescriptorSetWithTemplateKHR vkCmdPushDescriptorSetWithTemplateKHR{};
     PFN_vkCmdResolveImage vkCmdResolveImage{};
+    PFN_vkCmdResetEvent vkCmdResetEvent{};
     PFN_vkCmdSetBlendConstants vkCmdSetBlendConstants{};
     PFN_vkCmdSetCullModeEXT vkCmdSetCullModeEXT{};
     PFN_vkCmdSetDepthBias vkCmdSetDepthBias{};
@@ -1412,6 +1413,10 @@ public:
 
     void SetEvent(VkEvent event, VkPipelineStageFlags stage_flags) const noexcept {
         dld->vkCmdSetEvent(handle, event, stage_flags);
+    }
+
+    void ResetEvent(VkEvent event, VkPipelineStageFlags stage_mask) const noexcept {
+        dld->vkCmdResetEvent(handle, event, stage_mask);
     }
 
     void WaitEvents(Span<VkEvent> events, VkPipelineStageFlags src_stage_mask,
