@@ -101,20 +101,38 @@ float EmuWindow_Android::QuantizeFrameRateHint(float frame_rate) {
         return 0.0f;
     }
 
-    constexpr std::array CandidateRates{30.0f, 45.0f, 60.0f, 90.0f, 120.0f};
+    frame_rate = std::clamp(frame_rate, 20.0f, 240.0f);
+
+    constexpr std::array CandidateRates{24.0f,  30.0f,  36.0f,  40.0f,  45.0f,  48.0f,
+                                        60.0f,  72.0f,  80.0f,  90.0f,  96.0f,  120.0f,
+                                        144.0f, 165.0f, 180.0f, 200.0f, 240.0f};
     const auto best = std::min_element(CandidateRates.begin(), CandidateRates.end(),
                                        [frame_rate](float lhs, float rhs) {
                                            return std::fabs(frame_rate - lhs) <
                                                   std::fabs(frame_rate - rhs);
                                        });
     const float best_rate = *best;
-    const float tolerance = std::max(best_rate * 0.18f, 5.0f);
-    return std::fabs(frame_rate - best_rate) <= tolerance ? best_rate : 0.0f;
+    const float tolerance = std::max(best_rate * 0.12f, 4.0f);
+    return std::fabs(frame_rate - best_rate) <= tolerance ? best_rate : best_rate;
 }
 
 float EmuWindow_Android::GetFrameRateHint() const {
+    const float observed_rate = std::clamp(m_smoothed_present_rate, 0.0f, 240.0f);
+    if (m_last_frame_rate_hint > 0.0f && observed_rate > 0.0f) {
+        const float tolerance = std::max(m_last_frame_rate_hint * 0.12f, 4.0f);
+        if (std::fabs(observed_rate - m_last_frame_rate_hint) <= tolerance) {
+            return m_last_frame_rate_hint;
+        }
+    }
+
+    const float observed_hint = QuantizeFrameRateHint(observed_rate);
+    if (observed_hint > 0.0f) {
+        return observed_hint;
+    }
+
+    constexpr float NominalFrameRate = 60.0f;
     if (!Settings::values.use_speed_limit.GetValue()) {
-        return 0.0f;
+        return NominalFrameRate;
     }
 
     const u16 speed_limit = Settings::SpeedLimit();
@@ -122,56 +140,9 @@ float EmuWindow_Android::GetFrameRateHint() const {
         return 0.0f;
     }
 
-    if (speed_limit > 100) {
-        return 0.0f;
-    }
-
-    constexpr float NominalFrameRate = 60.0f;
-    const float desired_rate = NominalFrameRate * (static_cast<float>(speed_limit) / 100.0f);
-
-    if (desired_rate < 20.0f) {
-        return 0.0f;
-    }
-
-    if (m_last_frame_rate_hint > 0.0f && m_smoothed_present_rate > 0.0f) {
-        const float observed_rate = m_smoothed_present_rate;
-        switch (static_cast<int>(m_last_frame_rate_hint)) {
-        case 30:
-            if (observed_rate < 42.0f) {
-                return 30.0f;
-            }
-            break;
-        case 45:
-            if (observed_rate >= 35.0f && observed_rate < 54.0f) {
-                return 45.0f;
-            }
-            break;
-        case 60:
-            if (observed_rate >= 48.0f && observed_rate < 75.0f) {
-                return 60.0f;
-            }
-            break;
-        case 90:
-            if (observed_rate >= 74.0f && observed_rate < 105.0f) {
-                return 90.0f;
-            }
-            break;
-        case 120:
-            if (observed_rate >= 100.0f) {
-                return 120.0f;
-            }
-            break;
-        default:
-            break;
-        }
-    }
-
-    const float observed_hint = QuantizeFrameRateHint(m_smoothed_present_rate);
-    if (observed_hint > 0.0f) {
-        return observed_hint;
-    }
-
-    return QuantizeFrameRateHint(desired_rate);
+    const float speed_limited_rate =
+        NominalFrameRate * (static_cast<float>(std::min<u16>(speed_limit, 100)) / 100.0f);
+    return QuantizeFrameRateHint(speed_limited_rate);
 }
 
 void EmuWindow_Android::UpdateFrameRateHint() {
