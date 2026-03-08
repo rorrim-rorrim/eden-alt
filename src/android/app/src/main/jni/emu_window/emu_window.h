@@ -73,5 +73,6 @@ private:
     float m_pending_frame_rate_hint = -1.0f;
     float m_smoothed_present_rate = 0.0f;
     Clock::time_point m_last_frame_display_time{};
+    Clock::time_point m_pending_frame_rate_since{};
     std::uint32_t m_pending_frame_rate_hint_votes = 0;
 };
