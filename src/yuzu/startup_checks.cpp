@@ -19,15 +19,12 @@
 #endif
 
 #include <fmt/core.h>
-#ifdef HAS_VULKAN
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_library.h"
-#endif
 #include "yuzu/startup_checks.h"
 
 void CheckVulkan() {
-#ifdef HAS_VULKAN
     // Just start the Vulkan loader, this will crash if something is wrong
     try {
         Vulkan::vk::InstanceDispatch dld;
@@ -38,7 +35,6 @@ void CheckVulkan() {
     } catch (const Vulkan::vk::Exception& exception) {
         fmt::print(stderr, "Failed to initialize Vulkan: {}\n", exception.what());
     }
-#endif
 }
 
 bool CheckEnvVars(bool* is_child) {

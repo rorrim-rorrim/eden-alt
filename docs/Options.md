@@ -74,8 +74,6 @@ The following options are desktop only.
 - `ENABLE_OPENGL` (ON) Enable the OpenGL graphics backend
   - Unavailable on Windows/ARM64
   - You probably shouldn't turn this off.
-- `ENABLE_VULKAN` (ON) Enable the Vulkan graphics backend
-  - Only turn this off for builds that depend entirely on OpenGL.
 
 ### Qt
 
