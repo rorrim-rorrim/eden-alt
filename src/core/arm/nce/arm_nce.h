@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <mutex>
+#include <unordered_set>
 
 #include "core/arm/arm_interface.h"
 #include "core/arm/nce/guest_context.h"
@@ -77,6 +81,9 @@ private:
     static void HandleHostAlignmentFault(int sig, void* info, void* raw_context);
     static void HandleHostAccessFault(int sig, void* info, void* raw_context);
 
+    bool IsPreciseAccessPage(u64 addr) const;
+    void MarkPreciseAccessPage(u64 addr);
+
 public:
     Core::System& m_system;
 
@@ -87,6 +94,9 @@ public:
     // Core context.
     GuestContext m_guest_ctx{};
     Kernel::KThread* m_running_thread{};
+
+    mutable std::mutex m_precise_pages_guard{};
+    std::unordered_set<u64> m_precise_pages{};
 
     // Stack for signal processing.
     std::unique_ptr<u8[]> m_stack{};

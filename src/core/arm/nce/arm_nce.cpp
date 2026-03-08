@@ -44,6 +44,7 @@ fpsimd_context* GetFloatingPointState(mcontext_t& host_ctx) {
 using namespace Common::Literals;
 constexpr u32 StackSize = 128_KiB;
 constexpr u64 SplitPageAccessWindow = 64;
+constexpr size_t MaxPreciseAccessPages = 256;
 
 [[nodiscard]] constexpr u64 AlignDownPage(u64 addr) {
     return addr & ~u64{Memory::YUZU_PAGEMASK};
@@ -191,15 +192,18 @@ bool ArmNce::HandleGuestAccessFault(GuestContext* guest_ctx, void* raw_info, voi
     auto& host_ctx = static_cast<ucontext_t*>(raw_context)->uc_mcontext;
     auto* fpctx = GetFloatingPointState(host_ctx);
     auto* info = static_cast<siginfo_t*>(raw_info);
+    auto* parent = guest_ctx->parent;
 
     const u64 fault_addr = reinterpret_cast<u64>(info->si_addr);
     const Common::ProcessAddress addr = fault_addr & ~Memory::YUZU_PAGEMASK;
     const u64 page_offset = fault_addr & Memory::YUZU_PAGEMASK;
-    auto& memory = guest_ctx->parent->m_running_thread->GetOwnerProcess()->GetMemory();
-    const bool prefer_precise_channel = ShouldUsePreciseAccessChannel(guest_ctx, fault_addr);
+    auto& memory = parent->m_running_thread->GetOwnerProcess()->GetMemory();
+    const bool prefer_precise_channel = ShouldUsePreciseAccessChannel(guest_ctx, fault_addr) ||
+                                        parent->IsPreciseAccessPage(fault_addr);
 
     if (prefer_precise_channel) {
         if (auto next_pc = MatchAndExecuteOneInstruction(memory, &host_ctx, fpctx); next_pc) {
+            parent->MarkPreciseAccessPage(fault_addr);
             host_ctx.pc = *next_pc;
             return true;
         }
@@ -220,6 +224,7 @@ bool ArmNce::HandleGuestAccessFault(GuestContext* guest_ctx, void* raw_info, voi
     }
 
     if (auto next_pc = MatchAndExecuteOneInstruction(memory, &host_ctx, fpctx); next_pc) {
+        parent->MarkPreciseAccessPage(fault_addr);
         host_ctx.pc = *next_pc;
         return true;
     }
@@ -234,6 +239,19 @@ void ArmNce::HandleHostAlignmentFault(int sig, void* raw_info, void* raw_context
 
 void ArmNce::HandleHostAccessFault(int sig, void* raw_info, void* raw_context) {
     return g_orig_segv_action.sa_sigaction(sig, static_cast<siginfo_t*>(raw_info), raw_context);
+}
+
+bool ArmNce::IsPreciseAccessPage(u64 addr) const {
+    const std::scoped_lock lk{m_precise_pages_guard};
+    return m_precise_pages.contains(AlignDownPage(addr));
+}
+
+void ArmNce::MarkPreciseAccessPage(u64 addr) {
+    const std::scoped_lock lk{m_precise_pages_guard};
+    if (m_precise_pages.size() >= MaxPreciseAccessPages) {
+        m_precise_pages.clear();
+    }
+    m_precise_pages.insert(AlignDownPage(addr));
 }
 
 void ArmNce::LockThread(Kernel::KThread* thread) {
