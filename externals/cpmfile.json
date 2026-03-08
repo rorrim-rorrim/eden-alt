@@ -32,7 +32,8 @@
         "git_version": "0.37.0",
         "find_args": "MODULE GLOBAL",
         "patches": [
-            "0001-mingw.patch"
+            "0001-mingw.patch",
+            "0002-fix-zstd.patch"
         ],
         "options": [
             "HTTPLIB_REQUIRE_OPENSSL ON"

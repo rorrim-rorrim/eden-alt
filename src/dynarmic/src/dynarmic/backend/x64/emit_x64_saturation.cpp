@@ -135,7 +135,7 @@ void EmitX64::EmitSignedSaturation(EmitContext& ctx, IR::Inst* inst) {
 
     const u32 mask = (1u << N) - 1;
     const u32 positive_saturated_value = (1u << (N - 1)) - 1;
-    const u32 negative_saturated_value = 1u << (N - 1);
+    const u64 negative_saturated_value = 1u << (N - 1);
 
     const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr(code).cvt32();
     const Xbyak::Reg32 reg_a = ctx.reg_alloc.UseGpr(code, args[0]).cvt32();
