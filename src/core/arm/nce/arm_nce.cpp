@@ -199,8 +199,10 @@ bool ArmNce::HandleGuestAccessFault(GuestContext* guest_ctx, void* raw_info, voi
     const Common::ProcessAddress addr = fault_addr & ~Memory::YUZU_PAGEMASK;
     const u64 page_offset = fault_addr & Memory::YUZU_PAGEMASK;
     auto& memory = parent->m_running_thread->GetOwnerProcess()->GetMemory();
+    const bool rasterizer_cached = memory.IsRasterizerCached(addr);
     const bool prefer_precise_channel = ShouldUsePreciseAccessChannel(guest_ctx, fault_addr) ||
-                                        parent->IsPreciseAccessPage(fault_addr);
+                                        parent->IsPreciseAccessPage(fault_addr) ||
+                                        rasterizer_cached;
 
     if (prefer_precise_channel) {
         if (auto next_pc = MatchAndExecuteOneInstruction(memory, &host_ctx, fpctx); next_pc) {

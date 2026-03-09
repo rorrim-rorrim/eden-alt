@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
@@ -492,6 +492,8 @@ public:
     void MarkRegionDebug(Common::ProcessAddress vaddr, u64 size, bool debug);
 
     void SetGPUDirtyManagers(std::span<Core::GPUDirtyMemoryManager> managers);
+
+    [[nodiscard]] bool IsRasterizerCached(Common::ProcessAddress vaddr) const;
 
     bool InvalidateNCE(Common::ProcessAddress vaddr, size_t size);
 
