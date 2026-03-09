@@ -60,6 +60,8 @@ public:
     void Reset() override {
         ASSERT(references == 0);
         VideoCommon::BankBase::Reset();
+        const auto& dev = device.GetLogical();
+        dev.ResetQueryPool(*query_pool, 0, BANK_SIZE);
         host_results.fill(0ULL);
         next_bank = 0;
     }
@@ -440,10 +442,6 @@ private:
         }
         current_bank = &bank_pool.GetBank(current_bank_id);
         current_query_pool = current_bank->GetInnerPool();
-        scheduler.RequestOutsideRenderPassOperationContext();
-        scheduler.Record([query_pool = current_query_pool](vk::CommandBuffer cmdbuf) {
-            cmdbuf.ResetQueryPool(query_pool, 0, SamplesQueryBank::BANK_SIZE);
-        });
     }
 
     size_t ReserveBankSlot() {
