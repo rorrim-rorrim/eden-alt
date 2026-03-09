@@ -751,19 +751,6 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
         descriptor_pool, guest_descriptor_queue, thread_worker, statistics, render_pass_cache, key,
         std::move(modules), infos);
 
-} catch (const vk::Exception& exception) {
-    const auto hash = key.Hash();
-    LOG_ERROR(
-        Render_Vulkan,
-        "Failed to create graphics pipeline 0x{:016x}: {} (result={}, eds={}, eds2={}, "
-        "eds2_logic_op={}, topology={}, provoking_last={}, xfb={}, conservative={})",
-        hash, exception.what(), static_cast<int>(exception.GetResult()),
-        key.state.extended_dynamic_state != 0, key.state.extended_dynamic_state_2 != 0,
-        key.state.extended_dynamic_state_2_logic_op != 0, static_cast<u32>(key.state.topology.Value()),
-        key.state.provoking_vertex_last != 0, key.state.xfb_enabled != 0,
-        key.state.conservative_raster_enable != 0);
-    return nullptr;
-
 } catch (const Shader::Exception& exception) {
     auto hash = key.Hash();
     size_t env_index{0};
