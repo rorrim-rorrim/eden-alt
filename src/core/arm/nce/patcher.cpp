@@ -26,6 +26,22 @@ using NativeExecutionParameters = Kernel::KThread::NativeExecutionParameters;
 constexpr size_t MaxRelativeBranch = 128_MiB;
 constexpr u32 ModuleCodeIndex = 0x24 / sizeof(u32);
 
+[[nodiscard]] std::optional<CacheOperationKind> DecodeCacheOperation(u32 inst) {
+    switch (inst & ~u32{0x1F}) {
+    case 0xD5087620:
+        return CacheOperationKind::DataCacheInvalidate;
+    case 0xD50B7A20:
+    case 0xD50B7B20:
+        return CacheOperationKind::DataCacheStore;
+    case 0xD50B7E20:
+        return CacheOperationKind::DataCacheFlush;
+    case 0xD50B7520:
+        return CacheOperationKind::InstructionCacheInvalidate;
+    default:
+        return std::nullopt;
+    }
+}
+
 Patcher::Patcher() : c(m_patch_instructions), c_pre(m_patch_instructions_pre) {
     // The first word of the patch section is always a branch to the first instruction of the
     // module.
@@ -156,6 +172,20 @@ bool Patcher::PatchText(std::span<const u8> program_image, const Kernel::CodeSet
                 WriteMsrHandler(ret, oaknut::XReg{static_cast<int>(msr.GetRt())}, c_pre);
             } else {
                 WriteMsrHandler(ret, oaknut::XReg{static_cast<int>(msr.GetRt())}, c);
+            }
+            continue;
+        }
+
+        if (auto cache_op = DecodeCacheOperation(inst); cache_op.has_value()) {
+            bool pre_buffer = false;
+            auto ret = AddRelocations(pre_buffer);
+            const auto src_reg = oaknut::XReg{static_cast<int>(inst & 0x1F)};
+            if (pre_buffer) {
+                WriteCacheOperationTrampoline(ret, *cache_op, src_reg, c_pre, m_save_context_pre,
+                                              m_load_context_pre);
+            } else {
+                WriteCacheOperationTrampoline(ret, *cache_op, src_reg, c, m_save_context,
+                                              m_load_context);
             }
             continue;
         }
@@ -540,6 +570,96 @@ void Patcher::WriteSvcTrampoline(ModuleDestLabel module_dest, u32 svc_id, oaknut
         this->WriteModulePcPre(module_dest);
     else
         this->WriteModulePc(module_dest);
+}
+
+void Patcher::WriteCacheOperationTrampoline(ModuleDestLabel module_dest,
+                                            CacheOperationKind op_kind, oaknut::XReg src_reg,
+                                            oaknut::VectorCodeGenerator& cg,
+                                            oaknut::Label& save_ctx,
+                                            oaknut::Label& load_ctx) {
+    const bool is_pre = (&cg == &c_pre);
+
+    this->LockContext(cg);
+
+    cg.STR(X30, SP, PRE_INDEXED, -16);
+    cg.BL(save_ctx);
+    cg.LDR(X30, SP, POST_INDEXED, 16);
+
+    oaknut::Label pc_after_cache_op;
+    cg.MRS(X1, oaknut::SystemReg::TPIDR_EL0);
+    cg.LDR(X1, X1, offsetof(NativeExecutionParameters, native_context));
+    cg.LDR(X2, pc_after_cache_op);
+    cg.STR(X2, X1, offsetof(GuestContext, pc));
+
+    cg.MOV(X2, static_cast<u32>(op_kind));
+    cg.STR(W2, X1, offsetof(GuestContext, cache_operation));
+    cg.STR(src_reg, X1, offsetof(GuestContext, cache_operation_address));
+
+    static_assert(std::is_same_v<std::underlying_type_t<HaltReason>, u64>);
+    oaknut::Label retry;
+    cg.ADD(X2, X1, offsetof(GuestContext, esr_el1));
+    cg.l(retry);
+    cg.LDAXR(X0, X2);
+    cg.STLXR(W3, XZR, X2);
+    cg.CBNZ(W3, retry);
+    cg.ORR(X0, X0, static_cast<u64>(HaltReason::CacheInvalidation));
+
+    cg.ADD(X1, X1, offsetof(GuestContext, host_ctx));
+
+    static_assert(offsetof(HostContext, host_sp) + 8 == offsetof(HostContext, host_tpidr_el0));
+    cg.LDP(X2, X3, X1, offsetof(HostContext, host_sp));
+    cg.MOV(SP, X2);
+    cg.MSR(oaknut::SystemReg::TPIDR_EL0, X3);
+
+    static constexpr size_t HOST_REGS_OFF = offsetof(HostContext, host_saved_regs);
+    static constexpr size_t HOST_VREGS_OFF = offsetof(HostContext, host_saved_vregs);
+    cg.LDP(X19, X20, X1, HOST_REGS_OFF);
+    cg.LDP(X21, X22, X1, HOST_REGS_OFF + 2 * sizeof(u64));
+    cg.LDP(X23, X24, X1, HOST_REGS_OFF + 4 * sizeof(u64));
+    cg.LDP(X25, X26, X1, HOST_REGS_OFF + 6 * sizeof(u64));
+    cg.LDP(X27, X28, X1, HOST_REGS_OFF + 8 * sizeof(u64));
+    cg.LDP(X29, X30, X1, HOST_REGS_OFF + 10 * sizeof(u64));
+    cg.LDP(Q8, Q9, X1, HOST_VREGS_OFF);
+    cg.LDP(Q10, Q11, X1, HOST_VREGS_OFF + 2 * sizeof(u128));
+    cg.LDP(Q12, Q13, X1, HOST_VREGS_OFF + 4 * sizeof(u128));
+    cg.LDP(Q14, Q15, X1, HOST_VREGS_OFF + 6 * sizeof(u128));
+    cg.RET();
+
+    if (is_pre) {
+        curr_patch->m_trampolines_pre.push_back({cg.offset(), module_dest});
+    } else {
+        curr_patch->m_trampolines.push_back({cg.offset(), module_dest});
+    }
+
+    cg.MRS(X2, oaknut::SystemReg::TPIDR_EL0);
+    cg.LDR(X2, X2, offsetof(NativeExecutionParameters, native_context));
+    cg.ADD(X0, X2, offsetof(GuestContext, host_ctx));
+    cg.STR(X30, X0, offsetof(HostContext, host_saved_regs) + 11 * sizeof(u64));
+
+    cg.STR(X30, SP, PRE_INDEXED, -16);
+    cg.BL(load_ctx);
+    cg.LDR(X30, SP, POST_INDEXED, 16);
+
+    cg.STR(X1, SP, PRE_INDEXED, -16);
+    cg.MRS(X1, oaknut::SystemReg::TPIDR_EL0);
+    cg.LDR(X1, X1, offsetof(NativeExecutionParameters, native_context));
+    cg.LDR(X30, X1, offsetof(GuestContext, cpu_registers) + sizeof(u64) * 30);
+    cg.LDR(X1, SP, POST_INDEXED, 16);
+
+    this->UnlockContext(cg);
+
+    if (is_pre) {
+        this->BranchToModulePre(module_dest);
+    } else {
+        this->BranchToModule(module_dest);
+    }
+
+    cg.l(pc_after_cache_op);
+    if (is_pre) {
+        this->WriteModulePcPre(module_dest);
+    } else {
+        this->WriteModulePc(module_dest);
+    }
 }
 
 void Patcher::WriteMrsHandler(ModuleDestLabel module_dest, oaknut::XReg dest_reg,

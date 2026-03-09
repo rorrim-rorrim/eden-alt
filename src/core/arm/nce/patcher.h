@@ -78,6 +78,11 @@ private:
     void LockContext(oaknut::VectorCodeGenerator& code);
     void UnlockContext(oaknut::VectorCodeGenerator& code);
     void WriteSvcTrampoline(ModuleDestLabel module_dest, u32 svc_id, oaknut::VectorCodeGenerator& code, oaknut::Label& save_ctx, oaknut::Label& load_ctx);
+    void WriteCacheOperationTrampoline(ModuleDestLabel module_dest, CacheOperationKind op_kind,
+                                       oaknut::XReg src_reg,
+                                       oaknut::VectorCodeGenerator& code,
+                                       oaknut::Label& save_ctx,
+                                       oaknut::Label& load_ctx);
     void WriteMrsHandler(ModuleDestLabel module_dest, oaknut::XReg dest_reg, oaknut::SystemReg src_reg, oaknut::VectorCodeGenerator& code);
     void WriteMsrHandler(ModuleDestLabel module_dest, oaknut::XReg src_reg, oaknut::VectorCodeGenerator& code);
     void WriteCntpctHandler(ModuleDestLabel module_dest, oaknut::XReg dest_reg, oaknut::VectorCodeGenerator& code);
@@ -88,6 +93,11 @@ private:
     void LockContext() { LockContext(c); }
     void UnlockContext() { UnlockContext(c); }
     void WriteSvcTrampoline(ModuleDestLabel module_dest, u32 svc_id) { WriteSvcTrampoline(module_dest, svc_id, c, m_save_context, m_load_context); }
+    void WriteCacheOperationTrampoline(ModuleDestLabel module_dest, CacheOperationKind op_kind,
+                                       oaknut::XReg src_reg) {
+        WriteCacheOperationTrampoline(module_dest, op_kind, src_reg, c, m_save_context,
+                                      m_load_context);
+    }
     void WriteMrsHandler(ModuleDestLabel module_dest, oaknut::XReg dest_reg, oaknut::SystemReg src_reg) { WriteMrsHandler(module_dest, dest_reg, src_reg, c); }
     void WriteMsrHandler(ModuleDestLabel module_dest, oaknut::XReg src_reg) { WriteMsrHandler(module_dest, src_reg, c); }
     void WriteCntpctHandler(ModuleDestLabel module_dest, oaknut::XReg dest_reg) { WriteCntpctHandler(module_dest, dest_reg, c); }

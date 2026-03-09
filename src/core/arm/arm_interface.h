@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -31,6 +34,7 @@ using WatchpointArray = std::array<Kernel::DebugWatchpoint, Core::Hardware::NUM_
 // NOTE: these values match the HaltReason enum in Dynarmic
 enum class HaltReason : u64 {
     StepThread = 0x00000001,
+    CacheInvalidation = 0x00000002,
     DataAbort = 0x00000004,
     BreakLoop = 0x02000000,
     SupervisorCall = 0x04000000,
@@ -38,6 +42,14 @@ enum class HaltReason : u64 {
     PrefetchAbort = 0x20000000,
 };
 DECLARE_ENUM_FLAG_OPERATORS(HaltReason);
+
+enum class CacheOperationKind : u32 {
+    None,
+    DataCacheInvalidate,
+    DataCacheStore,
+    DataCacheFlush,
+    InstructionCacheInvalidate,
+};
 
 enum class Architecture {
     AArch64,
@@ -85,6 +97,9 @@ public:
     virtual void GetSvcArguments(std::span<uint64_t, 8> args) const = 0;
     virtual void SetSvcArguments(std::span<const uint64_t, 8> args) = 0;
     virtual u32 GetSvcNumber() const = 0;
+    virtual bool HandleCacheOperation(Kernel::KThread* thread) {
+        return false;
+    }
 
     void SetWatchpointArray(const WatchpointArray* watchpoints) {
         m_watchpoints = watchpoints;
