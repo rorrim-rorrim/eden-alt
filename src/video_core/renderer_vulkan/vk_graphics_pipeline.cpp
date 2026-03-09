@@ -101,6 +101,37 @@ bool IsLine(VkPrimitiveTopology topology) {
     return std::ranges::find(line_topologies, topology) != line_topologies.end();
 }
 
+VkPrimitiveTopology DynamicTopologyClassRepresentative(VkPrimitiveTopology topology) {
+    switch (topology) {
+    case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
+        return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+    case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
+    case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
+        return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+    case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
+    case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
+    case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    case VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY:
+    case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY:
+        return VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY;
+    case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY:
+    case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY:
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY;
+    case VK_PRIMITIVE_TOPOLOGY_PATCH_LIST:
+        return VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
+    default:
+        return topology;
+    }
+}
+
+bool SupportsStaticPrimitiveRestart(const Device& device, VkPrimitiveTopology topology) {
+    if (topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST) {
+        return device.IsPatchListPrimitiveRestartSupported();
+    }
+    return SupportsPrimitiveRestart(topology) || device.IsTopologyListPrimitiveRestartSupported();
+}
+
 VkViewportSwizzleNV UnpackViewportSwizzle(u16 swizzle) {
     union Swizzle {
         u32 raw;
@@ -624,11 +655,13 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         vertex_input_ci.pNext = &input_divisor_ci;
     }
     const bool has_tess_stages = spv_modules[1] || spv_modules[2];
-    auto input_assembly_topology = MaxwellToVK::PrimitiveTopology(device, key.state.topology);
-    if (input_assembly_topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST) {
+    const bool dynamic_topology = key.state.extended_dynamic_state != 0;
+    const bool dynamic_primitive_restart = key.state.extended_dynamic_state_2 != 0;
+    auto exact_input_assembly_topology = MaxwellToVK::PrimitiveTopology(device, key.state.topology);
+    if (exact_input_assembly_topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST) {
         if (!has_tess_stages) {
             LOG_WARNING(Render_Vulkan, "Patch topology used without tessellation, using points");
-            input_assembly_topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+            exact_input_assembly_topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
         }
     } else {
         if (has_tess_stages) {
@@ -636,25 +669,29 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             // shader stages. Forcing it fixes a crash on some drivers
             LOG_WARNING(Render_Vulkan,
                         "Patch topology not used with tessellation, using patch list");
-            input_assembly_topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
+            exact_input_assembly_topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
         }
     }
+    const VkPrimitiveTopology input_assembly_topology =
+        dynamic_topology && dynamic_primitive_restart
+            ? DynamicTopologyClassRepresentative(exact_input_assembly_topology)
+            : exact_input_assembly_topology;
+    const VkBool32 primitive_restart_enable =
+        // MoltenVK/Metal always has primitive restart enabled and cannot disable it
+        device.IsMoltenVK()
+            ? VK_TRUE
+            : (dynamic_primitive_restart
+                   ? VK_FALSE
+                   : (dynamic.primitive_restart_enable != 0 &&
+                              SupportsStaticPrimitiveRestart(device, input_assembly_topology)
+                          ? VK_TRUE
+                          : VK_FALSE));
     const VkPipelineInputAssemblyStateCreateInfo input_assembly_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
         .topology = input_assembly_topology,
-        .primitiveRestartEnable =
-        // MoltenVK/Metal always has primitive restart enabled and cannot disable it
-        device.IsMoltenVK() ? VK_TRUE :
-        (dynamic.primitive_restart_enable != 0 &&
-                ((input_assembly_topology != VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
-                  device.IsTopologyListPrimitiveRestartSupported()) ||
-                 SupportsPrimitiveRestart(input_assembly_topology) ||
-                 (input_assembly_topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
-                  device.IsPatchListPrimitiveRestartSupported()))
-            ? VK_TRUE
-            : VK_FALSE),
+        .primitiveRestartEnable = primitive_restart_enable,
     };
     const VkPipelineTessellationStateCreateInfo tessellation_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,

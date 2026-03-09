@@ -277,11 +277,6 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     if (!pipeline->Configure(is_indexed))
         return;
 
-    if (pipeline->UsesExtendedDynamicState() || pipeline->UsesExtendedDynamicState2() ||
-        pipeline->UsesExtendedDynamicState2LogicOp()) {
-        state_tracker.InvalidateExtendedDynamicStates();
-    }
-
     HandleTransformFeedback();
     query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
                               maxwell3d->regs.zpass_pixel_count_enable);
