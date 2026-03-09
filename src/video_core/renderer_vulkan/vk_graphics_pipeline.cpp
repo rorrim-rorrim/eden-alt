@@ -531,7 +531,6 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
     }
 
     const void* const descriptor_data{guest_descriptor_queue.UpdateData()};
-    const FixedPipelineState::DynamicState dynamic_state{key.state.dynamic_state};
     scheduler.Record([this, descriptor_data, bind_pipeline, rescaling_data = rescaling.Data(),
                       is_rescaling, update_rescaling,
                       uses_render_area = render_area.uses_render_area,
