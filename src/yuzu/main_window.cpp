@@ -3794,6 +3794,8 @@ void MainWindow::OnToggleGraphicsAPI() {
     case Settings::RendererBackend::Null:
         api = Settings::RendererBackend::Vulkan;
         break;
+    default:
+        break;
     }
     Settings::values.renderer_backend.SetValue(api);
     renderer_status_button->setChecked(api == Settings::RendererBackend::Vulkan);
