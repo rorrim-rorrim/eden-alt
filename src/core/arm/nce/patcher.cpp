@@ -26,6 +26,8 @@ using NativeExecutionParameters = Kernel::KThread::NativeExecutionParameters;
 constexpr size_t MaxRelativeBranch = 128_MiB;
 constexpr u32 ModuleCodeIndex = 0x24 / sizeof(u32);
 
+namespace {
+
 [[nodiscard]] std::optional<CacheOperationKind> DecodeCacheOperation(u32 inst) {
     switch (inst & ~u32{0x1F}) {
     case 0xD5087620:
@@ -41,6 +43,8 @@ constexpr u32 ModuleCodeIndex = 0x24 / sizeof(u32);
         return std::nullopt;
     }
 }
+
+} // namespace
 
 Patcher::Patcher() : c(m_patch_instructions), c_pre(m_patch_instructions_pre) {
     // The first word of the patch section is always a branch to the first instruction of the
