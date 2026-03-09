@@ -879,7 +879,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         setInsets()
 
         requireActivity().onBackPressedDispatcher.addCallback(
-            requireActivity(),
+            viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     if (!NativeLibrary.isRunning()) {

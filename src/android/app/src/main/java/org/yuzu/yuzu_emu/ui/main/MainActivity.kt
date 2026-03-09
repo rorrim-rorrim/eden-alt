@@ -12,6 +12,7 @@ import android.view.ViewGroup.MarginLayoutParams
 import android.view.WindowManager
 import android.view.animation.PathInterpolator
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -153,6 +154,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
         setUpNavigation(navHostFragment.navController)
+        installBackPressPolicy(navHostFragment.navController)
 
         homeViewModel.statusBarShadeVisible.collect(this) { showStatusBarShade(it) }
         homeViewModel.contentToInstall.collect(
@@ -328,6 +330,28 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             navController.navigate(R.id.firstTimeSetupFragment)
             homeViewModel.navigatedToSetup = true
         }
+    }
+
+    private fun installBackPressPolicy(navController: NavController) {
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    val isOnGamesScreen = navController.currentDestination?.id == R.id.gamesFragment
+                    if (isOnGamesScreen) {
+                        // Allow native OS/app exit behavior only from the games root screen.
+                        isEnabled = false
+                        onBackPressedDispatcher.onBackPressed()
+                        isEnabled = true
+                        return
+                    }
+
+                    if (!navController.popBackStack()) {
+                        navController.navigate(R.id.gamesFragment)
+                    }
+                }
+            }
+        )
     }
 
     private fun showStatusBarShade(visible: Boolean) {

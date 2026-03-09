@@ -108,9 +108,10 @@ class SettingsActivity : AppCompatActivity() {
     fun navigateBack() {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
-        if (navHostFragment.childFragmentManager.backStackEntryCount > 0) {
-            navHostFragment.navController.popBackStack()
-        } else {
+        val navController = navHostFragment.navController
+        val popped = navController.popBackStack()
+
+        if (!popped) {
             finishWithFragmentLikeAnimation()
         }
     }
