@@ -154,9 +154,11 @@ void Scheduler::RequestOutsideRenderPassOperationContext() {
 
 bool Scheduler::UpdateGraphicsPipeline(GraphicsPipeline* pipeline) {
     if (state.graphics_pipeline == pipeline) {
-        if (pipeline && pipeline->UsesExtendedDynamicState() &&
+        if (pipeline &&
+            (pipeline->UsesExtendedDynamicState() || pipeline->UsesExtendedDynamicState2() ||
+             pipeline->UsesExtendedDynamicState2LogicOp()) &&
             state.needs_state_enable_refresh) {
-            state_tracker.InvalidateStateEnableFlag();
+            state_tracker.InvalidateExtendedDynamicStates();
             state.needs_state_enable_refresh = false;
         }
         return false;
@@ -173,10 +175,11 @@ bool Scheduler::UpdateGraphicsPipeline(GraphicsPipeline* pipeline) {
         state_tracker.InvalidateExtendedDynamicStates();
     }
 
-    if (!pipeline->UsesExtendedDynamicState()) {
+    if (!pipeline->UsesExtendedDynamicState() && !pipeline->UsesExtendedDynamicState2() &&
+        !pipeline->UsesExtendedDynamicState2LogicOp()) {
         state.needs_state_enable_refresh = true;
     } else if (state.needs_state_enable_refresh) {
-        state_tracker.InvalidateStateEnableFlag();
+        state_tracker.InvalidateExtendedDynamicStates();
         state.needs_state_enable_refresh = false;
     }
 

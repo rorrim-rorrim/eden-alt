@@ -254,11 +254,9 @@ struct FixedPipelineState {
             // When transform feedback is enabled, use the whole struct
             return sizeof(*this);
         }
-        if (extended_dynamic_state) {
-            // Exclude dynamic state
-            return offsetof(FixedPipelineState, vertex_strides);
-        }
-        // Default
+        // Always include the cached dynamic-state payload in the key. Some members of
+        // `dynamic_state` still feed static pipeline state even when EDS is enabled,
+        // and excluding the whole block causes incorrect pipeline reuse.
         return offsetof(FixedPipelineState, xfb_state);
     }
 };

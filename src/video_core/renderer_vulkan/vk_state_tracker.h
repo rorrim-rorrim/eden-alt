@@ -98,9 +98,13 @@ public:
         (*flags)[Dirty::Viewports] = true;
         (*flags)[Dirty::Scissors] = true;
         (*flags)[Dirty::CullMode] = true;
+        (*flags)[Dirty::DepthBoundsEnable] = true;
+        (*flags)[Dirty::DepthTestEnable] = true;
+        (*flags)[Dirty::DepthWriteEnable] = true;
         (*flags)[Dirty::DepthCompareOp] = true;
         (*flags)[Dirty::FrontFace] = true;
         (*flags)[Dirty::StencilOp] = true;
+        (*flags)[Dirty::StencilTestEnable] = true;
         (*flags)[Dirty::StateEnable] = true;
         (*flags)[Dirty::PrimitiveRestartEnable] = true;
         (*flags)[Dirty::RasterizerDiscardEnable] = true;
