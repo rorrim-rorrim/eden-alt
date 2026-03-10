@@ -1068,9 +1068,51 @@ public:
     u64 stride{};
     DAddr dependant_address{};
     Maxwell3D::Regs::PrimitiveTopology topology{Maxwell3D::Regs::PrimitiveTopology::Points};
+    u32 patch_vertices{1};
     size_t dependant_index{};
     bool dependant_manage{};
 };
+
+[[nodiscard]] constexpr u64 SaturatingSub(u64 value, u64 amount) {
+    return value > amount ? value - amount : 0;
+}
+
+[[nodiscard]] constexpr u64 PrimitiveCountFromVertices(
+    Maxwell3D::Regs::PrimitiveTopology topology, u64 num_vertices, u32 patch_vertices) {
+    switch (topology) {
+    case Maxwell3D::Regs::PrimitiveTopology::Points:
+        return num_vertices;
+    case Maxwell3D::Regs::PrimitiveTopology::Lines:
+        return num_vertices / 2;
+    case Maxwell3D::Regs::PrimitiveTopology::LineLoop:
+        return num_vertices >= 2 ? num_vertices : 0;
+    case Maxwell3D::Regs::PrimitiveTopology::LineStrip:
+        return SaturatingSub(num_vertices, 1);
+    case Maxwell3D::Regs::PrimitiveTopology::LinesAdjacency:
+        return num_vertices / 4;
+    case Maxwell3D::Regs::PrimitiveTopology::LineStripAdjacency:
+        return SaturatingSub(num_vertices, 3);
+    case Maxwell3D::Regs::PrimitiveTopology::Triangles:
+        return num_vertices / 3;
+    case Maxwell3D::Regs::PrimitiveTopology::TrianglesAdjacency:
+        return num_vertices / 6;
+    case Maxwell3D::Regs::PrimitiveTopology::TriangleFan:
+    case Maxwell3D::Regs::PrimitiveTopology::TriangleStrip:
+        return SaturatingSub(num_vertices, 2);
+    case Maxwell3D::Regs::PrimitiveTopology::TriangleStripAdjacency:
+        return num_vertices >= 6 ? (num_vertices - 4) / 2 : 0;
+    case Maxwell3D::Regs::PrimitiveTopology::Quads:
+        return num_vertices / 4;
+    case Maxwell3D::Regs::PrimitiveTopology::QuadStrip:
+        return num_vertices >= 4 ? (num_vertices / 2) - 1 : 0;
+    case Maxwell3D::Regs::PrimitiveTopology::Patches:
+        return patch_vertices != 0 ? num_vertices / patch_vertices : 0;
+    case Maxwell3D::Regs::PrimitiveTopology::Polygon:
+        return num_vertices != 0 ? 1 : 0;
+    default:
+        return num_vertices;
+    }
+}
 
 class PrimitivesSucceededStreamer : public VideoCommon::SimpleStreamer<PrimitivesQueryBase> {
 public:
@@ -1100,7 +1142,10 @@ public:
         const size_t subreport = static_cast<size_t>(*subreport_);
         auto dependant_address_opt = tfb_streamer.GetLastQueryStream(subreport);
         bool must_manage_dependance = false;
-        new_query->topology = tfb_streamer.GetOutputTopology();
+        runtime.View3DRegs([new_query, this](Maxwell3D& maxwell3d) {
+            new_query->topology = tfb_streamer.GetOutputTopology();
+            new_query->patch_vertices = std::max<u32>(maxwell3d.regs.patch_vertices, 1);
+        });
         if (dependant_address_opt) {
             auto [dep_address, stride] = *dependant_address_opt;
             new_query->dependant_address = dep_address;
@@ -1183,32 +1228,8 @@ public:
                     num_vertices = static_cast<u64>(result) / safe_stride;
                 }
             }
-            query->value = [&]() -> u64 {
-                switch (query->topology) {
-                case Maxwell3D::Regs::PrimitiveTopology::Points:
-                    return num_vertices;
-                case Maxwell3D::Regs::PrimitiveTopology::Lines:
-                    return num_vertices / 2;
-                case Maxwell3D::Regs::PrimitiveTopology::LineLoop:
-                    return (num_vertices / 2) + 1;
-                case Maxwell3D::Regs::PrimitiveTopology::LineStrip:
-                    return num_vertices - 1;
-                case Maxwell3D::Regs::PrimitiveTopology::Patches:
-                case Maxwell3D::Regs::PrimitiveTopology::Triangles:
-                case Maxwell3D::Regs::PrimitiveTopology::TrianglesAdjacency:
-                    return num_vertices / 3;
-                case Maxwell3D::Regs::PrimitiveTopology::TriangleFan:
-                case Maxwell3D::Regs::PrimitiveTopology::TriangleStrip:
-                case Maxwell3D::Regs::PrimitiveTopology::TriangleStripAdjacency:
-                    return num_vertices - 2;
-                case Maxwell3D::Regs::PrimitiveTopology::Quads:
-                    return num_vertices / 4;
-                case Maxwell3D::Regs::PrimitiveTopology::Polygon:
-                    return 1U;
-                default:
-                    return num_vertices;
-                }
-            }();
+            query->value =
+                PrimitiveCountFromVertices(query->topology, num_vertices, query->patch_vertices);
         }
     }
 
