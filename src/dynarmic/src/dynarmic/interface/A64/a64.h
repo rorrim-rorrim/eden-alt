@@ -116,12 +116,6 @@ public:
     /// Clears exclusive state for this core.
     void ClearExclusiveState();
 
-    /**
-     * Returns true if Jit::Run was called but hasn't returned yet.
-     * i.e.: We're in a callback.
-     */
-    bool IsExecuting() const;
-
     /// @brief Disassemble the instructions following the current pc and return
     /// the resulting instructions as a vector of their string representations.
     std::string Disassemble() const;

@@ -26,15 +26,42 @@ CpuManager::~CpuManager() = default;
 void CpuManager::Initialize() {
     num_cores = is_multicore ? Core::Hardware::NUM_CPU_CORES : 1;
     gpu_barrier = std::make_unique<Common::Barrier>(num_cores + 1);
-    for (std::size_t core = 0; core < num_cores; core++)
-        core_data[core].host_thread = std::jthread([this, core](std::stop_token token) { RunThread(token, core); });
+    for (std::size_t core = 0; core < num_cores; core++) {
+        core_data[core].host_thread = std::jthread([this, core](std::stop_token token) {
+            // Initialization
+            system.RegisterCoreThread(core);
+            Common::SetCurrentThreadName(("CPUCore_" + std::to_string(core)).c_str());
+            Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
+#ifdef __ANDROID__
+            // Aimed specifically for Snapdragon 8 Elite devices
+            // This kills performance on desktop, but boosts perf for UMA devices
+            // like the S8E. Mediatek and Mali likely won't suffer.
+            Common::PinCurrentThreadToPerformanceCore(core);
+#endif
+            auto& data = core_data[core];
+            data.host_context = Common::Fiber::ThreadToFiber();
+            // Running
+            if (gpu_barrier->Sync(token)) {
+                if (!is_async_gpu && !is_multicore) {
+                    system.GPU().ObtainContext();
+                }
+                auto& kernel = system.Kernel();
+                auto& scheduler = *kernel.CurrentScheduler();
+                auto* thread = scheduler.GetSchedulerCurrentThread();
+                Kernel::SetCurrentThread(kernel, thread);
+                Common::Fiber::YieldTo(data.host_context, *thread->GetHostContext());
+            }
+            // Cleanup
+            data.host_context->Exit();
+        });
+    }
 }
 
 void CpuManager::Shutdown() {
-    for (std::size_t core = 0; core < num_cores; core++) {
-        if (core_data[core].host_thread.joinable()) {
-            core_data[core].host_thread.request_stop();
-            core_data[core].host_thread.join();
+    for (auto it = core_data.begin(); it != core_data.end(); ++it) {
+        if (it->host_thread.joinable()) {
+            it->host_thread.request_stop();
+            it->host_thread.join();
         }
     }
 }
@@ -181,43 +208,6 @@ void CpuManager::ShutdownThread() {
 
     Common::Fiber::YieldTo(thread->GetHostContext(), *core_data[core].host_context);
     UNREACHABLE();
-}
-
-void CpuManager::RunThread(std::stop_token token, std::size_t core) {
-    /// Initialization
-    system.RegisterCoreThread(core);
-    std::string name = is_multicore ? ("CPUCore_" + std::to_string(core)) : std::string{"CPUThread"};
-    Common::SetCurrentThreadName(name.c_str());
-    Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
-#ifdef __ANDROID__
-    // Aimed specifically for Snapdragon 8 Elite devices
-    // This kills performance on desktop, but boosts perf for UMA devices
-    // like the S8E. Mediatek and Mali likely won't suffer.
-    Common::PinCurrentThreadToPerformanceCore(core);
-#endif
-    auto& data = core_data[core];
-    data.host_context = Common::Fiber::ThreadToFiber();
-
-    // Cleanup
-    SCOPE_EXIT {
-        data.host_context->Exit();
-    };
-
-    // Running
-    if (!gpu_barrier->Sync(token)) {
-        return;
-    }
-
-    if (!is_async_gpu && !is_multicore) {
-        system.GPU().ObtainContext();
-    }
-
-    auto& kernel = system.Kernel();
-    auto& scheduler = *kernel.CurrentScheduler();
-    auto* thread = scheduler.GetSchedulerCurrentThread();
-    Kernel::SetCurrentThread(kernel, thread);
-
-    Common::Fiber::YieldTo(data.host_context, *thread->GetHostContext());
 }
 
 } // namespace Core
