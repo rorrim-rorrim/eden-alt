@@ -7,7 +7,7 @@
 #pragma once
 
 #include <mutex>
-#include <unordered_map>
+#include <unordered_set>
 
 #include "core/arm/arm_interface.h"
 #include "core/arm/nce/guest_context.h"
@@ -84,8 +84,6 @@ private:
 
     bool IsPreciseAccessPage(u64 addr) const;
     void MarkPreciseAccessPage(u64 addr);
-    void MarkPreciseAccessFaultWindow(u64 addr);
-    void DecayPreciseAccessPagesLocked();
 
 public:
     Core::System& m_system;
@@ -99,7 +97,7 @@ public:
     Kernel::KThread* m_running_thread{};
 
     mutable std::mutex m_precise_pages_guard{};
-    std::unordered_map<u64, u8> m_precise_pages{};
+    std::unordered_set<u64> m_precise_pages{};
 
     // Stack for signal processing.
     std::unique_ptr<u8[]> m_stack{};
