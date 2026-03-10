@@ -39,9 +39,7 @@ NumericType GetNumericType(TexturePixelFormat format) {
     if (!VideoCore::Surface::IsPixelFormatInteger(pixel_format)) {
         return NumericType::Float;
     }
-    return VideoCore::Surface::IsPixelFormatSignedInteger(pixel_format)
-               ? NumericType::SignedInt
-               : NumericType::UnsignedInt;
+    return NumericType::UnsignedInt;
 }
 
 IR::Opcode IndexedInstruction(const IR::Inst& inst) {
@@ -450,7 +448,9 @@ public:
 
     u32 Add(const ImageBufferDescriptor& desc) {
         const u32 index{Add(image_buffer_descriptors, desc, [&desc](const auto& existing) {
-            return desc.format == existing.format && desc.cbuf_index == existing.cbuf_index &&
+            return desc.format == existing.format &&
+                   desc.numeric_type == existing.numeric_type &&
+                   desc.cbuf_index == existing.cbuf_index &&
                    desc.cbuf_offset == existing.cbuf_offset && desc.count == existing.count &&
                    desc.size_shift == existing.size_shift;
         })};
@@ -480,6 +480,7 @@ public:
     u32 Add(const ImageDescriptor& desc) {
         const u32 index{Add(image_descriptors, desc, [&desc](const auto& existing) {
             return desc.type == existing.type && desc.format == existing.format &&
+                   desc.numeric_type == existing.numeric_type &&
                    desc.cbuf_index == existing.cbuf_index &&
                    desc.cbuf_offset == existing.cbuf_offset && desc.count == existing.count &&
                    desc.size_shift == existing.size_shift;
