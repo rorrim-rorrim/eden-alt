@@ -16,7 +16,6 @@ This contains documentation created by developers. This contains build instructi
 - **[Dynarmic](./dynarmic)**
 - **[Cross compilation](./CrossCompile.md)**
 - **[Driver Bugs](./DriverBugs.md)**
-- **[Testing](./Testing.md)**
 
 ## Policies
 
