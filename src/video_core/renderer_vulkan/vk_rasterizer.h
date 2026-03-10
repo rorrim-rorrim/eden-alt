@@ -155,10 +155,11 @@ private:
     template <typename Func>
     void PrepareDraw(bool is_indexed, Func&&);
 
-    bool DrawLineLoopClosure(const MaxwellDrawState& draw_state, u32 base_instance,
+    bool DrawLineLoopClosure(const Tegra::Engines::DrawManager::State& draw_state,
+                             u32 base_instance,
                              u32 num_instances, s32 base_vertex, u32 num_vertices,
                              bool is_indexed);
-    void DrawIndirectLineLoopClosures(const MaxwellDrawState& draw_state,
+    void DrawIndirectLineLoopClosures(const Tegra::Engines::DrawManager::State& draw_state,
                                       const Tegra::Engines::DrawManager::IndirectParams& params);
 
     void FlushWork();
