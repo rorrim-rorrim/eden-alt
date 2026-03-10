@@ -66,3 +66,9 @@ Note: Even though the site isn't Codeberg, it uses the same Forgejo/Gitea backen
 ```xml
 <command label="Eden (Standalone)">%EMULATOR_EDEN% %ACTION%=android.nfc.action.TECH_DISCOVERED %DATA%=%ROMPROVIDER%</command>
 ```
+
+## Configuring GameMode
+
+There is a checkbox to enable gamemode automatically. The `libgamemode.so` library must be findable on the standard `LD_LIBRARY_PATH` otherwise it will not properly be enabled. If for whatever reason it doesn't work, see [Arch wiki: GameMode](https://wiki.archlinux.org/title/GameMode) for more info.
+
+You may launch the emulator directly via the wrapper `gamemode <program>`, and things should work out of the box.

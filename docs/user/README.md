@@ -35,6 +35,7 @@ A copy of this handbook is [available online](https://git.eden-emu.dev/eden-emu/
     - **[Obtainium](./ThirdParty.md#configuring-obtainium)**
     - **[ES-DE](./ThirdParty.md#configuring-es-de)**
     - **[Mirrors](./ThirdParty.md#mirrors)**
+    - **[GameMode](./ThirdParty.md#configuring-gamemode)**
 
 ## Advanced
 
