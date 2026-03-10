@@ -203,6 +203,11 @@ public:
     }
 
     void SyncWrites() override {
+        if (!direct_sync_values.empty()) {
+            runtime.template SyncValues<VideoCommon::SyncValuesStruct>(direct_sync_values);
+            direct_sync_values.clear();
+        }
+
         if (sync_values_stash.empty()) {
             return;
         }
@@ -223,8 +228,54 @@ public:
         const auto driver_id = device.GetDriverID();
         if (driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
             driver_id == VK_DRIVER_ID_ARM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP) {
-            pending_sync.clear();
+            ApplyBanksWideOp<false>(
+                pending_sync,
+                [](SamplesQueryBank* bank, size_t start, size_t amount) { bank->Sync(start, amount); });
+
+            direct_sync_values.clear();
+            direct_sync_values.reserve(pending_sync.size());
+
+            bool has_multi_queries = accumulation_since_last_sync;
+            for (auto q : pending_sync) {
+                auto* query = GetQuery(q);
+                if (True(query->flags & VideoCommon::QueryFlagBits::IsRewritten)) {
+                    continue;
+                }
+                if (True(query->flags & VideoCommon::QueryFlagBits::IsInvalidated)) {
+                    continue;
+                }
+
+                u64 total = 0;
+                ApplyBankOp(query, [&total](SamplesQueryBank* bank, size_t start, size_t amount) {
+                    const auto& results = bank->GetResults();
+                    for (size_t i = 0; i < amount; i++) {
+                        total += results[start + i];
+                    }
+                });
+
+                total += GetAmendValue();
+                query->value = total;
+                query->flags |= VideoCommon::QueryFlagBits::IsHostSynced;
+                query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
+                direct_sync_values.emplace_back(VideoCommon::SyncValuesStruct{
+                    .address = query->guest_address,
+                    .value = total,
+                    .size = SamplesQueryBank::QUERY_SIZE,
+                });
+
+                has_multi_queries |= query->size_slots > 1;
+            }
+
+            ReplicateCurrentQueryIfNeeded();
+            std::function<void()> func([this] { amend_value = accumulation_value; });
+            rasterizer->SyncOperation(std::move(func));
+            AbandonCurrentQuery();
+            num_slots_used = 0;
+            first_accumulation_checkpoint = (std::numeric_limits<size_t>::max)();
+            last_accumulation_checkpoint = 0;
+            accumulation_since_last_sync = has_multi_queries;
             sync_values_stash.clear();
+            pending_sync.clear();
             return;
         }
         sync_values_stash.clear();
@@ -570,6 +621,7 @@ private:
     std::array<size_t, 32> resolve_table{};
     std::array<size_t, 32> intermediary_table{};
     vk::Buffer accumulation_buffer;
+    std::vector<VideoCommon::SyncValuesStruct> direct_sync_values;
     std::deque<std::vector<HostSyncValues>> sync_values_stash;
     std::vector<size_t> resolve_buffers;
 
@@ -1423,13 +1475,6 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
         return false;
     }
 
-    auto driver_id = impl->device.GetDriverID();
-    const bool is_gpu_high = Settings::IsGPULevelHigh();
-
-    if ((!is_gpu_high && driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) || driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY || driver_id == VK_DRIVER_ID_ARM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP) {
-        return true;
-    }
-
     for (size_t i = 0; i < 2; i++) {
         is_null[i] = !is_in_ac[i] && check_value(objects[i]->address);
     }
@@ -1442,12 +1487,22 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
         }
     }
 
-    if (!is_gpu_high) {
-        return true;
+    auto driver_id = impl->device.GetDriverID();
+    const bool is_gpu_high = Settings::IsGPULevelHigh();
+    const bool driver_blocks_pair_resolve =
+        ((!is_gpu_high && driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) ||
+         driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
+         driver_id == VK_DRIVER_ID_ARM_PROPRIETARY ||
+         driver_id == VK_DRIVER_ID_MESA_TURNIP);
+
+    if (driver_blocks_pair_resolve || !is_gpu_high) {
+        EndHostConditionalRendering();
+        return false;
     }
 
     if (!is_in_bc[0] && !is_in_bc[1]) {
-        return true;
+        EndHostConditionalRendering();
+        return false;
     }
     HostConditionalRenderingCompareBCImpl(object_1.address, equal_check);
     return true;
