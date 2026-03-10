@@ -207,7 +207,7 @@ void PhysicalCore::Idle() {
     m_on_interrupt.wait(lk, [this] { return m_is_interrupted; });
 }
 
-bool PhysicalCore::IsInterrupted() const {
+[[noinline]] bool PhysicalCore::IsInterrupted() const {
     return m_is_interrupted;
 }
 

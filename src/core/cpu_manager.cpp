@@ -104,12 +104,10 @@ void CpuManager::MultiCoreRunGuestThread() {
     kernel.CurrentScheduler()->OnThreadStart();
 
     while (true) {
-        auto* physical_core = &kernel.CurrentPhysicalCore();
-        while (!physical_core->IsInterrupted()) {
-            physical_core->RunThread(thread);
-            physical_core = &kernel.CurrentPhysicalCore();
+        auto& physical_core = kernel.CurrentPhysicalCore();
+        while (!physical_core.IsInterrupted()) {
+            physical_core.RunThread(thread);
         }
-
         HandleInterrupt();
     }
 }

@@ -122,10 +122,12 @@ public:
 
     void HaltExecution(HaltReason hr) {
         Atomic::Or(&jit_state.halt_reason, u32(hr));
+        Atomic::Barrier();
     }
 
     void ClearHalt(HaltReason hr) {
         Atomic::And(&jit_state.halt_reason, ~u32(hr));
+        Atomic::Barrier();
     }
 
     u64 GetSP() const {
