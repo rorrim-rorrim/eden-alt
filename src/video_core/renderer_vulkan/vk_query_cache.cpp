@@ -1102,9 +1102,9 @@ public:
     case Maxwell3D::Regs::PrimitiveTopology::TriangleStripAdjacency:
         return num_vertices >= 6 ? (num_vertices - 4) / 2 : 0;
     case Maxwell3D::Regs::PrimitiveTopology::Quads:
-        return num_vertices / 4;
+        return num_vertices / 6;
     case Maxwell3D::Regs::PrimitiveTopology::QuadStrip:
-        return num_vertices >= 4 ? (num_vertices / 2) - 1 : 0;
+        return num_vertices / 6;
     case Maxwell3D::Regs::PrimitiveTopology::Patches:
         return patch_vertices != 0 ? num_vertices / patch_vertices : 0;
     case Maxwell3D::Regs::PrimitiveTopology::Polygon:
