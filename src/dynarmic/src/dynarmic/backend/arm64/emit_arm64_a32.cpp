@@ -153,13 +153,13 @@ void EmitA32Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::Te
 }
 
 void EmitA32Terminal(oaknut::CodeGenerator& code, EmitContext& ctx) {
-    const A32::LocationDescriptor location{ctx.block.Location()};
-    EmitA32Terminal(code, ctx, ctx.block.GetTerminal(), location.SetSingleStepping(false), location.SingleStepping());
+    const A32::LocationDescriptor location{ctx.block.location};
+    EmitA32Terminal(code, ctx, ctx.block.terminal, location.SetSingleStepping(false), location.SingleStepping());
 }
 
 void EmitA32ConditionFailedTerminal(oaknut::CodeGenerator& code, EmitContext& ctx) {
-    const A32::LocationDescriptor location{ctx.block.Location()};
-    EmitA32Terminal(code, ctx, IR::Term::LinkBlock{ctx.block.ConditionFailedLocation()}, location.SetSingleStepping(false), location.SingleStepping());
+    const A32::LocationDescriptor location{ctx.block.location};
+    EmitA32Terminal(code, ctx, IR::Term::LinkBlock{ctx.block.cond_failed}, location.SetSingleStepping(false), location.SingleStepping());
 }
 
 void EmitA32CheckMemoryAbort(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, oaknut::Label& end) {
@@ -172,7 +172,7 @@ void EmitA32CheckMemoryAbort(oaknut::CodeGenerator& code, EmitContext& ctx, IR::
     code.LDAR(Xscratch0, Xhalt);
     code.TST(Xscratch0, static_cast<u32>(HaltReason::MemoryAbort));
     code.B(EQ, end);
-    EmitSetUpperLocationDescriptor(code, ctx, current_location, ctx.block.Location());
+    EmitSetUpperLocationDescriptor(code, ctx, current_location, ctx.block.location);
     code.MOV(Wscratch0, current_location.PC());
     code.STR(Wscratch0, Xstate, offsetof(A32JitState, regs) + sizeof(u32) * 15);
     EmitRelocation(code, ctx, LinkTarget::ReturnFromRunCode);
@@ -550,7 +550,7 @@ template<>
 void EmitIR<IR::Opcode::A32BXWritePC>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    const u32 upper_without_t = (A32::LocationDescriptor{ctx.block.EndLocation()}.SetSingleStepping(false).UniqueHash() >> 32) & 0xFFFFFFFE;
+    const u32 upper_without_t = (A32::LocationDescriptor{ctx.block.end_location}.SetSingleStepping(false).UniqueHash() >> 32) & 0xFFFFFFFE;
 
     static_assert(offsetof(A32JitState, regs) + 16 * sizeof(u32) == offsetof(A32JitState, upper_location_descriptor));
 
@@ -581,7 +581,7 @@ void EmitIR<IR::Opcode::A32UpdateUpperLocationDescriptor>(oaknut::CodeGenerator&
     for (auto& inst : ctx.block.instructions)
         if (inst.GetOpcode() == IR::Opcode::A32BXWritePC)
             return;
-    EmitSetUpperLocationDescriptor(code, ctx, ctx.block.EndLocation(), ctx.block.Location());
+    EmitSetUpperLocationDescriptor(code, ctx, ctx.block.end_location, ctx.block.location);
 }
 
 template<>

@@ -70,7 +70,10 @@ enum class MemOp {
 /// The user of this class updates `current_location` as appropriate.
 class IREmitter {
 public:
-    explicit IREmitter(Block& block) : block(block), insertion_point(block.instructions.end()) {}
+    explicit IREmitter(Block& block) noexcept
+        : block(block)
+        , insertion_point(block.instructions.end())
+    {}
 
     Block& block;
 
@@ -2944,20 +2947,12 @@ public:
     }
 
     void SetTerm(const Terminal& terminal) {
-        block.SetTerminal(terminal);
-    }
-
-    void SetInsertionPointBefore(IR::Inst* new_insertion_point) {
-        insertion_point = IR::Block::iterator{*new_insertion_point};
+        ASSERT(!block.HasTerminal() && "Terminal has already been set.");
+        block.terminal = std::move(terminal);
     }
 
     void SetInsertionPointBefore(IR::Block::iterator new_insertion_point) {
         insertion_point = new_insertion_point;
-    }
-
-    void SetInsertionPointAfter(IR::Inst* new_insertion_point) {
-        insertion_point = IR::Block::iterator{*new_insertion_point};
-        ++insertion_point;
     }
 
     void SetInsertionPointAfter(IR::Block::iterator new_insertion_point) {
@@ -2970,7 +2965,9 @@ protected:
 
     template<typename T = Value, typename... Args>
     T Inst(Opcode op, Args... args) {
+        auto const offset = std::distance(block.instructions.begin(), insertion_point);
         auto iter = block.PrependNewInst(insertion_point, op, {Value(args)...});
+        insertion_point = std::next(block.instructions.begin(), offset + 1);
         return T(Value(&*iter));
     }
 };

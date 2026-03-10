@@ -579,8 +579,8 @@ EmitConfig A64AddressSpace::GetEmitConfig() {
 }
 
 void A64AddressSpace::RegisterNewBasicBlock(const IR::Block& block, const EmittedBlockInfo&) {
-    const A64::LocationDescriptor descriptor{block.Location()};
-    const A64::LocationDescriptor end_location{block.EndLocation()};
+    const A64::LocationDescriptor descriptor{block.location};
+    const A64::LocationDescriptor end_location{block.end_location};
     const auto range = boost::icl::discrete_interval<u64>::closed(descriptor.PC(), end_location.PC() - 1);
     block_ranges.AddRange(range, descriptor);
 }

@@ -161,7 +161,7 @@ void TranslateThumb(IR::Block& block, LocationDescriptor descriptor, TranslateCa
         }
 
         visitor.ir.current_location = visitor.ir.current_location.AdvancePC(static_cast<int>(visitor.current_instruction_size)).AdvanceIT();
-        block.CycleCount() += ticks_for_instruction;
+        block.cycle_count += ticks_for_instruction;
     } while (should_continue && CondCanContinue(visitor.cond_state, visitor.ir) && !single_step);
 
     if (visitor.cond_state == ConditionalState::Translating || visitor.cond_state == ConditionalState::Trailing || single_step) {
@@ -174,7 +174,7 @@ void TranslateThumb(IR::Block& block, LocationDescriptor descriptor, TranslateCa
         }
     }
     ASSERT(block.HasTerminal() && "Terminal has not been set");
-    block.SetEndLocation(visitor.ir.current_location);
+    block.end_location = visitor.ir.current_location;
 }
 
 bool TranslateSingleThumbInstruction(IR::Block& block, LocationDescriptor descriptor, u32 thumb_instruction) {
@@ -214,10 +214,8 @@ bool TranslateSingleThumbInstruction(IR::Block& block, LocationDescriptor descri
 
     const s32 advance_pc = is_thumb_16 ? 2 : 4;
     visitor.ir.current_location = visitor.ir.current_location.AdvancePC(advance_pc);
-    block.CycleCount() += ticks_for_instruction;
-
-    block.SetEndLocation(visitor.ir.current_location);
-
+    block.cycle_count += ticks_for_instruction;
+    block.end_location = visitor.ir.current_location;
     return should_continue;
 }
 

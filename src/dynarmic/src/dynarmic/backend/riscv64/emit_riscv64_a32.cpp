@@ -199,8 +199,8 @@ void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::Termina
 }
 
 void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx) {
-    const A32::LocationDescriptor location{ctx.block.Location()};
-    EmitA32Terminal(as, ctx, ctx.block.GetTerminal(), location.SetSingleStepping(false), location.SingleStepping());
+    const A32::LocationDescriptor location{ctx.block.location};
+    EmitA32Terminal(as, ctx, ctx.block.terminal, location.SetSingleStepping(false), location.SingleStepping());
 }
 
 template<>

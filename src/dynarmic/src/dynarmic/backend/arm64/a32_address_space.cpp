@@ -405,8 +405,8 @@ EmitConfig A32AddressSpace::GetEmitConfig() {
 }
 
 void A32AddressSpace::RegisterNewBasicBlock(const IR::Block& block, const EmittedBlockInfo&) {
-    const A32::LocationDescriptor descriptor{block.Location()};
-    const A32::LocationDescriptor end_location{block.EndLocation()};
+    const A32::LocationDescriptor descriptor{block.location};
+    const A32::LocationDescriptor end_location{block.end_location};
     const auto range = boost::icl::discrete_interval<u32>::closed(descriptor.PC(), end_location.PC() - 1);
     block_ranges.AddRange(range, descriptor);
 }

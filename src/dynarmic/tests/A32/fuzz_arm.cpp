@@ -83,7 +83,7 @@ bool ShouldTestInst(u32 instruction, u32 pc, bool is_thumb, bool is_last_inst, A
         return false;
     }
 
-    if (AnyLocationDescriptorForTerminalHas(block.GetTerminal(), [&](IR::LocationDescriptor ld) { return A32::LocationDescriptor{ld}.PC() <= pc; })) {
+    if (AnyLocationDescriptorForTerminalHas(block.terminal, [&](IR::LocationDescriptor ld) { return A32::LocationDescriptor{ld}.PC() <= pc; })) {
         return false;
     }
 

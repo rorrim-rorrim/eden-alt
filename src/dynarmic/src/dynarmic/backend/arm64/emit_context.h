@@ -43,7 +43,7 @@ struct EmitContext {
     std::vector<std::function<void()>> deferred_emits;
 
     FP::FPCR FPCR(bool fpcr_controlled = true) const {
-        const FP::FPCR fpcr = conf.descriptor_to_fpcr(block.Location());
+        const FP::FPCR fpcr = conf.descriptor_to_fpcr(block.location);
         return fpcr_controlled ? fpcr : fpcr.ASIMDStandardValue();
     }
 };

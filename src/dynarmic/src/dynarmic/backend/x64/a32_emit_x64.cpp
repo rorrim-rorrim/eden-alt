@@ -64,11 +64,11 @@ A32EmitContext::A32EmitContext(const A32::UserConfig& conf, RegAlloc& reg_alloc,
         : EmitContext(reg_alloc, block), conf(conf) {}
 
 A32::LocationDescriptor A32EmitContext::Location() const {
-    return A32::LocationDescriptor{block.Location()};
+    return A32::LocationDescriptor{block.location};
 }
 
 A32::LocationDescriptor A32EmitContext::EndLocation() const {
-    return A32::LocationDescriptor{block.EndLocation()};
+    return A32::LocationDescriptor{block.end_location};
 }
 
 bool A32EmitContext::IsSingleStep() const {
@@ -148,9 +148,9 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
     reg_alloc.AssertNoMoreUses();
 
     if (conf.enable_cycle_counting) {
-        EmitAddCycles(block.CycleCount());
+        EmitAddCycles(block.cycle_count);
     }
-    EmitTerminal(block.GetTerminal(), ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
+    EmitTerminal(block.terminal, ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
     code.int3();
 
     for (auto& deferred_emit : ctx.deferred_emits) {
@@ -160,8 +160,8 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
 
     const size_t size = size_t(code.getCurr() - entrypoint);
 
-    const A32::LocationDescriptor descriptor{block.Location()};
-    const A32::LocationDescriptor end_location{block.EndLocation()};
+    const A32::LocationDescriptor descriptor{block.location};
+    const A32::LocationDescriptor end_location{block.end_location};
 
     const auto range = boost::icl::discrete_interval<u32>::closed(descriptor.PC(), end_location.PC() - 1);
     block_ranges.AddRange(range, descriptor);
@@ -183,18 +183,17 @@ void A32EmitX64::InvalidateCacheRanges(const boost::icl::interval_set<u32>& rang
 }
 
 void A32EmitX64::EmitCondPrelude(const A32EmitContext& ctx) {
-    if (ctx.block.GetCondition() == IR::Cond::AL) {
+    if (ctx.block.cond == IR::Cond::AL) {
         ASSERT(!ctx.block.HasConditionFailedLocation());
         return;
     }
-
     ASSERT(ctx.block.HasConditionFailedLocation());
 
-    Xbyak::Label pass = EmitCond(ctx.block.GetCondition());
+    Xbyak::Label pass = EmitCond(ctx.block.cond);
     if (conf.enable_cycle_counting) {
-        EmitAddCycles(ctx.block.ConditionFailedCycleCount());
+        EmitAddCycles(ctx.block.cond_failed_cycle_count);
     }
-    EmitTerminal(IR::Term::LinkBlock{ctx.block.ConditionFailedLocation()}, ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
+    EmitTerminal(IR::Term::LinkBlock{ctx.block.cond_failed}, ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
     code.L(pass);
 }
 

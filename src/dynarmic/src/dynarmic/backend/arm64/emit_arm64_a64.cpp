@@ -136,13 +136,13 @@ void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::Te
 }
 
 void EmitA64Terminal(oaknut::CodeGenerator& code, EmitContext& ctx) {
-    const A64::LocationDescriptor location{ctx.block.Location()};
-    EmitA64Terminal(code, ctx, ctx.block.GetTerminal(), location.SetSingleStepping(false), location.SingleStepping());
+    const A64::LocationDescriptor location{ctx.block.location};
+    EmitA64Terminal(code, ctx, ctx.block.terminal, location.SetSingleStepping(false), location.SingleStepping());
 }
 
 void EmitA64ConditionFailedTerminal(oaknut::CodeGenerator& code, EmitContext& ctx) {
-    const A64::LocationDescriptor location{ctx.block.Location()};
-    EmitA64Terminal(code, ctx, IR::Term::LinkBlock{ctx.block.ConditionFailedLocation()}, location.SetSingleStepping(false), location.SingleStepping());
+    const A64::LocationDescriptor location{ctx.block.location};
+    EmitA64Terminal(code, ctx, IR::Term::LinkBlock{ctx.block.cond_failed}, location.SetSingleStepping(false), location.SingleStepping());
 }
 
 void EmitA64CheckMemoryAbort(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, oaknut::Label& end) {
