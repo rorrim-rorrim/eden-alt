@@ -868,8 +868,8 @@ static void FoldMostSignificantBit(IR::Inst& inst) {
     inst.ReplaceUsesWith(IR::Value{(operand.GetImmediateAsU64() >> 31) != 0});
 }
 
-static void FoldMostSignificantWord(IR::Inst& inst) {
-    IR::Inst* carry_inst = inst.GetAssociatedPseudoOperation(Op::GetCarryFromOp);
+static void FoldMostSignificantWord(IR::Block& block, IR::Inst& inst) {
+    IR::Inst* carry_inst = inst.GetAssociatedPseudoOperation(block, Op::GetCarryFromOp);
 
     if (!inst.AreAllArgsImmediates()) {
         return;
@@ -928,8 +928,8 @@ static void FoldOR(IR::Inst& inst, bool is_32_bit) {
     }
 }
 
-static bool FoldShifts(IR::Inst& inst) {
-    IR::Inst* carry_inst = inst.GetAssociatedPseudoOperation(Op::GetCarryFromOp);
+static bool FoldShifts(IR::Block& block, IR::Inst& inst) {
+    IR::Inst* carry_inst = inst.GetAssociatedPseudoOperation(block, Op::GetCarryFromOp);
 
     // The 32-bit variants can contain 3 arguments, while the
     // 64-bit variants only contain 2.
@@ -1013,14 +1013,14 @@ static void ConstantPropagation(IR::Block& block) {
         // skip NZCV so we dont end up discarding side effects :)
         // TODO(lizzie): hey stupid maybe fix the A64 codegen for folded constants AND
         // redirect the mfer properly?!??! just saying :)
-        if (IR::MayGetNZCVFromOp(opcode) && inst.GetAssociatedPseudoOperation(IR::Opcode::GetNZCVFromOp))
+        if (IR::MayGetNZCVFromOp(opcode) && inst.GetAssociatedPseudoOperation(block, IR::Opcode::GetNZCVFromOp))
             continue;
         switch (opcode) {
         case Op::LeastSignificantWord:
             FoldLeastSignificantWord(inst);
             break;
         case Op::MostSignificantWord:
-            FoldMostSignificantWord(inst);
+            FoldMostSignificantWord(block, inst);
             break;
         case Op::LeastSignificantHalf:
             FoldLeastSignificantHalf(inst);
@@ -1042,42 +1042,42 @@ static void ConstantPropagation(IR::Block& block) {
             }
             break;
         case Op::LogicalShiftLeft32:
-            if (FoldShifts(inst)) {
+            if (FoldShifts(block, inst)) {
                 ReplaceUsesWith(inst, true, Safe::LogicalShiftLeft<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU8()));
             }
             break;
         case Op::LogicalShiftLeft64:
-            if (FoldShifts(inst)) {
+            if (FoldShifts(block, inst)) {
                 ReplaceUsesWith(inst, false, Safe::LogicalShiftLeft<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU8()));
             }
             break;
         case Op::LogicalShiftRight32:
-            if (FoldShifts(inst)) {
+            if (FoldShifts(block, inst)) {
                 ReplaceUsesWith(inst, true, Safe::LogicalShiftRight<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU8()));
             }
             break;
         case Op::LogicalShiftRight64:
-            if (FoldShifts(inst)) {
+            if (FoldShifts(block, inst)) {
                 ReplaceUsesWith(inst, false, Safe::LogicalShiftRight<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU8()));
             }
             break;
         case Op::ArithmeticShiftRight32:
-            if (FoldShifts(inst)) {
+            if (FoldShifts(block, inst)) {
                 ReplaceUsesWith(inst, true, Safe::ArithmeticShiftRight<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU8()));
             }
             break;
         case Op::ArithmeticShiftRight64:
-            if (FoldShifts(inst)) {
+            if (FoldShifts(block, inst)) {
                 ReplaceUsesWith(inst, false, Safe::ArithmeticShiftRight<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU8()));
             }
             break;
         case Op::RotateRight32:
-            if (FoldShifts(inst)) {
+            if (FoldShifts(block, inst)) {
                 ReplaceUsesWith(inst, true, mcl::bit::rotate_right<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU8()));
             }
             break;
         case Op::RotateRight64:
-            if (FoldShifts(inst)) {
+            if (FoldShifts(block, inst)) {
                 ReplaceUsesWith(inst, false, mcl::bit::rotate_right<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU8()));
             }
             break;

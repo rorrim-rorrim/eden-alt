@@ -35,7 +35,7 @@ enum class Opcode;
 /// order memory accesses.
 class Block final {
 public:
-    using instruction_list_type = std::list<Inst>;
+    using instruction_list_type = boost::container::stable_vector<Inst>;
     using iterator = instruction_list_type::iterator;
     using const_iterator = instruction_list_type::const_iterator;
     using reverse_iterator = instruction_list_type::reverse_iterator;

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2024 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -84,7 +87,7 @@ void EmitIR<IR::Opcode::ConditionalSelectNZCV>(biscuit::Assembler&, EmitContext&
 
 template<>
 void EmitIR<IR::Opcode::LogicalShiftLeft32>(biscuit::Assembler& as, EmitContext& ctx, IR::Inst* inst) {
-    const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
+    const auto carry_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& operand_arg = args[0];
@@ -126,7 +129,7 @@ void EmitIR<IR::Opcode::LogicalShiftLeft64>(biscuit::Assembler&, EmitContext&, I
 
 template<>
 void EmitIR<IR::Opcode::LogicalShiftRight32>(biscuit::Assembler& as, EmitContext& ctx, IR::Inst* inst) {
-    const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
+    const auto carry_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& operand_arg = args[0];
@@ -267,8 +270,8 @@ static void AddImmWithFlags(biscuit::Assembler& as, biscuit::GPR rd, biscuit::GP
 
 template<size_t bitsize, bool sub>
 static void EmitAddSub(biscuit::Assembler& as, EmitContext& ctx, IR::Inst* inst) {
-    const auto nzcv_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetNZCVFromOp);
-    const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
+    const auto nzcv_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetNZCVFromOp);
+    const auto overflow_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetOverflowFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 

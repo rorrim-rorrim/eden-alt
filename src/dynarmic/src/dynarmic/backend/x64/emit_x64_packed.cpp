@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -17,7 +17,7 @@ using namespace Xbyak::util;
 
 void EmitX64::EmitPackedAddU8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
+    const auto ge_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetGEFromOp);
 
     const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
     const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
@@ -43,7 +43,7 @@ void EmitX64::EmitPackedAddU8(EmitContext& ctx, IR::Inst* inst) {
 
 void EmitX64::EmitPackedAddS8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
+    const auto ge_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetGEFromOp);
 
     const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
     const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
@@ -67,7 +67,7 @@ void EmitX64::EmitPackedAddS8(EmitContext& ctx, IR::Inst* inst) {
 
 void EmitX64::EmitPackedAddU16(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
+    const auto ge_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetGEFromOp);
 
     const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
     const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
@@ -107,7 +107,7 @@ void EmitX64::EmitPackedAddU16(EmitContext& ctx, IR::Inst* inst) {
 
 void EmitX64::EmitPackedAddS16(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
+    const auto ge_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetGEFromOp);
 
     const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
     const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
@@ -131,7 +131,7 @@ void EmitX64::EmitPackedAddS16(EmitContext& ctx, IR::Inst* inst) {
 
 void EmitX64::EmitPackedSubU8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
+    const auto ge_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetGEFromOp);
 
     const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
     const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
@@ -153,7 +153,7 @@ void EmitX64::EmitPackedSubU8(EmitContext& ctx, IR::Inst* inst) {
 
 void EmitX64::EmitPackedSubS8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
+    const auto ge_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetGEFromOp);
 
     const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
     const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
@@ -177,7 +177,7 @@ void EmitX64::EmitPackedSubS8(EmitContext& ctx, IR::Inst* inst) {
 
 void EmitX64::EmitPackedSubU16(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
+    const auto ge_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetGEFromOp);
 
     if (!ge_inst) {
         const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
@@ -226,7 +226,7 @@ void EmitX64::EmitPackedSubU16(EmitContext& ctx, IR::Inst* inst) {
 
 void EmitX64::EmitPackedSubS16(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
+    const auto ge_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetGEFromOp);
 
     const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
     const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
@@ -493,7 +493,7 @@ void EmitX64::EmitPackedHalvingSubS16(EmitContext& ctx, IR::Inst* inst) {
 
 static void EmitPackedSubAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, bool hi_is_sum, bool is_signed, bool is_halving) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
+    const auto ge_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetGEFromOp);
 
     const Xbyak::Reg32 reg_a_hi = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
     const Xbyak::Reg32 reg_b_hi = ctx.reg_alloc.UseScratchGpr(code, args[1]).cvt32();

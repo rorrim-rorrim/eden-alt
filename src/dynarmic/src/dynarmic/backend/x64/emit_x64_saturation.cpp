@@ -65,7 +65,7 @@ void EmitSignedSaturatedOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) 
 
     code.seto(overflow.cvt8());
     if constexpr (has_overflow_inst) {
-        if (const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp)) {
+        if (const auto overflow_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetOverflowFromOp)) {
             ctx.reg_alloc.DefineValue(code, overflow_inst, overflow);
         }
     } else {
@@ -114,7 +114,7 @@ void EmitX64::EmitSignedSaturatedSubWithFlag32(EmitContext& ctx, IR::Inst* inst)
 }
 
 void EmitX64::EmitSignedSaturation(EmitContext& ctx, IR::Inst* inst) {
-    const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
+    const auto overflow_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetOverflowFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const size_t N = args[1].GetImmediateU8();
@@ -163,7 +163,7 @@ void EmitX64::EmitSignedSaturation(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitUnsignedSaturation(EmitContext& ctx, IR::Inst* inst) {
-    const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
+    const auto overflow_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetOverflowFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const size_t N = args[1].GetImmediateU8();
