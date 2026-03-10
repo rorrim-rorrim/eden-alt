@@ -639,15 +639,6 @@ struct Memory::Impl {
             GetInteger(vaddr), []() {}, []() {});
     }
 
-    [[nodiscard]] bool IsRasterizerCached(const Common::ProcessAddress vaddr) const {
-        const u64 addr = GetInteger(vaddr) & 0xffffffffffffULL;
-        if (!AddressSpaceContains(*current_page_table, addr, 1)) {
-            return false;
-        }
-        return current_page_table->entries[addr >> YUZU_PAGEBITS].ptr.Type() ==
-               Common::PageType::RasterizerCachedMemory;
-    }
-
     /// @brief Reads a particular data type out of memory at the given virtual address.
     /// @param vaddr The virtual address to read the data type from.
     /// @tparam T The data type to read out of memory.
@@ -1043,10 +1034,6 @@ Result Memory::FlushDataCache(Common::ProcessAddress dest_addr, const std::size_
 
 void Memory::RasterizerMarkRegionCached(Common::ProcessAddress vaddr, u64 size, bool cached) {
     impl->RasterizerMarkRegionCached(GetInteger(vaddr), size, cached);
-}
-
-bool Memory::IsRasterizerCached(Common::ProcessAddress vaddr) const {
-    return impl->IsRasterizerCached(vaddr);
 }
 
 void Memory::MarkRegionDebug(Common::ProcessAddress vaddr, u64 size, bool debug) {
