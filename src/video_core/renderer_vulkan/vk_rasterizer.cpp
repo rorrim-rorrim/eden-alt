@@ -6,6 +6,8 @@
 
 #include <algorithm>
 #include <array>
+#include <cstring>
+#include <limits>
 #include <memory>
 #include <mutex>
 
@@ -24,6 +26,7 @@
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
+#include "video_core/memory_manager.h"
 #include "video_core/renderer_vulkan/blit_image.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
@@ -60,6 +63,58 @@ struct DrawParams {
     u32 first_index;
     bool is_indexed;
 };
+
+[[nodiscard]] bool IsLineLoop(Maxwell::PrimitiveTopology topology) {
+    return topology == Maxwell::PrimitiveTopology::LineLoop;
+}
+
+[[nodiscard]] u32 PrimitiveRestartIndex(Maxwell::IndexFormat format) {
+    switch (format) {
+    case Maxwell::IndexFormat::UnsignedByte:
+        return std::numeric_limits<u8>::max();
+    case Maxwell::IndexFormat::UnsignedShort:
+        return std::numeric_limits<u16>::max();
+    case Maxwell::IndexFormat::UnsignedInt:
+        return std::numeric_limits<u32>::max();
+    }
+    ASSERT(false);
+    return std::numeric_limits<u32>::max();
+}
+
+template <typename T>
+bool ReadGuestObject(Tegra::MemoryManager* gpu_memory, GPUVAddr address, T& value) {
+    if (gpu_memory == nullptr) {
+        return false;
+    }
+    gpu_memory->ReadBlockUnsafe(address, &value, sizeof(T));
+    return true;
+}
+
+bool ReadGuestIndex(Tegra::MemoryManager* gpu_memory, GPUVAddr address, Maxwell::IndexFormat format,
+                    u32& value) {
+    switch (format) {
+    case Maxwell::IndexFormat::UnsignedByte: {
+        u8 result{};
+        if (!ReadGuestObject(gpu_memory, address, result)) {
+            return false;
+        }
+        value = result;
+        return true;
+    }
+    case Maxwell::IndexFormat::UnsignedShort: {
+        u16 result{};
+        if (!ReadGuestObject(gpu_memory, address, result)) {
+            return false;
+        }
+        value = result;
+        return true;
+    }
+    case Maxwell::IndexFormat::UnsignedInt:
+        return ReadGuestObject(gpu_memory, address, value);
+    }
+    ASSERT(false);
+    return false;
+}
 
 VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t index, float scale) {
     const auto& src = regs.viewport_transform[index];
@@ -343,6 +398,21 @@ void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
             GPU::Logging::GPULogger::GetInstance().LogVulkanCall(
                 is_indexed ? "vkCmdDrawIndexed" : "vkCmdDraw", params, VK_SUCCESS);
         }
+
+        if (IsLineLoop(draw_state.topology) && draw_params.num_vertices >= 2) {
+            if (maxwell3d->regs.transform_feedback_enabled != 0) {
+                query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount, false);
+            }
+            scheduler.Record([](vk::CommandBuffer cmdbuf) {
+                cmdbuf.SetPrimitiveTopologyEXT(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
+            });
+            DrawLineLoopClosure(draw_state, draw_params.base_instance, draw_params.num_instances,
+                                static_cast<s32>(draw_params.base_vertex),
+                                draw_params.num_vertices, draw_params.is_indexed);
+            scheduler.Record([](vk::CommandBuffer cmdbuf) {
+                cmdbuf.SetPrimitiveTopologyEXT(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
+            });
+        }
     });
 }
 
@@ -350,6 +420,7 @@ void RasterizerVulkan::DrawIndirect() {
     const auto& params = maxwell3d->draw_manager->GetIndirectParams();
     buffer_cache.SetDrawIndirect(&params);
     PrepareDraw(params.is_indexed, [this, &params] {
+        const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
         const auto indirect_buffer = buffer_cache.GetDrawIndirectBuffer();
         const auto& buffer = indirect_buffer.first;
         const auto& offset = indirect_buffer.second;
@@ -385,6 +456,9 @@ void RasterizerVulkan::DrawIndirect() {
                                              static_cast<u32>(params.stride));
                 }
             });
+            if (IsLineLoop(draw_state.topology)) {
+                DrawIndirectLineLoopClosures(draw_state, params);
+            }
             return;
         }
         scheduler.Record([buffer_obj = buffer->Handle(), offset, params](vk::CommandBuffer cmdbuf) {
@@ -407,8 +481,163 @@ void RasterizerVulkan::DrawIndirect() {
                 params.is_indexed ? "vkCmdDrawIndexedIndirect" : "vkCmdDrawIndirect",
                 log_params, VK_SUCCESS);
         }
+
+        if (IsLineLoop(draw_state.topology)) {
+            DrawIndirectLineLoopClosures(draw_state, params);
+        }
     });
     buffer_cache.SetDrawIndirect(nullptr);
+}
+
+bool RasterizerVulkan::DrawLineLoopClosure(const MaxwellDrawState& draw_state, u32 base_instance,
+                                          u32 num_instances, s32 base_vertex,
+                                          u32 num_vertices, bool is_indexed) {
+    if (!IsLineLoop(draw_state.topology) || num_instances == 0 || num_vertices < 2) {
+        return false;
+    }
+
+    std::array<u32, 2> closure_indices{};
+    if (!is_indexed) {
+        closure_indices = {num_vertices - 1, 0};
+    } else if (!draw_state.inline_index_draw_indexes.empty()) {
+        const size_t last_offset = (static_cast<size_t>(num_vertices) - 1) * sizeof(u32);
+        if (draw_state.inline_index_draw_indexes.size() < last_offset + sizeof(u32)) {
+            return false;
+        }
+        std::memcpy(&closure_indices[0], draw_state.inline_index_draw_indexes.data() + last_offset,
+                    sizeof(u32));
+        std::memcpy(&closure_indices[1], draw_state.inline_index_draw_indexes.data(),
+                    sizeof(u32));
+    } else {
+        const auto index_format = draw_state.index_buffer.format;
+        const size_t index_size = draw_state.index_buffer.FormatSizeInBytes();
+        const GPUVAddr first_address =
+            draw_state.index_buffer.StartAddress() +
+            static_cast<GPUVAddr>(draw_state.index_buffer.first) * index_size;
+        const GPUVAddr last_address =
+            first_address + static_cast<GPUVAddr>(num_vertices - 1) * index_size;
+        if (!ReadGuestIndex(gpu_memory, last_address, index_format, closure_indices[0]) ||
+            !ReadGuestIndex(gpu_memory, first_address, index_format, closure_indices[1])) {
+            return false;
+        }
+        if (maxwell3d->regs.primitive_restart.enabled != 0) {
+            const u32 restart_index = PrimitiveRestartIndex(index_format);
+            if (closure_indices[0] == restart_index || closure_indices[1] == restart_index) {
+                return false;
+            }
+        }
+    }
+
+    const auto upload = staging_pool.Request(sizeof(closure_indices), MemoryUsage::Upload);
+    std::memcpy(upload.mapped_span.data(), closure_indices.data(), sizeof(closure_indices));
+
+    scheduler.Record([buffer = upload.buffer, offset = upload.offset](vk::CommandBuffer cmdbuf) {
+        cmdbuf.BindIndexBuffer(buffer, offset, VK_INDEX_TYPE_UINT32);
+    });
+    scheduler.Record([base_instance, num_instances, base_vertex](vk::CommandBuffer cmdbuf) {
+        cmdbuf.DrawIndexed(2, num_instances, 0, base_vertex, base_instance);
+    });
+    return true;
+}
+
+void RasterizerVulkan::DrawIndirectLineLoopClosures(
+    const MaxwellDrawState& draw_state, const Tegra::Engines::DrawManager::IndirectParams& params) {
+    if (!IsLineLoop(draw_state.topology) || params.is_byte_count) {
+        return;
+    }
+
+    u32 draw_count = static_cast<u32>(params.max_draw_counts);
+    if (params.include_count) {
+        gpu_memory->ReadBlockUnsafe(params.count_start_address, &draw_count, sizeof(draw_count));
+        draw_count = std::min(draw_count, static_cast<u32>(params.max_draw_counts));
+    }
+    if (draw_count == 0) {
+        return;
+    }
+
+    bool emitted_closure = false;
+    if (params.is_indexed) {
+        const u32 command_stride =
+            params.stride != 0 ? static_cast<u32>(params.stride) : sizeof(VkDrawIndexedIndirectCommand);
+        for (u32 i = 0; i < draw_count; ++i) {
+            VkDrawIndexedIndirectCommand command{};
+            gpu_memory->ReadBlockUnsafe(params.indirect_start_address +
+                                            static_cast<GPUVAddr>(i) * command_stride,
+                                        &command, sizeof(command));
+            if (command.indexCount < 2 || command.instanceCount == 0) {
+                continue;
+            }
+
+            std::array<u32, 2> closure_indices{};
+            const auto index_format = draw_state.index_buffer.format;
+            const size_t index_size = draw_state.index_buffer.FormatSizeInBytes();
+            const GPUVAddr first_address = draw_state.index_buffer.StartAddress() +
+                                           static_cast<GPUVAddr>(command.firstIndex) * index_size;
+            const GPUVAddr last_address =
+                first_address + static_cast<GPUVAddr>(command.indexCount - 1) * index_size;
+            if (!ReadGuestIndex(gpu_memory, last_address, index_format, closure_indices[0]) ||
+                !ReadGuestIndex(gpu_memory, first_address, index_format, closure_indices[1])) {
+                continue;
+            }
+            if (maxwell3d->regs.primitive_restart.enabled != 0) {
+                const u32 restart_index = PrimitiveRestartIndex(index_format);
+                if (closure_indices[0] == restart_index || closure_indices[1] == restart_index) {
+                    continue;
+                }
+            }
+
+            if (!emitted_closure) {
+                if (maxwell3d->regs.transform_feedback_enabled != 0) {
+                    query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount, false);
+                }
+                scheduler.Record([](vk::CommandBuffer cmdbuf) {
+                    cmdbuf.SetPrimitiveTopologyEXT(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
+                });
+                emitted_closure = true;
+            }
+
+            const auto upload = staging_pool.Request(sizeof(closure_indices), MemoryUsage::Upload);
+            std::memcpy(upload.mapped_span.data(), closure_indices.data(), sizeof(closure_indices));
+            scheduler.Record(
+                [buffer = upload.buffer, offset = upload.offset](vk::CommandBuffer cmdbuf) {
+                    cmdbuf.BindIndexBuffer(buffer, offset, VK_INDEX_TYPE_UINT32);
+                });
+            scheduler.Record([command](vk::CommandBuffer cmdbuf) {
+                cmdbuf.DrawIndexed(2, command.instanceCount, 0, command.vertexOffset,
+                                   command.firstInstance);
+            });
+        }
+    } else {
+        const u32 command_stride =
+            params.stride != 0 ? static_cast<u32>(params.stride) : sizeof(VkDrawIndirectCommand);
+        for (u32 i = 0; i < draw_count; ++i) {
+            VkDrawIndirectCommand command{};
+            gpu_memory->ReadBlockUnsafe(params.indirect_start_address +
+                                            static_cast<GPUVAddr>(i) * command_stride,
+                                        &command, sizeof(command));
+            if (command.vertexCount < 2 || command.instanceCount == 0) {
+                continue;
+            }
+            if (!emitted_closure) {
+                if (maxwell3d->regs.transform_feedback_enabled != 0) {
+                    query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount, false);
+                }
+                scheduler.Record([](vk::CommandBuffer cmdbuf) {
+                    cmdbuf.SetPrimitiveTopologyEXT(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
+                });
+                emitted_closure = true;
+            }
+            DrawLineLoopClosure(draw_state, command.firstInstance, command.instanceCount,
+                                static_cast<s32>(command.firstVertex), command.vertexCount,
+                                false);
+        }
+    }
+
+    if (emitted_closure) {
+        scheduler.Record([](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetPrimitiveTopologyEXT(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
+        });
+    }
 }
 
 void RasterizerVulkan::DrawTexture() {
