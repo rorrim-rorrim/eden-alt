@@ -355,19 +355,8 @@ struct KernelCore::Impl {
         application_process->Open();
     }
 
-    /// Sets the host thread ID for the caller.
-    u32 SetHostThreadId(std::size_t core_id) {
-        // This should only be called during core init.
-        ASSERT(tls_data.host_thread_id == UINT8_MAX);
-
-        // The first four slots are reserved for CPU core threads
-        ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
-        tls_data.host_thread_id = u8(core_id);
-        return tls_data.host_thread_id;
-    }
-
     /// Gets the host thread ID for the caller
-    u32 GetHostThreadId() const {
+    [[nodiscard]] inline u32 GetHostThreadId() const noexcept {
         return tls_data.host_thread_id;
     }
 
@@ -386,9 +375,12 @@ struct KernelCore::Impl {
     }
 
     /// Registers a CPU core thread by allocating a host thread ID for it
-    void RegisterCoreThread(std::size_t core_id) {
+    void RegisterCoreThread(std::size_t core_id) noexcept {
+        // This should only be called during core init.
+        ASSERT(tls_data.host_thread_id == UINT8_MAX);
+        // The first four slots are reserved for CPU core threads
         ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
-        const auto this_id = SetHostThreadId(core_id);
+        const auto this_id = tls_data.host_thread_id = u8(core_id);
         if (!is_multicore)
             single_core_thread_id = this_id;
     }
@@ -398,7 +390,7 @@ struct KernelCore::Impl {
         (void)GetHostDummyThread(existing_thread);
     }
 
-    [[nodiscard]] u32 GetCurrentHostThreadID() {
+    [[nodiscard]] inline u32 GetCurrentHostThreadID() noexcept {
         auto const this_id = GetHostThreadId();
         if (!is_multicore && single_core_thread_id == this_id)
             return u32(system.GetCpuManager().CurrentCore());
@@ -930,11 +922,7 @@ const Kernel::PhysicalCore& KernelCore::PhysicalCore(std::size_t id) const {
 }
 
 size_t KernelCore::CurrentPhysicalCoreIndex() const {
-    const u32 core_id = impl->GetCurrentHostThreadID();
-    if (core_id >= Core::Hardware::NUM_CPU_CORES) {
-        return Core::Hardware::NUM_CPU_CORES - 1;
-    }
-    return core_id;
+    return impl->GetCurrentHostThreadID();
 }
 
 Kernel::PhysicalCore& KernelCore::CurrentPhysicalCore() {

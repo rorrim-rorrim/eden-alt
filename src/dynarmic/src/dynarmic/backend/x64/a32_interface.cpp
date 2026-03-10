@@ -120,11 +120,13 @@ struct Jit::Impl {
     }
 
     void HaltExecution(HaltReason hr) {
-        Atomic::Or(&jit_state.halt_reason, static_cast<u32>(hr));
+        Atomic::Or(&jit_state.halt_reason, u32(hr));
+        Atomic::Barrier();
     }
 
     void ClearHalt(HaltReason hr) {
-        Atomic::And(&jit_state.halt_reason, ~static_cast<u32>(hr));
+        Atomic::And(&jit_state.halt_reason, ~u32(hr));
+        Atomic::Barrier();
     }
 
     void ClearExclusiveState() {
