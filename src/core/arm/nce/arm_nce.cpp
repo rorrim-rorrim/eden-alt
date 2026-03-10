@@ -43,10 +43,6 @@ fpsimd_context* GetFloatingPointState(mcontext_t& host_ctx) {
 
 using namespace Common::Literals;
 constexpr u32 StackSize = 128_KiB;
-constexpr u64 CacheLineSize = 64;
-constexpr u64 SplitPageAccessWindow = 64;
-constexpr size_t MaxPreciseAccessPages = 256;
-constexpr u8 MaxPreciseAccessPageWeight = 4;
 
 } // namespace
 
@@ -162,32 +158,16 @@ bool ArmNce::HandleGuestAlignmentFault(GuestContext* guest_ctx, void* raw_info, 
 }
 
 bool ArmNce::HandleGuestAccessFault(GuestContext* guest_ctx, void* raw_info, void* raw_context) {
-    auto& host_ctx = static_cast<ucontext_t*>(raw_context)->uc_mcontext;
-    auto* fpctx = GetFloatingPointState(host_ctx);
     auto* info = static_cast<siginfo_t*>(raw_info);
     auto* parent = guest_ctx->parent;
 
-    const u64 fault_addr = reinterpret_cast<u64>(info->si_addr);
-    const Common::ProcessAddress addr = fault_addr & ~Memory::YUZU_PAGEMASK;
-    const u64 page_offset = fault_addr & Memory::YUZU_PAGEMASK;
+    // Try to handle an invalid access.
+    // TODO: handle accesses which split a page?
+    const Common::ProcessAddress addr =
+        (reinterpret_cast<u64>(info->si_addr) & ~Memory::YUZU_PAGEMASK);
     auto& memory = guest_ctx->parent->m_running_thread->GetOwnerProcess()->GetMemory();
-    bool handled = memory.InvalidateNCE(addr, Memory::YUZU_PAGESIZE);
-
-    if (page_offset < SplitPageAccessWindow && addr >= Memory::YUZU_PAGESIZE) {
-        handled |= memory.InvalidateNCE(addr - Memory::YUZU_PAGESIZE, Memory::YUZU_PAGESIZE);
-    }
-    if (page_offset + SplitPageAccessWindow > Memory::YUZU_PAGESIZE) {
-        handled |= memory.InvalidateNCE(addr + Memory::YUZU_PAGESIZE, Memory::YUZU_PAGESIZE);
-    }
-
-    if (handled) {
+    if (memory.InvalidateNCE(addr, Memory::YUZU_PAGESIZE)) {
         // We handled the access successfully and are returning to guest code.
-        return true;
-    }
-
-    if (auto next_pc = MatchAndExecuteOneInstruction(memory, &host_ctx, fpctx); next_pc) {
-        parent->MarkPreciseAccessFaultWindow(fault_addr);
-        host_ctx.pc = *next_pc;
         return true;
     }
 
