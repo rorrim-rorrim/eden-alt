@@ -4,6 +4,8 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// Don't move this! put it below and MSVC will get angry!
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 #ifdef _WIN32
 #include <cstring>
@@ -19,7 +21,6 @@
 #endif
 
 #include <fmt/core.h>
-#include "video_core/vulkan_common/vulkan_wrapper.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_library.h"
 #include "yuzu/startup_checks.h"
