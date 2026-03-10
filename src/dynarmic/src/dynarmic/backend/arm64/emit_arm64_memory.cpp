@@ -497,7 +497,7 @@ std::optional<DoNotFastmemMarker> ShouldFastmem(EmitContext& ctx, IR::Inst* inst
         return std::nullopt;
     }
 
-    const auto marker = std::make_tuple(ctx.block.Location(), inst->GetName());
+    const auto marker = std::make_tuple(ctx.block.location, inst->GetName());
     if (ctx.fastmem.ShouldFastmem(marker)) {
         return marker;
     }

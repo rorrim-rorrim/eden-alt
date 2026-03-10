@@ -42,7 +42,7 @@ A64EmitContext::A64EmitContext(const A64::UserConfig& conf, RegAlloc& reg_alloc,
         : EmitContext(reg_alloc, block), conf(conf) {}
 
 A64::LocationDescriptor A64EmitContext::Location() const {
-    return A64::LocationDescriptor{block.Location()};
+    return A64::LocationDescriptor{block.location};
 }
 
 bool A64EmitContext::IsSingleStep() const {
@@ -90,7 +90,7 @@ A64EmitX64::BlockDescriptor A64EmitX64::Emit(IR::Block& block) noexcept {
     code.align();
     const auto* const entrypoint = code.getCurr();
 
-    DEBUG_ASSERT(block.GetCondition() == IR::Cond::AL);
+    DEBUG_ASSERT(block.cond == IR::Cond::AL);
     typedef void (EmitX64::*EmitHandlerFn)(EmitContext& context, IR::Inst* inst);
     constexpr EmitHandlerFn opcode_handlers[] = {
 #define OPCODE(name, type, ...) &EmitX64::Emit##name,
@@ -142,9 +142,9 @@ finish_this_inst:
     reg_alloc.AssertNoMoreUses();
 
     if (conf.enable_cycle_counting) {
-        EmitAddCycles(block.CycleCount());
+        EmitAddCycles(block.cycle_count);
     }
-    EmitTerminal(block.GetTerminal(), ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
+    EmitTerminal(block.terminal, ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
     code.int3();
 
     for (auto& deferred_emit : ctx.deferred_emits) {
@@ -154,8 +154,8 @@ finish_this_inst:
 
     const size_t size = size_t(code.getCurr() - entrypoint);
 
-    const A64::LocationDescriptor descriptor{block.Location()};
-    const A64::LocationDescriptor end_location{block.EndLocation()};
+    const A64::LocationDescriptor descriptor{block.location};
+    const A64::LocationDescriptor end_location{block.end_location};
 
     const auto range = boost::icl::discrete_interval<u64>::closed(descriptor.PC(), end_location.PC() - 1);
     block_ranges.AddRange(range, descriptor);

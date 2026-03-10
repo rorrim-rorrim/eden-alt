@@ -30,14 +30,14 @@ void Translate(IR::Block& block, LocationDescriptor descriptor, MemoryReadCodeFu
             should_continue = visitor.RaiseException(Exception::NoExecuteFault);
         }
         visitor.ir.current_location = visitor.ir.current_location->AdvancePC(4);
-        block.CycleCount()++;
+        block.cycle_count++;
     } while (should_continue && !single_step);
 
     if (single_step && should_continue) {
         visitor.ir.SetTerm(IR::Term::LinkBlock{*visitor.ir.current_location});
     }
     ASSERT(block.HasTerminal() && "Terminal has not been set");
-    block.SetEndLocation(*visitor.ir.current_location);
+    block.end_location = *visitor.ir.current_location;
 }
 
 bool TranslateSingleInstruction(IR::Block& block, LocationDescriptor descriptor, u32 instruction) {
@@ -48,10 +48,9 @@ bool TranslateSingleInstruction(IR::Block& block, LocationDescriptor descriptor,
     should_continue = decoder.get().call(visitor, instruction);
 
     visitor.ir.current_location = visitor.ir.current_location->AdvancePC(4);
-    block.CycleCount()++;
+    block.cycle_count++;
 
-    block.SetEndLocation(*visitor.ir.current_location);
-
+    block.end_location = *visitor.ir.current_location;
     return should_continue;
 }
 

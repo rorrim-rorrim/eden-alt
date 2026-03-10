@@ -43,12 +43,12 @@ bool IsConditionPassed(TranslatorVisitor& v, IR::Cond cond) {
     }
 
     if (v.cond_state == ConditionalState::Translating) {
-        if (v.ir.block.ConditionFailedLocation() != v.ir.current_location || cond == IR::Cond::AL) {
+        if (v.ir.block.cond_failed != v.ir.current_location || cond == IR::Cond::AL) {
             v.cond_state = ConditionalState::Trailing;
         } else {
-            if (cond == v.ir.block.GetCondition()) {
-                v.ir.block.SetConditionFailedLocation(v.ir.current_location.AdvancePC(static_cast<int>(v.current_instruction_size)).AdvanceIT());
-                v.ir.block.ConditionFailedCycleCount()++;
+            if (cond == v.ir.block.cond) {
+                v.ir.block.cond_failed = v.ir.current_location.AdvancePC(static_cast<int>(v.current_instruction_size)).AdvanceIT();
+                v.ir.block.cond_failed_cycle_count++;
                 return true;
             }
 
@@ -77,9 +77,9 @@ bool IsConditionPassed(TranslatorVisitor& v, IR::Cond cond) {
     // We'll emit one instruction, and set the block-entry conditional appropriately.
 
     v.cond_state = ConditionalState::Translating;
-    v.ir.block.SetCondition(cond);
-    v.ir.block.SetConditionFailedLocation(v.ir.current_location.AdvancePC(static_cast<int>(v.current_instruction_size)).AdvanceIT());
-    v.ir.block.ConditionFailedCycleCount() = v.ir.block.CycleCount() + 1;
+    v.ir.block.cond = cond;
+    v.ir.block.cond_failed = v.ir.current_location.AdvancePC(int(v.current_instruction_size)).AdvanceIT();
+    v.ir.block.cond_failed_cycle_count = v.ir.block.cycle_count + 1;
     return true;
 }
 

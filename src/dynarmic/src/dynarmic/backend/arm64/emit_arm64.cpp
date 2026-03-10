@@ -205,14 +205,14 @@ EmittedBlockInfo EmitArm64(oaknut::CodeGenerator& code, IR::Block block, const E
 
     ebi.entry_point = code.xptr<CodePtr>();
 
-    if (ctx.block.GetCondition() == IR::Cond::AL) {
+    if (ctx.block.cond == IR::Cond::AL) {
         ASSERT(!ctx.block.HasConditionFailedLocation());
     } else {
         ASSERT(ctx.block.HasConditionFailedLocation());
         oaknut::Label pass;
 
-        pass = conf.emit_cond(code, ctx, ctx.block.GetCondition());
-        EmitAddCycles(code, ctx, ctx.block.ConditionFailedCycleCount());
+        pass = conf.emit_cond(code, ctx, ctx.block.cond);
+        EmitAddCycles(code, ctx, ctx.block.cond_failed_cycle_count);
         conf.emit_condition_failed_terminal(code, ctx);
 
         code.l(pass);
@@ -254,7 +254,7 @@ EmittedBlockInfo EmitArm64(oaknut::CodeGenerator& code, IR::Block block, const E
 
     reg_alloc.AssertNoMoreUses();
 
-    EmitAddCycles(code, ctx, block.CycleCount());
+    EmitAddCycles(code, ctx, block.cycle_count);
     conf.emit_terminal(code, ctx);
     code.BRK(0);
 
