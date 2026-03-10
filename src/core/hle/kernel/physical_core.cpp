@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -97,7 +97,6 @@ void PhysicalCore::RunThread(Kernel::KThread* thread) {
         }
 
         // Determine why we stopped.
-        const bool cache_invalidation = True(hr & Core::HaltReason::CacheInvalidation);
         const bool supervisor_call = True(hr & Core::HaltReason::SupervisorCall);
         const bool prefetch_abort = True(hr & Core::HaltReason::PrefetchAbort);
         const bool breakpoint = True(hr & Core::HaltReason::InstructionBreakpoint);
@@ -150,11 +149,6 @@ void PhysicalCore::RunThread(Kernel::KThread* thread) {
             // Perform call.
             Svc::Call(system, interface->GetSvcNumber());
             return;
-        }
-
-        if (cache_invalidation) {
-            interface->HandleCacheOperation(thread);
-            continue;
         }
 
         // Handle external interrupt sources.

@@ -269,41 +269,6 @@ void ArmNce::SetSvcArguments(std::span<const uint64_t, 8> args) {
     }
 }
 
-bool ArmNce::HandleCacheOperation(Kernel::KThread* thread) {
-    const auto op = static_cast<CacheOperationKind>(m_guest_ctx.cache_operation);
-    if (op == CacheOperationKind::None) {
-        return false;
-    }
-
-    const u64 cache_line_start = m_guest_ctx.cache_operation_address & ~(CacheLineSize - 1);
-    auto& memory = thread->GetOwnerProcess()->GetMemory();
-
-    switch (op) {
-    case CacheOperationKind::DataCacheInvalidate: {
-        [[maybe_unused]] auto invalidate_result =
-            memory.InvalidateDataCache(cache_line_start, CacheLineSize);
-        break;
-    }
-    case CacheOperationKind::DataCacheStore: {
-        [[maybe_unused]] auto store_result = memory.StoreDataCache(cache_line_start, CacheLineSize);
-        break;
-    }
-    case CacheOperationKind::DataCacheFlush: {
-        [[maybe_unused]] auto flush_result = memory.FlushDataCache(cache_line_start, CacheLineSize);
-        break;
-    }
-    case CacheOperationKind::InstructionCacheInvalidate:
-        InvalidateCacheRange(cache_line_start, CacheLineSize);
-        break;
-    case CacheOperationKind::None:
-        break;
-    }
-
-    m_guest_ctx.cache_operation = static_cast<u32>(CacheOperationKind::None);
-    m_guest_ctx.cache_operation_address = 0;
-    return true;
-}
-
 ArmNce::ArmNce(System& system, bool uses_wall_clock, std::size_t core_index)
     : ArmInterface{uses_wall_clock}, m_system{system}, m_core_index{core_index} {
     m_guest_ctx.system = &m_system;

@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -41,9 +38,6 @@ struct GuestContext {
     u32 svc{};
     System* system{};
     ArmNce* parent{};
-    u32 cache_operation{};
-    u32 cache_operation_reserved{};
-    u64 cache_operation_address{};
 };
 
 // Verify assembly offsets.
