@@ -4,7 +4,6 @@ The Eden emulator by itself lacks some functionality - or otherwise requires ext
 
 While most of the links mentioned in this guide are relatively "safe"; we urge users to use their due diligence and appropriatedly verify the integrity of all files downloaded and ensure they're not compromised.
 
-- [Nightly Eden builds](https://github.com/pflyly/eden-nightly)
 - [NixOS Eden Flake](https://github.com/Grantimatter/eden-flake)
 - [ES-DE Frontend Support](https://github.com/GlazedBelmont/es-de-android-custom-systems)
 
