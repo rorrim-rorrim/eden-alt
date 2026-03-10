@@ -765,8 +765,8 @@ std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, m
                                                  fpsimd_context* fpsimd_context) {
     std::span<u64, 31> regs(reinterpret_cast<u64*>(context->regs), 31);
     std::span<u128, 32> vregs(reinterpret_cast<u128*>(fpsimd_context->vregs), 32);
-    u64 sp = context->sp;
-    const u64 pc = context->pc;
+    u64& sp = *reinterpret_cast<u64*>(&context->sp);
+    const u64& pc = *reinterpret_cast<u64*>(&context->pc);
 
     InterpreterVisitor visitor(memory, regs, vregs, sp, pc);
     u32 instruction = memory.Read32(pc);
@@ -774,7 +774,6 @@ std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, m
 
     auto decoder = Dynarmic::A64::Decode<VisitorBase>(instruction);
     was_executed = decoder.get().call(visitor, instruction);
-    context->sp = sp;
     return was_executed ? std::optional<u64>(pc + 4) : std::nullopt;
 }
 
