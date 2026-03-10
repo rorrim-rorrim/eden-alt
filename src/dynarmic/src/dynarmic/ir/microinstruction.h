@@ -18,6 +18,7 @@ namespace Dynarmic::IR {
 
 enum class Opcode;
 enum class Type : u16;
+class Block;
 
 constexpr size_t max_arg_count = 4;
 
@@ -38,7 +39,7 @@ public:
         return next_pseudoop && !IsAPseudoOperation(op);
     }
     /// Gets a pseudo-operation associated with this instruction.
-    Inst* GetAssociatedPseudoOperation(Opcode opcode);
+    Inst* GetAssociatedPseudoOperation(Block& block, Opcode opcode);
 
     /// Get the microop this microinstruction represents.
     Opcode GetOpcode() const { return op; }
@@ -76,12 +77,12 @@ public:
 
     // TODO: so much padding wasted with mcl::intrusive_node
     // 16 + 1, 24
-    Opcode op; //2 (6)
+    std::array<Value, max_arg_count> args; //16 * 4 = 64 (1 cache line)
     // Linked list of pseudooperations associated with this instruction.
     Inst* next_pseudoop = nullptr; //8 (14)
     unsigned use_count = 0; //4 (0)
     unsigned name = 0; //4 (4)
-    alignas(64) std::array<Value, max_arg_count> args; //16 * 4 = 64 (1 cache line)
+    Opcode op; //2 (6)
 };
 //static_assert(sizeof(Inst) == 128);
 

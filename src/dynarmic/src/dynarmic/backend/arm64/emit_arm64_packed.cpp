@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -46,7 +49,7 @@ static void EmitSaturatedPackedOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::
 
 template<>
 void EmitIR<IR::Opcode::PackedAddU8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
+    const auto ge_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetGEFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Vresult = ctx.reg_alloc.WriteD(inst);
@@ -66,7 +69,7 @@ void EmitIR<IR::Opcode::PackedAddU8>(oaknut::CodeGenerator& code, EmitContext& c
 
 template<>
 void EmitIR<IR::Opcode::PackedAddS8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
+    const auto ge_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetGEFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Vresult = ctx.reg_alloc.WriteD(inst);
@@ -87,7 +90,7 @@ void EmitIR<IR::Opcode::PackedAddS8>(oaknut::CodeGenerator& code, EmitContext& c
 
 template<>
 void EmitIR<IR::Opcode::PackedSubU8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
+    const auto ge_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetGEFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Vresult = ctx.reg_alloc.WriteD(inst);
@@ -108,7 +111,7 @@ void EmitIR<IR::Opcode::PackedSubU8>(oaknut::CodeGenerator& code, EmitContext& c
 
 template<>
 void EmitIR<IR::Opcode::PackedSubS8>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
+    const auto ge_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetGEFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Vresult = ctx.reg_alloc.WriteD(inst);
@@ -129,7 +132,7 @@ void EmitIR<IR::Opcode::PackedSubS8>(oaknut::CodeGenerator& code, EmitContext& c
 
 template<>
 void EmitIR<IR::Opcode::PackedAddU16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
+    const auto ge_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetGEFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Vresult = ctx.reg_alloc.WriteD(inst);
@@ -149,7 +152,7 @@ void EmitIR<IR::Opcode::PackedAddU16>(oaknut::CodeGenerator& code, EmitContext& 
 
 template<>
 void EmitIR<IR::Opcode::PackedAddS16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
+    const auto ge_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetGEFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Vresult = ctx.reg_alloc.WriteD(inst);
@@ -170,7 +173,7 @@ void EmitIR<IR::Opcode::PackedAddS16>(oaknut::CodeGenerator& code, EmitContext& 
 
 template<>
 void EmitIR<IR::Opcode::PackedSubU16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
+    const auto ge_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetGEFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Vresult = ctx.reg_alloc.WriteD(inst);
@@ -191,7 +194,7 @@ void EmitIR<IR::Opcode::PackedSubU16>(oaknut::CodeGenerator& code, EmitContext& 
 
 template<>
 void EmitIR<IR::Opcode::PackedSubS16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
+    const auto ge_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetGEFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Vresult = ctx.reg_alloc.WriteD(inst);
@@ -212,7 +215,7 @@ void EmitIR<IR::Opcode::PackedSubS16>(oaknut::CodeGenerator& code, EmitContext& 
 
 template<bool add_is_hi, bool is_signed, bool is_halving>
 static void EmitPackedAddSub(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
+    const auto ge_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetGEFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Vresult = ctx.reg_alloc.WriteD(inst);

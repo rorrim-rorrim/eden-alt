@@ -63,7 +63,7 @@ void EmitX64::EmitLeastSignificantWord(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitMostSignificantWord(EmitContext& ctx, IR::Inst* inst) {
-    const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
+    const auto carry_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const Xbyak::Reg64 result = ctx.reg_alloc.UseScratchGpr(code, args[0]);
@@ -265,7 +265,7 @@ void EmitX64::EmitReplicateBit64(Dynarmic::Backend::X64::EmitContext& ctx, IR::I
 }
 
 void EmitX64::EmitLogicalShiftLeft32(EmitContext& ctx, IR::Inst* inst) {
-    const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
+    const auto carry_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& operand_arg = args[0];
@@ -401,7 +401,7 @@ void EmitX64::EmitLogicalShiftLeft64(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitLogicalShiftRight32(EmitContext& ctx, IR::Inst* inst) {
-    const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
+    const auto carry_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& operand_arg = args[0];
@@ -535,7 +535,7 @@ void EmitX64::EmitLogicalShiftRight64(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitArithmeticShiftRight32(EmitContext& ctx, IR::Inst* inst) {
-    const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
+    const auto carry_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& operand_arg = args[0];
@@ -664,7 +664,7 @@ void EmitX64::EmitArithmeticShiftRight64(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitRotateRight32(EmitContext& ctx, IR::Inst* inst) {
-    const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
+    const auto carry_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& operand_arg = args[0];
@@ -768,7 +768,7 @@ void EmitX64::EmitRotateRight64(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitRotateRightExtended(EmitContext& ctx, IR::Inst* inst) {
-    const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
+    const auto carry_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const Xbyak::Reg32 result = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
@@ -919,9 +919,9 @@ static Xbyak::Reg64 DoNZCV(BlockOfCode& code, RegAlloc& reg_alloc, IR::Inst* nzc
 }
 
 static void EmitAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, size_t bitsize) {
-    const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
-    const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
-    const auto nzcv_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetNZCVFromOp);
+    const auto carry_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetCarryFromOp);
+    const auto overflow_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetOverflowFromOp);
+    const auto nzcv_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetNZCVFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& carry_in = args[2];
@@ -1006,9 +1006,9 @@ void EmitX64::EmitAdd64(EmitContext& ctx, IR::Inst* inst) {
 }
 
 static void EmitSub(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, int bitsize) {
-    const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
-    const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
-    const auto nzcv_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetNZCVFromOp);
+    const auto carry_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetCarryFromOp);
+    const auto overflow_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetOverflowFromOp);
+    const auto nzcv_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetNZCVFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& carry_in = args[2];

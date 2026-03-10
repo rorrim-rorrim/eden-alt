@@ -3910,8 +3910,8 @@ void EmitX64::EmitVectorSignedAbsoluteDifference32(EmitContext& ctx, IR::Inst* i
 }
 
 void EmitX64::EmitVectorSignedMultiply16(EmitContext& ctx, IR::Inst* inst) {
-    const auto upper_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetUpperFromOp);
-    const auto lower_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetLowerFromOp);
+    const auto upper_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetUpperFromOp);
+    const auto lower_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetLowerFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const Xbyak::Xmm x = ctx.reg_alloc.UseXmm(code, args[0]);
@@ -3942,8 +3942,8 @@ void EmitX64::EmitVectorSignedMultiply16(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitVectorSignedMultiply32(EmitContext& ctx, IR::Inst* inst) {
-    const auto upper_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetUpperFromOp);
-    const auto lower_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetLowerFromOp);
+    const auto upper_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetUpperFromOp);
+    const auto lower_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetLowerFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -5508,8 +5508,8 @@ void EmitX64::EmitVectorUnsignedAbsoluteDifference32(EmitContext& ctx, IR::Inst*
 }
 
 void EmitX64::EmitVectorUnsignedMultiply16(EmitContext& ctx, IR::Inst* inst) {
-    const auto upper_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetUpperFromOp);
-    const auto lower_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetLowerFromOp);
+    const auto upper_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetUpperFromOp);
+    const auto lower_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetLowerFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const Xbyak::Xmm x = ctx.reg_alloc.UseXmm(code, args[0]);
@@ -5540,8 +5540,8 @@ void EmitX64::EmitVectorUnsignedMultiply16(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitVectorUnsignedMultiply32(EmitContext& ctx, IR::Inst* inst) {
-    const auto upper_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetUpperFromOp);
-    const auto lower_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetLowerFromOp);
+    const auto upper_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetUpperFromOp);
+    const auto lower_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetLowerFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 

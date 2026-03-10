@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -133,7 +133,7 @@ void EmitIR<IR::Opcode::LeastSignificantByte>(oaknut::CodeGenerator& code, EmitC
 
 template<>
 void EmitIR<IR::Opcode::MostSignificantWord>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
+    const auto carry_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -242,7 +242,7 @@ void EmitIR<IR::Opcode::ConditionalSelectNZCV>(oaknut::CodeGenerator& code, Emit
 
 template<>
 void EmitIR<IR::Opcode::LogicalShiftLeft32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
+    const auto carry_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& operand_arg = args[0];
@@ -379,7 +379,7 @@ void EmitIR<IR::Opcode::LogicalShiftLeft64>(oaknut::CodeGenerator& code, EmitCon
 
 template<>
 void EmitIR<IR::Opcode::LogicalShiftRight32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
+    const auto carry_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& operand_arg = args[0];
@@ -517,7 +517,7 @@ void EmitIR<IR::Opcode::LogicalShiftRight64>(oaknut::CodeGenerator& code, EmitCo
 
 template<>
 void EmitIR<IR::Opcode::ArithmeticShiftRight32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
+    const auto carry_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& operand_arg = args[0];
@@ -643,7 +643,7 @@ void EmitIR<IR::Opcode::ArithmeticShiftRight64>(oaknut::CodeGenerator& code, Emi
 
 template<>
 void EmitIR<IR::Opcode::RotateRight32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
+    const auto carry_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& operand_arg = args[0];
@@ -730,7 +730,7 @@ void EmitIR<IR::Opcode::RotateRight64>(oaknut::CodeGenerator& code, EmitContext&
 
 template<>
 void EmitIR<IR::Opcode::RotateRightExtended>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
+    const auto carry_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Wresult = ctx.reg_alloc.WriteW(inst);
@@ -884,8 +884,8 @@ static void MaybeAddSubImm(oaknut::CodeGenerator& code, u64 imm, EmitFn emit_fn)
 
 template<size_t bitsize, bool sub>
 static void EmitAddSub(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto nzcv_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetNZCVFromOp);
-    const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
+    const auto nzcv_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetNZCVFromOp);
+    const auto overflow_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetOverflowFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -1133,8 +1133,8 @@ static void EmitBitOp(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* i
     auto Ra = ctx.reg_alloc.ReadReg<bitsize>(args[0]);
 
     if constexpr (!std::is_same_v<EmitFn2, std::nullptr_t>) {
-        const auto nz_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetNZFromOp);
-        const auto nzcv_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetNZCVFromOp);
+        const auto nz_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetNZFromOp);
+        const auto nzcv_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetNZCVFromOp);
         ASSERT(!(nz_inst && nzcv_inst));
         const auto flag_inst = nz_inst ? nz_inst : nzcv_inst;
 
@@ -1170,8 +1170,8 @@ static void EmitBitOp(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* i
 
 template<size_t bitsize>
 static void EmitAndNot(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto nz_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetNZFromOp);
-    const auto nzcv_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetNZCVFromOp);
+    const auto nz_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetNZFromOp);
+    const auto nzcv_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetNZCVFromOp);
     ASSERT(!(nz_inst && nzcv_inst));
     const auto flag_inst = nz_inst ? nz_inst : nzcv_inst;
 

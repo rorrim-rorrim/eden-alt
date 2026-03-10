@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -23,7 +23,7 @@ bool Inst::AreAllArgsImmediates() const {
     });
 }
 
-Inst* Inst::GetAssociatedPseudoOperation(Opcode opcode) {
+Inst* Inst::GetAssociatedPseudoOperation(Block& block, Opcode opcode) {
     Inst* pseudoop = next_pseudoop;
     while (pseudoop) {
         if (pseudoop->GetOpcode() == opcode) {

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -23,7 +23,7 @@ using namespace oaknut::util;
 
 template<>
 void EmitIR<IR::Opcode::SignedSaturatedAddWithFlag32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
+    const auto overflow_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetOverflowFromOp);
     ASSERT(overflow_inst);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -43,7 +43,7 @@ void EmitIR<IR::Opcode::SignedSaturatedAddWithFlag32>(oaknut::CodeGenerator& cod
 
 template<>
 void EmitIR<IR::Opcode::SignedSaturatedSubWithFlag32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
+    const auto overflow_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetOverflowFromOp);
     ASSERT(overflow_inst);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -63,7 +63,7 @@ void EmitIR<IR::Opcode::SignedSaturatedSubWithFlag32>(oaknut::CodeGenerator& cod
 
 template<>
 void EmitIR<IR::Opcode::SignedSaturation>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
+    const auto overflow_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetOverflowFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const size_t N = args[1].GetImmediateU8();
@@ -104,7 +104,7 @@ void EmitIR<IR::Opcode::SignedSaturation>(oaknut::CodeGenerator& code, EmitConte
 
 template<>
 void EmitIR<IR::Opcode::UnsignedSaturation>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
+    const auto overflow_inst = inst->GetAssociatedPseudoOperation(ctx.block, IR::Opcode::GetOverflowFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Wresult = ctx.reg_alloc.WriteW(inst);
