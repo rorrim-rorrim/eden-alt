@@ -159,7 +159,6 @@ bool ArmNce::HandleGuestAlignmentFault(GuestContext* guest_ctx, void* raw_info, 
 
 bool ArmNce::HandleGuestAccessFault(GuestContext* guest_ctx, void* raw_info, void* raw_context) {
     auto* info = static_cast<siginfo_t*>(raw_info);
-    auto* parent = guest_ctx->parent;
 
     // Try to handle an invalid access.
     // TODO: handle accesses which split a page?
@@ -181,19 +180,6 @@ void ArmNce::HandleHostAlignmentFault(int sig, void* raw_info, void* raw_context
 
 void ArmNce::HandleHostAccessFault(int sig, void* raw_info, void* raw_context) {
     return g_orig_segv_action.sa_sigaction(sig, static_cast<siginfo_t*>(raw_info), raw_context);
-}
-
-bool ArmNce::IsPreciseAccessPage(u64 addr) const {
-    const std::scoped_lock lk{m_precise_pages_guard};
-    return m_precise_pages.contains(AlignDownPage(addr));
-}
-
-void ArmNce::MarkPreciseAccessPage(u64 addr) {
-    const std::scoped_lock lk{m_precise_pages_guard};
-    if (m_precise_pages.size() >= MaxPreciseAccessPages) {
-        m_precise_pages.clear();
-    }
-    m_precise_pages.insert(AlignDownPage(addr));
 }
 
 void ArmNce::LockThread(Kernel::KThread* thread) {
