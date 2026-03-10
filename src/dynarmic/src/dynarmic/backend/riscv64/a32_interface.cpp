@@ -32,41 +32,29 @@ struct Jit::Impl final {
             , core(conf) {}
 
     HaltReason Run() {
-        ASSERT(!jit_interface->is_executing);
-        jit_interface->is_executing = true;
-        SCOPE_EXIT {
-            jit_interface->is_executing = false;
-        };
-
+        ASSERT(!is_executing);
+        is_executing = true;
         HaltReason hr = core.Run(current_address_space, current_state, &halt_reason);
-
         RequestCacheInvalidation();
-
+        is_executing = false;
         return hr;
     }
 
     HaltReason Step() {
-        ASSERT(!jit_interface->is_executing);
-        jit_interface->is_executing = true;
-        SCOPE_EXIT {
-            jit_interface->is_executing = false;
-        };
-
+        ASSERT(!is_executing);
+        is_executing = true;
         UNIMPLEMENTED();
-
         RequestCacheInvalidation();
-
+        is_executing = false;
         return HaltReason{};
     }
 
     void ClearCache() {
-        std::unique_lock lock{invalidation_mutex};
         invalidate_entire_cache = true;
         HaltExecution(HaltReason::CacheInvalidation);
     }
 
     void InvalidateCacheRange(u32 start_address, size_t length) {
-        std::unique_lock lock{invalidation_mutex};
         invalid_cache_ranges.add(boost::icl::discrete_interval<u32>::closed(start_address, static_cast<u32>(start_address + length - 1)));
         HaltExecution(HaltReason::CacheInvalidation);
     }
@@ -132,12 +120,10 @@ private:
     A32JitState current_state{};
     A32AddressSpace current_address_space;
     A32Core core;
-
     volatile u32 halt_reason = 0;
-
-    std::mutex invalidation_mutex;
     boost::icl::interval_set<u32> invalid_cache_ranges;
     bool invalidate_entire_cache = false;
+    bool is_executing = false;
 };
 
 Jit::Jit(UserConfig conf)

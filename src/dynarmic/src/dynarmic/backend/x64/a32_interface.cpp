@@ -75,14 +75,9 @@ struct Jit::Impl {
     ~Impl() = default;
 
     HaltReason Run() {
-        ASSERT(!jit_interface->is_executing);
+        ASSERT(!is_executing);
         PerformRequestedCacheInvalidation(static_cast<HaltReason>(Atomic::Load(&jit_state.halt_reason)));
-
-        jit_interface->is_executing = true;
-        SCOPE_EXIT {
-            jit_interface->is_executing = false;
-        };
-
+        is_executing = true;
         const CodePtr current_codeptr = [this] {
             // RSB optimization
             const u32 new_rsb_ptr = (jit_state.rsb_ptr - 1) & A32JitState::RSBPtrMask;
@@ -93,44 +88,34 @@ struct Jit::Impl {
 
             return GetCurrentBlock();
         }();
-
         const HaltReason hr = block_of_code.RunCode(&jit_state, current_codeptr);
-
         PerformRequestedCacheInvalidation(hr);
-
+        is_executing = false;
         return hr;
     }
 
     HaltReason Step() {
-        ASSERT(!jit_interface->is_executing);
-        PerformRequestedCacheInvalidation(static_cast<HaltReason>(Atomic::Load(&jit_state.halt_reason)));
-
-        jit_interface->is_executing = true;
-        SCOPE_EXIT {
-            jit_interface->is_executing = false;
-        };
-
+        ASSERT(!is_executing);
+        PerformRequestedCacheInvalidation(HaltReason(Atomic::Load(&jit_state.halt_reason)));
+        is_executing = true;
         const HaltReason hr = block_of_code.StepCode(&jit_state, GetCurrentSingleStep());
-
         PerformRequestedCacheInvalidation(hr);
-
+        is_executing = false;
         return hr;
     }
 
     void ClearCache() {
-        std::unique_lock lock{invalidation_mutex};
         invalidate_entire_cache = true;
         HaltExecution(HaltReason::CacheInvalidation);
     }
 
     void InvalidateCacheRange(std::uint32_t start_address, std::size_t length) {
-        std::unique_lock lock{invalidation_mutex};
-        invalid_cache_ranges.add(boost::icl::discrete_interval<u32>::closed(start_address, static_cast<u32>(start_address + length - 1)));
+        invalid_cache_ranges.add(boost::icl::discrete_interval<u32>::closed(start_address, u32(start_address + length - 1)));
         HaltExecution(HaltReason::CacheInvalidation);
     }
 
     void Reset() {
-        ASSERT(!jit_interface->is_executing);
+        ASSERT(!is_executing);
         jit_state = {};
     }
 
@@ -223,14 +208,10 @@ private:
 
     void PerformRequestedCacheInvalidation(HaltReason hr) {
         if (Has(hr, HaltReason::CacheInvalidation)) {
-            std::unique_lock lock{invalidation_mutex};
-
             ClearHalt(HaltReason::CacheInvalidation);
-
             if (!invalidate_entire_cache && invalid_cache_ranges.empty()) {
                 return;
             }
-
             jit_state.ResetRSB();
             if (invalidate_entire_cache) {
                 block_of_code.ClearCache();
@@ -251,11 +232,10 @@ private:
     // Keep it here, you don't wanna mess with the fuckery that's initializer lists
     const A32::UserConfig conf;
     Jit* jit_interface;
-
     // Requests made during execution to invalidate the cache are queued up here.
-    bool invalidate_entire_cache = false;
     boost::icl::interval_set<u32> invalid_cache_ranges;
-    std::mutex invalidation_mutex;
+    bool invalidate_entire_cache = false;
+    bool is_executing = false;
 };
 
 Jit::Jit(UserConfig conf)

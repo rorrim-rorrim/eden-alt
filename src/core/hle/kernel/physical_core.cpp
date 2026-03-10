@@ -119,10 +119,9 @@ void PhysicalCore::RunThread(Kernel::KThread* thread) {
 
         // Since scheduling may occur here, we cannot use any cached
         // state after returning from calls we make.
-
-        // Notify the debugger and go to sleep if a breakpoint was hit,
-        // or if the thread is unable to continue for any reason.
         if (breakpoint || (prefetch_abort && may_abort)) {
+            // Notify the debugger and go to sleep if a breakpoint was hit,
+            // or if the thread is unable to continue for any reason.
             if (breakpoint) {
                 interface->RewindBreakpointInstruction();
             }
@@ -133,26 +132,19 @@ void PhysicalCore::RunThread(Kernel::KThread* thread) {
             }
             thread->RequestSuspend(SuspendType::Debug);
             return;
-        }
-
-        // Notify the debugger and go to sleep on data abort.
-        if (data_abort) {
+        } else if (data_abort) {
+            // Notify the debugger and go to sleep on data abort.
             if (system.DebuggerEnabled()) {
                 system.GetDebugger().NotifyThreadWatchpoint(thread, *interface->HaltedWatchpoint());
             }
             thread->RequestSuspend(SuspendType::Debug);
             return;
-        }
-
-        // Handle system calls.
-        if (supervisor_call) {
-            // Perform call.
+        } else if (supervisor_call) {
+            // Handle system calls: Perform call.
             Svc::Call(system, interface->GetSvcNumber());
             return;
-        }
-
-        // Handle external interrupt sources.
-        if (interrupt || m_is_single_core) {
+        } else if (interrupt || m_is_single_core) {
+            // Handle external interrupt sources.
             return;
         }
     }
@@ -160,16 +152,14 @@ void PhysicalCore::RunThread(Kernel::KThread* thread) {
 
 void PhysicalCore::LoadContext(const KThread* thread) {
     auto* const process = thread->GetOwnerProcess();
-    if (!process) {
+    if (process) {
         // Kernel threads do not run on emulated CPU cores.
-        return;
-    }
-
-    auto* interface = process->GetArmInterface(m_core_index);
-    if (interface) {
-        interface->SetContext(thread->GetContext());
-        interface->SetTpidrroEl0(GetInteger(thread->GetTlsAddress()));
-        interface->SetWatchpointArray(&process->GetWatchpoints());
+        auto* interface = process->GetArmInterface(m_core_index);
+        if (interface) {
+            interface->SetContext(thread->GetContext());
+            interface->SetTpidrroEl0(GetInteger(thread->GetTlsAddress()));
+            interface->SetWatchpointArray(&process->GetWatchpoints());
+        }
     }
 }
 
@@ -179,14 +169,12 @@ void PhysicalCore::LoadSvcArguments(const KProcess& process, std::span<const uin
 
 void PhysicalCore::SaveContext(KThread* thread) const {
     auto* const process = thread->GetOwnerProcess();
-    if (!process) {
+    if (process) {
         // Kernel threads do not run on emulated CPU cores.
-        return;
-    }
-
-    auto* interface = process->GetArmInterface(m_core_index);
-    if (interface) {
-        interface->GetContext(thread->GetContext());
+        auto* interface = process->GetArmInterface(m_core_index);
+        if (interface) {
+            interface->GetContext(thread->GetContext());
+        }
     }
 }
 
@@ -206,13 +194,11 @@ void PhysicalCore::CloneFpuStatus(KThread* dst) const {
 
 void PhysicalCore::LogBacktrace() {
     auto* process = GetCurrentProcessPointer(m_kernel);
-    if (!process) {
-        return;
-    }
-
-    auto* interface = process->GetArmInterface(m_core_index);
-    if (interface) {
-        interface->LogBacktrace(process);
+    if (process) {
+        auto* interface = process->GetArmInterface(m_core_index);
+        if (interface) {
+            interface->LogBacktrace(process);
+        }
     }
 }
 
@@ -240,12 +226,10 @@ void PhysicalCore::Interrupt() {
     m_on_interrupt.notify_one();
 
     // If there is no thread running, we are done.
-    if (arm_interface == nullptr) {
-        return;
+    if (arm_interface != nullptr) {
+        // Interrupt the CPU.
+        arm_interface->SignalInterrupt(thread);
     }
-
-    // Interrupt the CPU.
-    arm_interface->SignalInterrupt(thread);
 }
 
 void PhysicalCore::ClearInterrupt() {

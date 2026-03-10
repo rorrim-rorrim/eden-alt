@@ -32,45 +32,31 @@ struct Jit::Impl final {
             , core(conf) {}
 
     HaltReason Run() {
-        ASSERT(!jit_interface->is_executing);
-        PerformRequestedCacheInvalidation(static_cast<HaltReason>(Atomic::Load(&halt_reason)));
-
-        jit_interface->is_executing = true;
-        SCOPE_EXIT {
-            jit_interface->is_executing = false;
-        };
-
+        ASSERT(!is_executing);
+        PerformRequestedCacheInvalidation(HaltReason(Atomic::Load(&halt_reason)));
+        is_executing = true;
         HaltReason hr = core.Run(current_address_space, current_state, &halt_reason);
-
         PerformRequestedCacheInvalidation(hr);
-
+        is_executing = false;
         return hr;
     }
 
     HaltReason Step() {
-        ASSERT(!jit_interface->is_executing);
-        PerformRequestedCacheInvalidation(static_cast<HaltReason>(Atomic::Load(&halt_reason)));
-
-        jit_interface->is_executing = true;
-        SCOPE_EXIT {
-            jit_interface->is_executing = false;
-        };
-
+        ASSERT(!is_executing);
+        PerformRequestedCacheInvalidation(HaltReason(Atomic::Load(&halt_reason)));
+        is_executing = true;
         HaltReason hr = core.Step(current_address_space, current_state, &halt_reason);
-
         PerformRequestedCacheInvalidation(hr);
-
+        is_executing = false;
         return hr;
     }
 
     void ClearCache() {
-        std::unique_lock lock{invalidation_mutex};
         invalidate_entire_cache = true;
         HaltExecution(HaltReason::CacheInvalidation);
     }
 
     void InvalidateCacheRange(std::uint32_t start_address, std::size_t length) {
-        std::unique_lock lock{invalidation_mutex};
         invalid_cache_ranges.add(boost::icl::discrete_interval<u32>::closed(start_address, static_cast<u32>(start_address + length - 1)));
         HaltExecution(HaltReason::CacheInvalidation);
     }
@@ -80,12 +66,12 @@ struct Jit::Impl final {
     }
 
     void HaltExecution(HaltReason hr) {
-        Atomic::Or(&halt_reason, static_cast<u32>(hr));
+        Atomic::Or(&halt_reason, u32(hr));
         Atomic::Barrier();
     }
 
     void ClearHalt(HaltReason hr) {
-        Atomic::And(&halt_reason, ~static_cast<u32>(hr));
+        Atomic::And(&halt_reason, ~u32(hr));
         Atomic::Barrier();
     }
 
@@ -132,21 +118,15 @@ struct Jit::Impl final {
 private:
     void PerformRequestedCacheInvalidation(HaltReason hr) {
         if (Has(hr, HaltReason::CacheInvalidation)) {
-            std::unique_lock lock{invalidation_mutex};
-
             ClearHalt(HaltReason::CacheInvalidation);
-
             if (invalidate_entire_cache) {
                 current_address_space.ClearCache();
-
                 invalidate_entire_cache = false;
                 invalid_cache_ranges.clear();
                 return;
             }
-
             if (!invalid_cache_ranges.empty()) {
                 current_address_space.InvalidateCacheRanges(invalid_cache_ranges);
-
                 invalid_cache_ranges.clear();
                 return;
             }
@@ -160,10 +140,9 @@ private:
     A32Core core;
 
     volatile u32 halt_reason = 0;
-
-    std::mutex invalidation_mutex;
     boost::icl::interval_set<u32> invalid_cache_ranges;
     bool invalidate_entire_cache = false;
+    bool is_executing = false;
 };
 
 Jit::Jit(UserConfig conf)

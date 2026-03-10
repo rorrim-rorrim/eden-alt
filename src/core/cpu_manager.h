@@ -84,7 +84,6 @@ private:
     void GuestActivate();
     void HandleInterrupt();
     void ShutdownThread();
-    void RunThread(std::stop_token stop_token, std::size_t core);
 
     struct CoreData {
         std::shared_ptr<Common::Fiber> host_context;
