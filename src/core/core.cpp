@@ -470,6 +470,7 @@ struct System::Impl {
     Core::SpeedLimiter speed_limiter;
     ExecuteProgramCallback execute_program_callback;
     ExitCallback exit_callback;
+
     std::optional<Service::Services> services;
     std::optional<Core::Debugger> debugger;
     std::optional<Service::KernelHelpers::ServiceContext> general_channel_context;

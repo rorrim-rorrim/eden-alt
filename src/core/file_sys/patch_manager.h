@@ -43,7 +43,7 @@ enum class PatchSource {
     Packed,
 };
 
-enum class CheatCompatibility {
+enum class CheatCompatibility : u8 {
     Incompatible,
     Compatible,
 };
