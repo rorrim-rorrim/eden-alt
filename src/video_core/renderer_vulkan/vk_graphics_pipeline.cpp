@@ -830,7 +830,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pAttachments = cb_attachments.data(),
         .blendConstants = {}
     };
-    static_vector<VkDynamicState, 34> dynamic_states{
+    static_vector<VkDynamicState, 35> dynamic_states{
         VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
         VK_DYNAMIC_STATE_DEPTH_BIAS,         VK_DYNAMIC_STATE_BLEND_CONSTANTS,
         VK_DYNAMIC_STATE_DEPTH_BOUNDS,       VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
@@ -847,6 +847,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             VK_DYNAMIC_STATE_DEPTH_BOUNDS_TEST_ENABLE_EXT,
             VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE_EXT,
             VK_DYNAMIC_STATE_STENCIL_OP_EXT,
+            VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY_EXT,
         };
         dynamic_states.insert(dynamic_states.end(), extended.begin(), extended.end());
 

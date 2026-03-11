@@ -170,6 +170,7 @@ private:
     void UpdateLineWidth(Tegra::Engines::Maxwell3D::Regs& regs);
 
     void UpdateCullMode(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdatePrimitiveTopology();
     void UpdateDepthBoundsTestEnable(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateDepthTestEnable(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateDepthWriteEnable(Tegra::Engines::Maxwell3D::Regs& regs);

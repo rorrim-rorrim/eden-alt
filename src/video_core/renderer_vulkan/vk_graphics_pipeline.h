@@ -90,6 +90,10 @@ public:
         return fragment_has_color0_output;
     }
 
+    bool HasTessellationStages() const noexcept {
+        return spv_modules[1] || spv_modules[2];
+    }
+
     bool UsesExtendedDynamicState() const noexcept {
         return key.state.extended_dynamic_state != 0;
     }

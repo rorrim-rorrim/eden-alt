@@ -61,6 +61,33 @@ struct DrawParams {
     bool is_indexed;
 };
 
+bool SupportsPrimitiveRestart(VkPrimitiveTopology topology) {
+    static constexpr std::array unsupported_topologies{
+        VK_PRIMITIVE_TOPOLOGY_POINT_LIST,
+        VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
+        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+        VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY,
+        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY,
+        VK_PRIMITIVE_TOPOLOGY_PATCH_LIST,
+        // VK_PRIMITIVE_TOPOLOGY_QUAD_LIST_EXT,
+    };
+    return std::ranges::find(unsupported_topologies, topology) == unsupported_topologies.end();
+}
+
+VkPrimitiveTopology DynamicInputAssemblyTopology(const Device& device,
+                                                 const MaxwellDrawState& draw_state,
+                                                 const GraphicsPipeline& pipeline) {
+    auto topology = MaxwellToVK::PrimitiveTopology(device, draw_state.topology);
+    if (topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST) {
+        if (!pipeline.HasTessellationStages()) {
+            topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+        }
+    } else if (pipeline.HasTessellationStages()) {
+        topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
+    }
+    return topology;
+}
+
 VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t index, float scale) {
     const auto& src = regs.viewport_transform[index];
     const auto conv = [scale](float value) {
@@ -1018,8 +1045,10 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
 
-    // EDS1: CullMode, DepthCompare, FrontFace, StencilOp, DepthBoundsTest, DepthTest, DepthWrite, StencilTest
+    // EDS1: PrimitiveTopology, CullMode, DepthCompare, FrontFace, StencilOp, DepthBoundsTest,
+    // DepthTest, DepthWrite, StencilTest
     if (device.IsExtExtendedDynamicStateSupported()) {
+        UpdatePrimitiveTopology();
         UpdateCullMode(regs);
         UpdateDepthCompareOp(regs);
         UpdateFrontFace(regs);
@@ -1384,6 +1413,28 @@ void RasterizerVulkan::UpdateCullMode(Tegra::Engines::Maxwell3D::Regs& regs) {
     });
 }
 
+void RasterizerVulkan::UpdatePrimitiveTopology() {
+    GraphicsPipeline* const pipeline = pipeline_cache.CurrentGraphicsPipeline();
+    if (pipeline == nullptr) {
+        return;
+    }
+
+    const MaxwellDrawState& draw_state = maxwell3d->draw_manager->GetDrawState();
+    const VkPrimitiveTopology topology = DynamicInputAssemblyTopology(device, draw_state, *pipeline);
+
+    if (!state_tracker.ChangePrimitiveTopology(static_cast<u32>(topology))) {
+        return;
+    }
+    // Primitive restart support depends on topology, so force re-evaluation on topology changes
+    if (device.IsExtExtendedDynamicState2Supported()) {
+        maxwell3d->dirty.flags[Dirty::PrimitiveRestartEnable] = true;
+    }
+
+    scheduler.Record([topology](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetPrimitiveTopologyEXT(topology);
+    });
+}
+
 void RasterizerVulkan::UpdateDepthBoundsTestEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchDepthBoundsTestEnable()) {
         return;
@@ -1420,7 +1471,29 @@ void RasterizerVulkan::UpdatePrimitiveRestartEnable(Tegra::Engines::Maxwell3D::R
     if (!state_tracker.TouchPrimitiveRestartEnable()) {
         return;
     }
-    scheduler.Record([enable = regs.primitive_restart.enabled](vk::CommandBuffer cmdbuf) {
+    GraphicsPipeline* const pipeline = pipeline_cache.CurrentGraphicsPipeline();
+    if (pipeline == nullptr) {
+        // No graphics pipeline is currently available so repeat when available
+        maxwell3d->dirty.flags[Dirty::PrimitiveRestartEnable] = true;
+        return;
+    }
+
+    const MaxwellDrawState& draw_state = maxwell3d->draw_manager->GetDrawState();
+    const VkPrimitiveTopology topology = DynamicInputAssemblyTopology(device, draw_state, *pipeline);
+
+    bool enable = regs.primitive_restart.enabled != 0;
+    if (device.IsMoltenVK()) {
+        // MoltenVK/Metal
+        enable = true;
+    } else if (enable) {
+        enable = ((topology != VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
+                   device.IsTopologyListPrimitiveRestartSupported()) ||
+                  SupportsPrimitiveRestart(topology) ||
+                  (topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
+                   device.IsPatchListPrimitiveRestartSupported()));
+    }
+
+    scheduler.Record([enable](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetPrimitiveRestartEnableEXT(enable);
     });
 }
