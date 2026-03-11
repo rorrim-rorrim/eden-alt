@@ -1396,7 +1396,10 @@ jobjectArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getPatchesForFile(JNIEnv* env
     FileSys::VirtualFile update_raw;
     loader->ReadUpdateRaw(update_raw);
 
-    auto patches = pm.GetPatches(update_raw);
+    // Get build ID for individual cheat enumeration
+    const auto build_id = pm.GetBuildID(update_raw);
+
+    auto patches = pm.GetPatches(update_raw, build_id);
     jobjectArray jpatchArray =
         env->NewObjectArray(patches.size(), Common::Android::GetPatchClass(), nullptr);
     int i = 0;
@@ -1407,7 +1410,8 @@ jobjectArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getPatchesForFile(JNIEnv* env
             Common::Android::ToJString(env, patch.version), static_cast<jint>(patch.type),
             Common::Android::ToJString(env, std::to_string(patch.program_id)),
             Common::Android::ToJString(env, std::to_string(patch.title_id)),
-            static_cast<jlong>(patch.numeric_version), static_cast<jint>(patch.source));
+            static_cast<jlong>(patch.numeric_version), static_cast<jint>(patch.source),
+            Common::Android::ToJString(env, patch.parent_name));
         env->SetObjectArrayElement(jpatchArray, i, jpatch);
         ++i;
     }
