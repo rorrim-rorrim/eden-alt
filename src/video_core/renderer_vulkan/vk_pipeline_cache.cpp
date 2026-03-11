@@ -479,7 +479,8 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         device.IsExtExtendedDynamicState2Supported();
     dynamic_features.has_extended_dynamic_state_2_logic_op =
         device.IsExtExtendedDynamicState2ExtrasSupported();
-    dynamic_features.has_extended_dynamic_state_2_patch_control_points = false;
+    dynamic_features.has_extended_dynamic_state_2_patch_control_points =
+        device.IsExtExtendedDynamicState2PatchControlPointsSupported();
 
     dynamic_features.has_extended_dynamic_state_3_blend =
         device.IsExtExtendedDynamicState3BlendingSupported();

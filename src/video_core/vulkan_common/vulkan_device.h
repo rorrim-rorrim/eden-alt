@@ -625,6 +625,10 @@ public:
         return features.extended_dynamic_state2.extendedDynamicState2LogicOp;
     }
 
+    bool IsExtExtendedDynamicState2PatchControlPointsSupported() const {
+        return features.extended_dynamic_state2.extendedDynamicState2PatchControlPoints;
+    }
+
     /// Returns true if the device supports VK_EXT_extended_dynamic_state3.
     bool IsExtExtendedDynamicState3Supported() const {
         return extensions.extended_dynamic_state3;

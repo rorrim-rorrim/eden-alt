@@ -830,7 +830,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pAttachments = cb_attachments.data(),
         .blendConstants = {}
     };
-    static_vector<VkDynamicState, 34> dynamic_states{
+    static_vector<VkDynamicState, 40> dynamic_states{
         VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
         VK_DYNAMIC_STATE_DEPTH_BIAS,         VK_DYNAMIC_STATE_BLEND_CONSTANTS,
         VK_DYNAMIC_STATE_DEPTH_BOUNDS,       VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
@@ -849,6 +849,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             VK_DYNAMIC_STATE_STENCIL_OP_EXT,
         };
         dynamic_states.insert(dynamic_states.end(), extended.begin(), extended.end());
+        dynamic_states.push_back(VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY_EXT);
 
         // VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT is part of EDS1
         // Only use it if VIDS is not active (VIDS replaces it with full vertex input control)
@@ -863,7 +864,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_EXT);
     }
 
-    // EDS2 - Core (3 states)
+    // EDS2 - Core states
     if (key.state.extended_dynamic_state_2) {
         static constexpr std::array extended2{
             VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE_EXT,
@@ -871,6 +872,9 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE_EXT,
         };
         dynamic_states.insert(dynamic_states.end(), extended2.begin(), extended2.end());
+        if (device.IsExtExtendedDynamicState2PatchControlPointsSupported()) {
+            dynamic_states.push_back(VK_DYNAMIC_STATE_PATCH_CONTROL_POINTS_EXT);
+        }
     }
 
     // EDS2 - LogicOp (granular)
@@ -911,6 +915,10 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         if (device.SupportsDynamicState3AlphaToOneEnable()) {
             dynamic_states.push_back(VK_DYNAMIC_STATE_ALPHA_TO_ONE_ENABLE_EXT);
         }
+    }
+
+    if (device.IsExtLineRasterizationSupported() && device.SupportsStippledRectangularLines()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_LINE_STIPPLE_EXT);
     }
 
     const VkPipelineDynamicStateCreateInfo dynamic_state_ci{

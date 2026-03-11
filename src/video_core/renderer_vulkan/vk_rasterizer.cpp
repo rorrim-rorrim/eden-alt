@@ -61,6 +61,33 @@ struct DrawParams {
     bool is_indexed;
 };
 
+bool SupportsPrimitiveRestart(VkPrimitiveTopology topology) {
+    static constexpr std::array unsupported_topologies{
+        VK_PRIMITIVE_TOPOLOGY_POINT_LIST,
+        VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
+        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+        VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY,
+        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY,
+        VK_PRIMITIVE_TOPOLOGY_PATCH_LIST,
+        // VK_PRIMITIVE_TOPOLOGY_QUAD_LIST_EXT,
+    };
+    return std::ranges::find(unsupported_topologies, topology) == unsupported_topologies.end();
+}
+
+VkPrimitiveTopology DynamicInputAssemblyTopology(const Device& device,
+                                                 const MaxwellDrawState& draw_state,
+                                                 const GraphicsPipeline& pipeline) {
+    auto topology = MaxwellToVK::PrimitiveTopology(device, draw_state.topology);
+    if (topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST) {
+        if (!pipeline.HasTessellationStages()) {
+            topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+        }
+    } else if (pipeline.HasTessellationStages()) {
+        topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
+    }
+    return topology;
+}
+
 VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t index, float scale) {
     const auto& src = regs.viewport_transform[index];
     const auto conv = [scale](float value) {
@@ -1017,9 +1044,12 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateDepthBounds(regs);
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
+    UpdateLineStipple(regs);
 
-    // EDS1: CullMode, DepthCompare, FrontFace, StencilOp, DepthBoundsTest, DepthTest, DepthWrite, StencilTest
+    // EDS1: PrimitiveTopology, CullMode, DepthCompare, FrontFace, StencilOp, DepthBoundsTest,
+    // DepthTest, DepthWrite, StencilTest
     if (device.IsExtExtendedDynamicStateSupported()) {
+        UpdatePrimitiveTopology();
         UpdateCullMode(regs);
         UpdateDepthCompareOp(regs);
         UpdateFrontFace(regs);
@@ -1032,11 +1062,12 @@ void RasterizerVulkan::UpdateDynamicStates() {
         }
     }
 
-    // EDS2: PrimitiveRestart, RasterizerDiscard, DepthBias enable/disable
+    // EDS2: PrimitiveRestart, RasterizerDiscard, DepthBias enable/disable, PatchControlPoints
     if (device.IsExtExtendedDynamicState2Supported()) {
         UpdatePrimitiveRestartEnable(regs);
         UpdateRasterizerDiscardEnable(regs);
         UpdateDepthBiasEnable(regs);
+        UpdatePatchControlPoints(regs);
     }
 
     // EDS2 Extras: LogicOp operation selection
@@ -1384,6 +1415,28 @@ void RasterizerVulkan::UpdateCullMode(Tegra::Engines::Maxwell3D::Regs& regs) {
     });
 }
 
+void RasterizerVulkan::UpdatePrimitiveTopology() {
+    GraphicsPipeline* const pipeline = pipeline_cache.CurrentGraphicsPipeline();
+    if (pipeline == nullptr) {
+        return;
+    }
+
+    const MaxwellDrawState& draw_state = maxwell3d->draw_manager->GetDrawState();
+    const VkPrimitiveTopology topology = DynamicInputAssemblyTopology(device, draw_state, *pipeline);
+
+    if (!state_tracker.ChangePrimitiveTopology(static_cast<u32>(topology))) {
+        return;
+    }
+    // Primitive restart support depends on topology, so force re-evaluation on topology changes
+    if (device.IsExtExtendedDynamicState2Supported()) {
+        maxwell3d->dirty.flags[Dirty::PrimitiveRestartEnable] = true;
+    }
+
+    scheduler.Record([topology](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetPrimitiveTopologyEXT(topology);
+    });
+}
+
 void RasterizerVulkan::UpdateDepthBoundsTestEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchDepthBoundsTestEnable()) {
         return;
@@ -1420,8 +1473,46 @@ void RasterizerVulkan::UpdatePrimitiveRestartEnable(Tegra::Engines::Maxwell3D::R
     if (!state_tracker.TouchPrimitiveRestartEnable()) {
         return;
     }
-    scheduler.Record([enable = regs.primitive_restart.enabled](vk::CommandBuffer cmdbuf) {
+    GraphicsPipeline* const pipeline = pipeline_cache.CurrentGraphicsPipeline();
+    if (pipeline == nullptr) {
+        return;
+    }
+
+    const MaxwellDrawState& draw_state = maxwell3d->draw_manager->GetDrawState();
+    const VkPrimitiveTopology topology = DynamicInputAssemblyTopology(device, draw_state, *pipeline);
+
+    bool enable = regs.primitive_restart.enabled != 0;
+    if (device.IsMoltenVK()) {
+        // MoltenVK/Metal
+        enable = true;
+    } else if (enable) {
+        enable =
+            ((topology != VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
+              device.IsTopologyListPrimitiveRestartSupported()) ||
+             SupportsPrimitiveRestart(topology) ||
+             (topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
+              device.IsPatchListPrimitiveRestartSupported()));
+    }
+
+    scheduler.Record([enable](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetPrimitiveRestartEnableEXT(enable);
+    });
+}
+
+void RasterizerVulkan::UpdatePatchControlPoints(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!device.IsExtExtendedDynamicState2PatchControlPointsSupported()) {
+        return;
+    }
+    GraphicsPipeline* const pipeline = pipeline_cache.CurrentGraphicsPipeline();
+    if (pipeline == nullptr || !pipeline->HasTessellationStages()) {
+        return;
+    }
+    const u32 patch_control_points = (std::max)(regs.patch_vertices, 1u);
+    if (!state_tracker.ChangePatchControlPoints(patch_control_points)) {
+        return;
+    }
+    scheduler.Record([patch_control_points](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetPatchControlPointsEXT(patch_control_points);
     });
 }
 
@@ -1461,6 +1552,20 @@ void RasterizerVulkan::UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& 
 
     scheduler.Record([enable = regs.line_stipple_enable](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetLineStippleEnableEXT(enable);
+    });
+}
+
+void RasterizerVulkan::UpdateLineStipple(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchLineStipple()) {
+        return;
+    }
+    if (!device.IsExtLineRasterizationSupported() || !device.SupportsStippledRectangularLines()) {
+        return;
+    }
+    scheduler.Record([factor = regs.line_stipple_params.factor,
+                      pattern = static_cast<u16>(regs.line_stipple_params.pattern)](
+                             vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetLineStippleEXT(factor, pattern);
     });
 }
 
@@ -1771,25 +1876,29 @@ void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs) 
     // generating dirty state. Track the highest dirty attribute and update all attributes until
     // that one.
     size_t highest_dirty_attr{};
+    bool has_dirty_attr = false;
     for (size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
         if (dirty[Dirty::VertexAttribute0 + index]) {
+            has_dirty_attr = true;
             highest_dirty_attr = index;
         }
     }
-    for (size_t index = 0; index < highest_dirty_attr; ++index) {
-        const Maxwell::VertexAttribute attribute{regs.vertex_attrib_format[index]};
-        const u32 binding{attribute.buffer};
-        dirty[Dirty::VertexAttribute0 + index] = false;
-        dirty[Dirty::VertexBinding0 + static_cast<size_t>(binding)] = true;
-        if (!attribute.constant) {
-            attributes.push_back({
-                .sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT,
-                .pNext = nullptr,
-                .location = static_cast<u32>(index),
-                .binding = binding,
-                .format = MaxwellToVK::VertexFormat(device, attribute.type, attribute.size),
-                .offset = attribute.offset,
-            });
+    if (has_dirty_attr) {
+        for (size_t index = 0; index <= highest_dirty_attr; ++index) {
+            const Maxwell::VertexAttribute attribute{regs.vertex_attrib_format[index]};
+            const u32 binding{attribute.buffer};
+            dirty[Dirty::VertexAttribute0 + index] = false;
+            dirty[Dirty::VertexBinding0 + static_cast<size_t>(binding)] = true;
+            if (!attribute.constant) {
+                attributes.push_back({
+                    .sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT,
+                    .pNext = nullptr,
+                    .location = static_cast<u32>(index),
+                    .binding = binding,
+                    .format = MaxwellToVK::VertexFormat(device, attribute.type, attribute.size),
+                    .offset = attribute.offset,
+                });
+            }
         }
     }
     for (size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {

@@ -85,7 +85,8 @@ public:
 
     void InvalidateCommandBufferState() {
         (*flags) |= invalidation_flags;
-        current_topology = INVALID_TOPOLOGY;
+        current_primitive_topology = INVALID_PRIMITIVE_TOPOLOGY;
+        current_patch_control_points = INVALID_PATCH_CONTROL_POINTS;
         stencil_reset = true;
     }
 
@@ -280,9 +281,15 @@ public:
         return Exchange(Dirty::LineRasterizationMode, false);
     }
 
-    bool ChangePrimitiveTopology(Maxwell::PrimitiveTopology new_topology) {
-        const bool has_changed = current_topology != new_topology;
-        current_topology = new_topology;
+    bool ChangePrimitiveTopology(u32 new_topology) {
+        const bool has_changed = current_primitive_topology != new_topology;
+        current_primitive_topology = new_topology;
+        return has_changed;
+    }
+
+    bool ChangePatchControlPoints(u32 new_patch_control_points) {
+        const bool has_changed = current_patch_control_points != new_patch_control_points;
+        current_patch_control_points = new_patch_control_points;
         return has_changed;
     }
 
@@ -293,7 +300,8 @@ public:
     void InvalidateState();
 
 private:
-    static constexpr auto INVALID_TOPOLOGY = static_cast<Maxwell::PrimitiveTopology>(~0u);
+    static constexpr u32 INVALID_PRIMITIVE_TOPOLOGY = ~0u;
+    static constexpr u32 INVALID_PATCH_CONTROL_POINTS = ~0u;
 
     bool Exchange(std::size_t id, bool new_value) const noexcept {
         const bool is_dirty = (*flags)[id];
@@ -310,7 +318,8 @@ private:
     Tegra::Engines::Maxwell3D::DirtyState::Flags* flags;
     Tegra::Engines::Maxwell3D::DirtyState::Flags default_flags;
     Tegra::Engines::Maxwell3D::DirtyState::Flags invalidation_flags;
-    Maxwell::PrimitiveTopology current_topology = INVALID_TOPOLOGY;
+    u32 current_primitive_topology = INVALID_PRIMITIVE_TOPOLOGY;
+    u32 current_patch_control_points = INVALID_PATCH_CONTROL_POINTS;
     bool two_sided_stencil = false;
     StencilProperties front{};
     StencilProperties back{};
