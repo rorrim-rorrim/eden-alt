@@ -29,6 +29,8 @@ class AddonAdapter(val addonViewModel: AddonViewModel) :
             }
             binding.title.text = model.name
             binding.version.text = model.version
+
+            binding.addonSwitch.setOnCheckedChangeListener(null)
             binding.addonSwitch.isChecked = model.enabled
 
             binding.addonSwitch.setOnCheckedChangeListener { _, checked ->
@@ -40,7 +42,8 @@ class AddonAdapter(val addonViewModel: AddonViewModel) :
                 }
             }
 
-            val canDelete = model.isRemovable
+            val canDelete = model.isRemovable && !model.isCheat()
+
             binding.deleteCard.isEnabled = canDelete
             binding.buttonDelete.isEnabled = canDelete
             binding.deleteCard.alpha = if (canDelete) 1f else 0.38f
