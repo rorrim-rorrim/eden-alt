@@ -170,9 +170,6 @@ struct KernelCore::Impl {
             schedulers[core_id].reset();
         }
 
-        // Next host thead ID to use, 0-3 IDs represent core threads, >3 represent others
-        next_host_thread_id = Core::Hardware::NUM_CPU_CORES;
-
         // Close kernel objects that were not freed on shutdown
         {
             std::scoped_lock lk{registered_in_use_objects_lock};
@@ -355,11 +352,6 @@ struct KernelCore::Impl {
         application_process->Open();
     }
 
-    /// Gets the host thread ID for the caller
-    [[nodiscard]] inline u32 GetHostThreadId() const noexcept {
-        return tls_data.host_thread_id;
-    }
-
     // Gets the dummy KThread for the caller, allocating a new one if this is the first time
     KThread* GetHostDummyThread(KThread* existing_thread) {
         if (tls_data.thread == nullptr) {
@@ -391,7 +383,7 @@ struct KernelCore::Impl {
     }
 
     [[nodiscard]] inline u32 GetCurrentHostThreadID() noexcept {
-        auto const this_id = GetHostThreadId();
+        auto const this_id = tls_data.host_thread_id;
         if (!is_multicore && single_core_thread_id == this_id)
             return u32(system.GetCpuManager().CurrentCore());
         return this_id;
@@ -785,9 +777,6 @@ struct KernelCore::Impl {
     std::vector<std::unique_ptr<Service::ServerManager>> server_managers;
 
     std::array<std::optional<Kernel::PhysicalCore>, Core::Hardware::NUM_CPU_CORES> cores;
-
-    // Next host thead ID to use, 0-3 IDs represent core threads, >3 represent others
-    std::atomic<u32> next_host_thread_id{Core::Hardware::NUM_CPU_CORES};
 
     // Kernel memory management
     std::optional<KMemoryManager> memory_manager;
