@@ -42,9 +42,6 @@ private:
     void DestroyAppletProcessHolderLocked(ProcessHolder* holder);
 
 private:
-    void ThreadFunc();
-
-private:
     // System reference and context.
     Core::System& m_system;
     KernelHelpers::ServiceContext m_context;

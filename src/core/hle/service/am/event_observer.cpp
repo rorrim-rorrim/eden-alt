@@ -15,12 +15,24 @@ enum class UserDataTag : u32 {
 };
 
 EventObserver::EventObserver(Core::System& system, WindowSystem& window_system)
-    : m_system(system), m_context(system, "am:EventObserver"), m_window_system(window_system),
-      m_wakeup_event(m_context), m_wakeup_holder(m_wakeup_event.GetHandle()) {
+    : m_system(system), m_context(system, "am:EventObserver")
+    , m_window_system(window_system)
+    , m_wakeup_event(m_context)
+    , m_wakeup_holder(m_wakeup_event.GetHandle())
+{
     m_window_system.SetEventObserver(this);
     m_wakeup_holder.SetUserData(static_cast<uintptr_t>(UserDataTag::WakeupEvent));
     m_wakeup_holder.LinkToMultiWait(std::addressof(m_multi_wait));
-    m_thread = std::thread([&] { this->ThreadFunc(); });
+    m_thread = std::thread([this] {
+        Common::SetCurrentThreadName("am:EventObserver");
+        while (true) {
+            auto* signaled_holder = this->WaitSignaled();
+            if (!signaled_holder) {
+                break;
+            }
+            this->Process(signaled_holder);
+        }
+    });
 }
 
 EventObserver::~EventObserver() {
@@ -144,19 +156,6 @@ void EventObserver::DestroyAppletProcessHolderLocked(ProcessHolder* holder) {
 
     // Destroy and free.
     delete holder;
-}
-
-void EventObserver::ThreadFunc() {
-    Common::SetCurrentThreadName("am:EventObserver");
-
-    while (true) {
-        auto* signaled_holder = this->WaitSignaled();
-        if (!signaled_holder) {
-            break;
-        }
-
-        this->Process(signaled_holder);
-    }
 }
 
 } // namespace Service::AM
