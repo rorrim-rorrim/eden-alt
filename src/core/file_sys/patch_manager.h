@@ -10,6 +10,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+
 #include "common/common_types.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/vfs/vfs_types.h"
@@ -42,6 +43,11 @@ enum class PatchSource {
     Packed,
 };
 
+enum class CheatCompatibility {
+    Incompatible,
+    Compatible,
+};
+
 struct Patch {
     bool enabled;
     std::string name;
@@ -53,6 +59,7 @@ struct Patch {
     std::string location;
     u32 numeric_version{0};
     std::string parent_name;
+    CheatCompatibility cheat_compat{CheatCompatibility::Incompatible};
 };
 
 // A centralized class to manage patches to games.
@@ -95,8 +102,7 @@ public:
                                          bool apply_layeredfs = true) const;
 
     // Returns a vector of patches including individual cheats
-    [[nodiscard]] std::vector<Patch> GetPatches(VirtualFile update_raw = nullptr,
-                                                const BuildID& build_id = {}) const;
+    [[nodiscard]] std::vector<Patch> GetPatches(VirtualFile update_raw = nullptr) const;
 
     [[nodiscard]] BuildID GetBuildID(VirtualFile update_raw = nullptr) const;
 
@@ -115,6 +121,14 @@ public:
 private:
     [[nodiscard]] std::vector<VirtualFile> CollectPatches(const std::vector<VirtualDir>& patch_dirs,
                                                           const std::string& build_id) const;
+
+    struct UpdateResolution {
+        bool update_disabled{true};
+        VirtualFile update_active_raw;
+        std::optional<u32> update_active_version;
+    };
+    [[nodiscard]] UpdateResolution GetActiveUpdate(
+        ContentRecordType type = ContentRecordType::Program) const;
 
     u64 title_id;
     const Service::FileSystem::FileSystemController& fs_controller;

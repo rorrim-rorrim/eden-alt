@@ -327,16 +327,13 @@ void ConfigurePerGameAddons::LoadConfiguration() {
     FileSys::VirtualFile update_raw;
     loader->ReadUpdateRaw(update_raw);
 
-    // Get the build ID from the main executable for cheat enumeration
-    const auto build_id = pm.GetBuildID(update_raw);
-
     const auto& disabled = Settings::values.disabled_addons[title_id];
 
     update_items.clear();
     list_items.clear();
     item_model->removeRows(0, item_model->rowCount());
 
-    std::vector<FileSys::Patch> patches = pm.GetPatches(update_raw, build_id);
+    std::vector<FileSys::Patch> patches = pm.GetPatches(update_raw);
 
     bool has_enabled_update = false;
 
@@ -356,16 +353,23 @@ void ConfigurePerGameAddons::LoadConfiguration() {
 
         auto* const first_item = new QStandardItem;
         first_item->setText(name);
-        first_item->setCheckable(true);
-
-        // Store the storage key as user data for later retrieval
-        first_item->setData(QString::fromStdString(storage_key), Qt::UserRole);
 
         const bool is_external_update = patch.type == FileSys::PatchType::Update &&
                                         patch.source == FileSys::PatchSource::External &&
                                         patch.numeric_version != 0;
-
         const bool is_mod = patch.type == FileSys::PatchType::Mod;
+
+        const bool is_incompatible_cheat =
+            patch.type == FileSys::PatchType::Cheat &&
+            patch.cheat_compat != FileSys::CheatCompatibility::Compatible;
+
+        if (is_incompatible_cheat) {
+            first_item->setCheckable(false);
+            first_item->setEnabled(false);
+        } else {
+            first_item->setCheckable(true);
+            first_item->setData(QString::fromStdString(storage_key), Qt::UserRole);
+        }
 
         if (is_external_update) {
             first_item->setData(static_cast<quint32>(patch.numeric_version), NUMERIC_VERSION);
@@ -375,16 +379,18 @@ void ConfigurePerGameAddons::LoadConfiguration() {
         }
 
         bool patch_disabled = false;
-        if (is_external_update) {
-            std::string disabled_key = fmt::format("Update@{}", patch.numeric_version);
-            patch_disabled =
-                std::find(disabled.begin(), disabled.end(), disabled_key) != disabled.end();
-        } else {
-            patch_disabled =
-                std::find(disabled.begin(), disabled.end(), storage_key) != disabled.end();
+        if (!is_incompatible_cheat) {
+            if (is_external_update) {
+                std::string disabled_key = fmt::format("Update@{}", patch.numeric_version);
+                patch_disabled =
+                    std::find(disabled.begin(), disabled.end(), disabled_key) != disabled.end();
+            } else {
+                patch_disabled =
+                    std::find(disabled.begin(), disabled.end(), storage_key) != disabled.end();
+            }
         }
 
-        bool should_enable = !patch_disabled;
+        bool should_enable = !patch_disabled && !is_incompatible_cheat;
 
         if (patch.type == FileSys::PatchType::Update) {
             if (should_enable) {
@@ -397,9 +403,14 @@ void ConfigurePerGameAddons::LoadConfiguration() {
             update_items.push_back(first_item);
         }
 
-        first_item->setCheckState(should_enable ? Qt::Checked : Qt::Unchecked);
+        if (!is_incompatible_cheat) {
+            first_item->setCheckState(should_enable ? Qt::Checked : Qt::Unchecked);
+        }
 
         auto* const version_item = new QStandardItem{QString::fromStdString(patch.version)};
+        if (is_incompatible_cheat) {
+            version_item->setEnabled(false);
+        }
 
         if (patch.type == FileSys::PatchType::Cheat && !patch.parent_name.empty()) {
             // This is a cheat - add as child of its parent mod
