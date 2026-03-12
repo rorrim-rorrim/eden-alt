@@ -203,33 +203,6 @@ std::vector<u32> ExpandLineLoopIndices(std::span<const u32> input,
     return output;
 }
 
-std::vector<std::array<u32, 2>> BuildLineLoopClosurePairs(
-    std::span<const u32> input, std::optional<u32> restart_index = std::nullopt) {
-    std::vector<std::array<u32, 2>> pairs;
-
-    const auto flush_segment = [&](size_t begin, size_t end) {
-        if (end - begin >= 2) {
-            pairs.push_back({input[end - 1], input[begin]});
-        }
-    };
-
-    if (!restart_index.has_value()) {
-        flush_segment(0, input.size());
-        return pairs;
-    }
-
-    size_t segment_begin = 0;
-    for (size_t i = 0; i < input.size(); ++i) {
-        if (input[i] != *restart_index) {
-            continue;
-        }
-        flush_segment(segment_begin, i);
-        segment_begin = i + 1;
-    }
-    flush_segment(segment_begin, input.size());
-    return pairs;
-}
-
 VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t index, float scale) {
     const auto& src = regs.viewport_transform[index];
     const auto conv = [scale](float value) {
