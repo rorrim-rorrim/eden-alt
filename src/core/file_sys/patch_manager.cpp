@@ -900,7 +900,7 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
     const auto mod_dir = fs_controller.GetModificationLoadRoot(title_id);
     const auto sdmc_mod_dir = fs_controller.GetSDMCModificationLoadRoot(title_id);
 
-    for (const VirtualDir& root : {mod_dir, sdmc_mod_dir}) {
+    for (const auto& root : std::array{mod_dir, sdmc_mod_dir}) {
         if (root == nullptr)
             continue;
 
@@ -947,7 +947,7 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
                 AppendCommaIfNotEmpty(types, "Cheats");
             }
             if (has_cheats && is_sdmc)
-                mod_name = "Atmosphère Cheats";
+                mod_name = "Atmosphere";
 
             if (types.empty())
                 continue;
@@ -980,7 +980,8 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
                         if (cheat.cheat_id <= 1 || cheat.definition.readable_name[0] == '\0')
                             continue;
                         const std::string cheat_name = cheat.definition.readable_name.data();
-                        const std::string cheat_key = mod_name + "::" + cheat_name;
+                        const std::string cheat_key =
+                            (is_sdmc ? "SDMC" : mod->GetName()) + "::" + cheat_name;
                         out.push_back({
                             .enabled = std::find(disabled.begin(), disabled.end(), cheat_key) ==
                                        disabled.end(),
