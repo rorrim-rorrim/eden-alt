@@ -237,7 +237,6 @@ bool IsLineRasterizationTopology(const Device& device, Maxwell::PrimitiveTopolog
 
 VkLineRasterizationModeEXT SelectLineRasterizationMode(const Device& device, bool smooth_lines) {
     const bool supports_rectangular_lines = device.SupportsRectangularLines();
-    const bool supports_bresenham_lines = device.SupportsBresenhamLines();
     const bool supports_smooth_lines = device.SupportsSmoothLines();
 
     if (smooth_lines) {
@@ -247,15 +246,9 @@ VkLineRasterizationModeEXT SelectLineRasterizationMode(const Device& device, boo
         if (supports_rectangular_lines) {
             return VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT;
         }
-        if (supports_bresenham_lines) {
-            return VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT;
-        }
     } else {
         if (supports_rectangular_lines) {
             return VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT;
-        }
-        if (supports_bresenham_lines) {
-            return VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT;
         }
         if (supports_smooth_lines) {
             return VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT;
@@ -269,8 +262,6 @@ bool SupportsStippleForMode(const Device& device, VkLineRasterizationModeEXT mod
     switch (mode) {
     case VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT:
         return device.SupportsStippledRectangularLines();
-    case VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT:
-        return device.SupportsStippledBresenhamLines();
     case VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT:
         return device.SupportsStippledSmoothLines();
     default:
@@ -403,15 +394,9 @@ void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
             if (maxwell3d->regs.transform_feedback_enabled != 0) {
                 query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount, false);
             }
-            scheduler.Record([](vk::CommandBuffer cmdbuf) {
-                cmdbuf.SetPrimitiveTopologyEXT(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
-            });
             DrawLineLoopClosure(draw_state, draw_params.base_instance, draw_params.num_instances,
                                 static_cast<s32>(draw_params.base_vertex),
                                 draw_params.num_vertices, draw_params.is_indexed);
-            scheduler.Record([](vk::CommandBuffer cmdbuf) {
-                cmdbuf.SetPrimitiveTopologyEXT(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
-            });
         }
     });
 }
@@ -590,9 +575,6 @@ void RasterizerVulkan::DrawIndirectLineLoopClosures(
                 if (maxwell3d->regs.transform_feedback_enabled != 0) {
                     query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount, false);
                 }
-                scheduler.Record([](vk::CommandBuffer cmdbuf) {
-                    cmdbuf.SetPrimitiveTopologyEXT(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
-                });
                 emitted_closure = true;
             }
 
@@ -622,21 +604,12 @@ void RasterizerVulkan::DrawIndirectLineLoopClosures(
                 if (maxwell3d->regs.transform_feedback_enabled != 0) {
                     query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount, false);
                 }
-                scheduler.Record([](vk::CommandBuffer cmdbuf) {
-                    cmdbuf.SetPrimitiveTopologyEXT(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
-                });
                 emitted_closure = true;
             }
             DrawLineLoopClosure(draw_state, command.firstInstance, command.instanceCount,
                                 static_cast<s32>(command.firstVertex), command.vertexCount,
                                 false);
         }
-    }
-
-    if (emitted_closure) {
-        scheduler.Record([](vk::CommandBuffer cmdbuf) {
-            cmdbuf.SetPrimitiveTopologyEXT(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
-        });
     }
 }
 

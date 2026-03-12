@@ -757,8 +757,6 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         IsLine(input_assembly_topology) && any_stippled_lines_supported;
     const bool supports_rectangular_lines =
         line_rasterization_supported && device.SupportsRectangularLines();
-    const bool supports_bresenham_lines =
-        line_rasterization_supported && device.SupportsBresenhamLines();
     const bool supports_smooth_lines = line_rasterization_supported && device.SupportsSmoothLines();
 
     VkLineRasterizationModeEXT line_rasterization_mode = VK_LINE_RASTERIZATION_MODE_DEFAULT_EXT;
@@ -768,14 +766,10 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
                 line_rasterization_mode = VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT;
             } else if (supports_rectangular_lines) {
                 line_rasterization_mode = VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT;
-            } else if (supports_bresenham_lines) {
-                line_rasterization_mode = VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT;
             }
         } else {
             if (supports_rectangular_lines) {
                 line_rasterization_mode = VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT;
-            } else if (supports_bresenham_lines) {
-                line_rasterization_mode = VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT;
             } else if (supports_smooth_lines) {
                 line_rasterization_mode = VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT;
             }
@@ -789,8 +783,6 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         switch (line_rasterization_mode) {
         case VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT:
             return device.SupportsStippledRectangularLines();
-        case VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT:
-            return device.SupportsStippledBresenhamLines();
         case VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT:
             return device.SupportsStippledSmoothLines();
         default:

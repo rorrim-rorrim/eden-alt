@@ -1518,7 +1518,7 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
 
     if (driver_blocks_pair_resolve || !is_gpu_high) {
         EndHostConditionalRendering();
-        return false;
+        return true;
     }
 
     if (!is_in_bc[0] && !is_in_bc[1]) {
