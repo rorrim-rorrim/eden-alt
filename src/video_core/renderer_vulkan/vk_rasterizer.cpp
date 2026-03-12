@@ -10,6 +10,8 @@
 #include <limits>
 #include <memory>
 #include <mutex>
+#include <optional>
+#include <vector>
 
 #include <fmt/format.h>
 
@@ -114,6 +116,118 @@ bool ReadGuestIndex(Tegra::MemoryManager* gpu_memory, GPUVAddr address, Maxwell:
     }
     ASSERT(false);
     return false;
+}
+
+std::vector<u32> BuildLineLoopArrayIndices(u32 num_vertices) {
+    std::vector<u32> indices;
+    indices.reserve(num_vertices + (num_vertices >= 2 ? 1U : 0U));
+    for (u32 i = 0; i < num_vertices; ++i) {
+        indices.push_back(i);
+    }
+    if (num_vertices >= 2) {
+        indices.push_back(0);
+    }
+    return indices;
+}
+
+std::vector<u32> ReadLineLoopSourceIndices(Tegra::MemoryManager* gpu_memory,
+                                           const MaxwellDrawState& draw_state, u32 first_index,
+                                           u32 num_vertices) {
+    std::vector<u32> indices;
+    indices.reserve(num_vertices);
+    if (num_vertices == 0) {
+        return indices;
+    }
+    if (!draw_state.inline_index_draw_indexes.empty()) {
+        const size_t start_offset = static_cast<size_t>(first_index) * sizeof(u32);
+        const size_t end_offset = start_offset + static_cast<size_t>(num_vertices) * sizeof(u32);
+        if (end_offset > draw_state.inline_index_draw_indexes.size()) {
+            return {};
+        }
+        indices.resize(num_vertices);
+        std::memcpy(indices.data(), draw_state.inline_index_draw_indexes.data() + start_offset,
+                    static_cast<size_t>(num_vertices) * sizeof(u32));
+        return indices;
+    }
+
+    const auto index_format = draw_state.index_buffer.format;
+    const size_t index_size = draw_state.index_buffer.FormatSizeInBytes();
+    GPUVAddr address = draw_state.index_buffer.StartAddress() +
+                       static_cast<GPUVAddr>(first_index) * index_size;
+    for (u32 i = 0; i < num_vertices; ++i, address += index_size) {
+        u32 value{};
+        if (!ReadGuestIndex(gpu_memory, address, index_format, value)) {
+            return {};
+        }
+        indices.push_back(value);
+    }
+    return indices;
+}
+
+std::vector<u32> ExpandLineLoopIndices(std::span<const u32> input,
+                                       std::optional<u32> restart_index = std::nullopt) {
+    std::vector<u32> output;
+    output.reserve(input.size() + 8);
+
+    const auto flush_segment = [&](size_t begin, size_t end, bool append_restart) {
+        if (begin >= end) {
+            return;
+        }
+        output.insert(output.end(), input.begin() + static_cast<std::ptrdiff_t>(begin),
+                      input.begin() + static_cast<std::ptrdiff_t>(end));
+        if (end - begin >= 2) {
+            output.push_back(input[begin]);
+        }
+        if (append_restart && restart_index.has_value()) {
+            output.push_back(*restart_index);
+        }
+    };
+
+    if (!restart_index.has_value()) {
+        flush_segment(0, input.size(), false);
+        return output;
+    }
+
+    size_t segment_begin = 0;
+    for (size_t i = 0; i < input.size(); ++i) {
+        if (input[i] != *restart_index) {
+            continue;
+        }
+        flush_segment(segment_begin, i, true);
+        segment_begin = i + 1;
+    }
+    flush_segment(segment_begin, input.size(), false);
+    if (!output.empty() && output.back() == *restart_index) {
+        output.pop_back();
+    }
+    return output;
+}
+
+std::vector<std::array<u32, 2>> BuildLineLoopClosurePairs(
+    std::span<const u32> input, std::optional<u32> restart_index = std::nullopt) {
+    std::vector<std::array<u32, 2>> pairs;
+
+    const auto flush_segment = [&](size_t begin, size_t end) {
+        if (end - begin >= 2) {
+            pairs.push_back({input[end - 1], input[begin]});
+        }
+    };
+
+    if (!restart_index.has_value()) {
+        flush_segment(0, input.size());
+        return pairs;
+    }
+
+    size_t segment_begin = 0;
+    for (size_t i = 0; i < input.size(); ++i) {
+        if (input[i] != *restart_index) {
+            continue;
+        }
+        flush_segment(segment_begin, i);
+        segment_begin = i + 1;
+    }
+    flush_segment(segment_begin, input.size());
+    return pairs;
 }
 
 VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t index, float scale) {
@@ -338,6 +452,15 @@ void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
         const u32 num_instances{instance_count};
         const DrawParams draw_params{MakeDrawParams(draw_state, num_instances, is_indexed)};
 
+        if (IsLineLoop(draw_state.topology) && maxwell3d->regs.transform_feedback_enabled == 0) {
+            if (EmulateLineLoopDraw(draw_state, draw_params.base_instance, draw_params.num_instances,
+                                    static_cast<s32>(draw_params.base_vertex),
+                                    draw_params.num_vertices, draw_params.first_index,
+                                    draw_params.is_indexed)) {
+                return;
+            }
+        }
+
         // Use VK_EXT_multi_draw if available (single draw becomes multi-draw with count=1)
         if (device.IsExtMultiDrawSupported()) {
             scheduler.Record([draw_params](vk::CommandBuffer cmdbuf) {
@@ -396,7 +519,8 @@ void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
             }
             DrawLineLoopClosure(draw_state, draw_params.base_instance, draw_params.num_instances,
                                 static_cast<s32>(draw_params.base_vertex),
-                                draw_params.num_vertices, draw_params.is_indexed);
+                                draw_params.num_vertices, draw_params.first_index,
+                                draw_params.is_indexed);
         }
     });
 }
@@ -406,6 +530,12 @@ void RasterizerVulkan::DrawIndirect() {
     buffer_cache.SetDrawIndirect(&params);
     PrepareDraw(params.is_indexed, [this, &params] {
         const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
+        if (IsLineLoop(draw_state.topology) &&
+            (maxwell3d->regs.transform_feedback_enabled == 0 || params.is_byte_count)) {
+            if (EmulateIndirectLineLoopDraw(draw_state, params)) {
+                return;
+            }
+        }
         const auto indirect_buffer = buffer_cache.GetDrawIndirectBuffer();
         const auto& buffer = indirect_buffer.first;
         const auto& offset = indirect_buffer.second;
@@ -476,7 +606,8 @@ void RasterizerVulkan::DrawIndirect() {
 
 bool RasterizerVulkan::DrawLineLoopClosure(const MaxwellDrawState& draw_state, u32 base_instance,
                                           u32 num_instances, s32 base_vertex,
-                                          u32 num_vertices, bool is_indexed) {
+                                          u32 num_vertices, u32 first_index,
+                                          bool is_indexed) {
     if (!IsLineLoop(draw_state.topology) || num_instances == 0 || num_vertices < 2) {
         return false;
     }
@@ -485,20 +616,21 @@ bool RasterizerVulkan::DrawLineLoopClosure(const MaxwellDrawState& draw_state, u
     if (!is_indexed) {
         closure_indices = {num_vertices - 1, 0};
     } else if (!draw_state.inline_index_draw_indexes.empty()) {
-        const size_t last_offset = (static_cast<size_t>(num_vertices) - 1) * sizeof(u32);
+        const size_t start_offset = static_cast<size_t>(first_index) * sizeof(u32);
+        const size_t last_offset = start_offset + (static_cast<size_t>(num_vertices) - 1) * sizeof(u32);
         if (draw_state.inline_index_draw_indexes.size() < last_offset + sizeof(u32)) {
             return false;
         }
         std::memcpy(&closure_indices[0], draw_state.inline_index_draw_indexes.data() + last_offset,
                     sizeof(u32));
-        std::memcpy(&closure_indices[1], draw_state.inline_index_draw_indexes.data(),
+        std::memcpy(&closure_indices[1], draw_state.inline_index_draw_indexes.data() + start_offset,
                     sizeof(u32));
     } else {
         const auto index_format = draw_state.index_buffer.format;
         const size_t index_size = draw_state.index_buffer.FormatSizeInBytes();
         const GPUVAddr first_address =
             draw_state.index_buffer.StartAddress() +
-            static_cast<GPUVAddr>(draw_state.index_buffer.first) * index_size;
+            static_cast<GPUVAddr>(first_index) * index_size;
         const GPUVAddr last_address =
             first_address + static_cast<GPUVAddr>(num_vertices - 1) * index_size;
         if (!ReadGuestIndex(gpu_memory, last_address, index_format, closure_indices[0]) ||
@@ -522,6 +654,128 @@ bool RasterizerVulkan::DrawLineLoopClosure(const MaxwellDrawState& draw_state, u
     scheduler.Record([base_instance, num_instances, base_vertex](vk::CommandBuffer cmdbuf) {
         cmdbuf.DrawIndexed(2, num_instances, 0, base_vertex, base_instance);
     });
+    return true;
+}
+
+bool RasterizerVulkan::EmulateLineLoopDraw(const MaxwellDrawState& draw_state, u32 base_instance,
+                                           u32 num_instances, s32 base_vertex,
+                                           u32 num_vertices, u32 first_index,
+                                           bool is_indexed) {
+    if (!IsLineLoop(draw_state.topology) || num_instances == 0 || num_vertices < 2) {
+        return false;
+    }
+
+    std::vector<u32> expanded_indices;
+    if (!is_indexed) {
+        expanded_indices = BuildLineLoopArrayIndices(num_vertices);
+    } else {
+        const std::vector<u32> source_indices =
+            ReadLineLoopSourceIndices(gpu_memory, draw_state, first_index, num_vertices);
+        if (source_indices.empty()) {
+            return false;
+        }
+        const std::optional<u32> restart_index =
+            maxwell3d->regs.primitive_restart.enabled != 0
+                ? std::optional<u32>{PrimitiveRestartIndex(draw_state.index_buffer.format)}
+                : std::nullopt;
+        expanded_indices = ExpandLineLoopIndices(source_indices, restart_index);
+        if (expanded_indices.size() < 2) {
+            return false;
+        }
+    }
+
+    const auto upload =
+        staging_pool.Request(expanded_indices.size() * sizeof(u32), MemoryUsage::Upload);
+    std::memcpy(upload.mapped_span.data(), expanded_indices.data(),
+                expanded_indices.size() * sizeof(u32));
+
+    scheduler.Record([buffer = upload.buffer, offset = upload.offset](vk::CommandBuffer cmdbuf) {
+        cmdbuf.BindIndexBuffer(buffer, offset, VK_INDEX_TYPE_UINT32);
+    });
+
+    if (device.IsExtMultiDrawSupported()) {
+        scheduler.Record([count = static_cast<u32>(expanded_indices.size()), base_instance,
+                          num_instances, base_vertex](vk::CommandBuffer cmdbuf) {
+            const VkMultiDrawIndexedInfoEXT multi_draw_info{
+                .firstIndex = 0,
+                .indexCount = count,
+            };
+            const int32_t vertex_offset = base_vertex;
+            cmdbuf.DrawMultiIndexedEXT(1, &multi_draw_info, num_instances, base_instance,
+                                       sizeof(VkMultiDrawIndexedInfoEXT), &vertex_offset);
+        });
+    } else {
+        scheduler.Record([count = static_cast<u32>(expanded_indices.size()), num_instances,
+                          base_instance, base_vertex](vk::CommandBuffer cmdbuf) {
+            cmdbuf.DrawIndexed(count, num_instances, 0, base_vertex, base_instance);
+        });
+    }
+    return true;
+}
+
+bool RasterizerVulkan::EmulateIndirectLineLoopDraw(
+    const MaxwellDrawState& draw_state, const Tegra::Engines::DrawManager::IndirectParams& params) {
+    if (!IsLineLoop(draw_state.topology)) {
+        return false;
+    }
+
+    if (params.is_byte_count) {
+        const GPUVAddr tfb_object_base_addr = params.indirect_start_address - 4U;
+        u32 byte_count{};
+        gpu_memory->ReadBlockUnsafe(tfb_object_base_addr, &byte_count, sizeof(byte_count));
+        const u32 vertex_count =
+            params.stride != 0 ? byte_count / static_cast<u32>(params.stride) : 0;
+        if (vertex_count < 2) {
+            return true;
+        }
+        return EmulateLineLoopDraw(draw_state, 0, 1, 0, vertex_count, 0, false);
+    }
+
+    u32 draw_count = static_cast<u32>(params.max_draw_counts);
+    if (params.include_count) {
+        gpu_memory->ReadBlockUnsafe(params.count_start_address, &draw_count, sizeof(draw_count));
+        draw_count = std::min(draw_count, static_cast<u32>(params.max_draw_counts));
+    }
+    if (draw_count == 0) {
+        return true;
+    }
+
+    if (params.is_indexed) {
+        const u32 command_stride =
+            params.stride != 0 ? static_cast<u32>(params.stride) : sizeof(VkDrawIndexedIndirectCommand);
+        for (u32 i = 0; i < draw_count; ++i) {
+            VkDrawIndexedIndirectCommand command{};
+            gpu_memory->ReadBlockUnsafe(params.indirect_start_address +
+                                            static_cast<GPUVAddr>(i) * command_stride,
+                                        &command, sizeof(command));
+            if (command.indexCount < 2 || command.instanceCount == 0) {
+                continue;
+            }
+            if (!EmulateLineLoopDraw(draw_state, command.firstInstance, command.instanceCount,
+                                     command.vertexOffset, command.indexCount,
+                                     command.firstIndex, true)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    const u32 command_stride =
+        params.stride != 0 ? static_cast<u32>(params.stride) : sizeof(VkDrawIndirectCommand);
+    for (u32 i = 0; i < draw_count; ++i) {
+        VkDrawIndirectCommand command{};
+        gpu_memory->ReadBlockUnsafe(params.indirect_start_address +
+                                        static_cast<GPUVAddr>(i) * command_stride,
+                                    &command, sizeof(command));
+        if (command.vertexCount < 2 || command.instanceCount == 0) {
+            continue;
+        }
+        if (!EmulateLineLoopDraw(draw_state, command.firstInstance, command.instanceCount,
+                                 static_cast<s32>(command.firstVertex), command.vertexCount, 0,
+                                 false)) {
+            return false;
+        }
+    }
     return true;
 }
 
@@ -607,7 +861,7 @@ void RasterizerVulkan::DrawIndirectLineLoopClosures(
                 emitted_closure = true;
             }
             DrawLineLoopClosure(draw_state, command.firstInstance, command.instanceCount,
-                                static_cast<s32>(command.firstVertex), command.vertexCount,
+                                static_cast<s32>(command.firstVertex), command.vertexCount, 0,
                                 false);
         }
     }

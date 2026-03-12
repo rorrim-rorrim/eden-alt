@@ -155,10 +155,14 @@ private:
     template <typename Func>
     void PrepareDraw(bool is_indexed, Func&&);
 
+    bool EmulateLineLoopDraw(const Tegra::Engines::DrawManager::State& draw_state,
+                             u32 base_instance, u32 num_instances, s32 base_vertex,
+                             u32 num_vertices, u32 first_index, bool is_indexed);
+    bool EmulateIndirectLineLoopDraw(const Tegra::Engines::DrawManager::State& draw_state,
+                                     const Tegra::Engines::DrawManager::IndirectParams& params);
     bool DrawLineLoopClosure(const Tegra::Engines::DrawManager::State& draw_state,
-                             u32 base_instance,
-                             u32 num_instances, s32 base_vertex, u32 num_vertices,
-                             bool is_indexed);
+                             u32 base_instance, u32 num_instances, s32 base_vertex,
+                             u32 num_vertices, u32 first_index, bool is_indexed);
     void DrawIndirectLineLoopClosures(const Tegra::Engines::DrawManager::State& draw_state,
                                       const Tegra::Engines::DrawManager::IndirectParams& params);
 
