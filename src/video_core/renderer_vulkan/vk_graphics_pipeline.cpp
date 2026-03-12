@@ -893,7 +893,8 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             VK_COLOR_COMPONENT_A_BIT,
         };
         const auto& blend{key.state.attachments[index]};
-        const bool supports_blending = !VideoCore::Surface::IsPixelFormatInteger(key.color_formats[index]);
+        const bool supports_blending =
+            !VideoCore::Surface::IsPixelFormatInteger(DecodeFormat(key.state.color_formats[index]));
         const std::array mask{blend.Mask()};
         VkColorComponentFlags write_mask{};
         for (size_t i = 0; i < mask_table.size(); ++i) {
