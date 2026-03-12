@@ -250,13 +250,15 @@ PatchManager::UpdateResolution PatchManager::GetActiveUpdate(ContentRecordType t
                 if (slot == ContentProviderUnionSlot::UserNAND ||
                     slot == ContentProviderUnionSlot::SysNAND) {
                     if (!nand_disabled) {
-                        update_res.update_active_raw = content_provider.GetEntryRaw(update_tid, type);
+                        update_res.update_active_raw =
+                            content_provider.GetEntryRaw(update_tid, type);
                         update_res.update_disabled = update_res.update_active_raw == nullptr;
                         break;
                     }
                 } else if (slot == ContentProviderUnionSlot::SDMC) {
                     if (!sdmc_disabled) {
-                        update_res.update_active_raw = content_provider.GetEntryRaw(update_tid, type);
+                        update_res.update_active_raw =
+                            content_provider.GetEntryRaw(update_tid, type);
                         update_res.update_disabled = update_res.update_active_raw == nullptr;
                         break;
                     }
@@ -630,7 +632,8 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
     const auto update_tid = GetUpdateTitleID(title_id);
     const auto update_res = GetActiveUpdate(type);
 
-    if (!update_res.update_disabled && update_res.update_active_raw != nullptr && base_nca != nullptr) {
+    if (!update_res.update_disabled && update_res.update_active_raw != nullptr &&
+        base_nca != nullptr) {
         const auto new_nca = std::make_shared<NCA>(update_res.update_active_raw, base_nca);
         if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
             new_nca->GetRomFS() != nullptr) {
@@ -895,35 +898,45 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
 
     // General Mods (LayeredFS and IPS)
     const auto mod_dir = fs_controller.GetModificationLoadRoot(title_id);
-    if (mod_dir != nullptr) {
-        for (const auto& mod : mod_dir->GetSubdirectories()) {
+    const auto sdmc_mod_dir = fs_controller.GetSDMCModificationLoadRoot(title_id);
+
+    for (const VirtualDir& root : {mod_dir, sdmc_mod_dir}) {
+        if (root == nullptr)
+            continue;
+
+        const bool is_sdmc = (root == sdmc_mod_dir);
+        const std::vector<VirtualDir> mods =
+            is_sdmc ? std::vector{root} : root->GetSubdirectories();
+
+        for (const auto& mod : mods) {
+            std::string mod_name = is_sdmc ? "SDMC" : mod->GetName();
             std::string types;
             bool has_cheats = false;
 
             const auto exefs_dir = FindSubdirectoryCaseless(mod, "exefs");
             if (IsDirValidAndNonEmpty(exefs_dir)) {
-                bool ips = false;
-                bool ipswitch = false;
-                bool layeredfs = false;
-
-                for (const auto& file : exefs_dir->GetFiles()) {
-                    if (file->GetExtension() == "ips") {
-                        ips = true;
-                    } else if (file->GetExtension() == "pchtxt") {
-                        ipswitch = true;
-                    } else if (std::find(EXEFS_FILE_NAMES.begin(), EXEFS_FILE_NAMES.end(),
-                                         file->GetName()) != EXEFS_FILE_NAMES.end()) {
-                        layeredfs = true;
-                    }
-                }
-
-                if (ips)
-                    AppendCommaIfNotEmpty(types, "IPS");
-                if (ipswitch)
-                    AppendCommaIfNotEmpty(types, "IPSwitch");
-                if (layeredfs)
+                if (is_sdmc) {
                     AppendCommaIfNotEmpty(types, "LayeredExeFS");
+                } else {
+                    bool ips = false, ipswitch = false, layeredfs = false;
+                    for (const auto& file : exefs_dir->GetFiles()) {
+                        if (file->GetExtension() == "ips")
+                            ips = true;
+                        else if (file->GetExtension() == "pchtxt")
+                            ipswitch = true;
+                        else if (std::find(EXEFS_FILE_NAMES.begin(), EXEFS_FILE_NAMES.end(),
+                                           file->GetName()) != EXEFS_FILE_NAMES.end())
+                            layeredfs = true;
+                    }
+                    if (ips)
+                        AppendCommaIfNotEmpty(types, "IPS");
+                    if (ipswitch)
+                        AppendCommaIfNotEmpty(types, "IPSwitch");
+                    if (layeredfs)
+                        AppendCommaIfNotEmpty(types, "LayeredExeFS");
+                }
             }
+
             if (IsDirValidAndNonEmpty(FindSubdirectoryCaseless(mod, "romfs")) ||
                 IsDirValidAndNonEmpty(FindSubdirectoryCaseless(mod, "romfslite")))
                 AppendCommaIfNotEmpty(types, "LayeredFS");
@@ -933,14 +946,16 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
                 has_cheats = true;
                 AppendCommaIfNotEmpty(types, "Cheats");
             }
+            if (has_cheats && is_sdmc)
+                mod_name = "Atmosphère Cheats";
 
             if (types.empty())
                 continue;
 
             const auto mod_disabled =
-                std::find(disabled.begin(), disabled.end(), mod->GetName()) != disabled.end();
+                std::find(disabled.begin(), disabled.end(), mod_name) != disabled.end();
             out.push_back({.enabled = !mod_disabled,
-                           .name = mod->GetName(),
+                           .name = mod_name,
                            .version = types,
                            .type = PatchType::Mod,
                            .program_id = title_id,
@@ -951,24 +966,21 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
 
             // Add individual cheats as sub-entries
             if (has_cheats) {
-                // Try to read cheat file with build_id first, fallback to all files
                 std::vector<Service::DMNT::CheatEntry> cheat_entries;
-
                 if (has_build_id) {
-                    if (auto res = ReadCheatFileFromFolder(title_id, build_id, cheats_dir, true)) {
+                    if (auto res = ReadCheatFileFromFolder(title_id, build_id, cheats_dir, true))
                         cheat_entries = std::move(*res);
-                    } else if (auto res_lower =
-                                   ReadCheatFileFromFolder(title_id, build_id, cheats_dir, false)) {
+                    else if (auto res_lower =
+                                 ReadCheatFileFromFolder(title_id, build_id, cheats_dir, false))
                         cheat_entries = std::move(*res_lower);
-                    }
                 }
+
                 if (!cheat_entries.empty()) {
                     for (const auto& cheat : cheat_entries) {
-                        if (cheat.cheat_id <= 1 || cheat.definition.readable_name[0] == '\0') {
+                        if (cheat.cheat_id <= 1 || cheat.definition.readable_name[0] == '\0')
                             continue;
-                        }
                         const std::string cheat_name = cheat.definition.readable_name.data();
-                        const std::string cheat_key = mod->GetName() + "::" + cheat_name;
+                        const std::string cheat_key = mod_name + "::" + cheat_name;
                         out.push_back({
                             .enabled = std::find(disabled.begin(), disabled.end(), cheat_key) ==
                                        disabled.end(),
@@ -977,7 +989,7 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
                             .type = PatchType::Cheat,
                             .program_id = title_id,
                             .title_id = title_id,
-                            .parent_name = mod->GetName(),
+                            .parent_name = mod_name,
                             .cheat_compat = CheatCompatibility::Compatible,
                         });
                     }
@@ -1004,37 +1016,11 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
                         .type = PatchType::Cheat,
                         .program_id = title_id,
                         .title_id = title_id,
-                        .parent_name = mod->GetName(),
+                        .parent_name = mod_name,
                         .cheat_compat = CheatCompatibility::Incompatible,
                     });
                 }
             }
-        }
-    }
-
-    // SDMC mod directory (RomFS LayeredFS)
-    const auto sdmc_mod_dir = fs_controller.GetSDMCModificationLoadRoot(title_id);
-    if (sdmc_mod_dir != nullptr) {
-        std::string types;
-        if (IsDirValidAndNonEmpty(FindSubdirectoryCaseless(sdmc_mod_dir, "exefs"))) {
-            AppendCommaIfNotEmpty(types, "LayeredExeFS");
-        }
-        if (IsDirValidAndNonEmpty(FindSubdirectoryCaseless(sdmc_mod_dir, "romfs")) ||
-            IsDirValidAndNonEmpty(FindSubdirectoryCaseless(sdmc_mod_dir, "romfslite"))) {
-            AppendCommaIfNotEmpty(types, "LayeredFS");
-        }
-
-        if (!types.empty()) {
-            const auto mod_disabled =
-                std::find(disabled.begin(), disabled.end(), "SDMC") != disabled.end();
-            out.push_back({.enabled = !mod_disabled,
-                           .name = "SDMC",
-                           .version = types,
-                           .type = PatchType::Mod,
-                           .program_id = title_id,
-                           .title_id = title_id,
-                           .source = PatchSource::Unknown,
-                           .parent_name = ""});
         }
     }
 
