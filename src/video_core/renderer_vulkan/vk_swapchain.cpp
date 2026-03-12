@@ -340,7 +340,6 @@ void Swapchain::CreateSemaphores() {
 void Swapchain::Destroy() {
     frame_index = 0;
     present_semaphores.clear();
-    render_semaphores.clear();
     swapchain.reset();
 }
 

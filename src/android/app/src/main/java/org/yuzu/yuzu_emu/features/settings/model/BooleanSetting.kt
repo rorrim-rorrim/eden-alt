@@ -26,6 +26,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     RENDERER_REACTIVE_FLUSHING("use_reactive_flushing"),
     ENABLE_BUFFER_HISTORY("enable_buffer_history"),
     USE_OPTIMIZED_VERTEX_BUFFERS("use_optimized_vertex_buffers"),
+    RENDERER_ENABLE_RAII("renderer_enable_raii"),
     SYNC_MEMORY_OPERATIONS("sync_memory_operations"),
     BUFFER_REORDER_DISABLE("disable_buffer_reorder"),
     RENDERER_DEBUG("debug"),
@@ -88,8 +89,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
 
     ENABLE_QUICK_SETTINGS("enable_quick_settings");
 
-//  external fun isFrameSkippingEnabled(): Boolean
-    external fun isFrameInterpolationEnabled(): Boolean
+    external fun isRaiiEnabled(): Boolean
 
     override fun getBoolean(needsGlobal: Boolean): Boolean =
         NativeConfig.getBoolean(key, needsGlobal)
