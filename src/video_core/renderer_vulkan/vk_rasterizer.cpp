@@ -1991,11 +1991,14 @@ void RasterizerVulkan::UpdateDepthCompareOp(Tegra::Engines::Maxwell3D::Regs& reg
 }
 
 void RasterizerVulkan::UpdatePrimitiveTopology([[maybe_unused]] Tegra::Engines::Maxwell3D::Regs& regs) {
+    GraphicsPipeline* pipeline = pipeline_cache.CurrentGraphicsPipeline();
     const auto topology = maxwell3d->draw_manager->GetDrawState().topology;
     if (!state_tracker.ChangePrimitiveTopology(topology)) {
         return;
     }
-    const auto vk_topology = MaxwellToVK::PrimitiveTopology(device, topology);
+    const auto vk_topology = pipeline && pipeline->HasTessellationStages()
+                                 ? VK_PRIMITIVE_TOPOLOGY_PATCH_LIST
+                                 : MaxwellToVK::PrimitiveTopology(device, topology);
     scheduler.Record([vk_topology](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetPrimitiveTopologyEXT(vk_topology);
     });

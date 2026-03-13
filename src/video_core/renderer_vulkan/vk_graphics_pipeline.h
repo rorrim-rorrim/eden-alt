@@ -98,6 +98,9 @@ public:
     bool UsesExtendedDynamicState2LogicOp() const noexcept {
         return key.state.extended_dynamic_state_2_logic_op != 0;
     }
+    bool HasTessellationStages() const noexcept {
+        return static_cast<bool>(spv_modules[1]) || static_cast<bool>(spv_modules[2]);
+    }
     GraphicsPipeline& operator=(GraphicsPipeline&&) noexcept = delete;
     GraphicsPipeline(GraphicsPipeline&&) noexcept = delete;
 
