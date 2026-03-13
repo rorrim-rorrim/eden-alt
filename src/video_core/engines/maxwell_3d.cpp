@@ -582,6 +582,8 @@ void Maxwell3D::ProcessQueryCondition() {
         break;
     }
     }
+
+    rasterizer->SetConditionalRenderingPredicate(execute_on);
 }
 
 void Maxwell3D::ProcessCounterReset() {

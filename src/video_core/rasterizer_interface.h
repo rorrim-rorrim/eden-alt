@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -145,6 +148,8 @@ public:
     virtual bool AccelerateConditionalRendering() {
         return false;
     }
+
+    virtual void SetConditionalRenderingPredicate(bool enabled) {}
 
     /// Attempt to use a faster method to perform a surface copy
     [[nodiscard]] virtual bool AccelerateSurfaceCopy(

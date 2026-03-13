@@ -1385,6 +1385,35 @@ void QueryCacheRuntime::ResumeHostConditionalRendering() {
     impl->is_hcr_running = true;
 }
 
+void QueryCacheRuntime::SetHostConditionalRenderingResult(bool condition_passed) {
+    if (!impl->device.IsExtConditionalRendering()) {
+        return;
+    }
+
+    const bool was_running = impl->is_hcr_running;
+    if (was_running) {
+        PauseHostConditionalRendering();
+    }
+
+    impl->scheduler.RequestOutsideRenderPassOperationContext();
+    impl->scheduler.Record(
+        [buffer = *impl->hcr_resolve_buffer, value = condition_passed ? 1u : 0u](vk::CommandBuffer cmdbuf) {
+            cmdbuf.FillBuffer(buffer, 0, sizeof(u32), value);
+        });
+
+    impl->hcr_setup.buffer = *impl->hcr_resolve_buffer;
+    impl->hcr_setup.offset = 0;
+    impl->hcr_setup.flags = 0;
+    impl->hcr_buffer = *impl->hcr_resolve_buffer;
+    impl->hcr_offset = 0;
+    impl->hcr_is_set = true;
+    impl->is_hcr_running = false;
+
+    if (was_running) {
+        ResumeHostConditionalRendering();
+    }
+}
+
 void QueryCacheRuntime::HostConditionalRenderingCompareValueImpl(VideoCommon::LookupData object,
                                                                  bool is_equal) {
     {
@@ -1517,7 +1546,7 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
 
     if (driver_blocks_pair_resolve || !is_gpu_high) {
         EndHostConditionalRendering();
-        return true;
+        return false;
     }
 
     if (!is_in_bc[0] && !is_in_bc[1]) {

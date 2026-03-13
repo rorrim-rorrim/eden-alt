@@ -1346,6 +1346,10 @@ bool RasterizerVulkan::AccelerateConditionalRendering() {
     return query_cache.AccelerateHostConditionalRendering();
 }
 
+void RasterizerVulkan::SetConditionalRenderingPredicate(bool enabled) {
+    query_cache.SetHostConditionalRenderingResult(enabled);
+}
+
 bool RasterizerVulkan::AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Surface& src,
                                              const Tegra::Engines::Fermi2D::Surface& dst,
                                              const Tegra::Engines::Fermi2D::Config& copy_config) {

@@ -382,6 +382,11 @@ void QueryCacheBase<Traits>::NotifySegment(bool resume) {
 }
 
 template <typename Traits>
+void QueryCacheBase<Traits>::SetHostConditionalRenderingResult(bool condition_passed) {
+    impl->runtime.SetHostConditionalRenderingResult(condition_passed);
+}
+
+template <typename Traits>
 bool QueryCacheBase<Traits>::AccelerateHostConditionalRendering() {
     bool qc_dirty = false;
     const auto gen_lookup = [this, &qc_dirty](GPUVAddr address) -> VideoCommon::LookupData {

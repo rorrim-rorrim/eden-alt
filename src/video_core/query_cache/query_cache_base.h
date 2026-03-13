@@ -115,6 +115,8 @@ public:
 
     void NotifySegment(bool resume);
 
+    void SetHostConditionalRenderingResult(bool condition_passed);
+
     void BindToChannel(s32 id) override;
 
 protected:
