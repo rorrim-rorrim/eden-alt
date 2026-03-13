@@ -859,18 +859,18 @@ private:
             return;
         }
         has_flushed_end_pending = true;
+        // Refresh buffers state before beginning transform feedback so counters are up-to-date
+        UpdateBuffers();
         if (!has_started || buffers_count == 0) {
             // No counter buffers available: begin without counters
             scheduler.Record([](vk::CommandBuffer cmdbuf) {
                 cmdbuf.BeginTransformFeedbackEXT(0, 0, nullptr, nullptr);
             });
-            UpdateBuffers();
             return;
         }
         scheduler.Record([this, total = static_cast<u32>(buffers_count)](vk::CommandBuffer cmdbuf) {
             cmdbuf.BeginTransformFeedbackEXT(0, total, counter_buffers.data(), offsets.data());
         });
-        UpdateBuffers();
     }
 
     void FlushEndTFB() {
