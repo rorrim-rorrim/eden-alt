@@ -226,8 +226,7 @@ public:
         }
         PauseCounter();
         const auto driver_id = device.GetDriverID();
-        if (driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
-            driver_id == VK_DRIVER_ID_ARM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP) {
+        if (driver_id == VK_DRIVER_ID_ARM_PROPRIETARY) {
             ApplyBanksWideOp<false>(
                 pending_sync,
                 [](SamplesQueryBank* bank, size_t start, size_t amount) { bank->Sync(start, amount); });
@@ -253,13 +252,13 @@ public:
                     }
                 });
 
-                total += GetAmendValue();
+                const u64 final_total = total + GetAmendValue();
                 query->value = total;
                 query->flags |= VideoCommon::QueryFlagBits::IsHostSynced;
                 query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
                 direct_sync_values.emplace_back(VideoCommon::SyncValuesStruct{
                     .address = query->guest_address,
-                    .value = total,
+                    .value = final_total,
                     .size = SamplesQueryBank::QUERY_SIZE,
                 });
 
@@ -633,16 +632,16 @@ private:
     std::deque<std::vector<size_t>> pending_flush_sets;
 
     // State Machine
-    size_t current_bank_slot;
-    size_t current_bank_id;
-    SamplesQueryBank* current_bank;
-    VkQueryPool current_query_pool;
-    size_t current_query_id;
+    size_t current_bank_slot{};
+    size_t current_bank_id{};
+    SamplesQueryBank* current_bank{};
+    VkQueryPool current_query_pool{};
+    size_t current_query_id{};
     size_t num_slots_used{};
     size_t first_accumulation_checkpoint{};
     size_t last_accumulation_checkpoint{};
     bool accumulation_since_last_sync{};
-    VideoCommon::HostQueryBase* current_query;
+    VideoCommon::HostQueryBase* current_query{};
     bool has_started{};
     std::mutex flush_guard;
 
