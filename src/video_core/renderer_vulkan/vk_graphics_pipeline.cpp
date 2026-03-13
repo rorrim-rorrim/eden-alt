@@ -510,8 +510,15 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         const auto& info{stage_infos[stage]};
         if (info.uses_render_area) {
             render_area.uses_render_area = true;
-            render_area.words = {static_cast<float>(regs.surface_clip.width),
-                                 static_cast<float>(regs.surface_clip.height)};
+            const bool is_rescaling{texture_cache.IsRescaling()};
+            const auto& resolution = Settings::values.resolution_info;
+            const float render_area_width = static_cast<float>(
+                is_rescaling ? resolution.ScaleUp(static_cast<u32>(regs.surface_clip.width))
+                             : static_cast<u32>(regs.surface_clip.width));
+            const float render_area_height = static_cast<float>(
+                is_rescaling ? resolution.ScaleUp(static_cast<u32>(regs.surface_clip.height))
+                             : static_cast<u32>(regs.surface_clip.height));
+            render_area.words = {render_area_width, render_area_height};
         }
     }};
     if constexpr (Spec::enabled_stages[0]) {
