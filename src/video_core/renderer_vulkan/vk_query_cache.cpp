@@ -717,7 +717,7 @@ public:
         counter_buffers.fill(VK_NULL_HANDLE);
         offsets.fill(0);
         last_queries.fill(0);
-        last_queries_stride.fill(1);
+        last_queries_stride.fill(0);
         const VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
@@ -913,14 +913,16 @@ private:
         has_flushed_end_pending = true;
         // Refresh buffers state before beginning transform feedback so counters are up-to-date
         UpdateBuffers();
-        if (!has_started || buffers_count == 0) {
+        active_buffers_count = has_started ? buffers_count : 0;
+        if (active_buffers_count == 0) {
             // No counter buffers available: begin without counters
             scheduler.Record([](vk::CommandBuffer cmdbuf) {
                 cmdbuf.BeginTransformFeedbackEXT(0, 0, nullptr, nullptr);
             });
             return;
         }
-        scheduler.Record([this, total = static_cast<u32>(buffers_count)](vk::CommandBuffer cmdbuf) {
+        scheduler.Record(
+            [this, total = static_cast<u32>(active_buffers_count)](vk::CommandBuffer cmdbuf) {
             cmdbuf.BeginTransformFeedbackEXT(0, total, counter_buffers.data(), offsets.data());
         });
     }
@@ -931,23 +933,27 @@ private:
             return;
         }
         has_flushed_end_pending = false;
-        if (buffers_count == 0) {
-            LOG_DEBUG(Render_Vulkan, "EndTransformFeedbackEXT called with no counters (buffers_count=0)");
+        if (active_buffers_count == 0) {
+            LOG_DEBUG(Render_Vulkan,
+                      "EndTransformFeedbackEXT called with no counters (active_buffers_count=0)");
             scheduler.Record([](vk::CommandBuffer cmdbuf) {
                 cmdbuf.EndTransformFeedbackEXT(0, 0, nullptr, nullptr);
             });
         } else {
-            LOG_DEBUG(Render_Vulkan, "EndTransformFeedbackEXT called with counters (buffers_count={})", buffers_count);
+            LOG_DEBUG(Render_Vulkan,
+                      "EndTransformFeedbackEXT called with counters (active_buffers_count={})",
+                      active_buffers_count);
             scheduler.Record([this,
-                              total = static_cast<u32>(buffers_count)](vk::CommandBuffer cmdbuf) {
+                              total = static_cast<u32>(active_buffers_count)](vk::CommandBuffer cmdbuf) {
                 cmdbuf.EndTransformFeedbackEXT(0, total, counter_buffers.data(), offsets.data());
             });
         }
+        active_buffers_count = 0;
     }
 
     void UpdateBuffers() {
         last_queries.fill(0);
-        last_queries_stride.fill(1);
+        last_queries_stride.fill(0);
         streams_mask = 0; // reset previously recorded streams
         runtime.View3DRegs([this](Maxwell3D& maxwell3d) {
             buffers_count = 0;
@@ -962,7 +968,7 @@ private:
                     LOG_WARNING(Render_Vulkan, "TransformFeedback stream {} out of range", stream);
                     continue;
                 }
-                last_queries_stride[stream] = tf.controls[i].stride;
+                last_queries_stride[stream] += tf.controls[i].stride;
                 streams_mask |= 1ULL << stream;
                 buffers_count = std::max<size_t>(buffers_count, stream + 1);
             }
@@ -1039,6 +1045,7 @@ private:
     bool has_started{};
     bool has_flushed_end_pending{};
     size_t buffers_count{};
+    size_t active_buffers_count{};
     std::array<VkBuffer, NUM_STREAMS> counter_buffers{};
     std::array<VkDeviceSize, NUM_STREAMS> offsets{};
     std::array<DAddr, NUM_STREAMS> last_queries;
@@ -1160,7 +1167,7 @@ public:
                 }
                 return index;
             }
-            new_query->stride = 1;
+            new_query->stride = 0;
             runtime.View3DRegs([new_query, subreport](Maxwell3D& maxwell3d) {
                 for (size_t i = 0; i < Maxwell3D::Regs::NumTransformFeedbackBuffers; i++) {
                     const auto& tf = maxwell3d.regs.transform_feedback;
@@ -1170,8 +1177,7 @@ public:
                     if (tf.controls[i].stream != subreport) {
                         continue;
                     }
-                    new_query->stride = tf.controls[i].stride;
-                    break;
+                    new_query->stride += tf.controls[i].stride;
                 }
             });
         }

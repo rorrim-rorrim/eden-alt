@@ -127,6 +127,9 @@ public:
 
     void BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings);
 
+    void BindTransformFeedbackBuffer(u32 index, Buffer& buffer, u32 offset, u32 size) {
+        BindTransformFeedbackBuffer(index, buffer.Handle(), offset, size);
+    }
 
     void BindTransformFeedbackBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size);
 

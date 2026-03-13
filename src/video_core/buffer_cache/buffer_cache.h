@@ -1064,13 +1064,23 @@ void BufferCache<P>::BindHostTransformFeedbackBuffers() {
     if (maxwell3d->regs.transform_feedback_enabled == 0) {
         return;
     }
-    HostBindings<typename P::Buffer> host_bindings;
+    Buffer& null_buffer = slot_buffers[NULL_BUFFER_ID];
+    bool reached_end = false;
     for (u32 index = 0; index < NUM_TRANSFORM_FEEDBACK_BUFFERS; ++index) {
-        const Binding& binding = channel_state->transform_feedback_buffers[index];
-        if (maxwell3d->regs.transform_feedback.controls[index].varying_count == 0 &&
-            maxwell3d->regs.transform_feedback.controls[index].stride == 0) {
-            break;
+        const auto& control = maxwell3d->regs.transform_feedback.controls[index];
+        if (reached_end ||
+            (control.varying_count == 0 && control.stride == 0)) {
+            reached_end = true;
+            runtime.BindTransformFeedbackBuffer(index, null_buffer, 0, 0);
+            continue;
         }
+
+        const Binding& binding = channel_state->transform_feedback_buffers[index];
+        if (binding.size == 0 || binding.buffer_id == NULL_BUFFER_ID) {
+            runtime.BindTransformFeedbackBuffer(index, null_buffer, 0, 0);
+            continue;
+        }
+
         Buffer& buffer = slot_buffers[binding.buffer_id];
         TouchBuffer(buffer, binding.buffer_id);
         const u32 size = binding.size;
@@ -1080,12 +1090,7 @@ void BufferCache<P>::BindHostTransformFeedbackBuffers() {
 
         const u32 offset = buffer.Offset(binding.device_addr);
         buffer.MarkUsage(offset, size);
-        host_bindings.buffers.push_back(&buffer);
-        host_bindings.offsets.push_back(offset);
-        host_bindings.sizes.push_back(size);
-    }
-    if (host_bindings.buffers.size() > 0) {
-        runtime.BindTransformFeedbackBuffers(host_bindings);
+        runtime.BindTransformFeedbackBuffer(index, buffer, offset, size);
     }
 }
 
