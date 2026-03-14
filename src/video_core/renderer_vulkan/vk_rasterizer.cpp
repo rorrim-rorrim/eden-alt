@@ -70,6 +70,47 @@ struct DrawParams {
     return topology == Maxwell::PrimitiveTopology::LineLoop;
 }
 
+[[nodiscard]] bool IsUnsupportedAreaTopology(Maxwell::PrimitiveTopology topology) {
+    switch (topology) {
+    case Maxwell::PrimitiveTopology::Quads:
+    case Maxwell::PrimitiveTopology::QuadStrip:
+    case Maxwell::PrimitiveTopology::Polygon:
+        return true;
+    default:
+        return false;
+    }
+}
+
+[[nodiscard]] bool AllowPolygonModeTopologyEmulation(const Maxwell& regs,
+                                                     const GraphicsPipeline* pipeline) {
+    if (regs.transform_feedback_enabled != 0 || pipeline == nullptr) {
+        return false;
+    }
+    return !pipeline->HasTessellationStages() && !pipeline->HasGeometryStage();
+}
+
+[[nodiscard]] bool NeedsPolygonClosure(const MaxwellDrawState& draw_state, const Maxwell& regs,
+                                       const GraphicsPipeline* pipeline) {
+    return AllowPolygonModeTopologyEmulation(regs, pipeline) &&
+           draw_state.topology == Maxwell::PrimitiveTopology::Polygon &&
+           regs.polygon_mode_front == Maxwell::PolygonMode::Line;
+}
+
+[[nodiscard]] bool NeedsLineClosure(const MaxwellDrawState& draw_state, const Maxwell& regs,
+                                    const GraphicsPipeline* pipeline) {
+    return IsLineLoop(draw_state.topology) || NeedsPolygonClosure(draw_state, regs, pipeline);
+}
+
+[[nodiscard]] Maxwell::PolygonMode EffectivePolygonMode(const MaxwellDrawState& draw_state,
+                                                        const Maxwell& regs,
+                                                        const GraphicsPipeline* pipeline) {
+    if (!AllowPolygonModeTopologyEmulation(regs, pipeline) ||
+        !IsUnsupportedAreaTopology(draw_state.topology)) {
+        return Maxwell::PolygonMode::Fill;
+    }
+    return regs.polygon_mode_front;
+}
+
 [[nodiscard]] u32 PrimitiveRestartIndex(Maxwell::IndexFormat format) {
     switch (format) {
     case Maxwell::IndexFormat::UnsignedByte:
@@ -293,7 +334,8 @@ VkRect2D GetScissorState(const Maxwell& regs, size_t index, u32 up_scale = 1, u3
     return scissor;
 }
 
-DrawParams MakeDrawParams(const MaxwellDrawState& draw_state, u32 num_instances, bool is_indexed) {
+DrawParams MakeDrawParams(const MaxwellDrawState& draw_state, u32 num_instances, bool is_indexed,
+                         Maxwell::PolygonMode polygon_mode) {
     DrawParams params{
         .base_instance = draw_state.base_instance,
         .num_instances = num_instances,
@@ -302,13 +344,28 @@ DrawParams MakeDrawParams(const MaxwellDrawState& draw_state, u32 num_instances,
         .first_index = is_indexed ? draw_state.index_buffer.first : 0,
         .is_indexed = is_indexed,
     };
+    if (polygon_mode == Maxwell::PolygonMode::Point) {
+        return params;
+    }
     // 6 triangle vertices per quad, base vertex is part of the index
     // See BindQuadIndexBuffer for more details
     if (draw_state.topology == Maxwell::PrimitiveTopology::Quads) {
+        if (polygon_mode == Maxwell::PolygonMode::Line) {
+            params.num_vertices = (params.num_vertices / 4) * 8;
+            params.base_vertex = 0;
+            params.is_indexed = true;
+            return params;
+        }
         params.num_vertices = (params.num_vertices / 4) * 6;
         params.base_vertex = 0;
         params.is_indexed = true;
     } else if (draw_state.topology == Maxwell::PrimitiveTopology::QuadStrip) {
+        if (polygon_mode == Maxwell::PolygonMode::Line) {
+            params.num_vertices = params.num_vertices >= 4 ? ((params.num_vertices - 2) / 2) * 8 : 0;
+            params.base_vertex = 0;
+            params.is_indexed = true;
+            return params;
+        }
         params.num_vertices = (params.num_vertices - 2) / 2 * 6;
         params.base_vertex = 0;
         params.is_indexed = true;
@@ -421,9 +478,12 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
 
 void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
     PrepareDraw(is_indexed, [this, is_indexed, instance_count] {
+        GraphicsPipeline* const pipeline{pipeline_cache.CurrentGraphicsPipeline()};
         const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
+        const auto polygon_mode = EffectivePolygonMode(draw_state, maxwell3d->regs, pipeline);
         const u32 num_instances{instance_count};
-        const DrawParams draw_params{MakeDrawParams(draw_state, num_instances, is_indexed)};
+        const DrawParams draw_params{
+            MakeDrawParams(draw_state, num_instances, is_indexed, polygon_mode)};
 
         if (IsLineLoop(draw_state.topology) && maxwell3d->regs.transform_feedback_enabled == 0) {
             if (EmulateLineLoopDraw(draw_state, draw_params.base_instance, draw_params.num_instances,
@@ -486,7 +546,8 @@ void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
                 is_indexed ? "vkCmdDrawIndexed" : "vkCmdDraw", params, VK_SUCCESS);
         }
 
-        if (IsLineLoop(draw_state.topology) && draw_params.num_vertices >= 2) {
+        if (NeedsLineClosure(draw_state, maxwell3d->regs, pipeline) &&
+            draw_params.num_vertices >= 2) {
             if (maxwell3d->regs.transform_feedback_enabled != 0) {
                 query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount, false);
             }
@@ -502,6 +563,7 @@ void RasterizerVulkan::DrawIndirect() {
     const auto& params = maxwell3d->draw_manager->GetIndirectParams();
     buffer_cache.SetDrawIndirect(&params);
     PrepareDraw(params.is_indexed, [this, &params] {
+        GraphicsPipeline* const pipeline{pipeline_cache.CurrentGraphicsPipeline()};
         const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
         if (IsLineLoop(draw_state.topology) &&
             (maxwell3d->regs.transform_feedback_enabled == 0 || params.is_byte_count)) {
@@ -544,7 +606,7 @@ void RasterizerVulkan::DrawIndirect() {
                                              static_cast<u32>(params.stride));
                 }
             });
-            if (IsLineLoop(draw_state.topology)) {
+            if (NeedsLineClosure(draw_state, maxwell3d->regs, pipeline)) {
                 DrawIndirectLineLoopClosures(draw_state, params);
             }
             return;
@@ -570,7 +632,7 @@ void RasterizerVulkan::DrawIndirect() {
                 log_params, VK_SUCCESS);
         }
 
-        if (IsLineLoop(draw_state.topology)) {
+        if (NeedsLineClosure(draw_state, maxwell3d->regs, pipeline)) {
             DrawIndirectLineLoopClosures(draw_state, params);
         }
     });
@@ -581,7 +643,9 @@ bool RasterizerVulkan::DrawLineLoopClosure(const MaxwellDrawState& draw_state, u
                                           u32 num_instances, s32 base_vertex,
                                           u32 num_vertices, u32 first_index,
                                           bool is_indexed) {
-    if (!IsLineLoop(draw_state.topology) || num_instances == 0 || num_vertices < 2) {
+    GraphicsPipeline* const pipeline{pipeline_cache.CurrentGraphicsPipeline()};
+    if (!NeedsLineClosure(draw_state, maxwell3d->regs, pipeline) || num_instances == 0 ||
+        num_vertices < 2) {
         return false;
     }
 
@@ -754,7 +818,8 @@ bool RasterizerVulkan::EmulateIndirectLineLoopDraw(
 
 void RasterizerVulkan::DrawIndirectLineLoopClosures(
     const MaxwellDrawState& draw_state, const Tegra::Engines::DrawManager::IndirectParams& params) {
-    if (!IsLineLoop(draw_state.topology) || params.is_byte_count) {
+    GraphicsPipeline* const pipeline{pipeline_cache.CurrentGraphicsPipeline()};
+    if (!NeedsLineClosure(draw_state, maxwell3d->regs, pipeline) || params.is_byte_count) {
         return;
     }
 
@@ -1880,8 +1945,14 @@ void RasterizerVulkan::UpdateLineStipple(Tegra::Engines::Maxwell3D::Regs& regs) 
         return;
     }
 
-    const auto topology = maxwell3d->draw_manager->GetDrawState().topology;
-    if (!IsLineRasterizationTopology(device, topology)) {
+    GraphicsPipeline* const pipeline = pipeline_cache.CurrentGraphicsPipeline();
+    const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
+    const auto effective_polygon_mode = EffectivePolygonMode(draw_state, regs, pipeline);
+    const auto vk_topology = MaxwellToVK::PrimitiveTopology(
+        device, draw_state.topology, effective_polygon_mode,
+        AllowPolygonModeTopologyEmulation(regs, pipeline));
+    if (vk_topology != VK_PRIMITIVE_TOPOLOGY_LINE_LIST &&
+        vk_topology != VK_PRIMITIVE_TOPOLOGY_LINE_STRIP) {
         return;
     }
 
@@ -2006,12 +2077,16 @@ void RasterizerVulkan::UpdateDepthCompareOp(Tegra::Engines::Maxwell3D::Regs& reg
 void RasterizerVulkan::UpdatePrimitiveTopology([[maybe_unused]] Tegra::Engines::Maxwell3D::Regs& regs) {
     GraphicsPipeline* pipeline = pipeline_cache.CurrentGraphicsPipeline();
     const auto topology = maxwell3d->draw_manager->GetDrawState().topology;
-    if (!state_tracker.ChangePrimitiveTopology(topology)) {
-        return;
-    }
+    const auto polygon_mode =
+        EffectivePolygonMode(maxwell3d->draw_manager->GetDrawState(), regs, pipeline);
     const auto vk_topology = pipeline && pipeline->HasTessellationStages()
                                  ? VK_PRIMITIVE_TOPOLOGY_PATCH_LIST
-                                 : MaxwellToVK::PrimitiveTopology(device, topology);
+                                 : MaxwellToVK::PrimitiveTopology(
+                                       device, topology, polygon_mode,
+                                       AllowPolygonModeTopologyEmulation(regs, pipeline));
+    if (!state_tracker.ChangePrimitiveTopology(static_cast<u32>(vk_topology))) {
+        return;
+    }
     scheduler.Record([vk_topology](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetPrimitiveTopologyEXT(vk_topology);
     });

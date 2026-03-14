@@ -356,11 +356,23 @@ void BufferCache<P>::BindHostGeometryBuffers(bool is_indexed) {
     if (is_indexed) {
         BindHostIndexBuffer();
     } else if constexpr (!HAS_FULL_INDEX_AND_PRIMITIVE_SUPPORT) {
+        using Maxwell = Tegra::Engines::Maxwell3D::Regs;
+        const auto& regs = maxwell3d->regs;
         const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
+        const bool allow_polygon_mode_emulation =
+            regs.transform_feedback_enabled == 0 &&
+            !regs.IsShaderConfigEnabled(Maxwell::ShaderType::Geometry) &&
+            !regs.IsShaderConfigEnabled(Maxwell::ShaderType::Tessellation);
         if (draw_state.topology == Maxwell::PrimitiveTopology::Quads ||
             draw_state.topology == Maxwell::PrimitiveTopology::QuadStrip) {
-            runtime.BindQuadIndexBuffer(draw_state.topology, draw_state.vertex_buffer.first,
-                                        draw_state.vertex_buffer.count);
+            const auto polygon_mode = allow_polygon_mode_emulation
+                                          ? regs.polygon_mode_front
+                                          : Maxwell::PolygonMode::Fill;
+            if (polygon_mode != Maxwell::PolygonMode::Point) {
+                runtime.BindQuadIndexBuffer(draw_state.topology, polygon_mode,
+                                            draw_state.vertex_buffer.first,
+                                            draw_state.vertex_buffer.count);
+            }
         }
     }
     BindHostVertexBuffers();
@@ -736,6 +748,7 @@ bool BufferCache<P>::IsRegionCpuModified(DAddr addr, size_t size) {
 
 template <class P>
 void BufferCache<P>::BindHostIndexBuffer() {
+    using Maxwell = Tegra::Engines::Maxwell3D::Regs;
     Buffer& buffer = slot_buffers[channel_state->index_buffer.buffer_id];
     TouchBuffer(buffer, channel_state->index_buffer.buffer_id);
     const u32 offset = buffer.Offset(channel_state->index_buffer.device_addr);
@@ -760,8 +773,35 @@ void BufferCache<P>::BindHostIndexBuffer() {
             offset + draw_state.index_buffer.first * draw_state.index_buffer.FormatSizeInBytes();
         runtime.BindIndexBuffer(buffer, new_offset, size);
     } else {
+        const auto& regs = maxwell3d->regs;
+        const bool allow_polygon_mode_emulation =
+            regs.transform_feedback_enabled == 0 &&
+            !regs.IsShaderConfigEnabled(Maxwell::ShaderType::Geometry) &&
+            !regs.IsShaderConfigEnabled(Maxwell::ShaderType::Tessellation);
+        auto effective_topology = draw_state.topology;
+        auto polygon_mode = allow_polygon_mode_emulation ? regs.polygon_mode_front
+                                                         : Maxwell::PolygonMode::Fill;
+        if (allow_polygon_mode_emulation) {
+            switch (draw_state.topology) {
+            case Maxwell::PrimitiveTopology::Quads:
+            case Maxwell::PrimitiveTopology::QuadStrip:
+            case Maxwell::PrimitiveTopology::Polygon:
+                if (polygon_mode == Maxwell::PolygonMode::Point) {
+                    effective_topology = Maxwell::PrimitiveTopology::Points;
+                } else if (draw_state.topology == Maxwell::PrimitiveTopology::Polygon &&
+                           polygon_mode == Maxwell::PolygonMode::Line) {
+                    effective_topology = Maxwell::PrimitiveTopology::LineStrip;
+                }
+                break;
+            default:
+                polygon_mode = Maxwell::PolygonMode::Fill;
+                break;
+            }
+        } else {
+            polygon_mode = Maxwell::PolygonMode::Fill;
+        }
         buffer.MarkUsage(offset, size);
-        runtime.BindIndexBuffer(draw_state.topology, draw_state.index_buffer.format,
+        runtime.BindIndexBuffer(effective_topology, polygon_mode, draw_state.index_buffer.format,
                                 draw_state.index_buffer.first, draw_state.index_buffer.count,
                                 buffer, offset, size);
     }

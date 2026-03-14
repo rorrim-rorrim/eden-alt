@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -49,7 +49,10 @@ struct FormatInfo {
 
 VkShaderStageFlagBits ShaderStage(Shader::Stage stage);
 
-VkPrimitiveTopology PrimitiveTopology(const Device& device, Maxwell::PrimitiveTopology topology);
+VkPrimitiveTopology PrimitiveTopology(const Device& device, Maxwell::PrimitiveTopology topology,
+                                      Maxwell::PolygonMode polygon_mode =
+                                          Maxwell::PolygonMode::Fill,
+                                      bool allow_polygon_mode_emulation = false);
 
 VkFormat VertexFormat(const Device& device, Maxwell::VertexAttribute::Type type,
                       Maxwell::VertexAttribute::Size size);

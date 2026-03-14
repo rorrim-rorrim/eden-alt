@@ -161,10 +161,11 @@ public:
         index_type = IndexTypeFromNumElements(device, num_indices);
 
         const u32 num_quads = GetQuadsNum(num_indices);
-        const u32 num_triangle_indices = num_quads * 6;
+        const u32 num_generated_indices = num_quads * GetIndicesPerPrimitive();
         const u32 num_first_offset_copies = 4;
         const size_t bytes_per_index = BytesPerIndex(index_type);
-        const size_t size_bytes = num_triangle_indices * bytes_per_index * num_first_offset_copies;
+        const size_t size_bytes =
+            num_generated_indices * bytes_per_index * num_first_offset_copies;
         const VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
@@ -189,12 +190,12 @@ public:
         }();
 
         u8* staging_data = host_visible ? buffer.Mapped().data() : staging.mapped_span.data();
-        const size_t quad_size = bytes_per_index * 6;
+        const size_t primitive_size = bytes_per_index * GetIndicesPerPrimitive();
 
         for (u32 first = 0; first < num_first_offset_copies; ++first) {
             for (u32 quad = 0; quad < num_quads; ++quad) {
-                MakeAndUpdateIndices(staging_data, quad_size, quad, first);
-                staging_data += quad_size;
+                MakeAndUpdateIndices(staging_data, primitive_size, quad, first);
+                staging_data += primitive_size;
             }
         }
 
@@ -231,13 +232,16 @@ public:
         const VkIndexType index_type_ = index_type;
         const size_t sub_first_offset = static_cast<size_t>(first % 4) * GetQuadsNum(num_indices);
         const size_t offset =
-            (sub_first_offset + GetFirstOffsetQuads(first)) * 6ULL * BytesPerIndex(index_type);
+            (sub_first_offset + GetFirstOffsetQuads(first)) *
+            static_cast<size_t>(GetIndicesPerPrimitive()) * BytesPerIndex(index_type);
         scheduler.Record([buffer_ = *buffer, index_type_, offset](vk::CommandBuffer cmdbuf) {
             cmdbuf.BindIndexBuffer(buffer_, offset, index_type_);
         });
     }
 
 protected:
+    virtual u32 GetIndicesPerPrimitive() const = 0;
+
     virtual u32 GetQuadsNum(u32 num_indices) const = 0;
 
     virtual u32 GetFirstOffsetQuads(u32 first) const = 0;
@@ -264,6 +268,10 @@ public:
     ~QuadArrayIndexBuffer() = default;
 
 private:
+    u32 GetIndicesPerPrimitive() const override {
+        return 6;
+    }
+
     u32 GetQuadsNum(u32 num_indices_) const override {
         return num_indices_ / 4;
     }
@@ -308,6 +316,10 @@ public:
     ~QuadStripIndexBuffer() = default;
 
 private:
+    u32 GetIndicesPerPrimitive() const override {
+        return 6;
+    }
+
     u32 GetQuadsNum(u32 num_indices_) const override {
         return num_indices_ >= 4 ? (num_indices_ - 2) / 2 : 0;
     }
@@ -343,6 +355,104 @@ private:
     }
 };
 
+class QuadArrayLineIndexBuffer : public QuadIndexBuffer {
+public:
+    QuadArrayLineIndexBuffer(const Device& device_, MemoryAllocator& memory_allocator_,
+                             Scheduler& scheduler_, StagingBufferPool& staging_pool_)
+        : QuadIndexBuffer(device_, memory_allocator_, scheduler_, staging_pool_) {}
+
+    ~QuadArrayLineIndexBuffer() = default;
+
+private:
+    u32 GetIndicesPerPrimitive() const override {
+        return 8;
+    }
+
+    u32 GetQuadsNum(u32 num_indices_) const override {
+        return num_indices_ / 4;
+    }
+
+    u32 GetFirstOffsetQuads(u32 first) const override {
+        return first / 4;
+    }
+
+    template <typename T>
+    static std::array<T, 8> MakeIndices(u32 quad, u32 first) {
+        std::array<T, 8> indices{0, 1, 1, 2, 2, 3, 3, 0};
+        for (T& index : indices) {
+            index = static_cast<T>(first + index + quad * 4);
+        }
+        return indices;
+    }
+
+    void MakeAndUpdateIndices(u8* staging_data, size_t primitive_size, u32 quad,
+                              u32 first) override {
+        switch (index_type) {
+        case VK_INDEX_TYPE_UINT8_EXT:
+            std::memcpy(staging_data, MakeIndices<u8>(quad, first).data(), primitive_size);
+            break;
+        case VK_INDEX_TYPE_UINT16:
+            std::memcpy(staging_data, MakeIndices<u16>(quad, first).data(), primitive_size);
+            break;
+        case VK_INDEX_TYPE_UINT32:
+            std::memcpy(staging_data, MakeIndices<u32>(quad, first).data(), primitive_size);
+            break;
+        default:
+            ASSERT(false);
+            break;
+        }
+    }
+};
+
+class QuadStripLineIndexBuffer : public QuadIndexBuffer {
+public:
+    QuadStripLineIndexBuffer(const Device& device_, MemoryAllocator& memory_allocator_,
+                             Scheduler& scheduler_, StagingBufferPool& staging_pool_)
+        : QuadIndexBuffer(device_, memory_allocator_, scheduler_, staging_pool_) {}
+
+    ~QuadStripLineIndexBuffer() = default;
+
+private:
+    u32 GetIndicesPerPrimitive() const override {
+        return 8;
+    }
+
+    u32 GetQuadsNum(u32 num_indices_) const override {
+        return num_indices_ >= 4 ? (num_indices_ - 2) / 2 : 0;
+    }
+
+    u32 GetFirstOffsetQuads(u32 first) const override {
+        return (first / 4) * 2;
+    }
+
+    template <typename T>
+    static std::array<T, 8> MakeIndices(u32 quad, u32 first) {
+        std::array<T, 8> indices{0, 1, 1, 3, 3, 2, 2, 0};
+        for (T& index : indices) {
+            index = static_cast<T>(first + index + quad * 2);
+        }
+        return indices;
+    }
+
+    void MakeAndUpdateIndices(u8* staging_data, size_t primitive_size, u32 quad,
+                              u32 first) override {
+        switch (index_type) {
+        case VK_INDEX_TYPE_UINT8_EXT:
+            std::memcpy(staging_data, MakeIndices<u8>(quad, first).data(), primitive_size);
+            break;
+        case VK_INDEX_TYPE_UINT16:
+            std::memcpy(staging_data, MakeIndices<u16>(quad, first).data(), primitive_size);
+            break;
+        case VK_INDEX_TYPE_UINT32:
+            std::memcpy(staging_data, MakeIndices<u32>(quad, first).data(), primitive_size);
+            break;
+        default:
+            ASSERT(false);
+            break;
+        }
+    }
+};
+
 BufferCacheRuntime::BufferCacheRuntime(const Device& device_, MemoryAllocator& memory_allocator_,
                                        Scheduler& scheduler_, StagingBufferPool& staging_pool_,
                                        GuestDescriptorQueue& guest_descriptor_queue_,
@@ -366,6 +476,10 @@ BufferCacheRuntime::BufferCacheRuntime(const Device& device_, MemoryAllocator& m
                                                                      scheduler_, staging_pool_);
     quad_strip_index_buffer = std::make_shared<QuadStripIndexBuffer>(device_, memory_allocator_,
                                                                      scheduler_, staging_pool_);
+    quad_array_line_index_buffer = std::make_shared<QuadArrayLineIndexBuffer>(
+        device_, memory_allocator_, scheduler_, staging_pool_);
+    quad_strip_line_index_buffer = std::make_shared<QuadStripLineIndexBuffer>(
+        device_, memory_allocator_, scheduler_, staging_pool_);
 }
 
 StagingBufferRef BufferCacheRuntime::UploadStagingBuffer(size_t size) {
@@ -544,12 +658,24 @@ void BufferCacheRuntime::ClearBuffer(VkBuffer dest_buffer, u32 offset, size_t si
     });
 }
 
-void BufferCacheRuntime::BindIndexBuffer(PrimitiveTopology topology, IndexFormat index_format,
-                                         u32 base_vertex, u32 num_indices, VkBuffer buffer,
-                                         u32 offset, [[maybe_unused]] u32 size) {
+void BufferCacheRuntime::BindIndexBuffer(PrimitiveTopology topology, PolygonMode polygon_mode,
+                                         IndexFormat index_format, u32 base_vertex,
+                                         u32 num_indices, VkBuffer buffer, u32 offset,
+                                         [[maybe_unused]] u32 size) {
     VkIndexType vk_index_type = MaxwellToVK::IndexFormat(index_format);
     VkDeviceSize vk_offset = offset;
     VkBuffer vk_buffer = buffer;
+    if (polygon_mode == PolygonMode::Line &&
+        (topology == PrimitiveTopology::Quads || topology == PrimitiveTopology::QuadStrip)) {
+        if (topology == PrimitiveTopology::Quads) {
+            quad_array_line_index_buffer->UpdateBuffer(num_indices);
+            quad_array_line_index_buffer->BindBuffer(base_vertex);
+        } else {
+            quad_strip_line_index_buffer->UpdateBuffer(num_indices);
+            quad_strip_line_index_buffer->BindBuffer(base_vertex);
+        }
+        return;
+    }
     if (topology == PrimitiveTopology::Quads || topology == PrimitiveTopology::QuadStrip) {
         vk_index_type = VK_INDEX_TYPE_UINT32;
         std::tie(vk_buffer, vk_offset) =
@@ -575,12 +701,24 @@ void BufferCacheRuntime::BindIndexBuffer(PrimitiveTopology topology, IndexFormat
     });
 }
 
-void BufferCacheRuntime::BindQuadIndexBuffer(PrimitiveTopology topology, u32 first, u32 count) {
+void BufferCacheRuntime::BindQuadIndexBuffer(PrimitiveTopology topology, PolygonMode polygon_mode,
+                                             u32 first, u32 count) {
     if (count == 0) {
         ReserveNullBuffer();
         scheduler.Record([this](vk::CommandBuffer cmdbuf) {
             cmdbuf.BindIndexBuffer(*null_buffer, 0, VK_INDEX_TYPE_UINT32);
         });
+        return;
+    }
+
+    if (polygon_mode == PolygonMode::Line) {
+        if (topology == PrimitiveTopology::Quads) {
+            quad_array_line_index_buffer->UpdateBuffer(first + count);
+            quad_array_line_index_buffer->BindBuffer(first);
+        } else if (topology == PrimitiveTopology::QuadStrip) {
+            quad_strip_line_index_buffer->UpdateBuffer(first + count);
+            quad_strip_line_index_buffer->BindBuffer(first);
+        }
         return;
     }
 

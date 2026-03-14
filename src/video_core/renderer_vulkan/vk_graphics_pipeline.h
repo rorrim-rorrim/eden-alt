@@ -101,6 +101,9 @@ public:
     bool HasTessellationStages() const noexcept {
         return static_cast<bool>(spv_modules[1]) || static_cast<bool>(spv_modules[2]);
     }
+    bool HasGeometryStage() const noexcept {
+        return static_cast<bool>(spv_modules[3]);
+    }
     GraphicsPipeline& operator=(GraphicsPipeline&&) noexcept = delete;
     GraphicsPipeline(GraphicsPipeline&&) noexcept = delete;
 

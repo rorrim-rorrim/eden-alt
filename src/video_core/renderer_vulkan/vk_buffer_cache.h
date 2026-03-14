@@ -72,12 +72,15 @@ private:
 
 class QuadArrayIndexBuffer;
 class QuadStripIndexBuffer;
+class QuadArrayLineIndexBuffer;
+class QuadStripLineIndexBuffer;
 
 class BufferCacheRuntime {
     friend Buffer;
 
     using PrimitiveTopology = Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology;
     using IndexFormat = Tegra::Engines::Maxwell3D::Regs::IndexFormat;
+    using PolygonMode = Tegra::Engines::Maxwell3D::Regs::PolygonMode;
 
 public:
     explicit BufferCacheRuntime(const Device& device_, MemoryAllocator& memory_manager_,
@@ -118,10 +121,12 @@ public:
 
     void ClearBuffer(VkBuffer dest_buffer, u32 offset, size_t size, u32 value);
 
-    void BindIndexBuffer(PrimitiveTopology topology, IndexFormat index_format, u32 num_indices,
-                         u32 base_vertex, VkBuffer buffer, u32 offset, u32 size);
+    void BindIndexBuffer(PrimitiveTopology topology, PolygonMode polygon_mode,
+                         IndexFormat index_format, u32 base_vertex, u32 num_indices,
+                         VkBuffer buffer, u32 offset, u32 size);
 
-    void BindQuadIndexBuffer(PrimitiveTopology topology, u32 first, u32 count);
+    void BindQuadIndexBuffer(PrimitiveTopology topology, PolygonMode polygon_mode, u32 first,
+                             u32 count);
 
     void BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size, u32 stride);
 
@@ -181,6 +186,8 @@ private:
 
     std::shared_ptr<QuadArrayIndexBuffer> quad_array_index_buffer;
     std::shared_ptr<QuadStripIndexBuffer> quad_strip_index_buffer;
+    std::shared_ptr<QuadArrayLineIndexBuffer> quad_array_line_index_buffer;
+    std::shared_ptr<QuadStripLineIndexBuffer> quad_strip_line_index_buffer;
 
     vk::Buffer null_buffer;
 

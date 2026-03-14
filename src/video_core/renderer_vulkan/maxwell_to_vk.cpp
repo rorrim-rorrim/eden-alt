@@ -315,8 +315,33 @@ VkShaderStageFlagBits ShaderStage(Shader::Stage stage) {
     return {};
 }
 
+[[nodiscard]] bool IsUnsupportedAreaTopology(Maxwell::PrimitiveTopology topology) {
+    switch (topology) {
+    case Maxwell::PrimitiveTopology::Quads:
+    case Maxwell::PrimitiveTopology::QuadStrip:
+    case Maxwell::PrimitiveTopology::Polygon:
+        return true;
+    default:
+        return false;
+    }
+}
+
 VkPrimitiveTopology PrimitiveTopology([[maybe_unused]] const Device& device,
-                                      Maxwell::PrimitiveTopology topology) {
+                                      Maxwell::PrimitiveTopology topology,
+                                      Maxwell::PolygonMode polygon_mode,
+                                      bool allow_polygon_mode_emulation) {
+    if (allow_polygon_mode_emulation && IsUnsupportedAreaTopology(topology)) {
+        switch (polygon_mode) {
+        case Maxwell::PolygonMode::Point:
+            return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+        case Maxwell::PolygonMode::Line:
+            return topology == Maxwell::PrimitiveTopology::Polygon
+                       ? VK_PRIMITIVE_TOPOLOGY_LINE_STRIP
+                       : VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+        case Maxwell::PolygonMode::Fill:
+            break;
+        }
+    }
     switch (topology) {
     case Maxwell::PrimitiveTopology::Points:
         return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;

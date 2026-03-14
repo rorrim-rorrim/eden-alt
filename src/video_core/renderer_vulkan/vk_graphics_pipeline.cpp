@@ -662,9 +662,15 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         vertex_input_ci.pNext = &input_divisor_ci;
     }
     const bool has_tess_stages = spv_modules[1] || spv_modules[2];
+    const bool has_geometry_stage = spv_modules[3];
     const bool dynamic_topology = key.state.extended_dynamic_state != 0;
     const bool dynamic_primitive_restart = key.state.extended_dynamic_state_2 != 0;
-    auto exact_input_assembly_topology = MaxwellToVK::PrimitiveTopology(device, key.state.topology);
+    const auto polygon_mode =
+        FixedPipelineState::UnpackPolygonMode(key.state.polygon_mode);
+    const bool allow_polygon_mode_emulation =
+        !has_tess_stages && !has_geometry_stage && key.state.xfb_enabled == 0;
+    auto exact_input_assembly_topology = MaxwellToVK::PrimitiveTopology(
+        device, key.state.topology, polygon_mode, allow_polygon_mode_emulation);
     if (exact_input_assembly_topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST) {
         if (!has_tess_stages) {
             LOG_WARNING(Render_Vulkan, "Patch topology used without tessellation, using points");
