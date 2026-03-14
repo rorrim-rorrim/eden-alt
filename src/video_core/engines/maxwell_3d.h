@@ -3153,6 +3153,8 @@ private:
     /// Retrieves information about a specific TSC entry from the TSC buffer.
     Texture::TSCEntry GetTSCEntry(u32 tsc_index) const;
 
+    [[nodiscard]] Regs::PrimitiveTopology GetTransformFeedbackOutputTopology() const;
+
     /**
      * Call a macro on this engine.
      *

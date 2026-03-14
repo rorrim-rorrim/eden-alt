@@ -957,7 +957,7 @@ private:
         streams_mask = 0; // reset previously recorded streams
         runtime.View3DRegs([this](Maxwell3D& maxwell3d) {
             buffers_count = 0;
-            out_topology = maxwell3d.draw_manager->GetDrawState().topology;
+            out_topology = maxwell3d.GetTransformFeedbackOutputTopology();
             for (size_t i = 0; i < Maxwell3D::Regs::NumTransformFeedbackBuffers; i++) {
                 const auto& tf = maxwell3d.regs.transform_feedback;
                 if (tf.buffers[i].enable == 0) {
@@ -968,7 +968,9 @@ private:
                     LOG_WARNING(Render_Vulkan, "TransformFeedback stream {} out of range", stream);
                     continue;
                 }
-                last_queries_stride[stream] += tf.controls[i].stride;
+                if (last_queries_stride[stream] == 0) {
+                    last_queries_stride[stream] = tf.controls[i].stride;
+                }
                 streams_mask |= 1ULL << stream;
                 buffers_count = std::max<size_t>(buffers_count, stream + 1);
             }
@@ -1177,7 +1179,8 @@ public:
                     if (tf.controls[i].stream != subreport) {
                         continue;
                     }
-                    new_query->stride += tf.controls[i].stride;
+                    new_query->stride = tf.controls[i].stride;
+                    break;
                 }
             });
         }

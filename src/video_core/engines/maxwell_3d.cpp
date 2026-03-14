@@ -12,6 +12,7 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/core_timing.h"
+#include "shader_recompiler/program_header.h"
 #include "video_core/dirty_flags.h"
 #include "video_core/engines/draw_manager.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -21,6 +22,37 @@
 #include "video_core/textures/texture.h"
 
 namespace Tegra::Engines {
+
+namespace {
+
+[[nodiscard]] Maxwell3D::Regs::PrimitiveTopology PrimitiveTopologyFromGeometryOutput(
+    Shader::OutputTopology topology) {
+    switch (topology) {
+    case Shader::OutputTopology::PointList:
+        return Maxwell3D::Regs::PrimitiveTopology::Points;
+    case Shader::OutputTopology::LineStrip:
+        return Maxwell3D::Regs::PrimitiveTopology::LineStrip;
+    case Shader::OutputTopology::TriangleStrip:
+        return Maxwell3D::Regs::PrimitiveTopology::TriangleStrip;
+    }
+    return Maxwell3D::Regs::PrimitiveTopology::Triangles;
+}
+
+[[nodiscard]] Maxwell3D::Regs::PrimitiveTopology PrimitiveTopologyFromTessellationOutput(
+    Maxwell3D::Regs::Tessellation::OutputPrimitives topology) {
+    switch (topology) {
+    case Maxwell3D::Regs::Tessellation::OutputPrimitives::Points:
+        return Maxwell3D::Regs::PrimitiveTopology::Points;
+    case Maxwell3D::Regs::Tessellation::OutputPrimitives::Lines:
+        return Maxwell3D::Regs::PrimitiveTopology::Lines;
+    case Maxwell3D::Regs::Tessellation::OutputPrimitives::Triangles_CW:
+    case Maxwell3D::Regs::Tessellation::OutputPrimitives::Triangles_CCW:
+        return Maxwell3D::Regs::PrimitiveTopology::Triangles;
+    }
+    return Maxwell3D::Regs::PrimitiveTopology::Triangles;
+}
+
+} // namespace
 
 /// First register id that is actually a Macro call.
 constexpr u32 MacroRegistersStart = 0xE00;
@@ -664,6 +696,22 @@ Texture::TSCEntry Maxwell3D::GetTSCEntry(u32 tsc_index) const {
     Texture::TSCEntry tsc_entry;
     memory_manager.ReadBlockUnsafe(tsc_address_gpu, &tsc_entry, sizeof(Texture::TSCEntry));
     return tsc_entry;
+}
+
+Maxwell3D::Regs::PrimitiveTopology Maxwell3D::GetTransformFeedbackOutputTopology() const {
+    if (regs.IsShaderConfigEnabled(Regs::ShaderType::Geometry)) {
+        const GPUVAddr shader_addr = regs.program_region.Address() +
+                                     regs.pipelines[static_cast<size_t>(Regs::ShaderType::Geometry)]
+                                         .offset;
+        Shader::ProgramHeader sph{};
+        memory_manager.ReadBlockUnsafe(shader_addr, &sph, sizeof(sph));
+        return PrimitiveTopologyFromGeometryOutput(sph.common3.output_topology.Value());
+    }
+    if (regs.IsShaderConfigEnabled(Regs::ShaderType::Tessellation)) {
+        return PrimitiveTopologyFromTessellationOutput(
+            regs.tessellation.params.output_primitives.Value());
+    }
+    return draw_manager->GetDrawState().topology;
 }
 
 u32 Maxwell3D::GetRegisterValue(u32 method) const {
