@@ -1078,10 +1078,6 @@ public:
     bool dependant_manage{};
 };
 
-[[nodiscard]] constexpr u64 SaturatingSub(u64 value, u64 amount) {
-    return value > amount ? value - amount : 0;
-}
-
 [[nodiscard]] constexpr u64 PrimitiveCountFromVertices(
     Maxwell3D::Regs::PrimitiveTopology topology, u64 num_vertices, u32 patch_vertices) {
     switch (topology) {
@@ -1089,31 +1085,24 @@ public:
         return num_vertices;
     case Maxwell3D::Regs::PrimitiveTopology::Lines:
         return num_vertices / 2;
-    case Maxwell3D::Regs::PrimitiveTopology::LineLoop:
-        return num_vertices >= 2 ? num_vertices : 0;
-    case Maxwell3D::Regs::PrimitiveTopology::LineStrip:
-        return SaturatingSub(num_vertices, 1);
     case Maxwell3D::Regs::PrimitiveTopology::LinesAdjacency:
         return num_vertices / 4;
-    case Maxwell3D::Regs::PrimitiveTopology::LineStripAdjacency:
-        return SaturatingSub(num_vertices, 3);
     case Maxwell3D::Regs::PrimitiveTopology::Triangles:
         return num_vertices / 3;
     case Maxwell3D::Regs::PrimitiveTopology::TrianglesAdjacency:
         return num_vertices / 6;
-    case Maxwell3D::Regs::PrimitiveTopology::TriangleFan:
-    case Maxwell3D::Regs::PrimitiveTopology::TriangleStrip:
-        return SaturatingSub(num_vertices, 2);
-    case Maxwell3D::Regs::PrimitiveTopology::TriangleStripAdjacency:
-        return num_vertices >= 6 ? (num_vertices - 4) / 2 : 0;
-    case Maxwell3D::Regs::PrimitiveTopology::Quads:
-        return num_vertices / 6;
-    case Maxwell3D::Regs::PrimitiveTopology::QuadStrip:
-        return num_vertices / 6;
     case Maxwell3D::Regs::PrimitiveTopology::Patches:
         return patch_vertices != 0 ? num_vertices / patch_vertices : 0;
+    case Maxwell3D::Regs::PrimitiveTopology::LineLoop:
+    case Maxwell3D::Regs::PrimitiveTopology::LineStrip:
+    case Maxwell3D::Regs::PrimitiveTopology::LineStripAdjacency:
+    case Maxwell3D::Regs::PrimitiveTopology::TriangleFan:
+    case Maxwell3D::Regs::PrimitiveTopology::TriangleStrip:
+    case Maxwell3D::Regs::PrimitiveTopology::TriangleStripAdjacency:
+    case Maxwell3D::Regs::PrimitiveTopology::Quads:
+    case Maxwell3D::Regs::PrimitiveTopology::QuadStrip:
     case Maxwell3D::Regs::PrimitiveTopology::Polygon:
-        return num_vertices != 0 ? 1 : 0;
+        return 0;
     default:
         return num_vertices;
     }
