@@ -3093,6 +3093,8 @@ public:
         return *rasterizer;
     }
 
+    [[nodiscard]] Regs::PrimitiveTopology GetTransformFeedbackOutputTopology() const;
+
     struct DirtyState {
         using Flags = std::bitset<(std::numeric_limits<u8>::max)()>;
         using Table = std::array<u8, Regs::NUM_REGS>;
@@ -3152,8 +3154,6 @@ private:
 
     /// Retrieves information about a specific TSC entry from the TSC buffer.
     Texture::TSCEntry GetTSCEntry(u32 tsc_index) const;
-
-    [[nodiscard]] Regs::PrimitiveTopology GetTransformFeedbackOutputTopology() const;
 
     /**
      * Call a macro on this engine.
