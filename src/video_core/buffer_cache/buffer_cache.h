@@ -356,7 +356,6 @@ void BufferCache<P>::BindHostGeometryBuffers(bool is_indexed) {
     if (is_indexed) {
         BindHostIndexBuffer();
     } else if constexpr (!HAS_FULL_INDEX_AND_PRIMITIVE_SUPPORT) {
-        using Maxwell = Tegra::Engines::Maxwell3D::Regs;
         const auto& regs = maxwell3d->regs;
         const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
         const bool allow_polygon_mode_emulation =
@@ -748,7 +747,6 @@ bool BufferCache<P>::IsRegionCpuModified(DAddr addr, size_t size) {
 
 template <class P>
 void BufferCache<P>::BindHostIndexBuffer() {
-    using Maxwell = Tegra::Engines::Maxwell3D::Regs;
     Buffer& buffer = slot_buffers[channel_state->index_buffer.buffer_id];
     TouchBuffer(buffer, channel_state->index_buffer.buffer_id);
     const u32 offset = buffer.Offset(channel_state->index_buffer.device_addr);
