@@ -45,6 +45,18 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer,
 
     auto front(core->queue.begin());
 
+    // Bound queue latency (if no present deadline is requested) while preserving one-frame
+    // backpressure so game pacing does not run ahead.
+    if (expected_present.count() == 0 && core->queue.size() > 2) {
+        while (core->queue.size() > 2) {
+            const auto stale = core->queue.begin();
+            if (core->StillTracking(*stale)) slots[stale->slot].buffer_state = BufferState::Free;
+            core->queue.erase(stale);
+        }
+        core->SignalDequeueCondition();
+        front = core->queue.begin();
+    }
+
     // If expected_present is specified, we may not want to return a buffer yet.
     if (expected_present.count() != 0) {
         constexpr auto MAX_REASONABLE_NSEC = 1000000000LL; // 1 second
