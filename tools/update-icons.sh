@@ -14,10 +14,14 @@ EDEN_BASE_SVG="dist/icon_variations/${VARIATION}.svg"
 EDEN_MONO_SVG="dist/icon_variations/${VARIATION}_monochrome.svg"
 EDEN_BG_COLOR="dist/icon_variations/${VARIATION}_bgcolor"
 
+OPT_MAGICK_PNG="-define png:compression-level=9 -define png:compression-strategy=1 -define png:compression-filter=2"
+
 [ -f "$EDEN_BASE_SVG" ] && [ -f "$EDEN_BG_COLOR" ] || { echo "Error: missing ${VARIATION}.svg/${VARIATION}_bgcolor" >&2; exit; }
+
+OPT_MAGICK_MONO=
 if [ ! -f "$EDEN_MONO_SVG" ]; then
     EDEN_MONO_SVG="dist/icon_variations/base.svg"
-    OPT_MAGICK_MONO="-alpha on -fill white -colorize 100"
+    OPT_MAGICK_MONO="-fill white -colorize 100"
 fi
 
 # Desktop / Windows / Qt icons
@@ -26,10 +30,10 @@ EDEN_DESKTOP_SVG="dist/dev.eden_emu.eden.svg"
 
 cp "$EDEN_BASE_SVG" "$EDEN_DESKTOP_SVG"
 
-magick -monitor -density 256x256 -background transparent "$EDEN_BASE_SVG" -define icon:auto-resize -colors 256 dist/eden.ico || exit
-magick -monitor -density 256x256 -background transparent "$EDEN_BASE_SVG" -resize 256x256 dist/eden.bmp || exit
+magick -monitor -density 256 -background transparent "$EDEN_BASE_SVG" -alpha on -gravity center -define icon:auto-resize -colors 256 dist/eden.ico || exit
+magick -monitor -density 256 -background transparent "$EDEN_BASE_SVG" -alpha on -gravity center -resize 256x256 dist/eden.bmp || exit
 
-magick -monitor -size 256x256 -background transparent "$EDEN_BASE_SVG" -resize 256x256 dist/qt_themes/default/icons/256x256/eden.png || exit
+magick -monitor -density 256 -background transparent "$EDEN_BASE_SVG" -alpha on -gravity center -resize 256x256 $OPT_MAGICK_PNG dist/qt_themes/default/icons/256x256/eden.png || exit
 
 optipng -o7 dist/qt_themes/default/icons/256x256/eden.png
 
@@ -47,11 +51,11 @@ EDEN_ANDROID_BG_COLOR=$(cat $EDEN_BG_COLOR)
 # Update Icon Background Color
 echo "<?xml version='1.0' encoding='utf-8'?><resources><color name='ic_launcher_background'>${EDEN_ANDROID_BG_COLOR}</color></resources>" > "$EDEN_ANDROID_RES/values/colors.xml"
 
-magick -monitor -size 1080x1080 -background transparent "$EDEN_BASE_SVG" -gravity center -resize 660x660 -extent 1080x1080 "$EDEN_ANDROID_LAUNCHER_FG" || exit
-magick -monitor -size 1080x1080 -background transparent "$EDEN_MONO_SVG" -gravity center -resize 660x660 -extent 1080x1080 $OPT_MAGICK_MONO "$EDEN_ANDROID_LAUNCHER_MONO" || exit
+magick -monitor -density 512 -background transparent "$EDEN_BASE_SVG" -alpha on -gravity center -resize 313x313 -extent 512x512 $OPT_MAGICK_PNG "$EDEN_ANDROID_LAUNCHER_FG" || exit
+magick -monitor -density 512 -background transparent "$EDEN_MONO_SVG" -alpha on -gravity center -resize 313x313 -extent 512x512 $OPT_MAGICK_PNG $OPT_MAGICK_MONO "$EDEN_ANDROID_LAUNCHER_MONO" || exit
 
-magick -monitor -background transparent "$EDEN_BASE_SVG" -gravity center -resize 512x512 "$EDEN_ANDROID_MAIN" || exit
-magick -monitor -background transparent "$EDEN_MONO_SVG" -gravity center -resize 512x512 $OPT_MAGICK_MONO "$EDEN_ANDROID_MONO" || exit
+magick -monitor -density 512 -background transparent "$EDEN_BASE_SVG" -alpha on -gravity center -resize 512x512 $OPT_MAGICK_PNG "$EDEN_ANDROID_MAIN" || exit
+magick -monitor -density 512 -background transparent "$EDEN_MONO_SVG" -alpha on -gravity center -resize 512x512 $OPT_MAGICK_PNG $OPT_MAGICK_MONO "$EDEN_ANDROID_MONO" || exit
 
 optipng -o7 "$EDEN_ANDROID_LAUNCHER_FG"
 optipng -o7 "$EDEN_ANDROID_LAUNCHER_MONO"
