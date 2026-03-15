@@ -315,7 +315,7 @@ VkShaderStageFlagBits ShaderStage(Shader::Stage stage) {
     return {};
 }
 
-[[nodiscard]] bool IsUnsupportedAreaTopology(Maxwell::PrimitiveTopology topology) {
+[[nodiscard]] static bool IsUnsupportedAreaTopology(Maxwell::PrimitiveTopology topology) {
     switch (topology) {
     case Maxwell::PrimitiveTopology::Quads:
     case Maxwell::PrimitiveTopology::QuadStrip:
