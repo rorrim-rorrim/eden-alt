@@ -661,8 +661,8 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     if (!vertex_binding_divisors.empty()) {
         vertex_input_ci.pNext = &input_divisor_ci;
     }
-    const bool has_tess_stages = spv_modules[1] || spv_modules[2];
-    const bool has_geometry_stage = spv_modules[3];
+    const bool has_tess_stages = static_cast<bool>(spv_modules[1]) || static_cast<bool>(spv_modules[2]);
+    const bool has_geometry_stage = static_cast<bool>(spv_modules[3]);
     const bool dynamic_topology = key.state.extended_dynamic_state != 0;
     const bool dynamic_primitive_restart = key.state.extended_dynamic_state_2 != 0;
     const auto polygon_mode =

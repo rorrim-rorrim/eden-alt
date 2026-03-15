@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2028 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -371,12 +371,6 @@ DrawParams MakeDrawParams(const MaxwellDrawState& draw_state, u32 num_instances,
         params.is_indexed = true;
     }
     return params;
-}
-
-bool IsLineRasterizationTopology(const Device& device, Maxwell::PrimitiveTopology topology) {
-    const VkPrimitiveTopology vk_topology = MaxwellToVK::PrimitiveTopology(device, topology);
-    return vk_topology == VK_PRIMITIVE_TOPOLOGY_LINE_LIST ||
-           vk_topology == VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
 }
 
 VkLineRasterizationModeEXT SelectLineRasterizationMode(const Device& device, bool smooth_lines) {
