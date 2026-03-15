@@ -37,7 +37,7 @@ class ForegroundService : Service() {
         )
         val builder =
             NotificationCompat.Builder(this, getString(R.string.app_notification_channel_id))
-                .setSmallIcon(R.drawable.ic_eden_notification)
+                .setSmallIcon(R.drawable.ic_eden_monochrome)
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText(getString(R.string.app_notification_running))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)

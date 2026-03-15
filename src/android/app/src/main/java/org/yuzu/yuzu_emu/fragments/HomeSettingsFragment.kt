@@ -407,7 +407,7 @@ class HomeSettingsFragment : Fragment() {
             requireContext(),
             getString(R.string.notice_notification_channel_id)
         )
-            .setSmallIcon(R.drawable.ic_eden_notification)
+            .setSmallIcon(R.drawable.ic_eden_monochrome)
             .setContentTitle(getString(R.string.notification_no_directory_link))
             .setContentText(getString(R.string.notification_no_directory_link_description))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
