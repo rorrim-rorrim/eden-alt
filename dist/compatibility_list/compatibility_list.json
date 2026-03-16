@@ -351,4 +351,13 @@
     ],
     "title": "Big Brain Academy: Brain vs. Brain"
   }
+  {
+    "compatibility": 4,
+    "directory": "nintendo-switch-sports",
+    "releases": [
+      {"id": "0100100011D92000"}
+    ],
+    "title": "Nintendo Switch Sports"
+  }
+  
 ]
