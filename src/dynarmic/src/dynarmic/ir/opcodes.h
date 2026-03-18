@@ -45,8 +45,8 @@ constexpr bool IsArithmeticShift(const Opcode op) noexcept {
 
 /// @brief Determines whether or not this instruction performs a logical shift.
 constexpr bool IsCircularShift(const Opcode op) noexcept {
-    return op == Opcode::RotateRight32
-        || op == Opcode::RotateRight64
+    return op == Opcode::BitRotateRight32
+        || op == Opcode::BitRotateRight64
         || op == Opcode::RotateRightExtended;
 }
 

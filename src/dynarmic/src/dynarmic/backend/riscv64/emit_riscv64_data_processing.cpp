@@ -164,12 +164,12 @@ void EmitIR<IR::Opcode::ArithmeticShiftRight64>(biscuit::Assembler&, EmitContext
 }
 
 template<>
-void EmitIR<IR::Opcode::RotateRight32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
+void EmitIR<IR::Opcode::BitRotateRight32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
 template<>
-void EmitIR<IR::Opcode::RotateRight64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
+void EmitIR<IR::Opcode::BitRotateRight64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
     UNIMPLEMENTED();
 }
 
