@@ -92,9 +92,8 @@ A64EmitX64::BlockDescriptor A64EmitX64::Emit(IR::Block& block) noexcept {
     code.align();
     const auto* const entrypoint = code.getCurr();
 
-    code.push(rbp);
-    code.mov(rbp, rsp);
-    code.and_(rsp, -16);
+    // code.mov(code.qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, abi_base_pointer)], rbp);
+    // code.lea(rbp, code.ptr[rsp + ABI_SHADOW_SPACE - 8]);
 
     DEBUG_ASSERT(block.GetCondition() == IR::Cond::AL);
     typedef void (EmitX64::*EmitHandlerFn)(EmitContext& context, IR::Inst* inst);
@@ -150,6 +149,9 @@ finish_this_inst:
     if (conf.enable_cycle_counting) {
         EmitAddCycles(block.CycleCount());
     }
+
+    //code.mov(rbp, code.qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, abi_base_pointer)]);
+
     EmitTerminal(block.GetTerminal(), ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
     code.int3();
 
@@ -255,9 +257,6 @@ void A64EmitX64::GenTerminalHandlers() {
         }
         code.and_(code.ABI_PARAM1.cvt32(), fast_dispatch_table_mask);
         code.lea(code.ABI_RETURN, code.ptr[code.ABI_PARAM2 + code.ABI_PARAM1]);
-
-        code.mov(rsp, rbp);
-        code.pop(rbp);
         code.ret();
         PerfMapRegister(fast_dispatch_table_lookup, code.getCurr(), "a64_fast_dispatch_table_lookup");
     }

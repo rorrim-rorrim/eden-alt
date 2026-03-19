@@ -135,7 +135,7 @@ foreach(SOURCE_FILE IN ITEMS ${SHADER_FILES})
                 ${SOURCE_FILE}
             DEPENDS
                 ${INPUT_FILE}
-                ${SHADER_DIR}
+            #    ${SHADER_DIR}
                 # HEADER_GENERATOR should be included here but msbuild seems to assume it's always modified
         )
         set(SHADER_HEADERS ${SHADER_HEADERS} ${SOURCE_HEADER_FILE})
@@ -151,8 +151,8 @@ foreach(SOURCE_FILE IN ITEMS ${SHADER_FILES})
                 ${GLSLANGVALIDATOR} -V ${QUIET_FLAG} -I"${FIDELITYFX_INCLUDE_DIR}" ${GLSL_FLAGS} --variable-name ${SPIRV_VARIABLE_NAME} -o ${SPIRV_HEADER_FILE} ${SOURCE_FILE} --target-env ${SPIR_V_VERSION}
             MAIN_DEPENDENCY
                 ${SOURCE_FILE}
-            DEPENDS
-                ${SHADER_DIR}
+            #DEPENDS
+            #    ${SHADER_DIR}
         )
         set(SHADER_HEADERS ${SHADER_HEADERS} ${SPIRV_HEADER_FILE})
     endif()
