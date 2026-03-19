@@ -89,6 +89,10 @@ A64EmitX64::BlockDescriptor A64EmitX64::Emit(IR::Block& block) noexcept {
     code.align();
     const auto* const entrypoint = code.getCurr();
 
+    code.push(rbp);
+    code.mov(rbp, rsp);
+    code.and_(rsp, -16);
+
     DEBUG_ASSERT(block.GetCondition() == IR::Cond::AL);
     typedef void (EmitX64::*EmitHandlerFn)(EmitContext& context, IR::Inst* inst);
     constexpr EmitHandlerFn opcode_handlers[] = {
@@ -247,6 +251,9 @@ void A64EmitX64::GenTerminalHandlers() {
         }
         code.and_(code.ABI_PARAM1.cvt32(), fast_dispatch_table_mask);
         code.lea(code.ABI_RETURN, code.ptr[code.ABI_PARAM2 + code.ABI_PARAM1]);
+
+        code.mov(rsp, rbp);
+        code.pop(rbp);
         code.ret();
         PerfMapRegister(fast_dispatch_table_lookup, code.getCurr(), "a64_fast_dispatch_table_lookup");
     }
