@@ -48,6 +48,8 @@ public:
           mapped_ranges{mapped_ranges_}, parent{parent_} {}
 
     std::optional<std::uint32_t> MemoryReadCode(VAddr vaddr) override {
+        if (!memory.IsValidVirtualAddressRange(vaddr, sizeof(u32)))
+            return std::nullopt;
         static_assert(Core::Memory::YUZU_PAGESIZE == Dynarmic::CODE_PAGE_SIZE);
         auto const aligned_vaddr = vaddr & ~Core::Memory::YUZU_PAGEMASK;
         if (last_code_addr != aligned_vaddr) {

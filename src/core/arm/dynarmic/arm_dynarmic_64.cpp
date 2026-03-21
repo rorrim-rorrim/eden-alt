@@ -226,7 +226,7 @@ void ArmDynarmic64::MakeJit(Common::PageTable* page_table, std::size_t address_s
         config.only_detect_misalignment_via_page_table_on_page_boundary = true;
 
         config.fastmem_pointer = page_table->fastmem_arena ?
-            std::optional<uintptr_t>{reinterpret_cast<uintptr_t>(page_table->fastmem_arena)} :
+            std::optional<uintptr_t>{uintptr_t(page_table->fastmem_arena)} :
             std::nullopt;
         config.fastmem_address_space_bits = std::uint32_t(address_space_bits);
         config.silently_mirror_fastmem = false;
