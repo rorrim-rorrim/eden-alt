@@ -37,6 +37,7 @@ private:
     Result GetPopOutDataEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result GetPopInteractiveOutDataEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result GetIndirectLayerConsumerHandle(Out<u64> out_handle);
+    Result Unknown170(OutCopyHandle<Kernel::KReadableEvent> out_event);
 
     void FrontendExecute();
     void FrontendExecuteInteractive();

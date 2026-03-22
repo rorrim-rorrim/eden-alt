@@ -53,8 +53,8 @@ constexpr inline u32 RequiredKernelVersion =
 
 // This is the highest SVC version supported, to be updated on new kernel releases.
 // NOTE: Official kernel versions have SVC major = SDK major + 4, SVC minor = SDK minor.
-constexpr inline u32 SupportedKernelMajorVersion = ConvertToSvcMajorVersion(20);
-constexpr inline u32 SupportedKernelMinorVersion = ConvertToSvcMinorVersion(5);
+constexpr inline u32 SupportedKernelMajorVersion = ConvertToSvcMajorVersion(22);
+constexpr inline u32 SupportedKernelMinorVersion = ConvertToSvcMinorVersion(2);
 constexpr inline u32 SupportedKernelVersion =
     EncodeKernelVersion(SupportedKernelMajorVersion, SupportedKernelMinorVersion);
 

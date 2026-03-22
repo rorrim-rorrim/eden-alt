@@ -161,6 +161,11 @@ public:
     Result GetPanelCrcMode(Out<s32> out_panel_crc_mode);
     Result SetPanelCrcMode(s32 panel_crc_mode);
     Result GetHttpAuthConfigs(Out<s32> out_count, OutBuffer<BufferAttr_HipcMapAlias> out_configs);
+    Result GetAccountUserSettings(
+        Out<u32> out_count,
+        OutLargeData<AccountUserSettings, BufferAttr_HipcMapAlias> out_settings);
+    Result GetDefaultAccountUserSettings(
+        OutLargeData<AccountUserSettings, BufferAttr_HipcMapAlias> out_settings);
 
 private:
     bool LoadSettingsFile(std::filesystem::path& path, auto&& default_func);

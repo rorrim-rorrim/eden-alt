@@ -118,9 +118,10 @@ std::shared_ptr<ILibraryAppletAccessor> CreateGuestApplet(Core::System& system,
         Firmware1900 = 19,
         Firmware2000 = 20,
         Firmware2100 = 21,
+        Firmware2200 = 22,
     };
 
-    auto process = CreateProcess(system, program_id, Firmware1400, Firmware2100);
+    auto process = CreateProcess(system, program_id, Firmware1400, Firmware2200);
     if (!process) {
         // Couldn't initialize the guest process
         return {};
