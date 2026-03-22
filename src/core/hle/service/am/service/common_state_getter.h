@@ -63,6 +63,8 @@ private:
     Result SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled();
     Result PushToGeneralChannel(SharedPointer<IStorage> storage); // cmd 20
     Result SetHandlingHomeButtonShortPressedEnabled(bool enabled);
+    Result Unknown610();
+    Result Unknown611();
 
     void SetCpuBoostMode(HLERequestContext& ctx);
 

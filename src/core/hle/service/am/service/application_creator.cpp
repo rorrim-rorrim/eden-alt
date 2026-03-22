@@ -92,7 +92,7 @@ Result IApplicationCreator::CreateSystemApplication(
     std::unique_ptr<Loader::AppLoader> loader;
 
     auto process =
-        CreateProcess(system, application_id, 1, 21);
+        CreateProcess(system, application_id, 1, 22);
     R_UNLESS(process != nullptr, ResultUnknown);
 
     const auto applet = std::make_shared<Applet>(system, std::move(process), true);
