@@ -411,7 +411,7 @@ static_assert(sizeof(AccountNotificationSettings) == 0x18,
 
 /// This is nn::settings::system::AccountUserSettings (stubbed)
 struct AccountUserSettings {
-    std::array<u8, 0x40> data{};
+    std::array<u8, 0x40> data;
 };
 static_assert(sizeof(AccountUserSettings) == 0x40,
               "AccountUserSettings is an invalid size");
