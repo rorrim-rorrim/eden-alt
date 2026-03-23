@@ -1433,13 +1433,12 @@ Result ISystemSettingsServer::GetAccountUserSettings(
     OutLargeData<AccountUserSettings, BufferAttr_HipcMapAlias> out_settings) {
     LOG_WARNING(Service_SET, "(STUBBED) called");
 
-    *out_count = 1;
+    *out_count = 0;
     *out_settings = {};
     R_SUCCEED();
 }
 
-Result ISystemSettingsServer::GetDefaultAccountUserSettings(
-    OutLargeData<AccountUserSettings, BufferAttr_HipcMapAlias> out_settings) {
+Result ISystemSettingsServer::GetDefaultAccountUserSettings(Out<AccountUserSettings> out_settings) {
     LOG_WARNING(Service_SET, "(STUBBED) called");
 
     *out_settings = {};
