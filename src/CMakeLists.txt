@@ -263,6 +263,7 @@ endif()
 
 if (IOS)
     add_subdirectory(ios)
+    add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:-Wno-error>)
 endif()
 
 include(GenerateDepHashes)
