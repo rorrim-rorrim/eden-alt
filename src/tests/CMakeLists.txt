@@ -32,8 +32,9 @@ add_test(NAME tests COMMAND tests)
 # needed for vma
 if (NOT MSVC)
     target_compile_options(tests PRIVATE
-        -Wno-conversion
-        -Wno-unused-variable
-        -Wno-unused-parameter
-        -Wno-missing-field-initializers)
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-conversion>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-variable>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-parameter>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-missing-field-initializers>
+    )
 endif()
