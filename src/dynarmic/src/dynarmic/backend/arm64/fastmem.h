@@ -24,7 +24,7 @@ using DoNotFastmemMarker = std::tuple<IR::LocationDescriptor, unsigned>;
 constexpr size_t xmrx(size_t x) noexcept {
     x ^= x >> 32;
     x *= 0xff51afd7ed558ccd;
-    x ^= bit::rotate_right(x, 47) ^ bit::rotate_right(x, 23);
+    x ^= mcl::bit::rotate_right(x, 47) ^ mcl::bit::rotate_right(x, 23);
     return x;
 }
 template<typename T>
