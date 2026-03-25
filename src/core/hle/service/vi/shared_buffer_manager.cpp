@@ -373,6 +373,8 @@ Result SharedBufferManager::PresentSharedFrameBuffer(android::Fence fence,
                  android::Status::NoError,
              VI::ResultOperationFailed);
 
+    (void)m_container.SetLayerZIndex(layer_id, 100000);
+
     // We succeeded.
     R_SUCCEED();
 }
