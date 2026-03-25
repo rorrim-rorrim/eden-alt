@@ -4,12 +4,27 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#if defined(__linux__) && !defined(_GNU_SOURCE)
+#define _GNU_SOURCE
+#endif
+
 #include <atomic>
 #include <limits>
 #include <memory>
 #include <type_traits>
 #include <algorithm>
 #include <vector>
+
+#if defined(__linux__)
+#include <sys/mman.h>
+#ifndef MREMAP_MAYMOVE
+#define MREMAP_MAYMOVE 1
+#endif
+#ifndef MREMAP_FIXED
+#define MREMAP_FIXED 2
+#endif
+extern "C" void* mremap(void* old_address, size_t old_size, size_t new_size, int flags, ...);
+#endif
 
 #include "common/address_space.h"
 #include "common/address_space.inc"
@@ -240,6 +255,7 @@ void DeviceMemoryManager<Traits>::Map(DAddr address, VAddr virtual_address, size
         impl->multi_dev_address.Register(new_dev, start_id);
     }
     t_slot = {};
+    mapping_version.fetch_add(1, std::memory_order_release);
     if (track) {
         TrackContinuityImpl(address, virtual_address, size, asid);
     }
@@ -272,6 +288,7 @@ void DeviceMemoryManager<Traits>::Unmap(DAddr address, size_t size) {
         }
     }
     t_slot = {};
+    mapping_version.fetch_add(1, std::memory_order_release);
 }
 template <typename Traits>
 void DeviceMemoryManager<Traits>::TrackContinuityImpl(DAddr address, VAddr virtual_address,
@@ -313,6 +330,78 @@ const u8* DeviceMemoryManager<Traits>::GetSpan(const DAddr src_addr, const std::
         return GetPointer<u8>(src_addr);
     }
     return nullptr;
+}
+
+template <typename Traits>
+typename DeviceMemoryManager<Traits>::MirrorMapping DeviceMemoryManager<Traits>::CreateMirrorMapping(
+    DAddr address, size_t size) const {
+#if !defined(__linux__)
+    return {};
+#else
+    if (size == 0) {
+        return {};
+    }
+
+    const DAddr aligned_address = Common::AlignDown(address, DAddr{page_size});
+    const size_t data_offset = static_cast<size_t>(address - aligned_address);
+    const size_t mapped_size = Common::AlignUp(size + data_offset, page_size);
+
+    struct Segment {
+        const u8* source;
+        size_t size;
+    };
+
+    std::vector<Segment> segments;
+    segments.reserve(Common::DivCeil(mapped_size, page_size));
+
+    size_t remaining_size = mapped_size;
+    size_t page_index = aligned_address >> page_bits;
+    while (remaining_size > 0) {
+        const size_t next_pages = std::size_t(tracked_entries[page_index].continuity_tracker);
+        const size_t copy_amount = (std::min)(next_pages << page_bits, remaining_size);
+
+        const auto phys_addr = tracked_entries[page_index].compressed_physical_ptr;
+        if (phys_addr == 0) {
+            return {};
+        }
+
+        const auto* source =
+            GetPointerFromRaw<u8>(PAddr(phys_addr - 1U) << Memory::YUZU_PAGEBITS);
+
+        if (!segments.empty() && segments.back().source + segments.back().size == source) {
+            segments.back().size += copy_amount;
+        } else {
+            segments.push_back({source, copy_amount});
+        }
+
+        page_index += next_pages;
+        remaining_size -= copy_amount;
+    }
+
+    void* const mirror_base =
+        mmap(nullptr, mapped_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (mirror_base == MAP_FAILED) {
+        return {};
+    }
+
+    size_t mirror_offset = 0;
+    for (const auto& segment : segments) {
+        void* const target = static_cast<u8*>(mirror_base) + mirror_offset;
+        void* const result = mremap(const_cast<u8*>(segment.source), 0, segment.size,
+                                    MREMAP_MAYMOVE | MREMAP_FIXED, target);
+        if (result == MAP_FAILED) {
+            munmap(mirror_base, mapped_size);
+            return {};
+        }
+        if (mprotect(result, segment.size, PROT_READ | PROT_WRITE) != 0) {
+            munmap(mirror_base, mapped_size);
+            return {};
+        }
+        mirror_offset += segment.size;
+    }
+
+    return MirrorMapping{static_cast<u8*>(mirror_base), mapped_size, data_offset};
+#endif
 }
 
 template <typename Traits>

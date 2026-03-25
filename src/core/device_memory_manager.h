@@ -14,11 +14,16 @@
 #include <mutex>
 #include <vector>
 #include <span>
+#include <utility>
 
 #include "common/common_types.h"
 #include "common/range_mutex.h"
 #include "common/scratch_buffer.h"
 #include "common/virtual_buffer.h"
+
+#if defined(__linux__)
+#include <sys/mman.h>
+#endif
 
 namespace Core {
 
@@ -45,6 +50,74 @@ class DeviceMemoryManager {
     using DeviceMethods = typename Traits::DeviceMethods;
 
 public:
+    class MirrorMapping {
+    public:
+        MirrorMapping() = default;
+        MirrorMapping(u8* mapped_base_, size_t mapped_size_, size_t data_offset_)
+            : mapped_base{mapped_base_}, mapped_size{mapped_size_}, data_offset{data_offset_} {}
+
+        MirrorMapping(const MirrorMapping&) = delete;
+        MirrorMapping& operator=(const MirrorMapping&) = delete;
+
+        MirrorMapping(MirrorMapping&& other) noexcept {
+            MoveFrom(other);
+        }
+
+        MirrorMapping& operator=(MirrorMapping&& other) noexcept {
+            if (this != &other) {
+                Release();
+                MoveFrom(other);
+            }
+            return *this;
+        }
+
+        ~MirrorMapping() {
+            Release();
+        }
+
+        [[nodiscard]] bool IsValid() const noexcept {
+            return mapped_base != nullptr;
+        }
+
+        [[nodiscard]] explicit operator bool() const noexcept {
+            return IsValid();
+        }
+
+        [[nodiscard]] u8* Data() noexcept {
+            return mapped_base ? mapped_base + data_offset : nullptr;
+        }
+
+        [[nodiscard]] const u8* Data() const noexcept {
+            return mapped_base ? mapped_base + data_offset : nullptr;
+        }
+
+        [[nodiscard]] size_t Size() const noexcept {
+            return mapped_size >= data_offset ? mapped_size - data_offset : 0;
+        }
+
+    private:
+        void MoveFrom(MirrorMapping& other) noexcept {
+            mapped_base = std::exchange(other.mapped_base, nullptr);
+            mapped_size = std::exchange(other.mapped_size, 0);
+            data_offset = std::exchange(other.data_offset, 0);
+        }
+
+        void Release() noexcept {
+#if defined(__linux__)
+            if (mapped_base) {
+                munmap(mapped_base, mapped_size);
+            }
+#endif
+            mapped_base = nullptr;
+            mapped_size = 0;
+            data_offset = 0;
+        }
+
+        u8* mapped_base{};
+        size_t mapped_size{};
+        size_t data_offset{};
+    };
+
     DeviceMemoryManager(const DeviceMemory& device_memory);
     ~DeviceMemoryManager();
 
@@ -117,6 +190,11 @@ public:
     void ReadBlockUnsafe(DAddr address, void* dest_pointer, size_t size);
     void WriteBlock(DAddr address, const void* src_pointer, size_t size);
     void WriteBlockUnsafe(DAddr address, const void* src_pointer, size_t size);
+
+    [[nodiscard]] MirrorMapping CreateMirrorMapping(DAddr address, size_t size) const;
+    [[nodiscard]] u64 GetMappingVersion() const noexcept {
+        return mapping_version.load(std::memory_order_acquire);
+    }
 
     Asid RegisterProcess(Memory::Memory* memory);
     void UnregisterProcess(Asid id);
@@ -236,6 +314,7 @@ private:
     std::unique_ptr<CachedPages> cached_pages;
     Common::RangeMutex counter_guard;
     std::mutex mapping_guard;
+    std::atomic<u64> mapping_version{1};
 
 
 };

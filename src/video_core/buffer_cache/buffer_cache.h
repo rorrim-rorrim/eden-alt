@@ -104,6 +104,51 @@ void BufferCache<P>::TickFrame() {
         RunGarbageCollector();
     }
     ++frame_tick;
+    static constexpr u64 mirror_stats_log_interval = 300;
+    if ((frame_tick % mirror_stats_log_interval) == 0) {
+        const u64 upload_hit_copies = mirror_upload_hit_copies - mirror_upload_hit_copies_last;
+        const u64 upload_miss_copies = mirror_upload_miss_copies - mirror_upload_miss_copies_last;
+        const u64 upload_hit_bytes = mirror_upload_hit_bytes - mirror_upload_hit_bytes_last;
+        const u64 upload_miss_bytes = mirror_upload_miss_bytes - mirror_upload_miss_bytes_last;
+        const u64 download_hit_copies =
+            mirror_download_hit_copies - mirror_download_hit_copies_last;
+        const u64 download_miss_copies =
+            mirror_download_miss_copies - mirror_download_miss_copies_last;
+        const u64 download_hit_bytes = mirror_download_hit_bytes - mirror_download_hit_bytes_last;
+        const u64 download_miss_bytes =
+            mirror_download_miss_bytes - mirror_download_miss_bytes_last;
+
+        const u64 upload_total_copies = upload_hit_copies + upload_miss_copies;
+        const u64 download_total_copies = download_hit_copies + download_miss_copies;
+        if (upload_total_copies > 0 || download_total_copies > 0) {
+            const double upload_hit_ratio = upload_total_copies > 0
+                                                ? (100.0 * static_cast<double>(upload_hit_copies) /
+                                                   static_cast<double>(upload_total_copies))
+                                                : 0.0;
+            const double download_hit_ratio =
+                download_total_copies > 0
+                    ? (100.0 * static_cast<double>(download_hit_copies) /
+                       static_cast<double>(download_total_copies))
+                    : 0.0;
+            LOG_INFO(HW_GPU,
+                     "Buffer mirror counters (last {} frames): upload hit/miss copies = {}/{}, "
+                     "hit ratio = {:.2f}%, bytes hit/miss = {}/{}, download hit/miss copies = "
+                     "{}/{}, hit ratio = {:.2f}%, bytes hit/miss = {}/{}",
+                     mirror_stats_log_interval, upload_hit_copies, upload_miss_copies,
+                     upload_hit_ratio, upload_hit_bytes, upload_miss_bytes, download_hit_copies,
+                     download_miss_copies, download_hit_ratio, download_hit_bytes,
+                     download_miss_bytes);
+        }
+
+        mirror_upload_hit_copies_last = mirror_upload_hit_copies;
+        mirror_upload_miss_copies_last = mirror_upload_miss_copies;
+        mirror_upload_hit_bytes_last = mirror_upload_hit_bytes;
+        mirror_upload_miss_bytes_last = mirror_upload_miss_bytes;
+        mirror_download_hit_copies_last = mirror_download_hit_copies;
+        mirror_download_miss_copies_last = mirror_download_miss_copies;
+        mirror_download_hit_bytes_last = mirror_download_hit_bytes;
+        mirror_download_miss_bytes_last = mirror_download_miss_bytes;
+    }
     delayed_destruction_ring.Tick();
 
     for (auto& buffer : async_buffers_death_ring) {
@@ -1567,6 +1612,21 @@ BufferId BufferCache<P>::CreateBuffer(DAddr device_addr, u32 wanted_size) {
     const u32 size = static_cast<u32>(overlap.end - overlap.begin);
     const BufferId new_buffer_id = slot_buffers.insert(runtime, overlap.begin, size);
     auto& new_buffer = slot_buffers[new_buffer_id];
+    const u64 current_mapping_version = device_memory.GetMappingVersion();
+    if (mirror_mapping_version != current_mapping_version) {
+        buffer_mirrors.clear();
+        mirror_mapping_version = current_mapping_version;
+    }
+    buffer_mirrors.erase(new_buffer.CpuAddr());
+    if (auto mirror =
+            device_memory.CreateMirrorMapping(new_buffer.CpuAddr(), new_buffer.SizeBytes());
+        mirror) {
+        buffer_mirrors.emplace(new_buffer.CpuAddr(), std::move(mirror));
+        if (!mirror_creation_logged) [[unlikely]] {
+            LOG_INFO(HW_GPU, "Buffer mirror mapping enabled (first successful mapping)");
+            mirror_creation_logged = true;
+        }
+    }
     const size_t size_bytes = new_buffer.SizeBytes();
     runtime.ClearBuffer(new_buffer, 0, size_bytes, 0);
     new_buffer.MarkUsage(0, size_bytes);
@@ -1660,15 +1720,52 @@ void BufferCache<P>::ImmediateUploadMemory([[maybe_unused]] Buffer& buffer,
                                            [[maybe_unused]] std::span<const BufferCopy> copies) {
     if constexpr (!USE_MEMORY_MAPS_FOR_UPLOADS) {
         std::span<u8> immediate_buffer;
+        const auto resolve_mirror_pointer = [&]() -> const u8* {
+            const u64 current_mapping_version = device_memory.GetMappingVersion();
+            if (mirror_mapping_version != current_mapping_version) {
+                buffer_mirrors.clear();
+                mirror_mapping_version = current_mapping_version;
+            }
+
+            auto mirror_it = buffer_mirrors.find(buffer.CpuAddr());
+            if (mirror_it == buffer_mirrors.end()) {
+                if (auto mirror =
+                        device_memory.CreateMirrorMapping(buffer.CpuAddr(), buffer.SizeBytes());
+                    mirror) {
+                    auto [it, inserted] =
+                        buffer_mirrors.emplace(buffer.CpuAddr(), std::move(mirror));
+                    mirror_it = it;
+                    if (inserted && !mirror_creation_logged) [[unlikely]] {
+                        LOG_INFO(HW_GPU, "Buffer mirror mapping enabled (first successful mapping)");
+                        mirror_creation_logged = true;
+                    }
+                }
+            }
+            return mirror_it != buffer_mirrors.end() ? mirror_it->second.Data() : nullptr;
+        };
+        const u8* const mirror_pointer = resolve_mirror_pointer();
         for (const BufferCopy& copy : copies) {
             std::span<const u8> upload_span;
             const DAddr device_addr = buffer.CpuAddr() + copy.dst_offset;
-            if (IsRangeGranular(device_addr, copy.size)) {
+            if (mirror_pointer != nullptr) {
+                mirror_upload_hit_copies++;
+                mirror_upload_hit_bytes += copy.size;
+                if (!mirror_upload_logged) [[unlikely]] {
+                    LOG_INFO(HW_GPU, "Buffer mirror fast path active for upload sync");
+                    mirror_upload_logged = true;
+                }
+                upload_span =
+                    std::span(mirror_pointer + static_cast<size_t>(copy.dst_offset), copy.size);
+            } else if (IsRangeGranular(device_addr, copy.size)) {
+                mirror_upload_miss_copies++;
+                mirror_upload_miss_bytes += copy.size;
                 auto* const ptr = device_memory.GetPointer<u8>(device_addr);
                 if (ptr != nullptr) {
                     upload_span = std::span(ptr, copy.size);
                 }
             } else {
+                mirror_upload_miss_copies++;
+                mirror_upload_miss_bytes += copy.size;
                 if (immediate_buffer.empty()) {
                     immediate_buffer = ImmediateBuffer(largest_copy);
                 }
@@ -1687,10 +1784,47 @@ void BufferCache<P>::MappedUploadMemory([[maybe_unused]] Buffer& buffer,
     if constexpr (USE_MEMORY_MAPS) {
         auto upload_staging = runtime.UploadStagingBuffer(total_size_bytes);
         const std::span<u8> staging_pointer = upload_staging.mapped_span;
+        const auto resolve_mirror_pointer = [&]() -> const u8* {
+            const u64 current_mapping_version = device_memory.GetMappingVersion();
+            if (mirror_mapping_version != current_mapping_version) {
+                buffer_mirrors.clear();
+                mirror_mapping_version = current_mapping_version;
+            }
+
+            auto mirror_it = buffer_mirrors.find(buffer.CpuAddr());
+            if (mirror_it == buffer_mirrors.end()) {
+                if (auto mirror =
+                        device_memory.CreateMirrorMapping(buffer.CpuAddr(), buffer.SizeBytes());
+                    mirror) {
+                    auto [it, inserted] =
+                        buffer_mirrors.emplace(buffer.CpuAddr(), std::move(mirror));
+                    mirror_it = it;
+                    if (inserted && !mirror_creation_logged) [[unlikely]] {
+                        LOG_INFO(HW_GPU, "Buffer mirror mapping enabled (first successful mapping)");
+                        mirror_creation_logged = true;
+                    }
+                }
+            }
+            return mirror_it != buffer_mirrors.end() ? mirror_it->second.Data() : nullptr;
+        };
+        const u8* const mirror_pointer = resolve_mirror_pointer();
         for (BufferCopy& copy : copies) {
             u8* const src_pointer = staging_pointer.data() + copy.src_offset;
             const DAddr device_addr = buffer.CpuAddr() + copy.dst_offset;
-            device_memory.ReadBlockUnsafe(device_addr, src_pointer, copy.size);
+            if (mirror_pointer != nullptr) {
+                mirror_upload_hit_copies++;
+                mirror_upload_hit_bytes += copy.size;
+                if (!mirror_upload_logged) [[unlikely]] {
+                    LOG_INFO(HW_GPU, "Buffer mirror fast path active for upload sync");
+                    mirror_upload_logged = true;
+                }
+                std::memcpy(src_pointer, mirror_pointer + static_cast<size_t>(copy.dst_offset),
+                            copy.size);
+            } else {
+                mirror_upload_miss_copies++;
+                mirror_upload_miss_bytes += copy.size;
+                device_memory.ReadBlockUnsafe(device_addr, src_pointer, copy.size);
+            }
 
             // Apply the staging offset
             copy.src_offset += upload_staging.offset;
@@ -1783,6 +1917,30 @@ void BufferCache<P>::DownloadBufferMemory(Buffer& buffer, DAddr device_addr, u64
     if constexpr (USE_MEMORY_MAPS) {
         auto download_staging = runtime.DownloadStagingBuffer(total_size_bytes);
         const u8* const mapped_memory = download_staging.mapped_span.data();
+        const auto resolve_mirror_pointer = [&]() -> u8* {
+            const u64 current_mapping_version = device_memory.GetMappingVersion();
+            if (mirror_mapping_version != current_mapping_version) {
+                buffer_mirrors.clear();
+                mirror_mapping_version = current_mapping_version;
+            }
+
+            auto mirror_it = buffer_mirrors.find(buffer.CpuAddr());
+            if (mirror_it == buffer_mirrors.end()) {
+                if (auto mirror =
+                        device_memory.CreateMirrorMapping(buffer.CpuAddr(), buffer.SizeBytes());
+                    mirror) {
+                    auto [it, inserted] =
+                        buffer_mirrors.emplace(buffer.CpuAddr(), std::move(mirror));
+                    mirror_it = it;
+                    if (inserted && !mirror_creation_logged) [[unlikely]] {
+                        LOG_INFO(HW_GPU, "Buffer mirror mapping enabled (first successful mapping)");
+                        mirror_creation_logged = true;
+                    }
+                }
+            }
+            return mirror_it != buffer_mirrors.end() ? mirror_it->second.Data() : nullptr;
+        };
+        u8* const mirror_pointer = resolve_mirror_pointer();
         const std::span<BufferCopy> copies_span(copies.data(), copies.data() + copies.size());
         for (BufferCopy& copy : copies) {
             // Modify copies to have the staging offset in mind
@@ -1796,14 +1954,65 @@ void BufferCache<P>::DownloadBufferMemory(Buffer& buffer, DAddr device_addr, u64
             // Undo the modified offset
             const u64 dst_offset = copy.dst_offset - download_staging.offset;
             const u8* copy_mapped_memory = mapped_memory + dst_offset;
-            device_memory.WriteBlockUnsafe(copy_device_addr, copy_mapped_memory, copy.size);
+            if (mirror_pointer != nullptr) {
+                mirror_download_hit_copies++;
+                mirror_download_hit_bytes += copy.size;
+                if (!mirror_download_logged) [[unlikely]] {
+                    LOG_INFO(HW_GPU, "Buffer mirror fast path active for download sync");
+                    mirror_download_logged = true;
+                }
+                std::memcpy(mirror_pointer + static_cast<size_t>(copy.src_offset),
+                            copy_mapped_memory, copy.size);
+            } else {
+                mirror_download_miss_copies++;
+                mirror_download_miss_bytes += copy.size;
+                device_memory.WriteBlockUnsafe(copy_device_addr, copy_mapped_memory, copy.size);
+            }
         }
     } else {
         const std::span<u8> immediate_buffer = ImmediateBuffer(largest_copy);
+        const auto resolve_mirror_pointer = [&]() -> u8* {
+            const u64 current_mapping_version = device_memory.GetMappingVersion();
+            if (mirror_mapping_version != current_mapping_version) {
+                buffer_mirrors.clear();
+                mirror_mapping_version = current_mapping_version;
+            }
+
+            auto mirror_it = buffer_mirrors.find(buffer.CpuAddr());
+            if (mirror_it == buffer_mirrors.end()) {
+                if (auto mirror =
+                        device_memory.CreateMirrorMapping(buffer.CpuAddr(), buffer.SizeBytes());
+                    mirror) {
+                    auto [it, inserted] =
+                        buffer_mirrors.emplace(buffer.CpuAddr(), std::move(mirror));
+                    mirror_it = it;
+                    if (inserted && !mirror_creation_logged) [[unlikely]] {
+                        LOG_INFO(HW_GPU, "Buffer mirror mapping enabled (first successful mapping)");
+                        mirror_creation_logged = true;
+                    }
+                }
+            }
+            return mirror_it != buffer_mirrors.end() ? mirror_it->second.Data() : nullptr;
+        };
+        u8* const mirror_pointer = resolve_mirror_pointer();
         for (const BufferCopy& copy : copies) {
             buffer.ImmediateDownload(copy.src_offset, immediate_buffer.subspan(0, copy.size));
             const DAddr copy_device_addr = buffer.CpuAddr() + copy.src_offset;
-            device_memory.WriteBlockUnsafe(copy_device_addr, immediate_buffer.data(), copy.size);
+            if (mirror_pointer != nullptr) {
+                mirror_download_hit_copies++;
+                mirror_download_hit_bytes += copy.size;
+                if (!mirror_download_logged) [[unlikely]] {
+                    LOG_INFO(HW_GPU, "Buffer mirror fast path active for download sync");
+                    mirror_download_logged = true;
+                }
+                std::memcpy(mirror_pointer + static_cast<size_t>(copy.src_offset),
+                            immediate_buffer.data(), copy.size);
+            } else {
+                mirror_download_miss_copies++;
+                mirror_download_miss_bytes += copy.size;
+                device_memory.WriteBlockUnsafe(copy_device_addr, immediate_buffer.data(),
+                                               copy.size);
+            }
         }
     }
 }
@@ -1844,6 +2053,10 @@ void BufferCache<P>::DeleteBuffer(BufferId buffer_id, bool do_not_mark) {
     if (!do_not_mark) {
         Buffer& buffer = slot_buffers[buffer_id];
         memory_tracker.MarkRegionAsCpuModified(buffer.CpuAddr(), buffer.SizeBytes());
+        buffer_mirrors.erase(buffer.CpuAddr());
+    } else {
+        const Buffer& buffer = slot_buffers[buffer_id];
+        buffer_mirrors.erase(buffer.CpuAddr());
     }
 
     Unregister(buffer_id);

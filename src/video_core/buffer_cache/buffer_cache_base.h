@@ -473,6 +473,8 @@ private:
     Tegra::MaxwellDeviceMemoryManager& device_memory;
 
     Common::SlotVector<Buffer> slot_buffers;
+    ankerl::unordered_dense::map<DAddr, Tegra::MaxwellDeviceMemoryManager::MirrorMapping>
+        buffer_mirrors;
 #ifdef YUZU_LEGACY
     static constexpr size_t TICKS_TO_DESTROY = 6;
 #else
@@ -522,6 +524,26 @@ private:
 
     std::array<BufferId, ((1ULL << 34) >> CACHING_PAGEBITS)> page_table;
     Common::ScratchBuffer<u8> tmp_buffer;
+    bool mirror_creation_logged = false;
+    bool mirror_upload_logged = false;
+    bool mirror_download_logged = false;
+    u64 mirror_mapping_version = 0;
+    u64 mirror_upload_hit_copies = 0;
+    u64 mirror_upload_miss_copies = 0;
+    u64 mirror_upload_hit_bytes = 0;
+    u64 mirror_upload_miss_bytes = 0;
+    u64 mirror_download_hit_copies = 0;
+    u64 mirror_download_miss_copies = 0;
+    u64 mirror_download_hit_bytes = 0;
+    u64 mirror_download_miss_bytes = 0;
+    u64 mirror_upload_hit_copies_last = 0;
+    u64 mirror_upload_miss_copies_last = 0;
+    u64 mirror_upload_hit_bytes_last = 0;
+    u64 mirror_upload_miss_bytes_last = 0;
+    u64 mirror_download_hit_copies_last = 0;
+    u64 mirror_download_miss_copies_last = 0;
+    u64 mirror_download_hit_bytes_last = 0;
+    u64 mirror_download_miss_bytes_last = 0;
 };
 
 } // namespace VideoCommon
