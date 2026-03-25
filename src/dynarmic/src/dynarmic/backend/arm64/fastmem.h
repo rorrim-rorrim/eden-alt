@@ -12,8 +12,8 @@
 #include <tuple>
 #include <ankerl/unordered_dense.h>
 
+#include "dynarmic/mcl/bit.hpp"
 #include "dynarmic/common/common_types.h"
-
 #include "dynarmic/backend/exception_handler.h"
 #include "dynarmic/ir/location_descriptor.h"
 
@@ -27,13 +27,9 @@ constexpr size_t xmrx(size_t x) noexcept {
     x ^= mcl::bit::rotate_right(x, 47) ^ mcl::bit::rotate_right(x, 23);
     return x;
 }
-template<typename T>
-struct avalanche_xmrx {
-    size_t operator()(const T& value) const noexcept { return xmrx(std::hash<T>{}(value)); }
-};
 
 struct DoNotFastmemMarkerHash {
-    size_t operator()(const DoNotFastmemMarker& value) const noexcept {
+    [[nodiscard]] constexpr size_t operator()(const DoNotFastmemMarker& value) const noexcept {
         return xmrx(std::get<0>(value).Value() ^ u64(std::get<1>(value)));
     }
 };
