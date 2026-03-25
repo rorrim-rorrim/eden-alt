@@ -4,6 +4,7 @@
 #pragma once
 
 #include <type_traits>
+#define XBYAK_NO_EXCEPTION 1
 #include <xbyak/xbyak.h>
 #include "common/x64/xbyak_abi.h"
 

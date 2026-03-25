@@ -21,6 +21,7 @@
 #pragma clang diagnostic ignored "-Wconversion"
 #pragma clang diagnostic ignored "-Wshadow"
 #endif
+#define XBYAK_NO_EXCEPTION 1
 #include <xbyak/xbyak.h>
 #endif
 

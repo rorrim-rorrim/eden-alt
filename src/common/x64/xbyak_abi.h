@@ -5,6 +5,7 @@
 
 #include <bitset>
 #include <initializer_list>
+#define XBYAK_NO_EXCEPTION 1
 #include <xbyak/xbyak.h>
 #include "common/assert.h"
 
