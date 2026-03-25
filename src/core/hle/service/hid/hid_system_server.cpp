@@ -728,7 +728,7 @@ void IHidSystemServer::AcquireConnectionTriggerTimeoutEvent(HLERequestContext& c
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(acquire_device_registered_event->GetReadableEvent());
+    rb.PushCopyObjects(ctx, acquire_device_registered_event->GetReadableEvent());
 }
 
 void IHidSystemServer::AcquireDeviceRegisteredEventForControllerSupport(HLERequestContext& ctx) {
@@ -736,7 +736,7 @@ void IHidSystemServer::AcquireDeviceRegisteredEventForControllerSupport(HLEReque
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(acquire_device_registered_event->GetReadableEvent());
+    rb.PushCopyObjects(ctx, acquire_device_registered_event->GetReadableEvent());
 }
 
 void IHidSystemServer::GetRegisteredDevices(HLERequestContext& ctx) {
@@ -761,7 +761,7 @@ void IHidSystemServer::AcquireUniquePadConnectionEventHandle(HLERequestContext& 
     LOG_WARNING(Service_HID, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.PushCopyObjects(unique_pad_connection_event->GetReadableEvent());
+    rb.PushCopyObjects(ctx, unique_pad_connection_event->GetReadableEvent());
     rb.Push(ResultSuccess);
 }
 
@@ -778,7 +778,7 @@ void IHidSystemServer::AcquireJoyDetachOnBluetoothOffEventHandle(HLERequestConte
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(joy_detach_event->GetReadableEvent());
+    rb.PushCopyObjects(ctx, joy_detach_event->GetReadableEvent());
 }
 
 void IHidSystemServer::IsUsbFullKeyControllerEnabled(HLERequestContext& ctx) {

@@ -162,7 +162,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 10, 1};
         rb.Push(ResultSuccess);
-        rb.PushCopyObjects(*process);
+        rb.PushCopyObjects(ctx, *process);
         rb.PushRaw(program_location);
         rb.PushRaw(override_status);
     }

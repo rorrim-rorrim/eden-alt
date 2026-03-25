@@ -163,7 +163,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(readable_event.Signal());
-        rb.PushCopyObjects(readable_event);
+        rb.PushCopyObjects(ctx, readable_event);
     }
 
     void Cancel(HLERequestContext& ctx) {
@@ -379,7 +379,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(ResultSuccess);
-        rb.PushCopyObjects(notification_event->GetReadableEvent());
+        rb.PushCopyObjects(ctx, notification_event->GetReadableEvent());
     }
 
     void Clear(HLERequestContext& ctx) {
@@ -455,7 +455,7 @@ private:
 void Module::Interface::CreateFriendService(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IFriendService>(system);
+    rb.PushIpcInterface<IFriendService>(ctx, system);
     LOG_DEBUG(Service_Friend, "called");
 }
 
@@ -467,12 +467,12 @@ void Module::Interface::CreateNotificationService(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<INotificationService>(system, uuid);
+    rb.PushIpcInterface<INotificationService>(ctx, system, uuid);
 }
 
-Module::Interface::Interface(std::shared_ptr<Module> module_, Core::System& system_,
-                             const char* name)
-    : ServiceFramework{system_, name}, module{std::move(module_)} {}
+Module::Interface::Interface(std::shared_ptr<Module> module_, Core::System& system_, const char* name)
+    : ServiceFramework{system_, name}, module{std::move(module_)}
+{}
 
 Module::Interface::~Interface() = default;
 

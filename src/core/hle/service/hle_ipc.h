@@ -27,7 +27,7 @@ class Memory;
 }
 
 namespace IPC {
-class ResponseBuilder;
+struct ResponseBuilder;
 }
 
 namespace Service {
@@ -390,7 +390,7 @@ public:
     }
 
 private:
-    friend class IPC::ResponseBuilder;
+    friend struct IPC::ResponseBuilder;
 
     void ParseCommandBuffer(u32_le* src_cmdbuf, bool incoming);
 
