@@ -95,7 +95,7 @@ else()
         -pedantic
         -Wno-missing-braces
         -fno-rtti
-        #-fno-exceptions
+        -fno-exceptions
     )
     if (CXX_GCC)
         # GCC produces bogus -Warray-bounds warnings from xbyak headers for code paths that are not
