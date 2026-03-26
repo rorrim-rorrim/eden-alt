@@ -505,14 +505,8 @@ public:
         fd = shm_open_anon(O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0600);
 #elif defined(__OpenBSD__)
         fd = shm_open_anon(O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0600);
-#elif defined(__FreeBSD__) && __FreeBSD__ < 13
-        // XXX Drop after FreeBSD 12.* reaches EOL on 2024-06-30
+#elif defined(__FreeBSD__)
         fd = shm_open(SHM_ANON, O_RDWR, 0600);
-#elif defined (__FreeBSD__) && __FreeBSD__ >= 13
-        fd = shm_open(SHM_ANON, O_RDWR, 0600);
-        // fd = shm_create_largepage(SHM_ANON, O_RDWR, 1, SHM_LARGEPAGE_ALLOC_DEFAULT, 0600);
-        // LOG_WARNING(Common_Memory, "fd = {}", fd);
-        // LOG_WARNING(Common_Memory, "memfd_create: {}", strerror(errno));
 #elif defined(__APPLE__)
         // macOS doesn't have memfd_create, use anonymous temporary file
         char template_path[] = "/tmp/eden_mem_XXXXXX";
