@@ -484,10 +484,10 @@ endfunction()
 # =============================================
 
 if (APPLE)
-    # Umbrella framework for everything GUI-related
-    find_library(COCOA_LIBRARY Cocoa REQUIRED)
-    find_library(IOKIT_LIBRARY IOKit REQUIRED)
-    set(PLATFORM_LIBRARIES ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
+    foreach(fw Carbon Metal Cocoa IOKit CoreVideo CoreMedia)
+        find_library(${fw}_LIBRARY ${fw} REQUIRED)
+        list(APPEND PLATFORM_LIBRARIES ${${fw}_LIBRARY})
+    endforeach()
 elseif (WIN32)
     # Target Windows 10
     add_compile_definitions(_WIN32_WINNT=0x0A00 WINVER=0x0A00)
@@ -499,7 +499,7 @@ elseif (WIN32)
 elseif (PLATFORM_HAIKU)
     # Haiku is so special :)
     set(PLATFORM_LIBRARIES bsd /boot/system/lib/libnetwork.so)
-elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
+elseif (CMAKE_SYSTEM_ NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
     set(PLATFORM_LIBRARIES rt)
 endif()
 
