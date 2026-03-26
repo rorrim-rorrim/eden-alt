@@ -499,7 +499,7 @@ elseif (WIN32)
 elseif (PLATFORM_HAIKU)
     # Haiku is so special :)
     set(PLATFORM_LIBRARIES bsd /boot/system/lib/libnetwork.so)
-elseif (CMAKE_SYSTEM_ NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
+elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
     set(PLATFORM_LIBRARIES rt)
 endif()
 
