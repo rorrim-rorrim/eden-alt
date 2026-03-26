@@ -95,7 +95,6 @@ else()
         -pedantic
         -Wno-missing-braces
         -fno-rtti
-        -fno-exceptions
     )
     if (CXX_GCC)
         # GCC produces bogus -Warray-bounds warnings from xbyak headers for code paths that are not
@@ -112,6 +111,10 @@ else()
         list(APPEND DYNARMIC_CXX_FLAGS -fbracket-depth=1024)
         # Clang mistakenly blames CMake for using unused arguments during compilation
         list(APPEND DYNARMIC_CXX_FLAGS -Wno-unused-command-line-argument)
+    endif()
+    # TODO: oaknut exceptions
+    if ("x86_64" IN_LIST ARCHITECTURE)
+        list(APPEND DYNARMIC_CXX_FLAGS -fno-exceptions)
     endif()
 endif()
 
