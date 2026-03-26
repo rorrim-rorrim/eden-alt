@@ -227,8 +227,7 @@ endif()
 if(CXX_CLANG)
     target_compile_options(common PRIVATE
         $<$<COMPILE_LANGUAGE:C,CXX>:-fsized-deallocation>
-        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=unreachable-code-aggressive>
-    )
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=unreachable-code-aggressive>)
     target_compile_definitions(
         common
         PRIVATE
