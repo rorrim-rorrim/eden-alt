@@ -640,7 +640,7 @@ struct Values {
     SwitchableSetting<TimeZone, true> time_zone_index{linkage, TimeZone::Auto, "time_zone_index", Category::System};
     Setting<u32> serial_battery{linkage, 0, "serial_battery", Category::System};
     Setting<u32> serial_unit{linkage, 0, "serial_unit", Category::System};
-    Setting<u32> product_model{linkage, 0, "product_model", Category::System};
+    Setting<u32> product_model{linkage, 1, "product_model", Category::System};
     // Measured in seconds since epoch
     SwitchableSetting<bool> custom_rtc_enabled{linkage, false, "custom_rtc_enabled", Category::System, Specialization::Paired, true, true};
     SwitchableSetting<s64> custom_rtc{
