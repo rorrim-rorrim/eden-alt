@@ -30,6 +30,8 @@
 #include <sys/random.h>
 #include <mach/vm_map.h>
 #include <mach/mach.h>
+#elif defined(__FreeBSD__)
+#include <sys/shm.h>
 #endif
 
 // FreeBSD
@@ -506,6 +508,11 @@ public:
 #elif defined(__FreeBSD__) && __FreeBSD__ < 13
         // XXX Drop after FreeBSD 12.* reaches EOL on 2024-06-30
         fd = shm_open(SHM_ANON, O_RDWR, 0600);
+#elif defined (__FreeBSD__) && __FreeBSD__ >= 13
+        fd = shm_open(SHM_ANON, O_RDWR, 0600);
+        // fd = shm_create_largepage(SHM_ANON, O_RDWR, 1, SHM_LARGEPAGE_ALLOC_DEFAULT, 0600);
+        // LOG_WARNING(Common_Memory, "fd = {}", fd);
+        // LOG_WARNING(Common_Memory, "memfd_create: {}", strerror(errno));
 #elif defined(__APPLE__)
         // macOS doesn't have memfd_create, use anonymous temporary file
         char template_path[] = "/tmp/eden_mem_XXXXXX";
@@ -571,9 +578,9 @@ public:
         if (True(perms & MemoryPermission::Execute))
             prot_flags |= PROT_EXEC;
 #endif
-        int flags = (fd > 0 ? MAP_SHARED : MAP_PRIVATE) | MAP_FIXED;
+        int flags = (fd >= 0 ? MAP_SHARED : MAP_PRIVATE) | MAP_FIXED;
         void* ret = mmap(virtual_base + virtual_offset, length, prot_flags, flags, fd, host_offset);
-        ASSERT_MSG(ret != MAP_FAILED, "mmap: {}", strerror(errno));
+        ASSERT_MSG(ret != MAP_FAILED, "mmap: {} {}", strerror(errno), fd);
     }
 
     void Unmap(size_t virtual_offset, size_t length) {
@@ -587,9 +594,8 @@ public:
         auto [merged_pointer, merged_size] =
             free_manager.FreeBlock(virtual_base + virtual_offset, length);
 
-        void* ret = mmap(merged_pointer, merged_size, PROT_NONE,
-                         MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
-        ASSERT_MSG(ret != MAP_FAILED, "mmap failed: {}", strerror(errno));
+        void* ret = mmap(merged_pointer, merged_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+        ASSERT_MSG(ret != MAP_FAILED, "mmap: {}", strerror(errno));
     }
 
     void Protect(size_t virtual_offset, size_t length, bool read, bool write, bool execute) {
