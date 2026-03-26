@@ -158,8 +158,7 @@ if (CXX_CLANG_CL)
     if (ARCHITECTURE_x86_64)
         add_compile_options(
             $<$<COMPILE_LANGUAGE:C,CXX>:-msse4.1>
-            $<$<COMPILE_LANGUAGE:C,CXX>:-mcx16>
-        )
+            $<$<COMPILE_LANGUAGE:C,CXX>:-mcx16>)
     endif()
 endif()
 
@@ -402,8 +401,7 @@ if (Boost_ADDED)
         target_compile_options(boost_icl INTERFACE $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-shadow>)
         target_compile_options(boost_asio INTERFACE
             $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-conversion>
-            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-implicit-fallthrough>
-        )
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-implicit-fallthrough>)
     endif()
 endif()
 
@@ -441,9 +439,7 @@ if (NOT YUZU_STATIC_ROOM)
 
     if (Opus_ADDED)
         if (MSVC AND CXX_CLANG)
-            target_compile_options(opus PRIVATE
-                $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-implicit-function-declaration>
-            )
+            target_compile_options(opus PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-implicit-function-declaration>)
         endif()
     endif()
 
