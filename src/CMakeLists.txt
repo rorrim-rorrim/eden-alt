@@ -120,9 +120,8 @@ else()
         add_compile_options(
             $<$<COMPILE_LANGUAGE:C,CXX>:-fwrapv>
             $<$<COMPILE_LANGUAGE:C,CXX>:-pipe>
-        )
-        # Disable RTTI (C++ only)
-        add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+            # Disable RTTI (C++ only)
+            $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
     endif()
 
     add_compile_options(
@@ -131,27 +130,22 @@ else()
         $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=missing-declarations>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=shadow>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=unused>
-
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-attributes>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-invalid-offsetof>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-parameter>
-        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-missing-field-initializers>
-    )
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-missing-field-initializers>)
 
     if (CXX_CLANG OR CXX_ICC OR CXX_APPLE) # Clang, AppleClang, or Intel C++
         if (NOT MSVC)
             add_compile_options(
                 $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=shadow-uncaptured-local>
                 $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=implicit-fallthrough>
-                $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=type-limits>
-            )
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=type-limits>)
         endif()
-
         add_compile_options(
             $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-braced-scalar-init>
             $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-private-field>
-            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-nullability-completeness>
-        )
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-nullability-completeness>)
     endif()
 
     if (ARCHITECTURE_x86_64)
@@ -169,8 +163,7 @@ else()
         add_compile_options(
             $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-array-bounds>
             $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-stringop-overread>
-            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-stringop-overflow>
-        )
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-stringop-overflow>)
     endif()
 
     # Set file offset size to 64 bits.

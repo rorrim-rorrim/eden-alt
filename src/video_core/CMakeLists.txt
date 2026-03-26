@@ -365,8 +365,7 @@ else()
         # error: implicit conversion loses integer precision: 'int' to 'boost::icl::bound_type' (aka 'unsigned char')
         target_compile_options(video_core PRIVATE
             $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-shadow>
-            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-local-typedef>
-        )
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-local-typedef>)
     else()
         target_compile_options(video_core PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=conversion>)
     endif()

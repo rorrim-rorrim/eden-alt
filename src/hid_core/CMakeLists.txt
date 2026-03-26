@@ -154,8 +154,7 @@ else()
         $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=conversion>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-conversion>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-cast-function-type>
-        $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>
-    )
+        $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>)
 endif()
 
 create_target_directory_groups(hid_core)
