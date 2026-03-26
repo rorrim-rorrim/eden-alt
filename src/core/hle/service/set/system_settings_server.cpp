@@ -1158,7 +1158,7 @@ Result ISystemSettingsServer::SetDeviceNickName(
 
 Result ISystemSettingsServer::GetProductModel(Out<u32> out_product_model) {
     // Most certainly should be 1 -- definitely should not be 2, but it's worth tinkering with anyways
-    u32 const product_model = 1;
+    auto const product_model = ::Settings::values.product_model.GetValue();
     LOG_WARNING(Service_SET, "(STUBBED) called, product_model={}", product_model);
     *out_product_model = product_model;
     R_SUCCEED();

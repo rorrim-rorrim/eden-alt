@@ -329,6 +329,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent) {
     INSERT(Settings, current_user, QString(), QString());
     INSERT(Settings, serial_unit, tr("Unit Serial"), QString());
     INSERT(Settings, serial_battery, tr("Battery Serial"), QString());
+    INSERT(Settings, product_model, tr("Product Model"), QString());
     INSERT(Settings, debug_knobs, tr("Debug knobs"), QString());
 
     // Controls
