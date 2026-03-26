@@ -1265,6 +1265,7 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.GPU_LOG_MEMORY_TRACKING.key)
             add(BooleanSetting.GPU_LOG_DRIVER_DEBUG.key)
             add(IntSetting.GPU_LOG_RING_BUFFER_SIZE.key)
+            add(IntSetting.PRODUCT_MODEL.key)
         }
     }
 

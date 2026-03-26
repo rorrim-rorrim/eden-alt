@@ -965,6 +965,16 @@ abstract class SettingsItem(
                     max = 4096
                 )
             )
+            put(
+                SpinBoxSetting(
+                    IntSetting.PRODUCT_MODEL,
+                    titleId = R.string.product_model,
+                    descriptionId = R.string.product_model_description,
+                    valueHint = R.string.product_model,
+                    min = 1,
+                    max = 2
+                )
+            )
 
             val fastmem = object : AbstractBooleanSetting {
                 override fun getBoolean(needsGlobal: Boolean): Boolean =

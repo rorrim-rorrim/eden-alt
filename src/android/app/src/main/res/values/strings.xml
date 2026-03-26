@@ -586,6 +586,9 @@
     <string name="gpu_log_ring_buffer_size_description">Number of recent Vulkan calls to track (default: 512)</string>
     <string name="gpu_log_ring_buffer_size_hint">64 to 4096 entries</string>
 
+    <string name="product_model">Product model</string>
+    <string name="product_model_description">Reported product model by HLE firmware</string>
+
     <string name="general">General</string>
 
     <!-- Audio settings strings -->
