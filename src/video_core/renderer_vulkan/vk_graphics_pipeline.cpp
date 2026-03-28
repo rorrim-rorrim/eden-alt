@@ -8,7 +8,6 @@
 #include <iostream>
 #include <span>
 
-#include <boost/container/small_vector.hpp>
 #include <boost/container/static_vector.hpp>
 #include <fmt/format.h>
 
@@ -37,7 +36,6 @@
 
 namespace Vulkan {
 namespace {
-using boost::container::small_vector;
 using boost::container::static_vector;
 using Shader::ImageBufferDescriptor;
 using Shader::Backend::SPIRV::RENDERAREA_LAYOUT_OFFSET;
@@ -49,7 +47,7 @@ using VideoCore::Surface::PixelFormatFromDepthFormat;
 using VideoCore::Surface::PixelFormatFromRenderTargetFormat;
 
 constexpr size_t NUM_STAGES = Maxwell::MaxShaderStage;
-constexpr size_t INLINE_IMAGE_ELEMENTS = 64;
+constexpr size_t MAX_IMAGE_ELEMENTS = 128;
 
 DescriptorLayoutBuilder MakeBuilder(const Device& device, std::span<const Shader::Info> infos) {
     DescriptorLayoutBuilder builder{device};
@@ -314,8 +312,8 @@ void GraphicsPipeline::AddTransition(GraphicsPipeline* transition) {
 
 template <typename Spec>
 bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
-    small_vector<VideoCommon::ImageViewInOut, INLINE_IMAGE_ELEMENTS> views;
-    small_vector<VideoCommon::SamplerId, INLINE_IMAGE_ELEMENTS> samplers;
+    boost::container::static_vector<VideoCommon::ImageViewInOut, MAX_IMAGE_ELEMENTS> views;
+    boost::container::static_vector<VideoCommon::SamplerId, MAX_IMAGE_ELEMENTS> samplers;
     views.reserve(num_image_elements);
     samplers.reserve(num_textures);
 
