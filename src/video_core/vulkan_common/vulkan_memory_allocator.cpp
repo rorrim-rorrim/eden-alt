@@ -26,84 +26,58 @@
 #include "common/settings.h"
 
 namespace Vulkan {
-    namespace {
+namespace {
 
-// Helpers translating MemoryUsage to flags/usage
+[[nodiscard]] VkMemoryPropertyFlags MemoryUsagePreferredVmaFlags(MemoryUsage usage) {
+    if (usage == MemoryUsage::Download)
+        return VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    return usage != MemoryUsage::DeviceLocal ? VK_MEMORY_PROPERTY_HOST_COHERENT_BIT : VkMemoryPropertyFlagBits{};
+}
 
-        [[maybe_unused]] VkMemoryPropertyFlags MemoryUsagePropertyFlags(MemoryUsage usage) {
-            switch (usage) {
-                case MemoryUsage::DeviceLocal:
-                    return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-                case MemoryUsage::Upload:
-                    return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                           VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-                case MemoryUsage::Download:
-                    return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                           VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
-                           VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
-                case MemoryUsage::Stream:
-                    return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
-                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                           VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-            }
-            ASSERT_MSG(false, "Invalid memory usage={}", usage);
-            return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        }
+[[nodiscard]] VmaAllocationCreateFlags MemoryUsageVmaFlags(MemoryUsage usage) {
+    switch (usage) {
+    case MemoryUsage::Upload:
+    case MemoryUsage::Stream:
+        return VMA_ALLOCATION_CREATE_MAPPED_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+    case MemoryUsage::Download:
+        return VMA_ALLOCATION_CREATE_MAPPED_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+    case MemoryUsage::DeviceLocal:
+        return {};
+    }
+    return {};
+}
 
-        [[nodiscard]] VkMemoryPropertyFlags MemoryUsagePreferredVmaFlags(MemoryUsage usage) {
-            if (usage == MemoryUsage::Download) {
-                return VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-            }
-            return usage != MemoryUsage::DeviceLocal ? VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-                                                     : VkMemoryPropertyFlagBits{};
-        }
-
-        [[nodiscard]] VmaAllocationCreateFlags MemoryUsageVmaFlags(MemoryUsage usage) {
-            switch (usage) {
-                case MemoryUsage::Upload:
-                case MemoryUsage::Stream:
-                    return VMA_ALLOCATION_CREATE_MAPPED_BIT |
-                           VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
-                case MemoryUsage::Download:
-                    return VMA_ALLOCATION_CREATE_MAPPED_BIT |
-                           VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
-                case MemoryUsage::DeviceLocal:
-                    return {};
-            }
-            return {};
-        }
-
-        [[nodiscard]] VmaMemoryUsage MemoryUsageVma(MemoryUsage usage) {
-            switch (usage) {
-                case MemoryUsage::DeviceLocal:
-                case MemoryUsage::Stream:
-                    return VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
-                case MemoryUsage::Upload:
-                case MemoryUsage::Download:
-                    return VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
-            }
-            return VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
-        }
+[[nodiscard]] VmaMemoryUsage MemoryUsageVma(MemoryUsage usage) {
+    switch (usage) {
+    case MemoryUsage::DeviceLocal:
+    case MemoryUsage::Stream:
+        return VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+    case MemoryUsage::Upload:
+    case MemoryUsage::Download:
+        return VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+    }
+    return VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+}
 
 
 // This avoids calling vkGetBufferMemoryRequirements* directly.
-        template<typename T>
-        static VkBuffer GetVkHandleFromBuffer(const T &buf) {
-            if constexpr (requires { static_cast<VkBuffer>(buf); }) {
-                return static_cast<VkBuffer>(buf);
-            } else if constexpr (requires {{ buf.GetHandle() } -> std::convertible_to<VkBuffer>; }) {
-                return buf.GetHandle();
-            } else if constexpr (requires {{ buf.Handle() } -> std::convertible_to<VkBuffer>; }) {
-                return buf.Handle();
-            } else if constexpr (requires {{ buf.vk_handle() } -> std::convertible_to<VkBuffer>; }) {
-                return buf.vk_handle();
-            } else {
-                static_assert(sizeof(T) == 0, "Cannot extract VkBuffer handle from vk::Buffer");
-                return VK_NULL_HANDLE;
-            }
-        }
+template<typename T>
+static VkBuffer GetVkHandleFromBuffer(const T &buf) {
+    if constexpr (requires { static_cast<VkBuffer>(buf); }) {
+        return static_cast<VkBuffer>(buf);
+    } else if constexpr (requires {{ buf.GetHandle() } -> std::convertible_to<VkBuffer>; }) {
+        return buf.GetHandle();
+    } else if constexpr (requires {{ buf.Handle() } -> std::convertible_to<VkBuffer>; }) {
+        return buf.Handle();
+    } else if constexpr (requires {{ buf.vk_handle() } -> std::convertible_to<VkBuffer>; }) {
+        return buf.vk_handle();
+    } else {
+        static_assert(sizeof(T) == 0, "Cannot extract VkBuffer handle from vk::Buffer");
+        return VK_NULL_HANDLE;
+    }
+}
 
-    } // namespace
+} // namespace
 
 //MemoryCommit is now VMA-backed
     MemoryCommit::MemoryCommit(VmaAllocator alloc, VmaAllocation a,
@@ -124,12 +98,12 @@ namespace Vulkan {
     MemoryCommit::~MemoryCommit() { Release(); }
 
     MemoryCommit::MemoryCommit(MemoryCommit &&rhs) noexcept
-            : allocator{std::exchange(rhs.allocator, nullptr)},
-              allocation{std::exchange(rhs.allocation, nullptr)},
-              memory{std::exchange(rhs.memory, VK_NULL_HANDLE)},
-              offset{std::exchange(rhs.offset, 0)},
-              size{std::exchange(rhs.size, 0)},
-              mapped_ptr{std::exchange(rhs.mapped_ptr, nullptr)} {}
+        : allocator{std::exchange(rhs.allocator, nullptr)},
+            allocation{std::exchange(rhs.allocation, nullptr)},
+            memory{std::exchange(rhs.memory, VK_NULL_HANDLE)},
+            offset{std::exchange(rhs.offset, 0)},
+            size{std::exchange(rhs.size, 0)},
+            mapped_ptr{std::exchange(rhs.mapped_ptr, nullptr)} {}
 
     MemoryCommit &MemoryCommit::operator=(MemoryCommit &&rhs) noexcept {
         if (this != &rhs) {
@@ -144,32 +118,27 @@ namespace Vulkan {
         return *this;
     }
 
-    std::span<u8> MemoryCommit::Map()
-    {
+    std::span<u8> MemoryCommit::Map() {
         if (!allocation) return {};
         if (!mapped_ptr) {
             if (vmaMapMemory(allocator, allocation, &mapped_ptr) != VK_SUCCESS) return {};
         }
-        const size_t n = static_cast<size_t>(std::min<VkDeviceSize>(size,
-                                                                    (std::numeric_limits<size_t>::max)()));
+        const size_t n = size_t(std::min<VkDeviceSize>(size, (std::numeric_limits<size_t>::max)()));
         return std::span<u8>{static_cast<u8 *>(mapped_ptr), n};
     }
 
-    std::span<const u8> MemoryCommit::Map() const
-    {
+    std::span<const u8> MemoryCommit::Map() const {
         if (!allocation) return {};
         if (!mapped_ptr) {
             void *p = nullptr;
             if (vmaMapMemory(allocator, allocation, &p) != VK_SUCCESS) return {};
             const_cast<MemoryCommit *>(this)->mapped_ptr = p;
         }
-        const size_t n = static_cast<size_t>(std::min<VkDeviceSize>(size,
-                                                                    (std::numeric_limits<size_t>::max)()));
+        const size_t n = size_t(std::min<VkDeviceSize>(size, (std::numeric_limits<size_t>::max)()));
         return std::span<const u8>{static_cast<const u8 *>(mapped_ptr), n};
     }
 
-    void MemoryCommit::Unmap()
-    {
+    void MemoryCommit::Unmap() {
         if (allocation && mapped_ptr) {
             vmaUnmapMemory(allocator, allocation);
             mapped_ptr = nullptr;
@@ -182,9 +151,7 @@ namespace Vulkan {
             if (Settings::values.gpu_logging_enabled.GetValue() &&
                 Settings::values.gpu_log_memory_tracking.GetValue() &&
                 memory != VK_NULL_HANDLE) {
-                GPU::Logging::GPULogger::GetInstance().LogMemoryDeallocation(
-                    reinterpret_cast<uintptr_t>(memory)
-                );
+                GPU::Logging::GPULogger::GetInstance().LogMemoryDeallocation(uintptr_t(memory));
             }
 
             if (mapped_ptr) {
@@ -201,22 +168,18 @@ namespace Vulkan {
     }
 
     MemoryAllocator::MemoryAllocator(const Device &device_)
-            : device{device_}, allocator{device.GetAllocator()},
-              properties{device_.GetPhysical().GetMemoryProperties().memoryProperties},
-              buffer_image_granularity{
-                      device_.GetPhysical().GetProperties().limits.bufferImageGranularity} {
-
+        : device{device_}, allocator{device.GetAllocator()}
+        , properties{device_.GetPhysical().GetMemoryProperties().memoryProperties}
+        , buffer_image_granularity{device_.GetPhysical().GetProperties().limits.bufferImageGranularity}
+    {
         // Preserve the previous "RenderDoc small heap" trimming behavior that we had in original vma minus the heap bug
-        if (device.HasDebuggingToolAttached())
-        {
+        if (device.HasDebuggingToolAttached()) {
             using namespace Common::Literals;
             ForEachDeviceLocalHostVisibleHeap(device, [this](size_t heap_idx, VkMemoryHeap &heap) {
                 if (heap.size <= 256_MiB) {
-                    for (u32 t = 0; t < properties.memoryTypeCount; ++t) {
-                        if (properties.memoryTypes[t].heapIndex == heap_idx) {
+                    for (u32 t = 0; t < properties.memoryTypeCount; ++t)
+                        if (properties.memoryTypes[t].heapIndex == heap_idx)
                             valid_memory_types &= ~(1u << t);
-                        }
-                    }
                 }
             });
         }
@@ -224,17 +187,16 @@ namespace Vulkan {
 
     MemoryAllocator::~MemoryAllocator() = default;
 
-    vk::Image MemoryAllocator::CreateImage(const VkImageCreateInfo &ci) const
-    {
+    vk::Image MemoryAllocator::CreateImage(const VkImageCreateInfo &ci) const {
         const VmaAllocationCreateInfo alloc_ci = {
-                .flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT,
-                .usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
-                .requiredFlags = 0,
-                .preferredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                .memoryTypeBits = 0,
-                .pool = VK_NULL_HANDLE,
-                .pUserData = nullptr,
-                .priority = 0.f,
+            .flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT,
+            .usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+            .requiredFlags = 0,
+            .preferredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            .memoryTypeBits = 0,
+            .pool = VK_NULL_HANDLE,
+            .pUserData = nullptr,
+            .priority = 0.f,
         };
 
         VkImage handle{};
@@ -246,28 +208,29 @@ namespace Vulkan {
         if (Settings::values.gpu_logging_enabled.GetValue() &&
             Settings::values.gpu_log_memory_tracking.GetValue()) {
             GPU::Logging::GPULogger::GetInstance().LogMemoryAllocation(
-                reinterpret_cast<uintptr_t>(alloc_info.deviceMemory),
-                static_cast<u64>(alloc_info.size),
+                uintptr_t(alloc_info.deviceMemory),
+                u64(alloc_info.size),
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
             );
         }
 
-        return vk::Image(handle, ci.usage, *device.GetLogical(), allocator, allocation,
-                         device.GetDispatchLoader());
+        return vk::Image(handle, ci.usage, *device.GetLogical(), allocator, allocation, device.GetDispatchLoader());
     }
 
-    vk::Buffer
-    MemoryAllocator::CreateBuffer(const VkBufferCreateInfo &ci, MemoryUsage usage) const
-    {
+    vk::Buffer MemoryAllocator::CreateBuffer(const VkBufferCreateInfo &ci, MemoryUsage usage) const {
+        // MESA will do memcpy() if not marked as host cached, so just force mark it for most buffers
+        auto const anv_flags = (usage == MemoryUsage::Stream
+            && device.GetDriverID() == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA)
+            ? VK_MEMORY_PROPERTY_HOST_CACHED_BIT : 0;
         const VmaAllocationCreateInfo alloc_ci = {
-                .flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT | MemoryUsageVmaFlags(usage),
-                .usage = MemoryUsageVma(usage),
-                .requiredFlags = 0,
-                .preferredFlags = MemoryUsagePreferredVmaFlags(usage),
-                .memoryTypeBits = usage == MemoryUsage::Stream ? 0u : valid_memory_types,
-                .pool = VK_NULL_HANDLE,
-                .pUserData = nullptr,
-                .priority = 0.f,
+            .flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT | MemoryUsageVmaFlags(usage),
+            .usage = MemoryUsageVma(usage),
+            .requiredFlags = 0,
+            .preferredFlags = MemoryUsagePreferredVmaFlags(usage) | anv_flags,
+            .memoryTypeBits = usage == MemoryUsage::Stream ? 0u : valid_memory_types,
+            .pool = VK_NULL_HANDLE,
+            .pUserData = nullptr,
+            .priority = 0.f,
         };
 
         VkBuffer handle{};
