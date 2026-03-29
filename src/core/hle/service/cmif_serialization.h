@@ -438,7 +438,7 @@ void WriteOutArgument(bool is_domain, CallArguments& args, u8* raw_data, HLERequ
 
 template <bool Domain, typename T, typename... A>
 void CmifReplyWrapImpl(HLERequestContext& ctx, T& t, Result (T::*f)(A...)) {
-    const auto mgr = ctx.GetManager();
+    const auto mgr = ctx.GetManager().get();
     // Verify domain state.
     if constexpr (!Domain) {
         const bool is_domain = mgr ? mgr->IsDomain() : false;
