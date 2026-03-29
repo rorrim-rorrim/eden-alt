@@ -37,17 +37,11 @@ inline size_t ToFastLookupIndexArm(u32 instruction) noexcept {
 
 template<typename V>
 constexpr ArmDecodeTable<V> GetArmDecodeTable() noexcept {
-    std::vector<ArmMatcher<V>> list = {
+    constexpr std::vector<ArmMatcher<V>> list = {
 #define INST(fn, name, bitstring) DYNARMIC_DECODER_GET_MATCHER(ArmMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)),
 #include "./arm.inc"
 #undef INST
     };
-
-    // If a matcher has more bits in its mask it is more specific, so it should come first.
-    std::stable_sort(list.begin(), list.end(), [](const auto& matcher1, const auto& matcher2) {
-        return mcl::bit::count_ones(matcher1.GetMask()) > mcl::bit::count_ones(matcher2.GetMask());
-    });
-
     ArmDecodeTable<V> table{};
     for (size_t i = 0; i < table.size(); ++i) {
         for (auto matcher : list) {
