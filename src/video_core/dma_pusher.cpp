@@ -83,12 +83,13 @@ bool DmaPusher::Step() {
     }
 
     if (header.size > 0) {
-         if (dma_state.method == ComputeInline || (Settings::IsDMALevelDefault() ? Settings::IsGPULevelLow() : Settings::IsDMALevelSafe())) {           
+        if (dma_state.method == ComputeInline || (Settings::IsDMALevelDefault() ? Settings::IsGPULevelLow() : Settings::IsDMALevelSafe())) {           
             Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::SafeRead>headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
             ProcessCommands(headers);
         } else {
             Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::UnsafeRead>headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
             ProcessCommands(headers);
+        }
     }
 
     if (++dma_pushbuffer_subindex >= command_list_size) {
