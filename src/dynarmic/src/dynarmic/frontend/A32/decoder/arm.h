@@ -36,19 +36,19 @@ inline size_t ToFastLookupIndexArm(u32 instruction) noexcept {
 }  // namespace detail
 
 template<typename V>
-constexpr ArmDecodeTable<V> GetArmDecodeTable() noexcept {
-    constexpr std::vector<ArmMatcher<V>> list = {
+static ArmDecodeTable<V> GetArmDecodeTable() noexcept {
+    ArmDecodeTable<V> table{};
+    for (size_t i = 0; i < table.size(); ++i) {
+        // PLEASE HEAP ELLIDE
+        for (auto const e : std::vector<ArmMatcher<V>>{
 #define INST(fn, name, bitstring) DYNARMIC_DECODER_GET_MATCHER(ArmMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)),
 #include "./arm.inc"
 #undef INST
-    };
-    ArmDecodeTable<V> table{};
-    for (size_t i = 0; i < table.size(); ++i) {
-        for (auto matcher : list) {
-            const auto expect = detail::ToFastLookupIndexArm(matcher.GetExpected());
-            const auto mask = detail::ToFastLookupIndexArm(matcher.GetMask());
+        }) {
+            auto const expect = detail::ToFastLookupIndexArm(e.GetExpected());
+            auto const mask = detail::ToFastLookupIndexArm(e.GetMask());
             if ((i & mask) == expect) {
-                table[i].push_back(matcher);
+                table[i].push_back(e);
             }
         }
     }
@@ -56,7 +56,7 @@ constexpr ArmDecodeTable<V> GetArmDecodeTable() noexcept {
 }
 
 template<typename V>
-std::optional<std::reference_wrapper<const ArmMatcher<V>>> DecodeArm(u32 instruction) noexcept {
+static std::optional<std::reference_wrapper<const ArmMatcher<V>>> DecodeArm(u32 instruction) noexcept {
     alignas(64) static const auto table = GetArmDecodeTable<V>();
     const auto matches_instruction = [instruction](const auto& matcher) {
         return matcher.Matches(instruction);
@@ -67,7 +67,7 @@ std::optional<std::reference_wrapper<const ArmMatcher<V>>> DecodeArm(u32 instruc
 }
 
 template<typename V>
-std::optional<std::string_view> GetNameARM(u32 inst) noexcept {
+static std::optional<std::string_view> GetNameARM(u32 inst) noexcept {
     std::vector<std::pair<std::string_view, ArmMatcher<V>>> list = {
 #define INST(fn, name, bitstring) { name, DYNARMIC_DECODER_GET_MATCHER(ArmMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)) },
 #include "./arm.inc"

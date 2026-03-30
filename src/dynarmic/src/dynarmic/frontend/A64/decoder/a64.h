@@ -36,19 +36,19 @@ inline size_t ToFastLookupIndex(u32 instruction) {
 }  // namespace detail
 
 template<typename V>
-constexpr DecodeTable<V> GetDecodeTable() {
-    constexpr std::vector<Matcher<V>> list = {
-#define INST(fn, name, bitstring) { name, DYNARMIC_DECODER_GET_MATCHER(Matcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)) },
-#include "./a64.inc"
-#undef INST
-    };
+inline DecodeTable<V> GetDecodeTable() {
     DecodeTable<V> table{};
     for (size_t i = 0; i < table.size(); ++i) {
-        for (auto const& e : list) {
-            const auto expect = detail::ToFastLookupIndex(e.second.GetExpected());
-            const auto mask = detail::ToFastLookupIndex(e.second.GetMask());
+        // PLEASE HEAP ELLIDE
+        for (auto const e : std::vector<Matcher<V>>{
+#define INST(fn, name, bitstring) DYNARMIC_DECODER_GET_MATCHER(Matcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)),
+#include "./a64.inc"
+#undef INST
+        }) {
+            const auto expect = detail::ToFastLookupIndex(e.GetExpected());
+            const auto mask = detail::ToFastLookupIndex(e.GetMask());
             if ((i & mask) == expect)
-                table[i].push_back(e.second);
+                table[i].push_back(e);
         }
     }
     return table;
@@ -56,7 +56,7 @@ constexpr DecodeTable<V> GetDecodeTable() {
 
 /// In practice it must always suceed, otherwise something else unrelated would have gone awry
 template<typename V>
-std::optional<std::reference_wrapper<const Matcher<V>>> Decode(u32 instruction) {
+inline std::optional<std::reference_wrapper<const Matcher<V>>> Decode(u32 instruction) {
     alignas(64) static const auto table = GetDecodeTable<V>();
     const auto& subtable = table[detail::ToFastLookupIndex(instruction)];
     auto iter = std::find_if(subtable.begin(), subtable.end(), [instruction](const auto& matcher) {
@@ -68,7 +68,7 @@ std::optional<std::reference_wrapper<const Matcher<V>>> Decode(u32 instruction) 
 }
 
 template<typename V>
-std::optional<std::string_view> GetName(u32 inst) noexcept {
+inline std::optional<std::string_view> GetName(u32 inst) noexcept {
     std::vector<std::pair<std::string_view, Matcher<V>>> list = {
 #define INST(fn, name, bitstring) { name, DYNARMIC_DECODER_GET_MATCHER(Matcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)) },
 #include "./a64.inc"
