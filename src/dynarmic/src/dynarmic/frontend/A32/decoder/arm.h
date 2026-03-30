@@ -40,7 +40,7 @@ static ArmDecodeTable<V> GetArmDecodeTable() noexcept {
     ArmDecodeTable<V> table{};
     for (size_t i = 0; i < table.size(); ++i) {
         // PLEASE HEAP ELLIDE
-        for (auto const e : std::vector<ArmMatcher<V>>{
+        for (auto const& e : std::vector<ArmMatcher<V>>{
 #define INST(fn, name, bitstring) DYNARMIC_DECODER_GET_MATCHER(ArmMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)),
 #include "./arm.inc"
 #undef INST
