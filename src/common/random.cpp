@@ -6,7 +6,7 @@
 #include "common/random.h"
 
 namespace Common::Random {
-    [[nodiscard]] std::random_device& GetGlobalRandomDevice() noexcept {
+    [[nodiscard]] static std::random_device& GetGlobalRandomDevice() noexcept {
         static std::random_device g_random_device{};
         return g_random_device;
     }
