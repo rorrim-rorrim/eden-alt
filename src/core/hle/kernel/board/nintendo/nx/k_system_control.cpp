@@ -203,7 +203,7 @@ u64 GenerateUniformRange(u64 min, u64 max, F f) {
 } // Anonymous namespace
 
 u64 KSystemControl::GenerateRandomRange(u64 min, u64 max) {
-    return GenerateUniformRange(min, max, Common::Random::GenerateRandomU64(0));
+    return GenerateUniformRange(min, max, Common::Random::GetMT19937());
 }
 
 size_t KSystemControl::CalculateRequiredSecureMemorySize(size_t size, u32 pool) {
