@@ -218,12 +218,6 @@ public:
         return t0;
     }
 
-    u64 GenerateRandomU64() {
-        const u32 lo = this->GenerateRandomU32();
-        const u32 hi = this->GenerateRandomU32();
-        return (u64{hi} << 32) | u64{lo};
-    }
-
     float GenerateRandomF32() {
         // Floats have 24 bits of mantissa.
         constexpr u32 MantissaBits = 24;

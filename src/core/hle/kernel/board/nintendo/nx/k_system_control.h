@@ -33,7 +33,6 @@ public:
 
     // Randomness.
     static u64 GenerateRandomRange(u64 min, u64 max);
-    static u64 GenerateRandomU64();
 
     // Secure Memory.
     static size_t CalculateRequiredSecureMemorySize(size_t size, u32 pool);
