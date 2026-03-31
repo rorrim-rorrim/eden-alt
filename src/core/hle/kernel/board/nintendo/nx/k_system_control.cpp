@@ -8,6 +8,7 @@
 
 #include "common/literals.h"
 #include "common/settings.h"
+#include "common/random.h"
 
 #include "core/hle/kernel/board/nintendo/nx/k_system_control.h"
 #include "core/hle/kernel/board/nintendo/nx/secure_monitor.h"
@@ -201,15 +202,8 @@ u64 GenerateUniformRange(u64 min, u64 max, F f) {
 
 } // Anonymous namespace
 
-u64 KSystemControl::GenerateRandomU64() {
-    std::random_device device;
-    std::mt19937 gen(device());
-    std::uniform_int_distribution<u64> distribution(1, (std::numeric_limits<u64>::max)());
-    return distribution(gen);
-}
-
 u64 KSystemControl::GenerateRandomRange(u64 min, u64 max) {
-    return GenerateUniformRange(min, max, GenerateRandomU64);
+    return GenerateUniformRange(min, max, Common::Random::GenerateRandomU64(0));
 }
 
 size_t KSystemControl::CalculateRequiredSecureMemorySize(size_t size, u32 pool) {
