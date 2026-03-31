@@ -7,6 +7,7 @@
 #include <span>
 
 #include "common/common_types.h"
+#include "common/random.h"
 #include "common/swap.h"
 #include "common/uuid.h"
 #include "core/hle/service/mii/mii_types.h"
@@ -65,11 +66,9 @@ public:
 
     template <typename T>
     static T GetRandomValue(T min, T max) {
-        std::random_device device;
-        std::mt19937 gen(device());
-        std::uniform_int_distribution<u64> distribution(static_cast<u64>(min),
-                                                        static_cast<u64>(max));
-        return static_cast<T>(distribution(gen));
+        std::uniform_int_distribution<u64> distribution{u64(min), u64(max)};
+        auto gen = Common::Random::GetMT19937();
+        return T(distribution(gen));
     }
 
     template <typename T>
