@@ -14,6 +14,6 @@ namespace Common::Random {
         return g_random_device();
     }
     [[nodiscard]] std::mt19937 GetMT19937() noexcept {
-        return std::mt19937(g_random_device);
+        return std::mt19937(g_random_device());
     }
 }
