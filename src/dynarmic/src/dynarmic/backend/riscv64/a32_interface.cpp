@@ -108,6 +108,10 @@ struct Jit::Impl final {
         current_state.exclusive_state = false;
     }
 
+    std::string Disassemble() const {
+        return {};
+    }
+
 private:
     void RequestCacheInvalidation() {
         // UNREACHABLE();
@@ -196,6 +200,10 @@ void Jit::SetFpscr(u32 value) {
 
 void Jit::ClearExclusiveState() {
     impl->ClearExclusiveState();
+}
+
+std::string Jit::Disassemble() const {
+    return impl->Disassemble();
 }
 
 }  // namespace Dynarmic::A32
