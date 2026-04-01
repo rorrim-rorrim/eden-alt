@@ -103,7 +103,7 @@ struct BlockRelocation {
 
 struct EmittedBlockInfo {
     CodePtr entry_point;
-    size_t size;
+    std::size_t size;
     std::vector<Relocation> relocations;
     ankerl::unordered_dense::map<IR::LocationDescriptor, std::vector<BlockRelocation>> block_relocations;
     ankerl::unordered_dense::map<std::ptrdiff_t, FastmemPatchInfo> fastmem_patch_info;
@@ -127,9 +127,9 @@ struct EmitConfig {
 
     // Page table
     u64 page_table_pointer;
-    size_t page_table_address_space_bits;
+    std::size_t page_table_address_space_bits;
     int page_table_pointer_mask_bits;
-    size_t page_table_log2_stride;
+    std::size_t page_table_log2_stride;
     bool silently_mirror_page_table;
     bool absolute_offset_page_table;
     u8 detect_misaligned_access_via_page_table;
@@ -138,7 +138,7 @@ struct EmitConfig {
     // Fastmem
     std::optional<u64> fastmem_pointer;
     bool recompile_on_fastmem_failure;
-    size_t fastmem_address_space_bits;
+    std::size_t fastmem_address_space_bits;
     bool silently_mirror_fastmem;
 
     // Timing
@@ -156,9 +156,9 @@ struct EmitConfig {
     void (*emit_check_memory_abort)(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, oaknut::Label& end);
 
     // State offsets
-    size_t state_nzcv_offset;
-    size_t state_fpsr_offset;
-    size_t state_exclusive_state_offset;
+    std::size_t state_nzcv_offset;
+    std::size_t state_fpsr_offset;
+    std::size_t state_exclusive_state_offset;
 
     // A32 specific
     std::array<std::shared_ptr<A32::Coprocessor>, 16> coprocessors{};

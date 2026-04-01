@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -23,7 +23,7 @@ namespace Dynarmic::Backend::Arm64 {
 
 using namespace oaknut::util;
 
-template<size_t bitsize, typename EmitFn>
+template<std::size_t bitsize, typename EmitFn>
 static void EmitTwoOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Vresult = ctx.reg_alloc.WriteVec<bitsize>(inst);
@@ -34,7 +34,7 @@ static void EmitTwoOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, 
     emit(Vresult, Voperand);
 }
 
-template<size_t bitsize, typename EmitFn>
+template<std::size_t bitsize, typename EmitFn>
 static void EmitThreeOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Vresult = ctx.reg_alloc.WriteVec<bitsize>(inst);
@@ -46,7 +46,7 @@ static void EmitThreeOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst
     emit(Vresult, Va, Vb);
 }
 
-template<size_t bitsize, typename EmitFn>
+template<std::size_t bitsize, typename EmitFn>
 static void EmitFourOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Vresult = ctx.reg_alloc.WriteVec<bitsize>(inst);
@@ -59,10 +59,10 @@ static void EmitFourOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst,
     emit(Vresult, Va, Vb, Vc);
 }
 
-template<size_t bitsize_from, size_t bitsize_to, typename EmitFn>
+template<std::size_t bitsize_from, std::size_t bitstd::size_to, typename EmitFn>
 static void EmitConvert(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    auto Vto = ctx.reg_alloc.WriteVec<bitsize_to>(inst);
+    auto Vto = ctx.reg_alloc.WriteVec<bitstd::size_to>(inst);
     auto Vfrom = ctx.reg_alloc.ReadVec<bitsize_from>(args[0]);
     const auto rounding_mode = static_cast<FP::RoundingMode>(args[1].GetImmediateU8());
     RegAlloc::Realize(Vto, Vfrom);
@@ -73,19 +73,19 @@ static void EmitConvert(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst
     emit(Vto, Vfrom);
 }
 
-template<size_t bitsize_from, size_t bitsize_to, bool is_signed>
+template<std::size_t bitsize_from, std::size_t bitstd::size_to, bool is_signed>
 static void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    auto Rto = ctx.reg_alloc.WriteReg<std::max<size_t>(bitsize_to, 32)>(inst);
+    auto Rto = ctx.reg_alloc.WriteReg<std::max<std::size_t>(bitstd::size_to, 32)>(inst);
     auto Vfrom = ctx.reg_alloc.ReadVec<bitsize_from>(args[0]);
-    const size_t fbits = args[1].GetImmediateU8();
+    const std::size_t fbits = args[1].GetImmediateU8();
     const auto rounding_mode = static_cast<FP::RoundingMode>(args[2].GetImmediateU8());
     RegAlloc::Realize(Rto, Vfrom);
     ctx.fpsr.Load();
 
     if (rounding_mode == FP::RoundingMode::TowardsZero) {
         if constexpr (is_signed) {
-            if constexpr (bitsize_to == 16) {
+            if constexpr (bitstd::size_to == 16) {
                 code.FCVTZS(Rto, Vfrom, fbits + 16);
                 code.ASR(Wscratch0, Rto, 31);
                 code.ADD(Rto, Rto, Wscratch0, LSR, 16);  // Round towards zero when truncating
@@ -96,7 +96,7 @@ static void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst*
                 code.FCVTZS(Rto, Vfrom);
             }
         } else {
-            if constexpr (bitsize_to == 16) {
+            if constexpr (bitstd::size_to == 16) {
                 code.FCVTZU(Rto, Vfrom, fbits + 16);
                 code.LSR(Rto, Rto, 16);
             } else if (fbits) {
@@ -107,7 +107,7 @@ static void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst*
         }
     } else {
         ASSERT(fbits == 0);
-        ASSERT(bitsize_to != 16);
+        ASSERT(bitstd::size_to != 16);
         if constexpr (is_signed) {
             switch (rounding_mode) {
             case FP::RoundingMode::ToNearest_TieEven:
@@ -158,12 +158,12 @@ static void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst*
     }
 }
 
-template<size_t bitsize_from, size_t bitsize_to, typename EmitFn>
+template<std::size_t bitsize_from, std::size_t bitstd::size_to, typename EmitFn>
 static void EmitFromFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    auto Vto = ctx.reg_alloc.WriteVec<bitsize_to>(inst);
-    auto Rfrom = ctx.reg_alloc.ReadReg<std::max<size_t>(bitsize_from, 32)>(args[0]);
-    const size_t fbits = args[1].GetImmediateU8();
+    auto Vto = ctx.reg_alloc.WriteVec<bitstd::size_to>(inst);
+    auto Rfrom = ctx.reg_alloc.ReadReg<std::max<std::size_t>(bitsize_from, 32)>(args[0]);
+    const std::size_t fbits = args[1].GetImmediateU8();
     const auto rounding_mode = static_cast<FP::RoundingMode>(args[2].GetImmediateU8());
     RegAlloc::Realize(Vto, Rfrom);
     ctx.fpsr.Load();
@@ -212,7 +212,7 @@ void EmitIR<IR::Opcode::FPAdd64>(oaknut::CodeGenerator& code, EmitContext& ctx, 
     EmitThreeOp<64>(code, ctx, inst, [&](auto& Dresult, auto& Da, auto& Db) { code.FADD(Dresult, Da, Db); });
 }
 
-template<size_t size>
+template<std::size_t size>
 void EmitCompare(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto flags = ctx.reg_alloc.WriteFlags(inst);

@@ -67,7 +67,7 @@ constexpr RegisterList ToRegList(oaknut::Reg reg) {
 constexpr RegisterList ABI_CALLEE_SAVE = 0x0000ff00'7ff80000;
 constexpr RegisterList ABI_CALLER_SAVE = 0xffffffff'4000ffff;
 
-void ABI_PushRegisters(oaknut::CodeGenerator& code, RegisterList rl, size_t stack_space);
-void ABI_PopRegisters(oaknut::CodeGenerator& code, RegisterList rl, size_t stack_space);
+void ABI_PushRegisters(oaknut::CodeGenerator& code, RegisterList rl, std::size_t stack_space);
+void ABI_PopRegisters(oaknut::CodeGenerator& code, RegisterList rl, std::size_t stack_space);
 
 }  // namespace Dynarmic::Backend::Arm64

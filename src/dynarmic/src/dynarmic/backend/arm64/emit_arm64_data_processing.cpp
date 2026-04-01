@@ -23,7 +23,7 @@ namespace Dynarmic::Backend::Arm64 {
 
 using namespace oaknut::util;
 
-template<size_t bitsize, typename EmitFn>
+template<std::size_t bitsize, typename EmitFn>
 static void EmitTwoOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -34,7 +34,7 @@ static void EmitTwoOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, 
     emit(Rresult, Roperand);
 }
 
-template<size_t bitsize, typename EmitFn>
+template<std::size_t bitsize, typename EmitFn>
 static void EmitThreeOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -867,7 +867,7 @@ void EmitIR<IR::Opcode::RotateRightMasked64>(oaknut::CodeGenerator& code, EmitCo
         [&](auto& Xresult, auto& Xoperand, auto& Xshift) { code.ROR(Xresult, Xoperand, Xshift); });
 }
 
-template<size_t bitsize, typename EmitFn>
+template<std::size_t bitsize, typename EmitFn>
 static void MaybeAddSubImm(oaknut::CodeGenerator& code, u64 imm, EmitFn emit_fn) {
     static_assert(bitsize == 32 || bitsize == 64);
     if constexpr (bitsize == 32) {
@@ -881,7 +881,7 @@ static void MaybeAddSubImm(oaknut::CodeGenerator& code, u64 imm, EmitFn emit_fn)
     }
 }
 
-template<size_t bitsize, bool sub>
+template<std::size_t bitsize, bool sub>
 static void EmitAddSub(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const auto nzcv_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetNZCVFromOp);
     const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
@@ -1125,7 +1125,7 @@ static void MaybeBitImm(oaknut::CodeGenerator& code, u64 imm, EmitFn emit_fn) {
     }
 }
 
-template<size_t bitsize, typename EmitFn1, typename EmitFn2 = std::nullptr_t>
+template<std::size_t bitsize, typename EmitFn1, typename EmitFn2 = std::nullptr_t>
 static void EmitBitOp(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn1 emit_without_flags, EmitFn2 emit_with_flags = nullptr) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Rresult = ctx.reg_alloc.WriteReg<bitsize>(inst);
@@ -1167,7 +1167,7 @@ static void EmitBitOp(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* i
     }
 }
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 static void EmitAndNot(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const auto nz_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetNZFromOp);
     const auto nzcv_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetNZCVFromOp);

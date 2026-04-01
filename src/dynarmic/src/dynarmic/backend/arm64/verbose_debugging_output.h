@@ -54,6 +54,6 @@ struct alignas(16) RegisterData {
 #endif
 
 void EmitVerboseDebuggingOutput(oaknut::CodeGenerator& code, EmitContext& ctx);
-void PrintVerboseDebuggingOutputLine(RegisterData& reg_data, HostLocType reg_type, size_t reg_index, size_t inst_index, IR::Type inst_type);
+void PrintVerboseDebuggingOutputLine(RegisterData& reg_data, HostLocType reg_type, std::size_t reg_index, std::size_t inst_index, IR::Type inst_type);
 
 }  // namespace Dynarmic::Backend::Arm64

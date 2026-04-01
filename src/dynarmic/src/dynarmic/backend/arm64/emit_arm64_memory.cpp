@@ -35,7 +35,7 @@ bool IsOrdered(IR::AccType acctype) {
     return acctype == IR::AccType::ORDERED || acctype == IR::AccType::ORDEREDRW || acctype == IR::AccType::LIMITEDORDERED;
 }
 
-LinkTarget ReadMemoryLinkTarget(size_t bitsize) {
+LinkTarget ReadMemoryLinkTarget(std::size_t bitsize) {
     switch (bitsize) {
     case 8:
         return LinkTarget::ReadMemory8;
@@ -51,7 +51,7 @@ LinkTarget ReadMemoryLinkTarget(size_t bitsize) {
     UNREACHABLE();
 }
 
-LinkTarget WriteMemoryLinkTarget(size_t bitsize) {
+LinkTarget WriteMemoryLinkTarget(std::size_t bitsize) {
     switch (bitsize) {
     case 8:
         return LinkTarget::WriteMemory8;
@@ -67,7 +67,7 @@ LinkTarget WriteMemoryLinkTarget(size_t bitsize) {
     UNREACHABLE();
 }
 
-LinkTarget WrappedReadMemoryLinkTarget(size_t bitsize) {
+LinkTarget WrappedReadMemoryLinkTarget(std::size_t bitsize) {
     switch (bitsize) {
     case 8:
         return LinkTarget::WrappedReadMemory8;
@@ -83,7 +83,7 @@ LinkTarget WrappedReadMemoryLinkTarget(size_t bitsize) {
     UNREACHABLE();
 }
 
-LinkTarget WrappedWriteMemoryLinkTarget(size_t bitsize) {
+LinkTarget WrappedWriteMemoryLinkTarget(std::size_t bitsize) {
     switch (bitsize) {
     case 8:
         return LinkTarget::WrappedWriteMemory8;
@@ -99,7 +99,7 @@ LinkTarget WrappedWriteMemoryLinkTarget(size_t bitsize) {
     UNREACHABLE();
 }
 
-LinkTarget ExclusiveReadMemoryLinkTarget(size_t bitsize) {
+LinkTarget ExclusiveReadMemoryLinkTarget(std::size_t bitsize) {
     switch (bitsize) {
     case 8:
         return LinkTarget::ExclusiveReadMemory8;
@@ -115,7 +115,7 @@ LinkTarget ExclusiveReadMemoryLinkTarget(size_t bitsize) {
     UNREACHABLE();
 }
 
-LinkTarget ExclusiveWriteMemoryLinkTarget(size_t bitsize) {
+LinkTarget ExclusiveWriteMemoryLinkTarget(std::size_t bitsize) {
     switch (bitsize) {
     case 8:
         return LinkTarget::ExclusiveWriteMemory8;
@@ -209,9 +209,9 @@ void CallbackOnlyEmitExclusiveWriteMemory(oaknut::CodeGenerator& code, EmitConte
     ctx.reg_alloc.DefineAsRegister(inst, X0);
 }
 
-constexpr size_t page_table_const_bits = 12;
-constexpr size_t page_table_const_size = 1 << page_table_const_bits;
-constexpr size_t page_table_const_mask = (1 << page_table_const_bits) - 1;
+constexpr std::size_t page_table_const_bits = 12;
+constexpr std::size_t page_table_const_size = 1 << page_table_const_bits;
+constexpr std::size_t page_table_const_mask = (1 << page_table_const_bits) - 1;
 
 // This function may use Xscratch0 as a scratch register
 // Trashes NZCV
@@ -255,8 +255,8 @@ void EmitDetectMisalignedVAddr(oaknut::CodeGenerator& code, EmitContext& ctx, oa
 // Trashes NZCV
 template<std::size_t bitsize>
 std::pair<oaknut::XReg, oaknut::XReg> InlinePageTableEmitVAddrLookup(oaknut::CodeGenerator& code, EmitContext& ctx, oaknut::XReg Xaddr, const SharedLabel& fallback) {
-    const size_t valid_page_index_bits = ctx.conf.page_table_address_space_bits - page_table_const_bits;
-    const size_t unused_top_bits = 64 - ctx.conf.page_table_address_space_bits;
+    const std::size_t valid_page_index_bits = ctx.conf.page_table_address_space_bits - page_table_const_bits;
+    const std::size_t unused_top_bits = 64 - ctx.conf.page_table_address_space_bits;
 
     EmitDetectMisalignedVAddr<bitsize>(code, ctx, Xaddr, fallback);
 
