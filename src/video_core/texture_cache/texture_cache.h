@@ -120,13 +120,11 @@ template <class P>
 void TextureCache<P>::RunGarbageCollector() {
     bool high_priority_mode = false;
     bool aggressive_mode = false;
-    u64 ticks_to_destroy = 0;
     size_t num_iterations = 0;
 
     const auto Configure = [&](bool allow_aggressive) {
         high_priority_mode = total_used_memory >= expected_memory;
         aggressive_mode = allow_aggressive && total_used_memory >= critical_memory;
-        ticks_to_destroy = aggressive_mode ? 10ULL : high_priority_mode ? 25ULL : 50ULL;
         num_iterations = aggressive_mode ? 40 : (high_priority_mode ? 20 : 10);
     };
 
@@ -195,32 +193,10 @@ void TextureCache<P>::RunGarbageCollector() {
         }
         return false;
     };
-
-    // Aggressively clear massive sparse textures
-    if (total_used_memory >= expected_memory) {
-        lru_cache.ForEachItemBelow(frame_tick, [&](ImageId image_id) {
-            auto& image = slot_images[image_id];
-            // Only target sparse textures that are old enough
-            if (lowmemorydevice &&
-                image.info.is_sparse &&
-                image.guest_size_bytes >= 256_MiB &&
-                image.allocation_tick < frame_tick - 3) {
-                LOG_DEBUG(HW_GPU, "GC targeting old sparse texture at 0x{:X} ({} MiB, age: {} frames)",
-                         image.gpu_addr, image.guest_size_bytes / (1024 * 1024),
-                         frame_tick - image.allocation_tick);
-                return Cleanup(image_id);
-            }
-            return false;
-        });
-    }
-
     Configure(false);
-    lru_cache.ForEachItemBelow(frame_tick - ticks_to_destroy, Cleanup);
-
     // If pressure is still too high, prune aggressively.
     if (total_used_memory >= critical_memory) {
         Configure(true);
-        lru_cache.ForEachItemBelow(frame_tick - ticks_to_destroy, Cleanup);
     }
 }
 
@@ -2028,7 +2004,6 @@ std::pair<u32, u32> TextureCache<P>::PrepareDmaImage(ImageId dst_id, GPUVAddr ba
     const auto base = image.TryFindBase(base_addr);
     PrepareImage(dst_id, mark_as_modified, false);
     const auto& new_image = slot_images[dst_id];
-    lru_cache.Touch(new_image.lru_index, frame_tick);
     return std::make_pair(base->level, base->layer);
 }
 
@@ -2377,7 +2352,6 @@ void TextureCache<P>::RegisterImage(ImageId image_id) {
         tentative_size = TranscodedAstcSize(tentative_size, image.info.format);
     }
     total_used_memory += Common::AlignUp(tentative_size, 1024);
-    image.lru_index = lru_cache.Insert(image_id, frame_tick);
 
     ForEachGPUPage(image.gpu_addr, image.guest_size_bytes, [this, image_id](u64 page) {
         (*channel_state->gpu_page_table)[page].push_back(image_id);
@@ -2411,7 +2385,6 @@ void TextureCache<P>::UnregisterImage(ImageId image_id) {
                "Trying to unregister an already registered image");
     image.flags &= ~ImageFlagBits::Registered;
     image.flags &= ~ImageFlagBits::BadOverlap;
-    lru_cache.Free(image.lru_index);
     const auto& clear_page_table =
         [image_id](u64 page, ankerl::unordered_dense::map<u64, std::vector<ImageId>, Common::IdentityHash<u64>>& selected_page_table) {
             const auto page_it = selected_page_table.find(page);
@@ -2738,7 +2711,6 @@ void TextureCache<P>::PrepareImage(ImageId image_id, bool is_modification, bool 
     if (is_modification) {
         MarkModification(image);
     }
-    lru_cache.Touch(image.lru_index, frame_tick);
 }
 
 template <class P>

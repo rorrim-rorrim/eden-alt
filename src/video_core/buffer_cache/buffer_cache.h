@@ -68,7 +68,6 @@ void BufferCache<P>::RunGarbageCollector() {
         DeleteBuffer(buffer_id);
         return false;
     };
-    lru_cache.ForEachItemBelow(frame_tick - ticks_to_destroy, clean_up);
 }
 
 template <class P>
@@ -1595,10 +1594,8 @@ void BufferCache<P>::ChangeRegister(BufferId buffer_id) {
     const auto size = buffer.SizeBytes();
     if (insert) {
         total_used_memory += Common::AlignUp(size, 1024);
-        buffer.setLRUID(lru_cache.Insert(buffer_id, frame_tick));
     } else {
         total_used_memory -= Common::AlignUp(size, 1024);
-        lru_cache.Free(buffer.getLRUID());
     }
     const DAddr device_addr_begin = buffer.CpuAddr();
     const DAddr device_addr_end = device_addr_begin + size;
@@ -1615,9 +1612,7 @@ void BufferCache<P>::ChangeRegister(BufferId buffer_id) {
 
 template <class P>
 void BufferCache<P>::TouchBuffer(Buffer& buffer, BufferId buffer_id) noexcept {
-    if (buffer_id != NULL_BUFFER_ID) {
-        lru_cache.Touch(buffer.getLRUID(), frame_tick);
-    }
+    if (buffer_id != NULL_BUFFER_ID) {}
 }
 
 template <class P>
