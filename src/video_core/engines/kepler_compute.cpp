@@ -16,11 +16,9 @@
 
 namespace Tegra::Engines {
 
-KeplerCompute::KeplerCompute(MemoryManager& memory_manager_)
-    : memory_manager{memory_manager_}
-    , upload_state{memory_manager, regs.upload}
-{
-    execution_mask.reset();
+KeplerCompute::KeplerCompute(Core::System& system_, MemoryManager& memory_manager_)
+    : system{system_}, memory_manager{memory_manager_}, upload_state{memory_manager, regs.upload} {
+    execution_mask.fill(0);
     execution_mask[KEPLER_COMPUTE_REG_INDEX(exec_upload)] = true;
     execution_mask[KEPLER_COMPUTE_REG_INDEX(data_upload)] = true;
     execution_mask[KEPLER_COMPUTE_REG_INDEX(launch)] = true;
