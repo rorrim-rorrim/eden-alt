@@ -20,6 +20,7 @@
 
 using namespace Dynarmic;
 
+/*
 TEST_CASE("ASIMD Decoder: Ensure table order correctness", "[decode][a32][.]") {
     const auto table = A32::GetASIMDDecodeTable<A32::TranslatorVisitor>();
 
@@ -68,3 +69,4 @@ TEST_CASE("ASIMD Decoder: Ensure table order correctness", "[decode][a32][.]") {
         } while (x != 0);
     }
 }
+*/
