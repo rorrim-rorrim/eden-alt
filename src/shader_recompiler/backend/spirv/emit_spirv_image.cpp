@@ -290,7 +290,7 @@ Id IsScaled(EmitContext& ctx, const IR::Value& index, Id member_index, u32 base_
         const Id pointer{ctx.OpAccessChain(push_constant_u32, ctx.rescaling_push_constants,
                                            member_index, word_index)};
         const Id word{ctx.OpLoad(ctx.U32[1], pointer)};
-        const Id bit_index_mask{ctx.OpShiftLeft(ctx.U32[1], ctx.Const(1u), bit_index)};
+        const Id bit_index_mask{ctx.OpShiftLeftLogical(ctx.U32[1], ctx.Const(1u), bit_index)};
         bit = ctx.OpBitwiseAnd(ctx.U32[1], word, bit_index_mask);
     }
     return ctx.OpINotEqual(ctx.U1, bit, ctx.u32_zero_value);
