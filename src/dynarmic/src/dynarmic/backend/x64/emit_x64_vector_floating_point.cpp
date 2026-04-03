@@ -26,7 +26,6 @@
 #include "dynarmic/common/fp/op.h"
 #include "dynarmic/common/fp/rounding_mode.h"
 #include "dynarmic/common/fp/util.h"
-#include "dynarmic/common/lut_from_list.h"
 #include "dynarmic/interface/optimization_flags.h"
 #include "dynarmic/ir/basic_block.h"
 #include "dynarmic/ir/microinstruction.h"
@@ -1986,6 +1985,13 @@ void EmitX64::EmitFPVectorToHalf32(EmitContext& ctx, IR::Inst* inst) {
 //         output[i] = FPT(FP::FPToFixed<FPT>(fsize, input[i], fbits, unsigned_, fpcr, rounding_mode, fpsr));
 // }
 
+template<size_t fsize, bool unsigned_, FP::RoundingMode rounding_mode, size_t fbits>
+static void EmitFPVectorToFixedThunk(VectorArray<mcl::unsigned_integer_of_size<fsize>>& output, const VectorArray<mcl::unsigned_integer_of_size<fsize>>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
+    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    for (size_t i = 0; i < output.size(); ++i)
+        output[i] = FPT(FP::FPToFixed<FPT>(fsize, input[i], fbits, unsigned_, fpcr, rounding_mode, fpsr));
+}
+
 template<size_t fsize, bool unsigned_>
 void EmitFPVectorToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
     const size_t fbits = inst->GetArg(1).GetU8();
@@ -2107,29 +2113,29 @@ void EmitFPVectorToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
         ctx.reg_alloc.DefineValue(code, inst, src);
         return;
     }
+    auto const fpt_fn = [fbits, rounding]{
+#define ROUNDING_MODE(CASE) \
+    else if (rounding == FP::RoundingMode::CASE && fsize == 8 && fbits == 8) return &EmitFPVectorToFixedThunk<fsize, unsigned_, FP::RoundingMode::CASE, 8>; \
+    else if (rounding == FP::RoundingMode::CASE && fsize == 16 && fbits == 8) return &EmitFPVectorToFixedThunk<fsize, unsigned_, FP::RoundingMode::CASE, 8>; \
+    else if (rounding == FP::RoundingMode::CASE && fsize == 16 && fbits == 16) return &EmitFPVectorToFixedThunk<fsize, unsigned_, FP::RoundingMode::CASE, 16>; \
+    else if (rounding == FP::RoundingMode::CASE && fsize == 32 && fbits == 8) return &EmitFPVectorToFixedThunk<fsize, unsigned_, FP::RoundingMode::CASE, 8>; \
+    else if (rounding == FP::RoundingMode::CASE && fsize == 32 && fbits == 16) return &EmitFPVectorToFixedThunk<fsize, unsigned_, FP::RoundingMode::CASE, 16>; \
+    else if (rounding == FP::RoundingMode::CASE && fsize == 32 && fbits == 32) return &EmitFPVectorToFixedThunk<fsize, unsigned_, FP::RoundingMode::CASE, 32>; \
+    else if (rounding == FP::RoundingMode::CASE && fsize == 64 && fbits == 8) return &EmitFPVectorToFixedThunk<fsize, unsigned_, FP::RoundingMode::CASE, 8>; \
+    else if (rounding == FP::RoundingMode::CASE && fsize == 64 && fbits == 16) return &EmitFPVectorToFixedThunk<fsize, unsigned_, FP::RoundingMode::CASE, 16>; \
+    else if (rounding == FP::RoundingMode::CASE && fsize == 64 && fbits == 32) return &EmitFPVectorToFixedThunk<fsize, unsigned_, FP::RoundingMode::CASE, 32>; \
+    else if (rounding == FP::RoundingMode::CASE && fsize == 64 && fbits == 64) return &EmitFPVectorToFixedThunk<fsize, unsigned_, FP::RoundingMode::CASE, 64>;
 
-    using fbits_list = mp::lift_sequence<std::make_index_sequence<fsize + 1>>;
-    using rounding_list = mp::list<
-        mp::lift_value<FP::RoundingMode::ToNearest_TieEven>,
-        mp::lift_value<FP::RoundingMode::TowardsPlusInfinity>,
-        mp::lift_value<FP::RoundingMode::TowardsMinusInfinity>,
-        mp::lift_value<FP::RoundingMode::TowardsZero>,
-        mp::lift_value<FP::RoundingMode::ToNearest_TieAwayFromZero>>;
+        if (false) { /* ... */ }
+        ROUNDING_MODE(ToNearest_TieEven)
+        ROUNDING_MODE(TowardsPlusInfinity)
+        ROUNDING_MODE(TowardsMinusInfinity)
+        ROUNDING_MODE(TowardsZero)
+        ROUNDING_MODE(ToNearest_TieAwayFromZero)
+        else return &EmitFPVectorToFixedThunk<fsize, unsigned_, FP::RoundingMode::TowardsZero, 64>;
+    }();
 
-    static const auto lut = Common::GenerateLookupTableFromList([]<typename I>(I) {
-        using FPT = mcl::unsigned_integer_of_size<fsize>;  // WORKAROUND: For issue 678 on MSVC
-        return std::pair{
-            mp::lower_to_tuple_v<I>,
-            Common::FptrCast([](VectorArray<FPT>& output, const VectorArray<FPT>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
-                constexpr size_t fbits = mp::get<0, I>::value;
-                constexpr FP::RoundingMode rounding_mode = mp::get<1, I>::value;
-                for (size_t i = 0; i < output.size(); ++i)
-                    output[i] = FPT(FP::FPToFixed<FPT>(fsize, input[i], fbits, unsigned_, fpcr, rounding_mode, fpsr));
-            })
-        };
-    }, mp::cartesian_product<fbits_list, rounding_list>{});
-
-    EmitTwoOpFallback<3>(code, ctx, inst, lut.at(std::make_tuple(fbits, rounding)));
+    EmitTwoOpFallback<3>(code, ctx, inst, fpt_fn);
 }
 
 void EmitX64::EmitFPVectorToSignedFixed16(EmitContext& ctx, IR::Inst* inst) {
