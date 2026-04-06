@@ -450,11 +450,7 @@ struct Values {
                                                            "max_anisotropy",
                                                            Category::RendererAdvanced};
     SwitchableSetting<AstcDecodeMode, true> accelerate_astc{linkage,
-#ifdef ANDROID
-                                                            AstcDecodeMode::Cpu,
-#else
                                                             AstcDecodeMode::Gpu,
-#endif
                                                             "accelerate_astc",
                                                             Category::RendererAdvanced};
 
