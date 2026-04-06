@@ -92,7 +92,7 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
         font.setBold(true);
 
         // TODO(crueter): fix this abysmal scaling
-        font.setPixelSize(1.5 + std::max(10.0, _iconsize ? std::sqrt(_iconsize) : 10.0));
+        font.setPixelSize(1.5 + std::max(10.0, std::sqrt(_iconsize)));
 
         // TODO(crueter): elide mode
         painter->setFont(font);
