@@ -644,6 +644,20 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_ASYNCHRONOUS_GPU_EMULATION,
+                    titleId = R.string.renderer_asynchronous_gpu_emulation,
+                    descriptionId = R.string.renderer_asynchronous_gpu_emulation_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_ASYNC_PRESENTATION,
+                    titleId = R.string.renderer_async_presentation,
+                    descriptionId = R.string.renderer_async_presentation_description
+                )
+            )
+            put(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT,
                     titleId = R.string.renderer_optimize_spirv_output,
