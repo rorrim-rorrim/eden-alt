@@ -359,7 +359,11 @@ struct Values {
                                                     true,
                                                     true};
     SwitchableSetting<int, true> fsr_sharpening_slider{linkage,
+#ifdef ANDROID
+                                                       0,
+#else
                                                        25,
+#endif
                                                        0,
                                                        200,
                                                        "fsr_sharpening_slider",
