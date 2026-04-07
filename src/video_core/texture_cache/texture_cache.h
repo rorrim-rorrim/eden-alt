@@ -264,6 +264,12 @@ template <class P>
 typename P::ImageView& TextureCache<P>::GetImageView(u32 index) noexcept {
     const auto image_view_id = VisitImageView(channel_state->graphics_image_table,
                                               channel_state->graphics_image_view_ids, index);
+    if (image_view_id != NULL_IMAGE_VIEW_ID) {
+        const ImageViewBase& image_view = slot_image_views[image_view_id];
+        if (!image_view.IsBuffer()) {
+            PrepareImage(image_view.image_id, false, false);
+        }
+    }
     return slot_image_views[image_view_id];
 }
 
@@ -619,20 +625,88 @@ template <bool has_blacklists>
 void TextureCache<P>::FillImageViews(DescriptorTable<TICEntry>& table,
                                      std::span<ImageViewId> cached_image_view_ids,
                                      std::span<ImageViewInOut> views) {
+    if (views.empty()) {
+        return;
+    }
+
     bool has_blacklisted = false;
     do {
         has_deleted_images = false;
         if constexpr (has_blacklists) {
             has_blacklisted = false;
         }
+
+        // descriptors often reuse TIC indices in one bind pass
+        // use a tiny size cache to avoid expensive descriptor repeat reads
+        constexpr size_t RECENT_VIEW_CACHE_SIZE = 8;
+        std::array<std::pair<u32, ImageViewId>, RECENT_VIEW_CACHE_SIZE> recent_indices{};
+        std::array<bool, RECENT_VIEW_CACHE_SIZE> recent_valid{};
+        size_t recent_insert = 0;
+        boost::container::small_vector<ImageId, 16> prepared_image_ids;
+        [[maybe_unused]] boost::container::small_vector<ImageId, 16> blacklisted_image_ids;
+
         for (ImageViewInOut& view : views) {
-            view.id = VisitImageView(table, cached_image_view_ids, view.index);
+            bool found_cached = false;
+            for (size_t cache_index = 0; cache_index < RECENT_VIEW_CACHE_SIZE; ++cache_index) {
+                if (recent_valid[cache_index] &&
+                    recent_indices[cache_index].first == view.index) {
+                    view.id = recent_indices[cache_index].second;
+                    found_cached = true;
+                    break;
+                }
+            }
+            if (!found_cached) {
+                view.id = VisitImageView(table, cached_image_view_ids, view.index);
+                recent_indices[recent_insert] = {view.index, view.id};
+                recent_valid[recent_insert] = true;
+                recent_insert = (recent_insert + 1) % RECENT_VIEW_CACHE_SIZE;
+            }
+            if (has_deleted_images) {
+                break;
+            }
+            if (view.id != NULL_IMAGE_VIEW_ID) {
+                const ImageViewBase& image_view{slot_image_views[view.id]};
+                if (!image_view.IsBuffer()) {
+                    const ImageId image_id = image_view.image_id;
+                    const bool already_queued =
+                        std::ranges::find(prepared_image_ids, image_id) != prepared_image_ids.end();
+                    if (!already_queued) {
+                        prepared_image_ids.push_back(image_id);
+                    }
+                }
+            }
             if constexpr (has_blacklists) {
                 if (view.blacklist && view.id != NULL_IMAGE_VIEW_ID) {
                     const ImageViewBase& image_view{slot_image_views[view.id]};
-                    auto& image = slot_images[image_view.image_id];
+                    const ImageId image_id = image_view.image_id;
+                    const bool already_queued =
+                        std::ranges::find(blacklisted_image_ids, image_id) !=
+                        blacklisted_image_ids.end();
+                    if (!already_queued) {
+                        blacklisted_image_ids.push_back(image_id);
+                    }
+                }
+            }
+        }
+
+        if (!has_deleted_images) {
+            for (const ImageId image_id : prepared_image_ids) {
+                PrepareImage(image_id, false, false);
+                if (has_deleted_images) {
+                    break;
+                }
+            }
+        }
+
+        if constexpr (has_blacklists) {
+            if (!has_deleted_images) {
+                for (const ImageId image_id : blacklisted_image_ids) {
+                    auto& image = slot_images[image_id];
                     has_blacklisted |= ScaleDown(image);
                     image.scale_rating = 0;
+                    if (has_deleted_images) {
+                        break;
+                    }
                 }
             }
         }
@@ -651,9 +725,6 @@ ImageViewId TextureCache<P>::VisitImageView(DescriptorTable<TICEntry>& table,
     ImageViewId& image_view_id = cached_image_view_ids[index];
     if (is_new) {
         image_view_id = FindImageView(descriptor);
-    }
-    if (image_view_id != NULL_IMAGE_VIEW_ID) {
-        PrepareImageView(image_view_id, false, false);
     }
     return image_view_id;
 }
