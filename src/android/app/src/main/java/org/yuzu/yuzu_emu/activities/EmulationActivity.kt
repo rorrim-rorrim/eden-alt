@@ -246,6 +246,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener, InputManager
         nfcReader.startScanning()
         startMotionSensorListener()
         InputHandler.updateControllerData()
+        notifyPhysicalControllerState()
 
         buildPictureInPictureParams()
     }
@@ -469,27 +470,28 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener, InputManager
     override fun onInputDeviceAdded(deviceId: Int) {
         if (isGameController(deviceId)) {
             InputHandler.updateControllerData()
-            val navHostFragment =
-                supportFragmentManager.findFragmentById(R.id.fragment_container) as? NavHostFragment
-            val emulationFragment =
-                navHostFragment?.childFragmentManager?.fragments?.firstOrNull() as? org.yuzu.yuzu_emu.fragments.EmulationFragment
-            emulationFragment?.onControllerConnected()
+            notifyPhysicalControllerState()
         }
     }
 
     override fun onInputDeviceRemoved(deviceId: Int) {
         InputHandler.updateControllerData()
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.fragment_container) as? NavHostFragment
-        val emulationFragment =
-            navHostFragment?.childFragmentManager?.fragments?.firstOrNull() as? org.yuzu.yuzu_emu.fragments.EmulationFragment
-        emulationFragment?.onControllerDisconnected()
+        notifyPhysicalControllerState()
     }
 
     override fun onInputDeviceChanged(deviceId: Int) {
         if (isGameController(deviceId)) {
             InputHandler.updateControllerData()
+            notifyPhysicalControllerState()
         }
+    }
+
+    private fun notifyPhysicalControllerState() {
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_container) as? NavHostFragment
+        val emulationFragment =
+            navHostFragment?.childFragmentManager?.fragments?.firstOrNull() as? org.yuzu.yuzu_emu.fragments.EmulationFragment
+        emulationFragment?.onPhysicalControllerStateChanged(InputHandler.androidControllers.isNotEmpty())
     }
 
     override fun onSensorChanged(event: SensorEvent) {
