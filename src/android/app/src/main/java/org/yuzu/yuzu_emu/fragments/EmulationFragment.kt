@@ -1162,7 +1162,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 R.array.rendererScalingFilterValues
             ) {
                 addQuickSettings()
-            )
+            }
 
             if (isFsrSelected) {
                 quickSettings.addSliderSetting(
