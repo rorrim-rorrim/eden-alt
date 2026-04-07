@@ -1137,19 +1137,7 @@ Gli stati più alti consentono più funzionalità e possono migliorare le presta
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="289"/>
-        <source>Provoking Vertex</source>
-        <translation>Provoking Vertex</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="290"/>
-        <source>Improves lighting and vertex handling in some games.
-Only Vulkan 1.0+ devices support this extension.</source>
-        <translation>Migliora l&apos;illuminazione e la gestione dei vertici in alcuni giochi.
-Solo i dispositivi con Vulkan 1.0+ supportano quest&apos;estensione.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="293"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="297"/>
         <source>Descriptor Indexing</source>
         <translation>Indicizzazione descrittori</translation>
     </message>

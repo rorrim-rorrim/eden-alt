@@ -1133,19 +1133,7 @@ Higher states allow for more features and can increase performance, but may caus
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="289"/>
-        <source>Provoking Vertex</source>
-        <translation>Vertex provoquant</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="290"/>
-        <source>Improves lighting and vertex handling in some games.
-Only Vulkan 1.0+ devices support this extension.</source>
-        <translation>Améliore l’éclairage et la gestion des points 3D dans certains jeux.
-Seuls les appareils compatibles avec Vulkan 1.0+ prennent en charge cette extension.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="293"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="297"/>
         <source>Descriptor Indexing</source>
         <translation>Indexation des descripteurs</translation>
     </message>

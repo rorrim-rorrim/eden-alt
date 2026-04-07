@@ -1145,19 +1145,7 @@ Higher states allow for more features and can increase performance, but may caus
         <translation>Вмикає можливість динамічного стану введення вершин для кращих якості й продуктивності.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="289"/>
-        <source>Provoking Vertex</source>
-        <translation>Провокативна вершина</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="290"/>
-        <source>Improves lighting and vertex handling in some games.
-Only Vulkan 1.0+ devices support this extension.</source>
-        <translation>Покращує освітлення та взаємодію з вершинами у деяких іграх.
-Це розширення підтримують лише пристрої з Vulkan 1.0+.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="293"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="297"/>
         <source>Descriptor Indexing</source>
         <translation>Індексування дескрипторів</translation>
     </message>
