@@ -35,7 +35,8 @@
 namespace Service::News {
 namespace {
 
-constexpr const char* GitHubAPI_EdenReleases = "/repos/eden-emulator/Releases/releases";
+// TODO(crueter): COMPILE DEFINITION
+constexpr const char* GitHubAPI_EdenReleases = "/api/v1/repos/eden-emu/eden/releases";
 
 // Cached logo data
 std::vector<u8> default_logo_small;
@@ -227,21 +228,16 @@ void WriteCachedJson(std::string_view json) {
 
 std::optional<std::string> DownloadReleasesJson() {
     try {
-        httplib::SSLClient cli{"api.github.com", 443};
+        httplib::SSLClient cli{"git.eden-emu.dev", 443};
         cli.set_connection_timeout(10);
         cli.set_read_timeout(10);
-
-        httplib::Headers headers{
-            {"User-Agent", "Eden"},
-            {"Accept", "application/vnd.github+json"},
-        };
 
         // TODO(crueter): automate this in some way...
 #ifdef YUZU_BUNDLED_OPENSSL
         cli.load_ca_cert_store(kCert, sizeof(kCert));
 #endif
 
-        if (auto res = cli.Get(GitHubAPI_EdenReleases, headers); res && res->status < 400) {
+        if (auto res = cli.Get(GitHubAPI_EdenReleases); res && res->status < 400) {
             return res->body;
         }
     } catch (...) {
@@ -332,7 +328,7 @@ std::string FormatBody(const nlohmann::json& release, std::string_view title) {
             body.pop_back();
         }
 
-        body += "\n\n... View more on GitHub";
+        body += "\n\n... View more on Forgejo";
     }
 
     return body;
@@ -489,7 +485,7 @@ std::vector<u8> BuildMsgpack(std::string_view title, std::string_view body,
     w.WriteString("");
 
     w.WriteKey("allow_domains");
-    w.WriteString("^https?://github.com(/|$)");
+    w.WriteString("^https?://git.eden-emu.dev(/|$)");
 
     // More link
     w.WriteKey("more");
@@ -499,7 +495,7 @@ std::vector<u8> BuildMsgpack(std::string_view title, std::string_view body,
     w.WriteKey("url");
     w.WriteString(html_url);
     w.WriteKey("text");
-    w.WriteString("Open GitHub");
+    w.WriteString("Open Forgejo");
 
     // Body
     w.WriteKey("body");
@@ -536,7 +532,7 @@ void EnsureBuiltinNewsLoaded() {
             if (const auto fresh = DownloadReleasesJson()) {
                 WriteCachedJson(*fresh);
                 ImportReleases(*fresh);
-                LOG_DEBUG(Service_BCAT, "news: {} entries updated from GitHub", NewsStorage::Instance().ListAll().size());
+                LOG_DEBUG(Service_BCAT, "news: {} entries updated from Forgejo", NewsStorage::Instance().ListAll().size());
             }
         }).detach();
     });
