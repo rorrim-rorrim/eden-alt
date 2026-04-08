@@ -1457,11 +1457,13 @@ VideoCommon::StreamerInterface* QueryCacheRuntime::GetStreamerInterface(QueryTyp
         return &impl->sample_streamer;
     case QueryType::StreamingByteCount:
         return &impl->tfb_streamer;
+    case QueryType::PrimitivesGenerated:
     case QueryType::StreamingPrimitivesNeeded:
     case QueryType::VtgPrimitivesOut:
     case QueryType::StreamingPrimitivesSucceeded:
         return &impl->primitives_succeeded_streamer;
     case QueryType::StreamingPrimitivesNeededMinusSucceeded:
+    case QueryType::TotalStreamingPrimitivesNeededMinusSucceeded:
         return &impl->primitives_needed_minus_succeeded_streamer;
     default:
         return nullptr;

@@ -236,10 +236,34 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
     size_t streamer_id = static_cast<size_t>(counter_type);
     auto* streamer = impl->streamers[streamer_id];
     if (streamer == nullptr) [[unlikely]] {
-        counter_type = QueryType::Payload;
-        payload = 1U;
-        streamer_id = static_cast<size_t>(counter_type);
-        streamer = impl->streamers[streamer_id];
+        auto cpu_addr_opt = gpu_memory->GpuToCpuAddress(addr);
+        if (!cpu_addr_opt) [[unlikely]] {
+            return;
+        }
+        const DAddr cpu_addr = *cpu_addr_opt;
+        u8* pointer = impl->device_memory.template GetPointer<u8>(cpu_addr);
+        u8* pointer_timestamp = impl->device_memory.template GetPointer<u8>(cpu_addr + 8);
+        if (pointer == nullptr || (has_timestamp && pointer_timestamp == nullptr)) [[unlikely]] {
+            return;
+        }
+        const u64 fallback_value = counter_type == QueryType::Payload ? static_cast<u64>(payload) : 0;
+        std::function<void()> operation([this, has_timestamp, fallback_value, pointer,
+                                         pointer_timestamp] {
+            if (has_timestamp) {
+                const u64 timestamp = impl->gpu.GetTicks();
+                std::memcpy(pointer_timestamp, &timestamp, sizeof(timestamp));
+                std::memcpy(pointer, &fallback_value, sizeof(fallback_value));
+            } else {
+                const u32 value = static_cast<u32>(fallback_value);
+                std::memcpy(pointer, &value, sizeof(value));
+            }
+        });
+        if (is_fence) {
+            impl->rasterizer.SignalFence(std::move(operation));
+        } else {
+            impl->rasterizer.SyncOperation(std::move(operation));
+        }
+        return;
     }
     auto cpu_addr_opt = gpu_memory->GpuToCpuAddress(addr);
     if (!cpu_addr_opt) [[unlikely]] {
@@ -437,8 +461,10 @@ bool QueryCacheBase<Traits>::AccelerateHostConditionalRendering() {
         impl->runtime.EndHostConditionalRendering();
         return false;
     case ComparisonMode::Conditional: {
-        VideoCommon::LookupData object_1{gen_lookup(address)};
-        return impl->runtime.HostConditionalRenderingCompareValue(object_1, qc_dirty);
+        // Guest conditional mode expects both initial_sequence and initial_mode to be non-zero
+        // fall back to software eval
+        impl->runtime.EndHostConditionalRendering();
+        return false;
     }
     case ComparisonMode::IfEqual: {
         VideoCommon::LookupData object_1{gen_lookup(address)};
