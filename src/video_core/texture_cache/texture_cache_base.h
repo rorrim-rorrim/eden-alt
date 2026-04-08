@@ -120,7 +120,7 @@ class TextureCache : public VideoCommon::ChannelSetupCaches<TextureCacheChannelI
 
     static constexpr s64 DEFAULT_EXPECTED_MEMORY = 1_GiB + 125_MiB;
     static constexpr s64 DEFAULT_CRITICAL_MEMORY = 1_GiB + 625_MiB;
-    static constexpr size_t GC_EMERGENCY_COUNTS = 2;
+    static constexpr u32 MAX_ALLOCATION_GC_PASSES_PER_FRAME = 2;
 
     using Runtime = typename P::Runtime;
     using Image = typename P::Image;
@@ -309,6 +309,8 @@ private:
 
     /// Runs the Garbage Collector.
     void RunGarbageCollector();
+
+    void RunAllocationGarbageCollector(size_t requested_bytes);
 
     /// Fills image_view_ids in the image views in indices
     template <bool has_blacklists>
@@ -527,6 +529,8 @@ private:
 
     u64 modification_tick = 0;
     u64 frame_tick = 0;
+    u64 allocation_gc_frame = (std::numeric_limits<u64>::max)();
+    u32 allocation_gc_passes = 0;
     u64 last_sampler_gc_frame = (std::numeric_limits<u64>::max)();
 
     Common::ThreadWorker texture_decode_worker{1, "TextureDecoder"};

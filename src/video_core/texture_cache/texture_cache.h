@@ -114,6 +114,54 @@ TextureCache<P>::TextureCache(Runtime& runtime_, Tegra::MaxwellDeviceMemoryManag
 }
 
 template <class P>
+void TextureCache<P>::RunAllocationGarbageCollector(size_t requested_bytes) {
+    if (requested_bytes == 0) {
+        return;
+    }
+
+    if (allocation_gc_frame != frame_tick) {
+        allocation_gc_frame = frame_tick;
+        allocation_gc_passes = 0;
+    }
+    if (allocation_gc_passes >= MAX_ALLOCATION_GC_PASSES_PER_FRAME) {
+        return;
+    }
+
+    if (runtime.CanReportMemoryUsage()) {
+        total_used_memory = runtime.GetDeviceMemoryUsage();
+    }
+
+    const u64 request = static_cast<u64>(requested_bytes);
+    const u64 max_u64 = (std::numeric_limits<u64>::max)();
+    const u64 projected_usage = request > (max_u64 - total_used_memory)
+                                    ? max_u64
+                                    : total_used_memory + request;
+    if (projected_usage < expected_memory) {
+        return;
+    }
+
+    RunGarbageCollector();
+    ++allocation_gc_passes;
+
+    if (runtime.CanReportMemoryUsage()) {
+        total_used_memory = runtime.GetDeviceMemoryUsage();
+    }
+
+    const u64 projected_after_gc = request > (max_u64 - total_used_memory)
+                                       ? max_u64
+                                       : total_used_memory + request;
+    if (projected_after_gc >= critical_memory &&
+        allocation_gc_passes < MAX_ALLOCATION_GC_PASSES_PER_FRAME) {
+        RunGarbageCollector();
+        ++allocation_gc_passes;
+
+        if (runtime.CanReportMemoryUsage()) {
+            total_used_memory = runtime.GetDeviceMemoryUsage();
+        }
+    }
+}
+
+template <class P>
 void TextureCache<P>::RunGarbageCollector() {
     bool high_priority_mode = total_used_memory >= expected_memory;
     bool aggressive_mode = false;
@@ -1606,17 +1654,19 @@ bool TextureCache<P>::ScaleDown(Image& image) {
 template <class P>
 ImageId TextureCache<P>::InsertImage(const ImageInfo& info, GPUVAddr gpu_addr,
                                      RelaxedOptions options) {
+    const size_t requested_size = CalculateGuestSizeInBytes(info);
     std::optional<DAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
     if (!cpu_addr) {
-        const auto size = CalculateGuestSizeInBytes(info);
-        cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr, size);
+        cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr, requested_size);
         if (!cpu_addr) {
             const DAddr fake_addr = ~(1ULL << 40ULL) + virtual_invalid_space;
-            virtual_invalid_space += Common::AlignUp(size, 32);
+            virtual_invalid_space += Common::AlignUp(requested_size, 32);
             cpu_addr = std::optional<DAddr>(fake_addr);
         }
     }
     ASSERT_MSG(cpu_addr, "Tried to insert an image to an invalid gpu_addr=0x{:x}", gpu_addr);
+
+    RunAllocationGarbageCollector(requested_size);
 
     const ImageId image_id = JoinImages(info, gpu_addr, *cpu_addr);
     const Image& image = slot_images[image_id];
@@ -1633,6 +1683,8 @@ template <class P>
 ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DAddr cpu_addr) {
     ImageInfo new_info = info;
     const size_t size_bytes = CalculateGuestSizeInBytes(new_info);
+
+    RunAllocationGarbageCollector(size_bytes);
 
     const bool broken_views = runtime.HasBrokenTextureViewFormats();
     const bool native_bgr = runtime.HasNativeBgr();
