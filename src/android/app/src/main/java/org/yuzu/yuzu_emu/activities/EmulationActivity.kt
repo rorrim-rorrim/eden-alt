@@ -404,8 +404,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener, InputManager
         val isPhysicalKeyboard = event.source and InputDevice.SOURCE_KEYBOARD == InputDevice.SOURCE_KEYBOARD &&
                                 event.device?.isVirtual == false
 
-        val isControllerInput = event.source and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK ||
-            event.source and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD
+        val isControllerInput = InputHandler.isPhysicalGameController(event.device)
 
         if (!isControllerInput &&
             event.source and InputDevice.SOURCE_MOUSE != InputDevice.SOURCE_MOUSE &&
@@ -426,8 +425,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener, InputManager
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        val isControllerInput = event.source and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK ||
-            event.source and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD
+        val isControllerInput = InputHandler.isPhysicalGameController(event.device)
 
         if (!isControllerInput &&
             event.source and InputDevice.SOURCE_KEYBOARD != InputDevice.SOURCE_KEYBOARD &&
@@ -461,10 +459,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener, InputManager
     }
 
     private fun isGameController(deviceId: Int): Boolean {
-        val device = InputDevice.getDevice(deviceId) ?: return false
-        val sources = device.sources
-        return sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD ||
-            sources and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK
+        return InputHandler.isPhysicalGameController(InputDevice.getDevice(deviceId))
     }
 
     override fun onInputDeviceAdded(deviceId: Int) {
