@@ -2300,23 +2300,18 @@ vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_
 
 Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& tsc) {
     const auto& device = runtime.device;
-    // Check if custom border colors are supported
-    const bool has_custom_border_colors = runtime.device.IsCustomBorderColorsSupported();
-    const bool has_format_undefined = runtime.device.IsCustomBorderColorWithoutFormatSupported();
+    const bool has_custom_border_extension = runtime.device.IsExtCustomBorderColorSupported();
+    const bool has_format_undefined =
+        has_custom_border_extension && runtime.device.IsCustomBorderColorWithoutFormatSupported();
+    const bool has_custom_border_colors =
+        has_format_undefined && runtime.device.IsCustomBorderColorsSupported();
     const auto color = tsc.BorderColor();
-
-    // Determine border format based on available features:
-    // - If customBorderColorWithoutFormat is available: use VK_FORMAT_UNDEFINED (most flexible)
-    // - If only customBorderColors is available: use concrete format (R8G8B8A8_UNORM)
-    // - If neither is available: use standard border colors (handled by ConvertBorderColor)
-    const VkFormat border_format = has_format_undefined ? VK_FORMAT_UNDEFINED
-                                                        : VK_FORMAT_R8G8B8A8_UNORM;
 
     const VkSamplerCustomBorderColorCreateInfoEXT border_ci{
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT,
         .pNext = nullptr,
         .customBorderColor = std::bit_cast<VkClearColorValue>(color),
-        .format = border_format,
+        .format = VK_FORMAT_UNDEFINED,
     };
     const void* pnext = nullptr;
     if (has_custom_border_colors) {
