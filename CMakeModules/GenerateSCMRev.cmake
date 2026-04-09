@@ -33,9 +33,6 @@ endif()
 set(GIT_DESC ${BUILD_VERSION})
 
 # Generate cpp with Git revision from template
-# Also if this is a CI build, add the build name (ie: Nightly, Canary) to the scm_rev file as well
-
-# Auto-updater metadata! Must somewhat mirror GitHub/Forgejo API endpoint
 
 set(BUILD_AUTO_UPDATE_API_PATH "/latest/release.json")
 if (NIGHTLY_BUILD)

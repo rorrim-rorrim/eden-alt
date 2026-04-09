@@ -147,7 +147,8 @@ add_library(
     zstd_compression.h
     fs/ryujinx_compat.h fs/ryujinx_compat.cpp
     fs/symlink.h fs/symlink.cpp
-    httplib.h)
+    httplib.h
+    net/net.h net/net.cpp)
 
 if(WIN32)
     target_sources(common PRIVATE windows/timer_resolution.cpp
