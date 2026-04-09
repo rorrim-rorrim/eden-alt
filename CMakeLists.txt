@@ -424,10 +424,10 @@ if (zstd_ADDED)
     add_library(zstd::libzstd ALIAS libzstd_static)
 endif()
 
-if (NOT YUZU_STATIC_ROOM)
-    # nlohmann
-    AddJsonPackage(nlohmann)
+# nlohmann
+AddJsonPackage(nlohmann)
 
+if (NOT YUZU_STATIC_ROOM)
     # zlib
     AddJsonPackage(zlib)
 
