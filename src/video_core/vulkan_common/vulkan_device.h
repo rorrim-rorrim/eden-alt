@@ -178,8 +178,6 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE_NAME(primitive_topology_list_restart, primitiveTopologyListRestart)                    \
     FEATURE_NAME(provoking_vertex, provokingVertexLast)                                            \
     FEATURE_NAME(robustness2, nullDescriptor)                                                      \
-    FEATURE_NAME(robustness2, robustBufferAccess2)                                                 \
-    FEATURE_NAME(robustness2, robustImageAccess2)                                                  \
     FEATURE_NAME(shader_float16_int8, shaderFloat16)                                               \
     FEATURE_NAME(shader_float16_int8, shaderInt8)                                                  \
     FEATURE_NAME(timeline_semaphore, timelineSemaphore)                                            \

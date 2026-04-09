@@ -919,6 +919,17 @@ bool Device::GetSuitability(bool requires_swapchain) {
     FOR_EACH_VK_FEATURE_EXT(FEATURE_EXTENSION);
     FOR_EACH_VK_EXTENSION(EXTENSION);
 
+    if (supported_extensions.contains(VK_KHR_ROBUSTNESS_2_EXTENSION_NAME)) {
+        loaded_extensions.erase(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
+        loaded_extensions.insert(VK_KHR_ROBUSTNESS_2_EXTENSION_NAME);
+        extensions.robustness_2 = true;
+    } else if (supported_extensions.contains(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME)) {
+        loaded_extensions.insert(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
+        extensions.robustness_2 = true;
+    } else {
+        extensions.robustness_2 = false;
+    }
+
 #undef FEATURE_EXTENSION
 #undef EXTENSION
 
@@ -1238,12 +1249,17 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
 
     // VK_EXT_robustness2
-    extensions.robustness_2 = features.robustness2.robustBufferAccess2 ||
-                              features.robustness2.robustImageAccess2 ||
-                              features.robustness2.nullDescriptor;
+    features.robustness2.robustBufferAccess2 = VK_FALSE;
+    features.robustness2.robustImageAccess2 = VK_FALSE;
+    extensions.robustness_2 = features.robustness2.nullDescriptor;
+
+    const char* robustness2_extension_name =
+        loaded_extensions.contains(VK_KHR_ROBUSTNESS_2_EXTENSION_NAME)
+            ? VK_KHR_ROBUSTNESS_2_EXTENSION_NAME
+            : VK_EXT_ROBUSTNESS_2_EXTENSION_NAME;
 
     RemoveExtensionFeatureIfUnsuitable(extensions.robustness_2, features.robustness2,
-                                       VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
+                                       robustness2_extension_name);
 
     // VK_EXT_image_robustness
     extensions.image_robustness = features.image_robustness.robustImageAccess;
