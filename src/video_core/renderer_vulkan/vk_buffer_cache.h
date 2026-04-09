@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -161,6 +161,28 @@ public:
         return max_dynamic_storage_buffers;
     }
 
+    bool UsesDynamicVertexBindingStride() const {
+        return device.IsExtExtendedDynamicStateSupported() && !use_vertex_input_dynamic_state;
+    }
+
+    bool UsesVertexInputDynamicState() const {
+        return use_vertex_input_dynamic_state;
+    }
+
+    void NotifyVertexInputBindingChange() {
+        needs_vertex_input_refresh = true;
+    }
+
+    bool ConsumeVertexInputBindingChange() {
+        const bool refresh = needs_vertex_input_refresh;
+        needs_vertex_input_refresh = false;
+        return refresh;
+    }
+
+    u32 GetMaxVertexInputBindingStride() const {
+        return device.GetMaxVertexInputBindingStride();
+    }
+
 private:
     void BindBuffer(VkBuffer buffer, u32 offset, u32 size) {
         guest_descriptor_queue.AddBuffer(buffer, offset, size);
@@ -184,6 +206,7 @@ private:
     QuadIndexedPass quad_index_pass;
 
     bool use_vertex_input_dynamic_state = false;
+    bool needs_vertex_input_refresh = false;
     bool limit_dynamic_storage_buffers = false;
     u32 max_dynamic_storage_buffers = (std::numeric_limits<u32>::max)();
 };

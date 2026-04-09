@@ -153,11 +153,17 @@ void Scheduler::RequestOutsideRenderPassOperationContext() {
 }
 
 bool Scheduler::UpdateGraphicsPipeline(GraphicsPipeline* pipeline) {
+    const auto consume_eds_refresh = [this] {
+        if (!state.needs_state_enable_refresh) {
+            return;
+        }
+        state_tracker.InvalidateExtendedDynamicStateFlags();
+        state.needs_state_enable_refresh = false;
+    };
+
     if (state.graphics_pipeline == pipeline) {
-        if (pipeline && pipeline->UsesExtendedDynamicState() &&
-            state.needs_state_enable_refresh) {
-            state_tracker.InvalidateStateEnableFlag();
-            state.needs_state_enable_refresh = false;
+        if (pipeline && pipeline->UsesExtendedDynamicState()) {
+            consume_eds_refresh();
         }
         return false;
     }
@@ -170,9 +176,8 @@ bool Scheduler::UpdateGraphicsPipeline(GraphicsPipeline* pipeline) {
 
     if (!pipeline->UsesExtendedDynamicState()) {
         state.needs_state_enable_refresh = true;
-    } else if (state.needs_state_enable_refresh) {
-        state_tracker.InvalidateStateEnableFlag();
-        state.needs_state_enable_refresh = false;
+    } else {
+        consume_eds_refresh();
     }
 
     return true;

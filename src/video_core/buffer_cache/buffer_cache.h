@@ -806,6 +806,58 @@ void BufferCache<P>::UpdateVertexBufferSlot(u32 index, const Binding& binding) {
 template <class P>
 void BufferCache<P>::BindHostVertexBuffers() {
 
+    bool needs_vertex_input_refresh = false;
+    bool use_vertex_input_dynamic_state = false;
+    bool use_dynamic_stride = false;
+    u32 max_dynamic_stride = 0;
+    std::array<u32, NUM_VERTEX_BUFFERS> min_dynamic_stride{};
+    if constexpr (!IS_OPENGL) {
+        use_vertex_input_dynamic_state = runtime.UsesVertexInputDynamicState();
+        if (use_vertex_input_dynamic_state) {
+            for (u32 index = 0; index < NUM_VERTEX_BUFFERS; ++index) {
+                if (maxwell3d->dirty.flags[Dirty::VertexBuffer0 + index]) {
+                    needs_vertex_input_refresh = true;
+                    break;
+                }
+            }
+        }
+
+        use_dynamic_stride = runtime.UsesDynamicVertexBindingStride();
+        if (use_dynamic_stride) {
+            max_dynamic_stride = runtime.GetMaxVertexInputBindingStride();
+            for (const auto& attribute : maxwell3d->regs.vertex_attrib_format) {
+                if (attribute.constant != 0) {
+                    continue;
+                }
+                const u32 binding = attribute.buffer;
+                if (binding >= NUM_VERTEX_BUFFERS) {
+                    continue;
+                }
+                const u32 extent = attribute.offset + attribute.SizeInBytes();
+                min_dynamic_stride[binding] = (std::max)(min_dynamic_stride[binding], extent);
+            }
+        }
+    }
+
+    const auto sanitize_stride = [&](u32 binding, u32 stride) -> u32 {
+        if constexpr (IS_OPENGL) {
+            return stride;
+        } else {
+            if (!use_dynamic_stride || stride == 0) {
+                return stride;
+            }
+            const u32 min_stride = min_dynamic_stride[binding];
+            const u32 required_stride = (std::max)(stride, min_stride);
+            if (required_stride <= max_dynamic_stride) {
+                return required_stride;
+            }
+            if (min_stride > max_dynamic_stride) {
+                return 0;
+            }
+            return max_dynamic_stride;
+        }
+    };
+
 #ifdef ANDROID
     const bool use_optimized_vertex_buffers = Settings::values.use_optimized_vertex_buffers.GetValue();
 #else
@@ -838,7 +890,8 @@ void BufferCache<P>::BindHostVertexBuffers() {
                 continue;
             }
             flags[Dirty::VertexBuffer0 + index] = false;
-            const u32 stride = maxwell3d->regs.vertex_streams[index].stride;
+            const u32 stride =
+                sanitize_stride(index, maxwell3d->regs.vertex_streams[index].stride);
             const u32 offset = buffer.Offset(binding.device_addr);
             buffer.MarkUsage(offset, binding.size);
             if (!bindings.buffers.empty() && index != last_index + 1) {
@@ -881,7 +934,8 @@ void BufferCache<P>::BindHostVertexBuffers() {
                 const Binding& binding = channel_state->vertex_buffers[index];
                 Buffer& buffer = slot_buffers[binding.buffer_id];
 
-                const u32 stride = maxwell3d->regs.vertex_streams[index].stride;
+                const u32 stride =
+                    sanitize_stride(index, maxwell3d->regs.vertex_streams[index].stride);
                 const u32 offset = buffer.Offset(binding.device_addr);
                 buffer.MarkUsage(offset, binding.size);
 
@@ -891,6 +945,12 @@ void BufferCache<P>::BindHostVertexBuffers() {
                 host_bindings.strides.push_back(stride);
             }
             runtime.BindVertexBuffers(host_bindings);
+        }
+    }
+
+    if constexpr (!IS_OPENGL) {
+        if (needs_vertex_input_refresh) {
+            runtime.NotifyVertexInputBindingChange();
         }
     }
 }
