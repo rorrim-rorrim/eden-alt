@@ -1732,39 +1732,54 @@ void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs) 
     }
     dirty[Dirty::VertexInput] = false;
 
+    const size_t max_vertex_attributes =
+        (std::min)(Maxwell::NumVertexAttributes,
+                   static_cast<size_t>(device.GetMaxVertexInputAttributes()));
+    const size_t max_vertex_bindings =
+        (std::min)(Maxwell::NumVertexArrays,
+                   static_cast<size_t>(device.GetMaxVertexInputBindings()));
+
+    // Dynamic state path must respect device limits, same as static pipeline creation.
+    for (size_t index = max_vertex_attributes; index < Maxwell::NumVertexAttributes; ++index) {
+        dirty[Dirty::VertexAttribute0 + index] = false;
+    }
+    for (size_t index = max_vertex_bindings; index < Maxwell::NumVertexArrays; ++index) {
+        dirty[Dirty::VertexBinding0 + index] = false;
+    }
+
     boost::container::static_vector<VkVertexInputBindingDescription2EXT, 32> bindings;
     boost::container::static_vector<VkVertexInputAttributeDescription2EXT, 32> attributes;
 
-    // There seems to be a bug on Nvidia's driver where updating only higher attributes ends up
-    // generating dirty state. Track the highest dirty attribute and update all attributes until
-    // that one.
-    size_t highest_dirty_attr{};
-    for (size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
-        if (dirty[Dirty::VertexAttribute0 + index]) {
-            highest_dirty_attr = index;
-        }
-    }
-    for (size_t index = 0; index < highest_dirty_attr; ++index) {
-        const Maxwell::VertexAttribute attribute{regs.vertex_attrib_format[index]};
-        const u32 binding{attribute.buffer};
+    std::array<bool, Maxwell::NumVertexArrays> used_bindings{};
+    for (size_t index = 0; index < max_vertex_attributes; ++index) {
         dirty[Dirty::VertexAttribute0 + index] = false;
-        dirty[Dirty::VertexBinding0 + static_cast<size_t>(binding)] = true;
-        if (!attribute.constant) {
-            attributes.push_back({
-                .sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT,
-                .pNext = nullptr,
-                .location = static_cast<u32>(index),
-                .binding = binding,
-                .format = MaxwellToVK::VertexFormat(device, attribute.type, attribute.size),
-                .offset = attribute.offset,
-            });
-        }
-    }
-    for (size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
-        if (!dirty[Dirty::VertexBinding0 + index]) {
+
+        const Maxwell::VertexAttribute attribute{regs.vertex_attrib_format[index]};
+        if (attribute.constant) {
             continue;
         }
+
+        const size_t binding{attribute.buffer};
+        if (binding >= max_vertex_bindings) {
+            continue;
+        }
+
+        used_bindings[binding] = true;
+        attributes.push_back({
+            .sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT,
+            .pNext = nullptr,
+            .location = static_cast<u32>(index),
+            .binding = static_cast<u32>(binding),
+            .format = MaxwellToVK::VertexFormat(device, attribute.type, attribute.size),
+            .offset = attribute.offset,
+        });
+    }
+
+    for (size_t index = 0; index < max_vertex_bindings; ++index) {
         dirty[Dirty::VertexBinding0 + index] = false;
+        if (!used_bindings[index]) {
+            continue;
+        }
 
         const u32 binding{static_cast<u32>(index)};
         const auto& input_binding{regs.vertex_streams[binding]};
@@ -1778,6 +1793,10 @@ void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs) 
             .divisor = is_instanced ? input_binding.frequency : 1,
         });
     }
+
+    ASSERT(attributes.size() <= max_vertex_attributes);
+    ASSERT(bindings.size() <= max_vertex_bindings);
+
     scheduler.Record([bindings, attributes](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetVertexInputEXT(bindings, attributes);
     });

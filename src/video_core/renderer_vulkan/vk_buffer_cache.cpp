@@ -10,6 +10,7 @@
 #include <span>
 #include <vector>
 
+#include "common/settings.h"
 #include "video_core/buffer_cache/buffer_cache_base.h"
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
 
@@ -334,6 +335,9 @@ BufferCacheRuntime::BufferCacheRuntime(const Device& device_, MemoryAllocator& m
       staging_pool{staging_pool_}, guest_descriptor_queue{guest_descriptor_queue_},
       quad_index_pass(device, scheduler, descriptor_pool, staging_pool,
                       compute_pass_descriptor_queue) {
+    use_vertex_input_dynamic_state = device.IsExtVertexInputDynamicStateSupported() &&
+                                     Settings::values.vertex_input_dynamic_state.GetValue();
+
     const VkDriverIdKHR driver_id = device.GetDriverID();
     limit_dynamic_storage_buffers = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
                                     driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
@@ -556,7 +560,10 @@ void BufferCacheRuntime::BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset
     if (index >= device.GetMaxVertexInputBindings()) {
         return;
     }
-    if (device.IsExtExtendedDynamicStateSupported()) {
+    const bool use_bind_vertex_buffers2_stride =
+        device.IsExtExtendedDynamicStateSupported() && !use_vertex_input_dynamic_state;
+
+    if (use_bind_vertex_buffers2_stride) {
         scheduler.Record([index, buffer, offset, size, stride](vk::CommandBuffer cmdbuf) {
             const VkDeviceSize vk_offset = buffer != VK_NULL_HANDLE ? offset : 0;
             const VkDeviceSize vk_size = buffer != VK_NULL_HANDLE ? size : VK_WHOLE_SIZE;
@@ -596,7 +603,10 @@ void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bi
     if (binding_count == 0) {
         return;
     }
-    if (device.IsExtExtendedDynamicStateSupported()) {
+    const bool use_bind_vertex_buffers2_stride =
+        device.IsExtExtendedDynamicStateSupported() && !use_vertex_input_dynamic_state;
+
+    if (use_bind_vertex_buffers2_stride) {
         scheduler.Record([bindings_ = std::move(bindings), buffer_handles_ = std::move(buffer_handles), binding_count](vk::CommandBuffer cmdbuf) {
             cmdbuf.BindVertexBuffers2EXT(bindings_.min_index, binding_count, buffer_handles_.data(), bindings_.offsets.data(), bindings_.sizes.data(), bindings_.strides.data());
         });
