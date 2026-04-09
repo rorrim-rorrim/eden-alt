@@ -33,6 +33,7 @@ std::vector<Asset> Release::GetAssets() const {
     static constexpr const std::string prefix = "Eden-Android";
 #else
     LOG_DEBUG(Common, "Unsupported platform for auto-update");
+    return {};
 #endif
 
     std::vector<std::string> suffixes;

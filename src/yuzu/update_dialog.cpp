@@ -14,9 +14,11 @@
 
 #ifdef YUZU_BUNDLED_OPENSSL
 #include <openssl/cert.h>
+#endif
 
 #include <QDesktopServices>
-#endif
+
+#undef GetSaveFileName
 
 UpdateDialog::UpdateDialog(const Common::Net::Release& release, QWidget* parent)
     : QDialog(parent), ui(new Ui::UpdateDialog) {
