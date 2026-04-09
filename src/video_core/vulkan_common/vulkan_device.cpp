@@ -1261,9 +1261,10 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.robustness_2, features.robustness2,
                                        robustness2_extension_name);
 
-    // VK_EXT_image_robustness
-    extensions.image_robustness = features.image_robustness.robustImageAccess;
-    RemoveExtensionFeatureIfUnsuitable(extensions.image_robustness, features.image_robustness,
+    // Image robustness
+    extensions.robust_image_access = features.robust_image_access.robustImageAccess;
+    RemoveExtensionFeatureIfUnsuitable(extensions.robust_image_access,
+                                       features.robust_image_access,
                                        VK_EXT_IMAGE_ROBUSTNESS_EXTENSION_NAME);
 
     // VK_KHR_shader_atomic_int64
