@@ -8,7 +8,7 @@
 #include "frontend_common/settings_generator.h"
 #include "qt_common/qt_string_lookup.h"
 #include "render/performance_overlay.h"
-#include "update_dialog.h"
+#include "updater/update_dialog.h"
 #if defined(QT_STATICPLUGIN) && !defined(__APPLE__)
 #undef VMA_IMPLEMENTATION
 #endif

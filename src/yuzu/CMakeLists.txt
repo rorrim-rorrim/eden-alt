@@ -245,7 +245,7 @@ add_executable(yuzu
 
     render/performance_overlay.h render/performance_overlay.cpp render/performance_overlay.ui
     libqt_common.h libqt_common.cpp
-    update_dialog.h update_dialog.cpp update_dialog.ui
+    updater/update_dialog.h updater/update_dialog.cpp updater/update_dialog.ui
 
 )
 

@@ -25,8 +25,6 @@ namespace Common::Net {
 std::vector<Asset> Release::GetAssets() const {
 #ifdef _WIN32
     static constexpr const std::string prefix = "Eden-Windows";
-#elif defined(__linux__)
-    static constexpr const std::string prefix = "Eden-Linux";
 #elif defined(__APPLE__)
     static constexpr const std::string prefix = "Eden-macOS";
 #elif defined(__ANDROID__)
@@ -71,19 +69,13 @@ std::vector<Asset> Release::GetAssets() const {
         make_asset(QT_TR_NOOP("Standard"), "-mingw-arm64-clang-standard.zip"),
         make_asset(QT_TR_NOOP("PGO"), "-mingw-arm64-clang-pgo.zip")
 #endif
-#elif defined(__linux__)
-// TODO(crueter): Linux doesn't need this...?
-#ifdef ARCHITECTURE_x86_64
-        make_asset("Standard", "-amd64-gcc-standard.AppImage"),
-        make_asset("PGO", "-amd64-clang-pgo.AppImage"),
-#endif
 #elif defined(__APPLE__)
 #ifdef ARCHITECTURE_arm64
         make_asset(QT_TR_NOOP("Standard"), ".dmg"),
 #endif
 #elif defined(__ANDROID__)
 #ifdef ARCHITECTURE_x86_64
-        make_asset("ChromeOS", "-chromeos.apk"),
+        make_asset("Standard", "-chromeos.apk"),
 #elif defined(ARCHITECTURE_arm64)
 #ifdef YUZU_LEGACY
         make_asset("Standard", "-legacy.apk"),

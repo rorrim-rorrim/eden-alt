@@ -9,6 +9,7 @@
 #include "ui_update_dialog.h"
 #include "update_dialog.h"
 #include <QSaveFile>
+#include <qdesktopservices.h>
 
 #include "common/httplib.h"
 
@@ -35,21 +36,30 @@ UpdateDialog::UpdateDialog(const Common::Net::Release& release, QWidget* parent)
     ui->body->setMarkdown(QString::fromStdString(text));
 
     // TODO(crueter): Find a way to set default
-    u32 i = 0;
-    for (const Common::Net::Asset& a : release.GetAssets()) {
-        QRadioButton* r = new QRadioButton(tr(a.name.c_str()), this);
-        if (i == 0) r->setChecked(true);
-        ++i;
+    const auto assets = release.GetAssets();
 
-        r->setProperty("url", QString::fromStdString(a.url));
-        r->setProperty("path", QString::fromStdString(a.path));
-        r->setProperty("filename", QString::fromStdString(a.filename));
+    if (assets.empty()) {
+        ui->groupBox->setHidden(true);
+        connect(this, &QDialog::accepted, this, [release]() {
+            QDesktopServices::openUrl(QUrl{QString::fromStdString(release.html_url)});
+        });
+    } else {
+        u32 i = 0;
+        for (const Common::Net::Asset& a : release.GetAssets()) {
+            QRadioButton* r = new QRadioButton(tr(a.name.c_str()), this);
+            if (i == 0) r->setChecked(true);
+            ++i;
 
-        ui->radioButtons->addWidget(r);
-        m_buttons.append(r);
+            r->setProperty("url", QString::fromStdString(a.url));
+            r->setProperty("path", QString::fromStdString(a.path));
+            r->setProperty("filename", QString::fromStdString(a.filename));
+
+            ui->radioButtons->addWidget(r);
+            m_buttons.append(r);
+        }
+
+        connect(this, &QDialog::accepted, this, &UpdateDialog::Download);
     }
-
-    connect(this, &QDialog::accepted, this, &UpdateDialog::Download);
 }
 
 UpdateDialog::~UpdateDialog() {

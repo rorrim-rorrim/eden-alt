@@ -20,6 +20,7 @@ public:
 
 private slots:
     void Download();
+
 private:
     Ui::UpdateDialog* ui;
     QList<QRadioButton *> m_buttons;
