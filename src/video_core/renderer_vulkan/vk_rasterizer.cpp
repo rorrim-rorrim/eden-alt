@@ -766,6 +766,9 @@ void RasterizerVulkan::ReleaseFences(bool force) {
 
 void RasterizerVulkan::FlushAndInvalidateRegion(DAddr addr, u64 size,
                                                 VideoCommon::CacheType which) {
+    if (Settings::IsGPULevelHigh()) {
+        FlushRegion(addr, size, which);
+    }
     InvalidateRegion(addr, size, which);
 }
 
