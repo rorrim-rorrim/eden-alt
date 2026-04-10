@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -99,37 +99,6 @@ public:
 
     void InvalidateStateEnableFlag() {
         (*flags)[Dirty::StateEnable] = true;
-    }
-
-    void InvalidateExtendedDynamicStateFlags() {
-        InvalidateStateEnableFlag();
-
-        (*flags)[Dirty::CullMode] = true;
-        (*flags)[Dirty::DepthCompareOp] = true;
-        (*flags)[Dirty::FrontFace] = true;
-        (*flags)[Dirty::StencilOp] = true;
-        (*flags)[Dirty::DepthBoundsEnable] = true;
-        (*flags)[Dirty::DepthTestEnable] = true;
-        (*flags)[Dirty::DepthWriteEnable] = true;
-        (*flags)[Dirty::StencilTestEnable] = true;
-
-        (*flags)[Dirty::PrimitiveRestartEnable] = true;
-        (*flags)[Dirty::RasterizerDiscardEnable] = true;
-        (*flags)[Dirty::DepthBiasEnable] = true;
-        (*flags)[Dirty::LogicOp] = true;
-
-        (*flags)[Dirty::LogicOpEnable] = true;
-        (*flags)[Dirty::DepthClampEnable] = true;
-        (*flags)[Dirty::LineRasterizationMode] = true;
-        (*flags)[Dirty::LineStippleEnable] = true;
-        (*flags)[Dirty::ConservativeRasterizationMode] = true;
-        (*flags)[Dirty::AlphaToCoverageEnable] = true;
-        (*flags)[Dirty::AlphaToOneEnable] = true;
-
-        (*flags)[Dirty::Blending] = true;
-        (*flags)[Dirty::ColorMask] = true;
-        (*flags)[Dirty::BlendEnable] = true;
-        (*flags)[Dirty::BlendEquations] = true;
     }
 
     bool TouchViewports() {

@@ -1014,6 +1014,20 @@ void RasterizerVulkan::UpdateDynamicStates() {
 
     // EDS3 Enables: LogicOpEnable, DepthClamp, LineStipple, ConservativeRaster
     if (device.IsExtExtendedDynamicState3EnablesSupported()) {
+        using namespace Tegra::Engines;
+        // AMD Workaround: LogicOp incompatible with float render targets
+        if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE ||
+            device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
+            const auto has_float = std::any_of(
+                regs.vertex_attrib_format.begin(), regs.vertex_attrib_format.end(),
+                [](const auto& attrib) {
+                    return attrib.type == Maxwell3D::Regs::VertexAttribute::Type::Float;
+                }
+            );
+            if (regs.logic_op.enable) {
+                regs.logic_op.enable = static_cast<u32>(!has_float);
+            }
+        }
         UpdateLogicOpEnable(regs);
         UpdateDepthClampEnable(regs);
         UpdateLineRasterizationMode(regs);
@@ -1031,7 +1045,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
     // Vertex Input Dynamic State: Independent from EDS levels
     if (device.IsExtVertexInputDynamicStateSupported()) {
         if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput()) {
-            UpdateVertexInput(regs, *gp);
+            UpdateVertexInput(regs);
         }
     }
 }
@@ -1711,11 +1725,9 @@ void RasterizerVulkan::UpdateStencilTestEnable(Tegra::Engines::Maxwell3D::Regs& 
     });
 }
 
-void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs,
-                                         const GraphicsPipeline& pipeline) {
+void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs) {
     auto& dirty{maxwell3d->dirty.flags};
-    const bool force_vertex_input_refresh = buffer_cache_runtime.ConsumeVertexInputBindingChange();
-    if (!dirty[Dirty::VertexInput] && !force_vertex_input_refresh) {
+    if (!dirty[Dirty::VertexInput]) {
         return;
     }
     dirty[Dirty::VertexInput] = false;
@@ -1744,9 +1756,6 @@ void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs,
 
         const Maxwell::VertexAttribute attribute{regs.vertex_attrib_format[index]};
         if (attribute.constant) {
-            continue;
-        }
-        if (!pipeline.UsesVertexAttribute(index)) {
             continue;
         }
 

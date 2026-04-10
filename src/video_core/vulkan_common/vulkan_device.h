@@ -783,10 +783,6 @@ public:
         return properties.properties.limits.maxVertexInputBindings;
     }
 
-    u32 GetMaxVertexInputBindingStride() const {
-        return properties.properties.limits.maxVertexInputBindingStride;
-    }
-
     u32 GetMaxViewports() const {
         return properties.properties.limits.maxViewports;
     }
