@@ -803,7 +803,6 @@
 
     <!-- Audio output engines -->
     <string name="oboe">oboe</string>
-    <string name="cubeb">cubeb</string>
 
     <!-- Anisotropic filtering options -->
     <string name="multiplier_x2">x2</string>

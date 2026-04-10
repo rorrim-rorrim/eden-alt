@@ -125,18 +125,6 @@
             "SPIRV_WERROR OFF"
         ]
     },
-    "cubeb": {
-        "repo": "mozilla/cubeb",
-        "sha": "fa02160712",
-        "hash": "8a4bcb2f83ba590f52c66626e895304a73eb61928dbc57777e1822e55378e3568366f17f9da4b80036cc2ef4ea9723c32abf6e7d9bbe00fb03654f0991596ab0",
-        "find_args": "CONFIG",
-        "options": [
-            "USE_SANITIZERS OFF",
-            "BUILD_TESTS OFF",
-            "BUILD_TOOLS OFF",
-            "BUNDLE_SPEEX ON"
-        ]
-    },
     "sdl2": {
         "ci": true,
         "package": "SDL2",

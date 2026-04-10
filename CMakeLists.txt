@@ -50,7 +50,6 @@ if (YUZU_STATIC_ROOM)
     # disable e v e r y t h i n g
     set(ENABLE_QT OFF)
     set(YUZU_CMD OFF)
-    set(ENABLE_CUBEB OFF)
     set(ENABLE_UPDATE_CHECKER OFF)
     set(USE_DISCORD_PRESENCE OFF)
     set(BUILD_TESTING OFF)
@@ -173,8 +172,6 @@ endif()
 # TODO(crueter): Cleanup, each dep that has a bundled option should allow to choose between bundled, external, system
 cmake_dependent_option(YUZU_USE_EXTERNAL_SDL2 "Build SDL2 from external source" OFF "NOT MSVC;NOT ANDROID" OFF)
 cmake_dependent_option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}" "NOT ANDROID" OFF)
-
-option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
 set(EXT_DEFAULT OFF)
 if (MSVC OR ANDROID)
@@ -548,10 +545,6 @@ if (NOT YUZU_STATIC_ROOM)
         find_package(DiscordRPC)
     endif()
 
-    if (ENABLE_CUBEB)
-        find_package(cubeb)
-    endif()
-
     if (YUZU_TESTS OR DYNARMIC_TESTS)
         find_package(Catch2)
     endif()
@@ -704,14 +697,6 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /MD")
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MDd")
-
-    # Add this to ensure Cubeb uses the same runtime
-    add_compile_options(
-        $<$<CONFIG:Debug>:/MDd>
-        $<$<CONFIG:Release>:/MD>
-        $<$<CONFIG:RelWithDebInfo>:/MD>
-        $<$<CONFIG:MinSizeRel>:/MD>
-    )
 endif()
 
 add_subdirectory(src)
