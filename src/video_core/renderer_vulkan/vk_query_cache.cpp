@@ -665,6 +665,7 @@ public:
         offsets.fill(0);
         last_queries.fill(0);
         last_queries_stride.fill(1);
+        stream_to_slot.fill(INVALID_SLOT);
         VkBufferUsageFlags counter_buffer_usage =
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
         if (device.IsExtTransformFeedbackSupported()) {
@@ -773,15 +774,24 @@ public:
             return index;
         }
         const size_t subreport = static_cast<size_t>(*subreport_);
+        if (subreport >= NUM_STREAMS) {
+            new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
+            return index;
+        }
         last_queries[subreport] = address;
         if ((streams_mask & (1ULL << subreport)) == 0) {
+            new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
+            return index;
+        }
+        const size_t slot = stream_to_slot[subreport];
+        if (slot >= NUM_STREAMS) {
             new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
             return index;
         }
         
         scheduler.RequestOutsideRenderPassOperationContext();
         CloseCounter();
-        auto [bank_slot, data_slot] = ProduceCounterBuffer(subreport);
+        auto [bank_slot, data_slot] = ProduceCounterBuffer(slot);
         new_query->start_bank_id = static_cast<u32>(bank_slot);
         new_query->size_banks = 1;
         new_query->start_slot = static_cast<u32>(data_slot);
@@ -792,6 +802,9 @@ public:
     }
 
     std::optional<std::pair<DAddr, size_t>> GetLastQueryStream(size_t stream) {
+        if (stream >= NUM_STREAMS) {
+            return std::nullopt;
+        }
         if (last_queries[stream] != 0) {
             std::pair<DAddr, size_t> result(last_queries[stream], last_queries_stride[stream]);
             return result;
@@ -932,6 +945,7 @@ private:
     void UpdateBuffers() {
         last_queries.fill(0);
         last_queries_stride.fill(1);
+        stream_to_slot.fill(INVALID_SLOT);
         streams_mask = 0; // reset previously recorded streams
         runtime.View3DRegs([this](Maxwell3D& maxwell3d) {
             buffers_count = 0;
@@ -956,19 +970,23 @@ private:
                 if (tf.buffers[i].enable == 0) {
                     continue;
                 }
+                buffers_count = std::max<size_t>(buffers_count, i + 1);
                 const size_t stream = tf.controls[i].stream;
                 if (stream >= last_queries_stride.size()) {
                     LOG_WARNING(Render_Vulkan, "TransformFeedback stream {} out of range", stream);
                     continue;
                 }
+                if ((streams_mask & (1ULL << stream)) != 0) {
+                    continue;
+                }
                 last_queries_stride[stream] = tf.controls[i].stride;
+                stream_to_slot[stream] = i;
                 streams_mask |= 1ULL << stream;
-                buffers_count = std::max<size_t>(buffers_count, stream + 1);
             }
         });
     }
 
-    std::pair<size_t, size_t> ProduceCounterBuffer(size_t stream) {
+    std::pair<size_t, size_t> ProduceCounterBuffer(size_t slot_index) {
         if (current_bank == nullptr || current_bank->IsClosed()) {
             current_bank_id =
                 bank_pool.ReserveBank([this](std::deque<TFBQueryBank>& queue, size_t index) {
@@ -994,7 +1012,8 @@ private:
         };
         scheduler.RequestOutsideRenderPassOperationContext();
         scheduler.Record([dst_buffer = current_bank->GetBuffer(),
-                          src_buffer = counter_buffers[stream], src_offset = offsets[stream],
+                          src_buffer = counter_buffers[slot_index],
+                          src_offset = offsets[slot_index],
                           slot](vk::CommandBuffer cmdbuf) {
             cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT,
                                    VK_PIPELINE_STAGE_TRANSFER_BIT, 0, READ_BARRIER);
@@ -1013,6 +1032,7 @@ private:
     friend class PrimitivesSucceededStreamer;
 
     static constexpr size_t NUM_STREAMS = 4;
+    static constexpr size_t INVALID_SLOT = NUM_STREAMS;
 
     QueryCacheRuntime& runtime;
     const Device& device;
@@ -1042,6 +1062,7 @@ private:
     std::array<VkDeviceSize, NUM_STREAMS> offsets{};
     std::array<DAddr, NUM_STREAMS> last_queries;
     std::array<size_t, NUM_STREAMS> last_queries_stride;
+    std::array<size_t, NUM_STREAMS> stream_to_slot;
     Maxwell3D::Regs::PrimitiveTopology out_topology;
     u32 patch_vertices{1};
     u64 streams_mask;
