@@ -538,6 +538,17 @@ public:
         return extensions.transform_feedback;
     }
 
+    /// Returns true if transform feedback draw commands are supported.
+    bool IsTransformFeedbackDrawSupported() const {
+        return extensions.transform_feedback && properties.transform_feedback.transformFeedbackDraw;
+    }
+
+    /// Returns true if transform feedback query types are supported.
+    bool IsTransformFeedbackQueriesSupported() const {
+        return extensions.transform_feedback &&
+               properties.transform_feedback.transformFeedbackQueries;
+    }
+
     /// Returns true if the device supports VK_EXT_transform_feedback properly.
     bool AreTransformFeedbackGeometryStreamsSupported() const {
         return features.transform_feedback.geometryStreams;

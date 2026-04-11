@@ -1292,8 +1292,7 @@ void Device::RemoveUnsuitableExtensions() {
     // VK_EXT_transform_feedback
     extensions.transform_feedback =
         features.transform_feedback.transformFeedback &&
-        properties.transform_feedback.maxTransformFeedbackBuffers > 0 &&
-        properties.transform_feedback.transformFeedbackQueries;
+        properties.transform_feedback.maxTransformFeedbackBuffers > 0;
     RemoveExtensionFeatureIfUnsuitable(extensions.transform_feedback, features.transform_feedback,
                                        VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
 

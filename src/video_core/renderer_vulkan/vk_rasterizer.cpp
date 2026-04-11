@@ -577,11 +577,17 @@ void RasterizerVulkan::DispatchCompute() {
 }
 
 void RasterizerVulkan::ResetCounter(VideoCommon::QueryType type) {
-    if (type != VideoCommon::QueryType::ZPassPixelCount64) {
+    switch (type) {
+    case VideoCommon::QueryType::ZPassPixelCount64:
+    case VideoCommon::QueryType::StreamingByteCount:
+    case VideoCommon::QueryType::StreamingPrimitivesSucceeded:
+    case VideoCommon::QueryType::VtgPrimitivesOut:
+        query_cache.CounterReset(type);
+        return;
+    default:
         LOG_DEBUG(Render_Vulkan, "Unimplemented counter reset={}", type);
         return;
     }
-    query_cache.CounterReset(type);
 }
 
 void RasterizerVulkan::Query(GPUVAddr gpu_addr, VideoCommon::QueryType type,
@@ -833,6 +839,10 @@ void RasterizerVulkan::TickFrame() {
 bool RasterizerVulkan::AccelerateConditionalRendering() {
     gpu_memory->FlushCaching();
     return query_cache.AccelerateHostConditionalRendering();
+}
+
+bool RasterizerVulkan::HasDrawTransformFeedback() {
+    return device.IsTransformFeedbackDrawSupported();
 }
 
 bool RasterizerVulkan::AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Surface& src,

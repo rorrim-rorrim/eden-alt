@@ -665,13 +665,17 @@ public:
         offsets.fill(0);
         last_queries.fill(0);
         last_queries_stride.fill(1);
+        VkBufferUsageFlags counter_buffer_usage =
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+        if (device.IsExtTransformFeedbackSupported()) {
+            counter_buffer_usage |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT;
+        }
         const VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
             .size = TFBQueryBank::QUERY_SIZE * NUM_STREAMS,
-            .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-                     VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT,
+            .usage = counter_buffer_usage,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .queueFamilyIndexCount = 0,
             .pQueueFamilyIndices = nullptr,
@@ -691,6 +695,9 @@ public:
     ~TFBCounterStreamer() = default;
 
     void StartCounter() override {
+        if (!device.IsExtTransformFeedbackSupported()) {
+            return;
+        }
         FlushBeginTFB();
         has_started = true;
     }
@@ -705,7 +712,9 @@ public:
 
     void CloseCounter() override {
         if (has_flushed_end_pending) {
-            FlushEndTFB();
+            if (scheduler.IsRenderPassActive()) {
+                FlushEndTFB();
+            }
         }
         runtime.View3DRegs([this](Maxwell3D& maxwell3d) {
             if (maxwell3d.regs.transform_feedback_enabled == 0) {
@@ -755,6 +764,10 @@ public:
         if (has_timestamp) {
             new_query->flags |= VideoCommon::QueryFlagBits::HasTimestamp;
         }
+        if (!device.IsExtTransformFeedbackSupported()) {
+            new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
+            return index;
+        }
         if (!subreport_) {
             new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
             return index;
@@ -765,6 +778,8 @@ public:
             new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
             return index;
         }
+        
+        scheduler.RequestOutsideRenderPassOperationContext();
         CloseCounter();
         auto [bank_slot, data_slot] = ProduceCounterBuffer(subreport);
         new_query->start_bank_id = static_cast<u32>(bank_slot);
@@ -786,6 +801,10 @@ public:
 
     Maxwell3D::Regs::PrimitiveTopology GetOutputTopology() const {
         return out_topology;
+    }
+
+    u32 GetPatchVertices() const {
+        return patch_vertices;
     }
 
     bool HasUnsyncedQueries() const override {
@@ -854,6 +873,9 @@ public:
 
 private:
     void FlushBeginTFB() {
+        if (!device.IsExtTransformFeedbackSupported()) [[unlikely]] {
+            return;
+        }
         if (has_flushed_end_pending) [[unlikely]] {
             return;
         }
@@ -867,12 +889,24 @@ private:
             });
             return;
         }
+        static constexpr VkMemoryBarrier COUNTER_RESUME_BARRIER{
+            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT,
+            .dstAccessMask = VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_READ_BIT_EXT,
+        };
         scheduler.Record([this, total = static_cast<u32>(buffers_count)](vk::CommandBuffer cmdbuf) {
+            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT,
+                                   VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT, 0,
+                                   COUNTER_RESUME_BARRIER);
             cmdbuf.BeginTransformFeedbackEXT(0, total, counter_buffers.data(), offsets.data());
         });
     }
 
     void FlushEndTFB() {
+        if (!device.IsExtTransformFeedbackSupported()) [[unlikely]] {
+            return;
+        }
         if (!has_flushed_end_pending) [[unlikely]] {
             UNREACHABLE();
             return;
@@ -902,6 +936,21 @@ private:
         runtime.View3DRegs([this](Maxwell3D& maxwell3d) {
             buffers_count = 0;
             out_topology = maxwell3d.draw_manager->GetDrawState().topology;
+            patch_vertices = std::max(maxwell3d.regs.patch_vertices, 1U);
+            if (out_topology == Maxwell3D::Regs::PrimitiveTopology::Patches) {
+                switch (maxwell3d.regs.tessellation.params.output_primitives.Value()) {
+                case Maxwell3D::Regs::Tessellation::OutputPrimitives::Points:
+                    out_topology = Maxwell3D::Regs::PrimitiveTopology::Points;
+                    break;
+                case Maxwell3D::Regs::Tessellation::OutputPrimitives::Lines:
+                    out_topology = Maxwell3D::Regs::PrimitiveTopology::LineStrip;
+                    break;
+                case Maxwell3D::Regs::Tessellation::OutputPrimitives::Triangles_CW:
+                case Maxwell3D::Regs::Tessellation::OutputPrimitives::Triangles_CCW:
+                    out_topology = Maxwell3D::Regs::PrimitiveTopology::TriangleStrip;
+                    break;
+                }
+            }
             for (size_t i = 0; i < Maxwell3D::Regs::NumTransformFeedbackBuffers; i++) {
                 const auto& tf = maxwell3d.regs.transform_feedback;
                 if (tf.buffers[i].enable == 0) {
@@ -994,6 +1043,7 @@ private:
     std::array<DAddr, NUM_STREAMS> last_queries;
     std::array<size_t, NUM_STREAMS> last_queries_stride;
     Maxwell3D::Regs::PrimitiveTopology out_topology;
+    u32 patch_vertices{1};
     u64 streams_mask;
 };
 
@@ -1014,6 +1064,7 @@ public:
     u64 stride{};
     DAddr dependant_address{};
     Maxwell3D::Regs::PrimitiveTopology topology{Maxwell3D::Regs::PrimitiveTopology::Points};
+    u32 patch_vertices{1};
     size_t dependant_index{};
     bool dependant_manage{};
 };
@@ -1029,6 +1080,10 @@ public:
     }
 
     ~PrimitivesSucceededStreamer() = default;
+
+    void ResetCounter() override {
+        tfb_streamer.ResetCounter();
+    }
 
     size_t WriteCounter(DAddr address, bool has_timestamp, u32 value,
                         std::optional<u32> subreport_) override {
@@ -1047,6 +1102,7 @@ public:
         auto dependant_address_opt = tfb_streamer.GetLastQueryStream(subreport);
         bool must_manage_dependance = false;
         new_query->topology = tfb_streamer.GetOutputTopology();
+        new_query->patch_vertices = tfb_streamer.GetPatchVertices();
         if (dependant_address_opt) {
             auto [dep_address, stride] = *dependant_address_opt;
             new_query->dependant_address = dep_address;
@@ -1067,6 +1123,7 @@ public:
             }
             new_query->stride = 1;
             runtime.View3DRegs([new_query, subreport](Maxwell3D& maxwell3d) {
+                new_query->patch_vertices = std::max(maxwell3d.regs.patch_vertices, 1U);
                 for (size_t i = 0; i < Maxwell3D::Regs::NumTransformFeedbackBuffers; i++) {
                     const auto& tf = maxwell3d.regs.transform_feedback;
                     if (tf.buffers[i].enable == 0) {
@@ -1130,27 +1187,39 @@ public:
                 }
             }
             query->value = [&]() -> u64 {
+                const auto saturating_subtract = [](u64 value, u64 amount) {
+                    return value > amount ? value - amount : 0;
+                };
                 switch (query->topology) {
                 case Maxwell3D::Regs::PrimitiveTopology::Points:
                     return num_vertices;
                 case Maxwell3D::Regs::PrimitiveTopology::Lines:
                     return num_vertices / 2;
                 case Maxwell3D::Regs::PrimitiveTopology::LineLoop:
-                    return (num_vertices / 2) + 1;
+                    return num_vertices > 1 ? num_vertices : 0;
                 case Maxwell3D::Regs::PrimitiveTopology::LineStrip:
-                    return num_vertices - 1;
-                case Maxwell3D::Regs::PrimitiveTopology::Patches:
+                    return saturating_subtract(num_vertices, 1);
+                case Maxwell3D::Regs::PrimitiveTopology::LinesAdjacency:
+                    return num_vertices / 4;
+                case Maxwell3D::Regs::PrimitiveTopology::LineStripAdjacency:
+                    return saturating_subtract(num_vertices, 3);
                 case Maxwell3D::Regs::PrimitiveTopology::Triangles:
-                case Maxwell3D::Regs::PrimitiveTopology::TrianglesAdjacency:
                     return num_vertices / 3;
+                case Maxwell3D::Regs::PrimitiveTopology::TrianglesAdjacency:
+                    return num_vertices / 6;
                 case Maxwell3D::Regs::PrimitiveTopology::TriangleFan:
                 case Maxwell3D::Regs::PrimitiveTopology::TriangleStrip:
+                    return saturating_subtract(num_vertices, 2);
                 case Maxwell3D::Regs::PrimitiveTopology::TriangleStripAdjacency:
-                    return num_vertices - 2;
+                    return num_vertices > 4 ? (num_vertices - 4) / 2 : 0;
                 case Maxwell3D::Regs::PrimitiveTopology::Quads:
                     return num_vertices / 4;
+                case Maxwell3D::Regs::PrimitiveTopology::QuadStrip:
+                    return num_vertices > 2 ? (num_vertices - 2) / 2 : 0;
                 case Maxwell3D::Regs::PrimitiveTopology::Polygon:
-                    return 1U;
+                    return num_vertices >= 3 ? 1U : 0U;
+                case Maxwell3D::Regs::PrimitiveTopology::Patches:
+                    return num_vertices / std::max<u64>(query->patch_vertices, 1U);
                 default:
                     return num_vertices;
                 }
