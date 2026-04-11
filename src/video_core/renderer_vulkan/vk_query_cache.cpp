@@ -1202,16 +1202,24 @@ struct QueryCacheRuntimeImpl {
         hcr_setup.pNext = nullptr;
         hcr_setup.flags = 0;
 
-        conditional_resolve_pass = std::make_unique<ConditionalRenderingResolvePass>(
-            device, scheduler, descriptor_pool, compute_pass_descriptor_queue);
+        const bool has_conditional_rendering = device.IsExtConditionalRendering();
+        if (has_conditional_rendering) {
+            conditional_resolve_pass = std::make_unique<ConditionalRenderingResolvePass>(
+                device, scheduler, descriptor_pool, compute_pass_descriptor_queue);
+        }
+
+        VkBufferUsageFlags hcr_buffer_usage =
+            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+        if (has_conditional_rendering) {
+            hcr_buffer_usage |= VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT;
+        }
 
         const VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
             .size = sizeof(u32),
-            .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                     VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT,
+            .usage = hcr_buffer_usage,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .queueFamilyIndexCount = 0,
             .pQueueFamilyIndices = nullptr,
@@ -1338,15 +1346,18 @@ void QueryCacheRuntime::HostConditionalRenderingCompareValueImpl(VideoCommon::Lo
     }
 }
 
-void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(DAddr address, bool is_equal) {
+void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(DAddr address, bool is_equal,
+                                                              bool compare_to_zero) {
     VkBuffer to_resolve;
     u32 to_resolve_offset;
+    const u32 resolve_size = compare_to_zero ? 8 : 24;
     {
         std::scoped_lock lk(impl->buffer_cache.mutex);
-        static constexpr auto sync_info = VideoCommon::ObtainBufferSynchronize::NoSynchronize;
+        const auto sync_info = compare_to_zero ? VideoCommon::ObtainBufferSynchronize::FullSynchronize
+                                               : VideoCommon::ObtainBufferSynchronize::NoSynchronize;
         const auto post_op = VideoCommon::ObtainBufferOperation::DoNothing;
         const auto [buffer, offset] =
-            impl->buffer_cache.ObtainCPUBuffer(address, 24, sync_info, post_op);
+            impl->buffer_cache.ObtainCPUBuffer(address, resolve_size, sync_info, post_op);
         to_resolve = buffer->Handle();
         to_resolve_offset = static_cast<u32>(offset);
     }
@@ -1355,7 +1366,7 @@ void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(DAddr address, boo
         PauseHostConditionalRendering();
     }
     impl->conditional_resolve_pass->Resolve(*impl->hcr_resolve_buffer, to_resolve,
-                                            to_resolve_offset, false);
+                                            to_resolve_offset, compare_to_zero);
     impl->hcr_setup.buffer = *impl->hcr_resolve_buffer;
     impl->hcr_setup.offset = 0;
     impl->hcr_setup.flags = is_equal ? 0 : VK_CONDITIONAL_RENDERING_INVERTED_BIT_EXT;
@@ -1371,7 +1382,7 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValue(VideoCommon::Lookup
     if (!impl->device.IsExtConditionalRendering()) {
         return false;
     }
-    HostConditionalRenderingCompareValueImpl(object_1, false);
+    HostConditionalRenderingCompareBCImpl(object_1.address, true, true);
     return true;
 }
 
@@ -1421,6 +1432,7 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
     const bool is_gpu_high = Settings::IsGPULevelHigh();
 
     if ((!is_gpu_high && driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) || driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY || driver_id == VK_DRIVER_ID_ARM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP) {
+        EndHostConditionalRendering();
         return true;
     }
 
@@ -1437,10 +1449,12 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
     }
 
     if (!is_gpu_high) {
+        EndHostConditionalRendering();
         return true;
     }
 
     if (!is_in_bc[0] && !is_in_bc[1]) {
+        EndHostConditionalRendering();
         return true;
     }
     HostConditionalRenderingCompareBCImpl(object_1.address, equal_check);

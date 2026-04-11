@@ -225,6 +225,7 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
 
     UpdateDynamicStates();
 
+    query_cache.NotifySegment(true);
     HandleTransformFeedback();
     query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
                               maxwell3d->regs.zpass_pixel_count_enable);
@@ -336,6 +337,7 @@ void RasterizerVulkan::DrawTexture() {
 
     UpdateDynamicStates();
 
+    query_cache.NotifySegment(true);
     query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
                               maxwell3d->regs.zpass_pixel_count_enable);
     const auto& draw_texture_state = maxwell3d->draw_manager->GetDrawTextureState();
