@@ -173,6 +173,28 @@ DrawParams MakeDrawParams(const MaxwellDrawState& draw_state, u32 num_instances,
     }
     return params;
 }
+
+bool SupportsPrimitiveRestart(VkPrimitiveTopology topology) {
+    switch (topology) {
+    case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
+    case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
+    case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
+    case VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY:
+    case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY:
+    case VK_PRIMITIVE_TOPOLOGY_PATCH_LIST:
+        return false;
+    default:
+        return true;
+    }
+}
+
+bool IsPrimitiveRestartSupported(const Device& device, VkPrimitiveTopology topology) {
+    return ((topology != VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
+             device.IsTopologyListPrimitiveRestartSupported()) ||
+            SupportsPrimitiveRestart(topology) ||
+            (topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
+             device.IsPatchListPrimitiveRestartSupported()));
+}
 } // Anonymous namespace
 
 RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
@@ -991,6 +1013,12 @@ bool AccelerateDMA::BufferToImage(const Tegra::DMA::ImageCopy& copy_info,
 
 void RasterizerVulkan::UpdateDynamicStates() {
     auto& regs = maxwell3d->regs;
+    auto& flags = maxwell3d->dirty.flags;
+    const auto topology = maxwell3d->draw_manager->GetDrawState().topology;
+    if (state_tracker.ChangePrimitiveTopology(topology)) {
+        flags[Dirty::DepthBiasEnable] = true;
+        flags[Dirty::PrimitiveRestartEnable] = true;
+    }
 
     // Core Dynamic States (Vulkan 1.0) - Always active regardless of dyna_state setting
     UpdateViewportsState(regs);
@@ -1099,6 +1127,9 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
     if (!state_tracker.TouchViewports()) {
         return;
     }
+
+    maxwell3d->dirty.flags[Dirty::Scissors] = true;
+
     if (!regs.viewport_scale_offset_enabled) {
         float x = static_cast<float>(regs.surface_clip.x);
         float y = static_cast<float>(regs.surface_clip.y);
@@ -1116,8 +1147,12 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
             .minDepth = 0.0f,
             .maxDepth = 1.0f,
         };
-        scheduler.Record([viewport](vk::CommandBuffer cmdbuf) {
-            cmdbuf.SetViewport(0, viewport);
+        scheduler.Record([this, viewport](vk::CommandBuffer cmdbuf) {
+            const u32 num_viewports = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
+            std::array<VkViewport, Maxwell::NumViewports> viewport_list{};
+            viewport_list.fill(viewport);
+            const vk::Span<VkViewport> viewports(viewport_list.data(), num_viewports);
+            cmdbuf.SetViewport(0, viewports);
         });
         return;
     }
@@ -1157,8 +1192,12 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
         scissor.offset.y = static_cast<int32_t>(y);
         scissor.extent.width  = width;
         scissor.extent.height = height;
-        scheduler.Record([scissor](vk::CommandBuffer cmdbuf) {
-            cmdbuf.SetScissor(0, scissor);
+        scheduler.Record([this, scissor](vk::CommandBuffer cmdbuf) {
+            const u32 num_scissors = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
+            std::array<VkRect2D, Maxwell::NumViewports> scissor_list{};
+            scissor_list.fill(scissor);
+            const vk::Span<VkRect2D> scissors(scissor_list.data(), num_scissors);
+            cmdbuf.SetScissor(0, scissors);
         });
         return;
     }
@@ -1403,7 +1442,17 @@ void RasterizerVulkan::UpdatePrimitiveRestartEnable(Tegra::Engines::Maxwell3D::R
     if (!state_tracker.TouchPrimitiveRestartEnable()) {
         return;
     }
-    scheduler.Record([enable = regs.primitive_restart.enabled](vk::CommandBuffer cmdbuf) {
+
+    bool enable = regs.primitive_restart.enabled != 0;
+    if (device.IsMoltenVK()) {
+        enable = true;
+    } else if (enable) {
+        const auto topology =
+            MaxwellToVK::PrimitiveTopology(device, maxwell3d->draw_manager->GetDrawState().topology);
+        enable = IsPrimitiveRestartSupported(device, topology);
+    }
+
+    scheduler.Record([enable](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetPrimitiveRestartEnableEXT(enable);
     });
 }
@@ -1742,7 +1791,9 @@ void RasterizerVulkan::UpdateStencilTestEnable(Tegra::Engines::Maxwell3D::Regs& 
 
 void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs) {
     auto& dirty{maxwell3d->dirty.flags};
-    if (!dirty[Dirty::VertexInput]) {
+    const bool vertex_input_dirty = dirty[Dirty::VertexInput];
+    const bool vertex_buffers_dirty = dirty[VideoCommon::Dirty::VertexBuffers];
+    if (!vertex_input_dirty && !vertex_buffers_dirty) {
         return;
     }
     dirty[Dirty::VertexInput] = false;
