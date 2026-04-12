@@ -747,7 +747,7 @@ abstract class SettingsItem(
                     descriptionId = R.string.fix_bloom_effects_description
                 )
             )
-              put(
+            put(
                 SwitchSetting(
                     BooleanSetting.RESCALE_HACK,
                     titleId = R.string.rescale_hack,
