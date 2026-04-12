@@ -461,7 +461,8 @@ void ConditionalRenderingResolvePass::Resolve(VkBuffer dst_buffer, VkBuffer src_
         cmdbuf.PushConstants(*layout, VK_SHADER_STAGE_COMPUTE_BIT, uniforms);
         cmdbuf.Dispatch(1, 1, 1);
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                               VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, write_barrier);
+                               VK_PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT, 0,
+                               write_barrier);
     });
 }
 
@@ -529,7 +530,7 @@ void QueriesPrefixScanPass::Run(VkBuffer accumulation_buffer, VkBuffer dst_buffe
             const VkDescriptorSet set = descriptor_allocator.Commit();
             device.GetLogical().UpdateDescriptorSet(set, *descriptor_template, descriptor_data);
 
-            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT,
                                    VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, read_barrier);
             cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, *pipeline);
             cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, *layout, 0, set, {});
