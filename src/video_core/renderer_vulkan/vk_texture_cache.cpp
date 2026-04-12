@@ -178,6 +178,16 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     if (view_formats.size() > 1) {
         image_ci.flags |=
             VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT;
+
+        const bool has_storage_compatible_view =
+            std::any_of(view_formats.begin(), view_formats.end(), [&device](VkFormat view_format) {
+                return device.IsFormatSupported(view_format, VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT,
+                                                FormatType::Optimal);
+            });
+        if (has_storage_compatible_view) {
+            image_ci.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+        }
+
         if (device.IsKhrImageFormatListSupported()) {
             image_ci.pNext = &image_format_list;
         }
@@ -2127,15 +2137,13 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
         }
     }
     const auto format_info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
-    if (ImageUsageFlags(format_info, format) != image.UsageFlags()) {
-        LOG_WARNING(Render_Vulkan,
-                    "Image view format {} has different usage flags than image format {}", format,
-                    image.info.format);
-    }
+    const VkImageUsageFlags requested_view_usage = ImageUsageFlags(format_info, format);
+    const VkImageUsageFlags image_usage = image.UsageFlags();
+    const VkImageUsageFlags clamped_view_usage = requested_view_usage & image_usage;
     const VkImageViewUsageCreateInfo image_view_usage{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO,
         .pNext = nullptr,
-        .usage = ImageUsageFlags(format_info, format),
+        .usage = clamped_view_usage,
     };
     const VkImageViewCreateInfo create_info{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
