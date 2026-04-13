@@ -584,7 +584,7 @@ struct Values {
 
     SwitchableSetting<ExtendedDynamicState> dyna_state{linkage,
 #if defined(ANDROID)
-                                           ExtendedDynamicState::EDS1,
+                                           ExtendedDynamicState::Disabled,
 #elif defined(__APPLE__)
                                            ExtendedDynamicState::Disabled,
 #else
