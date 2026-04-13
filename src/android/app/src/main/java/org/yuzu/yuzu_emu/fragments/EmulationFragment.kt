@@ -291,6 +291,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 // Game launched via intent (check for existing custom config)
                 intentGame != null -> {
                     game?.let { gameInstance ->
+                        runCatching { GameHelper.restoreContentForGame(gameInstance) }
+                            .onFailure {
+                                Log.warning(
+                                    "[EmulationFragment] Failed to restore content for intent launch: ${it.message}"
+                                )
+                            }
+
                         val customConfigFile = SettingsFile.getCustomSettingsFile(gameInstance)
                         if (customConfigFile.exists()) {
                             Log.info(
