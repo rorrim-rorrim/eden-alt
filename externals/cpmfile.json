@@ -63,8 +63,7 @@
         "bundled": true,
         "skip_updates": true,
         "patches": [
-            "0001-rvalue-optimize.patch",
-            "0002-address-frame-ctor.patch"
+            "0001-rvalue-optimize.patch"
         ]
     },
     "oaknut": {
