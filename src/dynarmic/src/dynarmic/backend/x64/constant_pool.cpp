@@ -25,7 +25,7 @@ ConstantPool::ConstantPool(BlockOfCode& code, size_t size)
         reinterpret_cast<ConstantT*>(code.AllocateFromCodeSpace(size)), size / align_size);
 }
 
-Xbyak::Address ConstantPool::GetConstant(const Xbyak::AddressFrame& frame, u64 lower, u64 upper) {
+Xbyak::Address ConstantPool::GetConstant(const Xbyak::AddressFrame&& frame, u64 lower, u64 upper) {
     const auto constant = ConstantT(lower, upper);
     auto iter = constant_info.find(constant);
     if (iter == constant_info.end()) {
