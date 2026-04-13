@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -595,7 +595,7 @@ void EmitX64::EmitPackedHalvingSubAddS16(EmitContext& ctx, IR::Inst* inst) {
     EmitPackedSubAdd(code, ctx, inst, false, true, true);
 }
 
-static void EmitPackedOperation(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, void (Xbyak::CodeGenerator::*fn)(const Xbyak::Mmx& mmx, const Xbyak::Operand&)) {
+static void EmitPackedOperation(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, void (Xbyak::CodeGenerator::*fn)(const Xbyak::Mmx mmx, const Xbyak::Operand&)) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
