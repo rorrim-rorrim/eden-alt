@@ -61,8 +61,10 @@
         "hash": "d93971cc8f17f20818e36099aa862d15d30b60f17c7dff0cc8b7ac89ad6dc6453256dd47a454904666a85cea6ca27f9867f782c7b2c6d0c16039af8e3e28e6cc",
         "git_version": "7.35.4",
         "bundled": true,
+        "skip_updates": true,
         "patches": [
-            "0001-rvalue-optimize.patch"
+            "0001-rvalue-optimize.patch",
+            "0002-address-frame-ctor.patch"
         ]
     },
     "oaknut": {

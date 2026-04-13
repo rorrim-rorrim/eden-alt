@@ -23,7 +23,8 @@ using namespace Xbyak::util;
 
 namespace {
 
-static void EmitVectorSaturatedNative(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, void (Xbyak::CodeGenerator::*saturated_fn)(const Xbyak::Mmx mmx, const Xbyak::Operand&), void (Xbyak::CodeGenerator::*unsaturated_fn)(const Xbyak::Mmx mmx, const Xbyak::Operand&), void (Xbyak::CodeGenerator::*sub_fn)(const Xbyak::Mmx mmx, const Xbyak::Operand&)) {
+template<typename F1, typename F2, typename F3>
+static void EmitVectorSaturatedNative(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, F1&& saturated_fn, F2&& unsaturated_fn, F3&& sub_fn) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(code, args[0]);

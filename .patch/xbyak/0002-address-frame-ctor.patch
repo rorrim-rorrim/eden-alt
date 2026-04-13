@@ -1,0 +1,13 @@
+diff --git a/xbyak/xbyak.h b/xbyak/xbyak.h
+index 176ee58..b44d62a 100644
+--- a/xbyak/xbyak.h
++++ b/xbyak/xbyak.h
+@@ -1467,8 +1467,6 @@ inline XBYAK_CONSTEXPR bool Operand::hasRex2() const
+ }
+ 
+ class AddressFrame {
+-	void operator=(const AddressFrame&);
+-	AddressFrame(const AddressFrame&);
+ public:
+ 	const uint32_t bit_;
+ 	const bool broadcast_;
