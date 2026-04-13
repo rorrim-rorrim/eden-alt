@@ -24,6 +24,7 @@
 #include "dynarmic/common/cast_util.h"
 #include "dynarmic/interface/halt_reason.h"
 #include "dynarmic/ir/cond.h"
+#include "xbyak/xbyak.h"
 
 namespace Dynarmic::Backend::X64 {
 
@@ -124,14 +125,26 @@ public:
         }
     }
 
-    [[nodiscard]] Xbyak::Address Const(const Xbyak::AddressFrame&& frame, u64 lower, u64 upper) {
-        return constant_pool.GetConstant(std::move(frame), lower, upper);
+    // Xbyak benefits slightly from not having & references on some of its ctors, however one main
+    // disadvantage is that this breaks ABI slightly because we need to hijack the main privated ctor, hence
+    // we define two paths, one for gentoo (non bundled) and one for our custom bundled set with patch
+#ifdef XBYAK_BUNDLED
+    [[nodiscard]] Xbyak::Address Const(const Xbyak::AddressFrame frame, u64 lower, u64 upper = 0) {
+        return constant_pool.GetConstant(Xbyak::AddressFrame(frame.bit_, frame.broadcast_), lower, upper);
     }
-
     template<size_t esize>
     [[nodiscard]] Xbyak::Address BConst(const Xbyak::AddressFrame frame, u64 value) {
-        return Const(std::move(frame), mcl::bit::replicate_element<u64>(esize, value), mcl::bit::replicate_element<u64>(esize, value));
+        return Const(Xbyak::AddressFrame(frame.bit_, frame.broadcast_), mcl::bit::replicate_element<u64>(esize, value), mcl::bit::replicate_element<u64>(esize, value));
     }
+#else
+    [[nodiscard]] Xbyak::Address Const(const Xbyak::AddressFrame& frame, u64 lower, u64 upper = 0) {
+        return constant_pool.GetConstant(frame, lower, upper);
+    }
+    template<size_t esize>
+    [[nodiscard]] Xbyak::Address BConst(const Xbyak::AddressFrame& frame, u64 value) {
+        return Const(frame, mcl::bit::replicate_element<u64>(esize, value), mcl::bit::replicate_element<u64>(esize, value));
+    }
+#endif
 
     CodePtr GetCodeBegin() const;
     size_t GetTotalCodeSize() const;
