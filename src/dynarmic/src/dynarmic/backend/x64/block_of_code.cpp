@@ -519,10 +519,6 @@ void BlockOfCode::LoadRequiredFlagsForCondFromRax(IR::Cond cond) {
     }
 }
 
-Xbyak::Address BlockOfCode::Const(const Xbyak::AddressFrame& frame, u64 lower, u64 upper) {
-    return constant_pool.GetConstant(frame, lower, upper);
-}
-
 CodePtr BlockOfCode::GetCodeBegin() const {
     return code_begin;
 }

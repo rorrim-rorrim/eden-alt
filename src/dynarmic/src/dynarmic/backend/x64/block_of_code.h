@@ -101,8 +101,8 @@ public:
     }
 
     /// Code emitter: Calls the lambda. Lambda must not have any captures.
-    template<typename Lambda>
-    void CallLambda(Lambda l) {
+    template<typename F>
+    void CallLambda(F l) {
         CallFunction(Common::FptrCast(l));
     }
 
@@ -124,22 +124,23 @@ public:
         }
     }
 
-    Xbyak::Address Const(const Xbyak::AddressFrame& frame, u64 lower, u64 upper = 0);
+    [[nodiscard]] Xbyak::Address Const(const Xbyak::AddressFrame&& frame, u64 lower, u64 upper) {
+        return constant_pool.GetConstant(std::move(frame), lower, upper);
+    }
 
     template<size_t esize>
-    Xbyak::Address BConst(const Xbyak::AddressFrame& frame, u64 value) {
-        return Const(frame, mcl::bit::replicate_element<u64>(esize, value),
-                     mcl::bit::replicate_element<u64>(esize, value));
+    [[nodiscard]] Xbyak::Address BConst(const Xbyak::AddressFrame frame, u64 value) {
+        return Const(std::move(frame), mcl::bit::replicate_element<u64>(esize, value), mcl::bit::replicate_element<u64>(esize, value));
     }
 
     CodePtr GetCodeBegin() const;
     size_t GetTotalCodeSize() const;
 
-    const void* GetReturnFromRunCodeAddress() const {
+    [[nodiscard]] const void* GetReturnFromRunCodeAddress() const {
         return return_from_run_code[0];
     }
 
-    const void* GetForceReturnFromRunCodeAddress() const {
+    [[nodiscard]] const void* GetForceReturnFromRunCodeAddress() const {
         return return_from_run_code[FORCE_RETURN];
     }
 
