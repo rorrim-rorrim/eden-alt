@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -21,9 +24,7 @@ void InnerFence::Queue() {
     if (is_stubbed) {
         return;
     }
-    // Get the current tick so we can wait for it
-    wait_tick = scheduler.CurrentTick();
-    scheduler.Flush();
+    wait_tick = scheduler.Flush();
 }
 
 bool InnerFence::IsSignaled() const {

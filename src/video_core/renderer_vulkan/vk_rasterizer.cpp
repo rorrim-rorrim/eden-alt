@@ -770,8 +770,8 @@ void RasterizerVulkan::ModifyGPUMemory(size_t as_id, GPUVAddr addr, u64 size) {
     }
 }
 
-void RasterizerVulkan::SignalFence(std::function<void()>&& func) {
-    fence_manager.SignalFence(std::move(func));
+void RasterizerVulkan::SignalFence(std::function<void()>&& func, bool ordered) {
+    fence_manager.SignalFence(std::move(func), ordered);
 }
 
 void RasterizerVulkan::SyncOperation(std::function<void()>&& func) {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -63,7 +66,7 @@ VideoCore::RasterizerDownloadArea RasterizerNull::GetFlushArea(PAddr addr, u64 s
 void RasterizerNull::InvalidateGPUCache() {}
 void RasterizerNull::UnmapMemory(DAddr addr, u64 size) {}
 void RasterizerNull::ModifyGPUMemory(size_t as_id, GPUVAddr addr, u64 size) {}
-void RasterizerNull::SignalFence(std::function<void()>&& func) {
+void RasterizerNull::SignalFence(std::function<void()>&& func, bool ordered) {
     func();
 }
 void RasterizerNull::SyncOperation(std::function<void()>&& func) {
