@@ -21,9 +21,7 @@ void InnerFence::Queue() {
     if (is_stubbed) {
         return;
     }
-    // Get the current tick so we can wait for it
-    wait_tick = scheduler.CurrentTick();
-    scheduler.Flush();
+    wait_tick = scheduler.Flush();
 }
 
 bool InnerFence::IsSignaled() const {

@@ -65,6 +65,10 @@ Scheduler::Scheduler(const Device& device_, StateTracker& state_tracker_)
 Scheduler::~Scheduler() = default;
 
 u64 Scheduler::Flush(VkSemaphore signal_semaphore, VkSemaphore wait_semaphore) {
+    if (!Settings::getDebugKnobAt(0) && chunk->Empty() && !signal_semaphore && !wait_semaphore) {
+        const u64 current = CurrentTick();
+        return current > 0 ? current - 1 : 0;
+    }
     // When flushing, we only send data to the worker thread; no waiting is necessary.
     const u64 signal_value = SubmitExecution(signal_semaphore, wait_semaphore);
     AllocateNewContext();
