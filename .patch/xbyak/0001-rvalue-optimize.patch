@@ -1,5 +1,5 @@
 diff --git a/xbyak/xbyak.h b/xbyak/xbyak.h
-index 176ee58..202d490 100644
+index 176ee58..35f634a 100644
 --- a/xbyak/xbyak.h
 +++ b/xbyak/xbyak.h
 @@ -1007,7 +1007,7 @@ public:
@@ -730,24 +730,6 @@ index 176ee58..202d490 100644
  	{
  		int s = inner::IsInDisp8(imm) ? 1 : 0;
  		int immSize = s ? 1 : reg.isREG(16) ? 2 : 4;
-@@ -3111,7 +3109,7 @@ public:
- 			push(dword, imm);
- 		}
- 	}
--	void mov(const Operand& op1, const Operand& op2)
-+	void mov(const Operand op1, const Operand op2)
- 	{
- 		const Reg *reg = 0;
- 		const Address *addr = 0;
-@@ -3155,7 +3153,7 @@ public:
- 			opRO_MR(op1, op2, 0x88);
- 		}
- 	}
--	void mov(const Operand& op, uint64_t imm)
-+	void mov(const Operand op, uint64_t imm)
- 	{
- 		if (op.isREG()) {
- 			const int size = mov_imm(op.getReg(), imm);
 @@ -3370,7 +3368,7 @@ public:
  		defaultEncoding_[1] = enc;
  	}
