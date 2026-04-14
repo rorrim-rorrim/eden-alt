@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -69,7 +72,7 @@ public:
     virtual void DisableGraphicsUniformBuffer(size_t stage, u32 index) = 0;
 
     /// Signal a GPU based semaphore as a fence
-    virtual void SignalFence(std::function<void()>&& func) = 0;
+    virtual void SignalFence(std::function<void()>&& func, bool force_delay = false) = 0;
 
     /// Send an operation to be done after a certain amount of flushes.
     virtual void SyncOperation(std::function<void()>&& func) = 0;

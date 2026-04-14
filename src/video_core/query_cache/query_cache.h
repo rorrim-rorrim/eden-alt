@@ -246,11 +246,24 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
         return;
     }
     DAddr cpu_addr = *cpu_addr_opt;
+    u8* pointer = impl->device_memory.template GetPointer<u8>(cpu_addr);
+    if (is_fence) {
+        u8* pointer_timestamp = impl->device_memory.template GetPointer<u8>(cpu_addr + 8);
+        std::function<void()> operation([this, pointer, pointer_timestamp, payload, has_timestamp] {
+            if (has_timestamp) {
+                const u64 timestamp = impl->gpu.GetTicks();
+                const u64 value = static_cast<u64>(payload);
+                std::memcpy(pointer_timestamp, &timestamp, sizeof(timestamp));
+                std::memcpy(pointer, &value, sizeof(value));
+            } else {
+                std::memcpy(pointer, &payload, sizeof(payload));
+            }
+        });
+        impl->rasterizer.SignalFence(std::move(operation), true);
+        return;
+    }
     const size_t new_query_id = streamer->WriteCounter(cpu_addr, has_timestamp, payload, subreport);
     auto* query = streamer->GetQuery(new_query_id);
-    if (is_fence) {
-        query->flags |= QueryFlagBits::IsFence;
-    }
     QueryLocation query_location{};
     query_location.stream_id.Assign(static_cast<u32>(streamer_id));
     query_location.query_id.Assign(static_cast<u32>(new_query_id));
@@ -258,9 +271,8 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
         return std::make_pair<u64, u32>(cur_addr >> Core::DEVICE_PAGEBITS,
                                         static_cast<u32>(cur_addr & Core::DEVICE_PAGEMASK));
     };
-    u8* pointer = impl->device_memory.template GetPointer<u8>(cpu_addr);
     u8* pointer_timestamp = impl->device_memory.template GetPointer<u8>(cpu_addr + 8);
-    bool is_synced = !Settings::IsGPULevelHigh() && is_fence;
+    bool is_synced = false;
     std::function<void()> operation([this, is_synced, streamer, query_base = query, query_location,
                                      pointer, pointer_timestamp] {
         if (True(query_base->flags & QueryFlagBits::IsInvalidated)) {
@@ -291,23 +303,19 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
             impl->pending_unregister.push_back(query_location);
         }
     });
-    if (is_fence) {
-        impl->rasterizer.SignalFence(std::move(operation));
-    } else {
-        if (!Settings::IsGPULevelHigh() && counter_type == QueryType::Payload) {
-            if (has_timestamp) {
-                u64 timestamp = impl->gpu.GetTicks();
-                u64 value = static_cast<u64>(payload);
-                std::memcpy(pointer_timestamp, &timestamp, sizeof(timestamp));
-                std::memcpy(pointer, &value, sizeof(value));
-            } else {
-                std::memcpy(pointer, &payload, sizeof(payload));
-            }
-            streamer->Free(new_query_id);
-            return;
+    if (!Settings::IsGPULevelHigh() && counter_type == QueryType::Payload) {
+        if (has_timestamp) {
+            u64 timestamp = impl->gpu.GetTicks();
+            u64 value = static_cast<u64>(payload);
+            std::memcpy(pointer_timestamp, &timestamp, sizeof(timestamp));
+            std::memcpy(pointer, &value, sizeof(value));
+        } else {
+            std::memcpy(pointer, &payload, sizeof(payload));
         }
-        impl->rasterizer.SyncOperation(std::move(operation));
+        streamer->Free(new_query_id);
+        return;
     }
+    impl->rasterizer.SyncOperation(std::move(operation));
     if (is_synced) {
         streamer->Free(new_query_id);
         return;
