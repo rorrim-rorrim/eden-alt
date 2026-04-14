@@ -1,9 +1,10 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/logging.h"
 #include "common/settings.h"
 #include "core/core.h"
 #include "video_core/dma_pusher.h"
@@ -21,7 +22,7 @@
 namespace Tegra {
 
 constexpr u32 MacroRegistersStart = 0xE00;
-[[maybe_unused]] constexpr u32 ComputeInline = 0x6D;
+constexpr u32 ComputeInline = 0x6D;
 
 DmaPusher::DmaPusher(Core::System& system_, GPU& gpu_, MemoryManager& memory_manager_,
                      Control::ChannelState& channel_state_)
@@ -31,9 +32,7 @@ DmaPusher::DmaPusher(Core::System& system_, GPU& gpu_, MemoryManager& memory_man
 DmaPusher::~DmaPusher() = default;
 
 void DmaPusher::DispatchCalls() {
-
     dma_pushbuffer_subindex = 0;
-
     dma_state.is_last_call = true;
 
     while (system.IsPoweredOn()) {
@@ -51,7 +50,6 @@ bool DmaPusher::Step() {
     }
 
     CommandList& command_list = dma_pushbuffer.front();
-
     const size_t prefetch_size = command_list.prefetch_command_list.size();
     const size_t command_list_size = command_list.command_lists.size();
 
@@ -62,6 +60,7 @@ bool DmaPusher::Step() {
     }
 
     if (prefetch_size > 0) {
+        dma_segment_dma_written = false;
         ProcessCommands(command_list.prefetch_command_list);
         dma_pushbuffer.pop();
         return true;
@@ -78,17 +77,28 @@ bool DmaPusher::Step() {
         synced = false;
     }
 
-    if (header.size > 0 && dma_state.method >= MacroRegistersStart && subchannels[dma_state.subchannel]) {
-        subchannels[dma_state.subchannel]->current_dirty = memory_manager.IsMemoryDirty(dma_state.dma_get, header.size * sizeof(u32));
-    }
-
     if (header.size > 0) {
-        if (Settings::IsDMALevelDefault() ? (Settings::IsGPULevelMedium() || Settings::IsGPULevelHigh()) : Settings::IsDMALevelSafe()) {
-            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::SafeRead>headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
-            ProcessCommands(headers);
+        const bool safe_by_settings =
+            Settings::IsDMALevelDefault() ? !Settings::IsGPULevelLow() : Settings::IsDMALevelSafe();
+
+        const bool is_inline_dma_cont = dma_state.method_count > 0 &&
+                                        dma_state.method == ComputeInline;
+
+        // Only probe dirty for 0x6D continuations — determines safe vs unsafe read.
+        const bool segment_dirty = is_inline_dma_cont && !safe_by_settings &&
+            memory_manager.IsMemoryDirty(dma_state.dma_get, sizeof(u32));
+
+        const bool use_safe = safe_by_settings || (is_inline_dma_cont && segment_dirty);
+
+        dma_segment_dma_written = true;
+        if (use_safe) {
+            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::SafeRead>
+                headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
+            ProcessCommands(std::span<const CommandHeader>{headers});
         } else {
-            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::UnsafeRead>headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
-            ProcessCommands(headers);
+            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::UnsafeRead>
+                headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
+            ProcessCommands(std::span<const CommandHeader>{headers});
         }
     }
 
@@ -132,6 +142,11 @@ void DmaPusher::ProcessCommands(std::span<const CommandHeader> commands) {
             index++;
         } else {
             auto const command_header = commands[index]; //can copy
+            if (command_header.method.Value() >= MacroRegistersStart) {
+                const u32 subchan = command_header.subchannel.Value();
+                if (subchannels[subchan])
+                    subchannels[subchan]->current_dirty = dma_segment_dma_written;
+            }
             // No command active - this is the first word of a new one
             switch (command_header.mode) {
             case SubmissionMode::Increasing:
