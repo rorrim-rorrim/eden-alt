@@ -195,7 +195,7 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
     case Shader::Stage::TessellationEval:
         info.tess_clockwise = key.state.tessellation_clockwise != 0;
         info.tess_primitive = [&key] {
-            const u32 raw{key.state.tessellation_primitive.Value()};
+            const u32 raw = static_cast<u32>(key.state.tessellation_primitive.Value());
             switch (static_cast<Maxwell::Tessellation::DomainType>(raw)) {
             case Maxwell::Tessellation::DomainType::Isolines:
                 return Shader::TessPrimitive::Isolines;
@@ -208,7 +208,7 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
             return Shader::TessPrimitive::Triangles;
         }();
         info.tess_spacing = [&] {
-            const u32 raw{key.state.tessellation_spacing};
+            const u32 raw = static_cast<u32>(key.state.tessellation_spacing.Value());
             switch (static_cast<Maxwell::Tessellation::Spacing>(raw)) {
             case Maxwell::Tessellation::Spacing::Integer:
                 return Shader::TessSpacing::Equal;
