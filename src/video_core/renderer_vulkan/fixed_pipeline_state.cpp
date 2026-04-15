@@ -57,11 +57,6 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     const auto topology_ = maxwell3d.draw_manager->GetDrawState().topology;
 
     raw1 = 0;
-    core_dynamic_viewport_scissor.Assign(features.has_core_dynamic_viewport_scissor ? 1 : 0);
-    core_dynamic_depth_bias.Assign(features.has_core_dynamic_depth_bias ? 1 : 0);
-    core_dynamic_depth_bounds.Assign(features.has_core_dynamic_depth_bounds ? 1 : 0);
-    core_dynamic_line_width.Assign(features.has_core_dynamic_line_width ? 1 : 0);
-    core_dynamic_stencil_masks.Assign(features.has_core_dynamic_stencil_masks ? 1 : 0);
     extended_dynamic_state.Assign(features.has_extended_dynamic_state ? 1 : 0);
     extended_dynamic_state_2.Assign(features.has_extended_dynamic_state_2 ? 1 : 0);
     extended_dynamic_state_2_logic_op.Assign(features.has_extended_dynamic_state_2_logic_op ? 1 : 0);
@@ -80,7 +75,6 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     msaa_mode.Assign(regs.anti_alias_samples_mode);
 
     raw2 = 0;
-
 
     const auto test_func =
         regs.alpha_test_enabled != 0 ? regs.alpha_test_func : Maxwell::ComparisonOp::Always_GL;
@@ -112,18 +106,10 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     }
 
     provoking_vertex_last.Assign(use_last_provoking_vertex ? 1 : 0);
-    if (!features.has_dynamic_state3_conservative_rasterization_mode) {
-        conservative_raster_enable.Assign(regs.conservative_raster_enable != 0 ? 1 : 0);
-    }
-    if (!features.has_dynamic_state3_line_rasterization_mode) {
-        smooth_lines.Assign(regs.line_anti_alias_enable != 0 ? 1 : 0);
-    }
-    if (!features.has_dynamic_state3_alpha_to_coverage_enable) {
-        alpha_to_coverage_enabled.Assign(regs.anti_alias_alpha_control.alpha_to_coverage != 0 ? 1 : 0);
-    }
-    if (!features.has_dynamic_state3_alpha_to_one_enable) {
-        alpha_to_one_enabled.Assign(regs.anti_alias_alpha_control.alpha_to_one != 0 ? 1 : 0);
-    }
+    conservative_raster_enable.Assign(regs.conservative_raster_enable != 0 ? 1 : 0);
+    smooth_lines.Assign(regs.line_anti_alias_enable != 0 ? 1 : 0);
+    alpha_to_coverage_enabled.Assign(regs.anti_alias_alpha_control.alpha_to_coverage != 0 ? 1 : 0);
+    alpha_to_one_enabled.Assign(regs.anti_alias_alpha_control.alpha_to_one != 0 ? 1 : 0);
     app_stage.Assign(maxwell3d.engine_state);
 
     depth_bounds_min = static_cast<u32>(regs.depth_bounds[0]);
@@ -187,49 +173,24 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     }
     dynamic_state.raw1 = 0;
     dynamic_state.raw2 = 0;
-
-    const bool any_eds1_baked = !features.has_extended_dynamic_state ||
-        !features.has_eds1_cull_mode || !features.has_eds1_front_face ||
-        !features.has_eds1_depth_test_enable || !features.has_eds1_depth_write_enable ||
-        !features.has_eds1_depth_compare_op ||
-        !(features.has_eds1_depth_bounds_test_enable || features.has_core_dynamic_depth_bounds) ||
-        !features.has_eds1_stencil_test_enable || !features.has_eds1_stencil_op;
-
-    if (any_eds1_baked) {
+    if (!extended_dynamic_state) {
         dynamic_state.Refresh(regs);
-    }
-
-    if (!features.has_extended_dynamic_state || !features.has_eds1_vertex_input_binding_stride) {
         std::ranges::transform(regs.vertex_streams, vertex_strides.begin(), [](const auto& array) {
             return static_cast<u16>(array.stride.Value());
         });
     }
-
-    const bool any_eds2_baked = !features.has_extended_dynamic_state_2 ||
-        !(features.has_eds2_depth_bias_enable || features.has_core_dynamic_depth_bias) ||
-        !features.has_eds2_primitive_restart_enable ||
-        !features.has_eds2_rasterizer_discard_enable || !features.has_extended_dynamic_state_2_logic_op;
-
-    if (any_eds2_baked) {
+    if (!extended_dynamic_state_2_logic_op) {
         dynamic_state.Refresh2(regs, topology_, extended_dynamic_state_2);
     }
-
-    const bool any_eds3_baked = !features.has_extended_dynamic_state_3_blend ||
-        !features.has_dynamic_state3_depth_clamp_enable || !features.has_dynamic_state3_logic_op_enable ||
-        !features.has_dynamic_state3_line_stipple_enable || !features.has_dynamic_state3_alpha_to_coverage_enable ||
-        !features.has_dynamic_state3_alpha_to_one_enable || !features.has_dynamic_state3_line_rasterization_mode ||
-        !features.has_dynamic_state3_conservative_rasterization_mode;
-
-    if (any_eds3_baked) {
+    if (!extended_dynamic_state_3_blend) {
         if (maxwell3d.dirty.flags[Dirty::Blending]) {
             maxwell3d.dirty.flags[Dirty::Blending] = false;
             for (size_t index = 0; index < attachments.size(); ++index) {
                 attachments[index].Refresh(regs, index);
             }
         }
-        dynamic_state.Refresh3(regs, features);
     }
-
+    dynamic_state.Refresh3(regs, features);
     if (xfb_enabled) {
         RefreshXfbState(xfb_state, regs);
     }

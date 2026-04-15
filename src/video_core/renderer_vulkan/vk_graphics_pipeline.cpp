@@ -848,94 +848,62 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pAttachments = cb_attachments.data(),
         .blendConstants = {}
     };
-    static_vector<VkDynamicState, 34> dynamic_states{};
-    // Core dynamic states (Vulkan 1.0)
-    if (device.SupportsCoreDynamicViewportScissor()) {
-        dynamic_states.push_back(VK_DYNAMIC_STATE_VIEWPORT);
-        dynamic_states.push_back(VK_DYNAMIC_STATE_SCISSOR);
-    }
-    if (device.SupportsCoreDynamicDepthBias()) {
-        dynamic_states.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS);
-    }
-    // Blend constants are commonly available; keep as default dynamic state.
-    dynamic_states.push_back(VK_DYNAMIC_STATE_BLEND_CONSTANTS);
-    if (device.SupportsCoreDynamicDepthBounds()) {
-        dynamic_states.push_back(VK_DYNAMIC_STATE_DEPTH_BOUNDS);
-    }
-    if (device.SupportsCoreDynamicStencilMasks()) {
-        dynamic_states.push_back(VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK);
-        dynamic_states.push_back(VK_DYNAMIC_STATE_STENCIL_WRITE_MASK);
-        dynamic_states.push_back(VK_DYNAMIC_STATE_STENCIL_REFERENCE);
-    }
-    if (device.SupportsCoreDynamicLineWidth()) {
-        dynamic_states.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
-    }
+    static_vector<VkDynamicState, 34> dynamic_states{
+        VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
+        VK_DYNAMIC_STATE_DEPTH_BIAS,         VK_DYNAMIC_STATE_BLEND_CONSTANTS,
+        VK_DYNAMIC_STATE_DEPTH_BOUNDS,       VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
+        VK_DYNAMIC_STATE_STENCIL_WRITE_MASK, VK_DYNAMIC_STATE_STENCIL_REFERENCE,
+        VK_DYNAMIC_STATE_LINE_WIDTH,
+    };
     if (key.state.extended_dynamic_state) {
-        if (device.SupportsEds1CullMode()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_CULL_MODE_EXT);
-        }
-        if (device.SupportsEds1FrontFace()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_FRONT_FACE_EXT);
-        }
-        if (device.SupportsEds1DepthTestEnable()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT);
-        }
-        if (device.SupportsEds1DepthWriteEnable()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE_EXT);
-        }
-        if (device.SupportsEds1DepthCompareOp()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_DEPTH_COMPARE_OP_EXT);
-        }
-        if (device.SupportsEds1DepthBoundsTestEnable()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_DEPTH_BOUNDS_TEST_ENABLE_EXT);
-        }
-        if (device.SupportsEds1StencilTestEnable()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE_EXT);
-        }
-        if (device.SupportsEds1StencilOp()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_STENCIL_OP_EXT);
-        }
+        static constexpr std::array extended{
+            VK_DYNAMIC_STATE_CULL_MODE_EXT,
+            VK_DYNAMIC_STATE_FRONT_FACE_EXT,
+            VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT,
+            VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE_EXT,
+            VK_DYNAMIC_STATE_DEPTH_COMPARE_OP_EXT,
+            VK_DYNAMIC_STATE_DEPTH_BOUNDS_TEST_ENABLE_EXT,
+            VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE_EXT,
+            VK_DYNAMIC_STATE_STENCIL_OP_EXT,
+        };
+        dynamic_states.insert(dynamic_states.end(), extended.begin(), extended.end());
 
-        // VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT
-        if (!key.state.dynamic_vertex_input && device.SupportsEds1VertexInputBindingStride()) {
+        // VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT is part of EDS1
+        // Only use it if VIDS is not active (VIDS replaces it with full vertex input control)
+        if (!key.state.dynamic_vertex_input) {
             dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT);
         }
     }
 
-    // VK_DYNAMIC_STATE_VERTEX_INPUT_EXT (VIDS) replaces VERTEX_INPUT_BINDING_STRIDE
+    // VK_DYNAMIC_STATE_VERTEX_INPUT_EXT (VIDS) - Independent from EDS
+    // Provides full dynamic vertex input control, replaces VERTEX_INPUT_BINDING_STRIDE
     if (key.state.dynamic_vertex_input) {
         dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_EXT);
     }
 
-    // EDS2 - Core (3 states) — include only supported subfeatures
+    // EDS2 - Core (3 states)
     if (key.state.extended_dynamic_state_2) {
-        if (device.SupportsEds2DepthBiasEnable()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE_EXT);
-        }
-        if (device.SupportsEds2PrimitiveRestartEnable()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE_EXT);
-        }
-        if (device.SupportsEds2RasterizerDiscardEnable()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE_EXT);
-        }
+        static constexpr std::array extended2{
+            VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE_EXT,
+            VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE_EXT,
+            VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE_EXT,
+        };
+        dynamic_states.insert(dynamic_states.end(), extended2.begin(), extended2.end());
     }
 
     // EDS2 - LogicOp (granular)
-    if (key.state.extended_dynamic_state_2_logic_op && device.SupportsDynamicState2LogicOp()) {
+    if (key.state.extended_dynamic_state_2_logic_op) {
         dynamic_states.push_back(VK_DYNAMIC_STATE_LOGIC_OP_EXT);
     }
 
     // EDS3 - Blending (composite: 3 states)
     if (key.state.extended_dynamic_state_3_blend) {
-        if (device.SupportsDynamicState3ColorBlendEnable()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_COLOR_BLEND_ENABLE_EXT);
-        }
-        if (device.SupportsDynamicState3ColorBlendEquation()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_COLOR_BLEND_EQUATION_EXT);
-        }
-        if (device.SupportsDynamicState3ColorWriteMask()) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_COLOR_WRITE_MASK_EXT);
-        }
+        static constexpr std::array extended3{
+            VK_DYNAMIC_STATE_COLOR_BLEND_ENABLE_EXT,
+            VK_DYNAMIC_STATE_COLOR_BLEND_EQUATION_EXT,
+            VK_DYNAMIC_STATE_COLOR_WRITE_MASK_EXT,
+        };
+        dynamic_states.insert(dynamic_states.end(), extended3.begin(), extended3.end());
     }
 
     // EDS3 - Enables (composite: per-feature)

@@ -569,55 +569,9 @@ public:
         return features.custom_border_color.customBorderColorWithoutFormat;
     }
 
-    /// Core dynamic states availability (Vulkan 1.0)
-    bool SupportsCoreDynamicViewportScissor() const {
-        return core_dynamic_viewport_scissor;
-    }
-    bool SupportsCoreDynamicDepthBias() const {
-        return core_dynamic_depth_bias;
-    }
-    bool SupportsCoreDynamicDepthBounds() const {
-        return core_dynamic_depth_bounds;
-    }
-    bool SupportsCoreDynamicLineWidth() const {
-        return core_dynamic_line_width;
-    }
-    bool SupportsCoreDynamicStencilMasks() const {
-        return core_dynamic_stencil_masks;
-    }
-
     /// Returns true if the device supports VK_EXT_extended_dynamic_state.
     bool IsExtExtendedDynamicStateSupported() const {
         return extensions.extended_dynamic_state;
-    }
-
-    /// VK_EXT_extended_dynamic_state core dynamic states availability
-    bool SupportsEds1CullMode() const {
-        return eds1_cull_mode;
-    }
-    bool SupportsEds1FrontFace() const {
-        return eds1_front_face;
-    }
-    bool SupportsEds1DepthTestEnable() const {
-        return eds1_depth_test_enable;
-    }
-    bool SupportsEds1DepthWriteEnable() const {
-        return eds1_depth_write_enable;
-    }
-    bool SupportsEds1DepthCompareOp() const {
-        return eds1_depth_compare_op;
-    }
-    bool SupportsEds1DepthBoundsTestEnable() const {
-        return eds1_depth_bounds_test_enable;
-    }
-    bool SupportsEds1StencilTestEnable() const {
-        return eds1_stencil_test_enable;
-    }
-    bool SupportsEds1StencilOp() const {
-        return eds1_stencil_op;
-    }
-    bool SupportsEds1VertexInputBindingStride() const {
-        return eds1_vertex_input_binding_stride;
     }
 
     /// Returns true if the device supports VK_EXT_extended_dynamic_state2.
@@ -625,48 +579,13 @@ public:
         return extensions.extended_dynamic_state2;
     }
 
-    /// VK_EXT_extended_dynamic_state2 core dynamic states availability
-    bool SupportsEds2DepthBiasEnable() const {
-        return eds2_depth_bias_enable;
-    }
-    bool SupportsEds2PrimitiveRestartEnable() const {
-        return eds2_primitive_restart_enable;
-    }
-    bool SupportsEds2RasterizerDiscardEnable() const {
-        return eds2_rasterizer_discard_enable;
-    }
-
     bool IsExtExtendedDynamicState2ExtrasSupported() const {
         return features.extended_dynamic_state2.extendedDynamicState2LogicOp;
     }
 
-    bool SupportsDynamicState2LogicOp() const {
-        return extensions.extended_dynamic_state2 &&
-               features.extended_dynamic_state2.extendedDynamicState2LogicOp;
-    }
-
-
     /// Returns true if the device supports VK_EXT_extended_dynamic_state3.
     bool IsExtExtendedDynamicState3Supported() const {
         return extensions.extended_dynamic_state3;
-    }
-
-    /// Returns true if the device supports VK_EXT_extended_dynamic_state3 color blend enable.
-    bool SupportsDynamicState3ColorBlendEnable() const {
-        return extensions.extended_dynamic_state3 &&
-               features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable;
-    }
-
-    /// Returns true if the device supports VK_EXT_extended_dynamic_state3 color blend equation.
-    bool SupportsDynamicState3ColorBlendEquation() const {
-        return extensions.extended_dynamic_state3 &&
-               features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation;
-    }
-
-    /// Returns true if the device supports VK_EXT_extended_dynamic_state3 color write mask.
-    bool SupportsDynamicState3ColorWriteMask() const {
-        return extensions.extended_dynamic_state3 &&
-               features.extended_dynamic_state3.extendedDynamicState3ColorWriteMask;
     }
 
     /// Returns true if the device supports VK_EXT_4444_formats.
@@ -674,7 +593,7 @@ public:
         return features.format_a4b4g4r4.formatA4B4G4R4;
     }
 
-    /// Returns true if the device supports VK_EXT_extended_dynamic_state3 blending.
+    /// Returns true if the device supports VK_EXT_extended_dynamic_state3.
     bool IsExtExtendedDynamicState3BlendingSupported() const {
         return dynamic_state3_blending;
     }
@@ -1103,32 +1022,15 @@ private:
     bool supports_d24_depth{};                 ///< Supports D24 depth buffers.
     bool cant_blit_msaa{};                     ///< Does not support MSAA<->MSAA blitting.
     bool must_emulate_scaled_formats{};        ///< Requires scaled vertex format emulation
-    bool core_dynamic_viewport_scissor{};      ///< vkCmdSetViewport && vkCmdSetScissor
-    bool core_dynamic_depth_bias{};            ///< vkCmdSetDepthBias (or alternative)
-    bool core_dynamic_depth_bounds{};          ///< vkCmdSetDepthBounds
-    bool core_dynamic_line_width{};            ///< vkCmdSetLineWidth
-    bool core_dynamic_stencil_masks{};         ///< vkCmdSetStencilCompareMask/WriteMask/Reference
-    bool eds1_cull_mode{};                     ///< Has EDS1 support for dynamic cull mode state.
-    bool eds1_front_face{};                    ///< Has EDS1 support for dynamic front face state.
-    bool eds1_depth_test_enable{};             ///< Has EDS1 support for dynamic depth test enable state.
-    bool eds1_depth_write_enable{};            ///< Has EDS1 support for dynamic depth write enable state.
-    bool eds1_depth_compare_op{};              ///< Has EDS1 support for dynamic depth compare op state.
-    bool eds1_depth_bounds_test_enable{};      ///< Has EDS1 support for dynamic depth bounds test enable state.
-    bool eds1_stencil_test_enable{};           ///< Has EDS1 support for dynamic stencil test enable state.
-    bool eds1_stencil_op{};                    ///< Has EDS1 support for dynamic stencil op state.
-    bool eds1_vertex_input_binding_stride{};   ///< Has EDS1 support for dynamic vertex input binding stride state.
-    bool eds2_depth_bias_enable{};             ///< Has EDS2 support for depth bias enable state.
-    bool eds2_primitive_restart_enable{};      ///< Has EDS2 support for primitive restart enable state.
-    bool eds2_rasterizer_discard_enable{};     ///< Has EDS2 support for rasterizer discard enable state.
     bool dynamic_state3_blending{};            ///< Has blending features of dynamic_state3.
     bool dynamic_state3_enables{};             ///< Has at least one enable feature of dynamic_state3.
-    bool dynamic_state3_depth_clamp_enable{};  ///< Has dynamic_state3 support for depth clamp enable state.
-    bool dynamic_state3_logic_op_enable{};     ///< Has dynamic_state3 support for logic op enable state.
-    bool dynamic_state3_line_raster_mode{};    ///< Has dynamic_state3 support for line raster mode state.
-    bool dynamic_state3_conservative_raster_mode{}; ///< Has dynamic_state3 support for conservative raster mode state.
-    bool dynamic_state3_line_stipple_enable{}; ///< Has dynamic_state3 support for line stipple enable state.
-    bool dynamic_state3_alpha_to_coverage{};   ///< Has dynamic_state3 support for alpha to coverage state.
-    bool dynamic_state3_alpha_to_one{};        ///< Has dynamic_state3 support for alpha to one state.
+    bool dynamic_state3_depth_clamp_enable{};
+    bool dynamic_state3_logic_op_enable{};
+    bool dynamic_state3_line_raster_mode{};
+    bool dynamic_state3_conservative_raster_mode{};
+    bool dynamic_state3_line_stipple_enable{};
+    bool dynamic_state3_alpha_to_coverage{};
+    bool dynamic_state3_alpha_to_one{};
     bool supports_conditional_barriers{};      ///< Allows barriers in conditional control flow.
     size_t sampler_heap_budget{};              ///< Sampler budget for buggy drivers (0 = unlimited).
     u64 device_access_memory{};                ///< Total size of device local memory in bytes.
