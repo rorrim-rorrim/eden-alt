@@ -664,18 +664,18 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         core_dynamic_depth_bias = (dld.vkCmdSetDepthBias != nullptr) || (dld.vkCmdSetDepthBias2EXT != nullptr) ||
                                  (features.depth_bias_control.depthBiasControl != VK_FALSE);
 
-        if (features.features.depthBounds && dld.vkCmdSetDepthBounds == nullptr) {
-            features.features.depthBounds = VK_FALSE;
+        if (features.core.features.depthBounds && dld.vkCmdSetDepthBounds == nullptr) {
+            features.core.features.depthBounds = VK_FALSE;
             core_dynamic_depth_bounds = false;
         } else {
-            core_dynamic_depth_bounds = (dld.vkCmdSetDepthBounds != nullptr) && features.features.depthBounds;
+            core_dynamic_depth_bounds = (dld.vkCmdSetDepthBounds != nullptr) && features.core.features.depthBounds;
         }
 
-        if (features.features.wideLines && dld.vkCmdSetLineWidth == nullptr) {
-            features.features.wideLines = VK_FALSE;
+        if (features.core.features.wideLines && dld.vkCmdSetLineWidth == nullptr) {
+            features.core.features.wideLines = VK_FALSE;
             core_dynamic_line_width = false;
         } else {
-            core_dynamic_line_width = (dld.vkCmdSetLineWidth != nullptr) && features.features.wideLines;
+            core_dynamic_line_width = (dld.vkCmdSetLineWidth != nullptr) && features.core.features.wideLines;
         }
 
         core_dynamic_stencil_masks = (dld.vkCmdSetStencilCompareMask != nullptr) &&
@@ -684,7 +684,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         break;
     case Settings::ExtendedDynamicState::EDS1:
         // Level 1: Enable EDS1, disable EDS2 and EDS3
-        if (dyna_state != Settings::ExtendedDynamicState::Disabled && extensions.extended_dynamic_state) {
+        if (dyna_state_enabled && extensions.extended_dynamic_state) {
             eds1_cull_mode = features.extended_dynamic_state.extendedDynamicState && (dld.vkCmdSetCullModeEXT != nullptr);
             eds1_front_face = features.extended_dynamic_state.extendedDynamicState && (dld.vkCmdSetFrontFaceEXT != nullptr);
             eds1_depth_test_enable = features.extended_dynamic_state.extendedDynamicState && (dld.vkCmdSetDepthTestEnableEXT != nullptr);
@@ -694,24 +694,24 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             eds1_stencil_test_enable = features.extended_dynamic_state.extendedDynamicState && (dld.vkCmdSetStencilTestEnableEXT != nullptr);
             eds1_stencil_op = features.extended_dynamic_state.extendedDynamicState && (dld.vkCmdSetStencilOpEXT != nullptr);
 
-            eds1_vertex_input_binding_stride = features.extended_dynamic_state.extendedDynamicState && (dld.vkCmdBindVertexBuffers2EXT != nullptr);
+            vertex_input_binding_stride = features.extended_dynamic_state.extendedDynamicState && (dld.vkCmdBindVertexBuffers2EXT != nullptr);
 
             const bool eds1_any = eds1_cull_mode || eds1_front_face || eds1_depth_test_enable ||
                                   eds1_depth_write_enable || eds1_depth_compare_op || eds1_depth_bounds_test_enable ||
-                                  eds1_stencil_test_enable || eds1_stencil_op || eds1_vertex_input_binding_stride;
+                                  eds1_stencil_test_enable || eds1_stencil_op || vertex_input_binding_stride;
             if (!eds1_any) {
                 extensions.extended_dynamic_state = false;
                 RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
                 // Clear flags
                 eds1_cull_mode = eds1_front_face = eds1_depth_test_enable = eds1_depth_write_enable = false;
                 eds1_depth_compare_op = eds1_depth_bounds_test_enable = eds1_stencil_test_enable = eds1_stencil_op = false;
-                eds1_vertex_input_binding_stride = false;
+                vertex_input_binding_stride = false;
             }
         } else {
             extensions.extended_dynamic_state = false;
             eds1_cull_mode = eds1_front_face = eds1_depth_test_enable = eds1_depth_write_enable = false;
             eds1_depth_compare_op = eds1_depth_bounds_test_enable = eds1_stencil_test_enable = eds1_stencil_op = false;
-            eds1_vertex_input_binding_stride = false;
+            vertex_input_binding_stride = false;
         }
         RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
                               VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
@@ -729,7 +729,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                 extensions.extended_dynamic_state2 = false;
             }
         }
-        if (dyna_state != Settings::ExtendedDynamicState::Disabled && extensions.extended_dynamic_state2) {
+        if (dyna_state_enabled && extensions.extended_dynamic_state2) {
             eds2_depth_bias_enable = features.extended_dynamic_state2.extendedDynamicState2 && (dld.vkCmdSetDepthBiasEnableEXT != nullptr);
             eds2_primitive_restart_enable = features.extended_dynamic_state2.extendedDynamicState2 && (dld.vkCmdSetPrimitiveRestartEnableEXT != nullptr);
             eds2_rasterizer_discard_enable = features.extended_dynamic_state2.extendedDynamicState2 && (dld.vkCmdSetRasterizerDiscardEnableEXT != nullptr);
@@ -766,7 +766,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                 extensions.extended_dynamic_state3 = false;
             }
         }
-        if (dyna_state != Settings::ExtendedDynamicState::Disabled && extensions.extended_dynamic_state3) {
+        if (dyna_state_enabled && extensions.extended_dynamic_state3) {
             if (!(features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable && (dld.vkCmdSetColorBlendEnableEXT != nullptr))) {
                 features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = VK_FALSE;
             }
@@ -833,10 +833,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         }
 
         if (vids_entrypoint && features.vertex_input_dynamic_state.vertexInputDynamicState) {
-            eds1_vertex_input_binding_stride = false;
+            vertex_input_binding_stride = false;
         } else {
             // Only enable binding stride if EDS1 and the VB2 entrypoint are available.
-            eds1_vertex_input_binding_stride = features.extended_dynamic_state.extendedDynamicState && vb2_entrypoint;
+            vertex_input_binding_stride = features.extended_dynamic_state.extendedDynamicState && vb2_entrypoint;
         }
 
         if (!features.vertex_input_dynamic_state.vertexInputDynamicState) {
