@@ -21,8 +21,25 @@ namespace Vulkan {
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
 struct DynamicFeatures {
+    bool has_core_dynamic_viewport_scissor;
+    bool has_core_dynamic_depth_bias;
+    bool has_core_dynamic_depth_bounds;
+    bool has_core_dynamic_line_width;
+    bool has_core_dynamic_stencil_masks;
     bool has_extended_dynamic_state;
+    bool has_eds1_cull_mode;
+    bool has_eds1_front_face;
+    bool has_eds1_depth_test_enable;
+    bool has_eds1_depth_write_enable;
+    bool has_eds1_depth_compare_op;
+    bool has_eds1_depth_bounds_test_enable;
+    bool has_eds1_stencil_test_enable;
+    bool has_eds1_stencil_op;
+    bool has_eds1_vertex_input_binding_stride;
     bool has_extended_dynamic_state_2;
+    bool has_eds2_depth_bias_enable;
+    bool has_eds2_primitive_restart_enable;
+    bool has_eds2_rasterizer_discard_enable;
     bool has_extended_dynamic_state_2_logic_op;
     bool has_extended_dynamic_state_2_patch_control_points;
     bool has_extended_dynamic_state_3_blend;
@@ -30,6 +47,10 @@ struct DynamicFeatures {
     bool has_dynamic_state3_depth_clamp_enable;
     bool has_dynamic_state3_logic_op_enable;
     bool has_dynamic_state3_line_stipple_enable;
+    bool has_dynamic_state3_alpha_to_coverage_enable;
+    bool has_dynamic_state3_alpha_to_one_enable;
+    bool has_dynamic_state3_line_rasterization_mode;
+    bool has_dynamic_state3_conservative_rasterization_mode;
     bool has_dynamic_vertex_input;
     bool has_provoking_vertex;
     bool has_provoking_vertex_first_mode;
@@ -194,23 +215,27 @@ struct FixedPipelineState {
     };
 
     union {
-        u32 raw1;
-        BitField<0, 1, u32> extended_dynamic_state;
-        BitField<1, 1, u32> extended_dynamic_state_2;
-        BitField<2, 1, u32> extended_dynamic_state_2_logic_op;
-        BitField<3, 1, u32> extended_dynamic_state_3_blend;
-        BitField<4, 1, u32> extended_dynamic_state_3_enables;
-        BitField<5, 1, u32> dynamic_vertex_input;
-        BitField<6, 1, u32> xfb_enabled;
-        BitField<7, 1, u32> ndc_minus_one_to_one;
-        BitField<8, 2, u32> polygon_mode;
-        BitField<10, 2, u32> tessellation_primitive;
-        BitField<12, 2, u32> tessellation_spacing;
-        BitField<14, 1, u32> tessellation_clockwise;
-        BitField<15, 5, u32> patch_control_points_minus_one;
-
-        BitField<24, 4, Maxwell::PrimitiveTopology> topology;
-        BitField<28, 4, Tegra::Texture::MsaaMode> msaa_mode;
+        u64 raw1;
+        BitField<0, 1, u64> core_dynamic_viewport_scissor;
+        BitField<1, 1, u64> core_dynamic_depth_bias;
+        BitField<2, 1, u64> core_dynamic_depth_bounds;
+        BitField<3, 1, u64> core_dynamic_line_width;
+        BitField<4, 1, u64> core_dynamic_stencil_masks;
+        BitField<5, 1, u64> extended_dynamic_state;
+        BitField<6, 1, u64> extended_dynamic_state_2;
+        BitField<7, 1, u64> extended_dynamic_state_2_logic_op;
+        BitField<8, 1, u64> extended_dynamic_state_3_blend;
+        BitField<9, 1, u64> extended_dynamic_state_3_enables;
+        BitField<10, 1, u64> dynamic_vertex_input;
+        BitField<11, 1, u64> xfb_enabled;
+        BitField<12, 1, u64> ndc_minus_one_to_one;
+        BitField<13, 2, u64> polygon_mode;
+        BitField<15, 2, u64> tessellation_primitive;
+        BitField<17, 2, u64> tessellation_spacing;
+        BitField<19, 1, u64> tessellation_clockwise;
+        BitField<20, 5, u64> patch_control_points_minus_one;
+        BitField<25, 4, Maxwell::PrimitiveTopology> topology;
+        BitField<29, 4, Tegra::Texture::MsaaMode> msaa_mode;
     };
     union {
         u32 raw2;

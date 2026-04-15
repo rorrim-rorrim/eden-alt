@@ -58,7 +58,7 @@ using VideoCommon::FileEnvironment;
 using VideoCommon::GenericEnvironment;
 using VideoCommon::GraphicsEnvironment;
 
-constexpr u32 CACHE_VERSION = 16;
+constexpr u32 CACHE_VERSION = 17;
 constexpr std::array<char, 8> VULKAN_CACHE_MAGIC_NUMBER{'y', 'u', 'z', 'u', 'v', 'k', 'c', 'h'};
 
 template <typename Container>
@@ -465,18 +465,46 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
 
     dynamic_features = {};
 
-    // User granularity enforced in vulkan_device.cpp switch statement:
-    //   Level 0: Core Dynamic States only
-    //   Level 1: Core + EDS1
-    //   Level 2: Core + EDS1 + EDS2 (accumulative)
-    //   Level 3: Core + EDS1 + EDS2 + EDS3 (accumulative)
-    // Here we only verify if extensions were successfully loaded by the device
+    dynamic_features.has_core_dynamic_viewport_scissor =
+        device.SupportsCoreDynamicViewportScissor();
+    dynamic_features.has_core_dynamic_depth_bias =
+        device.SupportsCoreDynamicDepthBias();
+    dynamic_features.has_core_dynamic_depth_bounds =
+        device.SupportsCoreDynamicDepthBounds();
+    dynamic_features.has_core_dynamic_line_width =
+        device.SupportsCoreDynamicLineWidth();
+    dynamic_features.has_core_dynamic_stencil_masks =
+        device.SupportsCoreDynamicStencilMasks();
 
     dynamic_features.has_extended_dynamic_state =
         device.IsExtExtendedDynamicStateSupported();
+    dynamic_features.has_eds1_cull_mode =
+        device.SupportsEds1CullMode();
+    dynamic_features.has_eds1_front_face =
+        device.SupportsEds1FrontFace();
+    dynamic_features.has_eds1_depth_test_enable =
+        device.SupportsEds1DepthTestEnable();
+    dynamic_features.has_eds1_depth_write_enable =
+        device.SupportsEds1DepthWriteEnable();
+    dynamic_features.has_eds1_depth_compare_op =
+        device.SupportsEds1DepthCompareOp();
+    dynamic_features.has_eds1_depth_bounds_test_enable =
+        device.SupportsEds1DepthBoundsTestEnable();
+    dynamic_features.has_eds1_stencil_test_enable =
+        device.SupportsEds1StencilTestEnable();
+    dynamic_features.has_eds1_stencil_op =
+        device.SupportsEds1StencilOp();
+    dynamic_features.has_eds1_vertex_input_binding_stride =
+        device.SupportsEds1VertexInputBindingStride();
 
     dynamic_features.has_extended_dynamic_state_2 =
         device.IsExtExtendedDynamicState2Supported();
+    dynamic_features.has_eds2_depth_bias_enable =
+        device.SupportsEds2DepthBiasEnable();
+    dynamic_features.has_eds2_primitive_restart_enable =
+        device.SupportsEds2PrimitiveRestartEnable();
+    dynamic_features.has_eds2_rasterizer_discard_enable =
+        device.SupportsEds2RasterizerDiscardEnable();
     dynamic_features.has_extended_dynamic_state_2_logic_op =
         device.IsExtExtendedDynamicState2ExtrasSupported();
     dynamic_features.has_extended_dynamic_state_2_patch_control_points = false;
@@ -491,13 +519,21 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         device.SupportsDynamicState3LogicOpEnable();
     dynamic_features.has_dynamic_state3_line_stipple_enable =
         device.SupportsDynamicState3LineStippleEnable();
+    dynamic_features.has_dynamic_state3_alpha_to_coverage_enable =
+        device.SupportsDynamicState3AlphaToCoverageEnable();
+    dynamic_features.has_dynamic_state3_alpha_to_one_enable =
+        device.SupportsDynamicState3AlphaToOneEnable();
+    dynamic_features.has_dynamic_state3_line_rasterization_mode =
+        device.SupportsDynamicState3LineRasterizationMode();
+    dynamic_features.has_dynamic_state3_conservative_rasterization_mode =
+        device.SupportsDynamicState3ConservativeRasterizationMode();
 
-    // VIDS: Independent toggle (not affected by dyna_state levels)
     dynamic_features.has_dynamic_vertex_input =
         device.IsExtVertexInputDynamicStateSupported() &&
         Settings::values.vertex_input_dynamic_state.GetValue();
 
-    dynamic_features.has_provoking_vertex = device.IsExtProvokingVertexSupported();
+    dynamic_features.has_provoking_vertex =
+        device.IsExtProvokingVertexSupported();
     dynamic_features.has_provoking_vertex_first_mode =
         device.SupportsProvokingVertexFirstMode();
     dynamic_features.has_provoking_vertex_last_mode =
@@ -604,8 +640,20 @@ void PipelineCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading
         GraphicsPipelineCacheKey key;
         file.read(reinterpret_cast<char*>(&key), sizeof(key));
 
-        if ((key.state.extended_dynamic_state != 0) !=
+        if ((key.state.core_dynamic_viewport_scissor != 0) !=
+                dynamic_features.has_core_dynamic_viewport_scissor ||
+            (key.state.core_dynamic_depth_bias != 0) !=
+                dynamic_features.has_core_dynamic_depth_bias ||
+            (key.state.core_dynamic_depth_bounds != 0) !=
+                dynamic_features.has_core_dynamic_depth_bounds ||
+            (key.state.core_dynamic_line_width != 0) !=
+                dynamic_features.has_core_dynamic_line_width ||
+            (key.state.core_dynamic_stencil_masks != 0) !=
+                dynamic_features.has_core_dynamic_stencil_masks ||
+            (key.state.extended_dynamic_state != 0) !=
                 dynamic_features.has_extended_dynamic_state ||
+            (key.state.dynamic_vertex_input != 0) !=
+                dynamic_features.has_dynamic_vertex_input ||
             (key.state.extended_dynamic_state_2 != 0) !=
                 dynamic_features.has_extended_dynamic_state_2 ||
             (key.state.extended_dynamic_state_2_logic_op != 0) !=
@@ -613,8 +661,7 @@ void PipelineCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading
             (key.state.extended_dynamic_state_3_blend != 0) !=
                 dynamic_features.has_extended_dynamic_state_3_blend ||
             (key.state.extended_dynamic_state_3_enables != 0) !=
-                dynamic_features.has_extended_dynamic_state_3_enables ||
-            (key.state.dynamic_vertex_input != 0) != dynamic_features.has_dynamic_vertex_input) {
+                dynamic_features.has_extended_dynamic_state_3_enables) {
             return;
         }
 
