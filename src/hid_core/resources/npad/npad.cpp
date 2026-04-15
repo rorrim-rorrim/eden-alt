@@ -185,7 +185,7 @@ void NPad::InitNewlyAddedController(u64 aruid, Core::HID::NpadIdType npad_id) {
     auto* shared_memory = controller.shared_memory;
     if (!shared_memory) {
         LOG_WARNING(Service_HID, "shared_memory is null for npad_id={}", npad_id);
-        return ResultSuccess;
+        return;
     }
     if (controller_type == Core::HID::NpadStyleIndex::None) {
         npad_resource.SignalStyleSetUpdateEvent(aruid, npad_id);
