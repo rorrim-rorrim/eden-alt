@@ -2546,7 +2546,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         if (binding.surfaceInputOverlay.isGamelessMode()) return
 
         if (hasConnectedControllers) {
-            if (BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()) {
+            if (BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean() &&
+                BooleanSetting.HIDE_OVERLAY_ON_CONTROLLER_INPUT.getBoolean()) {
                 overlayHiddenByPhysicalController = true
                 toggleOverlay(false)
             }
