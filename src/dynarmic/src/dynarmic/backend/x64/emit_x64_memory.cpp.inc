@@ -230,12 +230,11 @@ void AxxEmitX64::EmitExclusiveReadMemory(AxxEmitContext& ctx, IR::Inst* inst) {
         if (ordered) {
             code.mfence();
         }
-        code.CallLambda(
-            [](AxxUserConfig& conf, Axx::VAddr vaddr) -> T {
-                return conf.global_monitor->ReadAndMark<T>(conf.processor_id, vaddr, [&]() -> T {
-                    return (conf.callbacks->*callback)(vaddr);
-                });
+        code.CallLambda([](AxxUserConfig& conf, Axx::VAddr vaddr) -> T {
+            return conf.global_monitor->ReadAndMark<T>(conf.processor_id, vaddr, [&]() -> T {
+                return (conf.callbacks->*callback)(vaddr);
             });
+        });
         code.ZeroExtendFrom(bitsize, code.ABI_RETURN);
     } else {
         const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
@@ -250,12 +249,11 @@ void AxxEmitX64::EmitExclusiveReadMemory(AxxEmitContext& ctx, IR::Inst* inst) {
         if (ordered) {
             code.mfence();
         }
-        code.CallLambda(
-            [](AxxUserConfig& conf, Axx::VAddr vaddr, Vector& ret) {
-                ret = conf.global_monitor->ReadAndMark<Vector>(conf.processor_id, vaddr, [&]() -> Vector {
-                    return (conf.callbacks->*callback)(vaddr);
-                });
+        code.CallLambda([](AxxUserConfig& conf, Axx::VAddr vaddr, Vector& ret) {
+            ret = conf.global_monitor->ReadAndMark<Vector>(conf.processor_id, vaddr, [&]() -> Vector {
+                return (conf.callbacks->*callback)(vaddr);
             });
+        });
         code.movups(result, xword[rsp + ABI_SHADOW_SPACE]);
         ctx.reg_alloc.ReleaseStackSpace(code, 16 + ABI_SHADOW_SPACE);
 
@@ -320,11 +318,12 @@ void AxxEmitX64::EmitExclusiveWriteMemory(AxxEmitContext& ctx, IR::Inst* inst) {
 
 template<std::size_t bitsize, auto callback>
 void AxxEmitX64::EmitExclusiveReadMemoryInline(AxxEmitContext& ctx, IR::Inst* inst) {
-    ASSERT(conf.global_monitor && conf.fastmem_pointer);
-    if (!exception_handler.SupportsFastmem()) {
+    ASSERT(conf.global_monitor);
+    if (!conf.fastmem_exclusive_access || !exception_handler.SupportsFastmem()) {
         EmitExclusiveReadMemory<bitsize, callback>(ctx, inst);
         return;
     }
+    ASSERT(conf.fastmem_pointer);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     constexpr bool ordered = true;
@@ -344,10 +343,10 @@ void AxxEmitX64::EmitExclusiveReadMemoryInline(AxxEmitContext& ctx, IR::Inst* in
 
     const auto wrapped_fn = read_fallbacks[std::make_tuple(ordered, bitsize, vaddr.getIdx(), value_idx)];
 
-    EmitExclusiveLock(code, conf, tmp, tmp2.cvt32());
+    EmitExclusiveLock(code, conf, tmp2.cvt32());
 
     code.mov(code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)], u8(1));
-    code.mov(tmp, std::bit_cast<u64>(GetExclusiveMonitorAddressPointer(conf.global_monitor, conf.processor_id)));
+    code.mov(tmp, std::bit_cast<u64>(conf.global_monitor->exclusive_addresses.data() + conf.processor_id));
     code.mov(qword[tmp], vaddr);
 
     const auto fastmem_marker = ShouldFastmem(ctx, inst);
@@ -381,10 +380,10 @@ void AxxEmitX64::EmitExclusiveReadMemoryInline(AxxEmitContext& ctx, IR::Inst* in
         code.call(wrapped_fn);
     }
 
-    code.mov(tmp, std::bit_cast<u64>(GetExclusiveMonitorValuePointer(conf.global_monitor, conf.processor_id)));
+    code.mov(tmp, std::bit_cast<u64>(conf.global_monitor->exclusive_addresses.data() + conf.processor_id));
     EmitWriteMemoryMov<bitsize>(code, tmp, value_idx, false);
 
-    EmitExclusiveUnlock(code, conf, tmp, tmp2.cvt32());
+    EmitExclusiveUnlock(code, conf, tmp2.cvt32());
 
     if constexpr (bitsize == 128) {
         ctx.reg_alloc.DefineValue(code, inst, Xbyak::Xmm{value_idx});
@@ -397,11 +396,12 @@ void AxxEmitX64::EmitExclusiveReadMemoryInline(AxxEmitContext& ctx, IR::Inst* in
 
 template<std::size_t bitsize, auto callback>
 void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* inst) {
-    ASSERT(conf.global_monitor && conf.fastmem_pointer);
-    if (!exception_handler.SupportsFastmem()) {
+    ASSERT(conf.global_monitor);
+    if (!conf.fastmem_exclusive_access || !exception_handler.SupportsFastmem()) {
         EmitExclusiveWriteMemory<bitsize, callback>(ctx, inst);
         return;
     }
+    ASSERT(conf.fastmem_pointer);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     constexpr bool ordered = true;
@@ -425,7 +425,7 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
 
     const auto wrapped_fn = exclusive_write_fallbacks[std::make_tuple(ordered, bitsize, vaddr.getIdx(), value.getIdx())];
 
-    EmitExclusiveLock(code, conf, tmp, tmp2.cvt32());
+    EmitExclusiveLock(code, conf, tmp2.cvt32());
 
     SharedLabel end = ctx.GenSharedLabel();
 
@@ -433,14 +433,14 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
     code.movzx(tmp.cvt32(), code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)]);
     code.test(tmp.cvt8(), tmp.cvt8());
     code.je(*end, code.T_NEAR);
-    code.mov(tmp, std::bit_cast<u64>(GetExclusiveMonitorAddressPointer(conf.global_monitor, conf.processor_id)));
+    code.mov(tmp, std::bit_cast<u64>(conf.global_monitor->exclusive_addresses.data() + conf.processor_id));
     code.cmp(qword[tmp], vaddr);
     code.jne(*end, code.T_NEAR);
 
     EmitExclusiveTestAndClear(code, conf, vaddr, tmp, rax);
 
     code.mov(code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)], u8(0));
-    code.mov(tmp, std::bit_cast<u64>(GetExclusiveMonitorValuePointer(conf.global_monitor, conf.processor_id)));
+    code.mov(tmp, std::bit_cast<u64>(conf.global_monitor->exclusive_addresses.data() + conf.processor_id));
 
     if constexpr (bitsize == 128) {
         code.mov(rax, qword[tmp + 0]);
@@ -519,7 +519,7 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
     }
 
     code.L(*end);
-    EmitExclusiveUnlock(code, conf, tmp, eax);
+    EmitExclusiveUnlock(code, conf, eax);
     ctx.reg_alloc.DefineValue(code, inst, status);
     EmitCheckMemoryAbort(ctx, inst);
 }

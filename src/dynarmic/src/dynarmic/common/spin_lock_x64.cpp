@@ -22,18 +22,22 @@ static const auto default_cg_mode = nullptr; //Allow RWE
 
 namespace Dynarmic {
 
-void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Reg64 ptr, Xbyak::Reg32 tmp, bool waitpkg) {
-    Xbyak::Label start, loop;
-    code.jmp(start, code.T_NEAR);
-    code.L(loop);
+/// @brief Emits a lock path for a given spinlock
+/// @arg ptr Operand must be a dword[ptr]
+/// @arg waitpkg Whetever or not the "UMWAIT" instruction can be used
+void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Address ptr, Xbyak::Reg32 tmp, bool waitpkg) {
+    // TODO: this is because we lack regalloc - so better to be safe :(
     if (waitpkg) {
-        // TODO: this is because we lack regalloc - so better to be safe :(
-        code.push(Xbyak::util::rax);
-        code.push(Xbyak::util::rbx);
-        code.push(Xbyak::util::rdx);
+        Xbyak::Label start, loop;
+        code.jmp(start, code.T_NEAR);
+        code.L(loop);
+        code.push(Xbyak::util::eax);
+        code.push(Xbyak::util::ebx);
+        code.push(Xbyak::util::edx);
         // TODO: This clobbers EAX and EDX did we tell the regalloc?
         // ARM ptr for address-monitoring
-        code.umonitor(ptr);
+        code.mov(Xbyak::util::eax, ptr);
+        code.umonitor(Xbyak::util::eax);
         // tmp.bit[0] = 0: C0.1 | Slow Wakup | Better Savings
         // tmp.bit[0] = 1: C0.2 | Fast Wakup | Lesser Savings
         // edx:eax is implicitly used as a 64-bit deadline timestamp
@@ -47,22 +51,31 @@ void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Reg64 ptr, Xbyak::Reg32
         code.umwait(Xbyak::util::ebx);
         // CF == 1 if we hit the OS-timeout in IA32_UMWAIT_CONTROL without a write
         // CF == 0 if we exited the wait for any other reason
-        code.pop(Xbyak::util::rdx);
-        code.pop(Xbyak::util::rbx);
-        code.pop(Xbyak::util::rax);
+        code.pop(Xbyak::util::edx);
+        code.pop(Xbyak::util::ebx);
+        code.pop(Xbyak::util::eax);
+        code.L(start);
+        code.mov(tmp, 1);
+        /*code.lock();*/ code.xchg(ptr, tmp);
+        code.test(tmp, tmp);
+        code.jnz(loop, code.T_NEAR);
     } else {
+        Xbyak::Label start, loop;
+        code.jmp(start, code.T_NEAR);
+        code.L(loop);
         code.pause();
+        code.L(start);
+        code.mov(tmp, 1);
+        /*code.lock();*/ code.xchg(ptr, tmp);
+        code.test(tmp, tmp);
+        code.jnz(loop, code.T_NEAR);
     }
-    code.L(start);
-    code.mov(tmp, 1);
-    /*code.lock();*/ code.xchg(code.dword[ptr], tmp);
-    code.test(tmp, tmp);
-    code.jnz(loop, code.T_NEAR);
 }
 
-void EmitSpinLockUnlock(Xbyak::CodeGenerator& code, Xbyak::Reg64 ptr, Xbyak::Reg32 tmp) {
+// ptr operand must be a dword[ptr]
+void EmitSpinLockUnlock(Xbyak::CodeGenerator& code, Xbyak::Address ptr, Xbyak::Reg32 tmp) {
     code.xor_(tmp, tmp);
-    code.xchg(code.dword[ptr], tmp);
+    code.xchg(ptr, tmp);
     code.mfence();
 }
 
@@ -85,11 +98,12 @@ void SpinLockImpl::Initialize() noexcept {
     Xbyak::Reg64 const ABI_PARAM1 = Backend::X64::HostLocToReg64(Backend::X64::ABI_PARAM1);
     code.align();
     lock = code.getCurr<void (*)(volatile int*)>();
-    EmitSpinLockLock(code, ABI_PARAM1, code.eax, false);
+    EmitSpinLockLock(code, code.dword[ABI_PARAM1], code.eax, false);
     code.ret();
+
     code.align();
     unlock = code.getCurr<void (*)(volatile int*)>();
-    EmitSpinLockUnlock(code, ABI_PARAM1, code.eax);
+    EmitSpinLockUnlock(code, code.dword[ABI_PARAM1], code.eax);
     code.ret();
 }
 
