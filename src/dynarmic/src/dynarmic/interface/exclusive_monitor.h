@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -20,68 +23,71 @@ using Vector = std::array<std::uint64_t, 2>;
 
 class ExclusiveMonitor {
 public:
-    /// @param processor_count Maximum number of processors using this global
-    ///                        exclusive monitor. Each processor must have a
-    ///                        unique id.
-    explicit ExclusiveMonitor(size_t processor_count);
-
-    size_t GetProcessorCount() const;
+    explicit ExclusiveMonitor() noexcept {
+        std::fill(exclusive_addresses.begin(), exclusive_addresses.end(), INVALID_EXCLUSIVE_ADDRESS);
+    }
 
     /// Marks a region containing [address, address+size) to be exclusive to
-    /// processor processor_id.
-    template<typename T, typename Function>
-    T ReadAndMark(size_t processor_id, VAddr address, Function op) {
+    /// processor index.
+    template<typename T, typename F>
+    [[nodiscard]] inline T ReadAndMark(std::size_t index, VAddr address, F f) {
         static_assert(std::is_trivially_copyable_v<T>);
         const VAddr masked_address = address & RESERVATION_GRANULE_MASK;
-
-        Lock();
-        exclusive_addresses[processor_id] = masked_address;
-        const T value = op();
-        std::memcpy(exclusive_values[processor_id].data(), &value, sizeof(T));
-        Unlock();
+        lock.Lock();
+        exclusive_addresses[index] = masked_address;
+        T const value = f();
+        std::memcpy(exclusive_values[index].data(), std::addressof(value), sizeof(T));
+        lock.Unlock();
         return value;
     }
 
-    /// Checks to see if processor processor_id has exclusive access to the
+    [[nodiscard]] inline bool CheckAndClear(std::size_t index, VAddr address) {
+        const VAddr masked_address = address & RESERVATION_GRANULE_MASK;
+        if (exclusive_addresses[index] != masked_address)
+            return false;
+        for (VAddr& other_address : exclusive_addresses)
+            if (other_address == masked_address)
+                other_address = INVALID_EXCLUSIVE_ADDRESS;
+        return true;
+    }
+
+    /// Checks to see if processor index has exclusive access to the
     /// specified region. If it does, executes the operation then clears
     /// the exclusive state for processors if their exclusive region(s)
     /// contain [address, address+size).
-    template<typename T, typename Function>
-    bool DoExclusiveOperation(size_t processor_id, VAddr address, Function op) {
+    template<typename T, typename F>
+    [[nodiscard]] inline bool DoExclusiveOperation(std::size_t index, VAddr address, F&& f) {
         static_assert(std::is_trivially_copyable_v<T>);
-        if (!CheckAndClear(processor_id, address)) {
-            return false;
+        bool result = false;
+        lock.Lock();
+        if (CheckAndClear(index, address)) {
+            T saved_value{};
+            std::memcpy(std::addressof(saved_value), exclusive_values[index].data(), sizeof(T));
+            result = f(saved_value);
         }
-
-        T saved_value;
-        std::memcpy(&saved_value, exclusive_values[processor_id].data(), sizeof(T));
-        const bool result = op(saved_value);
-
-        Unlock();
+        lock.Unlock();
         return result;
     }
 
     /// Unmark everything.
-    void Clear();
+    inline void Clear() {
+        lock.Lock();
+        std::fill(exclusive_addresses.begin(), exclusive_addresses.end(), INVALID_EXCLUSIVE_ADDRESS);
+        lock.Unlock();
+    }
+
     /// Unmark processor id
-    void ClearProcessor(size_t processor_id);
-
-private:
-    bool CheckAndClear(size_t processor_id, VAddr address);
-
-    void Lock();
-    void Unlock();
-
-    friend volatile int* GetExclusiveMonitorLockPointer(ExclusiveMonitor*);
-    friend size_t GetExclusiveMonitorProcessorCount(ExclusiveMonitor*);
-    friend VAddr* GetExclusiveMonitorAddressPointer(ExclusiveMonitor*, size_t index);
-    friend Vector* GetExclusiveMonitorValuePointer(ExclusiveMonitor*, size_t index);
+    inline void ClearProcessor(size_t index) {
+        lock.Lock();
+        exclusive_addresses[index] = INVALID_EXCLUSIVE_ADDRESS;
+        lock.Unlock();
+    }
 
     static constexpr VAddr RESERVATION_GRANULE_MASK = 0xFFFF'FFFF'FFFF'FFFFull;
     static constexpr VAddr INVALID_EXCLUSIVE_ADDRESS = 0xDEAD'DEAD'DEAD'DEADull;
     static constexpr size_t MAX_NUM_CPU_CORES = 4; // Sync with src/core/hardware_properties
-    boost::container::static_vector<VAddr, MAX_NUM_CPU_CORES> exclusive_addresses;
-    boost::container::static_vector<Vector, MAX_NUM_CPU_CORES> exclusive_values;
+    std::array<VAddr, MAX_NUM_CPU_CORES> exclusive_addresses;
+    std::array<Vector, MAX_NUM_CPU_CORES> exclusive_values;
     SpinLock lock;
 };
 
