@@ -217,17 +217,14 @@ void SetupDirtyVertexAttributes(Tables& tables) {
 }
 
 void SetupDirtyVertexBindings(Tables& tables) {
-    static constexpr size_t stride_enable_offset = 0;
+    // Do NOT include stride here, it's implicit in VertexBuffer
     static constexpr size_t divisor_offset = 3;
     for (size_t i = 0; i < Regs::NumVertexArrays; ++i) {
-        const size_t stream_base = OFF(vertex_streams) + i * NUM(vertex_streams[0]);
         const u8 flag = static_cast<u8>(VertexBinding0 + i);
         tables[0][OFF(vertex_stream_instances) + i] = VertexInput;
         tables[1][OFF(vertex_stream_instances) + i] = flag;
-        tables[0][stream_base + stride_enable_offset] = VertexInput;
-        tables[1][stream_base + stride_enable_offset] = flag;
-        tables[0][stream_base + divisor_offset] = VertexInput;
-        tables[1][stream_base + divisor_offset] = flag;
+        tables[0][OFF(vertex_streams) + i * NUM(vertex_streams[0]) + divisor_offset] = VertexInput;
+        tables[1][OFF(vertex_streams) + i * NUM(vertex_streams[0]) + divisor_offset] = flag;
     }
 }
 
