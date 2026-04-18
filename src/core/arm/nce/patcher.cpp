@@ -578,7 +578,7 @@ void Patcher::WriteMsrHandler(ModuleDestLabel module_dest, oaknut::XReg src_reg,
 }
 
 void Patcher::WriteCntpctHandler(ModuleDestLabel module_dest, oaknut::XReg dest_reg, oaknut::VectorCodeGenerator& cg) {
-    static Common::Arm64::NativeClock clock{};
+    static Common::WallClock clock{};
     const auto factor = clock.GetGuestCNTFRQFactor();
     const auto raw_factor = std::bit_cast<std::array<u64, 2>>(factor);
 
