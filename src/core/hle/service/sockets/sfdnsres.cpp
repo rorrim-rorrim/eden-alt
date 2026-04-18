@@ -54,13 +54,14 @@ enum class NetDbError : s32 {
 };
 
 static const constexpr std::array blockedDomains = {
-    "srv.nintendo.net", //obvious
-    "phoenix-api.wbagora.com", //hogwarts legacy
+    "srv.nintendo.net", // Obvious
+    "phoenix-api.wbagora.com", // Hogwarts legacy
     "battle.net",
-    "microsoft.com", //minecraft dungeons + other games
+    "microsoft.com", // Minecraft dungeons + other games
     "mojang.com",
     "xboxlive.com",
-    "minecraftservices.com"
+    "minecraftservices.com",
+    "508223012e5a5ff19f30a391b2bdadc0.my.2k.com", // Civilization 5
 };
 
 static bool IsBlockedHost(const std::string& host) {
