@@ -380,7 +380,7 @@ void AxxEmitX64::EmitExclusiveReadMemoryInline(AxxEmitContext& ctx, IR::Inst* in
         code.call(wrapped_fn);
     }
 
-    code.mov(tmp, std::bit_cast<u64>(conf.global_monitor->exclusive_addresses.data() + conf.processor_id));
+    code.mov(tmp, std::bit_cast<u64>(conf.global_monitor->exclusive_values.data() + conf.processor_id));
     EmitWriteMemoryMov<bitsize>(code, tmp, value_idx, false);
 
     EmitExclusiveUnlock(code, conf, tmp2.cvt32());
@@ -440,7 +440,7 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
     EmitExclusiveTestAndClear(code, conf, vaddr, tmp, rax);
 
     code.mov(code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)], u8(0));
-    code.mov(tmp, std::bit_cast<u64>(conf.global_monitor->exclusive_addresses.data() + conf.processor_id));
+    code.mov(tmp, std::bit_cast<u64>(conf.global_monitor->exclusive_values.data() + conf.processor_id));
 
     if constexpr (bitsize == 128) {
         code.mov(rax, qword[tmp + 0]);
