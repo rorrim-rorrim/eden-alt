@@ -33,8 +33,10 @@ object SoftwareKeyboard {
         val emulationActivity = NativeLibrary.sEmulationActivity.get()
 
         val overlayView = emulationActivity!!.findViewById<View>(R.id.surface_input_overlay)
+        overlayView.requestFocus()
         val im =
             overlayView.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        im.restartInput(overlayView)
         im.showSoftInput(overlayView, InputMethodManager.SHOW_FORCED)
 
         // There isn't a good way to know that the IMM is dismissed, so poll every 500ms to submit inline keyboard result.
