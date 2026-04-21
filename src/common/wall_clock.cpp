@@ -8,6 +8,9 @@
 #include "common/uint128.h"
 #include "common/wall_clock.h"
 
+#ifdef __ANDROID__
+#include <sys/system_properties.h>
+#endif
 #ifdef ARCHITECTURE_x86_64
 #include "common/x64/cpu_detect.h"
 #include "common/x64/rdtsc.h"
