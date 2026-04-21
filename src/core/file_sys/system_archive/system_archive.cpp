@@ -15,12 +15,9 @@
 
 namespace FileSys::SystemArchive {
 
-constexpr u64 SYSTEM_ARCHIVE_BASE_TITLE_ID = 0x0100000000000800;
-using SystemArchiveSupplier = VirtualDir (*)();
-
 struct SystemArchiveDescriptor {
     const char* name;
-    SystemArchiveSupplier supplier;
+    VirtualDir (*supplier)();
 };
 
 constexpr inline SystemArchiveDescriptor GetSystemArchive(u64 title_id) {
