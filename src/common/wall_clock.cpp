@@ -22,11 +22,11 @@ namespace Common {
 WallClock::WallClock(bool invariant_, u64 rdtsc_frequency_) noexcept
     : invariant{invariant_}
     , rdtsc_frequency{rdtsc_frequency_}
-    , ns_rdtsc_factor{GetFixedPoint64Factor(NsRatio::den, rdtsc_frequency)}
-    , us_rdtsc_factor{GetFixedPoint64Factor(UsRatio::den, rdtsc_frequency)}
-    , ms_rdtsc_factor{GetFixedPoint64Factor(MsRatio::den, rdtsc_frequency)}
-    , cntpct_rdtsc_factor{GetFixedPoint64Factor(CNTFRQ, rdtsc_frequency)}
-    , gputick_rdtsc_factor{GetFixedPoint64Factor(GPUTickFreq, rdtsc_frequency)}
+    , ns_rdtsc_factor{GetFixedPoint64Factor(NsRatio::den, rdtsc_frequency_)}
+    , us_rdtsc_factor{GetFixedPoint64Factor(UsRatio::den, rdtsc_frequency_)}
+    , ms_rdtsc_factor{GetFixedPoint64Factor(MsRatio::den, rdtsc_frequency_)}
+    , cntpct_rdtsc_factor{GetFixedPoint64Factor(CNTFRQ, rdtsc_frequency_)}
+    , gputick_rdtsc_factor{GetFixedPoint64Factor(GPUTickFreq, rdtsc_frequency_)}
 {}
 
 std::chrono::nanoseconds WallClock::GetTimeNS() const {
@@ -109,7 +109,7 @@ namespace {
 } // namespace
 
 WallClock::WallClock(bool invariant_, u64 rdtsc_frequency_) noexcept {
-    const u64 host_cntfrq = GetHostCNTFRQ();
+    const u64 host_cntfrq = std::max<u64>(GetHostCNTFRQ(), 1);
     ns_cntfrq_factor = GetFixedPointFactor(NsRatio::den, host_cntfrq);
     us_cntfrq_factor = GetFixedPointFactor(UsRatio::den, host_cntfrq);
     ms_cntfrq_factor = GetFixedPointFactor(MsRatio::den, host_cntfrq);
