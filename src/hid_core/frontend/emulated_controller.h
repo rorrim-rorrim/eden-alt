@@ -11,8 +11,10 @@
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
-#include <ankerl/unordered_dense.h>
 #include <vector>
+#include <atomic>
+
+#include <ankerl/unordered_dense.h>
 
 #include "common/common_types.h"
 #include "common/input.h"
@@ -586,10 +588,10 @@ private:
     std::array<bool, HIDCore::available_controllers> controller_connected{};
 
     // Atomically synched values
-    std::atomic<NpadStyleIndex> npad_type{NpadStyleIndex::None};
-    std::atomic<NpadStyleIndex> original_npad_type{NpadStyleIndex::None};
+    std::atomic<HID::NpadStyleIndex> npad_type{HID::NpadStyleIndex::None};
+    std::atomic<HID::NpadStyleIndex> original_npad_type{HID::NpadStyleIndex::None};
     // Temporary values to avoid doing changes while the controller is in configuring mode
-    std::atomic<NpadStyleIndex> tmp_npad_type{NpadStyleIndex::None};
+    std::atomic<HID::NpadStyleIndex> tmp_npad_type{HID::NpadStyleIndex::None};
     std::atomic<bool> tmp_is_connected{false};
     std::atomic<bool> is_connected{false};
     std::atomic<bool> is_configuring{false};
