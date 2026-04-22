@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -52,7 +52,7 @@ public:
                     ++id.index;
                 } while (id.index < size && !IsValid(bitset));
                 if (id.index == size) {
-                    id.index = SlotId::INVALID_INDEX;
+                    id = SlotId{};
                 }
             }
             return *this;
@@ -141,7 +141,7 @@ public:
     }
 
     [[nodiscard]] Iterator end() noexcept {
-        return Iterator(this, SlotId{SlotId::INVALID_INDEX});
+        return Iterator(this, SlotId{});
     }
 
     [[nodiscard]] size_t size() const noexcept {

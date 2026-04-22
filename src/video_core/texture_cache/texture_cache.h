@@ -262,8 +262,7 @@ typename P::ImageView& TextureCache<P>::GetImageView(ImageViewId id) noexcept {
 
 template <class P>
 typename P::ImageView& TextureCache<P>::GetImageView(u32 index) noexcept {
-    const auto image_view_id = VisitImageView(channel_state->graphics_image_table,
-                                              channel_state->graphics_image_view_ids, index);
+    const auto image_view_id = VisitImageView(channel_state->graphics_image_table, channel_state->graphics_image_view_ids, index);
     return slot_image_views[image_view_id];
 }
 
@@ -275,14 +274,12 @@ void TextureCache<P>::MarkModification(ImageId id) noexcept {
 template <class P>
 template <bool has_blacklists>
 void TextureCache<P>::FillGraphicsImageViews(std::span<ImageViewInOut> views) {
-    FillImageViews<has_blacklists>(channel_state->graphics_image_table,
-                                   channel_state->graphics_image_view_ids, views);
+    FillImageViews<has_blacklists>(channel_state->graphics_image_table, channel_state->graphics_image_view_ids, views);
 }
 
 template <class P>
 void TextureCache<P>::FillComputeImageViews(std::span<ImageViewInOut> views) {
-    FillImageViews<true>(channel_state->compute_image_table, channel_state->compute_image_view_ids,
-                         views);
+    FillImageViews<true>(channel_state->compute_image_table, channel_state->compute_image_view_ids, views);
 }
 
 template <class P>
@@ -361,29 +358,27 @@ typename P::Sampler* TextureCache<P>::GetComputeSampler(u32 index) {
 
 template <class P>
 SamplerId TextureCache<P>::GetGraphicsSamplerId(u32 index) {
-    if (index > channel_state->graphics_sampler_table.Limit()) {
+    if (index > channel_state->graphics_sampler_table.current_limit) {
         LOG_DEBUG(HW_GPU, "Invalid sampler index={}", index);
         return NULL_SAMPLER_ID;
     }
-    const auto [descriptor, is_new] = channel_state->graphics_sampler_table.Read(index);
+    const auto [descriptor, is_new] = channel_state->graphics_sampler_table.Read(*gpu_memory, index);
     SamplerId& id = channel_state->graphics_sampler_ids[index];
-    if (is_new) {
+    if (is_new)
         id = FindSampler(descriptor);
-    }
     return id;
 }
 
 template <class P>
 SamplerId TextureCache<P>::GetComputeSamplerId(u32 index) {
-    if (index > channel_state->compute_sampler_table.Limit()) {
+    if (index > channel_state->compute_sampler_table.current_limit) {
         LOG_DEBUG(HW_GPU, "Invalid sampler index={}", index);
         return NULL_SAMPLER_ID;
     }
-    const auto [descriptor, is_new] = channel_state->compute_sampler_table.Read(index);
+    const auto [descriptor, is_new] = channel_state->compute_sampler_table.Read(*gpu_memory, index);
     SamplerId& id = channel_state->compute_sampler_ids[index];
-    if (is_new) {
+    if (is_new)
         id = FindSampler(descriptor);
-    }
     return id;
 }
 
@@ -399,19 +394,16 @@ typename P::Sampler& TextureCache<P>::GetSampler(SamplerId id) noexcept {
 
 template <class P>
 void TextureCache<P>::SynchronizeGraphicsDescriptors() {
-    using SamplerBinding = Tegra::Engines::Maxwell3D::Regs::SamplerBinding;
-    const bool linked_tsc = maxwell3d->regs.sampler_binding == SamplerBinding::ViaHeaderBinding;
+    const bool linked_tsc = maxwell3d->regs.sampler_binding == Tegra::Engines::Maxwell3D::Regs::SamplerBinding::ViaHeaderBinding;
     const u32 tic_limit = maxwell3d->regs.tex_header.limit;
     const u32 tsc_limit = linked_tsc ? tic_limit : maxwell3d->regs.tex_sampler.limit;
     bool bindings_changed = false;
-    if (channel_state->graphics_sampler_table.Synchronize(maxwell3d->regs.tex_sampler.Address(),
-                                                          tsc_limit)) {
-        channel_state->graphics_sampler_ids.resize(tsc_limit + 1, CORRUPT_ID);
+    if (channel_state->graphics_sampler_table.Synchronize(maxwell3d->regs.tex_sampler.Address(), tsc_limit)) {
+        channel_state->graphics_sampler_ids.resize(tsc_limit + 1);
         bindings_changed = true;
     }
-    if (channel_state->graphics_image_table.Synchronize(maxwell3d->regs.tex_header.Address(),
-                                                        tic_limit)) {
-        channel_state->graphics_image_view_ids.resize(tic_limit + 1, CORRUPT_ID);
+    if (channel_state->graphics_image_table.Synchronize(maxwell3d->regs.tex_header.Address(), tic_limit)) {
+        channel_state->graphics_image_view_ids.resize(tic_limit + 1);
         bindings_changed = true;
     }
     if (bindings_changed) {
@@ -424,15 +416,13 @@ void TextureCache<P>::SynchronizeComputeDescriptors() {
     const bool linked_tsc = kepler_compute->launch_description.linked_tsc;
     const u32 tic_limit = kepler_compute->regs.tic.limit;
     const u32 tsc_limit = linked_tsc ? tic_limit : kepler_compute->regs.tsc.limit;
-    const GPUVAddr tsc_gpu_addr = kepler_compute->regs.tsc.Address();
     bool bindings_changed = false;
-    if (channel_state->compute_sampler_table.Synchronize(tsc_gpu_addr, tsc_limit)) {
-        channel_state->compute_sampler_ids.resize(tsc_limit + 1, CORRUPT_ID);
+    if (channel_state->compute_sampler_table.Synchronize(kepler_compute->regs.tsc.Address(), tsc_limit)) {
+        channel_state->compute_sampler_ids.resize(tsc_limit + 1);
         bindings_changed = true;
     }
-    if (channel_state->compute_image_table.Synchronize(kepler_compute->regs.tic.Address(),
-                                                       tic_limit)) {
-        channel_state->compute_image_view_ids.resize(tic_limit + 1, CORRUPT_ID);
+    if (channel_state->compute_image_table.Synchronize(kepler_compute->regs.tic.Address(), tic_limit)) {
+        channel_state->compute_image_view_ids.resize(tic_limit + 1);
         bindings_changed = true;
     }
     if (bindings_changed) {
@@ -640,14 +630,12 @@ void TextureCache<P>::FillImageViews(DescriptorTable<TICEntry>& table,
 }
 
 template <class P>
-ImageViewId TextureCache<P>::VisitImageView(DescriptorTable<TICEntry>& table,
-                                            std::span<ImageViewId> cached_image_view_ids,
-                                            u32 index) {
-    if (index > table.Limit()) {
+ImageViewId TextureCache<P>::VisitImageView(DescriptorTable<TICEntry>& table, std::span<ImageViewId> cached_image_view_ids, u32 index) {
+    if (index > table.current_limit) {
         LOG_DEBUG(HW_GPU, "Invalid image view index={}", index);
         return NULL_IMAGE_VIEW_ID;
     }
-    const auto [descriptor, is_new] = table.Read(index);
+    const auto [descriptor, is_new] = table.Read(*gpu_memory, index);
     ImageViewId& image_view_id = cached_image_view_ids[index];
     if (is_new) {
         image_view_id = FindImageView(descriptor);
@@ -2086,8 +2074,7 @@ void TextureCache<P>::TrimInactiveSamplers(size_t budget) {
         set.insert(id);
     };
     ankerl::unordered_dense::set<SamplerId> active;
-    active.reserve(channel_state->graphics_sampler_ids.size() +
-                   channel_state->compute_sampler_ids.size());
+    active.reserve(channel_state->graphics_sampler_ids.size() + channel_state->compute_sampler_ids.size());
     for (const SamplerId id : channel_state->graphics_sampler_ids) {
         mark_active(active, id);
     }
