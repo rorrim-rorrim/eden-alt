@@ -208,8 +208,8 @@
     },
     "ffmpeg": {
         "repo": "FFmpeg/FFmpeg",
-        "sha": "c7b5f1537d",
-        "hash": "ed177621176b3961bdcaa339187d3a7688c1c8b060b79c4bb0257cbc67ad7021ae5d5adca5303b45625abbbe3d9aafdd87ce777b8690ac295290d744c875489a",
+        "sha": "d1d873c003",
+        "hash": "eb2cd44f53b992ff0124507d7fda173a6b132dc1456d3761cdef4b4afb54b3850c38cdfc62abd460fdf76e25fc4c55a9d4f5b04463e3e1cd3ced71b9b0e13914",
         "bundled": true
     },
     "ffmpeg-ci": {

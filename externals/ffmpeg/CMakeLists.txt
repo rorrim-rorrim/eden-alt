@@ -244,7 +244,7 @@ else()
     set(FFmpeg_BUILD_LIBRARIES ${FFmpeg_LIBRARIES})
 
     # BSD make or Solaris make don't support ffmpeg make-j8
-    if (PLATFORM_LINUX OR ANDROID OR APPLE OR WIN32 OR PLATFORM_FREEBSD)
+    if (DEFINED SYSTEM_THREADS AND (PLATFORM_LINUX OR ANDROID OR APPLE OR WIN32 OR PLATFORM_FREEBSD))
         set(FFmpeg_MAKE_ARGS -j${SYSTEM_THREADS})
     else()
         set(FFmpeg_MAKE_ARGS "")
