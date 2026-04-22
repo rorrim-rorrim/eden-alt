@@ -314,8 +314,8 @@ void GraphicsPipeline::AddTransition(GraphicsPipeline* transition) {
 
 template <typename Spec>
 bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
-    small_vector<VideoCommon::ImageViewInOut, INLINE_IMAGE_ELEMENTS> views;
-    small_vector<VideoCommon::SamplerId, INLINE_IMAGE_ELEMENTS> samplers;
+    boost::container::small_vector<VideoCommon::ImageViewInOut, INLINE_IMAGE_ELEMENTS> views;
+    boost::container::small_vector<VideoCommon::SamplerId, INLINE_IMAGE_ELEMENTS> samplers;
     views.reserve(num_image_elements);
     samplers.reserve(num_textures);
 

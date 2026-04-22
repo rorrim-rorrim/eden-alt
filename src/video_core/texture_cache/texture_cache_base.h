@@ -17,6 +17,7 @@
 #include <ankerl/unordered_dense.h>
 #include <vector>
 #include <boost/container/small_vector.hpp>
+#include <boost/container/static_vector.hpp>
 #include <queue>
 
 #include "common/common_types.h"
@@ -76,22 +77,22 @@ public:
     TextureCacheChannelInfo(const TextureCacheChannelInfo& state) = delete;
     TextureCacheChannelInfo& operator=(const TextureCacheChannelInfo&) = delete;
 
-    DescriptorTable<TICEntry> graphics_image_table{gpu_memory};
-    DescriptorTable<TSCEntry> graphics_sampler_table{gpu_memory};
-    std::vector<SamplerId> graphics_sampler_ids;
-    std::vector<ImageViewId> graphics_image_view_ids;
-
-    DescriptorTable<TICEntry> compute_image_table{gpu_memory};
-    DescriptorTable<TSCEntry> compute_sampler_table{gpu_memory};
-    std::vector<SamplerId> compute_sampler_ids;
-    std::vector<ImageViewId> compute_image_view_ids;
+    DescriptorTable<TICEntry> graphics_image_table;
+    DescriptorTable<TSCEntry> graphics_sampler_table;
+    DescriptorTable<TICEntry> compute_image_table;
+    DescriptorTable<TSCEntry> compute_sampler_table;
 
     // TODO: still relies on bad iterators :(
     std::unordered_map<TICEntry, ImageViewId> image_views;
     std::unordered_map<TSCEntry, SamplerId> samplers;
 
-    TextureCacheGPUMap* gpu_page_table;
-    TextureCacheGPUMap* sparse_page_table;
+    std::vector<SamplerId> graphics_sampler_ids;
+    std::vector<SamplerId> compute_sampler_ids;
+    std::vector<ImageViewId> graphics_image_view_ids;
+    std::vector<ImageViewId> compute_image_view_ids;
+
+    TextureCacheGPUMap* gpu_page_table = nullptr;
+    TextureCacheGPUMap* sparse_page_table = nullptr;
 };
 
 template <class P>
