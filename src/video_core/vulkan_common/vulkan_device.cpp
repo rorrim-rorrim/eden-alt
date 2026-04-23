@@ -869,6 +869,10 @@ bool Device::HasTimelineSemaphore() const {
     return features.timeline_semaphore.timelineSemaphore;
 }
 
+bool Device::MustEmulateBGR565() const {
+    return Settings::values.emulate_bgr565.GetValue();
+}
+
 bool Device::GetSuitability(bool requires_swapchain) {
     // Assume we will be suitable.
     bool suitable = true;

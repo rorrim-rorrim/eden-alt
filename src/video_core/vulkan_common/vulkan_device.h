@@ -782,6 +782,8 @@ public:
         return features.robustness2.nullDescriptor;
     }
 
+    bool MustEmulateBGR565() const;
+
     bool HasExactDepthBiasControl() const {
         return features.depth_bias_control.depthBiasExact;
     }
