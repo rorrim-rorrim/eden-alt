@@ -10,7 +10,6 @@
 #include <span>
 #include <vector>
 
-#include "common/settings.h"
 #include "video_core/buffer_cache/buffer_cache_base.h"
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
 
@@ -557,9 +556,7 @@ void BufferCacheRuntime::BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset
     if (index >= device.GetMaxVertexInputBindings()) {
         return;
     }
-    const bool use_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported() &&
-                                          Settings::values.vertex_input_dynamic_state.GetValue();
-    if (device.IsExtExtendedDynamicStateSupported() && !use_dynamic_vertex_input) {
+    if (device.IsExtExtendedDynamicStateSupported()) {
         scheduler.Record([index, buffer, offset, size, stride](vk::CommandBuffer cmdbuf) {
             const VkDeviceSize vk_offset = buffer != VK_NULL_HANDLE ? offset : 0;
             const VkDeviceSize vk_size = buffer != VK_NULL_HANDLE ? size : VK_WHOLE_SIZE;
@@ -599,9 +596,7 @@ void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bi
     if (binding_count == 0) {
         return;
     }
-    const bool use_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported() &&
-                                          Settings::values.vertex_input_dynamic_state.GetValue();
-    if (device.IsExtExtendedDynamicStateSupported() && !use_dynamic_vertex_input) {
+    if (device.IsExtExtendedDynamicStateSupported()) {
         scheduler.Record([bindings_ = std::move(bindings), buffer_handles_ = std::move(buffer_handles), binding_count](vk::CommandBuffer cmdbuf) {
             cmdbuf.BindVertexBuffers2EXT(bindings_.min_index, binding_count, buffer_handles_.data(), bindings_.offsets.data(), bindings_.sizes.data(), bindings_.strides.data());
         });
