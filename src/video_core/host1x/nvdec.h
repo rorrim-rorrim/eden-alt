@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <vector>
+#include <variant>
 
 #include "common/common_types.h"
 #include "video_core/cdma_pusher.h"
