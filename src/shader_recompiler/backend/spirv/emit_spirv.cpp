@@ -21,15 +21,7 @@ namespace Shader::Backend::SPIRV {
 namespace {
 template <class Func>
 struct FuncTraits {};
-    thread_local std::unique_ptr<spvtools::Optimizer> thread_optimizer;
 
-    spvtools::Optimizer& GetThreadOptimizer() {
-        if (!thread_optimizer) {
-            thread_optimizer = std::make_unique<spvtools::Optimizer>(SPV_ENV_VULKAN_1_3);
-            thread_optimizer->RegisterPerformancePasses();
-        }
-        return *thread_optimizer;
-    }
 template <class ReturnType_, class... Args>
 struct FuncTraits<ReturnType_ (*)(Args...)> {
     using ReturnType = ReturnType_;
