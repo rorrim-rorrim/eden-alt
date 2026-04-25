@@ -20,16 +20,12 @@ namespace Vulkan::vk {
 
 namespace {
 
-template <typename Func>
-void SortPhysicalDevices(std::vector<VkPhysicalDevice>& devices, const InstanceDispatch& dld,
-                         Func&& func) {
-    // Calling GetProperties calls Vulkan more than needed. But they are supposed to be cheap
-    // functions.
-    std::stable_sort(devices.begin(), devices.end(),
-                     [&dld, &func](VkPhysicalDevice lhs, VkPhysicalDevice rhs) {
-                         return func(vk::PhysicalDevice(lhs, dld).GetProperties(),
-                                     vk::PhysicalDevice(rhs, dld).GetProperties());
-                     });
+template <typename F>
+void SortPhysicalDevices(std::vector<VkPhysicalDevice>& devices, const InstanceDispatch& dld, F&& func) {
+    // Calling GetProperties calls Vulkan more than needed. But they are supposed to be cheap functions.
+    std::stable_sort(devices.begin(), devices.end(), [&dld, &func](VkPhysicalDevice lhs, VkPhysicalDevice rhs) {
+        return func(vk::PhysicalDevice(lhs, dld).GetProperties(), vk::PhysicalDevice(rhs, dld).GetProperties());
+    });
 }
 
 void SortPhysicalDevicesPerVendor(std::vector<VkPhysicalDevice>& devices,

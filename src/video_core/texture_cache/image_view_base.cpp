@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -19,15 +19,18 @@ namespace VideoCommon {
 
 ImageViewBase::ImageViewBase(const ImageViewInfo& info, const ImageInfo& image_info,
                              ImageId image_id_, GPUVAddr addr)
-    : image_id{image_id_}, gpu_addr{addr}, format{info.format}, type{info.type}, range{info.range},
-      size{
-          .width = (std::max)(image_info.size.width >> range.base.level, 1u),
-          .height = (std::max)(image_info.size.height >> range.base.level, 1u),
-          .depth = (std::max)(image_info.size.depth >> range.base.level, 1u),
-      } {
-    ASSERT_MSG(VideoCore::Surface::IsViewCompatible(image_info.format, info.format, false, true),
-               "Image view format {} is incompatible with image format {}", info.format,
-               image_info.format);
+    : image_id{image_id_}
+    , gpu_addr{addr}
+    , format{info.format}
+    , type{info.type}
+    , range{info.range}
+    , size{
+        .width = (std::max)(image_info.size.width >> range.base.level, 1u),
+        .height = (std::max)(image_info.size.height >> range.base.level, 1u),
+        .depth = (std::max)(image_info.size.depth >> range.base.level, 1u),
+    }
+{
+    ASSERT_MSG(VideoCore::Surface::IsViewCompatible(image_info.format, info.format, false, true), "Image view format {} is incompatible with image format {}", info.format, image_info.format);
     if (image_info.forced_flushed) {
         flags |= ImageViewFlagBits::PreemtiveDownload;
     }
@@ -37,12 +40,13 @@ ImageViewBase::ImageViewBase(const ImageViewInfo& info, const ImageInfo& image_i
 }
 
 ImageViewBase::ImageViewBase(const ImageInfo& info, const ImageViewInfo& view_info, GPUVAddr addr)
-    : image_id{NULL_IMAGE_ID}, gpu_addr{addr}, format{info.format}, type{ImageViewType::Buffer},
-      size{
-          .width = info.size.width,
-          .height = 1,
-          .depth = 1,
-      } {
+    : image_id{NULL_IMAGE_ID}, gpu_addr{addr}, format{info.format}, type{ImageViewType::Buffer}
+    , size{
+        .width = info.size.width,
+        .height = 1,
+        .depth = 1,
+    }
+{
     ASSERT_MSG(view_info.type == ImageViewType::Buffer, "Expected texture buffer");
 }
 

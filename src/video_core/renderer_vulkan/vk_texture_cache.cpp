@@ -51,6 +51,10 @@ using VideoCore::Surface::IsPixelFormatInteger;
 using VideoCore::Surface::SurfaceType;
 
 namespace {
+[[nodiscard]] u32 GetMaxMipLevel(u32 w, u32 h, u32 d) {
+    return Common::Log2Floor32((std::max)((std::max)(w, h), d)) + 1;
+}
+
 constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     if (color == std::array<float, 4>{0, 0, 0, 0}) {
         return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
@@ -143,7 +147,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .height = info.size.height >> samples_y,
         .depth = info.size.depth,
     };
-    auto const max_mipmap_levels = Common::Log2Floor32(std::max(std::max(extent.width, extent.height), extent.depth)) + 1;
+    auto const max_mipmap_levels = GetMaxMipLevel(extent.width, extent.height, extent.depth);
     auto mipmap_levels = u32(info.resources.levels);
     if (mipmap_levels > max_mipmap_levels) {
         LOG_WARNING(HW_GPU, "texture with too many mipmaps? {}, {}", mipmap_levels, max_mipmap_levels);
@@ -156,7 +160,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .imageType = ConvertImageType(info.type),
         .format = format_info.format,
         .extent = extent,
-        .mipLevels = u32(info.resources.levels),
+        .mipLevels = mipmap_levels,
         .arrayLayers = u32(info.resources.layers),
         .samples = ConvertSampleCount(info.num_samples),
         .tiling = VK_IMAGE_TILING_OPTIMAL,
@@ -354,13 +358,12 @@ void SanitizeDepthStencilSwizzle(std::array<SwizzleSource, 4>& swizzle,
     return VK_IMAGE_VIEW_TYPE_2D;
 }
 
-[[nodiscard]] VkImageSubresourceLayers MakeImageSubresourceLayers(
-    VideoCommon::SubresourceLayers subresource, VkImageAspectFlags aspect_mask) {
+[[nodiscard]] VkImageSubresourceLayers MakeImageSubresourceLayers(VideoCommon::SubresourceLayers subresource, VkImageAspectFlags aspect_mask, u32 max_miplevel) {
     return VkImageSubresourceLayers{
         .aspectMask = aspect_mask,
-        .mipLevel = static_cast<u32>(subresource.base_level),
-        .baseArrayLayer = static_cast<u32>(subresource.base_layer),
-        .layerCount = static_cast<u32>(subresource.num_layers),
+        .mipLevel = (std::min)(max_miplevel, u32(subresource.base_level)),
+        .baseArrayLayer = u32(subresource.base_layer),
+        .layerCount = u32(subresource.num_layers),
     };
 }
 
@@ -374,31 +377,28 @@ void SanitizeDepthStencilSwizzle(std::array<SwizzleSource, 4>& swizzle,
 
 [[nodiscard]] VkExtent3D MakeExtent3D(VideoCommon::Extent3D extent3d) {
     return VkExtent3D{
-        .width = static_cast<u32>(extent3d.width),
-        .height = static_cast<u32>(extent3d.height),
-        .depth = static_cast<u32>(extent3d.depth),
+        .width = u32(extent3d.width),
+        .height = u32(extent3d.height),
+        .depth = u32(extent3d.depth),
     };
 }
 
-[[nodiscard]] VkImageCopy MakeImageCopy(const VideoCommon::ImageCopy& copy,
-                                        VkImageAspectFlags aspect_mask) noexcept {
+[[nodiscard]] VkImageCopy MakeImageCopy(const VideoCommon::ImageCopy& copy, VkImageAspectFlags aspect_mask) noexcept {
     return VkImageCopy{
-        .srcSubresource = MakeImageSubresourceLayers(copy.src_subresource, aspect_mask),
+        .srcSubresource = MakeImageSubresourceLayers(copy.src_subresource, aspect_mask, GetMaxMipLevel(copy.extent.width, copy.extent.height, copy.extent.depth)),
         .srcOffset = MakeOffset3D(copy.src_offset),
-        .dstSubresource = MakeImageSubresourceLayers(copy.dst_subresource, aspect_mask),
+        .dstSubresource = MakeImageSubresourceLayers(copy.dst_subresource, aspect_mask, GetMaxMipLevel(copy.extent.width, copy.extent.height, copy.extent.depth)),
         .dstOffset = MakeOffset3D(copy.dst_offset),
         .extent = MakeExtent3D(copy.extent),
     };
 }
 
-[[nodiscard]] VkBufferImageCopy MakeBufferImageCopy(const VideoCommon::ImageCopy& copy, bool is_src,
-                                                    VkImageAspectFlags aspect_mask) noexcept {
+[[nodiscard]] VkBufferImageCopy MakeBufferImageCopy(const VideoCommon::ImageCopy& copy, bool is_src, VkImageAspectFlags aspect_mask) noexcept {
     return VkBufferImageCopy{
         .bufferOffset = 0,
         .bufferRowLength = 0,
         .bufferImageHeight = 0,
-        .imageSubresource = MakeImageSubresourceLayers(
-            is_src ? copy.src_subresource : copy.dst_subresource, aspect_mask),
+        .imageSubresource = MakeImageSubresourceLayers(is_src ? copy.src_subresource : copy.dst_subresource, aspect_mask, GetMaxMipLevel(copy.extent.width, copy.extent.height, copy.extent.depth)),
         .imageOffset = MakeOffset3D(is_src ? copy.src_offset : copy.dst_offset),
         .imageExtent = MakeExtent3D(copy.extent),
     };
@@ -410,9 +410,9 @@ TransformBufferCopies(std::span<const VideoCommon::BufferCopy> copies, size_t bu
     std::ranges::transform(
         copies, result.begin(), [buffer_offset](const VideoCommon::BufferCopy& copy) {
             return VkBufferCopy{
-                .srcOffset = static_cast<VkDeviceSize>(copy.src_offset + buffer_offset),
-                .dstOffset = static_cast<VkDeviceSize>(copy.dst_offset),
-                .size = static_cast<VkDeviceSize>(copy.size),
+                .srcOffset = VkDeviceSize(copy.src_offset + buffer_offset),
+                .dstOffset = VkDeviceSize(copy.dst_offset),
+                .size = VkDeviceSize(copy.size),
             };
         });
     return result;
@@ -426,25 +426,22 @@ TransformBufferCopies(std::span<const VideoCommon::BufferCopy> copies, size_t bu
                 .bufferOffset = copy.buffer_offset + buffer_offset,
                 .bufferRowLength = copy.buffer_row_length,
                 .bufferImageHeight = copy.buffer_image_height,
-                .imageSubresource =
-                    {
-                        .aspectMask = aspect_mask,
-                        .mipLevel = static_cast<u32>(copy.image_subresource.base_level),
-                        .baseArrayLayer = static_cast<u32>(copy.image_subresource.base_layer),
-                        .layerCount = static_cast<u32>(copy.image_subresource.num_layers),
-                    },
-                .imageOffset =
-                    {
-                        .x = copy.image_offset.x,
-                        .y = copy.image_offset.y,
-                        .z = copy.image_offset.z,
-                    },
-                .imageExtent =
-                    {
-                        .width = copy.image_extent.width,
-                        .height = copy.image_extent.height,
-                        .depth = copy.image_extent.depth,
-                    },
+                .imageSubresource = {
+                    .aspectMask = aspect_mask,
+                    .mipLevel = (std::min)(u32(copy.image_subresource.base_level), GetMaxMipLevel(copy.image_extent.width, copy.image_extent.height, copy.image_extent.depth)),
+                    .baseArrayLayer = u32(copy.image_subresource.base_layer),
+                    .layerCount = u32(copy.image_subresource.num_layers),
+                },
+                .imageOffset = {
+                    .x = copy.image_offset.x,
+                    .y = copy.image_offset.y,
+                    .z = copy.image_offset.z,
+                },
+                .imageExtent = {
+                    .width = copy.image_extent.width,
+                    .height = copy.image_extent.height,
+                    .depth = copy.image_extent.depth,
+                },
             };
         }
         size_t buffer_offset;
@@ -464,14 +461,13 @@ TransformBufferCopies(std::span<const VideoCommon::BufferCopy> copies, size_t bu
     }
 }
 
-[[nodiscard]] VkImageSubresourceRange MakeSubresourceRange(VkImageAspectFlags aspect_mask,
-                                                           const SubresourceRange& range) {
+[[nodiscard]] VkImageSubresourceRange MakeSubresourceRange(VkImageAspectFlags aspect_mask, const SubresourceRange& range) {
     return VkImageSubresourceRange{
         .aspectMask = aspect_mask,
-        .baseMipLevel = static_cast<u32>(range.base.level),
-        .levelCount = static_cast<u32>(range.extent.levels),
-        .baseArrayLayer = static_cast<u32>(range.base.layer),
-        .layerCount = static_cast<u32>(range.extent.layers),
+        .baseMipLevel = u32(range.base.level),
+        .levelCount = u32(range.extent.levels),
+        .baseArrayLayer = u32(range.base.layer),
+        .layerCount = u32(range.extent.layers),
     };
 }
 
@@ -483,15 +479,16 @@ TransformBufferCopies(std::span<const VideoCommon::BufferCopy> copies, size_t bu
         range.base.layer = 0;
         range.extent.layers = 1;
     }
+    range.extent.levels = (std::min)(range.extent.levels, s32(GetMaxMipLevel(image_view->size.width, image_view->size.height, image_view->size.depth)));
     return MakeSubresourceRange(ImageAspectMask(image_view->format), range);
 }
 
 [[nodiscard]] VkImageSubresourceLayers MakeSubresourceLayers(const ImageView* image_view) {
     return VkImageSubresourceLayers{
         .aspectMask = ImageAspectMask(image_view->format),
-        .mipLevel = static_cast<u32>(image_view->range.base.level),
-        .baseArrayLayer = static_cast<u32>(image_view->range.base.layer),
-        .layerCount = static_cast<u32>(image_view->range.extent.layers),
+        .mipLevel = (std::min)(u32(image_view->range.base.level), GetMaxMipLevel(image_view->size.width, image_view->size.height, image_view->size.depth)),
+        .baseArrayLayer = u32(image_view->range.base.layer),
+        .layerCount = u32(image_view->range.extent.layers),
     };
 }
 
@@ -546,11 +543,14 @@ struct RangedBarrierRange {
     u32 min_layer = (std::numeric_limits<u32>::max)();
     u32 max_layer = (std::numeric_limits<u32>::min)();
 
-    void AddLayers(const VkImageSubresourceLayers& layers) {
+    void AddLayers(const VkImageSubresourceLayers& layers, u32 max_miplevel) {
         min_mip = (std::min)(min_mip, layers.mipLevel);
         max_mip = (std::max)(max_mip, layers.mipLevel + 1);
         min_layer = (std::min)(min_layer, layers.baseArrayLayer);
         max_layer = (std::max)(max_layer, layers.baseArrayLayer + layers.layerCount);
+        // clamp to proper so we dont access too many layers :)
+        min_mip = (std::min)(min_mip, max_miplevel);
+        max_mip = (std::min)(max_mip, max_miplevel);
     }
 
     VkImageSubresourceRange SubresourceRange(VkImageAspectFlags aspect_mask) const noexcept {
@@ -563,47 +563,45 @@ struct RangedBarrierRange {
         };
     }
 };
-void CopyBufferToImage(vk::CommandBuffer cmdbuf, VkBuffer src_buffer, VkImage image,
-                       VkImageAspectFlags aspect_mask, bool is_initialized,
-                       std::span<const VkBufferImageCopy> copies) {
-    static constexpr VkAccessFlags WRITE_ACCESS_FLAGS =
-                                           VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-                                           VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-    static constexpr VkAccessFlags READ_ACCESS_FLAGS = VK_ACCESS_SHADER_READ_BIT |
-                                                       VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
-                                                       VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+void CopyBufferToImage(vk::CommandBuffer cmdbuf, VkBuffer src_buffer, VkImage image, VkImageAspectFlags aspect_mask, bool is_initialized, std::span<const VkBufferImageCopy> copies) {
+    static constexpr VkAccessFlags WRITE_ACCESS_FLAGS = VK_ACCESS_SHADER_WRITE_BIT
+        | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+        | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    static constexpr VkAccessFlags READ_ACCESS_FLAGS = VK_ACCESS_SHADER_READ_BIT
+        | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT
+        | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
 
     //  Compute exact mip/layer range being written to
     RangedBarrierRange range;
-    for (const auto& region : copies) {
-        range.AddLayers(region.imageSubresource);
+    for (const auto& copy : copies) {
+        range.AddLayers(copy.imageSubresource, GetMaxMipLevel(copy.imageExtent.width, copy.imageExtent.height, copy.imageExtent.depth));
     }
     const VkImageSubresourceRange subresource_range = range.SubresourceRange(aspect_mask);
 
     const VkImageMemoryBarrier read_barrier{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .pNext = nullptr,
-            .srcAccessMask = WRITE_ACCESS_FLAGS,
-            .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-            .oldLayout = is_initialized ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_UNDEFINED,
-            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = image,
-            .subresourceRange = subresource_range,
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .pNext = nullptr,
+        .srcAccessMask = WRITE_ACCESS_FLAGS,
+        .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+        .oldLayout = is_initialized ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_UNDEFINED,
+        .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .image = image,
+        .subresourceRange = subresource_range,
     };
 
     const VkImageMemoryBarrier write_barrier{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .pNext = nullptr,
-            .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-            .dstAccessMask = WRITE_ACCESS_FLAGS | READ_ACCESS_FLAGS,
-            .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = image,
-            .subresourceRange = subresource_range,
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .pNext = nullptr,
+        .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+        .dstAccessMask = WRITE_ACCESS_FLAGS | READ_ACCESS_FLAGS,
+        .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .image = image,
+        .subresourceRange = subresource_range,
     };
 
     cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
@@ -750,59 +748,51 @@ void BlitScale(Scheduler& scheduler, VkImage src_image, VkImage dst_image, const
     const VkFilter vk_filter = is_bilinear ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
 
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([dst_image, src_image, extent, resources, aspect_mask, resolution, is_2d,
-                      vk_filter, up_scaling](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([depth = info.size.depth, dst_image, src_image, extent, resources, aspect_mask, resolution, is_2d, vk_filter, up_scaling](vk::CommandBuffer cmdbuf) {
         const VkOffset2D src_size{
-            .x = static_cast<s32>(up_scaling ? extent.width : resolution.ScaleUp(extent.width)),
-            .y = static_cast<s32>(is_2d && up_scaling ? extent.height
-                                                      : resolution.ScaleUp(extent.height)),
+            .x = s32(up_scaling ? extent.width : resolution.ScaleUp(extent.width)),
+            .y = s32(is_2d && up_scaling ? extent.height : resolution.ScaleUp(extent.height)),
         };
         const VkOffset2D dst_size{
-            .x = static_cast<s32>(up_scaling ? resolution.ScaleUp(extent.width) : extent.width),
-            .y = static_cast<s32>(is_2d && up_scaling ? resolution.ScaleUp(extent.height)
-                                                      : extent.height),
+            .x = s32(up_scaling ? resolution.ScaleUp(extent.width) : extent.width),
+            .y = s32(is_2d && up_scaling ? resolution.ScaleUp(extent.height) : extent.height),
         };
-        boost::container::small_vector<VkImageBlit, 4> regions;
-        regions.reserve(resources.levels);
-        for (s32 level = 0; level < resources.levels; level++) {
-            regions.push_back({
+        u32 const src_levels = (std::min)(resources.levels, s32(GetMaxMipLevel(src_size.x, src_size.y, depth)));
+        u32 const dst_levels = (std::min)(resources.levels, s32(GetMaxMipLevel(dst_size.x, dst_size.y, depth)));
+        u32 const max_levels = (std::max)(src_levels, dst_levels);
+        std::array<VkImageBlit, 16> regions;
+        ASSERT(regions.size() >= max_levels);
+        for (u32 i = 0; i < max_levels; ++i) {
+            regions[i] = VkImageBlit{
                 .srcSubresource{
                     .aspectMask = aspect_mask,
-                    .mipLevel = static_cast<u32>(level),
+                    .mipLevel = (std::min)(i, src_levels),
                     .baseArrayLayer = 0,
-                    .layerCount = static_cast<u32>(resources.layers),
+                    .layerCount = u32(resources.layers),
                 },
                 .srcOffsets{
+                    { .x = 0, .y = 0, .z = 0, },
                     {
-                        .x = 0,
-                        .y = 0,
-                        .z = 0,
-                    },
-                    {
-                        .x = (std::max)(1, src_size.x >> level),
-                        .y = (std::max)(1, src_size.y >> level),
+                        .x = (std::max)(1, src_size.x >> s32(i)),
+                        .y = (std::max)(1, src_size.y >> s32(i)),
                         .z = 1,
                     },
                 },
                 .dstSubresource{
                     .aspectMask = aspect_mask,
-                    .mipLevel = static_cast<u32>(level),
+                    .mipLevel = (std::min)(i, dst_levels),
                     .baseArrayLayer = 0,
-                    .layerCount = static_cast<u32>(resources.layers),
+                    .layerCount = u32(resources.layers),
                 },
                 .dstOffsets{
+                    { .x = 0, .y = 0, .z = 0, },
                     {
-                        .x = 0,
-                        .y = 0,
-                        .z = 0,
-                    },
-                    {
-                        .x = (std::max)(1, dst_size.x >> level),
-                        .y = (std::max)(1, dst_size.y >> level),
+                        .x = (std::max)(1, dst_size.x >> s32(i)),
+                        .y = (std::max)(1, dst_size.y >> s32(i)),
                         .z = 1,
                     },
                 },
-            });
+            };
         }
         const VkImageSubresourceRange subresource_range{
             .aspectMask = aspect_mask,
@@ -827,9 +817,9 @@ void BlitScale(Scheduler& scheduler, VkImage src_image, VkImage dst_image, const
             VkImageMemoryBarrier{
                 .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                 .pNext = nullptr,
-                .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT |
-                                 VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
-                                 VK_ACCESS_TRANSFER_WRITE_BIT,
+                .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT
+                    | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT
+                    | VK_ACCESS_TRANSFER_WRITE_BIT,
                 .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
                 .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED, // Discard contents
                 .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -865,12 +855,9 @@ void BlitScale(Scheduler& scheduler, VkImage src_image, VkImage dst_image, const
                 .subresourceRange = subresource_range,
             },
         };
-        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                               0, nullptr, nullptr, read_barriers);
-        cmdbuf.BlitImage(src_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst_image,
-                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regions, vk_filter);
-        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                               0, nullptr, nullptr, write_barriers);
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, nullptr, nullptr, read_barriers);
+        cmdbuf.BlitImage(src_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, vk::Span(regions.data(), max_levels), vk_filter);
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, nullptr, nullptr, write_barriers);
     });
 }
 } // Anonymous namespace
@@ -1046,10 +1033,10 @@ void TextureCacheRuntime::ReinterpretImage(Image& dst, Image& src,
         RangedBarrierRange dst_range;
         RangedBarrierRange src_range;
         for (const VkBufferImageCopy& copy : vk_in_copies) {
-            src_range.AddLayers(copy.imageSubresource);
+            src_range.AddLayers(copy.imageSubresource, GetMaxMipLevel(copy.imageExtent.width, copy.imageExtent.height, copy.imageExtent.depth));
         }
         for (const VkBufferImageCopy& copy : vk_out_copies) {
-            dst_range.AddLayers(copy.imageSubresource);
+            dst_range.AddLayers(copy.imageSubresource, GetMaxMipLevel(copy.imageExtent.width, copy.imageExtent.height, copy.imageExtent.depth));
         }
         static constexpr VkMemoryBarrier READ_BARRIER{
             .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
@@ -1482,11 +1469,10 @@ void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
     const VkImage src_image = src.Handle();
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([dst_image, src_image, aspect_mask, vk_copies](vk::CommandBuffer cmdbuf) {
-        RangedBarrierRange dst_range;
-        RangedBarrierRange src_range;
+        RangedBarrierRange dst_range, src_range;
         for (const VkImageCopy& copy : vk_copies) {
-            dst_range.AddLayers(copy.dstSubresource);
-            src_range.AddLayers(copy.srcSubresource);
+            dst_range.AddLayers(copy.dstSubresource, GetMaxMipLevel(copy.extent.width, copy.extent.height, copy.extent.depth));
+            src_range.AddLayers(copy.srcSubresource, GetMaxMipLevel(copy.extent.width, copy.extent.height, copy.extent.depth));
         }
         const std::array pre_barriers{
             VkImageMemoryBarrier{
@@ -1726,8 +1712,7 @@ void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
         const VkImage temp_vk_image = *temp_wrapper->original_image;
         const VkImageAspectFlags vk_aspect_mask = temp_wrapper->aspect_mask;
 
-        scheduler->Record([src_buffer, temp_vk_image, vk_aspect_mask, vk_copies,
-                           keep = temp_wrapper](vk::CommandBuffer cmdbuf) {
+        scheduler->Record([src_buffer, temp_vk_image, vk_aspect_mask, vk_copies, keep = temp_wrapper](vk::CommandBuffer cmdbuf) {
             CopyBufferToImage(cmdbuf, src_buffer, temp_vk_image, vk_aspect_mask, false, VideoCommon::FixSmallVectorADL(vk_copies));
         });
 
@@ -2123,11 +2108,11 @@ bool Image::NeedsScaleHelper() const {
     return needs_blit_helper;
 }
 
-ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewInfo& info,
-                     ImageId image_id_, Image& image)
-    : VideoCommon::ImageViewBase{info, image.info, image_id_, image.gpu_addr},
-      device{&runtime.device}, image_handle{image.Handle()},
-      samples(ConvertSampleCount(image.info.num_samples)) {
+ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewInfo& info, ImageId image_id_, Image& image)
+    : VideoCommon::ImageViewBase{info, image.info, image_id_, image.gpu_addr}
+    , device{&runtime.device}, image_handle{image.Handle()}
+    , samples(ConvertSampleCount(image.info.num_samples))
+{
     using Shader::TextureType;
 
     const VkImageAspectFlags aspect_mask = ImageViewAspectMask(info);
@@ -2139,9 +2124,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     };
     if (!info.IsRenderTarget()) {
         swizzle = info.Swizzle();
-        TryTransformSwizzleIfNeeded(format, swizzle,
-                        device->MustEmulateBGR565(),
-                        !device->IsExt4444FormatsSupported());
+        TryTransformSwizzleIfNeeded(format, swizzle, device->MustEmulateBGR565(), !device->IsExt4444FormatsSupported());
         if ((aspect_mask & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) != 0) {
             std::ranges::transform(swizzle, swizzle.begin(), ConvertGreenRed);
             SanitizeDepthStencilSwizzle(swizzle, device->SupportsDepthStencilSwizzleOne());
@@ -2156,6 +2139,8 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
         .pNext = nullptr,
         .usage = clamped_view_usage,
     };
+    SubresourceRange range = info.range;
+    range.extent.levels = (std::min)(range.extent.levels, s32(GetMaxMipLevel(image.info.size.width, image.info.size.height, image.info.size.depth)));
     const VkImageViewCreateInfo create_info{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext = &image_view_usage,
@@ -2169,7 +2154,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
             .b = ComponentSwizzle(swizzle[2]),
             .a = ComponentSwizzle(swizzle[3]),
         },
-        .subresourceRange = MakeSubresourceRange(aspect_mask, info.range),
+        .subresourceRange = MakeSubresourceRange(aspect_mask, range),
     };
     const auto create = [&](TextureType tex_type, std::optional<u32> num_layers) {
         VkImageViewCreateInfo ci{create_info};
@@ -2301,6 +2286,8 @@ bool ImageView::IsRescaled() const noexcept {
 }
 
 vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask) {
+    auto subresource_range = MakeSubresourceRange(aspect_mask, range);
+    subresource_range.levelCount = (std::min)(subresource_range.levelCount, GetMaxMipLevel(size.width, size.height, size.depth));
     return device->GetLogical().CreateImageView({
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext = nullptr,
@@ -2314,7 +2301,7 @@ vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_
             .b = VK_COMPONENT_SWIZZLE_IDENTITY,
             .a = VK_COMPONENT_SWIZZLE_IDENTITY,
         },
-        .subresourceRange = MakeSubresourceRange(aspect_mask, range),
+        .subresourceRange = subresource_range,
     });
 }
 
@@ -2369,7 +2356,7 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
             .mipLodBias = tsc.LodBias(),
             .anisotropyEnable = static_cast<VkBool32>(anisotropy > 1.0f ? VK_TRUE : VK_FALSE),
             .maxAnisotropy = anisotropy,
-            .compareEnable = tsc.depth_compare_enabled,
+            .compareEnable = false,//tsc.depth_compare_enabled,
             .compareOp = MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func),
             .minLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.0f : tsc.MinLod(),
             .maxLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.25f : tsc.MaxLod(),

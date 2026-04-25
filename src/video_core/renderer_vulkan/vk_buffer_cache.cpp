@@ -577,38 +577,38 @@ void BufferCacheRuntime::BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset
 
 void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings) {
     boost::container::static_vector<VkBuffer, VideoCommon::NUM_VERTEX_BUFFERS> buffer_handles(bindings.buffers.size());
+    VkBuffer null_buffer_handle = VK_NULL_HANDLE;
+    if (!device.HasNullDescriptor()) {
+        ReserveNullBuffer();
+        null_buffer_handle = *null_buffer;
+    }
     for (u32 i = 0; i < bindings.buffers.size(); ++i) {
-        auto handle = bindings.buffers[i]->Handle();
-        if (handle == VK_NULL_HANDLE) {
+        if (auto handle = bindings.buffers[i]->Handle(); handle != VK_NULL_HANDLE) {
+            buffer_handles[i] = handle;
+        } else {
             bindings.offsets[i] = 0;
             bindings.sizes[i] = VK_WHOLE_SIZE;
-            if (!device.HasNullDescriptor()) {
-                ReserveNullBuffer();
-                handle = *null_buffer;
-            }
+            buffer_handles[i] = null_buffer_handle;
         }
-        buffer_handles[i] = handle;
     }
     const u32 device_max = device.GetMaxVertexInputBindings();
     const u32 min_binding = (std::min)(bindings.min_index, device_max);
     const u32 max_binding = (std::min)(bindings.max_index, device_max);
     const u32 binding_count = max_binding - min_binding;
-    if (binding_count == 0) {
-        return;
-    }
-    if (device.IsExtExtendedDynamicStateSupported()) {
-        scheduler.Record([bindings_ = std::move(bindings), buffer_handles_ = std::move(buffer_handles), binding_count](vk::CommandBuffer cmdbuf) {
-            cmdbuf.BindVertexBuffers2EXT(bindings_.min_index, binding_count, buffer_handles_.data(), bindings_.offsets.data(), bindings_.sizes.data(), bindings_.strides.data());
-        });
-    } else {
-        scheduler.Record([bindings_ = std::move(bindings), buffer_handles_ = std::move(buffer_handles), binding_count](vk::CommandBuffer cmdbuf) {
-            cmdbuf.BindVertexBuffers(bindings_.min_index, binding_count, buffer_handles_.data(), bindings_.offsets.data());
-        });
+    if (binding_count > 0) {
+        if (device.IsExtExtendedDynamicStateSupported()) {
+            scheduler.Record([bindings_ = std::move(bindings), buffer_handles_ = std::move(buffer_handles), binding_count](vk::CommandBuffer cmdbuf) {
+                cmdbuf.BindVertexBuffers2EXT(bindings_.min_index, binding_count, buffer_handles_.data(), bindings_.offsets.data(), bindings_.sizes.data(), bindings_.strides.data());
+            });
+        } else {
+            scheduler.Record([bindings_ = std::move(bindings), buffer_handles_ = std::move(buffer_handles), binding_count](vk::CommandBuffer cmdbuf) {
+                cmdbuf.BindVertexBuffers(bindings_.min_index, binding_count, buffer_handles_.data(), bindings_.offsets.data());
+            });
+        }
     }
 }
 
-void BufferCacheRuntime::BindTransformFeedbackBuffer(u32 index, VkBuffer buffer, u32 offset,
-                                                     u32 size) {
+void BufferCacheRuntime::BindTransformFeedbackBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size) {
     if (!device.IsExtTransformFeedbackSupported()) {
         // Already logged in the rasterizer
         return;

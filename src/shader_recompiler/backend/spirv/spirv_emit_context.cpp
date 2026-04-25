@@ -427,24 +427,17 @@ Id CasLoop(EmitContext& ctx, Operation operation, Id array_pointer, Id element_p
     return func;
 }
 
-template <typename Desc>
-std::string NameOf(Stage stage, const Desc& desc, std::string_view prefix) {
-    if (desc.count > 1) {
-        return fmt::format("{}_{}{}_{:02x}x{}", StageName(stage), prefix, desc.cbuf_index,
-                           desc.cbuf_offset, desc.count);
-    } else {
-        return fmt::format("{}_{}{}_{:02x}", StageName(stage), prefix, desc.cbuf_index,
-                           desc.cbuf_offset);
-    }
+template <typename T>
+std::string NameOf(Stage stage, const T& desc, std::string_view prefix) {
+    return fmt::format("{}_{}{}_{:02x}x{}", StageName(stage), prefix, desc.cbuf_index, desc.cbuf_offset, desc.count);
 }
 
 Id DescType(EmitContext& ctx, Id sampled_type, Id pointer_type, u32 count) {
     if (count > 1) {
         const Id array_type{ctx.TypeArray(sampled_type, ctx.Const(count))};
         return ctx.TypePointer(spv::StorageClass::UniformConstant, array_type);
-    } else {
-        return pointer_type;
     }
+    return pointer_type;
 }
 } // Anonymous namespace
 
