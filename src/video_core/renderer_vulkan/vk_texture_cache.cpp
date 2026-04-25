@@ -2284,28 +2284,8 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
             storage_views.emplace();
         auto& views{is_signed ? storage_views->signeds : storage_views->unsigneds};
         auto& view{views[size_t(texture_type)]};
-        if (!view) {
-            static constexpr VkImageViewUsageCreateInfo storage_image_view_usage_create_info{
-                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO,
-                .pNext = nullptr,
-                .usage = VK_IMAGE_USAGE_STORAGE_BIT,
-            };
-            view = device->GetLogical().CreateImageView({
-                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-                .pNext = &storage_image_view_usage_create_info,
-                .flags = 0,
-                .image = image_handle,
-                .viewType = ImageViewType(type),
-                .format = Format(image_format),
-                .components{
-                    .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-                    .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-                    .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-                    .a = VK_COMPONENT_SWIZZLE_IDENTITY,
-                },
-                .subresourceRange = MakeSubresourceRange(VK_IMAGE_ASPECT_COLOR_BIT, range),
-            });
-        }
+        if (!view)
+            view = MakeView(Format(image_format), VK_IMAGE_ASPECT_COLOR_BIT);
         return *view;
     }
     return VK_NULL_HANDLE;
@@ -2370,7 +2350,7 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
     // Some games have samplers with garbage. Sanitize them here.
     const f32 max_anisotropy = std::clamp(tsc.MaxAnisotropy(), 1.0f, 16.0f);
 
-    const auto create_sampler = [&](const f32 anisotropy, bool compare_enable) {
+    const auto create_sampler = [&](const f32 anisotropy) {
         return device.GetLogical().CreateSampler(VkSamplerCreateInfo{
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
             .pNext = pnext,
@@ -2384,7 +2364,7 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
             .mipLodBias = tsc.LodBias(),
             .anisotropyEnable = static_cast<VkBool32>(anisotropy > 1.0f ? VK_TRUE : VK_FALSE),
             .maxAnisotropy = anisotropy,
-            .compareEnable = compare_enable ? VK_TRUE : VK_FALSE,
+            .compareEnable = tsc.depth_compare_enabled,
             .compareOp = MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func),
             .minLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.0f : tsc.MinLod(),
             .maxLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.25f : tsc.MaxLod(),
@@ -2394,23 +2374,11 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
         });
     };
 
-    compare_enable = static_cast<bool>(tsc.depth_compare_enabled);
-
-    sampler = create_sampler(max_anisotropy, compare_enable);
-    if (compare_enable) {
-        sampler_no_compare = create_sampler(max_anisotropy, false);
-    } else {
-        sampler_no_compare = sampler;
-    }
+    sampler = create_sampler(max_anisotropy);
 
     const f32 max_anisotropy_default = static_cast<f32>(1U << tsc.max_anisotropy);
     if (max_anisotropy > max_anisotropy_default) {
-        sampler_default_anisotropy = create_sampler(max_anisotropy_default, compare_enable);
-        if (compare_enable) {
-            sampler_no_compare_default_anisotropy = create_sampler(max_anisotropy_default, false);
-        } else {
-            sampler_no_compare_default_anisotropy = sampler_default_anisotropy;
-        }
+        sampler_default_anisotropy = create_sampler(max_anisotropy_default);
     }
 }
 

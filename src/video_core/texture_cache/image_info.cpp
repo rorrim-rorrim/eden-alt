@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -7,7 +7,6 @@
 #include <fmt/ranges.h>
 
 #include "common/assert.h"
-#include "common/logging.h"
 #include "common/settings.h"
 #include "video_core/surface.h"
 #include "video_core/texture_cache/format_lookup_table.h"
@@ -130,23 +129,6 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
     if (num_samples > 1) {
         size.width  *= NumSamplesX(config.msaa_mode);
         size.height *= NumSamplesY(config.msaa_mode);
-    }
-
-    {
-        u32 max_dim = std::max({size.width, size.height, size.depth});
-        if (max_dim == 0) {
-            max_dim = 1;
-        }
-        u32 max_mip_levels = 1;
-        while (max_dim > 1) {
-            max_dim >>= 1;
-            ++max_mip_levels;
-        }
-        if (resources.levels > static_cast<s32>(max_mip_levels)) {
-            LOG_WARNING(HW_GPU, "Clamping mip levels from {} to {} for size {}x{}x{}",
-                        resources.levels, max_mip_levels, size.width, size.height, size.depth);
-            resources.levels = static_cast<s32>(max_mip_levels);
-        }
     }
     if (type != ImageType::Linear) {
         // FIXME: Call this without passing *this
