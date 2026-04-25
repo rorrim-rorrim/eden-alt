@@ -2370,7 +2370,7 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
     // Some games have samplers with garbage. Sanitize them here.
     const f32 max_anisotropy = std::clamp(tsc.MaxAnisotropy(), 1.0f, 16.0f);
 
-    const auto create_sampler = [&](const f32 anisotropy, bool compare_enable) {
+    const auto create_sampler = [&](const f32 anisotropy, bool sampler_compare_enable) {
         return device.GetLogical().CreateSampler(VkSamplerCreateInfo{
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
             .pNext = pnext,
@@ -2384,12 +2384,11 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
             .mipLodBias = tsc.LodBias(),
             .anisotropyEnable = static_cast<VkBool32>(anisotropy > 1.0f ? VK_TRUE : VK_FALSE),
             .maxAnisotropy = anisotropy,
-            .compareEnable = compare_enable ? VK_TRUE : VK_FALSE,
+            .compareEnable = sampler_compare_enable ? VK_TRUE : VK_FALSE,
             .compareOp = MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func),
             .minLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.0f : tsc.MinLod(),
             .maxLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.25f : tsc.MaxLod(),
-            .borderColor = has_custom_border_colors ? VK_BORDER_COLOR_FLOAT_CUSTOM_EXT
-                                                    : ConvertBorderColor(color),
+            .borderColor = has_custom_border_colors ? VK_BORDER_COLOR_FLOAT_CUSTOM_EXT : ConvertBorderColor(color),
             .unnormalizedCoordinates = VK_FALSE,
         });
     };
@@ -2399,34 +2398,32 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
     sampler = create_sampler(max_anisotropy, compare_enable);
     if (compare_enable) {
         sampler_no_compare = create_sampler(max_anisotropy, false);
-    } else {
-
+    }
 
     const f32 max_anisotropy_default = static_cast<f32>(1U << tsc.max_anisotropy);
     if (max_anisotropy > max_anisotropy_default) {
         sampler_default_anisotropy = create_sampler(max_anisotropy_default, compare_enable);
         if (compare_enable) {
             sampler_no_compare_default_anisotropy = create_sampler(max_anisotropy_default, false);
-        } else {
-        
+        }
     }
 }
 
-Framebuffer::Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM_RT> color_buffers,
-                         ImageView* depth_buffer, const VideoCommon::RenderTargets& key)
+Framebuffer::Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM_RT> color_buffers, ImageView* depth_buffer, const VideoCommon::RenderTargets& key)
     : render_area{VkExtent2D{
           .width = key.size.width,
           .height = key.size.height,
-      }} {
+    }}
+{
     CreateFramebuffer(runtime, color_buffers, depth_buffer, key.is_rescaled);
     if (runtime.device.HasDebuggingToolAttached()) {
         framebuffer.SetObjectNameEXT(VideoCommon::Name(key).c_str());
     }
 }
 
-Framebuffer::Framebuffer(TextureCacheRuntime& runtime, ImageView* color_buffer,
-                         ImageView* depth_buffer, VkExtent2D extent, bool is_rescaled_)
-    : render_area{extent} {
+Framebuffer::Framebuffer(TextureCacheRuntime& runtime, ImageView* color_buffer, ImageView* depth_buffer, VkExtent2D extent, bool is_rescaled_)
+    : render_area{extent}
+{
     std::array<ImageView*, NUM_RT> color_buffers{color_buffer};
     CreateFramebuffer(runtime, color_buffers, depth_buffer, is_rescaled_);
 }
