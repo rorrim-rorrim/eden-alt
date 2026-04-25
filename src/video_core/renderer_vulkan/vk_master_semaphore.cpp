@@ -7,6 +7,7 @@
 #include <thread>
 
 #include <ranges>
+#include "common/logging.h"
 #include "common/settings.h"
 #include "video_core/renderer_vulkan/vk_master_semaphore.h"
 #include "video_core/vulkan_common/vulkan_device.h"
@@ -221,7 +222,16 @@ void MasterSemaphore::WaitThread(std::stop_token token) {
             wait_queue.pop();
         }
 
-        fence.Wait();
+        const VkResult wait_result = fence.Wait();
+        if (wait_result == VK_ERROR_DEVICE_LOST) {
+            device.ReportLoss();
+            return;
+        }
+        if (wait_result != VK_SUCCESS) {
+            LOG_CRITICAL(Render_Vulkan, "Fence wait failed: result={}",
+                         static_cast<int>(wait_result));
+            vk::Check(wait_result);
+        }
         fence.Reset();
 
         {

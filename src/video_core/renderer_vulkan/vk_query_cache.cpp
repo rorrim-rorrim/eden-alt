@@ -4,6 +4,7 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <atomic>
 #include <cstddef>
 #include <limits>
 #include <map>
@@ -74,10 +75,20 @@ public:
         switch (query_result) {
         case VK_SUCCESS:
             return;
+        case VK_TIMEOUT: {
+            LOG_WARNING(Render_Vulkan,
+                        "VK_TIMEOUT pool={} start={} size={}. Attempting to get over...",
+                        index, start, size);
+            std::fill_n(&host_results[start], size, 0ULL);
+            return;
+        }
         case VK_ERROR_DEVICE_LOST:
             device.ReportLoss();
             [[fallthrough]];
         default:
+            LOG_CRITICAL(Render_Vulkan,
+                         "GetQueryResults failed: result={} pool={} start={} size={}",
+                         static_cast<int>(query_result), index, start, size);
             throw vk::Exception(query_result);
         }
     }
