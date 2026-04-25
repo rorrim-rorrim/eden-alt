@@ -75,28 +75,26 @@ VkRenderPass RenderPassCache::Get(const RenderPassKey& key) {
     if (!is_new) {
         return *pair->second;
     }
-    boost::container::static_vector<VkAttachmentDescription, 9> descriptions;
-    std::array<VkAttachmentReference, 8> references{};
-    u32 num_attachments{};
-    u32 num_colors{};
-    for (size_t index = 0; index < key.color_formats.size(); ++index) {
-        const PixelFormat format{key.color_formats[index]};
-        const bool is_valid{format != PixelFormat::Invalid};
-        references[index] = VkAttachmentReference{
-            .attachment = is_valid ? num_colors : VK_ATTACHMENT_UNUSED,
-            .layout = VK_IMAGE_LAYOUT_GENERAL,
-        };
-        if (is_valid) {
+    boost::container::static_vector<VkAttachmentDescription, MaxwellToVK::Maxwell::NumRenderTargets + 1> descriptions;
+    std::array<VkAttachmentReference, MaxwellToVK::Maxwell::NumRenderTargets> references{};
+    std::ranges::fill(references, VkAttachmentReference{
+        .attachment = VK_ATTACHMENT_UNUSED,
+        .layout = VK_IMAGE_LAYOUT_GENERAL
+    });
+    for (size_t i = 0; i < key.color_formats.size(); ++i) {
+        if (auto const format = key.color_formats[i]; format != PixelFormat::Invalid) {
+            references[i] = VkAttachmentReference{
+                .attachment = u32(descriptions.size()),
+                .layout = VK_IMAGE_LAYOUT_GENERAL,
+            };
             descriptions.push_back(AttachmentDescription(*device, format, key.samples));
-            num_attachments = static_cast<u32>(index + 1);
-            ++num_colors;
         }
     }
     const bool has_depth{key.depth_format != PixelFormat::Invalid};
     VkAttachmentReference depth_reference{};
     if (key.depth_format != PixelFormat::Invalid) {
         depth_reference = VkAttachmentReference{
-            .attachment = num_colors,
+            .attachment = u32(descriptions.size()),
             .layout = VK_IMAGE_LAYOUT_GENERAL,
         };
         descriptions.push_back(AttachmentDescription(*device, key.depth_format, key.samples));
@@ -106,7 +104,7 @@ VkRenderPass RenderPassCache::Get(const RenderPassKey& key) {
         .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
         .inputAttachmentCount = 0,
         .pInputAttachments = nullptr,
-        .colorAttachmentCount = num_attachments,
+        .colorAttachmentCount = u32(references.size()),
         .pColorAttachments = references.data(),
         .pResolveAttachments = nullptr,
         .pDepthStencilAttachment = has_depth ? &depth_reference : nullptr,
