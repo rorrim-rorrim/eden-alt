@@ -1324,7 +1324,8 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const TSCEntry& config) {
     }
 }
 
-Framebuffer::Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM_RT> color_buffers, ImageView* depth_buffer, const VideoCommon::RenderTargets& key) {
+Framebuffer::Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM_RT> color_buffers,
+                         ImageView* depth_buffer, const VideoCommon::RenderTargets& key) {
     framebuffer.Create();
     GLuint handle = framebuffer.handle;
 
