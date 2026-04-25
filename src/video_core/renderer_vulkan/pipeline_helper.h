@@ -205,14 +205,11 @@ inline void PushImageDescriptors(TextureCache& texture_cache,
                 const auto& device = texture_cache.runtime.device;
                 const auto fmt_info = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, true,
                                                                  image_view.format);
-#ifdef VK_FORMAT_FEATURE_SAMPLED_IMAGE_DEPTH_COMPARISON_BIT
                 if (!device.IsFormatSupported(fmt_info.format,
                                               VK_FORMAT_FEATURE_SAMPLED_IMAGE_DEPTH_COMPARISON_BIT,
                                               FormatType::Optimal)) {
                     need_no_compare = true;
                 }
-#else
-#endif
             }
 
             VkSampler vk_sampler;
