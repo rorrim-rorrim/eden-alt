@@ -2400,8 +2400,7 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
     if (compare_enable) {
         sampler_no_compare = create_sampler(max_anisotropy, false);
     } else {
-        sampler_no_compare = sampler;
-    }
+
 
     const f32 max_anisotropy_default = static_cast<f32>(1U << tsc.max_anisotropy);
     if (max_anisotropy > max_anisotropy_default) {
@@ -2409,8 +2408,7 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
         if (compare_enable) {
             sampler_no_compare_default_anisotropy = create_sampler(max_anisotropy_default, false);
         } else {
-            sampler_no_compare_default_anisotropy = sampler_default_anisotropy;
-        }
+        
     }
 }
 
