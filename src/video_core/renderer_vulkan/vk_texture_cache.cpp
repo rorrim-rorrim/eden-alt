@@ -129,30 +129,35 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
 }
 
 [[nodiscard]] VkImageCreateInfo MakeImageCreateInfo(const Device& device, const ImageInfo& info) {
-    const auto format_info =
-        MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, info.format);
+    const auto format_info = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, info.format);
     VkImageCreateFlags flags{};
     if (info.type == ImageType::e2D && info.resources.layers >= 6 &&
         info.size.width == info.size.height && !device.HasBrokenCubeImageCompatibility()) {
         flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
     }
-    if (info.type == ImageType::e3D) {
+    if (info.type == ImageType::e3D)
         flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
-    }
     const auto [samples_x, samples_y] = VideoCommon::SamplesLog2(info.num_samples);
+    VkExtent3D extent{
+        .width = info.size.width >> samples_x,
+        .height = info.size.height >> samples_y,
+        .depth = info.size.depth,
+    };
+    auto const max_mipmap_levels = Common::Log2Floor32(std::max(std::max(extent.width, extent.height), extent.depth)) + 1;
+    auto mipmap_levels = u32(info.resources.levels);
+    if (mipmap_levels > max_mipmap_levels) {
+        LOG_WARNING(HW_GPU, "texture with too many mipmaps? {}, {}", mipmap_levels, max_mipmap_levels);
+        mipmap_levels = max_mipmap_levels;
+    }
     return VkImageCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = nullptr,
         .flags = flags,
         .imageType = ConvertImageType(info.type),
         .format = format_info.format,
-        .extent{
-            .width = info.size.width >> samples_x,
-            .height = info.size.height >> samples_y,
-            .depth = info.size.depth,
-        },
-        .mipLevels = static_cast<u32>(info.resources.levels),
-        .arrayLayers = static_cast<u32>(info.resources.layers),
+        .extent = extent,
+        .mipLevels = u32(info.resources.levels),
+        .arrayLayers = u32(info.resources.layers),
         .samples = ConvertSampleCount(info.num_samples),
         .tiling = VK_IMAGE_TILING_OPTIMAL,
         .usage = ImageUsageFlags(format_info, info.format),
