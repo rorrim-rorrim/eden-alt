@@ -14,6 +14,7 @@
 #include "shader_recompiler/backend/spirv/emit_spirv.h"
 #include "shader_recompiler/shader_info.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
+#include "video_core/renderer_vulkan/maxwell_to_vk.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/texture_cache/types.h"
 #include "video_core/vulkan_common/vulkan_device.h"
@@ -197,8 +198,29 @@ inline void PushImageDescriptors(TextureCache& texture_cache,
             const Sampler& sampler{texture_cache.GetSampler(sampler_id)};
             const bool use_fallback_sampler{sampler.HasAddedAnisotropy() &&
                                             !image_view.SupportsAnisotropy()};
-            const VkSampler vk_sampler{use_fallback_sampler ? sampler.HandleWithDefaultAnisotropy()
-                                                            : sampler.Handle()};
+
+            // In case sampler requires depth comparison but the format doesn't support it.
+            bool need_no_compare = false;
+            if (sampler.HasCompareEnabled()) {
+                const auto& device = texture_cache.runtime.device;
+                const auto fmt_info = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, true,
+                                                                 image_view.format);
+                if (!device.IsFormatSupported(fmt_info.format,
+                                              VK_FORMAT_FEATURE_SAMPLED_IMAGE_DEPTH_COMPARISON_BIT,
+                                              FormatType::Optimal)) {
+                    need_no_compare = true;
+                }
+            }
+
+            VkSampler vk_sampler;
+            if (need_no_compare) {
+                vk_sampler = use_fallback_sampler ?
+                                 sampler.HandleNoCompareWithDefaultAnisotropy()
+                                 : sampler.HandleNoCompare();
+            } else {
+                vk_sampler = use_fallback_sampler ? sampler.HandleWithDefaultAnisotropy()
+                                                   : sampler.Handle();
+            }
             guest_descriptor_queue.AddSampledImage(vk_image_view, vk_sampler);
             rescaling.PushTexture(texture_cache.IsRescaling(image_view));
         }

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -408,9 +408,28 @@ public:
         return static_cast<bool>(sampler_default_anisotropy);
     }
 
+    [[nodiscard]] bool HasCompareEnabled() const noexcept {
+        return compare_enable;
+    }
+
+    [[nodiscard]] VkSampler HandleNoCompare() const noexcept {
+        return sampler_no_compare ? *sampler_no_compare : *sampler;
+    }
+
+    [[nodiscard]] VkSampler HandleNoCompareWithDefaultAnisotropy() const noexcept {
+        if (sampler_no_compare_default_anisotropy)
+            return *sampler_no_compare_default_anisotropy;
+        if (sampler_default_anisotropy)
+            return *sampler_default_anisotropy;
+        return *sampler;
+    }
+
 private:
     vk::Sampler sampler;
     vk::Sampler sampler_default_anisotropy;
+    vk::Sampler sampler_no_compare;
+    vk::Sampler sampler_no_compare_default_anisotropy;
+    bool compare_enable = false;
 };
 
 struct TextureCacheParams {
