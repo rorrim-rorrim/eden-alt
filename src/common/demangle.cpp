@@ -40,11 +40,10 @@ std::string DemangleSymbol(const std::string&& mangled) {
                 std::free(p);
                 return ret;
             }
-#else
+#endif
         }
         return mangled;
     }
     return std::string{};
 }
-#endif
 } // namespace Common
