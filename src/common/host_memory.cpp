@@ -22,6 +22,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include "common/scope_exit.h"
+#include "common/literals.h"
 
 #if defined(__linux__)
 #include <sys/random.h>
@@ -506,7 +507,32 @@ public:
 #elif defined(__OpenBSD__)
         fd = shm_open_anon(O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0600);
 #elif defined(__FreeBSD__)
+        int n_page_sizes = getpagesizes(nullptr, 0);
+        if (n_page_sizes > 0) {
+            std::vector<size_t> page_sizes(n_page_sizes);
+            if (getpagesizes(page_sizes.data(), n_page_sizes) > 0) {
+                size_t max_size = page_sizes[0];
+                size_t max_index = 0;
+                for (size_t i = 0; i < page_sizes.size(); ++i) {
+                    using namespace Common::Literals;
+                    if (page_sizes[i] <= 4_GiB) {
+                        max_size = (std::max)(max_size, page_sizes[i]);
+                        max_index = i;
+                    }
+                }
+                LOG_WARNING(Common_Memory, "using largepage of size {} #{}", max_size, max_index);
+                // Do not use SHM_LARGEPAGE_ALLOC_HARD, yknow what will happen when you do?
+                // the entire Eden process will hang for eternity! that's what will happen
+                // Want to fuck around and find out? Go ahead, I tempt you change the "default" to "hard"
+                fd = shm_create_largepage(SHM_ANON, O_RDWR, max_index, SHM_LARGEPAGE_ALLOC_DEFAULT, 0600);
+            }
+        }
+        if (fd >= 0) {
+
+        } else {
+            LOG_WARNING(Common_Memory, "unable to force largepage: {}", strerror(errno));
         fd = shm_open(SHM_ANON, O_RDWR, 0600);
+        }
 #elif defined(__APPLE__)
         // macOS doesn't have memfd_create, use anonymous temporary file
         char template_path[] = "/tmp/eden_mem_XXXXXX";
@@ -538,7 +564,12 @@ public:
                 close(fd);
             }
         } else {
+#ifdef __FreeBSD__
+            // Prevent dirty tracking of memfd
+            backing_base = static_cast<u8*>(mmap(nullptr, backing_size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_NOSYNC, fd, 0));
+#else
             backing_base = static_cast<u8*>(mmap(nullptr, backing_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
+#endif
         }
         ASSERT_MSG(backing_base != MAP_FAILED, "mmap failed: {}", strerror(errno));
 
