@@ -95,6 +95,25 @@ constexpr std::array VK_FORMAT_A4B4G4R4_UNORM_PACK16{
     VK_FORMAT_UNDEFINED,
 };
 
+// B10G11R11_UFLOAT (R11G11B10F) - PRIMARY HDR format for Nintendo Switch
+// Nintendo Switch hardware validation: FULL support (COLOR_ATTACHMENT + STORAGE_IMAGE + BLEND)
+// Reference: vp_gpuinfo_nintendo_switch_v2_495_0_0_0 - All required feature bits present
+//
+// Fallback strategy: Degrade to LDR instead of expensive HDR emulation
+// - RGBA8 UNORM/SRGB: Universal support, 32-bit (same size as B10G11R11), acceptable quality
+// - RGB10A2: Better precision if available, still 32-bit
+// - RGBA16F: Last resort only if RGB8 variants fail (should never happen)
+constexpr std::array B10G11R11_UFLOAT_PACK32{
+    #ifdef ANDROID
+        VK_FORMAT_A8B8G8R8_SRGB_PACK32,       // sRGB variant (for gamma-correct fallback)
+    #else
+        VK_FORMAT_A8B8G8R8_UNORM_PACK32,      // Primary fallback: RGBA8 LDR (32-bit, universal)
+        VK_FORMAT_A2B10G10R10_UNORM_PACK32,   // Better precision: RGB10A2 (32-bit, common)
+    #endif
+        VK_FORMAT_R16G16B16A16_SFLOAT,        // Emergency fallback: RGBA16F (64-bit, should never reach)
+        VK_FORMAT_UNDEFINED,
+};
+
 } // namespace Alternatives
 
 template <typename T>
@@ -127,6 +146,9 @@ constexpr const VkFormat* GetFormatAlternatives(VkFormat format) {
         return Alternatives::VK_FORMAT_R32G32B32_SFLOAT.data();
     case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
         return Alternatives::VK_FORMAT_A4B4G4R4_UNORM_PACK16.data();
+    case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+        return Alternatives::B10G11R11_UFLOAT_PACK32.data();
+
     default:
         return nullptr;
     }
@@ -214,7 +236,6 @@ ankerl::unordered_dense::map<VkFormat, VkFormatProperties> GetFormatProperties(v
         VK_FORMAT_D24_UNORM_S8_UINT,
         VK_FORMAT_D32_SFLOAT,
         VK_FORMAT_D32_SFLOAT_S8_UINT,
-        VK_FORMAT_E5B9G9R9_UFLOAT_PACK32,
         VK_FORMAT_R16G16B16A16_SFLOAT,
         VK_FORMAT_R16G16B16A16_SINT,
         VK_FORMAT_R16G16B16A16_SNORM,
@@ -435,6 +456,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_mvk = driver_id == VK_DRIVER_ID_MOLTENVK;
     const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
+    const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
 
     if (!is_suitable)
         LOG_WARNING(Render_Vulkan, "Unsuitable driver - continuing anyways");
@@ -471,10 +493,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     is_warp_potentially_bigger = !extensions.subgroup_size_control ||
                                  properties.subgroup_size_control.maxSubgroupSize > GuestWarpSize;
 
-    is_integrated = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
-    is_virtual = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
-    is_non_gpu = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_OTHER ||
-                 properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU;
+    //const bool is_virtual = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
+    //const bool is_non_gpu = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_OTHER ||
+    //             properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU;
 
     supports_d24_depth =
         IsFormatSupported(VK_FORMAT_D24_UNORM_S8_UINT,
@@ -485,17 +506,62 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectPhysicalMemoryInfo();
     CollectToolingInfo();
 
+    // Driver-specific handling for VK_EXT_custom_border_color
+    // On some Qualcomm/Turnip/ARM drivers the extension may be partially implemented.
+    // Disable completely if no feature bits are reported to avoid crashes/undefined behavior.
+    if (is_qualcomm || is_turnip || is_arm) {
+        const bool has_any_custom_border_color =
+            features.custom_border_color.customBorderColors ||
+            features.custom_border_color.customBorderColorWithoutFormat;
+        if (!has_any_custom_border_color) {
+            LOG_WARNING(Render_Vulkan,
+                        "Disabling VK_EXT_custom_border_color on '{}' — no usable features reported",
+                        properties.driver.driverName);
+            RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
+                                   VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+        } else {
+            LOG_INFO(Render_Vulkan,
+                     "VK_EXT_custom_border_color enabled on '{}' (partial support detected)",
+                     properties.driver.driverName);
+        }
+    }
+
     if (is_qualcomm) {
         // Qualcomm Adreno GPUs doesn't handle scaled vertex attributes; keep emulation enabled
         must_emulate_scaled_formats = true;
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm drivers require scaled vertex format emulation; forcing fallback");
 
-        LOG_WARNING(Render_Vulkan,
-                    "Disabling shader float controls and 64-bit integer features on Qualcomm proprietary drivers");
-        RemoveExtension(extensions.shader_float_controls, VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64,
-                               VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
+        // Log Qualcomm-specific optimizations
+        if (extensions.render_pass_store_ops) {
+            LOG_INFO(Render_Vulkan, "VK_QCOM_render_pass_store_ops: Enabled");
+        }
+        if (extensions.tile_properties) {
+            LOG_INFO(Render_Vulkan, "VK_QCOM_tile_properties: Enabled");
+        }
+        if (extensions.render_pass_shader_resolve) {
+            LOG_INFO(Render_Vulkan, "VK_QCOM_render_pass_shader_resolve: Enabled");
+        }
+        if (extensions.render_pass_transform) {
+            LOG_INFO(Render_Vulkan, "VK_QCOM_render_pass_transform: Enabled");
+        }
+        if (extensions.rotated_copy_commands) {
+            LOG_INFO(Render_Vulkan, "VK_QCOM_rotated_copy_commands: Enabled");
+        }
+        if (extensions.image_processing) {
+            LOG_INFO(Render_Vulkan, "VK_QCOM_image_processing: Enabled");
+        }
+
+        // Shader Float Controls: Completely broken on Stock Qualcomm
+        // The extension causes rendering issues regardless of FP16/FP32 mode
+        // Turnip Mesa: Works correctly, keep enabled
+        if (!is_turnip) {
+            LOG_WARNING(Render_Vulkan, "Disabling Shader Float Controls for Stock Qualcomm (broken implementation)");
+            extensions.shader_float_controls = false; // Just a feature not an extension
+        }
+
+        // Int64 atomics - genuinely broken, always disable
+        RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64, VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
         features.shader_atomic_int64.shaderBufferInt64Atomics = false;
         features.shader_atomic_int64.shaderSharedInt64Atomics = false;
         features.features.shaderInt64 = false;
@@ -695,6 +761,22 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
     }
 
+    // Intel iGPU/MoltenVK blacklist moved to GetSuitability() for proper ordering
+
+#ifdef ANDROID
+    // Stock Qualcomm and ARM Mali drivers don't report VK_FORMAT_*_SSCALED/USCALED formats
+    // Turnip implements them in software, so only force emulation for stock drivers
+    if ((is_qualcomm && !is_turnip) || is_arm) {
+        must_emulate_scaled_formats = true;
+        LOG_INFO(Render_Vulkan, "Mobile GPU detected: forcing scaled format emulation (hardware limitation)");
+    } else {
+        must_emulate_scaled_formats = false;
+    }
+#else
+    // Desktop GPUs support scaled formats natively
+    must_emulate_scaled_formats = false;
+#endif
+
     logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions), first_next, dld);
 
     graphics_queue = logical.GetQueue(graphics_family);
@@ -708,13 +790,12 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     if (extensions.memory_budget) {
         flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
     }
+    const bool is_integrated = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
     const VmaAllocatorCreateInfo allocator_info{
             .flags = flags,
             .physicalDevice = physical,
             .device = *logical,
-            .preferredLargeHeapBlockSize = is_integrated
-                                           ? (64u * 1024u * 1024u)
-                                           : (256u * 1024u * 1024u),
+            .preferredLargeHeapBlockSize = (is_integrated ? 64u : 256u) * 1024u * 1024u,
             .pAllocationCallbacks = nullptr,
             .pDeviceMemoryCallbacks = nullptr,
             .pHeapSizeLimit = nullptr,
@@ -738,15 +819,32 @@ Device::~Device() {
 VkFormat Device::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags wanted_usage,
                                     FormatType format_type) const {
     if (IsFormatSupported(wanted_format, wanted_usage, format_type)) {
-        return wanted_format;
+        // Critical: Even if format is "supported", check for STORAGE + HDR + no MSAA support
+        // Driver may report STORAGE_IMAGE_BIT but shaderStorageImageMultisample=false means
+        // it will fail at runtime when used with MSAA (CopyImageMSAA silently fails)
+        const bool requests_storage = (wanted_usage & VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT) != 0;
+        const bool is_hdr_format = wanted_format == VK_FORMAT_B10G11R11_UFLOAT_PACK32;
+
+        // If driver doesn't support shader storage image with MSAA, and we're requesting storage
+        // for an HDR format (which will likely be used with MSAA), force fallback
+        if (requests_storage && is_hdr_format && !features.features.shaderStorageImageMultisample) {
+            LOG_WARNING(Render_Vulkan,
+                      "Format {} reports STORAGE_IMAGE_BIT but driver doesn't support "
+                      "shaderStorageImageMultisample. Forcing fallback for MSAA compatibility.",
+                      wanted_format);
+            // Continue to alternatives search below
+        } else {
+            return wanted_format;
+        }
     }
     // The wanted format is not supported by hardware, search for alternatives
     const VkFormat* alternatives = GetFormatAlternatives(wanted_format);
     if (alternatives == nullptr) {
         LOG_ERROR(Render_Vulkan,
-                  "Format={} with usage={} and type={} has no defined alternatives and host "
-                  "hardware does not support it",
-                  wanted_format, wanted_usage, format_type);
+                  "Format={} (0x{:X}) with usage={} and type={} has no defined alternatives and host "
+                  "hardware does not support it. Driver: {} Device: {}",
+                  wanted_format, static_cast<u32>(wanted_format), wanted_usage, format_type,
+                  GetDriverName(), properties.properties.deviceName);
         return wanted_format;
     }
 
@@ -755,9 +853,17 @@ VkFormat Device::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags
         if (!IsFormatSupported(alternative, wanted_usage, format_type)) {
             continue;
         }
-        LOG_DEBUG(Render_Vulkan,
+        // Special logging for HDR formats (common across multiple engines) on problematic drivers
+        if (wanted_format == VK_FORMAT_B10G11R11_UFLOAT_PACK32) {
+            LOG_WARNING(Render_Vulkan,
+                  "B10G11R11_UFLOAT_PACK32 (R11G11B10F HDR format) not fully supported. "
+                  "Falling back to {} on {}",
+                  alternative, properties.properties.deviceName);
+        } else {
+            LOG_DEBUG(Render_Vulkan,
                   "Emulating format={} with alternative format={} with usage={} and type={}",
                   wanted_format, alternative, wanted_usage, format_type);
+        }
         return alternative;
     }
 
@@ -1120,8 +1226,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
     // VK_EXT_extended_dynamic_state2 below this will appear drivers that need workarounds.
 
-    // VK_EXT_extended_dynamic_state3 below this will appear drivers that need workarounds.
-
     // Samsung: Broken extendedDynamicState3ColorBlendEquation
     // Disable blend equation dynamic state, force static pipeline state
     if (extensions.extended_dynamic_state3 &&
@@ -1146,6 +1250,8 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
     if (u32(Settings::values.dyna_state.GetValue()) == 0) {
         LOG_INFO(Render_Vulkan, "Extended Dynamic State disabled by user setting, clearing all EDS features");
+        features.custom_border_color.customBorderColors = false;
+        features.custom_border_color.customBorderColorWithoutFormat = false;
         features.extended_dynamic_state.extendedDynamicState = false;
         features.extended_dynamic_state2.extendedDynamicState2 = false;
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
@@ -1271,6 +1377,43 @@ void Device::RemoveUnsuitableExtensions() {
                                        features.robust_image_access,
                                        VK_EXT_IMAGE_ROBUSTNESS_EXTENSION_NAME);
 
+    // VK_KHR_shader_float16_int8
+    const bool float16_int8_requested = extensions.shader_float16_int8;
+    const bool float16_int8_usable =
+        features.shader_float16_int8.shaderFloat16 || features.shader_float16_int8.shaderInt8;
+    if (float16_int8_requested && !float16_int8_usable) {
+        LOG_WARNING(Render_Vulkan,
+                    "Disabling VK_KHR_shader_float16_int8 — no shaderFloat16/shaderInt8 features reported");
+    }
+    extensions.shader_float16_int8 = float16_int8_requested && float16_int8_usable;
+    RemoveExtensionFeatureIfUnsuitable(float16_int8_usable, features.shader_float16_int8,
+                                       VK_KHR_SHADER_FLOAT16_INT8_EXTENSION_NAME);
+
+    // VK_EXT_shader_atomic_float
+    const bool atomic_float_requested = extensions.shader_atomic_float;
+    const auto& atomic_float_features = features.shader_atomic_float;
+    const bool supports_buffer_f32 = atomic_float_features.shaderBufferFloat32Atomics ||
+                                     atomic_float_features.shaderBufferFloat32AtomicAdd;
+    const bool supports_shared_f32 = atomic_float_features.shaderSharedFloat32Atomics ||
+                                     atomic_float_features.shaderSharedFloat32AtomicAdd;
+    const bool supports_image_f32 = atomic_float_features.shaderImageFloat32Atomics ||
+                                    atomic_float_features.shaderImageFloat32AtomicAdd;
+    const bool supports_sparse_f32 = atomic_float_features.sparseImageFloat32Atomics ||
+                                     atomic_float_features.sparseImageFloat32AtomicAdd;
+    const bool supports_buffer_f64 = atomic_float_features.shaderBufferFloat64Atomics ||
+                                     atomic_float_features.shaderBufferFloat64AtomicAdd;
+    const bool supports_shared_f64 = atomic_float_features.shaderSharedFloat64Atomics ||
+                                     atomic_float_features.shaderSharedFloat64AtomicAdd;
+    const bool atomic_float_usable = supports_buffer_f32 || supports_shared_f32 || supports_image_f32 ||
+                                     supports_sparse_f32 || supports_buffer_f64 || supports_shared_f64;
+    if (atomic_float_requested && !atomic_float_usable) {
+        LOG_WARNING(Render_Vulkan,
+                    "Disabling VK_EXT_shader_atomic_float — no usable atomic float feature bits reported");
+    }
+    extensions.shader_atomic_float = atomic_float_requested && atomic_float_usable;
+    RemoveExtensionFeatureIfUnsuitable(atomic_float_usable, features.shader_atomic_float,
+                                       VK_EXT_SHADER_ATOMIC_FLOAT_EXTENSION_NAME);
+
     // VK_KHR_shader_atomic_int64
     extensions.shader_atomic_int64 = features.shader_atomic_int64.shaderBufferInt64Atomics &&
                                      features.shader_atomic_int64.shaderSharedInt64Atomics;
@@ -1300,12 +1443,34 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.transform_feedback, features.transform_feedback,
                                        VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
 
+    // VK_EXT_robustness2
+    extensions.robustness_2 =
+        features.robustness2.robustBufferAccess2 && features.robustness2.robustImageAccess2;
+    RemoveExtensionFeatureIfUnsuitable(extensions.robustness_2, features.robustness2,
+                                       VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
+
+    // VK_EXT_image_robustness
+    extensions.image_robustness = features.image_robustness.robustImageAccess;
+    RemoveExtensionFeatureIfUnsuitable(extensions.image_robustness, features.image_robustness,
+                                       VK_EXT_IMAGE_ROBUSTNESS_EXTENSION_NAME);
+
+    // VK_EXT_swapchain_maintenance1
+    extensions.swapchain_maintenance1 = loaded_extensions.contains(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.swapchain_maintenance1, VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
+
     // VK_EXT_vertex_input_dynamic_state
-    extensions.vertex_input_dynamic_state =
-        features.vertex_input_dynamic_state.vertexInputDynamicState;
-    RemoveExtensionFeatureIfUnsuitable(extensions.vertex_input_dynamic_state,
-                                       features.vertex_input_dynamic_state,
-                                       VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+    if (Settings::values.vertex_input_dynamic_state.GetValue()) {
+        extensions.vertex_input_dynamic_state =
+            features.vertex_input_dynamic_state.vertexInputDynamicState;
+        RemoveExtensionFeatureIfUnsuitable(extensions.vertex_input_dynamic_state,
+                                           features.vertex_input_dynamic_state,
+                                           VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+    } else {
+        RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
+                               features.vertex_input_dynamic_state,
+                               VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+        LOG_INFO(Render_Vulkan, "Vertex Input Dynamic State disabled by user setting");
+    }
 
     // VK_KHR_pipeline_executable_properties
     if (Settings::values.renderer_shader_feedback.GetValue()) {
@@ -1331,18 +1496,6 @@ void Device::RemoveUnsuitableExtensions() {
                                        features.workgroup_memory_explicit_layout,
                                        VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME);
 
-    // VK_KHR_maintenance1
-    extensions.maintenance1 = loaded_extensions.contains(VK_KHR_MAINTENANCE_1_EXTENSION_NAME);
-    RemoveExtensionIfUnsuitable(extensions.maintenance1, VK_KHR_MAINTENANCE_1_EXTENSION_NAME);
-
-    // VK_KHR_maintenance2
-    extensions.maintenance2 = loaded_extensions.contains(VK_KHR_MAINTENANCE_2_EXTENSION_NAME);
-    RemoveExtensionIfUnsuitable(extensions.maintenance2, VK_KHR_MAINTENANCE_2_EXTENSION_NAME);
-
-    // VK_KHR_maintenance3
-    extensions.maintenance3 = loaded_extensions.contains(VK_KHR_MAINTENANCE_3_EXTENSION_NAME);
-    RemoveExtensionIfUnsuitable(extensions.maintenance3, VK_KHR_MAINTENANCE_3_EXTENSION_NAME);
-
     // VK_KHR_maintenance4
     extensions.maintenance4 = features.maintenance4.maintenance4;
     RemoveExtensionFeatureIfUnsuitable(extensions.maintenance4, features.maintenance4,
@@ -1357,14 +1510,6 @@ void Device::RemoveUnsuitableExtensions() {
     extensions.maintenance6 = features.maintenance6.maintenance6;
     RemoveExtensionFeatureIfUnsuitable(extensions.maintenance6, features.maintenance6,
                                        VK_KHR_MAINTENANCE_6_EXTENSION_NAME);
-
-    // VK_KHR_maintenance7
-    extensions.maintenance7 = loaded_extensions.contains(VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
-    RemoveExtensionIfUnsuitable(extensions.maintenance7, VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
-
-    // VK_KHR_maintenance8
-    extensions.maintenance8 = loaded_extensions.contains(VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
-    RemoveExtensionIfUnsuitable(extensions.maintenance8, VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
 }
 
 void Device::SetupFamilies(VkSurfaceKHR surface) {
@@ -1425,8 +1570,8 @@ void Device::CollectPhysicalMemoryInfo() {
     // Calculate limits using memory budget
     VkPhysicalDeviceMemoryBudgetPropertiesEXT budget{};
     budget.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_BUDGET_PROPERTIES_EXT;
-    const auto mem_info =
-        physical.GetMemoryProperties(extensions.memory_budget ? &budget : nullptr);
+    const bool is_integrated = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
+    const auto mem_info = physical.GetMemoryProperties(extensions.memory_budget ? &budget : nullptr);
     const auto& mem_properties = mem_info.memoryProperties;
     const size_t num_properties = mem_properties.memoryHeapCount;
     device_access_memory = 0;

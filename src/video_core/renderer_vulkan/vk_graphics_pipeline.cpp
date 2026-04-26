@@ -848,13 +848,38 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pAttachments = cb_attachments.data(),
         .blendConstants = {}
     };
-    static_vector<VkDynamicState, 34> dynamic_states{
-        VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
-        VK_DYNAMIC_STATE_DEPTH_BIAS,         VK_DYNAMIC_STATE_BLEND_CONSTANTS,
-        VK_DYNAMIC_STATE_DEPTH_BOUNDS,       VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
-        VK_DYNAMIC_STATE_STENCIL_WRITE_MASK, VK_DYNAMIC_STATE_STENCIL_REFERENCE,
-        VK_DYNAMIC_STATE_LINE_WIDTH,
-    };
+    // Base Vulkan Dynamic States - Always active (independent of EDS)
+    // Granular fallback: Each state added only if device supports it (protection against broken drivers)
+    static_vector<VkDynamicState, 34> dynamic_states;
+    if (device.SupportsDynamicViewport()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_VIEWPORT);
+    }
+    if (device.SupportsDynamicScissor()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_SCISSOR);
+    }
+    if (device.SupportsDynamicLineWidth()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
+    }
+    if (device.SupportsDynamicDepthBias()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS);
+    }
+    if (device.SupportsDynamicBlendConstants()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_BLEND_CONSTANTS);
+    }
+    if (device.SupportsDynamicDepthBounds()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_DEPTH_BOUNDS);
+    }
+    if (device.SupportsDynamicStencilCompareMask()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK);
+    }
+    if (device.SupportsDynamicStencilWriteMask()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_STENCIL_WRITE_MASK);
+    }
+    if (device.SupportsDynamicStencilReference()) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_STENCIL_REFERENCE);
+    }
+
+    // EDS1 - Extended Dynamic State
     if (key.state.extended_dynamic_state) {
         static constexpr std::array extended{
             VK_DYNAMIC_STATE_CULL_MODE_EXT,

@@ -158,6 +158,17 @@ ENUM(ExtendedDynamicState, Disabled, EDS1, EDS2, EDS3);
 ENUM(GpuLogLevel, Off, Errors, Standard, Verbose, All)
 ENUM(GameListMode, TreeView, GridView);
 ENUM(SpeedMode, Standard, Turbo, Slow);
+ENUM(FormatReinterpretation, Disabled, R32UintToR32Sfloat, R32SintToR32Uint, R32SfloatToR32Sint)
+
+// Shader Float Controls behavior modes
+// These control how floating-point denormals and special values are handled in shaders
+ENUM(ShaderFloatBehavior,
+     DriverDefault,        // Let driver choose (safest, may not match Switch behavior)
+     SwitchNative,         // Emulate Switch/Maxwell behavior (FTZ + RTE + SignedZero)
+     FlushToZero,          // FTZ only - flush denorms to zero (fastest, some precision loss)
+     PreserveDenorms,      // Preserve denorms (slowest, highest precision)
+     RoundToEven,          // RTE rounding mode (IEEE 754 compliant)
+     SignedZeroInfNan);    // Preserve signed zero, inf, nan (accuracy for edge cases)
 
 template <typename Type>
 inline std::string_view CanonicalizeEnum(Type id) {

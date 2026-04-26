@@ -162,7 +162,24 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent) {
            tr("Stretches the renderer to fit the specified aspect ratio.\nMost games only support "
               "16:9, so modifications are required to get other ratios.\nAlso controls the "
               "aspect ratio of captured screenshots."));
-    INSERT(Settings, use_disk_shader_cache, tr("Use persistent pipeline cache"),
+    INSERT(Settings,
+           format_reinterpretation,
+           tr("Format Reinterpretation:"),
+           tr("Reinterprets certain texture formats for accuracy rendering.\nMay cause "
+              "graphical issues in some games."));
+    INSERT(Settings,
+           force_identity_swizzle,
+           tr("Force Identity Swizzle"),
+           tr("Forces identity component swizzle for storage and input attachment images. "
+              "Required by Vulkan spec. Disable only for debugging driver issues."));
+    INSERT(Settings,
+           force_ldr_to_srgb,
+           tr("Force LDR Formats to sRGB"),
+           tr("Converts LDR texture formats (RGBA8_UNORM, A2B10G10R10_UNORM) to sRGB variants. "
+              "Fixes gamma correction issues on some games. Enable for correct colors on Adreno GPUs."));
+    INSERT(Settings,
+           use_disk_shader_cache,
+           tr("Use persistent pipeline cache"),
            tr("Allows saving shaders to storage for faster loading on following game "
               "boots.\nDisabling it is only intended for debugging."));
     INSERT(Settings, use_asynchronous_gpu_emulation, tr("Use asynchronous GPU emulation"),
@@ -679,6 +696,13 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent) {
                           {
                               PAIR(GameListMode, TreeView, tr("Tree View")),
                               PAIR(GameListMode, GridView, tr("Grid View")),
+                          }});
+    translations->insert({Settings::EnumMetadata<Settings::FormatReinterpretation>::Index(),
+                          {
+                              PAIR(FormatReinterpretation, Disabled, tr("Disabled")),
+                              PAIR(FormatReinterpretation, R32UintToR32Sfloat, tr("R32 Uint to R32 Float")),
+                              PAIR(FormatReinterpretation, R32SintToR32Uint, tr("R32 Sint to R32 Uint")),
+                              PAIR(FormatReinterpretation, R32SfloatToR32Sint, tr("R32 Float to R32 Sint")),
                           }});
 
 #undef PAIR

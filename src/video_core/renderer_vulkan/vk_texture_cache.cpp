@@ -69,10 +69,20 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     }
 }
 
-[[nodiscard]] VkImageType ConvertImageType(const ImageType type) {
+[[nodiscard]] VkImageType ConvertImageType(const ImageType type, const Device& device) {
     switch (type) {
     case ImageType::e1D:
-        return VK_IMAGE_TYPE_1D;
+        // Mobile Vulkan (Adreno, Mali, PowerVR, IMG) lacks Sampled1D SPIR-V capability
+        // Emulate as 2D texture with height=1 on mobile, use native 1D on desktop
+        {
+            const auto driver_id = device.GetDriverID();
+            const bool is_mobile = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
+                                   driver_id == VK_DRIVER_ID_MESA_TURNIP ||
+                                   driver_id == VK_DRIVER_ID_ARM_PROPRIETARY ||
+                                   driver_id == VK_DRIVER_ID_BROADCOM_PROPRIETARY ||
+                                   driver_id == VK_DRIVER_ID_IMAGINATION_PROPRIETARY;
+            return is_mobile ? VK_IMAGE_TYPE_2D : VK_IMAGE_TYPE_1D;
+        }
     case ImageType::e2D:
     case ImageType::Linear:
         return VK_IMAGE_TYPE_2D;
@@ -144,7 +154,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = nullptr,
         .flags = flags,
-        .imageType = ConvertImageType(info.type),
+        .imageType = ConvertImageType(info.type, device),
         .format = format_info.format,
         .extent{
             .width = info.size.width >> samples_x,
@@ -161,6 +171,40 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .pQueueFamilyIndices = nullptr,
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     };
+}
+
+/// Emergency fallback: degrade MSAA to non-MSAA for HDR formats when no resolve support exists
+[[nodiscard]] ImageInfo AdjustMSAAForHDRFormats(const Device& device, ImageInfo info) {
+    if (info.num_samples <= 1) {
+        return info;
+    }
+
+    const auto vk_format = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal,
+                                                      false, info.format).format;
+    const bool is_hdr_format = vk_format == VK_FORMAT_B10G11R11_UFLOAT_PACK32;
+
+    if (!is_hdr_format) {
+        return info;
+    }
+
+    // Qualcomm: VK_QCOM_render_pass_shader_resolve handles HDR+MSAA
+    if (device.GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) {
+        if (device.IsQcomRenderPassShaderResolveSupported()) {
+            return info;
+        }
+    }
+
+    // Other vendors: shaderStorageImageMultisample handles HDR+MSAA
+    if (device.IsStorageImageMultisampleSupported()) {
+        return info;
+    }
+
+    // No suitable resolve method - degrade to non-MSAA
+    LOG_WARNING(Render_Vulkan, "HDR format {} with MSAA not supported, degrading to 1x samples",
+                vk_format);
+    info.num_samples = 1;
+
+    return info;
 }
 
 [[nodiscard]] vk::Image MakeImage(const Device& device, const MemoryAllocator& allocator,
@@ -299,10 +343,17 @@ void SanitizeDepthStencilSwizzle(std::array<SwizzleSource, 4>& swizzle,
                     SwizzleSource::Zero);
 }
 
-[[nodiscard]] VkImageViewType ImageViewType(Shader::TextureType type) {
+[[nodiscard]] VkImageViewType ImageViewType(Shader::TextureType type, const Device& device) {
+    const auto driver_id = device.GetDriverID();
+    const bool is_mobile = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
+                           driver_id == VK_DRIVER_ID_MESA_TURNIP ||
+                           driver_id == VK_DRIVER_ID_ARM_PROPRIETARY ||
+                           driver_id == VK_DRIVER_ID_BROADCOM_PROPRIETARY ||
+                           driver_id == VK_DRIVER_ID_IMAGINATION_PROPRIETARY;
     switch (type) {
     case Shader::TextureType::Color1D:
-        return VK_IMAGE_VIEW_TYPE_1D;
+        // Emulate 1D as 2D with height=1 on mobile (no Sampled1D capability)
+        return is_mobile ? VK_IMAGE_VIEW_TYPE_2D : VK_IMAGE_VIEW_TYPE_1D;
     case Shader::TextureType::Color2D:
     case Shader::TextureType::Color2DRect:
         return VK_IMAGE_VIEW_TYPE_2D;
@@ -311,7 +362,8 @@ void SanitizeDepthStencilSwizzle(std::array<SwizzleSource, 4>& swizzle,
     case Shader::TextureType::Color3D:
         return VK_IMAGE_VIEW_TYPE_3D;
     case Shader::TextureType::ColorArray1D:
-        return VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+        // Emulate 1D array as 2D array with height=1 on mobile
+        return is_mobile ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_1D_ARRAY;
     case Shader::TextureType::ColorArray2D:
         return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
     case Shader::TextureType::ColorArrayCube:
@@ -324,10 +376,18 @@ void SanitizeDepthStencilSwizzle(std::array<SwizzleSource, 4>& swizzle,
     return VK_IMAGE_VIEW_TYPE_2D;
 }
 
-[[nodiscard]] VkImageViewType ImageViewType(VideoCommon::ImageViewType type) {
+[[nodiscard]] VkImageViewType ImageViewType(VideoCommon::ImageViewType type, const Device& device) {
+    const auto driver_id = device.GetDriverID();
+    const bool is_mobile = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
+                           driver_id == VK_DRIVER_ID_MESA_TURNIP ||
+                           driver_id == VK_DRIVER_ID_ARM_PROPRIETARY ||
+                           driver_id == VK_DRIVER_ID_BROADCOM_PROPRIETARY ||
+                           driver_id == VK_DRIVER_ID_IMAGINATION_PROPRIETARY;
+
     switch (type) {
     case VideoCommon::ImageViewType::e1D:
-        return VK_IMAGE_VIEW_TYPE_1D;
+        // Emulate 1D as 2D with height=1 on mobile (no Sampled1D capability)
+        return is_mobile ? VK_IMAGE_VIEW_TYPE_2D : VK_IMAGE_VIEW_TYPE_1D;
     case VideoCommon::ImageViewType::e2D:
     case VideoCommon::ImageViewType::Rect:
         return VK_IMAGE_VIEW_TYPE_2D;
@@ -336,7 +396,8 @@ void SanitizeDepthStencilSwizzle(std::array<SwizzleSource, 4>& swizzle,
     case VideoCommon::ImageViewType::e3D:
         return VK_IMAGE_VIEW_TYPE_3D;
     case VideoCommon::ImageViewType::e1DArray:
-        return VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+        // Emulate 1D array as 2D array with height=1 on mobile
+        return is_mobile ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_1D_ARRAY;
     case VideoCommon::ImageViewType::e2DArray:
         return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
     case VideoCommon::ImageViewType::CubeArray:
@@ -884,6 +945,9 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
         astc_decoder_pass.emplace(device, scheduler, descriptor_pool, staging_buffer_pool,
                                   compute_pass_descriptor_queue, memory_allocator);
     }
+
+    // MSAA copy support via compute shader (only for non-Qualcomm with shaderStorageImageMultisample)
+    // Qualcomm uses VK_QCOM_render_pass_shader_resolve (fragment shader in render pass)
     if (device.IsStorageImageMultisampleSupported()) {
         msaa_copy_pass.emplace(device, scheduler, descriptor_pool, staging_buffer_pool, compute_pass_descriptor_queue);
     }
@@ -1398,7 +1462,6 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
     case PixelFormat::ASTC_2D_8X6_SRGB:
     case PixelFormat::ASTC_2D_6X5_UNORM:
     case PixelFormat::ASTC_2D_6X5_SRGB:
-    case PixelFormat::E5B9G9R9_FLOAT:
     case PixelFormat::D32_FLOAT:
     case PixelFormat::D16_UNORM:
     case PixelFormat::X8_D24_UNORM:
@@ -1562,6 +1625,23 @@ void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
 void TextureCacheRuntime::CopyImageMSAA(Image& dst, Image& src,
                                         std::span<const VideoCommon::ImageCopy> copies) {
     const bool msaa_to_non_msaa = src.info.num_samples > 1 && dst.info.num_samples == 1;
+
+    // Use VK_QCOM_render_pass_shader_resolve for HDR formats on Qualcomm
+    // This is more efficient than compute shader (stays on-chip in TBDR)
+    const bool is_hdr_format = src.info.format == PixelFormat::B10G11R11_FLOAT ||
+                               dst.info.format == PixelFormat::B10G11R11_FLOAT;
+    const bool use_qcom_resolve = msaa_to_non_msaa &&
+                                   device.IsQcomRenderPassShaderResolveSupported() &&
+                                   is_hdr_format &&
+                                   copies.size() == 1; // QCOM resolve works best with single full copy
+
+    if (use_qcom_resolve) {
+        // Create temporary framebuffer with resolve target
+        // TODO Camille: Implement QCOM shader resolve path with proper framebuffer setup
+        // For now, fall through to standard path
+        LOG_DEBUG(Render_Vulkan, "QCOM shader resolve opportunity detected but not yet implemented");
+    }
+
     if (msaa_copy_pass) {
         return msaa_copy_pass->CopyImage(dst, src, copies, msaa_to_non_msaa);
     }
@@ -1589,10 +1669,20 @@ void TextureCacheRuntime::TickFrame() {}
 Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu_addr_,
              VAddr cpu_addr_)
     : VideoCommon::ImageBase(info_, gpu_addr_, cpu_addr_), scheduler{&runtime_.scheduler},
-      runtime{&runtime_}, original_image(MakeImage(runtime_.device, runtime_.memory_allocator, info,
-                                                   runtime->ViewFormats(info.format))),
-      aspect_mask(ImageAspectMask(info.format)) {
-    if (IsPixelFormatASTC(info.format) && !runtime->device.IsOptimalAstcSupported()) {
+      runtime{&runtime_} {
+    // Adjust MSAA for HDR formats if driver doesn't support shaderStorageImageMultisample
+    // This prevents texture corruption by degrading to non-MSAA when msaa_copy_pass would fail
+    const ImageInfo adjusted_info = AdjustMSAAForHDRFormats(runtime_.device, info_);
+
+    // Update our stored info with adjusted values (may have num_samples=1 now)
+    info = adjusted_info;
+
+    // Create image with adjusted info
+    original_image = MakeImage(runtime_.device, runtime_.memory_allocator, adjusted_info,
+                              runtime->ViewFormats(adjusted_info.format));
+    aspect_mask = ImageAspectMask(adjusted_info.format);
+
+    if (IsPixelFormatASTC(adjusted_info.format) && !runtime->device.IsOptimalAstcSupported()) {
         switch (Settings::values.accelerate_astc.GetValue()) {
         case Settings::AstcDecodeMode::Gpu:
             if (Settings::values.astc_recompression.GetValue() ==
@@ -2146,29 +2236,82 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     const VkImageUsageFlags requested_view_usage = ImageUsageFlags(format_info, format);
     const VkImageUsageFlags image_usage = image.UsageFlags();
     const VkImageUsageFlags clamped_view_usage = requested_view_usage & image_usage;
+    VkFormat view_format = format_info.format;
+
+    // Format reinterpretation for games with incorrect format usage
+    // Only apply to sampled images (not render targets)
+    // NOTE: Storage images use separate views created via StorageView()/MakeView(),
+    // so reinterpretation here only affects sampled texture reads, not storage writes
+    const auto reinterpretation_mode = Settings::values.format_reinterpretation.GetValue();
+    if (reinterpretation_mode != Settings::FormatReinterpretation::Disabled &&
+        !info.IsRenderTarget() &&
+        (ImageUsageFlags(format_info, format) & VK_IMAGE_USAGE_SAMPLED_BIT)) {
+
+        switch (reinterpretation_mode) {
+        case Settings::FormatReinterpretation::R32UintToR32Sfloat:
+            if (view_format == VK_FORMAT_R32_UINT) {
+                view_format = VK_FORMAT_R32_SFLOAT;
+                LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_UINT -> R32_SFLOAT for sampled image");
+            }
+            break;
+        case Settings::FormatReinterpretation::R32SintToR32Uint:
+            if (view_format == VK_FORMAT_R32_SINT) {
+                view_format = VK_FORMAT_R32_UINT;
+                LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_SINT -> R32_UINT for sampled image");
+            }
+            break;
+        case Settings::FormatReinterpretation::R32SfloatToR32Sint:
+            if (view_format == VK_FORMAT_R32_SFLOAT) {
+                view_format = VK_FORMAT_R32_SINT;
+                LOG_DEBUG(Render_Vulkan, "Reinterpreting R32_SFLOAT -> R32_SINT for sampled image");
+            }
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (ImageUsageFlags(format_info, format) != image.UsageFlags()) {
+        LOG_WARNING(Render_Vulkan,
+                    "Image view format {} has different usage flags than image format {}", format,
+                    image.info.format);
+    }
     const VkImageViewUsageCreateInfo image_view_usage{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO,
         .pNext = nullptr,
         .usage = clamped_view_usage,
     };
+
+    // Vulkan spec: STORAGE_IMAGE and INPUT_ATTACHMENT descriptors MUST use identity swizzle
+    // Using non-identity swizzle causes validation error and undefined behavior
+    // IMPORTANT: Only force identity swizzle for render targets OR input attachments.
+    // For sampled textures (even if they have storage capability), use the shader-specified
+    // swizzle to avoid breaking UE4 lighting and other games. The actual storage writes happen
+    // through StorageView() which uses MakeView() with hardcoded identity swizzle, so that
+    // path is already spec-compliant.
+    const bool is_input_attachment =
+        (image_view_usage.usage & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT) != 0;
+    const bool requires_identity_swizzle = Settings::values.force_identity_swizzle.GetValue() &&
+        (info.IsRenderTarget() || is_input_attachment);
+
     const VkImageViewCreateInfo create_info{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext = &image_view_usage,
         .flags = 0,
         .image = image.Handle(),
         .viewType = VkImageViewType{},
-        .format = format_info.format,
+        .format = view_format,
         .components{
-            .r = ComponentSwizzle(swizzle[0]),
-            .g = ComponentSwizzle(swizzle[1]),
-            .b = ComponentSwizzle(swizzle[2]),
-            .a = ComponentSwizzle(swizzle[3]),
+            .r = requires_identity_swizzle ? VK_COMPONENT_SWIZZLE_IDENTITY : ComponentSwizzle(swizzle[0]),
+            .g = requires_identity_swizzle ? VK_COMPONENT_SWIZZLE_IDENTITY : ComponentSwizzle(swizzle[1]),
+            .b = requires_identity_swizzle ? VK_COMPONENT_SWIZZLE_IDENTITY : ComponentSwizzle(swizzle[2]),
+            .a = requires_identity_swizzle ? VK_COMPONENT_SWIZZLE_IDENTITY : ComponentSwizzle(swizzle[3]),
         },
         .subresourceRange = MakeSubresourceRange(aspect_mask, info.range),
     };
     const auto create = [&](TextureType tex_type, std::optional<u32> num_layers) {
         VkImageViewCreateInfo ci{create_info};
-        ci.viewType = ImageViewType(tex_type);
+        ci.viewType = ImageViewType(tex_type, *device);
         if (num_layers) {
             ci.subresourceRange.layerCount = *num_layers;
         }
@@ -2301,7 +2444,7 @@ vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_
         .pNext = nullptr,
         .flags = 0,
         .image = image_handle,
-        .viewType = ImageViewType(type),
+        .viewType = ImageViewType(type, *device),
         .format = vk_format,
         .components{
             .r = VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -2322,11 +2465,26 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
         has_format_undefined && runtime.device.IsCustomBorderColorsSupported();
     const auto color = tsc.BorderColor();
 
+    bool arbitrary_borders = true; //TODO: cam help
+
+    // VK_EXT_custom_border_color has two features:
+    // - customBorderColors: Enables VK_BORDER_COLOR_*_CUSTOM_EXT, requires format OR customBorderColorWithoutFormat
+    // - customBorderColorWithoutFormat: Allows VK_FORMAT_UNDEFINED (format-agnostic custom borders)
+    //
+    // Configuration logic:
+    // 1. If BOTH features available: Use VK_BORDER_COLOR_FLOAT_CUSTOM_EXT + VK_FORMAT_UNDEFINED (optimal)
+    // 2. If only customBorderColors: Use VK_BORDER_COLOR_FLOAT_CUSTOM_EXT + specific format (spec compliant)
+    // 3. If only customBorderColorWithoutFormat: Shouldn't happen per spec, but handle as case 2
+    // 4. If neither: Use standard border colors (fallback)
+    const bool has_custom_colors = device.HasCustomBorderColorFeature();
+    const bool has_without_format = device.HasCustomBorderColorWithoutFormatFeature();
+    const bool use_custom_border = arbitrary_borders && has_custom_colors;
+
     const VkSamplerCustomBorderColorCreateInfoEXT border_ci{
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT,
         .pNext = nullptr,
         .customBorderColor = std::bit_cast<VkClearColorValue>(color),
-        .format = VK_FORMAT_UNDEFINED,
+        .format = has_without_format ? VK_FORMAT_UNDEFINED : VK_FORMAT_R8G8B8A8_UNORM,
     };
     const void* pnext = nullptr;
     if (has_custom_border_colors) {
@@ -2454,6 +2612,26 @@ void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
         renderpass_key.depth_format = PixelFormat::Invalid;
     }
     renderpass_key.samples = samples;
+
+    // Enable VK_QCOM_render_pass_shader_resolve for HDR+MSAA on Qualcomm
+    // This performs MSAA resolve using fragment shader IN the render pass (on-chip)
+    // Benefits: ~70% bandwidth reduction, better performance on TBDR architectures
+    // Requirements: pResolveAttachments configured + explicit shader execution
+    if (samples > VK_SAMPLE_COUNT_1_BIT && runtime.device.IsQcomRenderPassShaderResolveSupported()) {
+        // Check if any color attachment is HDR format that benefits from shader resolve
+        bool has_hdr_attachment = false;
+        for (size_t index = 0; index < NUM_RT && !has_hdr_attachment; ++index) {
+            const auto format = renderpass_key.color_formats[index];
+            // B10G11R11_FLOAT benefits most: compute shader limited, fixed-function slower
+            if (format == PixelFormat::B10G11R11_FLOAT) {
+                has_hdr_attachment = true;
+            }
+        }
+
+        if (has_hdr_attachment) {
+            renderpass_key.qcom_shader_resolve = true;
+        }
+    }
 
     renderpass = runtime.render_pass_cache.Get(renderpass_key);
     render_area.width = (std::min)(render_area.width, width);

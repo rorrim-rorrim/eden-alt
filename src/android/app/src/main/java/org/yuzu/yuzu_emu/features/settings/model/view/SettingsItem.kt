@@ -149,6 +149,34 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SwitchSetting(
+                    BooleanSetting.FORCE_IDENTITY_SWIZZLE,
+                    titleId = R.string.force_identity_swizzle,
+                    descriptionId = R.string.force_identity_swizzle_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.FORCE_LDR_TO_SRGB,
+                    titleId = R.string.force_ldr_to_srgb,
+                    descriptionId = R.string.force_ldr_to_srgb_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_DESCRIPTOR_INDEXING,
+                    titleId = R.string.descriptor_indexing,
+                    descriptionId = R.string.descriptor_indexing_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_SAMPLE_SHADING,
+                    titleId = R.string.sample_shading,
+                    descriptionId = R.string.sample_shading_description
+                )
+            )
+            put(
                 SliderSetting(
                     IntSetting.RENDERER_SAMPLE_SHADING,
                     titleId = R.string.sample_shading_fraction,
@@ -333,6 +361,23 @@ abstract class SettingsItem(
                     descriptionId = R.string.accelerate_astc_description,
                     choicesId = R.array.astcDecodingMethodNames,
                     valuesId = R.array.astcDecodingMethodValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.RENDERER_ASTC_RECOMPRESSION,
+                    titleId = R.string.astc_recompression,
+                    descriptionId = R.string.astc_recompression_description,
+                    choicesId = R.array.astcRecompressionMethodNames,
+                    valuesId = R.array.astcRecompressionMethodValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.RENDERER_FORMAT_REINTERPRETATION,
+                    titleId = R.string.format_reinterpretation,
+                    choicesId = R.array.formatReinterpretationNames,
+                    valuesId = R.array.formatReinterpretationValues
                 )
             )
             put(

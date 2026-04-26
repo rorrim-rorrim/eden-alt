@@ -259,11 +259,24 @@ namespace Vulkan {
     vk::Buffer
     MemoryAllocator::CreateBuffer(const VkBufferCreateInfo &ci, MemoryUsage usage) const
     {
+        // Qualcomm uses unified memory architecture - prefer DEVICE_LOCAL + HOST_VISIBLE
+        // for zero-copy access without staging buffers
+        const bool is_qualcomm = device.GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
+        const bool prefer_unified = is_qualcomm && (usage == MemoryUsage::Upload ||
+                                                     usage == MemoryUsage::Download ||
+                                                     usage == MemoryUsage::Stream);
+
+        VkMemoryPropertyFlags preferred_flags = MemoryUsagePreferredVmaFlags(usage);
+        if (prefer_unified) {
+            // Request DEVICE_LOCAL + HOST_VISIBLE for zero-copy on unified memory architectures
+            preferred_flags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+        }
+
         const VmaAllocationCreateInfo alloc_ci = {
                 .flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT | MemoryUsageVmaFlags(usage),
                 .usage = MemoryUsageVma(usage),
                 .requiredFlags = 0,
-                .preferredFlags = MemoryUsagePreferredVmaFlags(usage),
+                .preferredFlags = preferred_flags,
                 .memoryTypeBits = usage == MemoryUsage::Stream ? 0u : valid_memory_types,
                 .pool = VK_NULL_HANDLE,
                 .pUserData = nullptr,
@@ -286,6 +299,12 @@ namespace Vulkan {
                 static_cast<u64>(alloc_info.size),
                 property_flags
             );
+        }
+        if (is_qualcomm && prefer_unified) {
+            const bool got_unified = (property_flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) &&
+                                     (property_flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+            LOG_DEBUG(Render_Vulkan, "Qualcomm buffer allocation: usage={}, unified={}, flags=0x{:X}",
+                      static_cast<u32>(usage), got_unified, property_flags);
         }
 
         u8 *data = reinterpret_cast<u8 *>(alloc_info.pMappedData);

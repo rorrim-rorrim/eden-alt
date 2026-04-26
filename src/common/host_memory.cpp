@@ -693,7 +693,9 @@ void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length,
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(host_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
-    ASSERT(virtual_offset + length <= virtual_size);
+    if (impl && virtual_base) {
+        ASSERT(virtual_offset + length <= virtual_size);
+    }
     ASSERT(host_offset + length <= backing_size);
     if (length == 0 || !virtual_base || !impl) {
         return;
@@ -704,7 +706,9 @@ void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length,
 void HostMemory::Unmap(size_t virtual_offset, size_t length, bool separate_heap) {
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
-    ASSERT(virtual_offset + length <= virtual_size);
+    if (impl && virtual_base) {
+        ASSERT(virtual_offset + length <= virtual_size);
+    }
     if (length == 0 || !virtual_base || !impl) {
         return;
     }
@@ -714,7 +718,9 @@ void HostMemory::Unmap(size_t virtual_offset, size_t length, bool separate_heap)
 void HostMemory::Protect(size_t virtual_offset, size_t length, MemoryPermission perm) {
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
-    ASSERT(virtual_offset + length <= virtual_size);
+    if (impl && virtual_base) {
+        ASSERT(virtual_offset + length <= virtual_size);
+    }
     if (length == 0 || !virtual_base || !impl) {
         return;
     }

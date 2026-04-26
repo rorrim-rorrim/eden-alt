@@ -6,7 +6,7 @@
 
 #include "common/assert.h"
 #include <ranges>
-#include <vulkan/vulkan_core.h>
+#include "video_core/vulkan_common/vulkan.h"
 #include "video_core/renderer_vulkan/present/util.h"
 
 namespace Vulkan {

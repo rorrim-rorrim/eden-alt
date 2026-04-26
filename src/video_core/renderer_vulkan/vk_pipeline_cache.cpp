@@ -397,6 +397,17 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
             float_control.shaderSignedZeroInfNanPreserveFloat32 != VK_FALSE,
         .support_fp64_signed_zero_nan_preserve =
             float_control.shaderSignedZeroInfNanPreserveFloat64 != VK_FALSE,
+
+        // Switch/Maxwell native float behavior - ONLY for Turnip Mesa (Stock Qualcomm broken)
+        // Stock Adreno drivers have broken float controls disabled in vulkan_device.cpp
+        .force_fp32_denorm_flush = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY &&
+                                   device.IsKhrShaderFloatControlsSupported(),  // false on Stock, true on Turnip
+        .force_fp32_denorm_preserve = false,  // FTZ dominates
+        .force_fp32_rte_rounding = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY &&
+                                   device.IsKhrShaderFloatControlsSupported(),  // false on Stock, true on Turnip
+        .force_fp32_signed_zero_inf_nan = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY &&
+                                          device.IsKhrShaderFloatControlsSupported(),  // false on Stock, true on Turnip
+
         .support_explicit_workgroup_layout = device.IsKhrWorkgroupMemoryExplicitLayoutSupported(),
         .support_vote = device.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_VOTE_BIT),
         .support_viewport_index_layer_non_geometry =
@@ -427,10 +438,17 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .has_broken_spirv_position_input = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY,
         .has_broken_unsigned_image_offsets = false,
         .has_broken_signed_operations = false,
-        .has_broken_fp16_float_controls = driver_id == VK_DRIVER_ID_NVIDIA_PROPRIETARY,
+        .has_broken_fp16_float_controls = driver_id == VK_DRIVER_ID_NVIDIA_PROPRIETARY ||
+                                          driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY,
         .ignore_nan_fp_comparisons = false,
         .has_broken_spirv_subgroup_mask_vector_extract_dynamic =
             driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY,
+        .needs_1d_texture_emulation =
+            driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
+            driver_id == VK_DRIVER_ID_MESA_TURNIP ||
+            driver_id == VK_DRIVER_ID_ARM_PROPRIETARY ||
+            driver_id == VK_DRIVER_ID_BROADCOM_PROPRIETARY ||
+            driver_id == VK_DRIVER_ID_IMAGINATION_PROPRIETARY,
         .has_broken_robust =
             device.IsNvidia() && device.GetNvidiaArch() <= NvidiaArchitecture::Arch_Pascal,
         .min_ssbo_alignment = device.GetStorageBufferAlignment(),

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -129,10 +129,6 @@ bool ImageBase::IsSafeDownload() const noexcept {
     // Skip images that .are. modified from the CPU
     // We don't want to write sensitive data from the guest
     if (True(flags & ImageFlagBits::CpuModified)) {
-        return false;
-    }
-    if (info.num_samples > 1) {
-        LOG_WARNING(HW_GPU, "MSAA image downloads are not implemented");
         return false;
     }
     return true;
