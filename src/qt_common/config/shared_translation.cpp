@@ -173,11 +173,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent) {
            tr("Forces identity component swizzle for storage and input attachment images. "
               "Required by Vulkan spec. Disable only for debugging driver issues."));
     INSERT(Settings,
-           force_ldr_to_srgb,
-           tr("Force LDR Formats to sRGB"),
-           tr("Converts LDR texture formats (RGBA8_UNORM, A2B10G10R10_UNORM) to sRGB variants. "
-              "Fixes gamma correction issues on some games. Enable for correct colors on Adreno GPUs."));
-    INSERT(Settings,
            use_disk_shader_cache,
            tr("Use persistent pipeline cache"),
            tr("Allows saving shaders to storage for faster loading on following game "
