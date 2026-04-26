@@ -6,8 +6,11 @@
 
 #include <string>
 #include <string_view>
-#include <cxxabi.h>
+#ifdef _MSC_VER
 #include <llvm/Demangle/Demangle.h>
+#else
+#include <cxxabi.h>
+#endif
 #include "common/demangle.h"
 
 static bool IsItanium(std::string_view name) {
