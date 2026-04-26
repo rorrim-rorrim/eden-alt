@@ -2139,8 +2139,8 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
         .pNext = nullptr,
         .usage = clamped_view_usage,
     };
-    SubresourceRange range = info.range;
-    range.extent.levels = (std::min)(range.extent.levels, s32(GetMaxMipLevel(image.info.size.width, image.info.size.height, image.info.size.depth)));
+    SubresourceRange ci_range = info.range;
+    ci_range.extent.levels = (std::min)(range.extent.levels, s32(GetMaxMipLevel(image.info.size.width, image.info.size.height, image.info.size.depth)));
     const VkImageViewCreateInfo create_info{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext = &image_view_usage,
@@ -2154,7 +2154,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
             .b = ComponentSwizzle(swizzle[2]),
             .a = ComponentSwizzle(swizzle[3]),
         },
-        .subresourceRange = MakeSubresourceRange(aspect_mask, range),
+        .subresourceRange = MakeSubresourceRange(aspect_mask, ci_range),
     };
     const auto create = [&](TextureType tex_type, std::optional<u32> num_layers) {
         VkImageViewCreateInfo ci{create_info};
