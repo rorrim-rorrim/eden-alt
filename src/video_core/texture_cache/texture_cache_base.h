@@ -86,12 +86,8 @@ public:
     std::unordered_map<TICEntry, ImageViewId> image_views;
     std::unordered_map<TSCEntry, SamplerId> samplers;
 
-    // Values tuned for Mario Brothership, see also descriptor_table.h
-    // Change values as required.
-    boost::container::static_vector<SamplerId, 0x1000 + 1> graphics_sampler_ids;
-    boost::container::static_vector<SamplerId, 0x1000 + 1> compute_sampler_ids;
-    boost::container::static_vector<ImageViewId, 0x80000 + 1> graphics_image_view_ids;
-    boost::container::static_vector<ImageViewId, 0x80000 + 1> compute_image_view_ids;
+    ankerl::unordered_dense::map<u32, SamplerId> sampler_ids;
+    ankerl::unordered_dense::map<u32, ImageViewId> image_view_ids;
 
     TextureCacheGPUMap* gpu_page_table = nullptr;
     TextureCacheGPUMap* sparse_page_table = nullptr;
@@ -170,27 +166,17 @@ public:
     /// Mark an image as modified from the GPU
     void MarkModification(ImageId id) noexcept;
 
-    /// Fill image_view_ids with the graphics images in indices
-    template <bool has_blacklists>
-    void FillGraphicsImageViews(std::span<ImageViewInOut> views);
-
-    /// Fill image_view_ids with the compute images in indices
-    void FillComputeImageViews(std::span<ImageViewInOut> views);
+    /// Fill image_view_ids with the graphics/compute images in indices
+    void FillImageViews(std::span<ImageViewInOut> views, bool compute, bool blacklist = true);
 
     /// Handle feedback loops during draws.
     void CheckFeedbackLoop(std::span<const ImageViewInOut> views);
 
-    /// Get the sampler from the graphics descriptor table in the specified index
-    Sampler* GetGraphicsSampler(u32 index);
+    /// Get the sampler from the graphics/compute descriptor table in the specified index
+    Sampler* GetSampler(u32 index, bool compute);
 
-    /// Get the sampler from the compute descriptor table in the specified index
-    Sampler* GetComputeSampler(u32 index);
-
-    /// Get the sampler id from the graphics descriptor table in the specified index
-    SamplerId GetGraphicsSamplerId(u32 index);
-
-    /// Get the sampler id from the compute descriptor table in the specified index
-    SamplerId GetComputeSamplerId(u32 index);
+    /// Get the sampler id from the graphics/compute descriptor table in the specified index
+    SamplerId GetSamplerId(u32 index, bool compute);
 
     /// Return a constant reference to the given sampler id
     [[nodiscard]] const Sampler& GetSampler(SamplerId id) const noexcept;
@@ -198,11 +184,8 @@ public:
     /// Return a reference to the given sampler id
     [[nodiscard]] Sampler& GetSampler(SamplerId id) noexcept;
 
-    /// Refresh the state for graphics image view and sampler descriptors
-    void SynchronizeGraphicsDescriptors();
-
-    /// Refresh the state for compute image view and sampler descriptors
-    void SynchronizeComputeDescriptors();
+    /// Refresh the state for graphics/compute image view and sampler descriptors
+    void SynchronizeDescriptors(bool compute);
 
     /// Updates the Render Targets if they can be rescaled
     /// @retval True if the Render Targets have been rescaled.
@@ -313,15 +296,8 @@ private:
     /// Runs the Garbage Collector.
     void RunGarbageCollector();
 
-    /// Fills image_view_ids in the image views in indices
-    template <bool has_blacklists>
-    void FillImageViews(DescriptorTable<TICEntry>& table,
-                        std::span<ImageViewId> cached_image_view_ids,
-                        std::span<ImageViewInOut> views);
-
     /// Find or create an image view in the guest descriptor table
-    ImageViewId VisitImageView(DescriptorTable<TICEntry>& table,
-                               std::span<ImageViewId> cached_image_view_ids, u32 index);
+    ImageViewId VisitImageView(u32 index, bool compute);
 
     /// Find or create a framebuffer with the given render target parameters
     FramebufferId GetFramebufferId(const RenderTargets& key);
@@ -332,9 +308,6 @@ private:
     /// Upload data from guest to an image
     template <typename StagingBuffer>
     void UploadImageContents(Image& image, StagingBuffer& staging_buffer);
-
-    /// Find or create an image view from a guest descriptor
-    [[nodiscard]] ImageViewId FindImageView(const TICEntry& config);
 
     /// Create a new image view from a guest descriptor
     [[nodiscard]] ImageViewId CreateImageView(const TICEntry& config);
@@ -363,7 +336,7 @@ private:
         const Tegra::Engines::Fermi2D::Config& copy);
 
     /// Find or create a sampler from a guest descriptor sampler
-    [[nodiscard]] SamplerId FindSampler(const TSCEntry& config);
+    [[nodiscard]] SamplerId FindSampler(const TSCEntry& config, bool compute);
 
     /// Find or create an image view for the given color buffer index
     [[nodiscard]] ImageViewId FindColorBuffer(size_t index);

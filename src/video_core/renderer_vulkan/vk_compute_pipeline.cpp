@@ -125,7 +125,7 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
         ++ssbo_index;
     }
 
-    texture_cache.SynchronizeComputeDescriptors();
+    texture_cache.SynchronizeDescriptors(true);
 
     static constexpr size_t max_elements = 64;
     boost::container::static_vector<VideoCommon::ImageViewInOut, max_elements> views;
@@ -174,14 +174,14 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
             const auto handle{read_handle(desc, index)};
             views.push_back({handle.first});
 
-            VideoCommon::SamplerId sampler = texture_cache.GetComputeSamplerId(handle.second);
+            VideoCommon::SamplerId sampler = texture_cache.GetSamplerId(handle.second, true);
             samplers.push_back(sampler);
         }
     }
     for (const auto& desc : info.image_descriptors) {
         add_image(desc, desc.is_written);
     }
-    texture_cache.FillComputeImageViews(std::span(views.data(), views.size()));
+    texture_cache.FillImageViews(std::span(views.data(), views.size()), true);
 
     buffer_cache.UnbindComputeTextureBuffers();
     size_t index{};
