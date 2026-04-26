@@ -488,49 +488,31 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     QtCommon::system->HIDCore().ReloadInputDevices();
     controller_dialog->refreshConfiguration();
 
-    const auto branch_name = std::string(Common::g_scm_branch);
-    const auto description = std::string(Common::g_scm_desc);
-    const auto build_id = std::string(Common::g_build_id);
-
-    const auto yuzu_build = fmt::format("Eden Development Build | {}-{}", branch_name, description);
-    const auto override_build =
-        fmt::format(fmt::runtime(std::string(Common::g_title_bar_format_idle)), build_id);
+    const auto yuzu_build = fmt::format("Eden | {}-{}", Common::g_scm_branch, Common::g_scm_desc);
+    const auto override_build = fmt::format(fmt::runtime(std::string(Common::g_title_bar_format_idle)), Common::g_build_id);
     const auto yuzu_build_version = override_build.empty() ? yuzu_build : override_build;
     const auto processor_count = std::thread::hardware_concurrency();
 
     LOG_INFO(Frontend, "Eden Version: {}", yuzu_build_version);
     LogRuntimes();
 #ifdef ARCHITECTURE_x86_64
-    const auto& caps = Common::GetCPUCaps();
-    std::string cpu_string = caps.cpu_string;
-    if (caps.avx || caps.avx2 || caps.avx512f) {
-        cpu_string += " | AVX";
-        if (caps.avx512f) {
-            cpu_string += "512";
-        } else if (caps.avx2) {
-            cpu_string += '2';
-        }
-        if (caps.fma || caps.fma4) {
-            cpu_string += " | FMA";
-        }
-    }
-    LOG_INFO(Frontend, "Host CPU: {}", cpu_string);
-    if (std::optional<int> processor_core = Common::GetProcessorCount()) {
-        LOG_INFO(Frontend, "Host CPU Cores: {}", *processor_core);
+    auto const& caps = Common::GetCPUCaps();
+    std::string ext_string{};
+#define CPU_CAPS_ELEM(n) if (caps.n) ext_string += " | " #n;
+    CPU_CAPS_LIST
+#undef CPU_CAPS_ELEM
+    if (auto const processor_core = Common::GetProcessorCount()) {
+        LOG_INFO(Frontend, "Host CPU: {} ({} cores, {} threads) {}", caps.cpu_string, *processor_core, processor_count, ext_string);
+    } else {
+        LOG_INFO(Frontend, "Host CPU: {} ({} threads) {}", caps.cpu_string, processor_count, ext_string);
     }
 #endif
-    LOG_INFO(Frontend, "Host CPU Threads: {}", processor_count);
     LOG_INFO(Frontend, "Host OS: {}", PrettyProductName().toStdString());
-    LOG_INFO(Frontend, "Host RAM: {:.2f} GiB",
-             Common::GetMemInfo().TotalPhysicalMemory / f64{1_GiB});
+    LOG_INFO(Frontend, "Host RAM: {:.2f} GiB", Common::GetMemInfo().TotalPhysicalMemory / f64{1_GiB});
     LOG_INFO(Frontend, "Host Swap: {:.2f} GiB", Common::GetMemInfo().TotalSwapMemory / f64{1_GiB});
 #ifdef _WIN32
-    LOG_INFO(Frontend, "Host Timer Resolution: {:.4f} ms",
-             std::chrono::duration_cast<std::chrono::duration<f64, std::milli>>(
-                 Common::Windows::SetCurrentTimerResolutionToMaximum())
-                 .count());
-    QtCommon::system->CoreTiming().SetTimerResolutionNs(
-        Common::Windows::GetCurrentTimerResolution());
+    LOG_INFO(Frontend, "Host Timer Resolution: {:.4f} ms", std::chrono::duration_cast<std::chrono::duration<f64, std::milli>>(Common::Windows::SetCurrentTimerResolutionToMaximum()).count());
+    QtCommon::system->CoreTiming().SetTimerResolutionNs(Common::Windows::GetCurrentTimerResolution());
 #endif
     UpdateWindowTitle();
 
@@ -538,10 +520,10 @@ MainWindow::MainWindow(bool has_broken_vulkan)
 
 #ifdef ENABLE_UPDATE_CHECKER
     if (UISettings::values.check_for_updates) {
-        update_future = QtConcurrent::run(
-            []() -> std::optional<UpdateChecker::Update> { return UpdateChecker::GetUpdate(); });
-        update_watcher.connect(&update_watcher, &QFutureWatcher<QString>::finished, this,
-                               &MainWindow::OnEmulatorUpdateAvailable);
+        update_future = QtConcurrent::run([] -> std::optional<UpdateChecker::Update> {
+            return UpdateChecker::GetUpdate();
+        });
+        update_watcher.connect(&update_watcher, &QFutureWatcher<QString>::finished, this, &MainWindow::OnEmulatorUpdateAvailable);
         update_watcher.setFuture(update_future);
     }
 #endif

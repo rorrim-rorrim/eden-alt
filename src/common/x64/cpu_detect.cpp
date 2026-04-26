@@ -65,17 +65,6 @@ static inline u64 xgetbv(u32 index) {
 
 namespace Common {
 
-CPUCaps::Manufacturer CPUCaps::ParseManufacturer(std::string_view brand_string) {
-    if (brand_string == "GenuineIntel") {
-        return Manufacturer::Intel;
-    } else if (brand_string == "AuthenticAMD") {
-        return Manufacturer::AMD;
-    } else if (brand_string == "HygonGenuine") {
-        return Manufacturer::Hygon;
-    }
-    return Manufacturer::Unknown;
-}
-
 // Detects the various CPU features
 static CPUCaps Detect() {
     CPUCaps caps = {};
@@ -93,8 +82,6 @@ static CPUCaps Detect() {
     std::memcpy(&caps.brand_string[0], &cpu_id[1], sizeof(u32));
     std::memcpy(&caps.brand_string[4], &cpu_id[3], sizeof(u32));
     std::memcpy(&caps.brand_string[8], &cpu_id[2], sizeof(u32));
-
-    caps.manufacturer = CPUCaps::ParseManufacturer(caps.brand_string);
 
     // Set reasonable default cpu string even if brand string not available
     std::strncpy(caps.cpu_string, caps.brand_string, std::size(caps.brand_string));
@@ -134,14 +121,21 @@ static CPUCaps Detect() {
             __cpuidex(cpu_id, 0x00000007, 0x00000000);
             // Can't enable AVX{2,512} unless the XSAVE/XGETBV checks above passed
             if (caps.avx) {
+                // ebx
                 caps.avx2 = Common::Bit<5>(cpu_id[1]);
                 caps.avx512f = Common::Bit<16>(cpu_id[1]);
                 caps.avx512dq = Common::Bit<17>(cpu_id[1]);
                 caps.avx512cd = Common::Bit<28>(cpu_id[1]);
                 caps.avx512bw = Common::Bit<30>(cpu_id[1]);
                 caps.avx512vl = Common::Bit<31>(cpu_id[1]);
+                // ecx
                 caps.avx512vbmi = Common::Bit<1>(cpu_id[2]);
+                caps.avx512vbmi2 = Common::Bit<6>(cpu_id[2]);
+                caps.avx512vnni = Common::Bit<11>(cpu_id[2]);
                 caps.avx512bitalg = Common::Bit<12>(cpu_id[2]);
+                caps.avx512popcntq = Common::Bit<14>(cpu_id[2]);
+                // edx
+                caps.avx512bf16 = Common::Bit<7>(cpu_id[3]);
             }
 
             caps.bmi1 = Common::Bit<3>(cpu_id[1]);
@@ -221,17 +215,15 @@ std::optional<int> GetProcessorCount() {
         LOG_ERROR(Frontend, "Failed to query core count.");
         return std::nullopt;
     }
-    std::vector<SYSTEM_LOGICAL_PROCESSOR_INFORMATION> buffer(
-        length / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION));
+    std::vector<SYSTEM_LOGICAL_PROCESSOR_INFORMATION> buffer(length / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION));
     // Now query the core count.
     if (!GetLogicalProcessorInformation(buffer.data(), &length)) {
         LOG_ERROR(Frontend, "Failed to query core count.");
         return std::nullopt;
     }
-    return static_cast<int>(
-        std::count_if(buffer.cbegin(), buffer.cend(), [](const auto& proc_info) {
-            return proc_info.Relationship == RelationProcessorCore;
-        }));
+    return int(std::count_if(buffer.cbegin(), buffer.cend(), [](const auto& proc_info) {
+        return proc_info.Relationship == RelationProcessorCore;
+    }));
 #elif defined(__unix__)
     const int thread_count = std::thread::hardware_concurrency();
     std::ifstream smt("/sys/devices/system/cpu/smt/active");
