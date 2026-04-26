@@ -20,7 +20,7 @@ static bool IsItanium(std::string_view name) {
 }
 
 namespace Common {
-std::string DemangleSymbol(const std::string&& mangled) {
+std::string DemangleSymbol(const std::string& mangled) {
     if (mangled.size() > 0) {
         if (IsItanium(mangled)) {
 #ifdef _MSC_VER

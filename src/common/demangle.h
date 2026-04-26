@@ -10,6 +10,6 @@
 
 namespace Common {
 
-std::string DemangleSymbol(const std::string&& mangled);
+std::string DemangleSymbol(const std::string& mangled);
 
 } // namespace Common
