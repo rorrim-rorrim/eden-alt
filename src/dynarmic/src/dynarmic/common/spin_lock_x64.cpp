@@ -27,6 +27,7 @@ namespace Dynarmic {
 /// @arg waitpkg Whetever or not the "UMWAIT" instruction can be used
 void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Address ptr, Xbyak::Reg32 tmp, bool waitpkg) {
     // TODO: this is because we lack regalloc - so better to be safe :(
+    // TODO: really involve regalloc when we require a 64 bit disp temporal... aside from the one we got handed of course
     if (waitpkg) {
         Xbyak::Label start, loop;
         code.jmp(start, code.T_NEAR);
@@ -56,7 +57,18 @@ void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Address ptr, Xbyak::Reg
         code.pop(Xbyak::util::eax);
         code.L(start);
         code.mov(tmp, 1);
-        /*code.lock();*/ code.xchg(ptr, tmp);
+        if (ptr.is64bitDisp()) {
+            // if tmp is on eax, use ebx, otherwise use eax!
+            auto const other_tmp = tmp == Xbyak::util::eax
+                ? Xbyak::util::ebx
+                : Xbyak::util::eax;
+            code.push(other_tmp);
+            code.mov(other_tmp, ptr.getDisp());
+            /*code.lock();*/ code.xchg(other_tmp, tmp);
+            code.pop(other_tmp);
+        } else {
+            /*code.lock();*/ code.xchg(ptr, tmp);
+        }
         code.test(tmp, tmp);
         code.jnz(loop, code.T_NEAR);
     } else {
@@ -66,7 +78,18 @@ void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Address ptr, Xbyak::Reg
         code.pause();
         code.L(start);
         code.mov(tmp, 1);
-        /*code.lock();*/ code.xchg(ptr, tmp);
+        if (ptr.is64bitDisp()) {
+            // if tmp is on eax, use ebx, otherwise use eax!
+            auto const other_tmp = tmp == Xbyak::util::eax
+                ? Xbyak::util::ebx
+                : Xbyak::util::eax;
+            code.push(other_tmp);
+            code.mov(other_tmp, ptr.getDisp());
+            /*code.lock();*/ code.xchg(other_tmp, tmp);
+            code.pop(other_tmp);
+        } else {
+            /*code.lock();*/ code.xchg(ptr, tmp);
+        }
         code.test(tmp, tmp);
         code.jnz(loop, code.T_NEAR);
     }
