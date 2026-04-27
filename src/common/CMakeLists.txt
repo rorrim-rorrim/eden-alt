@@ -256,7 +256,7 @@ target_link_libraries(common PUBLIC fmt::fmt stb::headers Threads::Threads unord
 target_link_libraries(common PRIVATE lz4::lz4 zstd::zstd)
 
 # Please refer to src/common/demangle.cpp
-if (MSVC)
+if (WIN32)
     target_link_libraries(common PRIVATE LLVM::Demangle)
 endif()
 
