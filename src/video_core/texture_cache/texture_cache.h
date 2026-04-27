@@ -133,7 +133,7 @@ void TextureCache<P>::RunGarbageCollector() {
             return false;
         }
         const bool must_download = image.IsSafeDownload() && False(image.flags & ImageFlagBits::BadOverlap);
-        if (!aggressive_mode && !high_priority_mode && (True(image.flags & ImageFlagBits::CostlyLoad) || must_download)) {
+        if ((!aggressive_mode && True(image.flags & ImageFlagBits::CostlyLoad)) || (!high_priority_mode && must_download)) {
             return false;
         }
         --num_iterations;
