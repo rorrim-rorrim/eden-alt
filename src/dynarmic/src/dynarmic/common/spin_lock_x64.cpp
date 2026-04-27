@@ -70,7 +70,7 @@ void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Address ptr, Xbyak::Reg
                 : Xbyak::util::rax;
             code.push(other_tmp);
             code.mov(other_tmp, ptr.getDisp());
-            /*code.lock();*/ code.xchg(other_tmp, tmp);
+            /*code.lock();*/ code.xchg(code.dword[other_tmp], tmp);
             code.pop(other_tmp);
         } else {
             /*code.lock();*/ code.xchg(ptr, tmp);
@@ -91,7 +91,7 @@ void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Address ptr, Xbyak::Reg
                 : Xbyak::util::rax;
             code.push(other_tmp);
             code.mov(other_tmp, ptr.getDisp());
-            /*code.lock();*/ code.xchg(other_tmp, tmp);
+            /*code.lock();*/ code.xchg(code.dword[other_tmp], tmp);
             code.pop(other_tmp);
         } else {
             /*code.lock();*/ code.xchg(ptr, tmp);
