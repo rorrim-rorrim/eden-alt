@@ -46,7 +46,7 @@
 #include "video_core/gpu_logging/gpu_logging.h"
 
 #ifdef ANDROID
-#include "android_settings.h"
+#include "../../android/app/src/main/jni/android_settings.h"
 #endif
 
 namespace Vulkan {
