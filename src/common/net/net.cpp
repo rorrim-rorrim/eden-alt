@@ -125,7 +125,11 @@ std::optional<Release> Release::FromJson(const nlohmann::json& json, const std::
     rel.published = ParseIsoTimestamp(json.value("published_at", std::string{}));
     rel.prerelease = json.value("prerelease", false);
 
-    rel.body = json.value("body", rel.title);
+    auto body = json.value("body", rel.title);
+    boost::replace_all(body, "\\r", "");
+    boost::replace_all(body, "\\n", "\n");
+    rel.body = body;
+
     rel.host = host;
 
     const auto release_base =

@@ -4225,17 +4225,6 @@ void MainWindow::OnEmulatorUpdateAvailable() {
 
     UpdateDialog dialog(version.value(), this);
     dialog.exec();
-
-    // QMessageBox update_prompt(this);
-    // update_prompt.setWindowTitle(tr("Update Available"));
-    // update_prompt.setIcon(QMessageBox::Information);
-    // update_prompt.addButton(QMessageBox::Yes);
-    // update_prompt.addButton(QMessageBox::Ignore);
-    // update_prompt.setText(tr("Download %1?").arg(QString::fromStdString(version->title)));
-    // update_prompt.exec();
-    // if (update_prompt.button(QMessageBox::Yes) == update_prompt.clickedButton()) {
-    //     QDesktopServices::openUrl(QUrl(QString::fromStdString(version->html_url)));
-    // }
 }
 #endif
 

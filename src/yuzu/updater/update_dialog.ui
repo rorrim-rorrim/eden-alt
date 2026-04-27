@@ -52,20 +52,23 @@
      <layout class="QVBoxLayout" name="radioButtons"/>
     </widget>
    </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="version">
+     <property name="text">
+      <string>%1 is available for download.</string>
+     </property>
+    </widget>
+   </item>
    <item row="1" column="0" colspan="2">
-    <widget class="QTextEdit" name="body">
+    <widget class="QTextBrowser" name="body">
      <property name="horizontalScrollBarPolicy">
       <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
      </property>
      <property name="readOnly">
       <bool>true</bool>
      </property>
-    </widget>
-   </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="version">
-     <property name="text">
-      <string>%1 is available for download.</string>
+     <property name="openExternalLinks">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
