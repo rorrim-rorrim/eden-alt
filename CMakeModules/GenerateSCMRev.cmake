@@ -34,6 +34,11 @@ set(GIT_DESC ${BUILD_VERSION})
 
 # Generate cpp with Git revision from template
 
+# TODO(crueter): Stable releases feed.
+set(BUILD_AUTO_UPDATE_STABLE_REPO "eden-emu/eden")
+set(BUILD_AUTO_UPDATE_STABLE_API "git.eden-emu.dev")
+set(BUILD_AUTO_UPDATE_STABLE_API_PATH "/api/v1/repos/")
+
 set(BUILD_AUTO_UPDATE_API_PATH "/latest/release.json")
 if (NIGHTLY_BUILD)
     set(BUILD_AUTO_UPDATE_WEBSITE "https://git.eden-emu.dev")

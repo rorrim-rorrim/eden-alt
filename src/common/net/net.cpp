@@ -22,7 +22,8 @@
 
 namespace Common::Net {
 
-std::vector<Asset> Release::GetAssets() const {
+std::vector<Asset> Release::GetPlatformAssets() const {
+    // FIXME(crueter): use search strings based on platform's assets, or a fallback name if not
 #ifdef _WIN32
     static constexpr const std::string prefix = "Eden-Windows";
 #elif defined(__APPLE__)
@@ -35,7 +36,6 @@ std::vector<Asset> Release::GetAssets() const {
 #endif
 
     std::vector<std::string> suffixes;
-    std::vector<Asset> assets;
 
     // TODO(crueter): Need better handling for this as a whole.
 #ifdef NIGHTLY_BUILD
@@ -63,7 +63,7 @@ std::vector<Asset> Release::GetAssets() const {
 #ifdef _WIN32
 #ifdef ARCHITECTURE_x86_64
         make_asset(QT_TR_NOOP("Standard"), "-amd64-msvc-standard.zip"),
-        make_asset(QT_TR_NOOP("MinGW"), "-mingw-amd64-gcc-standard.zip"),
+        // make_asset(QT_TR_NOOP("MinGW"), "-mingw-amd64-gcc-standard.zip"),
         make_asset(QT_TR_NOOP("PGO"), "-mingw-amd64-clang-pgo.zip")
 #elif defined(ARCHITECTURE_arm64)
         make_asset(QT_TR_NOOP("Standard"), "-mingw-arm64-clang-standard.zip"),
@@ -133,9 +133,28 @@ std::optional<Release> Release::FromJson(const nlohmann::json& json, const std::
     const auto fallback_html = fmt::format("{}/tag/{}", release_base, rel.tag);
     rel.html_url = json.value("html_url", fallback_html);
 
-    const auto base_download_url = fmt::format("/{}/releases/download/{}", repo, rel.tag);
+    // This is our own "fake" API.
+    if (json.contains("base")) {
+        const auto base = json.value("base", fmt::format("https://{}", Common::g_build_auto_update_api));
+        rel.base_download_url = fmt::format("{}/{}", base, rel.tag);
 
-    rel.base_download_url = base_download_url;
+        // Assets are easy :)
+        rel.assets = json.value("assets", std::vector<std::string>{});
+    } else {
+        const auto base_download_url = fmt::format("/{}/releases/download/{}", repo, rel.tag);
+
+        rel.base_download_url = base_download_url;
+
+        // assets are a bit more complex here. :(
+        std::vector<std::string> assets;
+        const nlohmann::json& arr = json["assets"];
+        for (const auto &obj : arr) {
+            const auto url = obj.value("browser_download_url", std::string{});
+            assets.emplace_back(url);
+        }
+
+        rel.assets = assets;
+    }
 
     return rel;
 }
@@ -227,6 +246,7 @@ std::optional<std::string> MakeRequest(const std::string& url, const std::string
 
 std::vector<Release> GetReleases() {
     const auto body = GetReleasesBody();
+
     if (!body) {
         LOG_WARNING(Common, "Failed to get stable releases");
         return {};
@@ -238,9 +258,7 @@ std::vector<Release> GetReleases() {
 }
 
 std::optional<Release> GetLatestRelease() {
-    const auto releases_path =
-        fmt::format("{}/{}/releases/latest", Common::g_build_auto_update_api_path,
-                    Common::g_build_auto_update_repo);
+    const auto releases_path =  Common::g_build_auto_update_api_path;
     const auto url = fmt::format("https://{}", Common::g_build_auto_update_api);
 
     const auto body = MakeRequest(url, releases_path);

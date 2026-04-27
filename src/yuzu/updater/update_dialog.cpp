@@ -36,7 +36,7 @@ UpdateDialog::UpdateDialog(const Common::Net::Release& release, QWidget* parent)
     ui->body->setMarkdown(QString::fromStdString(text));
 
     // TODO(crueter): Find a way to set default
-    const auto assets = release.GetAssets();
+    const auto assets = release.GetPlatformAssets();
 
     if (assets.empty()) {
         ui->groupBox->setHidden(true);
@@ -45,7 +45,7 @@ UpdateDialog::UpdateDialog(const Common::Net::Release& release, QWidget* parent)
         });
     } else {
         u32 i = 0;
-        for (const Common::Net::Asset& a : release.GetAssets()) {
+        for (const Common::Net::Asset& a : release.GetPlatformAssets()) {
             QRadioButton* r = new QRadioButton(tr(a.name.c_str()), this);
             if (i == 0) r->setChecked(true);
             ++i;

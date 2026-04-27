@@ -26,12 +26,14 @@ typedef struct Release {
     std::string html_url;
     std::string host;
 
+    std::vector<std::string> assets;
+
     u64 id;
     u64 published;
     bool prerelease;
 
     // Get the relevant list of assets for the current platform.
-    std::vector<Asset> GetAssets() const;
+    std::vector<Asset> GetPlatformAssets() const;
 
     static std::optional<Release> FromJson(const nlohmann::json& json, const std::string &host, const std::string& repo);
     static std::optional<Release> FromJson(const std::string_view& json, const std::string &host, const std::string& repo);
