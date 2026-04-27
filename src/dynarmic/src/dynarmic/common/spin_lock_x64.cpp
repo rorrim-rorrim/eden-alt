@@ -65,9 +65,9 @@ void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Address ptr, Xbyak::Reg
         code.mov(tmp, 1);
         if (ptr.is64bitDisp()) {
             // if tmp is on eax, use ebx, otherwise use eax!
-            auto const other_tmp = tmp == Xbyak::util::eax
-                ? Xbyak::util::ebx
-                : Xbyak::util::eax;
+            auto const other_tmp = tmp.cvt32() == Xbyak::util::eax
+                ? Xbyak::util::rbx
+                : Xbyak::util::rax;
             code.push(other_tmp);
             code.mov(other_tmp, ptr.getDisp());
             /*code.lock();*/ code.xchg(other_tmp, tmp);
@@ -86,9 +86,9 @@ void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Address ptr, Xbyak::Reg
         code.mov(tmp, 1);
         if (ptr.is64bitDisp()) {
             // if tmp is on eax, use ebx, otherwise use eax!
-            auto const other_tmp = tmp == Xbyak::util::eax
-                ? Xbyak::util::ebx
-                : Xbyak::util::eax;
+            auto const other_tmp = tmp.cvt32() == Xbyak::util::eax
+                ? Xbyak::util::rbx
+                : Xbyak::util::rax;
             code.push(other_tmp);
             code.mov(other_tmp, ptr.getDisp());
             /*code.lock();*/ code.xchg(other_tmp, tmp);
