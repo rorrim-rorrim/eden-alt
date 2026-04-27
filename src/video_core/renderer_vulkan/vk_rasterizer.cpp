@@ -1010,7 +1010,7 @@ bool AccelerateDMA::BufferToImage(const Tegra::DMA::ImageCopy& copy_info,
 void RasterizerVulkan::UpdateDynamicStates() {
     auto& regs = maxwell3d->regs;
     auto& flags = maxwell3d->dirty.flags;
-    const auto topology = maxwell3d->draw_manager->GetDrawState().topology;
+    const auto topology = maxwell3d->draw_manager.draw_state.topology;
     if (state_tracker.ChangePrimitiveTopology(topology)) {
         flags[Dirty::DepthBiasEnable] = true;
         flags[Dirty::PrimitiveRestartEnable] = true;
@@ -1443,8 +1443,7 @@ void RasterizerVulkan::UpdatePrimitiveRestartEnable(Tegra::Engines::Maxwell3D::R
     if (device.IsMoltenVK()) {
         enable = true;
     } else if (enable) {
-        const auto topology =
-            MaxwellToVK::PrimitiveTopology(device, maxwell3d->draw_manager->GetDrawState().topology);
+        const auto topology = MaxwellToVK::PrimitiveTopology(device, maxwell3d->draw_manager.draw_state.topology);
         enable = IsPrimitiveRestartSupported(device, topology);
     }
 
