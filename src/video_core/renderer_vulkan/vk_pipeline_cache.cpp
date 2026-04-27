@@ -45,6 +45,10 @@
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 #include "video_core/gpu_logging/gpu_logging.h"
 
+#ifdef ANDROID
+#include "android_settings.h"
+#endif
+
 namespace Vulkan {
 
 namespace {
@@ -325,12 +329,13 @@ size_t GetTotalPipelineWorkers() {
     const size_t max_core_threads =
         std::max<size_t>(static_cast<size_t>(std::thread::hardware_concurrency()), 2ULL) - 1ULL;
 #ifdef ANDROID
-    // Leave at least 3 cores free on Android to avoid stalling the system.
-    constexpr size_t free_cores = 3ULL;
-    if (max_core_threads <= free_cores) {
+    const int configured = AndroidSettings::values.pipeline_worker_count.GetValue();
+    const int clamped = std::clamp(configured, 4, 8);
+    const size_t desired = static_cast<size_t>(clamped);
+    if (desired == 0) {
         return 1ULL;
     }
-    return max_core_threads - free_cores;
+    return std::min(max_core_threads, desired);
 #else
     return max_core_threads;
 #endif
