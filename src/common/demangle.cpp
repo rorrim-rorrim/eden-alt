@@ -6,7 +6,7 @@
 
 #include <string>
 #include <string_view>
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include <llvm/Demangle/Demangle.h>
 #else
 #include <cxxabi.h>
@@ -23,7 +23,7 @@ namespace Common {
 std::string DemangleSymbol(const std::string& mangled) {
     if (mangled.size() > 0) {
         if (IsItanium(mangled)) {
-#ifdef _MSC_VER
+#ifdef _WIN32
             // requires the use of llvm
             if (char* p = llvm::itaniumDemangle(mangled); p != nullptr) {
                 std::string ret = std::string{p};
