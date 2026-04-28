@@ -820,7 +820,7 @@ void Device::ReportLoss() const {
             s += "\n";
         }
         LOG_INFO(Render_Vulkan, "{}", s);
-    }
+    } else if ()
 
     // Wait for the log to flush and for Nsight Aftermath to dump the results
     std::this_thread::sleep_for(std::chrono::seconds{15});
@@ -1130,6 +1130,10 @@ bool Device::GetSuitability(bool requires_swapchain) {
         properties.maintenance5.sType =
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_PROPERTIES_KHR;
         SetNext(next, properties.maintenance5);
+    }
+    if (extensions.device_fault) {
+        properties.device_fault.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FAULT_FEATURES_EXT;
+        SetNext(next, properties.device_fault);
     }
 
     // Perform the property fetch.

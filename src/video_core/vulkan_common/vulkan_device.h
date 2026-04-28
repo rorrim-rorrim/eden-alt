@@ -82,8 +82,8 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(EXT, SHADER_STENCIL_EXPORT, shader_stencil_export)                                   \
     EXTENSION(EXT, SHADER_VIEWPORT_INDEX_LAYER, shader_viewport_index_layer)                       \
     EXTENSION(EXT, TOOLING_INFO, tooling_info)                                                     \
-    EXTENSION(EXT, DEVICE_FAULT, device_fault)                                                     \
     EXTENSION(EXT, VERTEX_ATTRIBUTE_DIVISOR, vertex_attribute_divisor)                             \
+    EXTENSION(EXT, DEVICE_FAULT, device_fault)                                                     \
     EXTENSION(KHR, DRAW_INDIRECT_COUNT, draw_indirect_count)                                       \
     EXTENSION(KHR, DRIVER_PROPERTIES, driver_properties)                                           \
     EXTENSION(KHR, PUSH_DESCRIPTOR, push_descriptor)                                               \
@@ -997,7 +997,7 @@ private:
         VkPhysicalDeviceSubgroupSizeControlProperties subgroup_size_control{};
         VkPhysicalDeviceTransformFeedbackPropertiesEXT transform_feedback{};
         VkPhysicalDeviceMaintenance5PropertiesKHR maintenance5{};
-
+        VkPhysicalDeviceFaultFeaturesEXT device_fault{};
         VkPhysicalDeviceProperties properties{};
     };
 
