@@ -478,7 +478,7 @@ void EnsureBuiltinNewsLoaded() {
 
                 LOG_INFO(Service_BCAT, "news: {} entries updated from Forgejo", NewsStorage::Instance().ListAll().size());
             }
-        });
+        }).detach();
     });
 }
 
