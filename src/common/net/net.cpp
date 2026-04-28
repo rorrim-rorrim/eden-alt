@@ -23,20 +23,6 @@
 namespace Common::Net {
 
 std::vector<Asset> Release::GetPlatformAssets() const {
-    // FIXME(crueter): use search strings based on platform's assets, or a fallback name if not
-#ifdef _WIN32
-    static constexpr const std::string prefix = "Eden-Windows";
-#elif defined(__APPLE__)
-    static constexpr const std::string prefix = "Eden-macOS";
-#elif defined(__ANDROID__)
-    static constexpr const std::string prefix = "Eden-Android";
-#else
-    LOG_DEBUG(Common, "Unsupported platform for auto-update");
-    static constexpr const std::string prefix = "Eden";
-#endif
-
-    std::vector<std::string> suffixes;
-
     // TODO(crueter): Need better handling for this as a whole.
 #ifdef NIGHTLY_BUILD
     std::vector<std::string> result;
@@ -48,44 +34,57 @@ std::vector<Asset> Release::GetPlatformAssets() const {
     const auto ref = tag;
 #endif
 
-    const auto make_asset = [this, ref](const std::string& name,
-                                        const std::string& suffix) -> Asset {
-        const auto filename = fmt::format("{}-{}{}", prefix, ref, suffix);
-        return Asset{.name = name,
-                     .url = host,
-                     .path = fmt::format("{}/{}", base_download_url, filename),
-                     .filename = filename};
+    std::vector<Asset> found_assets;
+
+    // FIXME: This is mildly inefficient.
+    // Finds assets based on a hierarchy of regex search strings.
+    const auto find_asset = [&found_assets, ref, this](const std::string& name,
+                                                       const std::vector<std::string>& suffixes) {
+        for (const std::string& asset : assets) {
+            for (const auto& suffix : suffixes) {
+                if (asset.ends_with(suffix)) {
+                    const std::string_view asset_sv = asset;
+                    const size_t pos = asset_sv.find_last_of('/');
+                    const std::string_view filename =
+                        (pos != std::string_view::npos) ? asset_sv.substr(pos + 1) : asset_sv;
+
+                    found_assets.emplace_back(Asset{
+                        .name = name,
+                        .url = host,
+                        .path = asset,
+                        .filename = std::string{filename},
+                    });
+                    return;
+                }
+            }
+        }
     };
 
-    // TODO(crueter): Handle setup when that becomes a thing
-    // TODO(crueter): Descriptions? Android?
-    return {
 #ifdef _WIN32
 #ifdef ARCHITECTURE_x86_64
-        make_asset(QT_TR_NOOP("Standard"), "-amd64-msvc-standard.zip"),
-        // make_asset(QT_TR_NOOP("MinGW"), "-mingw-amd64-gcc-standard.zip"),
-        make_asset(QT_TR_NOOP("PGO"), "-mingw-amd64-clang-pgo.zip")
+    find_asset("Standard", {"amd64-msvc-standard.exe", "amd64-msvc-standard.zip", "mingw-amd64-gcc-standard.exe", "mingw-amd64-gcc-standard.zip"});
+    find_asset("PGO", {"mingw-amd64-clang-pgo.exe", "mingw-amd64-clang-pgo.zip"});
 #elif defined(ARCHITECTURE_arm64)
-        make_asset(QT_TR_NOOP("Standard"), "-mingw-arm64-clang-standard.zip"),
-        make_asset(QT_TR_NOOP("PGO"), "-mingw-arm64-clang-pgo.zip")
+    find_asset("Standard", {"mingw-arm64-clang-standard.exe", "mingw-arm64-clang-standard.zip"});
+    find_asset("PGO", {"mingw-arm64-clang-pgo.exe", "mingw-arm64-clang-pgo.zip"});
 #endif
 #elif defined(__APPLE__)
 #ifdef ARCHITECTURE_arm64
-        make_asset(QT_TR_NOOP("Standard"), ".dmg"),
+    find_asset("Standard", {".dmg", ".tar.gz"});
 #endif
 #elif defined(__ANDROID__)
 #ifdef ARCHITECTURE_x86_64
-        make_asset("Standard", "-chromeos.apk"),
+    find_asset("Standard", {"chromeos.apk"});
 #elif defined(ARCHITECTURE_arm64)
 #ifdef YUZU_LEGACY
-        make_asset("Standard", "-legacy.apk"),
+    find_asset("Standard", {"legacy.apk"});
 #else
-        make_asset("Standard", "-standard.apk"),
-        make_asset("Genshin Spoof", "-optimized.apk"),
+    find_asset("Standard", {"standard.apk"});
+    find_asset("Genshin Spoof", {"optimized.apk"});
 #endif
 #endif
 #endif
-    };
+    return found_assets;
 }
 
 static inline u64 ParseIsoTimestamp(const std::string& iso) {
