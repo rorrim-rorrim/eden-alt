@@ -133,7 +133,7 @@ std::optional<Release> Release::FromJson(const nlohmann::json& json, const std::
     rel.host = host;
 
     const auto release_base =
-        fmt::format("{}/{}/releases", host, repo);
+        fmt::format("{}/{}/releases", Common::g_build_auto_update_website, repo);
     const auto fallback_html = fmt::format("{}/tag/{}", release_base, rel.tag);
     rel.html_url = json.value("html_url", fallback_html);
 

@@ -467,14 +467,18 @@ void EnsureBuiltinNewsLoaded() {
             ImportReleases(releases);
 
             LOG_INFO(Service_BCAT, "news: {} entries loaded from cache", NewsStorage::Instance().ListAll().size());
-        } else if (const auto fresh = Common::Net::GetReleasesBody()) {
-            const std::string_view body = fresh.value();
-            WriteCachedJson(body);
-            const auto releases = Common::Net::Release::ListFromJson(body, Common::g_build_auto_update_stable_api, Common::g_build_auto_update_stable_repo);
-            ImportReleases(releases);
-
-            LOG_INFO(Service_BCAT, "news: {} entries updated from Forgejo", NewsStorage::Instance().ListAll().size());
         }
+
+        std::thread([] {
+            if (const auto fresh = Common::Net::GetReleasesBody()) {
+                const std::string_view body = fresh.value();
+                WriteCachedJson(body);
+                const auto releases = Common::Net::Release::ListFromJson(body, Common::g_build_auto_update_stable_api, Common::g_build_auto_update_stable_repo);
+                ImportReleases(releases);
+
+                LOG_INFO(Service_BCAT, "news: {} entries updated from Forgejo", NewsStorage::Instance().ListAll().size());
+            }
+        });
     });
 }
 
