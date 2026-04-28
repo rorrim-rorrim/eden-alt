@@ -218,8 +218,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             val artifact = asset.split("/").last()
             val apkFile = File(cacheDir, "update-$artifact.apk")
 
-            Log.info("Artifact: ${artifact}\nAsset: ${asset}")
-
             withContext(Dispatchers.Main) {
                 showDownloadProgressDialog()
             }
