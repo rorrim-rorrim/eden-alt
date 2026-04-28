@@ -268,11 +268,6 @@ if (NOT EXISTS ${PROJECT_BINARY_DIR}/${compat_json})
     file(WRITE ${PROJECT_BINARY_DIR}/${compat_json} "")
 endif()
 
-if (YUZU_LEGACY)
-    message(WARNING "Making legacy build. Performance may suffer.")
-    add_compile_definitions(YUZU_LEGACY)
-endif()
-
 if (ARCHITECTURE_arm64 AND (ANDROID OR PLATFORM_LINUX))
     set(HAS_NCE 1)
     add_compile_definitions(HAS_NCE=1)

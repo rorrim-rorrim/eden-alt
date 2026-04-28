@@ -78,9 +78,10 @@ std::vector<Asset> Release::GetPlatformAssets() const {
 #elif defined(ARCHITECTURE_arm64)
 #ifdef YUZU_LEGACY
     find_asset("Standard", {"legacy.apk"});
+#elif defined(GENSHIN_SPOOF)
+    find_asset("Standard", {"optimized.apk"});
 #else
     find_asset("Standard", {"standard.apk"});
-    find_asset("Genshin Spoof", {"optimized.apk"});
 #endif
 #endif
 #endif
@@ -132,7 +133,7 @@ std::optional<Release> Release::FromJson(const nlohmann::json& json, const std::
     rel.host = host;
 
     const auto release_base =
-        fmt::format("{}/{}/releases", Common::g_build_auto_update_stable_api, repo);
+        fmt::format("{}/{}/releases", host, repo);
     const auto fallback_html = fmt::format("{}/tag/{}", release_base, rel.tag);
     rel.html_url = json.value("html_url", fallback_html);
 
