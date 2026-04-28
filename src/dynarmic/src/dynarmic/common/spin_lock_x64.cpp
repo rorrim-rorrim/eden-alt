@@ -98,7 +98,18 @@ void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Address ptr, Xbyak::Reg
 // ptr operand must be a dword[ptr]
 void EmitSpinLockUnlock(Xbyak::CodeGenerator& code, Xbyak::Address ptr, Xbyak::Reg32 tmp) {
     code.xor_(tmp, tmp);
-    code.xchg(ptr, tmp);
+    if (ptr.is64bitDisp()) {
+        // if tmp is on eax, use ebx, otherwise use eax!
+        auto const other_tmp = tmp.cvt32() == Xbyak::util::eax
+            ? Xbyak::util::rbx
+            : Xbyak::util::rax;
+        code.push(other_tmp);
+        code.mov(other_tmp, ptr.getDisp());
+        /*code.lock();*/ code.xchg(code.dword[other_tmp], tmp);
+        code.pop(other_tmp);
+    } else {
+        /*code.lock();*/ code.xchg(ptr, tmp);
+    }
     code.mfence();
 }
 
