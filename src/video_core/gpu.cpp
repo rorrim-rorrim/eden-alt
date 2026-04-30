@@ -89,8 +89,8 @@ struct GPU::Impl {
     /// Binds a renderer to the GPU.
     void BindRenderer(std::unique_ptr<VideoCore::RendererBase> renderer_) {
         renderer = std::move(renderer_);
-        system.Host1x().MemoryManager().BindInterface(renderer->ReadRasterizer());
-        system.Host1x().GMMU().BindRasterizer(renderer->ReadRasterizer());
+        system.Host1x().memory_manager.BindInterface(renderer->ReadRasterizer());
+        system.Host1x().gmmu_manager.BindRasterizer(renderer->ReadRasterizer());
     }
 
     /// Flush all current written commands into the host GPU for execution.
