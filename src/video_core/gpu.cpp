@@ -189,12 +189,12 @@ struct GPU::Impl {
 
     /// Push GPU command entries to be processed
     void PushGPUEntries(s32 channel, Tegra::CommandList&& entries) {
-        gpu_thread.SubmitList(channel, std::move(entries));
+        gpu_thread.SubmitList(channel, std::move(entries), is_async);
     }
 
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
     void FlushRegion(DAddr addr, u64 size) {
-        gpu_thread.FlushRegion(addr, size);
+        gpu_thread.FlushRegion(addr, size, is_async);
     }
 
     VideoCore::RasterizerDownloadArea OnCPURead(DAddr addr, u64 size) {
@@ -206,7 +206,7 @@ struct GPU::Impl {
         const u64 fence = RequestSyncOperation([this, &raster_area]() {
             renderer->ReadRasterizer()->FlushRegion(raster_area.start_address, raster_area.end_address - raster_area.start_address);
         });
-        gpu_thread.TickGPU();
+        gpu_thread.TickGPU(is_async);
         WaitForSyncOperation(fence);
         return raster_area;
     }
@@ -222,7 +222,7 @@ struct GPU::Impl {
 
     /// Notify rasterizer that any caches of the specified region should be flushed and invalidated
     void FlushAndInvalidateRegion(DAddr addr, u64 size) {
-        gpu_thread.FlushAndInvalidateRegion(addr, size);
+        gpu_thread.FlushAndInvalidateRegion(addr, size, is_async);
     }
 
     void RequestComposite(std::vector<Tegra::FramebufferConfig>&& layers,
@@ -260,7 +260,7 @@ struct GPU::Impl {
                     syncpoint_manager.RegisterGuestAction(fences[i].id, fences[i].value, executer);
                 }
             });
-        gpu_thread.TickGPU();
+        gpu_thread.TickGPU(is_async);
         WaitForSyncOperation(wait_fence);
     }
 
@@ -269,7 +269,7 @@ struct GPU::Impl {
 
         const auto wait_fence =
             RequestSyncOperation([&] { out = renderer->GetAppletCaptureBuffer(); });
-        gpu_thread.TickGPU();
+        gpu_thread.TickGPU(is_async);
         WaitForSyncOperation(wait_fence);
 
         return out;

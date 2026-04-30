@@ -271,7 +271,7 @@ struct System::Impl {
 
     SystemResultStatus SetupForApplicationProcess(System& system, Frontend::EmuWindow& emu_window) {
         host1x_core.emplace(system);
-        gpu_core = VideoCore::CreateGPU(emu_window, system);
+        VideoCore::CreateGPU(gpu_core, emu_window, system);
         if (!gpu_core)
             return SystemResultStatus::ErrorVideoCore;
 
@@ -391,10 +391,8 @@ struct System::Impl {
         is_powered_on = false;
         exit_locked = false;
         exit_requested = false;
-
-        if (gpu_core != nullptr) {
+        if (gpu_core)
             gpu_core->NotifyShutdown();
-        }
 
         stop_event.request_stop();
         core_timing.SyncPause(false);
@@ -479,6 +477,7 @@ struct System::Impl {
     std::optional<Memory::CheatEngine> cheat_engine;
     std::optional<Tools::Freezer> memory_freezer;
     std::optional<Tools::RenderdocAPI> renderdoc_api;
+    std::optional<Tegra::GPU> gpu_core;
 
     std::array<Core::GPUDirtyMemoryManager, Core::Hardware::NUM_CPU_CORES> gpu_dirty_memory_managers;
     std::vector<std::vector<u8>> user_channel;
@@ -493,7 +492,6 @@ struct System::Impl {
     std::unique_ptr<FileSys::ContentProviderUnion> content_provider;
     /// AppLoader used to load the current executing application
     std::unique_ptr<Loader::AppLoader> app_loader;
-    std::unique_ptr<Tegra::GPU> gpu_core;
     std::stop_source stop_event;
 
     mutable std::mutex suspend_guard;

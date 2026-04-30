@@ -25,9 +25,9 @@ CpuManager::~CpuManager() = default;
 
 void CpuManager::Initialize() {
     num_cores = is_multicore ? Core::Hardware::NUM_CPU_CORES : 1;
-    gpu_barrier = std::make_unique<Common::Barrier>(num_cores + 1);
+    gpu_barrier.emplace(num_cores + 1);
     for (std::size_t core = 0; core < num_cores; core++)
-        core_data[core].host_thread = std::jthread([this, core](std::stop_token token) { RunThread(token, core); });
+        core_data[core].host_thread = std::jthread(&CpuManager::RunThread, core);
 }
 
 void CpuManager::Shutdown() {
@@ -63,7 +63,7 @@ void CpuManager::HandleInterrupt() {
     auto& kernel = system.Kernel();
     auto core_index = kernel.CurrentPhysicalCoreIndex();
 
-    Kernel::KInterruptManager::HandleInterrupt(kernel, static_cast<s32>(core_index));
+    Kernel::KInterruptManager::HandleInterrupt(kernel, s32(core_index));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
