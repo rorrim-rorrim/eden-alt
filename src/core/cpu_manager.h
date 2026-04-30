@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -86,22 +89,20 @@ private:
     void ShutdownThread();
     void RunThread(std::stop_token stop_token, std::size_t core);
 
+    static constexpr std::size_t max_cycle_runs = 5;
+
+    std::optional<Common::Barrier> gpu_barrier{};
     struct CoreData {
         std::shared_ptr<Common::Fiber> host_context;
         std::jthread host_thread;
     };
-
-    std::unique_ptr<Common::Barrier> gpu_barrier{};
     std::array<CoreData, Core::Hardware::NUM_CPU_CORES> core_data{};
-
-    bool is_async_gpu{};
-    bool is_multicore{};
+    System& system;
     std::atomic<std::size_t> current_core{};
     std::size_t idle_count{};
     std::size_t num_cores{};
-    static constexpr std::size_t max_cycle_runs = 5;
-
-    System& system;
+    bool is_async_gpu{};
+    bool is_multicore{};
 };
 
 } // namespace Core
