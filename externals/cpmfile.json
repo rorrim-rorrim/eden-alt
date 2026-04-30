@@ -38,7 +38,6 @@
         ],
         "options": [
             "HTTPLIB_REQUIRE_OPENSSL OFF",
-            "HTTPLIB_DISABLE_MACOSX_AUTOMATIC_ROOT_CERTIFICATES ON",
             "HTTPLIB_USE_OPENSSL_IF_AVAILABLE OFF"
         ]
     },
