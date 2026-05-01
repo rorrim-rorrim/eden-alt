@@ -19,7 +19,7 @@
 
 namespace VideoCommon::GPUThread {
 
-ThreadManager::ThreadManager(Core::System& system_, bool is_async_)
+ThreadManager::ThreadManager(Core::System& system_)
     : system{system_}
 {}
 
@@ -70,7 +70,6 @@ void ThreadManager::FlushRegion(DAddr addr, u64 size, bool is_async) {
         // Always flush with synchronous GPU mode
         PushCommand(FlushRegionCommand(addr, size), false, is_async);
     }
-    return;
 }
 
 void ThreadManager::TickGPU(bool is_async) {

@@ -45,7 +45,7 @@ struct GPU::Impl {
         , use_nvdec{use_nvdec_}
         , shader_notify()
         , is_async{is_async_}
-        , gpu_thread{system_, is_async_}
+        , gpu_thread{system_}
     {}
 
     ~Impl() = default;
