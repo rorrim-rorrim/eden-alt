@@ -181,9 +181,7 @@ void DmaPusher::CallMethod(u32 argument) {
         } else {
             subchannel->ConsumeSink(system);
             subchannel->current_dma_segment = dma_state.dma_get + dma_state.dma_word_offset;
-            subchannel->CallMethod(dma_state.method, argument, dma_state.is_last_call);
-        } else {
-            subchannel->method_sink.emplace_back(dma_state.method, argument);
+            subchannel->CallMethod(system, dma_state.method, argument, dma_state.is_last_call);
         }
     }
 }
@@ -195,7 +193,7 @@ void DmaPusher::CallMultiMethod(const u32* base_start, u32 num_methods) {
         auto subchannel = subchannels[dma_state.subchannel];
         subchannel->ConsumeSink(system);
         subchannel->current_dma_segment = dma_state.dma_get + dma_state.dma_word_offset;
-        subchannel->CallMultiMethod(dma_state.method, base_start, num_methods, dma_state.method_count);
+        subchannel->CallMultiMethod(system, dma_state.method, base_start, num_methods, dma_state.method_count);
     }
 }
 

@@ -18,12 +18,12 @@
 namespace Tegra::Control {
 
 ChannelState::Payload::Payload(Core::System& system, MemoryManager& memory_manager, ChannelState& channel_state)
-    : maxwell_3d(system, memory_manager)
+    : maxwell_3d(memory_manager)
     , fermi_2d(memory_manager)
-    , kepler_compute(system, memory_manager)
-    , maxwell_dma(system, memory_manager)
-    , kepler_memory(system, memory_manager)
-    , nv01_timer(system, memory_manager)
+    , kepler_compute(memory_manager)
+    , maxwell_dma(memory_manager)
+    , kepler_memory(memory_manager)
+    , nv01_timer(memory_manager)
     , dma_pusher(system, memory_manager, channel_state)
 {}
 
