@@ -1696,12 +1696,8 @@ JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_isNightlyBuild(
 #endif
 }
 
+JNIEXPORT jobject JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_checkForUpdate( JNIEnv* env, jobject obj) {
 #ifdef ENABLE_UPDATE_CHECKER
-
-
-JNIEXPORT jobject JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_checkForUpdate(
-        JNIEnv* env,
-        jobject obj) {
     std::optional<Common::Net::Release> release = UpdateChecker::GetUpdate();
     if (!release) return nullptr;
 
@@ -1767,9 +1763,10 @@ JNIEXPORT jobject JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_checkForUpdate(
     env->DeleteLocalRef(updateResultClass);
 
     return updateResult;
-}
-
+#else
+    return nullptr;
 #endif
+}
 
 JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getBuildVersion(
         JNIEnv* env,
