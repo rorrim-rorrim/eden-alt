@@ -218,7 +218,7 @@ void Maxwell3D::ProcessMacro(Core::System& system, u32 method, const u32* base_s
     // Call the macro when there are no more parameters in the command buffer
     if (is_last_call) {
         ConsumeSink(system);
-        CallMacroMethod(executing_macro, macro_params);
+        CallMacroMethod(system, executing_macro, macro_params);
         macro_params.clear();
         macro_addresses.clear();
         macro_segments.clear();
@@ -389,7 +389,7 @@ void Maxwell3D::ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argume
     }
 }
 
-void Maxwell3D::CallMacroMethod(u32 method, const std::vector<u32>& parameters) {
+void Maxwell3D::CallMacroMethod(Core::System& system, u32 method, const std::vector<u32>& parameters) {
     // Reset the current macro.
     executing_macro = 0;
 
@@ -398,7 +398,7 @@ void Maxwell3D::CallMacroMethod(u32 method, const std::vector<u32>& parameters) 
         ((method - MacroRegistersStart) >> 1) % static_cast<u32>(macro_positions.size());
 
     // Execute the current macro.
-    macro_engine.Execute(*this, macro_positions[entry], parameters);
+    macro_engine.Execute(system, *this, macro_positions[entry], parameters);
     draw_manager.DrawDeferred(*this);
 }
 
