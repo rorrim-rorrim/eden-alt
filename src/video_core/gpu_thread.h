@@ -104,7 +104,7 @@ struct SynchState final {
 /// Class used to manage the GPU thread
 class ThreadManager final {
 public:
-    explicit ThreadManager(Core::System& system_, bool is_async_);
+    explicit ThreadManager(Core::System& system_);
     ~ThreadManager();
 
     /// Creates and starts the GPU thread.
