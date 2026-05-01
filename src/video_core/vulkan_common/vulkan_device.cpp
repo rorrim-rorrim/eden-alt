@@ -952,13 +952,13 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
 #define EXTENSION(prefix, macro_name, var_name)                                                    \
     if (supported_extensions.contains(VK_##prefix##_##macro_name##_EXTENSION_NAME)) {              \
-            loaded_extensions.insert(VK_##prefix##_##macro_name##_EXTENSION_NAME);                     \
-            extensions.var_name = true;                                                                \
+        loaded_extensions.insert(VK_##prefix##_##macro_name##_EXTENSION_NAME);                     \
+        extensions.var_name = true;                                                                \
     }
 #define FEATURE_EXTENSION(prefix, struct_name, macro_name, var_name)                               \
     if (supported_extensions.contains(VK_##prefix##_##macro_name##_EXTENSION_NAME)) {              \
-            loaded_extensions.insert(VK_##prefix##_##macro_name##_EXTENSION_NAME);                     \
-            extensions.var_name = true;                                                                \
+        loaded_extensions.insert(VK_##prefix##_##macro_name##_EXTENSION_NAME);                     \
+        extensions.var_name = true;                                                                \
     }
 
     if (instance_version < VK_API_VERSION_1_2) {
@@ -982,19 +982,24 @@ bool Device::GetSuitability(bool requires_swapchain) {
         extensions.robustness_2 = false;
     }
 
+    // different namings
+    if (supported_extensions.contains(VK_EXT_DEVICE_FAULT_EXTENSION_NAME)) {
+        loaded_extensions.insert(VK_EXT_DEVICE_FAULT_EXTENSION_NAME);
+        extensions.device_fault = true;
+    }
 #undef FEATURE_EXTENSION
 #undef EXTENSION
 
 // Some extensions are mandatory. Check those.
 #define CHECK_EXTENSION(extension_name)                                                            \
     if (!loaded_extensions.contains(extension_name)) {                                             \
-            LOG_ERROR(Render_Vulkan, "Missing required extension {}", extension_name);                 \
-            suitable = false;                                                                          \
+        LOG_ERROR(Render_Vulkan, "Missing required extension {}", extension_name);                 \
+        suitable = false;                                                                          \
     }
 
 #define LOG_EXTENSION(extension_name)                                                              \
     if (!loaded_extensions.contains(extension_name)) {                                             \
-            LOG_INFO(Render_Vulkan, "Device doesn't support extension {}", extension_name);            \
+        LOG_INFO(Render_Vulkan, "Device doesn't support extension {}", extension_name);            \
     }
 
     FOR_EACH_VK_RECOMMENDED_EXTENSION(LOG_EXTENSION);
@@ -1032,9 +1037,9 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
 #define EXT_FEATURE(prefix, struct_name, macro_name, var_name)                                     \
     if (extensions.var_name) {                                                                     \
-            features.var_name.sType =                                                                  \
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_##macro_name##_FEATURES_##prefix;                    \
-            SetNext(next, features.var_name);                                                          \
+        features.var_name.sType =                                                                  \
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_##macro_name##_FEATURES_##prefix;                        \
+        SetNext(next, features.var_name);                                                          \
     }
 
     FOR_EACH_VK_FEATURE_1_1(FEATURE);
@@ -1049,7 +1054,10 @@ bool Device::GetSuitability(bool requires_swapchain) {
     } else {
         FOR_EACH_VK_FEATURE_1_3(EXT_FEATURE);
     }
-
+    if (extensions.device_fault) {
+        features.device_fault.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FAULT_FEATURES_EXT;
+        SetNext(next, features.device_fault);
+    }
 #undef EXT_FEATURE
 #undef FEATURE
 
@@ -1128,10 +1136,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
         properties.maintenance5.sType =
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_PROPERTIES_KHR;
         SetNext(next, properties.maintenance5);
-    }
-    if (extensions.device_fault) {
-        properties.device_fault.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FAULT_FEATURES_EXT;
-        SetNext(next, properties.device_fault);
     }
 
     // Perform the property fetch.
