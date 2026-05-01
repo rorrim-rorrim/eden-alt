@@ -19,7 +19,7 @@
 #include "common/common_types.h"
 #include "common/settings_enums.h"
 #include "qt_common/config/shared_translation.h"
-#include "vk_device_info.h"
+#include "qt_common/util/vk.h"
 #include "yuzu/configuration/configuration_shared.h"
 
 class QPushButton;
