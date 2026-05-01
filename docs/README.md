@@ -25,3 +25,4 @@ Policies and information on development.
 - **[AI and LLM Usage](./policies/AI.md)**
 - **[Release Policy](./policies/Release.md)**
 - **[Coding guidelines](./policies/Coding.md)**
+- **[Coding Style guidelines](./policies/CodingStyle.md)**
