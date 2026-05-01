@@ -27,7 +27,9 @@ void CpuManager::Initialize() {
     num_cores = is_multicore ? Core::Hardware::NUM_CPU_CORES : 1;
     gpu_barrier.emplace(num_cores + 1);
     for (std::size_t core = 0; core < num_cores; core++)
-        core_data[core].host_thread = std::jthread(&CpuManager::RunThread, core);
+        core_data[core].host_thread = std::jthread([this, core](std::stop_token token) {
+            RunThread(token, core);
+        }, core);
 }
 
 void CpuManager::Shutdown() {
