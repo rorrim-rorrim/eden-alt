@@ -29,7 +29,7 @@ void CpuManager::Initialize() {
     for (std::size_t core = 0; core < num_cores; core++)
         core_data[core].host_thread = std::jthread([this, core](std::stop_token token) {
             RunThread(token, core);
-        }, core);
+        });
 }
 
 void CpuManager::Shutdown() {
