@@ -29,22 +29,22 @@ void Puller::ProcessBindMethod(DmaPusher& dma_pusher, const MethodCall& method_c
     bound_engines[method_call.subchannel] = engine_id;
     switch (engine_id) {
     case EngineID::FERMI_TWOD_A:
-        dma_pusher.BindSubchannel(&*dma_pusher.channel_state.fermi_2d, method_call.subchannel, EngineTypes::Fermi2D);
+        dma_pusher.BindSubchannel(&dma_pusher.channel_state.payload->fermi_2d, method_call.subchannel, EngineTypes::Fermi2D);
         break;
     case EngineID::MAXWELL_B:
-        dma_pusher.BindSubchannel(&*dma_pusher.channel_state.maxwell_3d, method_call.subchannel, EngineTypes::Maxwell3D);
+        dma_pusher.BindSubchannel(&dma_pusher.channel_state.payload->maxwell_3d, method_call.subchannel, EngineTypes::Maxwell3D);
         break;
     case EngineID::KEPLER_COMPUTE_B:
-        dma_pusher.BindSubchannel(&*dma_pusher.channel_state.kepler_compute, method_call.subchannel, EngineTypes::KeplerCompute);
+        dma_pusher.BindSubchannel(&dma_pusher.channel_state.payload->kepler_compute, method_call.subchannel, EngineTypes::KeplerCompute);
         break;
     case EngineID::MAXWELL_DMA_COPY_A:
-        dma_pusher.BindSubchannel(&*dma_pusher.channel_state.maxwell_dma, method_call.subchannel, EngineTypes::MaxwellDMA);
+        dma_pusher.BindSubchannel(&dma_pusher.channel_state.payload->maxwell_dma, method_call.subchannel, EngineTypes::MaxwellDMA);
         break;
     case EngineID::KEPLER_INLINE_TO_MEMORY_B:
-        dma_pusher.BindSubchannel(&*dma_pusher.channel_state.kepler_memory, method_call.subchannel, EngineTypes::KeplerMemory);
+        dma_pusher.BindSubchannel(&dma_pusher.channel_state.payload->kepler_memory, method_call.subchannel, EngineTypes::KeplerMemory);
         break;
     case EngineID::NV01_TIMER:
-        dma_pusher.BindSubchannel(&*dma_pusher.channel_state.nv01_timer, method_call.subchannel, EngineTypes::Nv01Timer);
+        dma_pusher.BindSubchannel(&dma_pusher.channel_state.payload->nv01_timer, method_call.subchannel, EngineTypes::Nv01Timer);
         break;
     default:
         UNIMPLEMENTED_MSG("Unimplemented engine {:04X}", engine_id);
@@ -198,22 +198,22 @@ void Puller::CallEngineMethod(DmaPusher& dma_pusher, const MethodCall& method_ca
     const EngineID engine = bound_engines[method_call.subchannel];
     switch (engine) {
     case EngineID::FERMI_TWOD_A:
-        dma_pusher.channel_state.fermi_2d->CallMethod(method_call.method, method_call.argument, method_call.IsLastCall());
+        dma_pusher.channel_state.payload->fermi_2d.CallMethod(method_call.method, method_call.argument, method_call.IsLastCall());
         break;
     case EngineID::MAXWELL_B:
-        dma_pusher.channel_state.maxwell_3d->CallMethod(method_call.method, method_call.argument, method_call.IsLastCall());
+        dma_pusher.channel_state.payload->maxwell_3d.CallMethod(method_call.method, method_call.argument, method_call.IsLastCall());
         break;
     case EngineID::KEPLER_COMPUTE_B:
-        dma_pusher.channel_state.kepler_compute->CallMethod(method_call.method, method_call.argument, method_call.IsLastCall());
+        dma_pusher.channel_state.payload->kepler_compute.CallMethod(method_call.method, method_call.argument, method_call.IsLastCall());
         break;
     case EngineID::MAXWELL_DMA_COPY_A:
-        dma_pusher.channel_state.maxwell_dma->CallMethod(method_call.method, method_call.argument, method_call.IsLastCall());
+        dma_pusher.channel_state.payload->maxwell_dma.CallMethod(method_call.method, method_call.argument, method_call.IsLastCall());
         break;
     case EngineID::KEPLER_INLINE_TO_MEMORY_B:
-        dma_pusher.channel_state.kepler_memory->CallMethod(method_call.method, method_call.argument, method_call.IsLastCall());
+        dma_pusher.channel_state.payload->kepler_memory.CallMethod(method_call.method, method_call.argument, method_call.IsLastCall());
         break;
     case EngineID::NV01_TIMER:
-        dma_pusher.channel_state.nv01_timer->CallMethod(method_call.method, method_call.argument, method_call.IsLastCall());
+        dma_pusher.channel_state.payload->nv01_timer.CallMethod(method_call.method, method_call.argument, method_call.IsLastCall());
         break;
     default:
         UNIMPLEMENTED_MSG("Unimplemented engine");
@@ -226,22 +226,22 @@ void Puller::CallEngineMultiMethod(DmaPusher& dma_pusher, u32 method, u32 subcha
     const EngineID engine = bound_engines[subchannel];
     switch (engine) {
     case EngineID::FERMI_TWOD_A:
-        dma_pusher.channel_state.fermi_2d->CallMultiMethod(method, base_start, amount, methods_pending);
+        dma_pusher.channel_state.payload->fermi_2d.CallMultiMethod(method, base_start, amount, methods_pending);
         break;
     case EngineID::MAXWELL_B:
-        dma_pusher.channel_state.maxwell_3d->CallMultiMethod(method, base_start, amount, methods_pending);
+        dma_pusher.channel_state.payload->maxwell_3d.CallMultiMethod(method, base_start, amount, methods_pending);
         break;
     case EngineID::KEPLER_COMPUTE_B:
-        dma_pusher.channel_state.kepler_compute->CallMultiMethod(method, base_start, amount, methods_pending);
+        dma_pusher.channel_state.payload->kepler_compute.CallMultiMethod(method, base_start, amount, methods_pending);
         break;
     case EngineID::MAXWELL_DMA_COPY_A:
-        dma_pusher.channel_state.maxwell_dma->CallMultiMethod(method, base_start, amount, methods_pending);
+        dma_pusher.channel_state.payload->maxwell_dma.CallMultiMethod(method, base_start, amount, methods_pending);
         break;
     case EngineID::KEPLER_INLINE_TO_MEMORY_B:
-        dma_pusher.channel_state.kepler_memory->CallMultiMethod(method, base_start, amount, methods_pending);
+        dma_pusher.channel_state.payload->kepler_memory.CallMultiMethod(method, base_start, amount, methods_pending);
         break;
     case EngineID::NV01_TIMER:
-        dma_pusher.channel_state.nv01_timer->CallMultiMethod(method, base_start, amount, methods_pending);
+        dma_pusher.channel_state.payload->nv01_timer.CallMultiMethod(method, base_start, amount, methods_pending);
         break;
     default:
         UNIMPLEMENTED_MSG("Unimplemented engine");

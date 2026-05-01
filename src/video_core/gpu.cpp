@@ -46,7 +46,6 @@ struct GPU::Impl {
         , shader_notify()
         , is_async{is_async_}
         , gpu_thread{system_, is_async_}
-        , scheduler(system_.GPU())
     {}
 
     ~Impl() = default;
@@ -387,27 +386,27 @@ const Host1x::Host1x& GPU::Host1x() const {
 }
 
 Engines::Maxwell3D& GPU::Maxwell3D() {
-    return *impl->current_channel->maxwell_3d;
+    return impl->current_channel->payload->maxwell_3d;
 }
 
 const Engines::Maxwell3D& GPU::Maxwell3D() const {
-    return *impl->current_channel->maxwell_3d;
+    return impl->current_channel->payload->maxwell_3d;
 }
 
 Engines::KeplerCompute& GPU::KeplerCompute() {
-    return *impl->current_channel->kepler_compute;
+    return impl->current_channel->payload->kepler_compute;
 }
 
 const Engines::KeplerCompute& GPU::KeplerCompute() const {
-    return *impl->current_channel->kepler_compute;
+    return impl->current_channel->payload->kepler_compute;
 }
 
 Tegra::DmaPusher& GPU::DmaPusher() {
-    return *impl->current_channel->dma_pusher;
+    return impl->current_channel->payload->dma_pusher;
 }
 
 const Tegra::DmaPusher& GPU::DmaPusher() const {
-    return *impl->current_channel->dma_pusher;
+    return impl->current_channel->payload->dma_pusher;
 }
 
 VideoCore::RendererBase& GPU::Renderer() {

@@ -40,7 +40,7 @@ void ThreadManager::StartThread(VideoCore::RendererBase& renderer, Core::Fronten
                 break;
             }
             if (auto* submit_list = std::get_if<SubmitListCommand>(&next.data)) {
-                scheduler.Push(submit_list->channel, std::move(submit_list->entries));
+                scheduler.Push(system.GPU(), submit_list->channel, std::move(submit_list->entries));
             } else if (std::holds_alternative<GPUTickCommand>(next.data)) {
                 system.GPU().TickWork();
             } else if (const auto* flush = std::get_if<FlushRegionCommand>(&next.data)) {
