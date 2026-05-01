@@ -9,7 +9,7 @@ add_library(yuzu-room STATIC EXCLUDE_FROM_ALL
     yuzu_room.h
     yuzu_room.rc)
 
-target_link_libraries(yuzu-room PRIVATE common)
+target_link_libraries(yuzu-room PRIVATE common network)
 if (ENABLE_WEB_SERVICE)
     target_compile_definitions(yuzu-room PRIVATE ENABLE_WEB_SERVICE)
     target_link_libraries(yuzu-room PRIVATE web_service)

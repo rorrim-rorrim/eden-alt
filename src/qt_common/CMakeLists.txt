@@ -59,9 +59,7 @@ if (USE_DISCORD_PRESENCE)
 endif()
 
 # TODO(crueter)
-if (ENABLE_QT)
-    target_link_libraries(qt_common PRIVATE Qt6::Widgets)
-endif()
+target_link_libraries(qt_common PRIVATE Qt6::Widgets)
 
 target_compile_definitions(qt_common PUBLIC
     # Use QStringBuilder for string concatenation to reduce
@@ -83,7 +81,7 @@ target_compile_definitions(qt_common PUBLIC
 )
 
 target_link_libraries(qt_common PRIVATE core Qt6::Core Qt6::Concurrent SimpleIni::SimpleIni QuaZip::QuaZip)
-target_link_libraries(qt_common PUBLIC frozen::frozen-headers)
+target_link_libraries(qt_common PUBLIC frozen::frozen-headers Vulkan::Headers)
 target_link_libraries(qt_common PRIVATE gamemode::headers frontend_common)
 
 if (ENABLE_OPENGL)
