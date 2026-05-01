@@ -500,6 +500,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         features.shader_atomic_int64.shaderSharedInt64Atomics = false;
         features.features.shaderInt64 = false;
 
+        LOG_WARNING(Render_Vulkan,
+                    "Qualcomm drivers have a slow VK_KHR_push_descriptor implementation");
+        RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
+
 #if defined(ANDROID) && defined(ARCHITECTURE_arm64)
         // BCn patching only safe on Android 9+ (API 28+). Older versions crash on driver load.
         const auto major = (properties.properties.driverVersion >> 24) << 2;
