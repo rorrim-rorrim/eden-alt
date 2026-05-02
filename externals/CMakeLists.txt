@@ -243,6 +243,9 @@ if (YUZU_USE_EXTERNAL_FFMPEG OR YUZU_USE_BUNDLED_FFMPEG)
     message(STATUS "FFmpeg Libraries: ${FFmpeg_LIBRARIES}")
 endif()
 
+# TZDB (Time Zone Database)
+add_subdirectory(nx_tzdb)
+
 add_library(tz tz/tz/tz.cpp)
 target_include_directories(tz PUBLIC ./tz)
 
