@@ -21,6 +21,7 @@
 #include <windows.h>
 #include "common/scope_exit.h"
 #include "common/string_util.h"
+#include "common/fs/file.h"
 #else
 #include <fstream>
 #include "fmt/ostream.h"
