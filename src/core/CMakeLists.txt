@@ -160,8 +160,6 @@ add_library(core STATIC
     file_sys/system_archive/system_archive.h
     file_sys/system_archive/system_version.cpp
     file_sys/system_archive/system_version.h
-    file_sys/system_archive/time_zone_binary.cpp
-    file_sys/system_archive/time_zone_binary.h
     file_sys/vfs/vfs.cpp
     file_sys/vfs/vfs.h
     file_sys/vfs/vfs_cached.cpp
