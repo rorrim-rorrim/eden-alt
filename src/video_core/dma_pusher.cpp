@@ -1,9 +1,10 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/logging.h"
 #include "common/settings.h"
 #include "core/core.h"
 #include "video_core/dma_pusher.h"
@@ -12,16 +13,11 @@
 #include "video_core/guest_memory.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
-#include "video_core/texture_cache/util.h"
-
-#ifdef _MSC_VER
-#include <intrin.h>
-#endif
 
 namespace Tegra {
 
 constexpr u32 MacroRegistersStart = 0xE00;
-[[maybe_unused]] constexpr u32 ComputeInline = 0x6D;
+constexpr u32 ComputeInline = 0x6D;
 
 DmaPusher::DmaPusher(Core::System& system_, GPU& gpu_, MemoryManager& memory_manager_,
                      Control::ChannelState& channel_state_)
@@ -31,9 +27,7 @@ DmaPusher::DmaPusher(Core::System& system_, GPU& gpu_, MemoryManager& memory_man
 DmaPusher::~DmaPusher() = default;
 
 void DmaPusher::DispatchCalls() {
-
     dma_pushbuffer_subindex = 0;
-
     dma_state.is_last_call = true;
 
     while (system.IsPoweredOn()) {
@@ -51,7 +45,6 @@ bool DmaPusher::Step() {
     }
 
     CommandList& command_list = dma_pushbuffer.front();
-
     const size_t prefetch_size = command_list.prefetch_command_list.size();
     const size_t command_list_size = command_list.command_lists.size();
 
@@ -62,10 +55,12 @@ bool DmaPusher::Step() {
     }
 
     if (prefetch_size > 0) {
+        is_dma_segment = false;
         ProcessCommands(command_list.prefetch_command_list);
         dma_pushbuffer.pop();
         return true;
     }
+    is_dma_segment = true;
 
     auto& current_command = command_list.command_lists[dma_pushbuffer_subindex];
     const CommandListHeader& header = current_command;
@@ -78,16 +73,30 @@ bool DmaPusher::Step() {
         synced = false;
     }
 
-    if (header.size > 0 && dma_state.method >= MacroRegistersStart && subchannels[dma_state.subchannel]) {
-        subchannels[dma_state.subchannel]->current_dirty = memory_manager.IsMemoryDirty(dma_state.dma_get, header.size * sizeof(u32));
-    }
-
     if (header.size > 0) {
-        if (Settings::IsDMALevelDefault() ? (Settings::IsGPULevelMedium() || Settings::IsGPULevelHigh()) : Settings::IsDMALevelSafe()) {
-            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::SafeRead>headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
+        const bool safe_by_settings =
+            Settings::IsDMALevelDefault() ? !Settings::IsGPULevelLow() : Settings::IsDMALevelSafe();
+
+        const bool is_inline_dma_cont = dma_state.method_count > 0 &&
+                                        dma_state.method == ComputeInline;
+        const bool is_macro_cont = dma_state.method_count > 0 &&
+                                   dma_state.method >= MacroRegistersStart;
+
+        bool segment_dirty = false;
+        if ((is_inline_dma_cont || is_macro_cont) && !safe_by_settings) {
+            segment_dirty = memory_manager.IsMemoryDirty(dma_state.dma_get, sizeof(u32));
+        }
+
+        const bool use_safe_read = safe_by_settings ||
+                                   ((is_inline_dma_cont || is_macro_cont) && segment_dirty);
+
+        if (use_safe_read) {
+            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::SafeRead>
+                headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
             ProcessCommands(headers);
         } else {
-            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::UnsafeRead>headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
+            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::UnsafeRead>
+                headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
             ProcessCommands(headers);
         }
     }
@@ -111,12 +120,25 @@ bool DmaPusher::Step() {
 }
 
 void DmaPusher::ProcessCommands(std::span<const CommandHeader> commands) {
+    const auto mark_current_macro_dirty = [this](u32 method, u32 subchannel, bool accumulate) {
+        if (method >= MacroRegistersStart) {
+            if (subchannels[subchannel]) {
+                if (accumulate) {
+                    subchannels[subchannel]->current_dirty |= is_dma_segment;
+                } else {
+                    subchannels[subchannel]->current_dirty = is_dma_segment;
+                }
+            }
+        }
+    };
+
     for (size_t index = 0; index < commands.size();) {
         // Data word of methods command
         if (dma_state.method_count && dma_state.non_incrementing) {
             auto const& command_header = commands[index]; //must ref (MUltiMethod re)
             dma_state.dma_word_offset = u32(index * sizeof(u32));
             const u32 max_write = u32(std::min<std::size_t>(index + dma_state.method_count, commands.size()) - index);
+            mark_current_macro_dirty(dma_state.method, dma_state.subchannel, true);
             CallMultiMethod(&command_header.argument, max_write);
             dma_state.method_count -= max_write;
             dma_state.is_last_call = true;
@@ -125,6 +147,7 @@ void DmaPusher::ProcessCommands(std::span<const CommandHeader> commands) {
             auto const command_header = commands[index]; //can copy
             dma_state.dma_word_offset = u32(index * sizeof(u32));
             dma_state.is_last_call = dma_state.method_count <= 1;
+            mark_current_macro_dirty(dma_state.method, dma_state.subchannel, true);
             CallMethod(command_header.argument);
             dma_state.method += !dma_state.non_incrementing ? 1 : 0;
             dma_state.non_incrementing |= dma_increment_once;
@@ -132,6 +155,7 @@ void DmaPusher::ProcessCommands(std::span<const CommandHeader> commands) {
             index++;
         } else {
             auto const command_header = commands[index]; //can copy
+            mark_current_macro_dirty(command_header.method.Value(), command_header.subchannel.Value(), false);
             // No command active - this is the first word of a new one
             switch (command_header.mode) {
             case SubmissionMode::Increasing:
