@@ -4,7 +4,6 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <bitset>
 #include "common/assert.h"
 #include "common/logging.h"
 #include "core/core.h"
@@ -59,15 +58,6 @@ void KeplerCompute::CallMethod(u32 method, u32 method_argument, bool is_last_cal
         break;
     }
     case KEPLER_COMPUTE_REG_INDEX(launch): {
-        const GPUVAddr launch_desc_loc = regs.launch_desc_loc.Address();
-
-        for (auto& data : uploads) {
-            const GPUVAddr offset = data.exec_address - launch_desc_loc;
-            if (offset / sizeof(u32) == LAUNCH_REG_INDEX(grid_dim_x) &&
-                memory_manager.IsMemoryDirty(data.upload_address, data.copy_size)) {
-                indirect_compute = {data.upload_address};
-            }
-        }
         uploads.clear();
         ProcessLaunch();
         indirect_compute = std::nullopt;
@@ -97,6 +87,16 @@ void KeplerCompute::ProcessLaunch() {
     const GPUVAddr launch_desc_loc = regs.launch_desc_loc.Address();
     memory_manager.ReadBlockUnsafe(launch_desc_loc, &launch_description,
                                    LaunchParams::NUM_LAUNCH_PARAMETERS * sizeof(u32));
+
+    // GPU-driven dispatches (e.g. particle systems) legitimately write zero grid dimensions
+    // as a no-op signal when there is no work to do. Hardware silently skips these; Vulkan
+    // requires x/y/z >= 1, so guard here to avoid invalid API calls and downstream crashes.
+    if (launch_description.grid_dim_x.Value() == 0 ||
+        launch_description.grid_dim_y.Value() == 0 ||
+        launch_description.grid_dim_z.Value() == 0) {
+        return;
+    }
+
     rasterizer->DispatchCompute();
 }
 
