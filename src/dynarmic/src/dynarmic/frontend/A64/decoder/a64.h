@@ -41,14 +41,14 @@ static std::optional<ReturnType> DecodeArm(V& visitor, u32 instruction) noexcept
         for (size_t i = 0; i < t.size(); ++i) {
 #define INST(fn, name, bitstring) \
     do { \
-        auto const [mask, expect] = DYNARMIC_DECODER_GET_MATCHER(ArmMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)); \
+        auto const [mask, expect] = DYNARMIC_DECODER_GET_MATCHER(Matcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)); \
         if ((i & make_fast_index(mask)) == make_fast_index(expect)) { \
             t[i].emplace_back([](V& visitor, u32 instruction) -> bool { \
-                return DYNARMIC_DECODER_GET_MATCHER_FUNCTION(ArmMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)); \
+                return DYNARMIC_DECODER_GET_MATCHER_FUNCTION(Matcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)); \
             }, mask, expect); \
         } \
     } while (0);
-#include "./arm.inc"
+#include "./a64.inc"
 #undef INST
         }
         return t;
