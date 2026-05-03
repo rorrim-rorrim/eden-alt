@@ -8,7 +8,10 @@
 #include <string>
 #include <tuple>
 #include <type_traits>
+
+#ifdef HAS_OPENGL
 #include <glad/glad.h>
+#endif
 
 #include <QtCore/qglobal.h>
 #include "common/settings_enums.h"
@@ -1039,6 +1042,7 @@ void GRenderWindow::InitializeNull() {
 }
 
 bool GRenderWindow::LoadOpenGL() {
+#ifdef HAS_OPENGL
     auto context = CreateSharedContext();
     auto scope = context->Acquire();
     if (!gladLoadGL()) {
@@ -1069,6 +1073,12 @@ bool GRenderWindow::LoadOpenGL() {
         // Non fatal
     }
     return true;
+#else
+    QMessageBox::warning(
+        this, tr("Error while initializing OpenGL!"),
+        tr("This build doesn't have OpenGL support."));
+    return false;
+#endif
 }
 
 QStringList GRenderWindow::GetUnsupportedGLExtensions() const {
