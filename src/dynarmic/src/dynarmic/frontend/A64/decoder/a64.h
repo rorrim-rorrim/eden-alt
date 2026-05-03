@@ -27,7 +27,7 @@ template<typename Visitor>
 using Matcher = Decoder::Matcher<Visitor, u32>;
 
 template<typename V, typename ReturnType>
-static std::optional<ReturnType> DecodeArm(V& visitor, u32 instruction) noexcept {
+static std::optional<ReturnType> Decode(V& visitor, u32 instruction) noexcept {
     auto const make_fast_index = [](u32 a) {
         return ((a >> 10) & 0x00F) | ((a >> 18) & 0xFF0);
     };
