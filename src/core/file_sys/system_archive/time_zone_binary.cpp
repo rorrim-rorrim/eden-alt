@@ -14,14 +14,6 @@
 
 namespace FileSys::SystemArchive {
 
-// const static std::map<std::string, const std::map<const char*, const std::vector<u8>>&>
-//     tzdb_america_dirs = {{"Argentina", NxTzdb::america_argentina},
-//                          {"Indiana", NxTzdb::america_indiana},
-//                          {"Kentucky", NxTzdb::america_kentucky},
-//                          {"North_Dakota", NxTzdb::america_north_dakota}};
-
-template<typename F>
-
 VirtualDir TimeZoneBinary() {
     std::vector<VirtualDir> america_sub_dirs;
     america_sub_dirs.push_back(std::make_shared<VectorVfsDirectory>(NxTzdb::CollectFiles_america_argentina(), std::vector<VirtualDir>{}, "Argentina"));
