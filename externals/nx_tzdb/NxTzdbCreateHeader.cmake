@@ -18,11 +18,11 @@ endif()
 set(DIRECTORY_NAME ${HEADER_NAME})
 set(FILE_DATA "")
 
-string(APPEND FILE_DATA "[[nodiscard]] static std::vector<VirtualFile> CollectFiles_${DIRECTORY_NAME}() {\n")
+string(APPEND FILE_DATA "[[nodiscard]] static inline std::vector<FileSys::VirtualFile> CollectFiles_${DIRECTORY_NAME}() {\n")
 string(APPEND FILE_DATA [[
-    std::vector<VirtualFile> vfs_files;
+    std::vector<FileSys::VirtualFile> vfs_files;
     auto const fn = [&](std::string_view name, std::span<const u8> data) {
-        vfs_files.push_back(std::make_shared<VectorVfsFile>(
+        vfs_files.push_back(std::make_shared<FileSys::VectorVfsFile>(
             std::vector<u8>(data.begin(), data.end()),
             std::string{name}
         ));
