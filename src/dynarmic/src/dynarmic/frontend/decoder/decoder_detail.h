@@ -108,7 +108,7 @@ struct detail {
     template<typename V, typename ReturnType, typename... Args>
     struct VisitorCaller {
         template<std::size_t... iota>
-        static inline constexpr auto Invoke(std::index_sequence<iota...>, V& visitor, opcode_type instruction, ReturnType (V::*const fn)(Args...), const std::array<opcode_type, sizeof...(Args)> arg_masks, const std::array<size_t, sizeof...(Args)> arg_shifts) {
+        static inline constexpr auto Invoke(std::index_sequence<iota...>, V& visitor, [[maybe_unused]] opcode_type instruction, ReturnType (V::*const fn)(Args...), [[maybe_unused]] const std::array<opcode_type, sizeof...(Args)> arg_masks, [[maybe_unused]] const std::array<size_t, sizeof...(Args)> arg_shifts) {
             return (visitor.*fn)(Args((instruction & arg_masks[iota]) >> arg_shifts[iota])...);
         }
     };
@@ -117,7 +117,7 @@ struct detail {
 #endif
 
     template<auto bitstring, typename V, typename ReturnType, typename... Args>
-    static inline constexpr auto GetMatcherFunction(V& visitor, opcode_type instruction, ReturnType (V::*const fn)(Args...)) {
+    static inline constexpr auto GetMatcherFunction(V& visitor, [[maybe_unused]] opcode_type instruction, ReturnType (V::*const fn)(Args...)) {
         constexpr auto arg_masks = std::get<0>(GetArgInfo<sizeof...(Args)>(bitstring));
         constexpr auto arg_shifts = std::get<1>(GetArgInfo<sizeof...(Args)>(bitstring));
         return VisitorCaller<V, ReturnType, Args...>::Invoke(std::index_sequence_for<Args...>(), visitor, instruction, fn, arg_masks, arg_shifts);
