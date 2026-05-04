@@ -16,7 +16,7 @@ function(create_resource file output filename)
 endfunction()
 
 if (ENABLE_OPENGL)
-    list(OPENGL_SOURCES APPEND
+    list(APPEND OPENGL_SOURCES
         emu_window/emu_window_sdl2_gl.cpp
         emu_window/emu_window_sdl2_gl.h
     )
