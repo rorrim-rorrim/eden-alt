@@ -6,11 +6,7 @@
 
 #pragma once
 
-#include <condition_variable>
-#include <functional>
 #include <memory>
-#include <mutex>
-#include <thread>
 
 #include "common/common_types.h"
 #include "common/scratch_buffer.h"
@@ -624,8 +620,8 @@ private:
     VicRegisters regs{};
 
     Common::ScratchBuffer<u8> swizzle_scratch;
-    Common::ScratchBuffer<Pixel> output_surface;
-    Common::ScratchBuffer<Pixel> slot_surface;
+    Common::ScratchBuffer<Tegra::Host1x::Pixel> output_surface;
+    Common::ScratchBuffer<Tegra::Host1x::Pixel> slot_surface;
     Common::ScratchBuffer<u8> luma_scratch;
     Common::ScratchBuffer<u8> chroma_scratch;
 
