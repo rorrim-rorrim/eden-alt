@@ -87,7 +87,7 @@ Result IApplicationCreator::CreateSystemApplication(
 
     std::vector<u8> control;
     std::unique_ptr<Loader::AppLoader> loader;
-    auto process = CreateProcess(system, application_id, 1, 21);
+    auto process = CreateProcess(system, application_id, 1, 22);
     R_UNLESS(process != std::nullopt, ResultUnknown);
 
     const auto applet = std::make_shared<Applet>(system, std::make_unique<Service::Process>(*std::move(process)), true);
