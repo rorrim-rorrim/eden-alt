@@ -12,14 +12,15 @@
 
 #include "common/common_types.h"
 
+// fd types?
+#include "video_core/host1x/nvdec.h"
+#include "video_core/host1x/vic.h"
+
 #include "common/address_space.h"
 #include "video_core/cdma_pusher.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/host1x/syncpoint_manager.h"
 #include "video_core/memory_manager.h"
-// fd types?
-#include "video_core/host1x/nvdec.h"
-#include "video_core/host1x/vic.h"
 
 namespace Core {
 class System;
