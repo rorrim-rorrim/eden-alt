@@ -560,20 +560,26 @@ struct Values {
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::RendererHacks};
 
-    SwitchableSetting<GpuUnswizzleSize> gpu_unswizzle_texture_size{linkage,
-                                                  GpuUnswizzleSize::Large,
+    SwitchableSetting<u32, true> gpu_unswizzle_texture_size{linkage,
+                                                  6,
+                                                  1,
+                                                  16,
                                                   "gpu_unswizzle_texture_size",
                                                   Category::RendererHacks,
                                                   Specialization::Default};
 
-    SwitchableSetting<GpuUnswizzle> gpu_unswizzle_stream_size{linkage,
-                                                  GpuUnswizzle::Medium,
+    SwitchableSetting<u32, true> gpu_unswizzle_stream_size{linkage,
+                                                  4,
+                                                  1,
+                                                  16,
                                                   "gpu_unswizzle_stream_size",
                                                   Category::RendererHacks,
                                                   Specialization::Default};
 
-    SwitchableSetting<GpuUnswizzleChunk> gpu_unswizzle_chunk_size{linkage,
-                                                  GpuUnswizzleChunk::Medium,
+    SwitchableSetting<u32, true> gpu_unswizzle_chunk_size{linkage,
+                                                  7,
+                                                  1,
+                                                  16,
                                                   "gpu_unswizzle_chunk_size",
                                                   Category::RendererHacks,
                                                   Specialization::Default};

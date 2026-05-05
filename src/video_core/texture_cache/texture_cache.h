@@ -76,35 +76,10 @@ TextureCache<P>::TextureCache(Runtime& runtime_, Tegra::MaxwellDeviceMemoryManag
         minimum_memory = 0;
     }
 
-    const bool gpu_unswizzle_enabled = Settings::values.gpu_unswizzle_enabled.GetValue();
-
-    if (gpu_unswizzle_enabled) {
-        switch (Settings::values.gpu_unswizzle_texture_size.GetValue()) {
-            case Settings::GpuUnswizzleSize::VerySmall:    gpu_unswizzle_maxsize = 16_MiB; break;
-            case Settings::GpuUnswizzleSize::Small:        gpu_unswizzle_maxsize = 32_MiB; break;
-            case Settings::GpuUnswizzleSize::Normal:       gpu_unswizzle_maxsize = 128_MiB; break;
-            case Settings::GpuUnswizzleSize::Large:        gpu_unswizzle_maxsize = 256_MiB; break;
-            case Settings::GpuUnswizzleSize::VeryLarge:    gpu_unswizzle_maxsize = 512_MiB; break;
-            default:                                       gpu_unswizzle_maxsize = 128_MiB; break;
-        }
-
-        switch (Settings::values.gpu_unswizzle_stream_size.GetValue()) {
-            case Settings::GpuUnswizzle::VeryLow: swizzle_chunk_size = 4_MiB; break;
-            case Settings::GpuUnswizzle::Low:     swizzle_chunk_size = 8_MiB; break;
-            case Settings::GpuUnswizzle::Normal:  swizzle_chunk_size = 16_MiB; break;
-            case Settings::GpuUnswizzle::Medium:  swizzle_chunk_size = 32_MiB; break;
-            case Settings::GpuUnswizzle::High:    swizzle_chunk_size = 64_MiB; break;
-            default:                              swizzle_chunk_size = 16_MiB;
-        }
-
-        switch (Settings::values.gpu_unswizzle_chunk_size.GetValue()) {
-            case Settings::GpuUnswizzleChunk::VeryLow: swizzle_slices_per_batch = 32; break;
-            case Settings::GpuUnswizzleChunk::Low:     swizzle_slices_per_batch = 64; break;
-            case Settings::GpuUnswizzleChunk::Normal:  swizzle_slices_per_batch = 128; break;
-            case Settings::GpuUnswizzleChunk::Medium:  swizzle_slices_per_batch = 256; break;
-            case Settings::GpuUnswizzleChunk::High:    swizzle_slices_per_batch = 512; break;
-            default:                                   swizzle_slices_per_batch = 128;
-        }
+    if (Settings::values.gpu_unswizzle_enabled.GetValue()) {
+        gpu_unswizzle_maxsize = (1 << u32(Settings::values.gpu_unswizzle_texture_size.GetValue())) * 1_MiB;
+        swizzle_chunk_size = (1 << u32(Settings::values.gpu_unswizzle_stream_size.GetValue())) * 1_MiB;
+        swizzle_slices_per_batch = 1 << u32(Settings::values.gpu_unswizzle_chunk_size.GetValue());
     } else {
         gpu_unswizzle_maxsize = 0;
         swizzle_chunk_size = 0;
