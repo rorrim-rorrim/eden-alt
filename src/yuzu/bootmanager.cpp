@@ -1082,7 +1082,8 @@ bool GRenderWindow::LoadOpenGL() {
 }
 
 QStringList GRenderWindow::GetUnsupportedGLExtensions() const {
-    QStringList missing_ext;
+    QStringList missing_ext{};
+#ifdef HAS_OPENGL
     // Extensions required to support some texture formats.
     if (!GLAD_GL_EXT_texture_compression_s3tc)
         missing_ext.append(QStringLiteral("EXT_texture_compression_s3tc"));
@@ -1092,6 +1093,7 @@ QStringList GRenderWindow::GetUnsupportedGLExtensions() const {
         LOG_ERROR(Frontend, "GPU does not support all required extensions");
     for (const QString& ext : missing_ext)
         LOG_ERROR(Frontend, "Unsupported GL extension: {}", ext.toStdString());
+#endif
     return missing_ext;
 }
 
