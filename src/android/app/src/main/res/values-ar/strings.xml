@@ -507,10 +507,7 @@
     <string name="emulate_bgr565_description">يُصلح مشاكل انعكاس الألوان في الألعاب أو ظهور تشوهات غريبة أو ظلال غريبة.</string>
     <string name="renderer_asynchronous_shaders">استخدم تظليل غير متزامن</string>
     <string name="renderer_asynchronous_shaders_description">يقوم بتجميع التظليل بشكل غير متزامن. قد يقلل ذلك من التقطعات ولكنه قد يؤدي أيضًا إلى حدوث أخطاء.</string>
-    <string name="gpu_unswizzle_settings">إعدادات إلغاء ترتيب بيانات وحدة معالجة الرسومات</string>
-    <string name="gpu_unswizzle_settings_description">قم بضبط معلمات فكّ تشابك النسيج المستندة إلى وحدة معالجة الرسومات أو تعطيلها تمامًا. اضبط هذه الإعدادات لتحقيق التوازن بين الأداء وجودة تحميل النسيج.</string>
     <string name="gpu_unswizzle_enable">تفعيل إلغاء ترتيب بيانات وحدة معالجة الرسومات</string>
-    <string name="gpu_unswizzle_disabled">تعطيل</string>
     <string name="gpu_unswizzle_texture_size">الحد الأقصى لحجم النسيج في وحدة معالجة الرسومات بعد إعادة ترتيب البيانات</string>
     <string name="gpu_unswizzle_texture_size_description">يُحدد هذا الخيار الحد الأقصى لحجم (ميغابايت) معالجة الصور باستخدام وحدة معالجة الرسومات. مع أن وحدة معالجة الرسومات أسرع في معالجة الصور المتوسطة والكبيرة، إلا أن وحدة المعالجة المركزية قد تكون أكثر كفاءة في معالجة الصور الصغيرة جدًا. اضبط هذا الخيار لتحقيق التوازن الأمثل بين سرعة معالجة الرسومات واستهلاك وحدة المعالجة المركزية.</string>
     <string name="gpu_unswizzle_stream_size">حجم تدفق إلغاء ترتيب بيانات وحدة معالجة الرسومات</string>
@@ -950,25 +947,10 @@
     <string name="fast_gpu_high">مرتفع (512)</string>
 
     <!-- GPU swizzle texture size -->
-    <string name="gpu_texturesizeswizzle_verysmall">صغير جدًا (16 ميغابايت)</string>
-    <string name="gpu_texturesizeswizzle_small">صغير (32 ميغابايت)</string>
-    <string name="gpu_texturesizeswizzle_normal">قياسي (128 ميغابايت)</string>
-    <string name="gpu_texturesizeswizzle_large">كبير (256 ميغابايت)</string>
-    <string name="gpu_texturesizeswizzle_verylarge">كبير جدًا (512 ميغابايت)</string>
 
     <!-- GPU swizzle streams -->
-    <string name="gpu_swizzle_verylow">منخفض جدًا (4 ميغابايت)</string>
-    <string name="gpu_swizzle_low">منخفض (8 ميغابايت)</string>
-    <string name="gpu_swizzle_normal">قياسي (16 ميغابايت)</string>
-    <string name="gpu_swizzle_medium">متوسط (32 ميغابايت)</string>
-    <string name="gpu_swizzle_high">عالي (64 ميغابايت)</string>
 
     <!-- GPU swizzle chunks -->
-    <string name="gpu_swizzlechunk_verylow">منخفض جدًا (32)</string>
-    <string name="gpu_swizzlechunk_low">منخفض (64)</string>
-    <string name="gpu_swizzlechunk_normal">قياسي (128)</string>
-    <string name="gpu_swizzlechunk_medium">متوسط (256)</string>
-    <string name="gpu_swizzlechunk_high">عالي (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">مئوية</string>

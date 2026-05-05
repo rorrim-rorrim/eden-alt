@@ -882,25 +882,10 @@ Wirklich fortfahren?</string>
     <string name="fast_gpu_high">Hoch (512)</string>
 
     <!-- GPU swizzle texture size -->
-    <string name="gpu_texturesizeswizzle_verysmall">Sehr klein (16 MB)</string>
-    <string name="gpu_texturesizeswizzle_small">Klein (32 MB)</string>
-    <string name="gpu_texturesizeswizzle_normal">Normal (128 MB)</string>
-    <string name="gpu_texturesizeswizzle_large">Groß (256 MB)</string>
-    <string name="gpu_texturesizeswizzle_verylarge">Sehr groß (512 MB)</string>
 
     <!-- GPU swizzle streams -->
-    <string name="gpu_swizzle_verylow">Sehr niedrig (4 MB)</string>
-    <string name="gpu_swizzle_low">Niedrig (8 MB)</string>
-    <string name="gpu_swizzle_normal">Normal (16 MB)</string>
-    <string name="gpu_swizzle_medium">Mittel (32 MB)</string>
-    <string name="gpu_swizzle_high">Hoch (64 MB)</string>
 
     <!-- GPU swizzle chunks -->
-    <string name="gpu_swizzlechunk_verylow">Sehr niedrig (32)</string>
-    <string name="gpu_swizzlechunk_low">Niedrig (64)</string>
-    <string name="gpu_swizzlechunk_normal">Normal (128)</string>
-    <string name="gpu_swizzlechunk_medium">Mittel (256)</string>
-    <string name="gpu_swizzlechunk_high">Hoch (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsius</string>

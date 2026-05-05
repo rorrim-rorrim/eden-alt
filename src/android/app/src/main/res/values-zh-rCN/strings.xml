@@ -497,10 +497,7 @@
     <string name="emulate_bgr565_description">修复了游戏中的颜色反转以及出现的异常画面瑕疵或奇怪阴影问题</string>
     <string name="renderer_asynchronous_shaders">使用异步着色器</string>
     <string name="renderer_asynchronous_shaders_description">异步编译着色器。这可能会减少卡顿，但也可能会导致图形错误。</string>
-    <string name="gpu_unswizzle_settings">GPU 还原设置</string>
-    <string name="gpu_unswizzle_settings_description">配置基于 GPU 的纹理还原参数，或将其完全禁用。调整这些设置以平衡性能与纹理加载质量。</string>
     <string name="gpu_unswizzle_enable">启用 GPU 还原</string>
-    <string name="gpu_unswizzle_disabled">禁用</string>
     <string name="gpu_unswizzle_texture_size">GPU 还原最大纹理尺寸</string>
     <string name="gpu_unswizzle_texture_size_description">设置基于 GPU 的纹理还原的最大尺寸（单位：MiB）。\n虽然 GPU 在处理中型和大型纹理时速度更快，但对于非常小的纹理，CPU 的效率可能更高。\n调整此设置，以便在 GPU 加速和 CPU 开销之间找到最佳平衡点。</string>
     <string name="gpu_unswizzle_stream_size">GPU 还原流大小</string>
@@ -940,25 +937,10 @@
     <string name="fast_gpu_high">高 (512)</string>
 
     <!-- GPU swizzle texture size -->
-    <string name="gpu_texturesizeswizzle_verysmall">极小 (16 MB)</string>
-    <string name="gpu_texturesizeswizzle_small">较小 (32 MB)</string>
-    <string name="gpu_texturesizeswizzle_normal">正常 (128 MB)</string>
-    <string name="gpu_texturesizeswizzle_large">较大 (256 MB)</string>
-    <string name="gpu_texturesizeswizzle_verylarge">极大 (512 MB)</string>
 
     <!-- GPU swizzle streams -->
-    <string name="gpu_swizzle_verylow">极低 (4 MB)</string>
-    <string name="gpu_swizzle_low">低 (8 MB)</string>
-    <string name="gpu_swizzle_normal">正常 (16 MB)</string>
-    <string name="gpu_swizzle_medium">中 (32 MB)</string>
-    <string name="gpu_swizzle_high">高 (64 MB)</string>
 
     <!-- GPU swizzle chunks -->
-    <string name="gpu_swizzlechunk_verylow">极低 (32)</string>
-    <string name="gpu_swizzlechunk_low">低 (64)</string>
-    <string name="gpu_swizzlechunk_normal">正常 (128)</string>
-    <string name="gpu_swizzlechunk_medium">中 (256)</string>
-    <string name="gpu_swizzlechunk_high">高 (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">摄氏度</string>

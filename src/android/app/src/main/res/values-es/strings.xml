@@ -501,10 +501,7 @@
     <string name="emulate_bgr565_description">Soluciona problemas con colores invertidos en juegos, artefactos o sombras extrañas.</string>
     <string name="renderer_asynchronous_shaders">Usar sombreadores asíncronos</string>
     <string name="renderer_asynchronous_shaders_description">Compila los sombreadores de forma asíncrona. Esto puede reducir los tirones, pero también puede introducir errores gráficos.</string>
-    <string name="gpu_unswizzle_settings">Ajustes de desentrelazado de la GPU</string>
-    <string name="gpu_unswizzle_settings_description">Configura los parámetros de desentrelazado de texturas basadas ​​en la GPU o desactívelos por completo. Modifique estos ajustes para equilibrar el rendimiento y la calidad de las texturas cargadas.</string>
     <string name="gpu_unswizzle_enable">Activar desentrelazado de la GPU</string>
-    <string name="gpu_unswizzle_disabled">Desactivado</string>
     <string name="gpu_unswizzle_texture_size">Tamaño máximo de textura de desentrelazado de la GPU</string>
     <string name="gpu_unswizzle_texture_size_description">Establece el tamaño máximo (en MB) para el desentrelazado de texturas basada en GPU. Aunque la GPU es más rápida para texturas medianas y grandes, la CPU puede ser más eficiente para texturas muy pequeñas. Ajuste este valor para encontrar el equilibrio entre la aceleración de la GPU y la sobrecarga de la CPU.</string>
     <string name="gpu_unswizzle_stream_size">Tamaño del flujo de desentrelazado de la GPU</string>
@@ -944,25 +941,10 @@
     <string name="fast_gpu_high">Alto (512)</string>
 
     <!-- GPU swizzle texture size -->
-    <string name="gpu_texturesizeswizzle_verysmall">Muy pequeño (16 MB)</string>
-    <string name="gpu_texturesizeswizzle_small">Pequeño (32 MB)</string>
-    <string name="gpu_texturesizeswizzle_normal">Normal (128 MB)</string>
-    <string name="gpu_texturesizeswizzle_large">Grande (256 MB)</string>
-    <string name="gpu_texturesizeswizzle_verylarge">Muy grande (512 MB)</string>
 
     <!-- GPU swizzle streams -->
-    <string name="gpu_swizzle_verylow">Muy bajo (4 MB)</string>
-    <string name="gpu_swizzle_low">Bajo (8 MB)</string>
-    <string name="gpu_swizzle_normal">Normal (16 MB)</string>
-    <string name="gpu_swizzle_medium">Medio (32 MB)</string>
-    <string name="gpu_swizzle_high">Alto (64 MB)</string>
 
     <!-- GPU swizzle chunks -->
-    <string name="gpu_swizzlechunk_verylow">Muy bajo (32)</string>
-    <string name="gpu_swizzlechunk_low">Bajo (64)</string>
-    <string name="gpu_swizzlechunk_normal">Normal (128)</string>
-    <string name="gpu_swizzlechunk_medium">Medio (256)</string>
-    <string name="gpu_swizzlechunk_high">Alto (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsius</string>
