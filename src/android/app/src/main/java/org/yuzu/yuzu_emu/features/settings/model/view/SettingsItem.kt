@@ -673,6 +673,7 @@ abstract class SettingsItem(
                     IntSetting.GPU_UNSWIZZLE_TEXTURE_SIZE,
                     titleId = R.string.gpu_unswizzle_texture_size,
                     descriptionId = R.string.gpu_unswizzle_texture_size_description,
+                    valueHint = R.string.gpu_unswizzle_texture_size,
                     min = 1,
                     max = 9
                 )
@@ -682,6 +683,7 @@ abstract class SettingsItem(
                     IntSetting.GPU_UNSWIZZLE_STREAM_SIZE,
                     titleId = R.string.gpu_unswizzle_stream_size,
                     descriptionId = R.string.gpu_unswizzle_stream_size_description,
+                    valueHint = R.string.gpu_unswizzle_stream_size,
                     min = 1,
                     max = 9
                 )
@@ -691,6 +693,7 @@ abstract class SettingsItem(
                     IntSetting.GPU_UNSWIZZLE_CHUNK_SIZE,
                     titleId = R.string.gpu_unswizzle_chunk_size,
                     descriptionId = R.string.gpu_unswizzle_chunk_size_description,
+                    valueHint = R.string.gpu_unswizzle_chunk_size,
                     min = 1,
                     max = 9
                 )
