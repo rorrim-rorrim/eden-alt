@@ -118,8 +118,8 @@
     "kosmickrisp": {
         "package": "KosmicKrisp",
         "repo": "crueter-ci/KosmicKrisp",
-        "hash": "04160e0387fbb0fc9ef975a49f29afc9bdb93d6480bcfafc229616834e2a01a55f0b475ebbc04fbd88ea531ec5ea474c3e522561c98c963411b976de12b778e6",
-        "git_version": "aitor-3c8e55abd3",
+        "hash": "4709fb3735ed40048cab9a64abed9a661517dada92b6e8928d578e947fdd6af21b3da4887822f4c3ad3055c6641f9a63243e10e2dd2bba00379618dcc0cda4be",
+        "git_version": "26.0.6",
         "tag": "v%VERSION%",
         "artifact": "KosmicKrisp-%VERSION%.tar.zst",
         "bundled": true
