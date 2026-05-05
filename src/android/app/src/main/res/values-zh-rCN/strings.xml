@@ -947,25 +947,10 @@
     <string name="fast_gpu_high">高 (512)</string>
 
     <!-- GPU swizzle texture size -->
-    <string name="gpu_texturesizeswizzle_verysmall">极小 (16 MB)</string>
-    <string name="gpu_texturesizeswizzle_small">较小 (32 MB)</string>
-    <string name="gpu_texturesizeswizzle_normal">正常 (128 MB)</string>
-    <string name="gpu_texturesizeswizzle_large">较大 (256 MB)</string>
-    <string name="gpu_texturesizeswizzle_verylarge">极大 (512 MB)</string>
 
     <!-- GPU swizzle streams -->
-    <string name="gpu_swizzle_verylow">极低 (4 MB)</string>
-    <string name="gpu_swizzle_low">低 (8 MB)</string>
-    <string name="gpu_swizzle_normal">正常 (16 MB)</string>
-    <string name="gpu_swizzle_medium">中 (32 MB)</string>
-    <string name="gpu_swizzle_high">高 (64 MB)</string>
 
     <!-- GPU swizzle chunks -->
-    <string name="gpu_swizzlechunk_verylow">极低 (32)</string>
-    <string name="gpu_swizzlechunk_low">低 (64)</string>
-    <string name="gpu_swizzlechunk_normal">正常 (128)</string>
-    <string name="gpu_swizzlechunk_medium">中 (256)</string>
-    <string name="gpu_swizzlechunk_high">高 (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">摄氏度</string>

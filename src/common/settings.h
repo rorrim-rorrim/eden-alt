@@ -587,7 +587,7 @@ struct Values {
     SwitchableSetting<u32, true> gpu_unswizzle_texture_size{linkage,
                                                   6,
                                                   1,
-                                                  16,
+                                                  9,
                                                   "gpu_unswizzle_texture_size",
                                                   Category::RendererHacks,
                                                   Specialization::Default};
@@ -595,7 +595,7 @@ struct Values {
     SwitchableSetting<u32, true> gpu_unswizzle_stream_size{linkage,
                                                   4,
                                                   1,
-                                                  16,
+                                                  9,
                                                   "gpu_unswizzle_stream_size",
                                                   Category::RendererHacks,
                                                   Specialization::Default};
@@ -603,7 +603,7 @@ struct Values {
     SwitchableSetting<u32, true> gpu_unswizzle_chunk_size{linkage,
                                                   7,
                                                   1,
-                                                  16,
+                                                  9,
                                                   "gpu_unswizzle_chunk_size",
                                                   Category::RendererHacks,
                                                   Specialization::Default};
