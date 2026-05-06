@@ -134,7 +134,8 @@ enum SurfaceIndex : u32 {
     CombinedMotion = 7,
 };
 
-enum class DXVAHD_ALPHA_FILL_MODE : u32 {
+// Note: these will inevitably collide with Win32 defines if you use their UPPER_SNAKE_CASE naming
+enum class DxvhadAlphaFillMode : u32 {
     OPAQUE = 0,
     BACKGROUND = 1,
     DESTINATION = 2,
@@ -143,7 +144,7 @@ enum class DXVAHD_ALPHA_FILL_MODE : u32 {
     SOURCE_ALPHA = 5,
 };
 
-enum class DXVAHD_FRAME_FORMAT : u64 {
+enum class DxvhadFrameFormat : u64 {
     PROGRESSIVE = 0,
     INTERLACED_TOP_FIELD_FIRST = 1,
     INTERLACED_BOTTOM_FIELD_FIRST = 2,
@@ -160,7 +161,7 @@ enum class DXVAHD_FRAME_FORMAT : u64 {
     SUBPIC_BOTTOM_FIELD_CHROMA_TOP = 13,
 };
 
-enum class DXVAHD_DEINTERLACE_MODE_PRIVATE : u64 {
+enum class DxvhadDeinterlaceModePrivate : u64 {
     WEAVE = 0,
     BOB_FIELD = 1,
     BOB = 2,
@@ -170,7 +171,7 @@ enum class DXVAHD_DEINTERLACE_MODE_PRIVATE : u64 {
     MAX = 0xF,
 };
 
-enum class BLK_KIND {
+enum class BlkKind {
     PITCH = 0,
     GENERIC_16Bx2 = 1,
     // These are unsupported in the vic
@@ -179,7 +180,7 @@ enum class BLK_KIND {
     VP2_TILED = 15,
 };
 
-enum class BLEND_SRCFACTC : u32 {
+enum class BlendSrcFactC : u32 {
     K1 = 0,
     K1_TIMES_DST = 1,
     NEG_K1_TIMES_DST = 2,
@@ -187,7 +188,7 @@ enum class BLEND_SRCFACTC : u32 {
     ZERO = 4,
 };
 
-enum class BLEND_DSTFACTC : u32 {
+enum class BlendDstFactC : u32 {
     K1 = 0,
     K2 = 1,
     K1_TIMES_DST = 2,
@@ -197,7 +198,7 @@ enum class BLEND_DSTFACTC : u32 {
     ONE = 6,
 };
 
-enum class BLEND_SRCFACTA : u32 {
+enum class BlendSrcFactA : u32 {
     K1 = 0,
     K2 = 1,
     NEG_K1_TIMES_DST = 2,
@@ -205,7 +206,7 @@ enum class BLEND_SRCFACTA : u32 {
     MAX = 7,
 };
 
-enum class BLEND_DSTFACTA : u32 {
+enum class BlendDstFactA : u32 {
     K2 = 0,
     NEG_K1_TIMES_SRC = 1,
     ZERO = 2,
@@ -228,7 +229,7 @@ static_assert(sizeof(PipeConfig) == 0x10, "PipeConfig has the wrong size!");
 
 struct OutputConfig {
     union {
-        BitField<0, 3, DXVAHD_ALPHA_FILL_MODE> alpha_fill_mode;
+        BitField<0, 3, DxvhadAlphaFillMode> alpha_fill_mode;
         BitField<3, 3, u64> alpha_fill_slot;
         BitField<6, 10, u64> background_a;
         BitField<16, 10, u64> background_r;
@@ -261,7 +262,7 @@ struct OutputSurfaceConfig {
         BitField<0, 7, VideoPixelFormat> out_pixel_format;
         BitField<7, 2, u32> out_chroma_loc_horiz;
         BitField<9, 2, u32> out_chroma_loc_vert;
-        BitField<11, 4, BLK_KIND> out_block_kind;
+        BitField<11, 4, BlkKind> out_block_kind;
         BitField<15, 4, u32> out_block_height; // in gobs, log2
         BitField<19, 3, u32> reserved0;
         BitField<22, 10, u32> reserved1;
@@ -361,7 +362,7 @@ struct SlotConfig {
         BitField<14, 1, u64> prev_prev_motion_field_enable;
         BitField<15, 1, u64> combined_motion_field_enable;
 
-        BitField<16, 4, DXVAHD_FRAME_FORMAT> frame_format;
+        BitField<16, 4, DxvhadFrameFormat> frame_format;
         BitField<20, 2, u64> filter_length_y; // 0: 1-tap, 1: 2-tap, 2: 5-tap, 3: 10-tap
         BitField<22, 2, u64> filter_length_x;
         BitField<24, 12, u64> panoramic;
@@ -373,7 +374,7 @@ struct SlotConfig {
         BitField<10, 10, u64> filter_detail;
         BitField<20, 10, u64> chroma_noise;
         BitField<30, 10, u64> chroma_detail;
-        BitField<40, 4, DXVAHD_DEINTERLACE_MODE_PRIVATE> deinterlace_mode;
+        BitField<40, 4, DxvhadDeinterlaceModePrivate> deinterlace_mode;
         BitField<44, 3, u64> motion_accumulation_weight;
         BitField<47, 11, u64> noise_iir;
         BitField<58, 4, u64> light_level;
@@ -480,13 +481,13 @@ struct BlendingSlotStruct {
         BitField<26, 6, u32> reserved1;
     };
     union {
-        BitField<0, 3, BLEND_SRCFACTC> src_factor_color_match_select;
+        BitField<0, 3, BlendSrcFactC> src_factor_color_match_select;
         BitField<3, 1, u32> reserved2;
-        BitField<4, 3, BLEND_DSTFACTC> dst_factor_color_match_select;
+        BitField<4, 3, BlendDstFactC> dst_factor_color_match_select;
         BitField<7, 1, u32> reserved3;
-        BitField<8, 3, BLEND_SRCFACTA> src_factor_a_match_select;
+        BitField<8, 3, BlendSrcFactA> src_factor_a_match_select;
         BitField<11, 1, u32> reserved4;
-        BitField<12, 3, BLEND_DSTFACTA> dst_factor_a_match_select;
+        BitField<12, 3, BlendDstFactA> dst_factor_a_match_select;
         BitField<15, 1, u32> reserved5;
         BitField<16, 4, u32> reserved6;
         BitField<20, 4, u32> reserved7;
