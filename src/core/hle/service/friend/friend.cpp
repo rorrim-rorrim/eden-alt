@@ -53,7 +53,8 @@ public:
             {20102, nullptr, "GetFriendDetailedInfo"},
             {20103, nullptr, "SyncFriendList"},
             {20104, &IFriendService::RequestSyncFriendList, "RequestSyncFriendList"},
-            {20105, &IFriendService::GetFriendListForViewer, "GetFriendListForViewer"},
+            {20105, &IFriendService::GetFriendListForViewer, "GetFriendListForViewerV1"}, // 19.0.0-21.2.0
+            {20108, &IFriendService::GetFriendListForViewer, "GetFriendListForViewerV2"}, // 22.0.0+
             {20110, nullptr, "LoadFriendSetting"},
             {20200, &IFriendService::GetReceivedFriendRequestCount, "GetReceivedFriendRequestCount"},
             {20201, nullptr, "GetFriendRequestList"},
