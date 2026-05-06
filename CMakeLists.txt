@@ -1,13 +1,17 @@
 # SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-if (MSVC AND NOT I_WANT_A_BROKEN_MSVC_BUILD)
-    message(FATAL_ERROR "Support for the MSVC compiler has been dropped indefinitely. "
+if (MSVC)
+    message(WARNING "Support for the MSVC compiler has been dropped indefinitely. "
         "This is not a bug. You will not receive support with issues related "
         "to using Eden with MSVC, and there is ABSOLUTELY NO GUARANTEE that Eden "
         "can be built on MSVC. Read more on our blog: https://eden-emu.dev/blog"
-        "\nSwitch to using MSYS2 instead: https://www.msys2.org"
-        "\nIf you *really* want to build anyways, set I_WANT_A_BROKEN_MSVC_BUILD=ON.")
+        "\nConsider switching to MSYS2 instead: https://www.msys2.org")
+
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.50 AND NOT I_WANT_A_BROKEN_MSVC_BUILD)
+        message(FATAL_ERROR "MSVC 19.50+ (Visual Studio 2026+) is entirely unsupported."
+            "\nIf you *really* want to build anyways, set I_WANT_A_BROKEN_MSVC_BUILD=ON.")
+    endif()
 endif()
 
 cmake_minimum_required(VERSION 3.22)
